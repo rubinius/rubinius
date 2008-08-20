@@ -79,7 +79,7 @@ class Time
       major &= ~(1 << 31)
 
       is_gmt =  (major >> 30) & 0x1
-      year   =  (major >> 14) & 0xffff
+      year   = ((major >> 14) & 0xffff) + 1900
       mon    = ((major >> 10) & 0xf) + 1
       mday   =  (major >>  5) & 0x1f
       hour   =  major         & 0x1f

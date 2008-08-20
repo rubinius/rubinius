@@ -1,7 +1,7 @@
 # depends on: class.rb
 
 #--
-# Be very careful about calling raise in here! Thread has it's own
+# Be very careful about calling raise in here! Thread has its own
 # raise which, if you're calling raise, you probably don't want. Use
 # Kernel.raise to call the proper raise.
 #++
@@ -185,7 +185,7 @@ class Thread
         @lock.send nil
         begin
           unless timeout.equal?(Undefined)
-            Scheduler.send_in_seconds(jc, timeout.to_f)
+            Scheduler.send_in_seconds(jc, timeout.to_f, nil)
           end
           jc.receive
         ensure
@@ -272,5 +272,9 @@ class Thread
     dg = ThreadGroup.new
     ThreadGroup.const_set :Default, dg
     dg.add Thread.current
+  end
+
+  def self.list
+    Thread.current.group.list
   end
 end

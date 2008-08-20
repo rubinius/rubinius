@@ -1,7 +1,26 @@
+#depends on env.rb
+
+##
+# A Foreign Function Interface used to bind C libraries to ruby.
+
 module FFI
 
-  class TypeError < RuntimeError
+  #  Specialised error classes
+  class TypeError < RuntimeError; end
+
+  class NotFoundError < RuntimeError
+    def initialize(function, library)
+      super("Function '#{function}' not found! (Looking in '#{library or 'this process'}')")
+    end
   end
+
+  # Shorthand for the current process, i.e. all code that
+  # the process image itself contains. In addition to the
+  # Rubinius codebase, this also includes libc etc.
+  #
+  # Use this constant instead of nil directly.
+  #
+  USE_THIS_PROCESS_AS_LIBRARY = nil
 
   TypeDefs = LookupTable.new
 
@@ -26,11 +45,18 @@ module FFI
 
     def create_backend(library, name, args, ret)
       Ruby.primitive :nfunc_add
+      raise NotFoundError.new(name, library) 
     end
 
+    # Internal function, should not be used directly.
+    # See Module#attach_function.
+    #
+    # TODO: Is this necessary at all? When would we ever
+    #       create an unattached method (not a Method)?
     def create_function(library, name, args, ret)
       i = 0
       tot = args.size
+
       # We use this instead of map or each because it's really early, map
       # isn't yet available.
       while i < tot
@@ -38,8 +64,32 @@ module FFI
         i += 1
       end
       cret = find_type(ret)
+      
+      if library.respond_to?(:each) and !library.kind_of? String
+        library.each do |lib|
+          lib = setup_ld_library_path(lib) if lib
+          func = create_backend(lib, name, args, cret)
+          return func if func
+        end
+        return nil
+      else
+        library = setup_ld_library_path(library) if library
+        create_backend(library, name, args, cret)
+      end
+    end
 
-      create_backend(library, name, args, cret)
+    # Setup the LD_LIBRARY_PATH 
+    def setup_ld_library_path(library)
+      # If we have a specific reference to the library, we load it here
+      specific_library = config("ld_library_path.#{library}")
+      library = specific_library if specific_library
+      
+      # This adds general paths to the search 
+      if path = config("ld_library_path.default")
+        ENV['LTDL_LIBRARY_PATH'] = [ENV['LTDL_LIBRARY_PATH'], path].compact.join(":")
+      end
+      
+      library
     end
 
   end
@@ -143,7 +193,16 @@ end
 
 class Module
 
-  ##
+  # Set which library or libraries +attach_function+ should
+  # look in. By default it only searches for the function in
+  # the current process. If you want to specify this as one
+  # of the locations, add FFI::USE_THIS_PROCESS_AS_LIBRARY.
+  # The libraries are tried in the order given.
+  #
+  def set_ffi_lib(*names)
+    @ffi_lib = names
+  end
+
   # Attach C function +name+ to this module.
   #
   # If you want to provide an alternate name for the module function, supply
@@ -152,7 +211,7 @@ class Module
   # After the +name+, the C function argument types are provided as an Array.
   #
   # The C function return type is provided last.
-
+  #
   def attach_function(name, a3, a4, a5=nil)
     if a5
       mname = a3
@@ -164,20 +223,57 @@ class Module
       ret = a4
     end
 
-    if args.size > 6 then
-      raise ArgumentError, "only C functions with up to 6 args may be attached"
+    func = FFI.create_function @ffi_lib, name, args, ret
+
+    # Error handling does not work properly so avoid it for now.
+    if !func
+      STDOUT.write "*** ERROR: Native function "
+      STDOUT.write name.to_s
+      STDOUT.write " from "
+      if @ffi_lib
+        STDOUT.write @ffi_lib.to_s
+      else
+        STDOUT.write "this process"
+      end
+      STDOUT.write " could not be found or linked.\n"
+
+      if Rubinius::RUBY_CONFIG["rbx.ffi.soft_fail"]
+        STDOUT.write "***        Proceeding because rbx.ffi.soft_fail is set. Program may fail later.\n"
+        return nil
+      else
+        STDOUT.write "***        If you want to try to work around this problem, you may set configuration\n"
+        STDOUT.write "***        variable rbx.ffi.soft_fail.\n"
+        STDOUT.write "***        Exiting.\n"
+        Process.exit 1
+      end
     end
-
-    func = FFI.create_function nil, name, args, ret
-
-    raise ArgumentError, "Unable to find function '#{name}' to bind to #{self.name}.#{mname}" unless func
 
     metaclass.method_table[mname] = func
     return func
   end
 
+  # Replaces the version above once Core has loaded.
+  def attach_function_cv(name, a3, a4, a5=nil)
+    if a5
+      mname = a3
+      args = a4
+      ret = a5
+    else
+      mname = name.to_sym
+      args = a3
+      ret = a4
+    end
+
+    func = FFI.create_function @ffi_lib, name, args, ret
+
+    raise FFI::NotFoundError.new(name, @ffi_lib) unless func
+
+    metaclass.method_table[mname] = func
+    return func
+  end
 end
 
+##
 # MemoryPointer is Rubinius's "fat" pointer class. It represents an actual
 # pointer, in C language terms, to an address in memory. They're called
 # fat pointers because the MemoryPointer object is an wrapper around
@@ -197,7 +293,7 @@ end
 # NOTE: MemoryPointer exposes direct, unmanaged operations on any
 # memory. It therefore MUST be used carefully. Reading or writing to
 # invalid address will cause bus errors and segmentation faults.
-#
+
 class MemoryPointer
 
   # call-seq:
@@ -424,6 +520,9 @@ module FFI
 
 end
 
+##
+# Represents a C struct as ruby class.
+
 class FFI::Struct
 
   attr_reader :pointer
@@ -434,7 +533,7 @@ class FFI::Struct
   def self.layout(*spec)
     return @layout if spec.size == 0
 
-    cspec = {}
+    cspec = LookupTable.new
     i = 0
 
     @size = 0
@@ -459,7 +558,7 @@ class FFI::Struct
 
   def self.config(base, *fields)
     @size = Rubinius::RUBY_CONFIG["#{base}.sizeof"]
-    cspec = {}
+    cspec = LookupTable.new
 
     fields.each do |field|
       offset = Rubinius::RUBY_CONFIG["#{base}.#{field}.offset"]
@@ -487,13 +586,13 @@ class FFI::Struct
   end
 
   def initialize(pointer = nil, *spec)
+    @cspec = self.class.layout(*spec)
+
     if pointer then
       @pointer = pointer
     else
       @pointer = MemoryPointer.new size
     end
-
-    @cspec = self.class.layout(*spec)
   end
 
   def free
@@ -529,12 +628,18 @@ class FFI::Struct
 
 end
 
+##
+# A C function that can be executed.  Similar to CompiledMethod.
+
 class NativeFunction
 
   # The *args means the primitive handles it own argument count checks.
   def call(*args)
     Ruby.primitive :nfunc_call_object
   end
+
+  ##
+  # Static C variable like errno.  (May not be used).
 
   class Variable
     def initialize(library, name, a2, a3=nil)
@@ -548,7 +653,7 @@ class NativeFunction
 
       @library = library
       @name = name
-      @functions = {}
+      @functions = LookupTable.new
     end
 
     def find_function(at)
@@ -575,9 +680,8 @@ class NativeFunction
   end
 end
 
-#++
-# Define it now so that the rest of platform can use it.
-#--
+##
+# Namespace for holding platform-specific C constants.
 
 module Platform
 end

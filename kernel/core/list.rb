@@ -1,6 +1,10 @@
 # depends on: class.rb
 
+##
+# A linked-list data structure.
+
 class List
+
   def count
     @count
   end
@@ -53,7 +57,12 @@ class List
     return nil
   end
 
+  def inspect
+    "#<List:0x%x @count=%p>" % [object_id, count]
+  end
+
   class Node
+
     def object
       @object
     end

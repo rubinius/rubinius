@@ -5,6 +5,11 @@ class Tuple
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def self.template(size, obj)
+    Ruby.primitive :tuple_template
+    raise PrimitiveFailure, "Tuple.template primitive failed"
+  end
+
   def shifted(distance)
     Ruby.primitive :tuple_shifted
     raise PrimitiveFailure, "primitive failed"
@@ -22,7 +27,7 @@ class Tuple
 
   def at(idx)
     Ruby.primitive :tuple_at
-    raise InvalidIndexError, "Object#at failed."
+    raise InvalidIndexError, "Unable to access index '#{idx}' of #{self}"
   end
 
   def put(idx, val)

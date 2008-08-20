@@ -1,6 +1,20 @@
 # depends on: class.rb
 
-class MethodTable
+##
+# Holds Executables for lookup by the VM.
+#
+# When looking up an Executable, Rubinius starts at the real class (the object
+# in the class slot of the receiver) and looks in its MethodTable for the
+# method name.  If the method is not found the ancestors list will be
+# walked looking for the method.
+#
+# If no method was found, Rubinius restarts at the real class looking for
+# "method_missing", walking the ancestors list if it is not found.
+#
+# If "method_missing" is not found, a VM assertion is triggered.
+
+class MethodTable < LookupTable
+
   def public_names
     filter_names :public
   end

@@ -1,4 +1,4 @@
-# depends on: class.rb proc.rb
+# depends on: class.rb proc.rb autoload.rb
 
 ##
 # Some terminology notes:
@@ -34,10 +34,9 @@ class Module
     end
     nesting
   end
-  
-  def initialize
-    block = block_given?
-    instance_eval(&block) if block
+
+  def initialize(&block)
+    _eval_under(self, &block) if block
   end
 
   #--
@@ -76,6 +75,8 @@ class Module
     while current
       if current.__kind_of__ MetaClass
         vars = current.attached_instance.send :class_variables_table
+      elsif current.__kind_of__ IncludedModule
+        vars = current.module.send :class_variables_table
       else
         vars = current.send :class_variables_table
       end
@@ -98,6 +99,8 @@ class Module
     while current
       if current.__kind_of__ MetaClass
         vars = current.attached_instance.send :class_variables_table
+      elsif current.__kind_of__ IncludedModule
+        vars = current.module.send :class_variables_table
       else
         vars = current.send :class_variables_table
       end
@@ -105,7 +108,9 @@ class Module
       current = current.direct_superclass
     end
 
-    raise NameError, "uninitialized class variable #{name} in #{self.name}"
+    # Try to print something useful for anonymous modules and metaclasses
+    module_name = self.name || self.inspect
+    raise NameError, "uninitialized class variable #{name} in #{module_name}"
   end
 
   def class_variable_defined?(name)
@@ -113,7 +118,11 @@ class Module
 
     current = self
     while current
-      vars = current.send :class_variables_table
+      if current.__kind_of__ IncludedModule
+        vars = current.module.send :class_variables_table
+      else
+        vars = current.send :class_variables_table
+      end
       return true if vars.key? name
       current = current.direct_superclass
     end
@@ -140,12 +149,20 @@ class Module
   alias_method :inspect, :to_s
 
   def find_method_in_hierarchy(sym)
-    if method = @method_table[sym.to_sym]
-      method
-    elsif direct_superclass
-      direct_superclass.find_method_in_hierarchy(sym)
-    else
-      [Object,Kernel].detect { |k| k.method_table[sym] }
+    mod = self
+
+    while mod
+      if method = mod.method_table[sym.to_sym]
+        return method
+      end
+
+      mod = mod.direct_superclass
+    end
+
+    # Always also search Object (and everything included in Object).
+    # This lets a module alias methods on Kernel.
+    if instance_of?(Module) and self != Kernel
+      return Object.find_method_in_hierarchy(sym)
     end
   end
 
@@ -167,6 +184,65 @@ class Module
     return out
   end
 
+  def superclass_chain
+    out = []
+    mod = direct_superclass()
+    while mod
+      out << mod
+      mod = mod.direct_superclass()
+    end
+
+    return out
+  end
+
+  # Create a wrapper to a function in a C-linked library that
+  # exists somewhere in the system. If a specific library is
+  # not given, the function is assumed to exist in the running
+  # process, the Rubinius executable. The process contains many
+  # linked libraries in addition to Rubinius' codebase, libc of
+  # course the most prominent on the system side. The wrapper
+  # method is added to the Module as a singleton method or a
+  # "class method."
+  #
+  # The function is specified like a declaration: the first
+  # argument is the type symbol for the return type (see FFI
+  # documentation for types), the second argument is the name
+  # of the function and the third argument is an Array of the
+  # types of the function's arguments. Currently at most 6
+  # arguments can be given.
+  #
+  #   # If you want to wrap this function:
+  #   int foobar(double arg_one, const char* some_string);
+  #
+  #   # The arguments to #attach_foreign look like this:
+  #   :int, 'foobar', [:double, :string]
+  #
+  # If the function is from an external library such as, say,
+  # libpcre, libcurl etc. you can give the name or path of
+  # the library. The fourth argument is an option hash and
+  # the library name should be given in the +:from+ key of
+  # the hash. The name may (and for portable code, should)
+  # omit the file extension. If the extension is present,
+  # it must be the correct one for the runtime platform.
+  # The library is searched for in the system library paths
+  # but if necessary, the full absolute or relative path can
+  # be given.
+  #
+  # By default, the new method's name is the same as the
+  # function it wraps but in some cases it is desirable to
+  # change this. You can specify the method name in the +:as+
+  # key of the option hash.
+  def attach_foreign(ret_type, name, arg_types, opts = {})
+    lib = opts[:from]
+
+    if lib and !lib.chomp! ".#{Rubinius::LIBSUFFIX}"
+      lib.chomp! ".#{Rubinius::ALT_LIBSUFFIX}" rescue nil     # .defined? is broken anyway
+    end
+
+    func = FFI.create_function lib, name.to_s, arg_types, ret_type
+    metaclass.method_table[(opts[:as] || name).to_sym] = func
+  end
+
   def find_class_method_in_hierarchy(sym)
     self.metaclass.find_method_in_hierarchy(sym)
   end
@@ -175,9 +251,22 @@ class Module
     new_name = normalize_name(new_name)
     current_name = normalize_name(current_name)
     meth = find_method_in_hierarchy(current_name)
+    # We valid +meth+ because all hell can break loose if method_table has unexpected
+    # objects in it.
     if meth
       if meth.kind_of? Tuple
         meth = meth.dup
+
+        if !meth[0].kind_of?(Symbol) or
+             not (meth[1].kind_of?(CompiledMethod) or meth[1].kind_of?(AccessVarMethod))
+          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}'"
+        end
+
+      else
+        # REFACTOR: pull up a common superclass and test against that
+        unless meth.kind_of?(CompiledMethod) or meth.kind_of?(AccessVarMethod) or meth.kind_of?(DelegatedMethod) then
+          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}' #{meth.inspect}"
+        end
       end
       method_table[new_name] = meth
       Rubinius::VM.reset_method_cache(new_name)
@@ -213,44 +302,6 @@ class Module
     return new_name
   end
 
-  ##
-  # Called when 'def name' is used in userland
-
-  def __add_method__(name, obj)
-    s = MethodContext.current.sender
-    scope = s.method_scope || :public
-
-    if name == :initialize or scope == :module
-      visibility = :private
-    else
-      visibility = scope
-    end
-
-    # All userland added methods start out with a serial of 1.
-    obj.serial = 1
-
-    Rubinius::VM.reset_method_cache(name)
-
-    method_table[name] = Tuple[visibility, obj]
-
-    # Push the scoping down.
-    # HACK they all should have staticscopes
-    if ss = s.method.staticscope
-      obj.staticscope = ss
-    end
-
-    if scope == :module
-      module_function name
-    end
-
-    if respond_to? :method_added
-      method_added(name)
-    end
-
-    # Return value here is the return value of the 'def' expression
-    return obj
-  end
-
   def undef_method(*names)
     names.each do |name|
       name = normalize_name(name)
@@ -270,8 +321,9 @@ class Module
       name = normalize_name(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
-      raise NameError, "method `#{name}' not defined in #{self.name}" unless
-        self.method_table[name]
+      unless self.method_table[name]
+        raise NameError, "method `#{name}' not defined in #{self.name}"
+      end
       method_table.delete name
       Rubinius::VM.reset_method_cache(name)
 
@@ -390,7 +442,7 @@ class Module
   end
 
   def extend_object(obj)
-    obj.metaclass.include self
+    append_features obj.metaclass
   end
 
   #--
@@ -400,22 +452,42 @@ class Module
 
   def include_cv(*modules)
     modules.reverse_each do |mod|
-      raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.kind_of?(Module) and not mod.kind_of?(Class)
-      next if ancestors.include?(mod)
+      if !mod.kind_of?(Module) or mod.kind_of?(Class)
+        raise TypeError, "wrong argument type #{mod.class} (expected Module)"
+      end
+
+      next if ancestors.include? mod
+
       mod.send(:append_features, self)
       mod.send(:included, self)
     end
   end
 
-  def append_features_cv(mod)
-    ancestors.reverse_each do |m|
-      im = IncludedModule.new(m)
-      im.attach_to mod
+
+  # Called when this Module is being included in another Module.
+  # This may be overridden for custom behaviour, but the default
+  # is to add constants, instance methods and module variables
+  # of this Module and all Modules that this one includes to the
+  # includer Module, which is passed in as the parameter +other+.
+  #
+  # See also #include.
+  #
+  def append_features_cv(other)
+    hierarchy = other.ancestors
+
+    superclass_chain.reverse_each do |ancestor|
+      if ancestor.instance_of? IncludedModule and not hierarchy.include? ancestor.module
+        IncludedModule.new(ancestor.module).attach_to other
+      end
     end
+
+    IncludedModule.new(self).attach_to other
   end
 
   def include?(mod)
-    raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.kind_of?(Module) and not mod.kind_of?(Class)
+    if !mod.kind_of?(Module) or mod.kind_of?(Class)
+      raise TypeError, "wrong argument type #{mod.class} (expected Module)"
+    end
     ancestors.include? mod
   end
 
@@ -449,9 +521,11 @@ class Module
     elsif find_method_in_hierarchy(name) then
       method_table[name] = Tuple[vis, nil]
     else
-      raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s}"
+      raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
     end
-    
+
+    Rubinius::VM.reset_method_cache name
+
     return name
   end
 
@@ -460,7 +534,7 @@ class Module
   end
 
   #--
-  # Same as include_cv above, don't call this private.
+  # As with include_cv above, don't call this private.
   #++
 
   def private_cv(*args)
@@ -511,19 +585,23 @@ class Module
 
   def module_function_cv(*args)
     if args.empty?
-      MethodContext.current.sender.method_scope = :module
-      return
+      ctx = MethodContext.current.sender
+      block_env = ctx.env if ctx.kind_of?(BlockContext)
+      # Set the method_scope in the home context if this is an eval
+      ctx = block_env.home_block if block_env and block_env.from_eval?
+      ctx.method_scope = :module
+    else
+      mc = self.metaclass
+      args.each do |meth|
+        method_name = normalize_name meth
+        method = find_method_in_hierarchy(method_name)
+        mc.method_table[method_name] = method.dup
+        mc.set_visibility method_name, :public
+        set_visibility method_name, :private
+      end
     end
 
-    mc = self.metaclass
-    args.each do |meth|
-      method_name = normalize_name meth
-      method = find_method_in_hierarchy(method_name)
-      mc.method_table[method_name] = method.dup
-      mc.set_visibility method_name, :public
-      set_visibility method_name, :private
-    end
-    nil
+    return self
   end
 
   def constants
@@ -548,6 +626,32 @@ class Module
     end
 
     return false
+  end
+
+  # Check if a full constant path is defined, e.g. SomeModule::Something
+  def const_path_defined?(name)
+    # Start at Object if this is a fully-qualified path
+    if name[0,2] == "::" then
+      start = Object
+      pieces = name[2,(name.length - 2)].split("::")
+    else
+      start = self
+      pieces = name.split("::")
+    end
+
+    defined = false
+    current = start
+    while current and not defined
+      const = current
+      defined = pieces.all? do |piece|
+        if const.is_a?(Module) and const.constants_table.key?(piece)
+          const = const.constants_table[piece]
+          true
+        end
+      end
+      current = current.direct_superclass
+    end
+    return defined
   end
 
   def const_set(name, value)
@@ -592,23 +696,13 @@ class Module
   end
 
   def const_missing(name)
-    # Check for autoloads here because this is called no matter how
-    # the constant was attempted to be accessed (ie, const_get or VM)
-    #
-    if @autoloads and path = @autoloads[name]
-      # Do the delete first in case the require bombs out.
-      @autoloads.delete(name)
-      require path
-      return recursive_const_get(name)
-    end
-
     raise NameError, "Missing or uninitialized constant: #{name}"
   end
 
   def attr_reader_cv(*names)
     names.each do |name|
       method_symbol = reader_method_symbol(name)
-      access_method = AccessVarMethod.get_ivar(attribute_symbol(name))
+      access_method = AccessVarMethod.get_ivar(attribute_symbol(name), normalize_name(name))
       method_table[method_symbol] = access_method
     end
 
@@ -618,7 +712,7 @@ class Module
   def attr_writer_cv(*names)
     names.each do |name|
       method_symbol = writer_method_symbol(name)
-      access_method = AccessVarMethod.set_ivar(attribute_symbol(name))
+      access_method = AccessVarMethod.set_ivar(attribute_symbol(name), normalize_name("#{name}="))
       method_table[method_symbol] = access_method
     end
 
@@ -714,18 +808,28 @@ class Module
     alias_method :attr_writer, :attr_writer_cv
     alias_method :attr_accessor, :attr_accessor_cv
 
+    alias_method :attach_function, :attach_function_cv
+
     private :alias_method
   end
 
+  # Install a new Autoload object into the constants table
+  # See kernel/core/autoload.rb
   def autoload(name, path)
     name = normalize_const_name(name)
     raise ArgumentError, "empty file name" if path.empty?
-    @autoloads ||= Hash.new
-    @autoloads[name] = path
+    trigger = Autoload.new(name, self, path)
+    constants_table[name] = trigger
+    return nil
   end
 
+  # Is an autoload trigger defined for the given path?
   def autoload?(name)
-    @autoloads[name] if @autoloads
+    name = name.to_sym
+    return unless constants_table.key?(name)
+    trigger = constants_table[name]
+    return unless trigger.kind_of?(Autoload)
+    trigger.original_path
   end
 
   def remove_const(name)
@@ -747,19 +851,25 @@ class Module
   private :method_added
 
   # See #const_get for documentation.
-  def recursive_const_get(name)
+  def recursive_const_get(name, missing=true)
     name = normalize_const_name(name)
 
     current, constant = self, nil
 
     while current
-      return constant if constant = current.constants_table[name]
+      constant = current.constants_table[name]
+      constant = constant.call if constant.kind_of?(Autoload)
+      return constant if constant
       current = current.direct_superclass
     end
 
     if self.kind_of?(Module) and not self.kind_of?(Class)
-      return constant if constant = Object.constants_table[name]
+      constant = Object.constants_table[name]
+      constant = constant.call if constant.kind_of?(Autoload)
+      return constant if constant
     end
+
+    return nil unless missing
 
     const_missing(name)
   end

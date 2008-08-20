@@ -91,8 +91,7 @@ class Hash
     entry = search_bin(entry,hash,key)
     return entry[2] if(entry != Undefined)
     
-    return default(key) if @default
-    nil
+    return default(key)
   end
   
   def set_key_cv(key, val)

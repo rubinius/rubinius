@@ -1,21 +1,61 @@
+# TODO - Needs ivar_as_index removal cleanup
+
+##
+# Channel is a FIFO, thread-aware value passing class that can hold any number
+# of objects similar to Queue.  Use #send to add objects to the channel and
+# #receive to remove objects from the channel.
+#
+# If Channel#receive is called on an empty channel, the VM puts the current
+# Thread (t1) to sleep.  At some future time, when Channel#send is called on
+# that same thread, the VM wakes up t1 and the value passed to #send is
+# returned.  This allows us to implement all manner of Thread semantics, such
+# as Mutex.
+#
+# Channel is used heavily by Scheduler, to allow ruby code to interact with
+# the outside world in a thread aware manner.
+
 class Channel
-  def waiting; @waiting ; end
-  def value  ; @value   ; end
+
+  ##
+  # Returns nil if nothing is waiting, or a List object which contains all
+  # Thread objects waiting on this Channel.
+
+  def waiting() @waiting end
+
+  ##
+  # Returns nil if there are no values, otherwise a List object containing all
+  # values the Channel contains.
+
+  def value() @value end
+
+  ##
+  # Creates a new Channel and registers it with the VM.
 
   def self.new
     Ruby.primitive :channel_new
     raise PrimitiveFailure, "primitive failed"
   end
 
+  ##
+  # Puts +obj+ in the Channel.  If there are waiting threads the first thread
+  # will be woken up and handed +obj+.
+
   def send(obj)
     Ruby.primitive :channel_send
     raise PrimitiveFailure, "primitive failed"
   end
 
+  ##
+  # Removes and returns the first value from the Channel.  If the channel
+  # is empty, Thread.current is put to sleep until #send is called.
+
   def receive
     Ruby.primitive :channel_receive
     raise PrimitiveFailure, "primitive failed"
   end
+
+  ##
+  # Converts +obj+ into a Channel using #to_channel.
 
   def self.convert_to_channel(obj)
     return obj if Channel === obj
@@ -30,58 +70,19 @@ class Channel
     end
   end
 
-  def self.receive(*ary)
-    if ary.size == 1
-      return convert_to_channel(ary.shift).receive
-    else
-      na = ary.map { |c| convert_to_channel(c) }
-      receive_many(na)
-    end
+  ##
+  # Legacy API. To be removed.
+
+  def self.receive(obj) # :nodoc:
+    return convert_to_channel(obj).receive
   end
+
+  ##
+  # API compliance, returns self.
 
   def to_channel
     self
   end
-end
 
-class Scheduler
-  def self.send_in_microseconds(chan, microseconds)
-    Ruby.primitive :channel_send_in_microseconds
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def self.send_in_seconds(chan, seconds)
-    Ruby.primitive :channel_send_in_seconds
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def self.send_on_readable(chan, io, buffer, nbytes)
-    Ruby.primitive :channel_send_on_readable
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def self.send_on_writable(chan, io)
-    Ruby.primitive :channel_send_on_readable
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def self.send_on_signal(chan, signum)
-    Ruby.primitive :channel_send_on_signal
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def self.send_on_stopped_prim(chan, pid, flags)
-    Ruby.primitive :channel_send_on_stopped
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def self.send_on_stopped(chan, pid=-1, flags=0)
-    send_on_stopped_prim(chan, pid, flags)
-  end
-
-  def self.cancel(id)
-    Ruby.primitive :scheduler_cancel
-    raise PrimitiveFailure, "primitive failed"
-  end
 end
 

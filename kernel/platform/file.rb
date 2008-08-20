@@ -1,5 +1,8 @@
 # depends on: ffi.rb
 
+##
+# Platform specific behavior for the File class.
+
 module Platform::File
   SEPARATOR = '/'
   ALT_SEPARATOR = nil
@@ -10,7 +13,7 @@ module Platform::File
       return "."
     else
       # strip the basename off the end and clean up the ending separators
-      path = path.sub(/#{SEPARATOR}*[^#{SEPARATOR}]*#{SEPARATOR}*$/,'')    
+      path = path.sub(/#{SEPARATOR}*[^#{SEPARATOR}]*#{SEPARATOR}*$/,'')
       if(path == '')
         return SEPARATOR
       else
@@ -20,6 +23,7 @@ module Platform::File
   end
 
   def self.basename(path,ext)
+    path.gsub!(/([^#{SEPARATOR}])#{SEPARATOR}\z/, "\\1")
     basename = if(m = path.match(/#{SEPARATOR}+([^#{SEPARATOR}]*)#{SEPARATOR}*$/))
                  m[1] == '' ? SEPARATOR : m[1]
                else
@@ -39,9 +43,9 @@ module Platform::File
       dir_string = StringValue(dir_string)
     end
 
-    # FIXME: making this compliant require implmenting getpwnam support
-    #attach_function 'getpwnam', [:string], :pointer
-    #raise ArgumentError, "user #{path}" if path.match(/~([^\/])/
+    path.gsub!(/~(#{ENV['USER']})/, "~/")
+
+    raise ArgumentError, "user #{path}" if path.match(/~([^\/])/)
 
     if(dir_string.empty?)
       dir_string = Dir.pwd
@@ -50,7 +54,7 @@ module Platform::File
     elsif(dir_string[0].chr != '/')
       dir_string = Dir.pwd + "/" + dir_string
     end
-    
+
     dirs = path.split('/')
     if path == '' || (dirs.empty? && path[0].chr != '/')
       return dir_string
@@ -61,13 +65,13 @@ module Platform::File
               when '.'; dir_string
               when ''; '/'
               when nil;
-                match = /(\/+)/.match(path) 
+                match = /(\/+)/.match(path)
                 prefix = match[0] if match
                 ''
               else
                 dir_string + '/' + dirs.first
               end
-      
+
       dirs.shift
       paths = first.split('/')
       dirs.each do |dir|
@@ -77,5 +81,5 @@ module Platform::File
       string = paths.empty? ? '' : paths.join("/")
       return !string.empty? && string[0].chr == '/' ? string : prefix || '/' +string
     end
-  end  
+  end
 end

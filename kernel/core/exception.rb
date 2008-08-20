@@ -7,24 +7,22 @@ class Exception
   def initialize(message = nil)
     @message = message
     @context = nil
+    @backtrace = nil
   end
 
   def backtrace
+    return @backtrace if @backtrace
     return nil unless @context
-    return @context if @context.kind_of? Array
     awesome_backtrace.to_mri
   end
   
   def awesome_backtrace
     return nil unless @context
-    unless @context.kind_of? Backtrace
-      @context = Backtrace.backtrace(@context)
-    end
-    @context
+    @backtrace = Backtrace.backtrace(@context)
   end
 
   def set_backtrace(bt)
-    @context = bt
+    @backtrace = bt
   end
   
   def to_s
@@ -34,7 +32,7 @@ class Exception
   def inspect
     "#<#{self.class.name}: #{self.to_s}>"
   end
-  
+
   alias_method :message, :to_s
   alias_method :to_str, :to_s
   
@@ -51,11 +49,11 @@ class Exception
   end
   
   def context
-    if @context.kind_of? Backtrace
-      return @context.top_context
-    end
-    
-    return @context
+    @context
+  end
+
+  def context=(other)
+    @context = other
   end
   
   def location
@@ -171,6 +169,12 @@ class SyntaxError < ScriptError
     @line = l
     @code = code
   end
+
+  def message
+    msg = super
+    msg = "#{file}:#{@line}: #{msg}" if file && @line
+    msg
+  end
 end
 
 class SystemCallError < StandardError
@@ -186,11 +190,26 @@ class SystemCallError < StandardError
   end
 end
 
-class IllegalLongReturn
+##
+# Raised when you try to return from a block when not allowed.  Never seen by
+# ruby code.
+
+class IllegalLongReturn < LocalJumpError
   attr_reader :return_value
 end
 
-class ReturnException
+##
+# Abstract class for implementing flow control in Rubinius.  Never seen by
+# ruby code.
+
+class FlowControlException < Exception
+end
+
+##
+# Flow control exception used to implement return inside an ensure.  Never
+# seen by ruby code.
+
+class ReturnException < FlowControlException
   attr_reader :return_value
 
   def initialize(val)
@@ -199,7 +218,11 @@ class ReturnException
   end
 end
 
-class LongReturnException
+##
+# Raised when returning from a block to handle proper flow control.  Never
+# seen by ruby code.
+
+class LongReturnException < FlowControlException
   attr_reader :value
   attr_reader :is_return
 

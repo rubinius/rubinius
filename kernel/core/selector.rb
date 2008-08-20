@@ -1,4 +1,8 @@
+##
+# The representation of a method name used for invalidating a cached SendSite.
+
 class Selector
+
   def name
     @name
   end

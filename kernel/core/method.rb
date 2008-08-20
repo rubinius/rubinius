@@ -20,7 +20,7 @@ class Method
 
   def initialize(receiver, defined_in, compiled_method)
     @receiver         = receiver
-    @pulled_from      = receiver.class
+    @pulled_from      = receiver.__class__
     @defined_in       = defined_in
     @compiled_method  = compiled_method
   end
@@ -96,7 +96,7 @@ class Method
 
   def to_proc()
     env = Method::AsBlockEnvironment.new self
-    Proc.from_environment(env)
+    Proc.__from_block__(env)
   end
 
   ##
@@ -111,6 +111,9 @@ class Method
   end
 
 end
+
+##
+# Wraps the Method into a BlockEnvironment, for use with Method#to_proc.
 
 class Method::AsBlockEnvironment < BlockEnvironment
   def initialize(method)
@@ -193,8 +196,14 @@ class UnboundMethod
   # Module anyway.
 
   def bind(receiver)
-    unless receiver.kind_of? @defined_in
-      raise TypeError, "Must be bound to an object of kind #{@defined_in}"
+    if @defined_in.kind_of? MetaClass
+      unless @defined_in.attached_instance == receiver
+        raise TypeError, "Must be bound to #{@defined_in.attached_instance.inspect} only"
+      end
+    else
+      unless receiver.__kind_of__ @defined_in
+        raise TypeError, "Must be bound to an object of kind #{@defined_in}"
+      end
     end
     Method.new receiver, @defined_in, @compiled_method
   end

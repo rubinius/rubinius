@@ -1,3 +1,6 @@
+##
+# Implements the MVM functionality.
+
 class Rubinius::VM
   def self.spawn(*args)
     args.unshift "rubinius"

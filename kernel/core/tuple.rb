@@ -1,5 +1,8 @@
 # depends on: class.rb module.rb
 
+##
+# The tuple data type.
+
 class Tuple
 
   include Enumerable
@@ -28,6 +31,13 @@ class Tuple
       i += 1
     end
     self
+  end
+
+  def + o
+    t = Tuple.new(size + o.size)
+    each_with_index { |e, i| t[i] = e }
+    o.each_with_index { |e, i| t[i + size] = e }
+    t
   end
 
   def inspect
@@ -71,7 +81,7 @@ class Tuple
   def to_a
     ary = []
     each do |ent|
-      ary << ent unless ent.nil?
+      ary << ent
     end
     return ary
   end

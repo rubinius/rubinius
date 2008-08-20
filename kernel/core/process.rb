@@ -584,7 +584,7 @@ module Kernel
       write.close
       chan = Channel.new
       output = ""
-      buf = String.new(50)
+      buf = String.buffer 50
       while true
         Scheduler.send_on_readable chan, read, buf, 50
         res = chan.receive

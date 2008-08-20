@@ -1,11 +1,10 @@
+# TODO - Needs ivar_as_index removal cleanup
+
 class Class
-  def __allocate__
-    Ruby.primitive :class_allocate
-    raise RuntimeError, "primitive '__allocate__' failed on #{self.inspect}"
-  end
 
   def allocate
-    __allocate__
+    Ruby.primitive :class_allocate
+    raise RuntimeError, "primitive 'class_allocate' failed on #{self.inspect}"
   end
 
   def new(*args)
@@ -58,18 +57,17 @@ class RuntimePrimitive < Executable
 end
 
 class AccessVarMethod < RuntimePrimitive
+  def initialize name, variable
+    super name
+    self.variable = variable
+  end
+  
   def self.get_ivar(name)
-    obj = new(:get_ivar)
-    obj.variable = name
-
-    return obj
+    new(:get_ivar, name)
   end
 
   def self.set_ivar(name)
-    obj = new(:set_ivar)
-    obj.variable = name
-
-    return obj
+    new(:set_ivar, name)
   end
 end
 

@@ -1,33 +1,39 @@
 # depends on: class.rb
 
 class Symbol
+  ##
+  # Returns an array of all the symbols currently in Ruby‘s symbol table.
+  #
+  #  Symbol.all_symbols.size    #=> 903
+  #  Symbol.all_symbols[1,20]   #=> [:floor, :ARGV, :Binding, :symlink,
+  #                                  :chown, :EOFError, :$;, :String,
+  #                                  :LOCK_SH, :"setuid?", :$<,
+  #                                  :default_proc, :compact, :extend,
+  #                                  :Tms, :getwd, :$=, :ThreadGroup,
+  #                                  :wait2, :$>]
   def self.all_symbols
     Ruby.primitive :symbol_all_symbols
     raise PrimitiveFailure, "Symbol.all_symbols failed."
   end
 
+  ##
+  # Returns a pretty version of the symbol, fit for viewing
+  #  :symbol.inspect #=> ":symbol"
   def inspect
-    str = to_s
+    str = self.to_s
+
     case str
-    when /^\"$/
-      ":\"\\\"\""
-    when /^(!|!=|!~|&&|'|,|\.|\.\.|\.\.\.|:|::|;|=>|\?|\|\||\d|\+\+)/, /^(\$|@|=)$/, / /
-      ":\"#{str}\""
-    when /^(-@|\+@|%|&|\*|\*\*|\/|<|<=|<=>|==|===|=~|>|>=|\[\]|\[\]=|<<|^|`|~)/
-      ":#{str}"
-    when /^($-?|@@?)?[a-z_]+[?!]?/ then # TODO: verify this is correct
+    when /^(\$|@@?)[a-z_][a-z_\d]*$/i,                     # Variable names
+         /^[a-z_][a-z_\d]*[?!]?$/i,                        # Method names
+         /^\$(-[a-z_\d]|[+~:?<_\/'"$.,`!;\\=*>&@]|\d+)$/i, # Special global variables
+         /^([|^&\/%~`]|<<|>>|<=>|===?|=~|[<>]=?|[+-]@?|\*\*?|\[\]=?)$/ # Operators
       ":#{str}"
     else
-      ":\"#{str}\""
+      ":#{str.inspect}"
     end
   end
 
   alias_method :intern, :to_sym
   alias_method :id2name, :to_s
 
-  # Slightly modified from ActiveSupport to avoid a reliance on left-to-right
-  # evaluation order
-  def to_proc
-    Proc.new { |rec, *args| rec.__send__(self, *args) }
-  end
 end

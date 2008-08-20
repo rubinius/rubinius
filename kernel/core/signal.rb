@@ -7,11 +7,18 @@ module Signal
   @handlers = {}
   
   def self.trap(sig, prc=nil, pass_ctx=false, &block)
+    sig = sig.to_s if sig.kind_of?(Symbol)
+
     if sig.kind_of?(String)
       osig = sig
 
       if sig.prefix? "SIG"
         sig = sig[3..-1]
+      end
+
+      if sig == "EXIT"
+        at_exit { block.call }
+        return
       end
 
       unless number = Names[sig]
@@ -40,17 +47,21 @@ module Signal
       while true
         ctx = chan.receive
 
-        if pass_ctx
-          obj = ctx
-        else
-          obj = number
-        end
+        # Run the handler in a new thread so chan.receive doesn't
+        # block signals during handler execution, e.g., a SIGINT
+        # during a sleep() in a SIGINT handler.
 
-        begin
-          @handlers[number].call(obj)
-        rescue Object => e
-          if $DEBUG
-            STDERR.pus "Exception while running signal handler: #{e.message}"
+        Thread.new do
+          if pass_ctx
+            obj = ctx
+          else
+            obj = number
+          end
+
+          begin
+            @handlers[number].call(obj)
+          rescue Object => e
+            Thread.main.raise e
           end
         end
       end

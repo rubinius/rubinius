@@ -12,7 +12,8 @@ module Rubinius
 end
 
 ##
-# A module for selecting which Rubinius compiler to use.
+# Main entrace point to the Rubinius compiler.  Handles loading and compiling
+# ruby code.
 
 module Compile
 
@@ -65,12 +66,18 @@ module Compile
     compiler.compile_file(path, flags)
   end
 
-  def self.compile_string(string, flags=nil, filename="(eval)", line=1)
-    compiler.compile_string(string, flags, filename, line)
+  def self.compile_string(string, context=nil, filename="(eval)", line=1)
+    compiler.compile_string(string, context, filename, line)
   end
 
   def self.execute(string)
     eval(string, TOPLEVEL_BINDING)
+  end
+
+  # Sets a flag so that the next script to be loaded gets a breakpoint set at
+  # the first instruction
+  def self.debug_script!
+    @debug_script = true
   end
 
   # By calling require in the block passed to this, require will
@@ -95,7 +102,7 @@ module Compile
   # Internally used by #load and #require. Determines whether to
   # load the file directly or by prefixing it with the paths in
   # $LOAD_PATH and then attempts to locate and load the file.
-  def self.unified_load(path, rb, rbc, ext, requiring = nil)
+  def self.unified_load(path, rb, rbc, ext, requiring = nil, options = {:recompile => false})
     # forces the compiler to be loaded. We need this to get
     # the proper version_number calculation.
     #
@@ -104,21 +111,21 @@ module Compile
     # ./ ../ ~/ /
     if path =~ %r{\A(?:(\.\.?)|(~))?/}
       if $2    # ~ 
-        rb.slice! '~/'
-        rbc.slice! '~/'
-        ext.slice! '~/'
-        res = Compile.single_load "#{ENV['HOME']}/", rb, rbc, ext, requiring
+        rb.slice! '~/' if rb
+        rbc.slice! '~/' if rbc
+        ext.slice! '~/' if ext
+        res = Compile.single_load "#{ENV['HOME']}/", rb, rbc, ext, requiring, options
 
       else
-        res = Compile.single_load '', rb, rbc, ext, requiring
+        res = Compile.single_load '', rb, rbc, ext, requiring, options
       end
 
-      return res unless res.nil? # can be false
+      return res unless res.nil?      # false is valid
 
     # Unqualified
     else
       $LOAD_PATH.each do |dir|
-        if rbc and dir.suffix? '.rba' and File.file? dir
+        if rbc and dir.suffix? '.rba' and File.file? dir and !options[:recompile]
           begin
             _, _, _, _, _, data = Ar.new(dir).extract rbc
           rescue Ar::Error
@@ -141,13 +148,17 @@ module Compile
             end
 
             $LOADED_FEATURES << rb if requiring
+
+            # Add script CM to CompiledMethod.scripts
+            CompiledMethod.scripts[rb] = cm
+
             return true
           end
           # Fall through
         end
 
-        res = Compile.single_load "#{dir}/", rb, rbc, ext, requiring
-        return res unless res.nil? # can be false
+        res = Compile.single_load "#{dir}/", rb, rbc, ext, requiring, options
+        return res unless res.nil?      # false is valid
       end
     end
 
@@ -166,13 +177,11 @@ module Compile
 
   # Internally used by #unified_load. This attempts to load the
   # designated file from a single prefix path.
-  def self.single_load(dir, rb, rbc, ext, requiring = nil)
-    # forces the compiler to be loaded. We need this to get
-    # the proper version_number calculation.
-    #
+  def self.single_load(dir, rb, rbc, ext, requiring, options)
+    # Force compiler loading, required for version calculation
     self.compiler unless @compiler
 
-    if rb then
+    if rb
       return false if requiring and $LOADED_FEATURES.include? rb
 
       rb_path = "#{dir}#{rb}"
@@ -189,8 +198,8 @@ module Compile
             raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
           end
 
-        # Use source only if it is newer
-        elsif !File.file?(rbc_path) or File.mtime(rb_path) > File.mtime(rbc_path)
+        # Prefer compiled whenever possible
+        elsif !File.file?(rbc_path) or File.mtime(rb_path) > File.mtime(rbc_path) or options[:recompile]
           if $DEBUG_LOADING
             if !File.file?(rbc_path)
               STDERR.puts "[Compiling #{rb_path}: Missing compiled version]"
@@ -225,12 +234,16 @@ module Compile
           end
         end
 
+        # Add script CM to CompiledMethod.scripts
+        CompiledMethod.scripts[rb] = cm
+
         begin
           cm.compile
           cm.hints = { :source => :rb }
-          if $DEBUGGER and !requiring
+          # Set a breakpoint on the script CompiledMethod if flag is set
+          if @debug_script
             Debugger.instance.set_breakpoint cm, 0
-            $DEBUGGER = false
+            @debug_script = false
           end
           cm.as_script do |script|
             script.path = rb_path
@@ -244,13 +257,13 @@ module Compile
       end
     end
 
-    if rbc then
+    if rbc
       rb = rbc.chomp 'c'
       return false if requiring and $LOADED_FEATURES.include?(rb)
 
       rbc_path = "#{dir}#{rbc}"
 
-      if File.file? rbc_path then
+      if File.file? rbc_path and !options[:recompile]
         compile_feature(rb, requiring) do
           cm = CompiledMethod.load_from_file(rbc_path, version_number)
           raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
@@ -271,13 +284,13 @@ module Compile
       end
     end
 
-    if ext then
+    if ext
       return false if requiring and $LOADED_FEATURES.include? ext
       
       ext_path = "#{dir}#{ext}"
       ext_name = File.basename ext, ".#{Rubinius::LIBSUFFIX}"
 
-      if File.file? ext_path then
+      if File.file? ext_path
         case Rubinius::VM.load_library(ext_path, ext_name)
         when true
           $LOADED_FEATURES << ext if requiring
@@ -296,7 +309,8 @@ module Compile
 
   def self.load_from_extension(path)
     path = StringValue(path)
-
+    # Remap all library extensions behind the scenes, just like MRI
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, ".#{Rubinius::LIBSUFFIX}")
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
@@ -309,7 +323,7 @@ module Compile
       rb, rbc, ext = path, "#{dir}/#{name}.compiled.rbc", nil
     end
 
-    Compile.single_load '', rb, rbc, ext, false
+    Compile.single_load '', rb, rbc, ext, false, {}
   end
 
   def self.unmarshal_object(data, version)
@@ -326,7 +340,6 @@ module Kernel
     Marshal.dump_to_file cm, out, Compile.version_number
     return out
   end
-
   module_function :compile
 
   ##
@@ -358,21 +371,27 @@ module Kernel
   # exist, LoadError is raised. Unqualified names may contain path
   # elements so directories are valid targets and can be used with
   # $LOAD_PATH.
-  #--
+  #
+  # A few extra options are supported. If the second parameter is
+  # true, then the module is wrapped inside an anonymous module for
+  # loading to avoid polluting the namespace. This is actually a
+  # shorthand for passing in :wrap => true-ish in the second arg
+  # which may be an option Hash.
+  #
+  # If :recompile in option Hash is true-ish then the file in
+  # question is recompiled each time. If the source file is not
+  # present when recompiling is requested, a LoadError is raised.
+  #
   # TODO: Support non-UNIX paths.
   #
   # TODO: The anonymous module wrapping is not implemented at all.
   #
-  # TODO: load 'somefile' should only succeed if that exact filename
-  #       exists. However, due to the requirement that a .rbc should
-  #       be usable even if .rb does not exist, load 'somefile' will
-  #       attempt load 'somefile.rbc' also. This is problematic because
-  #       if 'somefile.rb' does exist but 'somefile' does not, the
-  #       load should fail. Currently it does not if 'somefile.rb'
-  #       has been compiled to 'somefile.rbc'.
-
-  def load(path, wrap = false)
+  def load(path, opts = {:wrap => false, :recompile => false})
     path = StringValue(path)
+    # Remap all library extensions behind the scenes, just like MRI
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, ".#{Rubinius::LIBSUFFIX}")
+    
+    opts = {:wrap => !!opts, :recompile => false} unless Hash === opts
 
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
@@ -386,11 +405,11 @@ module Kernel
       rb, rbc, ext = path, "#{dir}/#{name}.compiled.rbc", nil
     end
 
-    Compile.unified_load path, rb, rbc, ext
+    Compile.unified_load path, rb, rbc, ext, nil, opts
   end
   module_function :load
 
-  ##
+  
   # Attempt to load the given file, returning true if successful.
   # If the file has already been successfully loaded and exists
   # in $LOADED_FEATURES, it will not be re-evaluated and false
@@ -422,7 +441,7 @@ module Kernel
   # exist, LoadError is raised. Unqualified names may contain path
   # elements so directories are valid targets and can be used with
   # $LOAD_PATH.
-  #--
+  #
   # TODO: Support non-UNIX paths.
   #
   # TODO: See if we can safely use 1.9 rules with $LOADED_FEATURES,
@@ -432,9 +451,18 @@ module Kernel
   # Each successfully loaded file is added to $LOADED_FEATURES
   # ($"), using the original unexpanded filename (with the
   # exception that the file extension is added.)
-
+  #
   def require(path)
     path = StringValue(path)
+    rb, rbc, ext = __split_path__ path
+    Autoload.remove(rb)
+    Compile.unified_load path, rb, rbc, ext, true
+  end
+  module_function :require
+
+  def __split_path__(path)
+    # Remap all library extensions behind the scenes, just like MRI
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, ".#{Rubinius::LIBSUFFIX}")
 
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
@@ -445,9 +473,8 @@ module Kernel
     else
       rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
     end
-
-    Compile.unified_load path, rb, rbc, ext, true
+    return rb,rbc,ext
   end
-  module_function :require
+  private :__split_path__
 end
 

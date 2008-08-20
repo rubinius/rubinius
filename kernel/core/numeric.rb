@@ -3,6 +3,9 @@
 class Numeric
   include Comparable
 
+  # Numeric and sub-classes do not have ivars
+  def __ivars__ ; nil  ; end
+
   def +@
     self
   end
@@ -95,7 +98,8 @@ class Numeric
   end
 
   def ==(other)
-    other == self
+    return true if other.equal?(self)
+    !!(other == self)
   end
   
   def <=>(other)
@@ -105,6 +109,20 @@ class Numeric
     rescue ArgumentError
       return nil
     end
+  end
+  
+  def truncate
+    Float(self).truncate
+  end
+
+  # Delegate #to_int to #to_i in subclasses
+  def to_int
+    self.to_i
+  end
+  
+  # Delegate #modulp to #% in subclasses
+  def modulo(other)
+    self % other
   end
 
   def integer?
@@ -167,7 +185,7 @@ class Numeric
   #++
 
   def coerce(other)
-    Ruby.primitive(:numeric_coerce)
+    Ruby.primitive :numeric_coerce
     [Float(other), Float(self)]
   end
 

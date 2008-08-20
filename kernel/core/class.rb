@@ -67,13 +67,11 @@ class Class
     @object_type = sclass.object_type
     @superclass = sclass
 
-    super()
-
     mc = self.metaclass
     mc.set_superclass sclass.metaclass
 
-    block = block_given?
-    instance_eval(&block) if block
+    super()
+
     # add class to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses
     sclass.__send__ :inherited, self
@@ -108,8 +106,10 @@ class Class
   def subclasses_cv(descend = false)
     if descend
       subclasses_descend()
-    else
+    elsif @subclasses
       @subclasses.dup
+    else
+      []
     end
   end
 
@@ -139,6 +139,7 @@ class Class
     alias_method :opened_class, :opened_class_cv
     alias_method :add_subclass, :add_subclass_cv
     alias_method :__subclasses__, :subclasses_cv
+    alias_method :dup, :clone
   end
 end
 
@@ -150,7 +151,7 @@ class MetaClass
   def attach_method(name, object)
     # All userland added methods start out with a serial of 1.
     object.serial = 1
-    
+
     cur = method_table[name]
     if cur and cur.kind_of? Tuple
       # Override the slot which points to the method, so that we
@@ -162,6 +163,12 @@ class MetaClass
 
     object.inherit_scope MethodContext.current.sender.method
     Rubinius::VM.reset_method_cache(name)
+
+    # Call singleton_method_added on the object in question. There is
+    # a default version in Kernel which does nothing, so we can always
+    # call this.
+    attached_instance.__send__ :singleton_method_added, name
+
     return object
   end
 

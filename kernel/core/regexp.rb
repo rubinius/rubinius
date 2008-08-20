@@ -7,7 +7,6 @@ class Regexp
   def data     ; @data      ; end
   def names    ; @names     ; end
 
-  ValidOptions  = ['m','i','x']
   ValidKcode    = [?n,?e,?s,?u]
   KcodeValue    = [16,32,48,64]
 
@@ -123,7 +122,7 @@ class Regexp
       return nil
     end
   end
-  
+
   def self.last_match=(match)
     # Set an ivar in the sender of our sender
     parent = MethodContext.current.sender
@@ -136,7 +135,7 @@ class Regexp
   # last_match= sets the senders last match.
 
   def self.my_last_match=(match)
-    # Set an ivar in the sender 
+    # Set an ivar in the sender
     ctx = MethodContext.current.sender
     ctx.last_match = match
   end
@@ -166,6 +165,9 @@ class Regexp
     return res.nil? ? nil : res.begin(0)
   end
 
+  # Returns the index of the first character in the region that
+  # matched or nil if there was no match. See #match for returning
+  # the MatchData instead.
   def =~(str)
     # unless str.nil? because it's nil and only nil, not false.
     str = StringValue(str) unless str.nil?
@@ -179,7 +181,7 @@ class Regexp
       return nil
     end
   end
-  
+
   def match_all(str)
     start = 0
     arr = []
@@ -250,74 +252,227 @@ class Regexp
     return nil
   end
 
+  # Performs normal match and returns MatchData object from $~ or nil.
   def match(str)
-    Regexp.last_match = match_region(str, 0, str.size, true)
+    return nil if str.nil?
+    Regexp.last_match = search_region(str, 0, str.size, true)
   end
-  
+
   def match_from(str, count)
     return nil if str.nil?
-    match_region(str, count, str.size, true)
+    search_region(str, count, str.size, true)
+  end
+
+  class SourceParser
+    class Part
+      OPTIONS_MAP = {'m' => Regexp::MULTILINE, 'i' => Regexp::IGNORECASE, 'x' => Regexp::EXTENDED}
+      attr_accessor :options
+      attr_accessor :source
+      def initialize(source = "")
+        @source = source
+        @options = []
+        @negated_options = []
+      end
+
+      def <<(str)
+        @source << str
+      end
+
+      def empty?
+        @source.empty?
+      end
+
+      def flatten
+      end
+
+      def to_s
+        source
+      end
+
+      def has_options!
+        @has_options = true
+      end
+
+      def has_options?
+        @has_options
+      end
+    end
+
+    class OptionsGroupPart < Part
+      def to_s
+        @flatten ? "#{source}" : "(#{options_string}#{source})"
+      end
+
+      def push_option!(identifier)
+        @options << identifier
+      end
+
+      def push_negated_option!(identifier)
+        @negated_options << identifier
+      end
+
+      def flatten
+        @flatten = true
+      end
+
+      def options_string
+        string = @options.join + (@negated_options.empty? ? "" : @negated_options.join)
+#FIXME!!!!!!!!!
+        #string.empty? ? "" :
+        "?#{string}:"
+      end
+      private :options_string
+    end
+
+    class LookAheadGroupPart < Part
+      def to_s
+        "(#{source})"
+      end
+    end
+
+    def initialize(source, options = 0)
+      @source = source
+      @options = options
+      @parts = [Part.new]
+    end
+
+
+    def string
+      ["(?", options_string, ":",  parts_string, ")"].join
+    end
+
+    def parts_string
+      if parts.size == 1 && parts.first.has_options?
+        parts.first.flatten
+      end
+      parts.map{|part| part.to_s}.join
+    end
+
+    def parts
+      return @parts if @already_parsed
+      @index = 0
+      create_parts
+      @parts.reject!{|part| part.empty?}
+      @already_parsed = true
+      @parts
+    end
+
+    def create_parts
+      return if finished_processing?
+      char =  @source[@index].chr
+      case char
+      when '('
+        if @source[@index + 1].chr == '?'
+          process_group
+        else
+          push_current_character!
+        end
+      else
+        push_current_character!
+      end
+      create_parts
+    end
+
+    def finished_processing?
+      @index + 1 > @source.size
+    end
+
+    def process_group
+      @index += 1
+      @parts << group_part_class.new
+      (@index += 1) && process_group_options if in_group_with_options?
+      process_look_ahead if in_lookahead_group?
+      process_until_group_finished
+      add_part!
+    end
+
+    def group_part_class
+      if in_group_with_options?
+        OptionsGroupPart
+      elsif in_lookahead_group?
+        LookAheadGroupPart
+      else
+        raise "Couldn't determine Group part type to instantiate"
+      end
+    end
+
+    def in_lookahead_group?
+      @source[@index, 2] == "?=" || @source[@index, 2] == "?!"
+    end
+
+    def process_look_ahead
+      push_current_character!
+      push_current_character!
+    end
+
+    def in_group_with_options?
+      return false if @source[@index, 1] != '?'
+
+      @source[@index + 1..-1].each_char do |c|
+        return true if ':' == c
+        return false unless %w[m i x -].include? c
+      end
+    end
+
+    def process_group_options
+      @parts.last.has_options!
+      case @source[@index].chr
+      when ')'
+        return
+      when ':'
+        @index += 1
+        return
+      else
+        push_option!
+        process_group_options
+      end
+    end
+
+    def process_until_group_finished
+      if @source[@index].chr == ")"
+        @index += 1
+        return
+      else
+        push_current_character!
+        process_until_group_finished
+      end
+    end
+
+    def push_current_character!
+      @parts.last << @source[@index].chr
+      @index += 1
+    end
+
+    def push_option!
+      @parts.last.push_option!(@source[@index].chr)
+      @index += 1
+    end
+
+    def add_part!
+      @parts << Part.new
+    end
+
+    def options_string
+      chosen_options = []
+      possible_options = [[MULTILINE, "m"], [IGNORECASE, "i"], [EXTENDED, "x"]]
+      possible_options.each do |flag, identifier|
+        chosen_options << identifier if @options & flag > 0
+      end
+      if parts.size == 1
+        chosen_options.concat parts.first.options
+      end
+      excluded_options = possible_options.map{|e| e.last}.select{|identifier| !chosen_options.include?(identifier)}
+      options_to_return = chosen_options
+      if !excluded_options.empty?
+        options_to_return << "-" << excluded_options
+      end
+      options_to_return.join
+    end
+
   end
 
   def to_s
-    idx     = 0
-    offset  = 0
-    pattern = source
-    option  = options
-    len     = pattern.size
-    endpt   = -1
-
-    loop do
-      if (len - idx) > 4 && pattern[idx,2] == "(?"
-        idx += 2
-
-        offset = get_option_string_length(pattern[idx..-1])
-        if offset > 0
-          option |= string_to_option(pattern[idx, offset])
-          idx += offset
-        end
-
-        if pattern[idx,1] == '-'
-          idx += 1
-          offset = get_option_string_length(pattern[idx..-1])
-          if offset > 0
-            option &= ~string_to_option(pattern[idx, offset])
-            idx += offset
-          end
-        end
-
-        if pattern[idx..1] == ')'
-          idx += 1
-          next
-        elsif pattern[idx,1] == ':' && pattern[-1,1] == ')'
-          idx += 1
-          if !Regexp.new(pattern[idx..-2], 0).is_a?(Regexp)
-            option = self.options
-            idx    = 0
-          else
-            endpt -= 1
-          end
-        end
-      end
-      break
-    end
-    string = '(?'
-    string << option_to_string(option)
-    if (option & OPTION_MASK) != OPTION_MASK
-      string << '-' << option_to_string(~option)
-    end
-    string << ':' << pattern[idx..endpt] << ')'
-  end
-
-  def get_option_string_length(string)
-    idx = 0
-    while idx < string.length do
-      if !ValidOptions.include?(string[idx,1])
-        return idx
-      end
-      idx += 1
-    end
-    return idx
+    SourceParser.new(source, options).string
   end
 
   def option_to_string(option)
@@ -325,9 +480,8 @@ class Regexp
     string << 'm' if (option & MULTILINE) > 0
     string << 'i' if (option & IGNORECASE) > 0
     string << 'x' if (option & EXTENDED) > 0
-    return string
+    string
   end
-
 end
 
 class MatchData
@@ -335,15 +489,15 @@ class MatchData
   def string
     @source
   end
-  
+
   def source
     @source
   end
-  
+
   def full
     @full
   end
-  
+
   def begin(idx)
    return full.at(0) if idx == 0
    return @region.at(idx - 1).at(0)
@@ -369,33 +523,33 @@ class MatchData
     out = []
     @region.each do |tup|
       x = tup.at(0)
-      
+
       if x == -1
         out << nil
-      else  
+      else
         y = tup.at(1)
         out << @source[x, y-x]
       end
     end
     return out
   end
-  
+
   def pre_match
     return "" if full.at(0) == 0
     nd = full.at(0) - 1
     @source[0, nd+1]
   end
-  
+
   def pre_match_from(idx)
     return "" if full.at(0) == 0
     nd = full.at(0) - 1
-    @source[idx, nd-idx+1]    
+    @source[idx, nd-idx+1]
   end
-  
+
   def collapsing?
     self.begin(0) == self.end(0)
   end
-  
+
   def post_match
     nd = @source.size - 1
     st = full.at(1)
@@ -412,7 +566,7 @@ class MatchData
     elsif !idx.is_a?(Integer) or idx < 0
       return to_a[idx]
     end
-    
+
     if idx == 0
       return matched_area()
     elsif idx < size
@@ -432,11 +586,11 @@ class MatchData
     unless block_given?
       raise LocalJumpError, "no block given"
     end
-    
+
     out = []
     ma = matched_area()
     out << ma if yield ma
-    
+
     each_capture do |str|
       if yield(str)
         out << str
@@ -456,19 +610,19 @@ class MatchData
   def values_at(*indexes)
     indexes.map { |i| self[i] }
   end
-  
+
   def matched_area
     x = full[0]
     y = full[1]
     @source[x, y-x]
   end
-  
+
   private :matched_area
 
   def get_capture(num)
     x, y = @region[num]
     return nil if !y or x == -1
-    
+
     return @source[x, y-x]
   end
 

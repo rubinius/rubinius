@@ -1,3 +1,10 @@
+##
+# A SendSite exists in the InstructionSequence wherever you would call a
+# method (send a message).  When searching for an Executable to run, the
+# SendSite is examined first.  If there is an Executable stored inside it, it
+# is used.  Otherwise the MethodTable is consulted (see MethodTable) and the
+# SendSite is filled in with that Executable.
+
 class SendSite
   def self.new(name)
     SendSite.create name
@@ -19,6 +26,10 @@ class SendSite
 
   def selector
     at(1)
+  end
+
+  def receiver
+    at(2)
   end
 
   def hits

@@ -10,6 +10,23 @@ class Fixnum < Integer
 
   MAX = Platform::Fixnum.MAX
 
+  def self.induced_from(obj)
+    case obj
+    when Fixnum
+      return obj
+    when Float, Bignum
+      value = obj.to_i
+      if value.is_a? Bignum
+        raise RangeError, "Object is out of range for a Fixnum"
+      else
+        return value
+      end
+    else
+      value = Type.coerce_to(obj, Integer, :to_int)
+      return self.induced_from(value)
+    end
+  end
+
   #--
   # see README-DEVELOPERS regarding safe math compiler plugin
   #++
@@ -49,22 +66,13 @@ class Fixnum < Integer
     based_to_s(base)
   end
   private :base_to_s
- 
-  def b64_symbol_value
-    if self >= 65 and self <= 90  # A-Z
-      self - 65
-    elsif self >= 97 and self <= 122  # a-z
-      self - 71
-    elsif self >= 48 and self <= 57  # 0-9
-      self + 4
-    elsif self == 43  # +
-      62
-    elsif self == 47  # /
-      63
-    elsif self == 61  # =
-      0
-    else
-      nil
-    end
+
+  # taint and untaint are noops on Fixnum
+  def taint
+    self
+  end
+  
+  def untaint
+    self
   end
 end

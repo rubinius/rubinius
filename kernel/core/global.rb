@@ -47,7 +47,7 @@ class GlobalVariables
     if @internal.key? key
       @internal[key]
     elsif @hooks.key? key
-      @hooks[key][0].call
+      @hooks[key][0].call(key)
     elsif @alias.key? key
       @internal[@alias[key]]
     end
@@ -57,7 +57,7 @@ class GlobalVariables
     if !@internal.key?(key) && alias_key = @alias[key] then
       @internal[alias_key] = data
     elsif @hooks.key? key then
-      @hooks[key][1].call(data)
+      @hooks[key][1].arity == 1 ? @hooks[key][1].call(data) : @hooks[key][1].call(data, key)
     else
       @internal[key] = data
     end
@@ -84,7 +84,7 @@ class GlobalVariables
     
     if setter.nil?
       setter = method(:illegal_set)
-    elsif setter.respond_to?(:call)
+    elsif not setter.respond_to?(:call)
       raise ArgumentError, "setter must respond to call"
     end
     

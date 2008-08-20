@@ -34,10 +34,6 @@ def self.to_s
   "main"
 end
 
-module Rubinius
-  AtExit = []
-end
-
 class NilClass
   alias_method :|, :^
 
@@ -63,6 +59,9 @@ FALSE = false
 
 Undefined = Object.new
 
+##
+# This is used to prevent recursively traversing an object graph.
+
 module RecursionGuard
   def self.inspecting?(obj)
     stack.include?(obj.object_id)
@@ -76,7 +75,7 @@ module RecursionGuard
       stack.pop
     end
   end
-  
+
   def self.stack
     stack = Thread.current[:inspecting] ||= []
   end

@@ -1,5 +1,8 @@
 # depends on: ffi.rb
 
+##
+# Namespace for various POSIX functions.
+
 module Platform::POSIX
 
   # errors
@@ -23,8 +26,11 @@ module Platform::POSIX
   attach_function 'access', [:string, :int], :int
   attach_function 'chmod',  [:string, :mode_t], :int
   attach_function 'fchmod', [:int, :mode_t], :int
+  #  Removed, fails on OS X Tiger, OpenBSD and we are not using it.
+#  attach_function 'lchmod',  [:string, :mode_t], :int
   attach_function 'chown', [:string, :uid_t, :gid_t], :int
   attach_function 'fchown', [:int, :uid_t, :gid_t], :int
+  attach_function 'lchown', [:string, :uid_t, :gid_t], :int
   attach_function 'unlink', [:string], :int
   attach_function 'getcwd', [:string, :size_t], :string
   attach_function 'umask', [:mode_t], :int
@@ -64,6 +70,7 @@ module Platform::POSIX
   attach_function 'clearerr', [:pointer], :void
   attach_function 'fseek',  [:pointer, :int, :int], :int
   attach_function 'ftell',  [:pointer], :int
+  attach_function 'lseek', [:int, :int, :int], :int
 
   #   reading
   attach_function 'fread',   [:string, :size_t, :size_t, :pointer], :size_t
@@ -139,16 +146,17 @@ module Platform::POSIX
   attach_function 'getppid', [], :pid_t
   attach_function 'getpgrp', [], :pid_t
   attach_function 'setsid', [], :pid_t
-  
+
   # related to stat()
   attach_function 'ffi_major', :major, [:dev_t], :dev_t
   attach_function 'ffi_minor', :minor, [:dev_t], :dev_t
-  
+
   # stat
   # FIXME: these are TEMPORARY until we determine how to
   # have FFI resolve symbols that may be macros. This is
   # used rather than a primitive so that it is easier to
   # replace (unlike primitives).
   attach_function 'ffi_stat',  :stat,  [:string, :pointer], :int
+  attach_function 'ffi_fstat', :fstat, [:int,    :pointer], :int
   attach_function 'ffi_lstat', :lstat, [:string, :pointer], :int
 end

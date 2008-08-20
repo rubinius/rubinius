@@ -1,5 +1,8 @@
 # depends on: class.rb array.rb
 
+##
+# Defines all the bytecode instructions used by the VM.
+
 class InstructionSet
 
   ##
@@ -173,10 +176,9 @@ class InstructionSet
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :meta_send_call, :args => [:int], :stack => [-111,1],
       :flow => :send},
-
-    # scope management
     {:opcode => :push_scope, :args => [], :stack => [0, 1]},
-    {:opcode => :add_scope,  :args => [], :stack => [1, 0]}
+    {:opcode => :add_scope,  :args => [], :stack => [1, 0]},
+    # {:opcode => :rotate, :args => [:int], :stack => [0,0]}
   ]
 
   class OpCode
@@ -328,6 +330,8 @@ class InstructionSet
   end
 end
 
+##
+# A list of bytecode instructions.
 
 class InstructionSequence
   def initialize(size)
@@ -354,6 +358,10 @@ class InstructionSequence
     @opcodes.size
   end
 
+  ##
+  # Encodes an array of symbols representing bytecode into an
+  # InstructionSequence
+
   class Encoder
 
     ##
@@ -361,7 +369,7 @@ class InstructionSequence
     # into an array whose elements are arrays of opcode symbols and 0-2 args,
     # depending on the opcode.
 
-    def decode_iseq(iseq)
+    def decode_iseq(iseq, symbols_only=true)
       @iseq = iseq
       @offset = 0
       stream = []
@@ -385,6 +393,9 @@ class InstructionSequence
       end
       # Remove any noops or other junk at the end of the iseq
       stream.slice! last_good.last, stream.size
+      if symbols_only
+        stream.each {|i| i[0] = i[0].opcode}
+      end
 
       return stream
     end
@@ -435,13 +446,16 @@ class InstructionSequence
 
       old_inst = iseq2int
       old_op = InstructionSet[old_inst]
-      new_op = InstructionSet[inst.first]
+      new_op = inst.first
+      new_op = InstructionSet[inst.first] unless new_op.kind_of? InstructionSet::OpCode
+      @offset += old_op.arg_count * InstructionSet::InstructionSize
       old_op.size.upto(new_op.size-1) do
         next_inst = iseq2int
         unless next_inst == 0
           raise ArgumentError, "Cannot replace an instruction with a larger instruction (existing #{old_op.opcode} / new #{new_op.opcode})"
         end
       end
+      @offset = start + InstructionSet::InstructionSize
       replaced = [old_op.opcode]
 
       1.upto(old_op.arg_count) do
@@ -531,10 +545,10 @@ class InstructionSequence
   end
 
   ##
-  # Decodes the instruction sequence into an array of Instructions
+  # Decodes the instruction sequence into an array of symbols
 
-  def decode
+  def decode(symbols_only=true)
     enc = Encoder.new
-    enc.decode_iseq(self)
+    enc.decode_iseq(self, symbols_only)
   end
 end

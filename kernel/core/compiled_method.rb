@@ -1,7 +1,13 @@
 # depends on: class.rb array.rb
 
+# TODO - This file needs ivar_as_index removal cleanup
+
 ##
-# A wrapper for a calling a function in a shared library.
+# A wrapper for a calling a function in a shared library that has been
+# attached via rb_define_method().
+#
+# The primitive slot for a NativeMethod points to the nmethod_call primitive
+# which dispatches to the underlying C function.
 
 class NativeMethod
   def lines
@@ -21,6 +27,42 @@ class NativeMethod
   end
 end
 
+##
+# A linked list that details the static, lexical scope the method was created
+# in.
+#
+# You can access it this way:
+#
+#   MethodContext.current.method.staticscope
+#
+# Here is a simple example:
+#
+#   module Fruits
+#     class Pineapple
+#       attr_reader :initialize_scope
+#   
+#       def initialize(weight)
+#         @initialize_scope = MethodContext.current.method.staticscope
+#         @weight = weight
+#       end
+#     end
+#   end
+#
+# Static scope members are shown below:
+#
+#   irb(main):> pineapple.initialize_scope.script
+#   => nil
+#   irb(main):> pineapple.initialize_scope.parent
+#   => #<StaticScope:0x1c9>
+#   irb(main):> pineapple.initialize_scope.module
+#   => Fruits::Pineapple
+#   irb(main):> pineapple.initialize_scope.parent.module
+#   => Fruits
+#   irb(main):> pineapple.initialize_scope.parent.parent.module
+#   => Object
+#   irb(main):> pineapple.initialize_scope.parent.parent.parent.module
+#   => Object
+
 class StaticScope
   def initialize(mod, par=nil)
     @module = mod
@@ -29,19 +71,31 @@ class StaticScope
 
   attr_accessor :script
 
+  # Source code of this scope.
   def script
     @script
   end
 
+  # Module or class this lexical scope enclosed into.
   def module
     @module
   end
 
+  # Static scope object this scope enclosed into.
   def parent
     @parent
   end
+
+  def inspect
+    "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent} module=#{@module}>"
+  end
+
+  def to_s
+    self.inspect
+  end
 end
 
+# TODO - Comment!!!
 class Executable
 end
 
@@ -106,6 +160,39 @@ class CompiledMethod < Executable
     raise PrimitiveFailure, "Unable to call #{@name} on #{recv.inspect}"
   end
 
+  # Accessor for a hash of filenames (as per $" / $LOADED_FEATURES) to the
+  # script CompiledMethod.
+  def self.scripts
+    @scripts ||= {}
+  end
+  
+  # Helper function for searching for a CM given a file name; applies similar
+  # search and path expansion rules as load/require, so that the full path to
+  # the file need not be specified.
+  def self.script_for_file(filename)
+    if cm = self.scripts[filename]
+      return cm
+    end
+    # ./ ../ ~/ /
+    if filename =~ %r{\A(?:(\.\.?)|(~))?/}
+      if $2    # ~ 
+        filename.slice! '~/'
+        return scripts["#{ENV['HOME']}/#{filename}"]
+      else    # . or ..
+        return scripts["#{File.expand_path filename}"]
+      end
+    # Unqualified
+    else
+      scripts = self.scripts
+      $LOAD_PATH.each do |dir|
+        if cm = scripts["#{dir}/#{filename}"]
+          return cm
+        end
+      end
+    end
+    nil
+  end
+
   class Script
     attr_accessor :path
   end
@@ -136,6 +223,14 @@ class CompiledMethod < Executable
     end
     return 0
   end
+
+  # Returns the address (IP) of the first instruction in this CompiledMethod
+  # that is on the specified line, or the address of the first instruction on
+  # the next code line after the specified line if there are no instructions
+  # on the requested line.
+  # This method only looks at instructions within the current CompiledMethod;
+  # see #locate_line for an alternate method that also searches inside the child
+  # CompiledMethods.
 
   def first_ip_on_line(line)
     @lines.each do |t|
@@ -168,8 +263,49 @@ class CompiledMethod < Executable
     if @splat
       str << ", splatted."
     end
+    str
+  end
 
-    return str
+  # Convenience method to return an array of the child CompiledMethods from
+  # this CompiledMethod's literals.
+
+  def child_methods
+    literals.select {|lit| lit.kind_of? CompiledMethod}
+  end
+
+  # Convenience method to return an array of the SendSites from
+  # this CompiledMethod's literals.
+
+  def send_sites
+    literals.select {|lit| lit.kind_of? SendSite}
+  end
+
+  # Locates the CompiledMethod and instruction address (IP) of the first
+  # instruction on the specified line. This method recursively examines child
+  # compiled methods until an exact match for the searched line is found.
+  # It returns both the matching CompiledMethod and the IP of the first 
+  # instruction on the requested line, or nil if no match for the specified line
+  # is found.
+
+  def locate_line(line, cm=self)
+    cm.lines.each do |t|
+      if (l = t.at(2)) == line
+        # Found target line - return first IP
+        return cm, t.at(0)
+      elsif l > line
+        break
+      end
+    end
+    # Didn't find line in this CM, so check if a contained
+    # CM encompasses the line searched for
+    cm.child_methods.each do |child|
+      if res = locate_line(line, child)
+        return res
+      end
+    end
+
+    # No child method is a match - fail
+    return nil
   end
 
   ##
@@ -177,8 +313,13 @@ class CompiledMethod < Executable
   # method. Delegates to InstructionSequence to do the instruction decoding,
   # but then converts opcode literal arguments to their actual values by looking
   # them up in the literals tuple.
-  def decode
-    stream = @iseq.decode
+  # Takes an optional bytecodes argument representing the bytecode that is to
+  # be decoded using this CompiledMethod's locals and literals. This is provided
+  # for use by the debugger, where the bytecode sequence to be decoded may not
+  # exactly match the bytecode currently held by the CompiledMethod, typically
+  # as a result of substituting yield_debugger instructions into the bytecode.
+  def decode(bytecodes = @bytecodes)
+    stream = bytecodes.decode(false)
     ip = 0
     args_reg = 0
     stream.map! do |inst|
@@ -228,6 +369,13 @@ class CompiledMethod < Executable
     return high_mark, exact
   end
 
+  # Represents virtual machine's CPU instruction.
+  # Instructions are organized into instruction
+  # sequences known as iSeq, forming body
+  # of CompiledMethods.
+  #
+  # To generate VM optcodes documentation
+  # use rake doc:vm task.
   class Instruction
     def initialize(inst, cm, ip, args_reg)
       @op = inst[0]
@@ -256,25 +404,27 @@ class CompiledMethod < Executable
       @stack_produced = calculate_stack_usage(@op.stack_produced)
     end
 
+    # Instruction pointer
     attr_reader :ip
     attr_reader :line
 
     ##
     # Returns the OpCode object
 
+    # Associated OptCode instance.
     def instruction
       @op
     end
 
     ##
-    # Returns the symbol representing the opcode for this instruction
+    # Returns the symbol representing the opcode for this instruction.
 
     def opcode
       @op.opcode
     end
 
     ##
-    # Returns an array of 0 to 2 arguments, depending on the opcode
+    # Returns an array of 0 to 2 arguments, depending on the opcode.
 
     def args
       @args
@@ -294,7 +444,7 @@ class CompiledMethod < Executable
 
     ##
     # Returns the stack operands produced by this instruction, as well as a flag
-    # indicating whether this is an exact value (true) or a minimum (false)..
+    # indicating whether this is an exact value (true) or a minimum (false).
 
     def stack_produced
       @stack_produced
@@ -341,3 +491,4 @@ class CompiledMethod < Executable
     end
   end
 end
+

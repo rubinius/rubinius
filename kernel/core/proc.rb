@@ -1,19 +1,22 @@
-# depends on: class.rb
+# depends on: class.rb block_context.rb binding.rb
 
 class Proc
+
   def block; @block ; end
 
   def block=(other)
     @block = other
   end
 
-  def check_args=(other)
-    @check_args = other
+  def binding
+    bind = Binding.setup @block.home_block
+    bind.proc_environment = @block
+    bind
   end
 
-  #--
-  # An optimized version, used for the &block syntax
-  #++
+  def caller(start = 0)
+    @block.home_block.stack_trace_starting_at(start)
+  end
 
   def self.__from_block__(env)
     if env.__kind_of__(BlockEnvironment)
@@ -29,37 +32,27 @@ class Proc
     end
   end
 
-  def self.from_environment(env, check_args=false)
-    if env.nil?
-      nil
-    elsif env.kind_of?(BlockEnvironment)
-      obj = allocate()
-      obj.block = env
-      obj.check_args = check_args
-      obj
-    elsif env.respond_to? :to_proc
-      env.to_proc
+  def self.new(compiled_method = nil)
+    if block_given?
+      env = MethodContext.current.block
     else
-      raise ArgumentError.new("Unable to turn a #{env.inspect} into a Proc")
+      # Support for ancient pre-block-pass style:
+      # def something; Proc.new; end
+      # something { a_block } => Proc instance
+      env = MethodContext.current.sender.block
     end
-  end
 
-  def self.new(&block)
-    if block
-      return block
+    if env
+      return __from_block__(env)
+    elsif compiled_method
+      return Proc::CompiledMethod.new(compiled_method)
     else
-      # This behavior is stupid.
-      be = MethodContext.current.sender.block
-      if be
-        return from_environment(be)
-      else
-        raise ArgumentError, "tried to create a Proc object without a block"
-      end
+      raise ArgumentError, "tried to create a Proc object without a block"
     end
   end
 
   def inspect
-    "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
+    "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{@block.home_block.file}:#{@block.home_block.line}>"
   end
 
   alias_method :to_s, :inspect
@@ -98,5 +91,48 @@ class Proc
     end
     
     alias_method :[], :call
+  end
+
+  class CompiledMethod < Proc
+
+    def compiled_method; @compiled_method; end
+
+    def compiled_method=(other)
+      @compiled_method = other
+    end
+
+    def self.__from_compiled_method__(cm)
+      obj = allocate()
+      obj.compiled_method = cm
+      obj.metaclass.method_table[:call] = obj.metaclass.method_table[:[]] = cm
+      return obj
+    end
+
+    def self.new(cm)
+      if cm.kind_of? ::CompiledMethod
+        return __from_compiled_method__(cm)
+      else
+        raise ArgumentError, "tried to create a CompiledMethodProc object without a CompiledMethod"
+      end
+    end
+
+    def inspect
+      line = @compiled_method.first_line if @compiled_method.lines
+      file = @compiled_method.file
+      "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{file}:#{line}>"
+    end
+
+    alias_method :to_s, :inspect
+
+    def ==(other)
+      return false unless other.kind_of? self.class
+      @compiled_method == other.compiled_method
+    end
+
+    def arity
+      return -1 if @compiled_method.kind_of? NativeMethod
+      c = @compiled_method.args.inject(0) { |s, v| s += (v.length rescue 0) }
+      return (@compiled_method.args[2].nil?) ? c : -(c + 1)
+    end
   end
 end

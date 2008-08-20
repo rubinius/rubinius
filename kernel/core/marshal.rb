@@ -393,7 +393,7 @@ module Marshal
     end
 
     def construct_hash(type)
-      obj = @user_class ? get_user_class.new : {}
+      obj = @user_class ? get_user_class.allocate : {}
       store_unique_object obj
 
       construct_integer.times do
@@ -795,6 +795,9 @@ module Marshal
       data = obj.to_s
     elsif obj.respond_to? :read
       data = obj.read
+      if data.empty?
+        raise EOFError, "end of file reached"
+      end
     elsif obj.respond_to? :getc  # FIXME - don't read all of it upfront
       data = ''
       data << c while (c = obj.getc.chr)

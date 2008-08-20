@@ -41,6 +41,10 @@ class MethodContext
     _get_field(5)
   end
 
+  def method=(obj)
+    _set_field(5, obj)
+  end
+
   def receiver
     _get_field(7)
   end
@@ -66,17 +70,17 @@ class MethodContext
   end
 
   def dup
-    Ruby.primitive :fastctx_dup
+    Ruby.primitive :context_dup
     raise PrimitiveFailure, "primitive failed"
   end
 
   def _get_field(int)
-    Ruby.primitive :fastctx_get_field
+    Ruby.primitive :context_get_field
     raise PrimitiveFailure, "primitive failed"
   end
 
   def _set_field(int, val)
-    Ruby.primitive :fastctx_set_field
+    Ruby.primitive :context_set_field
     raise PrimitiveFailure, "primitive failed"
   end
 
@@ -84,7 +88,7 @@ class MethodContext
   # Required so that the debugger can add breakpoints to a currently executing
   # method context.
   def reload_method
-    Ruby.primitive :fastctx_reload_method
+    Ruby.primitive :context_reload_method
     raise PrimitiveFailure, "primitive failed"
   end
 
@@ -94,7 +98,7 @@ class MethodContext
   # only for the current thread, e.g. when stepping or restoring a persistent
   # breakpoint.
   def set_iseq(iseq)
-    Ruby.primitive :fastctx_set_iseq
+    Ruby.primitive :context_set_iseq
     raise PrimitiveFailure, "primitive failed"
   end
 end

@@ -1,5 +1,8 @@
 # depends on: module.rb kernel.rb
 
+##
+# Namespace for coercion functions between various ruby objects.
+
 module Type
 
   ##
@@ -9,6 +12,8 @@ module Type
   # conversion result is wrong.
   #
   # Uses Type.obj_kind_of to bypass type check overrides.
+  #
+  # Equivalent to MRI's rb_convert_type().
 
   def self.coerce_to(obj, cls, meth)
     return obj if self.obj_kind_of?(obj, cls)
@@ -102,8 +107,16 @@ module Kernel
   # HACK :: added due to broken constant lookup rules
   #++
 
-  def raise(exc=$!, msg=nil, trace=nil)
-    if exc.respond_to? :exception
+  def raise(exc=Undefined, msg=nil, trace=nil)
+    skip = false
+    if exc.equal? Undefined
+      exc = $!
+      if exc
+        skip = true
+      else
+        exc = RuntimeError.new("No current exception")
+      end
+    elsif exc.respond_to? :exception
       exc = exc.exception msg
       raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
       exc.set_backtrace trace if trace
@@ -118,7 +131,9 @@ module Kernel
       STDERR.puts "Exception: `#{exc.class}' #{sender.location} - #{exc.message}"
     end
 
-    exc.set_backtrace MethodContext.current.sender unless exc.backtrace
+    unless skip
+      exc.context = MethodContext.current.sender unless exc.context
+    end
     Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
   end
   module_function :raise
@@ -127,12 +142,7 @@ module Kernel
   module_function :fail
 
   def warn(warning)
-    if $VERBOSE
-      $stderr.write MethodContext.current.sender.location
-      $stderr.write ": warning: "
-      $stderr.write warning
-      $stderr.write "\n"
-    end
+    $stderr.write "#{warning}\n" unless $VERBOSE.nil?
     nil
   end
   module_function :warn
@@ -179,8 +189,11 @@ module Kernel
   end
   module_function :puts
 
+  # For each object given, prints obj.inspect followed by the
+  # system record separator to standard output (thus, separator
+  # cannot be overridden.) Prints nothing if no objects given.
   def p(*a)
-    a = [nil] if a.empty?
+    return nil if a.empty?
     a.each { |obj| $stdout.puts obj.inspect }
     nil
   end
@@ -267,14 +280,15 @@ module Kernel
 
     block.disable_long_return!
 
-    return Proc::Function.from_environment(block)
+    return Proc::Function.__from_block__(block)
   end
   alias_method :proc, :lambda
   module_function :lambda
   module_function :proc
 
   def caller(start=1)
-    return MethodContext.current.sender.calling_hierarchy(start)
+    frame = MethodContext.current.sender
+    frame.stack_trace_starting_at(start)
   end
   module_function :caller
 
@@ -304,7 +318,7 @@ module Kernel
     unless duration.equal?(Undefined)
       raise TypeError, 'time interval must be a numeric value' unless duration.kind_of?(Numeric)
       duration = Time.at duration
-      Scheduler.send_in_seconds(chan, duration.to_f)
+      Scheduler.send_in_seconds(chan, duration.to_f, nil)
     end
     chan.receive
     return (Time.now - start).round
@@ -343,7 +357,35 @@ module Kernel
   alias_method :__id__, :object_id
 
   alias_method :==,   :equal?
-  alias_method :===,  :equal?
+
+  # The "sorta" operator, also known as the case equality operator.
+  # Generally while #eql? and #== are stricter, #=== is often used
+  # to denote an acceptable match or inclusion. It returns true if
+  # the match is considered to be valid and false otherwise. It has
+  # one special purpose: it is the operator used by the case expression.
+  # So in this expression:
+  #
+  #   case obj
+  #   when /Foo/
+  #     ...
+  #   when "Hi"
+  #     ...
+  #   end
+  #
+  # What really happens is that `/Foo/ === obj` is attempted and so
+  # on down until a match is found or the expression ends. The use
+  # by Regexp is very illustrative: while obj may satisfy the pattern,
+  # it may not be the only option.
+  #
+  # The default #=== operator checks if the other object is #equal?
+  # to this one (i.e., is the same object) or if #== returns true.
+  # If neither is true, false is returned instead. Many classes opt
+  # to override this behaviour to take advantage of its use in a
+  # case expression and to implement more relaxed matching semantics.
+  # Notably, the above Regexp as well as String, Module and many others.
+  def ===(other)
+    equal?(other) || self == other
+  end
 
   ##
   # Regexp matching fails by default but may be overridden by subclasses,
@@ -363,20 +405,6 @@ module Kernel
 
   def class_variables(symbols = false)
     self.class.class_variables(symbols)
-  end
-
-  def __add_method__(name, obj)
-    scope = MethodContext.current.sender.current_scope
-
-    Rubinius::VM.reset_method_cache(name)
-
-    scope.method_table[name] = Tuple[:public, obj]
-
-    if respond_to? :method_added
-      method_added(name)
-    end
-
-    return obj
   end
 
   ##
@@ -401,17 +429,29 @@ module Kernel
     require 'debugger/debugger'
     dbg = Debugger.instance
 
-    ctxt = MethodContext.current.sender
-    bp = dbg.get_breakpoint(ctxt.method, ctxt.ip)
-    if bp
-      unless bp.enabled?
-        bp.enable
-        ctxt.reload_method
-      end
-    else
-      dbg.set_breakpoint ctxt.method, ctxt.ip
-      ctxt.reload_method
+    unless dbg.interface
+      # Default to command-line interface if nothing registered
+      require 'debugger/interface'
+      Debugger::CmdLineInterface.new
     end
+
+    ctxt = MethodContext.current.sender
+    cm = ctxt.method
+    ip = ctxt.ip
+    bp = dbg.get_breakpoint(cm, ip)
+    if bp
+      bp.enable unless bp.enabled?
+    else
+      bp = dbg.set_breakpoint(cm, ip)
+    end
+
+    # Modify send site not to call this method again
+    bc = ctxt.method.bytecodes
+    
+    Breakpoint.encoder.replace_instruction(bc, ip-4, [:noop])
+    Breakpoint.encoder.replace_instruction(bc, ip-2, [:noop])
+
+    ctxt.reload_method
   end
 
   alias_method :breakpoint, :debugger
@@ -488,6 +528,7 @@ module Kernel
   def instance_exec(*args, &prc)
     raise ArgumentError, "Missing block" unless block_given?
     env = prc.block.redirect_to self
+    env.method.staticscope = StaticScope.new(metaclass, env.method.staticscope)
     env.call(*args)
   end
 
@@ -531,6 +572,8 @@ module Kernel
   end
 
   def instance_variable_defined?(name)
+    name = instance_variable_validate(name)
+
     vars = get_instance_variables
     return false unless vars
 
@@ -538,6 +581,11 @@ module Kernel
 
     return vars.key?(name)
   end
+
+  # Both of these are for defined? when used inside a proxy obj that
+  # may undef the regular method. The compiler generates __ calls.
+  alias_method :__instance_variable_defined_eh__, :instance_variable_defined?
+  alias_method :__respond_to_eh__, :respond_to?
 
   def singleton_method_added(name)
   end
@@ -575,10 +623,10 @@ module Kernel
 
     if myself.send_private?
       raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
-    elsif self.kind_of? Class or self.kind_of? Module
-      raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.class})", ctx, args)
+    elsif self.__kind_of__ Class or self.__kind_of__ Module
+      raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.__class__})", ctx, args)
     else
-      raise NoMethodError.new("No method '#{meth}' on an instance of #{self.class}.", ctx, args)
+      raise NoMethodError.new("No method '#{meth}' on an instance of #{self.__class__}.", ctx, args)
     end
   end
 
@@ -636,7 +684,7 @@ module Kernel
   end
 
   def to_s
-    "#<#{self.class}:0x#{self.object_id.to_s(16)}>"
+    "#<#{self.__class__}:0x#{self.__id__.to_s(16)}>"
   end
 
   def autoload(name, file)
@@ -672,21 +720,25 @@ module Kernel
   # Perlisms.
 
   def chomp(string=$/)
+    ensure_last_read_string
     $_ = $_.chomp(string)
   end
   module_function :chomp
   
   def chomp!(string=$/)
+    ensure_last_read_string
     $_.chomp!(string)
   end
   module_function :chomp!
 
   def chop(string=$/)
+    ensure_last_read_string
     $_ = $_.chop(string)
   end
   module_function :chop
   
   def chop!(string=$/)
+    ensure_last_read_string
     $_.chop!(string)
   end
   module_function :chop!
@@ -718,26 +770,31 @@ module Kernel
   module_function :readlines
 
   def gsub(pattern, rep=nil, &block)
+    ensure_last_read_string
     $_ = $_.gsub(pattern, rep, &block)
   end
   module_function :gsub
   
   def gsub!(pattern, rep=nil, &block)
+    ensure_last_read_string
     $_.gsub!(pattern, rep, &block)
   end
   module_function :gsub!
 
   def sub(pattern, rep=nil, &block)
+    ensure_last_read_string
     $_ = $_.sub(pattern, rep, &block)
   end
   module_function :sub
   
   def sub!(pattern, rep=nil, &block)
+    ensure_last_read_string
     $_.sub!(pattern, rep, &block)
   end
   module_function :sub!
 
   def scan(pattern, &block)
+    ensure_last_read_string
     $_.scan(pattern, &block)
   end
   module_function :scan
@@ -748,9 +805,21 @@ module Kernel
   module_function :select
 
   def split(*args)
+    ensure_last_read_string
     $_.split(*args)
   end
   module_function :split
+
+  # Checks whether the "last read line" $_ variable is a String,
+  # raising a TypeError when not.
+  def ensure_last_read_string
+    unless $_.kind_of? String
+      cls = $_.nil? ? "nil" : $_.class
+      raise TypeError, "$_ must be a String (#{cls} given)"
+    end
+  end
+  module_function :ensure_last_read_string
+  private :ensure_last_read_string
 
   # From bootstrap
   private :get_instance_variable

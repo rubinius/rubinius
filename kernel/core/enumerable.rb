@@ -325,7 +325,11 @@ module Enumerable
 
   def collect
     ary = []
-    each { |o| ary << yield(o) }
+    if block_given?
+      each { |o| ary << yield(o) }
+    else
+      each { |o| ary << o }
+    end
     ary
   end
 

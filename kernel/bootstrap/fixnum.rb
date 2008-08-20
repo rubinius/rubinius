@@ -15,12 +15,12 @@ class Fixnum < Integer
   # binary math operators
 
   def +(o)
-    Ruby.primitive :add
+    Ruby.primitive :fixnum_add
     super(o)
   end
   
   def -(o)
-    Ruby.primitive :sub
+    Ruby.primitive :fixnum_sub
     super(o)
   end
   
@@ -90,12 +90,12 @@ class Fixnum < Integer
   # comparison operators
   
   def ==(o)
-    Ruby.primitive :equal
+    Ruby.primitive :fixnum_equal
     super(o)
   end
   
   def <=>(other)
-    Ruby.primitive :compare
+    Ruby.primitive :fixnum_compare
     super(other)
   end
 
