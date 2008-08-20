@@ -1,0 +1,2 @@
+incomplete:CGI::Cookie#expires needs to be reviewed for spec completeness
+incomplete:CGI::Cookie#expires= needs to be reviewed for spec completeness

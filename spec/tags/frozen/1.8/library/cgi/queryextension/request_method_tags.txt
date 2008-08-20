@@ -1,0 +1,1 @@
+incomplete:CGI::QueryExtension#request_method needs to be reviewed for spec completeness

@@ -1,0 +1,1 @@
+fails:Hash#reject! does not raise a LocalJumpError when called on an empty hash without a block

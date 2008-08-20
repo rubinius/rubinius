@@ -1,0 +1,2 @@
+fails:Array#fill raises an ArgumentError or RangeError for too-large sizes
+fails:Array#fill returns self when given an index and a negative count

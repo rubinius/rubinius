@@ -1,0 +1,1 @@
+fails:Hash.[] call to_hash

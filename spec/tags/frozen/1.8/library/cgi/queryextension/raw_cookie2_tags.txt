@@ -1,0 +1,1 @@
+incomplete:CGI::QueryExtension#raw_cookie2 needs to be reviewed for spec completeness

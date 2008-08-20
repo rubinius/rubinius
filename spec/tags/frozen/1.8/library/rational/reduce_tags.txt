@@ -1,0 +1,2 @@
+incomplete:Rational.reduce needs to be reviewed for spec completeness
+fails:Rational.reduce returns a new Rational with the passed numerator and denominator reduced to their lowest terms

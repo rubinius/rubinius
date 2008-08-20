@@ -1,0 +1,1 @@
+incomplete:File#initialize needs to be reviewed for spec completeness

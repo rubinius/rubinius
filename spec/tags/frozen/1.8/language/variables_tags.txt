@@ -1,0 +1,6 @@
+fails:Basic assignment supports the {|r,| } form of block assignment
+fails:Assigning multiple values calls #to_ary on rhs arg if rhs has only a single arg
+fails:Assigning multiple values allows complex parallel assignment
+fails:Multiple assignments with splats * on a range should act like array expansion
+fails:Operator assignment 'obj[idx] op= expr' returns result of rhs not result of []=
+fails:Scope of variables instance variables not overwritten by local variable in each block

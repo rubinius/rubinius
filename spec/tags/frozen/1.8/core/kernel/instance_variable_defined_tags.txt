@@ -1,0 +1,1 @@
+incomplete:Kernel#instance_variable_defined? needs to be reviewed for spec completeness

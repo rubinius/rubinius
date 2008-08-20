@@ -1,0 +1,1 @@
+incomplete:Matrix#square? needs to be reviewed for spec completeness

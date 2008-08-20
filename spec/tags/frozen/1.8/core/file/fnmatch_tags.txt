@@ -1,0 +1,6 @@
+fails:File.fnmatch matches multiple directories with ** when flags includes File::FNM_PATHNAME
+fails:File.fnmatch? matches multiple directories with ** when flags includes File::FNM_PATHNAME
+fails:File.fnmatch doesn't match case sensitive characters on platfroms with case sensitive paths, when flags include FNM_SYSCASE
+fails:File.fnmatch? doesn't match case sensitive characters on platfroms with case sensitive paths, when flags include FNM_SYSCASE
+fails:File.fnmatch returns true if '/' in pattern match '/' in path when flags includes FNM_PATHNAME
+fails:File.fnmatch? returns true if '/' in pattern match '/' in path when flags includes FNM_PATHNAME

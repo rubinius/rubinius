@@ -1,0 +1,5 @@
+fails:StringScanner#peep returns at most the specified number of characters from the current position
+fails:StringScanner#peep returns an empty string when the passed argument is zero
+fails:StringScanner#peep raises a ArgumentError when the passed argument is negative
+fails:StringScanner#peep raises a RangeError when the passed argument is a Bignum
+fails:StringScanner#peep warns in verbose mode that the method is obsolete

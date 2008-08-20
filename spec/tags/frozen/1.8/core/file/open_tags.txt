@@ -1,0 +1,4 @@
+fails:File.open with a block swallows StandardErrors produced by close
+fails:File.open opens a file with a file descriptor d and a block
+fails:File.open raises an IO exception when read in a block opened with File::RDONLY|File::APPEND mode
+fails:File.open raises an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND

@@ -1,0 +1,2 @@
+fails:IO.new emits a warning if given a block
+incomplete:IO#initialize needs to be reviewed for spec completeness

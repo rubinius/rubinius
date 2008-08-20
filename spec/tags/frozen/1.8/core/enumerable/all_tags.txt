@@ -1,0 +1,1 @@
+fails:Enumerable#all? raises NoMethodError if there is no #each method defined

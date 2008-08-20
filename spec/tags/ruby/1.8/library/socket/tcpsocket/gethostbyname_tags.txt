@@ -1,1 +1,0 @@
-fails:TCPSocket#gethostbyname should resolve a hostname to an address

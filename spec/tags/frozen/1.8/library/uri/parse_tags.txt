@@ -1,0 +1,2 @@
+fails:URI.parse populates the components of a parsed URI::FTP object
+fails:URI.parse conforms to the tests from MatzRuby's generic uri tests

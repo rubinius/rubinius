@@ -1,0 +1,5 @@
+fails:IO#close closes the stream
+fails:IO#close makes the stream unavailable for any further data operations
+fails:IO#close raises an IOError on subsequent invocations
+fails:IO#close sets $? if the stream is opened by IO.popen
+fails:IO#close returns nil

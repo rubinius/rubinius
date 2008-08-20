@@ -1,0 +1,1 @@
+fails:StringScanner#scan raises a TypeError if pattern isn't a Regexp and can't be converted to a String

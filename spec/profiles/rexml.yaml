@@ -1,0 +1,14 @@
+REXML::Child#:
+- initialize
+REXML::Encoding.:
+- apply
+- register
+REXML::Entity#:
+- initialize
+REXML::XMLDecl.:
+- default
+REXML::XMLDecl#:
+- dowrite
+- encoding=
+- initialize
+- nowrite

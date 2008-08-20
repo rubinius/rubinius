@@ -1,3 +1,1 @@
-fails:SubtendClass rb_obj_call_init should send 
-fails:SubtendClass rb_class_new_instance should allocate and initialize a new object
-fails:SubtendAlloc (a class with an alloc func defined) calls the alloc func
+fails:SubtendClass rb_obj_call_init should send #initialize

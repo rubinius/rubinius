@@ -1,0 +1,2 @@
+incomplete:CGI::Cookie#name needs to be reviewed for spec completeness
+incomplete:CGI::Cookie#name= needs to be reviewed for spec completeness

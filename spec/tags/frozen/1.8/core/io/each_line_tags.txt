@@ -1,0 +1,8 @@
+fails:IO#each_line when passed no arguments returns self
+fails:IO#each_line when passed [seperator] returns self
+fails:IO#each_line when passed [seperator] tries to convert the passed seperator to a String using #to_str
+fails:IO#each_line when passed [seperator] checks whether the passed seperator responds to #to_str
+fails:IO#each_line returns self
+fails:IO#each_line when passed a seperator returns self
+fails:IO#each_line when passed a seperator tries to convert the passed seperator to a String using #to_str
+fails:IO#each_line when passed a seperator checks whether the passed seperator responds to #to_str

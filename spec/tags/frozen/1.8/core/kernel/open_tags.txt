@@ -1,0 +1,1 @@
+incomplete:Kernel.open needs to be reviewed for spec completeness

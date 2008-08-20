@@ -1,0 +1,1 @@
+incomplete:Kernel#loop needs to be reviewed for spec completeness

@@ -1,0 +1,2 @@
+incomplete:CGI::HtmlExtension#popup_menu needs to be reviewed for spec completeness
+unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#popup_menu needs to be reviewed for spec completeness

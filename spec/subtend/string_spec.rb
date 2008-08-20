@@ -8,6 +8,18 @@ describe "SubtendString" do
   before :each do
     @s = SubtendString.new
   end
+
+  class ValidTostrTest
+    def to_str
+      "ruby"
+    end
+  end
+
+  class InvalidTostrTest
+    def to_str
+      []
+    end
+  end
   
   it "rb_str_new should return a new string object" do
     # Hardcoded to pass const char * = "hello"
@@ -45,12 +57,17 @@ describe "SubtendString" do
   it "rb_str_cat should concat C strings to ruby strings" do
     @s.cat_as_question("Your house is on fire").should == "Your house is on fire?"
   end
+
+  it "rb_str_cat2 should concat C strings to ruby strings" do
+    @s.cat2_as_question("Your house is on fire").should == "Your house is on fire?"
+  end
   
   it "rb_str_cmp should compare two strings" do
     @s.rb_str_cmp("xxx", "xxxx").should == -1
     @s.rb_str_cmp("xxxx", "xxx").should == 1
     @s.rb_str_cmp("xxx", "yyy").should == -1
     @s.rb_str_cmp("yyy", "xxx").should == 1
+    @s.rb_str_cmp("ppp", "ppp").should == 0
   end
   
   it "rb_str_split should split strings over a splitter" do
@@ -73,4 +90,35 @@ describe "SubtendString" do
     end
   end
 
+  it "RSTRING(str)->ptr should return the string on the object" do
+    @s.rb_rstring_see("foo").should == "foo"
+  end
+
+  it "Changing RSTRING(str)->ptr should change the string" do
+    t = "a"
+    @s.rb_rstring_assign_foo(t)
+    t.should == "foo"
+    $global_rstring_test = "b"
+    @s.rb_rstring_assign_global_foobar()
+    $global_rstring_test.should == "foobar"
+  end
+
+  it "Reducing RSTRING(str)->len should cut the string" do
+    t = "12345"
+    @s.rb_rstring_set_len(t, 3)
+    t.should == "123"
+  end
+
+  it "Changing RSTRING(str)->ptr and calling upcase! should change the string and upcase it" do
+    t = ""
+    @s.rb_rstring_assign_foo_and_upcase(t)
+    t.should == "FOO"
+  end
+
+  it "rb_str_to_str should try to coerce to String, otherwise raise a TypeError" do
+    @s.rb_str_to_str("foo").should == "foo"
+    @s.rb_str_to_str(ValidTostrTest.new).should == "ruby"
+    lambda { @s.rb_str_to_str(0) }.should raise_error(TypeError)
+    lambda { @s.rb_str_to_str(InvalidTostrTest.new) }.should raise_error(TypeError)
+  end
 end

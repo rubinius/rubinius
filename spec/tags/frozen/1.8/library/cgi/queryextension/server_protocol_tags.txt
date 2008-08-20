@@ -1,0 +1,1 @@
+incomplete:CGI::QueryExtension#server_protocol needs to be reviewed for spec completeness

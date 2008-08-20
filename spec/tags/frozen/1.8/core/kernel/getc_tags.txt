@@ -1,0 +1,1 @@
+incomplete:Kernel.getc needs to be reviewed for spec completeness

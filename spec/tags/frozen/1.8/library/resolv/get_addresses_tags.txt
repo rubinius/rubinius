@@ -1,0 +1,1 @@
+unstable:Resolv#getaddresses resolves www.rubyspec.org

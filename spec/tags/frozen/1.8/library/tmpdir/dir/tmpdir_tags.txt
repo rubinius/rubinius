@@ -1,0 +1,3 @@
+fails:Dir.tmpdir when $SAFE = 0 tries to get a tmp-path from different sources
+fails:Dir.tmpdir when $SAFE = 0 expands the path with the first value that is a directory and is writable
+fails:Dir.tmpdir when $SAFE = 0 expands the path by '.' if absolutely no writable directory is found

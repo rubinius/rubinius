@@ -1,0 +1,12 @@
+BasicSocket.:
+- do_not_reverse_lookup=
+IPSocket#:
+- addr
+- peeraddr
+Socket.:
+- getaddrinfo
+- gethostbyname
+- gethostname
+TCPServer#:
+- accept
+- initialize

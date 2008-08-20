@@ -1,11 +1,12 @@
 #include <ruby.h>
 
-void sm_define_const(VALUE self, VALUE klass, VALUE val) {
+VALUE sm_define_const(VALUE self, VALUE klass, VALUE val) {
   rb_define_const(klass, "FOO", val);
+  return Qnil;
 }
 
 VALUE sm_const_defined(VALUE self, VALUE klass, VALUE id) {
-  return rb_const_defined(klass, SYM2ID(id)) == 1 ? Qtrue : Qfalse;
+  return (VALUE)rb_const_defined(klass, SYM2ID(id));
 }
 
 void Init_subtend_module() {

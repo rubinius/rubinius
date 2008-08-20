@@ -1,0 +1,31 @@
+URI::Escape#:
+- unescape
+URI::Generic.:
+- default_port
+URI::Generic#:
+- absolute?
+- check_host
+- check_port
+- check_scheme
+- host=
+- initialize
+- path_query
+- port=
+- scheme=
+- set_fragment
+- set_host
+- set_opaque
+- set_path
+- set_port
+- set_query
+- set_registry
+- set_scheme
+- set_userinfo
+- split_userinfo
+- to_s
+- userinfo
+URI::HTTP#:
+- initialize
+URI.:
+- parse
+- split

@@ -1,0 +1,8 @@
+StringIO#:
+- binmode
+- flush
+- initialize
+- read
+- rewind
+- sync=
+- write

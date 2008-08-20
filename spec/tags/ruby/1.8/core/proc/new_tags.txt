@@ -1,1 +1,0 @@
-fails:Proc.new returns from within a method

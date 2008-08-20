@@ -1,0 +1,2 @@
+unstable:VMActor::Container#spawn_actor allows Actors in different VMs to send messages to each other
+unstable:VMActor::Container#spawn_actor evaluates strings passed to Container#spawn_actor in remote actor scope

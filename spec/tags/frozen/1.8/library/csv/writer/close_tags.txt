@@ -1,0 +1,1 @@
+incomplete:CSV::Writer#close needs to be reviewed for spec completeness

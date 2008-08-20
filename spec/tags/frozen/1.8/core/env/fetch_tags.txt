@@ -1,0 +1,2 @@
+fails:ENV#fetch warns on block and default parameter given
+fails:ENV.fetch warns on block and default parameter given

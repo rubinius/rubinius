@@ -1,0 +1,1 @@
+incomplete:Matrix#eql? needs to be reviewed for spec completeness

@@ -1,0 +1,4 @@
+fails:Rubinius::Inliner::SimpleSelfCallInliner inlines delegated methods
+fails:Rubinius::Inliner::SimpleSelfCallInliner inlines into delegated methods
+fails:Rubinius::Inliner::SimpleSelfCallInliner inlines delegated methods into delegated methods
+fails:Rubinius::Inliner::SimpleSelfCallInliner inlines methods that use blocks into methods that use blocks

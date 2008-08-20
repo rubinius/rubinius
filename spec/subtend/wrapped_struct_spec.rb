@@ -13,4 +13,15 @@ describe "SubtendWrappedStruct" do
     a = @s.wrap_struct(1024)
     @s.get_struct(a).should == 1024
   end
+
+  it "RDATA()->data should return the struct data" do
+    a = @s.wrap_struct(1024)
+    @s.get_struct_rdata(a).should == 1024
+  end
+
+  it "Changing RDATA()->data should change the wrapped struct" do
+    a = @s.wrap_struct(1024)
+    @s.change_struct(a, 100)
+    @s.get_struct(a).should == 100
+  end
 end

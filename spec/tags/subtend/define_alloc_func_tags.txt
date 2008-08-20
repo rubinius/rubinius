@@ -1,1 +1,0 @@
-fails:SubtendAlloc (a class with an alloc func defined) calls the alloc func

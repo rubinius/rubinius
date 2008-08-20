@@ -1,0 +1,1 @@
+incomplete:CGI::Cookie#to_s needs to be reviewed for spec completeness

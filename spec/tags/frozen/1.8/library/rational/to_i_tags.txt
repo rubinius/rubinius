@@ -1,0 +1,2 @@
+incomplete:Rational#to_i needs to be reviewed for spec completeness
+fails:Rational#to_i converts self to an Integer by truncation
