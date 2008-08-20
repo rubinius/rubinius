@@ -2452,7 +2452,7 @@ class Instructions
   #   * ...
   # [Description]
   #   Pops a block off the stack, and sends the message +method+ to the current
-  #   objects  superclass. The arguments to the method areleft on the top of
+  #   objects  superclass. The arguments to the method are left on the top of
   #   the stack, ready to be converted into locals when the method is
   #   activated.
   #
