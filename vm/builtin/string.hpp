@@ -73,6 +73,10 @@ namespace rubinius {
     // Ruby.primitive :string_apply_and
     String* apply_and(STATE, String* other);
 
+    // Ruby.primitive :string_tr_expand
+    FIXNUM tr_expand(STATE, OBJECT limit);
+    FIXNUM tr_replace(STATE, struct tr_data* data);
+
     operator char *();
 
     class Info : public TypeInfo {

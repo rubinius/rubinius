@@ -130,4 +130,54 @@ class TestString : public CxxTest::TestSuite {
     str3->apply_and(state, str4);
     TS_ASSERT(expected->equal(state, str3));
   }
+
+  void test_tr_expand() {
+    String* s = String::create(state, "a-g");
+    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(7));
+    TS_ASSERT_SAME_DATA(s->data->bytes, "abcdefg", 7);
+  }
+
+  void test_tr_expand_range() {
+    String* s = String::create(state, "abc-egh");
+    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(7));
+    TS_ASSERT_SAME_DATA(s->data->bytes, "abcdegh", 7);
+  }
+
+  void test_tr_expand_duplicate_chars_last_position() {
+    String* s = String::create(state, "a-cabdage");
+    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(9));
+    TS_ASSERT_SAME_DATA(s->data->bytes, "cbdage", 6);
+  }
+
+  void test_tr_expand_leading_carat() {
+    String* s = String::create(state, "^");
+    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(1));
+    TS_ASSERT_SAME_DATA(s->data->bytes, "^", 1);
+
+    s = String::create(state, "^a-c");
+    TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(3));
+    TS_ASSERT_SAME_DATA(s->data->bytes, "abc", 3);
+  }
+
+  void test_tr_expand_limit_processing() {
+    String* s = String::create(state, "a-h");
+    FIXNUM five = Fixnum::from(5);
+    TS_ASSERT_EQUALS(s->tr_expand(state, five), five);
+    TS_ASSERT_SAME_DATA(s->data->bytes, "abcde", 5);
+
+    s = String::create(state, "abc-ga-i");
+    FIXNUM ten = Fixnum::from(10);
+    TS_ASSERT_EQUALS(s->tr_expand(state, ten), ten);
+    TS_ASSERT_SAME_DATA(s->data->bytes, "defgabc", 7);
+
+    s = String::create(state, "abc-ga-i");
+    FIXNUM three = Fixnum::from(3);
+    TS_ASSERT_EQUALS(s->tr_expand(state, three), three);
+    TS_ASSERT_SAME_DATA(s->data->bytes, "abc", 3);
+
+    s = String::create(state, "^abcde");
+    FIXNUM four = Fixnum::from(4);
+    TS_ASSERT_EQUALS(s->tr_expand(state, four), four);
+    TS_ASSERT_SAME_DATA(s->data->bytes, "abcd", 4);
+  }
 };
