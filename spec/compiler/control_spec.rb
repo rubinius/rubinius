@@ -14,7 +14,7 @@ describe Compiler do
       fin.set!
     end
   end
-  
+
   it "compiles if/else/end" do
     gen [:if, [:true], [:fixnum, 10], [:fixnum, 12]] do |g|
       g.push :true
@@ -28,7 +28,7 @@ describe Compiler do
       fin.set!
     end
   end
-  
+
   it "compiles unless/end" do
     gen [:if, [:true], nil, [:fixnum, 12]] do |g|
       g.push :true
@@ -42,7 +42,7 @@ describe Compiler do
       fin.set!
     end
   end
-  
+
   it "compiles a stupid if" do
     gen [:if, [:true], nil, nil] do |g|
       g.push :true
@@ -50,16 +50,16 @@ describe Compiler do
       g.push :nil
     end
   end
-  
+
   it "compiles a normal while" do
     gen [:while, [:true], [:fixnum, 12], true] do |g|
       g.push_modifiers
-      
+
       top = g.new_label
       fin = g.new_label
       g.redo = g.new_label
-      
-      
+
+
       top.set!
       g.push :true
       g.gif fin
@@ -67,50 +67,50 @@ describe Compiler do
       g.push 12
       g.pop
       g.goto top
-      
+
       fin.set!
       g.push :nil
-      
+
       # Break
       g.new_label.set!
-      
+
       g.pop_modifiers
     end
   end
-  
+
   it "compiles a post while" do
     gen [:while, [:true], [:fixnum, 12], false] do |g|
       g.push_modifiers
-      
+
       top = g.new_label
       fin = g.new_label
-      
+
       top.set!
       g.push 12
       g.pop
-      g.new_label.set! # next  
+      g.new_label.set! # next
       g.push :true
       g.gif fin
       g.goto top
-      
+
       fin.set!
       g.push :nil
-      
+
       # Break
       g.new_label.set!
-      
+
       g.pop_modifiers
     end
   end
-  
+
   it "compiles a normal until" do
     gen [:until, [:true], [:fixnum, 12], true] do |g|
       g.push_modifiers
-      
+
       top = g.new_label
       fin = g.new_label
       g.redo = g.new_label
-      
+
       top.set!
       g.push :true
       g.git fin
@@ -118,28 +118,28 @@ describe Compiler do
       g.push 12
       g.pop
       g.goto top
-      
+
       fin.set!
       g.push :nil
-      
+
       # Break
       g.new_label.set!
-      
+
       g.pop_modifiers
     end
   end
-  
+
   it "compiles a post until" do
     gen [:until, [:true], [:fixnum, 12], false] do |g|
       g.push_modifiers
-      
+
       top = g.new_label
       fin = g.new_label
-      
+
       top.set!
       g.push 12
       g.pop
-      g.new_label.set! # next  
+      g.new_label.set! # next
       g.push :true
       g.git fin
       g.goto top
@@ -350,33 +350,33 @@ describe Compiler do
       g.push :true
     end
   end
-  
+
   it "compiles a scope" do
     gen [:scope, [:fixnum, 12], []] do |g|
       g.push 12
     end
   end
-  
+
   it "compiles loop {} directly" do
     gen [:iter, [:fcall, :loop], nil, [:fixnum, 12]] do |g|
       g.push_modifiers
-      
+
       top = g.new_label
       top.set!
       g.push 12
       g.pop
       g.goto top
-      g.new_label.set! # break 
-      
+      g.new_label.set! # break
+
       g.pop_modifiers
     end
   end
-  
-  
+
+
   it "compiles break in a control" do
     gen [:while, [:true], [:block, [:fixnum, 12], [:break]], true] do |g|
       g.push_modifiers
-      
+
       top = g.new_label
       fin = g.new_label
       g.redo = g.new_label
@@ -529,7 +529,7 @@ describe Compiler do
 
   it "compiles a case with multiple conditions" do
     x = [:case, [:true], [
-           [:when, [:array, [:const, :Fixnum], [:const, :String]], 
+           [:when, [:array, [:const, :Fixnum], [:const, :String]],
                [:fixnum, 12]],
         ]]
 
@@ -702,7 +702,7 @@ describe Compiler do
           nil
         ]
 
-    gen x do |g|      
+    gen x do |g|
       fin =   g.new_label
       cond2 = g.new_label
       cond3 = g.new_label
