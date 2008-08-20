@@ -16,7 +16,7 @@ namespace rubinius {
     OBJECT val;
     if(args > 0) {
       Tuple* tup = Tuple::create(state, args);
-      for(size_t i = args - 1; i >= 0; i--) {
+      for(int i = args - 1; i >= 0; i--) {
         tup->put(state, i, task->pop());
       }
 
