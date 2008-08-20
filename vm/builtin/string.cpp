@@ -399,6 +399,41 @@ namespace rubinius {
     }
   }
 
+  String* String::pattern(STATE, OBJECT self, FIXNUM size, OBJECT pattern) {
+    String* s = String::allocate(state, size);
+    SET(s, klass, self);
+    s->IsTainted = self->IsTainted;
+
+    native_int cnt = size->to_native();
+
+    if(FIXNUM chr = try_as<Fixnum>(pattern)) {
+      std::memset(s->data->bytes, (int)chr->to_native(), cnt);
+    } else if(String* pat = try_as<String>(pattern)) {
+      s->IsTainted |= pat->IsTainted;
+
+      native_int psz = pat->size();
+      if(psz == 1) {
+        std::memset(s->data->bytes, pat->data->bytes[0], cnt);
+      } else if(psz > 1) {
+        native_int i, j, n;
+
+        native_int sz = cnt / psz;
+        for(n = i = 0; i < sz; i++) {
+          for(j = 0; j < psz; j++, n++) {
+            s->data->bytes[n] = pat->data->bytes[j];
+          }
+        }
+        for(i = n, j = 0; i < cnt; i++, j++) {
+          s->data->bytes[i] = pat->data->bytes[j];
+        }
+      }
+    } else {
+      throw PrimitiveFailed();
+    }
+
+    return s;
+  }
+
   void String::Info::show(STATE, OBJECT self) {
     String* str = as<String>(self);
     std::cout << *str << std::endl;
