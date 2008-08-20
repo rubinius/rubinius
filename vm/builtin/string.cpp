@@ -244,8 +244,8 @@ namespace rubinius {
   // Character-wise logical AND of two strings. Modifies the receiver.
   String* String::apply_and(STATE, String* other) {
     native_int count, i;
-    char* s = this->data->to_chars(state);
-    char* o = other->data->to_chars(state);
+    ByteArray* s = this->data;
+    ByteArray* o = other->data;
 
     if(this->num_bytes > other->num_bytes) {
       count = other->num_bytes->to_native();
@@ -253,15 +253,10 @@ namespace rubinius {
       count = this->num_bytes->to_native();
     }
 
+    // Use && not & to keep 1's in the table.
     for(i = 0; i < count; i++) {
-      s[i] = s[i] && o[i];
+      s->bytes[i] = s->bytes[i] && o->bytes[i];
     }
-    ByteArray* ba = ByteArray::create(state, count);
-
-    std::memcpy(ba->bytes, s, count);
-    ba->bytes[count] = 0;
-
-    SET(this, data, ba);
 
     return this;
   }
