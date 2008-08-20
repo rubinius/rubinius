@@ -54,15 +54,8 @@ module Kernel
   # object's class or one of its superclasses. Returns false otherwise. If the
   # argument is not a Class or Module, a TypeError is raised.
   def kind_of?(cls)
-    unless cls.class.equal?(Class) or cls.class.equal?(Module)
-      raise TypeError, 'kind_of? requires a Class or Module argument'
-    end
-
-    Rubinius.asm(cls) do |c|
-      run c
-      push :self
-      kind_of
-    end
+    Ruby.primitive :object_kind_of
+    raise TypeError, 'kind_of? requires a Class or Module argument'
   end
 
   def method_missing(meth, *args)
