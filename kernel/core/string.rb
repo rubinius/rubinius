@@ -2198,17 +2198,10 @@ class String
     str
   end
 
-  def to_sexp(name="(eval)",line=1,newlines=true)
-    out = to_sexp_full(name, line, newlines)
-    if out.kind_of? Tuple
-      exc = SyntaxError.new out.at(0)
-      exc.import_position out.at(1), out.at(2), out.at(3)
-      exc.file = name
-      raise exc
-    end
-
-    out = [:newline, 0, "<empty: #{name}>", [:nil]] unless out
-    out
+  def to_sexp(name="(eval)") # TODO: maybe move into lib/compiler and after_load
+    $: << File.expand_path "~/Work/p4/zss/src/ruby_parser/dev/lib/" # HACK
+    require 'ruby_parser'
+    RubyParser.new.process(self, name)
   end
 
   def shared!

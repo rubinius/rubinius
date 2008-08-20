@@ -1,7 +1,4 @@
 
-require 'rubygems'
-require 'parse_tree'
-
 $" << "compiler/mri_shim"
 $" << "compiler/compiler"
 
@@ -47,11 +44,11 @@ require File.dirname(__FILE__) + '/../../kernel/core/compiled_method'
 require File.dirname(__FILE__) + '/../../vm/gen/simple_field'
 
 def File.to_sexp(file, opt=nil)
-  pt = ParseTree.new(true)
-  top = pt.parse_tree_for_string(File.read(file), file)
-  if top.size != 1
-    raise "huh?"
-  end
-  top[0]
+  $: << File.expand_path "~/Work/p4/zss/src/ruby_parser/dev/lib/" # HACK
+  require 'ruby_parser'
+
+  top = RubyParser.new(true).process(File.read(file), file)
+  raise "huh?" if top.size != 1
+  top
 end
 

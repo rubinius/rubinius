@@ -1564,53 +1564,6 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :string_to_sexp
-  def string_to_sexp
-    <<-CODE
-    ARITY(3);
-    bstring contents;
-    const char *name;
-    OBJECT t1, t2, t3;
-
-    GUARD(STRING_P(msg->recv));
-
-    POP(t1, STRING);
-    POP(t2, FIXNUM);
-    t3 = NEXT_ARG();
-
-    contents = cstr2bstr(string_byte_address(state, msg->recv));
-    name = string_byte_address(state, t1);
-    t1 = syd_compile_string(state, name, contents, N2I(t2), RTEST(t3));
-    bdestroy(contents);
-    
-    RET(t1);
-    CODE
-  end
-
-  defprim :file_to_sexp
-  def file_to_sexp
-    <<-CODE
-    ARITY(2);
-    FILE *file;
-    char *name;
-    OBJECT t1, t2;
-
-    POP(t1, STRING); /* The filename */
-    t2 = NEXT_ARG();
-
-    name = string_byte_address(state, t1);
-    file = fopen(name, "r");
-
-    if(!file) {
-      FAIL();
-    } else {
-      t1 = syd_compile_file(state, name, file, 1, RTEST(t2));
-      fclose(file);
-      RET(t1);
-    }
-    CODE
-  end
-
   defprim :terminal_raw
   def terminal_raw
     <<-CODE

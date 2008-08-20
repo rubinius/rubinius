@@ -13,11 +13,6 @@ class String
     __symbol_lookup__
   end
 
-  def to_sexp_full(name, line, newlines)
-    Ruby.primitive :string_to_sexp
-    raise PrimitiveFailure, "primitive failed"
-  end
-
   def to_f
     Ruby.primitive :string_to_f
     raise PrimitiveFailure, "primitive failed"

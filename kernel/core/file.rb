@@ -718,18 +718,9 @@ class File < IO
   # Return the equivalent S-Expression of the file given.
   # Raises +SyntaxError+ if there is a syntax issue in the
   # file, making it unparsable.
-  #  File.to_sexp("/tmp/test.rb") #=> [...]
-  def self.to_sexp(name, newlines=true)
-    out = to_sexp_full(name, newlines)
-    if out.kind_of? Tuple
-      exc = SyntaxError.new out.at(0)
-      exc.import_position out.at(1), out.at(2), out.at(3)
-      exc.file = name
-      raise exc
-    end
-
-    out = [:newline, 0, name, [:nil]] unless out
-    out
+  #  File.to_sexp("/tmp/test.rb") #=> s(...)
+  def self.to_sexp(name)
+    File.read(name).to_sexp(name)
   end
 
   ##

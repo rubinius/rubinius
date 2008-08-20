@@ -32,19 +32,13 @@ class Compiler
     return node.to_description(:__script__).to_cmethod
   end
 
-  def self.compile_string(string, flags=nil, filename="(eval)", line=1)
-    sexp = string.to_sexp(filename, line, true)
-
-    if flags
-      binding = flags[:binding]
-    else
-      binding = nil
-    end
-
-    comp = new(Generator, binding)
-    node = comp.convert_sexp([:eval_expression, sexp])
-    cm = node.to_description(:__eval_script__).to_cmethod
+  def self.compile_string(string, flags = {})
+    sexp    = string.to_sexp(filename)
+    binding = flags[:binding]
+    node    = new(Generator, binding).convert_sexp([:eval_expression, sexp])
+    cm      = node.to_description(:__eval_script__).to_cmethod
     cm.file = filename.to_sym
+
     return cm
   end
 
