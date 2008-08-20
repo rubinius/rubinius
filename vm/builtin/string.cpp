@@ -7,6 +7,7 @@
 
 #include "objects.hpp"
 #include "vm.hpp"
+#include "primitives.hpp"
 #include "objectmemory.hpp"
 
 #define HashPrime 16777619
@@ -371,6 +372,31 @@ namespace rubinius {
     std::memcpy(this->data->bytes + dst, other->data->bytes + src, cnt);
 
     return this;
+  }
+
+  FIXNUM String::compare_substring(STATE, String* other, FIXNUM start, FIXNUM size) {
+    native_int src = start->to_native();
+    native_int cnt = size->to_native();
+    native_int sz = (native_int)this->size();
+    native_int osz = (native_int)other->size();
+
+    if(src < 0) src = osz + src;
+    if(src >= osz || src < 0) {
+      throw PrimitiveFailed();
+    }
+    if(src + cnt > osz) cnt = osz - src;
+
+    if(cnt > sz) cnt = sz;
+
+    native_int cmp = std::memcmp(this->data->bytes, other->data->bytes + src, cnt);
+
+    if(cmp < 0) {
+      return Fixnum::from(-1);
+    } else if(cmp > 0) {
+      return Fixnum::from(1);
+    } else {
+      return Fixnum::from(0);
+    }
   }
 
   void String::Info::show(STATE, OBJECT self) {

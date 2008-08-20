@@ -80,6 +80,9 @@ namespace rubinius {
     // Ruby.primitive :string_copy_from
     String* copy_from(STATE, String* other, FIXNUM start, FIXNUM size, FIXNUM dest);
 
+    // Ruby.primitive :string_compare_substring
+    FIXNUM compare_substring(STATE, String* other, FIXNUM start, FIXNUM size);
+
     operator char *();
 
     class Info : public TypeInfo {
@@ -87,7 +90,6 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
       virtual void show(STATE, OBJECT self);
     };
-
   };
 };
 

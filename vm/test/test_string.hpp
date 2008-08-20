@@ -229,4 +229,61 @@ class TestString : public CxxTest::TestSuite {
     a->copy_from(state, b, Fixnum::from(0), Fixnum::from(2), Fixnum::from(-1));
     TS_ASSERT_SAME_DATA(a->data->bytes, "yy", 2);
   }
+
+  void test_compare_substring_less_than() {
+    String* a = String::create(state, "abc");
+    String* b = String::create(state, "defghi");
+    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(-6), Fixnum::from(3));
+    TS_ASSERT_EQUALS(cmp, Fixnum::from(-1));
+
+    a = String::create(state, "def");
+    b = String::create(state, "aghib");
+    cmp = a->compare_substring(state, b, Fixnum::from(1), Fixnum::from(3));
+    TS_ASSERT_EQUALS(cmp, Fixnum::from(-1));
+  }
+
+  void test_compare_substring_equal() {
+    String* a = String::create(state, "abc");
+    String* b = String::create(state, "ababcba");
+    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(2), Fixnum::from(2));
+    TS_ASSERT_EQUALS(cmp, Fixnum::from(0));
+
+    a = String::create(state, "bbc");
+    b = String::create(state, "abbc");
+    cmp = a->compare_substring(state, b, Fixnum::from(-3), Fixnum::from(3));
+    TS_ASSERT_EQUALS(cmp, Fixnum::from(0));
+  }
+
+  void test_compare_substring_greater_than() {
+    String* a = String::create(state, "def");
+    String* b = String::create(state, "xyzabc");
+    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(-3), Fixnum::from(3));
+    TS_ASSERT_EQUALS(cmp, Fixnum::from(1));
+
+    a = String::create(state, "qrs");
+    b = String::create(state, "abc");
+    cmp = a->compare_substring(state, b, Fixnum::from(0), Fixnum::from(2));
+    TS_ASSERT_EQUALS(cmp, Fixnum::from(1));
+  }
+
+  void test_compare_substring_limit_to_self() {
+    String* a = String::create(state, "aaa");
+    String* b = String::create(state, "aaabbb");
+    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(0), Fixnum::from(5));
+    TS_ASSERT_EQUALS(cmp, Fixnum::from(0));
+  }
+
+  void test_compare_substring_limit_to_other() {
+    String* a = String::create(state, "aaaa");
+    String* b = String::create(state, "aaa");
+    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(1), Fixnum::from(3));
+    TS_ASSERT_EQUALS(cmp, Fixnum::from(0));
+  }
+
+  void test_compare_substring_throws_if_start_beyond_bounds() {
+    String* a = String::create(state, "a");
+    String* b = String::create(state, "aa");
+    TS_ASSERT_THROWS(a->compare_substring(state, b, Fixnum::from(-3), Fixnum::from(1)), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(a->compare_substring(state, b, Fixnum::from(2), Fixnum::from(1)), const PrimitiveFailed &);
+  }
 };
