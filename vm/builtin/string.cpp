@@ -353,6 +353,26 @@ namespace rubinius {
     return Fixnum::from(data->steps);
   }
 
+  String* String::copy_from(STATE, String* other, FIXNUM start, FIXNUM size, FIXNUM dest) {
+    native_int src = start->to_native();
+    native_int dst = dest->to_native();
+    native_int cnt = size->to_native();
+
+    native_int osz = other->size();
+    if(src >= osz) return this;
+    if(src < 0) src = 0;
+    if(cnt > osz - src) cnt = osz - src;
+
+    native_int sz = this->size();
+    if(dst >= sz) return this;
+    if(dst < 0) dst = 0;
+    if(cnt > sz - dst) cnt = sz - dst;
+
+    std::memcpy(this->data->bytes + dst, other->data->bytes + src, cnt);
+
+    return this;
+  }
+
   void String::Info::show(STATE, OBJECT self) {
     String* str = as<String>(self);
     std::cout << *str << std::endl;

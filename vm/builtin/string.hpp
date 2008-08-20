@@ -77,6 +77,9 @@ namespace rubinius {
     FIXNUM tr_expand(STATE, OBJECT limit);
     FIXNUM tr_replace(STATE, struct tr_data* data);
 
+    // Ruby.primitive :string_copy_from
+    String* copy_from(STATE, String* other, FIXNUM start, FIXNUM size, FIXNUM dest);
+
     operator char *();
 
     class Info : public TypeInfo {

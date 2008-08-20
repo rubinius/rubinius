@@ -180,4 +180,53 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(s->tr_expand(state, four), four);
     TS_ASSERT_SAME_DATA(s->data->bytes, "abcd", 4);
   }
+
+  void test_copy_from() {
+    String* a = String::create(state, "abcdefghijkl");
+    String* b = String::create(state, "ihgfed");
+    a->copy_from(state, b, Fixnum::from(1), Fixnum::from(4), Fixnum::from(4));
+    TS_ASSERT_SAME_DATA(a->data->bytes, "abcdhgfeijkl", 12);
+  }
+
+  void test_copy_from_limit_copy_from_size() {
+    String* a = String::create(state, "xxxxxx");
+    String* b = String::create(state, "yy");
+    a->copy_from(state, b, Fixnum::from(0), Fixnum::from(3), Fixnum::from(2));
+    TS_ASSERT_SAME_DATA(a->data->bytes, "xxyyxx", 6);
+  }
+
+  void test_copy_from_start_not_less_than_zero() {
+    String* a = String::create(state, "xxx");
+    String* b = String::create(state, "yy");
+    a->copy_from(state, b, Fixnum::from(-1), Fixnum::from(2), Fixnum::from(1));
+    TS_ASSERT_SAME_DATA(a->data->bytes, "xyy", 3);
+  }
+
+  void test_copy_from_start_not_greater_than_size() {
+    String* a = String::create(state, "xxx");
+    String* b = String::create(state, "yy");
+    a->copy_from(state, b, Fixnum::from(2), Fixnum::from(2), Fixnum::from(0));
+    TS_ASSERT_SAME_DATA(a->data->bytes, "xxx", 3);
+  }
+
+  void test_copy_from_limit_copy_to_size() {
+    String* a = String::create(state, "xx");
+    String* b = String::create(state, "yyyy");
+    a->copy_from(state, b, Fixnum::from(0), Fixnum::from(4), Fixnum::from(0));
+    TS_ASSERT_SAME_DATA(a->data->bytes, "yy", 2);
+  }
+
+  void test_copy_from_only_copy_if_dest_is_within_bounds() {
+    String* a = String::create(state, "xx");
+    String* b = String::create(state, "yy");
+    a->copy_from(state, b, Fixnum::from(0), Fixnum::from(2), Fixnum::from(2));
+    TS_ASSERT_SAME_DATA(a->data->bytes, "xx", 2);
+  }
+
+  void test_copy_from_dest_start_not_less_than_zero() {
+    String* a = String::create(state, "xx");
+    String* b = String::create(state, "yy");
+    a->copy_from(state, b, Fixnum::from(0), Fixnum::from(2), Fixnum::from(-1));
+    TS_ASSERT_SAME_DATA(a->data->bytes, "yy", 2);
+  }
 };
