@@ -29,6 +29,9 @@ static void load_root(Environment& env, std::string root) {
     std::string path = root + "/" + line;
     std::cout << "Loading directory: " << path << "\n";
     env.load_directory(path);
+
+    std::cout << "Loading platform.conf: " << root << "\n";
+    env.load_platform_conf(root);
   }
 }
 
