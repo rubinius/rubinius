@@ -108,5 +108,5 @@ namespace :git do
   end
 
   desc "Pull, build, spec, push"
-  task :safe_push => %w[git:pull build spec git:push]
+  task :safe_push => %w[git:pull build vm:test git:push]
 end
