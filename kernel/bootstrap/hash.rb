@@ -42,9 +42,6 @@ class Hash
       cur_val = entry[2]
       nxt = entry[3]
 
-      cur_hash == hash
-      key.eql? cur_key
-
       # Check if this entry is for the key in question
       if cur_hash == hash and key.eql?(cur_key)
         entry.put 2, val
