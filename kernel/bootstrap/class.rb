@@ -78,9 +78,11 @@ class AccessVariable
   end
 end
 
-# This is here because it uses instance_fields, which is defined above.
-# This is the ONLY way to force load order in the bootstrap (and the 
-# only instance of load order mattering)
+##
+# This is here because it uses instance_fields, which is defined above.  This
+# is the ONLY way to force load order in the bootstrap (and the only instance
+# of load order mattering)
+
 class IncludedModule < Module
   self.instance_fields = 8
 
