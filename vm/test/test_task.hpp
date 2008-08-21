@@ -180,9 +180,9 @@ class TestTask : public CxxTest::TestSuite {
     bool thrown = false;
     try {
       task->send_message(msg);
-    } catch(ArgumentError* error) {
-      TS_ASSERT_EQUALS(1U, error->given);
-      TS_ASSERT_EQUALS(2U, error->expected);
+    } catch(ArgumentError& error) {
+      TS_ASSERT_EQUALS(1U, error.given);
+      TS_ASSERT_EQUALS(2U, error.expected);
       thrown = true;
     }
 
@@ -218,9 +218,9 @@ class TestTask : public CxxTest::TestSuite {
     bool thrown = false;
     try {
       task->send_message(msg);
-    } catch(ArgumentError* error) {
-      TS_ASSERT_EQUALS(3U, error->given);
-      TS_ASSERT_EQUALS(2U, error->expected);
+    } catch(ArgumentError& error) {
+      TS_ASSERT_EQUALS(3U, error.given);
+      TS_ASSERT_EQUALS(2U, error.expected);
       thrown = true;
     }
 
@@ -361,7 +361,7 @@ class TestTask : public CxxTest::TestSuite {
     bool thrown = false;
     try {
       task->send_message(msg);
-    } catch(ArgumentError* error) {
+    } catch(ArgumentError& error) {
       thrown = true;
     }
 

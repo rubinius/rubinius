@@ -7,6 +7,18 @@
 
 namespace rubinius {
 
+  void TypeError::raise(object_type type, OBJECT obj, const char* reason) {
+    throw TypeError(type, obj);
+  }
+
+  void Assertion::raise(const char* mesg) {
+    throw Assertion(mesg);
+  }
+
+  void ObjectBoundsExceeded::raise(OBJECT o, size_t i) {
+    throw ObjectBoundsExceeded(o, i);
+  }
+
   static VMException::Backtrace get_trace(size_t skip) {
 
     const size_t max_depth = 100;

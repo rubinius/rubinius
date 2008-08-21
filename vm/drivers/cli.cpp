@@ -57,28 +57,28 @@ int main(int argc, char** argv) {
     env.run_file(str);
     return 0;
 
-  } catch(ObjectBoundsExceeded *e) {
-    TypeInfo* info = env.state->find_type(e->obj->obj_type); // HACK use object
+  } catch(ObjectBoundsExceeded &e) {
+    TypeInfo* info = env.state->find_type(e.obj->obj_type); // HACK use object
 
     std::cout << "Bounds of object exceeded:" << std::endl;
     std::cout << "  type: " << info->type_name << ", fields: " <<
-      e->obj->field_count << ", accessed: " << e->index << std::endl;
-    e->print_backtrace();
-  } catch(Assertion *e) {
+      e.obj->field_count << ", accessed: " << e.index << std::endl;
+    e.print_backtrace();
+  } catch(Assertion &e) {
     std::cout << "VM Assertion:" << std::endl;
-    std::cout << "  " << e->reason << std::endl;
-    e->print_backtrace();
+    std::cout << "  " << e.reason << std::endl;
+    e.print_backtrace();
 
     std::cout << "Ruby backtrace:" << std::endl;
     env.state->print_backtrace();
-  } catch(TypeError *e) {
+  } catch(TypeError &e) {
     std::cout << "Type Error detected:" << std::endl;
-    TypeInfo* wanted = env.state->find_type(e->type);
+    TypeInfo* wanted = env.state->find_type(e.type);
 
-    if(!e->object->reference_p()) {
-      std::cout << "  Tried to use non-reference value " << e->object;
+    if(!e.object->reference_p()) {
+      std::cout << "  Tried to use non-reference value " << e.object;
     } else {
-      TypeInfo* was = env.state->find_type(e->object->obj_type);
+      TypeInfo* was = env.state->find_type(e.object->obj_type);
       std::cout << "  Tried to use object of type " <<
         was->type_name << " (" << was->type << ")";
     }
@@ -86,16 +86,16 @@ int main(int argc, char** argv) {
     std::cout << " as type " << wanted->type_name << " (" <<
       wanted->type << ")" << std::endl;
 
-    e->print_backtrace();
+    e.print_backtrace();
   } catch(std::runtime_error& e) {
     std::cout << "Runtime exception: " << e.what() << std::endl;
-  } catch(ArgumentError *e) {
-    std::cout << "Argument error: expected " << e->expected << ", given " <<
-      e->given << std::endl;
+  } catch(ArgumentError &e) {
+    std::cout << "Argument error: expected " << e.expected << ", given " <<
+      e.given << std::endl;
     env.state->print_backtrace();
-  } catch(VMException *e) {
+  } catch(VMException &e) {
     std::cout << "Unknown VM exception detected." << std::endl;
-    e->print_backtrace();
+    e.print_backtrace();
   } catch(std::string e) {
     std::cout << e << std::endl;
   } catch(...) {

@@ -61,7 +61,7 @@ class TestChannel : public CxxTest::TestSuite {
     bool thrown = false;
     try {
       chan->receive(state);
-    } catch(DeadLock* e) {
+    } catch(DeadLock& e) {
       thrown = true;
     }
 

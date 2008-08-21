@@ -114,7 +114,7 @@ namespace rubinius {
       std::string str = std::string("Unable to find: ");
       str += name;
 
-      throw str;
+      throw std::runtime_error(str);
     }
 
     std::vector<Value*> args(0);
@@ -132,7 +132,7 @@ namespace rubinius {
       std::string str = std::string("Unable to find: ");
       str += name;
 
-      throw str;
+      throw std::runtime_error(str);
     }
 
     std::vector<Value*> args(0);
