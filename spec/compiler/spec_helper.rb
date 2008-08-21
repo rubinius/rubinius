@@ -1,9 +1,12 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+$: << 'lib'
+
 require File.dirname(__FILE__) + '/../../lib/compiler/compiler'
 require File.dirname(__FILE__) + '/../../lib/compiler/generator'
 require File.dirname(__FILE__) + '/../../lib/compiler/bytecode'
 require File.dirname(__FILE__) + '/../../lib/compiler/text'
+require File.dirname(__FILE__) + '/../../kernel/core/iseq'
 
 class TestGenerator
   def initialize
@@ -170,7 +173,7 @@ class TestGenerator
     
       unless in_block
         g.send :value, 0
-        g.sret
+        g.ret
       end
 
       after.set!
@@ -225,11 +228,11 @@ def gen_iter x
       d.new_label.set!
       d.push :nil
       d.pop_modifiers
-      d.soft_return
+      d.ret
     end
 
     g.push_literal desc
-    g.create_block2
+    g.create_block
     g.push :self
     g.send :ary, 0, true
 

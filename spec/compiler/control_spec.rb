@@ -170,10 +170,10 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.push 2
       g.push 1
       g.push_cpath_top
@@ -196,10 +196,10 @@ describe Compiler do
     gen(sexp) do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0, 0
         d.pop
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0, 1
         d.pop
         d.pop
@@ -207,10 +207,10 @@ describe Compiler do
         d.new_label.set!
         d.push 5
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.push :self
       g.send :x, 0, true
       g.passed_block do
@@ -234,10 +234,10 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.push 2
       g.push 1
       g.push_cpath_top
@@ -263,10 +263,10 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.push 2
       g.push 1
       g.push_cpath_top
@@ -288,10 +288,10 @@ describe Compiler do
     gen(sexp) do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local 0
         d.pop
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local 1
         d.pop
         d.pop
@@ -299,10 +299,10 @@ describe Compiler do
         d.new_label.set!
         d.push 5
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.push :self
       g.send :x, 0, true
       g.passed_block(2) do
@@ -320,10 +320,10 @@ describe Compiler do
     gen(sexp) do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local 0
         d.pop
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local 1
         d.pop
         d.pop
@@ -332,10 +332,10 @@ describe Compiler do
         d.push 5
         d.set_local_depth 0,0
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.push :self
       g.send :x, 0, true
       g.passed_block(2) do
@@ -433,11 +433,11 @@ describe Compiler do
         d.raise_exc
 
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.push :self
       g.passed_block do
         g.send_with_block :go, 0, true
@@ -493,11 +493,11 @@ describe Compiler do
         d.pop
         d.goto d.redo
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.push :self
       g.passed_block do
         g.send_with_block :go, 0, true
@@ -827,11 +827,19 @@ describe Compiler do
     end
   end
 
+  #   case true
+  #   when String, *["foo", "bar", "baz"] then
+  #     12
+  #   end
+
   it "compiles a case with normal conditions and a splatted array" do
-    x = [:case, [:true], [
-           [:when, [:array, [:const, :String], [:when, [:array, [:str, "foo"],[:str, "bar"],[:str, "baz"]], nil]],
-               [:fixnum, 12]],
-        ]]
+    x = [:case, [:true], [[:when, [:array, [:const, :String],
+                                   [:when,
+                                    [:array,
+                                     [:str, "foo"],
+                                     [:str, "bar"],
+                                     [:str, "baz"]], nil]],
+                           [:fixnum, 12]]]]
 
     gen x do |g|
       body = g.new_label
@@ -880,14 +888,14 @@ describe Compiler do
   it "compiles 'return'" do
     gen [:return] do |g|
       g.push :nil
-      g.sret
+      g.ret
     end
   end
 
   it "compiles 'return 12'" do
     gen [:return, [:fixnum, 12]] do |g|
       g.push 12
-      g.sret
+      g.ret
     end
   end
 
@@ -924,7 +932,7 @@ describe Compiler do
       body.set!
       g.clear_exception
       g.push 13
-      g.sret
+      g.ret
       g.clear_exception
 
       g.goto last
@@ -955,11 +963,11 @@ describe Compiler do
         d.push_local 0
         d.raise_exc
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.push :self
       g.passed_block do
         g.send_with_block :go, 0, true
@@ -980,7 +988,7 @@ describe Compiler do
       g.push 2
       g.make_array 2
       g.send :+, 1
-      g.sret
+      g.ret
     end
   end
 end
