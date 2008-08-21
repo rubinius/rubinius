@@ -8,10 +8,9 @@ class Compiler::ExecuteContext
     @file = nil
     @line = 0
     @locals = {}
-    @metadata = nil
   end
 
-  attr_accessor :self, :file, :line, :metadata
+  attr_accessor :self, :file, :line
 
   def execute(node)
     node.execute self
@@ -221,21 +220,13 @@ class Compiler::Node
 
   class IVar
     def execute(e)
-      if md = e.metadata
-        md[@name]
-      else
-        e.self.instance_variable_get @name
-      end
+      e.self.instance_variable_get @name
     end
   end
 
   class IVarAssign
     def execute(e)
-      if md = e.metadata
-        md[@name] = @value.execute(e)
-      else
-        e.self.instance_variable_set @name, @value.execute(e)
-      end
+      e.self.instance_variable_set @name, @value.execute(e)
     end
   end
 
@@ -272,62 +263,15 @@ class Compiler::Node
 
   class Call
     def execute(e)
-      if @arguments
-        args = @arguments.map { |a| a.execute(e) }
-      else
-        args = []
-      end
-
-      if @block
-        vars = @block.arguments.names
-        blk = proc do |*args|
-          # bind the locals...
-          args.each_with_index do |a,i|
-            e.set_local vars[i], a
-          end
-
-          @block.body.execute(e)
-        end
-
-        @object.execute(e).__send__ @method, *args, &blk
-      else
-        @object.execute(e).__send__ @method, *args
-      end
-    end
-  end
-
-  class AttrAssign
-    def execute(e)
       args = @arguments.map { |a| a.execute(e) }
-      rhs  = @rhs_expression.execute(e)
-      args << rhs
       @object.execute(e).__send__ @method, *args
-      return rhs
     end
   end
 
   class FCall
     def execute(e)
-      if @arguments
-        args = @arguments.map { |a| a.execute(e) }
-      else
-        args = []
-      end
-
-      if @block
-        vars = @block.arguments.names
-        blk = proc do |*args|
-          # bind the locals...
-          args.each_with_index do |a,i|
-            e.set_local vars[i], a
-          end
-
-          @block.body.execute(e)
-        end
-        e.self.__send__ @method, *args, &blk
-      else
-        e.self.__send__ @method, *args
-      end
+      args = @arguments.map { |a| a.execute(e) }
+      e.self.__send__ @method, *args
     end
   end
 

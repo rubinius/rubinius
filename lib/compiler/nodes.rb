@@ -74,46 +74,26 @@ class Node
   end
 
   def self.create(compiler, sexp)
-    kind = sexp.shift
+    sexp.shift
 
     node = new(compiler)
-
-    # Anywhere within, a piece of code may throw the symbol for the
-    # node type that it wishes to unwind the processing branch to.
-    # If this happens, then the thrown substitute value (defaulting
-    # to nil) is returned instead of the normal node product.
-    #
-    # For example, Call#consume can detect the Rubinius.compile_if
-    # construct and throw :newline which causes this method's return
-    # value to be nil. So this Newline and the entire rest of the
-    # expression are replaced by a nil output, which should be
-    # then handled or optimized away by the node upstream (usually
-    # a Block.)
-    #
-    # Whoever uses the throw MUST ensure that the sexp and the AST
-    # are in a sane state. We do not worry about it here.
-    catch(kind) {
-      args = node.consume(sexp)
-
-      begin
-        if node.respond_to? :normalize
-          node = node.normalize(*args)
-        else
-          node.args(*args)
-        end
-      rescue ArgumentError => e
-        raise ArgumentError, "#{kind} (#{self}) takes #{args.size} argument(s): passed #{args.inspect} (#{e.message})", e.context
+    args = node.consume(sexp)
+    begin
+      if node.respond_to? :normalize
+        node = node.normalize(*args)
+      else
+        node.args(*args)
       end
+    rescue ArgumentError => e
+      raise ArgumentError,
+        "#{kind} (#{self}) takes #{args.size} arg(s): passed #{args.inspect} (#{e.message})"
+    end
 
-      node
-    }
+    return node
   end
 
   def initialize(compiler)
     @compiler = compiler
-    @in_masgn = false
-    @splat = false
-    @parent = nil
   end
 
   def convert(x)
@@ -158,7 +138,7 @@ class Node
     end
     prefix
 
-    super(prefix)
+    super
   end
 
   def is?(clas)
@@ -175,7 +155,7 @@ class Node
     end
   end
 
-  #--- Start of Node subclasses
+  # Start of Node subclasses
 
   # ClosedScope is a metanode in that it does not exist in Ruby code;
   # it merely abstracts common functionality of various real Ruby nodes
@@ -301,14 +281,6 @@ class Node
       lcl.access_in_block!
 
       return [lcl, depth]
-    end
-
-    def find_ivar_index(name)
-      @ivar_as_slot[name]
-    end
-
-    def add_ivar_as_slot(name, slot)
-      @ivar_as_slot["@#{name}".to_sym] = slot
     end
 
     def allocate_stack
@@ -665,6 +637,21 @@ class Node
         nd = RegexLiteral.new(@compiler)
         nd.args(value.source, value.options)
         return nd
+      when ::Range
+        if value.exclude_end?
+          nd = RangeExclude.new(@compiler)
+        else
+          nd = Range.new(@compiler)
+        end
+
+        start = NumberLiteral.new(@compiler)
+        start.args value.begin
+
+        fin = NumberLiteral.new(@compiler)
+        fin.args value.end
+
+        nd.args start, fin
+        return nd
       end
 
       return self
@@ -786,7 +773,11 @@ class Node
     def args(str, *body)
       @string = str
       @body = body
-      @options = body.pop
+      if body.last.kind_of? Fixnum
+        @options = body.pop
+      else
+        @options = 0
+      end
     end
   end
 
@@ -1080,7 +1071,7 @@ class Node
     kind :scope
 
     def consume(sexp)
-      if sexp.size == 1 or sexp[0].nil?
+      if sexp[0].nil?
         return [nil, nil]
       end
 
@@ -1090,6 +1081,11 @@ class Node
       end
 
       sexp[0] = convert(sexp[0])
+      # Fake the locals
+      if sexp.size == 1
+        sexp << []
+      end
+      
       return sexp
     end
 
@@ -1144,17 +1140,56 @@ class Node
     # [[:obj], [], nil, nil]
     # required, optional, splat, defaults
     def consume(sexp)
-
       if sexp.empty?
         return [[], [], nil, nil]
       end
+      splat = nil
+      defaults = nil
 
-      # Strip the parser calculated index of splat
-      if sexp[2] and !sexp[2].empty?
-        sexp[2] = sexp[2].first
+      # Detect Rubinius format
+      if sexp[0].kind_of? Array
+        # Strip the parser calculated index of splat
+        if sexp[2] and !sexp[2].empty?
+          splat = sexp[2].first
+        end
+
+        required = sexp[0]
+        optional = sexp[1]
+        defaults = sexp[3]
+
+        # Current PT format
+      else
+        required = []
+        optional = []
+
+        # detect defaults
+        if sexp.last.kind_of? Array
+          defaults = sexp.pop
+          1.upto(defaults.size - 1) do |idx|
+            optional << defaults[idx][1]
+          end
+        end
+
+        sexp.each do |var|
+          if var.to_s[0] == ?*
+            splat = var.to_s[1..-1].to_sym
+          else
+            required << var unless optional.include? var
+          end
+        end
       end
 
-      defaults = sexp[3]
+      scope = get(:scope)
+      # Allocate the required locals first, so they go in the first set
+      # of slots.
+      i = 0
+      required.each do |var|
+        var, depth = scope.find_local(var)
+        var.argument!(i)
+        i += 1
+        var
+      end
+
 
       if defaults
         defaults.shift
@@ -1176,11 +1211,9 @@ class Node
 
           convert(node)
         end
-
-        sexp[3] = defaults
       end
 
-      sexp
+      [required, optional, splat, defaults]
     end
 
     def args(req, optional, splat, defaults)
@@ -1199,10 +1232,6 @@ class Node
     attr_accessor :required, :optional, :splat, :defaults, :block_arg
 
     def arity
-      if !@optional.empty? or @splat
-        return -(@required.size + 1)
-      end
-
       return @required.size
     end
 
@@ -1337,10 +1366,19 @@ class Node
     kind :case
 
     def consume(sexp)
-      sexp[1].map! do |w|
-        convert(w)
+      # Detect PT format
+      if sexp[1][0] == :when
+        i = 1
+        whens = []
+        while sexp[i].kind_of? Array and sexp[i].first == :when
+          whens << convert(sexp[i])
+        end
+      else
+        whens = sexp[1].map do |w|
+          convert(w)
+        end
       end
-      [convert(sexp[0]), sexp[1], convert(sexp[2])]
+      [convert(sexp[0]), whens, convert(sexp.last)]
     end
 
     def args(recv, whens, els)
@@ -1413,6 +1451,30 @@ class Node
 
   end
 
+  class DasgnCurr < Node
+    kind :dasgn_curr
+
+    def self.create(compiler, sexp)
+      LocalAssignment.create(compiler, [:lasgn, sexp[1], sexp[2]])
+    end
+  end
+
+  class Dasgn < Node
+    kind :dasgn
+
+    def self.create(compiler, sexp)
+      LocalAssignment.create(compiler, [:lasgn, sexp[1], sexp[2]])
+    end
+  end
+
+  class Dvar < Node
+    kind :dvar
+
+    def self.create(compiler, sexp)
+      return LocalAccess.create(compiler, [:lvar, sexp.last])
+    end
+  end
+  
   class LocalAssignment < LocalVariable
     kind :lasgn
 
@@ -1444,7 +1506,7 @@ class Node
   class LocalAccess < LocalVariable
     kind :lvar
 
-    def args(name, idx)
+    def args(name, idx = nil)
       @name = name
       super(name)
     end
@@ -1476,19 +1538,41 @@ class Node
     kind :op_asgn_and
   end
 
+  # h[:a] &&= 3 (special case)
+  # h[:a] ||= 3 (special case)
+  # h[:a] +=  3
+  # h[:a] -=  3
+  # ....
+  # all binary message plus = variants
   class OpAssign1 < Node
     kind :op_asgn1
 
     def consume(sexp)
-      # Value to be op-assigned is always first element of value
-      sexp[2].shift # Discard :array token
-      val = convert(sexp[2].shift)
-      # Remaining elements in value are index args excluding final nil marker
-      idx = []
-      while sexp[2].size > 1 do
-        idx << convert(sexp[2].shift)
+      # Detect PT form
+      if sexp.size == 4
+        idx = convert(sexp[1]).body
+        which = sexp[2]
+
+        case which
+        when :"||"
+          which = :or
+        when :"&&"
+          which = :and
+        end
+
+        val = convert(sexp[3])
+      else
+        # Value to be op-assigned is always first element of value
+        sexp[2].shift # Discard :array token
+        val = convert(sexp[2].shift)
+        # Remaining elements in value are index args excluding final nil marker
+        idx = []
+        while sexp[2].size > 1 do
+          idx << convert(sexp[2].shift)
+        end
+        which = sexp[1]
       end
-      [convert(sexp[0]), sexp[1], idx, val]
+      [convert(sexp[0]), which, idx, val]
     end
 
     def args(obj, kind, index, value)
@@ -1498,17 +1582,40 @@ class Node
     attr_accessor :object, :kind, :value, :index
   end
 
+  # h.a ||= 3 (special case)
+  # h.a &&= 3 (special case)
+  # h.a +=  3
+  # h.a -=  3
+  # ....
+  # all binary message plus = variants
   class OpAssign2 < Node
     kind :op_asgn2
 
-    def args(obj, method, kind, assign, value)
-      @object, @method, @kind, @value = obj, method, kind, value
-      str = assign.to_s
-      if str[-1] == ?=
-        @assign = assign
+    def args(obj, method, kind, assign, value=nil)
+      @object = obj
+
+      # Detect PT form
+      if !value
+        @method = method.to_s[0..-1].to_sym
+        @assign = method
+        @value = assign
+        @kind = kind
+
+        case kind
+        when :"||"
+          @kind = :or
+        when :"&&"
+          @kind = :and
+        end
       else
-        str << "="
-        @assign = str.to_sym
+        @object, @method, @kind, @value = obj, method, kind, value
+        str = assign.to_s
+        if str[-1] == ?=
+          @assign = assign
+        else
+          str << "="
+          @assign = str.to_sym
+        end
       end
     end
 
@@ -1556,6 +1663,12 @@ class Node
   class DynamicArguments < Node
   end
 
+  # Example: m(*a)
+  #            ^^
+  # The arguments sexp will be of type splat
+  # 
+  # [:fcall, :m, [:splat, [:vcall, :a]]]
+  #
   class Splat < DynamicArguments
     kind :splat
 
@@ -1567,13 +1680,23 @@ class Node
 
   end
 
+  # Example: m(1, *a)
+  #            ^^^^^
+  # The arguments sexp will be of type argscat
+  #
+  # [:fcall, :m,
+  #   [:argscat, [:array, [:lit, 1]],
+  #     [:vcall, :a]
+  #   ]
+  # ]
+  #
   class ConcatArgs < DynamicArguments
     kind :argscat
 
     def args(rest, array)
       @array = array
 
-      if rest.kind_of? Array      # When does this happen?
+      if rest.kind_of? Array # TODO - When does this happen?
         @rest = rest
       else
         @rest = rest.body
@@ -1583,6 +1706,36 @@ class Node
     attr_accessor :array, :rest
   end
 
+  # Example: h[*a] = 1
+  #            ^^    ^
+  # The arguments sexp of the call will be of type argspush.
+  # The RHS is always a single item, even if there are commas
+  # on the RHS of the =.
+  #
+  # The value inside [] will by of type :splat, with the real
+  # sexp as it's sole argument.
+  #
+  # For: h[*a] = 1
+  #
+  # [:attrasgn, [:vcall, :h], :[]=,
+  #   [:argspush,
+  #     [:splat, [:vcall, :a]]],
+  #     [:lit, 1]
+  #   ]
+  # ]
+  #
+  # For: h[*a] = 1, 2
+  #
+  # [:attrasgn, [:vcall, :h], :[]=,
+  #  [:argspush,
+  #    [:splat, [:vcall, :a]]],
+  #    [:svalue, [:array, [:lit, 1], [:lit, 2]]]
+  #  ]
+  # ]
+  #
+  # In this case, given a = [:blah], the []= method will be given 2 arguments:
+  # :blah and [1,2]
+  #
   class PushArgs < DynamicArguments
     kind :argspush
 
@@ -1618,13 +1771,6 @@ class Node
     kind :ivar
 
     def normalize(name)
-      fam = get(:family)
-      if fam and idx = fam.find_ivar_index(name)
-        ac = AccessSlot.new @compiler
-        ac.args(idx)
-        return ac
-      end
-
       @name = name
       return self
     end
@@ -1637,13 +1783,6 @@ class Node
     kind :iasgn
 
     def normalize(name, val=nil)
-      fam = get(:family)
-      if fam and idx = fam.find_ivar_index(name)
-        ac = SetSlot.new @compiler
-        ac.args(idx, val)
-        return ac
-      end
-
       @value = val
       @name = name
       return self
@@ -1733,7 +1872,7 @@ class Node
   class ConstSet < Node
     kind :cdecl
 
-    def args(simp, val, complex)
+    def args(simp, val, complex = nil)
       @from_top = false
 
       @value = val
@@ -1784,10 +1923,15 @@ class Node
     end
 
     def consume(sexp)
-      name = convert(sexp[0])
-      sym = name.name
+      if sexp[0].kind_of? Symbol
+        sym = sexp[0]
+        name = nil
+      else
+        name = convert(sexp[0])
+        sym = name.name
+      end
 
-      if name.is? ConstFind or name.is? ConstAtTop
+      if !name or name.is? ConstFind
         parent = nil
       else
         parent = name.parent
@@ -1795,6 +1939,7 @@ class Node
 
       # We have to set this before converting the body, because
       # we'll need to know it to use find_ivar_index properly.
+      # TODO - Still necessary?
       sup = sexp[1]
       if sup and sup[0] == :const
         @superclass_name = sup[1]
@@ -1814,23 +1959,6 @@ class Node
 
     attr_accessor :name, :parent, :superclass, :body
 
-    def find_ivar_index(name)
-      slot = super(name)
-      if slot
-        return slot
-      elsif !@namespace
-        if tbl = Bootstrap::HINTS[@name]
-          return tbl[name]
-        elsif @superclass_name
-          if tbl = Bootstrap::HINTS[@superclass_name]
-            return tbl[name]
-          end
-        end
-      end
-
-      return nil
-    end
-
     def module_body?
       true
     end
@@ -1844,15 +1972,20 @@ class Node
     end
 
     def consume(sexp)
-      name = convert(sexp[0])
-      sym = name.name
-
-      if name.is? ConstFind
+      if sexp[0].kind_of? Symbol
+        name = sexp[0]
         parent = nil
-      elsif name.is? ConstAtTop
-        parent = name
       else
-        parent = name.parent
+        name = convert(sexp[0])
+        sym = name.name
+
+        if name.is? ConstFind
+          parent = nil
+        elsif name.is? ConstAtTop
+          parent = name
+        else
+          parent = name.parent
+        end
       end
 
       body = set(:namespace, sym) do
@@ -1882,15 +2015,15 @@ class Node
   class RescueCondition < Node
     kind :resbody
 
-    def args(cond, body, nxt)
+    def args(cond, body = nil, nxt = nil)
       @body, @next = body, nxt
+      @splat = nil
       if cond.nil?
         cf = ConstFind.new(@compiler)
         cf.args :StandardError
         @conditions = [cf]
       elsif cond.is? ArrayLiteral
         @conditions = cond.body
-        @splat = nil
       elsif cond.is? Splat
         @conditions = nil
         @splat = cond.child
@@ -2036,9 +2169,23 @@ class Node
 
   class MAsgn < Node
     kind :masgn
+    attr_accessor :block_args
 
-    def args(assigns, splat, source=:bogus)
-      if source == :bogus  # Only two args supplied, therefore no assigns
+    def initialize(comp)
+      super(comp)
+      @block_args = false
+    end
+
+    def args(assigns, splat=nil, source=:bogus)
+      if @block_args
+        @assigns = assigns
+        @splat = splat
+        @source = nil
+      elsif splat.nil? and source == :bogus
+        @assigns = assigns
+        @source = nil
+        @splat = nil
+      elsif source == :bogus  # Only two args supplied, therefore no assigns
         @assigns = nil
         @splat = assigns
         @source = splat
@@ -2056,13 +2203,12 @@ class Node
     end
 
     def optional
-      return [] if splat.equal?(true) or splat.nil?
-      splat.required
+      []
     end
 
     def required
-      return [] if assigns.nil?
-      assigns.body.map { |i| i.kind_of?(MAsgn) ? i.required : i.name }.flatten
+      return [] if @assigns.nil?
+      @assigns.body.map { |i| i.kind_of?(MAsgn) ? i.required : i.name }.flatten
     end
   end
 
@@ -2160,15 +2306,6 @@ class Node
       else
         @argcount = nil
       end
-    end
-
-    # Rubinius.compile_if is easiest to detect here; if it is found,
-    # we throw immediately to unwind this processing branch back to
-    # wherever it is that the conditional compiler wants us to go.
-    # See plugins.rb.
-    def consume(sexp)
-      use_plugin self, :conditional_compilation, sexp
-      super(sexp)
     end
 
     def args(object, meth, args=nil)
@@ -2292,8 +2429,10 @@ class Node
     kind :attrasgn
 
     def args(obj, meth, args=nil)
+      @in_masgn = false
       @object, @method = obj, meth
       @arguments = args
+      @rhs_expression = nil
 
       # Strange. nil is passed when it's self. Whatevs.
       @object = Self.new @compiler if @object.nil?
@@ -2352,7 +2491,7 @@ class Node
   class Yield < Call
     kind :yield
 
-    def args(args, direct=false)
+    def args(args = nil, direct = false)
       if direct and args.kind_of? ArrayLiteral
         @arguments = args.body
       elsif args.kind_of? DynamicArguments
@@ -2391,6 +2530,19 @@ class Node
   class IterArgs < Node
     kind :iter_args
 
+    def consume(sexp)
+      if sexp[0] and sexp[0][0] == :masgn
+        node = MAsgn.new(@compiler)
+        node.block_args = true
+        ma = sexp[0]
+        ma.shift
+        node.args convert(ma[0])
+        return [node]
+      else
+        return [convert(sexp[0])]
+      end
+    end
+
     def args(child)
       @child = child
     end
@@ -2408,11 +2560,9 @@ class Node
     def arity
       case @child
       when nil
-        return -1
-      when Fixnum
         return 0
       else
-        optional.empty? ? required.size : -(required.size + optional.size)
+        required.size
       end
     end
 
@@ -2437,18 +2587,8 @@ class Node
     kind :iter
 
     def consume(sexp)
-      # Conditional compilation support. If a conditional section is
-      # matched as compilable, :iter is thrown to be caught here. We
-      # strip out this unnecessary surrounding block including its
-      # Newline and replace it with our contents. The condition may
-      # seem a bit strange but it is because the catch returns nil
-      # if :iter _is_ thrown, otherwise it returns the block value
-      # as normal.
-      unless catch(:iter) { sexp[0] = convert(sexp[0]) }
-        throw :newline, convert(sexp[2])
-      end
-
-      c = sexp[0]
+      c = convert(sexp[0])
+      sexp[0] = c
 
       # Get rid of the linked list of dasgn_curr's at the top
       # of a block in at iter.
@@ -2613,6 +2753,11 @@ class Node
     kind :alias
 
     def args(current, name)
+      if current.kind_of? Literal
+        current = current.value
+        name = name.value
+      end
+
       @current, @new = current, name
     end
 

@@ -187,7 +187,7 @@ class Compiler::Node
   end
 end
 
-class DotState # :nodoc:
+class DotState
   def initialize
     @node = 0
   end

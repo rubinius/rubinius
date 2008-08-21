@@ -58,11 +58,17 @@ class Compiler
           next
         end
 
-        part.each do |e|
-          s = pat[j]
-          next if s == :any
-          return false unless e == s
+        if part.kind_of? Array
+          part.each do |e|
+            s = pat[j]
+            next if s == :any
+            return false unless e == s
 
+            j += 1
+          end
+        else
+          next if pat[j] == :any
+          return false unless pat[j] == part
           j += 1
         end
 
@@ -138,24 +144,40 @@ class Compiler
 
     def to_cmethod(desc)
       collapse_labels
+
       iseq = @encoder.encode_stream @stream
       cm = CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
 
-      cm.file = @file.to_sym if @file and !@file.empty?
+      cm.total_args = desc.required + desc.optional
+      cm.required_args = desc.required
+      cm.literals = encode_literals(cm)
+      cm.lines = encode_lines()
+      cm.local_names = desc.locals.encoded_order
+      cm.exceptions = encode_exceptions()
+
+      if desc.splat
+        cm.splat = desc.splat.slot
+        cm.total_args += 1
+      else
+        cm.splat = nil
+      end
+
+      cm.stack_size = cm.total_args + iseq.stack_depth
+
+      if @file
+        cm.file = @file.to_sym
+      else
+        cm.file = nil
+      end
+
       cm.name = desc.name
 
       if @primitive
         cm.primitive = @primitive
       else
-        cm.primitive = -1
+        cm.primitive = nil
       end
 
-      cm.literals = encode_literals(cm)
-      cm.lines = encode_lines()
-      cm.exceptions = encode_exceptions()
-      cm.serial = 0
-      cm.local_names = desc.locals.encoded_order
-      cm.args = desc.args
       return cm
     end
 
@@ -163,7 +185,11 @@ class Compiler
 
     def add(*what)
       @ip += what.size
-      @stream << what
+      if what.size == 1
+        @stream << what.first
+      else
+        @stream << what
+      end
     end
 
     # Find the index for the specified literal, or create a new slot if the
@@ -337,8 +363,8 @@ class Compiler
       else
         # The max value we use for inline ints. Above this, they're
         # stored in the literals tuple.
-        inline_cutoff = 0x8000000 # 2**27
-        if int.abs < inline_cutoff
+        inline_cutoff = 256
+        if int > 0 and int < inline_cutoff
           add :push_int, int
         else
           push_literal int
@@ -416,10 +442,6 @@ class Compiler
 
     def dup
       add :dup_top
-    end
-
-    def equal
-      add :equal
     end
 
     def swap
@@ -512,23 +534,27 @@ class Compiler
       add :send_stack_with_block, idx, count
     end
 
-    def send_with_register(meth, priv=false)
-      add :set_call_flags, 1 if priv
+    def send_with_splat(meth, args, priv=false, concat=false)
+      if priv or concat
+        val = 0
+        val |= 1 if priv
+        val |= 3 if concat
+        add :set_call_flags, val
+      end
 
       ss = SendSite.new meth
       idx = add_literal(ss)
-
-      add :send_with_arg_register, idx
+      add :send_stack_with_splat, args, idx
     end
 
-    def send_super(meth, args=nil)
+    def send_super(meth, args, splat=false)
       ss = SendSite.new meth
       idx = add_literal(ss)
 
-      if args
+      if splat
         add :send_super_stack_with_block, idx, args
       else
-        add :send_super_with_arg_register, idx
+        add :send_super_stack_with_splat, idx, args
       end
     end
 
@@ -538,6 +564,10 @@ class Compiler
     end
 
     def method_missing(*op)
+      if op[0] == :val
+        raise "Passed incorrect op to method_missing in generator.rb: #{op.inspect}"
+      end
+      
       add *op
     end
   end
