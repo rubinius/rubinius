@@ -70,7 +70,7 @@ class String
     raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
-    str = self.class.template num * @num_bytes, self
+    str = self.class.pattern num * @num_bytes, self
     return str
   end
 
@@ -807,7 +807,7 @@ class String
 
     last_end = 0
     offset = nil
-    ret = self.class.template(0,0) # Empty string, or string subclass
+    ret = self.class.pattern(0,0) # Empty string, or string subclass
 
     last_match = nil
     match = pattern.match_from self, last_end
@@ -2030,7 +2030,7 @@ class String
   end
 
   def count_table(*strings)
-    table = String.template 256, 1
+    table = String.pattern 256, 1
 
     i, size = 0, strings.size
     while i < size
@@ -2041,7 +2041,7 @@ class String
         pos, neg = 1, 0
       end
 
-      set = String.template 256, neg
+      set = String.pattern 256, neg
       str.tr_expand! nil
       j, chars = -1, str.size
       set[str[j]] = pos while (j += 1) < chars
@@ -2074,19 +2074,19 @@ class String
 
     case direction
     when :right
-      pad = String.template padsize, padstr
+      pad = String.pattern padsize, padstr
       str.copy_from pad, 0, padsize, 0
       str.copy_from self, 0, @num_bytes, padsize
     when :left
-      pad = String.template padsize, padstr
+      pad = String.pattern padsize, padstr
       str.copy_from self, 0, @num_bytes, 0
       str.copy_from pad, 0, padsize, @num_bytes
     when :center
       half = padsize / 2.0
       lsize = half.floor
       rsize = half.ceil
-      lpad = String.template lsize, padstr
-      rpad = String.template rsize, padstr
+      lpad = String.pattern lsize, padstr
+      rpad = String.pattern rsize, padstr
       str.copy_from lpad, 0, lsize, 0
       str.copy_from self, 0, @num_bytes, lsize
       str.copy_from rpad, 0, rsize, lsize + @num_bytes

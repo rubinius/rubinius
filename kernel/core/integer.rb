@@ -63,7 +63,7 @@ class Integer < Numeric
 
   def chr
     raise RangeError.new("#{self} is out of the valid character range") if self > 255 || self < 0
-    String.template 1, self
+    String.pattern 1, self
   end
   
   def [](index)
