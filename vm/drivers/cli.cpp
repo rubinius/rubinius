@@ -69,11 +69,19 @@ int main(int argc, char** argv) {
     e->print_backtrace();
   } catch(TypeError *e) {
     std::cout << "Type Error detected:" << std::endl;
-    TypeInfo* was = env.state->find_type(e->object->obj_type);
     TypeInfo* wanted = env.state->find_type(e->type);
-    std::cout << "  Tried to use object of type " <<
-      was->type_name << " (" << was->type << ")" <<
-      " as type " << wanted->type_name << " (" << wanted->type << ")" << std::endl;
+
+    if(!e->object->reference_p()) {
+      std::cout << "  Tried to use non-reference value " << e->object;
+    } else {
+      TypeInfo* was = env.state->find_type(e->object->obj_type);
+      std::cout << "  Tried to use object of type " <<
+        was->type_name << " (" << was->type << ")";
+    }
+
+    std::cout << " as type " << wanted->type_name << " (" <<
+      wanted->type << ")" << std::endl;
+
     e->print_backtrace();
   } catch(std::runtime_error& e) {
     std::cout << "Runtime exception: " << e.what() << std::endl;
