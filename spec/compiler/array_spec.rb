@@ -17,12 +17,12 @@ describe Compiler do
       g.send :+, 1
     end
   end
-  
+
   it "coerces the array reference and concatenates it to the first array" do
     x = [:argscat,
-            [:array, [:lit, 1], [:lit, 2]], 
+            [:array, [:lit, 1], [:lit, 2]],
             [:lvar,  :x, 0]]
-    
+
     gen x do |g|
       g.push_local 0
       g.cast_array
@@ -32,5 +32,5 @@ describe Compiler do
       g.send :+, 1
     end
   end
-  
+
 end

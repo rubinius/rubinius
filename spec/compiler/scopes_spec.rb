@@ -4,30 +4,30 @@ describe Compiler do
   it "compiles a defn with no args" do
     x = [:defn, :a, [:scope, [:block, [:args],
            [:fixnum, 12]], []]]
-           
+
     gen x do |g|
       meth = description do |d|
         d.check_argcount 0, 0
         d.push 12
         d.sret
       end
-      
+
       g.push_literal meth
       g.add_method :a
     end
   end
-  
+
   it "compiles 'def add(a,b); a + b; end'" do
-    x = [:defn, :add, 
-          [:scope, 
-            [:block, 
-              [:args, [:a, :b], [], nil, nil], 
+    x = [:defn, :add,
+          [:scope,
+            [:block,
+              [:args, [:a, :b], [], nil, nil],
               [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
-            ], 
+            ],
             [:a, :b]
           ]
         ]
-    
+
     gen x do |g|
       meth = description do |d|
         d.check_argcount 2, 2
@@ -38,24 +38,24 @@ describe Compiler do
         d.meta_send_op_plus
         d.sret
       end
-      
+
       g.push_literal meth
       g.add_method :add
     end
   end
-  
+
   it "compiles 'def add(a,b=2); a + b; end'" do
-    x = [:defn, :add, 
-          [:scope, 
-            [:block, 
-              [:args, [:a], [:b], nil, 
-                [:block, [:lasgn, :b, [:lit, 2]]]], 
+    x = [:defn, :add,
+          [:scope,
+            [:block,
+              [:args, [:a], [:b], nil,
+                [:block, [:lasgn, :b, [:lit, 2]]]],
               [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
-            ], 
+            ],
             [:a, :b]
           ]
         ]
-    
+
     gen x do |g|
       meth = description do |d|
         d.check_argcount 1, 2
@@ -68,38 +68,38 @@ describe Compiler do
         d.set_local 0
         d.pop
         d.goto dn
-        
+
         up.set!
         d.set_local_from_fp 0, 1
         dn.set!
-        
+
         d.push_local 0
         d.push_local 1
         d.meta_send_op_plus
         d.sret
       end
-      
+
       g.push_literal meth
       g.add_method :add
     end
   end
-  
+
   it "compiles 'def add(a); [].each { |b| a + b }; end'" do
-    x = [:defn, :add, 
-          [:scope, 
-            [:block, 
+    x = [:defn, :add,
+          [:scope,
+            [:block,
               [:args, [:a], [], nil, nil],
-              [:iter, [:call, [:zarray], :each], 
-                [:lasgn, :b], 
-                [:block, [:dasgn_curr, :b], 
+              [:iter, [:call, [:zarray], :each],
+                [:lasgn, :b],
+                [:block, [:dasgn_curr, :b],
                   [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
                 ]
               ]
-            ], 
+            ],
             [:a, :b]
           ]
         ]
-    
+
     gen x do |g|
       meth = description do |d|
         d.check_argcount 1, 1
@@ -111,7 +111,7 @@ describe Compiler do
           i.pop
           i.push_modifiers
           i.new_label.set! # redo
-          
+
           i.push_local_depth 0, 0
           i.push_local 0
           i.meta_send_op_plus
@@ -127,22 +127,22 @@ describe Compiler do
         end
         d.sret
       end
-      
+
       g.push_literal meth
       g.add_method :add
     end
   end
-  
+
   it "compiles 'def a(*b); nil; end' with no max argument count" do
-    x = [:defn, :a, 
-      [:scope, 
-        [:block, [:args, [], [], [:b, 1], nil], 
+    x = [:defn, :a,
+      [:scope,
+        [:block, [:args, [], [], [:b, 1], nil],
           [:lvar, :b, 0]
-        ], 
+        ],
         [:b]
       ]
     ]
-    
+
     gen x do |g|
       meth = description do |d|
         d.check_argcount 0, -1
@@ -152,20 +152,20 @@ describe Compiler do
         d.push_local 0
         d.sret
       end
-      
+
       g.push_literal meth
       g.add_method :a
     end
   end
-  
+
   it "compiles 'def a(&b); b; end'" do
-    x = [:defn, :a, 
-      [:scope, 
-        [:block, [:args], [:block_arg, :b, 0], [:lvar, :b, 0]], 
+    x = [:defn, :a,
+      [:scope,
+        [:block, [:args], [:block_arg, :b, 0], [:lvar, :b, 0]],
         [:b]
       ]
     ]
-    
+
     gen x do |g|
       meth = description do |d|
         d.check_argcount 0, 0
@@ -185,23 +185,23 @@ describe Compiler do
         d.push_local 0
         d.sret
       end
-      
+
       g.push_literal meth
       g.add_method :a
     end
   end
-  
+
   it "compiles a defs" do
-    x = [:defs, [:vcall, :a], :go, [:scope, [:block, [:args], 
+    x = [:defs, [:vcall, :a], :go, [:scope, [:block, [:args],
           [:fixnum, 12]], []]]
-          
+
     gen x do |g|
       meth = description do |d|
         d.check_argcount 0, 0
         d.push 12
         d.sret
       end
-      
+
       g.push_literal meth
       g.push_literal :go
       g.push :self
@@ -246,10 +246,10 @@ describe Compiler do
       end
     end
   end
-  
+
   it "compiles 'class << x; 12; end'" do
     x = [:sclass, [:vcall, :x], [:scope, [:lit, 12], []]]
-    
+
     gen x do |g|
       meth = description do |d|
         d.push :self
@@ -258,7 +258,7 @@ describe Compiler do
         d.push 12
         d.sret
       end
-      
+
       g.push :self
       g.send :x, 0, true
       g.dup
@@ -274,10 +274,10 @@ describe Compiler do
       g.push_encloser
     end
   end
-  
+
   it "compiles a class with no superclass" do
     x = [:class, [:colon2, :A], nil, [:scope, [:lit, 12], []]]
-    
+
     gen x do |g|
       desc = description do |d|
         d.push :self
@@ -286,7 +286,7 @@ describe Compiler do
         d.push 12
         d.sret
       end
-      
+
       g.push :nil
       g.open_class :A
       g.dup
@@ -298,10 +298,10 @@ describe Compiler do
       g.push_encloser
     end
   end
-  
+
   it "compiles a class declared at a path" do
     x = [:class, [:colon2, [:const, :B], :A], nil, [:scope, [:lit, 12], []]]
-    
+
     gen x do |g|
       desc = description do |d|
         d.push :self
@@ -310,7 +310,7 @@ describe Compiler do
         d.push 12
         d.sret
       end
-      
+
       g.push_const :B
       g.push :nil
       g.open_class_under :A
@@ -323,10 +323,10 @@ describe Compiler do
       g.push_encloser
     end
   end
-  
+
   it "compiles a class with superclass" do
     x = [:class, [:colon2, :A], [:const, :B], [:scope, [:lit, 12], []]]
-    
+
     gen x do |g|
       desc = description do |d|
         d.push :self
@@ -335,7 +335,7 @@ describe Compiler do
         d.push 12
         d.sret
       end
-      
+
       g.push_const :B
       g.open_class :A
       g.dup
@@ -347,11 +347,11 @@ describe Compiler do
       g.push_encloser
     end
   end
-  
+
   it "compiles a class with space allocated for locals" do
     x = [:class, [:colon2, :A], nil,
           [:scope, [:block, [:lasgn, :a, [:fixnum, 1]]], []]]
-          
+
     gen x do |g|
       desc = description do |d|
         d.push :self
@@ -361,7 +361,7 @@ describe Compiler do
         d.set_local 0
         d.sret
       end
-      
+
       g.push :nil
       g.open_class :A
       g.dup
@@ -371,7 +371,7 @@ describe Compiler do
       g.pop
       g.send :__class_init__, 0
       g.push_encloser
-      
+
     end
   end
 

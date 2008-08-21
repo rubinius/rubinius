@@ -3,16 +3,16 @@ require File.dirname(__FILE__) + "/spec_helper"
 # This is just:
 #   Rubinius.compile_if($CompilerSpecsConditional) { $stderr.puts "Conditional" }
 
-  
+
 describe Compiler, "conditional compilation with Rubinius.compile_if given an argument evaluating to false at compile time" do
   it "completely omits the call block and its contained code from the bytecode output as if the block did not exist" do
-    full_sexp =  [ :newline, 1, "../some/file", 
-                   [:iter, 
-                     [:call, [:const, :Rubinius], :compile_if, 
+    full_sexp =  [ :newline, 1, "../some/file",
+                   [:iter,
+                     [:call, [:const, :Rubinius], :compile_if,
                        [:array, [:gvar, :$CompilerSpecsConditional]]
-                     ], nil, 
-                     [:newline, 1, "../some/file", 
-                       [:call, [:gvar, :$stderr], :puts, 
+                     ], nil,
+                     [:newline, 1, "../some/file",
+                       [:call, [:gvar, :$stderr], :puts,
                          [:array, [:str, "Conditional"]]
                        ]
                      ]
@@ -22,7 +22,7 @@ describe Compiler, "conditional compilation with Rubinius.compile_if given an ar
     omitted_sexp = [:nil]
 
     $CompilerSpecsConditional = false
-    
+
     c = Compiler.new Compiler::Generator
     c.activate :conditional_compilation
 
@@ -38,27 +38,27 @@ end
 
 describe Compiler, "conditional compilation with Rubinius.compile_if given an argument evaluating to true at compile time" do
   it "omits the Rubinius.compile_if block artifacts from the produced bytecode" do
-    full_sexp =  [ :newline, 1, "../some/file", 
-                   [:iter, 
-                     [:call, [:const, :Rubinius], :compile_if, 
+    full_sexp =  [ :newline, 1, "../some/file",
+                   [:iter,
+                     [:call, [:const, :Rubinius], :compile_if,
                        [:array, [:gvar, :$CompilerSpecsConditional]]
-                     ], nil, 
-                     [:newline, 1, "../some/file", 
-                       [:call, [:gvar, :$stderr], :puts, 
+                     ], nil,
+                     [:newline, 1, "../some/file",
+                       [:call, [:gvar, :$stderr], :puts,
                          [:array, [:str, "Conditional"]]
                        ]
                      ]
                    ]
                  ]
 
-    included_sexp =  [:newline, 1, "../some/file", 
-                       [:call, [:gvar, :$stderr], :puts, 
+    included_sexp =  [:newline, 1, "../some/file",
+                       [:call, [:gvar, :$stderr], :puts,
                          [:array, [:str, "Conditional"]]
                        ]
                      ]
 
     $CompilerSpecsConditional = true
-    
+
     c = Compiler.new Compiler::Generator
     c.activate :conditional_compilation
 
