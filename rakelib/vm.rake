@@ -46,13 +46,14 @@ field_extract_headers = %w[
   vm/objects.hpp
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
+  vm/builtin/executable.hpp
+  vm/builtin/access_variable.hpp
   vm/builtin/array.hpp
   vm/builtin/bignum.hpp
   vm/builtin/block_environment.hpp
   vm/builtin/bytearray.hpp
   vm/builtin/channel.hpp
   vm/builtin/class.hpp
-  vm/builtin/executable.hpp
   vm/builtin/compiledmethod.hpp
   vm/builtin/contexts.hpp
   vm/builtin/dir.hpp
