@@ -7,7 +7,7 @@ class Module
   def name           ; @name.to_s    ; end
 
   def self.allocate
-    Ruby.primitive :allocate_module
+    Ruby.primitive :module_allocate
     raise PrimitiveFailure, "Module.allocate primitive failed"
   end
 
