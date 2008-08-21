@@ -33,8 +33,17 @@ namespace rubinius {
   /* For each type, there is an automatically generated version
    * of this function (called via virtual dispatch) that marks
    * all slots. */
-  void TypeInfo::auto_mark(OBJECT, ObjectMark& mark) {
-    throw std::runtime_error("unable to mark object");
+  void TypeInfo::auto_mark(OBJECT obj, ObjectMark& mark) {
+    for(size_t i = 0; i < obj->field_count; i++) {
+      Object* slot = obj->field[i];
+      if(slot->reference_p()) {
+        OBJECT res = mark.call(slot);
+        if(res) {
+          obj->field[i] = as<Object>(res);
+          mark.just_set(obj, res);
+        }
+      }
+    }
   }
 
   void TypeInfo::show(STATE, OBJECT self) {
