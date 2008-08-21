@@ -5,8 +5,9 @@
 #include "config.hpp" // HACK rename to config_parser.hpp
 #include "compiled_file.hpp"
 #include "probes.hpp"
-#include "builtin/string.hpp"
 #include "builtin/array.hpp"
+#include "builtin/string.hpp"
+#include "builtin/module.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -73,5 +74,24 @@ namespace rubinius {
 
     // TODO check version number
     cf->execute(state);
+  }
+
+  /*
+   * HACK hook this up to a config file
+   */
+  void Environment::set_rubinius_constants() {
+    Module* rubinius = GO(rubinius).get();
+
+    String* ruby_version = String::create(state, "1.8.6", 6);
+    rubinius->set_const(state, "RUBY_VERSION", ruby_version);
+
+    String* ruby_patchlevel = String::create(state, "111", 4);
+    rubinius->set_const(state, "RUBY_PATCHLEVEL", ruby_patchlevel);
+
+    String* ruby_engine = String::create(state, "rbx", 4);
+    rubinius->set_const(state, "RUBY_ENGINE", ruby_engine);
+
+    String* rbx_version = String::create(state, "0.9.0", 6);
+    rubinius->set_const(state, "RBX_VERSION", rbx_version);
   }
 }

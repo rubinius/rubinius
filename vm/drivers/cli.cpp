@@ -34,6 +34,8 @@ static void load_root(Environment& env, std::string root) {
     std::cout << "Loading platform.conf: " << root << "\n";
     env.load_platform_conf(root);
   }
+
+  env.set_rubinius_constants();
 }
 
 int main(int argc, char** argv) {

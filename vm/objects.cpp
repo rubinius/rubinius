@@ -257,6 +257,7 @@ namespace rubinius {
     G(cmethod_vis)->set_object_type(CMVisibilityType);
 
     Module* rbx = new_module("Rubinius");
+    GO(rubinius).set(rbx);
     GO(vm).set(new_class("VM", rbx));
 
     bootstrap_exceptions();
