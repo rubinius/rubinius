@@ -9,7 +9,7 @@ class Compiler::Node
   # Debug print for the AST
   def describe_ast(indent = 0, stack = [self])
     str, offset = '', (' ' * indent)
-    str << "#{self.class.name.split('::').last}\n" 
+    str << "#{self.class.name.split('::').last}\n"
 
     ivs = instance_variables.map {|iv| [iv.sub('@', '.'), instance_variable_get(iv)] }
     max = ivs.sort_by {|iv| iv.first.length }.last.first.length
@@ -30,7 +30,7 @@ class Compiler::Node
                           v.describe_ast(indent + max + 3 + 1, stack).chomp
                         end
                       elsif v.class.name =~ /^Compiler/
-                        "#<#{v.class.name} ...>" 
+                        "#<#{v.class.name} ...>"
                       else
                         v.inspect
                       end
@@ -43,7 +43,7 @@ class Compiler::Node
       if var.kind_of? Compiler::Node
         if stack.include? var
           str << "#<#{var.class.name} RECURSIVE...>"
-        else   
+        else
           str << var.describe_ast(indent + max + 3, stack)
         end
 
@@ -59,9 +59,6 @@ class Compiler::Node
     str
   end
 
-
-
-
   # More sophisticated graphing
 
   def to_dot(output, ds)
@@ -71,7 +68,7 @@ class Compiler::Node
     instance_variables.each do |name|
       obj = instance_variable_get(name)
       n = name.to_s[::Range.new(1,-1)]
-      
+
       if obj.kind_of? Compiler::Node
         j = obj.to_dot(output, ds)
         output << "node#{orig} -> node#{j} [label=\" #{n} \", fontsize=8.0, fontname=\"Monaco\"];\n"
@@ -82,85 +79,85 @@ class Compiler::Node
             k = x.to_dot(output, ds)
             output << "node#{orig} -> node#{k} [label=\"#{n}:#{j}\", fontsize=8.0, fontname=\"Monaco\"];\n"
           end
-          j += 1          
+          j += 1
         end
       end
     end
-    
+
     orig
   end
-  
+
   def dot_name
     self.class.name.split(':').last
   end
-  
+
   class FCall
     def dot_name
       "fcall:#{@method}"
     end
   end
-  
+
   class Call
     def dot_name
-      "call:#{@method}" 
+      "call:#{@method}"
     end
   end
-  
+
   class LocalAccess
     def dot_name
       "lvar:#{@name}"
     end
   end
-  
+
   class LocalAssignment
     def dot_name
       "lasgn:#{@name}"
     end
   end
-  
+
   class Newline
     def dot_name
       "line:#{@line}"
     end
   end
-  
+
   class StringLiteral
     def dot_name
       r = ::Range.new(1,-2)
       "'#{@string.dump[r]}'"
     end
   end
-  
+
   class NumberLiteral
     def dot_name
       "#{@value}"
     end
   end
-  
+
   class ArrayLiteral
     def dot_name
       "[...]"
     end
   end
-  
+
   class HashLiteral
     def dot_name
       "{...}"
     end
   end
-  
+
   class IVar
     def dot_name
       "ivar:#{@name}"
     end
   end
-  
+
   class IAssign
     def dot_name
       "iasgn:#{@name}"
     end
   end
-  
+
   class Literal
     def dot_name
       if @value.kind_of? Symbol
@@ -170,19 +167,19 @@ class Compiler::Node
       end
     end
   end
-  
+
   class Nil
     def dot_name
       "nil"
     end
   end
-  
+
   class True
     def dot_name
       "true"
     end
   end
-  
+
   class False
     def dot_name
       "false"
@@ -194,7 +191,7 @@ class DotState
   def initialize
     @node = 0
   end
-  
+
   def next
     @node += 1
   end

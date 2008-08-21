@@ -82,7 +82,7 @@ if output
     compare_cm(top, nt)
     exit 1
   end
-  
+
   File.open(output, "w") do |f|
     cf = Compiler::CompiledFile.new "!RBIX", 1, "x"
     cf.encode_to f, top

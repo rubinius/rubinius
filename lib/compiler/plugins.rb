@@ -1,6 +1,11 @@
 require 'compiler/execute'
 
 class Compiler
+
+##
+# A namespace for compiler plugins.  A plugin emits custom bytecode for an
+# expression
+
 module Plugins
 
   @plugins = {}
@@ -36,6 +41,9 @@ module Plugins
     end
   end
 
+  ##
+  # Handles block_given?
+
   class BlockGiven < Plugin
 
     plugin :block_given
@@ -52,6 +60,9 @@ module Plugins
     end
   end
 
+  ##
+  # Handles Ruby.primitive
+
   class PrimitiveDeclaration < Plugin
 
     plugin :primitive
@@ -66,6 +77,9 @@ module Plugins
       return true
     end
   end
+
+  ##
+  # Handles Rubinius.asm
 
   class InlineAssembly < Plugin
 
@@ -91,6 +105,9 @@ module Plugins
 
   end
 
+  ##
+  # Handles __METHOD__
+
   class CurrentMethod < Plugin
 
     plugin :current_method
@@ -106,6 +123,9 @@ module Plugins
       return false
     end
   end
+
+  ##
+  # Handles emitting fast VM instructions for certain math operations.
 
   class FastMathOperators < Plugin
 
@@ -135,6 +155,9 @@ module Plugins
     end
   end
 
+  ##
+  # Handles emitting fast VM instructions for certain methods.
+
   class FastGenericMethods < Plugin
 
     plugin :fastgeneric
@@ -158,6 +181,9 @@ module Plugins
     end
   end
 
+  ##
+  # Handles emitting save VM instructions for redifinition of math operators.
+
   class SafeMathOperators < Plugin
 
     plugin :safemath
@@ -177,6 +203,9 @@ module Plugins
       return false
     end
   end
+
+  ##
+  # Handles constant folding
 
   class ConstantExpressions < Plugin
 
@@ -202,6 +231,9 @@ module Plugins
       return false
     end
   end
+
+  ##
+  # Prototype plugin for handling inlining.  Not in use.
 
   class CompilerInlining < Plugin
     plugin :inline
@@ -318,6 +350,9 @@ module Plugins
     end
   end
 
+  ##
+  # Maps various methods to VM instructions
+
   class SystemMethods < Plugin
 
     plugin :fastsystem
@@ -360,6 +395,9 @@ module Plugins
     end
 
   end
+
+  ##
+  # Detects common simple expressions and simplifies them
 
   class AutoPrimitiveDetection < Plugin
     plugin :auto_primitive, :method
@@ -417,5 +455,6 @@ module Plugins
     end
 
   end
+
 end # Plugins
 end # Compiler

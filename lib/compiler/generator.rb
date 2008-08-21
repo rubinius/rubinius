@@ -1,6 +1,12 @@
 class Compiler
 
+  ##
+  # Generates an InstructionSequence
+
   class Generator
+
+    ##
+    # Jump label for the goto instructions.
 
     class Label
       def initialize(generator)
@@ -149,14 +155,14 @@ class Compiler
       cm.local_names = desc.locals.encoded_order
       cm.exceptions = encode_exceptions()
 
-
       if desc.splat
         cm.splat = desc.splat.slot
+        cm.total_args += 1
       else
         cm.splat = nil
       end
 
-      cm.stack_size = desc.locals.size + iseq.stack_depth
+      cm.stack_size = cm.total_args + iseq.stack_depth
 
       if @file
         cm.file = @file.to_sym
@@ -189,7 +195,6 @@ class Compiler
     # Find the index for the specified literal, or create a new slot if the
     # literal has not been encountered previously.
     def find_literal(what)
-      raise "blah" if what.kind_of? Compiler::Node::Literal
       idx = @literals.index(what)
       return idx if idx
       add_literal(what)
@@ -199,7 +204,6 @@ class Compiler
     # object at run-time. All other literals should be added via find_literal,
     # which re-use an existing matching literal if one exists.
     def add_literal(val)
-      raise "blah" if val.kind_of? Compiler::Node::Literal
       idx = @literals.size
       @literals << val
       return idx
@@ -255,6 +259,9 @@ class Compiler
     def new_label
       Label.new(self)
     end
+
+    ##
+    # Used to generate the exception table for a begin.
 
     class ExceptionBlock
       def initialize(gen)
@@ -426,9 +433,6 @@ class Compiler
     end
 
     def open_module(name)
-      unless name.kind_of? Symbol
-        raise TypeError, "name must be a Symbol, was: #{name.class}"
-      end
       add :open_module, find_literal(name)
     end
 
@@ -540,8 +544,7 @@ class Compiler
 
       ss = SendSite.new meth
       idx = add_literal(ss)
-
-      add :send_stack_with_splat, idx, args
+      add :send_stack_with_splat, args, idx
     end
 
     def send_super(meth, args, splat=false)
@@ -560,15 +563,11 @@ class Compiler
       add :check_serial, idx, serial.to_i
     end
 
-    def create_block(desc)
-      idx = add_literal(desc)
-      add :create_block, idx
-    end
-
     def method_missing(*op)
       if op[0] == :val
-        raise "blah"
+        raise "Passed incorrect op to method_missing in generator.rb: #{op.inspect}"
       end
+      
       add *op
     end
   end

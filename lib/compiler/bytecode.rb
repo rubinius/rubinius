@@ -4,6 +4,10 @@
 require 'compiler/generator'
 
 class Compiler
+
+  ##
+  # The precursor to a CompiledMethod
+
   class MethodDescription
     def initialize(gen_class, locals)
       @generator = gen_class.new
@@ -35,9 +39,11 @@ class Compiler
       [:method_description, @name, @required, @optional, @generator].inspect
     end
   end
-end
 
-class Compiler
+##
+# Parent class of all AST classes used by the compiler.  Contains utility
+# classes used by nodes.
+
 class Node
 
   def show_errors(gen, &block)
@@ -66,7 +72,7 @@ class Node
       [0, 0, nil]
     end
 
-    def attach_and_call(g, name, scoped=false)
+    def attach_and_call(g, name)
       # If the body is empty, then don't bother with it.
       return if @body.empty?
 
@@ -74,11 +80,6 @@ class Node
       meth = desc.generator
 
       prelude(g, meth)
-
-      if scoped
-        meth.push_self
-        meth.add_scope
-      end
 
       set(:scope, self) do
         show_errors(meth) do
@@ -631,7 +632,8 @@ class Node
         sub.close
       end
 
-      g.create_block desc
+      g.push_literal desc
+      g.create_block
     end
   end
 
@@ -932,14 +934,10 @@ class Node
 
   # TESTED
   class OpAssign1
-    def index_bytecode(g)
-    end
-
     def bytecode(g)
-      # X: Snip used for explanation: h[:a] += 3
-      # X: givin h = { :a => 2 }
-
-      # X: Pull h onto the stack
+      # X: Snippet used for explanation: h[:a] += 3
+      # X: given h = { :a => 2 }
+      # X: Pull h onto the stack 
       @object.bytecode(g)
       g.dup
       # X: Pull :a in
@@ -950,6 +948,7 @@ class Node
       # X: Call [](:a) on h
       #
       # @index.size will be 1
+      
       g.send :[], @index.size
 
       # X: 2 is now on the top of the stack (TOS)
@@ -961,6 +960,7 @@ class Node
 
         # We dup the value from [] to leave it as the value of the
         # expression
+        
         g.dup
         if @kind == :or
           g.git fnd
@@ -976,7 +976,7 @@ class Node
         @index.each do |idx|
           idx.bytecode(g)
         end
-
+        
         @value.bytecode(g)
 
         g.send :[]=, @index.size + 1
@@ -999,6 +999,7 @@ class Node
         # ... then call it as an argument to @kind, called on the return
         # from [].
         # X: 2 + 3
+        
         g.send @kind, 1
         # X: 5 TOS
 
@@ -1012,6 +1013,7 @@ class Node
         end
 
         # X: Call []=(:a, 5) on h
+
         g.send :[]=, @index.size + 1
       end
     end
@@ -1030,6 +1032,7 @@ class Node
       if @kind == :or or @kind == :and
         fnd = g.new_label
         fin = g.new_label
+        
         g.dup
         if @kind == :or
           g.git fnd
@@ -1063,7 +1066,6 @@ class Node
         # TODO this should force 5 to be the value of the expresion
         # not the return value of a=.
       end
-
     end
   end
 
@@ -1090,7 +1092,6 @@ class Node
       g.cast_array
       g.send :+, 1
     end
-
   end
 
   # TESTED
@@ -1249,7 +1250,6 @@ class Node
           end
           g.push_literal @name
           @value.bytecode(g)
-
           g.send :__const_set__, 2
         else
           if @parent
@@ -1264,7 +1264,6 @@ class Node
           g.swap
 
           g.send :__const_set__, 2
-
         end
       end # @compiler.kernel?
     end
@@ -1312,7 +1311,7 @@ class Node
         g.open_class @name
       end
 
-      attach_and_call g, :__class_init__, true
+      attach_and_call g, :__class_init__
     end
   end
 
@@ -1327,12 +1326,11 @@ class Node
         g.open_module @name
       end
 
-      attach_and_call g, :__module_init__, true
+      attach_and_call g, :__module_init__
     end
   end
 
   class Defined
-
     # e.g. [[:const, :Object], :Blah]
     # e.g. [[:colon3, :Foo], :Bar]
     # e.g. [[:colon2, [:colon3, :Faz], :Boo], :Batch]
@@ -1398,7 +1396,6 @@ class Node
           reject(g)
           return
         end
-
         receiver.bytecode(g)
         g.push_literal msg
         g.send :respond_to?, 1
@@ -1428,9 +1425,9 @@ class Node
         g.send :key?, 1
       when :ivar
         ivar = expr.shift
-        g.push :self
         g.push_literal ivar
-        g.send :instance_variable_defined?, 1
+        g.push :self
+        g.send :__instance_variable_defined_eh__, 1
       when :yield
         g.push_block
       when :const
@@ -1807,7 +1804,6 @@ class Node
       elsif @source.is? ConcatArgs
         @source.bytecode(g)
       elsif @source
-        p self
         raise Error, "Unknown form: #{@source.class}"
       end
       g.cast_tuple
@@ -1875,7 +1871,7 @@ class Node
         super(g)
       else
         super(g)
-        # TODO pop the result so the rhs is left on the stack
+        # TODO - Pop the result so that the RHS is left on the stack
       end
     end
 
@@ -2120,7 +2116,6 @@ class Node
   # TESTED
   class Arguments
     def bytecode(g)
-
       min = @required.size
       if @splat
         max = 1024
@@ -2194,6 +2189,7 @@ class Node
     end
 
     def bytecode(g)
+
       if @compiler.kernel?
         g.push_literal compile_body(g)
         g.push :self
@@ -2272,6 +2268,9 @@ class Node
       g.send :class_variable_get, 1
     end
   end
+
+  ##
+  # __FILE__ node.
 
   class File
     def bytecode(g)

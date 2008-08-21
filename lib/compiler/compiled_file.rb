@@ -27,9 +27,10 @@ class Compiler
 
     def body
       return @data if @data
-      
+
       mar = Compiler::Marshal.new
       @data = mar.unmarshal(stream)
     end
   end
 end
+

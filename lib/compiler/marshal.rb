@@ -59,10 +59,10 @@ class Compiler
         lt = LookupTable.new
         count.times do
           size = io.gets.to_i
-          
+
           key = io.read(size)
           io.read(1) # remove the \n
-          
+
           val = unmarshal_io(io)
           lt[key.to_sym] = val
         end
@@ -92,7 +92,6 @@ class Compiler
       else
         raise "Unknown type '#{kind.chr}'"
       end
-        
     end
 
     def marshal(val)

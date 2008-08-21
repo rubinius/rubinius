@@ -1,4 +1,8 @@
 
+require 'rubygems'
+gem 'ParseTree', '>= 2.2'
+require 'parse_tree'
+
 $" << "compiler/mri_shim"
 $" << "compiler/compiler"
 

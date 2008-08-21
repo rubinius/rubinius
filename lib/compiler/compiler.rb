@@ -1,6 +1,13 @@
+
+##
+# Turns text into CompiledMethods
+
 class Compiler
 
   Config = Hash.new
+
+  ##
+  # Compiler error subclass.
 
   class Error < RuntimeError
   end
@@ -22,7 +29,7 @@ class Compiler
 
     to_clear.each { |t| stream.delete(t) }
   end
-
+  
   def self.compile_file(path, flags=nil)
     process_flags(flags)
     sexp = File.to_sexp(path, true)
@@ -32,12 +39,13 @@ class Compiler
     return node.to_description(:__script__).to_cmethod
   end
 
-  def self.compile_string(string, flags = {})
-    sexp    = string.to_sexp(filename)
+  def self.compile_string(string, flags = {}, file = "(eval)", line = 1)
+    sexp = string.to_sexp(file, line, true)
+
     binding = flags[:binding]
     node    = new(Generator, binding).convert_sexp([:eval_expression, sexp])
     cm      = node.to_description(:__eval_script__).to_cmethod
-    cm.file = filename.to_sym
+    cm.file = file.to_sym
 
     return cm
   end
@@ -70,7 +78,7 @@ class Compiler
     else
       @version_number = 0
     end
-      
+
     if $DEBUG_LOADING
       STDERR.puts "[Compiler version: #{@version_number} (forced)]"
     end
@@ -92,23 +100,23 @@ class Compiler
   def kernel?
     @kernel
   end
-  
+
   def custom_scopes?
     @binding
   end
-  
+
   def create_scopes
     ctx = @binding.context
     if ctx.kind_of? BlockContext
       all_scopes = []
       block_scopes = []
-      
+
       while ctx.kind_of? BlockContext
         scope = LocalScope.new(nil)
         scope.from_eval = true
         block_scopes.unshift scope
         all_scopes << scope
-        
+
         if !ctx.env.from_eval? and names = ctx.method.local_names
           i = 0
           names.each do |name|
@@ -116,14 +124,14 @@ class Compiler
             i += 1
           end
         end
-        
+
         ctx = ctx.env.home_block
       end
-      
+
       scope = LocalScope.new(nil)
       scope.from_eval = true
       all_scopes << scope
-      
+
       if names = ctx.method.local_names
         i = 0
         names.each do |name|
@@ -131,7 +139,7 @@ class Compiler
           i += 1
         end
       end
-      
+
       return [scope, block_scopes, all_scopes, @binding.context]
     else
       scope = LocalScope.new(nil)
@@ -143,7 +151,7 @@ class Compiler
           i += 1
         end
       end
-      
+
       return [scope, [], [scope], @binding.context]
     end
   end
@@ -237,8 +245,11 @@ class Compiler
     end
   end
 
+  ##
+  # Raised when turning the AST into bytecode fails in some way.
+
   class GenerationError < Error; end
-  
+
   def show_errors(gen)
     begin
       yield
