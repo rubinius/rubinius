@@ -64,7 +64,7 @@ module FFI
         i += 1
       end
       cret = find_type(ret)
-      
+
       if library.respond_to?(:each) and !library.kind_of? String
         library.each do |lib|
           lib = setup_ld_library_path(lib) if lib
@@ -502,12 +502,10 @@ class MemoryPointer
   attach_function "ffi_write_float", :write_float, [:pointer, :double], :double
   attach_function "ffi_read_float", :read_float, [:pointer], :double
   attach_function "ffi_read_string", :read_string, [:pointer], :string
-  attach_function "ffi_read_string_length", :read_string_length, [:state, :pointer, :int], :object
+#  attach_function "ffi_read_string_length", :read_string_length, [:state, :pointer, :int], :object
   attach_function "memcpy", :write_string, [:pointer, :string, :int], :void
   attach_function "ffi_read_pointer", :read_pointer, [:pointer], :pointer
   attach_function "ffi_add_ptr", :add_ptr, [:pointer, :int], :pointer
-  attach_function "ffi_autorelease", :autorelease, [:object, :int], :void
-  attach_function "ffi_set_address", :set_address, [:object, :pointer], :void
 end
 
 module FFI
@@ -527,8 +525,8 @@ class FFI::Struct
 
   attr_reader :pointer
 
-  attach_function "ffi_get_field", [:pointer, :int, :int], :object
-  attach_function "ffi_set_field", [:pointer, :int, :int, :object], :void
+#  attach_function "ffi_get_field", [:pointer, :int, :int], :object
+#  attach_function "ffi_set_field", [:pointer, :int, :int, :object], :void
 
   def self.layout(*spec)
     return @layout if spec.size == 0

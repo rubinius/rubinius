@@ -80,15 +80,11 @@ module Platform::POSIX
   #   writing
   attach_function 'fwrite',  [:string, :size_t, :size_t, :pointer], :size_t
   attach_function 'ungetc',  [:int, :pointer], :int
-  
+
   #   truncating
   attach_function 'truncate', [:string, :off_t], :int
   attach_function 'ftruncate', [:int, :off_t], :int
 
-  #   formatted strings
-  attach_function 'ffi_sprintf_f', :sprintf_f, [:double, :int, :string], :strptr
-  attach_function 'ffi_sprintf_d', :sprintf_d, [:int, :int, :string], :strptr
-  
   #   locking
   attach_function 'flock', [:int, :int], :int
 
