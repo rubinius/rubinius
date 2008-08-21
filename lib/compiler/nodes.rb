@@ -798,8 +798,10 @@ class Node
     kind :case
 
     def consume(sexp)
+      els = nil
       # Detect PT format
       if sexp[1][0] == :when
+        els = convert(sexp.pop)
         i = 1
         whens = []
         while sexp[i].kind_of? Array and sexp[i].first == :when
@@ -809,8 +811,9 @@ class Node
         whens = sexp[1].map do |w|
           convert(w)
         end
+        els = convert(sexp[2])
       end
-      [convert(sexp[0]), whens, convert(sexp.last)]
+      [convert(sexp[0]), whens, els]
     end
 
     def args(recv, whens, els)
