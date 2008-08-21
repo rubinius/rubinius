@@ -99,7 +99,7 @@ class Module
 
   def attr_reader(name)
     sym = "@#{name}".to_sym
-    meth = AccessVariable.get_ivar(sym, name)
+    meth = AccessVarMethod.get_ivar name
     @method_table[name] = meth
     return nil
   end
