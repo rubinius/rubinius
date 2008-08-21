@@ -274,6 +274,9 @@ namespace rubinius {
 
     TypeInfo::init(state);
 
+    // Give Object a TypeInfo entry
+    add_type_info(new TypeInfo(ObjectType));
+
     if(sizeof(int) == sizeof(long)) {
       rbx->set_const(state, "L64", Qfalse);
     } else {
