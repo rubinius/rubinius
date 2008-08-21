@@ -1,4 +1,69 @@
+#--
+# See compiler.rb for more information about the Compiler mode of
+# operation etc.
+#++
+
 class Compiler
+
+##
+# Node is the representation of a node in the Abstract Syntax Tree
+# (AST) of the Ruby code. It is typically fairly close in structure
+# to the sexp produced by the parser but there are some transforms
+# that are done at this stage:
+#
+# 1. Compiler special forms, such as Rubinius.asm which allows
+#    inline Rubinius "assembly" code. See plugins.rb for more of
+#    these.
+# 2. Combining redundant and removing obsolete nodes from the tree.
+#    The current parser is still mostly MatzRuby's and therefore
+#    contains some artifacts that we have no need for.
+# 3. Optimizations. At this time, there are not that many nor will
+#    there ever be huge amounts.
+# 4. Sexp transformations, somewhat akin to Lisp macros. These
+#    allow modifying the sexp, and therefore the code produced,
+#    as it is being compiled. The mechanism is currently very raw
+#    and the only transform supported is conditional compilation
+#    (e.g. not including debug statements in the bytecode at all.)
+#    Look for Rubinius.compile_if.
+#
+# The compiler is based on the Visitor pattern, and this stage is no
+# different. First, for every type of sexp node possible in Ruby code,
+# one of these Node subclasses will provide a handler (even if to just
+# skip over the node.) The   #kind method provides this mapping; for
+# example, the Iter node is kind :iter. The nodes register the kinds
+# they provide for lookups.
+#
+# The general model is simple. Each node has a   #consume method, it
+# may either be the default one defined in Node or a custom one if one
+# is needed. When the sexp is fed here, the kind mapping is used to
+# determine the kind of Node to construct, and the rest of the sexp is
+# fed to it. Typically the Node then goes through what is next in the
+# sexp, asking each layer to construct itself and   #consume anything
+# even further down the chain all the way until nothing of the sexp
+# remains. At this point those recursive calls start rolling back up
+# higher and higher, and the Nodes at each layer compose themselves of
+# the constituent parts they get back from in exchange for the sexp
+# they provided. Verification happens here, to ensure the AST is sane.
+# Most optimization occurs at the point before the sub-sexp would be
+# processed; for example a normal Call node (:call is the normal
+# method call representation) would have its arguments and body sent
+# for processing, but if the Call detects a special form starting with
+# +Rubinius+, it produces the special code for that instead and may
+# even completely omit processing parts of the sexp that a normal
+# Call node would.
+#
+# Some Node classes are a bit fancier in their   #consume: ClosedScope
+# Node subclasses manage a scope for local variables and so on, for
+# example. The basic idea of having its children produce the subtree
+# underneath it and then organising those bits to send back to its
+# parent in turn is still the same, they just have additional things
+# they are responsible for.
+#
+# In the end, the caller will be left with a single top-level Node
+# object (usually a Script) which then hierarchically contains the
+# rest of the AST. This object graph can then be passed on to the
+# bytecode producer. See bytecode.rb for that.
+
 class Node
   Mapping = {}
 
@@ -9,26 +74,46 @@ class Node
   end
 
   def self.create(compiler, sexp)
-    sexp.shift
+    kind = sexp.shift
 
     node = new(compiler)
-    args = node.consume(sexp)
 
-    begin
-      if node.respond_to? :normalize
-        node = node.normalize(*args)
-      else
-        node.args(*args)
+    # Anywhere within, a piece of code may throw the symbol for the
+    # node type that it wishes to unwind the processing branch to.
+    # If this happens, then the thrown substitute value (defaulting
+    # to nil) is returned instead of the normal node product.
+    #
+    # For example, Call#consume can detect the Rubinius.compile_if
+    # construct and throw :newline which causes this method's return
+    # value to be nil. So this Newline and the entire rest of the
+    # expression are replaced by a nil output, which should be
+    # then handled or optimized away by the node upstream (usually
+    # a Block.)
+    #
+    # Whoever uses the throw MUST ensure that the sexp and the AST
+    # are in a sane state. We do not worry about it here.
+    catch(kind) {
+      args = node.consume(sexp)
+
+      begin
+        if node.respond_to? :normalize
+          node = node.normalize(*args)
+        else
+          node.args(*args)
+        end
+      rescue ArgumentError => e
+        raise ArgumentError, "#{kind} (#{self}) takes #{args.size} argument(s): passed #{args.inspect} (#{e.message})", e.context
       end
-    rescue ArgumentError => e
-      raise ArgumentError, "#{kind} (#{self}) takes #{args.size} argument(s): passed #{args.inspect} (#{e.message})"
-    end
 
-    return node
+      node
+    }
   end
 
   def initialize(compiler)
     @compiler = compiler
+    @in_masgn = false
+    @splat = false
+    @parent = nil
   end
 
   def convert(x)
@@ -73,8 +158,7 @@ class Node
     end
     prefix
 
-    super
-    # super(prefix)
+    super(prefix)
   end
 
   def is?(clas)
@@ -91,8 +175,15 @@ class Node
     end
   end
 
-  # Start of Node subclasses
+  #--- Start of Node subclasses
 
+  # ClosedScope is a metanode in that it does not exist in Ruby code;
+  # it merely abstracts common functionality of various real Ruby nodes
+  # that must control a local variable scope. These classes will exist
+  # as subclasses of ClosedScope below.
+  #
+  # Most notably, LocalScope objects are kept to maintain a hierarchy
+  # of visibility and availability for the runtime.
   class ClosedScope < Node
     def initialize(comp)
       super(comp)
@@ -212,6 +303,14 @@ class Node
       return [lcl, depth]
     end
 
+    def find_ivar_index(name)
+      @ivar_as_slot[name]
+    end
+
+    def add_ivar_as_slot(name, slot)
+      @ivar_as_slot["@#{name}".to_sym] = slot
+    end
+
     def allocate_stack
       return nil if @use_eval
       # This is correct. the first one is 1, not 0.
@@ -229,6 +328,10 @@ class Node
     end
   end
 
+  # Snippit was a special type of a scope, not exactly a Script but
+  # not something else either. Currently it only provides abstract
+  # support for eval, for example.
+  #
   class Snippit < ClosedScope
     kind :snippit
 
@@ -249,6 +352,11 @@ class Node
     kind :expression
   end
 
+  # EvalExpression is a special node and does not appear in the Ruby
+  # parse tree itself. It is inserted as the top-level scope when an
+  # eval is run, which allows managing the specialized behaviour that
+  # is needed for it.
+  #
   class EvalExpression < Expression
     kind :eval_expression
 
@@ -299,6 +407,10 @@ class Node
 
   end
 
+  # Script is a special node, and does not exist in normal Ruby code.
+  # It represents the top-level of a .rb file, and as such is the most
+  # common top-level container.
+  #
   class Script < ClosedScope
     kind :script
 
@@ -313,6 +425,13 @@ class Node
     end
   end
 
+  # Newline handles :newline nodes, which are inserted by the parser to
+  # allow keeping track of the file and line a certain sexp was produced
+  # from. In addition to that metadata, it contains within it a Block of
+  # the actual Ruby code (as sexp) that makes up that particular line.
+  #
+  # Sexp tag: +:newline+
+  #
   class Newline < Node
     kind :newline
 
@@ -332,22 +451,78 @@ class Node
     end
   end
 
+  # True is the literal +true+.
+  #
+  # Sexp tag: +:true+
+  #
+  # Example:
+  #
+  #   puts "Hi" if true
+  #                ^^^^
+  #
   class True < Node
     kind :true
   end
 
+  # False is the literal +false+.
+  #
+  # Sexp tag: +:false+
+  #
+  # Example:
+  #
+  #   puts "Hi" if false
+  #                ^^^^^
+  #
   class False < Node
     kind :false
   end
 
+  # Nil is the literal +nil+.
+  #
+  # Sexp tag: +:nil+
+  #
+  # Example:
+  #
+  #   puts "Hi" if nil
+  #                ^^^
+  #
   class Nil < Node
     kind :nil
   end
 
+  # Self is the literal +self+.
+  #
+  # Sexp tag: +:self+
+  #
+  # Example:
+  #
+  #   p self
+  #     ^^^^
+  #
   class Self < Node
     kind :self
   end
 
+  # And represents either +and+ or +&&+.
+  # The precedence difference between the
+  # two has been resolved by the parser so
+  # both types map into this one node (but
+  # their child and parent nodes could be
+  # different.)
+  #
+  # It contains both the left and the right
+  # subexpression.
+  #
+  # Sexp tag: +:and+
+  #
+  # Example:
+  #
+  #   foo and bar
+  #       ^^^
+  #
+  #   baz && quux
+  #       ^^
+  #
   class And < Node
     kind :and
 
@@ -358,10 +533,47 @@ class Node
     attr_accessor :left, :right
   end
 
+  # Or represents either +or+ or +||+.
+  # The precedence difference between the
+  # two has been resolved by the parser so
+  # both types map into this node although
+  # their contexts (parents and children)
+  # may be different.
+  #
+  # It contains both the left and the right
+  # subexpression.
+  #
+  # Sexp tag: +:or+
+  #
+  # Example:
+  #
+  #   foo or bar
+  #       ^^
+  #
+  #   baz || quux
+  #       ^^
+  #
   class Or < And
     kind :or
   end
 
+  # Not is either +not+ or +!+. The precedence
+  # has been resolved by the parser, the two
+  # types may have different parents and children
+  # because of it, though.
+  #
+  # It contains the expression to negate.
+  #
+  # Sexp tag: +:not+
+  #
+  # Example:
+  #
+  #   not available?
+  #   ^^^
+  #
+  #   !true
+  #   ^
+  #
   class Not < Node
     kind :not
 
@@ -372,6 +584,18 @@ class Node
     attr_accessor :child
   end
 
+  # Negate represents a negative numeric literal.
+  # It contains the Ruby object for the absolute
+  # value, the node itself is used as the negative
+  # marker.
+  #
+  # Sexp tag: +:negate+
+  #
+  # Example:
+  #
+  #   -1 + -0.045
+  #   ^^   ^^^^^^
+  #
   class Negate < Node
     kind :negate
 
@@ -382,6 +606,19 @@ class Node
     attr_accessor :child
   end
 
+  # NumberLiteral is generated from a Literal node that
+  # represents a Fixnum literal as a convenience. It
+  # contains the actual number in a Ruby Fixnum. These
+  # are positive numbers only; a combination of Negate
+  # and Literal is used for negatives.
+  #
+  # Sexp tag: N/A
+  #
+  # Example:
+  #
+  #   a = 50
+  #       ^^
+  #
   class NumberLiteral < Node
     kind :fixnum
 
@@ -392,6 +629,27 @@ class Node
     attr_accessor :value
   end
 
+  # Literal is the default representation of any literal
+  # object value in the code, such as a number representing
+  # a Float. Fixnums and Regexps are delegated to be processed
+  # by NumberLiteral and RegexLiteral respectively, but any
+  # other is contained within as an object.
+  #
+  # The remaining literals will also have special treatment
+  # in that they are stored in the Literals Tuple of the
+  # CompiledMethod so that they are accessible to runtime
+  # code.
+  #
+  # Sexp tag: +:lit+
+  #
+  # Example:
+  #
+  #   pi_ish = 3.14
+  #            ^^^^
+  #
+  #   drive  = :dvd_rom
+  #            ^^^^^^^^
+  #
   class Literal < Node
     kind :lit
 
@@ -407,21 +665,6 @@ class Node
         nd = RegexLiteral.new(@compiler)
         nd.args(value.source, value.options)
         return nd
-      when ::Range
-        if value.exclude_end?
-          nd = RangeExclude.new(@compiler)
-        else
-          nd = Range.new(@compiler)
-        end
-
-        start = NumberLiteral.new(@compiler)
-        start.args value.begin
-
-        fin = NumberLiteral.new(@compiler)
-        fin.args value.end
-
-        nd.args start, fin
-        return nd
       end
 
       return self
@@ -430,6 +673,22 @@ class Node
     attr_accessor :value
   end
 
+  # RegexLiteral is a regular expression literal.
+  # It is usually generated directly but may also
+  # be delegated to by Literal. Each RegexLiteral
+  # contains the source (which is actually a String)
+  # and a Fixnum representing the regexp options in
+  # effect. These two bits of information are used
+  # to create the actual object through Regexp.new
+  # at runtime.
+  #
+  # Sexp tag: +:regex+   (Note missing "p.")
+  #
+  # Example:
+  #
+  #   puts "matched" if /foo/ =~ variable
+  #                     ^^^^^
+  #
   class RegexLiteral < Node
     kind :regex
 
@@ -440,6 +699,21 @@ class Node
     attr_accessor :source, :options
   end
 
+  # StringLiteral is a nondynamic string literal.
+  # It contains the Ruby String object corresponding
+  # to the real given character sequence. Since these
+  # objects are stored in the Literals Tuple, you will
+  # often see bytecode that performs a +string_dup+,
+  # which just makes a copy of the stored one so that
+  # the user can modify his version.
+  #
+  # Sexp tag: +:str+
+  #
+  # Example:
+  #
+  #   puts "hi"
+  #        ^^^^
+  #
   class StringLiteral < Node
     kind :str
 
@@ -451,6 +725,38 @@ class Node
   end
 
 
+  # DynamicString is a dynamic string literal; i.e.,
+  # one with an interpolated component. There are a
+  # few notable things: the parser will process any
+  # interpolations which themselves contain a string
+  # literal into a plain string literal instead of
+  # a dynamic string. The latter will only be in
+  # effect for variable interpolation etc.
+  #
+  # Each dynamic string consists of two things: string
+  # literals for the nondynamic parts and :evstr nodes
+  # for the parts that need to be evaluated. The :dstr
+  # node itself contains the starting literal (if any),
+  # but all subsequent ones appear as additional :str
+  # nodes interspersed with :evstrs. The :evstr nodes
+  # are any executable code, so they will eventually
+  # be unwrapped and the sexp there translated to AST.
+  #
+  # Sexp tag: +:dstr+
+  #
+  # Example:
+  #
+  #   puts "Hi #{name}, howzit?"
+  #        ^^^^^^^^^^^^^^^^^^^^^
+  #
+  # Sexp from example:
+  #
+  #   [:dstr, "Hi "
+  #         , [:evstr, [:vcall, :name]]
+  #         , [:str, ", howzit?"]
+  #         ]
+  #
+  #
   class DynamicString < StringLiteral
     kind :dstr
 
@@ -462,24 +768,92 @@ class Node
     attr_accessor :body
   end
 
+  # DynamicRegex is a dynamic regexp literal, i.e.
+  # one with an interpolated component. These behave
+  # the same as DynamicStrings (they actually use :str
+  # and :evstr nodes also), please see above for a more
+  # thorough explanation.
+  #
+  # Sexp tag: +:dregx+
+  #
+  # Example:
+  #
+  #   /a#{b}c/
+  #
   class DynamicRegex < DynamicString
     kind :dregx
 
     def args(str, *body)
       @string = str
       @body = body
-      if body.last.kind_of? Fixnum
-        @options = body.pop
-      else
-        @options = 0
-      end
+      @options = body.pop
     end
   end
 
+  # DynamicOnceRegex is identical to DynamicRegex, with
+  # the exception that the interpolation is only run once.
+  # This is done using the +o+ flag to the literal. Please
+  # see DynamicRegex for more detailed documentation.
+  #
+  # Sexp tag: +:dregx_once+
+  #
+  # Example:
+  #
+  #   /a#{b}c/o   # Note the +o+ option
+  #
   class DynamicOnceRegex < DynamicRegex
     kind :dregx_once
   end
 
+  # Implicit regexp matching node. A Match is created if
+  # there is a regexp literal in a condition without an
+  # object to match against (or indeed the matching op.)
+  # Ruby allows this form to match against +$_+ which is
+  # a predefined global always set to the last line of
+  # input read into the program.
+  #
+  # Sexp tag: +:match+
+  #
+  # Example:
+  #
+  #   gets
+  #   puts "Uh-uh, you said 'foo'" if /foo/
+  #                                  ^^^^^^^^
+  #
+  class Match < Node
+    kind :match
+
+    # Essentially same as :match2, just using $_
+    def consume(sexp)
+      pattern = RegexLiteral.new @compiler
+      pattern.args *sexp      # Pattern, options
+
+      last_input = GVar.new @compiler
+      last_input.name = :$_
+
+      [pattern, last_input]
+    end
+
+    def args(pattern, target)
+      @pattern, @target = pattern, target
+    end
+
+    attr_accessor :pattern, :target
+  end
+
+  # Match2 is a regexp match where the regexp literal is on the
+  # left hand side of the match operator. This node is generated
+  # any time such an event occurs. Naturally, the parser is not
+  # able to determine whether a variable is a Regexp, so it only
+  # works with a regexp literal. See also Match3.
+  #
+  # Sexp tag: +:match2+
+  #
+  # Example:
+  #
+  #   /this/ =~ "matches this"
+  #   ^^^^^^^^^
+  #
   class Match2 < Node
     kind :match2
 
@@ -490,6 +864,19 @@ class Node
     attr_accessor :pattern, :target
   end
 
+  # Match3 is a regexp match where the regexp literal is on the
+  # right hand side of the match operator. This node is generated
+  # any time such an event occurs. Naturally, the parser is not
+  # able to determine whether a variable is a Regexp, so it only
+  # works with a regexp literal. See also Match2.
+  #
+  # Sexp tag: +:match3+
+  #
+  # Example:
+  #
+  #   "this matches" =~ /this/
+  #                  ^^^^^^^^^
+  #
   class Match3 < Node
     kind :match3
 
@@ -500,6 +887,20 @@ class Node
     attr_accessor :target, :pattern
   end
 
+  # BackRef is any one of the predefined (thread-) global variables
+  # that are set after each regexp match operation, except the numbered
+  # ones. A BackRef can be $`, $', $& etc. The second character is
+  # stored to create the entire variable. See also NthRef.
+  #
+  # Sexp tag: +:back_ref+
+  #
+  # Example:
+  #
+  #   /fo(o)/ =~ variable
+  #
+  #   puts $`
+  #        ^^
+  #
   class BackRef < Node
     kind :back_ref
 
@@ -510,6 +911,22 @@ class Node
     attr_accessor :kind
   end
 
+  # NthRef is one of the numbered groups from the last regexp match.
+  # The node contains the numeric value, which will then be combined
+  # with $ to make the global at runtime. Technically there is no
+  # limitation (up to the thousands) on the number of backrefs but
+  # Win32 does limit it to 10. See also BackRef for the other regexp
+  # match automatic (thread-) globals.
+  #
+  # Sexp tag: +:nth_ref+
+  #
+  # Example:
+  #
+  #     /(f)oo/ =~ variable
+  #
+  #     puts $1
+  #          ^^
+  #
   class NthRef < Node
     kind :nth_ref
 
@@ -520,6 +937,19 @@ class Node
     attr_accessor :which
   end
 
+  # If is the safe and familiar conditional as well as
+  # the inverse: +unless+. The parser simply constructs
+  # a negated version of the +if+ on those occasions.
+  # The contents are the condition expression as well
+  # as the expressions for then and else.
+  #
+  # Sexp tag: +:if+
+  #
+  # Example:
+  #
+  #   if true; puts "hi"; end
+  #   ^^
+  #
   class If < Node
     kind :if
 
@@ -530,6 +960,29 @@ class Node
     attr_accessor :condition, :then, :else
   end
 
+  # While is the standard conditional looping construct.
+  # It contains the condition itself as well as the body
+  # to run; in addition, it may also indicate that the
+  # condition should be checked before or after the first
+  # loop, default of course being before. The syntax for
+  # both is below.
+  #
+  # Sexp tag: +:while+
+  #
+  # Example:
+  #
+  #   # Condition first (optionally add +do+ after the condition.)
+  #   while blah
+  #   ^^^^^^^^^^
+  #     ...
+  #   end
+  #
+  #   # Run once first. +end+ and +while+ must be on the same line
+  #   begin
+  #     ...
+  #   end while blah
+  #   ^^^^^^^^^^^^^^
+  #
   class While < Node
     kind :while
 
@@ -540,10 +993,57 @@ class Node
     attr_accessor :condition, :body, :check_first
   end
 
+  # Until is same as a +while not+. See While for further
+  # documentation. May also be used pre- or postcondition.
+  #
+  # Sexp tag: +:until+
+  #
+  # Example:
+  #
+  #   # Condition first (optionally add +do+ after the condition.)
+  #   until blah
+  #   ^^^^^^^^^^
+  #     ...
+  #   end
+  #
+  #   # Run once first. +end+ and +until+ must be on the same line
+  #   begin
+  #     ...
+  #   end until blah
+  #   ^^^^^^^^^^^^^^
+  #
   class Until < While
     kind :until
   end
 
+  # +Block+ is a special node: it is part of Ruby's semantics rather than
+  # syntax. Notably, a Block is NOT a Ruby block (a Proc object.) A Block
+  # simply encapsulates multiple expressions into a group. For example, an
+  # +if+ expression that has a single line inside it does not have a Block,
+  # but one that has two lines will have both of those lines encapsulated
+  # inside a Block. It has no fancy purpose apart from grouping.
+  #
+  # Sexp tag: +:block+
+  #
+  # Example:
+  #
+  #   if foo
+  #     bar    <
+  #     baz    < These will all be inside the :block
+  #     quux   <
+  #   end
+  #
+  # Sexp from example (Newline nodes omitted):
+  #
+  #   [:if
+  #       , [:vcall, :foo]
+  #       , [:block
+  #                , [:vcall, :bar]
+  #                , [:vcall, :baz]
+  #                , [:vcall, :quux]
+  #                ]
+  #       ]
+  #
   class Block < Node
     kind :block
 
@@ -554,11 +1054,33 @@ class Node
     attr_accessor :body
   end
 
+  # +Scope+ is another special node type. It represents the scope
+  # inside a logical Ruby unit such as a method definition or a
+  # class definition. Curiously, though, the Scope is not where
+  # the variable scoping etc. happens: for that, see ClosedScope
+  # and its subclasses. For example in a method definition, the
+  # Define node itself is the ClosedScope, but it in turn has a
+  # Scope object encapsulated inside. To make things stranger,
+  # the Scope object itself contains the Block of code (method
+  # body, for example) but _also the names of local variables_
+  # inside that code block. The locals are *actually* managed
+  # by the ClosedScope, though. So for the purposes of Rubinius
+  # compilation, you can sort of ignore the Scope node except
+  # for its semantic meaning.
+  #
+  # Sexp tag: +:scope+
+  #
+  # Example:
+  #
+  #   def foo(a, b)   <
+  #     ...           <  Scope object created inside the Define
+  #   end             <
+  #
   class Scope < Node
     kind :scope
 
     def consume(sexp)
-      if sexp[0].nil?
+      if sexp.size == 1 or sexp[0].nil?
         return [nil, nil]
       end
 
@@ -568,11 +1090,6 @@ class Node
       end
 
       sexp[0] = convert(sexp[0])
-
-      # Fake the locals
-      if sexp.size == 1
-        sexp << []
-      end
       return sexp
     end
 
@@ -587,6 +1104,40 @@ class Node
     end
   end
 
+  # +Arguments+ is for the representation of a method _definition's_
+  # argument list. It contains four sub-nodes, one each for required
+  # args, optional args, splat name and default value expressions. A
+  # block argument is actually not noted at this level because in the
+  # sexp, it is a sibling to this node, all contained inside the method
+  # definition. The block argument is added to the node later by the
+  # Define node in its normalisation process.
+  #
+  # There are a few interesting details: because default values can
+  # be any expressions (try it, you can use a block, a class, define
+  # another function etc.), the entire expression subtree is stored.
+  # The optional arguments are just the variable names, and the values
+  # are first processed into their own little AST subtrees which are
+  # then stored in a mapping whence they may be executed at runtime
+  # if the default value is needed.
+  #
+  # The Arguments node performs quite a bit of other normalisation
+  # also, as well as coordinating setting up the arguments as local
+  # variables with the appropriate LocalScope and providing the
+  # arity calculation for this method. See further documentation
+  # about those operations in the individual methods of Arity.
+  #
+  # Sexp tag: +:args+
+  #
+  # Example:
+  #
+  #   def foo(a, b = lambda { :moo }, *c, &d)
+  #           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  #             These go in the node.
+  #             Block arg processed
+  #             in Define.
+  #     ...
+  #   end
+  #
   class Arguments < Node
     kind :args
 
@@ -598,52 +1149,12 @@ class Node
         return [[], [], nil, nil]
       end
 
-      splat = nil
-      defaults = nil
-
-      # Detect Rubinius format
-      if sexp[0].kind_of? Array
-        # Strip the parser calculated index of splat
-        if sexp[2] and !sexp[2].empty?
-          splat = sexp[2].first
-        end
-
-        required = sexp[0]
-        optional = sexp[1]
-        defaults = sexp[3]
-
-      # Current PT format
-      else
-        required = []
-        optional = []
-
-        # detect defaults
-        if sexp.last.kind_of? Array
-          defaults = sexp.pop
-          1.upto(defaults.size - 1) do |idx|
-            optional << defaults[idx][1]
-          end
-        end
-
-        sexp.each do |var|
-          if var.to_s[0] == ?*
-            splat = var.to_s[1..-1].to_sym
-          else
-            required << var unless optional.include? var
-          end
-        end
+      # Strip the parser calculated index of splat
+      if sexp[2] and !sexp[2].empty?
+        sexp[2] = sexp[2].first
       end
 
-      scope = get(:scope)
-      # Allocate the required locals first, so they go in the first set
-      # of slots.
-      i = 0
-      required.each do |var|
-        var, depth = scope.find_local(var)
-        var.argument!(i)
-        i += 1
-        var
-      end
+      defaults = sexp[3]
 
       if defaults
         defaults.shift
@@ -665,9 +1176,11 @@ class Node
 
           convert(node)
         end
+
+        sexp[3] = defaults
       end
 
-      [required, optional, splat, defaults]
+      sexp
     end
 
     def args(req, optional, splat, defaults)
@@ -686,6 +1199,10 @@ class Node
     attr_accessor :required, :optional, :splat, :defaults, :block_arg
 
     def arity
+      if !@optional.empty? or @splat
+        return -(@required.size + 1)
+      end
+
       return @required.size
     end
 
@@ -724,6 +1241,28 @@ class Node
     end
   end
 
+  # +Undef+ is the keyword +undef+, #undefine_method does not have any
+  # special handling that would make it processable here and thus is
+  # just a normal method call. Two data are retained: first naturally
+  # the name of the method in question which can be either just the name
+  # as a plain identifier or given as a Symbol. The other information
+  # is whether the undef occurs inside a Module definition scope. The
+  # undef keyword is somewhat surprising in its behaviour: it always
+  # tries to undefine the given method in the module that the line is
+  # _lexically_ enclosed in, so this must be known for the cases it is
+  # used outside the Module definition scopes. This also excludes any
+  # use in the block form of Module.new, which may be surprising altough
+  # consistent with closure behaviour.
+  #
+  # Sexp tag: +:undef+
+  #
+  # Example:
+  #
+  #   class Foo
+  #     undef bar
+  #     ^^^^^^^^^
+  #   end
+  #
   class Undef < Node
     kind :undef
 
@@ -798,19 +1337,10 @@ class Node
     kind :case
 
     def consume(sexp)
-      # Detect PT format
-      if sexp[1][0] == :when
-        i = 1
-        whens = []
-        while sexp[i].kind_of? Array and sexp[i].first == :when
-          whens << convert(sexp[i])
-        end
-      else
-        whens = sexp[1].map do |w|
-          convert(w)
-        end
+      sexp[1].map! do |w|
+        convert(w)
       end
-      [convert(sexp[0]), whens, convert(sexp.last)]
+      [convert(sexp[0]), sexp[1], convert(sexp[2])]
     end
 
     def args(recv, whens, els)
@@ -883,30 +1413,6 @@ class Node
 
   end
 
-  class DasgnCurr < Node
-    kind :dasgn_curr
-
-    def self.create(compiler, sexp)
-      LocalAssignment.create(compiler, [:lasgn, sexp[1], sexp[2]])
-    end
-  end
-
-  class Dasgn < Node
-    kind :dasgn
-
-    def self.create(compiler, sexp)
-      LocalAssignment.create(compiler, [:lasgn, sexp[1], sexp[2]])
-    end
-  end
-
-  class Dvar < Node
-    kind :dvar
-
-    def self.create(compiler, sexp)
-      return LocalAccess.create(compiler, [:lvar, sexp.last])
-    end
-  end
-
   class LocalAssignment < LocalVariable
     kind :lasgn
 
@@ -938,7 +1444,7 @@ class Node
   class LocalAccess < LocalVariable
     kind :lvar
 
-    def args(name, idx=nil)
+    def args(name, idx)
       @name = name
       super(name)
     end
@@ -970,42 +1476,19 @@ class Node
     kind :op_asgn_and
   end
 
-  # h[:a] &&= 3 (special case)
-  # h[:a] ||= 3 (special case)
-  # h[:a] +=  3
-  # h[:a] -=  3
-  # ....
-  # all binary message plus = variants
   class OpAssign1 < Node
     kind :op_asgn1
 
     def consume(sexp)
-      # Detect PT form
-      if sexp.size == 4
-        idx = convert(sexp[1]).body
-        which = sexp[2]
-        
-        case which
-        when :"||"
-          which = :or
-        when :"&&"
-          which = :and
-        end
-
-        val = convert(sexp[3])
-      else
-        # Value to be op-assigned is always first element of value
-        sexp[2].shift # Discard :array token
-        val = convert(sexp[2].shift)
-        # Remaining elements in value are index args excluding final nil marker
-        idx = []
-        while sexp[2].size > 1 do
-          idx << convert(sexp[2].shift)
-        end
-        which = sexp[1]
+      # Value to be op-assigned is always first element of value
+      sexp[2].shift # Discard :array token
+      val = convert(sexp[2].shift)
+      # Remaining elements in value are index args excluding final nil marker
+      idx = []
+      while sexp[2].size > 1 do
+        idx << convert(sexp[2].shift)
       end
-      
-      [convert(sexp[0]), which, idx, val]
+      [convert(sexp[0]), sexp[1], idx, val]
     end
 
     def args(obj, kind, index, value)
@@ -1015,41 +1498,17 @@ class Node
     attr_accessor :object, :kind, :value, :index
   end
 
-  # h.a ||= 3 (special case)
-  # h.a &&= 3 (special case)
-  # h.a +=  3
-  # h.a -=  3
-  # ....
-  # all binary message plus = variants
   class OpAssign2 < Node
     kind :op_asgn2
 
-    def args(obj, method, kind, assign, value=nil)
-      @object = obj
-
-      # Detect PT form
-      if !value
-        @method = method.to_s[0..-1].to_sym
-        @assign = method
-        @value = assign
-        @kind = kind
-
-        case kind
-        when :"||"
-          @kind = :or
-        when :"&&"
-          @kind = :and
-        end
+    def args(obj, method, kind, assign, value)
+      @object, @method, @kind, @value = obj, method, kind, value
+      str = assign.to_s
+      if str[-1] == ?=
+        @assign = assign
       else
-        @object, @method, @kind, @value = obj, method, kind, value
-        str = assign.to_s
-        if str[-1] == ?=
-          @assign = assign
-        else
-          str << "="
-          @assign = str.to_sym
-        end
-
+        str << "="
+        @assign = str.to_sym
       end
     end
 
@@ -1097,12 +1556,6 @@ class Node
   class DynamicArguments < Node
   end
 
-  # Example: m(*a)
-  #            ^^
-  # The arguments sexp will be of type splat
-  # 
-  # [:fcall, :m, [:splat, [:vcall, :a]]]
-  # 
   class Splat < DynamicArguments
     kind :splat
 
@@ -1114,16 +1567,6 @@ class Node
 
   end
 
-  # Example: m(1, *a)
-  #            ^^^^^
-  # The arguments sexp will be of type argscat
-  #
-  # [:fcall, :m,
-  #   [:argscat, [:array, [:lit, 1]],
-  #     [:vcall, :a]
-  #   ]
-  # ]
-  # 
   class ConcatArgs < DynamicArguments
     kind :argscat
 
@@ -1140,36 +1583,6 @@ class Node
     attr_accessor :array, :rest
   end
 
-  # Example: h[*a] = 1
-  #            ^^    ^
-  # The arguments sexp of the call will be of type argspush.
-  # The RHS is always a single item, even if there are commas
-  # on the RHS of the =.
-  #
-  # The value inside [] will by of type :splat, with the real
-  # sexp as it's sole argument.
-  #
-  # For: h[*a] = 1
-  #
-  # [:attrasgn, [:vcall, :h], :[]=, 
-  #   [:argspush, 
-  #     [:splat, [:vcall, :a]]], 
-  #     [:lit, 1]
-  #   ]
-  # ]
-  # 
-  # For: h[*a] = 1, 2
-  #
-  # [:attrasgn, [:vcall, :h], :[]=, 
-  #  [:argspush, 
-  #    [:splat, [:vcall, :a]]], 
-  #    [:svalue, [:array, [:lit, 1], [:lit, 2]]]
-  #  ]
-  # ]
-  #
-  # In this case, given a = [:blah], the []= method will be given 2 arguments:
-  # :blah and [1,2]
-  # 
   class PushArgs < DynamicArguments
     kind :argspush
 
@@ -1205,6 +1618,13 @@ class Node
     kind :ivar
 
     def normalize(name)
+      fam = get(:family)
+      if fam and idx = fam.find_ivar_index(name)
+        ac = AccessSlot.new @compiler
+        ac.args(idx)
+        return ac
+      end
+
       @name = name
       return self
     end
@@ -1217,6 +1637,13 @@ class Node
     kind :iasgn
 
     def normalize(name, val=nil)
+      fam = get(:family)
+      if fam and idx = fam.find_ivar_index(name)
+        ac = SetSlot.new @compiler
+        ac.args(idx, val)
+        return ac
+      end
+
       @value = val
       @name = name
       return self
@@ -1306,7 +1733,7 @@ class Node
   class ConstSet < Node
     kind :cdecl
 
-    def args(simp, val, complex=nil)
+    def args(simp, val, complex)
       @from_top = false
 
       @value = val
@@ -1357,15 +1784,10 @@ class Node
     end
 
     def consume(sexp)
-      if sexp[0].kind_of? Symbol
-        sym = sexp[0]
-        name = nil
-      else
-        name = convert(sexp[0])
-        sym = name.name
-      end
+      name = convert(sexp[0])
+      sym = name.name
 
-      if !name or name.is? ConstFind
+      if name.is? ConstFind or name.is? ConstAtTop
         parent = nil
       else
         parent = name.parent
@@ -1392,6 +1814,23 @@ class Node
 
     attr_accessor :name, :parent, :superclass, :body
 
+    def find_ivar_index(name)
+      slot = super(name)
+      if slot
+        return slot
+      elsif !@namespace
+        if tbl = Bootstrap::HINTS[@name]
+          return tbl[name]
+        elsif @superclass_name
+          if tbl = Bootstrap::HINTS[@superclass_name]
+            return tbl[name]
+          end
+        end
+      end
+
+      return nil
+    end
+
     def module_body?
       true
     end
@@ -1405,27 +1844,19 @@ class Node
     end
 
     def consume(sexp)
-      if sexp[0].kind_of? Symbol
-        sym = sexp[0]
+      name = convert(sexp[0])
+      sym = name.name
+
+      if name.is? ConstFind
         parent = nil
+      elsif name.is? ConstAtTop
+        parent = name
       else
-        # name is not just the name as a symbol, it's something else...
-
-        # Turn the sexp into a Node object
-        name_node = convert(sexp[0])
-        sym = name_node.name
-
-        if name_node.is? ConstFind
-          parent = nil
-        elsif name_node.is? ConstAtTop
-          parent = name
-        else
-          parent = name_node.parent
-        end
+        parent = name.parent
       end
 
       body = set(:namespace, sym) do
-        super([sexp.last])
+        super([sexp[1]])
       end
 
       [sym, parent, body]
@@ -1451,15 +1882,15 @@ class Node
   class RescueCondition < Node
     kind :resbody
 
-    def args(cond, body=nil, nxt=nil)
+    def args(cond, body, nxt)
       @body, @next = body, nxt
-      @splat = nil
       if cond.nil?
         cf = ConstFind.new(@compiler)
         cf.args :StandardError
         @conditions = [cf]
       elsif cond.is? ArrayLiteral
         @conditions = cond.body
+        @splat = nil
       elsif cond.is? Splat
         @conditions = nil
         @splat = cond.child
@@ -1606,23 +2037,8 @@ class Node
   class MAsgn < Node
     kind :masgn
 
-    attr_accessor :block_args
-
-    def initialize(comp)
-      super(comp)
-      @block_args = false
-    end
-
-    def args(assigns, splat=nil, source=:bogus)
-      if @block_args
-        @assigns = assigns
-        @splat = splat
-        @source = nil
-      elsif splat.nil? and source == :bogus
-        @assigns = assigns
-        @source = nil
-        @splat = nil
-      elsif source == :bogus  # Only two args supplied, therefore no assigns
+    def args(assigns, splat, source=:bogus)
+      if source == :bogus  # Only two args supplied, therefore no assigns
         @assigns = nil
         @splat = assigns
         @source = splat
@@ -1640,12 +2056,13 @@ class Node
     end
 
     def optional
-      []
+      return [] if splat.equal?(true) or splat.nil?
+      splat.required
     end
 
     def required
       return [] if assigns.nil?
-      @assigns.body.map { |i| i.kind_of?(MAsgn) ? i.required : i.name }.flatten
+      assigns.body.map { |i| i.kind_of?(MAsgn) ? i.required : i.name }.flatten
     end
   end
 
@@ -1743,6 +2160,15 @@ class Node
       else
         @argcount = nil
       end
+    end
+
+    # Rubinius.compile_if is easiest to detect here; if it is found,
+    # we throw immediately to unwind this processing branch back to
+    # wherever it is that the conditional compiler wants us to go.
+    # See plugins.rb.
+    def consume(sexp)
+      use_plugin self, :conditional_compilation, sexp
+      super(sexp)
     end
 
     def args(object, meth, args=nil)
@@ -1866,10 +2292,8 @@ class Node
     kind :attrasgn
 
     def args(obj, meth, args=nil)
-      @in_masgn = false
       @object, @method = obj, meth
       @arguments = args
-      @rhs_expression = nil
 
       # Strange. nil is passed when it's self. Whatevs.
       @object = Self.new @compiler if @object.nil?
@@ -1928,7 +2352,7 @@ class Node
   class Yield < Call
     kind :yield
 
-    def args(args=nil, direct=false)
+    def args(args, direct=false)
       if direct and args.kind_of? ArrayLiteral
         @arguments = args.body
       elsif args.kind_of? DynamicArguments
@@ -1967,19 +2391,6 @@ class Node
   class IterArgs < Node
     kind :iter_args
 
-    def consume(sexp)
-      if sexp[0] and sexp[0][0] == :masgn
-        node = MAsgn.new(@compiler)
-        node.block_args = true
-        ma = sexp[0]
-        ma.shift
-        node.args convert(ma[0])
-        return [node]
-      else
-        return [convert(sexp[0])]
-      end
-    end
-
     def args(child)
       @child = child
     end
@@ -1997,9 +2408,11 @@ class Node
     def arity
       case @child
       when nil
+        return -1
+      when Fixnum
         return 0
       else
-        required.size
+        optional.empty? ? required.size : -(required.size + optional.size)
       end
     end
 
@@ -2024,8 +2437,18 @@ class Node
     kind :iter
 
     def consume(sexp)
-      c = convert(sexp[0])
-      sexp[0] = c
+      # Conditional compilation support. If a conditional section is
+      # matched as compilable, :iter is thrown to be caught here. We
+      # strip out this unnecessary surrounding block including its
+      # Newline and replace it with our contents. The condition may
+      # seem a bit strange but it is because the catch returns nil
+      # if :iter _is_ thrown, otherwise it returns the block value
+      # as normal.
+      unless catch(:iter) { sexp[0] = convert(sexp[0]) }
+        throw :newline, convert(sexp[2])
+      end
+
+      c = sexp[0]
 
       # Get rid of the linked list of dasgn_curr's at the top
       # of a block in at iter.
@@ -2190,11 +2613,6 @@ class Node
     kind :alias
 
     def args(current, name)
-      if current.kind_of? Literal
-        current = current.value
-        name = name.value
-      end
-
       @current, @new = current, name
     end
 

@@ -1,6 +1,11 @@
 require 'compiler/execute'
 
 class Compiler
+
+##
+# A namespace for compiler plugins.  A plugin emits custom bytecode for an
+# expression
+
 module Plugins
 
   @plugins = {}
@@ -36,6 +41,9 @@ module Plugins
     end
   end
 
+  ##
+  # Handles block_given?
+
   class BlockGiven < Plugin
 
     plugin :block_given
@@ -52,6 +60,9 @@ module Plugins
     end
   end
 
+  ##
+  # Handles Ruby.primitive
+
   class PrimitiveDeclaration < Plugin
 
     plugin :primitive
@@ -66,6 +77,9 @@ module Plugins
       return true
     end
   end
+
+  ##
+  # Handles Rubinius.asm
 
   class InlineAssembly < Plugin
 
@@ -91,6 +105,9 @@ module Plugins
 
   end
 
+  ##
+  # Handles __METHOD__
+
   class CurrentMethod < Plugin
 
     plugin :current_method
@@ -106,6 +123,9 @@ module Plugins
       return false
     end
   end
+
+  ##
+  # Handles emitting fast VM instructions for certain math operations.
 
   class FastMathOperators < Plugin
 
@@ -125,8 +145,8 @@ module Plugins
       name = MetaMath[call.method]
 
       if name and call.argcount == 1
-        call.receiver_bytecode(g)
         call.emit_args(g)
+        call.receiver_bytecode(g)
         g.add name
         return true
       end
@@ -134,6 +154,9 @@ module Plugins
       return false
     end
   end
+
+  ##
+  # Handles emitting fast VM instructions for certain methods.
 
   class FastGenericMethods < Plugin
 
@@ -158,6 +181,9 @@ module Plugins
     end
   end
 
+  ##
+  # Handles emitting save VM instructions for redifinition of math operators.
+
   class SafeMathOperators < Plugin
 
     plugin :safemath
@@ -177,6 +203,9 @@ module Plugins
       return false
     end
   end
+
+  ##
+  # Handles constant folding
 
   class ConstantExpressions < Plugin
 
@@ -202,6 +231,9 @@ module Plugins
       return false
     end
   end
+
+  ##
+  # Prototype plugin for handling inlining.  Not in use.
 
   class CompilerInlining < Plugin
     plugin :inline
@@ -318,6 +350,9 @@ module Plugins
     end
   end
 
+  ##
+  # Maps various methods to VM instructions
+
   class SystemMethods < Plugin
 
     plugin :fastsystem
@@ -361,6 +396,9 @@ module Plugins
 
   end
 
+  ##
+  # Detects common simple expressions and simplifies them
+
   class AutoPrimitiveDetection < Plugin
     plugin :auto_primitive, :method
 
@@ -391,8 +429,7 @@ module Plugins
         meth.generator.literals[0] = ss[1][1]
         meth.generator.as_primitive :opt_push_my_field
       else
-        cmd = (ss[1].kind_of?(Array) ? ss[1].first : ss[1])
-        case cmd
+        case ss[1].first
         when :push_nil
           lit = nil
         when :push_true
@@ -416,6 +453,38 @@ module Plugins
       true
     end
 
+  end
+
+  ##
+  # Conditional compilation
+
+  class ConditionalCompilation < Plugin
+    plugin :conditional_compilation, :conditional_compilation
+
+    ##
+    # Matches on the special form Rubinius.compile_if.
+    #
+    # If the form is not matched, returns nil. If the form does match,
+    # however, then its argument is checked. If the arg evaluates to true, the
+    # contained code should be compiled and if false, it should be omitted. To
+    # achieve this, we throw a symbol in both cases (:iter for former,
+    # :newline for latter.) The symbols are caught at the appropriate spots
+    # further up the processing branch and those nodes then appropriately
+    # slice up the sexp to produce the desired result.
+    #
+    # See Node#consume and Iter#consume for those actions.
+
+    def handle(g, call_node, sexp)
+      # The sexp should look something like
+      #
+      #   [[:const, :Rubinius], :compile_if, [:array, [<type>, ...]]]
+      #
+      # Currently we only check global variables but stuff like strings
+      # to eval or even actual composable method calls are possible.
+      if sexp[1] == :compile_if and sexp[0].kind_of? Array and sexp[0][1] == :Rubinius
+        throw(eval(sexp[2][1][1].to_s) ? :iter : :newline)
+      end
+    end
   end
 end # Plugins
 end # Compiler

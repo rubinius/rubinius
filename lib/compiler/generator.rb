@@ -1,6 +1,12 @@
 class Compiler
 
+  ##
+  # Generates an InstructionSequence
+
   class Generator
+
+    ##
+    # Jump label for the goto instructions.
 
     class Label
       def initialize(generator)
@@ -52,17 +58,11 @@ class Compiler
           next
         end
 
-        if part.kind_of? Array
-          part.each do |e|
-            s = pat[j]
-            next if s == :any
-            return false unless e == s
+        part.each do |e|
+          s = pat[j]
+          next if s == :any
+          return false unless e == s
 
-            j += 1
-          end
-        else
-          next if pat[j] == :any
-          return false unless pat[j] == part
           j += 1
         end
 
@@ -138,40 +138,24 @@ class Compiler
 
     def to_cmethod(desc)
       collapse_labels
-
       iseq = @encoder.encode_stream @stream
       cm = CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
 
-      cm.total_args = desc.required + desc.optional
-      cm.required_args = desc.required
-      cm.literals = encode_literals(cm)
-      cm.lines = encode_lines()
-      cm.local_names = desc.locals.encoded_order
-      cm.exceptions = encode_exceptions()
-
-
-      if desc.splat
-        cm.splat = desc.splat.slot
-      else
-        cm.splat = nil
-      end
-
-      cm.stack_size = desc.locals.size + iseq.stack_depth
-
-      if @file
-        cm.file = @file.to_sym
-      else
-        cm.file = nil
-      end
-
+      cm.file = @file.to_sym if @file and !@file.empty?
       cm.name = desc.name
 
       if @primitive
         cm.primitive = @primitive
       else
-        cm.primitive = nil
+        cm.primitive = -1
       end
 
+      cm.literals = encode_literals(cm)
+      cm.lines = encode_lines()
+      cm.exceptions = encode_exceptions()
+      cm.serial = 0
+      cm.local_names = desc.locals.encoded_order
+      cm.args = desc.args
       return cm
     end
 
@@ -179,17 +163,12 @@ class Compiler
 
     def add(*what)
       @ip += what.size
-      if what.size == 1
-        @stream << what.first
-      else
-        @stream << what
-      end
+      @stream << what
     end
 
     # Find the index for the specified literal, or create a new slot if the
     # literal has not been encountered previously.
     def find_literal(what)
-      raise "blah" if what.kind_of? Compiler::Node::Literal
       idx = @literals.index(what)
       return idx if idx
       add_literal(what)
@@ -199,7 +178,6 @@ class Compiler
     # object at run-time. All other literals should be added via find_literal,
     # which re-use an existing matching literal if one exists.
     def add_literal(val)
-      raise "blah" if val.kind_of? Compiler::Node::Literal
       idx = @literals.size
       @literals << val
       return idx
@@ -255,6 +233,9 @@ class Compiler
     def new_label
       Label.new(self)
     end
+
+    ##
+    # Used to generate the exception table for a begin.
 
     class ExceptionBlock
       def initialize(gen)
@@ -356,8 +337,8 @@ class Compiler
       else
         # The max value we use for inline ints. Above this, they're
         # stored in the literals tuple.
-        inline_cutoff = 256
-        if int > 0 and int < inline_cutoff
+        inline_cutoff = 0x8000000 # 2**27
+        if int.abs < inline_cutoff
           add :push_int, int
         else
           push_literal int
@@ -426,9 +407,6 @@ class Compiler
     end
 
     def open_module(name)
-      unless name.kind_of? Symbol
-        raise TypeError, "name must be a Symbol, was: #{name.class}"
-      end
       add :open_module, find_literal(name)
     end
 
@@ -438,6 +416,10 @@ class Compiler
 
     def dup
       add :dup_top
+    end
+
+    def equal
+      add :equal
     end
 
     def swap
@@ -530,28 +512,23 @@ class Compiler
       add :send_stack_with_block, idx, count
     end
 
-    def send_with_splat(meth, args, priv=false, concat=false)
-      if priv or concat
-        val = 0
-        val |= 1 if priv
-        val |= 3 if concat
-        add :set_call_flags, val
-      end
+    def send_with_register(meth, priv=false)
+      add :set_call_flags, 1 if priv
 
       ss = SendSite.new meth
       idx = add_literal(ss)
 
-      add :send_stack_with_splat, idx, args
+      add :send_with_arg_register, idx
     end
 
-    def send_super(meth, args, splat=false)
+    def send_super(meth, args=nil)
       ss = SendSite.new meth
       idx = add_literal(ss)
 
-      if splat
+      if args
         add :send_super_stack_with_block, idx, args
       else
-        add :send_super_stack_with_splat, idx, args
+        add :send_super_with_arg_register, idx
       end
     end
 
@@ -560,15 +537,7 @@ class Compiler
       add :check_serial, idx, serial.to_i
     end
 
-    def create_block(desc)
-      idx = add_literal(desc)
-      add :create_block, idx
-    end
-
     def method_missing(*op)
-      if op[0] == :val
-        raise "blah"
-      end
       add *op
     end
   end
