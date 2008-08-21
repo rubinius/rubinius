@@ -198,17 +198,17 @@ files EXTERNALS do |t|
   end
 end
 
-file 'vm/primitives.o' => 'vm/field_extract.rb'
-file 'vm/instructions_gen.rb' => 'kernel/core/iseq.rb'
-file 'vm/instructions.rb' => 'vm/gen'
-file 'vm/instructions.rb' => 'vm/instructions_gen.rb'
-file 'vm/test/test_instructions.hpp' => 'vm/instructions_gen.rb'
+task 'vm/primitives.o' => 'vm/field_extract.rb'
+task 'vm/instructions_gen.rb' => 'kernel/core/iseq.rb'
+task 'vm/instructions.rb' => 'vm/gen'
+task 'vm/instructions.rb' => 'vm/instructions_gen.rb'
+task 'vm/test/test_instructions.hpp' => 'vm/instructions_gen.rb'
 
 files INSN_GEN, %w[vm/instructions.rb] do
   ruby 'vm/instructions.rb', :verbose => $verbose
 end
 
-file 'vm/field_extract.rb' => 'vm/gen'
+task 'vm/field_extract.rb' => %W[vm/gen #{__FILE__}]
 
 files TYPE_GEN, field_extract_headers + %w[vm/field_extract.rb] do
   puts "GEN field_extract"
