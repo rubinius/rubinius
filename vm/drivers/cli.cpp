@@ -89,6 +89,9 @@ int main(int argc, char** argv) {
       wanted->type << ")" << std::endl;
 
     e.print_backtrace();
+
+    std::cout << "Ruby backtrace:" << std::endl;
+    env.state->print_backtrace();
   } catch(std::runtime_error& e) {
     std::cout << "Runtime exception: " << e.what() << std::endl;
   } catch(ArgumentError &e) {
