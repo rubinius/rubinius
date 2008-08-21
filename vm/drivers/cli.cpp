@@ -68,6 +68,9 @@ int main(int argc, char** argv) {
     std::cout << "VM Assertion:" << std::endl;
     std::cout << "  " << e->reason << std::endl;
     e->print_backtrace();
+
+    std::cout << "Ruby backtrace:" << std::endl;
+    env.state->print_backtrace();
   } catch(TypeError *e) {
     std::cout << "Type Error detected:" << std::endl;
     TypeInfo* wanted = env.state->find_type(e->type);
