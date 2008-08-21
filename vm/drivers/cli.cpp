@@ -2,6 +2,7 @@
 #include "environment.hpp"
 #include "object.hpp"
 #include "type_info.hpp"
+#include "builtin/task.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -85,6 +86,10 @@ int main(int argc, char** argv) {
     e->print_backtrace();
   } catch(std::runtime_error& e) {
     std::cout << "Runtime exception: " << e.what() << std::endl;
+  } catch(ArgumentError *e) {
+    std::cout << "Argument error: expected " << e->expected << ", given " <<
+      e->given << std::endl;
+    env.state->print_backtrace();
   } catch(VMException *e) {
     std::cout << "Unknown VM exception detected." << std::endl;
     e->print_backtrace();
