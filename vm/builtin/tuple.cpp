@@ -59,15 +59,19 @@ namespace rubinius {
   }
 
   /*
-   * Copies items from +other+ to this tuple from +start+ to +end+ inclusive.  
+   * Copies items from +other+ to this tuple from +start+ to +end+ inclusive.
    */
-  void Tuple::copy_from(STATE, Tuple* other, int start, int end) {
+  void Tuple::replace_with(STATE, Tuple* other, int start, int end) {
     size_t length;
 
+    if(start < 0) start = 0;
     if((size_t)end >= other->field_count) {
       length = other->field_count - 1;
     } else {
       length = end;
+    }
+    if(length - start + 1 > this->field_count) {
+      length = start + this->field_count - 1;
     }
 
     for(size_t i = start, j = 0; i <= length; i++, j++) {
@@ -75,6 +79,21 @@ namespace rubinius {
     }
   }
 
+  Tuple* Tuple::copy_from(STATE, Tuple* other, FIXNUM start, FIXNUM dest) {
+    native_int src = start->to_native();
+    native_int dst = dest->to_native();
+    native_int sz = this->field_count;
+    native_int osz = other->field_count;
+    native_int i, j;
+
+    if(src < 0) src = 0;
+    if(dst < 0) dst = 0;
+    for(i = src, j = dst; i < osz && j < sz; i++, j++) {
+      this->put(state, j, other->at(i));
+    }
+
+    return this;
+  }
 
   void Tuple::Info::mark(OBJECT obj, ObjectMark& mark) {
     OBJECT tmp;
