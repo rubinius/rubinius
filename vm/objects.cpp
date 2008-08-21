@@ -27,6 +27,7 @@
 #include "builtin/task.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/access_variable.hpp"
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
@@ -269,6 +270,7 @@ namespace rubinius {
     init_ffi();
     Task::init(state);
     Thread::init(state);
+    AccessVariable::init(state);
 
     TypeInfo::init(state);
 
