@@ -29,7 +29,10 @@ namespace rubinius {
     // Ruby.primitive :tuple_fields
     OBJECT fields_prim(STATE);
 
-    void copy_from(STATE, Tuple* other, int start, int end);
+    // Ruby.primitive :tuple_copy_from
+    Tuple* copy_from(STATE, Tuple* other, FIXNUM start, FIXNUM dest);
+
+    void replace_with(STATE, Tuple* other, int start, int end);
 
     class Info : public TypeInfo {
     public:

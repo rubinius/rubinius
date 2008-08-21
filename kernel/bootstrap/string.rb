@@ -1,7 +1,7 @@
 class String
-  def self.template(size, str)
-    Ruby.primitive :string_template
-    raise PrimitiveFailure, "String.template primitive failed"
+  def self.pattern(size, str)
+    Ruby.primitive :string_pattern
+    raise PrimitiveFailure, "String.pattern primitive failed"
   end
 
   def __symbol_lookup__
@@ -43,13 +43,13 @@ class String
   end
 
   def substring(start, count)
-    return if count < 0 || start > @bytes || -start > @bytes
+    return if count < 0 || start > @num_bytes || -start > @num_bytes
 
-    start += @bytes if start < 0
-    count = @bytes - start if start + count > @bytes
+    start += @num_bytes if start < 0
+    count = @num_bytes - start if start + count > @num_bytes
     count = 0 if count < 0
 
-    str = self.class.template count, 0
+    str = self.class.pattern count, 0
     str.copy_from self, start, count, 0
     str.taint if self.tainted?
 
@@ -61,6 +61,6 @@ class String
   end
 
   def length
-    @bytes
+    @num_bytes
   end
 end

@@ -39,6 +39,7 @@ namespace rubinius {
     Message msg(state);
     msg.args = 0;
     msg.recv = G(main);
+    msg.module = G(object);
 
     SET(cm.get(), scope, StaticScope::create(state));
     SET(cm.get()->scope, module, G(object));

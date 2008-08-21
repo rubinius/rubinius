@@ -10,10 +10,8 @@ class Array
 
   # THIS MUST NOT BE REMOVED. the kernel requires a simple
   # Array#[] to work while parts of the kernel boot.
-  def [](idx)    
-    if idx >= @total
-      return nil
-    end
+  def [](idx)
+    return nil if idx >= @total
 
     @tuple.at(@start + idx)
   end

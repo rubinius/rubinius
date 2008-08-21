@@ -25,9 +25,7 @@ class Preprocessor
         case line
         when /(.*[^\\]|^)\#\{(.*?)\}(.*)/
           puts "#{$1}#{evaluate($2, @linenum)}#{$3}"
-          puts "#line #{@linenum} \"#{@filename}\"" if @lines
         when /^\#ruby\s+<<(.*)/
-          puts "#line #{@linenum} \"#{@filename}\"" if @lines
           marker = $1
           str = ''
           evalstart = @linenum
@@ -41,7 +39,6 @@ class Preprocessor
           end
           result = evaluate(str, evalstart)
           puts result if not result.nil?
-          puts "#line #{@linenum} \"#{@filename}\"" if @lines
         when /^\#ruby\s+(.*)/
           str = line = $1
           while line[-1] == ?\\
@@ -53,7 +50,6 @@ class Preprocessor
           end
           result = evaluate(str, @linenum)
           puts result if not result.nil?
-          puts "#line #{@linenum} \"#{@filename}\"" if @lines
         else
           puts line
         end

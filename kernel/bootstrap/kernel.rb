@@ -25,6 +25,11 @@ module Kernel
     raise PrimitiveFailure, "Object#equal? failed."
   end
 
+  def eql?(other) # HACK dup of equal?
+    Ruby.primitive :object_equal
+    raise PrimitiveFailure, "Object#equal? failed."
+  end
+
   def extend(*mods)
     metaclass.include(*mods)
     self

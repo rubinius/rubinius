@@ -98,7 +98,7 @@ class Hash
     key = key.dup if key.kind_of?(String)
 
     redistribute
-    
+
     entry, hash, bin = hash_entry key
     lst = nil
 

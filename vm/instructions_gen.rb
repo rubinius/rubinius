@@ -89,7 +89,6 @@ class Instructions
   def generate_functions(methods, io)
     methods.each do |impl|
       io.puts "#{impl.signature} {"
-      io.puts "#line #{impl.line} \"vm/instructions.rb\""
       io.puts impl.body
       io.puts "}"
     end
@@ -198,7 +197,6 @@ void #{meth}() {
   stream[0] = InstructionSequence::insn_#{ins.opcode};
 
 #define run(val) task->execute_stream(stream)
-#line #{line} \"vm/instructions.rb\"
 #{code}
 #undef run
 }

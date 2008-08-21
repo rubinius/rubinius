@@ -46,13 +46,15 @@ field_extract_headers = %w[
   vm/objects.hpp
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
+  vm/builtin/executable.hpp
+  vm/builtin/access_variable.hpp
   vm/builtin/array.hpp
   vm/builtin/bignum.hpp
   vm/builtin/block_environment.hpp
   vm/builtin/bytearray.hpp
   vm/builtin/channel.hpp
+  vm/builtin/module.hpp
   vm/builtin/class.hpp
-  vm/builtin/executable.hpp
   vm/builtin/compiledmethod.hpp
   vm/builtin/contexts.hpp
   vm/builtin/dir.hpp
@@ -134,23 +136,11 @@ def link t
   end
 end
 
-def tmpname(suffix = "cpp")
-  @which ||= 0
-
-  path = File.join(Dir.tmpdir, "rake.#{$$}.#{@which += 1}.#{suffix}")
-
-  yield path
-
-ensure
-  FileUtils.rm_rf path
-end
-
 def rubypp_task(target, prerequisite, *extra)
   file target => [prerequisite, 'vm/rubypp.rb'] + extra do
-    path = tmpname do |path|
-      ruby 'vm/rubypp.rb', prerequisite, path
-      yield path
-    end
+    path = File.join("vm/gen", File.basename(prerequisite))
+    ruby 'vm/rubypp.rb', prerequisite, path
+    yield path
   end
 end
 
@@ -197,17 +187,17 @@ files EXTERNALS do |t|
   end
 end
 
-file 'vm/primitives.o' => 'vm/field_extract.rb'
-file 'vm/instructions_gen.rb' => 'kernel/core/iseq.rb'
-file 'vm/instructions.rb' => 'vm/gen'
-file 'vm/instructions.rb' => 'vm/instructions_gen.rb'
-file 'vm/test/test_instructions.hpp' => 'vm/instructions_gen.rb'
+task 'vm/primitives.o' => 'vm/field_extract.rb'
+task 'vm/instructions_gen.rb' => 'kernel/core/iseq.rb'
+task 'vm/instructions.rb' => 'vm/gen'
+task 'vm/instructions.rb' => 'vm/instructions_gen.rb'
+task 'vm/test/test_instructions.hpp' => 'vm/instructions_gen.rb'
 
 files INSN_GEN, %w[vm/instructions.rb] do
   ruby 'vm/instructions.rb', :verbose => $verbose
 end
 
-file 'vm/field_extract.rb' => 'vm/gen'
+task 'vm/field_extract.rb' => %W[vm/gen #{__FILE__}]
 
 files TYPE_GEN, field_extract_headers + %w[vm/field_extract.rb] do
   puts "GEN field_extract"
@@ -270,30 +260,31 @@ namespace :vm do
 
     puts "CC/LD vm/test/coverage/runner"
     begin
-      path = tmpname do |path|
-        ruby 'vm/rubypp.rb', "vm/llvm/instructions.cpp", path
-        sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp vm/*.c #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
+      path = "vm/gen/instructions.cpp"
+      ruby 'vm/rubypp.rb', "vm/llvm/instructions.cpp", path
+      sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp vm/*.c #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
 
-        puts "RUN vm/test/coverage/runner"
-        sh "vm/test/coverage/runner"
-        if $verbose
-          sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info"
-        else
-          sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info > /dev/null 2>&1"
-        end
+      puts "RUN vm/test/coverage/runner"
+      sh "vm/test/coverage/runner"
+      if $verbose
+        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info"
+      else
+        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info > /dev/null 2>&1"
+      end
 
-        puts "GEN vm/test/coverage/index.html"
-        if $verbose
-          sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info"
-        else
-          sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info > /dev/null 2>&1"
-        end
+      puts "GEN vm/test/coverage/index.html"
+      if $verbose
+        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info"
+      else
+        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info > /dev/null 2>&1"
       end
     ensure
       sh "rm -f *.gcno *.gcda"
     end
   end
 
+  # TODO: for ryan: fix up dependencies between rubypp and the source files now that they're persistent
+  # TODO: for ryan: dependencies on vm/test/test_instructions.hpp causes rebuild of vm/*.cpp files. lame
 
   desc "Clean up vm build files"
   task :clean do

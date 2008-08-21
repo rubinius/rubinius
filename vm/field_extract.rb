@@ -450,6 +450,15 @@ includes = ARGV.map do |include|
   "#include \"#{include.sub(/^vm\//, '')}\""
 end.join "\n"
 
+inputs = ARGV.sort
+builtins = Dir['vm/builtin/*.hpp'].sort
+
+missing = builtins - inputs
+
+unless missing.empty? then
+  abort "Missing #{missing.join ', '} in rakelib/vm.rake's field_extract list"
+end
+
 ARGV.each do |file|
   File.open(file) do |f|
     parser.parse_stream f

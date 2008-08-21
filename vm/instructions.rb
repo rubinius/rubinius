@@ -1,3 +1,7 @@
+# When you add an instruction here, you MUST also add it to the master
+# list in kernel/core/iseq.rb
+# TODO: Change instructions_gen.rb so that it warns when instructions are missing.
+
 class Instructions
 
   # [Operation]
@@ -1320,7 +1324,7 @@ class Instructions
     if(k == 1) {
       OBJECT t1 = tup->at(0);
       /* and that thing is an array... */
-      if(kind_of<Array>(t1)) {
+      if(kind_of<Array>(t1)) { // HACK use try_as
         /* make a tuple out of the array contents... */
         Array* ary = as<Array>(t1);
         int j = ary->size();
@@ -1330,7 +1334,7 @@ class Instructions
           out->put(state, k, ary->get(state, k));
         }
 
-        /* and put it on the top o the stack. */
+        /* and put it on the top of the stack. */
         stack_set_top(out);
       }
     }
@@ -3032,6 +3036,53 @@ class Instructions
   end
 
   # [Operation]
+  #   Reverses the order on the stack of the top +count+ items
+  # [Format]
+  # \rotate count
+  # [Stack Before]
+  # * obj1
+  # * obj2
+  # * obj3
+  # * ...
+  # [Stack After]
+  # * obj3
+  # * obj2
+  # * obj1
+  # * ...
+
+  def rotate(count)
+    <<-CODE
+    Object** objs = new Object*[count];
+    int i;
+
+    for(i = 0; i < count; i++) {
+      objs[i] = stack_pop();
+    }
+
+    for(i = 0; i < count; i++) {
+      stack_push(objs[i]);
+    }
+
+    free(objs);
+    CODE
+  end
+
+  def test_rotate
+    <<-CODE
+      task->push(Fixnum::from(0));
+      task->push(Fixnum::from(1));
+      task->push(Fixnum::from(2));
+      stream[1] = (opcode)3;
+      TS_ASSERT_EQUALS(task->calculate_sp(), 2);
+      run();
+      TS_ASSERT_EQUALS(as<Integer>(task->stack_at(0))->to_native(), 2);
+      TS_ASSERT_EQUALS(as<Integer>(task->stack_at(1))->to_native(), 1);
+      TS_ASSERT_EQUALS(as<Integer>(task->stack_at(2))->to_native(), 0);
+      TS_ASSERT_EQUALS(task->calculate_sp(), 2);
+    CODE
+  end
+
+  # [Operation]
   #   Shifts the first item in a tuple onto the stack
   # [Format]
   #   \shift_tuple
@@ -3053,18 +3104,20 @@ class Instructions
 
   def shift_tuple
     <<-CODE
-    OBJECT t1 = stack_pop();
-    Tuple* tup = as<Tuple>(t1);
-    if(NUM_FIELDS(t1) == 0) {
-      stack_push(tup);
+    Tuple* tuple = as<Tuple>(stack_pop());
+
+    if(NUM_FIELDS(tuple) == 0) {
+      stack_push(tuple);
       stack_push(Qnil);
     } else {
-      int j = NUM_FIELDS(t1) - 1;
-      OBJECT t2 = tup->at(0);
-      Tuple* tup = Tuple::create(state, j);
-      tup->copy_from(state, tup, 1, j);
-      stack_push(tup);
-      stack_push(t2);
+      int j = NUM_FIELDS(tuple) - 1;
+      OBJECT shifted_value = tuple->at(0);
+
+      Tuple* new_tuple = Tuple::create(state, j);
+      new_tuple->replace_with(state, tuple, 1, j);
+
+      stack_push(new_tuple);
+      stack_push(shifted_value);
     }
     CODE
   end

@@ -27,6 +27,17 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
     };
   };
+
+  template <>
+    static bool kind_of<Executable>(OBJECT obj) {
+      if(obj->obj_type == Executable::type ||
+         obj->obj_type == CMethodType ||
+         obj->obj_type == AccessVariableType) {
+        return true;
+      }
+
+      return false;
+    }
 }
 
 #endif

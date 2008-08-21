@@ -63,6 +63,7 @@ namespace rubinius {
     TypedRoot<OBJECT> main;
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
+    TypedRoot<Class*> access_variable;
 
     /* Add new globals above this line. */
 
@@ -111,7 +112,8 @@ namespace rubinius {
       current_task(&roots),
       main(&roots),
       dir(&roots),
-      compactlookuptable(&roots)
+      compactlookuptable(&roots),
+      access_variable(&roots)
 
       /* Add initialize of globals above this line. */
     { }

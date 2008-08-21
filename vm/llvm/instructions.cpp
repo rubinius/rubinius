@@ -149,9 +149,10 @@ void VMMethod::resume(Task* task, MethodContext* ctx) {
   for(;;) {
     op = stream[ctx->ip++];
 #if 0
-    std::cout << *ctx->cm->name->to_str(state) << "+" <<
-      ctx->ip << ": " << InstructionSequence::get_instruction_name(op) << 
-        "        " << js->stack << "\n";
+    printf("%-22s+%3d: %-30s %10p %10p\n",
+           (char *)(*ctx->cm->name->to_str(state)),
+           ctx->ip, InstructionSequence::get_instruction_name(op),
+           js->stack, *js->stack);
 #endif
 
 #ruby <<CODE

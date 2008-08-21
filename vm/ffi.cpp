@@ -699,11 +699,12 @@ namespace rubinius {
         values[i] = tmp;
         break;
       }
-      case RBX_FFI_TYPE_STATE:
+      case RBX_FFI_TYPE_STATE: {
         VM **tmp = (VM**)malloc(sizeof(VM*));
         *tmp = state;
         values[i] = tmp;
         break;
+      }
       case RBX_FFI_TYPE_OBJECT: {
         OBJECT *tmp = (OBJECT*)malloc(sizeof(OBJECT));
         obj = msg->get_argument(i);

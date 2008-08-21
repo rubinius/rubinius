@@ -286,4 +286,27 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(a->compare_substring(state, b, Fixnum::from(-3), Fixnum::from(1)), const PrimitiveFailed &);
     TS_ASSERT_THROWS(a->compare_substring(state, b, Fixnum::from(2), Fixnum::from(1)), const PrimitiveFailed &);
   }
+
+  void test_pattern_from_character() {
+    String* s = String::pattern(state, G(string), Fixnum::from(10), Fixnum::from(97));
+    TS_ASSERT_SAME_DATA(s->data->bytes, "aaaaaaaaaa", 10);
+  }
+
+  void test_pattern_from_string() {
+    FIXNUM ten = Fixnum::from(10);
+    String* s = String::pattern(state, G(string), ten, String::create(state, "b"));
+    TS_ASSERT_SAME_DATA(s->data->bytes, "bbbbbbbbbb", 10);
+
+    s = String::pattern(state, G(string), ten, String::create(state, " "));
+    TS_ASSERT_SAME_DATA(s->data->bytes, "          ", 10);
+
+    s = String::pattern(state, G(string), ten, String::create(state, "abc"));
+    TS_ASSERT_SAME_DATA(s->data->bytes, "abcabcabca", 10);
+  }
+
+  void test_pattern_throws_if_not_character_or_string() {
+    FIXNUM ten = Fixnum::from(10);
+    Tuple* tup = Tuple::create(state, 1);
+    TS_ASSERT_THROWS(String::pattern(state, G(string), ten, tup), const PrimitiveFailed &);
+  }
 };

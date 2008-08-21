@@ -456,8 +456,6 @@ module Kernel
 
   alias_method :breakpoint, :debugger
 
-  alias_method :eql?, :equal?
-
   def extend(*modules)
     modules.reverse_each do |mod|
       mod.extend_object(self)

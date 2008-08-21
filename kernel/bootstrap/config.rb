@@ -17,6 +17,7 @@ module Rubinius
       while i < ary.size
         tup = ary[i]
         yield tup[0], tup[1]
+        i += 1
       end
     end
 
