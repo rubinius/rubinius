@@ -2,6 +2,7 @@
 #include "environment.hpp"
 #include "object.hpp"
 #include "type_info.hpp"
+#include "builtin/task.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -69,14 +70,26 @@ int main(int argc, char** argv) {
     e->print_backtrace();
   } catch(TypeError *e) {
     std::cout << "Type Error detected:" << std::endl;
-    TypeInfo* was = env.state->find_type(e->object->obj_type);
     TypeInfo* wanted = env.state->find_type(e->type);
-    std::cout << "  Tried to use object of type " <<
-      was->type_name << " (" << was->type << ")" <<
-      " as type " << wanted->type_name << " (" << wanted->type << ")" << std::endl;
+
+    if(!e->object->reference_p()) {
+      std::cout << "  Tried to use non-reference value " << e->object;
+    } else {
+      TypeInfo* was = env.state->find_type(e->object->obj_type);
+      std::cout << "  Tried to use object of type " <<
+        was->type_name << " (" << was->type << ")";
+    }
+
+    std::cout << " as type " << wanted->type_name << " (" <<
+      wanted->type << ")" << std::endl;
+
     e->print_backtrace();
   } catch(std::runtime_error& e) {
     std::cout << "Runtime exception: " << e.what() << std::endl;
+  } catch(ArgumentError *e) {
+    std::cout << "Argument error: expected " << e->expected << ", given " <<
+      e->given << std::endl;
+    env.state->print_backtrace();
   } catch(VMException *e) {
     std::cout << "Unknown VM exception detected." << std::endl;
     e->print_backtrace();

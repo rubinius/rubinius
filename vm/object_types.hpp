@@ -53,6 +53,7 @@ namespace rubinius {
     NativeFuncType  ,
     DirType         ,
     CompactLookupTableType,
+    AccessVariableType,
 
     LastObjectType   // must remain at end
   } object_type;

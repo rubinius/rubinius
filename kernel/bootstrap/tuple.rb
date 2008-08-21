@@ -40,5 +40,9 @@ class Tuple
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def copy_from(other, start, dest)
+    Ruby.primitive :tuple_copy_from
+    raise PrimitiveFailure, "Tuple#copy_from primitive failed"
+  end
 end
 

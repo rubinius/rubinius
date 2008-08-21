@@ -19,11 +19,6 @@ class Object
     Ruby.primitive :object_show
   end
 
-  def copy_from(other, start, dest)
-    Ruby.primitive :dup_into
-    raise TypeError, "unable to copy into"
-  end
-
   def metaclass
     class << self;self;end
   end

@@ -427,6 +427,23 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(x, Qnil);
   }
 
+  void test_locate_method_on_protected() {
+    CompiledMethod* cm = create_cm();
+    cm->stack_size = Fixnum::from(1);
+
+    Task* task = Task::create(state);
+
+    MethodVisibility* vis = MethodVisibility::create(state);
+    vis->method = cm;
+    vis->visibility = G(sym_protected);
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), vis);
+
+    Executable* x = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
+
+    TS_ASSERT_EQUALS(x, Qnil);
+  }
+
   void test_locate_method_on_private_private_send() {
     CompiledMethod* cm = create_cm();
     cm->stack_size = Fixnum::from(1);

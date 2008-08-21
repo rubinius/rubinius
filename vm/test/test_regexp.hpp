@@ -79,7 +79,21 @@ class TestRegexp : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(matches->full->at(0))->to_native(), 0);
     TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->to_native(), 1);
   }
-  
+
+  void test_match_region_without_matches() {
+    String *pat = String::create(state, "d");
+    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
+
+    String *input = String::create(state, "abc");
+
+    FIXNUM start = Fixnum::from(0);
+    FIXNUM end =   Fixnum::from(3);
+    OBJECT forward = Qtrue;
+
+    MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
+    TS_ASSERT(matches->nil_p());
+  }
+
   void test_match_region_with_captures() {
     String *pat = String::create(state, ".(.)");
     Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
@@ -100,6 +114,26 @@ class TestRegexp : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(1))->to_native(), 2);
   }
 
+  void test_match_region_with_backward_captures() {
+    String *pat = String::create(state, ".(.)");
+    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
+
+    String *input = String::create(state, "abc");
+
+    FIXNUM start = Fixnum::from(0);
+    FIXNUM end =   Fixnum::from(3);
+    OBJECT forward = Qfalse;
+
+    MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
+    TS_ASSERT(!matches->nil_p());
+    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(0))->to_native(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->to_native(), 3);
+    
+    TS_ASSERT_EQUALS(matches->region->field_count, 1U);
+    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(0))->to_native(), 2);
+    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(1))->to_native(), 3);
+  }
+  
   void test_match_start() {
     String *pat = String::create(state, ".");
     Regexp* re = Regexp::create(state, pat, Fixnum::from(0));

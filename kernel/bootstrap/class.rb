@@ -56,24 +56,33 @@ class RuntimePrimitive < Executable
   end
 end
 
-class AccessVarMethod < RuntimePrimitive
-  def initialize name, variable
-    super name
-    self.variable = variable
+class AccessVariable
+  def self.allocate
+    Ruby.primitive :accessvariable_allocate
+    raise PrimitiveFailure, "Unable to allocate"
   end
-  
+
+  def initialize(variable, write)
+    @primitive = nil
+    @serial = 0
+    @name = variable
+    @write = write
+  end
+
   def self.get_ivar(name)
-    new(:get_ivar, name)
+    new(name, false)
   end
 
   def self.set_ivar(name)
-    new(:set_ivar, name)
+    new(name, true)
   end
 end
 
-# This is here because it uses instance_fields, which is defined above.
-# This is the ONLY way to force load order in the bootstrap (and the 
-# only instance of load order mattering)
+##
+# This is here because it uses instance_fields, which is defined above.  This
+# is the ONLY way to force load order in the bootstrap (and the only instance
+# of load order mattering)
+
 class IncludedModule < Module
   self.instance_fields = 8
 

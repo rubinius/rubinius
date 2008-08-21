@@ -128,7 +128,8 @@ namespace rubinius {
     }
 
     /* If too many args were passed in, throw an exception.
-     * * If there is a splat, this check is disabled.*/
+     * If there is a splat, this check is disabled.
+     */
     if(ctx->cm->splat == Qnil && msg.args > total) {
       throw new ArgumentError(required, msg.args);
     }
