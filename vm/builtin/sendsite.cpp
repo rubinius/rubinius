@@ -33,6 +33,11 @@ namespace rubinius {
     resolver = new GlobalCacheResolver;
   }
 
+  OBJECT SendSite::set_sender(STATE, CompiledMethod* cm) {
+    SET(this, sender, cm);
+    return Qnil;
+  }
+
   /* Indicates that the object hasn't been specialized in anyway */
   bool SendSite::basic_p(STATE) {
     return !specialized;
