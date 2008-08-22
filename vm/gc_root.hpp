@@ -3,6 +3,7 @@
 
 #include "prelude.hpp"
 #include <list>
+#include <stdexcept>
 
 namespace rubinius {
   class Root;
@@ -48,7 +49,7 @@ namespace rubinius {
     void set(OBJECT obj) {
       object = obj;
       if(!roots) {
-        throw "invalid Root usage. Set object before roots";
+        throw std::runtime_error("invalid Root usage. Set object before roots");
       }
     }
 

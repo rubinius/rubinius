@@ -73,9 +73,9 @@ namespace rubinius {
 
   void type_assert(OBJECT obj, object_type type, const char* reason) {
     if(obj->reference_p() && obj->obj_type != type) {
-      throw new TypeError(type, obj, reason);
+      TypeError::raise(type, obj, reason);
     } else if(type == FixnumType && !obj->fixnum_p()) {
-      throw new TypeError(type, obj, reason);
+      TypeError::raise(type, obj, reason);
     }
   }
 
@@ -111,7 +111,7 @@ namespace rubinius {
 
     if(!next) {
       if(events->num_of_events() == 0) {
-        throw new DeadLock("no runnable threads, present or future.");
+        throw DeadLock("no runnable threads, present or future.");
       }
 
       wait_events = true;

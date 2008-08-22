@@ -237,7 +237,7 @@ namespace rubinius {
     default:
       std::string str = "unknown marshal code: ";
       str.append( 1, code );
-      throw str;
+      throw std::runtime_error(str);
     }
   }
 
@@ -269,7 +269,7 @@ namespace rubinius {
     } else if(kind_of<CompiledMethod>(obj)) {
       set_cmethod(as<CompiledMethod>(obj));
     } else {
-      throw "unknown object";
+      throw std::runtime_error("unknown object");
     }
   }
 

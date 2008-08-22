@@ -157,12 +157,11 @@ class Compiler
 
       if desc.splat
         cm.splat = desc.splat.slot
-        cm.total_args += 1
       else
         cm.splat = nil
       end
 
-      cm.stack_size = cm.total_args + iseq.stack_depth
+      cm.stack_size = desc.locals.size + iseq.stack_depth
 
       if @file
         cm.file = @file.to_sym
@@ -544,7 +543,7 @@ class Compiler
 
       ss = SendSite.new meth
       idx = add_literal(ss)
-      add :send_stack_with_splat, args, idx
+      add :send_stack_with_splat, idx, args
     end
 
     def send_super(meth, args, splat=false)
@@ -563,11 +562,16 @@ class Compiler
       add :check_serial, idx, serial.to_i
     end
 
+    def create_block(desc)
+      idx = add_literal(desc)
+      add :create_block, idx
+    end
+
     def method_missing(*op)
       if op[0] == :val
         raise "Passed incorrect op to method_missing in generator.rb: #{op.inspect}"
       end
-      
+
       add *op
     end
   end

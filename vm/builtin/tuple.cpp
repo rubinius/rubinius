@@ -9,7 +9,7 @@
 namespace rubinius {
   OBJECT Tuple::at(size_t index) {
     if(field_count <= index) {
-      throw new ObjectBoundsExceeded(this, index);
+      ObjectBoundsExceeded::raise(this, index);
     }
     return field[index];
   }

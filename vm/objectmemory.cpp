@@ -102,7 +102,7 @@ namespace rubinius {
 
   void ObjectMemory::store_object(OBJECT target, size_t index, OBJECT val) {
     if(target->field_count <= index) {
-      throw new ObjectBoundsExceeded(target, index);
+      ObjectBoundsExceeded::raise(target, index);
     }
 
     target->field[index] = val;

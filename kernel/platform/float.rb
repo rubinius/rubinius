@@ -4,6 +4,7 @@
 # Platform specific behavior for Float.
 
 class Platform::Float
+  # HACK these should be primitives, not FFI
   attach_function 'float_radix',      :RADIX, [], :int
   attach_function 'float_rounds',     :ROUNDS, [], :int
   attach_function 'float_min',        :MIN, [], :double

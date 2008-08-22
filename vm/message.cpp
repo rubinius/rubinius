@@ -35,7 +35,7 @@ namespace rubinius {
     } else if(task){
       return task->active->stack_back(args - index - 1);
     } else {
-      throw new Assertion("message not setup properly");
+      throw Assertion("message not setup properly");
     }
   }
 

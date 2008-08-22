@@ -19,7 +19,7 @@ namespace rubinius {
   }
 
   void Dir::guard(STATE) {
-    // TODO: raise IOError, "closed directory"
+    // TODO: raise IOError, "closed directory" (RAISE_FROM_ERRNO)
     if(data->nil_p()) {
       throw std::runtime_error("dir->data is nil");
     }

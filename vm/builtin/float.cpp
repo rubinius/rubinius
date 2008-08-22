@@ -208,3 +208,18 @@ namespace rubinius {
 
   void Float::Info::mark(OBJECT t, ObjectMark& mark) { }
 }
+
+extern "C" {
+  int float_radix()      { return FLT_RADIX; }
+  int float_rounds()     { return FLT_ROUNDS; }
+  double float_min()     { return DBL_MIN; }
+  double float_max()     { return DBL_MAX; }
+  int float_min_exp()    { return DBL_MIN_EXP; }
+  int float_max_exp()    { return DBL_MAX_EXP; }
+  int float_min_10_exp() { return DBL_MIN_10_EXP; }
+  int float_max_10_exp() { return DBL_MAX_10_EXP; }
+  int float_dig()        { return DBL_DIG; }
+  int float_mant_dig()   { return DBL_MANT_DIG; }
+  double float_epsilon() { return DBL_EPSILON; }
+}
+

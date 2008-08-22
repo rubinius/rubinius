@@ -36,6 +36,17 @@ namespace rubinius {
     return descriptor->to_native();
   }
 
+  OBJECT IO::write(STATE, String* buf) {
+    ssize_t cnt = ::write(this->to_fd(), buf->data->bytes, buf->size());
+
+    // TODO: RAISE_FROM_ERRNO
+    if(cnt == -1) {
+      throw std::runtime_error("IO::write primitive failed. (TODO RAISE_FROM_ERRNO)");
+    }
+
+    return Integer::from(state, cnt);
+  }
+
   void IOBuffer::read_bytes(size_t bytes) {
     used = Fixnum::from(used->to_native() + bytes);
   }

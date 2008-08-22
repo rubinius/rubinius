@@ -257,6 +257,7 @@ namespace rubinius {
     G(cmethod_vis)->set_object_type(CMVisibilityType);
 
     Module* rbx = new_module("Rubinius");
+    GO(rubinius).set(rbx);
     GO(vm).set(new_class("VM", rbx));
 
     bootstrap_exceptions();
@@ -273,6 +274,9 @@ namespace rubinius {
     AccessVariable::init(state);
 
     TypeInfo::init(state);
+
+    // Give Object a TypeInfo entry
+    add_type_info(new TypeInfo(ObjectType));
 
     if(sizeof(int) == sizeof(long)) {
       rbx->set_const(state, "L64", Qfalse);

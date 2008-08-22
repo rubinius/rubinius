@@ -97,7 +97,7 @@ namespace rubinius {
      * need to set it to the module of the actual Message we are sending.
      */
     if(!msg.module) {
-      throw new Assertion("Message passed to executor did not have a module set");
+      Assertion::raise("Message passed to executor did not have a module set");
     }
     SET(ctx, module, msg.module);
 

@@ -104,7 +104,6 @@ CC          = ENV['CC'] || "gcc"
 
 FLAGS << "-O2" if ENV['FAST']
 
-
 def compile(obj, src)
   unless defined? $llvm_c then
     $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
