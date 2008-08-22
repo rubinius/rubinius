@@ -171,14 +171,18 @@ namespace rubinius {
 
     while(!ctx->nil_p()) {
       std::cout << (void*)ctx << ": ";
-      // HACK reports Object#[] instead of Hash::[], etc
-      std::cout << *ctx->module->name->to_str(this) << "#";
-
-      SYMBOL name = try_as<Symbol>(ctx->name);
-      if(name) {
-        std::cout << *name->to_str(this);
+      if(kind_of<BlockContext>(ctx)) {
+        std::cout << "__block__";
       } else {
-        std::cout << *ctx->cm->name->to_str(this);
+        // HACK reports Object#[] instead of Hash::[], etc
+        std::cout << *ctx->module->name->to_str(this) << "#";
+
+        SYMBOL name = try_as<Symbol>(ctx->name);
+        if(name) {
+          std::cout << *name->to_str(this);
+        } else {
+          std::cout << *ctx->cm->name->to_str(this);
+        }
       }
 
       std::cout << ":" << ctx->line() << " in " << *ctx->cm->file->to_str(this);
