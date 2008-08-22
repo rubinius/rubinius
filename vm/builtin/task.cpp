@@ -173,7 +173,7 @@ stack_cleanup:
     ss << "unable to locate any method '" << *msg.send_site->name->to_str(state) << 
       "' from '" << *msg.lookup_from->name->to_str(state) << "'";
 
-    throw new Assertion((char*)ss.str().c_str());
+    Assertion::raise((char*)ss.str().c_str());
   }
 
   /* For details in msg, locate the proper method and begin execution
@@ -428,7 +428,7 @@ stack_cleanup:
     if(super->nil_p()) return cls;
     if(cls->superclass != super) {
       std::cout << "mismatch: " << *cls->name->to_str(state) << " != " << *as<Class>(super)->name->to_str(state) << "\n";
-      throw new TypeError(Class::type, super, "superclass mismatch");
+      TypeError::raise(Class::type, super, "superclass mismatch");
     }
 
     return cls;

@@ -119,4 +119,22 @@ public:
     TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(0)));
     TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(1)));
   }
+
+  void test_shifted_by_zero() {
+    Tuple* tuple = new_tuple();
+
+    Tuple* dest = tuple->shifted(state, Fixnum::from(0));
+    TS_ASSERT_EQUALS(tuple, dest);
+  }
+
+  void test_shifted_by_amount() {
+    Tuple* tuple = new_tuple();
+
+    Tuple* dest = tuple->shifted(state, Fixnum::from(4));
+
+    TS_ASSERT_EQUALS(dest->field_count, 7U);
+    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(4)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(5)));
+    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(6)));
+  }
 };

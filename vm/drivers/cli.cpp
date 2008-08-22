@@ -30,12 +30,7 @@ static void load_root(Environment& env, std::string root) {
     std::string path = root + "/" + line;
     std::cout << "Loading directory: " << path << "\n";
     env.load_directory(path);
-
-    std::cout << "Loading platform.conf: " << root << "\n";
-    env.load_platform_conf(root);
   }
-
-  env.set_rubinius_constants();
 }
 
 int main(int argc, char** argv) {
@@ -45,7 +40,14 @@ int main(int argc, char** argv) {
   try {
     char* e = getenv("ROOT");
     if(e) {
-      load_root(env, std::string(e));
+      std::string root = std::string(e);
+
+      env.set_rubinius_constants();
+
+      std::cout << "Loading platform.conf: " << root << "\n";
+      env.load_platform_conf(root);
+
+      load_root(env, std::string(root));
     }
 
     if(argc < 2) {
