@@ -24,6 +24,8 @@ namespace rubinius {
     MethodResolver* resolver;
 
     static void init(STATE);
+
+    // Ruby.primitive :sendsite_create
     static SendSite* create(STATE, OBJECT name);
     void initialize(STATE);
     void set_sender(STATE, OBJECT cm);
