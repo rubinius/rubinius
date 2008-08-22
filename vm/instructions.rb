@@ -1424,7 +1424,7 @@ class Instructions
     OBJECT res = task->const_get(sym, &found);
     if(!found) {
       sym->show(state);
-      throw new Assertion("implement const_missing");
+      Assertion::raise("implement const_missing");
     } else {
       stack_push(res);
     }
@@ -1487,7 +1487,7 @@ class Instructions
     SYMBOL sym = as<Symbol>(task->literals->field[index]);
     OBJECT res = task->const_get(under, sym, &found);
     if(!found) {
-      throw new Assertion("implement const_missing");
+      Assertion::raise("implement const_missing");
     } else {
       stack_push(res);
     }
