@@ -240,6 +240,9 @@ namespace rubinius {
     case CompactLookupTableType:
       type = "CompactLookupTable";
       break;
+    case TimeType:
+      type = "Time";
+      break;
     default:
       type = "unknown";
       break;

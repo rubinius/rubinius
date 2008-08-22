@@ -4,6 +4,7 @@
 #include "objectmemory.hpp"
 #include "vm.hpp"
 
+#include "builtin/access_variable.hpp"
 #include "builtin/array.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
@@ -26,8 +27,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
 #include "builtin/thread.hpp"
+#include "builtin/time.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/access_variable.hpp"
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
@@ -65,20 +66,24 @@ namespace rubinius {
     return cls;
   }
 
+  // TODO: document
   Class* VM::new_class(OBJECT sup, size_t fields) {
     Class *cls = new_basic_class(sup, fields);
     MetaClass::attach(this, cls);
     return cls;
   }
 
+  // TODO: document
   Class* VM::new_class(const char* name) {
     return new_class(name, G(object), G(object)->instance_fields->to_native());
   }
 
+  // TODO: document
   Class* VM::new_class(const char* name, size_t fields) {
     return new_class(name, G(object), fields);
   }
 
+  // TODO: document
   Class* VM::new_class(const char* name, Module* under) {
     size_t fields = G(object)->instance_fields->to_native();
     Class* cls = new_class(name, G(object), fields);
@@ -86,10 +91,12 @@ namespace rubinius {
     return cls;
   }
 
+  // TODO: document
   Class* VM::new_class(const char* name, OBJECT sup, size_t fields) {
     return new_class(name, sup, fields, G(object));
   }
 
+  // TODO: document
   Class* VM::new_class(const char* name, OBJECT sup, size_t fields, Module* under) {
     Class* cls = new_class(sup, fields);
     cls->setup(this, name, under);
@@ -102,6 +109,7 @@ namespace rubinius {
     return mod;
   }
 
+  // TODO: document all the sections of bootstrap_ontology
   /* Creates the rubinius object universe from scratch. */
   void VM::bootstrap_ontology() {
     /* Class is created first by hand, and twittle to setup the internal
@@ -182,6 +190,9 @@ namespace rubinius {
     GO(compactlookuptable).set(new_class(G(tuple), CompactLookupTable::fields));
     G(compactlookuptable)->instance_type = Fixnum::from(CompactLookupTableType);
 
+    GO(time_class).set(new_class(object, Time::fields));
+    G(time_class)->instance_type = Fixnum::from(TimeType);
+
     bootstrap_symbol();
 
     G(object)->setup(this, "Object");
@@ -203,6 +214,7 @@ namespace rubinius {
     G(symbol)->setup(this, "Symbol");
     G(dir)->setup(this, "Dir");
     G(compactlookuptable)->setup(this, "CompactLookupTable");
+    G(time_class)->setup(this, "Time");
 
     GO(nil_class).set(new_class("NilClass", object, 0));
     GO(true_class).set(new_class("TrueClass", object, 0));

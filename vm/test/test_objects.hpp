@@ -174,4 +174,15 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cls->instance_type, Fixnum::from(CompactLookupTableType));
     check_const(compactlookuptable, "CompactLookupTable");
   }
+
+  void test_time_class() {
+    Class *cls;
+
+    cls = G(time_class);
+
+    TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
+    TS_ASSERT_EQUALS(cls->superclass, G(object));
+    TS_ASSERT_EQUALS(cls->instance_type, Fixnum::from(TimeType));
+    check_const(time_class, "Time");
+  }
 };

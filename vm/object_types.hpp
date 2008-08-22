@@ -54,6 +54,7 @@ namespace rubinius {
     DirType         ,
     CompactLookupTableType,
     AccessVariableType,
+    TimeType        ,
 
     LastObjectType   // must remain at end
   } object_type;
