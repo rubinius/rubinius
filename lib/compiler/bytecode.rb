@@ -412,6 +412,19 @@ class Node
     end
   end
 
+  class Match
+    def bytecode(g)
+      g.push_literal :$_
+      g.push_cpath_top
+      g.find_const :Globals
+      g.send :[], 1
+
+      @pattern.bytecode(g)
+
+      g.send :=~, 1
+    end
+  end
+
   # TESTED
   class Match2
     def bytecode(g)
@@ -589,8 +602,10 @@ class Node
       g.next = g.redo = top = g.new_label
       top.set!
 
-      @body.bytecode(g)
-      g.pop
+      if @body then
+        @body.bytecode(g)
+        g.pop
+      end
 
       g.goto top
 

@@ -2196,6 +2196,11 @@ class Node
         @assigns, @splat, @source = assigns, splat, source
       end
 
+      # TODO: fix in sexp
+      unless ArrayLiteral === @assigns then
+        @assigns, @splat = nil, @assigns
+      end
+
       @in_block = false
     end
 
@@ -2354,28 +2359,10 @@ class Node
       @method, @arguments = meth, args
 
       collapse_args()
-
-      return detect_special_forms()
+      return self
     end
 
     attr_accessor :method, :arguments
-
-    def detect_special_forms
-      # Detect ivar as index.
-      if @method == :ivar_as_index
-        args = @arguments
-        if args.size == 1 and args[0].is? ImplicitHash
-          family = get(:family)
-          hsh = args[0].body
-          0.step(hsh.size-1, 2) do |i|
-            family.add_ivar_as_slot hsh[i].value, hsh[i+1].value
-          end
-
-          return nil
-        end
-      end
-      return self
-    end
 
     def fcall?
       true
@@ -2565,7 +2552,7 @@ class Node
       when nil
         return 0
       else
-        required.size
+        required.size # FIX: retarded amount of work to find the arity
       end
     end
 
