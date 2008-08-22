@@ -1812,7 +1812,7 @@ class Node
           x.bytecode(g)
         end
         g.pop
-      end
+      end if @assigns
 
       # Clean up the stack if there was extra sources
       if diff < 0
