@@ -372,17 +372,26 @@ namespace rubinius {
       if(op->is_send()) {
         assert(call);
         call->setName("maybe_send");
+        // Set up a comparison for the upcoming return value from the send
         ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_EQ, call,
             ConstantInt::get(Type::Int8Ty, 1), "cmp", cur);
+        // If the send returns true, then we will reset the execution state.
+        // Specifically, it will cause VMMethod::resume to return
         BasicBlock* send = BasicBlock::Create("send", func);
+        // If the send returns false, then we will 'stay'
         BasicBlock* stay = blocks[cur_block + 1];
 
+        // Perform the comparison and go to stay or send as above
+        // 'cur' is where the branch instruction is stored
         BranchInst::Create(send, stay, cmp, cur);
 
+        // Add 'store' and 'return' instructions to the 'send' basic block
         new StoreInst(ConstantInt::get(Type::Int32Ty, op->block + 1), next_pos, send);
         ReturnInst::Create(send);
 
+        // Make this flow look sane in the LLVM debugging output
         send->moveAfter(cur);
+        // The current block is now the one after 'send'
         cur = stay;
 
       } else if(op->op == InstructionSequence::insn_ret) {
