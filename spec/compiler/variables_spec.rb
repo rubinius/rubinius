@@ -67,8 +67,7 @@ describe Compiler do
       g.set_local 0
       g.pop
       g.push :self
-      g.push_literal iter
-      g.create_block
+      g.create_block iter
       g.passed_block(1) do
         g.send_with_block :go, 0, true
       end
@@ -94,8 +93,7 @@ describe Compiler do
       end
 
       g.push :self
-      g.push_literal iter
-      g.create_block
+      g.create_block iter
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -139,8 +137,7 @@ describe Compiler do
         end
 
         d.push :self
-        d.push_literal i2
-        d.create_block
+        d.create_block i2
         d.passed_block(0, true) do
           d.send_with_block :go, 0, true
         end
@@ -149,8 +146,7 @@ describe Compiler do
       end
 
       g.push :self
-      g.push_literal iter
-      g.create_block
+      g.create_block iter
       g.passed_block do
         g.send_with_block :go, 0, true
       end
