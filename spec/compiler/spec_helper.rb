@@ -42,6 +42,10 @@ class TestGenerator
     @ip += 1
   end
 
+  def dup
+    add(:dup)
+  end
+
   def set_line(line, file)
     @file, @line = file, line
   end
