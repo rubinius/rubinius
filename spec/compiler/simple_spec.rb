@@ -127,16 +127,16 @@ describe Compiler do
       g.gif lbl
       g.pop
 
-      g.push re.options
-      g.push_literal "abcd"
       g.push_const :Regexp
+      g.push_literal "abcd"
+      g.push re.options
       g.send :new, 2
       g.set_literal idx
       lbl.set!
     end
   end
 
-  it "compiles regexs" do
+  it "compiles regexen" do
     gen [:regex, "comp", 0] do |g|
       idx = g.add_literal(nil)
       g.push_literal_at idx
@@ -147,9 +147,9 @@ describe Compiler do
       g.gif lbl
       g.pop
 
-      g.push 0
-      g.push_literal "comp"
       g.push_const :Regexp
+      g.push_literal "comp"
+      g.push 0
       g.send :new, 2
       g.set_literal idx
       lbl.set!
@@ -182,7 +182,7 @@ describe Compiler do
 
   it "compiles dynamic regexs" do
     gen [:dregx, "(", [:evstr, [:true]], [:str, ")"], 0] do |g|
-      g.push 0
+      g.push_const :Regexp
       g.push_literal ")"
       g.string_dup
       g.push :true
@@ -191,14 +191,14 @@ describe Compiler do
       g.string_dup
       g.string_append
       g.string_append
-      g.push_const :Regexp
+      g.push 0
       g.send :new, 2
     end
   end
 
   it "compiles empty dynamic regexs" do
     gen [:dregx, "(", [:evstr], [:str, ")"], 0] do |g|
-      g.push 0
+      g.push_const :Regexp
       g.push_literal ")"
       g.string_dup
       g.push_literal ""
@@ -208,7 +208,7 @@ describe Compiler do
       g.string_dup
       g.string_append
       g.string_append
-      g.push_const :Regexp
+      g.push 0
       g.send :new, 2
     end
   end
@@ -224,7 +224,7 @@ describe Compiler do
       g.gif lbl
       g.pop
 
-      g.push 0
+      g.push_const :Regexp
       g.push_literal ")"
       g.string_dup
       g.push :true
@@ -233,7 +233,8 @@ describe Compiler do
       g.string_dup
       g.string_append
       g.string_append
-      g.push_const :Regexp
+      g.push 0
+
       g.send :new, 2
 
       g.set_literal idx
@@ -258,9 +259,9 @@ describe Compiler do
       g.gif label
       g.pop
 
-      g.push 0
-      g.push_literal "bunnies"
       g.push_const :Regexp
+      g.push_literal "bunnies"
+      g.push 0
       g.send :new, 2
       g.set_literal i
 
@@ -275,24 +276,25 @@ describe Compiler do
 
   it "compiles regexp operation =~" do
     gen [:match2, [:regex, "aoeu", 0], [:str, "blah"]] do |g|
-      g.push_literal "blah"
-      g.string_dup
+      lbl = g.new_label
 
       idx = g.add_literal(nil)
       g.push_literal_at idx
       g.dup
       g.is_nil
 
-      lbl = g.new_label
       g.gif lbl
       g.pop
 
-      g.push 0
-      g.push_literal "aoeu"
       g.push_const :Regexp
+      g.push_literal "aoeu"
+      g.push 0
       g.send :new, 2
       g.set_literal idx
       lbl.set!
+
+      g.push_literal "blah"
+      g.string_dup
 
       g.send :=~, 1
     end
@@ -300,24 +302,26 @@ describe Compiler do
 
   it "compiles string operation =~" do
     gen [:match3, [:regex, "aoeu", 0], [:str, "blah"]] do |g|
+      lbl = g.new_label
+
+      g.push_literal "blah"
+      g.string_dup
+
       idx = g.add_literal(nil)
       g.push_literal_at idx
       g.dup
       g.is_nil
 
-      lbl = g.new_label
       g.gif lbl
       g.pop
 
-      g.push 0
-      g.push_literal "aoeu"
       g.push_const :Regexp
+      g.push_literal "aoeu"
+      g.push 0
       g.send :new, 2
+
       g.set_literal idx
       lbl.set!
-
-      g.push_literal "blah"
-      g.string_dup
 
       g.send :=~, 1
     end
@@ -325,16 +329,16 @@ describe Compiler do
 
   it "compiles regexp back references" do
     gen [:back_ref, 38] do |g|
-      g.push_literal :&
       g.push_context
+      g.push_literal :&
       g.send :back_ref, 1
     end
   end
 
   it "compiles regexp last match captures" do
     gen [:nth_ref, 3] do |g|
-      g.push 3
       g.push_context
+      g.push 3
       g.send :nth_ref, 1
     end
   end
@@ -354,32 +358,37 @@ describe Compiler do
   end
 
   it "compiles a hash literal" do
-    gen [:hash, [:fixnum, 12], [:fixnum, 13], [:fixnum, 14], [:fixnum, 15]] do |g|
-      g.push 15
-      g.push 14
-      g.push 13
-      g.push 12
+    x = [:hash,
+         [:fixnum, 12], [:fixnum, 13],
+         [:fixnum, 14], [:fixnum, 15]]
+
+    gen x do |g|
       g.push_cpath_top
       g.find_const :Hash
+      g.push 12
+      g.push 13
+      g.push 14
+      g.push 15
       g.send :[], 4
     end
   end
 
   it "compiles an svalue" do
     gen [:svalue, [:vcall, :ab]] do |g|
+      lbl = g.new_label
+
       g.push :self
       g.send :ab, 0, true
       g.cast_array
       g.dup
       g.send :size, 0
       g.push 1
+      g.swap
       g.send :<, 1
 
-      lbl = g.new_label
       g.git lbl
 
       g.push 0
-      g.swap
       g.send :at, 1
 
       lbl.set!
@@ -402,9 +411,9 @@ describe Compiler do
 
   it "compiles '`ls`'" do
     gen [:xstr, "ls"] do |g|
+      g.push :self
       g.push_literal "ls"
       g.string_dup
-      g.push :self
       g.send :`, 1, true #` (silly emacs/vim)
     end
   end
@@ -412,12 +421,12 @@ describe Compiler do
   it "compiles '`ls \#{dir}`'" do
     gen [:dxstr, "ls ", [:evstr, [:vcall, :dir]]] do |g|
       g.push :self
+      g.push :self
       g.send :dir, 0, true
       g.send :to_s, 0, true
       g.push_literal "ls "
       g.string_dup
       g.string_append
-      g.push :self
       g.send :`, 1, true  #`
     end
   end
@@ -437,30 +446,30 @@ describe Compiler do
 
   it "compiles 'alias a b'" do
     gen [:alias, :b, :a] do |g|
-      g.push_literal :b
+      g.push :self
       g.push_literal :a
-      g.push_context
+      g.push_literal :b
       g.send :alias_method, 2, true
     end
   end
 
   it "compiles '1..2'" do
     gen [:dot2, [:fixnum, 1], [:fixnum, 2]] do |g|
-      g.push 2
-      g.push 1
       g.push_cpath_top
       g.find_const :Range
+      g.push 1
+      g.push 2
       g.send :new, 2
     end
   end
 
   it "compiles '1...2'" do
     gen [:dot3, [:fixnum, 1], [:fixnum, 2]] do |g|
-      g.push :true
-      g.push 2
-      g.push 1
       g.push_cpath_top
       g.find_const :Range
+      g.push 1
+      g.push 2
+      g.push :true
       g.send :new, 3
     end
   end
