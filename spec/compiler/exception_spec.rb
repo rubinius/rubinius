@@ -36,24 +36,23 @@ describe Compiler do
         ]
 
     gen x do |g|
-      g.push_modifiers
-      exc_start = g.new_label
+      exc_start  = g.new_label
       exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      body       = g.new_label
 
-      fin = g.new_label
-      rr = g.new_label
-      last = g.new_label
-
+      g.push_modifiers
       exc_start.set!
       exc_start.set!
       g.push 12
       g.goto fin
 
       exc_handle.set!
-      g.push_exception
       g.push_const :String
+      g.push_exception
       g.send :===, 1
-      body = g.new_label
 
       g.git body
       g.goto rr
@@ -82,24 +81,23 @@ describe Compiler do
         ]
 
     gen x do |g|
-      g.push_modifiers
-      exc_start = g.new_label
+      exc_start  = g.new_label
       exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      body       = g.new_label
 
-      fin = g.new_label
-      rr = g.new_label
-      last = g.new_label
-
+      g.push_modifiers
       exc_start.set!
       exc_start.set!
       g.push 12
       g.goto fin
 
       exc_handle.set!
-      g.push_exception
       g.push_const :StandardError
+      g.push_exception
       g.send :===, 1
-      body = g.new_label
 
       g.git body
       g.goto rr
@@ -123,35 +121,32 @@ describe Compiler do
 
   it "compiles a rescue with multiple contitions" do
     x = [:rescue, [:fixnum, 12],
-          [:resbody, [:array, [:const, :String], [:const, :Blah]],
-             [:fixnum, 13], nil
-          ]
-        ]
+         [:resbody, [:array, [:const, :String], [:const, :Blah]],
+          [:fixnum, 13], nil]]
 
     gen x do |g|
-      g.push_modifiers
-      exc_start = g.new_label
+      exc_start  = g.new_label
       exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      body       = g.new_label
 
-      fin = g.new_label
-      rr = g.new_label
-      last = g.new_label
-
+      g.push_modifiers
       exc_start.set!
       exc_start.set!
       g.push 12
       g.goto fin
 
       exc_handle.set!
-      body = g.new_label
 
-      g.push_exception
       g.push_const :String
+      g.push_exception
       g.send :===, 1
       g.git body
 
-      g.push_exception
       g.push_const :Blah
+      g.push_exception
       g.send :===, 1
       g.git body
 
@@ -183,28 +178,26 @@ describe Compiler do
         ]
 
     gen x do |g|
-      g.push_modifiers
-      exc_start = g.new_label
+      exc_start  = g.new_label
       exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      next_cond  = g.new_label
+      body       = g.new_label
 
-      fin = g.new_label
-      rr = g.new_label
-      last = g.new_label
-
+      g.push_modifiers
       exc_start.set!
       exc_start.set!
       g.push 12
       g.goto fin
 
       exc_handle.set!
-      body = g.new_label
 
-      g.push_exception
       g.push_const :String
+      g.push_exception
       g.send :===, 1
       g.git body
-
-      next_cond = g.new_label
 
       g.goto next_cond
       body.set!
@@ -213,8 +206,8 @@ describe Compiler do
 
       next_cond.set!
       body2 = g.new_label
-      g.push_exception
       g.push_const :Blah
+      g.push_exception
       g.send :===, 1
       g.git body2
 
@@ -245,24 +238,23 @@ describe Compiler do
         ]
 
     gen x do |g|
-      g.push_modifiers
-      exc_start = g.new_label
+      exc_start  = g.new_label
       exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      body       = g.new_label
 
-      fin = g.new_label
-      rr = g.new_label
-      last = g.new_label
-
+      g.push_modifiers
       exc_start.set!
       exc_start.set!
       g.push 12
       g.goto fin
 
       exc_handle.set!
-      g.push_exception
       g.push_const :String
+      g.push_exception
       g.send :===, 1
-      body = g.new_label
 
       g.git body
       g.goto rr
@@ -293,26 +285,26 @@ describe Compiler do
         ]
 
     gen x do |g|
-      g.push_modifiers
-      exc_start = g.new_label
+      exc_start  = g.new_label
       exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      body       = g.new_label
 
-      fin = g.new_label
-      rr = g.new_label
-      last = g.new_label
-
+      g.push_modifiers
       exc_start.set!
       exc_start.set!
       g.push 12
       g.goto fin
 
       exc_handle.set!
-      g.push_exception
       g.push :self
       g.send :blah, 0, true
       g.cast_array
+      g.push_exception
       g.send :__rescue_match__, 1
-      body = g.new_label
+
       g.git body
       g.goto rr
       body.set!
@@ -341,14 +333,14 @@ describe Compiler do
         ]
 
     gen x do |g|
-      g.push_modifiers
-      exc_start = g.new_label
+      exc_start  = g.new_label
       exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      body       = g.new_label
 
-      fin = g.new_label
-      rr = g.new_label
-      last = g.new_label
-
+      g.push_modifiers
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -356,17 +348,16 @@ describe Compiler do
 
       exc_handle.set!
 
-      body = g.new_label
-
-      g.push_exception
       g.push_const :String
+      g.push_exception
       g.send :===, 1
       g.git body
 
-      g.push_exception
       g.push :self
       g.send :blah, 0, true
       g.cast_array
+      g.push_exception
+
       g.send :__rescue_match__, 1
       g.git body
       g.goto rr
@@ -390,30 +381,28 @@ describe Compiler do
 
   it "clears the exception when there is a return in a rescue" do
     x = [:rescue, [:fixnum, 12],
-          [:resbody, [:array, [:const, :String]],
-             [:return, [:nil]], nil
-          ]
-        ]
+         [:resbody,
+          [:array, [:const, :String]],
+          [:return, [:nil]], nil]]
 
     gen x do |g|
-      g.push_modifiers
-      exc_start = g.new_label
+      exc_start  = g.new_label
       exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      body       = g.new_label
 
-      fin = g.new_label
-      rr = g.new_label
-      last = g.new_label
-
+      g.push_modifiers
       exc_start.set!
       exc_start.set!
       g.push 12
       g.goto fin
 
       exc_handle.set!
-      g.push_exception
       g.push_const :String
+      g.push_exception
       g.send :===, 1
-      body = g.new_label
 
       g.git body
       g.goto rr
@@ -441,19 +430,22 @@ describe Compiler do
 
     gen x do |g|
       ok = g.new_label
+
       g.exceptions do |ex|
         g.push 12
         g.goto ok
 
         ex.handle!
-        g.push_exception
+
         g.push 13
         g.pop
 
+        g.push_exception
         g.raise_exc
       end
 
       ok.set!
+
       g.push 13
       g.pop
     end
