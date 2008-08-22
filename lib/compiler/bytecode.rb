@@ -72,7 +72,7 @@ class Node
       [0, 0, nil]
     end
 
-    def attach_and_call(g, name)
+    def attach_and_call(g, name, scoped=false)
       # If the body is empty, then don't bother with it.
       return if @body.empty?
 
@@ -80,6 +80,11 @@ class Node
       meth = desc.generator
 
       prelude(g, meth)
+
+      if scoped
+        meth.push_self
+        meth.add_scope
+      end
 
       set(:scope, self) do
         show_errors(meth) do
@@ -1310,7 +1315,7 @@ class Node
         g.open_class @name
       end
 
-      attach_and_call g, :__class_init__
+      attach_and_call g, :__class_init__, true
     end
   end
 
@@ -1325,7 +1330,7 @@ class Node
         g.open_module @name
       end
 
-      attach_and_call g, :__module_init__
+      attach_and_call g, :__module_init__, true
     end
   end
 
