@@ -72,7 +72,7 @@ class TestGenerator
   opcodes = InstructionSet::OpCodes.map { |desc| desc.opcode }
   stupids = [:add_literal, :gif, :git, :pop_modifiers, :push,
              :push_literal_at, :push_modifiers, :push_unique_literal, :send,
-             :send_super, :send_with_block, :send_with_register, :swap,]
+             :send_super, :send_with_block, :send_with_splat, :swap,]
 
   (opcodes + stupids - [:class]).each do |name|
     class_eval <<-CODE
@@ -130,13 +130,13 @@ class TestGenerator
   end
 
   def lvar_set slot
-    unshift_tuple
+    shift_tuple
     set_local slot
     pop
   end
 
   def lvar_at slot
-    unshift_tuple
+    shift_tuple
     set_local_depth 0, slot
     pop
   end

@@ -420,7 +420,7 @@ describe Compiler do
       body.set!
       g.clear_exception
       g.push :nil
-      g.sret
+      g.ret
       g.clear_exception
       g.goto last
 
@@ -487,7 +487,7 @@ describe Compiler do
       g.pop
 
       g.push 2
-      g.sret
+      g.ret
 
     end
   end
@@ -537,7 +537,7 @@ describe Compiler do
       g.pop
 
       g.push 2
-      g.sret
+      g.ret
 
     end
   end
@@ -586,7 +586,7 @@ describe Compiler do
           g.pop
 
           g.push 3
-          g.sret
+          g.ret
         end
 
       end
@@ -614,11 +614,11 @@ describe Compiler do
       g.pop
 
       g.push 3
-      g.sret
+      g.ret
       g.pop
 
       g.push 2
-      g.sret
+      g.ret
     end
   end
 =end

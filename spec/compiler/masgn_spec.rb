@@ -227,7 +227,7 @@ describe Compiler do
     gen x do |g|
       desc = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0,0
         d.pop
         d.pop
@@ -235,11 +235,11 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.push :self
       g.send :x, 0, true
       g.passed_block do
@@ -258,10 +258,10 @@ describe Compiler do
     gen(x) do |g|
       desc = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0,0
         d.pop
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0,1
 
         d.pop
@@ -270,11 +270,11 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.push :self
       g.send :x, 0, true
       g.passed_block do
@@ -286,7 +286,7 @@ describe Compiler do
   it "compiles '|*args|'" do
     x = [:iter,
          [:call, [:vcall, :x], :each],
-         [:masgn, [:lasgn, :args], nil]]
+         [:masgn, [:lasgn, :args]]]
 
     gen x do |g|
       desc = description do |d|
@@ -297,11 +297,11 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.push :self
       g.send :x, 0, true
       g.passed_block do
@@ -319,7 +319,7 @@ describe Compiler do
     gen x do |g|
       desc = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0,0
         d.pop
         d.cast_array
@@ -329,11 +329,11 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.push :self
       g.send :x, 0, true
       g.passed_block do

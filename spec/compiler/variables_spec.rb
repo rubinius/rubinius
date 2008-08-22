@@ -28,20 +28,23 @@ describe Compiler do
 
   end
 
-  it "compiles lvar for argument" do
-    x = [:defn, :meth, [:scope, [:block, [:args, [:b], [], nil, nil],
+  it "compiles lvar for argument" do # def meth(b); b; end
+    x = [:defn, :meth,
+         [:scope,
+          [:block,
+           [:args, [:b], [], nil, nil],
            [:lvar, :b, 0]], []]]
 
     gen x do |g|
       meth = description do |d|
-        d.check_argcount 1, 1
-        d.set_local_from_fp 0, 0
         d.push_local 0
-        d.sret
+        d.ret
       end
 
+      g.push :self
+      g.push_literal :meth
       g.push_literal meth
-      g.add_method :meth
+      g.send :__add_method__, 2
     end
   end
 
@@ -57,15 +60,15 @@ describe Compiler do
         d.new_label.set! # redo
         d.push_local 0
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push 12
       g.set_local 0
       g.pop
-      g.push_literal iter
-      g.create_block2
       g.push :self
+      g.push_literal iter
+      g.create_block
       g.passed_block(1) do
         g.send_with_block :go, 0, true
       end
@@ -87,25 +90,35 @@ describe Compiler do
         d.pop
         d.push_local_depth 0, 0
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
-      g.push_literal iter
-      g.create_block2
       g.push :self
+      g.push_literal iter
+      g.create_block
       g.passed_block do
         g.send_with_block :go, 0, true
       end
     end
   end
 
+#   go do
+#     name = 12
+#     go do
+#       name
+#     end
+#   end
+
   it "compiles block lvar into depth referenced lvar upward" do
-    ax = [:iter, [:fcall, :go], nil, [:block,
-            [:lasgn, :name, [:fixnum, 12]],
-            [:iter, [:fcall, :go], nil, [:block,
-              [:lvar, :name, 0]
-            ]]
-         ]]
+    ax = [:iter,
+          [:fcall, :go],
+          nil,
+          [:block,
+           [:lasgn, :name, [:fixnum, 12]],
+           [:iter,
+            [:fcall, :go],
+            nil,
+            [:block, [:lvar, :name, 0]]]]]
 
     gen ax do |g|
       iter = description do |d|
@@ -115,28 +128,29 @@ describe Compiler do
         d.push 12
         d.set_local_depth 0, 0
         d.pop
+
         i2 = description do |j|
           j.pop
           j.push_modifiers
           j.new_label.set! # redo
           j.push_local_depth 1, 0
           j.pop_modifiers
-          j.soft_return
+          j.ret
         end
 
-        d.push_literal i2
-        d.create_block2
         d.push :self
+        d.push_literal i2
+        d.create_block
         d.passed_block(0, true) do
           d.send_with_block :go, 0, true
         end
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
-      g.push_literal iter
-      g.create_block2
       g.push :self
+      g.push_literal iter
+      g.create_block
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -157,42 +171,21 @@ describe Compiler do
     end
   end
 
-  it "compiles '@blah' when blah is a slot" do
-    x = [:block,
-      [:fcall, :ivar_as_index, [:array, [:ihash, [:lit, :blah], [:fixnum, 12]]]],
-      [:ivar, :@blah]]
-
-    gen x do |g|
-      g.push_my_field 12
-    end
-  end
-
-  it "compiles '@blah = 1' when blah is a slot" do
-    x = [:block,
-      [:fcall, :ivar_as_index, [:array, [:ihash, [:lit, :blah], [:fixnum, 12]]]],
-      [:iasgn, :@blah, [:fixnum, 9]]]
-
-    gen x do |g|
-      g.push 9
-      g.store_my_field 12
-    end
-  end
-
   it "compiles '$var'" do
     gen [:gvar, :$var] do |g|
-      g.push_literal :$var
       g.push_cpath_top
       g.find_const :Globals
+      g.push_literal :$var
       g.send :[], 1
     end
   end
 
   it "compiles '$var = 1'" do
     gen [:gasgn, :$var, [:fixnum, 12]] do |g|
-      g.push 12
-      g.push_literal :$var
       g.push_cpath_top
       g.find_const :Globals
+      g.push_literal :$var
+      g.push 12
       g.send :[]=, 2
     end
   end
@@ -232,27 +225,27 @@ describe Compiler do
 
   it "compiles 'Blah = 1'" do
     gen [:cdecl, :Blah, [:lit, 1], nil] do |g|
-      g.push 1
+      g.push :self
       g.push_literal :Blah
-      g.push_context
+      g.push 1
       g.send :__const_set__, 2
     end
   end
 
   it "compiles 'Object::Blah = 1'" do
     gen [:cdecl, nil, [:lit, 1], [:colon2, [:const, :Object], :Blah]] do |g|
-      g.push 1
-      g.push_literal :Blah
       g.push_const :Object
+      g.push_literal :Blah
+      g.push 1
       g.send :__const_set__, 2
     end
   end
 
   it "compiles '::Blah = 1'" do
     gen [:cdecl, nil, [:lit, 1], [:colon3, :Blah]] do |g|
-      g.push 1
-      g.push_literal :Blah
       g.push_cpath_top
+      g.push_literal :Blah
+      g.push 1
       g.send :__const_set__, 2
     end
   end
