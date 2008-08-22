@@ -48,6 +48,7 @@ field_extract_headers = %w[
   vm/builtin/integer.hpp
   vm/builtin/executable.hpp
   vm/builtin/access_variable.hpp
+  vm/builtin/fixnum.hpp
   vm/builtin/array.hpp
   vm/builtin/bignum.hpp
   vm/builtin/block_environment.hpp
@@ -59,7 +60,6 @@ field_extract_headers = %w[
   vm/builtin/contexts.hpp
   vm/builtin/dir.hpp
   vm/builtin/exception.hpp
-  vm/builtin/fixnum.hpp
   vm/builtin/float.hpp
   vm/builtin/immediates.hpp
   vm/builtin/io.hpp

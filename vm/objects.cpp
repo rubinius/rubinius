@@ -264,7 +264,7 @@ namespace rubinius {
 
     Regexp::init(this);
 
-    GO(cmethod_vis).set(new_class("CompiledMethod::Visibility", G(object),
+    GO(cmethod_vis).set(new_class("Visibility", G(object),
         MethodVisibility::fields, G(cmethod)));
     G(cmethod_vis)->set_object_type(CMVisibilityType);
 
@@ -288,7 +288,9 @@ namespace rubinius {
     TypeInfo::init(state);
 
     // Give Object a TypeInfo entry
-    add_type_info(new TypeInfo(ObjectType));
+    TypeInfo* object_type_info = new TypeInfo(ObjectType);
+    object_type_info->type_name = std::string("Object");
+    add_type_info(object_type_info);
 
     if(sizeof(int) == sizeof(long)) {
       rbx->set_const(state, "L64", Qfalse);

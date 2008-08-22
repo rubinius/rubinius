@@ -14,7 +14,6 @@ namespace rubinius {
     return total->to_native();
   }
 
-
   Array* Array::create(STATE, size_t idx) {
     Array* ary;
     ary = (Array*)state->om->new_object(G(array), Array::fields);
@@ -39,6 +38,14 @@ namespace rubinius {
     SET(this, tuple, Tuple::create(state, size));
     SET(this, start, Fixnum::from(0));
     SET(this, total, Fixnum::from(0));
+  }
+
+  OBJECT Array::aref(STATE, Fixnum* idx) {
+    return this->get(state, idx->to_native());
+  }
+
+  OBJECT Array::aset(STATE, Fixnum* idx, OBJECT val) {
+    return this->set(state, idx->to_native(), val);
   }
 
   OBJECT Array::get(STATE, size_t idx) {
