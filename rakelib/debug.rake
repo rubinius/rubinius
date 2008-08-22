@@ -43,22 +43,41 @@ namespace :debug do
     open 'rubinius_tasks.dot', 'w' do |io| io << invert_graph end
   end
 
+  def get_task name
+    Rake::Task.tasks.find { |t| t.name == name }
+  end
+
   desc "Display prerequisites for a task"
   task :prereqs, :task do |_, args|
     raise "supply task argument" unless args[:task]
 
-    task = Rake::Task.tasks.find { |t| t.name == args[:task] }
+    task = get_task args[:task]
 
     raise "No such task #{args[:task].inspect}" unless task
 
     puts task.prerequisites.join("\n")
   end
 
+  desc "Display prerequisites for a task"
+  task :all_prereqs, :task do |_, args|
+    raise "supply task argument" unless args[:task]
+
+    task = get_task args[:task]
+
+    raise "No such task #{args[:task].inspect}" unless task
+
+    all = task.prerequisites
+    all += all.map { |n| get_task(n).prerequisites }
+    all = all.flatten.uniq
+
+    puts all.join("\n")
+  end
+
   desc "Display tasks that depend on a task"
   task :dependees, :task do |_, args|
     raise "supply task argument" unless args[:task]
 
-    task = Rake::Task.tasks.find { |t| t.name == args[:task] }
+    task = get_task args[:task]
 
     raise "No such task #{args[:task].inspect}" unless task
 
