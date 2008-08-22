@@ -454,7 +454,7 @@ stack_cleanup:
 
     *created = false;
 
-    OBJECT obj = const_get(under, name, &found);
+    OBJECT obj = under->get_const(state, name, &found);
     if(found) return check_superclass(state, as<Class>(obj), super);
 
     *created = true;
