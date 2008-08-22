@@ -79,6 +79,22 @@ namespace rubinius {
     }
   }
 
+  Tuple* Tuple::shifted(STATE, FIXNUM num) {
+    native_int cnt = num->to_native();
+
+    if(cnt == 0) {
+      return this;
+    } else {
+      Tuple* tuple = Tuple::create(state, this->field_count + cnt);
+
+      for(size_t i = 0; i < this->field_count; i++) {
+        tuple->put(state, i + cnt, this->at(i));
+      }
+
+      return tuple;
+    }
+  }
+
   Tuple* Tuple::copy_from(STATE, Tuple* other, FIXNUM start, FIXNUM dest) {
     native_int src = start->to_native();
     native_int dst = dest->to_native();

@@ -32,6 +32,9 @@ namespace rubinius {
     // Ruby.primitive :tuple_copy_from
     Tuple* copy_from(STATE, Tuple* other, FIXNUM start, FIXNUM dest);
 
+    // Ruby.primitive :tuple_shifted
+    Tuple* shifted(STATE, FIXNUM num);
+
     void replace_with(STATE, Tuple* other, int start, int end);
 
     class Info : public TypeInfo {
