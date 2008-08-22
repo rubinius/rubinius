@@ -172,13 +172,13 @@ describe Compiler do
         d.pop_modifiers
         d.ret
       end
-      g.push_literal iter
-      g.create_block
-      g.push 2
-      g.push 1
+
       g.push_cpath_top
       g.find_const :Range
+      g.push 1
+      g.push 2
       g.send :new, 2
+      g.create_block iter
       g.passed_block do
         g.send_with_block :each, 0, false
       end
@@ -209,10 +209,10 @@ describe Compiler do
         d.pop_modifiers
         d.ret
       end
-      g.push_literal iter
-      g.create_block
+
       g.push :self
       g.send :x, 0, true
+      g.create_block iter
       g.passed_block do
         g.send_with_block :each, 0, false
       end
@@ -236,13 +236,13 @@ describe Compiler do
         d.pop_modifiers
         d.ret
       end
-      g.push_literal iter
-      g.create_block
-      g.push 2
-      g.push 1
+
       g.push_cpath_top
       g.find_const :Range
+      g.push 1
+      g.push 2
       g.send :new, 2
+      g.create_block iter
       g.passed_block(1) do
         g.send_with_block :each, 0, false
       end
@@ -265,13 +265,13 @@ describe Compiler do
         d.pop_modifiers
         d.ret
       end
-      g.push_literal iter
-      g.create_block
-      g.push 2
-      g.push 1
+
       g.push_cpath_top
       g.find_const :Range
+      g.push 1
+      g.push 2
       g.send :new, 2
+      g.create_block iter
       g.passed_block do
         g.send_with_block :each, 0, false
       end
@@ -301,10 +301,10 @@ describe Compiler do
         d.pop_modifiers
         d.ret
       end
-      g.push_literal iter
-      g.create_block
+
       g.push :self
       g.send :x, 0, true
+      g.create_block iter
       g.passed_block(2) do
         g.send_with_block :each, 0, false
       end
@@ -334,10 +334,10 @@ describe Compiler do
         d.pop_modifiers
         d.ret
       end
-      g.push_literal iter
-      g.create_block
+
       g.push :self
       g.send :x, 0, true
+      g.create_block iter
       g.passed_block(2) do
         g.send_with_block :each, 0, false
       end
@@ -427,6 +427,7 @@ describe Compiler do
 
         d.push :nil
         d.push_local 0
+        d.swap
         d.send :break_value=, 1
         d.pop
         d.push_local 0
@@ -436,9 +437,8 @@ describe Compiler do
         d.ret
       end
 
-      g.push_literal iter
-      g.create_block
       g.push :self
+      g.create_block iter
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -496,9 +496,8 @@ describe Compiler do
         d.ret
       end
 
-      g.push_literal iter
-      g.create_block
       g.push :self
+      g.create_block iter
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -507,9 +506,9 @@ describe Compiler do
 
   it "compiles an invalid redo" do
     gen [:redo] do |g|
-      g.push_literal "redo used in invalid context"
-      g.push_const :LocalJumpError
       g.push :self
+      g.push_const :LocalJumpError
+      g.push_literal "redo used in invalid context"
       g.send :raise, 2, true
     end
   end
@@ -524,6 +523,7 @@ describe Compiler do
       g.dup
 
       g.push_const :Fixnum
+      g.swap
       g.send :===, 1
 
       g.gif nxt
@@ -554,11 +554,13 @@ describe Compiler do
 
       g.dup
       g.push_const :Fixnum
+      g.swap
       g.send :===, 1
       g.git body
 
       g.dup
       g.push_const :String
+      g.swap
       g.send :===, 1
       g.git body
       g.goto nxt
@@ -593,6 +595,7 @@ describe Compiler do
 
       g.dup
       g.push_const :Fixnum
+      g.swap
       g.send :===, 1
 
       g.gif nxt1
@@ -604,6 +607,7 @@ describe Compiler do
       nxt1.set!
       g.dup
       g.push_const :String
+      g.swap
       g.send :===, 1
 
       g.gif nxt2
@@ -634,6 +638,7 @@ describe Compiler do
       g.dup
 
       g.push_const :Fixnum
+      g.swap
       g.send :===, 1
 
       g.gif nxt
@@ -661,7 +666,7 @@ describe Compiler do
         ]
 
     gen x do |g|
-      fin =   g.new_label
+      fin   = g.new_label
       cond2 = g.new_label
       cond3 = g.new_label
       cond4 = g.new_label
@@ -682,8 +687,8 @@ describe Compiler do
 
       cond3.set!
 
-      g.push 2
       g.push 1
+      g.push 2
       g.meta_send_op_equal
       g.gif cond4
       g.push_literal "bar"
@@ -732,8 +737,8 @@ describe Compiler do
       cond3.set!
 
       body = g.new_label
-      g.push 2
       g.push 1
+      g.push 2
       g.meta_send_op_equal
       g.git body
       g.push 13
@@ -771,6 +776,7 @@ describe Compiler do
       g.push :self
       g.send :things, 0, true
       g.cast_array
+      g.swap
       g.send :__matches_when__, 1
       g.git body
 
@@ -803,6 +809,7 @@ describe Compiler do
 
       g.dup
       g.push_const :String
+      g.swap
       g.send :===, 1
       g.git body
 
@@ -810,6 +817,7 @@ describe Compiler do
       g.push :self
       g.send :things, 0, true
       g.cast_array
+      g.swap
       g.send :__matches_when__, 1
       g.git body
 
@@ -843,31 +851,35 @@ describe Compiler do
 
     gen x do |g|
       body = g.new_label
-      nxt =  g.new_label
-      fin =  g.new_label
+      nxt  = g.new_label
+      fin  = g.new_label
 
       g.push :true
 
       g.dup
       g.push_const :String
+      g.swap
       g.send :===, 1
       g.git body
 
       g.dup
       g.push_literal "foo"
       g.string_dup
+      g.swap
       g.send :===, 1
       g.git body
 
       g.dup
       g.push_literal "bar"
       g.string_dup
+      g.swap
       g.send :===, 1
       g.git body
 
       g.dup
       g.push_literal "baz"
       g.string_dup
+      g.swap
       g.send :===, 1
       g.git body
 
@@ -907,14 +919,14 @@ describe Compiler do
         ]
 
     gen x do |g|
-      g.push_modifiers
-
-      exc_start = g.new_label
+      exc_start  = g.new_label
       exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      body       = g.new_label
 
-      fin = g.new_label
-      rr = g.new_label
-      last = g.new_label
+      g.push_modifiers
 
       exc_start.set!
       exc_start.set!
@@ -922,10 +934,9 @@ describe Compiler do
       g.goto fin
 
       exc_handle.set!
-      g.push_exception
       g.push_const :String
+      g.push_exception
       g.send :===, 1
-      body = g.new_label
 
       g.git body
       g.goto rr
@@ -958,6 +969,7 @@ describe Compiler do
         d.new_label.set! # redo
         d.push 12
         d.push_local 0
+        d.swap
         d.send :return_value=, 1
         d.pop
         d.push_local 0
@@ -966,9 +978,8 @@ describe Compiler do
         d.ret
       end
 
-      g.push_literal iter
-      g.create_block
       g.push :self
+      g.create_block iter
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -980,13 +991,14 @@ describe Compiler do
            [:array, [:fixnum, 1], [:fixnum, 2]],
            [:vcall, :c]]]
     gen x do |g|
+      g.push 1
+      g.push 2
+      g.make_array 2
+
       g.push :self
       g.send :c, 0, true
       g.cast_array
 
-      g.push 1
-      g.push 2
-      g.make_array 2
       g.send :+, 1
       g.ret
     end
