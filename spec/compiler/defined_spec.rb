@@ -4,13 +4,16 @@ describe Compiler do
   it "compiles defined? instance_exec" do
     gen [:defined, [:vcall, :instance_exec]] do |g|
       responded = g.new_label
-      done = g.new_label
-      g.push :true
-      g.push_literal :instance_exec
+      done      = g.new_label
+
       g.push :self
+      g.push_literal :instance_exec
+      g.push :true
       g.send :__respond_to_eh__, 2
+
       g.git responded
-      g.push_nil
+
+      g.push :nil
       g.goto done
       responded.set!
       g.push_literal "method"
@@ -20,13 +23,16 @@ describe Compiler do
   it "compiles defined? instance_exec()" do
     gen [:defined, [:fcall, :instance_exec]] do |g|
       responded = g.new_label
-      done = g.new_label
-      g.push :true
-      g.push_literal :instance_exec
+      done      = g.new_label
+
       g.push :self
+      g.push_literal :instance_exec
+      g.push :true
       g.send :__respond_to_eh__, 2
+
       g.git responded
-      g.push_nil
+
+      g.push :nil
       g.goto done
       responded.set!
       g.push_literal "method"
