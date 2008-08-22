@@ -18,26 +18,21 @@ describe Compiler do
 
   it "compiles 'blah(1,2)'" do
     gen [:fcall, :blah, [:array, [:fixnum, 1], [:fixnum, 2]]] do |g|
-      g.push 2
-      g.push 1
       g.push :self
+      g.push 1
+      g.push 2
       g.send :blah, 2, true
     end
   end
 
   it "compiles 'blah(*a)'" do
     gen [:fcall, :blah, [:splat, [:vcall, :a]]] do |g|
-#       g.push :self
-#       g.send :a, 0, true
-#       g.cast_array_for_args 0
-#       g.push_array
-#       g.get_args
-#       g.push :nil
-#       g.swap
-#       g.push :self
-#       g.swap
-#       g.set_args
-#       g.send_with_register :blah, true
+      g.push :self
+      g.push :self
+      g.send :a, 0, true
+      g.cast_array
+      g.push :nil # TODO: what is the nil for?
+      g.send_with_splat :blah, 0, true, false
     end
   end
 
@@ -58,8 +53,8 @@ describe Compiler do
     x = [:call, [:self], :blah, [:array, [:fixnum, 1]]]
 
     gen x do |g|
-      g.push 1
       g.push :self
+      g.push 1
       g.send :blah, 1, false
     end
   end
@@ -68,18 +63,17 @@ describe Compiler do
     x = [:call, [:fixnum, 1], :go, [:array, [:fixnum, 2]]]
 
     gen x do |g|
-      g.push 2
       g.push 1
+      g.push 2
       g.send :go, 1, false
     end
   end
 
   it "compiles '10.times(2) { 12 }'" do
     x = [:iter,
-          [:call, [:lit, 10], :times, [:array, [:fixnum, 2]]],
-          nil,
-          [:lit, 12]
-        ]
+         [:call, [:lit, 10], :times, [:array, [:fixnum, 2]]],
+         nil,
+         [:lit, 12]]
 
     gen x do |g|
       desc = description do |d|
@@ -91,10 +85,9 @@ describe Compiler do
         d.ret
       end
 
-      g.push 2
-      g.push_literal desc
-      g.create_block
       g.push 10
+      g.push 2
+      g.create_block desc
       g.passed_block do
         g.send_with_block :times, 1, false
       end
@@ -103,36 +96,32 @@ describe Compiler do
 
   it "compiles 'a.b(*c) { 12 }'" do
     x = [:iter,
-          [:call, [:vcall, :a], :b, [:splat, [:vcall, :c]]],
-          nil,
-          [:lit, 12]
-        ]
+         [:call, [:vcall, :a], :b, [:splat, [:vcall, :c]]],
+         nil,
+         [:lit, 12]]
 
     gen x do |g|
-#        desc = description do |d|
-#          d.pop
-#          d.push_modifiers
-#          d.new_label.set! # redo
-#          d.push 12
-#          d.pop_modifiers
-#          d.ret
-#        end
-#        g.push :self
-#        g.send :c, 0, true
-#        g.cast_array_for_args 0
-#        g.push_array
-#        g.get_args
-#        g.push_literal desc
-#        g.create_block
-#        g.swap
-#        g.push :self
-#        g.send :a, 0, true
+      desc = description do |d|
+        d.pop
+        d.push_modifiers
+        d.new_label.set! # redo
+        d.push 12
+        d.pop_modifiers
+        d.ret
+      end
 
-#        g.passed_block do
-#          g.swap
-#          g.set_args
-#          g.send_with_register :b, false
-#        end
+      g.push :self
+      g.send :a, 0, true
+
+      g.push :self
+      g.send :c, 0, true
+      g.cast_array
+
+      g.create_block desc
+
+      g.passed_block do
+        g.send_with_splat :b, 0, false, false
+      end
     end
   end
 
@@ -140,13 +129,11 @@ describe Compiler do
     x = [:attrasgn, [:vcall, :h], :[]=, [:array, [:lit, :blah], [:fixnum, 8]]]
 
     gen x do |g|
-      g.push 8
-      g.dup
-      g.push_unique_literal :blah
       g.push :self
       g.send :h, 0, true
+      g.push_unique_literal :blah
+      g.push 8
       g.send :[]=, 2, false
-      g.pop
     end
   end
 
@@ -154,12 +141,10 @@ describe Compiler do
     x = [:attrasgn, [:vcall, :a], :b, [:array, [:fixnum, 8]]]
 
     gen x do |g|
-      g.push 8
-      g.dup
       g.push :self
       g.send :a, 0, true
+      g.push 8
       g.send :b=, 1, false
-      g.pop
     end
   end
 
@@ -172,14 +157,12 @@ describe Compiler do
 
     gen x do |g|
       g.push :self
-      g.send :other_string, 0, true
-      g.dup
-      g.push 0
       g.push :self
       g.send :index, 0, true
+      g.push 0
       g.push :self
+      g.send :other_string, 0, true
       g.send :[]=, 3, false
-      g.pop
     end
   end
 
@@ -188,22 +171,15 @@ describe Compiler do
     x = [:fcall, :h, [:argscat, [:array, [:fixnum, 1], [:fixnum, 2]],
             [:vcall, :a]]]
     gen x do |g|
-#       g.push :self
-#       g.send :a, 0, true
-#       g.cast_array_for_args 2
-#       g.push_array
-#       g.get_args
-#       g.push 2
-#       g.swap
-#       g.push 1
-#       g.swap
+      g.push :self
+      g.push 1
+      g.push 2
+      g.push :self
+      g.send :a, 0, true
+      g.cast_array
 
-#       g.push :nil
-#       g.swap
-#       g.push :self
-#       g.swap
-#       g.set_args
-#       g.send_with_register :h, true
+      g.push :nil
+      g.send_with_splat :h, 2, true, false
     end
   end
 
@@ -212,29 +188,24 @@ describe Compiler do
         [:argspush, [:splat, [:vcall, :x]], [:fixnum, 3]]]
 
     gen x do |g|
-#       g.push 3
-#       g.dup
-#       g.push :self
-#       g.send :x, 0, true
-#       g.cast_array_for_args 1
-#       g.push_array
-#       g.get_args
-#       g.push :nil
-#       g.swap
-#       g.push :self
-#       g.send :f, 0, true
-#       g.swap
-#       g.set_args
-#       g.send_with_register :[]=, false
-#       g.pop
+      g.push :self
+      g.send :f, 0, true
+      g.push :self
+      g.send :x, 0, true
+      g.cast_array
+
+      g.push 3
+      g.swap
+      g.push :nil
+      g.send_with_splat :[]=, 1, false, true
     end
   end
 
   it "compiles 'undef :blah'" do
     gen [:undef, :blah] do |g|
-      g.push_literal :blah
       g.push :self
       g.send :metaclass, 0
+      g.push_literal :blah
       g.send :undef_method, 1
     end
   end
@@ -244,9 +215,10 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
+        d.push_self # FIX
+        d.add_scope
         d.push :self
         d.push_literal :blah
-        d.push :self
         d.send :undef_method, 1
         d.ret
       end
@@ -275,8 +247,8 @@ describe Compiler do
     x = [:yield, [:fixnum, 1], false]
 
     gen x do |g|
-      g.push 1
       g.push_block
+      g.push 1
       g.meta_send_call 1
     end
   end
@@ -285,9 +257,9 @@ describe Compiler do
     x = [:yield, [:array, [:fixnum, 1], [:fixnum, 2]], true]
 
     gen x do |g|
-      g.push 2
-      g.push 1
       g.push_block
+      g.push 1
+      g.push 2
       g.meta_send_call 2
     end
   end
@@ -296,10 +268,10 @@ describe Compiler do
     x = [:yield, [:array, [:fixnum, 1], [:fixnum, 2]], false]
 
     gen x do |g|
+      g.push_block
       g.push 1
       g.push 2
       g.make_array 2
-      g.push_block
       g.meta_send_call 1
     end
   end
@@ -308,16 +280,12 @@ describe Compiler do
     x = [:yield, [:splat, [:vcall, :a]], false]
 
     gen x do |g|
-#       g.push :self
-#       g.send :a, 0, true
-#       g.cast_array_for_args 0
-#       g.push_array
-#       g.get_args
-
-#       g.set_args
-#       g.push :nil
-#       g.push_block
-#       g.send_with_register :call, false
+      g.push_block
+      g.push :self
+      g.send :a, 0, true
+      g.cast_array
+      g.push :nil
+      g.send_with_splat :call, 0, false, false
     end
   end
 
@@ -327,16 +295,17 @@ describe Compiler do
           [:super, [:array, [:fixnum, 1]]]], []]]
 
     gen x do |g|
-#       desc = description do |d|
-#         d.check_argcount 0, 0
-#         d.push 1
-#         d.push_block
-#         d.send_super :a, 1
-#         d.ret
-#       end
+      desc = description do |d|
+        d.push 1
+        d.push :nil
+        d.send_super :a, 1
+        d.ret
+      end
 
-#       g.push_literal desc
-#       g.add_method :a
+      g.push :self
+      g.push_literal :a
+      g.push_literal desc
+      g.send :__add_method__, 2
     end
   end
 
@@ -345,22 +314,19 @@ describe Compiler do
           [:super, [:splat, [:vcall, :blah]]]], []]]
 
     gen x do |g|
-#       desc = description do |d|
-#         d.check_argcount 0, 0
-#         d.push :self
-#         d.send :blah, 0, true
-#         d.cast_array_for_args 0
-#         d.push_array
-#         d.get_args
-#         d.push_block
-#         d.swap
-#         d.set_args
-#         d.send_super :a
-#         d.ret
-#       end
+      desc = description do |d|
+        d.push :self
+        d.send :blah, 0, true
+        d.cast_array
+        d.push :nil
+        d.send_super :a, 0, true
+        d.ret
+      end
 
-#       g.push_literal desc
-#       g.add_method :a
+      g.push :self
+      g.push_literal :a
+      g.push_literal desc
+      g.send :__add_method__, 2
     end
   end
 
@@ -370,19 +336,18 @@ describe Compiler do
           [:zsuper]], []]]
 
     gen x do |g|
-#       desc = description do |d|
-#         d.check_argcount 2, 2
-#         d.set_local_from_fp 0, 0
-#         d.set_local_from_fp 1, 1
-#         d.push_local 1
-#         d.push_local 0
-#         d.push_block
-#         d.send_super :a, 2
-#         d.ret
-#       end
+      desc = description do |d|
+        d.push_local 0
+        d.push_local 1
+        d.push :nil
+        d.send_super :a, 2
+        d.ret
+      end
 
-#       g.push_literal desc
-#       g.add_method :a
+      g.push :self
+      g.push_literal :a
+      g.push_literal desc
+      g.send :__add_method__, 2
     end
   end
 
@@ -391,64 +356,58 @@ describe Compiler do
           [:zsuper]], []]]
 
     gen x do |g|
-#       desc = description do |d|
-#         d.check_argcount 1, -1
-#         d.set_local_from_fp 0, 0
-#         d.make_rest_fp 1
-#         d.set_local 1
-#         d.pop
-#         d.push_local 1
-#         d.cast_array_for_args 1
-#         d.push_array
-#         d.get_args
-#         d.push_local 0
-#         d.swap
-#         d.push_block
-#         d.swap
-#         d.set_args
-#         d.send_super :a
-#         d.ret
-#       end
+      desc = description do |d|
+        d.push_local 0
+        d.push_local 1
+        d.cast_array
+        d.push :nil
+        d.send_super :a, 1, true
+        d.ret
+      end
 
-#       g.push_literal desc
-#       g.add_method :a
+      g.push :self
+      g.push_literal :a
+      g.push_literal desc
+      g.send :__add_method__, 2
     end
   end
 
   it "compiles 'foo(&blah)'" do
     gen [:block_pass, [:vcall, :blah], [:fcall, :foo]] do |g|
+      lbl = g.new_label
+
+      g.push :self
+      g.push_cpath_top
+      g.find_const :Proc
+
       g.push :self
       g.send :blah, 0, true
       g.dup
       g.is_nil
-      lbl = g.new_label
       g.git lbl
-      g.push_cpath_top
-      g.find_const :Proc
       g.send :__from_block__, 1
       lbl.set!
-      g.push :self
       g.send_with_block :foo, 0, true
     end
   end
 
   it "compiles 'END { 666 }'" do
     gen [:iter, [:postexe], nil, [:lit, 666]] do |g|
-      desc = description do |d|
+      desc = description :__block__ do |d|
+        redo_label = d.new_label
+
         d.pop
         d.push_modifiers
-        redo_label = d.new_label
         redo_label.set!
         d.push 666
         d.pop_modifiers
         d.ret
       end
-      desc.name = :__block__
+
       desc.required = -1
 
-      g.push_literal desc
-      g.create_block
       g.push :self
+      g.create_block desc
       g.passed_block do
         g.send_with_block :at_exit, 0, true
       end
