@@ -11,8 +11,10 @@ describe Compiler do
         d.ret
       end
 
+      g.push :self
+      g.push_literal :a
       g.push_literal meth
-      g.add_method :a
+      g.send :__add_method__, 2
     end
   end
 
@@ -29,14 +31,16 @@ describe Compiler do
 
     gen x do |g|
       meth = description do |d|
-        d.push_local 1
         d.push_local 0
+        d.push_local 1
         d.meta_send_op_plus
         d.ret
       end
 
+      g.push :self
+      g.push_literal :add
       g.push_literal meth
-      g.add_method :add
+      g.send :__add_method__, 2
     end
   end
 
@@ -55,16 +59,13 @@ describe Compiler do
     gen x do |g|
       meth = description do |d|
         up = d.new_label
-        dn = d.new_label
         d.passed_arg 1
         d.git up
         d.push 2
-        d.set_local 0
+        d.set_local 1
         d.pop
-        d.goto dn
 
         up.set!
-        dn.set!
 
         d.push_local 0
         d.push_local 1
@@ -72,8 +73,10 @@ describe Compiler do
         d.ret
       end
 
+      g.push :self
+      g.push_literal :add
       g.push_literal meth
-      g.add_method :add
+      g.send :__add_method__, 2
     end
   end
 
@@ -95,7 +98,6 @@ describe Compiler do
 
     gen x do |g|
       meth = description do |d|
-
         iter = description do |i|
           i.cast_for_single_block_arg
           i.set_local_depth 0, 0
@@ -103,24 +105,25 @@ describe Compiler do
           i.push_modifiers
           i.new_label.set! # redo
 
-          i.push_local_depth 0, 0
           i.push_local 0
+          i.push_local_depth 0, 0
           i.meta_send_op_plus
           i.pop_modifiers
           i.ret
         end
 
-        d.push_literal iter
-        d.create_block
         d.make_array 0
+        d.create_block iter
         d.passed_block(1) do
           d.send_with_block :each, 0, false
         end
         d.ret
       end
 
+      g.push :self
+      g.push_literal :add
       g.push_literal meth
-      g.add_method :add
+      g.send :__add_method__, 2
     end
   end
 
@@ -136,24 +139,22 @@ describe Compiler do
 
     gen x do |g|
       meth = description do |d|
-        d.set_local 0
-        d.pop
         d.push_local 0
         d.ret
       end
 
+      g.push :self
+      g.push_literal :a
       g.push_literal meth
-      g.add_method :a
+      g.send :__add_method__, 2
     end
   end
 
   it "compiles 'def a(&b); b; end'" do
     x = [:defn, :a,
-      [:scope,
-        [:block, [:args], [:block_arg, :b, 0], [:lvar, :b, 0]],
-        [:b]
-      ]
-    ]
+         [:scope,
+          [:block, [:args], [:block_arg, :b, 0], [:lvar, :b, 0]],
+          [:b]]]
 
     gen x do |g|
       meth = description do |d|
@@ -165,6 +166,7 @@ describe Compiler do
         d.git after
 
         d.push_const :Proc
+        d.swap
         d.send :__from_block__, 1
 
         after.set!
@@ -174,8 +176,10 @@ describe Compiler do
         d.ret
       end
 
+      g.push :self
+      g.push_literal :a
       g.push_literal meth
-      g.add_method :a
+      g.send :__add_method__, 2
     end
   end
 
@@ -189,11 +193,11 @@ describe Compiler do
         d.ret
       end
 
-      g.push_literal meth
-      g.push_literal :go
       g.push :self
       g.send :a, 0, true
       g.send :metaclass, 0
+      g.push_literal :go
+      g.push_literal meth
       g.send :attach_method, 2
     end
   end
@@ -207,6 +211,7 @@ describe Compiler do
             ]
           ]
         ]
+
     gen x do |g|
       lam = description do |l|
         meth = description do |m|
@@ -217,15 +222,18 @@ describe Compiler do
         l.pop
         l.push_modifiers
         l.new_label.set!
+        l.push :self
+        l.push_literal :a
         l.push_literal meth
-        l.add_method :a
+        l.send :__add_method__, 2
         l.pop_modifiers
         l.ret
       end
 
-      g.push_literal lam
-      g.create_block
       g.push :self
+
+      g.create_block lam
+
       g.passed_block do
         g.send_with_block :lambda, 0, true
       end
@@ -237,8 +245,6 @@ describe Compiler do
 
     gen x do |g|
       meth = description do |d|
-        d.push :self
-        d.push_self_or_class
         d.push 12
         d.ret
       end
@@ -263,8 +269,6 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push :self
-        d.push_self_or_class
         d.push 12
         d.ret
       end
@@ -285,8 +289,6 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push :self
-        d.push_self_or_class
         d.push 12
         d.ret
       end
@@ -308,8 +310,6 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push :self
-        d.push_self_or_class
         d.push 12
         d.ret
       end
@@ -331,8 +331,6 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push :self
-        d.push_self_or_class
         d.push 1
         d.set_local 0
         d.ret
@@ -355,8 +353,6 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push :self
-        d.push_self_or_class
         d.push 12
         d.ret
       end
@@ -376,8 +372,6 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push :self
-        d.push_self_or_class
         d.push 12
         d.ret
       end
