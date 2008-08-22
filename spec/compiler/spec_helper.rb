@@ -246,8 +246,9 @@ def gen_iter x
   end
 end
 
-def description
+def description name = nil
   desc = Compiler::MethodDescription.new TestGenerator, 0
+  desc.name = name if name
   yield desc.generator
   return desc
 end
