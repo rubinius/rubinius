@@ -180,10 +180,11 @@ class Compiler
     activate_default :current_method
     activate :safemath if Config['rbx-safe-math']
     activate :const_epxr if Config['rbx-kernel']
-    activate_default :inline if Config['rbx-inline-times']
     activate_default :fastsystem
     activate_default :fastgeneric
-    activate_default :auto_primitive
+    # AutoPrimitiveDetection is currently disabled
+    # TODO - Implement the opt_* primitives it requires and reactivate
+    # activate_default :auto_primitive
   end
 
   def activate_default(name)
