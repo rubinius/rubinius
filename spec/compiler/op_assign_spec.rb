@@ -47,16 +47,13 @@ describe Compiler do
       g.send :hsh, 0, true
       g.dup
       g.push_unique_literal :blah
-      g.swap
       g.send :[], 1
       g.dup
       g.git found
 
       g.pop
-      g.push 8
-      g.swap
       g.push_unique_literal :blah
-      g.swap
+      g.push 8
       g.send :[]=, 2
       g.goto fin
 
@@ -82,16 +79,13 @@ describe Compiler do
       g.send :hsh, 0, true
       g.dup
       g.push_unique_literal :blah
-      g.swap
       g.send :[], 1
       g.dup
       g.gif found
 
       g.pop
-      g.push 8
-      g.swap
       g.push_unique_literal :blah
-      g.swap
+      g.push 8
       g.send :[]=, 2
       g.goto fin
 
@@ -117,12 +111,9 @@ describe Compiler do
       g.send :hsh, 0, true
       g.dup
       g.push_unique_literal :blah
-      g.swap
       g.send :[], 1
       g.push 8
-      g.swap
       g.send :"^", 1
-      g.swap
       g.push_unique_literal :blah
       g.swap
       g.send :[]=, 2
@@ -138,19 +129,15 @@ describe Compiler do
       g.push :self
       g.send :ary, 0, true
       g.dup
-      g.push 1
-      g.swap
       g.push 0
-      g.swap
+      g.push 1
       g.send :[], 2
       g.push 4
       g.make_array 1
-      g.swap
       g.send :"+", 1
+      g.push 0
       g.swap
       g.push 1
-      g.swap
-      g.push 0
       g.swap
       g.send :[]=, 3
     end
@@ -172,7 +159,6 @@ describe Compiler do
 
       g.pop
       g.push 6
-      g.swap
       g.send :val=, 1
       g.goto fin
 
@@ -199,7 +185,6 @@ describe Compiler do
 
       g.pop
       g.push 7
-      g.swap
       g.send :val=, 1
       g.goto fin
 
@@ -219,9 +204,7 @@ describe Compiler do
       g.dup
       g.send :val, 0
       g.push 8
-      g.swap
       g.send :"^", 1
-      g.swap
       g.send :val=, 1
     end
   end
