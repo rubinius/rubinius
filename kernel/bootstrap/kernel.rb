@@ -27,7 +27,7 @@ module Kernel
 
   def eql?(other) # HACK dup of equal?
     Ruby.primitive :object_equal
-    raise PrimitiveFailure, "Object#equal? failed."
+    raise PrimitiveFailure, "Object#eql? failed."
   end
 
   def extend(*mods)
