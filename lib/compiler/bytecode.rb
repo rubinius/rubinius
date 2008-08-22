@@ -644,15 +644,15 @@ class Node
   # TESTED
   class BlockPass
     def bytecode(g)
+      g.push_cpath_top
+      g.find_const :Proc
+
       @block.bytecode(g)
       nil_block = g.new_label
       g.dup
       g.is_nil
       g.git nil_block
 
-      g.push_cpath_top
-      g.find_const :Proc
-      g.swap
       g.send :__from_block__, 1
 
       nil_block.set!
@@ -1333,8 +1333,139 @@ class Node
       attach_and_call g, :__module_init__, true
     end
   end
-
   class Defined
+    NODE_TYPES = {:self => "self", :nil => "nil", :true => "true", :false => "false", :gasgn => "assignment", :iasgn => "assignment", :cdecl => "assignment", :cvdecl => "assignment", :cvasgn => "assignment", :lvar => "local-variable", :str => "expression", :array => "expression", :hash => "expression", :yield => "yield", :ivar => "instance-variable", :gvar => "global-variable", :cvar => "class variable", :fcall => "method", :call => "method", :vcall => "method", :const => "constant", :colon2 => "constant", :colon3 => "constant", :lasgn => "assignment", :fixnum => "expression", :lit => "expression"}
+
+    def bytecode(g)
+      # Imported directly from compiler1 and reworked to use g.
+
+      expr = @expression.dup
+
+      # if something is defined, !something is too.
+      # if !something is undefined, then so is something.
+      expr.shift if expr[0] == :not
+
+      # grouped expression == evil
+      # TODO - Verify that this is still a sane way to detect such things
+      if expr.flatten.include?(:newline)
+        reject(g)
+        return
+      end
+
+      node = expr.shift
+
+      case node
+      when :call
+        receiver = expr.shift
+        msg = expr.shift # method name
+
+        # Make sure there are no args.
+        unless expr.empty?
+          reject(g)
+          return
+        end
+
+        # defined?(DoesNotExist.puts) should not raise NameError
+        if receiver.is?(ConstFind) then
+          no_const = g.new_label
+          done = g.new_label
+          g.push_context
+          g.push_literal receiver.name
+          g.send :const_defined?, 1
+          g.gif no_const
+
+          receiver.bytecode(g)
+          g.push_literal msg
+          g.push :true
+          g.send :__respond_to_eh__, 2
+          g.goto done
+
+          no_const.set!
+          g.push :nil
+          done.set!
+        else
+          receiver.bytecode(g)
+          g.push_literal msg
+          g.push :true
+          g.send :__respond_to_eh__, 2
+        end
+      when :vcall, :fcall
+        msg = expr.shift
+
+        # Make sure there are no args.
+        unless expr.empty?
+          reject(g)
+          return
+        end
+
+        g.push :self
+        g.push_literal msg
+        g.push :true
+        g.send :__respond_to_eh__, 2
+      when :cvar
+        cvar = expr.shift
+        g.push :self
+        g.push :true # class vars as symbols, not strings
+        g.send :class_variables, 1
+        g.push_literal cvar
+        g.send :include?, 1
+      when :gvar
+        g.push_const :Globals
+        g.push_literal expr.shift
+        g.send :key?, 1
+      when :ivar
+        ivar = expr.shift
+        g.push :self
+        g.push_literal ivar
+        g.send :__instance_variable_defined_eh__, 1
+      when :yield
+        g.push_block
+      when :const
+        g.push_context
+        g.push_literal expr.shift
+        g.send :const_defined?, 1
+      when :colon2
+        str = ""
+        until expr.empty?
+          # Convert the constant parse tree into a string like ::Object::SomeClass
+          str = const_to_string(expr, str)
+        end
+        g.push_context
+        g.push_literal str
+        g.send :const_path_defined?, 1
+      when :colon3
+        str = ""
+        until expr.empty?
+          # Convert the constant parse tree into a string like ::Object::SomeClass
+          str = const_to_string(expr, str)
+        end
+        g.push_const :Object
+        g.push_literal str
+        g.send :const_path_defined?, 1
+      else
+        if NODE_TYPES.key?(node)
+          g.push :true
+        else
+          reject(g)
+          return
+        end
+      end
+      push_return_value(g, node)
+    end
+
+    # Return the correct string based on the node type
+    def push_return_value(g, node)
+      defined = g.new_label
+      done = g.new_label
+      g.git defined
+      g.push :nil # defined? returns nil instead of false
+      g.goto done
+      defined.set!
+      lit = NODE_TYPES[node].dup
+      g.push_literal lit
+      done.set!
+    end
+
     # e.g. [[:const, :Object], :Blah]
     # e.g. [[:colon3, :Foo], :Bar]
     # e.g. [[:colon2, [:colon3, :Faz], :Boo], :Batch]
@@ -1364,101 +1495,6 @@ class Node
       end
 
       g.push :false
-    end
-
-    def bytecode(g)
-      # Imported directly from compiler1 and reworked to use g.
-
-      expr = @expression.dup
-
-      # if something is defined, !something is too.
-      # if !something is undefined, then so is something.
-      expr.shift if expr[0] == :not
-
-      # grouped expression == evil
-      # TODO - Verify that this is still a sane way to detect such things
-      if expr.flatten.include?(:newline)
-        reject(g)
-        return
-      end
-
-      node = expr.shift
-
-      static_nodes = [:self, :nil, :true, :false, :lit, :lasgn, :gasgn, :iasgn, :cdecl, :cvdecl, :cvasgn, :lvar, :str, :array, :hash]
-      if static_nodes.include?(node)
-        g.push :true
-        return
-      end
-
-      case node
-      when :call
-        receiver = expr.shift
-        msg = expr.shift # method name
-
-        # Make sure there are no args.
-        unless expr.empty?
-          reject(g)
-          return
-        end
-        receiver.bytecode(g)
-        g.push_literal msg
-        g.send :respond_to?, 1
-      when :vcall, :fcall
-        msg = expr.shift
-
-        # Make sure there are no args.
-        unless expr.empty?
-          reject(g)
-          return
-        end
-
-        g.push :self
-        g.push_literal msg
-        g.send :respond_to?, 1
-      when :cvar
-        cvar = expr.shift
-        # class vars as symbols, not strings
-        g.push :self
-        g.push :true
-        g.send :class_variables, 1
-        g.push_literal cvar
-        g.send :include?, 1
-      when :gvar
-        g.push_const :Globals
-        g.push_literal expr.shift
-        g.send :key?, 1
-      when :ivar
-        ivar = expr.shift
-        g.push_literal ivar
-        g.push :self
-        g.send :__instance_variable_defined_eh__, 1
-      when :yield
-        g.push_block
-      when :const
-        g.push_context
-        g.push_literal expr.shift
-        g.send :const_defined?, 1
-      when :colon2
-        str = ""
-        until expr.empty?
-          # Convert the constant parse tree into a string like ::Object::SomeClass
-          str = const_to_string(expr, str)
-        end
-        g.push_context
-        g.push_literal str
-        g.send :const_defined?, 1
-      when :colon3
-        str = ""
-        until expr.empty?
-          # Convert the constant parse tree into a string like ::Object::SomeClass
-          str = const_to_string(expr, str)
-        end
-        g.push_const :Object
-        g.push_literal str
-        g.send :const_defined?, 1
-      else
-        reject(g)
-      end
     end
   end
 
