@@ -1,6 +1,7 @@
 #ifndef RBX_FLOAT_HPP
 #define RBX_FLOAT_HPP
 
+#include "builtin/class.hpp"
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 
@@ -26,6 +27,7 @@ namespace rubinius {
 
     double val;
 
+    static void init(STATE);
     static Float* create(STATE, double val);
     static Float* coerce(STATE, OBJECT value);
     double to_double(STATE) { return val; }

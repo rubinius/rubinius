@@ -24,6 +24,7 @@ namespace rubinius {
     CompiledMethod* method; // slot
     VMMethod* vmm;
 
+    static void init(STATE);
     static BlockEnvironment* under_context(STATE, CompiledMethod* cm,
         MethodContext* parent, MethodContext* active, size_t index);
 

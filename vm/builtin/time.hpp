@@ -16,6 +16,8 @@ namespace rubinius {
     Array* tm; // slot
     OBJECT is_gmt; // slot
 
+    static void init(STATE);
+
     // Ruby.primitive :time_allocate
     static Time* create(STATE);
 

@@ -15,6 +15,11 @@
 
 namespace rubinius {
 
+  void String::init(STATE) {
+    GO(string).set(state->new_class("String", G(object), String::fields));
+    G(string)->set_object_type(StringType);
+  }
+
   size_t String::size(STATE) {
     return num_bytes->to_native();
   }

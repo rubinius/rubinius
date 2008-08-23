@@ -6,6 +6,7 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
@@ -209,6 +210,8 @@ namespace rubinius {
   void Bignum::Info::mark(OBJECT obj, ObjectMark& mark) { }
 
   void Bignum::init(STATE) {
+    GO(bignum).set(state->new_class("Bignum", G(integer)));
+    G(bignum)->set_object_type(BignumType);
     state->add_type_info(new Bignum::Info(Bignum::type));
   }
 

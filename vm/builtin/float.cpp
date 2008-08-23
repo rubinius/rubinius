@@ -9,6 +9,12 @@
 #include <cmath>
 
 namespace rubinius {
+
+  void Float::init(STATE) {
+    GO(floatpoint).set(state->new_class("Float", G(numeric)));
+    G(floatpoint)->set_object_type(FloatType);
+  }
+
   Float* Float::create(STATE, double val) {
     Float* flt = (Float*)state->new_struct(G(floatpoint), sizeof(Float));
     flt->val = val;

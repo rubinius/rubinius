@@ -31,6 +31,8 @@ namespace rubinius {
     SYMBOL file; // slot
     StaticScope* scope; // slot
 
+    static void init(STATE);
+
     static CompiledMethod* create(STATE);
     // Use a stack of 1 so that the return value of the executed method
     // has a place to go

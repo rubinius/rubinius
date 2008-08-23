@@ -185,4 +185,8 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cls->instance_type, Fixnum::from(TimeType));
     check_const(time_class, "Time");
   }
+
+  void test_integer_class() {
+    check_const(integer, "Integer");
+  }
 };

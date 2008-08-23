@@ -20,7 +20,6 @@ class TestString : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    TS_ASSERT(state->globals.string->has_ivars->false_p());
     str = String::create(state, "blah");
     TS_ASSERT_EQUALS(str->size(state), 4U);
   }

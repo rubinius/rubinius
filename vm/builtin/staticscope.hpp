@@ -16,6 +16,7 @@ namespace rubinius {
     Module* module; // slot
     StaticScope* parent; // slot
 
+    static void init(STATE);
     static StaticScope* create(STATE);
 
     class Info : public TypeInfo {

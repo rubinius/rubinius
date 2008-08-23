@@ -4,6 +4,7 @@
 #include "block_environment.hpp"
 #include "objectmemory.hpp"
 
+#include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
@@ -12,6 +13,13 @@
 #include "builtin/tuple.hpp"
 
 namespace rubinius {
+
+  void BlockEnvironment::init(STATE) {
+    GO(blokenv).set(state->new_class("BlockEnvironment", G(object), 
+          BlockEnvironment::fields));
+    G(blokenv)->set_object_type(BlockEnvType);
+  }
+
   void BlockEnvironment::call(STATE, Task* task, size_t args) {
     OBJECT val;
     if(args > 0) {

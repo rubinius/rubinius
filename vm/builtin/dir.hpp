@@ -15,6 +15,7 @@ namespace rubinius {
 
     MemoryPointer* data; // slot
 
+    static void init(STATE);
     static Dir* create(STATE);
     // Ruby.primitive :dir_open
     OBJECT open(STATE, String *path);

@@ -13,6 +13,7 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = ByteArrayType;
 
+    static void init(STATE);
     static ByteArray* create(STATE, size_t bytes);
 
     // Ruby.primitive :bytearray_allocate
