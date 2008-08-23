@@ -19,6 +19,10 @@ namespace rubinius {
     static void* find_symbol(STATE, OBJECT library, String* name);
 
     static size_t type_size(size_t type);
+
+    // Ruby.primitive :nativefunction_type_size
+    static FIXNUM type_size_prim(STATE, FIXNUM type);
+
     static NativeFunction* create(STATE, OBJECT name, int args);
 
     // Ruby.primitive :nfunc_add
