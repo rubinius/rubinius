@@ -16,25 +16,25 @@ namespace rubinius {
     static MemoryPointer* create(STATE, void* ptr);
 
     // Ruby.primitive :memorypointer_address
-    OBJECT get_address(STATE);
+    Integer* get_address(STATE);
 
     // Ruby.primitive :memorypointer_set_autorelease
     OBJECT set_autorelease(STATE, OBJECT val);
 
     // Ruby.primitive :memorypointer_add
-    MemoryPointer* add(STATE, FIXNUM ammount);
+    MemoryPointer* add(STATE, Integer* amount);
 
     // Ruby.primitive :memorypointer_write_int
-    OBJECT write_int(STATE, FIXNUM val);
+    Integer* write_int(STATE, Integer* val);
 
     // Ruby.primitive :memorypointer_read_int
-    OBJECT read_int(STATE);
+    Integer* read_int(STATE);
 
     // Ruby.primitive :memorypointer_write_long
-    OBJECT write_long(STATE, FIXNUM val);
+    Integer* write_long(STATE, Integer* val);
 
     // Ruby.primitive :memorypointer_read_long
-    OBJECT read_long(STATE);
+    Integer* read_long(STATE);
 
     // Ruby.primitive :memorypointer_write_float
     Float* write_float(STATE, Float* val);
@@ -46,13 +46,13 @@ namespace rubinius {
     MemoryPointer* read_pointer(STATE);
 
     // Ruby.primitive :memorypointer_read_string
-    OBJECT read_string(STATE, FIXNUM len);
+    String* read_string(STATE, FIXNUM len);
 
     // Ruby.primitive :memorypointer_read_string_to_null
-    OBJECT read_string_to_null(STATE);
+    String* read_string_to_null(STATE);
 
     // Ruby.primitive :memorypointer_write_string
-    OBJECT write_string(STATE, String* str, FIXNUM len);
+    MemoryPointer* write_string(STATE, String* str, FIXNUM len);
 
     OBJECT get_field(STATE, int offset, int type);
 

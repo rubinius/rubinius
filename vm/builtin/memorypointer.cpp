@@ -37,57 +37,53 @@ namespace rubinius {
     return obj;
   }
 
-  OBJECT MemoryPointer::get_address(STATE) {
+  Integer* MemoryPointer::get_address(STATE) {
     return Integer::from(state, (size_t)pointer);
   }
 
-  MemoryPointer* MemoryPointer::add(STATE, FIXNUM ammount) {
-    return MemoryPointer::create(state, (char*)pointer + ammount->to_native());
+  MemoryPointer* MemoryPointer::add(STATE, Integer* amount) {
+    return MemoryPointer::create(state, (char*)pointer + amount->to_native());
   }
 
   OBJECT MemoryPointer::set_autorelease(STATE, OBJECT val) {
-    if(val->true_p()) {
-      autorelease = true;
-    } else {
-      autorelease = false;
-    }
+    autorelease = val->true_p() ? true : false;
 
     return val;
   }
 
-  OBJECT MemoryPointer::read_string(STATE, FIXNUM len) {
+  String* MemoryPointer::read_string(STATE, FIXNUM len) {
     // HM. This is pretty dangerous. Should we figure out how to
     // protect this?
     return String::create(state, (char*)pointer, len->to_native());
   }
 
-  OBJECT MemoryPointer::read_string_to_null(STATE) {
+  String* MemoryPointer::read_string_to_null(STATE) {
     // Danger!
     // This operation might be too dangerous! You can read into any
     // memory using it!
     return String::create(state, (char*)pointer);
   }
 
-  OBJECT MemoryPointer::write_string(STATE, String* str, FIXNUM len) {
+  MemoryPointer* MemoryPointer::write_string(STATE, String* str, FIXNUM len) {
     memcpy(pointer, (void*)str->byte_address(), len->to_native());
     return this;
   }
 
-  OBJECT MemoryPointer::write_int(STATE, FIXNUM val) {
+  Integer* MemoryPointer::write_int(STATE, Integer* val) {
     *(int*)pointer = val->to_native();
     return val;
   }
 
-  OBJECT MemoryPointer::read_int(STATE) {
+  Integer* MemoryPointer::read_int(STATE) {
     return Integer::from(state, *(int*)pointer);
   }
 
-  OBJECT MemoryPointer::write_long(STATE, FIXNUM val) {
+  Integer* MemoryPointer::write_long(STATE, Integer* val) {
     *(long*)pointer = val->to_native();
     return val;
   }
 
-  OBJECT MemoryPointer::read_long(STATE) {
+  Integer* MemoryPointer::read_long(STATE) {
     return Integer::from(state, *(long*)pointer);
   }
 
@@ -323,5 +319,7 @@ namespace rubinius {
     }
   }
 
-  void MemoryPointer::Info::mark(OBJECT obj, ObjectMark& mark) { }
+  void MemoryPointer::Info::mark(OBJECT obj, ObjectMark& mark) {
+    // TODO: implement
+  }
 }
