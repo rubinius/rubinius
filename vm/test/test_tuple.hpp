@@ -25,6 +25,34 @@ public:
     return tuple;
   }
 
+  void test_allocate() {
+    Tuple* tuple = Tuple::allocate(state, Fixnum::from(2));
+    TS_ASSERT_EQUALS(2U, tuple->field_count);
+  }
+
+  void test_at() {
+    Tuple* tuple = new_tuple();
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(tuple->at(1)));
+    TS_ASSERT_THROWS(tuple->at(4), const ObjectBoundsExceeded &);
+  }
+
+  void test_at_prim() {
+    Tuple* tuple = new_tuple();
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(tuple->at_prim(state, Fixnum::from(1))));
+    TS_ASSERT_EQUALS(Qnil, tuple->at_prim(state, Fixnum::from(4)));
+  }
+
+  void test_put_prim() {
+    Tuple* tuple = new_tuple();
+    tuple->put_prim(state, Fixnum::from(1), Fixnum::from(22));
+    TS_ASSERT_EQUALS(Fixnum::from(22), as<Fixnum>(tuple->at_prim(state, Fixnum::from(1))));
+  }
+
+  void test_fields_prim() {
+    Tuple* tuple = new_tuple();
+    TS_ASSERT_EQUALS(Fixnum::from(3), as<Fixnum>(tuple->fields_prim(state)));
+  }
+
   void test_replace_with() {
     Tuple* tuple = new_tuple();
 
