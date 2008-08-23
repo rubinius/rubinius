@@ -1,4 +1,4 @@
-# depends on: module.rb kernel.rb
+# depends on: module.rb kernel.rb misc.rb exception.rb
 
 ##
 # Namespace for coercion functions between various ruby objects.
