@@ -8,8 +8,9 @@
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
+#include "builtin/selector.hpp"
 #include "objectmemory.hpp"
-
+#include "global_cache.hpp"
 #include "config.hpp"
 
 #include <cstring>
@@ -523,5 +524,15 @@ namespace rubinius {
   OBJECT Object::vm_write_error(STATE, String* str) {
     std::cerr << str->byte_address() << std::endl;
     return Qnil;
+  }
+
+  // Clears the global cache for all methods named +name+,
+  // also clears all sendsite caches matching that name.
+  OBJECT Object::vm_reset_method_cache(STATE, SYMBOL name) {
+    // 1. clear the global cache
+    state->global_cache->clear(name);
+    // 2. clear the send site caches
+    Selector::clear_by_name(state, name);
+    return name;
   }
 }

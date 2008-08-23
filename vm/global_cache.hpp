@@ -54,6 +54,17 @@ namespace rubinius {
       }
     }
 
+    void clear(SYMBOL name) {
+      for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
+        if(entries[i].name == name) {
+          entries[i].klass = NULL;
+          entries[i].name = NULL;
+          entries[i].module = NULL;
+          entries[i].method = NULL;
+        }
+      }
+    }
+
     void retain(STATE, Module* cls, SYMBOL name, Module* mod, Executable* meth) {
       struct cache_entry* entry;
 
@@ -64,8 +75,7 @@ namespace rubinius {
 
       if(kind_of<MethodVisibility>(meth)) {
         MethodVisibility* vis = as<MethodVisibility>(meth);
-
-	entry->is_public = vis->public_p(state);
+        entry->is_public = vis->public_p(state);
         entry->method = vis->method;
       } else {
         entry->method = meth;

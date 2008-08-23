@@ -36,23 +36,6 @@
 
 namespace rubinius {
 
-  native_int Integer::to_native() {
-    if(fixnum_p()) {
-      return ((FIXNUM)this)->to_native();
-    }
-
-    return as<Bignum>(this)->to_native();
-  }
-
-  // TODO: double check that this links. Evan says it doesn't. I'll
-  // check my Meiers books when I get home
-  template <>
-  static bool kind_of<Numeric>(OBJECT obj) {
-    return obj->fixnum_p() ||
-      (obj->reference_p() && (obj->obj_type == Bignum::type ||
-                              obj->obj_type == Float::type));
-  }
-
   /* State is a VM* so, we can just use this in here */
   #define state this
 
