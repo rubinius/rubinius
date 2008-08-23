@@ -4,7 +4,7 @@ class IO
 
   BufferSize = 8096
 
-  class Buffer < String
+  class Buffer
 
     ##
     # Create a buffer of +size+ bytes. The buffer contains an internal Channel
