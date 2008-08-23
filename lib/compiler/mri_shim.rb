@@ -43,6 +43,11 @@ class Exception
   end
 end
 
+class Object
+  def __show__
+  end
+end
+
 require File.dirname(__FILE__) + '/../../kernel/core/iseq'
 require File.dirname(__FILE__) + '/../../kernel/core/compiled_method'
 require File.dirname(__FILE__) + '/../../vm/gen/simple_field'
