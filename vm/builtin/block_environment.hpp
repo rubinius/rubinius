@@ -29,7 +29,7 @@ namespace rubinius {
         MethodContext* parent, MethodContext* active, size_t index);
 
     void call(STATE, Task* task, size_t args);
-    void call(STATE, Message& msg);
+    void call(STATE, Task* task, Message& msg);
     BlockContext* create_context(STATE, MethodContext* sender);
 
     // Ruby.primitive? :block_call

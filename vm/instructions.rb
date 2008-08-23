@@ -409,7 +409,7 @@ class Instructions
 
   def push_local(index)
     <<-CODE
-    stack_push(task->get_local(index));
+    stack_push(task->home->get_local(index)); // HACK test vs. ->home-less
     CODE
   end
 
@@ -984,7 +984,7 @@ class Instructions
 
   def set_local(index)
     <<-CODE
-    task->set_local(index, stack_top());
+    task->home->set_local(index, stack_top()); // HACK test vs. ->home-less
     CODE
   end
 

@@ -38,13 +38,27 @@ namespace rubinius {
     task->push(val);
   }
 
-  void BlockEnvironment::call(STATE, Message& msg) {
-    throw std::runtime_error("call2: not implemented");
+  void BlockEnvironment::call(STATE, Task* task, Message& msg) {
+    OBJECT val;
+    if(msg.args > 0) {
+      Tuple* tup = Tuple::create(state, msg.args);
+      for(int i = msg.args - 1; i >= 0; i--) {
+        tup->put(state, i, msg.get_argument(i));
+      }
+
+      val = tup;
+    } else {
+      val = Qnil;
+    }
+    task->pop(); // Remove this from the stack.
+    BlockContext* ctx = create_context(state, task->active);
+    task->make_active(ctx);
+    task->push(val);
   }
 
   // TODO - Untested!!!!!!!!!!
   bool BlockEnvironment::call_prim(STATE, VMExecutable* exec, Task* task, Message& msg) {
-    call(state, task, msg.args);
+    call(state, task, msg);
     return true;
   }
 
