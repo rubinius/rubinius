@@ -187,18 +187,18 @@ files EXTERNALS do |t|
   end
 end
 
-file 'vm/primitives.o'               => 'vm/field_extract.rb'
+file 'vm/primitives.o'               => 'vm/codegen/field_extract.rb'
 file 'vm/codegen/instructions_gen.rb'        => 'kernel/core/iseq.rb'
 file 'vm/instructions.rb'            => 'vm/gen'
 file 'vm/instructions.rb'            => 'vm/codegen/instructions_gen.rb'
 file 'vm/test/test_instructions.hpp' => 'vm/codegen/instructions_gen.rb'
-file 'vm/field_extract.rb'           => 'vm/gen'
+file 'vm/codegen/field_extract.rb'           => 'vm/gen'
 
 files INSN_GEN, %w[vm/instructions.rb] do |t|
   ruby 'vm/instructions.rb', :verbose => $verbose
 end
 
-files TYPE_GEN, field_extract_headers + %w[vm/field_extract.rb] do
+files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] do
   puts "GEN field_extract"
   field_extract field_extract_headers
 end
@@ -370,5 +370,5 @@ end
 def field_extract(headers)
   headers += [{ :verbose => $verbose}]
 
-  ruby('vm/field_extract.rb', *headers)
+  ruby('vm/codegen/field_extract.rb', *headers)
 end
