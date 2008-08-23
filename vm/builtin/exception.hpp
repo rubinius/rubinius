@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_EXCEPTION_HPP
 
 #include "builtin/object.hpp"
+#include "builtin/string.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
@@ -13,7 +14,7 @@ namespace rubinius {
     const static object_type type = ExceptionType;
 
     static Exception* create(STATE);
-    OBJECT message; // slot
+    String* message; // slot
     MethodContext* context; // slot
 
     class Info : public TypeInfo {

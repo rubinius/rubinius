@@ -80,8 +80,13 @@ namespace rubinius {
     if(!G(current_task)->exception->nil_p()) {
       // Reset the context so we can show the backtrace
       // HACK need to use write barrier aware stuff?
-      G(current_task)->active = G(current_task)->exception->context;
-      Assertion::raise("exception detected at toplevel");
+      Exception* exc = G(current_task)->exception;
+      G(current_task)->active = exc->context;
+
+      String* message = String::create(state,
+          "exception detected at toplevel: ");
+      message->append(state, exc->message);
+      Assertion::raise(message->byte_address());
     }
   }
 
