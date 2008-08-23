@@ -137,9 +137,9 @@ def link t
 end
 
 def rubypp_task(target, prerequisite, *extra)
-  file target => [prerequisite, 'vm/rubypp.rb'] + extra do
+  file target => [prerequisite, 'vm/codegen/rubypp.rb'] + extra do
     path = File.join("vm/gen", File.basename(prerequisite))
-    ruby 'vm/rubypp.rb', prerequisite, path
+    ruby 'vm/codegen/rubypp.rb', prerequisite, path
     yield path
   end
 end
@@ -260,7 +260,7 @@ namespace :vm do
     puts "CC/LD vm/test/coverage/runner"
     begin
       path = "vm/gen/instructions.cpp"
-      ruby 'vm/rubypp.rb', "vm/llvm/instructions.cpp", path
+      ruby 'vm/codegen/rubypp.rb', "vm/llvm/instructions.cpp", path
       sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp vm/*.c #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
 
       puts "RUN vm/test/coverage/runner"
