@@ -63,6 +63,12 @@ class Hash
     true
   end
 
+  def [](key)
+    entry, hash, bin = hash_entry key
+
+    entry
+  end
+
   ##
   # looks for a key in a bin found by hash_entry
 
