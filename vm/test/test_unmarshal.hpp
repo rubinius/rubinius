@@ -47,8 +47,28 @@ public:
     return true;
   }
 
+  void test_nil() {
+    mar->sstream.str(std::string("n\n"));
+    OBJECT obj = mar->unmarshal();
 
-  void test_init() {
+    TS_ASSERT_EQUALS(obj, Qnil);
+  }
+
+  void test_true() {
+    mar->sstream.str(std::string("t\n"));
+    OBJECT obj = mar->unmarshal();
+
+    TS_ASSERT_EQUALS(obj, Qtrue);
+  }
+
+  void test_false() {
+    mar->sstream.str(std::string("f\n"));
+    OBJECT obj = mar->unmarshal();
+
+    TS_ASSERT_EQUALS(obj, Qfalse);
+  }
+
+  void test_int() {
     mar->sstream.str(std::string("I\n3\n"));
     OBJECT obj = mar->unmarshal();
 
