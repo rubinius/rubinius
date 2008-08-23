@@ -18,7 +18,7 @@ namespace rubinius {
     LookupTable* constants; // slot
     Module* superclass; // slot
 
-    // Ruby.primitive :allocate_module
+    // Ruby.primitive :module_allocate
     static Module* create(STATE);
     void setup(STATE);
     void setup(STATE, const char* name, Module* under = NULL);
