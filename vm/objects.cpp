@@ -265,6 +265,15 @@ namespace rubinius {
     GO(main).set(main);
     G(object)->set_const(state, "MAIN", main); // HACK test hooking up MAIN
 
+    // HACK test hooking up IO
+    IO* in_io  = IO::create(state, fileno(stdin));
+    IO* out_io = IO::create(state, fileno(stdout));
+    IO* err_io = IO::create(state, fileno(stderr));
+
+    G(object)->set_const(state, "STDIN",  in_io);
+    G(object)->set_const(state, "STDOUT", out_io);
+    G(object)->set_const(state, "STDERR", err_io);
+
     Regexp::init(this);
 
     GO(cmethod_vis).set(new_class("Visibility", G(object),
