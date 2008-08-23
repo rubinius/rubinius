@@ -2295,7 +2295,12 @@ class Instructions
     msg.args = count;
     msg.recv = stack_back(count);
     msg.stack = count + 1;
-    msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+    
+    if(ary->nil_p()) {
+      msg.use_from_task(task, count);
+    } else {
+      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+    }
 
     msg.priv = task->call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -2478,7 +2483,12 @@ class Instructions
     msg.args = count;
     msg.recv = task->self;
     msg.stack = count;
-    msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+
+    if(ary->nil_p()) {
+      msg.use_from_task(task, count);
+    } else {
+      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+    }
 
     msg.priv = TRUE;
     msg.lookup_from = task->current_module()->superclass;

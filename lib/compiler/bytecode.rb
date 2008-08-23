@@ -2092,6 +2092,9 @@ class Node
     def bytecode(g)
       emit_args(g)
 
+      # HACK super must have a splat here, no non-splat instruction
+      g.push :nil
+
       if @block
         @block.bytecode(g)
       else
