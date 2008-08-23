@@ -6,7 +6,9 @@
 #include "compiled_file.hpp"
 #include "probes.hpp"
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
 #include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/task.hpp"
 #include "builtin/exception.hpp"
@@ -86,6 +88,9 @@ namespace rubinius {
       String* message = String::create(state,
           "exception detected at toplevel: ");
       message->append(state, exc->message);
+      message->append(state, " (");
+      message->append(state, exc->klass->name->to_str(state));
+      message->append(state, ")");
       Assertion::raise(message->byte_address());
     }
   }

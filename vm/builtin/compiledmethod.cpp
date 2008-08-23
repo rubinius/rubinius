@@ -13,6 +13,16 @@
 #include "builtin/string.hpp"
 
 namespace rubinius {
+
+  void CompiledMethod::init(STATE) {
+    GO(cmethod).set(state->new_class("CompiledMethod", G(executable), CompiledMethod::fields));
+    G(cmethod)->set_object_type(CMethodType);
+
+    GO(cmethod_vis).set(state->new_class("Visibility", G(object),
+        MethodVisibility::fields, G(cmethod)));
+    G(cmethod_vis)->set_object_type(CMVisibilityType);
+  }
+
   CompiledMethod* CompiledMethod::create(STATE) {
     CompiledMethod* cm = (CompiledMethod*)state->new_object(G(cmethod));
     SET(cm, local_count, Fixnum::from(0));

@@ -104,7 +104,8 @@ module Kernel
 
   ##
   #--
-  # HACK :: added due to broken constant lookup rules
+  # HACK todo handle cascading raises (ie, TypeError raise
+  # raising forever blows)
   #++
 
   def raise(exc=Undefined, msg=nil, trace=nil)

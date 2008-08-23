@@ -541,7 +541,7 @@ File.open("vm/gen/simple_field.rb", "w") do |f|
 end
 
 File.open("vm/gen/typechecks.gen.cpp", "w") do |f|
-  f.puts "void TypeInfo::init(STATE) {"
+  f.puts "void TypeInfo::auto_init(STATE) {"
   parser.classes.each do |n, cpp|
     next if n == "Object"
 

@@ -5,7 +5,8 @@
 namespace rubinius {
 
   void AccessVariable::init(STATE) {
-    GO(access_variable).set(state->new_class("AccessVariable", AccessVariable::fields));
+    GO(access_variable).set(state->new_class("AccessVariable", G(object),
+          AccessVariable::fields));
     G(access_variable)->set_object_type(AccessVariableType);
   }
 

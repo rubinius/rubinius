@@ -17,6 +17,12 @@
 
 #include <iostream>
 
+// Reset macros since we're inside state
+#undef G
+#undef GO
+#define G(whatever) globals.whatever.get()
+#define GO(whatever) globals.whatever
+
 namespace rubinius {
   VM::VM(size_t bytes) : probe(NULL), wait_events(false) {
     config.compile_up_front = false;
@@ -27,6 +33,7 @@ namespace rubinius {
     om = new ObjectMemory(bytes);
 
     MethodContext::initialize_cache(this);
+    TypeInfo::init(this);
 
     bootstrap_ontology();
 
@@ -54,6 +61,53 @@ namespace rubinius {
   OBJECT VM::new_object(Class *cls) {
     return om->new_object(cls, cls->instance_fields->to_native());
   }
+
+  Class* VM::new_basic_class(Class* sup, size_t fields) {
+    Class *cls = (Class*)om->new_object(G(klass), Class::fields);
+    cls->instance_fields = Fixnum::from(fields);
+    if(sup->nil_p()) {
+      cls->instance_type = Fixnum::from(ObjectType);
+    } else {
+      cls->instance_type = sup->instance_type; // HACK test that this is always true
+    }
+    cls->superclass = sup;
+
+    return cls;
+  }
+
+  Class* VM::new_class(const char* name) {
+    return new_class(name, G(object), G(object)->instance_fields->to_native(),
+        G(object));
+  }
+
+  Class* VM::new_class(const char* name, Class* super_class) {
+    return new_class(name, super_class, G(object)->instance_fields->to_native(),
+        G(object));
+  }
+
+  Class* VM::new_class(const char* name, Class* sup, size_t fields) {
+    return new_class(name, sup, fields, G(object));
+  }
+
+  Class* VM::new_class(const char* name, Class* sup, size_t fields, Module* under) {
+    Class* cls = new_basic_class(sup, fields);
+    cls->setup(this, name, under);
+
+    // HACK test that we've got the MOP setup properly
+    MetaClass::attach(this, cls, sup->metaclass(this));
+    return cls;
+  }
+
+  Class* VM::new_class_under(const char* name, Module* under) {
+    return new_class(name, G(object), G(object)->instance_fields->to_native(), under);
+  }
+
+  Module* VM::new_module(const char* name, Module* under) {
+    Module *mod = (Module*)om->new_object(G(module), Module::fields);
+    mod->setup(this, name, under);
+    return mod;
+  }
+
 
   SYMBOL VM::symbol(const char* str) {
     return symbols.lookup(this, str);

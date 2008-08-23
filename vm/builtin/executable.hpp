@@ -18,6 +18,8 @@ namespace rubinius {
     FIXNUM serial; // slot
     VMExecutable* executable;
 
+    static void init(STATE);
+
     bool execute(STATE, Task* task, Message& msg) {
       return executable->execute(state, executable, task, msg);
     }

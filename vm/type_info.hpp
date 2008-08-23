@@ -25,6 +25,7 @@ namespace rubinius {
     Slots slots;
 
     static void init(STATE);
+    static void auto_init(STATE);
     TypeInfo(object_type type);
     virtual void auto_mark(OBJECT obj, ObjectMark& mark);
 

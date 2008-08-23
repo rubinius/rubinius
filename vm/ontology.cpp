@@ -7,9 +7,11 @@
 #include "builtin/access_variable.hpp"
 #include "builtin/array.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/compiledmethod.hpp"
+#include "builtin/contexts.hpp"
 #include "builtin/dir.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
@@ -39,196 +41,111 @@ namespace rubinius {
   /* State is a VM* so, we can just use this in here */
   #define state this
 
-  Class* VM::new_basic_class(OBJECT sup, size_t fields) {
-    Class *cls = (Class*)om->new_object(G(klass), Class::fields);
-    cls->instance_fields = Fixnum::from(fields);
-    cls->has_ivars = Qtrue;
-    cls->instance_type = Fixnum::from(ObjectType);
-    SET(cls, superclass, sup);
-
-    return cls;
-  }
-
-  // TODO: document
-  Class* VM::new_class(OBJECT sup, size_t fields) {
-    Class *cls = new_basic_class(sup, fields);
-    // HACK test attaching up metaclass' superclass
-    MetaClass::attach(this, cls, sup->metaclass(this));
-    return cls;
-  }
-
-  // TODO: document
-  Class* VM::new_class(const char* name) {
-    return new_class(name, G(object), G(object)->instance_fields->to_native());
-  }
-
-  // TODO: document
-  Class* VM::new_class(const char* name, size_t fields) {
-    return new_class(name, G(object), fields);
-  }
-
-  // TODO: document
-  Class* VM::new_class(const char* name, Module* under) {
-    size_t fields = G(object)->instance_fields->to_native();
-    Class* cls = new_class(name, G(object), fields);
-    cls->setup(this, name, under);
-    return cls;
-  }
-
-  // TODO: document
-  Class* VM::new_class(const char* name, OBJECT sup, size_t fields) {
-    return new_class(name, sup, fields, G(object));
-  }
-
-  // TODO: document
-  Class* VM::new_class(const char* name, OBJECT sup, size_t fields, Module* under) {
-    Class* cls = new_class(sup, fields);
-    SET(cls, instance_type, as<Class>(sup)->instance_type);
-    cls->setup(this, name, under);
-    return cls;
-  }
-
-  Module* VM::new_module(const char* name, Module* under) {
-    Module *mod = (Module*)om->new_object(G(module), Module::fields);
-    mod->setup(this, name, under);
-    return mod;
-  }
-
-  // TODO: document all the sections of bootstrap_ontology
-  /* Creates the rubinius object universe from scratch. */
-  void VM::bootstrap_ontology() {
-    /* Class is created first by hand, and twittle to setup the internal
-       recursion. */
+  // Reset macros since we're inside state
 #undef G
 #undef GO
 #define G(whatever) globals.whatever.get()
 #define GO(whatever) globals.whatever
 
+  void VM::bootstrap_class() {
+    /* Class is created first by hand, and twittle to setup the internal
+       recursion. */
     Class *cls = (Class*)om->allocate_object(Class::fields);
+
+    /* We create these 7 classes in a particular way and in a particular
+     * order. We need all 7 to create fully initialized Classes and
+     * Modules, so we just create them all uninitialized, then initialize
+     * them all at once */
+
+    /* Class's klass is Class */
     cls->klass = cls;
+    cls->obj_type = ClassType;
 
     cls->instance_fields = Fixnum::from(Class::fields);
     cls->has_ivars = Qtrue;
     cls->set_object_type(ClassType);
-    cls->obj_type = ClassType;
 
+    /* Set Class into the globals */
     GO(klass).set(cls);
 
-    Class *object = new_basic_class(Qnil, Object::fields);
+    /* Now do Object */
+    Class *object = new_basic_class((Class*)Qnil, Object::fields);
     GO(object).set(object);
 
+    /* Now Module */
     GO(module).set(new_basic_class(object, Module::fields));
     G(module)->set_object_type(ModuleType);
 
+    /* Fixup Class's superclass to be Module */
     cls->superclass = G(module);
 
+    /* Create MetaClass */
     GO(metaclass).set(new_basic_class(cls, MetaClass::fields));
-    G(metaclass)->instance_type = Fixnum::from(MetaclassType);
+    G(metaclass)->set_object_type(MetaclassType);
 
+    /* Create Tuple */
     GO(tuple).set(new_basic_class(object, Tuple::fields));
-    G(tuple)->instance_type = Fixnum::from(TupleType);
-    G(tuple)->has_ivars = Qfalse;
+    G(tuple)->set_object_type(TupleType);
 
+    /* Create LookupTable */
     GO(lookuptable).set(new_basic_class(object, LookupTable::fields));
-    G(lookuptable)->instance_type = Fixnum::from(LookupTableType);
+    G(lookuptable)->set_object_type(LookupTableType);
 
+    /* Create MethodTable */
     GO(methtbl).set(new_basic_class(G(lookuptable), MethodTable::fields));
-    G(methtbl)->instance_type = Fixnum::from(MTType);
+    G(methtbl)->set_object_type(MTType);
 
+    /* Now, we have:
+     *  Class
+     *  Module
+     *  MetaClass
+     *  Object
+     *  Tuple
+     *  LookupTable
+     *  MethodTable
+     *
+     *  With these 7 in place, we can now create fully initialized classes
+     *  and modules. */
+
+    /* Hook up the MetaClass protocols.
+     * MetaClasses of subclasses point to the MetaClass of the
+     * superclass. */
     OBJECT mc = MetaClass::attach(this, object, cls);
     mc = MetaClass::attach(this, G(module), mc);
     MetaClass::attach(this, cls, mc);
 
+    // TODO not sure these are being setup properly
     MetaClass::attach(this, G(metaclass));
     MetaClass::attach(this, G(tuple));
     MetaClass::attach(this, G(lookuptable));
     MetaClass::attach(this, G(methtbl));
 
-    GO(symbol).set(new_class(object, 0));
-    GO(array).set(new_class(object, Array::fields));
-    G(array)->instance_type = Fixnum::from(ArrayType);
-    G(array)->has_ivars = Qfalse;
-
-    GO(bytearray).set(new_class(object, 0));
-    G(bytearray)->instance_type = Fixnum::from(ByteArrayType);
-
-    GO(string).set(new_class(object, String::fields));
-    G(string)->instance_type = Fixnum::from(StringType);
-    G(string)->has_ivars = Qfalse;
-
-    GO(executable).set(new_class(object, Executable::fields));
-
-    GO(cmethod).set(new_class(G(executable), CompiledMethod::fields));
-    G(cmethod)->instance_type = Fixnum::from(CMethodType);
-
-    GO(io).set(new_class(object, IO::fields));
-
-    GO(blokenv).set(new_class(object, BlockEnvironment::fields));
-    G(blokenv)->instance_type = Fixnum::from(BlockEnvType);
-
-    GO(staticscope).set(new_class(object, StaticScope::fields));
-    G(staticscope)->set_object_type(StaticScopeType);
-
-    GO(dir).set(new_class(object, Dir::fields));
-    G(dir)->instance_type = Fixnum::from(DirType);
-
-    GO(compactlookuptable).set(new_class(G(tuple), CompactLookupTable::fields));
-    G(compactlookuptable)->instance_type = Fixnum::from(CompactLookupTableType);
-
-    GO(time_class).set(new_class(object, Time::fields));
-    G(time_class)->instance_type = Fixnum::from(TimeType);
-
-    bootstrap_symbol();
-
+    // Now, finish initializing the special 7
     G(object)->setup(this, "Object");
     G(klass)->setup(this, "Class");
     G(module)->setup(this, "Module");
     G(metaclass)->setup(this, "MetaClass");
-    G(symbol)->setup(this, "Symbol");
     G(tuple)->setup(this, "Tuple");
-    G(array)->setup(this, "Array");
-    G(bytearray)->setup(this, "ByteArray");
     G(lookuptable)->setup(this, "LookupTable");
-    G(string)->setup(this, "String");
     G(methtbl)->setup(this, "MethodTable");
-    G(executable)->setup(this, "Executable");
-    G(cmethod)->setup(this, "CompiledMethod");
-    G(io)->setup(this, "IO");
-    G(blokenv)->setup(this, "BlockEnvironment");
-    G(staticscope)->setup(this, "StaticScope");
-    G(symbol)->setup(this, "Symbol");
-    G(dir)->setup(this, "Dir");
-    G(compactlookuptable)->setup(this, "CompactLookupTable");
-    G(time_class)->setup(this, "Time");
+  }
 
-    GO(nil_class).set(new_class("NilClass", object, 0));
-    GO(true_class).set(new_class("TrueClass", object, 0));
-    GO(false_class).set(new_class("FalseClass", object, 0));
+  void VM::initialize_builtin_classes() {
+    // Create the immediate classes.
+    GO(nil_class).set(new_class("NilClass"));
+    GO(true_class).set(new_class("TrueClass"));
+    GO(false_class).set(new_class("FalseClass"));
 
-    Class* numeric = new_class("Numeric", object, 0);
-    Class* integer = new_class("Integer", numeric, 0);
-    GO(fixnum_class).set(new_class("Fixnum", integer, 0));
+    Class* numeric = new_class("Numeric");
+    GO(numeric).set(numeric);
+    Class* integer = new_class("Integer", numeric);
+    GO(integer).set(integer);
+    GO(fixnum_class).set(new_class("Fixnum", integer));
     G(fixnum_class)->instance_type = Fixnum::from(FixnumType);
+    Symbol::init(this);
 
-    GO(bignum).set(new_class("Bignum", integer, 0));
-    G(bignum)->instance_type = Fixnum::from(BignumType);
-    Bignum::init(this);
-
-    GO(floatpoint).set(new_class("Float", numeric, 0));
-    G(floatpoint)->instance_type = Fixnum::from(FloatType);
-
-    GO(methctx).set(new_class("MethodContext", object, 0));
-    G(methctx)->set_object_type(MContextType);
-
-    GO(blokctx).set(new_class("BlockContext", G(methctx), 0));
-    G(blokctx)->set_object_type(BContextType);
-
-    GO(task).set(new_class("Task", object, 0));
-    G(task)->instance_type = Fixnum::from(TaskType);
-
-    GO(iseq).set(new_class("InstructionSequence", G(object), InstructionSequence::fields));
-    G(iseq)->instance_type = Fixnum::from(ISeqType);
-
+    // Setup the special_class lookup table. We use this to resolve
+    // the classes for Fixnum's, nil, true and false.
     for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
       globals.special_classes[i + 0] = GO(object); /* unused slot */
       globals.special_classes[i + 1] = GO(fixnum_class);
@@ -245,10 +162,79 @@ namespace rubinius {
     globals.special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
     globals.special_classes[(uintptr_t)Qtrue ] = GO(true_class);
 
+
+    // Let all the builtin classes initialize themselves. This
+    // typically means creating a Ruby class.
+    Array::init(this);
+    ByteArray::init(this);
+    String::init(this);
+    Executable::init(this);
+    CompiledMethod::init(this);
+    IO::init(this);
+    BlockEnvironment::init(this);
+    StaticScope::init(this);
+    Dir::init(this);
+    CompactLookupTable::init(this);
+    Time::init(this);
+    Regexp::init(this);
+    Bignum::init(this);
+    Float::init(this);
+    MethodContext::init(this);
+    InstructionSequence::init(this);
+    List::init(this);
+    SendSite::init(this);
+    Selector::init(this);
+    init_ffi();
+    Task::init(this);
+    Thread::init(this);
+    AccessVariable::init(this);
+  }
+
+  // TODO: document all the sections of bootstrap_ontology
+  /* Creates the rubinius object universe from scratch. */
+  void VM::bootstrap_ontology() {
+
+    /*
+     * Bootstrap everything so we can create fully initialized
+     * Classes.
+     */
+    bootstrap_class();
+
+    /*
+     * Everything is now setup for us to make fully initialized
+     * classes.
+     */
+
+    bootstrap_symbol();
+    initialize_builtin_classes();
+    bootstrap_exceptions();
+
+    /*
+     * Create any 'stock' objects
+     */
+
     Object* main = om->new_object(G(object), 1);
     GO(main).set(main);
-    G(object)->set_const(state, "MAIN", main); // HACK test hooking up MAIN
+    G(object)->set_const(this, "MAIN", main); // HACK test hooking up MAIN
 
+    /*
+     * Create our Rubinius module that we hang stuff off
+     */
+
+    Module* rbx = new_module("Rubinius");
+    GO(rubinius).set(rbx);
+    GO(vm).set(new_class_under("VM", rbx));
+
+    /*
+     * Setup the table we use to store ivars for immediates
+     */
+
+    GO(external_ivars).set(LookupTable::create(this));
+
+    initialize_platform_data();
+  }
+
+  void VM::initialize_platform_data() {
     // HACK test hooking up IO
     IO* in_io  = IO::create(state, fileno(stdin));
     IO* out_io = IO::create(state, fileno(stdout));
@@ -258,40 +244,10 @@ namespace rubinius {
     G(object)->set_const(state, "STDOUT", out_io);
     G(object)->set_const(state, "STDERR", err_io);
 
-    Regexp::init(this);
-
-    GO(cmethod_vis).set(new_class("Visibility", G(object),
-        MethodVisibility::fields, G(cmethod)));
-    G(cmethod_vis)->set_object_type(CMVisibilityType);
-
-    Module* rbx = new_module("Rubinius");
-    GO(rubinius).set(rbx);
-    GO(vm).set(new_class("VM", rbx));
-
-    bootstrap_exceptions();
-
-    GO(external_ivars).set(LookupTable::create(state));
-
-    IO::init(state);
-    List::init(state);
-    SendSite::init(state);
-    Selector::init(state);
-    init_ffi();
-    Task::init(state);
-    Thread::init(state);
-    AccessVariable::init(state);
-
-    TypeInfo::init(state);
-
-    // Give Object a TypeInfo entry
-    TypeInfo* object_type_info = new TypeInfo(ObjectType);
-    object_type_info->type_name = std::string("Object");
-    add_type_info(object_type_info);
-
     if(sizeof(int) == sizeof(long)) {
-      rbx->set_const(state, "L64", Qfalse);
+      G(rubinius)->set_const(state, "L64", Qfalse);
     } else {
-      rbx->set_const(state, "L64", Qtrue);
+      G(rubinius)->set_const(state, "L64", Qtrue);
     }
   }
 
@@ -332,7 +288,7 @@ namespace rubinius {
 #define dexc(name, sup) new_class(#name, sup, sz)
 
     exc = dexc(Exception, G(object));
-    exc->set_object_type(ExceptionType); // HACK test
+    exc->set_object_type(ExceptionType);
     GO(exception).set(exc);
     dexc(fatal, exc);
     vm = dexc(VMError, exc);

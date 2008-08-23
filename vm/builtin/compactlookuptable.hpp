@@ -16,6 +16,8 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = CompactLookupTableType;
 
+    static void init(STATE);
+
     // Ruby.primitive :compactlookuptable_allocate
     static CompactLookupTable* create(STATE);
 

@@ -19,6 +19,7 @@ namespace rubinius {
     OBJECT shared; // slot
 
     size_t size();
+    static void init(STATE);
     static Array* create(STATE, size_t size);
     static Array* from_tuple(STATE, Tuple* tup);
     void   setup(STATE, size_t size);

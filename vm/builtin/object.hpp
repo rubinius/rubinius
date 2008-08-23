@@ -138,6 +138,9 @@ namespace rubinius {
 
     // Ruby.primitive :vm_reset_method_cache
     static OBJECT vm_reset_method_cache(STATE, SYMBOL name);
+
+    // Ruby.primitive :yield_gdb
+    static Object* yield_gdb(STATE, Object* obj);
   };
 
 }

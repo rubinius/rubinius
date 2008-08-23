@@ -7,6 +7,17 @@
 
 namespace rubinius {
 
+  void TypeInfo::init(STATE) {
+    // Call the automatically generated function
+    auto_init(state);
+
+    // Give Object a TypeInfo entry
+    TypeInfo* object_type_info = new TypeInfo(ObjectType);
+    object_type_info->type_name = std::string("Object");
+    state->add_type_info(object_type_info);
+  }
+
+
   TypeInfo::~TypeInfo() { }
 
   TypeInfo::TypeInfo(object_type type) : type(type) {

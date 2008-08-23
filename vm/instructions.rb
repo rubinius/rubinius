@@ -409,7 +409,7 @@ class Instructions
 
   def push_local(index)
     <<-CODE
-    stack_push(task->get_local(index));
+    stack_push(task->home->get_local(index)); // HACK test vs. ->home-less
     CODE
   end
 
@@ -984,7 +984,7 @@ class Instructions
 
   def set_local(index)
     <<-CODE
-    task->set_local(index, stack_top());
+    task->home->set_local(index, stack_top()); // HACK test vs. ->home-less
     CODE
   end
 
@@ -2411,7 +2411,7 @@ class Instructions
     target->required_args = target->total_args;
     target->stack_size = Fixnum::from(1);
 
-    Class* parent = state->new_class("Parent", 1);
+    Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
     SYMBOL name = state->symbol("blah");
@@ -2512,7 +2512,7 @@ class Instructions
     target->required_args = target->total_args;
     target->stack_size = Fixnum::from(2);
 
-    Class* parent = state->new_class("Parent", 1);
+    Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
     SYMBOL name = state->symbol("blah");

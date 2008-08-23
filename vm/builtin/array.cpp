@@ -1,6 +1,7 @@
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/class.hpp"
 #include "objectmemory.hpp"
 
 /* Implementation certain Array methods. These methods are just
@@ -9,6 +10,11 @@
  * primitives. */
 
 namespace rubinius {
+
+  void Array::init(STATE) {
+    GO(array).set(state->new_class("Array", G(object), Array::fields));
+    G(array)->set_object_type(ArrayType);
+  }
 
   size_t Array::size() {
     return total->to_native();

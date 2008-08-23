@@ -24,10 +24,10 @@
 namespace rubinius {
 
   void Task::init(STATE) {
-    GO(task).set(state->new_class("Task", Task::fields));
+    GO(task).set(state->new_class("Task", G(object), Task::fields));
     G(task)->set_object_type(Task::type);
 
-    GO(channel).set(state->new_class("Channel", Channel::fields));
+    GO(channel).set(state->new_class("Channel", G(object), Channel::fields));
     G(channel)->set_object_type(Channel::type);
   }
 

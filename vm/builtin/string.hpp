@@ -38,6 +38,8 @@ namespace rubinius {
     INTEGER hash; // slot
     OBJECT shared; // slot
 
+    static void init(STATE);
+
     // Ruby.primitive :string_allocate
     static String* allocate(STATE, FIXNUM size);
 

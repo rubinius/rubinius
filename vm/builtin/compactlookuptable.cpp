@@ -1,9 +1,16 @@
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/lookuptable.hpp"
 #include "objectmemory.hpp"
 
 namespace rubinius {
+  void CompactLookupTable::init(STATE) {
+    GO(compactlookuptable).set(state->new_class("CompactLookupTable",
+          G(tuple), CompactLookupTable::fields));
+    G(compactlookuptable)->set_object_type(CompactLookupTableType);
+  }
+
   CompactLookupTable* CompactLookupTable::create(STATE) {
     return (CompactLookupTable*)state->om->new_object(G(compactlookuptable),
                                                       COMPACTLOOKUPTABLE_SIZE);

@@ -4,9 +4,16 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "primitives.hpp"
+#include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 
 namespace rubinius {
+
+  void ByteArray::init(STATE) {
+    GO(bytearray).set(state->new_class("ByteArray"));
+    G(bytearray)->set_object_type(ByteArrayType);
+  }
+
   ByteArray* ByteArray::create(STATE, size_t bytes) {
     return (ByteArray*)state->om->new_object_bytes(G(bytearray), bytes);
   }

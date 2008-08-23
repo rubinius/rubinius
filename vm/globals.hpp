@@ -66,6 +66,8 @@ namespace rubinius {
     TypedRoot<Class*> access_variable;
     TypedRoot<Module*> rubinius;
     TypedRoot<Class*> time_class;
+    TypedRoot<Class*> integer;
+    TypedRoot<Class*> numeric;
 
     /* Add new globals above this line. */
 
@@ -163,7 +165,9 @@ namespace rubinius {
       compactlookuptable(&roots),
       access_variable(&roots),
       rubinius(&roots),
-      time_class(&roots)
+      time_class(&roots),
+      integer(&roots),
+      numeric(&roots)
 
       /* Add initialize of globals above this line. */
     { }
