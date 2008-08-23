@@ -188,10 +188,10 @@ files EXTERNALS do |t|
 end
 
 file 'vm/primitives.o'               => 'vm/field_extract.rb'
-file 'vm/instructions_gen.rb'        => 'kernel/core/iseq.rb'
+file 'vm/codegen/instructions_gen.rb'        => 'kernel/core/iseq.rb'
 file 'vm/instructions.rb'            => 'vm/gen'
-file 'vm/instructions.rb'            => 'vm/instructions_gen.rb'
-file 'vm/test/test_instructions.hpp' => 'vm/instructions_gen.rb'
+file 'vm/instructions.rb'            => 'vm/codegen/instructions_gen.rb'
+file 'vm/test/test_instructions.hpp' => 'vm/codegen/instructions_gen.rb'
 file 'vm/field_extract.rb'           => 'vm/gen'
 
 files INSN_GEN, %w[vm/instructions.rb] do |t|

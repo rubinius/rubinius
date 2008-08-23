@@ -3602,7 +3602,7 @@ end
 # manipulated and examined.
 #
 
-require File.dirname(__FILE__) + "/instructions_gen.rb"
+require File.dirname(__FILE__) + "/codegen/instructions_gen.rb"
 
 if $0 == __FILE__
   si = Instructions.new

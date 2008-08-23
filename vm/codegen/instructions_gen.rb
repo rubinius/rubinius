@@ -7,7 +7,7 @@
 # describe instructions, etc.
 #
 
-require "#{File.dirname(__FILE__)}/../kernel/core/iseq"
+require "#{File.dirname(__FILE__)}/../../kernel/core/iseq"
 require 'rubygems'
 require 'parse_tree'
 
