@@ -119,7 +119,7 @@ namespace rubinius {
       /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
          or whatever the library suffix is. */
       memset(sys_name, 0, 128);
-      strlcpy(sys_name, *path, sizeof(sys_name));
+      strlcpy(sys_name, path->byte_address(), sizeof(sys_name));
       strlcat(sys_name, LIBSUFFIX, sizeof(sys_name));
 
       /* Open it up. If this fails, then we just pretend like
@@ -128,7 +128,7 @@ namespace rubinius {
       if(!lib) {
 #ifdef LIBSUFFIX2
         memset(sys_name, 0, 128);
-        strlcpy(sys_name, *path, sizeof(sys_name));
+        strlcpy(sys_name, path->byte_address(), sizeof(sys_name));
         strlcat(sys_name, LIBSUFFIX2, sizeof(sys_name));
 
         lib = xdlopen(sys_name);
@@ -139,9 +139,9 @@ namespace rubinius {
       }
     }
 
-    ep = xdlsym(lib, *name);
+    ep = xdlsym(lib, name->byte_address());
     if(!ep) {
-      ep = xdlsym2(*name);
+      ep = xdlsym2(name->byte_address());
     }
     return ep;
   }

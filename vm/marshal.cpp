@@ -39,17 +39,18 @@ namespace rubinius {
 
   void Marshaller::set_string(String* str) {
     stream << "s" << endl << str->size() << endl;
-    stream.write((char*)*str, str->size()) << endl;
+    stream.write(str->byte_address(), str->size()) << endl;
   }
 
   String* UnMarshaller::get_string() {
     size_t count;
 
     stream >> count;
-    String* str = String::create(state, NULL, count + 1);
+    // String::create adds room for a trailing null on its own
+    String* str = String::create(state, NULL, count);
 
     stream.get(); // read off newline
-    stream.read((char*)*str, count);
+    stream.read(str->byte_address(), count);
     stream.get(); // read off newline
 
     return str;
@@ -58,7 +59,7 @@ namespace rubinius {
   void Marshaller::set_symbol(SYMBOL sym) {
     String* str = sym->to_str(state);
     stream << "x" << endl << str->size() << endl;
-    stream.write((char*)*str, str->size()) << endl;
+    stream.write(str->byte_address(), str->size()) << endl;
   }
 
   SYMBOL UnMarshaller::get_symbol() {
@@ -76,7 +77,7 @@ namespace rubinius {
   void Marshaller::set_sendsite(SendSite* ss) {
     String* str = ss->name->to_str(state);
     stream << "S" << endl << str->size() << endl;
-    stream.write((char*)*str, str->size()) << endl;
+    stream.write(str->byte_address(), str->size()) << endl;
   }
 
   SendSite* UnMarshaller::get_sendsite() {

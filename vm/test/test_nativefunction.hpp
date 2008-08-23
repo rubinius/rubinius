@@ -559,7 +559,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     OBJECT out = func->call(state, msg);
 
     TS_ASSERT(kind_of<String>(out));
-    TS_ASSERT_EQUALS((char*)*(as<String>(out)), std::string("whatever"));
+    TS_ASSERT_EQUALS(as<String>(out)->byte_address(), std::string("whatever"));
 
     input = Array::create(state, 1);
     input->set(state, 0, Qnil);
@@ -598,7 +598,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<String>(o1));
     TS_ASSERT(kind_of<MemoryPointer>(o2));
 
-    TS_ASSERT_EQUALS((char*)*(as<String>(o1)), std::string("whatever"));
+    TS_ASSERT_EQUALS(as<String>(o1)->byte_address(), std::string("whatever"));
     TS_ASSERT(strcmp((char*)(as<MemoryPointer>(o2)->pointer), "whatever") == 0);
 
     input = Array::create(state, 1);

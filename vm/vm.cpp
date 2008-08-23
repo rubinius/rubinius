@@ -150,7 +150,7 @@ namespace rubinius {
   void VM::inspect(OBJECT obj) {
     if(obj->symbol_p()) {
       String* str = as<Symbol>(obj)->to_str(this);
-      std::cout << "<Symbol :" << (char*)*str << ">" << std::endl;
+      std::cout << "<Symbol :" << str->byte_address() << ">" << std::endl;
     } else if(obj->fixnum_p()) {
       std::cout << "<Fixnum " << as<Fixnum>(obj)->to_native() << ">" << std::endl;
     } else {
@@ -175,17 +175,17 @@ namespace rubinius {
         std::cout << "__block__";
       } else {
         // HACK reports Object#[] instead of Hash::[], etc
-        std::cout << *ctx->module->name->to_str(this) << "#";
+        std::cout << ctx->module->name->to_str(this)->byte_address() << "#";
 
         SYMBOL name = try_as<Symbol>(ctx->name);
         if(name) {
-          std::cout << *name->to_str(this);
+          std::cout << name->to_str(this)->byte_address();
         } else {
-          std::cout << *ctx->cm->name->to_str(this);
+          std::cout << ctx->cm->name->to_str(this)->byte_address();
         }
       }
 
-      std::cout << ":" << ctx->line() << " in " << *ctx->cm->file->to_str(this);
+      std::cout << ":" << ctx->line() << " in " << ctx->cm->file->to_str(this)->byte_address();
 
       std::cout << "\n";
       ctx = ctx->sender;

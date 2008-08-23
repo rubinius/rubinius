@@ -3200,12 +3200,22 @@ class Instructions
 
   def string_append
     <<-CODE
-    OBJECT t1 = stack_pop();
-    OBJECT t2 = stack_pop();
-    String* s1 = as<String>(t1);
-    String* s2 = as<String>(t2);
+    String* s1 = as<String>(stack_pop());
+    String* s2 = as<String>(stack_pop());
     s1->append(state, s2);
-    stack_push(t1);
+    stack_push(s1);
+    CODE
+  end
+
+  def test_string_append
+    <<-CODE
+      String* s1 = String::create(state, "first");
+      String* s2 = String::create(state, " second");
+      task->push(s2);
+      task->push(s1);
+      run();
+      TS_ASSERT_EQUALS(task->stack_at(0)->class_object(state), G(string));
+      TS_ASSERT_SAME_DATA(as<String>(task->pop())->byte_address(), "first second", 13);
     CODE
   end
 

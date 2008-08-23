@@ -474,7 +474,7 @@ class TestFixnum : public CxxTest::TestSuite {
 
   void test_to_s() {
     String* n = Fixnum::from(86545)->to_s(state);
-    TS_ASSERT_EQUALS(std::string("86545"), (char*)*n);
+    TS_ASSERT_EQUALS(std::string("86545"), n->byte_address());
   }
 
   void test_uncastable_object_throws_exception() {

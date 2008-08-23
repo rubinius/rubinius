@@ -15,30 +15,22 @@
 
 namespace rubinius {
 
-  size_t String::size(STATE) {
-    return num_bytes->to_native();
-  }
-
+  // String::size returns the actual number of bytes, without consideration
+  // for a trailing null byte.  String::create(state, "foo")->size() is 3.
   size_t String::size() {
     return num_bytes->to_native();
   }
 
-  /* TODO: since we're technically say it's ok to change this, we might
-   * want to copy it first. */
-  String::operator char *() {
-    return (char*)(data->bytes);
-  }
-
   String* String::allocate(STATE, FIXNUM size) {
     String *so;
-    size_t bytes = size->to_native();
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
-    SET(so, num_bytes, Fixnum::from(bytes));
+    SET(so, num_bytes, size);
     SET(so, characters, so->num_bytes);
     SET(so, encoding, Qnil);
 
+    size_t bytes = size->to_native();
     OBJECT ba = ByteArray::create(state, bytes);
     ba->bytes[bytes] = 0;
 
@@ -47,10 +39,13 @@ namespace rubinius {
     return so;
   }
 
+  /* +bytes+ should NOT attempt to take the trailing null into account
+   * +bytes+ is the number of 'real' characters in the string
+   */
   String* String::create(STATE, const char* str, size_t bytes) {
     String *so;
 
-    if(!bytes) bytes = strlen(str);
+    if(bytes == 0) bytes = strlen(str);
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
@@ -76,7 +71,7 @@ namespace rubinius {
       return (hashval)as<Integer>(hash)->to_native();
     }
     bp = (unsigned char*)(data->bytes);
-    size_t sz = size(state);
+    size_t sz = size();
 
     hashval h = hash_str(bp, sz);
     SET(this, hash, Integer::from(state, h));
@@ -148,21 +143,7 @@ namespace rubinius {
   }
 
   String* String::append(STATE, String* other) {
-    if(shared) unshare(state);
-
-    size_t new_size = size() + other->size();
-
-    ByteArray *d2 = ByteArray::create(state, new_size + 1);
-    std::memcpy(d2->bytes, data->bytes, size());
-    std::memcpy(d2->bytes + size(), other->data->bytes, other->size());
-
-    d2->bytes[new_size] = 0;
-
-    num_bytes = Integer::from(state, new_size);
-    SET(this, data, d2);
-    SET(this, hash, Qnil);
-
-    return this;
+    return append(state, other->byte_address());
   }
 
   String* String::append(STATE, const char* other) {
@@ -171,13 +152,16 @@ namespace rubinius {
     size_t len = strlen(other);
     size_t new_size = size() + len;
 
+    // Leave one extra byte of room for the trailing null
     ByteArray *d2 = ByteArray::create(state, new_size + 1);
     std::memcpy(d2->bytes, data->bytes, size());
+    // Append on top of the null byte at the end of s1, not after it
     std::memcpy(d2->bytes + size(), other, len);
 
+    // This looks like it is off by one, but think about it.
     d2->bytes[new_size] = 0;
 
-    num_bytes = Integer::from(state, new_size);
+    SET(this, num_bytes, Integer::from(state, new_size));
     SET(this, data, d2);
     SET(this, hash, Qnil);
 
@@ -436,7 +420,7 @@ namespace rubinius {
 
   void String::Info::show(STATE, OBJECT self) {
     String* str = as<String>(self);
-    std::cout << *str << std::endl;
+    std::cout << str->byte_address() << std::endl;
   }
 
 }

@@ -604,7 +604,7 @@ class TestBignum : public CxxTest::TestSuite {
     Bignum* b = as<Bignum>(Bignum::from_string(state, buf, 10));
     String* s = b->to_s(state, Fixnum::from(10));
 
-    TS_ASSERT_EQUALS(std::string(buf), (char*)*s);
+    TS_ASSERT_EQUALS(std::string(buf), s->byte_address());
   }
 
   void test_size() {

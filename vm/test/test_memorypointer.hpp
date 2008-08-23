@@ -293,7 +293,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     String* so = as<String>(obj);
 
-    TS_ASSERT(!strncmp(str, *so, 4));
+    TS_ASSERT(!strncmp(str, so->byte_address(), 4));
   }
 
   void test_get_field_string_thats_null() {
@@ -318,7 +318,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     TS_ASSERT(ary->get(state, 0)->check_type(StringType));
     String *so = as<String>(ary->get(state, 0));
-    TS_ASSERT(!strncmp(str, *so, 4));
+    TS_ASSERT(!strncmp(str, so->byte_address(), 4));
 
     TS_ASSERT(ary->get(state, 1)->check_type(MemPtrType));
     MemoryPointer* mp = as<MemoryPointer>(ary->get(state, 1));

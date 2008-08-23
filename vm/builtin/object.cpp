@@ -459,12 +459,12 @@ namespace rubinius {
 
   void inspect(STATE, OBJECT obj) {
     String* name = obj->class_object(state)->name->to_str(state);
-    std::cout << "#<" << (char*)*name << ":" << (void*)obj << ">\n";
+    std::cout << "#<" << name->byte_address() << ":" << (void*)obj << ">\n";
   }
 
   void inspect(STATE, SYMBOL sym) {
     String* name = sym->to_str(state);
-    std::cout << ":" << (char*)*name << "\n";
+    std::cout << ":" << name->byte_address() << "\n";
   }
 
   void Object::cleanup(STATE) {

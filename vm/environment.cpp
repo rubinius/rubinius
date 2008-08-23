@@ -96,16 +96,16 @@ namespace rubinius {
   void Environment::set_rubinius_constants() {
     Module* rubinius = GO(rubinius).get();
 
-    String* ruby_version = String::create(state, "1.8.6", 6);
+    String* ruby_version = String::create(state, "1.8.6");
     rubinius->set_const(state, "RUBY_VERSION", ruby_version);
 
-    String* ruby_patchlevel = String::create(state, "111", 4);
+    String* ruby_patchlevel = String::create(state, "111");
     rubinius->set_const(state, "RUBY_PATCHLEVEL", ruby_patchlevel);
 
-    String* ruby_engine = String::create(state, "rbx", 4);
+    String* ruby_engine = String::create(state, "rbx");
     rubinius->set_const(state, "RUBY_ENGINE", ruby_engine);
 
-    String* rbx_version = String::create(state, "0.9.0", 6);
+    String* rbx_version = String::create(state, "0.9.0");
     rubinius->set_const(state, "RBX_VERSION", rbx_version);
   }
 }

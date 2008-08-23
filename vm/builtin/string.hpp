@@ -86,8 +86,6 @@ namespace rubinius {
     // Ruby.primitive :string_pattern
     static String* pattern(STATE, OBJECT self, FIXNUM size, OBJECT pattern);
 
-    operator char *();
-
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

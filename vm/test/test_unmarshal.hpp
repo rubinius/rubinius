@@ -82,7 +82,7 @@ public:
 
     TS_ASSERT(kind_of<String>(obj));
     String *str = as<String>(obj);
-    TS_ASSERT_EQUALS(std::string(*str), "blah");
+    TS_ASSERT_EQUALS(std::string(str->byte_address()), "blah");
   }
 
   void test_symbol() {
@@ -114,7 +114,7 @@ public:
     TS_ASSERT_EQUALS(ary->get(state, 1), state->symbol("foo"));
 
     String* str = as<String>(ary->get(state, 2));
-    TS_ASSERT_EQUALS(std::string("blah"), (char*)*str);
+    TS_ASSERT_EQUALS(std::string("blah"), str->byte_address());
   }
 
   void test_tuple() {

@@ -280,7 +280,7 @@ namespace rubinius {
   }
 
   void VMLLVMMethod::compile(STATE) {
-    char* name = *original->name->to_str(state);
+    char* name = original->name->to_str(state)->byte_address();
     Function* func = create_function(name);
 
     Function::arg_iterator args = func->arg_begin();

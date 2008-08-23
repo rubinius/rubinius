@@ -170,8 +170,8 @@ stack_cleanup:
       probe->lookup_failed(this, msg);
     }
     std::stringstream ss;
-    ss << "unable to locate any method '" << *msg.send_site->name->to_str(state) << 
-      "' from '" << *msg.lookup_from->name->to_str(state) << "'";
+    ss << "unable to locate any method '" << msg.send_site->name->to_str(state)->byte_address() <<
+      "' from '" << msg.lookup_from->name->to_str(state)->byte_address() << "'";
 
     Assertion::raise((char*)ss.str().c_str());
   }
@@ -429,7 +429,10 @@ stack_cleanup:
   static Class* check_superclass(STATE, Class* cls, OBJECT super) {
     if(super->nil_p()) return cls;
     if(cls->superclass != super) {
-      std::cout << "mismatch: " << *cls->name->to_str(state) << " != " << *as<Class>(super)->name->to_str(state) << "\n";
+      std::cout << "mismatch: "
+        << cls->name->to_str(state)->byte_address()
+        << " != " << as<Class>(super)->name->to_str(state)->byte_address()
+        << "\n";
       TypeError::raise(Class::type, super, "superclass mismatch");
     }
 
