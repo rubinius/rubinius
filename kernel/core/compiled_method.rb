@@ -108,9 +108,20 @@ class CompiledMethod < Executable
   # being used.
 
   attr_accessor :hints
-  attr_accessor :__ivars__, :primitive, :name, :iseq, :stack_size
-  attr_accessor :local_count, :required_args, :total_args, :splat, :literals
-  attr_accessor :exceptions, :lines, :file, :local_names
+  attr_accessor :__ivars__
+  attr_accessor :primitive
+  attr_accessor :name
+  attr_accessor :iseq
+  attr_accessor :stack_size
+  attr_accessor :local_count
+  attr_accessor :required_args
+  attr_accessor :total_args
+  attr_accessor :splat
+  attr_accessor :literals
+  attr_accessor :exceptions
+  attr_accessor :lines
+  attr_accessor :file
+  attr_accessor :local_names
 
   def ==(other)
     return false unless other.kind_of?(CompiledMethod)
