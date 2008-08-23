@@ -1,10 +1,12 @@
 class BasicPrimitive
   attr_accessor :pass_state
   attr_accessor :pass_self
+  attr_accessor :raw
 
   def output_header(str)
     str << "bool Primitives::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
-    str << "  OBJECT ret;\n"
+    return str if @raw
+    str << "  OBJECT ret;\n" 
     str << "  OBJECT self;\n" if @pass_self
     str << "  try {\n"
   end
@@ -54,10 +56,18 @@ class CPPPrimitive < BasicPrimitive
     str << "    #{@type}* recv;\n"
     str << "    if((recv = try_as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
 
-    args = output_args str, arg_types
-    str << "    self = recv;\n" if @pass_self
+    # Raw primitives must return bool, not Object*
+    if @raw
+      str << "  return recv->#{@cpp_name}(state, exec, task, msg);\n"
+      str << "fail:\n"
+      str << "  return VMMethod::executor(state, exec, task, msg);\n"
+      str << "}\n\n"
+    else
+      args = output_args str, arg_types
+      str << "    self = recv;\n" if @pass_self
 
-    output_call str, "recv->#{@cpp_name}", args
+      output_call str, "recv->#{@cpp_name}", args
+    end
 
     return str
   end
@@ -354,7 +364,7 @@ class CPPParser
   def parse_stream(f)
     class_pattern = /class ([^\s]+)\s*:\s*public\s+([^\s]+) \{/
     slot_pattern = %r!^\s*(\w+)\*?\s+\*?(\w+)\s*;\s*//\s*slot(.*)!
-    primitive_pattern = %r%^\s*//\s+Ruby.primitive(!)?\s+:(.*)\s*$%
+    primitive_pattern = %r%^\s*//\s+Ruby.primitive([?!])?\s+:(.*)\s*$%
     prototype_pattern = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!
 
     while l = f.gets
@@ -406,6 +416,7 @@ class CPPParser
         # A primitive declaration marked with '// Ruby.primitive'
         elsif m = primitive_pattern.match(l)
           overload = m[1] == "!"
+          raw = m[1] == "?"
           prim = m[2]
           prototype = f.gets
 
@@ -424,7 +435,12 @@ class CPPParser
             pass_self = false
           end
 
-          arg_types = args.map { |a| strip_and_map(a.split(/\s+/, 2).first, @type_map) }
+          if raw then
+            arg_types = []
+          else
+            arg_types = args.map { |a| strip_and_map(a.split(/\s+/, 2).first, @type_map) }
+          end
+
           if m[1]
             if overload
               raise "Unable to overload static primitives."
@@ -434,6 +450,7 @@ class CPPParser
             obj = cpp.add_primitive prim, m[3], @type_map[m[2]], arg_types, overload
           end
 
+          obj.raw = raw
           obj.pass_state = pass_state
           obj.pass_self = pass_self
         end
