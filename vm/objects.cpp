@@ -69,7 +69,8 @@ namespace rubinius {
   // TODO: document
   Class* VM::new_class(OBJECT sup, size_t fields) {
     Class *cls = new_basic_class(sup, fields);
-    MetaClass::attach(this, cls);
+    // HACK test attaching up metaclass' superclass
+    MetaClass::attach(this, cls, sup->metaclass(this));
     return cls;
   }
 
@@ -260,7 +261,9 @@ namespace rubinius {
     globals.special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
     globals.special_classes[(uintptr_t)Qtrue ] = GO(true_class);
 
-    GO(main).set(om->new_object(G(object), 1));
+    Object* main = om->new_object(G(object), 1);
+    GO(main).set(main);
+    G(object)->set_const(state, "MAIN", main); // HACK test hooking up MAIN
 
     Regexp::init(this);
 
