@@ -568,7 +568,8 @@ class Instructions
 
   def push_block
     <<-CODE
-    stack_push(task->active->block);
+    // HACK test this for yield in block to outer block
+    stack_push(task->home->block);
     CODE
   end
 
@@ -3252,8 +3253,9 @@ class Instructions
   #   * block_env
   #   * ...
   # [Description]
-  #   Takes a +compiled_method+ out o the literals tuple, and converts it into a
-  #   block environment +block_env+, which is then pushed back onto the stack.
+  #   Takes a +compiled_method+ out of the literals tuple, and converts it
+  #   into a block environment +block_env+, which is then pushed back onto the
+  #   stack.
 
   def create_block(index)
     <<-CODE
@@ -3271,6 +3273,7 @@ class Instructions
     parent->reference(state);
     task->active->reference(state);
 
+    // HACK not sure this needs to be here all the time
     cm->set_scope(task->active->cm->scope);
 
     OBJECT t2 = BlockEnvironment::under_context(state, cm, parent, task->active, index);
