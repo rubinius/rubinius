@@ -34,6 +34,12 @@ namespace rubinius {
     throw std::runtime_error("call2: not implemented");
   }
 
+  // TODO - Untested!!!!!!!!!!
+  bool BlockEnvironment::call_prim(STATE, VMExecutable* exec, Task* task, Message& msg) {
+    call(state, task, msg.args);
+    return true;
+  }
+
   /*
    * Allocates a context, adjusting the initial stack pointer by the number of
    * locals the method requires.

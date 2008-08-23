@@ -11,6 +11,7 @@ namespace rubinius {
   class Message;
   class VMMethod;
   class Task;
+  class VMExecutable;
 
   class BlockEnvironment : public Object {
     public:
@@ -29,6 +30,9 @@ namespace rubinius {
     void call(STATE, Task* task, size_t args);
     void call(STATE, Message& msg);
     BlockContext* create_context(STATE, MethodContext* sender);
+
+    // Ruby.primitive? :block_call
+    bool call_prim(STATE, VMExecutable* exec, Task* task, Message& msg);
 
     class Info : public TypeInfo {
     public:
