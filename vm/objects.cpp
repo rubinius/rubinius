@@ -100,6 +100,7 @@ namespace rubinius {
   // TODO: document
   Class* VM::new_class(const char* name, OBJECT sup, size_t fields, Module* under) {
     Class* cls = new_class(sup, fields);
+    SET(cls, instance_type, as<Class>(sup)->instance_type);
     cls->setup(this, name, under);
     return cls;
   }
@@ -348,6 +349,7 @@ namespace rubinius {
 #define dexc(name, sup) new_class(#name, sup, sz)
 
     exc = dexc(Exception, G(object));
+    exc->set_object_type(ExceptionType); // HACK test
     GO(exception).set(exc);
     dexc(fatal, exc);
     vm = dexc(VMError, exc);

@@ -1,6 +1,6 @@
 /* An Environment is the toplevel class for Rubinius. It manages multiple
  * VMs, as well as imports C data from the process into Rubyland. */
-
+#include "prelude.hpp"
 #include "environment.hpp"
 #include "config.hpp" // HACK rename to config_parser.hpp
 #include "compiled_file.hpp"
@@ -8,6 +8,8 @@
 #include "builtin/array.hpp"
 #include "builtin/string.hpp"
 #include "builtin/module.hpp"
+#include "builtin/task.hpp"
+#include "builtin/exception.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -74,6 +76,13 @@ namespace rubinius {
 
     // TODO check version number
     cf->execute(state);
+
+    if(!G(current_task)->exception->nil_p()) {
+      // Reset the context so we can show the backtrace
+      // HACK need to use write barrier aware stuff?
+      G(current_task)->active = G(current_task)->exception->context;
+      Assertion::raise("exception detected at toplevel");
+    }
   }
 
   /*

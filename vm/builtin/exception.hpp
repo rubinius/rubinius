@@ -5,6 +5,8 @@
 #include "type_info.hpp"
 
 namespace rubinius {
+  class MethodContext;
+
   class Exception : public Object {
   public:
     const static size_t fields = 2;
@@ -12,7 +14,7 @@ namespace rubinius {
 
     static Exception* create(STATE);
     OBJECT message; // slot
-    OBJECT context; // slot
+    MethodContext* context; // slot
 
     class Info : public TypeInfo {
     public:

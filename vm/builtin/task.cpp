@@ -240,6 +240,8 @@ stack_cleanup:
   }
 
   void Task::raise_exception(Exception* exc) {
+    SET(this, exception, exc); // HACK test that we set this
+
     for(;;) {
       int ip = active->ip;
       Tuple* table = active->cm->exceptions;
@@ -255,7 +257,7 @@ stack_cleanup:
       }
 
       if(active->sender->nil_p()) break;
-      make_active(active->sender);
+      restore_context(active->sender); // HACK test to prevent infinite loop
     }
   }
 
