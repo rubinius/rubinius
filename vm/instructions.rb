@@ -1488,6 +1488,7 @@ class Instructions
     SYMBOL sym = as<Symbol>(task->literals->field[index]);
     OBJECT res = task->const_get(under, sym, &found);
     if(!found) {
+      sym->show(state);
       Assertion::raise("implement const_missing");
     } else {
       stack_push(res);
