@@ -7,6 +7,10 @@
 # describe instructions, etc.
 #
 
+class Object # for vm debugging
+  def __show__; end
+end
+
 require "#{File.dirname(__FILE__)}/../../kernel/core/iseq"
 require 'rubygems'
 require 'parse_tree'
