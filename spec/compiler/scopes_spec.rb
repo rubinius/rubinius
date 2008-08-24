@@ -269,6 +269,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
+        d.push_self
+        d.add_scope
         d.push 12
         d.ret
       end
@@ -289,6 +291,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
+        d.push_self
+        d.add_scope
         d.push 12
         d.ret
       end
@@ -310,6 +314,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
+        d.push_self
+        d.add_scope
         d.push 12
         d.ret
       end
@@ -331,6 +337,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
+        d.push_self
+        d.add_scope
         d.push 1
         d.set_local 0
         d.ret
@@ -353,6 +361,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
+        d.push_self
+        d.add_scope
         d.push 12
         d.ret
       end
@@ -372,6 +382,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
+        d.push_self
+        d.add_scope
         d.push 12
         d.ret
       end
