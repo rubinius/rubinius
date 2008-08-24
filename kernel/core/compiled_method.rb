@@ -122,6 +122,7 @@ class CompiledMethod < Executable
   attr_accessor :lines
   attr_accessor :file
   attr_accessor :local_names
+  attr_accessor :staticscope
 
   def ==(other)
     return false unless other.kind_of?(CompiledMethod)
