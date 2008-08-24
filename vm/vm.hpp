@@ -57,19 +57,36 @@ namespace rubinius {
     VM(size_t bytes = default_bytes);
     ~VM();
 
+    void bootstrap_class();
     void bootstrap_ontology();
     void bootstrap_symbol();
     void bootstrap_exceptions();
+    void initialize_builtin_classes();
+    void initialize_platform_data();
     void boot_threads();
 
     OBJECT new_object(Class* cls);
-    Class* new_basic_class(OBJECT sup, size_t fields);
-    Class* new_class(OBJECT sup, size_t fields);
+
+    // Create an uninitialized Class object
+    Class* new_basic_class(Class* sup, size_t fields);
+
+    // Create a Class of name +name+ as an Object subclass
     Class* new_class(const char* name);
-    Class* new_class(const char* name, size_t fields);
-    Class* new_class(const char* name, Module* under);
-    Class* new_class(const char* name, OBJECT sup, size_t fields);
-    Class* new_class(const char* name, OBJECT sup, size_t fields, Module* under);
+
+    // Create a Class of name +name+ as a subclass of +super_class+
+    Class* new_class(const char* name, Class* super_class);
+
+    // Create a Class of name +name+ as a subclass of +sup+, having
+    // +fields+ instance fields
+    Class* new_class(const char* name, Class* sup, size_t fields);
+
+    // Create a Class of name +name+ as a subclass of +sup+, having
+    // +fields+ instance fields, under Module +under+
+    Class* new_class(const char* name, Class* sup, size_t fields, Module* under);
+
+    // Create a Class of name +name+ under +under+
+    Class* VM::new_class_under(const char* name, Module* under);
+
     Module* new_module(const char* name, Module* under = NULL);
     OBJECT new_struct(Class* cls, size_t bytes);
     Task* new_task();

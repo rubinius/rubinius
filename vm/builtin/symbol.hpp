@@ -19,6 +19,7 @@ namespace rubinius {
     // Ruby.primitive :symbol_index
     INTEGER index(STATE);
 
+    static void init(STATE);
     static Symbol* from_index(STATE, size_t index);
 
     // Ruby.primitive :symbol_to_s

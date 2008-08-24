@@ -1,6 +1,7 @@
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/class.hpp"
 #include "objectmemory.hpp"
 
 /* Implementation certain Array methods. These methods are just
@@ -10,10 +11,14 @@
 
 namespace rubinius {
 
+  void Array::init(STATE) {
+    GO(array).set(state->new_class("Array", G(object), Array::fields));
+    G(array)->set_object_type(ArrayType);
+  }
+
   size_t Array::size() {
     return total->to_native();
   }
-
 
   Array* Array::create(STATE, size_t idx) {
     Array* ary;
@@ -39,6 +44,14 @@ namespace rubinius {
     SET(this, tuple, Tuple::create(state, size));
     SET(this, start, Fixnum::from(0));
     SET(this, total, Fixnum::from(0));
+  }
+
+  OBJECT Array::aref(STATE, Fixnum* idx) {
+    return this->get(state, idx->to_native());
+  }
+
+  OBJECT Array::aset(STATE, Fixnum* idx, OBJECT val) {
+    return this->set(state, idx->to_native(), val);
   }
 
   OBJECT Array::get(STATE, size_t idx) {

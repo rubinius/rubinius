@@ -409,7 +409,7 @@ class Instructions
 
   def push_local(index)
     <<-CODE
-    stack_push(task->get_local(index));
+    stack_push(task->home->get_local(index)); // HACK test vs. ->home-less
     CODE
   end
 
@@ -568,7 +568,8 @@ class Instructions
 
   def push_block
     <<-CODE
-    stack_push(task->active->block);
+    // HACK test this for yield in block to outer block
+    stack_push(task->home->block);
     CODE
   end
 
@@ -983,7 +984,7 @@ class Instructions
 
   def set_local(index)
     <<-CODE
-    task->set_local(index, stack_top());
+    task->home->set_local(index, stack_top()); // HACK test vs. ->home-less
     CODE
   end
 
@@ -1487,6 +1488,7 @@ class Instructions
     SYMBOL sym = as<Symbol>(task->literals->field[index]);
     OBJECT res = task->const_get(under, sym, &found);
     if(!found) {
+      sym->show(state);
       Assertion::raise("implement const_missing");
     } else {
       stack_push(res);
@@ -2294,7 +2296,12 @@ class Instructions
     msg.args = count;
     msg.recv = stack_back(count);
     msg.stack = count + 1;
-    msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+    
+    if(ary->nil_p()) {
+      msg.use_from_task(task, count);
+    } else {
+      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+    }
 
     msg.priv = task->call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -2404,7 +2411,7 @@ class Instructions
     target->required_args = target->total_args;
     target->stack_size = Fixnum::from(1);
 
-    Class* parent = state->new_class("Parent", 1);
+    Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
     SYMBOL name = state->symbol("blah");
@@ -2477,7 +2484,12 @@ class Instructions
     msg.args = count;
     msg.recv = task->self;
     msg.stack = count;
-    msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+
+    if(ary->nil_p()) {
+      msg.use_from_task(task, count);
+    } else {
+      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+    }
 
     msg.priv = TRUE;
     msg.lookup_from = task->current_module()->superclass;
@@ -2500,7 +2512,7 @@ class Instructions
     target->required_args = target->total_args;
     target->stack_size = Fixnum::from(2);
 
-    Class* parent = state->new_class("Parent", 1);
+    Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
     SYMBOL name = state->symbol("blah");
@@ -3188,12 +3200,22 @@ class Instructions
 
   def string_append
     <<-CODE
-    OBJECT t1 = stack_pop();
-    OBJECT t2 = stack_pop();
-    String* s1 = as<String>(t1);
-    String* s2 = as<String>(t2);
+    String* s1 = as<String>(stack_pop());
+    String* s2 = as<String>(stack_pop());
     s1->append(state, s2);
-    stack_push(t1);
+    stack_push(s1);
+    CODE
+  end
+
+  def test_string_append
+    <<-CODE
+      String* s1 = String::create(state, "first");
+      String* s2 = String::create(state, " second");
+      task->push(s2);
+      task->push(s1);
+      run();
+      TS_ASSERT_EQUALS(task->stack_at(0)->class_object(state), G(string));
+      TS_ASSERT_SAME_DATA(as<String>(task->pop())->byte_address(), "first second", 13);
     CODE
   end
 
@@ -3252,8 +3274,9 @@ class Instructions
   #   * block_env
   #   * ...
   # [Description]
-  #   Takes a +compiled_method+ out o the literals tuple, and converts it into a
-  #   block environment +block_env+, which is then pushed back onto the stack.
+  #   Takes a +compiled_method+ out of the literals tuple, and converts it
+  #   into a block environment +block_env+, which is then pushed back onto the
+  #   stack.
 
   def create_block(index)
     <<-CODE
@@ -3271,6 +3294,7 @@ class Instructions
     parent->reference(state);
     task->active->reference(state);
 
+    // HACK not sure this needs to be here all the time
     cm->set_scope(task->active->cm->scope);
 
     OBJECT t2 = BlockEnvironment::under_context(state, cm, parent, task->active, index);
@@ -3602,7 +3626,7 @@ end
 # manipulated and examined.
 #
 
-require File.dirname(__FILE__) + "/instructions_gen.rb"
+require File.dirname(__FILE__) + "/codegen/instructions_gen.rb"
 
 if $0 == __FILE__
   si = Instructions.new

@@ -24,10 +24,10 @@
 namespace rubinius {
 
   void Task::init(STATE) {
-    GO(task).set(state->new_class("Task", Task::fields));
+    GO(task).set(state->new_class("Task", G(object), Task::fields));
     G(task)->set_object_type(Task::type);
 
-    GO(channel).set(state->new_class("Channel", Channel::fields));
+    GO(channel).set(state->new_class("Channel", G(object), Channel::fields));
     G(channel)->set_object_type(Channel::type);
   }
 
@@ -170,8 +170,8 @@ stack_cleanup:
       probe->lookup_failed(this, msg);
     }
     std::stringstream ss;
-    ss << "unable to locate any method '" << *msg.send_site->name->to_str(state) << 
-      "' from '" << *msg.lookup_from->name->to_str(state) << "'";
+    ss << "unable to locate any method '" << msg.send_site->name->to_str(state)->byte_address() <<
+      "' from '" << msg.lookup_from->name->to_str(state)->byte_address() << "'";
 
     Assertion::raise((char*)ss.str().c_str());
   }
@@ -240,6 +240,8 @@ stack_cleanup:
   }
 
   void Task::raise_exception(Exception* exc) {
+    SET(this, exception, exc); // HACK test that we set this
+
     for(;;) {
       int ip = active->ip;
       Tuple* table = active->cm->exceptions;
@@ -255,7 +257,7 @@ stack_cleanup:
       }
 
       if(active->sender->nil_p()) break;
-      make_active(active->sender);
+      restore_context(active->sender); // HACK test to prevent infinite loop
     }
   }
 
@@ -427,7 +429,10 @@ stack_cleanup:
   static Class* check_superclass(STATE, Class* cls, OBJECT super) {
     if(super->nil_p()) return cls;
     if(cls->superclass != super) {
-      std::cout << "mismatch: " << *cls->name->to_str(state) << " != " << *as<Class>(super)->name->to_str(state) << "\n";
+      std::cout << "mismatch: "
+        << cls->name->to_str(state)->byte_address()
+        << " != " << as<Class>(super)->name->to_str(state)->byte_address()
+        << "\n";
       TypeError::raise(Class::type, super, "superclass mismatch");
     }
 
@@ -454,7 +459,7 @@ stack_cleanup:
 
     *created = false;
 
-    OBJECT obj = const_get(under, name, &found);
+    OBJECT obj = under->get_const(state, name, &found);
     if(found) return check_superclass(state, as<Class>(obj), super);
 
     *created = true;

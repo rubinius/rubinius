@@ -39,6 +39,7 @@ namespace rubinius {
     // MUST BE AT THE LAST DATA MEMBER
     OBJECT stk[];
 
+    static void init(STATE);
     static MethodContext* create(STATE, size_t stack_size);
     static MethodContext* create(STATE, OBJECT recv, CompiledMethod* meth);
     static void initialize_cache(STATE);

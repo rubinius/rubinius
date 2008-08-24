@@ -47,8 +47,28 @@ public:
     return true;
   }
 
+  void test_nil() {
+    mar->sstream.str(std::string("n\n"));
+    OBJECT obj = mar->unmarshal();
 
-  void test_init() {
+    TS_ASSERT_EQUALS(obj, Qnil);
+  }
+
+  void test_true() {
+    mar->sstream.str(std::string("t\n"));
+    OBJECT obj = mar->unmarshal();
+
+    TS_ASSERT_EQUALS(obj, Qtrue);
+  }
+
+  void test_false() {
+    mar->sstream.str(std::string("f\n"));
+    OBJECT obj = mar->unmarshal();
+
+    TS_ASSERT_EQUALS(obj, Qfalse);
+  }
+
+  void test_int() {
     mar->sstream.str(std::string("I\n3\n"));
     OBJECT obj = mar->unmarshal();
 
@@ -62,7 +82,7 @@ public:
 
     TS_ASSERT(kind_of<String>(obj));
     String *str = as<String>(obj);
-    TS_ASSERT_EQUALS(std::string(*str), "blah");
+    TS_ASSERT_EQUALS(std::string(str->byte_address()), "blah");
   }
 
   void test_symbol() {
@@ -94,7 +114,7 @@ public:
     TS_ASSERT_EQUALS(ary->get(state, 1), state->symbol("foo"));
 
     String* str = as<String>(ary->get(state, 2));
-    TS_ASSERT_EQUALS(std::string("blah"), (char*)*str);
+    TS_ASSERT_EQUALS(std::string("blah"), str->byte_address());
   }
 
   void test_tuple() {

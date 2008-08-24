@@ -54,16 +54,6 @@ class Time
     :usec => 1,
   }
 
-  def initialize
-    @timeval = Time.gettimeofday
-
-    # this flag specifies whether this Time instance represents
-    # local time or GMT. it is independent of the actual time zone.
-    @is_gmt = false
-
-    @tm = time_switch(@timeval.first, false)
-  end
-
   #--
   # TODO: doesn't load nsec or ivars
   #++
@@ -101,8 +91,11 @@ class Time
   #++
 
   def _dump(limit = nil)
-    tm = time_switch @timeval.first, true
-    year = tm[TM_FIELDS[:year]]
+    tm = @tm
+    is_gmt = @is_gmt
+
+    time_switch true
+    year = @tm[TM_FIELDS[:year]]
 
     if (year & 0xffff) != year then
       raise ArgumentError, "year too big to marshal: #{year}"
@@ -110,17 +103,20 @@ class Time
 
     gmt = @is_gmt ? 1 : 0
 
-    major = 1                    << 31 | # 1 bit
-            gmt                  << 30 | # 1 bit
-            tm[TM_FIELDS[:year]] << 14 | # 16 bits
-            tm[TM_FIELDS[:mon]]  << 10 | # 4 bits
-            tm[TM_FIELDS[:mday]] <<  5 | # 5 bits
-            tm[TM_FIELDS[:hour]]         # 5 bits
-    minor = tm[TM_FIELDS[:min]]  << 26 | # 6 bits
-            tm[TM_FIELDS[:sec]]  << 20 | # 6 bits
+    major = 1                     << 31 | # 1 bit
+            (@is_gmt ? 1 : 0)     << 30 | # 1 bit
+            @tm[TM_FIELDS[:year]] << 14 | # 16 bits
+            @tm[TM_FIELDS[:mon]]  << 10 | # 4 bits
+            @tm[TM_FIELDS[:mday]] <<  5 | # 5 bits
+            @tm[TM_FIELDS[:hour]]         # 5 bits
+    minor = @tm[TM_FIELDS[:min]]  << 26 | # 6 bits
+            @tm[TM_FIELDS[:sec]]  << 20 | # 6 bits
             @timeval[TIMEVAL_FIELDS[:usec]] # 20 bits
 
     [major, minor].pack 'VV'
+  ensure
+    @tm = tm
+    @is_gmt = is_gmt
   end
 
   def dup
@@ -202,7 +198,7 @@ class Time
   end
 
   def strftime(format)
-    __strftime(@tm, format.to_str)
+    __strftime__(@tm, format.to_str)
   end
 
   def inspect
@@ -376,14 +372,14 @@ class Time
   end
 
   def force_localtime
-    @tm = time_switch(@timeval.first, false)
+    time_switch false
     @is_gmt = false
 
     self
   end
 
   def force_gmtime
-    @tm = time_switch(@timeval.first, true)
+    time_switch true
     @is_gmt = true
 
     self

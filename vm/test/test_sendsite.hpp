@@ -35,6 +35,15 @@ class TestSendSite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ss->selector, sel);
 
     TS_ASSERT(sel->includes_p(state, ss));
+  }
 
+  void test_set_sender() {
+    OBJECT sym = state->symbol("blah");
+    SendSite* ss = SendSite::create(state, sym);
+    TS_ASSERT_EQUALS(ss->sender, Qnil);
+
+    CompiledMethod* cm = CompiledMethod::create(state);
+    TS_ASSERT_EQUALS(ss->set_sender(state, cm), Qnil);
+    TS_ASSERT_EQUALS(ss->sender, cm);
   }
 };

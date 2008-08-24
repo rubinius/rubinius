@@ -9,6 +9,7 @@
 
 namespace rubinius {
   void IO::init(STATE) {
+    GO(io).set(state->new_class("IO", G(object), IO::fields));
     GO(iobuffer).set(state->new_class("Buffer", G(object), IOBuffer::fields, G(io)));
   }
 

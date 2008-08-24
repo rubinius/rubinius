@@ -1,4 +1,4 @@
-# depends on: vm.rb
+# depends on: vm.rb compiled_method.rb
 
 class Module
   def method_table   ; @method_table ; end
@@ -7,34 +7,30 @@ class Module
   def name           ; @name.to_s    ; end
 
   def self.allocate
-    Ruby.primitive :module_allocate
-    raise PrimitiveFailure, "Module.allocate primitive failed"
+    Ruby.primitive :module_new_instance
+    raise PrimitiveFailure, "Module.new_instance primitive failed"
   end
 
   # Ultra simple private
   def private(name)
-    if cm = @method_table[name]
-      if cm.kind_of? Tuple
-        cm.put 0, :private
+    if entry = @method_table[name]
+      unless entry.kind_of? Executable
+        entry.visibility = :private
       else
-        tup = Tuple.new(2)
-        tup.put 0, :private
-        tup.put 1, cm
-        @method_table[name] = tup
+        cmv = CompiledMethod::Visibility.new entry, :private
+        @method_table[name] = cmv
       end
     end
   end
 
   # Ultra simple protected
   def protected(name)
-    if cm = @method_table[name]
-      if cm.kind_of? Tuple
-        cm.put 0, :protected
+    if entry = @method_table[name]
+      unless entry.kind_of? Executable
+        entry.visibility = :protected
       else
-        tup = Tuple.new(2)
-        tup.put 0, :protected
-        tup.put 1, cm
-        @method_table[name] = tup
+        cmv = CompiledMethod::Visibility.new entry, :protected
+        @method_table[name] = cmv
       end
     end
   end
@@ -69,7 +65,7 @@ class Module
       raise NoMethodError, "Unable to find method '#{current_name}' to alias to '#{new_name}'"
     end
     @method_table[new_name] = meth
-    # Rubinius::VM.reset_method_cache(new_name)
+    Rubinius::VM.reset_method_cache(new_name)
   end
 
   # 'superclass' method defined in class.rb,

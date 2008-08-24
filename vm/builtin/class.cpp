@@ -20,6 +20,8 @@ namespace rubinius {
 
     cls->setup(state);
 
+    MetaClass::attach(state, cls, super->metaclass(state)); // HACK test
+
     return cls;
   }
 

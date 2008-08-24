@@ -23,6 +23,7 @@ namespace rubinius {
   }
 
   OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {
+    // store_object performs bounds check
     state->om->store_object(this, idx, val);
     return val;
   }

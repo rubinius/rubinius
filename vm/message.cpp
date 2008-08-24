@@ -43,11 +43,12 @@ namespace rubinius {
     arguments = Array::create(state, splat->size() + args);
 
     import_arguments(state, task, args);
-    for(size_t i = 0, n = args; i < args; i++, n++) {
+    size_t stack_args = args;
+    args += splat->size();
+
+    for(size_t i = 0, n = stack_args; i < args; i++, n++) {
       arguments->set(state, n, splat->get(state, i));
     }
-
-    args += splat->size();
   }
 
   void Message::import_arguments(STATE, Task* task, size_t args) {

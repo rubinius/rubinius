@@ -38,6 +38,8 @@ namespace rubinius {
     INTEGER hash; // slot
     OBJECT shared; // slot
 
+    static void init(STATE);
+
     // Ruby.primitive :string_allocate
     static String* allocate(STATE, FIXNUM size);
 
@@ -85,8 +87,6 @@ namespace rubinius {
 
     // Ruby.primitive :string_pattern
     static String* pattern(STATE, OBJECT self, FIXNUM size, OBJECT pattern);
-
-    operator char *();
 
     class Info : public TypeInfo {
     public:

@@ -1,4 +1,4 @@
-# depends on: module.rb kernel.rb
+# depends on: module.rb kernel.rb misc.rb exception.rb global.rb
 
 ##
 # Namespace for coercion functions between various ruby objects.
@@ -104,7 +104,8 @@ module Kernel
 
   ##
   #--
-  # HACK :: added due to broken constant lookup rules
+  # HACK todo handle cascading raises (ie, TypeError raise
+  # raising forever blows)
   #++
 
   def raise(exc=Undefined, msg=nil, trace=nil)

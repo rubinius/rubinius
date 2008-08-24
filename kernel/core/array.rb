@@ -862,7 +862,11 @@ class Array
   # each element in self to the supplied block.
   def map()
     out = []
-    each { |elem| out << yield(elem) }
+    each { |elem|
+      #out << yield(elem) # HACK this should work, raises on #<< (I think)
+      val = yield(elem)
+      out << val
+    }
     out
   end
 

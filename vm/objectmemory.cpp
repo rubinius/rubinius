@@ -177,14 +177,21 @@ namespace rubinius {
     return obj;
   }
 
+  /* An Object field is the size of a pointer on any particular
+   * platform. An Object that stores bytes must be aligned to an
+   * integral number of fields. For example, if sizeof(OBJECT) == 4,
+   * then an object that stores bytes must be 4, 8, 12, 16, ..., 4n
+   * bytes in size. This corresponds to 1, 2, 3, 4, ..., n fields.
+   */
   OBJECT ObjectMemory::new_object_bytes(Class* cls, size_t bytes) {
     const size_t mag = sizeof(OBJECT);
     size_t fields;
-    size_t needed = bytes + 1;
-    if(needed <= mag) {
-      fields =  1;
+
+    if(bytes == 0) {
+      fields = 1;
     } else {
-      fields = (needed + (mag - (needed & mag - 1))) / mag;
+      fields = bytes % mag == 0 ? bytes  : bytes + mag;
+      fields /= mag;
     }
 
     OBJECT obj = create_object(cls, fields);

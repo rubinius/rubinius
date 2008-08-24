@@ -11,7 +11,7 @@
 namespace rubinius {
   void Selector::init(STATE) {
     GO(selectors).set(LookupTable::create(state));
-    Class* cls = state->new_class("Selector", Selector::fields);
+    Class* cls = state->new_class("Selector", G(object), Selector::fields);
     cls->set_object_type(SelectorType);
 
     GO(selector).set(cls);

@@ -14,17 +14,7 @@ class Rubinius::VM
   end
 
   def self.reset_method_cache(sym)
-    Ruby.primitive :reset_method_cache
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def self.save_encloser_path
-    Ruby.primitive :save_encloser_path
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def self.restore_encloser_path
-    Ruby.primitive :restore_encloser_path
+    Ruby.primitive :vm_reset_method_cache
     raise PrimitiveFailure, "primitive failed"
   end
 

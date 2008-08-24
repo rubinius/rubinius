@@ -41,7 +41,7 @@ namespace rubinius {
 
   String* SymbolTable::lookup_string(STATE, Symbol* sym) {
     std::string str = strings[sym->index()];
-    return String::create(state, str.c_str(), str.size());
+    return String::create(state, str.c_str());
   }
 
   size_t SymbolTable::size() {

@@ -18,7 +18,7 @@ namespace rubinius {
 
     GO(scheduled_threads).set(tup);
 
-    GO(thread).set(state->new_class("Thread",  Thread::fields));
+    GO(thread).set(state->new_class("Thread", G(object), Thread::fields));
     G(thread)->set_object_type(Thread::type);
 
     G(thread)->set_const(state, "ScheduledThreads", tup);

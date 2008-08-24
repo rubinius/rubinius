@@ -10,7 +10,7 @@
 
 namespace rubinius {
   void SendSite::init(STATE) {
-    GO(send_site).set(state->new_class("SendSite", (size_t)0));
+    GO(send_site).set(state->new_class("SendSite"));
     G(send_site)->set_object_type(SendSiteType);
   }
 
@@ -31,6 +31,11 @@ namespace rubinius {
     if(resolver) delete resolver;
     specialized = false;
     resolver = new GlobalCacheResolver;
+  }
+
+  OBJECT SendSite::set_sender(STATE, CompiledMethod* cm) {
+    SET(this, sender, cm);
+    return Qnil;
   }
 
   /* Indicates that the object hasn't been specialized in anyway */

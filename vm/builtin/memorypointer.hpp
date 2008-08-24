@@ -11,11 +11,58 @@ namespace rubinius {
     const static object_type type = MemPtrType;
 
     void* pointer;
+    bool autorelease;
 
     static MemoryPointer* create(STATE, void* ptr);
 
+    // Ruby.primitive :memorypointer_address
+    Integer* get_address(STATE);
+
+    // Ruby.primitive :memorypointer_set_autorelease
+    OBJECT set_autorelease(STATE, OBJECT val);
+
+    // Ruby.primitive :memorypointer_add
+    MemoryPointer* add(STATE, Integer* amount);
+
+    // Ruby.primitive :memorypointer_write_int
+    Integer* write_int(STATE, Integer* val);
+
+    // Ruby.primitive :memorypointer_read_int
+    Integer* read_int(STATE);
+
+    // Ruby.primitive :memorypointer_write_long
+    Integer* write_long(STATE, Integer* val);
+
+    // Ruby.primitive :memorypointer_read_long
+    Integer* read_long(STATE);
+
+    // Ruby.primitive :memorypointer_write_float
+    Float* write_float(STATE, Float* val);
+
+    // Ruby.primitive :memorypointer_read_float
+    Float* read_float(STATE);
+
+    // Ruby.primitive :memorypointer_read_pointer
+    MemoryPointer* read_pointer(STATE);
+
+    // Ruby.primitive :memorypointer_read_string
+    String* read_string(STATE, FIXNUM len);
+
+    // Ruby.primitive :memorypointer_read_string_to_null
+    String* read_string_to_null(STATE);
+
+    // Ruby.primitive :memorypointer_write_string
+    MemoryPointer* write_string(STATE, String* str, FIXNUM len);
+
     OBJECT get_field(STATE, int offset, int type);
+
+    // Ruby.primitive :memorypointer_get_field
+    OBJECT get_field_prim(STATE, FIXNUM offset, FIXNUM type);
+
     void   set_field(STATE, int offset, int type, OBJECT val);
+
+    // Ruby.primitive :memorypointer_set_field
+    OBJECT set_field_prim(STATE, FIXNUM offset, FIXNUM type, OBJECT val);
 
     class Info : public TypeInfo {
     public:

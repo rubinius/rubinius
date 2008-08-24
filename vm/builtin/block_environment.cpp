@@ -4,6 +4,7 @@
 #include "block_environment.hpp"
 #include "objectmemory.hpp"
 
+#include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
@@ -12,6 +13,13 @@
 #include "builtin/tuple.hpp"
 
 namespace rubinius {
+
+  void BlockEnvironment::init(STATE) {
+    GO(blokenv).set(state->new_class("BlockEnvironment", G(object), 
+          BlockEnvironment::fields));
+    G(blokenv)->set_object_type(BlockEnvType);
+  }
+
   void BlockEnvironment::call(STATE, Task* task, size_t args) {
     OBJECT val;
     if(args > 0) {
@@ -30,8 +38,28 @@ namespace rubinius {
     task->push(val);
   }
 
-  void BlockEnvironment::call(STATE, Message& msg) {
-    throw std::runtime_error("call2: not implemented");
+  void BlockEnvironment::call(STATE, Task* task, Message& msg) {
+    OBJECT val;
+    if(msg.args > 0) {
+      Tuple* tup = Tuple::create(state, msg.args);
+      for(int i = msg.args - 1; i >= 0; i--) {
+        tup->put(state, i, msg.get_argument(i));
+      }
+
+      val = tup;
+    } else {
+      val = Qnil;
+    }
+    task->pop(); // Remove this from the stack.
+    BlockContext* ctx = create_context(state, task->active);
+    task->make_active(ctx);
+    task->push(val);
+  }
+
+  // TODO - Untested!!!!!!!!!!
+  bool BlockEnvironment::call_prim(STATE, VMExecutable* exec, Task* task, Message& msg) {
+    call(state, task, msg);
+    return true;
   }
 
   /*
@@ -41,7 +69,7 @@ namespace rubinius {
   BlockContext* BlockEnvironment::create_context(STATE, MethodContext* sender) {
     BlockContext* ctx = BlockContext::create(state, method->stack_size->to_native());
     SET(ctx, sender, sender);
-    SET(ctx, name, (SYMBOL)this);
+    SET(ctx, name, (SYMBOL)this); // HACK don't cast non-Symbol to Symbol
     SET(ctx, cm, method);
     SET(ctx, home, home);
 

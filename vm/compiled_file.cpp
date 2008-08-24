@@ -33,7 +33,7 @@ namespace rubinius {
   }
 
   bool CompiledFile::execute(STATE) {
-    TypedRoot<Task*> task(state, state->new_task());
+    GO(current_task).set(state->new_task());
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
     Message msg(state);
@@ -44,9 +44,9 @@ namespace rubinius {
     SET(cm.get(), scope, StaticScope::create(state));
     SET(cm.get()->scope, module, G(object));
 
-    cm->execute(state, task.get(), msg);
+    cm->execute(state, G(current_task), msg);
     try {
-      task->execute();
+      G(current_task)->execute();
     } catch(Task::Halt &e) {
       return true;
     }

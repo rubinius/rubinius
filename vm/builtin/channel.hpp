@@ -18,6 +18,7 @@ namespace rubinius {
     OBJECT value; // slot
     List* waiting; // slot
 
+    // Ruby.primitive :channel_new
     static Channel* create(STATE);
 
     // Ruby.primitive :channel_send

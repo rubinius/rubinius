@@ -1,4 +1,5 @@
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -11,6 +12,10 @@
 #define Increments 32
 
 namespace rubinius {
+
+  void Symbol::init(STATE) {
+    GO(symbol).set(state->new_class("Symbol"));
+  }
 
   native_int Symbol::index() {
     return DATA_STRIP_TAG(this);

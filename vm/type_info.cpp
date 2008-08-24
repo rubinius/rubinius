@@ -7,6 +7,17 @@
 
 namespace rubinius {
 
+  void TypeInfo::init(STATE) {
+    // Call the automatically generated function
+    auto_init(state);
+
+    // Give Object a TypeInfo entry
+    TypeInfo* object_type_info = new TypeInfo(ObjectType);
+    object_type_info->type_name = std::string("Object");
+    state->add_type_info(object_type_info);
+  }
+
+
   TypeInfo::~TypeInfo() { }
 
   TypeInfo::TypeInfo(object_type type) : type(type) {
@@ -50,13 +61,13 @@ namespace rubinius {
     if(FIXNUM i = try_as<Fixnum>(self)) {
       std::cout << i->to_native() << std::endl;
     } else if(Bignum* b = try_as<Bignum>(self)) {
-      std::cout << *b->to_s(state, Fixnum::from(10)) << std::endl;
+      std::cout << b->to_s(state, Fixnum::from(10))->byte_address() << std::endl;
     } else if(Float* f = try_as<Float>(self)) {
       std::cout << f->val << std::endl;
     } else if(String* str = try_as<String>(self)) {
-      std::cout << *str << std::endl;
+      std::cout << str->byte_address() << std::endl;
     } else if(SYMBOL sym = try_as<Symbol>(self)) {
-      std::cout << ":" << *sym->to_str(state) << std::endl;
+      std::cout << ":" << sym->to_str(state)->byte_address() << std::endl;
     } else {
       inspect(state, self);
     }

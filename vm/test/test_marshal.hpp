@@ -30,6 +30,21 @@ public:
     delete mar;
   }
 
+  void test_nil() {
+    mar->marshal(Qnil);
+    TS_ASSERT_EQUALS(mar->sstream.str(), "n\n");
+  }
+
+  void test_true() {
+    mar->marshal(Qtrue);
+    TS_ASSERT_EQUALS(mar->sstream.str(), "t\n");
+  }
+
+  void test_false() {
+    mar->marshal(Qfalse);
+    TS_ASSERT_EQUALS(mar->sstream.str(), "f\n");
+  }
+
   void test_int() {
     mar->marshal(Fixnum::from(1));
     TS_ASSERT_EQUALS(mar->sstream.str(), "I\n1\n");

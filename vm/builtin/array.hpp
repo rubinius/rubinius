@@ -2,6 +2,7 @@
 #define RBX_ARRAY_HPP
 
 #include "builtin/object.hpp"
+#include "builtin/fixnum.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
@@ -18,9 +19,17 @@ namespace rubinius {
     OBJECT shared; // slot
 
     size_t size();
+    static void init(STATE);
     static Array* create(STATE, size_t size);
     static Array* from_tuple(STATE, Tuple* tup);
     void   setup(STATE, size_t size);
+
+    // Ruby.primitive :array_aref
+    OBJECT aref(STATE, Fixnum* idx);
+
+    // Ruby.primitive :array_aset
+    OBJECT aset(STATE, Fixnum* idx, OBJECT val);
+
     OBJECT get(STATE, size_t idx);
     OBJECT set(STATE, size_t idx, OBJECT val);
     void   unshift(STATE, OBJECT val);

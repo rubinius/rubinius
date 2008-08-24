@@ -14,7 +14,7 @@ class MethodContext
   end
 
   def sender
-    _get_field(0)
+    @sender
   end
 
   def ip
@@ -30,27 +30,27 @@ class MethodContext
   end
 
   def fp
-    _get_field(13)
+    raise NotImplementedError, "gone in VM"
   end
 
   def block
-    _get_field(3)
+    @block
   end
 
   def method
-    _get_field(5)
+    @cm
   end
 
   def method=(obj)
-    _set_field(5, obj)
+    @cm = obj # NOTE SUPER DANGEROUS
   end
 
   def receiver
-    _get_field(7)
+    @self
   end
 
   def receiver=(val)
-    _set_field(7, val)
+    @self = val # NOTE SUPER DANGEROUS
   end
 
   def locals
@@ -62,11 +62,11 @@ class MethodContext
   end
 
   def name
-    _get_field(10)
+    @name
   end
 
   def method_module
-    _get_field(11)
+    @module
   end
 
   def dup

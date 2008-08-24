@@ -48,6 +48,7 @@ field_extract_headers = %w[
   vm/builtin/integer.hpp
   vm/builtin/executable.hpp
   vm/builtin/access_variable.hpp
+  vm/builtin/fixnum.hpp
   vm/builtin/array.hpp
   vm/builtin/bignum.hpp
   vm/builtin/block_environment.hpp
@@ -59,7 +60,6 @@ field_extract_headers = %w[
   vm/builtin/contexts.hpp
   vm/builtin/dir.hpp
   vm/builtin/exception.hpp
-  vm/builtin/fixnum.hpp
   vm/builtin/float.hpp
   vm/builtin/immediates.hpp
   vm/builtin/io.hpp
@@ -79,6 +79,7 @@ field_extract_headers = %w[
   vm/builtin/thread.hpp
   vm/builtin/tuple.hpp
   vm/builtin/compactlookuptable.hpp
+  vm/builtin/time.hpp
 ]
 
 BC          = "vm/instructions.bc"
@@ -136,9 +137,9 @@ def link t
 end
 
 def rubypp_task(target, prerequisite, *extra)
-  file target => [prerequisite, 'vm/rubypp.rb'] + extra do
+  file target => [prerequisite, 'vm/codegen/rubypp.rb'] + extra do
     path = File.join("vm/gen", File.basename(prerequisite))
-    ruby 'vm/rubypp.rb', prerequisite, path
+    ruby 'vm/codegen/rubypp.rb', prerequisite, path
     yield path
   end
 end
@@ -186,18 +187,18 @@ files EXTERNALS do |t|
   end
 end
 
-file 'vm/primitives.o'               => 'vm/field_extract.rb'
-file 'vm/instructions_gen.rb'        => 'kernel/core/iseq.rb'
+file 'vm/primitives.o'               => 'vm/codegen/field_extract.rb'
+file 'vm/codegen/instructions_gen.rb'        => 'kernel/core/iseq.rb'
 file 'vm/instructions.rb'            => 'vm/gen'
-file 'vm/instructions.rb'            => 'vm/instructions_gen.rb'
-file 'vm/test/test_instructions.hpp' => 'vm/instructions_gen.rb'
-file 'vm/field_extract.rb'           => 'vm/gen'
+file 'vm/instructions.rb'            => 'vm/codegen/instructions_gen.rb'
+file 'vm/test/test_instructions.hpp' => 'vm/codegen/instructions_gen.rb'
+file 'vm/codegen/field_extract.rb'           => 'vm/gen'
 
 files INSN_GEN, %w[vm/instructions.rb] do |t|
   ruby 'vm/instructions.rb', :verbose => $verbose
 end
 
-files TYPE_GEN, field_extract_headers + %w[vm/field_extract.rb] do
+files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] do
   puts "GEN field_extract"
   field_extract field_extract_headers
 end
@@ -259,7 +260,7 @@ namespace :vm do
     puts "CC/LD vm/test/coverage/runner"
     begin
       path = "vm/gen/instructions.cpp"
-      ruby 'vm/rubypp.rb', "vm/llvm/instructions.cpp", path
+      ruby 'vm/codegen/rubypp.rb', "vm/llvm/instructions.cpp", path
       sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp vm/*.c #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
 
       puts "RUN vm/test/coverage/runner"
@@ -369,5 +370,5 @@ end
 def field_extract(headers)
   headers += [{ :verbose => $verbose}]
 
-  ruby('vm/field_extract.rb', *headers)
+  ruby('vm/codegen/field_extract.rb', *headers)
 end

@@ -20,14 +20,20 @@ class TestString : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    TS_ASSERT(state->globals.string->has_ivars->false_p());
     str = String::create(state, "blah");
-    TS_ASSERT_EQUALS(str->size(state), 4U);
+    TS_ASSERT_EQUALS(str->size(), 4U);
   }
 
-  void test_create2() {
+  void test_create_with_substring() {
     str = String::create(state, "blah", 2);
-    TS_ASSERT_EQUALS(str->size(state), 2U);
+    TS_ASSERT_EQUALS(str->size(), 2U);
+    TS_ASSERT_SAME_DATA("bl", str->byte_address(), 3);
+  }
+
+  void test_create_with_null_and_zero_count() {
+    str = String::create(state, NULL, 0);
+    TS_ASSERT_EQUALS(str->size(), 0);
+    TS_ASSERT_EQUALS(str->byte_address()[0], 0);
   }
 
   void test_hash_string() {
@@ -64,33 +70,34 @@ class TestString : public CxxTest::TestSuite {
     str->unshare(state);
 
     TS_ASSERT(str->data != str2->data);
-    TS_ASSERT_EQUALS(std::string("blah"), (char*)*str);
+    TS_ASSERT_EQUALS(std::string("blah"), str->byte_address());
   }
 
   void test_append() {
-    str = String::create(state, "blah");
+    str = String::create(state, "first");
     str->hash_string(state);
     TS_ASSERT(str->hash != Qnil);
 
-    str->append(state, String::create(state, " foo"));
+    str->append(state, String::create(state, " second"));
     TS_ASSERT_EQUALS(str->hash, Qnil);
 
-    TS_ASSERT_EQUALS(std::string("blah foo"), (char*)*str);
+    TS_ASSERT_EQUALS(str->size(), 12U);
+    TS_ASSERT_SAME_DATA("first second", str->byte_address(), 13);
   }
 
   void test_append_with_charstar() {
     str = String::create(state, "blah");
     str->append(state, " foo");
 
-    TS_ASSERT_EQUALS(std::string("blah foo"), (char*)*str);
+    TS_ASSERT_SAME_DATA("blah foo", str->byte_address(), 9);
   }
 
   void test_add() {
     str = String::create(state, "blah");
     String* str2 = str->add(state, String::create(state, " foo"));
 
-    TS_ASSERT_EQUALS(std::string("blah foo"), (char*)*str2);
-    TS_ASSERT_EQUALS(std::string("blah"), (char*)*str);
+    TS_ASSERT_EQUALS(std::string("blah foo"), str2->byte_address());
+    TS_ASSERT_EQUALS(std::string("blah"), str->byte_address());
 
   }
 

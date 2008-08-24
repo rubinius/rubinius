@@ -386,50 +386,70 @@ class MemoryPointer
 
   # Write +obj+ as a C int at the memory pointed to.
   def write_int(obj)
-    self.class.write_int self, Integer(obj)
+    Ruby.primitive :memorypointer_write_int
+    raise PrimitiveFailure, "Unable to write integer"
   end
 
   # Read a C int from the memory pointed to.
   def read_int
-    self.class.read_int self
+    Ruby.primitive :memorypointer_read_int
+    raise PrimitiveFailure, "Unable to read integer"
   end
 
   # Write +obj+ as a C long at the memory pointed to.
   def write_long(obj)
-    self.class.write_long self, Integer(obj)
+    Ruby.primitive :memorypointer_write_long
+    raise PrimitiveFailure, "Unable to write long"
   end
 
   # Read a C long from the memory pointed to.
   def read_long
-    self.class.read_long self
+    Ruby.primitive :memorypointer_read_long
+    raise PrimitiveFailure, "Unable to read long"
+  end
+
+  def read_string_length(len)
+    Ruby.primitive :memorypointer_read_string
+    raise PrimitiveFailure, "Unable to read string"
+  end
+
+  def read_string_to_null
+    Ruby.primitive :memorypointer_read_string_to_null
+    raise PrimitiveFailure, "Unable to read string to null"
   end
 
   def read_string(len=nil)
     if len
-      self.class.read_string_length self, len
+      read_string_length(len)
     else
-      self.class.read_string self
+      read_string_to_null
     end
+  end
+
+  def write_string_length(str, len)
+    Ruby.primitive :memorypointer_write_string
+    raise PrimitiveFailure, "Unable to write string"
   end
 
   def write_string(str, len=nil)
     len = str.size unless len
 
-    self.class.write_string self, str, len
+    write_string_length(str, len);
   end
 
   def read_pointer
-    self.class.read_pointer self
+    Ruby.primitive :memorypointer_read_pointer
+    raise PrimitiveFailure, "Unable to read pointer"
   end
 
   def write_float(obj)
-    # TODO: ffi needs to be fixed for passing [:pointer, double]
-    #       when :pointer is a (double *)
-    self.class.write_float self, Float(obj)
+    Ruby.primitive :memorypointer_write_float
+    raise PrimitiveFailure, "Unable to write float"
   end
 
   def read_float
-    self.class.read_float self
+    Ruby.primitive :memorypointer_read_float
+    raise PrimitiveFailure, "Unable to read float"
   end
 
   def read_array_of_int(length)
@@ -475,7 +495,8 @@ class MemoryPointer
   end
 
   def address
-    self.class.address self
+    Ruby.primitive :memorypointer_address
+    raise PrimitiveFailure, "Unable to find address"
   end
 
   def null?
@@ -483,37 +504,29 @@ class MemoryPointer
   end
 
   def +(value)
-    self.class.add_ptr(self, value)
+    Ruby.primitive :memorypointer_add
+    raise PrimitiveFailure, "Unable to add"
   end
+
+  ##
+  # If +val+ is true, this MemoryPointer object will call
+  # free() on it's address when it is garbage collected.
 
   def autorelease=(val)
-    if val
-      self.class.autorelease self, 1
-    else
-      self.class.autorelease self, 0
-    end
+    Ruby.primitive :memorypointer_set_autorelease
+    raise PrimitiveFailure, "Unable to change autorelease"
   end
-
-  attach_function "ffi_address", :address, [:pointer], :int
-  attach_function "ffi_write_int", :write_int, [:pointer, :int], :int
-  attach_function "ffi_read_int", :read_int, [:pointer], :int
-  attach_function "ffi_write_long", :write_long, [:pointer, :long], :long
-  attach_function "ffi_read_long", :read_long, [:pointer], :long
-  attach_function "ffi_write_float", :write_float, [:pointer, :double], :double
-  attach_function "ffi_read_float", :read_float, [:pointer], :double
-  attach_function "ffi_read_string", :read_string, [:pointer], :string
-#  attach_function "ffi_read_string_length", :read_string_length, [:state, :pointer, :int], :object
-  attach_function "memcpy", :write_string, [:pointer, :string, :int], :void
-  attach_function "ffi_read_pointer", :read_pointer, [:pointer], :pointer
-  attach_function "ffi_add_ptr", :add_ptr, [:pointer, :int], :pointer
 end
 
 module FFI
 
-  attach_function "ffi_type_size", :get_type_size, [:int], :int
+  ##
+  # Given a +type+ as a number, indicate how many bytes that type
+  # takes up on this platform.
 
   def self.type_size(type)
-    get_type_size(find_type(type))
+    Ruby.primitive :nativefunction_type_size
+    raise PrimitiveFailure, "Unable to find type size"
   end
 
 end

@@ -3,6 +3,7 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/memorypointer.hpp"
 #include "builtin/string.hpp"
@@ -11,6 +12,11 @@
 #include <dirent.h>
 
 namespace rubinius {
+  void Dir::init(STATE) {
+    GO(dir).set(state->new_class("Dir", G(object), Dir::fields));
+    G(dir)->set_object_type(DirType);
+  }
+
   Dir* Dir::create(STATE) {
     Dir* d = (Dir*)state->om->new_object(G(dir), Dir::fields);
     SET(d, data, Qnil);

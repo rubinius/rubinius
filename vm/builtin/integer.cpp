@@ -1,9 +1,26 @@
 #include "builtin/integer.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/bignum.hpp"
+#include "builtin/float.hpp"
 
 namespace rubinius {
-  
+  native_int Integer::to_native() {
+    if(fixnum_p()) {
+      return ((FIXNUM)this)->to_native();
+    }
+
+    return as<Bignum>(this)->to_native();
+  }
+
+  // TODO: double check that this links. Evan says it doesn't. I'll
+  // check my Meiers books when I get home
+  template <>
+  static bool kind_of<Numeric>(OBJECT obj) {
+    return obj->fixnum_p() ||
+      (obj->reference_p() && (obj->obj_type == Bignum::type ||
+                              obj->obj_type == Float::type));
+  }
+
   INTEGER Integer::from(STATE, int num) {
 #if (CONFIG_WORDSIZE != 64)
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {

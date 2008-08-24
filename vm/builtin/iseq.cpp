@@ -1,9 +1,15 @@
+#include "builtin/class.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/tuple.hpp"
 
 #include "vm.hpp"
 
 namespace rubinius {
+  void InstructionSequence::init(STATE) {
+    GO(iseq).set(state->new_class("InstructionSequence", G(object), InstructionSequence::fields));
+    G(iseq)->set_object_type(ISeqType);
+  }
+
   InstructionSequence* InstructionSequence::create(STATE, size_t instructions) {
     InstructionSequence* is = (InstructionSequence*)state->new_object(G(iseq));
     is->opcodes = Tuple::create(state, instructions);

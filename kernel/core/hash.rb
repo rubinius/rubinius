@@ -27,6 +27,10 @@ class Hash
   end
 
   def initialize(default = Undefined, &block)
+    @bins = 16
+    @values = Tuple.new(@bins)
+    @entries = 0
+
     if !default.equal?(Undefined) and block
       raise ArgumentError, "Specify a default or a block, not both"
     end
@@ -57,6 +61,12 @@ class Hash
       return false unless other[k] == self[k]
     end
     true
+  end
+
+  def [](key)
+    entry, hash, bin = hash_entry key
+
+    entry
   end
 
   ##

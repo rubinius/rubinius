@@ -8,8 +8,9 @@
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
+#include "builtin/selector.hpp"
 #include "objectmemory.hpp"
-
+#include "global_cache.hpp"
 #include "config.hpp"
 
 #include <cstring>
@@ -240,6 +241,9 @@ namespace rubinius {
     case CompactLookupTableType:
       type = "CompactLookupTable";
       break;
+    case TimeType:
+      type = "Time";
+      break;
     default:
       type = "unknown";
       break;
@@ -455,12 +459,12 @@ namespace rubinius {
 
   void inspect(STATE, OBJECT obj) {
     String* name = obj->class_object(state)->name->to_str(state);
-    std::cout << "#<" << (char*)*name << ":" << (void*)obj << ">\n";
+    std::cout << "#<" << name->byte_address() << ":" << (void*)obj << ">\n";
   }
 
   void inspect(STATE, SYMBOL sym) {
     String* name = sym->to_str(state);
-    std::cout << ":" << (char*)*name << "\n";
+    std::cout << ":" << name->byte_address() << "\n";
   }
 
   void Object::cleanup(STATE) {
@@ -520,5 +524,21 @@ namespace rubinius {
   OBJECT Object::vm_write_error(STATE, String* str) {
     std::cerr << str->byte_address() << std::endl;
     return Qnil;
+  }
+
+  // Clears the global cache for all methods named +name+,
+  // also clears all sendsite caches matching that name.
+  OBJECT Object::vm_reset_method_cache(STATE, SYMBOL name) {
+    // 1. clear the global cache
+    state->global_cache->clear(name);
+    // 2. clear the send site caches
+    Selector::clear_by_name(state, name);
+    return name;
+  }
+
+  Object* Object::yield_gdb(STATE, Object* obj) {
+    obj->show(state);
+    Assertion::raise("yield_gdb called and not caught");
+    return obj;
   }
 }

@@ -10,6 +10,14 @@
 
 namespace rubinius {
 
+  void MethodContext::init(STATE) {
+    GO(methctx).set(state->new_class("MethodContext", G(object)));
+    G(methctx)->set_object_type(MContextType);
+
+    GO(blokctx).set(state->new_class("BlockContext", G(methctx)));
+    G(blokctx)->set_object_type(BContextType);
+  }
+
   /* Calculate how much big of an object (in bytes) to allocate
    * for one with a body of +original+ and a stack of +stack+ */
   static size_t add_stack(size_t original, size_t stack) {

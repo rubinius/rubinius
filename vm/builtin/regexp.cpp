@@ -118,7 +118,7 @@ namespace rubinius {
     int err, num_names, kcode;
 
     pat = (UChar*)pattern->byte_address(state);
-    end = pat + pattern->size(state);
+    end = pat + pattern->size();
 
     /* Ug. What I hate about the onig API is that there is no way
        to define how to allocate the reg, onig_new does it for you.
@@ -214,7 +214,7 @@ namespace rubinius {
 
     region = onig_region_new();
 
-    max = string->size(state);
+    max = string->size();
     str = (UChar*)string->byte_address(state);
 
     if(!RTEST(forward)) {
@@ -241,7 +241,7 @@ namespace rubinius {
 
     region = onig_region_new();
 
-    max = string->size(state);
+    max = string->size();
     str = (UChar*)string->byte_address(state);
 
     beg = onig_match(REG(data), str, str + max, str + start->to_native(), region,

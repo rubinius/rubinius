@@ -23,6 +23,22 @@ class TestArray : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_aref() {
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, Fixnum::from(1));
+    ary->set(state, 1, Fixnum::from(4));
+
+    TS_ASSERT_EQUALS(4,
+        as<Fixnum>(ary->aref(state, Fixnum::from(1)))->to_native());
+  }
+
+  void test_aset() {
+    Array* ary = Array::create(state, 2);
+    ary->aset(state, Fixnum::from(1), Fixnum::from(4));
+
+    TS_ASSERT_EQUALS(4, as<Fixnum>(ary->get(state, 1))->to_native());
+  }
+
   void test_get() {
     Array* ary = Array::create(state, 3);
     TS_ASSERT_EQUALS(Qnil, ary->get(state, 5));

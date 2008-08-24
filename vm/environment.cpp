@@ -1,13 +1,17 @@
 /* An Environment is the toplevel class for Rubinius. It manages multiple
  * VMs, as well as imports C data from the process into Rubyland. */
-
+#include "prelude.hpp"
 #include "environment.hpp"
 #include "config.hpp" // HACK rename to config_parser.hpp
 #include "compiled_file.hpp"
 #include "probes.hpp"
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
 #include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
+#include "builtin/task.hpp"
+#include "builtin/exception.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -74,6 +78,21 @@ namespace rubinius {
 
     // TODO check version number
     cf->execute(state);
+
+    if(!G(current_task)->exception->nil_p()) {
+      // Reset the context so we can show the backtrace
+      // HACK need to use write barrier aware stuff?
+      Exception* exc = G(current_task)->exception;
+      G(current_task)->active = exc->context;
+
+      String* message = String::create(state,
+          "exception detected at toplevel: ");
+      message->append(state, exc->message);
+      message->append(state, " (");
+      message->append(state, exc->klass->name->to_str(state));
+      message->append(state, ")");
+      Assertion::raise(message->byte_address());
+    }
   }
 
   /*
@@ -82,16 +101,16 @@ namespace rubinius {
   void Environment::set_rubinius_constants() {
     Module* rubinius = GO(rubinius).get();
 
-    String* ruby_version = String::create(state, "1.8.6", 6);
+    String* ruby_version = String::create(state, "1.8.6");
     rubinius->set_const(state, "RUBY_VERSION", ruby_version);
 
-    String* ruby_patchlevel = String::create(state, "111", 4);
+    String* ruby_patchlevel = String::create(state, "111");
     rubinius->set_const(state, "RUBY_PATCHLEVEL", ruby_patchlevel);
 
-    String* ruby_engine = String::create(state, "rbx", 4);
+    String* ruby_engine = String::create(state, "rbx");
     rubinius->set_const(state, "RUBY_ENGINE", ruby_engine);
 
-    String* rbx_version = String::create(state, "0.9.0", 6);
+    String* rbx_version = String::create(state, "0.9.0");
     rubinius->set_const(state, "RBX_VERSION", rbx_version);
   }
 }
