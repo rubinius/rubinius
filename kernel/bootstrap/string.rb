@@ -31,8 +31,8 @@ class String
   end
 
   def __crypt__(other_str)
-    Ruby.primitive :str_crypt
-    raise PrimitiveFailure, "primitive failed"
+    Ruby.primitive :string_crypt
+    raise PrimitiveFailure, "String#crypt primitive failed"
   end
 
   def append(str)

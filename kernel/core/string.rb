@@ -2741,14 +2741,4 @@ class String
 
     elements
   end
-
-=begin
-
-  # Should be added when Crypt is required
-  def crypt(other_str)
-    raise NotImplementedError
-  end
-
-=end
-
 end

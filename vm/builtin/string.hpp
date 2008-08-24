@@ -85,6 +85,9 @@ namespace rubinius {
     // Ruby.primitive :string_compare_substring
     FIXNUM compare_substring(STATE, String* other, FIXNUM start, FIXNUM size);
 
+    // Ruby.primitive :string_crypt
+    String* crypt(STATE, String* salt);
+
     // Ruby.primitive :string_pattern
     static String* pattern(STATE, OBJECT self, FIXNUM size, OBJECT pattern);
 

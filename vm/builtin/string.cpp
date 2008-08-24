@@ -9,6 +9,8 @@
 #include "primitives.hpp"
 #include "objectmemory.hpp"
 
+#include <unistd.h>
+
 #define HashPrime 16777619
 #define MASK_28 (((unsigned int)1<<28)-1)
 
@@ -419,6 +421,11 @@ namespace rubinius {
     }
 
     return s;
+  }
+
+  String* String::crypt(STATE, String* salt) {
+    const char* s = ::crypt(this->byte_address(), salt->byte_address());
+    return String::create(state, s);
   }
 
   void String::Info::show(STATE, OBJECT self) {

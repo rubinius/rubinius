@@ -310,9 +310,9 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT_SAME_DATA(s->data->bytes, "abcabcabca", 10);
   }
 
-  void test_pattern_throws_if_not_character_or_string() {
-    FIXNUM ten = Fixnum::from(10);
-    Tuple* tup = Tuple::create(state, 1);
-    TS_ASSERT_THROWS(String::pattern(state, G(string), ten, tup), const PrimitiveFailed &);
+  void test_crypt() {
+    String* str = String::create(state, "nutmeg");
+    String* salt = String::create(state, "Mi");
+    TS_ASSERT_SAME_DATA(str->crypt(state, salt)->byte_address(), "MiqkFWCm1fNJI", 14);
   }
 };
