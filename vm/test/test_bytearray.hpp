@@ -21,28 +21,34 @@ class TestByteArray : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_create() {
+    size_t mag = sizeof(OBJECT);
+    ByteArray* b;
+
+    for(size_t i = 0; i <= mag; i++) {
+      b = ByteArray::create(state, i);
+      TS_ASSERT_EQUALS(b->size(state)->to_native(), mag);
+    }
+
+    for(size_t i = mag + 1; i <= 2 * mag; i++) {
+      b = ByteArray::create(state, i);
+      TS_ASSERT_EQUALS(b->size(state)->to_native(), 2 * mag);
+    }
+
+    for(size_t i = 5 * mag + 1; i <= 6 * mag; i++) {
+      b = ByteArray::create(state, i);
+      TS_ASSERT_EQUALS(b->size(state)->to_native(), 6 * mag);
+    }
+  }
+
   void test_allocate() {
     ByteArray* b = ByteArray::allocate(state, Fixnum::from(5));
     TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
   }
 
   void test_size() {
-    ByteArray* b;
-
-    b = ByteArray::create(state, 0);
-    TS_ASSERT_EQUALS(b->size(state)->to_native(), 4);
-
-    b = ByteArray::create(state, 54);
-    TS_ASSERT_EQUALS(b->size(state)->to_native(), 56);
-
-    b = ByteArray::create(state, 55);
-    TS_ASSERT_EQUALS(b->size(state)->to_native(), 60);
-
-    b = ByteArray::create(state, 58);
-    TS_ASSERT_EQUALS(b->size(state)->to_native(), 60);
-
-    b = ByteArray::create(state, 59);
-    TS_ASSERT_EQUALS(b->size(state)->to_native(), 64);
+    ByteArray* b = ByteArray::create(state, 0);
+    TS_ASSERT_EQUALS(b->size(state), Fixnum::from(4));
   }
 
   void test_to_chars() {
@@ -140,8 +146,8 @@ class TestByteArray : public CxxTest::TestSuite {
     INTEGER size = Fixnum::from(8);
     INTEGER size1 = Fixnum::from(9);
 
-    TS_ASSERT_EQUALS(a->size(state)->to_native(), 12);
-    TS_ASSERT_EQUALS(b->size(state)->to_native(), 12);
+    TS_ASSERT_EQUALS(a->size(state)->to_native(), 8);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
 
     TS_ASSERT_EQUALS(a->compare_bytes(state, b, two, two), Fixnum::from(0));
     TS_ASSERT_EQUALS(a->compare_bytes(state, b, two, three), Fixnum::from(-1));
@@ -164,9 +170,9 @@ class TestByteArray : public CxxTest::TestSuite {
 
   void test_dup_into() {
     ByteArray* a = String::create(state, "xyZzyx")->data;
-    ByteArray* b = ByteArray::create(state, 4);
+    ByteArray* b = ByteArray::create(state, 5);
 
-    TS_ASSERT_EQUALS(a->size(state)->to_native(), 12);
+    TS_ASSERT_EQUALS(a->size(state)->to_native(), 8);
     TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
 
     a->dup_into(state, b);

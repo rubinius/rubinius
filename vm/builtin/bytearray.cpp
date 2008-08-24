@@ -18,7 +18,9 @@ namespace rubinius {
     return (ByteArray*)state->om->new_object_bytes(G(bytearray), bytes);
   }
 
-  void ByteArray::Info::mark(OBJECT t, ObjectMark& mark) { }
+  void ByteArray::Info::mark(OBJECT t, ObjectMark& mark) {
+    // TODO: implement
+  }
 
   char* ByteArray::to_chars(STATE) {
     native_int sz = this->size(state)->to_native();
