@@ -15,6 +15,10 @@ namespace rubinius {
     throw ArgumentError(expected, given);
   }
 
+  void ArgumentError::raise(const char* reason) {
+    throw ArgumentError(reason);
+  }
+
   void Assertion::raise(const char* mesg) {
     throw Assertion(mesg);
   }

@@ -61,10 +61,19 @@ namespace rubinius {
   public:
     size_t expected;
     size_t given;
+    char *reason;
 
     static void raise(size_t expected, size_t given);
+    static void raise(const char* reason);
 
     ArgumentError(size_t e, size_t g) : expected(e), given(g) { }
+    ArgumentError(const char* reason) {
+      this->reason = strdup(reason);
+    }
+
+    ~ArgumentError() {
+      if(reason) free(reason);
+    }
   };
 
   class ObjectBoundsExceeded : public VMException {

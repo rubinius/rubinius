@@ -22,6 +22,10 @@ class TestException : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(ArgumentError::raise(2, 1), const ArgumentError &);
   }
 
+  void test_argument_error_raise_with_reason() {
+    TS_ASSERT_THROWS(ArgumentError::raise("failed"), const ArgumentError &);
+  }
+
   void test_type_error_raise() {
     object_type type = ClassType;
     OBJECT obj = G(object);
