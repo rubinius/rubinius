@@ -108,8 +108,7 @@ fork_process
 gc_collect_references
 gc_start
 get_index
-get_ivar
-io_close_ng
+io_close
 io_open
 io_operation
 io_read
@@ -117,7 +116,6 @@ io_reopen
 io_seek
 io_write
 iseq_compile
-ivars_get
 load_file
 load_library
 logical_class
@@ -137,12 +135,11 @@ machine_send_message
 make_weak_ref
 marshal_object
 marshal_to_file
-nfunc_add
-nfunc_call
-nfunc_call_object
+nativefunction_bind
+nativefunction_call
+nativefunction_call_object
 nmethod_call
 numeric_coerce
-object_at
 object_become
 object_clone
 object_dup
@@ -150,9 +147,9 @@ object_equal
 object_freeze
 object_frozen_p
 object_get_ivar
+object_get_ivars
 object_hash
 object_id
-object_put
 object_send
 object_set_ivar
 object_taint
@@ -180,7 +177,6 @@ sendsite_at
 sendsite_create
 sendsite_set_sender
 set_index
-set_ivar
 string_append
 string_apply_and
 string_compare_substring
@@ -189,7 +185,6 @@ string_dup
 string_equal
 string_template
 string_to_f
-string_to_sexp
 string_tr_expand
 symbol_index
 symbol_lookup
@@ -213,8 +208,14 @@ thread_raise
 thread_run
 thread_schedule
 thread_yield
+time_allocate
+time_gettimeofday
+time_mktime
+time_strftime
 time_switch
+tuple_at
 tuple_fields
+tuple_put
 tuple_shifted
 tuple_template
 unmarshal_from_file

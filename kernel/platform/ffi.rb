@@ -44,7 +44,7 @@ module FFI
     end
 
     def create_backend(library, name, args, ret)
-      Ruby.primitive :nfunc_add
+      Ruby.primitive :nativefunction_bind
       raise NotFoundError.new(name, library) 
     end
 
@@ -646,7 +646,7 @@ class NativeFunction
 
   # The *args means the primitive handles it own argument count checks.
   def call(*args)
-    Ruby.primitive :nfunc_call_object
+    Ruby.primitive :nativefunction_call_object
   end
 
   ##

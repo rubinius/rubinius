@@ -148,7 +148,7 @@ namespace rubinius {
 
   NativeFunction* NativeFunction::create(STATE, OBJECT name, int args) {
     NativeFunction* nf = (NativeFunction*)state->new_object(G(ffi_func));
-    SET(nf, primitive, state->symbol("nfunc_call"));
+    SET(nf, primitive, state->symbol("nativefunction_call"));
     SET(nf, required, Integer::from(state, args));
     SET(nf, serial, Fixnum::from(0));
     SET(nf, name,   name);

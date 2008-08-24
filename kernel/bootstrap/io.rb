@@ -47,7 +47,7 @@ class IO
   end
 
   def close
-    Ruby.primitive :io_close_ng
+    Ruby.primitive :io_close
     raise PrimitiveFailure, "IO#close primitive failed"
   end
 end
