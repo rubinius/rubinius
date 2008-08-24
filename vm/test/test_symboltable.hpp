@@ -44,6 +44,19 @@ class TestSymbolTable : public CxxTest::TestSuite {
     TS_ASSERT_DIFFERS(sym, sym2);
   }
 
+  void test_lookup_with_string_containing_null() {
+    String* str = String::create(state, "abxdc");
+    str->byte_address()[2] = 0;
+
+    TS_ASSERT_THROWS(symbols->lookup(state, str), const ArgumentError &);
+  }
+
+  void test_lookup_with_empty_string() {
+    String* str = String::create(state, "");
+
+    TS_ASSERT_THROWS(symbols->lookup(state, str), const ArgumentError &);
+  }
+
   void test_lookup_colliding_hash() {
     OBJECT sym, sym2;
     const char* str = "__uint_fast64_t";

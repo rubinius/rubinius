@@ -1711,28 +1711,7 @@ class String
     modified ? self : nil
   end
 
-  # Returns the <code>Symbol</code> corresponding to <i>self</i>, creating the
-  # symbol if it did not previously exist. See <code>Symbol#id2name</code>.
-  #
-  #   "Koala".intern         #=> :Koala
-  #   s = 'cat'.to_sym       #=> :cat
-  #   s == :cat              #=> true
-  #   s = '@cat'.to_sym      #=> :@cat
-  #   s == :@cat             #=> true
-  #
-  # This can also be used to create symbols that cannot be represented using the
-  # <code>:xxx</code> notation.
-  #
-  #   'cat and dog'.to_sym   #=> :"cat and dog"
-  #--
-  # TODO: Add taintedness-check
-  #++
-  def to_sym
-    raise ArgumentError, "interning empty string" if self.empty?
-    # HACK Brian Ford is moving this into the primitive
-    #raise ArgumentError, "symbol string may not contain `\\0'" if self.include?("\x00")
-    __symbol_lookup__
-  end
+  # The +intern+ method is an alias of +to_sym+. See <code>Symbol#to_sym</code>.
   alias_method :intern, :to_sym
 
   # Returns the result of interpreting leading characters in <i>self</i> as an

@@ -4,13 +4,25 @@ class String
     raise PrimitiveFailure, "String.pattern primitive failed"
   end
 
-  def __symbol_lookup__
+  # Returns the <code>Symbol</code> corresponding to <i>self</i>, creating the
+  # symbol if it did not previously exist. See <code>Symbol#id2name</code>.
+  #
+  #   "Koala".intern         #=> :Koala
+  #   s = 'cat'.to_sym       #=> :cat
+  #   s == :cat              #=> true
+  #   s = '@cat'.to_sym      #=> :@cat
+  #   s == :@cat             #=> true
+  #
+  # This can also be used to create symbols that cannot be represented using the
+  # <code>:xxx</code> notation.
+  #
+  #   'cat and dog'.to_sym   #=> :"cat and dog"
+  #--
+  # TODO: Add taintedness-check
+  #++
+  def to_sym
     Ruby.primitive :symbol_lookup
     raise PrimitiveFailure, "Unable to symbolize: #{self.dump}"
-  end
-
-  def to_sym
-    __symbol_lookup__
   end
 
   def to_f

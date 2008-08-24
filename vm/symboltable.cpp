@@ -12,6 +12,10 @@ namespace rubinius {
   SYMBOL SymbolTable::lookup(STATE, std::string str) {
     size_t sym;
 
+    if(str.size() == 0) {
+      ArgumentError::raise("cannot create a symbol from an empty string");
+    }
+
     hashval hash = String::hash_str((unsigned char*)str.c_str(), str.size());
 
     SymbolMap::iterator entry = symbols.find(hash);
@@ -36,7 +40,15 @@ namespace rubinius {
   }
 
   SYMBOL SymbolTable::lookup(STATE, String* str) {
-    return lookup(state, str->byte_address());
+    char* bytes = str->byte_address();
+
+    for(size_t i = 0; i < str->size(); i++) {
+      if(bytes[i] == 0) {
+        ArgumentError::raise("cannot create a symbol from a string containing `\\0'");
+      }
+    }
+
+    return lookup(state, bytes);
   }
 
   String* SymbolTable::lookup_string(STATE, Symbol* sym) {

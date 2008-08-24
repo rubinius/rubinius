@@ -22,10 +22,6 @@ namespace rubinius {
   /* String::size returns the actual number of bytes, without consideration
    * for a trailing null byte.  String::create(state, "foo")->size() is 3.
    */
-  size_t String::size(STATE) {
-    return num_bytes->to_native();
-  }
-
   size_t String::size() {
     return num_bytes->to_native();
   }
