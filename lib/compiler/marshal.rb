@@ -74,20 +74,20 @@ class Compiler
           raise "Unknown CompiledMethod version #{version}"
         end
         cm = CompiledMethod.new
-        cm.__ivars__ = unmarshal_io(io)
-        cm.primitive = unmarshal_io(io)
-        cm.name = unmarshal_io(io)
-        cm.iseq = unmarshal_io(io)
-        cm.stack_size = unmarshal_io(io)
-        cm.local_count = unmarshal_io(io)
+        cm.__ivars__     = unmarshal_io(io)
+        cm.primitive     = unmarshal_io(io)
+        cm.name          = unmarshal_io(io)
+        cm.iseq          = unmarshal_io(io)
+        cm.stack_size    = unmarshal_io(io)
+        cm.local_count   = unmarshal_io(io)
         cm.required_args = unmarshal_io(io)
-        cm.total_args = unmarshal_io(io)
-        cm.splat = unmarshal_io(io)
-        cm.literals = unmarshal_io(io)
-        cm.exceptions = unmarshal_io(io)
-        cm.lines = unmarshal_io(io)
-        cm.file = unmarshal_io(io)
-        cm.local_names = unmarshal_io(io)
+        cm.total_args    = unmarshal_io(io)
+        cm.splat         = unmarshal_io(io)
+        cm.literals      = unmarshal_io(io)
+        cm.exceptions    = unmarshal_io(io)
+        cm.lines         = unmarshal_io(io)
+        cm.file          = unmarshal_io(io)
+        cm.local_names   = unmarshal_io(io)
         return cm
       else
         raise "Unknown type '#{kind.chr}'"

@@ -18,14 +18,6 @@ while arg = ARGV.shift
   end
 end
 
-file = ARGV.shift
-output = ARGV.shift
-puts "Compiling #{file}"
-
-top = Compiler.compile_file(file, flags)
-
-mar = Compiler::Marshal.new
-
 def decode_cm(cm)
   puts "= #{cm.name} (0x#{cm.object_id.to_s(16)}) ======================"
   puts "= stack:#{cm.stack_size}, locals:#{cm.local_count}"
@@ -71,6 +63,14 @@ class Float
     (self - other).abs < 1e-14
   end
 end
+
+file   = ARGV.shift
+output = ARGV.shift
+
+puts "Compiling #{file}"
+
+top = Compiler.compile_file(file, flags)
+mar = Compiler::Marshal.new
 
 decode_cm(top) if decode
 

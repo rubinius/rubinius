@@ -13,7 +13,6 @@ require 'compiler/text'
 require 'compiler/marshal'
 require 'compiler/compiled_file'
 
-
 class SendSite
   def initialize(name)
     @name = name
