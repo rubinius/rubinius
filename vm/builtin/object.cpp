@@ -9,6 +9,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
 #include "builtin/selector.hpp"
+#include "builtin/task.hpp"
 #include "objectmemory.hpp"
 #include "global_cache.hpp"
 #include "config.hpp"
@@ -455,6 +456,34 @@ namespace rubinius {
 
     try_as<LookupTable>(ivars)->store(state, sym, val);
     return val;
+  }
+
+  bool Object::send_prim(STATE, VMExecutable* exec, Task* task, Message& msg) {
+    SYMBOL meth = as<Symbol>(msg.shift_argument(state));
+    msg.name = meth;
+    return task->send_message_slowly(msg);
+  }
+
+  bool Object::send(STATE, SYMBOL name, size_t count_args, ...) {
+    va_list va;
+    Message msg(state);
+    msg.name = name;
+    msg.recv = this;
+    msg.lookup_from = this->lookup_begin(state);
+
+    Array* args = Array::create(state, count_args);
+
+    // Use the va_* macros to iterate over the variable number of
+    // arguments passed in.
+    va_start(va, count_args);
+    for(size_t i = 0; i < count_args; i++) {
+      args->set(state, i, va_arg(va, OBJECT));
+    }
+    va_end(va);
+
+    msg.set_arguments(state, args);
+
+    return G(current_task)->send_message_slowly(msg);
   }
 
   void inspect(STATE, OBJECT obj) {

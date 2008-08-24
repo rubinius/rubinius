@@ -37,7 +37,7 @@ class TestMessage : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(0));
     TS_ASSERT_EQUALS(Fixnum::from(4), msg.get_argument(1));
-    TS_ASSERT_EQUALS(2U, msg.args);
+    TS_ASSERT_EQUALS(2U, msg.args());
   }
 
   CompiledMethod* create_cm() {
@@ -64,7 +64,7 @@ class TestMessage : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(0));
     TS_ASSERT_EQUALS(Fixnum::from(4), msg.get_argument(1));
-    TS_ASSERT_EQUALS(2U, msg.args);
+    TS_ASSERT_EQUALS(2U, msg.args());
   }
 
   void test_combine_with_splat() {
@@ -79,7 +79,7 @@ class TestMessage : public CxxTest::TestSuite {
     ary->set(state, 1, state->symbol("foo"));
 
     Message msg(state);
-    msg.args = 2;
+    msg.set_args(2);
     msg.combine_with_splat(state, task, ary);
 
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(0));
@@ -87,7 +87,7 @@ class TestMessage : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(state->symbol("blah"), msg.get_argument(2));
     TS_ASSERT_EQUALS(state->symbol("foo"), msg.get_argument(3));
 
-    TS_ASSERT_EQUALS(4U, msg.args);
+    TS_ASSERT_EQUALS(4U, msg.args());
   }
 
   void test_use_from_task() {
@@ -102,7 +102,7 @@ class TestMessage : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(0));
     TS_ASSERT_EQUALS(Fixnum::from(4), msg.get_argument(1));
-    TS_ASSERT_EQUALS(2U, msg.args);
+    TS_ASSERT_EQUALS(2U, msg.args());
   }
 
   void test_unshift_argument() {
@@ -111,9 +111,9 @@ class TestMessage : public CxxTest::TestSuite {
     task->push(Fixnum::from(3));
     msg.use_from_task(task, 1);
 
-    TS_ASSERT_EQUALS(1U, msg.args);
+    TS_ASSERT_EQUALS(1U, msg.args());
     msg.unshift_argument(state, Fixnum::from(47));
-    TS_ASSERT_EQUALS(2U, msg.args);
+    TS_ASSERT_EQUALS(2U, msg.args());
 
     TS_ASSERT_EQUALS(Fixnum::from(47), msg.get_argument(0));
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(1));
@@ -125,9 +125,9 @@ class TestMessage : public CxxTest::TestSuite {
     task->push(Fixnum::from(3));
     msg.import_arguments(state, task, 1);
 
-    TS_ASSERT_EQUALS(1U, msg.args);
+    TS_ASSERT_EQUALS(1U, msg.args());
     msg.unshift_argument(state, Fixnum::from(47));
-    TS_ASSERT_EQUALS(2U, msg.args);
+    TS_ASSERT_EQUALS(2U, msg.args());
 
     TS_ASSERT_EQUALS(Fixnum::from(47), msg.get_argument(0));
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(1));
@@ -139,14 +139,49 @@ class TestMessage : public CxxTest::TestSuite {
     task->push(Fixnum::from(3));
     msg.use_from_task(task, 1);
 
-    TS_ASSERT_EQUALS(1U, msg.args);
+    TS_ASSERT_EQUALS(1U, msg.args());
     msg.unshift_argument(state, Fixnum::from(47));
     msg.unshift_argument(state, Fixnum::from(8));
-    TS_ASSERT_EQUALS(3U, msg.args);
+    TS_ASSERT_EQUALS(3U, msg.args());
 
     TS_ASSERT_EQUALS(Fixnum::from(8), msg.get_argument(0));
     TS_ASSERT_EQUALS(Fixnum::from(47), msg.get_argument(1));
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(2));
 
+  }
+
+  void test_shift_argument() {
+    Message msg(state);
+    Task* task = Task::create(state, 10);
+    task->push(Fixnum::from(3));
+    task->push(Fixnum::from(47));
+    msg.use_from_task(task, 2);
+
+    TS_ASSERT_EQUALS(2U, msg.args());
+    TS_ASSERT_EQUALS(msg.start, 0);
+
+    FIXNUM shifted = as<Fixnum>(msg.shift_argument(state));
+    TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
+    TS_ASSERT_EQUALS(msg.args(), 1);
+    TS_ASSERT_EQUALS(msg.start, 1);
+
+    TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(47));
+  }
+
+  void test_shift_argument_then_unshift() {
+    Message msg(state);
+    Task* task = Task::create(state, 10);
+    task->push(Fixnum::from(3));
+    task->push(Fixnum::from(47));
+    msg.use_from_task(task, 2);
+
+    FIXNUM shifted = as<Fixnum>(msg.shift_argument(state));
+    TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
+    TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(47));
+
+    msg.unshift_argument(state, Fixnum::from(13));
+
+    TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(13));
+    TS_ASSERT_EQUALS(msg.get_argument(1), Fixnum::from(47));
   }
 };

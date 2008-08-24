@@ -2018,7 +2018,7 @@ class Instructions
     msg.recv = stack_top();
     msg.block = Qnil;
     msg.splat = Qnil;
-    msg.args = 0;
+    msg.total_args = 0;
     msg.stack = 1;
 
     msg.priv = task->call_flags & 1;
@@ -2120,7 +2120,7 @@ class Instructions
     msg.recv = stack_back(count);
     msg.block = Qnil;
     msg.splat = Qnil;
-    msg.args = count;
+    msg.total_args = count;
     msg.stack = count + 1;
     msg.use_from_task(task, count);
 
@@ -2201,7 +2201,7 @@ class Instructions
     msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.block = stack_pop();
     msg.splat = Qnil;
-    msg.args = count;
+    msg.total_args = count;
     msg.recv = stack_back(count);
     msg.stack = count + 1;
     msg.use_from_task(task, count);
@@ -2293,7 +2293,7 @@ class Instructions
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
-    msg.args = count;
+    msg.total_args = count;
     msg.recv = stack_back(count);
     msg.stack = count + 1;
     
@@ -2385,7 +2385,7 @@ class Instructions
     msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.block = stack_pop();
     msg.splat = Qnil;
-    msg.args = count;
+    msg.total_args = count;
     msg.recv = stack_back(count);
     msg.stack = count + 1;
     msg.use_from_task(task, count);
@@ -2481,7 +2481,7 @@ class Instructions
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
-    msg.args = count;
+    msg.total_args = count;
     msg.recv = task->self;
     msg.stack = count;
 

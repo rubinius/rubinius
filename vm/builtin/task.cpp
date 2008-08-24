@@ -109,10 +109,10 @@ namespace rubinius {
     size_t fixed;
 
     ctx->block = msg.block;
-    ctx->args = msg.args;
+    ctx->args = msg.args();
 
     /* No input args and no expected args. Done. */
-    if(total == 0 && msg.args == 0) {
+    if(total == 0 && msg.args() == 0) {
       /* Even though there was nothing, if there was a splat, we need to fill
        * it in. */
       if(ctx->cm->splat != Qnil) {
@@ -123,26 +123,26 @@ namespace rubinius {
     }
 
     /* If too few args were passed in, throw an exception */
-    if(msg.args < required) {
-      throw ArgumentError(required, msg.args);
+    if(msg.args() < required) {
+      throw ArgumentError(required, msg.args());
     }
 
     /* If too many args were passed in, throw an exception.
      * If there is a splat, this check is disabled.
      */
-    if(ctx->cm->splat == Qnil && msg.args > total) {
-      throw ArgumentError(required, msg.args);
+    if(ctx->cm->splat == Qnil && msg.args() > total) {
+      throw ArgumentError(required, msg.args());
     }
 
     fixed = total;
-    if(msg.args < total) fixed = msg.args;
+    if(msg.args() < total) fixed = msg.args();
 
     for(size_t i = 0; i < fixed; i++) {
       ctx->set_local(i, msg.get_argument(i));
     }
 
     if(ctx->cm->splat != Qnil) {
-      size_t splat_size = msg.args - total;
+      size_t splat_size = msg.args() - total;
       Array* ary = Array::create(state, splat_size);
 
       for(size_t i = 0, n = total; i < splat_size; i++, n++) {

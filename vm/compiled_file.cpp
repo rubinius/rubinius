@@ -37,7 +37,7 @@ namespace rubinius {
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
     Message msg(state);
-    msg.args = 0;
+    msg.total_args = 0;
     msg.recv = G(main);
     msg.module = G(object);
 

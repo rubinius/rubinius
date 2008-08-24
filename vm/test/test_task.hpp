@@ -83,7 +83,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.args = 0;
+    msg.set_args(0);
 
     MethodContext* cur = task->active;
 
@@ -108,7 +108,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = (SendSite*)Qnil;
-    msg.args = 0;
+    msg.set_args(0);
 
     MethodContext* cur = task->active;
 
@@ -384,7 +384,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.args = 0;
+    msg.set_args(0);
 
     MethodContext* before = task->active;
 
@@ -796,7 +796,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.args = 0;
+    msg.set_args(0);
 
     task->send_message(msg);
     TS_ASSERT(task->active != top);
@@ -833,7 +833,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.args = 0;
+    msg.set_args(0);
 
     task->send_message(msg);
     TS_ASSERT(task->active != top);

@@ -9,6 +9,9 @@ namespace rubinius {
   class Integer;
   class String;
   class Module;
+  class VMExecutable;
+  class Task;
+  class Message;
 
   class Object : public ObjectHeader {
   public:
@@ -117,6 +120,13 @@ namespace rubinius {
 
     // Ruby.primitive :object_kind_of
     OBJECT kind_of_prim(STATE, Module* klass);
+
+    // Ruby.primitive? :object_send
+    bool send_prim(STATE, VMExecutable* exec, Task* task, Message& msg);
+
+    // Setup the current task to send the meth +meth+ to +this+ with a
+    // variable number of arguments
+    bool send(STATE, SYMBOL meth, size_t args, ...);
 
     void copy_flags(STATE, OBJECT other);
     void copy_ivars(STATE, OBJECT other);

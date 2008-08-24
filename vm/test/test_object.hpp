@@ -224,4 +224,80 @@ class TestObject : public CxxTest::TestSuite {
   void test_symbol_class() {
     TS_ASSERT_EQUALS(state->symbol("blah")->class_object(state), G(symbol));
   }
+
+  CompiledMethod* create_cm() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->iseq = InstructionSequence::create(state, 1);
+    cm->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    cm->stack_size = Fixnum::from(10);
+    cm->total_args = Fixnum::from(0);
+    cm->required_args = cm->total_args;
+
+    cm->formalize(state);
+
+    return cm;
+  }
+
+  void test_send_prim() {
+    CompiledMethod* cm = create_cm();
+    cm->required_args = Fixnum::from(2);
+    cm->total_args = cm->required_args;
+    cm->local_count = cm->required_args;
+    cm->stack_size =  cm->required_args;
+    cm->splat = Qnil;
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    Task* task = Task::create(state, 3);
+
+    task->push(state->symbol("blah"));
+    task->push(Fixnum::from(3));
+    task->push(Fixnum::from(4));
+
+    MethodContext* input_context = task->active;
+
+    Message msg(state);
+    msg.recv = Qtrue;
+    msg.lookup_from = G(true_class);
+    msg.name = state->symbol("__send__");
+    msg.send_site = SendSite::create(state, state->symbol("__send__"));
+    msg.use_from_task(task, 3);
+
+    Qtrue->send_prim(state, NULL, task, msg);
+
+    TS_ASSERT(task->active != input_context);
+    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
+    TS_ASSERT_EQUALS(task->active->cm, cm);
+    TS_ASSERT_EQUALS(task->active->name, state->symbol("blah"));
+  }
+
+  void test_send() {
+    CompiledMethod* cm = create_cm();
+    cm->required_args = Fixnum::from(2);
+    cm->total_args = cm->required_args;
+    cm->local_count = cm->required_args;
+    cm->stack_size =  cm->required_args;
+    cm->splat = Qnil;
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    Task* task = Task::create(state, 2);
+
+    state->globals.current_task.set(task);
+
+    MethodContext* input_context = task->active;
+
+    Qtrue->send(state, state->symbol("blah"), 2, Fixnum::from(3),
+          Fixnum::from(4));
+
+    TS_ASSERT(task->active != input_context);
+    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
+    TS_ASSERT_EQUALS(task->active->cm, cm);
+    TS_ASSERT_EQUALS(task->active->name, state->symbol("blah"));
+
+  }
 };

@@ -209,7 +209,9 @@ end
 file 'vm/gen/primitives_glue.gen.cpp' => hdrs
 
 file 'vm/test/runner.cpp' => tests + objs do
-  tests = tests.sort + [{ :verbose => true }]
+  tests = tests.sort
+  puts "GEN vm/test/runner.cpp" unless $verbose
+  tests << { :verbose => $verbose }
   sh("vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
      "--abort-on-fail", "-o", "vm/test/runner.cpp", *tests)
 end
