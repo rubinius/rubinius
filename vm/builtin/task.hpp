@@ -16,14 +16,6 @@ namespace rubinius {
   class TaskProbe;
   class Tuple;
 
-  class ArgumentError : public VMException {
-  public:
-    size_t expected;
-    size_t given;
-
-    ArgumentError(size_t e, size_t g) : expected(e), given(g) { }
-  };
-
   class Task;
 
   /* Task is a place to hang the current information about what is running.

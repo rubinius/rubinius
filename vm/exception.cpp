@@ -8,7 +8,11 @@
 namespace rubinius {
 
   void TypeError::raise(object_type type, OBJECT obj, const char* reason) {
-    throw TypeError(type, obj);
+    throw TypeError(type, obj, reason);
+  }
+
+  void ArgumentError::raise(size_t expected, size_t given) {
+    throw ArgumentError(expected, given);
   }
 
   void Assertion::raise(const char* mesg) {
