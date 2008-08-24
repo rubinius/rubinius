@@ -1,5 +1,5 @@
 #include "prelude.hpp"
-#include "object.hpp"
+#include "exception.hpp"
 #include <vector>
 #include <iostream>
 #include <execinfo.h>
