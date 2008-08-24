@@ -30,6 +30,7 @@ namespace rubinius {
     SET(ctx, block, Qnil);
     SET(ctx, name, Qnil);
     SET(ctx, home, Qnil);
+    SET(ctx, ivars, Qnil);
 
     ctx->stack_size = stack;
     for(size_t i = 0; i < stack; i++) {
