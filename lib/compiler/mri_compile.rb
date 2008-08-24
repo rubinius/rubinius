@@ -67,25 +67,24 @@ end
 
 class Float
   undef_method :==
-    def ==(other)
-      (self - other).abs < 1e-14
-    end
+  def ==(other)
+    (self - other).abs < 1e-14
+  end
+end
+
+decode_cm(top) if decode
+
+if output
+  str = mar.marshal(top)
+  nt = mar.unmarshal(str)
+  unless top == nt
+    puts "FAILED ROUND TRIP."
+    compare_cm(top, nt)
+    exit 1
   end
 
-  decode_cm(top) if decode
-
-  if output
-    str = mar.marshal(top)
-    nt = mar.unmarshal(str)
-    unless top == nt
-      puts "FAILED ROUND TRIP."
-      compare_cm(top, nt)
-      exit 1
-    end
-
-    File.open(output, "w") do |f|
-      cf = Compiler::CompiledFile.new "!RBIX", 1, "x"
-      cf.encode_to f, top
-    end
-
+  File.open(output, "w") do |f|
+    cf = Compiler::CompiledFile.new "!RBIX", 1, "x"
+    cf.encode_to f, top
   end
+end
