@@ -106,6 +106,9 @@ modules.each do |name, files|
   end
 end
 
+all_kernel << 'runtime/loader.rbc'
+file 'runtime/loader.rbc' => 'kernel/loader.rb'
+
 rule ".rbc" do |t|
   rbc = t.name
   src = t.prerequisites.first
@@ -120,7 +123,7 @@ namespace :kernel do
     p loose
   end
 
-  task :build => all_kernel do
+  task :build => all_kernel + %w[runtime/platform.conf] do
     modules.each do |name, files|
       create_load_order files, "runtime/#{name}/.load_order.txt"
     end
@@ -134,7 +137,6 @@ namespace :kernel do
     files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"] + Dir["**/.*.rbc"]
     files_to_delete += Dir["**/.load_order.txt"]
     files_to_delete += ["runtime/platform.conf"]
-    files_to_delete -= ["runtime/stable/loader.rbc"] # never ever delete this
 
     rm_f files_to_delete, :verbose => $verbose
   end
