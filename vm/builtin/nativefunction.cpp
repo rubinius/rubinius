@@ -12,6 +12,7 @@
 #include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "vmnativefunction.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -154,6 +155,9 @@ namespace rubinius {
     SET(nf, name,   name);
     SET(nf, file,   state->symbol("<system>"));
     SET(nf, data,   Qnil);
+
+    nf->executable = VMNativeFunction::create(state); // HACK stupid
+
     return nf;
   }
 
@@ -646,6 +650,5 @@ namespace rubinius {
 
     return ret;
   }
-
 
 }

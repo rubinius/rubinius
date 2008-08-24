@@ -87,7 +87,9 @@ namespace rubinius {
 
       String* message = String::create(state,
           "exception detected at toplevel: ");
-      message->append(state, exc->message);
+      if(!exc->message->nil_p()) {
+        message->append(state, exc->message);
+      }
       message->append(state, " (");
       message->append(state, exc->klass->name->to_str(state));
       message->append(state, ")");

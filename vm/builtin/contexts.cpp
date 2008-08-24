@@ -30,6 +30,7 @@ namespace rubinius {
     SET(ctx, block, Qnil);
     SET(ctx, name, Qnil);
     SET(ctx, home, Qnil);
+    SET(ctx, ivars, Qnil);
 
     ctx->stack_size = stack;
     for(size_t i = 0; i < stack; i++) {
@@ -170,6 +171,17 @@ initialize:
     /* TODO when this is called via MethodContext#sender, we don't need to wipe
      * out the reclaim count, since that context is alread protected. */
     state->context_cache->reclaim = 0;
+  }
+
+  /* Retrieve a field within the context, referenced by name. This
+   * is used as a primitive. */
+  OBJECT MethodContext::get_field(STATE, FIXNUM type) {
+    switch(type->to_native()) {
+    case 1:
+      return Fixnum::from(ip);
+    }
+
+    return Qnil;
   }
 
   /* Return a new +BlockContext+ object, which needs +stack_size+ fields

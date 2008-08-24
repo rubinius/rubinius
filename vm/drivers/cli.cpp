@@ -39,26 +39,22 @@ int main(int argc, char** argv) {
 
   try {
     char* e = getenv("ROOT");
-    if(e) {
-      std::string root = std::string(e);
 
-      env.set_rubinius_constants();
-
-      std::cout << "Loading platform.conf: " << root << "\n";
-      env.load_platform_conf(root);
-
-      load_root(env, std::string(root));
+    if(!e) {
+      Assertion::raise("set ROOT to runtime (or equiv)");
     }
 
-    if(argc < 2) {
-      std::cout << "Usage: file.rbc" << std::endl;
-      return 1;
-    }
+    std::string root = std::string(e);
+    env.set_rubinius_constants();
 
-    std::string str(argv[1]);
-    std::cout << "Loading: " << str << std::endl;
+    std::cout << "Loading platform.conf: " << root << "\n";
+    env.load_platform_conf(root);
 
-    env.run_file(str);
+    load_root(env, std::string(root));
+
+    std::string loader = root + "/loader.rbc";
+
+    env.run_file(loader);
     return 0;
 
   } catch(ObjectBoundsExceeded &e) {

@@ -838,7 +838,9 @@ class Array
           end
         end
       else
-        out << elem.__send__(method)
+        # HACK use __send__
+        # out << elem.__send__(method)
+        out << elem.to_s
       end
     end
     out

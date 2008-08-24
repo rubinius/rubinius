@@ -34,6 +34,7 @@ namespace rubinius {
 
     globals.ffi_func.set(new_class("NativeFunction", globals.executable.get(),
           NativeFunction::fields));
+    globals.ffi_func->set_object_type(NativeFuncType);
 
     Module* mod = new_module("FFI");
     mod->set_const(this, "TYPE_OBJECT",     Fixnum::from(RBX_FFI_TYPE_OBJECT));

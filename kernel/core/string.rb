@@ -1729,7 +1729,8 @@ class String
   #++
   def to_sym
     raise ArgumentError, "interning empty string" if self.empty?
-    raise ArgumentError, "symbol string may not contain `\\0'" if self.include?("\x00")
+    # HACK Brian Ford is moving this into the primitive
+    #raise ArgumentError, "symbol string may not contain `\\0'" if self.include?("\x00")
     __symbol_lookup__
   end
   alias_method :intern, :to_sym

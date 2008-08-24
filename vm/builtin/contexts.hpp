@@ -49,6 +49,9 @@ namespace rubinius {
     bool recycle(STATE);
     void reference(STATE);
 
+    // Ruby.primitive :context_get_field
+    OBJECT get_field(STATE, FIXNUM type);
+
     /* Locals manipulation functions */
     /* Locals are just stored at the top of the stack. */
     void set_local(size_t pos, OBJECT val) {

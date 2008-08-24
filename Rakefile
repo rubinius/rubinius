@@ -76,7 +76,6 @@ desc "Build everything that needs to be built"
 task :build => %w[
   vm
   kernel:build
-  runtime/platform.conf
 ]
 #  build:rbc
 #  compiler
