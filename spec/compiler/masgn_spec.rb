@@ -2,8 +2,9 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles 'a, b = 1, 2'" do
+    # TODO to ryan: [:masgn, [:array, ..], nil, [:array, ..]]
     x = [:masgn,
-         [:array, [:lasgn, :a], [:lasgn, :b]], nil,
+         [:array, [:lasgn, :a], [:lasgn, :b]],
          [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
@@ -22,8 +23,9 @@ describe Compiler do
   end
 
   it "compiles 'a, b.c = b.c, true'" do
+    # TODO to ryan: same as above
     x = [:masgn,
-         [:array, [:lasgn, :a], [:attrasgn, [:vcall, :b], :c]], nil,
+         [:array, [:lasgn, :a], [:attrasgn, [:vcall, :b], :c]],
          [:array, [:call, [:vcall, :b], :c], [:true]]]
 
     gen x do |g|
@@ -48,8 +50,9 @@ describe Compiler do
   end
 
   it "compiles 'a, b = 1, 2, 3'" do
+    # TODO to ryan: same as above
     x = [:masgn,
-         [:array, [:lasgn, :a], [:lasgn, :b]], nil,
+         [:array, [:lasgn, :a], [:lasgn, :b]],
          [:array, [:fixnum, 1], [:fixnum, 2], [:fixnum, 3]]]
 
     gen x do |g|
@@ -71,7 +74,7 @@ describe Compiler do
 
   it "compiles 'a, b, c = 1, 2'" do
     x = [:masgn,
-         [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]], nil,
+         [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]],
          [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
@@ -139,8 +142,9 @@ describe Compiler do
   end
 
   it "compiles 'a, b, c = *d'" do
+    # TODO to ryan: [:masgn, [:array, ...], nil, nil, [:vcall, :d]]
     x = [:masgn,
-         [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]], nil,
+         [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]],
          [:splat, [:vcall, :d]]]
 
     gen x do |g|
@@ -159,8 +163,9 @@ describe Compiler do
   end
 
   it "compiles 'a, b, c = 1, *d'" do
+    # TODO to ryan: [:masgn, [:array, ...], nil, [:array, [:lit, 1]], [:vcall, :d]]
     x = [:masgn,
-         [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]], nil,
+         [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]],
          [:argscat, [:array, [:lit, 1]], [:vcall, :d]]]
 
     gen x do |g|
@@ -184,6 +189,7 @@ describe Compiler do
   end
 
   it "compiles 'a, b, *c = *d'" do
+    # TODO to ryan: [:masgn, [:array, ...], [:vcall, :c], nil, [:vcall, :d]]
     x = [:masgn,
          [:array, [:lasgn, :a], [:lasgn, :b]], [:lasgn, :c],
          [:splat, [:vcall, :d]]]
@@ -206,19 +212,35 @@ describe Compiler do
   end
 
   it "compiles '|a|'" do
-    x = [:iter_args, [:lasgn, :a]]
+    x = [:iter,
+         [:call, [:vcall, :x], :each],
+         [:lasgn, :a]]
 
     gen x do |g|
-      g.cast_for_single_block_arg
-      g.set_local 0
-      g.pop
+      desc = description do |d|
+        d.cast_for_single_block_arg
+        d.set_local_depth 0,0
+        d.pop
+        d.push_modifiers
+        d.new_label.set!
+        d.push :nil
+        d.pop_modifiers
+        d.ret
+      end
+
+      g.push :self
+      g.send :x, 0, true
+      g.create_block desc
+      g.passed_block do
+        g.send_with_block :each, 0, false
+      end
     end
   end
 
   it "compiles '|a,|'" do
     x = [:iter,
          [:call, [:vcall, :x], :each],
-         [:masgn, [:array, [:lasgn, :a]], nil, nil]]
+         [:masgn, [:array, [:lasgn, :a]]]]
 
     gen x do |g|
       desc = description do |d|
@@ -248,7 +270,7 @@ describe Compiler do
          [:call, [:vcall, :x], :each],
          [:masgn, [:array,
                    [:lasgn, :a],
-                   [:lasgn, :b]], nil, nil]]
+                   [:lasgn, :b]]]]
 
     gen(x) do |g|
       desc = description do |d|
@@ -278,6 +300,7 @@ describe Compiler do
   end
 
   it "compiles '|*args|'" do
+    # TODO to ryan: [:masgn, nil, [:lasgn, :args]]
     x = [:iter,
          [:call, [:vcall, :x], :each],
          [:masgn, [:lasgn, :args]]]
@@ -307,7 +330,7 @@ describe Compiler do
   it "compiles '|a, *b|'" do
     x = [:iter,
          [:call, [:vcall, :x], :each],
-         [:masgn, [:array, [:lasgn, :a]], [:lasgn, :b], nil]]
+         [:masgn, [:array, [:lasgn, :a]], [:lasgn, :b]]]
 
     gen x do |g|
       desc = description do |d|
@@ -334,7 +357,7 @@ describe Compiler do
 
   it "compiles '@a, @b = 1, 2'" do
     x = [:masgn,
-         [:array, [:iasgn, :@a], [:iasgn, :@b]], nil,
+         [:array, [:iasgn, :@a], [:iasgn, :@b]],
          [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
@@ -351,7 +374,7 @@ describe Compiler do
 
   it "compiles '@a, $b = 1, 2'" do
     x = [:masgn,
-         [:array, [:iasgn, :@a], [:gasgn, :$b]], nil,
+         [:array, [:iasgn, :@a], [:gasgn, :$b]],
          [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
@@ -374,7 +397,6 @@ describe Compiler do
   it "compiles 'a, b = (@a = 1), @a'" do
     sexp = [:masgn,
             [:array, [:lasgn, :a], [:lasgn, :b]],
-            nil,
             [:array,
              [:iasgn, :@a, [:lit, 1]],
              [:ivar, :@a]]]

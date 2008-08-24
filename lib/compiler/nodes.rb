@@ -2180,22 +2180,18 @@ class Compiler
         super(comp)
         @block_args = false
       end
-
-      def args(assigns, splat=nil, source=:bogus)
+    
+      def args(assigns, *rest)
         if @block_args
           @assigns = assigns
           @splat = splat
           @source = nil
-        elsif splat.nil? and source == :bogus
+        elsif rest.size == 1
           @assigns = assigns
-          @source = nil
+          @source = rest.first
           @splat = nil
-        elsif source == :bogus  # Only two args supplied, therefore no assigns
-          @assigns = nil
-          @splat = assigns
-          @source = splat
         else
-          @assigns, @splat, @source = assigns, splat, source
+          @assigns, @splat, @source = assigns, rest[0], rest[1]
         end
 
         # TODO: fix in sexp
