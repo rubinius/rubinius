@@ -1383,7 +1383,8 @@ class IO
     data = String data
 
     return 0 if data.length == 0
-    raise IOError if ((Platform::POSIX.fcntl(@descriptor, F_GETFL, 0) & ACCMODE) == RDONLY)
+    # HACK WTF?
+    #raise IOError if (Platform::POSIX.fcntl(@descriptor, F_GETFL, 0) & ACCMODE) == RDONLY
     prim_write(data)
   end
 
