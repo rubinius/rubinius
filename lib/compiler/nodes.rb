@@ -1868,7 +1868,6 @@ class Compiler
       def args(name)
         @name = name
       end
-
       attr_accessor :name
     end
 
@@ -1877,10 +1876,10 @@ class Compiler
 
       def args(simp, val, complex = nil)
         @from_top = false
+        @parent = nil
 
         @value = val
         if simp
-          @parent = nil
           @name = simp
         elsif complex.is? ConstAtTop
           @from_top = true
@@ -1888,10 +1887,12 @@ class Compiler
         else
           @parent = complex.parent
           @name = complex.name
+          attr_accessor :name
         end
-      end
 
-      attr_accessor :from_top, :parent, :value, :name
+
+        attr_accessor :from_top, :parent, :value, :name
+      end
     end
 
     class ToArray < Node

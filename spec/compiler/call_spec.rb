@@ -298,6 +298,7 @@ describe Compiler do
       desc = description do |d|
         d.push 1
         d.push :nil
+        d.push :nil
         d.send_super :a, 1
         d.ret
       end
@@ -339,6 +340,7 @@ describe Compiler do
       desc = description do |d|
         d.push_local 0
         d.push_local 1
+        d.push :nil
         d.push :nil
         d.send_super :a, 2
         d.ret
