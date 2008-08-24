@@ -5,7 +5,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/float.hpp"
 
-#include "objects.hpp"
 #include "vm.hpp"
 #include "primitives.hpp"
 #include "objectmemory.hpp"

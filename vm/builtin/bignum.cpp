@@ -2,7 +2,6 @@
 
 #include "prelude.hpp"
 #include "object.hpp"
-#include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"

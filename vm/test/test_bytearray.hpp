@@ -1,4 +1,3 @@
-#include "objects.hpp"
 #include "vm.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/string.hpp"

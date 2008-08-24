@@ -1,7 +1,6 @@
 #ifndef RBX_BUILTIN_FIXNUM_HPP
 #define RBX_BUILTIN_FIXNUM_HPP
 
-#include "objects.hpp" // FIX: empty this file out... gah
 #include "builtin/integer.hpp"
 #include "builtin/bignum.hpp"
 

@@ -1,4 +1,3 @@
-#include "objects.hpp"
 #include "vm.hpp"
 
 #include <cxxtest/TestSuite.h>

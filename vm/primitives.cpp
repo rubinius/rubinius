@@ -2,6 +2,8 @@
 #include "event.hpp"
 #include "gen/includes.hpp"
 
+#include <iostream>
+
 namespace rubinius {
   bool Primitives::unknown_primitive(STATE, VMExecutable* exec, Task* task, Message& msg) {
     std::cout << "\n";

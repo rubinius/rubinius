@@ -4,7 +4,6 @@
 #include "object.hpp"
 #include "gc_marksweep.hpp"
 #include "gc_baker.hpp"
-#include "objects.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {

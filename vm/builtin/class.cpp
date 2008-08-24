@@ -1,5 +1,7 @@
-#include "builtin/class.hpp"
+#include "vm.hpp"
 #include "objectmemory.hpp"
+
+#include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/methodtable.hpp"

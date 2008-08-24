@@ -12,7 +12,7 @@
 #include "builtin/object.hpp"
 #include "exception.hpp"
 
-/* Defines all the most common operations on for dealing with
+/* Defines all the most common operations for dealing with
  * objects, such as type checking and casting. */
 
 namespace rubinius {

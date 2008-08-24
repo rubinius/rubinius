@@ -7,7 +7,6 @@
 #include "builtin/compiledmethod.hpp"
 #include "builtin/symbol.hpp"
 
-#include "objects.hpp"
 #include "message.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"

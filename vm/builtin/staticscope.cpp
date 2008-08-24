@@ -1,4 +1,4 @@
-
+#include "vm.hpp"
 #include "prelude.hpp"
 #include "builtin/class.hpp"
 #include "builtin/staticscope.hpp"

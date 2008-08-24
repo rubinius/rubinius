@@ -1,6 +1,5 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "objects.hpp"
 #include "event.hpp"
 #include "global_cache.hpp"
 #include "llvm.hpp"

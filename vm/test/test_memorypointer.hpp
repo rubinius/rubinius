@@ -1,5 +1,4 @@
 #include "prelude.hpp"
-#include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "ffi.hpp"

@@ -1,7 +1,6 @@
 #ifndef RBX_BUILTIN_BIGNUM_HPP
 #define RBX_BUILTIN_BIGNUM_HPP
 
-#include "objects.hpp" // TODO: break up objects.hpp
 #include "builtin/integer.hpp"
 
 namespace rubinius {

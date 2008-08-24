@@ -1,10 +1,12 @@
+#include "vm.hpp"
+#include "objectmemory.hpp"
+
 #include "builtin/lookuptable.hpp"
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "objectmemory.hpp"
 #include "builtin/string.hpp"
 
 #define LOOKUPTABLE_MAX_DENSITY 0.75

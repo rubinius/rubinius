@@ -5,6 +5,8 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 
+#include <iostream>
+
 namespace rubinius {
 
   void TypeInfo::init(STATE) {

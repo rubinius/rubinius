@@ -1,7 +1,5 @@
-
 #include "prelude.hpp"
 #include "object.hpp"
-#include "objects.hpp"
 #include "virtual.hpp"
 
 namespace rubinius {

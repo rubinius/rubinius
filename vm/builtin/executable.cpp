@@ -1,4 +1,6 @@
 #include "prelude.hpp"
+#include "vm.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 

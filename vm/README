@@ -34,8 +34,8 @@ For now, just run the tests.
  Notes
 -------
 
-* Classes defined in objects.hpp and builtin_*.hpp are C++ classes mapped
-  directly to ruby objects.
+* Classes defined in builtin/*.hpp are C++ classes mapped directly to ruby
+  objects.
 
 * Because of the previous point, NO virtual functions are allowed in these
   classes. C++ inserts a pointer into every object which has virtual functions

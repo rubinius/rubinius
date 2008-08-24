@@ -1,7 +1,6 @@
 #ifndef RBX_GLOBAL_CACHE_HPP
 #define RBX_GLOBAL_CACHE_HPP
 
-#include "objects.hpp"
 #include "builtin/compiledmethod.hpp"
 
 namespace rubinius {

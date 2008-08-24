@@ -43,7 +43,6 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
 # CompactLookupTable inherits from Tuple, so the header
 # for compactlookuptable.hpp has to come after tuple.hpp
 field_extract_headers = %w[
-  vm/objects.hpp
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
   vm/builtin/executable.hpp

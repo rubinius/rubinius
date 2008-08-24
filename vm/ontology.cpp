@@ -1,6 +1,5 @@
 #include <errno.h>
 
-#include "objects.hpp"
 #include "objectmemory.hpp"
 #include "vm.hpp"
 
@@ -48,7 +47,7 @@ namespace rubinius {
 #define GO(whatever) globals.whatever
 
   void VM::bootstrap_class() {
-    /* Class is created first by hand, and twittle to setup the internal
+    /* Class is created first by hand, and twiddle to setup the internal
        recursion. */
     Class *cls = (Class*)om->allocate_object(Class::fields);
 
