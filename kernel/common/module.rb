@@ -424,12 +424,13 @@ class Module
     vis = vis.to_sym
 
     if entry = method_table[name] then
-      if entry.kind_of?(Tuple) then
-        entry = entry.dup
-        entry[0] = vis
+      if entry.kind_of? Executable then
+        entry = CompiledMethod::Visibility.new entry.dup, vis
       else
-        entry = Tuple[vis, entry.dup]
+        entry = entry.dup
+        entry.visibility = vis
       end
+
       method_table[name] = entry
     elsif find_method_in_hierarchy(name) then
       method_table[name] = Tuple[vis, nil]

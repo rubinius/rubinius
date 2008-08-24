@@ -104,12 +104,11 @@ class MetaClass
     object.serial = 1
 
     cur = method_table[name]
-    if cur and cur.kind_of? Tuple
-      # Override the slot which points to the method, so that we
-      # retain visibility.
-      cur[1] = object
+
+    unless cur.kind_of? Executable then
+      cur.executable = object
     else
-      method_table[name] = Tuple[:public, object]
+      method_table[name] = CompiledMethod::Visibility.new object, :public
     end
 
     object.inherit_scope MethodContext.current.sender.method
