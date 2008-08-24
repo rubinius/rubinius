@@ -172,35 +172,30 @@ class Compiler
       end
     end
 
-    # TESTED
     class True
       def bytecode(g)
         g.push :true
       end
     end
 
-    # TESTED
     class False
       def bytecode(g)
         g.push :false
       end
     end
 
-    # TESTED
     class Nil
       def bytecode(g)
         g.push :nil
       end
     end
 
-    # TESTED
     class Self
       def bytecode(g)
         g.push :self
       end
     end
 
-    # TESTED
     class And
       def bytecode(g, use_gif=true)
         @left.bytecode(g)
@@ -219,14 +214,12 @@ class Compiler
       end
     end
 
-    # TESTED
     class Or
       def bytecode(g)
         super(g, false)
       end
     end
 
-    # TESTED
     class Not
       def bytecode(g)
         @child.bytecode(g)
@@ -241,7 +234,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Negate
       def bytecode(g)
         if @child.is? NumberLiteral
@@ -253,21 +245,18 @@ class Compiler
       end
     end
 
-    # TESTED
     class NumberLiteral
       def bytecode(g)
         g.push @value
       end
     end
 
-    # TESTED
     class Literal
       def bytecode(g)
         g.push_unique_literal @value
       end
     end
 
-    # TESTED
     class ArrayLiteral
       def bytecode(g)
         @body.each do |x|
@@ -278,14 +267,12 @@ class Compiler
       end
     end
 
-    # TESTED
     class EmptyArray
       def bytecode(g)
         g.make_array 0
       end
     end
 
-    # TESTED
     class HashLiteral
       def bytecode(g)
         count = @body.size
@@ -307,7 +294,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class StringLiteral
       def bytecode(g)
         g.push_literal @string
@@ -315,7 +301,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class ExecuteString
       def bytecode(g)
         g.push :self
@@ -324,7 +309,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class ToString
       def bytecode(g)
         @child.bytecode(g)
@@ -332,7 +316,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class DynamicString
       def bytecode(g)
         @body.reverse_each do |x|
@@ -347,7 +330,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class DynamicExecuteString
       def bytecode(g)
         g.push :self
@@ -356,7 +338,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class DynamicSymbol
       def bytecode(g)
         @string.bytecode(g)
@@ -364,7 +345,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class RegexLiteral
       def bytecode(g)
         # A regex literal should only be converted to a Regexp the first time it
@@ -388,7 +368,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class DynamicRegex
       def bytecode(g)
         g.push_const :Regexp
@@ -398,7 +377,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class DynamicOnceRegex
       def bytecode(g)
         idx = g.add_literal(nil)
@@ -430,7 +408,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Match2
       def bytecode(g)
         @pattern.bytecode(g)
@@ -439,7 +416,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Match3
       def bytecode(g)
         @target.bytecode(g)
@@ -448,7 +424,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class BackRef
       def bytecode(g)
         g.push_context
@@ -457,7 +432,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class NthRef
       def bytecode(g)
         g.push_context
@@ -466,7 +440,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Block
       def bytecode(g)
         if @body.empty?
@@ -488,7 +461,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Scope
       def bytecode(g)
         if @block.nil?
@@ -500,7 +472,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class If
       def bytecode(g)
         ed = g.new_label
@@ -537,7 +508,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class While
       def bytecode(g, use_gif=true)
         g.push_modifiers
@@ -591,14 +561,12 @@ class Compiler
       end
     end
 
-    # TESTED
     class Until
       def bytecode(g)
         super(g, false)
       end
     end
 
-    # TESTED
     class Loop
       def bytecode(g)
         g.push_modifiers
@@ -619,7 +587,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Iter
       def argument_info
         [@arguments.arity, @arguments.optional.size, nil]
@@ -656,7 +623,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class BlockPass
       def bytecode(g)
         g.push_cpath_top
@@ -674,7 +640,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Break
 
       def do_value(g)
@@ -715,7 +680,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Redo
       def bytecode(g)
         if g.redo
@@ -753,7 +717,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class When
       # The bytecode to test a when condition is different, depending on whether
       # or not the case statement has a receiver, i.e.
@@ -815,7 +778,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Case
       def bytecode(g)
         fin = g.new_label
@@ -839,7 +801,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class LocalAssignment
       def bytecode(g)
         if @value
@@ -863,7 +824,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class LocalAccess
       def bytecode(g)
         if @variable.on_stack?
@@ -886,7 +846,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class SValue
       def bytecode(g)
         @child.bytecode(g)
@@ -911,7 +870,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Splat
       def bytecode(g)
         @child.bytecode(g)
@@ -927,7 +885,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class OpAssignOr
       def bytecode(g, use_gif=false)
         @left.bytecode(g)
@@ -944,14 +901,12 @@ class Compiler
       end
     end
 
-    # TESTED
     class OpAssignAnd
       def bytecode(g)
         super(g, true)
       end
     end
 
-    # TESTED
     class OpAssign1
       def bytecode(g)
         # X: Snippet used for explanation: h[:a] += 3
@@ -1038,7 +993,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class OpAssign2
       def bytecode(g)
         # X: h[:a] += 3, given h.a == 2
@@ -1088,7 +1042,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class ConcatArgs
       def call_bytecode(g)
         @rest.each do |x|
@@ -1113,7 +1066,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class PushArgs
       def bytecode(g)
         raise Error, "Shouldn't be used"
@@ -1130,14 +1082,12 @@ class Compiler
       end
     end
 
-    # TESTED
     class AccessSlot
       def bytecode(g)
         g.push_my_field @index
       end
     end
 
-    # TESTED
     class SetSlot
       def bytecode(g)
         @value.bytecode(g)
@@ -1145,14 +1095,12 @@ class Compiler
       end
     end
 
-    # TESTED
     class IVar
       def bytecode(g)
         g.push_ivar @name
       end
     end
 
-    # TESTED
     class IVarAssign
       def bytecode(g)
         @value.bytecode(g) if @value
@@ -1160,7 +1108,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class GVar
       def bytecode(g)
         if @name == :$!
@@ -1178,7 +1125,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class GVarAssign
       def bytecode(g)
         # @value can to be present if this is coming via an masgn, which means
@@ -1217,14 +1163,12 @@ class Compiler
       end
     end
 
-    # TESTED
     class ConstFind
       def bytecode(g)
         g.push_const @name
       end
     end
 
-    # TESTED
     class ConstAccess
       def bytecode(g)
         @parent.bytecode(g)
@@ -1232,7 +1176,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class ConstAtTop
       def bytecode(g)
         g.push_cpath_top
@@ -1240,7 +1183,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class ConstSet
       def bytecode(g)
         if @compiler.kernel?
@@ -1288,7 +1230,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class ToArray
       def bytecode(g)
         @child.bytecode(g)
@@ -1296,7 +1237,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class SClass
       def bytecode(g)
         @object.bytecode(g)
@@ -1309,7 +1249,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Class
 
       def superclass_bytecode(g)
@@ -1334,7 +1273,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Module
 
       def bytecode(g)
@@ -1519,7 +1457,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class RescueCondition
       def bytecode(g, top_if_false, if_done)
         body = g.new_label
@@ -1564,7 +1501,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Rescue
       def bytecode(g)
         g.push_modifiers
@@ -1672,7 +1608,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Return
       def bytecode(g, force=false)
         if @in_rescue
@@ -1714,7 +1649,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class IterArgs
       def bytecode(g)
         case @child
@@ -1738,7 +1672,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class MAsgn
       # MAsgn rules:
       # - MAsgn sexps always contain either 2 or 3 values
@@ -1908,7 +1841,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class FCall
       def allow_private?
         true
@@ -1920,7 +1852,6 @@ class Compiler
 
     end
 
-    # TESTED
     class AttrAssign
       def bytecode(g, in_masgn = false)
         if in_masgn
@@ -1959,7 +1890,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Call
       def allow_private?
         false
@@ -2072,7 +2002,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Yield
       def bytecode(g)
         g.push_block
@@ -2141,7 +2070,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Undef
       def bytecode(g)
         g.push :self
@@ -2153,7 +2081,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Alias
       def bytecode(g)
         g.push :self
@@ -2173,7 +2100,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Arguments
       def bytecode(g)
         min = @required.size
@@ -2215,7 +2141,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Define
 
       def argument_info
@@ -2263,7 +2188,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class DefineSingleton
       def bytecode(g)
         if @compiler.kernel?
@@ -2280,7 +2204,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class Range
       def bytecode(g)
         g.push_cpath_top
@@ -2291,7 +2214,6 @@ class Compiler
       end
     end
 
-    # TESTED
     class RangeExclude
       def bytecode(g)
         g.push_cpath_top
