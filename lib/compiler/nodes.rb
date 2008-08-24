@@ -1887,12 +1887,10 @@ class Compiler
         else
           @parent = complex.parent
           @name = complex.name
-          attr_accessor :name
         end
-
-
-        attr_accessor :from_top, :parent, :value, :name
       end
+
+      attr_accessor :from_top, :parent, :value, :name
     end
 
     class ToArray < Node
