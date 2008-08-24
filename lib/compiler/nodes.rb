@@ -2744,7 +2744,7 @@ class Node
   class Alias < Node
     kind :alias
 
-    def args(current, name)
+    def args(name, current)
       if current.kind_of? Literal
         current = current.value
         name = name.value
