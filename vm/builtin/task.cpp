@@ -261,7 +261,7 @@ stack_cleanup:
     }
   }
 
-  Executable* Task::locate_method_on(OBJECT recv, SYMBOL sel, OBJECT priv_p) {
+  Tuple* Task::locate_method_on(OBJECT recv, SYMBOL sel, OBJECT priv_p) {
     Message msg(state);
 
     msg.recv = recv;
@@ -271,17 +271,17 @@ stack_cleanup:
 
     GlobalCacheResolver res;
     if(!res.resolve(state, msg)) {
-      return (Executable*)Qnil;
+      return (Tuple*)Qnil;
     }
 
     MethodVisibility *vis;
 
     vis = try_as<MethodVisibility>(msg.method);
     if(vis) {
-      return vis->method;
+      return Tuple::from(state, 2, msg.module, vis->method);
     }
 
-    return msg.method;
+    return Tuple::from(state, 2, msg.module, msg.method);
   }
 
   void Task::attach_method(OBJECT recv, SYMBOL name, CompiledMethod* method) {
@@ -321,7 +321,8 @@ stack_cleanup:
   }
 
   bool Task::check_serial(OBJECT obj, SYMBOL sel, int ser) {
-    Executable* x = locate_method_on(obj, sel, Qtrue);
+    Tuple* tup = locate_method_on(obj, sel, Qtrue);
+    Executable* x = as<Executable>(tup->at(1));
 
     /* If the method is absent, then indicate that the serial number
      * is correct. */

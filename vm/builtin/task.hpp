@@ -104,7 +104,7 @@ namespace rubinius {
     bool send_message_slowly(Message& msg);
     Module* current_module();
 
-    Executable* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
+    Tuple* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
     void simple_return(OBJECT val);
     void primitive_return(OBJECT val, Message& msg);
     void yield_debugger();
