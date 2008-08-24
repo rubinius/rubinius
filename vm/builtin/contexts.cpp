@@ -173,6 +173,17 @@ initialize:
     state->context_cache->reclaim = 0;
   }
 
+  /* Retrieve a field within the context, referenced by name. This
+   * is used as a primitive. */
+  OBJECT MethodContext::get_field(STATE, FIXNUM type) {
+    switch(type->to_native()) {
+    case 1:
+      return Fixnum::from(ip);
+    }
+
+    return Qnil;
+  }
+
   /* Return a new +BlockContext+ object, which needs +stack_size+ fields
    * worth of stack. */
   BlockContext* BlockContext::create(STATE, size_t stack_size) {
