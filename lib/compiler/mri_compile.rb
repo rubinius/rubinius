@@ -43,7 +43,7 @@ end
 
 def compare_cm(a,b)
   m = [:primitive, :name, :iseq, :stack_size, :local_count,
-       :required_args, :total_args, :splat, :literals, 
+       :required_args, :total_args, :splat, :literals,
        :exceptions, :lines, :file, :local_names]
 
   m.each do |n|
@@ -67,25 +67,25 @@ end
 
 class Float
   undef_method :==
-  def ==(other)
-    (self - other).abs < 1e-14
-  end
-end
-
-decode_cm(top) if decode
-
-if output
-  str = mar.marshal(top)
-  nt = mar.unmarshal(str)
-  unless top == nt
-    puts "FAILED ROUND TRIP."
-    compare_cm(top, nt)
-    exit 1
+    def ==(other)
+      (self - other).abs < 1e-14
+    end
   end
 
-  File.open(output, "w") do |f|
-    cf = Compiler::CompiledFile.new "!RBIX", 1, "x"
-    cf.encode_to f, top
-  end
+  decode_cm(top) if decode
 
-end
+  if output
+    str = mar.marshal(top)
+    nt = mar.unmarshal(str)
+    unless top == nt
+      puts "FAILED ROUND TRIP."
+      compare_cm(top, nt)
+      exit 1
+    end
+
+    File.open(output, "w") do |f|
+      cf = Compiler::CompiledFile.new "!RBIX", 1, "x"
+      cf.encode_to f, top
+    end
+
+  end

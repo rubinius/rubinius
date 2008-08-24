@@ -29,7 +29,7 @@ class Compiler
 
     to_clear.each { |t| stream.delete(t) }
   end
-  
+
   def self.compile_file(path, flags=nil)
     process_flags(flags)
     sexp = File.to_sexp(path, true)

@@ -23,18 +23,18 @@ class Compiler::Node
 
       if var.kind_of? Array
         indented =  var.map do |v|
-                      if v.kind_of? Compiler::Node
-                        if stack.include? v
-                          "#<#{var.class.name} RECURSIVE...>"
-                        else
-                          v.describe_ast(indent + max + 3 + 1, stack).chomp
-                        end
-                      elsif v.class.name =~ /^Compiler/
-                        "#<#{v.class.name} ...>"
-                      else
-                        v.inspect
-                      end
-                    end.join(",\n#{' ' * (indent + max + 3 + 1)}")
+          if v.kind_of? Compiler::Node
+            if stack.include? v
+              "#<#{var.class.name} RECURSIVE...>"
+            else
+              v.describe_ast(indent + max + 3 + 1, stack).chomp
+            end
+          elsif v.class.name =~ /^Compiler/
+            "#<#{v.class.name} ...>"
+          else
+            v.inspect
+          end
+        end.join(",\n#{' ' * (indent + max + 3 + 1)}")
 
         str << "[" << indented << "]" << "\n"
         next
