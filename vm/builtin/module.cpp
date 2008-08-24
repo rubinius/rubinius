@@ -20,6 +20,14 @@ namespace rubinius {
     return mod;
   }
 
+  Module* Module::new_instance(STATE, OBJECT self) {
+    Module* module = Module::create(state);
+
+    SET(module, klass, self);
+
+    return module;
+  }
+
   void Module::setup(STATE) {
     SET(this, constants, LookupTable::create(state));
     SET(this, method_table, MethodTable::create(state));

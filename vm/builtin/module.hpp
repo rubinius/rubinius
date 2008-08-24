@@ -18,8 +18,11 @@ namespace rubinius {
     LookupTable* constants; // slot
     Module* superclass; // slot
 
-    // Ruby.primitive :module_allocate
     static Module* create(STATE);
+
+    // Ruby.primitive :module_new_instance
+    static Module* new_instance(STATE, OBJECT self); 
+
     void setup(STATE);
     void setup(STATE, const char* name, Module* under = NULL);
     void setup(STATE, SYMBOL name, Module* under = NULL);
