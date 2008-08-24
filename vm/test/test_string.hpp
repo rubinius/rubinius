@@ -24,10 +24,16 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(str->size(), 4U);
   }
 
-  void test_create2() {
+  void test_create_with_substring() {
     str = String::create(state, "blah", 2);
     TS_ASSERT_EQUALS(str->size(), 2U);
     TS_ASSERT_SAME_DATA("bl", str->byte_address(), 3);
+  }
+
+  void test_create_with_null_and_zero_count() {
+    str = String::create(state, NULL, 0);
+    TS_ASSERT_EQUALS(str->size(), 0);
+    TS_ASSERT_EQUALS(str->byte_address()[0], 0);
   }
 
   void test_hash_string() {

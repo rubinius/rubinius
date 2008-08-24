@@ -140,8 +140,8 @@ class TestByteArray : public CxxTest::TestSuite {
     INTEGER size = Fixnum::from(8);
     INTEGER size1 = Fixnum::from(9);
 
-    TS_ASSERT_EQUALS(a->size(state)->to_native(), 8);
-    TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
+    TS_ASSERT_EQUALS(a->size(state)->to_native(), 12);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 12);
 
     TS_ASSERT_EQUALS(a->compare_bytes(state, b, two, two), Fixnum::from(0));
     TS_ASSERT_EQUALS(a->compare_bytes(state, b, two, three), Fixnum::from(-1));
@@ -166,7 +166,7 @@ class TestByteArray : public CxxTest::TestSuite {
     ByteArray* a = String::create(state, "xyZzyx")->data;
     ByteArray* b = ByteArray::create(state, 4);
 
-    TS_ASSERT_EQUALS(a->size(state)->to_native(), 8);
+    TS_ASSERT_EQUALS(a->size(state)->to_native(), 12);
     TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
 
     a->dup_into(state, b);

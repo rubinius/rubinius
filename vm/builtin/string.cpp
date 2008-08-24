@@ -55,7 +55,7 @@ namespace rubinius {
   String* String::create(STATE, const char* str, size_t bytes) {
     String *so;
 
-    if(bytes == 0) bytes = strlen(str);
+    if(bytes == 0 && str) bytes = strlen(str);
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
@@ -63,11 +63,9 @@ namespace rubinius {
     SET(so, characters, so->num_bytes);
     SET(so, encoding, Qnil);
 
-    OBJECT ba = ByteArray::create(state, bytes);
-    if(str) {
-      memcpy(ba->bytes, str, bytes);
-      ba->bytes[bytes] = 0;
-    }
+    OBJECT ba = ByteArray::create(state, bytes + 1);
+    if(str) memcpy(ba->bytes, str, bytes);
+    ba->bytes[bytes] = 0;
 
     SET(so, data, ba);
 
