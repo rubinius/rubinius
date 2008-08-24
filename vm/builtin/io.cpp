@@ -10,7 +10,10 @@
 namespace rubinius {
   void IO::init(STATE) {
     GO(io).set(state->new_class("IO", G(object), IO::fields));
+    G(io)->set_object_type(IOType);
+
     GO(iobuffer).set(state->new_class("Buffer", G(object), IOBuffer::fields, G(io)));
+    G(iobuffer)->set_object_type(IOBufferType);
   }
 
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
