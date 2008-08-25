@@ -1,7 +1,7 @@
 require 'rdoc/rdoc'
 require 'rdoc/generator'
 require 'rdoc/markup/to_html_crossref'
-require 'kernel/core/iseq'
+require 'kernel/common/iseq'
 
 class RDoc::Generator::Method
   def path

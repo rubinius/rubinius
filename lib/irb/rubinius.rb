@@ -18,7 +18,7 @@ module IRB
             continue = true
             bt.frames.each do |frame|
               next unless continue
-              if %r!kernel/core/eval.rb!.match(frame.last)
+              if %r!kernel/common/eval.rb!.match(frame.last)
                 continue = false
                 next
               end

@@ -45,7 +45,7 @@ class Autoload
     end
 
     ##
-    # Called by require; see kernel/core/compile.rb
+    # Called by require; see kernel/common/compile.rb
     def remove(path)
       al = autoloads.delete(path)
       return unless al

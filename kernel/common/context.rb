@@ -199,7 +199,7 @@ class MethodContext
   end
 
   ##
-  # Used to implement __FILE__ properly. kernel/core/compile.rb stashes
+  # Used to implement __FILE__ properly. kernel/common/compile.rb stashes
   # the path used to load this file in the Script object located in
   # the top staticscope.
 

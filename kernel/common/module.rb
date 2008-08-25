@@ -645,7 +645,7 @@ class Module
   end
 
   # Install a new Autoload object into the constants table
-  # See kernel/core/autoload.rb
+  # See kernel/common/autoload.rb
   def autoload(name, path)
     name = normalize_const_name(name)
     raise ArgumentError, "empty file name" if path.empty?
