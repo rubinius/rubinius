@@ -212,7 +212,7 @@ void #{meth}() {
       end
     end
     fd.puts "};"
-    unless missing.empty?
+    if missing.any? then
       $stderr.puts "WARN: Missing tests for instructions: #{missing.sort.join(', ')}"
     end
   end
