@@ -153,3 +153,15 @@
   along with the other VM tests. Each builtin_xxx.cpp method has a corresponding
   vm/test/test_xxx.hpp method. See the existing files for more examples.
 
+
+ Organization of kernel/**
+---------------------------
+
+The kernel/** directory is organized into four parts: bootstrap, platform,
+common, delta. The bootstrap directory contains the minimum implementation
+needed to load kernel/platform and kernel/common. The delta directory
+contains code and method definitions that need to be run after kernel/common
+has completely loaded.
+
+All directories can use the "# depends on: some_file.rb" annotation in the
+source files to impose load order.
