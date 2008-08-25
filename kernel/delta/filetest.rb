@@ -1,26 +1,27 @@
+# depends on: module.rb
 module FileTest
-  module_function :blockdev?
-  module_function :chardev?
-  module_function :directory?
-  module_function :executable?
-  module_function :executable_real?
-  module_function :exist?
-  module_function :exists?
-  module_function :file?
-  module_function :grpowned?
-  module_function :identical?
-  module_function :owned?
-  module_function :pipe?
-  module_function :readable?
-  module_function :readable_real?
-  module_function :setgid?
-  module_function :setuid?
-  module_function :size
-  module_function :size?
-  module_function :socket?
-  module_function :sticky?
-  module_function :symlink?
-  module_function :writable?
-  module_function :writable_real?
-  module_function :zero?
+  module_function :blockdev?,
+                  :chardev?,
+                  :directory?,
+                  :executable?,
+                  :executable_real?,
+                  :exist?,
+                  :exists?,
+                  :file?,
+                  :grpowned?,
+                  :identical?,
+                  :owned?,
+                  :pipe?,
+                  :readable?,
+                  :readable_real?,
+                  :setgid?,
+                  :setuid?,
+                  :size,
+                  :size?,
+                  :socket?,
+                  :sticky?,
+                  :symlink?,
+                  :writable?,
+                  :writable_real?,
+                  :zero?
 end
