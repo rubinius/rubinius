@@ -405,9 +405,10 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Executable* x = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
+    Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
-    TS_ASSERT_EQUALS(x, cm);
+    TS_ASSERT_EQUALS(G(true_class), tup->at(0));
+    TS_ASSERT_EQUALS(cm,            tup->at(1));
   }
 
   void test_locate_method_on_private() {
@@ -422,9 +423,9 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), vis);
 
-    Executable* x = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
+    Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
-    TS_ASSERT_EQUALS(x, Qnil);
+    TS_ASSERT_EQUALS(Qnil, tup);
   }
 
   void test_locate_method_on_protected() {
@@ -439,9 +440,9 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), vis);
 
-    Executable* x = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
+    Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
-    TS_ASSERT_EQUALS(x, Qnil);
+    TS_ASSERT_EQUALS(Qnil, tup);
   }
 
   void test_locate_method_on_private_private_send() {
@@ -456,9 +457,10 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), vis);
 
-    Executable* x = task->locate_method_on(Qtrue, state->symbol("blah"), Qtrue);
+    Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qtrue);
 
-    TS_ASSERT_EQUALS(x, cm);
+    TS_ASSERT_EQUALS(G(true_class), tup->at(0));
+    TS_ASSERT_EQUALS(cm, tup->at(1));
   }
 
   void test_attach_method() {

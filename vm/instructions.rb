@@ -2569,8 +2569,8 @@ class Instructions
   # [Description]
   #   Pops a flag indicating whether or not to search in private methods, the
   #   method name, and the object to search from off the stack. If a matching
-  #   method is located, it is pushed onto the stack; otherwise, nil is pushed
-  #   onto the stack.
+  #   method is located, the module it was found in and the method is pushed
+  #   onto the stack; otherwise, nil is pushed onto the stack.
 
   def locate_method
     <<-CODE
@@ -2592,7 +2592,8 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->stack_top(), cm);
+    TS_ASSERT_EQUALS(G(true_class), as<Tuple>(task->stack_top())->at(0));
+    TS_ASSERT_EQUALS(cm, as<Tuple>(task->stack_top())->at(1));
     CODE
   end
 
