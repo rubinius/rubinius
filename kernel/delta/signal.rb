@@ -1,8 +1,6 @@
 module Signal
-  Rubinius::RUBY_CONFIG.keys.each do |key|
-    if key[0, 20] == 'rbx.platform.signal.'
-      Names[ key[23, 100] ] = Rubinius::RUBY_CONFIG[key]
-    end
+  Rubinius::RUBY_CONFIG.section 'rbx.platform.signal.' do |key, value|
+    Names[key[23, key.length]] = value
   end
 
   # special case of signal.c
