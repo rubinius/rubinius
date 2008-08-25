@@ -38,6 +38,10 @@ namespace rubinius {
     return state->symbols.lookup_string(state, this);
   }
 
+  const char* Symbol::c_str(STATE) {
+    return state->symbols.lookup_cstring(state, this);
+  }
+
   Array* Symbol::all_symbols(STATE) {
     return state->symbols.all_as_array(state);
   }

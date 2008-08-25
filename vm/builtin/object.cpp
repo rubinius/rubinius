@@ -545,7 +545,7 @@ namespace rubinius {
 
   /* VM level primitives. This is a silly place, I know. */
   OBJECT Object::vm_get_config_item(STATE, String* var) {
-    ConfigParser::Entry* ent = state->user_config->find(var->byte_address());
+    ConfigParser::Entry* ent = state->user_config->find(var->c_str());
     if(!ent) return Qnil;
 
     if(ent->is_number()) {

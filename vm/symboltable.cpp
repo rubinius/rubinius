@@ -40,7 +40,7 @@ namespace rubinius {
   }
 
   SYMBOL SymbolTable::lookup(STATE, String* str) {
-    char* bytes = str->byte_address();
+    char* bytes = str->c_str();
 
     for(size_t i = 0; i < str->size(); i++) {
       if(bytes[i] == 0) {
@@ -53,7 +53,13 @@ namespace rubinius {
 
   String* SymbolTable::lookup_string(STATE, Symbol* sym) {
     std::string str = strings[sym->index()];
+    // HACK does c_str() return a copy? If so, we need to free() it.
     return String::create(state, str.c_str());
+  }
+
+  const char* SymbolTable::lookup_cstring(STATE, SYMBOL sym) {
+    std::string& str = strings[sym->index()];
+    return str.c_str();
   }
 
   size_t SymbolTable::size() {

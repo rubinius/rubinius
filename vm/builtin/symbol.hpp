@@ -25,6 +25,9 @@ namespace rubinius {
     // Ruby.primitive :symbol_to_s
     String* to_str(STATE);
 
+    // Return the char* for the text that was symbolized
+    const char* c_str(STATE);
+
     // Ruby.primitive :symbol_all_symbols
     static Array* all_symbols(STATE);
 

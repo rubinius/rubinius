@@ -37,7 +37,7 @@ namespace rubinius {
     SET(so, characters, so->num_bytes);
     SET(so, encoding, Qnil);
 
-    size_t bytes = size->to_native();
+    size_t bytes = size->to_native() + 1;
     OBJECT ba = ByteArray::create(state, bytes);
     ba->bytes[bytes] = 0;
 
