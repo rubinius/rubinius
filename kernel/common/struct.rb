@@ -5,7 +5,7 @@ class Struct
   include Enumerable
 
   class << self
-    alias subclass_new new
+    alias_method :subclass_new, :new
   end
 
   ##
@@ -305,7 +305,7 @@ class Struct
     return _attrs.length
   end
 
-  alias size length
+  alias_method :size, :length
 
   ##
   # call-seq:
@@ -378,7 +378,7 @@ class Struct
     end
   end
 
-  alias inspect to_s
+  alias_method :inspect, :to_s
 
   ##
   # call-seq:
@@ -391,7 +391,7 @@ class Struct
   #    joe = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
   #    joe.to_a[1]   #=> "123 Maple, Anytown NC"
 
-  alias values to_a
+  alias_method :values, :to_a
 
   ##
   # call-seq:
