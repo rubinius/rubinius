@@ -8,10 +8,11 @@
 
 namespace rubinius {
   bool Primitives::unknown_primitive(STATE, VMExecutable* exec, Task* task, Message& msg) {
-    std::cout << "\n";
-    state->print_backtrace();
-    std::cout << "Called unbound or invalid primitive from: " << msg.name->to_str(state)->byte_address() <<"\n";
-    abort();
+    std::string message = std::string("Called unbound or invalid primitive from: ");
+    message += msg.name->to_str(state)->c_str();
+
+    Assertion::raise(message.c_str());
+
     return false;
   }
 
