@@ -30,8 +30,9 @@ class Module
         end
 
       else
-        # REFACTOR: pull up a common superclass and test against that
-        unless meth.kind_of?(CompiledMethod) or meth.kind_of?(AccessVarMethod) or meth.kind_of?(DelegatedMethod) then
+        unless meth.kind_of? Executable or
+               meth.kind_of? CompiledMethod::Visibility then
+          meth.__show__
           raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}' #{meth.inspect}"
         end
       end
