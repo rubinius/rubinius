@@ -38,7 +38,7 @@ using namespace rubinius;
 #define cache_ip()
 
 extern "C" {
-  bool send_slowly(Task* task, struct jit_state* const js, SYMBOL name);
+  bool send_slowly(Task* task, struct jit_state* const js, SYMBOL name, size_t args);
 
 #ruby <<CODE
 require 'stringio'
@@ -98,16 +98,14 @@ CODE
     return val != Qundef;
   }
 
-  bool send_slowly(Task* task, struct jit_state* const js, SYMBOL name) {
+  bool send_slowly(Task* task, struct jit_state* const js, SYMBOL name, size_t args) {
     Message& msg = *task->msg;
-    msg.recv = stack_back(1);
-    msg.import_arguments(state, task, 1);
+    msg.recv = stack_back(args);
+    msg.import_arguments(state, task, args);
     msg.name = name;
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.block = Qnil;
-
-    /* pull receiver off stack */
-    stack_pop();
+    msg.stack = args + 1;
 
     bool res = task->send_message_slowly(msg);
     msg.reset();
@@ -149,10 +147,10 @@ void VMMethod::resume(Task* task, MethodContext* ctx) {
   for(;;) {
     op = stream[ctx->ip++];
 #if 0
-    printf("%-22s+%3d: %-30s %10p %10p\n",
-           (char *)(*ctx->cm->name->to_str(state)),
+    printf("%-22s+%3d: %-30s %10d %10p\n",
+           ctx->cm->name->to_str(state)->c_str(),
            ctx->ip, InstructionSequence::get_instruction_name(op),
-           js->stack, *js->stack);
+           js->stack - ctx->stk, *js->stack);
 #endif
 
 #ruby <<CODE

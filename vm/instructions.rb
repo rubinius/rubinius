@@ -2627,7 +2627,7 @@ class Instructions
       return false;
     }
 
-    return send_slowly(task, js, G(sym_plus));
+    return send_slowly(task, js, G(sym_plus), 1);
     CODE
   end
 
@@ -2676,7 +2676,7 @@ class Instructions
       return false;
     }
 
-    return send_slowly(task, js, G(sym_minus));
+    return send_slowly(task, js, G(sym_minus), 1);
     CODE
   end
 
@@ -2723,7 +2723,7 @@ class Instructions
       return false;
     }
     
-    return send_slowly(task, js, G(sym_equal));
+    return send_slowly(task, js, G(sym_equal), 1);
     CODE
   end
 
@@ -2773,7 +2773,7 @@ class Instructions
       return false;
     }
     
-    return send_slowly(task, js, G(sym_nequal));
+    return send_slowly(task, js, G(sym_nequal), 1);
     CODE
   end
 
@@ -2822,7 +2822,7 @@ class Instructions
       return false;
     }
     
-    return send_slowly(task, js, G(sym_tequal));
+    return send_slowly(task, js, G(sym_tequal), 1);
     CODE
   end
 
@@ -2870,7 +2870,7 @@ class Instructions
       return false;
     }
     
-    return send_slowly(task, js, G(sym_lt));
+    return send_slowly(task, js, G(sym_lt), 1);
     CODE
   end
 
@@ -2918,7 +2918,7 @@ class Instructions
       return false;
     }
     
-    return send_slowly(task, js, G(sym_gt));
+    return send_slowly(task, js, G(sym_gt), 1);
     CODE
   end
 
@@ -2946,7 +2946,7 @@ class Instructions
       return false;
     }
 
-    return send_slowly(task, js, G(sym_call));
+    return send_slowly(task, js, G(sym_call), count);
     CODE
   end
 
