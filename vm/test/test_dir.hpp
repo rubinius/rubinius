@@ -76,7 +76,7 @@ class TestDir : public CxxTest::TestSuite {
     String* path = String::create(state, dir);
     d->open(state, path);
     String* name = (String*)d->read(state);
-    TS_ASSERT_EQUALS(name->byte_address(state)[0], '.');
+    TS_ASSERT_EQUALS(name->c_str()[0], '.');
     remove_directory(dir);
   }
 
@@ -117,7 +117,7 @@ class TestDir : public CxxTest::TestSuite {
     TS_ASSERT(d->read(state)->nil_p());
     d->control(state, Fixnum::from(1), Fixnum::from(0));
     String* name = (String*)d->read(state);
-    TS_ASSERT_EQUALS(name->byte_address()[0], '.');
+    TS_ASSERT_EQUALS(name->c_str()[0], '.');
     remove_directory(dir);
   }
 

@@ -4,23 +4,19 @@
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 
+// HACK gross.
+// Forward declare ONLY if we haven't already included onig.h
+// We do this because onigurama seems to have regex_t be a weird
+// typedef. It's easier to just not bother with trying to duplicate
+// what it does and do this.
+#ifndef ONIGURUMA_H
+struct regex_t;
+#endif
+
 namespace rubinius {
   class String;
   class Tuple;
   class LookupTable;
-
-  class RegexpData : public Object {
-    public:
-    const static size_t fields = 0;
-    const static object_type type = RegexpDataType;
-
-    class Info : public TypeInfo {
-    public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void mark(STATE, OBJECT t, ObjectMark& mark);
-      virtual void cleanup(OBJECT obj);
-    };
-  };
 
   class Regexp : public Object {
     public:
@@ -28,8 +24,8 @@ namespace rubinius {
     const static object_type type = RegexpType;
 
     String* source; // slot
-    RegexpData* data; // slot
     LookupTable* names; // slot
+    regex_t* onig_data;
 
     static void cleanup(STATE, OBJECT data);
     static void init(STATE);
@@ -51,6 +47,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
+      virtual void cleanup(OBJECT obj);
     };
 
   };

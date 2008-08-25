@@ -32,7 +32,7 @@ namespace rubinius {
   }
 
   OBJECT Dir::open(STATE, String* path) {
-    DIR* d = opendir(path->byte_address(state));
+    DIR* d = opendir(path->c_str());
 
     if(!d) state->raise_from_errno("Unable to open directory");
     SET(this, data, MemoryPointer::create(state, d));

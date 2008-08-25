@@ -109,8 +109,15 @@ namespace rubinius {
     return (char*)data->bytes;
   }
 
-  char* String::byte_address(STATE) {
-    return (char*)data->bytes;
+  char* String::c_str() {
+    sassert(size() < data->size());
+
+    char* c_string = (char*)data->bytes;
+    if(c_string[size()] != 0) {
+      c_string[size()] = 0;
+    }
+
+    return c_string;
   }
 
   bool String::string_equal_p(STATE, OBJECT a, OBJECT b) {
@@ -118,7 +125,7 @@ namespace rubinius {
     String* other = as<String>(b);
 
     if(self->num_bytes != other->num_bytes) return false;
-    if(strncmp(self->byte_address(state), other->byte_address(state), self->num_bytes->to_native())) {
+    if(strncmp(self->byte_address(), other->byte_address(), self->num_bytes->to_native())) {
       return false;
     }
 

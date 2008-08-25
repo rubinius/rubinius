@@ -49,15 +49,27 @@ namespace rubinius {
     // Ruby.primitive :string_equal
     OBJECT equal(STATE, String* other);
 
-    size_t size(STATE);
+    // Returns the number of bytes this String contains
     size_t size();
+
+    // Access the String as a char* directly. WARNING: doesn't necessarily
+    // return a null terminated char*, so be sure to use size() with it.
+    //
+    // NOTE: do not free() or realloc() this buffer.
     char* byte_address();
+
+    // Use this version if you want to use this String as a null
+    // terminated char*.
+    // It doesn't return a copy, it just makes sure that the String
+    // object's data is null clamped properly.
+    //
+    // NOTE: do not free() or realloc() this buffer.
+    char* c_str();
 
     void unshare(STATE);
     hashval hash_string(STATE);
     // Ruby.primitive :symbol_lookup
     SYMBOL to_sym(STATE);
-    char* byte_address(STATE);
 
     // Ruby.primitive :string_dup
     String* string_dup(STATE);

@@ -315,4 +315,15 @@ class TestString : public CxxTest::TestSuite {
     String* salt = String::create(state, "Mi");
     TS_ASSERT_SAME_DATA(str->crypt(state, salt)->byte_address(), "MiqkFWCm1fNJI", 14);
   }
+
+  void test_c_str() {
+    String* str = String::create(state, "blah");
+    TS_ASSERT(str->data->size() > 4);
+    TS_ASSERT_EQUALS(str->byte_address()[4], 0);
+    TS_ASSERT_EQUALS(str->c_str()[4], 0);
+    str->byte_address()[4] = '!';
+
+    TS_ASSERT_EQUALS(str->c_str()[4], 0);
+
+  }
 };

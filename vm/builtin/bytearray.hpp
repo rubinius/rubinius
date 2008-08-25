@@ -22,6 +22,11 @@ namespace rubinius {
     // Ruby.primitive :bytearray_size
     INTEGER size(STATE);
 
+    // Return the number of bytes this ByteArray contains
+    size_t size() {
+      return SIZE_OF_BODY(this);
+    }
+
     // Ruby.primitive :bytearray_get_byte
     FIXNUM get_byte(STATE, INTEGER index);
 

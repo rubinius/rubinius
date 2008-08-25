@@ -495,7 +495,7 @@ namespace rubinius {
           *tmp = NULL;
         } else {
           String *so = as<String>(obj);
-          *tmp = so->byte_address(state);
+          *tmp = so->c_str();
         }
         values[i] = tmp;
         break;
