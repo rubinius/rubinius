@@ -65,8 +65,11 @@ class Hash
 
   def [](key)
     entry, hash, bin = hash_entry key
-
-    entry
+    if entry
+      entry[2]
+    else
+      nil
+    end
   end
 
   ##
