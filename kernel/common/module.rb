@@ -325,7 +325,13 @@ class Module
   def instance_method(name)
     name = Type.coerce_to name, Symbol, :to_sym
 
-    mod, cmethod = __find_method(name)
+    mod = self
+    cmethod = @method_table[name]
+
+    while mod and cmethod.nil? do
+      mod = mod.direct_superclass
+      cmethod = mod.method_table[name]
+    end
 
     # We want to show the real module
     mod = mod.module if mod.class == IncludedModule
