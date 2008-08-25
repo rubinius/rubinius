@@ -85,7 +85,7 @@ namespace rubinius {
     Class* new_class(const char* name, Class* sup, size_t fields, Module* under);
 
     // Create a Class of name +name+ under +under+
-    Class* VM::new_class_under(const char* name, Module* under);
+    Class* new_class_under(const char* name, Module* under);
 
     Module* new_module(const char* name, Module* under = NULL);
     OBJECT new_struct(Class* cls, size_t bytes);

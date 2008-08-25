@@ -1,6 +1,10 @@
 #ifndef RBX_EXCEPTION_HPP
 #define RBX_EXCEPTION_HPP
 
+#include <string>
+#include <cstdlib>
+#include <cstring>
+
 #include "prelude.hpp"
 #include "builtin/object.hpp"
 

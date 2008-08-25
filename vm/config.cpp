@@ -1,3 +1,5 @@
+#include <cstring>
+#include <cstdlib>
 #include <string>
 #include "config.hpp"
 

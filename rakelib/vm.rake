@@ -356,7 +356,7 @@ import dep_file
 def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then
     $ex_libs = EXTERNALS + [ "-ldl" ]
-    $ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
+    $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
 
     llvm_libfiles = `#{LLVM_CONFIG} --libfiles all`.split(/\s+/)
     llvm_libfiles = llvm_libfiles.select { |f| File.file? f }
