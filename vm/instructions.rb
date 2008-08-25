@@ -1,6 +1,5 @@
 # When you add an instruction here, you MUST also add it to the master
 # list in kernel/common/iseq.rb
-# TODO: Change instructions_gen.rb so that it warns when instructions are missing.
 
 class Instructions
 
