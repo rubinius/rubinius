@@ -56,14 +56,4 @@ module ObjectSpace
     GC.start
   end
 
-  def self.after_loaded
-    # Fire up the Thread that will process finalization
-    @thread = Thread.new do
-      loop do
-        Rubinius::ON_GC.receive
-        ObjectSpace.run_finalizers
-      end
-    end
-  end
 end
-

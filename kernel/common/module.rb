@@ -39,21 +39,6 @@ class Module
     _eval_under(self, &block) if block
   end
 
-  #--
-  # HACK: This should work after after the bootstrap is loaded,
-  # but it seems to blow things up, so it's only used after
-  # core is loaded. I think it's because the bootstrap Class#new
-  # doesn't use a privileged send.
-  #++
-
-  def __method_added__cv(name)
-    if name == :initialize
-      private :initialize
-    end
-
-    method_added(name) if self.respond_to? :method_added
-  end
-
   def verify_class_variable_name(name)
     name = name.kind_of?(Symbol) ? name.to_s : StringValue(name)
     unless name[0..1] == '@@' and name[2].toupper.between?(?A, ?Z) or name[2] == ?_
@@ -247,39 +232,6 @@ class Module
     self.metaclass.find_method_in_hierarchy(sym)
   end
 
-  def alias_method_cv(new_name, current_name)
-    new_name = normalize_name(new_name)
-    current_name = normalize_name(current_name)
-    meth = find_method_in_hierarchy(current_name)
-    # We valid +meth+ because all hell can break loose if method_table has unexpected
-    # objects in it.
-    if meth
-      if meth.kind_of? Tuple
-        meth = meth.dup
-
-        if !meth[0].kind_of?(Symbol) or
-             not (meth[1].kind_of?(CompiledMethod) or meth[1].kind_of?(AccessVarMethod))
-          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}'"
-        end
-
-      else
-        # REFACTOR: pull up a common superclass and test against that
-        unless meth.kind_of?(CompiledMethod) or meth.kind_of?(AccessVarMethod) or meth.kind_of?(DelegatedMethod) then
-          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}' #{meth.inspect}"
-        end
-      end
-      method_table[new_name] = meth
-      Rubinius::VM.reset_method_cache(new_name)
-    else
-      if self.kind_of? MetaClass
-        raise NameError, "Unable to find '#{current_name}' for object #{self.attached_instance.inspect}"
-      else
-        thing = self.kind_of?(Class) ? "class" : "module"
-        raise NameError, "undefined method `#{current_name}' for #{thing} `#{self.name}'"
-      end
-    end
-  end
-
   def remote_alias(new_name, mod, current_name)
     cm = mod.find_method_in_hierarchy(current_name)
     unless cm
@@ -445,45 +397,6 @@ class Module
     append_features obj.metaclass
   end
 
-  #--
-  # Don't call this include, otherwise it will shadow the bootstrap version
-  # while core loads (a violation of the core/bootstrap boundry)
-  #++
-
-  def include_cv(*modules)
-    modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
-        raise TypeError, "wrong argument type #{mod.class} (expected Module)"
-      end
-
-      next if ancestors.include? mod
-
-      mod.send(:append_features, self)
-      mod.send(:included, self)
-    end
-  end
-
-
-  # Called when this Module is being included in another Module.
-  # This may be overridden for custom behaviour, but the default
-  # is to add constants, instance methods and module variables
-  # of this Module and all Modules that this one includes to the
-  # includer Module, which is passed in as the parameter +other+.
-  #
-  # See also #include.
-  #
-  def append_features_cv(other)
-    hierarchy = other.ancestors
-
-    superclass_chain.reverse_each do |ancestor|
-      if ancestor.instance_of? IncludedModule and not hierarchy.include? ancestor.module
-        IncludedModule.new(ancestor.module).attach_to other
-      end
-    end
-
-    IncludedModule.new(self).attach_to other
-  end
-
   def include?(mod)
     if !mod.kind_of?(Module) or mod.kind_of?(Class)
       raise TypeError, "wrong argument type #{mod.class} (expected Module)"
@@ -533,19 +446,6 @@ class Module
     metaclass.set_visibility meth, vis, "class "
   end
 
-  #--
-  # As with include_cv above, don't call this private.
-  #++
-
-  def private_cv(*args)
-    if args.empty?
-      MethodContext.current.sender.method_scope = :private
-      return
-    end
-
-    args.each { |meth| set_visibility(meth, :private) }
-  end
-
   def protected(*args)
     if args.empty?
       MethodContext.current.sender.method_scope = :protected
@@ -582,27 +482,6 @@ class Module
     instance_exec(*args, &prc)
   end
   alias_method :class_exec, :module_exec
-
-  def module_function_cv(*args)
-    if args.empty?
-      ctx = MethodContext.current.sender
-      block_env = ctx.env if ctx.kind_of?(BlockContext)
-      # Set the method_scope in the home context if this is an eval
-      ctx = block_env.home_block if block_env and block_env.from_eval?
-      ctx.method_scope = :module
-    else
-      mc = self.metaclass
-      args.each do |meth|
-        method_name = normalize_name meth
-        method = find_method_in_hierarchy(method_name)
-        mc.method_table[method_name] = method.dup
-        mc.set_visibility method_name, :public
-        set_visibility method_name, :private
-      end
-    end
-
-    return self
-  end
 
   def constants
     constants = self.constants_table.keys
@@ -699,34 +578,6 @@ class Module
     raise NameError, "Missing or uninitialized constant: #{name}"
   end
 
-  def attr_reader_cv(*names)
-    names.each do |name|
-      method_symbol = reader_method_symbol(name)
-      access_method = AccessVarMethod.get_ivar(attribute_symbol(name), normalize_name(name))
-      method_table[method_symbol] = access_method
-    end
-
-    return nil
-  end
-
-  def attr_writer_cv(*names)
-    names.each do |name|
-      method_symbol = writer_method_symbol(name)
-      access_method = AccessVarMethod.set_ivar(attribute_symbol(name), normalize_name("#{name}="))
-      method_table[method_symbol] = access_method
-    end
-
-    return nil
-  end
-
-  def attr_accessor_cv(*names)
-    names.each do |name|
-      attr(name,true)
-    end
-
-    return nil
-  end
-
   def attr(name,writeable=false)
     attr_reader(name)
     attr_writer(name) if writeable
@@ -791,26 +642,6 @@ class Module
       mod = mod.encloser
     end
     @name = parts.join("::").to_sym
-  end
-
-  #--
-  # Move the core versions in place now that everything is loaded.
-  #++
-
-  def self.after_loaded # :nodoc:
-    alias_method :__method_added__, :__method_added__cv
-    alias_method :alias_method, :alias_method_cv
-    alias_method :module_function, :module_function_cv
-    alias_method :include, :include_cv
-    alias_method :private, :private_cv
-    alias_method :append_features, :append_features_cv
-    alias_method :attr_reader, :attr_reader_cv
-    alias_method :attr_writer, :attr_writer_cv
-    alias_method :attr_accessor, :attr_accessor_cv
-
-    alias_method :attach_function, :attach_function_cv
-
-    private :alias_method
   end
 
   # Install a new Autoload object into the constants table

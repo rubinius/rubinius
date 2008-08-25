@@ -142,6 +142,7 @@ class Hash
   end
   alias_method :store, :set_key_cv
 
+  # TODO: not necessary, Hash can be completely done in kernel/common
   def self.after_loaded()
     alias_method :[],  :get_key_cv
     alias_method :[]=, :set_key_cv

@@ -1391,11 +1391,6 @@ class IO
   alias_method :syswrite, :write
   alias_method :write_nonblock, :write
 
-  def self.after_loaded()
-    remove_method :orig_reopen
-    # Nothing to do right now
-  end
-
 end
 
 ##
@@ -1505,12 +1500,4 @@ class IO::BidirectionalPipe < IO
 
     @pid
   end
-
-  def self.after_loaded
-    (READ_METHODS + WRITE_METHODS).each do |method|
-      undef_method method
-    end
-  end
-
 end
-

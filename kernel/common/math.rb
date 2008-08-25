@@ -137,15 +137,5 @@ module Math
       raise Errno::ERANGE, msg if Errno.const_defined?(:ERANGE)
     end
   end
-  
-  def self.after_loaded
-    module_function :verify_domain, :atan2, :cos, :sin, :tan, :acos, :asin, :atan,
-                    :cosh, :sinh, :tanh, :acosh, :asinh, :atanh, :exp, :log, :log2,
-                    :log10, :sqrt, :frexp, :ldexp, :hypot, :erf, :erfc
-      
-    private :verify_domain, :atan2, :cos, :sin, :tan, :acos, :asin, :atan,
-            :cosh, :sinh, :tanh, :acosh, :asinh, :atanh, :exp, :log, :log2,
-            :log10, :sqrt, :frexp, :ldexp, :hypot, :erf, :erfc
-  end
 end
 

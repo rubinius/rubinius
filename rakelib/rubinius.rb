@@ -1,6 +1,5 @@
-require 'kernel/core/ar'
-
-Ar.after_loaded # HACK
+require 'kernel/common/ar'
+require 'kernel/delta/ar'
 
 def ar_add(ar_name, file_name)
   puts "ar_add #{ar_name} #{file_name}" if $verbose

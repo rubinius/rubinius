@@ -11,7 +11,7 @@ class Object # for vm debugging
   def __show__; end
 end
 
-require "#{File.dirname(__FILE__)}/../../kernel/core/iseq"
+require "#{File.dirname(__FILE__)}/../../kernel/common/iseq"
 require 'rubygems'
 require 'parse_tree'
 

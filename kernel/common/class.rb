@@ -77,48 +77,6 @@ class Class
     sclass.__send__ :inherited, self
   end
 
-  def opened_class_cv(cls)
-    cls = Object unless cls
-    cls.add_subclass(self)
-
-    cls.send :inherited, self
-
-    self # FIXME: hook calls should preserve the stack
-  end
-
-  ##
-  #--
-  # NOTE: This method is not standard Ruby; JRuby implements it, but not
-  # public
-  #++
-
-  def add_subclass_cv(cls)
-    @subclasses ||= []
-    @subclasses << cls
-  end
-
-  ##
-  #--
-  # NOTE: This method is not standard Ruby; JRuby implements it, but not
-  # public
-  #++
-
-  def subclasses_cv(descend = false)
-    if descend
-      subclasses_descend()
-    elsif @subclasses
-      @subclasses.dup
-    else
-      []
-    end
-  end
-
-  def subclasses_descend(all = [])
-    return unless @subclasses
-    @subclasses.each {|cls| all << cls; cls.subclasses_descend(all)}
-    all
-  end
-
   ##
   # Returns the Class object that this Class inherits from. Included Modules
   # are not considered for this purpose.
@@ -133,13 +91,6 @@ class Class
   end
 
   def inherited(name)
-  end
-
-  def self.after_loaded
-    alias_method :opened_class, :opened_class_cv
-    alias_method :add_subclass, :add_subclass_cv
-    alias_method :__subclasses__, :subclasses_cv
-    alias_method :dup, :clone
   end
 end
 

@@ -6,7 +6,7 @@ require File.dirname(__FILE__) + '/../../lib/compiler/compiler'
 require File.dirname(__FILE__) + '/../../lib/compiler/generator'
 require File.dirname(__FILE__) + '/../../lib/compiler/bytecode'
 require File.dirname(__FILE__) + '/../../lib/compiler/text'
-require File.dirname(__FILE__) + '/../../kernel/core/iseq'
+require File.dirname(__FILE__) + '/../../kernel/common/iseq'
 
 class TestGenerator
   def initialize

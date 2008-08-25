@@ -604,10 +604,3 @@ module Kernel
 
   module_function :` # `
 end
-
-class Struct
-  def self.after_loaded
-    Struct.new 'Tms', :utime, :stime, :cutime, :cstime
-  end
-end
-

@@ -36,13 +36,6 @@ class Object
   end
   private :instance_variable_validate
 
-  def self.after_loaded
-    private :__find_method__
-    private :get_instance_variable
-    private :get_instance_variables
-    private :set_instance_variable
-  end
-
   def display(port=$>)
     port.write self
   end

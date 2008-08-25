@@ -140,10 +140,4 @@ class Ar
 
     self
   end
-
-  def self.after_loaded # :nodoc:
-    include Enumerable
-  end
-
 end
-

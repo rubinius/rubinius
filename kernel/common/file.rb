@@ -59,15 +59,6 @@ class File < IO
 
   attr_reader :path
 
-  def self.after_loaded
-    private_class_method :dirsep?, :next_path, :range, :name_match
-
-    # these will be necessary when we run on Windows
-    const_set :DOSISH, RUBY_PLATFORM.match("mswin")
-    const_set :CASEFOLD_FILESYSTEM, DOSISH
-    const_set :FNM_SYSCASE, CASEFOLD_FILESYSTEM ? FNM_CASEFOLD : false
-  end
-
   ##
   # Returns the last access time for the named file as a Time object).
   #

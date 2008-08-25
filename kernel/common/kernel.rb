@@ -614,23 +614,6 @@ module Kernel
     false
   end
 
-  def method_missing_cv(meth, *args)
-    # Exclude method_missing from the backtrace since it only confuses
-    # people.
-    myself = MethodContext.current
-    ctx = myself.sender
-
-    if myself.send_private?
-      raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
-    elsif self.__kind_of__ Class or self.__kind_of__ Module
-      raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.__class__})", ctx, args)
-    else
-      raise NoMethodError.new("No method '#{meth}' on an instance of #{self.__class__}.", ctx, args)
-    end
-  end
-
-  private :method_missing_cv
-
   def methods(all=true)
     names = singleton_methods(all)
     names |= self.class.instance_methods(true) if all
@@ -824,29 +807,6 @@ module Kernel
   private :get_instance_variable
   private :get_instance_variables
   private :set_instance_variable
-
-  def self.after_loaded
-    alias_method :method_missing, :method_missing_cv
-
-    # Add in $! in as a hook, to just do $!. This is for accesses to $!
-    # that the compiler can't see.
-    get = proc { $! }
-    Globals.set_hook(:$!, get, nil)
-
-    # Same as $!, for any accesses we might miss.
-    # HACK. I doubt this is correct, because of how it will be called.
-    get = proc { Regex.last_match }
-    Globals.set_hook(:$~, get, nil)
-
-    get = proc { ARGV }
-    Globals.set_hook(:$*, get, nil)
-
-    get = proc { $! ? $!.backtrace : nil }
-    Globals.set_hook(:$@, get, nil)
-
-    get = proc { Process.pid }
-    Globals.set_hook(:$$, get, nil)
-  end
 
 end
 

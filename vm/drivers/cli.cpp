@@ -10,7 +10,7 @@
 using namespace std;
 using namespace rubinius;
 
-static void load_root(Environment& env, std::string root) {
+static void load_runtime_kernel(Environment& env, std::string root) {
   std::string dirs = root + "/index";
   std::ifstream stream(dirs.c_str());
   if(!stream) {
@@ -38,10 +38,10 @@ int main(int argc, char** argv) {
   env.load_argv(argc, argv);
 
   try {
-    char* e = getenv("ROOT");
+    char* e = getenv("RBX_RUNTIME");
 
     if(!e) {
-      Assertion::raise("set ROOT to runtime (or equiv)");
+      Assertion::raise("set RBX_RUNTIME to runtime (or equiv)");
     }
 
     std::string root = std::string(e);
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     std::cout << "Loading platform.conf: " << root << "\n";
     env.load_platform_conf(root);
 
-    load_root(env, std::string(root));
+    load_runtime_kernel(env, std::string(root));
 
     std::string loader = root + "/loader.rbc";
 
