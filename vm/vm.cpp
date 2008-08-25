@@ -52,7 +52,6 @@ namespace rubinius {
 
   void VM::boot_threads() {
     Thread* thr = Thread::create(this);
-    thr->boot_task(this);
 
     activate_thread(thr);
   }

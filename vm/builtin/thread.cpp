@@ -27,6 +27,9 @@ namespace rubinius {
   Thread* Thread::create(STATE) {
     Thread* thr = (Thread*)state->new_object(G(thread));
     SET(thr, priority, Fixnum::from(2));
+
+    thr->boot_task(state);
+
     return thr;
   }
 
