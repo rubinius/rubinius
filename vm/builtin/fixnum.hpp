@@ -183,28 +183,6 @@ namespace rubinius {
   };
 
   typedef Fixnum* FIXNUM;
-
-  /* See t1 */
-  template <>
-  static bool kind_of<Integer>(OBJECT obj) {
-    return obj->fixnum_p() || (obj->reference_p() && obj->obj_type == Bignum::type);
-  }
-
-  /* For some reason, the as<> template doesn't pick up the
-   * specialized kind_of<>, until we figure out why, just special as<>
-   * too. */
-  template <>
-  static INTEGER as<Integer>(OBJECT obj) {
-    if(!kind_of<Integer>(obj)) {
-      TypeError::raise(obj->obj_type, obj, "can't be cast as an Integer");
-    }
-    return (Integer*)obj;
-  }
-
-  template <>
-  static bool kind_of<Fixnum>(OBJECT obj) {
-    return obj->fixnum_p();
-  }
 }
 
 #endif

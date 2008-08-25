@@ -35,12 +35,6 @@ namespace rubinius {
     };
   };
 
-  /* See Note(t1) in immediates.hpp */
-  template <>
-    static bool kind_of<Symbol>(OBJECT obj) {
-      return obj->symbol_p();
-    }
-
   typedef Symbol* SYMBOL;
 }
 

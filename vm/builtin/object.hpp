@@ -12,6 +12,7 @@ namespace rubinius {
   class VMExecutable;
   class Task;
   class Message;
+  class TypeInfo;
 
   class Object : public ObjectHeader {
   public:
@@ -66,7 +67,11 @@ namespace rubinius {
     bool check_type(object_type type);
 
     // Safely return the object type, even if the receiver is an immediate
-    object_type type();
+    object_type get_type();
+
+    // Return the TypeInfo object used to reflect on an object of this
+    // type.
+    TypeInfo* type_info(STATE);
 
     // Ruby.primitive :object_tainted_p
     OBJECT tainted_p();

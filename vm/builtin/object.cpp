@@ -18,6 +18,22 @@
 
 namespace rubinius {
 
+  template <>
+    bool kind_of<Object>(OBJECT obj) {
+      return true;
+    }
+
+  template <>
+    bool instance_of<Object>(OBJECT obj) {
+      return obj->obj_type == ObjectType;
+    }
+
+  template <>
+    Object* as<Object>(OBJECT obj) { return obj; }
+
+  template <>
+    Object* try_as<Object>(OBJECT obj) { return obj; }
+
   bool Object::fixnum_p() {
     return FIXNUM_P(this);
   }
@@ -128,7 +144,7 @@ namespace rubinius {
   }
 
   // Safely return the object type, even if the receiver is an immediate
-  object_type Object::type() {
+  object_type Object::get_type() {
     if(reference_p()) return obj_type;
     if(fixnum_p()) return FixnumType;
     if(symbol_p()) return SymbolType;
@@ -136,6 +152,10 @@ namespace rubinius {
     if(true_p()) return TrueType;
     if(false_p()) return FalseType;
     return ObjectType;
+  }
+
+  TypeInfo* Object::type_info(STATE) {
+    return state->om->type_info[get_type()];
   }
 
   OBJECT Object::tainted_p() {
@@ -497,7 +517,7 @@ namespace rubinius {
   }
 
   void Object::cleanup(STATE) {
-    state->om->find_type_info(this)->cleanup(this);
+    type_info(state)->cleanup(this);
   }
 
   void Object::copy_flags(STATE, OBJECT source) {
@@ -511,15 +531,15 @@ namespace rubinius {
   // 'virtual' methods. They dispatch to the object's TypeInfo
   // object to perform the work.
   OBJECT Object::get_field(STATE, size_t index) {
-    return state->om->type_info[type()]->get_field(state, this, index);
+    return type_info(state)->get_field(state, this, index);
   }
 
   void Object::set_field(STATE, size_t index, OBJECT val) {
-    state->om->type_info[type()]->set_field(state, this, index, val);
+    type_info(state)->set_field(state, this, index, val);
   }
 
   OBJECT Object::show(STATE) {
-    state->om->type_info[type()]->show(state, this);
+    type_info(state)->show(state, this);
     return Qnil;
   }
 

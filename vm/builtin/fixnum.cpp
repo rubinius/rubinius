@@ -7,6 +7,29 @@
 
 namespace rubinius {
 
+  /* See t1 */
+  template <>
+  bool kind_of<Integer>(OBJECT obj) {
+    return obj->fixnum_p() || (obj->reference_p() && obj->obj_type == Bignum::type);
+  }
+
+  template <>
+  bool kind_of<Fixnum>(OBJECT obj) {
+    return obj->fixnum_p();
+  }
+
+  /* For some reason, the as<> template doesn't pick up the
+   * specialized kind_of<>, until we figure out why, just special as<>
+   * too. */
+  template <>
+  INTEGER as<Integer>(OBJECT obj) {
+    if(!kind_of<Integer>(obj)) {
+      TypeError::raise(obj->obj_type, obj, "can't be cast as an Integer");
+    }
+    return (Integer*)obj;
+  }
+
+
   /* WARNING. Do not use this version if +num+ has the chance of being
    * greater than FIXNUM_MAX or less than FIXNUM_MIN. */
   FIXNUM Fixnum::from(native_int num) {

@@ -10,6 +10,12 @@
 
 namespace rubinius {
 
+  template <>
+    bool kind_of<MethodContext>(OBJECT obj) {
+      return obj->obj_type == MethodContext::type ||
+        obj->obj_type == BlockContext::type;
+    }
+
   void MethodContext::init(STATE) {
     GO(methctx).set(state->new_class("MethodContext", G(object)));
     G(methctx)->set_object_type(MContextType);

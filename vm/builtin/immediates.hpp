@@ -15,15 +15,6 @@ namespace rubinius {
       virtual void mark(OBJECT t, ObjectMark& mark);
     };
   };
-  /* NOTE(t1):
-   * This looks scary, but it's pretty simple. We're specializing
-   * the kind_of when passed NilClass to just test using nil_p().
-   * This makes kind_of smarter, letting us use it everywhere for
-   * type checks. */
-  template <>
-    static bool kind_of<NilClass>(OBJECT obj) {
-      return obj == Qnil;
-    }
 
   class TrueClass : public Object {
   public:
@@ -36,12 +27,6 @@ namespace rubinius {
     };
   };
 
-  /* See t1 */
-  template <>
-    static bool kind_of<TrueClass>(OBJECT obj) {
-      return obj == Qtrue;
-    }
-
   class FalseClass : public Object {
   public:
     static const object_type type = FalseType;
@@ -52,12 +37,6 @@ namespace rubinius {
       virtual void mark(OBJECT t, ObjectMark& mark);
     };
   };
-
-  /* See t1 */
-  template <>
-    static bool kind_of<FalseClass>(OBJECT obj) {
-      return obj == Qfalse;
-    }
 }
 
 #endif

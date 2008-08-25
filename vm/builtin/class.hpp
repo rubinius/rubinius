@@ -48,15 +48,6 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
     };
   };
-
-  template <>
-    static bool kind_of<Module>(OBJECT obj) {
-      return obj->reference_p() &&
-        (obj->obj_type == Module::type ||
-         obj->obj_type == Class::type ||
-         obj->obj_type == MetaClass::type ||
-         obj->obj_type == IncludedModule::type);
-    }
 };
 
 #endif

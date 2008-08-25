@@ -1,3 +1,5 @@
+#include "prelude.hpp"
+#include "vm.hpp"
 #include "primitives.hpp"
 #include "event.hpp"
 #include "gen/includes.hpp"

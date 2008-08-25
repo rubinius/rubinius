@@ -128,11 +128,6 @@ namespace rubinius {
     };
   };
 
-  template <>
-    static bool kind_of<MethodContext>(OBJECT obj) {
-      return obj->obj_type == MethodContext::type ||
-        obj->obj_type == BlockContext::type;
-    }
 
 }
 
