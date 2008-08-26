@@ -1,109 +1,138 @@
-# Requires: Object#hash
-
 class Hash
 
-  def self.[](*args)
-    hsh = new()
-    i = 0
-
-    while i < args.size
-      k = args[i]
-      i += 1
-
-      v = args[i]
-      i += 1
-
-      hsh[k] = v
+  # Bucket abstracts storage and search of entries in Hash.
+  # Each bin in a Hash is either +nil+, a single +Bucket+
+  # instance, or the head of a chain of +Bucket+ instances.
+  #--
+  # The primitives for Bucket are #at and #put. This can be
+  # optimized in the compiler by converting a call to #key
+  # directly into a call to #at(0).
+  #++
+  class Bucket < Tuple
+    def initialize(key=nil, value=nil, key_hash=nil, nxt=nil)
+      self.key      = key
+      self.value    = value
+      self.key_hash = key_hash
+      self.next     = nxt
     end
-    hsh
-  end
 
-  def initialize
-    @bins = 16
-    @values = Tuple.new(@bins)
-    @entries = 0
-  end
+    def key
+      at 0
+    end
 
-  def set_by_hash(hsh, key, val)
-    key = key.dup if key.kind_of?(String)
+    def key=(key)
+      put 0, key
+    end
 
-    #redistribute # HACK
+    def value
+      at 1
+    end
 
-    tmp = hash_entry key # HACK splat not working
-    entry = tmp[0]
-    hash = tmp[1]
-    bin = tmp[2]
+    def value=(value)
+      put 1, value
+    end
 
-    lst = nil
+    def key_hash
+      at 2
+    end
 
-    while entry
-      cur_hash = entry[0]
-      cur_key = entry[1]
-      cur_val = entry[2]
-      nxt = entry[3]
+    def key_hash=(key_hash)
+      put 2, key_hash
+    end
 
-      # Check if this entry is for the key in question
-      if cur_hash == hash and key.eql?(cur_key)
-        entry.put 2, val
-        return val
+    def next
+      at 3
+    end
+
+    def next=(nxt)
+      put 3, nxt
+    end
+
+    # Searches this chain of buckets for one matching both +key+
+    # and +key_hash+. Returns +nil+ if there is no match. Calls
+    # <code>#eql?</code> on +key+.
+    #--
+    # If performance needs to be enhanced, manually inline calls
+    # to e.g. #key to calls to #at(2). This optimization could
+    # be a compiler plugin. The same idea applies to #set.
+    #++
+    def find(key, key_hash)
+      return self if self.key_hash == key_hash and key.eql? self.key
+      return unless nxt = self.next
+      nxt.find key, key_hash
+    end
+
+    # Either updates an existing bucket matching +key+ and +key_hash+
+    # or appends a new bucket containing +key+, +value+, +key_hash+
+    # to the chain.
+    def set(key, value, key_hash)
+      if self.key_hash == key_hash and key.eql? self.key
+        self.value = value
+        self
+      elsif nxt = self.next
+        nxt.set key, value, key_hash
+      else
+        bucket = Bucket.new key, value, key_hash
+        self.next = bucket
+      end
+    end
+
+    # Returns true if the entire chain would be removed. Otherwise,
+    # returns false and removes the bucket containing +key+ and
+    # +key_hash+ from the chain if it exists. If no bucket containing
+    # +key+ and +key_hash+ exists, <code>#delete</code> does nothing.
+    def delete(key, key_hash, parent = nil)
+      if self.key_hash == key_hash and key.eql? self.key
+        return true unless parent
+        parent.next = self.next
+      elsif nxt = self.next
+        return nxt.delete key, key_hash, self
       end
 
-      lst = entry
-      entry = nxt
+      return false
     end
-
-    entry = Tuple.new(4)
-    entry.put 0, hash
-    entry.put 1, key
-    entry.put 2, val
-    entry.put 3, nil
-
-    if lst
-      lst.put 3, entry
-    else
-      @values.put bin, entry
-    end
-
-    @entries += 1
-    return val
   end
 
-  def []=(key, val)
-    set_by_hash key.hash, key, val
+  # MUST be a power of 2
+  MIN_SIZE = 16
+
+  # ensure that key_hash is a Fixnum
+  MAX_HASH_VALUE = 0x1fffffff
+
+  # Creates a fully-formed instance of Hash.
+  #--
+  # @size is the number of pairs, equivalent to <code>hsh.size</code>.
+  # @records is the number of entries in +@bins+.
+  # @bins is the vector of storage for the bucket chains.
+  #++
+  def self.allocate
+    h = super
+    h.instance_variable_set :@records, MIN_SIZE
+    h.instance_variable_set :@bins, Tuple.new(MIN_SIZE)
+    h.instance_variable_set :@size, 0
+    h
   end
 
-  def redistribute
-    Ruby.primitive :hash_redistribute
-    raise PrimitiveFailure, "Hash#redistribute failed"
+  def size
+    @size
   end
 
-  def delete_by_hash(hsh, key)
-    Ruby.primitive :hash_delete
-    raise PrimitiveFailure, "Hash#delete_by_hash failed"
+  # Returns a hash for key constrained to always be a Fixnum.
+  def key_hash(key)
+    hash = key.hash
+    hash = hash % MAX_HASH_VALUE unless hash.kind_of? Fixnum
+    hash
   end
 
-  def each
-    i = 0
-    while i < @values.fields
-      tup = @values[i]
-      while tup
-        yield tup.at(1), tup.at(2)
-        tup = tup.at(3)
-      end
-      i += 1
-    end
-    self
+  # Returns a bucket for +key_hash+ from a bin. Creates a new
+  # bucket if there was no bucket at that bin. The bucket may be
+  # the head of a chain. Call <code>#find</code> to locate a value
+  # or <code>#set</code> to add or update a value. Those methods
+  # handle manipulating the bucket chain.
+  def entry(key, key_hash)
+    bin = hash & (@records - 1)
+    entry = @bins.at bin
+    return entry if entry
+    Bucket.new key, nil, key_hash
   end
-
-  def hash_entry(obj)
-    hash = obj.hash
-    hash = hash % HASH_MAX unless hash.kind_of? Fixnum
-
-    bin = hash & (@bins - 1)
-
-    entry = @values.at bin
-
-    return entry, hash, bin
-  end
-
 end
