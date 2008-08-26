@@ -151,6 +151,10 @@ class Hash
     @bins
   end
 
+  def records
+    @records
+  end
+
   def size
     @size
   end
