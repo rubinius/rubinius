@@ -181,7 +181,7 @@ initialize:
 
   /* Retrieve a field within the context, referenced by name. This
    * is used as a primitive. */
-  OBJECT MethodContext::get_field(STATE, FIXNUM type) {
+  OBJECT MethodContext::get_internal_data(STATE, FIXNUM type) {
     switch(type->to_native()) {
     case 1:
       return Fixnum::from(ip);

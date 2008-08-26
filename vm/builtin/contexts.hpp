@@ -51,7 +51,7 @@ namespace rubinius {
     void reference(STATE);
 
     // Ruby.primitive :context_get_field
-    OBJECT get_field(STATE, FIXNUM type);
+    OBJECT get_internal_data(STATE, FIXNUM type);
 
     /* Locals manipulation functions */
     /* Locals are just stored at the top of the stack. */
