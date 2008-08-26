@@ -79,8 +79,8 @@ namespace rubinius {
   /* For use in gdb. */
   extern "C" {
     /* A wrapper because gdb can't do virtual dispatch. */
-    void __show__(STATE, OBJECT obj) {
-      obj->show(state);
+    void __show__(OBJECT obj) {
+      obj->show(VM::current_state());
     }
   }
 }

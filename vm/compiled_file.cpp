@@ -39,6 +39,7 @@ namespace rubinius {
     Message msg(state);
     msg.total_args = 0;
     msg.recv = G(main);
+    msg.name = cm->name;
     msg.module = G(object);
     msg.name = cm->name;
 

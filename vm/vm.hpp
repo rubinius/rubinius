@@ -57,6 +57,12 @@ namespace rubinius {
     VM(size_t bytes = default_bytes);
     ~VM();
 
+    // Returns the current VM state object.
+    static VM* current_state();
+
+    // Registers a VM* object as the current state.
+    static void register_state(VM*);
+
     void bootstrap_class();
     void bootstrap_ontology();
     void bootstrap_symbol();

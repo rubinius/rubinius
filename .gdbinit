@@ -1,7 +1,7 @@
 define rbt
-p machine_print_callstack(0)
+p __printbt__()
 end
 
 define rp
-p __show__(state, $arg0)
+p __show__($arg0)
 end

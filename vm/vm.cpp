@@ -41,6 +41,8 @@ namespace rubinius {
 
     VMLLVMMethod::init("vm/instructions.bc");
     boot_threads();
+
+    VM::register_state(this);
   }
 
   VM::~VM() {
@@ -48,6 +50,17 @@ namespace rubinius {
     delete events;
     delete global_cache;
     llvm_cleanup();
+  }
+
+  // HACK so not thread safe or anything!
+  static VM* __state = NULL;
+
+  VM* VM::current_state() {
+    return __state;
+  }
+
+  void VM::register_state(VM *vm) {
+    __state = vm;
   }
 
   void VM::boot_threads() {
@@ -226,7 +239,6 @@ namespace rubinius {
       if(kind_of<BlockContext>(ctx)) {
         std::cout << "__block__";
       } else {
-        // HACK reports Object#[] instead of Hash::[], etc
         if(MetaClass* meta = try_as<MetaClass>(ctx->module)) {
           if(Module* mod = try_as<Module>(meta->attached_instance)) {
             std::cout << mod->name->c_str(this) << ".";
@@ -262,8 +274,8 @@ namespace rubinius {
 
   /* For debugging. */
   extern "C" {
-    void __printbt__(STATE) {
-      state->print_backtrace();
+    void __printbt__() {
+      VM::current_state()->print_backtrace();
     }
   }
 };
