@@ -5,6 +5,7 @@ describe "Hash::Bucket#delete" do
     @a = Hash::Bucket.new 1, 2, 3
     @b = Hash::Bucket.new 4, 5, 6
     @c = Hash::Bucket.new 7, 8, 9
+    @d = Hash::Bucket.new 0, 1, 2
 
     @a.next = @b
     @b.next = @c
@@ -21,7 +22,11 @@ describe "Hash::Bucket#delete" do
     @b.next.should be_nil
   end
 
-  it "returns true if the entire chain should be removed" do
-    @c.delete(7, 9, nil).should be_true
+  it "returns nil if the entire chain should be removed" do
+    @d.delete(0, 2).should be_nil
+  end
+
+  it "returns true if no bucket matches key and key_hash" do
+    @a.delete(0, 2).should be_true
   end
 end

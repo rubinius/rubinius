@@ -77,19 +77,20 @@ class Hash
       end
     end
 
-    # Returns true if the entire chain would be removed. Otherwise,
-    # returns false and removes the bucket containing +key+ and
-    # +key_hash+ from the chain if it exists. If no bucket containing
-    # +key+ and +key_hash+ exists, <code>#delete</code> does nothing.
+    # Returns +false+ if the bucket was found and deleted and the head
+    # of the chain is unchanged. Returns +nil+ if the head of the
+    # chain should be replaced with <code>head.next</code>. Returns
+    # +true+ if the bucket was not found.
     def delete(key, key_hash, parent = nil)
       if self.key_hash == key_hash and key.eql? self.key
-        return true unless parent
+        return nil unless parent
         parent.next = self.next
+        return false
       elsif nxt = self.next
         return nxt.delete key, key_hash, self
+      else
+        return true
       end
-
-      return false
     end
   end
 
@@ -151,6 +152,7 @@ class Hash
     @bins
   end
 
+  # Returns the size of the storage vector (+@bins+).
   def records
     @records
   end
