@@ -1,0 +1,34 @@
+class Ticket
+
+  def self.user(id)
+    @users ||= Hash.new do |h,k|
+      str = %Q!curl -s -H 'X-LighthouseToken: c2d8226589bdc2e23d025dc39586459ab5da0349' http://rubinius.lighthouseapp.com/users/#{k}.xml!
+      if m = %r!<name>(.*)</name>!.match(`#{str}`)
+        m[1]
+      else
+        "user#{k}"
+      end
+    end
+
+    @users[id]
+  end
+end
+
+namespace :tasks do
+
+  task :current do
+    require 'hpricot'
+    str = %q!curl -s -H 'X-LighthouseToken: c2d8226589bdc2e23d025dc39586459ab5da0349' http://rubinius.lighthouseapp.com/projects/5089/tickets.xml\?q="tagged:current"!
+
+    h = Hpricot.parse(`#{str}`)
+
+    (h / 'tickets').each do |e|
+      user = Ticket.user((e / 'user-id').text.to_i)
+      tags = (e / 'tag').text
+      title = (e / 'title').text
+
+      puts "== #{title}"
+      puts "     #{user} - #{tags.split(" ").join(", ")}"
+    end
+  end
+end
