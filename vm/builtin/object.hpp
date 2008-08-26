@@ -11,6 +11,7 @@ namespace rubinius {
   class Module;
   class VMExecutable;
   class Task;
+  class Array;
   class Message;
   class TypeInfo;
 
@@ -129,9 +130,12 @@ namespace rubinius {
     // Ruby.primitive? :object_send
     bool send_prim(STATE, VMExecutable* exec, Task* task, Message& msg);
 
-    // Setup the current task to send the meth +meth+ to +this+ with a
+    // Setup the current task to send the method +meth+ to +this+ with a
     // variable number of arguments
     bool send(STATE, SYMBOL meth, size_t args, ...);
+
+    // Setup +task+ to send the method +meth+ with +args+ to +this+
+    bool send_on_task(STATE, Task* task, SYMBOL name, Array* args);
 
     void copy_flags(STATE, OBJECT other);
     void copy_ivars(STATE, OBJECT other);

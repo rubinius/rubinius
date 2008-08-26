@@ -1,6 +1,7 @@
 #include "gc.hpp"
 #include "gc_marksweep.hpp"
 #include "objectmemory.hpp"
+#include "builtin/tuple.hpp"
 
 #include <iostream>
 
@@ -126,6 +127,10 @@ namespace rubinius {
       }
     }
 
+    // Cleanup all weakrefs seen
+    clean_weakrefs();
+
+    // Sweep up the garbage
     sweep_objects();
   }
 
@@ -140,6 +145,31 @@ namespace rubinius {
       } else {
         (*i)->clear();
         i++;
+      }
+    }
+  }
+
+  // HACK todo test this!
+  void MarkSweepGC::clean_weakrefs() {
+    if(!weak_refs) return;
+
+    for(ObjectArray::iterator i = weak_refs->begin();
+        i != weak_refs->end();
+        i++) {
+      // ATM, only a Tuple can be marked weak.
+      Tuple* tup = as<Tuple>(*i);
+      for(size_t ti = 0; ti < tup->field_count; ti++) {
+        OBJECT obj = tup->at(ti);
+        if(obj->young_object_p()) {
+          if(!obj->marked_p()) {
+            tup->field[ti] = Qnil;
+          }
+        } else {
+          Entry *entry = find_entry(obj);
+          if(!entry->marked_p()) {
+            tup->field[ti] = Qnil;
+          }
+        }
       }
     }
   }

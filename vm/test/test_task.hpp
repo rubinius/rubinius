@@ -903,4 +903,24 @@ class TestTask : public CxxTest::TestSuite {
     task->restore_context(task->active);
     TS_ASSERT(!task->active->Remember);
   }
+
+  void test_call_object() {
+    CompiledMethod* cm = create_cm();
+    Task* task = Task::create(state);
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    MethodContext* cur = task->active;
+
+    task->call_object(state, Qtrue, state->symbol("blah"),
+        Array::create(state, 0));
+
+    TS_ASSERT(cur != task->active);
+
+    MethodContext* ncur = task->active;
+
+    TS_ASSERT_EQUALS(ncur->self, Qtrue);
+    TS_ASSERT_EQUALS(ncur->sender, cur);
+  }
+
 };

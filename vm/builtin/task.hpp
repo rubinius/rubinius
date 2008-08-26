@@ -71,6 +71,9 @@ namespace rubinius {
     // Ruby.primitive :task_current_context
     MethodContext* current_context(STATE);
 
+    // Ruby.primitive :task_call_object
+    OBJECT call_object(STATE, OBJECT recv, SYMBOL meth, Array* args);
+
     void restore_context(MethodContext* ctx);
     void make_active(MethodContext* ctx);
     void execute();
