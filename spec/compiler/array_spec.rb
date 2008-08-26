@@ -2,12 +2,17 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles '[1, 2, *foo()]" do
-    x = [:argscat,
-      [:array, [:lit, 1], [:lit, 2]],
-      [:fcall, :foo]
-    ]
+    ruby = <<-EOC
+      [1, 2, *foo()]
+    EOC
 
-    gen x do |g|
+    sexp = s(:argscat,
+             s(:array, s(:lit, 1), s(:lit, 2)),
+             s(:fcall, :foo))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push 1
       g.push 2
       g.make_array 2
@@ -21,11 +26,25 @@ describe Compiler do
   end
 
   it "coerces the array reference and concatenates it to the first array" do
-    x = [:argscat,
-            [:array, [:lit, 1], [:lit, 2]],
-            [:lvar,  :x, 0]]
+    ruby = <<-EOC
+      x = [42]
+      [1, 2, *x]
+    EOC
 
-    gen x do |g|
+    sexp = s(:block,
+             s(:lasgn, :x, s(:array, s(:lit, 42))),
+             s(:argscat,
+               s(:array, s(:lit, 1), s(:lit, 2)),
+               s(:lvar,  :x, 0)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
+      g.push 42
+      g.make_array 1
+      g.set_local 0
+      g.pop
+
       g.push 1
       g.push 2
       g.make_array 2
