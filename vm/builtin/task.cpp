@@ -58,6 +58,10 @@ namespace rubinius {
     CompiledMethod* cm = CompiledMethod::generate_tramp(state, stack_size);
     MethodContext* ctx = MethodContext::create(state, G(main), cm);
 
+    // fully initialize this context
+    SET(ctx, name, state->symbol("__trampoline__"));
+    SET(ctx, block, Qnil);
+
     SET(task, active, ctx);
 
     return task;

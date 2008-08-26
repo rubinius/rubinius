@@ -44,6 +44,18 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<Task>(task));
   }
 
+  void test_create_trampoline() {
+    Task* task = Task::create(state);
+
+    TS_ASSERT_EQUALS(task->active->name, state->symbol("__trampoline__"));
+    TS_ASSERT_EQUALS(task->active->block, Qnil);
+    TS_ASSERT_EQUALS(task->active->sender, Qnil);
+    TS_ASSERT(kind_of<MethodContext>(task->active->home));
+    TS_ASSERT(kind_of<Object>(task->active->self));
+    TS_ASSERT(kind_of<CompiledMethod>(task->active->cm));
+    TS_ASSERT(kind_of<Module>(task->active->module));
+  }
+
   void test_current() {
     Task* task = Task::current(state);
 
