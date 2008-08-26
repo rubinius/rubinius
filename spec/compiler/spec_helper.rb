@@ -8,6 +8,17 @@ require File.dirname(__FILE__) + '/../../lib/compiler/bytecode'
 require File.dirname(__FILE__) + '/../../lib/compiler/text'
 require File.dirname(__FILE__) + '/../../kernel/core/iseq'
 
+######################################################################
+## Added for ruby_parser transition... all of this should be temporary
+## HACK:
+$: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/")
+require 'ruby_parser'
+def parse ruby
+  RubyParser.new.process(ruby, "spec")
+end
+$unified = ENV['NEW']
+######################################################################
+
 class TestGenerator
   def initialize
     @stream = []
