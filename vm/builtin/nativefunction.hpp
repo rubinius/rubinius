@@ -23,6 +23,8 @@ namespace rubinius {
     // Ruby.primitive :nativefunction_type_size
     static FIXNUM type_size_prim(STATE, FIXNUM type);
 
+    static void init(STATE);
+
     static NativeFunction* create(STATE, OBJECT name, int args);
 
     // Ruby.primitive :nativefunction_bind

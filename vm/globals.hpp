@@ -31,7 +31,7 @@ namespace rubinius {
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
     TypedRoot<Class*> floatpoint, fastctx, data, nmethod, nmc, task, list, list_node;
     TypedRoot<Class*> channel, thread, staticscope, send_site, selector, lookuptable;
-    TypedRoot<Class*> iseq, executable, ffi_ptr, ffi_func, iobuffer;
+    TypedRoot<Class*> iseq, executable, native_function, iobuffer;
     TypedRoot<Class*> cmethod_vis;
 
     /* the primary symbol table */
@@ -116,8 +116,7 @@ namespace rubinius {
       lookuptable(&roots),
       iseq(&roots),
       executable(&roots),
-      ffi_ptr(&roots),
-      ffi_func(&roots),
+      native_function(&roots),
       iobuffer(&roots),
       cmethod_vis(&roots),
       sym_method_missing(&roots),

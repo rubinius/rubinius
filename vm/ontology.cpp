@@ -21,6 +21,7 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/memorypointer.hpp"
+#include "builtin/nativefunction.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/selector.hpp"
 #include "builtin/sendsite.hpp"
@@ -189,6 +190,7 @@ namespace rubinius {
     Thread::init(this);
     AccessVariable::init(this);
     MemoryPointer::init(this);
+    NativeFunction::init(this);
   }
 
   // TODO: document all the sections of bootstrap_ontology
