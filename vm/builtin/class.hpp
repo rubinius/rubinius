@@ -28,9 +28,9 @@ namespace rubinius {
     // Ruby.primitive :class_allocate
     OBJECT allocate(STATE);
 
-    class Info : public TypeInfo {
+    class Info : public Module::Info {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO(Module::Info)
     };
   };
 
@@ -43,9 +43,9 @@ namespace rubinius {
 
     static MetaClass* attach(STATE, OBJECT obj, OBJECT sup = NULL);
 
-    class Info : public TypeInfo {
+    class Info : public Class::Info {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO(Class::Info)
     };
   };
 };

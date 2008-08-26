@@ -194,6 +194,7 @@ stack_cleanup:
     if(!res.resolve(state, msg)) {
       msg.unshift_argument(state, msg.name);
       msg.name = G(sym_method_missing);
+      msg.priv = true; // lets us look for method_missing anywhere
       if(!res.resolve(state, msg)) {
         tragic_failure(msg);
       }

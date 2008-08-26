@@ -37,6 +37,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
+      virtual void show(STATE, OBJECT self);
     };
   };
 
@@ -47,9 +48,9 @@ namespace rubinius {
 
     OBJECT module; // slot
 
-    class Info : public TypeInfo {
+    class Info : public Module::Info {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO(Module::Info)
     };
   };
 };

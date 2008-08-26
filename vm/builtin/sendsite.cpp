@@ -50,6 +50,7 @@ namespace rubinius {
     if(!resolver->resolve(state, msg)) {
       msg.unshift_argument(state, msg.name);
       msg.name = G(sym_method_missing);
+      msg.priv = true; // lets us look for method_missing anywhere
       if(!resolver->resolve(state, msg)) {
         return false;
       }
