@@ -18,4 +18,9 @@ class Hash
     h.send :initialize, default, &block
     h
   end
+
+  # This is overwritten in kernel/common/hash.rb but it is
+  # helpful to have it here while building up Hash methods.
+  def initialize(default, &block)
+  end
 end

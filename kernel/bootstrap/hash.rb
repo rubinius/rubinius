@@ -93,6 +93,38 @@ class Hash
     end
   end
 
+  # An external iterator that returns only bucket chains from the
+  # Hash storage, never nil bins. While somewhat following the API
+  # of Enumerator, it is named Iterator because it does not provide
+  # <code>#each</code> and should not conflict with +Enumerator+ in
+  # MRI 1.8.7+. Returned by <code>Hash#to_iter</code>.
+  class Iterator
+    def initialize(bins, records)
+      @bins = bins
+      @records = records
+      @index = -1
+    end
+
+    # Returns the next object or +nil+.
+    def next
+      while (@index += 1) < @records
+        bucket = @bins[@index]
+        return bucket if bucket
+      end
+    end
+
+    # Returns the index of the last object returned by <code>#next</code>.
+    def index
+      @index
+    end
+
+    # Resets the index of the next object to be returned by
+    # <code>#next</code> to the beginning of the storage vector.
+    def reset
+      @index = -1
+    end
+  end
+
   # MUST be a power of 2
   MIN_SIZE = 16
 
@@ -111,6 +143,12 @@ class Hash
     h.instance_variable_set :@bins, Tuple.new(MIN_SIZE)
     h.instance_variable_set :@size, 0
     h
+  end
+
+  # Returns the storage vector for Hash. The object should provide
+  # an <code>#[]</code> for accessing and <code>#[]=</code> for setting.
+  def bins
+    @bins
   end
 
   def size

@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Hash#entry" do
   before :each do
-    @hash = Hash.new
+    @hash = Hash.allocate
   end
 
   it "returns an empty bucket for key hash" do
