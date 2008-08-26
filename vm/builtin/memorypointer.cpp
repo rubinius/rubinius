@@ -29,6 +29,12 @@ extern "C" {
 }
 
 namespace rubinius {
+
+  void MemoryPointer::init(STATE) {
+    GO(memory_pointer).set(state->new_class("MemoryPointer"));
+    G(memory_pointer)->set_object_type(MemPtrType);
+  }
+
   MemoryPointer* MemoryPointer::create(STATE, void* ptr) {
     MemoryPointer* obj = (MemoryPointer*)state->new_struct(G(ffi_ptr), sizeof(MemoryPointer));
     obj->pointer = ptr;

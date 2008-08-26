@@ -13,6 +13,8 @@ namespace rubinius {
     void* pointer;
     bool autorelease;
 
+    static void init(STATE);
+
     static MemoryPointer* create(STATE, void* ptr);
 
     // Ruby.primitive :memorypointer_address
