@@ -748,6 +748,7 @@ class File < IO
   #  File.umask(0006)   #=> 18
   #  File.umask         #=> 6
   def self.umask(mask = nil)
+    mask = mask.to_int if mask
     if mask
       POSIX.umask(mask)
     else
@@ -832,12 +833,16 @@ class File < IO
   # Returns true if the named file has the setgid bit set.
   def self.setgid?(file_name)
     Stat.new(file_name).setgid?
+  rescue Errno::ENOENT
+    return false
   end
   
   ##
   # Returns true if the named file has the setuid bit set.
   def self.setuid?(file_name)
     Stat.new(file_name).setuid?
+  rescue Errno::ENOENT
+    return false
   end
   
   ##
@@ -1135,11 +1140,11 @@ class File::Stat
   end
   
   def setgid?
-    !!@stat[:st_gid]
+    @stat[:st_mode] & S_ISGID != 0
   end
   
   def setuid?
-    !!@stat[:st_uid]
+    @stat[:st_mode] & S_ISUID != 0
   end
 
   def size
