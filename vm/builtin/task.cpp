@@ -206,6 +206,11 @@ stack_cleanup:
     return active->args >= pos;
   }
 
+  OBJECT Task::call_object(STATE, OBJECT recv, SYMBOL meth, Array* args) {
+    recv->send_on_task(state, this, meth, args);
+    return Qtrue;
+  }
+
   void Task::simple_return(OBJECT value) {
     MethodContext *target = active->sender;
 

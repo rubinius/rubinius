@@ -111,6 +111,12 @@ namespace rubinius {
     return this;
   }
 
+  Tuple* Tuple::create_weakref(STATE, OBJECT obj) {
+    Tuple* tup = Tuple::from(state, 1, obj);
+    tup->RefsAreWeak = 1;
+    return tup;
+  }
+
   void Tuple::Info::mark(OBJECT obj, ObjectMark& mark) {
     OBJECT tmp;
     Tuple* tup = as<Tuple>(obj);
@@ -120,4 +126,5 @@ namespace rubinius {
       if(tmp) mark.set(obj, &tup->field[i], tmp);
     }
   }
+
 }

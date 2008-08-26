@@ -44,5 +44,10 @@ class Tuple
     Ruby.primitive :tuple_copy_from
     raise PrimitiveFailure, "Tuple#copy_from primitive failed"
   end
+
+  def self.create_weakref(object)
+    Ruby.primitive :tuple_create_weakref
+    raise PrimitiveFailure, "Unable to create a weak reference"
+  end
 end
 

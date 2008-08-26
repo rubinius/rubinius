@@ -78,6 +78,7 @@ namespace rubinius {
     OBJECT copy_object(OBJECT obj);
     Entry *find_entry(OBJECT obj);
     void   sweep_objects();
+    void   clean_weakrefs();
     void   free_object(Entry *entry);
     virtual OBJECT saw_object(OBJECT obj);
     void   collect(Roots &roots);

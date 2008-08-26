@@ -486,11 +486,6 @@ namespace rubinius {
 
   bool Object::send(STATE, SYMBOL name, size_t count_args, ...) {
     va_list va;
-    Message msg(state);
-    msg.name = name;
-    msg.recv = this;
-    msg.lookup_from = this->lookup_begin(state);
-
     Array* args = Array::create(state, count_args);
 
     // Use the va_* macros to iterate over the variable number of
@@ -501,9 +496,18 @@ namespace rubinius {
     }
     va_end(va);
 
+    return send_on_task(state, G(current_task), name, args);
+  }
+
+  bool Object::send_on_task(STATE, Task* task, SYMBOL name, Array* args) {
+    Message msg(state);
+    msg.name = name;
+    msg.recv = this;
+    msg.lookup_from = this->lookup_begin(state);
+
     msg.set_arguments(state, args);
 
-    return G(current_task)->send_message_slowly(msg);
+    return task->send_message_slowly(msg);
   }
 
   void inspect(STATE, OBJECT obj) {

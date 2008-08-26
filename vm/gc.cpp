@@ -31,13 +31,24 @@ namespace rubinius {
   }
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)
-                   :object_memory(om) { }
+                   :object_memory(om), weak_refs(NULL) { }
 
   /* Understands how to read the inside of an object and find all references
    * located within. It copies the objects pointed to, but does not follow into
    * those further (ie, not recursive) */
   void GarbageCollector::scan_object(OBJECT obj) {
     OBJECT slot;
+
+    // If this object's refs are weak, then add it to the weak_refs
+    // vector and don't look at it otherwise.
+    if(obj->RefsAreWeak) {
+      if(!weak_refs) {
+        weak_refs = new ObjectArray(0);
+      }
+
+      weak_refs->push_back(obj);
+      return;
+    }
 
     if(obj->klass && obj->klass->reference_p()) {
       slot = saw_object(obj->klass);
