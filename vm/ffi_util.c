@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -9,7 +10,11 @@
 
 #include "ffi_util.h"
 
+extern char** environ;
+
 int ffi_errno() { return errno; }
+
+char** ffi_environ() { return environ; }
 
 void ffi_set_errno(int n) {
   errno = n;

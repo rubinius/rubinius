@@ -8,11 +8,12 @@ class EnvironmentVariables
   include Enumerable
 
   def [](key)
-    env_get(StringValue(key))
+    EnvironmentVariables.getenv StringValue(key)
   end
 
   def []=(key, value)
-    env_set(StringValue(key), value.nil? ? nil : StringValue(value))
+    value = value.nil? ? nil : StringValue(value)
+    EnvironmentVariables.setenv StringValue(key), value
   end
   alias_method :store, :[]=
 
@@ -141,7 +142,9 @@ class EnvironmentVariables
     to_hash.to_a
   end
 
-  public :to_hash
+  def to_hash
+    raise NotImplementedError, "Needs to read environ"
+  end
 
   def update(other, &block)
     if block_given?
