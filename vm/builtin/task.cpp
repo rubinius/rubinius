@@ -24,7 +24,8 @@
 namespace rubinius {
 
   void Task::init(STATE) {
-    GO(task).set(state->new_class("Task", G(object), Task::fields));
+    GO(task).set(state->new_class("Task", G(object), Task::fields, G(rubinius)));
+    SET(G(task), name, state->symbol("Rubinius::Task"));
     G(task)->set_object_type(Task::type);
 
     GO(channel).set(state->new_class("Channel", G(object), Channel::fields));

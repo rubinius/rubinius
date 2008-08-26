@@ -206,6 +206,12 @@ namespace rubinius {
      * classes.
      */
 
+    /*
+     * Create our Rubinius module that we hang stuff off
+     */
+
+    GO(rubinius).set(new_module("Rubinius"));
+
     bootstrap_symbol();
     initialize_builtin_classes();
     bootstrap_exceptions();
@@ -218,13 +224,7 @@ namespace rubinius {
     GO(main).set(main);
     G(object)->set_const(this, "MAIN", main); // HACK test hooking up MAIN
 
-    /*
-     * Create our Rubinius module that we hang stuff off
-     */
-
-    Module* rbx = new_module("Rubinius");
-    GO(rubinius).set(rbx);
-    GO(vm).set(new_class_under("VM", rbx));
+    GO(vm).set(new_class_under("VM", G(rubinius)));
 
     /*
      * Setup the table we use to store ivars for immediates
