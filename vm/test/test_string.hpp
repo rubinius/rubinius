@@ -49,6 +49,11 @@ class TestString : public CxxTest::TestSuite {
     hashval again = str->hash_string(state);
 
     TS_ASSERT_EQUALS(hash, again);
+
+    String* another_str = String::create(state, "blah");
+    hashval another_hash = another_str->hash_string(state);
+
+    TS_ASSERT_EQUALS(hash, another_hash);
   }
 
   void test_to_sym() {
@@ -81,10 +86,10 @@ class TestString : public CxxTest::TestSuite {
   void test_append() {
     str = String::create(state, "first");
     str->hash_string(state);
-    TS_ASSERT(str->hash != Qnil);
+    TS_ASSERT(str->hash_value != Qnil);
 
     str->append(state, String::create(state, " second"));
-    TS_ASSERT_EQUALS(str->hash, Qnil);
+    TS_ASSERT_EQUALS(str->hash_value, Qnil);
 
     TS_ASSERT_EQUALS(str->size(), 12U);
     TS_ASSERT_SAME_DATA("first second", str->byte_address(), 13);

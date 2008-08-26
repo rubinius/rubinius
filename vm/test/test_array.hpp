@@ -58,4 +58,22 @@ class TestArray : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(33));
 
   }
+
+  void test_unshift() {
+    Array* ary = Array::create(state, 1);
+    ary->set(state, 0, Qtrue);
+    ary->unshift(state, Qfalse);
+
+    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Qfalse);
+    TS_ASSERT_EQUALS(ary->get(state, 1), Qtrue);
+  }
+
+  void test_includes_p() {
+    Array* ary = Array::create(state, 1);
+    ary->set(state, 0, Qtrue);
+
+    TS_ASSERT(ary->includes_p(state, Qtrue));
+    TS_ASSERT(!ary->includes_p(state, Qfalse));
+  }
 };

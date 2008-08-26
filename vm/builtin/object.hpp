@@ -110,7 +110,7 @@ namespace rubinius {
     hashval hash(STATE);
 
     // Ruby.primitive :object_hash
-    FIXNUM hash_prim(STATE);
+    INTEGER hash_prim(STATE);
 
     Class* metaclass(STATE);
 

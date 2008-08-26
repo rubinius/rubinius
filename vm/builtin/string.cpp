@@ -36,6 +36,7 @@ namespace rubinius {
     SET(so, num_bytes, size);
     SET(so, characters, so->num_bytes);
     SET(so, encoding, Qnil);
+    SET(so, hash_value, Qnil);
 
     size_t bytes = size->to_native() + 1;
     OBJECT ba = ByteArray::create(state, bytes);
@@ -59,6 +60,7 @@ namespace rubinius {
     SET(so, num_bytes, Fixnum::from(bytes));
     SET(so, characters, so->num_bytes);
     SET(so, encoding, Qnil);
+    SET(so, hash_value, Qnil);
 
     OBJECT ba = ByteArray::create(state, bytes + 1);
     if(str) memcpy(ba->bytes, str, bytes);
@@ -72,14 +74,14 @@ namespace rubinius {
   hashval String::hash_string(STATE) {
     unsigned char *bp;
 
-    if(hash != Qnil) {
-      return (hashval)as<Integer>(hash)->to_native();
+    if(hash_value != Qnil) {
+      return (hashval)as<Integer>(hash_value)->to_native();
     }
     bp = (unsigned char*)(data->bytes);
     size_t sz = size();
 
     hashval h = hash_str(bp, sz);
-    SET(this, hash, Integer::from(state, h));
+    SET(this, hash_value, Integer::from(state, h));
 
     return h;
   }
@@ -175,7 +177,7 @@ namespace rubinius {
 
     SET(this, num_bytes, Integer::from(state, new_size));
     SET(this, data, d2);
-    SET(this, hash, Qnil);
+    SET(this, hash_value, Qnil);
 
     return this;
   }

@@ -35,7 +35,7 @@ namespace rubinius {
     INTEGER characters; // slot
     OBJECT encoding; // slot
     ByteArray* data; // slot
-    INTEGER hash; // slot
+    INTEGER hash_value; // slot
     OBJECT shared; // slot
 
     static void init(STATE);

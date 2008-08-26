@@ -25,7 +25,7 @@ namespace rubinius {
 
   template <>
     bool instance_of<Object>(OBJECT obj) {
-      return obj->obj_type == ObjectType;
+      return obj->get_type() == ObjectType;
     }
 
   template <>
@@ -376,8 +376,8 @@ namespace rubinius {
     return hsh;
   }
 
-  FIXNUM Object::hash_prim(STATE) {
-    return Fixnum::from(hash(state));
+  INTEGER Object::hash_prim(STATE) {
+    return Integer::from(state, hash(state));
   }
 
   INTEGER Object::id(STATE) {
