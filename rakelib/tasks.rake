@@ -14,8 +14,10 @@ class Ticket
   end
 end
 
+# Rake tasks for dealing with programming tasks
 namespace :tasks do
 
+  desc "Print out the current tasks being worked on from Lighthouse"
   task :current do
     require 'hpricot'
     str = %q!curl -s -H 'X-LighthouseToken: c2d8226589bdc2e23d025dc39586459ab5da0349' http://rubinius.lighthouseapp.com/projects/5089/tickets.xml\?q="tagged:current"!
