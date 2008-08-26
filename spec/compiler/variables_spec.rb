@@ -2,9 +2,18 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles simple lasgn / lvar" do
-    x = [:block, [:lasgn, :a, [:fixnum, 12]], [:lvar, :a, 0]]
+    ruby = <<-EOC
+      a = 12
+      a
+    EOC
 
-    gen x do |g|
+    sexp = s(:block,
+             s(:lasgn, :a, s(:fixnum, 12)),
+             s(:lvar, :a, 0))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push 12
       g.set_local 0
       g.pop
@@ -13,10 +22,19 @@ describe Compiler do
   end
 
   it "compiles lvars only after declared" do
-    x =   [:block, [:vcall, :name],
-                   [:lasgn, :name, [:lit, 3]],
-                   [:lvar, :name, 0]]
-    gen x do |g|
+    ruby = <<-EOC
+      name
+      name = 3
+      name
+    EOC
+
+    sexp = s(:block, s(:vcall, :name),
+             s(:lasgn, :name, s(:lit, 3)),
+             s(:lvar, :name, 0))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.send :name, 0, true
       g.pop
@@ -29,13 +47,21 @@ describe Compiler do
   end
 
   it "compiles lvar for argument" do # def meth(b); b; end
-    x = [:defn, :meth,
-         [:scope,
-          [:block,
-           [:args, [:b], [], nil, nil],
-           [:lvar, :b, 0]], []]]
+    ruby = <<-EOC
+      def meth(b)
+        b
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:defn, :meth,
+             s(:scope,
+               s(:block,
+                 s(:args, s(:b), s(), nil, nil),
+                 s(:lvar, :b, 0)), s()))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       meth = description do |d|
         d.push_local 0
         d.ret
@@ -49,11 +75,20 @@ describe Compiler do
   end
 
   it "compiles toplevel lvar into locals when closure referenced" do
-    x = [:block,
-          [:lasgn, :name, [:fixnum, 12]],
-          [:iter, [:fcall, :go], nil, [:lvar, :name, 0]]]
+    ruby = <<-EOC
+      name = 12
+      go do
+        name
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:block,
+             s(:lasgn, :name, s(:fixnum, 12)),
+             s(:iter, s(:fcall, :go), nil, s(:lvar, :name, 0)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       iter = description do |d|
         d.pop
         d.push_modifiers
@@ -75,11 +110,21 @@ describe Compiler do
   end
 
   it "compiles block lvar into depth referenced lvar" do
-    ax = [:iter, [:fcall, :go], nil, [:block,
-            [:lasgn, :name, [:fixnum, 12]],
-            [:lvar, :name, 0]]]
+    ruby = <<-EOC
+      go do
+        name = 12
+        name
+      end
+    EOC
 
-    gen ax do |g|
+    sexp = s(:iter, s(:fcall, :go), nil,
+             s(:block,
+               s(:lasgn, :name, s(:fixnum, 12)),
+               s(:lvar, :name, 0)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       iter = description do |d|
         d.pop
         d.push_modifiers
@@ -100,25 +145,29 @@ describe Compiler do
     end
   end
 
-#   go do
-#     name = 12
-#     go do
-#       name
-#     end
-#   end
-
   it "compiles block lvar into depth referenced lvar upward" do
-    ax = [:iter,
-          [:fcall, :go],
-          nil,
-          [:block,
-           [:lasgn, :name, [:fixnum, 12]],
-           [:iter,
-            [:fcall, :go],
-            nil,
-            [:block, [:lvar, :name, 0]]]]]
+    ruby = <<-EOC
+      go do
+        name = 12
+        go do
+          name
+        end
+      end
+    EOC
 
-    gen ax do |g|
+    sexp = s(:iter,
+             s(:fcall, :go),
+             nil,
+             s(:block,
+               s(:lasgn, :name, s(:fixnum, 12)),
+               s(:iter,
+                 s(:fcall, :go),
+                 nil,
+                 s(:block, s(:lvar, :name, 0)))))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       iter = description do |d|
         d.pop
         d.push_modifiers
@@ -155,20 +204,44 @@ describe Compiler do
 
   # Ivars and slots
   it "compiles '@blah'" do
-    gen [:ivar, :@blah] do |g|
+    ruby = <<-EOC
+      @blah
+    EOC
+
+    sexp = s(:ivar, :@blah)
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
       g.push_ivar :@blah
     end
   end
 
   it "compiles '@blah = 1'" do
-    gen [:iasgn, :@blah, [:lit, 1]] do |g|
+    ruby = <<-EOC
+      @blah = 1
+    EOC
+
+    sexp = s(:iasgn, :@blah, s(:lit, 1))
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
       g.push 1
       g.set_ivar :@blah
     end
   end
 
   it "compiles '$var'" do
-    gen [:gvar, :$var] do |g|
+    ruby = <<-EOC
+      $var
+    EOC
+
+    sexp = s(:gvar, :$var)
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
       g.push_cpath_top
       g.find_const :Globals
       g.push_literal :$var
@@ -177,7 +250,15 @@ describe Compiler do
   end
 
   it "compiles '$var = 1'" do
-    gen [:gasgn, :$var, [:fixnum, 12]] do |g|
+    ruby = <<-EOC
+      $var = 1
+    EOC
+
+    sexp = s(:gasgn, :$var, s(:fixnum, 12))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_cpath_top
       g.find_const :Globals
       g.push_literal :$var
@@ -187,40 +268,88 @@ describe Compiler do
   end
 
   it "compiles '$!'" do
-    gen [:gvar, :$!] do |g|
+    ruby = <<-EOC
+      $!
+    EOC
+
+    sexp = s(:gvar, :$!)
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
       g.push_exception
     end
   end
 
   it "compiles '$! = 1'" do
-    gen [:gasgn, :$!, [:fixnum, 1]] do |g|
+    ruby = <<-EOC
+      $! = 1
+    EOC
+
+    sexp = s(:gasgn, :$!, s(:fixnum, 1))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push 1
       g.raise_exc
     end
   end
 
   it "compiles 'String'" do
-    gen [:const, :String] do |g|
+    ruby = <<-EOC
+      String
+    EOC
+
+    sexp = s(:const, :String)
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
       g.push_const :String
     end
   end
 
   it "compiles 'Object::String'" do
-    gen [:colon2, [:const, :Object], :String] do |g|
+    ruby = <<-EOC
+      Object::String
+    EOC
+
+    sexp = s(:colon2, s(:const, :Object), :String)
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
       g.push_const :Object
       g.find_const :String
     end
   end
 
   it "compiles '::String'" do
-    gen [:colon3, :String] do |g|
+    ruby = <<-EOC
+      ::String
+    EOC
+
+    sexp = s(:colon3, :String)
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
       g.push_cpath_top
       g.find_const :String
     end
   end
 
   it "compiles 'Blah = 1'" do
-    gen [:cdecl, :Blah, [:lit, 1], nil] do |g|
+    ruby = <<-EOC
+      Blah = 1
+    EOC
+
+    sexp = s(:cdecl, :Blah, s(:lit, 1), nil)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.push_literal :Blah
       g.push 1
@@ -229,7 +358,15 @@ describe Compiler do
   end
 
   it "compiles 'Object::Blah = 1'" do
-    gen [:cdecl, nil, [:lit, 1], [:colon2, [:const, :Object], :Blah]] do |g|
+    ruby = <<-EOC
+      Object::Blah = 1
+    EOC
+
+    sexp = s(:cdecl, nil, s(:lit, 1), s(:colon2, s(:const, :Object), :Blah))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_const :Object
       g.push_literal :Blah
       g.push 1
@@ -238,7 +375,15 @@ describe Compiler do
   end
 
   it "compiles '::Blah = 1'" do
-    gen [:cdecl, nil, [:lit, 1], [:colon3, :Blah]] do |g|
+    ruby = <<-EOC
+      ::Blah = 1
+    EOC
+
+    sexp = s(:cdecl, nil, s(:lit, 1), s(:colon3, :Blah))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_cpath_top
       g.push_literal :Blah
       g.push 1
