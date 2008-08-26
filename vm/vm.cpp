@@ -227,7 +227,17 @@ namespace rubinius {
         std::cout << "__block__";
       } else {
         // HACK reports Object#[] instead of Hash::[], etc
-        std::cout << ctx->module->name->to_str(this)->byte_address() << "#";
+        if(MetaClass* meta = try_as<MetaClass>(ctx->module)) {
+          if(Module* mod = try_as<Module>(meta->attached_instance)) {
+            std::cout << mod->name->c_str(this) << ".";
+          } else {
+            std::cout << "#<" <<
+              meta->attached_instance->class_object(this)->name->c_str(this) <<
+              ":0x" << (void*)meta->attached_instance << ">.";
+          }
+        } else {
+          std::cout << ctx->module->name->to_str(this)->byte_address() << "#";
+        }
 
         SYMBOL name = try_as<Symbol>(ctx->name);
         if(name) {
