@@ -24,8 +24,9 @@ namespace :tasks do
 
     h = Hpricot.parse(`#{str}`)
 
-    (h / 'tickets').each do |e|
-      user = Ticket.user((e / 'user-id').text.to_i)
+    (h / 'ticket').each do |e|
+      uid = (e / 'assigned-user-id').text.to_i
+      user = Ticket.user(uid)
       tags = (e / 'tag').text
       title = (e / 'title').text
 
