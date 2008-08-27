@@ -18,277 +18,275 @@ $-w = true
 # + trailing comma "arg"
 
 describe Compiler do
-#  platform_is :rubinius do
-    it "compiles 'ary.each do; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do; end'" do
+    ruby = <<-EOC
         ary.each do; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               nil)
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             nil)
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        # do nothing
-      end
+    gen_iter sexp do |d|
+      # do nothing
     end
+  end
 
-    it "compiles 'ary.each do ||; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do ||; end'" do
+    ruby = <<-EOC
         ary.each do ||; end
       EOC
 
-      # FIX: we don't distinguish between no and empty args
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               nil)
+    # FIX: we don't distinguish between no and empty args
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             nil)
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        # do nothing
-      end
+    gen_iter sexp do |d|
+      # do nothing
     end
+  end
 
-    it "compiles 'ary.each do |a|; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do |a|; end'" do
+    ruby = <<-EOC
         ary.each do |a|; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:lasgn, :a))
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:lasgn, :a))
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        d.cast_for_single_block_arg
-        d.set_local_depth 0, 0
-      end
+    gen_iter sexp do |d|
+      d.cast_for_single_block_arg
+      d.set_local_depth 0, 0
     end
+  end
 
-    it "compiles 'ary.each do |a, |; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do |a, |; end'" do
+    ruby = <<-EOC
         ary.each do |a, |; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:masgn, s(:array, s(:lasgn, :a)), nil, nil))
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:masgn, s(:array, s(:lasgn, :a)), nil, nil))
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        d.cast_for_multi_block_arg
-        d.lvar_at 0
-      end
+    gen_iter sexp do |d|
+      d.cast_for_multi_block_arg
+      d.lvar_at 0
     end
+  end
 
-    it "compiles 'ary.each do |*a|; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do |*a|; end'" do
+    ruby = <<-EOC
         ary.each do |*a|; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:masgn, s(:lasgn, :a), nil))
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:masgn, s(:lasgn, :a), nil))
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        d.cast_array
-        d.set_local_depth 0, 0
-      end
+    gen_iter sexp do |d|
+      d.cast_array
+      d.set_local_depth 0, 0
     end
+  end
 
-    it "compiles 'ary.each do |a, b, c|; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do |a, b, c|; end'" do
+    ruby = <<-EOC
         ary.each do |a, b, c|; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:masgn,
-                 s(:array,
-                   s(:lasgn, :a),
-                   s(:lasgn, :b),
-                   s(:lasgn, :c)), nil, nil))
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:masgn,
+               s(:array,
+                 s(:lasgn, :a),
+                 s(:lasgn, :b),
+                 s(:lasgn, :c)), nil, nil))
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        d.cast_for_multi_block_arg
-        3.times do |slot|
-          d.lvar_at slot
-        end
+    gen_iter sexp do |d|
+      d.cast_for_multi_block_arg
+      3.times do |slot|
+        d.lvar_at slot
       end
     end
+  end
 
-    it "compiles 'ary.each do |a, b, *c|; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do |a, b, *c|; end'" do
+    ruby = <<-EOC
         ary.each do |a, b, *c|; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:masgn,
-                 s(:array,
-                   s(:lasgn, :a),
-                   s(:lasgn, :b)),
-                 s(:lasgn, :c), nil))
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:masgn,
+               s(:array,
+                 s(:lasgn, :a),
+                 s(:lasgn, :b)),
+               s(:lasgn, :c), nil))
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        d.cast_for_multi_block_arg
-        d.lvar_at 0
-        d.lvar_at 1
-      end
+    gen_iter sexp do |d|
+      d.cast_for_multi_block_arg
+      d.lvar_at 0
+      d.lvar_at 1
     end
+  end
 
-    it "compiles 'ary.each do |(a, b), c|; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do |(a, b), c|; end'" do
+    ruby = <<-EOC
         ary.each do |(a, b), c|; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:masgn,
-                 s(:array,
-                   s(:masgn,
-                     s(:array,
-                       s(:lasgn, :a),
-                       s(:lasgn, :b)), nil, nil),
-                   s(:lasgn, :c)), nil, nil))
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:masgn,
+               s(:array,
+                 s(:masgn,
+                   s(:array,
+                     s(:lasgn, :a),
+                     s(:lasgn, :b)), nil, nil),
+                 s(:lasgn, :c)), nil, nil))
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        d.cast_for_multi_block_arg
+    gen_iter sexp do |d|
+      d.cast_for_multi_block_arg
 
-        # Pull the first element out and use it like a tuple.
-        d.shift_tuple
-        d.cast_tuple
-        d.lvar_at 0
-        d.lvar_at 1
-        d.pop
-        d.push :true
+      # Pull the first element out and use it like a tuple.
+      d.shift_tuple
+      d.cast_tuple
+      d.lvar_at 0
+      d.lvar_at 1
+      d.pop
+      d.push :true
 
-        d.pop
+      d.pop
 
-        d.lvar_at 2
-      end
+      d.lvar_at 2
     end
+  end
 
-    it "compiles 'ary.each do |(a, b), *c|; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do |(a, b), *c|; end'" do
+    ruby = <<-EOC
         ary.each do |(a, b), *c|; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:masgn,
-                 s(:array,
-                   s(:masgn,
-                     s(:array,
-                       s(:lasgn, :a),
-                       s(:lasgn, :b)), nil, nil)),
-                 s(:lasgn, :c), nil))
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:masgn,
+               s(:array,
+                 s(:masgn,
+                   s(:array,
+                     s(:lasgn, :a),
+                     s(:lasgn, :b)), nil, nil)),
+               s(:lasgn, :c), nil))
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        d.cast_for_multi_block_arg
-        d.shift_tuple
-        d.cast_tuple
+    gen_iter sexp do |d|
+      d.cast_for_multi_block_arg
+      d.shift_tuple
+      d.cast_tuple
 
-        d.lvar_at 0
-        d.lvar_at 1
+      d.lvar_at 0
+      d.lvar_at 1
 
+      d.pop
+      d.push :true
+      d.pop
+    end
+  end
+
+  it "compiles 'ary.each do |(a, (b, c)), d|; end'" do
+    ruby = <<-EOC
+        ary.each do |(a, (b, c)), d|; end
+      EOC
+
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:masgn,
+               s(:array,
+                 s(:masgn,
+                   s(:array,
+                     s(:lasgn, :a),
+                     s(:masgn,
+                       s(:array,
+                         s(:lasgn, :b),
+                         s(:lasgn, :c)), nil, nil)), nil, nil),
+                 s(:lasgn, :d)), nil, nil))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen_iter sexp do |d|
+      d.cast_for_multi_block_arg
+      d.shift_tuple
+      d.cast_tuple
+
+      d.lvar_at 0
+
+      d.shift_tuple
+      d.cast_tuple
+
+      d.lvar_at 1
+      d.lvar_at 2
+
+      2.times do
         d.pop
         d.push :true
         d.pop
       end
+
+      d.lvar_at 3
     end
+  end
 
-    it "compiles 'ary.each do |(a, (b, c)), d|; end'" do
-      ruby = <<-EOC
-        ary.each do |(a, (b, c)), d|; end
-      EOC
-
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:masgn,
-                 s(:array,
-                   s(:masgn,
-                     s(:array,
-                       s(:lasgn, :a),
-                       s(:masgn,
-                         s(:array,
-                           s(:lasgn, :b),
-                           s(:lasgn, :c)), nil, nil)), nil, nil),
-                   s(:lasgn, :d)), nil, nil))
-
-      sexp.should == parse(ruby) if $unified
-
-      gen_iter sexp do |d|
-        d.cast_for_multi_block_arg
-        d.shift_tuple
-        d.cast_tuple
-
-        d.lvar_at 0
-
-        d.shift_tuple
-        d.cast_tuple
-
-        d.lvar_at 1
-        d.lvar_at 2
-
-        2.times do
-          d.pop
-          d.push :true
-          d.pop
-        end
-
-        d.lvar_at 3
-      end
-    end
-
-    it "compiles 'ary.each do |*|; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do |*|; end'" do
+    ruby = <<-EOC
         ary.each do |*|; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:masgn, true, nil))
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:masgn, true, nil))
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        d.cast_for_multi_block_arg
-      end
+    gen_iter sexp do |d|
+      d.cast_for_multi_block_arg
     end
+  end
 
-    it "compiles 'ary.each do |a, *|; end'" do
-      ruby = <<-EOC
+  it "compiles 'ary.each do |a, *|; end'" do
+    ruby = <<-EOC
         ary.each do |a, *|; end
       EOC
 
-      sexp = s(:iter,
-               s(:call, s(:vcall, :ary), :each),
-               s(:masgn, s(:array, s(:lasgn, :a)), true, nil))
+    sexp = s(:iter,
+             s(:call, s(:vcall, :ary), :each),
+             s(:masgn, s(:array, s(:lasgn, :a)), true, nil))
 
-      sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified
 
-      gen_iter sexp do |d|
-        d.cast_for_multi_block_arg
-        d.lvar_at 0
-      end
+    gen_iter sexp do |d|
+      d.cast_for_multi_block_arg
+      d.lvar_at 0
     end
-#  end
+  end
 
   # TODO: move these to spec/ruby/1.8/language once `rake spec:update` works
   it "runs 'ary.each do; end'" do
