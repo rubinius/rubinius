@@ -81,7 +81,7 @@ describe Compiler do
 
     sexp = s(:if, s(:true), nil, nil)
 
-    sexp.should == parse(ruby) # if $unified && false
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push :true
@@ -481,20 +481,6 @@ describe Compiler do
     end
   end
 
-#   it "compiles a scope" do
-#     ruby = <<-EOC
-      
-#     EOC
-
-#     sexp = s(:scope, s(:fixnum, 12), s())
-
-#     sexp.should == parse(ruby) # if $unified && false
-
-#     gen sexp do |g|
-#       g.push 12
-#     end
-#   end
-
   it "compiles loop directly" do
     ruby = <<-EOC
       loop { 12 }
@@ -629,7 +615,7 @@ describe Compiler do
 
     sexp = s(:break)
 
-    sexp.should == parse(ruby) # if $unified && false
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push :nil
@@ -729,7 +715,7 @@ describe Compiler do
 
     sexp = s(:redo)
 
-    sexp.should == parse(ruby) # if $unified && false
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push :self
@@ -1209,7 +1195,7 @@ describe Compiler do
 
     sexp = s(:return)
 
-    sexp.should == parse(ruby) # if $unified && false
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push :nil
