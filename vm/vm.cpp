@@ -133,7 +133,9 @@ namespace rubinius {
   }
 
   OBJECT VM::new_struct(Class* cls, size_t bytes) {
-    return om->new_object_bytes(cls, bytes);
+    Object* obj = om->new_object_bytes(cls, bytes);
+    obj->ivars = Qnil;
+    return obj;
   }
 
   void type_assert(OBJECT obj, object_type type, const char* reason) {
