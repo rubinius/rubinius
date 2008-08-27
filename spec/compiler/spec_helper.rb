@@ -246,10 +246,9 @@ def gen_iter x
       d.ret
     end
 
-    g.push_literal desc
-    g.create_block
     g.push :self
     g.send :ary, 0, true
+    g.create_block desc
 
     g.passed_block do
       g.send_with_block :each, 0, false
