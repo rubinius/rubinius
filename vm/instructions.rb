@@ -871,7 +871,19 @@ class Instructions
 
   def halt
     <<-CODE
-    throw Task::Halt("Task halted");
+    throw new Task::Halt("Task halted");
+    CODE
+  end
+
+  def test_halt
+    <<-CODE
+    try {
+      run();
+      TS_FAIL("halt did not throw an error during run()");
+    } catch(Task::Halt& e) {
+      const char* msg = e.what();
+      TS_ASSERT_SAME_DATA("Task halted", msg, 11);
+    }
     CODE
   end
 
