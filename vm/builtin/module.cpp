@@ -49,11 +49,15 @@ namespace rubinius {
   }
 
   void Module::set_name(STATE, Module* under, SYMBOL name) {
-    String* cur = under->name->to_str(state);
-    String* str_name = cur->add(state, "::")->append(state,
-        name->to_str(state));
+    if(under == G(object)) {
+      SET(this, name, name);
+    } else {
+      String* cur = under->name->to_str(state);
+      String* str_name = cur->add(state, "::")->append(state,
+          name->to_str(state));
 
-    SET(this, name, str_name->to_sym(state));
+      SET(this, name, str_name->to_sym(state));
+    }
   }
 
   void Module::set_const(STATE, OBJECT sym, OBJECT val) {
