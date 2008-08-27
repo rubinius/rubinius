@@ -303,10 +303,10 @@ stack_cleanup:
 
     vis = try_as<MethodVisibility>(msg.method);
     if(vis) {
-      return Tuple::from(state, 2, msg.module, vis->method);
+      return Tuple::from(state, 2, vis->method, msg.module);
     }
 
-    return Tuple::from(state, 2, msg.module, msg.method);
+    return Tuple::from(state, 2, msg.method, msg.module);
   }
 
   void Task::attach_method(OBJECT recv, SYMBOL name, CompiledMethod* method) {
@@ -347,7 +347,7 @@ stack_cleanup:
 
   bool Task::check_serial(OBJECT obj, SYMBOL sel, int ser) {
     Tuple* tup = locate_method_on(obj, sel, Qtrue);
-    Executable* x = as<Executable>(tup->at(1));
+    Executable* x = as<Executable>(tup->at(0));
 
     /* If the method is absent, then indicate that the serial number
      * is correct. */

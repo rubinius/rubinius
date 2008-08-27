@@ -983,8 +983,8 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(G(true_class), as<Tuple>(task->stack_top())->at(0));
-    TS_ASSERT_EQUALS(cm, as<Tuple>(task->stack_top())->at(1));
+    TS_ASSERT_EQUALS(G(true_class), as<Tuple>(task->stack_top())->at(1));
+    TS_ASSERT_EQUALS(cm, as<Tuple>(task->stack_top())->at(0));
     CODE
   end
   # [Operation]

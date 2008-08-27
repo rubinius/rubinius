@@ -419,8 +419,8 @@ class TestTask : public CxxTest::TestSuite {
 
     Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
-    TS_ASSERT_EQUALS(G(true_class), tup->at(0));
-    TS_ASSERT_EQUALS(cm,            tup->at(1));
+    TS_ASSERT_EQUALS(G(true_class), tup->at(1));
+    TS_ASSERT_EQUALS(cm,            tup->at(0));
   }
 
   void test_locate_method_on_private() {
@@ -471,8 +471,8 @@ class TestTask : public CxxTest::TestSuite {
 
     Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qtrue);
 
-    TS_ASSERT_EQUALS(G(true_class), tup->at(0));
-    TS_ASSERT_EQUALS(cm, tup->at(1));
+    TS_ASSERT_EQUALS(G(true_class), tup->at(1));
+    TS_ASSERT_EQUALS(cm,            tup->at(0));
   }
 
   void test_attach_method() {
