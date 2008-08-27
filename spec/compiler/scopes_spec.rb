@@ -2,10 +2,21 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles a defn with no args" do
-    x = [:defn, :a, [:scope, [:block, [:args],
-           [:fixnum, 12]], []]]
+    ruby = <<-EOC
+      def a
+        12
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:defn, :a,
+             s(:scope,
+               s(:block,
+                 s(:args),
+                 s(:fixnum, 12)), s()))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       meth = description do |d|
         d.push 12
         d.ret
@@ -19,17 +30,20 @@ describe Compiler do
   end
 
   it "compiles 'def add(a,b); a + b; end'" do
-    x = [:defn, :add,
-          [:scope,
-            [:block,
-              [:args, [:a, :b], [], nil, nil],
-              [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
-            ],
-            [:a, :b]
-          ]
-        ]
+    ruby = <<-EOC
+      def add(a, b); a + b; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:defn, :add,
+             s(:scope,
+               s(:block,
+                 s(:args, s(:a, :b), s(), nil, nil),
+                 s(:call, s(:lvar, :a, 0), :+, s(:array, s(:lvar, :b, 0)))),
+               s(:a, :b)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       meth = description do |d|
         d.push_local 0
         d.push_local 1
@@ -45,18 +59,21 @@ describe Compiler do
   end
 
   it "compiles 'def add(a,b=2); a + b; end'" do
-    x = [:defn, :add,
-          [:scope,
-            [:block,
-              [:args, [:a], [:b], nil,
-                [:block, [:lasgn, :b, [:lit, 2]]]],
-              [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
-            ],
-            [:a, :b]
-          ]
-        ]
+    ruby = <<-EOC
+      def add(a, b=2); a + b; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:defn, :add,
+             s(:scope,
+               s(:block,
+                 s(:args, s(:a), s(:b), nil,
+                   s(:block, s(:lasgn, :b, s(:lit, 2)))),
+                 s(:call, s(:lvar, :a, 0), :+, s(:array, s(:lvar, :b, 0)))),
+               s(:a, :b)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       meth = description do |d|
         up = d.new_label
         d.passed_arg 1
@@ -81,22 +98,24 @@ describe Compiler do
   end
 
   it "compiles 'def add(a); [].each { |b| a + b }; end'" do
-    x = [:defn, :add,
-          [:scope,
-            [:block,
-              [:args, [:a], [], nil, nil],
-              [:iter, [:call, [:zarray], :each],
-                [:lasgn, :b],
-                [:block, [:dasgn_curr, :b],
-                  [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
-                ]
-              ]
-            ],
-            [:a, :b]
-          ]
-        ]
+    ruby = <<-EOC
+      def add(a); [].each { |b| a + b }; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:defn, :add,
+             s(:scope,
+               s(:block,
+                 s(:args, s(:a), s(), nil, nil),
+                 s(:iter, s(:call, s(:zarray), :each),
+                   s(:lasgn, :b),
+                   s(:block, s(:dasgn_curr, :b),
+                     s(:call, s(:lvar, :a, 0), :+,
+                       s(:array, s(:lvar, :b, 0)))))),
+               s(:a, :b)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       meth = description do |d|
         iter = description do |i|
           i.cast_for_single_block_arg
@@ -128,16 +147,19 @@ describe Compiler do
   end
 
   it "compiles 'def a(*b); nil; end' with no max argument count" do
-    x = [:defn, :a,
-      [:scope,
-        [:block, [:args, [], [], [:b, 1], nil],
-          [:lvar, :b, 0]
-        ],
-        [:b]
-      ]
-    ]
+    ruby = <<-EOC
+      def a(*b); nil; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:defn, :a,
+             s(:scope,
+               s(:block, s(:args, s(), s(), s(:b, 1), nil),
+                 s(:lvar, :b, 0)),
+               s(:b)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       meth = description do |d|
         d.push_local 0
         d.ret
@@ -151,12 +173,18 @@ describe Compiler do
   end
 
   it "compiles 'def a(&b); b; end'" do
-    x = [:defn, :a,
-         [:scope,
-          [:block, [:args], [:block_arg, :b, 0], [:lvar, :b, 0]],
-          [:b]]]
+    ruby = <<-EOC
+      def a(&b); b; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:defn, :a,
+             s(:scope,
+               s(:block, s(:args), s(:block_arg, :b, 0), s(:lvar, :b, 0)),
+               s(:b)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       meth = description do |d|
         d.push_block
         d.dup
@@ -184,10 +212,19 @@ describe Compiler do
   end
 
   it "compiles a defs" do
-    x = [:defs, [:vcall, :a], :go, [:scope, [:block, [:args],
-          [:fixnum, 12]], []]]
+    ruby = <<-EOC
+      def a.go; 12; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:defs, s(:vcall, :a), :go,
+             s(:scope,
+               s(:block,
+                 s(:args),
+                 s(:fixnum, 12)), s()))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       meth = description do |d|
         d.push 12
         d.ret
@@ -203,16 +240,19 @@ describe Compiler do
   end
 
   it "compiles 'lambda { def a(x); x; end }'" do
-    x = [:iter, [:fcall, :lambda], nil,
-          [:defn, :a,
-            [:scope,
-              [:block, [:args, [:x], [], nil, nil], [:lvar, :x, 0]],
-              [:x]
-            ]
-          ]
-        ]
+    ruby = <<-EOC
+      lambda { def a(x); x; end }
+    EOC
 
-    gen x do |g|
+    sexp = s(:iter, s(:fcall, :lambda), nil,
+             s(:defn, :a,
+               s(:scope,
+                 s(:block, s(:args, s(:x), s(), nil, nil), s(:lvar, :x, 0)),
+                 s(:x))))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       lam = description do |l|
         meth = description do |m|
           m.push_local 0
@@ -241,9 +281,15 @@ describe Compiler do
   end
 
   it "compiles 'class << x; 12; end'" do
-    x = [:sclass, [:vcall, :x], [:scope, [:lit, 12], []]]
+    ruby = <<-EOC
+      class << x; 12; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:sclass, s(:vcall, :x), s(:scope, s(:lit, 12), s()))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       meth = description do |d|
         d.push 12
         d.ret
@@ -265,9 +311,15 @@ describe Compiler do
   end
 
   it "compiles a class with no superclass" do
-    x = [:class, [:colon2, :A], nil, [:scope, [:lit, 12], []]]
+    ruby = <<-EOC
+      class A; 12; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:class, s(:colon2, :A), nil, s(:scope, s(:lit, 12), s()))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       desc = description do |d|
         d.push_self
         d.add_scope
@@ -287,9 +339,16 @@ describe Compiler do
   end
 
   it "compiles a class declared at a path" do
-    x = [:class, [:colon2, [:const, :B], :A], nil, [:scope, [:lit, 12], []]]
+    ruby = <<-EOC
+      class A::B; 12; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:class, s(:colon2, s(:const, :B), :A), nil,
+             s(:scope, s(:lit, 12), s()))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       desc = description do |d|
         d.push_self
         d.add_scope
@@ -310,9 +369,15 @@ describe Compiler do
   end
 
   it "compiles a class with superclass" do
-    x = [:class, [:colon2, :A], [:const, :B], [:scope, [:lit, 12], []]]
+    ruby = <<-EOC
+      class A < B; 12; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:class, s(:colon2, :A), s(:const, :B), s(:scope, s(:lit, 12), s()))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       desc = description do |d|
         d.push_self
         d.add_scope
@@ -332,10 +397,16 @@ describe Compiler do
   end
 
   it "compiles a class with space allocated for locals" do
-    x = [:class, [:colon2, :A], nil,
-          [:scope, [:block, [:lasgn, :a, [:fixnum, 1]]], []]]
+    ruby = <<-EOC
+      class A; a = 1; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:class, s(:colon2, :A), nil,
+             s(:scope, s(:block, s(:lasgn, :a, s(:fixnum, 1))), s()))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       desc = description do |d|
         d.push_self
         d.add_scope
@@ -357,9 +428,15 @@ describe Compiler do
   end
 
   it "compiles a normal module" do
-    x = [:module, [:colon2, :A], [:scope, [:lit, 12], []]]
+    ruby = <<-EOC
+      module A; 12; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:module, s(:colon2, :A), s(:scope, s(:lit, 12), s()))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       desc = description do |d|
         d.push_self
         d.add_scope
@@ -378,9 +455,16 @@ describe Compiler do
   end
 
   it "compiles a module declared at a path" do
-    x = [:module, [:colon2, [:const, :B], :A], [:scope, [:lit, 12], []]]
+    ruby = <<-EOC
+      module A::B; 12; end
+    EOC
 
-    gen x do |g|
+    sexp = s(:module, s(:colon2, s(:const, :B), :A),
+             s(:scope, s(:lit, 12), s()))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       desc = description do |d|
         d.push_self
         d.add_scope
