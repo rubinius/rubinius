@@ -210,7 +210,7 @@ describe Compiler do
 
     sexp = s(:ivar, :@blah)
 
-    sexp.should == parse(ruby)
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push_ivar :@blah
@@ -224,7 +224,7 @@ describe Compiler do
 
     sexp = s(:iasgn, :@blah, s(:lit, 1))
 
-    sexp.should == parse(ruby)
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push 1
@@ -239,7 +239,7 @@ describe Compiler do
 
     sexp = s(:gvar, :$var)
 
-    sexp.should == parse(ruby)
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push_cpath_top
@@ -274,7 +274,7 @@ describe Compiler do
 
     sexp = s(:gvar, :$!)
 
-    sexp.should == parse(ruby)
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push_exception
@@ -303,7 +303,7 @@ describe Compiler do
 
     sexp = s(:const, :String)
 
-    sexp.should == parse(ruby)
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push_const :String
@@ -317,7 +317,7 @@ describe Compiler do
 
     sexp = s(:colon2, s(:const, :Object), :String)
 
-    sexp.should == parse(ruby)
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push_const :Object
@@ -332,7 +332,7 @@ describe Compiler do
 
     sexp = s(:colon3, :String)
 
-    sexp.should == parse(ruby)
+    sexp.should == parse(ruby) if $unified
 
     gen sexp do |g|
       g.push_cpath_top
