@@ -325,6 +325,7 @@ stack_cleanup:
 
   void Task::add_method(Module* mod, SYMBOL name, CompiledMethod* method) {
     SET(method, scope, active->cm->scope);
+    SET(method, serial, Fixnum::from(0));
     mod->method_table->store(state, name, method);
     state->global_cache->clear(mod, name);
 
