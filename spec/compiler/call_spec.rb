@@ -1,23 +1,46 @@
 require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
-
   it "compiles 'blah'" do
-    gen [:vcall, :blah] do |g|
+    ruby = <<-EOC
+      blah
+    EOC
+
+    sexp = s(:vcall, :blah)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.send :blah, 0, true
     end
   end
 
   it "compiles 'blah()'" do
-    gen [:fcall, :blah] do |g|
+    ruby = <<-EOC
+      blah()
+    EOC
+
+    sexp = s(:fcall, :blah)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.send :blah, 0, true
     end
   end
 
-  it "compiles 'blah(1,2)'" do
-    gen [:fcall, :blah, [:array, [:fixnum, 1], [:fixnum, 2]]] do |g|
+  it "compiles 'blah(1, 2)'" do
+    ruby = <<-EOC
+      blah(1, 2)
+    EOC
+
+    sexp = s(:fcall, :blah, s(:array, s(:fixnum, 1), s(:fixnum, 2)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.push 1
       g.push 2
@@ -26,7 +49,15 @@ describe Compiler do
   end
 
   it "compiles 'blah(*a)'" do
-    gen [:fcall, :blah, [:splat, [:vcall, :a]]] do |g|
+    ruby = <<-EOC
+      blah(*a)
+    EOC
+
+    sexp = s(:fcall, :blah, s(:splat, s(:vcall, :a)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.push :self
       g.send :a, 0, true
@@ -37,22 +68,43 @@ describe Compiler do
   end
 
   it "compiles 'block_given?'" do
-    gen [:fcall, :block_given?] do |g|
+    ruby = <<-EOC
+      block_given?
+    EOC
+
+    sexp = s(:fcall, :block_given?)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_block
     end
   end
 
   it "compiles 'iterator?'" do
-    gen [:fcall, :block_given?] do |g|
+    ruby = <<-EOC
+      iterator?
+    EOC
+
+    sexp = s(:fcall, :block_given?)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_block
     end
   end
 
-
   it "compiles 'self.blah(1)'" do
-    x = [:call, [:self], :blah, [:array, [:fixnum, 1]]]
+    ruby = <<-EOC
+      self.blah(1)
+    EOC
 
-    gen x do |g|
+    sexp = s(:call, s(:self), :blah, s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.push 1
       g.send :blah, 1, false
@@ -60,9 +112,15 @@ describe Compiler do
   end
 
   it "compiles '1.go(2)'" do
-    x = [:call, [:fixnum, 1], :go, [:array, [:fixnum, 2]]]
+    ruby = <<-EOC
+      1.go(2)
+    EOC
 
-    gen x do |g|
+    sexp = s(:call, s(:fixnum, 1), :go, s(:array, s(:fixnum, 2)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push 1
       g.push 2
       g.send :go, 1, false
@@ -70,12 +128,18 @@ describe Compiler do
   end
 
   it "compiles '10.times(2) { 12 }'" do
-    x = [:iter,
-         [:call, [:lit, 10], :times, [:array, [:fixnum, 2]]],
-         nil,
-         [:lit, 12]]
+    ruby = <<-EOC
+      10.times(2) { 12 }
+    EOC
 
-    gen x do |g|
+    sexp = s(:iter,
+             s(:call, s(:lit, 10), :times, s(:array, s(:fixnum, 2))),
+             nil,
+             s(:lit, 12))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       desc = description do |d|
         d.pop
         d.push_modifiers
@@ -95,12 +159,18 @@ describe Compiler do
   end
 
   it "compiles 'a.b(*c) { 12 }'" do
-    x = [:iter,
-         [:call, [:vcall, :a], :b, [:splat, [:vcall, :c]]],
-         nil,
-         [:lit, 12]]
+    ruby = <<-EOC
+      a.b(*c) { 12 }
+    EOC
 
-    gen x do |g|
+    sexp = s(:iter,
+             s(:call, s(:vcall, :a), :b, s(:splat, s(:vcall, :c))),
+             nil,
+             s(:lit, 12))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       desc = description do |d|
         d.pop
         d.push_modifiers
@@ -126,9 +196,16 @@ describe Compiler do
   end
 
   it "compiles 'h[:blah] = 8'" do
-    x = [:attrasgn, [:vcall, :h], :[]=, [:array, [:lit, :blah], [:fixnum, 8]]]
+    ruby = <<-EOC
+      h[:blah] = 8
+    EOC
 
-    gen x do |g|
+    sexp = s(:attrasgn, s(:vcall, :h), :[]=,
+             s(:array, s(:lit, :blah), s(:fixnum, 8)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.send :h, 0, true
       g.push_unique_literal :blah
@@ -138,9 +215,15 @@ describe Compiler do
   end
 
   it "compiles 'a.b = 8'" do
-    x = [:attrasgn, [:vcall, :a], :b, [:array, [:fixnum, 8]]]
+    ruby = <<-EOC
+      a.b = 8
+    EOC
 
-    gen x do |g|
+    sexp = s(:attrasgn, s(:vcall, :a), :b, s(:array, s(:fixnum, 8)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.send :a, 0, true
       g.push 8
@@ -149,13 +232,19 @@ describe Compiler do
   end
 
   it "compiles 'self[index, 0] = other_string'" do
-    x = [:attrasgn, nil, :[]=,
-      [:array, [:vcall, :index], [:fixnum, 0],
-        [:vcall, :other_string]
-      ]
-    ]
+    ruby = <<-EOC
+      self[index, 0] = other_string
+    EOC
 
-    gen x do |g|
+    sexp = s(:attrasgn, nil, :[]=,
+             s(:array,
+               s(:vcall, :index),
+               s(:fixnum, 0),
+               s(:vcall, :other_string)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.push :self
       g.send :index, 0, true
@@ -168,9 +257,18 @@ describe Compiler do
 
   # Dynamic argument count specs
   it "compiles 'h(1, 2, *a)'" do
-    x = [:fcall, :h, [:argscat, [:array, [:fixnum, 1], [:fixnum, 2]],
-            [:vcall, :a]]]
-    gen x do |g|
+    ruby = <<-EOC
+      h(1, 2, *a)
+    EOC
+
+    sexp = s(:fcall, :h,
+             s(:argscat,
+               s(:array, s(:fixnum, 1), s(:fixnum, 2)),
+               s(:vcall, :a)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.push 1
       g.push 2
@@ -184,10 +282,16 @@ describe Compiler do
   end
 
   it "compiles 'f[*x] = 3'" do
-    x = [:attrasgn, [:vcall, :f], :[]=,
-        [:argspush, [:splat, [:vcall, :x]], [:fixnum, 3]]]
+    ruby = <<-EOC
+      f[*x] = 3
+    EOC
 
-    gen x do |g|
+    sexp = s(:attrasgn, s(:vcall, :f), :[]=,
+             s(:argspush, s(:splat, s(:vcall, :x)), s(:fixnum, 3)))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.send :f, 0, true
       g.push :self
@@ -202,7 +306,15 @@ describe Compiler do
   end
 
   it "compiles 'undef :blah'" do
-    gen [:undef, :blah] do |g|
+    ruby = <<-EOC
+      undef :blah
+    EOC
+
+    sexp = s(:undef, :blah)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push :self
       g.send :metaclass, 0
       g.push_literal :blah
@@ -211,9 +323,15 @@ describe Compiler do
   end
 
   it "compiles 'class B; undef :blah; end'" do
-    x = [:class, [:colon2, :A], nil, [:scope, [:undef, :blah], []]]
+    ruby = <<-EOC
+      class B; undef :blah; end
+    EOC
 
-    gen x do |g|
+      sexp = s(:class, s(:colon2, :A), nil, s(:scope, s(:undef, :blah), s()))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       desc = description do |d|
         d.push_self # FIX
         d.add_scope
@@ -235,18 +353,30 @@ describe Compiler do
   end
 
   it "compiles 'yield'" do
-    x = [:yield, nil, false]
+    ruby = <<-EOC
+      yield
+    EOC
 
-    gen x do |g|
+      sexp = s(:yield, nil, false)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_block
       g.meta_send_call 0
     end
   end
 
   it "compiles 'yield 1'" do
-    x = [:yield, [:fixnum, 1], false]
+    ruby = <<-EOC
+      yield 1
+    EOC
 
-    gen x do |g|
+      sexp = s(:yield, s(:fixnum, 1), false)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_block
       g.push 1
       g.meta_send_call 1
@@ -254,9 +384,15 @@ describe Compiler do
   end
 
   it "compiles 'yield 1, 2'" do
-    x = [:yield, [:array, [:fixnum, 1], [:fixnum, 2]], true]
+    ruby = <<-EOC
+      yield 1, 2
+    EOC
 
-    gen x do |g|
+      sexp = s(:yield, s(:array, s(:fixnum, 1), s(:fixnum, 2)), true)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_block
       g.push 1
       g.push 2
@@ -265,9 +401,15 @@ describe Compiler do
   end
 
   it "compiles 'yield [1, 2]'" do
-    x = [:yield, [:array, [:fixnum, 1], [:fixnum, 2]], false]
+    ruby = <<-EOC
+      yield [1, 2]
+    EOC
 
-    gen x do |g|
+      sexp = s(:yield, s(:array, s(:fixnum, 1), s(:fixnum, 2)), false)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_block
       g.push 1
       g.push 2
@@ -277,9 +419,15 @@ describe Compiler do
   end
 
   it "compiles 'yield *a'" do
-    x = [:yield, [:splat, [:vcall, :a]], false]
+    ruby = <<-EOC
+      yield *a
+    EOC
 
-    gen x do |g|
+      sexp = s(:yield, s(:splat, s(:vcall, :a)), false)
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       g.push_block
       g.push :self
       g.send :a, 0, true
@@ -289,12 +437,22 @@ describe Compiler do
     end
   end
 
-
   it "compiles 'super(1)'" do
-    x = [:defn, :a, [:scope, [:block, [:args],
-          [:super, [:array, [:fixnum, 1]]]], []]]
+    ruby = <<-EOC
+      def a
+        super(1)
+      end
+    EOC
 
-    gen x do |g|
+      sexp = s(:defn, :a,
+               s(:scope,
+                 s(:block,
+                   s(:args),
+                   s(:super, s(:array, s(:fixnum, 1)))), s()))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       desc = description do |d|
         d.push 1
         d.push :nil
@@ -311,10 +469,21 @@ describe Compiler do
   end
 
   it "compiles 'super(*blah)'" do
-    x = [:defn, :a, [:scope, [:block, [:args],
-          [:super, [:splat, [:vcall, :blah]]]], []]]
+    ruby = <<-EOC
+      def a
+        super(*blah)
+      end
+    EOC
 
-    gen x do |g|
+      sexp = s(:defn, :a,
+               s(:scope,
+                 s(:block,
+                   s(:args),
+                   s(:super, s(:splat, s(:vcall, :blah)))), s()))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       desc = description do |d|
         d.push :self
         d.send :blah, 0, true
@@ -331,12 +500,22 @@ describe Compiler do
     end
   end
 
-
   it "compiles 'super'" do
-    x = [:defn, :a, [:scope, [:block, [:args, [:a, :b], [], nil, nil],
-          [:zsuper]], []]]
+    ruby = <<-EOC
+      def a(a, b)
+        super
+      end
+    EOC
 
-    gen x do |g|
+      sexp = s(:defn, :a,
+               s(:scope,
+                 s(:block,
+                   s(:args, s(:a, :b), s(), nil, nil),
+                   s(:zsuper)), s()))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       desc = description do |d|
         d.push_local 0
         d.push_local 1
@@ -354,10 +533,21 @@ describe Compiler do
   end
 
   it "compiles 'super' with a splat in the arg list" do
-    x = [:defn, :a, [:scope, [:block, [:args, [:name], [], [:rest, 1], nil],
-          [:zsuper]], []]]
+    ruby = <<-EOC
+      def a(name, *rest)
+        super
+      end
+    EOC
 
-    gen x do |g|
+      sexp = s(:defn, :a,
+               s(:scope,
+                 s(:block,
+                   s(:args, s(:name), s(), s(:rest, 1), nil),
+                   s(:zsuper)), s()))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       desc = description do |d|
         d.push_local 0
         d.push_local 1
@@ -375,7 +565,15 @@ describe Compiler do
   end
 
   it "compiles 'foo(&blah)'" do
-    gen [:block_pass, [:vcall, :blah], [:fcall, :foo]] do |g|
+    ruby = <<-EOC
+      foo(&blah)
+    EOC
+
+    sexp = s(:block_pass, s(:vcall, :blah), s(:fcall, :foo))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       lbl = g.new_label
 
       g.push :self
@@ -394,7 +592,15 @@ describe Compiler do
   end
 
   it "compiles 'END { 666 }'" do
-    gen [:iter, [:postexe], nil, [:lit, 666]] do |g|
+    ruby = <<-EOC
+      END { 666 }
+    EOC
+
+      sexp = s(:iter, s(:postexe), nil, s(:lit, 666))
+
+    sexp.should == parse(ruby) if $unified
+
+    gen sexp do |g|
       desc = description :__block__ do |d|
         redo_label = d.new_label
 
