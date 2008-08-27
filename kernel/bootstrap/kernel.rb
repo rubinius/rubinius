@@ -73,7 +73,7 @@ module Kernel
   end
 
   def raise(cls, str, junk=nil)
-    Rubinius::VM.write_error "Fatal error in bootstrap/core:\n  "
+    Rubinius::VM.write_error "Fatal error loading runtime kernel:\n  "
     Rubinius::VM.write_error str
     Rubinius::VM.write_error "\n"
     Process.exit 1
