@@ -2,8 +2,15 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles 'a ||= 8'" do
-    x = [:op_asgn_or, [:lvar, :a, 0], [:lasgn, :a, [:lit, 8]]]
-    gen x do |g|
+    ruby = <<-EOC
+      a ||= 8
+    EOC
+
+    sexp = s(:op_asgn_or, s(:lvar, :a, 0), s(:lasgn, :a, s(:lit, 8)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       fin = g.new_label
 
       g.push_local 0
@@ -19,8 +26,15 @@ describe Compiler do
   end
 
   it "compiles 'a &&= 8'" do
-    x = [:op_asgn_and, [:lvar, :a, 0], [:lasgn, :a, [:lit, 8]]]
-    gen x do |g|
+    ruby = <<-EOC
+      a &&= 8
+    EOC
+
+    sexp = s(:op_asgn_and, s(:lvar, :a, 0), s(:lasgn, :a, s(:lit, 8)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       fin = g.new_label
 
       g.push_local 0
@@ -36,10 +50,16 @@ describe Compiler do
   end
 
   it "compiles 'hsh[:blah] ||= 8'" do
-    x = [:op_asgn1, [:vcall, :hsh], :or,
-          [:array, [:lit, 8], [:lit, :blah], [:nil]]]
+    ruby = <<-EOC
+      hsh[:blah] ||= 8
+    EOC
 
-    gen x do |g|
+    sexp = s(:op_asgn1, s(:vcall, :hsh), :or,
+             s(:array, s(:lit, 8), s(:lit, :blah), s(:nil)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       found = g.new_label
       fin = g.new_label
 
@@ -68,10 +88,16 @@ describe Compiler do
   end
 
   it "compiles 'hsh[:blah] &&= 8'" do
-    x = [:op_asgn1, [:vcall, :hsh], :and,
-          [:array, [:lit, 8], [:lit, :blah], [:nil]]]
+    ruby = <<-EOC
+      hsh[:blah] &&= 8
+    EOC
 
-    gen x do |g|
+    sexp = s(:op_asgn1, s(:vcall, :hsh), :and,
+             s(:array, s(:lit, 8), s(:lit, :blah), s(:nil)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       found = g.new_label
       fin = g.new_label
 
@@ -101,10 +127,16 @@ describe Compiler do
   end
 
   it "compiles 'hsh[:blah] ^= 8'" do
-    x = [:op_asgn1, [:vcall, :hsh], :"^",
-          [:array, [:lit, 8], [:lit, :blah], [:nil]]]
+    ruby = <<-EOC
+      hsh[:blah] ^= 8
+    EOC
 
-    gen x do |g|
+    sexp = s(:op_asgn1, s(:vcall, :hsh), :"^",
+             s(:array, s(:lit, 8), s(:lit, :blah), s(:nil)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       fin = g.new_label
 
       g.push :self
@@ -122,10 +154,16 @@ describe Compiler do
   end
 
   it "compiles 'ary[0,1] += [4]'" do
-    x = [:op_asgn1, [:vcall, :ary], :+,
-          [:array, [:array, [:lit, 4]], [:fixnum, 0], [:lit, 1], [:nil]]
-        ]
-    gen x do |g|
+    ruby = <<-EOC
+      ary[0,1] += [4]
+    EOC
+
+    sexp = s(:op_asgn1, s(:vcall, :ary), :+,
+             s(:array, s(:array, s(:lit, 4)), s(:fixnum, 0), s(:lit, 1), s(:nil))
+             )
+    gen sexp do |g|
+    sexp.should == parse(ruby) if $unified && $new
+
       g.push :self
       g.send :ary, 0, true
       g.dup
@@ -144,9 +182,15 @@ describe Compiler do
   end
 
   it "compiles 'x.val ||= 6'" do
-    x = [:op_asgn2, [:vcall, :x], :val, :or, :val, [:lit, 6]]
+    ruby = <<-EOC
+      x.val ||= 6
+    EOC
 
-    gen x do |g|
+    sexp = s(:op_asgn2, s(:vcall, :x), :val, :or, :val, s(:lit, 6))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       fnd = g.new_label
       fin = g.new_label
 
@@ -169,10 +213,16 @@ describe Compiler do
     end
   end
 
-  it "compiles 'x.val &&= 7" do
-    x = [:op_asgn2, [:vcall, :x], :val, :and, :val, [:lit, 7]]
+  it "compiles 'x.val &&= 7'" do
+    ruby = <<-EOC
+      x.val &&= 7
+    EOC
 
-    gen x do |g|
+    sexp = s(:op_asgn2, s(:vcall, :x), :val, :and, :val, s(:lit, 7))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       fnd = g.new_label
       fin = g.new_label
 
@@ -195,10 +245,16 @@ describe Compiler do
     end
   end
 
-  it "compiles 'x.val ^= 8" do
-    x = [:op_asgn2, [:vcall, :x], :val, :^, :val, [:lit, 8]]
+  it "compiles 'x.val ^= 8'" do
+    ruby = <<-EOC
+      x.val ^= 8
+    EOC
 
-    gen x do |g|
+    sexp = s(:op_asgn2, s(:vcall, :x), :val, :^, :val, s(:lit, 8))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       g.push :self
       g.send :x, 0, true
       g.dup
@@ -208,5 +264,4 @@ describe Compiler do
       g.send :val=, 1
     end
   end
-
 end
