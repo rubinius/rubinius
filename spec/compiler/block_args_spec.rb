@@ -27,7 +27,7 @@ describe Compiler do
              s(:call, s(:vcall, :ary), :each),
              nil)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       # do nothing
@@ -44,7 +44,7 @@ describe Compiler do
              s(:call, s(:vcall, :ary), :each),
              nil)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       # do nothing
@@ -60,7 +60,7 @@ describe Compiler do
              s(:call, s(:vcall, :ary), :each),
              s(:lasgn, :a))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_for_single_block_arg
@@ -77,7 +77,7 @@ describe Compiler do
              s(:call, s(:vcall, :ary), :each),
              s(:masgn, s(:array, s(:lasgn, :a)), nil, nil))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
@@ -94,7 +94,7 @@ describe Compiler do
              s(:call, s(:vcall, :ary), :each),
              s(:masgn, s(:lasgn, :a), nil))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_array
@@ -115,7 +115,7 @@ describe Compiler do
                  s(:lasgn, :b),
                  s(:lasgn, :c)), nil, nil))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
@@ -138,7 +138,7 @@ describe Compiler do
                  s(:lasgn, :b)),
                s(:lasgn, :c), nil))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
@@ -162,7 +162,7 @@ describe Compiler do
                      s(:lasgn, :b)), nil, nil),
                  s(:lasgn, :c)), nil, nil))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
@@ -196,7 +196,7 @@ describe Compiler do
                      s(:lasgn, :b)), nil, nil)),
                s(:lasgn, :c), nil))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
@@ -230,7 +230,7 @@ describe Compiler do
                          s(:lasgn, :c)), nil, nil)), nil, nil),
                  s(:lasgn, :d)), nil, nil))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
@@ -264,7 +264,7 @@ describe Compiler do
              s(:call, s(:vcall, :ary), :each),
              s(:masgn, true, nil))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
@@ -280,7 +280,7 @@ describe Compiler do
              s(:call, s(:vcall, :ary), :each),
              s(:masgn, s(:array, s(:lasgn, :a)), true, nil))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg

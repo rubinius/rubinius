@@ -11,7 +11,10 @@ require File.dirname(__FILE__) + '/../../kernel/common/iseq'
 ######################################################################
 ## Added for ruby_parser transition... all of this should be temporary
 ## HACK:
+
 $unified = ENV['RUBY_PARSER']
+$new     = ENV['NEW']
+
 if $unified then
   $: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/")
   require 'ruby_parser'

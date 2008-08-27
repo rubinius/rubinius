@@ -10,7 +10,7 @@ describe Compiler do
              s(:array, s(:lit, 1), s(:lit, 2)),
              s(:fcall, :foo))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push 1
@@ -37,7 +37,7 @@ describe Compiler do
                s(:array, s(:lit, 1), s(:lit, 2)),
                s(:lvar,  :x, 0)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push 42

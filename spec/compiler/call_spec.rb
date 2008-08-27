@@ -8,7 +8,7 @@ describe Compiler do
 
     sexp = s(:vcall, :blah)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -23,7 +23,7 @@ describe Compiler do
 
     sexp = s(:fcall, :blah)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -38,7 +38,7 @@ describe Compiler do
 
     sexp = s(:fcall, :blah, s(:array, s(:fixnum, 1), s(:fixnum, 2)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -55,7 +55,7 @@ describe Compiler do
 
     sexp = s(:fcall, :blah, s(:splat, s(:vcall, :a)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -74,7 +74,7 @@ describe Compiler do
 
     sexp = s(:fcall, :block_given?)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push_block
@@ -88,7 +88,7 @@ describe Compiler do
 
     sexp = s(:fcall, :block_given?)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push_block
@@ -102,7 +102,7 @@ describe Compiler do
 
     sexp = s(:call, s(:self), :blah, s(:array, s(:fixnum, 1)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -118,7 +118,7 @@ describe Compiler do
 
     sexp = s(:call, s(:fixnum, 1), :go, s(:array, s(:fixnum, 2)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push 1
@@ -137,7 +137,7 @@ describe Compiler do
              nil,
              s(:lit, 12))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       desc = description do |d|
@@ -168,7 +168,7 @@ describe Compiler do
              nil,
              s(:lit, 12))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       desc = description do |d|
@@ -203,7 +203,7 @@ describe Compiler do
     sexp = s(:attrasgn, s(:vcall, :h), :[]=,
              s(:array, s(:lit, :blah), s(:fixnum, 8)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -221,7 +221,7 @@ describe Compiler do
 
     sexp = s(:attrasgn, s(:vcall, :a), :b, s(:array, s(:fixnum, 8)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -242,7 +242,7 @@ describe Compiler do
                s(:fixnum, 0),
                s(:vcall, :other_string)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -266,7 +266,7 @@ describe Compiler do
                s(:array, s(:fixnum, 1), s(:fixnum, 2)),
                s(:vcall, :a)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -289,7 +289,7 @@ describe Compiler do
     sexp = s(:attrasgn, s(:vcall, :f), :[]=,
              s(:argspush, s(:splat, s(:vcall, :x)), s(:fixnum, 3)))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -312,7 +312,7 @@ describe Compiler do
 
     sexp = s(:undef, :blah)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push :self
@@ -329,7 +329,7 @@ describe Compiler do
 
       sexp = s(:class, s(:colon2, :A), nil, s(:scope, s(:undef, :blah), s()))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       desc = description do |d|
@@ -359,7 +359,7 @@ describe Compiler do
 
       sexp = s(:yield, nil, false)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push_block
@@ -374,7 +374,7 @@ describe Compiler do
 
       sexp = s(:yield, s(:fixnum, 1), false)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push_block
@@ -390,7 +390,7 @@ describe Compiler do
 
       sexp = s(:yield, s(:array, s(:fixnum, 1), s(:fixnum, 2)), true)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push_block
@@ -407,7 +407,7 @@ describe Compiler do
 
       sexp = s(:yield, s(:array, s(:fixnum, 1), s(:fixnum, 2)), false)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push_block
@@ -425,7 +425,7 @@ describe Compiler do
 
       sexp = s(:yield, s(:splat, s(:vcall, :a)), false)
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push_block
@@ -450,7 +450,7 @@ describe Compiler do
                    s(:args),
                    s(:super, s(:array, s(:fixnum, 1)))), s()))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       desc = description do |d|
@@ -481,7 +481,7 @@ describe Compiler do
                    s(:args),
                    s(:super, s(:splat, s(:vcall, :blah)))), s()))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       desc = description do |d|
@@ -513,7 +513,7 @@ describe Compiler do
                    s(:args, s(:a, :b), s(), nil, nil),
                    s(:zsuper)), s()))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       desc = description do |d|
@@ -545,7 +545,7 @@ describe Compiler do
                    s(:args, s(:name), s(), s(:rest, 1), nil),
                    s(:zsuper)), s()))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       desc = description do |d|
@@ -571,7 +571,7 @@ describe Compiler do
 
     sexp = s(:block_pass, s(:vcall, :blah), s(:fcall, :foo))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       lbl = g.new_label
@@ -598,7 +598,7 @@ describe Compiler do
 
       sexp = s(:iter, s(:postexe), nil, s(:lit, 666))
 
-    sexp.should == parse(ruby) if $unified
+    sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       desc = description :__block__ do |d|
