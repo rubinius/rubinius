@@ -11,12 +11,21 @@ require File.dirname(__FILE__) + '/../../kernel/common/iseq'
 ######################################################################
 ## Added for ruby_parser transition... all of this should be temporary
 ## HACK:
-$: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/")
-require 'ruby_parser'
-def parse ruby
-  RubyParser.new.process(ruby, "spec")
+$unified = ENV['RUBY_PARSER']
+if $unified then
+  $: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/")
+  require 'ruby_parser'
+  def parse ruby
+    RubyParser.new.process(ruby, "spec")
+  end
+else
+  def s(*rest)
+    rest
+  end
+  def parse ruby
+    s(:no)
+  end
 end
-$unified = ENV['NEW']
 ######################################################################
 
 class TestGenerator
