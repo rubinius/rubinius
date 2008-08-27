@@ -331,7 +331,7 @@ class Compiler
           sub.pop_modifiers
           fin.set!
           sub.pop
-          sub.soft_return
+          sub.ret
           sub.close
         end
 
@@ -402,11 +402,11 @@ class Compiler
     class AutoPrimitiveDetection < Plugin
       plugin :auto_primitive, :method
 
-      SingleInt = [[:check_argcount, 0, 0], [:push_int, :any], [:sret]]
-      Literal = [[:check_argcount, 0, 0], [:push_literal, 0], [:sret]]
-      Self = [[:check_argcount, 0, 0], [:push_self], [:sret]]
-      Ivar = [[:check_argcount, 0, 0], [:push_ivar, 0], [:sret]]
-      Field = [[:check_argcount, 0, 0], [:push_my_field, :any], [:sret]]
+      SingleInt = [[:check_argcount, 0, 0], [:push_int, :any], [:ret]]
+      Literal = [[:check_argcount, 0, 0], [:push_literal, 0], [:ret]]
+      Self = [[:check_argcount, 0, 0], [:push_self], [:ret]]
+      Ivar = [[:check_argcount, 0, 0], [:push_ivar, 0], [:ret]]
+      Field = [[:check_argcount, 0, 0], [:push_my_field, :any], [:ret]]
 
       def handle(g, obj, meth)
         ss = meth.generator.stream

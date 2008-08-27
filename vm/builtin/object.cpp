@@ -279,6 +279,9 @@ namespace rubinius {
         cls = as<Class>(cls->superclass);
       }
 
+      if(cls->nil_p()) {
+        Assertion::raise("Object::class_object() failed to find a class");
+      }
       return cls;
     }
 
