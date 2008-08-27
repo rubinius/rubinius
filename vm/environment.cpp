@@ -115,6 +115,12 @@ namespace rubinius {
     String* rbx_version = String::create(state, "0.9.0");
     rubinius->set_const(state, "RBX_VERSION", rbx_version);
 
+    if(isatty(fileno(stdin))) {
+      rubinius->set_const(state, "Terminal", Qtrue);
+    } else {
+      rubinius->set_const(state, "Terminal", Qfalse);
+    }
+
     // HACK no reason to set this in C++
     String* ruby_platform = String::create(state, "");
     GO(object).get()->set_const(state, "RUBY_PLATFORM", ruby_platform);

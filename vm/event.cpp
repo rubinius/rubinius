@@ -206,7 +206,7 @@ namespace rubinius {
     Loop::Loop(struct ev_loop *loop) : 
       base(loop), event_ids(0), owner(false) { }
 
-    Loop::Loop() : event_ids(0), owner(true) {
+    Loop::Loop() : event_ids(0), owner(false) {
       base = ev_default_loop(0);
     }
 

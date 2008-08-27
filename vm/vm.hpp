@@ -38,6 +38,7 @@ namespace rubinius {
     Globals globals;
     ObjectMemory* om;
     event::Loop* events;
+    event::Loop* signal_events;
     GlobalCache* global_cache;
     TaskProbe* probe;
     Primitives* primitives;

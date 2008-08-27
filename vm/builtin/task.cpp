@@ -147,11 +147,25 @@ namespace rubinius {
     }
 
     if(ctx->cm->splat != Qnil) {
-      size_t splat_size = msg.args() - total;
-      Array* ary = Array::create(state, splat_size);
+      Array* ary;
+      /* There is a splat. So if the passed in arguments are greater
+       * than the total number of fixed arguments, put the rest of the
+       * arguments into the Array.
+       *
+       * Otherwise, generate an empty Array.
+       *
+       * NOTE: remember that total includes the number of fixed arguments,
+       * even if they're optional, so we can get msg.args() == 0, and 
+       * total == 1 */
+      if(msg.args() > total) {
+        size_t splat_size = msg.args() - total;
+        ary = Array::create(state, splat_size);
 
-      for(size_t i = 0, n = total; i < splat_size; i++, n++) {
-        ary->set(state, i, msg.get_argument(n));
+        for(size_t i = 0, n = total; i < splat_size; i++, n++) {
+          ary->set(state, i, msg.get_argument(n));
+        }
+      } else {
+        ary = Array::create(state, 0);
       }
 
       ctx->set_local(as<Integer>(ctx->cm->splat)->to_native(), ary);

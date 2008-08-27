@@ -43,6 +43,7 @@ namespace rubinius {
     G(regexp)->set_object_type(RegexpType);
 
     GO(matchdata).set(state->new_class("MatchData", G(object), 0));
+    G(matchdata)->set_object_type(MatchDataType);
   }
 
   char *Regexp::version(STATE) {

@@ -1,6 +1,6 @@
 class Process
   def self.exit(code)
-    Ruby.primitive :process_exit
+    Ruby.primitive :vm_exit
     raise PrimitiveFailure, "exit failed. Wow, something is screwed."
   end
   

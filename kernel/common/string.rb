@@ -8,6 +8,8 @@ class String
   include Comparable
   include Enumerable
 
+  attr_reader :data
+
   def self.allocate
     str = super()
     str.data = ByteArray.new(1)

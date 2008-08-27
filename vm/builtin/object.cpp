@@ -589,6 +589,10 @@ namespace rubinius {
     return name;
   }
 
+  OBJECT Object::vm_exit(STATE, FIXNUM code) {
+    ::exit(code->to_native());
+  }
+
   Object* Object::yield_gdb(STATE, Object* obj) {
     obj->show(state);
     Assertion::raise("yield_gdb called and not caught");

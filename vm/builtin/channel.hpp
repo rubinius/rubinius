@@ -28,6 +28,9 @@ namespace rubinius {
     OBJECT receive(STATE);
     bool has_readers_p();
 
+    // Ruby.primitive :channel_send_on_signal
+    static OBJECT send_on_signal(STATE, Channel* chan, FIXNUM signal);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

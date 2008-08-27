@@ -37,6 +37,8 @@ namespace rubinius {
     bootstrap_ontology();
 
     events = new event::Loop(EVFLAG_FORKCHECK);
+    signal_events = new event::Loop();
+
     global_cache = new GlobalCache;
 
     VMLLVMMethod::init("vm/instructions.bc");
@@ -48,6 +50,7 @@ namespace rubinius {
   VM::~VM() {
     delete om;
     delete events;
+    delete signal_events;
     delete global_cache;
     llvm_cleanup();
   }
