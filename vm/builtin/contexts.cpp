@@ -187,6 +187,7 @@ initialize:
       return Fixnum::from(ip);
     }
 
+    sassert(0 && "invalid index");
     return Qnil;
   }
 

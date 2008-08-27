@@ -225,6 +225,8 @@ class CompiledMethod < Executable
   end
 
   def line_from_ip(i)
+    return -1 unless @lines
+
     @lines.each do |t|
       start = t.at(0)
       nd = t.at(1)

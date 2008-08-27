@@ -65,7 +65,7 @@ class AccessVariable
   def initialize(variable, write)
     @primitive = nil
     @serial = 0
-    @name = variable
+    @name = "@#{variable}".to_sym
     @write = write
   end
 

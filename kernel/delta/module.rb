@@ -113,9 +113,8 @@ class Module
 
   def attr_reader(*names)
     names.each do |name|
-      method_symbol = reader_method_symbol(name)
-      access_method = AccessVarMethod.get_ivar(attribute_symbol(name), normalize_name(name))
-      method_table[method_symbol] = access_method
+      normalized = normalize_name(name)
+      method_table[normalized] = AccessVariable.get_ivar normalized
     end
 
     return nil
@@ -123,9 +122,9 @@ class Module
 
   def attr_writer(*names)
     names.each do |name|
-      method_symbol = writer_method_symbol(name)
-      access_method = AccessVarMethod.set_ivar(attribute_symbol(name), normalize_name("#{name}="))
-      method_table[method_symbol] = access_method
+      normalized = normalize_name(name)
+      writer_name = "#{normalized}=".to_sym
+      method_table[writer_name] = AccessVariable.set_ivar normalized
     end
 
     return nil
@@ -133,7 +132,8 @@ class Module
 
   def attr_accessor(*names)
     names.each do |name|
-      attr(name,true)
+      attr_reader name
+      attr_writer name
     end
 
     return nil

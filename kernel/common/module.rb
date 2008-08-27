@@ -748,22 +748,5 @@ class Module
 
   private :valid_const_name?
 
-  def attribute_symbol(name)
-    "@#{normalize_name(name)}".to_sym
-  end
-
-  private :attribute_symbol
-
-  def reader_method_symbol(name)
-    normalize_name(name)
-  end
-
-  private :reader_method_symbol
-
-  def writer_method_symbol(name)
-    "#{normalize_name(name)}=".to_sym
-  end
-
-  private :writer_method_symbol
 
 end

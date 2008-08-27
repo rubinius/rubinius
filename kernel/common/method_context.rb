@@ -199,7 +199,9 @@ class MethodContext
     return nil if start > trace.size
     trace.each_with_index do |frame, i|
       next if i < start
-      ret << frame.position_info
+      # The condition is so we don't output special VM frames, which
+      # have no file.
+      ret << frame.position_info if frame.file
     end
     ret
   end
