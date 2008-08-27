@@ -53,7 +53,6 @@
 class Class
 
   protected :object_type
-  protected :has_ivars
   protected :needs_cleanup
 
   def initialize(sclass=Object)
@@ -62,7 +61,6 @@ class Class
     end
 
     @instance_fields = sclass.instance_fields
-    @has_ivar = sclass.has_ivars
     @needs_cleanup = sclass.needs_cleanup
     @object_type = sclass.object_type
     @superclass = sclass
