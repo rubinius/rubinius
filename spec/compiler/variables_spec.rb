@@ -249,9 +249,9 @@ describe Compiler do
     end
   end
 
-  it "compiles '$var = 1'" do
+  it "compiles '$var = 12'" do
     ruby = <<-EOC
-      $var = 1
+      $var = 12
     EOC
 
     sexp = s(:gasgn, :$var, s(:fixnum, 12))
