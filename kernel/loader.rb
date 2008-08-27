@@ -38,9 +38,11 @@ end
 # Setup $LOAD_PATH.
 
 additions = []
+additions << "lib"
 
 # The main stdlib location
-additions << Rubinius::CODE_PATH
+# HACK todo remove this comment when we're setting this constant in the VM
+# additions << Rubinius::CODE_PATH
 
 $LOAD_PATH.insert($LOAD_PATH.index('.'), *additions)
 

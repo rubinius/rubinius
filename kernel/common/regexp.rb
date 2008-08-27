@@ -499,7 +499,7 @@ class MatchData
   end
 
   def begin(idx)
-    return full.at(0) if idx == 0
+    return @full.at(0) if idx == 0
     return @region.at(idx - 1).at(0)
   end
 

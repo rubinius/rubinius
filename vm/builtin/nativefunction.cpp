@@ -66,6 +66,8 @@ namespace rubinius {
     GO(native_function).set(state->new_class("NativeFunction", G(executable),
           NativeFunction::fields));
     G(native_function)->set_object_type(NativeFuncType);
+
+    G(rubinius)->set_const(state, "LIBSUFFIX", String::create(state, LIBSUFFIX));
   }
 
   size_t NativeFunction::type_size(size_t type) {

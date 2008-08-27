@@ -1,6 +1,6 @@
 module Signal
   Rubinius::RUBY_CONFIG.section 'rbx.platform.signal.' do |key, value|
-    Names[key[23, key.length]] = value
+    Names[key[23, key.length]] = value.to_i
   end
 
   # special case of signal.c

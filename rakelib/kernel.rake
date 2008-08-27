@@ -141,6 +141,38 @@ namespace :kernel do
     rm_f files_to_delete, :verbose => $verbose
   end
 
+  desc "Create dot(1) files of dependencies in bootstrap, common, delta"
+  task :graph do
+    begin
+      $: << File.expand_path("~/Work/p4/zss/src/ZenHacks/dev/lib/")
+      require 'graph'
+    rescue LoadError
+      abort 'install ZenHacks'
+    end
+
+    %w[bootstrap common delta].each do |path|
+      graph = Graph.new
+      graph.prefix << 'rankdir="LR"'
+
+      Dir[File.join('kernel', path, '*.rb')].each do |file|
+        depends = nil
+        open file do |io| depends = io.gets end
+
+        if depends =~ /^# depends on: (.*)/ then
+          $1.split.each do |depend|
+            graph[file] << File.join('kernel', path, depend)
+          end
+        else
+          graph[file] << 'Nothing'
+        end
+
+        open "#{path}_depends.dot", 'w' do |io|
+          io << graph
+        end
+      end
+    end
+  end
+
 end
 
 desc "Compile the given ruby file into a .rbc file"

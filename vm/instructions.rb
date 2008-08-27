@@ -440,6 +440,32 @@ class Instructions
     CODE
   end
 
+  def test_check_serial
+    <<-CODE
+      FIXNUM s = Fixnum::from(100);
+      Symbol* sym = String::create(state, "to_s")->to_sym(state);
+      task->literals->put(state, 0, sym);
+
+      TS_ASSERT_EQUALS(Qnil, cm->serial);
+      task->add_method(G(fixnum_class), sym, cm);
+      TS_ASSERT_EQUALS(Fixnum::from(0), cm->serial);
+
+      task->push(s);
+      stream[1] = (opcode)0;
+      stream[2] = (opcode)0;
+
+      run();
+      TS_ASSERT_EQUALS(Qtrue, task->pop());
+
+      task->push(s);
+      TS_ASSERT_EQUALS(Fixnum::from(0), cm->serial);
+      stream[1] = (opcode)0;
+      stream[2] = (opcode)1;
+      run();
+      TS_ASSERT_EQUALS(Qfalse, task->pop());
+    CODE
+  end
+
   # [Operation]
   #   Get the \class for the specified object
   # [Format]
@@ -983,8 +1009,8 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(G(true_class), as<Tuple>(task->stack_top())->at(0));
-    TS_ASSERT_EQUALS(cm, as<Tuple>(task->stack_top())->at(1));
+    TS_ASSERT_EQUALS(G(true_class), as<Tuple>(task->stack_top())->at(1));
+    TS_ASSERT_EQUALS(cm, as<Tuple>(task->stack_top())->at(0));
     CODE
   end
   # [Operation]

@@ -8,6 +8,8 @@ class String
   include Comparable
   include Enumerable
 
+  attr_reader :data
+
   def self.allocate
     str = super()
     str.data = ByteArray.new(1)
@@ -149,7 +151,6 @@ class String
     return false unless @num_bytes == other.size
     return @data.compare_bytes(other.data, @num_bytes, other.size) == 0
   end
-  alias_method :===, :==
 
   # Match --- If <i>pattern</i> is a <code>Regexp</code>, use it as a pattern to match
   # against <i>self</i>, and return the position the match starts, or

@@ -7,6 +7,9 @@
 #include "builtin/channel.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/list.hpp"
+#include "builtin/fixnum.hpp"
+
+#include "event.hpp"
 
 namespace rubinius {
   Channel* Channel::create(STATE) {
@@ -51,6 +54,28 @@ namespace rubinius {
 
   bool Channel::has_readers_p() {
     return !waiting->empty_p();
+  }
+
+  class SendToChannel : public ObjectCallback {
+  public:
+    TypedRoot<Channel*> chan;
+
+    SendToChannel(STATE, Channel* chan) : ObjectCallback(state), chan(state, chan) { }
+
+    virtual OBJECT object() {
+      return chan.get();
+    }
+
+    virtual void call(OBJECT obj) {
+      chan->send(state, obj);
+    }
+  };
+
+  OBJECT Channel::send_on_signal(STATE, Channel* chan, FIXNUM signal) {
+    SendToChannel* cb = new SendToChannel(state, chan);
+    event::Signal* sig = new event::Signal(state, cb, signal->to_native());
+    state->signal_events->start(sig);
+    return signal;
   }
 
   ChannelCallback::ChannelCallback(STATE, Channel* chan) : ObjectCallback(state) {

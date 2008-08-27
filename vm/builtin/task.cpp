@@ -147,11 +147,25 @@ namespace rubinius {
     }
 
     if(ctx->cm->splat != Qnil) {
-      size_t splat_size = msg.args() - total;
-      Array* ary = Array::create(state, splat_size);
+      Array* ary;
+      /* There is a splat. So if the passed in arguments are greater
+       * than the total number of fixed arguments, put the rest of the
+       * arguments into the Array.
+       *
+       * Otherwise, generate an empty Array.
+       *
+       * NOTE: remember that total includes the number of fixed arguments,
+       * even if they're optional, so we can get msg.args() == 0, and 
+       * total == 1 */
+      if(msg.args() > total) {
+        size_t splat_size = msg.args() - total;
+        ary = Array::create(state, splat_size);
 
-      for(size_t i = 0, n = total; i < splat_size; i++, n++) {
-        ary->set(state, i, msg.get_argument(n));
+        for(size_t i = 0, n = total; i < splat_size; i++, n++) {
+          ary->set(state, i, msg.get_argument(n));
+        }
+      } else {
+        ary = Array::create(state, 0);
       }
 
       ctx->set_local(as<Integer>(ctx->cm->splat)->to_native(), ary);
@@ -289,10 +303,10 @@ stack_cleanup:
 
     vis = try_as<MethodVisibility>(msg.method);
     if(vis) {
-      return Tuple::from(state, 2, msg.module, vis->method);
+      return Tuple::from(state, 2, vis->method, msg.module);
     }
 
-    return Tuple::from(state, 2, msg.module, msg.method);
+    return Tuple::from(state, 2, msg.method, msg.module);
   }
 
   void Task::attach_method(OBJECT recv, SYMBOL name, CompiledMethod* method) {
@@ -311,6 +325,7 @@ stack_cleanup:
 
   void Task::add_method(Module* mod, SYMBOL name, CompiledMethod* method) {
     SET(method, scope, active->cm->scope);
+    SET(method, serial, Fixnum::from(0));
     mod->method_table->store(state, name, method);
     state->global_cache->clear(mod, name);
 
@@ -333,7 +348,7 @@ stack_cleanup:
 
   bool Task::check_serial(OBJECT obj, SYMBOL sel, int ser) {
     Tuple* tup = locate_method_on(obj, sel, Qtrue);
-    Executable* x = as<Executable>(tup->at(1));
+    Executable* x = as<Executable>(tup->at(0));
 
     /* If the method is absent, then indicate that the serial number
      * is correct. */
