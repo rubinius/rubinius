@@ -2,7 +2,15 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles '1 + 1' using fastmath" do
-    gen [:call, [:fixnum, 1], :+, [:array, [:fixnum, 1]]], [:fastmath] do |g|
+    ruby = <<-EOC
+      1 + 1
+    EOC
+
+    sexp = s(:call, s(:fixnum, 1), :+, s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp, [:fastmath] do |g|
       g.push 1
       g.push 1
       g.meta_send_op_plus
@@ -10,7 +18,15 @@ describe Compiler do
   end
 
   it "compiles '1 - 1' using fastmath" do
-    gen [:call, [:fixnum, 1], :-, [:array, [:fixnum, 1]]], [:fastmath] do |g|
+    ruby = <<-EOC
+      1 - 1
+    EOC
+
+    sexp = s(:call, s(:fixnum, 1), :-, s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp, [:fastmath] do |g|
       g.push 1
       g.push 1
       g.meta_send_op_minus
@@ -18,7 +34,15 @@ describe Compiler do
   end
 
   it "compiles '1 == 1' using fastmath" do
-    gen [:call, [:fixnum, 1], :==, [:array, [:fixnum, 1]]], [:fastmath] do |g|
+    ruby = <<-EOC
+      1 == 1
+    EOC
+
+    sexp = s(:call, s(:fixnum, 1), :==, s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp, [:fastmath] do |g|
       g.push 1
       g.push 1
       g.meta_send_op_equal
@@ -26,7 +50,15 @@ describe Compiler do
   end
 
   it "compiles '1 != 1' using fastmath" do
-    gen [:call, [:fixnum, 1], :"!=", [:array, [:fixnum, 1]]], [:fastmath] do |g|
+    ruby = <<-EOC
+      1 != 1
+    EOC
+
+    sexp = s(:call, s(:fixnum, 1), :"!=", s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp, [:fastmath] do |g|
       g.push 1
       g.push 1
       g.meta_send_op_nequal
@@ -34,7 +66,15 @@ describe Compiler do
   end
 
   it "compiles '1 === 1' using fastmath" do
-    gen [:call, [:fixnum, 1], :===, [:array, [:fixnum, 1]]], [:fastmath] do |g|
+    ruby = <<-EOC
+      1 === 1
+    EOC
+
+    sexp = s(:call, s(:fixnum, 1), :===, s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp, [:fastmath] do |g|
       g.push 1
       g.push 1
       g.meta_send_op_tequal
@@ -42,7 +82,15 @@ describe Compiler do
   end
 
   it "compiles '1 < 1' using fastmath" do
-    gen [:call, [:fixnum, 1], :<, [:array, [:fixnum, 1]]], [:fastmath] do |g|
+    ruby = <<-EOC
+      1 < 1
+    EOC
+
+    sexp = s(:call, s(:fixnum, 1), :<, s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp, [:fastmath] do |g|
       g.push 1
       g.push 1
       g.meta_send_op_lt
@@ -50,7 +98,15 @@ describe Compiler do
   end
 
   it "compiles '1 > 1' using fastmath" do
-    gen [:call, [:fixnum, 1], :>, [:array, [:fixnum, 1]]], [:fastmath] do |g|
+    ruby = <<-EOC
+      1 > 1
+    EOC
+
+    sexp = s(:call, s(:fixnum, 1), :>, s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp, [:fastmath] do |g|
       g.push 1
       g.push 1
       g.meta_send_op_gt
@@ -58,7 +114,15 @@ describe Compiler do
   end
 
   it "compiles '1 / 1' using :/ without safemath" do
-    gen [:call, [:fixnum, 1], :/, [:array, [:fixnum, 1]]] do |g|
+    ruby = <<-EOC
+      1 / 1
+    EOC
+
+    sexp = s(:call, s(:fixnum, 1), :/, s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       g.push 1
       g.push 1
       g.send :/, 1, false
@@ -66,11 +130,18 @@ describe Compiler do
   end
 
   it "compiles '1 / 1' using :divide with safemath" do
-    gen [:call, [:fixnum, 1], :/, [:array, [:fixnum, 1]]], [:safemath] do |g|
+    ruby = <<-EOC
+      1 / 1
+    EOC
+
+    sexp = s(:call, s(:fixnum, 1), :/, s(:array, s(:fixnum, 1)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp, [:safemath] do |g|
       g.push 1
       g.push 1
       g.send :divide, 1, false
     end
   end
-
 end
