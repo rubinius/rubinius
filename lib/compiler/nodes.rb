@@ -2523,7 +2523,9 @@ class Compiler
           node.block_args = true
           ma = sexp[0]
           ma.shift
-          node.args convert(ma[0])
+          ma.unshift nil if ma[0] == true
+          ma[0] = convert(ma[0])
+          node.args(*ma)
           return [node]
         else
           return [convert(sexp[0])]
