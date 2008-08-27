@@ -733,8 +733,9 @@ describe Compiler do
     EOC
 
     sexp = s(:case, s(:true),
-             s(s(:when, s(:array, s(:const, :Fixnum)),
-                 s(:fixnum, 12))))
+             s(:when, s(:array, s(:const, :Fixnum)),
+                 s(:fixnum, 12)),
+             nil)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -770,8 +771,9 @@ describe Compiler do
     EOC
 
     sexp = s(:case, s(:true),
-             s(s(:when, s(:array, s(:const, :Fixnum), s(:const, :String)),
-                 s(:fixnum, 12))))
+             s(:when, s(:array, s(:const, :Fixnum), s(:const, :String)),
+                 s(:fixnum, 12)),
+             nil)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -817,10 +819,11 @@ describe Compiler do
     EOC
 
     sexp = s(:case, s(:true),
-             s(s(:when, s(:array, s(:const, :Fixnum)),
+             s(:when, s(:array, s(:const, :Fixnum)),
                  s(:fixnum, 12)),
-               s(:when, s(:array, s(:const, :String)),
-                 s(:fixnum, 13))))
+             s(:when, s(:array, s(:const, :String)),
+                 s(:fixnum, 13)),
+             nil)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -871,8 +874,8 @@ describe Compiler do
     EOC
 
     sexp = s(:case, s(:true),
-             s(s(:when, s(:array, s(:const, :Fixnum)),
-                 s(:fixnum, 12))),
+             s(:when, s(:array, s(:const, :Fixnum)),
+                 s(:fixnum, 12)),
              s(:fixnum, 14))
 
     sexp.should == parse(ruby) if $unified && $new
@@ -1037,8 +1040,9 @@ describe Compiler do
     EOC
 
     sexp = s(:case, s(:true),
-             s(s(:when, s(:array, s(:when, s(:vcall, :things), nil)),
-                 s(:fixnum, 12))))
+             s(:when, s(:array, s(:when, s(:vcall, :things), nil)),
+                 s(:fixnum, 12)),
+             nil)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -1080,9 +1084,10 @@ describe Compiler do
     EOC
 
     sexp = s(:case, s(:true),
-             s(s(:when, s(:array, s(:const, :String),
+             s(:when, s(:array, s(:const, :String),
                           s(:when, s(:vcall, :things), nil)),
-                 s(:fixnum, 12))))
+                 s(:fixnum, 12)),
+             nil)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -1130,13 +1135,14 @@ describe Compiler do
     EOC
 
     sexp = s(:case, s(:true),
-             s(s(:when, s(:array, s(:const, :String),
+             s(:when, s(:array, s(:const, :String),
                           s(:when,
                             s(:array,
                               s(:str, "foo"),
                               s(:str, "bar"),
                               s(:str, "baz")), nil)),
-                 s(:fixnum, 12))))
+                 s(:fixnum, 12)),
+             nil)
 
     sexp.should == parse(ruby) if $unified && $new
 
