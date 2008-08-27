@@ -60,6 +60,7 @@ end
 class Float
   undef_method :==
   def ==(other)
+    return false unless Numeric === other
     (self - other).abs < 1e-14
   end
 end
