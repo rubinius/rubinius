@@ -3,11 +3,20 @@ require File.dirname(__FILE__) + "/spec_helper"
 describe Compiler do
 
   it "compiles a rescue with an empty body and no else" do
-    x = [:rescue,
-          [:resbody, [:array, [:const, :O]],
-              [:lit, 13]], nil]
+    ruby = <<-EOC
+      begin
+      rescue O
+        13
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue,
+             s(:resbody, s(:array, s(:const, :O)),
+               s(:lit, 13)), nil)
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       g.push_modifiers
       g.push :nil
       g.pop_modifiers
@@ -15,12 +24,23 @@ describe Compiler do
   end
 
   it "compiles a rescue with an empty body with an else" do
-    x = [:rescue,
-          [:resbody, [:array, [:const, :O]],
-              [:lit, 13]],
-          [:lit, 14]]
+    ruby = <<-EOC
+      begin
+      rescue O
+        13
+      else
+        14
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue,
+             s(:resbody, s(:array, s(:const, :O)),
+               s(:lit, 13)),
+             s(:lit, 14))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       g.push_modifiers
       g.push 14
       g.pop_modifiers
@@ -29,13 +49,21 @@ describe Compiler do
   end
 
   it "compiles a rescue with one condition" do
-    x = [:rescue, [:fixnum, 12],
-          [:resbody, [:array, [:const, :String]],
-             [:fixnum, 13], nil
-          ]
-        ]
+    ruby = <<-EOC
+      begin
+        12
+      rescue String
+        13
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue, s(:fixnum, 12),
+             s(:resbody, s(:array, s(:const, :String)),
+               s(:fixnum, 13), nil))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       exc_start  = g.new_label
       exc_handle = g.new_label
       fin        = g.new_label
@@ -74,13 +102,22 @@ describe Compiler do
   end
 
   it "compiles a rescue with one condition, no rescue class" do
-    x = [:rescue, [:fixnum, 12],
-          [:resbody, nil,
-             [:fixnum, 13], nil
-          ]
-        ]
+    ruby = <<-EOC
+      begin
+        12
+      rescue
+        13
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue,
+             s(:fixnum, 12),
+             s(:resbody, nil,
+               s(:fixnum, 13), nil))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       exc_start  = g.new_label
       exc_handle = g.new_label
       fin        = g.new_label
@@ -119,12 +156,24 @@ describe Compiler do
   end
 
 
-  it "compiles a rescue with multiple contitions" do
-    x = [:rescue, [:fixnum, 12],
-         [:resbody, [:array, [:const, :String], [:const, :Blah]],
-          [:fixnum, 13], nil]]
+  it "compiles a rescue with multiple conditions" do
+    ruby = <<-EOC
+      begin
+        12
+      rescue String, Blah
+        13
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue,
+             s(:fixnum, 12),
+             s(:resbody,
+               s(:array, s(:const, :String), s(:const, :Blah)),
+               s(:fixnum, 13), nil))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       exc_start  = g.new_label
       exc_handle = g.new_label
       fin        = g.new_label
@@ -168,16 +217,29 @@ describe Compiler do
     end
   end
 
-  it "compiles mutiple rescues" do
-    x = [:rescue, [:fixnum, 12],
-          [:resbody, [:array, [:const, :String]],
-             [:fixnum, 13],
-             [:resbody, [:array, [:const, :Blah]],
-                 [:fixnum, 14], nil]
-          ]
-        ]
+  it "compiles multiple rescues" do
+    ruby = <<-EOC
+      begin
+        12
+      rescue String
+        13
+      rescue Blah
+        14
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue,
+             s(:fixnum, 12),
+             s(:resbody,
+               s(:array, s(:const, :String)),
+               s(:fixnum, 13),
+               s(:resbody,
+                 s(:array, s(:const, :Blah)),
+                 s(:fixnum, 14), nil)))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       exc_start  = g.new_label
       exc_handle = g.new_label
       fin        = g.new_label
@@ -229,15 +291,27 @@ describe Compiler do
     end
   end
 
-  it "compiles a rescue and an else" do
-    x = [:rescue, [:fixnum, 12],
-          [:resbody, [:array, [:const, :String]],
-             [:fixnum, 13], nil
-          ],
-          [:fixnum, 14]
-        ]
+  it "compiles a rescue with a body and an else" do
+    ruby = <<-EOC
+      begin
+        12
+      rescue String
+        13
+      else
+        14
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue,
+             s(:fixnum, 12),
+             s(:resbody,
+               s(:array, s(:const, :String)),
+               s(:fixnum, 13), nil),
+             s(:fixnum, 14))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       exc_start  = g.new_label
       exc_handle = g.new_label
       fin        = g.new_label
@@ -278,13 +352,23 @@ describe Compiler do
   end
 
   it "compiles a rescue with a splat" do
-    x = [:rescue, [:fixnum, 12],
-          [:resbody, [:splat, [:vcall, :blah]],
-             [:fixnum, 13], nil
-          ]
-        ]
+    ruby = <<-EOC
+      begin
+        12
+      rescue *blah
+        13
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue,
+             s(:fixnum, 12),
+             s(:resbody,
+               s(:splat, s(:vcall, :blah)),
+               s(:fixnum, 13), nil))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       exc_start  = g.new_label
       exc_handle = g.new_label
       fin        = g.new_label
@@ -326,13 +410,24 @@ describe Compiler do
   end
 
   it "compiles a rescue with a condition and a splat" do
-    x = [:rescue, [:fixnum, 12],
-          [:resbody, [:argscat, [:array, [:const, :String]], [:vcall, :blah]],
-             [:fixnum, 13], nil
-          ]
-        ]
+    ruby = <<-EOC
+      begin
+        12
+      rescue String, *blah
+        13
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue,
+             s(:fixnum, 12),
+             s(:resbody,
+               s(:argscat, s(:array, s(:const, :String)),
+                 s(:vcall, :blah)),
+               s(:fixnum, 13), nil))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       exc_start  = g.new_label
       exc_handle = g.new_label
       fin        = g.new_label
@@ -380,12 +475,22 @@ describe Compiler do
   end
 
   it "clears the exception when there is a return in a rescue" do
-    x = [:rescue, [:fixnum, 12],
-         [:resbody,
-          [:array, [:const, :String]],
-          [:return, [:nil]], nil]]
+    ruby = <<-EOC
+      begin
+        12
+      rescue String
+        return nil
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:rescue, s(:fixnum, 12),
+             s(:resbody,
+               s(:array, s(:const, :String)),
+               s(:return, s(:nil)), nil))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       exc_start  = g.new_label
       exc_handle = g.new_label
       fin        = g.new_label
@@ -426,9 +531,19 @@ describe Compiler do
   end
 
   it "compiles a basic ensure" do
-    x = [:ensure, [:fixnum, 12], [:fixnum, 13]]
+    ruby = <<-EOC
+      begin
+        12
+      ensure
+        13
+      end
+    EOC
 
-    gen x do |g|
+    sexp = s(:ensure, s(:fixnum, 12), s(:fixnum, 13))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       ok = g.new_label
 
       g.exceptions do |ex|
@@ -455,9 +570,15 @@ describe Compiler do
 =begin
 
   it "compiles an ensure with a return in the body" do
-    x = [:ensure, [:block, [:fixnum, 14], [:return, [:fixnum, 2]]], [:fixnum, 13]]
+    ruby = <<-EOC
+      NO
+    EOC
 
-    gen x do |g|
+    sexp = s(:ensure, s(:block, s(:fixnum, 14), s(:return, s(:fixnum, 2))), s(:fixnum, 13))
+
+    sexp.should == parse(ruby) # if $unified && $new
+
+    gen sexp do |g|
       ok = g.new_label
       g.exceptions do |ex|
         g.push 14
@@ -485,9 +606,15 @@ describe Compiler do
   end
 
   it "compiles an ensure with a return in the body, inside another ensure" do
-    x = [:ensure, [:ensure, [:block, [:fixnum, 14], [:return, [:fixnum, 2]]], [:fixnum, 13]], [:fixnum, 15]]
+    ruby = <<-EOC
+      NO
+    EOC
 
-    gen x do |g|
+    sexp = s(:ensure, s(:ensure, s(:block, s(:fixnum, 14), s(:return, s(:fixnum, 2))), s(:fixnum, 13)), s(:fixnum, 15))
+
+    sexp.should == parse(ruby) # if $unified && $new
+
+    gen sexp do |g|
       ok = g.new_label
       ok2 = g.new_label
 
@@ -535,12 +662,18 @@ describe Compiler do
   end
 
   it "compiles an ensure with a return in the body, inside another ensure with a return" do
-    x = [:ensure,
-          [:block, [:fixnum, 14], [:return, [:fixnum, 2]]],
-          [:ensure, [:block, [:fixnum, 15], [:return, [:fixnum, 3]]],
-             [:fixnum, 16]]]
+    ruby = <<-EOC
+      NO
+    EOC
 
-    gen x do |g|
+    sexp = s(:ensure,
+          s(:block, s(:fixnum, 14), s(:return, s(:fixnum, 2))),
+          s(:ensure, s(:block, s(:fixnum, 15), s(:return, s(:fixnum, 3))),
+             s(:fixnum, 16)))
+
+    sexp.should == parse(ruby) # if $unified && $new
+
+    gen sexp do |g|
       ok = g.new_label
       ok2 = g.new_label
 
