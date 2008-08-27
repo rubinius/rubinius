@@ -871,7 +871,7 @@ class Instructions
 
   def halt
     <<-CODE
-    throw new Task::Halt("Task halted");
+    throw Task::Halt("Task halted");
     CODE
   end
 
@@ -936,6 +936,17 @@ class Instructions
     <<-CODE
     OBJECT t1 = stack_pop();
     stack_push(t1->fixnum_p() ? Qtrue : Qfalse);
+    CODE
+  end
+
+  def test_is_fixnum
+    <<-CODE
+    task->push(Integer::from(state, 10));
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
+    task->push(String::create(state, "no"));
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
     CODE
   end
 
