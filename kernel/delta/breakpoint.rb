@@ -1,4 +1,4 @@
-# depends on: class.rb iseq.rb array.rb
+# depends on: iseq.rb
 
 ##
 # Breakpoint objects represent debugging breakpoints in the bytecode of
@@ -227,7 +227,7 @@ class GlobalBreakpoint < Breakpoint
   end
 
   # Determines if the breakpoint should actually fire when hit.
-  # This method evaluates any condition specified for the breakpoint. The 
+  # This method evaluates any condition specified for the breakpoint. The
   # condition is evaluated with a binding from the execution context at the
   # point at which the breakpoint is set.
   def trigger?(task)
@@ -424,7 +424,7 @@ class StepBreakpoint < Breakpoint
   # points at which execution can fork, and determine where to set the next
   # breakpoint.
   def calculate_next_breakpoint(bc=nil)
-    Rubinius.compile_if($DEBUG) do 
+    Rubinius.compile_if($DEBUG) do
       STDERR.puts "Should not be called when @steps == 0" if @steps == 0
     end
     raise "Should not be called when @steps == 0" if @steps == 0
@@ -452,7 +452,7 @@ class StepBreakpoint < Breakpoint
     asm[i..-1].each do |op|
       if @step_by == :line
         if op.line > line
-          @steps -= 1 
+          @steps -= 1
           line = op.line
         end
       else
@@ -462,7 +462,7 @@ class StepBreakpoint < Breakpoint
 
       flow = op.instruction.flow
       if @steps == 0 or (op.ip > ip and flow != :sequential)
-        # At target, or else we need to stop stepping because we are at an 
+        # At target, or else we need to stop stepping because we are at an
         # opcode that may alter control flow. In the latter case, we will set
         # the next breakpoint once we reach the point where the flow change
         # occurs. This is so we do not set a breakpoint we might then hit before
@@ -471,7 +471,7 @@ class StepBreakpoint < Breakpoint
         # executed, and so we could trigger the breakpoint too early if we set
         # it now.
         unless steps > 0 and flow == :send and @step_type != :in
-          # There is one special case where we do nothing - when we are at a 
+          # There is one special case where we do nothing - when we are at a
           # send, but we are not stepping in
           @ip = op.ip
         end
@@ -590,7 +590,7 @@ class BreakpointTracker
     @debug_channel = Channel.new
     @callback = callback
   end
-  
+
   attr_accessor :debug_channel
 
   ##
@@ -622,7 +622,7 @@ class BreakpointTracker
   # CompiledMethod.
   #
   # An options hash is used to specify various breakpoint settings:
-  # - line: Set the breakpoint at the first instruction on or after the 
+  # - line: Set the breakpoint at the first instruction on or after the
   #   specified line number in the method source.
   # - ip: Set the breakpoint at the specified instruction pointer address.
   # - disabled: Create the breakpoint but do not enable it. This registers a

@@ -1,5 +1,3 @@
-# depends on: class.rb array.rb hash.rb
-
 ##
 # Defines all the bytecode instructions used by the VM.
 

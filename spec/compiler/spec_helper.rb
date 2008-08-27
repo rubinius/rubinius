@@ -6,7 +6,7 @@ require File.dirname(__FILE__) + '/../../lib/compiler/compiler'
 require File.dirname(__FILE__) + '/../../lib/compiler/generator'
 require File.dirname(__FILE__) + '/../../lib/compiler/bytecode'
 require File.dirname(__FILE__) + '/../../lib/compiler/text'
-require File.dirname(__FILE__) + '/../../kernel/common/iseq'
+require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
 
 ######################################################################
 ## Added for ruby_parser transition... all of this should be temporary

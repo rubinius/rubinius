@@ -803,11 +803,6 @@ module Kernel
   module_function :ensure_last_read_string
   private :ensure_last_read_string
 
-  # From bootstrap
-  private :get_instance_variable
-  private :get_instance_variables
-  private :set_instance_variable
-
 end
 
 class SystemExit < Exception
