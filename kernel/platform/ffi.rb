@@ -150,14 +150,11 @@ module FFI
   # Use for a C struct with a char [] embedded inside.
   add_typedef TYPE_CHARARR, :char_array
 
-  TypeSizes = {
-    1 => :char,
-    2 => :short,
-    4 => :int,
-    8 => :long_long,
-  }
-
-  TypeSizes[8] = :long if Rubinius::L64
+  TypeSizes = LookupTable.new
+  TypeSizes[1] = :char
+  TypeSizes[2] = :short
+  TypeSizes[4] = :int
+  TypeSizes[8] = Rubinius::L64 ? :long : :long_long
 
   # Load all the platform dependent types
 
