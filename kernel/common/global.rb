@@ -1,4 +1,4 @@
-# depends on: class.rb
+# depends on: class.rb hash.rb
 
 ##
 # Stores global variables and global variable aliases.
@@ -8,28 +8,27 @@ class GlobalVariables
     load_path = %w[.]
     loaded_features = []
 
-    @internal = LookupTable.new(
-      :$; => nil,
-      :$/ => "\n",                # Input record separator
-      :$\ => nil,                 # Output record separator
-      :$> => STDOUT,
-      :$: => load_path,
-      :$LOAD_PATH => load_path,
-      :$" => loaded_features,
-      :$LOADED_FEATURES => loaded_features,
-      :$, => '',                  # Output field separator
-      :$stderr => STDERR,
-      :$stdout => STDOUT,
-      :$stdin => STDIN,
-      :$CONSOLE => STDOUT,
-      :$DEBUG => false,
-      :$SAFE => 0,
-      :$. => 0,    # TODO: Last line number of IO read.
-      :$_ => nil,  # HACK: bunk for now.
-      :$< => nil,  # HACK: should be ARGF
-      :$? => nil,  # Process status. nil until set
-      :$= => false # ignore case, whatever that is
-    )
+    @internal = LookupTable.new
+    @internal[:$;] = nil
+    @internal[:$/] = "\n"             # Input record separator
+    @internal[:$\] = nil              # Output record separator
+    @internal[:$>] = STDOUT
+    @internal[:$:] = load_path
+    @internal[:$"] = loaded_features
+    @internal[:$,] = ''               # Output field separator
+    @internal[:$.] = 0                # TODO: Last line number of IO read.
+    @internal[:$_] = nil              # HACK: bunk for now.
+    @internal[:$<] = nil              # HACK: should be ARGF
+    @internal[:$?] = nil              # Process status. nil until set
+    @internal[:$=] = false            # ignore case, whatever that is
+    @internal[:$CONSOLE]         = STDOUT
+    @internal[:$DEBUG]           = false
+    @internal[:$LOADED_FEATURES] = loaded_features
+    @internal[:$LOAD_PATH]       = load_path
+    @internal[:$SAFE]            = 0
+    @internal[:$stderr]          = STDERR
+    @internal[:$stdin]           = STDIN
+    @internal[:$stdout]          = STDOUT
 
     @alias = LookupTable.new
     @hooks = LookupTable.new
