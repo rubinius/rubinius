@@ -2,7 +2,9 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles if/end" do
-    gen [:if, [:true], [:fixnum, 10], nil] do |g|
+    sexp = [:if, [:true], [:fixnum, 10], nil]
+
+    gen sexp do |g|
       g.push :true
       els = g.new_label
       fin = g.new_label
@@ -16,7 +18,9 @@ describe Compiler do
   end
 
   it "compiles if/else/end" do
-    gen [:if, [:true], [:fixnum, 10], [:fixnum, 12]] do |g|
+    sexp = [:if, [:true], [:fixnum, 10], [:fixnum, 12]]
+
+    gen sexp do |g|
       g.push :true
       els = g.new_label
       fin = g.new_label
@@ -30,7 +34,9 @@ describe Compiler do
   end
 
   it "compiles unless/end" do
-    gen [:if, [:true], nil, [:fixnum, 12]] do |g|
+    sexp = [:if, [:true], nil, [:fixnum, 12]]
+
+    gen sexp do |g|
       g.push :true
       els = g.new_label
       fin = g.new_label
@@ -44,7 +50,9 @@ describe Compiler do
   end
 
   it "compiles a stupid if" do
-    gen [:if, [:true], nil, nil] do |g|
+    sexp = [:if, [:true], nil, nil]
+
+    gen sexp do |g|
       g.push :true
       g.pop
       g.push :nil
@@ -52,7 +60,9 @@ describe Compiler do
   end
 
   it "compiles a normal while" do
-    gen [:while, [:true], [:fixnum, 12], true] do |g|
+    sexp = [:while, [:true], [:fixnum, 12], true]
+
+    gen sexp do |g|
       g.push_modifiers
 
       top = g.new_label
@@ -79,7 +89,9 @@ describe Compiler do
   end
 
   it "compiles a post while" do
-    gen [:while, [:true], [:fixnum, 12], false] do |g|
+    sexp = [:while, [:true], [:fixnum, 12], false]
+
+    gen sexp do |g|
       g.push_modifiers
 
       top = g.new_label
@@ -104,7 +116,9 @@ describe Compiler do
   end
 
   it "compiles a normal until" do
-    gen [:until, [:true], [:fixnum, 12], true] do |g|
+    sexp = [:until, [:true], [:fixnum, 12], true]
+
+    gen sexp do |g|
       g.push_modifiers
 
       top = g.new_label
@@ -130,7 +144,9 @@ describe Compiler do
   end
 
   it "compiles a post until" do
-    gen [:until, [:true], [:fixnum, 12], false] do |g|
+    sexp = [:until, [:true], [:fixnum, 12], false]
+
+    gen sexp do |g|
       g.push_modifiers
 
       top = g.new_label
@@ -345,7 +361,9 @@ describe Compiler do
   end
 
   it "compiles a series of expressions" do
-    gen [:block, [:fixnum, 12], [:fixnum, 13], [:true]] do |g|
+    sexp = [:block, [:fixnum, 12], [:fixnum, 13], [:true]]
+
+    gen sexp do |g|
       g.push 12
       g.pop
       g.push 13
@@ -355,13 +373,17 @@ describe Compiler do
   end
 
   it "compiles a scope" do
-    gen [:scope, [:fixnum, 12], []] do |g|
+    sexp = [:scope, [:fixnum, 12], []]
+
+    gen sexp do |g|
       g.push 12
     end
   end
 
   it "compiles loop directly" do
-    gen [:iter, [:fcall, :loop], nil, [:fixnum, 12]] do |g|
+    sexp = [:iter, [:fcall, :loop], nil, [:fixnum, 12]]
+
+    gen sexp do |g|
       g.push_modifiers
 
       top = g.new_label
@@ -376,7 +398,9 @@ describe Compiler do
   end
 
   it "compiles empty loop directly" do
-    gen [:iter, [:fcall, :loop], nil] do |g|
+    sexp = [:iter, [:fcall, :loop], nil]
+
+    gen sexp do |g|
       g.push_modifiers
       top = g.new_label
       top.set!
@@ -388,7 +412,9 @@ describe Compiler do
   end
 
   it "compiles break in a control" do
-    gen [:while, [:true], [:block, [:fixnum, 12], [:break]], true] do |g|
+    sexp = [:while, [:true], [:block, [:fixnum, 12], [:break]], true]
+
+    gen sexp do |g|
       g.push_modifiers
 
       top = g.new_label
@@ -417,7 +443,9 @@ describe Compiler do
   end
 
   it "compiles break in a block" do
-    gen [:iter, [:fcall, :go], nil, [:block, [:fixnum, 12], [:break]]] do |g|
+    sexp = [:iter, [:fcall, :go], nil, [:block, [:fixnum, 12], [:break]]]
+
+    gen sexp do |g|
       iter = description do |d|
         d.pop
         d.push_modifiers
@@ -446,7 +474,9 @@ describe Compiler do
   end
 
   it "compiles an unexpected break" do
-    gen [:break] do |g|
+    sexp = [:break]
+
+    gen sexp do |g|
       g.push :nil
       g.pop
       g.push_const :Compile
@@ -455,7 +485,9 @@ describe Compiler do
   end
 
   it "compiles redo in a while" do
-    gen [:while, [:true], [:block, [:fixnum, 12], [:redo]], true] do |g|
+    sexp = [:while, [:true], [:block, [:fixnum, 12], [:redo]], true]
+
+    gen sexp do |g|
       g.push_modifiers
 
       top = g.new_label
@@ -483,7 +515,9 @@ describe Compiler do
   end
 
   it "compiles redo in a block" do
-    gen [:iter, [:fcall, :go], nil, [:block, [:fixnum, 12], [:redo]]] do |g|
+    sexp = [:iter, [:fcall, :go], nil, [:block, [:fixnum, 12], [:redo]]]
+
+    gen sexp do |g|
       iter = description do |d|
         d.pop
         d.push_modifiers
@@ -505,7 +539,9 @@ describe Compiler do
   end
 
   it "compiles an invalid redo" do
-    gen [:redo] do |g|
+    sexp = [:redo]
+
+    gen sexp do |g|
       g.push :self
       g.push_const :LocalJumpError
       g.push_literal "redo used in invalid context"
@@ -514,8 +550,11 @@ describe Compiler do
   end
 
   it "compiles a simple case" do
-    x = [:case, [:true], [[:when, [:array, [:const, :Fixnum]], [:fixnum, 12]]]]
-    gen x do |g|
+    sexp = [:case, [:true],
+            [[:when, [:array, [:const, :Fixnum]],
+              [:fixnum, 12]]]]
+
+    gen sexp do |g|
       nxt = g.new_label
       fin = g.new_label
 
@@ -540,12 +579,11 @@ describe Compiler do
   end
 
   it "compiles a case with multiple conditions" do
-    x = [:case, [:true], [
-           [:when, [:array, [:const, :Fixnum], [:const, :String]],
-               [:fixnum, 12]],
-        ]]
+    sexp = [:case, [:true],
+            [[:when, [:array, [:const, :Fixnum], [:const, :String]],
+              [:fixnum, 12]]]]
 
-    gen x do |g|
+    gen sexp do |g|
       nxt  = g.new_label
       fin  = g.new_label
       body = g.new_label
@@ -579,14 +617,13 @@ describe Compiler do
   end
 
   it "compiles a case with multiple whens" do
-    x = [:case, [:true], [
-           [:when, [:array, [:const, :Fixnum]],
-               [:fixnum, 12]],
-           [:when, [:array, [:const, :String]],
-               [:fixnum, 13]]
-        ]]
+    sexp = [:case, [:true],
+            [[:when, [:array, [:const, :Fixnum]],
+              [:fixnum, 12]],
+             [:when, [:array, [:const, :String]],
+              [:fixnum, 13]]]]
 
-    gen x do |g|
+    gen sexp do |g|
       nxt1 = g.new_label
       nxt2 = g.new_label
       fin =  g.new_label
@@ -625,12 +662,12 @@ describe Compiler do
   end
 
   it "compiles a case with an else" do
-    x = [:case, [:true], [
-           [:when, [:array, [:const, :Fixnum]],
-               [:fixnum, 12]],
-        ], [:fixnum, 14]]
+    sexp = [:case, [:true],
+            [[:when, [:array, [:const, :Fixnum]],
+              [:fixnum, 12]]],
+            [:fixnum, 14]]
 
-    gen x do |g|
+    gen sexp do |g|
       nxt = g.new_label
       fin = g.new_label
 
@@ -656,16 +693,16 @@ describe Compiler do
   end
 
   it "compiles a case without an argument" do
-    x = [:many_if,
-          [
-            [[:array, [:false]], [:str, "foo"]],
-            [[:array, [:nil]], [:str, "foo"]],
-            [[:array, [:call, [:lit, 1], :==, [:array, [:lit, 2]]]], [:str, "bar"]]
-          ],
-          [:str, "baz"]
-        ]
+    sexp = [:many_if,
+            [[[:array, [:false]],
+              [:str, "foo"]],
+             [[:array, [:nil]],
+              [:str, "foo"]],
+             [[:array, [:call, [:lit, 1], :==, [:array, [:lit, 2]]]],
+              [:str, "bar"]]],
+            [:str, "baz"]]
 
-    gen x do |g|
+    gen sexp do |g|
       fin   = g.new_label
       cond2 = g.new_label
       cond3 = g.new_label
@@ -705,16 +742,16 @@ describe Compiler do
   end
 
   it "compiles a case without an argument, branch with multiple conds" do
-    x = [:many_if,
-          [
-            [[:array, [:false]], [:str, "foo"]],
-            [[:array, [:nil]], [:str, "foo"]],
-            [[:array, [:call, [:lit, 1], :==, [:array, [:lit, 2]]], [:lit, 13]], [:str, "bar"]]
-          ],
-          nil
-        ]
+    sexp = [:many_if,
+            [[[:array, [:false]],
+              [:str, "foo"]],
+             [[:array, [:nil]],
+              [:str, "foo"]],
+             [[:array, [:call, [:lit, 1], :==, [:array, [:lit, 2]]],
+               [:lit, 13]], [:str, "bar"]]],
+            nil]
 
-    gen x do |g|
+    gen sexp do |g|
       fin =   g.new_label
       cond2 = g.new_label
       cond3 = g.new_label
@@ -760,12 +797,11 @@ describe Compiler do
 
 
   it "compiles a case with a splat" do
-    x = [:case, [:true], [
-           [:when, [:array, [:when, [:vcall, :things], nil]],
-               [:fixnum, 12]],
-        ]]
+    sexp = [:case, [:true],
+            [[:when, [:array, [:when, [:vcall, :things], nil]],
+              [:fixnum, 12]]]]
 
-    gen x do |g|
+    gen sexp do |g|
       body = g.new_label
       nxt =  g.new_label
       fin =  g.new_label
@@ -795,12 +831,12 @@ describe Compiler do
   end
 
   it "compiles a case with normal conditions and a splat" do
-    x = [:case, [:true], [
-           [:when, [:array, [:const, :String], [:when, [:vcall, :things], nil]],
-               [:fixnum, 12]],
-        ]]
+    sexp = [:case, [:true],
+            [[:when, [:array, [:const, :String],
+                      [:when, [:vcall, :things], nil]],
+              [:fixnum, 12]]]]
 
-    gen x do |g|
+    gen sexp do |g|
       body = g.new_label
       nxt =  g.new_label
       fin =  g.new_label
@@ -841,15 +877,16 @@ describe Compiler do
   #   end
 
   it "compiles a case with normal conditions and a splatted array" do
-    x = [:case, [:true], [[:when, [:array, [:const, :String],
-                                   [:when,
-                                    [:array,
-                                     [:str, "foo"],
-                                     [:str, "bar"],
-                                     [:str, "baz"]], nil]],
-                           [:fixnum, 12]]]]
+    sexp = [:case, [:true],
+            [[:when, [:array, [:const, :String],
+                      [:when,
+                       [:array,
+                        [:str, "foo"],
+                        [:str, "bar"],
+                        [:str, "baz"]], nil]],
+              [:fixnum, 12]]]]
 
-    gen x do |g|
+    gen sexp do |g|
       body = g.new_label
       nxt  = g.new_label
       fin  = g.new_label
@@ -898,27 +935,29 @@ describe Compiler do
   end
 
   it "compiles 'return'" do
-    gen [:return] do |g|
+    sexp = [:return]
+
+    gen sexp do |g|
       g.push :nil
       g.ret
     end
   end
 
   it "compiles 'return 12'" do
-    gen [:return, [:fixnum, 12]] do |g|
+    sexp = [:return, [:fixnum, 12]]
+
+    gen sexp do |g|
       g.push 12
       g.ret
     end
   end
 
   it "compiles 'begin; 12; rescue; return 13; end'" do
-    x = [:rescue, [:fixnum, 12],
-          [:resbody, [:array, [:const, :String]],
-             [:return, [:fixnum, 13]], nil
-          ]
-        ]
+    sexp = [:rescue, [:fixnum, 12],
+            [:resbody, [:array, [:const, :String]],
+             [:return, [:fixnum, 13]], nil]]
 
-    gen x do |g|
+    gen sexp do |g|
       exc_start  = g.new_label
       exc_handle = g.new_label
       fin        = g.new_label
@@ -962,7 +1001,9 @@ describe Compiler do
   end
 
   it "compiles return in a block" do
-    gen [:iter, [:fcall, :go], nil, [:block, [:return, [:fixnum, 12]]]] do |g|
+    sexp = [:iter, [:fcall, :go], nil, [:block, [:return, [:fixnum, 12]]]]
+
+    gen sexp do |g|
       iter = description do |d|
         d.pop
         d.push_modifiers
@@ -987,10 +1028,11 @@ describe Compiler do
   end
 
   it "compiles 'return 1, 2, *c'" do
-    x = [:return, [:argscat,
-           [:array, [:fixnum, 1], [:fixnum, 2]],
-           [:vcall, :c]]]
-    gen x do |g|
+    sexp = [:return, [:argscat,
+                      [:array, [:fixnum, 1], [:fixnum, 2]],
+                      [:vcall, :c]]]
+
+    gen sexp do |g|
       g.push 1
       g.push 2
       g.make_array 2
