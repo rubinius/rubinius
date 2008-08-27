@@ -2,7 +2,15 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles defined? instance_exec" do
-    gen [:defined, [:vcall, :instance_exec]] do |g|
+    ruby = <<-EOC
+      defined? instance_exec
+    EOC
+
+    sexp = s(:defined, s(:vcall, :instance_exec))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       responded = g.new_label
       done      = g.new_label
 
@@ -21,7 +29,15 @@ describe Compiler do
     end
   end
   it "compiles defined? instance_exec()" do
-    gen [:defined, [:fcall, :instance_exec]] do |g|
+    ruby = <<-EOC
+      defined? instance_exec()
+    EOC
+
+    sexp = s(:defined, s(:fcall, :instance_exec))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
       responded = g.new_label
       done      = g.new_label
 
