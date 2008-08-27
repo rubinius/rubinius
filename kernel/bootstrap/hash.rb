@@ -64,16 +64,18 @@ class Hash
 
     # Either updates an existing bucket matching +key+ and +key_hash+
     # or appends a new bucket containing +key+, +value+, +key_hash+
-    # to the chain.
+    # to the chain. Returns +true+ if a new bucket was added, otherwise
+    # returns +false+.
     def set(key, value, key_hash)
       if self.key_hash == key_hash and key.eql? self.key
         self.value = value
-        self
+        return false
       elsif nxt = self.next
-        nxt.set key, value, key_hash
+        return nxt.set(key, value, key_hash)
       else
         bucket = Bucket.new key, value, key_hash
         self.next = bucket
+        return true
       end
     end
 
@@ -87,7 +89,7 @@ class Hash
         parent.next = self.next
         return false
       elsif nxt = self.next
-        return nxt.delete key, key_hash, self
+        return nxt.delete(key, key_hash, self)
       else
         return true
       end
@@ -129,8 +131,11 @@ class Hash
   # MUST be a power of 2
   MIN_SIZE = 16
 
-  # ensure that key_hash is a Fixnum
+  # Ensure that key_hash is a Fixnum
   MAX_HASH_VALUE = 0x1fffffff
+
+  # Allocate more storage when this full
+  MAX_DENSITY = 0.75
 
   # Creates a fully-formed instance of Hash.
   #--
@@ -161,6 +166,16 @@ class Hash
     @size
   end
 
+  def size=(size)
+    @size = size
+    redistribute false
+  end
+
+  # Returns an external iterator for the bins. See +Iterator+
+  def to_iter
+    Iterator.new @bins, @records
+  end
+
   # Returns a hash for key constrained to always be a Fixnum.
   def key_hash(key)
     hash = key.hash
@@ -174,9 +189,44 @@ class Hash
   # or <code>#set</code> to add or update a value. Those methods
   # handle manipulating the bucket chain.
   def entry(key, key_hash)
-    bin = hash & (@records - 1)
+    bin = entry_bin key_hash
     entry = @bins.at bin
     return entry if entry
-    Bucket.new key, nil, key_hash
+
+    self.size += 1
+    @bins[bin] = Bucket.new key, nil, key_hash
+  end
+
+  # Returns the index into the storage for +key_hash+.
+  def entry_bin(key_hash)
+    key_hash & (@records - 1)
+  end
+
+  # Grows the hash storage and redistributes the entries among
+  # the new bins if the entry density is above a threshold. Any
+  # Iterator instance will be invalid after a call to redistribute.
+  # If +rehash+ is true, recalculate the key_hash for each key.
+  def redistribute(rehash = true)
+    resize = @size >= MAX_DENSITY * @records
+    return unless rehash or resize
+
+    i = to_iter
+    if resize
+      @records *= 2
+      @bins = Tuple.new records
+    end
+
+    while entry = i.next
+      entry.key_hash = key_hash entry.key if rehash
+      bin = entry_bin entry.key_hash
+
+      if head = @bins[bin]
+        entry.next = head
+      else
+        entry.next = nil
+      end
+
+      @bins[bin] = entry
+    end
   end
 end

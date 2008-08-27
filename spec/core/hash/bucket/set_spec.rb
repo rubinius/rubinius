@@ -12,16 +12,16 @@ describe "Hash::Bucket#set" do
   end
 
   it "updates the value of an existing bucket if key and key_hash match" do
-    @a.set(1, 5, 3)
+    @a.set(1, 5, 3).should be_false
     @a.value.should == 5
 
-    @a.set(7, 10, 9)
+    @a.set(7, 10, 9).should be_false
     @c.value.should == 10
   end
 
   it "appends a new bucket if no existing bucket in the chain matches key and key_hash" do
-    b = @a.set(10, 11, 12)
-    @c.next.should == b
+    @a.set(10, 11, 12).should be_true
+    b = @c.next
     b.key.should == 10
     b.value.should == 11
     b.key_hash.should == 12
