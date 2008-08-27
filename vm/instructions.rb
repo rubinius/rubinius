@@ -479,11 +479,20 @@ class Instructions
   # [Description]
   #   Consume the object reference on the stack, and push a reference to the
   #   parent \class in its place.
+  #   TODO - Use this somewhere!
 
   def class
     <<-CODE
     OBJECT t1 = stack_pop();
     stack_push(t1->class_object(state));
+    CODE
+  end
+
+  def test_class
+    <<-CODE
+      task->push(Qtrue);
+      run();
+      TS_ASSERT_EQUALS(G(true_class), task->pop());
     CODE
   end
 
