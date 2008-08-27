@@ -2,7 +2,13 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles if/end" do
-    sexp = [:if, [:true], [:fixnum, 10], nil]
+    ruby = <<-EOC
+      10 if true
+    EOC
+
+    sexp = s(:if, s(:true), s(:fixnum, 10), nil)
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push :true
@@ -18,7 +24,17 @@ describe Compiler do
   end
 
   it "compiles if/else/end" do
-    sexp = [:if, [:true], [:fixnum, 10], [:fixnum, 12]]
+    ruby = <<-EOC
+      if true then
+        10
+      else
+        12
+      end
+    EOC
+
+    sexp = s(:if, s(:true), s(:fixnum, 10), s(:fixnum, 12))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push :true
@@ -34,7 +50,15 @@ describe Compiler do
   end
 
   it "compiles unless/end" do
-    sexp = [:if, [:true], nil, [:fixnum, 12]]
+    ruby = <<-EOC
+      unless true then
+        12
+      end
+    EOC
+
+    sexp = s(:if, s(:true), nil, s(:fixnum, 12))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push :true
@@ -50,7 +74,14 @@ describe Compiler do
   end
 
   it "compiles a stupid if" do
-    sexp = [:if, [:true], nil, nil]
+    ruby = <<-EOC
+      if true then
+      end
+    EOC
+
+    sexp = s(:if, s(:true), nil, nil)
+
+    sexp.should == parse(ruby) # if $unified && false
 
     gen sexp do |g|
       g.push :true
@@ -60,7 +91,15 @@ describe Compiler do
   end
 
   it "compiles a normal while" do
-    sexp = [:while, [:true], [:fixnum, 12], true]
+    ruby = <<-EOC
+      while true do
+        12
+      end
+    EOC
+
+    sexp = s(:while, s(:true), s(:fixnum, 12), true)
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push_modifiers
@@ -89,7 +128,13 @@ describe Compiler do
   end
 
   it "compiles a post while" do
-    sexp = [:while, [:true], [:fixnum, 12], false]
+    ruby = <<-EOC
+      12 while true
+    EOC
+
+    sexp = s(:while, s(:true), s(:fixnum, 12), false)
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push_modifiers
@@ -116,7 +161,15 @@ describe Compiler do
   end
 
   it "compiles a normal until" do
-    sexp = [:until, [:true], [:fixnum, 12], true]
+    ruby = <<-EOC
+      until true
+        12
+      end
+    EOC
+
+    sexp = s(:until, s(:true), s(:fixnum, 12), true)
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push_modifiers
@@ -144,7 +197,13 @@ describe Compiler do
   end
 
   it "compiles a post until" do
-    sexp = [:until, [:true], [:fixnum, 12], false]
+    ruby = <<-EOC
+      12 until true
+    EOC
+
+    sexp = s(:until, s(:true), s(:fixnum, 12), false)
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push_modifiers
@@ -171,11 +230,17 @@ describe Compiler do
   end
 
   it "compiles an each call" do
-    sexp = [:newline, 1, "(eval)",
-             [:iter,
-               [:call,
-                 [:newline, 1, "(eval)", [:dot2, [:lit, 1], [:lit, 2]]], :each],
-                   [:lasgn, :x] ] ]
+    ruby = <<-EOC
+      (1..2).each do |x| end
+    EOC
+
+    sexp = s(:newline, 1, "(eval)",
+             s(:iter,
+               s(:call,
+                 s(:newline, 1, "(eval)", s(:dot2, s(:lit, 1), s(:lit, 2))), :each),
+               s(:lasgn, :x) ) )
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen(sexp) do |g|
       iter = description do |d|
@@ -202,12 +267,21 @@ describe Compiler do
   end
 
   it "compiles an each call with multiple block arguments" do
-    sexp = [:newline, 1, "(eval)",
-            [:iter, [:call, [:vcall, :x], :each], [:masgn,
-              [:array, [:lasgn, :a], [:lasgn, :b]], nil, nil],
-              [:block,
-                [:dasgn_curr, :b, [:dasgn_curr, :a]],
-                  [:newline, 1, "(eval)", [:lit, 5]] ] ] ]
+    ruby = <<-EOC
+      x.each do |a, b|
+        5
+      end
+    EOC
+
+    sexp = s(:newline, 1, "(eval)",
+             s(:iter,
+               s(:call, s(:vcall, :x), :each),
+               s(:masgn, s(:array, s(:lasgn, :a), s(:lasgn, :b)), nil, nil),
+               s(:block,
+                 s(:dasgn_curr, :b, s(:dasgn_curr, :a)),
+                 s(:newline, 1, "(eval)", s(:lit, 5)) ) ) )
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen(sexp) do |g|
       iter = description do |d|
@@ -236,10 +310,16 @@ describe Compiler do
   end
 
   it "compiles a for loop" do
-    sexp = [:newline, 1, "(eval)",
-             [:for,
-              [:newline, 1, "(eval)", [:dot2, [:lit, 1], [:lit, 2]]],
-                [:lasgn, :x] ] ]
+    ruby = <<-EOC
+      for x in 1..2 do end
+    EOC
+
+    sexp = s(:newline, 1, "(eval)",
+             s(:for,
+               s(:newline, 1, "(eval)", s(:dot2, s(:lit, 1), s(:lit, 2))),
+               s(:lasgn, :x) ) )
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen(sexp) do |g|
       iter = description do |d|
@@ -266,9 +346,15 @@ describe Compiler do
   end
 
   it "compiles a for loop with an ivar assignment" do
-    sexp = [:newline, 1, "(eval)",
-             [:for, [:dot2, [:lit, 1], [:lit, 2]],
-              [:iasgn, :@xyzzy] ] ]
+    ruby = <<-EOC
+      for @xyzzy in (1..2) do end
+    EOC
+
+    sexp = s(:newline, 1, "(eval)",
+             s(:for, s(:dot2, s(:lit, 1), s(:lit, 2)),
+               s(:iasgn, :@xyzzy) ) )
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen(sexp) do |g|
       iter = description do |d|
@@ -295,11 +381,19 @@ describe Compiler do
   end
 
   it "compiles a for loop with multiple arguments" do
-    sexp = [:newline, 1, "(eval)",
-            [:for, [:vcall, :x],
-              [:masgn,
-                [:array, [:lasgn, :a], [:lasgn, :b]], nil, nil],
-              [:newline, 2, "(eval)", [:lit, 5]] ] ]
+    ruby = <<-EOC
+      for a, b in x do
+        5
+      end
+    EOC
+
+    sexp = s(:newline, 1, "(eval)",
+             s(:for, s(:vcall, :x),
+               s(:masgn,
+                 s(:array, s(:lasgn, :a), s(:lasgn, :b)), nil, nil),
+               s(:newline, 2, "(eval)", s(:lit, 5)) ) )
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen(sexp) do |g|
       iter = description do |d|
@@ -328,10 +422,18 @@ describe Compiler do
   end
 
   it "compiles a for loop with multiple arguments and an inner lasgn" do
-   sexp = [:newline, 1, "(eval)",
-            [:for, [:vcall, :x],
-              [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]], nil, nil],
-              [:newline, 2, "(eval)", [:lasgn, :z, [:lit, 5]]] ] ]
+    ruby = <<-EOC
+      for a, b in x do
+        z = 5
+      end
+    EOC
+
+    sexp = s(:newline, 1, "(eval)",
+             s(:for, s(:vcall, :x),
+               s(:masgn, s(:array, s(:lasgn, :a), s(:lasgn, :b)), nil, nil),
+               s(:newline, 2, "(eval)", s(:lasgn, :z, s(:lit, 5))) ) )
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen(sexp) do |g|
       iter = description do |d|
@@ -361,7 +463,14 @@ describe Compiler do
   end
 
   it "compiles a series of expressions" do
-    sexp = [:block, [:fixnum, 12], [:fixnum, 13], [:true]]
+    ruby = <<-EOC
+      12; 13; true
+    EOC
+
+    sexp = s(:block, s(:fixnum, 12), s(:fixnum, 13), s(:true))
+
+    # TODO: hrm... again I seem to be blowing away all the void stmts
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push 12
@@ -372,16 +481,28 @@ describe Compiler do
     end
   end
 
-  it "compiles a scope" do
-    sexp = [:scope, [:fixnum, 12], []]
+#   it "compiles a scope" do
+#     ruby = <<-EOC
+      
+#     EOC
 
-    gen sexp do |g|
-      g.push 12
-    end
-  end
+#     sexp = s(:scope, s(:fixnum, 12), s())
+
+#     sexp.should == parse(ruby) # if $unified && false
+
+#     gen sexp do |g|
+#       g.push 12
+#     end
+#   end
 
   it "compiles loop directly" do
-    sexp = [:iter, [:fcall, :loop], nil, [:fixnum, 12]]
+    ruby = <<-EOC
+      loop { 12 }
+    EOC
+
+    sexp = s(:iter, s(:fcall, :loop), nil, s(:fixnum, 12))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push_modifiers
@@ -398,7 +519,13 @@ describe Compiler do
   end
 
   it "compiles empty loop directly" do
-    sexp = [:iter, [:fcall, :loop], nil]
+    ruby = <<-EOC
+      loop {}
+    EOC
+
+    sexp = s(:iter, s(:fcall, :loop), nil)
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push_modifiers
@@ -412,7 +539,17 @@ describe Compiler do
   end
 
   it "compiles break in a control" do
-    sexp = [:while, [:true], [:block, [:fixnum, 12], [:break]], true]
+    ruby = <<-EOC
+      while true do
+        12
+        break
+      end
+    EOC
+
+    sexp = s(:while, s(:true), s(:block, s(:fixnum, 12), s(:break)), true)
+
+    # TODO: ditto
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push_modifiers
@@ -443,7 +580,19 @@ describe Compiler do
   end
 
   it "compiles break in a block" do
-    sexp = [:iter, [:fcall, :go], nil, [:block, [:fixnum, 12], [:break]]]
+    ruby = <<-EOC
+      go { 12; break }
+    EOC
+
+    sexp = s(:iter,
+             s(:fcall, :go),
+             nil,
+             s(:block,
+               s(:fixnum, 12),
+               s(:break)))
+
+    # TODO: same here, no 12
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       iter = description do |d|
@@ -474,7 +623,13 @@ describe Compiler do
   end
 
   it "compiles an unexpected break" do
-    sexp = [:break]
+    ruby = <<-EOC
+      break
+    EOC
+
+    sexp = s(:break)
+
+    sexp.should == parse(ruby) # if $unified && false
 
     gen sexp do |g|
       g.push :nil
@@ -485,7 +640,21 @@ describe Compiler do
   end
 
   it "compiles redo in a while" do
-    sexp = [:while, [:true], [:block, [:fixnum, 12], [:redo]], true]
+    ruby = <<-EOC
+      while true do
+        12
+        redo
+      end
+    EOC
+
+    sexp = s(:while,
+             s(:true),
+             s(:block,
+               s(:fixnum, 12),
+               s(:redo)),
+             true)
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push_modifiers
@@ -515,7 +684,22 @@ describe Compiler do
   end
 
   it "compiles redo in a block" do
-    sexp = [:iter, [:fcall, :go], nil, [:block, [:fixnum, 12], [:redo]]]
+    ruby = <<-EOC
+      go do
+        12
+        redo
+      end
+    EOC
+
+    sexp = s(:iter,
+             s(:fcall, :go),
+             nil,
+             s(:block,
+               s(:fixnum, 12),
+               s(:redo)))
+
+    # TODO: ruby_parser doesn't have the 12 in it... because of useless void?
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       iter = description do |d|
@@ -539,7 +723,13 @@ describe Compiler do
   end
 
   it "compiles an invalid redo" do
-    sexp = [:redo]
+    ruby = <<-EOC
+      redo
+    EOC
+
+    sexp = s(:redo)
+
+    sexp.should == parse(ruby) # if $unified && false
 
     gen sexp do |g|
       g.push :self
@@ -550,9 +740,17 @@ describe Compiler do
   end
 
   it "compiles a simple case" do
-    sexp = [:case, [:true],
-            [[:when, [:array, [:const, :Fixnum]],
-              [:fixnum, 12]]]]
+    ruby = <<-EOC
+      case true
+      when Fixnum then 12
+      end
+    EOC
+
+    sexp = s(:case, s(:true),
+             s(s(:when, s(:array, s(:const, :Fixnum)),
+                 s(:fixnum, 12))))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       nxt = g.new_label
@@ -579,9 +777,17 @@ describe Compiler do
   end
 
   it "compiles a case with multiple conditions" do
-    sexp = [:case, [:true],
-            [[:when, [:array, [:const, :Fixnum], [:const, :String]],
-              [:fixnum, 12]]]]
+    ruby = <<-EOC
+      case true
+      when Fixnum, String then 12
+      end
+    EOC
+
+    sexp = s(:case, s(:true),
+             s(s(:when, s(:array, s(:const, :Fixnum), s(:const, :String)),
+                 s(:fixnum, 12))))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       nxt  = g.new_label
@@ -617,11 +823,20 @@ describe Compiler do
   end
 
   it "compiles a case with multiple whens" do
-    sexp = [:case, [:true],
-            [[:when, [:array, [:const, :Fixnum]],
-              [:fixnum, 12]],
-             [:when, [:array, [:const, :String]],
-              [:fixnum, 13]]]]
+    ruby = <<-EOC
+      case true
+      when Fixnum then 12
+      when String then 13
+      end
+    EOC
+
+    sexp = s(:case, s(:true),
+             s(s(:when, s(:array, s(:const, :Fixnum)),
+                 s(:fixnum, 12)),
+               s(:when, s(:array, s(:const, :String)),
+                 s(:fixnum, 13))))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       nxt1 = g.new_label
@@ -662,10 +877,19 @@ describe Compiler do
   end
 
   it "compiles a case with an else" do
-    sexp = [:case, [:true],
-            [[:when, [:array, [:const, :Fixnum]],
-              [:fixnum, 12]]],
-            [:fixnum, 14]]
+    ruby = <<-EOC
+      case true
+      when Fixnum then 12
+      else 14
+      end
+    EOC
+
+    sexp = s(:case, s(:true),
+             s(s(:when, s(:array, s(:const, :Fixnum)),
+                 s(:fixnum, 12))),
+             s(:fixnum, 14))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       nxt = g.new_label
@@ -693,14 +917,25 @@ describe Compiler do
   end
 
   it "compiles a case without an argument" do
-    sexp = [:many_if,
-            [[[:array, [:false]],
-              [:str, "foo"]],
-             [[:array, [:nil]],
-              [:str, "foo"]],
-             [[:array, [:call, [:lit, 1], :==, [:array, [:lit, 2]]]],
-              [:str, "bar"]]],
-            [:str, "baz"]]
+    ruby = <<-EOC
+      case
+      when false  then "foo"
+      when nil    then "foo"
+      when 1 == 2 then "bar"
+                  else "baz"
+      end
+    EOC
+
+    sexp = s(:many_if,
+             s(s(s(:array, s(:false)),
+                 s(:str, "foo")),
+               s(s(:array, s(:nil)),
+                 s(:str, "foo")),
+               s(s(:array, s(:call, s(:lit, 1), :==, s(:array, s(:lit, 2)))),
+                 s(:str, "bar"))),
+             s(:str, "baz"))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       fin   = g.new_label
@@ -742,14 +977,25 @@ describe Compiler do
   end
 
   it "compiles a case without an argument, branch with multiple conds" do
-    sexp = [:many_if,
-            [[[:array, [:false]],
-              [:str, "foo"]],
-             [[:array, [:nil]],
-              [:str, "foo"]],
-             [[:array, [:call, [:lit, 1], :==, [:array, [:lit, 2]]],
-               [:lit, 13]], [:str, "bar"]]],
-            nil]
+    # TODO: again: huh? this whole example is borked
+    ruby = <<-EOC
+      case
+      when false      then "foo"
+      when nil        then "foo"
+      when 1 == 2, 13 then "bar"
+      end
+    EOC
+
+    sexp = s(:many_if,
+             s(s(s(:array, s(:false)),
+                 s(:str, "foo")),
+               s(s(:array, s(:nil)),
+                 s(:str, "foo")),
+               s(s(:array, s(:call, s(:lit, 1), :==, s(:array, s(:lit, 2))),
+                   s(:lit, 13)), s(:str, "bar"))),
+             nil)
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       fin =   g.new_label
@@ -797,9 +1043,18 @@ describe Compiler do
 
 
   it "compiles a case with a splat" do
-    sexp = [:case, [:true],
-            [[:when, [:array, [:when, [:vcall, :things], nil]],
-              [:fixnum, 12]]]]
+    ruby = <<-EOC
+      case true
+      when *things then
+        12
+      end
+    EOC
+
+    sexp = s(:case, s(:true),
+             s(s(:when, s(:array, s(:when, s(:vcall, :things), nil)),
+                 s(:fixnum, 12))))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       body = g.new_label
@@ -831,10 +1086,19 @@ describe Compiler do
   end
 
   it "compiles a case with normal conditions and a splat" do
-    sexp = [:case, [:true],
-            [[:when, [:array, [:const, :String],
-                      [:when, [:vcall, :things], nil]],
-              [:fixnum, 12]]]]
+    ruby = <<-EOC
+      case true
+      when String, *things then
+        12
+      end
+    EOC
+
+    sexp = s(:case, s(:true),
+             s(s(:when, s(:array, s(:const, :String),
+                          s(:when, s(:vcall, :things), nil)),
+                 s(:fixnum, 12))))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       body = g.new_label
@@ -871,20 +1135,24 @@ describe Compiler do
     end
   end
 
-  #   case true
-  #   when String, *["foo", "bar", "baz"] then
-  #     12
-  #   end
-
   it "compiles a case with normal conditions and a splatted array" do
-    sexp = [:case, [:true],
-            [[:when, [:array, [:const, :String],
-                      [:when,
-                       [:array,
-                        [:str, "foo"],
-                        [:str, "bar"],
-                        [:str, "baz"]], nil]],
-              [:fixnum, 12]]]]
+    ruby = <<-EOC
+      case true
+      when String, *%w(foo bar baz) then
+        12
+      end
+    EOC
+
+    sexp = s(:case, s(:true),
+             s(s(:when, s(:array, s(:const, :String),
+                          s(:when,
+                            s(:array,
+                              s(:str, "foo"),
+                              s(:str, "bar"),
+                              s(:str, "baz")), nil)),
+                 s(:fixnum, 12))))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       body = g.new_label
@@ -935,7 +1203,13 @@ describe Compiler do
   end
 
   it "compiles 'return'" do
-    sexp = [:return]
+    ruby = <<-EOC
+      return
+    EOC
+
+    sexp = s(:return)
+
+    sexp.should == parse(ruby) # if $unified && false
 
     gen sexp do |g|
       g.push :nil
@@ -944,7 +1218,13 @@ describe Compiler do
   end
 
   it "compiles 'return 12'" do
-    sexp = [:return, [:fixnum, 12]]
+    ruby = <<-EOC
+      return 12
+    EOC
+
+    sexp = s(:return, s(:fixnum, 12))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push 12
@@ -952,10 +1232,16 @@ describe Compiler do
     end
   end
 
-  it "compiles 'begin; 12; rescue; return 13; end'" do
-    sexp = [:rescue, [:fixnum, 12],
-            [:resbody, [:array, [:const, :String]],
-             [:return, [:fixnum, 13]], nil]]
+  it "compiles 'begin; 12; rescue String; return 13; end'" do
+    ruby = <<-EOC
+      begin; 12; rescue String; return 13; end
+    EOC
+
+    sexp = s(:rescue, s(:fixnum, 12),
+             s(:resbody, s(:array, s(:const, :String)), # HUH? FIX
+               s(:return, s(:fixnum, 13)), nil))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       exc_start  = g.new_label
@@ -1001,7 +1287,13 @@ describe Compiler do
   end
 
   it "compiles return in a block" do
-    sexp = [:iter, [:fcall, :go], nil, [:block, [:return, [:fixnum, 12]]]]
+    ruby = <<-EOC
+      go { return 12 }
+    EOC
+
+    sexp = s(:iter, s(:fcall, :go), nil, s(:block, s(:return, s(:fixnum, 12))))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       iter = description do |d|
@@ -1028,9 +1320,16 @@ describe Compiler do
   end
 
   it "compiles 'return 1, 2, *c'" do
-    sexp = [:return, [:argscat,
-                      [:array, [:fixnum, 1], [:fixnum, 2]],
-                      [:vcall, :c]]]
+    ruby = <<-EOC
+      return 1, 2, *c
+    EOC
+
+    sexp = s(:return,
+             s(:argscat,
+               s(:array, s(:fixnum, 1), s(:fixnum, 2)),
+               s(:vcall, :c)))
+
+    sexp.should == parse(ruby) if $unified && false
 
     gen sexp do |g|
       g.push 1
