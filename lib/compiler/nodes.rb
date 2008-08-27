@@ -1369,12 +1369,14 @@ class Compiler
         els = nil
         # Detect PT format
         if sexp[1][0] == :when
-          els = convert(sexp.pop)
           i = 1
           whens = []
           while sexp[i].kind_of? Array and sexp[i].first == :when
             whens << convert(sexp[i])
+            i += 1
           end
+
+          els = convert(sexp.last)
         else
           whens = sexp[1].map do |w|
             convert(w)

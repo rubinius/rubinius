@@ -115,6 +115,14 @@ namespace rubinius {
     String* rbx_version = String::create(state, "0.9.0");
     rubinius->set_const(state, "RBX_VERSION", rbx_version);
 
+    // HACK fill this in for real
+    rubinius->set_const(state, "BUILDREV",
+        String::create(state, "adabeefdeadbeefdecafbad"));
+
+    // HACK fill this in for real
+    G(object)->set_const(state, "RUBY_RELEASE_DATE",
+        String::create(state, "future"));
+
     if(isatty(fileno(stdin))) {
       rubinius->set_const(state, "Terminal", Qtrue);
     } else {
@@ -122,7 +130,7 @@ namespace rubinius {
     }
 
     // HACK no reason to set this in C++
-    String* ruby_platform = String::create(state, "");
+    String* ruby_platform = String::create(state, "future-tron-3000");
     GO(object).get()->set_const(state, "RUBY_PLATFORM", ruby_platform);
   }
 }
