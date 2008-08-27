@@ -34,11 +34,17 @@ Get to know your way around the place!
   the rest of the system. Any code that requires Rubinius' special
   abilities needs to be here too.
 
-* kernel/core/
+* kernel/common/
   Complete implementation of the core classes. Builds on and/or
   overrides bootstrap/. Theoretically this code should be portable
   so all Rubinius-dependent stuff such as primitives goes in
   bootstrap/ also.
+
+* kernel/delta/
+  Some methods have proto-implementations to enable loading
+  kernel/common. Redefine these methods in kernel/delta to provide
+  the complete implementation. Also the place to put any code that
+  needs to run after kernel/common has completed loading.
 
 * runtime/
   Contains run-time compiled files for Rubinius. You'll use these

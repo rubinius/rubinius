@@ -24,7 +24,7 @@ namespace rubinius {
     // Ruby.primitive :time_gettimeofday
     Time* gettimeofday(STATE);
 
-    // Ruby.primitive :time_witch
+    // Ruby.primitive :time_switch
     Time* time_switch(STATE, OBJECT gmt);
 
     class Info : public TypeInfo {

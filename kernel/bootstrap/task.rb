@@ -35,9 +35,13 @@ class Rubinius::Task
     Kernel.raise ArgumentError, "Unable to set '#{task.inspect}' as the current task"
   end
 
+  def call_object(obj, meth, ary)
+    Ruby.primitive :task_call_object
+    Kernel.raise PrimitiveFailure, "Unable to call into task"
+  end
+
   def associate(be)
-    Ruby.primitive :task_associate
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    call_object be, :call, []
   end
 
   def set_debugging(dc, cc)

@@ -20,6 +20,8 @@
 #include "builtin/list.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/methodtable.hpp"
+#include "builtin/memorypointer.hpp"
+#include "builtin/nativefunction.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/selector.hpp"
 #include "builtin/sendsite.hpp"
@@ -187,6 +189,8 @@ namespace rubinius {
     Task::init(this);
     Thread::init(this);
     AccessVariable::init(this);
+    MemoryPointer::init(this);
+    NativeFunction::init(this);
   }
 
   // TODO: document all the sections of bootstrap_ontology
@@ -204,6 +208,12 @@ namespace rubinius {
      * classes.
      */
 
+    /*
+     * Create our Rubinius module that we hang stuff off
+     */
+
+    GO(rubinius).set(new_module("Rubinius"));
+
     bootstrap_symbol();
     initialize_builtin_classes();
     bootstrap_exceptions();
@@ -216,13 +226,7 @@ namespace rubinius {
     GO(main).set(main);
     G(object)->set_const(this, "MAIN", main); // HACK test hooking up MAIN
 
-    /*
-     * Create our Rubinius module that we hang stuff off
-     */
-
-    Module* rbx = new_module("Rubinius");
-    GO(rubinius).set(rbx);
-    GO(vm).set(new_class_under("VM", rbx));
+    GO(vm).set(new_class_under("VM", G(rubinius)));
 
     /*
      * Setup the table we use to store ivars for immediates

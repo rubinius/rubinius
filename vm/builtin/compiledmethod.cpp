@@ -36,7 +36,7 @@ namespace rubinius {
     SET(cm, stack_size, Fixnum::from(stack_size));
     SET(cm, required_args, Fixnum::from(0));
     SET(cm, total_args, cm->required_args);
-    SET(cm, name, String::create(state, "__halt__")->to_sym(state));
+    SET(cm, name, state->symbol("__halt__"));
 
     SET(cm, iseq, InstructionSequence::create(state, 1));
     cm->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_halt));

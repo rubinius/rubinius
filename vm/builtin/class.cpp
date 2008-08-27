@@ -11,6 +11,23 @@
 
 namespace rubinius {
 
+  template <>
+    bool kind_of<Class>(OBJECT obj) {
+      return obj->obj_type == ClassType ||
+        obj->obj_type == MetaclassType ||
+        obj->obj_type == IncModType;
+    }
+
+  template <>
+    bool kind_of<Module>(OBJECT obj) {
+      return obj->reference_p() &&
+        (obj->obj_type == Module::type ||
+         obj->obj_type == Class::type ||
+         obj->obj_type == MetaClass::type ||
+         obj->obj_type == IncludedModule::type);
+    }
+
+
   Class* Class::create(STATE, Class* super) {
     Class* cls = (Class*)state->new_object(G(klass));
 

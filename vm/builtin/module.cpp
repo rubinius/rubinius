@@ -75,4 +75,11 @@ namespace rubinius {
   OBJECT Module::get_const(STATE, const char* sym) {
     return get_const(state, state->symbol(sym));
   }
+
+  void Module::Info::show(STATE, OBJECT self) {
+    Module* mod = as<Module>(self);
+    std::cout << "#<" << mod->name->c_str(state) << "(" <<
+      self->class_object(state)->name->c_str(state) << "):" <<
+      (void*)self << ">\n";
+  }
 }

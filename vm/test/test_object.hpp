@@ -19,6 +19,30 @@ class TestObject : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_kind_of() {
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    TS_ASSERT(kind_of<Object>(obj));
+    TS_ASSERT(kind_of<Object>(Fixnum::from(1)));
+    TS_ASSERT(kind_of<Object>(String::create(state, "blah")));
+  }
+
+  void test_instance_of() {
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    TS_ASSERT(instance_of<Object>(obj));
+    TS_ASSERT(!instance_of<Object>(Fixnum::from(1)));
+    TS_ASSERT(!instance_of<Object>(String::create(state, "blah")));
+  }
+
+  void test_as() {
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    TS_ASSERT_EQUALS(as<Object>(obj), obj);
+  }
+
+  void test_try_as() {
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    TS_ASSERT_EQUALS(try_as<Object>(obj), obj);
+  }
+
   void test_dup() {
     Tuple* tup = Tuple::create(state, 1);
     tup->put(state, 0, Qtrue);
@@ -71,8 +95,33 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_hash() {
-    TS_ASSERT(Fixnum::from(8)->hash(state) > 0);
-    TS_ASSERT(Fixnum::from(-8)->hash(state) > 0);
+    TS_ASSERT_EQUALS(Qnil->hash(state), Qnil->hash(state));
+    TS_ASSERT(Qnil->hash(state) > 0);
+
+    TS_ASSERT_EQUALS(Qtrue->hash(state), Qtrue->hash(state));
+    TS_ASSERT(Qtrue->hash(state) > 0);
+
+    TS_ASSERT_EQUALS(Qfalse->hash(state), Qfalse->hash(state));
+    TS_ASSERT(Qfalse->hash(state) > 0);
+
+    TS_ASSERT_EQUALS(Fixnum::from(1)->hash(state), Fixnum::from(1)->hash(state));
+    TS_ASSERT(Fixnum::from(1)->hash(state) > 0);
+
+    TS_ASSERT_EQUALS(Fixnum::from(-1)->hash(state), Fixnum::from(-1)->hash(state));
+    TS_ASSERT(Fixnum::from(-1)->hash(state) > 0);
+
+    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)13)->hash(state), Bignum::from(state, (native_int)13)->hash(state));
+    TS_ASSERT(Bignum::from(state, (native_int)13)->hash(state) > 0);
+
+    TS_ASSERT_EQUALS(Float::create(state, 15.0)->hash(state), Float::create(state, 15.0)->hash(state));
+    TS_ASSERT(Float::create(state, 15.0)->hash(state) > 0);
+
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    TS_ASSERT_EQUALS(obj->hash(state), obj->hash(state));
+    TS_ASSERT(obj->hash(state) > 0);
+
+    TS_ASSERT_EQUALS(String::create(state, "blah")->hash(state), String::create(state, "blah")->hash(state));
+    TS_ASSERT(String::create(state, "blah")->hash(state) > 0);
   }
 
   void test_metaclass() {
@@ -112,11 +161,41 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(obj->get_ivar(state, sym), Fixnum::from(5));
   }
 
+  void test_set_ivar_on_immediate() {
+    size_t size = COMPACTLOOKUPTABLE_SIZE / 2 + 2;
+    OBJECT obj = Fixnum::from(-10);
+    OBJECT sym;
+
+    for(size_t i = 0; i < size; i++) {
+      std::stringstream name;
+      name << "@test" << i;
+      sym = state->symbol(name.str().c_str());
+      obj->set_ivar(state, sym, Fixnum::from(i));
+    }
+
+    sym = state->symbol("@test5");
+    TS_ASSERT_EQUALS(obj->get_ivar(state, sym), Fixnum::from(5));
+  }
+
   void test_get_ivar() {
     OBJECT sym = state->symbol("@test");
     OBJECT val = Fixnum::from(33);
     OBJECT obj = state->om->new_object(G(object), Object::fields);
 
+    TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, state->symbol("@non_existent")));
+    TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, sym));
+
+    obj->set_ivar(state, sym, val);
+
+    TS_ASSERT_EQUALS(val, obj->get_ivar(state, sym));
+  }
+
+  void test_get_ivar_on_immediate() {
+    OBJECT sym = state->symbol("@test");
+    OBJECT val = Fixnum::from(33);
+    OBJECT obj = Fixnum::from(-10);
+
+    TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, state->symbol("@non_existent")));
     TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, sym));
 
     obj->set_ivar(state, sym, val);
@@ -223,5 +302,120 @@ class TestObject : public CxxTest::TestSuite {
 
   void test_symbol_class() {
     TS_ASSERT_EQUALS(state->symbol("blah")->class_object(state), G(symbol));
+  }
+
+  CompiledMethod* create_cm() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->iseq = InstructionSequence::create(state, 1);
+    cm->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    cm->stack_size = Fixnum::from(10);
+    cm->total_args = Fixnum::from(0);
+    cm->required_args = cm->total_args;
+
+    cm->formalize(state);
+
+    return cm;
+  }
+
+  void test_send_prim() {
+    CompiledMethod* cm = create_cm();
+    cm->required_args = Fixnum::from(2);
+    cm->total_args = cm->required_args;
+    cm->local_count = cm->required_args;
+    cm->stack_size =  cm->required_args;
+    cm->splat = Qnil;
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    Task* task = Task::create(state, 3);
+
+    task->push(state->symbol("blah"));
+    task->push(Fixnum::from(3));
+    task->push(Fixnum::from(4));
+
+    MethodContext* input_context = task->active;
+
+    Message msg(state);
+    msg.recv = Qtrue;
+    msg.lookup_from = G(true_class);
+    msg.name = state->symbol("__send__");
+    msg.send_site = SendSite::create(state, state->symbol("__send__"));
+    msg.use_from_task(task, 3);
+
+    Qtrue->send_prim(state, NULL, task, msg);
+
+    TS_ASSERT(task->active != input_context);
+    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
+    TS_ASSERT_EQUALS(task->active->cm, cm);
+    TS_ASSERT_EQUALS(task->active->name, state->symbol("blah"));
+  }
+
+  void test_send() {
+    CompiledMethod* cm = create_cm();
+    cm->required_args = Fixnum::from(2);
+    cm->total_args = cm->required_args;
+    cm->local_count = cm->required_args;
+    cm->stack_size =  cm->required_args;
+    cm->splat = Qnil;
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    Task* task = Task::create(state, 2);
+
+    state->globals.current_task.set(task);
+
+    MethodContext* input_context = task->active;
+
+    Qtrue->send(state, state->symbol("blah"), 2, Fixnum::from(3),
+          Fixnum::from(4));
+
+    TS_ASSERT(task->active != input_context);
+    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
+    TS_ASSERT_EQUALS(task->active->cm, cm);
+    TS_ASSERT_EQUALS(task->active->name, state->symbol("blah"));
+
+  }
+
+  void test_nil_p() {
+    TS_ASSERT(Qnil->nil_p());
+    TS_ASSERT(!Qundef->nil_p());
+    TS_ASSERT(!Qtrue->nil_p());
+    TS_ASSERT(!Qfalse->nil_p());
+  }
+
+  void test_undef_p() {
+    TS_ASSERT(!Qnil->undef_p());
+    TS_ASSERT(Qundef->undef_p());
+    TS_ASSERT(!Qtrue->undef_p());
+    TS_ASSERT(!Qfalse->undef_p());
+  }
+
+  void test_true_p() {
+    TS_ASSERT(!Qnil->true_p());
+    TS_ASSERT(!Qundef->true_p());
+    TS_ASSERT(Qtrue->true_p());
+    TS_ASSERT(!Qfalse->true_p());
+  }
+
+  void test_false_p() {
+    TS_ASSERT(!Qnil->false_p());
+    TS_ASSERT(!Qundef->false_p());
+    TS_ASSERT(!Qtrue->false_p());
+    TS_ASSERT(Qfalse->false_p());
+  }
+
+  void test_get_type() {
+    TS_ASSERT_EQUALS(Qnil->get_type(), NilType);
+    TS_ASSERT_EQUALS(Qtrue->get_type(), TrueType);
+    TS_ASSERT_EQUALS(Qfalse->get_type(), FalseType);
+    TS_ASSERT_EQUALS(state->symbol("blah")->get_type(), SymbolType);
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Bignum* big = Bignum::from(state, (native_int)13);
+    TS_ASSERT_EQUALS(obj->get_type(), ObjectType);
+    TS_ASSERT_EQUALS(big->get_type(), BignumType);
   }
 };

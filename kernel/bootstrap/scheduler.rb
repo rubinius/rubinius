@@ -67,7 +67,7 @@ class Scheduler
   # If an error occurs while reading in the 2nd mode, the value sent to the
   # channel is a SystemCallError representing the failure in read(2).
   #
-  # See IO#sysread in kernel/core/io.rb for a simple example.
+  # See IO#sysread in kernel/common/io.rb for a simple example.
 
   def self.send_on_readable(chan, io, buffer, nbytes)
     Ruby.primitive :channel_send_on_readable

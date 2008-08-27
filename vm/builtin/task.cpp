@@ -24,7 +24,8 @@
 namespace rubinius {
 
   void Task::init(STATE) {
-    GO(task).set(state->new_class("Task", G(object), Task::fields));
+    GO(task).set(state->new_class("Task", G(object), Task::fields, G(rubinius)));
+    SET(G(task), name, state->symbol("Rubinius::Task"));
     G(task)->set_object_type(Task::type);
 
     GO(channel).set(state->new_class("Channel", G(object), Channel::fields));
@@ -57,6 +58,10 @@ namespace rubinius {
 
     CompiledMethod* cm = CompiledMethod::generate_tramp(state, stack_size);
     MethodContext* ctx = MethodContext::create(state, G(main), cm);
+
+    // fully initialize this context
+    SET(ctx, name, state->symbol("__trampoline__"));
+    SET(ctx, block, Qnil);
 
     SET(task, active, ctx);
 
@@ -109,10 +114,10 @@ namespace rubinius {
     size_t fixed;
 
     ctx->block = msg.block;
-    ctx->args = msg.args;
+    ctx->args = msg.args();
 
     /* No input args and no expected args. Done. */
-    if(total == 0 && msg.args == 0) {
+    if(total == 0 && msg.args() == 0) {
       /* Even though there was nothing, if there was a splat, we need to fill
        * it in. */
       if(ctx->cm->splat != Qnil) {
@@ -123,26 +128,26 @@ namespace rubinius {
     }
 
     /* If too few args were passed in, throw an exception */
-    if(msg.args < required) {
-      throw ArgumentError(required, msg.args);
+    if(msg.args() < required) {
+      throw ArgumentError(required, msg.args());
     }
 
     /* If too many args were passed in, throw an exception.
      * If there is a splat, this check is disabled.
      */
-    if(ctx->cm->splat == Qnil && msg.args > total) {
-      throw ArgumentError(required, msg.args);
+    if(ctx->cm->splat == Qnil && msg.args() > total) {
+      throw ArgumentError(required, msg.args());
     }
 
     fixed = total;
-    if(msg.args < total) fixed = msg.args;
+    if(msg.args() < total) fixed = msg.args();
 
     for(size_t i = 0; i < fixed; i++) {
       ctx->set_local(i, msg.get_argument(i));
     }
 
     if(ctx->cm->splat != Qnil) {
-      size_t splat_size = msg.args - total;
+      size_t splat_size = msg.args() - total;
       Array* ary = Array::create(state, splat_size);
 
       for(size_t i = 0, n = total; i < splat_size; i++, n++) {
@@ -189,6 +194,7 @@ stack_cleanup:
     if(!res.resolve(state, msg)) {
       msg.unshift_argument(state, msg.name);
       msg.name = G(sym_method_missing);
+      msg.priv = true; // lets us look for method_missing anywhere
       if(!res.resolve(state, msg)) {
         tragic_failure(msg);
       }
@@ -199,6 +205,11 @@ stack_cleanup:
 
   bool Task::passed_arg_p(size_t pos) {
     return active->args >= pos;
+  }
+
+  OBJECT Task::call_object(STATE, OBJECT recv, SYMBOL meth, Array* args) {
+    recv->send_on_task(state, this, meth, args);
+    return Qtrue;
   }
 
   void Task::simple_return(OBJECT value) {
@@ -261,7 +272,7 @@ stack_cleanup:
     }
   }
 
-  Executable* Task::locate_method_on(OBJECT recv, SYMBOL sel, OBJECT priv_p) {
+  Tuple* Task::locate_method_on(OBJECT recv, SYMBOL sel, OBJECT priv_p) {
     Message msg(state);
 
     msg.recv = recv;
@@ -271,17 +282,17 @@ stack_cleanup:
 
     GlobalCacheResolver res;
     if(!res.resolve(state, msg)) {
-      return (Executable*)Qnil;
+      return (Tuple*)Qnil;
     }
 
     MethodVisibility *vis;
 
     vis = try_as<MethodVisibility>(msg.method);
     if(vis) {
-      return vis->method;
+      return Tuple::from(state, 2, msg.module, vis->method);
     }
 
-    return msg.method;
+    return Tuple::from(state, 2, msg.module, msg.method);
   }
 
   void Task::attach_method(OBJECT recv, SYMBOL name, CompiledMethod* method) {
@@ -321,7 +332,8 @@ stack_cleanup:
   }
 
   bool Task::check_serial(OBJECT obj, SYMBOL sel, int ser) {
-    Executable* x = locate_method_on(obj, sel, Qtrue);
+    Tuple* tup = locate_method_on(obj, sel, Qtrue);
+    Executable* x = as<Executable>(tup->at(1));
 
     /* If the method is absent, then indicate that the serial number
      * is correct. */

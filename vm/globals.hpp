@@ -26,12 +26,12 @@ namespace rubinius {
     /* classes for the core 'types' */
     TypedRoot<Class*> blokctx, cmethod, tuple, module, object, array;
     TypedRoot<Class*> klass, methtbl, bytearray, methctx, blank;
-    TypedRoot<Class*> blokenv, bignum, regexp, regexpdata, matchdata;
+    TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     TypedRoot<Class*> string, symbol, io, metaclass;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
     TypedRoot<Class*> floatpoint, fastctx, data, nmethod, nmc, task, list, list_node;
     TypedRoot<Class*> channel, thread, staticscope, send_site, selector, lookuptable;
-    TypedRoot<Class*> iseq, executable, ffi_ptr, ffi_func, iobuffer;
+    TypedRoot<Class*> iseq, executable, native_function, iobuffer;
     TypedRoot<Class*> cmethod_vis;
 
     /* the primary symbol table */
@@ -68,6 +68,7 @@ namespace rubinius {
     TypedRoot<Class*> time_class;
     TypedRoot<Class*> integer;
     TypedRoot<Class*> numeric;
+    TypedRoot<Class*> memory_pointer;
 
     /* Add new globals above this line. */
 
@@ -89,7 +90,6 @@ namespace rubinius {
       blokenv(&roots),
       bignum(&roots),
       regexp(&roots),
-      regexpdata(&roots),
       matchdata(&roots),
       string(&roots),
       symbol(&roots),
@@ -116,8 +116,7 @@ namespace rubinius {
       lookuptable(&roots),
       iseq(&roots),
       executable(&roots),
-      ffi_ptr(&roots),
-      ffi_func(&roots),
+      native_function(&roots),
       iobuffer(&roots),
       cmethod_vis(&roots),
       sym_method_missing(&roots),
@@ -167,7 +166,8 @@ namespace rubinius {
       rubinius(&roots),
       time_class(&roots),
       integer(&roots),
-      numeric(&roots)
+      numeric(&roots),
+      memory_pointer(&roots)
 
       /* Add initialize of globals above this line. */
     { }

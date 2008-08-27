@@ -12,6 +12,11 @@
 #define Increments 32
 
 namespace rubinius {
+  /* See Note(t1) in immediates.hpp */
+  template <>
+    bool kind_of<Symbol>(OBJECT obj) {
+      return obj->symbol_p();
+    }
 
   void Symbol::init(STATE) {
     GO(symbol).set(state->new_class("Symbol"));
@@ -31,6 +36,10 @@ namespace rubinius {
 
   String* Symbol::to_str(STATE) {
     return state->symbols.lookup_string(state, this);
+  }
+
+  const char* Symbol::c_str(STATE) {
+    return state->symbols.lookup_cstring(state, this);
   }
 
   Array* Symbol::all_symbols(STATE) {

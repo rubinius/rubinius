@@ -19,6 +19,21 @@ class TestInteger : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_kind_of_numeric() {
+    FIXNUM fix = Fixnum::from(13);
+    Bignum* big = Bignum::from(state, (native_int)14);
+    Float*  flt = Float::create(state, 15.0);
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
+
+    TS_ASSERT(kind_of<Numeric>(fix));
+    TS_ASSERT(kind_of<Numeric>(big));
+    TS_ASSERT(kind_of<Numeric>(flt));
+    TS_ASSERT(!kind_of<Numeric>(obj));
+    TS_ASSERT(!kind_of<Numeric>(Qtrue));
+    TS_ASSERT(!kind_of<Numeric>(Qfalse));
+    TS_ASSERT(!kind_of<Numeric>(Qnil));
+  }
+
   void test_from_native_int() {
     INTEGER obj = Integer::from(state, (native_int)13);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int) 13);

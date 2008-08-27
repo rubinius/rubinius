@@ -41,6 +41,8 @@ namespace rubinius {
 
     VMLLVMMethod::init("vm/instructions.bc");
     boot_threads();
+
+    VM::register_state(this);
   }
 
   VM::~VM() {
@@ -50,9 +52,19 @@ namespace rubinius {
     llvm_cleanup();
   }
 
+  // HACK so not thread safe or anything!
+  static VM* __state = NULL;
+
+  VM* VM::current_state() {
+    return __state;
+  }
+
+  void VM::register_state(VM *vm) {
+    __state = vm;
+  }
+
   void VM::boot_threads() {
     Thread* thr = Thread::create(this);
-    thr->boot_task(this);
 
     activate_thread(thr);
   }
@@ -121,7 +133,9 @@ namespace rubinius {
   }
 
   OBJECT VM::new_struct(Class* cls, size_t bytes) {
-    return om->new_object_bytes(cls, bytes);
+    Object* obj = om->new_object_bytes(cls, bytes);
+    obj->ivars = Qnil;
+    return obj;
   }
 
   void type_assert(OBJECT obj, object_type type, const char* reason) {
@@ -227,8 +241,17 @@ namespace rubinius {
       if(kind_of<BlockContext>(ctx)) {
         std::cout << "__block__";
       } else {
-        // HACK reports Object#[] instead of Hash::[], etc
-        std::cout << ctx->module->name->to_str(this)->byte_address() << "#";
+        if(MetaClass* meta = try_as<MetaClass>(ctx->module)) {
+          if(Module* mod = try_as<Module>(meta->attached_instance)) {
+            std::cout << mod->name->c_str(this) << ".";
+          } else {
+            std::cout << "#<" <<
+              meta->attached_instance->class_object(this)->name->c_str(this) <<
+              ":0x" << (void*)meta->attached_instance << ">.";
+          }
+        } else {
+          std::cout << ctx->module->name->to_str(this)->byte_address() << "#";
+        }
 
         SYMBOL name = try_as<Symbol>(ctx->name);
         if(name) {
@@ -253,8 +276,8 @@ namespace rubinius {
 
   /* For debugging. */
   extern "C" {
-    void __printbt__(STATE) {
-      state->print_backtrace();
+    void __printbt__() {
+      VM::current_state()->print_backtrace();
     }
   }
 };

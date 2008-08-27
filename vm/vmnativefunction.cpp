@@ -29,7 +29,7 @@ namespace rubinius {
   bool VMNativeFunction::executor(STATE, VMExecutable* meth, Task* task, Message& msg) {
     NativeFunction* nfunc = as<NativeFunction>(msg.method);
 
-    nfunc->call(state, &msg);
+    task->push(nfunc->call(state, &msg));
 
     return false;
   }

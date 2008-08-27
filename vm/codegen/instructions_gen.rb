@@ -11,7 +11,7 @@ class Object # for vm debugging
   def __show__; end
 end
 
-require "#{File.dirname(__FILE__)}/../../kernel/core/iseq"
+require "#{File.dirname(__FILE__)}/../../kernel/common/iseq"
 require 'rubygems'
 require 'parse_tree'
 
@@ -141,6 +141,7 @@ class Instructions
   # gathered from instructions.rb.
   #
   def generate_tests(fd)
+    missing = []
     pt = ParseTree.new(true)
 
     fd.puts <<-CODE
@@ -206,9 +207,14 @@ void #{meth}() {
 }
 
         EOF
+      else
+        missing.push "#{ins.opcode}"
       end
     end
     fd.puts "};"
+    if missing.any? then
+      $stderr.puts "WARN: Missing tests for instructions: #{missing.sort.join(', ')}"
+    end
   end
 
   # Generate a switch statement which, given +op+, sets +width+ to

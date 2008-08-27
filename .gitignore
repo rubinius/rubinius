@@ -39,7 +39,7 @@ runtime/pristine*
 scratch
 shotgun/lib/*.d
 shotgun/lib/subtend/*.d
-spec/ruby/1.8/core/dir/fixtures/mock
+spec/ruby
 stamp-h1
 stats
 tags

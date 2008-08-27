@@ -22,35 +22,26 @@ namespace rubinius {
 
   /* Given builtin-class +T+, return true if +obj+ is of class +T+ */
   template <class T>
-    static inline bool kind_of(OBJECT obj) {
+    bool kind_of(OBJECT obj) {
       if(obj->reference_p()) {
         return obj->obj_type == T::type;
       }
       return false;
     }
+
+  template <> bool kind_of<Object>(OBJECT obj);
 
   /* Another version of kind_of that shouldn't be specialized for subtype
    * compatibility. */
   template <class T>
-    static inline bool instance_of(OBJECT obj) {
+    bool instance_of(OBJECT obj) {
       if(obj->reference_p()) {
         return obj->obj_type == T::type;
       }
       return false;
     }
 
-  template <>
-    static inline bool kind_of<Object>(OBJECT obj) {
-      return true;
-    }
-
-  template <>
-    static inline bool kind_of<Class>(OBJECT obj) {
-      return obj->obj_type == ClassType || 
-        obj->obj_type == MetaclassType ||
-        obj->obj_type == IncModType;
-    }
-
+  template <> bool instance_of<Object>(OBJECT obj);
 
   /* Used when casting between object types.
    *
@@ -58,25 +49,26 @@ namespace rubinius {
    * +obj+ is not of type +T+, throw's a TypeError exception.
    * */
   template <class T>
-    static inline T* as(OBJECT obj) {
+    T* as(OBJECT obj) {
       /* The 'obj &&' gives us additional saftey, checking for
        * NULL objects. */
       if(!obj || !kind_of<T>(obj)) TypeError::raise(T::type, obj);
       return (T*)obj;
     }
 
-  template <>
-    static inline Object* as<Object>(OBJECT obj) { return obj; }
+  template <> Object* as<Object>(OBJECT obj);
 
   /* Similar to as<>, but returns NULL if the type is invalid. ONLY
    * use this when doing a conditional cast. */
   template <class T>
-    static inline T* try_as(OBJECT obj) {
+    T* try_as(OBJECT obj) {
       /* The 'obj &&' gives us additional saftey, checking for
        * NULL objects. */
       if(obj && kind_of<T>(obj)) return (T*)obj;
       return NULL;
     }
+
+  template <> Object* try_as<Object>(OBJECT obj);
 
   void type_assert(OBJECT obj, object_type type, const char* reason);
 #define sassert(cond) if(!(cond)) Assertion::raise(#cond)

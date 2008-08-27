@@ -61,6 +61,13 @@ extern "C" {
 #include "vm/builtin/nativefunction.hpp"
 
 namespace rubinius {
+
+  void NativeFunction::init(STATE) {
+    GO(native_function).set(state->new_class("NativeFunction", G(executable),
+          NativeFunction::fields));
+    G(native_function)->set_object_type(NativeFuncType);
+  }
+
   size_t NativeFunction::type_size(size_t type) {
     switch(type) {
       case RBX_FFI_TYPE_CHAR:
@@ -147,8 +154,8 @@ namespace rubinius {
   }
 
   NativeFunction* NativeFunction::create(STATE, OBJECT name, int args) {
-    NativeFunction* nf = (NativeFunction*)state->new_object(G(ffi_func));
-    SET(nf, primitive, state->symbol("nfunc_call"));
+    NativeFunction* nf = (NativeFunction*)state->new_object(G(native_function));
+    SET(nf, primitive, state->symbol("nativefunction_call"));
     SET(nf, required, Integer::from(state, args));
     SET(nf, serial, Fixnum::from(0));
     SET(nf, name,   name);
@@ -495,7 +502,7 @@ namespace rubinius {
           *tmp = NULL;
         } else {
           String *so = as<String>(obj);
-          *tmp = so->byte_address(state);
+          *tmp = so->c_str();
         }
         values[i] = tmp;
         break;

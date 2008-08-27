@@ -62,7 +62,7 @@ class MethodContext
   end
 
   def name
-    @name
+    @name or @cm.name
   end
 
   def method_module

@@ -56,6 +56,7 @@ namespace rubinius {
     AccessVariableType,
     TimeType        ,
 
+
     LastObjectType   // must remain at end
   } object_type;
 }

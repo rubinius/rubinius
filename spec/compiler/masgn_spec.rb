@@ -416,4 +416,29 @@ describe Compiler do
       g.push :true
     end
   end
+
+  it "compiles 'entry, hash, bin = hash_entry key'" do
+    sexp = [:masgn,
+            [:array, [:lasgn, :entry], [:lasgn, :hash], [:lasgn, :bin]],
+            [:to_ary, [:fcall, :hash_entry, [:array, [:vcall, :key]]]]]
+
+    gen(sexp) do |g|
+      g.push :self
+      g.push :self
+      g.send :key, 0, true
+      g.send :hash_entry, 1, true
+      g.cast_tuple
+      g.shift_tuple
+      g.set_local 0
+      g.pop
+      g.shift_tuple
+      g.set_local 1
+      g.pop
+      g.shift_tuple
+      g.set_local 2
+      g.pop
+      g.pop
+      g.push :true
+    end
+  end
 end

@@ -29,8 +29,15 @@ extern "C" {
 }
 
 namespace rubinius {
+
+  void MemoryPointer::init(STATE) {
+    GO(memory_pointer).set(state->new_class("MemoryPointer"));
+    G(memory_pointer)->set_object_type(MemPtrType);
+  }
+
   MemoryPointer* MemoryPointer::create(STATE, void* ptr) {
-    MemoryPointer* obj = (MemoryPointer*)state->new_struct(G(ffi_ptr), sizeof(MemoryPointer));
+    MemoryPointer* obj = (MemoryPointer*)state->new_struct(G(memory_pointer),
+        sizeof(MemoryPointer));
     obj->pointer = ptr;
     obj->autorelease = false;
     return obj;
@@ -308,7 +315,7 @@ namespace rubinius {
          * internal pointer to the string means that when the string
          * moves, the data will point at the wrong place. Probably need to
          * copy the string data instead */
-        result = str->byte_address(state);
+        result = str->c_str();
       }
       WRITE(char*, result);
       break;

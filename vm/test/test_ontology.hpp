@@ -188,4 +188,15 @@ class TestObjects : public CxxTest::TestSuite {
   void test_integer_class() {
     check_const(integer, "Integer");
   }
+
+  void test_memory_pointer() {
+    Class *cls;
+
+    cls = G(memory_pointer);
+
+    TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
+    TS_ASSERT_EQUALS(cls->superclass, G(object));
+    check_const(memory_pointer, "MemoryPointer");
+  }
+
 };

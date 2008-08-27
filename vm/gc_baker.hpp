@@ -121,6 +121,7 @@ namespace rubinius {
     void    clear_marks();
     OBJECT  next_object(OBJECT obj);
     void    find_lost_souls();
+    void    clean_weakrefs();
   };
 };
 

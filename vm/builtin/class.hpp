@@ -28,9 +28,9 @@ namespace rubinius {
     // Ruby.primitive :class_allocate
     OBJECT allocate(STATE);
 
-    class Info : public TypeInfo {
+    class Info : public Module::Info {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO(Module::Info)
     };
   };
 
@@ -43,20 +43,11 @@ namespace rubinius {
 
     static MetaClass* attach(STATE, OBJECT obj, OBJECT sup = NULL);
 
-    class Info : public TypeInfo {
+    class Info : public Class::Info {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO(Class::Info)
     };
   };
-
-  template <>
-    static bool kind_of<Module>(OBJECT obj) {
-      return obj->reference_p() &&
-        (obj->obj_type == Module::type ||
-         obj->obj_type == Class::type ||
-         obj->obj_type == MetaClass::type ||
-         obj->obj_type == IncludedModule::type);
-    }
 };
 
 #endif

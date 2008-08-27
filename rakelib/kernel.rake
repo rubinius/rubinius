@@ -130,7 +130,7 @@ namespace :kernel do
   end
 
   task :clean do
-    rm_rf %w[runtime/bootstrap runtime/platform runtime/core],
+    rm_rf %w[runtime/bootstrap runtime/platform runtime/common runtime/delta],
           :verbose => $verbose
 
     files_to_delete = []

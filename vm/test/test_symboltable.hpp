@@ -89,7 +89,7 @@ class TestSymbolTable : public CxxTest::TestSuite {
     Symbol* sym = symbols->lookup(state, "circle");
     String* str = symbols->lookup_string(state, sym);
 
-    TS_ASSERT(!strncmp("circle", str->byte_address(state), 6));
+    TS_ASSERT(!strncmp("circle", str->c_str(), 6));
   }
 
   void test_size() {

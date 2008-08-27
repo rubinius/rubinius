@@ -35,6 +35,9 @@ namespace rubinius {
     // Ruby.primitive :tuple_shifted
     Tuple* shifted(STATE, FIXNUM num);
 
+    // Ruby.primitive :tuple_create_weakref
+    static Tuple* create_weakref(STATE, OBJECT obj);
+
     void replace_with(STATE, Tuple* other, int start, int end);
 
     class Info : public TypeInfo {

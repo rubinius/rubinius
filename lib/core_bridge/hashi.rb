@@ -32,4 +32,4 @@ class Object
 end
 
 require 'kernel/bootstrap/array'
-require 'kernel/core/array'
+require 'kernel/common/array'

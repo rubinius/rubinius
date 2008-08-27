@@ -7,26 +7,6 @@ STDIN.setup
 STDERR.setup
 
 begin
-  Array.after_loaded
-  Module.after_loaded
-
-  Class.after_loaded
-  Hash.after_loaded
-  Kernel.after_loaded
-  Math.after_loaded
-  FileTest.after_loaded
-  Thread.after_loaded
-  Struct.after_loaded
-  Signal.after_loaded
-  ObjectSpace.after_loaded
-  IO.after_loaded
-  IO::BidirectionalPipe.after_loaded
-  Object.after_loaded
-  File.after_loaded
-  String.after_loaded
-
-  Ar.after_loaded
-
   ENV = EnvironmentVariables.new
 
   # define a global "start time" to use for process calculation

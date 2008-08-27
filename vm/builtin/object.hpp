@@ -9,6 +9,11 @@ namespace rubinius {
   class Integer;
   class String;
   class Module;
+  class VMExecutable;
+  class Task;
+  class Array;
+  class Message;
+  class TypeInfo;
 
   class Object : public ObjectHeader {
   public:
@@ -63,7 +68,11 @@ namespace rubinius {
     bool check_type(object_type type);
 
     // Safely return the object type, even if the receiver is an immediate
-    object_type type();
+    object_type get_type();
+
+    // Return the TypeInfo object used to reflect on an object of this
+    // type.
+    TypeInfo* type_info(STATE);
 
     // Ruby.primitive :object_tainted_p
     OBJECT tainted_p();
@@ -102,7 +111,7 @@ namespace rubinius {
     hashval hash(STATE);
 
     // Ruby.primitive :object_hash
-    FIXNUM hash_prim(STATE);
+    INTEGER hash_prim(STATE);
 
     Class* metaclass(STATE);
 
@@ -117,6 +126,16 @@ namespace rubinius {
 
     // Ruby.primitive :object_kind_of
     OBJECT kind_of_prim(STATE, Module* klass);
+
+    // Ruby.primitive? :object_send
+    bool send_prim(STATE, VMExecutable* exec, Task* task, Message& msg);
+
+    // Setup the current task to send the method +meth+ to +this+ with a
+    // variable number of arguments
+    bool send(STATE, SYMBOL meth, size_t args, ...);
+
+    // Setup +task+ to send the method +meth+ with +args+ to +this+
+    bool send_on_task(STATE, Task* task, SYMBOL name, Array* args);
 
     void copy_flags(STATE, OBJECT other);
     void copy_ivars(STATE, OBJECT other);

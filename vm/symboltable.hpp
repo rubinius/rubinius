@@ -37,6 +37,7 @@ namespace rubinius {
     SYMBOL lookup(STATE, const char* str);
     SYMBOL lookup(STATE, String* str);
     String* lookup_string(STATE, Symbol* sym);
+    const char* lookup_cstring(STATE, SYMBOL sym);
     size_t size();
     Array* all_as_array(STATE);
 

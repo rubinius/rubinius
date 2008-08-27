@@ -17,6 +17,7 @@ namespace rubinius {
 
   class MethodContext : public Object {
     public:
+    // fields is 0 because it is dynamically calculated
     const static size_t fields = 0;
     const static object_type type = MContextType;
 
@@ -50,7 +51,7 @@ namespace rubinius {
     void reference(STATE);
 
     // Ruby.primitive :context_get_field
-    OBJECT get_field(STATE, FIXNUM type);
+    OBJECT get_internal_data(STATE, FIXNUM type);
 
     /* Locals manipulation functions */
     /* Locals are just stored at the top of the stack. */
@@ -115,6 +116,7 @@ namespace rubinius {
 
   class BlockContext : public MethodContext {
     public:
+    // fields is 0 because it is dynamically calculated
     const static size_t fields = 0;
     const static object_type type = BContextType;
 
@@ -128,11 +130,6 @@ namespace rubinius {
     };
   };
 
-  template <>
-    static bool kind_of<MethodContext>(OBJECT obj) {
-      return obj->obj_type == MethodContext::type ||
-        obj->obj_type == BlockContext::type;
-    }
 
 }
 

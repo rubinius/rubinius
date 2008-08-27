@@ -44,7 +44,7 @@ module FFI
     end
 
     def create_backend(library, name, args, ret)
-      Ruby.primitive :nfunc_add
+      Ruby.primitive :nativefunction_bind
       raise NotFoundError.new(name, library) 
     end
 
@@ -252,25 +252,6 @@ class Module
     return func
   end
 
-  # Replaces the version above once Core has loaded.
-  def attach_function_cv(name, a3, a4, a5=nil)
-    if a5
-      mname = a3
-      args = a4
-      ret = a5
-    else
-      mname = name.to_sym
-      args = a3
-      ret = a4
-    end
-
-    func = FFI.create_function @ffi_lib, name, args, ret
-
-    raise FFI::NotFoundError.new(name, @ffi_lib) unless func
-
-    metaclass.method_table[mname] = func
-    return func
-  end
 end
 
 ##
@@ -646,7 +627,7 @@ class NativeFunction
 
   # The *args means the primitive handles it own argument count checks.
   def call(*args)
-    Ruby.primitive :nfunc_call_object
+    Ruby.primitive :nativefunction_call_object
   end
 
   ##

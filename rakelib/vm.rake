@@ -187,7 +187,7 @@ files EXTERNALS do |t|
 end
 
 file 'vm/primitives.o'               => 'vm/codegen/field_extract.rb'
-file 'vm/codegen/instructions_gen.rb'        => 'kernel/core/iseq.rb'
+file 'vm/codegen/instructions_gen.rb'        => 'kernel/common/iseq.rb'
 file 'vm/instructions.rb'            => 'vm/gen'
 file 'vm/instructions.rb'            => 'vm/codegen/instructions_gen.rb'
 file 'vm/test/test_instructions.hpp' => 'vm/codegen/instructions_gen.rb'
@@ -209,7 +209,9 @@ end
 file 'vm/gen/primitives_glue.gen.cpp' => hdrs
 
 file 'vm/test/runner.cpp' => tests + objs do
-  tests = tests.sort + [{ :verbose => true }]
+  tests = tests.sort
+  puts "GEN vm/test/runner.cpp" unless $verbose
+  tests << { :verbose => $verbose }
   sh("vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
      "--abort-on-fail", "-o", "vm/test/runner.cpp", *tests)
 end
@@ -310,14 +312,14 @@ namespace :vm do
 
   desc "Show which primitives are missing"
   task :missing_primitives do
-    cpp_primitives = `grep 'Ruby.primitive' vm/builtin/*.hpp | awk '{ print $4 }'`
+    kernel_files = FileList['kernel/**/*.rb'].join " "
+    kernel_primitives = `grep 'Ruby.primitive' #{kernel_files} | awk '{ print $3 }'`
+    kernel_primitives = kernel_primitives.gsub(':', '').split("\n").sort.uniq
 
+    cpp_primitives = `grep 'Ruby.primitive' vm/builtin/*.hpp | awk '{ print $4 }'`
     cpp_primitives = cpp_primitives.gsub(':', '').split("\n").sort.uniq
 
-    shotgun_primitives = File.read('vm/shotgun_primitives.txt')
-    shotgun_primitives = shotgun_primitives.split("\n").sort.uniq
-
-    missing = shotgun_primitives - cpp_primitives
+    missing = kernel_primitives - cpp_primitives
 
     puts missing.join("\n")
   end
@@ -354,7 +356,7 @@ import dep_file
 def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then
     $ex_libs = EXTERNALS + [ "-ldl" ]
-    $ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
+    $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
 
     llvm_libfiles = `#{LLVM_CONFIG} --libfiles all`.split(/\s+/)
     llvm_libfiles = llvm_libfiles.select { |f| File.file? f }

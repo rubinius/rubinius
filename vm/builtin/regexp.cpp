@@ -1,3 +1,5 @@
+#include "oniguruma.h" // Must be first.
+
 #include "builtin/regexp.hpp"
 #include "builtin/class.hpp"
 #include "builtin/integer.hpp"
@@ -8,7 +10,6 @@
 
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "oniguruma.h"
 
 #define OPTION_IGNORECASE ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED   ONIG_OPTION_EXTEND
@@ -32,23 +33,16 @@
 
 namespace rubinius {
 
-  void RegexpData::Info::cleanup(OBJECT data) {
-    onig_free(REG(data));
+  void Regexp::Info::cleanup(OBJECT regexp) {
+    onig_free(as<Regexp>(regexp)->onig_data);
   }
-
-  void RegexpData::Info::mark(STATE, OBJECT t, ObjectMark& mark) { }
 
   void Regexp::init(STATE) {
     onig_init();
     GO(regexp).set(state->new_class("Regexp", G(object), 0));
     G(regexp)->set_object_type(RegexpType);
 
-    GO(regexpdata).set(state->new_class("RegexpData", G(object), 0));
-    G(regexpdata)->set_object_type(RegexpDataType);
-
     GO(matchdata).set(state->new_class("MatchData", G(object), 0));
-
-    state->add_type_info(new RegexpData::Info(RegexpData::type));
   }
 
   char *Regexp::version(STATE) {
@@ -108,32 +102,23 @@ namespace rubinius {
   }
 
   Regexp* Regexp::create(STATE, String* pattern, INTEGER options, char *err_buf) {
-    regex_t **reg;
     const UChar *pat;
     const UChar *end;
-    OBJECT o_regdata;
     OnigErrorInfo err_info;
     OnigOptionType opts;
     OnigEncoding enc;
     int err, num_names, kcode;
 
-    pat = (UChar*)pattern->byte_address(state);
+    pat = (UChar*)pattern->c_str();
     end = pat + pattern->size();
-
-    /* Ug. What I hate about the onig API is that there is no way
-       to define how to allocate the reg, onig_new does it for you.
-       regex_t is a typedef for a pointer of the internal type.
-       So for the time being a regexp object will just store the
-       pointer to the real regex structure. */
-
-    NEW_STRUCT(o_regdata, reg, BASIC_CLASS(regexpdata), regex_t*);
 
     opts  = options->to_native();
     kcode = opts & KCODE_MASK;
     enc   = get_enc_from_kcode(kcode);
     opts &= OPTION_MASK;
 
-    err = onig_new(reg, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info); 
+    Regexp* o_reg = (Regexp*)state->om->new_object(G(regexp), Regexp::fields);
+    err = onig_new(&o_reg->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info); 
 
     if(err != ONIG_NORMAL) {
       UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
@@ -142,11 +127,9 @@ namespace rubinius {
       return (Regexp*)Qnil;
     }
 
-    Regexp* o_reg = (Regexp*)state->om->new_object(G(regexp), Regexp::fields);
     SET(o_reg, source, pattern);
-    SET(o_reg, data, o_regdata);
-    
-    num_names = onig_number_of_names(*reg);
+
+    num_names = onig_number_of_names(o_reg->onig_data);
     if(num_names == 0) {
       SET(o_reg, names, Qnil);
     } else {
@@ -154,7 +137,7 @@ namespace rubinius {
       gd.state = state;
       LookupTable* tbl = LookupTable::create(state);
       gd.tbl = tbl;
-      onig_foreach_name(*reg, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
+      onig_foreach_name(o_reg->onig_data, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
       SET(o_reg, names, tbl);
     }
 
@@ -173,7 +156,7 @@ namespace rubinius {
     OnigOptionType option;
     regex_t*       reg;
 
-    reg    = REG(data);
+    reg    = onig_data;
     option = onig_get_options(reg);
     enc    = onig_get_encoding(reg);
 
@@ -215,12 +198,12 @@ namespace rubinius {
     region = onig_region_new();
 
     max = string->size();
-    str = (UChar*)string->byte_address(state);
+    str = (UChar*)string->c_str();
 
     if(!RTEST(forward)) {
-      beg = onig_search(REG(data), str, str + max, str + end->to_native(), str + start->to_native(), region, ONIG_OPTION_NONE);  
+      beg = onig_search(onig_data, str, str + max, str + end->to_native(), str + start->to_native(), region, ONIG_OPTION_NONE);
     } else {
-      beg = onig_search(REG(data), str, str + max, str + start->to_native(), str + end->to_native(), region, ONIG_OPTION_NONE);
+      beg = onig_search(onig_data, str, str + max, str + start->to_native(), str + end->to_native(), region, ONIG_OPTION_NONE);
     }
 
     if(beg == ONIG_MISMATCH) {
@@ -242,9 +225,9 @@ namespace rubinius {
     region = onig_region_new();
 
     max = string->size();
-    str = (UChar*)string->byte_address(state);
+    str = (UChar*)string->c_str();
 
-    beg = onig_match(REG(data), str, str + max, str + start->to_native(), region,
+    beg = onig_match(onig_data, str, str + max, str + start->to_native(), region,
                      ONIG_OPTION_NONE);
 
     if(beg != ONIG_MISMATCH) {

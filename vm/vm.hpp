@@ -57,6 +57,12 @@ namespace rubinius {
     VM(size_t bytes = default_bytes);
     ~VM();
 
+    // Returns the current VM state object.
+    static VM* current_state();
+
+    // Registers a VM* object as the current state.
+    static void register_state(VM*);
+
     void bootstrap_class();
     void bootstrap_ontology();
     void bootstrap_symbol();
@@ -85,7 +91,7 @@ namespace rubinius {
     Class* new_class(const char* name, Class* sup, size_t fields, Module* under);
 
     // Create a Class of name +name+ under +under+
-    Class* VM::new_class_under(const char* name, Module* under);
+    Class* new_class_under(const char* name, Module* under);
 
     Module* new_module(const char* name, Module* under = NULL);
     OBJECT new_struct(Class* cls, size_t bytes);

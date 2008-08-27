@@ -71,6 +71,9 @@ namespace rubinius {
     // Ruby.primitive :task_current_context
     MethodContext* current_context(STATE);
 
+    // Ruby.primitive :task_call_object
+    OBJECT call_object(STATE, OBJECT recv, SYMBOL meth, Array* args);
+
     void restore_context(MethodContext* ctx);
     void make_active(MethodContext* ctx);
     void execute();
@@ -104,7 +107,7 @@ namespace rubinius {
     bool send_message_slowly(Message& msg);
     Module* current_module();
 
-    Executable* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
+    Tuple* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
     void simple_return(OBJECT val);
     void primitive_return(OBJECT val, Message& msg);
     void yield_debugger();

@@ -18,6 +18,12 @@ class TestString : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_allocate() {
+    str = String::allocate(state, Fixnum::from(4));
+    TS_ASSERT_EQUALS(str->size(), 4U);
+    TS_ASSERT_EQUALS(str->data->size(), 8U);
+  }
+
   void test_create() {
     str = String::create(state, "blah");
     TS_ASSERT_EQUALS(str->size(), 4U);
@@ -43,6 +49,11 @@ class TestString : public CxxTest::TestSuite {
     hashval again = str->hash_string(state);
 
     TS_ASSERT_EQUALS(hash, again);
+
+    String* another_str = String::create(state, "blah");
+    hashval another_hash = another_str->hash_string(state);
+
+    TS_ASSERT_EQUALS(hash, another_hash);
   }
 
   void test_to_sym() {
@@ -75,10 +86,10 @@ class TestString : public CxxTest::TestSuite {
   void test_append() {
     str = String::create(state, "first");
     str->hash_string(state);
-    TS_ASSERT(str->hash != Qnil);
+    TS_ASSERT(str->hash_value != Qnil);
 
     str->append(state, String::create(state, " second"));
-    TS_ASSERT_EQUALS(str->hash, Qnil);
+    TS_ASSERT_EQUALS(str->hash_value, Qnil);
 
     TS_ASSERT_EQUALS(str->size(), 12U);
     TS_ASSERT_SAME_DATA("first second", str->byte_address(), 13);
@@ -310,9 +321,20 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT_SAME_DATA(s->data->bytes, "abcabcabca", 10);
   }
 
-  void test_pattern_throws_if_not_character_or_string() {
-    FIXNUM ten = Fixnum::from(10);
-    Tuple* tup = Tuple::create(state, 1);
-    TS_ASSERT_THROWS(String::pattern(state, G(string), ten, tup), const PrimitiveFailed &);
+  void test_crypt() {
+    String* str = String::create(state, "nutmeg");
+    String* salt = String::create(state, "Mi");
+    TS_ASSERT_SAME_DATA(str->crypt(state, salt)->byte_address(), "MiqkFWCm1fNJI", 14);
+  }
+
+  void test_c_str() {
+    String* str = String::create(state, "blah");
+    TS_ASSERT(str->data->size() > 4);
+    TS_ASSERT_EQUALS(str->byte_address()[4], 0);
+    TS_ASSERT_EQUALS(str->c_str()[4], 0);
+    str->byte_address()[4] = '!';
+
+    TS_ASSERT_EQUALS(str->c_str()[4], 0);
+
   }
 };

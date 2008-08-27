@@ -15,7 +15,7 @@ namespace rubinius {
   // TODO: double check that this links. Evan says it doesn't. I'll
   // check my Meiers books when I get home
   template <>
-  static bool kind_of<Numeric>(OBJECT obj) {
+  bool kind_of<Numeric>(OBJECT obj) {
     return obj->fixnum_p() ||
       (obj->reference_p() && (obj->obj_type == Bignum::type ||
                               obj->obj_type == Float::type));

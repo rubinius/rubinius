@@ -40,9 +40,9 @@ namespace rubinius {
 
   void BlockEnvironment::call(STATE, Task* task, Message& msg) {
     OBJECT val;
-    if(msg.args > 0) {
-      Tuple* tup = Tuple::create(state, msg.args);
-      for(int i = msg.args - 1; i >= 0; i--) {
+    if(msg.args() > 0) {
+      Tuple* tup = Tuple::create(state, msg.args());
+      for(int i = msg.args() - 1; i >= 0; i--) {
         tup->put(state, i, msg.get_argument(i));
       }
 

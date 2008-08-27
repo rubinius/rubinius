@@ -9,6 +9,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
 #include "builtin/selector.hpp"
+#include "builtin/task.hpp"
 #include "objectmemory.hpp"
 #include "global_cache.hpp"
 #include "config.hpp"
@@ -16,6 +17,22 @@
 #include <cstring>
 
 namespace rubinius {
+
+  template <>
+    bool kind_of<Object>(OBJECT obj) {
+      return true;
+    }
+
+  template <>
+    bool instance_of<Object>(OBJECT obj) {
+      return obj->get_type() == ObjectType;
+    }
+
+  template <>
+    Object* as<Object>(OBJECT obj) { return obj; }
+
+  template <>
+    Object* try_as<Object>(OBJECT obj) { return obj; }
 
   bool Object::fixnum_p() {
     return FIXNUM_P(this);
@@ -127,7 +144,7 @@ namespace rubinius {
   }
 
   // Safely return the object type, even if the receiver is an immediate
-  object_type Object::type() {
+  object_type Object::get_type() {
     if(reference_p()) return obj_type;
     if(fixnum_p()) return FixnumType;
     if(symbol_p()) return SymbolType;
@@ -135,6 +152,10 @@ namespace rubinius {
     if(true_p()) return TrueType;
     if(false_p()) return FalseType;
     return ObjectType;
+  }
+
+  TypeInfo* Object::type_info(STATE) {
+    return state->om->type_info[get_type()];
   }
 
   OBJECT Object::tainted_p() {
@@ -355,8 +376,8 @@ namespace rubinius {
     return hsh;
   }
 
-  FIXNUM Object::hash_prim(STATE) {
-    return Fixnum::from(hash(state));
+  INTEGER Object::hash_prim(STATE) {
+    return Integer::from(state, hash(state));
   }
 
   INTEGER Object::id(STATE) {
@@ -457,6 +478,38 @@ namespace rubinius {
     return val;
   }
 
+  bool Object::send_prim(STATE, VMExecutable* exec, Task* task, Message& msg) {
+    SYMBOL meth = as<Symbol>(msg.shift_argument(state));
+    msg.name = meth;
+    return task->send_message_slowly(msg);
+  }
+
+  bool Object::send(STATE, SYMBOL name, size_t count_args, ...) {
+    va_list va;
+    Array* args = Array::create(state, count_args);
+
+    // Use the va_* macros to iterate over the variable number of
+    // arguments passed in.
+    va_start(va, count_args);
+    for(size_t i = 0; i < count_args; i++) {
+      args->set(state, i, va_arg(va, OBJECT));
+    }
+    va_end(va);
+
+    return send_on_task(state, G(current_task), name, args);
+  }
+
+  bool Object::send_on_task(STATE, Task* task, SYMBOL name, Array* args) {
+    Message msg(state);
+    msg.name = name;
+    msg.recv = this;
+    msg.lookup_from = this->lookup_begin(state);
+
+    msg.set_arguments(state, args);
+
+    return task->send_message_slowly(msg);
+  }
+
   void inspect(STATE, OBJECT obj) {
     String* name = obj->class_object(state)->name->to_str(state);
     std::cout << "#<" << name->byte_address() << ":" << (void*)obj << ">\n";
@@ -468,7 +521,7 @@ namespace rubinius {
   }
 
   void Object::cleanup(STATE) {
-    state->om->find_type_info(this)->cleanup(this);
+    type_info(state)->cleanup(this);
   }
 
   void Object::copy_flags(STATE, OBJECT source) {
@@ -482,21 +535,21 @@ namespace rubinius {
   // 'virtual' methods. They dispatch to the object's TypeInfo
   // object to perform the work.
   OBJECT Object::get_field(STATE, size_t index) {
-    return state->om->type_info[type()]->get_field(state, this, index);
+    return type_info(state)->get_field(state, this, index);
   }
 
   void Object::set_field(STATE, size_t index, OBJECT val) {
-    state->om->type_info[type()]->set_field(state, this, index, val);
+    type_info(state)->set_field(state, this, index, val);
   }
 
   OBJECT Object::show(STATE) {
-    state->om->type_info[type()]->show(state, this);
+    type_info(state)->show(state, this);
     return Qnil;
   }
 
   /* VM level primitives. This is a silly place, I know. */
   OBJECT Object::vm_get_config_item(STATE, String* var) {
-    ConfigParser::Entry* ent = state->user_config->find(var->byte_address());
+    ConfigParser::Entry* ent = state->user_config->find(var->c_str());
     if(!ent) return Qnil;
 
     if(ent->is_number()) {

@@ -33,7 +33,7 @@ namespace rubinius {
 
     /* The writer case. */
     if(access->write->true_p()) {
-      if(msg.args != 1) {
+      if(msg.args() != 1) {
         assert(0 && "implement raise exception");
       }
       /* We might be trying to access a field, so check there first. */
@@ -54,7 +54,7 @@ namespace rubinius {
     }
 
     /* The read case. */
-    if(msg.args != 0) {
+    if(msg.args() != 0) {
       assert(0 && "implement raise exception");
     } else {
       /* We might be trying to access a field, so check there first. */

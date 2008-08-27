@@ -4,6 +4,7 @@
 #include <iostream>
 #include <execinfo.h>
 #include <cxxabi.h>
+#include <cassert>
 
 namespace rubinius {
 

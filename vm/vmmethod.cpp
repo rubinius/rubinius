@@ -96,10 +96,13 @@ namespace rubinius {
     /* The context returned by ::create has Object as its module, so we
      * need to set it to the module of the actual Message we are sending.
      */
+
+    // HACK todo remove this check once we're sure that it's always being set
     if(!msg.module) {
       Assertion::raise("Message passed to executor did not have a module set");
     }
     SET(ctx, module, msg.module);
+    SET(ctx, name, msg.name);
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);

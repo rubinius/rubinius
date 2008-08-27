@@ -44,6 +44,18 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<Task>(task));
   }
 
+  void test_create_trampoline() {
+    Task* task = Task::create(state);
+
+    TS_ASSERT_EQUALS(task->active->name, state->symbol("__trampoline__"));
+    TS_ASSERT_EQUALS(task->active->block, Qnil);
+    TS_ASSERT_EQUALS(task->active->sender, Qnil);
+    TS_ASSERT(kind_of<MethodContext>(task->active->home));
+    TS_ASSERT(kind_of<Object>(task->active->self));
+    TS_ASSERT(kind_of<CompiledMethod>(task->active->cm));
+    TS_ASSERT(kind_of<Module>(task->active->module));
+  }
+
   void test_current() {
     Task* task = Task::current(state);
 
@@ -83,7 +95,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.args = 0;
+    msg.set_args(0);
 
     MethodContext* cur = task->active;
 
@@ -108,7 +120,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = (SendSite*)Qnil;
-    msg.args = 0;
+    msg.set_args(0);
 
     MethodContext* cur = task->active;
 
@@ -384,7 +396,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.args = 0;
+    msg.set_args(0);
 
     MethodContext* before = task->active;
 
@@ -405,9 +417,10 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Executable* x = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
+    Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
-    TS_ASSERT_EQUALS(x, cm);
+    TS_ASSERT_EQUALS(G(true_class), tup->at(0));
+    TS_ASSERT_EQUALS(cm,            tup->at(1));
   }
 
   void test_locate_method_on_private() {
@@ -422,9 +435,9 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), vis);
 
-    Executable* x = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
+    Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
-    TS_ASSERT_EQUALS(x, Qnil);
+    TS_ASSERT_EQUALS(Qnil, tup);
   }
 
   void test_locate_method_on_protected() {
@@ -439,9 +452,9 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), vis);
 
-    Executable* x = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
+    Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
-    TS_ASSERT_EQUALS(x, Qnil);
+    TS_ASSERT_EQUALS(Qnil, tup);
   }
 
   void test_locate_method_on_private_private_send() {
@@ -456,9 +469,10 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), vis);
 
-    Executable* x = task->locate_method_on(Qtrue, state->symbol("blah"), Qtrue);
+    Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qtrue);
 
-    TS_ASSERT_EQUALS(x, cm);
+    TS_ASSERT_EQUALS(G(true_class), tup->at(0));
+    TS_ASSERT_EQUALS(cm, tup->at(1));
   }
 
   void test_attach_method() {
@@ -796,7 +810,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.args = 0;
+    msg.set_args(0);
 
     task->send_message(msg);
     TS_ASSERT(task->active != top);
@@ -833,7 +847,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("blah");
     msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.args = 0;
+    msg.set_args(0);
 
     task->send_message(msg);
     TS_ASSERT(task->active != top);
@@ -889,4 +903,24 @@ class TestTask : public CxxTest::TestSuite {
     task->restore_context(task->active);
     TS_ASSERT(!task->active->Remember);
   }
+
+  void test_call_object() {
+    CompiledMethod* cm = create_cm();
+    Task* task = Task::create(state);
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    MethodContext* cur = task->active;
+
+    task->call_object(state, Qtrue, state->symbol("blah"),
+        Array::create(state, 0));
+
+    TS_ASSERT(cur != task->active);
+
+    MethodContext* ncur = task->active;
+
+    TS_ASSERT_EQUALS(ncur->self, Qtrue);
+    TS_ASSERT_EQUALS(ncur->sender, cur);
+  }
+
 };

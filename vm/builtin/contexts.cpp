@@ -10,6 +10,12 @@
 
 namespace rubinius {
 
+  template <>
+    bool kind_of<MethodContext>(OBJECT obj) {
+      return obj->obj_type == MethodContext::type ||
+        obj->obj_type == BlockContext::type;
+    }
+
   void MethodContext::init(STATE) {
     GO(methctx).set(state->new_class("MethodContext", G(object)));
     G(methctx)->set_object_type(MContextType);
@@ -175,12 +181,13 @@ initialize:
 
   /* Retrieve a field within the context, referenced by name. This
    * is used as a primitive. */
-  OBJECT MethodContext::get_field(STATE, FIXNUM type) {
+  OBJECT MethodContext::get_internal_data(STATE, FIXNUM type) {
     switch(type->to_native()) {
     case 1:
       return Fixnum::from(ip);
     }
 
+    sassert(0 && "invalid index");
     return Qnil;
   }
 

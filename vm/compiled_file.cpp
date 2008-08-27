@@ -37,9 +37,11 @@ namespace rubinius {
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
     Message msg(state);
-    msg.args = 0;
+    msg.total_args = 0;
     msg.recv = G(main);
+    msg.name = cm->name;
     msg.module = G(object);
+    msg.name = cm->name;
 
     SET(cm.get(), scope, StaticScope::create(state));
     SET(cm.get()->scope, module, G(object));

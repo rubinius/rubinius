@@ -27,14 +27,6 @@
 namespace rubinius {
 
   void VM::init_ffi() {
-    Class* ptr = new_class("MemoryPointer", globals.bytearray.get(), 0);
-    ptr->set_object_type(MemPtrType);
-    globals.ffi_ptr.set(ptr);
-
-    globals.ffi_func.set(new_class("NativeFunction", globals.executable.get(),
-          NativeFunction::fields));
-    globals.ffi_func->set_object_type(NativeFuncType);
-
     Module* mod = new_module("FFI");
     mod->set_const(this, "TYPE_OBJECT",     Fixnum::from(RBX_FFI_TYPE_OBJECT));
     mod->set_const(this, "TYPE_CHAR",       Fixnum::from(RBX_FFI_TYPE_CHAR));
