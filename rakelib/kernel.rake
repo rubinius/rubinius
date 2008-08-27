@@ -160,7 +160,7 @@ namespace :kernel do
 
         if depends =~ /^# depends on: (.*)/ then
           $1.split.each do |depend|
-            graph[file] << depend
+            graph[file] << File.join('kernel', path, depend)
           end
         else
           graph[file] << 'Nothing'
