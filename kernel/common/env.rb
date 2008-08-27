@@ -143,7 +143,21 @@ class EnvironmentVariables
   end
 
   def to_hash
-    raise NotImplementedError, "Needs to read environ"
+    environ = EnvironmentVariables.environ
+    environ.type_size = 4 # HACK no mapping from uintptr_t to 4 bytes
+
+    i = 0
+
+    hash = {}
+
+    until environ[i].read_pointer.null? do
+      entry = environ[i].read_pointer.read_string
+      key, value = entry.split '=', 2
+      hash[key] = value
+      i += 1
+    end
+
+    hash
   end
 
   def update(other, &block)
