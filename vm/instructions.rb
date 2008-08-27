@@ -623,6 +623,27 @@ class Instructions
     CODE
   end
 
+  def test_equal
+    <<-CODE
+    String* s1 = String::create(state, "test_equal");
+    task->push(s1);
+    task->push(s1);
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
+
+    String* s2 = as<String>(s1->dup(state));
+    task->push(s2);
+    task->push(s1);
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+
+    task->push(Fixnum::from(123));
+    task->push(Fixnum::from(123));
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
+    CODE
+  end
+
   # [Operation]
   #   Finds a constant
   # [Format]
@@ -2491,22 +2512,9 @@ class Instructions
   end
 
   # [Operation]
-  #   Halts the current task
-  # [Format]
-  #   \halt
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Causes the current Task to halt. No further execution will be performed
-  #   on the current Task. This instruction is only used inside the trampoline
-  #   method used as the first MethodContext of a Task.
-
-  # [Operation]
   #   Simple return from a method (only)
   # [Format]
-  #   \sret
+  #   \ret
   # [Stack Before]
   #   * retval
   #   * ...
@@ -2516,19 +2524,24 @@ class Instructions
   #   Pops the top value from the stack, and uses it as the return value from
   #   a method.
   # [See Also]
-  #   * ret
   #   * caller_return
-  #   * soft_return
   #   * raise_exc
-  # [Notes]
-  #   \sret is an optimised version of the more general ret. It works only
-  #   with method (MethodContext) returns, but as a result, can skip the
-  #   extra work to figure out how to long return from a block.
 
-  # TODO - fix doc
   def ret
     <<-CODE
     task->simple_return(stack_top());
+    CODE
+  end
+
+  def test_ret
+    <<-CODE
+    task->push(Fixnum::from(100));
+    MethodContext *s1 = task->active->sender;
+    run();
+    MethodContext *s2 = task->active->sender;
+    TS_ASSERT_EQUALS(Fixnum::from(100), task->pop());
+    TS_ASSERT_DIFFERS(s1, s2);
+    TS_ASSERT_EQUALS(Qnil, s2);
     CODE
   end
 
@@ -3437,36 +3450,6 @@ class Instructions
       stack_push(new_tuple);
       stack_push(shifted_value);
     }
-    CODE
-  end
-
-  # [Operation]
-  #   Soft return from a block
-  # [Format]
-  #   \soft_return
-  # [Stack Before]
-  #   * retval
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Pops the return value from the stack, and returns to the calling method
-  #   or block. The return value is pushed onto the stack of the caller during
-  #   the return.
-  # [See Also]
-  #   * sret
-  #   * ret
-  #   * caller_return
-  # [Notes]
-  #   Unlike ret, this return opcode does not consider non-local returns. It
-  #   simply returns to the calling block or method context. Thus, it is used
-  #   when, for example, breaking from a loop, or upon the normal completion
-  #   of a block.
-
-  def soft_return
-    <<-CODE
-    OBJECT t1 = stack_pop();
-    task->simple_return(state, t1);
     CODE
   end
 
