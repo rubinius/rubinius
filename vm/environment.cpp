@@ -103,34 +103,10 @@ namespace rubinius {
   void Environment::set_rubinius_constants() {
     Module* rubinius = GO(rubinius).get();
 
-    String* ruby_version = String::create(state, "1.8.6");
-    rubinius->set_const(state, "RUBY_VERSION", ruby_version);
-
-    String* ruby_patchlevel = String::create(state, "111");
-    rubinius->set_const(state, "RUBY_PATCHLEVEL", ruby_patchlevel);
-
-    String* ruby_engine = String::create(state, "rbx");
-    rubinius->set_const(state, "RUBY_ENGINE", ruby_engine);
-
-    String* rbx_version = String::create(state, "0.9.0");
-    rubinius->set_const(state, "RBX_VERSION", rbx_version);
-
-    // HACK fill this in for real
-    rubinius->set_const(state, "BUILDREV",
-        String::create(state, "adabeefdeadbeefdecafbad"));
-
-    // HACK fill this in for real
-    G(object)->set_const(state, "RUBY_RELEASE_DATE",
-        String::create(state, "future"));
-
     if(isatty(fileno(stdin))) {
       rubinius->set_const(state, "Terminal", Qtrue);
     } else {
       rubinius->set_const(state, "Terminal", Qfalse);
     }
-
-    // HACK no reason to set this in C++
-    String* ruby_platform = String::create(state, "future-tron-3000");
-    GO(object).get()->set_const(state, "RUBY_PLATFORM", ruby_platform);
   }
 }

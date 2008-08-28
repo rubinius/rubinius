@@ -96,7 +96,11 @@ Dir["kernel/**/*.rb"].each do |path|
 end
 
 all_kernel = []
+all_kernel << 'kernel/bootstrap/rubinius_config.rb'
+all_kernel << 'kernel/bootstrap/ruby_config.rb'
 
+modules['bootstrap'] << 'kernel/bootstrap/rubinius_config.rb'
+modules['bootstrap'] << 'kernel/bootstrap/ruby_config.rb'
 modules.each do |name, files|
   files.each do |file|
     compiled = "runtime/#{name}/#{File.basename(file)}c"
@@ -107,6 +111,7 @@ modules.each do |name, files|
 end
 
 all_kernel << 'runtime/loader.rbc'
+
 file 'runtime/loader.rbc' => 'kernel/loader.rb'
 
 rule ".rbc" do |t|
