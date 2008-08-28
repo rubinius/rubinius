@@ -64,7 +64,7 @@ class TestArray : public CxxTest::TestSuite {
     ary->set(state, 0, Qtrue);
     ary->unshift(state, Qfalse);
 
-    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->size(), 2U);
     TS_ASSERT_EQUALS(ary->get(state, 0), Qfalse);
     TS_ASSERT_EQUALS(ary->get(state, 1), Qtrue);
   }

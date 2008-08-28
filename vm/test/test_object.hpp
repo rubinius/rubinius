@@ -345,7 +345,7 @@ class TestObject : public CxxTest::TestSuite {
     Qtrue->send_prim(state, NULL, task, msg);
 
     TS_ASSERT(task->active != input_context);
-    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->active->args, 2U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
     TS_ASSERT_EQUALS(task->active->cm, cm);
@@ -372,7 +372,7 @@ class TestObject : public CxxTest::TestSuite {
           Fixnum::from(4));
 
     TS_ASSERT(task->active != input_context);
-    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->active->args, 2U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
     TS_ASSERT_EQUALS(task->active->cm, cm);
