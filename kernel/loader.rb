@@ -38,10 +38,11 @@ additions << "lib"
 # HACK todo remove this comment when we're setting this constant in the VM
 # additions << Rubinius::CODE_PATH
 
-$LOAD_PATH.insert($LOAD_PATH.index('.'), *additions)
+$LOAD_PATH.unshift(*additions)
 
 if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
-  $LOAD_PATH.unshift(*ENV['RUBYLIB'].split(':'))
+  rubylib_paths = ENV['RUBYLIB'].split(':')
+  $LOAD_PATH.unshift(*rubylib_paths)
 end
 
 # Pull it out now so that later unshifts don't obsure it.
