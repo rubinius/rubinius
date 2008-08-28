@@ -484,6 +484,7 @@ namespace rubinius {
   bool Object::send_prim(STATE, VMExecutable* exec, Task* task, Message& msg) {
     SYMBOL meth = as<Symbol>(msg.shift_argument(state));
     msg.name = meth;
+    msg.priv = true;
     return task->send_message_slowly(msg);
   }
 
