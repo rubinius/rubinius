@@ -41,7 +41,7 @@ task :run_ruby, :file do |task, args|
 
   sh 'vm/vm', rbc
 end
-task :run_ruby => 'kernel:build' # HACK argument + dependency is broken
+task :run_ruby => %w[kernel:build vm/vm] # HACK argument + dependency is broken
 
 # BUILD TASKS
 
