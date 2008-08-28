@@ -144,10 +144,12 @@ class Hash
   # @bins is the vector of storage for the bucket chains.
   #++
   def self.allocate
-    h = super
-    h.instance_variable_set :@records, MIN_SIZE
-    h.instance_variable_set :@bins, Tuple.new(MIN_SIZE)
-    h.instance_variable_set :@size, 0
+    h = super()
+
+    # We don't need the nanny checking our symbols
+    h.set_instance_variable :@records, MIN_SIZE
+    h.set_instance_variable :@bins, Tuple.new(MIN_SIZE)
+    h.set_instance_variable :@size, 0
     h
   end
 
