@@ -4,6 +4,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
 #include "objectmemory.hpp"
+#include "primitives.hpp"
 
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.
@@ -48,7 +49,13 @@ namespace rubinius {
   }
 
   OBJECT Array::aref(STATE, Fixnum* idx) {
-    return this->get(state, idx->to_native());
+    native_int index = idx->to_native();
+
+    if(index < 0 || index >= total->to_native()) {
+      throw PrimitiveFailed();
+    }
+
+    return this->get(state, index);
   }
 
   OBJECT Array::aset(STATE, Fixnum* idx, OBJECT val) {
