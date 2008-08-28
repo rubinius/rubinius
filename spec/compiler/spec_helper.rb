@@ -17,9 +17,11 @@ $new     = ENV['NEW']
 
 if $unified then
   $: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/")
-  require 'ruby_parser'
+  load "kernel/delta/string.rb"
+  require 'ruby_parser' # for s(...)
   def parse ruby
-    RubyParser.new.process(ruby, "spec")
+    # RubyParser.new.process(ruby, "spec")
+    ruby.to_sexp("spec")
   end
 else
   def s(*rest)
