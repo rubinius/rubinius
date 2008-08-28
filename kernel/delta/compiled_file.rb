@@ -6,7 +6,10 @@ class Compiler
       @data = nil
     end
 
-    attr_reader :magic, :version, :sum, :stream
+    attr_reader :magic
+    attr_reader :version
+    attr_reader :sum
+    attr_reader :stream
 
     def self.load(stream)
       magic = stream.gets.strip
