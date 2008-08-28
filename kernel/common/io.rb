@@ -91,7 +91,7 @@ class IO
     end
 
     def inspect # :nodoc:
-      "#<IO::Buffer:0x%x total=%p bytes=%p characters=%p data=%p>" % [
+      "#<IO::Buffer:0x%x total=%p used=%p characters=%p data=%p>" % [
         object_id, @total, @used, @characters, @storage
       ]
     end
@@ -785,22 +785,20 @@ class IO
 
     return breadall() unless sep
 
-    buf = @buffer
-
     if sep.empty?
       return gets_stripped($/ + $/)
     end
 
-    if str = buf.clip_to(sep)
+    # Do an initial fill.
+    return nil if !@buffer.fill_from(self) and @buffer.empty?
+
+    if str = @buffer.clip_to(sep)
       return str
     end
 
-    # Do an initial fill.
-    return nil if !buf.fill_from(self) and buf.empty?
-
     output = nil
     while true
-      if str = buf.clip_to(sep)
+      if str = @buffer.clip_to(sep)
         if output
           return output + str
         else
@@ -808,16 +806,16 @@ class IO
         end
       end
 
-      if !buf.fill_from(self)
-        if buf.empty?
+      if !@buffer.fill_from(self)
+        if @buffer.empty?
           rest = nil
         else
-          rest = buf.as_str
+          rest = @buffer.as_str
         end
 
         if output
           if rest
-            return output << buf.as_str
+            return output << @buffer.as_str
           else
             return output
           end
@@ -826,12 +824,12 @@ class IO
         end
       end
 
-      if buf.full?
+      if @buffer.full?
         if output
-          output << buf
-          buf.reset!
+          output << @buffer
+          @buffer.reset!
         else
-          output = buf.as_str
+          output = @buffer.as_str
         end
       end
     end
