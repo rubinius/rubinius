@@ -50,14 +50,14 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   }
 
   void test_read_string() {
-    char *str = "ruby";
+    char str[] = "ruby";
     MemoryPointer* ptr = MemoryPointer::create(state, str);
     String* s = ptr->read_string(state, Fixnum::from(4));
     TS_ASSERT_SAME_DATA(s->byte_address(), "ruby", 4);
   }
 
   void test_read_string_to_null() {
-    char *str = "ruby";
+    char str[] = "ruby";
     MemoryPointer* ptr = MemoryPointer::create(state, str);
     String* s = ptr->read_string_to_null(state);
     TS_ASSERT_SAME_DATA(s->byte_address(), "ruby", 4);
