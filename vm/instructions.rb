@@ -5,16 +5,18 @@
 
 # ==== Writing an instruction test ====
 # The test harness for the VM instructions may require some explanation.
-# Tests are written out into vm/test/test_instructions.hpp using the strings
-# returned by the test_* methods in this file.
+# Tests in this file are read by vm/codegen/instructions_gen.rb and written
+# out into vm/test/test_instructions.hpp using the strings returned by the
+# test_* methods in this file.
+#
 # It sets up various things for us, including:
 # * Some C macros for test-writing convenience.
 # * A CompiledMethod instance that will be 'running' in the test.
-# * A Task for with that CM activated.
-# * A stream of opcodes
+# * A Task with that CompiledMethod in its active context.
+# * A zeroed-out stream of opcodes.
 # The last three are available in tests as "cm", "task", and "stream".
 #
-# When the test body is reached, the test generator has set the first item
+# When the test body is reached, the test generator sets the first item
 # in the opcode stream to the opcode we are testing.
 # You will see various tests that set additional items in the stream after
 # the opcode.  This is necessary to test opcodes that take arguments, such
