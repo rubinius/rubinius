@@ -6,6 +6,9 @@ class IO
 
   class Buffer
 
+    attr_reader :total
+    attr_reader :used
+
     ##
     # Create a buffer of +size+ bytes. The buffer contains an internal Channel
     # object it uses to fill itself.
@@ -1253,7 +1256,7 @@ class IO
     raise IOError, "closed stream" if closed?
     # Unseek the still buffered amount
     unless @buffer.empty?
-      prim_seek(-@buffer.size, SEEK_CUR)
+      prim_seek(-@buffer.used, SEEK_CUR)
       @buffer.reset!
       @eof = false
     end

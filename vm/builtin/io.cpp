@@ -9,6 +9,7 @@
 #include "objectmemory.hpp"
 
 #include <fcntl.h>
+#include <iostream>
 
 namespace rubinius {
   void IO::init(STATE) {
@@ -37,6 +38,24 @@ namespace rubinius {
   FIXNUM IO::open(STATE, String* path, FIXNUM mode, FIXNUM perm) {
     int fd = ::open(path->c_str(), mode->to_native(), perm->to_native());
     return Fixnum::from(fd);
+  }
+
+  INTEGER IO::seek(STATE, INTEGER amount, FIXNUM whence) {
+    int fd = descriptor->to_native();
+    off_t position;
+
+    if(fd == -1) {
+      throw PrimitiveFailed();
+    }
+
+    position = lseek(fd, amount->to_long_long(), whence->to_native());
+
+    if(position == -1) {
+      // HACK RAISE_FROM_ERRNO
+      throw std::runtime_error("IO::write primitive failed");
+    }
+
+    return Integer::from(state, position);
   }
 
   OBJECT IO::close(STATE) {

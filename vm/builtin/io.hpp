@@ -22,6 +22,9 @@ namespace rubinius {
     static IO* create(STATE, int fd);
     void initialize(STATE, int fd, char* mode);
 
+    // Ruby.primitive :io_seek
+    INTEGER seek(STATE, INTEGER amount, FIXNUM whence);
+
     // Ruby.primitive :io_write
     OBJECT write(STATE, String* buf);
 

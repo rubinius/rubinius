@@ -12,6 +12,14 @@ namespace rubinius {
     return as<Bignum>(this)->to_native();
   }
 
+  long long Integer::to_long_long() {
+    if(fixnum_p()) {
+      return ((FIXNUM)this)->to_long_long();
+    }
+
+    return as<Bignum>(this)->to_long_long();
+  }
+
   // TODO: double check that this links. Evan says it doesn't. I'll
   // check my Meiers books when I get home
   template <>

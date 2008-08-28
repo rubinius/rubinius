@@ -26,7 +26,8 @@ namespace rubinius {
     static INTEGER from(STATE, long long i);
     static INTEGER from(STATE, unsigned long long i);
 
-    native_int         to_native();
+    native_int to_native();
+    long long to_long_long();
 
     class Info : public TypeInfo {
     public:
