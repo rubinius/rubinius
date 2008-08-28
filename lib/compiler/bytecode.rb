@@ -237,7 +237,7 @@ class Compiler
     class Negate
       def bytecode(g)
         if @child.is? NumberLiteral
-          g.push -@child.value
+          g.push(-@child.value)
         else
           @child.bytecode(g)
           g.send :"-@", 0

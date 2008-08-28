@@ -572,7 +572,7 @@ class Compiler
         raise "Passed incorrect op to method_missing in generator.rb: #{op.inspect}"
       end
 
-      add *op
+      add(*op)
     end
   end
 end

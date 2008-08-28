@@ -136,7 +136,6 @@ class Compiler
       else
         prefix = self.class.name
       end
-      prefix
 
       super
     end
@@ -817,7 +816,7 @@ class Compiler
       # Essentially same as :match2, just using $_
       def consume(sexp)
         pattern = RegexLiteral.new @compiler
-        pattern.args *sexp      # Pattern, options
+        pattern.args(*sexp)      # Pattern, options
 
         last_input = GVar.new @compiler
         last_input.name = :$_

@@ -289,7 +289,7 @@ class Compiler::Node
         args = @arguments.execute(e)
       end
 
-      e.block.call *args
+      e.block.call(*args)
     end
   end
 
