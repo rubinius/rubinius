@@ -1,0 +1,31 @@
+Definitions of terms and phrases used in the Ruby programming language and in
+this implementation.
+
+private send
+
+  A method call that has no explicit lexical receiver. The receiver of the
+call is +self+. For example:
+
+  class A
+  private
+    def you_are_mine
+    end
+  end
+
+  class B < A
+    def sunshine
+      you_are_mine
+    end
+  end
+
+  class C
+    def dear
+      today = B.new
+      today.you_are_mine
+    end
+  end
+
+The call to +you_are_mine+ in the method +sunshine+ is a private send. The
+call to +today.you_are_mine+ will not succeed because private methods cannot
+have an explicit receiver. In this case, the object +today+ is the explicit
+receiver.
