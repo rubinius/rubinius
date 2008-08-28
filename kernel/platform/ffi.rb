@@ -466,12 +466,12 @@ class MemoryPointer
   end
 
   def get_at_offset(offset, type)
-    Ruby.primitive :get_at_offset
+    Ruby.primitive :memorypointer_get_at_offset
     raise PrimitiveFailure, "get_field failed"
   end
 
   def set_at_offset(offset, type, val)
-    Ruby.primitive :set_at_offset
+    Ruby.primitive :memorypointer_set_at_offset
     raise PrimitiveFailure, "set_field failed"
   end
 
