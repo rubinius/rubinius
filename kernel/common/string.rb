@@ -9,7 +9,7 @@ class String
   include Enumerable
 
   attr_accessor :data
-  attr_accessor :bytes
+  attr_accessor :num_bytes
   attr_accessor :characters
   attr_accessor :encoding
 
@@ -17,7 +17,7 @@ class String
     # HACK use super()
     str = String.__allocate__
     str.data = ByteArray.new(1)
-    str.bytes = 0
+    str.num_bytes = 0
     str.characters = 0
     str.encoding = nil
     str
@@ -27,7 +27,7 @@ class String
     # HACK use allocate when super() works
     str = String.__allocate__
     str.data = ba
-    str.bytes = ba.size
+    str.num_bytes = ba.size
     return str
   end
 
@@ -35,7 +35,7 @@ class String
   # Creates String of +bytes+ NUL characters.
 
   def self.buffer(bytes)
-    "\0" * bytes
+    "\0" * num_bytes
   end
 
   def initialize(arg=nil)
@@ -1049,6 +1049,7 @@ class String
     return if @num_bytes == 0
 
     start = 0
+
     while start < @num_bytes
       c = @data[start]
       if c.isspace or c == 0
