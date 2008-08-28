@@ -1,6 +1,39 @@
+# === Rubinius VM Instructions ===
 # Keep this file in alphabetical order or suffer the scorn of your peers.
 # When you add an instruction here, you MUST also add it to the master
 # list in kernel/core/iseq.rb
+
+# ==== Writing an instruction test ====
+# The test harness for the VM instructions may require some explanation.
+# Tests are written out into vm/test/test_instructions.hpp using the strings
+# returned by the test_* methods in this file.
+# It sets up various things for us, including:
+# * Some C macros for test-writing convenience.
+# * A CompiledMethod instance that will be 'running' in the test.
+# * A Task for with that CM activated.
+# * A stream of opcodes
+# The last three are available in tests as "cm", "task", and "stream".
+#
+# When the test body is reached, the test generator has set the first item
+# in the opcode stream to the opcode we are testing.
+# You will see various tests that set additional items in the stream after
+# the opcode.  This is necessary to test opcodes that take arguments, such
+# as open_class.
+#
+# The 'run()' macro is simply a shortcut for: task->execute_stream(stream).
+# You can call run() as many times as you need in a single test. Each time,
+# the VM will execute those instructions and leave the stream unmodified.
+# If your second run() needs new arguments, you will need to set them by hand.
+# WARNING: Make sure you pay attention to the stack contents if you are writing
+# multiple scenarios in one test. run() does not reset the stack.
+#
+# Other useful functions:
+# * task->push(val) pushes an object onto the stack
+# * task->pop() pops the top item from the stack
+# * task->stack_at(7) returns the 8th item in the stack
+#
+# Tests should be placed immediately after the instruction they are testing.
+# Keep this file alphabetized by opcode name.
 
 class Instructions
 
