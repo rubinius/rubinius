@@ -1600,7 +1600,7 @@ class Compiler
 
         # Detect PT form
         if !value
-          @method = method.to_s[0..-1].to_sym
+          @method = method.to_s[0..-2].to_sym
           @assign = method
           @value = assign
           @kind = kind
