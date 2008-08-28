@@ -2,6 +2,11 @@
 
 ##
 # The tuple data type.
+# A simple storage class. Created to contain a fixed number of elements.
+#
+# Not designed to be subclassed, as it does not call initialize
+# on new instances.
+
 
 class Tuple
 
