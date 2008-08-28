@@ -1,5 +1,50 @@
 Definitions of terms and phrases used in the Ruby programming language and in
-this implementation.
+this implementation. See also "The Ruby Programming Language" by Flanagan and
+Matsumoto [O'Reilly 2008] and "Programming Ruby: The Pragmatic Programmer's
+Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
+2005-2008]
+
+== metaclass
+
+Also called the +singleton+ class or +eigenclass+. Every object in Ruby can
+have one, although, they are only created as necessary. It is the class that
+holds the method_table for methods that belong only to a particular object.
+For example, the method +hello+ defined below exists only in the metaclass for
++obj+.
+
+  obj = Object.new
+  def obj.hello
+    puts 'hi'
+  end
+
+Since all classes in Ruby are also objects, they can have metaclasses. The
+methods called "class methods" are just methods in the method_table of the
+class's metaclass. The method +honk+ exists in the metaclass for the class
++Car+.
+
+  class Car
+    def self.honk
+    end
+  end
+
+In Rubinius, metaclasses are all instances of the class MetaClass. The
+metaclass for an object can be obtained by calling the +metaclass+ method.
+
+== method lookup or method resolution
+
+
+
+== method_table
+
+A data structure in every class (and module) that contains the methods defined
+for that class.
+
+In Rubinius, a class's method_table is an instance of LookupTable.
+
+== MRI
+
+Matz's Ruby Interpreter or Matz's Ruby Implementation. A short name to refer
+to the official implementation of Ruby. See http://ruby-lang.org.
 
 private send
 
@@ -29,3 +74,37 @@ The call to +you_are_mine+ in the method +sunshine+ is a private send. The
 call to +today.you_are_mine+ will not succeed because private methods cannot
 have an explicit receiver. In this case, the object +today+ is the explicit
 receiver.
+
+== SendSite
+
+A SendSite is the class for an object that assists in calling methods. An
+instance of Sendsite literally exists at the location (site) where a method is
+called (the +send+ operation).
+
+  def ring
+    puts "zing"
+  end
+
+When the method +ring+ is compiled, an instance of SendSite is inserted at the
+point where the +puts+ method is called. When the bytecode stream for the
++ring+ method is executing, the VM first looks in the SendSite instance to
+locate the +puts+ method. If the +puts+ method is not found, the VM then
+searches method_tables for the method. See "method lookup". Once the method is
+located, it is added to the SendSite instance so that future calls can use it.
+
+A SendSite provides a more sophisticated way of doing inline caching and other
+method call optimization.
+
+== superclass
+
+The class that a particular class immediately inherits from. The class Object
+is the superclass of all classes that do not inherit explicitly from a class.
+
+  class A
+  end
+
+  class B < A
+  end
+
+Class A inherits from Object. In other words, A.superclass == Object. Class B
+inherits explicitly from class A. So, B.superclass == A.
