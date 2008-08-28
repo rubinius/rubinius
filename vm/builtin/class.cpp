@@ -9,6 +9,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 
+#include <iostream>
+
 namespace rubinius {
 
   template <>
