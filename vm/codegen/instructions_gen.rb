@@ -196,13 +196,12 @@ void #{meth}() {
 
   MethodContext* ctx = MethodContext::create(state, Qnil, cm);
   task->make_active(ctx);
-  // The += 0 disable unused variable warnings.
 
   opcode stream[100];
   memset(stream, 0, sizeof(opcode) * 100);
   stream[0] = InstructionSequence::insn_#{ins.opcode};
 
-#define run(val) task->execute_stream(stream)
+#define run() task->execute_stream(stream)
 #{code}
 #undef run
 }
