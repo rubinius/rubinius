@@ -6,11 +6,12 @@ file 'lib/rbconfig.rb' do
   write_rbconfig
 end
 
-file 'kernel/bootstrap/rubinius_config.rb' => 'rakelib/configuration.rb' do |task, args|
+file 'kernel/bootstrap/rubinius_config.rb' =>
+     %w[rakelib/configuration.rb rakelib/configure.rake] do |task, args|
   open task.name, 'w' do |io|
     io << <<-EOF
 #--
-# This file was generated from rakelib/configur.rake
+# This file was generated from rakelib/configure.rake
 #++
 
 module Rubinius
@@ -20,15 +21,17 @@ module Rubinius
   RBA_PATH        = #{RBX_RBA_PATH.inspect}
   RBX_VERSION     = #{RBX_VERSION.inspect}
 end
+
     EOF
   end
 end
 
-file 'kernel/bootstrap/ruby_config.rb' => 'rakelib/configuration.rb' do |task, args|
+file 'kernel/bootstrap/ruby_config.rb' =>
+     %w[rakelib/configuration.rb rakelib/configure.rake] do |task, args|
   open task.name, 'w' do |io|
     io << <<-EOF
 #--
-# This file was generated from rakelib/configur.rake
+# This file was generated from rakelib/configure.rake
 #++
 
 PLATFORM          = #{RBX_HOST.inspect}

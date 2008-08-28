@@ -97,16 +97,4 @@ namespace rubinius {
     }
   }
 
-  /*
-   * HACK hook this up to a config file
-   */
-  void Environment::set_rubinius_constants() {
-    Module* rubinius = GO(rubinius).get();
-
-    if(isatty(fileno(stdin))) {
-      rubinius->set_const(state, "Terminal", Qtrue);
-    } else {
-      rubinius->set_const(state, "Terminal", Qfalse);
-    }
-  }
 }

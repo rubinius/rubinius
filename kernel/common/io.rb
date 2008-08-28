@@ -1339,8 +1339,6 @@ class IO
     self
   end
 
-  alias_method :prim_tty?, :tty?
-
   ##
   # Returns true if ios is associated with a terminal device (tty), false otherwise.
   #
@@ -1348,7 +1346,7 @@ class IO
   #  File.new("/dev/tty").isatty   #=> true
   def tty?
     raise IOError, "closed stream" if closed?
-    prim_tty?
+    Platform::POSIX.isatty(@descriptor) == 1
   end
 
   alias_method :isatty, :tty?

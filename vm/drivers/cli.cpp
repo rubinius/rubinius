@@ -45,7 +45,6 @@ int main(int argc, char** argv) {
     }
 
     std::string root = std::string(e);
-    env.set_rubinius_constants();
 
     std::cout << "Loading platform.conf: " << root << "\n";
     env.load_platform_conf(root);

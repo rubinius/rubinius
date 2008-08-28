@@ -1,11 +1,5 @@
 # Contained first is the system startup code.
 
-# Re-setup all the stdio channels, to pull in new ivars
-
-STDOUT.setup
-STDIN.setup
-STDERR.setup
-
 begin
   ENV = EnvironmentVariables.new
 
@@ -110,7 +104,7 @@ begin
       puts RBS_USAGE
       exit 1
     when "-v"
-      puts "rubinius #{RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+      puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
       exit 0 if ARGV.empty?
     when "-w"
