@@ -124,23 +124,23 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS((void*)1, p->pointer);
   }
 
-  void test_get_field_prim() {
+  void test_get_at_offset() {
     char one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field_prim(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR));
+    OBJECT obj = ptr->get_at_offset(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR));
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
 
-  void test_set_field_prim() {
+  void test_set_at_offset() {
     char buffer[1024];
     OBJECT one = Fixnum::from(1);
 
     buffer[0] = 0;
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
-    ptr->set_field_prim(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR), one);
+    ptr->set_at_offset(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR), one);
     TS_ASSERT_EQUALS(*buffer, static_cast<char>(1));
   }
 
