@@ -28,16 +28,20 @@ module Compile
     @compiler = obj
   end
 
+  @load_rbc_directly = false
+
   def self.find_compiler
     @compiler = :loading
     begin
-      loading_rbc_directly do
-        require "#{DefaultCompiler}/init"
-      end
+      # load rbc files if they exist without checking mtime's and such.
+      @load_rbc_directly = true
+      require "#{DefaultCompiler}/init"
     rescue Exception => e
-      STDERR.puts "Unable to load default compiler: #{e.message}"
-      puts e.awesome_backtrace.show
+      $stderr.puts "Unable to load default compiler: #{e.message}"
+      $stderr.puts e.awesome_backtrace.show
       raise e
+    ensure
+      @load_rbc_directly = false
     end
 
     if @compiler == :loading
@@ -78,19 +82,6 @@ module Compile
   # the first instruction
   def self.debug_script!
     @debug_script = true
-  end
-
-  # By calling require in the block passed to this, require will
-  # load rbc if they exist without checking mtime's and such.
-  @load_rbc_directly = false
-
-  def self.loading_rbc_directly
-    begin
-      @load_rbc_directly = true
-      yield
-    ensure
-      @load_rbc_directly = false
-    end
   end
 
   # Called when we encounter a break keyword that we do not support
