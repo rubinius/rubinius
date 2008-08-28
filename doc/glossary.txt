@@ -7,8 +7,8 @@ Guide" 2nd or 3rd Edition by Thomas et al [The Pragmatic Programmers
 == metaclass
 
 Also called the +singleton+ class or +eigenclass+. Every object in Ruby can
-have one, although, they are only created as necessary. It is the class that
-holds the method_table for methods that belong only to a particular object.
+have one, although, they are only created as necessary. The metaclass holds the
+method and constant tables that belong only to a particular object instance.
 For example, the method +hello+ defined below exists only in the metaclass for
 +obj+.
 
@@ -40,6 +40,10 @@ A data structure in every class (and module) that contains the methods defined
 for that class.
 
 In Rubinius, a class's method_table is an instance of LookupTable.
+
+== MatzRuby
+
+See MRI
 
 == MRI
 
