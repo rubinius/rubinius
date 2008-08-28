@@ -706,15 +706,6 @@ class File < IO
   end
 
   ##
-  # Return the equivalent S-Expression of the file given.
-  # Raises +SyntaxError+ if there is a syntax issue in the
-  # file, making it unparsable.
-  #  File.to_sexp("/tmp/test.rb") #=> s(...)
-  def self.to_sexp(name)
-    File.read(name).to_sexp(name)
-  end
-
-  ##
   # Truncates the file file_name to be at most integer
   # bytes long. Not available on all platforms.
   #
