@@ -9,6 +9,8 @@
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 
+#include <iostream>
+
 #define LOOKUPTABLE_MAX_DENSITY 0.75
 #define LOOKUPTABLE_MIN_DENSITY 0.3
 
@@ -291,4 +293,17 @@ namespace rubinius {
     return collect(state, this, get_entry);
   }
 
+  void LookupTable::Info::show(STATE, OBJECT self) {
+    LookupTable* tbl = as<LookupTable>(self);
+    size_t size = tbl->entries->to_native();
+    Array* keys = tbl->all_keys(state);
+
+    std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
+      " " << size << ":";
+    for(size_t i = 0; i < size; i++) {
+      std::cout << " :" << as<Symbol>(keys->get(state, i))->c_str(state);
+      if(i < size - 1) std::cout << ",";
+    }
+    std::cout << ">\n";
+  }
 }
