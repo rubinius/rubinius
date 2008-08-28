@@ -32,6 +32,68 @@ metaclass for an object can be obtained by calling the +metaclass+ method.
 
 == method lookup or method resolution
 
++-------------+
+|     nil     |
++-------------+
+       ^
+       | superclass
+       |
++-------------+
+|    Object   |
++-------------+
+       ^
+       | superclass
+       |
++-------------+
+|    Module   |
++-------------+
+       ^
+       | superclass
+       |
++-------------+
+|    Class    |
++-------------+
+       ^
+       | superclass
+       |
++-------------+
+|  MetaClass  |
+|   (Object)  |
++-------------+
+       ^
+       | superclass
+       |
++-------------+
+|  MetaClass  |
+|     (F)     |
++-------------+
+       ^
+       | metaclass
+       |
++-------------+
+|      F      |
++-------------+
+
+
+class Class
+  def wanker
+    puts 'you are'
+  end
+end
+
+class F
+  def self.bloke
+    wanker
+  end
+end
+
+1. Resolve method 'wanker' -- search method_tables in:
+
+a. MetaClass(F)
+b. MetaClass(Object)
+c. Class
+
+Found
 
 
 == method_table
