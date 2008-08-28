@@ -94,7 +94,7 @@ module Compile
     File.open(path) do |io|
       cf = Compiler::CompiledFile.load(io)
       # HACK check version!
-      return cf
+      return cf.body
     end
   end
 

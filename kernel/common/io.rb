@@ -37,7 +37,7 @@ class IO
     def shift_front(count)
       count = @used if count > @used
 
-      str = String.from_bytearray @storage.fetch_bytes(0, count)
+      str = String.from_bytearray @storage.fetch_bytes(0, count), count
 
       rest = @used - count
       @storage.move_bytes count, rest, 0
@@ -1046,7 +1046,7 @@ class IO
 
     needed = size
 
-    if needed > 0 and buf.size >= needed
+    if needed > 0 and buf.unused >= needed
       output << buf.shift_front(needed)
     else
       while true

@@ -23,11 +23,11 @@ class String
     str
   end
 
-  def self.from_bytearray(ba)
+  def self.from_bytearray(ba, count)
     # HACK use allocate when super() works
     str = String.__allocate__
     str.data = ba
-    str.num_bytes = ba.size
+    str.num_bytes = count
     return str
   end
 
@@ -1950,20 +1950,33 @@ class String
 
     raise ArgumentError, "illegal radix #{base}" unless (2..36).include? base
 
-    match_re = case base
-               when  2 then
-                 /([+-])?(?:0b)?([a-z0-9_]*)/ix
-               when  8 then
-                 /([+-])?(?:0o)?([a-z0-9_]*)/ix
-               when 10 then
-                 /([+-])?(?:0d)?([a-z0-9_]*)/ix
-               when 16 then
-                 /([+-])?(?:0x)?([a-z0-9_]*)/ix
-               else
-                 /([+-])?       ([a-z0-9_]*)/ix
-               end
-
-    match_re = /^#{match_re}$/x if check # stupid /x for emacs lameness
+    if check
+      match_re = case base
+                 when  2 then
+                   /^([+-])?(?:0b)?([a-z0-9_]*)$/ix
+                 when  8 then
+                   /^([+-])?(?:0o)?([a-z0-9_]*)$/ix
+                 when 10 then
+                   /^([+-])?(?:0d)?([a-z0-9_]*)$/ix
+                 when 16 then
+                   /^([+-])?(?:0x)?([a-z0-9_]*)$/ix
+                 else
+                   /^([+-])?       ([a-z0-9_]*)$/ix
+                 end
+    else
+      match_re = case base
+                 when  2 then
+                   /([+-])?(?:0b)?([a-z0-9_]*)/ix
+                 when  8 then
+                   /([+-])?(?:0o)?([a-z0-9_]*)/ix
+                 when 10 then
+                   /([+-])?(?:0d)?([a-z0-9_]*)/ix
+                 when 16 then
+                   /([+-])?(?:0x)?([a-z0-9_]*)/ix
+                 else
+                   /([+-])?       ([a-z0-9_]*)/ix
+                 end
+    end
 
     sign = data = nil
     sign, data = $1, $2 if s =~ match_re

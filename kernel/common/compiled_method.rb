@@ -213,15 +213,18 @@ class CompiledMethod < Executable
     script ||= CompiledMethod::Script.new
     yield script if block_given?
 
-    Rubinius::VM.save_encloser_path
-
     # Setup the scoping.
     ss = StaticScope.new(Object)
     ss.script = script
     @staticscope = ss
 
     activate_as_script
-    Rubinius::VM.restore_encloser_path
+  end
+
+  def activate_as_script
+    mc = MAIN.metaclass
+    mc.method_table[:__script__] = self
+    MAIN.__script__
   end
 
   def line_from_ip(i)

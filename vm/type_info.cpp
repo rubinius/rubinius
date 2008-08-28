@@ -67,7 +67,7 @@ namespace rubinius {
     } else if(Float* f = try_as<Float>(self)) {
       std::cout << f->val << std::endl;
     } else if(String* str = try_as<String>(self)) {
-      std::cout << str->byte_address() << std::endl;
+      std::cout << str->c_str() << std::endl;
     } else if(SYMBOL sym = try_as<Symbol>(self)) {
       std::cout << ":" << sym->to_str(state)->byte_address() << std::endl;
     } else {

@@ -45,6 +45,9 @@ namespace rubinius {
     VMMethod* formalize(STATE, bool ondemand=true);
     void specialize(TypeInfo* ti);
 
+    // Ruby.primitive :compiledmethod_compile
+    OBJECT compile(STATE);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

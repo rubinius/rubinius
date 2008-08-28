@@ -439,7 +439,7 @@ namespace rubinius {
 
   void String::Info::show(STATE, OBJECT self) {
     String* str = as<String>(self);
-    std::cout << "\"" << str->byte_address() << "\"" << std::endl;
+    std::cout << "\"" << str->c_str() << "\"" << std::endl;
   }
 
 }

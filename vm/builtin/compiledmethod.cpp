@@ -92,6 +92,12 @@ namespace rubinius {
     dynamic_cast<VMMethod*>(executable)->specialize(ti);
   }
 
+  OBJECT CompiledMethod::compile(STATE) {
+    executable = NULL;
+    formalize(state);
+    return this;
+  }
+
   void CompiledMethod::post_marshal(STATE) {
     formalize(state); // side-effect, populates executable
   }
