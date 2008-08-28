@@ -166,7 +166,8 @@ class MethodContext
     ret = []
     frame = self
     while frame
-      ret << frame
+      # Condition removes VM internal frames, which have no file.
+      ret << frame if frame.file
       # If this context's env was created from a Proc binding
       # then we duplicate the frame and reset its instruction pointer
       # in order to show the first line of the block as the active
