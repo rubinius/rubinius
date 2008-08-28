@@ -625,14 +625,14 @@ class Compiler
 
     class BlockPass
       def bytecode(g)
-        g.push_cpath_top
-        g.find_const :Proc
-
         @block.bytecode(g)
         nil_block = g.new_label
         g.dup
         g.is_nil
         g.git nil_block
+        g.push_cpath_top
+        g.find_const :Proc
+        g.swap
 
         g.send :__from_block__, 1
 
