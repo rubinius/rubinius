@@ -1,3 +1,5 @@
+# depends on: module.rb symbol.rb string.rb lookuptable.rb
+
 class Hash
 
   # Bucket abstracts storage and search of entries in Hash.
@@ -8,44 +10,17 @@ class Hash
   # optimized in the compiler by converting a call to #key
   # directly into a call to #at(0).
   #++
-  class Bucket < Tuple
+  class Bucket
+    attr_accessor :key
+    attr_accessor :value
+    attr_accessor :key_hash
+    attr_accessor :next
+
     def initialize(key=nil, value=nil, key_hash=nil, nxt=nil)
-      self.key      = key
-      self.value    = value
-      self.key_hash = key_hash
-      self.next     = nxt
-    end
-
-    def key
-      at 0
-    end
-
-    def key=(key)
-      put 0, key
-    end
-
-    def value
-      at 1
-    end
-
-    def value=(value)
-      put 1, value
-    end
-
-    def key_hash
-      at 2
-    end
-
-    def key_hash=(key_hash)
-      put 2, key_hash
-    end
-
-    def next
-      at 3
-    end
-
-    def next=(nxt)
-      put 3, nxt
+      @key      = key
+      @value    = value
+      @key_hash = key_hash
+      @next     = nxt
     end
 
     # Searches this chain of buckets for one matching both +key+
@@ -144,7 +119,7 @@ class Hash
   # @bins is the vector of storage for the bucket chains.
   #++
   def self.allocate
-    h = super()
+    h = __allocate__ # super()
 
     # We don't need the nanny checking our symbols
     h.set_instance_variable :@records, MIN_SIZE

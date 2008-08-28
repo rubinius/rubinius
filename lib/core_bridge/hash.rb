@@ -4,13 +4,13 @@
 # Silence all the method redefined warnings
 $VERBOSE = nil
 
-Tuple = Array
-
-class Tuple
-  alias_method :put, :[]=
-end
-
 Undefined = Object.new
+
+class Object
+  def set_instance_variable(sym, value)
+    instance_variable_set sym, value
+  end
+end
 
 class Hash
   def self.new(default = Undefined, &block)
