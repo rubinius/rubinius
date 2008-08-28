@@ -3028,7 +3028,7 @@ class Instructions
     msg.stack = count + 1;
     msg.use_from_task(task, count);
 
-    msg.priv = task->call_flags & 1;
+    msg.priv = TRUE;  // TODO: how do we test this?
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name;
 
@@ -3129,7 +3129,7 @@ class Instructions
       msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
     }
 
-    msg.priv = TRUE;
+    msg.priv = TRUE;  // TODO: how do we test this?
     msg.lookup_from = task->current_module()->superclass;
     msg.name = msg.send_site->name;
 
