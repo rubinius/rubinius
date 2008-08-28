@@ -32,47 +32,49 @@ metaclass for an object can be obtained by calling the +metaclass+ method.
 
 == method lookup or method resolution
 
-+-------------+
-|     nil     |
-+-------------+
-       ^
-       | superclass
-       |
-+-------------+
-|    Object   |
-+-------------+
-       ^
-       | superclass
-       |
-+-------------+
-|    Module   |
-+-------------+
-       ^
-       | superclass
-       |
-+-------------+
-|    Class    |
-+-------------+
-       ^
-       | superclass
-       |
-+-------------+
-|  MetaClass  |
-|   (Object)  |
-+-------------+
-       ^
-       | superclass
-       |
-+-------------+
-|  MetaClass  |
-|     (F)     |
-+-------------+
-       ^
-       | metaclass
-       |
-+-------------+
-|      F      |
-+-------------+
+The rule is simple: Take the object located in the class slot of the object
+(which is not always the return value of Object#class) and begin searching.
+
+Searching goes up the superclass chain until the superclass is nil.
+
+In which case, redo lookup for method_missing. If we fail to find
+method_missing, fail tragicly.
+
+                                        +-------------+
+                                        |     nil     |
+                                        +-------------+
+                                               ^
+                                               | superclass
+                                               |
+                                        +-------------+
+                                        |    Object   |
+                                        +-------------+
+                                               ^
+                                               | superclass
+                                               |
+                                        +-------------+
+                                        |    Module   |
+                                        +-------------+
+                                               ^
+                                               | superclass
+                                               |
+                                        +-------------+
+                                        |    Class    |
+                                        +-------------+
+                                               ^
+                                               | superclass
+                                               |
+                                        +-------------+
+                                        |  MetaClass  |
+                                        |   (Object)  |
+                                        +-------------+
+                                               ^
+                                               | superclass
+                                               |
+ +-------------+                        +-------------+
+ |      F      |   ----------------->   |  MetaClass  |
+ +-------------+       metaclass        |     (F)     |
+                                        +-------------+
 
 
 class Class
