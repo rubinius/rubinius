@@ -3,9 +3,12 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
+#include "primitives.hpp"
 
 #include "vm.hpp"
 #include "objectmemory.hpp"
+
+#include <fcntl.h>
 
 namespace rubinius {
   void IO::init(STATE) {
@@ -31,6 +34,24 @@ namespace rubinius {
     return io;
   }
 
+  FIXNUM IO::open(STATE, String* path, FIXNUM mode, FIXNUM perm) {
+    int fd = ::open(path->c_str(), mode->to_native(), perm->to_native());
+    return Fixnum::from(fd);
+  }
+
+  OBJECT IO::close(STATE) {
+    int fd = descriptor->to_native();
+    if(fd == -1) {
+      throw PrimitiveFailed();
+    } else if(::close(fd)) {
+      throw PrimitiveFailed();
+    } else {
+      // HACK todo clear any events for this IO
+      SET(this, descriptor, Fixnum::from(-1));
+    }
+    return Qnil;
+  }
+
   void IO::initialize(STATE, int fd, char* mode) {
     SET(this, descriptor, Integer::from(state, fd));
     SET(this, mode, String::create(state, mode));
@@ -49,6 +70,21 @@ namespace rubinius {
     }
 
     return Integer::from(state, cnt);
+  }
+
+  OBJECT IO::blocking_read(STATE, FIXNUM bytes) {
+    String* str = String::allocate(state, bytes);
+
+    ssize_t cnt = ::read(this->to_fd(), str->data->bytes, bytes->to_native());
+    if(cnt == -1) {
+      throw PrimitiveFailed();
+    } else if(cnt == 0) {
+      return Qnil;
+    }
+
+    SET(str, num_bytes, Fixnum::from(cnt));
+
+    return str;
   }
 
   void IOBuffer::read_bytes(size_t bytes) {

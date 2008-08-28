@@ -8,6 +8,7 @@
 #include "builtin/thread.hpp"
 #include "builtin/list.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/io.hpp"
 
 #include "event.hpp"
 
@@ -76,6 +77,17 @@ namespace rubinius {
     event::Signal* sig = new event::Signal(state, cb, signal->to_native());
     state->signal_events->start(sig);
     return signal;
+  }
+
+  OBJECT Channel::send_on_readable(STATE, Channel* chan, IO* io,
+      IOBuffer* buffer, FIXNUM bytes) {
+
+    SendToChannel* cb = new SendToChannel(state, chan);
+    event::Read* sig = new event::Read(state, cb, io->to_fd());
+    sig->into_buffer(buffer, bytes->to_native());
+
+    state->events->start(sig);
+    return io;
   }
 
   ChannelCallback::ChannelCallback(STATE, Channel* chan) : ObjectCallback(state) {

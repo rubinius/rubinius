@@ -121,6 +121,15 @@ rule ".rbc" do |t|
   compile_ruby src, rbc
 end
 
+compiler = []
+
+Dir["lib/compiler/*.rb"].each do |rb|
+  compiler << "#{rb}c"
+  file "#{rb}c" => rb do
+    compile_ruby rb, "#{rb}c"
+  end
+end
+
 namespace :kernel do
 
   task :show do
@@ -128,7 +137,7 @@ namespace :kernel do
     p loose
   end
 
-  task :build => all_kernel + %w[runtime/platform.conf] do
+  task :build => all_kernel + compiler + %w[runtime/platform.conf] do
     modules.each do |name, files|
       create_load_order files, "runtime/#{name}/.load_order.txt"
     end

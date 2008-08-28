@@ -7,6 +7,12 @@ class Class
     raise RuntimeError, "primitive 'class_allocate' failed on #{self.inspect}"
   end
 
+  # HACK remove me when super() works in allocate
+  def __allocate__
+    Ruby.primitive :class_allocate
+    raise RuntimeError, "primitive 'class_allocate' failed on #{self.inspect}"
+  end
+
   def new(*args)
     obj = allocate()
 

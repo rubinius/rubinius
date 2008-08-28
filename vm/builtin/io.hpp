@@ -25,6 +25,15 @@ namespace rubinius {
     // Ruby.primitive :io_write
     OBJECT write(STATE, String* buf);
 
+    // Ruby.primitive :io_open
+    static FIXNUM open(STATE, String* path, FIXNUM mode, FIXNUM perm);
+
+    // Ruby.primitive :io_close
+    OBJECT close(STATE);
+
+    // Ruby.primitive :io_blocking_read
+    OBJECT blocking_read(STATE, FIXNUM count);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

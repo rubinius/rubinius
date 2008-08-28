@@ -9,6 +9,8 @@
 
 namespace rubinius {
   class List;
+  class IO;
+  class IOBuffer;
 
   class Channel : public Object {
   public:
@@ -30,6 +32,9 @@ namespace rubinius {
 
     // Ruby.primitive :channel_send_on_signal
     static OBJECT send_on_signal(STATE, Channel* chan, FIXNUM signal);
+
+    // Ruby.primitive :channel_send_on_readable
+    static OBJECT send_on_readable(STATE, Channel* chan, IO* io, IOBuffer* buffer, FIXNUM bytes);
 
     class Info : public TypeInfo {
     public:

@@ -10,12 +10,10 @@ class IO
     # Create a buffer of +size+ bytes. The buffer contains an internal Channel
     # object it uses to fill itself.
     def initialize(size)
-      @data = ByteArray.new(size)
-      @bytes = 0
-      @characters = 0
-      @encoding = :buffer
-
+      @storage = ByteArray.new(size)
+      @used = 0
       @total = size
+
       @channel = Channel.new
     end
 
@@ -30,21 +28,20 @@ class IO
     ##
     # Indicates how many bytes are left
     def unused
-      @total - @bytes
+      @total - @used
     end
 
     ##
     # Remove +count+ bytes from the front of the buffer and return them.
     # All other bytes are moved up.
     def shift_front(count)
-      count = @bytes if count > @bytes
+      count = @used if count > @used
 
-      str = String.buffer count
-      str.copy_from self, 0, count, 0
+      str = String.from_bytearray @storage.fetch_bytes(0, count)
 
-      rest = @bytes - count
-      @data.move_bytes count, rest, 0
-      @bytes = rest
+      rest = @used - count
+      @storage.move_bytes count, rest, 0
+      @used = rest
 
       return str
     end
@@ -52,26 +49,26 @@ class IO
     ##
     # Empty the contents of the Buffer into a String object and return it.
     def as_str
-      str = String.buffer @bytes
-      str.copy_from self, 0, @bytes, 0
-      @bytes = 0
+      str = String.buffer @used
+      str.copy_from self, 0, @used, 0
+      @used = 0
       return str
     end
 
     def empty?
-      @bytes == 0
+      @used == 0
     end
 
     ##
     # Indicates if the Buffer has no more room.
     def full?
-      @total == @bytes
+      @total == @used
     end
 
     ##
     # Empty the buffer.
     def reset!
-      @bytes = 0
+      @used = 0
     end
 
     ##
@@ -92,18 +89,17 @@ class IO
 
     def inspect # :nodoc:
       "#<IO::Buffer:0x%x total=%p bytes=%p characters=%p data=%p>" % [
-        object_id, @total, @bytes, @characters, @data
+        object_id, @total, @used, @characters, @storage
       ]
     end
 
     ##
-    # Match the buffer against Regexp +reg+, and remove bytes starting
-    # at the beginning of the buffer, up to the end of where the Regexp
-    # matched.
-    def clip_to(reg)
-      if m = reg.match(self)
-        idx = m.end(0)
-        return shift_front(idx)
+    # Match the buffer against String +needle+, and remove bytes starting
+    # at the beginning of the buffer, up to the end of where the String
+    # matched is located.
+    def clip_to(needle)
+      if pos = @storage.locate(needle)
+        return shift_front(pos + needle.size)
       else
         nil
       end
@@ -792,9 +788,7 @@ class IO
       return gets_stripped($/ + $/)
     end
 
-    reg = /#{sep}/m
-
-    if str = buf.clip_to(reg)
+    if str = buf.clip_to(sep)
       return str
     end
 
@@ -803,7 +797,7 @@ class IO
 
     output = nil
     while true
-      if str = buf.clip_to(reg)
+      if str = buf.clip_to(sep)
         if output
           return output + str
         else

@@ -8,15 +8,27 @@ class String
   include Comparable
   include Enumerable
 
-  attr_reader :data
+  attr_accessor :data
+  attr_accessor :bytes
+  attr_accessor :characters
+  attr_accessor :encoding
 
   def self.allocate
-    str = super()
+    # HACK use super()
+    str = String.__allocate__
     str.data = ByteArray.new(1)
     str.bytes = 0
     str.characters = 0
     str.encoding = nil
     str
+  end
+
+  def self.from_bytearray(ba)
+    # HACK use allocate when super() works
+    str = String.__allocate__
+    str.data = ba
+    str.bytes = ba.size
+    return str
   end
 
   ##

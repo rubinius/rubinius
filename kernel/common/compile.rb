@@ -90,6 +90,14 @@ module Compile
     raise LocalJumpError, "unexpected break"
   end
 
+  def self.load_from_rbc(path, version)
+    File.open(path) do |io|
+      cf = Compiler::CompiledFile.load(io)
+      # HACK check version!
+      return cf
+    end
+  end
+
   # Internally used by #load and #require. Determines whether to
   # load the file directly or by prefixing it with the paths in
   # $LOAD_PATH and then attempts to locate and load the file.
@@ -189,7 +197,7 @@ module Compile
 
           if File.file?(rbc_path)
             compile_feature(rb, requiring) do
-              cm = CompiledMethod.load_from_file(rbc_path, version_number)
+              cm = load_from_rbc(rbc_path, version_number)
               raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
             end
           else
@@ -215,7 +223,7 @@ module Compile
           Marshal.dump_to_file cm, rbc_path, version_number
         else
           compile_feature(rb, requiring) do
-            cm = CompiledMethod.load_from_file(rbc_path, version_number)
+            cm = load_from_rbc(rbc_path, version_number)
             # cm is nil if the file is out of date, version wise.
             unless cm
               if $DEBUG_LOADING
@@ -263,7 +271,7 @@ module Compile
 
       if File.file? rbc_path and !options[:recompile]
         compile_feature(rb, requiring) do
-          cm = CompiledMethod.load_from_file(rbc_path, version_number)
+          cm = load_from_rbc(rbc_path, version_number)
           raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
         end
 

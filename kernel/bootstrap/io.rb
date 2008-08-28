@@ -14,8 +14,8 @@ class IO
     raise PrimitiveFailure, "IO#write failed. Might not have passed a string."
   end
 
-  def prim_read(size, buffer)
-    Ruby.primitive :io_read
+  def blocking_read(size)
+    Ruby.primitive :io_blocking_read
     raise PrimitiveFailure, "primitive failed"
   end
 

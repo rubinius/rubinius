@@ -52,6 +52,7 @@ field_extract_headers = %w[
   vm/builtin/bignum.hpp
   vm/builtin/block_environment.hpp
   vm/builtin/bytearray.hpp
+  vm/builtin/io.hpp
   vm/builtin/channel.hpp
   vm/builtin/module.hpp
   vm/builtin/class.hpp
@@ -61,7 +62,6 @@ field_extract_headers = %w[
   vm/builtin/exception.hpp
   vm/builtin/float.hpp
   vm/builtin/immediates.hpp
-  vm/builtin/io.hpp
   vm/builtin/iseq.hpp
   vm/builtin/list.hpp
   vm/builtin/lookuptable.hpp
