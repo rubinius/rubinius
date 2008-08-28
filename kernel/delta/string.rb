@@ -6,4 +6,10 @@ class String
   BASE_64_A2B[?+]  = ?>
   BASE_64_A2B[?\/] = ??
   BASE_64_A2B[?=]  = 0
+
+  def to_sexp(name="(eval)") # TODO: maybe move into lib/compiler and after_load
+    $: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/") # HACK
+    require 'ruby_parser'
+    RubyParser.new.process(self, name)
+  end
 end
