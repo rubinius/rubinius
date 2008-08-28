@@ -189,29 +189,3 @@ namespace :kernel do
 
 end
 
-desc "Compile the given ruby file into a .rbc file"
-task :compile_ruby, :file do |task, args|
-  file = args[:file]
-  raise ArgumentError, 'compile_ruby requires a file name' if file.nil?
-
-  rbc = file + 'c'
-
-  compile_ruby file, rbc
-end
-task :compile_ruby => 'kernel:build' # HACK argument + dependency is broken
-
-desc "Run the given ruby fil ewith the vm"
-task :run_ruby, :file do |task, args|
-  file = args[:file]
-  raise ArgumentError, 'compile_ruby requires a file name' if file.nil?
-
-  rbc = file + 'c'
-
-  compile_ruby file, rbc
-
-  ENV['PROBE'] = 'yes' if $verbose
-
-  sh 'vm/vm', rbc
-end
-task :run_ruby => 'kernel:build' # HACK argument + dependency is broken
-
