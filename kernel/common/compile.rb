@@ -179,14 +179,21 @@ module Compile
 
       if File.file? rb_path
         rbc_path = "#{dir}#{rbc}"
-        
+
         cm = nil
 
-        # Try to load rbc directly if requested
-        if @load_rbc_directly and File.file?(rbc_path)
-          compile_feature(rb, requiring) do
-            cm = CompiledMethod.load_from_file(rbc_path, version_number)
-            raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
+        # Try to load rbc directly if requested. In this mode, we require
+        # that the .rbc file exist already if the .rb file does. We fail
+        # hard if it doesn't.
+        if @load_rbc_directly
+
+          if File.file?(rbc_path)
+            compile_feature(rb, requiring) do
+              cm = CompiledMethod.load_from_file(rbc_path, version_number)
+              raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
+            end
+          else
+            raise LoadError, "Unable to find '#{rbc_path}' to load directly"
           end
 
         # Prefer compiled whenever possible
