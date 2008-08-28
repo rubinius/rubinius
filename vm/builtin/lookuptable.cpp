@@ -19,8 +19,8 @@
 #define max_density_p(ents,bins) (ents >= LOOKUPTABLE_MAX_DENSITY * bins)
 #define min_density_p(ents,bins) (ents < LOOKUPTABLE_MIN_DENSITY * bins)
 #define key_to_sym(key) \
-  if(kind_of<String>(key)) { \
-    key = ((String*)key)->to_sym(state); \
+  if(String* _str = try_as<String>(key)) { \
+    key = _str->to_sym(state); \
   } \
 
 
@@ -52,7 +52,7 @@ namespace rubinius {
     LookupTable *dup;
 
     size = bins->to_native();
-    dup = (LookupTable*)LookupTable::create(state, size);
+    dup = LookupTable::create(state, size);
     state->om->set_class(dup, class_object(state));
     size_t num = entries->to_native();
 
@@ -93,10 +93,10 @@ namespace rubinius {
     Tuple* new_values = Tuple::create(state, size);
 
     for(size_t i = 0; i < num; i++) {
-      Tuple* entry = (Tuple*)values->at(i);
+      Tuple* entry = try_as<Tuple>(values->at(i));
 
-      while(!entry->nil_p()) {
-        Tuple* next = (Tuple*)entry->at(2);
+      while(entry) {
+        Tuple* next = try_as<Tuple>(entry->at(2));
         entry->put(state, 2, Qnil);
 
         size_t bin = find_bin(key_hash(entry->at(0)), size);
@@ -131,22 +131,22 @@ namespace rubinius {
     }
 
     bin = find_bin(key_hash(key), num_bins);
-    cur = entry = (Tuple*)values->at(bin);
+    cur = entry = try_as<Tuple>(values->at(bin));
 
-    while(!entry->nil_p()) {
+    while(entry) {
       if(entry->at(0) == key) {
         entry->put(state, 1, val);
         return val;
       }
       cur = entry;
-      entry = (Tuple*)entry->at(2);
+      entry = try_as<Tuple>(entry->at(2));
     }
 
     new_ent = entry_new(state, key, val);
-    if(NIL_P(cur)) {
-      values->put(state, bin, new_ent);
-    } else {
+    if(cur) {
       cur->put(state, 2, new_ent);
+    } else {
+      values->put(state, bin, new_ent);
     }
 
     entries = Fixnum::from(num_entries + 1);
@@ -217,19 +217,19 @@ namespace rubinius {
     }
 
     bin = find_bin(key_hash(key), num_bins);
-    entry = (Tuple*)values->at(bin);
+    entry = try_as<Tuple>(values->at(bin));
 
-    lst = (Tuple*)Qnil;
+    lst = NULL;
 
-    while(!entry->nil_p()) {
-      lk = (Tuple*)entry->at(2);
+    while(entry) {
+      lk = try_as<Tuple>(entry->at(2));
 
       if(entry->at(0) == key) {
         val = entry->at(1);
-        if(lst->nil_p()) {
-          values->put(state, bin, lk);
-        } else {
+        if(lst) {
           lst->put(state, 2, lk);
+        } else {
+          values->put(state, bin, lk);
         }
         entries = Fixnum::from(entries->to_native() - 1);
         return val;
