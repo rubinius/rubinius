@@ -148,7 +148,7 @@ void VMMethod::resume(Task* task, MethodContext* ctx) {
   for(;;) {
     op = stream[ctx->ip++];
 #if 0
-    printf("%-22s+%3d: %-30s %10d %10p\n",
+    printf("%-27s+%4d: %-30s %4d %10p\n",
            ctx->cm->name->to_str(state)->c_str(),
            ctx->ip, InstructionSequence::get_instruction_name(op),
            js->stack - ctx->stk, *js->stack);
