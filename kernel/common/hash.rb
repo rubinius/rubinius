@@ -86,7 +86,7 @@ class Hash
 
     hsh = key_hash key
     entry = self.entry key, hsh
-    size += 1 if entry.set key, value, hsh
+    self.size += 1 if entry.set(key, value, hsh)
 
     value
   end

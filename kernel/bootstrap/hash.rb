@@ -122,9 +122,9 @@ class Hash
     h = __allocate__ # super()
 
     # We don't need the nanny checking our symbols
-    h.set_instance_variable :@records, MIN_SIZE
-    h.set_instance_variable :@bins, Tuple.new(MIN_SIZE)
-    h.set_instance_variable :@size, 0
+    h.send :set_instance_variable, :@records, MIN_SIZE
+    h.send :set_instance_variable, :@bins, Tuple.new(MIN_SIZE)
+    h.send :set_instance_variable, :@size, 0
     h
   end
 
