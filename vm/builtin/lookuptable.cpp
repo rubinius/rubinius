@@ -299,7 +299,7 @@ namespace rubinius {
     Array* keys = tbl->all_keys(state);
 
     std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
-      " " << size << ":";
+      "(" << (void*) self << ") " << size << ":";
     for(size_t i = 0; i < size; i++) {
       std::cout << " :" << as<Symbol>(keys->get(state, i))->c_str(state);
       if(i < size - 1) std::cout << ",";
