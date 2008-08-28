@@ -122,6 +122,9 @@ namespace rubinius {
 
     BlockEnvironment* env();
 
+    // Ruby.primitive :block_context_env
+    BlockEnvironment* env(STATE);
+
     static BlockContext* create(STATE, size_t stack_size);
 
     class Info : public MethodContext::Info {

@@ -171,6 +171,10 @@ initialize:
     return as<BlockEnvironment>(name);
   }
 
+  BlockEnvironment* BlockContext::env(STATE) {
+    return this->env();
+  }
+
   /* Called when a context is referenced. Typically, this is via the push_context
    * opcode or MethodContext#sender. */
   void MethodContext::reference(STATE) {
