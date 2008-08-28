@@ -1670,7 +1670,7 @@ class Instructions
     ps->parent = (StaticScope*)Qnil;
     SET(cm, scope, ps);
 
-    task->push(Qnil);
+    task->push(G(true_class));
 
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
@@ -1678,6 +1678,9 @@ class Instructions
     run();
 
     TS_ASSERT(kind_of<Class>(G(true_class)->get_const(state, name)));
+
+    Class* cls = (Class*)task->stack_top();
+    TS_ASSERT_EQUALS(cls->metaclass(state)->superclass, G(true_class)->metaclass(state))
     CODE
   end
 
