@@ -161,9 +161,9 @@ class CompiledMethod < Executable
 
   def inherit_scope(other)
     if ss = other.staticscope
-      @staticscope = ss
+      @scope = ss
     else
-      @staticscope = StaticScope.new(Object)
+      @scope = StaticScope.new(Object)
     end
   end
 
@@ -216,7 +216,7 @@ class CompiledMethod < Executable
     # Setup the scoping.
     ss = StaticScope.new(Object)
     ss.script = script
-    @staticscope = ss
+    @scope = ss
 
     activate_as_script
   end
