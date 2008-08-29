@@ -1,3 +1,1 @@
 incomplete:File.setgid? needs to be reviewed for spec completeness
-fails:File.setgid? should return false if the file was just made
-fails:File.setgid? should be false if the file doesn't exist

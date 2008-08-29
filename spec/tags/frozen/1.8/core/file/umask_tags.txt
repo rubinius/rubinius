@@ -1,2 +1,0 @@
-fails:File.umask invokes to_int on non-integer argument
-fails:File.umask always succeeds with any integer values
