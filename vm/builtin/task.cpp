@@ -173,11 +173,9 @@ namespace rubinius {
 
     /* Now that we've processed everything from the stack, we need to clean it up */
 stack_cleanup:
-#if 0
     if(probe) {
       probe->start_method(this, msg);
     }
-#endif
 
     active->clear_stack(msg.stack);
   }

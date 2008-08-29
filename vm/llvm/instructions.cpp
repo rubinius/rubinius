@@ -17,6 +17,7 @@
 
 #include "jit_state.h"
 #include "objectmemory.hpp"
+#include "probes.hpp"
 
 using namespace rubinius;
 
@@ -147,12 +148,10 @@ void VMMethod::resume(Task* task, MethodContext* ctx) {
 
   for(;;) {
     op = stream[ctx->ip++];
-#if 0
-    printf("%-27s+%4d: %-30s %4d %10p\n",
-           ctx->cm->name->to_str(state)->c_str(),
-           ctx->ip, InstructionSequence::get_instruction_name(op),
-           js->stack - ctx->stk, *js->stack);
-#endif
+
+    if(task->probe) {
+      task->probe->execute_instruction(task, ctx, op);
+    }
 
 #ruby <<CODE
 io = StringIO.new
