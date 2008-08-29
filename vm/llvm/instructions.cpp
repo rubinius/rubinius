@@ -23,7 +23,7 @@ using namespace rubinius;
 #define OP(name, args...) void name(Task* task, struct jit_state* const js, ## args)
 #define OP2(type, name, args...) type name(Task* task, struct jit_state* const js, ## args)
 // HACK: sassert is stack protection
-#define stack_push(val) sassert(val); *++js->stack = val
+#define stack_push(val) ({ OBJECT _v = (val); sassert(_v && js->stack < js->stack_top); *++js->stack = _v; })
 #define stack_pop() *js->stack--
 #define stack_top() *js->stack
 #define stack_back(count) *(js->stack - count)

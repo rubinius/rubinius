@@ -75,6 +75,7 @@ namespace rubinius {
 
     void push(OBJECT value) {
       *++js.stack = value;
+      sassert(js.stack < js.stack_top);
     }
 
     OBJECT stack_back(size_t position) {

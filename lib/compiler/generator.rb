@@ -163,6 +163,9 @@ class Compiler
 
       cm.stack_size = desc.locals.size + iseq.stack_depth
 
+      # Reserve space for the tuple we use as block args
+      cm.stack_size += 1 if desc.for_block
+
       if @file
         cm.file = @file.to_sym
       else

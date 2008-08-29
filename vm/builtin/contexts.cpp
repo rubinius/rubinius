@@ -8,6 +8,8 @@
 
 #include "context_cache.hpp"
 
+#define DISABLE_CACHE 1
+
 namespace rubinius {
 
   template <>
@@ -44,6 +46,7 @@ namespace rubinius {
     }
 
     ctx->js.stack = ctx->stk - 1;
+    ctx->js.stack_top = ctx->stk + stack;
   }
 
   /* Find a context to use. Either use a cache or create one in the heap. */
@@ -51,6 +54,10 @@ namespace rubinius {
     MethodContext* ctx;
     size_t which_cache = SmallContextCache;
     size_t bytes;
+
+#if DISABLE_CACHE
+    goto allocate_heap;
+#endif
 
     /* If it's small enough, use the set small size. */
     if(stack_size < SmallContextSize) {

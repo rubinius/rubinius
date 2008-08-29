@@ -15,11 +15,12 @@ class Compiler
       @required = 0
       @optional = 0
       @splat = nil
+      @for_block = false
       @name = :__unknown__
     end
 
     attr_reader :generator, :locals
-    attr_accessor :required, :optional, :name, :args, :splat
+    attr_accessor :required, :optional, :name, :args, :splat, :for_block
 
     def run(container, body)
       @generator.run(body)
@@ -595,6 +596,7 @@ class Compiler
       def bytecode(g)
         desc = MethodDescription.new @compiler.generator_class, @locals
         desc.name = :__block__
+        desc.for_block = true
         desc.required, desc.optional, _ = argument_info
         sub = desc.generator
 

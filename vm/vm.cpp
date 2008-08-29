@@ -12,6 +12,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 
+#include "context_cache.hpp"
 #include "config.hpp"
 
 #include <iostream>
@@ -201,6 +202,8 @@ namespace rubinius {
   }
 
   void VM::activate_thread(Thread* thread) {
+    // Don't try and reclaim any contexts, they belong to someone else.
+    context_cache->reclaim = 0;
     globals.current_thread.set(thread);
     globals.current_task.set(thread->task);
   }

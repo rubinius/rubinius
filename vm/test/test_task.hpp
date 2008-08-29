@@ -279,13 +279,13 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->required_args = Fixnum::from(2);
     cm->total_args = cm->required_args;
-    cm->local_count = Fixnum::from(3);
+    cm->local_count = Fixnum::from(4);
     cm->stack_size =  cm->local_count;
     cm->splat = Fixnum::from(2);
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 10);
 
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
@@ -315,13 +315,13 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->required_args = Fixnum::from(1);
     cm->total_args = Fixnum::from(2);
-    cm->local_count = Fixnum::from(3);
+    cm->local_count = Fixnum::from(4);
     cm->stack_size =  cm->local_count;
     cm->splat = Fixnum::from(2);
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 10);
 
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
@@ -357,7 +357,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 10);
 
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
