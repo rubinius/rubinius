@@ -32,6 +32,14 @@ namespace rubinius {
     bool compile_up_front;
   };
 
+  struct Interrupts {
+    bool check;
+    bool switch_task;
+    bool perform_gc;
+
+    Interrupts() : check(false), switch_task(false), perform_gc(false) { }
+  };
+
   class VM {
     public:
     /* Data members */
@@ -43,6 +51,7 @@ namespace rubinius {
     TaskProbe* probe;
     Primitives* primitives;
     Configuration config;
+    Interrupts interrupts;
     SymbolTable symbols;
     ConfigParser *user_config;
 
@@ -127,6 +136,8 @@ namespace rubinius {
 
     void print_backtrace();
 
+    // In an infinite loop, run the current task.
+    void run_and_monitor();
   };
 };
 

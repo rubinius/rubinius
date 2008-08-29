@@ -51,7 +51,7 @@ namespace rubinius {
 
     cm->execute(state, G(current_task), msg);
     try {
-      G(current_task)->execute();
+      state->run_and_monitor();
     } catch(Task::Halt &e) {
       return true;
     }

@@ -205,7 +205,11 @@ namespace rubinius {
     // Don't try and reclaim any contexts, they belong to someone else.
     context_cache->reclaim = 0;
     globals.current_thread.set(thread);
-    globals.current_task.set(thread->task);
+    if(globals.current_task.get() != thread->task) {
+      globals.current_task.set(thread->task);
+      interrupts.check = true;
+      interrupts.switch_task = true;
+    }
   }
 
   OBJECT VM::current_block() {
@@ -247,6 +251,12 @@ namespace rubinius {
     Task* task = Task::create(this);
     globals.current_task.set(task);
     return task;
+  }
+
+  void VM::run_and_monitor() {
+    for(;;) {
+      G(current_task)->execute();
+    }
   }
 
   /* For debugging. */
