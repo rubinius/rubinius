@@ -142,6 +142,15 @@ class Compiler
       return tup
     end
 
+    # Returns the size of the stack required to execute all the instructions.
+    # NOTE: the stack size calculated by @encoder is wrong and we need to
+    # calculate stack depth a different way!
+    def instruction_stack_depth
+      collapse_labels
+      iseq = @encoder.encode_stream @stream
+      return [iseq.stack_depth, @encoder.stack_depth]
+    end
+
     def to_cmethod(desc)
       collapse_labels
 

@@ -362,6 +362,8 @@ class InstructionSequence
 
   class Encoder
 
+    attr_reader :stack_depth
+
     ##
     # Decodes an InstructionSequence (which is essentially a an array of ints)
     # into an array whose elements are arrays of opcode symbols and 0-2 args,
@@ -520,6 +522,9 @@ class InstructionSequence
       end
 
       this = opcode.stack_difference(inst)
+      #print "%-30s" % inst.inspect
+      #p [this, @stack_depth, @max_stack_depth]
+
       @stack_depth += this
       @max_stack_depth = @stack_depth if @stack_depth > @max_stack_depth
 
