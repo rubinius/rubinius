@@ -617,4 +617,39 @@ stack_cleanup:
     }
   }
 
+  void Task::print_backtrace() {
+    MethodContext* ctx = active;
+
+    while(!ctx->nil_p()) {
+      std::cout << (void*)ctx << ": ";
+      if(kind_of<BlockContext>(ctx)) {
+        std::cout << "__block__";
+      } else {
+        if(MetaClass* meta = try_as<MetaClass>(ctx->module)) {
+          if(Module* mod = try_as<Module>(meta->attached_instance)) {
+            std::cout << mod->name->c_str(state) << ".";
+          } else {
+            std::cout << "#<" <<
+              meta->attached_instance->class_object(state)->name->c_str(state) <<
+              ":0x" << (void*)meta->attached_instance << ">.";
+          }
+        } else {
+          std::cout << ctx->module->name->to_str(state)->byte_address() << "#";
+        }
+
+        SYMBOL name = try_as<Symbol>(ctx->name);
+        if(name) {
+          std::cout << name->to_str(state)->byte_address();
+        } else {
+          std::cout << ctx->cm->name->to_str(state)->byte_address();
+        }
+      }
+
+      std::cout << ":" << ctx->line() << " in " << ctx->cm->file->to_str(state)->byte_address();
+
+      std::cout << "\n";
+      ctx = ctx->sender;
+    }
+  }
+
 }

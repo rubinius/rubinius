@@ -237,38 +237,7 @@ namespace rubinius {
   }
 
   void VM::print_backtrace() {
-    MethodContext* ctx = globals.current_task.get()->active;
-
-    while(!ctx->nil_p()) {
-      std::cout << (void*)ctx << ": ";
-      if(kind_of<BlockContext>(ctx)) {
-        std::cout << "__block__";
-      } else {
-        if(MetaClass* meta = try_as<MetaClass>(ctx->module)) {
-          if(Module* mod = try_as<Module>(meta->attached_instance)) {
-            std::cout << mod->name->c_str(this) << ".";
-          } else {
-            std::cout << "#<" <<
-              meta->attached_instance->class_object(this)->name->c_str(this) <<
-              ":0x" << (void*)meta->attached_instance << ">.";
-          }
-        } else {
-          std::cout << ctx->module->name->to_str(this)->byte_address() << "#";
-        }
-
-        SYMBOL name = try_as<Symbol>(ctx->name);
-        if(name) {
-          std::cout << name->to_str(this)->byte_address();
-        } else {
-          std::cout << ctx->cm->name->to_str(this)->byte_address();
-        }
-      }
-
-      std::cout << ":" << ctx->line() << " in " << ctx->cm->file->to_str(this)->byte_address();
-
-      std::cout << "\n";
-      ctx = ctx->sender;
-    }
+    globals.current_task.get()->print_backtrace();
   }
 
   Task* VM::new_task() {
