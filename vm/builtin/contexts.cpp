@@ -166,11 +166,13 @@ initialize:
   }
 
   /* Retrieve the BlockEnvironment from +this+ BlockContext. We reuse the
-   * name field from MethodContext and use a type-safe cast. */
+   * block field from MethodContext and use a type-safe cast. */
   BlockEnvironment* BlockContext::env() {
-    return as<BlockEnvironment>(name);
+    return as<BlockEnvironment>(block);
   }
 
+  /* Called as the block_context_env primitive
+   */
   BlockEnvironment* BlockContext::env(STATE) {
     return this->env();
   }

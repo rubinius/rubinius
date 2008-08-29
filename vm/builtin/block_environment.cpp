@@ -69,7 +69,7 @@ namespace rubinius {
   BlockContext* BlockEnvironment::create_context(STATE, MethodContext* sender) {
     BlockContext* ctx = BlockContext::create(state, method->stack_size->to_native());
     SET(ctx, sender, sender);
-    SET(ctx, name, (SYMBOL)this); // HACK don't cast non-Symbol to Symbol
+    SET(ctx, block, this);
     SET(ctx, cm, method);
     SET(ctx, home, home);
 
