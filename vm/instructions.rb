@@ -3088,6 +3088,8 @@ class Instructions
 
 
     // Now test that send finds a private method
+
+    state->global_cache->clear(child, name);
     task = Task::create(state);
 
     ctx = MethodContext::create(state, Qnil, cm);

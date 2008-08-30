@@ -154,9 +154,11 @@ class Instructions
 #include "builtin/contexts.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/sendsite.hpp"
+#include "builtin/compiledmethod.hpp"
 
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "global_cache.hpp"
 
 #include <cxxtest/TestSuite.h>
 
