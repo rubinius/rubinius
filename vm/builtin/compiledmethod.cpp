@@ -55,7 +55,11 @@ namespace rubinius {
   }
 
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
-    if(!executable) {
+    // HACK the check for executable being nil comes from the fact that
+    // a CompiledMethod, when created all in Ruby, has it's fields all
+    // initialized to nil. CompiledMethod::allocate needs to be a primitive
+    // that gets things setup properly.
+    if(!executable || (OBJECT)executable == Qnil) {
       if(!primitive->nil_p()) {
         if(SYMBOL name = try_as<Symbol>(primitive)) {
           //std::cout << "resolving: "; inspect(state, name);

@@ -197,6 +197,13 @@ stack_cleanup:
    * of it. */
   bool Task::send_message(Message& msg) {
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
+    // HACK ug! do this up front, not way down here.
+    if(CompiledMethod* cm = try_as<CompiledMethod>(msg.method)) {
+      if(!cm->executable || (OBJECT)cm->executable == Qnil) {
+        cm->formalize(state, false);
+      }
+    }
+
     return msg.method->execute(state, this, msg);
   }
 
@@ -338,6 +345,11 @@ stack_cleanup:
       TypeInfo* ti = state->om->type_info[type];
       if(!ti) {
         ti = new TypeInfo((object_type)0);
+      }
+
+      // HACK can we do this earlier? somewhere else?
+      if(method->executable == NULL || (OBJECT)method->executable == Qnil) {
+        method->formalize(state, false);
       }
 
       method->specialize(ti);
@@ -640,7 +652,7 @@ stack_cleanup:
           } else {
             std::cout << "#<" <<
               meta->attached_instance->class_object(state)->name->c_str(state) <<
-              ":0x" << (void*)meta->attached_instance << ">.";
+              ":" << (void*)meta->attached_instance << ">.";
           }
         } else {
           std::cout << ctx->module->name->to_str(state)->byte_address() << "#";
