@@ -146,7 +146,7 @@ If you want to run a single test suite under gdb, use:
 
   SUITE="SomeClass" gdb vm/test/runner
 
-You can use `git pull` or `rake git:pull to get updatesa.
+You can use `git pull` or `rake git:pull to get updates.
 
 Use `git push` or `rake git:push` to send back any of your
 commits to the C++ branch.
