@@ -224,6 +224,8 @@ class CompiledMethod < Executable
   def activate_as_script
     mc = MAIN.metaclass
     mc.method_table[:__script__] = self
+    compile
+    Rubinius::VM.reset_method_cache :__script__
     MAIN.__script__
   end
 
