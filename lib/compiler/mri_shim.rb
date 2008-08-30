@@ -10,7 +10,6 @@ $:.unshift File.dirname(__FILE__) + "/.."
 
 require 'compiler/compiler'
 require 'compiler/text'
-require 'kernel/delta/marshal'
 require 'kernel/delta/compiled_file'
 
 class SendSite

@@ -92,7 +92,7 @@ module Compile
 
   def self.load_from_rbc(path, version)
     File.open(path) do |io|
-      cf = Compiler::CompiledFile.load(io)
+      cf = Rubinius::CompiledFile.load(io)
       # HACK check version!
       return cf.body
     end
