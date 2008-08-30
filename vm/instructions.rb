@@ -3030,7 +3030,7 @@ class Instructions
     msg.stack = count + 1;
     msg.use_from_task(task, count);
 
-    msg.priv = TRUE;  // TODO: how do we test this?
+    msg.priv = TRUE;
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name;
 
@@ -3077,6 +3077,35 @@ class Instructions
     stream[2] = (opcode)1;
 
     target->formalize(state);
+
+    run();
+
+    TS_ASSERT_EQUALS(task->active->cm, target);
+    TS_ASSERT_EQUALS(task->active->args, 1U);
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(task->active->block, be);
+    TS_ASSERT_EQUALS(task->self, obj);
+
+
+    // Now test that send finds a private method
+    task = Task::create(state);
+
+    ctx = MethodContext::create(state, Qnil, cm);
+    task->make_active(ctx);
+
+    MethodVisibility* vis = MethodVisibility::create(state);
+    vis->method = target;
+    vis->visibility = G(sym_private);
+
+    parent->method_table->store(state, name, vis);
+
+    task->self = obj;
+    task->literals->put(state, 0, ss);
+    task->push(obj);
+    task->push(Fixnum::from(3));
+
+    be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
+    task->push(be);
 
     run();
 
