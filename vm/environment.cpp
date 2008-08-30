@@ -53,7 +53,6 @@ namespace rubinius {
       // skip empty lines
       if(line.size() == 0) continue;
 
-      std::cout << "Loading: " << line << std::endl;
       run_file(dir + "/" + line);
     }
   }
