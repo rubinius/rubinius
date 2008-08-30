@@ -257,6 +257,24 @@ up-to-date:
     return false;
   }
 
+To have a primitive fail, the primitive body should throw
+PrimitiveFailed.  This will cause the code following the
+Ruby.primitive line in the kernel to be run. This provides a
+fallback so that the operation can be retried in Ruby.
+
+If a primitive cannot be retried in Ruby or if there is some
+additional information that needs to be passed along to create
+the exception, it may raise an exception using a couple of
+macros:
+
+* RAISE(exc_class, msg) will raise an exception of type exc_class
+  and with a message of msg, e.g.
+  
+    RAISE("ArgumentError", "Invalid argument");
+
+* RAISE_FROM_ERRNO(msg) will raise an Errno exception with the
+  specified msg.
+
 ==== Primitive tests
 
 Since the "primitives" are ordinary C++ methods, tests for them
@@ -441,11 +459,9 @@ extensions to work with Rubinius.
 Using the above rationale, if you need to implement a primitive:
 
 * Give the primitive a sane name
-* Implement the primitive in shotgun/lib/primitives.rb using the
-  name you chose as the method name.
-* Enter the primitive name as a symbol at the BOTTOM of the Array
-  in shotgun/lib/primitive_names.rb.
-* `rake build`
+* Implement the primitive in the vm and wire it up using the name
+  you chose as described above in the VM section.
+* run `rake build`
 
 This makes your primitive available in the Ruby layer using the
 special form <tt>Ruby.primitive :primitive_name</tt>. Primitives
@@ -472,24 +488,6 @@ this is a typical pattern:
     self.prim_primitive_name
     ...
   end
-
-To have a primitive fail, the primitive body (in primitives.rb)
-should return FALSE; this will cause the code following the
-Ruby.primitive line to be run. This provides a fallback so that
-the operation can be retried in Ruby.
-
-If a primitive cannot be retried in Ruby or if there is some
-additional information that needs to be passed along to create
-the exception, it may raise an exception using a couple of
-macros:
-
-* RAISE(exc_class, msg) will raise an exception of type exc_class
-  and with a message of msg, e.g.
-  
-    RAISE("ArgumentError", "Invalid argument");
-
-* RAISE_FROM_ERRNO(msg) will raise an Errno exception with the
-  specified msg.
 
 If you need to change the signature of a primitive, follow this
 procedure:
