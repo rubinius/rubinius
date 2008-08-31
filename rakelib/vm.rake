@@ -230,7 +230,7 @@ file 'vm/compile' => EXTERNALS + objs + %w[vm/drivers/compile.o] do |t|
   ld t
 end
 
-rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', *hdrs do |path|
+rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
   compile 'vm/instructions.o', path
 end
 
