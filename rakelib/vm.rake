@@ -186,12 +186,12 @@ files EXTERNALS do |t|
   end
 end
 
-file 'vm/primitives.o'               => 'vm/codegen/field_extract.rb'
-file 'vm/codegen/instructions_gen.rb'        => 'kernel/delta/iseq.rb'
-file 'vm/instructions.rb'            => 'vm/gen'
-file 'vm/instructions.rb'            => 'vm/codegen/instructions_gen.rb'
-file 'vm/test/test_instructions.hpp' => 'vm/codegen/instructions_gen.rb'
-file 'vm/codegen/field_extract.rb'           => 'vm/gen'
+file 'vm/primitives.o'                => 'vm/codegen/field_extract.rb'
+file 'vm/codegen/instructions_gen.rb' => 'kernel/delta/iseq.rb'
+file 'vm/instructions.rb'             => 'vm/gen'
+file 'vm/instructions.rb'             => 'vm/codegen/instructions_gen.rb'
+file 'vm/test/test_instructions.hpp'  => 'vm/codegen/instructions_gen.rb'
+file 'vm/codegen/field_extract.rb'    => 'vm/gen'
 
 files INSN_GEN, %w[vm/instructions.rb] do |t|
   ruby 'vm/instructions.rb', :verbose => $verbose
