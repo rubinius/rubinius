@@ -9,6 +9,10 @@ namespace rubinius {
   class Hash;
   class Tuple;
 
+  /* Symbols are immediate types, but instances of a Symbol are created
+   * via SymbolTable::lookup, which is normally accessed through
+   * state->lookup.
+   */
   class Symbol : public Object {
   public:
     const static size_t fields = 0;

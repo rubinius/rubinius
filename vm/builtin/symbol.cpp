@@ -12,7 +12,7 @@
 #define Increments 32
 
 namespace rubinius {
-  /* See Note(t1) in immediates.hpp */
+  /* See Note(t1) in immediates.cpp */
   template <>
     bool kind_of<Symbol>(OBJECT obj) {
       return obj->symbol_p();

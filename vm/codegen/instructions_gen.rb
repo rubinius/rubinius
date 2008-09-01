@@ -1,6 +1,6 @@
 # Instruction related generation code.
 #
-# This code uses the contents of instructions.rb to create varies
+# This code uses the contents of instructions.rb to create various
 # views of the instructions.
 #
 # This includes their implementations in functions, functions which
