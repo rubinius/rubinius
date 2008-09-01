@@ -1005,6 +1005,20 @@ class Instructions
     stack_push(t1 == Qnil ? Qtrue : Qfalse);
     CODE
   end
+  
+  def test_is_nil
+    <<-CODE
+    task->push(Qnil);
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
+    task->push(String::create(state, "no"));
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+    task->push(Integer::from(state, 0));
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+    CODE
+  end
 
   # [Operation]
   #   Return true if value is a Symbol, otherwise false
@@ -1024,6 +1038,20 @@ class Instructions
     <<-CODE
     OBJECT t1 = stack_pop();
     stack_push(t1->symbol_p() ? Qtrue : Qfalse);
+    CODE
+  end
+
+  def test_is_symbol
+    <<-CODE
+    task->push(Qnil);
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+    task->push(String::create(state, "no"));
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+    task->push(state->symbol("foo"));
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
     CODE
   end
 
