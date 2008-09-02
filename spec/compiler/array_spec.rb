@@ -7,8 +7,8 @@ describe Compiler do
     EOC
 
     sexp = s(:argscat,
-             s(:array, s(:lit, 1), s(:lit, 2)),
-             s(:fcall, :foo))
+             s(:array, s(:fixnum, 1), s(:fixnum, 2)),
+             s(:call, nil, :foo, s(:arglist)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -32,10 +32,10 @@ describe Compiler do
     EOC
 
     sexp = s(:block,
-             s(:lasgn, :x, s(:array, s(:lit, 42))),
+             s(:lasgn, :x, s(:array, s(:fixnum, 42))),
              s(:argscat,
-               s(:array, s(:lit, 1), s(:lit, 2)),
-               s(:lvar,  :x, 0)))
+               s(:array, s(:fixnum, 1), s(:fixnum, 2)),
+               s(:lvar,  :x)))
 
     sexp.should == parse(ruby) if $unified && $new
 
