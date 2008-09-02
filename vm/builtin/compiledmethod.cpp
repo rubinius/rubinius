@@ -114,4 +114,24 @@ namespace rubinius {
     this->scope = scope;
   }
 
+  void CompiledMethod::Info::show(STATE, OBJECT self) {
+    CompiledMethod* cm = as<CompiledMethod>(self);
+
+    std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
+      ":" << (void*) self << "\n";
+    std::cout << "  exceptions: "; cm->exceptions->show(state);
+    std::cout << "  file: "; cm->file->show(state);
+    std::cout << "  iseq: "; cm->iseq->show(state);
+    std::cout << "  lines: "; cm->lines->show(state);
+    std::cout << "  literals: "; cm->literals->show(state);
+    std::cout << "  local_count: "; cm->local_count->show(state);
+    std::cout << "  local_names: "; cm->local_names->show(state);
+    std::cout << "  name: "; cm->name->show(state);
+    std::cout << "  required_args: "; cm->required_args->show(state);
+    std::cout << "  scope: "; cm->scope->show(state);
+    std::cout << "  splat: "; cm->splat->show(state);
+    std::cout << "  stack_size: "; cm->stack_size->show(state);
+    std::cout << "  total_args: "; cm->total_args->show(state);
+    std::cout << ">\n";
+  }
 }
