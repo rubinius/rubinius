@@ -1274,7 +1274,6 @@ class Compiler
     end
 
     class Module
-
       def bytecode(g)
         if @parent
           @parent.bytecode(g)
@@ -1286,8 +1285,36 @@ class Compiler
         attach_and_call g, :__module_init__, true
       end
     end
+
     class Defined
-      NODE_TYPES = {:self => "self", :nil => "nil", :true => "true", :false => "false", :gasgn => "assignment", :iasgn => "assignment", :cdecl => "assignment", :cvdecl => "assignment", :cvasgn => "assignment", :lvar => "local-variable", :str => "expression", :array => "expression", :hash => "expression", :yield => "yield", :ivar => "instance-variable", :gvar => "global-variable", :cvar => "class variable", :fcall => "method", :call => "method", :vcall => "method", :const => "constant", :colon2 => "constant", :colon3 => "constant", :lasgn => "assignment", :fixnum => "expression", :lit => "expression"}
+      NODE_TYPES = {
+        :array  => "expression",
+        :call   => "method",
+        :cdecl  => "assignment",
+        :colon2 => "constant",
+        :colon3 => "constant",
+        :const  => "constant",
+        :cvar   => "class variable",
+        :cvasgn => "assignment",
+        :cvdecl => "assignment",
+        :false  => "false",
+        :fcall  => "method",
+        :fixnum => "expression",
+        :gasgn  => "assignment",
+        :gvar   => "global-variable",
+        :hash   => "expression",
+        :iasgn  => "assignment",
+        :ivar   => "instance-variable",
+        :lasgn  => "assignment",
+        :lit    => "expression",
+        :lvar   => "local-variable",
+        :nil    => "nil",
+        :self   => "self",
+        :str    => "expression",
+        :true   => "true",
+        :vcall  => "method",
+        :yield  => "yield",
+      }
 
       def bytecode(g)
         # Imported directly from compiler1 and reworked to use g.
@@ -1892,11 +1919,15 @@ class Compiler
 
     class Call
       def allow_private?
-        false
+        @object.nil?
       end
 
       def receiver_bytecode(g)
-        @object.bytecode(g)
+        if @object then
+          @object.bytecode(g)
+        else
+          g.push :self
+        end
       end
 
       def emit_args(g)
