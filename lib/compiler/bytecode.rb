@@ -340,7 +340,10 @@ class Compiler
 
     class DynamicSymbol
       def bytecode(g)
-        @string.bytecode(g)
+        @evstr.bytecode(g)
+        g.push_literal @str
+        g.string_dup
+        g.string_append
         g.send :to_sym, 0, true
       end
     end
@@ -2112,8 +2115,8 @@ class Compiler
     class Alias
       def bytecode(g)
         g.push :self
-        g.push_literal @new
         g.push_literal @current
+        g.push_literal @new
         g.send :alias_method, 2, true
       end
     end
@@ -2122,8 +2125,8 @@ class Compiler
       def bytecode(g)
         g.push_cpath_top
         g.find_const :Globals
-        g.push_literal @current
         g.push_literal @new
+        g.push_literal @current
         g.send :add_alias, 2
       end
     end

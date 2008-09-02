@@ -601,6 +601,16 @@ class Compiler
       attr_accessor :value
     end
 
+    class FloatLiteral < NumberLiteral
+      kind :float
+
+      def args(value)
+        @value = value
+      end
+
+      attr_accessor :value
+    end
+
     # Literal is the default representation of any literal
     # object value in the code, such as a number representing
     # a Float. Fixnums and Regexps are delegated to be processed
@@ -814,22 +824,11 @@ class Compiler
     class Match < Node
       kind :match
 
-      # Essentially same as :match2, just using $_
-      def consume(sexp)
-        pattern = RegexLiteral.new @compiler
-        pattern.args *sexp      # Pattern, options
-
-        last_input = GVar.new @compiler
-        last_input.name = :$_
-
-        [pattern, last_input]
+      def args(pattern)
+        @pattern = pattern
       end
 
-      def args(pattern, target)
-        @pattern, @target = pattern, target
-      end
-
-      attr_accessor :pattern, :target
+      attr_accessor :pattern
     end
 
     # Match2 is a regexp match where the regexp literal is on the
@@ -896,7 +895,7 @@ class Compiler
       kind :back_ref
 
       def args(kind)
-        @kind = kind.chr.to_sym
+        @kind = kind.to_sym
       end
 
       attr_accessor :kind
@@ -2738,8 +2737,9 @@ class Compiler
     class DynamicSymbol < Node
       kind :dsym
 
-      def args(string)
-        @string = string
+      def args(str, evstr)
+        @str   = str
+        @evstr = evstr
       end
     end
 

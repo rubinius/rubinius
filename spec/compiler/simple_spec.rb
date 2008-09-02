@@ -153,12 +153,12 @@ describe Compiler do
       0xffff_ffff_ffff_ffff
     EOC
 
-    sexp = s(:lit, num)
+    sexp = s(:fixnum, num)
 
     sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
-      g.push_unique_literal num
+      g.push num # TODO: check: was push_unique_literal
     end
   end
 
@@ -168,12 +168,12 @@ describe Compiler do
       1.2
     EOC
 
-    sexp = s(:lit, num)
+    sexp = s(:float, num)
 
     sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
-      g.push_unique_literal num
+      g.push num
     end
   end
 
@@ -182,12 +182,13 @@ describe Compiler do
       "blah"
     EOC
 
-    sexp = s(:lit, "blah")
+    sexp = s(:str, "blah")
 
     sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
-      g.push_unique_literal "blah"
+      g.push_literal "blah"
+      g.string_dup
     end
   end
 
@@ -196,7 +197,7 @@ describe Compiler do
       -10
     EOC
 
-    sexp = s(:negate, s(:fixnum, 10))
+    sexp = s(:fixnum, -10)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -210,14 +211,14 @@ describe Compiler do
       -"str"
     EOC
 
-    sexp = s(:negate, s(:str, "str"))
+    sexp = s(:call, s(:str, "str"), :-@, s(:arglist))
 
     sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       g.push_literal "str"
       g.string_dup
-      g.send :"-@", 0
+      g.send :"-@", 0, false
     end
   end
 
@@ -270,24 +271,25 @@ describe Compiler do
     end
   end
 
-  it "compiles empty dynamic strings" do
-    ruby = <<-'EOC'
-      "hello #{}"
-    EOC
+# HACK: bug in ruby_parser
+#   it "compiles empty dynamic strings" do
+#     ruby = <<-'EOC'
+#       "hello #{}"
+#     EOC
 
-    sexp = s(:dstr, "hello ", s(:evstr))
+#     sexp = s(:dstr, "hello ", s(:evstr))
 
-    sexp.should == parse(ruby) if $unified && $new
+#     sexp.should == parse(ruby) if $unified && $new
 
-    gen sexp do |g|
-      g.push_literal ""
-      g.string_dup
-      g.send :to_s, 0, true
-      g.push_literal "hello "
-      g.string_dup
-      g.string_append
-    end
-  end
+#     gen sexp do |g|
+#       g.push_literal ""
+#       g.string_dup
+#       g.send :to_s, 0, true
+#       g.push_literal "hello "
+#       g.string_dup
+#       g.string_append
+#     end
+#   end
 
   it "compiles dynamic regexs" do
     ruby = <<-'EOC'
@@ -313,30 +315,31 @@ describe Compiler do
     end
   end
 
-  it "compiles empty dynamic regexs" do
-    ruby = <<-'EOC'
-      /(#{})/
-    EOC
+# HACK: bug in ruby_parser
+#   it "compiles empty dynamic regexs" do
+#     ruby = <<-'EOC'
+#       /(#{})/
+#     EOC
 
-    sexp = s(:dregx, "(", s(:evstr), s(:str, ")"), 0)
+#     sexp = s(:dregx, "(", s(:evstr), s(:str, ")"), 0)
 
-    sexp.should == parse(ruby) if $unified && $new
+#     sexp.should == parse(ruby) if $unified && $new
 
-    gen sexp do |g|
-      g.push_const :Regexp
-      g.push_literal ")"
-      g.string_dup
-      g.push_literal ""
-      g.string_dup
-      g.send :to_s, 0, true
-      g.push_literal "("
-      g.string_dup
-      g.string_append
-      g.string_append
-      g.push 0
-      g.send :new, 2
-    end
-  end
+#     gen sexp do |g|
+#       g.push_const :Regexp
+#       g.push_literal ")"
+#       g.string_dup
+#       g.push_literal ""
+#       g.string_dup
+#       g.send :to_s, 0, true
+#       g.push_literal "("
+#       g.string_dup
+#       g.string_append
+#       g.string_append
+#       g.push 0
+#       g.send :new, 2
+#     end
+#   end
 
   it "compiles a dynamic regex once is indicated" do
     ruby = <<-'EOC'
@@ -380,7 +383,7 @@ describe Compiler do
       42 if /bunnies/
     EOC
 
-    sexp = s(:if, s(:match, "bunnies", 0), nil, nil)
+    sexp = s(:if, s(:match, s(:regex, "bunnies", 0)), s(:fixnum, 42), nil)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -390,6 +393,7 @@ describe Compiler do
       g.find_const :Globals
       g.send :[], 1
 
+      # TODO: wtf is this? push nil, dup, is_nil, gif???
       i = g.add_literal nil
       g.push_literal_at i
       g.dup
@@ -409,8 +413,15 @@ describe Compiler do
 
       g.send :=~, 1
 
-      g.pop
+      tru = g.new_label
+      fin = g.new_label
+
+      g.gif tru
+      g.push 42
+      g.goto fin
+      tru.set!
       g.push :nil
+      fin.set!
     end
   end
 
@@ -488,7 +499,7 @@ describe Compiler do
       $&
     EOC
 
-    sexp = s(:back_ref, 38)
+    sexp = s(:back_ref, :&)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -536,7 +547,7 @@ describe Compiler do
       []
     EOC
 
-    sexp = s(:zarray)
+    sexp = s(:array)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -558,66 +569,6 @@ describe Compiler do
       g.push 14
       g.push 15
       g.send :[], 4
-    end
-  end
-
-  it "compiles an svalue 'a = *b'" do
-    ruby = <<-EOC
-      a = *b
-    EOC
-
-    sexp = s(:svalue, s(:vcall, :ab))
-
-    sexp.should == parse(ruby) if $unified && $new
-
-    gen sexp do |g|
-      lbl = g.new_label
-
-      g.push :self
-      g.send :ab, 0, true
-      g.cast_array
-      g.dup
-      g.send :size, 0
-      g.push 1
-      g.swap
-      g.send :<, 1
-
-      g.git lbl
-
-      g.push 0
-      g.send :at, 1
-
-      lbl.set!
-    end
-  end
-
-  it "compiles a splat 'a(*b)'" do
-    ruby = <<-EOC
-      a(*b)
-    EOC
-
-    sexp = s(:splat, s(:fixnum, 12))
-
-    sexp.should == parse(ruby) if $unified && $new
-
-    gen sexp do |g|
-      g.push 12
-      g.cast_array
-    end
-  end
-
-  it "compiles :to_ary 'a, b = c'" do
-    ruby = <<-EOC
-      a, b = c
-    EOC
-
-    sexp = s(:to_ary, s(:fixnum, 12))
-
-    sexp.should == parse(ruby) if $unified && $new
-
-    gen sexp do |g|
-      g.push 12
-      g.cast_array
     end
   end
 
@@ -643,7 +594,7 @@ describe Compiler do
       `ls \#{dir}`
     EOC
 
-    sexp = s(:dxstr, "ls ", s(:evstr, s(:vcall, :dir)))
+    sexp = s(:dxstr, "ls ", s(:evstr, s(:call, nil, :dir, s(:arglist))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -664,7 +615,7 @@ describe Compiler do
       :\"you \#{thing}\"
     EOC
 
-    sexp = s(:dsym, s(:dstr, "you ", s(:evstr, s(:vcall, :thing))))
+    sexp = s(:dsym, "you ", s(:evstr, s(:call, nil, :thing, s(:arglist))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -677,7 +628,6 @@ describe Compiler do
       g.string_append
       g.send :to_sym, 0, true
     end
-
   end
 
   it "compiles 'alias a b'" do
@@ -685,7 +635,7 @@ describe Compiler do
       alias a b
     EOC
 
-    sexp = s(:alias, :b, :a)
+    sexp = s(:alias, s(:lit, :a), s(:lit, :b))
 
     sexp.should == parse(ruby) if $unified && $new
 
