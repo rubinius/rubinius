@@ -1335,18 +1335,19 @@ class Compiler
         node = expr.shift
 
         case node
-        when :call
+        when :call, :vcall, :fcall
           receiver = expr.shift
           msg = expr.shift # method name
+          args = expr.shift
 
           # Make sure there are no args.
-          unless expr.empty?
+          if args.size > 1 then
             reject(g)
             return
           end
 
           # defined?(DoesNotExist.puts) should not raise NameError
-          if receiver.is?(ConstFind) then
+          if receiver && receiver.is?(ConstFind) then
             no_const = g.new_label
             done = g.new_label
             g.push_context
@@ -1354,7 +1355,12 @@ class Compiler
             g.send :const_defined?, 1
             g.gif no_const
 
-            receiver.bytecode(g)
+            if receiver then
+              receiver.bytecode(g)
+            else
+              g.push :self
+            end
+
             g.push_literal msg
             g.push :true
             g.send :__respond_to_eh__, 2
@@ -1364,24 +1370,15 @@ class Compiler
             g.push :nil
             done.set!
           else
-            receiver.bytecode(g)
+            if receiver then
+              receiver.bytecode(g)
+            else
+              g.push :self
+            end
             g.push_literal msg
             g.push :true
             g.send :__respond_to_eh__, 2
           end
-        when :vcall, :fcall
-          msg = expr.shift
-
-          # Make sure there are no args.
-          unless expr.empty?
-            reject(g)
-            return
-          end
-
-          g.push :self
-          g.push_literal msg
-          g.push :true
-          g.send :__respond_to_eh__, 2
         when :cvar
           cvar = expr.shift
           g.push :self

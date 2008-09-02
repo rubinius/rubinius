@@ -6,7 +6,7 @@ describe Compiler do
       defined? instance_exec
     EOC
 
-    sexp = s(:defined, s(:vcall, :instance_exec))
+    sexp = s(:defined, s(:call, nil, :instance_exec, s(:arglist)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -33,7 +33,7 @@ describe Compiler do
       defined? instance_exec()
     EOC
 
-    sexp = s(:defined, s(:fcall, :instance_exec))
+    sexp = s(:defined, s(:call, nil, :instance_exec, s(:arglist)))
 
     sexp.should == parse(ruby) if $unified && $new
 
