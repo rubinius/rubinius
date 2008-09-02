@@ -177,6 +177,36 @@ describe Compiler do
     end
   end
 
+  it "compiles an svalue 'a = *b'" do
+    ruby = <<-EOC
+      a = *b
+    EOC
+
+    sexp = s(:lasgn, :a, s(:svalue, s(:splat, s(:call, nil, :b, s(:arglist)))))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
+      lbl = g.new_label
+
+      g.push :self
+      g.send :ab, 0, true
+      g.cast_array
+      g.dup
+      g.send :size, 0
+      g.push 1
+      g.swap
+      g.send :<, 1
+
+      g.git lbl
+
+      g.push 0
+      g.send :at, 1
+
+      lbl.set!
+    end
+  end
+
   it "compiles 'a, b, c = *d'" do
     # TODO to ryan: [:masgn, [:array, ...], nil, nil, [:vcall, :d]]
     ruby = <<-EOC
