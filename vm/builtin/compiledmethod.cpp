@@ -1,9 +1,5 @@
 #include "builtin/compiledmethod.hpp"
-#include "ffi.hpp"
-#include "marshal.hpp"
-#include "primitives.hpp"
-#include "llvm.hpp"
-#include "objectmemory.hpp"
+#include "builtin/methodvisibility.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
@@ -11,6 +7,12 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
+
+#include "ffi.hpp"
+#include "marshal.hpp"
+#include "primitives.hpp"
+#include "llvm.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
 
@@ -48,10 +50,6 @@ namespace rubinius {
     cm->formalize(state, false);
 
     return cm;
-  }
-
-  MethodVisibility* MethodVisibility::create(STATE) {
-    return (MethodVisibility*)state->new_object(G(cmethod_vis));
   }
 
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
