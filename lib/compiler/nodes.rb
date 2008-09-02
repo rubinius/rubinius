@@ -1880,19 +1880,19 @@ class Compiler
     class ConstSet < Node
       kind :cdecl
 
-      def args(simp, val, complex = nil)
+      def args(name, val)
         @from_top = false
-        @parent = nil
+        @parent   = nil
+        @value    = val
 
-        @value = val
-        if simp
-          @name = simp
-        elsif complex.is? ConstAtTop
+        if Symbol === name then
+          @name     = name
+        elsif name.is? ConstAtTop then
           @from_top = true
-          @name = complex.name
+          @name     = name.name
         else
-          @parent = complex.parent
-          @name = complex.name
+          @parent   = name.parent
+          @name     = name.name
         end
       end
 
@@ -2227,13 +2227,12 @@ class Compiler
       kind :defn
 
       def consume(sexp)
-        name, body = sexp
+        name, args, body = sexp
         scope = set(:iter => false, :in_ensure => false) do
           super([body])
         end
 
         body = scope.block.body
-        args = body.shift
 
         if body.first.is? BlockAsArgument
           ba = body.shift

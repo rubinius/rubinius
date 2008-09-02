@@ -2172,7 +2172,9 @@ class Compiler
     class Define
 
       def argument_info
-        [@arguments.arity, @arguments.optional.size, @arguments.splat]
+        opt = @arguments.optional || [] # FIX: temporary
+
+        [@arguments.arity, opt.size, @arguments.splat]
       end
 
       def compile_body(g)
