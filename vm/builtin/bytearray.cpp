@@ -139,7 +139,8 @@ namespace rubinius {
   }
 
   OBJECT ByteArray::locate(STATE, String* little) {
-    char* pos = strnstr((const char*)this->bytes, little->c_str(), SIZE_OF_BODY(this));
+    //TODO: find a crossplatform strnstr to clamp the length
+    char* pos = strstr((const char*)this->bytes, little->c_str());
     if(!pos) return Qnil;
 
     return Integer::from(state, pos - (char*)this->bytes);
