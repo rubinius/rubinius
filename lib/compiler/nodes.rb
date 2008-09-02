@@ -1647,6 +1647,10 @@ class Compiler
       attr_accessor :body
     end
 
+    class ArgList < ArrayLiteral
+      kind :arglist
+    end
+
     class EmptyArray < Node
       kind :zarray
     end
