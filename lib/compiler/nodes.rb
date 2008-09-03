@@ -748,10 +748,9 @@ class Compiler
     #
     # Sexp from example:
     #
-    #   [:dstr, "Hi "
-    #         , [:evstr, [:vcall, :name]]
-    #         , [:str, ", howzit?"]
-    #         ]
+    #   [:dstr, "Hi ",
+    #    [:evstr, [:call, nil, :name, [:arglist]]],
+    #    [:str, ", howzit?"]]
     #
     #
     class DynamicString < StringLiteral
@@ -1025,14 +1024,12 @@ class Compiler
     #
     # Sexp from example (Newline nodes omitted):
     #
-    #   [:if
-    #       , [:vcall, :foo]
-    #       , [:block
-    #                , [:vcall, :bar]
-    #                , [:vcall, :baz]
-    #                , [:vcall, :quux]
-    #                ]
-    #       ]
+    #   [:if,
+    #    [:call, nil, :foo, [:arglist]],
+    #    [:block ,
+    #     [:call, nil, :bar, [:arglist]],
+    #     [:call, nil, :baz, [:arglist]],
+    #     [:call, nil, :quux, [:arglist]]]]
     #
     class Block < Node
       kind :block
@@ -1145,19 +1142,12 @@ class Compiler
         splat = nil
         defaults = nil
 
-        # Detect Rubinius format
-        if sexp[0].kind_of? Array
+        if sexp[0].kind_of? Array # Detect Rubinius format
           # Strip the parser calculated index of splat
-          if sexp[2] and !sexp[2].empty?
-            splat = sexp[2].first
-          end
+          splat = sexp[2].first if sexp[2] and !sexp[2].empty?
 
-          required = sexp[0]
-          optional = sexp[1]
-          defaults = sexp[3]
-
-          # Current PT format
-        else
+          required, optional, _, defaults = sexp
+        else                      # Current PT format
           required = []
           optional = []
 
@@ -1295,7 +1285,8 @@ class Compiler
       kind :undef
 
       def args(name)
-        @name = name
+        raise "name should be lit: #{name.inspect}" unless Literal === name
+        @name = name.value
         scope = get(:scope)
         if scope.is? Node::Class or scope.is? Node::Module
           @in_module = true
@@ -1452,7 +1443,6 @@ class Compiler
         @depth = depth
         @name = var.name
       end
-
     end
 
     class DasgnCurr < Node
@@ -1675,7 +1665,7 @@ class Compiler
     #            ^^
     # The arguments sexp will be of type splat
     #
-    # [:fcall, :m, [:splat, [:vcall, :a]]]
+    # [:call, nil, :m, [:splat, [:call, nil, :a, [:arglist]]]]
     #
     class Splat < DynamicArguments
       kind :splat
@@ -1692,11 +1682,7 @@ class Compiler
     #            ^^^^^
     # The arguments sexp will be of type argscat
     #
-    # [:fcall, :m,
-    #   [:argscat, [:array, [:lit, 1]],
-    #     [:vcall, :a]
-    #   ]
-    # ]
+    # [:call, :m, [:argscat, [:array, [:lit, 1]], [:call, nil, :a, [:arglist]]]]
     #
     class ConcatArgs < DynamicArguments
       kind :argscat
@@ -1725,21 +1711,17 @@ class Compiler
     #
     # For: h[*a] = 1
     #
-    # [:attrasgn, [:vcall, :h], :[]=,
+    # [:attrasgn, [:call, nil, :h, [:arglist]], :[]=,
     #   [:argspush,
-    #     [:splat, [:vcall, :a]]],
-    #     [:lit, 1]
-    #   ]
-    # ]
+    #     [:splat, [:call, nil, :a, [:arglist]]]],
+    #     [:lit, 1]]]
     #
     # For: h[*a] = 1, 2
     #
-    # [:attrasgn, [:vcall, :h], :[]=,
+    # [:attrasgn, [:call, nil, :h, [:arglist]], :[]=,
     #  [:argspush,
-    #    [:splat, [:vcall, :a]]],
-    #    [:svalue, [:array, [:lit, 1], [:lit, 2]]]
-    #  ]
-    # ]
+    #    [:splat, [:call, nil, :a, [:arglist]]]],
+    #    [:svalue, [:array, [:lit, 1], [:lit, 2]]]]]
     #
     # In this case, given a = [:blah], the []= method will be given 2 arguments:
     # :blah and [1,2]
@@ -2334,10 +2316,6 @@ class Compiler
         @arguments.nil? or @arguments.kind_of? Array
       end
 
-      def fcall?
-        false
-      end
-
       def call?
         true
       end
@@ -2353,9 +2331,8 @@ class Compiler
       end
     end
 
-    # TODO: nuke me
-    class FCall < Call
-      kind :fcall
+    class PostExe < Call
+      kind :postexe
 
       def normalize(meth, args=nil)
         @method, @arguments = meth, args
@@ -2366,55 +2343,13 @@ class Compiler
 
       attr_accessor :method, :arguments
 
-      def fcall?
-        true
-      end
-
       def call?
         false
       end
-    end
 
-    # TODO: nuke me
-    class VCall < FCall
-      kind :vcall
-
-      def normalize(meth)
-        if get(:eval)
-          scope = get(:scope)
-
-          if get(:iter)
-            var, dep = scope.find_local meth, true, false
-          else
-            var, dep = scope.find_local meth, false, false
-          end
-
-          if var
-            lv = LocalAccess.new(@compiler)
-            lv.from_variable(var, dep)
-            return lv
-          end
-        end
-
-        super(meth)
-      end
-
-      def args(meth)
-        @method = meth
-        @arguments = nil
-
-        collapse_args()
-      end
-
-      attr_accessor :method
-    end
-
-    # TODO: push down fcall's code to here
-    class PostExe < FCall
-      kind :postexe
       # Treat a :postexe node as if it were a call to at_exit
       def self.create(compiler, sexp)
-        sexp = [:fcall, :at_exit]
+        sexp = [:call, nil, :at_exit, [:arglist]]
         super(compiler, sexp)
       end
     end

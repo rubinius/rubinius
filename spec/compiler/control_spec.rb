@@ -491,8 +491,6 @@ describe Compiler do
 
     sexp.should == parse(ruby) if $unified && $new
 
-    sexp = s(:iter, s(:fcall, :loop), nil, s(:fixnum, 12))
-
     gen sexp do |g|
       g.push_modifiers
 

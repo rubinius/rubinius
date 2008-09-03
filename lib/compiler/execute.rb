@@ -275,12 +275,6 @@ class Compiler::Node
     end
   end
 
-  class VCall
-    def execute(e)
-      e.self.__send__ @method
-    end
-  end
-
   class Yield
     def execute(e)
       if @arguments.kind_of? Array

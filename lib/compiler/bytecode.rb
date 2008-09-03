@@ -1300,7 +1300,6 @@ class Compiler
         :cvasgn => "assignment",
         :cvdecl => "assignment",
         :false  => "false",
-        :fcall  => "method",
         :fixnum => "expression",
         :gasgn  => "assignment",
         :gvar   => "global-variable",
@@ -1314,7 +1313,6 @@ class Compiler
         :self   => "self",
         :str    => "expression",
         :true   => "true",
-        :vcall  => "method",
         :yield  => "yield",
       }
 
@@ -1337,7 +1335,7 @@ class Compiler
         node = expr.shift
 
         case node
-        when :call, :vcall, :fcall
+        when :call
           receiver = expr.shift
           msg = expr.shift # method name
           args = expr.shift
@@ -1867,7 +1865,7 @@ class Compiler
       end
     end
 
-    class FCall
+    class PostExe
       def allow_private?
         true
       end
@@ -1875,7 +1873,6 @@ class Compiler
       def receiver_bytecode(g)
         g.push :self
       end
-
     end
 
     class AttrAssign
@@ -2072,28 +2069,22 @@ class Compiler
 
       def bytecode(g)
         args = []
+        @arguments = args
 
-        @method.arguments.required.each do |var|
-          la = LocalAccess.new @compiler
-          la.from_variable var
-          args << la
-        end
+        @method.arguments.each do |var|
+          unless var.to_s =~ /^\*/ then
+            la = LocalAccess.new @compiler
+            la.from_variable var
+            args << la
+          else
+            var = var.to_s.sub(/^\*/, '').to_sym
+            cc = ConcatArgs.new @compiler
+            la = LocalAccess.new @compiler
+            la.from_variable var
 
-        @method.arguments.optional.each do |var|
-          la = LocalAccess.new @compiler
-          la.from_variable var
-          args << la
-        end
-
-        if @method.arguments.splat
-          cc = ConcatArgs.new @compiler
-          la = LocalAccess.new @compiler
-          la.from_variable @method.arguments.splat
-
-          cc.args args, la
-          @arguments = cc
-        else
-          @arguments = args
+            cc.args args, la
+            @arguments = cc
+          end
         end
 
         super(g)

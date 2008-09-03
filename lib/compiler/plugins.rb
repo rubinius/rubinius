@@ -113,7 +113,8 @@ class Compiler
       plugin :current_method
 
       def handle(g, call)
-        return false unless call.kind_of? Node::VCall
+        return false # HACK: should test for empty arguments and nil reciever
+        return false unless call.kind_of? Node::Call
         if call.method == :__METHOD__
           g.push_context
           g.send :method, 0

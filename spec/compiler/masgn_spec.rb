@@ -195,7 +195,7 @@ describe Compiler do
       lbl = g.new_label
 
       g.push :self
-      g.send :ab, 0, true
+      g.send :b, 0, true
       g.cast_array
       g.dup
       g.send :size, 0
@@ -209,6 +209,8 @@ describe Compiler do
       g.send :at, 1
 
       lbl.set!
+
+      g.set_local 0
     end
   end
 
