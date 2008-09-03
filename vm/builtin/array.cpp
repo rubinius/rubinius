@@ -6,6 +6,8 @@
 #include "objectmemory.hpp"
 #include "primitives.hpp"
 
+#include <iostream>
+
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.
  * This includes methods required to implement certain Array
@@ -132,5 +134,24 @@ namespace rubinius {
     }
 
     return false;
+  }
+
+  void Array::Info::show(STATE, OBJECT self, int level) {
+    Array* ary = as<Array>(self);
+    size_t size = ary->size();
+    size_t stop = size < 5 ? size : 5;
+
+    class_info(self);
+    std::cout << ": " << size << "\n";
+    ++level;
+    for(size_t i = 0; i < stop; i++) {
+      indent(level);
+      ary->get(state, i)->show(state, level);
+    }
+    if(ary->size() > stop) {
+      indent(level);
+      std::cout << "...\n";
+    }
+    indent(--level); std::cout << ">\n";
   }
 }
