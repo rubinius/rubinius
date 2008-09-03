@@ -8,6 +8,8 @@
 
 #include "context_cache.hpp"
 
+#include <iostream>
+
 #define DISABLE_CACHE 1
 
 namespace rubinius {
@@ -39,6 +41,10 @@ namespace rubinius {
     SET(ctx, name, Qnil);
     SET(ctx, home, Qnil);
     SET(ctx, ivars, Qnil);
+    SET(ctx, sender, Qnil);
+    SET(ctx, self, Qnil);
+    SET(ctx, cm, Qnil);
+    SET(ctx, module, Qnil);
 
     ctx->stack_size = stack;
     for(size_t i = 0; i < stack; i++) {
@@ -226,5 +232,29 @@ initialize:
         mark.just_set(ctx, marked);
       }
     }
+  }
+
+  void MethodContext::Info::show(STATE, OBJECT self, int level) {
+    MethodContext* ctx = as<MethodContext>(self);
+
+    class_header(self);
+    indent(++level); std::cout << "name: "; ctx->name->show(state, level);
+    indent(level); std::cout << "sender: ";
+    if(ctx->sender == Qnil) {
+      std::cout << "nil\n";
+    } else {
+      class_info(ctx->sender, true);
+    }
+    indent(level); std::cout << "home: ";
+    if(ctx->home == Qnil) {
+      std::cout << "nil\n";
+    } else {
+      class_info(ctx->home, true);
+    }
+    indent(level); std::cout << "self: "; ctx->self->show(state, level);
+    indent(level); std::cout << "cm: "; ctx->cm->show(state, level);
+    indent(level); std::cout << "module: "; ctx->module->show(state, level);
+    indent(level); std::cout << "block: "; ctx->block->show(state, level);
+    indent(--level); std::cout << ">\n";
   }
 }

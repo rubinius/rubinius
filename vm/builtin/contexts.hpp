@@ -112,6 +112,7 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
 
       virtual void mark(OBJECT, ObjectMark& mark);
+      virtual void show(STATE, OBJECT self, int level);
     };
   };
 
