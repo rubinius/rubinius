@@ -6,7 +6,7 @@ describe Compiler do
       1 + 1
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :+, s(:array, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 1), :+, s(:arglist, s(:fixnum, 1)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -22,7 +22,7 @@ describe Compiler do
       1 - 1
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :-, s(:array, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 1), :-, s(:arglist, s(:fixnum, 1)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -38,7 +38,7 @@ describe Compiler do
       1 == 1
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :==, s(:array, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 1), :==, s(:arglist, s(:fixnum, 1)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -49,28 +49,12 @@ describe Compiler do
     end
   end
 
-  it "compiles '1 != 1' using fastmath" do
-    ruby = <<-EOC
-      1 != 1
-    EOC
-
-    sexp = s(:call, s(:fixnum, 1), :"!=", s(:array, s(:fixnum, 1)))
-
-    sexp.should == parse(ruby) if $unified && $new
-
-    gen sexp, [:fastmath] do |g|
-      g.push 1
-      g.push 1
-      g.meta_send_op_nequal
-    end
-  end
-
   it "compiles '1 === 1' using fastmath" do
     ruby = <<-EOC
       1 === 1
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :===, s(:array, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 1), :===, s(:arglist, s(:fixnum, 1)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -86,7 +70,7 @@ describe Compiler do
       1 < 1
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :<, s(:array, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 1), :<, s(:arglist, s(:fixnum, 1)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -102,7 +86,7 @@ describe Compiler do
       1 > 1
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :>, s(:array, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 1), :>, s(:arglist, s(:fixnum, 1)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -118,7 +102,7 @@ describe Compiler do
       1 / 1
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :/, s(:array, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 1), :/, s(:arglist, s(:fixnum, 1)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -134,7 +118,7 @@ describe Compiler do
       1 / 1
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :/, s(:array, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 1), :/, s(:arglist, s(:fixnum, 1)))
 
     sexp.should == parse(ruby) if $unified && $new
 
