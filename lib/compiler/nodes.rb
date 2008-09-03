@@ -2353,6 +2353,7 @@ class Compiler
       end
     end
 
+    # TODO: nuke me
     class FCall < Call
       kind :fcall
 
@@ -2374,6 +2375,7 @@ class Compiler
       end
     end
 
+    # TODO: nuke me
     class VCall < FCall
       kind :vcall
 
@@ -2407,6 +2409,7 @@ class Compiler
       attr_accessor :method
     end
 
+    # TODO: push down fcall's code to here
     class PostExe < FCall
       kind :postexe
       # Treat a :postexe node as if it were a call to at_exit
@@ -2426,7 +2429,7 @@ class Compiler
         @rhs_expression = nil
 
         # Strange. nil is passed when it's self. Whatevs.
-        @object = Self.new @compiler if @object.nil?
+        @object ||= Self.new @compiler
 
         if @method.to_s[-1] != ?=
           @method = "#{@method}=".to_sym

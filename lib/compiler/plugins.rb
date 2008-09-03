@@ -49,7 +49,7 @@ class Compiler
       plugin :block_given
 
       def handle(g, call)
-        if call.fcall?
+        if call.call? and call.object.nil?
           if call.method == :block_given? or call.method == :iterator?
             g.push_block
             return true
