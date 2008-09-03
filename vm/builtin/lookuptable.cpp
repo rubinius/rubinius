@@ -293,17 +293,19 @@ namespace rubinius {
     return collect(state, this, get_entry);
   }
 
-  void LookupTable::Info::show(STATE, OBJECT self) {
+  void LookupTable::Info::show(STATE, OBJECT self, int level) {
     LookupTable* tbl = as<LookupTable>(self);
     size_t size = tbl->entries->to_native();
     Array* keys = tbl->all_keys(state);
 
-    std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
-      "(" << (void*) self << ") " << size << ":";
+    class_info(self);
+    std::cout << ": " << size << "\n";
+    indent(level+1);
     for(size_t i = 0; i < size; i++) {
-      std::cout << " :" << as<Symbol>(keys->get(state, i))->c_str(state);
-      if(i < size - 1) std::cout << ",";
+      std::cout << ":" << as<Symbol>(keys->get(state, i))->c_str(state);
+      if(i < size - 1) std::cout << ", ";
     }
-    std::cout << ">\n";
+    std::cout << "\n";
+    indent(level); std::cout << ">\n";
   }
 }

@@ -60,7 +60,34 @@ namespace rubinius {
     }
   }
 
-  void indent(int level) {
+  /**
+   * Prints out the class name and address. Used for simple classes
+   * that may append other info on the same line.
+   *
+   *   #<SomeClass:0x346882
+   */
+  void TypeInfo::class_info(OBJECT self) {
+    std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
+      ":" << (void*) self;
+  }
+
+  /**
+   * Prints out the class name and address followed by a newline. Used
+   * for complex classes that will print additional member info.
+   *
+   *   #<SomeClass:0x3287648\n
+   */
+  void TypeInfo::class_header(OBJECT self) {
+    std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
+      ":" << (void*) self << "\n";
+  }
+
+  /**
+   * Prints spaces to indent the following text to the requested
+   * level. Levels are specified as 0, 1, 2, ... and the multiplier
+   * is 2. So, text at level 2 will have 2 * 2 = 4 spaces in front.
+   */
+  void TypeInfo::indent(int level) {
     int offset = level * 2;
 
     if(offset > 0) {
@@ -68,9 +95,13 @@ namespace rubinius {
     }
   }
 
+  /**
+   * Default output for any object. Prints just the class name
+   * and address.
+   */
   void TypeInfo::show(STATE, OBJECT self, int level) {
-    String* name = self->class_object(state)->name->to_str(state);
-    std::cout << "#<" << name->c_str() << ":" << (void*)self << ">\n";
+    class_info(self);
+    std::cout << ">\n";
   }
 #include "gen/typechecks.gen.cpp"
 

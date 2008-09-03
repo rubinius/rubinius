@@ -57,7 +57,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self);
+      virtual void show(STATE, OBJECT self, int level);
     };
   };
 
