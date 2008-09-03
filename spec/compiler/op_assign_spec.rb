@@ -6,7 +6,7 @@ describe Compiler do
       a ||= 8
     EOC
 
-    sexp = s(:op_asgn_or, s(:lvar, :a, 0), s(:lasgn, :a, s(:lit, 8)))
+    sexp = s(:op_asgn_or, s(:lvar, :a), s(:lasgn, :a, s(:fixnum, 8)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -30,7 +30,7 @@ describe Compiler do
       a &&= 8
     EOC
 
-    sexp = s(:op_asgn_and, s(:lvar, :a, 0), s(:lasgn, :a, s(:lit, 8)))
+    sexp = s(:op_asgn_and, s(:lvar, :a), s(:lasgn, :a, s(:fixnum, 8)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -54,8 +54,11 @@ describe Compiler do
       hsh[:blah] ||= 8
     EOC
 
-    sexp = s(:op_asgn1, s(:vcall, :hsh), :or,
-             s(:array, s(:lit, 8), s(:lit, :blah), s(:nil)))
+    sexp = s(:op_asgn1,
+             s(:call, nil, :hsh, s(:arglist)),
+             s(:arglist, s(:lit, :blah)),
+             :"||",
+             s(:fixnum, 8))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -92,8 +95,11 @@ describe Compiler do
       hsh[:blah] &&= 8
     EOC
 
-    sexp = s(:op_asgn1, s(:vcall, :hsh), :and,
-             s(:array, s(:lit, 8), s(:lit, :blah), s(:nil)))
+    sexp = s(:op_asgn1,
+             s(:call, nil, :hsh, s(:arglist)),
+             s(:arglist, s(:lit, :blah)),
+             :"&&",
+             s(:fixnum, 8))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -131,8 +137,11 @@ describe Compiler do
       hsh[:blah] ^= 8
     EOC
 
-    sexp = s(:op_asgn1, s(:vcall, :hsh), :"^",
-             s(:array, s(:lit, 8), s(:lit, :blah), s(:nil)))
+    sexp = s(:op_asgn1,
+             s(:call, nil, :hsh, s(:arglist)),
+             s(:arglist, s(:lit, :blah)),
+             :^,
+             s(:fixnum, 8))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -158,9 +167,12 @@ describe Compiler do
       ary[0,1] += [4]
     EOC
 
-    sexp = s(:op_asgn1, s(:vcall, :ary), :+,
-             s(:array, s(:array, s(:lit, 4)), s(:fixnum, 0), s(:lit, 1), s(:nil))
-             )
+    sexp = s(:op_asgn1,
+             s(:call, nil, :ary, s(:arglist)),
+             s(:arglist, s(:fixnum, 0), s(:fixnum, 1)),
+             :+,
+             s(:array, s(:fixnum, 4)))
+
     gen sexp do |g|
     sexp.should == parse(ruby) if $unified && $new
 
@@ -186,7 +198,10 @@ describe Compiler do
       x.val ||= 6
     EOC
 
-    sexp = s(:op_asgn2, s(:vcall, :x), :val, :or, :val, s(:lit, 6))
+    sexp = s(:op_asgn2,
+             s(:call, nil, :x, s(:arglist)),
+             :val=, :"||",
+             s(:fixnum, 6))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -218,7 +233,7 @@ describe Compiler do
       x.val &&= 7
     EOC
 
-    sexp = s(:op_asgn2, s(:vcall, :x), :val, :and, :val, s(:lit, 7))
+    sexp = s(:op_asgn2, s(:call, nil, :x, s(:arglist)), :val=, :"&&", s(:fixnum, 7))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -250,7 +265,7 @@ describe Compiler do
       x.val ^= 8
     EOC
 
-    sexp = s(:op_asgn2, s(:vcall, :x), :val, :^, :val, s(:lit, 8))
+    sexp = s(:op_asgn2, s(:call, nil, :x, s(:arglist)), :val=, :^, s(:fixnum, 8))
 
     sexp.should == parse(ruby) if $unified && $new
 

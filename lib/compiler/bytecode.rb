@@ -1253,7 +1253,6 @@ class Compiler
     end
 
     class Class
-
       def superclass_bytecode(g)
         if @superclass
           @superclass.bytecode(g)

@@ -1599,8 +1599,8 @@ class Compiler
         @object = obj
 
         # Detect PT form
-        if !value
-          @method = method.to_s[0..-1].to_sym
+        unless value then
+          @method = method.to_s.sub(/=$/, '').to_sym
           @assign = method
           @value = assign
           @kind = kind
