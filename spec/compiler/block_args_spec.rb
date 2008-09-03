@@ -24,7 +24,7 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
              nil)
 
     sexp.should == parse(ruby) if $unified && $new
@@ -39,10 +39,10 @@ describe Compiler do
         ary.each do ||; end
       EOC
 
-    # FIX: we don't distinguish between no and empty args
+    # TODO: ruby_parser SHOULD be using nil for empty body
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
-             nil)
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
+             0)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -57,7 +57,7 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
              s(:lasgn, :a))
 
     sexp.should == parse(ruby) if $unified && $new
@@ -74,8 +74,8 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
-             s(:masgn, s(:array, s(:lasgn, :a)), nil, nil))
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
+             s(:masgn, s(:array, s(:lasgn, :a))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -91,8 +91,8 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
-             s(:masgn, s(:lasgn, :a), nil))
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
+             s(:masgn, s(:lasgn, :a)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -108,12 +108,12 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
              s(:masgn,
                s(:array,
                  s(:lasgn, :a),
                  s(:lasgn, :b),
-                 s(:lasgn, :c)), nil, nil))
+                 s(:lasgn, :c))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -131,12 +131,12 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
              s(:masgn,
                s(:array,
                  s(:lasgn, :a),
                  s(:lasgn, :b)),
-               s(:lasgn, :c), nil))
+               s(:lasgn, :c)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -153,14 +153,14 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
              s(:masgn,
                s(:array,
                  s(:masgn,
                    s(:array,
                      s(:lasgn, :a),
-                     s(:lasgn, :b)), nil, nil),
-                 s(:lasgn, :c)), nil, nil))
+                     s(:lasgn, :b))),
+                 s(:lasgn, :c))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -187,14 +187,14 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
              s(:masgn,
                s(:array,
                  s(:masgn,
                    s(:array,
                      s(:lasgn, :a),
-                     s(:lasgn, :b)), nil, nil)),
-               s(:lasgn, :c), nil))
+                     s(:lasgn, :b)))),
+               s(:lasgn, :c)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -218,7 +218,7 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
              s(:masgn,
                s(:array,
                  s(:masgn,
@@ -227,8 +227,8 @@ describe Compiler do
                      s(:masgn,
                        s(:array,
                          s(:lasgn, :b),
-                         s(:lasgn, :c)), nil, nil)), nil, nil),
-                 s(:lasgn, :d)), nil, nil))
+                         s(:lasgn, :c))))),
+                 s(:lasgn, :d))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -261,8 +261,8 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
-             s(:masgn, true, nil))
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
+             s(:masgn, s(:splat)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -277,8 +277,8 @@ describe Compiler do
       EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :ary, s(:arglist)), :each),
-             s(:masgn, s(:array, s(:lasgn, :a)), true, nil))
+             s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
+             s(:masgn, s(:array, s(:lasgn, :a)), s(:splat)))
 
     sexp.should == parse(ruby) if $unified && $new
 
