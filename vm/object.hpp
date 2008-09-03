@@ -17,9 +17,6 @@
 
 namespace rubinius {
 
-  void inspect(STATE, OBJECT);
-  void inspect(STATE, SYMBOL);
-
   /* Given builtin-class +T+, return true if +obj+ is of class +T+ */
   template <class T>
     bool kind_of(OBJECT obj) {

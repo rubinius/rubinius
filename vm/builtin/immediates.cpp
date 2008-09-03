@@ -1,5 +1,7 @@
 #include "builtin/immediates.hpp"
 
+#include <iostream>
+
 namespace rubinius {
 
   /* NOTE(t1):
@@ -25,6 +27,20 @@ namespace rubinius {
     }
 
   void FalseClass::Info::mark(OBJECT t, ObjectMark& mark) { }
+
+  void FalseClass::Info::show(STATE, OBJECT self, int level) {
+    std::cout << "'false'\n";
+  }
+
   void TrueClass::Info::mark(OBJECT t, ObjectMark& mark) { }
+
+  void TrueClass::Info::show(STATE, OBJECT self, int level) {
+    std::cout << "'true'\n";
+  }
+
   void NilClass::Info::mark(OBJECT t, ObjectMark& mark) { }
+
+  void NilClass::Info::show(STATE, OBJECT self, int level) {
+    std::cout << "nil\n";
+  }
 }

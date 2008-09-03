@@ -224,17 +224,6 @@ namespace rubinius {
     // TODO: implement me
   }
 
-  void VM::inspect(OBJECT obj) {
-    if(obj->symbol_p()) {
-      String* str = as<Symbol>(obj)->to_str(this);
-      std::cout << "<Symbol :" << str->byte_address() << ">" << std::endl;
-    } else if(obj->fixnum_p()) {
-      std::cout << "<Fixnum " << as<Fixnum>(obj)->to_native() << ">" << std::endl;
-    } else {
-      std::cout << "<Object: " << (void*)obj << ">" << std::endl;
-    }
-  }
-
   void VM::set_const(const char* name, OBJECT val) {
     globals.object->set_const(this, (char*)name, val);
   }

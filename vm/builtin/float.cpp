@@ -7,6 +7,7 @@
 #include "vm.hpp"
 
 #include <cmath>
+#include <iostream>
 
 namespace rubinius {
 
@@ -213,6 +214,11 @@ namespace rubinius {
   }
 
   void Float::Info::mark(OBJECT t, ObjectMark& mark) { }
+
+  void Float::Info::show(STATE, OBJECT self, int level) {
+    Float* f = as<Float>(self);
+    std::cout << f->val << std::endl;
+  }
 }
 
 extern "C" {

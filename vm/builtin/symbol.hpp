@@ -39,6 +39,7 @@ namespace rubinius {
     public:
       Info(object_type type) : TypeInfo(type) { }
       virtual void mark(OBJECT, ObjectMark& mark);
+      virtual void show(STATE, OBJECT self, int level);
     };
   };
 

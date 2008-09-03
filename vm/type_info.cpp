@@ -6,6 +6,7 @@
 #include "builtin/symbol.hpp"
 
 #include <iostream>
+#include <iomanip>
 
 namespace rubinius {
 
@@ -59,20 +60,17 @@ namespace rubinius {
     }
   }
 
-  void TypeInfo::show(STATE, OBJECT self) {
-    if(FIXNUM i = try_as<Fixnum>(self)) {
-      std::cout << i->to_native() << std::endl;
-    } else if(Bignum* b = try_as<Bignum>(self)) {
-      std::cout << b->to_s(state, Fixnum::from(10))->byte_address() << std::endl;
-    } else if(Float* f = try_as<Float>(self)) {
-      std::cout << f->val << std::endl;
-    } else if(String* str = try_as<String>(self)) {
-      std::cout << str->c_str() << std::endl;
-    } else if(SYMBOL sym = try_as<Symbol>(self)) {
-      std::cout << ":" << sym->to_str(state)->byte_address() << std::endl;
-    } else {
-      inspect(state, self);
+  void indent(int level) {
+    int offset = level * 2;
+
+    if(offset > 0) {
+      std::cout << std::setfill(' ') << std::setw(offset) << " ";
     }
+  }
+
+  void TypeInfo::show(STATE, OBJECT self, int level) {
+    String* name = self->class_object(state)->name->to_str(state);
+    std::cout << "#<" << name->c_str() << ":" << (void*)self << ">\n";
   }
 #include "gen/typechecks.gen.cpp"
 

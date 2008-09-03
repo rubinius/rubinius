@@ -60,7 +60,7 @@ namespace rubinius {
     if(!executable || (OBJECT)executable == Qnil) {
       if(!primitive->nil_p()) {
         if(SYMBOL name = try_as<Symbol>(primitive)) {
-          //std::cout << "resolving: "; inspect(state, name);
+          //std::cout << "resolving: "; name->show(state);
           executor func = Primitives::resolve_primitive(state, name);
 
           VMMethod* vmm = new VMPrimitiveMethod(state, this, func);
@@ -112,24 +112,24 @@ namespace rubinius {
     this->scope = scope;
   }
 
-  void CompiledMethod::Info::show(STATE, OBJECT self) {
+  void CompiledMethod::Info::show(STATE, OBJECT self, int level) {
     CompiledMethod* cm = as<CompiledMethod>(self);
 
     std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
       ":" << (void*) self << "\n";
-    std::cout << "  exceptions: "; cm->exceptions->show(state);
-    std::cout << "  file: "; cm->file->show(state);
-    std::cout << "  iseq: "; cm->iseq->show(state);
-    std::cout << "  lines: "; cm->lines->show(state);
-    std::cout << "  literals: "; cm->literals->show(state);
-    std::cout << "  local_count: "; cm->local_count->show(state);
-    std::cout << "  local_names: "; cm->local_names->show(state);
-    std::cout << "  name: "; cm->name->show(state);
-    std::cout << "  required_args: "; cm->required_args->show(state);
-    std::cout << "  scope: "; cm->scope->show(state);
-    std::cout << "  splat: "; cm->splat->show(state);
-    std::cout << "  stack_size: "; cm->stack_size->show(state);
-    std::cout << "  total_args: "; cm->total_args->show(state);
-    std::cout << ">\n";
+    indent(++level); std::cout << "exceptions: "; cm->exceptions->show(state, level);
+    indent(level); std::cout << "file: "; cm->file->show(state, level);
+    indent(level); std::cout << "iseq: "; cm->iseq->show(state, level);
+    indent(level); std::cout << "lines: "; cm->lines->show(state, level);
+    indent(level); std::cout << "literals: "; cm->literals->show(state, level);
+    indent(level); std::cout << "local_count: "; cm->local_count->show(state, level);
+    indent(level); std::cout << "local_names: "; cm->local_names->show(state, level);
+    indent(level); std::cout << "name: "; cm->name->show(state, level);
+    indent(level); std::cout << "required_args: "; cm->required_args->show(state, level);
+    indent(level); std::cout << "scope: "; cm->scope->show(state, level);
+    indent(level); std::cout << "splat: "; cm->splat->show(state, level);
+    indent(level); std::cout << "stack_size: "; cm->stack_size->show(state, level);
+    indent(level); std::cout << "total_args: "; cm->total_args->show(state, level);
+    indent(--level); std::cout << ">\n";
   }
 }

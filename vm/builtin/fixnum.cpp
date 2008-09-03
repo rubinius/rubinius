@@ -5,6 +5,8 @@
 #include "builtin/array.hpp"
 #include "builtin/string.hpp"
 
+#include <iostream>
+
 namespace rubinius {
 
   /* See t1 */
@@ -371,4 +373,11 @@ namespace rubinius {
     sout << to_native();
     return String::create(state, sout.str().c_str());
   }
+
+  void Fixnum::Info::show(STATE, OBJECT self, int level) {
+    FIXNUM f = as<Fixnum>(self);
+    std::cout << f->to_native() << std::endl;
+  }
+
+  void Fixnum::Info::mark(OBJECT t, ObjectMark& mark) { }
 }

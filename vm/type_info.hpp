@@ -13,6 +13,8 @@ namespace rubinius {
   class VM;
   class Class;
 
+  void indent(int level);
+
   /* TypeInfo contains varies operations that are registered by types */
   class TypeInfo {
   public:
@@ -36,7 +38,7 @@ namespace rubinius {
     virtual void mark(OBJECT obj, ObjectMark& mark);
     virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
     virtual OBJECT get_field(STATE, OBJECT target, size_t index);
-    virtual void show(STATE, OBJECT self);
+    virtual void show(STATE, OBJECT self, int level);
   };
 
 #define BASIC_TYPEINFO(super) \

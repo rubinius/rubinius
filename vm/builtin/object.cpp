@@ -514,16 +514,6 @@ namespace rubinius {
     return task->send_message_slowly(msg);
   }
 
-  void inspect(STATE, OBJECT obj) {
-    String* name = obj->class_object(state)->name->to_str(state);
-    std::cout << "#<" << name->byte_address() << ":" << (void*)obj << ">\n";
-  }
-
-  void inspect(STATE, SYMBOL sym) {
-    String* name = sym->to_str(state);
-    std::cout << ":" << name->byte_address() << "\n";
-  }
-
   void Object::cleanup(STATE) {
     type_info(state)->cleanup(this);
   }
@@ -547,7 +537,11 @@ namespace rubinius {
   }
 
   OBJECT Object::show(STATE) {
-    type_info(state)->show(state, this);
+    return this->show(state, 0);
+  }
+
+  OBJECT Object::show(STATE, int indent) {
+    type_info(state)->show(state, this, indent);
     return Qnil;
   }
 

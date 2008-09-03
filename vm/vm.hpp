@@ -127,7 +127,6 @@ namespace rubinius {
     Exception* new_exception(Class* cls, const char* msg);
     OBJECT current_block();
 
-    void inspect(OBJECT obj);
     void set_const(const char* name, OBJECT val);
     void set_const(Module* mod, const char* name, OBJECT val);
 
