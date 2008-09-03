@@ -41,7 +41,7 @@ namespace rubinius {
     class Info : public Tuple::Info {
     public:
       Info(object_type type) : Tuple::Info(type) { }
-      void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, OBJECT self, int level);
     };
   };
 };

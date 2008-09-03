@@ -66,9 +66,10 @@ namespace rubinius {
    *
    *   #<SomeClass:0x346882
    */
-  void TypeInfo::class_info(OBJECT self) {
+  void TypeInfo::class_info(OBJECT self, bool newline) {
     std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
       ":" << (void*) self;
+    if(newline) std::cout << ">\n";
   }
 
   /**
@@ -100,8 +101,7 @@ namespace rubinius {
    * and address.
    */
   void TypeInfo::show(STATE, OBJECT self, int level) {
-    class_info(self);
-    std::cout << ">\n";
+    class_info(self, true);
   }
 #include "gen/typechecks.gen.cpp"
 
