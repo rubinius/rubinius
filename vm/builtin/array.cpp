@@ -146,7 +146,12 @@ namespace rubinius {
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
-      ary->get(state, i)->show(state, level);
+      OBJECT obj = ary->get(state, i);
+      if(obj == ary) {
+        class_info(obj, true);
+      } else {
+        obj->show(state, level);
+      }
     }
     if(ary->size() > stop) {
       indent(level);

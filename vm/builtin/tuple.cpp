@@ -4,6 +4,7 @@
 #include "builtin/fixnum.hpp"
 
 #include <cstdarg>
+#include <iostream>
 
 namespace rubinius {
   OBJECT Tuple::at(size_t index) {
@@ -127,4 +128,27 @@ namespace rubinius {
     }
   }
 
+  void Tuple::Info::show(STATE, OBJECT self, int level) {
+    Tuple* tup = as<Tuple>(self);
+    size_t size = tup->field_count;
+    size_t stop = size < 5 ? size : 5;
+
+    class_info(self);
+    std::cout << ": " << size << "\n";
+    ++level;
+    for(size_t i = 0; i < stop; i++) {
+      indent(level);
+      OBJECT obj = tup->at(i);
+      if(obj == tup) {
+        class_info(self, true);
+      } else {
+        obj->show(state, level);
+      }
+    }
+    if(tup->field_count > stop) {
+      indent(level);
+      std::cout << "...\n";
+    }
+    indent(--level); std::cout << ">\n";
+  }
 }
