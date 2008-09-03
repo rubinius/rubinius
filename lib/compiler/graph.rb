@@ -91,12 +91,6 @@ class Compiler::Node
     self.class.name.split(':').last
   end
 
-  class FCall
-    def dot_name
-      "fcall:#{@method}"
-    end
-  end
-
   class Call
     def dot_name
       "call:#{@method}"
