@@ -344,7 +344,7 @@ describe Compiler do
       end
 
       g.push :nil
-      g.open_class :A
+      g.open_class :B
       g.dup
       g.push_literal desc
       g.swap
