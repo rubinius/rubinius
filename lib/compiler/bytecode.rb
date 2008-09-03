@@ -46,7 +46,7 @@ class Compiler
 
   class Node
 
-    def show_errors(gen, &block)
+    def show_errors(gen, &block) # TODO: remove
       @compiler.show_errors(gen, &block)
     end
 

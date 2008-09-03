@@ -2597,7 +2597,7 @@ class Compiler
           end
         end
 
-        if c.is? FCall and c.method == :loop
+        if c.is? Call and c.method == :loop
           sexp[1] = convert(sexp[1])
           sexp[2] = convert(sexp[2])
           return sexp
@@ -2620,7 +2620,7 @@ class Compiler
       def normalize(c, a, b)
         @arguments, @body = a, expand(b)
 
-        if c.is? FCall and c.method == :loop
+        if c.is? Call and c.method == :loop
           n = Loop.new(@compiler)
           n.args(b)
           return n
