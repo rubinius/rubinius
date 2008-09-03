@@ -275,7 +275,7 @@ describe Compiler do
 
     sexp = s(:newline, 1, "(eval)",
              s(:iter,
-               s(:call, s(:vcall, :x), :each),
+               s(:call, s(:call, nil, :x, s(:arglist)), :each),
                s(:masgn, s(:array, s(:lasgn, :a), s(:lasgn, :b)), nil, nil),
                s(:block,
                  s(:dasgn_curr, :b, s(:dasgn_curr, :a)),
@@ -388,7 +388,7 @@ describe Compiler do
     EOC
 
     sexp = s(:newline, 1, "(eval)",
-             s(:for, s(:vcall, :x),
+             s(:for, s(:call, nil, :x, s(:arglist)),
                s(:masgn,
                  s(:array, s(:lasgn, :a), s(:lasgn, :b)), nil, nil),
                s(:newline, 2, "(eval)", s(:lit, 5)) ) )
@@ -429,7 +429,7 @@ describe Compiler do
     EOC
 
     sexp = s(:newline, 1, "(eval)",
-             s(:for, s(:vcall, :x),
+             s(:for, s(:call, nil, :x, s(:arglist)),
                s(:masgn, s(:array, s(:lasgn, :a), s(:lasgn, :b)), nil, nil),
                s(:newline, 2, "(eval)", s(:lasgn, :z, s(:lit, 5))) ) )
 
@@ -486,7 +486,7 @@ describe Compiler do
       loop { 12 }
     EOC
 
-    sexp = s(:iter, s(:fcall, :loop), nil, s(:fixnum, 12))
+    sexp = s(:iter, s(:call, nil, :loop, s(:arglist)), nil, s(:fixnum, 12))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -509,7 +509,7 @@ describe Compiler do
       loop {}
     EOC
 
-    sexp = s(:iter, s(:fcall, :loop), nil)
+    sexp = s(:iter, s(:call, nil, :loop, s(:arglist)), nil)
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -571,7 +571,7 @@ describe Compiler do
     EOC
 
     sexp = s(:iter,
-             s(:fcall, :go),
+             s(:call, nil, :go, s(:arglist)),
              nil,
              s(:block,
                s(:fixnum, 12),
@@ -678,7 +678,7 @@ describe Compiler do
     EOC
 
     sexp = s(:iter,
-             s(:fcall, :go),
+             s(:call, nil, :go, s(:arglist)),
              nil,
              s(:block,
                s(:fixnum, 12),
@@ -1040,7 +1040,7 @@ describe Compiler do
     EOC
 
     sexp = s(:case, s(:true),
-             s(:when, s(:array, s(:when, s(:vcall, :things), nil)),
+             s(:when, s(:array, s(:when, s(:call, nil, :things, s(:arglist)), nil)),
                  s(:fixnum, 12)),
              nil)
 
@@ -1085,7 +1085,7 @@ describe Compiler do
 
     sexp = s(:case, s(:true),
              s(:when, s(:array, s(:const, :String),
-                          s(:when, s(:vcall, :things), nil)),
+                          s(:when, s(:call, nil, :things, s(:arglist)), nil)),
                  s(:fixnum, 12)),
              nil)
 
@@ -1283,7 +1283,7 @@ describe Compiler do
       go { return 12 }
     EOC
 
-    sexp = s(:iter, s(:fcall, :go), nil, s(:block, s(:return, s(:fixnum, 12))))
+    sexp = s(:iter, s(:call, nil, :go, s(:arglist)), nil, s(:block, s(:return, s(:fixnum, 12))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -1319,7 +1319,7 @@ describe Compiler do
     sexp = s(:return,
              s(:argscat,
                s(:array, s(:fixnum, 1), s(:fixnum, 2)),
-               s(:vcall, :c)))
+               s(:call, nil, :c, s(:arglist))))
 
     sexp.should == parse(ruby) if $unified && $new
 

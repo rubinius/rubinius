@@ -363,7 +363,7 @@ describe Compiler do
     sexp = s(:rescue,
              s(:fixnum, 12),
              s(:resbody,
-               s(:splat, s(:vcall, :blah)),
+               s(:splat, s(:call, nil, :blah, s(:arglist))),
                s(:fixnum, 13), nil))
 
     sexp.should == parse(ruby) if $unified && $new
@@ -422,7 +422,7 @@ describe Compiler do
              s(:fixnum, 12),
              s(:resbody,
                s(:argscat, s(:array, s(:const, :String)),
-                 s(:vcall, :blah)),
+                 s(:call, nil, :blah, s(:arglist))),
                s(:fixnum, 13), nil))
 
     sexp.should == parse(ruby) if $unified && $new

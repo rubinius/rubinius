@@ -9,10 +9,10 @@ describe Compiler do
     EOC
 
     sexp = s(:defn, :a,
+             s(:args),
              s(:scope,
                s(:block,
-                 s(:args),
-                 s(:fixnum, 12)), s()))
+                 s(:fixnum, 12))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -35,11 +35,10 @@ describe Compiler do
     EOC
 
     sexp = s(:defn, :add,
+             s(:args, :a, :b),
              s(:scope,
                s(:block,
-                 s(:args, s(:a, :b), s(), nil, nil),
-                 s(:call, s(:lvar, :a, 0), :+, s(:array, s(:lvar, :b, 0)))),
-               s(:a, :b)))
+                 s(:call, s(:lvar, :a), :+, s(:arglist, s(:lvar, :b))))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -64,12 +63,10 @@ describe Compiler do
     EOC
 
     sexp = s(:defn, :add,
+             s(:args, :a, :b, s(:block, s(:lasgn, :b, s(:fixnum, 2)))),
              s(:scope,
                s(:block,
-                 s(:args, s(:a), s(:b), nil,
-                   s(:block, s(:lasgn, :b, s(:lit, 2)))),
-                 s(:call, s(:lvar, :a, 0), :+, s(:array, s(:lvar, :b, 0)))),
-               s(:a, :b)))
+                 s(:call, s(:lvar, :a), :+, s(:arglist, s(:lvar, :b))))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -103,15 +100,12 @@ describe Compiler do
     EOC
 
     sexp = s(:defn, :add,
+             s(:args, :a),
              s(:scope,
                s(:block,
-                 s(:args, s(:a), s(), nil, nil),
-                 s(:iter, s(:call, s(:zarray), :each),
+                 s(:iter, s(:call, s(:array), :each, s(:arglist)),
                    s(:lasgn, :b),
-                   s(:block, s(:dasgn_curr, :b),
-                     s(:call, s(:lvar, :a, 0), :+,
-                       s(:array, s(:lvar, :b, 0)))))),
-               s(:a, :b)))
+                   s(:call, s(:lvar, :a), :+, s(:arglist, s(:lvar, :b)))))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -152,16 +146,14 @@ describe Compiler do
     EOC
 
     sexp = s(:defn, :a,
-             s(:scope,
-               s(:block, s(:args, s(), s(), s(:b, 1), nil),
-                 s(:lvar, :b, 0)),
-               s(:b)))
+             s(:args, :"*b"),
+             s(:scope, s(:block, s(:nil))))
 
     sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
       meth = description do |d|
-        d.push_local 0
+        d.push :nil
         d.ret
       end
 
@@ -178,9 +170,10 @@ describe Compiler do
     EOC
 
     sexp = s(:defn, :a,
+             s(:args, s(:block_arg, :b)),
              s(:scope,
-               s(:block, s(:args), s(:block_arg, :b, 0), s(:lvar, :b, 0)),
-               s(:b)))
+               s(:block,
+                 s(:lvar, :b))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -211,16 +204,16 @@ describe Compiler do
     end
   end
 
-  it "compiles a defs" do
+  it "compiles 'def a.go; 12; end'" do
     ruby = <<-EOC
       def a.go; 12; end
     EOC
 
-    sexp = s(:defs, s(:vcall, :a), :go,
+    sexp = s(:defs, s(:call, nil, :a, s(:arglist)), :go,
+             s(:args),
              s(:scope,
                s(:block,
-                 s(:args),
-                 s(:fixnum, 12)), s()))
+                 s(:fixnum, 12))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -244,11 +237,12 @@ describe Compiler do
       lambda { def a(x); x; end }
     EOC
 
-    sexp = s(:iter, s(:fcall, :lambda), nil,
+    sexp = s(:iter, s(:call, nil, :lambda, s(:arglist)), nil,
              s(:defn, :a,
+               s(:args, :x),
                s(:scope,
-                 s(:block, s(:args, s(:x), s(), nil, nil), s(:lvar, :x, 0)),
-                 s(:x))))
+                 s(:block,
+                   s(:lvar, :x)))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -285,7 +279,7 @@ describe Compiler do
       class << x; 12; end
     EOC
 
-    sexp = s(:sclass, s(:vcall, :x), s(:scope, s(:lit, 12), s()))
+    sexp = s(:sclass, s(:call, nil, :x, s(:arglist)), s(:scope, s(:fixnum, 12)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -315,7 +309,7 @@ describe Compiler do
       class A; 12; end
     EOC
 
-    sexp = s(:class, s(:colon2, :A), nil, s(:scope, s(:lit, 12), s()))
+    sexp = s(:class, :A, nil, s(:scope, s(:fixnum, 12)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -343,8 +337,8 @@ describe Compiler do
       class A::B; 12; end
     EOC
 
-    sexp = s(:class, s(:colon2, s(:const, :B), :A), nil,
-             s(:scope, s(:lit, 12), s()))
+    sexp = s(:class, s(:colon2, s(:const, :A), :B), nil,
+             s(:scope, s(:fixnum, 12)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -356,9 +350,9 @@ describe Compiler do
         d.ret
       end
 
-      g.push_const :B
+      g.push_const :A
       g.push :nil
-      g.open_class_under :A
+      g.open_class_under :B
       g.dup
       g.push_literal desc
       g.swap
@@ -373,7 +367,7 @@ describe Compiler do
       class A < B; 12; end
     EOC
 
-    sexp = s(:class, s(:colon2, :A), s(:const, :B), s(:scope, s(:lit, 12), s()))
+    sexp = s(:class, :A, s(:const, :B), s(:scope, s(:fixnum, 12)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -401,8 +395,8 @@ describe Compiler do
       class A; a = 1; end
     EOC
 
-    sexp = s(:class, s(:colon2, :A), nil,
-             s(:scope, s(:block, s(:lasgn, :a, s(:fixnum, 1))), s()))
+    sexp = s(:class, :A, nil,
+             s(:scope, s(:lasgn, :a, s(:fixnum, 1))))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -432,7 +426,7 @@ describe Compiler do
       module A; 12; end
     EOC
 
-    sexp = s(:module, s(:colon2, :A), s(:scope, s(:lit, 12), s()))
+    sexp = s(:module, :A, s(:scope, s(:fixnum, 12)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -459,8 +453,8 @@ describe Compiler do
       module A::B; 12; end
     EOC
 
-    sexp = s(:module, s(:colon2, s(:const, :B), :A),
-             s(:scope, s(:lit, 12), s()))
+    sexp = s(:module, s(:colon2, s(:const, :A), :B),
+             s(:scope, s(:fixnum, 12)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -472,8 +466,8 @@ describe Compiler do
         d.ret
       end
 
-      g.push_const :B
-      g.open_module_under :A
+      g.push_const :A
+      g.open_module_under :B
       g.dup
       g.push_literal desc
       g.swap
