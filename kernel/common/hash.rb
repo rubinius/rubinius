@@ -213,7 +213,9 @@ class Hash
   end
 
   def invert
-    inject({}) { |h, entry| h[entry.last] = entry.first }
+    inverted = {}
+    each { |key, value| inverted[value] = key }
+    inverted
   end
 
   def key?(key)
@@ -226,7 +228,7 @@ class Hash
   alias_method :member?, :key?
 
   def keys
-    inject([]) { |ary, entry| ary << entry.first }
+    map { |key, value| key }
   end
 
   def merge(other, &block)
@@ -249,7 +251,9 @@ class Hash
   alias_method :rehash, :redistribute
 
   def reject
-    inject({}) { |h, e| h[e.first] = e.last unless yield e; h }
+    accepted = {}
+    each { |key, value| accepted[key] = value unless yield key, value }
+    accepted
   end
 
   def reject!(&block)
@@ -309,7 +313,7 @@ class Hash
   alias_method :has_value?, :value?
 
   def values
-    inject([]) { |ary, entry| ary << entry.last }
+    map { |key, value| value }
   end
 
   def values_at(*args)
