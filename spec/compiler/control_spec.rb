@@ -557,6 +557,7 @@ describe Compiler do
       g.gif fin
       g.redo.set!
       g.push 12
+      g.set_local 0
       g.pop
       g.push :nil
       g.goto g.break
@@ -662,6 +663,7 @@ describe Compiler do
       g.gif fin
       g.redo.set!
       g.push 12
+      g.set_local 0
       g.pop
       g.goto g.redo
       g.pop
