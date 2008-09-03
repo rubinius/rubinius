@@ -470,8 +470,10 @@ describe Compiler do
 
     gen sexp do |g|
       g.push 12
+      g.set_local 0
       g.pop
       g.push 13
+      g.set_local 1
       g.pop
       g.push :true
     end
@@ -482,9 +484,14 @@ describe Compiler do
       loop { 12 }
     EOC
 
-    sexp = s(:iter, s(:call, nil, :loop, s(:arglist)), nil, s(:fixnum, 12))
+    sexp = s(:iter,
+             s(:call, nil, :loop, s(:arglist)),
+             nil,
+             s(:fixnum, 12))
 
     sexp.should == parse(ruby) if $unified && $new
+
+    sexp = s(:iter, s(:fcall, :loop), nil, s(:fixnum, 12))
 
     gen sexp do |g|
       g.push_modifiers
@@ -586,6 +593,7 @@ describe Compiler do
         d.push_modifiers
         d.new_label.set! # redo
         d.push 12
+        d.set_local_depth 0, 0
         d.pop
 
         d.push :nil
@@ -684,7 +692,6 @@ describe Compiler do
                s(:lasgn, :a, s(:fixnum, 12)),
                s(:redo)))
 
-    # TODO: ruby_parser doesn't have the 12 in it... because of useless void?
     sexp.should == parse(ruby) if $unified && $new
 
     gen sexp do |g|
@@ -694,6 +701,7 @@ describe Compiler do
         d.redo = d.new_label
         d.redo.set!
         d.push 12
+        d.set_local_depth 0, 0
         d.pop
         d.goto d.redo
         d.pop_modifiers
