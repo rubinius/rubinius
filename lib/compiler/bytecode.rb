@@ -2069,22 +2069,28 @@ class Compiler
 
       def bytecode(g)
         args = []
-        @arguments = args
 
-        @method.arguments.each do |var|
-          unless var.to_s =~ /^\*/ then
-            la = LocalAccess.new @compiler
-            la.from_variable var
-            args << la
-          else
-            var = var.to_s.sub(/^\*/, '').to_sym
-            cc = ConcatArgs.new @compiler
-            la = LocalAccess.new @compiler
-            la.from_variable var
+        @method.arguments.required.each do |var|
+          la = LocalAccess.new @compiler
+          la.from_variable var
+          args << la
+        end
 
-            cc.args args, la
-            @arguments = cc
-          end
+        @method.arguments.optional.each do |var|
+          la = LocalAccess.new @compiler
+          la.from_variable var
+          args << la
+        end
+
+        if @method.arguments.splat
+          cc = ConcatArgs.new @compiler
+          la = LocalAccess.new @compiler
+          la.from_variable @method.arguments.splat
+
+          cc.args args, la
+          @arguments = cc
+        else
+          @arguments = args
         end
 
         super(g)
