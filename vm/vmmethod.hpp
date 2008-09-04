@@ -96,12 +96,12 @@ namespace rubinius {
     size_t block;
 
     Opcode(opcode op, int o1 = -1, int o2 = -1) :
-      op(op), args(0), arg1(o1), arg2(o2), start_block(false), block(NULL) {
+      op(op), args(0), arg1(o1), arg2(o2), start_block(false), block(0) {
         if(o1 >= 0) args++;
         if(o2 >= 0) args++;
       }
 
-    Opcode(VMMethod::Iterator& iter) : start_block(false), block(NULL) {
+    Opcode(VMMethod::Iterator& iter) : start_block(false), block(0) {
       op = iter.op();
       args = iter.args();
 
