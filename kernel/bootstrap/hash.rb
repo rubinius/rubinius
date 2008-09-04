@@ -5,11 +5,6 @@ class Hash
   # Bucket abstracts storage and search of entries in Hash.
   # Each bin in a Hash is either +nil+, a single +Bucket+
   # instance, or the head of a chain of +Bucket+ instances.
-  #--
-  # The primitives for Bucket are #at and #put. This can be
-  # optimized in the compiler by converting a call to #key
-  # directly into a call to #at(0).
-  #++
   class Bucket
     attr_accessor :key
     attr_accessor :value
@@ -26,11 +21,6 @@ class Hash
     # Searches this chain of buckets for one matching both +key+
     # and +key_hash+. Returns +nil+ if there is no match. Calls
     # <code>#eql?</code> on +key+.
-    #--
-    # If performance needs to be enhanced, manually inline calls
-    # to e.g. #key to calls to #at(2). This optimization could
-    # be a compiler plugin. The same idea applies to #set.
-    #++
     def find(key, key_hash)
       return self if self.key_hash == key_hash and key.eql? self.key
       return unless nxt = self.next
@@ -188,22 +178,25 @@ class Hash
     return unless rehash or resize
 
     i = to_iter
-    if resize
-      @records *= 2
-      @bins = Tuple.new records
-    end
+    @records *= 2 if resize
+    @bins = Tuple.new @records
 
     while entry = i.next
-      entry.key_hash = key_hash entry.key if rehash
-      bin = entry_bin entry.key_hash
+      while entry
+        nxt = entry.next
 
-      if head = @bins[bin]
-        entry.next = head
-      else
-        entry.next = nil
+        entry.key_hash = key_hash entry.key if rehash
+
+        bin = entry_bin entry.key_hash
+        if head = @bins[bin]
+          entry.next = head
+        else
+          entry.next = nil
+        end
+        @bins[bin] = entry
+
+        entry = nxt
       end
-
-      @bins[bin] = entry
     end
   end
 end
