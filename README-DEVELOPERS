@@ -584,14 +584,17 @@ j(ump) to one line after the line that you have stopped on.
 
 Useful gdb commands and functions (remember, using the p(rint)
 command in GDB you can access pretty much any C function in
-Rubinius):
+Rubinius. Also see ./.gdbinit):
 
 rbt::
-	Prints the backtrace of the Ruby side of things. Use this in
+  Prints the backtrace of the Ruby side of things. Use this in
   conjunction with gdb's own bt which shows the C backtrace.
 
-rp _inspect(OBJECT)::
-  Useful information about a given Ruby object.
+rp some_obj::
+  Prints detailed information about a given Ruby object.
+
+rps some_obj::
+  Prints brief information about a given Ruby object.
 
 === Valgrind
 
