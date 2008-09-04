@@ -673,4 +673,16 @@ stack_cleanup:
     }
   }
 
+  void Task::Info::show(STATE, OBJECT self, int level) {
+    Task* task = as<Task>(self);
+
+    class_header(state, self);
+    indent_attribute(++level, "self"); task->self->show(state, level);
+    indent_attribute(level, "active"); task->active->show(state, level);
+    indent_attribute(level, "home"); task->home->show(state, level);
+    indent_attribute(level, "exception"); task->exception->show(state, level);
+    indent_attribute(level, "debug_channel"); task->debug_channel->show(state, level);
+    indent_attribute(level, "control_channel"); task->control_channel->show(state, level);
+    close_body(level);
+  }
 }
