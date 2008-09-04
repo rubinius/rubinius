@@ -136,11 +136,11 @@ namespace rubinius {
     class_info(state, self);
     std::cout << ": " << size;
     if(size == 0) {
-      std::cout << ">\n";
+      close_body(0);
       return;
     }
 
-    std::cout << "\n";
+    std::cout << std::endl;
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
@@ -153,8 +153,8 @@ namespace rubinius {
     }
     if(tup->field_count > stop) {
       indent(level);
-      std::cout << "...\n";
+      std::cout << "..." << std::endl;
     }
-    indent(--level); std::cout << ">\n";
+    close_body(level);
   }
 }

@@ -238,23 +238,23 @@ initialize:
     MethodContext* ctx = as<MethodContext>(self);
 
     class_header(state, self);
-    indent(++level); std::cout << "name: "; ctx->name->show(state, level);
-    indent(level); std::cout << "sender: ";
+    indent_attribute(++level, "name"); ctx->name->show(state, level);
+    indent_attribute(level, "sender");
     if(ctx->sender == Qnil) {
-      std::cout << "nil\n";
+      ctx->sender->show(state, level);
     } else {
       class_info(state, ctx->sender, true);
     }
-    indent(level); std::cout << "home: ";
+    indent_attribute(level, "home");
     if(ctx->home == Qnil) {
-      std::cout << "nil\n";
+      ctx->home->show(state, level);
     } else {
       class_info(state, ctx->home, true);
     }
-    indent(level); std::cout << "self: "; ctx->self->show(state, level);
-    indent(level); std::cout << "cm: "; ctx->cm->show(state, level);
-    indent(level); std::cout << "module: "; ctx->module->show(state, level);
-    indent(level); std::cout << "block: "; ctx->block->show(state, level);
-    indent(--level); std::cout << ">\n";
+    indent_attribute(level, "self"); ctx->self->show(state, level);
+    indent_attribute(level, "cm"); ctx->cm->show(state, level);
+    indent_attribute(level, "module"); ctx->module->show(state, level);
+    indent_attribute(level, "block"); ctx->block->show(state, level);
+    close_body(level);
   }
 }

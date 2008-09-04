@@ -111,10 +111,10 @@ namespace rubinius {
     BlockEnvironment* be = as<BlockEnvironment>(self);
 
     class_header(state, self);
-    indent(++level); std::cout << "home: "; be->home->show(state, level);
-    indent(level); std::cout << "home_block: "; be->home_block->show(state, level);
-    indent(level); std::cout << "local_count: "; be->local_count->show(state, level);
-    indent(level); std::cout << "method: "; be->method->show(state, level);
-    indent(--level); std::cout << ">\n";
+    indent_attribute(++level, "home"); be->home->show(state, level);
+    indent_attribute(level, "home_block"); be->home_block->show(state, level);
+    indent_attribute(level, "local_count"); be->local_count->show(state, level);
+    indent_attribute(level, "method"); be->method->show(state, level);
+    close_body(level);
   }
 }

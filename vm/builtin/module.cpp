@@ -84,10 +84,10 @@ namespace rubinius {
     Module* mod = as<Module>(self);
 
     class_header(state, self);
-    indent(++level); std::cout << "name: "; mod->name->show(state, level);
-    indent(level); std::cout << "superclass: "; class_info(state, mod->superclass, true);
-    indent(level); std::cout << "constants: "; mod->constants->show(state, level);
-    indent(level); std::cout << "method_table: "; mod->method_table->show(state, level);
-    indent(--level); std::cout << ">\n";
+    indent_attribute(++level, "name"); mod->name->show(state, level);
+    indent_attribute(level, "superclass"); class_info(state, mod->superclass, true);
+    indent_attribute(level, "constants"); mod->constants->show(state, level);
+    indent_attribute(level, "method_table"); mod->method_table->show(state, level);
+    close_body(level);
   }
 }

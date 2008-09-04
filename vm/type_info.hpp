@@ -38,8 +38,10 @@ namespace rubinius {
     virtual OBJECT get_field(STATE, OBJECT target, size_t index);
     virtual void show(STATE, OBJECT self, int level);
     virtual void indent(int level);
+    virtual void indent_attribute(int level, const char* name);
     virtual void class_info(STATE, OBJECT self, bool newline = false);
     virtual void class_header(STATE, OBJECT self);
+    virtual void close_body(int level);
   };
 
 #define BASIC_TYPEINFO(super) \

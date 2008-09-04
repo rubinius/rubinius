@@ -103,6 +103,22 @@ namespace rubinius {
   }
 
   /**
+   * Indents the attribute name to the requested level. @see indent.
+   */
+  void TypeInfo::indent_attribute(int level, const char* name) {
+    indent(level);
+    std::cout << name << ": ";
+  }
+
+  /**
+   * Indents to level-1 and prints ">" + endl.
+   */
+  void TypeInfo::close_body(int level) {
+    indent(level-1);
+    std::cout << ">" << std::endl;
+  }
+
+  /**
    * Default output for any object. Prints just the class name
    * and address.
    */

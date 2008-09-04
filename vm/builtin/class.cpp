@@ -70,6 +70,6 @@ namespace rubinius {
 
     const char* name = mod->name == Qnil ? "<anonymous>" : mod->name->c_str(state);
     std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
-      " " << name << ":" << (void*)self << ">\n";
+      " " << name << ":" << (void*)self << ">" << std::endl;
   }
 }

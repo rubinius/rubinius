@@ -165,4 +165,17 @@ keep_looking:
 
     return false;
   }
+
+  void SendSite::Info::show(STATE, OBJECT self, int level) {
+    SendSite* ss = as<SendSite>(self);
+
+    class_header(state, self);
+    indent_attribute(++level, "name"); ss->name->show(state, level);
+    indent_attribute(level, "sender"); class_info(state, ss->sender, true);
+    indent_attribute(level, "selector"); class_info(state, ss->selector, true);
+    indent_attribute(level, "hits"); std::cout << ss->hits << std::endl;
+    indent_attribute(level, "misses"); std::cout << ss->misses << std::endl;
+    indent_attribute(level, "specialized"); std::cout << ss->specialized << std::endl;
+    close_body(level);
+  }
 };

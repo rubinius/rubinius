@@ -116,19 +116,19 @@ namespace rubinius {
     CompiledMethod* cm = as<CompiledMethod>(self);
 
     class_header(state, self);
-    indent(++level); std::cout << "exceptions: "; cm->exceptions->show(state, level);
-    indent(level); std::cout << "file: "; cm->file->show(state, level);
-    indent(level); std::cout << "iseq: "; cm->iseq->show(state, level);
-    indent(level); std::cout << "lines: "; cm->lines->show(state, level);
-    indent(level); std::cout << "literals: "; cm->literals->show(state, level);
-    indent(level); std::cout << "local_count: "; cm->local_count->show(state, level);
-    indent(level); std::cout << "local_names: "; cm->local_names->show(state, level);
-    indent(level); std::cout << "name: "; cm->name->show(state, level);
-    indent(level); std::cout << "required_args: "; cm->required_args->show(state, level);
-    indent(level); std::cout << "scope: "; cm->scope->show(state, level);
-    indent(level); std::cout << "splat: "; cm->splat->show(state, level);
-    indent(level); std::cout << "stack_size: "; cm->stack_size->show(state, level);
-    indent(level); std::cout << "total_args: "; cm->total_args->show(state, level);
-    indent(--level); std::cout << ">\n";
+    indent_attribute(++level, "exceptions"); cm->exceptions->show(state, level);
+    indent_attribute(level, "file"); cm->file->show(state, level);
+    indent_attribute(level, "iseq"); cm->iseq->show(state, level);
+    indent_attribute(level, "lines"); cm->lines->show(state, level);
+    indent_attribute(level, "literals"); cm->literals->show(state, level);
+    indent_attribute(level, "local_count"); cm->local_count->show(state, level);
+    indent_attribute(level, "local_names"); cm->local_names->show(state, level);
+    indent_attribute(level, "name"); cm->name->show(state, level);
+    indent_attribute(level, "required_args"); cm->required_args->show(state, level);
+    indent_attribute(level, "scope"); cm->scope->show(state, level);
+    indent_attribute(level, "splat"); cm->splat->show(state, level);
+    indent_attribute(level, "stack_size"); cm->stack_size->show(state, level);
+    indent_attribute(level, "total_args"); cm->total_args->show(state, level);
+    close_body(level);
   }
 }

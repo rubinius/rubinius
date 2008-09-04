@@ -301,17 +301,17 @@ namespace rubinius {
     class_info(state, self);
     std::cout << ": " << size;
     if(size == 0) {
-      std::cout << ">\n";
+      close_body(0);
       return;
     }
 
-    std::cout << "\n";
+    std::cout << std::endl;
     indent(level+1);
     for(size_t i = 0; i < size; i++) {
       std::cout << ":" << as<Symbol>(keys->get(state, i))->c_str(state);
       if(i < size - 1) std::cout << ", ";
     }
-    std::cout << "\n";
-    indent(level); std::cout << ">\n";
+    std::cout << std::endl;
+    close_body(level);
   }
 }
