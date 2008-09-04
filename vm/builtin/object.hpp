@@ -32,8 +32,9 @@ namespace rubinius {
 
     // Ruby.primitive :object_show
     OBJECT show(STATE);
-    OBJECT show(STATE, int indent);
+    OBJECT show(STATE, int level);
     OBJECT show_simple(STATE);
+    OBJECT show_simple(STATE, int level);
 
     bool fixnum_p();
     bool symbol_p();

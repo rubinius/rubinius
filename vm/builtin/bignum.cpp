@@ -214,6 +214,10 @@ namespace rubinius {
     std::cout << b->to_s(state, Fixnum::from(10))->c_str() << std::endl;
   }
 
+  void Bignum::Info::show_simple(STATE, OBJECT self, int level) {
+    show(state, self, level);
+  }
+
   void Bignum::init(STATE) {
     GO(bignum).set(state->new_class("Bignum", G(integer)));
     G(bignum)->set_object_type(BignumType);

@@ -107,6 +107,7 @@ namespace rubinius {
     public:
       BASIC_TYPEINFO(TypeInfo)
       virtual void show(STATE, OBJECT self, int level);
+      virtual void show_simple(STATE, OBJECT self, int level);
     };
   };
 };

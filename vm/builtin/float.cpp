@@ -219,6 +219,10 @@ namespace rubinius {
     Float* f = as<Float>(self);
     std::cout << f->val << std::endl;
   }
+
+  void Float::Info::show_simple(STATE, OBJECT self, int level) {
+    show(state, self, level);
+  }
 }
 
 extern "C" {

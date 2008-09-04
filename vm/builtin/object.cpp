@@ -540,13 +540,17 @@ namespace rubinius {
     return this->show(state, 0);
   }
 
-  OBJECT Object::show(STATE, int indent) {
-    type_info(state)->show(state, this, indent);
+  OBJECT Object::show(STATE, int level) {
+    type_info(state)->show(state, this, level);
     return Qnil;
   }
 
   OBJECT Object::show_simple(STATE) {
-    type_info(state)->class_info(state, this, true);
+    return this->show_simple(state, 0);
+  }
+
+  OBJECT Object::show_simple(STATE, int level) {
+    type_info(state)->show_simple(state, this, level);
     return Qnil;
   }
 

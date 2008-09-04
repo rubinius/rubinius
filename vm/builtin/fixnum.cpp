@@ -379,5 +379,9 @@ namespace rubinius {
     std::cout << f->to_native() << std::endl;
   }
 
+  void Fixnum::Info::show_simple(STATE, OBJECT self, int level) {
+    show(state, self, level);
+  }
+
   void Fixnum::Info::mark(OBJECT t, ObjectMark& mark) { }
 }

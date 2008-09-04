@@ -43,4 +43,8 @@ namespace rubinius {
   void NilClass::Info::show(STATE, OBJECT self, int level) {
     std::cout << "nil" << std::endl;
   }
+
+  void NilClass::Info::show_simple(STATE, OBJECT self, int level) {
+    show(state, self, level);
+  }
 }

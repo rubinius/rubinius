@@ -174,6 +174,7 @@ namespace rubinius {
       virtual void mark(OBJECT t, ObjectMark& mark);
       virtual void cleanup(OBJECT obj);
       virtual void show(STATE, OBJECT self, int level);
+      virtual void show_simple(STATE, OBJECT self, int level);
     };
   };
 

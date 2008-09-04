@@ -141,14 +141,13 @@ namespace rubinius {
     size_t size = ary->size();
     size_t stop = size < 5 ? size : 5;
 
-    class_info(state, self);
-    std::cout << ": " << size;
     if(size == 0) {
-      close_body(0);
+      class_info(state, self, true);
       return;
     }
 
-    std::cout << std::endl;
+    class_info(state, self);
+    std::cout << ": " << size << std::endl;
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
@@ -159,10 +158,7 @@ namespace rubinius {
         obj->show(state, level);
       }
     }
-    if(ary->size() > stop) {
-      indent(level);
-      std::cout << "..." << std::endl;
-    }
+    if(ary->size() > stop) ellipsis(level);
     close_body(level);
   }
 }

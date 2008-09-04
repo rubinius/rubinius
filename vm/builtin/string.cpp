@@ -443,4 +443,7 @@ namespace rubinius {
     std::cout << "\"" << str->c_str() << "\"" << std::endl;
   }
 
+  void String::Info::show_simple(STATE, OBJECT self, int level) {
+    show(state, self, level);
+  }
 }

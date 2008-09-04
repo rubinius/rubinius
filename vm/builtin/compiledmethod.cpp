@@ -116,13 +116,13 @@ namespace rubinius {
     CompiledMethod* cm = as<CompiledMethod>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "exceptions"); cm->exceptions->show(state, level);
+    indent_attribute(++level, "exceptions"); cm->exceptions->show_simple(state, level);
     indent_attribute(level, "file"); cm->file->show(state, level);
     indent_attribute(level, "iseq"); cm->iseq->show(state, level);
-    indent_attribute(level, "lines"); cm->lines->show(state, level);
-    indent_attribute(level, "literals"); cm->literals->show(state, level);
+    indent_attribute(level, "lines"); cm->lines->show_simple(state, level);
+    indent_attribute(level, "literals"); cm->literals->show_simple(state, level);
     indent_attribute(level, "local_count"); cm->local_count->show(state, level);
-    indent_attribute(level, "local_names"); cm->local_names->show(state, level);
+    indent_attribute(level, "local_names"); cm->local_names->show_simple(state, level);
     indent_attribute(level, "name"); cm->name->show(state, level);
     indent_attribute(level, "required_args"); cm->required_args->show(state, level);
     indent_attribute(level, "scope"); cm->scope->show(state, level);

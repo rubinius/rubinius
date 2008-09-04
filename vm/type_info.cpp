@@ -111,6 +111,14 @@ namespace rubinius {
   }
 
   /**
+   * Prints "..." + endl at the requested indent level.
+   */
+  void TypeInfo::ellipsis(int level) {
+    indent(level);
+    std::cout << "..." << std::endl;
+  }
+
+  /**
    * Indents to level-1 and prints ">" + endl.
    */
   void TypeInfo::close_body(int level) {
@@ -125,6 +133,14 @@ namespace rubinius {
   void TypeInfo::show(STATE, OBJECT self, int level) {
     class_info(state, self, true);
   }
+
+  /**
+   * Currently prints the same output as show.
+   */
+   void TypeInfo::show_simple(STATE, OBJECT self, int level) {
+     class_info(state, self, true);
+   }
+
 #include "gen/typechecks.gen.cpp"
 
   /* For use in gdb. */

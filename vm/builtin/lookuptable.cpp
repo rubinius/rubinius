@@ -298,15 +298,14 @@ namespace rubinius {
     size_t size = tbl->entries->to_native();
     Array* keys = tbl->all_keys(state);
 
-    class_info(state, self);
-    std::cout << ": " << size;
     if(size == 0) {
-      close_body(0);
+      class_info(state, self, true);
       return;
     }
 
-    std::cout << std::endl;
-    indent(level+1);
+    class_info(state, self);
+    std::cout << ": " << size << std::endl;
+    indent(++level);
     for(size_t i = 0; i < size; i++) {
       std::cout << ":" << as<Symbol>(keys->get(state, i))->c_str(state);
       if(i < size - 1) std::cout << ", ";

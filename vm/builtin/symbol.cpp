@@ -53,5 +53,9 @@ namespace rubinius {
     std::cout << ":" << sym->to_str(state)->c_str() << std::endl;
   }
 
+  void Symbol::Info::show_simple(STATE, OBJECT self, int level) {
+    show(state, self, level);
+  }
+
   void Symbol::Info::mark(OBJECT t, ObjectMark& mark) { }
 }
