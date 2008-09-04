@@ -142,7 +142,13 @@ namespace rubinius {
     size_t stop = size < 5 ? size : 5;
 
     class_info(state, self);
-    std::cout << ": " << size << "\n";
+    std::cout << ": " << size;
+    if(size == 0) {
+      std::cout << ">\n";
+      return;
+    }
+
+    std::cout << "\n";
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);

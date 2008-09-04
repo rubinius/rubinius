@@ -89,7 +89,13 @@ namespace rubinius {
     size_t size = keys->size();
 
     class_info(state, self);
-    std::cout << ": " << size << "\n";
+    std::cout << ": " << size;
+    if(size == 0) {
+      std::cout << ">\n";
+      return;
+    }
+
+    std::cout << "\n";
     indent(level+1);
     for(size_t i = 0; i < size; i++) {
       std::cout << ":" << as<Symbol>(keys->get(state, i))->c_str(state);
