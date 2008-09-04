@@ -380,6 +380,67 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT(!thrown);
   }
 
+  /**
+   *  class Parent
+   *    def callee
+   *      1
+   *    end
+   *    protected :callee
+   *  end
+   *
+   *  class Child < Parent
+   *    def caller
+   *      Parent.new.callee
+   *    end
+   *  end
+   *
+   *  Child.new.caller # => 1
+   */
+  void test_send_message_finds_protected_methods() {
+    CompiledMethod* cm = create_cm();
+    Task* task = Task::create(state);
+
+    MethodVisibility* vis = MethodVisibility::create(state);
+    vis->method = cm;
+    vis->visibility = G(sym_protected);
+
+    Class* parent = state->new_class("Parent", G(object), 1);
+    Class* child =  state->new_class("Child", parent, 1);
+
+    SYMBOL callee = state->symbol("callee");
+    parent->method_table->store(state, callee, vis);
+
+    OBJECT p = state->new_object(parent);
+    OBJECT c = state->new_object(child);
+    task->self = c;
+
+    StaticScope *sc = StaticScope::create(state);
+    SET(sc, module, child);
+    SET(cm, scope, sc);
+
+    task->active->module = child;
+    task->active->name = state->symbol("caller");
+    task->active->self = task->self;
+
+    Message msg(state);
+    msg.recv = p;
+    msg.lookup_from = parent;
+    msg.name = callee;
+    msg.send_site = SendSite::create(state, callee);
+    msg.set_args(0);
+
+    MethodContext* cur = task->active;
+
+    task->send_message(msg);
+
+    TS_ASSERT(cur != task->active);
+
+    MethodContext* ncur = task->active;
+
+    TS_ASSERT_EQUALS(ncur->self, p);
+    TS_ASSERT_EQUALS(ncur->sender, cur);
+  }
+
   void test_simple_return() {
     CompiledMethod* cm = create_cm();
     cm->total_args = Fixnum::from(0);

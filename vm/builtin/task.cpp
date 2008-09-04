@@ -196,6 +196,8 @@ stack_cleanup:
   /* For details in msg, locate the proper method and begin execution
    * of it. */
   bool Task::send_message(Message& msg) {
+    msg.current_self = this->active->self;
+
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
     // HACK ug! do this up front, not way down here.
     if(CompiledMethod* cm = try_as<CompiledMethod>(msg.method)) {
