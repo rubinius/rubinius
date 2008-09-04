@@ -80,10 +80,14 @@ namespace rubinius {
     return get_const(state, state->symbol(sym));
   }
 
-  void Module::Info::show(STATE, OBJECT self) {
+  void Module::Info::show(STATE, OBJECT self, int level) {
     Module* mod = as<Module>(self);
-    std::cout << "#<" << mod->name->c_str(state) << "(" <<
-      self->class_object(state)->name->c_str(state) << "):" <<
-      (void*)self << ">\n";
+
+    class_header(state, self);
+    indent(++level); std::cout << "name: "; mod->name->show(state, level);
+    indent(level); std::cout << "superclass: "; class_info(state, mod->superclass, true);
+    indent(level); std::cout << "constants: "; mod->constants->show(state, level);
+    indent(level); std::cout << "method_table: "; mod->method_table->show(state, level);
+    indent(--level); std::cout << ">\n";
   }
 }

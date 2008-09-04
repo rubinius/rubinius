@@ -64,11 +64,12 @@ namespace rubinius {
     return meta;
   }
 
-  void MetaClass::Info::show(STATE, OBJECT self) {
+  void MetaClass::Info::show(STATE, OBJECT self, int level) {
     MetaClass* cls = as<MetaClass>(self);
+    Module* mod = as<Module>(cls->attached_instance);
 
+    const char* name = mod->name == Qnil ? "<anonymous>" : mod->name->c_str(state);
     std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
-      " " << ((Module*)cls->attached_instance)->name->c_str(state) << ":" <<
-      (void*) self << ">\n";
+      " " << name << ":" << (void*)self << ">\n";
   }
 }
