@@ -545,6 +545,11 @@ namespace rubinius {
     return Qnil;
   }
 
+  OBJECT Object::show_simple(STATE) {
+    type_info(state)->class_info(state, this, true);
+    return Qnil;
+  }
+
   /* VM level primitives. This is a silly place, I know. */
   OBJECT Object::vm_get_config_item(STATE, String* var) {
     ConfigParser::Entry* ent = state->user_config->find(var->c_str());

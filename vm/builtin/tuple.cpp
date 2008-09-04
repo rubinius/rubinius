@@ -133,14 +133,14 @@ namespace rubinius {
     size_t size = tup->field_count;
     size_t stop = size < 5 ? size : 5;
 
-    class_info(self);
+    class_info(state, self);
     std::cout << ": " << size << "\n";
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
       OBJECT obj = tup->at(i);
       if(obj == tup) {
-        class_info(self, true);
+        class_info(state, self, true);
       } else {
         obj->show(state, level);
       }

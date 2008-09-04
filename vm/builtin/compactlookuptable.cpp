@@ -88,7 +88,7 @@ namespace rubinius {
     Array* keys = tbl->keys(state);
     size_t size = keys->size();
 
-    class_info(self);
+    class_info(state, self);
     std::cout << ": " << size << "\n";
     indent(level+1);
     for(size_t i = 0; i < size; i++) {

@@ -115,7 +115,7 @@ namespace rubinius {
   void CompiledMethod::Info::show(STATE, OBJECT self, int level) {
     CompiledMethod* cm = as<CompiledMethod>(self);
 
-    class_header(self);
+    class_header(state, self);
     indent(++level); std::cout << "exceptions: "; cm->exceptions->show(state, level);
     indent(level); std::cout << "file: "; cm->file->show(state, level);
     indent(level); std::cout << "iseq: "; cm->iseq->show(state, level);

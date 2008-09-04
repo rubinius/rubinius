@@ -141,14 +141,14 @@ namespace rubinius {
     size_t size = ary->size();
     size_t stop = size < 5 ? size : 5;
 
-    class_info(self);
+    class_info(state, self);
     std::cout << ": " << size << "\n";
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
       OBJECT obj = ary->get(state, i);
       if(obj == ary) {
-        class_info(obj, true);
+        class_info(state, obj, true);
       } else {
         obj->show(state, level);
       }

@@ -66,9 +66,15 @@ namespace rubinius {
    *
    *   #<SomeClass:0x346882
    */
-  void TypeInfo::class_info(OBJECT self, bool newline) {
-    std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
-      ":" << (void*) self;
+  void TypeInfo::class_info(STATE, OBJECT self, bool newline) {
+    if(Module* mod = try_as<Module>(self)) {
+      const char *name = mod->name == Qnil ? "<anonymous>" : mod->name->c_str(state);
+      std::cout << "#<" << name << "(" <<
+        self->class_object(state)->name->c_str(state) << ")";
+    } else {
+      std::cout << "#<" << self->class_object(state)->name->c_str(state);
+    }
+    std::cout << ":" << (void*)self;
     if(newline) std::cout << ">\n";
   }
 
@@ -78,9 +84,9 @@ namespace rubinius {
    *
    *   #<SomeClass:0x3287648\n
    */
-  void TypeInfo::class_header(OBJECT self) {
-    std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
-      ":" << (void*) self << "\n";
+  void TypeInfo::class_header(STATE, OBJECT self) {
+    class_info(state, self);
+    std::cout << "\n";
   }
 
   /**
@@ -101,7 +107,7 @@ namespace rubinius {
    * and address.
    */
   void TypeInfo::show(STATE, OBJECT self, int level) {
-    class_info(self, true);
+    class_info(state, self, true);
   }
 #include "gen/typechecks.gen.cpp"
 
@@ -110,6 +116,11 @@ namespace rubinius {
     /* A wrapper because gdb can't do virtual dispatch. */
     void __show__(OBJECT obj) {
       obj->show(VM::current_state());
+    }
+
+    /* Similar to __show__ but only outputs #<SomeClass:0x2428999> */
+    void __show_simple__(OBJECT obj) {
+      obj->show_simple(VM::current_state());
     }
   }
 }

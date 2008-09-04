@@ -16,7 +16,7 @@ namespace rubinius {
   void MethodVisibility::Info::show(STATE, OBJECT self, int level) {
     MethodVisibility* mv = as<MethodVisibility>(self);
 
-    class_header(self);
+    class_header(state, self);
     indent(++level); std::cout << "visibility: "; mv->visibility->show(state, level);
     indent(level); std::cout << "method: "; mv->method->show(state, level);
     indent(--level); std::cout << ">\n";
