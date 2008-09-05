@@ -1951,7 +1951,8 @@ class Compiler
       def args(cond, body = nil, nxt = nil)
         @body, @next = body, nxt
         @splat = nil
-        if cond.nil?
+
+        if cond.is?(ArrayLiteral) && cond.body.empty? then
           cf = ConstFind.new(@compiler)
           cf.args :StandardError
           @conditions = [cf]

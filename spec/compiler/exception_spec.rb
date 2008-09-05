@@ -132,13 +132,14 @@ describe Compiler do
       g.goto fin
 
       exc_handle.set!
+
       g.push_const :StandardError
       g.push_exception
       g.send :===, 1
-
       g.git body
       g.goto rr
       body.set!
+
       g.push 13
       g.clear_exception
       g.goto last
