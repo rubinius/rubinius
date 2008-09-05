@@ -212,6 +212,8 @@ stack_cleanup:
   bool Task::send_message_slowly(Message& msg) {
     GlobalCacheResolver res;
 
+    msg.current_self = this->active->self;
+
     if(!res.resolve(state, msg)) {
       msg.unshift_argument(state, msg.name);
       msg.name = G(sym_method_missing);
