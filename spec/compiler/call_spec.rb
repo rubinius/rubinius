@@ -398,7 +398,8 @@ describe Compiler do
       g.push_block
       g.push 1
       g.push 2
-      g.meta_send_call 2
+      g.make_array 2
+      g.meta_send_call 1
     end
   end
 
