@@ -1612,7 +1612,7 @@ class Compiler
     class Splat < DynamicArguments
       kind :splat
 
-      def args(child)
+      def args(child = nil)
         @child = child
       end
 
@@ -2108,7 +2108,7 @@ class Compiler
         super(comp)
         @block_args = false
       end
-    
+
       def args(assigns, *rest)
         if @block_args
           @assigns = assigns
@@ -2394,17 +2394,27 @@ class Compiler
       kind :iter_args
 
       def consume(sexp)
-        if sexp[0] and sexp[0][0] == :masgn
-          node = MAsgn.new(@compiler)
-          node.block_args = true
-          ma = sexp[0]
-          ma.shift
-          ma.unshift nil if ma[0] == true
-          ma[0] = convert(ma[0])
-          node.args(*ma)
-          return [node]
+        args = sexp[0]
+
+        if args.nil? then
+          # raise "no: nil"
+        elsif args == 0 then
+          # raise "no: 0"
         else
-          return [convert(sexp[0])]
+          case args[0]
+          when :masgn then
+            node = MAsgn.new(@compiler)
+            node.block_args = true
+            args.shift # :masgn
+            # we don't know why this works, but it does...
+            # TODO: remove masgn entirely from iterargs, let iterargs deal
+            args.unshift nil if args.size == 1 && args.last == s(:splat)
+            args[0] = convert(args[0])
+            node.args(*args)
+            return [node]
+          else
+            return [convert(sexp[0])]
+          end
         end
       end
 

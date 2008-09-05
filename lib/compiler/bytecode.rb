@@ -875,7 +875,7 @@ class Compiler
 
     class Splat
       def bytecode(g)
-        @child.bytecode(g)
+        @child.bytecode(g) if @child
         g.cast_array
       end
 
@@ -1851,6 +1851,8 @@ class Compiler
             g.pop
           end
         end
+
+        # TODO: = 0 should be handled here
 
         if @splat and !@splat.kind_of? TrueClass
           g.cast_array
