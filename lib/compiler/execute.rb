@@ -264,7 +264,9 @@ class Compiler::Node
   class Call
     def execute(e)
       args = @arguments.map { |a| a.execute(e) }
-      @object.execute(e).__send__ @method, *args
+      recv = @object.nil? ? e.self : @object.execute(e)
+
+      recv.__send__ @method, *args
     end
   end
 
