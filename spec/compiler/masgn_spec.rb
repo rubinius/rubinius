@@ -197,6 +197,7 @@ describe Compiler do
       g.push :self
       g.send :b, 0, true
       g.cast_array
+      g.cast_array
       g.dup
       g.send :size, 0
       g.push 1
