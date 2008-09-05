@@ -268,13 +268,6 @@ class Compiler::Node
     end
   end
 
-  class FCall
-    def execute(e)
-      args = @arguments.map { |a| a.execute(e) }
-      e.self.__send__ @method, *args
-    end
-  end
-
   class Yield
     def execute(e)
       if @arguments.kind_of? Array
