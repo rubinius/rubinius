@@ -78,16 +78,16 @@ class Compiler
 
       node = new(compiler)
       args = node.consume(sexp)
-#       begin
+      msg = node.respond_to?(:normalize) ? :normalize : :args
+      begin
         if node.respond_to? :normalize
           node = node.normalize(*args)
         else
           node.args(*args)
         end
-#       rescue ArgumentError => e
-#         raise ArgumentError,
-#           "#{kind} (#{self}) takes #{args.size} arg(s): passed #{args.inspect} (#{e.message})"
-#       end
+      rescue ArgumentError => e
+        raise ArgumentError, "#{node.class}##{msg} passed #{e.message}: #{args.inspect}"
+      end
 
       return node
     end
@@ -2268,7 +2268,7 @@ class Compiler
     class PostExe < Call
       kind :postexe
 
-      def normalize(meth, args=nil)
+      def normalize(recv__ignored, meth, args=nil)
         @method, @arguments = meth, args
 
         collapse_args()
