@@ -52,7 +52,6 @@ require File.dirname(__FILE__) + '/../../vm/gen/simple_field'
 
 class String
   def to_sexp(file = "(string)")
-    $: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/") # HACK
     require 'ruby_parser'
 
     RubyParser.new.process(self, file)

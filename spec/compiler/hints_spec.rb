@@ -8,7 +8,7 @@ describe Compiler do
 
     sexp = s(:call, s(:fixnum, 1), :+, s(:arglist, s(:fixnum, 1)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp, [:fastmath] do |g|
       g.push 1
@@ -24,7 +24,7 @@ describe Compiler do
 
     sexp = s(:call, s(:fixnum, 1), :-, s(:arglist, s(:fixnum, 1)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp, [:fastmath] do |g|
       g.push 1
@@ -40,7 +40,7 @@ describe Compiler do
 
     sexp = s(:call, s(:fixnum, 1), :==, s(:arglist, s(:fixnum, 1)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp, [:fastmath] do |g|
       g.push 1
@@ -56,7 +56,7 @@ describe Compiler do
 
     sexp = s(:call, s(:fixnum, 1), :===, s(:arglist, s(:fixnum, 1)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp, [:fastmath] do |g|
       g.push 1
@@ -72,7 +72,7 @@ describe Compiler do
 
     sexp = s(:call, s(:fixnum, 1), :<, s(:arglist, s(:fixnum, 1)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp, [:fastmath] do |g|
       g.push 1
@@ -88,7 +88,7 @@ describe Compiler do
 
     sexp = s(:call, s(:fixnum, 1), :>, s(:arglist, s(:fixnum, 1)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp, [:fastmath] do |g|
       g.push 1
@@ -104,7 +104,7 @@ describe Compiler do
 
     sexp = s(:call, s(:fixnum, 1), :/, s(:arglist, s(:fixnum, 1)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       g.push 1
@@ -120,7 +120,7 @@ describe Compiler do
 
     sexp = s(:call, s(:fixnum, 1), :/, s(:arglist, s(:fixnum, 1)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp, [:safemath] do |g|
       g.push 1

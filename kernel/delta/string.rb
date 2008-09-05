@@ -1,6 +1,4 @@
 
-$: << File.expand_path("~/Work/p4/zss/src/ParseTree/dev/lib/")   # HACK
-$: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/") # HACK
 require 'sexp_processor'
 
 module Rubinius; end

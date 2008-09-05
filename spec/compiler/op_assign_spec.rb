@@ -8,7 +8,7 @@ describe Compiler do
 
     sexp = s(:op_asgn_or, s(:lvar, :a), s(:lasgn, :a, s(:fixnum, 8)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       fin = g.new_label
@@ -32,7 +32,7 @@ describe Compiler do
 
     sexp = s(:op_asgn_and, s(:lvar, :a), s(:lasgn, :a, s(:fixnum, 8)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       fin = g.new_label
@@ -60,7 +60,7 @@ describe Compiler do
              :"||",
              s(:fixnum, 8))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       found = g.new_label
@@ -101,7 +101,7 @@ describe Compiler do
              :"&&",
              s(:fixnum, 8))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       found = g.new_label
@@ -143,7 +143,7 @@ describe Compiler do
              :"^",
              s(:fixnum, 8))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       fin = g.new_label
@@ -174,7 +174,7 @@ describe Compiler do
              s(:array, s(:fixnum, 4)))
 
     gen sexp do |g|
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
       g.push :self
       g.send :ary, 0, true
@@ -203,7 +203,7 @@ describe Compiler do
              :val=, :"||",
              s(:fixnum, 6))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       fnd = g.new_label
@@ -235,7 +235,7 @@ describe Compiler do
 
     sexp = s(:op_asgn2, s(:call, nil, :x, s(:arglist)), :val=, :"&&", s(:fixnum, 7))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       fnd = g.new_label
@@ -267,7 +267,7 @@ describe Compiler do
 
     sexp = s(:op_asgn2, s(:call, nil, :x, s(:arglist)), :val=, :^, s(:fixnum, 8))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       g.push :self

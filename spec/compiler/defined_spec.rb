@@ -8,7 +8,7 @@ describe Compiler do
 
     sexp = s(:defined, s(:call, nil, :instance_exec, s(:arglist)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       responded = g.new_label
@@ -35,7 +35,7 @@ describe Compiler do
 
     sexp = s(:defined, s(:call, nil, :instance_exec, s(:arglist)))
 
-    sexp.should == parse(ruby) if $unified && $new
+    sexp.should == parse(ruby)
 
     gen sexp do |g|
       responded = g.new_label

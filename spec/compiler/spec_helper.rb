@@ -12,25 +12,12 @@ require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
 ## Added for ruby_parser transition... all of this should be temporary
 ## HACK:
 
-$unified = true
-$new     = true
-
-if $unified then
-  $: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/")
-  load "kernel/delta/string.rb"
-  require 'ruby_parser' # for s(...)
-  def parse ruby
-    # RubyParser.new.process(ruby, "spec")
-    ruby.to_sexp("spec")
-  end
-else
-  def s(*rest)
-    rest
-  end
-  def parse ruby
-    s(:no)
-  end
+load "kernel/delta/string.rb"
+require 'ruby_parser' # for s(...)
+def parse ruby
+  ruby.to_sexp("spec")
 end
+
 ######################################################################
 
 class TestGenerator
