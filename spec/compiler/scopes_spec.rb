@@ -61,6 +61,18 @@ describe Compiler do
         d.pop
         opt_arg2.set!
 
+        d.push_block
+        d.dup
+        d.is_nil
+        after = d.new_label
+        d.git after
+        d.push_const :Proc
+        d.swap
+        d.send :__from_block__, 1
+        after.set!
+        d.set_local 5
+        d.pop
+
         d.push :self
         d.push_local 0
         d.push_local 1

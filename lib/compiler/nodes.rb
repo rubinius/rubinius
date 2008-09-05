@@ -1151,23 +1151,13 @@ class Compiler
           end
         end
 
-        # Allocate the required locals first, so they go in the first
-        # set of slots.
-        scope = get(:scope)
-        req.each_with_index do |var, i|
-          var, _ = scope.find_local(var)
-          var.argument! i
-          var
-        end
-
-        defaults.map! { |node| convert(node) }
-
-        block = convert(s(:block_arg, block)) if block
+        defaults = nil if defaults.empty?
 
         [req, opt, splat, block, defaults]
       end
 
       def args(req, opt, splat, block, defaults)
+        @mapped_defaults = {}
         @required, @optional, @splat, @block_arg, @defaults =
           req, opt, splat, block, defaults
 
@@ -1194,9 +1184,11 @@ class Compiler
           @splat = var
         end
 
-        @mapped_defaults = {}
+        @block_arg = convert(s(:block_arg, @block_arg)) if @block_arg
 
         if @defaults
+          @defaults.map! { |node| convert(node) }
+
           @defaults.each do |x|
             @mapped_defaults[x.name] = x
           end

@@ -2141,23 +2141,23 @@ class Compiler
           done.set!
         end
 
-#         if @block_arg
-#           g.push_block
-#           g.dup
-#           g.is_nil
+        if @block_arg
+          g.push_block
+          g.dup
+          g.is_nil
 
-#           after = g.new_label
-#           g.git after
+          after = g.new_label
+          g.git after
 
-#           g.push_const :Proc
-#           g.swap
-#           g.send :__from_block__, 1
+          g.push_const :Proc
+          g.swap
+          g.send :__from_block__, 1
 
-#           after.set!
+          after.set!
 
-#           @block_arg.bytecode(g)
-#           g.pop
-#         end
+          @block_arg.bytecode(g)
+          g.pop
+        end
       end
     end
 
