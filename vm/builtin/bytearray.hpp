@@ -45,6 +45,12 @@ namespace rubinius {
     // Ruby.primitive :bytearray_dup_into
     ByteArray* dup_into(STATE, ByteArray* other);
 
+    // Used like strstr, searching a ByteArray for where a String sequence
+    // appears.
+
+    // Ruby.primitive :bytearray_locate
+    OBJECT locate(STATE, String* little);
+
     char* to_chars(STATE);
 
     class Info : public TypeInfo {

@@ -71,7 +71,7 @@ output = ARGV.shift
 puts "Compiling #{file}"
 
 top = Compiler.compile_file(file, flags)
-mar = Compiler::Marshal.new
+mar = Rubinius::CompiledFile::Marshal.new
 
 decode_cm(top) if decode
 
@@ -85,7 +85,7 @@ if output
   end
 
   File.open(output, "w") do |f|
-    cf = Compiler::CompiledFile.new "!RBIX", 1, "x"
+    cf = Rubinius::CompiledFile.new "!RBIX", 1, "x"
     cf.encode_to f, top
   end
 end

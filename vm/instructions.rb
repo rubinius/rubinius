@@ -1,6 +1,41 @@
+# === Rubinius VM Instructions ===
 # Keep this file in alphabetical order or suffer the scorn of your peers.
 # When you add an instruction here, you MUST also add it to the master
 # list in kernel/core/iseq.rb
+
+# ==== Writing an instruction test ====
+# The test harness for the VM instructions may require some explanation.
+# Tests in this file are read by vm/codegen/instructions_gen.rb and written
+# out into vm/test/test_instructions.hpp using the strings returned by the
+# test_* methods in this file.
+#
+# It sets up various things for us, including:
+# * Some C macros for test-writing convenience.
+# * A CompiledMethod instance that will be 'running' in the test.
+# * A Task with that CompiledMethod in its active context.
+# * A zeroed-out stream of opcodes.
+# The last three are available in tests as "cm", "task", and "stream".
+#
+# When the test body is reached, the test generator sets the first item
+# in the opcode stream to the opcode we are testing.
+# You will see various tests that set additional items in the stream after
+# the opcode.  This is necessary to test opcodes that take arguments, such
+# as open_class.
+#
+# The 'run()' macro is simply a shortcut for: task->execute_stream(stream).
+# You can call run() as many times as you need in a single test. Each time,
+# the VM will execute those instructions and leave the stream unmodified.
+# If your second run() needs new arguments, you will need to set them by hand.
+# WARNING: Make sure you pay attention to the stack contents if you are writing
+# multiple scenarios in one test. run() does not reset the stack.
+#
+# Other useful functions:
+# * task->push(val) pushes an object onto the stack
+# * task->pop() pops the top item from the stack
+# * task->stack_at(7) returns the 8th item in the stack
+#
+# Tests should be placed immediately after the instruction they are testing.
+# Keep this file alphabetized by opcode name.
 
 class Instructions
 
@@ -970,6 +1005,20 @@ class Instructions
     stack_push(t1 == Qnil ? Qtrue : Qfalse);
     CODE
   end
+  
+  def test_is_nil
+    <<-CODE
+    task->push(Qnil);
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
+    task->push(String::create(state, "no"));
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+    task->push(Integer::from(state, 0));
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+    CODE
+  end
 
   # [Operation]
   #   Return true if value is a Symbol, otherwise false
@@ -989,6 +1038,20 @@ class Instructions
     <<-CODE
     OBJECT t1 = stack_pop();
     stack_push(t1->symbol_p() ? Qtrue : Qfalse);
+    CODE
+  end
+
+  def test_is_symbol
+    <<-CODE
+    task->push(Qnil);
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+    task->push(String::create(state, "no"));
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+    task->push(state->symbol("foo"));
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
     CODE
   end
 
@@ -1670,7 +1733,7 @@ class Instructions
     ps->parent = (StaticScope*)Qnil;
     SET(cm, scope, ps);
 
-    task->push(Qnil);
+    task->push(G(true_class));
 
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
@@ -1678,6 +1741,9 @@ class Instructions
     run();
 
     TS_ASSERT(kind_of<Class>(G(true_class)->get_const(state, name)));
+
+    Class* cls = (Class*)task->stack_top();
+    TS_ASSERT_EQUALS(cls->metaclass(state)->superclass, G(true_class)->metaclass(state))
     CODE
   end
 
@@ -2992,8 +3058,8 @@ class Instructions
     msg.stack = count + 1;
     msg.use_from_task(task, count);
 
-    msg.priv = task->call_flags & 1;
-    msg.lookup_from = msg.recv->lookup_begin(state);
+    msg.priv = TRUE;
+    msg.lookup_from = task->current_module()->superclass;
     msg.name = msg.send_site->name;
 
     task->call_flags = 0;
@@ -3016,9 +3082,9 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    SYMBOL name = state->symbol("blah");
-    parent->method_table->store(state, name, target);
-    SendSite* ss = SendSite::create(state, name);
+    SYMBOL blah = state->symbol("blah");
+    parent->method_table->store(state, blah, target);
+    SendSite* ss = SendSite::create(state, blah);
 
     OBJECT obj = state->new_object(child);
     task->self = obj;
@@ -3027,6 +3093,10 @@ class Instructions
     SET(sc, module, child);
 
     SET(cm, scope, sc);
+
+    task->active->module = child;
+    task->active->name = blah;
+    task->active->self = task->self;
 
     task->literals->put(state, 0, ss);
     task->push(obj);
@@ -3039,6 +3109,41 @@ class Instructions
     stream[2] = (opcode)1;
 
     target->formalize(state);
+
+    run();
+
+    TS_ASSERT_EQUALS(task->active->cm, target);
+    TS_ASSERT_EQUALS(task->active->args, 1U);
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(task->active->block, be);
+    TS_ASSERT_EQUALS(task->self, obj);
+
+
+    // Now test that send finds a private method
+
+    state->global_cache->clear(child, blah);
+    task = Task::create(state);
+
+    ctx = MethodContext::create(state, Qnil, cm);
+    task->make_active(ctx);
+
+    MethodVisibility* vis = MethodVisibility::create(state);
+    vis->method = target;
+    vis->visibility = G(sym_private);
+
+    parent->method_table->store(state, blah, vis);
+
+    task->self = obj;
+    task->active->module = child;
+    task->active->name = blah;
+    task->active->self = task->self;
+
+    task->literals->put(state, 0, ss);
+    task->push(obj);
+    task->push(Fixnum::from(3));
+
+    be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
+    task->push(be);
 
     run();
 
@@ -3093,7 +3198,7 @@ class Instructions
       msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
     }
 
-    msg.priv = TRUE;
+    msg.priv = TRUE;  // TODO: how do we test this?
     msg.lookup_from = task->current_module()->superclass;
     msg.name = msg.send_site->name;
 
@@ -3117,9 +3222,9 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    SYMBOL name = state->symbol("blah");
-    parent->method_table->store(state, name, target);
-    SendSite* ss = SendSite::create(state, name);
+    SYMBOL blah = state->symbol("blah");
+    parent->method_table->store(state, blah, target);
+    SendSite* ss = SendSite::create(state, blah);
 
     OBJECT obj = state->new_object(child);
     task->self = obj;
@@ -3128,6 +3233,10 @@ class Instructions
     SET(sc, module, child);
 
     SET(cm, scope, sc);
+
+    task->active->module = child;
+    task->active->name = blah;
+    task->active->self = task->self;
 
     task->literals->put(state, 0, ss);
     task->push(obj);

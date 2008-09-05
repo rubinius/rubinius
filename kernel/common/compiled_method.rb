@@ -161,9 +161,9 @@ class CompiledMethod < Executable
 
   def inherit_scope(other)
     if ss = other.staticscope
-      @staticscope = ss
+      @scope = ss
     else
-      @staticscope = StaticScope.new(Object)
+      @scope = StaticScope.new(Object)
     end
   end
 
@@ -213,15 +213,20 @@ class CompiledMethod < Executable
     script ||= CompiledMethod::Script.new
     yield script if block_given?
 
-    Rubinius::VM.save_encloser_path
-
     # Setup the scoping.
     ss = StaticScope.new(Object)
     ss.script = script
-    @staticscope = ss
+    @scope = ss
 
     activate_as_script
-    Rubinius::VM.restore_encloser_path
+  end
+
+  def activate_as_script
+    mc = MAIN.metaclass
+    mc.method_table[:__script__] = self
+    compile
+    Rubinius::VM.reset_method_cache :__script__
+    MAIN.__script__
   end
 
   def line_from_ip(i)

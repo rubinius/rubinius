@@ -127,11 +127,13 @@ namespace rubinius {
     OBJECT get_local(int pos);
 
     void print_stack();
+    void print_backtrace();
     void tragic_failure(Message& msg);
 
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
+      virtual void show(STATE, OBJECT self, int level);
     };
 
     class Halt : public std::runtime_error {

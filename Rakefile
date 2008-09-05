@@ -16,6 +16,33 @@ RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
 
 task :default => %w[build vm:test]
 
+desc "Compile the given ruby file into a .rbc file"
+task :compile_ruby, :file do |task, args|
+  file = args[:file]
+  raise ArgumentError, 'compile_ruby requires a file name' if file.nil?
+
+  rbc = file + 'c'
+
+  compile_ruby file, rbc
+end
+task :compile_ruby => 'kernel:build' # HACK argument + dependency is broken
+
+desc "Run the given ruby fil ewith the vm"
+task :run_ruby, :file do |task, args|
+  file = args[:file]
+  raise ArgumentError, 'compile_ruby requires a file name' if file.nil?
+
+  rbc = file + 'c'
+
+  compile_ruby file, rbc
+
+  ENV['PROBE'] = 'yes' if $verbose
+  ENV['RBX_RUNTIME'] = File.join File.dirname(__FILE__), 'runtime'
+
+  sh 'vm/vm', rbc
+end
+task :run_ruby => %w[kernel:build vm/vm] # HACK argument + dependency is broken
+
 # BUILD TASKS
 
 # task :stable_compiler do

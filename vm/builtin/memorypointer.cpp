@@ -106,7 +106,7 @@ namespace rubinius {
     return MemoryPointer::create(state, *(void**)pointer);
   }
 
-  OBJECT MemoryPointer::get_field_prim(STATE, FIXNUM offset, FIXNUM type) {
+  OBJECT MemoryPointer::get_at_offset(STATE, FIXNUM offset, FIXNUM type) {
     return get_field(state, offset->to_native(), type->to_native());
   }
 
@@ -204,7 +204,7 @@ namespace rubinius {
     return ret;
   }
 
-  OBJECT MemoryPointer::set_field_prim(STATE, FIXNUM offset, FIXNUM type, OBJECT val) {
+  OBJECT MemoryPointer::set_at_offset(STATE, FIXNUM offset, FIXNUM type, OBJECT val) {
     set_field(state, offset->to_native(), type->to_native(), val);
     return val;
   }

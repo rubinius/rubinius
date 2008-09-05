@@ -60,7 +60,7 @@ class InstructionSet
     {:opcode => :goto_if_true, :args => [:ip], :stack => [1,0], :flow => :goto},
     {:opcode => :goto_if_defined, :args => [:ip], :stack => [1,0],
       :flow => :goto},
-    {:opcode => :ret, :args => [], :stack => [1,0], :flow => :return,
+    {:opcode => :ret, :args => [], :stack => [0,0], :flow => :return,
       :vm_flags => [:terminator]},
     {:opcode => :halt, :args=> [], :stack => [0,0], :flow => :return,
       :vm_flags => [:terminator]},
@@ -119,7 +119,7 @@ class InstructionSet
     {:opcode => :clear_exception, :args => [], :stack => [0,0]},
     {:opcode => :cast_array, :args => [], :stack => [1,1],
       :vm_flags => []},
-    {:opcode => :raise_exc, :args => [], :stack => [1,0], :flow => :raise,
+    {:opcode => :raise_exc, :args => [], :stack => [0,0], :flow => :raise,
       :vm_flags => [:terminator]},
     {:opcode => :push_cpath_top, :args => [], :stack => [0,1]},
     {:opcode => :passed_arg, :args => [:int], :stack => [0,1]},
@@ -362,6 +362,8 @@ class InstructionSequence
 
   class Encoder
 
+    attr_reader :stack_depth
+
     ##
     # Decodes an InstructionSequence (which is essentially a an array of ints)
     # into an array whose elements are arrays of opcode symbols and 0-2 args,
@@ -520,6 +522,9 @@ class InstructionSequence
       end
 
       this = opcode.stack_difference(inst)
+      #print "%-30s" % inst.inspect
+      #p [this, @stack_depth, @max_stack_depth]
+
       @stack_depth += this
       @max_stack_depth = @stack_depth if @stack_depth > @max_stack_depth
 

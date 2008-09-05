@@ -36,7 +36,14 @@ namespace rubinius {
     virtual void mark(OBJECT obj, ObjectMark& mark);
     virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
     virtual OBJECT get_field(STATE, OBJECT target, size_t index);
-    virtual void show(STATE, OBJECT self);
+    virtual void show(STATE, OBJECT self, int level);
+    virtual void show_simple(STATE, OBJECT self, int level);
+    virtual void indent(int level);
+    virtual void indent_attribute(int level, const char* name);
+    virtual void class_info(STATE, OBJECT self, bool newline = false);
+    virtual void class_header(STATE, OBJECT self);
+    virtual void ellipsis(int level);
+    virtual void close_body(int level);
   };
 
 #define BASIC_TYPEINFO(super) \

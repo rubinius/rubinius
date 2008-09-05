@@ -96,7 +96,11 @@ Dir["kernel/**/*.rb"].each do |path|
 end
 
 all_kernel = []
+all_kernel << 'kernel/bootstrap/rubinius_config.rb'
+all_kernel << 'kernel/bootstrap/ruby_config.rb'
 
+modules['bootstrap'] << 'kernel/bootstrap/rubinius_config.rb'
+modules['bootstrap'] << 'kernel/bootstrap/ruby_config.rb'
 modules.each do |name, files|
   files.each do |file|
     compiled = "runtime/#{name}/#{File.basename(file)}c"
@@ -107,6 +111,7 @@ modules.each do |name, files|
 end
 
 all_kernel << 'runtime/loader.rbc'
+
 file 'runtime/loader.rbc' => 'kernel/loader.rb'
 
 rule ".rbc" do |t|
@@ -116,6 +121,15 @@ rule ".rbc" do |t|
   compile_ruby src, rbc
 end
 
+compiler = []
+
+Dir["lib/compiler/*.rb"].each do |rb|
+  compiler << "#{rb}c"
+  file "#{rb}c" => rb do
+    compile_ruby rb, "#{rb}c"
+  end
+end
+
 namespace :kernel do
 
   task :show do
@@ -123,7 +137,7 @@ namespace :kernel do
     p loose
   end
 
-  task :build => all_kernel + %w[runtime/platform.conf] do
+  task :build => all_kernel + compiler + %w[runtime/platform.conf] do
     modules.each do |name, files|
       create_load_order files, "runtime/#{name}/.load_order.txt"
     end
@@ -174,30 +188,4 @@ namespace :kernel do
   end
 
 end
-
-desc "Compile the given ruby file into a .rbc file"
-task :compile_ruby, :file do |task, args|
-  file = args[:file]
-  raise ArgumentError, 'compile_ruby requires a file name' if file.nil?
-
-  rbc = file + 'c'
-
-  compile_ruby file, rbc
-end
-task :compile_ruby => 'kernel:build' # HACK argument + dependency is broken
-
-desc "Run the given ruby fil ewith the vm"
-task :run_ruby, :file do |task, args|
-  file = args[:file]
-  raise ArgumentError, 'compile_ruby requires a file name' if file.nil?
-
-  rbc = file + 'c'
-
-  compile_ruby file, rbc
-
-  ENV['PROBE'] = 'yes' if $verbose
-
-  sh 'vm/vm', rbc
-end
-task :run_ruby => 'kernel:build' # HACK argument + dependency is broken
 

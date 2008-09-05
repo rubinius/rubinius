@@ -5,6 +5,9 @@
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/lookuptable.hpp"
+#include "builtin/symbol.hpp"
+
+#include <iostream>
 
 namespace rubinius {
   void CompactLookupTable::init(STATE) {
@@ -78,5 +81,26 @@ namespace rubinius {
     }
 
     return tbl;
+  }
+
+  void CompactLookupTable::Info::show(STATE, OBJECT self, int level) {
+    CompactLookupTable* tbl = as<CompactLookupTable>(self);
+    Array* keys = tbl->keys(state);
+    size_t size = keys->size();
+
+    if(size == 0) {
+      class_info(state, self, true);
+      return;
+    }
+
+    class_info(state, self);
+    std::cout << ": " << size << std::endl;
+    indent(++level);
+    for(size_t i = 0; i < size; i++) {
+      std::cout << ":" << as<Symbol>(keys->get(state, i))->c_str(state);
+      if(i < size - 1) std::cout << ", ";
+    }
+    std::cout << std::endl;
+    close_body(level);
   }
 }

@@ -9,6 +9,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 
+#include <iostream>
+
 namespace rubinius {
 
   template <>
@@ -60,5 +62,14 @@ namespace rubinius {
     SET(obj, klass, meta);
 
     return meta;
+  }
+
+  void MetaClass::Info::show(STATE, OBJECT self, int level) {
+    MetaClass* cls = as<MetaClass>(self);
+    Module* mod = as<Module>(cls->attached_instance);
+
+    const char* name = mod->name == Qnil ? "<anonymous>" : mod->name->c_str(state);
+    std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
+      " " << name << ":" << (void*)self << ">" << std::endl;
   }
 }

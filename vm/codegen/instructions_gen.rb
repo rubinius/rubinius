@@ -1,6 +1,6 @@
 # Instruction related generation code.
 #
-# This code uses the contents of instructions.rb to create varies
+# This code uses the contents of instructions.rb to create various
 # views of the instructions.
 #
 # This includes their implementations in functions, functions which
@@ -154,9 +154,11 @@ class Instructions
 #include "builtin/contexts.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/sendsite.hpp"
+#include "builtin/compiledmethod.hpp"
 
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "global_cache.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -196,12 +198,12 @@ void #{meth}() {
 
   MethodContext* ctx = MethodContext::create(state, Qnil, cm);
   task->make_active(ctx);
-  // The += 0 disable unused variable warnings.
 
   opcode stream[100];
+  memset(stream, 0, sizeof(opcode) * 100);
   stream[0] = InstructionSequence::insn_#{ins.opcode};
 
-#define run(val) task->execute_stream(stream)
+#define run() task->execute_stream(stream)
 #{code}
 #undef run
 }

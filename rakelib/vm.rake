@@ -52,6 +52,7 @@ field_extract_headers = %w[
   vm/builtin/bignum.hpp
   vm/builtin/block_environment.hpp
   vm/builtin/bytearray.hpp
+  vm/builtin/io.hpp
   vm/builtin/channel.hpp
   vm/builtin/module.hpp
   vm/builtin/class.hpp
@@ -61,7 +62,6 @@ field_extract_headers = %w[
   vm/builtin/exception.hpp
   vm/builtin/float.hpp
   vm/builtin/immediates.hpp
-  vm/builtin/io.hpp
   vm/builtin/iseq.hpp
   vm/builtin/list.hpp
   vm/builtin/lookuptable.hpp
@@ -79,6 +79,7 @@ field_extract_headers = %w[
   vm/builtin/tuple.hpp
   vm/builtin/compactlookuptable.hpp
   vm/builtin/time.hpp
+  vm/builtin/methodvisibility.hpp
 ]
 
 BC          = "vm/instructions.bc"
@@ -120,7 +121,7 @@ def compile(obj, src)
   end
 end
 
-def link t
+def ld t
   $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
 
   ld = ENV['LD'] || 'g++'
@@ -186,12 +187,12 @@ files EXTERNALS do |t|
   end
 end
 
-file 'vm/primitives.o'               => 'vm/codegen/field_extract.rb'
-file 'vm/codegen/instructions_gen.rb'        => 'kernel/delta/iseq.rb'
-file 'vm/instructions.rb'            => 'vm/gen'
-file 'vm/instructions.rb'            => 'vm/codegen/instructions_gen.rb'
-file 'vm/test/test_instructions.hpp' => 'vm/codegen/instructions_gen.rb'
-file 'vm/codegen/field_extract.rb'           => 'vm/gen'
+file 'vm/primitives.o'                => 'vm/codegen/field_extract.rb'
+file 'vm/codegen/instructions_gen.rb' => 'kernel/delta/iseq.rb'
+file 'vm/instructions.rb'             => 'vm/gen'
+file 'vm/instructions.rb'             => 'vm/codegen/instructions_gen.rb'
+file 'vm/test/test_instructions.hpp'  => 'vm/codegen/instructions_gen.rb'
+file 'vm/codegen/field_extract.rb'    => 'vm/gen'
 
 files INSN_GEN, %w[vm/instructions.rb] do |t|
   ruby 'vm/instructions.rb', :verbose => $verbose
@@ -203,7 +204,7 @@ files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] do
 end
 
 file 'vm/vm' => EXTERNALS + objs + vm_objs do |t|
-  link t
+  ld t
 end
 
 file 'vm/gen/primitives_glue.gen.cpp' => hdrs
@@ -219,7 +220,7 @@ end
 file 'vm/test/runner.o' => 'vm/test/runner.cpp' # no rule .o => .cpp
 
 file 'vm/test/runner' => EXTERNALS + objs + %w[vm/test/runner.o] do |t|
-  link t
+  ld t
 end
 
 # A simple JIT tester driver
@@ -227,10 +228,10 @@ end
 file 'vm/drivers/compile.o' => 'vm/drivers/compile.cpp'
 
 file 'vm/compile' => EXTERNALS + objs + %w[vm/drivers/compile.o] do |t|
-  link t
+  ld t
 end
 
-rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', *hdrs do |path|
+rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
   compile 'vm/instructions.o', path
 end
 

@@ -1,15 +1,5 @@
 class Object
 
-  #--
-  # deprecated in MRI 1.9
-  #++
-
-  VERSION = Rubinius::RUBY_VERSION
-  RUBY_VERSION = Rubinius::RUBY_VERSION
-  RUBY_PATCHLEVEL = Rubinius::RUBY_PATCHLEVEL
-  RUBY_ENGINE = Rubinius::RUBY_ENGINE
-  RBX_VERSION = Rubinius::RBX_VERSION
-
   def __ivars__; @__ivars__ ; end
   private :__ivars__
 

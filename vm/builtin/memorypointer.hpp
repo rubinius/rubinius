@@ -58,13 +58,13 @@ namespace rubinius {
 
     OBJECT get_field(STATE, int offset, int type);
 
-    // Ruby.primitive :memorypointer_get_field
-    OBJECT get_field_prim(STATE, FIXNUM offset, FIXNUM type);
+    // Ruby.primitive :memorypointer_get_at_offset
+    OBJECT get_at_offset(STATE, FIXNUM offset, FIXNUM type);
 
     void   set_field(STATE, int offset, int type, OBJECT val);
 
-    // Ruby.primitive :memorypointer_set_field
-    OBJECT set_field_prim(STATE, FIXNUM offset, FIXNUM type, OBJECT val);
+    // Ruby.primitive :memorypointer_set_at_offset
+    OBJECT set_at_offset(STATE, FIXNUM offset, FIXNUM type, OBJECT val);
 
     class Info : public TypeInfo {
     public:

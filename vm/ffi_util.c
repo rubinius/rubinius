@@ -1,3 +1,8 @@
+// HACK constants so that we use the 64bit version of stat
+#define _DARWIN_USE_64_BIT_INODE 1
+#define _LARGEFILE_SOURCE 1
+#define _FILE_OFFSET_BITS 64
+
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -30,6 +30,9 @@ class TestArray : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(4,
         as<Fixnum>(ary->aref(state, Fixnum::from(1)))->to_native());
+
+    TS_ASSERT_THROWS(ary->aref(state, Fixnum::from(-1)), const PrimitiveFailed&);
+    TS_ASSERT_THROWS(ary->aref(state, Fixnum::from(2)), const PrimitiveFailed&);
   }
 
   void test_aset() {
@@ -64,7 +67,7 @@ class TestArray : public CxxTest::TestSuite {
     ary->set(state, 0, Qtrue);
     ary->unshift(state, Qfalse);
 
-    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->size(), 2U);
     TS_ASSERT_EQUALS(ary->get(state, 0), Qfalse);
     TS_ASSERT_EQUALS(ary->get(state, 1), Qtrue);
   }

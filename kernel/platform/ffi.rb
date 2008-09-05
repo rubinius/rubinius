@@ -465,6 +465,16 @@ class MemoryPointer
     self
   end
 
+  def get_at_offset(offset, type)
+    Ruby.primitive :memorypointer_get_at_offset
+    raise PrimitiveFailure, "get_field failed"
+  end
+
+  def set_at_offset(offset, type, val)
+    Ruby.primitive :memorypointer_set_at_offset
+    raise PrimitiveFailure, "set_field failed"
+  end
+
   def inspect
     # Don't have this print the data at the location. It can crash everything.
     "#<MemoryPointer address=0x#{address.to_s(16)} size=#{total}>"
@@ -513,9 +523,6 @@ end
 class FFI::Struct
 
   attr_reader :pointer
-
-#  attach_function "ffi_get_field", [:pointer, :int, :int], :object
-#  attach_function "ffi_set_field", [:pointer, :int, :int, :object], :void
 
   def self.layout(*spec)
     return @layout if spec.size == 0
@@ -601,7 +608,7 @@ class FFI::Struct
     if type == FFI::TYPE_CHARARR
       (@pointer + offset).read_string
     else
-      self.class.ffi_get_field(@pointer, offset, type)
+      @pointer.get_at_offset(offset, type)
     end
   end
 
@@ -609,7 +616,7 @@ class FFI::Struct
     offset, type = @cspec[field]
     raise "Unknown field #{field}" unless offset
 
-    self.class.ffi_set_field(@pointer, offset, type, val)
+    @pointer.set_at_offset(offset, type, val)
     return val
   end
 

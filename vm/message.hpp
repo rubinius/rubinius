@@ -4,63 +4,120 @@
 #include "prelude.hpp"
 
 namespace rubinius {
+
   class Array;
   class Executable;
+  class Module;
   class SendSite;
   class Task;
-  class Module;
   class TypeInfo;
 
+  /**
+   *  Message represents a single unique method call.
+   *
+   *  Every time that a method call occurs in a running program, a new
+   *  Message object is constructed. A Message represents that particular
+   *  unique call. In the send_* instruction, information added to the
+   *  Message includes the SendSite, the receiver, the arguments as well
+   *  as the Task. In the method lookup process, the located Executable
+   *  object and the Module in which it was found are added. Eventually,
+   *  a MethodContext object is constructed using the information in the
+   *  Message. See instance variable documentation for all of the info
+   *  gathered in a Message.
+   *
+   *  @see  SendSite
+   *  @see  MethodContext
+   */
   class Message {
   public:
-    STATE;
-    Array* arguments;
-    Task*  task;
-    size_t argument_start;
-
-    SendSite* send_site;
-    SYMBOL name;
-    OBJECT recv;
-    OBJECT block;
-    OBJECT splat;
-    OBJECT current_self;
-    size_t total_args;
-    size_t stack;
-    size_t start;
-    bool   priv;
-
-    Module* lookup_from;
-    Executable* method;
-    Module* module;
 
     Message(STATE, Array* ary);
     Message(STATE);
+
+  public:   /* Interface */
+
+    /**
+     *  Number of remaining (unconsumed) arguments.
+     */
+    size_t args() { return total_args - start; }
+
+    /**
+     *  Import arguments from the splat Array into arguments Array.
+     */
+    void combine_with_splat(STATE, Task* task, Array* splat);
+
+    /**
+     *  Argument at offset given from current start.
+     *
+     *  Note that this is the *current* start, in the case
+     *  where arguments have already been consumed.
+     */
     OBJECT get_argument(size_t index);
 
-    void set_arguments(STATE, Array* args);
+    /**
+     *  Copy arguments from stack into arguments Array.
+     */
     void import_arguments(STATE, Task* task, size_t args);
-    void combine_with_splat(STATE, Task* task, Array* splat);
-    void unshift_argument(STATE, OBJECT val);
+
+    /**
+     *  Drop arguments Array.
+     */
+    void reset() { start = 0; arguments = NULL; }
+
+    /**
+     *  Explicitly set total number of arguments.
+     */
+    void set_args(size_t count) { total_args = count; }
+
+    /**
+     *  Explicitly set argument Array to the one given.
+     */
+    void set_arguments(STATE, Array* args);
+
+    /**
+     *  Remove and return the currently first remaining argument.
+     */
     OBJECT shift_argument(STATE);
 
+    /**
+     *  Insert argument to the front of arguments and bump others back by one.
+     */
+    void unshift_argument(STATE, OBJECT val);
+
+    /**
+     *  Set the associated Task and explictly give total argument count.
+     */
     void use_from_task(Task* task, size_t args) {
       this->task = task;
       this->total_args = args;
     }
 
-    void reset() {
-      start = 0;
-      arguments = NULL;
-    }
+  public:   /* Instance variables */
 
-    size_t args() {
-      return total_args - start;
-    }
+    /* TODO: Remove the unused ivars? */
+    /* TODO: Instance variables SHOULD always be alphabetised. */
 
-    void set_args(size_t count) {
-      total_args = count;
-    }
+    STATE    /* state */;       /**< Access to the VM state. */
+    Array*      arguments;      /**< Arguments from the call. */
+    Task*       task;           /**< Access to the Task the method call runs in. */
+    size_t      argument_start; /**< NOT USED. Index where arguments would start. */
+
+    SendSite*   send_site;      /**< SendSite in which this call originates. */
+    SYMBOL      name;           /**< Name of the method being called (comes from SendSite) */
+    OBJECT      recv;           /**< Receiver in the call, i.e. obj in `obj.foo()` */
+    OBJECT      block;          /**< Block object or nil if no block. */
+    OBJECT      splat;          /**< NOT USED. The splat argument to the call. */
+    OBJECT      current_self;   /**< self at the point of the call. */
+    size_t      total_args;     /**< Total number of arguments given, including unsplatted. */
+    size_t      stack;          /**< Number of arguments on the stack when call occurs + 1 for return value. */
+    size_t      start;          /**< Index of first remaining argument in arguments. */
+    bool        priv;           /**< Indicates that this call can access private methods. */
+
+    Module*     lookup_from;    /**< The Module in which is the first method table to look from. Usually MetaClass or Class. */
+    Executable* method;         /**< Executable, i.e. method object, that will be run. Added in method lookup. */
+    Module*     module;         /**< Module in which the method object was found. Added in method lookup. */
   };
 }
 
 #endif
+

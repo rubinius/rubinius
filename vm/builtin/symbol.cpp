@@ -8,11 +8,13 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
+#include <iostream>
+
 #define StartSize 16
 #define Increments 32
 
 namespace rubinius {
-  /* See Note(t1) in immediates.hpp */
+  /* See Note(t1) in immediates.cpp */
   template <>
     bool kind_of<Symbol>(OBJECT obj) {
       return obj->symbol_p();
@@ -44,6 +46,15 @@ namespace rubinius {
 
   Array* Symbol::all_symbols(STATE) {
     return state->symbols.all_as_array(state);
+  }
+
+  void Symbol::Info::show(STATE, OBJECT self, int level) {
+    SYMBOL sym = try_as<Symbol>(self);
+    std::cout << ":" << sym->to_str(state)->c_str() << std::endl;
+  }
+
+  void Symbol::Info::show_simple(STATE, OBJECT self, int level) {
+    show(state, self, level);
   }
 
   void Symbol::Info::mark(OBJECT t, ObjectMark& mark) { }

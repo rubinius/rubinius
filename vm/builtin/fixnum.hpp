@@ -180,6 +180,14 @@ namespace rubinius {
 
     // Ruby.primitive :fixnum_to_s
     String* to_s(STATE);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void mark(OBJECT t, ObjectMark& mark);
+      virtual void show(STATE, OBJECT self, int level);
+      virtual void show_simple(STATE, OBJECT self, int level);
+    };
   };
 
   typedef Fixnum* FIXNUM;

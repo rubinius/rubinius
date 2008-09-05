@@ -6,6 +6,7 @@
 #include "primitives.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/string.hpp"
 
 namespace rubinius {
 
@@ -135,5 +136,13 @@ namespace rubinius {
     memcpy(other->bytes, this->bytes, size < osize ? size : osize);
 
     return other;
+  }
+
+  OBJECT ByteArray::locate(STATE, String* little) {
+    //TODO: find a crossplatform strnstr to clamp the length
+    char* pos = strstr((const char*)this->bytes, little->c_str());
+    if(!pos) return Qnil;
+
+    return Integer::from(state, pos - (char*)this->bytes);
   }
 }

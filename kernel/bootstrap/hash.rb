@@ -1,109 +1,202 @@
-# Requires: Object#hash
+# depends on: module.rb symbol.rb string.rb lookuptable.rb
 
 class Hash
 
-  def self.[](*args)
-    hsh = new()
-    i = 0
+  # Bucket abstracts storage and search of entries in Hash.
+  # Each bin in a Hash is either +nil+, a single +Bucket+
+  # instance, or the head of a chain of +Bucket+ instances.
+  class Bucket
+    attr_accessor :key
+    attr_accessor :value
+    attr_accessor :key_hash
+    attr_accessor :next
 
-    while i < args.size
-      k = args[i]
-      i += 1
-
-      v = args[i]
-      i += 1
-
-      hsh[k] = v
+    def initialize(key=nil, value=nil, key_hash=nil, nxt=nil)
+      @key      = key
+      @value    = value
+      @key_hash = key_hash
+      @next     = nxt
     end
-    hsh
-  end
 
-  def initialize
-    @bins = 16
-    @values = Tuple.new(@bins)
-    @entries = 0
-  end
+    # Searches this chain of buckets for one matching both +key+
+    # and +key_hash+. Returns +nil+ if there is no match. Calls
+    # <code>#eql?</code> on +key+.
+    def find(key, key_hash)
+      return self if self.key_hash == key_hash and key.eql? self.key
+      return unless nxt = self.next
+      nxt.find key, key_hash
+    end
 
-  def set_by_hash(hsh, key, val)
-    key = key.dup if key.kind_of?(String)
-
-    #redistribute # HACK
-
-    tmp = hash_entry key # HACK splat not working
-    entry = tmp[0]
-    hash = tmp[1]
-    bin = tmp[2]
-
-    lst = nil
-
-    while entry
-      cur_hash = entry[0]
-      cur_key = entry[1]
-      cur_val = entry[2]
-      nxt = entry[3]
-
-      # Check if this entry is for the key in question
-      if cur_hash == hash and key.eql?(cur_key)
-        entry.put 2, val
-        return val
+    # Either updates an existing bucket matching +key+ and +key_hash+
+    # or appends a new bucket containing +key+, +value+, +key_hash+
+    # to the chain. Returns +true+ if a new bucket was added, otherwise
+    # returns +false+.
+    def set(key, value, key_hash)
+      if self.key_hash == key_hash and key.eql? self.key
+        self.value = value
+        return false
+      elsif nxt = self.next
+        return nxt.set(key, value, key_hash)
+      else
+        bucket = Bucket.new key, value, key_hash
+        self.next = bucket
+        return true
       end
-
-      lst = entry
-      entry = nxt
     end
 
-    entry = Tuple.new(4)
-    entry.put 0, hash
-    entry.put 1, key
-    entry.put 2, val
-    entry.put 3, nil
-
-    if lst
-      lst.put 3, entry
-    else
-      @values.put bin, entry
-    end
-
-    @entries += 1
-    return val
-  end
-
-  def []=(key, val)
-    set_by_hash key.hash, key, val
-  end
-
-  def redistribute
-    Ruby.primitive :hash_redistribute
-    raise PrimitiveFailure, "Hash#redistribute failed"
-  end
-
-  def delete_by_hash(hsh, key)
-    Ruby.primitive :hash_delete
-    raise PrimitiveFailure, "Hash#delete_by_hash failed"
-  end
-
-  def each
-    i = 0
-    while i < @values.fields
-      tup = @values[i]
-      while tup
-        yield tup.at(1), tup.at(2)
-        tup = tup.at(3)
+    # Returns +false+ if the bucket was found and deleted and the head
+    # of the chain is unchanged. Returns +nil+ if the head of the
+    # chain should be replaced with <code>head.next</code>. Returns
+    # +true+ if the bucket was not found.
+    def delete(key, key_hash, parent = nil)
+      if self.key_hash == key_hash and key.eql? self.key
+        return nil unless parent
+        parent.next = self.next
+        return false
+      elsif nxt = self.next
+        return nxt.delete(key, key_hash, self)
+      else
+        return true
       end
-      i += 1
     end
-    self
   end
 
-  def hash_entry(obj)
-    hash = obj.hash
-    hash = hash % HASH_MAX unless hash.kind_of? Fixnum
+  # An external iterator that returns only bucket chains from the
+  # Hash storage, never nil bins. While somewhat following the API
+  # of Enumerator, it is named Iterator because it does not provide
+  # <code>#each</code> and should not conflict with +Enumerator+ in
+  # MRI 1.8.7+. Returned by <code>Hash#to_iter</code>.
+  class Iterator
+    def initialize(bins, records)
+      @bins = bins
+      @records = records
+      @index = -1
+    end
 
-    bin = hash & (@bins - 1)
+    # Returns the next object or +nil+.
+    def next
+      while (@index += 1) < @records
+        bucket = @bins[@index]
+        return bucket if bucket
+      end
+    end
 
-    entry = @values.at bin
+    # Returns the index of the last object returned by <code>#next</code>.
+    def index
+      @index
+    end
 
-    return entry, hash, bin
+    # Resets the index of the next object to be returned by
+    # <code>#next</code> to the beginning of the storage vector.
+    def reset
+      @index = -1
+    end
   end
 
+  # MUST be a power of 2
+  MIN_SIZE = 16
+
+  # Ensure that key_hash is a Fixnum
+  MAX_HASH_VALUE = 0x1fffffff
+
+  # Allocate more storage when this full
+  MAX_DENSITY = 0.75
+
+  # Creates a fully-formed instance of Hash.
+  #--
+  # @size is the number of pairs, equivalent to <code>hsh.size</code>.
+  # @records is the number of entries in +@bins+.
+  # @bins is the vector of storage for the bucket chains.
+  #++
+  def self.allocate
+    h = super()
+
+    # We don't need the nanny checking our symbols
+    h.send :set_instance_variable, :@records, MIN_SIZE
+    h.send :set_instance_variable, :@bins, Tuple.new(MIN_SIZE)
+    h.send :set_instance_variable, :@size, 0
+    h
+  end
+
+  # Returns the storage vector for Hash. The object should provide
+  # an <code>#[]</code> for accessing and <code>#[]=</code> for setting.
+  def bins
+    @bins
+  end
+
+  # Returns the size of the storage vector (+@bins+).
+  def records
+    @records
+  end
+
+  def size
+    @size
+  end
+
+  def size=(size)
+    @size = size
+    redistribute false
+  end
+
+  # Returns an external iterator for the bins. See +Iterator+
+  def to_iter
+    Iterator.new @bins, @records
+  end
+
+  # Returns a hash for key constrained to always be a Fixnum.
+  def key_hash(key)
+    hash = key.hash
+    hash = hash % MAX_HASH_VALUE unless hash.kind_of? Fixnum
+    hash
+  end
+
+  # Returns a bucket for +key_hash+ from a bin. Creates a new
+  # bucket if there was no bucket at that bin. The bucket may be
+  # the head of a chain. Call <code>#find</code> to locate a value
+  # or <code>#set</code> to add or update a value. Those methods
+  # handle manipulating the bucket chain.
+  def entry(key, key_hash)
+    bin = entry_bin key_hash
+    entry = @bins.at bin
+    return entry if entry
+
+    self.size += 1
+    @bins[bin] = Bucket.new key, nil, key_hash
+  end
+
+  # Returns the index into the storage for +key_hash+.
+  def entry_bin(key_hash)
+    key_hash & (@records - 1)
+  end
+
+  # Grows the hash storage and redistributes the entries among
+  # the new bins if the entry density is above a threshold. Any
+  # Iterator instance will be invalid after a call to redistribute.
+  # If +rehash+ is true, recalculate the key_hash for each key.
+  def redistribute(rehash = true)
+    resize = @size >= MAX_DENSITY * @records
+    return unless rehash or resize
+
+    i = to_iter
+    @records *= 2 if resize
+    @bins = Tuple.new @records
+
+    while entry = i.next
+      while entry
+        nxt = entry.next
+
+        entry.key_hash = key_hash entry.key if rehash
+
+        bin = entry_bin entry.key_hash
+        if head = @bins[bin]
+          entry.next = head
+        else
+          entry.next = nil
+        end
+        @bins[bin] = entry
+
+        entry = nxt
+      end
+    end
+  end
 end

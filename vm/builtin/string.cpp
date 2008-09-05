@@ -10,6 +10,7 @@
 #include "objectmemory.hpp"
 
 #include <unistd.h>
+#include <iostream>
 
 #define HashPrime 16777619
 #define MASK_28 (((unsigned int)1<<28)-1)
@@ -437,9 +438,12 @@ namespace rubinius {
     return String::create(state, s);
   }
 
-  void String::Info::show(STATE, OBJECT self) {
+  void String::Info::show(STATE, OBJECT self, int level) {
     String* str = as<String>(self);
-    std::cout << "\"" << str->byte_address() << "\"" << std::endl;
+    std::cout << "\"" << str->c_str() << "\"" << std::endl;
   }
 
+  void String::Info::show_simple(STATE, OBJECT self, int level) {
+    show(state, self, level);
+  }
 }

@@ -1,9 +1,5 @@
 #include "builtin/compiledmethod.hpp"
-#include "ffi.hpp"
-#include "marshal.hpp"
-#include "primitives.hpp"
-#include "llvm.hpp"
-#include "objectmemory.hpp"
+#include "builtin/methodvisibility.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
@@ -11,6 +7,12 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
+
+#include "ffi.hpp"
+#include "marshal.hpp"
+#include "primitives.hpp"
+#include "llvm.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
 
@@ -50,15 +52,15 @@ namespace rubinius {
     return cm;
   }
 
-  MethodVisibility* MethodVisibility::create(STATE) {
-    return (MethodVisibility*)state->new_object(G(cmethod_vis));
-  }
-
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
-    if(!executable) {
+    // HACK the check for executable being nil comes from the fact that
+    // a CompiledMethod, when created all in Ruby, has it's fields all
+    // initialized to nil. CompiledMethod::allocate needs to be a primitive
+    // that gets things setup properly.
+    if(!executable || (OBJECT)executable == Qnil) {
       if(!primitive->nil_p()) {
         if(SYMBOL name = try_as<Symbol>(primitive)) {
-          //std::cout << "resolving: "; inspect(state, name);
+          //std::cout << "resolving: "; name->show(state);
           executor func = Primitives::resolve_primitive(state, name);
 
           VMMethod* vmm = new VMPrimitiveMethod(state, this, func);
@@ -92,6 +94,12 @@ namespace rubinius {
     dynamic_cast<VMMethod*>(executable)->specialize(ti);
   }
 
+  OBJECT CompiledMethod::compile(STATE) {
+    executable = NULL;
+    formalize(state);
+    return this;
+  }
+
   void CompiledMethod::post_marshal(STATE) {
     formalize(state); // side-effect, populates executable
   }
@@ -104,4 +112,23 @@ namespace rubinius {
     this->scope = scope;
   }
 
+  void CompiledMethod::Info::show(STATE, OBJECT self, int level) {
+    CompiledMethod* cm = as<CompiledMethod>(self);
+
+    class_header(state, self);
+    indent_attribute(++level, "exceptions"); cm->exceptions->show_simple(state, level);
+    indent_attribute(level, "file"); cm->file->show(state, level);
+    indent_attribute(level, "iseq"); cm->iseq->show(state, level);
+    indent_attribute(level, "lines"); cm->lines->show_simple(state, level);
+    indent_attribute(level, "literals"); cm->literals->show_simple(state, level);
+    indent_attribute(level, "local_count"); cm->local_count->show(state, level);
+    indent_attribute(level, "local_names"); cm->local_names->show_simple(state, level);
+    indent_attribute(level, "name"); cm->name->show(state, level);
+    indent_attribute(level, "required_args"); cm->required_args->show(state, level);
+    indent_attribute(level, "scope"); cm->scope->show(state, level);
+    indent_attribute(level, "splat"); cm->splat->show(state, level);
+    indent_attribute(level, "stack_size"); cm->stack_size->show(state, level);
+    indent_attribute(level, "total_args"); cm->total_args->show(state, level);
+    close_body(level);
+  }
 }

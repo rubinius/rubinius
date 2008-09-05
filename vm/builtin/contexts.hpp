@@ -75,6 +75,7 @@ namespace rubinius {
 
     void push(OBJECT value) {
       *++js.stack = value;
+      sassert(js.stack < js.stack_top);
     }
 
     OBJECT stack_back(size_t position) {
@@ -111,6 +112,7 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
 
       virtual void mark(OBJECT, ObjectMark& mark);
+      virtual void show(STATE, OBJECT self, int level);
     };
   };
 
@@ -121,6 +123,9 @@ namespace rubinius {
     const static object_type type = BContextType;
 
     BlockEnvironment* env();
+
+    // Ruby.primitive :block_context_env
+    BlockEnvironment* env(STATE);
 
     static BlockContext* create(STATE, size_t stack_size);
 

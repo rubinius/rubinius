@@ -15,11 +15,12 @@ class Compiler
       @required = 0
       @optional = 0
       @splat = nil
+      @for_block = false
       @name = :__unknown__
     end
 
     attr_reader :generator, :locals
-    attr_accessor :required, :optional, :name, :args, :splat
+    attr_accessor :required, :optional, :name, :args, :splat, :for_block
 
     def run(container, body)
       @generator.run(body)
@@ -237,7 +238,7 @@ class Compiler
     class Negate
       def bytecode(g)
         if @child.is? NumberLiteral
-          g.push -@child.value
+          g.push(-@child.value)
         else
           @child.bytecode(g)
           g.send :"-@", 0
@@ -598,6 +599,7 @@ class Compiler
       def bytecode(g)
         desc = MethodDescription.new @compiler.generator_class, @locals
         desc.name = :__block__
+        desc.for_block = true
         desc.required, desc.optional, _ = argument_info
         sub = desc.generator
 
@@ -628,14 +630,14 @@ class Compiler
 
     class BlockPass
       def bytecode(g)
-        g.push_cpath_top
-        g.find_const :Proc
-
         @block.bytecode(g)
         nil_block = g.new_label
         g.dup
         g.is_nil
         g.git nil_block
+        g.push_cpath_top
+        g.find_const :Proc
+        g.swap
 
         g.send :__from_block__, 1
 

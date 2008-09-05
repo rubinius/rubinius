@@ -9,6 +9,10 @@ namespace rubinius {
   class Hash;
   class Tuple;
 
+  /* Symbols are immediate types, but instances of a Symbol are created
+   * via SymbolTable::lookup, which is normally accessed through
+   * state->lookup.
+   */
   class Symbol : public Object {
   public:
     const static size_t fields = 0;
@@ -35,6 +39,8 @@ namespace rubinius {
     public:
       Info(object_type type) : TypeInfo(type) { }
       virtual void mark(OBJECT, ObjectMark& mark);
+      virtual void show(STATE, OBJECT self, int level);
+      virtual void show_simple(STATE, OBJECT self, int level);
     };
   };
 

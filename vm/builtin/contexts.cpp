@@ -8,6 +8,10 @@
 
 #include "context_cache.hpp"
 
+#include <iostream>
+
+#define DISABLE_CACHE 1
+
 namespace rubinius {
 
   template <>
@@ -37,6 +41,10 @@ namespace rubinius {
     SET(ctx, name, Qnil);
     SET(ctx, home, Qnil);
     SET(ctx, ivars, Qnil);
+    SET(ctx, sender, Qnil);
+    SET(ctx, self, Qnil);
+    SET(ctx, cm, Qnil);
+    SET(ctx, module, Qnil);
 
     ctx->stack_size = stack;
     for(size_t i = 0; i < stack; i++) {
@@ -44,6 +52,7 @@ namespace rubinius {
     }
 
     ctx->js.stack = ctx->stk - 1;
+    ctx->js.stack_top = ctx->stk + stack;
   }
 
   /* Find a context to use. Either use a cache or create one in the heap. */
@@ -51,6 +60,10 @@ namespace rubinius {
     MethodContext* ctx;
     size_t which_cache = SmallContextCache;
     size_t bytes;
+
+#if DISABLE_CACHE
+    goto allocate_heap;
+#endif
 
     /* If it's small enough, use the set small size. */
     if(stack_size < SmallContextSize) {
@@ -166,9 +179,15 @@ initialize:
   }
 
   /* Retrieve the BlockEnvironment from +this+ BlockContext. We reuse the
-   * name field from MethodContext and use a type-safe cast. */
+   * block field from MethodContext and use a type-safe cast. */
   BlockEnvironment* BlockContext::env() {
-    return as<BlockEnvironment>(name);
+    return as<BlockEnvironment>(block);
+  }
+
+  /* Called as the block_context_env primitive
+   */
+  BlockEnvironment* BlockContext::env(STATE) {
+    return this->env();
   }
 
   /* Called when a context is referenced. Typically, this is via the push_context
@@ -213,5 +232,29 @@ initialize:
         mark.just_set(ctx, marked);
       }
     }
+  }
+
+  void MethodContext::Info::show(STATE, OBJECT self, int level) {
+    MethodContext* ctx = as<MethodContext>(self);
+
+    class_header(state, self);
+    indent_attribute(++level, "name"); ctx->name->show(state, level);
+    indent_attribute(level, "sender");
+    if(ctx->sender == Qnil) {
+      ctx->sender->show(state, level);
+    } else {
+      class_info(state, ctx->sender, true);
+    }
+    indent_attribute(level, "home");
+    if(ctx->home == Qnil) {
+      ctx->home->show(state, level);
+    } else {
+      class_info(state, ctx->home, true);
+    }
+    indent_attribute(level, "self"); ctx->self->show(state, level);
+    indent_attribute(level, "cm"); ctx->cm->show(state, level);
+    indent_attribute(level, "module"); ctx->module->show(state, level);
+    indent_attribute(level, "block"); ctx->block->show(state, level);
+    close_body(level);
   }
 }

@@ -142,6 +142,15 @@ class Compiler
       return tup
     end
 
+    # Returns the size of the stack required to execute all the instructions.
+    # NOTE: the stack size calculated by @encoder is wrong and we need to
+    # calculate stack depth a different way!
+    def instruction_stack_depth
+      collapse_labels
+      iseq = @encoder.encode_stream @stream
+      return [iseq.stack_depth, @encoder.stack_depth]
+    end
+
     def to_cmethod(desc)
       collapse_labels
 
@@ -162,6 +171,9 @@ class Compiler
       end
 
       cm.stack_size = desc.locals.size + iseq.stack_depth
+
+      # Reserve space for the tuple we use as block args
+      cm.stack_size += 1 if desc.for_block
 
       if @file
         cm.file = @file.to_sym
@@ -572,7 +584,7 @@ class Compiler
         raise "Passed incorrect op to method_missing in generator.rb: #{op.inspect}"
       end
 
-      add *op
+      add(*op)
     end
   end
 end

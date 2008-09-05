@@ -4,6 +4,7 @@
 #include "builtin/fixnum.hpp"
 
 #include <cstdarg>
+#include <iostream>
 
 namespace rubinius {
   OBJECT Tuple::at(size_t index) {
@@ -127,4 +128,56 @@ namespace rubinius {
     }
   }
 
+  void Tuple::Info::show(STATE, OBJECT self, int level) {
+    Tuple* tup = as<Tuple>(self);
+    size_t size = tup->field_count;
+    size_t stop = size < 6 ? size : 6;
+
+    if(size == 0) {
+      class_info(state, self, true);
+      return;
+    }
+
+    class_info(state, self);
+    std::cout << ": " << size << std::endl;
+    ++level;
+    for(size_t i = 0; i < stop; i++) {
+      indent(level);
+      OBJECT obj = tup->at(i);
+      if(obj == tup) {
+        class_info(state, self, true);
+      } else {
+        obj->show(state, level);
+      }
+    }
+    if(tup->field_count > stop) ellipsis(level);
+    close_body(level);
+  }
+
+  void Tuple::Info::show_simple(STATE, OBJECT self, int level) {
+    Tuple* tup = as<Tuple>(self);
+    size_t size = tup->field_count;
+    size_t stop = size < 6 ? size : 6;
+
+    if(size == 0) {
+      class_info(state, self, true);
+      return;
+    }
+
+    class_info(state, self);
+    std::cout << ": " << size << std::endl;
+    ++level;
+    for(size_t i = 0; i < stop; i++) {
+      indent(level);
+      OBJECT obj = tup->at(i);
+      if(Tuple* t = try_as<Tuple>(obj)) {
+        class_info(state, self);
+        std::cout << ": " << t->field_count << ">" << std::endl;
+      } else {
+        obj->show_simple(state, level);
+      }
+    }
+    if(tup->field_count > stop) ellipsis(level);
+    close_body(level);
+  }
 }

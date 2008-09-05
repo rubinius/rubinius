@@ -13,6 +13,7 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/class.hpp"
+#include "builtin/thread.hpp"
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {
@@ -33,7 +34,7 @@ namespace rubinius {
   }
 
   bool CompiledFile::execute(STATE) {
-    GO(current_task).set(state->new_task());
+    Task* task = state->new_task();
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
     Message msg(state);
@@ -43,12 +44,14 @@ namespace rubinius {
     msg.module = G(object);
     msg.name = cm->name;
 
+    SET(G(current_thread), task, task);
+
     SET(cm.get(), scope, StaticScope::create(state));
     SET(cm.get()->scope, module, G(object));
 
     cm->execute(state, G(current_task), msg);
     try {
-      G(current_task)->execute();
+      state->run_and_monitor();
     } catch(Task::Halt &e) {
       return true;
     }

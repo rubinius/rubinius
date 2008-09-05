@@ -45,37 +45,13 @@ namespace rubinius {
     VMMethod* formalize(STATE, bool ondemand=true);
     void specialize(TypeInfo* ti);
 
-    class Info : public TypeInfo {
-    public:
-      BASIC_TYPEINFO(TypeInfo)
-    };
-  };
-
-  class MethodVisibility : public Object {
-  public:
-    const static size_t fields = 2;
-    const static object_type type = CMVisibilityType;
-
-    SYMBOL visibility; // slot
-    Executable* method; // slot
-
-    static MethodVisibility* create(STATE);
-
-    bool public_p(STATE) {
-      return visibility == G(sym_public);
-    }
-
-    bool private_p(STATE) {
-      return visibility == G(sym_private);
-    }
-
-    bool protected_p(STATE) {
-      return visibility == G(sym_protected);
-    }
+    // Ruby.primitive :compiledmethod_compile
+    OBJECT compile(STATE);
 
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
+      virtual void show(STATE, OBJECT self, int level);
     };
   };
 

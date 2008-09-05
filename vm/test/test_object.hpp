@@ -345,7 +345,46 @@ class TestObject : public CxxTest::TestSuite {
     Qtrue->send_prim(state, NULL, task, msg);
 
     TS_ASSERT(task->active != input_context);
-    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->active->args, 2U);
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
+    TS_ASSERT_EQUALS(task->active->cm, cm);
+    TS_ASSERT_EQUALS(task->active->name, state->symbol("blah"));
+  }
+
+  void test_send_prim_private() {
+    CompiledMethod* cm = create_cm();
+    cm->required_args = Fixnum::from(2);
+    cm->total_args = cm->required_args;
+    cm->local_count = cm->required_args;
+    cm->stack_size =  cm->required_args;
+    cm->splat = Qnil;
+
+    MethodVisibility* vis = MethodVisibility::create(state);
+    vis->method = cm;
+    vis->visibility = G(sym_private);
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), vis);
+
+    Task* task = Task::create(state, 3);
+
+    task->push(state->symbol("blah"));
+    task->push(Fixnum::from(3));
+    task->push(Fixnum::from(4));
+
+    MethodContext* input_context = task->active;
+
+    Message msg(state);
+    msg.recv = Qtrue;
+    msg.lookup_from = G(true_class);
+    msg.name = state->symbol("__send__");
+    msg.send_site = SendSite::create(state, state->symbol("__send__"));
+    msg.use_from_task(task, 3);
+
+    Qtrue->send_prim(state, NULL, task, msg);
+
+    TS_ASSERT(task->active != input_context);
+    TS_ASSERT_EQUALS(task->active->args, 2U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
     TS_ASSERT_EQUALS(task->active->cm, cm);
@@ -372,7 +411,7 @@ class TestObject : public CxxTest::TestSuite {
           Fixnum::from(4));
 
     TS_ASSERT(task->active != input_context);
-    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->active->args, 2U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
     TS_ASSERT_EQUALS(task->active->cm, cm);

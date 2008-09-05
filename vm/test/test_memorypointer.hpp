@@ -50,14 +50,14 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   }
 
   void test_read_string() {
-    char *str = "ruby";
+    char str[] = "ruby";
     MemoryPointer* ptr = MemoryPointer::create(state, str);
     String* s = ptr->read_string(state, Fixnum::from(4));
     TS_ASSERT_SAME_DATA(s->byte_address(), "ruby", 4);
   }
 
   void test_read_string_to_null() {
-    char *str = "ruby";
+    char str[] = "ruby";
     MemoryPointer* ptr = MemoryPointer::create(state, str);
     String* s = ptr->read_string_to_null(state);
     TS_ASSERT_SAME_DATA(s->byte_address(), "ruby", 4);
@@ -124,23 +124,23 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS((void*)1, p->pointer);
   }
 
-  void test_get_field_prim() {
+  void test_get_at_offset() {
     char one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field_prim(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR));
+    OBJECT obj = ptr->get_at_offset(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR));
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
 
-  void test_set_field_prim() {
+  void test_set_at_offset() {
     char buffer[1024];
     OBJECT one = Fixnum::from(1);
 
     buffer[0] = 0;
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
-    ptr->set_field_prim(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR), one);
+    ptr->set_at_offset(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR), one);
     TS_ASSERT_EQUALS(*buffer, static_cast<char>(1));
   }
 

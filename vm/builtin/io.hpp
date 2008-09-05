@@ -22,8 +22,20 @@ namespace rubinius {
     static IO* create(STATE, int fd);
     void initialize(STATE, int fd, char* mode);
 
+    // Ruby.primitive :io_seek
+    INTEGER seek(STATE, INTEGER amount, FIXNUM whence);
+
     // Ruby.primitive :io_write
     OBJECT write(STATE, String* buf);
+
+    // Ruby.primitive :io_open
+    static FIXNUM open(STATE, String* path, FIXNUM mode, FIXNUM perm);
+
+    // Ruby.primitive :io_close
+    OBJECT close(STATE);
+
+    // Ruby.primitive :io_blocking_read
+    OBJECT blocking_read(STATE, FIXNUM count);
 
     class Info : public TypeInfo {
     public:

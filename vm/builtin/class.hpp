@@ -46,6 +46,7 @@ namespace rubinius {
     class Info : public Class::Info {
     public:
       BASIC_TYPEINFO(Class::Info)
+      virtual void show(STATE, OBJECT self, int level);
     };
   };
 };

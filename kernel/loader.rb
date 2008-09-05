@@ -1,11 +1,5 @@
 # Contained first is the system startup code.
 
-# Re-setup all the stdio channels, to pull in new ivars
-
-STDOUT.setup
-STDIN.setup
-STDERR.setup
-
 begin
   ENV = EnvironmentVariables.new
 
@@ -44,10 +38,11 @@ additions << "lib"
 # HACK todo remove this comment when we're setting this constant in the VM
 # additions << Rubinius::CODE_PATH
 
-$LOAD_PATH.insert($LOAD_PATH.index('.'), *additions)
+$LOAD_PATH.unshift(*additions)
 
 if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
-  $LOAD_PATH.unshift(*ENV['RUBYLIB'].split(':'))
+  rubylib_paths = ENV['RUBYLIB'].split(':')
+  $LOAD_PATH.unshift(*rubylib_paths)
 end
 
 # Pull it out now so that later unshifts don't obsure it.
@@ -110,7 +105,7 @@ begin
       puts RBS_USAGE
       exit 1
     when "-v"
-      puts "rubinius #{RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+      puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
       exit 0 if ARGV.empty?
     when "-w"

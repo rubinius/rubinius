@@ -279,13 +279,13 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->required_args = Fixnum::from(2);
     cm->total_args = cm->required_args;
-    cm->local_count = Fixnum::from(3);
+    cm->local_count = Fixnum::from(4);
     cm->stack_size =  cm->local_count;
     cm->splat = Fixnum::from(2);
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 10);
 
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
@@ -315,13 +315,13 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->required_args = Fixnum::from(1);
     cm->total_args = Fixnum::from(2);
-    cm->local_count = Fixnum::from(3);
+    cm->local_count = Fixnum::from(4);
     cm->stack_size =  cm->local_count;
     cm->splat = Fixnum::from(2);
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 10);
 
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
@@ -357,7 +357,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 10);
 
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
@@ -378,6 +378,128 @@ class TestTask : public CxxTest::TestSuite {
     }
 
     TS_ASSERT(!thrown);
+  }
+
+  /**
+   *  class Parent
+   *    def callee
+   *      1
+   *    end
+   *    protected :callee
+   *  end
+   *
+   *  class Child < Parent
+   *    def caller
+   *      Parent.new.callee
+   *    end
+   *  end
+   *
+   *  Child.new.caller # => 1
+   */
+  void test_send_message_finds_protected_methods() {
+    CompiledMethod* cm = create_cm();
+    Task* task = Task::create(state);
+
+    MethodVisibility* vis = MethodVisibility::create(state);
+    vis->method = cm;
+    vis->visibility = G(sym_protected);
+
+    Class* parent = state->new_class("Parent", G(object), 1);
+    Class* child =  state->new_class("Child", parent, 1);
+
+    SYMBOL callee = state->symbol("callee");
+    parent->method_table->store(state, callee, vis);
+
+    OBJECT p = state->new_object(parent);
+    OBJECT c = state->new_object(child);
+    task->self = c;
+
+    StaticScope *sc = StaticScope::create(state);
+    SET(sc, module, child);
+    SET(cm, scope, sc);
+
+    task->active->module = child;
+    task->active->name = state->symbol("caller");
+    task->active->self = task->self;
+
+    Message msg(state);
+    msg.recv = p;
+    msg.lookup_from = parent;
+    msg.name = callee;
+    msg.send_site = SendSite::create(state, callee);
+    msg.set_args(0);
+
+    MethodContext* cur = task->active;
+
+    task->send_message(msg);
+
+    TS_ASSERT(cur != task->active);
+
+    MethodContext* ncur = task->active;
+
+    TS_ASSERT_EQUALS(ncur->self, p);
+    TS_ASSERT_EQUALS(ncur->sender, cur);
+  }
+
+  /**
+   *  class Parent
+   *    def callee
+   *      1
+   *    end
+   *    protected :callee
+   *  end
+   *
+   *  class Child < Parent
+   *    def caller
+   *      Parent.new.callee
+   *    end
+   *  end
+   *
+   *  Child.new.caller # => 1
+   */
+  void test_send_message_slowly_finds_protected_methods() {
+    CompiledMethod* cm = create_cm();
+    Task* task = Task::create(state);
+
+    MethodVisibility* vis = MethodVisibility::create(state);
+    vis->method = cm;
+    vis->visibility = G(sym_protected);
+
+    Class* parent = state->new_class("Parent", G(object), 1);
+    Class* child =  state->new_class("Child", parent, 1);
+
+    SYMBOL callee = state->symbol("callee");
+    parent->method_table->store(state, callee, vis);
+
+    OBJECT p = state->new_object(parent);
+    OBJECT c = state->new_object(child);
+    task->self = c;
+
+    StaticScope *sc = StaticScope::create(state);
+    SET(sc, module, child);
+    SET(cm, scope, sc);
+
+    task->active->module = child;
+    task->active->name = state->symbol("caller");
+    task->active->self = task->self;
+
+    Message msg(state);
+    msg.recv = p;
+    msg.lookup_from = parent;
+    msg.name = callee;
+    msg.send_site = SendSite::create(state, callee);
+    msg.set_args(0);
+
+    MethodContext* cur = task->active;
+
+    task->send_message_slowly(msg);
+
+    TS_ASSERT(cur != task->active);
+
+    MethodContext* ncur = task->active;
+
+    TS_ASSERT_EQUALS(ncur->self, p);
+    TS_ASSERT_EQUALS(ncur->sender, cur);
   }
 
   void test_simple_return() {
@@ -695,14 +817,11 @@ class TestTask : public CxxTest::TestSuite {
   void test_current_module() {
     Module* parent = state->new_module("Parent");
 
-    StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    MethodContext* ctx = MethodContext::create(state, 10);
+    SET(ctx, module, parent);
 
-    CompiledMethod* cm = create_cm();
-
-    Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, ps);
+    Task* task = Task::create(state, 10);
+    SET(task, active, ctx);
 
     TS_ASSERT_EQUALS(task->current_module(), parent);
   }

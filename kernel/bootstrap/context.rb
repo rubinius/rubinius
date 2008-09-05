@@ -105,7 +105,8 @@ end
 
 class BlockContext
   def env
-    _get_field(10)
+    Ruby.primitive :block_context_env
+    raise PrimitiveFailure, 'BlockContext#env primitive failed'
   end
 end
 

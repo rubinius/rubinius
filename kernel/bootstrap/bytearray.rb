@@ -56,4 +56,9 @@ class ByteArray
     dup_into obj
     return obj
   end
+
+  def locate(little)
+    Ruby.primitive :bytearray_locate
+    raise PrimitiveFailure, "ByteArray#locate primitive failed"
+  end
 end

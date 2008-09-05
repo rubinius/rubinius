@@ -173,11 +173,9 @@ namespace rubinius {
 
     /* Now that we've processed everything from the stack, we need to clean it up */
 stack_cleanup:
-#if 0
     if(probe) {
       probe->start_method(this, msg);
     }
-#endif
 
     active->clear_stack(msg.stack);
   }
@@ -198,12 +196,23 @@ stack_cleanup:
   /* For details in msg, locate the proper method and begin execution
    * of it. */
   bool Task::send_message(Message& msg) {
+    msg.current_self = this->active->self;
+
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
+    // HACK ug! do this up front, not way down here.
+    if(CompiledMethod* cm = try_as<CompiledMethod>(msg.method)) {
+      if(!cm->executable || (OBJECT)cm->executable == Qnil) {
+        cm->formalize(state, false);
+      }
+    }
+
     return msg.method->execute(state, this, msg);
   }
 
   bool Task::send_message_slowly(Message& msg) {
     GlobalCacheResolver res;
+
+    msg.current_self = this->active->self;
 
     if(!res.resolve(state, msg)) {
       msg.unshift_argument(state, msg.name);
@@ -342,6 +351,11 @@ stack_cleanup:
         ti = new TypeInfo((object_type)0);
       }
 
+      // HACK can we do this earlier? somewhere else?
+      if(method->executable == NULL || (OBJECT)method->executable == Qnil) {
+        method->formalize(state, false);
+      }
+
       method->specialize(ti);
     }
   }
@@ -450,7 +464,7 @@ stack_cleanup:
   }
 
   Module* Task::current_module() {
-    return active->cm->scope->module;
+    return active->module;
   }
 
   static Class* check_superclass(STATE, Class* cls, OBJECT super) {
@@ -614,7 +628,65 @@ stack_cleanup:
 
     for(;;) {
       active->vmm->resume(this, active);
+
+      // Should we inspect the other interrupts?
+      if(state->interrupts.check) {
+        state->interrupts.check = false;
+
+        // If we're switching tasks, return to the task monitor
+        if(state->interrupts.switch_task) {
+          state->interrupts.switch_task = false;
+          return;
+        }
+      }
     }
   }
 
+  void Task::print_backtrace() {
+    MethodContext* ctx = active;
+
+    while(!ctx->nil_p()) {
+      std::cout << (void*)ctx << ": ";
+      if(kind_of<BlockContext>(ctx)) {
+        std::cout << "__block__";
+      } else {
+        if(MetaClass* meta = try_as<MetaClass>(ctx->module)) {
+          if(Module* mod = try_as<Module>(meta->attached_instance)) {
+            std::cout << mod->name->c_str(state) << ".";
+          } else {
+            std::cout << "#<" <<
+              meta->attached_instance->class_object(state)->name->c_str(state) <<
+              ":" << (void*)meta->attached_instance << ">.";
+          }
+        } else {
+          std::cout << ctx->module->name->to_str(state)->byte_address() << "#";
+        }
+
+        SYMBOL name = try_as<Symbol>(ctx->name);
+        if(name) {
+          std::cout << name->to_str(state)->byte_address();
+        } else {
+          std::cout << ctx->cm->name->to_str(state)->byte_address();
+        }
+      }
+
+      std::cout << ":" << ctx->line() << " in " << ctx->cm->file->to_str(state)->byte_address();
+
+      std::cout << "\n";
+      ctx = ctx->sender;
+    }
+  }
+
+  void Task::Info::show(STATE, OBJECT self, int level) {
+    Task* task = as<Task>(self);
+
+    class_header(state, self);
+    indent_attribute(++level, "self"); task->self->show(state, level);
+    indent_attribute(level, "active"); task->active->show(state, level);
+    indent_attribute(level, "home"); task->home->show(state, level);
+    indent_attribute(level, "exception"); task->exception->show(state, level);
+    indent_attribute(level, "debug_channel"); task->debug_channel->show(state, level);
+    indent_attribute(level, "control_channel"); task->control_channel->show(state, level);
+    close_body(level);
+  }
 }

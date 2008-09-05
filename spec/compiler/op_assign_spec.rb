@@ -140,7 +140,7 @@ describe Compiler do
     sexp = s(:op_asgn1,
              s(:call, nil, :hsh, s(:arglist)),
              s(:arglist, s(:lit, :blah)),
-             :^,
+             :"^",
              s(:fixnum, 8))
 
     sexp.should == parse(ruby) if $unified && $new

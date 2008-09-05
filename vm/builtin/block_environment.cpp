@@ -12,6 +12,8 @@
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 
+#include <iostream>
+
 namespace rubinius {
 
   void BlockEnvironment::init(STATE) {
@@ -69,7 +71,7 @@ namespace rubinius {
   BlockContext* BlockEnvironment::create_context(STATE, MethodContext* sender) {
     BlockContext* ctx = BlockContext::create(state, method->stack_size->to_native());
     SET(ctx, sender, sender);
-    SET(ctx, name, (SYMBOL)this); // HACK don't cast non-Symbol to Symbol
+    SET(ctx, block, this);
     SET(ctx, cm, method);
     SET(ctx, home, home);
 
@@ -103,5 +105,16 @@ namespace rubinius {
     be->vmm = vmm;
 
     return be;
+  }
+
+  void BlockEnvironment::Info::show(STATE, OBJECT self, int level) {
+    BlockEnvironment* be = as<BlockEnvironment>(self);
+
+    class_header(state, self);
+    indent_attribute(++level, "home"); be->home->show(state, level);
+    indent_attribute(level, "home_block"); be->home_block->show(state, level);
+    indent_attribute(level, "local_count"); be->local_count->show(state, level);
+    indent_attribute(level, "method"); be->method->show(state, level);
+    close_body(level);
   }
 }

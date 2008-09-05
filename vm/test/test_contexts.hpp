@@ -45,11 +45,14 @@ class TestContexts : public CxxTest::TestSuite {
   void test_recycle() {
     MethodContext* ctx = MethodContext::create(state, 10);
     state->context_cache->reclaim = 1;
-    TS_ASSERT(ctx->recycle(state));
+    // TODO: Fix me when recycling is enabled;
+    TS_ASSERT(ctx->recycle(state) == false);
 
-    TS_ASSERT_EQUALS(state->context_cache->reclaim, 0);
-    MethodContext* ctx2 = MethodContext::create(state, 10);
-    TS_ASSERT_EQUALS(ctx, ctx2);
+    // TS_ASSERT(ctx->recycle(state));
+    //
+    // TS_ASSERT_EQUALS(state->context_cache->reclaim, 0);
+    // MethodContext* ctx2 = MethodContext::create(state, 10);
+    // TS_ASSERT_EQUALS(ctx, ctx2);
   }
 
   void test_recycle_ignores_mature_contexts() {

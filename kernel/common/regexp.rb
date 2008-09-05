@@ -2,9 +2,7 @@
 
 class Regexp
 
-  def __ivars__; @__ivars__ ; end
   def source   ; @source    ; end
-  def data     ; @data      ; end
   def names    ; @names     ; end
 
   ValidKcode    = [?n,?e,?s,?u]

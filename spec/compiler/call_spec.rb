@@ -572,7 +572,9 @@ describe Compiler do
       foo(&blah)
     EOC
 
-    sexp = s(:block_pass, s(:call, nil, :blah, s(:arglist)), s(:call, nil, :foo, s(:arglist)))
+      sexp = s(:block_pass,
+               s(:call, nil, :blah, s(:arglist)),
+               s(:call, nil, :foo, s(:arglist)))
 
     sexp.should == parse(ruby) if $unified && $new
 
@@ -580,19 +582,46 @@ describe Compiler do
       lbl = g.new_label
 
       g.push :self
-      g.push_cpath_top
-      g.find_const :Proc
 
       g.push :self
       g.send :blah, 0, true
       g.dup
       g.is_nil
       g.git lbl
+      g.push_cpath_top
+      g.find_const :Proc
+      g.swap
       g.send :__from_block__, 1
       lbl.set!
       g.send_with_block :foo, 0, true
     end
   end
+
+# 1)
+# Compiler compiles 'foo(&blah)' FAILED
+# --- /tmp/eql.8927	2008-09-05 15:22:33.000000000 -0700
+# +++ /tmp/exp.8927	2008-09-05 15:22:33.000000000 -0700
+# @@ -1,12 +1,13 @@
+#  [:test_generator,
+#   [[:push, :self],
+# -  [:push_cpath_top],
+# -  [:find_const, :Proc],
+#    [:push, :self],
+#    [:send, :blah, 0, true],
+#    [:dup],
+#    [:is_nil],
+# -  [:git, :label_9],
+# +  [:git, :label_10],
+# +  [:push_cpath_top],
+# +  [:find_const, :Proc],
+# +  [:swap],
+#    [:send, :__from_block__, 1],
+# -  [:set_label, :label_9],
+# +  [:set_label, :label_10],
+#    [:send_with_block, :foo, 0, true]]]
+
+# ./spec/compiler/spec_helper.rb:248:in `gen'
+# ./spec/compiler/call_spec.rb:581
 
   it "compiles 'END { 666 }'" do
     ruby = <<-EOC

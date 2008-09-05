@@ -6,16 +6,17 @@ class IO
 
   class Buffer
 
+    attr_reader :total
+    attr_reader :used
+
     ##
     # Create a buffer of +size+ bytes. The buffer contains an internal Channel
     # object it uses to fill itself.
     def initialize(size)
-      @data = ByteArray.new(size)
-      @bytes = 0
-      @characters = 0
-      @encoding = :buffer
-
+      @storage = ByteArray.new(size)
+      @used = 0
       @total = size
+
       @channel = Channel.new
     end
 
@@ -30,21 +31,20 @@ class IO
     ##
     # Indicates how many bytes are left
     def unused
-      @total - @bytes
+      @total - @used
     end
 
     ##
     # Remove +count+ bytes from the front of the buffer and return them.
     # All other bytes are moved up.
     def shift_front(count)
-      count = @bytes if count > @bytes
+      count = @used if count > @used
 
-      str = String.buffer count
-      str.copy_from self, 0, count, 0
+      str = String.from_bytearray @storage.fetch_bytes(0, count), count
 
-      rest = @bytes - count
-      @data.move_bytes count, rest, 0
-      @bytes = rest
+      rest = @used - count
+      @storage.move_bytes count, rest, 0
+      @used = rest
 
       return str
     end
@@ -52,26 +52,26 @@ class IO
     ##
     # Empty the contents of the Buffer into a String object and return it.
     def as_str
-      str = String.buffer @bytes
-      str.copy_from self, 0, @bytes, 0
-      @bytes = 0
+      str = String.buffer @used
+      str.copy_from self, 0, @used, 0
+      @used = 0
       return str
     end
 
     def empty?
-      @bytes == 0
+      @used == 0
     end
 
     ##
     # Indicates if the Buffer has no more room.
     def full?
-      @total == @bytes
+      @total == @used
     end
 
     ##
     # Empty the buffer.
     def reset!
-      @bytes = 0
+      @used = 0
     end
 
     ##
@@ -91,19 +91,18 @@ class IO
     end
 
     def inspect # :nodoc:
-      "#<IO::Buffer:0x%x total=%p bytes=%p characters=%p data=%p>" % [
-        object_id, @total, @bytes, @characters, @data
+      "#<IO::Buffer:0x%x total=%p used=%p characters=%p data=%p>" % [
+        object_id, @total, @used, @characters, @storage
       ]
     end
 
     ##
-    # Match the buffer against Regexp +reg+, and remove bytes starting
-    # at the beginning of the buffer, up to the end of where the Regexp
-    # matched.
-    def clip_to(reg)
-      if m = reg.match(self)
-        idx = m.end(0)
-        return shift_front(idx)
+    # Match the buffer against String +needle+, and remove bytes starting
+    # at the beginning of the buffer, up to the end of where the String
+    # matched is located.
+    def clip_to(needle)
+      if pos = @storage.locate(needle)
+        return shift_front(pos + needle.size)
       else
         nil
       end
@@ -786,24 +785,20 @@ class IO
 
     return breadall() unless sep
 
-    buf = @buffer
-
     if sep.empty?
       return gets_stripped($/ + $/)
     end
 
-    reg = /#{sep}/m
+    # Do an initial fill.
+    return nil if !@buffer.fill_from(self) and @buffer.empty?
 
-    if str = buf.clip_to(reg)
+    if str = @buffer.clip_to(sep)
       return str
     end
 
-    # Do an initial fill.
-    return nil if !buf.fill_from(self) and buf.empty?
-
     output = nil
     while true
-      if str = buf.clip_to(reg)
+      if str = @buffer.clip_to(sep)
         if output
           return output + str
         else
@@ -811,16 +806,16 @@ class IO
         end
       end
 
-      if !buf.fill_from(self)
-        if buf.empty?
+      if !@buffer.fill_from(self)
+        if @buffer.empty?
           rest = nil
         else
-          rest = buf.as_str
+          rest = @buffer.as_str
         end
 
         if output
           if rest
-            return output << buf.as_str
+            return output << @buffer.as_str
           else
             return output
           end
@@ -829,12 +824,12 @@ class IO
         end
       end
 
-      if buf.full?
+      if @buffer.full?
         if output
-          output << buf
-          buf.reset!
+          output << @buffer
+          @buffer.reset!
         else
-          output = buf.as_str
+          output = @buffer.as_str
         end
       end
     end
@@ -1052,7 +1047,7 @@ class IO
 
     needed = size
 
-    if needed > 0 and buf.size >= needed
+    if needed > 0 and buf.unused >= needed
       output << buf.shift_front(needed)
     else
       while true
@@ -1259,7 +1254,7 @@ class IO
     raise IOError, "closed stream" if closed?
     # Unseek the still buffered amount
     unless @buffer.empty?
-      prim_seek(-@buffer.size, SEEK_CUR)
+      prim_seek(-@buffer.used, SEEK_CUR)
       @buffer.reset!
       @eof = false
     end
@@ -1339,8 +1334,6 @@ class IO
     self
   end
 
-  alias_method :prim_tty?, :tty?
-
   ##
   # Returns true if ios is associated with a terminal device (tty), false otherwise.
   #
@@ -1348,7 +1341,7 @@ class IO
   #  File.new("/dev/tty").isatty   #=> true
   def tty?
     raise IOError, "closed stream" if closed?
-    prim_tty?
+    Platform::POSIX.isatty(@descriptor) == 1
   end
 
   alias_method :isatty, :tty?

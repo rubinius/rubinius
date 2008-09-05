@@ -1,8 +1,9 @@
 1. What is Rubinius
 
-Rubinius is a next-generation virtual machine and compiler for Ruby.  Based
-loosely on the Smalltalk-80 'Blue Book' design, Rubinius will provide a rich,
-high-performance environment for running Ruby code.
+Rubinius is an execution environment for the Ruby programming language.
+It is comprised of three major pieces: a compiler, a 'kernel' (otherwise
+known as the Ruby Core Library), and a virtual machine.
+The project's goal is to create a top-of-the-line Ruby implementation.
 
 2. Running Rubinius
 
@@ -10,10 +11,13 @@ Refer to the INSTALL file for instructions on getting and building Rubinius.
 
 3. Status
 
-Rubinius is under heavy development, and currently supports the basic Ruby
-classes and kernel methods. The code base is written in a mixture of ANSI C and
-Ruby; with more Ruby and less C as the project proceeds.  You should not run
-your mission-critical Rails apps under Rubinius yet.
+Rubinius is under heavy development and currently supports the core Ruby
+classes and kernel methods. The majority of the existing Ruby libraries
+should run without modification.  If your MRI 1.8.6-compatible code does not
+run under Rubinius, please open a bug ticket.
+
+As Rubinius becomes more and more compatible with Ruby 1.8, the development
+effort is shifting toward performance, rather than completeness.
 
 4. Goals
 
@@ -34,4 +38,13 @@ The Rubinius team welcomes contributions, bug reports, test cases, and monetary
 support. One possible way to help is implement Ruby library classes. Visit
 http://rubinius.lighthouseapp.com for documentation on how to begin hacking
 Rubinius.
+
+6. Architecture
+
+While most of the Rubinius features are implemented in Ruby, the VM itself
+is written in C++. This is likely to continue to be the case in the coming
+months, partly to ease the integration of LLVM into the Rubinius system.
+
+The compiler, assembler, and bytecode generators are all written in Ruby, and
+can be found under the ./lib/compiler directory.
 

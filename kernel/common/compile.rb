@@ -28,16 +28,20 @@ module Compile
     @compiler = obj
   end
 
+  @load_rbc_directly = false
+
   def self.find_compiler
     @compiler = :loading
     begin
-      loading_rbc_directly do
-        require "#{DefaultCompiler}/init"
-      end
+      # load rbc files if they exist without checking mtime's and such.
+      @load_rbc_directly = true
+      require "#{DefaultCompiler}/init"
     rescue Exception => e
-      STDERR.puts "Unable to load default compiler: #{e.message}"
-      puts e.awesome_backtrace.show
+      $stderr.puts "Unable to load default compiler: #{e.message}"
+      $stderr.puts e.awesome_backtrace.show
       raise e
+    ensure
+      @load_rbc_directly = false
     end
 
     if @compiler == :loading
@@ -80,23 +84,18 @@ module Compile
     @debug_script = true
   end
 
-  # By calling require in the block passed to this, require will
-  # load rbc if they exist without checking mtime's and such.
-  @load_rbc_directly = false
-
-  def self.loading_rbc_directly
-    begin
-      @load_rbc_directly = true
-      yield
-    ensure
-      @load_rbc_directly = false
-    end
-  end
-
   # Called when we encounter a break keyword that we do not support
   # TODO - This leaves a moderately lame stack trace entry
   def self.__unexpected_break__
     raise LocalJumpError, "unexpected break"
+  end
+
+  def self.load_from_rbc(path, version)
+    File.open(path) do |io|
+      cf = Rubinius::CompiledFile.load(io)
+      # HACK check version!
+      return cf.body
+    end
   end
 
   # Internally used by #load and #require. Determines whether to
@@ -188,14 +187,21 @@ module Compile
 
       if File.file? rb_path
         rbc_path = "#{dir}#{rbc}"
-        
+
         cm = nil
 
-        # Try to load rbc directly if requested
-        if @load_rbc_directly and File.file?(rbc_path)
-          compile_feature(rb, requiring) do
-            cm = CompiledMethod.load_from_file(rbc_path, version_number)
-            raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
+        # Try to load rbc directly if requested. In this mode, we require
+        # that the .rbc file exist already if the .rb file does. We fail
+        # hard if it doesn't.
+        if @load_rbc_directly
+
+          if File.file?(rbc_path)
+            compile_feature(rb, requiring) do
+              cm = load_from_rbc(rbc_path, version_number)
+              raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
+            end
+          else
+            raise LoadError, "Unable to find '#{rbc_path}' to load directly"
           end
 
         # Prefer compiled whenever possible
@@ -217,7 +223,7 @@ module Compile
           Marshal.dump_to_file cm, rbc_path, version_number
         else
           compile_feature(rb, requiring) do
-            cm = CompiledMethod.load_from_file(rbc_path, version_number)
+            cm = load_from_rbc(rbc_path, version_number)
             # cm is nil if the file is out of date, version wise.
             unless cm
               if $DEBUG_LOADING
@@ -265,7 +271,7 @@ module Compile
 
       if File.file? rbc_path and !options[:recompile]
         compile_feature(rb, requiring) do
-          cm = CompiledMethod.load_from_file(rbc_path, version_number)
+          cm = load_from_rbc(rbc_path, version_number)
           raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
         end
 

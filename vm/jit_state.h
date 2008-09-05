@@ -6,6 +6,7 @@
 
 struct jit_state {
   rubinius::Object** stack;
+  rubinius::Object** stack_top;
 };
 
 #endif

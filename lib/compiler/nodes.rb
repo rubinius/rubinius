@@ -136,7 +136,6 @@ class Compiler
       else
         prefix = self.class.name
       end
-      prefix
 
       super
     end

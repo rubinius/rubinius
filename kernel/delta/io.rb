@@ -7,3 +7,10 @@ class IO::BidirectionalPipe
     undef_method method
   end
 end
+
+# Re-setup all the stdio channels, to pull in new ivars
+
+STDOUT.setup
+STDIN.setup
+STDERR.setup
+

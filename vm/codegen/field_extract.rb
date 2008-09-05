@@ -421,6 +421,9 @@ class CPPParser
           prototype = f.gets
 
           m = prototype_pattern.match(prototype)
+          unless m
+            raise "Unable to parse: '#{prototype}'"
+          end
           args = m[4].split(/\s*,\s*/)
           # If the first argument is the +STATE+ macro, handle it in +output_args+
           if args.first == "STATE"

@@ -158,12 +158,12 @@ class TestMessage : public CxxTest::TestSuite {
     msg.use_from_task(task, 2);
 
     TS_ASSERT_EQUALS(2U, msg.args());
-    TS_ASSERT_EQUALS(msg.start, 0);
+    TS_ASSERT_EQUALS(msg.start, 0U);
 
     FIXNUM shifted = as<Fixnum>(msg.shift_argument(state));
     TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
-    TS_ASSERT_EQUALS(msg.args(), 1);
-    TS_ASSERT_EQUALS(msg.start, 1);
+    TS_ASSERT_EQUALS(msg.args(), 1U);
+    TS_ASSERT_EQUALS(msg.start, 1U);
 
     TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(47));
   }

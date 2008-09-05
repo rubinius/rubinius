@@ -14,6 +14,7 @@
 #include "global_cache.hpp"
 #include "config.hpp"
 
+#include <cstdarg>
 #include <cstring>
 
 namespace rubinius {
@@ -484,6 +485,7 @@ namespace rubinius {
   bool Object::send_prim(STATE, VMExecutable* exec, Task* task, Message& msg) {
     SYMBOL meth = as<Symbol>(msg.shift_argument(state));
     msg.name = meth;
+    msg.priv = true;
     return task->send_message_slowly(msg);
   }
 
@@ -513,16 +515,6 @@ namespace rubinius {
     return task->send_message_slowly(msg);
   }
 
-  void inspect(STATE, OBJECT obj) {
-    String* name = obj->class_object(state)->name->to_str(state);
-    std::cout << "#<" << name->byte_address() << ":" << (void*)obj << ">\n";
-  }
-
-  void inspect(STATE, SYMBOL sym) {
-    String* name = sym->to_str(state);
-    std::cout << ":" << name->byte_address() << "\n";
-  }
-
   void Object::cleanup(STATE) {
     type_info(state)->cleanup(this);
   }
@@ -546,7 +538,20 @@ namespace rubinius {
   }
 
   OBJECT Object::show(STATE) {
-    type_info(state)->show(state, this);
+    return this->show(state, 0);
+  }
+
+  OBJECT Object::show(STATE, int level) {
+    type_info(state)->show(state, this, level);
+    return Qnil;
+  }
+
+  OBJECT Object::show_simple(STATE) {
+    return this->show_simple(state, 0);
+  }
+
+  OBJECT Object::show_simple(STATE, int level) {
+    type_info(state)->show_simple(state, this, level);
     return Qnil;
   }
 

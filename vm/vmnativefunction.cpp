@@ -4,6 +4,7 @@
 #include "builtin/nativefunction.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
+#include "builtin/contexts.hpp"
 
 namespace rubinius {
 
@@ -29,7 +30,12 @@ namespace rubinius {
   bool VMNativeFunction::executor(STATE, VMExecutable* meth, Task* task, Message& msg) {
     NativeFunction* nfunc = as<NativeFunction>(msg.method);
 
-    task->push(nfunc->call(state, &msg));
+    OBJECT obj = nfunc->call(state, &msg);
+
+    // Remove the arguments passed in from the stack
+    task->active->clear_stack(msg.stack);
+
+    task->push(obj);
 
     return false;
   }

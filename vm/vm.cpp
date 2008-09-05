@@ -12,6 +12,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 
+#include "context_cache.hpp"
 #include "config.hpp"
 
 #include <iostream>
@@ -201,8 +202,14 @@ namespace rubinius {
   }
 
   void VM::activate_thread(Thread* thread) {
+    // Don't try and reclaim any contexts, they belong to someone else.
+    context_cache->reclaim = 0;
     globals.current_thread.set(thread);
-    globals.current_task.set(thread->task);
+    if(globals.current_task.get() != thread->task) {
+      globals.current_task.set(thread->task);
+      interrupts.check = true;
+      interrupts.switch_task = true;
+    }
   }
 
   OBJECT VM::current_block() {
@@ -217,17 +224,6 @@ namespace rubinius {
     // TODO: implement me
   }
 
-  void VM::inspect(OBJECT obj) {
-    if(obj->symbol_p()) {
-      String* str = as<Symbol>(obj)->to_str(this);
-      std::cout << "<Symbol :" << str->byte_address() << ">" << std::endl;
-    } else if(obj->fixnum_p()) {
-      std::cout << "<Fixnum " << as<Fixnum>(obj)->to_native() << ">" << std::endl;
-    } else {
-      std::cout << "<Object: " << (void*)obj << ">" << std::endl;
-    }
-  }
-
   void VM::set_const(const char* name, OBJECT val) {
     globals.object->set_const(this, (char*)name, val);
   }
@@ -237,44 +233,19 @@ namespace rubinius {
   }
 
   void VM::print_backtrace() {
-    MethodContext* ctx = globals.current_task.get()->active;
-
-    while(!ctx->nil_p()) {
-      std::cout << (void*)ctx << ": ";
-      if(kind_of<BlockContext>(ctx)) {
-        std::cout << "__block__";
-      } else {
-        if(MetaClass* meta = try_as<MetaClass>(ctx->module)) {
-          if(Module* mod = try_as<Module>(meta->attached_instance)) {
-            std::cout << mod->name->c_str(this) << ".";
-          } else {
-            std::cout << "#<" <<
-              meta->attached_instance->class_object(this)->name->c_str(this) <<
-              ":0x" << (void*)meta->attached_instance << ">.";
-          }
-        } else {
-          std::cout << ctx->module->name->to_str(this)->byte_address() << "#";
-        }
-
-        SYMBOL name = try_as<Symbol>(ctx->name);
-        if(name) {
-          std::cout << name->to_str(this)->byte_address();
-        } else {
-          std::cout << ctx->cm->name->to_str(this)->byte_address();
-        }
-      }
-
-      std::cout << ":" << ctx->line() << " in " << ctx->cm->file->to_str(this)->byte_address();
-
-      std::cout << "\n";
-      ctx = ctx->sender;
-    }
+    globals.current_task.get()->print_backtrace();
   }
 
   Task* VM::new_task() {
     Task* task = Task::create(this);
     globals.current_task.set(task);
     return task;
+  }
+
+  void VM::run_and_monitor() {
+    for(;;) {
+      G(current_task)->execute();
+    }
   }
 
   /* For debugging. */

@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <cmath>
+#include <iostream>
 #include "tommath.h"
 
 #define BASIC_CLASS(blah) G(blah)
@@ -207,6 +208,15 @@ namespace rubinius {
   }
 
   void Bignum::Info::mark(OBJECT obj, ObjectMark& mark) { }
+
+  void Bignum::Info::show(STATE, OBJECT self, int level) {
+    Bignum* b = as<Bignum>(self);
+    std::cout << b->to_s(state, Fixnum::from(10))->c_str() << std::endl;
+  }
+
+  void Bignum::Info::show_simple(STATE, OBJECT self, int level) {
+    show(state, self, level);
+  }
 
   void Bignum::init(STATE) {
     GO(bignum).set(state->new_class("Bignum", G(integer)));

@@ -27,9 +27,7 @@ static void load_runtime_kernel(Environment& env, std::string root) {
     // skip empty lines
     if(line.size() == 0) continue;
 
-    std::string path = root + "/" + line;
-    std::cout << "Loading directory: " << path << "\n";
-    env.load_directory(path);
+    env.load_directory(root + "/" + line);
   }
 }
 
@@ -45,9 +43,7 @@ int main(int argc, char** argv) {
     }
 
     std::string root = std::string(e);
-    env.set_rubinius_constants();
 
-    std::cout << "Loading platform.conf: " << root << "\n";
     env.load_platform_conf(root);
 
     load_runtime_kernel(env, std::string(root));

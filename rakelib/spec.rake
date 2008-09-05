@@ -4,6 +4,16 @@ def spec_ruby
   "#{RUBINIUS_BASE}/spec/ruby"
 end
 
+def spec_target
+  target = ENV['SPEC_TARGET'] || 'rubinius'
+  ENV['RBX_RUNTIME'] = 'runtime'
+  if target == 'rubinius' then
+    system %(vm/vm -e 'puts "rubinius build: \#{Rubinius::BUILDREV}"'
+)
+  end
+  target
+end
+
 Rsync_options = "-avP --delete --exclude '*svn*' --exclude '*swp' --exclude '*rbc' --exclude '*.rej' --exclude '*.orig'"
 
 def rsync(left, right)
@@ -92,7 +102,6 @@ namespace :spec do
 
   desc "Run continuous integration examples"
   task :ci => :build do
-    clear_compiler
     sh "bin/mspec ci -t #{spec_target}"
   end
 

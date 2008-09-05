@@ -8,22 +8,32 @@ class String
   include Comparable
   include Enumerable
 
-  attr_reader :data
+  attr_accessor :data
+  attr_accessor :num_bytes
+  attr_accessor :characters
+  attr_accessor :encoding
 
   def self.allocate
     str = super()
     str.data = ByteArray.new(1)
-    str.bytes = 0
+    str.num_bytes = 0
     str.characters = 0
     str.encoding = nil
     str
+  end
+
+  def self.from_bytearray(ba, count)
+    str = super()
+    str.data = ba
+    str.num_bytes = count
+    return str
   end
 
   ##
   # Creates String of +bytes+ NUL characters.
 
   def self.buffer(bytes)
-    "\0" * bytes
+    "\0" * num_bytes
   end
 
   def initialize(arg=nil)
@@ -1037,6 +1047,7 @@ class String
     return if @num_bytes == 0
 
     start = 0
+
     while start < @num_bytes
       c = @data[start]
       if c.isspace or c == 0
@@ -1937,20 +1948,33 @@ class String
 
     raise ArgumentError, "illegal radix #{base}" unless (2..36).include? base
 
-    match_re = case base
-               when  2 then
-                 /([+-])?(?:0b)?([a-z0-9_]*)/ix
-               when  8 then
-                 /([+-])?(?:0o)?([a-z0-9_]*)/ix
-               when 10 then
-                 /([+-])?(?:0d)?([a-z0-9_]*)/ix
-               when 16 then
-                 /([+-])?(?:0x)?([a-z0-9_]*)/ix
-               else
-                 /([+-])?       ([a-z0-9_]*)/ix
-               end
-
-    match_re = /^#{match_re}$/x if check # stupid /x for emacs lameness
+    if check
+      match_re = case base
+                 when  2 then
+                   /^([+-])?(?:0b)?([a-z0-9_]*)$/ix
+                 when  8 then
+                   /^([+-])?(?:0o)?([a-z0-9_]*)$/ix
+                 when 10 then
+                   /^([+-])?(?:0d)?([a-z0-9_]*)$/ix
+                 when 16 then
+                   /^([+-])?(?:0x)?([a-z0-9_]*)$/ix
+                 else
+                   /^([+-])?       ([a-z0-9_]*)$/ix
+                 end
+    else
+      match_re = case base
+                 when  2 then
+                   /([+-])?(?:0b)?([a-z0-9_]*)/ix
+                 when  8 then
+                   /([+-])?(?:0o)?([a-z0-9_]*)/ix
+                 when 10 then
+                   /([+-])?(?:0d)?([a-z0-9_]*)/ix
+                 when 16 then
+                   /([+-])?(?:0x)?([a-z0-9_]*)/ix
+                 else
+                   /([+-])?       ([a-z0-9_]*)/ix
+                 end
+    end
 
     sign = data = nil
     sign, data = $1, $2 if s =~ match_re

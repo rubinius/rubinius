@@ -37,7 +37,7 @@ class TestString : public CxxTest::TestSuite {
 
   void test_create_with_null_and_zero_count() {
     str = String::create(state, NULL, 0);
-    TS_ASSERT_EQUALS(str->size(), 0);
+    TS_ASSERT_EQUALS(str->size(), 0U);
     TS_ASSERT_EQUALS(str->byte_address()[0], 0);
   }
 

@@ -10,8 +10,7 @@ $:.unshift File.dirname(__FILE__) + "/.."
 
 require 'compiler/compiler'
 require 'compiler/text'
-require 'compiler/marshal'
-require 'compiler/compiled_file'
+require 'kernel/delta/compiled_file'
 
 class SendSite
   def initialize(name)

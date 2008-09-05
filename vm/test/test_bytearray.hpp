@@ -26,17 +26,17 @@ class TestByteArray : public CxxTest::TestSuite {
 
     for(size_t i = 0; i <= mag; i++) {
       b = ByteArray::create(state, i);
-      TS_ASSERT_EQUALS(b->size(state)->to_native(), mag);
+      TS_ASSERT_EQUALS(b->size(state)->to_native(), (native_int)mag);
     }
 
     for(size_t i = mag + 1; i <= 2 * mag; i++) {
       b = ByteArray::create(state, i);
-      TS_ASSERT_EQUALS(b->size(state)->to_native(), 2 * mag);
+      TS_ASSERT_EQUALS(b->size(state)->to_native(), (native_int)(2 * mag));
     }
 
     for(size_t i = 5 * mag + 1; i <= 6 * mag; i++) {
       b = ByteArray::create(state, i);
-      TS_ASSERT_EQUALS(b->size(state)->to_native(), 6 * mag);
+      TS_ASSERT_EQUALS(b->size(state)->to_native(), (native_int)(6 * mag));
     }
   }
 
