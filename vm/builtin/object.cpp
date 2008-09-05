@@ -14,6 +14,7 @@
 #include "global_cache.hpp"
 #include "config.hpp"
 
+#include <cstdarg>
 #include <cstring>
 
 namespace rubinius {
