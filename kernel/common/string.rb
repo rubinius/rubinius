@@ -14,8 +14,7 @@ class String
   attr_accessor :encoding
 
   def self.allocate
-    # HACK use super()
-    str = String.__allocate__
+    str = super()
     str.data = ByteArray.new(1)
     str.num_bytes = 0
     str.characters = 0
@@ -24,8 +23,7 @@ class String
   end
 
   def self.from_bytearray(ba, count)
-    # HACK use allocate when super() works
-    str = String.__allocate__
+    str = super()
     str.data = ba
     str.num_bytes = count
     return str

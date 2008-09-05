@@ -109,7 +109,7 @@ class Hash
   # @bins is the vector of storage for the bucket chains.
   #++
   def self.allocate
-    h = __allocate__ # super()
+    h = super()
 
     # We don't need the nanny checking our symbols
     h.send :set_instance_variable, :@records, MIN_SIZE
