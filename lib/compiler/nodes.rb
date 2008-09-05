@@ -78,16 +78,16 @@ class Compiler
 
       node = new(compiler)
       args = node.consume(sexp)
-      begin
+#       begin
         if node.respond_to? :normalize
           node = node.normalize(*args)
         else
           node.args(*args)
         end
-      rescue ArgumentError => e
-        raise ArgumentError,
-          "#{kind} (#{self}) takes #{args.size} arg(s): passed #{args.inspect} (#{e.message})"
-      end
+#       rescue ArgumentError => e
+#         raise ArgumentError,
+#           "#{kind} (#{self}) takes #{args.size} arg(s): passed #{args.inspect} (#{e.message})"
+#       end
 
       return node
     end
@@ -1098,11 +1098,7 @@ class Compiler
 
     # +Arguments+ is for the representation of a method _definition's_
     # argument list. It contains four sub-nodes, one each for required
-    # args, optional args, splat name and default value expressions. A
-    # block argument is actually not noted at this level because in the
-    # sexp, it is a sibling to this node, all contained inside the method
-    # definition. The block argument is added to the node later by the
-    # Define node in its normalisation process.
+    # args, optional args, splat name and default value expressions.
     #
     # There are a few interesting details: because default values can
     # be any expressions (try it, you can use a block, a class, define
@@ -1125,8 +1121,6 @@ class Compiler
     #   def foo(a, b = lambda { :moo }, *c, &d)
     #           ^^^^^^^^^^^^^^^^^^^^^^^^^^
     #             These go in the node.
-    #             Block arg processed
-    #             in Define.
     #     ...
     #   end
     #
@@ -1136,95 +1130,47 @@ class Compiler
       # [[:obj], [], nil, nil]
       # required, optional, splat, defaults
       def consume(sexp)
-        if sexp.empty?
-          return [[], [], nil, nil]
-        end
-        splat = nil
-        defaults = nil
+        req, opt, splat, block, defaults = [], [], nil, nil, []
+        opt_block = sexp.block(true)
+        opt_block.shift if opt_block # :block
 
-        if sexp[0].kind_of? Array # Detect Rubinius format
-          # Strip the parser calculated index of splat
-          splat = sexp[2].first if sexp[2] and !sexp[2].empty?
-
-          required, optional, _, defaults = sexp
-        else                      # Current PT format
-          required = []
-          optional = []
-
-          # detect defaults
-          if sexp.last.kind_of? Array
-            defaults = sexp.pop
-            1.upto(defaults.size - 1) do |idx|
-              optional << defaults[idx][1]
-            end
-          end
-
-          sexp.each do |var|
-            if var.to_s[0] == ?*
-              splat = var.to_s[1..-1].to_sym
+        sexp.reverse.each do |s|
+          case s.to_s
+          when /^&(.*)/ then
+            block = $1.to_sym
+          when /^\*(.*)/ then
+            splat = $1.empty? ? :@anon_splat  : $1.to_sym # TODO: don't like
+          else
+            if opt_block then
+              defaults.unshift opt_block.pop
+              opt.unshift s
+              opt_block = nil if opt_block.empty?
             else
-              required << var unless optional.include? var
+              req.unshift s
             end
           end
         end
 
+        # Allocate the required locals first, so they go in the first
+        # set of slots.
         scope = get(:scope)
-        # Allocate the required locals first, so they go in the first set
-        # of slots.
-        i = 0
-        required.each do |var|
-          var, depth = scope.find_local(var)
-          var.argument!(i)
-          i += 1
+        req.each_with_index do |var, i|
+          var, _ = scope.find_local(var)
+          var.argument! i
           var
         end
 
+        defaults.map! { |node| convert(node) }
 
-        if defaults
-          defaults.shift
-          i = 0
-          defaults.map! do |node|
-            # HACK: Fix parse_tree bug when an optional arg has a default value
-            # that is an :iter. For example, the following:
-            #  def foo(output = 1, b = lambda {|n| output * n})
-            # generates a sexp where the optional args are [:output, :n], rather
-            # than [:output, :b]. To fix this, we pick up the name of the :lasgn,
-            # in the defaults, and set the corresponding optional arg if the
-            # :lasgn is an :iter.
-            type = node[2].first rescue nil
-            if type == :iter
-              name = node[1]
-              sexp[1][i] = name
-            end
-            i += 1
+        block = convert(s(:block_arg, block)) if block
 
-            convert(node)
-          end
-        end
-
-        [required, optional, splat, defaults]
+        [req, opt, splat, block, defaults]
       end
 
-      def args(req, optional, splat, defaults)
-        @block_arg = nil
-        @required, @optional, @splat, @defaults = req, optional, splat, defaults
+      def args(req, opt, splat, block, defaults)
+        @required, @optional, @splat, @block_arg, @defaults =
+          req, opt, splat, block, defaults
 
-        # The splat has no name, so give it a name that a user can't actually
-        # give, so that we can still use it (ie, for super)
-        if @splat.kind_of? TrueClass
-          @splat = :@anon_splat
-        end
-
-        populate
-      end
-
-      attr_accessor :required, :optional, :splat, :defaults, :block_arg
-
-      def arity
-        return @required.size
-      end
-
-      def populate
         i = 0
         scope = get(:scope)
 
@@ -1255,7 +1201,12 @@ class Compiler
             @mapped_defaults[x.name] = x
           end
         end
+      end
 
+      attr_accessor :required, :optional, :splat, :defaults, :block_arg
+
+      def arity
+        return @required.size
       end
     end
 
@@ -1419,7 +1370,6 @@ class Compiler
     end
 
     class LocalVariable < Node
-
       def consume(sexp)
         name = sexp[0]
 
@@ -1441,7 +1391,7 @@ class Compiler
       def from_variable(var, depth=nil)
         @variable = var
         @depth = depth
-        @name = var.name
+        @name = var
       end
     end
 
@@ -2209,25 +2159,17 @@ class Compiler
 
       def consume(sexp)
         name, args, body = sexp
-        scope = set(:iter => false, :in_ensure => false) do
-          super([body])
+
+        set(:iter => false, :in_ensure => false) do
+          args = super([args]) # FIX: that array is dumb
+          body = super([body]) # FIX: that array is dumb
         end
 
-        body = scope.block.body
-
-        if body.first.is? BlockAsArgument
-          ba = body.shift
-        else
-          ba = nil
-        end
-
-        args.block_arg = ba
-
-        return [name, scope, args]
+        return [name, args, body]
       end
 
-      def args(name, body, args)
-        @name, @body, @arguments = name, expand(body), args
+      def args(name, args, body)
+        @name, @arguments, @body = name,  args, expand(body)
       end
 
       attr_accessor :name, :body, :arguments
@@ -2539,7 +2481,6 @@ class Compiler
         end
 
         set(:iter) do
-
           @locals = get(:scope).new_block_scope do
             set(:iter_args) do
               sexp[1] = convert([:iter_args, sexp[1]])

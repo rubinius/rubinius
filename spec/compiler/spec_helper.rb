@@ -236,14 +236,18 @@ class TestGenerator
 end
 
 def gen(sexp, plugins=[])
-  comp = Compiler.new TestGenerator
-  plugins.each { |n| comp.activate n }
-  tg = TestGenerator.new
-  yield tg
-  node = comp.convert_sexp [:snippit, sexp]
-  act = TestGenerator.new
-  node.bytecode act
-  act.should == tg
+  @comp = Compiler.new TestGenerator
+  plugins.each { |n| @comp.activate n }
+  @tg = TestGenerator.new
+
+  yield @tg
+
+  @node = @comp.convert_sexp [:snippit, sexp]
+  expected = TestGenerator.new
+  @node.bytecode expected
+  expected.should == @tg
+
+  @comp
 end
 
 def gen_iter x

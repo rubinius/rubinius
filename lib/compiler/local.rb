@@ -25,6 +25,10 @@ class Compiler
       return @locals[name]
     end
 
+    def keys
+      @locals.keys
+    end
+
     def key?(name)
       @locals.key? name
     end
@@ -76,12 +80,13 @@ class Compiler
       @stack_position = nil
       @slot = nil
       @on_block = false
+      @position = nil
     end
 
     attr_reader :name
 
     def inspect
-      "#<#{self.class} #{@name} #{@on_stack.inspect}/#{@slot.inspect}/#{@stack_position.inspect}>"
+      "#<#{self.class} #{@name} @on_stack = #{@on_stack.inspect}, @slot = #{@slot.inspect}, @stack_position = #{@stack_position.inspect}, @position = #{@position.inspect}, @on_block = #{@on_block.inspect}>"
     end
 
     attr_reader :name

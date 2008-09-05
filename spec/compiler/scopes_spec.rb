@@ -1,6 +1,96 @@
 require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
+  it "annoys me to no end that I have to verify stuff this way" do
+    sexp = s(:args, :mand1, :mand2, :opt1, :opt2, :"*rest", :"&block",
+             s(:block,
+               s(:lasgn, :opt1, s(:fixnum, 42)),
+               s(:lasgn, :opt2, s(:fixnum, 24))))
+
+    @comp = Compiler.new TestGenerator
+    scope = Compiler::Node::ClosedScope.new @comp
+    args = @comp.set :scope, scope do
+      @comp.convert_sexp sexp
+    end
+
+    args.required.map { |m| m.name }.should == [:mand1, :mand2]
+    args.optional.map { |m| m.name }.should == [:opt1, :opt2]
+    args.splat.name.should == :rest
+    args.block_arg.name.should == :block
+
+    expected = [[:opt1, 42], [:opt2, 24]]
+    args.defaults.map { |m| [m.name, m.value.value] }.should == expected
+  end
+
+  it "should have had a lot more defn specs" do
+    ruby = "def f(mand1, mand2, opt1 = 42, opt2 = 24, *rest, &block) x(mand1, mand2, opt1, opt2, rest, block) end"
+
+    sexp = s(:defn, :f,
+             s(:args, :mand1, :mand2, :opt1, :opt2, :"*rest", :"&block",
+               s(:block,
+                 s(:lasgn, :opt1, s(:fixnum, 42)),
+                 s(:lasgn, :opt2, s(:fixnum, 24)))),
+             s(:scope,
+               s(:block,
+                 s(:call, nil, :x,
+                   s(:arglist,
+                     s(:lvar, :mand1),
+                     s(:lvar, :mand2),
+                     s(:lvar, :opt1),
+                     s(:lvar, :opt2),
+                     s(:lvar, :rest),
+                     s(:lvar, :block))))))
+
+    sexp.should == parse(ruby) if $unified && $new
+
+    gen sexp do |g|
+      meth = description do |d|
+        opt_arg1 = d.new_label
+        d.passed_arg 2
+        d.git opt_arg1
+        d.push 42
+        d.set_local 2
+        d.pop
+        opt_arg1.set!
+
+        opt_arg2 = d.new_label
+        d.passed_arg 3
+        d.git opt_arg2
+        d.push 24
+        d.set_local 3
+        d.pop
+        opt_arg2.set!
+
+        d.push :self
+        d.push_local 0
+        d.push_local 1
+        d.push_local 2
+        d.push_local 3
+        d.push_local 4
+        d.push_local 5
+        d.send :x, 6, true
+
+        d.ret
+      end
+
+      g.push :self
+      g.push_literal :f
+      g.push_literal meth
+      g.send :__add_method__, 2
+    end
+
+    defn = @node.body
+    args = defn.arguments
+
+    args.required.map { |m| m.name }.should == [:mand1, :mand2]
+    args.optional.map { |m| m.name }.should == [:opt1, :opt2]
+    args.splat.name.should == :rest
+    args.block_arg.name.should == :block
+
+    expected = [[:opt1, 42], [:opt2, 24]]
+    args.defaults.map { |m| [m.name, m.value.value] }.should == expected
+  end
+
   it "compiles a defn with no args" do
     ruby = <<-EOC
       def a
@@ -103,7 +193,8 @@ describe Compiler do
              s(:args, :a),
              s(:scope,
                s(:block,
-                 s(:iter, s(:call, s(:array), :each, s(:arglist)),
+                 s(:iter,
+                   s(:call, s(:array), :each, s(:arglist)),
                    s(:lasgn, :b),
                    s(:call, s(:lvar, :a), :+, s(:arglist, s(:lvar, :b)))))))
 
@@ -118,8 +209,8 @@ describe Compiler do
           i.push_modifiers
           i.new_label.set! # redo
 
-          i.push_local 0
-          i.push_local_depth 0, 0
+          i.push_local 0                # a
+          i.push_local_depth 0, 0       # b
           i.meta_send_op_plus
           i.pop_modifiers
           i.ret
@@ -170,7 +261,7 @@ describe Compiler do
     EOC
 
     sexp = s(:defn, :a,
-             s(:args, s(:block_arg, :b)),
+             s(:args, :"&b"),
              s(:scope,
                s(:block,
                  s(:lvar, :b))))

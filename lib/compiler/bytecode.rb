@@ -2069,28 +2069,22 @@ class Compiler
 
       def bytecode(g)
         args = []
+        @arguments = args
 
-        @method.arguments.required.each do |var|
-          la = LocalAccess.new @compiler
-          la.from_variable var
-          args << la
-        end
+        @method.arguments.each do |var|
+          unless var.to_s =~ /^\*/ then
+            la = LocalAccess.new @compiler
+            la.from_variable var
+            args << la
+          else
+            var = var.to_s.sub(/^\*/, '').to_sym
+            cc = ConcatArgs.new @compiler
+            la = LocalAccess.new @compiler
+            la.from_variable var
 
-        @method.arguments.optional.each do |var|
-          la = LocalAccess.new @compiler
-          la.from_variable var
-          args << la
-        end
-
-        if @method.arguments.splat
-          cc = ConcatArgs.new @compiler
-          la = LocalAccess.new @compiler
-          la.from_variable @method.arguments.splat
-
-          cc.args args, la
-          @arguments = cc
-        else
-          @arguments = args
+            cc.args args, la
+            @arguments = cc
+          end
         end
 
         super(g)
@@ -2138,7 +2132,6 @@ class Compiler
 
         @optional.each do |var|
           assign = @mapped_defaults[var.name]
-
           done = g.new_label
           g.passed_arg var.stack_position
           g.git done
@@ -2148,28 +2141,27 @@ class Compiler
           done.set!
         end
 
-        if @block_arg
-          g.push_block
-          g.dup
-          g.is_nil
+#         if @block_arg
+#           g.push_block
+#           g.dup
+#           g.is_nil
 
-          after = g.new_label
-          g.git after
+#           after = g.new_label
+#           g.git after
 
-          g.push_const :Proc
-          g.swap
-          g.send :__from_block__, 1
+#           g.push_const :Proc
+#           g.swap
+#           g.send :__from_block__, 1
 
-          after.set!
+#           after.set!
 
-          @block_arg.bytecode(g)
-          g.pop
-        end
+#           @block_arg.bytecode(g)
+#           g.pop
+#         end
       end
     end
 
     class Define
-
       def argument_info
         opt = @arguments.optional || [] # FIX: temporary
 
@@ -2185,13 +2177,14 @@ class Compiler
         set(:scope, nil) do
           show_errors(meth) do
             @arguments.bytecode(meth)
-            desc.run self, @body
+            desc.run self, @body # TODO: why is it not @body.bytecode(meth) ?
           end
         end
 
         required =  @arguments.required.map {|x| x.name} if @arguments.required
         optional =  @arguments.optional.map {|x| x.name} if @arguments.optional
 
+        # TODO: remove this, desc.args should have @arguments
         desc.args = [required, optional, @arguments.splat && @arguments.splat.name]
 
         meth.ret
@@ -2203,7 +2196,6 @@ class Compiler
       end
 
       def bytecode(g)
-
         if @compiler.kernel?
           g.push_literal compile_body(g)
           g.push :self
