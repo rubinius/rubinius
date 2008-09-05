@@ -53,21 +53,10 @@ require File.dirname(__FILE__) + '/../../vm/gen/simple_field'
 
 class String
   def to_sexp(file = "(string)")
-    if ENV['RUBY_PARSER'] then
-      $: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/") # HACK
-      require 'ruby_parser'
+    $: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/") # HACK
+    require 'ruby_parser'
 
-      sexp = RubyParser.new.process(self, file)
-      p sexp
-      sexp
-    else
-      pt = ParseTree.new(true)
-      top = pt.parse_tree_for_string(File.read(file), file)
-      if top.size != 1
-        raise "huh?"
-      end
-      top[0]
-    end
+    RubyParser.new.process(self, file)
   end
 end
 
