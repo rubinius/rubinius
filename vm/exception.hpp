@@ -70,10 +70,8 @@ namespace rubinius {
     static void raise(size_t expected, size_t given);
     static void raise(const char* reason);
 
-    ArgumentError(size_t e, size_t g) : expected(e), given(g) { }
-    ArgumentError(const char* reason) {
-      this->reason = strdup(reason);
-    }
+    ArgumentError(size_t e, size_t g) : expected(e), given(g), reason(NULL) { }
+    ArgumentError(const char* reason) : expected(0), given(0), reason(NULL) { this->reason = strdup(reason); }
 
     ~ArgumentError() {
       if(reason) free(reason);
