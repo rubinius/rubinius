@@ -817,14 +817,11 @@ class TestTask : public CxxTest::TestSuite {
   void test_current_module() {
     Module* parent = state->new_module("Parent");
 
-    StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    MethodContext* ctx = MethodContext::create(state, 10);
+    SET(ctx, module, parent);
 
-    CompiledMethod* cm = create_cm();
-
-    Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, ps);
+    Task* task = Task::create(state, 10);
+    SET(task, active, ctx);
 
     TS_ASSERT_EQUALS(task->current_module(), parent);
   }

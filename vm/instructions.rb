@@ -3059,7 +3059,7 @@ class Instructions
     msg.use_from_task(task, count);
 
     msg.priv = TRUE;
-    msg.lookup_from = msg.recv->lookup_begin(state);
+    msg.lookup_from = task->current_module()->superclass;
     msg.name = msg.send_site->name;
 
     task->call_flags = 0;
@@ -3082,9 +3082,9 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    SYMBOL name = state->symbol("blah");
-    parent->method_table->store(state, name, target);
-    SendSite* ss = SendSite::create(state, name);
+    SYMBOL blah = state->symbol("blah");
+    parent->method_table->store(state, blah, target);
+    SendSite* ss = SendSite::create(state, blah);
 
     OBJECT obj = state->new_object(child);
     task->self = obj;
@@ -3093,6 +3093,10 @@ class Instructions
     SET(sc, module, child);
 
     SET(cm, scope, sc);
+
+    task->active->module = child;
+    task->active->name = blah;
+    task->active->self = task->self;
 
     task->literals->put(state, 0, ss);
     task->push(obj);
@@ -3117,7 +3121,7 @@ class Instructions
 
     // Now test that send finds a private method
 
-    state->global_cache->clear(child, name);
+    state->global_cache->clear(child, blah);
     task = Task::create(state);
 
     ctx = MethodContext::create(state, Qnil, cm);
@@ -3127,9 +3131,13 @@ class Instructions
     vis->method = target;
     vis->visibility = G(sym_private);
 
-    parent->method_table->store(state, name, vis);
+    parent->method_table->store(state, blah, vis);
 
     task->self = obj;
+    task->active->module = child;
+    task->active->name = blah;
+    task->active->self = task->self;
+
     task->literals->put(state, 0, ss);
     task->push(obj);
     task->push(Fixnum::from(3));
@@ -3214,9 +3222,9 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    SYMBOL name = state->symbol("blah");
-    parent->method_table->store(state, name, target);
-    SendSite* ss = SendSite::create(state, name);
+    SYMBOL blah = state->symbol("blah");
+    parent->method_table->store(state, blah, target);
+    SendSite* ss = SendSite::create(state, blah);
 
     OBJECT obj = state->new_object(child);
     task->self = obj;
@@ -3225,6 +3233,10 @@ class Instructions
     SET(sc, module, child);
 
     SET(cm, scope, sc);
+
+    task->active->module = child;
+    task->active->name = blah;
+    task->active->self = task->self;
 
     task->literals->put(state, 0, ss);
     task->push(obj);

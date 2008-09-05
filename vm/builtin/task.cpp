@@ -464,7 +464,7 @@ stack_cleanup:
   }
 
   Module* Task::current_module() {
-    return active->cm->scope->module;
+    return active->module;
   }
 
   static Class* check_superclass(STATE, Class* cls, OBJECT super) {
