@@ -18,7 +18,7 @@ namespace rubinius {
     static instlocation* instructions;
 
     opcode* opcodes;
-    size_t total;
+    std::size_t total;
     TypedRoot<CompiledMethod*> original;
     TypeInfo* type;
     std::vector<VMMethod*> blocks;
@@ -40,7 +40,7 @@ namespace rubinius {
     class Iterator {
     public:
       VMMethod* vmm;
-      size_t position;
+      std::size_t position;
 
       Iterator(VMMethod* vmm) :
         vmm(vmm), position(0) { }
@@ -61,7 +61,7 @@ namespace rubinius {
         return vmm->opcodes[position + 2];
       }
 
-      size_t next_pos() {
+      std::size_t next_pos() {
         return position + width();
       }
 
@@ -69,13 +69,13 @@ namespace rubinius {
         return vmm->opcodes[next_pos()];
       }
 
-      size_t width() {
+      std::size_t width() {
         opcode op = this->op();
 #include "gen/iseq_instruction_size.gen"
         return width;
       }
 
-      size_t args() {
+      std::size_t args() {
         return width() - 1;
       }
 
@@ -93,7 +93,7 @@ namespace rubinius {
     int arg1;
     int arg2;
     bool start_block;
-    size_t block;
+    std::size_t block;
 
     Opcode(opcode op, int o1 = -1, int o2 = -1) :
       op(op), args(0), arg1(o1), arg2(o2), start_block(false), block(0) {
