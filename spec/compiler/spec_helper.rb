@@ -253,7 +253,6 @@ class TestGenerator
 
     self.push_literal name
     self.push_literal_desc do |d|
-      d.push_context
       yield d
       d.ret
     end
@@ -262,6 +261,30 @@ class TestGenerator
     else
       self.send :__add_method__, 2
     end
+  end
+
+  def optional_arg slot
+    if_set = self.new_label
+    self.passed_arg slot
+    self.git if_set
+    self.push 42
+    self.set_local slot
+    self.pop
+    if_set.set!
+  end
+
+  def block_arg slot
+    is_nil = self.new_label
+    self.push_block
+    self.dup
+    self.is_nil
+    self.git is_nil
+    self.push_const :Proc
+    self.swap
+    self.send :__from_block__, 1
+    is_nil.set!
+    self.set_local slot
+    self.pop
   end
 
   def memoize
