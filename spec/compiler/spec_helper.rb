@@ -247,6 +247,21 @@ class TestGenerator
     self.send :__class_init__, 0
   end
 
+  def memoize
+    memo = self.new_label
+    self.add_literal nil
+    slot = @ip
+    self.push_literal_at slot
+    self.dup
+    self.is_nil
+    self.gif memo
+    self.pop
+
+    yield self
+
+    self.set_literal slot
+    memo.set!
+  end
 end
 
 def gen(sexp, plugins=[])
