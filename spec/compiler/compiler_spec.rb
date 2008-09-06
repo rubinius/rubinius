@@ -54,13 +54,40 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("array",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push_unique_literal :b
+              g.push_literal "c"
+              g.string_dup
+              g.make_array 3
+            end)
 
   add_tests("array_pct_W",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "a"
+              g.string_dup
+              g.push_literal "b"
+              g.string_dup
+              g.push_literal "c"
+              g.string_dup
+              g.make_array 3
+            end)
 
   add_tests("array_pct_W_dstr",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "a"
+              g.string_dup
+
+              g.push_ivar :@b
+              g.send :to_s, 0, true
+              g.push_literal ""
+              g.string_dup
+              g.string_append
+
+              g.push_literal "c"
+              g.string_dup
+              g.make_array 3
+            end)
 
   add_tests("attrasgn",
             "Compiler" => :skip)
@@ -282,28 +309,70 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("const",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_const :X
+            end)
 
   add_tests("constX",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push_literal :X
+              g.push 1
+              g.send :__const_set__, 2
+            end)
 
   add_tests("constY",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.push_literal :X
+              g.push 1
+              g.send :__const_set__, 2
+            end)
 
   add_tests("constZ",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_const :X
+              g.push_literal :Y
+              g.push 1
+              g.send :__const_set__, 2
+            end)
 
   add_tests("cvar",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_context
+              g.push_literal :@@x
+              g.send :class_variable_get, 1
+            end)
 
   add_tests("cvasgn",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push_literal :@@blah
+                d.push 1
+                d.send :class_variable_set, 2
+              end
+            end)
 
+  # => "def self.quiet_mode=(boolean)\n  @@quiet_mode = boolean\nend",
   add_tests("cvasgn_cls_method",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_method :quiet_mode=, :singleton do |d|
+                d.push_literal :@@quiet_mode
+                d.push_local 0
+                d.send :class_variable_set, 2
+              end
+            end)
 
   add_tests("cvdecl",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_class :X do |d|
+                d.push :self
+                d.push_literal :@@blah
+                d.push 1
+                d.send :class_variable_set, 2
+              end
+            end)
 
   add_tests("dasgn_0",
             "Compiler" => :skip)
