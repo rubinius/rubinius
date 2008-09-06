@@ -661,19 +661,20 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               g.push_const :Regexp
 
-              g.push_literal "y"
+              g.push_literal "y"    # 1
               g.string_dup
 
-              g.push 1
+              g.push 1              # 2
               g.push 1
               g.meta_send_op_plus
               g.send :to_s, 0, true
 
-              g.push_literal "x"
+              g.push_literal "x"    # 3
               g.string_dup
 
-              g.string_append
-              g.string_append
+              2.times do
+                g.string_append
+              end
 
               g.push 0
               g.send :new, 2
@@ -682,6 +683,7 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("dregx_interp",
             "Compiler" => bytecode do |g|
               g.push_const :Regexp
+
               g.push_ivar :@rakefile
               g.send :to_s, 0, true
 
@@ -697,6 +699,7 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("dregx_n",
             "Compiler" => bytecode do |g|
               g.push_const :Regexp
+
               g.push 1
               g.send :to_s, 0, true
 
@@ -714,19 +717,20 @@ class CompilerTestCase < ParseTreeTestCase
               memoize do
                 g.push_const :Regexp
 
-                g.push_literal "y"
+                g.push_literal "y"    # 1
                 g.string_dup
 
-                g.push 1
+                g.push 1              # 2
                 g.push 1
                 g.meta_send_op_plus
                 g.send :to_s, 0, true
 
-                g.push_literal "x"
+                g.push_literal "x"    # 3
                 g.string_dup
 
-                g.string_append
-                g.string_append
+                2.times do
+                  g.string_append
+                end
 
                 g.push 0
                 g.send :new, 2
@@ -738,17 +742,18 @@ class CompilerTestCase < ParseTreeTestCase
               memoize do
                 g.push_const :Regexp
 
-                g.push_const :SB
+                g.push_const :SB      # 1
                 g.send :to_s, 0, true
 
-                g.push_const :IAC
+                g.push_const :IAC     # 2
                 g.send :to_s, 0, true
 
-                g.push_literal ""
+                g.push_literal ""     # 3
                 g.string_dup
 
-                g.string_append
-                g.string_append
+                2.times do
+                  g.string_append
+                end
 
                 g.push 16
                 g.send :new, 2
@@ -760,14 +765,19 @@ class CompilerTestCase < ParseTreeTestCase
               g.push 1
               g.set_local 0
               g.pop
-              g.push_literal "y"
+
+              g.push_literal "y"    # 1
               g.string_dup
-              g.push_local 0
+
+              g.push_local 0        # 2
               g.send :to_s, 0, true
-              g.push_literal "x"
+
+              g.push_literal "x"    # 3
               g.string_dup
-              g.string_append
-              g.string_append
+
+              2.times do
+                g.string_append
+              end
             end)
 
   add_tests("dstr_2",
@@ -775,17 +785,23 @@ class CompilerTestCase < ParseTreeTestCase
               g.push 1
               g.set_local 0
               g.pop
-              g.push_literal "y"
+
+              g.push_literal "y"    # 0
               g.string_dup
-              g.push_literal "%.2f"
+
+              g.push_literal "%.2f" # 1
               g.string_dup
-              g.push 3.14159
+
+              g.push 3.14159        # 2
               g.send :%, 1, false
               g.send :to_s, 0, true
-              g.push_literal "x"
+
+              g.push_literal "x"    # 3
               g.string_dup
-              g.string_append
-              g.string_append
+
+              2.times do
+                g.string_append
+              end
             end)
 
   add_tests("dstr_3",
@@ -796,23 +812,33 @@ class CompilerTestCase < ParseTreeTestCase
               g.push 1
               g.set_local 1
               g.pop
-              g.push_literal "y"
+
+              g.push_literal "y"  # 0
               g.string_dup
-              g.push_literal "f"
+
+              g.push_literal "f"  # 1
               g.string_dup
-              g.push_local 0
+
+              g.push_local 0      # 2
               g.send :to_s, 0, true
-              g.push_literal "%."
+
+              g.push_literal "%." # 3
               g.string_dup
-              g.string_append
-              g.string_append
-              g.push 3.14159
+
+              2.times do
+                g.string_append
+              end
+
+              g.push 3.14159      # 4
               g.send :%, 1, false
               g.send :to_s, 0, true
-              g.push_literal "x"
+
+              g.push_literal "x"  # 5
               g.string_dup
-              g.string_append
-              g.string_append
+
+              2.times do
+                g.string_append
+              end
             end)
 
   add_tests("dstr_concat",
@@ -878,74 +904,76 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("dstr_heredoc_expand",
             "Compiler" => bytecode do |g|
-              g.push_literal "blah\n"
+              g.push_literal "blah\n"   #
               g.string_dup
 
-              g.push 1
+              g.push 1                  #
               g.push 1
               g.meta_send_op_plus
               g.send :to_s, 0, true
 
-              g.push_literal "  blah\n"
+              g.push_literal "  blah\n" #
               g.string_dup
 
-              g.string_append
-              g.string_append
+              2.times do
+                g.string_append
+              end
             end)
 
   add_tests("dstr_heredoc_windoze_sucks",
             "Compiler" => bytecode do |g|
-              g.push_literal "_valid_feed\n"
+              g.push_literal "_valid_feed\n" # 1
               g.string_dup
 
-              g.push :self
+              g.push :self                   # 2
               g.send :action, 0, true
               g.send :to_s, 0, true
 
-              g.push_literal "def test_"
+              g.push_literal "def test_"     # 3
               g.string_dup
 
-              g.string_append
-              g.string_append
+              2.times do
+                g.string_append
+              end
             end)
 
   add_tests("dstr_heredoc_yet_again",
             "Compiler" => bytecode do |g|
-              g.push_literal "\n"
+              g.push_literal "\n"         # 1
               g.string_dup
 
-              g.push_literal "(eval)"
+              g.push_literal "(eval)"     # 2
               g.string_dup
 
-              g.push_literal "' s2\n"
+              g.push_literal "' s2\n"     # 3
               g.string_dup
 
-              g.push_const :RUBY_PLATFORM
+              g.push_const :RUBY_PLATFORM # 4
               g.send :to_s, 0, true
 
-              g.push_literal "s1 '"
+              g.push_literal "s1 '"       # 5
               g.string_dup
 
-              g.string_append
-              g.string_append
-              g.string_append
-              g.string_append
+              4.times do
+                g.string_append
+              end
             end)
 
   add_tests("dstr_nest",
             "Compiler" => bytecode do |g|
-              g.push_literal "] after"
+              g.push_literal "] after"  # 1
               g.string_dup
 
-              g.push :self
+              g.push :self              # 2
               g.send :nest, 0, true
               g.send :to_s, 0, true
 
-              g.push_literal "before ["
+              g.push_literal "before [" # 3
               g.string_dup
 
-              g.string_append
-              g.string_append
+              2.times do
+                g.string_append
+              end
             end)
 
   add_tests("dstr_str_lit_start",
@@ -1015,10 +1043,41 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("dsym",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+                g.push_literal "y"
+                g.string_dup
+
+                g.push 1
+                g.push 1
+                g.meta_send_op_plus
+                g.send :to_s, 0, true
+
+                g.push_literal "x"
+                g.string_dup
+
+                g.string_append
+                g.string_append
+
+                g.send :to_sym, 0, true
+            end)
 
   add_tests("dxstr",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 5
+              g.set_local 0
+              g.pop
+
+              g.push :self
+              g.push_local 0
+              g.send :to_s, 0, true
+
+              g.push_literal "touch "
+              g.string_dup
+
+              g.string_append
+
+              g.send :"`", 1, true
+            end)
 
   add_tests("ensure",
             "Compiler" => :skip)
