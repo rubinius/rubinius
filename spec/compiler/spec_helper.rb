@@ -247,6 +247,23 @@ class TestGenerator
     self.send :__class_init__, 0
   end
 
+  def in_method name, singleton=false
+    self.push :self unless singleton
+    self.send :metaclass, 0 if singleton
+
+    self.push_literal name
+    self.push_literal_desc do |d|
+      d.push_context
+      yield d
+      d.ret
+    end
+    if singleton then
+      self.send :attach_method, 2
+    else
+      self.send :__add_method__, 2
+    end
+  end
+
   def memoize
     memo = self.new_label
     self.add_literal nil
