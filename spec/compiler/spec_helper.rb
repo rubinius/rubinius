@@ -77,7 +77,7 @@ class TestGenerator
   end
 
   def ==(tg)
-    tg.stream == @stream
+    tg.class == self.class && tg.stream == @stream
   end
 
   # Hack to provide expected semantics
@@ -220,19 +220,46 @@ class TestGenerator
     self.send :class, 0
     lbl.set!
   end
+
+  def push_literal_desc
+    desc = description do |d|
+      yield d
+    end
+
+    self.push_literal desc
+  end
+
+  def in_class name
+    self.push :nil
+    self.open_class name
+    self.dup
+    self.push_literal_desc do |d|
+      d.push_self # FIX
+      d.add_scope
+
+      yield d
+
+      d.ret
+    end
+    self.swap
+    self.attach_method :__class_init__
+    self.pop
+    self.send :__class_init__, 0
+  end
+
 end
 
 def gen(sexp, plugins=[])
   @comp = Compiler.new TestGenerator
   plugins.each { |n| @comp.activate n }
-  @tg = TestGenerator.new
+  expected = TestGenerator.new
 
-  yield @tg
+  yield expected
 
   @node = @comp.convert_sexp [:snippit, sexp]
-  expected = TestGenerator.new
-  @node.bytecode expected
-  expected.should == @tg
+  actual = TestGenerator.new
+  @node.bytecode actual
+  actual.should == expected
 
   @comp
 end
