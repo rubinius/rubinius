@@ -603,43 +603,143 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("lit_bool_false",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :false
+            end)
 
   add_tests("lit_bool_true",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :true
+            end)
 
   add_tests("lit_float",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1.1
+            end)
 
   add_tests("lit_long",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+            end)
 
   add_tests("lit_long_negative",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push -1
+            end)
 
   add_tests("lit_range2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Range
+              g.push 1
+              g.push 10
+              g.send :new, 2
+            end)
 
   add_tests("lit_range3",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Range
+              g.push 1
+              g.push 10
+              g.push :true
+              g.send :new, 3
+            end)
 
   add_tests("lit_regexp",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              memo = g.new_label
+              g.add_literal nil
+              g.push_literal_at 1
+              g.dup
+              g.is_nil
+              g.gif memo
+              g.pop
+
+              g.push_const :Regexp
+              g.push_literal "x"
+              g.push 0
+              g.send :new, 2
+
+              g.set_literal 1
+
+              memo.set!
+            end)
 
   add_tests("lit_regexp_i_wwtt",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :str, 0, true
+
+              memo = g.new_label
+              g.add_literal nil
+              g.push_literal_at 3
+              g.dup
+              g.is_nil
+              g.gif memo
+              g.pop
+
+              g.push_const :Regexp
+              g.push_literal ""
+              g.push 1
+              g.send :new, 2
+
+              g.set_literal 3
+
+              memo.set!
+
+              g.send :split, 1, false
+            end)
 
   add_tests("lit_regexp_n",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              memo = g.new_label
+              g.add_literal nil
+              g.push_literal_at 1
+              g.dup
+              g.is_nil
+              g.gif memo
+              g.pop
 
-  add_tests("lit_regexp_once",
-            "Compiler" => :skip)
+              g.push_const :Regexp
+              g.push_literal "x"
+              g.push 16
+              g.send :new, 2
+
+              g.set_literal 1
+
+              memo.set!
+            end)
+
+  add_tests("lit_regexp_once", # TODO: same as lit_regexp. verify
+            "Compiler" => bytecode do |g|
+              memo = g.new_label
+              g.add_literal nil
+              g.push_literal_at 1
+              g.dup
+              g.is_nil
+              g.gif memo
+              g.pop
+
+              g.push_const :Regexp
+              g.push_literal "x"
+              g.push 0
+              g.send :new, 2
+
+              g.set_literal 1
+
+              memo.set!
+            end)
 
   add_tests("lit_sym",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_unique_literal :x
+            end)
 
   add_tests("lit_sym_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_unique_literal :"*args"
+            end)
 
   add_tests("lvar_def_boundary",
             "Compiler" => :skip)
