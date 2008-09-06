@@ -658,52 +658,361 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("dregx",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_const :Regexp
+
+              g.push_literal "y"
+              g.string_dup
+
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.send :to_s, 0, true
+
+              g.push_literal "x"
+              g.string_dup
+
+              g.string_append
+              g.string_append
+
+              g.push 0
+              g.send :new, 2
+            end)
 
   add_tests("dregx_interp",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_const :Regexp
+              g.push_ivar :@rakefile
+              g.send :to_s, 0, true
+
+              g.push_literal ""
+              g.string_dup
+
+              g.string_append
+
+              g.push 0
+              g.send :new, 2
+            end)
 
   add_tests("dregx_n",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_const :Regexp
+              g.push 1
+              g.send :to_s, 0, true
+
+              g.push_literal ""
+              g.string_dup
+
+              g.string_append
+
+              g.push 16
+              g.send :new, 2
+            end)
 
   add_tests("dregx_once",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              memoize do
+                g.push_const :Regexp
+
+                g.push_literal "y"
+                g.string_dup
+
+                g.push 1
+                g.push 1
+                g.meta_send_op_plus
+                g.send :to_s, 0, true
+
+                g.push_literal "x"
+                g.string_dup
+
+                g.string_append
+                g.string_append
+
+                g.push 0
+                g.send :new, 2
+              end
+            end)
 
   add_tests("dregx_once_n_interp",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              memoize do
+                g.push_const :Regexp
+
+                g.push_const :SB
+                g.send :to_s, 0, true
+
+                g.push_const :IAC
+                g.send :to_s, 0, true
+
+                g.push_literal ""
+                g.string_dup
+
+                g.string_append
+                g.string_append
+
+                g.push 16
+                g.send :new, 2
+              end
+            end)
 
   add_tests("dstr",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.set_local 0
+              g.pop
+              g.push_literal "y"
+              g.string_dup
+              g.push_local 0
+              g.send :to_s, 0, true
+              g.push_literal "x"
+              g.string_dup
+              g.string_append
+              g.string_append
+            end)
 
   add_tests("dstr_2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.set_local 0
+              g.pop
+              g.push_literal "y"
+              g.string_dup
+              g.push_literal "%.2f"
+              g.string_dup
+              g.push 3.14159
+              g.send :%, 1, false
+              g.send :to_s, 0, true
+              g.push_literal "x"
+              g.string_dup
+              g.string_append
+              g.string_append
+            end)
 
   add_tests("dstr_3",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 2
+              g.set_local 0
+              g.pop
+              g.push 1
+              g.set_local 1
+              g.pop
+              g.push_literal "y"
+              g.string_dup
+              g.push_literal "f"
+              g.string_dup
+              g.push_local 0
+              g.send :to_s, 0, true
+              g.push_literal "%."
+              g.string_dup
+              g.string_append
+              g.string_append
+              g.push 3.14159
+              g.send :%, 1, false
+              g.send :to_s, 0, true
+              g.push_literal "x"
+              g.string_dup
+              g.string_append
+              g.string_append
+            end)
 
   add_tests("dstr_concat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 66             # 1
+              g.send :to_s, 0, true
+
+              g.push_literal "55"   # 2
+              g.string_dup
+
+              g.push 44             # 3
+              g.send :to_s, 0, true
+
+              g.push_literal "cd"   # 4
+              g.string_dup
+
+              g.push_literal "aa"   # 5
+              g.string_dup
+
+              g.push 22             # 6
+              g.send :to_s, 0, true
+
+              g.push_literal ""     # 7
+              g.string_dup
+
+              6.times do
+                g.string_append
+              end
+            end)
 
   add_tests("dstr_gross",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal " d"           # 1
+              g.string_dup
+
+              g.push_context                # 2
+              g.push_literal :@@cvar
+              g.send :class_variable_get, 1
+              g.send :to_s, 0, true
+
+              g.push_literal " c "          # 3
+              g.string_dup
+
+              g.push_ivar :@ivar            # 4
+              g.send :to_s, 0, true
+
+              g.push_literal " b "          # 5
+              g.string_dup
+
+              g.push_cpath_top              # 6
+              g.find_const :Globals
+              g.push_literal :$global
+              g.send :[], 1
+              g.send :to_s, 0, true
+
+              g.push_literal "a "           # 7
+              g.string_dup
+
+              6.times do
+                g.string_append
+              end
+            end)
 
   add_tests("dstr_heredoc_expand",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "blah\n"
+              g.string_dup
+
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.send :to_s, 0, true
+
+              g.push_literal "  blah\n"
+              g.string_dup
+
+              g.string_append
+              g.string_append
+            end)
 
   add_tests("dstr_heredoc_windoze_sucks",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "_valid_feed\n"
+              g.string_dup
+
+              g.push :self
+              g.send :action, 0, true
+              g.send :to_s, 0, true
+
+              g.push_literal "def test_"
+              g.string_dup
+
+              g.string_append
+              g.string_append
+            end)
 
   add_tests("dstr_heredoc_yet_again",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "\n"
+              g.string_dup
+
+              g.push_literal "(eval)"
+              g.string_dup
+
+              g.push_literal "' s2\n"
+              g.string_dup
+
+              g.push_const :RUBY_PLATFORM
+              g.send :to_s, 0, true
+
+              g.push_literal "s1 '"
+              g.string_dup
+
+              g.string_append
+              g.string_append
+              g.string_append
+              g.string_append
+            end)
 
   add_tests("dstr_nest",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "] after"
+              g.string_dup
+
+              g.push :self
+              g.send :nest, 0, true
+              g.send :to_s, 0, true
+
+              g.push_literal "before ["
+              g.string_dup
+
+              g.string_append
+              g.string_append
+            end)
 
   add_tests("dstr_str_lit_start",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal ")"           # 1
+              g.string_dup
+
+              g.push_exception             # 2
+              g.send :class, 0, false
+              g.send :to_s, 0, true
+
+              g.push_literal " ("          # 3
+              g.string_dup
+
+              g.push_exception             # 4
+              g.send :message, 0, false
+              g.send :to_s, 0, true
+
+              g.push_literal ": warning: " # 5
+              g.string_dup
+
+              g.push 1                     # 6
+              g.send :to_s, 0, true
+
+              g.push_literal "blah(eval):" # 7
+              g.string_dup
+
+              6.times do
+                g.string_append
+              end
+            end)
 
   add_tests("dstr_the_revenge",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal ")"        # 1
+              g.string_dup
+
+              g.push 1                  # 2
+              g.send :to_s, 0, true
+
+              g.push_literal ":"        # 3
+              g.string_dup
+
+              g.push_literal "(eval)"   # 4
+              g.string_dup
+
+              g.push_literal " ("       # 5
+              g.string_dup
+
+              g.push :self              # 6
+              g.send :to, 0, true
+              g.send :to_s, 0, true
+
+              g.push_literal " middle " # 7
+              g.string_dup
+
+              g.push :self              # 8
+              g.send :from, 0, true
+              g.send :to_s, 0, true
+
+              g.push_literal "before "  # 9
+              g.string_dup
+
+              8.times do
+                g.string_append
+              end
+            end)
 
   add_tests("dsym",
             "Compiler" => :skip)
@@ -715,7 +1024,9 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("false",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :false
+            end)
 
   add_tests("fbody",
             "Compiler" => :skip)
