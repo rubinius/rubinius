@@ -195,37 +195,112 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("call",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :method, 0, false
+            end)
 
   add_tests("call_arglist",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :o, 0, true
+              g.push 42
+              g.send :puts, 1, false
+            end)
 
   add_tests("call_arglist_hash",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :o, 0, true
+              g.push_cpath_top
+              g.find_const :Hash
+              g.push_unique_literal :a
+              g.push 1
+              g.push_unique_literal :b
+              g.push 2
+              g.send :[], 4
+              g.send :m, 1, false
+            end)
 
   add_tests("call_arglist_norm_hash",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :o, 0, true
+              g.push 42
+              g.push_cpath_top
+              g.find_const :Hash
+              g.push_unique_literal :a
+              g.push 1
+              g.push_unique_literal :b
+              g.push 2
+              g.send :[], 4
+              g.send :m, 2, false
+            end)
 
   add_tests("call_arglist_norm_hash_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :o, 0, true
+              g.push 42
+              g.push_cpath_top
+              g.find_const :Hash
+              g.push_unique_literal :a
+              g.push 1
+              g.push_unique_literal :b
+              g.push 2
+              g.send :[], 4
+
+              g.push :self
+              g.send :c, 0, true
+              g.cast_array
+              g.push :nil
+              g.send_with_splat :m, 2, false, false
+            end)
 
   add_tests("call_command",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push :self
+              g.send :c, 0, true
+              g.send :b, 1, false
+            end)
 
   add_tests("call_expr",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.set_local 0
+              g.send :zero?, 0, false
+            end)
 
   add_tests("call_index",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.make_array 0
+              g.set_local 0
+              g.pop
+              g.push_local 0
+              g.push 42
+              g.send :[], 1, false
+            end)
 
   add_tests("call_index_no_args",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :a, 0, true
+              g.send :[], 0, false
+            end)
 
   add_tests("call_index_space",
-            "Compiler" => :skip)
+            "Compiler" => testcases["call_index"]["Compiler"])
 
   add_tests("call_unary_neg",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 2
+              g.push 31
+              g.send :**, 1, false
+              g.send :-@, 0, false
+            end)
 
   add_tests("case",
             "Compiler" => :skip)
