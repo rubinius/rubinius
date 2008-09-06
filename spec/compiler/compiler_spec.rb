@@ -648,22 +648,12 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("lit_regexp",
             "Compiler" => bytecode do |g|
-              memo = g.new_label
-              g.add_literal nil
-              g.push_literal_at 1
-              g.dup
-              g.is_nil
-              g.gif memo
-              g.pop
-
-              g.push_const :Regexp
-              g.push_literal "x"
-              g.push 0
-              g.send :new, 2
-
-              g.set_literal 1
-
-              memo.set!
+              g.memoize do
+                g.push_const :Regexp
+                g.push_literal "x"
+                g.push 0
+                g.send :new, 2
+              end
             end)
 
   add_tests("lit_regexp_i_wwtt",
@@ -671,64 +661,34 @@ class CompilerTestCase < ParseTreeTestCase
               g.push :self
               g.send :str, 0, true
 
-              memo = g.new_label
-              g.add_literal nil
-              g.push_literal_at 3
-              g.dup
-              g.is_nil
-              g.gif memo
-              g.pop
-
-              g.push_const :Regexp
-              g.push_literal ""
-              g.push 1
-              g.send :new, 2
-
-              g.set_literal 3
-
-              memo.set!
+              g.memoize do
+                g.push_const :Regexp
+                g.push_literal ""
+                g.push 1
+                g.send :new, 2
+              end
 
               g.send :split, 1, false
             end)
 
   add_tests("lit_regexp_n",
             "Compiler" => bytecode do |g|
-              memo = g.new_label
-              g.add_literal nil
-              g.push_literal_at 1
-              g.dup
-              g.is_nil
-              g.gif memo
-              g.pop
-
-              g.push_const :Regexp
-              g.push_literal "x"
-              g.push 16
-              g.send :new, 2
-
-              g.set_literal 1
-
-              memo.set!
+              g.memoize do
+                g.push_const :Regexp
+                g.push_literal "x"
+                g.push 16
+                g.send :new, 2
+              end
             end)
 
   add_tests("lit_regexp_once", # TODO: same as lit_regexp. verify
             "Compiler" => bytecode do |g|
-              memo = g.new_label
-              g.add_literal nil
-              g.push_literal_at 1
-              g.dup
-              g.is_nil
-              g.gif memo
-              g.pop
-
-              g.push_const :Regexp
-              g.push_literal "x"
-              g.push 0
-              g.send :new, 2
-
-              g.set_literal 1
-
-              memo.set!
+              g.memoize do
+                g.push_const :Regexp
+                g.push_literal "x"
+                g.push 0
+                g.send :new, 2
+              end
             end)
 
   add_tests("lit_sym",
@@ -778,13 +738,59 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("match",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal :$_ # REFACTOR - we use this block a lot
+              g.push_cpath_top
+              g.find_const :Globals
+              g.send :[], 1
+
+              g.memoize do
+                g.push_const :Regexp
+                g.push_literal "x"
+                g.push 0
+                g.send :new, 2
+              end
+
+              f = g.new_label
+              t = g.new_label
+
+              g.send :=~, 1
+              g.gif f
+              g.push 1
+              g.goto t
+              f.set!
+              g.push :nil
+              t.set!
+            end)
 
   add_tests("match2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.memoize do
+                g.push_const :Regexp
+                g.push_literal "x"
+                g.push 0
+                g.send :new, 2
+              end
+
+              g.push_literal "blah"
+              g.string_dup
+              g.send :=~, 1
+            end)
 
   add_tests("match3",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "blah"
+              g.string_dup
+
+              g.memoize do
+                g.push_const :Regexp
+                g.push_literal "x"
+                g.push 0
+                g.send :new, 2
+              end
+
+              g.send :=~, 1
+            end)
 
   add_tests("module",
             "Compiler" => :skip)
@@ -802,7 +808,21 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("not",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              f = g.new_label
+              t = g.new_label
+
+              g.push :true
+              g.git f
+
+              g.push :true
+              g.goto t
+
+              f.set!
+              g.push :false
+
+              t.set!
+            end)
 
   add_tests("nth_ref",
             "Compiler" => :skip)
@@ -838,7 +858,20 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("or",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :a, 0, true
+              g.dup
+
+              lhs_true = g.new_label
+              g.git lhs_true
+
+              g.pop
+              g.push :self
+              g.send :b, 0, true
+
+              lhs_true.set!
+            end)
 
   add_tests("or_big",
             "Compiler" => :skip)
