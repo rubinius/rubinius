@@ -347,6 +347,7 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("cvasgn",
             "Compiler" => bytecode do |g|
               in_method :x do |d|
+                d.push_context
                 d.push_literal :@@blah
                 d.push 1
                 d.send :class_variable_set, 2
@@ -358,6 +359,7 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               g.push :self
               in_method :quiet_mode=, :singleton do |d|
+                d.push_context
                 d.push_literal :@@quiet_mode
                 d.push_local 0
                 d.send :class_variable_set, 2
@@ -396,55 +398,141 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("defn_args_mand",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_opt",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.optional_arg 0
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_block",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.block_arg 0
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_mand_opt",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.optional_arg 1
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_mand_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_mand_block",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.block_arg 1
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_opt_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.optional_arg 0
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_opt_block",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.optional_arg 0
+                d.block_arg 1
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_splat_block",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.block_arg 1
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_mand_opt_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.optional_arg 1
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_mand_opt_block",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.optional_arg 1
+                d.block_arg 2
+                d.push :nil
+              end
+            end)
 
-  add_tests("defn_args_mand_spl",
-            "Compiler" => :skip)
+  add_tests("defn_args_mand_splat_block",
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.block_arg 2
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_opt_splat_block",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.optional_arg 0
+                d.block_arg 2
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_mand_opt_splat_block",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.optional_arg 1
+                d.block_arg 3
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_mand_opt_splat_no_name",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.optional_arg 1
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_args_opt_splat_no_name",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.optional_arg 0
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_empty",
             "Compiler" => :skip)
