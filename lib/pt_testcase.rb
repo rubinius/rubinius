@@ -1708,7 +1708,7 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                     s(:lasgn, :opt, s(:lit, 42)))),
                                 s(:scope, s(:block, s(:nil)))))
 
-  add_tests("defn_args_mand_spl",
+  add_tests("defn_args_mand_splat_block",
             "Ruby"         => "def f(mand, *rest, &block)\n  # do nothing\nend",
             "RawParseTree" => [:defn, :f,
                                [:scope,
