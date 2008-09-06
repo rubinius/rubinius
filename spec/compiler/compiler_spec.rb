@@ -7,7 +7,7 @@ require 'pt_testcase'
 class CompilerTestCase < ParseTreeTestCase
   def self.bytecode &block
     @tg = TestGenerator.new
-    @tg.instance_eval &block
+    @tg.instance_eval(&block)
     @tg
   end
 
@@ -624,7 +624,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("lit_long_negative",
             "Compiler" => bytecode do |g|
-              g.push -1
+              g.push(-1)
             end)
 
   add_tests("lit_range2",
