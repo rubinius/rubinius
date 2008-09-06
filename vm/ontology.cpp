@@ -32,6 +32,7 @@
 #include "builtin/thread.hpp"
 #include "builtin/time.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/taskprobe.hpp"
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
@@ -191,6 +192,7 @@ namespace rubinius {
     AccessVariable::init(this);
     MemoryPointer::init(this);
     NativeFunction::init(this);
+    TaskProbe::init(this);
   }
 
   // TODO: document all the sections of bootstrap_ontology

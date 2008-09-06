@@ -11,11 +11,11 @@
 #include "builtin/string.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
 
 #include "resolver.hpp"
 #include "global_cache.hpp"
-#include "probes.hpp"
 
 #include "objectmemory.hpp"
 
@@ -53,6 +53,7 @@ namespace rubinius {
     SET(task, literals, Qnil);
     SET(task, exception, Qnil);
     SET(task, home, Qnil);
+    SET(task, probe, Qnil);
 
     if(stack_size == 0) stack_size = CompiledMethod::tramp_stack_size;
 
@@ -173,7 +174,7 @@ namespace rubinius {
 
     /* Now that we've processed everything from the stack, we need to clean it up */
 stack_cleanup:
-    if(probe) {
+    if(!probe->nil_p()) {
       probe->start_method(this, msg);
     }
 
@@ -183,7 +184,7 @@ stack_cleanup:
   /* Only called if send_message can't locate anything to run, which pretty
    * much never happens, since it means even method_missing wasn't available. */
   void Task::tragic_failure(Message& msg) {
-    if(probe) {
+    if(!probe->nil_p()) {
       probe->lookup_failed(this, msg);
     }
     std::stringstream ss;
@@ -338,7 +339,7 @@ stack_cleanup:
     mod->method_table->store(state, name, method);
     state->global_cache->clear(mod, name);
 
-    if(probe) {
+    if(!probe->nil_p()) {
       probe->added_method(this, mod, name, method);
     }
 

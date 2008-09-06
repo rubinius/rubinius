@@ -266,6 +266,9 @@ namespace rubinius {
     case TimeType:
       type = "Time";
       break;
+    case TaskProbeType:
+      type = "TaskProbe";
+      break;
     default:
       type = "unknown";
       break;

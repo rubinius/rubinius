@@ -40,13 +40,13 @@ namespace rubinius {
 
     /* globals */
     Exception* exception; // slot
+    TaskProbe *probe; // slot
     int call_flags;
     opcode blockargs;
 
     /* Internal data */
     STATE;
     Message* msg;
-    TaskProbe *probe;
     struct jit_state js;
 
     /* Data */

@@ -93,5 +93,13 @@ class Rubinius::Task
     # Kernel raise is used, since we don't want to use the raise primitive above
     Kernel.raise ArgumentError, "#{self.class} stack index out of range"
   end
+
+  def probe
+    @probe
+  end
+
+  def probe=(probe)
+    @probe = probe
+  end
 end
 

@@ -80,6 +80,7 @@ field_extract_headers = %w[
   vm/builtin/compactlookuptable.hpp
   vm/builtin/time.hpp
   vm/builtin/methodvisibility.hpp
+  vm/builtin/taskprobe.hpp
 ]
 
 BC          = "vm/instructions.bc"

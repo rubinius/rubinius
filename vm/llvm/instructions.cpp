@@ -11,13 +11,13 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
+#include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/staticscope.hpp"
 
 #include "jit_state.h"
 #include "objectmemory.hpp"
-#include "probes.hpp"
 
 using namespace rubinius;
 
@@ -149,7 +149,7 @@ void VMMethod::resume(Task* task, MethodContext* ctx) {
   for(;;) {
     op = stream[ctx->ip++];
 
-    if(task->probe) {
+    if(!task->probe->nil_p()) {
       task->probe->execute_instruction(task, ctx, op);
     }
 

@@ -199,4 +199,14 @@ class TestObjects : public CxxTest::TestSuite {
     check_const(memory_pointer, "MemoryPointer");
   }
 
+  void test_taskprobe() {
+    Class *cls;
+
+    cls = G(taskprobe);
+
+    TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
+    TS_ASSERT_EQUALS(cls->superclass, G(object));
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "TaskProbe"), G(taskprobe));
+  }
+
 };

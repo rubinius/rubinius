@@ -55,6 +55,7 @@ namespace rubinius {
     CompactLookupTableType,
     AccessVariableType,
     TimeType        ,
+    TaskProbeType   ,
 
 
     LastObjectType   // must remain at end

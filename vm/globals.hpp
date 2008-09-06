@@ -69,6 +69,7 @@ namespace rubinius {
     TypedRoot<Class*> integer;
     TypedRoot<Class*> numeric;
     TypedRoot<Class*> memory_pointer;
+    TypedRoot<Class*> taskprobe;
 
     /* Add new globals above this line. */
 
@@ -167,7 +168,8 @@ namespace rubinius {
       time_class(&roots),
       integer(&roots),
       numeric(&roots),
-      memory_pointer(&roots)
+      memory_pointer(&roots),
+      taskprobe(&roots)
 
       /* Add initialize of globals above this line. */
     { }
