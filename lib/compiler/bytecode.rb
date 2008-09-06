@@ -891,7 +891,13 @@ class Compiler
     end
 
     class OpAssignOr
-      def bytecode(g, use_gif=false)
+      def bytecode(g)
+        super(g, false)
+      end
+    end
+
+    class OpAssignAnd
+      def bytecode(g, use_gif=true)
         @left.bytecode(g)
         lbl = g.new_label
         g.dup
@@ -903,12 +909,6 @@ class Compiler
         g.pop
         @right.bytecode(g)
         lbl.set!
-      end
-    end
-
-    class OpAssignAnd
-      def bytecode(g)
-        super(g, true)
       end
     end
 
