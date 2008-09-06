@@ -915,19 +915,14 @@ class Compiler
 
       def args(str, *body)
         @string = str
-        @body = body
+        @body   = body
       end
 
       attr_accessor :body
     end
 
-    class DynamicSymbol < Node
+    class DynamicSymbol < DynamicString
       kind :dsym
-
-      def args(str, evstr)
-        @str   = str
-        @evstr = evstr
-      end
     end
 
     class EmptyArray < Node

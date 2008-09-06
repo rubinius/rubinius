@@ -919,10 +919,7 @@ class Compiler
 
     class DynamicSymbol
       def bytecode(g)
-        @evstr.bytecode(g)
-        g.push_literal @str
-        g.string_dup
-        g.string_append
+        super
         g.send :to_sym, 0, true
       end
     end
