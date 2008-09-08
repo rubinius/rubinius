@@ -102,7 +102,25 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("back_ref",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_context
+              g.push_literal :"&"
+              g.send :back_ref, 1
+
+              g.push_context
+              g.push_literal :"`"
+              g.send :back_ref, 1
+
+              g.push_context
+              g.push_literal :"'"
+              g.send :back_ref, 1
+
+              g.push_context
+              g.push_literal :"+"
+              g.send :back_ref, 1
+
+              g.make_array 4
+            end)
 
   add_tests("begin",
             "Compiler" => :skip)
@@ -188,11 +206,69 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("bmethod_splat",
             "Compiler" => :skip)
 
+  # "Ruby"         => "loop { break if true }",
   add_tests("break",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              break_value = :nil
 
+              top   = g.new_label
+              cond  = g.new_label
+              dunno = g.new_label
+              brk   = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push :true
+              g.gif cond
+
+              g.push break_value
+              g.goto brk
+              g.goto dunno # TODO: unreachable
+
+              cond.set!
+              g.push :nil
+
+              dunno.set!
+              g.pop
+              g.goto top
+
+              brk.set!
+
+              g.pop_modifiers
+            end)
+
+  # "Ruby"         => "loop { break 42 if true }",
   add_tests("break_arg",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              break_value = 42
+
+              top   = g.new_label
+              cond  = g.new_label
+              dunno = g.new_label
+              brk   = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push :true
+              g.gif cond
+
+              g.push break_value
+              g.goto brk
+              g.goto dunno # TODO: unreachable
+
+              cond.set!
+              g.push :nil
+
+              dunno.set!
+              g.pop
+              g.goto top
+
+              brk.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("call",
             "Compiler" => bytecode do |g|
