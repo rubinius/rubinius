@@ -72,13 +72,13 @@ class TestTime : public CxxTest::TestSuite {
 
     Array* ary = Time::mktime(state, sec, min, hour, day, mon, year, usec, isdst, Qfalse);
 
-    TS_ASSERT_EQUALS(2, ary->size());
+    TS_ASSERT_EQUALS((unsigned)2, ary->size());
     TS_ASSERT(tm->equal(state, (Integer*)ary->get(state, 0)));
     TS_ASSERT_EQUALS(usec, (FIXNUM)ary->get(state, 1));
 
     ary = Time::mktime(state, sec, min, hour, day, mon, year, usec, isdst, Qtrue);
 
-    TS_ASSERT_EQUALS(2, ary->size());
+    TS_ASSERT_EQUALS((unsigned)2, ary->size());
     TS_ASSERT(tm->equal(state, (Integer*)ary->get(state, 0)));
     TS_ASSERT_EQUALS(usec, (FIXNUM)ary->get(state, 1));
   }
