@@ -46,7 +46,7 @@ namespace rubinius {
     native_int idx = index->to_native();
 
     if(idx < 0 || idx >= size) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     }
 
     return Fixnum::from(this->bytes[idx]);
@@ -57,7 +57,7 @@ namespace rubinius {
     native_int idx = index->to_native();
 
     if(idx < 0 || idx >= size) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     }
 
     this->bytes[idx] = value->to_native();
@@ -71,7 +71,7 @@ namespace rubinius {
     native_int dst = dest->to_native();
 
     if(src + cnt > size || dst + cnt > size || src < 0 || dst < 0 || cnt < 0) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     }
 
     memmove(this->bytes + dst, this->bytes + src, cnt);
@@ -85,7 +85,7 @@ namespace rubinius {
     native_int cnt = count->to_native();
 
     if(src + cnt > size || src < 0 || cnt < 0) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     }
 
     ByteArray* ba = ByteArray::create(state, cnt + 1);
@@ -102,7 +102,7 @@ namespace rubinius {
     native_int olim = b->to_native();
 
     if(slim < 0 || olim < 0) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     }
 
     // clamp limits to actual sizes
