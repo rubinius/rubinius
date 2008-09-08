@@ -904,15 +904,15 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("dstr_heredoc_expand",
             "Compiler" => bytecode do |g|
-              g.push_literal "blah\n"   #
+              g.push_literal "blah\n"   # 1
               g.string_dup
 
-              g.push 1                  #
+              g.push 1                  # 2
               g.push 1
               g.meta_send_op_plus
               g.send :to_s, 0, true
 
-              g.push_literal "  blah\n" #
+              g.push_literal "  blah\n" # 3
               g.string_dup
 
               2.times do
