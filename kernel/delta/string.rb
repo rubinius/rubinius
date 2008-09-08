@@ -1,5 +1,4 @@
-
-require 'sexp_processor'
+# depends on: sexp_processor.rb sexp.rb
 
 module Rubinius; end
 class Rubinius::LitRewriter < SexpProcessor # TODO: move
