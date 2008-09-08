@@ -6,6 +6,7 @@
 
 namespace rubinius {
   class Array;
+  class String;
 
   class Time : public Object {
   public:
@@ -29,6 +30,9 @@ namespace rubinius {
 
     // Ruby.primitive :time_mktime
     static Array* mktime(STATE, FIXNUM sec, FIXNUM min, FIXNUM hour, FIXNUM mday, FIXNUM mon, FIXNUM year, FIXNUM usec, FIXNUM isdst, OBJECT from_gmt);
+
+    // Ruby.primitive :time_strftime
+    String* strftime(STATE, Array* ary, String* format);
 
     class Info : public TypeInfo {
     public:
