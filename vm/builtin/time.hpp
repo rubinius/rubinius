@@ -27,6 +27,9 @@ namespace rubinius {
     // Ruby.primitive :time_switch
     Time* time_switch(STATE, OBJECT gmt);
 
+    // Ruby.primitive :time_mktime
+    static Array* mktime(STATE, FIXNUM sec, FIXNUM min, FIXNUM hour, FIXNUM mday, FIXNUM mon, FIXNUM year, FIXNUM usec, FIXNUM isdst, OBJECT from_gmt);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

@@ -1,5 +1,6 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "primitives.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -80,5 +81,77 @@ namespace rubinius {
     SET(this, is_gmt, gmt);
 
     return this;
+  }
+
+  Array* Time::mktime(STATE, FIXNUM sec, FIXNUM min, FIXNUM hour,
+                     FIXNUM mday, FIXNUM mon, FIXNUM year, FIXNUM usec,
+                     FIXNUM isdst, OBJECT from_gmt) {
+    struct tm tm;
+    char *old_tz, old_tz_buf[128];
+
+    tm.tm_sec = sec->to_native();
+    if(tm.tm_sec < 0 || tm.tm_sec > 60) {
+      PrimitiveFailed::raise();
+    }
+
+    tm.tm_min = min->to_native();
+    if(tm.tm_min < 0 || tm.tm_min > 60) {
+      PrimitiveFailed::raise();
+    }
+
+    tm.tm_hour = hour->to_native();
+    if(tm.tm_hour < 0 || tm.tm_hour > 24) {
+      PrimitiveFailed::raise();
+    }
+
+    tm.tm_mday = mday->to_native();
+    if(tm.tm_mday < 1 || tm.tm_mday > 31) {
+      PrimitiveFailed::raise();
+    }
+
+    tm.tm_mon = mon->to_native() - 1;
+    if(tm.tm_mon < 0 || tm.tm_mon > 11) {
+      PrimitiveFailed::raise();
+    }
+
+    tm.tm_year = year->to_native() - 1900;
+
+    /* In theory, we'd set the tm_isdst field to isdst->to_native().
+     * But since that will break on at least FreeBSD,
+     * and I don't see the point of filling in that flag at all,
+     * we're telling the system here to figure the DST stuff
+     * out itmsg->recv.
+     */
+    tm.tm_isdst = -1;
+
+    if(from_gmt->true_p()) {
+      old_tz = getenv("TZ");
+
+      /* We need to save old_tz to our own buffer here, because e.g.
+       * FreeBSD's setenv() will manipulate that string directly.
+       */
+      if(old_tz) {
+        strncpy(old_tz_buf, old_tz, sizeof(old_tz_buf));
+        old_tz_buf[sizeof(old_tz_buf) - 1] = 0;
+      }
+
+      setenv("TZ", "", 1);
+    }
+
+    time_t seconds = ::mktime(&tm);
+
+    if(from_gmt->true_p()) {
+      if(old_tz) {
+        setenv("TZ", old_tz_buf, 1);
+      } else {
+        unsetenv("TZ");
+      }
+    }
+
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, Integer::from(state, seconds));
+    ary->set(state, 1, usec);
+
+    return ary;
   }
 }
