@@ -16,5 +16,9 @@ namespace rubinius {
     return false;
   }
 
+  void PrimitiveFailed::raise() {
+    throw PrimitiveFailed();
+  }
+
 #include "gen/primitives_glue.gen.cpp"
 }

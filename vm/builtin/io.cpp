@@ -45,7 +45,7 @@ namespace rubinius {
     off_t position;
 
     if(fd == -1) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     }
 
     position = lseek(fd, amount->to_long_long(), whence->to_native());
@@ -61,9 +61,9 @@ namespace rubinius {
   OBJECT IO::close(STATE) {
     int fd = descriptor->to_native();
     if(fd == -1) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     } else if(::close(fd)) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     } else {
       // HACK todo clear any events for this IO
       SET(this, descriptor, Fixnum::from(-1));
@@ -96,7 +96,7 @@ namespace rubinius {
 
     ssize_t cnt = ::read(this->to_fd(), str->data->bytes, bytes->to_native());
     if(cnt == -1) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     } else if(cnt == 0) {
       return Qnil;
     }

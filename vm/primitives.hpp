@@ -26,6 +26,8 @@ namespace rubinius {
   };
 
   class PrimitiveFailed : public VMException {
+  public:
+    static void raise();
   };
 
 }

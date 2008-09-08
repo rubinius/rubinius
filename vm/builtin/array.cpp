@@ -54,7 +54,7 @@ namespace rubinius {
     native_int index = idx->to_native();
 
     if(index < 0 || index >= total->to_native()) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     }
 
     return this->get(state, index);

@@ -381,7 +381,7 @@ namespace rubinius {
 
     if(src < 0) src = osz + src;
     if(src >= osz || src < 0) {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     }
     if(src + cnt > osz) cnt = osz - src;
 
@@ -427,7 +427,7 @@ namespace rubinius {
         }
       }
     } else {
-      throw PrimitiveFailed();
+      PrimitiveFailed::raise();
     }
 
     return s;
