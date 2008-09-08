@@ -1,7 +1,6 @@
+# depends on: sexp.rb
 
 $TESTING = false unless defined? $TESTING
-
-require 'sexp'
 
 class Object
 

@@ -12,7 +12,10 @@ require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
 ## Added for ruby_parser transition... all of this should be temporary
 ## HACK:
 
+load "kernel/delta/sexp.rb"
+load "kernel/delta/sexp_processor.rb"
 load "kernel/delta/string.rb"
+
 require 'ruby_parser' # for s(...)
 def parse ruby
   ruby.to_sexp("spec")
