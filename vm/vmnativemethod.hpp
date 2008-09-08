@@ -70,6 +70,13 @@ namespace rubinius {
 
   public:  /* Instance vars */
 
+    /*
+     *  OS X 10.5's ucontext implementation is broken and requires
+     *  that we manually set up the additional mcontext fields so
+     *  that the ucontext_t's are sized up correctly. Otherwise they
+     *  get written over :/
+     */
+
     Action          action;           /**< Action requested to be performed. */
     ucontext_t      c_call_point;     /**< Point to execute actual C dispatch (subtend stack) */
 #if defined(__APPLE__) && defined(HAS_UCONTEXT)
