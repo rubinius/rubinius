@@ -339,10 +339,16 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("colon2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_const :X
+              g.find_const :Y
+            end)
 
   add_tests("colon3",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :X
+            end)
 
   add_tests("conditional1",
             "Compiler" => :skip)
@@ -786,13 +792,12 @@ class CompilerTestCase < ParseTreeTestCase
               g.set_local 0
               g.pop
 
-              g.push_literal "y"    # 0
+              g.push_literal "y"    # 1
               g.string_dup
 
-              g.push_literal "%.2f" # 1
+              g.push_literal "%.2f" # 2
               g.string_dup
-
-              g.push 3.14159        # 2
+              g.push 3.14159
               g.send :%, 1, false
               g.send :to_s, 0, true
 
@@ -813,7 +818,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.set_local 1
               g.pop
 
-              g.push_literal "y"  # 0
+              g.push_literal "y"  # - # 1
               g.string_dup
 
               g.push_literal "f"  # 1
@@ -829,11 +834,11 @@ class CompilerTestCase < ParseTreeTestCase
                 g.string_append
               end
 
-              g.push 3.14159      # 4
+              g.push 3.14159      # - # 2
               g.send :%, 1, false
               g.send :to_s, 0, true
 
-              g.push_literal "x"  # 5
+              g.push_literal "x"  # - # 3
               g.string_dup
 
               2.times do
