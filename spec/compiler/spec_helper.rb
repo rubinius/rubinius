@@ -232,9 +232,63 @@ class TestGenerator
     self.push_literal desc
   end
 
+  def create_block_desc
+    desc = description do |d|
+      yield d
+    end
+
+    self.create_block desc
+  end
+
+  def in_module name
+
+    case name
+    when Symbol then
+      self.open_module name
+    when String then
+      levels = name.split(/::/).map { |s| s.to_sym }
+      klass = levels.pop
+
+      levels.each do |level|
+        self.push_const level
+      end
+
+      self.open_module_under klass
+    end
+
+    self.dup
+    self.push_literal_desc do |d|
+      d.push_self # FIX
+      d.add_scope
+
+      yield d
+
+      d.ret
+    end
+    self.swap
+    self.attach_method :__module_init__
+    self.pop
+    self.send :__module_init__, 0
+  end
+
+
   def in_class name
-    self.push :nil
-    self.open_class name
+    case name
+    when Symbol then
+      self.push :nil
+      self.open_class name
+    when String then
+      levels = name.split(/::/).map { |s| s.to_sym }
+      klass = levels.pop
+
+      levels.each do |level|
+        self.push_const level
+      end
+
+      self.push :nil
+      self.open_class_under klass
+    end
+
     self.dup
     self.push_literal_desc do |d|
       d.push_self # FIX
@@ -324,8 +378,10 @@ end
 
 def gen_iter x
   gen x do |g|
-    desc = description do |d|
+    g.push :self
+    g.send :ary, 0, true
 
+    g.create_block_desc do |d|
       yield d
 
       d.pop
@@ -335,10 +391,6 @@ def gen_iter x
       d.pop_modifiers
       d.ret
     end
-
-    g.push :self
-    g.send :ary, 0, true
-    g.create_block desc
 
     g.passed_block do
       g.send_with_block :each, 0, false

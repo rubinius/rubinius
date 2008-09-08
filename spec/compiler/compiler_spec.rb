@@ -397,22 +397,58 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("class_plain",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_class :X do |d|
+                d.push :self
+                d.push 1
+                d.push 1
+                d.meta_send_op_plus
+                d.send :puts, 1, true
+                d.pop
+
+                d.in_method :blah do |d2|
+                  d2.push :self
+                  d2.push_literal "hello"
+                  d2.string_dup
+                  d2.send :puts, 1, true
+                end
+              end
+            end)
 
   add_tests("class_scoped",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_class "X::Y" do |d|
+                d.push :self
+                d.send :c, 0, true
+              end
+            end)
 
   add_tests("class_scoped3",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_class :Y do |d|
+                d.push :self
+                d.send :c, 0, true
+              end
+            end)
 
   add_tests("class_super_array",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_const :Array
+              g.open_class :X
+            end)
 
   add_tests("class_super_expr",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :expr, 0, true
+              g.open_class :X
+            end)
 
   add_tests("class_super_object",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_const :Object
+              g.open_class :X
+            end)
 
   add_tests("colon2",
             "Compiler" => bytecode do |g|
@@ -692,43 +728,205 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("defn_empty",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :empty do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_empty_args",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :empty do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_lvar_boundary",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              # TODO: this one is _all_brokey_ where's the puts???
+              g.push 42
+              g.set_local 0
+              g.pop
+
+              in_method :instantiate_all do |d|
+                d.push_const :Thread
+
+                d.create_block_desc do |d2|
+                  block_top  = d2.new_label
+                  d2.pop
+                  d2.push_modifiers
+                  block_top.set!
+                  d2.push_modifiers
+                  d2.push :nil
+                  d2.pop_modifiers
+                  d2.pop_modifiers
+                  d2.ret # TODO: maybe refactor this into create_block_desc
+                end
+
+                top         = d.new_label
+                dunno1      = d.new_label
+                long_return = d.new_label
+                dunno2      = d.new_label
+                bottom      = d.new_label
+
+                top.set!
+
+                d.push_cpath_top
+                d.find_const :LongReturnException
+                d.send :allocate, 0
+                d.set_local 0
+                d.pop
+
+                d.send_with_block :new, 0, false
+
+                d.goto bottom
+
+                dunno1.set!
+
+                d.push_exception
+                d.dup
+                d.push_local 0
+                d.equal
+                d.gif long_return
+                d.clear_exception
+
+                d.dup
+                d.send :is_return, 0
+                d.gif dunno2
+                d.send :value, 0
+                d.ret
+
+                long_return.set!
+
+                d.raise_exc
+
+                dunno2.set!
+
+                d.send :value, 0
+
+                bottom.set!
+              end
+            end)
 
   add_tests("defn_optargs",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push :self
+                d.push_local 0
+                d.push_local 1
+                d.send :p, 2, true
+              end
+            end)
 
   add_tests("defn_or",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :"|" do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_rescue",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :eql? do |d|
+                top  = d.new_label
+                dunno1  = d.new_label
+                stderr = d.new_label
+                other = d.new_label
+                bottom = d.new_label
+
+                d.push_modifiers
+
+                top.set!
+                top.set! # TODO: fix
+
+                d.push :self
+                d.send :uuid, 0, false
+                d.push_local 0
+                d.send :uuid, 0, false
+                d.meta_send_op_equal
+                d.goto bottom
+
+                dunno1.set!
+
+                d.push_const :StandardError
+                d.push_exception
+                d.send :===, 1
+                d.git stderr
+                d.goto other
+
+                stderr.set!
+
+                d.push :false
+                d.clear_exception
+                d.goto bottom # Is this the reason for the second set?
+
+                other.set!
+
+                d.push_exception
+                d.raise_exc
+
+                bottom.set!
+                bottom.set! # TODO: fix
+
+                d.pop_modifiers
+              end
+            end)
 
   add_tests("defn_rescue_mri_verbose_flag",
-            "Compiler" => :skip)
+            "Compiler" => testcases["defn_rescue"]["Compiler"])
 
   add_tests("defn_something_eh",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :something? do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("defn_splat_no_name",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push :self
+                d.push_local 0
+                d.send :p, 1, true
+              end
+            end)
 
   add_tests("defn_zarray",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :zarray do |d|
+                d.make_array 0
+                d.set_local 0
+                d.pop
+                d.push_local 0
+                d.ret # TODO: fix?
+              end
+            end)
 
   add_tests("defs",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_method :x, true do |d|
+                d.push_local 0
+                d.push 1
+                d.meta_send_op_plus
+              end
+            end)
 
   add_tests("defs_empty",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_method :empty, true do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("defs_empty_args",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_method :empty, true do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("dmethod",
             "Compiler" => :skip)
@@ -1476,13 +1674,29 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("module",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_module :X do |d|
+                d.in_method :y do |d2|
+                  d2.push :nil
+                end
+              end
+            end)
 
   add_tests("module_scoped",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_module "X::Y" do |d|
+                d.push :self
+                d.send :c, 0, true
+              end
+            end)
 
   add_tests("module_scoped3",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_module :Y do |d|
+                d.push :self
+                d.send :c, 0, true
+              end
+            end)
 
   add_tests("next",
             "Compiler" => :skip)
@@ -1848,7 +2062,7 @@ class CompilerTestCase < ParseTreeTestCase
 end
 
 describe "Compiler::*Nodes" do
-  ParseTreeTestCase.testcases.each do |node, hash|
+  ParseTreeTestCase.testcases.sort.each do |node, hash|
     next if Array === hash['Ruby']
     next if hash['Compiler'] == :skip
 
