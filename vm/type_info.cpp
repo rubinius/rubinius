@@ -60,12 +60,6 @@ namespace rubinius {
     }
   }
 
-  /**
-   * Prints out the class name and address. Used for simple classes
-   * that may append other info on the same line.
-   *
-   *   #<SomeClass:0x346882
-   */
   void TypeInfo::class_info(STATE, OBJECT self, bool newline) {
     if(Module* mod = try_as<Module>(self)) {
       const char *name = mod->name == Qnil ? "<anonymous>" : mod->name->c_str(state);
@@ -78,22 +72,11 @@ namespace rubinius {
     if(newline) std::cout << ">\n";
   }
 
-  /**
-   * Prints out the class name and address followed by a newline. Used
-   * for complex classes that will print additional member info.
-   *
-   *   #<SomeClass:0x3287648\n
-   */
   void TypeInfo::class_header(STATE, OBJECT self) {
     class_info(state, self);
     std::cout << "\n";
   }
 
-  /**
-   * Prints spaces to indent the following text to the requested
-   * level. Levels are specified as 0, 1, 2, ... and the multiplier
-   * is 2. So, text at level 2 will have 2 * 2 = 4 spaces in front.
-   */
   void TypeInfo::indent(int level) {
     int offset = level * 2;
 
@@ -102,41 +85,25 @@ namespace rubinius {
     }
   }
 
-  /**
-   * Indents the attribute name to the requested level. @see indent.
-   */
   void TypeInfo::indent_attribute(int level, const char* name) {
     indent(level);
     std::cout << name << ": ";
   }
 
-  /**
-   * Prints "..." + endl at the requested indent level.
-   */
   void TypeInfo::ellipsis(int level) {
     indent(level);
     std::cout << "..." << std::endl;
   }
 
-  /**
-   * Indents to level-1 and prints ">" + endl.
-   */
   void TypeInfo::close_body(int level) {
     indent(level-1);
     std::cout << ">" << std::endl;
   }
 
-  /**
-   * Default output for any object. Prints just the class name
-   * and address.
-   */
   void TypeInfo::show(STATE, OBJECT self, int level) {
     class_info(state, self, true);
   }
 
-  /**
-   * Currently prints the same output as show.
-   */
    void TypeInfo::show_simple(STATE, OBJECT self, int level) {
      class_info(state, self, true);
    }
