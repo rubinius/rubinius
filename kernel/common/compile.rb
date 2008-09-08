@@ -36,10 +36,6 @@ module Compile
       # load rbc files if they exist without checking mtime's and such.
       @load_rbc_directly = true
       require "#{DefaultCompiler}/init"
-    rescue Exception => e
-      $stderr.puts "Unable to load default compiler: #{e.message}"
-      $stderr.puts e.awesome_backtrace.show
-      raise e
     ensure
       @load_rbc_directly = false
     end
@@ -101,11 +97,8 @@ module Compile
   # Internally used by #load and #require. Determines whether to
   # load the file directly or by prefixing it with the paths in
   # $LOAD_PATH and then attempts to locate and load the file.
-  def self.unified_load(path, rb, rbc, ext, requiring = nil, options = {:recompile => false})
-    # forces the compiler to be loaded. We need this to get
-    # the proper version_number calculation.
-    #
-    self.compiler unless @compiler
+  def self.unified_load(path, rb, rbc, ext, requiring = nil,
+                        options = {:recompile => false})
 
     # ./ ../ ~/ /
     if path =~ %r{\A(?:(\.\.?)|(~))?/}
@@ -177,9 +170,6 @@ module Compile
   # Internally used by #unified_load. This attempts to load the
   # designated file from a single prefix path.
   def self.single_load(dir, rb, rbc, ext, requiring, options)
-    # Force compiler loading, required for version calculation
-    self.compiler unless @compiler
-
     if rb
       return false if requiring and $LOADED_FEATURES.include? rb
 
