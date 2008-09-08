@@ -1599,13 +1599,25 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("return_0",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :nil
+              g.ret
+            end)
 
   add_tests("return_1",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.ret
+            end)
 
   add_tests("return_n",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push 2
+              g.push 3
+              g.make_array 3
+              g.ret
+            end)
 
   add_tests("sclass",
             "Compiler" => :skip)
