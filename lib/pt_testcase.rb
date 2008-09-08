@@ -1797,7 +1797,7 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                 s(:scope, s(:block, s(:nil)))))
 
   add_tests("defn_lvar_boundary",
-            "Ruby"         => "mes = 42\ndef instantiate_all\n  Thread.new do\n    begin\n    rescue RuntimeError => mes\n      puts(mes)\n    end\n  end\nend\n",
+            "Ruby"         => "mes = 42\ndef instantiate_all\n  Thread.new do\n    begin\n      do_stuff\n    rescue RuntimeError => mes\n      puts(mes)\n    end\n  end\nend\n",
             "RawParseTree" => [:block,
                                [:lasgn, :mes, [:lit, 42]],
                                [:defn, :instantiate_all,
@@ -1809,6 +1809,7 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                    nil,
                                    [:begin,
                                     [:rescue,
+                                     [:vcall, :do_stuff],
                                      [:resbody,
                                       [:array, [:const, :RuntimeError]],
                                       [:block,
@@ -1826,6 +1827,7 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                           s(:arglist)),
                                         nil,
                                         s(:rescue,
+                                          s(:call, nil, :do_stuff, s(:arglist)),
                                           s(:resbody,
                                             s(:array, s(:const, :RuntimeError),
                                               s(:lasgn, :mes, s(:gvar, :$!))),
