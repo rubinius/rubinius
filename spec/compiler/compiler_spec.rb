@@ -1749,19 +1749,41 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("yield_0",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_block
+              g.meta_send_call 0
+            end)
 
   add_tests("yield_1",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_block
+              g.push 42
+              g.meta_send_call 1
+            end)
 
   add_tests("yield_n",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_block
+              g.push 42
+              g.push 24
+              g.make_array 2
+              g.meta_send_call 1
+            end)
 
   add_tests("zarray",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.make_array 0
+              g.set_local 0
+            end)
 
   add_tests("zsuper",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push :nil
+                d.push :nil
+                d.send_super :x, 0
+              end
+            end)
 end
 
 describe "Compiler::*Nodes" do
