@@ -82,4 +82,33 @@ class TestTime : public CxxTest::TestSuite {
     TS_ASSERT(tm->equal(state, (Integer*)ary->get(state, 0)));
     TS_ASSERT_EQUALS(usec, (FIXNUM)ary->get(state, 1));
   }
+
+  void test_time_strftime() {
+    FIXNUM sec = Fixnum::from(8);
+    FIXNUM min = Fixnum::from(10);
+    FIXNUM hour = Fixnum::from(12);
+    FIXNUM day = Fixnum::from(18);
+    FIXNUM mon = Fixnum::from(9);
+    FIXNUM year = Fixnum::from(74);
+    FIXNUM isdst = Fixnum::from(1);
+
+    Array* ary = Array::create(state, 11);
+    ary->set(state, 0, sec);
+    ary->set(state, 1, min);
+    ary->set(state, 2, hour);
+    ary->set(state, 3, day);
+    ary->set(state, 4, mon);
+    ary->set(state, 5, year);
+    ary->set(state, 6, Fixnum::from(0));
+    ary->set(state, 7, Fixnum::from(0));
+    ary->set(state, 8, isdst);
+    ary->set(state, 9, Fixnum::from(-7));
+    ary->set(state, 10, String::create(state, ""));
+
+    String* format = String::create(state, "%A, %e %B %G %I:%M:%S %p");
+    String* expected = String::create(state, "Sunday, 18 October 1973 12:10:08 PM");
+    Time* t = Time::create(state);
+    String* actual = t->strftime(state, ary, format);
+    TS_ASSERT(actual->equal(state, expected));
+  }
 };

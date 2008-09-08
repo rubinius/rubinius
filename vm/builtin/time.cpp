@@ -5,6 +5,7 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/integer.hpp"
+#include "builtin/string.hpp"
 #include "builtin/time.hpp"
 
 #include <sys/time.h>
@@ -153,5 +154,36 @@ namespace rubinius {
     ary->set(state, 1, usec);
 
     return ary;
+  }
+
+#define MAX_STRFTIME_OUTPUT 128
+
+  String* Time::strftime(STATE, Array* ary, String* format) {
+    struct tm tm;
+    char str[MAX_STRFTIME_OUTPUT];
+
+    tm.tm_sec = ((FIXNUM)ary->get(state, 0))->to_native();
+    tm.tm_min = ((FIXNUM)ary->get(state, 1))->to_native();
+    tm.tm_hour = ((FIXNUM)ary->get(state, 2))->to_native();
+    tm.tm_mday = ((FIXNUM)ary->get(state, 3))->to_native();
+    tm.tm_mon = ((FIXNUM)ary->get(state, 4))->to_native();
+    tm.tm_year = ((FIXNUM)ary->get(state, 5))->to_native();
+    tm.tm_wday = ((FIXNUM)ary->get(state, 6))->to_native();
+    tm.tm_yday = ((FIXNUM)ary->get(state, 7))->to_native();
+    tm.tm_isdst = ((FIXNUM)ary->get(state, 8))->to_native();
+
+#ifdef HAVE_STRUCT_TM_TM_GMTOFF
+    tm.tm_gmtoff = ((FIXNUM)ary->get(state, 9))->to_native();
+#endif
+
+#ifdef HAVE_STRUCT_TM_TM_ZONE
+    tm.tm_zone = rbx_string_as_cstr(state, ary->get(state, 10));
+#endif
+
+    size_t chars = ::strftime(str, MAX_STRFTIME_OUTPUT,
+                              format->c_str(), &tm);
+    str[MAX_STRFTIME_OUTPUT-1] = 0;
+
+    return String::create(state, str, chars);
   }
 }
