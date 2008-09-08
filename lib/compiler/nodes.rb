@@ -713,6 +713,10 @@ class Compiler
         @name = name
       end
       attr_accessor :name
+
+      def parent # allows use like a colon2
+        nil
+      end
     end
 
     class ConstFind < Node
