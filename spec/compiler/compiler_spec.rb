@@ -1629,28 +1629,77 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("str",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "x"
+              g.string_dup
+            end)
 
-  add_tests("str_concat_newline", # FIX? make prettier? possible?
-            "Compiler" => :skip)
+  add_tests("str_concat_newline",
+            "Compiler" => bytecode do |g|
+              g.push_literal "before after"
+              g.string_dup
+            end)
 
   add_tests("str_concat_space",
-            "Compiler" => :skip)
+            "Compiler" => testcases["str_concat_newline"]["Compiler"])
 
   add_tests("str_heredoc",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "  blah\nblah\n"
+              g.string_dup
+            end)
 
   add_tests("str_heredoc_call",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "  blah\nblah\n"
+              g.string_dup
+              g.send :strip, 0, false
+            end)
+
+#   "Ruby"         => "a += <<-H1 + b + <<-H2\n  first\nH1\n  second\nH2",
+#   "ParseTree"    => s(:lasgn, :a,
+#                       s(:call,
+#                         s(:lvar, :a),
+#                         :+,
+#                         s(:arglist,
+#                           s(:call,
+#                             s(:call, s(:str, "  first\n"), :+,
+#                               s(:arglist,
+#                                 s(:call, nil, :b, s(:arglist)))),
+#                             :+,
+#                             s(:arglist, s(:str, "  second\n")))))),
 
   add_tests("str_heredoc_double",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_local 0
+
+              g.push_literal "  first\n"
+              g.string_dup
+
+              g.push :self
+              g.send :b, 0, true
+              g.meta_send_op_plus
+
+              g.push_literal "  second\n"
+              g.string_dup
+
+              g.meta_send_op_plus
+              g.meta_send_op_plus
+
+              g.set_local 0
+            end)
 
   add_tests("str_heredoc_indent",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "  blah\nblah\n\n"
+              g.string_dup
+            end)
 
   add_tests("str_interp_file",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "file = (eval)\n"
+              g.string_dup
+            end)
 
   add_tests("structure_extra_block_for_dvar_scoping",
             "Compiler" => :skip)
