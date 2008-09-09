@@ -143,6 +143,7 @@ namespace :kernel do
     end
   end
 
+  desc "clean up rbc files"
   task :clean do
     rm_rf %w[runtime/bootstrap runtime/platform runtime/common runtime/delta],
           :verbose => $verbose
