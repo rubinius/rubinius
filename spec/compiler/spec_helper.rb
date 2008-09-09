@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-$: << 'lib' # HACK
+$: << 'lib'
 
 require File.dirname(__FILE__) + '/../../lib/compiler/compiler'
 require File.dirname(__FILE__) + '/../../lib/compiler/generator'
@@ -12,8 +12,11 @@ require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
 ## Added for ruby_parser transition... all of this should be temporary
 ## HACK:
 
-load "kernel/delta/sexp.rb"
-load "kernel/delta/sexp_processor.rb"
+$: << 'lib/compiler'
+
+require "sexp"
+require "sexp_processor"
+
 load "kernel/delta/string.rb"
 
 require 'ruby_parser' # for s(...)
