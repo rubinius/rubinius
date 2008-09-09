@@ -1993,28 +1993,68 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("undef",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              undef_bytecode :x
+            end)
 
   add_tests("undef_2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              undef_bytecode :x, :y
+            end)
 
   add_tests("undef_3",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              undef_bytecode :x, :y, :z
+            end)
 
   add_tests("undef_block_1",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :f1, 0, true
+              g.pop
+
+              undef_bytecode :x
+            end)
 
   add_tests("undef_block_2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :f1, 0, true
+              g.pop
+
+              undef_bytecode :x, :y
+            end)
 
   add_tests("undef_block_3",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :f1, 0, true
+              g.pop
+
+              undef_bytecode :x, :y, :z
+            end)
 
   add_tests("undef_block_3_post",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              undef_bytecode :x, :y, :z
+              g.pop
+
+              g.push :self
+              g.send :f2, 0, true
+            end)
 
   add_tests("undef_block_wtf",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :f1, 0, true
+              g.pop
+
+              undef_bytecode :x, :y, :z
+              g.pop
+
+              g.push :self
+              g.send :f2, 0, true
+            end)
 
   add_tests("until_post",
             "Compiler" => :skip)
