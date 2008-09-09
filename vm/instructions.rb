@@ -953,6 +953,34 @@ class Instructions
     CODE
   end
 
+  def test_instance_of
+    <<-CODE
+    Class* parent = state->new_class("Parent", G(object), 1);
+    Class* child =  state->new_class("Child", parent, 1);
+
+    OBJECT objp = state->new_object(parent);
+    OBJECT objc = state->new_object(child);
+
+    /* standard */
+    task->push(parent);
+    task->push(objp);
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
+
+    /* subclass */
+    task->push(parent);
+    task->push(objc);
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+
+    /* superclass */
+    task->push(child);
+    task->push(objp);
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
+    CODE
+  end
+
   # [Operation]
   #   Return true if value is a Fixnum, otherwise false
   # [Format]
@@ -1083,6 +1111,34 @@ class Instructions
     } else {
       stack_push(Qfalse);
     }
+    CODE
+  end
+
+  def test_kind_of
+    <<-CODE
+    Class* parent = state->new_class("Parent", G(object), 1);
+    Class* child =  state->new_class("Child", parent, 1);
+
+    OBJECT objp = state->new_object(parent);
+    OBJECT objc = state->new_object(child);
+
+    /* standard */
+    task->push(parent);
+    task->push(objp);
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
+
+    /* subclass */
+    task->push(parent);
+    task->push(objc);
+    run();
+    TS_ASSERT_EQUALS(Qtrue, task->pop());
+
+    /* superclass */
+    task->push(child);
+    task->push(objp);
+    run();
+    TS_ASSERT_EQUALS(Qfalse, task->pop());
     CODE
   end
 
