@@ -1414,25 +1414,145 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("fcall_arglist",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push 42
+              g.send :m, 1, true
+            end)
 
   add_tests("fcall_arglist_hash",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push_cpath_top
+              g.find_const :Hash
+
+              g.push_unique_literal :a
+              g.push 1
+              g.push_unique_literal :b
+              g.push 2
+
+              g.send :[], 4
+
+              g.send :m, 1, true
+            end)
 
   add_tests("fcall_arglist_norm_hash",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push 42
+              g.push_cpath_top
+              g.find_const :Hash
+
+              g.push_unique_literal :a
+              g.push 1
+              g.push_unique_literal :b
+              g.push 2
+
+              g.send :[], 4
+
+              g.send :m, 2, true
+            end)
 
   add_tests("fcall_arglist_norm_hash_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push 42
+              g.push_cpath_top
+              g.find_const :Hash
+
+              g.push_unique_literal :a
+              g.push 1
+              g.push_unique_literal :b
+              g.push 2
+
+              g.send :[], 4
+
+              g.push :self
+              g.send :c, 0, true
+              g.cast_array
+              g.push :nil
+
+              g.send_with_splat :m, 2, true, false
+            end)
 
   add_tests("fcall_block",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push_unique_literal :b
+
+              g.create_block_desc do |d|
+                dunno1 = d.new_label
+
+                d.pop
+                d.push_modifiers
+                dunno1.set!
+                d.push_unique_literal :c
+                d.pop_modifiers
+                d.ret
+              end
+
+              top         = g.new_label
+              bottom      = g.new_label
+              long_return = g.new_label
+              dunno1      = g.new_label
+              no_return   = g.new_label
+
+              top.set!
+              g.push_cpath_top
+              g.find_const :LongReturnException
+              g.send :allocate, 0
+              g.set_local 0
+              g.pop
+
+              g.send_with_block :a, 1, true
+
+              g.goto bottom
+
+              dunno1.set!
+              g.push_exception
+              g.dup
+              g.push_local 0
+              g.equal
+              g.gif long_return
+
+              g.clear_exception
+              g.dup
+              g.send :is_return, 0 # TODO: is_return?!? what is this, java?
+              g.gif no_return
+
+              g.send :value, 0
+              g.ret
+
+              long_return.set!
+              g.raise_exc          # TODO: why isn't this up above? why goto?
+
+              no_return.set!
+              g.send :value, 0     # TODO: why is this the same in both cases?
+
+              bottom.set!
+            end)
 
   add_tests("fcall_index_space",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push 42
+              g.make_array 1
+              g.send :a, 1, true
+            end)
 
   add_tests("fcall_keyword",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+              f = g.new_label
+
+              g.push_block
+              g.gif f
+              g.push 42
+              g.goto t
+              f.set!
+              g.push :nil
+              t.set!
+            end)
 
   add_tests("flip2",
             "Compiler" => :skip)
@@ -1666,7 +1786,7 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               g.push_literal :$_ # REFACTOR - we use this block a lot
               g.push_cpath_top
-              g.find_const :Globals
+              g.find_const :Globals # FIX: find the other Globals, order flipped
               g.send :[], 1
 
               g.memoize do
