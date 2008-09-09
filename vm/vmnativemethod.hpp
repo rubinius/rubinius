@@ -14,7 +14,7 @@
 
 #define HAS_UCONTEXT 1
 
-/* Some alterable labels for the future. Sadly #defines are a must here. */
+/* Some alterable labels to create an API. Sadly #defines are a must here. */
 #define store_current_execution_point_in(uctx)      getcontext(&(uctx))
 #define jump_to_execution_point_in(uctx)            setcontext(&(uctx))
 
@@ -42,30 +42,49 @@ namespace rubinius {
    *  able to move Objects around which would cause problems for
    *  the extension programmer.
    *
+   *  Handles should be used as values only (the copy semantics
+   *  are correct.) Pointers to Handles should be unnecessary.
+   *
+   *  TODO:   Alternative method of ensuring user does not need
+   *          to worry about deleting pointers to Handles if so
+   *          necessitated by performance.
    *  TODO:   Make this stupid thing safer and sensib..ler?
    */
   class Handle
   {
     public:   /* Ctors */
 
-      Handle(HandleStorage& handles, OBJECT obj)
-        : my_handles(handles)
+      Handle(HandleStorage& storage, OBJECT obj)
+        : my_storage(storage)
       {
-        my_handles.push_back(obj);
-        my_index = my_handles.size() - 1;
+        my_storage.push_back(obj);
+        my_index = my_storage.size() - 1;
       }
+
+      Handle(const Handle& other)
+        : my_storage(other.my_storage)
+        , my_index(other.my_index)
+      {}
+
 
     public:   /* Interface */
 
-      OBJECT to_object() const { return my_handles[my_index]; }
+                /**
+                 *  Transparent access to the Object.
+                 *
+                 *  This conversion is used whenever an OBJECT is expected
+                 *  but a Handle is present.
+                 */
+      operator  OBJECT() const { return my_storage[my_index]; }
+
 
     private:  /* Instance vars */
 
-      HandleStorage& my_handles;
-      std::size_t my_index;
+      HandleStorage&  my_storage;   /**< Storage of actual object information. */
+      std::size_t     my_index;     /**< Index into storage to retrieve Object. */
   };
 
-  typedef Handle* HandleTo;
+  typedef Handle HandleTo;
 
 
   /**

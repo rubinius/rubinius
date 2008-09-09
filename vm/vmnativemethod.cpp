@@ -84,8 +84,8 @@ namespace rubinius {
     NativeMethodContext* context = NativeMethodContext::current();
     NativeMethod::PointerTo c_method = context->method->actual_function_object();
 
-    HandleTo arg = new Handle(context->handles, Fixnum::from(5));
-    context->return_value = c_method(arg)->to_object();
+    HandleTo arg(context->handles, Fixnum::from(5));
+    context->return_value = c_method(arg);
 
     context->action = NativeMethodContext::RETURN_FROM_C;
 

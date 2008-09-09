@@ -22,9 +22,9 @@ extern "C" {
   HandleTo dummy_function(HandleTo obj)
   {
     hidden_context = NativeMethodContext::current();
-    hidden_given_int = as<Fixnum>(obj->to_object())->to_native();
+    hidden_given_int = as<Fixnum>(obj)->to_native();
 
-    return new Handle(hidden_context->handles, Fixnum::from(hidden_given_int * 2));
+    return Handle(hidden_context->handles, Fixnum::from(hidden_given_int * 2));
   }
 }
 
