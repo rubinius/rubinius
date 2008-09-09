@@ -209,7 +209,7 @@ class CompilerTestCase < ParseTreeTestCase
   # "Ruby"         => "loop { break if true }",
   add_tests("break",
             "Compiler" => bytecode do |g|
-              break_value = :nil
+              break_value = :nil # TODO: refactor later
 
               top   = g.new_label
               cond  = g.new_label
@@ -2063,7 +2063,33 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("until_pre",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push :false
+              g.git bottom
+
+              dunno1.set!
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.pop
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("until_pre_mod",
             "Compiler" => :skip)
@@ -2081,28 +2107,187 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("while_post",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.pop
+
+              dunno1.set!
+              g.push :false
+              g.gif bottom
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("while_post2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push 1
+              g.push 2
+              g.meta_send_op_plus
+              g.pop
+
+              g.push 3
+              g.push 4
+              g.meta_send_op_plus
+              g.pop
+
+              dunno1.set!
+              g.push :false
+              g.gif bottom
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("while_post_not",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.pop
+
+              dunno1.set!
+              g.push :true
+              g.git bottom
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("while_pre",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push :false
+              g.gif bottom
+
+              dunno1.set!
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.pop
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("while_pre_mod",
-            "Compiler" => :skip)
+            "Compiler" => testcases["while_pre"]["Compiler"])
 
   add_tests("while_pre_nil",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push :false
+              g.gif bottom
+
+              dunno1.set!
+              g.push :nil
+              g.pop
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("while_pre_not",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push :true
+              g.git bottom
+
+              dunno1.set!
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.pop
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("while_pre_not_mod",
-            "Compiler" => :skip)
+            "Compiler" => testcases["while_pre_not"]["Compiler"])
 
   add_tests("xstr",
             "Compiler" => :skip)
