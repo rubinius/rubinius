@@ -4,6 +4,7 @@
 /* Project */
 #include "vmnativemethod.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/fixnum.hpp"
 
 namespace rubinius {
 
@@ -72,19 +73,22 @@ namespace rubinius {
 
 /* VMNativeMethod */
 
-  typedef int (*ifpi)(int);
 
   /**
    *  This method always executes on the separate stack created for the context.
+   *
+   *  @see  vm/builtin/nativemethod.hpp for the possible function signatures.
    */
   void VMNativeMethod::perform_call()
   {
     NativeMethodContext* context = NativeMethodContext::current();
     NativeMethod::PointerTo c_method = context->method->actual_function_object();
 
-    context->return_value = (reinterpret_cast<ifpi>(c_method))(5);
+    HandleTo arg = new Handle(context->handles, Fixnum::from(5));
+    context->return_value = c_method(arg)->to_object();
 
     context->action = NativeMethodContext::RETURN_FROM_C;
+
     jump_to_execution_point_in(context->dispatch_point);
     /* Never actually returns, control never reaches here. */
   }

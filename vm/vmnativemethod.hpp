@@ -1,6 +1,9 @@
 #ifndef RBX_VMNATIVEMETHOD_HPP
 #define RBX_VMNATIVEMETHOD_HPP
 
+/* Std */
+#include <vector>
+
 /* System */
 #include <ucontext.h>
 
@@ -29,13 +32,49 @@ namespace rubinius {
   /* Forwards */
   class NativeMethod;
 
+  typedef std::vector<OBJECT> HandleStorage;
+
+  /**
+   *  Set of handles to Objects for C methods.
+   *
+   *  Handles give an extra layer of abstraction to Object handling
+   *  in C extensions. The main motivation is the GC: it must be
+   *  able to move Objects around which would cause problems for
+   *  the extension programmer.
+   *
+   *  TODO:   Make this stupid thing safer and sensib..ler?
+   */
+  class Handle
+  {
+    public:   /* Ctors */
+
+      Handle(HandleStorage& handles, OBJECT obj)
+        : my_handles(handles)
+      {
+        my_handles.push_back(obj);
+        my_index = my_handles.size() - 1;
+      }
+
+    public:   /* Interface */
+
+      OBJECT to_object() const { return my_handles[my_index]; }
+
+    private:  /* Instance vars */
+
+      HandleStorage& my_handles;
+      std::size_t my_index;
+  };
+
+  typedef Handle* HandleTo;
+
 
   /**
    *  Method context for C-implemented methods.
    */
   class NativeMethodContext
   {
-  public:   /* Types */
+    public:   /* Types */
+
     /**
      *  Control flow requests.
      *
@@ -52,18 +91,19 @@ namespace rubinius {
       RETURN_FROM_C,
     };
 
-  public:   /* Constants */
+
+    public:   /* Constants */
 
        static const std::size_t   DEFAULT_STACK_SIZE = 65536;   /* 64Kib */
 
 
-  public:   /* Ctors */
+    public:   /* Ctors */
 
                                   /** Brand new context for a brand new call. */
     static NativeMethodContext*   create(Message* message, Task* task, NativeMethod* method);
 
 
-  public:   /* Interface */
+    public:   /* Interface */
 
                                   /** Record a NativeMethodContext as the currently active one. */
                    static void    current_context_is(NativeMethodContext* context);
@@ -71,7 +111,7 @@ namespace rubinius {
     static NativeMethodContext*   current();
 
 
-  public:  /* Instance vars */
+    public:  /* Instance vars */
 
     /*
      *  OS X 10.5's ucontext implementation is broken and requires
@@ -91,7 +131,8 @@ namespace rubinius {
 #endif
     Message*        message;          /**< Message representing this call. */
     NativeMethod*   method;           /**< Function-like object that actually implements the method. */
-    int return_value;  /**< Return value from the call. */
+    HandleStorage   handles;          /**< Object handles for this call. */
+    Object*         return_value;     /**< Return value from the call. */
     MethodContext*  sender;           /**< Context in which this call was made. */
     char*           stack;            /**< Memory area to be used as the stack. */
     std::size_t     stack_size;       /**< Size of the memory area to be used as the stack. */
@@ -134,6 +175,25 @@ namespace rubinius {
     static bool   execute(VM* state, Task* task, Message* message, NativeMethod* method);
 
   };
+
+
+//  class Handles
+//  {
+//    public:   /* Types */
+//
+//      typedef std::vector<OBJECT> Storage;
+//      typedef Storage::size_type HandleType;
+//
+//    public:   /* Interface */
+//
+//      HandleType  make_handle_for(OBJECT obj) { my_storage.push_back(obj); return (my_storage.size() - 1) }
+//          OBJECT  object_from(HandleType handle) { return my_storage[handle]; }
+//
+//    private:  /* Instance variables */
+//
+//      Storage   my_storage;
+//  };
+
 }
 
 #endif
