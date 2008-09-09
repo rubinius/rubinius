@@ -2057,10 +2057,66 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("until_post",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.pop
+
+              dunno1.set!
+
+              g.push :false
+              g.git bottom
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("until_post_not",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.pop
+
+              dunno1.set!
+
+              g.push :true
+              g.gif bottom
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("until_pre",
             "Compiler" => bytecode do |g|
@@ -2092,13 +2148,39 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("until_pre_mod",
-            "Compiler" => :skip)
+            "Compiler" => testcases["until_pre"]["Compiler"])
 
   add_tests("until_pre_not",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+              g.push :true
+              g.gif bottom
+
+              dunno1.set!
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+              g.pop
+
+              g.goto top
+
+              bottom.set!
+              g.push :nil
+
+              dunno2.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("until_pre_not_mod",
-            "Compiler" => :skip)
+            "Compiler" => testcases["until_pre_not"]["Compiler"])
 
   add_tests("valias",
             "Compiler" => :skip)
