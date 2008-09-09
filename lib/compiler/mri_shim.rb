@@ -52,7 +52,9 @@ require File.dirname(__FILE__) + '/../../vm/gen/simple_field'
 
 class String
   def to_sexp(file = "(string)")
+    $: << "lib/compiler"
     require 'ruby_parser'
+    $:.pop
 
     RubyParser.new.process(self, file)
   end
