@@ -1,3 +1,9 @@
+############################################################
+# This file is imported from a different project.
+# DO NOT make modifications in this repo.
+# File a patch instead and assign it to Ryan Davis
+############################################################
+
 $: << File.expand_path("~/Work/p4/zss/src/ParseTree/dev/lib") # for me, not you.
 require 'sexp'
 require 'ruby_parser_extras'
