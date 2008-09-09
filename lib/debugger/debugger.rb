@@ -34,9 +34,6 @@ class Debugger
 
   # Initializes a new +Debugger+ instance
   def initialize
-    # HACK readline causes `rake spec` to hang in ioctl()
-    require 'readline-native'
-
     @breakpoint_tracker = BreakpointTracker.new
 
     # Register this debugger as the default debug

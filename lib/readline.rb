@@ -11,5 +11,5 @@ begin
     end
   end
 rescue
-  require 'readline-native'
+  puts "Unable to load readline extension"
 end
