@@ -53,7 +53,6 @@ namespace rubinius {
     SET(task, literals, Qnil);
     SET(task, exception, Qnil);
     SET(task, home, Qnil);
-    SET(task, probe, Qnil);
 
     if(stack_size == 0) stack_size = CompiledMethod::tramp_stack_size;
 

@@ -11,6 +11,7 @@
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
+#include "builtin/taskprobe.hpp"
 
 #include "context_cache.hpp"
 #include "config.hpp"
@@ -27,6 +28,8 @@ namespace rubinius {
   VM::VM(size_t bytes) : probe(NULL), wait_events(false) {
     config.compile_up_front = false;
     context_cache = NULL;
+
+    probe = (TaskProbe*)Qnil;
 
     user_config = new ConfigParser();
 

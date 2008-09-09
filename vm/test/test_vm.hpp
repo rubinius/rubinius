@@ -22,6 +22,10 @@ class TestVM : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_probe_is_nil() {
+    TS_ASSERT_EQUALS(Qnil, state->probe);
+  }
+
   void test_symbol_given_cstr() {
     SYMBOL sym1 = state->symbol("blah");
     SYMBOL sym2 = state->symbol("blah");

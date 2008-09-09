@@ -3,6 +3,7 @@
 
 #include "builtin/contexts.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/taskprobe.hpp"
 
 #include "vm.hpp"
 #include "objectmemory.hpp"
@@ -54,6 +55,14 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<Object>(task->active->self));
     TS_ASSERT(kind_of<CompiledMethod>(task->active->cm));
     TS_ASSERT(kind_of<Module>(task->active->module));
+  }
+
+  void test_create_sets_probe() {
+    TaskProbe* probe = TaskProbe::create(state);
+    state->probe = probe;
+    Task* task = Task::create(state);
+
+    TS_ASSERT_EQUALS(probe, task->probe);
   }
 
   void test_current() {
