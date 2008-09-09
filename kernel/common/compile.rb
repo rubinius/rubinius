@@ -19,7 +19,7 @@ module Compile
 
   @load_rbc_directly = false
 
-  def self.register_compiler(obj)
+  def self.compiler=(obj)
     if $DEBUG
       $stderr.puts "[Registered #{obj} as system compiler]"
     end
@@ -28,7 +28,7 @@ module Compile
 
   def self.compiler
     unless defined? @compiler then
-      @compiler = false
+      @compiler = nil
       begin
         # load rbc files if they exist without checking mtime's and such.
         @load_rbc_directly = true
