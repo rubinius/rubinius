@@ -120,7 +120,10 @@ namespace rubinius {
                   /**
                    *  Handle C method call including its callstack.
                    *
-                   *
+                   *  In addition to setting up the NativeMethodContext for the call
+                   *  and the call itself (arguments, return value and all), we also
+                   *  handle setting up further calls from the method to other Ruby
+                   *  or C methods.
                    */
     static bool   executor(STATE, NativeMethodPtr method, Task* task, Message* message);
 
