@@ -32,6 +32,14 @@ module Rubinius
     end
 
     ##
+    # Writes the CompiledFile +cm+ to +file+.
+    def self.dump(cm, file)
+      File.open(file, "w") do |f|
+        new("!RBIX", Compiler.version_number, "x").encode_to(f, cm)
+      end
+    end
+
+    ##
     # Encode the contets of this CompiledFile object to +stream+ with
     # a body of +body+. Body use marshalled using CompiledFile::Marshal
 

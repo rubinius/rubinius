@@ -109,10 +109,12 @@ module Compile
           end
 
           cm = if data then
-                 unmarshal_object data, 0
+                 # HACK check version
+                 Rubinius::CompiledFile.load(data).body
                else
                  data = Ar.new(dir).extract rbc
-                 unmarshal_object data, version_number
+                 # HACK check version
+                 Rubinius::CompiledFile.load(data).body
                end
 
           if cm
@@ -195,7 +197,7 @@ module Compile
           end
 
           # Store it for the future
-          Marshal.dump_to_file cm, rbc_path, version_number
+          Rubinius::CompiledFile.dump cm, rbc_path
         else
           compile_feature(rb, requiring) do
             cm = load_from_rbc(rbc_path, version_number)
@@ -210,7 +212,7 @@ module Compile
                 raise LoadError, "Unable to compile: #{rb_path}" unless cm
               end
 
-              Marshal.dump_to_file cm, rbc_path, version_number
+              Rubinius::CompiledFile.dump cm, rbc_path
             end
           end
         end
@@ -307,10 +309,6 @@ module Compile
     Compile.single_load '', rb, rbc, ext, false, {}
   end
 
-  def self.unmarshal_object(data, version)
-    Ruby.primitive :unmarshal_object
-  end
-
 end       # Compile
 
 module Kernel
@@ -318,7 +316,7 @@ module Kernel
     out = "#{path}c" unless out
     cm = Compile.compile_file(path, flags)
     raise LoadError, "Unable to compile '#{path}'" unless cm
-    Marshal.dump_to_file cm, out, Compile.version_number
+    Rubinius::CompiledFile.dump cm, out
     return out
   end
   module_function :compile

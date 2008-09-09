@@ -269,7 +269,7 @@ else
       require 'compiler/compiler'
       cm = Compiler.compile_file file, rbx_flags
       puts "Unable to compile '#{file}'" unless cm
-      Marshal.dump_to_file cm, out, Compile.version_number
+      Rubinius::CompiledFile.dump cm, out
     else
       puts "Compiling #{file}..."
       compile(file, out, rbx_flags)

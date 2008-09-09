@@ -84,8 +84,5 @@ if output
     exit 1
   end
 
-  File.open(output, "w") do |f|
-    cf = Rubinius::CompiledFile.new "!RBIX", 1, "x"
-    cf.encode_to f, top
-  end
+  Rubinius::CompiledFile.dump top, output
 end
