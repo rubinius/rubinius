@@ -752,12 +752,56 @@ class CompilerTestCase < ParseTreeTestCase
                 d.push_const :Thread
 
                 d.create_block_desc do |d2|
-                  block_top  = d2.new_label
+                  block_top   = d2.new_label
+                  dunno1      = d2.new_label
+                  dunno2      = d2.new_label
+                  runtime_err = d2.new_label
+                  unhandled   = d2.new_label
+                  bottom      = d2.new_label
+
                   d2.pop
                   d2.push_modifiers
+
                   block_top.set!
+
                   d2.push_modifiers
-                  d2.push :nil
+
+                  dunno1.set!
+                  dunno1.set!
+
+                  d2.push :self
+                  d2.send :do_stuff, 0, true
+                  d2.goto bottom
+
+                  dunno2.set!
+
+                  d2.push_const :RuntimeError
+                  d2.push_exception
+                  d2.send :===, 1
+                  d2.git runtime_err
+                  d2.push_exception
+                  d2.set_local_depth 0, 0
+                  d2.push_exception
+                  d2.send :===, 1
+                  d2.git runtime_err
+                  d2.goto unhandled
+
+                  runtime_err.set!
+
+                  d2.push :self
+                  d2.push_local_depth 0, 0
+                  d2.send :puts, 1, true
+                  d2.clear_exception
+                  d2.goto bottom
+
+                  unhandled.set!
+
+                  d2.push_exception
+                  d2.raise_exc
+
+                  bottom.set!
+                  bottom.set!
+
                   d2.pop_modifiers
                   d2.pop_modifiers
                   d2.ret # TODO: maybe refactor this into create_block_desc
