@@ -68,18 +68,25 @@ class Instructions
   def add_method(index)
     <<-CODE
     SYMBOL sym = as<Symbol>(task->literals->field[index]);
-    Module* obj = as<Module>(stack_pop());
+    OBJECT recv = stack_pop();
+    Module* mod = try_as<Module>(recv);
+    /* If the receiver is not a module, use the receiver's class_object instead */
+    if(!mod) {
+      mod = as<Module>(recv->class_object(state));
+    }
     CompiledMethod* meth = as<CompiledMethod>(stack_pop());
 
-    task->add_method(obj, sym, meth);
+    task->add_method(mod, sym, meth);
     stack_push(meth);
     CODE
   end
 
   def test_add_method
     <<-CODE
-    SYMBOL name = state->symbol("blah");
-    task->literals->put(state, 0, name);
+    SYMBOL name1 = state->symbol("true_method");
+    SYMBOL name2 = state->symbol("kernel_method");
+    task->literals->put(state, 0, name1);
+    task->literals->put(state, 1, name2);
 
     task->push(cm);
     task->push(G(true_class));
@@ -88,7 +95,20 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(G(true_class)->method_table->fetch(state, name), cm);
+    TS_ASSERT_EQUALS(G(true_class)->method_table->fetch(state, name1), cm);
+    /* Clear the stack for the next scenario */
+    task->pop(); task->pop();
+
+    String* recv = String::create(state, "main");
+
+    task->push(cm);
+    task->push(recv);
+    stream[1] = (opcode)1;
+
+    run();
+
+    TS_ASSERT_EQUALS(cm, G(string)->method_table->fetch(state, name2));
+    TS_ASSERT_EQUALS(Qnil, G(object)->method_table->fetch(state, name2));
     CODE
   end
 
