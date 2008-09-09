@@ -15,7 +15,7 @@ if defined? RUBY_ENGINE and RUBY_ENGINE == "rbx"
   end
 end
 
-Compile.register_compiler Compiler
+Compile.compiler = Compiler
 
 # Mask that we just loaded a compiler by removing the constant
 # and removing it's files from the feature list.

@@ -17,9 +17,7 @@ end
 
 module Compile
 
-  @compiler = nil
-
-  DefaultCompiler = "compiler"
+  @load_rbc_directly = false
 
   def self.register_compiler(obj)
     if $DEBUG
@@ -28,38 +26,25 @@ module Compile
     @compiler = obj
   end
 
-  @load_rbc_directly = false
+  def self.compiler
+    unless defined? @compiler then
+      @compiler = false
+      begin
+        # load rbc files if they exist without checking mtime's and such.
+        @load_rbc_directly = true
+        require "compiler/init"
+      ensure
+        @load_rbc_directly = false
+      end
 
-  def self.find_compiler
-    @compiler = :loading
-    begin
-      # load rbc files if they exist without checking mtime's and such.
-      @load_rbc_directly = true
-      require "#{DefaultCompiler}/init"
-    ensure
-      @load_rbc_directly = false
-    end
-
-    if @compiler == :loading
-      raise "Attempted to load DefaultCompiler, but no compiler was registered"
+      raise "Failed to load compiler" unless @compiler
     end
 
     return @compiler
   end
 
-  def self.compiler
-    return @compiler if @compiler and @compiler != :loading
-    return find_compiler
-  end
-
   def self.version_number
-    # Until the compiler is loaded, load any versions. This
-    # lets us bootstrap the compiler into the system no matter
-    # what version it is. This is important because we don't want
-    # to keep the compiler from loading at all because it might have
-    # older versioned files.
-    return @compiler.version_number if @compiler and @compiler != :loading
-    return 0
+    return self.compiler ? self.compiler.version_number : 0
   end
 
   def self.compile_file(path, flags=nil)
