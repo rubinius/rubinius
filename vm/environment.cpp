@@ -70,6 +70,8 @@ namespace rubinius {
   }
 
   void Environment::run_file(std::string file) {
+    if(!state->probe->nil_p()) state->probe->load_runtime(state, file);
+
     std::ifstream stream(file.c_str());
     if(!stream) throw std::runtime_error("Unable to open file to run");
 

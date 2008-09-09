@@ -7,11 +7,12 @@
 
 namespace rubinius {
 
-#define PROBE_ALL                       (0xf)
+#define PROBE_ALL                       (0xffffffff)
 #define PROBE_ADD_METHOD                (1 << 0)
 #define PROBE_START_METHOD              (1 << 1)
 #define PROBE_LOOKUP_FAILED             (1 << 2)
 #define PROBE_EXECUTE_INSTRUCTION       (1 << 3)
+#define PROBE_LOAD_RUNTIME              (1 << 4)
 
 #define PROBE_ALL_OP                    "all"
 #define PROBE_ALL1_OP                   "1"
@@ -19,6 +20,7 @@ namespace rubinius {
 #define PROBE_START_METHOD_OP           "start_method"
 #define PROBE_LOOKUP_FAILED_OP          "lookup_failed"
 #define PROBE_EXECUTE_INSTRUCTION_OP    "execute_instruction"
+#define PROBE_LOAD_RUNTIME_OP           "load_runtime"
 
   class Task;
   class Module;
@@ -116,6 +118,12 @@ namespace rubinius {
      * Prints the name of the instruction (opcode) before it runs.
      */
     void execute_instruction(Task* task, MethodContext* ctx, opcode op);
+
+    /**
+     * Prints the name of the file being loaded from runtime kernel.
+     * This probe must be enabled via the PROBE env var.
+     */
+    void load_runtime(STATE, std::string file);
 
     class Info : public TypeInfo {
     public:

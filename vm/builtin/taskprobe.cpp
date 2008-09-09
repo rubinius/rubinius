@@ -63,6 +63,8 @@ namespace rubinius {
       return PROBE_LOOKUP_FAILED;
     } else if(probe == PROBE_EXECUTE_INSTRUCTION_OP) {
       return PROBE_EXECUTE_INSTRUCTION;
+    } else if(probe == PROBE_LOAD_RUNTIME_OP) {
+      return PROBE_LOAD_RUNTIME;
     }
 
     return 0;
@@ -124,6 +126,12 @@ namespace rubinius {
         InstructionSequence::get_instruction_name(op) << " " <<
         std::right << std::setw(4) << ctx->js.stack - ctx->stk << " " <<
         std::right << std::setw(10) << (void*) *ctx->js.stack << std::endl;
+    }
+  }
+
+  void TaskProbe::load_runtime(STATE, std::string file) {
+    if(enabled_p(PROBE_LOAD_RUNTIME)) {
+      std::cout << "[Loading: " << file << "]" << std::endl;
     }
   }
 
