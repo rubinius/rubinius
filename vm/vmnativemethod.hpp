@@ -26,10 +26,13 @@
 
 namespace rubinius {
 
-  /** Generic function signature type for the C methods. */
-  typedef void (*NativeMethodPtr)(void);
+  /* Forwards */
+  class NativeMethod;
 
 
+  /**
+   *  Method context for C-implemented methods.
+   */
   class NativeMethodContext
   {
   public:   /* Types */
@@ -57,7 +60,7 @@ namespace rubinius {
   public:   /* Ctors */
 
                                   /** Brand new context for a brand new call. */
-    static NativeMethodContext*   create(Message* message, Task* task, NativeMethodPtr c_method);
+    static NativeMethodContext*   create(Message* message, Task* task, NativeMethod* method);
 
 
   public:   /* Interface */
@@ -82,12 +85,13 @@ namespace rubinius {
 #if defined(__APPLE__) && defined(HAS_UCONTEXT)
   _STRUCT_MCONTEXT  __c_call_point_mc;
 #endif
-    NativeMethodPtr c_method;         /**< Function-like object that actually implements the method. */
     ucontext_t      dispatch_point;   /**< Point of return to dispatch code (vm stack) */
 #if defined(__APPLE__) && defined(HAS_UCONTEXT)
   _STRUCT_MCONTEXT  __dispatch_point_mc;
 #endif
     Message*        message;          /**< Message representing this call. */
+    NativeMethod*   method;           /**< Function-like object that actually implements the method. */
+    int return_value;  /**< Return value from the call. */
     MethodContext*  sender;           /**< Context in which this call was made. */
     char*           stack;            /**< Memory area to be used as the stack. */
     std::size_t     stack_size;       /**< Size of the memory area to be used as the stack. */
@@ -124,8 +128,10 @@ namespace rubinius {
                    *  and the call itself (arguments, return value and all), we also
                    *  handle setting up further calls from the method to other Ruby
                    *  or C methods.
+                   *
+                   *  @note   Shamelessly tramples over the standard VMExecutable@execute.
                    */
-    static bool   executor(STATE, NativeMethodPtr method, Task* task, Message* message);
+    static bool   execute(VM* state, Task* task, Message* message, NativeMethod* method);
 
   };
 }

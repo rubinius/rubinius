@@ -3,8 +3,11 @@
 
 /* Project */
 #include "vmnativemethod.hpp"
+#include "builtin/nativemethod.hpp"
 
 namespace rubinius {
+
+  class NativeMethod;
 
   /** Currently active NativeMethodContext access.
    *
@@ -18,7 +21,7 @@ namespace rubinius {
     /**
      *  Brand new context for a brand new call.
      */
-    NativeMethodContext* NativeMethodContext::create(Message* msg, Task* task, NativeMethodPtr c_method)
+    NativeMethodContext* NativeMethodContext::create(Message* msg, Task* task, NativeMethod* method)
     {
       NativeMethodContext* nmc = new NativeMethodContext();
 
@@ -30,7 +33,9 @@ namespace rubinius {
       nmc->message = msg;
       nmc->task = task;
 
-      nmc->c_method = c_method;
+      nmc->method = method;
+
+      nmc->return_value = 0;
 
       /* HACK: Set contexts up so that Task::make_active() is transparent */
 //      nmc->sender = task->active;
@@ -67,13 +72,24 @@ namespace rubinius {
 
 /* VMNativeMethod */
 
+  typedef int (*ifpi)(int);
+
+  /**
+   *  This method always executes on the separate stack created for the context.
+   */
   void VMNativeMethod::perform_call()
   {
-    NativeMethodContext::current()->c_method();
-    setcontext(&NativeMethodContext::current()->dispatch_point);
+    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethod::PointerTo c_method = context->method->actual_function_object();
+
+    context->return_value = (reinterpret_cast<ifpi>(c_method))(5);
+
+    context->action = NativeMethodContext::RETURN_FROM_C;
+    jump_to_execution_point_in(context->dispatch_point);
+    /* Never actually returns, control never reaches here. */
   }
 
-  bool VMNativeMethod::executor(STATE,NativeMethodPtr method, Task* task, Message* message)
+  bool VMNativeMethod::execute(VM* state, Task* task, Message* message, NativeMethod* method)
   {
     NativeMethodContext* context = NativeMethodContext::create(message, task, method);
 
@@ -82,7 +98,6 @@ namespace rubinius {
 
     if (  NativeMethodContext::ORIGINAL_CALL == context->action  ) {
       /* Actual dispatch must run in the new stack */
-
       create_execution_point_with_stack(context->c_call_point, context->stack, context->stack_size);
       set_function_to_run_in(context->c_call_point, VMNativeMethod::perform_call);
 
