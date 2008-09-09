@@ -15,12 +15,22 @@ namespace rubinius {
 
   /**
    *  Ruby side of a NativeMethod, i.e. a C-implemented method.
+   *
+   *  The possible signatures for the C function are:
+   *
+   *    VALUE func(VALUE argument_array);
+   *    VALUE func(VALUE receiver, VALUE argument_array);
+   *    VALUE func(VALUE receiver, int argument_count, VALUE*);
+   *    VALUE func(VALUE receiver, ...);    // Some limited number of VALUE arguments
+   *
+   *  VALUE is an opaque type from which a handle to the actual object
+   *  can be extracted. User code never operates on the VALUE itself.
    */
   class NativeMethod : public Executable
   {
     public:   /* Types */
 
-      typedef void (*PointerTo)(void);
+      typedef HandleTo (*PointerTo)(HandleTo);
 
 
     public:   /* Ctors */
