@@ -18,7 +18,7 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("alias",
             "Compiler" => bytecode do |g|
               in_class :X do |d|
-                d.push :self
+                d.push_context
                 d.push_literal :y
                 d.push_literal :x
                 d.send :alias_method, 2, true
@@ -508,7 +508,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("constX",
             "Compiler" => bytecode do |g|
-              g.push :self
+              g.push_context
               g.push_literal :X
               g.push 1
               g.send :__const_set__, 2

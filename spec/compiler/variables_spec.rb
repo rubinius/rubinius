@@ -67,7 +67,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :meth
       g.push_literal meth
       g.send :__add_method__, 2
@@ -353,7 +353,7 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      g.push :self
+      g.push_context
       g.push_literal :Blah
       g.push 1
       g.send :__const_set__, 2

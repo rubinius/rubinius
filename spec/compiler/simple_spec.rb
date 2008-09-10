@@ -640,7 +640,7 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      g.push :self
+      g.push_context
       g.push_literal :a
       g.push_literal :b
       g.send :alias_method, 2, true

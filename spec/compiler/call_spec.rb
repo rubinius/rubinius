@@ -464,7 +464,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :a
       g.push_literal desc
       g.send :__add_method__, 2
@@ -496,7 +496,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :a
       g.push_literal desc
       g.send :__add_method__, 2
@@ -528,7 +528,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :a
       g.push_literal desc
       g.send :__add_method__, 2
@@ -560,7 +560,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :a
       g.push_literal desc
       g.send :__add_method__, 2

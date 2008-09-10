@@ -59,7 +59,7 @@ class Compiler
 
     class Alias
       def bytecode(g)
-        g.push :self
+        g.push_context
         g.push_literal @current
         g.push_literal @new
         g.send :alias_method, 2, true
@@ -586,26 +586,27 @@ class Compiler
             g.set_const @name
           end
         else
-          # if @value is nil, it means this was used inside masgn, and the value
-          # is already on the stack.
           if @value
+            # Put the value on the stack
             if @parent
               @parent.bytecode(g)
             elsif @from_top
               g.push_cpath_top
             else
-              g.push :self
+              g.push_context
             end
             g.push_literal @name
             @value.bytecode(g)
             g.send :__const_set__, 2
           else
+            # if @value is nil, it means this was used inside masgn, and the value
+            # is already on the stack.
             if @parent
               @parent.bytecode(g)
             elsif @from_top
               g.push_cpath_top
             else
-              g.push :self
+              g.push_context
             end
             g.swap
             g.push_literal @name
@@ -657,7 +658,7 @@ class Compiler
           g.push :self
           g.add_method @name
         else
-          g.push :self
+          g.push_context
           g.push_literal @name
           g.push_literal compile_body(g)
           g.send :__add_method__, 2

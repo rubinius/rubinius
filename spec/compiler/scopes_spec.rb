@@ -85,7 +85,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :f
       g.push_literal meth
       g.send :__add_method__, 2
@@ -124,7 +124,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :a
       g.push_literal meth
       g.send :__add_method__, 2
@@ -152,7 +152,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :add
       g.push_literal meth
       g.send :__add_method__, 2
@@ -189,7 +189,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :add
       g.push_literal meth
       g.send :__add_method__, 2
@@ -236,7 +236,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :add
       g.push_literal meth
       g.send :__add_method__, 2
@@ -260,7 +260,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :a
       g.push_literal meth
       g.send :__add_method__, 2
@@ -300,7 +300,7 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
+      g.push_context
       g.push_literal :a
       g.push_literal meth
       g.send :__add_method__, 2
@@ -359,7 +359,7 @@ describe Compiler do
         l.pop
         l.push_modifiers
         l.new_label.set!
-        l.push :self
+        l.push_context
         l.push_literal :a
         l.push_literal meth
         l.send :__add_method__, 2
