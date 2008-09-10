@@ -1,0 +1,2 @@
+class InvalidIndexError < StandardError
+end

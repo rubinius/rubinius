@@ -11,6 +11,64 @@ require 'rdoc/markup/to_flow'
 
 class RDoc::RI::Driver
 
+  class Hash < ::Hash
+    def self.convert(hash)
+      hash = new.update hash
+
+      hash.each do |key, value|
+        hash[key] = case value
+                    when ::Hash then
+                      convert value
+                    when Array then
+                      value = value.map do |v|
+                        ::Hash === v ? convert(v) : v
+                      end
+                      value
+                    else
+                      value
+                    end
+      end
+
+      hash
+    end
+
+    def method_missing method, *args
+      self[method.to_s]
+    end
+
+    def merge_enums(other)
+      other.each do |k, v|
+        if self[k] then
+          case v
+          when Array then
+            # HACK dunno
+            if String === self[k] and self[k].empty? then
+              self[k] = v
+            else
+              self[k] += v
+            end
+          when Hash then
+            self[k].update v
+          else
+            # do nothing
+          end
+        else
+          self[k] = v
+        end
+      end
+    end
+  end
+
+  class Error < RDoc::RI::Error; end
+
+  class NotFoundError < Error
+    def message
+      "Nothing known about #{super}"
+    end
+  end
+
+  attr_accessor :homepath # :nodoc:
+
   def self.process_args(argv)
     options = {}
     options[:use_stdout] = !$stdout.tty?
@@ -200,7 +258,10 @@ Options may also be set in the 'RI' environment variable.
     ri.run
   end
 
-  def initialize(options)
+  def initialize(options={})
+    options[:formatter] ||= RDoc::RI::Formatter.for('plain')
+    options[:use_stdout] ||= !$stdout.tty?
+    options[:width] ||= 72
     @names = options[:names]
 
     @class_cache_name = 'classes'
@@ -226,12 +287,12 @@ Options may also be set in the 'RI' environment variable.
     end.max
 
     up_to_date = (File.exist?(class_cache_file_path) and
-                  newest < File.mtime(class_cache_file_path))
+                  newest and newest < File.mtime(class_cache_file_path))
 
     @class_cache = if up_to_date then
                      load_cache_for @class_cache_name
                    else
-                     class_cache = {}
+                     class_cache = RDoc::RI::Driver::Hash.new
 
                      classes = map_dirs('**/cdesc*.yaml', :sys) { |f| Dir[f] }
                      populate_class_cache class_cache, classes
@@ -242,6 +303,9 @@ Options may also be set in the 'RI' environment variable.
                      populate_class_cache class_cache, classes, true
                      write_cache class_cache, class_cache_file_path
                    end
+
+    @class_cache = RDoc::RI::Driver::Hash.convert @class_cache
+    @class_cache
   end
 
   def class_cache_file_path
@@ -258,21 +322,29 @@ Options may also be set in the 'RI' environment variable.
 
   def display_class(name)
     klass = class_cache[name]
+    klass = RDoc::RI::Driver::Hash.convert klass
     @display.display_class_info klass, class_cache
+  end
+
+  def get_info_for(arg)
+    @names = [arg]
+    run
   end
 
   def load_cache_for(klassname)
     path = cache_file_for klassname
 
+    cache = nil
+
     if File.exist? path and
        File.mtime(path) >= File.mtime(class_cache_file_path) then
-      File.open path, 'rb' do |fp|
-        Marshal.load fp.read
+      open path, 'rb' do |fp|
+        cache = Marshal.load fp.read
       end
     else
       class_cache = nil
 
-      File.open class_cache_file_path, 'rb' do |fp|
+      open class_cache_file_path, 'rb' do |fp|
         class_cache = Marshal.load fp.read
       end
 
@@ -280,7 +352,7 @@ Options may also be set in the 'RI' environment variable.
       return nil unless klass
 
       method_files = klass["sources"]
-      cache = {}
+      cache = RDoc::RI::Driver::Hash.new
 
       sys_dir = @sys_dirs.first
       method_files.each do |f|
@@ -293,12 +365,45 @@ Options may also be set in the 'RI' environment variable.
           ext_path = f
           ext_path = "gem #{$1}" if f =~ %r%gems/[\d.]+/doc/([^/]+)%
           method["source_path"] = ext_path unless system_file
-          cache[name] = method
+          cache[name] = RDoc::RI::Driver::Hash.convert method
         end
       end
 
       write_cache cache, path
     end
+
+    RDoc::RI::Driver::Hash.convert cache
+  end
+
+  ##
+  # Finds the next ancestor of +orig_klass+ after +klass+.
+
+  def lookup_ancestor(klass, orig_klass)
+    cache = class_cache[orig_klass]
+
+    return nil unless cache
+
+    ancestors = [orig_klass]
+    ancestors.push(*cache.includes.map { |inc| inc['name'] })
+    ancestors << cache.superclass
+
+    ancestor = ancestors[ancestors.index(klass) + 1]
+
+    return ancestor if ancestor
+
+    lookup_ancestor klass, cache.superclass
+  end
+
+  ##
+  # Finds the method
+
+  def lookup_method(name, klass)
+    cache = load_cache_for klass
+    return nil unless cache
+
+    method = cache[name.gsub('.', '#')]
+    method = cache[name.gsub('.', '::')] unless method
+    method
   end
 
   def map_dirs(file_name, system=false)
@@ -313,6 +418,22 @@ Options may also be set in the 'RI' environment variable.
            end
 
     dirs.map { |dir| yield File.join(dir, file_name) }.flatten.compact
+  end
+
+  ##
+  # Extract the class and method name parts from +name+ like Foo::Bar#baz
+
+  def parse_name(name)
+    parts = name.split(/(::|\#|\.)/)
+
+    if parts[-2] != '::' or parts.last !~ /^[A-Z]/ then
+      meth = parts.pop
+      parts.pop
+    end
+
+    klass = parts.join
+
+    [klass, meth]
   end
 
   def populate_class_cache(class_cache, classes, extension = false)
@@ -334,6 +455,8 @@ Options may also be set in the 'RI' environment variable.
           desc["class_method_extensions"] = desc.delete "class_methods"
         end
 
+        klass = RDoc::RI::Driver::Hash.convert klass
+
         klass.merge_enums desc
         klass["sources"] << cdesc
       end
@@ -341,7 +464,11 @@ Options may also be set in the 'RI' environment variable.
   end
 
   def read_yaml(path)
-    YAML.load File.read(path).gsub(/ \!ruby\/(object|struct):(RDoc::RI|RI|SM).*/, '')
+    data = File.read path
+    data = data.gsub(/ \!ruby\/(object|struct):(RDoc::RI|RI).*/, '')
+    data = data.gsub(/ \!ruby\/(object|struct):SM::(\S+)/,
+                     ' !ruby/\1:RDoc::Markup::\2')
+    YAML.load data
   end
 
   def run
@@ -354,17 +481,26 @@ Options may also be set in the 'RI' environment variable.
           if class_cache.key? name then
             display_class name
           else
-            meth = nil
+            klass, = parse_name name
 
-            parts = name.split(/::|\#|\./)
-            meth = parts.pop unless parts.last =~ /^[A-Z]/
-            klass = parts.join '::'
+            orig_klass = klass
+            orig_name = name
 
-            cache = load_cache_for klass
-            # HACK Does not support F.n
-            abort "Nothing known about #{name}" unless cache
-            method = cache[name.gsub(/\./, '#')]
-            abort "Nothing known about #{name}" unless method
+            until klass == 'Kernel' do
+              method = lookup_method name, klass
+
+              break method if method
+
+              ancestor = lookup_ancestor klass, orig_klass
+
+              break unless ancestor
+
+              name = name.sub klass, ancestor
+              klass = ancestor
+            end
+
+            raise NotFoundError, orig_name unless method
+
             @display.display_method_info method
           end
         else
@@ -372,8 +508,9 @@ Options may also be set in the 'RI' environment variable.
             display_class name
           else
             methods = select_methods(/^#{name}/)
+
             if methods.size == 0
-              abort "Nothing known about #{name}"
+              raise NotFoundError, name
             elsif methods.size == 1
               @display.display_method_info methods.first
             else
@@ -383,6 +520,8 @@ Options may also be set in the 'RI' environment variable.
         end
       end
     end
+  rescue NotFoundError => e
+    abort e.message
   end
 
   def select_methods(pattern)
@@ -408,28 +547,5 @@ Options may also be set in the 'RI' environment variable.
     cache
   end
 
-end
-
-class Hash
-  def method_missing method, *args
-    self[method.to_s]
-  end
-
-  def merge_enums(other)
-    other.each do |k,v|
-      if self[k] then
-        case v
-        when Array then
-          self[k] += v
-        when Hash then
-          self[k].merge! v
-        else
-          # do nothing
-        end
-      else
-        self[k] = v
-      end
-    end
-  end
 end
 

@@ -1,0 +1,11 @@
+This directory contains files that implement essential features of
+the Rubinius bootstrap library. The goal is to enable the Rubinius
+core libraries to be run on other implementations like MRI and
+JRuby.
+
+This is an experiment. We don't know if this will work. Also, you
+can probably expect this to be quite slow, since for example, we
+will not use any of the data structures of the target implementation.
+For example, in Rubinius the Tuple is a core data structure implemented
+in the VM. We model the Tuple as a linked-list where each node is a
+Ruby object.

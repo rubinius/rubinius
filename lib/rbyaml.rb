@@ -28,7 +28,7 @@ module RbYAML
   end
 
   def self.load( io )
-    _load(io)
+    _load(io) rescue false
   end
 
   def self.load_file( filepath )
@@ -119,6 +119,11 @@ module RbYAML
 
   def self.detect_implicit( val )
     SimpleDetector.detect(val)
+  end
+  
+  # Convert a type_id to a taguri
+  def self.tagurize(val)
+    val.class == String ? "#{RbYAML::Parser::DEFAULT_TAGS["!!"]}#{val}" : val
   end
 
   # this operation does not make sense in RbYAML (right now)

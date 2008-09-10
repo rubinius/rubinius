@@ -18,17 +18,19 @@ module IRB
             continue = true
             bt.frames.each do |frame|
               next unless continue
-              if %r!kernel/common/eval.rb!.match(frame.last)
+              recv = frame.describe
+              loc = frame.location
+              if %r!kernel/core/eval.rb!.match(loc)
                 continue = false
                 next
               end
               
-              if %r!main.irb_binding!.match(frame.first)
-                puts "   from #{frame[1]}"
+              if %r!main.irb_binding!.match(recv)
+                puts "   from #{recv}"
                 break
               end
               
-              puts "   from #{frame[0]} at #{frame[1]}"
+              puts "   from #{recv} at #{loc}"
             end            
           end
         end

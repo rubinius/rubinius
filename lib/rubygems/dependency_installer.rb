@@ -1,8 +1,11 @@
 require 'rubygems'
 require 'rubygems/dependency_list'
 require 'rubygems/installer'
-require 'rubygems/source_info_cache'
+require 'rubygems/spec_fetcher'
 require 'rubygems/user_interaction'
+
+##
+# Installs a gem along with all its dependencies from local and remote gems.
 
 class Gem::DependencyInstaller
 
@@ -25,36 +28,50 @@ class Gem::DependencyInstaller
   # Creates a new installer instance.
   #
   # Options are:
-  # :env_shebang:: See Gem::Installer::new.
+  # :cache_dir:: Alternate repository path to store .gem files in.
   # :domain:: :local, :remote, or :both.  :local only searches gems in the
   #           current directory.  :remote searches only gems in Gem::sources.
   #           :both searches both.
+  # :env_shebang:: See Gem::Installer::new.
   # :force:: See Gem::Installer#install.
   # :format_executable:: See Gem::Installer#initialize.
-  # :ignore_dependencies: Don't install any dependencies.
-  # :install_dir: See Gem::Installer#install.
-  # :security_policy: See Gem::Installer::new and Gem::Security.
-  # :wrappers: See Gem::Installer::new
+  # :ignore_dependencies:: Don't install any dependencies.
+  # :install_dir:: See Gem::Installer#install.
+  # :security_policy:: See Gem::Installer::new and Gem::Security.
+  # :wrappers:: See Gem::Installer::new
+
   def initialize(options = {})
     options = DEFAULT_OPTIONS.merge options
-    @env_shebang = options[:env_shebang]
+
+    @bin_dir = options[:bin_dir]
+    @development = options[:development]
     @domain = options[:domain]
+    @env_shebang = options[:env_shebang]
     @force = options[:force]
     @format_executable = options[:format_executable]
     @ignore_dependencies = options[:ignore_dependencies]
-    @install_dir = options[:install_dir] || Gem.dir
     @security_policy = options[:security_policy]
     @wrappers = options[:wrappers]
-    @bin_dir = options[:bin_dir]
 
     @installed_gems = []
+
+    @install_dir = options[:install_dir] || Gem.dir
+    @cache_dir = options[:cache_dir] || @install_dir
+
+    if options[:install_dir] then
+      spec_dir = File.join @install_dir, 'specifications'
+      @source_index = Gem::SourceIndex.from_gems_in spec_dir
+    else
+      @source_index = Gem.source_index
+    end
   end
 
   ##
   # Returns a list of pairs of gemspecs and source_uris that match
   # Gem::Dependency +dep+ from both local (Dir.pwd) and remote (Gem.sources)
   # sources.  Gems are sorted with newer gems prefered over older gems, and
-  # local gems prefered over remote gems.
+  # local gems preferred over remote gems.
+
   def find_gems_with_sources(dep)
     gems_and_sources = []
 
@@ -67,7 +84,16 @@ class Gem::DependencyInstaller
 
     if @domain == :both or @domain == :remote then
       begin
-        gems_and_sources.push(*Gem::SourceInfoCache.search_with_source(dep, true))
+        requirements = dep.version_requirements.requirements.map do |req, ver|
+          req
+        end
+
+        all = requirements.length > 1 ||
+                (requirements.first != ">=" and requirements.first != ">")
+
+        found = Gem::SpecFetcher.fetcher.fetch dep, all
+        gems_and_sources.push(*found)
+
       rescue Gem::RemoteFetcher::FetchError => e
         if Gem.configuration.really_verbose then
           say "Error fetching remote data:\t\t#{e.message}"
@@ -78,13 +104,14 @@ class Gem::DependencyInstaller
     end
 
     gems_and_sources.sort_by do |gem, source|
-      [gem, source !~ /^http:\/\// ? 1 : 0] # local gems win
+      [gem, source =~ /^http:\/\// ? 0 : 1] # local gems win
     end
   end
 
   ##
   # Gathers all dependencies necessary for the installation from local and
   # remote sources unless the ignore_dependencies was given.
+
   def gather_dependencies
     specs = @specs_and_sources.map { |spec,_| spec }
 
@@ -100,8 +127,18 @@ class Gem::DependencyInstaller
         next if spec.nil? or seen[spec.name]
         seen[spec.name] = true
 
-        spec.dependencies.each do |dep|
-          results = find_gems_with_sources(dep).reverse # local gems first
+        deps = spec.runtime_dependencies
+        deps |= spec.development_dependencies if @development
+
+        deps.each do |dep|
+          results = find_gems_with_sources(dep).reverse
+
+          results.reject! do
+            @source_index.any? do |_, installed_spec|
+              dep.name == installed_spec.name and
+                dep.version_requirements.satisfied_by? installed_spec.version
+            end
+          end
 
           results.each do |dep_spec, source_uri|
             next if seen[dep_spec.name]
@@ -116,7 +153,12 @@ class Gem::DependencyInstaller
     @gems_to_install = dependency_list.dependency_order.reverse
   end
 
-  def gather_specs_to_download gem_name, version = Gem::Requirement.default
+  ##
+  # Finds a spec and the source_uri it came from for gem +gem_name+ and
+  # +version+.  Returns an Array of specs and sources required for
+  # installation of the gem.
+
+  def find_spec_by_name_and_version gem_name, version = Gem::Requirement.default
     spec_and_source = nil
 
     glob = if File::ALT_SEPARATOR then
@@ -140,8 +182,8 @@ class Gem::DependencyInstaller
     end
 
     if spec_and_source.nil? then
-      @dep = Gem::Dependency.new gem_name, version
-      spec_and_sources = find_gems_with_sources(@dep).reverse
+      dep = Gem::Dependency.new gem_name, version
+      spec_and_sources = find_gems_with_sources(dep).reverse
 
       spec_and_source = spec_and_sources.find { |spec, source|
         Gem::Platform.match spec.platform
@@ -150,31 +192,43 @@ class Gem::DependencyInstaller
 
     if spec_and_source.nil? then
       raise Gem::GemNotFoundException,
-        "could not find #{gem_name} locally or in a repository"
+        "could not find gem #{gem_name} locally or in a repository"
     end
 
     @specs_and_sources = [spec_and_source]
-
-    gather_dependencies
   end
 
   ##
-  # Installs the gem and all its dependencies.
-  def install gem_name, version = Gem::Requirement.default
-    spec_dir = File.join @install_dir, 'specifications'
-    source_index = Gem::SourceIndex.from_gems_in spec_dir
+  # Installs the gem and all its dependencies.  Returns an Array of installed
+  # gems specifications.
 
-    gather_specs_to_download gem_name, version
+  def install dep_or_name, version = Gem::Requirement.default
+    if String === dep_or_name then
+      find_spec_by_name_and_version dep_or_name, version
+    else
+      @specs_and_sources = [find_gems_with_sources(dep_or_name).last]
+    end
+
+    @installed_gems = []
+
+    gather_dependencies
 
     @gems_to_install.each do |spec|
       last = spec == @gems_to_install.last
       # HACK is this test for full_name acceptable?
-      next if source_index.any? { |n,_| n == spec.full_name } and not last
+      next if @source_index.any? { |n,_| n == spec.full_name } and not last
 
+      # TODO: make this sorta_verbose so other users can benefit from it
       say "Installing gem #{spec.full_name}" if Gem.configuration.really_verbose
 
       _, source_uri = @specs_and_sources.assoc spec
-      local_gem_path = Gem::RemoteFetcher.fetcher.download spec, source_uri
+      begin
+        local_gem_path = Gem::RemoteFetcher.fetcher.download spec, source_uri,
+                                                             @cache_dir
+      rescue Gem::RemoteFetcher::FetchError
+        next if @force
+        raise
+      end
 
       inst = Gem::Installer.new local_gem_path,
                                 :env_shebang => @env_shebang,
@@ -184,12 +238,15 @@ class Gem::DependencyInstaller
                                 :install_dir => @install_dir,
                                 :security_policy => @security_policy,
                                 :wrappers => @wrappers,
-                                :bin_dir => @bin_dir
+                                :bin_dir => @bin_dir,
+                                :development => @development
 
       spec = inst.install
 
       @installed_gems << spec
     end
+
+    @installed_gems
   end
 
 end

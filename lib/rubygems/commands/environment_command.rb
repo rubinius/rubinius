@@ -33,13 +33,13 @@ class Gem::Commands::EnvironmentCommand < Gem::Command
     when /^gemdir/, /^gemhome/, /^home/, /^GEM_HOME/ then
       out << Gem.dir
     when /^gempath/, /^path/, /^GEM_PATH/ then
-      out << Gem.path.join(':')
+      out << Gem.path.join(File::PATH_SEPARATOR)
     when /^remotesources/ then
       out << Gem.sources.join("\n")
     when nil then
       out = "RubyGems Environment:\n"
 
-      out << "  - RUBYGEMS VERSION: #{Gem::RubyGemsVersion} (#{Gem::RubyGemsPackageVersion})\n"
+      out << "  - RUBYGEMS VERSION: #{Gem::RubyGemsVersion}\n"
 
       out << "  - RUBY VERSION: #{RUBY_VERSION} (#{RUBY_RELEASE_DATE}"
       out << " patchlevel #{RUBY_PATCHLEVEL}" if defined? RUBY_PATCHLEVEL
@@ -50,6 +50,8 @@ class Gem::Commands::EnvironmentCommand < Gem::Command
       out << "  - RUBYGEMS PREFIX: #{Gem.prefix}\n" unless Gem.prefix.nil?
 
       out << "  - RUBY EXECUTABLE: #{Gem.ruby}\n"
+
+      out << "  - EXECUTABLE DIRECTORY: #{Gem.bindir}\n"
 
       out << "  - RUBYGEMS PLATFORMS:\n"
       Gem.platforms.each do |platform|

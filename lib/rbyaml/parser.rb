@@ -358,7 +358,8 @@ module RbYAML
       elsif token.__is_scalar
         return scalar
       else
-        raise ParserError.new("while scanning a node","expected the node content, but found #{token.tid}")
+        raise ParserError.new("while scanning a node",
+                              "expected the node content, but found #{token.tid.inspect} at #{@scanner.pointer}")
       end
     end
 

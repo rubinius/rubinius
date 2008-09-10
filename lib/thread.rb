@@ -40,60 +40,70 @@ end
 class Mutex
   def initialize
     @lock = Channel.new
-    @available = Channel.new
+    @owner = nil
+    @waiters = []
     @lock << nil
   end
 
   def locked?
-    owner = @lock.receive
-    !!owner
-  ensure
-    @lock << owner
+    @lock.receive
+    begin
+      !!@owner
+    ensure
+      @lock << nil
+    end
   end
 
   def try_lock
-    owner = @lock.receive
-    unless owner
-      owner = Thread.current
-      true
-    else
-      false
+    @lock.receive
+    begin
+      if @owner
+        false
+      else
+        @owner = Thread.current
+        true
+      end
+    ensure
+      @lock << nil
     end
-  ensure
-    @lock << owner
   end
 
   def lock
-    owner = @lock.receive
-    while owner
-      @lock << owner
-      @available.receive
-      owner = @lock.receive
+    @lock.receive
+    begin
+      while @owner
+        wchan = Channel.new
+        @waiters.push wchan
+        @lock << nil
+        wchan.receive
+        @lock.receive
+      end
+      @owner = Thread.current
+      self
+    ensure
+      @lock << nil
     end
-    owner = Thread.current
-    self
-  ensure
-    @lock << owner
   end
 
   def unlock
-    owner = @lock.receive
-    if owner == Thread.current
-      owner = nil 
-      @available << nil
-    else
-      raise ThreadError, "Not owner"
+    @lock.receive
+    begin
+      raise ThreadError, "Not owner" unless @owner == Thread.current
+      @owner = nil
+      @waiters.shift << nil unless @waiters.empty?
+      self
+    ensure
+      @lock << nil
     end
-    self
-  ensure
-    @lock << owner
   end
 
   def synchronize
     lock
-    yield
-  ensure
-    unlock
+    begin
+      yield
+    ensure
+      unlock
+    end
   end
 end
 
@@ -129,17 +139,43 @@ class ConditionVariable
   # Creates a new ConditionVariable
   #
   def initialize
+    @lock = Channel.new
     @waiters = []
+    @lock << nil
   end
   
   #
   # Releases the lock held in +mutex+ and waits; reacquires the lock on wakeup.
   #
-  def wait(mutex)
+  def wait(mutex, timeout=nil)
+    @lock.receive
     begin
-      # TODO: mutex should not be used
-      @waiters.push(Thread.current)
-      mutex.sleep
+      wchan = Channel.new
+      mutex.unlock
+      @waiters.push wchan
+      @lock << nil
+      if timeout
+        timeout_ms = (timeout*1000000).to_i
+        timeout_id = Scheduler.send_in_microseconds(wchan, timeout_ms, nil)
+      else
+        timeout_id = nil
+      end
+      signaled = wchan.receive
+      Scheduler.cancel(timeout_id) if timeout
+      mutex.lock
+      @lock.receive
+      unless signaled or @waiters.delete wchan
+        # we timed out, but got signaled afterwards (e.g. while waiting to
+        # acquire @lock), so pass that signal on to the next waiter
+        @waiters.shift << true unless @waiters.empty?
+      end
+      if timeout
+        !!signaled
+      else
+        nil
+      end
+    ensure
+      @lock << nil
     end
   end
   
@@ -147,30 +183,20 @@ class ConditionVariable
   # Wakes up the first thread in line waiting for this lock.
   #
   def signal
-    begin
-      t = @waiters.shift
-      t.run if t
-    rescue ThreadError
-      retry
-    end
+    @lock.receive
+    @waiters.shift << true unless @waiters.empty?
+    @lock << nil
+    nil
   end
-    
+
   #
   # Wakes up all threads waiting for this lock.
   #
   def broadcast
-    # TODO: imcomplete
-    waiters0 = nil
-    Thread.exclusive do
-      waiters0 = @waiters.dup
-      @waiters.clear
-    end
-    for t in waiters0
-      begin
-	t.run
-      rescue ThreadError
-      end
-    end
+    @lock.receive
+    @waiters.shift << true until @waiters.empty?
+    @lock << nil
+    nil
   end
 end
 
@@ -207,30 +233,21 @@ class Queue
   #
   def initialize
     @que = []
-    @waiting = []
     @que.taint		# enable tainted comunication
-    @waiting.taint
     self.taint
+    @waiting = []
+    @waiting.taint
     @mutex = Mutex.new
+    @resource = ConditionVariable.new
   end
 
   #
   # Pushes +obj+ to the queue.
   #
   def push(obj)
-    t = nil
-    @mutex.synchronize{
+    @mutex.synchronize do
       @que.push obj
-      begin
-        t = @waiting.shift
-        t.wakeup if t
-      rescue ThreadError
-        retry
-      end
-    }
-    begin
-      t.run if t
-    rescue ThreadError
+      @resource.signal
     end
   end
 
@@ -251,15 +268,21 @@ class Queue
   #
   def pop(non_block=false)
     while true
-      @mutex.synchronize{
+      @mutex.synchronize do
+        #FIXME: some code in net or somewhere violates encapsulation
+        #and demands that a waiting queue exist for Queue, as a result
+        #we have to do a linear search here to remove the current Thread.
+        @waiting.delete(Thread.current)
         if @que.empty?
           raise ThreadError, "queue empty" if non_block
           @waiting.push Thread.current
-          @mutex.sleep
+          @resource.wait(@mutex)
         else
-          return @que.shift
+          retval = @que.shift
+          @resource.signal
+          return retval
         end
-      }
+      end
     end
   end
 
@@ -322,6 +345,8 @@ class SizedQueue < Queue
     @max = max
     @queue_wait = []
     @queue_wait.taint		# enable tainted comunication
+    @size_mutex = Mutex.new
+    @sem = ConditionVariable.new
     super()
   end
 
@@ -336,24 +361,9 @@ class SizedQueue < Queue
   # Sets the maximum size of the queue.
   #
   def max=(max)
-    diff = nil
-    @mutex.synchronize {
-      if max <= @max
-        @max = max
-      else
-        diff = max - @max
-        @max = max
-      end
-    }
-    if diff
-      diff.times do
-	begin
-	  t = @queue_wait.shift
-	  t.run if t
-	rescue ThreadError
-	  retry
-	end
-      end
+    @size_mutex.synchronize do
+      @max = max
+      @sem.broadcast(@size_mutex)
     end
     max
   end
@@ -363,26 +373,16 @@ class SizedQueue < Queue
   # until space becomes available.
   #
   def push(obj)
-    t = nil
-    @mutex.synchronize{
-      while true
-        break if @que.length <= @max
-        @queue_wait.push Thread.current
-        @mutex.sleep
-      end
-    
-      @que.push obj
-      begin
-        t = @waiting.shift
-        t.wakeup if t
-      rescue ThreadError
-        retry
-      end
-    }
-    
-    begin
-      t.run if t
-    rescue ThreadError
+    while(true)
+      @size_mutex.synchronize do
+        @queue_wait.delete(Thread.current)
+        if(@que.size >= @max)
+          @queue_wait.push Thread.current
+          @sem.wait(@size_mutex)          
+        else
+          return super(obj)
+        end
+      end      
     end
   end
 
@@ -401,22 +401,14 @@ class SizedQueue < Queue
   #
   def pop(*args)
     retval = super
-    t = nil
-    @mutex.synchronize {
-      if @que.length < @max
-        begin
-          t = @queue_wait.shift
-          t.wakeup if t
-        rescue ThreadError
-          retry
-        end
-      end
-    }
-    begin
-      t.run if t
-    rescue ThreadError
+    
+    @size_mutex.synchronize do
+      if @que.size < @max
+        @sem.broadcast
+      end      
     end
-    retval
+    
+    return retval
   end
 
   #

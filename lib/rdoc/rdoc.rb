@@ -1,9 +1,12 @@
 require 'rdoc'
 
-require 'rdoc/parsers/parse_rb.rb'
-require 'rdoc/parsers/parse_c.rb'
-require 'rdoc/parsers/parse_f95.rb'
-require 'rdoc/parsers/parse_simple.rb'
+require 'rdoc/parser'
+
+# Simple must come first
+require 'rdoc/parser/simple'
+require 'rdoc/parser/ruby'
+require 'rdoc/parser/c'
+require 'rdoc/parser/f95'
 
 require 'rdoc/stats'
 require 'rdoc/options'
@@ -17,20 +20,23 @@ require 'time'
 module RDoc
 
   ##
-  # Encapsulate the production of rdoc documentation. Basically
-  # you can use this as you would invoke rdoc from the command
-  # line:
+  # Encapsulate the production of rdoc documentation. Basically you can use
+  # this as you would invoke rdoc from the command line:
   #
-  #    rdoc = RDoc::RDoc.new
-  #    rdoc.document(args)
+  #   rdoc = RDoc::RDoc.new
+  #   rdoc.document(args)
   #
-  # where _args_ is an array of strings, each corresponding to
-  # an argument you'd give rdoc on the command line. See rdoc/rdoc.rb
-  # for details.
+  # Where +args+ is an array of strings, each corresponding to an argument
+  # you'd give rdoc on the command line. See rdoc/rdoc.rb for details.
 
   class RDoc
 
     Generator = Struct.new(:file_name, :class_name, :key)
+
+    ##
+    # Accessor for statistics.  Available after each call to parse_files
+
+    attr_reader :stats
 
     ##
     # This is the list of output generator that we support
@@ -54,7 +60,7 @@ module RDoc
     end
 
     def initialize
-      @stats = Stats.new
+      @stats = nil
     end
 
     ##
@@ -134,7 +140,7 @@ module RDoc
     # subdirectories.
     #
     # The effect of this is that if you want a file with a non-standard
-    # extension parsed, you must name it explicity.
+    # extension parsed, you must name it explicitly.
 
     def normalized_file_list(options, relative_files, force_doc = false,
                              exclude_pattern = nil)
@@ -146,7 +152,10 @@ module RDoc
         case type = stat.ftype
         when "file"
           next if @last_created and stat.mtime < @last_created
-          file_list << rel_file_name.sub(/^\.\//, '') if force_doc || ParserFactory.can_parse(rel_file_name)
+
+          if force_doc or ::RDoc::Parser.can_parse(rel_file_name) then
+            file_list << rel_file_name.sub(/^\.\//, '')
+          end
         when "directory"
           next if rel_file_name == "CVS" || rel_file_name == ".svn"
           dot_doc = File.join(rel_file_name, DOT_DOC_FILENAME)
@@ -179,6 +188,8 @@ module RDoc
     # Parse each file on the command line, recursively entering directories.
 
     def parse_files(options)
+      @stats = Stats.new options.verbosity
+      
       files = options.files
       files = ["."] if files.empty?
 
@@ -187,27 +198,30 @@ module RDoc
       return [] if file_list.empty?
 
       file_info = []
-      width = file_list.map { |name| name.length }.max + 1
 
-      file_list.each do |fn|
-        $stderr.printf("\n%*s: ", width, fn) unless options.quiet
+      file_list.each do |filename|
+        @stats.add_file filename
 
         content = if RUBY_VERSION >= '1.9' then
-                    File.open(fn, "r:ascii-8bit") { |f| f.read }
+                    File.open(filename, "r:ascii-8bit") { |f| f.read }
                   else
-                    File.read fn
+                    File.read filename
                   end
 
-        if /coding:\s*(\S+)/ =~ content[/\A(?:.*\n){0,2}/]
-          if enc = Encoding.find($1)
-            content.force_encoding(enc)
+        if defined? Encoding then
+          if /coding:\s*(\S+)/ =~ content[/\A(?:.*\n){0,2}/]
+            if enc = ::Encoding.find($1)
+              content.force_encoding(enc)
+            end
           end
         end
 
-        top_level = TopLevel.new(fn)
-        parser = ParserFactory.parser_for(top_level, fn, content, options, @stats)
+        top_level = ::RDoc::TopLevel.new filename
+
+        parser = ::RDoc::Parser.for top_level, filename, content, options,
+                                    @stats
+
         file_info << parser.scan
-        @stats.num_files += 1
       end
 
       file_info
@@ -228,45 +242,47 @@ module RDoc
     def document(argv)
       TopLevel::reset
 
-      options = Options.new GENERATORS
-      options.parse argv
+      @options = Options.new GENERATORS
+      @options.parse argv
 
       @last_created = nil
 
-      unless options.all_one_file
-        @last_created = setup_output_dir(options.op_dir, options.force_update)
+      unless @options.all_one_file then
+        @last_created = setup_output_dir @options.op_dir, @options.force_update
       end
 
       start_time = Time.now
 
-      file_info = parse_files(options)
+      file_info = parse_files @options
+
+      @options.title = "RDoc Documentation"
 
       if file_info.empty?
-        $stderr.puts "\nNo newer files." unless options.quiet
+        $stderr.puts "\nNo newer files." unless @options.quiet
       else
-        gen = options.generator
+        @gen = @options.generator
 
-        $stderr.puts "\nGenerating #{gen.key.upcase}..." unless options.quiet
+        $stderr.puts "\nGenerating #{@gen.key.upcase}..." unless @options.quiet
 
-        require gen.file_name
+        require @gen.file_name
 
-        gen_class = ::RDoc::Generator.const_get gen.class_name
-        gen = gen_class.for(options)
+        gen_class = ::RDoc::Generator.const_get @gen.class_name
+        @gen = gen_class.for @options
 
         pwd = Dir.pwd
 
-        Dir.chdir(options.op_dir)  unless options.all_one_file
+        Dir.chdir @options.op_dir unless @options.all_one_file
 
         begin
-          Diagram.new(file_info, options).draw if options.diagram
-          gen.generate(file_info)
+          Diagram.new(file_info, @options).draw if @options.diagram
+          @gen.generate(file_info)
           update_output_dir(".", start_time)
         ensure
           Dir.chdir(pwd)
         end
       end
 
-      unless options.quiet
+      unless @options.quiet
         puts
         @stats.print
       end

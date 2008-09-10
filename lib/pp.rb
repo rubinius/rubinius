@@ -360,7 +360,6 @@ end
 class File
   class Stat
     def pretty_print(q)
-      require 'etc.so'
       q.object_group(self) {
         q.breakable
         q.text sprintf("dev=0x%x", self.dev); q.comma_breakable

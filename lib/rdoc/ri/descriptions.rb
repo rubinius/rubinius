@@ -2,17 +2,17 @@ require 'yaml'
 require 'rdoc/markup/fragments'
 require 'rdoc/ri'
 
-#--
+##
 # Descriptions are created by RDoc (in ri_generator) and written out in
 # serialized form into the documentation tree. ri then reads these to generate
 # the documentation
-#++
 
-class RDoc::RI::RDoc::RI::NamedThing
+class RDoc::RI::NamedThing
   attr_reader :name
   def initialize(name)
     @name = name
   end
+
   def <=>(other)
     @name <=> other.name
   end
@@ -26,10 +26,11 @@ class RDoc::RI::RDoc::RI::NamedThing
   end
 end
 
-class RDoc::RI::AliasName < RDoc::RI::RDoc::RI::NamedThing; end
+class RDoc::RI::AliasName < RDoc::RI::NamedThing; end
 
-class RDoc::RI::Attribute < RDoc::RI::RDoc::RI::NamedThing
+class RDoc::RI::Attribute < RDoc::RI::NamedThing
   attr_reader :rw, :comment
+
   def initialize(name, rw, comment)
     super(name)
     @rw = rw
@@ -39,6 +40,7 @@ end
 
 class RDoc::RI::Constant < RDoc::RI::NamedThing
   attr_reader :value, :comment
+
   def initialize(name, value, comment)
     super(name)
     @value = value
@@ -80,7 +82,7 @@ class RDoc::RI::ModuleDescription < RDoc::RI::Description
   attr_accessor :constants
   attr_accessor :includes
 
-  # merge in another class desscription into this one
+  # merge in another class description into this one
   def merge_in(old)
     merge(@class_methods, old.class_methods)
     merge(@instance_methods, old.instance_methods)
@@ -91,8 +93,12 @@ class RDoc::RI::ModuleDescription < RDoc::RI::Description
       @comment = old.comment
     else
       unless old.comment.nil? or old.comment.empty? then
-        @comment << RDoc::Markup::Flow::RULE.new
-        @comment.concat old.comment
+        if @comment.nil? or @comment.empty? then
+          @comment = old.comment
+        else
+          @comment << RDoc::Markup::Flow::RULE.new
+          @comment.concat old.comment
+        end
       end
     end
   end

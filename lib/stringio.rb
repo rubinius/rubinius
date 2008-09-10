@@ -1,442 +1,495 @@
 class StringIO
+
+  include Enumerable
+  
   DEFAULT_RECORD_SEPARATOR = "\n" unless defined?(::DEFAULT_RECORD_SEPARATOR)
-
-  def self.open(string="", mode=nil)
-    obj = new(string, mode)
-    return obj unless block_given?
-
+  
+  def self.open(*args)
+    io = new(*args)
+    return io unless block_given?
+    
     begin
-      yield obj
+      yield io
     ensure
-      obj.finalize
+      io.send(:finalize)
     end
   end
 
-  def initialize(string="", mode=nil)
-    @writable = false
-    @readable = false
-    @append = false
+  attr_reader :string, :pos
+  attr_accessor :lineno
 
-    if not string.kind_of?(String) then
-      if string.respond_to?(:to_str) then
-        string = string.to_str
+  def initialize(string = "", mode = Undefined)
+    @string = Type.coerce_to string, String, :to_str
+    @pos = 0
+    @lineno = 0
+
+    unless mode == Undefined
+      if mode.is_a?(Integer)
+        mode_from_integer(mode)
       else
-        raise TypeError, "can't convert #{string.class} into String"
+        mode = StringValue(mode)
+        mode_from_string(mode)
       end
+    else
+      mode_from_string("r+")
     end
 
-    @string = string
-    @mode = mode || "r+"
-    @mode.gsub!(/b/,'') # Ignore binary mode flags
-
-    if @mode.include?("+")
-      @readable = true
-      @writable = true
-    elsif @mode == "r"
-      @readable = true
-    elsif @mode == "w"
-      @writable = true
-    elsif @mode == "a"
-      @readable = true
-      @writable = true
-      @append = true
-    end
-
-    @pos = 0
-    @eof = false
-    @lineno = 0
+    self
   end
-
-  def finalize
-    @string = nil
-    @readable = @writable = false
+  
+  def initialize_copy(from)
+    from = Type.coerce_to(from, StringIO, :to_strio)
+    
+    self.taint if from.tainted?
+    
+    @string = from.instance_variable_get(:@string).dup
+    @append = from.instance_variable_get(:@append)
+    @readable = from.instance_variable_get(:@readable)
+    @writable = from.instance_variable_get(:@writable)
+    
+    @pos = from.instance_variable_get(:@pos)
+    @lineno = from.instance_variable_get(:@lineno)
+    
+    self
   end
-
-  attr_reader :string, :mode
-
-  def string=(str)
-    @string = str
-    @mode = "r+"
-    @readable = true
-    @writable = true
-    @pos = 0
-    @lineno = 0
-    return str
+  
+  def <<(str)
+    self.write(str)
+    self
   end
-
-  def close
-    @readable = false
-    @writable = false
-    return nil
-  end
-
-  def close_read
-    @readable = false
-  end
-
-  def close_write
-    @writable = false
-  end
-
-  def closed?
-    @readable.equal?(false) and @writable.equal?(false)
-  end
-
-  def closed_read?
-    @readable.equal?(false)
-  end
-
-  def closed_write?
-    @writable.equal?(false)
-  end
-
-  def eof
-    @eof or @pos >= @string.size
-  end
-
-  alias_method :eof?, :eof
-
-  attr_accessor :lineno, :pos
-  alias_method :tell, :pos
-
+  
   def binmode
     self
   end
-
-  def fcntl
-    raise NotImplementedError, "Unable to run fcntl on a StringIO"
+  
+  def write(str)
+    raise IOError, "not opened for writing" unless @writable
+    
+    str = String(str)
+    
+    return 0 if str.empty?
+        
+    if @append || @pos == @string.length
+      @string << str
+      @pos = @string.length
+    elsif @pos > @string.size
+      @string[@string.size .. @pos] = "\000" * (@pos - @string.size)
+      @string << str
+      @pos = @string.size
+    else
+      @string[@pos, str.length] = str
+      @pos += str.length
+      @string.taint if str.tainted?
+    end
+    
+    return str.length
   end
-
+  alias_method :syswrite, :write
+  
+  def close
+    raise IOError, "closed stream" if closed?
+    @readable = @writable = nil
+  end
+  
+  def closed?
+    !@readable && !@writable
+  end
+  
+  def close_read
+    raise IOError, "closing non-duplex IO for reading" unless @readable
+    @readable = nil
+  end
+  
+  def closed_read?
+    !@readable
+  end
+  
+  def close_write
+    raise IOError, "closing non-duplex IO for writing" unless @writable
+    @writable = nil
+  end
+  
+  def closed_write?
+    !@writable
+  end
+  
+  def each_byte
+    raise IOError, "not opened for reading" unless @readable
+    if @pos < @string.length
+      @string[@pos..-1].each_byte { |b| @pos += 1; yield b}
+    end
+    nil
+  end
+  
+  def each(sep = $/)
+    raise IOError, "not opened for reading" unless @readable
+    sep = StringValue(sep) unless sep.nil?
+    while line = self.getline(sep)
+      yield line
+    end
+    self
+  end
+  alias_method :each_line, :each
+  
+  def eof?
+    @pos >= @string.size
+  end
+  alias_method :eof, :eof?
+  
+  def fcntl
+    raise NotImplementedError, "StringIO#fcntl is not implemented"
+  end
+  
+  def fileno
+    nil
+  end
+  
   def flush
     self
   end
-
+  
   def fsync
     0
   end
-
-  def reopen(obj, mode=nil)
-    if obj.kind_of? StringIO
-      @string = obj.string
-      @lineno = obj.lineno
-      @pos =    obj.pos
-      @readable = !obj.closed_read?
-      @writable = !obj.closed_write?
-      @mode =   obj.mode
+  
+  def getc
+    raise IOError, "not opened for reading" unless @readable
+    char = @string[@pos]
+    @pos += 1 unless self.eof?
+    char
+  end
+  
+  def gets(sep = $/)
+    $_ = self.getline(sep)
+  end
+  
+  def isatty
+    false
+  end
+  alias_method :tty?, :isatty
+  
+  def length
+    @string.length
+  end
+  alias_method :size, :length
+  
+  def path
+    nil
+  end
+  
+  def pid
+    nil
+  end
+  
+  def pos=(pos)
+    raise Errno::EINVAL if pos < 0
+    @pos = pos
+  end
+  
+  def print(*args)
+    raise IOError, "not opened for writing" unless @writable
+    args << $_ if args.empty?
+    args.map! { |x| x.nil? ? "nil" : x }
+    self.write((args << $\).flatten.join)
+    nil
+  end
+  
+  def printf(*args)
+    raise IOError, "not opened for writing" unless @writable
+    
+    if args.size > 1
+      self.write(args.shift % args)
     else
-      initialize(obj, mode)
-      if @mode =~ /^[wa]/
-        @string.replace '' unless @append
+      self.write(args.first)
+    end
+    
+    nil
+  end
+  
+  def putc(obj)
+    raise IOError, "not opened for writing" unless @writable
+
+    if obj.is_a?(String)
+      char = obj[0]
+    else
+      char = Type.coerce_to obj, Integer, :to_int
+    end
+
+    if @append || @pos == @string.length
+      @string << char
+      @pos = @string.length
+    elsif @pos > @string.length
+      @string[@string.length .. @pos] = "\000" * (@pos - @string.length)
+      @string << char
+      @pos = @string.length
+    else
+      @string[@pos] = char
+      @pos += 1
+    end
+    
+    obj
+  end
+  
+  def puts(*args)
+    if args.empty?
+      self.write(DEFAULT_RECORD_SEPARATOR)
+    else
+      args.each do |arg|
+        if arg.nil?
+          line = "nil"
+        elsif RecursionGuard.inspecting?(arg)
+          line = "[...]"
+        else
+          begin
+            arg = Type.coerce_to(arg, Array, :to_ary)
+            RecursionGuard.inspect(arg) do
+              arg.each { |a| self.puts a }
+            end
+            next
+          rescue
+            line = arg.to_s
+          end
+        end
+
+        self.write(line)
+        self.write(DEFAULT_RECORD_SEPARATOR) if !line.empty? && line[-1] != ?\n
       end
     end
-
-    return self
+    
+    nil
   end
-
-  def pos=(where)
-    i = where.to_i
-    if i < 0
-      raise Errno::EINVAL, "Invalid position '#{i}'"
+  
+  def read(length = Undefined, buffer = "")
+    raise IOError, "not opened for reading" unless @readable
+    return nil if self.eof?
+    
+    buffer = StringValue(buffer)
+    
+    if length == Undefined
+      buffer.replace(@string[@pos..-1])
+      @pos = @string.size
+    else
+      length = Type.coerce_to length, Integer, :to_int
+      raise ArgumentError if length < 0
+      buffer.replace(@string[@pos, length])
+      @pos += buffer.length
     end
 
-    @pos = i
-    if @pos >= @string.size
-      @string << ("\0" * (@pos - @string.size))
+    return buffer
+  end
+  
+  def readchar
+    raise IO::EOFError, "end of file reached" if self.eof?
+    getc
+  end
+  
+  def readline(sep = $/)
+    raise IO::EOFError, "end of file reached" if self.eof?
+    $_ = self.getline(sep)
+  end
+  
+  def readlines(sep = $/)
+    raise IOError, "not opened for reading" unless @readable
+    ary = []
+    while line = self.getline(sep)
+      ary << line
     end
+    ary
+  end
+  
+  def reopen(string = Undefined, mode = Undefined)
+    unless string == Undefined
+      if !string.is_a?(String) && mode == Undefined
+        string = Type.coerce_to(string, StringIO, :to_strio)
+        self.taint if string.tainted?
+        @string = string.string
+      else
+        @string = StringValue(string)
+
+        unless mode == Undefined
+          if mode.is_a?(Integer)
+            mode_from_integer(mode)
+          else
+            mode = StringValue(mode)
+            mode_from_string(mode)
+          end
+        else
+          mode_from_string("r+")
+        end
+      end
+    else
+      mode_from_string("r+")
+    end
+    
+    @pos = 0
+    @lineno = 0
+    
+    self
   end
 
   def rewind
     @pos = 0
     @lineno = 0
   end
-
-  def seek(amount, whence=nil)
-    i = amount.to_i
-
-
-    # TODO: prolly should be a platform specific check long/long long/whatever
-    raise RangeError, "bignum too big" if Bignum === i
-
-    if whence.nil? or whence == 0
-      # nothing
-    elsif whence == IO::SEEK_CUR
-      i += @pos
-    elsif whence == IO::SEEK_END
-      i = @string.size + i
+  
+  def seek(to, whence = IO::SEEK_SET)
+    #raise IOError if self.closed?
+    to = Type.coerce_to to, Integer, :to_int
+    
+    case whence
+    when IO::SEEK_CUR
+      to += @pos
+    when IO::SEEK_END
+      to += @string.size
+    when IO::SEEK_SET, nil
     else
-      raise ArgumentError, "invalid whence #{whence}"
+      raise Errno::EINVAL, "invalid whence"
     end
-
-    if i < 0
-      raise ArgumentError, "invalid offset #{i}"
-    end
-
-    @pos = i
-
-    if @pos >= @string.size - 1
-      @eof = true
-    else
-      @eof = false
-    end
-
+    
+    raise Errno::EINVAL if to < 0
+    
+    @pos = to
+    
     return 0
   end
-
+  
+  def string=(string)
+    @string = StringValue(string)
+    @pos = 0
+    @lineno = 0
+  end
+  
   def sync
     true
   end
-
+  
   def sync=(val)
     val
   end
-
-  def each_byte
-    raise IOError, "not opened for reading" unless @readable
-
-    while @pos < @string.size
-      yield @string[@pos]
-      @pos += 1
-    end
-
-    nil
+  
+  def sysread(length = Undefined, buffer = "")
+    raise IO::EOFError, "end of file reached" if self.eof?
+    read(length, buffer)
   end
-
-  def getc
-    if @pos >= @string.size
-      @eof = true
-      return nil
-    end
-
-    chr = @string[@pos]
-    @pos += 1
-    return chr
+  
+  def tell
+    @pos
   end
-
-  def readchar
-    out = getc
-    raise EOFError, "at end of buffer" if out.nil?
-    return out
-  end
-
-  def ungetc(chr)
-    unless chr.kind_of? Integer
-      raise TypeError, "only accepts character code"
-    end
-
-    return nil if @pos == 0
-
-    @eof = false
-    @pos -= 1
-    @string[@pos] = chr
-    return nil
-  end
-
-  def gets(sep=$/)
-    raise IOError, "not opened for reading" unless @readable
-    return nil if @eof
-    re = Regexp.new("^(.*?#{sep})", Regexp::MULTILINE)
-    rest = @string[@pos..-1]
-    if m = re.match(rest)
-      @lineno += 1
-      output = m[1]
-      @pos += output.size
-      return output
-    else
-      @eof = true
-      return nil if rest.empty?
-      return rest
-    end
-  end
-
-  def readline
-    out = gets
-    raise EOFError, "at end of buffer" if out.nil?
-    return out
-  end
-
-  def each(sep=$/)
-    while line = gets(sep)
-      yield line
-    end
-    return self
-  end
-
-  alias_method :each_line, :each
-
-  def readlines(sep=$/)
-    return [read] if sep.nil?
-
-    out = []
-    while line = gets(sep)
-      out << line
-    end
-
-    return out
-  end
-
-  def write(str)
+  
+  def truncate(length)
     raise IOError, "not opened for writing" unless @writable
-
-    str = str.to_s unless str.kind_of? String
-
-    len = str.size
-
-    return 0 if len == 0
-
-    if @append
-      @pos = @string.size
-    end
-
-    if @pos == @string.size - 1
-      @string << str
+    len = Type.coerce_to length, Integer, :to_int
+    raise Errno::EINVAL, "negative length" if len < 0
+    if len < @string.size
+      @string[len .. @string.size] = ""
     else
-      @string[@pos, len] = str
+      @string << "\000" * (len - @string.size)
     end
-
-    @pos += len
-
-    return len
+    return length
   end
-  alias_method :syswrite, :write
-
-  def <<(str)
-    write str
-    return self
-  end
-
-  def print(*args)
-    i = 0
-    args.each do |arg|
-      if $\ and i > 0
-        write $\
-      end
-
-      if arg.nil?
-        write "nil"
-      else
-        write arg
-      end
-    end
-
-    write $\ if $\
-
-    return nil
-  end
-
-  def printf(str, *args)
-    write(str % args)
-
-    return nil
-  end
-
-  def putc(chr)
-    if chr.kind_of? String
-      write chr[0..0]
-      return chr
-    end
-
-    @pos = @string.size if @append
-
-    if @pos >= @string.size - 1 then
-      @string << chr.chr
-      @pos += 1
-    else
-      @string[@pos] = chr
-    end
-
-    return chr
-  end
-
-  def puts(*args)
-    if args.empty?
-      write DEFAULT_RECORD_SEPARATOR
-    else
-      args.each do |arg|
-        if arg.nil?
-          str = "nil"
-        elsif RecursionGuard.inspecting?(arg)
-          str = "[...]"
-        elsif arg.kind_of?(Array)
-          RecursionGuard.inspect(arg) do
-            arg.each do |a|
-              puts a
-            end
-          end
-        else
-          str = arg.to_s
-        end
-
-        if str
-          write str
-          write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
-        end
-      end
-    end
-
-    nil
-  end
-
-  def read(length=nil, buffer=nil)
+  
+  def ungetc(char)
     raise IOError, "not opened for reading" unless @readable
-    if @eof
-      return nil if length
-      return ""
+    char = Type.coerce_to char, Integer, :to_int
+    
+    if @pos > @string.size
+      @string[@string.size .. @pos] = "\000" * (@pos - @string.size)
+      @pos -= 1
+      @string[@pos] = char
+    elsif @pos > 0
+      @pos -= 1
+      @string[@pos] = char
     end
-
-    if buffer and !buffer.kind_of? String
-      raise TypeError, "buffer must be a String"
-    end
-
-    length = @string.size - @pos unless length
-
-    data = @string[@pos, length]
-
-    @pos += length
-    if @pos >= @string.size - 1
-      @eof = true
-    end
-
-    if buffer
-      buffer.replace(data)
-      return buffer
-    end
-
-    return data
-  end
-
-  def sysread(length=nil, buffer=nil)
-    raise EOFError if @eof
-    out = read(length, buffer)
-    return out
-  end
-
-  def isatty
-    false
-  end
-
-  alias_method :tty?, :isatty
-
-  def pid
+    
     nil
   end
+  
+  protected
+    def finalize
+      self.close
+      @string = nil
+      self
+    end
+  
+    def mode_from_string(mode)
+      @readable = @writable = @append = false
+    
+      case mode
+      when "r", "rb"
+        @readable = true
+      when "r+", "rb+"
+        @readable = true
+        @writable = true
+      when "w", "wb"
+        @string.replace("")
+        @writable = true
+      when "w+", "wb+"
+        @readable = true
+        @writable = true
+        @string.replace("")
+      when "a", "ab"
+        @writable = true
+        @append   = true
+      when "a+", "ab+"
+        @readable = true
+        @writable = true
+        @append   = true
+      end
+    end
 
-  def fileno
-    nil
-  end
+    def mode_from_integer(mode)
+      @readable = @writable = @append = false
+    
+      case mode & (IO::RDONLY | IO::WRONLY | IO::RDWR)
+      when IO::RDONLY
+        @readable = true
+        @writable = false
+      when IO::WRONLY
+        @readable = false
+        @writable = true
+      when IO::RDWR
+        @readable = true
+        @writable = true
+      end
 
-  def path
-    nil
-  end
+      @append = true if (mode & IO::APPEND) != 0
+      @string.replace("") if (mode & IO::TRUNC) != 0
+    end
 
-  def size
-    raise IOError, "not opened" unless @string
-    return @string.size
-  end
-
-  alias_method :length, :size
-
-  def truncate(count)
-    @string[count, @string.size - count] = ""
-    return count
-  end
+    def getline(sep = $/)
+      raise IOError unless @readable
+    
+      sep = StringValue(sep) unless sep.nil?
+    
+      return nil if self.eof?
+    
+      if sep.nil?
+        line = @string[@pos .. -1]
+        @pos = @string.size
+      elsif sep.empty?
+        if stop = @string.index("\n\n", @pos)
+          stop += 2
+          line = @string[@pos .. stop - 2]
+          while @string[stop] == ?\n
+            stop += 1
+          end
+          @pos = stop
+        else
+          line = @string[@pos .. -1]
+          @pos = @string.size
+        end
+      else
+        if stop = @string.index(sep, @pos)
+          line = @string[@pos .. stop]
+          @pos = stop + 1
+        else
+          line = @string[@pos .. -1]
+          @pos = @string.size
+        end
+      end
+    
+      @lineno += 1
+    
+      return line
+    end
 end
