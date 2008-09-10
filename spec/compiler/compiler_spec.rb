@@ -213,7 +213,7 @@ class CompilerTestCase < ParseTreeTestCase
 
               top   = g.new_label
               cond  = g.new_label
-              dunno = g.new_label
+              rtry  = g.new_label
               brk   = g.new_label
 
               g.push_modifiers
@@ -224,12 +224,12 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.push break_value
               g.goto brk
-              g.goto dunno # TODO: unreachable
+              g.goto rtry # TODO: only used when there is a retry statement
 
               cond.set!
               g.push :nil
 
-              dunno.set!
+              rtry.set!
               g.pop
               g.goto top
 
@@ -245,7 +245,7 @@ class CompilerTestCase < ParseTreeTestCase
 
               top   = g.new_label
               cond  = g.new_label
-              dunno = g.new_label
+              rtry  = g.new_label
               brk   = g.new_label
 
               g.push_modifiers
@@ -256,12 +256,12 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.push break_value
               g.goto brk
-              g.goto dunno # TODO: unreachable
+              g.goto rtry # TODO: only used when there is a retry statement
 
               cond.set!
               g.push :nil
 
-              dunno.set!
+              rtry.set!
               g.pop
               g.goto top
 
@@ -743,7 +743,6 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("defn_lvar_boundary",
             "Compiler" => bytecode do |g|
-              # TODO: this one is _all_brokey_ where's the puts???
               g.push 42
               g.set_local 0
               g.pop
@@ -939,7 +938,11 @@ class CompilerTestCase < ParseTreeTestCase
                 d.set_local 0
                 d.pop
                 d.push_local 0
-                d.ret # TODO: fix?
+                # TODO we emit a ret instruction even though the last statement
+                # is itself a return, so we get to return instructions, one
+                # after another. We could instead detect that an only output
+                # the one.
+                d.ret
               end
             end)
 
@@ -1491,7 +1494,7 @@ class CompilerTestCase < ParseTreeTestCase
               top         = g.new_label
               bottom      = g.new_label
               long_return = g.new_label
-              dunno1      = g.new_label
+              exc_start   = g.new_label
               no_return   = g.new_label
 
               top.set!
@@ -1503,9 +1506,11 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.send_with_block :a, 1, true
 
+              # No exception, we're done.
               g.goto bottom
 
-              dunno1.set!
+              # An exception was raised.
+              exc_start.set!
               g.push_exception
               g.dup
               g.push_local 0
@@ -1521,10 +1526,23 @@ class CompilerTestCase < ParseTreeTestCase
               g.ret
 
               long_return.set!
-              g.raise_exc          # TODO: why isn't this up above? why goto?
+              # TODO: why isn't this up above? why goto?
+              # [EMP] This the branch for when the exception was not the
+              # LongReturnException we setup before we did the send.
+              #
+              # In that case, we want to let it continue to raise upward.
+              g.raise_exc
 
               no_return.set!
-              g.send :value, 0     # TODO: why is this the same in both cases?
+
+              # TODO: why is this the same in both cases?
+              # [EMP] This is the same as above because the above case gets
+              # the value then returns, because thats for the case when there
+              # was a 'return' within the block (a non-local return).
+              #
+              # This case is for when there is a 'break' in a block. Break passes
+              # a value out too, so we push that value on the stack.
+              g.send :value, 0
 
               bottom.set!
             end)
