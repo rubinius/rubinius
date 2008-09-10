@@ -185,7 +185,6 @@ class Numeric
   #++
 
   def coerce(other)
-    Ruby.primitive :numeric_coerce
     [Float(other), Float(self)]
   end
 

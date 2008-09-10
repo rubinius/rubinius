@@ -159,6 +159,11 @@ namespace rubinius {
     // Ruby.primitive :bignum_to_float
     Float* to_float(STATE);
 
+    // Ruby.primitive! :bignum_coerce
+    Array* coerce(STATE, Bignum* other);
+    // Ruby.primitive! :bignum_coerce
+    Array* coerce(STATE, FIXNUM other);
+
     // Ruby.primitive :bignum_to_s
     String* to_s(STATE, INTEGER radix);
     void   into_string(STATE, size_t radix, char* buf, size_t sz);

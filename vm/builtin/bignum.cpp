@@ -1002,6 +1002,29 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
+  Array* Bignum::coerce(STATE, Bignum* other) {
+    Array* ary = Array::create(state, 2);
+
+    ary->set(state, 0, other);
+    ary->set(state, 1, this);
+
+    return ary;
+  }
+
+  Array* Bignum::coerce(STATE, FIXNUM other) {
+    Array* ary = Array::create(state, 2);
+
+    if(FIXNUM fix = try_as<Fixnum>(Bignum::normalize(state, this))) {
+      ary->set(state, 0, other);
+      ary->set(state, 1, fix);
+    } else {
+      ary->set(state, 0, Bignum::create(state, other));
+      ary->set(state, 1, this);
+    }
+
+    return ary;
+  }
+
   INTEGER Bignum::size(STATE)
   {
     int bits = mp_count_bits(MP(this));

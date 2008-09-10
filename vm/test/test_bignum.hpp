@@ -617,4 +617,40 @@ class TestBignum : public CxxTest::TestSuite {
     hashval h = b1->hash_bignum(state);
     TS_ASSERT(h > 0);
   }
+
+  void test_coerce_bignum() {
+    Array* ary = b1->coerce(state, b2);
+    Bignum* a = try_as<Bignum>(ary->get(state, 0));
+    Bignum* b = try_as<Bignum>(ary->get(state, 1));
+
+    TS_ASSERT_EQUALS(2U, ary->size());
+    TS_ASSERT(a);
+    TS_ASSERT(b);
+    TS_ASSERT_EQUALS(Qtrue, b2->equal(state, a));
+    TS_ASSERT_EQUALS(Qtrue, b1->equal(state, b));
+  }
+
+  void test_coerce_fixnum() {
+    Bignum* b = Bignum::create(state, two);
+    Array* ary = b->coerce(state, two);
+
+    FIXNUM e = try_as<Fixnum>(ary->get(state, 0));
+    FIXNUM f = try_as<Fixnum>(ary->get(state, 1));
+
+    TS_ASSERT_EQUALS(2U, ary->size());
+    TS_ASSERT(e);
+    TS_ASSERT(f);
+    TS_ASSERT_EQUALS(two, e);
+    TS_ASSERT_EQUALS(Qtrue, b->equal(state, f));
+
+    ary = b1->coerce(state, two);
+    Bignum* c = try_as<Bignum>(ary->get(state, 0));
+    Bignum* d = try_as<Bignum>(ary->get(state, 1));
+
+    TS_ASSERT_EQUALS(2U, ary->size());
+    TS_ASSERT(c);
+    TS_ASSERT(d);
+    TS_ASSERT_EQUALS(Qtrue, Bignum::create(state, two)->equal(state, c));
+    TS_ASSERT_EQUALS(Qtrue, b1->equal(state, d));
+  }
 };

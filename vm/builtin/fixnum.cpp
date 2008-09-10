@@ -374,6 +374,29 @@ namespace rubinius {
     return String::create(state, sout.str().c_str());
   }
 
+  Array* Fixnum::coerce(STATE, Bignum* other) {
+    Array* ary = Array::create(state, 2);
+
+    if(FIXNUM fix = try_as<Fixnum>(Bignum::normalize(state, other))) {
+      ary->set(state, 0, fix);
+      ary->set(state, 1, this);
+    } else {
+      ary->set(state, 0, other);
+      ary->set(state, 1, Bignum::create(state, this));
+    }
+
+    return ary;
+  }
+
+  Array* Fixnum::coerce(STATE, FIXNUM other) {
+    Array* ary = Array::create(state, 2);
+
+    ary->set(state, 0, other);
+    ary->set(state, 1, this);
+
+    return ary;
+  }
+
   void Fixnum::Info::show(STATE, OBJECT self, int level) {
     FIXNUM f = as<Fixnum>(self);
     std::cout << f->to_native() << std::endl;

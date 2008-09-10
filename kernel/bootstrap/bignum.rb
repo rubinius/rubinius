@@ -112,6 +112,11 @@ class Bignum < Integer
     raise PrimitiveFailure, "Bignum.from_float primitive failed"
   end
 
+  def coerce(other)
+    Ruby.primitive :bignum_coerce
+    super other
+  end
+
   def to_f
     Ruby.primitive :bignum_to_float
     raise PrimitiveFailure, "Bignum#to_f primitive failed"

@@ -127,6 +127,11 @@ class Fixnum < Integer
 
   # conversions
 
+  def coerce(other)
+    Ruby.primitive :fixnum_coerce
+    super other
+  end
+
   def to_s(base=10)
     based_to_s(base)
   end

@@ -181,6 +181,11 @@ namespace rubinius {
     // Ruby.primitive :fixnum_to_s
     String* to_s(STATE);
 
+    // Ruby.primitive! :fixnum_coerce
+    Array* coerce(STATE, Bignum* other);
+    // Ruby.primitive! :fixnum_coerce
+    Array* coerce(STATE, FIXNUM other);
+
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
