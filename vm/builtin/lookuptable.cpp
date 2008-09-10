@@ -96,7 +96,7 @@ namespace rubinius {
       Tuple* entry = try_as<Tuple>(values->at(i));
 
       while(entry) {
-        Tuple* next = try_as<Tuple>(entry->at(2));
+        Tuple* link = try_as<Tuple>(entry->at(2));
         entry->put(state, 2, Qnil);
 
         size_t bin = find_bin(key_hash(entry->at(0)), size);
@@ -108,7 +108,7 @@ namespace rubinius {
           entry_append(state, slot, entry);
         }
 
-        entry = next;
+        entry = link;
       }
     }
 
@@ -159,7 +159,13 @@ namespace rubinius {
 
     key_to_sym(key);
     bin = find_bin(key_hash(key), bins->to_native());
-    entry = try_as<Tuple>(values->at(bin));
+
+    /* HACK: This should be fixed by not storing NULLs */
+    Object* data = values->at(bin);
+
+    if (!data) return NULL;
+
+    entry = try_as<Tuple>(data);
 
     while(entry) {
       if(entry->at(0) == key) {
@@ -205,7 +211,6 @@ namespace rubinius {
     OBJECT val;
     Tuple* entry;
     Tuple* lst;
-    Tuple* lk;
 
     key_to_sym(key);
 
@@ -222,21 +227,21 @@ namespace rubinius {
     lst = NULL;
 
     while(entry) {
-      lk = try_as<Tuple>(entry->at(2));
+      Object* link = entry->at(2);
 
       if(entry->at(0) == key) {
         val = entry->at(1);
         if(lst) {
-          lst->put(state, 2, lk);
+          lst->put(state, 2, link);
         } else {
-          values->put(state, bin, lk);
+          values->put(state, bin, link);
         }
         entries = Fixnum::from(entries->to_native() - 1);
         return val;
       }
 
       lst = entry;
-      entry = lk;
+      entry = try_as<Tuple>(link);
     }
 
     return Qnil;
