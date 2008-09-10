@@ -11,10 +11,6 @@ class CompilerTestCase < ParseTreeTestCase
     @tg
   end
 
-  # just to be used when unstubbing a skip - TODO: remove
-  bogo_bytecode = bytecode do end
-  bogo_klass_bc = bytecode do in_class :X do end end
-
   add_tests("alias",
             "Compiler" => bytecode do |g|
               in_class :X do |d|
@@ -2104,13 +2100,49 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("svalue",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.send :b, 0, true
+              g.cast_array
+              g.cast_array
+              g.dup
+
+              g.send :size, 0
+              g.push 1
+              g.swap
+              g.send :<, 1
+              g.git t
+
+              g.push 0
+              g.send :at, 1
+              t.set!
+              g.set_local 0
+            end)
 
   add_tests("to_ary",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :c, 0, true
+              g.cast_tuple
+
+              g.shift_tuple
+              g.set_local 0
+              g.pop
+
+              g.shift_tuple
+              g.set_local 1
+              g.pop
+
+              g.pop
+              g.push :true
+            end)
 
   add_tests("true",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :true
+            end)
 
   add_tests("undef",
             "Compiler" => bytecode do |g|
@@ -2303,10 +2335,19 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => testcases["until_pre_not"]["Compiler"])
 
   add_tests("valias",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Globals
+              g.push_literal :$x
+              g.push_literal :$y
+              g.send :add_alias, 2
+            end)
 
   add_tests("vcall",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :method, 0, true
+            end)
 
   add_tests("while_post",
             "Compiler" => bytecode do |g|
@@ -2492,7 +2533,12 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => testcases["while_pre_not"]["Compiler"])
 
   add_tests("xstr",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push_literal "touch 5"
+              g.string_dup
+              g.send :"`", 1, true
+            end)
 
   add_tests("yield_0",
             "Compiler" => bytecode do |g|
