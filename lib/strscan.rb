@@ -76,6 +76,12 @@ class StringScanner
     self.reset
   end
 
+  def initialize_copy orig
+    @match  = orig.match
+    @pos    = orig.pos
+    @string = orig.string
+  end
+
   def inspect
     if defined? @string then
       rest = string.size > 5 ? string[pos..pos+4] + "..." : string
