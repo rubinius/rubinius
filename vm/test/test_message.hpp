@@ -60,6 +60,7 @@ class TestMessage : public CxxTest::TestSuite {
     task->push(Fixnum::from(4));
 
     Message msg(state);
+    msg.name = state->symbol("testes");
     msg.import_arguments(state, task, 2);
 
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(0));
@@ -79,6 +80,7 @@ class TestMessage : public CxxTest::TestSuite {
     ary->set(state, 1, state->symbol("foo"));
 
     Message msg(state);
+    msg.name = state->symbol("testes");
     msg.set_args(2);
     msg.combine_with_splat(state, task, ary);
 
@@ -98,6 +100,7 @@ class TestMessage : public CxxTest::TestSuite {
     task->push(Fixnum::from(4));
 
     Message msg(state);
+    msg.name = state->symbol("testes");
     msg.use_from_task(task, 2);
 
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(0));
@@ -107,6 +110,8 @@ class TestMessage : public CxxTest::TestSuite {
 
   void test_unshift_argument() {
     Message msg(state);
+    msg.name = state->symbol("testes");
+
     Task* task = Task::create(state, 10);
     task->push(Fixnum::from(3));
     msg.use_from_task(task, 1);

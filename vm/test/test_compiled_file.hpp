@@ -63,6 +63,7 @@ public:
     msg.set_args(0);
     msg.recv = G(main);
     msg.module = G(object);
+    msg.name = state->symbol("moob");
 
     SET(cm, scope, StaticScope::create(state));
     SET(cm->scope, module, G(object));
