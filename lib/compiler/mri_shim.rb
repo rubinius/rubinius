@@ -6,10 +6,11 @@ require 'parse_tree'
 $" << "compiler/mri_shim"
 $" << "compiler/compiler"
 
-$:.unshift File.dirname(__FILE__) + "/.."
-
+$: << "lib"
 require 'compiler/compiler'
 require 'compiler/text'
+$:.pop
+
 require 'kernel/delta/compiled_file'
 
 class SendSite
