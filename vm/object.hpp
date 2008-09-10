@@ -12,12 +12,20 @@
 #include "builtin/object.hpp"
 #include "exception.hpp"
 
-/* Defines all the most common operations for dealing with
- * objects, such as type checking and casting. */
+/**
+ *  @file   object.hpp
+ *
+ *  Defines all the most common operations for dealing with
+ *  objects, such as type checking and casting.
+ */
 
 namespace rubinius {
 
-  /* Given builtin-class +T+, return true if +obj+ is of class +T+ */
+  /**
+   *  Ruby type system subtype check.
+   *
+   *  Given builtin-class +T+, return true if +obj+ is of class +T+
+   */
   template <class T>
     bool kind_of(OBJECT obj) {
       if(obj->reference_p()) {
@@ -28,8 +36,13 @@ namespace rubinius {
 
   template <> bool kind_of<Object>(OBJECT obj);
 
-  /* Another version of kind_of that shouldn't be specialized for subtype
-   * compatibility. */
+  /**
+   *  Ruby type system class check.
+   *
+   *  Another version of kind_of that shouldn't be specialized for subtype
+   *  compatibility. I.e., only whether object's class is this specific
+   *  one.
+   */
   template <class T>
     bool instance_of(OBJECT obj) {
       if(obj->reference_p()) {
@@ -40,27 +53,33 @@ namespace rubinius {
 
   template <> bool instance_of<Object>(OBJECT obj);
 
-  /* Used when casting between object types.
+  /**
+   *  Cast Object* into builtin T*.
    *
-   * Given builtin class +T+, return +obj+ cast as type +T*+. If
-   * +obj+ is not of type +T+, throw's a TypeError exception.
-   * */
+   *  Given builtin class +T+, return +obj+ cast as type +T*+. If
+   *  +obj+ is not of type +T+, throw's a TypeError exception.
+   *
+   *  TODO:   Should assert rather than check for obj.
+   */
   template <class T>
     T* as(OBJECT obj) {
-      /* The 'obj &&' gives us additional saftey, checking for
-       * NULL objects. */
       if(!obj || !kind_of<T>(obj)) TypeError::raise(T::type, obj);
       return (T*)obj;
     }
 
   template <> Object* as<Object>(OBJECT obj);
 
-  /* Similar to as<>, but returns NULL if the type is invalid. ONLY
-   * use this when doing a conditional cast. */
+  /**
+   *  Non-raising version of as().
+   *
+   *  Similar to as<>, but returns NULL if the type is invalid. ONLY
+   *  use this when doing a conditional cast.
+   *
+   *  TODO:   Should assert rather than check for obj.
+   *  TODO:   Verify that this check is being used correctly.
+   */
   template <class T>
     T* try_as(OBJECT obj) {
-      /* The 'obj &&' gives us additional saftey, checking for
-       * NULL objects. */
       if(obj && kind_of<T>(obj)) return (T*)obj;
       return NULL;
     }
