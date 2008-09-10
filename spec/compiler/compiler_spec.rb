@@ -779,14 +779,11 @@ class CompilerTestCase < ParseTreeTestCase
                   d2.push_exception
                   d2.send :===, 1
                   d2.git runtime_err
-                  d2.push_exception
-                  d2.set_local_depth 0, 0
-                  d2.push_exception
-                  d2.send :===, 1
-                  d2.git runtime_err
                   d2.goto unhandled
 
                   runtime_err.set!
+                  d2.push_exception
+                  d2.set_local_depth 0, 0
 
                   d2.push :self
                   d2.push_local_depth 0, 0
