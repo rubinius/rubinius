@@ -181,11 +181,11 @@ class StringScanner
   end
 
   def unscan
-#     raise ScanError if @match.nil?
-#     self.pos = @prev_pos
-#     @prev_pos = nil
-#     @match = nil
-#     self
+    raise ScanError if @match.nil?
+    self.pos = @prev_pos
+    @prev_pos = nil
+    @match = nil
+    self
   end
 
   def peek len
@@ -200,8 +200,6 @@ class StringScanner
   end
 
   def _scan pattern, succptr, getstr, headonly
-    p [pattern, succptr, getstr, headonly, rest]
-
     raise TypeError, "bad pattern argument: #{pattern.inspect}" unless
       String === pattern or Regexp === pattern or pattern.respond_to? :to_str
 
