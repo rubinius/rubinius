@@ -32,10 +32,14 @@ namespace rubinius {
     G(channel)->set_object_type(Channel::type);
   }
 
+  /* HACK:  This method is never used except in tests.
+   *        Get rid of it (and fix the tests..)
+   */
   Task* Task::create(STATE, OBJECT recv, CompiledMethod* meth) {
     Task* task = create(state, 0);
 
     Message msg(state, Array::create(state, 0));
+    msg.name = meth->name ? meth->name : state->symbol("__weird_unnamed_method__");
     msg.module = recv->class_object(state);
     meth->execute(state, task, msg);
 

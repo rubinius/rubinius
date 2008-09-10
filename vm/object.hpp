@@ -80,7 +80,7 @@ namespace rubinius {
     }
 
   /** Specialised cast to always succeed if not NULL.
-   *  
+   *
    *  Implemented in builtin/object.cpp.
    */
   template <> Object* as<Object>(OBJECT obj);
@@ -104,7 +104,7 @@ namespace rubinius {
     }
 
   /** Specialised cast to always succeed if not NULL.
-   *  
+   *
    *  Implemented in builtin/object.cpp.
    */
   template <> Object* try_as<Object>(OBJECT obj);
