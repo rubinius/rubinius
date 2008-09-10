@@ -254,7 +254,6 @@ def DelegateClass(superclass)
   methods -= ::Kernel.public_instance_methods(false)
   methods -= %w[
     __verify_metaclass__
-    become!
     copy_from
     metaclass
     to_marshal
