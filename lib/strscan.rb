@@ -30,7 +30,7 @@ class StringScanner
   end
 
   def clear
-    warn "StringScanner#clear is obsolete; use #terminate instead"
+    warn "StringScanner#clear is obsolete; use #terminate instead" if $VERBOSE
     terminate
   end
 
@@ -41,7 +41,7 @@ class StringScanner
   alias :<< :concat # TODO: reverse
 
   def empty?
-    warn "StringScanner#empty? is obsolete; use #eos? instead?"
+    warn "StringScanner#empty? is obsolete; use #eos? instead?" if $VERBOSE
     eos?
   end
 
@@ -58,7 +58,7 @@ class StringScanner
   end
 
   def getbyte
-    warn "StringScanner#getbyte is obsolete; use #get_byte instead"
+    warn "StringScanner#getbyte is obsolete; use #get_byte instead" if $VERBOSE
     get_byte
   end
 
@@ -106,7 +106,7 @@ class StringScanner
   end
 
   def matchedsize
-    warn "StringScanner#matchedsize is obsolete; use #matched_size instead"
+    warn "StringScanner#matchedsize is obsolete; use #matched_size instead" if $VERBOSE
     matched_size
   end
 
@@ -137,7 +137,7 @@ class StringScanner
   end
 
   def restsize
-    warn "StringScanner#restsize is obsolete; use #rest_size instead"
+    warn "StringScanner#restsize is obsolete; use #rest_size instead" if $VERBOSE
     rest_size
   end
 
@@ -195,7 +195,7 @@ class StringScanner
   end
 
   def peep len
-    warn "StringScanner#peep is obsolete; use #peek instead"
+    warn "StringScanner#peep is obsolete; use #peek instead" if $VERBOSE
     peek len
   end
 
