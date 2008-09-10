@@ -1,13 +1,13 @@
 class StringIO
 
   include Enumerable
-  
+
   DEFAULT_RECORD_SEPARATOR = "\n" unless defined?(::DEFAULT_RECORD_SEPARATOR)
-  
+
   def self.open(*args)
     io = new(*args)
     return io unless block_given?
-    
+
     begin
       yield io
     ensure
@@ -36,39 +36,39 @@ class StringIO
 
     self
   end
-  
+
   def initialize_copy(from)
     from = Type.coerce_to(from, StringIO, :to_strio)
-    
+
     self.taint if from.tainted?
-    
+
     @string = from.instance_variable_get(:@string).dup
     @append = from.instance_variable_get(:@append)
     @readable = from.instance_variable_get(:@readable)
     @writable = from.instance_variable_get(:@writable)
-    
+
     @pos = from.instance_variable_get(:@pos)
     @lineno = from.instance_variable_get(:@lineno)
-    
+
     self
   end
-  
+
   def <<(str)
     self.write(str)
     self
   end
-  
+
   def binmode
     self
   end
-  
+
   def write(str)
     raise IOError, "not opened for writing" unless @writable
-    
+
     str = String(str)
-    
+
     return 0 if str.empty?
-        
+
     if @append || @pos == @string.length
       @string << str
       @pos = @string.length
@@ -81,38 +81,38 @@ class StringIO
       @pos += str.length
       @string.taint if str.tainted?
     end
-    
+
     return str.length
   end
   alias_method :syswrite, :write
-  
+
   def close
     raise IOError, "closed stream" if closed?
     @readable = @writable = nil
   end
-  
+
   def closed?
     !@readable && !@writable
   end
-  
+
   def close_read
     raise IOError, "closing non-duplex IO for reading" unless @readable
     @readable = nil
   end
-  
+
   def closed_read?
     !@readable
   end
-  
+
   def close_write
     raise IOError, "closing non-duplex IO for writing" unless @writable
     @writable = nil
   end
-  
+
   def closed_write?
     !@writable
   end
-  
+
   def each_byte
     raise IOError, "not opened for reading" unless @readable
     if @pos < @string.length
@@ -120,7 +120,7 @@ class StringIO
     end
     nil
   end
-  
+
   def each(sep = $/)
     raise IOError, "not opened for reading" unless @readable
     sep = StringValue(sep) unless sep.nil?
@@ -130,62 +130,62 @@ class StringIO
     self
   end
   alias_method :each_line, :each
-  
+
   def eof?
     @pos >= @string.size
   end
   alias_method :eof, :eof?
-  
+
   def fcntl
     raise NotImplementedError, "StringIO#fcntl is not implemented"
   end
-  
+
   def fileno
     nil
   end
-  
+
   def flush
     self
   end
-  
+
   def fsync
     0
   end
-  
+
   def getc
     raise IOError, "not opened for reading" unless @readable
     char = @string[@pos]
     @pos += 1 unless self.eof?
     char
   end
-  
+
   def gets(sep = $/)
     $_ = self.getline(sep)
   end
-  
+
   def isatty
     false
   end
   alias_method :tty?, :isatty
-  
+
   def length
     @string.length
   end
   alias_method :size, :length
-  
+
   def path
     nil
   end
-  
+
   def pid
     nil
   end
-  
+
   def pos=(pos)
     raise Errno::EINVAL if pos < 0
     @pos = pos
   end
-  
+
   def print(*args)
     raise IOError, "not opened for writing" unless @writable
     args << $_ if args.empty?
@@ -193,19 +193,19 @@ class StringIO
     self.write((args << $\).flatten.join)
     nil
   end
-  
+
   def printf(*args)
     raise IOError, "not opened for writing" unless @writable
-    
+
     if args.size > 1
       self.write(args.shift % args)
     else
       self.write(args.first)
     end
-    
+
     nil
   end
-  
+
   def putc(obj)
     raise IOError, "not opened for writing" unless @writable
 
@@ -226,10 +226,10 @@ class StringIO
       @string[@pos] = char
       @pos += 1
     end
-    
+
     obj
   end
-  
+
   def puts(*args)
     if args.empty?
       self.write(DEFAULT_RECORD_SEPARATOR)
@@ -255,16 +255,16 @@ class StringIO
         self.write(DEFAULT_RECORD_SEPARATOR) if !line.empty? && line[-1] != ?\n
       end
     end
-    
+
     nil
   end
-  
+
   def read(length = Undefined, buffer = "")
     raise IOError, "not opened for reading" unless @readable
     return nil if self.eof?
-    
+
     buffer = StringValue(buffer)
-    
+
     if length == Undefined
       buffer.replace(@string[@pos..-1])
       @pos = @string.size
@@ -277,17 +277,17 @@ class StringIO
 
     return buffer
   end
-  
+
   def readchar
     raise IO::EOFError, "end of file reached" if self.eof?
     getc
   end
-  
+
   def readline(sep = $/)
     raise IO::EOFError, "end of file reached" if self.eof?
     $_ = self.getline(sep)
   end
-  
+
   def readlines(sep = $/)
     raise IOError, "not opened for reading" unless @readable
     ary = []
@@ -296,7 +296,7 @@ class StringIO
     end
     ary
   end
-  
+
   def reopen(string = Undefined, mode = Undefined)
     unless string == Undefined
       if !string.is_a?(String) && mode == Undefined
@@ -320,10 +320,10 @@ class StringIO
     else
       mode_from_string("r+")
     end
-    
+
     @pos = 0
     @lineno = 0
-    
+
     self
   end
 
@@ -331,11 +331,11 @@ class StringIO
     @pos = 0
     @lineno = 0
   end
-  
+
   def seek(to, whence = IO::SEEK_SET)
     #raise IOError if self.closed?
     to = Type.coerce_to to, Integer, :to_int
-    
+
     case whence
     when IO::SEEK_CUR
       to += @pos
@@ -345,37 +345,37 @@ class StringIO
     else
       raise Errno::EINVAL, "invalid whence"
     end
-    
+
     raise Errno::EINVAL if to < 0
-    
+
     @pos = to
-    
+
     return 0
   end
-  
+
   def string=(string)
     @string = StringValue(string)
     @pos = 0
     @lineno = 0
   end
-  
+
   def sync
     true
   end
-  
+
   def sync=(val)
     val
   end
-  
+
   def sysread(length = Undefined, buffer = "")
     raise IO::EOFError, "end of file reached" if self.eof?
     read(length, buffer)
   end
-  
+
   def tell
     @pos
   end
-  
+
   def truncate(length)
     raise IOError, "not opened for writing" unless @writable
     len = Type.coerce_to length, Integer, :to_int
@@ -387,11 +387,11 @@ class StringIO
     end
     return length
   end
-  
+
   def ungetc(char)
     raise IOError, "not opened for reading" unless @readable
     char = Type.coerce_to char, Integer, :to_int
-    
+
     if @pos > @string.size
       @string[@string.size .. @pos] = "\000" * (@pos - @string.size)
       @pos -= 1
@@ -400,20 +400,20 @@ class StringIO
       @pos -= 1
       @string[@pos] = char
     end
-    
+
     nil
   end
-  
+
   protected
     def finalize
       self.close
       @string = nil
       self
     end
-  
+
     def mode_from_string(mode)
       @readable = @writable = @append = false
-    
+
       case mode
       when "r", "rb"
         @readable = true
@@ -439,7 +439,7 @@ class StringIO
 
     def mode_from_integer(mode)
       @readable = @writable = @append = false
-    
+
       case mode & (IO::RDONLY | IO::WRONLY | IO::RDWR)
       when IO::RDONLY
         @readable = true
@@ -458,11 +458,11 @@ class StringIO
 
     def getline(sep = $/)
       raise IOError unless @readable
-    
+
       sep = StringValue(sep) unless sep.nil?
-    
+
       return nil if self.eof?
-    
+
       if sep.nil?
         line = @string[@pos .. -1]
         @pos = @string.size
@@ -487,9 +487,9 @@ class StringIO
           @pos = @string.size
         end
       end
-    
+
       @lineno += 1
-    
+
       return line
     end
 end
