@@ -37,6 +37,9 @@ namespace rubinius {
     // Ruby.primitive :io_blocking_read
     OBJECT blocking_read(STATE, FIXNUM count);
 
+    // Ruby.primitive :io_query
+    OBJECT query(STATE, SYMBOL op);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

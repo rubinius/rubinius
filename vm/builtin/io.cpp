@@ -106,6 +106,20 @@ namespace rubinius {
     return str;
   }
 
+  OBJECT IO::query(STATE, SYMBOL op) {
+    native_int fd = this->to_fd();
+
+    if(fd < 0) PrimitiveFailed::raise();
+
+    if(op == state->symbol("tty?")) {
+      return isatty(fd) ? Qtrue : Qfalse;
+    } else if(op == state->symbol("ttyname")) {
+      return String::create(state, ttyname(fd));
+    } else {
+      return Qnil;
+    }
+  }
+
   void IOBuffer::read_bytes(size_t bytes) {
     used = Fixnum::from(used->to_native() + bytes);
   }

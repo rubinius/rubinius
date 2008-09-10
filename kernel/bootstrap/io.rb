@@ -29,9 +29,9 @@ class IO
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def prim_operation(which)
-    Ruby.primitive :io_operation
-    raise PrimitiveFailure, "primitive failed"
+  def query(which)
+    Ruby.primitive :io_query
+    raise PrimitiveFailure, "IO#query primitive failed"
   end
 
   def reopen(other)
@@ -39,11 +39,11 @@ class IO
   end
 
   def tty?
-    prim_operation(0)
+    query :tty?
   end
 
   def ttyname
-    prim_operation(1)
+    query :ttyname
   end
 
   def close
