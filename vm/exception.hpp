@@ -34,19 +34,29 @@ namespace rubinius {
     void print_backtrace();
   };
 
-  class Assertion : public VMException {
-  public:
-    char *reason;
+  class Assertion : public VMException
+  {
+    public:   /* Ctors */
 
+    /**
+     *  Constructor hidden behind Assertion::raise() usually.
+     *
+     *  The reason should live fine through the raise.
+     */
+    Assertion(const char* reason) : reason(reason) {}
+    ~Assertion() {}
+
+    public:   /* Interface */
+
+    /**
+     *  Main interface for raising Assertion errors.
+     */
     static void raise(const char* mesg);
 
-    Assertion(const char* reason) {
-      this->reason = strdup(reason);
-    }
 
-    ~Assertion() {
-      free(reason);
-    }
+    public:   /* Instance vars */
+
+    const char*   reason;
   };
 
   class TypeError : public VMException {
