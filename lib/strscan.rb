@@ -126,7 +126,7 @@ class StringScanner
   end
 
   def pre_match
-    string[0, match.begin(0)] if matched?
+    string[0...(pos - match.to_s.size)] if matched?
   end
 
   def reset
