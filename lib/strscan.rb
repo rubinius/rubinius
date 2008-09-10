@@ -6,13 +6,18 @@ class StringScanner
   Id = "bite me $Id".freeze
   Version = "1.0.0".freeze
 
-  attr_accessor :pos
-  attr_reader :match, :string
+  attr_reader :pos, :match, :string
+
+  def pos= n
+    raise RangeError, "xxx" if string && n > string.size
+    @pos = n
+  end
 
   alias :pointer :pos
   alias :pointer= :pos=
 
   def [] n
+    raise TypeError, "Bad argument #{n.inspect}" unless n.respond_to? :to_int
     match.to_a[n]
   end
 
