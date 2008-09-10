@@ -46,8 +46,6 @@ class StringScanner
   end
 
   def eos?
-    _lame_guard
-
     self.pos >= self.string.size
   end
 
@@ -202,37 +200,35 @@ class StringScanner
   end
 
   def _scan pattern, succptr, getstr, headonly
-#     _lame_guard
+    p [pattern, succptr, getstr, headonly, rest]
 
-#     @match = nil
+    raise TypeError, "bad pattern argument: #{pattern.inspect}" unless
+      String === pattern or Regexp === pattern or pattern.respond_to? :to_str
 
-#     return nil if (string.size - pos) < 0 # TODO: make more elegant
+    @match = nil
 
-#     @match = if headonly then
-#                pattern.match_start(string, pos)
-#              else
-#                pattern.search_region(string, pos, string.size, true)
-#              end
+    return nil if (string.size - pos) < 0 # TODO: make more elegant
 
-#     return nil if match.nil?
+    @match = if headonly then
+               rest.match(/^#{pattern}/)
+             else
+               rest.match(pattern)
+             end
 
-#     m = string[pos...match.end(0)]
+    return nil if match.nil?
 
-#     if succptr then
-#       @prev_pos = pos
-#       self.pos += m.size
-#     end
+    m = rest[0...match.end(0)]
 
-#     if getstr then
-#       m
-#     else
-#       m.size
-#     end
+    if succptr then
+      @prev_pos = pos
+      self.pos += m.size
+    end
+
+    if getstr then
+      m
+    else
+      m.size
+    end
   end
   private :_scan
-
-  def _lame_guard
-    raise ArgumentError unless instance_variable_defined?(:@string)
-  end
-  private :_lame_guard
 end
