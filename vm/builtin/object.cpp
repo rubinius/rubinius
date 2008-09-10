@@ -29,11 +29,39 @@ namespace rubinius {
       return obj->get_type() == ObjectType;
     }
 
+  /**
+   *  Cast any class into an Object (specialised.)
+   *
+   *  Specialised version of  as().
+   *
+   *  Everything but NULL pointers can be cast into Objects.
+   *  NULLs cause an assertion.
+   *
+   *  @see  vm/object.hpp for the general version.
+   */
   template <>
-    Object* as<Object>(OBJECT obj) { return obj; }
+    Object* as<Object>(OBJECT obj)
+    {
+      sassert(obj);
+      return obj;
+    }
 
+  /**
+   *  Cast any class into an Object (specialised.)
+   *
+   *  Specialised version of try_as().
+   *
+   *  Everything but NULL pointers can be cast into Objects.
+   *  NULLs cause an assertion.
+   *
+   *  @see  vm/object.hpp for the general version.
+   */
   template <>
-    Object* try_as<Object>(OBJECT obj) { return obj; }
+    Object* try_as<Object>(OBJECT obj)
+    {
+      sassert(obj);
+      return obj;
+    }
 
   bool Object::fixnum_p() {
     return FIXNUM_P(this);

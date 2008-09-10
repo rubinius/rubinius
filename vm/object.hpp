@@ -53,20 +53,36 @@ namespace rubinius {
 
   template <> bool instance_of<Object>(OBJECT obj);
 
+#define sassert(cond) if (!(cond)) Assertion::raise(#cond)
+
+  /*
+   *  There is NO reason why as() or try_as() should be getting
+   *  NULL arguments. That means something has not been properly
+   *  initialised (to Qnil if nothing else.)
+   */
+
   /**
    *  Cast Object* into builtin T*.
    *
    *  Given builtin class +T+, return +obj+ cast as type +T*+. If
    *  +obj+ is not of type +T+, throw's a TypeError exception.
    *
-   *  TODO:   Should assert rather than check for obj.
+   *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
     T* as(OBJECT obj) {
-      if(!obj || !kind_of<T>(obj)) TypeError::raise(T::type, obj);
-      return (T*)obj;
+      sassert(NULL != obj);
+
+      if(!kind_of<T>(obj))
+        TypeError::raise(T::type, obj);
+
+      return static_cast<T*>(obj);
     }
 
+  /** Specialised cast to always succeed if not NULL.
+   *  
+   *  Implemented in builtin/object.cpp.
+   */
   template <> Object* as<Object>(OBJECT obj);
 
   /**
@@ -75,19 +91,25 @@ namespace rubinius {
    *  Similar to as<>, but returns NULL if the type is invalid. ONLY
    *  use this when doing a conditional cast.
    *
-   *  TODO:   Should assert rather than check for obj.
-   *  TODO:   Verify that this check is being used correctly.
+   *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
     T* try_as(OBJECT obj) {
-      if(obj && kind_of<T>(obj)) return (T*)obj;
-      return NULL;
+      sassert(NULL != obj);
+
+      if(!kind_of<T>(obj))
+        return NULL;
+
+      return static_cast<T*>(obj);
     }
 
+  /** Specialised cast to always succeed if not NULL.
+   *  
+   *  Implemented in builtin/object.cpp.
+   */
   template <> Object* try_as<Object>(OBJECT obj);
 
   void type_assert(OBJECT obj, object_type type, const char* reason);
-#define sassert(cond) if(!(cond)) Assertion::raise(#cond)
 
   /*
    * A rubinius object can be followed by:
