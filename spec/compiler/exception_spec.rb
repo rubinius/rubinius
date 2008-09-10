@@ -101,6 +101,62 @@ describe Compiler do
     end
   end
 
+  it "compiles a rescue with one condition into a local" do
+    ruby = <<-EOC
+      begin
+        12
+      rescue String => e
+        13
+      end
+    EOC
+
+    sexp = s(:rescue, s(:fixnum, 12),
+             s(:resbody, s(:array, s(:const, :String),
+                s(:lasgn, :e, s(:gvar, :$!))),
+               s(:block, s(:fixnum, 13))))
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
+      exc_start  = g.new_label
+      exc_handle = g.new_label
+      fin        = g.new_label
+      rr         = g.new_label
+      last       = g.new_label
+      body       = g.new_label
+
+      g.push_modifiers
+      exc_start.set!
+      exc_start.set!
+      g.push 12
+      g.goto fin
+
+      exc_handle.set!
+      g.push_const :String
+      g.push_exception
+      g.send :===, 1
+
+      g.git body
+      g.goto rr
+      body.set!
+      g.push_exception
+      g.set_local 0
+      g.push 13
+      g.clear_exception
+      g.goto last
+
+      rr.set!
+
+      g.push_exception
+      g.raise_exc
+
+      fin.set!
+
+      last.set!
+      g.pop_modifiers
+    end
+  end
+
   it "compiles a rescue with one condition, no rescue class" do
     ruby = <<-EOC
       begin

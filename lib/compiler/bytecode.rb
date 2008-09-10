@@ -1865,8 +1865,13 @@ class Compiler
     class RescueCondition
       def bytecode(g, top_if_false, if_done)
         body = g.new_label
+        assignment = nil
 
         if @conditions
+          if @conditions.last.is? LocalAssignment
+            assignment = @conditions.pop
+          end
+
           @conditions.each do |x|
             x.bytecode(g)
             g.push_exception
@@ -1889,6 +1894,7 @@ class Compiler
 
           g.goto if_false
           body.set!
+          assignment.bytecode(g) if assignment
           @body.bytecode(g)
           g.goto if_done
 
@@ -1899,6 +1905,7 @@ class Compiler
           g.goto top_if_false
 
           body.set!
+          assignment.bytecode(g) if assignment
           @body.bytecode(g)
           g.clear_exception
           g.goto if_done
