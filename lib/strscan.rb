@@ -1,5 +1,7 @@
 class ScanError < StandardError; end
 
+p "loaded pure ruby StringScanner"
+
 class StringScanner
   Id = "bite me $Id".freeze
   Version = "1.0.0".freeze
@@ -181,17 +183,17 @@ class StringScanner
   end
 
   def unscan
-    raise ScanError if @match.nil?
-    self.pos = @prev_pos
-    @prev_pos = nil
-    @match = nil
-    self
+#     raise ScanError if @match.nil?
+#     self.pos = @prev_pos
+#     @prev_pos = nil
+#     @match = nil
+#     self
   end
 
   def peek len
     raise ArgumentError if len < 0
     return "" if len.zero?
-    return string.substring(pos, len)
+    return string[pos, len]
   end
 
   def peep len
@@ -200,32 +202,32 @@ class StringScanner
   end
 
   def _scan pattern, succptr, getstr, headonly
-    _lame_guard
+#     _lame_guard
 
-    @match = nil
+#     @match = nil
 
-    return nil if (string.size - pos) < 0 # TODO: make more elegant
+#     return nil if (string.size - pos) < 0 # TODO: make more elegant
 
-    @match = if headonly then
-               pattern.match_start(string, pos)
-             else
-               pattern.search_region(string, pos, string.size, true)
-             end
+#     @match = if headonly then
+#                pattern.match_start(string, pos)
+#              else
+#                pattern.search_region(string, pos, string.size, true)
+#              end
 
-    return nil if match.nil?
+#     return nil if match.nil?
 
-    m = string[pos...match.end(0)]
+#     m = string[pos...match.end(0)]
 
-    if succptr then
-      @prev_pos = pos
-      self.pos += m.size
-    end
+#     if succptr then
+#       @prev_pos = pos
+#       self.pos += m.size
+#     end
 
-    if getstr then
-      m
-    else
-      m.size
-    end
+#     if getstr then
+#       m
+#     else
+#       m.size
+#     end
   end
   private :_scan
 
