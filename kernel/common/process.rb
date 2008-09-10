@@ -60,14 +60,6 @@ module Process
     pid
   end
 
-  def self.sleep(sec)
-    micro_sleep(sec * 1_000_000)
-  end
-  
-  def self.usleep(sec)
-    micro_sleep(sec * 1_000)
-  end
-  
   def self.times
     now = Time.now
     Struct::Tms.new(now - $STARTUP_TIME, 0.0, 0.0, 0.0)

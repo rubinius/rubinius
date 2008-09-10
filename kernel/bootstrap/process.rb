@@ -3,11 +3,6 @@ class Process
     Ruby.primitive :vm_exit
     raise PrimitiveFailure, "exit failed. Wow, something is screwed."
   end
-  
-  def self.micro_sleep(ms)
-    Ruby.primitive :micro_sleep
-    raise PrimitiveFailure, "primitive failed"
-  end
 
   def self.fork_prim
     Ruby.primitive :fork_process
