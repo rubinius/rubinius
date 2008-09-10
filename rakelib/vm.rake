@@ -101,7 +101,11 @@ if LLVM_STYLE == "Release"
 end
 
 INCLUDES    = (EX_INC + %w[vm/test/cxxtest vm .]).map { |f| "-I#{f}" }
-FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2)
+if ENV["DEV"]
+  FLAGS       = %w(-Wall -Werror -ggdb3 -gdwarf-2 -O0 -fno-inline-functions)
+else
+  FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2)
+end
 CC          = ENV['CC'] || "gcc"
 
 
