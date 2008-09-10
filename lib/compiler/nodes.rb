@@ -463,10 +463,6 @@ class Compiler
         @receiver, @whens, @else = recv, whens, els
       end
 
-      def has_receiver?
-        true
-      end
-
       attr_accessor :receiver, :whens, :else
     end
 
@@ -1510,37 +1506,6 @@ class Compiler
         return [] if @assigns.nil?
         @assigns.body.map { |i| i.kind_of?(MAsgn) ? i.required : i.name }.flatten
       end
-    end
-
-    # ManyIf represents a case statement with no receiver, i.e.
-    #   case
-    #     when foo: bar
-    #   end
-    class ManyIf < Case
-      kind :many_if
-
-      # :many_if contains an array of whens and an else
-      # the whens are in turn an array of condition expressions,
-      # followed by a body
-      def consume(sexp)
-        whens = sexp[0]
-        whens.map! do |w|
-          w.unshift :when
-          convert(w)
-        end
-        [whens, convert(sexp[1])]
-      end
-
-      def args(whens, els)
-        @whens = whens
-        @else = els
-      end
-
-      def has_receiver?
-        false
-      end
-
-      attr_accessor :whens, :else
     end
 
     # Implicit regexp matching node. A Match is created if

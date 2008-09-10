@@ -418,15 +418,15 @@ class Compiler
       def bytecode(g)
         fin = g.new_label
 
-        @receiver.bytecode(g) if has_receiver?
+        @receiver.bytecode(g) if @receiver
         @whens.each do |w|
           nxt = g.new_label
-          w.bytecode(g, has_receiver?, nxt, fin)
+          w.bytecode(g, !!@receiver, nxt, fin)
           nxt.set!
         end
 
         # The condition is still on the stack
-        g.pop if has_receiver?
+        g.pop if @receiver
         if @else
           @else.bytecode(g)
         else

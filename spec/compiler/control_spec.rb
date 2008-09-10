@@ -923,16 +923,7 @@ describe Compiler do
       end
     EOC
 
-    sexp = s(:many_if,
-             s(s(s(:array, s(:false)),
-                 s(:str, "foo")),
-               s(s(:array, s(:nil)),
-                 s(:str, "foo")),
-               s(s(:array, s(:call, s(:fixnum, 1), :==, s(:array, s(:fixnum, 2)))),
-                 s(:str, "bar"))),
-             s(:str, "baz"))
-
-    # HACK sexp.should == parse(ruby)
+    sexp = parse(ruby)
 
     gen sexp do |g|
       fin   = g.new_label
@@ -983,27 +974,7 @@ describe Compiler do
       end
     EOC
 
-#     sexp = s(:case,
-#              nil,
-#              s(:when, s(:array, s(:false)), s(:str, "foo")),
-#              s(:when, s(:array, s(:nil)), s(:str, "foo")),
-#              s(:when,
-#                s(:array,
-#                  s(:call, s(:fixnum, 1), :==, s(:arglist, s(:fixnum, 2))),
-#                  s(:fixnum, 13)),
-#                s(:str, "bar")),
-#              nil)
-
-    sexp = s(:many_if,
-             s(s(s(:array, s(:false)),
-                 s(:str, "foo")),
-               s(s(:array, s(:nil)),
-                 s(:str, "foo")),
-               s(s(:array, s(:call, s(:fixnum, 1), :==, s(:array, s(:fixnum, 2))),
-                   s(:fixnum, 13)), s(:str, "bar"))),
-             nil)
-
-    # HACK: sexp.should == parse(ruby)
+    sexp = parse(ruby)
 
     gen sexp do |g|
       fin =   g.new_label
