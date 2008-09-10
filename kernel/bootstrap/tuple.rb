@@ -5,9 +5,9 @@ class Tuple
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def self.template(size, obj)
-    Ruby.primitive :tuple_template
-    raise PrimitiveFailure, "Tuple.template primitive failed"
+  def self.pattern(size, obj)
+    Ruby.primitive :tuple_pattern
+    raise PrimitiveFailure, "Tuple.pattern primitive failed"
   end
 
   def shifted(distance)

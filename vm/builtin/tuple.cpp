@@ -112,6 +112,18 @@ namespace rubinius {
     return this;
   }
 
+  // TODO: performance primitive; could be replaced with Ruby
+  Tuple* Tuple::pattern(STATE, FIXNUM size, OBJECT val) {
+    native_int cnt = size->to_native();
+    Tuple* tuple = Tuple::create(state, cnt);
+
+    for(native_int i = 0; i < cnt; i++) {
+      tuple->put(state, i, val);
+    }
+
+    return tuple;
+  }
+
   Tuple* Tuple::create_weakref(STATE, OBJECT obj) {
     Tuple* tup = Tuple::from(state, 1, obj);
     tup->RefsAreWeak = 1;

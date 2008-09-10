@@ -165,4 +165,14 @@ public:
     TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(5)));
     TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(6)));
   }
+
+  void test_pattern() {
+    FIXNUM ten = Fixnum::from(10);
+    Tuple* tuple = Tuple::pattern(state, Fixnum::from(5), ten);
+
+    TS_ASSERT_EQUALS(5U, tuple->field_count);
+    for(size_t i = 0; i < 5; i++) {
+      TS_ASSERT_EQUALS(ten, tuple->at(i));
+    }
+  }
 };

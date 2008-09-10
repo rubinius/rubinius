@@ -1832,7 +1832,7 @@ class String
     if invert
       replacement.tr_expand! nil
       r = replacement.data[replacement.size-1]
-      table = Tuple.template 256, r
+      table = Tuple.pattern 256, r
 
       i = 0
       while i < size
@@ -1840,7 +1840,7 @@ class String
         i += 1
       end
     else
-      table = Tuple.template 256, -1
+      table = Tuple.pattern 256, -1
 
       replacement.tr_expand! expanded
       repl = replacement.data

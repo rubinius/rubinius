@@ -29,6 +29,9 @@ namespace rubinius {
     // Ruby.primitive :tuple_fields
     OBJECT fields_prim(STATE);
 
+    // Ruby.primitive :tuple_pattern
+    static Tuple* pattern(STATE, FIXNUM size, OBJECT val);
+
     // Ruby.primitive :tuple_copy_from
     Tuple* copy_from(STATE, Tuple* other, FIXNUM start, FIXNUM dest);
 
