@@ -72,7 +72,7 @@ class TestGenerator
     @stream << [:set_label, lbl]
   end
 
-  attr_accessor :redo, :break, :next, :retry, :ensure_return
+  attr_accessor :redo, :break, :next, :retry
   attr_reader :file, :line
 
   def close
@@ -209,24 +209,6 @@ class TestGenerator
     ok.set!
   end
 
-  # Emits userland style code only.
-  def add_method(name)
-    self.push_literal name
-    self.push_context
-    self.send :__add_method__, 2
-  end
-
-  def push_self_or_class
-    lbl = self.new_label
-    self.push_cpath_top
-    self.find_const :Module
-    self.push :self
-    self.kind_of
-    self.git lbl
-    self.send :class, 0
-    lbl.set!
-  end
-
   def push_literal_desc
     desc = description do |d|
       yield d
@@ -308,8 +290,11 @@ class TestGenerator
   end
 
   def in_method name, singleton=false
-    self.push :self unless singleton
-    self.send :metaclass, 0 if singleton
+    if singleton
+      self.send :metaclass, 0
+    else
+      self.push_context
+    end
 
     self.push_literal name
     self.push_literal_desc do |d|
@@ -418,3 +403,4 @@ def description name = nil
   yield desc.generator
   return desc
 end
+
