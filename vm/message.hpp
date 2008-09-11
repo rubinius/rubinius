@@ -52,7 +52,7 @@ namespace rubinius {
      *  Note that this is the *current* start, in the case
      *  where arguments have already been consumed.
      */
-    OBJECT get_argument(size_t index);
+    Object* get_argument(size_t index);
 
     /**
      *  Copy arguments from stack into arguments Array.
@@ -77,12 +77,12 @@ namespace rubinius {
     /**
      *  Remove and return the currently first remaining argument.
      */
-    OBJECT shift_argument(STATE);
+    Object* shift_argument(STATE);
 
     /**
      *  Insert argument to the front of arguments and bump others back by one.
      */
-    void unshift_argument(STATE, OBJECT val);
+    void unshift_argument(STATE, Object* val);
 
     /**
      *  Set the associated Task and explictly give total argument count.
@@ -104,10 +104,10 @@ namespace rubinius {
 
     SendSite*   send_site;      /**< SendSite in which this call originates. */
     SYMBOL      name;           /**< Name of the method being called (comes from SendSite) */
-    OBJECT      recv;           /**< Receiver in the call, i.e. obj in `obj.foo()` */
-    OBJECT      block;          /**< Block object or nil if no block. */
-    OBJECT      splat;          /**< NOT USED. The splat argument to the call. */
-    OBJECT      current_self;   /**< self at the point of the call. */
+    Object*     recv;           /**< Receiver in the call, i.e. obj in `obj.foo()` */
+    Object*     block;          /**< Block object or nil if no block. */
+    Object*     splat;          /**< NOT USED. The splat argument to the call. */
+    Object*     current_self;   /**< self at the point of the call. */
     size_t      total_args;     /**< Total number of arguments given, including unsplatted. */
     size_t      stack;          /**< Number of arguments on the stack when call occurs + 1 for return value. */
     size_t      start;          /**< Index of first remaining argument in arguments. */
