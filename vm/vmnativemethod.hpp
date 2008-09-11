@@ -86,6 +86,22 @@ namespace rubinius {
 
   typedef Handle HandleTo;
 
+  /**
+   *  Specialised version of as() to access a Handle's actual object.
+   *
+   *  @see  vm/object.hpp for normal version.
+   */
+  template <typename T>
+    T* as(HandleTo handle) { return as<T>(handle.object()); }
+
+  /**
+   *  Specialised version of try_as() to access a Handle's actual object.
+   *
+   *  @see  vm/object.hpp for normal version.
+   */
+  template <typename T>
+    T* try_as(HandleTo handle) { return try_as<T>(handle.object()); }
+
 
   /**
    *  Method context for C-implemented methods.
@@ -194,24 +210,6 @@ namespace rubinius {
     static bool   execute(VM* state, Task* task, Message* message, NativeMethod* method);
 
   };
-
-
-//  class Handles
-//  {
-//    public:   /* Types */
-//
-//      typedef std::vector<OBJECT> Storage;
-//      typedef Storage::size_type HandleType;
-//
-//    public:   /* Interface */
-//
-//      HandleType  make_handle_for(OBJECT obj) { my_storage.push_back(obj); return (my_storage.size() - 1) }
-//          OBJECT  object_from(HandleType handle) { return my_storage[handle]; }
-//
-//    private:  /* Instance variables */
-//
-//      Storage   my_storage;
-//  };
 
 }
 
