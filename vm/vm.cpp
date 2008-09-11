@@ -25,15 +25,14 @@
 #define GO(whatever) globals.whatever
 
 namespace rubinius {
-  VM::VM(size_t bytes) : probe(NULL), wait_events(false) {
+  VM::VM(size_t bytes) : wait_events(false) {
     config.compile_up_front = false;
     context_cache = NULL;
-
-    probe = (TaskProbe*)Qnil;
 
     user_config = new ConfigParser();
 
     om = new ObjectMemory(bytes);
+    probe.set(Qnil, &globals.roots);
 
     MethodContext::initialize_cache(this);
     TypeInfo::init(this);
@@ -247,6 +246,7 @@ namespace rubinius {
 
   void VM::run_and_monitor() {
     for(;;) {
+      G(current_task)->check_interrupts();
       G(current_task)->execute();
     }
   }

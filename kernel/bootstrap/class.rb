@@ -80,11 +80,6 @@ end
 # of load order mattering)
 
 class IncludedModule < Module
-  self.instance_fields = 8
-
-  # HACK: make this a VM exported constant
-  self.object_type = 7
-
   def superclass; @superclass ; end
   def module    ; @module     ; end
 

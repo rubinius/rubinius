@@ -333,7 +333,9 @@ namespace rubinius {
     // between all duplicates made from this object
     // TODO - Verify this statement
     dup = state->om->new_object(lookup_begin(state), field_count);
+    gc_zone zone = dup->zone;
     dup->all_flags = all_flags;
+    dup->zone = zone;
 
     if(stores_bytes_p()) {
       std::memcpy(dup->bytes, bytes, field_count * sizeof(OBJECT));
@@ -352,11 +354,13 @@ namespace rubinius {
     LookupTable* source_constants = this->metaclass(state)->constants->dup(state);
     OBJECT new_object = this->dup(state);
 
+    // TODO why can't we use new_object->metaclass(state) here? Why are
+    // we creating a metaclass by hand?
     // Clone gets a new MetaClass
     SET(new_object, klass, (MetaClass*)state->new_object(G(metaclass)));
     // Set the clone's method and constants tables to those
     // of the receiver's metaclass
-    SET(new_object->klass, method_table, source_methods);
+    SET(new_object->metaclass(state), method_table, source_methods);
     SET(new_object->klass, constants, source_constants);
 
     return new_object;

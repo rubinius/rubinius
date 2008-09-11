@@ -94,6 +94,7 @@ namespace rubinius {
   /* Store an object into the remember set. Called when we've calculated
    * externally that the object in question needs to be remembered */
   void ObjectMemory::remember_object(OBJECT target) {
+    assert(target->zone == MatureObjectZone);
     /* If it's already remembered, ignore this request */
     if(target->Remember) return;
     target->Remember = 1;
@@ -219,21 +220,8 @@ namespace rubinius {
 
   OBJECT ObjectMemory::create_object(Class* cls, size_t fields) {
     OBJECT obj;
-    gc_zone loc;
 
-    if(fields > large_object_threshold) {
-      obj = mature.allocate(fields, &collect_mature_now);
-      loc = MatureObjectZone;
-    } else {
-      if((obj = young.allocate(fields, &collect_young_now))) {
-        loc = YoungObjectZone;
-      } else {
-        obj = mature.allocate(fields, &collect_mature_now);
-        loc = MatureObjectZone;
-      }
-    }
-
-    obj->init(loc, fields);
+    obj = allocate_object(fields);
     set_class(obj, cls);
 
     obj->obj_type = (object_type)cls->instance_type->to_native();
@@ -244,6 +232,15 @@ namespace rubinius {
 
   TypeInfo* ObjectMemory::find_type_info(OBJECT obj) {
     return type_info[obj->obj_type];
+  }
+
+  ObjectPosition ObjectMemory::validate_object(OBJECT obj) {
+    ObjectPosition pos;
+
+    pos = young.validate_object(obj);
+    if(pos != cUnknown) return pos;
+
+    return mature.validate_object(obj);
   }
 };
 

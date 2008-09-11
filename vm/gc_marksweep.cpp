@@ -82,10 +82,13 @@ namespace rubinius {
     bool collect;
     OBJECT obj = allocate(orig->field_count, &collect);
 
+    // HACK this code is exactly duplicated from BakerGC
+
     obj->all_flags   = orig->all_flags;
     obj->field_count = orig->field_count;
     obj->klass       = orig->klass;
     obj->age         = 0;
+    obj->ivars       = orig->ivars;
 
     for(size_t i = 0; i < orig->field_count; i++) {
       obj->field[i] = orig->field[i];
@@ -147,6 +150,19 @@ namespace rubinius {
         i++;
       }
     }
+  }
+
+  ObjectPosition MarkSweepGC::validate_object(OBJECT obj) {
+    std::list<Entry*>::iterator i;
+
+    for(i = entries.begin(); i != entries.end(); i++) {
+      Entry* entry = *i;
+      if(entry->header->to_object() == obj) {
+        return cMatureObject;
+      }
+    }
+
+    return cUnknown;
   }
 
   // HACK todo test this!

@@ -6,6 +6,8 @@
 #include "gc_baker.hpp"
 #include "type_info.hpp"
 
+#include "object_position.hpp"
+
 namespace rubinius {
 
   /* ObjectMemory is the primary API that the rest of the VM uses to interact
@@ -64,6 +66,8 @@ namespace rubinius {
     bool valid_object_p(OBJECT obj);
     void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
+
+    ObjectPosition validate_object(OBJECT obj);
   };
 
 // Type-safe, write-barrier-enabled version of 'SET'

@@ -20,6 +20,7 @@ namespace rubinius {
     SET(ss, sender, Qnil);
     SET(ss, selector, Selector::lookup(state, name));
     ss->hits = ss->misses = 0;
+    ss->resolver = NULL;
 
     ss->initialize(state);
     ss->selector->associate(state, ss);

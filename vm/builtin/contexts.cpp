@@ -113,6 +113,11 @@ initialize:
     return -1;
   }
 
+  void MethodContext::post_copy(MethodContext* old) {
+    this->position_stack(old->calculate_sp());
+    this->js.stack_top = this->stk + this->stack_size;
+  }
+
   /* Attempt to recycle +this+ context into the context cache, based
    * on it's size. Returns true if the context was recycled, otherwise
    * false. */

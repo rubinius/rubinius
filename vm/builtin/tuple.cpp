@@ -2,11 +2,20 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/compactlookuptable.hpp"
 
 #include <cstdarg>
 #include <iostream>
 
 namespace rubinius {
+
+  template <>
+    bool kind_of<Tuple>(OBJECT obj) {
+      return obj->reference_p() && (
+              obj->obj_type == Tuple::type ||
+              obj->obj_type == CompactLookupTable::type);
+    }
+
   OBJECT Tuple::at(size_t index) {
     if(field_count <= index) {
       ObjectBoundsExceeded::raise(this, index);

@@ -21,7 +21,7 @@ namespace rubinius {
   Environment::Environment() {
     state = new VM();
     TaskProbe* probe = TaskProbe::create(state);
-    state->probe = probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil;
+    state->probe.set(probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil);
   }
 
   Environment::~Environment() {

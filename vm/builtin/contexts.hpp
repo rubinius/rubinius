@@ -107,6 +107,10 @@ namespace rubinius {
       return js.stack - stk;
     }
 
+    /* Run after a context is copied, allowing it to fix up
+     * it's internal pointers */
+    void post_copy(MethodContext* old);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

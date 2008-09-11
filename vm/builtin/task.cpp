@@ -49,7 +49,7 @@ namespace rubinius {
   Task* Task::create(STATE, size_t stack_size) {
     Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
     task->state = state;
-    task->probe = state->probe;
+    SET(task, probe, state->probe.get());
     task->msg = new Message(state);
     SET(task, control_channel, Qnil);
     SET(task, debug_channel, Qnil);
@@ -619,11 +619,13 @@ stack_cleanup:
     if(state->om->collect_young_now) {
       state->om->collect_young_now = false;
       state->om->collect_young(state->globals.roots);
+      state->global_cache->clear();
     }
 
     if(state->om->collect_mature_now) {
       state->om->collect_mature_now = false;
       state->om->collect_mature(state->globals.roots);
+      state->global_cache->clear();
     }
   }
 
@@ -640,8 +642,9 @@ stack_cleanup:
         // If we're switching tasks, return to the task monitor
         if(state->interrupts.switch_task) {
           state->interrupts.switch_task = false;
-          return;
         }
+
+        return;
       }
     }
   }
@@ -674,7 +677,12 @@ stack_cleanup:
         }
       }
 
-      std::cout << ":" << ctx->line() << " in " << ctx->cm->file->to_str(state)->byte_address();
+      std::cout << ":" << ctx->line() << " in ";
+      if(SYMBOL file_sym = try_as<Symbol>(ctx->cm->file)) {
+        std::cout << file_sym->c_str(state);
+      } else {
+        std::cout << "<unknown>";
+      }
 
       std::cout << "\n";
       ctx = ctx->sender;

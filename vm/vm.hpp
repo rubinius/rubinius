@@ -48,7 +48,7 @@ namespace rubinius {
     event::Loop* events;
     event::Loop* signal_events;
     GlobalCache* global_cache;
-    TaskProbe* probe;
+    TypedRoot<TaskProbe*> probe;
     Primitives* primitives;
     Configuration config;
     Interrupts interrupts;

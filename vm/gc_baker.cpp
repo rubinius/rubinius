@@ -4,6 +4,7 @@
 #include "gc_baker.hpp"
 #include "objectmemory.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/contexts.hpp"
 
 namespace rubinius {
 
@@ -40,6 +41,8 @@ namespace rubinius {
     tmp->all_flags   = orig->all_flags;
     tmp->field_count = orig->field_count;
     tmp->klass       = orig->klass;
+    tmp->ivars       = orig->ivars;
+    tmp->Forwarded   = 0;
 
     for(size_t i = 0; i < orig->field_count; i++) {
       tmp->field[i] = orig->field[i];
@@ -64,13 +67,33 @@ namespace rubinius {
 
     if(obj->forwarded_p()) return obj->forward();
 
+    // This object is already in the next space, we don't want to
+    // copy it again!
+    // TODO test this!
+    if(next->contains_p(obj)) return obj;
+
     if(obj->age++ >= lifetime) {
       copy = object_memory->promote_object(obj);
+
+      // We promoted it, so our scan pointer loop wont see it to walk
+      // it's references. Instead we scan in manually here.
+      // HACK TODO this can cause a cascading C stack as a lot of
+      // objects are promoted at once and cause a stack overflow.
+      //
+      // We should keep track of all the promoted objects and walk
+      // them at the end.
+      scan_object(copy);
     } else if(next->enough_space_p(obj->size_in_bytes())) {
       copy = next->copy_object(obj);
       total_objects++;
     } else {
       copy = object_memory->promote_object(obj);
+      // See note above concerning promoted objects.
+      scan_object(copy);
+    }
+
+    if(MethodContext* ctx = try_as<MethodContext>(copy)) {
+      ctx->post_copy(as<MethodContext>(obj));
     }
 
     obj->set_forward(copy);
@@ -97,9 +120,13 @@ namespace rubinius {
 
     ObjectArray::iterator oi;
     for(oi = current_rs->begin(); oi != current_rs->end(); oi++) {
-      assert((*oi)->zone == MatureObjectZone);
-      assert(!(*oi)->forwarded_p());
-      scan_object(*oi);
+      tmp = *oi;
+      assert(tmp->zone == MatureObjectZone);
+      assert(!tmp->forwarded_p());
+
+      /* Remove the Remember bit, since we're clearing the set. */
+      tmp->Remember = 0;
+      scan_object(tmp);
     }
 
     delete current_rs;
@@ -194,6 +221,16 @@ namespace rubinius {
           }
         }
       }
+    }
+  }
+
+  ObjectPosition BakerGC::validate_object(OBJECT obj) {
+    if(current->contains_p(obj)) {
+      return cValid;
+    } else if(next->contains_p(obj)) {
+      return cInWrongYoungHalf;
+    } else {
+      return cUnknown;
     }
   }
 }

@@ -4,6 +4,7 @@
 #include "object.hpp"
 #include "gc.hpp"
 #include "gc_root.hpp"
+#include "object_position.hpp"
 
 #include <list>
 
@@ -82,6 +83,8 @@ namespace rubinius {
     void   free_object(Entry *entry);
     virtual OBJECT saw_object(OBJECT obj);
     void   collect(Roots &roots);
+
+    ObjectPosition validate_object(OBJECT obj);
   };
 };
 

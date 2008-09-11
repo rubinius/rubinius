@@ -3,6 +3,8 @@
 
 #include "gc.hpp"
 #include "gc_root.hpp"
+#include "object_position.hpp"
+
 #include <iostream>
 
 namespace rubinius {
@@ -45,14 +47,14 @@ namespace rubinius {
       }
 
       bool contains_p(address addr) {
-        if(addr < start) return FALSE;
-        if(addr >= last) return FALSE;
-        return TRUE;
+        if(addr < start) return false;
+        if(addr >= last) return false;
+        return true;
       }
 
       bool enough_space_p(size_t size) {
-        if((uintptr_t)current + size > (uintptr_t)last) return FALSE;
-        return TRUE;
+        if((uintptr_t)current + size > (uintptr_t)last) return false;
+        return true;
       }
 
       bool fully_scanned_p() {
@@ -95,14 +97,16 @@ namespace rubinius {
       OBJECT obj;
 
       if(!current->enough_space_p(bytes)) {
+#if 0
         if(!next->enough_space_p(bytes)) {
           return NULL;
         } else {
           total_objects++;
           obj = (OBJECT)next->allocate(bytes);
         }
-
+#endif
         *collect_now = true;
+        return NULL;
       } else {
         total_objects++;
         obj = (OBJECT)current->allocate(bytes);
@@ -122,6 +126,8 @@ namespace rubinius {
     OBJECT  next_object(OBJECT obj);
     void    find_lost_souls();
     void    clean_weakrefs();
+
+    ObjectPosition validate_object(OBJECT obj);
   };
 };
 
