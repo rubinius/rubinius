@@ -2079,25 +2079,178 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("structure_remove_begin_1",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              begin_top          = g.new_label
+              bottom             = g.new_label
+              dunno1             = g.new_label
+              no_exception       = g.new_label
+              std_exception      = g.new_label
+              uncaught_exception = g.new_label
+
+              g.push :self
+              g.send :a, 0, true
+              g.push_modifiers
+
+              begin_top.set!
+              begin_top.set!
+
+              g.push :self
+              g.send :b, 0, true
+              g.goto no_exception
+
+              dunno1.set!
+
+              g.push_const :StandardError
+              g.push_exception
+              g.send :===, 1
+              g.git std_exception
+              g.goto uncaught_exception
+
+              std_exception.set!
+
+              g.push :self
+              g.send :c, 0, true
+              g.clear_exception
+              g.goto no_exception
+
+              uncaught_exception.set!
+
+              g.push_exception
+              g.raise_exc
+
+              no_exception.set!
+              no_exception.set!
+
+              g.pop_modifiers
+
+              g.send :<<, 1, false
+            end)
 
   add_tests("structure_remove_begin_2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              begin_top          = g.new_label
+              bottom             = g.new_label
+              dunno1             = g.new_label
+              f                  = g.new_label
+              no_exception       = g.new_label
+              std_exception      = g.new_label
+              uncaught_exception = g.new_label
+
+              g.push :self
+              g.send :c, 0, true
+              g.gif f
+              g.push_modifiers
+
+              begin_top.set!
+              begin_top.set!
+
+              g.push :self
+              g.send :b, 0, true
+              g.goto no_exception
+
+              dunno1.set!
+
+              g.push_const :StandardError
+              g.push_exception
+              g.send :===, 1
+              g.git std_exception
+              g.goto uncaught_exception
+
+              std_exception.set!
+
+              g.push :nil
+              g.clear_exception
+              g.goto no_exception
+
+              uncaught_exception.set!
+
+              g.push_exception
+              g.raise_exc
+
+              no_exception.set!
+              no_exception.set!
+
+              g.pop_modifiers
+              g.goto bottom
+
+              f.set!
+
+              g.push :nil
+
+              bottom.set!
+
+              g.set_local 0
+              g.pop
+              g.push_local 0
+            end)
 
   add_tests("structure_unused_literal_wwtt",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.open_module :Graffle
+            end)
 
   add_tests("super",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push 4
+                d.push :nil
+                d.push :nil
+                d.send_super :x, 1
+              end
+            end)
 
   add_tests("super_block_pass",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.send :a, 0, true
+
+              g.push :nil
+
+              g.push :self
+              g.send :b, 0, true
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_super nil, 1 # TODO: nil?
+            end)
 
   add_tests("super_block_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :a, 0, true
+
+              g.push :self
+              g.send :b, 0, true
+
+              g.cast_array
+
+              g.push :nil
+              g.send_super nil, 1, true # TODO: nil?
+            end)
 
   add_tests("super_multi",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push 4
+                d.push 2
+                d.push 1
+                d.push :nil
+                d.push :nil
+                d.send_super :x, 3
+              end
+            end)
 
   add_tests("svalue",
             "Compiler" => bytecode do |g|
