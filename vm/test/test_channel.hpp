@@ -8,6 +8,7 @@
 #include "event.hpp"
 
 #include <cxxtest/TestSuite.h>
+#include <sys/time.h>
 
 using namespace rubinius;
 
@@ -101,7 +102,7 @@ class TestChannel : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(G(current_task)->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack[0], Qnil)
+    TS_ASSERT_EQUALS(stack[0], Qnil);
   }
 
   void test_receive_polls_events() {
@@ -122,12 +123,60 @@ class TestChannel : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(G(current_task)->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack[0], Qnil)
+    TS_ASSERT_EQUALS(stack[0], Qnil);
   }
 
   void test_has_readers_p() {
     TS_ASSERT(!chan->has_readers_p());
     chan->waiting->append(state, G(current_thread));
     TS_ASSERT(chan->has_readers_p());
+  }
+
+  void compare_intervals(struct timeval start, struct timeval finish,
+                         suseconds_t expected, suseconds_t delta) {
+    time_t sec = finish.tv_sec - start.tv_sec;
+    suseconds_t actual = sec * 1000000 - start.tv_usec + finish.tv_usec;
+    TS_ASSERT_DELTA(expected, actual, delta);
+  }
+
+  void test_send_in_microseconds() {
+    struct timeval start, finish;
+
+    Thread* orig = G(current_thread);
+    SYMBOL done = state->symbol("done");
+    gettimeofday(&start, NULL);
+
+    OBJECT* stack = G(current_task)->current_stack();
+
+    OBJECT ret = Channel::send_in_microseconds(state, chan, Fixnum::from(100000), done);
+    usleep(200000);
+    chan->receive(state);
+
+    gettimeofday(&finish, NULL);
+    TS_ASSERT(ret->nil_p());
+    TS_ASSERT_EQUALS(G(current_thread), orig);
+    TS_ASSERT_EQUALS(done, stack[0]);
+    compare_intervals(start, finish, 200000U, 350U);
+  }
+
+  void test_send_in_seconds() {
+    Float* point_one = Float::create(state, 0.1);
+    struct timeval start, finish;
+
+    Thread* orig = G(current_thread);
+    SYMBOL done = state->symbol("done");
+    gettimeofday(&start, NULL);
+
+    OBJECT* stack = G(current_task)->current_stack();
+
+    OBJECT ret = Channel::send_in_seconds(state, chan, point_one, done);
+    usleep(200000);
+    chan->receive(state);
+
+    gettimeofday(&finish, NULL);
+    TS_ASSERT(ret->nil_p());
+    TS_ASSERT_EQUALS(G(current_thread), orig);
+    TS_ASSERT_EQUALS(done, stack[0]);
+    compare_intervals(start, finish, 200000U, 350U);
   }
 };

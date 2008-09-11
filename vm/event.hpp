@@ -77,8 +77,9 @@ namespace rubinius {
     class Timer : public Event {
     public:
       struct ev_timer ev;
+      OBJECT tag;
 
-      Timer(STATE, ObjectCallback* chan, double seconds);
+      Timer(STATE, ObjectCallback* chan, double seconds, OBJECT obj = Qnil);
       virtual ~Timer() { stop(); }
       virtual void start();
       virtual void stop();
