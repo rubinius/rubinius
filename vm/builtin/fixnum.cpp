@@ -38,31 +38,31 @@ namespace rubinius {
     return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
   }
 
-  native_int Fixnum::to_native() {
+  native_int Fixnum::to_native() const {
     return STRIP_TAG(this);
   }
 
-  int Fixnum::to_int() {
+  int Fixnum::to_int() const {
     return (int)STRIP_TAG(this);
   }
 
-  unsigned int Fixnum::to_uint() {
+  unsigned int Fixnum::to_uint() const {
     return (unsigned int)STRIP_TAG(this);
   }
 
-  long Fixnum::to_long() {
+  long Fixnum::to_long() const {
     return (long)STRIP_TAG(this);
   }
 
-  unsigned long Fixnum::to_ulong() {
+  unsigned long Fixnum::to_ulong() const {
     return (unsigned long)STRIP_TAG(this);
   }
 
-  long long Fixnum::to_long_long() {
+  long long Fixnum::to_long_long() const {
     return (long long)STRIP_TAG(this);
   }
 
-  unsigned long long Fixnum::to_ulong_long() {
+  unsigned long long Fixnum::to_ulong_long() const {
     return (unsigned long long)STRIP_TAG(this);
   }
 

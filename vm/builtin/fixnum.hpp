@@ -16,14 +16,14 @@ namespace rubinius {
 
     static FIXNUM from(native_int);
 
-    native_int         to_native();
+    native_int         to_native() const;
 
-    int                to_int();
-    unsigned int       to_uint();
-    long               to_long();
-    unsigned long      to_ulong();
-    long long          to_long_long();
-    unsigned long long to_ulong_long();
+    int                to_int() const;
+    unsigned int       to_uint() const;
+    long               to_long() const;
+    unsigned long      to_ulong() const;
+    long long          to_long_long() const;
+    unsigned long long to_ulong_long() const;
 
     // Ruby.primitive! :fixnum_add
     INTEGER add(STATE, FIXNUM other);
