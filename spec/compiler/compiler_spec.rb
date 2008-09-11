@@ -1952,22 +1952,70 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("parse_floats_as_args",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                opt_arg_1 = d.new_label
+                opt_arg_2 = d.new_label
+
+                d.passed_arg 0
+                d.git opt_arg_1
+                d.push 0.0
+                d.set_local 0
+                d.pop
+
+                opt_arg_1.set!
+
+                d.passed_arg 1
+                d.git opt_arg_2
+                d.push 0.0
+                d.set_local 1
+                d.pop
+
+                opt_arg_2.set!
+
+                d.push_local 0
+                d.push_local 1
+                d.meta_send_op_plus
+              end
+            end)
 
   add_tests("postexe",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_block_send :at_exit, 0 do |d|
+                d.push 1
+              end
+            end)
 
   add_tests("proc_args_0",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_block_send :proc, 0 do |d|
+                d.push :self
+                d.send :x, 0, true
+                d.push 1
+                d.meta_send_op_plus
+              end
+            end)
 
   add_tests("proc_args_1",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_block_send :proc, 1 do |d|
+                d.push_local_depth 0, 0
+                d.push 1
+                d.meta_send_op_plus
+              end
+            end)
 
   add_tests("proc_args_2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_block_send :proc, 2 do |d|
+                d.push_local_depth 0, 0
+                d.push_local_depth 0, 1
+                d.meta_send_op_plus
+              end
+            end)
 
-  add_tests("proc_args_no",
-            "Compiler" => :skip)
+  add_tests("proc_args_no", # TODO shouldn't 0 bitch if there are args?
+            "Compiler" => testcases['proc_args_0']['Compiler'])
 
   add_tests("redo",
             "Compiler" => bytecode do |g|
