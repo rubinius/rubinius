@@ -8,13 +8,23 @@ namespace rubinius {
   class String;
 
   class IO : public Object {
-    public:
+  public:
     const static size_t fields = 3;
     const static object_type type = IOType;
 
-    FIXNUM descriptor; // slot
-    OBJECT buffer; // slot
-    OBJECT mode; // slot
+  private:
+    FIXNUM descriptor_; // slot
+    OBJECT buffer_;     // slot
+    OBJECT mode_;       // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(descriptor, Fixnum);
+    attr_accessor(buffer, Object);
+    attr_accessor(mode, Object);
+
+    /* interface */
 
     native_int to_fd();
 
@@ -52,9 +62,19 @@ namespace rubinius {
     const static size_t fields = 3;
     const static object_type type = IOBufferType;
 
-    OBJECT storage; // slot
-    INTEGER total; // slot
-    INTEGER used; // slot
+  private:
+    OBJECT storage_; // slot
+    INTEGER total_;  // slot
+    INTEGER used_;   // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(storage, Object);
+    attr_accessor(total, Integer);
+    attr_accessor(used, Integer);
+
+    /* interface */
 
     static IOBuffer* create(STATE, size_t bytes);
     void reset(STATE);
@@ -62,7 +82,7 @@ namespace rubinius {
     char* byte_address();
     size_t left();
     char* at_unused();
-    void read_bytes(size_t bytes);
+    void read_bytes(STATE, size_t bytes);
 
     class Info : public TypeInfo {
     public:

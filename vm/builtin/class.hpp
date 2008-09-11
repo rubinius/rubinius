@@ -10,17 +10,26 @@ namespace rubinius {
   class LookupTable;
 
   class Class : public Module {
-    public:
+  public:
     const static size_t fields = Module::fields + 4;
     const static object_type type = ClassType;
 
-    FIXNUM instance_fields; // slot
-    OBJECT has_ivars; // slot
-    OBJECT needs_cleanup; // slot
-    FIXNUM instance_type; // slot
+  private:
+    FIXNUM instance_fields_; // slot
+    OBJECT needs_cleanup_;   // slot
+    FIXNUM instance_type_;   // slot
 
-    void set_object_type(size_t type) {
-      instance_type = Fixnum::from(type);
+  public:
+    /* accessors */
+
+    attr_accessor(instance_fields, Fixnum);
+    attr_accessor(needs_cleanup, Object);
+    attr_accessor(instance_type, Fixnum);
+
+    /* interface */
+
+    void set_object_type(STATE, size_t type) {
+      instance_type(state, Fixnum::from(type));
     }
 
     static Class* create(STATE, Class* super);
@@ -35,11 +44,19 @@ namespace rubinius {
   };
 
   class MetaClass : public Class {
-    public:
+  public:
     const static size_t fields = Class::fields + 1;
     const static object_type type = MetaclassType;
 
-    OBJECT attached_instance; // slot
+  private:
+    OBJECT attached_instance_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(attached_instance, Object);
+
+    /* interface */
 
     static MetaClass* attach(STATE, OBJECT obj, OBJECT sup = NULL);
 

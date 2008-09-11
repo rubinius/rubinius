@@ -28,30 +28,49 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = TaskType;
 
-    OBJECT self; // slot
+  private:
+    OBJECT self_;           // slot
 
     /* Literals are cached here for performance reasons.
      * Otherwise, each reference would need to traverse:
      * task->active->cm->literals
      */
-    Tuple* literals; // slot
-    MethodContext* active; // slot
-    MethodContext* home; // slot
+    Tuple* literals_;       // slot
+    MethodContext* active_; // slot
+    MethodContext* home_;   // slot
 
     /* globals */
-    Exception* exception; // slot
-    TaskProbe *probe; // slot
+    Exception* exception_;  // slot
+    TaskProbe *probe_;      // slot
+
+    /* Data */
+    Channel* debug_channel_;   // slot
+    Channel* control_channel_; // slot
+
+  public:
+    // TODO: fix up data members that aren't slots
+    /* internal data */
+    STATE;
+    struct jit_state js;
+    Message* msg;
+
+    /* globals */
     int call_flags;
     opcode blockargs;
 
-    /* Internal data */
-    STATE;
-    Message* msg;
-    struct jit_state js;
+  public:
+    /* accessors */
 
-    /* Data */
-    Channel* debug_channel; // slot
-    Channel* control_channel; // slot
+    attr_accessor(self, Object);
+    attr_accessor(literals, Tuple);
+    attr_accessor(active, MethodContext);
+    attr_accessor(home, MethodContext);
+    attr_accessor(exception, Exception);
+    attr_accessor(probe, TaskProbe);
+    attr_accessor(debug_channel, Channel);
+    attr_accessor(control_channel, Channel);
+
+    /* interface */
 
     static void init(STATE);
     static Task* create(STATE, OBJECT recv, CompiledMethod* meth);

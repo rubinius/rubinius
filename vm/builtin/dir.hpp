@@ -9,11 +9,19 @@ namespace rubinius {
   class String;
 
   class Dir : public Object {
-    public:
+  public:
     const static size_t fields = 1;
     const static object_type type = DirType;
 
-    MemoryPointer* data; // slot
+  private:
+    MemoryPointer* data_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(data, MemoryPointer);
+
+    /* interface */
 
     static void init(STATE);
     static Dir* create(STATE);

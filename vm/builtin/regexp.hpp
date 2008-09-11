@@ -19,13 +19,22 @@ namespace rubinius {
   class LookupTable;
 
   class Regexp : public Object {
-    public:
+  public:
     const static size_t fields = 3;
     const static object_type type = RegexpType;
 
-    String* source; // slot
-    LookupTable* names; // slot
+  private:
+    String* source_;     // slot
+    LookupTable* names_; // slot
     regex_t* onig_data;
+
+  public:
+    /* accessors */
+
+    attr_accessor(source, String);
+    attr_accessor(names, LookupTable);
+
+    /* interface */
 
     static void cleanup(STATE, OBJECT data);
     static void init(STATE);
@@ -53,14 +62,25 @@ namespace rubinius {
   };
 
   class MatchData : public Object {
-    public:
+  public:
     const static size_t fields = 4;
     const static object_type type = MatchDataType;
 
-    String* source; // slot
-    Regexp* regexp; // slot
-    Tuple* full; // slot
-    Tuple* region; // slot
+  private:
+    String* source_; // slot
+    Regexp* regexp_; // slot
+    Tuple* full_;    // slot
+    Tuple* region_;  // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(source, String);
+    attr_accessor(regexp, Regexp);
+    attr_accessor(full, Tuple);
+    attr_accessor(region, Tuple);
+
+    /* interface */
 
     class Info : public TypeInfo {
     public:

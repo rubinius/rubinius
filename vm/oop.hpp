@@ -137,7 +137,7 @@ to be a simple test for that bit pattern.
     };
     uint32_t field_count;
     Class* klass;
-    Object* ivars;
+    Object* ivars_;
   };
 
   /* Object access, lowest level. These read and set fields of an OBJECT

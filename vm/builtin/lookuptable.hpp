@@ -10,15 +10,24 @@ namespace rubinius {
 
   #define LOOKUPTABLE_MIN_SIZE 16
   class LookupTable : public Object {
-    public:
+  public:
     const static size_t fields = 3;
     const static object_type type = LookupTableType;
 
-    Tuple* values; // slot
-    INTEGER bins; // slot
-    INTEGER entries; // slot
+  private:
+    Tuple* values_;   // slot
+    INTEGER bins_;    // slot
+    INTEGER entries_; // slot
 
-    /* Prototypes */
+  public:
+    /* accessors */
+
+    attr_accessor(values, Tuple);
+    attr_accessor(bins, Integer);
+    attr_accessor(entries, Integer);
+
+    /* interface */
+
     static LookupTable* create(STATE, size_t sz = LOOKUPTABLE_MIN_SIZE);
     void setup(STATE, size_t sz);
 

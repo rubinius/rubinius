@@ -75,9 +75,9 @@ namespace rubinius {
   }
 
   void Marshaller::set_sendsite(SendSite* ss) {
-    String* str = ss->name->to_str(state);
+    String* str = ss->name()->to_str(state);
     stream << "S" << endl << str->size() << endl;
-    stream.write(str->byte_address(), str->size()) << endl;
+    stream.write(str->c_str(), str->size()) << endl;
   }
 
   SendSite* UnMarshaller::get_sendsite() {
@@ -150,7 +150,7 @@ namespace rubinius {
   }
 
   void Marshaller::set_iseq(InstructionSequence* iseq) {
-    Tuple* ops = iseq->opcodes;
+    Tuple* ops = iseq->opcodes();
     stream << "i" << endl << ops->field_count << endl;
     for(size_t i = 0; i < ops->field_count; i++) {
       stream << as<Fixnum>(ops->at(i))->to_native() << endl;
@@ -163,7 +163,7 @@ namespace rubinius {
     stream >> count;
 
     InstructionSequence* iseq = InstructionSequence::create(state, count);
-    Tuple* ops = iseq->opcodes;
+    Tuple* ops = iseq->opcodes();
 
     for(size_t i = 0; i < count; i++) {
       stream >> op;
@@ -185,20 +185,20 @@ namespace rubinius {
 
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    SET(cm, ivars, unmarshal());
-    SET(cm, primitive, unmarshal());
-    SET(cm, name,      unmarshal());
-    SET(cm, iseq,      unmarshal());
-    SET(cm, stack_size, unmarshal());
-    SET(cm, local_count, unmarshal());
-    SET(cm, required_args, unmarshal());
-    SET(cm, total_args, unmarshal());
-    SET(cm, splat,     unmarshal());
-    SET(cm, literals,  unmarshal());
-    SET(cm, exceptions, unmarshal());
-    SET(cm, lines,     unmarshal());
-    SET(cm, file,      unmarshal());
-    SET(cm, local_names, unmarshal());
+    cm->ivars(state, unmarshal());
+    cm->primitive(state, (SYMBOL)unmarshal());
+    cm->name(state, (SYMBOL)unmarshal());
+    cm->iseq(state, (InstructionSequence*)unmarshal());
+    cm->stack_size(state, (FIXNUM)unmarshal());
+    cm->local_count(state, (FIXNUM)unmarshal());
+    cm->required_args(state, (FIXNUM)unmarshal());
+    cm->total_args(state, (FIXNUM)unmarshal());
+    cm->splat(state, unmarshal());
+    cm->literals(state, (Tuple*)unmarshal());
+    cm->exceptions(state, (Tuple*)unmarshal());
+    cm->lines(state, (Tuple*)unmarshal());
+    cm->file(state, (SYMBOL)unmarshal());
+    cm->local_names(state, (Tuple*)unmarshal());
 
     cm->post_marshal(state);
 

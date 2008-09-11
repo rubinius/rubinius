@@ -8,8 +8,18 @@ using namespace rubinius;
 class TestObjectMemory : public CxxTest::TestSuite {
   public:
 
+  VM *state;
+
+  void setUp() {
+    state = new VM(1024);
+  }
+
+  void tearDown() {
+    delete state;
+  }
+
   void test_new_object() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj;
 
     TS_ASSERT_EQUALS(om.young.current->used(), 0U);
@@ -19,16 +29,16 @@ class TestObjectMemory : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(obj->field_count, 3U);
     TS_ASSERT(obj->klass == NULL);
     TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
-    TS_ASSERT_EQUALS(obj->ivars, Qnil);
+    TS_ASSERT_EQUALS(obj->ivars(), Qnil);
 
     TS_ASSERT(om.young.current->used() == obj->size_in_bytes());
     TS_ASSERT(om.young.heap_a.used()  == obj->size_in_bytes());
     TS_ASSERT_EQUALS(om.young.current->remaining(), 
-		     static_cast<unsigned int>(1024 - obj->size_in_bytes() - 1));
+         static_cast<unsigned int>(1024 - obj->size_in_bytes() - 1));
   }
 
   void test_write_barrier() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj, obj2;
 
     obj  = om.allocate_object(2);
@@ -50,7 +60,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   /* Causes a segfault when fails. */
   void test_write_barrier_not_called_for_immediates() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj, obj2;
 
     obj = om.allocate_object(2);
@@ -63,7 +73,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj;
     TS_ASSERT_EQUALS(om.young.current->used(), 0U);
 
@@ -92,7 +102,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_through_references() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj, obj2, obj3;
 
     obj =  om.allocate_object(3);
@@ -122,7 +132,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   /* Could crash on failure */
   void test_collect_young_skips_byte_storage() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj, obj2;
 
     obj =  om.allocate_bytes(3);
@@ -142,7 +152,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_new_object_mature() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj;
 
     obj = om.allocate_mature(3);
@@ -159,7 +169,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_new_large_object() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj;
 
     om.large_object_threshold = 10;
@@ -173,7 +183,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_doesnt_move_mature_objects() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj;
 
     om.large_object_threshold = 10;
@@ -189,7 +199,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_uses_remember_set() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT young, mature;
 
     om.large_object_threshold = 10;
@@ -209,7 +219,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_promotes_objects() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT young;
 
     young = om.allocate_object(3);
@@ -230,7 +240,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_resets_remember_set() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT young, mature;
 
     om.large_object_threshold = 10;
@@ -258,7 +268,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_uses_forwarding_pointers() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj, obj2;
 
     obj =  om.allocate_object(3);
@@ -281,7 +291,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_copies_byte_bodies() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj;
 
     obj = om.allocate_bytes(3);
@@ -297,7 +307,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_class_considered() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj, cls;
 
     cls = om.allocate_object(3);
@@ -315,7 +325,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_mature() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT mature;
 
     om.debug_marksweep(true);
@@ -341,7 +351,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_mature_marks_young_objects() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT young, mature;
 
     om.large_object_threshold = 10;
@@ -362,7 +372,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   /* Could segfault on failure due to infinite loop. */
   void test_collect_mature_stops_at_already_marked_objects() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT young, mature;
 
     om.large_object_threshold = 10;
@@ -385,7 +395,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_stops_at_already_marked_objects() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj, obj2;
 
     obj =  om.allocate_object(3);
@@ -409,7 +419,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_tells_objectmemory_about_collection() {
-    ObjectMemory om(128);
+    ObjectMemory om(state, 128);
     OBJECT obj;
     int left = 128;
 
@@ -424,7 +434,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_new_young_spills_to_mature() {
-    ObjectMemory om(128);
+    ObjectMemory om(state, 128);
     OBJECT obj;
     int left = 128 * 2;
 
@@ -438,7 +448,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
 
   void test_collect_mature_tells_objectmemory_about_collection() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj;
     int left = 128;
 
@@ -456,7 +466,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_valid_object_p() {
-    ObjectMemory om(1024);
+    ObjectMemory om(state, 1024);
     OBJECT obj;
 
     obj = om.allocate_object(3);

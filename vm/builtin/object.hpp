@@ -5,6 +5,34 @@
 #include "prelude.hpp"
 
 namespace rubinius {
+/**
+* Create a writer method.
+*
+* For attr_writer(foo, SomeClass), creates void foo(STATE, SomeClass* obj)
+* that sets the instance variable my_foo to the object given and runs the write
+* barrier.
+*/
+#define attr_writer(name, type) void name(STATE, type* obj) { \
+                                       name ## _ = obj; \
+                                       this->write_barrier(state, (OBJECT)obj); \
+                                     }
+
+/**
+* Create a reader method.
+*
+* For attr_reader(foo, SomeClass), creates SomeClass* foo() which returns the
+* instance variable my_foo.
+*/
+#define attr_reader(name, type) type* name() { return name ## _; }
+
+/**
+* Ruby-like accessor creation.
+*
+* Both attr_writer and attr_reader.
+*/
+#define attr_accessor(name, type) attr_reader(name, type) \
+                                  attr_writer(name, type)
+
   class MetaClass;
   class Integer;
   class String;
@@ -26,6 +54,9 @@ namespace rubinius {
       OBJECT field[];
       uint8_t bytes[];
     };
+
+    /* accessors */
+    attr_accessor(ivars, Object);
 
     // Ruby.primitive :object_equal
     OBJECT equal(STATE, OBJECT other);
@@ -69,6 +100,9 @@ namespace rubinius {
     bool false_p();
     bool has_ivars_p();
     bool check_type(object_type type);
+
+    /* Provides access to the GC write barrier from any object. */
+    void write_barrier(STATE, OBJECT obj);
 
     // Safely return the object type, even if the receiver is an immediate
     object_type get_type();

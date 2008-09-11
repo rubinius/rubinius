@@ -12,24 +12,44 @@ namespace rubinius {
   class StaticScope;
 
   class CompiledMethod : public Executable {
-    public:
+  public:
     const static size_t fields = 18;
     const static object_type type = CMethodType;
     const static size_t saved_fields = 16;
 
-    SYMBOL name; // slot
-    InstructionSequence*  iseq; // slot
-    FIXNUM stack_size; // slot
-    FIXNUM local_count; // slot
-    FIXNUM required_args; // slot
-    FIXNUM total_args; // slot
-    OBJECT splat; // slot
-    Tuple* literals; // slot
-    Tuple* exceptions; // slot
-    Tuple* lines; // slot
-    Tuple* local_names; // slot
-    SYMBOL file; // slot
-    StaticScope* scope; // slot
+  private:
+    SYMBOL name_;               // slot
+    InstructionSequence* iseq_; // slot
+    FIXNUM stack_size_;         // slot
+    FIXNUM local_count_;        // slot
+    FIXNUM required_args_;      // slot
+    FIXNUM total_args_;         // slot
+    OBJECT splat_;              // slot
+    Tuple* literals_;           // slot
+    Tuple* exceptions_;         // slot
+    Tuple* lines_;              // slot
+    Tuple* local_names_;        // slot
+    SYMBOL file_;               // slot
+    StaticScope* scope_;        // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(name, Symbol);
+    attr_accessor(iseq, InstructionSequence);
+    attr_accessor(stack_size, Fixnum);
+    attr_accessor(local_count, Fixnum);
+    attr_accessor(required_args, Fixnum);
+    attr_accessor(total_args, Fixnum);
+    attr_accessor(splat, Object);
+    attr_accessor(literals, Tuple);
+    attr_accessor(exceptions, Tuple);
+    attr_accessor(lines, Tuple);
+    attr_accessor(local_names, Tuple);
+    attr_accessor(file, Symbol);
+    attr_accessor(scope, StaticScope);
+
+    /* interface */
 
     static void init(STATE);
 
@@ -41,7 +61,6 @@ namespace rubinius {
 
     void post_marshal(STATE);
     size_t number_of_locals();
-    void set_scope(StaticScope*);
     VMMethod* formalize(STATE, bool ondemand=true);
     void specialize(TypeInfo* ti);
 

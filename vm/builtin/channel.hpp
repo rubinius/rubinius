@@ -18,8 +18,17 @@ namespace rubinius {
     const static size_t fields = 2;
     const static object_type type = ChannelType;
 
-    OBJECT value; // slot
-    List* waiting; // slot
+  private:
+    OBJECT value_;  // slot
+    List* waiting_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(value, Object);
+    attr_accessor(waiting, List);
+
+    /* interface */
 
     // Ruby.primitive :channel_new
     static Channel* create(STATE);

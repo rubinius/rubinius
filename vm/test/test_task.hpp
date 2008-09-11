@@ -28,11 +28,11 @@ class TestTask : public CxxTest::TestSuite {
 
   CompiledMethod* create_cm() {
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 1);
-    cm->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    cm->stack_size = Fixnum::from(10);
-    cm->total_args = Fixnum::from(0);
-    cm->required_args = cm->total_args;
+    cm->iseq(state, InstructionSequence::create(state, 1));
+    cm->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    cm->stack_size(state, Fixnum::from(10));
+    cm->total_args(state, Fixnum::from(0));
+    cm->required_args(state, cm->total_args());
 
     cm->formalize(state);
 
@@ -48,13 +48,13 @@ class TestTask : public CxxTest::TestSuite {
   void test_create_trampoline() {
     Task* task = Task::create(state);
 
-    TS_ASSERT_EQUALS(task->active->name, state->symbol("__trampoline__"));
-    TS_ASSERT_EQUALS(task->active->block, Qnil);
-    TS_ASSERT_EQUALS(task->active->sender, Qnil);
-    TS_ASSERT(kind_of<MethodContext>(task->active->home));
-    TS_ASSERT(kind_of<Object>(task->active->self));
-    TS_ASSERT(kind_of<CompiledMethod>(task->active->cm));
-    TS_ASSERT(kind_of<Module>(task->active->module));
+    TS_ASSERT_EQUALS(task->active()->name(), state->symbol("__trampoline__"));
+    TS_ASSERT_EQUALS(task->active()->block(), Qnil);
+    TS_ASSERT_EQUALS(task->active()->sender(), Qnil);
+    TS_ASSERT(kind_of<MethodContext>(task->active()->home()));
+    TS_ASSERT(kind_of<Object>(task->active()->self()));
+    TS_ASSERT(kind_of<CompiledMethod>(task->active()->cm()));
+    TS_ASSERT(kind_of<Module>(task->active()->module()));
   }
 
   void test_create_sets_probe() {
@@ -62,7 +62,7 @@ class TestTask : public CxxTest::TestSuite {
     state->probe.set(probe);
     Task* task = Task::create(state);
 
-    TS_ASSERT_EQUALS(probe, task->probe);
+    TS_ASSERT_EQUALS(probe, task->probe());
   }
 
   void test_current() {
@@ -74,7 +74,7 @@ class TestTask : public CxxTest::TestSuite {
   void test_current_context() {
     Task* task = Task::current(state);
 
-    TS_ASSERT_EQUALS(task->active, task->current_context(state));
+    TS_ASSERT_EQUALS(task->active(), task->current_context(state));
   }
 
   void task_get_control_channel() {
@@ -82,7 +82,7 @@ class TestTask : public CxxTest::TestSuite {
 
     Channel* control = task->get_control_channel(state);
 
-    TS_ASSERT_EQUALS(task->control_channel, control);
+    TS_ASSERT_EQUALS(task->control_channel(), control);
   }
 
   void task_get_debug_channel() {
@@ -90,14 +90,14 @@ class TestTask : public CxxTest::TestSuite {
 
     Channel* debug = task->get_debug_channel(state);
 
-    TS_ASSERT_EQUALS(task->debug_channel, debug);
+    TS_ASSERT_EQUALS(task->debug_channel(), debug);
   }
 
   void test_send_message() {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -106,23 +106,23 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = SendSite::create(state, state->symbol("blah"));
     msg.set_args(0);
 
-    MethodContext* cur = task->active;
+    MethodContext* cur = task->active();
 
     task->send_message(msg);
 
-    TS_ASSERT(cur != task->active);
+    TS_ASSERT(cur != task->active());
 
-    MethodContext* ncur = task->active;
+    MethodContext* ncur = task->active();
 
-    TS_ASSERT_EQUALS(ncur->self, Qtrue);
-    TS_ASSERT_EQUALS(ncur->sender, cur);
+    TS_ASSERT_EQUALS(ncur->self(), Qtrue);
+    TS_ASSERT_EQUALS(ncur->sender(), cur);
   }
 
   void test_send_message_slowly() {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -131,34 +131,34 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = (SendSite*)Qnil;
     msg.set_args(0);
 
-    MethodContext* cur = task->active;
+    MethodContext* cur = task->active();
 
     task->send_message_slowly(msg);
 
-    TS_ASSERT(cur != task->active);
+    TS_ASSERT(cur != task->active());
 
-    MethodContext* ncur = task->active;
+    MethodContext* ncur = task->active();
 
-    TS_ASSERT_EQUALS(ncur->self, Qtrue);
-    TS_ASSERT_EQUALS(ncur->sender, cur);
+    TS_ASSERT_EQUALS(ncur->self(), Qtrue);
+    TS_ASSERT_EQUALS(ncur->sender(), cur);
   }
 
   void test_send_message_sets_up_fixed_locals() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(2);
-    cm->total_args = cm->required_args;
-    cm->local_count = cm->required_args;
-    cm->stack_size =  cm->required_args;
-    cm->splat = Qnil;
+    cm->required_args(state, Fixnum::from(2));
+    cm->total_args(state, cm->required_args());
+    cm->local_count(state, cm->required_args());
+    cm->stack_size(state, cm->required_args());
+    cm->splat(state, Qnil);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Task* task = Task::create(state, 2);
 
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
 
-    MethodContext* input_context = task->active;
+    MethodContext* input_context = task->active();
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -169,24 +169,24 @@ class TestTask : public CxxTest::TestSuite {
 
     task->send_message(msg);
 
-    TS_ASSERT(task->active != input_context);
+    TS_ASSERT(task->active() != input_context);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
   }
 
   void test_send_message_throws_argerror_on_too_few() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(2);
-    cm->total_args = cm->required_args;
-    cm->local_count = cm->required_args;
-    cm->stack_size =  cm->required_args;
-    cm->splat = Qnil;
+    cm->required_args(state, Fixnum::from(2));
+    cm->total_args(state, cm->required_args());
+    cm->local_count(state, cm->required_args());
+    cm->stack_size(state, cm->required_args());
+    cm->splat(state, Qnil);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Task* task = Task::create(state, 2);
 
-    MethodContext* top = task->active;
+    MethodContext* top = task->active();
 
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
@@ -209,22 +209,22 @@ class TestTask : public CxxTest::TestSuite {
 
     TS_ASSERT(thrown);
 
-    TS_ASSERT_EQUALS(task->active, top);
+    TS_ASSERT_EQUALS(task->active(), top);
   }
 
   void test_send_message_throws_argerror_on_too_many() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(2);
-    cm->total_args = cm->required_args;
-    cm->local_count = cm->required_args;
-    cm->stack_size =  cm->required_args;
-    cm->splat = Qnil;
+    cm->required_args(state, Fixnum::from(2));
+    cm->total_args(state, cm->required_args());
+    cm->local_count(state, cm->required_args());
+    cm->stack_size(state, cm->required_args());
+    cm->splat(state, Qnil);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Task* task = Task::create(state, 2);
 
-    MethodContext* top = task->active;
+    MethodContext* top = task->active();
 
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
@@ -247,18 +247,18 @@ class TestTask : public CxxTest::TestSuite {
 
     TS_ASSERT(thrown);
 
-    TS_ASSERT_EQUALS(task->active, top);
+    TS_ASSERT_EQUALS(task->active(), top);
   }
 
   void test_send_message_sets_up_fixed_locals_with_optionals() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(2);
-    cm->total_args = Fixnum::from(4);
-    cm->local_count = cm->total_args;
-    cm->stack_size =  cm->total_args;
-    cm->splat = Qnil;
+    cm->required_args(state, Fixnum::from(2));
+    cm->total_args(state, Fixnum::from(4));
+    cm->local_count(state, cm->total_args());
+    cm->stack_size(state, cm->total_args());
+    cm->splat(state, Qnil);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Task* task = Task::create(state, 4);
 
@@ -286,13 +286,13 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_send_message_sets_up_fixed_locals_with_splat() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(2);
-    cm->total_args = cm->required_args;
-    cm->local_count = Fixnum::from(4);
-    cm->stack_size =  cm->local_count;
-    cm->splat = Fixnum::from(2);
+    cm->required_args(state, Fixnum::from(2));
+    cm->total_args(state, cm->required_args());
+    cm->local_count(state, Fixnum::from(4));
+    cm->stack_size(state, cm->local_count());
+    cm->splat(state, Fixnum::from(2));
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Task* task = Task::create(state, 10);
 
@@ -322,13 +322,13 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_send_message_sets_up_fixed_locals_with_optional_and_splat() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(1);
-    cm->total_args = Fixnum::from(2);
-    cm->local_count = Fixnum::from(4);
-    cm->stack_size =  cm->local_count;
-    cm->splat = Fixnum::from(2);
+    cm->required_args(state, Fixnum::from(1));
+    cm->total_args(state, Fixnum::from(2));
+    cm->local_count(state, Fixnum::from(4));
+    cm->stack_size(state, cm->local_count());
+    cm->splat(state, Fixnum::from(2));
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Task* task = Task::create(state, 10);
 
@@ -358,13 +358,13 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_send_message_throws_argerror_on_too_many_with_splat() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(2);
-    cm->total_args = cm->required_args;
-    cm->local_count = Fixnum::from(3);
-    cm->stack_size =  Fixnum::from(3);
-    cm->splat = Fixnum::from(2);
+    cm->required_args(state, Fixnum::from(2));
+    cm->total_args(state, cm->required_args());
+    cm->local_count(state, Fixnum::from(3));
+    cm->stack_size(state, Fixnum::from(3));
+    cm->splat(state, Fixnum::from(2));
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Task* task = Task::create(state, 10);
 
@@ -410,26 +410,26 @@ class TestTask : public CxxTest::TestSuite {
     Task* task = Task::create(state);
 
     MethodVisibility* vis = MethodVisibility::create(state);
-    vis->method = cm;
-    vis->visibility = G(sym_protected);
+    vis->method(state, cm);
+    vis->visibility(state, G(sym_protected));
 
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
     SYMBOL callee = state->symbol("callee");
-    parent->method_table->store(state, callee, vis);
+    parent->method_table()->store(state, callee, vis);
 
     OBJECT p = state->new_object(parent);
     OBJECT c = state->new_object(child);
-    task->self = c;
+    task->self(state, c);
 
     StaticScope *sc = StaticScope::create(state);
-    SET(sc, module, child);
-    SET(cm, scope, sc);
+    sc->module(state, child);
+    cm->scope(state, sc);
 
-    task->active->module = child;
-    task->active->name = state->symbol("caller");
-    task->active->self = task->self;
+    task->active()->module(state, child);
+    task->active()->name(state, state->symbol("caller"));
+    task->active()->self(state, task->self());
 
     Message msg(state);
     msg.recv = p;
@@ -438,16 +438,16 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = SendSite::create(state, callee);
     msg.set_args(0);
 
-    MethodContext* cur = task->active;
+    MethodContext* cur = task->active();
 
     task->send_message(msg);
 
-    TS_ASSERT(cur != task->active);
+    TS_ASSERT(cur != task->active());
 
-    MethodContext* ncur = task->active;
+    MethodContext* ncur = task->active();
 
-    TS_ASSERT_EQUALS(ncur->self, p);
-    TS_ASSERT_EQUALS(ncur->sender, cur);
+    TS_ASSERT_EQUALS(ncur->self(), p);
+    TS_ASSERT_EQUALS(ncur->sender(), cur);
   }
 
   /**
@@ -471,26 +471,26 @@ class TestTask : public CxxTest::TestSuite {
     Task* task = Task::create(state);
 
     MethodVisibility* vis = MethodVisibility::create(state);
-    vis->method = cm;
-    vis->visibility = G(sym_protected);
+    vis->method(state, cm);
+    vis->visibility(state, G(sym_protected));
 
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
     SYMBOL callee = state->symbol("callee");
-    parent->method_table->store(state, callee, vis);
+    parent->method_table()->store(state, callee, vis);
 
     OBJECT p = state->new_object(parent);
     OBJECT c = state->new_object(child);
-    task->self = c;
+    task->self(state, c);
 
     StaticScope *sc = StaticScope::create(state);
-    SET(sc, module, child);
-    SET(cm, scope, sc);
+    sc->module(state, child);
+    cm->scope(state, sc);
 
-    task->active->module = child;
-    task->active->name = state->symbol("caller");
-    task->active->self = task->self;
+    task->active()->module(state, child);
+    task->active()->name(state, state->symbol("caller"));
+    task->active()->self(state, task->self());
 
     Message msg(state);
     msg.recv = p;
@@ -499,28 +499,28 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = SendSite::create(state, callee);
     msg.set_args(0);
 
-    MethodContext* cur = task->active;
+    MethodContext* cur = task->active();
 
     task->send_message_slowly(msg);
 
-    TS_ASSERT(cur != task->active);
+    TS_ASSERT(cur != task->active());
 
-    MethodContext* ncur = task->active;
+    MethodContext* ncur = task->active();
 
-    TS_ASSERT_EQUALS(ncur->self, p);
-    TS_ASSERT_EQUALS(ncur->sender, cur);
+    TS_ASSERT_EQUALS(ncur->self(), p);
+    TS_ASSERT_EQUALS(ncur->sender(), cur);
   }
 
   void test_simple_return() {
     CompiledMethod* cm = create_cm();
-    cm->total_args = Fixnum::from(0);
-    cm->stack_size = Fixnum::from(1);
+    cm->total_args(state, Fixnum::from(0));
+    cm->stack_size(state, Fixnum::from(1));
 
     Task* task = Task::create(state, Qnil, cm);
 
-    MethodContext* top = task->active;
+    MethodContext* top = task->active();
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -529,24 +529,24 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = SendSite::create(state, state->symbol("blah"));
     msg.set_args(0);
 
-    MethodContext* before = task->active;
+    MethodContext* before = task->active();
 
     task->send_message(msg);
 
-    TS_ASSERT_DIFFERS(before, task->active);
+    TS_ASSERT_DIFFERS(before, task->active());
 
     task->simple_return(Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->active, before);
-    TS_ASSERT_EQUALS(task->active, top);
+    TS_ASSERT_EQUALS(task->active(), before);
+    TS_ASSERT_EQUALS(task->active(), top);
   }
 
   void test_locate_method_on() {
     CompiledMethod* cm = create_cm();
-    cm->stack_size = Fixnum::from(1);
+    cm->stack_size(state, Fixnum::from(1));
 
     Task* task = Task::create(state);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
@@ -556,15 +556,15 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_locate_method_on_private() {
     CompiledMethod* cm = create_cm();
-    cm->stack_size = Fixnum::from(1);
+    cm->stack_size(state, Fixnum::from(1));
 
     Task* task = Task::create(state);
 
     MethodVisibility* vis = MethodVisibility::create(state);
-    vis->method = cm;
-    vis->visibility = G(sym_private);
+    vis->method(state, cm);
+    vis->visibility(state, G(sym_private));
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), vis);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), vis);
 
     Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
@@ -573,15 +573,15 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_locate_method_on_protected() {
     CompiledMethod* cm = create_cm();
-    cm->stack_size = Fixnum::from(1);
+    cm->stack_size(state, Fixnum::from(1));
 
     Task* task = Task::create(state);
 
     MethodVisibility* vis = MethodVisibility::create(state);
-    vis->method = cm;
-    vis->visibility = G(sym_protected);
+    vis->method(state, cm);
+    vis->visibility(state, G(sym_protected));
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), vis);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), vis);
 
     Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
@@ -590,15 +590,15 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_locate_method_on_private_private_send() {
     CompiledMethod* cm = create_cm();
-    cm->stack_size = Fixnum::from(1);
+    cm->stack_size(state, Fixnum::from(1));
 
     Task* task = Task::create(state);
 
     MethodVisibility* vis = MethodVisibility::create(state);
-    vis->method = cm;
-    vis->visibility = G(sym_private);
+    vis->method(state, cm);
+    vis->visibility(state, G(sym_private));
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), vis);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), vis);
 
     Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qtrue);
 
@@ -608,18 +608,18 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_attach_method() {
     CompiledMethod* cm = create_cm();
-    cm->stack_size = Fixnum::from(1);
+    cm->stack_size(state, Fixnum::from(1));
 
     Task* task = Task::create(state);
 
     task->attach_method(Qtrue, state->symbol("blah"), cm);
 
-    TS_ASSERT_EQUALS(cm, G(true_class)->method_table->fetch(state, state->symbol("blah")));
+    TS_ASSERT_EQUALS(cm, G(true_class)->method_table()->fetch(state, state->symbol("blah")));
   }
 
   void test_add_method() {
     CompiledMethod* cm = create_cm();
-    cm->stack_size = Fixnum::from(1);
+    cm->stack_size(state, Fixnum::from(1));
 
     Task* task = Task::create(state);
 
@@ -632,7 +632,7 @@ class TestTask : public CxxTest::TestSuite {
     ent = state->global_cache->lookup(G(true_class), blah);
     TS_ASSERT(!ent);
 
-    TS_ASSERT_EQUALS(cm, G(true_class)->method_table->fetch(state, state->symbol("blah")));
+    TS_ASSERT_EQUALS(cm, G(true_class)->method_table()->fetch(state, state->symbol("blah")));
   }
 
   void test_check_serial() {
@@ -640,9 +640,9 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    cm->serial = Fixnum::from(0);
+    cm->serial(state, Fixnum::from(0));
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     TS_ASSERT( task->check_serial(Qtrue, state->symbol("blah"), 0));
     TS_ASSERT(!task->check_serial(Qtrue, state->symbol("blah"), 1));
@@ -692,17 +692,17 @@ class TestTask : public CxxTest::TestSuite {
     Module* child =  state->new_module("Parent::Child");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     StaticScope* cs = StaticScope::create(state);
-    SET(cs, module, child);
-    SET(cs, parent, ps);
+    cs->module(state, child);
+    cs->parent(state, ps);
 
     CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, cs);
+    cm->scope(state, cs);
 
     parent->set_const(state, "Number", Fixnum::from(3));
     child->set_const(state, "Name", state->symbol("blah"));
@@ -727,21 +727,21 @@ class TestTask : public CxxTest::TestSuite {
     Module* inc =    state->new_module("Included");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     StaticScope* cs = StaticScope::create(state);
-    SET(cs, module, child);
-    SET(cs, parent, ps);
+    cs->module(state, child);
+    cs->parent(state, ps);
 
     inc->set_const(state, "Age", Fixnum::from(28));
 
-    SET(child, superclass, inc);
+    child->superclass(state, inc);
 
     CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, cs);
+    cm->scope(state, cs);
 
     TS_ASSERT_EQUALS(
       task->const_get(state->symbol("Age"), &found),
@@ -756,19 +756,19 @@ class TestTask : public CxxTest::TestSuite {
     Module* child =  state->new_module("Parent::Child");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     StaticScope* cs = StaticScope::create(state);
-    SET(cs, module, child);
-    SET(cs, parent, ps);
+    cs->module(state, child);
+    cs->parent(state, ps);
 
     G(object)->set_const(state, "Age", Fixnum::from(28));
 
     CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, cs);
+    cm->scope(state, cs);
 
     TS_ASSERT_EQUALS(
       task->const_get(state->symbol("Age"), &found),
@@ -781,13 +781,13 @@ class TestTask : public CxxTest::TestSuite {
     Module* parent = state->new_module("Parent");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, ps);
+    cm->scope(state, ps);
 
     task->const_set(parent, state->symbol("Age"), Fixnum::from(28));
 
@@ -798,13 +798,13 @@ class TestTask : public CxxTest::TestSuite {
     Module* parent = state->new_module("Parent");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, ps);
+    cm->scope(state, ps);
 
     task->const_set(state->symbol("Age"), Fixnum::from(28));
 
@@ -827,10 +827,10 @@ class TestTask : public CxxTest::TestSuite {
     Module* parent = state->new_module("Parent");
 
     MethodContext* ctx = MethodContext::create(state, 10);
-    SET(ctx, module, parent);
+    ctx->module(state, parent);
 
     Task* task = Task::create(state, 10);
-    SET(task, active, ctx);
+    task->active(state, ctx);
 
     TS_ASSERT_EQUALS(task->current_module(), parent);
   }
@@ -839,20 +839,20 @@ class TestTask : public CxxTest::TestSuite {
     Module* parent = state->new_module("Parent");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, ps);
+    cm->scope(state, ps);
 
     bool created;
     Class* cls = task->open_class(Qnil, state->symbol("Person"), &created);
     TS_ASSERT(created);
     TS_ASSERT(kind_of<Class>(cls));
 
-    TS_ASSERT_EQUALS(cls->name, state->symbol("Parent::Person"));
+    TS_ASSERT_EQUALS(cls->name(), state->symbol("Parent::Person"));
     TS_ASSERT_EQUALS(parent->get_const(state, "Person"), cls);
   }
 
@@ -860,20 +860,20 @@ class TestTask : public CxxTest::TestSuite {
     Module* parent = state->new_module("Parent");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, ps);
+    cm->scope(state, ps);
 
     bool created;
     Class* cls = task->open_class(G(object), Qnil, state->symbol("Person"), &created);
     TS_ASSERT(created);
     TS_ASSERT(kind_of<Class>(cls));
 
-    TS_ASSERT_EQUALS(cls->name, state->symbol("Person"));
+    TS_ASSERT_EQUALS(cls->name(), state->symbol("Person"));
     TS_ASSERT_EQUALS(G(object)->get_const(state, "Person"), cls);
   }
 
@@ -881,18 +881,18 @@ class TestTask : public CxxTest::TestSuite {
     Module* parent = state->new_module("Parent");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, ps);
+    cm->scope(state, ps);
 
     Module* mod = task->open_module(state->symbol("Person"));
     TS_ASSERT(kind_of<Module>(mod));
 
-    TS_ASSERT_EQUALS(mod->name, state->symbol("Parent::Person"));
+    TS_ASSERT_EQUALS(mod->name(), state->symbol("Parent::Person"));
     TS_ASSERT_EQUALS(parent->get_const(state, "Person"), mod);
   }
 
@@ -900,38 +900,38 @@ class TestTask : public CxxTest::TestSuite {
     Module* parent = state->new_module("Parent");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
-    SET(cm, scope, ps);
+    cm->scope(state, ps);
 
     Module* mod = task->open_module(G(object), state->symbol("Person"));
     TS_ASSERT(kind_of<Module>(mod));
 
-    TS_ASSERT_EQUALS(mod->name, state->symbol("Person"));
+    TS_ASSERT_EQUALS(mod->name(), state->symbol("Person"));
     TS_ASSERT_EQUALS(G(object)->get_const(state, "Person"), mod);
   }
 
   void test_raise() {
     CompiledMethod* cm = create_cm();
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->total_args = Fixnum::from(0);
-    cm->stack_size = Fixnum::from(1);
-    cm->exceptions = Tuple::from(state, 1,
-        Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(3), Fixnum::from(5)));
+    cm->iseq(state, InstructionSequence::create(state, 40));
+    cm->total_args(state, Fixnum::from(0));
+    cm->stack_size(state, Fixnum::from(1));
+    cm->exceptions(state, Tuple::from(state, 1,
+        Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(3), Fixnum::from(5))));
 
     Task* task = Task::create(state, Qnil, cm);
 
-    MethodContext* top = task->active;
+    MethodContext* top = task->active();
     task->set_ip(3);
 
     /* Call a method ... */
     CompiledMethod* cm2 = create_cm();
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm2);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm2);
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -941,34 +941,34 @@ class TestTask : public CxxTest::TestSuite {
     msg.set_args(0);
 
     task->send_message(msg);
-    TS_ASSERT(task->active != top);
+    TS_ASSERT(task->active() != top);
 
     Exception* exc = Exception::create(state);
 
     Task* t2 = task->raise(state, exc);
 
     TS_ASSERT_EQUALS(task, t2);
-    TS_ASSERT_EQUALS(task->active, top);
+    TS_ASSERT_EQUALS(task->active(), top);
     TS_ASSERT_EQUALS(task->current_ip(), 5);
   }
 
   void test_raise_exception() {
     CompiledMethod* cm = create_cm();
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->total_args = Fixnum::from(0);
-    cm->stack_size = Fixnum::from(1);
-    cm->exceptions = Tuple::from(state, 1,
-        Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(3), Fixnum::from(5)));
+    cm->iseq(state, InstructionSequence::create(state, 40));
+    cm->total_args(state, Fixnum::from(0));
+    cm->stack_size(state, Fixnum::from(1));
+    cm->exceptions(state, Tuple::from(state, 1,
+        Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(3), Fixnum::from(5))));
 
     Task* task = Task::create(state, Qnil, cm);
 
-    MethodContext* top = task->active;
+    MethodContext* top = task->active();
     task->set_ip(3);
 
     /* Call a method ... */
     CompiledMethod* cm2 = create_cm();
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm2);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm2);
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -978,22 +978,22 @@ class TestTask : public CxxTest::TestSuite {
     msg.set_args(0);
 
     task->send_message(msg);
-    TS_ASSERT(task->active != top);
+    TS_ASSERT(task->active() != top);
 
     Exception* exc = Exception::create(state);
 
     task->raise_exception(exc);
 
-    TS_ASSERT_EQUALS(task->active, top);
+    TS_ASSERT_EQUALS(task->active(), top);
     TS_ASSERT_EQUALS(task->current_ip(), 5);
   }
 
   void test_raise_exception_into_sender() {
     CompiledMethod* cm = create_cm();
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Fixnum::from(1);
-    cm->exceptions = Tuple::from(state, 1,
-        Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(3), Fixnum::from(5)));
+    cm->iseq(state, InstructionSequence::create(state, 40));
+    cm->stack_size(state, Fixnum::from(1));
+    cm->exceptions(state, Tuple::from(state, 1,
+        Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(3), Fixnum::from(5))));
 
     Task* task = Task::create(state, Qnil, cm);
 
@@ -1016,39 +1016,39 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_old_contexts_are_remembered_on_activate() {
     Task* task = Task::create(state);
-    TS_ASSERT(!task->active->Remember);
+    TS_ASSERT(!task->active()->Remember);
 
     /* Evil, but lets us test this easy. Don't do this in real
      * code */
-    task->active->zone = MatureObjectZone;
+    task->active()->zone = MatureObjectZone;
 
-    task->restore_context(task->active);
-    TS_ASSERT(task->active->Remember);
+    task->restore_context(task->active());
+    TS_ASSERT(task->active()->Remember);
 
     /* Check it only happens to old contexts. */
     task = Task::create(state);
-    TS_ASSERT(!task->active->Remember);
-    task->restore_context(task->active);
-    TS_ASSERT(!task->active->Remember);
+    TS_ASSERT(!task->active()->Remember);
+    task->restore_context(task->active());
+    TS_ASSERT(!task->active()->Remember);
   }
 
   void test_call_object() {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
-    MethodContext* cur = task->active;
+    MethodContext* cur = task->active();
 
     task->call_object(state, Qtrue, state->symbol("blah"),
         Array::create(state, 0));
 
-    TS_ASSERT(cur != task->active);
+    TS_ASSERT(cur != task->active());
 
-    MethodContext* ncur = task->active;
+    MethodContext* ncur = task->active();
 
-    TS_ASSERT_EQUALS(ncur->self, Qtrue);
-    TS_ASSERT_EQUALS(ncur->sender, cur);
+    TS_ASSERT_EQUALS(ncur->self(), Qtrue);
+    TS_ASSERT_EQUALS(ncur->sender(), cur);
   }
 
 };

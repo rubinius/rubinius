@@ -9,15 +9,25 @@ namespace rubinius {
   class LookupTable;
 
   class Module : public Object {
-    public:
+  public:
     const static size_t fields = 4;
     const static object_type type = ModuleType;
 
-    LookupTable* method_table; // slot
-    SYMBOL name; // slot
-    LookupTable* constants; // slot
-    Module* superclass; // slot
+  private:
+    LookupTable* method_table_; // slot
+    SYMBOL name_;               // slot
+    LookupTable* constants_;    // slot
+    Module* superclass_;        // slot
 
+  public:
+    /* accessors */
+
+    attr_accessor(method_table, LookupTable);
+    attr_accessor(name, Symbol);
+    attr_accessor(constants, LookupTable);
+    attr_accessor(superclass, Module);
+
+    /* interface */
     static Module* create(STATE);
 
     // Ruby.primitive :module_new_instance
@@ -42,11 +52,19 @@ namespace rubinius {
   };
 
   class IncludedModule : public Module {
-    public:
+  public:
     const static size_t field = Module::fields + 1;
     const static object_type type = IncModType;
 
-    OBJECT module; // slot
+  private:
+    OBJECT module_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(module, Object);
+
+    /* interface */
 
     class Info : public Module::Info {
     public:

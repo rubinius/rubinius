@@ -62,11 +62,11 @@ namespace rubinius {
 
   void TypeInfo::class_info(STATE, OBJECT self, bool newline) {
     if(Module* mod = try_as<Module>(self)) {
-      const char *name = mod->name == Qnil ? "<anonymous>" : mod->name->c_str(state);
+      const char *name = mod->name()->nil_p() ? "<anonymous>" : mod->name()->c_str(state);
       std::cout << "#<" << name << "(" <<
-        self->class_object(state)->name->c_str(state) << ")";
+        self->class_object(state)->name()->c_str(state) << ")";
     } else {
-      std::cout << "#<" << self->class_object(state)->name->c_str(state);
+      std::cout << "#<" << self->class_object(state)->name()->c_str(state);
     }
     std::cout << ":" << (void*)self;
     if(newline) std::cout << ">\n";

@@ -11,10 +11,21 @@ namespace rubinius {
     static const size_t fields = 7;
     static const object_type type = NativeFuncType;
 
-    OBJECT name; // slot
-    SYMBOL file; // slot
-    MemoryPointer* data; // slot
-    FIXNUM required; // slot
+  private:
+    OBJECT name_;         // slot
+    SYMBOL file_;         // slot
+    MemoryPointer* data_; // slot
+    FIXNUM required_;     // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(name, Object);
+    attr_accessor(file, Symbol);
+    attr_accessor(data, MemoryPointer);
+    attr_accessor(required, Fixnum);
+
+    /* interface */
 
     static void* find_symbol(STATE, OBJECT library, String* name);
 

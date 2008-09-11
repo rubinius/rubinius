@@ -14,8 +14,8 @@ namespace rubinius {
   Module* Module::create(STATE) {
     Module* mod = (Module*)state->new_object(G(module));
 
-    SET(mod, name, Qnil);
-    SET(mod, superclass, Qnil);
+    mod->name(state, (SYMBOL)Qnil);
+    mod->superclass(state, (Module*)Qnil);
 
     mod->setup(state);
 
@@ -31,8 +31,8 @@ namespace rubinius {
   }
 
   void Module::setup(STATE) {
-    SET(this, constants, LookupTable::create(state));
-    SET(this, method_table, MethodTable::create(state));
+    constants(state, LookupTable::create(state));
+    method_table(state, MethodTable::create(state));
   }
 
   void Module::setup(STATE, const char* str, Module* under) {
@@ -42,38 +42,38 @@ namespace rubinius {
   void Module::setup(STATE, SYMBOL name, Module* under) {
     if(!under) under = G(object);
 
-    SET(this, constants, LookupTable::create(state));
-    SET(this, method_table, MethodTable::create(state));
-    SET(this, name, name);
+    this->constants(state, LookupTable::create(state));
+    this->method_table(state, MethodTable::create(state));
+    this->name(state, name);
     under->set_const(state, name, this);
   }
 
   void Module::set_name(STATE, Module* under, SYMBOL name) {
     if(under == G(object)) {
-      SET(this, name, name);
+      this->name(state, name);
     } else {
-      String* cur = under->name->to_str(state);
+      String* cur = under->name()->to_str(state);
       String* str_name = cur->add(state, "::")->append(state,
           name->to_str(state));
 
-      SET(this, name, str_name->to_sym(state));
+      this->name(state, str_name->to_sym(state));
     }
   }
 
   void Module::set_const(STATE, OBJECT sym, OBJECT val) {
-    constants->store(state, sym, val);
+    constants_->store(state, sym, val);
   }
 
   void Module::set_const(STATE, const char* name, OBJECT val) {
-    constants->store(state, state->symbol(name), val);
+    constants_->store(state, state->symbol(name), val);
   }
 
   OBJECT Module::get_const(STATE, SYMBOL sym) {
-    return constants->fetch(state, sym);
+    return constants_->fetch(state, sym);
   }
 
   OBJECT Module::get_const(STATE, SYMBOL sym, bool* found) {
-    return constants->fetch(state, sym, found);
+    return constants_->fetch(state, sym, found);
   }
 
   OBJECT Module::get_const(STATE, const char* sym) {
@@ -84,10 +84,10 @@ namespace rubinius {
     Module* mod = as<Module>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "name"); mod->name->show(state, level);
-    indent_attribute(level, "superclass"); class_info(state, mod->superclass, true);
-    indent_attribute(level, "constants"); mod->constants->show(state, level);
-    indent_attribute(level, "method_table"); mod->method_table->show(state, level);
+    indent_attribute(++level, "name"); mod->name()->show(state, level);
+    indent_attribute(level, "superclass"); class_info(state, mod->superclass(), true);
+    indent_attribute(level, "constants"); mod->constants()->show(state, level);
+    indent_attribute(level, "method_table"); mod->method_table()->show(state, level);
     close_body(level);
   }
 }

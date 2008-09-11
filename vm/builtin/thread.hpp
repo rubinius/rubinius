@@ -15,10 +15,19 @@ namespace rubinius {
     const static size_t fields = 5;
     const static object_type type = ThreadType;
 
-    OBJECT ivars; // slot
-    Task* task; // slot
-    Channel* channel; // slot
-    FIXNUM priority; // slot
+  private:
+    Task* task_;       // slot
+    Channel* channel_; // slot
+    FIXNUM priority_;  // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(task, Task);
+    attr_accessor(channel, Channel);
+    attr_accessor(priority, Fixnum);
+
+    /* interface */
 
     static void init(STATE);
 

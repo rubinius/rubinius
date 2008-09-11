@@ -14,7 +14,7 @@
 namespace rubinius {
   void Time::init(STATE) {
     GO(time_class).set(state->new_class("Time", G(object), Time::fields));
-    G(time_class)->set_object_type(TimeType);
+    G(time_class)->set_object_type(state, TimeType);
   }
 
   Time* Time::create(STATE) {
@@ -39,16 +39,16 @@ namespace rubinius {
     ary->set(state, 0, Integer::from(state, tv.tv_sec));
     ary->set(state, 1, Integer::from(state, tv.tv_usec));
 
-    SET(this, timeval, ary);
+    this->timeval(state, ary);
 
     return this;
   }
 
   Time* Time::time_switch(STATE, OBJECT gmt) {
-    time_t seconds = ((Integer*)this->timeval->get(state, 0))->to_native();
+    time_t seconds = ((Integer*)timeval_->get(state, 0))->to_native();
     struct tm *tm;
 
-    if(gmt == Qtrue) {
+    if(gmt->true_p()) {
       tm = gmtime(&seconds);
     } else {
       tm = localtime(&seconds);
@@ -78,8 +78,8 @@ namespace rubinius {
     ary->set(state, 10, Qnil);
 #endif
 
-    SET(this, tm, ary);
-    SET(this, is_gmt, gmt);
+    this->tm(state, ary);
+    this->is_gmt(state, gmt);
 
     return this;
   }

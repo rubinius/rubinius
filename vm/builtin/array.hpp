@@ -9,14 +9,25 @@ namespace rubinius {
   class Tuple;
 
   class Array : public Object {
-    public:
+  public:
     const static size_t fields = 4;
     const static object_type type = ArrayType;
 
-    INTEGER total; // slot
-    Tuple* tuple; // slot
-    INTEGER start; // slot
-    OBJECT shared; // slot
+  private:
+    INTEGER total_; // slot
+    Tuple* tuple_;  // slot
+    INTEGER start_; // slot
+    OBJECT shared_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(total, Integer);
+    attr_accessor(tuple, Tuple);
+    attr_accessor(start, Integer);
+    attr_accessor(shared, Object);
+
+    /* interface */
 
     size_t size();
     static void init(STATE);

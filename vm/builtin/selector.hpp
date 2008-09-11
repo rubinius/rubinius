@@ -9,13 +9,21 @@ namespace rubinius {
   class Array;
 
   class Selector : public Object {
-    public:
-
+  public:
     static const size_t fields = 2;
     static const object_type type = SelectorType;
 
-    SYMBOL name; // slot
-    Array* send_sites; // slot
+  private:
+    SYMBOL name_;       // slot
+    Array* send_sites_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(name, Symbol);
+    attr_accessor(send_sites, Array);
+
+    /* interface */
 
     static void init(STATE);
     static Selector* create(STATE, OBJECT name);

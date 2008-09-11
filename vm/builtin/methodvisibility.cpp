@@ -17,8 +17,8 @@ namespace rubinius {
     MethodVisibility* mv = as<MethodVisibility>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "visibility"); mv->visibility->show(state, level);
-    indent_attribute(level, "method"); mv->method->show(state, level);
+    indent_attribute(++level, "visibility"); mv->visibility()->show(state, level);
+    indent_attribute(level, "method"); mv->method()->show(state, level);
     close_body(level);
   }
 };

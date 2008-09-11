@@ -1,6 +1,8 @@
 #ifndef RBX_CONTEXT_CACHE_HPP
 #define RBX_CONTEXT_CACHE_HPP
 
+#include "prelude.hpp"
+
 /* Implements a simple context cache based on having context of a couple
  * sizes only. This implementation also support 'huge' contexts by
  * always just heap allocating them. */
@@ -35,7 +37,7 @@ namespace rubinius {
 
     void reset();
     MethodContext* get(size_t which);
-    void add(size_t which, MethodContext* ctx);
+    void add(STATE, size_t which, MethodContext* ctx);
 
   };
 }

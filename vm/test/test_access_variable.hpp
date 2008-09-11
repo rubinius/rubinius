@@ -34,13 +34,13 @@ class TestAccessVariable : public CxxTest::TestSuite {
     msg.recv = G(object);
     msg.method = av;
     msg.set_args(0);
-    av->name = state->symbol("@name");
+    av->name(state, state->symbol("@name"));
 
     TS_ASSERT(!av->execute(state, task, msg));
     OBJECT ret = task->pop();
     TS_ASSERT(try_as<Symbol>(ret));
 
-    TS_ASSERT_EQUALS(std::string("Object"), as<Symbol>(ret)->to_str(state)->byte_address());
+    TS_ASSERT_EQUALS(std::string("Object"), as<Symbol>(ret)->c_str(state));
   }
 
   void test_write_variable_is_slot() {
@@ -50,8 +50,8 @@ class TestAccessVariable : public CxxTest::TestSuite {
     msg.recv = G(object);
     msg.method = av;
     msg.set_args(0);
-    av->name = state->symbol("@name");
-    av->write = Qtrue;
+    av->name(state, state->symbol("@name"));
+    av->write(state, Qtrue);
 
     SYMBOL val = state->symbol("Blah");
 
@@ -61,7 +61,7 @@ class TestAccessVariable : public CxxTest::TestSuite {
     OBJECT ret = task->pop();
     TS_ASSERT_EQUALS(ret, val);
 
-    TS_ASSERT_EQUALS(val, G(object)->name);
+    TS_ASSERT_EQUALS(val, G(object)->name());
   }
 
   void test_access_variable() {
@@ -71,15 +71,15 @@ class TestAccessVariable : public CxxTest::TestSuite {
     msg.recv = G(object);
     msg.method = av;
     msg.set_args(0);
-    av->name = state->symbol("@blah");
+    av->name(state, state->symbol("@blah"));
 
-    G(object)->set_ivar(state, av->name, state->symbol("Sweet"));
+    G(object)->set_ivar(state, av->name(), state->symbol("Sweet"));
 
     TS_ASSERT(!av->execute(state, task, msg));
     OBJECT ret = task->pop();
     TS_ASSERT(try_as<Symbol>(ret));
 
-    TS_ASSERT_EQUALS(std::string("Sweet"), as<Symbol>(ret)->to_str(state)->byte_address());
+    TS_ASSERT_EQUALS(std::string("Sweet"), as<Symbol>(ret)->c_str(state));
   }
 
   void test_write_variable() {
@@ -89,8 +89,8 @@ class TestAccessVariable : public CxxTest::TestSuite {
     msg.recv = G(object);
     msg.method = av;
     msg.set_args(0);
-    av->name = state->symbol("@blah");
-    av->write = Qtrue;
+    av->name(state, state->symbol("@blah"));
+    av->write(state, Qtrue);
 
     SYMBOL val = state->symbol("Blah");
 
@@ -100,7 +100,7 @@ class TestAccessVariable : public CxxTest::TestSuite {
     OBJECT ret = task->pop();
     TS_ASSERT_EQUALS(ret, val);
 
-    SYMBOL out = as<Symbol>(G(object)->get_ivar(state, av->name));
+    SYMBOL out = as<Symbol>(G(object)->get_ivar(state, av->name()));
     TS_ASSERT_EQUALS(val, out);
   }
 

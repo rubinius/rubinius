@@ -42,11 +42,11 @@ class TestMessage : public CxxTest::TestSuite {
 
   CompiledMethod* create_cm() {
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 1);
-    cm->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    cm->stack_size = Fixnum::from(10);
-    cm->total_args = Fixnum::from(0);
-    cm->required_args = cm->total_args;
+    cm->iseq(state, InstructionSequence::create(state, 1));
+    cm->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    cm->stack_size(state, Fixnum::from(10));
+    cm->total_args(state, Fixnum::from(0));
+    cm->required_args(state, cm->total_args());
     cm->formalize(state);
 
     return cm;

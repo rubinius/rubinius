@@ -37,7 +37,7 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    TS_ASSERT_EQUALS(io->descriptor->to_native(), fd);
+    TS_ASSERT_EQUALS(io->descriptor()->to_native(), fd);
   }
 
   void test_write() {
@@ -54,7 +54,7 @@ class TestIO : public CxxTest::TestSuite {
   void test_query() {
     TS_ASSERT_EQUALS(Qnil, io->query(state, state->symbol("unknown")));
 
-    io->descriptor = Fixnum::from(-1);
+    io->descriptor(state, Fixnum::from(-1));
     TS_ASSERT_THROWS(io->query(state, state->symbol("tty?")), const PrimitiveFailed &);
   }
 

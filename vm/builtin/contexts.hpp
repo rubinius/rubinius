@@ -16,29 +16,48 @@ namespace rubinius {
   class Module;
 
   class MethodContext : public Object {
-    public:
+  public:
     // fields is 0 because it is dynamically calculated
     const static size_t fields = 0;
     const static object_type type = MContextType;
 
-    MethodContext* sender; // slot
-    MethodContext* home; // slot
-    OBJECT self; // slot
+  private:
+    MethodContext* sender_; // slot
+    MethodContext* home_;   // slot
+    OBJECT self_;           // slot
 
-    CompiledMethod* cm; // slot
+    CompiledMethod* cm_;    // slot
+
+    Module* module_;        // slot
+    OBJECT block_;          // slot
+    OBJECT name_;           // slot
+
+  public:
+    // TODO: fix up data members that aren't slots
     VMMethod* vmm;
 
-    Module* module; // slot
-
+  public:
+    // TODO: fix up data members that aren't slots
     struct jit_state js;
     int    ip;
     size_t args;
-    OBJECT block; // slot
-    OBJECT name; // slot
 
     size_t stack_size;
     // MUST BE AT THE LAST DATA MEMBER
     OBJECT stk[];
+
+  public:
+    /* accessors */
+
+    attr_accessor(sender, MethodContext);
+    attr_accessor(home, MethodContext);
+    attr_accessor(self, Object);
+    attr_accessor(cm, CompiledMethod);
+    attr_accessor(module, Module);
+    attr_accessor(block, Object);
+    attr_accessor(name, Object);
+
+    /* interface */
 
     static void init(STATE);
     static MethodContext* create(STATE, size_t stack_size);

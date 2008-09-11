@@ -37,9 +37,9 @@ namespace rubinius {
 
   void LookupTable::setup(STATE, size_t sz = 0) {
     if(!sz) sz = LOOKUPTABLE_MIN_SIZE;
-    SET(this, values, Tuple::create(state, sz));
-    SET(this, bins, Fixnum::from(sz));
-    SET(this, entries, Fixnum::from(0));
+    values(state, Tuple::create(state, sz));
+    bins(state, Fixnum::from(sz));
+    entries(state, Fixnum::from(0));
   }
 
   /* The LookupTable.allocate primitive. */
@@ -51,10 +51,10 @@ namespace rubinius {
     size_t size, i;
     LookupTable *dup;
 
-    size = bins->to_native();
+    size = bins_->to_native();
     dup = LookupTable::create(state, size);
     state->om->set_class(dup, class_object(state));
-    size_t num = entries->to_native();
+    size_t num = entries_->to_native();
 
     Array* entries = all_entries(state);
     for(i = 0; i < num; i++) {
@@ -89,11 +89,11 @@ namespace rubinius {
   }
 
   void LookupTable::redistribute(STATE, size_t size) {
-    size_t num = bins->to_native();
+    size_t num = bins_->to_native();
     Tuple* new_values = Tuple::create(state, size);
 
     for(size_t i = 0; i < num; i++) {
-      Tuple* entry = try_as<Tuple>(values->at(i));
+      Tuple* entry = try_as<Tuple>(values_->at(i));
 
       while(entry) {
         Tuple* link = try_as<Tuple>(entry->at(2));
@@ -112,8 +112,8 @@ namespace rubinius {
       }
     }
 
-    SET(this, values, new_values);
-    bins = Fixnum::from(size);
+    values(state, new_values);
+    bins(state, Fixnum::from(size));
   }
 
   OBJECT LookupTable::store(STATE, OBJECT key, OBJECT val) {
@@ -123,15 +123,15 @@ namespace rubinius {
     Tuple* entry;
 
     key_to_sym(key);
-    num_entries = entries->to_native();
-    num_bins = bins->to_native();
+    num_entries = entries_->to_native();
+    num_bins = bins_->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
       redistribute(state, num_bins <<= 1);
     }
 
     bin = find_bin(key_hash(key), num_bins);
-    cur = entry = try_as<Tuple>(values->at(bin));
+    cur = entry = try_as<Tuple>(values_->at(bin));
 
     while(entry) {
       if(entry->at(0) == key) {
@@ -146,10 +146,10 @@ namespace rubinius {
     if(cur) {
       cur->put(state, 2, new_ent);
     } else {
-      values->put(state, bin, new_ent);
+      values_->put(state, bin, new_ent);
     }
 
-    entries = Fixnum::from(num_entries + 1);
+    entries(state, Fixnum::from(num_entries + 1));
     return val;
   }
 
@@ -158,10 +158,10 @@ namespace rubinius {
     Tuple* entry;
 
     key_to_sym(key);
-    bin = find_bin(key_hash(key), bins->to_native());
+    bin = find_bin(key_hash(key), bins_->to_native());
 
     /* HACK: This should be fixed by not storing NULLs */
-    Object* data = values->at(bin);
+    Object* data = values_->at(bin);
 
     if (!data) return NULL;
 
@@ -214,15 +214,15 @@ namespace rubinius {
 
     key_to_sym(key);
 
-    size_t num_entries = entries->to_native();
-    size_t num_bins = bins->to_native();
+    size_t num_entries = entries_->to_native();
+    size_t num_bins = bins_->to_native();
 
     if(min_density_p(num_entries, num_bins) && (num_bins >> 1) >= LOOKUPTABLE_MIN_SIZE) {
       redistribute(state, num_bins >>= 1);
     }
 
     bin = find_bin(key_hash(key), num_bins);
-    entry = try_as<Tuple>(values->at(bin));
+    entry = try_as<Tuple>(values_->at(bin));
 
     lst = NULL;
 
@@ -234,9 +234,9 @@ namespace rubinius {
         if(lst) {
           lst->put(state, 2, link);
         } else {
-          values->put(state, bin, link);
+          values_->put(state, bin, link);
         }
-        entries = Fixnum::from(entries->to_native() - 1);
+        entries(state, Fixnum::from(entries_->to_native() - 1));
         return val;
       }
 
@@ -259,9 +259,9 @@ namespace rubinius {
     Tuple* values;
     Tuple* entry;
 
-    Array* ary = Array::create(state, tbl->entries->to_native());
-    size_t num_bins = tbl->bins->to_native();
-    values = tbl->values;
+    Array* ary = Array::create(state, tbl->entries()->to_native());
+    size_t num_bins = tbl->bins()->to_native();
+    values = tbl->values();
 
     for(i = j = 0; i < num_bins; i++) {
       entry = try_as<Tuple>(values->at(i));
@@ -300,7 +300,7 @@ namespace rubinius {
 
   void LookupTable::Info::show(STATE, OBJECT self, int level) {
     LookupTable* tbl = as<LookupTable>(self);
-    size_t size = tbl->entries->to_native();
+    size_t size = tbl->entries()->to_native();
     Array* keys = tbl->all_keys(state);
 
     if(size == 0) {

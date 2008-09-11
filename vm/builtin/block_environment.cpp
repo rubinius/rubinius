@@ -19,7 +19,7 @@ namespace rubinius {
   void BlockEnvironment::init(STATE) {
     GO(blokenv).set(state->new_class("BlockEnvironment", G(object), 
           BlockEnvironment::fields));
-    G(blokenv)->set_object_type(BlockEnvType);
+    G(blokenv)->set_object_type(state, BlockEnvType);
   }
 
   void BlockEnvironment::call(STATE, Task* task, size_t args) {
@@ -35,7 +35,7 @@ namespace rubinius {
       val = Qnil;
     }
     task->pop(); // Remove this from the stack.
-    BlockContext* ctx = create_context(state, task->active);
+    BlockContext* ctx = create_context(state, task->active());
     task->make_active(ctx);
     task->push(val);
   }
@@ -53,7 +53,7 @@ namespace rubinius {
       val = Qnil;
     }
     task->pop(); // Remove this from the stack.
-    BlockContext* ctx = create_context(state, task->active);
+    BlockContext* ctx = create_context(state, task->active());
     task->make_active(ctx);
     task->push(val);
   }
@@ -69,16 +69,16 @@ namespace rubinius {
    * locals the method requires.
    */
   BlockContext* BlockEnvironment::create_context(STATE, MethodContext* sender) {
-    BlockContext* ctx = BlockContext::create(state, method->stack_size->to_native());
-    SET(ctx, sender, sender);
-    SET(ctx, block, this);
-    SET(ctx, cm, method);
-    SET(ctx, home, home);
+    BlockContext* ctx = BlockContext::create(state, method_->stack_size()->to_native());
+    ctx->sender(state, sender);
+    ctx->block(state, this);
+    ctx->cm(state, method_);
+    ctx->home(state, home_);
 
     ctx->vmm = vmm;
     ctx->ip = 0;
     // HACK dup'd from MethodContext
-    ctx->position_stack(method->number_of_locals() - 1);
+    ctx->position_stack(method_->number_of_locals() - 1);
 
     return ctx;
   }
@@ -98,10 +98,10 @@ namespace rubinius {
       active->vmm->blocks[index] = vmm;
     }
 
-    SET(be, home, parent);
-    SET(be, home_block, active);
-    SET(be, method, cm);
-    SET(be, local_count, cm->local_count);
+    be->home(state, parent);
+    be->home_block(state, active);
+    be->method(state, cm);
+    be->local_count(state, cm->local_count());
     be->vmm = vmm;
 
     return be;
@@ -111,10 +111,10 @@ namespace rubinius {
     BlockEnvironment* be = as<BlockEnvironment>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "home"); be->home->show(state, level);
-    indent_attribute(level, "home_block"); be->home_block->show(state, level);
-    indent_attribute(level, "local_count"); be->local_count->show(state, level);
-    indent_attribute(level, "method"); be->method->show(state, level);
+    indent_attribute(++level, "home"); be->home()->show(state, level);
+    indent_attribute(level, "home_block"); be->home_block()->show(state, level);
+    indent_attribute(level, "local_count"); be->local_count()->show(state, level);
+    indent_attribute(level, "method"); be->method()->show(state, level);
     close_body(level);
   }
 }

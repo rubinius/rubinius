@@ -65,7 +65,7 @@ namespace rubinius {
   void NativeFunction::init(STATE) {
     GO(native_function).set(state->new_class("NativeFunction", G(executable),
           NativeFunction::fields));
-    G(native_function)->set_object_type(NativeFuncType);
+    G(native_function)->set_object_type(state, NativeFuncType);
 
     G(rubinius)->set_const(state, "LIBSUFFIX", String::create(state, LIBSUFFIX));
   }
@@ -157,12 +157,12 @@ namespace rubinius {
 
   NativeFunction* NativeFunction::create(STATE, OBJECT name, int args) {
     NativeFunction* nf = (NativeFunction*)state->new_object(G(native_function));
-    SET(nf, primitive, state->symbol("nativefunction_call"));
-    SET(nf, required, Integer::from(state, args));
-    SET(nf, serial, Fixnum::from(0));
-    SET(nf, name,   name);
-    SET(nf, file,   state->symbol("<system>"));
-    SET(nf, data,   Qnil);
+    nf->primitive(state, state->symbol("nativefunction_call"));
+    nf->required(state, Fixnum::from(args));
+    nf->serial(state, Fixnum::from(0));
+    nf->name(state, name);
+    nf->file(state, state->symbol("<system>"));
+    nf->data(state, (MemoryPointer*)Qnil);
 
     nf->executable = VMNativeFunction::create(state); // HACK stupid
 
@@ -290,7 +290,7 @@ namespace rubinius {
       sassert(status == FFI_OK);
     }
 
-    data = MemoryPointer::create(state, (void*)stub);
+    data(state, MemoryPointer::create(state, (void*)stub));
   }
   
   /* The main interface function, handles looking up the pointer in the library,
@@ -345,7 +345,7 @@ namespace rubinius {
   void **NativeFunction::marshal_arguments(STATE, Message* msg) {
     void **values;
     OBJECT obj;
-    struct ffi_stub *stub = (struct ffi_stub*)data->pointer;
+    struct ffi_stub *stub = (struct ffi_stub*)data_->pointer;
 
     values = ALLOC_N(void*, stub->arg_count);
 
@@ -518,7 +518,7 @@ namespace rubinius {
   OBJECT NativeFunction::call(STATE, Message* msg) {
     OBJECT ret;
 
-    struct ffi_stub *stub = (struct ffi_stub*)data->pointer;
+    struct ffi_stub *stub = (struct ffi_stub*)data_->pointer;
 
     void **values = marshal_arguments(state, msg);
 

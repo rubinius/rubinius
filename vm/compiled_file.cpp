@@ -40,14 +40,13 @@ namespace rubinius {
     Message msg(state);
     msg.total_args = 0;
     msg.recv = G(main);
-    msg.name = cm->name;
+    msg.name = cm->name();
     msg.module = G(object);
-    msg.name = cm->name;
 
-    SET(G(current_thread), task, task);
+    G(current_thread)->task(state, task);
 
-    SET(cm.get(), scope, StaticScope::create(state));
-    SET(cm.get()->scope, module, G(object));
+    cm.get()->scope(state, StaticScope::create(state));
+    cm.get()->scope()->module(state, G(object));
 
     cm->execute(state, G(current_task), msg);
     try {

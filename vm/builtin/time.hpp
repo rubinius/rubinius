@@ -13,9 +13,19 @@ namespace rubinius {
     const static size_t fields = 3;
     const static object_type type = TimeType;
 
-    Array* timeval; // slot
-    Array* tm; // slot
-    OBJECT is_gmt; // slot
+  private:
+    Array* timeval_; // slot
+    Array* tm_;      // slot
+    OBJECT is_gmt_;  // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(timeval, Array);
+    attr_accessor(tm, Array);
+    attr_accessor(is_gmt, Object);
+
+    /* interface */
 
     static void init(STATE);
 

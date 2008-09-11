@@ -65,8 +65,8 @@ public:
     msg.module = G(object);
     msg.name = state->symbol("moob");
 
-    SET(cm, scope, StaticScope::create(state));
-    SET(cm->scope, module, G(object));
+    cm->scope(state, StaticScope::create(state));
+    cm->scope()->module(state, G(object));
 
     cm->execute(state, task, msg);
 
@@ -77,7 +77,7 @@ public:
     Class* cls = try_as<Class>(G(object)->get_const(state, "Blah"));
     TS_ASSERT(cls);
 
-    cm = try_as<CompiledMethod>(cls->method_table->fetch(state, state->symbol("sweet")));
+    cm = try_as<CompiledMethod>(cls->method_table()->fetch(state, state->symbol("sweet")));
 
     // TODO: the follow test failure was introduced by ba265dd3
     // TS_ASSERT(cm);

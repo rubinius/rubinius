@@ -108,7 +108,7 @@ class TestVM : public CxxTest::TestSuite {
     Thread* cur = Thread::current(state);
     Thread* low = Thread::create(state);
 
-    low->priority = Fixnum::from(0);
+    low->priority(state, Fixnum::from(0));
 
     cur->wakeup(state);
     low->wakeup(state);

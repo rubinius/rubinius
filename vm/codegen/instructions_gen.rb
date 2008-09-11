@@ -190,10 +190,10 @@ class TestInstructions : public CxxTest::TestSuite {
 void #{meth}() {
   Task* task = Task::create(state);
   CompiledMethod* cm = CompiledMethod::create(state);
-  cm->iseq = InstructionSequence::create(state, 10);
-  cm->stack_size = Fixnum::from(10);
-  cm->local_count = Fixnum::from(0);
-  cm->literals = Tuple::create(state, 10);
+  cm->iseq(state, InstructionSequence::create(state, 10));
+  cm->stack_size(state, Fixnum::from(10));
+  cm->local_count(state, Fixnum::from(0));
+  cm->literals(state, Tuple::create(state, 10));
   cm->formalize(state);
 
   MethodContext* ctx = MethodContext::create(state, Qnil, cm);

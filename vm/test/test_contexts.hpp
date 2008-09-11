@@ -31,13 +31,13 @@ class TestContexts : public CxxTest::TestSuite {
   void test_line() {
     MethodContext* ctx = MethodContext::create(state, 10);
     ctx->ip = 0;
-    ctx->cm = CompiledMethod::create(state);
+    ctx->cm(state, CompiledMethod::create(state));
 
-    ctx->cm->lines = Tuple::from(state, 1,
-                                 Tuple::from(state, 3,
+    ctx->cm()->lines(state, Tuple::from(state, 1,
+                                      Tuple::from(state, 3,
                                              Fixnum::from(0),
                                              Fixnum::from(20),
-                                             Fixnum::from(10)));
+                                             Fixnum::from(10))));
 
     TS_ASSERT_EQUALS(10, ctx->line());
   }

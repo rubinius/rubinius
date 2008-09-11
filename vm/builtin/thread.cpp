@@ -19,14 +19,14 @@ namespace rubinius {
     GO(scheduled_threads).set(tup);
 
     GO(thread).set(state->new_class("Thread", G(object), Thread::fields));
-    G(thread)->set_object_type(Thread::type);
+    G(thread)->set_object_type(state, Thread::type);
 
     G(thread)->set_const(state, "ScheduledThreads", tup);
   }
 
   Thread* Thread::create(STATE) {
     Thread* thr = (Thread*)state->new_object(G(thread));
-    SET(thr, priority, Fixnum::from(2));
+    thr->priority(state, Fixnum::from(2));
 
     thr->boot_task(state);
 
@@ -39,7 +39,7 @@ namespace rubinius {
 
   void Thread::boot_task(STATE) {
     Task* task = Task::create(state);
-    SET(this, task, task);
+    this->task(state, task);
   }
 
   Object* Thread::pass(STATE) {
@@ -57,11 +57,11 @@ namespace rubinius {
   }
 
   void Thread::set_top(STATE, OBJECT val) {
-    task->active->set_top(val);
+    task_->active()->set_top(val);
   }
 
   void Thread::sleep_for(STATE, Channel* chan) {
-    channel = chan;
+    channel(state, chan);
     set_ivar(state, state->symbol("@sleep"), Qtrue);
   }
 

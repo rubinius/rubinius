@@ -11,16 +11,28 @@ namespace rubinius {
   class Message;
 
   class SendSite : public Object {
-    public:
-
+  public:
     static const size_t object_fields = 6;
     static const object_type type = SendSiteType;
 
-    SYMBOL name; // slot
-    CompiledMethod* sender; // slot
-    Selector* selector; // slot
+  private:
+    SYMBOL name_;            // slot
+    CompiledMethod* sender_; // slot
+    Selector* selector_;     // slot
+
+  public:
+    // TODO: fix up data members that aren't slots
     size_t hits, misses;
     bool specialized;
+
+  public:
+    /* accessors */
+
+    attr_accessor(name, Symbol);
+    attr_accessor(sender, CompiledMethod);
+    attr_accessor(selector, Selector);
+
+    /* interface */
 
     MethodResolver* resolver;
 

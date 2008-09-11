@@ -13,9 +13,19 @@ namespace rubinius {
     const static size_t fields = 2;
     const static object_type type = ExceptionType;
 
+  private:
+    String* message_;        // slot
+    MethodContext* context_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(message, String);
+    attr_accessor(context, MethodContext);
+
+    /* interface */
+
     static Exception* create(STATE);
-    String* message; // slot
-    MethodContext* context; // slot
 
     class Info : public TypeInfo {
     public:

@@ -22,10 +22,10 @@ namespace rubinius {
 
   void MethodContext::init(STATE) {
     GO(methctx).set(state->new_class("MethodContext", G(object)));
-    G(methctx)->set_object_type(MContextType);
+    G(methctx)->set_object_type(state, MContextType);
 
     GO(blokctx).set(state->new_class("BlockContext", G(methctx)));
-    G(blokctx)->set_object_type(BContextType);
+    G(blokctx)->set_object_type(state, BContextType);
   }
 
   /* Calculate how much big of an object (in bytes) to allocate
@@ -37,14 +37,14 @@ namespace rubinius {
   /* Initialize +ctx+'s fields */
   static void init_context(STATE, MethodContext* ctx, size_t stack) {
     ctx->ip = 0;
-    SET(ctx, block, Qnil);
-    SET(ctx, name, Qnil);
-    SET(ctx, home, Qnil);
-    SET(ctx, ivars, Qnil);
-    SET(ctx, sender, Qnil);
-    SET(ctx, self, Qnil);
-    SET(ctx, cm, Qnil);
-    SET(ctx, module, Qnil);
+    ctx->block(state, Qnil);
+    ctx->name(state, Qnil);
+    ctx->home(state, (MethodContext*)Qnil);
+    ctx->ivars(state, Qnil);
+    ctx->sender(state, (MethodContext*)Qnil);
+    ctx->self(state, Qnil);
+    ctx->cm(state, (CompiledMethod*)Qnil);
+    ctx->module(state, (Module*)Qnil);
 
     ctx->stack_size = stack;
     for(size_t i = 0; i < stack; i++) {
@@ -80,7 +80,7 @@ namespace rubinius {
     }
 
     if((ctx = state->context_cache->get(which_cache)) != NULL) {
-      ctx->obj_type = (object_type)cls->instance_type->to_native();
+      ctx->obj_type = (object_type)cls->instance_type()->to_native();
       goto initialize;
     }
 
@@ -95,18 +95,17 @@ initialize:
   }
 
   int MethodContext::line() {
-    if(this->cm->nil_p()) return -2;        // trampoline context
-    if(this->cm->lines->nil_p()) return -3;
+    if(cm_->nil_p()) return -2;        // trampoline context
+    if(cm_->lines()->nil_p()) return -3;
 
-    for(size_t i = 0; i < this->cm->lines->field_count; i++) {
-      Tuple* entry = as<Tuple>(this->cm->lines->at(i));
+    for(size_t i = 0; i < cm_->lines()->field_count; i++) {
+      Tuple* entry = as<Tuple>(cm_->lines()->at(i));
 
       FIXNUM start_ip = as<Fixnum>(entry->at(0));
       FIXNUM end_ip   = as<Fixnum>(entry->at(1));
       FIXNUM line     = as<Fixnum>(entry->at(2));
 
-      if(start_ip->to_native() <= this->ip &&
-         end_ip->to_native()   >= this->ip)
+      if(start_ip->to_native() <= ip && end_ip->to_native() >= ip)
         return line->to_native();
     }
 
@@ -135,7 +134,7 @@ initialize:
         which = LargeContextSize;
       }
 
-      state->context_cache->add(which, this);
+      state->context_cache->add(state, which, this);
       return true;
     }
 
@@ -169,13 +168,13 @@ initialize:
    * expected to SET any fields it needs to, e.g. +module+
    */
   MethodContext* MethodContext::create(STATE, OBJECT recv, CompiledMethod* meth) {
-    MethodContext* ctx = MethodContext::create(state, meth->stack_size->to_native());
+    MethodContext* ctx = MethodContext::create(state, meth->stack_size()->to_native());
 
-    SET(ctx, sender, (MethodContext*)Qnil);
-    SET(ctx, self, recv);
-    SET(ctx, cm, meth);
-    SET(ctx, module, G(object));
-    SET(ctx, home, ctx);
+    ctx->sender(state, (MethodContext*)Qnil);
+    ctx->self(state, recv);
+    ctx->cm(state, meth);
+    ctx->module(state, G(object));
+    ctx->home(state, ctx);
 
     ctx->vmm = (VMMethod*)meth->executable;
     ctx->position_stack(meth->number_of_locals() - 1);
@@ -186,7 +185,7 @@ initialize:
   /* Retrieve the BlockEnvironment from +this+ BlockContext. We reuse the
    * block field from MethodContext and use a type-safe cast. */
   BlockEnvironment* BlockContext::env() {
-    return as<BlockEnvironment>(block);
+    return as<BlockEnvironment>(block());
   }
 
   /* Called as the block_context_env primitive
@@ -243,23 +242,23 @@ initialize:
     MethodContext* ctx = as<MethodContext>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "name"); ctx->name->show(state, level);
+    indent_attribute(++level, "name"); ctx->name()->show(state, level);
     indent_attribute(level, "sender");
-    if(ctx->sender == Qnil) {
-      ctx->sender->show(state, level);
+    if(ctx->sender()->nil_p()) {
+      ctx->sender()->show(state, level);
     } else {
-      class_info(state, ctx->sender, true);
+      class_info(state, ctx->sender(), true);
     }
     indent_attribute(level, "home");
-    if(ctx->home == Qnil) {
-      ctx->home->show(state, level);
+    if(ctx->home()->nil_p()) {
+      ctx->home()->show(state, level);
     } else {
-      class_info(state, ctx->home, true);
+      class_info(state, ctx->home(), true);
     }
-    indent_attribute(level, "self"); ctx->self->show(state, level);
-    indent_attribute(level, "cm"); ctx->cm->show(state, level);
-    indent_attribute(level, "module"); ctx->module->show(state, level);
-    indent_attribute(level, "block"); ctx->block->show(state, level);
+    indent_attribute(level, "self"); ctx->self()->show(state, level);
+    indent_attribute(level, "cm"); ctx->cm()->show(state, level);
+    indent_attribute(level, "module"); ctx->module()->show(state, level);
+    indent_attribute(level, "block"); ctx->block()->show(state, level);
     close_body(level);
   }
 }

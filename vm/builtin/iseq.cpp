@@ -7,12 +7,12 @@
 namespace rubinius {
   void InstructionSequence::init(STATE) {
     GO(iseq).set(state->new_class("InstructionSequence", G(object), InstructionSequence::fields));
-    G(iseq)->set_object_type(ISeqType);
+    G(iseq)->set_object_type(state, ISeqType);
   }
 
   InstructionSequence* InstructionSequence::create(STATE, size_t instructions) {
     InstructionSequence* is = (InstructionSequence*)state->new_object(G(iseq));
-    is->opcodes = Tuple::create(state, instructions);
+    is->opcodes(state, Tuple::create(state, instructions));
     return is;
   }
 

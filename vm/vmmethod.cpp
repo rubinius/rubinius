@@ -25,15 +25,15 @@ namespace rubinius {
 
     this->execute = VMMethod::executor;
 
-    total = meth->iseq->opcodes->field_count;
-    if(Tuple* tup = try_as<Tuple>(meth->literals)) {
+    total = meth->iseq()->opcodes()->field_count;
+    if(Tuple* tup = try_as<Tuple>(meth->literals())) {
       blocks.resize(tup->field_count, NULL);
     }
 
     opcodes = new opcode[total];
 
     for(size_t index = 0; index < total; index++) {
-      OBJECT val = meth->iseq->opcodes->at(index);
+      OBJECT val = meth->iseq()->opcodes()->at(index);
       if(val->nil_p()) {
         opcodes[index] = 0;
       } else {
@@ -61,7 +61,7 @@ namespace rubinius {
 
       if(op == InstructionSequence::insn_push_ivar) {
         native_int idx = opcodes[i + 1];
-        native_int sym = as<Symbol>(original->literals->at(idx))->index();
+        native_int sym = as<Symbol>(original->literals()->at(idx))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
@@ -70,7 +70,7 @@ namespace rubinius {
         }
       } else if(op == InstructionSequence::insn_set_ivar) {
         native_int idx = opcodes[i + 1];
-        native_int sym = as<Symbol>(original->literals->at(idx))->index();
+        native_int sym = as<Symbol>(original->literals()->at(idx))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
@@ -101,8 +101,8 @@ namespace rubinius {
     if(!msg.module) {
       Assertion::raise("Message passed to executor did not have a module set");
     }
-    SET(ctx, module, msg.module);
-    SET(ctx, name, msg.name);
+    ctx->module(state, msg.module);
+    ctx->name(state, msg.name);
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);

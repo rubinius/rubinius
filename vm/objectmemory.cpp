@@ -10,8 +10,8 @@ namespace rubinius {
 
 
   /* ObjectMemory methods */
-  ObjectMemory::ObjectMemory(size_t young_bytes)
-               :young(this, young_bytes), mature(this) {
+  ObjectMemory::ObjectMemory(STATE, size_t young_bytes)
+               :state(state), young(this, young_bytes), mature(this) {
 
     remember_set = new ObjectArray(0);
 
@@ -224,8 +224,8 @@ namespace rubinius {
     obj = allocate_object(fields);
     set_class(obj, cls);
 
-    obj->obj_type = (object_type)cls->instance_type->to_native();
-    obj->RequiresCleanup = (cls->needs_cleanup == Qtrue);
+    obj->obj_type = (object_type)cls->instance_type()->to_native();
+    obj->RequiresCleanup = (cls->needs_cleanup() == Qtrue);
 
     return obj;
   }

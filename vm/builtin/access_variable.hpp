@@ -16,8 +16,17 @@ namespace rubinius {
     const static size_t fields = Executable::fields + 2;
     const static object_type type = AccessVariableType;
 
-    SYMBOL name;  // slot
-    OBJECT write; // slot
+  private:
+    SYMBOL name_;  // slot
+    OBJECT write_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(name, Symbol);
+    attr_accessor(write, Object);
+
+    /* interface */
 
     static void init(STATE);
     // Ruby.primitive :accessvariable_allocate

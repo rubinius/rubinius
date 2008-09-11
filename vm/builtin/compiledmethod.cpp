@@ -18,16 +18,16 @@ namespace rubinius {
 
   void CompiledMethod::init(STATE) {
     GO(cmethod).set(state->new_class("CompiledMethod", G(executable), CompiledMethod::fields));
-    G(cmethod)->set_object_type(CMethodType);
+    G(cmethod)->set_object_type(state, CMethodType);
 
     GO(cmethod_vis).set(state->new_class("Visibility", G(object),
         MethodVisibility::fields, G(cmethod)));
-    G(cmethod_vis)->set_object_type(CMVisibilityType);
+    G(cmethod_vis)->set_object_type(state, CMVisibilityType);
   }
 
   CompiledMethod* CompiledMethod::create(STATE) {
     CompiledMethod* cm = (CompiledMethod*)state->new_object(G(cmethod));
-    SET(cm, local_count, Fixnum::from(0));
+    cm->local_count(state, Fixnum::from(0));
     cm->executable = NULL;
     return cm;
   }
@@ -35,17 +35,17 @@ namespace rubinius {
   CompiledMethod* CompiledMethod::generate_tramp(STATE, size_t stack_size) {
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    SET(cm, stack_size, Fixnum::from(stack_size));
-    SET(cm, required_args, Fixnum::from(0));
-    SET(cm, total_args, cm->required_args);
-    SET(cm, name, state->symbol("__halt__"));
+    cm->stack_size(state, Fixnum::from(stack_size));
+    cm->required_args(state, Fixnum::from(0));
+    cm->total_args(state, cm->required_args());
+    cm->name(state, state->symbol("__halt__"));
 
-    SET(cm, iseq, InstructionSequence::create(state, 1));
-    cm->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_halt));
+    cm->iseq(state, InstructionSequence::create(state, 1));
+    cm->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_halt));
 
     StaticScope* ss = StaticScope::create(state);
-    SET(ss, module, G(object));
-    SET(cm, scope, ss);
+    ss->module(state, G(object));
+    cm->scope(state, ss);
 
     cm->formalize(state, false);
 
@@ -58,8 +58,8 @@ namespace rubinius {
     // initialized to nil. CompiledMethod::allocate needs to be a primitive
     // that gets things setup properly.
     if(!executable || (OBJECT)executable == Qnil) {
-      if(!primitive->nil_p()) {
-        if(SYMBOL name = try_as<Symbol>(primitive)) {
+      if(!primitive()->nil_p()) {
+        if(SYMBOL name = try_as<Symbol>(primitive())) {
           //std::cout << "resolving: "; name->show(state);
           executor func = Primitives::resolve_primitive(state, name);
 
@@ -105,30 +105,26 @@ namespace rubinius {
   }
 
   size_t CompiledMethod::number_of_locals() {
-    return local_count->to_native();
-  }
-
-  void CompiledMethod::set_scope(StaticScope* scope) {
-    this->scope = scope;
+    return local_count_->to_native();
   }
 
   void CompiledMethod::Info::show(STATE, OBJECT self, int level) {
     CompiledMethod* cm = as<CompiledMethod>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "exceptions"); cm->exceptions->show_simple(state, level);
-    indent_attribute(level, "file"); cm->file->show(state, level);
-    indent_attribute(level, "iseq"); cm->iseq->show(state, level);
-    indent_attribute(level, "lines"); cm->lines->show_simple(state, level);
-    indent_attribute(level, "literals"); cm->literals->show_simple(state, level);
-    indent_attribute(level, "local_count"); cm->local_count->show(state, level);
-    indent_attribute(level, "local_names"); cm->local_names->show_simple(state, level);
-    indent_attribute(level, "name"); cm->name->show(state, level);
-    indent_attribute(level, "required_args"); cm->required_args->show(state, level);
-    indent_attribute(level, "scope"); cm->scope->show(state, level);
-    indent_attribute(level, "splat"); cm->splat->show(state, level);
-    indent_attribute(level, "stack_size"); cm->stack_size->show(state, level);
-    indent_attribute(level, "total_args"); cm->total_args->show(state, level);
+    indent_attribute(++level, "exceptions"); cm->exceptions()->show_simple(state, level);
+    indent_attribute(level, "file"); cm->file()->show(state, level);
+    indent_attribute(level, "iseq"); cm->iseq()->show(state, level);
+    indent_attribute(level, "lines"); cm->lines()->show_simple(state, level);
+    indent_attribute(level, "literals"); cm->literals()->show_simple(state, level);
+    indent_attribute(level, "local_count"); cm->local_count()->show(state, level);
+    indent_attribute(level, "local_names"); cm->local_names()->show_simple(state, level);
+    indent_attribute(level, "name"); cm->name()->show(state, level);
+    indent_attribute(level, "required_args"); cm->required_args()->show(state, level);
+    indent_attribute(level, "scope"); cm->scope()->show(state, level);
+    indent_attribute(level, "splat"); cm->splat()->show(state, level);
+    indent_attribute(level, "stack_size"); cm->stack_size()->show(state, level);
+    indent_attribute(level, "total_args"); cm->total_args()->show(state, level);
     close_body(level);
   }
 }

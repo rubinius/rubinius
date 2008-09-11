@@ -8,12 +8,20 @@ namespace rubinius {
 
   class ListNode : public Object {
   public:
-
     const static size_t fields = 2;
     const static object_type type = ListNodeType;
 
-    OBJECT object; // slot
-    ListNode* next; // slot
+  private:
+    OBJECT object_;  // slot
+    ListNode* next_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(object, Object);
+    attr_accessor(next, ListNode);
+
+    /* interface */
 
     class Info : public TypeInfo {
     public:
@@ -24,13 +32,22 @@ namespace rubinius {
 
   class List : public Object {
   public:
-
     const static size_t fields = 3;
     const static object_type type = ListType;
 
-    INTEGER count; // slot
-    ListNode* first; // slot
-    ListNode* last; // slot
+  private:
+    INTEGER count_;   // slot
+    ListNode* first_; // slot
+    ListNode* last_;  // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(count, Integer);
+    attr_accessor(first, ListNode);
+    attr_accessor(last, ListNode);
+
+    /* interface */
 
     bool empty_p();
     size_t size();

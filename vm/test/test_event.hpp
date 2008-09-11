@@ -80,7 +80,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     
     IOBuffer *buf = IOBuffer::create(state, 12);
     read->into_buffer(buf, 1);
-    TS_ASSERT_EQUALS(buf->used, Fixnum::from(0));
+    TS_ASSERT_EQUALS(buf->used(), Fixnum::from(0));
 
     state->events->start(read);
     TS_ASSERT(!chan.called);
@@ -95,7 +95,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     state->events->poll();
     TS_ASSERT(chan.called);
     TS_ASSERT_EQUALS(chan.value, Fixnum::from(1));
-    TS_ASSERT_EQUALS(buf->used, Fixnum::from(1));
+    TS_ASSERT_EQUALS(buf->used(), Fixnum::from(1));
 
     TS_ASSERT_EQUALS(str[0], '!');
     TS_ASSERT_EQUALS(str[1], 0);

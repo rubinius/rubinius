@@ -23,7 +23,7 @@ class TestSelector : public CxxTest::TestSuite {
 
   void test_init() {
     TS_ASSERT(G(selector)->kind_of_p(state, G(klass)));
-    TS_ASSERT_EQUALS(G(selector)->instance_type->to_native(), SelectorType);
+    TS_ASSERT_EQUALS(G(selector)->instance_type()->to_native(), SelectorType);
 
     TS_ASSERT(G(selector)->get_const(state, "ALL")->kind_of_p(state, G(lookuptable)));
   }
@@ -31,8 +31,8 @@ class TestSelector : public CxxTest::TestSuite {
   void test_create() {
     OBJECT sym = state->symbol("blah");
     Selector* sel = Selector::create(state, sym);
-    TS_ASSERT_EQUALS(sel->name, sym);
-    TS_ASSERT(sel->send_sites->kind_of_p(state, G(array)));
+    TS_ASSERT_EQUALS(sel->name(), sym);
+    TS_ASSERT(sel->send_sites()->kind_of_p(state, G(array)));
   }
 
   void test_lookup() {
@@ -42,7 +42,7 @@ class TestSelector : public CxxTest::TestSuite {
 
   void test_clear() {
     Selector* sel = Selector::lookup(state, state->symbol("foo"));
-    SendSite* ss = SendSite::create(state, sel->name);
+    SendSite* ss = SendSite::create(state, sel->name());
 
     sel->associate(state, ss);
     TS_ASSERT(ss->basic_p(state));
@@ -54,7 +54,7 @@ class TestSelector : public CxxTest::TestSuite {
 
   void test_clear_by_name() {
     Selector* sel = Selector::lookup(state, state->symbol("foo"));
-    SendSite* ss = SendSite::create(state, sel->name);
+    SendSite* ss = SendSite::create(state, sel->name());
 
     sel->associate(state, ss);
     TS_ASSERT(ss->basic_p(state));

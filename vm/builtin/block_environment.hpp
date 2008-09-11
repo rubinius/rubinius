@@ -14,15 +14,28 @@ namespace rubinius {
   class VMExecutable;
 
   class BlockEnvironment : public Object {
-    public:
+  public:
     const static size_t fields = 5;
     const static object_type type = BlockEnvType;
 
-    MethodContext* home; // slot
-    MethodContext* home_block; // slot
-    OBJECT local_count; // slot
-    CompiledMethod* method; // slot
+  private:
+    MethodContext* home_;       // slot
+    MethodContext* home_block_; // slot
+    OBJECT local_count_;        // slot
+    CompiledMethod* method_;    // slot
+
+  public:
+    // TODO: fix up data members that aren't slots
     VMMethod* vmm;
+
+  public:
+    /* accessors */
+    attr_accessor(home, MethodContext);
+    attr_accessor(home_block, MethodContext);
+    attr_accessor(local_count, Object);
+    attr_accessor(method, CompiledMethod);
+
+    /* interface */
 
     static void init(STATE);
     static BlockEnvironment* under_context(STATE, CompiledMethod* cm,

@@ -31,7 +31,7 @@ namespace rubinius {
 
     user_config = new ConfigParser();
 
-    om = new ObjectMemory(bytes);
+    om = new ObjectMemory(this, bytes);
     probe.set(Qnil, &globals.roots);
 
     MethodContext::initialize_cache(this);
@@ -76,29 +76,29 @@ namespace rubinius {
   }
 
   OBJECT VM::new_object(Class *cls) {
-    return om->new_object(cls, cls->instance_fields->to_native());
+    return om->new_object(cls, cls->instance_fields()->to_native());
   }
 
   Class* VM::new_basic_class(Class* sup, size_t fields) {
     Class *cls = (Class*)om->new_object(G(klass), Class::fields);
-    cls->instance_fields = Fixnum::from(fields);
+    cls->instance_fields(this, Fixnum::from(fields));
     if(sup->nil_p()) {
-      cls->instance_type = Fixnum::from(ObjectType);
+      cls->instance_type(this, Fixnum::from(ObjectType));
     } else {
-      cls->instance_type = sup->instance_type; // HACK test that this is always true
+      cls->instance_type(this, sup->instance_type()); // HACK test that this is always true
     }
-    cls->superclass = sup;
+    cls->superclass(this, sup);
 
     return cls;
   }
 
   Class* VM::new_class(const char* name) {
-    return new_class(name, G(object), G(object)->instance_fields->to_native(),
+    return new_class(name, G(object), G(object)->instance_fields()->to_native(),
         G(object));
   }
 
   Class* VM::new_class(const char* name, Class* super_class) {
-    return new_class(name, super_class, G(object)->instance_fields->to_native(),
+    return new_class(name, super_class, G(object)->instance_fields()->to_native(),
         G(object));
   }
 
@@ -116,7 +116,7 @@ namespace rubinius {
   }
 
   Class* VM::new_class_under(const char* name, Module* under) {
-    return new_class(name, G(object), G(object)->instance_fields->to_native(), under);
+    return new_class(name, G(object), G(object)->instance_fields()->to_native(), under);
   }
 
   Module* VM::new_module(const char* name, Module* under) {
@@ -140,7 +140,7 @@ namespace rubinius {
 
   OBJECT VM::new_struct(Class* cls, size_t bytes) {
     Object* obj = om->new_object_bytes(cls, bytes);
-    obj->ivars = Qnil;
+    obj->ivars(this, Qnil);
     return obj;
   }
 
@@ -199,7 +199,7 @@ namespace rubinius {
   }
 
   void VM::queue_thread(Thread* thread) {
-    List* lst = as<List>(globals.scheduled_threads->at(thread->priority->to_native()));
+    List* lst = as<List>(globals.scheduled_threads->at(thread->priority()->to_native()));
     lst->append(this, thread);
   }
 
@@ -207,15 +207,15 @@ namespace rubinius {
     // Don't try and reclaim any contexts, they belong to someone else.
     context_cache->reclaim = 0;
     globals.current_thread.set(thread);
-    if(globals.current_task.get() != thread->task) {
-      globals.current_task.set(thread->task);
+    if(globals.current_task.get() != thread->task()) {
+      globals.current_task.set(thread->task());
       interrupts.check = true;
       interrupts.switch_task = true;
     }
   }
 
   OBJECT VM::current_block() {
-    return globals.current_task->active->block;
+    return globals.current_task->active()->block();
   }
 
   void VM::raise_from_errno(const char* msg) {

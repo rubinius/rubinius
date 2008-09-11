@@ -63,9 +63,8 @@ namespace rubinius {
     cls->klass = cls;
     cls->obj_type = ClassType;
 
-    cls->instance_fields = Fixnum::from(Class::fields);
-    cls->has_ivars = Qtrue;
-    cls->set_object_type(ClassType);
+    cls->instance_fields(state, Fixnum::from(Class::fields));
+    cls->set_object_type(state, ClassType);
 
     /* Set Class into the globals */
     GO(klass).set(cls);
@@ -76,26 +75,26 @@ namespace rubinius {
 
     /* Now Module */
     GO(module).set(new_basic_class(object, Module::fields));
-    G(module)->set_object_type(ModuleType);
+    G(module)->set_object_type(state, ModuleType);
 
     /* Fixup Class's superclass to be Module */
-    cls->superclass = G(module);
+    cls->superclass(state, G(module));
 
     /* Create MetaClass */
     GO(metaclass).set(new_basic_class(cls, MetaClass::fields));
-    G(metaclass)->set_object_type(MetaclassType);
+    G(metaclass)->set_object_type(state, MetaclassType);
 
     /* Create Tuple */
     GO(tuple).set(new_basic_class(object, Tuple::fields));
-    G(tuple)->set_object_type(TupleType);
+    G(tuple)->set_object_type(state, TupleType);
 
     /* Create LookupTable */
     GO(lookuptable).set(new_basic_class(object, LookupTable::fields));
-    G(lookuptable)->set_object_type(LookupTableType);
+    G(lookuptable)->set_object_type(state, LookupTableType);
 
     /* Create MethodTable */
     GO(methtbl).set(new_basic_class(G(lookuptable), MethodTable::fields));
-    G(methtbl)->set_object_type(MTType);
+    G(methtbl)->set_object_type(state, MTType);
 
     /* Now, we have:
      *  Class
@@ -143,7 +142,7 @@ namespace rubinius {
     Class* integer = new_class("Integer", numeric);
     GO(integer).set(integer);
     GO(fixnum_class).set(new_class("Fixnum", integer));
-    G(fixnum_class)->instance_type = Fixnum::from(FixnumType);
+    G(fixnum_class)->instance_type(state, Fixnum::from(FixnumType));
     Symbol::init(this);
 
     // Setup the special_class lookup table. We use this to resolve
@@ -293,7 +292,7 @@ namespace rubinius {
 #define dexc(name, sup) new_class(#name, sup, sz)
 
     exc = dexc(Exception, G(object));
-    exc->set_object_type(ExceptionType);
+    exc->set_object_type(state, ExceptionType);
     GO(exception).set(exc);
     dexc(fatal, exc);
     vm = dexc(VMError, exc);

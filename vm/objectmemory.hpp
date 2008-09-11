@@ -34,6 +34,7 @@ namespace rubinius {
     bool collect_young_now;
     bool collect_mature_now;
 
+    STATE;
     ObjectArray *remember_set;
     BakerGC young;
     MarkSweepGC mature;
@@ -43,7 +44,7 @@ namespace rubinius {
     /* Config variables */
     size_t large_object_threshold;
 
-    ObjectMemory(size_t young_bytes);
+    ObjectMemory(STATE, size_t young_bytes);
     ~ObjectMemory();
 
     void write_barrier(OBJECT target, OBJECT val);

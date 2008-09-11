@@ -9,12 +9,12 @@ namespace rubinius {
 
   /* Returns true if the List is empty, contains no elements. */
   bool List::empty_p() {
-    return count->to_native() == 0;
+    return count_->to_native() == 0;
   }
 
   /* Returns the number of elements in the List. */
   size_t List::size() {
-    return count->to_native();
+    return count_->to_native();
   }
 
   /* Register the List and List::Node classes as globals */
@@ -22,18 +22,18 @@ namespace rubinius {
     Class* cls;
     cls = state->new_class("List", G(object), List::fields);
     GO(list).set(cls);
-    cls->set_object_type(ListType);
+    cls->set_object_type(state, ListType);
 
     GO(list_node).set(state->new_class("Node", G(object),
                                                 ListNode::fields, cls));
 
-    G(list_node)->set_object_type(ListNodeType);
+    G(list_node)->set_object_type(state, ListNodeType);
   }
 
   /* Create a new List object, containing no elements. */
   List* List::create(STATE) {
     List* list = (List*)state->new_object(G(list));
-    SET(list, count, Fixnum::from(0));
+    list->count(state, Fixnum::from(0));
 
     return list;
   }
@@ -41,35 +41,35 @@ namespace rubinius {
   /* Append +obj+ to the current List. */
   void List::append(STATE, OBJECT obj) {
     ListNode* node = (ListNode*)state->new_object(G(list_node));
-    SET(node, object, obj);
-    ListNode* cur_last = last;
+    node->object(state, obj);
+    ListNode* cur_last = last_;
 
     if(!cur_last->nil_p()) {
-      SET(cur_last, next, node);
+      cur_last->next(state, node);
     }
 
-    SET(this, last, node);
+    last(state, node);
 
-    if(first->nil_p()) {
-      SET(this, first, node);
+    if(first_->nil_p()) {
+      first(state, node);
     }
 
-    SET(this, count, Integer::from(state, count->to_native() + 1));
+    count(state, Integer::from(state, count_->to_native() + 1));
   }
 
   /* Return the +index+ numbered element from the beginning. */
   OBJECT List::locate(STATE, size_t index) {
-    ListNode* cur = first;
+    ListNode* cur = first_;
 
     while(index > 0) {
       if(cur->nil_p()) return Qnil;
 
-      cur = cur->next;
+      cur = cur->next();
       index--;
     }
 
     if(cur->nil_p()) return Qnil;
-    return cur->object;
+    return cur->object();
   }
 
   /* Return the first element in the list and remove it, moving all
@@ -77,15 +77,15 @@ namespace rubinius {
   OBJECT List::shift(STATE) {
     if(empty_p()) return Qnil;
 
-    SET(this, count, Integer::from(state, count->to_native() - 1));
-    ListNode* n = first;
-    SET(this, first, first->next);
+    count(state, Integer::from(state, count_->to_native() - 1));
+    ListNode* n = first_;
+    first(state, first_->next());
 
-    if(last == n) {
-      SET(this, last, Qnil);
+    if(last_ == n) {
+      last(state, (ListNode*)Qnil);
     }
 
-    return n->object;
+    return n->object();
   }
 
   /* Search the List for +obj+ and remove all instances of it.
@@ -96,23 +96,23 @@ namespace rubinius {
 
     size_t deleted = 0, counted = 0;
 
-    ListNode* node = first;
+    ListNode* node = first_;
     ListNode* lst =  (ListNode*)Qnil;
     ListNode* nxt =  (ListNode*)Qnil;
 
     while(!node->nil_p()) {
-      nxt = node->next;
+      nxt = node->next();
 
-      if(node->object == obj) {
+      if(node->object() == obj) {
         deleted++;
         if(lst->nil_p()) {
-          SET(this, first, nxt);
+          first(state, nxt);
         } else {
-          SET(lst, next, nxt);
+          lst->next(state, nxt);
         }
 
-        if(last == node) {
-          SET(this, last, lst);
+        if(last_ == node) {
+          last(state, lst);
         }
 
         lst = (ListNode*)Qnil;
@@ -124,7 +124,7 @@ namespace rubinius {
       node = nxt;
     }
 
-    SET(this, count, Integer::from(state, counted));
+    count(state, Integer::from(state, counted));
 
     return deleted;
   }

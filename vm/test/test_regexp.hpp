@@ -26,8 +26,8 @@ class TestRegexp : public CxxTest::TestSuite {
   void test_create() {
     String *pat = String::create(state, ".");
     Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
-    TS_ASSERT_EQUALS(re->source, pat);
-    TS_ASSERT_EQUALS(re->names,  Qnil);
+    TS_ASSERT_EQUALS(re->source(), pat);
+    TS_ASSERT_EQUALS(re->names(),  Qnil);
     TS_ASSERT_EQUALS(re->klass, G(regexp));
   }
 
@@ -35,15 +35,15 @@ class TestRegexp : public CxxTest::TestSuite {
     String *pat = String::create(state, ".");
     Class* sub = state->new_class("RegexpSub", G(regexp), 0);
     Regexp* re = Regexp::new_expression(state, sub, pat, Fixnum::from(0));
-    TS_ASSERT_EQUALS(re->source, pat);
+    TS_ASSERT_EQUALS(re->source(), pat);
     TS_ASSERT_EQUALS(re->klass, sub);
   }
 
   void test_create_with_named_captures() {
     String *pat = String::create(state, "(?<blah>.)");
     Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
-    TS_ASSERT_EQUALS(re->source, pat);
-    TS_ASSERT(re->names->kind_of_p(state, G(lookuptable)));
+    TS_ASSERT_EQUALS(re->source(), pat);
+    TS_ASSERT(re->names()->kind_of_p(state, G(lookuptable)));
   }
 
   void test_create_with_bad_pattern() {
@@ -75,9 +75,9 @@ class TestRegexp : public CxxTest::TestSuite {
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
-    TS_ASSERT_EQUALS(matches->region->field_count, 0U);
-    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(0))->to_native(), 0);
-    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->to_native(), 1);
+    TS_ASSERT_EQUALS(matches->region()->field_count, 0U);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(0))->to_native(), 0);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(1))->to_native(), 1);
   }
 
   void test_match_region_without_matches() {
@@ -106,12 +106,12 @@ class TestRegexp : public CxxTest::TestSuite {
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
-    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(0))->to_native(), 0);
-    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->to_native(), 2);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(0))->to_native(), 0);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(1))->to_native(), 2);
     
-    TS_ASSERT_EQUALS(matches->region->field_count, 1U);
-    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(0))->to_native(), 1);
-    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(1))->to_native(), 2);
+    TS_ASSERT_EQUALS(matches->region()->field_count, 1U);
+    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region()->at(0))->at(0))->to_native(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region()->at(0))->at(1))->to_native(), 2);
   }
 
   void test_match_region_with_backward_captures() {
@@ -126,12 +126,12 @@ class TestRegexp : public CxxTest::TestSuite {
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
-    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(0))->to_native(), 1);
-    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->to_native(), 3);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(0))->to_native(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(1))->to_native(), 3);
     
-    TS_ASSERT_EQUALS(matches->region->field_count, 1U);
-    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(0))->to_native(), 2);
-    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(1))->to_native(), 3);
+    TS_ASSERT_EQUALS(matches->region()->field_count, 1U);
+    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region()->at(0))->at(0))->to_native(), 2);
+    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region()->at(0))->at(1))->to_native(), 3);
   }
   
   void test_match_start() {
@@ -144,9 +144,9 @@ class TestRegexp : public CxxTest::TestSuite {
 
     MatchData* matches = (MatchData*)re->match_start(state, input, start);
     TS_ASSERT(!matches->nil_p());
-    TS_ASSERT_EQUALS(matches->region->field_count, 0U);
-    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(0))->to_native(), 1);
-    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->to_native(), 2);
+    TS_ASSERT_EQUALS(matches->region()->field_count, 0U);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(0))->to_native(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full()->at(1))->to_native(), 2);
   }
   
 };
