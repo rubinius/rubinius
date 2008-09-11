@@ -1970,7 +1970,34 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("redo",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top = g.new_label
+              f = g.new_label
+              t = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+
+              top.set!
+
+              g.push :false
+              g.gif f
+              g.goto top
+              g.goto t
+
+              f.set!
+
+              g.push :nil
+
+              t.set!
+
+              g.pop
+              g.goto top
+
+              bottom.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("rescue",
             "Compiler" => :skip)
@@ -1985,7 +2012,12 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("retry",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g| # TODO: maybe have a real example?
+              g.push :self
+              g.push_const :LocalJumpError
+              g.push_literal "retry used in invalid context"
+              g.send :raise, 2, true
+            end)
 
   add_tests("return_0",
             "Compiler" => bytecode do |g|
@@ -2009,13 +2041,61 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("sclass",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+                g.push :self
+                g.dup
+                g.send :__verify_metaclass__, 0 # TODO: maybe refactor...
+                g.pop
+                g.open_metaclass
+                g.dup
+
+                g.push_literal_desc do |d2|
+                  d2.push 42
+                  d2.ret
+                end
+
+                g.swap
+                g.attach_method :__metaclass_init__
+                g.pop
+                g.send :__metaclass_init__, 0
+            end)
 
   add_tests("sclass_trailing_class",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_class :A do |d|
+                d.push :self
+                d.dup
+                d.send :__verify_metaclass__, 0 # TODO: maybe refactor...
+                d.pop
+                d.open_metaclass
+                d.dup
+
+                d.push_literal_desc do |d2|
+                  d2.push :self
+                  d2.send :a, 0, true
+                  d2.ret
+                end
+
+                d.swap
+                d.attach_method :__metaclass_init__
+                d.pop
+                d.send :__metaclass_init__, 0
+                d.pop
+                d.push :nil
+                d.open_class :B
+              end
+            end)
 
   add_tests("splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push :self
+                d.push_local 0
+                d.cast_array
+                d.push :nil
+                d.send_with_splat :a, 0, true, false
+              end
+            end)
 
   add_tests("str",
             "Compiler" => bytecode do |g|
@@ -2091,7 +2171,7 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("structure_extra_block_for_dvar_scoping",
-            "Compiler" => :skip)
+            "Compiler" => :skip) # ugh... this one is ginormous
 
   add_tests("structure_remove_begin_1",
             "Compiler" => bytecode do |g|
