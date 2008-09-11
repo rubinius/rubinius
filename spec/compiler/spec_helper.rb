@@ -217,6 +217,78 @@ class TestGenerator
     self.push_literal desc
   end
 
+  def in_block_send msg, arg_count
+    self.push :self
+    self.create_block_desc do |d|
+      top = d.new_label
+
+      case arg_count
+      when 0 then
+      when 1 then
+        d.cast_for_single_block_arg
+        d.set_local_depth 0, 0
+      else
+        d.cast_for_multi_block_arg
+        (0...arg_count).each do |n|
+          d.shift_tuple
+          d.set_local_depth 0, n
+          d.pop
+        end
+      end
+
+      d.pop
+
+      d.push_modifiers
+      top.set!
+
+      yield d
+
+      d.pop_modifiers
+      d.ret
+    end
+
+    top      = self.new_label
+    dunno1   = self.new_label
+    uncaught = self.new_label
+    dunno2   = self.new_label
+    bottom   = self.new_label
+
+    top.set!
+
+    self.push_cpath_top
+    self.find_const :LongReturnException
+    self.send :allocate, 0
+    self.set_local 0
+    self.pop
+
+    self.send_with_block msg, 0, true
+    self.goto bottom
+
+    dunno1.set!
+
+    self.push_exception
+    self.dup
+    self.push_local 0
+    self.equal
+    self.gif uncaught
+    self.clear_exception
+    self.dup
+    self.send :is_return, 0
+    self.gif dunno2
+    self.send :value, 0
+    self.ret
+
+    uncaught.set!
+
+    self.raise_exc
+
+    dunno2.set!
+
+    self.send :value, 0
+
+    bottom.set!
+  end
+
   def create_block_desc
     desc = description do |d|
       yield d
