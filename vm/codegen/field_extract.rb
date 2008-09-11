@@ -598,9 +598,9 @@ File.open("vm/gen/primitives_glue.gen.cpp", "w") do |f|
   end
 
   f.puts <<-EOF
-std::string msg = std::string(\"Unable to resolve primitive: \") +
-                  name->to_str(state)->byte_address();
-std::cout << msg << std::endl;
+  if(!G(current_task)->probe->nil_p()) {
+    G(current_task)->probe->missing_primitive(state, name->to_str(state)->c_str());
+  }
 return &Primitives::unknown_primitive;
 // commented out while we have soft primitive failures
 // throw std::runtime_error(msg.c_str());

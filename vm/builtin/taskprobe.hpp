@@ -13,6 +13,7 @@ namespace rubinius {
 #define PROBE_LOOKUP_FAILED             (1 << 2)
 #define PROBE_EXECUTE_INSTRUCTION       (1 << 3)
 #define PROBE_LOAD_RUNTIME              (1 << 4)
+#define PROBE_PRIMITIVES                (1 << 5)
 
 #define PROBE_ALL_OP                    "all"
 #define PROBE_ALL1_OP                   "1"
@@ -21,6 +22,7 @@ namespace rubinius {
 #define PROBE_LOOKUP_FAILED_OP          "lookup_failed"
 #define PROBE_EXECUTE_INSTRUCTION_OP    "execute_instruction"
 #define PROBE_LOAD_RUNTIME_OP           "load_runtime"
+#define PROBE_PRIMITIVES_OP             "primitives"
 
   class Task;
   class Module;
@@ -124,6 +126,12 @@ namespace rubinius {
      * This probe must be enabled via the PROBE env var.
      */
     void load_runtime(STATE, std::string file);
+
+    /**
+     * Printns out the name of the primitive that couldn't be found.
+     * This probe must be enable via the PROBE env var.
+     */
+    void missing_primitive(STATE, std::string prim);
 
     class Info : public TypeInfo {
     public:
