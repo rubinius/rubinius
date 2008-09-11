@@ -3,8 +3,9 @@
 
 /* Project */
 #include "vmnativemethod.hpp"
+
+#include "builtin/array.hpp"
 #include "builtin/nativemethod.hpp"
-#include "builtin/fixnum.hpp"
 
 namespace rubinius {
 
@@ -33,6 +34,7 @@ namespace rubinius {
 
       nmc->message = msg;
       nmc->task = task;
+      nmc->state = task->state;
 
       nmc->method = method;
 
@@ -77,15 +79,57 @@ namespace rubinius {
   /**
    *  This method always executes on the separate stack created for the context.
    *
-   *  @see  vm/builtin/nativemethod.hpp for the possible function signatures.
+   *  Fortunately for us, Message always has an Array of arguments.
+   *
+   *    Arity -3:   VALUE func(VALUE argument_array);
+   *    Arity -2:   VALUE func(VALUE receiver, VALUE argument_array);
+   *    Arity -1:   VALUE func(int argument_count, VALUE*, VALUE receiver);
+   *    Otherwise:  VALUE func(VALUE receiver, VALUE arg1[, VALUE arg2, ...]);    // Currently max 10 args
+   *
+   *  TODO:   Argument count check?
+   *  TODO:   Check for inefficiencies.
    */
   void VMNativeMethod::perform_call()
   {
     NativeMethodContext* context = NativeMethodContext::current();
-    NativeMethod::PointerTo c_method = context->method->actual_function_object();
 
-    HandleTo arg(context->handles, Fixnum::from(5));
-    context->return_value = c_method(arg);
+    Message* message = context->message;
+
+    HandleTo receiver(context->handles, message->recv);
+
+    switch (context->method->arity()->to_int()) {
+      case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
+
+        HandleTo args(context->handles, message->arguments);
+        context->return_value = as<Object>(context->method->functor_as<OneArgFunctor>()(args));
+
+        break;
+      }
+
+      case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
+
+        HandleTo args(context->handles, message->arguments);
+        context->return_value = as<Object>(context->method->functor_as<TwoArgFunctor>()(receiver, args));
+
+        break;
+      }
+
+      case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
+
+        HandleTo* args = new HandleTo[message->total_args];
+
+        for (std::size_t i = 0; i < message->total_args; ++i) {
+          args[i] = HandleTo(context->handles, message->arguments->get(context->state, i));
+        }
+
+        context->return_value = as<Object>(context->method->functor_as<ArgcFunctor>()(message->total_args, args, receiver));
+
+        break;
+      }
+
+      default:
+        sassert(false && "Not a valid arity, wth?");
+    }
 
     context->action = NativeMethodContext::RETURN_FROM_C;
 

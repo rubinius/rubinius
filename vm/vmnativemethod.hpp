@@ -32,56 +32,55 @@ namespace rubinius {
   /* Forwards */
   class NativeMethod;
 
-  typedef std::vector<OBJECT> HandleStorage;
+  typedef std::vector<Object*> HandleStorage;
 
   /**
-   *  Set of handles to Objects for C methods.
+   *  Handle to an Object for C methods.
    *
    *  Handles give an extra layer of abstraction to Object handling
    *  in C extensions. The main motivation is the GC: it must be
    *  able to move Objects around which would cause problems for
    *  the extension programmer.
    *
+   *  Handles always refer to the objects as Objects, rather than
+   *  the actual class. All objects are upcast to Object*s.
+   *
    *  Handles should be used as values only (the copy semantics
    *  are correct.) Pointers to Handles should be unnecessary.
    *
-   *  TODO:   Alternative method of ensuring user does not need
-   *          to worry about deleting pointers to Handles if so
-   *          necessitated by performance.
-   *  TODO:   Make this stupid thing safer and sensib..ler?
+   *  TODO: Avoid extra work on Qnil/Qtrue/Qfalse.
    */
   class Handle
   {
     public:   /* Ctors */
 
-      Handle(HandleStorage& storage, OBJECT obj)
-        : my_storage(storage)
-      {
-        my_storage.push_back(obj);
-        my_index = my_storage.size() - 1;
-      }
+      Handle() : my_index(0), my_storage(NULL) {}
+
+      template <typename T>
+        Handle(HandleStorage& storage, T* obj)
+          : my_index(0)
+          , my_storage(&storage)
+        {
+          my_storage->push_back(as<Object>(obj));
+          my_index = my_storage->size() - 1;
+        }
 
       Handle(const Handle& other)
-        : my_storage(other.my_storage)
-        , my_index(other.my_index)
+        : my_index(other.my_index)
+        , my_storage(other.my_storage)
       {}
 
 
     public:   /* Interface */
 
-                /**
-                 *  Transparent access to the Object.
-                 *
-                 *  This conversion is used whenever an OBJECT is expected
-                 *  but a Handle is present.
-                 */
-      operator  OBJECT() const { return my_storage[my_index]; }
+                /** Explicitly retrieve the contained object. */
+       Object*  object() { return (*my_storage)[my_index]; }
 
 
     private:  /* Instance vars */
 
-      HandleStorage&  my_storage;   /**< Storage of actual object information. */
       std::size_t     my_index;     /**< Index into storage to retrieve Object. */
+      HandleStorage*  my_storage;   /**< Storage of actual object information. */
   };
 
   typedef Handle HandleTo;
@@ -171,6 +170,7 @@ namespace rubinius {
     MethodContext*  sender;           /**< Context in which this call was made. */
     char*           stack;            /**< Memory area to be used as the stack. */
     std::size_t     stack_size;       /**< Size of the memory area to be used as the stack. */
+    VM*             state;            /**< VM state for this invocation. */
     Task*           task;             /**< Task in which we are running. */
   };
 
