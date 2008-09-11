@@ -8,6 +8,7 @@
 #include "gc_root.hpp" // TypedRoot
 
 namespace rubinius {
+  class Float;
   class List;
   class IO;
   class IOBuffer;
@@ -30,11 +31,18 @@ namespace rubinius {
     OBJECT receive(STATE);
     bool has_readers_p();
 
-    // Ruby.primitive :channel_send_on_signal
+    // Ruby.primitive :scheduler_send_on_signal
     static OBJECT send_on_signal(STATE, Channel* chan, FIXNUM signal);
 
-    // Ruby.primitive :channel_send_on_readable
+    // Ruby.primitive :scheduler_send_on_readable
     static OBJECT send_on_readable(STATE, Channel* chan, IO* io, IOBuffer* buffer, FIXNUM bytes);
+
+    // Ruby.primitive :scheduler_send_in_microseconds
+    static OBJECT send_in_microseconds(STATE, Channel* chan, Integer* useconds, OBJECT tag);
+
+    // Ruby.primitive :scheduler_send_in_seconds
+    static OBJECT send_in_seconds(STATE, Channel* chan, Float* seconds, OBJECT tag);
+    static OBJECT send_in_seconds(STATE, Channel* chan, double seconds, OBJECT tag);
 
     class Info : public TypeInfo {
     public:

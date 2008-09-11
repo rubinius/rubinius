@@ -8,6 +8,7 @@
 #include "builtin/thread.hpp"
 #include "builtin/list.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
 #include "builtin/io.hpp"
 
 #include "event.hpp"
@@ -88,6 +89,23 @@ namespace rubinius {
 
     state->events->start(sig);
     return io;
+  }
+
+  OBJECT Channel::send_in_microseconds(STATE, Channel* chan, Integer* useconds, OBJECT tag) {
+    double seconds = useconds->to_native() / 1000000.0;
+
+    return send_in_seconds(state, chan, seconds, tag);
+  }
+
+  OBJECT Channel::send_in_seconds(STATE, Channel* chan, Float* seconds, OBJECT tag) {
+    return send_in_seconds(state, chan, seconds->to_double(state), tag);
+  }
+
+  OBJECT Channel::send_in_seconds(STATE, Channel* chan, double seconds, OBJECT tag) {
+    SendToChannel* cb = new SendToChannel(state, chan);
+    event::Timer* sig = new event::Timer(state, cb, seconds, tag);
+    state->events->start(sig);
+    return Qnil;
   }
 
   ChannelCallback::ChannelCallback(STATE, Channel* chan) : ObjectCallback(state) {

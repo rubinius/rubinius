@@ -154,8 +154,8 @@ namespace rubinius {
       return false;
     }
 
-    Timer::Timer(STATE, ObjectCallback* chan, double seconds) : 
-        Event(state, chan) {
+    Timer::Timer(STATE, ObjectCallback* chan, double seconds, OBJECT obj) :
+        Event(state, chan), tag(obj) {
       ev_timer_init(&ev, event::tramp<struct ev_timer>, (ev_tstamp)seconds, 0);
       ev.data = this;
     }
@@ -169,7 +169,7 @@ namespace rubinius {
     }
 
     bool Timer::activated() {
-      channel->call(Qnil);
+      channel->call(tag);
       return true;
     }
 

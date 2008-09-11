@@ -33,7 +33,7 @@ class Scheduler
   # they have slept for 1 seconds.
 
   def self.send_in_microseconds(channel, microseconds, tag)
-    Ruby.primitive :channel_send_in_microseconds
+    Ruby.primitive :scheduler_send_in_microseconds
     raise PrimitiveFailure, "primitive failed"
   end
 
@@ -42,7 +42,7 @@ class Scheduler
   # microseconds.
 
   def self.send_in_seconds(chan, seconds, tag)
-    Ruby.primitive :channel_send_in_seconds
+    Ruby.primitive :scheduler_send_in_seconds
     raise PrimitiveFailure, "primitive failed"
   end
 
@@ -70,7 +70,7 @@ class Scheduler
   # See IO#sysread in kernel/common/io.rb for a simple example.
 
   def self.send_on_readable(chan, io, buffer, nbytes)
-    Ruby.primitive :channel_send_on_readable
+    Ruby.primitive :scheduler_send_on_readable
     raise PrimitiveFailure, "primitive failed"
   end
 
@@ -79,7 +79,7 @@ class Scheduler
   # Returns an event id, for use with #cancel
 
   def self.send_on_writable(chan, io)
-    Ruby.primitive :channel_send_on_readable
+    Ruby.primitive :scheduler_send_on_writable
     raise PrimitiveFailure, "primitive failed"
   end
 
@@ -105,7 +105,7 @@ class Scheduler
   # value to +chan+.
 
   def self.send_on_signal(channel, signum)
-    Ruby.primitive :channel_send_on_signal
+    Ruby.primitive :scheduler_send_on_signal
     raise PrimitiveFailure, "primitive failed"
   end
 
@@ -113,7 +113,7 @@ class Scheduler
   # Wrapper for the primitive, use +send_on_stopped+
 
   def self.send_on_stopped_prim(channel, pid, flags)
-    Ruby.primitive :channel_send_on_stopped
+    Ruby.primitive :scheduler_send_on_stopped
     raise PrimitiveFailure, "primitive failed"
   end
 
