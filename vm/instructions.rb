@@ -1,7 +1,7 @@
 # === Rubinius VM Instructions ===
 # Keep this file in alphabetical order or suffer the scorn of your peers.
 # When you add an instruction here, you MUST also add it to the master
-# list in kernel/core/iseq.rb
+# list in kernel/common/iseq.rb
 
 # ==== Writing an instruction test ====
 # The test harness for the VM instructions may require some explanation.
@@ -1373,7 +1373,20 @@ class Instructions
     CODE
   end
 
-  # TODO - doc
+  # [Operation]
+  # Used for non-dynamic 'yield' calls and for simple sends with static args
+  # [Format]
+  # \meta_send_call count
+  # [Stack Before]
+  # * argN
+  # * ...
+  # * arg1
+  # * receiver
+  # [Stack After]
+  # * retval
+  # [Description]
+  # Simplified call instruction used for yields and basic sends
+
   def meta_send_call(count)
     <<-CODE
     OBJECT t1 = stack_back(count);
@@ -3637,9 +3650,6 @@ class Instructions
   #   is pushed back onto the stack, followed by nil. Otherwise, the tuple is
   #   shifted, with the tuple then pushed back onto the stack, followed by the
   #   item that was previously at the head of the tuple.
-  # [Notes]
-  #   This opcode is poorly named; it actually performs a shift, rather than
-  #   an unshift.
 
   def shift_tuple
     <<-CODE
@@ -3658,6 +3668,28 @@ class Instructions
       stack_push(new_tuple);
       stack_push(shifted_value);
     }
+    CODE
+  end
+
+  def test_shift_tuple
+    <<-CODE
+      Tuple* empty_tuple = Tuple::create(state, 0);
+      Tuple* tuple = Tuple::create(state, 2);
+      tuple->put(state, 0, Fixnum::from(10));
+      tuple->put(state, 1, Fixnum::from(20));
+
+      task->push(empty_tuple);
+
+      run();
+
+      TS_ASSERT_EQUALS(Qnil, task->pop());
+      TS_ASSERT_EQUALS(empty_tuple, task->pop());
+
+      task->push(tuple);
+
+      run();
+      TS_ASSERT_EQUALS(Fixnum::from(10), as<Fixnum>(task->pop()));
+      TS_ASSERT_EQUALS(Fixnum::from(20), as<Tuple>(task->pop())->at(0));
     CODE
   end
 
@@ -3759,6 +3791,21 @@ class Instructions
     <<-CODE
     String *s1 = as<String>(stack_pop());
     stack_push(s1->string_dup(state));
+    CODE
+  end
+
+  def test_string_dup
+    <<-CODE
+      String* s1 = String::create(state, "something");
+
+      task->push(s1);
+
+      run();
+
+      String* s2 = as<String>(task->pop());
+
+      TS_ASSERT_SAME_DATA(s1, s2, s1->size());
+      TS_ASSERT_DIFFERS(s1->id(state), s2->id(state));
     CODE
   end
 
