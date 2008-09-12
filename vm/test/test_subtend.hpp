@@ -56,6 +56,45 @@ extern "C" {
     return args[0];
   }
 
+  HandleTo one_arg(HandleTo receiver, HandleTo arg1)
+  {
+    hidden_context = NativeMethodContext::current();
+    hidden_receiver = as<Object>(receiver);
+
+    return HandleTo(hidden_context->handles, Fixnum::from(1));
+  }
+
+  HandleTo two_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2)
+  {
+    hidden_context = NativeMethodContext::current();
+    hidden_receiver = as<Object>(receiver);
+
+    return HandleTo(hidden_context->handles, Fixnum::from(2));
+  }
+
+  HandleTo three_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2, HandleTo arg3)
+  {
+    hidden_context = NativeMethodContext::current();
+    hidden_receiver = as<Object>(receiver);
+
+    return HandleTo(hidden_context->handles, Fixnum::from(3));
+  }
+
+  HandleTo four_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2, HandleTo arg3, HandleTo arg4)
+  {
+    hidden_context = NativeMethodContext::current();
+    hidden_receiver = as<Object>(receiver);
+
+    return HandleTo(hidden_context->handles, Fixnum::from(4));
+  }
+
+  HandleTo five_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2, HandleTo arg3, HandleTo arg4, HandleTo arg5)
+  {
+    hidden_context = NativeMethodContext::current();
+    hidden_receiver = as<Object>(receiver);
+
+    return HandleTo(hidden_context->handles, Fixnum::from(5));
+  }
 }
 
 
@@ -185,6 +224,147 @@ class TestSubtend : public CxxTest::TestSuite
     }
 
     TS_ASSERT_EQUALS(hidden_context->return_value, control->get(my_state, 0));
+  }
+
+  /* TODO: Should check object identities too? */
+  void test_ruby_to_c_call_with_recv_plus_one()
+  {
+    int arg_count = 1;
+
+    Array* args = Array::create(my_state, arg_count);
+    Array* control = Array::create(my_state, arg_count);
+
+    for (int i = 0; i < arg_count; ++i) {
+      Object* obj = my_state->new_object(my_state->globals.object.get());
+
+      args->set(my_state, i, obj);
+      control->set(my_state, i, obj);
+    }
+
+    Object* receiver = my_state->new_object(my_state->globals.object.get());
+
+    my_message->recv = receiver;
+    my_message->arguments = args;
+    my_message->total_args = arg_count;
+
+    NativeMethod* method = NativeMethod::create(&one_arg, arg_count);
+
+    method->execute(my_state, my_task, *my_message);
+
+    TS_ASSERT_EQUALS(hidden_receiver, receiver);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
+  }
+
+  void test_ruby_to_c_call_with_recv_plus_two()
+  {
+    int arg_count = 2;
+
+    Array* args = Array::create(my_state, arg_count);
+    Array* control = Array::create(my_state, arg_count);
+
+    for (int i = 0; i < arg_count; ++i) {
+      Object* obj = my_state->new_object(my_state->globals.object.get());
+
+      args->set(my_state, i, obj);
+      control->set(my_state, i, obj);
+    }
+
+    Object* receiver = my_state->new_object(my_state->globals.object.get());
+
+    my_message->recv = receiver;
+    my_message->arguments = args;
+    my_message->total_args = arg_count;
+
+    NativeMethod* method = NativeMethod::create(&two_arg, arg_count);
+
+    method->execute(my_state, my_task, *my_message);
+
+    TS_ASSERT_EQUALS(hidden_receiver, receiver);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
+  }
+
+  void test_ruby_to_c_call_with_recv_plus_three()
+  {
+    int arg_count = 3;
+
+    Array* args = Array::create(my_state, arg_count);
+    Array* control = Array::create(my_state, arg_count);
+
+    for (int i = 0; i < arg_count; ++i) {
+      Object* obj = my_state->new_object(my_state->globals.object.get());
+
+      args->set(my_state, i, obj);
+      control->set(my_state, i, obj);
+    }
+
+    Object* receiver = my_state->new_object(my_state->globals.object.get());
+
+    my_message->recv = receiver;
+    my_message->arguments = args;
+    my_message->total_args = arg_count;
+
+    NativeMethod* method = NativeMethod::create(&three_arg, arg_count);
+
+    method->execute(my_state, my_task, *my_message);
+
+    TS_ASSERT_EQUALS(hidden_receiver, receiver);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
+  }
+
+  void test_ruby_to_c_call_with_recv_plus_four()
+  {
+    int arg_count = 4;
+
+    Array* args = Array::create(my_state, arg_count);
+    Array* control = Array::create(my_state, arg_count);
+
+    for (int i = 0; i < arg_count; ++i) {
+      Object* obj = my_state->new_object(my_state->globals.object.get());
+
+      args->set(my_state, i, obj);
+      control->set(my_state, i, obj);
+    }
+
+    Object* receiver = my_state->new_object(my_state->globals.object.get());
+
+    my_message->recv = receiver;
+    my_message->arguments = args;
+    my_message->total_args = arg_count;
+
+    NativeMethod* method = NativeMethod::create(&four_arg, arg_count);
+
+    method->execute(my_state, my_task, *my_message);
+
+    TS_ASSERT_EQUALS(hidden_receiver, receiver);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
+  }
+
+  void test_ruby_to_c_call_with_recv_plus_five()
+  {
+    int arg_count = 5;
+
+    Array* args = Array::create(my_state, arg_count);
+    Array* control = Array::create(my_state, arg_count);
+
+    for (int i = 0; i < arg_count; ++i) {
+      Object* obj = my_state->new_object(my_state->globals.object.get());
+
+      args->set(my_state, i, obj);
+      control->set(my_state, i, obj);
+    }
+
+    Object* receiver = my_state->new_object(my_state->globals.object.get());
+
+    my_message->recv = receiver;
+    my_message->arguments = args;
+    my_message->total_args = arg_count;
+
+    NativeMethod* method = NativeMethod::create(&five_arg, arg_count);
+
+    method->execute(my_state, my_task, *my_message);
+
+    TS_ASSERT_EQUALS(hidden_receiver, receiver);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
   }
 
 };
