@@ -134,7 +134,7 @@ class Compiler
       end
     end
 
-    class AttrAssign
+    class AttrAssign < Call
       def bytecode(g, in_masgn = false)
         if in_masgn
           @in_masgn = true
@@ -333,6 +333,8 @@ class Compiler
       end
 
       def bytecode(g)
+        g.set_line @line, @file
+
         return if use_plugin(g, :call)
 
         receiver_bytecode(g)
@@ -513,7 +515,6 @@ class Compiler
       end
 
       def prelude(orig, g)
-
         if orig
           g.set_line orig.line, orig.file
         end
@@ -1740,7 +1741,7 @@ class Compiler
       end
     end
 
-    class PostExe
+    class PostExe < Call
       def allow_private?
         true
       end
@@ -2067,8 +2068,10 @@ class Compiler
       end
     end
 
-    class Super
+    class Super < Call
       def bytecode(g)
+        g.set_line @line, @file
+
         emit_args(g)
 
         # HACK super must have a splat here, no non-splat instruction
@@ -2249,8 +2252,10 @@ class Compiler
       end
     end
 
-    class Yield
+    class Yield < Call
       def bytecode(g)
+        g.set_line @line, @file
+
         g.push_block
         emit_args(g)
 
@@ -2260,7 +2265,6 @@ class Compiler
         else
           g.meta_send_call @argcount
         end
-
       end
     end
 

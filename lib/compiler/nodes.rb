@@ -1595,6 +1595,13 @@ class Compiler
         end
       end
 
+      def consume(sexp)
+        @line = sexp.line
+        @file = sexp.file
+
+        super
+      end
+
       def block=(obj)
         if obj.kind_of? Iter
           @check_var, _ = get(:scope).find_local :@lre
