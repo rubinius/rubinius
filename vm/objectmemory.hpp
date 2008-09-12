@@ -71,15 +71,6 @@ namespace rubinius {
     ObjectPosition validate_object(OBJECT obj);
   };
 
-// Type-safe, write-barrier-enabled version of 'SET'
-#define OSET(om, obj, field, val) ({ \
-    typeof(obj) _o = (obj); OBJECT  _v = (val); \
-    if(_v->nil_p()) { _o->field = (typeof(_o->field))Qnil; } else { \
-    _o->field = as<typeof(*_o->field)>(_v); om->write_barrier(_o, _v); } })
-
-
-#define SET(obj, field, val) OSET(state->om, obj, field, val)
-
 #define FREE(obj) free(obj)
 #define ALLOC_N(type, size) ((type*)calloc(size, sizeof(type)))
 
