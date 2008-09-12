@@ -3415,6 +3415,15 @@ class Instructions
     CODE
   end
 
+  def test_set_call_flags
+    <<-CODE
+    stream[1] = (opcode)1;
+    TS_ASSERT_EQUALS(0, task->call_flags);
+    run();
+    TS_ASSERT_EQUALS(1, task->call_flags);
+    CODE
+  end
+
   # [Operation]
   #   Sets a literal to refer to a constant
   # [Format]

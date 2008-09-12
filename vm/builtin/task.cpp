@@ -49,6 +49,7 @@ namespace rubinius {
   Task* Task::create(STATE, size_t stack_size) {
     Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
     task->state = state;
+    task->call_flags = 0;
     SET(task, probe, state->probe.get());
     task->msg = new Message(state);
     SET(task, control_channel, Qnil);
