@@ -2776,7 +2776,7 @@ describe "Compiler::*Nodes" do
       sexp     = input.to_sexp
 
       comp    = Compiler.new TestGenerator
-      node    = comp.convert_sexp [:snippit, sexp]
+      node    = comp.convert_sexp s(:snippit, sexp)
       actual   = TestGenerator.new
       node.bytecode actual
 

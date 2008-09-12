@@ -1237,7 +1237,7 @@ class Compiler
         set(:iter) do
           @locals = get(:scope).new_block_scope do
             set(:iter_args) do
-              sexp[1] = convert([:iter_args, sexp[1]])
+              sexp[1] = convert(s(:iter_args, sexp[1]))
             end
 
             sexp[2] = convert(sexp[2])
@@ -1935,7 +1935,7 @@ class Compiler
 
       # Treat a :postexe node as if it were a call to at_exit
       def self.create(compiler, sexp)
-        sexp = [:call, nil, :at_exit, [:arglist]]
+        sexp = s(:call, nil, :at_exit, s(:arglist))
         super(compiler, sexp)
       end
     end

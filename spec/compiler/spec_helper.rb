@@ -39,21 +39,8 @@ class TestGenerator
   end
 
   def inspect
-    [:test_generator, @stream].inspect
+    s(:test_generator, @stream).inspect
   end
-
-# TODO:
-#   def pretty_print(pp)
-#     pp.group(1, '[:test_generator, ', ']') {
-#       pp.seplist(@stream) {|v|
-#         pp.pp v
-#       }
-#     }
-#   end
-
-#   def pretty_print_cycle(pp)
-#     pp.text(empty? ? '[xxx]' : '[xxx...]')
-#   end
 
   def add(*args)
     @stream << args
@@ -438,7 +425,7 @@ def gen(sexp, plugins=[])
 
   yield expected
 
-  @node = @comp.convert_sexp [:snippit, sexp]
+  @node = @comp.convert_sexp s(:snippit, sexp)
   actual = TestGenerator.new
   @node.bytecode actual
   actual.should == expected
