@@ -115,12 +115,17 @@ namespace rubinius {
       return obj;
     }
 
+  private:
+    ObjectArray* promoted_;
+
+  public:
     /* Prototypes */
     BakerGC(ObjectMemory *om, size_t size);
     virtual ~BakerGC();
     void free_objects();
     virtual OBJECT saw_object(OBJECT obj);
     void    copy_unscanned();
+    bool    fully_scanned_p();
     void    collect(Roots &roots);
     void    clear_marks();
     OBJECT  next_object(OBJECT obj);

@@ -52,7 +52,11 @@ namespace rubinius {
   }
 
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes) :
-    GarbageCollector(om), heap_a(bytes), heap_b(bytes), total_objects(0)
+    GarbageCollector(om),
+    heap_a(bytes),
+    heap_b(bytes),
+    total_objects(0),
+    promoted_(0)
   {
     current = &heap_a;
     next = &heap_b;
@@ -75,21 +79,13 @@ namespace rubinius {
     if(obj->age++ >= lifetime) {
       copy = object_memory->promote_object(obj);
 
-      // We promoted it, so our scan pointer loop wont see it to walk
-      // it's references. Instead we scan in manually here.
-      // HACK TODO this can cause a cascading C stack as a lot of
-      // objects are promoted at once and cause a stack overflow.
-      //
-      // We should keep track of all the promoted objects and walk
-      // them at the end.
-      scan_object(copy);
+      promoted_->push_back(copy);
     } else if(next->enough_space_p(obj->size_in_bytes())) {
       copy = next->copy_object(obj);
       total_objects++;
     } else {
       copy = object_memory->promote_object(obj);
-      // See note above concerning promoted objects.
-      scan_object(copy);
+      promoted_->push_back(copy);
     }
 
     if(MethodContext* ctx = try_as<MethodContext>(copy)) {
@@ -110,6 +106,10 @@ namespace rubinius {
     }
   }
 
+  bool BakerGC::fully_scanned_p() {
+    return next->fully_scanned_p();
+  }
+
   /* Perform garbage collection on the young objects. */
   void BakerGC::collect(Roots &roots) {
     OBJECT tmp;
@@ -118,8 +118,13 @@ namespace rubinius {
     object_memory->remember_set = new ObjectArray(0);
     total_objects = 0;
 
-    ObjectArray::iterator oi;
-    for(oi = current_rs->begin(); oi != current_rs->end(); oi++) {
+    // Tracks all objects that we promoted during this run, so
+    // we can scan them at the end.
+    promoted_ = new ObjectArray(0);
+
+    for(ObjectArray::iterator oi = current_rs->begin();
+        oi != current_rs->end();
+        oi++) {
       tmp = *oi;
       assert(tmp->zone == MatureObjectZone);
       assert(!tmp->forwarded_p());
@@ -139,9 +144,47 @@ namespace rubinius {
       }
     }
 
-    /* We've seeded next with all the roots, we now just move down next
-     * against the scan pointer until there are no more objects. */
-    copy_unscanned();
+    /* Ok, now handle all promoted objects. This is setup a little weird
+     * so I should explain.
+     *
+     * We want to scan each promoted object. But this scanning will likely
+     * cause more objects to be promoted. Adding to an ObjectArray that your
+     * iterating over blows up the iterators, so instead we rotate the
+     * current promoted set out as we iterator over it, and stick an
+     * empty ObjectArray in.
+     *
+     * This way, when there are no more objects that are promoted, the last
+     * ObjectArray will be empty.
+     * */
+
+    while(promoted_->size() > 0 || !fully_scanned_p()) {
+      ObjectArray* cur = promoted_;
+
+      if(promoted_->size() > 0) {
+        promoted_ = new ObjectArray(0);
+
+        for(ObjectArray::iterator oi = cur->begin();
+            oi != cur->end();
+            oi++) {
+          tmp = *oi;
+          assert(tmp->zone == MatureObjectZone);
+          scan_object(tmp);
+        }
+
+        delete cur;
+
+      }
+
+      /* As we're handling promoted objects, also handle unscanned objects.
+       * Scanning these unscanned objects (via the scan pointer) will
+       * cause more promotions. */
+      copy_unscanned();
+    }
+
+    delete promoted_;
+    promoted_ = NULL;
+
+    assert(fully_scanned_p());
 
     /* Another than is going to be found is found now, so we go back and
      * look at everything in current and call delete_object() on anything

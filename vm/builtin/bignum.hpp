@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_BIGNUM_HPP
 
 #include "builtin/integer.hpp"
+#include "tommath.h"
 
 namespace rubinius {
   class Array;
@@ -10,11 +11,14 @@ namespace rubinius {
 
   class Bignum : public Integer {
     public:
-    const static size_t fields = 0;
+    const static size_t fields = 1;
     const static object_type type = BignumType;
+
+    mp_int mp_val_;
 
     static void cleanup(STATE, OBJECT obj);
     static void init(STATE);
+    static Bignum* Bignum::create(STATE);
 
     static Bignum* from(STATE, int num);
     static Bignum* from(STATE, unsigned int num);
@@ -22,6 +26,10 @@ namespace rubinius {
     static Bignum* from(STATE, unsigned long);
     static Bignum* from(STATE, long long val);
     static Bignum* from(STATE, unsigned long long val);
+
+    mp_int* mp_val() {
+      return &mp_val_;
+    }
 
     native_int         to_native();
 

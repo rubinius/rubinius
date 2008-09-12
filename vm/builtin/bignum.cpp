@@ -14,23 +14,21 @@
 #include <math.h>
 #include <cmath>
 #include <iostream>
-#include "tommath.h"
 
 #define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \
-  obj = (typeof(obj))state->new_struct(kls, sizeof(kind)); \
-  str = (kind *)(obj->bytes)
-#define DATA_STRUCT(obj, type) ((type)(obj->bytes))
+  obj = (typeof(obj))Bignum::create(state); \
+  str = (kind *)(obj->mp_val())
+#define DATA_STRUCT(obj, type) ((type)(obj->mp_val()))
 
 #define NMP mp_int *n; Bignum* n_obj; \
-  NEW_STRUCT(n_obj, n, BASIC_CLASS(bignum), mp_int); \
-  mp_init(n);
+  NEW_STRUCT(n_obj, n, BASIC_CLASS(bignum), mp_int);
+
 #define MMP mp_int *m; Bignum* m_obj; \
-  NEW_STRUCT(m_obj, m, BASIC_CLASS(bignum), mp_int); \
-  mp_init(m);
+  NEW_STRUCT(m_obj, m, BASIC_CLASS(bignum), mp_int);
 
 
-#define MP(k) DATA_STRUCT(k, mp_int*)
+#define MP(k) ((k)->mp_val())
 #define BDIGIT_DBL long long
 #define DIGIT_RADIX (1L << DIGIT_BIT)
 
@@ -72,15 +70,6 @@ namespace rubinius {
     }
     mp_clamp (a);
     return MP_OKAY;
-  }
-
-  static int mp_init_set_long (mp_int * a, unsigned long b)
-  {
-    int err;
-    if ((err = mp_init(a)) != MP_OKAY) {
-       return err;
-    }
-    return mp_set_long(a, b);
   }
 
   static unsigned long mp_get_long (mp_int * a)
@@ -224,47 +213,54 @@ namespace rubinius {
     state->add_type_info(new Bignum::Info(Bignum::type));
   }
 
+  Bignum* Bignum::create(STATE) {
+    Bignum* o;
+    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
+    mp_init(o->mp_val());
+    return o;
+  }
+
   Bignum* Bignum::from(STATE, int num) {
     mp_int *a;
     Bignum* o;
-    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
-    a = (mp_int*)(o->bytes);
+    o = Bignum::create(state);
+    a = o->mp_val();
 
     if(num < 0) {
-      mp_init_set_int(a, (unsigned int)-num);
+      mp_set_int(a, (unsigned int)-num);
       a->sign = MP_NEG;
     } else {
-      mp_init_set_int(a, (unsigned int)num);
+      mp_set_int(a, (unsigned int)num);
     }
     return o;
   }
 
   Bignum* Bignum::from(STATE, unsigned int num) {
     Bignum* o;
-    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
-    mp_init_set_int(MP(o), num);
+    o = Bignum::create(state);
+    mp_set_int(MP(o), num);
     return o;
   }
 
   Bignum* Bignum::from(STATE, long num) {
     mp_int *a;
     Bignum* o;
-    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
-    a = (mp_int*)(o->bytes);
+    o = Bignum::create(state);
+    a = o->mp_val();
 
     if(num < 0) {
-      mp_init_set_long(a, (unsigned long)-num);
+      mp_set_long(a, (unsigned long)-num);
       a->sign = MP_NEG;
     } else {
-      mp_init_set_long(a, (unsigned long)num);
+      mp_set_long(a, (unsigned long)num);
     }
     return o;
   }
 
   Bignum* Bignum::from(STATE, unsigned long num) {
     Bignum* o;
-    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
-    mp_init_set_long(MP(o), num);
+    o = Bignum::create(state);
+    mp_set_long(MP(o), num);
     return o;
   }
 
@@ -275,8 +271,8 @@ namespace rubinius {
     mp_init_set_int(&high, val >> 32);
     mp_mul_2d(&high, 32, &high);
 
-    Bignum* ret = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
-    ans = (mp_int*)(ret->bytes);
+    Bignum* ret = Bignum::create(state);
+    ans = ret->mp_val();
     mp_or(&low, &high, ans);
 
     mp_clear(&low);
@@ -545,7 +541,7 @@ namespace rubinius {
     }
 
     /* Perhaps this should use mp_and rather than our own version */
-    bignum_bitwise_op(BITWISE_OP_AND, MP(this), MP(b), n);
+    bignum_bitwise_op(BITWISE_OP_AND, MP(this), MP(as<Bignum>(b)), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -560,7 +556,7 @@ namespace rubinius {
       b = Bignum::from(state, b->to_native());
     }
     /* Perhaps this should use mp_or rather than our own version */
-    bignum_bitwise_op(BITWISE_OP_OR, MP(this), MP(b), n);
+    bignum_bitwise_op(BITWISE_OP_OR, MP(this), MP(as<Bignum>(b)), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -575,7 +571,7 @@ namespace rubinius {
       b = Bignum::from(state, b->to_native());
     }
     /* Perhaps this should use mp_xor rather than our own version */
-    bignum_bitwise_op(BITWISE_OP_XOR, MP(this), MP(b), n);
+    bignum_bitwise_op(BITWISE_OP_XOR, MP(this), MP(as<Bignum>(b)), n);
     return Bignum::normalize(state, n_obj);
   }
 

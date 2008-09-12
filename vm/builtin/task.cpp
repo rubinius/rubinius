@@ -617,12 +617,14 @@ stack_cleanup:
   void Task::cache_ip() { }
   void Task::check_interrupts() {
     if(state->om->collect_young_now) {
+      std::cout << "collect young!\n";
       state->om->collect_young_now = false;
       state->om->collect_young(state->globals.roots);
       state->global_cache->clear();
     }
 
     if(state->om->collect_mature_now) {
+      std::cout << "collect mature!\n";
       state->om->collect_mature_now = false;
       state->om->collect_mature(state->globals.roots);
       state->global_cache->clear();
@@ -666,14 +668,14 @@ stack_cleanup:
               ":" << (void*)meta->attached_instance << ">.";
           }
         } else {
-          std::cout << ctx->module->name->to_str(state)->byte_address() << "#";
+          std::cout << ctx->module->name->c_str(state) << "#";
         }
 
         SYMBOL name = try_as<Symbol>(ctx->name);
         if(name) {
-          std::cout << name->to_str(state)->byte_address();
+          std::cout << name->c_str(state);
         } else {
-          std::cout << ctx->cm->name->to_str(state)->byte_address();
+          std::cout << ctx->cm->name->c_str(state);
         }
       }
 

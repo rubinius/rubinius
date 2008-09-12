@@ -11,6 +11,7 @@ namespace rubinius {
 
   OBJECT ObjectMark::call(OBJECT obj) {
     if(obj->reference_p()) {
+      assert(obj->zone != UnspecifiedZone);
       return gc->saw_object(obj);
     }
 

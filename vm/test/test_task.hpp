@@ -59,7 +59,7 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_create_sets_probe() {
     TaskProbe* probe = TaskProbe::create(state);
-    state->probe = probe;
+    state->probe.set(probe);
     Task* task = Task::create(state);
 
     TS_ASSERT_EQUALS(probe, task->probe);

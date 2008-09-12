@@ -23,7 +23,7 @@ class TestVM : public CxxTest::TestSuite {
   }
 
   void test_probe_is_nil() {
-    TS_ASSERT_EQUALS(Qnil, state->probe);
+    TS_ASSERT_EQUALS(Qnil, state->probe.get());
   }
 
   void test_symbol_given_cstr() {
@@ -62,7 +62,7 @@ class TestVM : public CxxTest::TestSuite {
   }
 
   void test_globals() {
-    TS_ASSERT_EQUALS(state->globals.roots.size(), 125U);
+    TS_ASSERT_EQUALS(state->globals.roots.size(), 127U);
   }
 
   void test_collection() {
