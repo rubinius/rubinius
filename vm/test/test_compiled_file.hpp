@@ -70,17 +70,13 @@ public:
 
     cm->execute(state, task, msg);
 
-    // TODO: the follow test failure was introduced by ba265dd3
-    // TS_ASSERT_THROWS(task->execute(), Task::Halt);
-    TS_ASSERT_THROWS_NOTHING(task->execute());
+    TS_ASSERT_THROWS(task->execute(), Task::Halt);
 
     Class* cls = try_as<Class>(G(object)->get_const(state, "Blah"));
     TS_ASSERT(cls);
 
     cm = try_as<CompiledMethod>(cls->method_table()->fetch(state, state->symbol("sweet")));
 
-    // TODO: the follow test failure was introduced by ba265dd3
-    // TS_ASSERT(cm);
-    TS_ASSERT(cm == NULL);
+    TS_ASSERT(cm);
   }
 };
