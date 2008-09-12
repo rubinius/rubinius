@@ -69,7 +69,9 @@ namespace rubinius {
   }
 
   void ObjectMemory::collect_young(Roots &roots) {
+    static int collect_times = 0;
     young.collect(roots);
+    collect_times++;
   }
 
   void ObjectMemory::collect_mature(Roots &roots) {

@@ -42,6 +42,7 @@ namespace rubinius {
   class Array;
   class Message;
   class TypeInfo;
+  class MethodContext;
 
   class Object : public ObjectHeader {
   public:
@@ -198,6 +199,9 @@ namespace rubinius {
 
     // Ruby.primitive :vm_exit
     static OBJECT vm_exit(STATE, FIXNUM code);
+
+    // Ruby.primitive :vm_show_backtrace
+    static OBJECT vm_show_backtrace(STATE, MethodContext* ctx);
 
     // Ruby.primitive :yield_gdb
     static Object* yield_gdb(STATE, Object* obj);

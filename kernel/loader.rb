@@ -12,6 +12,7 @@ rescue Object => e
   exit 2
 end
 
+if false
 # Set up a handler for SIGINT that raises Interrupt on the main thread
 Signal.action("INT") do |_|
   thread = Thread.main
@@ -23,6 +24,7 @@ Signal.action("INT") do |_|
     puts "Unable to continue."
     exit! 1
   end
+end
 end
 
 # This is the end of the kernel and the beginning of specified

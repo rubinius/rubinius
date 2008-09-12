@@ -642,6 +642,11 @@ namespace rubinius {
     ::exit(code->to_native());
   }
 
+  OBJECT Object::vm_show_backtrace(STATE, MethodContext* ctx) {
+    G(current_task)->print_backtrace(ctx);
+    return Qnil;
+  }
+
   Object* Object::yield_gdb(STATE, Object* obj) {
     obj->show(state);
     Assertion::raise("yield_gdb called and not caught");

@@ -627,6 +627,12 @@ stack_cleanup:
       state->om->collect_mature(state->globals.roots);
       state->global_cache->clear();
     }
+
+    /* Stack Management procedures. Make sure that we don't
+     * miss object stored into the stack of a context */
+    if(active_->zone == MatureObjectZone) {
+      state->om->remember_object(active_);
+    }
   }
 
   void Task::execute() {
@@ -643,14 +649,16 @@ stack_cleanup:
         if(state->interrupts.switch_task) {
           state->interrupts.switch_task = false;
         }
+      }
 
+      if(state->om->collect_young_now || state->om->collect_mature_now) {
         return;
       }
     }
   }
 
-  void Task::print_backtrace() {
-    MethodContext* ctx = active_;
+  void Task::print_backtrace(MethodContext* ctx) {
+    if(!ctx) ctx = active_;
 
     while(!ctx->nil_p()) {
       std::cout << (void*)ctx << ": ";

@@ -8,6 +8,10 @@ class Rubinius::VM
     Ruby.primitive :vm_write_error
   end
 
+  def self.show_backtrace(ctx)
+    Ruby.primitive :vm_show_backtrace
+  end
+
   def self.load_library(path, name)
     Ruby.primitive :load_library
     raise PrimitiveFailure, "primitive failed"

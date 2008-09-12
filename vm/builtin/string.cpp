@@ -143,7 +143,7 @@ namespace rubinius {
   String* String::string_dup(STATE) {
     String* ns;
 
-    ns = (String*)dup(state);
+    ns = as<String>(dup(state));
     ns->shared(state, Qtrue);
     shared(state, Qtrue);
 

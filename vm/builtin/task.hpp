@@ -146,7 +146,7 @@ namespace rubinius {
     OBJECT get_local(int pos);
 
     void print_stack();
-    void print_backtrace();
+    void print_backtrace(MethodContext* ctx = 0);
     void tragic_failure(Message& msg);
 
     class Info : public TypeInfo {

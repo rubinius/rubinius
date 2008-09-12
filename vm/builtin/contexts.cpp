@@ -115,6 +115,9 @@ initialize:
   void MethodContext::post_copy(MethodContext* old) {
     this->position_stack(old->calculate_sp());
     this->js.stack_top = this->stk + this->stack_size;
+    if(this->obj_type == MContextType) {
+      assert(this->home() == old);
+    }
   }
 
   /* Attempt to recycle +this+ context into the context cache, based
@@ -134,7 +137,9 @@ initialize:
         which = LargeContextSize;
       }
 
-      state->context_cache->add(state, which, this);
+      // HACK this is broken. It's adding context which
+      // are still live into the cache (busting those contexts)
+      // state->context_cache->add(state, which, this);
       return true;
     }
 
@@ -225,6 +230,10 @@ initialize:
     auto_mark(obj, mark);
 
     MethodContext* ctx = as<MethodContext>(obj);
+
+    if(ctx->obj_type == MContextType) {
+      assert(ctx->home() == obj);
+    }
 
     /* Now also mark the stack */
     OBJECT stack_obj, marked;

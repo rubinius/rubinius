@@ -178,6 +178,8 @@ namespace rubinius {
       copy_unscanned();
     }
 
+    assert(promoted_->size() == 0);
+
     delete promoted_;
     promoted_ = NULL;
 
@@ -189,7 +191,7 @@ namespace rubinius {
     find_lost_souls();
 
     /* Check any weakrefs and replace dead objects with nil*/
-    clean_weakrefs();
+    // clean_weakrefs();
 
     /* Swap the 2 halves */
     BakerGC::Heap *x = next;

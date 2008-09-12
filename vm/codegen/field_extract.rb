@@ -5,6 +5,7 @@ class BasicPrimitive
 
   def output_header(str)
     str << "bool Primitives::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
+    # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  OBJECT ret;\n" 
     str << "  OBJECT self;\n" if @pass_self
