@@ -46,6 +46,7 @@ module Signal
     thr = Thread.new do
       while true
         ctx = chan.receive
+        ctx.__show__
 
         # Run the handler in a new thread so chan.receive doesn't
         # block signals during handler execution, e.g., a SIGINT

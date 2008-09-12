@@ -12,8 +12,17 @@ namespace rubinius {
     const static size_t fields = 2;
     const static object_type type = ISeqType;
 
-    Tuple* opcodes; // slot
-    FIXNUM stack_depth; // slot
+  private:
+    Tuple* opcodes_;     // slot
+    FIXNUM stack_depth_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(opcodes, Tuple);
+    attr_accessor(stack_depth, Fixnum);
+
+    /* interface */
 
     static void init(STATE);
     static InstructionSequence* create(STATE, size_t instructions);

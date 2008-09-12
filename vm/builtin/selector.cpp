@@ -12,7 +12,7 @@ namespace rubinius {
   void Selector::init(STATE) {
     GO(selectors).set(LookupTable::create(state));
     Class* cls = state->new_class("Selector", G(object), Selector::fields);
-    cls->set_object_type(SelectorType);
+    cls->set_object_type(state, SelectorType);
 
     GO(selector).set(cls);
 
@@ -21,8 +21,8 @@ namespace rubinius {
 
   Selector* Selector::create(STATE, OBJECT name) {
     Selector* sel = (Selector*)state->new_object(G(selector));
-    SET(sel, name, name);
-    SET(sel, send_sites, Array::create(state, 1));
+    sel->name(state, (SYMBOL)name);
+    sel->send_sites(state, Array::create(state, 1));
 
     return sel;
   }
@@ -38,20 +38,20 @@ namespace rubinius {
   }
 
   OBJECT Selector::associate(STATE, SendSite* ss) {
-    send_sites->append(state, ss);
+    send_sites_->append(state, ss);
     return ss;
   }
 
   bool Selector::includes_p(STATE, SendSite* ss) {
-    return send_sites->includes_p(state, ss);
+    return send_sites_->includes_p(state, ss);
   }
 
   void Selector::clear(STATE) {
-    size_t sz = send_sites->size();
+    size_t sz = send_sites_->size();
     SendSite* ss;
 
     for(size_t i = 0; i < sz; i++) {
-      ss = (SendSite*)send_sites->get(state, i);
+      ss = (SendSite*)send_sites_->get(state, i);
       ss->initialize(state);
     }
   }

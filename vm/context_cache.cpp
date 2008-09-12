@@ -17,7 +17,7 @@ namespace rubinius {
     MethodContext* ctx;
     if((ctx = caches[which]) != Qnil) {
       /* We chain off ->home */
-      caches[which] = ctx->home;
+      caches[which] = ctx->home();
       return ctx;
     }
 
@@ -25,8 +25,8 @@ namespace rubinius {
   }
 
   /* Add context +ctx+ to cache +which+. */
-  void ContextCache::add(size_t which, MethodContext* ctx) {
-    ctx->home = caches[which];
+  void ContextCache::add(STATE, size_t which, MethodContext* ctx) {
+    ctx->home(state, caches[which]);
     caches[which] = ctx;
 
     reclaim--;

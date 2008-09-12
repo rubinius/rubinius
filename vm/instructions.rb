@@ -67,7 +67,7 @@ class Instructions
 
   def add_method(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
     OBJECT recv = stack_pop();
     Module* mod = try_as<Module>(recv);
     /* If the receiver is not a module, use the receiver's class_object instead */
@@ -85,8 +85,8 @@ class Instructions
     <<-CODE
     SYMBOL name1 = state->symbol("true_method");
     SYMBOL name2 = state->symbol("kernel_method");
-    task->literals->put(state, 0, name1);
-    task->literals->put(state, 1, name2);
+    task->literals()->put(state, 0, name1);
+    task->literals()->put(state, 1, name2);
 
     task->push(cm);
     task->push(G(true_class));
@@ -95,7 +95,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(G(true_class)->method_table->fetch(state, name1), cm);
+    TS_ASSERT_EQUALS(G(true_class)->method_table()->fetch(state, name1), cm);
     /* Clear the stack for the next scenario */
     task->pop(); task->pop();
 
@@ -107,8 +107,8 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(cm, G(string)->method_table->fetch(state, name2));
-    TS_ASSERT_EQUALS(Qnil, G(object)->method_table->fetch(state, name2));
+    TS_ASSERT_EQUALS(cm, G(string)->method_table()->fetch(state, name2));
+    TS_ASSERT_EQUALS(Qnil, G(object)->method_table()->fetch(state, name2));
     CODE
   end
 
@@ -133,19 +133,19 @@ class Instructions
     OBJECT obj = stack_pop();
     Module* mod = as<Module>(obj);
     StaticScope* scope = StaticScope::create(state);
-    SET(scope, module, mod);
-    SET(scope, parent, task->active->cm->scope);
-    SET(task->active->cm, scope, scope);
+    scope->module(state, mod);
+    scope->parent(state, task->active()->cm()->scope());
+    task->active()->cm()->scope(state, scope);
     CODE
   end
 
   def test_add_scope
     <<-CODE
-    StaticScope* scope = task->active->cm->scope;
+    StaticScope* scope = task->active()->cm()->scope();
     task->push(G(string));
     run();
-    TS_ASSERT_DIFFERS(scope, task->active->cm->scope);
-    TS_ASSERT_EQUALS(G(string), task->active->cm->scope->module);
+    TS_ASSERT_DIFFERS(scope, task->active()->cm()->scope());
+    TS_ASSERT_EQUALS(G(string), task->active()->cm()->scope()->module());
     CODE
   end
 
@@ -175,7 +175,7 @@ class Instructions
 
   def attach_method(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
     OBJECT obj = stack_pop();
     OBJECT obj2 = stack_pop();
     CompiledMethod* meth = as<CompiledMethod>(obj2);
@@ -188,7 +188,7 @@ class Instructions
   def test_attach_method
     <<-CODE
     SYMBOL name = state->symbol("blah");
-    task->literals->put(state, 0, name);
+    task->literals()->put(state, 0, name);
 
     task->push(cm);
     task->push(G(true_class));
@@ -197,9 +197,9 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(G(true_class)->metaclass(state)->method_table->fetch(state, name), cm);
-    TS_ASSERT(!cm->scope->nil_p());
-    TS_ASSERT_EQUALS(cm->scope->module, G(true_class));
+    TS_ASSERT_EQUALS(G(true_class)->metaclass(state)->method_table()->fetch(state, name), cm);
+    TS_ASSERT(!cm->scope()->nil_p());
+    TS_ASSERT_EQUALS(cm->scope()->module(), G(true_class));
     CODE
   end
 
@@ -320,7 +320,7 @@ class Instructions
     Array* ary = Array::create(state, 1);
     ary->set(state, 0, Fixnum::from(1));
     tup = Tuple::from(state, 1, ary);
-    task->active->set_top(tup);
+    task->active()->set_top(tup);
     run();
 
     tup = as<Tuple>(task->stack_top());
@@ -485,7 +485,7 @@ class Instructions
   def check_serial(index, serial)
     <<-CODE
     OBJECT t1 = stack_pop();
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
 
     if(task->check_serial(t1, sym, serial)) {
       stack_push(Qtrue);
@@ -499,11 +499,11 @@ class Instructions
     <<-CODE
       FIXNUM s = Fixnum::from(100);
       Symbol* sym = String::create(state, "to_s")->to_sym(state);
-      task->literals->put(state, 0, sym);
+      task->literals()->put(state, 0, sym);
 
-      TS_ASSERT_EQUALS(Qnil, cm->serial);
+      TS_ASSERT_EQUALS(Qnil, cm->serial());
       task->add_method(G(fixnum_class), sym, cm);
-      TS_ASSERT_EQUALS(Fixnum::from(0), cm->serial);
+      TS_ASSERT_EQUALS(Fixnum::from(0), cm->serial());
 
       task->push(s);
       stream[1] = (opcode)0;
@@ -513,7 +513,7 @@ class Instructions
       TS_ASSERT_EQUALS(Qtrue, task->pop());
 
       task->push(s);
-      TS_ASSERT_EQUALS(Fixnum::from(0), cm->serial);
+      TS_ASSERT_EQUALS(Fixnum::from(0), cm->serial());
       stream[1] = (opcode)0;
       stream[2] = (opcode)1;
       run();
@@ -565,15 +565,15 @@ class Instructions
 
   def clear_exception
     <<-CODE
-    task->exception = (Exception*)Qnil;
+    task->exception(state, (Exception*)Qnil);
     CODE
   end
 
   def test_clear_exception
     <<-CODE
-    task->exception = Exception::create(state);
+    task->exception(state, Exception::create(state));
     run();
-    TS_ASSERT_EQUALS(task->exception, Qnil);
+    TS_ASSERT_EQUALS(task->exception(), Qnil);
     CODE
   end
 
@@ -594,23 +594,23 @@ class Instructions
   def create_block(index)
     <<-CODE
     /* the method */
-    OBJECT _lit = task->literals->field[index];
+    OBJECT _lit = task->literals()->field[index];
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
     MethodContext* parent;
-    if(kind_of<BlockContext>(task->active)) {
-      parent = as<BlockContext>(task->active)->env()->home;
+    if(kind_of<BlockContext>(task->active())) {
+      parent = as<BlockContext>(task->active())->env()->home();
     } else {
-      parent = task->active;
+      parent = task->active();
     }
 
     parent->reference(state);
-    task->active->reference(state);
+    task->active()->reference(state);
 
     // HACK not sure this needs to be here all the time
-    cm->set_scope(task->active->cm->scope);
+    cm->scope(state, task->active()->cm()->scope());
 
-    OBJECT t2 = BlockEnvironment::under_context(state, cm, parent, task->active, index);
+    OBJECT t2 = BlockEnvironment::under_context(state, cm, parent, task->active(), index);
     stack_push(t2);
     CODE
   end
@@ -724,7 +724,7 @@ class Instructions
     <<-CODE
     bool found;
     Module* under = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
     OBJECT res = task->const_get(under, sym, &found);
     if(!found) {
       sym->show(state);
@@ -740,7 +740,7 @@ class Instructions
     SYMBOL name = state->symbol("Number");
     G(true_class)->set_const(state, name, Fixnum::from(3));
 
-    task->literals->put(state, 0, name);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     task->push(G(true_class));
@@ -1193,7 +1193,7 @@ class Instructions
   def test_locate_method
     <<-CODE
     SYMBOL name = state->symbol("blah");
-    G(true_class)->method_table->store(state, name, cm);
+    G(true_class)->method_table()->store(state, name, cm);
 
     task->push(Qtrue);
     task->push(name);
@@ -1403,15 +1403,15 @@ class Instructions
   def test_meta_send_call
     <<-CODE
     CompiledMethod* block_method = CompiledMethod::create(state);
-    block_method->iseq = InstructionSequence::create(state, 2);
-    block_method->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_push_true));
-    block_method->iseq->opcodes->put(state, 1, Fixnum::from(InstructionSequence::insn_ret));
-    block_method->total_args = Fixnum::from(2);
-    block_method->required_args = Fixnum::from(2);
-    block_method->stack_size = Fixnum::from(10);
+    block_method->iseq(state, InstructionSequence::create(state, 2));
+    block_method->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_true));
+    block_method->iseq()->opcodes()->put(state, 1, Fixnum::from(InstructionSequence::insn_ret));
+    block_method->total_args(state, Fixnum::from(2));
+    block_method->required_args(state, Fixnum::from(2));
+    block_method->stack_size(state, Fixnum::from(10));
     block_method->formalize(state);
 
-    task->literals->put(state, 0, block_method);
+    task->literals()->put(state, 0, block_method);
 
     /* Run the create_block instruction, since that is how BlockEnvs are created */
     stream[0] = InstructionSequence::insn_create_block;
@@ -1434,8 +1434,8 @@ class Instructions
     TS_ASSERT_EQUALS(Qnil, args->at(0));
     TS_ASSERT_EQUALS(Qfalse, args->at(1));
 
-    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_push_true), task->active->cm->iseq->opcodes->at(0));
-    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_ret), task->active->cm->iseq->opcodes->at(1));
+    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_push_true), task->active()->cm()->iseq()->opcodes()->at(0));
+    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_ret), task->active()->cm()->iseq()->opcodes()->at(1));
     CODE
   end
 
@@ -1844,7 +1844,7 @@ class Instructions
     <<-CODE
     bool created;
     OBJECT super = stack_pop();
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
 
     Class* cls = task->open_class(super, sym, &created);
 
@@ -1857,13 +1857,13 @@ class Instructions
     SYMBOL name = state->symbol("C");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, G(true_class));
-    ps->parent = (StaticScope*)Qnil;
-    SET(cm, scope, ps);
+    ps->module(state, G(true_class));
+    ps->parent(state, (StaticScope*)Qnil);
+    cm->scope(state, ps);
 
     task->push(G(true_class));
 
-    task->literals->put(state, 0, name);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -1871,7 +1871,7 @@ class Instructions
     TS_ASSERT(kind_of<Class>(G(true_class)->get_const(state, name)));
 
     Class* cls = (Class*)task->stack_top();
-    TS_ASSERT_EQUALS(cls->metaclass(state)->superclass, G(true_class)->metaclass(state))
+    TS_ASSERT_EQUALS(cls->metaclass(state)->superclass(), G(true_class)->metaclass(state))
     CODE
   end
 
@@ -1911,7 +1911,7 @@ class Instructions
     bool created;
     OBJECT super = stack_pop();
     Module* under = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
 
     Class* cls = task->open_class(under, super, sym, &created);
     // TODO use created? it's only for running the opened_class hook, which
@@ -1927,7 +1927,7 @@ class Instructions
     task->push(G(true_class));
     task->push(Qnil);
 
-    task->literals->put(state, 0, name);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -1997,7 +1997,7 @@ class Instructions
 
   def open_module(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
 
     stack_push(task->open_module(sym));
     CODE
@@ -2008,11 +2008,11 @@ class Instructions
     SYMBOL name = state->symbol("C");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, G(true_class));
-    ps->parent = (StaticScope*)Qnil;
-    SET(cm, scope, ps);
+    ps->module(state, G(true_class));
+    ps->parent(state, (StaticScope*)Qnil);
+    cm->scope(state, ps);
 
-    task->literals->put(state, 0, name);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -2044,7 +2044,7 @@ class Instructions
   def open_module_under(index)
     <<-CODE
     Module* mod = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
 
     stack_push(task->open_module(mod, sym));
     CODE
@@ -2055,7 +2055,7 @@ class Instructions
     SYMBOL name = state->symbol("C");
     task->push(G(true_class));
 
-    task->literals->put(state, 0, name);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -2080,7 +2080,7 @@ class Instructions
 
   def passed_arg(count)
     <<-CODE
-    if((unsigned long int)count < task->active->args) {
+    if((unsigned long int)count < task->active()->args) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -2165,14 +2165,14 @@ class Instructions
   def push_block
     <<-CODE
     // HACK test this for yield in block to outer block
-    stack_push(task->home->block);
+    stack_push(task->home()->block());
     CODE
   end
 
   def test_push_block
     <<-CODE
-    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active, 0);
-    task->active->block = be;
+    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active(), task->active(), 0);
+    task->active()->block(state, be);
     run();
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
@@ -2202,7 +2202,7 @@ class Instructions
   def push_const(index)
     <<-CODE
     bool found;
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
     OBJECT res = task->const_get(sym, &found);
     if(!found) {
       sym->show(state);
@@ -2219,19 +2219,19 @@ class Instructions
     Module* child =  state->new_module("Parent::Child");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
     StaticScope* cs = StaticScope::create(state);
-    SET(cs, module, child);
-    SET(cs, parent, ps);
+    cs->module(state, child);
+    cs->parent(state, ps);
 
-    SET(cm, scope, cs);
+    cm->scope(state, cs);
 
     SYMBOL name = state->symbol("Number");
     parent->set_const(state, name, Fixnum::from(3));
 
-    task->literals->put(state, 0, name);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -2256,7 +2256,7 @@ class Instructions
 
   def push_context
     <<-CODE
-    MethodContext* ctx = task->active;
+    MethodContext* ctx = task->active();
     ctx->reference(state);
     stack_push(ctx);
     CODE
@@ -2266,7 +2266,7 @@ class Instructions
     <<-CODE
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(task->stack_top(), task->active);
+    TS_ASSERT_EQUALS(task->stack_top(), task->active());
     CODE
   end
 
@@ -2326,14 +2326,14 @@ class Instructions
 
   def push_exception
     <<-CODE
-    stack_push(task->exception);
+    stack_push(task->exception());
     CODE
   end
 
   def test_push_exception
     <<-CODE
     Exception* exc = Exception::create(state);
-    task->exception = exc;
+    task->exception(state, exc);
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT_EQUALS(task->stack_top(), exc);
@@ -2416,17 +2416,17 @@ class Instructions
 
   def push_ivar(index)
     <<-CODE
-    OBJECT sym = task->literals->field[index];
-    stack_push(task->self->get_ivar(state, sym));
+    OBJECT sym = task->literals()->field[index];
+    stack_push(task->self()->get_ivar(state, sym));
     CODE
   end
 
   def test_push_ivar
     <<-CODE
     SYMBOL name = state->symbol("@blah");
-    task->self = Qtrue;
-    task->self->set_ivar(state, name, Qtrue);
-    task->literals->put(state, 0, name);
+    task->self(state, Qtrue);
+    task->self()->set_ivar(state, name, Qtrue);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -2454,14 +2454,14 @@ class Instructions
 
   def push_literal(val)
     <<-CODE
-    OBJECT t2 = task->literals->field[val];
+    OBJECT t2 = task->literals()->field[val];
     stack_push(t2);
     CODE
   end
 
   def test_push_literal
     <<-CODE
-    task->literals = Tuple::from(state, 1, Qtrue);
+    task->literals(state, Tuple::from(state, 1, Qtrue));
     stream[1] = (opcode)0;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
@@ -2484,7 +2484,7 @@ class Instructions
 
   def push_local(index)
     <<-CODE
-    stack_push(task->home->get_local(index)); // HACK test vs. ->home-less
+    stack_push(task->home()->get_local(index)); // HACK test vs. ->home-less
     CODE
   end
 
@@ -2521,12 +2521,12 @@ class Instructions
 
   def push_local_depth(depth, index)
     <<-CODE
-    BlockContext* bc = as<BlockContext>(task->active);
+    BlockContext* bc = as<BlockContext>(task->active());
     BlockEnvironment* env;
 
     for(int j = 0; j < depth; j++) {
       env = bc->env();
-      bc = as<BlockContext>(env->home_block);
+      bc = as<BlockContext>(env->home_block());
     }
 
     stack_push(bc->get_local(index));
@@ -2535,7 +2535,7 @@ class Instructions
 
   def test_push_local_depth
     <<-CODE
-    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active, 0);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active(), task->active(), 0);
     BlockContext* bc = be->create_context(state, (MethodContext*)Qnil);
 
     BlockEnvironment* be2 = BlockEnvironment::under_context(state, cm, bc, bc, 1);
@@ -2574,7 +2574,7 @@ class Instructions
 
   def push_my_field(index)
     <<-CODE
-    stack_push(task->self->get_field(state, index));
+    stack_push(task->self()->get_field(state, index));
     CODE
   end
 
@@ -2583,7 +2583,7 @@ class Instructions
     Tuple* tup = Tuple::create(state, 3);
     tup->put(state, 0, Qtrue);
 
-    task->self = tup;
+    task->self(state, tup);
 
     stream[1] = (opcode)0;
 
@@ -2591,7 +2591,7 @@ class Instructions
 
     Class* cls = state->new_class("Blah");
 
-    task->self = cls;
+    task->self(state, cls);
 
     stream[1] = (opcode)1;
 
@@ -2644,14 +2644,14 @@ class Instructions
 
   def push_scope
     <<-CODE
-    stack_push(task->active->cm->scope);
+    stack_push(task->active()->cm()->scope());
     CODE
   end
 
   def test_push_scope
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->active->cm->scope, task->stack_top());
+    TS_ASSERT_EQUALS(task->active()->cm()->scope(), task->stack_top());
     CODE
   end
 
@@ -2669,13 +2669,13 @@ class Instructions
 
   def push_self
     <<-CODE
-    stack_push(task->self);
+    stack_push(task->self());
     CODE
   end
 
   def test_push_self
     <<-CODE
-    task->self = Qtrue;
+    task->self(state, Qtrue);
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
@@ -2753,9 +2753,9 @@ class Instructions
   def test_ret
     <<-CODE
     task->push(Fixnum::from(100));
-    MethodContext *s1 = task->active->sender;
+    MethodContext *s1 = task->active()->sender();
     run();
-    MethodContext *s2 = task->active->sender;
+    MethodContext *s2 = task->active()->sender();
     TS_ASSERT_EQUALS(Fixnum::from(100), task->pop());
     TS_ASSERT_DIFFERS(s1, s2);
     TS_ASSERT_EQUALS(Qnil, s2);
@@ -2834,7 +2834,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->field[index]);
     msg.recv = stack_top();
     msg.block = Qnil;
     msg.splat = Qnil;
@@ -2843,7 +2843,7 @@ class Instructions
 
     msg.priv = task->call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
-    msg.name = msg.send_site->name;
+    msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
@@ -2856,17 +2856,17 @@ class Instructions
   def test_send_method
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    target->total_args = Fixnum::from(0);
-    target->required_args = target->total_args;
-    target->stack_size = Fixnum::from(10);
+    target->iseq(state, InstructionSequence::create(state, 1));
+    target->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args(state, Fixnum::from(0));
+    target->required_args(state, target->total_args());
+    target->stack_size(state, Fixnum::from(10));
 
     SYMBOL name = state->symbol("blah");
-    G(true_class)->method_table->store(state, name, target);
+    G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
 
-    task->literals->put(state, 0, ss);
+    task->literals()->put(state, 0, ss);
     task->push(Qtrue);
 
     stream[1] = (opcode)0;
@@ -2875,9 +2875,9 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 0U);
-    TS_ASSERT_EQUALS(task->self, Qtrue);
+    TS_ASSERT_EQUALS(task->active()->cm(), target);
+    TS_ASSERT_EQUALS(task->active()->args, 0U);
+    TS_ASSERT_EQUALS(task->self(), Qtrue);
     CODE
   end
 
@@ -2912,7 +2912,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->field[index]);
     msg.recv = stack_back(count);
     msg.block = Qnil;
     msg.splat = Qnil;
@@ -2922,7 +2922,7 @@ class Instructions
 
     msg.priv = task->call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
-    msg.name = msg.send_site->name;
+    msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
@@ -2935,17 +2935,17 @@ class Instructions
   def test_send_stack
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    target->total_args = Fixnum::from(1);
-    target->required_args = target->total_args;
-    target->stack_size = Fixnum::from(1);
+    target->iseq(state, InstructionSequence::create(state, 1));
+    target->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args(state, Fixnum::from(1));
+    target->required_args(state, target->total_args());
+    target->stack_size(state, Fixnum::from(1));
 
     SYMBOL name = state->symbol("blah");
-    G(true_class)->method_table->store(state, name, target);
+    G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
 
-    task->literals->put(state, 0, ss);
+    task->literals()->put(state, 0, ss);
     task->push(Qtrue);
     task->push(Fixnum::from(3));
 
@@ -2956,10 +2956,10 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 1U);
+    TS_ASSERT_EQUALS(task->active()->cm(), target);
+    TS_ASSERT_EQUALS(task->active()->args, 1U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->self, Qtrue);
+    TS_ASSERT_EQUALS(task->self(), Qtrue);
     CODE
   end
 
@@ -2994,7 +2994,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->field[index]);
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.total_args = count;
@@ -3004,7 +3004,7 @@ class Instructions
 
     msg.priv = task->call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
-    msg.name = msg.send_site->name;
+    msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
@@ -3017,21 +3017,21 @@ class Instructions
   def test_send_stack_with_block
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    target->total_args = Fixnum::from(1);
-    target->required_args = target->total_args;
-    target->stack_size = Fixnum::from(1);
+    target->iseq(state, InstructionSequence::create(state, 1));
+    target->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args(state, Fixnum::from(1));
+    target->required_args(state, target->total_args());
+    target->stack_size(state, Fixnum::from(1));
 
     SYMBOL name = state->symbol("blah");
-    G(true_class)->method_table->store(state, name, target);
+    G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
 
-    task->literals->put(state, 0, ss);
+    task->literals()->put(state, 0, ss);
     task->push(Qtrue);
     task->push(Fixnum::from(3));
 
-    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active(), task->active(), 0);
     task->push(be);
 
     stream[1] = (opcode)0;
@@ -3041,11 +3041,11 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 1U);
+    TS_ASSERT_EQUALS(task->active()->cm(), target);
+    TS_ASSERT_EQUALS(task->active()->args, 1U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->active->block, be);
-    TS_ASSERT_EQUALS(task->self, Qtrue);
+    TS_ASSERT_EQUALS(task->active()->block(), be);
+    TS_ASSERT_EQUALS(task->self(), Qtrue);
     CODE
   end
 
@@ -3085,7 +3085,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->field[index]);
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
@@ -3101,7 +3101,7 @@ class Instructions
 
     msg.priv = task->call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
-    msg.name = msg.send_site->name;
+    msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
@@ -3114,17 +3114,17 @@ class Instructions
   def test_send_stack_with_splat
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    target->total_args = Fixnum::from(2);
-    target->required_args = target->total_args;
-    target->stack_size = Fixnum::from(2);
+    target->iseq(state, InstructionSequence::create(state, 1));
+    target->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args(state, Fixnum::from(2));
+    target->required_args(state, target->total_args());
+    target->stack_size(state, Fixnum::from(2));
 
     SYMBOL name = state->symbol("blah");
-    G(true_class)->method_table->store(state, name, target);
+    G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
 
-    task->literals->put(state, 0, ss);
+    task->literals()->put(state, 0, ss);
     task->push(Qtrue);
     task->push(Fixnum::from(3));
 
@@ -3132,7 +3132,7 @@ class Instructions
     splat->set(state, 0, Fixnum::from(47));
     task->push(splat);
 
-    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active(), task->active(), 0);
     task->push(be);
 
     stream[1] = (opcode)0;
@@ -3142,12 +3142,12 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 2U);
+    TS_ASSERT_EQUALS(task->active()->cm(), target);
+    TS_ASSERT_EQUALS(task->active()->args, 2U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(47));
-    TS_ASSERT_EQUALS(task->active->block, be);
-    TS_ASSERT_EQUALS(task->self, Qtrue);
+    TS_ASSERT_EQUALS(task->active()->block(), be);
+    TS_ASSERT_EQUALS(task->self(), Qtrue);
     CODE
   end
 
@@ -3178,7 +3178,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->field[index]);
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.total_args = count;
@@ -3187,8 +3187,8 @@ class Instructions
     msg.use_from_task(task, count);
 
     msg.priv = TRUE;
-    msg.lookup_from = task->current_module()->superclass;
-    msg.name = msg.send_site->name;
+    msg.lookup_from = task->current_module()->superclass();
+    msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
@@ -3201,36 +3201,36 @@ class Instructions
   def test_send_super_stack_with_block
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    target->total_args = Fixnum::from(1);
-    target->required_args = target->total_args;
-    target->stack_size = Fixnum::from(1);
+    target->iseq(state, InstructionSequence::create(state, 1));
+    target->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args(state, Fixnum::from(1));
+    target->required_args(state, target->total_args());
+    target->stack_size(state, Fixnum::from(1));
 
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
     SYMBOL blah = state->symbol("blah");
-    parent->method_table->store(state, blah, target);
+    parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
 
     OBJECT obj = state->new_object(child);
-    task->self = obj;
+    task->self(state, obj);
 
     StaticScope *sc = StaticScope::create(state);
-    SET(sc, module, child);
+    sc->module(state, child);
 
-    SET(cm, scope, sc);
+    cm->scope(state, sc);
 
-    task->active->module = child;
-    task->active->name = blah;
-    task->active->self = task->self;
+    task->active()->module(state, child);
+    task->active()->name(state, blah);
+    task->active()->self(state, task->self());
 
-    task->literals->put(state, 0, ss);
+    task->literals()->put(state, 0, ss);
     task->push(obj);
     task->push(Fixnum::from(3));
 
-    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active(), task->active(), 0);
     task->push(be);
 
     stream[1] = (opcode)0;
@@ -3240,11 +3240,11 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 1U);
+    TS_ASSERT_EQUALS(task->active()->cm(), target);
+    TS_ASSERT_EQUALS(task->active()->args, 1U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->active->block, be);
-    TS_ASSERT_EQUALS(task->self, obj);
+    TS_ASSERT_EQUALS(task->active()->block(), be);
+    TS_ASSERT_EQUALS(task->self(), obj);
 
 
     // Now test that send finds a private method
@@ -3256,30 +3256,30 @@ class Instructions
     task->make_active(ctx);
 
     MethodVisibility* vis = MethodVisibility::create(state);
-    vis->method = target;
-    vis->visibility = G(sym_private);
+    vis->method(state, target);
+    vis->visibility(state, G(sym_private));
 
-    parent->method_table->store(state, blah, vis);
+    parent->method_table()->store(state, blah, vis);
 
-    task->self = obj;
-    task->active->module = child;
-    task->active->name = blah;
-    task->active->self = task->self;
+    task->self(state, obj);
+    task->active()->module(state, child);
+    task->active()->name(state, blah);
+    task->active()->self(state, task->self());
 
-    task->literals->put(state, 0, ss);
+    task->literals()->put(state, 0, ss);
     task->push(obj);
     task->push(Fixnum::from(3));
 
-    be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
+    be = BlockEnvironment::under_context(state, target, task->active(), task->active(), 0);
     task->push(be);
 
     run();
 
-    TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 1U);
+    TS_ASSERT_EQUALS(task->active()->cm(), target);
+    TS_ASSERT_EQUALS(task->active()->args, 1U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->active->block, be);
-    TS_ASSERT_EQUALS(task->self, obj);
+    TS_ASSERT_EQUALS(task->active()->block(), be);
+    TS_ASSERT_EQUALS(task->self(), obj);
     CODE
   end
 
@@ -3312,12 +3312,12 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->field[index]);
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
     msg.total_args = count;
-    msg.recv = task->self;
+    msg.recv = task->self();
     msg.stack = count;
 
     if(ary->nil_p()) {
@@ -3327,8 +3327,8 @@ class Instructions
     }
 
     msg.priv = TRUE;  // TODO: how do we test this?
-    msg.lookup_from = task->current_module()->superclass;
-    msg.name = msg.send_site->name;
+    msg.lookup_from = task->current_module()->superclass();
+    msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
@@ -3341,32 +3341,32 @@ class Instructions
   def test_send_super_stack_with_splat
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    target->total_args = Fixnum::from(2);
-    target->required_args = target->total_args;
-    target->stack_size = Fixnum::from(2);
+    target->iseq(state, InstructionSequence::create(state, 1));
+    target->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args(state, Fixnum::from(2));
+    target->required_args(state, target->total_args());
+    target->stack_size(state, Fixnum::from(2));
 
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
     SYMBOL blah = state->symbol("blah");
-    parent->method_table->store(state, blah, target);
+    parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
 
     OBJECT obj = state->new_object(child);
-    task->self = obj;
+    task->self(state, obj);
 
     StaticScope *sc = StaticScope::create(state);
-    SET(sc, module, child);
+    sc->module(state, child);
 
-    SET(cm, scope, sc);
+    cm->scope(state, sc);
 
-    task->active->module = child;
-    task->active->name = blah;
-    task->active->self = task->self;
+    task->active()->module(state, child);
+    task->active()->name(state, blah);
+    task->active()->self(state, task->self());
 
-    task->literals->put(state, 0, ss);
+    task->literals()->put(state, 0, ss);
     task->push(obj);
     task->push(Fixnum::from(3));
 
@@ -3374,7 +3374,7 @@ class Instructions
     splat->set(state, 0, Fixnum::from(47));
     task->push(splat);
 
-    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active(), task->active(), 0);
     task->push(be);
 
     stream[1] = (opcode)0;
@@ -3384,12 +3384,12 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 2U);
+    TS_ASSERT_EQUALS(task->active()->cm(), target);
+    TS_ASSERT_EQUALS(task->active()->args, 2U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(47));
-    TS_ASSERT_EQUALS(task->active->block, be);
-    TS_ASSERT_EQUALS(task->self, obj);
+    TS_ASSERT_EQUALS(task->active()->block(), be);
+    TS_ASSERT_EQUALS(task->self(), obj);
     CODE
   end
 
@@ -3441,7 +3441,7 @@ class Instructions
 
   def set_const(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
     task->const_set(sym, stack_top());
     CODE
   end
@@ -3451,13 +3451,13 @@ class Instructions
     Module* parent = state->new_module("Parent");
 
     StaticScope* ps = StaticScope::create(state);
-    SET(ps, module, parent);
-    ps->parent = (StaticScope*)Qnil;
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
 
-    SET(cm, scope, ps);
+    cm->scope(state, ps);
     SYMBOL name = state->symbol("Age");
 
-    task->literals->put(state, 0, name);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     task->push(Fixnum::from(3));
@@ -3484,7 +3484,7 @@ class Instructions
 
   def set_const_at(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
     OBJECT val = stack_pop();
     Module* under = as<Module>(stack_pop());
 
@@ -3496,7 +3496,7 @@ class Instructions
   def test_set_const_at
     <<-CODE
     SYMBOL name = state->symbol("Age");
-    task->literals->put(state, 0, name);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     task->push(G(true_class));
@@ -3525,16 +3525,16 @@ class Instructions
 
   def set_ivar(index)
     <<-CODE
-    OBJECT sym = task->literals->field[index];
-    task->self->set_ivar(state, sym, stack_top());
+    OBJECT sym = task->literals()->field[index];
+    task->self()->set_ivar(state, sym, stack_top());
     CODE
   end
 
   def test_set_ivar
     <<-CODE
     SYMBOL name = state->symbol("@blah");
-    task->self = Qtrue;
-    task->literals->put(state, 0, name);
+    task->self(state, Qtrue);
+    task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     task->push(Qfalse);
@@ -3569,19 +3569,19 @@ class Instructions
 
   def set_literal(val)
     <<-CODE
-    SET(task->literals, field[val], stack_top());
+    task->literals()->put(state, val, stack_top());
     CODE
   end
 
   def test_set_literal
     <<-CODE
-    task->literals = Tuple::from(state, 1, Qtrue);
+    task->literals(state, Tuple::from(state, 1, Qtrue));
     stream[1] = (opcode)0;
     task->push(Qtrue);
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
-    TS_ASSERT_EQUALS(task->literals->at(0), Qtrue);
+    TS_ASSERT_EQUALS(task->literals()->at(0), Qtrue);
     CODE
   end
 
@@ -3602,7 +3602,7 @@ class Instructions
 
   def set_local(index)
     <<-CODE
-    task->home->set_local(index, stack_top()); // HACK test vs. ->home-less
+    task->home()->set_local(index, stack_top()); // HACK test vs. ->home-less
     CODE
   end
 
@@ -3644,12 +3644,12 @@ class Instructions
 
   def set_local_depth(depth, index)
     <<-CODE
-    BlockContext* bc = as<BlockContext>(task->active);
+    BlockContext* bc = as<BlockContext>(task->active());
     BlockEnvironment* env;
 
     for(int j = 0; j < depth; j++) {
       env = bc->env();
-      bc = as<BlockContext>(env->home_block);
+      bc = as<BlockContext>(env->home_block());
     }
 
     OBJECT t3 = stack_pop();
@@ -3660,7 +3660,7 @@ class Instructions
 
   def test_set_local_depth
     <<-CODE
-    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active, 0);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active(), task->active(), 0);
     BlockContext* bc = be->create_context(state, (MethodContext*)Qnil);
 
     BlockEnvironment* be2 = BlockEnvironment::under_context(state, cm, bc, bc, 0);
@@ -3759,7 +3759,7 @@ class Instructions
 
   def store_my_field(index)
     <<-CODE
-    task->self->set_field(state, index, stack_top());
+    task->self()->set_field(state, index, stack_top());
     CODE
   end
 
@@ -3767,7 +3767,7 @@ class Instructions
     <<-CODE
     Class* cls = state->new_class("Blah");
 
-    task->self = cls;
+    task->self(state, cls);
 
     SYMBOL name = state->symbol("Foo");
     task->push(name);
@@ -3777,7 +3777,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT_EQUALS(task->stack_top(), name);
-    TS_ASSERT_EQUALS(cls->name, name);
+    TS_ASSERT_EQUALS(cls->name(), name);
     CODE
   end
 

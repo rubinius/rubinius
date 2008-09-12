@@ -21,12 +21,12 @@ public:
   void test_create() {
     CompiledMethod* cm = CompiledMethod::create(state);
     Tuple* tup = Tuple::from(state, 1, state->symbol("blah"));
-    SET(cm, literals, tup);
+    cm->literals(state, tup);
 
     InstructionSequence* iseq = InstructionSequence::create(state, 1);
-    iseq->opcodes->put(state, 0, Fixnum::from(0));
+    iseq->opcodes()->put(state, 0, Fixnum::from(0));
 
-    SET(cm, iseq, iseq);
+    cm->iseq(state, iseq);
    
     VMMethod vmm(state, cm);
 
@@ -37,14 +37,14 @@ public:
   void test_specialize_transforms_ivars_to_slots() {
     CompiledMethod* cm = CompiledMethod::create(state);
     Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
-    SET(cm, literals, tup);
+    cm->literals(state, tup);
 
     InstructionSequence* iseq = InstructionSequence::create(state, 3);
-    iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_push_ivar));
-    iseq->opcodes->put(state, 1, Fixnum::from(0));
-    iseq->opcodes->put(state, 2, Fixnum::from(InstructionSequence::insn_push_nil));
+    iseq->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_ivar));
+    iseq->opcodes()->put(state, 1, Fixnum::from(0));
+    iseq->opcodes()->put(state, 2, Fixnum::from(InstructionSequence::insn_push_nil));
 
-    SET(cm, iseq, iseq);
+    cm->iseq(state, iseq);
 
     VMMethod vmm(state, cm);
 

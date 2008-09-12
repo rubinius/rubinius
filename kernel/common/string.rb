@@ -23,7 +23,7 @@ class String
   end
 
   def self.from_bytearray(ba, count)
-    str = super()
+    str = allocate()
     str.data = ba
     str.num_bytes = count
     return str

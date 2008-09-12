@@ -120,7 +120,7 @@ namespace rubinius {
             /* clamp */
             start[i] = 0;
 
-            buffer->read_bytes(i);
+            buffer->read_bytes(state, i);
             ret = Fixnum::from(i);
           }
 

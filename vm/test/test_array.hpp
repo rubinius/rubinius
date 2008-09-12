@@ -57,7 +57,7 @@ class TestArray : public CxxTest::TestSuite {
     ary->set(state, 0, Fixnum::from(33));
     ary->set(state, 10, Qtrue);
 
-    TS_ASSERT(ary->tuple->field_count > 3);
+    TS_ASSERT(ary->tuple()->field_count > 3);
     TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(33));
 
   }

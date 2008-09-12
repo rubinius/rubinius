@@ -5,6 +5,7 @@ class BasicPrimitive
 
   def output_header(str)
     str << "bool Primitives::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
+    # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  OBJECT ret;\n" 
     str << "  OBJECT self;\n" if @pass_self
@@ -166,7 +167,7 @@ class CPPClass
       else
         flags = {}
       end
-      ary << [n, i + offset, flags]
+      ary << [n, t, i + offset, flags]
     end
 
     return ary
@@ -224,9 +225,9 @@ class CPPClass
 
   def generate_gets
     str = ""
-    all_fields.each do |name, idx, flags|
+    all_fields.each do |name, type, idx, flags|
       str << "  case #{idx}:\n"
-      str << "    return target->#{name};\n"
+      str << "    return target->#{name}();\n"
     end
 
     return str
@@ -234,12 +235,12 @@ class CPPClass
 
   def generate_sets
     str = ""
-    all_fields.each do |name, idx, flags|
+    all_fields.each do |name, type, idx, flags|
       str << "  case #{idx}:\n"
       if flags[:readonly]
         str << "    throw new Assertion(\"#{name} is readonly\");\n"
       else
-        str << "    SET(target, #{name}, val);\n"
+        str << "    target->#{name}(state, (#{type}*)val);\n"
       end
       str << "    return;\n"
     end
@@ -279,12 +280,9 @@ OBJECT #{@name}::Info::get_field(STATE, OBJECT _t, size_t index) {
     cpp.fields.each do |name, type, idx|
       str << <<-EOF
   {
-    if(target->#{name}->reference_p()) {
-      OBJECT res = mark.call(target->#{name});
-      if(res) {
-        target->#{name} = as<#{type}>(res);
-        mark.just_set(target, res);
-      }
+    if(target->#{name}()->reference_p()) {
+      OBJECT res = mark.call(target->#{name}());
+      if(res) target->#{name}(mark.gc->object_memory->state, (#{type}*)res);
     }
   }
 
@@ -322,7 +320,7 @@ class CPPParser
 
     @type_map = {
       "SYMBOL" => :Symbol,
-      "InstructionSequence" =>   :InstructionSequence,
+      "InstructionSequence" => :InstructionSequence,
       "FIXNUM" => :Fixnum,
       "OBJECT" => :Object,
       "Object" => :Object,
@@ -363,7 +361,7 @@ class CPPParser
 
   def parse_stream(f)
     class_pattern = /class ([^\s]+)\s*:\s*public\s+([^\s]+) \{/
-    slot_pattern = %r!^\s*(\w+)\*?\s+\*?(\w+)\s*;\s*//\s*slot(.*)!
+    slot_pattern = %r!^\s*(\w+)\*?\s+\*?(\w+)_\s*;\s*//\s*slot(.*)!
     primitive_pattern = %r%^\s*//\s+Ruby.primitive([?!])?\s+:(.*)\s*$%
     prototype_pattern = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!
 
@@ -550,7 +548,7 @@ File.open("vm/gen/typechecks.gen.cpp", "w") do |f|
 
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
-    cpp.all_fields.each do |name, idx|
+    cpp.all_fields.each do |name, type, idx|
       f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
     end
     f.puts "    ti->type_name = std::string(\"#{n}\");"
@@ -598,8 +596,8 @@ File.open("vm/gen/primitives_glue.gen.cpp", "w") do |f|
   end
 
   f.puts <<-EOF
-  if(!G(current_task)->probe->nil_p()) {
-    G(current_task)->probe->missing_primitive(state, name->to_str(state)->c_str());
+  if(!G(current_task)->probe()->nil_p()) {
+    G(current_task)->probe()->missing_primitive(state, name->c_str(state));
   }
 return &Primitives::unknown_primitive;
 // commented out while we have soft primitive failures

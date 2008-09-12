@@ -11,19 +11,19 @@
 namespace rubinius {
   void SendSite::init(STATE) {
     GO(send_site).set(state->new_class("SendSite"));
-    G(send_site)->set_object_type(SendSiteType);
+    G(send_site)->set_object_type(state, SendSiteType);
   }
 
   SendSite* SendSite::create(STATE, OBJECT name) {
     SendSite* ss = (SendSite*)state->new_struct(G(send_site), sizeof(SendSite));
-    SET(ss, name, name);
-    SET(ss, sender, Qnil);
-    SET(ss, selector, Selector::lookup(state, name));
+    ss->name(state, (SYMBOL)name);
+    ss->sender(state, (CompiledMethod*)Qnil);
+    ss->selector(state, Selector::lookup(state, name));
     ss->hits = ss->misses = 0;
     ss->resolver = NULL;
 
     ss->initialize(state);
-    ss->selector->associate(state, ss);
+    ss->selector()->associate(state, ss);
 
     return ss;
   }
@@ -35,7 +35,7 @@ namespace rubinius {
   }
 
   OBJECT SendSite::set_sender(STATE, CompiledMethod* cm) {
-    SET(this, sender, cm);
+    sender(state, cm);
     return Qnil;
   }
 
@@ -70,7 +70,7 @@ namespace rubinius {
     MethodVisibility* vis;
 
     do {
-      entry = module->method_table->fetch(state, msg.name);
+      entry = module->method_table()->fetch(state, msg.name);
 
       /* Nothing, there? Ok, keep looking. */
       if(entry->nil_p()) goto keep_looking;
@@ -85,9 +85,9 @@ namespace rubinius {
        * any method seen. */
       if(msg.priv) {
         /* nil means that the actual method object is 'up' from here */
-        if(vis && vis->method->nil_p()) goto keep_looking;
+        if(vis && vis->method()->nil_p()) goto keep_looking;
 
-        msg.method = as<Executable>(vis ? vis->method : entry);
+        msg.method = as<Executable>(vis ? vis->method() : entry);
         msg.module = module;
         break;
       } else if(vis) {
@@ -105,12 +105,12 @@ namespace rubinius {
         /* The method was callable, but we need to keep looking
          * for the implementation, so make the invocation bypass all further
          * visibility checks */
-        if(vis->method->nil_p()) {
+        if(vis->method()->nil_p()) {
           msg.priv = true;
           goto keep_looking;
         }
 
-        msg.method = as<Executable>(vis->method);
+        msg.method = as<Executable>(vis->method());
         msg.module = module;
         break;
       } else {
@@ -120,7 +120,7 @@ namespace rubinius {
       }
 
 keep_looking:
-      module = module->superclass;
+      module = module->superclass();
 
       /* No more places to look, we couldn't find it. */
       if(module->nil_p()) return false;
@@ -171,9 +171,9 @@ keep_looking:
     SendSite* ss = as<SendSite>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "name"); ss->name->show(state, level);
-    indent_attribute(level, "sender"); class_info(state, ss->sender, true);
-    indent_attribute(level, "selector"); class_info(state, ss->selector, true);
+    indent_attribute(++level, "name"); ss->name()->show(state, level);
+    indent_attribute(level, "sender"); class_info(state, ss->sender(), true);
+    indent_attribute(level, "selector"); class_info(state, ss->selector(), true);
     indent_attribute(level, "hits"); std::cout << ss->hits << std::endl;
     indent_attribute(level, "misses"); std::cout << ss->misses << std::endl;
     indent_attribute(level, "specialized"); std::cout << ss->specialized << std::endl;

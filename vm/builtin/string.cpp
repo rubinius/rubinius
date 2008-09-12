@@ -19,14 +19,14 @@ namespace rubinius {
 
   void String::init(STATE) {
     GO(string).set(state->new_class("String", G(object), String::fields));
-    G(string)->set_object_type(StringType);
+    G(string)->set_object_type(state, StringType);
   }
 
   /* String::size returns the actual number of bytes, without consideration
    * for a trailing null byte.  String::create(state, "foo")->size() is 3.
    */
   size_t String::size() {
-    return num_bytes->to_native();
+    return num_bytes_->to_native();
   }
 
   String* String::allocate(STATE, FIXNUM size) {
@@ -34,16 +34,16 @@ namespace rubinius {
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
-    SET(so, num_bytes, size);
-    SET(so, characters, so->num_bytes);
-    SET(so, encoding, Qnil);
-    SET(so, hash_value, Qnil);
+    so->num_bytes(state, size);
+    so->characters(state, size);
+    so->encoding(state, Qnil);
+    so->hash_value(state, (INTEGER)Qnil);
 
     size_t bytes = size->to_native() + 1;
-    OBJECT ba = ByteArray::create(state, bytes);
+    ByteArray* ba = ByteArray::create(state, bytes);
     ba->bytes[bytes] = 0;
 
-    SET(so, data, ba);
+    so->data(state, ba);
 
     return so;
   }
@@ -58,16 +58,16 @@ namespace rubinius {
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
-    SET(so, num_bytes, Fixnum::from(bytes));
-    SET(so, characters, so->num_bytes);
-    SET(so, encoding, Qnil);
-    SET(so, hash_value, Qnil);
+    so->num_bytes(state, Fixnum::from(bytes));
+    so->characters(state, so->num_bytes());
+    so->encoding(state, Qnil);
+    so->hash_value(state, (INTEGER)Qnil);
 
-    OBJECT ba = ByteArray::create(state, bytes + 1);
+    ByteArray* ba = ByteArray::create(state, bytes + 1);
     if(str) memcpy(ba->bytes, str, bytes);
     ba->bytes[bytes] = 0;
 
-    SET(so, data, ba);
+    so->data(state, ba);
 
     return so;
   }
@@ -75,14 +75,14 @@ namespace rubinius {
   hashval String::hash_string(STATE) {
     unsigned char *bp;
 
-    if(hash_value != Qnil) {
-      return (hashval)as<Integer>(hash_value)->to_native();
+    if(!hash_value_->nil_p()) {
+      return (hashval)as<Integer>(hash_value_)->to_native();
     }
-    bp = (unsigned char*)(data->bytes);
+    bp = (unsigned char*)(data_->bytes);
     size_t sz = size();
 
     hashval h = hash_str(bp, sz);
-    SET(this, hash_value, Integer::from(state, h));
+    hash_value(state, Integer::from(state, h));
 
     return h;
   }
@@ -109,13 +109,13 @@ namespace rubinius {
   }
 
   char* String::byte_address() {
-    return (char*)data->bytes;
+    return (char*)data_->bytes;
   }
 
   char* String::c_str() {
-    sassert(size() < data->size());
+    sassert(size() < data_->size());
 
-    char* c_string = (char*)data->bytes;
+    char* c_string = (char*)data_->bytes;
     if(c_string[size()] != 0) {
       c_string[size()] = 0;
     }
@@ -127,8 +127,8 @@ namespace rubinius {
     String* self = as<String>(a);
     String* other = as<String>(b);
 
-    if(self->num_bytes != other->num_bytes) return false;
-    if(strncmp(self->byte_address(), other->byte_address(), self->num_bytes->to_native())) {
+    if(self->num_bytes() != other->num_bytes()) return false;
+    if(strncmp(self->byte_address(), other->byte_address(), self->num_bytes()->to_native())) {
       return false;
     }
 
@@ -143,9 +143,9 @@ namespace rubinius {
   String* String::string_dup(STATE) {
     String* ns;
 
-    ns = (String*)dup(state);
-    SET(ns, shared, Qtrue);
-    SET(this, shared, Qtrue);
+    ns = as<String>(dup(state));
+    ns->shared(state, Qtrue);
+    shared(state, Qtrue);
 
     state->om->set_class(ns, class_object(state));
 
@@ -153,8 +153,8 @@ namespace rubinius {
   }
 
   void String::unshare(STATE) {
-    SET(this, data, as<ByteArray>(data->dup(state)));
-    SET(this, shared, Qfalse);
+    data(state, as<ByteArray>(data_->dup(state)));
+    shared(state, Qfalse);
   }
 
   String* String::append(STATE, String* other) {
@@ -162,23 +162,23 @@ namespace rubinius {
   }
 
   String* String::append(STATE, const char* other) {
-    if(shared) unshare(state);
+    if(shared_) unshare(state);
 
     size_t len = strlen(other);
     size_t new_size = size() + len;
 
     // Leave one extra byte of room for the trailing null
     ByteArray *d2 = ByteArray::create(state, new_size + 1);
-    std::memcpy(d2->bytes, data->bytes, size());
+    std::memcpy(d2->bytes, data_->bytes, size());
     // Append on top of the null byte at the end of s1, not after it
     std::memcpy(d2->bytes + size(), other, len);
 
     // This looks like it is off by one, but think about it.
     d2->bytes[new_size] = 0;
 
-    SET(this, num_bytes, Integer::from(state, new_size));
-    SET(this, data, d2);
-    SET(this, hash_value, Qnil);
+    num_bytes(state, Integer::from(state, new_size));
+    data(state, d2);
+    hash_value(state, (INTEGER)Qnil);
 
     return this;
   }
@@ -197,7 +197,7 @@ namespace rubinius {
 
   double String::to_double(STATE) {
     double value;
-    char *ba = this->data->to_chars(state);
+    char *ba = data_->to_chars(state);
     char *p, *n, *rest;
     int e_seen = 0;
 
@@ -244,13 +244,13 @@ namespace rubinius {
   // Character-wise logical AND of two strings. Modifies the receiver.
   String* String::apply_and(STATE, String* other) {
     native_int count, i;
-    ByteArray* s = this->data;
-    ByteArray* o = other->data;
+    ByteArray* s = data_;
+    ByteArray* o = other->data();
 
-    if(this->num_bytes > other->num_bytes) {
-      count = other->num_bytes->to_native();
+    if(num_bytes_ > other->num_bytes()) {
+      count = other->num_bytes()->to_native();
     } else {
-      count = this->num_bytes->to_native();
+      count = num_bytes_->to_native();
     }
 
     // Use && not & to keep 1's in the table.
@@ -305,7 +305,7 @@ namespace rubinius {
       data.limit = -1;
     }
 
-    unsigned char* str = this->data->bytes;
+    unsigned char* str = data_->bytes;
     native_int bytes = (native_int)this->size();
     native_int start = bytes > 1 && str[0] == '^' ? 1 : 0;
     std::memset(data.set, -1, sizeof(native_int) * 256);
@@ -337,18 +337,18 @@ namespace rubinius {
   }
 
   FIXNUM String::tr_replace(STATE, struct tr_data* data) {
-    if(data->last > (native_int)this->size() || this->shared->true_p()) {
+    if(data->last > (native_int)this->size() || shared_->true_p()) {
       ByteArray* ba = ByteArray::create(state, this->size() + 1);
 
-      SET(this, data, ba);
-      SET(this, shared, Qfalse);
+      this->data(state, ba);
+      this->shared(state, Qfalse);
     }
 
-    memcpy(this->data->bytes, data->tr, data->last);
-    this->data->bytes[data->last] = 0;
+    memcpy(data_->bytes, data->tr, data->last);
+    data_->bytes[data->last] = 0;
 
-    SET(this, num_bytes, Fixnum::from(data->last));
-    SET(this, characters, this->num_bytes);
+    num_bytes(state, Fixnum::from(data->last));
+    characters(state, num_bytes_);
 
     return Fixnum::from(data->steps);
   }
@@ -368,7 +368,7 @@ namespace rubinius {
     if(dst < 0) dst = 0;
     if(cnt > sz - dst) cnt = sz - dst;
 
-    std::memcpy(this->data->bytes + dst, other->data->bytes + src, cnt);
+    std::memcpy(data_->bytes + dst, other->data()->bytes + src, cnt);
 
     return this;
   }
@@ -387,7 +387,7 @@ namespace rubinius {
 
     if(cnt > sz) cnt = sz;
 
-    native_int cmp = std::memcmp(this->data->bytes, other->data->bytes + src, cnt);
+    native_int cmp = std::memcmp(data_->bytes, other->data()->bytes + src, cnt);
 
     if(cmp < 0) {
       return Fixnum::from(-1);
@@ -400,30 +400,30 @@ namespace rubinius {
 
   String* String::pattern(STATE, OBJECT self, FIXNUM size, OBJECT pattern) {
     String* s = String::allocate(state, size);
-    SET(s, klass, self);
+    s->klass(state, (Class*)self);
     s->IsTainted = self->IsTainted;
 
     native_int cnt = size->to_native();
 
     if(FIXNUM chr = try_as<Fixnum>(pattern)) {
-      std::memset(s->data->bytes, (int)chr->to_native(), cnt);
+      std::memset(s->data()->bytes, (int)chr->to_native(), cnt);
     } else if(String* pat = try_as<String>(pattern)) {
       s->IsTainted |= pat->IsTainted;
 
       native_int psz = pat->size();
       if(psz == 1) {
-        std::memset(s->data->bytes, pat->data->bytes[0], cnt);
+        std::memset(s->data()->bytes, pat->data()->bytes[0], cnt);
       } else if(psz > 1) {
         native_int i, j, n;
 
         native_int sz = cnt / psz;
         for(n = i = 0; i < sz; i++) {
           for(j = 0; j < psz; j++, n++) {
-            s->data->bytes[n] = pat->data->bytes[j];
+            s->data()->bytes[n] = pat->data()->bytes[j];
           }
         }
         for(i = n, j = 0; i < cnt; i++, j++) {
-          s->data->bytes[i] = pat->data->bytes[j];
+          s->data()->bytes[i] = pat->data()->bytes[j];
         }
       }
     } else {
@@ -434,7 +434,7 @@ namespace rubinius {
   }
 
   String* String::crypt(STATE, String* salt) {
-    const char* s = ::crypt(this->byte_address(), salt->byte_address());
+    const char* s = ::crypt(this->c_str(), salt->c_str());
     return String::create(state, s);
   }
 

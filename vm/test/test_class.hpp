@@ -22,12 +22,11 @@ class TestClass : public CxxTest::TestSuite {
   void test_create() {
     Class* c = Class::create(state, G(object));
 
-    TS_ASSERT_EQUALS(c->name, Qnil);
-    TS_ASSERT_EQUALS(c->has_ivars, G(object)->has_ivars);
-    TS_ASSERT_EQUALS(c->superclass, G(object));
-    TS_ASSERT_EQUALS(c->instance_type, G(object)->instance_type);
-    TS_ASSERT_EQUALS(c->instance_fields, G(object)->instance_fields);
-    TS_ASSERT_EQUALS(c->constants->obj_type, LookupTableType);
-    TS_ASSERT_EQUALS(c->method_table->obj_type, LookupTableType);
+    TS_ASSERT_EQUALS(c->name(), Qnil);
+    TS_ASSERT_EQUALS(c->superclass(), G(object));
+    TS_ASSERT_EQUALS(c->instance_type(), G(object)->instance_type());
+    TS_ASSERT_EQUALS(c->instance_fields(), G(object)->instance_fields());
+    TS_ASSERT_EQUALS(c->constants()->obj_type, LookupTableType);
+    TS_ASSERT_EQUALS(c->method_table()->obj_type, LookupTableType);
   }
 };

@@ -25,13 +25,13 @@ class TestDir : public CxxTest::TestSuite {
 
   void test_create() {
     TS_ASSERT_EQUALS(d->obj_type, DirType);
-    TS_ASSERT(d->data->nil_p());
+    TS_ASSERT(d->data()->nil_p());
   }
 
   void test_open() {
     String* path = String::create(state, ".");
     TS_ASSERT_EQUALS(d->open(state, path), Qnil);
-    TS_ASSERT(!d->data->nil_p());
+    TS_ASSERT(!d->data()->nil_p());
   }
 
   /*
@@ -51,7 +51,7 @@ class TestDir : public CxxTest::TestSuite {
     String* path = String::create(state, ".");
     d->open(state, path);
     TS_ASSERT_EQUALS(d->close(state), Qtrue);
-    TS_ASSERT(d->data->nil_p());
+    TS_ASSERT(d->data()->nil_p());
   }
 
   void test_closed_p() {

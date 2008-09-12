@@ -33,7 +33,7 @@ namespace rubinius {
     OBJECT obj = nfunc->call(state, &msg);
 
     // Remove the arguments passed in from the stack
-    task->active->clear_stack(msg.stack);
+    task->active()->clear_stack(msg.stack);
 
     task->push(obj);
 

@@ -21,7 +21,7 @@ class TestObjects : public CxxTest::TestSuite {
 
   void test_object() {
     TS_ASSERT_EQUALS(G(object)->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(G(object)->superclass, Qnil);
+    TS_ASSERT_EQUALS(G(object)->superclass(), Qnil);
     check_const(object, "Object");
   }
 
@@ -31,7 +31,7 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(klass);
     Class* o = cls->class_object(state);
     TS_ASSERT_EQUALS(cls, o);
-    TS_ASSERT_EQUALS(cls->superclass, G(module));
+    TS_ASSERT_EQUALS(cls->superclass(), G(module));
     check_const(klass, "Class");
   }
 
@@ -40,10 +40,10 @@ class TestObjects : public CxxTest::TestSuite {
     MetaClass *meta;
 
     cls = (Class*)G(klass);
-    meta = (MetaClass*)cls->klass;
-    TS_ASSERT(kind_of<MetaClass>(G(object)->klass));
-    TS_ASSERT(kind_of<LookupTable>(meta->method_table));
-    TS_ASSERT(kind_of<LookupTable>(meta->constants));
+    meta = (MetaClass*)cls->klass();
+    TS_ASSERT(kind_of<MetaClass>(G(object)->klass()));
+    TS_ASSERT(kind_of<LookupTable>(meta->method_table()));
+    TS_ASSERT(kind_of<LookupTable>(meta->constants()));
   }
 
   void test_module() {
@@ -51,7 +51,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     mod = (Class*)G(module);
     TS_ASSERT_EQUALS(mod->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(mod->superclass, G(object));
+    TS_ASSERT_EQUALS(mod->superclass(), G(object));
     check_const(module, "Module");
   }
 
@@ -61,8 +61,8 @@ class TestObjects : public CxxTest::TestSuite {
     meta = G(metaclass);
 
     TS_ASSERT_EQUALS(meta->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(meta->superclass, G(klass));
-    TS_ASSERT_EQUALS(meta->instance_type, Fixnum::from(MetaclassType));
+    TS_ASSERT_EQUALS(meta->superclass(), G(klass));
+    TS_ASSERT_EQUALS(meta->instance_type(), Fixnum::from(MetaclassType));
     check_const(metaclass, "MetaClass");
   }
 
@@ -72,8 +72,8 @@ class TestObjects : public CxxTest::TestSuite {
     tup = G(tuple);
 
     TS_ASSERT_EQUALS(tup->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(tup->superclass, G(object));
-    TS_ASSERT_EQUALS(tup->instance_type, Fixnum::from(TupleType));
+    TS_ASSERT_EQUALS(tup->superclass(), G(object));
+    TS_ASSERT_EQUALS(tup->instance_type(), Fixnum::from(TupleType));
     check_const(tuple, "Tuple");
   }
 
@@ -83,8 +83,8 @@ class TestObjects : public CxxTest::TestSuite {
     lt = G(lookuptable);
 
     TS_ASSERT_EQUALS(lt->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(lt->superclass, G(object));
-    TS_ASSERT_EQUALS(lt->instance_type, Fixnum::from(LookupTableType));
+    TS_ASSERT_EQUALS(lt->superclass(), G(object));
+    TS_ASSERT_EQUALS(lt->instance_type(), Fixnum::from(LookupTableType));
     check_const(lookuptable, "LookupTable");
   }
 
@@ -94,9 +94,9 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(methtbl);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(lookuptable));
+    TS_ASSERT_EQUALS(cls->superclass(), G(lookuptable));
 
-    TS_ASSERT_EQUALS((object_type)cls->instance_type->to_native(), MTType);
+    TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), MTType);
     check_const(methtbl, "MethodTable");
   }
 
@@ -106,7 +106,7 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(symbol);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(object));
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
     check_const(symbol, "Symbol");
   }
 
@@ -116,7 +116,7 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(array);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(object));
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
     check_const(array, "Array");
   }
 
@@ -126,8 +126,8 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(bytearray);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(object));
-    TS_ASSERT_EQUALS((object_type)cls->instance_type->to_native(), ByteArrayType);
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
+    TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), ByteArrayType);
     check_const(bytearray, "ByteArray");
   }
 
@@ -137,8 +137,8 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(string);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(object));
-    TS_ASSERT_EQUALS((object_type)cls->instance_type->to_native(), StringType);
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
+    TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), StringType);
     check_const(string, "String");
   }
 
@@ -148,7 +148,7 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(cmethod);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(executable));
+    TS_ASSERT_EQUALS(cls->superclass(), G(executable));
     check_const(cmethod, "CompiledMethod");
   }
 
@@ -158,8 +158,8 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(dir);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(object));
-    TS_ASSERT_EQUALS(cls->instance_type, Fixnum::from(DirType));
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
+    TS_ASSERT_EQUALS(cls->instance_type(), Fixnum::from(DirType));
     check_const(dir, "Dir");
   }
 
@@ -169,8 +169,8 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(compactlookuptable);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(tuple));
-    TS_ASSERT_EQUALS(cls->instance_type, Fixnum::from(CompactLookupTableType));
+    TS_ASSERT_EQUALS(cls->superclass(), G(tuple));
+    TS_ASSERT_EQUALS(cls->instance_type(), Fixnum::from(CompactLookupTableType));
     check_const(compactlookuptable, "CompactLookupTable");
   }
 
@@ -180,8 +180,8 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(time_class);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(object));
-    TS_ASSERT_EQUALS(cls->instance_type, Fixnum::from(TimeType));
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
+    TS_ASSERT_EQUALS(cls->instance_type(), Fixnum::from(TimeType));
     check_const(time_class, "Time");
   }
 
@@ -195,7 +195,7 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(memory_pointer);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(object));
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
     check_const(memory_pointer, "MemoryPointer");
   }
 
@@ -205,7 +205,7 @@ class TestObjects : public CxxTest::TestSuite {
     cls = G(taskprobe);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(object));
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
     TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "TaskProbe"), G(taskprobe));
   }
 

@@ -81,21 +81,21 @@ namespace rubinius {
     // TODO check version number
     cf->execute(state);
 
-    if(!G(current_task)->exception->nil_p()) {
+    if(!G(current_task)->exception()->nil_p()) {
       // Reset the context so we can show the backtrace
       // HACK need to use write barrier aware stuff?
-      Exception* exc = G(current_task)->exception;
-      G(current_task)->active = exc->context;
+      Exception* exc = G(current_task)->exception();
+      G(current_task)->active(state, exc->context());
 
       String* message = String::create(state,
           "exception detected at toplevel: ");
-      if(!exc->message->nil_p()) {
-        message->append(state, exc->message);
+      if(!exc->message()->nil_p()) {
+        message->append(state, exc->message());
       }
       message->append(state, " (");
-      message->append(state, exc->klass->name->to_str(state));
+      message->append(state, exc->klass()->name()->to_str(state));
       message->append(state, ")");
-      Assertion::raise(message->byte_address());
+      Assertion::raise(message->c_str());
     }
   }
 

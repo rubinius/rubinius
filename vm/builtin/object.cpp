@@ -81,7 +81,10 @@ namespace rubinius {
 
   /* Clear the body of the object, by setting each field to Qnil */
   void Object::clear_fields() {
-    ivars = Qnil;
+    /* HACK: this case seems like a reasonable exception
+     * to using accessor functions
+     */
+    ivars_ = Qnil;
     for(size_t i = 0; i < field_count; i++) {
       field[i] = Qnil;
     }
@@ -126,14 +129,14 @@ namespace rubinius {
     return Forwarded == 1;
   }
 
-  void Object::set_forward(OBJECT fwd) {
+  void Object::set_forward(STATE, OBJECT fwd) {
     assert(zone == YoungObjectZone);
     Forwarded = 1;
-    klass = (Class*)fwd;
+    klass(state, (Class*)fwd);
   }
 
   OBJECT Object::forward() {
-    return (OBJECT)klass;
+    return (OBJECT)klass_;
   }
 
   bool Object::marked_p() {
@@ -146,6 +149,10 @@ namespace rubinius {
 
   void Object::clear_mark() {
     Marked = 0;
+  }
+
+  void Object::write_barrier(STATE, OBJECT obj) {
+    state->om->write_barrier(this, obj);
   }
 
   bool Object::nil_p() {
@@ -306,9 +313,9 @@ namespace rubinius {
 
   Class* Object::class_object(STATE) {
     if(reference_p()) {
-      Class* cls = klass;
+      Class* cls = klass_;
       while(!cls->nil_p() && !instance_of<Class>(cls)) {
-        cls = as<Class>(cls->superclass);
+        cls = as<Class>(cls->superclass());
       }
 
       if(cls->nil_p()) {
@@ -321,7 +328,7 @@ namespace rubinius {
   }
 
   Class* Object::lookup_begin(STATE) {
-    if(reference_p()) return klass;
+    if(reference_p()) return klass_;
     return class_object(state);
   }
 
@@ -350,18 +357,18 @@ namespace rubinius {
   }
 
   OBJECT Object::clone(STATE) {
-    LookupTable* source_methods = this->metaclass(state)->method_table->dup(state);
-    LookupTable* source_constants = this->metaclass(state)->constants->dup(state);
+    LookupTable* source_methods = this->metaclass(state)->method_table()->dup(state);
+    LookupTable* source_constants = this->metaclass(state)->constants()->dup(state);
     OBJECT new_object = this->dup(state);
 
     // TODO why can't we use new_object->metaclass(state) here? Why are
     // we creating a metaclass by hand?
     // Clone gets a new MetaClass
-    SET(new_object, klass, (MetaClass*)state->new_object(G(metaclass)));
+    new_object->klass(state, (MetaClass*)state->new_object(G(metaclass)));
     // Set the clone's method and constants tables to those
     // of the receiver's metaclass
-    SET(new_object->metaclass(state), method_table, source_methods);
-    SET(new_object->klass, constants, source_constants);
+    new_object->metaclass(state)->method_table(state, source_methods);
+    new_object->klass()->constants(state, source_constants);
 
     return new_object;
   }
@@ -371,11 +378,11 @@ namespace rubinius {
     if(found == cls) return true;
 
     while(!found->nil_p()) {
-      found = (Class*)found->superclass;
+      found = (Class*)found->superclass();
       if(found == cls) return true;
 
       if(found->reference_p() && found->obj_type == IncModType) {
-        if(((IncludedModule*)found)->module == cls) return true;
+        if(((IncludedModule*)found)->module() == cls) return true;
       }
     }
 
@@ -447,8 +454,8 @@ namespace rubinius {
 
   Class* Object::metaclass(STATE) {
     if(reference_p()) {
-      if(kind_of<MetaClass>(klass)) {
-        return as<MetaClass>(klass);
+      if(kind_of<MetaClass>(klass_)) {
+        return as<MetaClass>(klass_);
       }
       return MetaClass::attach(state, this);
     }
@@ -457,7 +464,7 @@ namespace rubinius {
   }
 
   OBJECT Object::get_ivars(STATE) {
-    return ivars;
+    return ivars_;
   }
 
   OBJECT Object::get_ivar(STATE, OBJECT sym) {
@@ -470,9 +477,9 @@ namespace rubinius {
       return Qnil;
     }
 
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars)) {
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
       return tbl->fetch(state, sym);
-    } else if(LookupTable* tbl = try_as<LookupTable>(ivars)) {
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
       return tbl->fetch(state, sym);
     }
 
@@ -496,24 +503,23 @@ namespace rubinius {
     }
 
     /* Lazy creation of a lookuptable to store instance variables. */
-    if(ivars->nil_p()) {
+    if(ivars_->nil_p()) {
       CompactLookupTable* tbl = CompactLookupTable::create(state);
-      SET(this, ivars, tbl);
+      ivars(state, tbl);
       tbl->store(state, sym, val);
       return val;
     }
 
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars)) {
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
       if(tbl->store(state, sym, val) == Qtrue) {
         return val;
       }
 
       /* No more room in the CompactLookupTable. */
-      ivars = tbl->to_lookuptable(state);
-      SET(this, ivars, ivars);
+      ivars(state, tbl->to_lookuptable(state));
     }
 
-    try_as<LookupTable>(ivars)->store(state, sym, val);
+    try_as<LookupTable>(ivars_)->store(state, sym, val);
     return val;
   }
 
@@ -634,6 +640,11 @@ namespace rubinius {
 
   OBJECT Object::vm_exit(STATE, FIXNUM code) {
     ::exit(code->to_native());
+  }
+
+  OBJECT Object::vm_show_backtrace(STATE, MethodContext* ctx) {
+    G(current_task)->print_backtrace(ctx);
+    return Qnil;
   }
 
   Object* Object::yield_gdb(STATE, Object* obj) {

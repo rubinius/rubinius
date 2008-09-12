@@ -125,7 +125,7 @@ CODE
 void rubinius::Task::execute_stream(opcode* stream) {
   opcode op;
   Task* task = this;
-  struct jit_state* js = &active->js;
+  struct jit_state* js = &active_->js;
 
   op = next_op();
 
@@ -149,8 +149,8 @@ void VMMethod::resume(Task* task, MethodContext* ctx) {
   for(;;) {
     op = stream[ctx->ip++];
 
-    if(!task->probe->nil_p()) {
-      task->probe->execute_instruction(task, ctx, op);
+    if(!task->probe()->nil_p()) {
+      task->probe()->execute_instruction(task, ctx, op);
     }
 
 #ruby <<CODE

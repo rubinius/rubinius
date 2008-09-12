@@ -13,8 +13,17 @@ namespace rubinius {
     const static size_t fields = 2;
     const static object_type type = StaticScopeType;
 
-    Module* module; // slot
-    StaticScope* parent; // slot
+  private:
+    Module* module_;      // slot
+    StaticScope* parent_; // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(module, Module);
+    attr_accessor(parent, StaticScope);
+
+    /* interface */
 
     static void init(STATE);
     static StaticScope* create(STATE);

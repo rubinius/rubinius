@@ -10,8 +10,8 @@ namespace rubinius {
 
 
   /* ObjectMemory methods */
-  ObjectMemory::ObjectMemory(size_t young_bytes)
-               :young(this, young_bytes), mature(this) {
+  ObjectMemory::ObjectMemory(STATE, size_t young_bytes)
+               :state(state), young(this, young_bytes), mature(this) {
 
     remember_set = new ObjectArray(0);
 
@@ -69,7 +69,9 @@ namespace rubinius {
   }
 
   void ObjectMemory::collect_young(Roots &roots) {
+    static int collect_times = 0;
     young.collect(roots);
+    collect_times++;
   }
 
   void ObjectMemory::collect_mature(Roots &roots) {
@@ -111,7 +113,7 @@ namespace rubinius {
   }
 
   void ObjectMemory::set_class(OBJECT target, OBJECT obj) {
-    target->klass = (Class*)obj;
+    target->klass(state, (Class*)obj);
     if(obj->reference_p()) {
       write_barrier(target, obj);
     }
@@ -133,7 +135,7 @@ namespace rubinius {
       }
     }
 
-    obj->klass = NULL;
+    obj->klass(state, (Class*)Qnil);
     obj->init(loc, fields);
     obj->clear_fields();
     return obj;
@@ -158,7 +160,7 @@ namespace rubinius {
   OBJECT ObjectMemory::allocate_mature(size_t fields, bool bytes) {
     OBJECT obj = mature.allocate(fields, &collect_mature_now);
 
-    obj->klass = NULL;
+    obj->klass(state, (Class*)Qnil);
     obj->init(MatureObjectZone, fields);
 
     if(bytes) {
@@ -224,8 +226,8 @@ namespace rubinius {
     obj = allocate_object(fields);
     set_class(obj, cls);
 
-    obj->obj_type = (object_type)cls->instance_type->to_native();
-    obj->RequiresCleanup = (cls->needs_cleanup == Qtrue);
+    obj->obj_type = (object_type)cls->instance_type()->to_native();
+    obj->RequiresCleanup = (cls->needs_cleanup() == Qtrue);
 
     return obj;
   }

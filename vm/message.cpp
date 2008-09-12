@@ -42,7 +42,7 @@ namespace rubinius {
        * back 3 is recv, - 1 to get to the first arg
        * - index to get to which argument you want
        */
-      return task->active->stack_back(total_args - start - index - 1);
+      return task->active()->stack_back(total_args - start - index - 1);
     } else {
       throw Assertion("message not setup properly");
     }
@@ -75,7 +75,7 @@ namespace rubinius {
     size_t stack_pos = start + args - 1;
 
     for(size_t i = 0; i < args; i++, stack_pos--) {
-      OBJECT arg = task->active->stack_back(stack_pos);
+      OBJECT arg = task->active()->stack_back(stack_pos);
       arguments->set(state, i, arg);
     }
 
@@ -100,7 +100,7 @@ namespace rubinius {
     arguments->set(state, 0, val);
 
     for(size_t i = 1; i <= total_args; i++, stack_pos--) {
-      OBJECT arg = task->active->stack_back(stack_pos);
+      OBJECT arg = task->active()->stack_back(stack_pos);
       arguments->set(state, i, arg);
     }
 

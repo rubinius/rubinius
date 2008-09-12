@@ -99,8 +99,8 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_DIFFERS(tup2->id(state), tup->id(state));
 
     TS_ASSERT_DIFFERS(tup2->metaclass(state), tup->metaclass(state));
-    TS_ASSERT_DIFFERS(tup2->metaclass(state)->method_table, tup->metaclass(state)->method_table);
-    TS_ASSERT_DIFFERS(tup2->metaclass(state)->constants, tup->metaclass(state)->constants);
+    TS_ASSERT_DIFFERS(tup2->metaclass(state)->method_table(), tup->metaclass(state)->method_table());
+    TS_ASSERT_DIFFERS(tup2->metaclass(state)->constants(), tup->metaclass(state)->constants());
   }
 
   void test_dup_bytes() {
@@ -166,10 +166,10 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Qfalse->metaclass(state), G(false_class));
 
     Tuple *tup = Tuple::create(state, 1);
-    TS_ASSERT(!kind_of<MetaClass>(tup->klass));
+    TS_ASSERT(!kind_of<MetaClass>(tup->klass()));
 
     TS_ASSERT(kind_of<MetaClass>(tup->metaclass(state)));
-    TS_ASSERT(kind_of<MetaClass>(tup->klass));
+    TS_ASSERT(kind_of<MetaClass>(tup->klass()));
   }
 
   void test_equal() {
@@ -341,11 +341,11 @@ class TestObject : public CxxTest::TestSuite {
 
   CompiledMethod* create_cm() {
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 1);
-    cm->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    cm->stack_size = Fixnum::from(10);
-    cm->total_args = Fixnum::from(0);
-    cm->required_args = cm->total_args;
+    cm->iseq(state, InstructionSequence::create(state, 1));
+    cm->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    cm->stack_size(state, Fixnum::from(10));
+    cm->total_args(state, Fixnum::from(0));
+    cm->required_args(state, cm->total_args());
 
     cm->formalize(state);
 
@@ -354,13 +354,13 @@ class TestObject : public CxxTest::TestSuite {
 
   void test_send_prim() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(2);
-    cm->total_args = cm->required_args;
-    cm->local_count = cm->required_args;
-    cm->stack_size =  cm->required_args;
-    cm->splat = Qnil;
+    cm->required_args(state, Fixnum::from(2));
+    cm->total_args(state, cm->required_args());
+    cm->local_count(state, cm->required_args());
+    cm->stack_size(state, cm->required_args());
+    cm->splat(state, Qnil);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Task* task = Task::create(state, 3);
 
@@ -368,7 +368,7 @@ class TestObject : public CxxTest::TestSuite {
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
 
-    MethodContext* input_context = task->active;
+    MethodContext* input_context = task->active();
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -379,27 +379,27 @@ class TestObject : public CxxTest::TestSuite {
 
     Qtrue->send_prim(state, NULL, task, msg);
 
-    TS_ASSERT(task->active != input_context);
-    TS_ASSERT_EQUALS(task->active->args, 2U);
+    TS_ASSERT(task->active() != input_context);
+    TS_ASSERT_EQUALS(task->active()->args, 2U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
-    TS_ASSERT_EQUALS(task->active->cm, cm);
-    TS_ASSERT_EQUALS(task->active->name, state->symbol("blah"));
+    TS_ASSERT_EQUALS(task->active()->cm(), cm);
+    TS_ASSERT_EQUALS(task->active()->name(), state->symbol("blah"));
   }
 
   void test_send_prim_private() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(2);
-    cm->total_args = cm->required_args;
-    cm->local_count = cm->required_args;
-    cm->stack_size =  cm->required_args;
-    cm->splat = Qnil;
+    cm->required_args(state, Fixnum::from(2));
+    cm->total_args(state, cm->required_args());
+    cm->local_count(state, cm->required_args());
+    cm->stack_size(state, cm->required_args());
+    cm->splat(state, Qnil);
 
     MethodVisibility* vis = MethodVisibility::create(state);
-    vis->method = cm;
-    vis->visibility = G(sym_private);
+    vis->method(state, cm);
+    vis->visibility(state, G(sym_private));
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), vis);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), vis);
 
     Task* task = Task::create(state, 3);
 
@@ -407,7 +407,7 @@ class TestObject : public CxxTest::TestSuite {
     task->push(Fixnum::from(3));
     task->push(Fixnum::from(4));
 
-    MethodContext* input_context = task->active;
+    MethodContext* input_context = task->active();
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -418,39 +418,39 @@ class TestObject : public CxxTest::TestSuite {
 
     Qtrue->send_prim(state, NULL, task, msg);
 
-    TS_ASSERT(task->active != input_context);
-    TS_ASSERT_EQUALS(task->active->args, 2U);
+    TS_ASSERT(task->active() != input_context);
+    TS_ASSERT_EQUALS(task->active()->args, 2U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
-    TS_ASSERT_EQUALS(task->active->cm, cm);
-    TS_ASSERT_EQUALS(task->active->name, state->symbol("blah"));
+    TS_ASSERT_EQUALS(task->active()->cm(), cm);
+    TS_ASSERT_EQUALS(task->active()->name(), state->symbol("blah"));
   }
 
   void test_send() {
     CompiledMethod* cm = create_cm();
-    cm->required_args = Fixnum::from(2);
-    cm->total_args = cm->required_args;
-    cm->local_count = cm->required_args;
-    cm->stack_size =  cm->required_args;
-    cm->splat = Qnil;
+    cm->required_args(state, Fixnum::from(2));
+    cm->total_args(state, cm->required_args());
+    cm->local_count(state, cm->required_args());
+    cm->stack_size(state, cm->required_args());
+    cm->splat(state, Qnil);
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
 
     Task* task = Task::create(state, 2);
 
     state->globals.current_task.set(task);
 
-    MethodContext* input_context = task->active;
+    MethodContext* input_context = task->active();
 
     Qtrue->send(state, state->symbol("blah"), 2, Fixnum::from(3),
           Fixnum::from(4));
 
-    TS_ASSERT(task->active != input_context);
-    TS_ASSERT_EQUALS(task->active->args, 2U);
+    TS_ASSERT(task->active() != input_context);
+    TS_ASSERT_EQUALS(task->active()->args, 2U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
-    TS_ASSERT_EQUALS(task->active->cm, cm);
-    TS_ASSERT_EQUALS(task->active->name, state->symbol("blah"));
+    TS_ASSERT_EQUALS(task->active()->cm(), cm);
+    TS_ASSERT_EQUALS(task->active()->name(), state->symbol("blah"));
 
   }
 

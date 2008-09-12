@@ -20,8 +20,8 @@ namespace rubinius {
   void TaskProbe::init(STATE) {
     GO(taskprobe).set(state->new_class("TaskProbe", G(object),
                                        TaskProbe::fields, G(rubinius)));
-    SET(G(taskprobe), name, state->symbol("Rubinius::TaskProbe"));
-    G(taskprobe)->set_object_type(TaskProbe::type);
+    G(taskprobe)->name(state, state->symbol("Rubinius::TaskProbe"));
+    G(taskprobe)->set_object_type(state, TaskProbe::type);
   }
 
   TaskProbe* TaskProbe::create(STATE) {
@@ -105,7 +105,7 @@ namespace rubinius {
     if(enabled_p(PROBE_START_METHOD)) {
       if(msg.send_site) {
         std::cout << "[Sending: '" <<
-          msg.send_site->name->to_str(task->state)->c_str() <<
+          msg.send_site->name()->c_str(task->state) <<
           "']" << std::endl;
       }
     }
@@ -114,7 +114,7 @@ namespace rubinius {
   void TaskProbe::lookup_failed(Task* task, Message& msg) {
     if(enabled_p(PROBE_LOOKUP_FAILED)) {
       std::cout << "[Unable to find: '" <<
-        msg.send_site->name->to_str(task->state)->c_str() <<
+        msg.send_site->name()->c_str(task->state) <<
         "']" << std::endl;
     }
   }
@@ -122,7 +122,7 @@ namespace rubinius {
   void TaskProbe::execute_instruction(Task* task, MethodContext* ctx, opcode op) {
     if(enabled_p(PROBE_EXECUTE_INSTRUCTION)) {
       std::cout << std::left << std::setw(27) <<
-        ctx->cm->name->to_str(task->state)->c_str() << "+" <<
+        ctx->cm()->name()->c_str(task->state) << "+" <<
         std::right << std::setw(4) << ctx->ip << ": " <<
         std::left << std::setw(30) <<
         InstructionSequence::get_instruction_name(op) << " ";

@@ -115,7 +115,7 @@ public:
 
   void test_iseq() {
     InstructionSequence* iseq = InstructionSequence::create(state, 1);
-    iseq->opcodes->put(state, 0, Fixnum::from(0));
+    iseq->opcodes()->put(state, 0, Fixnum::from(0));
 
     mar->marshal(iseq);
     TS_ASSERT_EQUALS(mar->sstream.str(), std::string("i\n1\n0\n"));

@@ -10,13 +10,25 @@ namespace rubinius {
   class MemoryPointer;
 
   class Executable : public Object {
-    public:
+  public:
     const static size_t fields = 3;
     const static object_type type = ExecutableType;
 
-    SYMBOL primitive; // slot
-    FIXNUM serial; // slot
+  private:
+    SYMBOL primitive_; // slot
+    FIXNUM serial_;    // slot
+
+  public:
+    // TODO: fix up data members that aren't slots
     VMExecutable* executable;
+
+  public:
+    /* accessors */
+
+    attr_accessor(primitive, Symbol);
+    attr_accessor(serial, Fixnum);
+
+    /* interface */
 
     static void init(STATE);
 

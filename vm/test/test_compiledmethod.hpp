@@ -24,8 +24,8 @@ class TestCompiledMethod : public CxxTest::TestSuite {
     VMMethod* vmm = cm->formalize(state);
 
     TS_ASSERT_EQUALS(vmm->opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_halt));
-    TS_ASSERT(!cm->scope->nil_p());
-    TS_ASSERT_EQUALS(cm->scope->module, G(object));
+    TS_ASSERT(!cm->scope()->nil_p());
+    TS_ASSERT_EQUALS(cm->scope()->module(), G(object));
   }
 
 };

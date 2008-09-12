@@ -38,11 +38,8 @@ namespace rubinius {
 
   OBJECT BakerGC::Heap::copy_object(OBJECT orig) {
     OBJECT tmp = (OBJECT)allocate(orig->size_in_bytes());
-    tmp->all_flags   = orig->all_flags;
-    tmp->field_count = orig->field_count;
-    tmp->klass       = orig->klass;
-    tmp->ivars       = orig->ivars;
-    tmp->Forwarded   = 0;
+
+    tmp->initialize_copy(orig, orig->age);
 
     for(size_t i = 0; i < orig->field_count; i++) {
       tmp->field[i] = orig->field[i];
@@ -92,7 +89,7 @@ namespace rubinius {
       ctx->post_copy(as<MethodContext>(obj));
     }
 
-    obj->set_forward(copy);
+    obj->set_forward(object_memory->state, copy);
     return copy;
   }
 
@@ -181,6 +178,8 @@ namespace rubinius {
       copy_unscanned();
     }
 
+    assert(promoted_->size() == 0);
+
     delete promoted_;
     promoted_ = NULL;
 
@@ -192,7 +191,7 @@ namespace rubinius {
     find_lost_souls();
 
     /* Check any weakrefs and replace dead objects with nil*/
-    clean_weakrefs();
+    // clean_weakrefs();
 
     /* Swap the 2 halves */
     BakerGC::Heap *x = next;

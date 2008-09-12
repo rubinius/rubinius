@@ -14,19 +14,19 @@
 namespace rubinius {
   void Dir::init(STATE) {
     GO(dir).set(state->new_class("Dir", G(object), Dir::fields));
-    G(dir)->set_object_type(DirType);
+    G(dir)->set_object_type(state, DirType);
   }
 
   Dir* Dir::create(STATE) {
     Dir* d = (Dir*)state->om->new_object(G(dir), Dir::fields);
-    SET(d, data, Qnil);
+    d->data(state, (MemoryPointer*)Qnil);
 
     return d;
   }
 
   void Dir::guard(STATE) {
     // TODO: raise IOError, "closed directory" (RAISE_FROM_ERRNO)
-    if(data->nil_p()) {
+    if(data_->nil_p()) {
       throw std::runtime_error("dir->data is nil");
     }
   }
@@ -35,7 +35,7 @@ namespace rubinius {
     DIR* d = opendir(path->c_str());
 
     if(!d) state->raise_from_errno("Unable to open directory");
-    SET(this, data, MemoryPointer::create(state, d));
+    data(state, MemoryPointer::create(state, d));
 
     return Qnil;
   }
@@ -43,9 +43,9 @@ namespace rubinius {
   OBJECT Dir::close(STATE) {
     guard(state);
 
-    DIR* d = (DIR*)data->pointer;
+    DIR* d = (DIR*)data_->pointer;
     if(d) {
-      SET(this, data, Qnil);
+      data(state, (MemoryPointer*)Qnil);
       closedir(d);
       return Qtrue;
     }
@@ -54,13 +54,13 @@ namespace rubinius {
   }
 
   OBJECT Dir::closed_p(STATE) {
-    return data->nil_p() ? Qtrue : Qfalse;
+    return data_->nil_p() ? Qtrue : Qfalse;
   }
 
   OBJECT Dir::read(STATE) {
     guard(state);
 
-    DIR* d = (DIR*)data->pointer;
+    DIR* d = (DIR*)data_->pointer;
     struct dirent *ent = readdir(d);
 
     if(!ent) return Qnil;
@@ -71,7 +71,7 @@ namespace rubinius {
   OBJECT Dir::control(STATE, FIXNUM kind, INTEGER pos) {
     guard(state);
 
-    DIR* d = (DIR*)data->pointer;
+    DIR* d = (DIR*)data_->pointer;
 
     switch(kind->to_native()) {
     case 0:

@@ -29,7 +29,7 @@ class TestChannel : public CxxTest::TestSuite {
 
   void test_create() {
     TS_ASSERT(kind_of<Channel>(chan));
-    TS_ASSERT(kind_of<List>(chan->waiting));
+    TS_ASSERT(kind_of<List>(chan->waiting()));
   }
 
   void test_send_then_receive() {
@@ -37,11 +37,11 @@ class TestChannel : public CxxTest::TestSuite {
 
     state->globals.current_task.set(task);
 
-    TS_ASSERT(chan->value->nil_p());
+    TS_ASSERT(chan->value()->nil_p());
     chan->send(state, Qtrue);
 
-    TS_ASSERT(kind_of<List>(chan->value));
-    List* lst = as<List>(chan->value);
+    TS_ASSERT(kind_of<List>(chan->value()));
+    List* lst = as<List>(chan->value());
     TS_ASSERT_EQUALS(lst->size(), 1U);
     TS_ASSERT_EQUALS(lst->locate(state, 0), Qtrue);
 
@@ -93,12 +93,12 @@ class TestChannel : public CxxTest::TestSuite {
     TS_ASSERT(!state->wait_events);
     chan->receive(state);
 
-    TS_ASSERT_EQUALS(chan->waiting->locate(state, 0), G(current_thread));
+    TS_ASSERT_EQUALS(chan->waiting()->locate(state, 0), G(current_thread));
 
     TS_ASSERT(state->wait_events);
     state->events->run_and_wait();
 
-    TS_ASSERT(chan->waiting->empty_p());
+    TS_ASSERT(chan->waiting()->empty_p());
 
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(G(current_task)->calculate_sp(), 0);
@@ -119,7 +119,7 @@ class TestChannel : public CxxTest::TestSuite {
     chan->receive(state);
     TS_ASSERT(!state->wait_events);
 
-    TS_ASSERT(chan->waiting->empty_p());
+    TS_ASSERT(chan->waiting()->empty_p());
 
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(G(current_task)->calculate_sp(), 0);
@@ -128,7 +128,7 @@ class TestChannel : public CxxTest::TestSuite {
 
   void test_has_readers_p() {
     TS_ASSERT(!chan->has_readers_p());
-    chan->waiting->append(state, G(current_thread));
+    chan->waiting()->append(state, G(current_thread));
     TS_ASSERT(chan->has_readers_p());
   }
 

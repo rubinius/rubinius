@@ -29,10 +29,10 @@ namespace rubinius {
    * to access instance variables of msg.recv */
   bool VMAccessVariable::executor(STATE, VMExecutable* meth, Task* task, Message& msg) {
     AccessVariable* access = as<AccessVariable>(msg.method);
-    native_int idx = access->name->index();
+    native_int idx = access->name()->index();
 
     /* The writer case. */
-    if(access->write->true_p()) {
+    if(access->write()->true_p()) {
       if(msg.args() != 1) {
         assert(0 && "implement raise exception");
       }
@@ -48,7 +48,7 @@ namespace rubinius {
       }
 
       /* Fall through, handle it as a normal ivar. */
-      msg.recv->set_ivar(state, access->name, msg.get_argument(0));
+      msg.recv->set_ivar(state, access->name(), msg.get_argument(0));
       task->primitive_return(msg.get_argument(0), msg);
       return false;
     }
@@ -68,7 +68,7 @@ namespace rubinius {
       }
 
       /* Get a normal ivar. */
-      task->primitive_return(msg.recv->get_ivar(state, access->name), msg);
+      task->primitive_return(msg.recv->get_ivar(state, access->name()), msg);
     }
 
     return false;

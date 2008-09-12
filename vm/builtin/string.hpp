@@ -27,16 +27,29 @@ namespace rubinius {
   class Float;
 
   class String : public Object {
-    public:
+  public:
     const static size_t fields = 6;
     const static object_type type = StringType;
 
-    INTEGER num_bytes; // slot
-    INTEGER characters; // slot
-    OBJECT encoding; // slot
-    ByteArray* data; // slot
-    INTEGER hash_value; // slot
-    OBJECT shared; // slot
+  private:
+    INTEGER num_bytes_;  // slot
+    INTEGER characters_; // slot
+    OBJECT encoding_;    // slot
+    ByteArray* data_;    // slot
+    INTEGER hash_value_; // slot
+    OBJECT shared_;      // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(num_bytes, Integer);
+    attr_accessor(characters, Integer);
+    attr_accessor(encoding, Object);
+    attr_accessor(data, ByteArray);
+    attr_accessor(hash_value, Integer);
+    attr_accessor(shared, Object);
+
+    /* interface */
 
     static void init(STATE);
 

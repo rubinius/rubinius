@@ -34,6 +34,7 @@ namespace rubinius {
     bool collect_young_now;
     bool collect_mature_now;
 
+    STATE;
     ObjectArray *remember_set;
     BakerGC young;
     MarkSweepGC mature;
@@ -43,7 +44,7 @@ namespace rubinius {
     /* Config variables */
     size_t large_object_threshold;
 
-    ObjectMemory(size_t young_bytes);
+    ObjectMemory(STATE, size_t young_bytes);
     ~ObjectMemory();
 
     void write_barrier(OBJECT target, OBJECT val);
@@ -69,15 +70,6 @@ namespace rubinius {
 
     ObjectPosition validate_object(OBJECT obj);
   };
-
-// Type-safe, write-barrier-enabled version of 'SET'
-#define OSET(om, obj, field, val) ({ \
-    typeof(obj) _o = (obj); OBJECT  _v = (val); \
-    if(_v->nil_p()) { _o->field = (typeof(_o->field))Qnil; } else { \
-    _o->field = as<typeof(*_o->field)>(_v); om->write_barrier(_o, _v); } })
-
-
-#define SET(obj, field, val) OSET(state->om, obj, field, val)
 
 #define FREE(obj) free(obj)
 #define ALLOC_N(type, size) ((type*)calloc(size, sizeof(type)))

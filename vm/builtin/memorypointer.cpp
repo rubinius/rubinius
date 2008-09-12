@@ -32,7 +32,7 @@ namespace rubinius {
 
   void MemoryPointer::init(STATE) {
     GO(memory_pointer).set(state->new_class("MemoryPointer"));
-    G(memory_pointer)->set_object_type(MemPtrType);
+    G(memory_pointer)->set_object_type(state, MemPtrType);
   }
 
   MemoryPointer* MemoryPointer::create(STATE, void* ptr) {

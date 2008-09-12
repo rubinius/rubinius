@@ -13,7 +13,7 @@ namespace rubinius {
   void CompactLookupTable::init(STATE) {
     GO(compactlookuptable).set(state->new_class("CompactLookupTable",
           G(tuple), CompactLookupTable::fields));
-    G(compactlookuptable)->set_object_type(CompactLookupTableType);
+    G(compactlookuptable)->set_object_type(state, CompactLookupTableType);
   }
 
   CompactLookupTable* CompactLookupTable::create(STATE) {

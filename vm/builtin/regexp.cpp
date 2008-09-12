@@ -40,10 +40,10 @@ namespace rubinius {
   void Regexp::init(STATE) {
     onig_init();
     GO(regexp).set(state->new_class("Regexp", G(object), 0));
-    G(regexp)->set_object_type(RegexpType);
+    G(regexp)->set_object_type(state, RegexpType);
 
     GO(matchdata).set(state->new_class("MatchData", G(object), 0));
-    G(matchdata)->set_object_type(MatchDataType);
+    G(matchdata)->set_object_type(state, MatchDataType);
   }
 
   char *Regexp::version(STATE) {
@@ -128,18 +128,18 @@ namespace rubinius {
       return (Regexp*)Qnil;
     }
 
-    SET(o_reg, source, pattern);
+    o_reg->source(state, pattern);
 
     num_names = onig_number_of_names(o_reg->onig_data);
     if(num_names == 0) {
-      SET(o_reg, names, Qnil);
+      o_reg->names(state, (LookupTable*)Qnil);
     } else {
       struct _gather_data gd;
       gd.state = state;
       LookupTable* tbl = LookupTable::create(state);
       gd.tbl = tbl;
       onig_foreach_name(o_reg->onig_data, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
-      SET(o_reg, names, tbl);
+      o_reg->names(state, tbl);
     }
 
     return o_reg;
@@ -148,7 +148,7 @@ namespace rubinius {
   // 'self' is passed in automatically by the primitive glue
   Regexp* Regexp::new_expression(STATE, OBJECT self, String* pattern, INTEGER options) {
     Regexp* re = Regexp::create(state, pattern, options);
-    SET(re, klass, self);
+    re->klass(state, (Class*)self);
     return re;
   }
 
@@ -179,14 +179,14 @@ namespace rubinius {
 
   static OBJECT get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int max) {
     MatchData* md = (MatchData*)state->om->new_object(G(matchdata), MatchData::fields);
-    SET(md, source, string->string_dup(state));
-    SET(md, regexp, regexp);
+    md->source(state, string->string_dup(state));
+    md->regexp(state, regexp);
     Tuple* tup = Tuple::create(state, 2);
     tup->put(state, 0, Integer::from(state, region->beg[0]));
     tup->put(state, 1, Integer::from(state, region->end[0]));
-    
-    SET(md, full, tup);
-    SET(md, region, _md_region_to_tuple(state, region, max));
+
+    md->full(state, tup);
+    md->region(state, (Tuple*)_md_region_to_tuple(state, region, max));
     return md;
   }
 

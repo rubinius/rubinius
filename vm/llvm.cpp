@@ -234,7 +234,7 @@ namespace rubinius {
   }
 #endif
 
-  static Function* create_function(char* name) {
+  static Function* create_function(const char* name) {
     std::stringstream stream;
     stream << "_XJIT_" << strlen(name) << name << "_" << operations->size();
 
@@ -280,7 +280,7 @@ namespace rubinius {
   }
 
   void VMLLVMMethod::compile(STATE) {
-    char* name = original->name->to_str(state)->byte_address();
+    const char* name = original->name()->c_str(state);
     Function* func = create_function(name);
 
     Function::arg_iterator args = func->arg_begin();

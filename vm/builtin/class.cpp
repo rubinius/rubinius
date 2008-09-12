@@ -33,11 +33,10 @@ namespace rubinius {
   Class* Class::create(STATE, Class* super) {
     Class* cls = (Class*)state->new_object(G(klass));
 
-    SET(cls, name, Qnil);
-    SET(cls, instance_fields, super->instance_fields);
-    SET(cls, has_ivars, super->has_ivars);
-    SET(cls, instance_type, super->instance_type);
-    SET(cls, superclass, super);
+    cls->name(state, (SYMBOL)Qnil);
+    cls->instance_fields(state, super->instance_fields());
+    cls->instance_type(state, super->instance_type());
+    cls->superclass(state, super);
 
     cls->setup(state);
 
@@ -54,22 +53,22 @@ namespace rubinius {
     MetaClass *meta;
 
     meta = (MetaClass*)state->new_object(G(metaclass));
-    if(!sup) { sup = obj->klass; }
+    if(!sup) { sup = obj->klass(); }
     meta->IsMeta = TRUE;
-    SET(meta, attached_instance, obj);
+    meta->attached_instance(state, obj);
     meta->setup(state);
-    SET(meta, superclass, sup);
-    SET(obj, klass, meta);
+    meta->superclass(state, (Module*)sup);
+    obj->klass(state, meta);
 
     return meta;
   }
 
   void MetaClass::Info::show(STATE, OBJECT self, int level) {
     MetaClass* cls = as<MetaClass>(self);
-    Module* mod = as<Module>(cls->attached_instance);
+    Module* mod = as<Module>(cls->attached_instance());
 
-    const char* name = mod->name == Qnil ? "<anonymous>" : mod->name->c_str(state);
-    std::cout << "#<" << self->class_object(state)->name->c_str(state) <<
+    const char* name = mod->name()->nil_p() ? "<anonymous>" : mod->name()->c_str(state);
+    std::cout << "#<" << self->class_object(state)->name()->c_str(state) <<
       " " << name << ":" << (void*)self << ">" << std::endl;
   }
 }

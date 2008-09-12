@@ -25,11 +25,11 @@ namespace rubinius {
 
   void Task::init(STATE) {
     GO(task).set(state->new_class("Task", G(object), Task::fields, G(rubinius)));
-    SET(G(task), name, state->symbol("Rubinius::Task"));
-    G(task)->set_object_type(Task::type);
+    G(task)->name(state, state->symbol("Rubinius::Task"));
+    G(task)->set_object_type(state, Task::type);
 
     GO(channel).set(state->new_class("Channel", G(object), Channel::fields));
-    G(channel)->set_object_type(Channel::type);
+    G(channel)->set_object_type(state, Channel::type);
   }
 
   /* HACK:  This method is never used except in tests.
@@ -39,7 +39,7 @@ namespace rubinius {
     Task* task = create(state, 0);
 
     Message msg(state, Array::create(state, 0));
-    msg.name = meth->name ? meth->name : state->symbol("__weird_unnamed_method__");
+    msg.name = meth->name() ? meth->name() : state->symbol("__weird_unnamed_method__");
     msg.module = recv->class_object(state);
     meth->execute(state, task, msg);
 
@@ -50,14 +50,14 @@ namespace rubinius {
     Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
     task->state = state;
     task->call_flags = 0;
-    SET(task, probe, state->probe.get());
     task->msg = new Message(state);
-    SET(task, control_channel, Qnil);
-    SET(task, debug_channel, Qnil);
-    SET(task, self, G(main));
-    SET(task, literals, Qnil);
-    SET(task, exception, Qnil);
-    SET(task, home, Qnil);
+    task->probe(state, state->probe.get());
+    task->control_channel(state, (Channel*)Qnil);
+    task->debug_channel(state, (Channel*)Qnil);
+    task->self(state, G(main));
+    task->literals(state, (Tuple*)Qnil);
+    task->exception(state, (Exception*)Qnil);
+    task->home(state, (MethodContext*)Qnil);
 
     if(stack_size == 0) stack_size = CompiledMethod::tramp_stack_size;
 
@@ -65,10 +65,10 @@ namespace rubinius {
     MethodContext* ctx = MethodContext::create(state, G(main), cm);
 
     // fully initialize this context
-    SET(ctx, name, state->symbol("__trampoline__"));
-    SET(ctx, block, Qnil);
+    ctx->name(state, state->symbol("__trampoline__"));
+    ctx->block(state, Qnil);
 
-    SET(task, active, ctx);
+    task->active(state, ctx);
 
     return task;
   }
@@ -78,26 +78,27 @@ namespace rubinius {
   }
 
   MethodContext* Task::current_context(STATE) {
-    MethodContext* context = this->active;
+    MethodContext* context = active_;
     context->reference(state); // HACK not implemented yet
     return context;
   }
 
+  // Primitive
   Channel* Task::get_debug_channel(STATE) {
-    return debug_channel;
+    return debug_channel_;
   }
 
+  // Primitive
   Channel* Task::get_control_channel(STATE) {
-    return control_channel;
+    return control_channel_;
   }
 
   void Task::restore_context(MethodContext* ctx) {
 
-    SET(this, literals, ctx->cm->literals);
-
-    SET(this, active, ctx);
-    SET(this, home, ctx->home);
-    SET(this, self, home->self);
+    literals(state, ctx->cm()->literals());
+    active(state, ctx);
+    home(state, ctx->home());
+    self(state, home_->self());
 
     /* Stack Management procedures. Make sure that we don't
      * miss object stored into the stack of a context */
@@ -107,27 +108,26 @@ namespace rubinius {
   }
 
   void Task::make_active(MethodContext* ctx) {
-    SET(ctx, sender, active);
+    ctx->sender(state, active_);
 
     restore_context(ctx);
   }
 
-
   void Task::import_arguments(MethodContext* ctx, Message& msg) {
-    size_t total = ctx->cm->total_args->to_native();
-    size_t required = ctx->cm->required_args->to_native();
+    size_t total = ctx->cm()->total_args()->to_native();
+    size_t required = ctx->cm()->required_args()->to_native();
     size_t fixed;
 
-    ctx->block = msg.block;
+    ctx->block(state, msg.block);
     ctx->args = msg.args();
 
     /* No input args and no expected args. Done. */
     if(total == 0 && msg.args() == 0) {
       /* Even though there was nothing, if there was a splat, we need to fill
        * it in. */
-      if(ctx->cm->splat != Qnil) {
+      if(!ctx->cm()->splat()->nil_p()) {
         Array* ary = Array::create(state, 0);
-        ctx->set_local(as<Integer>(ctx->cm->splat)->to_native(), ary);
+        ctx->set_local(as<Integer>(ctx->cm()->splat())->to_native(), ary);
       }
       goto stack_cleanup;
     }
@@ -140,7 +140,7 @@ namespace rubinius {
     /* If too many args were passed in, throw an exception.
      * If there is a splat, this check is disabled.
      */
-    if(ctx->cm->splat == Qnil && msg.args() > total) {
+    if(ctx->cm()->splat()->nil_p() && msg.args() > total) {
       throw ArgumentError(required, msg.args());
     }
 
@@ -151,7 +151,7 @@ namespace rubinius {
       ctx->set_local(i, msg.get_argument(i));
     }
 
-    if(ctx->cm->splat != Qnil) {
+    if(!ctx->cm()->splat()->nil_p()) {
       Array* ary;
       /* There is a splat. So if the passed in arguments are greater
        * than the total number of fixed arguments, put the rest of the
@@ -173,27 +173,27 @@ namespace rubinius {
         ary = Array::create(state, 0);
       }
 
-      ctx->set_local(as<Integer>(ctx->cm->splat)->to_native(), ary);
+      ctx->set_local(as<Integer>(ctx->cm()->splat())->to_native(), ary);
     }
 
     /* Now that we've processed everything from the stack, we need to clean it up */
 stack_cleanup:
-    if(!probe->nil_p()) {
-      probe->start_method(this, msg);
+    if(!probe_->nil_p()) {
+      probe_->start_method(this, msg);
     }
 
-    active->clear_stack(msg.stack);
+    active_->clear_stack(msg.stack);
   }
 
   /* Only called if send_message can't locate anything to run, which pretty
    * much never happens, since it means even method_missing wasn't available. */
   void Task::tragic_failure(Message& msg) {
-    if(!probe->nil_p()) {
-      probe->lookup_failed(this, msg);
+    if(!probe_->nil_p()) {
+      probe_->lookup_failed(this, msg);
     }
     std::stringstream ss;
-    ss << "unable to locate any method '" << msg.send_site->name->to_str(state)->byte_address() <<
-      "' from '" << msg.lookup_from->name->to_str(state)->byte_address() << "'";
+    ss << "unable to locate any method '" << msg.send_site->name()->c_str(state) <<
+      "' from '" << msg.lookup_from->name()->c_str(state) << "'";
 
     Assertion::raise((char*)ss.str().c_str());
   }
@@ -201,7 +201,7 @@ stack_cleanup:
   /* For details in msg, locate the proper method and begin execution
    * of it. */
   bool Task::send_message(Message& msg) {
-    msg.current_self = this->active->self;
+    msg.current_self = active_->self();
 
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
     // HACK ug! do this up front, not way down here.
@@ -217,7 +217,7 @@ stack_cleanup:
   bool Task::send_message_slowly(Message& msg) {
     GlobalCacheResolver res;
 
-    msg.current_self = this->active->self;
+    msg.current_self = active_->self();
 
     if(!res.resolve(state, msg)) {
       msg.unshift_argument(state, msg.name);
@@ -232,7 +232,7 @@ stack_cleanup:
   }
 
   bool Task::passed_arg_p(size_t pos) {
-    return active->args >= pos;
+    return active_->args >= pos;
   }
 
   OBJECT Task::call_object(STATE, OBJECT recv, SYMBOL meth, Array* args) {
@@ -241,25 +241,25 @@ stack_cleanup:
   }
 
   void Task::simple_return(OBJECT value) {
-    MethodContext *target = active->sender;
+    MethodContext *target = active_->sender();
 
     /* Try to recycle this context to be used again. */
-    active->recycle(state);
+    active_->recycle(state);
 
     restore_context(target);
-    active->push(value);
+    active_->push(value);
   }
 
   /* Called after a primitive has executed and wants to return a value. */
   void Task::primitive_return(OBJECT value, Message& msg) {
-    active->clear_stack(msg.stack);
+    active_->clear_stack(msg.stack);
     push(value);
   }
 
   Task* Task::raise(STATE, Exception* exc) {
     for(;;) {
-      int ip = active->ip;
-      Tuple* table = active->cm->exceptions;
+      int ip = active_->ip;
+      Tuple* table = active_->cm()->exceptions();
 
       if(!table->nil_p()) {
         for(size_t i = 0; i < table->field_count; i++) {
@@ -271,19 +271,19 @@ stack_cleanup:
         }
       }
 
-      if(active->sender->nil_p()) break;
-      make_active(active->sender);
+      if(active_->sender()->nil_p()) break;
+      make_active(active_->sender());
     }
 
     return this;
   }
 
   void Task::raise_exception(Exception* exc) {
-    SET(this, exception, exc); // HACK test that we set this
+    exception(state, exc); // HACK test that we set this
 
     for(;;) {
-      int ip = active->ip;
-      Tuple* table = active->cm->exceptions;
+      int ip = active_->ip;
+      Tuple* table = active_->cm()->exceptions();
 
       if(!table->nil_p()) {
         for(size_t i = 0; i < table->field_count; i++) {
@@ -295,8 +295,8 @@ stack_cleanup:
         }
       }
 
-      if(active->sender->nil_p()) break;
-      restore_context(active->sender); // HACK test to prevent infinite loop
+      if(active_->sender()->nil_p()) break;
+      restore_context(active_->sender()); // HACK test to prevent infinite loop
     }
   }
 
@@ -317,7 +317,7 @@ stack_cleanup:
 
     vis = try_as<MethodVisibility>(msg.method);
     if(vis) {
-      return Tuple::from(state, 2, vis->method, msg.module);
+      return Tuple::from(state, 2, vis->method(), msg.module);
     }
 
     return Tuple::from(state, 2, msg.method, msg.module);
@@ -326,31 +326,31 @@ stack_cleanup:
   void Task::attach_method(OBJECT recv, SYMBOL name, CompiledMethod* method) {
     if(kind_of<Module>(recv)) {
       StaticScope* ss = StaticScope::create(state);
-      SET(ss, module, recv);
-      SET(ss, parent, method->scope);
-      SET(method, scope, ss);
+      ss->module(state, (Module*)recv);
+      ss->parent(state, method->scope());
+      method->scope(state, ss);
     } else {
       /* Push the current scope down. */
-      SET(method, scope, active->cm->scope);
+      method->scope(state, active_->cm()->scope());
     }
 
     add_method(recv->metaclass(state), name, method);
   }
 
   void Task::add_method(Module* mod, SYMBOL name, CompiledMethod* method) {
-    SET(method, scope, active->cm->scope);
-    SET(method, serial, Fixnum::from(0));
-    mod->method_table->store(state, name, method);
+    method->scope(state, active_->cm()->scope());
+    method->serial(state, Fixnum::from(0));
+    mod->method_table()->store(state, name, method);
     state->global_cache->clear(mod, name);
 
-    if(!probe->nil_p()) {
-      probe->added_method(this, mod, name, method);
+    if(!probe_->nil_p()) {
+      probe_->added_method(this, mod, name, method);
     }
 
     if(instance_of<Class>(mod)) {
       Class* cls = as<Class>(mod);
 
-      object_type type = (object_type)cls->instance_type->to_native();
+      object_type type = (object_type)cls->instance_type()->to_native();
       TypeInfo* ti = state->om->type_info[type];
       if(!ti) {
         ti = new TypeInfo((object_type)0);
@@ -375,7 +375,7 @@ stack_cleanup:
 
     CompiledMethod* cm = try_as<CompiledMethod>(x);
 
-    if(cm) return cm->serial->to_native() == ser;
+    if(cm) return cm->serial()->to_native() == ser;
 
     return false;
   }
@@ -394,7 +394,7 @@ stack_cleanup:
       if(*found) return res;
 
       if(mod == G(object)) break;
-      mod = mod->superclass;
+      mod = mod->superclass();
     }
 
     return Qnil;
@@ -411,22 +411,22 @@ stack_cleanup:
 
     *found = false;
 
-    cur = active->cm->scope;
+    cur = active_->cm()->scope();
     while(!cur->nil_p()) {
-      result = cur->module->get_const(state, name, found);
+      result = cur->module()->get_const(state, name, found);
       if(*found) return result;
 
-      if(cur->module == G(object)) break;
+      if(cur->module() == G(object)) break;
 
-      cur = cur->parent;
+      cur = cur->parent();
     }
 
-    Module* mod = active->cm->scope->module;
+    Module* mod = active_->cm()->scope()->module();
     while(!mod->nil_p()) {
       result = mod->get_const(state, name, found);
       if(*found) return result;
 
-      mod = mod->superclass;
+      mod = mod->superclass();
     }
 
     /* Lastly, check Object specificly */
@@ -441,44 +441,43 @@ stack_cleanup:
   }
 
   void Task::const_set(SYMBOL name, OBJECT val) {
-    active->cm->scope->module->set_const(state, name, val);
+    active_->cm()->scope()->module()->set_const(state, name, val);
   }
 
   // TODO - Make sure this cannot contaminate the stack!
   void Task::yield_debugger() {
     Channel* chan;
-    if(debug_channel->nil_p()) {
+    if(debug_channel_->nil_p()) {
       chan = try_as<Channel>(G(vm)->get_ivar(state,
             state->symbol("@debug_channel")));
 
       if(!chan) return;
     } else {
-      chan = debug_channel;
+      chan = debug_channel_;
     }
 
-    if(control_channel->nil_p()) {
-      control_channel = Channel::create(state);
+    if(control_channel_->nil_p()) {
+      control_channel(state, Channel::create(state));
     }
 
-    sassert(control_channel->has_readers_p());
+    sassert(control_channel_->has_readers_p());
 
-    active->reference(state);
+    active_->reference(state);
 
-    debug_channel->send(state, active);
-    control_channel->receive(state);
+    debug_channel_->send(state, active_);
+    control_channel_->receive(state);
   }
 
   Module* Task::current_module() {
-    return active->module;
+    return active_->module();
   }
 
   static Class* check_superclass(STATE, Class* cls, OBJECT super) {
     if(super->nil_p()) return cls;
-    if(cls->superclass != super) {
+    if(cls->superclass() != super) {
       std::cout << "mismatch: "
-        << cls->name->to_str(state)->byte_address()
-        << " != " << as<Class>(super)->name->to_str(state)->byte_address()
-        << "\n";
+        << cls->name()->c_str(state)
+        << " != " << as<Class>(super)->name()->c_str(state) << "\n";
       TypeError::raise(Class::type, super, "superclass mismatch");
     }
 
@@ -490,7 +489,7 @@ stack_cleanup:
     Class* cls = Class::create(state, as<Class>(super));
 
     if(under == G(object)) {
-      SET(cls, name, name);
+      cls->name(state, name);
     } else {
       cls->set_name(state, under, name);
     }
@@ -515,10 +514,10 @@ stack_cleanup:
   Class* Task::open_class(OBJECT super, SYMBOL name, bool* created) {
     Module* under;
 
-    if(active->cm->scope->nil_p()) {
+    if(active_->cm()->scope()->nil_p()) {
       under = G(object);
     } else {
-      under = active->cm->scope->module;
+      under = active_->cm()->scope()->module();
     }
 
     return open_class(under, super, name, created);
@@ -534,11 +533,11 @@ stack_cleanup:
     if(found) return as<Module>(obj);
 
     mod = Module::create(state);
-    if(active->cm->scope->nil_p()) {
+    if(active_->cm()->scope()->nil_p()) {
       under = G(object);
-      SET(mod, name, name);
+      mod->name(state, name);
     } else {
-      under = active->cm->scope->module;
+      under = active_->cm()->scope()->module();
       mod->set_name(state, under, name);
     }
 
@@ -556,7 +555,7 @@ stack_cleanup:
 
     mod = Module::create(state);
     if(under == G(object)) {
-      SET(mod, name, name);
+      mod->name(state, name);
     } else {
       mod->set_name(state, under, name);
     }
@@ -569,50 +568,50 @@ stack_cleanup:
   /* Used only in debugging and testing. Direct access to the stack
    * can be dangerous. */
   OBJECT* Task::current_stack() {
-    return active->stk;
+    return active_->stk;
   }
 
   void Task::push(OBJECT val) {
-    active->push(val);
+    active_->push(val);
   }
 
   OBJECT Task::pop() {
-    return active->pop();
+    return active_->pop();
   }
 
   OBJECT Task::stack_top() {
-    return active->top();
+    return active_->top();
   }
 
   /* Retrieve the object at position +pos+ in the current context */
   OBJECT Task::stack_at(size_t pos) {
-    return active->stack_at(pos);
+    return active_->stack_at(pos);
   }
 
   int Task::calculate_sp() {
-    return active->calculate_sp();
+    return active_->calculate_sp();
   }
 
   /* Set the local variable at +pos+ to +val+ in the current context. */
   void Task::set_local(int pos, OBJECT val) {
-    active->set_local(pos, val);
+    active_->set_local(pos, val);
   }
 
   /* Get local variable at +pos+ in the current context. */
   OBJECT Task::get_local(int pos) {
-    return active->get_local(pos);
+    return active_->get_local(pos);
   }
 
   void Task::activate_method(Message&) { }
 
   /* Move the active context to executing instruction +ip+. */
   void Task::set_ip(int ip) {
-    active->ip = ip;
+    active_->ip = ip;
   }
 
   /* Returns the current instruction the active context is on. */
   int Task::current_ip() {
-    return active->ip;
+    return active_->ip;
   }
 
   void Task::cache_ip() { }
@@ -628,13 +627,19 @@ stack_cleanup:
       state->om->collect_mature(state->globals.roots);
       state->global_cache->clear();
     }
+
+    /* Stack Management procedures. Make sure that we don't
+     * miss object stored into the stack of a context */
+    if(active_->zone == MatureObjectZone) {
+      state->om->remember_object(active_);
+    }
   }
 
   void Task::execute() {
-    if(active->nil_p()) return;
+    if(active_->nil_p()) return;
 
     for(;;) {
-      active->vmm->resume(this, active);
+      active_->vmm->resume(this, active_);
 
       // Should we inspect the other interrupts?
       if(state->interrupts.check) {
@@ -644,49 +649,51 @@ stack_cleanup:
         if(state->interrupts.switch_task) {
           state->interrupts.switch_task = false;
         }
+      }
 
+      if(state->om->collect_young_now || state->om->collect_mature_now) {
         return;
       }
     }
   }
 
-  void Task::print_backtrace() {
-    MethodContext* ctx = active;
+  void Task::print_backtrace(MethodContext* ctx) {
+    if(!ctx) ctx = active_;
 
     while(!ctx->nil_p()) {
       std::cout << (void*)ctx << ": ";
       if(kind_of<BlockContext>(ctx)) {
         std::cout << "__block__";
       } else {
-        if(MetaClass* meta = try_as<MetaClass>(ctx->module)) {
-          if(Module* mod = try_as<Module>(meta->attached_instance)) {
-            std::cout << mod->name->c_str(state) << ".";
+        if(MetaClass* meta = try_as<MetaClass>(ctx->module())) {
+          if(Module* mod = try_as<Module>(meta->attached_instance())) {
+            std::cout << mod->name()->c_str(state) << ".";
           } else {
             std::cout << "#<" <<
-              meta->attached_instance->class_object(state)->name->c_str(state) <<
-              ":" << (void*)meta->attached_instance << ">.";
+              meta->attached_instance()->class_object(state)->name()->c_str(state) <<
+              ":" << (void*)meta->attached_instance() << ">.";
           }
         } else {
-          std::cout << ctx->module->name->c_str(state) << "#";
+          std::cout << ctx->module()->name()->c_str(state) << "#";
         }
 
-        SYMBOL name = try_as<Symbol>(ctx->name);
+        SYMBOL name = try_as<Symbol>(ctx->name());
         if(name) {
           std::cout << name->c_str(state);
         } else {
-          std::cout << ctx->cm->name->c_str(state);
+          std::cout << ctx->cm()->name()->c_str(state);
         }
       }
 
       std::cout << ":" << ctx->line() << " in ";
-      if(SYMBOL file_sym = try_as<Symbol>(ctx->cm->file)) {
+      if(SYMBOL file_sym = try_as<Symbol>(ctx->cm()->file())) {
         std::cout << file_sym->c_str(state);
       } else {
         std::cout << "<unknown>";
       }
 
       std::cout << "\n";
-      ctx = ctx->sender;
+      ctx = ctx->sender();
     }
   }
 
@@ -694,12 +701,12 @@ stack_cleanup:
     Task* task = as<Task>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "self"); task->self->show(state, level);
-    indent_attribute(level, "active"); task->active->show(state, level);
-    indent_attribute(level, "home"); task->home->show(state, level);
-    indent_attribute(level, "exception"); task->exception->show(state, level);
-    indent_attribute(level, "debug_channel"); task->debug_channel->show(state, level);
-    indent_attribute(level, "control_channel"); task->control_channel->show(state, level);
+    indent_attribute(++level, "self"); task->self()->show(state, level);
+    indent_attribute(level, "active"); task->active()->show(state, level);
+    indent_attribute(level, "home"); task->home()->show(state, level);
+    indent_attribute(level, "exception"); task->exception()->show(state, level);
+    indent_attribute(level, "debug_channel"); task->debug_channel()->show(state, level);
+    indent_attribute(level, "control_channel"); task->control_channel()->show(state, level);
     close_body(level);
   }
 }

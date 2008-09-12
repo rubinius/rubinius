@@ -99,7 +99,7 @@ public:
 
     TS_ASSERT(kind_of<SendSite>(obj));
 
-    TS_ASSERT_EQUALS(as<SendSite>(obj)->name, state->symbol("blah"));
+    TS_ASSERT_EQUALS(as<SendSite>(obj)->name(), state->symbol("blah"));
   }
 
   void test_array() {
@@ -151,11 +151,11 @@ public:
 
     InstructionSequence* seq = as<InstructionSequence>(obj);
 
-    TS_ASSERT(kind_of<Tuple>(seq->opcodes));
+    TS_ASSERT(kind_of<Tuple>(seq->opcodes()));
 
-    TS_ASSERT_EQUALS(seq->opcodes->field_count, 1U);
+    TS_ASSERT_EQUALS(seq->opcodes()->field_count, 1U);
 
-    TS_ASSERT_EQUALS(seq->opcodes->at(0), Fixnum::from(0));
+    TS_ASSERT_EQUALS(seq->opcodes()->at(0), Fixnum::from(0));
   }
 
   void test_cmethod() {
@@ -168,22 +168,22 @@ public:
 
     CompiledMethod* cm = as<CompiledMethod>(obj);
 
-    TS_ASSERT_EQUALS(cm->ivars, Qnil);
-    TS_ASSERT_EQUALS(cm->primitive, state->symbol("object_equal"));
-    TS_ASSERT_EQUALS(cm->name, state->symbol("test"));
-    TS_ASSERT(tuple_equals(cm->iseq->opcodes, Tuple::from(state, 1, Fixnum::from(0))));
-    TS_ASSERT_EQUALS(cm->stack_size, Fixnum::from(10));
-    TS_ASSERT_EQUALS(cm->local_count, Fixnum::from(0));
-    TS_ASSERT_EQUALS(cm->required_args, Fixnum::from(0));
-    TS_ASSERT_EQUALS(cm->total_args, Fixnum::from(0));
-    TS_ASSERT_EQUALS(cm->splat, Qnil);
-    TS_ASSERT(tuple_equals(cm->literals, Tuple::from(state, 2, Fixnum::from(1), Fixnum::from(2))));
-    TS_ASSERT_EQUALS(cm->exceptions, Qnil);
-    TS_ASSERT(tuple_equals(cm->lines, Tuple::from(state, 1, 
+    TS_ASSERT_EQUALS(cm->ivars(), Qnil);
+    TS_ASSERT_EQUALS(cm->primitive(), state->symbol("object_equal"));
+    TS_ASSERT_EQUALS(cm->name(), state->symbol("test"));
+    TS_ASSERT(tuple_equals(cm->iseq()->opcodes(), Tuple::from(state, 1, Fixnum::from(0))));
+    TS_ASSERT_EQUALS(cm->stack_size(), Fixnum::from(10));
+    TS_ASSERT_EQUALS(cm->local_count(), Fixnum::from(0));
+    TS_ASSERT_EQUALS(cm->required_args(), Fixnum::from(0));
+    TS_ASSERT_EQUALS(cm->total_args(), Fixnum::from(0));
+    TS_ASSERT_EQUALS(cm->splat(), Qnil);
+    TS_ASSERT(tuple_equals(cm->literals(), Tuple::from(state, 2, Fixnum::from(1), Fixnum::from(2))));
+    TS_ASSERT_EQUALS(cm->exceptions(), Qnil);
+    TS_ASSERT(tuple_equals(cm->lines(), Tuple::from(state, 1, 
           Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(1), Fixnum::from(1)))));
 
-    TS_ASSERT_EQUALS(cm->file, state->symbol("not_real"));
-    TS_ASSERT(tuple_equals(cm->local_names, Tuple::from(state, 1, state->symbol("blah"))));
+    TS_ASSERT_EQUALS(cm->file(), state->symbol("not_real"));
+    TS_ASSERT(tuple_equals(cm->local_names(), Tuple::from(state, 1, state->symbol("blah"))));
   }
 
 };
