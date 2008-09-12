@@ -23,10 +23,8 @@
 #include "ffi.hpp"
 #include "message.hpp"
 
-extern "C" {
-  #include "strlcpy.h"
-  #include "strlcat.h"
-}
+#include "strlcpy.hpp"
+#include "strlcat.hpp"
 
 namespace rubinius {
 
