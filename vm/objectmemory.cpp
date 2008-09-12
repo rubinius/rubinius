@@ -111,7 +111,7 @@ namespace rubinius {
   }
 
   void ObjectMemory::set_class(OBJECT target, OBJECT obj) {
-    target->klass = (Class*)obj;
+    target->klass(state, (Class*)obj);
     if(obj->reference_p()) {
       write_barrier(target, obj);
     }
@@ -133,7 +133,7 @@ namespace rubinius {
       }
     }
 
-    obj->klass = NULL;
+    obj->klass(state, (Class*)Qnil);
     obj->init(loc, fields);
     obj->clear_fields();
     return obj;
@@ -158,7 +158,7 @@ namespace rubinius {
   OBJECT ObjectMemory::allocate_mature(size_t fields, bool bytes) {
     OBJECT obj = mature.allocate(fields, &collect_mature_now);
 
-    obj->klass = NULL;
+    obj->klass(state, (Class*)Qnil);
     obj->init(MatureObjectZone, fields);
 
     if(bytes) {

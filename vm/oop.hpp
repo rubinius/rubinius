@@ -136,7 +136,7 @@ to be a simple test for that bit pattern.
       uint32_t all_flags;
     };
     uint32_t field_count;
-    Class* klass;
+    Class* klass_;
     Object* ivars_;
 
     void initialize_copy(Object* other, unsigned int age);

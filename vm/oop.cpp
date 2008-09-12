@@ -7,7 +7,7 @@ namespace rubinius {
     this->field_count = other->field_count;
     this->Forwarded   = 0;
     this->age         = age;
-    this->klass       = other->klass;
+    this->klass_      = other->klass();
     this->ivars_      = other->ivars();
   }
 }

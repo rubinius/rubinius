@@ -56,6 +56,7 @@ namespace rubinius {
     };
 
     /* accessors */
+    attr_accessor(klass, Class);
     attr_accessor(ivars, Object);
 
     // Ruby.primitive :object_equal
@@ -89,7 +90,7 @@ namespace rubinius {
     bool young_object_p();
     bool mature_object_p();
     bool forwarded_p();
-    void set_forward(OBJECT fwd);
+    void set_forward(STATE, OBJECT fwd);
     OBJECT forward();
     bool marked_p();
     void mark();

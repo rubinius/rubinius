@@ -51,8 +51,8 @@ namespace rubinius {
       return;
     }
 
-    if(obj->klass && obj->klass->reference_p()) {
-      slot = saw_object(obj->klass);
+    if(obj->klass() && obj->klass()->reference_p()) {
+      slot = saw_object(obj->klass());
       if(slot) object_memory->set_class(obj, slot);
     }
 

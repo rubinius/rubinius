@@ -148,7 +148,7 @@ namespace rubinius {
   // 'self' is passed in automatically by the primitive glue
   Regexp* Regexp::new_expression(STATE, OBJECT self, String* pattern, INTEGER options) {
     Regexp* re = Regexp::create(state, pattern, options);
-    SET(re, klass, self);
+    re->klass(state, (Class*)self);
     return re;
   }
 

@@ -28,7 +28,7 @@ class TestRegexp : public CxxTest::TestSuite {
     Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
     TS_ASSERT_EQUALS(re->source(), pat);
     TS_ASSERT_EQUALS(re->names(),  Qnil);
-    TS_ASSERT_EQUALS(re->klass, G(regexp));
+    TS_ASSERT_EQUALS(re->klass(), G(regexp));
   }
 
   void test_new_expression() {
@@ -36,7 +36,7 @@ class TestRegexp : public CxxTest::TestSuite {
     Class* sub = state->new_class("RegexpSub", G(regexp), 0);
     Regexp* re = Regexp::new_expression(state, sub, pat, Fixnum::from(0));
     TS_ASSERT_EQUALS(re->source(), pat);
-    TS_ASSERT_EQUALS(re->klass, sub);
+    TS_ASSERT_EQUALS(re->klass(), sub);
   }
 
   void test_create_with_named_captures() {

@@ -129,14 +129,14 @@ namespace rubinius {
     return Forwarded == 1;
   }
 
-  void Object::set_forward(OBJECT fwd) {
+  void Object::set_forward(STATE, OBJECT fwd) {
     assert(zone == YoungObjectZone);
     Forwarded = 1;
-    klass = (Class*)fwd;
+    klass(state, (Class*)fwd);
   }
 
   OBJECT Object::forward() {
-    return (OBJECT)klass;
+    return (OBJECT)klass_;
   }
 
   bool Object::marked_p() {
@@ -313,7 +313,7 @@ namespace rubinius {
 
   Class* Object::class_object(STATE) {
     if(reference_p()) {
-      Class* cls = klass;
+      Class* cls = klass_;
       while(!cls->nil_p() && !instance_of<Class>(cls)) {
         cls = as<Class>(cls->superclass());
       }
@@ -328,7 +328,7 @@ namespace rubinius {
   }
 
   Class* Object::lookup_begin(STATE) {
-    if(reference_p()) return klass;
+    if(reference_p()) return klass_;
     return class_object(state);
   }
 
@@ -364,11 +364,11 @@ namespace rubinius {
     // TODO why can't we use new_object->metaclass(state) here? Why are
     // we creating a metaclass by hand?
     // Clone gets a new MetaClass
-    SET(new_object, klass, (MetaClass*)state->new_object(G(metaclass)));
+    new_object->klass(state, (MetaClass*)state->new_object(G(metaclass)));
     // Set the clone's method and constants tables to those
     // of the receiver's metaclass
     new_object->metaclass(state)->method_table(state, source_methods);
-    new_object->klass->constants(state, source_constants);
+    new_object->klass()->constants(state, source_constants);
 
     return new_object;
   }
@@ -454,8 +454,8 @@ namespace rubinius {
 
   Class* Object::metaclass(STATE) {
     if(reference_p()) {
-      if(kind_of<MetaClass>(klass)) {
-        return as<MetaClass>(klass);
+      if(kind_of<MetaClass>(klass_)) {
+        return as<MetaClass>(klass_);
       }
       return MetaClass::attach(state, this);
     }

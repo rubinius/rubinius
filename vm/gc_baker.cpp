@@ -89,7 +89,7 @@ namespace rubinius {
       ctx->post_copy(as<MethodContext>(obj));
     }
 
-    obj->set_forward(copy);
+    obj->set_forward(object_memory->state, copy);
     return copy;
   }
 

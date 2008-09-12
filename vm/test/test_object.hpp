@@ -166,10 +166,10 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Qfalse->metaclass(state), G(false_class));
 
     Tuple *tup = Tuple::create(state, 1);
-    TS_ASSERT(!kind_of<MetaClass>(tup->klass));
+    TS_ASSERT(!kind_of<MetaClass>(tup->klass()));
 
     TS_ASSERT(kind_of<MetaClass>(tup->metaclass(state)));
-    TS_ASSERT(kind_of<MetaClass>(tup->klass));
+    TS_ASSERT(kind_of<MetaClass>(tup->klass()));
   }
 
   void test_equal() {

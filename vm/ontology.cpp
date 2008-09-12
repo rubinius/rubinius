@@ -60,7 +60,7 @@ namespace rubinius {
      * them all at once */
 
     /* Class's klass is Class */
-    cls->klass = cls;
+    cls->klass(state, cls);
     cls->obj_type = ClassType;
 
     cls->instance_fields(state, Fixnum::from(Class::fields));

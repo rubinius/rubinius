@@ -40,8 +40,8 @@ class TestObjects : public CxxTest::TestSuite {
     MetaClass *meta;
 
     cls = (Class*)G(klass);
-    meta = (MetaClass*)cls->klass;
-    TS_ASSERT(kind_of<MetaClass>(G(object)->klass));
+    meta = (MetaClass*)cls->klass();
+    TS_ASSERT(kind_of<MetaClass>(G(object)->klass()));
     TS_ASSERT(kind_of<LookupTable>(meta->method_table()));
     TS_ASSERT(kind_of<LookupTable>(meta->constants()));
   }

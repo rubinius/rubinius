@@ -400,7 +400,7 @@ namespace rubinius {
 
   String* String::pattern(STATE, OBJECT self, FIXNUM size, OBJECT pattern) {
     String* s = String::allocate(state, size);
-    SET(s, klass, self);
+    s->klass(state, (Class*)self);
     s->IsTainted = self->IsTainted;
 
     native_int cnt = size->to_native();

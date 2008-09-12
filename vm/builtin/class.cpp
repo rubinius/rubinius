@@ -53,12 +53,12 @@ namespace rubinius {
     MetaClass *meta;
 
     meta = (MetaClass*)state->new_object(G(metaclass));
-    if(!sup) { sup = obj->klass; }
+    if(!sup) { sup = obj->klass(); }
     meta->IsMeta = TRUE;
     meta->attached_instance(state, obj);
     meta->setup(state);
     meta->superclass(state, (Module*)sup);
-    SET(obj, klass, meta);
+    obj->klass(state, meta);
 
     return meta;
   }

@@ -27,7 +27,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     obj = om.allocate_object(3);
 
     TS_ASSERT_EQUALS(obj->field_count, 3U);
-    TS_ASSERT(obj->klass == NULL);
+    TS_ASSERT(obj->klass()->nil_p());
     TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
     TS_ASSERT_EQUALS(obj->ivars(), Qnil);
 
@@ -157,7 +157,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     obj = om.allocate_mature(3);
     TS_ASSERT_EQUALS(obj->field_count, 3U);
-    TS_ASSERT(obj->klass == NULL);
+    TS_ASSERT(obj->klass()->nil_p());
     TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
     TS_ASSERT(obj->stores_references_p());
 
@@ -176,7 +176,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     obj = om.allocate_object(20);
     TS_ASSERT_EQUALS(obj->field_count, 20U);
-    TS_ASSERT(obj->klass == NULL);
+    TS_ASSERT(obj->klass()->nil_p());
     TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
 
     TS_ASSERT_EQUALS(om.young.current->used(), 0U);
@@ -312,7 +312,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     cls = om.allocate_object(3);
     obj = om.allocate_object(3);
-    obj->klass = (Class*)cls;
+    obj->klass(state, (Class*)cls);
 
     Roots roots(0);
     Root r(&roots, obj);
@@ -321,7 +321,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     obj = roots.front()->get();
 
-    TS_ASSERT(om.valid_object_p(obj->klass));
+    TS_ASSERT(om.valid_object_p(obj->klass()));
   }
 
   void test_collect_mature() {

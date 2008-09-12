@@ -93,7 +93,7 @@ namespace rubinius {
         message->append(state, exc->message());
       }
       message->append(state, " (");
-      message->append(state, exc->klass->name()->to_str(state));
+      message->append(state, exc->klass()->name()->to_str(state));
       message->append(state, ")");
       Assertion::raise(message->c_str());
     }

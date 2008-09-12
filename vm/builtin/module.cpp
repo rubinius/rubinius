@@ -25,7 +25,7 @@ namespace rubinius {
   Module* Module::new_instance(STATE, OBJECT self) {
     Module* module = Module::create(state);
 
-    SET(module, klass, self);
+    module->klass(state, (Class*)self);
 
     return module;
   }
