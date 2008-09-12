@@ -746,18 +746,12 @@ class CompilerTestCase < ParseTreeTestCase
               in_method :instantiate_all do |d|
                 d.push_const :Thread
 
-                d.create_block_desc do |d2|
-                  block_top   = d2.new_label
+                d.in_block_send :new, 0, 0, false do |d2|
                   dunno1      = d2.new_label
                   dunno2      = d2.new_label
                   runtime_err = d2.new_label
                   unhandled   = d2.new_label
                   bottom      = d2.new_label
-
-                  d2.pop
-                  d2.push_modifiers
-
-                  block_top.set!
 
                   d2.push_modifiers
 
@@ -795,52 +789,7 @@ class CompilerTestCase < ParseTreeTestCase
                   bottom.set!
 
                   d2.pop_modifiers
-                  d2.pop_modifiers
-                  d2.ret # TODO: maybe refactor this into create_block_desc
                 end
-
-                top         = d.new_label
-                dunno1      = d.new_label
-                long_return = d.new_label
-                dunno2      = d.new_label
-                bottom      = d.new_label
-
-                top.set!
-
-                d.push_cpath_top
-                d.find_const :LongReturnException
-                d.send :allocate, 0
-                d.set_local 0
-                d.pop
-
-                d.send_with_block :new, 0, false
-
-                d.goto bottom
-
-                dunno1.set!
-
-                d.push_exception
-                d.dup
-                d.push_local 0
-                d.equal
-                d.gif long_return
-                d.clear_exception
-
-                d.dup
-                d.send :is_return, 0
-                d.gif dunno2
-                d.send :value, 0
-                d.ret
-
-                long_return.set!
-
-                d.raise_exc
-
-                dunno2.set!
-
-                d.send :value, 0
-
-                bottom.set!
               end
             end)
 

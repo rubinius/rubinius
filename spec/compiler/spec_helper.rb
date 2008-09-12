@@ -217,7 +217,7 @@ class TestGenerator
     self.push_literal desc
   end
 
-  def in_block_send msg, block_arg_count, call_arg_count = 0
+  def in_block_send msg, block_arg_count, call_arg_count=0, block_send_vis=true
     self.create_block_desc do |d|
       top = d.new_label
 
@@ -260,7 +260,7 @@ class TestGenerator
     self.set_local 0
     self.pop
 
-    self.send_with_block msg, call_arg_count, true
+    self.send_with_block msg, call_arg_count, block_send_vis
     self.goto bottom
 
     dunno1.set!
