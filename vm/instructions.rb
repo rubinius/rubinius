@@ -1374,18 +1374,18 @@ class Instructions
   end
 
   # [Operation]
-  # Used for non-dynamic 'yield' calls and for simple sends with static args
+  #   Used for non-dynamic 'yield' calls and for simple calls with static args
   # [Format]
-  # \meta_send_call count
+  #   \meta_send_call count
   # [Stack Before]
-  # * argN
-  # * ...
-  # * arg1
-  # * receiver
+  #   * argN
+  #   * ...
+  #   * arg1
+  #   * receiver
   # [Stack After]
-  # * retval
+  #   * retval
   # [Description]
-  # Simplified call instruction used for yields and basic sends
+  #   Simplified call instruction used for yields and basic calls
 
   def meta_send_call(count)
     <<-CODE
@@ -1397,6 +1397,45 @@ class Instructions
     }
 
     return send_slowly(task, js, G(sym_call), count);
+    CODE
+  end
+
+  def test_meta_send_call
+    <<-CODE
+    CompiledMethod* block_method = CompiledMethod::create(state);
+    block_method->iseq = InstructionSequence::create(state, 2);
+    block_method->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_push_true));
+    block_method->iseq->opcodes->put(state, 1, Fixnum::from(InstructionSequence::insn_ret));
+    block_method->total_args = Fixnum::from(2);
+    block_method->required_args = Fixnum::from(2);
+    block_method->stack_size = Fixnum::from(10);
+    block_method->formalize(state);
+
+    task->literals->put(state, 0, block_method);
+
+    /* Run the create_block instruction, since that is how BlockEnvs are created */
+    stream[0] = InstructionSequence::insn_create_block;
+    stream[1] = (opcode)0; /* Create a BlockEnv from index 0 */
+
+    run();
+
+    BlockEnvironment* block = as<BlockEnvironment>(task->pop());
+
+    stream[0] = InstructionSequence::insn_meta_send_call;
+    stream[1] = (opcode)2;
+
+    task->push(block);
+    task->push(Qnil); /* arg1 */
+    task->push(Qfalse); /* arg2 */
+
+    run();
+
+    Tuple* args = as<Tuple>(task->pop());
+    TS_ASSERT_EQUALS(Qnil, args->at(0));
+    TS_ASSERT_EQUALS(Qfalse, args->at(1));
+
+    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_push_true), task->active->cm->iseq->opcodes->at(0));
+    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_ret), task->active->cm->iseq->opcodes->at(1));
     CODE
   end
 
