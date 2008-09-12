@@ -135,7 +135,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(state, 1024);
     OBJECT obj, obj2;
 
-    obj =  om.allocate_bytes(3);
+    obj =  om.new_object_bytes(G(object), 3);
     obj2 = om.allocate_object(3);
 
     /* Force obj2 to appear in the body, but it should be seen as
@@ -294,7 +294,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(state, 1024);
     OBJECT obj;
 
-    obj = om.allocate_bytes(3);
+    obj = om.new_object_bytes(G(object), 3);
     obj->bytes[0] = 47;
 
     Roots roots(0);
