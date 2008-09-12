@@ -215,7 +215,7 @@ class Compiler
 
   def into_script(sexp)
     begin
-      convert_sexp([:script, sexp])
+      convert_sexp(s(:script, sexp))
     rescue Object => e
       puts "Compilation error detected: #{e.message}"
       puts "   near #{@file}:#{@line}"

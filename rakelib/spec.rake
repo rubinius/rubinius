@@ -117,7 +117,7 @@ namespace :spec do
     sh "bin/mspec ci -j -t #{spec_target} -B full.mspec"
   end
 
-  spec_targets = %w(compiler core language library parser rubinius)
+  spec_targets = %w(core language library parser rubinius)
   # Build a spec:<task_name> for each group of Rubinius specs
   spec_targets.each do |group|
     desc "Run #{group} examples"
@@ -125,6 +125,12 @@ namespace :spec do
       sh "bin/mspec spec/#{group}"
     end
   end
+
+  desc "Run compiler examples"
+  task :compiler do
+    sh "bin/mspec -tr spec/compiler"
+  end
+
 
   desc "Run subtend (Rubinius C API) examples"
   task :subtend => "spec:setup:subtend" do

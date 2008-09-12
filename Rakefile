@@ -14,7 +14,7 @@ RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
 # require 'rakelib/const_generator'
 # require 'rakelib/types_generator'
 
-task :default => %w[build vm:test]
+task :default => %w[build vm:test spec:compiler]
 
 desc "Compile the given ruby file into a .rbc file"
 task :compile_ruby, :file do |task, args|
