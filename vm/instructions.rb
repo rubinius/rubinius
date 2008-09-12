@@ -1403,15 +1403,15 @@ class Instructions
   def test_meta_send_call
     <<-CODE
     CompiledMethod* block_method = CompiledMethod::create(state);
-    block_method->iseq = InstructionSequence::create(state, 2);
-    block_method->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_push_true));
-    block_method->iseq->opcodes->put(state, 1, Fixnum::from(InstructionSequence::insn_ret));
-    block_method->total_args = Fixnum::from(2);
-    block_method->required_args = Fixnum::from(2);
-    block_method->stack_size = Fixnum::from(10);
+    block_method->iseq(state, InstructionSequence::create(state, 2));
+    block_method->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_true));
+    block_method->iseq()->opcodes()->put(state, 1, Fixnum::from(InstructionSequence::insn_ret));
+    block_method->total_args(state, Fixnum::from(2));
+    block_method->required_args(state, Fixnum::from(2));
+    block_method->stack_size(state, Fixnum::from(10));
     block_method->formalize(state);
 
-    task->literals->put(state, 0, block_method);
+    task->literals()->put(state, 0, block_method);
 
     /* Run the create_block instruction, since that is how BlockEnvs are created */
     stream[0] = InstructionSequence::insn_create_block;
@@ -1434,8 +1434,8 @@ class Instructions
     TS_ASSERT_EQUALS(Qnil, args->at(0));
     TS_ASSERT_EQUALS(Qfalse, args->at(1));
 
-    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_push_true), task->active->cm->iseq->opcodes->at(0));
-    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_ret), task->active->cm->iseq->opcodes->at(1));
+    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_push_true), task->active()->cm()->iseq()->opcodes()->at(0));
+    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_ret), task->active()->cm()->iseq()->opcodes()->at(1));
     CODE
   end
 
@@ -3569,7 +3569,7 @@ class Instructions
 
   def set_literal(val)
     <<-CODE
-    SET(task->literals(), field[val], stack_top());
+    task->literals()->put(state, val, stack_top());
     CODE
   end
 

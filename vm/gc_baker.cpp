@@ -38,11 +38,8 @@ namespace rubinius {
 
   OBJECT BakerGC::Heap::copy_object(OBJECT orig) {
     OBJECT tmp = (OBJECT)allocate(orig->size_in_bytes());
-    tmp->all_flags   = orig->all_flags;
-    tmp->field_count = orig->field_count;
-    tmp->klass       = orig->klass;
-    tmp->ivars       = orig->ivars;
-    tmp->Forwarded   = 0;
+
+    tmp->initialize_copy(orig, orig->age);
 
     for(size_t i = 0; i < orig->field_count; i++) {
       tmp->field[i] = orig->field[i];

@@ -138,6 +138,8 @@ to be a simple test for that bit pattern.
     uint32_t field_count;
     Class* klass;
     Object* ivars_;
+
+    void initialize_copy(Object* other, unsigned int age);
   };
 
   /* Object access, lowest level. These read and set fields of an OBJECT

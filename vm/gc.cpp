@@ -56,12 +56,9 @@ namespace rubinius {
       if(slot) object_memory->set_class(obj, slot);
     }
 
-    if(obj->ivars && obj->ivars->reference_p()) {
-      slot = saw_object(obj->ivars);
-      if(slot) {
-        obj->ivars = slot;
-        object_memory->write_barrier(obj, slot);
-      }
+    if(obj->ivars() && obj->ivars()->reference_p()) {
+      slot = saw_object(obj->ivars());
+      if(slot) obj->ivars(object_memory->state, slot);
     }
 
     TypeInfo* ti = object_memory->type_info[obj->obj_type];
