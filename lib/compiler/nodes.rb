@@ -1068,7 +1068,7 @@ class Compiler
         # sexp[1] is the enumeration for each
         # sexp[2] is the arguments
         # sexp[3] is the body, if any
-        sexp = [sexp[0], [:call, sexp[1], :each], sexp[2], sexp[3]]
+        sexp = s(sexp[0], s(:call, sexp[1], :each), sexp[2], sexp[3])
         super(compiler, sexp)
       end
 
@@ -1095,7 +1095,7 @@ class Compiler
         set(:iter) do
           @locals = get(:scope).new_block_scope do
             set(:iter_args) do
-             sexp[1] = convert([:iter_args, sexp[1]]) # local var assignment
+             sexp[1] = convert(s(:iter_args, sexp[1])) # local var assignment
             end
 
             sexp[2] = convert(sexp[2]) # body

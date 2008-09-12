@@ -425,6 +425,7 @@ def gen(sexp, plugins=[])
 
   yield expected
 
+  sexp = Sexp.from_array sexp
   @node = @comp.convert_sexp s(:snippit, sexp)
   actual = TestGenerator.new
   @node.bytecode actual
