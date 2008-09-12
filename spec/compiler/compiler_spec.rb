@@ -1476,71 +1476,9 @@ class CompilerTestCase < ParseTreeTestCase
               g.push :self
               g.push_unique_literal :b
 
-              g.create_block_desc do |d|
-                dunno1 = d.new_label
-
-                d.pop
-                d.push_modifiers
-                dunno1.set!
+              g.in_block_send :a, 0, 1 do |d|
                 d.push_unique_literal :c
-                d.pop_modifiers
-                d.ret
               end
-
-              top         = g.new_label
-              bottom      = g.new_label
-              long_return = g.new_label
-              exc_start   = g.new_label
-              no_return   = g.new_label
-
-              top.set!
-              g.push_cpath_top
-              g.find_const :LongReturnException
-              g.send :allocate, 0
-              g.set_local 0
-              g.pop
-
-              g.send_with_block :a, 1, true
-
-              # No exception, we're done.
-              g.goto bottom
-
-              # An exception was raised.
-              exc_start.set!
-              g.push_exception
-              g.dup
-              g.push_local 0
-              g.equal
-              g.gif long_return
-
-              g.clear_exception
-              g.dup
-              g.send :is_return, 0 # TODO: is_return?!? what is this, java?
-              g.gif no_return
-
-              g.send :value, 0
-              g.ret
-
-              long_return.set!
-              # TODO: why isn't this up above? why goto?
-              # [EMP] This the branch for when the exception was not the
-              # LongReturnException we setup before we did the send.
-              #
-              # In that case, we want to let it continue to raise upward.
-              g.raise_exc
-
-              no_return.set!
-
-              # TODO: why is this the same in both cases?
-              # [EMP] This is the same as above because the above case gets
-              # the value then returns, because thats for the case when there
-              # was a 'return' within the block (a non-local return).
-              #
-              # This case is for when there is a 'break' in a block. Break passes
-              # a value out too, so we push that value on the stack.
-              g.send :value, 0
-
-              bottom.set!
             end)
 
   add_tests("fcall_index_space",
@@ -1981,6 +1919,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("postexe",
             "Compiler" => bytecode do |g|
+              g.push :self
               in_block_send :at_exit, 0 do |d|
                 d.push 1
               end
@@ -1988,6 +1927,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("proc_args_0",
             "Compiler" => bytecode do |g|
+              g.push :self
               in_block_send :proc, 0 do |d|
                 d.push :self
                 d.send :x, 0, true
@@ -1998,6 +1938,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("proc_args_1",
             "Compiler" => bytecode do |g|
+              g.push :self
               in_block_send :proc, 1 do |d|
                 d.push_local_depth 0, 0
                 d.push 1
@@ -2007,6 +1948,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("proc_args_2",
             "Compiler" => bytecode do |g|
+              g.push :self
               in_block_send :proc, 2 do |d|
                 d.push_local_depth 0, 0
                 d.push_local_depth 0, 1

@@ -217,19 +217,18 @@ class TestGenerator
     self.push_literal desc
   end
 
-  def in_block_send msg, arg_count
-    self.push :self
+  def in_block_send msg, block_arg_count, call_arg_count = 0
     self.create_block_desc do |d|
       top = d.new_label
 
-      case arg_count
+      case block_arg_count
       when 0 then
       when 1 then
         d.cast_for_single_block_arg
         d.set_local_depth 0, 0
       else
         d.cast_for_multi_block_arg
-        (0...arg_count).each do |n|
+        (0...block_arg_count).each do |n|
           d.shift_tuple
           d.set_local_depth 0, n
           d.pop
@@ -261,7 +260,7 @@ class TestGenerator
     self.set_local 0
     self.pop
 
-    self.send_with_block msg, 0, true
+    self.send_with_block msg, call_arg_count, true
     self.goto bottom
 
     dunno1.set!
