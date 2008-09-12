@@ -39,6 +39,8 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
 
+task :bogo_field_extract => TYPE_GEN
+
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
 # for compactlookuptable.hpp has to come after tuple.hpp

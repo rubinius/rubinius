@@ -11,12 +11,12 @@ namespace :debug do
 
     exclude = Regexp.new(args[:exclude]) if args[:exclude]
     include = Regexp.new(args[:include]) if args[:exclude]
-    minimum = (args[:minimum] || 0).to_i
+    minimum = (args[:minimum] || 10).to_i
 
     graph = Graph.new
 
     Rake::Task.tasks.each do |task|
-      next if task.name =~ /^stats|^vm\/.depends.mf$/ # too many
+      next unless task.name =~ /^vm/
       next if include and task.name !~ include
       next if exclude and task.name =~ exclude
 
@@ -39,7 +39,7 @@ namespace :debug do
         invert_graph.attribs[key] << "color = orange"
       end
     end
-    
+
     open 'rubinius_tasks.dot', 'w' do |io| io << invert_graph end
   end
 
@@ -73,6 +73,16 @@ namespace :debug do
     puts all.join("\n")
   end
 
+  def print_deps(task, depth = 0, done = {})
+    deps = Rake::Task.tasks.select { |t| t.prerequisites.include? task.name }
+    deps.each do |dep|
+      next if done[dep.name]
+      done[dep.name] = true
+      puts "#{'  ' * depth}#{dep.name}"
+      print_deps(dep, depth+1, done)
+    end
+  end
+
   desc "Display tasks that depend on a task"
   task :dependees, :task do |_, args|
     raise "supply task argument" unless args[:task]
@@ -81,9 +91,7 @@ namespace :debug do
 
     raise "No such task #{args[:task].inspect}" unless task
 
-    tasks = Rake::Task.tasks.select { |t| t.prerequisites.include? task.name }
-
-    puts tasks.join("\n")
+    print_deps task
   end
 
 end
