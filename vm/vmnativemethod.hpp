@@ -48,6 +48,7 @@ namespace rubinius {
    *  Handles should be used as values only (the copy semantics
    *  are correct.) Pointers to Handles should be unnecessary.
    *
+   *  TODO: Add tests.
    *  TODO: Avoid extra work on Qnil/Qtrue/Qfalse.
    */
   class Handle
@@ -104,6 +105,8 @@ namespace rubinius {
 
   /**
    *  Method context for C-implemented methods.
+   *
+   *  TODO: Add tests.
    */
   class NativeMethodContext
   {

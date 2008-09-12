@@ -84,7 +84,10 @@ namespace rubinius {
    *    Arity -3:   VALUE func(VALUE argument_array);
    *    Arity -2:   VALUE func(VALUE receiver, VALUE argument_array);
    *    Arity -1:   VALUE func(int argument_count, VALUE*, VALUE receiver);
-   *    Otherwise:  VALUE func(VALUE receiver, VALUE arg1[, VALUE arg2, ...]);    // Currently max 10 args
+   *    Otherwise:  VALUE func(VALUE receiver, VALUE arg1[, VALUE arg2, ...]);
+   *
+   *  @note   Currently supports functions with up to receiver + 5 (separate) arguments only!
+   *          Anything beyond that should use one of the special arities instead.
    *
    *  TODO:   Argument count check?
    *  TODO:   Check for inefficiencies.
@@ -127,8 +130,59 @@ namespace rubinius {
         break;
       }
 
+      /*
+       *  Normal arg counts
+       *
+       *  Yes, it is ugly as fuck. It is intended as an encouragement
+       *  to get rid of the concept of a separate Handle and Object.
+       */
+
+      case 0: {
+        OneArgFunctor functor = context->method->functor_as<OneArgFunctor>();
+        context->return_value = as<Object>(functor(receiver));
+        break;
+      }
+
+      case 1: {
+        TwoArgFunctor functor = context->method->functor_as<TwoArgFunctor>();
+        context->return_value = as<Object>(functor(receiver, Handle(context->handles, message->arguments->get(context->state, 0))));
+        break;
+      }
+
+      case 2: {
+        ThreeArgFunctor functor = context->method->functor_as<ThreeArgFunctor>();
+        context->return_value = as<Object>(functor( receiver
+                                                  , Handle(context->handles, message->arguments->get(context->state, 0)), Handle(context->handles, message->arguments->get(context->state, 1)) ) );
+        break;
+      }
+
+      case 3: {
+        FourArgFunctor functor = context->method->functor_as<FourArgFunctor>();
+        context->return_value = as<Object>(functor( receiver
+                                                  , Handle(context->handles, message->arguments->get(context->state, 0)), Handle(context->handles, message->arguments->get(context->state, 1))
+                                                  , Handle(context->handles, message->arguments->get(context->state, 2)) ) );
+        break;
+      }
+
+      case 4: {
+        FiveArgFunctor functor = context->method->functor_as<FiveArgFunctor>();
+        context->return_value = as<Object>(functor( receiver
+                                                  , Handle(context->handles, message->arguments->get(context->state, 0)), Handle(context->handles, message->arguments->get(context->state, 1))
+                                                  , Handle(context->handles, message->arguments->get(context->state, 2)), Handle(context->handles, message->arguments->get(context->state, 3)) ) );
+        break;
+      }
+
+      case 5: {
+        SixArgFunctor functor = context->method->functor_as<SixArgFunctor>();
+        context->return_value = as<Object>(functor( receiver
+                                                  , Handle(context->handles, message->arguments->get(context->state, 0)), Handle(context->handles, message->arguments->get(context->state, 1))
+                                                  , Handle(context->handles, message->arguments->get(context->state, 2)), Handle(context->handles, message->arguments->get(context->state, 3))
+                                                  , Handle(context->handles, message->arguments->get(context->state, 4)) ) );
+        break;
+      }
+
       default:
-        sassert(false && "Not a valid arity, wth?");
+        sassert(false && "Not a valid arity");
     }
 
     context->action = NativeMethodContext::RETURN_FROM_C;
