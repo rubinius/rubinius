@@ -141,22 +141,6 @@ namespace rubinius {
     return obj;
   }
 
-  OBJECT ObjectMemory::allocate_bytes(size_t bytes) {
-    const size_t mag = sizeof(OBJECT);
-    size_t fields;
-    size_t needed = bytes + 1;
-    if(needed <= mag) {
-      fields =  1;
-    } else {
-      fields = (needed + (mag - (needed & mag - 1))) / mag;
-    }
-
-    OBJECT obj = allocate_object(fields);
-    obj->init_bytes();
-
-    return obj;
-  }
-
   OBJECT ObjectMemory::allocate_mature(size_t fields, bool bytes) {
     OBJECT obj = mature.allocate(fields, &collect_mature_now);
 

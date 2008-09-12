@@ -53,7 +53,6 @@ namespace rubinius {
     void store_object(OBJECT target, size_t index, OBJECT val);
     void set_class(OBJECT target, OBJECT obj);
     OBJECT allocate_object(size_t fields);
-    OBJECT allocate_bytes(size_t bytes);
     OBJECT allocate_mature(size_t fields, bool bytes = false);
     OBJECT new_object(Class* cls, size_t fields);
     OBJECT new_object_bytes(Class* cls, size_t bytes);
