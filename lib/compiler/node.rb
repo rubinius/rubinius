@@ -74,6 +74,9 @@ class Compiler
     end
 
     def self.create(compiler, sexp)
+      raise ArgumentError, "input must be a Sexp: #{sexp.inspect}" unless
+        Sexp === sexp
+
       sexp.shift
 
       node = new(compiler)

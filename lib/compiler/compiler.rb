@@ -203,6 +203,8 @@ class Compiler
 
   def convert_sexp(sexp)
     return nil if sexp.nil?
+    raise ArgumentError, "input must be a Sexp: #{sexp.inspect}" unless
+      Sexp === sexp
 
     klass = Node::Mapping[sexp.first]
 
