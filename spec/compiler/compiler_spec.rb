@@ -2109,8 +2109,148 @@ class CompilerTestCase < ParseTreeTestCase
               g.string_dup
             end)
 
+#   add_tests("structure_extra_block_for_dvar_scoping",
+#             "Compiler" => bytecode do |g|
+#               g.push :self
+#               g.send :a, 0, true
+
+#               g.in_block_send :b, 2, 0, false do |d|
+#                 f = d.new_label
+#                 wtf = d.new_label
+
+#                 d.push :self
+#                 d.send :e, 0, true
+#                 d.push_local_depth 0, 0
+#                 d.send :f, 1, false
+#                 d.git f
+
+#                 d.push :false
+#                 d.set_local_depth 0, 2
+#                 d.pop
+
+#                 d.push_local_depth 0, 1
+
+#                 d.in_block_send :h, 2, 0, false, wtf do |d2|
+#                   d2.push :true
+#                   d2.set_local_depth 1, 2
+#                 end
+
+#                 f.set!
+#               end
+#             end)
+
+  # FIX OMG this is HORRIBLE but the block-in-a-block scenario is too
+  # intertwined to use the bytecode helper methods. It SHOULD look
+  # something lke the above but nooooooo... that'd be too easy!
   add_tests("structure_extra_block_for_dvar_scoping",
-            "Compiler" => :skip) # ugh... this one is ginormous
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :a, 0, true
+
+             g.in_block_send :b, 2, 0, false do |d|
+                f      = d.new_label
+                bottom = d.new_label
+
+                d.push :self
+                d.send :e, 0, true
+                d.push_local_depth 0, 0
+                d.send :f, 1, false
+                d.git bottom
+
+                d.push :false
+                d.set_local_depth 0, 2
+                d.pop
+
+                d.push_local_depth 0, 1
+
+                ############################################################
+                # d.in_block_send :h, 2, 0, false, :wtf do |d2|
+                d2             = d
+                msg            = :h
+                block_count    = 2
+                call_count     = 0
+                block_send_vis = false
+                wtf            = :wtf
+                top            = d2.new_label
+                dunno1         = d2.new_label
+                dunno2         = d2.new_label
+                dunno3         = d2.new_label
+                dunno4         = d2.new_label
+                uncaught       = d2.new_label
+
+                d2.create_block_desc do |d3|
+                  inner_top = d3.new_label
+
+                  case block_count
+                  when 0 then
+                  when 1 then
+                    d3.cast_for_single_block_arg
+                    d3.set_local_depth 0, 0
+                  else
+                    d3.cast_for_multi_block_arg
+                    (0...block_count).each do |n|
+                      d3.shift_tuple
+                      d3.set_local_depth 0, n
+                      d3.pop
+                    end
+                  end
+
+                  d3.pop
+
+                  d3.push_modifiers
+                  inner_top.set!
+
+                  d3.push :true
+                  d3.set_local_depth 1, 2
+
+                  d3.pop_modifiers
+                  d3.ret
+                end
+
+                top.set!
+
+                d2.push_cpath_top
+                d2.find_const :LongReturnException
+                d2.send :allocate, 0
+                d2.set_local 0
+                d2.pop
+
+                d2.send_with_block msg, call_count, block_send_vis
+                d2.goto dunno3
+
+                dunno1.set!
+
+                d2.push_exception
+                d2.dup
+                d2.push_local 0
+                d2.equal
+                d2.gif uncaught
+                d2.clear_exception
+                d2.dup
+                d2.send :is_return, 0
+                d2.gif dunno2
+
+                uncaught.set!
+                d2.raise_exc
+
+                dunno2.set!
+
+                d2.send :value, 0
+
+                dunno3.set!
+
+                d2.goto f
+
+                bottom.set!
+
+                d2.push :nil
+
+                # end
+                ############################################################
+
+                f.set!
+             end
+            end)
 
   add_tests("structure_remove_begin_1",
             "Compiler" => bytecode do |g|

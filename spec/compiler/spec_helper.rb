@@ -204,18 +204,18 @@ class TestGenerator
     self.push_literal desc
   end
 
-  def in_block_send msg, block_arg_count, call_arg_count=0, block_send_vis=true
+  def in_block_send msg, block_count, call_count=0, block_send_vis=true
     self.create_block_desc do |d|
-      top = d.new_label
+      inner_top = d.new_label
 
-      case block_arg_count
+      case block_count
       when 0 then
       when 1 then
         d.cast_for_single_block_arg
         d.set_local_depth 0, 0
       else
         d.cast_for_multi_block_arg
-        (0...block_arg_count).each do |n|
+        (0...block_count).each do |n|
           d.shift_tuple
           d.set_local_depth 0, n
           d.pop
@@ -225,7 +225,7 @@ class TestGenerator
       d.pop
 
       d.push_modifiers
-      top.set!
+      inner_top.set!
 
       yield d
 
@@ -235,8 +235,9 @@ class TestGenerator
 
     top      = self.new_label
     dunno1   = self.new_label
-    uncaught = self.new_label
     dunno2   = self.new_label
+    dunno3   = self.new_label
+    uncaught = self.new_label
     bottom   = self.new_label
 
     top.set!
@@ -247,7 +248,7 @@ class TestGenerator
     self.set_local 0
     self.pop
 
-    self.send_with_block msg, call_arg_count, block_send_vis
+    self.send_with_block msg, call_count, block_send_vis
     self.goto bottom
 
     dunno1.set!
@@ -261,6 +262,7 @@ class TestGenerator
     self.dup
     self.send :is_return, 0
     self.gif dunno2
+
     self.send :value, 0
     self.ret
 
@@ -269,9 +271,7 @@ class TestGenerator
     self.raise_exc
 
     dunno2.set!
-
     self.send :value, 0
-
     bottom.set!
   end
 
