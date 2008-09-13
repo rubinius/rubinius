@@ -71,6 +71,7 @@ field_extract_headers = %w[
   vm/builtin/methodtable.hpp
   vm/builtin/nativefunction.hpp
   vm/builtin/nativemethod.hpp
+  vm/builtin/nativemethodcontext.hpp
   vm/builtin/regexp.hpp
   vm/builtin/selector.hpp
   vm/builtin/sendsite.hpp
