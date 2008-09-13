@@ -15,6 +15,8 @@
 
 #include "ffi_util.hpp"
 
+extern "C" {
+
 extern char** environ;
 
 int ffi_errno() { return errno; }
@@ -162,4 +164,6 @@ int ffi_fstat(int filedes, struct stat *buf) {
 
 int ffi_lstat(const char *path, struct stat *buf) {
   return lstat(path, buf);
+}
+
 }
