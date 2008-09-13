@@ -9,6 +9,7 @@
 #include "vm.hpp"
 
 #include "vmnativemethod.hpp"
+#include "builtin/nativemethodcontext.hpp"
 
 
 namespace rubinius {
@@ -17,7 +18,7 @@ namespace rubinius {
    *  The various special method arities from a
    *  C method. If not one of these, then the
    *  number denotes the exact number of args
-   *  instead.
+   *  in addition to the receiver instead.
    */
   enum Arity {
     ARGS_IN_RUBY_ARRAY = -3,

@@ -13,6 +13,7 @@
 /* Testee */
 #include "vmnativemethod.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/nativemethodcontext.hpp"
 
 
 static NativeMethodContext* hidden_context = NULL;
