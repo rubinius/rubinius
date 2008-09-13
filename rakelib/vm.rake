@@ -104,9 +104,9 @@ end
 
 INCLUDES    = (EX_INC + %w[vm/test/cxxtest vm .]).map { |f| "-I#{f}" }
 if ENV["DEV"]
-  FLAGS       = %w(-Wall -Werror -ggdb3 -gdwarf-2 -O0 -fno-inline-functions)
+  FLAGS       = %w(-Wall -Werror -ggdb3 -gdwarf-2 -O0 -fno-inline-functions -Wno-deprecated)
 else
-  FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2)
+  FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated)
 end
 CC          = ENV['CC'] || "gcc"
 
@@ -222,7 +222,7 @@ file 'vm/test/runner.cpp' => tests + objs do
   puts "GEN vm/test/runner.cpp" unless $verbose
   tests << { :verbose => $verbose }
   sh("vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
-     "--abort-on-fail", "-o", "vm/test/runner.cpp", *tests)
+     "--abort-on-fail", "-include=string.h", "-include=stdlib.h", "-o", "vm/test/runner.cpp", *tests)
 end
 
 file 'vm/test/runner.o' => 'vm/test/runner.cpp' # no rule .o => .cpp
