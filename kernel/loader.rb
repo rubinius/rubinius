@@ -89,7 +89,7 @@ show_selectors = false
 show_sendsites = false
 
 # Setup the proper staticscope
-MethodContext.current.method.staticscope = StaticScope.new(Object)
+MethodContext.current.method.scope = StaticScope.new(Object)
 
 TOPLEVEL_BINDING = binding()
 

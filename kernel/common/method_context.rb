@@ -232,7 +232,7 @@ class MethodContext
   end
 
   def const_defined?(name)
-    scope = method.staticscope
+    scope = method.scope
     while scope and scope.module != Object
       return true if scope.module.const_defined?(name)
       scope = scope.parent
@@ -249,7 +249,7 @@ class MethodContext
     parts = path.split("::")
     top = parts.shift
 
-    scope = method.staticscope
+    scope = method.scope
 
     while scope
       mod = top.to_s !~ /self/ ? scope.module.__send__(:recursive_const_get, top, false) : scope.module
@@ -274,7 +274,7 @@ class MethodContext
   end
 
   def current_scope
-    if ss = method.staticscope
+    if ss = method.scope
       return ss.module
     else
       return method_module
@@ -297,7 +297,7 @@ class MethodContext
   # attached to it. Return that object.
 
   def script_object
-    if ss = method.staticscope
+    if ss = method.scope
       while ss and !ss.script
         ss = ss.parent
       end
@@ -357,11 +357,11 @@ class MethodContext
     obj.serial = 1
 
     # Push the scoping down.
-    obj.staticscope = s.method.staticscope
+    obj.scope = s.method.scope
 
     Rubinius::VM.reset_method_cache(name)
 
-    obj.staticscope.module.method_table[name] = Tuple[visibility, obj]
+    obj.scope.module.method_table[name] = Tuple[visibility, obj]
 
     if scope == :module
       s.current_scope.module_function name

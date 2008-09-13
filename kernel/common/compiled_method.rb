@@ -33,7 +33,7 @@ end
 #
 # You can access it this way:
 #
-#   MethodContext.current.method.staticscope
+#   MethodContext.current.method.scope
 #
 # Here is a simple example:
 #
@@ -42,7 +42,7 @@ end
 #       attr_reader :initialize_scope
 #   
 #       def initialize(weight)
-#         @initialize_scope = MethodContext.current.method.staticscope
+#         @initialize_scope = MethodContext.current.method.scope
 #         @weight = weight
 #       end
 #     end
@@ -122,7 +122,8 @@ class CompiledMethod < Executable
   attr_accessor :lines
   attr_accessor :file
   attr_accessor :local_names
-  attr_accessor :staticscope
+  attr_accessor :scope
+  attr_accessor :serial
 
   def ==(other)
     return false unless other.kind_of?(CompiledMethod)
@@ -160,7 +161,7 @@ class CompiledMethod < Executable
   end
 
   def inherit_scope(other)
-    if ss = other.staticscope
+    if ss = other.scope
       @scope = ss
     else
       @scope = StaticScope.new(Object)
