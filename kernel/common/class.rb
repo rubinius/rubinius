@@ -18,10 +18,10 @@
 #       old_new(*args)
 #     end
 #   end
-#   
+#
 #   class Name
 #   end
-#   
+#
 #   n = Name.new
 #
 # *produces:*
@@ -95,29 +95,25 @@ end
 class MetaClass
 
   ##
-  # Called when <tt>def obj.name</tt> syntax is used in userland
-
-  def attach_method(name, object)
+  # Called to perform adding a singleton method to an
+  # object when the singleton method definition occurs
+  # in normal user code.
+  #
+  def attach_method(name, executable)
     # All userland added methods start out with a serial of 1.
-    object.serial = 1
+    executable.serial = 1
 
-    cur = method_table[name]
+    method_table[name] = CompiledMethod::Visibility.new executable, :public
 
-    unless cur.kind_of? Executable then
-      cur.executable = object
-    else
-      method_table[name] = CompiledMethod::Visibility.new object, :public
-    end
-
-    object.inherit_scope MethodContext.current.sender.method
+    executable.inherit_scope MethodContext.current.sender.method
     Rubinius::VM.reset_method_cache(name)
 
-    # Call singleton_method_added on the object in question. There is
+    # Call singleton_method_added on the executable in question. There is
     # a default version in Kernel which does nothing, so we can always
     # call this.
     attached_instance.__send__ :singleton_method_added, name
 
-    return object
+    executable
   end
 
   def set_superclass(obj)
@@ -126,5 +122,5 @@ class MetaClass
 
   def inspect
     "#<MetaClass #{attached_instance.inspect}>"
-  end  
+  end
 end

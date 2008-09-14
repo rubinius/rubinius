@@ -527,7 +527,7 @@ module Kernel
   def instance_exec(*args, &prc)
     raise ArgumentError, "Missing block" unless block_given?
     env = prc.block.redirect_to self
-    env.method.staticscope = StaticScope.new(metaclass, env.method.staticscope)
+    env.method.scope = StaticScope.new(metaclass, env.method.scope)
     env.call(*args)
   end
 

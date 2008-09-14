@@ -249,7 +249,9 @@ will need to cast the value you are passing. For example, to set
 message_ to Qnil, you need to do the following:
 
   Exception* exc = ...
-  exc->message(state, (String*)Qnil);
+  exc->message(state, static_cast<String*>Qnil);
+
+(The cast requirement will probably go away soon.)
 
 
 === Primitives

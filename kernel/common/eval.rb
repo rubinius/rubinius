@@ -44,12 +44,12 @@ module Kernel
     end
 
     compiled_method = Compile.compile_string string, binding.context, filename, lineno
-    compiled_method.staticscope = binding.context.method.staticscope.dup
+    compiled_method.scope = binding.context.method.scope.dup
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
     script.path = filename
-    compiled_method.staticscope.script = script
+    compiled_method.scope.script = script
 
     be = BlockEnvironment.new
     be.under_context binding.context, compiled_method
@@ -97,8 +97,8 @@ module Kernel
       end
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block.redirect_to self
-      env.method.staticscope = StaticScope.new(__metaclass__, env.method.staticscope)
-      original_scope = prc.block.home.method.staticscope
+      env.method.scope = StaticScope.new(__metaclass__, env.method.scope)
+      original_scope = prc.block.home.method.scope
       env.constant_scope = original_scope
       return env.call(*self)
     elsif string
@@ -116,17 +116,17 @@ module Kernel
       # If this is a module_eval style evaluation, add self to the top of the
       # staticscope chain, so that methods and such are added directly to it.
       if modeval
-        compiled_method.staticscope = StaticScope.new(self, compiled_method.staticscope)
+        compiled_method.scope = StaticScope.new(self, compiled_method.scope)
       else
 
       # Otherwise add our metaclass, so thats where new methods go.
-        compiled_method.staticscope = StaticScope.new(metaclass, compiled_method.staticscope)
+        compiled_method.scope = StaticScope.new(metaclass, compiled_method.scope)
       end
 
       # This has to be setup so __FILE__ works in eval.
       script = CompiledMethod::Script.new
       script.path = filename
-      compiled_method.staticscope.script = script
+      compiled_method.scope.script = script
 
       be = BlockEnvironment.new
       be.from_eval!
@@ -156,7 +156,7 @@ class Module
       end
 
       env = prc.block.redirect_to self
-      env.method.staticscope = StaticScope.new(self, env.method.staticscope)
+      env.method.scope = StaticScope.new(self, env.method.scope)
       return env.call()
     elsif string.equal?(Undefined)
       raise ArgumentError, 'block not supplied'
@@ -169,14 +169,14 @@ class Module
     compiled_method = Compile.compile_string string, context, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
-    ss = StaticScope.new(self, context.method.staticscope)
+    ss = StaticScope.new(self, context.method.scope)
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
     script.path = filename
     ss.script = script
 
-    compiled_method.staticscope = ss
+    compiled_method.scope = ss
 
     # The gist of this code is that we need the receiver's static scope
     # but the caller's binding to implement the proper constant behavior
@@ -187,7 +187,7 @@ class Module
     be.home.receiver = self
     be.home.make_independent
     # open_module and friends in the VM use this field to determine scope
-    be.home.method.staticscope = ss
+    be.home.method.scope = ss
     be.call
   end
   alias_method :class_eval, :module_eval
@@ -196,7 +196,7 @@ class Module
     raise "not yet" unless block
 
     env = block.block.redirect_to self
-    env.method.staticscope = StaticScope.new(self, env.method.staticscope)
+    env.method.scope = StaticScope.new(self, env.method.scope)
 
     return env.call(*args)
   end

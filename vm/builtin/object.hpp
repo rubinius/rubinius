@@ -5,11 +5,12 @@
 #include "prelude.hpp"
 
 namespace rubinius {
+
 /**
 * Create a writer method.
 *
 * For attr_writer(foo, SomeClass), creates void foo(STATE, SomeClass* obj)
-* that sets the instance variable my_foo to the object given and runs the write
+* that sets the instance variable foo_ to the object given and runs the write
 * barrier.
 */
 #define attr_writer(name, type) void name(STATE, type* obj) { \
@@ -21,7 +22,7 @@ namespace rubinius {
 * Create a reader method.
 *
 * For attr_reader(foo, SomeClass), creates SomeClass* foo() which returns the
-* instance variable my_foo.
+* instance variable foo_.
 */
 #define attr_reader(name, type) type* name() { return name ## _; }
 

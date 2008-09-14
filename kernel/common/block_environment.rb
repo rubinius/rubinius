@@ -118,7 +118,7 @@ class BlockEnvironment
   end
 
   def constant_scope
-    @constant_scope ||= @method.staticscope
+    @constant_scope ||= @method.scope
   end
 end
 

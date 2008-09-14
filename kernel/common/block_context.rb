@@ -68,7 +68,7 @@ class BlockContext < MethodContext
   # Static scope of home method context.
 
   def current_scope
-    if ss = method.staticscope
+    if ss = method.scope
       return ss.module
     else
       home.current_scope
