@@ -32,7 +32,7 @@ class Compiler
 
   def self.compile_file(path, flags=nil)
     process_flags(flags)
-    sexp = File.to_sexp(path, true)
+    sexp = File.to_sexp(path)
 
     comp = new(Generator)
     node = comp.into_script(sexp)
