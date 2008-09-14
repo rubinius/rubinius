@@ -329,6 +329,9 @@ class CompilerTestCase < ParseTreeTestCase
               g.send_with_splat :m, 2, false, false
             end)
 
+  add_tests("call_arglist_space",
+            "Compiler" => :skip)
+
   add_tests("call_command",
             "Compiler" => bytecode do |g|
               g.push 1
@@ -1525,6 +1528,9 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("iterationA", # TODO: rename all of these
+            "Compiler" => :skip)
+
+  add_tests("iteration_call_arglist_space",
             "Compiler" => :skip)
 
   add_tests("iteration_dasgn_curr_dasgn_madness",
