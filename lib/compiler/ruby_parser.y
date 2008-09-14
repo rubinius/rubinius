@@ -284,8 +284,8 @@ command      : operation command_args =tLOWEST {
                    if result[0] == :block_pass then
                       raise "both block arg and actual block given"
                    end
-                   val[2] << result
-                   result = val[2]
+                   result, operation = val[2], result
+                   result.insert 1, operation
                  end
                }
              | primary_value tDOT operation2 command_args =tLOWEST {
@@ -721,7 +721,8 @@ call_args    : command {
              | block_arg
 
 call_args2    : arg_value ',' args opt_block_arg {
-                  result = self.arg_blk_pass(s(:array, val[0], val[2]), val[3])
+                  args = self.list_prepend(val[0], val[2])
+                  result = self.arg_blk_pass(args, val[3])
                  }
              | arg_value ',' block_arg {
                   result = self.arg_blk_pass(val[0], val[2]);
@@ -798,13 +799,11 @@ args         : arg_value {
                  result = s(:array, val[0])
                }
              | args ',' arg_value {
-                 result = val[0] << val[2]
-                 # result = self.list_append(val[0], val[2]) # TODO? breaks stuff
+                 result = self.list_append(val[0], val[2])
                }
 
 mrhs         : args ',' arg_value {
                  result = val[0] << val[2]
-                 # result = self.list_append(val[0], val[2]) # TODO? breaks stuff
                }
              | args ',' tSTAR arg_value {
                  result = self.arg_concat(val[0], val[3])

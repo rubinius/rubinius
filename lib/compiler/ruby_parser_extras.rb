@@ -120,7 +120,7 @@ class RubyParser < Racc::Parser
     return s(:argspush, node1, node2)
   end
 
-  def arg_blk_pass node1, node2
+  def arg_blk_pass node1, node2 # TODO: nuke
     if node2 then
       node2.insert 1, node1
       return node2
@@ -328,7 +328,14 @@ class RubyParser < Racc::Parser
 
   def list_append list, item # TODO: nuke me *sigh*
     return s(:array, item) unless list
+    list = s(:array, list) unless Sexp === list && list.first == :array
     list << item
+  end
+
+  def list_prepend item, list # TODO: nuke me *sigh*
+    list = s(:array, list) unless Sexp === list && list[0] == :array
+    list.insert 1, item
+    list
   end
 
   def literal_concat head, tail
@@ -831,7 +838,7 @@ class Sexp
   alias :real_inspect :inspect
   def inspect # :nodoc:
     sexp_str = self.map {|x|x.inspect}.join(', ')
-    if line then
+    if line && !ENV['SHUT_UP'] then
       "s(#{sexp_str}).line(#{line})"
     else
       "s(#{sexp_str})"

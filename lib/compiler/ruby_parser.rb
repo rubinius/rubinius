@@ -3229,8 +3229,8 @@ def _reduce_54(val, _values, result)
                    if result[0] == :block_pass then
                       raise "both block arg and actual block given"
                    end
-                   val[2] << result
-                   result = val[2]
+                   result, operation = val[2], result
+                   result.insert 1, operation
                  end
                
     result
@@ -4103,7 +4103,8 @@ end
 # reduce 238 omitted
 
 def _reduce_239(val, _values, result)
-                  result = self.arg_blk_pass(s(:array, val[0], val[2]), val[3])
+                  args = self.list_prepend(val[0], val[2])
+                  result = self.arg_blk_pass(args, val[3])
                  
     result
 end
@@ -4241,15 +4242,13 @@ def _reduce_261(val, _values, result)
 end
 
 def _reduce_262(val, _values, result)
-                 result = val[0] << val[2]
-                 # result = self.list_append(val[0], val[2]) # TODO? breaks stuff
+                 result = self.list_append(val[0], val[2])
                
     result
 end
 
 def _reduce_263(val, _values, result)
                  result = val[0] << val[2]
-                 # result = self.list_append(val[0], val[2]) # TODO? breaks stuff
                
     result
 end

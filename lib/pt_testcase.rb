@@ -851,6 +851,15 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                     s(:lit, :a), s(:lit, 1),
                                     s(:lit, :b), s(:lit, 2)))))
 
+  add_tests("call_arglist_space",
+            "Ruby"         => "a (1,2,3)",
+            "RawParseTree" => [:fcall, :a,
+                               [:array, [:lit, 1], [:lit, 2], [:lit, 3]]],
+            "ParseTree"    => s(:call, nil, :a,
+                                s(:arglist,
+                                  s(:lit, 1), s(:lit, 2), s(:lit, 3))),
+            "Ruby2Ruby"    => "a(1, 2, 3)")
+
   add_tests("call_arglist_norm_hash_splat",
             "Ruby"         => "o.m(42, :a => 1, :b => 2, *c)",
             "RawParseTree" => [:call,
@@ -2797,6 +2806,18 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                 s(:call, nil, :p,
                                   s(:arglist, s(:call, nil, :c, s(:arglist))))))
 
+  add_tests("iteration_call_arglist_space",
+            "Ruby" => "a (1) {|c|d}",
+            "RawParseTree" => [:iter,
+                               [:fcall, :a, [:array, [:lit, 1]]],
+                               [:dasgn_curr, :c],
+                               [:vcall, :d]],
+            "ParseTree"    => s(:iter,
+                                s(:call, nil, :a, s(:arglist, s(:lit, 1))),
+                                s(:lasgn, :c),
+                                s(:call, nil, :d, s(:arglist))),
+            "Ruby2Ruby"    => "a(1) { |c| d }")
+
   add_tests("iteration_dasgn_curr_dasgn_madness",
             "Ruby"         => "as.each { |a|\n  b += a.b(false) }",
             "RawParseTree" => [:iter,
@@ -3737,7 +3758,7 @@ class ParseTreeTestCase < Test::Unit::TestCase
             "Ruby2Ruby"    => '"file = (string)\\n"')
 
   add_tests("structure_extra_block_for_dvar_scoping",
-            "Ruby"         => "a.b do |c, d|\n  unless e.f(c) then\n    g = false\n    d.h { |x, i| g = true }\n  end\nend", # FIX: don't like the extra return
+            "Ruby"         => "a.b do |c, d|\n  unless e.f(c) then\n    g = false\n    d.h { |x, i| g = true }\n  end\nend",
             "RawParseTree" => [:iter,
                                [:call, [:vcall, :a], :b],
                                [:masgn, [:array,
