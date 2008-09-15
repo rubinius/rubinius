@@ -62,20 +62,22 @@ class TestVM : public CxxTest::TestSuite {
   }
 
   void test_globals() {
-    TS_ASSERT_EQUALS(state->globals.roots.size(), 128U);
+    TS_ASSERT_EQUALS(state->globals.roots.size(), 119U);
   }
 
   void test_collection() {
     std::map<int, OBJECT> objs;
 
     int index = 0;
-    Roots::iterator i;
-    for(i = state->globals.roots.begin(); i != state->globals.roots.end(); i++) {
-      OBJECT tmp = (*i)->get();
+    Root* root = static_cast<Root*>(state->globals.roots.head());
+    while(root) {
+      OBJECT tmp = root->get();
       if(tmp->reference_p() && tmp->zone == YoungObjectZone) {
         objs[index] = tmp;
       }
       index++;
+
+      root = static_cast<Root*>(root->next());
     }
 
     //std::cout << "young: " << index << " (" <<
@@ -84,11 +86,14 @@ class TestVM : public CxxTest::TestSuite {
     state->om->collect_young(state->globals.roots);
 
     index = 0;
-    for(i = state->globals.roots.begin(); i != state->globals.roots.end(); i++) {
+    root = static_cast<Root*>(state->globals.roots.head());
+    while(root) {
       if(OBJECT tmp = objs[index]) {
-        TS_ASSERT((*i)->get() != tmp);
+        TS_ASSERT(root->get() != tmp);
       }
       index++;
+
+      root = static_cast<Root*>(root->next());
     }
 
     HeapDebug hd(state->om);

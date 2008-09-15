@@ -116,12 +116,14 @@ namespace rubinius {
   void MarkSweepGC::collect(Roots &roots) {
     OBJECT tmp;
 
-    Roots::iterator i;
-    for(i = roots.begin(); i != roots.end(); i++) {
-      tmp = (*i)->get();
+    Root* root = static_cast<Root*>(roots.head());
+    while(root) {
+      tmp = root->get();
       if(tmp->reference_p()) {
         saw_object(tmp);
       }
+
+      root = static_cast<Root*>(root->next());
     }
 
     // Cleanup all weakrefs seen

@@ -2,37 +2,47 @@
 #define RBX_GC_ROOT_HPP
 
 #include "prelude.hpp"
-#include <list>
 #include <stdexcept>
+
+#include "linkedlist.hpp"
 
 namespace rubinius {
   class Root;
 
-  typedef std::list<Root*> Roots;
-
-  class Root {
+  class Roots : public LinkedList {
   public:
+    Roots(size_t _dummy = 0) : LinkedList() { }
+    Root* front();
+  };
+
+  class Root : public LinkedList::Node {
+  protected:
     OBJECT object;
+
+  private:
     Roots* roots;
 
+  public:
     Root(Roots* roots, OBJECT obj) : object(obj), roots(roots) {
-      roots->push_back(this);
+      roots->add(this);
     }
 
-    Root(Roots* roots) : object(NULL), roots(roots) {
-      roots->push_back(this);
-    }
+    Root(Roots* roots) : object(NULL), roots(roots) { }
 
     Root(STATE);
     Root(STATE, OBJECT obj);
 
-    Root() : object(NULL), roots(NULL) { }
+    explicit Root() : object(NULL), roots(NULL) { }
 
-    ~Root() {
-      if(roots) roots->remove(this);
+    Root(const Root& other) {
+      set(other.object, other.roots);
     }
 
-    OBJECT get() { 
+    ~Root() {
+      if(roots && object) roots->remove(this);
+    }
+
+    OBJECT get() {
       if(object) {
         return object;
       } else {
@@ -41,30 +51,39 @@ namespace rubinius {
     }
 
     void set(OBJECT obj, Roots* r) {
-      object = obj;
-      roots = r;
-      roots->push_back(this);
-    }
+      // Still in the same set, no problem, just repoint
+      // object.
+      if(roots == r) {
 
-    void set(OBJECT obj) {
-      object = obj;
-      if(!roots) {
-        throw std::runtime_error("invalid Root usage. Set object before roots");
+        // We don't add the root until it's got an object.
+        if(!object) roots->add(this);
+        object = obj;
+
+      // Moving to a new set. Remove ourselves from
+      // the current set if we added ourself (we have an
+      // object)
+      } else {
+        if(object) roots->remove(this);
+        object = obj;
+        roots = r;
+        if(object) roots->add(this);
       }
     }
 
-    void set(Roots* r) {
-      if(roots) roots->remove(this);
-      roots = r;
-      roots->push_back(this);
+    void set(OBJECT obj) {
+      if(!roots) {
+        throw std::runtime_error("invalid Root usage. Set object before roots");
+      }
+
+      set(obj, roots);
     }
 
-    Root operator=(Root& other) {
-      if(roots) roots->remove(this);
-      roots = other.roots;
-      object = other.object;
-      if(roots) roots->push_back(this);
+    void set(Roots* r) {
+      set(object, roots);
+    }
 
+    Root& operator=(Root& other) {
+      set(other.object, other.roots);
       return *this;
     }
   };

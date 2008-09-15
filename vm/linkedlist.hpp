@@ -1,0 +1,65 @@
+#ifndef RBX_LINKEDLIST_HPP
+#define RBX_LINKEDLIST_HPP
+
+#include <stdio.h>
+#include <assert.h>
+
+class LinkedList {
+public:
+
+  class Node {
+  private:
+    Node* next_;
+    Node* prev_;
+
+  public:
+    Node();
+
+    Node* next() {
+      return next_;
+    }
+
+    Node* prev() {
+      return prev_;
+    }
+
+    void set_next(Node* n) {
+      next_ = n;
+    }
+
+    void set_prev(Node* n) {
+      prev_ = n;
+    }
+
+    void remove_linkage() {
+      if(next_) {
+        assert(next_->prev() == this);
+        next_->set_prev(prev_);
+      }
+
+      if(prev_) {
+        assert(prev_->next() == this);
+        prev_->set_next(next_);
+      }
+
+      next_ = NULL;
+      prev_ = NULL;
+    }
+  };
+
+private:
+  Node* head_;
+  size_t count_;
+
+public:
+  LinkedList();
+  Node* head() {
+    return head_;
+  }
+
+  size_t size();
+  void   add(Node*);
+  void   remove(Node*);
+};
+
+#endif

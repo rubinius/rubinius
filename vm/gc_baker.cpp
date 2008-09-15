@@ -133,12 +133,14 @@ namespace rubinius {
 
     delete current_rs;
 
-    Roots::iterator i;
-    for(i = roots.begin(); i != roots.end(); i++) {
-      tmp = (*i)->get();
+    Root* root = static_cast<Root*>(roots.head());
+    while(root) {
+      tmp = root->get();
       if(tmp->reference_p() && tmp->young_object_p()) {
-        (*i)->set(saw_object(tmp));
+        root->set(saw_object(tmp));
       }
+
+      root = static_cast<Root*>(root->next());
     }
 
     /* Ok, now handle all promoted objects. This is setup a little weird
