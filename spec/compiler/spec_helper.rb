@@ -56,6 +56,8 @@ class TestGenerator
   end
 
   def set_label(lbl)
+    raise "Bad set_label: #{lbl.inspect} on #{caller.first}" unless
+      Label === lbl
     @stream << [:set_label, lbl]
   end
 
@@ -94,11 +96,6 @@ class TestGenerator
   def goto x
     raise "Bad goto: #{x.inspect} on #{caller.first}" unless Label === x
     add :goto, x
-  end
-
-  def set_label x
-    raise "Bad set_label: #{x.inspect} on #{caller.first}" unless Label === x
-    add :set_label, x
   end
 
   class Label
