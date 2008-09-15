@@ -9,7 +9,7 @@ public:
 
   void test_create() {
     LinkedList ll;
-    TS_ASSERT_EQUALS(ll.size(), 0);
+    TS_ASSERT_EQUALS(ll.size(), (unsigned)0);
   }
 
   void test_add() {
@@ -21,7 +21,7 @@ public:
     TS_ASSERT(!node.next());
     TS_ASSERT(!node.prev());
 
-    TS_ASSERT_EQUALS(ll.size(), 1);
+    TS_ASSERT_EQUALS(ll.size(), (unsigned)1);
 
     MyNode node2;
 
@@ -33,7 +33,7 @@ public:
     TS_ASSERT_EQUALS(node2.next(), &node);
     TS_ASSERT(!node2.prev());
 
-    TS_ASSERT_EQUALS(ll.size(), 2);
+    TS_ASSERT_EQUALS(ll.size(), (unsigned)2);
   }
 
   void test_remove() {
@@ -44,13 +44,13 @@ public:
     ll.add(&node);
     ll.add(&node2);
 
-    TS_ASSERT_EQUALS(ll.size(), 2);
+    TS_ASSERT_EQUALS(ll.size(), (unsigned)2);
 
     ll.remove(&node);
     TS_ASSERT(!node.next());
     TS_ASSERT(!node.prev());
 
-    TS_ASSERT_EQUALS(ll.size(), 1);
+    TS_ASSERT_EQUALS(ll.size(), (unsigned)1);
 
     TS_ASSERT_EQUALS(ll.head(), &node2);
     TS_ASSERT(!node2.next());
