@@ -10,7 +10,8 @@ namespace rubinius {
       if(obj->obj_type == Executable::type ||
          obj->obj_type == AccessVariableType ||
          obj->obj_type == CMethodType ||
-         obj->obj_type == NativeFuncType) {
+         obj->obj_type == NativeFuncType ||
+         obj->obj_type == NMethodType) {
         return true;
       }
 
