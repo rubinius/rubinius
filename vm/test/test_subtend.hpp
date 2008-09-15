@@ -31,9 +31,9 @@ extern "C" {
     hidden_context = NativeMethodContext::current();
     hidden_ruby_array = as<Array>(ruby_array);
 
-    Object* first = as<Array>(ruby_array)->get(hidden_context->state, 0);
+    Object* first = as<Array>(ruby_array)->get(hidden_context->state(), 0);
 
-    return HandleTo(hidden_context->handles, first);
+    return HandleTo(hidden_context->handles(), first);
   }
 
   HandleTo minus_two_arity(HandleTo receiver, HandleTo ruby_array)
@@ -42,9 +42,9 @@ extern "C" {
     hidden_receiver = as<Object>(receiver);
     hidden_ruby_array = as<Array>(ruby_array);
 
-    Object* first = as<Array>(ruby_array)->get(hidden_context->state, 0);
+    Object* first = as<Array>(ruby_array)->get(hidden_context->state(), 0);
 
-    return HandleTo(hidden_context->handles, first);
+    return HandleTo(hidden_context->handles(), first);
   }
 
   HandleTo minus_one_arity(int argc, HandleTo* args, HandleTo receiver)
@@ -62,7 +62,7 @@ extern "C" {
     hidden_context = NativeMethodContext::current();
     hidden_receiver = as<Object>(receiver);
 
-    return HandleTo(hidden_context->handles, Fixnum::from(1));
+    return HandleTo(hidden_context->handles(), Fixnum::from(1));
   }
 
   HandleTo two_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2)
@@ -70,7 +70,7 @@ extern "C" {
     hidden_context = NativeMethodContext::current();
     hidden_receiver = as<Object>(receiver);
 
-    return HandleTo(hidden_context->handles, Fixnum::from(2));
+    return HandleTo(hidden_context->handles(), Fixnum::from(2));
   }
 
   HandleTo three_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2, HandleTo arg3)
@@ -78,7 +78,7 @@ extern "C" {
     hidden_context = NativeMethodContext::current();
     hidden_receiver = as<Object>(receiver);
 
-    return HandleTo(hidden_context->handles, Fixnum::from(3));
+    return HandleTo(hidden_context->handles(), Fixnum::from(3));
   }
 
   HandleTo four_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2, HandleTo arg3, HandleTo arg4)
@@ -86,7 +86,7 @@ extern "C" {
     hidden_context = NativeMethodContext::current();
     hidden_receiver = as<Object>(receiver);
 
-    return HandleTo(hidden_context->handles, Fixnum::from(4));
+    return HandleTo(hidden_context->handles(), Fixnum::from(4));
   }
 
   HandleTo five_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2, HandleTo arg3, HandleTo arg4, HandleTo arg5)
@@ -94,7 +94,7 @@ extern "C" {
     hidden_context = NativeMethodContext::current();
     hidden_receiver = as<Object>(receiver);
 
-    return HandleTo(hidden_context->handles, Fixnum::from(5));
+    return HandleTo(hidden_context->handles(), Fixnum::from(5));
   }
 }
 
@@ -108,7 +108,7 @@ class TestSubtend : public CxxTest::TestSuite
   Message* my_message;
 
   void setUp() {
-    my_state = new VM(2048);
+    my_state = new VM(65536 * 1000);
     my_task = Task::create(my_state);
     my_message = new Message(my_state);
   }
@@ -138,6 +138,7 @@ class TestSubtend : public CxxTest::TestSuite
     }
 
     my_message->arguments = args;
+    my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(&minus_three_arity, ARGS_IN_RUBY_ARRAY);
 
@@ -153,7 +154,7 @@ class TestSubtend : public CxxTest::TestSuite
       TS_ASSERT_EQUALS(hidden_ruby_array->get(my_state, i), control->get(my_state, i));
     }
 
-    TS_ASSERT_EQUALS(hidden_context->return_value, hidden_ruby_array->get(my_state, 0));
+    TS_ASSERT_EQUALS(hidden_context->return_value(), hidden_ruby_array->get(my_state, 0));
   }
 
   void test_ruby_to_c_call_with_receiver_and_args_as_ruby_array()
@@ -172,6 +173,7 @@ class TestSubtend : public CxxTest::TestSuite
 
     my_message->recv = receiver;
     my_message->arguments = args;
+    my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(&minus_two_arity, RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY);
 
@@ -188,7 +190,7 @@ class TestSubtend : public CxxTest::TestSuite
       TS_ASSERT_EQUALS(hidden_ruby_array->get(my_state, i), control->get(my_state, i));
     }
 
-    TS_ASSERT_EQUALS(hidden_context->return_value, hidden_ruby_array->get(my_state, 0));
+    TS_ASSERT_EQUALS(hidden_context->return_value(), hidden_ruby_array->get(my_state, 0));
   }
 
   void test_ruby_to_c_call_with_arg_count_args_in_c_array_plus_receiver()
@@ -208,6 +210,7 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->recv = receiver;
     my_message->arguments = args;
     my_message->total_args = 10;
+    my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(&minus_one_arity, ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER);
 
@@ -224,7 +227,7 @@ class TestSubtend : public CxxTest::TestSuite
       TS_ASSERT_EQUALS(as<Object>(hidden_c_array[i]), control->get(my_state, i));
     }
 
-    TS_ASSERT_EQUALS(hidden_context->return_value, control->get(my_state, 0));
+    TS_ASSERT_EQUALS(hidden_context->return_value(), control->get(my_state, 0));
   }
 
   /* TODO: Should check object identities too? */
@@ -247,13 +250,14 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->recv = receiver;
     my_message->arguments = args;
     my_message->total_args = arg_count;
+    my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(&one_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
-    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value())->to_int(), arg_count);
   }
 
   void test_ruby_to_c_call_with_recv_plus_two()
@@ -275,13 +279,14 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->recv = receiver;
     my_message->arguments = args;
     my_message->total_args = arg_count;
+    my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(&two_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
-    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value())->to_int(), arg_count);
   }
 
   void test_ruby_to_c_call_with_recv_plus_three()
@@ -303,13 +308,14 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->recv = receiver;
     my_message->arguments = args;
     my_message->total_args = arg_count;
+    my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(&three_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
-    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value())->to_int(), arg_count);
   }
 
   void test_ruby_to_c_call_with_recv_plus_four()
@@ -331,13 +337,14 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->recv = receiver;
     my_message->arguments = args;
     my_message->total_args = arg_count;
+    my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(&four_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
-    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value())->to_int(), arg_count);
   }
 
   void test_ruby_to_c_call_with_recv_plus_five()
@@ -359,13 +366,14 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->recv = receiver;
     my_message->arguments = args;
     my_message->total_args = arg_count;
+    my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(&five_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
-    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value)->to_int(), arg_count);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value())->to_int(), arg_count);
   }
 
 };
