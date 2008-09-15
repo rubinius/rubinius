@@ -8,8 +8,12 @@ class String
   BASE_64_A2B[?=]  = 0
 
   def to_sexp(name="(eval)") # TODO: maybe move into lib/compiler and after_load
-    require 'ruby_parser'
+    # TODO: for Ryan - fix the paths in compiler/ruby_parser and friends,
+    # e.g. require 'sexp' should be require 'compiler/sexp'
+    $: << "lib/compiler"
+    require 'compiler/ruby_parser'
     require 'compiler/lit_rewriter'
+    $:.pop
 
     sexp = RubyParser.new.process(self, name)
     sexp = Rubinius::LitRewriter.new.process(sexp)
