@@ -2,6 +2,10 @@
 
 # TODO - This file needs ivar_as_index removal cleanup
 
+# TODO - Comment!!!
+class Executable
+end
+
 ##
 # A wrapper for a calling a function in a shared library that has been
 # attached via rb_define_method().
@@ -9,7 +13,7 @@
 # The primitive slot for a NativeMethod points to the nmethod_call primitive
 # which dispatches to the underlying C function.
 
-class NativeMethod
+class NativeMethod < Executable
   def lines
     nil
   end
@@ -93,10 +97,6 @@ class StaticScope
   def to_s
     self.inspect
   end
-end
-
-# TODO - Comment!!!
-class Executable
 end
 
 class CompiledMethod < Executable
