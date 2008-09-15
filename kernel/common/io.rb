@@ -35,26 +35,18 @@ class IO
     end
 
     ##
-    # Remove +count+ bytes from the front of the buffer and return them.
-    # All other bytes are moved up.
-    def shift_front(count)
-      count = @used if count > @used
+    # Removes +count+ (or <tt>@used</tt> if +count+ is +nil+) bytes from
+    # the front of the buffer and returns them. If <tt>@used</tt> > count,
+    # the remaining bytes are moved up.
+    def shift_front(count = nil)
+      count = @used unless count and count <= @used
 
       str = String.from_bytearray @storage.fetch_bytes(0, count), count
 
       rest = @used - count
-      @storage.move_bytes count, rest, 0
+      @storage.move_bytes count, rest, 0 if rest > 0
       @used = rest
 
-      return str
-    end
-
-    ##
-    # Empty the contents of the Buffer into a String object and return it.
-    def as_str
-      str = String.buffer @used
-      str.copy_from self, 0, @used, 0
-      @used = 0
       return str
     end
 
@@ -537,10 +529,7 @@ class IO
     while true
       bytes = buf.fill_from(self)
 
-      if !bytes or buf.full?
-        output << buf
-        buf.reset!
-      end
+      output << buf.shift_front if !bytes or buf.full?
 
       break unless bytes
     end
@@ -810,12 +799,12 @@ class IO
         if @buffer.empty?
           rest = nil
         else
-          rest = @buffer.as_str
+          rest = @buffer.shift_front
         end
 
         if output
           if rest
-            return output << @buffer.as_str
+            return output << @buffer.shift_front
           else
             return output
           end
@@ -826,10 +815,9 @@ class IO
 
       if @buffer.full?
         if output
-          output << @buffer
-          @buffer.reset!
+          output << @buffer.shift_front
         else
-          output = @buffer.as_str
+          output = @buffer.shift_front
         end
       end
     end

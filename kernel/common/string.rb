@@ -29,13 +29,6 @@ class String
     return str
   end
 
-  ##
-  # Creates String of +bytes+ NUL characters.
-
-  def self.buffer(bytes)
-    "\0" * num_bytes
-  end
-
   def initialize(arg=nil)
     replace StringValue(arg) unless arg.nil?
 
