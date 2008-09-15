@@ -1839,10 +1839,39 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("or_big",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              j1 = g.new_label
+              j2 = g.new_label
 
+              g.push :self
+              g.send :a, 0, true
+              g.dup
+              g.git j1
+              g.pop
+
+              g.push :self
+              g.send :b, 0, true
+              j1.set!
+              g.dup
+              g.git j2
+              g.pop
+
+              g.push :self
+              g.send :c, 0, true
+              g.dup
+              g.gif j2
+              g.pop
+
+              g.push :self
+              g.send :d, 0, true
+
+              j2.set!
+              j2.set!
+            end)
+
+  # "Ruby"         => "((a || b) || (c && d))",
   add_tests("or_big2",
-            "Compiler" => :skip)
+            "Compiler" => testcases['or_big']['Compiler'])
 
   add_tests("parse_floats_as_args",
             "Compiler" => bytecode do |g|
@@ -2114,6 +2143,14 @@ class CompilerTestCase < ParseTreeTestCase
               g.push_literal "file = (eval)\n"
               g.string_dup
             end)
+
+#   a.b do |c, d|
+#     unless e.f(c) then
+#       g = false
+#       d.h { |x, i| g = true }
+#     end
+#   end
+
 
 #   add_tests("structure_extra_block_for_dvar_scoping",
 #             "Compiler" => bytecode do |g|
