@@ -22,6 +22,8 @@
 #include "builtin/methodtable.hpp"
 #include "builtin/memorypointer.hpp"
 #include "builtin/nativefunction.hpp"
+#include "builtin/nativemethod.hpp"
+#include "builtin/nativemethodcontext.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/selector.hpp"
 #include "builtin/sendsite.hpp"
@@ -192,6 +194,9 @@ namespace rubinius {
     MemoryPointer::init(this);
     NativeFunction::init(this);
     TaskProbe::init(this);
+
+    NativeMethod::register_class_with(this);
+    NativeMethodContext::register_class_with(this);
   }
 
   // TODO: document all the sections of bootstrap_ontology
