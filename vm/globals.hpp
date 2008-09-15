@@ -29,7 +29,7 @@ namespace rubinius {
     TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
     TypedRoot<Class*> string, symbol, io, metaclass;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
-    TypedRoot<Class*> floatpoint, fastctx, data, nmethod, nmc, task, list, list_node;
+    TypedRoot<Class*> floatpoint, fastctx, data, nmc, task, list, list_node;
     TypedRoot<Class*> channel, thread, staticscope, send_site, selector, lookuptable;
     TypedRoot<Class*> iseq, executable, native_function, iobuffer;
     TypedRoot<Class*> cmethod_vis;
@@ -71,6 +71,10 @@ namespace rubinius {
     TypedRoot<Class*> memory_pointer;
     TypedRoot<Class*> taskprobe;
 
+    TypedRoot<Class*> nmethod;        /**< NativeMethod */
+    TypedRoot<Class*> nativectx;      /**< NativeMethodContext */
+
+
     /* Add new globals above this line. */
 
     /* Leave this as the last data member always */
@@ -104,7 +108,6 @@ namespace rubinius {
       floatpoint(&roots),
       fastctx(&roots),
       data(&roots),
-      nmethod(&roots),
       nmc(&roots),
       task(&roots),
       list(&roots),
@@ -169,7 +172,10 @@ namespace rubinius {
       integer(&roots),
       numeric(&roots),
       memory_pointer(&roots),
-      taskprobe(&roots)
+      taskprobe(&roots),
+
+      nmethod(&roots),
+      nativectx(&roots)     /**< NativeMethodContext */
 
       /* Add initialize of globals above this line. */
     { }
