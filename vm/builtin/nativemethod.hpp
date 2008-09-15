@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_NATIVEMETHOD_HPP
 
 /* Project */
+#include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/task.hpp"
 
@@ -85,11 +86,26 @@ namespace rubinius {
 
     public:   /* Ruby slots and bookkeeping */
 
+    const static size_t fields = 5;
+    const static object_type type = NMethodType;
+
+  static void NativeMethod::register_class_with(VM* state)
+  {
+    state->globals.nmethod.set(state->new_class("NativeMethod", state->globals.executable.get(), NativeMethod::fields));
+    state->globals.nmethod.get()->set_object_type(state, NMethodType);
+  }
 
     private:  /* Instance vars */
 
              Fixnum*  my_arity;         /**< Arity of the method. @see Arity */
      GenericFunctor   my_functor;       /**< Function object that implements this method. */
+
+    public:
+
+    class Info : public Executable::Info {
+    public:
+      BASIC_TYPEINFO(Executable::Info)
+    };
   };
 
 }
