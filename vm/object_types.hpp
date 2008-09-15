@@ -27,7 +27,6 @@ namespace rubinius {
     StringType      ,
     SymbolType      ,
     CMethodType     ,
-    NMethodType     ,
     BlockEnvType    ,
     TupleType       ,
     ArrayType       ,
@@ -57,6 +56,8 @@ namespace rubinius {
     TimeType        ,
     TaskProbeType   ,
 
+    NMethodType     ,
+    NContextType    ,
 
     LastObjectType   // must remain at end
   } object_type;
