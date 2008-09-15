@@ -127,7 +127,7 @@ namespace rubinius {
     }
 
     /* Run after a context is copied, allowing it to fix up
-     * it's internal pointers */
+     * its internal pointers */
     void post_copy(MethodContext* old);
 
     class Info : public TypeInfo {

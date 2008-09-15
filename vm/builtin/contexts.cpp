@@ -1,4 +1,3 @@
-#include "builtin/contexts.hpp"
 #include "objectmemory.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
@@ -7,6 +6,8 @@
 #include "builtin/tuple.hpp"
 
 #include "context_cache.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/nativemethodcontext.hpp"
 
 #include <iostream>
 
@@ -16,8 +17,10 @@ namespace rubinius {
 
   template <>
     bool kind_of<MethodContext>(OBJECT obj) {
-      return obj->obj_type == MethodContext::type ||
-        obj->obj_type == BlockContext::type;
+      return    obj->obj_type == MethodContext::type
+             || obj->obj_type == BlockContext::type
+             || obj->obj_type == NativeMethodContext::type
+             ;
     }
 
   void MethodContext::init(STATE) {
