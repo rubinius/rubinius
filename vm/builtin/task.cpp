@@ -685,9 +685,9 @@ stack_cleanup:
         }
       }
 
-      std::cout << ":" << ctx->line() << " in ";
+      std::cout << " in ";
       if(SYMBOL file_sym = try_as<Symbol>(ctx->cm()->file())) {
-        std::cout << file_sym->c_str(state);
+        std::cout << file_sym->c_str(state) << ":" << ctx->line();
       } else {
         std::cout << "<unknown>";
       }
