@@ -244,6 +244,9 @@ namespace rubinius {
     case BContextType:
       type = "BlockContext";
       break;
+    case NContextType:
+      type = "NativeMethodContext";
+      break;
     case ClassType:
       type = "Class";
       break;
@@ -282,6 +285,9 @@ namespace rubinius {
       break;
     case CMethodType:
       type = "CompiledMethod";
+      break;
+    case NativeFuncType:
+      type = "NativeFunction";
       break;
     case NMethodType:
       type = "NativeMethod";
