@@ -1790,37 +1790,418 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("nth_ref",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_context
+              g.push 1
+              g.send :nth_ref, 1
+            end)
 
   add_tests("op_asgn1",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              l_or = g.new_label
+              l_and = g.new_label
+              l_idx = g.new_label
+              l_rhs = g.new_label
+
+              g.make_array 0
+              g.set_local 0
+              g.pop
+
+              g.push_local 0
+              g.dup
+              g.push 1
+              g.send :[], 1
+
+              g.dup
+              g.git l_or
+              g.pop
+
+              g.push 1
+              g.push 10
+              g.send :[]=, 2
+
+              g.goto l_and
+
+              l_or.set!
+
+              g.swap
+              g.pop
+
+              l_and.set!
+
+              g.pop
+              g.push_local 0
+              g.dup
+              g.push 2
+              g.send :[], 1
+              g.dup
+              g.gif l_idx
+
+              g.pop
+              g.push 2
+              g.push 11
+              g.send :[]=, 2
+              g.goto l_rhs
+
+              l_idx.set!
+
+              g.swap
+              g.pop
+
+              l_rhs.set!
+
+              g.pop
+              g.push_local 0
+              g.dup
+              g.push 3
+              g.send :[], 1
+
+              g.push 12
+              g.send :+, 1
+
+              g.push 3
+              g.swap
+              g.send :[]=, 2
+            end)
 
   add_tests("op_asgn1_ivar",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              l_or = g.new_label
+              l_and = g.new_label
+              l_idx = g.new_label
+              l_rhs = g.new_label
+
+              g.make_array 0
+              g.set_ivar :@b
+              g.pop
+
+              g.push_ivar :@b
+              g.dup
+              g.push 1
+              g.send :[], 1
+
+              g.dup
+              g.git l_or
+              g.pop
+
+              g.push 1
+              g.push 10
+              g.send :[]=, 2
+
+              g.goto l_and
+
+              l_or.set!
+
+              g.swap
+              g.pop
+
+              l_and.set!
+
+              g.pop
+              g.push_ivar :@b
+              g.dup
+              g.push 2
+              g.send :[], 1
+              g.dup
+              g.gif l_idx
+
+              g.pop
+              g.push 2
+              g.push 11
+              g.send :[]=, 2
+              g.goto l_rhs
+
+              l_idx.set!
+
+              g.swap
+              g.pop
+
+              l_rhs.set!
+
+              g.pop
+              g.push_ivar :@b
+              g.dup
+              g.push 3
+              g.send :[], 1
+
+              g.push 12
+              g.send :+, 1
+
+              g.push 3
+              g.swap
+              g.send :[]=, 2
+            end)
+
+  # s = Struct.new(:var)
+  # c = s.new(nil)
+  # c.var ||= 20
+  # c.var &&= 21
+  # c.var += 22
+  # c.d.e.f ||= 42
 
   add_tests("op_asgn2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              l_or = g.new_label
+              l_and = g.new_label
+              l_plus = g.new_label
+              l_or2 = g.new_label
+              l_rhs = g.new_label
+              bottom = g.new_label
+
+              g.push_const :Struct
+              g.push_unique_literal :var
+              g.send :new, 1, false
+              g.set_local 0
+              g.pop
+
+              g.push_local 0
+              g.push :nil
+              g.send :new, 1, false
+              g.set_local 1
+              g.pop
+
+              g.push_local 1
+              g.dup
+              g.send :var, 0
+              g.dup
+              g.git l_or
+
+              g.pop
+              g.push 20
+              g.send :var=, 1
+              g.goto l_and
+
+              l_or.set!
+
+              g.swap
+              g.pop
+
+              l_and.set!
+
+              g.pop
+              g.push_local 1
+              g.dup
+              g.send :var, 0
+              g.dup
+              g.gif l_plus
+              g.pop
+              g.push 21
+              g.send :var=, 1
+              g.goto l_or2
+
+              l_plus.set!
+
+              g.swap
+              g.pop
+
+              l_or2.set!
+
+              g.pop
+              g.push_local 1
+              g.dup
+              g.send :var, 0
+              g.push 22
+              g.send :+, 1
+              g.send :var=, 1
+              g.pop
+
+              g.push_local 1
+              g.send :d, 0, false
+              g.send :e, 0, false
+              g.dup
+              g.send :f, 0
+              g.dup
+
+              g.git l_rhs
+
+              g.pop
+              g.push 42
+              g.send :f=, 1
+              g.goto bottom
+
+              l_rhs.set!
+
+              g.swap
+              g.pop
+
+              bottom.set!
+            end)
 
   add_tests("op_asgn2_self",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+              f = g.new_label
+
+              g.push :self
+              g.dup
+              g.send :Bag, 0
+              g.dup
+              g.git t
+              g.pop
+              g.push_const :Bag
+              g.send :new, 0, false
+              g.send :"Bag=", 1
+              g.goto f
+
+              t.set!
+
+              g.swap
+              g.pop
+
+              f.set!
+            end)
 
   add_tests("op_asgn_and",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 0
+              g.set_local 0
+              g.pop
+
+              g.push_local 0
+              g.dup
+
+              f = g.new_label
+              g.gif f
+              g.pop
+              g.push 2
+              g.set_local 0
+
+              f.set!
+            end)
 
   add_tests("op_asgn_and_ivar2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push_ivar :@fetcher
+              g.dup
+              g.gif t
+              g.pop
+
+              g.push :self
+              g.push_const :Gem
+              g.send :configuration, 0, false
+
+              g.push_unique_literal :http_proxy
+              g.send :[], 1, false
+
+              g.send :new, 1, true
+
+              g.set_ivar :@fetcher
+
+              t.set!
+            end)
 
   add_tests("op_asgn_or",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push 0
+              g.set_local 0
+              g.pop             # FIX: lame
+              g.push_local 0
+              g.dup
+              g.git t
+              g.pop
+
+              g.push 1
+
+              g.set_local 0
+
+              t.set!
+            end)
 
   add_tests("op_asgn_or_block",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              dunno1             = g.new_label
+              no_exception       = g.new_label
+              std_exception      = g.new_label
+              t                  = g.new_label
+              top                = g.new_label
+              uncaught_exception = g.new_label
+
+              g.push_local 0
+              g.dup
+              g.git t
+              g.pop
+
+              g.push_modifiers
+
+              top.set!
+              top.set!
+
+              g.push :self
+              g.send :b, 0, true
+              g.goto no_exception
+              dunno1.set!
+
+              g.push_const :StandardError
+              g.push_exception
+              g.send :===, 1
+              g.git std_exception
+              g.goto uncaught_exception         # FIX: stupid jump, gif better
+              std_exception.set!
+
+              g.push :self
+              g.send :c, 0, true
+              g.clear_exception
+              g.goto no_exception
+
+              uncaught_exception.set!
+
+              g.push_exception
+              g.raise_exc
+
+              no_exception.set!
+              no_exception.set!
+
+              g.pop_modifiers
+
+              g.set_local 0
+
+              t.set!
+            end)
 
   add_tests("op_asgn_or_ivar",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push_ivar :@v
+              g.dup
+              g.git t
+              g.pop
+
+              g.push_cpath_top
+              g.find_const :Hash
+              g.send :[], 0
+
+              g.set_ivar :@v
+
+              t.set!
+            end)
 
   add_tests("op_asgn_or_ivar2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push_ivar :@fetcher
+              g.dup
+              g.git t
+              g.pop
+
+              g.push :self
+              g.push_const :Gem
+              g.send :configuration, 0, false
+
+              g.push_unique_literal :http_proxy
+              g.send :[], 1, false
+
+              g.send :new, 1, true
+
+              g.set_ivar :@fetcher
+
+              t.set!
+            end)
 
   add_tests("or",
             "Compiler" => bytecode do |g|
