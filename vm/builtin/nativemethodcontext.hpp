@@ -4,6 +4,9 @@
 /* Std */
 #include <vector>
 
+/* Sys */
+#include <ucontext.h>
+
 /* Project */
 #include "type_info.hpp"
 #include "builtin/contexts.hpp"
