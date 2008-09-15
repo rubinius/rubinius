@@ -11,19 +11,17 @@
 #include "vmexecutable.hpp"
 
 
-#define HAS_UCONTEXT 1
-
 /* Some alterable labels to create an API. Sadly #defines are a must here. */
-#define store_current_execution_point_in(uctx)      getcontext(&(uctx))
-#define jump_to_execution_point_in(uctx)            setcontext(&(uctx))
+#define store_current_execution_point_in(uctx)      getcontext((uctx))
+#define jump_to_execution_point_in(uctx)            setcontext((uctx))
 
-#define create_execution_point_with_stack(uctx, stack, size) do { getcontext(&(uctx)); \
-                                                                  (uctx).uc_link = NULL; \
-                                                                  (uctx).uc_stack.ss_sp = (stack); \
-                                                                  (uctx).uc_stack.ss_size = (size); \
-                                                                  (uctx).uc_stack.ss_flags = 0; } while (0)
+#define create_execution_point_with_stack(uctx, stack, size) do { getcontext((uctx)); \
+                                                                  (uctx)->uc_link = NULL; \
+                                                                  (uctx)->uc_stack.ss_sp = (stack); \
+                                                                  (uctx)->uc_stack.ss_size = (size); \
+                                                                  (uctx)->uc_stack.ss_flags = 0; } while (0)
 
-#define set_function_to_run_in(uctx, func)          makecontext(&(uctx), &(func), 0)
+#define set_function_to_run_in(uctx, func)          makecontext((uctx), &(func), 0)
 
 
 namespace rubinius {
