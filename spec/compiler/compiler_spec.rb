@@ -1795,7 +1795,7 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("next_arg",
-            "Compiler" => testcases['next']['Compiler'])
+            "Compiler" => testcases['next']['Compiler']) # FIX: not the same
 
   add_tests("not",
             "Compiler" => bytecode do |g|
