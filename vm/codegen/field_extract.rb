@@ -490,7 +490,7 @@ def write_if_new(path)
     yield f
   end
 
-  File.rename tmp_path, path unless system("diff -q #{path} #{tmp_path}")
+  File.rename tmp_path, path unless system("diff -q #{path} #{tmp_path} 2>&1")
 ensure
   File.unlink tmp_path if File.exist? tmp_path
 end
