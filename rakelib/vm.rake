@@ -133,6 +133,8 @@ end
 def ld t
   $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
 
+  $link_opts += ' -Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux/i
+
   ld = ENV['LD'] || 'g++'
   o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
   l  = ex_libs.join(' ')
