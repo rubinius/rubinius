@@ -1654,37 +1654,267 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("masgn",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :c, 0, true
+              g.push :self
+              g.send :d, 0, true
+              g.rotate 2
+
+              g.set_local 0
+              g.pop
+
+              g.set_local 1
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("masgn_argscat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push 2
+              g.make_array 2
+              g.push 3
+              g.push 4
+              g.make_array 2
+              g.cast_array
+              g.send :+, 1
+              g.cast_tuple
+
+              g.shift_tuple
+              g.set_local 0
+              g.pop
+
+              g.shift_tuple
+              g.set_local 1
+              g.pop
+
+              g.cast_array
+              g.set_local 2
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("masgn_attrasgn",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :d, 0, true
+              g.push :self
+              g.send :e, 0, true
+              g.rotate 2
+
+              g.set_local 0
+              g.pop
+
+              g.push :self
+              g.send :b, 0, true
+              g.send :c=, 1, false
+
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("masgn_attrasgn_idx",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.make_array 0
+              g.push 1
+              g.push 2
+              g.rotate 3
+
+              g.set_local 0
+              g.pop
+
+              g.set_local 1
+              g.pop
+
+              g.set_local 2
+              g.pop
+
+              g.push :true
+              g.pop
+
+              g.push_local 0
+              g.push_local 2
+              g.send :[], 1, false
+              g.push_local 0
+              g.push_local 1
+              g.send :[], 1, false
+              g.rotate 2
+
+              g.push_local 0
+              g.push_local 1
+              g.send :[]=, 2, false
+              g.pop
+
+              g.push_local 0
+              g.push_local 2
+              g.send :[]=, 2, false
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("masgn_iasgn",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :c, 0, true
+              g.push :self
+              g.send :d, 0, true
+              g.rotate 2
+
+              g.set_local 0
+              g.pop
+
+              g.set_ivar :@b
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("masgn_masgn",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push 2
+              g.push 3
+              g.make_array 2
+              g.make_array 2
+              g.cast_tuple
+
+              g.shift_tuple
+              g.set_local 0
+              g.pop
+
+              g.shift_tuple
+              g.cast_tuple
+              g.shift_tuple
+              g.set_local 1
+              g.pop
+
+              g.shift_tuple
+              g.set_local 2
+              g.pop
+
+              g.pop
+              g.push :true # FIX: necessary?!?
+              g.pop
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("masgn_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :d, 0, true
+              g.push :self
+              g.send :e, 0, true
+              g.push :self
+              g.send :f, 0, true
+              g.push :self
+              g.send :g, 0, true
+              g.make_array 2 # TODO: 2?!?
+
+              g.set_local 2 # TODO: backwards
+              g.pop
+
+              g.set_local 1
+              g.pop
+
+              g.set_local 0
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("masgn_splat_no_name_to_ary",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :c, 0, true
+              g.cast_tuple
+
+              g.shift_tuple
+              g.set_local 0
+              g.pop
+
+              g.shift_tuple
+              g.set_local 1
+              g.pop
+
+              g.cast_array
+              g.cast_array
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("masgn_splat_no_name_trailing",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :c, 0, true
+              g.cast_tuple
+
+              g.shift_tuple
+              g.set_local 0
+              g.pop
+
+              g.shift_tuple
+              g.set_local 1
+              g.pop
+
+              g.pop # TODO: why?
+
+              g.push :true
+            end)
 
   add_tests("masgn_splat_to_ary",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :d, 0, true
+
+              g.cast_tuple
+
+              g.shift_tuple
+              g.set_local 0
+              g.pop
+
+              g.shift_tuple
+              g.set_local 1
+              g.pop
+
+              g.cast_array
+              g.set_local 2
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("masgn_splat_to_ary2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :d, 0, true
+              g.push_literal "f"
+              g.string_dup
+              g.send :e, 1, false
+
+              g.cast_tuple
+
+              g.shift_tuple
+              g.set_local 0
+              g.pop
+
+              g.shift_tuple
+              g.set_local 1
+              g.pop
+
+              g.cast_array
+              g.set_local 2
+              g.pop
+
+              g.push :true
+            end)
 
   add_tests("match",
             "Compiler" => bytecode do |g|
