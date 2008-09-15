@@ -5,6 +5,7 @@
 #include <vector>
 
 /* Project */
+#include "type_info.hpp"
 #include "builtin/contexts.hpp"
 
 
@@ -90,10 +91,12 @@ namespace rubinius {
   /**
    *  Method context for C-implemented methods.
    *
+   *  TODO: Subclassing MethodContext is fucking ugly.
+   *        Create a Context superclass for both.
+   *
    *  TODO: Add tests.
    */
-  class NativeMethodContext
-  {
+  class NativeMethodContext : public MethodContext {
     public:   /* Types */
 
     /**
@@ -115,13 +118,18 @@ namespace rubinius {
 
     public:   /* Constants */
 
-       static const std::size_t   DEFAULT_STACK_SIZE = 65536;   /* 64Kib */
+                                  /** 64KiB -- Do NOT decrease this, ucontext will fail. */
+       static const std::size_t   DEFAULT_STACK_SIZE = 1024 * 64;
 
 
     public:   /* Ctors */
 
-                                  /** Brand new context for a brand new call. */
-    static NativeMethodContext*   create(Message* message, Task* task, NativeMethod* method);
+                                  /**
+                                   *  Brand new context for a brand new call.
+                                   *
+                                   *  The C stack is allocated *inside* the context.
+                                   */
+    static NativeMethodContext*   create(VM* state, Message* message, Task* task, NativeMethod* method);
 
 
     public:   /* Interface */
@@ -132,7 +140,76 @@ namespace rubinius {
     static NativeMethodContext*   current();
 
 
+    public:   /* Accessors */
+
+      Action action() { return my_action; }
+      NativeMethod* method() { return my_method; }
+      HandleStorage& handles() { return my_handles; }
+      Message* message() { return my_message; }
+
+      VM* state() { return my_state; }
+
+      void action(Action action) { my_action = action; }
+      void return_value(Object* obj) { my_return_value = obj; }
+      Object* return_value() { return my_return_value; }
+
+      std::size_t stacksize() { return stack_size; }
+      void* stack() { return static_cast<void*>(stk); }
+
+      ucontext_t* c_call_point() { return &my_c_call_point; }
+      ucontext_t* dispatch_point() { return &my_dispatch_point; }
+
+    private:  /* Hidden stuff. */
+
+                                  /** Constructor allocates the NMC, hidden behind ::create(). */
+                                  NativeMethodContext(VM* state, Message* message, Task* task, NativeMethod* method);
+
+
+
+    public:   /* Bootstrapping */
+
+                                  /** Add the class object to the object space. */
+                   static void    register_class_with(VM* state);
+
+
+    public:   /* Slots and bookkeeping. */
+
+        const static size_t   fields  = 0;      // TODO: Check this
+    const static object_type  type    = NContextType;
+
+
+    /*  OK, these are the slots we get from MethodContext (and all we really need.)
+
+     *  MethodContext* sender_; // slot
+     *  MethodContext* home_;   // slot
+     *  OBJECT self_;           // slot
+
+     *  CompiledMethod* cm_;    // slot
+
+     *  Module* module_;        // slot
+     *  OBJECT block_;          // slot
+     *  OBJECT name_;           // slot
+     */
+
+
     public:  /* Instance vars */
+
+    /*  These are the inherited ivars, of which the two last are
+     *  useful for our purposes. We are going to abuse the hell
+     *  out of the "array": the object is allocated the extra
+     *  memory at the end, so the variable just works as a pointer
+     *  to that region.
+     *
+     *  VMMethod* vmm;
+
+     *  struct jit_state js;
+     *  int    ip;
+     *  size_t args;
+
+     *  size_t stack_size;
+     *
+     *  OBJECT stk[];
+     */
 
     /*
      *  OS X 10.5's ucontext implementation is broken and requires
@@ -141,29 +218,41 @@ namespace rubinius {
      *  get written over :/
      */
 
-/* HACK: Make this an actual conditional and stuff. */
+    /* TODO: Make this an actual conditional and stuff. */
+
 #ifndef HAS_UCONTEXT
   #define HAS_UCONTEXT
 #endif
 
-    Action          action;           /**< Action requested to be performed. */
-    ucontext_t      c_call_point;     /**< Point to execute actual C dispatch (subtend stack) */
+    Action          my_action;            /**< Action requested to be performed. */
+    ucontext_t      my_c_call_point;      /**< Point to execute actual C dispatch (subtend stack) */
 #if defined(__APPLE__) && defined(HAS_UCONTEXT)
-  _STRUCT_MCONTEXT  __c_call_point_mc;
+  _STRUCT_MCONTEXT  __my_c_call_point_mc;
 #endif
-    ucontext_t      dispatch_point;   /**< Point of return to dispatch code (vm stack) */
+    ucontext_t      my_dispatch_point;    /**< Point of return to dispatch code (vm stack) */
 #if defined(__APPLE__) && defined(HAS_UCONTEXT)
-  _STRUCT_MCONTEXT  __dispatch_point_mc;
+  _STRUCT_MCONTEXT  __my_dispatch_point_mc;
 #endif
-    Message*        message;          /**< Message representing this call. */
-    NativeMethod*   method;           /**< Function-like object that actually implements the method. */
-    HandleStorage   handles;          /**< Object handles for this call. */
-    Object*         return_value;     /**< Return value from the call. */
-    MethodContext*  sender;           /**< Context in which this call was made. */
-    char*           stack;            /**< Memory area to be used as the stack. */
-    std::size_t     stack_size;       /**< Size of the memory area to be used as the stack. */
-    VM*             state;            /**< VM state for this invocation. */
-    Task*           task;             /**< Task in which we are running. */
+    Message*        my_message;           /**< Message representing this call. */
+    NativeMethod*   my_method;            /**< Function-like object that actually implements the method. */
+    HandleStorage   my_handles;           /**< Object handles for this call. */
+    Object*         my_return_value;      /**< Return value from the call. */
+//    char*           my_stack;
+//    std::size_t     my_stack_size;
+    VM*             my_state;             /**< VM state for this invocation. */
+    Task*           my_task;              /**< Task in which we are running. */
+
+
+  public:
+
+    /**
+     *  Generated type information.
+     */
+    class Info : public MethodContext::Info
+    {
+      public:
+      BASIC_TYPEINFO(MethodContext::Info)
+    };
   };
 
 }
