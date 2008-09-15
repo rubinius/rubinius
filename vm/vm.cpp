@@ -25,7 +25,7 @@
 #define GO(whatever) globals.whatever
 
 namespace rubinius {
-  VM::VM(size_t bytes) : wait_events(false) {
+  VM::VM(size_t bytes) : wait_events(false), reuse_llvm(true) {
     config.compile_up_front = false;
     context_cache = NULL;
 
@@ -55,7 +55,7 @@ namespace rubinius {
     delete events;
     delete signal_events;
     delete global_cache;
-    llvm_cleanup();
+    if(!reuse_llvm) llvm_cleanup();
   }
 
   // HACK so not thread safe or anything!

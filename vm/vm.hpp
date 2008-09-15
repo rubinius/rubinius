@@ -59,6 +59,7 @@ namespace rubinius {
     ContextCache* context_cache;
 
     bool wait_events;
+    bool reuse_llvm;
 
     static const size_t default_bytes = 1048576;
 
