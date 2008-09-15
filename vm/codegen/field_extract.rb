@@ -360,7 +360,7 @@ class CPPParser
   end
 
   def parse_stream(f)
-    class_pattern = /class ([^\s]+)\s*:\s*public\s+([^\s]+) \{/
+    class_pattern = /class ([^\s]+)\s*:\s*public\s+([^\s]+)/
     slot_pattern = %r!^\s*(\w+)\*?\s+\*?(\w+)_\s*;\s*//\s*slot(.*)!
     primitive_pattern = %r%^\s*//\s+Ruby.primitive([?!])?\s+:(.*)\s*$%
     prototype_pattern = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!
