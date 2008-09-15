@@ -13,7 +13,6 @@ class String
     $: << "lib/compiler"
     require 'compiler/ruby_parser'
     require 'compiler/lit_rewriter'
-    $:.pop
 
     sexp = RubyParser.new.process(self, name)
     sexp = Rubinius::LitRewriter.new.process(sexp)
