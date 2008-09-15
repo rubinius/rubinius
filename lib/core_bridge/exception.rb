@@ -1,2 +1,0 @@
-class InvalidIndexError < StandardError
-end
