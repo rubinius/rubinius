@@ -88,7 +88,8 @@ namespace rubinius {
                      FIXNUM mday, FIXNUM mon, FIXNUM year, FIXNUM usec,
                      FIXNUM isdst, OBJECT from_gmt) {
     struct tm tm;
-    char *old_tz, old_tz_buf[128];
+    char *old_tz = NULL;
+    char old_tz_buf[128];
 
     tm.tm_sec = sec->to_native();
     if(tm.tm_sec < 0 || tm.tm_sec > 60) {
