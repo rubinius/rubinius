@@ -64,6 +64,8 @@ class TestNativeFunction : public CxxTest::TestSuite {
     ep = NativeFunction::find_symbol(state, lib1, name);
     TS_ASSERT(!ep);
 
+    // TODO:  This is probably failing on Linux because libc is already loaded
+    //        so dlopen is returning NULL.
     ep = NativeFunction::find_symbol(state, lib2, name);
     TS_ASSERT(ep);
   }
@@ -196,15 +198,14 @@ class TestNativeFunction : public CxxTest::TestSuite {
   }
 
   void test_bind_with_unsigned_short() {
-    String* lib =  String::create(state, "libc");
-    String* name = String::create(state, "umask");
+    String* name = String::create(state, "dummy_unsigned_short");
 
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_USHORT));
 
     OBJECT ret = Fixnum::from(RBX_FFI_TYPE_USHORT);
 
-    NativeFunction *func = NativeFunction::bind(state, lib, name, args, ret);
+    NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
     TS_ASSERT(func->data()->check_type(MemPtrType));
