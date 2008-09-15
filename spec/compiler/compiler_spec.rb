@@ -1767,10 +1767,35 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("next",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              bottom = g.new_label
+              dunno1 = g.new_label
+              f      = g.new_label
+
+              g.push_modifiers
+              top.set!
+
+              g.push :false
+              g.gif f
+              g.goto top
+              g.goto dunno1
+
+              f.set!
+
+              g.push :nil
+
+              dunno1.set!
+              g.pop
+              g.goto top
+
+              bottom.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("next_arg",
-            "Compiler" => :skip)
+            "Compiler" => testcases['next']['Compiler'])
 
   add_tests("not",
             "Compiler" => bytecode do |g|
@@ -1931,13 +1956,6 @@ class CompilerTestCase < ParseTreeTestCase
               g.swap
               g.send :[]=, 2
             end)
-
-  # s = Struct.new(:var)
-  # c = s.new(nil)
-  # c.var ||= 20
-  # c.var &&= 21
-  # c.var += 22
-  # c.d.e.f ||= 42
 
   add_tests("op_asgn2",
             "Compiler" => bytecode do |g|
@@ -2250,7 +2268,6 @@ class CompilerTestCase < ParseTreeTestCase
               j2.set!
             end)
 
-  # "Ruby"         => "((a || b) || (c && d))",
   add_tests("or_big2",
             "Compiler" => testcases['or_big']['Compiler'])
 
