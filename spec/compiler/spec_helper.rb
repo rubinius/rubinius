@@ -83,12 +83,22 @@ class TestGenerator
              :push_literal_at, :push_modifiers, :push_unique_literal, :send,
              :send_super, :send_with_block, :send_with_splat, :swap,]
 
-  (opcodes + stupids - [:class]).each do |name|
+  (opcodes + stupids - [:class, :goto, :set_label]).each do |name|
     class_eval <<-CODE
       def #{name}(*args)
         add :#{name}, *args
       end
     CODE
+  end
+
+  def goto x
+    raise "Bad goto: #{x.inspect} on #{caller.first}" unless Label === x
+    add :goto, x
+  end
+
+  def set_label x
+    raise "Bad set_label: #{x.inspect} on #{caller.first}" unless Label === x
+    add :set_label, x
   end
 
   class Label
