@@ -26,7 +26,7 @@ namespace rubinius {
     /* interface */
 
     static Exception* create(STATE);
-    static Exception* Exception::arg_error(STATE, int expected, int given);
+    static Exception* arg_error(STATE, int expected, int given);
 
     class Info : public TypeInfo {
     public:
