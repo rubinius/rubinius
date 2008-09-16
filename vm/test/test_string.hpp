@@ -18,8 +18,8 @@ class TestString : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_allocate() {
-    str = String::allocate(state, Fixnum::from(4));
+  void test_create_with_size() {
+    str = String::create(state, Fixnum::from(4));
     TS_ASSERT_EQUALS(str->size(), 4U);
     TS_ASSERT_EQUALS(str->data()->size(), 8U);
   }

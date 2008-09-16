@@ -92,7 +92,7 @@ namespace rubinius {
   }
 
   OBJECT IO::blocking_read(STATE, FIXNUM bytes) {
-    String* str = String::allocate(state, bytes);
+    String* str = String::create(state, bytes);
 
     ssize_t cnt = ::read(this->to_fd(), str->data()->bytes, bytes->to_native());
     if(cnt == -1) {

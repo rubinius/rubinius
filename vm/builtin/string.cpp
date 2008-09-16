@@ -29,7 +29,7 @@ namespace rubinius {
     return num_bytes_->to_native();
   }
 
-  String* String::allocate(STATE, FIXNUM size) {
+  String* String::create(STATE, FIXNUM size) {
     String *so;
 
     so = (String*)state->om->new_object(G(string), String::fields);
@@ -399,7 +399,7 @@ namespace rubinius {
   }
 
   String* String::pattern(STATE, OBJECT self, FIXNUM size, OBJECT pattern) {
-    String* s = String::allocate(state, size);
+    String* s = String::create(state, size);
     s->klass(state, (Class*)self);
     s->IsTainted = self->IsTainted;
 

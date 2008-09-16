@@ -53,8 +53,7 @@ namespace rubinius {
 
     static void init(STATE);
 
-    // Ruby.primitive :string_allocate
-    static String* allocate(STATE, FIXNUM size);
+    static String* create(STATE, FIXNUM size);
 
     static String* create(STATE, const char* str, size_t bytes = 0);
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
