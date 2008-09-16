@@ -1415,25 +1415,73 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("gasgn",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Globals
+              g.push_literal :"$x" # REFACTOR g.get_global("$x")
+              g.push 42
+              g.send :[]=, 2
+            end)
 
   add_tests("global",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Globals
+              g.push_literal :"$stderr"
+              g.send :[], 1
+            end)
 
   add_tests("gvar",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Globals
+              g.push_literal :"$x" # REFACTOR g.get_global("$x")
+              g.send :[], 1
+            end)
 
   add_tests("gvar_underscore",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Globals
+              g.push_literal :"$_"
+              g.send :[], 1
+            end)
 
   add_tests("gvar_underscore_blah",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Globals
+              g.push_literal :"$__blah"
+              g.send :[], 1
+            end)
 
   add_tests("hash",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Hash
+              g.push 1
+              g.push 2
+              g.push 3
+              g.push 4
+              g.send :[], 4
+            end)
 
   add_tests("hash_rescue",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Hash
+              g.push 1
+
+              g.in_rescue(:StandardError) do |good_side|
+                if good_side then
+                  g.push 2
+                else
+                  g.push 3
+                end
+              end
+
+              g.send :[], 2
+            end)
 
   add_tests("iasgn",
             "Compiler" => bytecode do |g|
@@ -2431,7 +2479,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.goto no_exception
               dunno1.set!
 
-              g.push_const :StandardError
+              g.push_const :StandardError # REFACTOR - we can clean up lots here
               g.push_exception
               g.send :===, 1
               g.git std_exception
