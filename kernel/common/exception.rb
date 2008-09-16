@@ -24,30 +24,30 @@ class Exception
   def set_backtrace(bt)
     @backtrace = bt
   end
-  
+
   def to_s
     @message || self.class.to_s
   end
-  
+
   def inspect
     "#<#{self.class.name}: #{self.to_s}>"
   end
 
   alias_method :message, :to_s
   alias_method :to_str, :to_s
-  
+
   def self.exception(message=nil)
     self.new(message)
   end
-  
+
   def exception(message=nil)
     if message
       self.class.new(message)
-    else 
+    else
       self
     end
   end
-  
+
   def context
     @context
   end
@@ -55,7 +55,7 @@ class Exception
   def context=(other)
     @context = other
   end
-  
+
   def location
     ctx = self.context
     [ctx.file.to_s, ctx.line]
