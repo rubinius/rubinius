@@ -272,7 +272,7 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("block_mystery_block",
-            "Compiler" => :skip)
+            "Compiler" => :skip) # TODO: requires nestable in_block_send
 
   add_tests("block_pass_args_and_splat",
             "Compiler" => bytecode do |g|
@@ -3351,16 +3351,60 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("rescue",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_rescue :StandardError do |good_side|
+                if good_side then
+                  g.push :self
+                  g.send :blah, 0, true
+                else
+                  g.push :nil
+                end
+              end
+            end)
 
   add_tests("rescue_block_body",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_rescue :RuntimeError, :wtf do |good_side| # FIX: wtf param?
+                if good_side then
+                  g.push :self
+                  g.send :a, 0, true
+                else
+                  g.push_exception
+                  g.set_local 0
+                  g.push :self
+                  g.send :c, 0, true
+                  g.pop
+                  g.push :self
+                  g.send :d, 0, true
+                end
+              end
+            end)
 
   add_tests("rescue_block_nada",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_rescue :StandardError do |good_side|
+                if good_side then
+                  g.push :self
+                  g.send :blah, 0, true
+                else
+                  g.push :nil
+                end
+              end
+            end)
 
   add_tests("rescue_exceptions",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_rescue :RuntimeError do |good_side|
+                if good_side then
+                  g.push :self
+                  g.send :blah, 0, true
+                else
+                  g.push_exception
+                  g.set_local 0
+                  g.push :nil
+                end
+              end
+            end)
 
   add_tests("retry",
             "Compiler" => bytecode do |g| # TODO: maybe have a real example?
