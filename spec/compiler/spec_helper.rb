@@ -260,7 +260,9 @@ class TestGenerator
                     block_count    = 0,
                     call_count     = 0,
                     block_send_vis = true,
-                    shift          = 0)
+                    shift          = 0,
+                    nested         = false)
+
     self.create_block_desc do |d|
       inner_top = d.new_label
 
@@ -295,7 +297,6 @@ class TestGenerator
     top      = self.new_label
     dunno1   = self.new_label
     dunno2   = self.new_label
-    dunno3   = self.new_label
     uncaught = self.new_label
     bottom   = self.new_label
 
@@ -308,6 +309,7 @@ class TestGenerator
     self.pop
 
     self.send_with_block msg, call_count, block_send_vis
+
     self.goto bottom
 
     dunno1.set!
@@ -322,13 +324,13 @@ class TestGenerator
     self.send :is_return, 0
     self.gif dunno2
 
-    self.send :value, 0
-    self.ret
+    unless nested then
+      self.send :value, 0
+      self.ret
+    end
 
     uncaught.set!
-
     self.raise_exc
-
     dunno2.set!
     self.send :value, 0
     bottom.set!
@@ -343,7 +345,6 @@ class TestGenerator
   end
 
   def in_module name
-
     case name
     when Symbol then
       self.open_module name
