@@ -253,7 +253,11 @@ class TestGenerator
     self.pop_modifiers
   end
 
-  def in_block_send msg, block_count, call_count=0, block_send_vis=true
+  def in_block_send(msg,
+                    block_count    = 0,
+                    call_count     = 0,
+                    block_send_vis = true,
+                    shift          = 0)
     self.create_block_desc do |d|
       inner_top = d.new_label
 
@@ -294,7 +298,7 @@ class TestGenerator
     self.push_cpath_top
     self.find_const :LongReturnException
     self.send :allocate, 0
-    self.set_local 0
+    self.set_local 0 + shift
     self.pop
 
     self.send_with_block msg, call_count, block_send_vis
@@ -304,7 +308,7 @@ class TestGenerator
 
     self.push_exception
     self.dup
-    self.push_local 0
+    self.push_local 0 + shift
     self.equal
     self.gif uncaught
     self.clear_exception
