@@ -211,7 +211,7 @@ class TestGenerator
     self.push_literal desc
   end
 
-  def in_rescue klass
+  def in_rescue klass, wtf = false
     top       = self.new_label
     bottom    = self.new_label
     dunno     = self.new_label
@@ -229,10 +229,13 @@ class TestGenerator
 
     dunno.set!
 
-    self.push_const klass
-    self.push_exception
-    self.send :===, 1
-    self.git std_err
+    unless wtf then
+      self.push_const klass
+      self.push_exception
+      self.send :===, 1
+      self.git std_err
+    end
+
     self.goto unhandled         # FIX: stupid jump, gif better
 
     std_err.set!
