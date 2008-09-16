@@ -909,45 +909,6 @@ class CompilerTestCase < ParseTreeTestCase
               g.find_const :X
             end)
 
-  add_tests("conditional1",
-            "Compiler" => :skip)
-
-  add_tests("conditional2",
-            "Compiler" => :skip)
-
-  add_tests("conditional3",
-            "Compiler" => :skip)
-
-  add_tests("conditional4",
-            "Compiler" => :skip)
-
-  add_tests("conditional5",
-            "Compiler" => :skip)
-
-  add_tests("conditional_post_if",
-            "Compiler" => :skip)
-
-  add_tests("conditional_post_if_not",
-            "Compiler" => :skip)
-
-  add_tests("conditional_post_unless",
-            "Compiler" => :skip)
-
-  add_tests("conditional_post_unless_not",
-            "Compiler" => :skip)
-
-  add_tests("conditional_pre_if",
-            "Compiler" => :skip)
-
-  add_tests("conditional_pre_if_not",
-            "Compiler" => :skip)
-
-  add_tests("conditional_pre_unless",
-            "Compiler" => :skip)
-
-  add_tests("conditional_pre_unless_not",
-            "Compiler" => :skip)
-
   add_tests("const",
             "Compiler" => bytecode do |g|
               g.push_const :X
@@ -1300,6 +1261,23 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
+  add_tests("defn_args_mand_splat_no_name",
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push :self
+                d.push_local 0
+                d.push_local 1
+                d.send :p, 2, true
+              end
+            end)
+
+  add_tests("defn_args_none",
+            "Compiler" => bytecode do |g|
+              in_method :empty do |d|
+                d.push :nil
+              end
+            end)
+
   add_tests("defn_args_opt",
             "Compiler" => bytecode do |g|
               in_method :f do |d|
@@ -1349,35 +1327,10 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
-  add_tests("defn_args_splat_block",
-            "Compiler" => bytecode do |g|
-              in_method :f do |d|
-                d.block_arg 1
-                d.push :nil
-              end
-            end)
-
-  add_tests("defn_empty",
-            "Compiler" => bytecode do |g|
-              in_method :empty do |d|
-                d.push :nil
-              end
-            end)
-
-  add_tests("defn_empty_args",
-            "Compiler" => bytecode do |g|
-              in_method :empty do |d|
-                d.push :nil
-              end
-            end)
-
-  add_tests("defn_optargs",
+  add_tests("defn_args_splat_no_name",
             "Compiler" => bytecode do |g|
               in_method :x do |d|
-                d.push :self
-                d.push_local 0
-                d.push_local 1
-                d.send :p, 2, true
+                d.push :nil
               end
             end)
 
@@ -2244,46 +2197,61 @@ class CompilerTestCase < ParseTreeTestCase
               bottom.set!
             end)
 
-  add_tests("iteration1",
+  add_tests("if_nested",
             "Compiler" => :skip)
 
-  add_tests("iteration2",
+  add_tests("if_post",
             "Compiler" => :skip)
 
-  add_tests("iteration3",
+  add_tests("if_post_not",
             "Compiler" => :skip)
 
-  add_tests("iteration4",
+  add_tests("if_pre",
             "Compiler" => :skip)
 
-  add_tests("iteration5",
+  add_tests("if_pre_not",
             "Compiler" => :skip)
 
-  add_tests("iteration6",
+  add_tests("iter_call_arglist_space",
             "Compiler" => :skip)
 
-  add_tests("iteration7",
+  add_tests("iter_dasgn_curr_dasgn_madness",
             "Compiler" => :skip)
 
-  add_tests("iteration8",
+  add_tests("iter_downto",
             "Compiler" => :skip)
 
-  add_tests("iteration9",
+  add_tests("iter_each_lvar",
             "Compiler" => :skip)
 
-  add_tests("iterationA", # TODO: rename all of these
+  add_tests("iter_each_nested",
             "Compiler" => :skip)
 
-  add_tests("iteration_call_arglist_space",
+  add_tests("iter_loop_empty",
             "Compiler" => :skip)
 
-  add_tests("iteration_dasgn_curr_dasgn_madness",
+  add_tests("iter_masgn_2",
             "Compiler" => :skip)
 
-  add_tests("iteration_double_var",
+  add_tests("iter_masgn_args_splat",
             "Compiler" => :skip)
 
-  add_tests("iteration_masgn",
+  add_tests("iter_masgn_args_splat_no_name",
+            "Compiler" => :skip)
+
+  add_tests("iter_masgn_splat",
+            "Compiler" => :skip)
+
+  add_tests("iter_masgn_splat_no_name",
+            "Compiler" => :skip)
+
+  add_tests("iter_shadowed_var",
+            "Compiler" => :skip)
+
+  add_tests("iter_upto",
+            "Compiler" => :skip)
+
+  add_tests("iter_while",
             "Compiler" => :skip)
 
   add_tests("lasgn_array",
@@ -3939,6 +3907,18 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :f2, 0, true
             end)
 
+  add_tests("unless_post",
+            "Compiler" => :skip)
+
+  add_tests("unless_post_not",
+            "Compiler" => :skip)
+
+  add_tests("unless_pre",
+            "Compiler" => :skip)
+
+  add_tests("unless_pre_not",
+            "Compiler" => :skip)
+
   add_tests("until_post",
             "Compiler" => bytecode do |g|
               top    = g.new_label
@@ -4317,11 +4297,14 @@ describe "Compiler::*Nodes" do
     it "compiles :#{node}" do
       input    = hash['Ruby']
       expected = hash['Compiler']
-      sexp     = input.to_sexp
 
-      comp    = Compiler.new TestGenerator
-      node    = comp.convert_sexp s(:snippit, sexp)
-      actual   = TestGenerator.new
+      input.should_not == nil
+      expected.should_not == nil
+
+      sexp   = input.to_sexp
+      comp   = Compiler.new TestGenerator
+      node   = comp.convert_sexp s(:snippit, sexp)
+      actual = TestGenerator.new
       node.bytecode actual
 
       actual.should == expected
