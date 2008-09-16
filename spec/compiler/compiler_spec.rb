@@ -1436,13 +1436,55 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("iasgn",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 4
+              g.set_ivar :@a
+            end)
 
   add_tests("if_block_condition",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              f      = g.new_label
+              bottom = g.new_label
+
+              g.push 5
+              g.set_local 0
+              g.pop
+
+              g.push_local 0
+              g.push 1
+              g.meta_send_op_plus
+              g.gif f
+
+              g.push :nil
+              g.goto bottom
+
+              f.set!
+              g.push :nil
+
+              bottom.set!
+            end)
 
   add_tests("if_lasgn_short",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              f      = g.new_label
+              bottom = g.new_label
+
+              g.push :self
+              g.send :obj, 0, true
+              g.send :x, 0, false
+              g.set_local 0
+
+              g.gif f
+
+              g.push_local 0
+              g.send :do_it, 0, false
+              g.goto bottom
+
+              f.set!
+              g.push :nil
+
+              bottom.set!
+            end)
 
   add_tests("iteration1",
             "Compiler" => :skip)
@@ -1486,14 +1528,23 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("iteration_masgn",
             "Compiler" => :skip)
 
-  add_tests("ivar",
-            "Compiler" => :skip)
-
   add_tests("lasgn_array",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_literal "foo"
+              g.string_dup
+              g.push_literal "bar"
+              g.string_dup
+              g.make_array 2
+              g.set_local 0
+            end)
 
   add_tests("lasgn_call",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 2
+              g.push 3
+              g.meta_send_op_plus
+              g.set_local 0
+            end)
 
   add_tests("lit_bool_false",
             "Compiler" => bytecode do |g|
