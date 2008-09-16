@@ -127,6 +127,10 @@ class Instructions
         end
       end
 
+      if [:push_const, :find_const].include?(impl.name.opcode)
+        io.puts "  return;"
+      end
+
       io.puts "  break;"
       io.puts "  }"
     end

@@ -67,7 +67,7 @@ class Instructions
 
   def add_method(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
     OBJECT recv = stack_pop();
     Module* mod = try_as<Module>(recv);
     /* If the receiver is not a module, use the receiver's class_object instead */
@@ -175,7 +175,7 @@ class Instructions
 
   def attach_method(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
     OBJECT obj = stack_pop();
     OBJECT obj2 = stack_pop();
     CompiledMethod* meth = as<CompiledMethod>(obj2);
@@ -485,7 +485,7 @@ class Instructions
   def check_serial(index, serial)
     <<-CODE
     OBJECT t1 = stack_pop();
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
 
     if(task->check_serial(t1, sym, serial)) {
       stack_push(Qtrue);
@@ -594,7 +594,7 @@ class Instructions
   def create_block(index)
     <<-CODE
     /* the method */
-    OBJECT _lit = task->literals()->field[index];
+    OBJECT _lit = task->literals()->at(index);
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
     MethodContext* parent;
@@ -724,14 +724,26 @@ class Instructions
     <<-CODE
     bool found;
     Module* under = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
     OBJECT res = task->const_get(under, sym, &found);
     if(!found) {
-      sym->show(state);
-      Assertion::raise("implement const_missing");
-    } else {
-      stack_push(res);
+      Message& msg = *task->msg;
+      msg.recv = under;
+      msg.name = state->symbol("const_missing");
+      msg.block = Qnil;
+      msg.stack = 0;
+      msg.lookup_from = msg.recv->lookup_begin(state);
+      Array* args = Array::create(state, 1);
+      args->set(state, 0, sym);
+      msg.set_arguments(state, args);
+
+      bool res = task->send_message_slowly(msg);
+      msg.reset();
+      return res;
     }
+
+    stack_push(res);
+    return false;
     CODE
   end
 
@@ -1844,7 +1856,7 @@ class Instructions
     <<-CODE
     bool created;
     OBJECT super = stack_pop();
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
 
     Class* cls = task->open_class(super, sym, &created);
 
@@ -1911,7 +1923,7 @@ class Instructions
     bool created;
     OBJECT super = stack_pop();
     Module* under = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
 
     Class* cls = task->open_class(under, super, sym, &created);
     // TODO use created? it's only for running the opened_class hook, which
@@ -1997,7 +2009,7 @@ class Instructions
 
   def open_module(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
 
     stack_push(task->open_module(sym));
     CODE
@@ -2044,7 +2056,7 @@ class Instructions
   def open_module_under(index)
     <<-CODE
     Module* mod = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
 
     stack_push(task->open_module(mod, sym));
     CODE
@@ -2202,14 +2214,31 @@ class Instructions
   def push_const(index)
     <<-CODE
     bool found;
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
     OBJECT res = task->const_get(sym, &found);
     if(!found) {
-      sym->show(state);
-      Assertion::raise("implement const_missing");
-    } else {
-      stack_push(res);
+      Message& msg = *task->msg;
+      StaticScope* scope = task->active()->cm()->scope();
+      if(scope->nil_p()) {
+        msg.recv = G(object);
+      } else {
+        msg.recv = scope->module();
+      }
+      msg.name = state->symbol("const_missing");
+      msg.block = Qnil;
+      msg.stack = 0;
+      msg.lookup_from = msg.recv->lookup_begin(state);
+      Array* args = Array::create(state, 1);
+      args->set(state, 0, sym);
+      msg.set_arguments(state, args);
+
+      bool res = task->send_message_slowly(msg);
+      msg.reset();
+      return res;
     }
+
+    stack_push(res);
+    return false;
     CODE
   end
 
@@ -2416,7 +2445,7 @@ class Instructions
 
   def push_ivar(index)
     <<-CODE
-    OBJECT sym = task->literals()->field[index];
+    OBJECT sym = task->literals()->at(index);
     stack_push(task->self()->get_ivar(state, sym));
     CODE
   end
@@ -2454,7 +2483,7 @@ class Instructions
 
   def push_literal(val)
     <<-CODE
-    OBJECT t2 = task->literals()->field[val];
+    OBJECT t2 = task->literals()->at(val);
     stack_push(t2);
     CODE
   end
@@ -2834,7 +2863,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->at(index));
     msg.recv = stack_top();
     msg.block = Qnil;
     msg.splat = Qnil;
@@ -2912,7 +2941,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->at(index));
     msg.recv = stack_back(count);
     msg.block = Qnil;
     msg.splat = Qnil;
@@ -2994,7 +3023,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->at(index));
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.total_args = count;
@@ -3085,7 +3114,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->at(index));
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
@@ -3178,7 +3207,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->at(index));
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.total_args = count;
@@ -3312,7 +3341,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->field[index]);
+    msg.send_site = as<SendSite>(task->literals()->at(index));
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
@@ -3441,7 +3470,7 @@ class Instructions
 
   def set_const(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
     task->const_set(sym, stack_top());
     CODE
   end
@@ -3484,7 +3513,7 @@ class Instructions
 
   def set_const_at(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->field[index]);
+    SYMBOL sym = as<Symbol>(task->literals()->at(index));
     OBJECT val = stack_pop();
     Module* under = as<Module>(stack_pop());
 
@@ -3525,7 +3554,7 @@ class Instructions
 
   def set_ivar(index)
     <<-CODE
-    OBJECT sym = task->literals()->field[index];
+    OBJECT sym = task->literals()->at(index);
     task->self()->set_ivar(state, sym, stack_top());
     CODE
   end
