@@ -170,13 +170,13 @@ class TestChannel : public CxxTest::TestSuite {
     OBJECT* stack = G(current_task)->current_stack();
 
     OBJECT ret = Channel::send_in_seconds(state, chan, point_one, done);
-    usleep(200000);
+    usleep(201000);
     chan->receive(state);
 
     gettimeofday(&finish, NULL);
     TS_ASSERT(ret->nil_p());
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(done, stack[0]);
-    compare_intervals(start, finish, 200000U, 350U);
+    compare_intervals(start, finish, 201000U, 350U);
   }
 };
