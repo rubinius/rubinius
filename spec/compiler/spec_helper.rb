@@ -212,10 +212,10 @@ class TestGenerator
   end
 
   def in_rescue klass
-    top = self.new_label
-    bottom = self.new_label
-    dunno = self.new_label
-    std_err = self.new_label
+    top       = self.new_label
+    bottom    = self.new_label
+    dunno     = self.new_label
+    std_err   = self.new_label
     unhandled = self.new_label
 
     self.push_modifiers
@@ -233,7 +233,7 @@ class TestGenerator
     self.push_exception
     self.send :===, 1
     self.git std_err
-    self.goto unhandled
+    self.goto unhandled         # FIX: stupid jump, gif better
 
     std_err.set!
 

@@ -760,47 +760,17 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("defn_rescue",
             "Compiler" => bytecode do |g|
               in_method :eql? do |d|
-                top  = d.new_label
-                dunno1  = d.new_label
-                stderr = d.new_label
-                other = d.new_label
-                bottom = d.new_label
-
-                d.push_modifiers
-
-                top.set!
-                top.set! # TODO: fix
-
-                d.push :self
-                d.send :uuid, 0, false
-                d.push_local 0
-                d.send :uuid, 0, false
-                d.meta_send_op_equal
-                d.goto bottom
-
-                dunno1.set!
-
-                d.push_const :StandardError
-                d.push_exception
-                d.send :===, 1
-                d.git stderr
-                d.goto other
-
-                stderr.set!
-
-                d.push :false
-                d.clear_exception
-                d.goto bottom # Is this the reason for the second set?
-
-                other.set!
-
-                d.push_exception
-                d.raise_exc
-
-                bottom.set!
-                bottom.set! # TODO: fix
-
-                d.pop_modifiers
+                d.in_rescue :StandardError do |good_side|
+                  if good_side then
+                    d.push :self
+                    d.send :uuid, 0, false
+                    d.push_local 0
+                    d.send :uuid, 0, false
+                    d.meta_send_op_equal
+                  else
+                    d.push :false
+                  end
+                end
               end
             end)
 
@@ -1472,7 +1442,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.find_const :Hash
               g.push 1
 
-              g.in_rescue(:StandardError) do |good_side|
+              g.in_rescue :StandardError do |good_side|
                 if good_side then
                   g.push 2
                 else
@@ -1703,48 +1673,18 @@ class CompilerTestCase < ParseTreeTestCase
                 d.push :self
 
                 d.in_block_send :c, 0 do |d2|
-                  dunno1      = d2.new_label
-                  dunno2      = d2.new_label
-                  runtime_err = d2.new_label
-                  unhandled   = d2.new_label
-                  bottom      = d2.new_label
-
-                  d2.push_modifiers
-
-                  dunno1.set!
-                  dunno1.set!
-
-                  d2.push :self
-                  d2.send :do_stuff, 0, true
-                  d2.goto bottom
-
-                  dunno2.set!
-
-                  d2.push_const :RuntimeError
-                  d2.push_exception
-                  d2.send :===, 1
-                  d2.git runtime_err
-                  d2.goto unhandled
-
-                  runtime_err.set!
-                  d2.push_exception
-                  d2.set_local_depth 0, 0
-
-                  d2.push :self
-                  d2.push_local_depth 0, 0
-                  d2.send :puts, 1, true
-                  d2.clear_exception
-                  d2.goto bottom
-
-                  unhandled.set!
-
-                  d2.push_exception
-                  d2.raise_exc
-
-                  bottom.set!
-                  bottom.set!
-
-                  d2.pop_modifiers
+                  d2.in_rescue :RuntimeError do |good_side|
+                    if good_side then
+                      d2.push :self
+                      d2.send :do_stuff, 0, true
+                    else
+                      d2.push_exception
+                      d2.set_local_depth 0, 0
+                      d2.push :self
+                      d2.push_local_depth 0, 0
+                      d2.send :puts, 1, true
+                    end
+                  end
                 end
               end
             end)
@@ -2457,49 +2397,22 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("op_asgn_or_block",
             "Compiler" => bytecode do |g|
-              dunno1             = g.new_label
-              no_exception       = g.new_label
-              std_exception      = g.new_label
-              t                  = g.new_label
-              top                = g.new_label
-              uncaught_exception = g.new_label
+              t = g.new_label
 
               g.push_local 0
               g.dup
               g.git t
               g.pop
 
-              g.push_modifiers
-
-              top.set!
-              top.set!
-
-              g.push :self
-              g.send :b, 0, true
-              g.goto no_exception
-              dunno1.set!
-
-              g.push_const :StandardError # REFACTOR - we can clean up lots here
-              g.push_exception
-              g.send :===, 1
-              g.git std_exception
-              g.goto uncaught_exception         # FIX: stupid jump, gif better
-              std_exception.set!
-
-              g.push :self
-              g.send :c, 0, true
-              g.clear_exception
-              g.goto no_exception
-
-              uncaught_exception.set!
-
-              g.push_exception
-              g.raise_exc
-
-              no_exception.set!
-              no_exception.set!
-
-              g.pop_modifiers
+              in_rescue :StandardError do |good_side|
+                if good_side then
+                  g.push :self
+                  g.send :b, 0, true
+                else
+                  g.push :self
+                  g.send :c, 0, true
+                end
+              end
 
               g.set_local 0
 
@@ -3021,105 +2934,45 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("structure_remove_begin_1",
             "Compiler" => bytecode do |g|
-              begin_top          = g.new_label
-              bottom             = g.new_label
-              dunno1             = g.new_label
-              no_exception       = g.new_label
-              std_exception      = g.new_label
-              uncaught_exception = g.new_label
-
               g.push :self
               g.send :a, 0, true
-              g.push_modifiers
 
-              begin_top.set!
-              begin_top.set!
-
-              g.push :self
-              g.send :b, 0, true
-              g.goto no_exception
-
-              dunno1.set!
-
-              g.push_const :StandardError
-              g.push_exception
-              g.send :===, 1
-              g.git std_exception
-              g.goto uncaught_exception
-
-              std_exception.set!
-
-              g.push :self
-              g.send :c, 0, true
-              g.clear_exception
-              g.goto no_exception
-
-              uncaught_exception.set!
-
-              g.push_exception
-              g.raise_exc
-
-              no_exception.set!
-              no_exception.set!
-
-              g.pop_modifiers
+              in_rescue :StandardError do |good_side|
+                if good_side then
+                  g.push :self
+                  g.send :b, 0, true
+                else
+                  g.push :self
+                  g.send :c, 0, true
+                end
+              end
 
               g.send :<<, 1, false
             end)
 
   add_tests("structure_remove_begin_2",
             "Compiler" => bytecode do |g|
-              begin_top          = g.new_label
-              bottom             = g.new_label
-              dunno1             = g.new_label
-              f                  = g.new_label
-              no_exception       = g.new_label
-              std_exception      = g.new_label
-              uncaught_exception = g.new_label
+              bottom = g.new_label
+              f      = g.new_label
 
               g.push :self
               g.send :c, 0, true
               g.gif f
-              g.push_modifiers
 
-              begin_top.set!
-              begin_top.set!
-
-              g.push :self
-              g.send :b, 0, true
-              g.goto no_exception
-
-              dunno1.set!
-
-              g.push_const :StandardError
-              g.push_exception
-              g.send :===, 1
-              g.git std_exception
-              g.goto uncaught_exception
-
-              std_exception.set!
-
-              g.push :nil
-              g.clear_exception
-              g.goto no_exception
-
-              uncaught_exception.set!
-
-              g.push_exception
-              g.raise_exc
-
-              no_exception.set!
-              no_exception.set!
-
-              g.pop_modifiers
+              in_rescue :StandardError do |good_side|
+                if good_side then
+                  g.push :self
+                  g.send :b, 0, true
+                else
+                  g.push :nil
+                end
+              end
               g.goto bottom
 
               f.set!
-
               g.push :nil
 
               bottom.set!
-
               g.set_local 0
               g.pop
               g.push_local 0
