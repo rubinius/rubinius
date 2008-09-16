@@ -185,19 +185,61 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("begin",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push 1
+              g.meta_send_op_plus
+            end)
 
   add_tests("begin_def",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :m do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("begin_rescue_ensure",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              dunno  = g.new_label
+              bottom = g.new_label
+
+              top.set!
+
+              g.push_modifiers
+              g.push :nil
+              g.pop_modifiers
+              g.goto bottom
+
+              dunno.set!
+
+              g.push :nil
+              g.pop
+
+              g.push_exception
+              g.raise_exc
+
+              bottom.set!
+
+              g.push :nil
+              g.pop
+            end)
 
   add_tests("begin_rescue_twice",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_modifiers
+              g.push :nil
+              g.pop_modifiers
+
+              g.pop
+
+              g.push_modifiers
+              g.push :nil
+              g.pop_modifiers
+            end)
 
   add_tests("begin_rescue_twice_mri_verbose_flag",
-            "Compiler" => :skip)
+            "Compiler" => testcases['begin_rescue_twice']['Compiler'])
 
   add_tests("block_attrasgn",
             "Compiler" => :skip)
