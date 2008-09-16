@@ -9,10 +9,10 @@ class String
   # This form doesn't do the rubinius specific rewriting...  That's
   # fine for now, we don't need to test that here as the compiler is
   # all over that.
-  def to_sexp
+  def to_sexp(file = '(string)', line = 1)
     require 'ruby_parser'
 
-    RubyParser.new.process(self, "(string)")
+    RubyParser.new.process(self, file)
   end
 end
 
