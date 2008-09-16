@@ -955,7 +955,6 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
-  # => "def self.quiet_mode=(boolean)\n  @@quiet_mode = boolean\nend",
   add_tests("cvasgn_cls_method",
             "Compiler" => bytecode do |g|
               g.push :self
@@ -977,106 +976,90 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
-#   a.each { |x|
-#     b.each { |y|
-#       x = (x + 1)
-#     } if true
-#   }
-
-#   add_tests("dasgn_0",
-#             "Compiler" => bytecode do |g|
-#               g.push :self
-#               g.send :a, 0, true
-#               g.in_block_send :each, 1, 0, false do |d|
-#                 f = d.new_label
-
-#                 d.push :true
-#                 d.gif f
-
-#                 d.push :self
-#                 d.send :b, 0, true
-#                 d.in_block_send :each, 1, 0, false do |d2|
-#                   d2.push_local_depth 1, 0
-#                   d2.push 1
-#                   d2.meta_send_op_plus
-#                   d2.set_local_depth 1, 0
-#                 end
-
-#                 f.set!
-#               end
-#             end)
-
   add_tests("dasgn_0",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :a, 0, true
+              g.in_block_send :each, 1, 0, false, 0, false do |d|
+                t = d.new_label
+                f = d.new_label
 
-#   a.each { |x|
-#     b.each { |y|
-#       c = (c + 1)
-#     } if true
-#   }
+                d.push :true
+                d.gif f
 
-#   add_tests("dasgn_1",
-#             "Compiler" => bytecode do |g|
-#               g.push :self
-#               g.send :a, 0, true
-#               g.in_block_send :each, 1, 0, false do |d|
-#                 f = d.new_label
+                d.push :self
+                d.send :b, 0, true
+                d.in_block_send :each, 1, 0, false, 0, true do |d2|
+                  d2.push_local_depth 1, 0
+                  d2.push 1
+                  d2.meta_send_op_plus
+                  d2.set_local_depth 1, 0
+                end
 
-#                 d.push :true
-#                 d.gif f
-
-#                 d.push :self
-#                 d.send :b, 0, true
-#                 d.in_block_send :each, 1, 0, false do |d2|
-#                   d2.push_local_depth 0, 1
-#                   d2.push 1
-#                   d2.meta_send_op_plus
-#                   d2.set_local_depth 0, 1
-#                 end
-
-#                 f.set!
-#               end
-#             end)
+                d.goto t
+                f.set!
+                d.push :nil
+                t.set!
+              end
+            end)
 
   add_tests("dasgn_1",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :a, 0, true
+              g.in_block_send :each, 1, 0, false, 0, false do |d|
+                t = d.new_label
+                f = d.new_label
 
-# a.each do |x|
-#   if true then
-#     c = 0
-#     b.each { |y| c = (c + 1) }
-#   end
-# end
+                d.push :true
+                d.gif f
 
-#   add_tests("dasgn_2",
-#             "Compiler" => bytecode do |g|
-#               g.push :self
-#               g.send :a, 0, true
-#               g.in_block_send :each, 1, 0, false do |d|
-#                 f = d.new_label
+                d.push :self
+                d.send :b, 0, true
+                d.in_block_send :each, 1, 0, false, 0, true do |d2|
+                  d2.push_local_depth 0, 1
+                  d2.push 1
+                  d2.meta_send_op_plus
+                  d2.set_local_depth 0, 1
+                end
 
-#                 d.push :true
-#                 d.gif f
-
-#                 d.push 0
-#                 d.set_local_depth 0, 1
-#                 d.pop
-
-#                 d.push :self
-#                 d.send :b, 0, true
-#                 d.in_block_send :each, 1, 0, false do |d2|
-#                   d2.push_local_depth 1, 1
-#                   d2.push 1
-#                   d2.meta_send_op_plus
-#                   d2.set_local_depth 1, 1
-#                 end
-
-#                 f.set!
-#               end
-#             end)
+                d.goto t
+                f.set!
+                d.push :nil
+                t.set!
+              end
+            end)
 
   add_tests("dasgn_2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :a, 0, true
+              g.in_block_send :each, 1, 0, false, 0, false do |d|
+                t = d.new_label
+                f = d.new_label
+
+                d.push :true
+                d.gif f
+
+                d.push 0
+                d.set_local_depth 0, 1
+                d.pop
+
+                d.push :self
+                d.send :b, 0, true
+                d.in_block_send :each, 1, 0, false, 0, true do |d2|
+                  d2.push_local_depth 1, 1
+                  d2.push 1
+                  d2.meta_send_op_plus
+                  d2.set_local_depth 1, 1
+                end
+
+                d.goto t
+                f.set!
+                d.push :nil
+                t.set!
+              end
+            end)
 
   add_tests("dasgn_curr",
             "Compiler" => bytecode do |g|
@@ -1097,53 +1080,38 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
-# a do
-#   v = nil
-#   assert_block(full_message) do
-#     begin
-#       yield
-#     rescue Exception => v
-#       break
-#     end
-#   end
-# end
-
-# TODO: should be pretty... but isn't
-#   add_tests("dasgn_icky",
-#             "Compiler" => bytecode do |g|
-#               g.push :self
-#               g.in_block_send :a do |d|
-#                 d.push :nil
-#                 d.set_local_depth 0, 0
-#                 d.pop
-#
-#                 d.push :self
-#                 d.push :self
-#                 d.send :full_message, 0, true
-#
-#                 d.in_block_send :assert_block, 0, 1 do |d2|
-#                   d2.in_rescue :Exception do |good_side|
-#                     if good_side then
-#                       d2.push_block
-#                       d2.meta_send_call 0
-#                     else
-#                       d2.push_exception
-#                       d2.set_local_depth 1, 0
-#                       d2.push :nil
-#                       d2.push_local 0
-#                       d2.swap
-#                       d2.send :break_value=, 1
-#                       d2.pop
-#                       d2.push_local 0
-#                       d2.raise_exc
-#                     end
-#                   end
-#                 end
-#               end
-#             end)
-
   add_tests("dasgn_icky",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.in_block_send :a do |d|
+                d.push :nil
+                d.set_local_depth 0, 0
+                d.pop
+
+                d.push :self
+                d.push :self
+                d.send :full_message, 0, true
+
+                d.in_block_send :assert_block, 0, 1, true, 0, true do |d2|
+                  d2.in_rescue :Exception do |good_side|
+                    if good_side then
+                      d2.push_block
+                      d2.meta_send_call 0
+                    else
+                      d2.push_exception
+                      d2.set_local_depth 1, 0
+                      d2.push :nil
+                      d2.push_local 0
+                      d2.swap
+                      d2.send :break_value=, 1
+                      d2.pop
+                      d2.push_local 0
+                      d2.raise_exc
+                    end
+                  end
+                end
+              end
+            end)
 
   add_tests("dasgn_mixed",
             "Compiler" => bytecode do |g|
@@ -1862,17 +1830,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :"`", 1, true
             end)
 
-  # begin
-  #   (1 + 1)
-  # rescue SyntaxError => e1
-  #   2
-  # rescue Exception => e2
-  #   3
-  # else
-  #   4
-  # ensure
-  #   5
-  # end
+  # TODO: OMFG!
 
   add_tests("ensure",
             "Compiler" => bytecode do |g|
@@ -3488,19 +3446,6 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :strip, 0, false
             end)
 
-#   "Ruby"         => "a += <<-H1 + b + <<-H2\n  first\nH1\n  second\nH2",
-#   "ParseTree"    => s(:lasgn, :a,
-#                       s(:call,
-#                         s(:lvar, :a),
-#                         :+,
-#                         s(:arglist,
-#                           s(:call,
-#                             s(:call, s(:str, "  first\n"), :+,
-#                               s(:arglist,
-#                                 s(:call, nil, :b, s(:arglist)))),
-#                             :+,
-#                             s(:arglist, s(:str, "  second\n")))))),
-
   add_tests("str_heredoc_double",
             "Compiler" => bytecode do |g|
               g.push_local 0
@@ -3533,61 +3478,20 @@ class CompilerTestCase < ParseTreeTestCase
               g.string_dup
             end)
 
-#   a.b do |c, d|
-#     unless e.f(c) then
-#       g = false
-#       d.h { |x, i| g = true }
-#     end
-#   end
-
-
-#   add_tests("structure_extra_block_for_dvar_scoping",
-#             "Compiler" => bytecode do |g|
-#               g.push :self
-#               g.send :a, 0, true
-
-#               g.in_block_send :b, 2, 0, false do |d|
-#                 f = d.new_label
-#                 wtf = d.new_label
-
-#                 d.push :self
-#                 d.send :e, 0, true
-#                 d.push_local_depth 0, 0
-#                 d.send :f, 1, false
-#                 d.git f
-
-#                 d.push :false
-#                 d.set_local_depth 0, 2
-#                 d.pop
-
-#                 d.push_local_depth 0, 1
-
-#                 d.in_block_send :h, 2, 0, false, wtf do |d2|
-#                   d2.push :true
-#                   d2.set_local_depth 1, 2
-#                 end
-
-#                 f.set!
-#               end
-#             end)
-
-  # FIX OMG this is HORRIBLE but the block-in-a-block scenario is too
-  # intertwined to use the bytecode helper methods. It SHOULD look
-  # something lke the above but nooooooo... that'd be too easy!
   add_tests("structure_extra_block_for_dvar_scoping",
             "Compiler" => bytecode do |g|
               g.push :self
               g.send :a, 0, true
 
-             g.in_block_send :b, 2, 0, false do |d|
-                f      = d.new_label
-                bottom = d.new_label
+              g.in_block_send :b, 2, 0, false do |d|
+                f = d.new_label
+                t = d.new_label
 
                 d.push :self
                 d.send :e, 0, true
                 d.push_local_depth 0, 0
                 d.send :f, 1, false
-                d.git bottom
+                d.git f
 
                 d.push :false
                 d.set_local_depth 0, 2
@@ -3595,93 +3499,16 @@ class CompilerTestCase < ParseTreeTestCase
 
                 d.push_local_depth 0, 1
 
-                ############################################################
-                # d.in_block_send :h, 2, 0, false, :wtf do |d2|
-                d2             = d
-                msg            = :h
-                block_count    = 2
-                call_count     = 0
-                block_send_vis = false
-                wtf            = :wtf
-                top            = d2.new_label
-                dunno1         = d2.new_label
-                dunno2         = d2.new_label
-                dunno3         = d2.new_label
-                dunno4         = d2.new_label
-                uncaught       = d2.new_label
-
-                d2.create_block_desc do |d3|
-                  inner_top = d3.new_label
-
-                  case block_count
-                  when 0 then
-                  when 1 then
-                    d3.cast_for_single_block_arg
-                    d3.set_local_depth 0, 0
-                  else
-                    d3.cast_for_multi_block_arg
-                    (0...block_count).each do |n|
-                      d3.shift_tuple
-                      d3.set_local_depth 0, n
-                      d3.pop
-                    end
-                  end
-
-                  d3.pop
-
-                  d3.push_modifiers
-                  inner_top.set!
-
-                  d3.push :true
-                  d3.set_local_depth 1, 2
-
-                  d3.pop_modifiers
-                  d3.ret
+                d.in_block_send :h, 2, 0, false, 0, true do |d2|
+                  d2.push :true
+                  d2.set_local_depth 1, 2
                 end
 
-                top.set!
-
-                d2.push_cpath_top
-                d2.find_const :LongReturnException
-                d2.send :allocate, 0
-                d2.set_local 0
-                d2.pop
-
-                d2.send_with_block msg, call_count, block_send_vis
-                d2.goto dunno3
-
-                dunno1.set!
-
-                d2.push_exception
-                d2.dup
-                d2.push_local 0
-                d2.equal
-                d2.gif uncaught
-                d2.clear_exception
-                d2.dup
-                d2.send :is_return, 0
-                d2.gif dunno2
-
-                uncaught.set!
-                d2.raise_exc
-
-                dunno2.set!
-
-                d2.send :value, 0
-
-                dunno3.set!
-
-                d2.goto f
-
-                bottom.set!
-
-                d2.push :nil
-
-                # end
-                ############################################################
-
+                d.goto t
                 f.set!
-             end
+                d.push :nil
+                t.set!
+              end
             end)
 
   add_tests("structure_remove_begin_1",
