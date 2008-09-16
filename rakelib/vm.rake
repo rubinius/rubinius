@@ -199,6 +199,7 @@ files EXTERNALS do |t|
 end
 
 file 'vm/primitives.o'                => 'vm/codegen/field_extract.rb'
+file 'vm/primitives.o'                => TYPE_GEN
 file 'vm/codegen/instructions_gen.rb' => 'kernel/delta/iseq.rb'
 file 'vm/instructions.rb'             => 'vm/gen'
 file 'vm/instructions.rb'             => 'vm/codegen/instructions_gen.rb'
