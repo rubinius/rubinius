@@ -1,4 +1,12 @@
 class IO
+
+  class Buffer
+    def self.allocate
+      Ruby.primitive :iobuffer_allocate
+      raise PrimitiveFailure, "IO::Buffer.allocate primitive failed"
+    end
+  end
+
   def self.open_with_mode(path, mode, perm)
     Ruby.primitive :io_open
     raise PrimitiveFailure, "primitive failed"

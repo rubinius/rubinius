@@ -1,5 +1,6 @@
 #include "builtin/io.hpp"
 #include "builtin/bytearray.hpp"
+#include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
@@ -24,10 +25,17 @@ namespace rubinius {
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = (IOBuffer*)state->new_object(G(iobuffer));
     buf->storage(state, ByteArray::create(state, bytes));
+    buf->channel(state, Channel::create(state));
     buf->total(state, Fixnum::from(bytes));
     buf->used(state, Fixnum::from(0));
+    buf->start(state, Fixnum::from(0));
+    buf->eof(state, Qfalse);
 
     return buf;
+  }
+
+  IOBuffer* IOBuffer::allocate(STATE) {
+    return create(state);
   }
 
   IO* IO::create(STATE, int fd) {

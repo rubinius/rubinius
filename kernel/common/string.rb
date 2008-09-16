@@ -22,11 +22,12 @@ class String
     str
   end
 
-  def self.from_bytearray(ba, count)
-    str = allocate()
-    str.data = ba
-    str.num_bytes = count
-    return str
+  ##
+  # Creates a new string from copying _count_ bytes from the
+  # _start_ of _ba_.
+  def self.from_bytearray(ba, start, count)
+    Ruby.primitive :string_from_bytearray
+    raise PrimitiveFailure, "String.from_bytearray primitive failed"
   end
 
   def initialize(arg=nil)

@@ -73,4 +73,16 @@ class TestIO : public CxxTest::TestSuite {
     // TODO: /dev/ttyxxx won't be portable to e.g. windoze
     TS_ASSERT(tty);
   }
+
+  void test_create_buffer() {
+    IOBuffer* buf = IOBuffer::create(state, 10);
+    FIXNUM zero = Fixnum::from(0);
+
+    TS_ASSERT_EQUALS(zero, buf->start());
+    TS_ASSERT_EQUALS(zero, buf->used());
+    TS_ASSERT_EQUALS(Fixnum::from(10), buf->total());
+    TS_ASSERT_EQUALS(10U, buf->left());
+    TS_ASSERT_EQUALS(ChannelType, buf->channel()->obj_type);
+    TS_ASSERT_EQUALS(Qfalse, buf->eof());
+  }
 };

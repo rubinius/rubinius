@@ -2,102 +2,136 @@
 
 class IO
 
-  BufferSize = 8096
-
+  # Buffer provides a sliding window into a region of bytes.
+  # The buffer is filled to the +used+ indicator, which is
+  # always less than or equal to +total+. As bytes are taken
+  # from the buffer, the +start+ indicator is incremented by
+  # the number of bytes taken. Once +start+ == +used+, the
+  # buffer is +empty?+ and needs to be refilled.
+  #
+  # This description should be independent of the "direction"
+  # in which the buffer is used. As a read buffer, +fill_from+
+  # appends at +used+, but not exceeding +total+. When +used+
+  # equals total, no additional bytes will be filled until the
+  # buffer is emptied.
+  #
+  # As a write buffer, +empty_to+ (TODO implement, +empty_to+ is
+  # the opposite of +fill_from+) removes bytes from +start+ up to
+  # +used+. When +start+ equals +used+, no additional bytes will
+  # be emptied until the buffer is filled.
+  #
+  # IO presents a stream of input. Buffer presents buckets of
+  # input. IO's task is to chain the buckets so the user sees
+  # a stream. IO explicitly requests that the buffer be filled
+  # (on input) and then determines how much of the input to take
+  # (e.g. by looking for a separator or collecting a certain
+  # number of bytes). Buffer decides whether or not to go to the
+  # source for more data or just present what is already in the
+  # buffer.
   class Buffer
 
     attr_reader :total
+    attr_reader :start
     attr_reader :used
-
-    ##
-    # Create a buffer of +size+ bytes. The buffer contains an internal Channel
-    # object it uses to fill itself.
-    def initialize(size)
-      @storage = ByteArray.new(size)
-      @used = 0
-      @total = size
-
-      @channel = Channel.new
-    end
-
-    ##
-    # Block until the buffer receives more data
-    def process
-      @channel.receive
-    end
-
     attr_reader :channel
 
     ##
-    # Indicates how many bytes are left
-    def unused
-      @total - @used
-    end
-
-    ##
-    # Removes +count+ (or <tt>@used</tt> if +count+ is +nil+) bytes from
-    # the front of the buffer and returns them. If <tt>@used</tt> > count,
-    # the remaining bytes are moved up.
-    def shift_front(count = nil)
-      count = @used unless count and count <= @used
-
-      str = String.from_bytearray @storage.fetch_bytes(0, count), count
-
-      rest = @used - count
-      @storage.move_bytes count, rest, 0 if rest > 0
-      @used = rest
-
-      return str
-    end
-
+    # Returns +true+ if the buffer can be filled.
     def empty?
-      @used == 0
+      @start == @used
     end
 
     ##
-    # Indicates if the Buffer has no more room.
-    def full?
-      @total == @used
+    # Returns +true+ if the buffer is empty and cannot be filled further.
+    def exhausted?
+      @eof and empty?
     end
 
     ##
-    # Empty the buffer.
-    def reset!
-      @used = 0
-    end
-
-    ##
-    # Fill the buffer from IO object +io+. The buffer requests +unused+
-    # bytes, but may not receive that many. Any new data causes this to
-    # return.
+    # A request to the buffer to have data. The buffer decides whether
+    # existing data is sufficient, or whether to read more data from the
+    # +IO+ instance. Any new data causes this method to return.
+    #
+    # Returns +nil+ if <tt>io.eof?</tt> is +true+ and the buffer is empty.
+    # Otherwise, returns the number of bytes in the buffer.
     def fill_from(io)
-      Scheduler.send_on_readable @channel, io, self, unused()
+      return size unless empty?
+
+      reset!
+      Scheduler.send_on_readable @channel, io, self, unused
+
+      # FIX: what is obj and what should it be?
       obj = @channel.receive
       if obj.kind_of? Class
         raise IOError, "error occured while filling buffer (#{obj})"
       end
 
-      io.eof! unless obj
+      if @used == 0
+        io.eof!
+        @eof = true
+      end
 
-      return obj
+      return size
+    end
+
+    ##
+    # Returns the number of bytes to fetch from the buffer up-to-
+    # and-including +pattern+. Returns +nil+ if pattern is not found.
+    def find(pattern)
+      return unless count = @storage.locate(pattern, @start)
+      count - @start
+    end
+
+    ##
+    # Returns +true+ if the buffer is filled to capacity.
+    def full?
+      @total == @used
     end
 
     def inspect # :nodoc:
-      "#<IO::Buffer:0x%x total=%p used=%p characters=%p data=%p>" % [
-        object_id, @total, @used, @characters, @storage
+      "#<IO::Buffer:0x%x total=%p start=%p used=%p data=%p>" % [
+        object_id, @total, @start, @used, @storage
       ]
     end
 
     ##
-    # Match the buffer against String +needle+, and remove bytes starting
-    # at the beginning of the buffer, up to the end of where the String
-    # matched is located.
-    def clip_to(needle)
-      if pos = @storage.locate(needle)
-        return shift_front(pos + needle.size)
-      else
-        nil
-      end
+    # Blocks until the buffer receives more data.
+    def process
+      @channel.receive
+    end
+
+    ##
+    # Resets the buffer state so the buffer can be filled again.
+    def reset!
+      @start = @used = 0
+      @eof = false
+    end
+
+    ##
+    # Returns +count+ bytes from the +start+ of the buffer as a new String.
+    # If +count+ is +nil+, returns all available bytes in the buffer.
+    def shift(count = nil)
+      total = size
+      total = count if count and count < total
+
+      str = String.from_bytearray @storage, @start, total
+      @start += total
+
+      return str
+    end
+
+    ##
+    # Returns the number of bytes available in the buffer.
+    def size
+      @used - @start
+    end
+
+    ##
+    # Returns the number of bytes of capacity remaining in the buffer.
+    # This is the number of additional bytes that can be added to the
+    # buffer before it is full.
+    def unused
+      @total - @used
     end
   end
 
@@ -499,7 +533,7 @@ class IO
   def setup(desc = nil, mode = nil)
     @descriptor = desc if desc
     @mode = mode if mode
-    @buffer = IO::Buffer.new(BufferSize)
+    @ibuffer = IO::Buffer.new
     @eof = false
     @lineno = 0
   end
@@ -517,31 +551,6 @@ class IO
   # binary mode, it cannot be reset to nonbinary mode.
   def binmode
     # HACK what to do?
-  end
-
-  def breadall(buffer=nil)
-    return "" if @eof and @buffer.empty?
-
-    output = ''
-
-    buf = @buffer
-
-    while true
-      bytes = buf.fill_from(self)
-
-      output << buf.shift_front if !bytes or buf.full?
-
-      break unless bytes
-    end
-
-    if buffer then
-      buffer = StringValue buffer
-      buffer.replace output
-    else
-      buffer = output
-    end
-
-    buffer
   end
 
   ##
@@ -618,7 +627,9 @@ class IO
   #  3: This is line three
   #  4: And so on...
   def each(sep=$/)
-    while line = gets_helper(sep)
+    raise IOError, "closed stream" if closed?
+
+    while line = read_to_separator(sep)
       yield line
     end
   end
@@ -658,10 +669,10 @@ class IO
   #
   #  r, w = IO.pipe
   #  r.eof?  # blocks forever
-  # Note that IO#eof? reads data to a input buffer. So IO#sysread doesn‘t work with IO#eof?.
+  # Note that IO#eof? reads data to a input buffer. So IO#sysread doesn't work with IO#eof?.
   def eof?
     read 0 # HACK force check
-    @eof and @buffer.empty?
+    @eof and @ibuffer.exhausted?
   end
 
   alias_method :eof, :eof?
@@ -752,93 +763,16 @@ class IO
   #  File.new("testfile").gets   #=> "This is line one\n"
   #  $_                          #=> "This is line one\n"
   def gets(sep=$/)
-    @lineno += 1
+    raise IOError, "closed stream" if closed?
 
-    line = gets_helper sep
-    line.taint unless line.nil?
+    line = read_to_separator sep
+    line.taint if line
 
     $_ = line
-    $. = @lineno
 
     line
   end
 
-  ##
-  #--
-  # Several methods use similar rules for reading strings from IO, but differ
-  # slightly. This helper is an extraction of the code.
-
-  def gets_helper(sep=$/)
-    raise IOError, "closed stream" if closed?
-    return nil if @eof and @buffer.empty?
-
-    return breadall() unless sep
-
-    if sep.empty?
-      return gets_stripped($/ + $/)
-    end
-
-    # Do an initial fill.
-    return nil if !@buffer.fill_from(self) and @buffer.empty?
-
-    if str = @buffer.clip_to(sep)
-      return str
-    end
-
-    output = nil
-    while true
-      if str = @buffer.clip_to(sep)
-        if output
-          return output + str
-        else
-          return str
-        end
-      end
-
-      if !@buffer.fill_from(self)
-        if @buffer.empty?
-          rest = nil
-        else
-          rest = @buffer.shift_front
-        end
-
-        if output
-          if rest
-            return output << @buffer.shift_front
-          else
-            return output
-          end
-        else
-          return rest
-        end
-      end
-
-      if @buffer.full?
-        if output
-          output << @buffer.shift_front
-        else
-          output = @buffer.shift_front
-        end
-      end
-    end
-  end
-
-  def gets_stripped(sep)
-    buf = @buffer
-
-    if m = /^\n+/m.match(buf)
-      buf.shift_front(m.end(0)) if m.begin(0) == 0
-    end
-
-    str = gets_helper(sep)
-
-    if m = /^\n+/m.match(buf)
-      buf.shift_front(m.end(0)) if m.begin(0) == 0
-    end
-
-    return str
-  end
-  
   ##
   # Return a string describing this IO object.
   def inspect
@@ -1011,60 +945,63 @@ class IO
   end
 
   ##
-  # Reads at most length bytes from the I/O stream,
-  # or to the end of file if length is omitted or is
-  # nil. length must be a non-negative integer or nil.
-  # If the optional buffer argument is present, it must
-  # reference a String, which will receive the data.
+  # Reads at most _length_ bytes from the I/O stream, or to the
+  # end of file if _length_ is omitted or is +nil+. _length_
+  # must be a non-negative integer or +nil+. If the optional
+  # _buffer_ argument is present, it must reference a String,
+  # which will receive the data.
   #
-  # At end of file, it returns nil or "" depend on length.
-  # ios.read() and ios.read(nil) returns "". ios.read(positive-integer) returns nil.
+  # At end of file, it returns +nil+ or +""+ depending on
+  # _length_. +_ios_.read()+ and +_ios_.read(nil)+ returns +""+.
+  # +_ios_.read(_positive-integer_)+ returns +nil+.
   #
-  #  f = File.new("testfile")
-  #  f.read(16)   #=> "This is line one"
-  def read(size=nil, buffer=nil)
+  #   f = File.new("testfile")
+  #   f.read(16)   #=> "This is line one"
+  def read(length=nil, buffer=nil)
     raise IOError, "closed stream" if closed?
-    return breadall(buffer) unless size
+    buffer = StringValue buffer if buffer
 
-    return nil if @eof and @buffer.empty?
+    unless length
+      str = read_all
+      return str unless buffer
 
-    buf = @buffer
-    done = false
-
-    output = ''
-
-    needed = size
-
-    if needed > 0 and buf.unused >= needed
-      output << buf.shift_front(needed)
-    else
-      while true
-        bytes = buf.fill_from(self)
-
-        if bytes
-          done = needed - bytes <= 0
-        else
-          done = true
-        end
-
-        if done or buf.full?
-          output << buf.shift_front(needed)
-          needed = size - output.length
-        end
-
-        break if done or needed == 0
-      end
+      buffer.replace str
+      return buffer
     end
 
-    if buffer then
-      buffer = StringValue buffer
-      buffer.replace output
-    else
-      buffer = output
+    return nil if @ibuffer.exhausted?
+
+    str = ""
+    needed = length
+    while needed > 0 and not @ibuffer.exhausted?
+      available = @ibuffer.fill_from self
+
+      count = available > needed ? needed : available
+      str << @ibuffer.shift(count)
+
+      needed -= count
     end
 
+    return str unless buffer
+
+    buffer.replace str
     buffer
   end
+
+  ##
+  # Reads all input until +#eof?+ is true. Returns the input read.
+  # If the buffer is already exhausted, returns +""+.
+  def read_all
+    str = ""
+    until @ibuffer.exhausted?
+      @ibuffer.fill_from self
+      str << @ibuffer.shift
+    end
+
+    str
+  end
+
+  private :read_all
 
   ##
   # Reads at most maxlen bytes from ios using read(2) system
@@ -1084,6 +1021,51 @@ class IO
     raise IOError, "closed stream" if closed?
     prim_read(size, buffer)
   end
+
+  ##
+  # Chains together buckets of input from the buffer until
+  # locating +sep+. If +sep+ is +nil+, returns +read_all+.
+  # If +sep+ is +""+, reads until +"\n\n"+. Otherwise, reads
+  # until +sep+. This is the behavior of +#each+ and +#gets+.
+  # Also, sets +$.+ for each line read. Returns the line read
+  # or +nil+ if <tt>#eof?</tt> is true.
+  #--
+  # This implementation is slightly longer to reduce several
+  # method calls. The common case is that the buffer has
+  # enough data to just find the sep and return. Instead of
+  # returning nil right of if buffer.exhausted?, allow the
+  # nil to fall through. Also, don't create an empty string
+  # just to append a single line to it.
+  #++
+  def read_to_separator(sep)
+    return read_all unless sep
+
+    sep = "\n\n" if sep.empty?
+
+    line = nil
+    until @ibuffer.exhausted?
+      @ibuffer.fill_from self
+
+      if count = @ibuffer.find(sep)
+        str = @ibuffer.shift(count)
+      else
+        str = @ibuffer.shift
+      end
+
+      if line
+        line << str
+      else
+        line = str
+      end
+
+      break if count
+    end
+
+    $. = @lineno += 1 if line
+    line
+  end
+
+  private :read_to_separator
 
   ##
   # Reads a character as with IO#getc, but raises an EOFError on end of file.
@@ -1173,7 +1155,7 @@ class IO
 
     buffer = '' if buffer.nil?
 
-    in_buf = @buffer.shift_front size
+    in_buf = @ibuffer.shift size
     size = size - in_buf.length
 
     in_buf << sysread(size) if size > 0
@@ -1240,10 +1222,12 @@ class IO
   #  f.readline                  #=> "And so on...\n"
   def seek(amount, whence=SEEK_SET)
     raise IOError, "closed stream" if closed?
+
+    # TODO: verify this
     # Unseek the still buffered amount
-    unless @buffer.empty?
-      prim_seek(-@buffer.used, SEEK_CUR)
-      @buffer.reset!
+    unless @ibuffer.empty?
+      prim_seek(@ibuffer.start - @ibuffer.used, SEEK_CUR)
+      @ibuffer.reset!
       @eof = false
     end
 
@@ -1354,14 +1338,15 @@ class IO
   #  c = f.getc                 #=> 84
   #  f.ungetc(c)                #=> nil
   #  f.getc                     #=> 84
+  def ungetc(chr)
+    # HACK this doc block was on #write
+    raise Exception, "IO#ungetc is not yet implemented"
+  end
+
   def write(data)
     raise IOError, "closed stream" if closed?
-    # If we have buffered data, rewind.
-    unless @buffer.empty?
-      seek 0, SEEK_CUR
-    end
 
-    data = String data
+    data = StringValue data
 
     return 0 if data.length == 0
     # HACK WTF?

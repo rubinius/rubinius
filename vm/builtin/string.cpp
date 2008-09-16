@@ -72,6 +72,20 @@ namespace rubinius {
     return so;
   }
 
+  String* String::from_bytearray(STATE, ByteArray* ba, INTEGER start, INTEGER count) {
+    String* s = (String*)state->om->new_object(G(string), String::fields);
+
+    s->num_bytes(state, count);
+    s->characters(state, count);
+    s->encoding(state, Qnil);
+    s->hash_value(state, (INTEGER)Qnil);
+
+    // fetch_bytes NULL terminates
+    s->data(state, ba->fetch_bytes(state, start, count));
+
+    return s;
+  }
+
   hashval String::hash_string(STATE) {
     unsigned char *bp;
 

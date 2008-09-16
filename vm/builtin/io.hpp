@@ -5,6 +5,8 @@
 #include "type_info.hpp"
 
 namespace rubinius {
+  class ByteArray;
+  class Channel;
   class String;
   class ByteArray;
 
@@ -15,14 +17,14 @@ namespace rubinius {
 
   private:
     FIXNUM descriptor_; // slot
-    OBJECT buffer_;     // slot
+    OBJECT ibuffer_;    // slot
     OBJECT mode_;       // slot
 
   public:
     /* accessors */
 
     attr_accessor(descriptor, Fixnum);
-    attr_accessor(buffer, Object);
+    attr_accessor(ibuffer, Object);
     attr_accessor(mode, Object);
 
     /* interface */
@@ -58,26 +60,36 @@ namespace rubinius {
 
   };
 
+#define IOBUFFER_SIZE 32384U
+
   class IOBuffer : public Object {
   public:
-    const static size_t fields = 3;
+    const static size_t fields = 6;
     const static object_type type = IOBufferType;
 
   private:
     ByteArray* storage_; // slot
-    INTEGER total_;  // slot
-    INTEGER used_;   // slot
+    Channel* channel_;   // slot
+    INTEGER total_;      // slot
+    INTEGER used_;       // slot
+    INTEGER start_;      // slot
+    OBJECT eof_;         // slot
 
   public:
     /* accessors */
 
     attr_accessor(storage, ByteArray);
+    attr_accessor(channel, Channel);
     attr_accessor(total, Integer);
     attr_accessor(used, Integer);
+    attr_accessor(start, Integer);
+    attr_accessor(eof, Object);
 
     /* interface */
 
-    static IOBuffer* create(STATE, size_t bytes);
+    static IOBuffer* create(STATE, size_t bytes = IOBUFFER_SIZE);
+    // Ruby.primitive :iobuffer_allocate
+    static IOBuffer* allocate(STATE);
     void reset(STATE);
     String* drain(STATE);
     char* byte_address();

@@ -48,11 +48,14 @@ namespace rubinius {
     // Ruby.primitive :bytearray_dup_into
     ByteArray* dup_into(STATE, ByteArray* other);
 
-    // Used like strstr, searching a ByteArray for where a String sequence
-    // appears.
+    /* ::locate searches for +pattern+ in the ByteArray. Returns the
+     * number of characters from the front of the ByteArray to the end
+     * of the pattern if a match is found. Returns Qnil if a match is
+     * not found. Starts searching at index +start+.
+     */
 
     // Ruby.primitive :bytearray_locate
-    OBJECT locate(STATE, String* little);
+    OBJECT locate(STATE, String* pattern, Integer* start);
 
     char* to_chars(STATE);
 

@@ -186,4 +186,20 @@ class TestByteArray : public CxxTest::TestSuite {
     a->dup_into(state, d);
     TS_ASSERT_SAME_DATA(d->bytes, "xyZzyx", 7);
   }
+
+  void test_locate() {
+    ByteArray* a = String::create(state, "xyZfoo\nzyx")->data();
+    INTEGER zero = Integer::from(state, 0);
+    INTEGER three = Integer::from(state, 3);
+    FIXNUM seven = Fixnum::from(7);
+
+    String* foo_nl = String::create(state, "foo\n");
+
+    TS_ASSERT_EQUALS(Qnil, a->locate(state, String::create(state, "\n\n"), zero));
+    TS_ASSERT_EQUALS(seven, (FIXNUM)a->locate(state, String::create(state, "\n"), zero));
+    TS_ASSERT_EQUALS(Qnil, a->locate(state, foo_nl, Integer::from(state, 4)));
+    TS_ASSERT_EQUALS(seven, (FIXNUM)a->locate(state, foo_nl, Integer::from(state, 2)));
+    TS_ASSERT_EQUALS(seven, (FIXNUM)a->locate(state, foo_nl, three));
+    TS_ASSERT_EQUALS(Fixnum::from(10), (FIXNUM)a->locate(state, String::create(state, "yx"), three));
+  }
 };

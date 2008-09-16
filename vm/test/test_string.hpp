@@ -324,7 +324,7 @@ class TestString : public CxxTest::TestSuite {
   void test_crypt() {
     String* str = String::create(state, "nutmeg");
     String* salt = String::create(state, "Mi");
-    TS_ASSERT_SAME_DATA(str->crypt(state, salt)->byte_address(), "MiqkFWCm1fNJI", 14);
+    TS_ASSERT_SAME_DATA(str->crypt(state, salt)->c_str(), "MiqkFWCm1fNJI", 14);
   }
 
   void test_c_str() {
@@ -336,5 +336,13 @@ class TestString : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(str->c_str()[4], 0);
 
+  }
+
+  void test_from_bytearray() {
+    ByteArray* ba = String::create(state, "partial to ruby")->data();
+    INTEGER six = Integer::from(state, 6);
+    String* s = String::from_bytearray(state, ba, six, six);
+    TS_ASSERT_EQUALS(six, s->num_bytes());
+    TS_ASSERT_SAME_DATA("l to r", s->c_str(), 6);
   }
 };

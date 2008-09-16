@@ -38,7 +38,7 @@ namespace rubinius {
   }
 
   INTEGER ByteArray::size(STATE) {
-    return Fixnum::from(SIZE_OF_BODY(this));
+    return Integer::from(state, SIZE_OF_BODY(this));
   }
 
   FIXNUM ByteArray::get_byte(STATE, INTEGER index) {
@@ -138,11 +138,25 @@ namespace rubinius {
     return other;
   }
 
-  OBJECT ByteArray::locate(STATE, String* little) {
-    //TODO: find a crossplatform strnstr to clamp the length
-    char* pos = strstr((const char*)this->bytes, little->c_str());
-    if(!pos) return Qnil;
+  OBJECT ByteArray::locate(STATE, String* pattern, Integer* start) {
+    native_int size = SIZE_OF_BODY(this);
+    char *pat = pattern->c_str();
+    native_int len = strlen(pat);
+    native_int j;
 
-    return Integer::from(state, pos - (char*)this->bytes);
+    for(native_int i = start->to_native(); i < size; i++) {
+      if(this->bytes[i] == pat[0]) {
+        // match the rest of the pattern string
+        for(j = 1; j < len; j++) {
+          if(this->bytes[i+j] != pat[j]) break;
+        }
+
+        // if the full pattern matched, return the index
+        // of the end of the pattern in 'this'.
+        if(j == len) return Integer::from(state, i + len);
+      }
+    }
+
+    return Qnil;
   }
 }
