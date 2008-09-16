@@ -361,7 +361,9 @@ class MethodContext
 
     Rubinius::VM.reset_method_cache(name)
 
-    obj.scope.module.method_table[name] = Tuple[visibility, obj]
+    cm_vis = CompiledMethod::Visibility.new(obj, visibility)
+
+    obj.scope.module.method_table[name] = cm_vis
 
     if scope == :module
       s.current_scope.module_function name
