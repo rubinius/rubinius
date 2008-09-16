@@ -242,64 +242,403 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => testcases['begin_rescue_twice']['Compiler'])
 
   add_tests("block_attrasgn",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.in_method :setup, true do |d|
+                d.push :self
+                d.send :allocate, 0, true
+                d.set_local 1
+                d.pop
+
+                d.push_local 1
+                d.push_local 0
+                d.send :context=, 1, false
+                d.pop
+
+                d.push_local 1
+                d.ret # TODO: why extra return?
+              end
+            end)
 
   add_tests("block_lasgn",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.set_local 1
+              g.pop
+              g.push_local 1
+              g.push 2
+              g.meta_send_op_plus
+              g.set_local 0
+            end)
 
   add_tests("block_mystery_block",
             "Compiler" => :skip)
 
   add_tests("block_pass_args_and_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :blah do |d|
+                no_proc  = d.new_label
+                no_splat = d.new_label
+
+                d.push_block
+                d.dup
+                d.is_nil
+                d.git no_proc
+
+                d.push_const :Proc
+                d.swap
+                d.send :__from_block__, 1
+
+                no_proc.set!
+
+                d.set_local 1
+                d.pop
+
+                d.push :self
+                d.push 42          # only line different from block_pass_splat
+                d.push_local 0
+                d.cast_array
+                d.push_local 1
+                d.dup
+                d.is_nil
+                d.git no_splat
+
+                d.push_cpath_top
+                d.find_const :Proc
+                d.swap
+                d.send :__from_block__, 1
+
+                no_splat.set!
+
+                d.send_with_splat :other, 1, true, false # ok, and this one
+              end
+            end)
 
   add_tests("block_pass_call_0",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.send :a, 0, true
+              g.push :self
+              g.send :c, 0, true
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_with_block :b, 0, false
+            end)
 
   add_tests("block_pass_call_1",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.send :a, 0, true
+              g.push 4
+              g.push :self
+              g.send :c, 0, true
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_with_block :b, 1, false
+            end)
 
   add_tests("block_pass_call_n",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.send :a, 0, true
+              g.push 1
+              g.push 2
+              g.push 3
+              g.push :self
+              g.send :c, 0, true
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_with_block :b, 3, false
+            end)
 
   add_tests("block_pass_fcall_0",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.push :self
+              g.send :b, 0, true
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_with_block :a, 0, true
+            end)
 
   add_tests("block_pass_fcall_1",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.push 4
+              g.push :self
+              g.send :b, 0, true
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_with_block :a, 1, true
+            end)
 
   add_tests("block_pass_fcall_n",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.push 1
+              g.push 2
+              g.push 3
+              g.push :self
+              g.send :b, 0, true
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_with_block :a, 3, true
+            end)
 
   add_tests("block_pass_omgwtf",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.push_unique_literal :x
+              g.push_unique_literal :sequence_name
+              g.push_const :Proc
+
+              in_block_send :new, -1, 0, false do |d|
+                d.push :nil
+              end
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_with_block :define_attr_method, 2, true
+            end)
 
   add_tests("block_pass_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.in_method :blah do |d|
+                no_proc  = d.new_label
+                no_splat = d.new_label
+
+                d.push_block
+                d.dup
+                d.is_nil
+                d.git no_proc
+
+                d.push_const :Proc
+                d.swap
+                d.send :__from_block__, 1
+
+                no_proc.set!
+
+                d.set_local 1
+                d.pop
+
+                d.push :self
+                d.push_local 0
+                d.cast_array
+                d.push_local 1
+                d.dup
+                d.is_nil
+                d.git no_splat
+
+                d.push_cpath_top
+                d.find_const :Proc # FIX: why push_cpath/find vs push_const ?
+                d.swap
+                d.send :__from_block__, 1
+
+                no_splat.set!
+
+                d.send_with_splat :other, 0, true, false
+              end
+            end)
 
   add_tests("block_pass_super",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :nil
+              g.push :self
+              g.send :prc, 0, true
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_super nil, 0
+            end)
 
   add_tests("block_pass_thingy",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              t = g.new_label
+
+              g.push :self
+              g.send :r, 0, true
+              g.push :self
+              g.send :dest, 0, true
+              g.push :self
+              g.send :block, 0, true
+
+              g.dup
+              g.is_nil
+              g.git t
+
+              g.push_cpath_top
+              g.find_const :Proc
+              g.swap
+              g.send :__from_block__, 1
+
+              t.set!
+
+              g.send_with_block :read_body, 1, false
+            end)
 
   add_tests("block_stmt_after",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.in_rescue(:StandardError) do |good_side|
+                  if good_side then
+                    d.push :self
+                    d.send :b, 0, true
+                  else
+                    d.push :self
+                    d.send :c, 0, true
+                  end
+                end
+                d.pop
+
+                d.push :self
+                d.send :d, 0, true
+              end
+            end)
 
   add_tests("block_stmt_after_mri_verbose_flag",
-            "Compiler" => :skip)
+            "Compiler" => testcases['block_stmt_after']['Compiler'])
 
   add_tests("block_stmt_before",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.push :self
+                d.send :a, 0, true
+                d.pop
+
+                d.in_rescue(:StandardError) do |good_side|
+                  if good_side then
+                    d.push :self
+                    d.send :b, 0, true
+                  else
+                    d.push :self
+                    d.send :c, 0, true
+                  end
+                end
+              end
+            end)
 
   add_tests("block_stmt_before_mri_verbose_flag",
-            "Compiler" => :skip)
+            "Compiler" => testcases['block_stmt_before']['Compiler'])
 
   add_tests("block_stmt_both",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              in_method :f do |d|
+                d.push :self
+                d.send :a, 0, true
+                d.pop
+
+                d.in_rescue(:StandardError) do |good_side|
+                  if good_side then
+                    d.push :self
+                    d.send :b, 0, true
+                  else
+                    d.push :self
+                    d.send :c, 0, true
+                  end
+                end
+                d.pop
+
+                d.push :self
+                d.send :d, 0, true
+              end
+            end)
 
   add_tests("block_stmt_both_mri_verbose_flag",
-            "Compiler" => :skip)
+            "Compiler" => testcases['block_stmt_both']['Compiler'])
 
   add_tests("break",
             "Compiler" => bytecode do |g|
