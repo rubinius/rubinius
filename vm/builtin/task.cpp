@@ -638,22 +638,27 @@ stack_cleanup:
   void Task::execute() {
     if(active_->nil_p()) return;
 
-    for(;;) {
-      active_->vmm->resume(this, active_);
+    try {
+      for(;;) {
+        active_->vmm->resume(this, active_);
 
-      // Should we inspect the other interrupts?
-      if(state->interrupts.check) {
-        state->interrupts.check = false;
+        // Should we inspect the other interrupts?
+        if(state->interrupts.check) {
+          state->interrupts.check = false;
 
-        // If we're switching tasks, return to the task monitor
-        if(state->interrupts.switch_task) {
-          state->interrupts.switch_task = false;
+          // If we're switching tasks, return to the task monitor
+          if(state->interrupts.switch_task) {
+            state->interrupts.switch_task = false;
+          }
+        }
+
+        if(state->om->collect_young_now || state->om->collect_mature_now) {
+          return;
         }
       }
-
-      if(state->om->collect_young_now || state->om->collect_mature_now) {
-        return;
-      }
+    } catch(ArgumentError &err) {
+      // Convert the C++ ArgumentError exception into a ruby one.
+      raise_exception(Exception::arg_error(state, err.expected, err.given));
     }
   }
 

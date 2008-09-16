@@ -84,6 +84,13 @@ class ZeroDivisionError < StandardError
 end
 
 class ArgumentError < StandardError
+  def message
+    unless @message
+      @message = "given #{@given}, expected #{@expected}"
+    end
+
+    @message
+  end
 end
 
 class IndexError < StandardError
