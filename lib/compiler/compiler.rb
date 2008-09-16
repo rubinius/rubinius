@@ -40,7 +40,7 @@ class Compiler
   end
 
   def self.compile_string(string, flags = {}, file = "(eval)", line = 1)
-    sexp = string.to_sexp(file, line, true)
+    sexp = string.to_sexp(file, line)
 
     binding = flags[:binding]
     node    = new(Generator, binding).convert_sexp([:eval_expression, sexp])

@@ -7,7 +7,8 @@ class String
   BASE_64_A2B[?\/] = ??
   BASE_64_A2B[?=]  = 0
 
-  def to_sexp(name="(eval)") # TODO: maybe move into lib/compiler and after_load
+  # TODO - Pass the starting line info into RubyParser
+  def to_sexp(name="(eval)", line = 1) # TODO: maybe move into lib/compiler and after_load
     # TODO: for Ryan - fix the paths in compiler/ruby_parser and friends,
     # e.g. require 'sexp' should be require 'compiler/sexp'
     $: << "lib/compiler"
