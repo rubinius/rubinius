@@ -272,7 +272,36 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("block_mystery_block",
-            "Compiler" => :skip) # TODO: requires nestable in_block_send
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push :self
+              g.send :b, 0, true
+
+              in_block_send :a, 0, 1 do |d|
+                f = d.new_label
+                bottom = d.new_label
+
+                d.push :self
+                d.send :b, 0, true
+                d.gif f
+                d.push :true
+                d.goto bottom
+                f.set!
+                d.push :false
+                d.set_local_depth 0, 0
+                d.pop
+                d.push :self
+
+                d.in_block_send :d, 1, 0, true, 0, true do |d2|
+                  d2.push :true
+                  d2.set_local_depth 1, 0
+                end
+
+                d.pop
+                d.push_local_depth 0, 0
+                bottom.set!
+              end
+            end)
 
   add_tests("block_pass_args_and_splat",
             "Compiler" => bytecode do |g|
