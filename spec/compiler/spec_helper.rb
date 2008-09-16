@@ -262,6 +262,9 @@ class TestGenerator
       inner_top = d.new_label
 
       case block_count
+      when -1 then
+        d.cast_array
+        d.set_local_depth 0, 0
       when 0 then
       when 1 then
         d.cast_for_single_block_arg
