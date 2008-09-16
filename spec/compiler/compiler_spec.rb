@@ -94,9 +94,6 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("attrasgn_index_equals_space",
             "Compiler" => :skip)
 
-  add_tests("attrset",
-            "Compiler" => :skip)
-
   add_tests("back_ref",
             "Compiler" => bytecode do |g|
               g.push_context
@@ -193,16 +190,6 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("block_stmt_both_mri_verbose_flag",
             "Compiler" => :skip)
 
-  add_tests("bmethod",
-            "Compiler" => :skip)
-
-  add_tests("bmethod_noargs",
-            "Compiler" => :skip)
-
-  add_tests("bmethod_splat",
-            "Compiler" => :skip)
-
-  # "Ruby"         => "loop { break if true }",
   add_tests("break",
             "Compiler" => bytecode do |g|
               break_value = :nil # TODO: refactor later
@@ -834,9 +821,6 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
-  add_tests("dmethod",
-            "Compiler" => :skip)
-
   add_tests("dot2",
             "Compiler" => :skip)
 
@@ -1271,9 +1255,6 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               g.push :false
             end)
-
-  add_tests("fbody",
-            "Compiler" => :skip)
 
   add_tests("fcall_arglist",
             "Compiler" => bytecode do |g|
