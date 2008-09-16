@@ -211,6 +211,48 @@ class TestGenerator
     self.push_literal desc
   end
 
+  def in_rescue klass
+    top = self.new_label
+    bottom = self.new_label
+    dunno = self.new_label
+    std_err = self.new_label
+    unhandled = self.new_label
+
+    self.push_modifiers
+
+    top.set!
+    top.set!
+
+    yield true
+
+    self.goto bottom
+
+    dunno.set!
+
+    self.push_const klass
+    self.push_exception
+    self.send :===, 1
+    self.git std_err
+    self.goto unhandled
+
+    std_err.set!
+
+    yield false
+
+    self.clear_exception
+    self.goto bottom
+
+    unhandled.set!
+
+    self.push_exception
+    self.raise_exc
+
+    bottom.set!
+    bottom.set!
+
+    self.pop_modifiers
+  end
+
   def in_block_send msg, block_count, call_count=0, block_send_vis=true
     self.create_block_desc do |d|
       inner_top = d.new_label
