@@ -16,7 +16,6 @@ namespace rubinius {
 
     mp_int mp_val_;
 
-    static void cleanup(STATE, OBJECT obj);
     static void init(STATE);
     static Bignum* create(STATE);
 

@@ -36,7 +36,6 @@ namespace rubinius {
 
     /* interface */
 
-    static void cleanup(STATE, OBJECT data);
     static void init(STATE);
     static Regexp* create(STATE, String* pattern, INTEGER options, char* err_buf = NULL);
     static char*  version(STATE);
