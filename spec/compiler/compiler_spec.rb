@@ -740,62 +740,6 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
-  add_tests("defn_lvar_boundary",
-            "Compiler" => bytecode do |g|
-              g.push 42
-              g.set_local 0
-              g.pop
-
-              in_method :instantiate_all do |d|
-                d.push_const :Thread
-
-                d.in_block_send :new, 0, 0, false do |d2|
-                  dunno1      = d2.new_label
-                  dunno2      = d2.new_label
-                  runtime_err = d2.new_label
-                  unhandled   = d2.new_label
-                  bottom      = d2.new_label
-
-                  d2.push_modifiers
-
-                  dunno1.set!
-                  dunno1.set!
-
-                  d2.push :self
-                  d2.send :do_stuff, 0, true
-                  d2.goto bottom
-
-                  dunno2.set!
-
-                  d2.push_const :RuntimeError
-                  d2.push_exception
-                  d2.send :===, 1
-                  d2.git runtime_err
-                  d2.goto unhandled
-
-                  runtime_err.set!
-                  d2.push_exception
-                  d2.set_local_depth 0, 0
-
-                  d2.push :self
-                  d2.push_local_depth 0, 0
-                  d2.send :puts, 1, true
-                  d2.clear_exception
-                  d2.goto bottom
-
-                  unhandled.set!
-
-                  d2.push_exception
-                  d2.raise_exc
-
-                  bottom.set!
-                  bottom.set!
-
-                  d2.pop_modifiers
-                end
-              end
-            end)
-
   add_tests("defn_optargs",
             "Compiler" => bytecode do |g|
               in_method :x do |d|
@@ -1651,7 +1595,60 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("lvar_def_boundary",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 42
+              g.set_local 0
+              g.pop
+
+              in_method :a do |d|
+                d.push :self
+
+                d.in_block_send :c, 0 do |d2|
+                  dunno1      = d2.new_label
+                  dunno2      = d2.new_label
+                  runtime_err = d2.new_label
+                  unhandled   = d2.new_label
+                  bottom      = d2.new_label
+
+                  d2.push_modifiers
+
+                  dunno1.set!
+                  dunno1.set!
+
+                  d2.push :self
+                  d2.send :do_stuff, 0, true
+                  d2.goto bottom
+
+                  dunno2.set!
+
+                  d2.push_const :RuntimeError
+                  d2.push_exception
+                  d2.send :===, 1
+                  d2.git runtime_err
+                  d2.goto unhandled
+
+                  runtime_err.set!
+                  d2.push_exception
+                  d2.set_local_depth 0, 0
+
+                  d2.push :self
+                  d2.push_local_depth 0, 0
+                  d2.send :puts, 1, true
+                  d2.clear_exception
+                  d2.goto bottom
+
+                  unhandled.set!
+
+                  d2.push_exception
+                  d2.raise_exc
+
+                  bottom.set!
+                  bottom.set!
+
+                  d2.pop_modifiers
+                end
+              end
+            end)
 
   add_tests("masgn",
             "Compiler" => bytecode do |g|
