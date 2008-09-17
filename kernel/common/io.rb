@@ -52,8 +52,7 @@ class IO
     # existing data is sufficient, or whether to read more data from the
     # +IO+ instance. Any new data causes this method to return.
     #
-    # Returns +nil+ if <tt>io.eof?</tt> is +true+ and the buffer is empty.
-    # Otherwise, returns the number of bytes in the buffer.
+    # Returns the number of bytes in the buffer.
     def fill_from(io)
       return size unless empty?
 
