@@ -61,7 +61,13 @@ namespace rubinius {
   }
 
   OBJECT Array::aset(STATE, Fixnum* idx, OBJECT val) {
-    return this->set(state, idx->to_native(), val);
+    native_int index = idx->to_native();
+
+    if(index < 0) {
+      PrimitiveFailed::raise();
+    }
+
+    return this->set(state, index, val);
   }
 
   OBJECT Array::get(STATE, size_t idx) {

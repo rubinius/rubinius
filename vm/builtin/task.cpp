@@ -228,6 +228,12 @@ stack_cleanup:
       }
     }
 
+    if(CompiledMethod* cm = try_as<CompiledMethod>(msg.method)) {
+      if(!cm->executable || (OBJECT)cm->executable == Qnil) {
+        cm->formalize(state, false);
+      }
+    }
+
     return msg.method->execute(state, this, msg);
   }
 
