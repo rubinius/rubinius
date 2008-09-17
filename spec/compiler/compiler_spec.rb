@@ -3934,8 +3934,8 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("until_post",
             "Compiler" => bytecode do |g|
               top    = g.new_label
-              dunno1 = g.new_label
-              dunno2 = g.new_label
+              nxt    = g.new_label
+              brek   = g.new_label
               bottom = g.new_label
 
               g.push_modifiers
@@ -3947,7 +3947,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.meta_send_op_plus
               g.pop
 
-              dunno1.set!
+              nxt.set!
 
               g.push :false
               g.git bottom
@@ -3957,7 +3957,7 @@ class CompilerTestCase < ParseTreeTestCase
               bottom.set!
               g.push :nil
 
-              dunno2.set!
+              brek.set!
 
               g.pop_modifiers
             end)
