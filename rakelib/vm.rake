@@ -275,7 +275,7 @@ namespace :vm do
     begin
       path = "vm/gen/instructions.cpp"
       ruby 'vm/codegen/rubypp.rb', "vm/llvm/instructions.cpp", path
-      sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp vm/*.c #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
+      sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
 
       puts "RUN vm/test/coverage/runner"
       sh "vm/test/coverage/runner"
