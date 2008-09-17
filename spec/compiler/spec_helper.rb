@@ -211,49 +211,12 @@ class TestGenerator
     self.push_literal desc
   end
 
-  def in_rescue klass, wtf = false
-    top       = self.new_label
-    bottom    = self.new_label
-    dunno     = self.new_label
-    std_err   = self.new_label
-    unhandled = self.new_label
-
-    self.push_modifiers
-
-    top.set!
-    top.set!
-
-    yield true
-
-    self.goto bottom
-
-    dunno.set!
-
-    unless wtf then
-      self.push_const klass
-      self.push_exception
-      self.send :===, 1
-      self.git std_err
+  def create_block_desc
+    desc = description do |d|
+      yield d
     end
 
-    self.goto unhandled         # FIX: stupid jump, gif better
-
-    std_err.set!
-
-    yield false
-
-    self.clear_exception
-    self.goto bottom
-
-    unhandled.set!
-
-    self.push_exception
-    self.raise_exc
-
-    bottom.set!
-    bottom.set!
-
-    self.pop_modifiers
+    self.create_block desc
   end
 
   def in_block_send(msg,
@@ -261,24 +224,27 @@ class TestGenerator
                     call_count     = 0,
                     block_send_vis = true,
                     shift          = 0,
-                    nested         = false)
+                    nested         = false,
+                    lvl            = 0)
 
     self.create_block_desc do |d|
       inner_top = d.new_label
 
       case block_count
+      when -2 then
+        d.cast_for_multi_block_arg
       when -1 then
         d.cast_array
-        d.set_local_depth 0, 0
+        d.set_local_depth lvl, 0
       when 0 then
       when 1 then
         d.cast_for_single_block_arg
-        d.set_local_depth 0, 0
+        d.set_local_depth lvl, 0
       else
         d.cast_for_multi_block_arg
         (0...block_count).each do |n|
           d.shift_tuple
-          d.set_local_depth 0, n
+          d.set_local_depth lvl, n
           d.pop
         end
       end
@@ -336,45 +302,6 @@ class TestGenerator
     bottom.set!
   end
 
-  def create_block_desc
-    desc = description do |d|
-      yield d
-    end
-
-    self.create_block desc
-  end
-
-  def in_module name
-    case name
-    when Symbol then
-      self.open_module name
-    when String then
-      levels = name.split(/::/).map { |s| s.to_sym }
-      klass = levels.pop
-
-      levels.each do |level|
-        self.push_const level
-      end
-
-      self.open_module_under klass
-    end
-
-    self.dup
-    self.push_literal_desc do |d|
-      d.push_self # FIX
-      d.add_scope
-
-      yield d
-
-      d.ret
-    end
-    self.swap
-    self.attach_method :__module_init__
-    self.pop
-    self.send :__module_init__, 0
-  end
-
-
   def in_class name
     case name
     when Symbol then
@@ -424,6 +351,81 @@ class TestGenerator
     else
       self.send :__add_method__, 2
     end
+  end
+
+  def in_module name
+    case name
+    when Symbol then
+      self.open_module name
+    when String then
+      levels = name.split(/::/).map { |s| s.to_sym }
+      klass = levels.pop
+
+      levels.each do |level|
+        self.push_const level
+      end
+
+      self.open_module_under klass
+    end
+
+    self.dup
+    self.push_literal_desc do |d|
+      d.push_self # FIX
+      d.add_scope
+
+      yield d
+
+      d.ret
+    end
+    self.swap
+    self.attach_method :__module_init__
+    self.pop
+    self.send :__module_init__, 0
+  end
+
+  def in_rescue klass, wtf = false
+    top       = self.new_label
+    bottom    = self.new_label
+    dunno     = self.new_label
+    std_err   = self.new_label
+    unhandled = self.new_label
+
+    self.push_modifiers
+
+    top.set!
+    top.set!
+
+    yield true
+
+    self.goto bottom
+
+    dunno.set!
+
+    unless wtf then
+      self.push_const klass
+      self.push_exception
+      self.send :===, 1
+      self.git std_err
+    end
+
+    self.goto unhandled         # FIX: stupid jump, gif better
+
+    std_err.set!
+
+    yield false
+
+    self.clear_exception
+    self.goto bottom
+
+    unhandled.set!
+
+    self.push_exception
+    self.raise_exc
+
+    bottom.set!
+    bottom.set!
+
+    self.pop_modifiers
   end
 
   def optional_arg slot
