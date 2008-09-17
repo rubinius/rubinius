@@ -3856,16 +3856,80 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("unless_post",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              yep  = g.new_label
+              done = g.new_label
+
+              g.push :self
+              g.send :b, 0, true
+              g.git  yep
+
+              g.push :self
+              g.send :a, 0, true
+              g.goto done
+
+              yep.set!
+              g.push :nil
+
+              done.set!
+            end)
 
   add_tests("unless_post_not",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              nope = g.new_label
+              done = g.new_label
+
+              g.push :self
+              g.send :b, 0, true
+              g.gif nope
+
+              g.push :self
+              g.send :a, 0, true
+              g.goto done
+
+              nope.set!
+              g.push :nil
+
+              done.set!
+            end)
 
   add_tests("unless_pre",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              yep  = g.new_label
+              done = g.new_label
+
+              g.push :self
+              g.send :b, 0, true
+              g.git  yep
+
+              g.push :self
+              g.send :a, 0, true
+              g.goto done
+
+              yep.set!
+              g.push :nil
+
+              done.set!
+            end)
 
   add_tests("unless_pre_not",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              nope = g.new_label
+              done = g.new_label
+
+              g.push :self
+              g.send :b, 0, true
+              g.gif nope
+
+              g.push :self
+              g.send :a, 0, true
+              g.goto done
+
+              nope.set!
+              g.push :nil
+
+              done.set!
+            end)
 
   add_tests("until_post",
             "Compiler" => bytecode do |g|
