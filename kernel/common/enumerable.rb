@@ -458,8 +458,10 @@ module Enumerable
   #   [ nil, true, 99 ].all?                             #=> false
 
   def all?
-    each do |o|
-      return false unless yield(o)
+    if block_given?
+      each { |e| return false unless yield(e) }
+    else
+      each { |e| return false unless e }
     end
     true
   end
