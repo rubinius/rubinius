@@ -394,14 +394,6 @@ namespace rubinius {
     return Float::coerce(state, this)->sub(state, b);
   }
 
-  void Bignum::debug(STATE) {
-    char *stra = (char*)XMALLOC(2048);
-    mp_toradix(MP(this), stra, 10);
-    printf("n: %s\n", stra);
-    FREE(stra);
-    return;
-  }
-
   INTEGER Bignum::mul(STATE, FIXNUM b) {
     NMP;
 
