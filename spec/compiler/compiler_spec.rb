@@ -850,19 +850,381 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("case",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              a1 = g.new_label
+              a2 = g.new_label
+              a3 = g.new_label
+              a4 = g.new_label
+              a_bottom = g.new_label
+
+              g.push 2
+              g.set_local 0
+              g.pop
+              g.push_literal ""
+              g.string_dup
+              g.set_local 1
+              g.pop
+
+              g.push_local 0
+              g.dup
+              g.push 1
+              g.swap
+              g.send :===, 1
+              g.gif a1
+
+              g.pop
+              g.push :self
+              g.push_literal "something"
+              g.string_dup
+              g.send :puts, 1, true
+              g.pop
+              g.push_literal "red"
+              g.string_dup
+              g.set_local 1
+              g.goto a_bottom
+
+              a1.set!
+
+              g.dup
+              g.push 2
+              g.swap
+              g.send :===, 1
+              g.git a2
+
+              g.dup
+              g.push 3
+              g.swap
+              g.send :===, 1
+              g.git a2
+              g.goto a3
+
+              a2.set!
+
+              g.pop
+              g.push_literal "yellow"
+              g.string_dup
+              g.set_local 1
+              g.goto a_bottom
+
+              a3.set!
+
+              g.dup
+              g.push 4
+              g.swap
+              g.send :===, 1
+              g.gif a4
+
+              g.pop
+              g.push :nil
+              g.goto a_bottom
+
+              a4.set!
+
+              g.pop
+              g.push_literal "green"
+              g.string_dup
+              g.set_local 1
+
+              a_bottom.set!
+
+              b1 = g.new_label
+              b2 = g.new_label
+              b3 = g.new_label
+              b_bottom = g.new_label
+
+              g.pop
+              g.push_local 1
+              g.dup
+              g.push_literal "red"
+              g.string_dup
+              g.swap
+              g.send :===, 1
+              g.gif b1
+
+              g.pop
+              g.push 1
+              g.set_local 0
+              g.goto b_bottom
+
+              b1.set!
+
+              g.dup
+              g.push_literal "yellow"
+              g.string_dup
+              g.swap
+              g.send :===, 1
+              g.gif b2
+
+              g.pop
+              g.push 2
+              g.set_local 0
+              g.goto b_bottom
+
+              b2.set!
+
+              g.dup
+              g.push_literal "green"
+              g.string_dup
+              g.swap
+              g.send :===, 1
+              g.gif b3
+
+              g.pop
+              g.push 3
+              g.set_local 0
+              g.goto b_bottom
+
+              b3.set!
+
+              g.pop
+              g.push :nil
+
+              b_bottom.set!
+            end)
 
   add_tests("case_nested",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              # case   => a
+              # when
+              #   case => b
+              # when
+              #   case => c
+              # end
+
+              ########################################
+              a2 = g.new_label
+              a3 = g.new_label
+              a_bottom = g.new_label
+
+              g.push 1
+              g.set_local 0
+              g.pop
+              g.push 2
+              g.set_local 1
+              g.pop
+              g.push :nil
+              g.set_local 2
+              g.pop
+
+              ########################################
+              b2 = g.new_label
+              b3 = g.new_label
+              b_bottom = g.new_label
+
+              g.push_local 0
+              g.dup
+              g.push 1
+              g.swap
+              g.send :===, 1
+              g.gif a2
+
+              g.pop
+              g.push_local 1
+              g.dup
+              g.push 1
+              g.swap
+              g.send :===, 1
+              g.gif b2
+
+              g.pop
+              g.push 1
+              g.set_local 2
+              g.goto b_bottom
+
+              b2.set!
+
+              g.dup
+              g.push 2
+              g.swap
+              g.send :===, 1
+              g.gif b3
+
+              g.pop
+              g.push 2
+              g.set_local 2
+              g.goto b_bottom
+
+              b3.set!
+
+              g.pop
+              g.push 3
+              g.set_local 2
+
+              b_bottom.set!
+
+              g.goto a_bottom
+
+              a2.set!
+
+              g.dup
+              g.push 2
+              g.swap
+              g.send :===, 1
+              g.gif a3
+
+              ########################################
+              c2 = g.new_label
+              c3 = g.new_label
+              c_bottom = g.new_label
+
+              g.pop
+              g.push_local 1
+              g.dup
+              g.push 1
+              g.swap
+              g.send :===, 1
+              g.gif c2
+
+              g.pop
+              g.push 4
+              g.set_local 2
+              g.goto c_bottom
+
+              c2.set!
+
+              g.dup
+              g.push 2
+              g.swap
+              g.send :===, 1
+              g.gif c3
+
+              g.pop
+              g.push 5
+              g.set_local 2
+              g.goto c_bottom
+
+              c3.set!
+
+              g.pop
+              g.push 6
+              g.set_local 2
+
+              c_bottom.set!
+
+              g.goto a_bottom
+
+              a3.set!
+
+              g.pop
+              g.push 7
+              g.set_local 2
+
+              a_bottom.set!
+            end)
 
   add_tests("case_nested_inner_no_expr",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              c2, bottom = g.new_label, g.new_label
+              i1, i2, ibottom = g.new_label, g.new_label, g.new_label
+
+              g.push :self
+              g.send :a, 0, true
+              g.dup
+              g.push :self
+              g.send :b, 0, true
+              g.swap
+              g.send :===, 1
+              g.gif c2
+
+              g.pop
+              g.push :self
+              g.send :d, 0, true
+              g.dup
+              g.gif i1          # TODO: lamest jump ever - should be ibottom
+
+              g.pop
+              g.push :self
+              g.send :e, 0, true
+
+              i1.set!
+
+              g.gif i2
+              g.push :self
+              g.send :f, 0, true
+
+              g.goto ibottom
+
+              i2.set!
+
+              g.push :nil
+
+              ibottom.set!
+
+              g.goto bottom
+
+              c2.set!
+              g.pop
+              g.push :nil
+
+              bottom.set!
+            end)
 
   add_tests("case_no_expr",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              c2, c3, bottom = g.new_label, g.new_label, g.new_label
+
+              g.push :self
+              g.send :a, 0, true
+              g.push 1
+              g.meta_send_op_equal
+              g.gif c2
+              g.push_unique_literal :a
+              g.goto bottom
+
+              c2.set!
+
+              g.push :self
+              g.send :a, 0, true
+              g.push 2
+              g.meta_send_op_equal
+              g.gif c3
+              g.push_unique_literal :b
+              g.goto bottom
+
+              c3.set!
+              g.push_unique_literal :c
+
+              bottom.set!
+            end)
 
   add_tests("case_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              c1, c2, bottom = g.new_label, g.new_label, g.new_label
+
+              g.push :self
+              g.send :a, 0, true
+
+              g.dup
+              g.push_unique_literal :b
+              g.swap
+              g.send :===, 1
+              g.git c1
+
+              g.dup
+              g.push :self
+              g.send :c, 0, true
+              g.cast_array
+              g.swap
+              g.send :__matches_when__, 1
+              g.git c1
+
+              g.goto c2
+
+              c1.set!
+
+              g.pop
+              g.push :self
+              g.send :d, 0, true
+              g.goto bottom
+
+              c2.set!
+
+              g.pop
+              g.push :self
+              g.send :e, 0, true
+
+              bottom.set!
+            end)
 
   add_tests("cdecl",
             "Compiler" => bytecode do |g|
@@ -2059,10 +2421,30 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("for",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :ary, 0, true
+
+              in_block_send :each, 1.0, 0, false, 1 do |d|
+                d.push :self
+                d.push_local 0
+                d.send :puts, 1, true
+              end
+            end)
 
   add_tests("for_no_body",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push_cpath_top
+              g.find_const :Range
+              g.push 0
+              g.push :self
+              g.send :max, 0, true
+              g.send :new, 2
+
+              in_block_send :each, 1.0, 0, false, 1 do |d|
+                d.push :nil
+              end
+            end)
 
   add_tests("gasgn",
             "Compiler" => bytecode do |g|
