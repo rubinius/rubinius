@@ -32,8 +32,12 @@ namespace rubinius {
   }
 
   OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {
-    // store_object performs bounds check
-    state->om->store_object(this, idx, val);
+    if(field_count <= idx) {
+      ObjectBoundsExceeded::raise(this, idx);
+    }
+
+    this->field[idx] = val;
+    if(val->reference_p()) write_barrier(state, val);
     return val;
   }
 

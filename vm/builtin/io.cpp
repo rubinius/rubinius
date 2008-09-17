@@ -3,6 +3,7 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
+#include "builtin/bytearray.hpp"
 #include "primitives.hpp"
 
 #include "vm.hpp"

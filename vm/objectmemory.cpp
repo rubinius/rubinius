@@ -5,9 +5,9 @@
 #include "gc_marksweep.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
-
 
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(STATE, size_t young_bytes)
@@ -103,13 +103,10 @@ namespace rubinius {
     remember_set->push_back(target);
   }
 
+  // DEPRECATED
   void ObjectMemory::store_object(OBJECT target, size_t index, OBJECT val) {
-    if(target->field_count <= index) {
-      ObjectBoundsExceeded::raise(target, index);
-    }
-
-    target->field[index] = val;
-    if(val->reference_p()) write_barrier(target, val);
+    ((Tuple*)target)->field[index] = val;
+    write_barrier(target, val);
   }
 
   void ObjectMemory::set_class(OBJECT target, OBJECT obj) {
@@ -138,6 +135,7 @@ namespace rubinius {
     obj->klass(state, (Class*)Qnil);
     obj->init(loc, fields);
     obj->clear_fields();
+    obj->obj_type = ObjectType;
     return obj;
   }
 

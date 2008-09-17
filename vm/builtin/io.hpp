@@ -6,6 +6,7 @@
 
 namespace rubinius {
   class String;
+  class ByteArray;
 
   class IO : public Object {
   public:
@@ -63,14 +64,14 @@ namespace rubinius {
     const static object_type type = IOBufferType;
 
   private:
-    OBJECT storage_; // slot
+    ByteArray* storage_; // slot
     INTEGER total_;  // slot
     INTEGER used_;   // slot
 
   public:
     /* accessors */
 
-    attr_accessor(storage, Object);
+    attr_accessor(storage, ByteArray);
     attr_accessor(total, Integer);
     attr_accessor(used, Integer);
 

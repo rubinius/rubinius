@@ -13,6 +13,9 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = ByteArrayType;
 
+    // Body access
+    uint8_t bytes[];
+
     static void init(STATE);
     static ByteArray* create(STATE, size_t bytes);
 

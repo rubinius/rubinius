@@ -64,6 +64,7 @@ namespace rubinius {
     obj = header->to_object();
 
     obj->field_count = fields;
+    obj->zone = MatureObjectZone;
 
     return obj;
   }
@@ -83,10 +84,7 @@ namespace rubinius {
     OBJECT obj = allocate(orig->field_count, &collect);
 
     obj->initialize_copy(orig, 0);
-
-    for(size_t i = 0; i < orig->field_count; i++) {
-      obj->field[i] = orig->field[i];
-    }
+    obj->copy_body(orig);
 
     return obj;
   }

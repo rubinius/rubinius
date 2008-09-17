@@ -10,6 +10,7 @@
 #include "builtin/array.hpp"
 #include "builtin/selector.hpp"
 #include "builtin/task.hpp"
+#include "builtin/float.hpp"
 #include "objectmemory.hpp"
 #include "global_cache.hpp"
 #include "config.hpp"
@@ -79,22 +80,11 @@ namespace rubinius {
     field_count = fields;
   }
 
-  /* Clear the body of the object, by setting each field to Qnil */
-  void Object::clear_fields() {
-    /* HACK: this case seems like a reasonable exception
-     * to using accessor functions
-     */
-    ivars_ = Qnil;
-    for(size_t i = 0; i < field_count; i++) {
-      field[i] = Qnil;
-    }
-  }
-
   /* Initialize the object as storing bytes, by setting the flag then clearing the
    * body of the object, by setting the entire body as bytes to 0 */
   void Object::init_bytes() {
     this->StoresBytes = 1;
-    std::memset((void*)(this->field), field_count * sizeof(OBJECT), 0);
+    clear_body_to_null();
   }
 
   size_t Object::size_in_bytes() {
@@ -350,13 +340,18 @@ namespace rubinius {
     dup->all_flags = all_flags;
     dup->zone = zone;
 
-    if(stores_bytes_p()) {
-      std::memcpy(dup->bytes, bytes, field_count * sizeof(OBJECT));
-    } else {
-      for(size_t i = 0; i < field_count; i++) {
-        state->om->store_object(dup, i, field[i]);
-      }
+    dup->copy_body(this);
+
+    // HACK: If dup is mature, remember it.
+    // We could inspect inspect the references we just copied to see
+    // if there are any young ones if dup is mature, then and only
+    // then remember dup. The up side to just remembering it like
+    // this is that dup is rarely mature, and the remember_set is
+    // flushed on each collection anyway.
+    if(dup->zone == MatureObjectZone) {
+      state->om->remember_object(dup);
     }
+
     // TODO - Duplicate ('make independent') ivars here
 
     return dup;
@@ -419,7 +414,8 @@ namespace rubinius {
       } else if(kind_of_p(state, G(bignum))) {
         hsh = ((Bignum*)this)->hash_bignum(state);
       } else if(kind_of_p(state, G(floatpoint))) {
-        hsh = String::hash_str((unsigned char *)(this->bytes), sizeof(double));
+        Float* flt = as<Float>(this);
+        hsh = String::hash_str((unsigned char *)(&(flt->val)), sizeof(double));
       } else {
         hsh = id(state)->to_native();
       }

@@ -112,6 +112,7 @@ namespace rubinius {
         obj = (OBJECT)current->allocate(bytes);
       }
 
+      obj->zone = YoungObjectZone;
       return obj;
     }
 

@@ -10,6 +10,9 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = TupleType;
 
+    /* Body access */
+    OBJECT field[];
+
     static Tuple* create(STATE, size_t fields);
     static Tuple* from(STATE, size_t fields, ...);
 

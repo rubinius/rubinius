@@ -48,13 +48,17 @@ namespace rubinius {
    * of this function (called via virtual dispatch) that marks
    * all slots. */
   void TypeInfo::auto_mark(OBJECT obj, ObjectMark& mark) {
-    for(size_t i = 0; i < obj->field_count; i++) {
-      Object* slot = obj->field[i];
-      if(slot->reference_p()) {
-        OBJECT res = mark.call(slot);
-        if(res) {
-          obj->field[i] = as<Object>(res);
-          mark.just_set(obj, res);
+    // HACK copied from Tuple;
+    OBJECT tmp;
+    Tuple* tup = static_cast<Tuple*>(obj);
+
+    for(size_t i = 0; i < tup->field_count; i++) {
+      tmp = tup->field[i];
+      if(tmp->reference_p()) {
+        tmp = mark.call(tmp);
+        if(tmp) {
+          tup->field[i] = tmp;
+          mark.just_set(obj, tmp);
         }
       }
     }

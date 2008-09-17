@@ -103,13 +103,15 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   void test_collect_young_through_references() {
     ObjectMemory om(state, 1024);
-    OBJECT obj, obj2, obj3;
+    Tuple *obj, *obj2, *obj3;
 
-    obj =  om.allocate_object(3);
-    obj2 = om.allocate_object(3);
+    obj =  (Tuple*)om.allocate_object(3);
+    obj2 = (Tuple*)om.allocate_object(3);
 
-    om.store_object(obj, 0, obj2);
-    om.store_object(obj2, 0, Qtrue);
+    obj->field[0] = obj2;
+    obj2->field[0] = Qtrue;
+
+    om.write_barrier(obj, obj2);
 
     Roots roots(0);
     Root r(&roots, obj);
@@ -121,10 +123,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     OBJECT new_obj = roots.front()->get();
     TS_ASSERT(obj != new_obj);
-    obj = new_obj;
+    obj = (Tuple*)new_obj;
 
     TS_ASSERT(om.young.current->contains_p(obj));
-    obj3 = obj->field[0];
+    obj3 = (Tuple*)obj->field[0];
     TS_ASSERT(obj2 != obj3);
 
     TS_ASSERT_EQUALS(obj2->field[0], Qtrue);
@@ -133,10 +135,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
   /* Could crash on failure */
   void test_collect_young_skips_byte_storage() {
     ObjectMemory om(state, 1024);
-    OBJECT obj, obj2;
+    Tuple *obj, *obj2;
 
-    obj =  om.new_object_bytes(G(object), 3);
-    obj2 = om.allocate_object(3);
+    obj =  (Tuple*)om.new_object_bytes(G(object), 3);
+    obj2 = (Tuple*)om.allocate_object(3);
 
     /* Force obj2 to appear in the body, but it should be seen as
      * just a generic series of bytes, not a reference. */
@@ -147,7 +149,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.collect_young(roots);
 
-    obj = roots.front()->get();
+    obj = (Tuple*)roots.front()->get();
     TS_ASSERT_EQUALS(obj->field[0], obj2);
   }
 
@@ -200,22 +202,24 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   void test_collect_young_uses_remember_set() {
     ObjectMemory om(state, 1024);
-    OBJECT young, mature;
+    Tuple *young, *mature;
 
     om.large_object_threshold = 10;
 
-    young =  om.allocate_object(3);
-    mature = om.allocate_object(20);
+    young =  (Tuple*)om.allocate_object(3);
+    mature = (Tuple*)om.allocate_object(20);
 
-    om.store_object(young, 0, Qtrue);
-    om.store_object(mature, 0, young);
+    young->field[0] = Qtrue;
+    mature->field[0] = young;
+
+    om.write_barrier(mature, young);
     TS_ASSERT_EQUALS(mature->Remember, 1U);
 
     Roots roots(0);
     om.collect_young(roots);
 
     TS_ASSERT(mature->field[0] != young);
-    TS_ASSERT_EQUALS(mature->field[0]->field[0], Qtrue);
+    TS_ASSERT_EQUALS(((Tuple*)mature->field[0])->field[0], Qtrue);
   }
 
   void test_collect_young_promotes_objects() {
@@ -241,17 +245,19 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   void test_collect_young_resets_remember_set() {
     ObjectMemory om(state, 1024);
-    OBJECT young, mature;
+    Tuple *young, *mature;
 
     om.large_object_threshold = 10;
 
-    young =  om.allocate_object(3);
-    mature = om.allocate_object(20);
+    young =  (Tuple*)om.allocate_object(3);
+    mature = (Tuple*)om.allocate_object(20);
 
     TS_ASSERT(mature->mature_object_p());
     TS_ASSERT(young->young_object_p());
 
-    om.store_object(mature, 0, young);
+    mature->field[0] = young;
+    om.write_barrier(mature, young);
+
     Roots roots(0);
 
     om.set_young_lifetime(1);
@@ -269,32 +275,34 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   void test_collect_young_uses_forwarding_pointers() {
     ObjectMemory om(state, 1024);
-    OBJECT obj, obj2;
+    Tuple *obj, *obj2;
 
-    obj =  om.allocate_object(3);
-    obj2 = om.allocate_object(3);
+    obj =  (Tuple*)om.allocate_object(3);
+    obj2 = (Tuple*)om.allocate_object(3);
 
-    om.store_object(obj, 0, obj2);
-    om.store_object(obj, 1, obj2);
-    om.store_object(obj, 2, obj2);
+    obj->field[0] = obj2;
+    obj->field[1] = obj2;
+    obj->field[2] = obj2;
+
+    om.write_barrier(obj, obj2);
 
     Roots roots(0);
     Root r(&roots, obj);
 
     om.collect_young(roots);
 
-    obj = roots.front()->get();
+    obj = (Tuple*)roots.front()->get();
 
-    obj2 = obj->field[0];
+    obj2 = (Tuple*)obj->field[0];
     TS_ASSERT_EQUALS(obj2, obj->field[1]);
     TS_ASSERT_EQUALS(obj2, obj->field[2]);
   }
 
   void test_collect_young_copies_byte_bodies() {
     ObjectMemory om(state, 1024);
-    OBJECT obj;
+    ByteArray* obj;
 
-    obj = om.new_object_bytes(G(object), 3);
+    obj = (ByteArray*)om.new_object_bytes(G(object), 3);
     obj->bytes[0] = 47;
 
     Roots roots(0);
@@ -302,7 +310,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.collect_young(roots);
 
-    obj = roots.front()->get();
+    obj = (ByteArray*)roots.front()->get();
     TS_ASSERT_EQUALS(obj->bytes[0], static_cast<char>(47));
   }
 
@@ -373,46 +381,51 @@ class TestObjectMemory : public CxxTest::TestSuite {
   /* Could segfault on failure due to infinite loop. */
   void test_collect_mature_stops_at_already_marked_objects() {
     ObjectMemory om(state, 1024);
-    OBJECT young, mature;
+    Tuple *young, *mature;
 
     om.large_object_threshold = 10;
 
-    young =  om.allocate_object(3);
-    mature = om.allocate_object(20);
+    young =  (Tuple*)om.allocate_object(3);
+    mature = (Tuple*)om.allocate_object(20);
 
-    om.store_object(young, 0, mature);
-    om.store_object(mature, 0, young);
+    young->field[0] = mature;
+    mature->field[0] = young;
+
+    om.write_barrier(young, mature);
+    om.write_barrier(mature, young);
 
     Roots roots(0);
     Root r(&roots, young);
 
     om.collect_mature(roots);
 
-    young = roots.front()->get();
-    mature = young->field[0];
+    young = (Tuple*)roots.front()->get();
+    mature = (Tuple*)young->field[0];
 
     TS_ASSERT_EQUALS(mature->field[0], young);
   }
 
   void test_collect_young_stops_at_already_marked_objects() {
     ObjectMemory om(state, 1024);
-    OBJECT obj, obj2;
+    Tuple *obj, *obj2;
 
-    obj =  om.allocate_object(3);
-    obj2 = om.allocate_object(3);
+    obj =  (Tuple*)om.allocate_object(3);
+    obj2 = (Tuple*)om.allocate_object(3);
 
-    om.store_object(obj2, 1, Qtrue);
+    obj2->field[1] = Qtrue;
+    obj->field[0] = obj2;
+    obj2->field[0] = obj;
 
-    om.store_object(obj, 0, obj2);
-    om.store_object(obj2, 0, obj);
+    om.write_barrier(obj, obj2);
+    om.write_barrier(obj2, obj);
 
     Roots roots(0);
     Root r(&roots, obj);
 
     om.collect_young(roots);
 
-    obj = roots.front()->get();
-    obj2 = obj->field[0];
+    obj = (Tuple*)roots.front()->get();
+    obj2 = (Tuple*)obj->field[0];
 
     TS_ASSERT_EQUALS(obj2->field[0], obj);
     TS_ASSERT_EQUALS(obj2->field[1], Qtrue);

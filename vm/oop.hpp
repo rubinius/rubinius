@@ -139,7 +139,22 @@ to be a simple test for that bit pattern.
     Class* klass_;
     Object* ivars_;
 
+  private:
+    // Defined so ObjectHeader can easily access the data just beyond
+    // it.
+    void* __body__[];
+
+  public:
     void initialize_copy(Object* other, unsigned int age);
+
+    /* Copies the body of +other+ into +this+ */
+    void copy_body(Object* other);
+
+    /* Clear the body of the object, by setting each field to Qnil */
+    void clear_fields();
+
+    /* Clear the body of the object, setting it to all 0s */
+    void clear_body_to_null();
   };
 
   /* Object access, lowest level. These read and set fields of an OBJECT

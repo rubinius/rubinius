@@ -4,6 +4,7 @@
 #include "objectmemory.hpp"
 
 #include "builtin/class.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
 
@@ -66,11 +67,18 @@ namespace rubinius {
       ObjectMark mark(this);
       ti->mark(obj, mark);
     } else if(obj->stores_references_p()) {
-      for(size_t i = 0; i < obj->field_count; i++) {
-        slot = obj->field[i];
-        if(slot->reference_p()) {
-          slot = saw_object(slot);
-          if(slot) object_memory->store_object(obj, i, slot);
+      // HACK copied from Tuple;
+      OBJECT tmp;
+      Tuple* tup = static_cast<Tuple*>(obj);
+
+      for(size_t i = 0; i < tup->field_count; i++) {
+        tmp = tup->field[i];
+        if(tmp->reference_p()) {
+          tmp = saw_object(tmp);
+          if(tmp) {
+            tup->field[i] = tmp;
+            object_memory->write_barrier(tup, tmp);
+          }
         }
       }
     }

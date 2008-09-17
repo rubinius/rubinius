@@ -51,12 +51,6 @@ namespace rubinius {
     /* Objects have no index fields past the header by default */
     const static size_t fields = 0;
 
-    /* body access */
-    union {
-      OBJECT field[];
-      uint8_t bytes[];
-    };
-
     /* accessors */
     attr_accessor(klass, Class);
     attr_accessor(ivars, Object);
@@ -76,9 +70,6 @@ namespace rubinius {
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
     void init(gc_zone loc, size_t fields);
-
-    /* Clear the body of the object, by setting each field to Qnil */
-    void clear_fields();
 
     /* Initialize the object as storing bytes, by setting the flag then clearing the
      * body of the object, by setting the entire body as bytes to 0 */

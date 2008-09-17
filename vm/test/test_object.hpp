@@ -104,12 +104,12 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_dup_bytes() {
-    OBJECT obj = state->om->new_object_bytes(G(object), 1);
+    ByteArray* obj = (ByteArray*)state->om->new_object_bytes(G(object), 1);
     obj->StoresBytes = 1;
 
     obj->bytes[0] = 8;
 
-    OBJECT obj2 = obj->dup(state);
+    ByteArray* obj2 = (ByteArray*)obj->dup(state);
 
     TS_ASSERT(obj2->stores_bytes_p());
     TS_ASSERT_EQUALS(obj2->bytes[0], 8);
