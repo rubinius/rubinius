@@ -1,6 +1,8 @@
 #include "oop.hpp"
 #include "builtin/object.hpp"
 
+#include <cassert>
+
 namespace rubinius {
   void ObjectHeader::initialize_copy(Object* other, unsigned int age) {
     /* Even though we dup it, we have to be careful to maintain
