@@ -71,7 +71,7 @@ namespace rubinius {
       OBJECT tmp;
       Tuple* tup = static_cast<Tuple*>(obj);
 
-      for(size_t i = 0; i < tup->field_count; i++) {
+      for(size_t i = 0; i < tup->num_fields(); i++) {
         tmp = tup->field[i];
         if(tmp->reference_p()) {
           tmp = saw_object(tmp);

@@ -22,7 +22,7 @@ class TestCompactLookupTable : public CxxTest::TestSuite {
 
   void test_create() {
     TS_ASSERT_EQUALS(tbl->obj_type, CompactLookupTableType);
-    TS_ASSERT_EQUALS(tbl->field_count, COMPACTLOOKUPTABLE_SIZE);
+    TS_ASSERT_EQUALS(tbl->num_fields(), COMPACTLOOKUPTABLE_SIZE);
   }
 
   void test_find() {

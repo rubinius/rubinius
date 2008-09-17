@@ -67,10 +67,6 @@ namespace rubinius {
     bool fixnum_p();
     bool symbol_p();
 
-    /* Initialize the objects data with the most basic info. This is done
-     * right after an object is created. */
-    void init(gc_zone loc, size_t fields);
-
     /* Initialize the object as storing bytes, by setting the flag then clearing the
      * body of the object, by setting the entire body as bytes to 0 */
     void init_bytes();

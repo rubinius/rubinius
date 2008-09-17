@@ -17,7 +17,7 @@ namespace rubinius {
     }
 
   OBJECT Tuple::at(size_t index) {
-    if(field_count <= index) {
+    if(num_fields() <= index) {
       ObjectBoundsExceeded::raise(this, index);
     }
     return field[index];
@@ -26,13 +26,13 @@ namespace rubinius {
   /* The Tuple#at primitive. */
   OBJECT Tuple::at_prim(STATE, FIXNUM index_obj) {
     size_t index = index_obj->to_native();
-    if(field_count <= index) return Qnil;
+    if(num_fields() <= index) return Qnil;
 
     return field[index];
   }
 
   OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {
-    if(field_count <= idx) {
+    if(num_fields() <= idx) {
       ObjectBoundsExceeded::raise(this, idx);
     }
 
@@ -48,7 +48,7 @@ namespace rubinius {
 
   /* The Tuple#fields primitive. */
   OBJECT Tuple::fields_prim(STATE) {
-    return Integer::from(state, field_count);
+    return Integer::from(state, num_fields());
   }
 
   Tuple* Tuple::create(STATE, size_t fields) {
@@ -79,13 +79,13 @@ namespace rubinius {
     size_t length;
 
     if(start < 0) start = 0;
-    if((size_t)end >= other->field_count) {
-      length = other->field_count - 1;
+    if((size_t)end >= other->num_fields()) {
+      length = other->num_fields() - 1;
     } else {
       length = end;
     }
-    if(length - start + 1 > this->field_count) {
-      length = start + this->field_count - 1;
+    if(length - start + 1 > this->num_fields()) {
+      length = start + this->num_fields() - 1;
     }
 
     for(size_t i = start, j = 0; i <= length; i++, j++) {
@@ -99,9 +99,9 @@ namespace rubinius {
     if(cnt == 0) {
       return this;
     } else {
-      Tuple* tuple = Tuple::create(state, this->field_count + cnt);
+      Tuple* tuple = Tuple::create(state, this->num_fields() + cnt);
 
-      for(size_t i = 0; i < this->field_count; i++) {
+      for(size_t i = 0; i < this->num_fields(); i++) {
         tuple->put(state, i + cnt, this->at(i));
       }
 
@@ -112,8 +112,8 @@ namespace rubinius {
   Tuple* Tuple::copy_from(STATE, Tuple* other, FIXNUM start, FIXNUM dest) {
     native_int src = start->to_native();
     native_int dst = dest->to_native();
-    native_int sz = this->field_count;
-    native_int osz = other->field_count;
+    native_int sz = this->num_fields();
+    native_int osz = other->num_fields();
     native_int i, j;
 
     if(src < 0) src = 0;
@@ -147,7 +147,7 @@ namespace rubinius {
     OBJECT tmp;
     Tuple* tup = as<Tuple>(obj);
 
-    for(size_t i = 0; i < tup->field_count; i++) {
+    for(size_t i = 0; i < tup->num_fields(); i++) {
       tmp = mark.call(tup->field[i]);
       if(tmp) mark.set(obj, &tup->field[i], tmp);
     }
@@ -155,7 +155,7 @@ namespace rubinius {
 
   void Tuple::Info::show(STATE, OBJECT self, int level) {
     Tuple* tup = as<Tuple>(self);
-    size_t size = tup->field_count;
+    size_t size = tup->num_fields();
     size_t stop = size < 6 ? size : 6;
 
     if(size == 0) {
@@ -175,13 +175,13 @@ namespace rubinius {
         obj->show(state, level);
       }
     }
-    if(tup->field_count > stop) ellipsis(level);
+    if(tup->num_fields() > stop) ellipsis(level);
     close_body(level);
   }
 
   void Tuple::Info::show_simple(STATE, OBJECT self, int level) {
     Tuple* tup = as<Tuple>(self);
-    size_t size = tup->field_count;
+    size_t size = tup->num_fields();
     size_t stop = size < 6 ? size : 6;
 
     if(size == 0) {
@@ -197,12 +197,12 @@ namespace rubinius {
       OBJECT obj = tup->at(i);
       if(Tuple* t = try_as<Tuple>(obj)) {
         class_info(state, self);
-        std::cout << ": " << t->field_count << ">" << std::endl;
+        std::cout << ": " << t->num_fields() << ">" << std::endl;
       } else {
         obj->show_simple(state, level);
       }
     }
-    if(tup->field_count > stop) ellipsis(level);
+    if(tup->num_fields() > stop) ellipsis(level);
     close_body(level);
   }
 }

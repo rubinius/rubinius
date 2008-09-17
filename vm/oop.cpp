@@ -4,6 +4,14 @@
 #include <cassert>
 
 namespace rubinius {
+  /* Initialize the objects data with the most basic info. This is done
+   * right after an object is created. */
+  void ObjectHeader::init(gc_zone loc, size_t fields) {
+    all_flags = 0;
+    zone = loc;
+    field_count = fields;
+  }
+
   void ObjectHeader::initialize_copy(Object* other, unsigned int age) {
     /* Even though we dup it, we have to be careful to maintain
      * the zone. */

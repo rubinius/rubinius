@@ -250,7 +250,7 @@ namespace rubinius {
         i++) {
       // ATM, only a Tuple can be marked weak.
       Tuple* tup = as<Tuple>(*i);
-      for(size_t ti = 0; ti < tup->field_count; ti++) {
+      for(size_t ti = 0; ti < tup->num_fields(); ti++) {
         OBJECT obj = tup->at(ti);
         if(obj->young_object_p()) {
           if(!obj->forwarded_p()) {

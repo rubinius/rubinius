@@ -175,7 +175,7 @@ namespace rubinius {
 
     events->poll();
 
-    for(size_t i = globals.scheduled_threads->field_count - 1; i > 0; i--) {
+    for(size_t i = globals.scheduled_threads->num_fields() - 1; i > 0; i--) {
       List* lst = as<List>(globals.scheduled_threads->at(i));
       if(lst->empty_p()) continue;
       next = as<Thread>(lst->shift(this));

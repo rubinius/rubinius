@@ -63,7 +63,6 @@ namespace rubinius {
 
     obj = header->to_object();
 
-    obj->field_count = fields;
     obj->zone = MatureObjectZone;
 
     return obj;
@@ -81,7 +80,7 @@ namespace rubinius {
 
   OBJECT MarkSweepGC::copy_object(OBJECT orig) {
     bool collect;
-    OBJECT obj = allocate(orig->field_count, &collect);
+    OBJECT obj = allocate(orig->num_fields(), &collect);
 
     obj->initialize_copy(orig, 0);
     obj->copy_body(orig);
@@ -168,7 +167,7 @@ namespace rubinius {
         i++) {
       // ATM, only a Tuple can be marked weak.
       Tuple* tup = as<Tuple>(*i);
-      for(size_t ti = 0; ti < tup->field_count; ti++) {
+      for(size_t ti = 0; ti < tup->num_fields(); ti++) {
         OBJECT obj = tup->at(ti);
         if(obj->young_object_p()) {
           if(!obj->marked_p()) {

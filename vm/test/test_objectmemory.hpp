@@ -26,7 +26,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     obj = om.allocate_object(3);
 
-    TS_ASSERT_EQUALS(obj->field_count, 3U);
+    TS_ASSERT_EQUALS(obj->num_fields(), 3U);
     TS_ASSERT(obj->klass()->nil_p());
     TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
     TS_ASSERT_EQUALS(obj->ivars(), Qnil);
@@ -158,7 +158,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     OBJECT obj;
 
     obj = om.allocate_mature(3);
-    TS_ASSERT_EQUALS(obj->field_count, 3U);
+    TS_ASSERT_EQUALS(obj->num_fields(), 3U);
     TS_ASSERT(obj->klass()->nil_p());
     TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
     TS_ASSERT(obj->stores_references_p());
@@ -177,7 +177,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     om.large_object_threshold = 10;
 
     obj = om.allocate_object(20);
-    TS_ASSERT_EQUALS(obj->field_count, 20U);
+    TS_ASSERT_EQUALS(obj->num_fields(), 20U);
     TS_ASSERT(obj->klass()->nil_p());
     TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
 

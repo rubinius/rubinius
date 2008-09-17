@@ -101,7 +101,7 @@ initialize:
     if(cm_->nil_p()) return -2;        // trampoline context
     if(cm_->lines()->nil_p()) return -3;
 
-    for(size_t i = 0; i < cm_->lines()->field_count; i++) {
+    for(size_t i = 0; i < cm_->lines()->num_fields(); i++) {
       Tuple* entry = as<Tuple>(cm_->lines()->at(i));
 
       FIXNUM start_ip = as<Fixnum>(entry->at(0));

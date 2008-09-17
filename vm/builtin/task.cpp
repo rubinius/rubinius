@@ -268,7 +268,7 @@ stack_cleanup:
       Tuple* table = active_->cm()->exceptions();
 
       if(!table->nil_p()) {
-        for(size_t i = 0; i < table->field_count; i++) {
+        for(size_t i = 0; i < table->num_fields(); i++) {
           Tuple* entry = as<Tuple>(table->at(i));
           if(as<Integer>(entry->at(0))->to_native() <= ip && as<Integer>(entry->at(1))->to_native() >= ip) {
             set_ip(as<Integer>(entry->at(2))->to_native());
@@ -292,7 +292,7 @@ stack_cleanup:
       Tuple* table = active_->cm()->exceptions();
 
       if(!table->nil_p()) {
-        for(size_t i = 0; i < table->field_count; i++) {
+        for(size_t i = 0; i < table->num_fields(); i++) {
           Tuple* entry = as<Tuple>(table->at(i));
           if(as<Integer>(entry->at(0))->to_native() <= ip && as<Integer>(entry->at(1))->to_native() >= ip) {
             set_ip(as<Integer>(entry->at(2))->to_native());

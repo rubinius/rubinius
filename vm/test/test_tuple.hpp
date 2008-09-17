@@ -27,7 +27,7 @@ public:
 
   void test_allocate() {
     Tuple* tuple = Tuple::allocate(state, Fixnum::from(2));
-    TS_ASSERT_EQUALS(2U, tuple->field_count);
+    TS_ASSERT_EQUALS(2U, tuple->num_fields());
   }
 
   void test_at() {
@@ -160,7 +160,7 @@ public:
 
     Tuple* dest = tuple->shifted(state, Fixnum::from(4));
 
-    TS_ASSERT_EQUALS(dest->field_count, 7U);
+    TS_ASSERT_EQUALS(dest->num_fields(), 7U);
     TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(4)));
     TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(5)));
     TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(6)));
@@ -170,7 +170,7 @@ public:
     FIXNUM ten = Fixnum::from(10);
     Tuple* tuple = Tuple::pattern(state, Fixnum::from(5), ten);
 
-    TS_ASSERT_EQUALS(5U, tuple->field_count);
+    TS_ASSERT_EQUALS(5U, tuple->num_fields());
     for(size_t i = 0; i < 5; i++) {
       TS_ASSERT_EQUALS(ten, tuple->at(i));
     }

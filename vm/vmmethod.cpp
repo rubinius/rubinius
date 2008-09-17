@@ -25,9 +25,9 @@ namespace rubinius {
 
     this->execute = VMMethod::executor;
 
-    total = meth->iseq()->opcodes()->field_count;
+    total = meth->iseq()->opcodes()->num_fields();
     if(Tuple* tup = try_as<Tuple>(meth->literals())) {
-      blocks.resize(tup->field_count, NULL);
+      blocks.resize(tup->num_fields(), NULL);
     }
 
     opcodes = new opcode[total];

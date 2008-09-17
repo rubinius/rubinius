@@ -58,7 +58,7 @@ class TestVM : public CxxTest::TestSuite {
 
     OBJECT blah = state->new_object(cls);
 
-    TS_ASSERT_EQUALS(blah->field_count, 3U);
+    TS_ASSERT_EQUALS(blah->num_fields(), 3U);
   }
 
   void test_globals() {

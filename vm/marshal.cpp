@@ -118,9 +118,9 @@ namespace rubinius {
   }
 
   void Marshaller::set_tuple(Tuple* tup) {
-    stream << "p" << endl << tup->field_count << endl;
+    stream << "p" << endl << tup->num_fields() << endl;
 
-    for(size_t i = 0; i < tup->field_count; i++) {
+    for(size_t i = 0; i < tup->num_fields(); i++) {
       marshal(tup->at(i));
     }
   }
@@ -151,8 +151,8 @@ namespace rubinius {
 
   void Marshaller::set_iseq(InstructionSequence* iseq) {
     Tuple* ops = iseq->opcodes();
-    stream << "i" << endl << ops->field_count << endl;
-    for(size_t i = 0; i < ops->field_count; i++) {
+    stream << "i" << endl << ops->num_fields() << endl;
+    for(size_t i = 0; i < ops->num_fields(); i++) {
       stream << as<Fixnum>(ops->at(i))->to_native() << endl;
     }
   }

@@ -287,7 +287,7 @@ class Instructions
   def cast_for_multi_block_arg
     <<-CODE
     Tuple* tup = as<Tuple>(stack_top());
-    int k = NUM_FIELDS(tup);
+    int k = tup->num_fields();
     /* If there is only one thing in the tuple... */
     if(k == 1) {
       OBJECT t1 = tup->at(0);
@@ -354,7 +354,7 @@ class Instructions
   def cast_for_single_block_arg
     <<-CODE
     Tuple* tup = as<Tuple>(stack_pop());
-    int k = NUM_FIELDS(tup);
+    int k = tup->num_fields();
     if(k == 0) {
       stack_push(Qnil);
     } else if(k == 1) {
@@ -3732,11 +3732,11 @@ class Instructions
     <<-CODE
     Tuple* tuple = as<Tuple>(stack_pop());
 
-    if(NUM_FIELDS(tuple) == 0) {
+    if(tuple->num_fields() == 0) {
       stack_push(tuple);
       stack_push(Qnil);
     } else {
-      int j = NUM_FIELDS(tuple) - 1;
+      int j = tuple->num_fields() - 1;
       OBJECT shifted_value = tuple->at(0);
 
       Tuple* new_tuple = Tuple::create(state, j);

@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Bounds of object exceeded:" << std::endl;
     std::cout << "  type: " << info->type_name << ", fields: " <<
-      e.obj->field_count << ", accessed: " << e.index << std::endl;
+      e.obj->num_fields() << ", accessed: " << e.index << std::endl;
     e.print_backtrace();
   } catch(Assertion &e) {
     std::cout << "VM Assertion:" << std::endl;

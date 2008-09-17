@@ -72,14 +72,6 @@ namespace rubinius {
     return SYMBOL_P(this);
   }
 
-  /* Initialize the objects data with the most basic info. This is done
-   * right after an object is created. */
-  void Object::init(gc_zone loc, size_t fields) {
-    all_flags = 0;
-    zone = loc;
-    field_count = fields;
-  }
-
   /* Initialize the object as storing bytes, by setting the flag then clearing the
    * body of the object, by setting the entire body as bytes to 0 */
   void Object::init_bytes() {
@@ -92,7 +84,7 @@ namespace rubinius {
   }
 
   size_t Object::body_in_bytes() {
-    return field_count * sizeof(OBJECT);
+    return num_fields() * sizeof(OBJECT);
   }
 
   bool Object::reference_p() {
@@ -335,7 +327,7 @@ namespace rubinius {
     // to preserve any IncludedModule instances; they will be shared
     // between all duplicates made from this object
     // TODO - Verify this statement
-    dup = state->om->new_object(lookup_begin(state), field_count);
+    dup = state->om->new_object(lookup_begin(state), num_fields());
     gc_zone zone = dup->zone;
     dup->all_flags = all_flags;
     dup->zone = zone;

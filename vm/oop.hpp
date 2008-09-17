@@ -82,8 +82,8 @@ to be a simple test for that bit pattern.
 #define SIZE_IN_BYTES_FIELDS(fel)       ((size_t)(sizeof(Object) + \
       (fel*SIZE_OF_OBJECT)))
 #define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(Object)/SIZE_OF_OBJECT + fel)
-#define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->field_count)
-#define SIZE_OF_BODY(obj)               (obj->field_count * SIZE_OF_OBJECT)
+#define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->num_fields())
+#define SIZE_OF_BODY(obj)               (obj->num_fields() * SIZE_OF_OBJECT)
 
   /* rubinius_object gc zone, takes up two bits */
   typedef enum
@@ -135,16 +135,22 @@ to be a simple test for that bit pattern.
       };
       uint32_t all_flags;
     };
-    uint32_t field_count;
     Class* klass_;
     Object* ivars_;
 
   private:
+    // The number of fields this object uses.
+    uint32_t field_count;
+
     // Defined so ObjectHeader can easily access the data just beyond
     // it.
     void* __body__[];
 
   public:
+    /* Initialize the objects data with the most basic info. This is done
+     * right after an object is created. */
+    void init(gc_zone zone, size_t fields);
+
     void initialize_copy(Object* other, unsigned int age);
 
     /* Copies the body of +other+ into +this+ */
@@ -155,6 +161,10 @@ to be a simple test for that bit pattern.
 
     /* Clear the body of the object, setting it to all 0s */
     void clear_body_to_null();
+
+    uint32_t num_fields() {
+      return field_count;
+    }
   };
 
   /* Object access, lowest level. These read and set fields of an OBJECT
