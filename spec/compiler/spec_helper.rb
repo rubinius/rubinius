@@ -231,6 +231,9 @@ class TestGenerator
       inner_top = d.new_label
 
       case block_count
+      when Float then # yes... I'm a dick
+        d.cast_for_single_block_arg
+        d.set_local 0
       when -2 then
         d.cast_for_multi_block_arg
       when -1 then
