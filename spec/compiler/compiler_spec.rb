@@ -2185,19 +2185,111 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("if_nested",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              yep  = g.new_label
+              done = g.new_label
+              inner_done = g.new_label
+              nope = g.new_label
+
+              g.push :true
+              g.git  yep
+
+              g.push :false
+              g.gif  nope
+
+              g.push :nil
+              g.ret
+              g.goto inner_done
+
+              nope.set!
+              g.push :nil
+
+              inner_done.set!
+
+              g.goto done
+
+              yep.set!
+              g.push :nil
+
+              done.set!
+
+            end)
 
   add_tests("if_post",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              nope = g.new_label
+              done = g.new_label
+
+              g.push :self
+              g.send :b, 0, true
+              g.gif nope
+
+              g.push :self
+              g.send :a, 0, true
+              g.goto done
+
+              nope.set!
+              g.push :nil
+
+              done.set!
+            end)
 
   add_tests("if_post_not",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              yep  = g.new_label
+              done = g.new_label
+
+              g.push :self
+              g.send :b, 0, true
+              g.git yep
+
+              g.push :self
+              g.send :a, 0, true
+              g.goto done
+
+              yep.set!
+              g.push :nil
+
+              done.set!
+            end)
 
   add_tests("if_pre",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              nope = g.new_label
+              done = g.new_label
+
+              g.push :self
+              g.send :b, 0, true
+              g.gif nope
+
+              g.push :self
+              g.send :a, 0, true
+              g.goto done
+
+              nope.set!
+              g.push :nil
+
+              done.set!
+            end)
 
   add_tests("if_pre_not",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              yep  = g.new_label
+              done = g.new_label
+
+              g.push :self
+              g.send :b, 0, true
+              g.git yep
+
+              g.push :self
+              g.send :a, 0, true
+              g.goto done
+
+              yep.set!
+              g.push :nil
+
+              done.set!
+            end)
 
   add_tests("iter_call_arglist_space",
             "Compiler" => :skip)
