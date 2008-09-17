@@ -2292,46 +2292,225 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("iter_call_arglist_space",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push 1
+              in_block_send :a, 1, 1 do |d|
+                d.push :self
+                d.send :d, 0, true
+              end
+            end)
 
   add_tests("iter_dasgn_curr_dasgn_madness",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :as, 0, true
+              in_block_send :each, 1, 0, false do |d|
+                d.push_local_depth 0, 1
+                d.push_local_depth 0, 0
+                d.push :false
+                d.send :b, 1, false
+                d.meta_send_op_plus
+                d.set_local_depth 0, 1
+              end
+            end)
 
   add_tests("iter_downto",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 3
+              g.push 1
+              in_block_send :downto, 1, 1, false do |d|
+                d.push :self
+                d.push_local_depth 0, 0
+                d.send :to_s, 0, false
+                d.send :puts, 1, true
+              end
+            end)
 
   add_tests("iter_each_lvar",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push 2
+              g.push 3
+              g.make_array 3
+              g.set_local 0
+              g.pop
+
+              g.push_local 0
+              in_block_send :each, 1, 0, false, 1 do |d|
+                d.push :self
+                d.push_local_depth 0, 0
+                d.send :to_s, 0, false
+                d.send :puts, 1, true
+              end
+            end)
 
   add_tests("iter_each_nested",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push 2
+              g.push 3
+              g.make_array 3
+              g.set_local 0
+              g.pop
+
+              g.push 4
+              g.push 5
+              g.push 6
+              g.push 7
+              g.make_array 4
+              g.set_local 1
+              g.pop
+
+              g.push_local 0
+              in_block_send :each, 1, 0, false, 2 do |d|
+                d.push_local 1
+                d.in_block_send :each, 1, 0, false, 2, true do |d2|
+                  d2.push :self
+                  d2.push_local_depth 1, 0
+                  d2.send :to_s, 0, false
+                  d2.send :puts, 1, true
+                  d2.pop
+
+                  d2.push :self
+                  d2.push_local_depth 0, 0
+                  d2.send :to_s, 0, false
+                  d2.send :puts, 1, true
+                end
+              end
+            end)
 
   add_tests("iter_loop_empty",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top = g.new_label
+              bottom = g.new_label
+
+              g.push_modifiers
+              top.set!
+              g.goto top
+              bottom.set!
+              g.pop_modifiers
+            end)
 
   add_tests("iter_masgn_2",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_block_send :a, 2 do |d|
+                d.push :self
+                d.push_local_depth 0, 1
+                d.send :p, 1, true
+              end
+            end)
 
   add_tests("iter_masgn_args_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_block_send :a, 2 do |d|
+                d.push :self
+                d.push_local_depth 0, 1
+                d.send :p, 1, true
+              end
+            end)
 
   add_tests("iter_masgn_args_splat_no_name",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_block_send :a, 2 do |d|
+                d.push :self
+                d.push_local_depth 0, 1
+                d.send :p, 1, true
+              end
+            end)
 
   add_tests("iter_masgn_splat",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_block_send :a, -1 do |d|
+                d.push :self
+                d.push_local_depth 0, 0
+                d.send :p, 1, true
+              end
+            end)
 
   add_tests("iter_masgn_splat_no_name",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_block_send :a, -2 do |d|
+                d.push :self
+                d.push :self
+                d.send :c, 0, true
+                d.send :p, 1, true
+              end
+            end)
 
   add_tests("iter_shadowed_var",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.in_block_send :a, 1 do |d|
+                d.push :self
+                d.in_block_send :b, 1, 0, true, 0, true, 1 do |d2|
+                  d2.push :self
+                  d2.push_local_depth 1, 0
+                  d2.send :puts, 1, true
+                end
+              end
+            end)
 
   add_tests("iter_upto",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.push 3
+              in_block_send :upto, 1, 1, false do |d|
+                d.push :self
+                d.push_local_depth 0, 0
+                d.send :to_s, 0, false
+                d.send :puts, 1, true
+              end
+            end)
 
   add_tests("iter_while",
-            "Compiler" => :skip)
+            "Compiler" => bytecode do |g|
+              top    = g.new_label
+              f      = g.new_label
+              dunno1 = g.new_label
+              dunno2 = g.new_label
+              bottom = g.new_label
+
+              g.push 10
+              g.set_local 0
+              g.pop
+
+              g.push_modifiers
+              top.set!
+
+              g.push_local 0
+              g.push 1
+              g.send :>=, 1, false
+              g.gif f
+
+              dunno1.set!
+
+              g.push :self
+              g.push_literal "hello"
+              g.string_dup
+              g.send :puts, 1, true
+              g.pop
+
+              g.push_local 0
+              g.push 1
+              g.meta_send_op_minus
+              g.set_local 0
+              g.pop
+
+              g.goto top
+
+              f.set!
+              g.push :nil
+
+              bottom.set!
+
+              g.pop_modifiers
+            end)
 
   add_tests("lasgn_array",
             "Compiler" => bytecode do |g|
