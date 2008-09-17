@@ -457,9 +457,10 @@ module Enumerable
   #   %w[ant bear cat].all? { |word| word.length >= 4}   #=> false
   #   [ nil, true, 99 ].all?                             #=> false
 
-  def all?(&prc)
-    prc = Proc.new { |obj| obj } unless block_given?
-    each { |o| return false unless prc.call(o) }
+  def all?
+    each do |o|
+      return false unless yield(o)
+    end
     true
   end
 
