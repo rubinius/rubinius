@@ -69,23 +69,28 @@ module Rubinius
     class Marshal
 
       ##
-      # Convert +stream+ to a stream-like object and pass it to
-      # unmarshal_io.
+      # Read all data from +stream+ and invoke unmarshal_data
 
       def unmarshal(stream)
         if stream.kind_of? String
-          return unmarshal_io(StringIO.new(stream))
+          str = stream
         else
-          return unmarshal_io(stream)
+          str = stream.read
         end
+
+        @start = 0
+        @size = str.size
+        @data = str.data
+
+        unmarshal_data
       end
 
       ##
       # Process a stream object +stream+ as as marshalled data and
       # return an object representation of it.
 
-      def unmarshal_io(io)
-        kind = io.gets[0]
+      def unmarshal_data
+        kind = next_type
         case kind
         when ?t
           return true
@@ -94,80 +99,141 @@ module Rubinius
         when ?n
           return nil
         when ?I
-          return io.gets.to_i
+          return next_string.to_i
         when ?d
-          return io.gets.to_f
+          return next_string.to_f
         when ?s
-          count = io.gets.to_i
-          str = io.read(count)
-          io.read(1) # remove the \n
+          count = next_string.to_i
+          str = next_bytes count
+          discard # remove the \n
           return str
         when ?x
-          count = io.gets.to_i
-          str = io.read(count)
-          io.read(1) # remove the \n
+          count = next_string.to_i
+          str = next_bytes count
+          discard # remove the \n
           return str.to_sym
         when ?S
-          count = io.gets.to_i
-          str = io.read(count)
-          io.read(1) # remove the \n
+          count = next_string.to_i
+          str = next_bytes count
+          discard # remove the \n
           return SendSite.new(str.to_sym)
         when ?A
-          count = io.gets.to_i
+          count = next_string.to_i
           obj = Array.new(count)
-          0.upto(count - 1) { |i| obj[i] = unmarshal_io(io) }
+          i = 0
+          while i < count
+            obj[i] = unmarshal_data
+            i += 1
+          end
           return obj
         when ?p
-          count = io.gets.to_i
+          count = next_string.to_i
           obj = Tuple.new(count)
-          0.upto(count - 1) { |i| obj[i] = unmarshal_io(io) }
+          i = 0
+          while i < count
+            obj[i] = unmarshal_data
+            i += 1
+          end
           return obj
         when ?i
-          count = io.gets.to_i
+          count = next_string.to_i
           seq = InstructionSequence.new(count)
-          0.upto(count - 1) do |i|
-            seq[i] = io.gets.to_i
+          i = 0
+          while i < count
+            seq[i] = next_string.to_i
+            i += 1
           end
           return seq
         when ?l
-          count = io.gets.to_i
+          count = next_string.to_i
           lt = LookupTable.new
-          count.times do
-            size = io.gets.to_i
+          i = 0
+          while i < count
+            size = next_string.to_i
 
-            key = io.read(size)
-            io.read(1) # remove the \n
+            key = next_bytes size
+            discard # remove the \n
 
-            val = unmarshal_io(io)
+            val = unmarshal_data
             lt[key.to_sym] = val
+
+            i += 1
           end
 
           return lt
         when ?M
-          version = io.gets.to_i
+          version = next_string.to_i
           if version != 1
             raise "Unknown CompiledMethod version #{version}"
           end
           cm = CompiledMethod.new
-          cm.__ivars__     = unmarshal_io(io)
-          cm.primitive     = unmarshal_io(io)
-          cm.name          = unmarshal_io(io)
-          cm.iseq          = unmarshal_io(io)
-          cm.stack_size    = unmarshal_io(io)
-          cm.local_count   = unmarshal_io(io)
-          cm.required_args = unmarshal_io(io)
-          cm.total_args    = unmarshal_io(io)
-          cm.splat         = unmarshal_io(io)
-          cm.literals      = unmarshal_io(io)
-          cm.exceptions    = unmarshal_io(io)
-          cm.lines         = unmarshal_io(io)
-          cm.file          = unmarshal_io(io)
-          cm.local_names   = unmarshal_io(io)
+          cm.__ivars__     = unmarshal_data
+          cm.primitive     = unmarshal_data
+          cm.name          = unmarshal_data
+          cm.iseq          = unmarshal_data
+          cm.stack_size    = unmarshal_data
+          cm.local_count   = unmarshal_data
+          cm.required_args = unmarshal_data
+          cm.total_args    = unmarshal_data
+          cm.splat         = unmarshal_data
+          cm.literals      = unmarshal_data
+          cm.exceptions    = unmarshal_data
+          cm.lines         = unmarshal_data
+          cm.file          = unmarshal_data
+          cm.local_names   = unmarshal_data
           return cm
         else
           raise "Unknown type '#{kind.chr}'"
         end
       end
+
+      private :unmarshal_data
+
+      ##
+      # Returns the next character in _@data_ as a Fixnum.
+      #--
+      # The current format uses a one-character type indicator
+      # followed by a newline. If that format changes, this
+      # will break and we'll fix it.
+      #++
+      def next_type
+        chr = @data[@start]
+        @start += 2
+        chr
+      end
+
+      private :next_type
+
+      ##
+      # Returns the next string in _@data_ including the trailing
+      # "\n" character.
+      def next_string
+        count = @data.locate "\n", @start
+        count = @size unless count
+        str = String.from_bytearray @data, @start, count - @start
+        @start = count
+        str
+      end
+
+      private :next_string
+
+      ##
+      # Returns the next _count_ bytes in _@data_.
+      def next_bytes(count)
+        str = String.from_bytearray @data, @start, count
+        @start += count
+        str
+      end
+
+      private :next_bytes
+
+      ##
+      # Moves the next read pointer ahead by one character.
+      def discard
+        @start += 1
+      end
+
+      private :discard
 
       ##
       # For object +val+, return a String represetation.

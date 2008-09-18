@@ -65,6 +65,24 @@ class Float
   end
 end
 
+# Methods provided by Rubinius. We're treating an MRI String
+# like a Rubinius ByteArray in compiled_file.rb
+class String
+  def self.from_bytearray(data, start, count)
+    data[start, count]
+  end
+
+  # In Rubinius, this is on ByteArray
+  def locate(pattern, start)
+    count = index pattern, start
+    count ? count + pattern.size : count
+  end
+
+  def data
+    self
+  end
+end
+
 file   = ARGV.shift
 output = ARGV.shift
 
