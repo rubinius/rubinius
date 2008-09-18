@@ -74,7 +74,11 @@ def create_load_order(files, output=".load_order.txt")
   end
 end
 
-def compile_ruby(src, rbc)
+def compile_ruby(src, rbc, check_mtime = false)
+  if check_mtime and File.readable?(rbc)
+    return if File.mtime(rbc) >= File.mtime(src)
+  end
+
   dir = File.dirname rbc
   FileUtils.mkdir_p dir unless File.directory? dir
 

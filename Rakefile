@@ -103,14 +103,22 @@ desc "Build everything that needs to be built"
 task :build => %w[
   vm
   kernel:build
+  build:compiler
 ]
 #  build:rbc
-#  compiler
 #  lib/etc.rb
 #  lib/rbconfig.rb
 #  extensions
 
 namespace :build do
+
+  task :compiler do
+    files = Dir["lib/compiler/**/*.rb"]
+    files.concat %w(lib/strscan.rb lib/stringio.rb lib/racc/parser.rb)
+    files.each do |path|
+      compile_ruby path, "#{path}c", true
+    end
+  end
 
 #   task :setup_rbc => :stable_compiler
 
