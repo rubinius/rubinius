@@ -29,7 +29,10 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-    static void default_executor(STATE, Executable* exc, Task* task, Message& msg);
+    static bool default_executor(STATE, Executable* exc, Task* task, Message& msg);
+
+    // Ruby.primitive :executable_allocate
+    static Executable* allocate(STATE, OBJECT self);
 
     /* Perform the actions of this Executable object. */
     bool execute(STATE, Task* task, Message& msg) {

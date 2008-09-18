@@ -85,6 +85,11 @@ namespace rubinius {
     void unshift_argument(STATE, Object* val);
 
     /**
+     *  Insert 2 arguments to the front of arguments and bump others back.
+     */
+    void unshift_argument2(STATE, OBJECT one, OBJECT two);
+
+    /**
      *  Set the associated Task and explictly give total argument count.
      */
     void use_from_task(Task* task, size_t args) {

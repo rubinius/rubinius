@@ -108,6 +108,40 @@ namespace rubinius {
     total_args++;
   }
 
+  void Message::unshift_argument2(STATE, OBJECT one, OBJECT two) {
+    if(arguments) {
+      total_args += 2;
+      if(start > 1) {
+        arguments->set(state, --start, two);
+        arguments->set(state, --start, one);
+       } else if(start > 0) {
+        arguments->set(state, --start, two);
+        arguments->unshift(state, one);
+      } else {
+        arguments->unshift(state, two);
+        arguments->unshift(state, one);
+      }
+      return;
+    }
+
+    arguments = Array::create(state, total_args + 1);
+
+    size_t stack_pos = total_args - start - 1;
+
+    arguments->set(state, 0, one);
+    arguments->set(state, 1, two);
+
+    total_args++;
+
+    for(size_t i = 2; i <= total_args; i++, stack_pos--) {
+      OBJECT arg = task->active()->stack_back(stack_pos);
+      arguments->set(state, i, arg);
+    }
+
+    start = 0;
+    total_args++;
+  }
+
   OBJECT Message::shift_argument(STATE) {
     OBJECT first = get_argument(0);
     start++;
