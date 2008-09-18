@@ -72,6 +72,11 @@ module Compile
   end
 
   def self.load_from_rbc(path, version)
+    Ruby.primitive :compiledfile_load
+    raise PrimitiveFailure, "CompiledFile.load_from_rbc primitive failed"
+
+    # HACK: remove the primitive above when compiled_file.rb
+    # unmarshal_data method is fixed and ruby performance is better
     puts "[Loading: #{path}]" if Rubinius::TaskProbe.enabled? :load_runtime
     File.open(path) do |io|
       cf = Rubinius::CompiledFile.load(io)

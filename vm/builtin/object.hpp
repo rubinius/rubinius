@@ -193,6 +193,12 @@ namespace rubinius {
 
     // Ruby.primitive :yield_gdb
     static Object* yield_gdb(STATE, Object* obj);
+
+    // Hackety HACK, don't talk back; just remove compiledfile_load
+    // when ruby performance is better
+
+    // Ruby.primitive :compiledfile_load
+    static OBJECT compiledfile_load(STATE, String* path, OBJECT version);
   };
 
 }

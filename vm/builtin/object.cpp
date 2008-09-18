@@ -10,11 +10,15 @@
 #include "builtin/array.hpp"
 #include "builtin/selector.hpp"
 #include "builtin/task.hpp"
+#include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
 #include "objectmemory.hpp"
 #include "global_cache.hpp"
 #include "config.hpp"
+#include "compiled_file.hpp"
 
+#include <iostream>
+#include <fstream>
 #include <cstdarg>
 #include <cstring>
 
@@ -645,5 +649,21 @@ namespace rubinius {
     obj->show(state);
     Assertion::raise("yield_gdb called and not caught");
     return obj;
+  }
+
+  // HACK: remove this when performance is better and compiled_file.rb
+  // unmarshal_data method works.
+  OBJECT Object::compiledfile_load(STATE, String* path, OBJECT version) {
+    if(!state->probe->nil_p()) {
+      state->probe->load_runtime(state, std::string(path->c_str()));
+    }
+
+    std::ifstream stream(path->c_str());
+    if(!stream) throw std::runtime_error("Unable to open file to run");
+
+    CompiledFile* cf = CompiledFile::load(stream);
+    if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
+
+    return cf->body(state);
   }
 }
