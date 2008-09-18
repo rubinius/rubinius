@@ -360,14 +360,13 @@ stack_cleanup:
     if(instance_of<Class>(mod)) {
       Class* cls = as<Class>(mod);
 
+      method->formalize(state, false);
+
       object_type type = (object_type)cls->instance_type()->to_native();
       TypeInfo* ti = state->om->type_info[type];
-      if(!ti) {
-        ti = new TypeInfo((object_type)0);
+      if(ti) {
+        method->specialize(ti);
       }
-
-      method->formalize(state, false);
-      method->specialize(ti);
     }
   }
 
