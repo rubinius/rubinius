@@ -15,6 +15,17 @@
 
 class MethodTable < LookupTable
 
+  def []=(name, val)
+    if val.kind_of? Executable or
+       val.kind_of? CompiledMethod::Visibility or
+       val == false or
+       val == nil
+      super(name, val)
+    else
+      raise ArgumentError, "Invalid method table entry class: #{val.class}"
+    end
+  end
+
   def public_names
     filter_names :public
   end

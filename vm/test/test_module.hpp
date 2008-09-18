@@ -22,6 +22,6 @@ class TestModule : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(m->name(), Qnil);
     TS_ASSERT_EQUALS(m->superclass(), Qnil);
     TS_ASSERT_EQUALS(m->constants()->obj_type, LookupTableType);
-    TS_ASSERT_EQUALS(m->method_table()->obj_type, LookupTableType);
+    TS_ASSERT(kind_of<LookupTable>(m->method_table()));
   }
 };

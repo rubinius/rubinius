@@ -439,7 +439,7 @@ class Module
 
       method_table[name] = entry
     elsif find_method_in_hierarchy(name) then
-      method_table[name] = Tuple[vis, nil]
+      method_table[name] = CompiledMethod::Visibility.new nil, vis
     else
       raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
     end

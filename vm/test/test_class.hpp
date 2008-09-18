@@ -27,6 +27,6 @@ class TestClass : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(c->instance_type(), G(object)->instance_type());
     TS_ASSERT_EQUALS(c->instance_fields(), G(object)->instance_fields());
     TS_ASSERT_EQUALS(c->constants()->obj_type, LookupTableType);
-    TS_ASSERT_EQUALS(c->method_table()->obj_type, LookupTableType);
+    TS_ASSERT(kind_of<LookupTable>(c->method_table()));
   }
 };
