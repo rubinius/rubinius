@@ -3,7 +3,8 @@
 
 #include "object.hpp"
 #include "message.hpp"
-#include "vmexecutable.hpp"
+#include "executor.hpp"
+
 #include <stdexcept>
 
 
@@ -17,11 +18,11 @@ namespace rubinius {
      * The primitive generator emits one 'executor' function per
      * primitive. This simply checks the argument types and then
      * calls the C++ code that implements the primitive.
-     * See VMMethod::executor for the version that handles 'regular'
+     * See VMMethod::execute for the version that handles 'regular'
      * Ruby code.
      */
     static executor resolve_primitive(STATE, SYMBOL name);
-    static bool unknown_primitive(STATE, VMExecutable* exec, Task* task, Message& msg);
+    static bool unknown_primitive(STATE, Executable* exec, Task* task, Message& msg);
 #include "gen/primitives_declare.hpp"
   };
 

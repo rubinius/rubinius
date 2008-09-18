@@ -21,4 +21,8 @@ namespace rubinius {
   void Executable::init(STATE) {
     GO(executable).set(state->new_class("Executable", G(object), Executable::fields));
   }
+
+  void Executable::default_executor(STATE, Executable* exc, Task* task, Message& msg) {
+    assert(0);
+  }
 }

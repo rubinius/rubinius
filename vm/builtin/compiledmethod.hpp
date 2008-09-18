@@ -35,6 +35,9 @@ namespace rubinius {
   public:
     /* accessors */
 
+    VMMethod* backend_method_;
+
+
     attr_accessor(name, Symbol);
     attr_accessor(iseq, InstructionSequence);
     attr_accessor(stack_size, Fixnum);
@@ -53,7 +56,9 @@ namespace rubinius {
 
     static void init(STATE);
 
+    // Ruby.primitive :compiledmethod_allocate
     static CompiledMethod* create(STATE);
+
     // Use a stack of 1 so that the return value of the executed method
     // has a place to go
     const static size_t tramp_stack_size = 1;
@@ -63,6 +68,8 @@ namespace rubinius {
     size_t number_of_locals();
     VMMethod* formalize(STATE, bool ondemand=true);
     void specialize(TypeInfo* ti);
+
+    static bool default_executor(STATE, Executable*, Task*, Message&);
 
     // Ruby.primitive :compiledmethod_compile
     OBJECT compile(STATE);

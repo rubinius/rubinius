@@ -1,4 +1,10 @@
 class CompiledMethod
+
+  def self.allocate
+    Ruby.primitive :compiledmethod_allocate
+    raise PrimitiveFailure, "unable to create a CompiledMethod"
+  end
+
   def compile
     Ruby.primitive :compiledmethod_compile
     raise PrimitiveFailure, "primitive failed"

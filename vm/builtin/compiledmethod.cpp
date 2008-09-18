@@ -28,7 +28,9 @@ namespace rubinius {
   CompiledMethod* CompiledMethod::create(STATE) {
     CompiledMethod* cm = (CompiledMethod*)state->new_object(G(cmethod));
     cm->local_count(state, Fixnum::from(0));
-    cm->executable = NULL;
+    cm->set_executor(CompiledMethod::default_executor);
+    cm->backend_method_ = NULL;
+
     return cm;
   }
 
@@ -53,28 +55,12 @@ namespace rubinius {
   }
 
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
-    // HACK the check for executable being nil comes from the fact that
-    // a CompiledMethod, when created all in Ruby, has it's fields all
-    // initialized to nil. CompiledMethod::allocate needs to be a primitive
-    // that gets things setup properly.
-    if(!executable || (OBJECT)executable == Qnil) {
-      if(!primitive()->nil_p()) {
-        if(SYMBOL name = try_as<Symbol>(primitive())) {
-          //std::cout << "resolving: "; name->show(state);
-          executor func = Primitives::resolve_primitive(state, name);
-
-          VMMethod* vmm = new VMPrimitiveMethod(state, this, func);
-          executable = vmm;
-          return vmm;
-        } else {
-          //std::cout << "Invalid primitive id (not a symbol)" << std::endl;
-        }
-      }
+    if(!backend_method_) {
       VMMethod* vmm;
       /* Controls whether we use LLVM out of the gate or not. */
       if(state->config.compile_up_front) {
         if(ondemand) {
-          vmm = new VMLLVMMethodUncompiled(state, this);
+          set_executor(VMLLVMMethod::uncompiled_execute);
         } else {
           VMLLVMMethod* llvm = new VMLLVMMethod(state, this);
           llvm->compile(state);
@@ -83,25 +69,37 @@ namespace rubinius {
       } else {
         vmm = new VMMethod(state, this);
       }
-      executable = vmm;
+      backend_method_ = vmm;
+
+      if(!primitive()->nil_p()) {
+        if(SYMBOL name = try_as<Symbol>(primitive())) {
+          set_executor(Primitives::resolve_primitive(state, name));
+        }
+      }
       return vmm;
     }
 
-    return dynamic_cast<VMMethod*>(executable);
+    return backend_method_;
   }
 
   void CompiledMethod::specialize(TypeInfo* ti) {
-    dynamic_cast<VMMethod*>(executable)->specialize(ti);
+    backend_method_->specialize(ti);
   }
 
   OBJECT CompiledMethod::compile(STATE) {
-    executable = NULL;
+    backend_method_ = NULL;
     formalize(state);
     return this;
   }
 
+  bool CompiledMethod::default_executor(STATE, Executable* exec, Task* task, Message& msg) {
+    CompiledMethod* cm = as<CompiledMethod>(exec);
+    cm->formalize(state, false);
+    return cm->execute(state, task, msg);
+  }
+
   void CompiledMethod::post_marshal(STATE) {
-    formalize(state); // side-effect, populates executable
+    formalize(state); // side-effect, populates backend_method_
   }
 
   size_t CompiledMethod::number_of_locals() {

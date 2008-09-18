@@ -23,7 +23,7 @@ namespace rubinius {
   VMMethod::VMMethod(STATE, CompiledMethod* meth) :
       original(state, meth), type(NULL) {
 
-    this->execute = VMMethod::executor;
+    meth->set_executor(VMMethod::execute);
 
     total = meth->iseq()->opcodes()->num_fields();
     if(Tuple* tup = try_as<Tuple>(meth->literals())) {
@@ -83,16 +83,16 @@ namespace rubinius {
     }
   }
 
-  /* This is the executor implementation used by normal Ruby code,
+  /* This is the executo implementation used by normal Ruby code,
    * as opposed to Primitives or FFI functions.
    * It prepares a Ruby method for execution.
    * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
    * CompiledMethod.
    */
-  bool VMMethod::executor(STATE, VMExecutable* exec, Task* task, Message& msg) {
-    VMMethod* meth = (VMMethod*)exec;
+  bool VMMethod::execute(STATE, Executable* exec, Task* task, Message& msg) {
+    CompiledMethod* cm = as<CompiledMethod>(exec);
 
-    MethodContext* ctx = MethodContext::create(state, msg.recv, meth->original.get());
+    MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
     /* The context returned by ::create has Object as its module, so we
      * need to set it to the module of the actual Message we are sending.
      */
@@ -112,12 +112,6 @@ namespace rubinius {
 
   /* This is a noop for this class. */
   void VMMethod::compile(STATE) { }
-
-  VMPrimitiveMethod::VMPrimitiveMethod(STATE, CompiledMethod* meth,
-                                       rubinius::executor func) :
-      VMMethod(state, meth) {
-        this->execute = func;
-      }
 
   /*
    * Turns a VMMethod into a C++ vector of Opcodes.

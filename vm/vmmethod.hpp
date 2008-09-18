@@ -1,9 +1,9 @@
 #ifndef RBX_VMMETHOD_HPP
 #define RBX_VMMETHOD_HPP
 
-#include "vmexecutable.hpp"
 #include "primitives.hpp"
 #include "gc_root.hpp"
+#include "executor.hpp"
 
 namespace rubinius {
   typedef void* instlocation;
@@ -13,7 +13,7 @@ namespace rubinius {
   class CompiledMethod;
   class MethodContext;
 
-  class VMMethod : public VMExecutable {
+  class VMMethod {
   public:
     static instlocation* instructions;
 
@@ -24,11 +24,11 @@ namespace rubinius {
     std::vector<VMMethod*> blocks;
 
     VMMethod(STATE, CompiledMethod* meth);
-    ~VMMethod();
+    virtual ~VMMethod();
 
     virtual void specialize(TypeInfo* ti);
     virtual void compile(STATE);
-    static bool executor(STATE, VMExecutable* meth, Task* task, Message& msg);
+    static bool execute(STATE, Executable* meth, Task* task, Message& msg);
     virtual void resume(Task* task, MethodContext* ctx);
 
     std::vector<Opcode*> create_opcodes();
@@ -117,11 +117,6 @@ namespace rubinius {
     bool is_goto();
     bool is_terminator();
     bool is_send();
-  };
-
-  class VMPrimitiveMethod : public VMMethod {
-  public:
-    VMPrimitiveMethod(STATE, CompiledMethod* meth, rubinius::executor func);
   };
 };
 

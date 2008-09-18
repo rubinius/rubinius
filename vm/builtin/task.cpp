@@ -205,11 +205,13 @@ stack_cleanup:
 
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
     // HACK ug! do this up front, not way down here.
+    /*
     if(CompiledMethod* cm = try_as<CompiledMethod>(msg.method)) {
-      if(!cm->executable || (OBJECT)cm->executable == Qnil) {
+      if(!cm->backend_method_|| (OBJECT)cm->backend_method_ == Qnil) {
         cm->formalize(state, false);
       }
     }
+    */
 
     return msg.method->execute(state, this, msg);
   }
@@ -228,11 +230,13 @@ stack_cleanup:
       }
     }
 
+    /*
     if(CompiledMethod* cm = try_as<CompiledMethod>(msg.method)) {
-      if(!cm->executable || (OBJECT)cm->executable == Qnil) {
+      if(!cm->backend_method_ || (OBJECT)cm->backend_method_ == Qnil) {
         cm->formalize(state, false);
       }
     }
+    */
 
     return msg.method->execute(state, this, msg);
   }
@@ -362,11 +366,7 @@ stack_cleanup:
         ti = new TypeInfo((object_type)0);
       }
 
-      // HACK can we do this earlier? somewhere else?
-      if(method->executable == NULL || (OBJECT)method->executable == Qnil) {
-        method->formalize(state, false);
-      }
-
+      method->formalize(state, false);
       method->specialize(ti);
     }
   }

@@ -517,7 +517,7 @@ namespace rubinius {
     return val;
   }
 
-  bool Object::send_prim(STATE, VMExecutable* exec, Task* task, Message& msg) {
+  bool Object::send_prim(STATE, Executable* exec, Task* task, Message& msg) {
     SYMBOL meth = as<Symbol>(msg.shift_argument(state));
     msg.name = meth;
     msg.priv = true;

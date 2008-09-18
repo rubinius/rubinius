@@ -1,6 +1,7 @@
 #ifndef RBX_LLVM_HPP
 
 #include "vmmethod.hpp"
+#include "builtin/compiledmethod.hpp"
 #include <llvm/Function.h>
 #include <llvm/Module.h>
 #include <llvm/Instructions.h>
@@ -21,18 +22,8 @@ namespace rubinius {
         llvm::Value*task, llvm::BasicBlock* block);
     virtual void compile(STATE);
     virtual void resume(Task* task, MethodContext* ctx);
-  };
 
-  class VMLLVMMethodUncompiled : public VMMethod {
-  public:
-    STATE;
-
-    VMLLVMMethodUncompiled(STATE, CompiledMethod* meth):
-      VMMethod(state, meth) {
-        this->execute = VMLLVMMethodUncompiled::executor;
-      }
-
-    static bool executor(STATE, VMExecutable* exec, Task* task, Message& msg);
+    static bool uncompiled_execute(STATE, Executable* exec, Task* task, Message& msg);
   };
 }
 

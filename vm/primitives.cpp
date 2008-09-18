@@ -7,7 +7,7 @@
 #include <iostream>
 
 namespace rubinius {
-  bool Primitives::unknown_primitive(STATE, VMExecutable* exec, Task* task, Message& msg) {
+  bool Primitives::unknown_primitive(STATE, Executable* exec, Task* task, Message& msg) {
     std::string message = std::string("Called unbound or invalid primitive from: ");
     message += msg.name->to_str(state)->c_str();
 

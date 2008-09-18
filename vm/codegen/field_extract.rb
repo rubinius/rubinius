@@ -4,7 +4,7 @@ class BasicPrimitive
   attr_accessor :raw
 
   def output_header(str)
-    str << "bool Primitives::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
+    str << "bool Primitives::#{@name}(STATE, Executable* exec, Task* task, Message& msg) {\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  OBJECT ret;\n" 
@@ -35,7 +35,7 @@ class BasicPrimitive
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
     str << "fail:\n"
-    str << "  return VMMethod::executor(state, exec, task, msg);\n"
+    str << "  return VMMethod::execute(state, exec, task, msg);\n"
     str << "}\n\n"
   end
 
@@ -61,7 +61,7 @@ class CPPPrimitive < BasicPrimitive
     if @raw
       str << "  return recv->#{@cpp_name}(state, exec, task, msg);\n"
       str << "fail:\n"
-      str << "  return VMMethod::executor(state, exec, task, msg);\n"
+      str << "  return VMMethod::execute(state, exec, task, msg);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -127,7 +127,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
     str << "fail:\n"
-    str << "  return VMMethod::executor(state, exec, task, msg);\n"
+    str << "  return VMMethod::execute(state, exec, task, msg);\n"
     str << "}\n\n"
     return str
   end
@@ -580,7 +580,7 @@ end
 write_if_new "vm/gen/primitives_declare.hpp" do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
-      f.puts "static bool #{pn}(STATE, VMExecutable* exec, Task* task, Message& msg);"
+      f.puts "static bool #{pn}(STATE, Executable* exec, Task* task, Message& msg);"
     end
   end
 end

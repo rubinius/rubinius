@@ -11,7 +11,6 @@
 #include "object.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "vmnativefunction.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -21,6 +20,8 @@
 #include "builtin/nativefunction.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/task.hpp"
+#include "builtin/contexts.hpp"
 
 #include "ffi.hpp"
 #include "message.hpp"
@@ -66,6 +67,21 @@ namespace rubinius {
     G(native_function)->set_object_type(state, NativeFuncType);
 
     G(rubinius)->set_const(state, "LIBSUFFIX", String::create(state, LIBSUFFIX));
+  }
+
+  /* Run when a NativeFunction is executed.  Executes the related C function.
+   */
+  bool NativeFunction::execute(STATE, Executable* meth, Task* task, Message& msg) {
+    NativeFunction* nfunc = as<NativeFunction>(msg.method);
+
+    OBJECT obj = nfunc->call(state, &msg);
+
+    // Remove the arguments passed in from the stack
+    task->active()->clear_stack(msg.stack);
+
+    task->push(obj);
+
+    return false;
   }
 
   size_t NativeFunction::type_size(size_t type) {
@@ -162,7 +178,7 @@ namespace rubinius {
     nf->file(state, state->symbol("<system>"));
     nf->data(state, (MemoryPointer*)Qnil);
 
-    nf->executable = VMNativeFunction::create(state); // HACK stupid
+    nf->set_executor(NativeFunction::execute);
 
     return nf;
   }

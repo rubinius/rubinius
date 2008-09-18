@@ -59,7 +59,7 @@ namespace rubinius {
   }
 
   // TODO - Untested!!!!!!!!!!
-  bool BlockEnvironment::call_prim(STATE, VMExecutable* exec, Task* task, Message& msg) {
+  bool BlockEnvironment::call_prim(STATE, Executable* exec, Task* task, Message& msg) {
     call(state, task, msg);
     return true;
   }

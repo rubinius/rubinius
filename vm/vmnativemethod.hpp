@@ -8,8 +8,7 @@
 #include <ucontext.h>
 
 /* Project */
-#include "vmexecutable.hpp"
-
+#include "executor.hpp"
 
 /* Some alterable labels to create an API. Sadly #defines are a must here. */
 #define store_current_execution_point_in(uctx)      getcontext((uctx))
@@ -35,7 +34,7 @@ namespace rubinius {
   /**
    *  Method defined in a C extension.
    */
-  class VMNativeMethod : public VMExecutable
+  class VMNativeMethod
   {
   public:   /* Ctors */
 

@@ -3,8 +3,7 @@
 
 #include "builtin/object.hpp"
 #include "type_info.hpp"
-
-#include "vmexecutable.hpp"
+#include "executor.hpp"
 
 namespace rubinius {
   class MemoryPointer;
@@ -18,9 +17,8 @@ namespace rubinius {
     SYMBOL primitive_; // slot
     FIXNUM serial_;    // slot
 
-  public:
     // TODO: fix up data members that aren't slots
-    VMExecutable* executable;
+    executor execute_;
 
   public:
     /* accessors */
@@ -31,9 +29,16 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
+    static void default_executor(STATE, Executable* exc, Task* task, Message& msg);
 
+    /* Perform the actions of this Executable object. */
     bool execute(STATE, Task* task, Message& msg) {
-      return executable->execute(state, executable, task, msg);
+      assert(execute_ && (OBJECT)execute_ != Qnil);
+      return execute_(state, this, task, msg);
+    }
+
+    void set_executor(rubinius::executor exc) {
+      execute_ = exc;
     }
 
     class Info : public TypeInfo {

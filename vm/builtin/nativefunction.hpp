@@ -37,6 +37,7 @@ namespace rubinius {
     static void init(STATE);
 
     static NativeFunction* create(STATE, OBJECT name, int args);
+    static bool execute(STATE, Executable* meth, Task* task, Message& msg);
 
     // Ruby.primitive :nativefunction_bind
     static NativeFunction* bind(STATE, OBJECT library, String* name, Array* args, OBJECT ret);

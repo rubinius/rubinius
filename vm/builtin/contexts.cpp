@@ -184,7 +184,7 @@ initialize:
     ctx->module(state, G(object));
     ctx->home(state, ctx);
 
-    ctx->vmm = (VMMethod*)meth->executable;
+    ctx->vmm = meth->backend_method_;
     ctx->position_stack(meth->number_of_locals() - 1);
 
     return ctx;

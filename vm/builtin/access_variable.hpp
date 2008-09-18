@@ -31,6 +31,7 @@ namespace rubinius {
     static void init(STATE);
     // Ruby.primitive :accessvariable_allocate
     static AccessVariable* allocate(STATE);
+    static bool access_execute(STATE, Executable* meth, Task* task, Message& msg);
 
     class Info : public TypeInfo {
     public:
