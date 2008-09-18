@@ -121,12 +121,16 @@ namespace rubinius {
         oi != current_rs->end();
         oi++) {
       tmp = *oi;
-      assert(tmp->zone == MatureObjectZone);
-      assert(!tmp->forwarded_p());
+      // unremember_object throws a NULL in to remove an object
+      // so we don't have to compact the set in unremember
+      if(tmp) {
+        assert(tmp->zone == MatureObjectZone);
+        assert(!tmp->forwarded_p());
 
-      /* Remove the Remember bit, since we're clearing the set. */
-      tmp->Remember = 0;
-      scan_object(tmp);
+        /* Remove the Remember bit, since we're clearing the set. */
+        tmp->Remember = 0;
+        scan_object(tmp);
+      }
     }
 
     delete current_rs;

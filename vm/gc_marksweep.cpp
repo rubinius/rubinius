@@ -34,7 +34,7 @@ namespace rubinius {
     std::list<Entry*>::iterator i;
 
     for(i = entries.begin(); i != entries.end(); i++) {
-      free_object(*i);
+      free_object(*i, true);
     }
   }
 
@@ -68,9 +68,10 @@ namespace rubinius {
     return obj;
   }
 
-  void MarkSweepGC::free_object(Entry *entry) {
-
-    delete_object(entry->header->to_object());
+  void MarkSweepGC::free_object(Entry *entry, bool fast) {
+    if(!fast) {
+      delete_object(entry->header->to_object());
+    }
 
     allocated_objects--;
     allocated_bytes -= entry->bytes;

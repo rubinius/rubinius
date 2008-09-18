@@ -80,7 +80,7 @@ namespace rubinius {
     Entry *find_entry(OBJECT obj);
     void   sweep_objects();
     void   clean_weakrefs();
-    void   free_object(Entry *entry);
+    void   free_object(Entry *entry, bool fast = false);
     virtual OBJECT saw_object(OBJECT obj);
     void   collect(Roots &roots);
 

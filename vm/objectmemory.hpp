@@ -49,6 +49,7 @@ namespace rubinius {
 
     void write_barrier(OBJECT target, OBJECT val);
     void remember_object(OBJECT target);
+    void unremember_object(OBJECT target);
 
     void store_object(OBJECT target, size_t index, OBJECT val);
     void set_class(OBJECT target, OBJECT obj);

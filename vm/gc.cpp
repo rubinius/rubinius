@@ -87,5 +87,8 @@ namespace rubinius {
   void GarbageCollector::delete_object(OBJECT obj) {
     TypeInfo *ti = object_memory->find_type_info(obj);
     if(ti) ti->cleanup(obj);
+    if(obj->Remember) {
+      object_memory->unremember_object(obj);
+    }
   }
 }

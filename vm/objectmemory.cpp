@@ -103,6 +103,17 @@ namespace rubinius {
     remember_set->push_back(target);
   }
 
+  void ObjectMemory::unremember_object(OBJECT target) {
+    for(ObjectArray::iterator oi = remember_set->begin();
+        oi != remember_set->end();
+        oi++) {
+      if(*oi == target) {
+        *oi = NULL;
+        target->Remember = 0;
+      }
+    }
+  }
+
   // DEPRECATED
   void ObjectMemory::store_object(OBJECT target, size_t index, OBJECT val) {
     ((Tuple*)target)->field[index] = val;
