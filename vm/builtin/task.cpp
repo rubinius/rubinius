@@ -213,6 +213,8 @@ stack_cleanup:
     }
     */
 
+    if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
+
     return msg.method->execute(state, this, msg);
   }
 
@@ -237,6 +239,8 @@ stack_cleanup:
       }
     }
     */
+
+    if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
     return msg.method->execute(state, this, msg);
   }

@@ -121,6 +121,9 @@ class TestTaskProbe : public CxxTest::TestSuite {
 
     p->enable(state, state->symbol("load_runtime"));
     TS_ASSERT(p->enabled_p(PROBE_LOAD_RUNTIME));
+
+    p->enable(state, state->symbol("execute_method"));
+    TS_ASSERT(p->enabled_p(PROBE_EXECUTE_METHOD));
   }
 
   void test_disable_prim() {
@@ -146,6 +149,9 @@ class TestTaskProbe : public CxxTest::TestSuite {
 
     p->disable(state, state->symbol("load_runtime"));
     TS_ASSERT_EQUALS(false, p->enabled_p(PROBE_LOAD_RUNTIME));
+
+    p->disable(state, state->symbol("execute_method"));
+    TS_ASSERT_EQUALS(false, p->enabled_p(PROBE_EXECUTE_METHOD));
   }
 
   void test_enabled_p_prim() {

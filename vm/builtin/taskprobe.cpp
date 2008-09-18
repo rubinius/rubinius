@@ -67,6 +67,8 @@ namespace rubinius {
       return PROBE_LOAD_RUNTIME;
     } else if(probe == PROBE_PRIMITIVES_OP) {
       return PROBE_PRIMITIVES;
+    } else if(probe == PROBE_EXECUTE_METHOD_OP) {
+      return PROBE_EXECUTE_METHOD;
     }
 
     return 0;
@@ -116,6 +118,30 @@ namespace rubinius {
           msg.send_site->name()->c_str(task->state) <<
           "']" << std::endl;
       }
+    }
+  }
+
+  void TaskProbe::execute_method(STATE, Task* task, Message& msg) {
+    if(enabled_p(PROBE_EXECUTE_METHOD)) {
+      std::cout << "[Executing: '";
+
+      if(MetaClass* meta = try_as<MetaClass>(msg.module)) {
+        if(Module* mod = try_as<Module>(meta->attached_instance())) {
+          std::cout << mod->name()->c_str(state) << ".";
+        } else {
+          std::cout << "#<" <<
+            meta->attached_instance()->class_object(state)->name()->c_str(state) <<
+            ":" << (void*)meta->attached_instance() << ">.";
+        }
+      } else {
+        if(msg.module->name()->nil_p()) {
+          std::cout << "<anonymous>#";
+        } else {
+          std::cout << msg.module->name()->c_str(state) << "#";
+        }
+      }
+
+      std::cout << msg.name->c_str(state) << "']" << std::endl;
     }
   }
 
