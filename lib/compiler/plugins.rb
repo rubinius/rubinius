@@ -172,8 +172,8 @@ class Compiler
         return false if call.block or call.argcount.nil?
 
         if name = Methods[call.method]
-          call.emit_args(g)
           call.receiver_bytecode(g)
+          call.emit_args(g)
           g.add name, call.argcount
           return true
         end
