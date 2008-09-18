@@ -56,6 +56,9 @@ namespace rubinius {
     // Ruby.primitive :taskprobe_disable
     OBJECT disable(STATE, SYMBOL probe);
 
+    // Ruby.primitive :taskprobe_enabled_p
+    OBJECT enabled_p(STATE, SYMBOL probe);
+
     /**
      * Enables a probe specified by its string name. Called
      * by the Ruby primitive enable since Symbols are more

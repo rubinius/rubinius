@@ -81,6 +81,14 @@ namespace rubinius {
     this->flags |= probe_flag(probe);
   }
 
+  OBJECT TaskProbe::enabled_p(STATE, SYMBOL probe) {
+    if(enabled_p(probe_flag(std::string(probe->c_str(state))))) {
+      return Qtrue;
+    }
+
+    return Qfalse;
+  }
+
   bool TaskProbe::enabled_p(size_t flag) {
     return (this->flags & flag) != 0;
   }

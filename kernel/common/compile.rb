@@ -72,6 +72,7 @@ module Compile
   end
 
   def self.load_from_rbc(path, version)
+    puts "[Loading: #{path}]" if Rubinius::TaskProbe.enabled? :load_runtime
     File.open(path) do |io|
       cf = Rubinius::CompiledFile.load(io)
       # HACK check version!

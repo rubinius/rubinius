@@ -18,4 +18,10 @@ class Rubinius::TaskProbe
     Ruby.primitive :taskprobe_disable
     raise PrimtiveFailure, "TaskProbe#disable primitive failed"
   end
+
+  # Returns true if +probe+ is enabled.
+  def enabled?(probe)
+    Ruby.primitive :taskprobe_enabled_p
+    raise PrimitiveFailure, "TaskProbe#enabled? primitive failed"
+  end
 end

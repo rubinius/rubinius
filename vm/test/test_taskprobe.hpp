@@ -147,4 +147,14 @@ class TestTaskProbe : public CxxTest::TestSuite {
     p->disable(state, state->symbol("load_runtime"));
     TS_ASSERT_EQUALS(false, p->enabled_p(PROBE_LOAD_RUNTIME));
   }
+
+  void test_enabled_p_prim() {
+    p->parse_env("all");
+
+    TS_ASSERT(p->enabled_p(state, state->symbol("add_method")));
+    TS_ASSERT(p->enabled_p(state, state->symbol("start_method")));
+    TS_ASSERT(p->enabled_p(state, state->symbol("lookup_failed")));
+    TS_ASSERT(p->enabled_p(state, state->symbol("execute_instruction")));
+    TS_ASSERT(p->enabled_p(state, state->symbol("load_runtime")));
+  }
 };

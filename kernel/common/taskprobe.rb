@@ -28,6 +28,13 @@ class Rubinius::TaskProbe
     end
   end
 
+  # Returns true if +probe+ is enabled in the current
+  # TaskProbe instance.
+  def self.enabled?(probe)
+    return false unless p = Rubinius::Task.current.probe
+    p.enabled? probe
+  end
+
   # Disables the specified +probe+ in the current
   # TaskProbe instance. Does nothing if there is
   # no current instance.
