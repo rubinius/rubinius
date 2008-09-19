@@ -11,7 +11,6 @@
 #include "builtin/task.hpp"
 
 /* Testee */
-#include "vmnativemethod.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/nativemethodcontext.hpp"
 
