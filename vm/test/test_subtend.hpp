@@ -140,7 +140,7 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->arguments = args;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(&minus_three_arity, ARGS_IN_RUBY_ARRAY);
+    NativeMethod* method = NativeMethod::create(my_state, &minus_three_arity, ARGS_IN_RUBY_ARRAY);
 
     bool ret = method->execute(my_state, my_task, *my_message);
 
@@ -175,7 +175,7 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->arguments = args;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(&minus_two_arity, RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY);
+    NativeMethod* method = NativeMethod::create(my_state, &minus_two_arity, RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY);
 
     bool ret = method->execute(my_state, my_task, *my_message);
 
@@ -212,7 +212,7 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = 10;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(&minus_one_arity, ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER);
+    NativeMethod* method = NativeMethod::create(my_state, &minus_one_arity, ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER);
 
     bool ret = method->execute(my_state, my_task, *my_message);
 
@@ -252,7 +252,7 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(&one_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state, &one_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
@@ -281,7 +281,7 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(&two_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state, &two_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
@@ -310,7 +310,7 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(&three_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state, &three_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
@@ -339,7 +339,7 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(&four_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state, &four_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
@@ -368,7 +368,7 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(&five_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state, &five_arg, arg_count);
 
     method->execute(my_state, my_task, *my_message);
 
