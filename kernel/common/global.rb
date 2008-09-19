@@ -1,4 +1,4 @@
-# depends on: class.rb hash.rb
+# depends on: class.rb hash.rb argf.rb
 
 ##
 # Stores global variables and global variable aliases.
@@ -13,6 +13,7 @@ class GlobalVariables
     @internal[:$/] = "\n"             # Input record separator
     @internal[:$\] = nil              # Output record separator
     @internal[:$>] = STDOUT
+    @internal[:$<] = ARGF
     @internal[:$:] = load_path
     @internal[:$"] = loaded_features
     @internal[:$,] = ''               # Output field separator
@@ -75,18 +76,18 @@ class GlobalVariables
   def illegal_set
     raise RuntimeError, "unable to set global"
   end
-  
+
   def set_hook(var, getter, setter)
     unless getter.respond_to?(:call)
       raise ArgumentError, "getter must respond to call"
     end
-    
+
     if setter.nil?
       setter = method(:illegal_set)
     elsif not setter.respond_to?(:call)
       raise ArgumentError, "setter must respond to call"
     end
-    
+
     @hooks[var] = [getter, setter]
   end
 end
