@@ -2,13 +2,13 @@
 #define RBX_BUILTIN_NATIVEMETHOD_HPP
 
 /* Project */
+#include "executor.hpp"
 #include "vm.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 
 #include "builtin/nativemethodcontext.hpp"
-#include "vmnativemethod.hpp"
 
 
 namespace rubinius {
@@ -93,13 +93,15 @@ namespace rubinius {
                                                 FunctorType functor = static_cast<GenericFunctor>(NULL),
                                                 int arity = 0)
       {
-        NativeMethod* obj = static_cast<NativeMethod*>(state->new_object(state->globals.nmethod.get()));
+        NativeMethod* nmethod = static_cast<NativeMethod*>(state->new_object(state->globals.nmethod.get()));
 
-        obj->arity(state, Fixnum::from(arity));
+        nmethod->arity(state, Fixnum::from(arity));
 
-        obj->my_functor = reinterpret_cast<GenericFunctor>(functor);
+        nmethod->my_functor = reinterpret_cast<GenericFunctor>(functor);
 
-        return obj;
+        nmethod->set_executor(&NativeMethod::executor_implementation);
+
+        return nmethod;
       }
 
     /** Allocate a functional but empty NativeMethod. */
@@ -113,8 +115,33 @@ namespace rubinius {
 
   public:   /* Interface */
 
-    /** Start running the C method. */
-    bool execute(VM* state, Task* task, Message& message);
+    /**
+     *  Handle C method call including its callstack.
+     *
+     *  Executor implementation.
+     *
+     *  In addition to setting up the NativeMethodContext for the call
+     *  and the call itself (arguments, return value and all), we also
+     *  handle setting up further calls from the method to other Ruby
+     *  or C methods.
+     *
+     *  @note   Shamelessly tramples over the standard VMExecutable@execute.
+     */
+    static bool executor_implementation(VM* state, Executable* method, Task* task, Message& message);
+
+    /**
+     *  Call the C function.
+     *
+     *  We grab the information needed from the active context, convert
+     *  everything necessary to handles, and then directly call the C
+     *  function with those parameters. Eventually the return value is
+     *  saved in the context and we jump back to the dispatch point.
+     *
+     *  (It is not possible to simply return since this method is in
+     *  a different stack from the dispatcher.)
+     */
+    static void perform_call();
+
 
     /** Return the functor cast into the specified type. */
     template <typename FunctorType>
