@@ -2,6 +2,8 @@
 #define RBX_BUILTIN_NATIVEMETHOD_HPP
 
 /* Project */
+#include "vm.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 
@@ -87,7 +89,18 @@ namespace rubinius {
      *  @see  functor_as() for the cast back.
      */
     template <typename FunctorType>
-      static NativeMethod* create(VM* state, FunctorType functor = static_cast<GenericFunctor>(NULL), int arity = 0);
+      static NativeMethod* NativeMethod::create(VM* state,
+                                                FunctorType functor = static_cast<GenericFunctor>(NULL),
+                                                int arity = 0)
+      {
+        NativeMethod* obj = static_cast<NativeMethod*>(state->new_object(state->globals.nmethod.get()));
+
+        obj->arity(state, Fixnum::from(arity));
+
+        obj->my_functor = reinterpret_cast<GenericFunctor>(functor);
+
+        return obj;
+      }
 
     /** Allocate a functional but empty NativeMethod. */
     static NativeMethod* allocate(VM* state);
@@ -104,7 +117,11 @@ namespace rubinius {
     bool execute(VM* state, Task* task, Message& message);
 
     /** Return the functor cast into the specified type. */
-    template <typename FunctorType> FunctorType functor_as() const;
+    template <typename FunctorType>
+      FunctorType NativeMethod::functor_as() const
+      {
+        return reinterpret_cast<FunctorType>(my_functor);
+      }
 
 
   private:  /* Slots */
