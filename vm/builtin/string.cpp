@@ -171,10 +171,37 @@ namespace rubinius {
     shared(state, Qfalse);
   }
 
+  /* This is not the same as String::append below that
+   * takes a const char* other. In C/C++, strings are
+   * terminated with NULL. That's not true in Ruby, where
+   * strings may contain embedded NULL characters. We must
+   * use the size of the string in Ruby to know the limits.
+   */
   String* String::append(STATE, String* other) {
-    return append(state, other->byte_address());
+    // No need to call unshare and duplicate a ByteArray
+    // just to throw it away.
+    if(shared_) shared(state, Qfalse);
+
+    size_t new_size = size() + other->size();
+
+    ByteArray *ba = ByteArray::create(state, new_size + 1);
+    std::memcpy(ba->bytes, data_->bytes, size());
+    std::memcpy(ba->bytes + size(), other->data()->bytes, other->size());
+
+    ba->bytes[new_size] = 0;
+
+    num_bytes(state, Integer::from(state, new_size));
+    data(state, ba);
+    hash_value(state, (INTEGER)Qnil);
+
+    return this;
   }
 
+  /* Since we're passed a C/C++ string, which is NULL
+   * terminated, we use strlen to determine the size of
+   * +other+. This is NOT the same as String::append
+   * above that takes a Ruby String*.
+   */
   String* String::append(STATE, const char* other) {
     if(shared_) unshare(state);
 
@@ -184,10 +211,11 @@ namespace rubinius {
     // Leave one extra byte of room for the trailing null
     ByteArray *d2 = ByteArray::create(state, new_size + 1);
     std::memcpy(d2->bytes, data_->bytes, size());
+
     // Append on top of the null byte at the end of s1, not after it
     std::memcpy(d2->bytes + size(), other, len);
 
-    // This looks like it is off by one, but think about it.
+    // The 0-based index of the last character is new_size - 1
     d2->bytes[new_size] = 0;
 
     num_bytes(state, Integer::from(state, new_size));

@@ -197,7 +197,7 @@ begin
     if File.exists?(script)
       $0 = script
       Compile.debug_script! if script_debug_requested
-      Compile.load_from_extension arg 
+      Compile.load_from_extension arg
     else
       if script.suffix?(".rb")
         puts "Unable to find '#{script}'"
@@ -230,7 +230,7 @@ begin
       Compile.execute "p #{STDIN.read}"
     end
   end
-  
+
 rescue SystemExit => e
   code = e.status
 rescue Object => e
