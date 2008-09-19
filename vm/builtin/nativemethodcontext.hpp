@@ -5,10 +5,10 @@
 #include <vector>
 
 /* Project */
+#include "quantum_stack_leap.hpp"
+
 #include "type_info.hpp"
 #include "builtin/contexts.hpp"
-
-#include "vmnativemethod.hpp"
 
 
 namespace rubinius {

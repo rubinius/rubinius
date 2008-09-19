@@ -4,6 +4,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
 
+#include "builtin/nativemethod.hpp"
+
 #include "builtin/nativemethodcontext.hpp"
 
 
