@@ -3,7 +3,7 @@
 ##
 # Emulates the interface of Exception, but isn't one.
 
-class ThrownValue
+class ThrownValue < Exception
   def initialize(name, value, ctx)
     @name = name
     @value = value
