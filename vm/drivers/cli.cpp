@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sys/stat.h>
 
 using namespace std;
 using namespace rubinius;
@@ -36,13 +37,18 @@ int main(int argc, char** argv) {
   env.load_argv(argc, argv);
 
   try {
-    char* e = getenv("RBX_RUNTIME");
+    char* runtime = getenv("RBX_RUNTIME");
 
-    if(!e) {
-      Assertion::raise("set RBX_RUNTIME to runtime (or equiv)");
+    if(!runtime) {
+      struct stat st;
+
+      runtime = "./runtime";
+      if(stat(runtime, &st) == -1 || !S_ISDIR(st.st_mode)) {
+        Assertion::raise("set RBX_RUNTIME to runtime (or equiv)");
+      }
     }
 
-    std::string root = std::string(e);
+    std::string root = std::string(runtime);
 
     env.load_platform_conf(root);
 
