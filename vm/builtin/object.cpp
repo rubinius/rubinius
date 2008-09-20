@@ -645,6 +645,16 @@ namespace rubinius {
     return Qnil;
   }
 
+  OBJECT Object::vm_start_profiler(STATE) {
+    G(current_task)->enable_profiler();
+    return Qtrue;
+  }
+
+  OBJECT Object::vm_stop_profiler(STATE, String* path) {
+    G(current_task)->disable_profiler(path->c_str());
+    return path;
+  }
+
   Object* Object::yield_gdb(STATE, Object* obj) {
     obj->show(state);
     Assertion::raise("yield_gdb called and not caught");

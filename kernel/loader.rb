@@ -1,5 +1,4 @@
 # Contained first is the system startup code.
-
 begin
   ENV = EnvironmentVariables.new
 
@@ -10,6 +9,10 @@ rescue Object => e
   STDOUT << "  #{e.message} (#{e.class})\n"
   STDOUT << e.backtrace
   exit 2
+end
+
+if profile = ENV['PROFILE']
+  Rubinius::VM.start_profiler
 end
 
 if false
@@ -312,6 +315,11 @@ if show_sendsites
     puts e.awesome_backtrace.show
     code = 1
   end
+end
+
+if profile
+  Rubinius::VM.stop_profiler profile
+  puts "[Saved profiling data to '#{profile}']"
 end
 
 Process.exit(code || 0)

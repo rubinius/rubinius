@@ -18,6 +18,10 @@
 #include "global_cache.hpp"
 
 #include "objectmemory.hpp"
+#include "profiler.hpp"
+
+#include <iostream>
+#include <fstream>
 
 #define INSN_DEBUG
 
@@ -51,6 +55,7 @@ namespace rubinius {
     task->state = state;
     task->call_flags = 0;
     task->msg = new Message(state);
+    task->profiler = NULL;
     task->probe(state, state->probe.get());
     task->control_channel(state, (Channel*)Qnil);
     task->debug_channel(state, (Channel*)Qnil);
@@ -257,6 +262,7 @@ stack_cleanup:
   void Task::simple_return(OBJECT value) {
     MethodContext *target = active_->sender();
 
+    if(profiler) profiler->leave_method();
     /* Try to recycle this context to be used again. */
     active_->recycle(state);
 
@@ -270,25 +276,9 @@ stack_cleanup:
     push(value);
   }
 
+  // Used as a primitive.
   Task* Task::raise(STATE, Exception* exc) {
-    for(;;) {
-      int ip = active_->ip;
-      Tuple* table = active_->cm()->exceptions();
-
-      if(!table->nil_p()) {
-        for(size_t i = 0; i < table->num_fields(); i++) {
-          Tuple* entry = as<Tuple>(table->at(i));
-          if(as<Integer>(entry->at(0))->to_native() <= ip && as<Integer>(entry->at(1))->to_native() >= ip) {
-            set_ip(as<Integer>(entry->at(2))->to_native());
-            return this;
-          }
-        }
-      }
-
-      if(active_->sender()->nil_p()) break;
-      make_active(active_->sender());
-    }
-
+    raise_exception(exc);
     return this;
   }
 
@@ -310,6 +300,8 @@ stack_cleanup:
       }
 
       if(active_->sender()->nil_p()) break;
+      if(profiler) profiler->leave_method();
+
       restore_context(active_->sender()); // HACK test to prevent infinite loop
     }
   }
@@ -642,6 +634,20 @@ stack_cleanup:
     if(active_->zone == MatureObjectZone) {
       state->om->remember_object(active_);
     }
+  }
+
+  void Task::enable_profiler() {
+    profiler = new profiler::Profiler();
+  }
+
+  void Task::disable_profiler(char* results) {
+    if(profiler) {
+      std::ofstream stream(results);
+      profiler->print_results(state, stream);
+      delete profiler;
+    }
+
+    profiler = NULL;
   }
 
   void Task::execute() {

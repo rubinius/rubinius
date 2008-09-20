@@ -54,6 +54,13 @@ namespace rubinius {
     return cm;
   }
 
+  int CompiledMethod::start_line() {
+    if(lines_->nil_p()) return -1;
+    if(lines_->num_fields() < 1) return -1;
+    Tuple* top = as<Tuple>(lines_->at(0));
+    return as<Fixnum>(top->at(2))->to_native();
+  }
+
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
     if(!backend_method_) {
       VMMethod* vmm;

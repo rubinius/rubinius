@@ -59,6 +59,8 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_allocate
     static CompiledMethod* create(STATE);
 
+    int start_line();
+
     // Use a stack of 1 so that the return value of the executed method
     // has a place to go
     const static size_t tramp_stack_size = 1;

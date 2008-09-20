@@ -191,6 +191,12 @@ namespace rubinius {
     // Ruby.primitive :vm_show_backtrace
     static OBJECT vm_show_backtrace(STATE, MethodContext* ctx);
 
+    // Ruby.primitive :vm_start_profiler
+    static OBJECT vm_start_profiler(STATE);
+
+    // Ruby.primitive :vm_stop_profiler
+    static OBJECT vm_stop_profiler(STATE, String* path);
+
     // Ruby.primitive :yield_gdb
     static Object* yield_gdb(STATE, Object* obj);
 

@@ -10,6 +10,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/class.hpp"
+#include "profiler.hpp"
 
 /*
  * An internalization of a CompiledMethod which holds the instructions for the
@@ -106,6 +107,24 @@ namespace rubinius {
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);
+
+    if(task->profiler) {
+      profiler::Method* prof_meth;
+      if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
+        OBJECT attached = mc->attached_instance();
+        if(Module* mod = try_as<Module>(attached)) {
+          prof_meth = task->profiler->enter_method(msg.name, mod->name(), profiler::kNormal);
+        } else {
+          prof_meth = task->profiler->enter_method(msg.name, attached->id(state), profiler::kNormal);
+        }
+      } else {
+        prof_meth = task->profiler->enter_method(msg.name, msg.module->name(), profiler::kSingleton);
+      }
+
+      if(!prof_meth->file()) {
+        prof_meth->set_position(cm->file(), cm->start_line());
+      }
+    }
 
     return true;
   }

@@ -1,6 +1,9 @@
 /* A BlockEnvironment is created when a block is created. Its primary
  * operation is call, which activates the code associated with the block. */
 
+#include "builtin/object.hpp"
+#include "builtin/symbol.hpp"
+
 #include "block_environment.hpp"
 #include "objectmemory.hpp"
 
@@ -8,9 +11,9 @@
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
+#include "profiler.hpp"
 
 #include <iostream>
 
@@ -36,6 +39,14 @@ namespace rubinius {
     }
     task->pop(); // Remove this from the stack.
     BlockContext* ctx = create_context(state, task->active());
+    if(task->profiler) {
+      profiler::Method* prof_meth = task->profiler->enter_method(
+          as<Symbol>(home_->name()), home_->module()->name(), profiler::kBlock);
+
+      if(!prof_meth->file()) {
+        prof_meth->set_position(method_->file(), method_->start_line());
+      }
+    }
     task->make_active(ctx);
     task->push(val);
   }
@@ -54,6 +65,14 @@ namespace rubinius {
     }
     task->pop(); // Remove this from the stack.
     BlockContext* ctx = create_context(state, task->active());
+    if(task->profiler) {
+      profiler::Method* prof_meth = task->profiler->enter_method(
+          as<Symbol>(home_->name()), home_->module()->name(), profiler::kBlock);
+
+      if(!prof_meth->file()) {
+        prof_meth->set_position(method_->file(), method_->start_line());
+      }
+    }
     task->make_active(ctx);
     task->push(val);
   }

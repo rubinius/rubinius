@@ -9,7 +9,10 @@
 
 namespace rubinius {
 
-  class Probe;
+  namespace profiler {
+    class Profiler;
+  }
+
   class MethodContext;
   class Channel;
   class Exception;
@@ -53,6 +56,7 @@ namespace rubinius {
     STATE;
     struct jit_state js;
     Message* msg;
+    profiler::Profiler* profiler;
 
     /* globals */
     int call_flags;
@@ -148,6 +152,9 @@ namespace rubinius {
     void print_stack();
     void print_backtrace(MethodContext* ctx = 0);
     void tragic_failure(Message& msg);
+
+    void enable_profiler();
+    void disable_profiler(char* results);
 
     class Info : public TypeInfo {
     public:
