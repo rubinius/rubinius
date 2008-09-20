@@ -24,7 +24,7 @@ class TestDir : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    TS_ASSERT_EQUALS(d->obj_type, DirType);
+    TS_ASSERT(kind_of<Dir>(d));
     TS_ASSERT(d->data()->nil_p());
   }
 

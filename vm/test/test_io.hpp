@@ -82,7 +82,7 @@ class TestIO : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(zero, buf->used());
     TS_ASSERT_EQUALS(Fixnum::from(10), buf->total());
     TS_ASSERT_EQUALS(10U, buf->left());
-    TS_ASSERT_EQUALS(ChannelType, buf->channel()->obj_type);
+    TS_ASSERT(kind_of<Channel>(buf->channel()));
     TS_ASSERT_EQUALS(Qfalse, buf->eof());
   }
 };

@@ -23,7 +23,7 @@ class TestContexts : public CxxTest::TestSuite {
 
   void test_create() {
     MethodContext* ctx = MethodContext::create(state, 10);
-    TS_ASSERT_EQUALS(ctx->obj_type, MContextType);
+    TS_ASSERT(kind_of<MethodContext>(ctx));
     TS_ASSERT(ctx->stack_size >= 10);
     TS_ASSERT_EQUALS(ctx->ip, 0);
   }

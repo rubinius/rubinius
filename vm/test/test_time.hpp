@@ -22,8 +22,8 @@ class TestTime : public CxxTest::TestSuite {
   void test_create() {
     Time* tm = Time::create(state);
 
-    TS_ASSERT_EQUALS(tm->timeval()->obj_type, ArrayType);
-    TS_ASSERT_EQUALS(tm->tm()->obj_type, ArrayType);
+    TS_ASSERT(kind_of<Array>(tm->timeval()));
+    TS_ASSERT(kind_of<Array>(tm->tm()));
     TS_ASSERT_EQUALS(tm->is_gmt(), Qfalse);
 
     TS_ASSERT_EQUALS(tm->timeval()->size(), 2U);
@@ -37,7 +37,7 @@ class TestTime : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(tm->timeval()->size(), 0U);
 
     tm->gettimeofday(state);
-    TS_ASSERT_EQUALS(tm->timeval()->obj_type, ArrayType);
+    TS_ASSERT(kind_of<Array>(tm->timeval()));
     TS_ASSERT_EQUALS(tm->timeval()->size(), 2U);
   }
 
