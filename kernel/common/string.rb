@@ -412,8 +412,8 @@ class String
   #   "abcdef".casecmp("abcdefg")   #=> -1
   #   "abcdef".casecmp("ABCDEF")    #=> 0
   def casecmp(to)
-    order = @num_bytes - to.bytes
-    size = order < 0 ? @num_bytes : to.bytes
+    order = @num_bytes - to.num_bytes
+    size = order < 0 ? @num_bytes : to.num_bytes
 
     i = 0
     while i < size
@@ -1098,7 +1098,7 @@ class String
     @shared = true
     other.shared!
     @data = other.data
-    @num_bytes = other.bytes
+    @num_bytes = other.num_bytes
     @characters = other.characters
     @encoding = other.encoding
 
