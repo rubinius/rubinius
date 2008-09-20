@@ -838,7 +838,7 @@ class Sexp
   alias :real_inspect :inspect
   def inspect # :nodoc:
     sexp_str = self.map {|x|x.inspect}.join(', ')
-    if line && !ENV['SHUT_UP'] then
+    if line && ENV['VERBOSE'] then
       "s(#{sexp_str}).line(#{line})"
     else
       "s(#{sexp_str})"
