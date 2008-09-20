@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
   env.load_argv(argc, argv);
 
   try {
-    char* runtime = getenv("RBX_RUNTIME");
+    const char* runtime = getenv("RBX_RUNTIME");
 
     if(!runtime) {
       struct stat st;
