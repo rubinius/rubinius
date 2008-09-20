@@ -54,6 +54,8 @@ namespace rubinius {
       uint64_t total_time() {
         return total_time_;
       }
+
+      uint64_t total_time_in_ns();
     };
 
     typedef std::map<Method*, Leaf*> Leaves;

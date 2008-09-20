@@ -4,7 +4,27 @@
 #include "builtin/symbol.hpp"
 #include "builtin/object.hpp"
 
+// HACK figure out a better way to detect if we should use
+// mach_absolute_time
+#if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) && \
+    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1050
+  #define USE_MACH_TIME
+#endif
+
+#ifdef USE_MACH_TIME
+
 #include <mach/mach_time.h>
+#define current_time() mach_absolute_time()
+#define METHOD "mach_absolute_time"
+
+#else
+
+#define current_time() ((uint64_t)clock())
+#define METHOD "clock"
+
+#endif
+
+#include <time.h>
 
 #include <iostream>
 #include <vector>
@@ -24,11 +44,11 @@ namespace rubinius {
     }
 
     void Invocation::start() {
-      start_time_ = mach_absolute_time();
+      start_time_ = current_time();
     }
 
     void Invocation::stop() {
-      leaf_->add_total_time(mach_absolute_time() - start_time_);
+      leaf_->add_total_time(current_time() - start_time_);
     }
 
     Method::~Method() {
@@ -39,14 +59,27 @@ namespace rubinius {
       }
     }
 
-    uint64_t Method::total_time_in_ns() {
+    static uint64_t in_nanoseconds(uint64_t time) {
+#ifdef USE_MACH_TIME
       static mach_timebase_info_data_t timebase = {0, 0};
 
       if(timebase.denom == 0) {
         mach_timebase_info(&timebase);
       }
 
-      return total_time_ * timebase.numer / timebase.denom;
+      return time * timebase.numer / timebase.denom;
+#else
+      return time / (CLOCKS_PER_SEC * 1000000000);
+#endif
+
+    }
+
+    uint64_t Method::total_time_in_ns() {
+      return in_nanoseconds(total_time_);
+    }
+
+    uint64_t Leaf::total_time_in_ns() {
+      return in_nanoseconds(total_time_);
     }
 
     Leaf* Method::find_leaf(Method* callee) {
@@ -147,7 +180,8 @@ namespace rubinius {
 
       std::sort(all_methods.begin(), all_methods.end(), method_cmp);
 
-      stream << "<profile methods=" << methods_.size() << ">\n";
+      stream << "<profile methods='" << methods_.size() <<
+        "' method='" << METHOD << "'>\n";
 
       for(std::vector<Method*>::iterator i = all_methods.begin();
           i != all_methods.end();
@@ -187,7 +221,7 @@ namespace rubinius {
             li++) {
           Leaf* leaf = li->second;
           stream << "  <leaf id='" << leaf->method()->id() <<
-            "' total='" << leaf->total_time() << "'/>\n";
+            "' total='" << leaf->total_time_in_ns() << "'/>\n";
         }
         stream << "</method>\n";
       }
