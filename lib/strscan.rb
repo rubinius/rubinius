@@ -1,7 +1,5 @@
 class ScanError < StandardError; end
 
-p "loaded pure ruby StringScanner"
-
 class StringScanner
   Id = "bite me $Id".freeze
   Version = "1.0.0".freeze
