@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Must use our benchmark.rb, which has bug fixes -vs- Ruby 1.8.6 pl 111
-require File.expand_path(File.join(File.dirname(__FILE__),'../stdlib/benchmark'))
+require File.expand_path(File.join(File.dirname(__FILE__),'../lib/benchmark'))
 include Benchmark
 
 # Options handling
