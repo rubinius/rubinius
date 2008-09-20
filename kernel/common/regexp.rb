@@ -355,12 +355,14 @@ class Regexp
       @parts
     end
 
+    # TODO: audit specs for this method when specs are running
     def create_parts
-      return if finished_processing?
+      return unless @index < @source.size
       char =  @source[@index].chr
       case char
       when '('
-        if @source[@index + 1].chr == '?'
+        idx = @index + 1
+        if idx < @source.size and @source[idx].chr == '?'
           process_group
         else
           push_current_character!
@@ -369,10 +371,6 @@ class Regexp
         push_current_character!
       end
       create_parts
-    end
-
-    def finished_processing?
-      @index + 1 > @source.size
     end
 
     def process_group
