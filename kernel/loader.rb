@@ -220,7 +220,10 @@ begin
       $0 = repr
       prog = File.join main_lib, repr
       begin
-        load prog
+        # HACK: this was load but load raises LoadError
+        # with prog == "lib/bin/irb". However, require works.
+        # Investigate when we have specs running.
+        require prog
       rescue LoadError => e
         STDERR.puts "Unable to find repr named '#{repr}' to load."
         exit 1
