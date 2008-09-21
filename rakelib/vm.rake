@@ -351,7 +351,7 @@ file dep_file => srcs + hdrs + vm_srcs + generated do |t|
   flags = FLAGS.join ' '
   flags << " -D__STDC_LIMIT_MACROS"
 
-  cmd = "makedepend -f- #{includes} -- #{flags} -- #{t.prerequisites}"
+  cmd = "makedepend -f- #{includes} -- #{flags} -- #{t.prerequisites.join(' ')}"
   cmd << ' 2>/dev/null' unless $verbose
   warn "makedepend ..."
 
