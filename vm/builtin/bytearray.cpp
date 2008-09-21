@@ -140,12 +140,16 @@ namespace rubinius {
 
   OBJECT ByteArray::locate(STATE, String* pattern, Integer* start) {
     native_int size = SIZE_OF_BODY(this);
-    char *pat = pattern->c_str();
-    native_int len = strlen(pat);
-    native_int j;
+    const char *pat = pattern->byte_address();
+    native_int len = pattern->size();
 
-    for(native_int i = start->to_native(); i < size; i++) {
+    if(len == 0) {
+      return start;
+    }
+
+    for(native_int i = start->to_native(); i <= size - len; i++) {
       if(this->bytes[i] == pat[0]) {
+        native_int j;
         // match the rest of the pattern string
         for(j = 1; j < len; j++) {
           if(this->bytes[i+j] != pat[j]) break;

@@ -195,6 +195,7 @@ class TestByteArray : public CxxTest::TestSuite {
 
     String* foo_nl = String::create(state, "foo\n");
 
+    TS_ASSERT_EQUALS(three, a->locate(state, String::create(state, ""), three));
     TS_ASSERT_EQUALS(Qnil, a->locate(state, String::create(state, "\n\n"), zero));
     TS_ASSERT_EQUALS(seven, (FIXNUM)a->locate(state, String::create(state, "\n"), zero));
     TS_ASSERT_EQUALS(Qnil, a->locate(state, foo_nl, Integer::from(state, 4)));
