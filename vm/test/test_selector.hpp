@@ -43,26 +43,24 @@ class TestSelector : public CxxTest::TestSuite {
   void test_clear() {
     Selector* sel = Selector::lookup(state, state->symbol("foo"));
     SendSite* ss = SendSite::create(state, sel->name());
+    MethodResolver fake = (MethodResolver)Qnil;
 
     sel->associate(state, ss);
-    TS_ASSERT(ss->basic_p(state));
-    ss->specialized = true;
-    TS_ASSERT(!ss->basic_p(state));
+    ss->resolver = fake;
+    TS_ASSERT_EQUALS(fake, ss->resolver);
     sel->clear(state);
-    TS_ASSERT(ss->basic_p(state));
+    TS_ASSERT_EQUALS(MonomorphicInlineCacheResolver::resolve, ss->resolver);
   }
 
   void test_clear_by_name() {
     Selector* sel = Selector::lookup(state, state->symbol("foo"));
     SendSite* ss = SendSite::create(state, sel->name());
+    MethodResolver fake = (MethodResolver)Qnil;
 
     sel->associate(state, ss);
-    TS_ASSERT(ss->basic_p(state));
-    ss->specialized = true;
-    TS_ASSERT(!ss->basic_p(state));
+    ss->resolver = fake;
+    TS_ASSERT_EQUALS(fake, ss->resolver);
     Selector::clear_by_name(state, state->symbol("foo"));
-    TS_ASSERT(ss->basic_p(state));
-
+    TS_ASSERT_EQUALS(MonomorphicInlineCacheResolver::resolve, ss->resolver);
   }
-
 };

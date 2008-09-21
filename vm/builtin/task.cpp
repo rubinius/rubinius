@@ -14,7 +14,6 @@
 #include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
 
-#include "resolver.hpp"
 #include "global_cache.hpp"
 
 #include "objectmemory.hpp"
@@ -224,15 +223,13 @@ stack_cleanup:
   }
 
   bool Task::send_message_slowly(Message& msg) {
-    GlobalCacheResolver res;
-
     msg.current_self = active_->self();
 
-    if(!res.resolve(state, msg)) {
+    if(!GlobalCacheResolver::resolve(state, msg)) {
       msg.unshift_argument(state, msg.name);
       msg.name = G(sym_method_missing);
       msg.priv = true; // lets us look for method_missing anywhere
-      if(!res.resolve(state, msg)) {
+      if(!GlobalCacheResolver::resolve(state, msg)) {
         tragic_failure(msg);
       }
     }
@@ -314,8 +311,7 @@ stack_cleanup:
     msg.name = sel;
     msg.priv = (priv_p == Qtrue);
 
-    GlobalCacheResolver res;
-    if(!res.resolve(state, msg)) {
+    if(!GlobalCacheResolver::resolve(state, msg)) {
       return (Tuple*)Qnil;
     }
 

@@ -5,7 +5,6 @@
 #include "builtin/symbol.hpp"
 
 #include "message.hpp"
-#include "resolver.hpp"
 #include "global_cache.hpp"
 #include "objectmemory.hpp"
 
@@ -20,8 +19,6 @@ namespace rubinius {
     ss->name(state, (SYMBOL)name);
     ss->sender(state, (CompiledMethod*)Qnil);
     ss->selector(state, Selector::lookup(state, name));
-    ss->hits = ss->misses = 0;
-    ss->resolver = NULL;
 
     ss->initialize(state);
     ss->selector()->associate(state, ss);
@@ -30,9 +27,11 @@ namespace rubinius {
   }
 
   void SendSite::initialize(STATE) {
-    if(resolver) delete resolver;
-    specialized = false;
-    resolver = new GlobalCacheResolver;
+    resolver = MonomorphicInlineCacheResolver::resolve;
+    method(state, (Executable*)Qnil);
+    module(state, (Module*)Qnil);
+    recv_class(state, (Module*)Qnil);
+    hits = misses = 0;
   }
 
   OBJECT SendSite::set_sender(STATE, CompiledMethod* cm) {
@@ -40,20 +39,15 @@ namespace rubinius {
     return Qnil;
   }
 
-  /* Indicates that the object hasn't been specialized in anyway */
-  bool SendSite::basic_p(STATE) {
-    return !specialized;
-  }
-
   /* Use the information within +this+ to populate +msg+. Returns
    * true if +msg+ was populated. */
 
   bool SendSite::locate(STATE, Message& msg) {
-    if(!resolver->resolve(state, msg)) {
+    if(!(*resolver)(state, msg)) {
       msg.unshift_argument(state, msg.name);
       msg.name = G(sym_method_missing);
       msg.priv = true; // lets us look for method_missing anywhere
-      if(!resolver->resolve(state, msg)) {
+      if(!(*resolver)(state, msg)) {
         return false;
       }
     }
@@ -151,17 +145,19 @@ keep_looking:
     return false;
   }
 
-  bool SpecializedResolver::resolve(STATE, Message& msg) {
-    if(msg.lookup_from == klass) {
-      msg.module = mod;
-      msg.method = method;
+  bool MonomorphicInlineCacheResolver::resolve(STATE, Message& msg) {
+    if(msg.lookup_from == msg.send_site->recv_class()) {
+      msg.module = msg.send_site->module();
+      msg.method = msg.send_site->method();
+      msg.send_site->hits++;
       return true;
     }
 
+    msg.send_site->misses++;
     if(GlobalCacheResolver::resolve(state, msg)) {
-      mod = msg.module;
-      method = msg.method;
-      klass = msg.lookup_from;
+      msg.send_site->module(state, msg.module);
+      msg.send_site->method(state, msg.method);
+      msg.send_site->recv_class(state, msg.lookup_from);
       return true;
     }
 
@@ -177,7 +173,9 @@ keep_looking:
     indent_attribute(level, "selector"); class_info(state, ss->selector(), true);
     indent_attribute(level, "hits"); std::cout << ss->hits << std::endl;
     indent_attribute(level, "misses"); std::cout << ss->misses << std::endl;
-    indent_attribute(level, "specialized"); std::cout << ss->specialized << std::endl;
+    indent_attribute(level, "module"); class_info(state, ss->module(), true);
+    indent_attribute(level, "method"); class_info(state, ss->method(), true);
+    indent_attribute(level, "recv_class"); class_info(state, ss->recv_class(), true);
     close_body(level);
   }
 };

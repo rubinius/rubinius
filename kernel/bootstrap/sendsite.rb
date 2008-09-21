@@ -6,46 +6,31 @@
 # SendSite is filled in with that Executable.
 
 class SendSite
+
+  attr_accessor :name
+  attr_accessor :sender
+  attr_accessor :selector
+  attr_accessor :method
+  attr_accessor :module
+  attr_accessor :recv_class
+
   def self.new(name)
     SendSite.create name
   end
 
   def self.create(name)
     Ruby.primitive :sendsite_create
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def at(index)
-    Ruby.primitive :sendsite_at
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def name
-    at(0)
-  end
-
-  def selector
-    at(1)
-  end
-
-  def receiver
-    at(2)
+    raise PrimitiveFailure, "SendSite.create primitive failed"
   end
 
   def hits
-    at(6)
+    Ruby.primitive :sendsite_hits
+    raise PrimitiveFailure, "Sendsite#hits primitive failed"
   end
 
   def misses
-    at(7)
-  end
-
-  def data(which)
-    at(1 + which)
-  end
-
-  def sender
-    at(8)
+    Ruby.primitive :sendsite_misses
+    raise PrimitiveFailure, "Sendsite#misses primitive failed"
   end
 
   ##
