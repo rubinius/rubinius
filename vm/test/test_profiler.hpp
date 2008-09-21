@@ -24,8 +24,8 @@ class TestProfiler : public CxxTest::TestSuite {
     profiler::Profiler prof;
 
     prof.enter_method(meth, klass);
-    TS_ASSERT_EQUALS(prof.depth(), 1);
-    TS_ASSERT_EQUALS(prof.number_of_entries(), 1);
+    TS_ASSERT_EQUALS(prof.depth(), 1U);
+    TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
 
     profiler::Key key(meth, klass);
     profiler::Method* mo = prof.find_key(key);
@@ -36,14 +36,14 @@ class TestProfiler : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(mo->total_time(), 0ULL);
 
     prof.enter_method(meth, klass);
-    TS_ASSERT_EQUALS(prof.number_of_entries(), 1);
-    TS_ASSERT_EQUALS(prof.depth(), 2);
+    TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
+    TS_ASSERT_EQUALS(prof.depth(), 2U);
 
     SYMBOL meth2 = state->symbol("woo");
     prof.enter_method(meth2, klass);
-    TS_ASSERT_EQUALS(prof.number_of_entries(), 2);
+    TS_ASSERT_EQUALS(prof.number_of_entries(), 2U);
 
-    TS_ASSERT_EQUALS(prof.depth(), 3);
+    TS_ASSERT_EQUALS(prof.depth(), 3U);
   }
 
   void test_leave_method() {
@@ -60,7 +60,7 @@ class TestProfiler : public CxxTest::TestSuite {
     usleep(10000);
     prof.leave_method();
 
-    TS_ASSERT_EQUALS(prof.depth(), 0);
+    TS_ASSERT_EQUALS(prof.depth(), 0U);
     TS_ASSERT(mo->total_time() > 100);
   }
 
@@ -85,7 +85,7 @@ class TestProfiler : public CxxTest::TestSuite {
     profiler::Key key(meth, klass);
     profiler::Method* mo = prof.find_key(key);
 
-    TS_ASSERT_EQUALS(mo->number_of_leaves(), 1);
+    TS_ASSERT_EQUALS(mo->number_of_leaves(), 1U);
     profiler::Leaves::iterator i = mo->leaves_begin();
     profiler::Leaf* leaf = i->second;
 
