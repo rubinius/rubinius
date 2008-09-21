@@ -26,7 +26,11 @@ namespace rubinius {
 #include "gen/primitives_declare.hpp"
   };
 
-  class PrimitiveFailed : public VMException {
+  // Don't make this a subclass of VMException. All VMException's automatically
+  // have the C++ backtrace attached to them. Doing so for this very commonly
+  // raised exception increases the runtime by 15% in a simple test (and we
+  // never use the C++ backtrace of PrimitiveFailed)
+  class PrimitiveFailed {
   public:
     static void raise();
   };
