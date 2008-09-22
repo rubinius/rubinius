@@ -70,7 +70,7 @@ namespace rubinius {
     /** Size in Object*'s. Executable + 2. */
     const static std::size_t fields = 5;
     /** Statically held object type. */
-    const static object_type type = NMethodType;
+    const static object_type type = NativeMethodType;
 
     /** Set class up in the VM. @see vm/ontology.cpp. */
     static void register_class_with(VM* state);

@@ -18,7 +18,7 @@ namespace rubinius {
   void NativeMethod::register_class_with(VM* state)
   {
     state->globals.nmethod.set(state->new_class("NativeMethod", state->globals.executable.get(), NativeMethod::fields));
-    state->globals.nmethod.get()->set_object_type(state, NMethodType);
+    state->globals.nmethod.get()->set_object_type(state, NativeMethodType);
   }
 
   NativeMethod* NativeMethod::allocate(VM* state)

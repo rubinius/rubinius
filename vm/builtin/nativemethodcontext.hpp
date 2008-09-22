@@ -116,7 +116,7 @@ namespace rubinius {
 
     /** Dynamically calculated size. (TODO) */
     const static std::size_t fields = 0;
-    const static object_type type = NContextType;
+    const static object_type type = NativeMethodContextType;
 
     /** Add the class object to the object space. */
     static void register_class_with(VM* state);

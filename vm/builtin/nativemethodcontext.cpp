@@ -4,8 +4,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
 
-#include "builtin/nativemethod.hpp"
-
 #include "builtin/nativemethodcontext.hpp"
 
 
@@ -47,7 +45,7 @@ namespace rubinius {
   void NativeMethodContext::register_class_with(VM* state)
   {
     state->globals.nativectx.set(state->new_class("NativeMethodContext", state->globals.methctx.get()));
-    state->globals.nativectx.get()->set_object_type(state, NContextType);
+    state->globals.nativectx.get()->set_object_type(state, NativeMethodContextType);
   }
 
   NativeMethodContext* NativeMethodContext::create(VM* state,
