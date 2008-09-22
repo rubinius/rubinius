@@ -1,6 +1,30 @@
 #ifndef RBX_GLOBALS_HPP
 #define RBX_GLOBALS_HPP
 
+/** Rubinius Root objects
+ *
+ * This is the set of root objects that the system tracks.
+ * When performing garbage collection, it is these objects
+ * that are considered the root of the tree and walked
+ * to find all live objects.
+ *
+ * Typically, these are builtin class that the VM needs to
+ * reference directly. This is usually the case for things like
+ * String::create that need to have a reference to the ruby String
+ * class object to properly create a String instance.
+ *
+ * The rule of thumb for adding classes/modules to this list
+ * is whether or not the VM needs to directly reference the
+ * class/module. Again, this is typically only because the VM
+ * itself needs to create an instance of that class.
+ *
+ * There are a few non-class roots in here, such as the current
+ * thread, current task, and a list of all scheduled threads.
+ * These exist so that we walk all the runtime data, such as
+ * MethodContexts.
+ */
+
+
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
 
