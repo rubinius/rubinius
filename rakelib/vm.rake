@@ -210,9 +210,12 @@ files INSN_GEN, %w[vm/instructions.rb] do |t|
   ruby 'vm/instructions.rb', :verbose => $verbose
 end
 
-files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] do
+task :run_field_extract do
   puts "GEN field_extract"
   field_extract field_extract_headers
+end
+
+files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
 end
 
 file 'vm/vm' => EXTERNALS + objs + vm_objs do |t|
