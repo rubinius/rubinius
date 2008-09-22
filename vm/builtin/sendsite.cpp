@@ -39,6 +39,14 @@ namespace rubinius {
     return Qnil;
   }
 
+  OBJECT SendSite::hits_prim(STATE) {
+    return Integer::from(state, hits);
+  }
+
+  OBJECT SendSite::misses_prim(STATE) {
+    return Integer::from(state, misses);
+  }
+
   /* Use the information within +this+ to populate +msg+. Returns
    * true if +msg+ was populated. */
 

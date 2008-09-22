@@ -126,4 +126,22 @@ class TestSendSite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cm, msg.method);
     TS_ASSERT_EQUALS(G(object), msg.module);
   }
+
+  void test_misses_prim() {
+    SYMBOL sym = state->symbol("blah");
+    SendSite* ss = SendSite::create(state, sym);
+
+    ss->misses = 10;
+
+    TS_ASSERT_EQUALS(Fixnum::from(10), (FIXNUM)ss->misses_prim(state));
+  }
+
+  void test_hits_prim() {
+    SYMBOL sym = state->symbol("blah");
+    SendSite* ss = SendSite::create(state, sym);
+
+    ss->hits = 10;
+
+    TS_ASSERT_EQUALS(Fixnum::from(10), (FIXNUM)ss->hits_prim(state));
+  }
 };

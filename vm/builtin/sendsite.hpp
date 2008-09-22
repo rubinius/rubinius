@@ -51,6 +51,12 @@ namespace rubinius {
     // Ruby.primitive :sendsite_set_sender
     OBJECT set_sender(STATE, CompiledMethod* cm);
 
+    // Ruby.primitive :sendsite_hits
+    OBJECT hits_prim(STATE);
+
+    // Ruby.primitive :sendsite_misses
+    OBJECT misses_prim(STATE);
+
     void initialize(STATE);
     bool locate(STATE, Message& msg);
 
