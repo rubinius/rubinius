@@ -20,6 +20,10 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_memorypointer_fields() {
+    TS_ASSERT_EQUALS(0, MemoryPointer::fields);
+  }
+
   void test_create() {
     int thing = 3.0;
     MemoryPointer* ptr = MemoryPointer::create(state, (void*)&thing);

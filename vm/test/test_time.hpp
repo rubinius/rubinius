@@ -19,6 +19,10 @@ class TestTime : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_time_fields() {
+    TS_ASSERT_EQUALS(3U, Time::fields);
+  }
+
   void test_create() {
     Time* tm = Time::create(state);
 

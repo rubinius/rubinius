@@ -19,6 +19,14 @@ class TestCompiledMethod : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_compiledmethod_fields() {
+    TS_ASSERT_EQUALS(18U, CompiledMethod::fields);
+  }
+
+  void test_compiledmethod_saved_fields() {
+    TS_ASSERT_EQUALS(16U, CompiledMethod::saved_fields);
+  }
+
   void test_startup_tramp() {
     CompiledMethod* cm = CompiledMethod::generate_tramp(state);
     VMMethod* vmm = cm->formalize(state);

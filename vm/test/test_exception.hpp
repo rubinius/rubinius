@@ -1,3 +1,4 @@
+#include "builtin/exception.hpp"
 #include "object_types.hpp"
 #include "exception.hpp"
 
@@ -16,6 +17,10 @@ class TestException : public CxxTest::TestSuite {
 
   void tearDown() {
     delete state;
+  }
+
+  void test_exception_fields() {
+    TS_ASSERT_EQUALS(2U, Exception::fields);
   }
 
   void test_argument_error_raise() {

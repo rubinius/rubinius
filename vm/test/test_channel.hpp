@@ -27,6 +27,10 @@ class TestChannel : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_channel_fields() {
+    TS_ASSERT_EQUALS(2U, Channel::fields);
+  }
+
   void test_create() {
     TS_ASSERT(kind_of<Channel>(chan));
     TS_ASSERT(kind_of<List>(chan->waiting()));

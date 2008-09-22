@@ -20,6 +20,10 @@ class TestCompactLookupTable : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_compactlookuptable_fields() {
+    TS_ASSERT_EQUALS(0, CompactLookupTable::fields);
+  }
+
   void test_create() {
     TS_ASSERT(kind_of<CompactLookupTable>(tbl));
     TS_ASSERT_EQUALS(tbl->num_fields(), COMPACTLOOKUPTABLE_SIZE);

@@ -14,7 +14,7 @@ namespace rubinius {
 
   class SendSite : public Object {
   public:
-    static const size_t object_fields = 9;
+    static const size_t fields = 9;
     static const object_type type = SendSiteType;
 
   private:

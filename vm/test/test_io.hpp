@@ -26,6 +26,14 @@ class TestIO : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_io_fields() {
+    TS_ASSERT_EQUALS(3U, IO::fields);
+  }
+
+  void test_iobuffer_fields() {
+    TS_ASSERT_EQUALS(6U, IOBuffer::fields);
+  }
+
   int make_io() {
     fname = tmpnam(NULL);
     return open(fname, O_CREAT | O_RDWR | O_TRUNC);

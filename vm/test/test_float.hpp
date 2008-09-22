@@ -19,6 +19,10 @@ class TestFloat : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_float_fields() {
+    TS_ASSERT_EQUALS(0, Float::fields);
+  }
+
   void check_float(Float* f, Float* g) {
     TS_ASSERT_RELATION(std::greater<double>, f->val + TOLERANCE, g->val);
     TS_ASSERT_RELATION(std::greater<double>, f->val, g->val - TOLERANCE);

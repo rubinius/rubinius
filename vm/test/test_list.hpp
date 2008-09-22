@@ -22,6 +22,14 @@ class TestList : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_list_fields() {
+    TS_ASSERT_EQUALS(3U, List::fields);
+  }
+
+  void test_listnode_fields() {
+    TS_ASSERT_EQUALS(2U, ListNode::fields);
+  }
+
   void test_classes() {
     TS_ASSERT(G(list)->kind_of_p(state, G(klass)));
     TS_ASSERT(G(list_node)->kind_of_p(state, G(klass)));

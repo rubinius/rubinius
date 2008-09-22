@@ -26,6 +26,10 @@ class TestTaskProbe : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_taskprobe_fields() {
+    TS_ASSERT_EQUALS(1U, TaskProbe::fields);
+  }
+
   void test_parse_env() {
     TS_ASSERT_EQUALS(false, p->parse_env("unrecognizable"));
   }

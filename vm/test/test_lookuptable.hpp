@@ -18,6 +18,10 @@ class TestLookupTable : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_lookuptable_fields() {
+    TS_ASSERT_EQUALS(3U, LookupTable::fields);
+  }
+
   void test_create() {
     TS_ASSERT(kind_of<LookupTable>(tbl));
     TS_ASSERT_EQUALS(tbl-> bins()->to_native(), LOOKUPTABLE_MIN_SIZE);

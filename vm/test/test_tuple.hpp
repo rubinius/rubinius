@@ -25,6 +25,10 @@ public:
     return tuple;
   }
 
+  void test_tuple_fields() {
+    TS_ASSERT_EQUALS(0, Tuple::fields);
+  }
+
   void test_allocate() {
     Tuple* tuple = Tuple::allocate(state, Fixnum::from(2));
     TS_ASSERT_EQUALS(2U, tuple->num_fields());

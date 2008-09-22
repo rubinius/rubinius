@@ -1,5 +1,6 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "builtin/object.hpp"
 #include "builtin/compactlookuptable.hpp"
 
 #include <cxxtest/TestSuite.h>
@@ -17,6 +18,10 @@ class TestObject : public CxxTest::TestSuite {
 
   void tearDown() {
     delete state;
+  }
+
+  void test_object_fields() {
+    TS_ASSERT_EQUALS(0, Object::fields);
   }
 
   void test_kind_of() {

@@ -21,6 +21,14 @@ class TestContexts : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_methodcontext_fields() {
+    TS_ASSERT_EQUALS(0, MethodContext::fields);
+  }
+
+  void test_blockcontext_fields() {
+    TS_ASSERT_EQUALS(0, BlockContext::fields);
+  }
+
   void test_create() {
     MethodContext* ctx = MethodContext::create(state, 10);
     TS_ASSERT(kind_of<MethodContext>(ctx));

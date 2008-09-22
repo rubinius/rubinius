@@ -53,7 +53,7 @@ namespace rubinius {
 
   class IncludedModule : public Module {
   public:
-    const static size_t field = Module::fields + 1;
+    const static size_t fields = Module::fields + 1;
     const static object_type type = IncModType;
 
   private:
