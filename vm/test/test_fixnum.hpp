@@ -22,7 +22,7 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_fixnum_fields() {
-    TS_ASSERT_EQUALS(0, Fixnum::fields);
+    TS_ASSERT_EQUALS(0U, Fixnum::fields);
   }
 
   void check_float(Float* f, Float* g) {

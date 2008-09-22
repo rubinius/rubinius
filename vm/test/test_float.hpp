@@ -20,7 +20,7 @@ class TestFloat : public CxxTest::TestSuite {
   }
 
   void test_float_fields() {
-    TS_ASSERT_EQUALS(0, Float::fields);
+    TS_ASSERT_EQUALS(0U, Float::fields);
   }
 
   void check_float(Float* f, Float* g) {

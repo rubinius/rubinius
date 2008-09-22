@@ -21,7 +21,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_object_fields() {
-    TS_ASSERT_EQUALS(0, Object::fields);
+    TS_ASSERT_EQUALS(0U, Object::fields);
   }
 
   void test_kind_of() {

@@ -21,7 +21,7 @@ class TestCompactLookupTable : public CxxTest::TestSuite {
   }
 
   void test_compactlookuptable_fields() {
-    TS_ASSERT_EQUALS(0, CompactLookupTable::fields);
+    TS_ASSERT_EQUALS(0U, CompactLookupTable::fields);
   }
 
   void test_create() {

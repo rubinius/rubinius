@@ -94,7 +94,7 @@ class TestSendSite : public CxxTest::TestSuite {
 
     TS_ASSERT(ss->locate(state, msg));
     TS_ASSERT_EQUALS(1U, ss->misses);
-    TS_ASSERT_EQUALS(0, ss->hits);
+    TS_ASSERT_EQUALS(0U, ss->hits);
     TS_ASSERT_EQUALS(cm, msg.method);
     TS_ASSERT_EQUALS(meta, msg.module);
   }
@@ -126,7 +126,7 @@ class TestSendSite : public CxxTest::TestSuite {
 
     TS_ASSERT(ss->locate(state, msg));
     TS_ASSERT_EQUALS(2U, ss->hits);
-    TS_ASSERT_EQUALS(0, ss->misses);
+    TS_ASSERT_EQUALS(0U, ss->misses);
     TS_ASSERT_EQUALS(cm, msg.method);
     TS_ASSERT_EQUALS(G(object), msg.module);
   }

@@ -40,7 +40,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_task_fields() {
-    TS_ASSERT_EQUALS(0, Task::fields);
+    TS_ASSERT_EQUALS(0U, Task::fields);
   }
 
   void test_create() {

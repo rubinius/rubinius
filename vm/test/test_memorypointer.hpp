@@ -21,7 +21,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   }
 
   void test_memorypointer_fields() {
-    TS_ASSERT_EQUALS(0, MemoryPointer::fields);
+    TS_ASSERT_EQUALS(0U, MemoryPointer::fields);
   }
 
   void test_create() {

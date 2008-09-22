@@ -22,11 +22,11 @@ class TestContexts : public CxxTest::TestSuite {
   }
 
   void test_methodcontext_fields() {
-    TS_ASSERT_EQUALS(0, MethodContext::fields);
+    TS_ASSERT_EQUALS(0U, MethodContext::fields);
   }
 
   void test_blockcontext_fields() {
-    TS_ASSERT_EQUALS(0, BlockContext::fields);
+    TS_ASSERT_EQUALS(0U, BlockContext::fields);
   }
 
   void test_create() {

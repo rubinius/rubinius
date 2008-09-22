@@ -26,7 +26,7 @@ public:
   }
 
   void test_tuple_fields() {
-    TS_ASSERT_EQUALS(0, Tuple::fields);
+    TS_ASSERT_EQUALS(0U, Tuple::fields);
   }
 
   void test_allocate() {

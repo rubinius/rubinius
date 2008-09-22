@@ -19,6 +19,6 @@ class TestNativeMethodContext : public CxxTest::TestSuite {
   }
 
   void test_nativemethodcontext_fields() {
-    TS_ASSERT_EQUALS(0, NativeMethodContext::fields);
+    TS_ASSERT_EQUALS(0U, NativeMethodContext::fields);
   }
 };
