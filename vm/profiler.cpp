@@ -69,7 +69,7 @@ namespace rubinius {
 
       return time * timebase.numer / timebase.denom;
 #else
-      return time / (CLOCKS_PER_SEC * 1000000000);
+      return time / (CLOCKS_PER_SEC * 1000000000UL);
 #endif
 
     }
