@@ -15,20 +15,12 @@
 
 namespace rubinius {
 
-  template <>
-    bool kind_of<MethodContext>(OBJECT obj) {
-      return    obj->obj_type == MethodContext::type
-             || obj->obj_type == BlockContext::type
-             || obj->obj_type == NativeMethodContext::type
-             ;
-    }
-
   void MethodContext::init(STATE) {
     GO(methctx).set(state->new_class("MethodContext", G(object)));
-    G(methctx)->set_object_type(state, MContextType);
+    G(methctx)->set_object_type(state, MethodContextType);
 
     GO(blokctx).set(state->new_class("BlockContext", G(methctx)));
-    G(blokctx)->set_object_type(state, BContextType);
+    G(blokctx)->set_object_type(state, BlockContextType);
   }
 
   /* Calculate how much big of an object (in bytes) to allocate
@@ -118,7 +110,7 @@ initialize:
   void MethodContext::post_copy(MethodContext* old) {
     this->position_stack(old->calculate_sp());
     this->js.stack_top = this->stk + this->stack_size;
-    if(this->obj_type == MContextType) {
+    if(this->obj_type == MethodContextType) {
       assert(this->home() == old);
     }
   }
@@ -234,7 +226,7 @@ initialize:
 
     MethodContext* ctx = as<MethodContext>(obj);
 
-    if(ctx->obj_type == MContextType) {
+    if(ctx->obj_type == MethodContextType) {
       assert(ctx->home() == obj);
     }
 

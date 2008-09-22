@@ -9,7 +9,7 @@ namespace rubinius {
   class NativeFunction : public Executable {
   public:
     static const size_t fields = 7;
-    static const object_type type = NativeFuncType;
+    static const object_type type = NativeFunctionType;
 
   private:
     OBJECT name_;         // slot

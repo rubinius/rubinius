@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <ctype.h>
 #include <stdint.h>
+
 #include "object_types.hpp"
 
 namespace rubinius {
@@ -180,5 +181,6 @@ to be a simple test for that bit pattern.
 #define INCREMENT_AGE(obj) (obj->copy_count++)
 
 }
+
 
 #endif

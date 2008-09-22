@@ -50,7 +50,7 @@ namespace rubinius {
           : my_index(0)
           , my_storage(&storage)
         {
-          my_storage->push_back(as<Object>(obj));
+          my_storage->push_back(obj);
           my_index = my_storage->size() - 1;
         }
 
@@ -178,7 +178,7 @@ namespace rubinius {
     public:   /* Slots and bookkeeping. */
 
         const static size_t   fields  = 0;      // TODO: Check this
-    const static object_type  type    = NContextType;
+    const static object_type  type    = NativeMethodContextType;
 
 
     /*  OK, these are the slots we get from MethodContext (and all we really need.)

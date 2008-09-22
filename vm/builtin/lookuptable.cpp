@@ -26,13 +26,6 @@
 
 namespace rubinius {
 
-  template <>
-    bool kind_of<LookupTable>(OBJECT obj) {
-      return obj->reference_p() &&
-        (obj->obj_type == LookupTable::type ||
-         obj->obj_type == MTType);
-    }
-
   LookupTable* LookupTable::create(STATE, size_t size) {
     LookupTable *tbl;
 

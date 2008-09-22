@@ -46,7 +46,7 @@ namespace rubinius {
   class MetaClass : public Class {
   public:
     const static size_t fields = Class::fields + 1;
-    const static object_type type = MetaclassType;
+    const static object_type type = MetaClassType;
 
   private:
     OBJECT attached_instance_; // slot

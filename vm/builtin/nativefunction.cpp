@@ -64,7 +64,7 @@ namespace rubinius {
   void NativeFunction::init(STATE) {
     GO(native_function).set(state->new_class("NativeFunction", G(executable),
           NativeFunction::fields));
-    G(native_function)->set_object_type(state, NativeFuncType);
+    G(native_function)->set_object_type(state, NativeFunctionType);
 
     G(rubinius)->set_const(state, "LIBSUFFIX", String::create(state, LIBSUFFIX));
   }
@@ -505,7 +505,7 @@ namespace rubinius {
           *tmp = NULL;
         } else {
           MemoryPointer *mp = as<MemoryPointer>(obj);
-          type_assert(obj, MemPtrType, "converting to pointer");
+          type_assert(obj, MemoryPointerType, "converting to pointer");
           *tmp = mp->pointer;
         }
         values[i] = tmp;

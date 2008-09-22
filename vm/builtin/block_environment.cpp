@@ -22,7 +22,7 @@ namespace rubinius {
   void BlockEnvironment::init(STATE) {
     GO(blokenv).set(state->new_class("BlockEnvironment", G(object), 
           BlockEnvironment::fields));
-    G(blokenv)->set_object_type(state, BlockEnvType);
+    G(blokenv)->set_object_type(state, BlockEnvironmentType);
   }
 
   void BlockEnvironment::call(STATE, Task* task, size_t args) {

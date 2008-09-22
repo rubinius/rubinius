@@ -8,7 +8,7 @@ namespace rubinius {
   class MemoryPointer : public Object {
     public:
     const static size_t fields = 0;
-    const static object_type type = MemPtrType;
+    const static object_type type = MemoryPointerType;
 
     void* pointer;
     bool autorelease;

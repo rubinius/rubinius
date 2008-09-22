@@ -54,7 +54,7 @@ namespace rubinius {
   class IncludedModule : public Module {
   public:
     const static size_t fields = Module::fields + 1;
-    const static object_type type = IncModType;
+    const static object_type type = IncludedModuleType;
 
   private:
     OBJECT module_; // slot

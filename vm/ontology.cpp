@@ -84,7 +84,7 @@ namespace rubinius {
 
     /* Create MetaClass */
     GO(metaclass).set(new_basic_class(cls, MetaClass::fields));
-    G(metaclass)->set_object_type(state, MetaclassType);
+    G(metaclass)->set_object_type(state, MetaClassType);
 
     /* Create Tuple */
     GO(tuple).set(new_basic_class(object, Tuple::fields));
@@ -96,7 +96,7 @@ namespace rubinius {
 
     /* Create MethodTable */
     GO(methtbl).set(new_basic_class(G(lookuptable), MethodTable::fields));
-    G(methtbl)->set_object_type(state, MTType);
+    G(methtbl)->set_object_type(state, MethodTableType);
 
     /* Now, we have:
      *  Class

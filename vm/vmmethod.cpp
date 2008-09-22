@@ -33,8 +33,10 @@ namespace rubinius {
 
     opcodes = new opcode[total];
 
+    Tuple* ops = meth->iseq()->opcodes();
+    OBJECT val;
     for(size_t index = 0; index < total; index++) {
-      OBJECT val = meth->iseq()->opcodes()->at(index);
+      val = ops->at(index);
       if(val->nil_p()) {
         opcodes[index] = 0;
       } else {

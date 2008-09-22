@@ -16,7 +16,7 @@
 namespace rubinius {
   class Array;
 
-  class Float : public Object {
+  class Float : public Numeric {
     public:
     const static size_t fields = 0;
     const static object_type type = FloatType;

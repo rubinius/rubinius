@@ -41,7 +41,7 @@ namespace rubinius {
 
     this->module(my_state, my_message->module);
 
-    this->name(my_state, as<Object>(my_message->name));
+    this->name(my_state, my_message->name);
 
 //    my_stack_size = DEFAULT_STACK_SIZE;
 //    my_stack = new char[my_stack_size];
@@ -97,7 +97,7 @@ namespace rubinius {
    */
   void NativeMethodContext::register_class_with(VM* state) {
     state->globals.nativectx.set(state->new_class("NativeMethodContext", state->globals.methctx.get()));
-    state->globals.nativectx.get()->set_object_type(state, NContextType);
+    state->globals.nativectx.get()->set_object_type(state, NativeMethodContextType);
   }
 }
 

@@ -168,8 +168,6 @@ namespace rubinius {
     void copy_ivars(STATE, OBJECT other);
     void copy_metaclass(STATE, OBJECT other);
 
-    static const char* type_to_name(object_type type);
-
     /* VM level primitives. It's dumb to have them here, but it's more
      * complicated to make field_extract parse non-Object classes. */
 

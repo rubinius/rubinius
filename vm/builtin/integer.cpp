@@ -20,15 +20,6 @@ namespace rubinius {
     return as<Bignum>(this)->to_long_long();
   }
 
-  // TODO: double check that this links. Evan says it doesn't. I'll
-  // check my Meiers books when I get home
-  template <>
-  bool kind_of<Numeric>(OBJECT obj) {
-    return obj->fixnum_p() ||
-      (obj->reference_p() && (obj->obj_type == Bignum::type ||
-                              obj->obj_type == Float::type));
-  }
-
   INTEGER Integer::from(STATE, int num) {
 #if (CONFIG_WORDSIZE != 64)
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {

@@ -91,7 +91,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, name);
@@ -116,7 +116,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 2);
     input->set(state, 0, Qnil);
@@ -140,7 +140,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -164,7 +164,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -188,7 +188,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -212,7 +212,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 2);
     input->set(state, 0, Fixnum::from(0));
@@ -245,7 +245,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -279,7 +279,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -313,7 +313,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -347,7 +347,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -381,7 +381,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -415,7 +415,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
@@ -448,7 +448,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Message* msg = new Message(state);
 
@@ -468,7 +468,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     char buffer[1];
     buffer[0] = 0;
@@ -505,7 +505,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Float::create(state, 13.2));
@@ -530,7 +530,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, Float::create(state, 13.2));
@@ -554,7 +554,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, String::create(state, "whatever"));
@@ -587,7 +587,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     input->set(state, 0, String::create(state, "whatever"));
@@ -632,7 +632,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
     OBJECT obj = state->om->new_object(G(object), Object::fields);
@@ -668,7 +668,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemPtrType));
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Message* msg = new Message(state);
 

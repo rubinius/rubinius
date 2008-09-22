@@ -24,50 +24,6 @@
 
 namespace rubinius {
 
-  template <>
-    bool kind_of<Object>(OBJECT obj) {
-      return true;
-    }
-
-  template <>
-    bool instance_of<Object>(OBJECT obj) {
-      return obj->get_type() == ObjectType;
-    }
-
-  /**
-   *  Cast any class into an Object (specialised.)
-   *
-   *  Specialised version of  as().
-   *
-   *  Everything but NULL pointers can be cast into Objects.
-   *  NULLs cause an assertion.
-   *
-   *  @see  vm/object.hpp for the general version.
-   */
-  template <>
-    Object* as<Object>(OBJECT obj)
-    {
-      sassert(obj);
-      return obj;
-    }
-
-  /**
-   *  Cast any class into an Object (specialised.)
-   *
-   *  Specialised version of try_as().
-   *
-   *  Everything but NULL pointers can be cast into Objects.
-   *  NULLs cause an assertion.
-   *
-   *  @see  vm/object.hpp for the general version.
-   */
-  template <>
-    Object* try_as<Object>(OBJECT obj)
-    {
-      sassert(obj);
-      return obj;
-    }
-
   bool Object::fixnum_p() {
     return FIXNUM_P(this);
   }
@@ -217,92 +173,6 @@ namespace rubinius {
     }
   }
 
-  const char* Object::type_to_name(object_type t) {
-    const char* type;
-
-    switch(t) {
-    case ObjectType:
-      type = "Object";
-      break;
-    case MContextType:
-      type = "MethodContext";
-      break;
-    case BContextType:
-      type = "BlockContext";
-      break;
-    case NContextType:
-      type = "NativeMethodContext";
-      break;
-    case ClassType:
-      type = "Class";
-      break;
-    case MetaclassType:
-      type = "Metaclass";
-      break;
-    case MTType:
-      type = "MethodTable";
-      break;
-    case WrapsStructType:
-      type = "SubtendCStructure";
-      break;
-    case IncModType:
-      type = "included Module";
-      break;
-    case TaskType:
-      type = "Task";
-      break;
-    case FixnumType:
-      type = "Fixnum";
-      break;
-    case BignumType:
-      type = "Bignum";
-      break;
-    case FloatType:
-      type = "Float";
-      break;
-    case MemPtrType:
-      type = "MemoryPointer";
-      break;
-    case StringType:
-      type = "String";
-      break;
-    case SymbolType:
-      type = "Symbol";
-      break;
-    case CMethodType:
-      type = "CompiledMethod";
-      break;
-    case NativeFuncType:
-      type = "NativeFunction";
-      break;
-    case NMethodType:
-      type = "NativeMethod";
-      break;
-    case NilType:
-      type = "nil";
-      break;
-    case LookupTableType:
-      type = "LookupTable";
-      break;
-    case DirType:
-      type = "Dir";
-      break;
-    case CompactLookupTableType:
-      type = "CompactLookupTable";
-      break;
-    case TimeType:
-      type = "Time";
-      break;
-    case TaskProbeType:
-      type = "TaskProbe";
-      break;
-    default:
-      type = "unknown";
-      break;
-    }
-    return type;
-  }
-
   Class* Object::class_object(STATE) {
     if(reference_p()) {
       Class* cls = klass_;
@@ -378,7 +248,7 @@ namespace rubinius {
       found = (Class*)found->superclass();
       if(found == cls) return true;
 
-      if(found->reference_p() && found->obj_type == IncModType) {
+      if(found->reference_p() && found->obj_type == IncludedModuleType) {
         if(((IncludedModule*)found)->module() == cls) return true;
       }
     }

@@ -141,9 +141,11 @@ class CPPClass
     @flags = {}
     @primitives = {}
     @num_fields = 0
+    @subclasses = []
   end
 
   attr_accessor :name, :super, :fields, :primitives, :flags, :num_fields
+  attr_accessor :subclasses
 
   def add_field(idx, name, type, flag=nil)
     if flag
@@ -308,6 +310,42 @@ void #{@name}::Info::auto_mark(OBJECT _t, ObjectMark& mark) {
 
     str
   end
+
+  def kind_of_code(what)
+    case @name
+    when "Fixnum"
+      return "FIXNUM_P(#{what})"
+    when "Symbol"
+      return "SYMBOL_P(#{what})"
+    when "TrueClass"
+      return "#{what} == Qtrue"
+    when "FalseClass"
+      return "#{what} == Qfalse"
+    when "NilClass"
+      return "#{what} == Qnil"
+    else
+      return "(REFERENCE_P(#{what}) && #{what}->obj_type == #{@name}Type)"
+    end
+  end
+
+  def kind_of_conditions(what)
+    [kind_of_code(what)] + @subclasses.map do |cpp|
+      cpp.kind_of_conditions(what)
+    end
+  end
+
+  def generate_kind_of
+    checks = kind_of_conditions("obj")
+
+    # We forward declare the class in here to keep everything happy
+    str = <<-CPP
+template <>
+static bool kind_of<#{@name}>(Object* obj) {
+  return #{checks.join(' || ')};
+}
+
+    CPP
+  end
 end
 
 class CPPParser
@@ -374,6 +412,7 @@ class CPPParser
         if sup = @classes[m[2]]
           cpp = CPPClass.new(m[1])
           cpp.super = sup
+          sup.subclasses << cpp
         else
           next
         end
@@ -490,7 +529,7 @@ def write_if_new(path)
     yield f
   end
 
-  File.rename tmp_path, path unless system("diff -q #{path} #{tmp_path} 2>&1")
+  File.rename tmp_path, path unless system("diff -q #{path} #{tmp_path} > /dev/null 2>&1")
 ensure
   File.unlink tmp_path if File.exist? tmp_path
 end
@@ -582,6 +621,29 @@ write_if_new "vm/gen/primitives_declare.hpp" do |f|
     cpp.primitives.each do |pn, prim|
       f.puts "static bool #{pn}(STATE, Executable* exec, Task* task, Message& msg);"
     end
+  end
+end
+
+write_if_new "vm/gen/object_types.hpp" do |f|
+  f.puts "typedef enum {"
+  f.puts "  InvalidType = 0,"
+  f.puts "  NilType,"
+  f.puts "  TrueType,"
+  f.puts "  FalseType,"
+  parser.classes.map { |n, cpp| cpp.name}.sort.each do |name|
+    f.puts "  #{name}Type,"
+  end
+  f.puts "  LastObjectType"
+  f.puts "} object_type;"
+  f.puts
+end
+
+write_if_new "vm/gen/kind_of.hpp" do |f|
+
+  parser.classes.each do |n, cpp|
+    next if cpp.name == "Object"
+    f.puts "class #{cpp.name};"
+    f.puts cpp.generate_kind_of
   end
 end
 

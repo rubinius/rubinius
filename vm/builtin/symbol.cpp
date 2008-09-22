@@ -14,12 +14,6 @@
 #define Increments 32
 
 namespace rubinius {
-  /* See Note(t1) in immediates.cpp */
-  template <>
-    bool kind_of<Symbol>(OBJECT obj) {
-      return obj->symbol_p();
-    }
-
   void Symbol::init(STATE) {
     GO(symbol).set(state->new_class("Symbol"));
   }

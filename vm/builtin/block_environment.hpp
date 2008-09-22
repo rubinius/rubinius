@@ -16,7 +16,7 @@ namespace rubinius {
   class BlockEnvironment : public Object {
   public:
     const static size_t fields = 5;
-    const static object_type type = BlockEnvType;
+    const static object_type type = BlockEnvironmentType;
 
   private:
     MethodContext* home_;       // slot

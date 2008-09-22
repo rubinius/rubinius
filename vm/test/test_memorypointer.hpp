@@ -272,7 +272,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     MemoryPointer* ptr = MemoryPointer::create(state, &val);
 
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_PTR);
-    TS_ASSERT(obj->check_type(MemPtrType));
+    TS_ASSERT(obj->check_type(MemoryPointerType));
 
     TS_ASSERT_EQUALS(as<MemoryPointer>(obj)->pointer, val);
   }
@@ -323,7 +323,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     String *so = as<String>(ary->get(state, 0));
     TS_ASSERT(!strncmp(str, so->byte_address(), 4));
 
-    TS_ASSERT(ary->get(state, 1)->check_type(MemPtrType));
+    TS_ASSERT(ary->get(state, 1)->check_type(MemoryPointerType));
     MemoryPointer* mp = as<MemoryPointer>(ary->get(state, 1));
     TS_ASSERT_EQUALS(mp->pointer, str);
   }

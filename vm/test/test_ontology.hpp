@@ -62,7 +62,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(meta->class_object(state), G(klass));
     TS_ASSERT_EQUALS(meta->superclass(), G(klass));
-    TS_ASSERT_EQUALS(meta->instance_type(), Fixnum::from(MetaclassType));
+    TS_ASSERT_EQUALS(meta->instance_type(), Fixnum::from(MetaClassType));
     check_const(metaclass, "MetaClass");
   }
 
@@ -96,7 +96,7 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass(), G(lookuptable));
 
-    TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), MTType);
+    TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), MethodTableType);
     check_const(methtbl, "MethodTable");
   }
 

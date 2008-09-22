@@ -19,7 +19,7 @@ namespace rubinius {
   public:
     // fields is 0 because it is dynamically calculated
     const static size_t fields = 0;
-    const static object_type type = MContextType;
+    const static object_type type = MethodContextType;
 
   private:
     MethodContext* sender_; // slot
@@ -143,7 +143,7 @@ namespace rubinius {
     public:
     // fields is 0 because it is dynamically calculated
     const static size_t fields = 0;
-    const static object_type type = BContextType;
+    const static object_type type = BlockContextType;
 
     BlockEnvironment* env();
 

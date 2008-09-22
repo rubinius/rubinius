@@ -30,7 +30,7 @@ namespace rubinius {
 
   void MemoryPointer::init(STATE) {
     GO(memory_pointer).set(state->new_class("MemoryPointer"));
-    G(memory_pointer)->set_object_type(state, MemPtrType);
+    G(memory_pointer)->set_object_type(state, MemoryPointerType);
   }
 
   MemoryPointer* MemoryPointer::create(STATE, void* ptr) {
@@ -299,7 +299,7 @@ namespace rubinius {
         WRITE(void*, NULL);
       } else {
         MemoryPointer *mp = as<MemoryPointer>(val);
-        type_assert(val, MemPtrType, "converting to pointer");
+        type_assert(val, MemoryPointerType, "converting to pointer");
         WRITE(void*, mp->pointer);
       }
       break;

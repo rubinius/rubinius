@@ -14,7 +14,7 @@ namespace rubinius {
   class CompiledMethod : public Executable {
   public:
     const static size_t fields = 18;
-    const static object_type type = CMethodType;
+    const static object_type type = CompiledMethodType;
     const static size_t saved_fields = 16;
 
   private:

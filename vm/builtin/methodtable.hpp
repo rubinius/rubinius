@@ -6,7 +6,7 @@
 namespace rubinius {
   class MethodTable : public LookupTable {
     public:
-    const static object_type type = MTType;
+    const static object_type type = MethodTableType;
 
     static MethodTable* create(STATE);
 

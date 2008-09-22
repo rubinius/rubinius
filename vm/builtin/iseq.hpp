@@ -10,7 +10,7 @@ namespace rubinius {
   class InstructionSequence : public Object {
   public:
     const static size_t fields = 2;
-    const static object_type type = ISeqType;
+    const static object_type type = InstructionSequenceType;
 
   private:
     Tuple* opcodes_;     // slot

@@ -21,20 +21,28 @@
 
 namespace rubinius {
 
+#define sassert(cond) if(!(cond)) Assertion::raise(#cond)
+
   /**
    *  Ruby type system subtype check.
    *
    *  Given builtin-class +T+, return true if +obj+ is of class +T+
    */
   template <class T>
-    bool kind_of(OBJECT obj) {
-      if(obj->reference_p()) {
+    static bool kind_of(Object* obj) {
+      if(REFERENCE_P(obj)) {
         return obj->obj_type == T::type;
       }
       return false;
     }
 
-  template <> bool kind_of<Object>(OBJECT obj);
+  /**
+   * A specialized version for completeness.
+   */
+  template <>
+    static bool kind_of<Object>(Object* obj) {
+      return true;
+    }
 
   /**
    *  Ruby type system class check.
@@ -44,16 +52,20 @@ namespace rubinius {
    *  one.
    */
   template <class T>
-    bool instance_of(OBJECT obj) {
-      if(obj->reference_p()) {
+    static bool instance_of(Object* obj) {
+      if(REFERENCE_P(obj)) {
         return obj->obj_type == T::type;
       }
       return false;
     }
 
-  template <> bool instance_of<Object>(OBJECT obj);
-
-#define sassert(cond) if (!(cond)) Assertion::raise(#cond)
+  /**
+   * A specialized version for completeness.
+   */
+  template <>
+    static bool instance_of<Object>(Object* obj) {
+      return obj->reference_p() && (obj->get_type() == ObjectType);
+    }
 
   /*
    *  There is NO reason why as() or try_as() should be getting
@@ -70,7 +82,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    T* as(OBJECT obj) {
+    static T* as(Object* obj) {
       sassert(NULL != obj);
 
       if(!kind_of<T>(obj))
@@ -79,11 +91,13 @@ namespace rubinius {
       return static_cast<T*>(obj);
     }
 
-  /** Specialised cast to always succeed if not NULL.
-   *
-   *  Implemented in builtin/object.cpp.
+  /**
+   * A specialized version for completeness.
    */
-  template <> Object* as<Object>(OBJECT obj);
+  template <>
+    static Object* as<Object>(Object* obj) {
+      return obj;
+    }
 
   /**
    *  Non-raising version of as().
@@ -94,7 +108,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    T* try_as(OBJECT obj) {
+    static T* try_as(Object* obj) {
       sassert(NULL != obj);
 
       if(!kind_of<T>(obj))
@@ -103,11 +117,6 @@ namespace rubinius {
       return static_cast<T*>(obj);
     }
 
-  /** Specialised cast to always succeed if not NULL.
-   *
-   *  Implemented in builtin/object.cpp.
-   */
-  template <> Object* try_as<Object>(OBJECT obj);
 
   void type_assert(OBJECT obj, object_type type, const char* reason);
 
@@ -135,6 +144,8 @@ namespace rubinius {
   if(s->free != NULL) { s->free(s->ptr); } \
 } while (0)
 
-};
+#include "gen/kind_of.hpp"
+
+}
 
 #endif
