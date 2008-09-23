@@ -19,6 +19,14 @@
  *  objects, such as type checking and casting.
  */
 
+// A stupid work around for g++ changing it's behavior on 4.3
+
+#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 3
+  #define SPECIALIZATION_STORAGE
+#else
+  #define SPECIALIZATION_STORAGE static
+#endif
+
 namespace rubinius {
 
 #define sassert(cond) if(!(cond)) Assertion::raise(#cond)
