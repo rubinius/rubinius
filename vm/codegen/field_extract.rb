@@ -3,12 +3,13 @@ class BasicPrimitive
   attr_accessor :pass_self
   attr_accessor :raw
 
-  def output_header(str)
+  def output_header(str, args)
     str << "bool Primitives::#{@name}(STATE, Executable* exec, Task* task, Message& msg) {\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
-    str << "  OBJECT ret;\n" 
+    str << "  OBJECT ret;\n"
     str << "  OBJECT self;\n" if @pass_self
+    str << "  if(msg.args() != #{args}) goto fail;" if args
     str << "  try {\n"
   end
 
@@ -52,7 +53,13 @@ class CPPPrimitive < BasicPrimitive
 
   def generate_glue
     str = ""
-    output_header str
+    if @raw
+      arg_count = nil
+    else
+      arg_count = arg_types.size
+    end
+
+    output_header str, arg_count
 
     str << "    #{@type}* recv;\n"
     str << "    if((recv = try_as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
@@ -77,7 +84,7 @@ end
 class CPPStaticPrimitive < CPPPrimitive
   def generate_glue
     str = ""
-    output_header str
+    output_header str, arg_types.size
 
     args = output_args str, arg_types
     str << "    self = msg.recv;\n" if @pass_self
@@ -105,7 +112,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
   def generate_glue
     str = ""
-    output_header str
+    output_header str, 1
 
     str << "    #{@type}* recv;\n"
     str << "    if((recv = as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
