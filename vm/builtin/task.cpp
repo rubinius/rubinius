@@ -466,7 +466,7 @@ stack_cleanup:
   }
 
   Module* Task::current_module() {
-    return active_->module();
+    return home_->module();
   }
 
   static Class* check_superclass(STATE, Class* cls, OBJECT super) {

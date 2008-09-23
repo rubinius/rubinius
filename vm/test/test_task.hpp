@@ -834,7 +834,7 @@ class TestTask : public CxxTest::TestSuite {
     ctx->module(state, parent);
 
     Task* task = Task::create(state, 10);
-    task->active(state, ctx);
+    task->home(state, ctx);
 
     TS_ASSERT_EQUALS(task->current_module(), parent);
   }
