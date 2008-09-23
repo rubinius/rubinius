@@ -149,6 +149,8 @@ class Compiler < SexpProcessor
   end
 
   def process_block exp
+    return rewrite(s(:nil)) if exp.empty?
+
     result = s(:dummy)
 
     until exp.empty? do
@@ -156,7 +158,7 @@ class Compiler < SexpProcessor
       result << s(:pop)
     end
 
-    result.pop # remove last pop
+    result.pop if result.size > 2 # remove last pop
 
     result
   end
@@ -225,20 +227,31 @@ class Compiler < SexpProcessor
       s(:find_const, exp.shift))
   end
 
-  def process_defn exp
+  def defn_or_defs exp, type
+    recv = process(exp.shift) if type == :defs
     name = exp.shift
     args = process(exp.shift)
     body = process(exp.shift)
+    msg  = type == :defs ? :attach_method : :__add_method__
 
     body[0] = :method_description
     body[1, 0] = args[1..-1] # HACK: fucking fix dummy!
     body << s(:ret)
 
     s(:dummy,
-      s(:push_context),
+      (recv if type == :defs),
+      type == :defn ? s(:push_context) : s(:send, :metaclass, 0),
       s(:push_literal, name),
       s(:push_literal, body),
-      s(:send, :__add_method__, 2)).compact
+      s(:send, msg, 2)).compact
+  end
+
+  def process_defn exp
+    defn_or_defs exp, :defn
+  end
+
+  def process_defs exp
+    defn_or_defs exp, :defs
   end
 
   def process_dregx exp
@@ -522,6 +535,10 @@ class Compiler < SexpProcessor
   def rewrite_scope exp
     exp[0] = :dummy
     exp
+  end
+
+  def rewrite_self exp
+    s(:push, :self)
   end
 
   def rewrite_str exp
