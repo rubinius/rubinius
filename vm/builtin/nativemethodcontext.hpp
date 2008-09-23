@@ -51,7 +51,7 @@ namespace rubinius {
      *  for casting to the correct type when needed.
      */
     template <typename T>
-      Handle::Handle(HandleStorage& storage, T* obj)
+      Handle(HandleStorage& storage, T* obj)
         : my_index(0)
         , my_storage(&storage)
       {

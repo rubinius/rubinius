@@ -89,9 +89,9 @@ namespace rubinius {
      *  @see  functor_as() for the cast back.
      */
     template <typename FunctorType>
-      static NativeMethod* NativeMethod::create(VM* state,
-                                                FunctorType functor = static_cast<GenericFunctor>(NULL),
-                                                int arity = 0)
+      static NativeMethod* create(VM* state,
+                                  FunctorType functor = static_cast<GenericFunctor>(NULL),
+                                  int arity = 0)
       {
         NativeMethod* nmethod = static_cast<NativeMethod*>(state->new_object(state->globals.nmethod.get()));
 
@@ -145,7 +145,7 @@ namespace rubinius {
 
     /** Return the functor cast into the specified type. */
     template <typename FunctorType>
-      FunctorType NativeMethod::functor_as() const
+      FunctorType functor_as() const
       {
         return reinterpret_cast<FunctorType>(my_functor);
       }
