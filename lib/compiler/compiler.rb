@@ -39,11 +39,10 @@ class Compiler
     return node.to_description(:__script__).to_cmethod
   end
 
-  def self.compile_string(string, flags = {}, file = "(eval)", line = 1)
+  def self.compile_string(string, binding, file = "(eval)", line = 1)
     sexp = string.to_sexp(file, line)
 
-    binding = flags[:binding]
-    node    = new(Generator, binding).convert_sexp([:eval_expression, sexp])
+    node    = new(Generator, binding).convert_sexp(s(:eval_expression, sexp))
     cm      = node.to_description(:__eval_script__).to_cmethod
     cm.file = file.to_sym
 
@@ -84,14 +83,14 @@ class Compiler
     end
   end
 
-  def initialize(gen_class, binding=nil)
+  def initialize(gen_class, context=nil)
     @variables = {}
     @generator_class = gen_class
     @plugins = Hash.new { |h,k| h[k]= [] }
 
     @file = "(unknown)"
     @line = 0
-    @binding = binding
+    @context = context
 
     @kernel = Config['rbx-kernel']
     load_plugins
@@ -102,11 +101,11 @@ class Compiler
   end
 
   def custom_scopes?
-    @binding
+    @context
   end
 
   def create_scopes
-    ctx = @binding.context
+    ctx = @context
     if ctx.kind_of? BlockContext
       all_scopes = []
       block_scopes = []
@@ -140,7 +139,7 @@ class Compiler
         end
       end
 
-      return [scope, block_scopes, all_scopes, @binding.context]
+      return [scope, block_scopes, all_scopes, @context]
     else
       scope = LocalScope.new(nil)
       scope.from_eval = true
@@ -152,7 +151,7 @@ class Compiler
         end
       end
 
-      return [scope, [], [scope], @binding.context]
+      return [scope, [], [scope], @context]
     end
   end
 

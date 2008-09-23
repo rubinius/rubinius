@@ -51,6 +51,9 @@ module Kernel
     script.path = filename
     compiled_method.scope.script = script
 
+    # Internalize it now, since we're going to springboard to it as a block.
+    compiled_method.compile
+
     be = BlockEnvironment.new
     be.under_context binding.context, compiled_method
 
