@@ -15,6 +15,8 @@
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
 
+#include "context_cache.hpp"
+
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {
     std::string magic, sum;
@@ -44,6 +46,7 @@ namespace rubinius {
     msg.module = G(object);
 
     G(current_thread)->task(state, task);
+    state->activate_task(task);
 
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));

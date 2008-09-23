@@ -97,8 +97,6 @@ namespace rubinius {
     // Ruby.primitive :task_call_object
     OBJECT call_object(STATE, OBJECT recv, SYMBOL meth, Array* args);
 
-    void restore_context(MethodContext* ctx);
-    void make_active(MethodContext* ctx);
     void execute();
     void execute_interp();
     void import_arguments(MethodContext* ctx, Message& msg);
@@ -107,7 +105,6 @@ namespace rubinius {
     void methctx_reference(MethodContext* ctx);
     void set_ip(int ip);
     int  current_ip();
-    void cache_ip();
 
     OBJECT const_get(Module* under, SYMBOL name, bool* found);
     OBJECT const_get(SYMBOL name, bool* found);
@@ -125,7 +122,6 @@ namespace rubinius {
     Task* raise(STATE, Exception *exc);
 
     void raise_exception(Exception *exc);
-    void activate_method(Message& msg);
     bool send_message(Message& msg);
     bool send_message_slowly(Message& msg);
     Module* current_module();
@@ -156,6 +152,18 @@ namespace rubinius {
     void enable_profiler();
     void disable_profiler(char* results);
 
+    // Add +ctx+ to the context chain by setting the active context
+    // to +ctx+'s sender and making +ctx+ active.
+    void make_active(MethodContext* ctx);
+
+  private:
+    // Restore the state of the active contexts sender
+    void restore_sender();
+
+    // Set +ctx+ the active context
+    void restore_context(MethodContext* ctx);
+
+  public:
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

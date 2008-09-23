@@ -28,8 +28,6 @@ namespace rubinius {
   void ContextCache::add(STATE, size_t which, MethodContext* ctx) {
     ctx->home(state, caches[which]);
     caches[which] = ctx;
-
-    reclaim--;
   }
 
 };

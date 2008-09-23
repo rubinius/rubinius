@@ -1026,13 +1026,13 @@ class TestTask : public CxxTest::TestSuite {
      * code */
     task->active()->zone = MatureObjectZone;
 
-    task->restore_context(task->active());
+    task->make_active(task->active());
     TS_ASSERT(task->active()->Remember);
 
     /* Check it only happens to old contexts. */
     task = Task::create(state);
     TS_ASSERT(!task->active()->Remember);
-    task->restore_context(task->active());
+    task->make_active(task->active());
     TS_ASSERT(!task->active()->Remember);
   }
 

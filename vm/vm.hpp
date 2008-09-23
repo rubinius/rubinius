@@ -123,6 +123,8 @@ namespace rubinius {
     void run_best_thread();
     void queue_thread(Thread* thread);
     void activate_thread(Thread* thread);
+    void activate_task(Task* task);
+
     void raise_from_errno(const char* reason);
     void raise_exception(Exception* exc);
     Exception* new_exception(Class* cls, const char* msg);

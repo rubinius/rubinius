@@ -14,6 +14,8 @@
 #include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
 
+#include "context_cache.hpp"
+
 #include "global_cache.hpp"
 
 #include "objectmemory.hpp"
@@ -256,7 +258,7 @@ stack_cleanup:
     return Qtrue;
   }
 
-  void Task::simple_return(OBJECT value) {
+  void Task::restore_sender() {
     MethodContext *target = active_->sender();
 
     if(profiler) profiler->leave_method();
@@ -264,6 +266,10 @@ stack_cleanup:
     active_->recycle(state);
 
     restore_context(target);
+  }
+
+  void Task::simple_return(OBJECT value) {
+    restore_sender();
     active_->push(value);
   }
 
@@ -299,7 +305,7 @@ stack_cleanup:
       if(active_->sender()->nil_p()) break;
       if(profiler) profiler->leave_method();
 
-      restore_context(active_->sender()); // HACK test to prevent infinite loop
+      restore_sender();
     }
   }
 
@@ -599,8 +605,6 @@ stack_cleanup:
     return active_->get_local(pos);
   }
 
-  void Task::activate_method(Message&) { }
-
   /* Move the active context to executing instruction +ip+. */
   void Task::set_ip(int ip) {
     active_->ip = ip;
@@ -611,17 +615,18 @@ stack_cleanup:
     return active_->ip;
   }
 
-  void Task::cache_ip() { }
   void Task::check_interrupts() {
     if(state->om->collect_young_now) {
       state->om->collect_young_now = false;
       state->om->collect_young(state->globals.roots);
+      state->context_cache->reset();
       state->global_cache->clear();
     }
 
     if(state->om->collect_mature_now) {
       state->om->collect_mature_now = false;
       state->om->collect_mature(state->globals.roots);
+      state->context_cache->reset();
       state->global_cache->clear();
     }
 

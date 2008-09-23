@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-#define DISABLE_CACHE 1
+#define DISABLE_CACHE 0
 
 namespace rubinius {
 
@@ -76,6 +76,7 @@ namespace rubinius {
 
     if((ctx = state->context_cache->get(which_cache)) != NULL) {
       ctx->obj_type = (object_type)cls->instance_type()->to_native();
+      ctx->klass(state, cls);
       goto initialize;
     }
 
@@ -119,10 +120,12 @@ initialize:
    * on it's size. Returns true if the context was recycled, otherwise
    * false. */
   bool MethodContext::recycle(STATE) {
-    /* Only recycle young contexts */
-    if(zone != YoungObjectZone) return false;
-
     if(state->context_cache->reclaim > 0) {
+      state->context_cache->reclaim--;
+
+      /* Only recycle young contexts */
+      if(zone != YoungObjectZone) return false;
+
       size_t which;
       if(stack_size == SmallContextSize) {
         which = SmallContextCache;
@@ -134,7 +137,7 @@ initialize:
 
       // HACK this is broken. It's adding context which
       // are still live into the cache (busting those contexts)
-      // state->context_cache->add(state, which, this);
+      state->context_cache->add(state, which, this);
       return true;
     }
 

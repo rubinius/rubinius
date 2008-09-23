@@ -204,14 +204,19 @@ namespace rubinius {
   }
 
   void VM::activate_thread(Thread* thread) {
-    // Don't try and reclaim any contexts, they belong to someone else.
-    context_cache->reclaim = 0;
     globals.current_thread.set(thread);
     if(globals.current_task.get() != thread->task()) {
-      globals.current_task.set(thread->task());
-      interrupts.check = true;
-      interrupts.switch_task = true;
+      activate_task(thread->task());
     }
+  }
+
+  void VM::activate_task(Task* task) {
+    // Don't try and reclaim any contexts, they belong to someone else.
+    context_cache->reclaim = 0;
+
+    globals.current_task.set(task);
+    interrupts.check = true;
+    interrupts.switch_task = true;
   }
 
   OBJECT VM::current_block() {
@@ -240,7 +245,7 @@ namespace rubinius {
 
   Task* VM::new_task() {
     Task* task = Task::create(this);
-    globals.current_task.set(task);
+    activate_task(task);
     return task;
   }
 
