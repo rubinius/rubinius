@@ -30,9 +30,15 @@ class TestGenerator
   def initialize
     @stream = []
     @ip = 0
+    @lbl = 0
   end
 
-  attr_reader :stream, :ip
+  def new_label_id
+    @lbl += 1
+    @lbl
+  end
+
+  attr_accessor :stream, :ip
 
   def run(node)
     node.bytecode(self)
@@ -56,9 +62,9 @@ class TestGenerator
   end
 
   def set_label(lbl)
-    raise "Bad set_label: #{lbl.inspect} on #{caller.first}" unless
-      Label === lbl
-    @stream << [:set_label, lbl]
+#     raise "Bad set_label: #{lbl.inspect} on #{caller.first}" unless
+#       Label === lbl
+    @stream << [:set_label, lbl.to_sym]
   end
 
   attr_accessor :redo, :break, :next, :retry
@@ -105,14 +111,19 @@ class TestGenerator
     end
 
     def inspect
-      ":label_#{@ip}"
+      self.to_sym.inspect
+    end
+
+    def to_sym
+      raise "Unset label!" unless @ip
+      :"label_#{@ip}"
     end
 
     attr_reader :ip
 
     def set!
-      @ip = @generator.ip
-      @generator.set_label self
+      @ip = @generator.new_label_id
+      @generator.set_label self.to_sym
     end
 
     def ==(lbl)
@@ -403,7 +414,8 @@ class TestGenerator
 
   def in_rescue klass, wtf = false
     top       = self.new_label
-    bottom    = self.new_label
+    bottom1   = self.new_label
+    bottom2   = self.new_label
     dunno     = self.new_label
     std_err   = self.new_label
     unhandled = self.new_label
@@ -415,7 +427,7 @@ class TestGenerator
 
     yield true
 
-    self.goto bottom
+    self.goto bottom1
 
     dunno.set!
 
@@ -433,15 +445,15 @@ class TestGenerator
     yield false
 
     self.clear_exception
-    self.goto bottom
+    self.goto bottom2
 
     unhandled.set!
 
     self.push_exception
     self.raise_exc
 
-    bottom.set!
-    bottom.set!
+    bottom1.set!
+    bottom2.set!
 
     self.pop_modifiers
   end
@@ -514,7 +526,7 @@ def gen(sexp, plugins=[])
   @comp
 end
 
-def gen_iter x
+def gen_iter x # TODO: fold this up into TestGenerator instead
   gen x do |g|
     g.push :self
     g.send :ary, 0, true
