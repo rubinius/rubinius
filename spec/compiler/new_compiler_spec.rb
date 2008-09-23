@@ -161,6 +161,14 @@ class Compiler < SexpProcessor
     result
   end
 
+  def process_arglist exp
+    result = s(:dummy)
+    until exp.empty? do
+      result << process(exp.shift)
+    end
+    result
+  end
+
   def process_block_pass exp
     block    = exp.shift
     call     = exp.shift
@@ -190,6 +198,8 @@ class Compiler < SexpProcessor
     mesg  = exp.shift
     args  = exp.shift
     arity = args.size - 1
+
+    args[0] = :dummy
     args  = process(args)
 
     private_send = recv.nil?
@@ -408,11 +418,6 @@ class Compiler < SexpProcessor
       exp[1],
       exp[2],
       s(:send, :alias_method, 2, true))
-  end
-
-  def rewrite_arglist exp
-    exp[0] = :dummy
-    exp
   end
 
   def rewrite_back_ref exp
