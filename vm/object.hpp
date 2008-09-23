@@ -48,7 +48,7 @@ namespace rubinius {
    * A specialized version for completeness.
    */
   template <>
-    static bool kind_of<Object>(Object* obj) {
+    SPECIALIZATION_STORAGE bool kind_of<Object>(Object* obj) {
       return true;
     }
 
@@ -71,7 +71,7 @@ namespace rubinius {
    * A specialized version for completeness.
    */
   template <>
-    static bool instance_of<Object>(Object* obj) {
+    SPECIALIZATION_STORAGE bool instance_of<Object>(Object* obj) {
       return obj->reference_p() && (obj->get_type() == ObjectType);
     }
 
@@ -103,7 +103,7 @@ namespace rubinius {
    * A specialized version for completeness.
    */
   template <>
-    static Object* as<Object>(Object* obj) {
+    SPECIALIZATION_STORAGE Object* as<Object>(Object* obj) {
       return obj;
     }
 
