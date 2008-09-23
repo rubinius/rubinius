@@ -70,6 +70,24 @@ class Compiler < SexpProcessor
     result
   end
 
+  ##
+  # Invented node type is an if w/o an else body, allowing us to use
+  # this internally for several different forms.
+
+  def process_s_if exp
+    c = process(exp.shift)
+    flip = exp.pop if exp.last == true
+    t = process(s(:dummy, *exp))
+    j = flip ? :gif : :git
+
+    exp.clear # appease the sexp processor gods
+
+    j2 = s(j, new_jump)
+    s2 = s(:set_label, j2.last)
+
+    s(:dummy, c, j2, t, s2)
+  end
+
   def process_args exp
     result = s(:dummy)
 
@@ -97,30 +115,22 @@ class Compiler < SexpProcessor
       opt_args.map! { |opt_arg|
         next opt_arg if Symbol === opt_arg
         name, val = opt_arg[1..2]
-        jump_defined = new_jump
-        s(:dummy, # TODO: this should be a 1-liner s(:if ...)
-          s(:passed_arg, name2slot(name)),
-          s(:git, jump_defined),
-          process(s(:lasgn, name, val)),
-          s(:pop),
-          s(:set_label, jump_defined))
+        s(:s_if, s(:passed_arg, name2slot(name)),
+          s(:lasgn, name, val),
+          s(:pop))
       }
 
-      result[1, 0] = opt_args[1..-1] # HACK dummy should work deeply
+      opt_args[0] = :dummy
+      result[1, 0] = process(opt_args)[1..-1]
     end
 
     if block_arg then
-      jump_nil = new_jump
-      result.push(s(:push_block),
-                  s(:dup),
-                  s(:is_nil),
-                  s(:git, jump_nil),
-                  s(:push_const, :Proc),
-                  s(:swap),
-                  s(:send, :__from_block__, 1),
-                  s(:set_label, jump_nil),
-                  s(:set_local, slot),
-                  s(:pop))
+      result << s(:push_block) << s(:dup)
+      result << process(s(:s_if, s(:is_nil),
+                          s(:push_const, :Proc),
+                          s(:swap),
+                          s(:send, :__from_block__, 1)))
+      result << s(:set_local, slot) << s(:pop)
     end
 
     result
@@ -157,7 +167,6 @@ class Compiler < SexpProcessor
     recv     = call.delete_at(1)
     args     = call.pop
     arity    = args.size - 1
-    jump_nil = new_jump
 
     call[0] = :send_with_block
     call << arity
@@ -168,13 +177,11 @@ class Compiler < SexpProcessor
       process(args),
       process(block),
       s(:dup),
-      s(:is_nil),
-      s(:git, jump_nil),
-      s(:push_cpath_top),
-      s(:find_const, :Proc),
-      s(:swap),
-      s(:send, :__from_block__, 1),
-      s(:set_label, jump_nil),
+      process(s(:s_if, s(:is_nil),
+                s(:push_cpath_top),
+                s(:find_const, :Proc),
+                s(:swap),
+                s(:send, :__from_block__, 1))),
       call)
   end
 
@@ -256,9 +263,7 @@ class Compiler < SexpProcessor
   end
 
   def process_evstr exp
-    s(:dummy,
-      process(exp.shift),
-      s(:send, :to_s, 0, true))
+    s(:dummy, process(exp.shift), s(:send, :to_s, 0, true))
   end
 
   def process_if exp
@@ -304,21 +309,20 @@ class Compiler < SexpProcessor
     when Symbol then
       s(:push_unique_literal, val)
     when Regexp then
-      jump_cache = new_jump
-      literal    = new_literal
+      literal = new_literal
+
       s(:dummy,
         s(:add_literal, nil), # TODO: possibly rewrite this as s(:cache, o)
         s(:push_literal_at, literal),
         s(:dup),
-        s(:is_nil),
-        s(:gif, jump_cache),
-        s(:pop),
-        s(:push_const, :Regexp),
-        s(:push_literal, val.source),
-        s(:push, val.options),
-        s(:send, :new, 2),
-        s(:set_literal, literal),
-        s(:set_label, jump_cache))
+        process(s(:s_if, s(:is_nil), # TODO: flip to rewrite and process goes
+                  s(:pop),
+                  s(:push_const, :Regexp),
+                  s(:push_literal, val.source),
+                  s(:push, val.options),
+                  s(:send, :new, 2),
+                  s(:set_literal, literal),
+                  true)))
     else
       raise "not yet"
     end
