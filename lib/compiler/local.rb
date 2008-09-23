@@ -44,6 +44,8 @@ class Compiler
     end
 
     def encoded_order
+      return # HACK disable for now, not needed
+
       # figure out the size
       size = 0
       @names.each do |name|

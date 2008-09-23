@@ -1007,6 +1007,8 @@ class Compiler
       end
 
       def enlarge_context
+        return # HACK disable for now
+
         locals = @context.locals
 
         if !locals
