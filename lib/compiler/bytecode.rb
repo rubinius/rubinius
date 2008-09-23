@@ -256,14 +256,17 @@ class Compiler
         if g.break
           g.goto g.break
         elsif @in_block
+          g.push_cpath_top
+          g.find_const :LongReturnException
+          g.send :allocate, 0
+          g.swap
+
           # Set the return value from @value above.
           g.push_local @check_var.slot
           g.swap
-          g.send :break_value=, 1
-          g.pop
+          g.send :set_break_value, 2
 
           # Now raise it.
-          g.push_local @check_var.slot
           g.raise_exc
         else
           g.pop
@@ -365,10 +368,8 @@ class Compiler
         ok = g.new_label
         g.exceptions do |ex|
 
-          # We pre-create the exception.
-          g.push_cpath_top
-          g.find_const :LongReturnException
-          g.send :allocate, 0
+          # Shove a references to this context away to use later.
+          g.push_context
           g.set_local @check_var.slot
           g.pop
 
@@ -384,11 +385,23 @@ class Compiler
 
           g.push_exception
           g.dup
-          g.push_local @check_var.slot
-          g.equal
+          g.push_cpath_top
+          g.find_const :LongReturnException
+          g.swap
+          g.kind_of
 
           after = g.new_label
           g.gif after
+
+          # Test if this LRE is for us
+          g.dup
+          g.send :context, 0
+          g.push_context
+          g.equal
+
+          g.gif after
+
+          # Ok, this is for us!
           g.clear_exception
 
           # This is also used for break in a block. If break was used,
@@ -1953,14 +1966,17 @@ class Compiler
       end
 
       def self.emit_lre(g, var)
+        g.push_cpath_top
+        g.find_const :LongReturnException
+        g.send :allocate, 0
+        g.swap
+
         # Set the return value from @value above.
         g.push_local var.slot
         g.swap
-        g.send :return_value=, 1
-        g.pop
+        g.send :set_return_value, 2
 
         # Now raise it.
-        g.push_local var.slot
         g.raise_exc
       end
     end

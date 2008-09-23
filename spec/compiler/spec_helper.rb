@@ -161,9 +161,7 @@ class TestGenerator
     g = self
     ok = g.new_label
     g.exceptions do |ex|
-      g.push_cpath_top
-      g.find_const :LongReturnException
-      g.send :allocate, 0
+      g.push_context
       g.set_local local
       g.pop
 
@@ -174,10 +172,20 @@ class TestGenerator
 
       g.push_exception
       g.dup
-      g.push_local local
-      g.equal
+      g.push_cpath_top
+      g.find_const :LongReturnException
+      g.swap
+      g.kind_of
 
       after = g.new_label
+      g.gif after
+
+      # Test if this LRE is for us
+      g.dup
+      g.send :context, 0
+      g.push_context
+      g.equal
+
       g.gif after
 
       g.clear_exception
@@ -271,9 +279,7 @@ class TestGenerator
 
     top.set!
 
-    self.push_cpath_top
-    self.find_const :LongReturnException
-    self.send :allocate, 0
+    self.push_context
     self.set_local 0 + shift
     self.pop
 
@@ -285,9 +291,18 @@ class TestGenerator
 
     self.push_exception
     self.dup
-    self.push_local 0 + shift
+    self.push_cpath_top
+    self.find_const :LongReturnException
+    self.swap
+    self.kind_of
+    self.gif uncaught
+
+    self.dup
+    self.send :context, 0
+    self.push_context
     self.equal
     self.gif uncaught
+
     self.clear_exception
     self.dup
     self.send :is_return, 0

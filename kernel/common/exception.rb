@@ -230,17 +230,28 @@ end
 # seen by ruby code.
 
 class LongReturnException < FlowControlException
+  attr_accessor :context
   attr_reader :value
   attr_reader :is_return
 
-  def return_value=(val)
+  def set_return_value(context, val)
+    @context = context
     @value = val
     @is_return = true
+
+    # Important! The bytecode uses the return value as the exception
+    # to raise.
+    return self
   end
 
-  def break_value=(val)
+  def set_break_value(context, val)
+    @context = context
     @value = val
     @is_return = false
+
+    # Important! The bytecode uses the return value as the exception
+    # to raise.
+    return self
   end
 
 end
