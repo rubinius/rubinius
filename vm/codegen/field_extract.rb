@@ -340,7 +340,7 @@ void #{@name}::Info::auto_mark(OBJECT _t, ObjectMark& mark) {
     # We forward declare the class in here to keep everything happy
     str = <<-CPP
 template <>
-static bool kind_of<#{@name}>(Object* obj) {
+SPECIALIZATION_STORAGE bool kind_of<#{@name}>(Object* obj) {
   return #{checks.join(' || ')};
 }
 
@@ -640,11 +640,19 @@ end
 
 write_if_new "vm/gen/kind_of.hpp" do |f|
 
+  f.puts "#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 3"
+  f.puts "  #define SPECIALIZATION_STORAGE"
+  f.puts "#else"
+  f.puts "  #define SPECIALIZATION_STORAGE static"
+  f.puts "#endif"
+
   parser.classes.each do |n, cpp|
     next if cpp.name == "Object"
     f.puts "class #{cpp.name};"
     f.puts cpp.generate_kind_of
   end
+
+  f.puts "#undef SPECIALIZATION_STORAGE"
 end
 
 write_if_new "vm/gen/primitives_glue.gen.cpp" do |f|
