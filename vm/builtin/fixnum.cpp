@@ -5,6 +5,8 @@
 #include "builtin/array.hpp"
 #include "builtin/string.hpp"
 
+#include "primitives.hpp"
+
 #include <iostream>
 
 namespace rubinius {
@@ -345,9 +347,39 @@ namespace rubinius {
   }
 
   String* Fixnum::to_s(STATE) {
-    std::stringstream sout;
-    sout << to_native();
-    return String::create(state, sout.str().c_str());
+    return to_s(state, Fixnum::from(10));
+  }
+
+  String* Fixnum::to_s(STATE, Fixnum* base) {
+    // algorithm adapted from shotgun
+    static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+    char buf[100];
+    char *b = buf + sizeof(buf);
+    native_int j, k, m;
+
+    j = base->to_native();
+    k = to_native();
+
+    if(j < 2 || j > 36) throw PrimitiveFailed();
+
+    /* Algorithm taken from 1.8.4 rb_fix2str */
+    if(k == 0) return String::create(state, "0");
+
+    m = 0;
+    if(k < 0) {
+      k = -k;
+      m = 1;
+    }
+    *--b = 0;
+    do {
+      *--b = digitmap[(int)(k % j)];
+    } while(k /= j);
+
+    if(m) {
+      *--b = '-';
+    }
+
+    return String::create(state, b);
   }
 
   Array* Fixnum::coerce(STATE, Bignum* other) {

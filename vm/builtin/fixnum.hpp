@@ -179,6 +179,8 @@ namespace rubinius {
     Float* to_f(STATE);
 
     // Ruby.primitive :fixnum_to_s
+    String* to_s(STATE, Fixnum* base);
+
     String* to_s(STATE);
 
     // Ruby.primitive! :fixnum_coerce
