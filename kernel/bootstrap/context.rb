@@ -111,6 +111,12 @@ class BlockContext
 end
 
 class BlockEnvironment
+
+  def self.allocate
+    Ruby.primitive :blockenvironment_allocate
+    raise PrimitiveFailure, "unable to create BlockEnvironment"
+  end
+
   def call(*args)
     Ruby.primitive :block_call
     raise PrimitiveFailure, "primitive failed"

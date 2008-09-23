@@ -25,6 +25,12 @@ namespace rubinius {
     G(blokenv)->set_object_type(state, BlockEnvironmentType);
   }
 
+  BlockEnvironment* BlockEnvironment::allocate(STATE) {
+    BlockEnvironment* env = (BlockEnvironment*)state->new_object(G(blokenv));
+    env->vmm = NULL;
+    return env;
+  }
+
   void BlockEnvironment::call(STATE, Task* task, size_t args) {
     OBJECT val;
     if(args > 0) {
@@ -94,7 +100,7 @@ namespace rubinius {
     ctx->cm(state, method_);
     ctx->home(state, home_);
 
-    ctx->vmm = vmm;
+    ctx->vmm = vmm ? vmm : method_->backend_method_;
     ctx->ip = 0;
     // HACK dup'd from MethodContext
     ctx->position_stack(method_->number_of_locals() - 1);

@@ -38,6 +38,10 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
+
+    // Ruby.primitive :blockenvironment_allocate
+    static BlockEnvironment* allocate(STATE);
+
     static BlockEnvironment* under_context(STATE, CompiledMethod* cm,
         MethodContext* parent, MethodContext* active, size_t index);
 
