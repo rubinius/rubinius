@@ -7,6 +7,8 @@
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 
 #include "builtin/nativemethodcontext.hpp"
 
@@ -90,16 +92,23 @@ namespace rubinius {
      */
     template <typename FunctorType>
       static NativeMethod* create(VM* state,
+                                  String* file_name = as<String>(Qnil),
+                                  Module* module = as<Module>(Qnil),
+                                  Symbol* method_name = as<Symbol>(Qnil),
                                   FunctorType functor = static_cast<GenericFunctor>(NULL),
-                                  int arity = 0)
+                                  Fixnum* arity = as<Fixnum>(Qnil))
       {
         NativeMethod* nmethod = static_cast<NativeMethod*>(state->new_object(state->globals.nmethod.get()));
 
-        nmethod->arity(state, Fixnum::from(arity));
+        nmethod->arity(state, arity);
+        nmethod->file_name(state, file_name);
+        nmethod->method_name(state, method_name);
+        nmethod->module(state, module);
 
         nmethod->my_functor = reinterpret_cast<GenericFunctor>(functor);
 
         nmethod->set_executor(&NativeMethod::executor_implementation);
+        nmethod->primitive(state, state->symbol("nativemethod_call"));
 
         return nmethod;
       }
@@ -107,10 +116,17 @@ namespace rubinius {
     /** Allocate a functional but empty NativeMethod. */
     static NativeMethod* allocate(VM* state);
 
+
   public:   /* Accessors */
 
     /** Arity of the method within. @see Arity. */
     attr_accessor(arity, Fixnum);
+    /** C file in which rb_define_method called. */
+    attr_accessor(file_name, String);
+    /** Name given at creation time. */
+    attr_accessor(method_name, Symbol);
+    /** Module on which created. */
+    attr_accessor(module, Module);
 
 
   public:   /* Interface */
@@ -154,7 +170,13 @@ namespace rubinius {
   private:  /* Slots */
 
     /** Arity of the method. @see Arity. */
-    Fixnum* arity_;           // slot
+    Fixnum* arity_;                                   // slot
+    /** C file in which rb_define_method called. */
+    String* file_name_;                               // slot
+    /** Name given at creation time. */
+    Symbol* method_name_;                             // slot
+    /** Module on which created. */
+    Module* module_;                                  // slot
 
 
   private:  /* Instance variables */
