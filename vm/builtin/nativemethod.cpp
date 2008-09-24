@@ -66,35 +66,38 @@ namespace rubinius {
 
     Message* message = context->message();
 
-    HandleTo receiver(context->handles(), message->recv);
+    Handle receiver = context->handle_for(message->recv);
 
     switch (context->method()->arity()->to_int()) {
       case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
+        Handle args = context->handle_for(message->arguments);
 
-        HandleTo args(context->handles(), message->arguments);
-        context->return_value(as<Object>(context->method()->functor_as<OneArgFunctor>()(args)));
+        Handle ret_handle = context->method()->functor_as<OneArgFunctor>()(args);
 
+        context->return_value(context->object_from(ret_handle));
         break;
       }
 
       case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
+        Handle args = context->handle_for(message->arguments);
 
-        HandleTo args(context->handles(), message->arguments);
-        context->return_value(as<Object>(context->method()->functor_as<TwoArgFunctor>()(receiver, args)));
+        Handle ret_handle = context->method()->functor_as<TwoArgFunctor>()(receiver, args);
 
+        context->return_value(context->object_from(ret_handle));
         break;
       }
 
       case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
 
-        HandleTo* args = new HandleTo[message->total_args];
+        Handle* args = new Handle[message->total_args];
 
         for (std::size_t i = 0; i < message->total_args; ++i) {
-          args[i] = HandleTo(context->handles(), message->arguments->get(context->state(), i));
+          args[i] = context->handle_for(message->arguments->get(context->state(), i));
         }
 
-        context->return_value(as<Object>(context->method()->functor_as<ArgcFunctor>()(message->total_args, args, receiver)));
+        Handle ret_handle = context->method()->functor_as<ArgcFunctor>()(message->total_args, args, receiver);
 
+        context->return_value(context->object_from(ret_handle));
         break;
       }
 
@@ -107,49 +110,74 @@ namespace rubinius {
 
       case 0: {
         OneArgFunctor functor = context->method()->functor_as<OneArgFunctor>();
-        context->return_value(as<Object>(functor(receiver)));
+
+        Handle ret_handle = functor(receiver);
+
+        context->return_value(context->object_from(ret_handle));
         break;
       }
 
       case 1: {
         TwoArgFunctor functor = context->method()->functor_as<TwoArgFunctor>();
-        context->return_value(as<Object>(functor(receiver, Handle(context->handles(), message->arguments->get(context->state(), 0)) ) ));
+
+        Handle ret_handle = functor(receiver,
+                                    context->handle_for(message->arguments->get(context->state(), 0)));
+
+        context->return_value(context->object_from(ret_handle));
         break;
       }
 
       case 2: {
         ThreeArgFunctor functor = context->method()->functor_as<ThreeArgFunctor>();
-        context->return_value(as<Object>(functor( receiver
-                                                , Handle(context->handles(), message->arguments->get(context->state(), 0)), Handle(context->handles(), message->arguments->get(context->state(), 1)) ) )
-                             );
+
+        Handle ret_handle = functor(receiver,
+                                    context->handle_for(message->arguments->get(context->state(), 0)),
+                                    context->handle_for(message->arguments->get(context->state(), 1))
+                                   );
+
+        context->return_value(context->object_from(ret_handle));
         break;
       }
 
       case 3: {
         FourArgFunctor functor = context->method()->functor_as<FourArgFunctor>();
-        context->return_value(as<Object>(functor( receiver
-                                                , Handle(context->handles(), message->arguments->get(context->state(), 0)), Handle(context->handles(), message->arguments->get(context->state(), 1))
-                                                , Handle(context->handles(), message->arguments->get(context->state(), 2)) ) )
-                             );
+
+        Handle ret_handle = functor(receiver,
+                                    context->handle_for(message->arguments->get(context->state(), 0)),
+                                    context->handle_for(message->arguments->get(context->state(), 1)),
+                                    context->handle_for(message->arguments->get(context->state(), 2))
+                                   );
+
+        context->return_value(context->object_from(ret_handle));
         break;
       }
 
       case 4: {
         FiveArgFunctor functor = context->method()->functor_as<FiveArgFunctor>();
-        context->return_value(as<Object>(functor( receiver
-                                                , Handle(context->handles(), message->arguments->get(context->state(), 0)), Handle(context->handles(), message->arguments->get(context->state(), 1))
-                                                , Handle(context->handles(), message->arguments->get(context->state(), 2)), Handle(context->handles(), message->arguments->get(context->state(), 3)) ) )
-                             );
+
+        Handle ret_handle = functor(receiver,
+                                    context->handle_for(message->arguments->get(context->state(), 0)),
+                                    context->handle_for(message->arguments->get(context->state(), 1)),
+                                    context->handle_for(message->arguments->get(context->state(), 2)),
+                                    context->handle_for(message->arguments->get(context->state(), 3))
+                                   );
+
+        context->return_value(context->object_from(ret_handle));
         break;
       }
 
       case 5: {
         SixArgFunctor functor = context->method()->functor_as<SixArgFunctor>();
-        context->return_value(as<Object>(functor( receiver
-                                                , Handle(context->handles(), message->arguments->get(context->state(), 0)), Handle(context->handles(), message->arguments->get(context->state(), 1))
-                                                , Handle(context->handles(), message->arguments->get(context->state(), 2)), Handle(context->handles(), message->arguments->get(context->state(), 3))
-                                                , Handle(context->handles(), message->arguments->get(context->state(), 4)) ) )
-                             );
+
+        Handle ret_handle = functor(receiver,
+                                    context->handle_for(message->arguments->get(context->state(), 0)),
+                                    context->handle_for(message->arguments->get(context->state(), 1)),
+                                    context->handle_for(message->arguments->get(context->state(), 2)),
+                                    context->handle_for(message->arguments->get(context->state(), 3)),
+                                    context->handle_for(message->arguments->get(context->state(), 4))
+                                   );
+
+        context->return_value(context->object_from(ret_handle));
         break;
       }
 

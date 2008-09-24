@@ -10,25 +10,6 @@
 namespace rubinius {
 
 
-/* Handle */
-
-
-  /* Instance methods */
-
-  Handle::Handle() : my_index(0), my_storage(NULL)
-  {
-    /* Nada */
-  }
-
-  Handle::Handle(const Handle& other) : my_index(other.my_index), my_storage(other.my_storage) {}
-
-  Object* Handle::object()
-  {
-    return (*my_storage)[my_index];
-  }
-
-
-
 /* NativeMethodContext */
 
 
@@ -101,5 +82,21 @@ namespace rubinius {
 
   /* Instance methods */
 
+  /**
+   *  TODO: Error conditions should assert?
+   */
+  Object* NativeMethodContext::object_from(Handle handle)
+  {
+     return (*my_handles)[handle];
+  }
+
+  /**
+   *  TODO: Concurrency.
+   */
+  Handle NativeMethodContext::handle_for(Object* object)
+  {
+    my_handles->push_back(object);
+    return (my_handles->size() - 1);
+  }
 }
 

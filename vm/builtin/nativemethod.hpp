@@ -39,13 +39,13 @@ namespace rubinius {
 
   /* Actual functor types. */
 
-  typedef HandleTo (*ArgcFunctor)     (int, HandleTo*, HandleTo);
-  typedef HandleTo (*OneArgFunctor)   (HandleTo);
-  typedef HandleTo (*TwoArgFunctor)   (HandleTo, HandleTo);
-  typedef HandleTo (*ThreeArgFunctor) (HandleTo, HandleTo, HandleTo);
-  typedef HandleTo (*FourArgFunctor)  (HandleTo, HandleTo, HandleTo, HandleTo);
-  typedef HandleTo (*FiveArgFunctor)  (HandleTo, HandleTo, HandleTo, HandleTo, HandleTo);
-  typedef HandleTo (*SixArgFunctor)   (HandleTo, HandleTo, HandleTo, HandleTo, HandleTo, HandleTo);
+  typedef Handle (*ArgcFunctor)     (int, Handle*, Handle);
+  typedef Handle (*OneArgFunctor)   (Handle);
+  typedef Handle (*TwoArgFunctor)   (Handle, Handle);
+  typedef Handle (*ThreeArgFunctor) (Handle, Handle, Handle);
+  typedef Handle (*FourArgFunctor)  (Handle, Handle, Handle, Handle);
+  typedef Handle (*FiveArgFunctor)  (Handle, Handle, Handle, Handle, Handle);
+  typedef Handle (*SixArgFunctor)   (Handle, Handle, Handle, Handle, Handle, Handle);
 
 
   /**

@@ -19,88 +19,11 @@ namespace rubinius {
   class Task;
 
 
+  /** Theoretically this could be changed to some other storage.. */
   typedef std::vector<Object*> HandleStorage;
 
-  /**
-   *  Handle to an Object for C methods.
-   *
-   *  Handles give an extra layer of abstraction to Object handling
-   *  in C extensions. The main motivation is the GC: it must be
-   *  able to move Objects around which would cause problems for
-   *  the extension programmer.
-   *
-   *  Handles always refer to the objects as Objects, rather than
-   *  the actual class. All objects are upcast to Object*s.
-   *
-   *  Handles should be used as values only (the copy semantics
-   *  are correct.) Pointers to Handles should be unnecessary.
-   *
-   *  TODO: Add tests.
-   *  TODO: Avoid extra work on Qnil/Qtrue/Qfalse.
-   */
-  class Handle {
-  public:   /* Ctors */
-
-    /** Blank creation needed by HandleStorages. */
-    Handle();
-
-    /**
-     *  Normal creation to associate any Object subclass.
-     *
-     *  Objects always stored as Objects, so user is resposible
-     *  for casting to the correct type when needed.
-     */
-    template <typename T>
-      Handle(HandleStorage& storage, T* obj)
-        : my_index(0)
-        , my_storage(&storage)
-      {
-        my_storage->push_back(as<Object>(obj));
-        my_index = my_storage->size() - 1;
-      }
-
-    /** Copy construction semantics for Handle locals. */
-    Handle(const Handle& other);
-
-
-  public:   /* Interface */
-
-    /** Explicitly retrieve the contained object. */
-    Object*  object();
-
-
-  private:  /* Instance vars */
-
-    std::size_t     my_index;     /**< Index into storage to retrieve Object. */
-    HandleStorage*  my_storage;   /**< Storage of actual object information. */
-  };
-
   /** More prosaic name for Handles. */
-  typedef Handle HandleTo;
-
-
-  /**
-  *  Specialised version of as() to access a Handle's actual object.
-  *
-  *  @see  vm/object.hpp for normal version.
-  */
-  template <typename T>
-    T* as(HandleTo handle)
-    {
-      return as<T>(handle.object());
-    }
-
-
-  /**
-  *  Specialised version of try_as() to access a Handle's actual object.
-  *
-  *  @see  vm/object.hpp for normal version.
-  */
-  template <typename T>
-    T* try_as(HandleTo handle)
-    {
-      return try_as<T>(handle.object());
-    }
+  typedef std::size_t Handle;
 
 
   /**
@@ -182,6 +105,12 @@ namespace rubinius {
 
     /** Access currently active NativeMethodContext. */
     static NativeMethodContext* current();
+
+    /** Get the object corresponding to this handle. */
+    Object* object_from(Handle handle);
+
+    /** Generate a handle to refer to the given object from C */
+    Handle handle_for(Object* obj);
 
 
   public:  /* Instance vars */
