@@ -52,6 +52,7 @@ namespace rubinius {
 
     nmc->my_action = ORIGINAL_CALL;
     nmc->my_message = msg;
+    nmc->my_message_from_c = new Message(state);
     nmc->my_method = method;
     nmc->my_handles = new HandleStorage();
     nmc->my_return_value = as<Object>(Qnil);
