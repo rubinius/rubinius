@@ -3829,6 +3829,7 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               j1 = g.new_label
               j2 = g.new_label
+              j3 = g.new_label
 
               g.push :self
               g.send :a, 0, true
@@ -3840,7 +3841,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :b, 0, true
               j1.set!
               g.dup
-              g.git j2
+              g.git j3
               g.pop
 
               g.push :self
@@ -3853,7 +3854,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :d, 0, true
 
               j2.set!
-              j2.set!
+              j3.set!
             end)
 
   add_tests("or_big2",
