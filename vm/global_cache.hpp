@@ -17,6 +17,7 @@ namespace rubinius {
       Module* module;
       Executable* method;
       bool is_public;
+      bool method_missing;
     };
 
     struct cache_entry entries[CPU_CACHE_SIZE];
@@ -28,6 +29,7 @@ namespace rubinius {
         entries[i].module = 0;
         entries[i].method = 0;
         entries[i].is_public = true;
+        entries[i].method_missing = false;
       }
     }
 
@@ -69,13 +71,14 @@ namespace rubinius {
       }
     }
 
-    void retain(STATE, Module* cls, SYMBOL name, Module* mod, Executable* meth) {
+    void retain(STATE, Module* cls, SYMBOL name, Module* mod, Executable* meth, bool missing) {
       struct cache_entry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
       entry->klass = cls;
       entry->name = name;
       entry->module = mod;
+      entry->method_missing = missing;
 
       if(kind_of<MethodVisibility>(meth)) {
         MethodVisibility* vis = as<MethodVisibility>(meth);

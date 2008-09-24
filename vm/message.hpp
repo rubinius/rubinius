@@ -62,7 +62,11 @@ namespace rubinius {
     /**
      *  Drop arguments Array.
      */
-    void reset() { start = 0; arguments = NULL; }
+    void reset() {
+      start = 0;
+      arguments = NULL;
+      method_missing = false;
+    }
 
     /**
      *  Explicitly set total number of arguments.
@@ -121,6 +125,12 @@ namespace rubinius {
     Module*     lookup_from;    /**< The Module in which is the first method table to look from. Usually MetaClass or Class. */
     Executable* method;         /**< Executable, i.e. method object, that will be run. Added in method lookup. */
     Module*     module;         /**< Module in which the method object was found. Added in method lookup. */
+
+    /**
+     * Indicates if we're calling a method setup as method_missing.
+     * This means we need to unshift the name of the name the method
+     * was called as. */
+    bool        method_missing;
   };
 }
 

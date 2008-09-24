@@ -31,6 +31,7 @@ namespace rubinius {
     method(state, (Executable*)Qnil);
     module(state, (Module*)Qnil);
     recv_class(state, (Module*)Qnil);
+    method_missing = false;
     hits = misses = 0;
   }
 
@@ -51,13 +52,19 @@ namespace rubinius {
    * true if +msg+ was populated. */
 
   bool SendSite::locate(STATE, Message& msg) {
-    if(!(*resolver)(state, msg)) {
-      msg.unshift_argument(state, msg.name);
+    SYMBOL original_name = msg.name;
+
+    if(!resolver(state, msg)) {
+      msg.method_missing = true;
       msg.name = G(sym_method_missing);
       msg.priv = true; // lets us look for method_missing anywhere
-      if(!(*resolver)(state, msg)) {
+      if(!resolver(state, msg)) {
         return false;
       }
+    }
+
+    if(msg.method_missing) {
+      msg.unshift_argument(state, original_name);
     }
 
     return true;
@@ -140,13 +147,15 @@ keep_looking:
       if(msg.priv || entry->is_public) {
         msg.method = entry->method;
         msg.module = entry->module;
+        msg.method_missing = entry->method_missing;
+
         return true;
       }
     }
 
     if(HierarchyResolver::resolve(state, msg)) {
       state->global_cache->retain(state, msg.lookup_from, msg.name,
-          msg.module, msg.method);
+          msg.module, msg.method, msg.method_missing);
       return true;
     }
 
@@ -157,6 +166,8 @@ keep_looking:
     if(msg.lookup_from == msg.send_site->recv_class()) {
       msg.module = msg.send_site->module();
       msg.method = msg.send_site->method();
+      msg.method_missing = msg.send_site->method_missing;
+
       msg.send_site->hits++;
       return true;
     }
@@ -166,6 +177,8 @@ keep_looking:
       msg.send_site->module(state, msg.module);
       msg.send_site->method(state, msg.method);
       msg.send_site->recv_class(state, msg.lookup_from);
+      msg.send_site->method_missing = msg.method_missing;
+
       return true;
     }
 

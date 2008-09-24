@@ -629,10 +629,10 @@ class TestTask : public CxxTest::TestSuite {
 
     SYMBOL blah = state->symbol("blah");
 
-    state->global_cache->retain(state, G(true_class), blah, G(true_class), cm);
+    state->global_cache->retain(state, G(true_class), blah, G(true_class), cm, false);
     task->add_method(G(true_class), state->symbol("blah"), cm);
     struct GlobalCache::cache_entry *ent;
-    
+
     ent = state->global_cache->lookup(G(true_class), blah);
     TS_ASSERT(!ent);
 

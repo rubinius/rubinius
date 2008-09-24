@@ -227,8 +227,8 @@ stack_cleanup:
   bool Task::send_message_slowly(Message& msg) {
     msg.current_self = active_->self();
 
+    SYMBOL original_name = msg.name;
     if(!GlobalCacheResolver::resolve(state, msg)) {
-      msg.unshift_argument(state, msg.name);
       msg.name = G(sym_method_missing);
       msg.priv = true; // lets us look for method_missing anywhere
       if(!GlobalCacheResolver::resolve(state, msg)) {
@@ -236,13 +236,9 @@ stack_cleanup:
       }
     }
 
-    /*
-    if(CompiledMethod* cm = try_as<CompiledMethod>(msg.method)) {
-      if(!cm->backend_method_ || (OBJECT)cm->backend_method_ == Qnil) {
-        cm->formalize(state, false);
-      }
+    if(msg.method_missing) {
+      msg.unshift_argument(state, original_name);
     }
-    */
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 

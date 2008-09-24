@@ -14,7 +14,7 @@ namespace rubinius {
 
   class SendSite : public Object {
   public:
-    static const size_t fields = 9;
+    static const size_t fields = 10;
     static const object_type type = SendSiteType;
 
   private:
@@ -27,6 +27,7 @@ namespace rubinius {
 
   public:
     // TODO: fix up data members that aren't slots
+    bool   method_missing;
     size_t hits;
     size_t misses;
     MethodResolver resolver;

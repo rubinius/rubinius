@@ -20,7 +20,7 @@ class TestSendSite : public CxxTest::TestSuite {
   }
 
   void test_sendsite_fields() {
-    TS_ASSERT_EQUALS(9U, SendSite::fields);
+    TS_ASSERT_EQUALS(10U, SendSite::fields);
   }
 
   void test_init() {
@@ -90,7 +90,7 @@ class TestSendSite : public CxxTest::TestSuite {
     msg.module = (Module*)Qnil;
     msg.method = (Executable*)Qnil;
 
-    state->global_cache->retain(state, meta, sym, meta, cm);
+    state->global_cache->retain(state, meta, sym, meta, cm, false);
 
     TS_ASSERT(ss->locate(state, msg));
     TS_ASSERT_EQUALS(1U, ss->misses);
@@ -122,13 +122,47 @@ class TestSendSite : public CxxTest::TestSuite {
     msg.module = meta;
     msg.method = cm;
 
-    state->global_cache->retain(state, meta, sym, meta, g_cm);
+    state->global_cache->retain(state, meta, sym, meta, g_cm, false);
 
     TS_ASSERT(ss->locate(state, msg));
     TS_ASSERT_EQUALS(2U, ss->hits);
     TS_ASSERT_EQUALS(0U, ss->misses);
     TS_ASSERT_EQUALS(cm, msg.method);
     TS_ASSERT_EQUALS(G(object), msg.module);
+  }
+
+  void test_mono_inline_cache_locate_respects_method_missing() {
+    Message msg(state);
+    SYMBOL sym = state->symbol("blah");
+    SendSite* ss = SendSite::create(state, sym);
+    Class* meta = G(object)->metaclass(state);
+    CompiledMethod* cm = CompiledMethod::create(state);
+    CompiledMethod* g_cm = CompiledMethod::create(state);
+
+    TS_ASSERT_EQUALS(MonomorphicInlineCacheResolver::resolve, ss->resolver);
+
+    ss->recv_class(state, meta);
+    ss->module(state, G(object));
+    ss->method(state, cm);
+    ss->hits = 1U;
+    ss->method_missing = true;
+
+    msg.name = sym;
+    msg.lookup_from = meta;
+    msg.recv = G(object);
+    msg.current_self = G(object);
+    msg.send_site = ss;
+    msg.module = meta;
+    msg.method = cm;
+
+    state->global_cache->retain(state, meta, sym, meta, g_cm, true);
+
+    TS_ASSERT(ss->locate(state, msg));
+    TS_ASSERT_EQUALS(2U, ss->hits);
+    TS_ASSERT_EQUALS(0U, ss->misses);
+    TS_ASSERT_EQUALS(cm, msg.method);
+    TS_ASSERT_EQUALS(G(object), msg.module);
+    TS_ASSERT_EQUALS(true, msg.method_missing);
   }
 
   void test_misses_prim() {
