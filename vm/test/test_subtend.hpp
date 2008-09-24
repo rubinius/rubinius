@@ -7,7 +7,10 @@
 #include "vm.hpp"
 #include "message.hpp"
 #include "builtin/array.hpp"
+#include "builtin/module.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
 
 /* Testee */
@@ -19,81 +22,81 @@ static NativeMethodContext* hidden_context = NULL;
 static Array* hidden_ruby_array = NULL;
 static Object* hidden_receiver = NULL;
 static int hidden_argc = 0;
-static HandleTo* hidden_c_array = NULL;
+static Handle* hidden_c_array = NULL;
 
 using namespace rubinius;
 
 extern "C" {
 
-  HandleTo minus_three_arity(HandleTo ruby_array)
+  Handle minus_three_arity(Handle ruby_array)
   {
     hidden_context = NativeMethodContext::current();
-    hidden_ruby_array = as<Array>(ruby_array);
+    hidden_ruby_array = as<Array>(hidden_context->object_from(ruby_array));
 
-    Object* first = as<Array>(ruby_array)->get(hidden_context->state(), 0);
+    Object* first = hidden_ruby_array->get(hidden_context->state(), 0);
 
-    return HandleTo(hidden_context->handles(), first);
+    return hidden_context->handle_for(first);
   }
 
-  HandleTo minus_two_arity(HandleTo receiver, HandleTo ruby_array)
+  Handle minus_two_arity(Handle receiver, Handle ruby_array)
   {
     hidden_context = NativeMethodContext::current();
-    hidden_receiver = as<Object>(receiver);
-    hidden_ruby_array = as<Array>(ruby_array);
+    hidden_receiver = hidden_context->object_from(receiver);
+    hidden_ruby_array = as<Array>(hidden_context->object_from(ruby_array));
 
-    Object* first = as<Array>(ruby_array)->get(hidden_context->state(), 0);
+    Object* first = hidden_ruby_array->get(hidden_context->state(), 0);
 
-    return HandleTo(hidden_context->handles(), first);
+    return hidden_context->handle_for(first);
   }
 
-  HandleTo minus_one_arity(int argc, HandleTo* args, HandleTo receiver)
+  Handle minus_one_arity(int argc, Handle* args, Handle receiver)
   {
     hidden_context = NativeMethodContext::current();
     hidden_argc = argc;
     hidden_c_array = args;
-    hidden_receiver = as<Object>(receiver);
+    hidden_receiver = hidden_context->object_from(receiver);
 
     return args[0];
   }
 
-  HandleTo one_arg(HandleTo receiver, HandleTo arg1)
+  Handle one_arg(Handle receiver, Handle arg1)
   {
     hidden_context = NativeMethodContext::current();
-    hidden_receiver = as<Object>(receiver);
+    hidden_receiver = hidden_context->object_from(receiver);
 
-    return HandleTo(hidden_context->handles(), Fixnum::from(1));
+    return hidden_context->handle_for(Fixnum::from(1));
   }
 
-  HandleTo two_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2)
+  Handle two_arg(Handle receiver, Handle arg1, Handle arg2)
   {
     hidden_context = NativeMethodContext::current();
-    hidden_receiver = as<Object>(receiver);
+    hidden_receiver = hidden_context->object_from(receiver);
 
-    return HandleTo(hidden_context->handles(), Fixnum::from(2));
+    return hidden_context->handle_for(Fixnum::from(2));
   }
 
-  HandleTo three_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2, HandleTo arg3)
+  Handle three_arg(Handle receiver, Handle arg1, Handle arg2, Handle arg3)
   {
     hidden_context = NativeMethodContext::current();
-    hidden_receiver = as<Object>(receiver);
+    hidden_receiver = hidden_context->object_from(receiver);
 
-    return HandleTo(hidden_context->handles(), Fixnum::from(3));
+    return hidden_context->handle_for(Fixnum::from(3));
   }
 
-  HandleTo four_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2, HandleTo arg3, HandleTo arg4)
+  Handle four_arg(Handle receiver, Handle arg1, Handle arg2, Handle arg3, Handle arg4)
   {
     hidden_context = NativeMethodContext::current();
-    hidden_receiver = as<Object>(receiver);
+    hidden_receiver = hidden_context->object_from(receiver);
 
-    return HandleTo(hidden_context->handles(), Fixnum::from(4));
+    return hidden_context->handle_for(Fixnum::from(4));
   }
 
-  HandleTo five_arg(HandleTo receiver, HandleTo arg1, HandleTo arg2, HandleTo arg3, HandleTo arg4, HandleTo arg5)
+  Handle five_arg(Handle receiver, Handle arg1, Handle arg2, Handle arg3, Handle arg4, Handle arg5)
   {
     hidden_context = NativeMethodContext::current();
-    hidden_receiver = as<Object>(receiver);
+    hidden_receiver = hidden_context->object_from(receiver);
 
-    return HandleTo(hidden_context->handles(), Fixnum::from(5));
+    return hidden_context->handle_for(Fixnum::from(5));
   }
 }
 
@@ -105,11 +108,13 @@ class TestSubtend : public CxxTest::TestSuite
   VM* my_state;
   Task* my_task;
   Message* my_message;
+  Module* my_module;
 
   void setUp() {
     my_state = new VM(65536 * 1000);
     my_task = Task::create(my_state);
     my_message = new Message(my_state);
+    my_module = Module::create(my_state);
   }
 
   void tearDown() {
@@ -139,7 +144,12 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->arguments = args;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(my_state, &minus_three_arity, ARGS_IN_RUBY_ARRAY);
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &minus_three_arity,
+                                                Fixnum::from(ARGS_IN_RUBY_ARRAY));
 
     bool ret = method->execute(my_state, my_task, *my_message);
 
@@ -174,7 +184,12 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->arguments = args;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(my_state, &minus_two_arity, RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY);
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &minus_two_arity,
+                                                Fixnum::from(RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY));
 
     bool ret = method->execute(my_state, my_task, *my_message);
 
@@ -211,7 +226,12 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = 10;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(my_state, &minus_one_arity, ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER);
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &minus_one_arity,
+                                                Fixnum::from(ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER));
 
     bool ret = method->execute(my_state, my_task, *my_message);
 
@@ -223,7 +243,7 @@ class TestSubtend : public CxxTest::TestSuite
     TS_ASSERT_EQUALS(hidden_argc, 10);
 
     for (std::size_t i = 0; i < 10; ++i) {
-      TS_ASSERT_EQUALS(as<Object>(hidden_c_array[i]), control->get(my_state, i));
+      TS_ASSERT_EQUALS(hidden_context->object_from(hidden_c_array[i]), control->get(my_state, i));
     }
 
     TS_ASSERT_EQUALS(hidden_context->return_value(), control->get(my_state, 0));
@@ -251,7 +271,12 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(my_state, &one_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &one_arg,
+                                                Fixnum::from(arg_count));
 
     method->execute(my_state, my_task, *my_message);
 
@@ -280,7 +305,12 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(my_state, &two_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &two_arg,
+                                                Fixnum::from(arg_count));
 
     method->execute(my_state, my_task, *my_message);
 
@@ -309,7 +339,12 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(my_state, &three_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &three_arg,
+                                                Fixnum::from(arg_count));
 
     method->execute(my_state, my_task, *my_message);
 
@@ -338,7 +373,12 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(my_state, &four_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &four_arg,
+                                                Fixnum::from(arg_count));
 
     method->execute(my_state, my_task, *my_message);
 
@@ -367,7 +407,12 @@ class TestSubtend : public CxxTest::TestSuite
     my_message->total_args = arg_count;
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
-    NativeMethod* method = NativeMethod::create(my_state, &five_arg, arg_count);
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &five_arg,
+                                                Fixnum::from(arg_count));
 
     method->execute(my_state, my_task, *my_message);
 
