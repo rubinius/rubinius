@@ -1726,6 +1726,8 @@ class String
   #   "1100101".to_i(10)       #=> 1100101
   #   "1100101".to_i(16)       #=> 17826049
   def to_i(base = 10)
+    Ruby.primitive :string_to_i
+
     base = Type.coerce_to(base, Integer, :to_int)
     raise ArgumentError, "illegal radix #{base}" if base < 0
     self.to_inum(base)

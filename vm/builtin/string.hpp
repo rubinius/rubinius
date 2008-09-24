@@ -98,6 +98,11 @@ namespace rubinius {
     Float* to_f(STATE);
     double to_double(STATE);
 
+    INTEGER to_i(STATE);
+
+    // Ruby.primitive :string_to_i
+    INTEGER to_i_prim(STATE);
+
     // Ruby.primitive :string_apply_and
     String* apply_and(STATE, String* other);
 

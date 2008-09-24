@@ -4,6 +4,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/float.hpp"
+#include "builtin/integer.hpp"
 
 #include "vm.hpp"
 #include "primitives.hpp"
@@ -478,6 +479,94 @@ namespace rubinius {
   String* String::crypt(STATE, String* salt) {
     const char* s = ::crypt(this->c_str(), salt->c_str());
     return String::create(state, s);
+  }
+
+  INTEGER String::to_i(STATE) {
+    char* str = c_str();
+    int base = 10;
+    bool negative = false;
+    INTEGER value = Fixnum::from(0);
+
+    // Move past any spaces
+    while(*str == ' ') str++;
+
+    if(*str == '-') {
+      str++;
+      negative = true;
+    }
+
+    char chr;
+
+    if(*str == '0') {
+      str++;
+      switch(chr = *str++) {
+      case 'b':
+        base = 2;
+        break;
+      case 'o':
+        base = 8;
+        break;
+      case 'd': // does this really exist?
+        base = 10;
+        break;
+      case 'x':
+        base = 16;
+        break;
+      default:
+        base = 8;
+        str--;
+        break;
+      }
+    }
+
+    while(*str) {
+      chr = *str++;
+
+      if(!chr || chr == ' ' || chr == '\t' || chr == '\n') continue;
+
+      if(chr >= '0' && chr <= '9') {
+        chr -= '0';
+      } else if(chr >= 'A' && chr <= 'F') {
+        chr -= ('A' - 10);
+      } else if(chr >= 'a' && chr <= 'f') {
+        chr -= ('a' - 10);
+      }
+
+      // Bail if the current chr is greater or equal to the base,
+      // mean it's invalid.
+      if(chr >= base) return (INTEGER)Qnil;
+
+      if(value != Fixnum::from(0)) {
+        if(Fixnum *fix = try_as<Fixnum>(value)) {
+          value = fix->mul(state, Fixnum::from(base));
+        } else {
+          value = as<Bignum>(value)->mul(state, Fixnum::from(base));
+        }
+      }
+
+      if(Fixnum *fix = try_as<Fixnum>(value)) {
+        value = fix->add(state, Fixnum::from(chr));
+      } else {
+        value = as<Bignum>(value)->add(state, Fixnum::from(chr));
+      }
+    }
+
+    if(negative) {
+      if(Fixnum* fix = try_as<Fixnum>(value)) {
+        value = fix->neg(state);
+      } else {
+        value = as<Bignum>(value)->neg(state);
+      }
+    }
+
+    return value;
+  }
+
+  INTEGER String::to_i_prim(STATE) {
+    INTEGER val = to_i(state);
+    if(val->nil_p()) throw PrimitiveFailed();
+
+    return val;
   }
 
   void String::Info::show(STATE, OBJECT self, int level) {

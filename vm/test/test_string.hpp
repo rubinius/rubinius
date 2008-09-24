@@ -148,6 +148,73 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT(val->equal(state, ret));
   }
 
+  void test_to_i() {
+    str = String::create(state, "3");
+    INTEGER val = str->to_i(state);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
+
+    str = String::create(state, "  3  ");
+    val = str->to_i(state);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
+
+    str = String::create(state, "-3");
+    val = str->to_i(state);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), -3);
+
+    str = String::create(state, " 3F ");
+    val = str->to_i(state);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, " F ");
+    val = str->to_i(state);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "garbage");
+    val = str->to_i(state);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "0xa");
+    val = str->to_i(state);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0xa);
+
+    str = String::create(state, "0xaq");
+    val = str->to_i(state);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "0b101");
+    val = str->to_i(state);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 5);
+
+    str = String::create(state, "0777");
+    val = str->to_i(state);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 511);
+
+    str = String::create(state, "08");
+    val = str->to_i(state);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "46234326");
+    val = str->to_i(state);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 46234326);
+
+    str = String::create(state, "2137612900674276");
+    val = str->to_i(state);
+    TS_ASSERT(kind_of<Bignum>(val));
+    Bignum *big;
+
+    big = Bignum::from(state, 46234326);
+    big = as<Bignum>(big->mul(state, big));
+
+    TS_ASSERT(as<Bignum>(val)->equal(state, big));
+  }
+
   void test_apply_and() {
     String* expected = String::create(state, "\001\000\000");
 
