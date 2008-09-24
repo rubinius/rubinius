@@ -4,6 +4,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/task.hpp"
 
 
 namespace rubinius {
@@ -54,11 +55,14 @@ namespace rubinius {
          * So, we return from here which then allows the CM to really
          * execute. Execution returns here when we are reactivated.
          */
-        if (task->active() != this) break;
+        if (task->active() != context) break;
 
         context->action(NativeMethodContext::RETURNED_BACK_TO_C);
 
         jump_to_execution_point_in(context->inside_c_method_point());
+        break;
+
+      default:
         break;
     }
 
