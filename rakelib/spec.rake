@@ -128,7 +128,9 @@ namespace :spec do
 
   desc "Run compiler examples"
   task :compiler do
-    sh "bin/mspec -tr spec/compiler"
+    files = Dir["spec/compiler/*_spec.rb"].reject { |s| s =~ /new_compiler/ }
+
+    sh "bin/mspec -tr #{files.join(' ')}"
   end
 
 
