@@ -10,8 +10,6 @@ end
 
 require File.dirname(__FILE__) + '/compiler_test'
 
-Object.send :remove_const, :Compiler
-
 class Symbol
   alias :old_eq2 :==
   def == o
@@ -24,9 +22,9 @@ class Symbol
   end
 end
 
-class Compiler < SexpProcessor
-  def initialize
-    super
+class NewCompiler < SexpProcessor
+  def initialize _ignored = nil
+    super()
     self.auto_shift_type = true
     self.strict = false
 
@@ -762,7 +760,7 @@ describe "Compiler::*Nodes" do
       expected.should_not == nil
 
       sexp   = Sexp.from_array input.to_sexp("(eval)", 1, false)
-      comp   = ::Compiler.new
+      comp   = ::NewCompiler.new
       node   = comp.process sexp
 
       expected = s(:test_generator, *Sexp.from_array(expected.stream))
