@@ -1489,11 +1489,15 @@ class CompilerTestCase < ParseTreeTestCase
                       d2.push_exception
                       d2.set_local_depth 1, 0
                       d2.push :nil
+
+                      d2.push_cpath_top
+                      d2.find_const :LongReturnException
+                      d2.send :allocate, 0
+                      d2.swap
+
                       d2.push_local 0
                       d2.swap
-                      d2.send :break_value=, 1
-                      d2.pop
-                      d2.push_local 0
+                      d2.send :set_break_value, 2
                       d2.raise_exc
                     end
                   end
@@ -3825,7 +3829,6 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               j1 = g.new_label
               j2 = g.new_label
-              j3 = g.new_label
 
               g.push :self
               g.send :a, 0, true
@@ -3837,7 +3840,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :b, 0, true
               j1.set!
               g.dup
-              g.git j3
+              g.git j2
               g.pop
 
               g.push :self
@@ -3850,7 +3853,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :d, 0, true
 
               j2.set!
-              j3.set!
+              j2.set!
             end)
 
   add_tests("or_big2",
@@ -4859,3 +4862,4 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 end
+
