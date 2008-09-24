@@ -390,6 +390,21 @@ class Compiler < SexpProcessor
     s(:dummy, val, s(:ret))
   end
 
+  def process_splat exp
+    val  = process(exp.shift)
+    _, recv, call = process(exp.shift)
+
+    call[0] = :send_with_splat
+    call << false    # no clue
+
+    s(:dummy,
+      recv,
+      val,
+      s(:cast_array),
+      s(:push, :nil), # no clue
+      call)
+  end
+
   def process_undef exp
     name = exp.shift.last
     s(:dummy,
@@ -438,6 +453,23 @@ class Compiler < SexpProcessor
       s(:push_context),
       s(:push_literal, exp.last),
       s(:send, :back_ref, 1))
+  end
+
+  ##
+  # Rewrites splat to outside:
+  #   s(:call, recv, :msg, s(:splat, s(:lvar, :val))) =>
+  #   s(:splat, s(:lvar, :val), s(:call, recv, :msg, s(:arglist)))))))
+
+  def rewrite_call exp
+    case exp[3][0]
+    when :splat then
+      call = exp
+      splat = exp.pop
+      call << s(:arglist)
+      splat << call
+    else
+      exp
+    end
   end
 
   def rewrite_cdecl exp
