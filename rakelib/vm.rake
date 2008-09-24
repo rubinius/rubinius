@@ -20,8 +20,13 @@ tests      << 'vm/test/test_instructions.hpp'
 tests.uniq!
 
 srcs        = FileList["vm/*.{cpp,c}"] + FileList["vm/builtin/*.{cpp,c}"]
+srcs       += FileList["vm/subtend/*.{cpp,c}"]
+
 hdrs        = FileList["vm/*.{hpp,h}"] + FileList["vm/builtin/*.{hpp,h}"]
+hdrs       += FileList["vm/subtend/*.{hpp,h}"]
+
 objs        = srcs.map { |f| f.sub(/c(pp)?$/, 'o') }
+
 dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
 vm_srcs     = %w[ vm/drivers/cli.cpp ]
