@@ -2819,7 +2819,7 @@ class Instructions
       stack_push(objs[i]);
     }
 
-    free(objs);
+    delete[] objs;
     CODE
   end
 
