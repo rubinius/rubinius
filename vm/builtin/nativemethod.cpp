@@ -26,6 +26,9 @@ namespace rubinius {
     return create<GenericFunctor>(state);
   }
 
+  /**
+   *  TODO: Context activation/reactivation needs to be redone.
+   */
   bool NativeMethod::executor_implementation(VM* state, Executable* method, Task* task, Message& message)
   {
     NativeMethodContext* context = NativeMethodContext::create(state, &message, task, as<NativeMethod>(method));
@@ -39,6 +42,24 @@ namespace rubinius {
       set_function_to_run_in(context->c_call_point(), NativeMethod::perform_call);
 
       jump_to_execution_point_in(context->c_call_point());
+    }
+
+    switch (context->action()) {
+      case NativeMethodContext::CALL_FROM_C:
+
+        task->send_message_slowly(context->message_from_c());
+
+        /* CompiledMethods are only loaded, not executed, so a
+         * different active context here means the call is "pending."
+         * So, we return from here which then allows the CM to really
+         * execute. Execution returns here when we are reactivated.
+         */
+        if (task->active() != this) break;
+
+        context->action(NativeMethodContext::RETURNED_BACK_TO_C);
+
+        jump_to_execution_point_in(context->inside_c_method_point());
+        break;
     }
 
     return true;
