@@ -216,8 +216,10 @@ class StringScanner
 
     return nil if (string.size - pos) < 0 # TODO: make more elegant
 
+    rest = self.rest
+
     @match = if headonly then
-               rest.match(/^#{pattern}/)
+               rest.match(/\A#{pattern}/)
              else
                rest.match(pattern)
              end
