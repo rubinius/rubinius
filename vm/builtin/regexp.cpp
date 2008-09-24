@@ -23,14 +23,6 @@
 #define KCODE_UTF8        64
 #define KCODE_MASK        (KCODE_EUC|KCODE_SJIS|KCODE_UTF8)
 
-#define REG(k) (*((regex_t**)((k)->bytes)))
-
-#define BASIC_CLASS(blah) G(blah)
-#define NEW_STRUCT(obj, str, kls, kind) \
-  obj = (typeof(obj))state->new_struct(kls, sizeof(kind)); \
-  str = (kind *)(obj->bytes)
-#define DATA_STRUCT(obj, type) ((type)(obj->bytes))
-
 namespace rubinius {
 
   void Regexp::Info::cleanup(OBJECT regexp) {
