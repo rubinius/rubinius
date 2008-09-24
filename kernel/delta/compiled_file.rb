@@ -35,7 +35,7 @@ module Rubinius
     # Writes the CompiledFile +cm+ to +file+.
     def self.dump(cm, file)
       File.open(file, "w") do |f|
-        new("!RBIX", Compiler.version_number, "x").encode_to(f, cm)
+        new("!RBIX", 0, "x").encode_to(f, cm)
       end
     end
 
