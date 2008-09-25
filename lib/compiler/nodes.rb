@@ -2059,11 +2059,15 @@ class Compiler
         @body = body
         @splat = nil
 
-        if cond.is?(ArrayLiteral) && cond.body.empty? then
+        # s(:array, s(:lasgn, ...)) - aka no exception
+        if cond.is?(ArrayLiteral) &&
+            (cond.body.empty? || LocalAssignment === cond.body.first) then
           cf = ConstFind.new(@compiler)
           cf.args :StandardError
-          @conditions = [cf]
-        elsif cond.is? ArrayLiteral
+          cond.body.unshift cf
+        end
+
+        if cond.is? ArrayLiteral
           @conditions = cond.body
         elsif cond.is? Splat
           @conditions = nil

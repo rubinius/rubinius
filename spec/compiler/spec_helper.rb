@@ -412,7 +412,7 @@ class TestGenerator
     self.send :__module_init__, 0
   end
 
-  def in_rescue klass, wtf = false
+  def in_rescue klass
     jump_top     = self.new_label
     jump_ex_body = self.new_label
     jump_else    = self.new_label
@@ -432,12 +432,10 @@ class TestGenerator
 
     jump_matched.set!
 
-    unless wtf then
-      self.push_const klass
-      self.push_exception
-      self.send :===, 1
-      self.git jump_std_err
-    end
+    self.push_const klass
+    self.push_exception
+    self.send :===, 1
+    self.git jump_std_err
 
     self.goto jump_reraise         # FIX: stupid jump, gif better
 

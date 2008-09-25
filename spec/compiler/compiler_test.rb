@@ -3991,7 +3991,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("rescue_block_body",
             "Compiler" => bytecode do |g|
-              in_rescue :StandardError, :wtf do |good_side| # FIX: wtf param
+              in_rescue :StandardError do |good_side| # FIX: wtf param
                 if good_side then
                   g.push :self
                   g.send :a, 0, true
