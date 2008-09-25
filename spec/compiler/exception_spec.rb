@@ -289,10 +289,10 @@ describe Compiler do
              s(:fixnum, 12),
              s(:resbody,
                s(:array, s(:const, :String)),
-               s(:fixnum, 13),
-               s(:resbody,
-                 s(:array, s(:const, :Blah)),
-                 s(:fixnum, 14))))
+               s(:fixnum, 13)),
+             s(:resbody,
+               s(:array, s(:const, :Blah)),
+               s(:fixnum, 14)))
 
     sexp.should == parse(ruby)
 
@@ -321,6 +321,7 @@ describe Compiler do
       g.goto next_cond
       body.set!
       g.push 13
+      g.clear_exception
       g.goto last
 
       next_cond.set!

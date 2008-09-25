@@ -2031,41 +2031,20 @@ class Compiler
       kind :rescue
 
       def args(body, res, els)
-        @body, @rescue, @else = body, res, els
+        @body, @rescues, @else = body, res, els
       end
 
       def consume(sexp)
-        body, res, els = *sexp
+        body = sexp.shift if sexp.first && sexp.first.first != :resbody
+        els  = sexp.pop   if sexp.last  && sexp.last.first  != :resbody
+        res  = sexp
 
-        if res.nil?
-          body = nil
-          set(:in_rescue) do
-            res = convert(body)
-          end
-          els = nil
-        elsif els.nil?
-          if body.first == :resbody
-            body = nil
-
-            els = convert(res)
-
-            set(:in_rescue) do
-              res = convert(body)
-            end
-          else
-            body = convert(body)
-            set(:in_rescue) do
-              res = convert(res)
-            end
-            els = nil
-          end
-        else
-          body = convert(body)
-          set(:in_rescue) do
-            res = convert(res)
-          end
-          els = convert(els)
+        body = convert(body) if body
+        set(:in_rescue) do
+          res.map! { |r| convert(r) }
+          res = nil if res.empty?
         end
+        els = convert(els) if els
 
         [body, res, els]
       end
@@ -2076,8 +2055,8 @@ class Compiler
     class RescueCondition < Node
       kind :resbody
 
-      def args(cond, body = nil, nxt = nil)
-        @body, @next = body, nxt
+      def args(cond, body = nil)
+        @body = body
         @splat = nil
 
         if cond.is?(ArrayLiteral) && cond.body.empty? then

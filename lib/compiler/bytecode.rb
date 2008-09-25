@@ -1848,10 +1848,10 @@ class Compiler
           end
         else
           g.retry = g.new_label
-          rr  = g.new_label
-          fls = g.new_label
-          els = g.new_label
-          last = g.new_label
+          rr      = g.new_label
+          fls     = g.new_label
+          els     = g.new_label
+          last    = g.new_label
 
           g.exceptions do |ex|
             g.retry.set!
@@ -1859,7 +1859,10 @@ class Compiler
             g.goto els
 
             ex.handle!
-            @rescue.bytecode(g, rr, last)
+            max = @rescues.size - 1
+            @rescues.each_with_index do |resbody, i|
+              resbody.bytecode(g, rr, last, i == max)
+            end
             rr.set!
             g.push_exception
             g.raise_exc
@@ -1877,7 +1880,7 @@ class Compiler
     end
 
     class RescueCondition
-      def bytecode(g, top_if_false, if_done)
+      def bytecode(g, reraise, if_done, last)
         body = g.new_label
         assignment = nil
 
@@ -1902,28 +1905,20 @@ class Compiler
           g.git body
         end
 
-        if @next
-          # There are rescues
-          if_false = g.new_label
-
-          g.goto if_false
-          body.set!
-          assignment.bytecode(g) if assignment
-          @body.bytecode(g)
-          g.goto if_done
-
-          if_false.set!
-          @next.bytecode(g, top_if_false, if_done)
+        if last then
+          g.goto reraise
         else
-          # This is the last rescue
-          g.goto top_if_false
-
-          body.set!
-          assignment.bytecode(g) if assignment
-          @body.bytecode(g)
-          g.clear_exception
-          g.goto if_done
+          if_false = g.new_label
+          g.goto if_false
         end
+
+        body.set!
+        assignment.bytecode(g) if assignment
+        @body.bytecode(g)
+        g.clear_exception
+        g.goto if_done
+
+        if_false.set! unless last
       end
     end
 

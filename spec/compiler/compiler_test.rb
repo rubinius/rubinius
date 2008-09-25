@@ -2229,86 +2229,103 @@ class CompilerTestCase < ParseTreeTestCase
               # TODO: refactor in_rescue to work with this... I think I have the
               # pattern down now
 
-              top      = g.new_label
-              bottom   = g.new_label
-              label_1  = g.new_label
-              label_5  = g.new_label
-              label_10 = g.new_label
-              label_14 = g.new_label
-              label_19 = g.new_label
-              label_24 = g.new_label
-              label_26 = g.new_label
-              label_28 = g.new_label
-              label_30 = g.new_label
+              jump_top        = g.new_label
+              jump_bottom     = g.new_label
+              label_1         = g.new_label
+              jump_ex1        = g.new_label
+              jump_ex1_body   = g.new_label
+              jump_ex2        = g.new_label
+              jump_ex2_body   = g.new_label
+              jump_unhandled  = g.new_label
+              jump_else       = g.new_label
+              jump_handled    = g.new_label
+              jump_ensure_bad = g.new_label
 
-              top.set!
+              jump_top.set!
 
               g.push_modifiers
 
               label_1.set!
-              label_1.set!
+              label_1.set! # FIX
 
               g.push 1
               g.push 1
               g.meta_send_op_plus
 
-              g.goto label_26
+              # TODO: g.goto_if_exception jump_ex1
 
-              label_5.set!
+              g.goto jump_else
+
+              ############################################################
+              # 1st exception
+
+              jump_ex1.set! # TODO: magic jump! generate REAL bytecode!!
 
               g.push_const :SyntaxError
               g.push_exception
               g.send :===, 1
-              g.git label_10
-              g.goto label_14
+              g.git jump_ex1_body
+              g.goto jump_ex2
 
-              label_10.set!
+              jump_ex1_body.set!
 
               g.push_exception
               g.set_local 0
               g.push 2
-              g.goto label_28
+              g.clear_exception
+              g.goto jump_handled
 
-              label_14.set!
+              ############################################################
+              # 2nd exception
+
+              jump_ex2.set!
 
               g.push_const :Exception
               g.push_exception
               g.send :===, 1
-              g.git label_19
-              g.goto label_24
+              g.git jump_ex2_body
+              g.goto jump_unhandled
 
-              label_19.set!
+              jump_ex2_body.set!
 
               g.push_exception
               g.set_local 1
               g.push 3
               g.clear_exception
-              g.goto label_28
+              g.goto jump_handled
 
-              label_24.set!
+              ############################################################
+              # unhandled exception
+
+              jump_unhandled.set!
 
               g.push_exception
               g.raise_exc
 
-              label_26.set!
+              ############################################################
+              # else
+
+              jump_else.set!
 
               g.pop
               g.push 4
 
-              label_28.set!
+              ############################################################
+              # handled exceptions (ensure in this case)
+
+              jump_handled.set!
 
               g.pop_modifiers
-              g.goto bottom
+              g.goto jump_bottom
 
-              label_30.set!
+              jump_ensure_bad.set! # TODO: magic jump! generate REAL bytecode!!
 
               g.push 5
               g.pop
               g.push_exception
               g.raise_exc
 
-              bottom.set!
-
+              jump_bottom.set!
               g.push 5
               g.pop
             end)
