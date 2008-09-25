@@ -465,37 +465,18 @@ module Kernel
     self
   end
 
-  def inspect(prefix=nil, vars=nil)
-    return "..." if RecursionGuard.inspecting?(self)
+  def inspect
+    return "..." if RecursionGuard.inspecting? self
 
-    iv = instance_variables
+    ivars = instance_variables
 
-    return self.to_s unless iv
-
-    if (iv.kind_of?(LookupTable) or iv.kind_of?(Tuple)) and iv.empty?
-      return self.to_s
-    end
-
-    prefix = "#{self.class}:0x#{self.object_id.to_s(16)}" unless prefix
+    prefix = "#{self.class}:0x#{self.object_id.to_s(16)}"
     parts = []
 
-    RecursionGuard.inspect(self) do
-
-      if iv.is_a?(LookupTable)
-        iv.each do |k,v|
-          next if vars and !vars.include?(k)
-          parts << "#{k}=#{v.inspect}"
-        end
-      else
-        0.step(iv.size - 1, 2) do |i|
-          if k = iv[i]
-            next if vars and !vars.include?(k)
-            v = iv[i+1]
-            parts << "#{k}=#{v.inspect}"
-          end
-        end
+    RecursionGuard.inspect self do
+      ivars.each do |var|
+        parts << "#{var}=#{instance_variable_get(var).inspect}"
       end
-
     end
 
     if parts.empty?
