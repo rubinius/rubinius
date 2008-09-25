@@ -39,86 +39,14 @@ namespace rubinius {
     clear_body_to_null();
   }
 
-  size_t Object::size_in_bytes() {
-    return SIZE_IN_BYTES(this);
-  }
-
-  size_t Object::body_in_bytes() {
-    return num_fields() * sizeof(OBJECT);
-  }
-
-  bool Object::reference_p() {
-    return REFERENCE_P(this);
-  }
-
-  bool Object::stores_bytes_p() {
-    return StoresBytes;
-  }
-
-  bool Object::stores_references_p() {
-    return !StoresBytes;
-  }
-
-  bool Object::young_object_p() {
-    return zone == YoungObjectZone;
-  }
-
-  bool Object::mature_object_p() {
-    return zone == MatureObjectZone;
-  }
-
-  bool Object::forwarded_p() {
-    return Forwarded == 1;
-  }
-
   void Object::set_forward(STATE, OBJECT fwd) {
     assert(zone == YoungObjectZone);
     Forwarded = 1;
     klass(state, (Class*)fwd);
   }
 
-  OBJECT Object::forward() {
-    return (OBJECT)klass_;
-  }
-
-  bool Object::marked_p() {
-    return Marked == 1;
-  }
-
-  void Object::mark() {
-    Marked = 1;
-  }
-
-  void Object::clear_mark() {
-    Marked = 0;
-  }
-
   void Object::write_barrier(STATE, OBJECT obj) {
     state->om->write_barrier(this, obj);
-  }
-
-  bool Object::nil_p() {
-    return this == Qnil;
-  }
-
-  bool Object::undef_p() {
-    return this == Qundef;
-  }
-
-  bool Object::true_p() {
-    return this == Qtrue;
-  }
-
-  bool Object::false_p() {
-    return this == Qfalse;
-  }
-
-  bool Object::has_ivars_p() {
-    return TRUE;
-  }
-
-  bool Object::check_type(object_type type) {
-    return reference_p() && obj_type == type;
   }
 
   // Safely return the object type, even if the receiver is an immediate

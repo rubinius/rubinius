@@ -2,6 +2,7 @@
 #define RBX_GC_ROOT_HPP
 
 #include "prelude.hpp"
+#include "oop.hpp"
 #include <stdexcept>
 
 #include "linkedlist.hpp"

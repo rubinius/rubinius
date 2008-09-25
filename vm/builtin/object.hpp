@@ -71,25 +71,7 @@ namespace rubinius {
      * body of the object, by setting the entire body as bytes to 0 */
     void init_bytes();
 
-    size_t size_in_bytes();
-    size_t body_in_bytes();
-    bool reference_p();
-    bool stores_bytes_p();
-    bool stores_references_p();
-    bool young_object_p();
-    bool mature_object_p();
-    bool forwarded_p();
     void set_forward(STATE, OBJECT fwd);
-    OBJECT forward();
-    bool marked_p();
-    void mark();
-    void clear_mark();
-    bool nil_p();
-    bool undef_p();
-    bool true_p();
-    bool false_p();
-    bool has_ivars_p();
-    bool check_type(object_type type);
 
     /* Provides access to the GC write barrier from any object. */
     void write_barrier(STATE, OBJECT obj);

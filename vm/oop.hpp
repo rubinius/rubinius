@@ -76,15 +76,20 @@ to be a simple test for that bit pattern.
 #define INDEXED(obj) (REFERENCE_P(obj) && !obj->StoresBytes)
 #define STORE_BYTES(obj) (REFERENCE_P(obj) && obj->StoresBytes)
 
-#define SIZE_OF_OBJECT ((size_t)(sizeof(OBJECT)))
+#define SIZE_OF_OBJECT ((size_t)(sizeof(ObjectHeader*)))
 
 #define NUM_FIELDS(obj)                 (obj->field_count)
 #define SET_NUM_FIELDS(obj, fel)        (obj->field_count = fel)
-#define SIZE_IN_BYTES_FIELDS(fel)       ((size_t)(sizeof(Object) + \
+#define SIZE_IN_BYTES_FIELDS(fel)       ((size_t)(sizeof(ObjectHeader) + \
       (fel*SIZE_OF_OBJECT)))
-#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(Object)/SIZE_OF_OBJECT + fel)
+#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(ObjectHeader)/SIZE_OF_OBJECT + fel)
 #define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->num_fields())
 #define SIZE_OF_BODY(obj)               (obj->num_fields() * SIZE_OF_OBJECT)
+
+#define Qfalse ((Object*)6L)
+#define Qnil   ((Object*)14L)
+#define Qtrue  ((Object*)10L)
+#define Qundef ((Object*)18L)
 
   /* rubinius_object gc zone, takes up two bits */
   typedef enum
@@ -166,6 +171,79 @@ to be a simple test for that bit pattern.
     uint32_t num_fields() {
       return field_count;
     }
+
+    size_t size_in_bytes() {
+      return SIZE_IN_BYTES(this);
+    }
+
+    size_t body_in_bytes() {
+      return num_fields() * sizeof(ObjectHeader);
+    }
+
+    bool reference_p() {
+      return REFERENCE_P(this);
+    }
+
+    bool stores_bytes_p() {
+      return StoresBytes;
+    }
+
+    bool stores_references_p() {
+      return !StoresBytes;
+    }
+
+    bool young_object_p() {
+      return zone == YoungObjectZone;
+    }
+
+    bool mature_object_p() {
+      return zone == MatureObjectZone;
+    }
+
+    bool forwarded_p() {
+      return Forwarded == 1;
+    }
+
+    Object* forward() {
+      return (Object*)klass_;
+    }
+
+    bool marked_p() {
+      return Marked == 1;
+    }
+
+    void mark() {
+      Marked = 1;
+    }
+
+    void clear_mark() {
+      Marked = 0;
+    }
+
+    bool nil_p() {
+      return this == reinterpret_cast<ObjectHeader*>(Qnil);
+    }
+
+    bool undef_p() {
+      return this == reinterpret_cast<ObjectHeader*>(Qundef);
+    }
+
+    bool true_p() {
+      return this == reinterpret_cast<ObjectHeader*>(Qtrue);
+    }
+
+    bool false_p() {
+      return this == reinterpret_cast<ObjectHeader*>(Qfalse);
+    }
+
+    bool has_ivars_p() {
+      return true;
+    }
+
+    bool check_type(object_type type) {
+      return reference_p() && obj_type == type;
+    }
+
   };
 
   /* Object access, lowest level. These read and set fields of an OBJECT

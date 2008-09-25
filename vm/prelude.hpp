@@ -42,10 +42,6 @@ namespace rubinius {
 
 #define FALSE false
 #define TRUE true
-#define Qfalse ((OBJECT)6L)
-#define Qnil   ((OBJECT)14L)
-#define Qtrue  ((OBJECT)10L)
-#define Qundef ((OBJECT)18L)
 #define STATE rubinius::VM *state
 #define G(whatever) state->globals.whatever.get()
 #define GO(whatever) state->globals.whatever
