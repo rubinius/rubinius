@@ -2875,7 +2875,14 @@ def _reduce_3(val, _values, result)
                   if val[1] then
                     result = s(:rescue)
                     result << val[0] if val[0]
-                    result << val[1]
+
+                    resbody = val[1]
+
+                    while resbody do
+                      result << resbody
+                      resbody = resbody.resbody(true)
+                    end
+
                     result << val[2] if val[2]
 
                     result.line = val[1].line
