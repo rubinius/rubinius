@@ -103,7 +103,7 @@ class TestChannel : public CxxTest::TestSuite {
     state->events->run_and_wait();
 
     TS_ASSERT(chan->waiting()->empty_p());
-
+    
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(G(current_task)->calculate_sp(), 0);
     TS_ASSERT_EQUALS(stack[0], Qnil);
@@ -143,11 +143,12 @@ class TestChannel : public CxxTest::TestSuite {
     TS_ASSERT_DELTA(expected, actual, delta);
   }
 
-  void compare_interval_less_than(suseconds_t expected, struct timeval start,
-				  struct timeval finish) {
+  void compare_interval_in_range(struct timeval start, struct timeval finish, 
+				 suseconds_t tmin, suseconds_t tmax) {
     time_t sec = finish.tv_sec - start.tv_sec;
     suseconds_t actual = sec * 1000000 - start.tv_usec + finish.tv_usec;
-    TS_ASSERT_LESS_THAN(expected, actual);
+    TS_ASSERT_LESS_THAN(tmin, actual);
+    TS_ASSERT_LESS_THAN(actual,tmax);
   }
 
   void test_send_in_microseconds() {
@@ -167,7 +168,7 @@ class TestChannel : public CxxTest::TestSuite {
     TS_ASSERT(ret->nil_p());
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(done, stack[0]);
-    compare_interval_less_than(200000U,start,finish);
+    compare_interval_in_range(start,finish,200000U,250000U);
   }
 
   void test_send_in_seconds() {
