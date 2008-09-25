@@ -47,22 +47,23 @@ end
 # to create a BlockContext.
 
 class BlockEnvironment
-  def home        ; @home        ; end
-  def initial_ip  ; @initial_ip  ; end
-  def last_ip     ; @last_ip     ; end
-  def post_send   ; @post_send   ; end
-  def home_block  ; @home_block  ; end
-  def local_count ; @local_count ; end
-  def bonus       ; @bonus       ; end
-  def method      ; @method      ; end
+  attr_accessor :home
+  attr_accessor :home_block
+  attr_accessor :local_count
+  attr_accessor :method
+
+  attr_accessor :initial_ip
+  attr_accessor :last_ip
+  attr_accessor :post_send
+  attr_accessor :scope
+
+  ##
+  # Holds a Tuple of local variable names to support eval
+  attr_accessor :bonus
 
   def under_context(home, cmethod)
-    if home.kind_of? BlockContext
-      home_block = home
-      home = home.home
-    else
-      home_block = home
-    end
+    home_block = home
+    home = home.home if home.kind_of? BlockContext
 
     @home = home
     @initial_ip = 0
@@ -74,13 +75,6 @@ class BlockEnvironment
     return self
   end
 
-  ##
-  # Holds a Tuple of local variable names to support eval
-
-  def bonus=(tup)
-    @bonus = tup
-  end
-
   def from_eval?
     @bonus and @bonus[0]
   end
@@ -88,13 +82,6 @@ class BlockEnvironment
   def from_eval!
     @bonus = Tuple.new(1) unless @bonus
     @bonus[0] = true
-  end
-
-  ##
-  # The CompiledMethod object that we were called from
-
-  def method=(tup)
-    @method = tup
   end
 
   ##
@@ -109,14 +96,6 @@ class BlockEnvironment
 
   def line
     method.line_from_ip(initial_ip)
-  end
-
-  def home=(home)
-    @home = home
-  end
-
-  def scope=(tup)
-    @scope = tup
   end
 
   def make_independent
