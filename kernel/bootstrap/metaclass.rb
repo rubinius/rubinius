@@ -1,5 +1,4 @@
 class MetaClass
-  def __ivars__        ; @__ivars__         ; end
   # Do not define #methods as an accessor for @methods, use #method_table instead
   def method_cache     ; @method_cache      ; end
   def name             ; @name              ; end

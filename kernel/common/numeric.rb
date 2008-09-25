@@ -3,9 +3,6 @@
 class Numeric
   include Comparable
 
-  # Numeric and sub-classes do not have ivars
-  def __ivars__ ; nil  ; end
-
   def +@
     self
   end
@@ -18,17 +15,17 @@ class Numeric
     b, a = math_coerce other
     a + b
   end
-  
+
   def -(other)
     b, a = math_coerce other
     a - b
   end
-  
+
   def *(other)
     b, a = math_coerce other
     a * b
   end
-  
+
   def %(other)
     b, a = math_coerce other
     raise ZeroDivisionError, "divided by 0" unless b.__kind_of__(Float) or b != 0
@@ -45,23 +42,23 @@ class Numeric
     a / b
   end
   alias_method :/, :divide
-  
+
   def **(other)
     b, a = math_coerce other
     a ** b
   end
-  
+
   def divmod(other)
     b, a = math_coerce other
-    
+
     if other == 0
       raise FloatDomainError, "NaN" if other.__kind_of__ Float
       raise ZeroDivisionError, "divided by 0"
     end
-    
+
     a.divmod b
   end
-  
+
   def div(other)
     raise FloatDomainError, "NaN" if self == 0 && other.__kind_of__(Float) && other == 0
     b, a = math_coerce other
@@ -81,17 +78,17 @@ class Numeric
     b, a = math_coerce other, :compare_error
     a < b
   end
-  
+
   def <=(other)
     b, a = math_coerce other, :compare_error
     a <= b
   end
-  
+
   def >(other)
     b, a = math_coerce other, :compare_error
     a > b
   end
-  
+
   def >=(other)
     b, a = math_coerce other, :compare_error
     a >= b
@@ -101,7 +98,7 @@ class Numeric
     return true if other.equal?(self)
     !!(other == self)
   end
-  
+
   def <=>(other)
     begin
       b, a = math_coerce other, :compare_error
@@ -110,7 +107,7 @@ class Numeric
       return nil
     end
   end
-  
+
   def truncate
     Float(self).truncate
   end
@@ -119,7 +116,7 @@ class Numeric
   def to_int
     self.to_i
   end
-  
+
   # Delegate #modulp to #% in subclasses
   def modulo(other)
     self % other
@@ -128,7 +125,7 @@ class Numeric
   def integer?
     false
   end
- 
+
   def zero?
     self == 0
   end
@@ -140,7 +137,7 @@ class Numeric
   def round
     self.to_f.round
   end
-  
+
   def abs
     self < 0 ? -self : self
   end
@@ -203,7 +200,7 @@ class Numeric
     rescue
       send error, other
     end
-    
+
     unless values.__kind_of__(Array) && values.length == 2
       raise TypeError, "coerce must return [x, y]"
     end
@@ -211,12 +208,12 @@ class Numeric
     return values[1], values[0]
   end
   private :math_coerce
-  
+
   def coerce_error(other)
     raise TypeError, "#{other.class} can't be coerced into #{self.class}"
   end
   private :coerce_error
-  
+
   def compare_error(other)
     raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
   end
@@ -238,3 +235,4 @@ class Numeric
     raise ArgumentError, e.message
   end
 end
+

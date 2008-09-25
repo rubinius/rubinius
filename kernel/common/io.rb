@@ -542,8 +542,6 @@ class IO
     return self
   end
 
-  def __ivars__ ; @__ivars__  ; end
-
   ##
   # Puts ios into binary mode. This is useful only in
   # MS-DOS/Windows environments. Once a stream is in

@@ -2,7 +2,6 @@ class Array
   def total    ; @total ; end
   def tuple    ; @tuple ; end
   def start    ; @start ; end
-  def __ivars__; nil    ; end
 
   def size
     @total

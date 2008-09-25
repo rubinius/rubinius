@@ -47,7 +47,6 @@ end
 # to create a BlockContext.
 
 class BlockEnvironment
-  def __ivars__   ; @__ivars__   ; end
   def home        ; @home        ; end
   def initial_ip  ; @initial_ip  ; end
   def last_ip     ; @last_ip     ; end

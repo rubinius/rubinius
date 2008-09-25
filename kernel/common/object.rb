@@ -1,8 +1,5 @@
 class Object
 
-  def __ivars__; @__ivars__ ; end
-  private :__ivars__
-
   def initialize
   end
   private :initialize
@@ -21,7 +18,7 @@ class Object
       name = name.to_str
       return name.to_sym if name[0] == ?@
     end
-    
+
     raise NameError.new("`#{name}' is not allowed as an instance variable name")
   end
   private :instance_variable_validate
