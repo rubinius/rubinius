@@ -116,8 +116,10 @@ else
 end
 CC          = ENV['CC'] || "gcc"
 
-
-FLAGS << "-O2" if ENV['FAST']
+if ENV['FAST']
+  FLAGS << "-O3"
+  FLAGS << "-finline-functions"
+end
 
 def compile(obj, src)
   unless defined? $llvm_c then
