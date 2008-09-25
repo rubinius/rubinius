@@ -9,46 +9,6 @@ $TESTING = false unless defined? $TESTING
 
 require 'sexp'
 
-class Object
-
-  ##
-  # deep_clone is the usual Marshalling hack to make a deep copy.
-  # It is rather slow, so use it sparingly. Helps with debugging
-  # SexpProcessors since you usually shift off sexps.
-
-  def deep_clone
-    Marshal.load(Marshal.dump(self))
-  end
-end
-
-##
-# SexpProcessor base exception class.
-
-class SexpProcessorError < StandardError; end
-
-##
-# Raised by SexpProcessor if it sees a node type listed in its
-# unsupported list.
-
-class UnsupportedNodeError < SexpProcessorError; end
-
-##
-# Raised by SexpProcessor if it is in strict mode and sees a node for
-# which there is no processor available.
-
-class UnknownNodeError < SexpProcessorError; end
-
-##
-# Raised by SexpProcessor if a processor did not process every node in
-# a sexp and @require_empty is true.
-
-class NotEmptyError < SexpProcessorError; end
-
-##
-# Raised if assert_type encounters an unexpected sexp type.
-
-class SexpTypeError < SexpProcessorError; end
-
 ##
 # SexpProcessor provides a uniform interface to process Sexps.
 #
@@ -79,6 +39,8 @@ class SexpTypeError < SexpProcessorError; end
 #   end
 
 class SexpProcessor
+
+  VERSION = '3.0.0'
 
   ##
   # Automatically shifts off the Sexp type before handing the
@@ -139,22 +101,23 @@ class SexpProcessor
   # SexpProcessor
 
   def initialize
-    @default_method = nil
-    @warn_on_default = true
-    @auto_shift_type = false
-    @strict = false
-    @unsupported = [:alloca, :cfunc, :cref, :ifunc, :last, :memo, :newline, :opt_n, :method] # internal nodes that you can't get to
+    @default_method      = nil
+    @warn_on_default     = true
+    @auto_shift_type     = false
+    @strict              = false
+    @unsupported         = [:alloca, :cfunc, :cref, :ifunc, :last, :memo,
+                            :newline, :opt_n, :method]
     @unsupported_checked = false
-    @debug = {}
-    @expected = Sexp
-    @require_empty = true
-    @exceptions = {}
+    @debug               = {}
+    @expected            = Sexp
+    @require_empty       = true
+    @exceptions          = {}
 
     # we do this on an instance basis so we can subclass it for
     # different processors.
     @processors = {}
     @rewriters  = {}
-    @context = []
+    @context    = []
 
     public_methods.each do |name|
       case name
@@ -240,7 +203,7 @@ class SexpProcessor
     if meth then
 
       if @warn_on_default and meth == @default_method then
-        $stderr.puts "WARNING: Using default method #{meth} for #{type}"
+        warn "WARNING: Using default method #{meth} for #{type}"
       end
 
       exp.shift if @auto_shift_type and meth != @default_method
@@ -307,12 +270,11 @@ class SexpProcessor
       if @exceptions.has_key? type then
         return @exceptions[type].call(self, exp, err)
       else
-        $stderr.puts "#{err.class} Exception thrown while processing #{type} for sexp #{exp.inspect} #{caller.inspect}" if $DEBUG
+        warn "#{err.class} Exception thrown while processing #{type} for sexp #{exp.inspect} #{caller.inspect}" if $DEBUG
         raise
       end
     end
   end
-  private :error_handler
 
   ##
   # Registers an error handler for +node+
@@ -334,10 +296,51 @@ class SexpProcessor
 
   def process_dummy(exp)
     result = @expected.new(:dummy) rescue @expected.new
+
     until exp.empty? do
       result << self.process(exp.shift)
     end
+
     result
   end
 end
 
+class Object
+
+  ##
+  # deep_clone is the usual Marshalling hack to make a deep copy.
+  # It is rather slow, so use it sparingly. Helps with debugging
+  # SexpProcessors since you usually shift off sexps.
+
+  def deep_clone
+    Marshal.load(Marshal.dump(self))
+  end
+end
+
+##
+# SexpProcessor base exception class.
+
+class SexpProcessorError < StandardError; end
+
+##
+# Raised by SexpProcessor if it sees a node type listed in its
+# unsupported list.
+
+class UnsupportedNodeError < SexpProcessorError; end
+
+##
+# Raised by SexpProcessor if it is in strict mode and sees a node for
+# which there is no processor available.
+
+class UnknownNodeError < SexpProcessorError; end
+
+##
+# Raised by SexpProcessor if a processor did not process every node in
+# a sexp and @require_empty is true.
+
+class NotEmptyError < SexpProcessorError; end
+
+##
+# Raised if assert_type encounters an unexpected sexp type.
+
+class SexpTypeError < SexpProcessorError; end
