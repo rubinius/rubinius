@@ -3991,16 +3991,7 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   add_tests("rescue_block_nada",
-            "Compiler" => bytecode do |g|
-              in_rescue :StandardError do |good_side|
-                if good_side then
-                  g.push :self
-                  g.send :blah, 0, true
-                else
-                  g.push :nil
-                end
-              end
-            end)
+            "Compiler" => testcases['rescue']['Compiler'])
 
   add_tests("rescue_exceptions",
             "Compiler" => bytecode do |g|
