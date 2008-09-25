@@ -236,10 +236,6 @@ to be a simple test for that bit pattern.
       return this == reinterpret_cast<ObjectHeader*>(Qfalse);
     }
 
-    bool has_ivars_p() {
-      return true;
-    }
-
     bool check_type(object_type type) {
       return reference_p() && obj_type == type;
     }
