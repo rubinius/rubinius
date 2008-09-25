@@ -136,13 +136,6 @@ class TestChannel : public CxxTest::TestSuite {
     TS_ASSERT(chan->has_readers_p());
   }
 
-  void compare_intervals(struct timeval start, struct timeval finish,
-                         suseconds_t expected, suseconds_t delta) {
-    time_t sec = finish.tv_sec - start.tv_sec;
-    suseconds_t actual = sec * 1000000 - start.tv_usec + finish.tv_usec;
-    TS_ASSERT_DELTA(expected, actual, delta);
-  }
-
   void compare_interval_in_range(struct timeval start, struct timeval finish, 
 				 suseconds_t tmin, suseconds_t tmax) {
     time_t sec = finish.tv_sec - start.tv_sec;
@@ -189,6 +182,6 @@ class TestChannel : public CxxTest::TestSuite {
     TS_ASSERT(ret->nil_p());
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(done, stack[0]);
-    compare_intervals(start, finish, 201000U, 350U);
+    compare_interval_in_range(start, finish, 201000U, 251000U);
   }
 };
