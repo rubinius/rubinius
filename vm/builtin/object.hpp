@@ -13,10 +13,11 @@ namespace rubinius {
 * that sets the instance variable foo_ to the object given and runs the write
 * barrier.
 */
-#define attr_writer(name, type) void name(STATE, type* obj) { \
-                                       name ## _ = obj; \
-                                       this->write_barrier(state, (OBJECT)obj); \
-                                     }
+#define attr_writer(name, type) \
+  void name(STATE, type* obj) { \
+    name ## _ = obj; \
+    if(zone == MatureObjectZone) this->write_barrier(state, (OBJECT)obj); \
+  }
 
 /**
 * Create a reader method.
@@ -185,6 +186,11 @@ namespace rubinius {
 
     // Ruby.primitive :compiledfile_load
     static OBJECT compiledfile_load(STATE, String* path, OBJECT version);
+
+    // Overloads to shortcut (using C++'s type system) the write
+    // barrier when storing Fixnums or Symbols
+    void write_barrier(STATE, Fixnum* obj) { }
+    void write_barrier(STATE, Symbol* obj) { }
   };
 
 }

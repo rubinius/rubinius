@@ -47,7 +47,6 @@ namespace rubinius {
     ObjectMemory(STATE, size_t young_bytes);
     ~ObjectMemory();
 
-    void write_barrier(OBJECT target, OBJECT val);
     void remember_object(OBJECT target);
     void unremember_object(OBJECT target);
 
@@ -69,6 +68,15 @@ namespace rubinius {
     void add_type_info(TypeInfo* ti);
 
     ObjectPosition validate_object(OBJECT obj);
+
+    void write_barrier(OBJECT target, OBJECT val) {
+      if(target->Remember) return;
+      if(!REFERENCE_P(val)) return;
+      if(target->zone != MatureObjectZone) return;
+      if(val->zone != YoungObjectZone) return;
+
+      remember_object(target);
+    }
   };
 
 #define FREE(obj) free(obj)

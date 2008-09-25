@@ -83,16 +83,6 @@ namespace rubinius {
     type_info[ti->type] = ti;
   }
 
-  void ObjectMemory::write_barrier(OBJECT target, OBJECT val) {
-    if(!target->Remember && val->reference_p() &&
-       target->zone == MatureObjectZone &&
-       val->zone != MatureObjectZone) {
-
-      target->Remember = 1;
-      remember_set->push_back(target);
-    }
-  }
-
   /* Store an object into the remember set. Called when we've calculated
    * externally that the object in question needs to be remembered */
   void ObjectMemory::remember_object(OBJECT target) {
