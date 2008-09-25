@@ -468,7 +468,7 @@ module Kernel
   def inspect(prefix=nil, vars=nil)
     return "..." if RecursionGuard.inspecting?(self)
 
-    iv = __ivars__()
+    iv = instance_variables
 
     return self.to_s unless iv
 
