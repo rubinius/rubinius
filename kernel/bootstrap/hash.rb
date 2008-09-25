@@ -157,11 +157,13 @@ class Hash
   # handle manipulating the bucket chain.
   def entry(key, key_hash)
     bin = entry_bin key_hash
-    entry = @bins.at bin
+    entry = @bins[bin]
     return entry if entry
 
     self.size += 1
-    @bins[bin] = Bucket.new key, nil, key_hash
+
+    # recalc the bin since #size may have invoked redistribute
+    @bins[entry_bin(key_hash)] = Bucket.new key, nil, key_hash
   end
 
   # Returns the index into the storage for +key_hash+.
