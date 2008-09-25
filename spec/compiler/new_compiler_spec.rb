@@ -10,7 +10,7 @@ end
 
 require File.dirname(__FILE__) + '/compiler_test'
 
-class Symbol
+class Symbol # TODO: nuke when we flip the compiler and can update the specs
   alias :old_eq2 :==
   def == o
     case o
@@ -31,6 +31,7 @@ class NewCompiler < SexpProcessor
     @slots = {}
     @current_slot = -1
     @jump = @literal = 0
+    @jump_handled = nil
   end
 
   def process exp
@@ -208,6 +209,8 @@ class NewCompiler < SexpProcessor
     case mesg    # TODO: this sucks... we shouldn't do this analysis here
     when :+ then
       s(:dummy, recv, args, s(:meta_send_op_plus))
+    when :== then
+      s(:dummy, recv, args, s(:meta_send_op_equal))
     else
       s(:dummy, recv, args, s(:send, mesg, arity, private_send))
     end
@@ -382,6 +385,86 @@ class NewCompiler < SexpProcessor
     result
   end
 
+  def process_rescue exp
+    jump_top    = new_jump
+    jump_dunno1 = new_jump
+    jump_dunno2 = new_jump
+
+    # TODO: maybe make into block handler
+
+    else_body = exp.pop unless exp.last.first == :resbody
+
+    result = s(:dummy)
+    result << s(:push_modifiers)
+    result << s(:set_label, jump_top)
+    result << s(:set_label, jump_dunno1) # FIX: seriously, no clue... can't find
+
+    result << process(exp.shift)
+
+    resbodies = []
+    until exp.empty? do
+      resbodies << process(exp.shift)
+    end
+
+    result << s(:goto, @jump_else)
+    result << s(:set_label, jump_dunno2)
+
+    result.push(*resbodies)
+
+    result << s(:set_label, @jump_else) # TODO: don't emit if we don't have one!
+    result << process(else_body) if else_body
+    result << s(:set_label, @jump_handled)
+
+    @jump_handled = nil # FIX: see bitchy note below
+
+    result << s(:pop_modifiers)
+
+    result
+  end
+
+  def process_resbody exp
+    exceptions = exp.shift
+    body       = exp.shift
+
+    jump_ex_body  = new_jump
+    jump_uncaught = new_jump
+    @jump_else    = new_jump # FIX: THIS IS BULLSHIT
+    @jump_handled = new_jump # TODO: this is fucked once you stack,
+                             # but for some stupid reason, it has to
+                             # be generated here instead of above
+
+    exceptions.shift # type
+
+    # TODO: this is completely tarded and incredibly inconsistent
+    exceptions << s(:StandardError) if exceptions.empty?
+    assign = exceptions.pop if
+      exceptions.last.first == :lasgn unless exceptions.empty?
+
+    result = s(:dummy)
+    until exceptions.empty? do
+      exception = exceptions.shift
+      result << s(:push_const, exception.last)
+      result << s(:push_exception)
+      result << s(:send, :===, 1)
+      result << s(:git, jump_ex_body)
+    end
+    result << s(:goto, jump_uncaught)
+    result << s(:set_label, jump_ex_body)
+
+    result << process(assign) if assign
+
+    body = process(body) || s(:push, :nil)
+    result << body
+
+    result << s(:clear_exception)
+    result << s(:goto, @jump_handled)
+    result << s(:set_label, jump_uncaught)
+    result << s(:push_exception)
+    result << s(:raise_exc)
+
+    result
+  end
+
   def process_return exp
     val = process(exp.shift) || s(:push, :nil)
 
@@ -478,9 +561,8 @@ class NewCompiler < SexpProcessor
     class_or_module exp, :class
   end
 
-  def rewrite_const exp
-    exp[0] = :push_const
-    exp
+  def process_const exp
+    s(:push_const, exp.shift)
   end
 
   def rewrite_cvar exp
@@ -518,7 +600,7 @@ class NewCompiler < SexpProcessor
     s(:push, :false)
   end
 
-  def rewrite_gasgn exp
+  def process_gasgn exp
     s(:dummy,
       s(:push_cpath_top),
       s(:find_const, :Globals),
@@ -527,12 +609,18 @@ class NewCompiler < SexpProcessor
       s(:send, :[]=, 2))
   end
 
-  def rewrite_gvar exp
-    s(:dummy,
-      s(:push_cpath_top),
-      s(:find_const, :Globals),
-      s(:push_literal, exp.last),
-      s(:send, :[], 1))
+  def process_gvar exp
+    case exp.last
+    when :$! then
+      exp.clear
+      s(:push_exception)
+    else
+      s(:dummy,
+        s(:push_cpath_top),
+        s(:find_const, :Globals),
+        s(:push_literal, exp.last),
+        s(:send, :[], 1))
+    end
   end
 
   def rewrite_hash exp
