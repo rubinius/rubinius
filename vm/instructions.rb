@@ -1403,8 +1403,8 @@ class Instructions
     <<-CODE
     OBJECT t1 = stack_back(count);
 
-    if(kind_of<BlockEnvironment>(t1)) {
-      as<BlockEnvironment>(t1)->call(state, task, count);
+    if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+      env->call(state, task, count);
       return false;
     }
 
