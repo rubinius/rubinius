@@ -435,10 +435,10 @@ class NewCompiler < SexpProcessor
 
     exceptions.shift # type
 
-    # TODO: this is completely tarded and incredibly inconsistent
-    exceptions << s(:StandardError) if exceptions.empty?
     assign = exceptions.pop if
-      exceptions.last.first == :lasgn unless exceptions.empty?
+      exceptions.last && exceptions.last.first == :lasgn
+
+    exceptions << s(:StandardError) if exceptions.empty?
 
     result = s(:dummy)
     until exceptions.empty? do
