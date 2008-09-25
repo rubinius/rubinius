@@ -481,11 +481,13 @@ namespace rubinius {
     return String::create(state, s);
   }
 
-  INTEGER String::to_i(STATE) {
+  INTEGER String::to_i(STATE, FIXNUM fix_base, OBJECT strict) {
     char* str = c_str();
-    int base = 10;
+    int base = fix_base->to_native();
     bool negative = false;
     INTEGER value = Fixnum::from(0);
+
+    if(base < 0 || base > 36) return (INTEGER)Qnil;
 
     // Move past any spaces
     while(*str == ' ') str++;
@@ -496,45 +498,132 @@ namespace rubinius {
     }
 
     char chr;
+    int detected_base = 0;
+    char* str_start = str;
 
+    // Try and detect a base prefix on the front. We have to do this
+    // even though we might have been told the base, because we have
+    // to know if we should discard the bytes that make up the prefix
+    // if it's redundent with passed in base.
+    //
+    // For example, if base == 16 and str == "0xa", we return
+    // to return 10. But if base == 10 and str == "0xa", we fail
+    // because we rewind and try to process 0x as part of the
+    // base 10 string.
+    //
     if(*str == '0') {
       str++;
       switch(chr = *str++) {
       case 'b':
-        base = 2;
+        detected_base = 2;
         break;
       case 'o':
-        base = 8;
+        detected_base = 8;
         break;
       case 'd': // does this really exist?
-        base = 10;
+        detected_base = 10;
         break;
       case 'x':
-        base = 16;
+        detected_base = 16;
         break;
       default:
-        base = 8;
-        str--;
+        // Ok, it's the weird octal 0 start thing. If the next
+        // char is a valid octal character, then we switch to base
+        // 8. Otherwise it's an invalid base prefix and we bail.
+        if(chr >= '0' && chr <= '7') {
+          detected_base = 8;
+          str--;
+        // If there is more and we're strict, bail.
+        } else if(chr && strict == Qtrue) {
+          return (INTEGER)Qnil;
+        } else {
+          return value;
+        }
+
         break;
       }
+
+      // If 0 was passed in as the base, we use the detected base.
+      if(base == 0) {
+        base = detected_base;
+
+      // If the passed in base and the detected base contradict
+      // eachother, then rewind and process the whole string as
+      // digits of the passed in base.
+      } else if(base != detected_base) {
+        // rewind the stream, and try and consume the prefix as
+        // digits in the number.
+        str = str_start;
+      }
     }
+
+    // Default to 10 if there is no input and no detected base.
+    if(detected_base == 0 && base == 0) {
+      base = 10;
+    }
+
+    // A stupid boundry case. A _ is ok at the beginning of the beginning
+    // if we're not strict.
+    if(*str == '_') {
+      if(strict == Qtrue) {
+        return (INTEGER)Qnil;
+      } else {
+        str++;
+      }
+    }
+
+    bool underscore = false;
 
     while(*str) {
       chr = *str++;
 
-      if(!chr || chr == ' ' || chr == '\t' || chr == '\n') continue;
+      // If we see space characters
+      if(chr == ' ' || chr == '\t' || chr == '\n') {
 
+        // Eat them all
+        while(chr == ' ' || chr == '\t' || chr == '\n') {
+          chr = *str++;
+        }
+
+        // If there is more stuff after the spaces, get out of dodge.
+        if(chr) {
+          if(strict == Qtrue) {
+            return (INTEGER)Qnil;
+          } else {
+            goto return_value;
+          }
+        }
+
+        break;
+      }
+
+      // If it's an underscore, remember that. An underscore is valid iff
+      // it followed by a valid character for this base.
+      if(chr == '_') {
+        underscore = true;
+        continue;
+      } else {
+        underscore = false;
+      }
+
+      // We use A-Z (and a-z) here so we support up to base 36.
       if(chr >= '0' && chr <= '9') {
         chr -= '0';
-      } else if(chr >= 'A' && chr <= 'F') {
+      } else if(chr >= 'A' && chr <= 'Z') {
         chr -= ('A' - 10);
-      } else if(chr >= 'a' && chr <= 'f') {
+      } else if(chr >= 'a' && chr <= 'z') {
         chr -= ('a' - 10);
       }
 
       // Bail if the current chr is greater or equal to the base,
       // mean it's invalid.
-      if(chr >= base) return (INTEGER)Qnil;
+      if(chr >= base) {
+        if(strict == Qtrue) {
+          return (INTEGER)Qnil;
+        } else {
+          goto return_value;
+        }
+      }
 
       if(value != Fixnum::from(0)) {
         if(Fixnum *fix = try_as<Fixnum>(value)) {
@@ -551,6 +640,12 @@ namespace rubinius {
       }
     }
 
+    // If we last saw an underscore and we're strict, bail.
+    if(underscore && strict == Qtrue) {
+      return (INTEGER)Qnil;
+    }
+
+return_value:
     if(negative) {
       if(Fixnum* fix = try_as<Fixnum>(value)) {
         value = fix->neg(state);
@@ -562,8 +657,8 @@ namespace rubinius {
     return value;
   }
 
-  INTEGER String::to_i_prim(STATE) {
-    INTEGER val = to_i(state);
+  INTEGER String::to_inum_prim(STATE, FIXNUM base, OBJECT strict) {
+    INTEGER val = to_i(state, base, strict);
     if(val->nil_p()) throw PrimitiveFailed();
 
     return val;

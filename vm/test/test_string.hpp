@@ -149,8 +149,18 @@ class TestString : public CxxTest::TestSuite {
   }
 
   void test_to_i() {
-    str = String::create(state, "3");
+    str = String::create(state, "0");
     INTEGER val = str->to_i(state);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
+
+    str = String::create(state, "0");
+    val = str->to_i(state, Fixnum::from(10), Qtrue);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
+
+    str = String::create(state, "3");
+    val = str->to_i(state);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
 
@@ -175,6 +185,11 @@ class TestString : public CxxTest::TestSuite {
     str = String::create(state, "garbage");
     val = str->to_i(state);
     TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "garbage");
+    val = str->to_i(state, Fixnum::from(0), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
 
     str = String::create(state, "0xa");
     val = str->to_i(state);
@@ -213,6 +228,87 @@ class TestString : public CxxTest::TestSuite {
     big = as<Bignum>(big->mul(state, big));
 
     TS_ASSERT(as<Bignum>(val)->equal(state, big));
+
+    str = String::create(state, "0b11");
+    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
+
+    str = String::create(state, "0b11");
+    val = str->to_i(state, Fixnum::from(2), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
+
+    str = String::create(state, "0b11");
+    val = str->to_i(state, Fixnum::from(2), Qtrue);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
+
+    str = String::create(state, "0b11");
+    val = str->to_i(state, Fixnum::from(10), Qtrue);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "0 1");
+    val = str->to_i(state, Fixnum::from(2), Qtrue);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "0 1");
+    val = str->to_i(state, Fixnum::from(2), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
+
+    str = String::create(state, "1_1");
+    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 11);
+
+    str = String::create(state, "0_1");
+    val = str->to_i(state, Fixnum::from(2), Qtrue);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "0_1");
+    val = str->to_i(state, Fixnum::from(2), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
+
+    str = String::create(state, "1_2");
+    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 12);
+
+    str = String::create(state, "1_");
+    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 1);
+
+    str = String::create(state, "1_");
+    val = str->to_i(state, Fixnum::from(10), Qtrue);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "-45q");
+    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), -45);
+
+    // Make sure we support up to base 36
+    str = String::create(state, "a8q8a");
+    val = str->to_i(state, Fixnum::from(36), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 17203402);
+
+    // Boundry conditions
+    str = String::create(state, "a8q8a");
+    val = str->to_i(state, Fixnum::from(37), Qfalse);
+    TS_ASSERT_EQUALS(val, Qnil);
+
+    str = String::create(state, "_12");
+    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 12);
+
+    str = String::create(state, "_12");
+    val = str->to_i(state, Fixnum::from(10), Qtrue);
+    TS_ASSERT_EQUALS(val, Qnil);
   }
 
   void test_apply_and() {

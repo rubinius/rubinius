@@ -2,6 +2,7 @@
 #define RBX_STRING_HPP
 
 #include "builtin/object.hpp"
+#include "builtin/fixnum.hpp"
 #include "type_info.hpp"
 #include <ctype.h> // For isdigit and friends
 #include <cerrno> // For ERANGE
@@ -98,10 +99,10 @@ namespace rubinius {
     Float* to_f(STATE);
     double to_double(STATE);
 
-    INTEGER to_i(STATE);
+    INTEGER to_i(STATE, FIXNUM base = Fixnum::from(0), OBJECT strict = Qtrue);
 
-    // Ruby.primitive :string_to_i
-    INTEGER to_i_prim(STATE);
+    // Ruby.primitive :string_to_inum
+    INTEGER to_inum_prim(STATE, FIXNUM base, OBJECT strict);
 
     // Ruby.primitive :string_apply_and
     String* apply_and(STATE, String* other);

@@ -872,7 +872,7 @@ class String
   #    "0".hex        #=> 0
   #    "wombat".hex   #=> 0
   def hex
-    self.to_inum(16)
+    self.to_inum(16, false)
   end
 
   # Returns <code>true</code> if <i>self</i> contains the given string or
@@ -1081,7 +1081,7 @@ class String
   #   "bad".oct       #=> 0
   #   "0377bad".oct   #=> 255
   def oct
-    self.to_inum(8, false, true)
+    self.to_inum(8, false)
   end
 
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
@@ -1726,11 +1726,9 @@ class String
   #   "1100101".to_i(10)       #=> 1100101
   #   "1100101".to_i(16)       #=> 17826049
   def to_i(base = 10)
-    Ruby.primitive :string_to_i
-
     base = Type.coerce_to(base, Integer, :to_int)
     raise ArgumentError, "illegal radix #{base}" if base < 0
-    self.to_inum(base)
+    self.to_inum(base, false)
   end
 
   # Returns self if self is an instance of String,
@@ -1922,7 +1920,9 @@ class String
     return result
   end
 
-  def to_inum(base, check = false, detect_base = false)
+  def to_inum(base, check)
+    Ruby.primitive :string_to_inum
+
     detect_base = true if base == 0
 
     raise(ArgumentError,
