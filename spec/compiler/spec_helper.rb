@@ -413,47 +413,48 @@ class TestGenerator
   end
 
   def in_rescue klass, wtf = false
-    top       = self.new_label
-    bottom1   = self.new_label
-    bottom2   = self.new_label
-    dunno     = self.new_label
-    std_err   = self.new_label
-    unhandled = self.new_label
+    jump_top     = self.new_label
+    jump_ex_body = self.new_label
+    jump_else    = self.new_label
+    jump_last    = self.new_label
+    jump_matched = self.new_label
+    jump_std_err = self.new_label
+    jump_reraise = self.new_label
 
     self.push_modifiers
 
-    top.set!
-    top.set!
+    jump_top.set!
+    jump_ex_body.set!
 
     yield true
 
-    self.goto bottom1
+    self.goto jump_else
 
-    dunno.set!
+    jump_matched.set!
 
     unless wtf then
       self.push_const klass
       self.push_exception
       self.send :===, 1
-      self.git std_err
+      self.git jump_std_err
     end
 
-    self.goto unhandled         # FIX: stupid jump, gif better
+    self.goto jump_reraise         # FIX: stupid jump, gif better
 
-    std_err.set!
+    jump_std_err.set!
 
     yield false
 
     self.clear_exception
-    self.goto bottom2
+    self.goto jump_last
 
-    unhandled.set!
+    jump_reraise.set!
 
     self.push_exception
     self.raise_exc
 
-    bottom1.set!
-    bottom2.set!
+    jump_else.set!
+    jump_last.set!
 
     self.pop_modifiers
   end
