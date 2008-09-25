@@ -103,15 +103,15 @@ namespace rubinius {
 
   Class* Object::class_object(STATE) {
     if(reference_p()) {
-      Class* cls = klass_;
-      while(!cls->nil_p() && !instance_of<Class>(cls)) {
-        cls = as<Class>(cls->superclass());
+      Module* mod = klass_;
+      while(!mod->nil_p() && !instance_of<Class>(mod)) {
+        mod = as<Module>(mod->superclass());
       }
 
-      if(cls->nil_p()) {
+      if(mod->nil_p()) {
         Assertion::raise("Object::class_object() failed to find a class");
       }
-      return cls;
+      return as<Class>(mod);
     }
 
     return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();

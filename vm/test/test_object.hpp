@@ -321,7 +321,7 @@ class TestObject : public CxxTest::TestSuite {
     obj->freeze();
     TS_ASSERT(obj->IsFrozen);
   }
-  
+
   void test_nil_class() {
     TS_ASSERT_EQUALS(Qnil->class_object(state), G(nil_class));
   }
@@ -338,6 +338,28 @@ class TestObject : public CxxTest::TestSuite {
     for(size_t i = 0; i < SPECIAL_CLASS_MASK; i++) {
       TS_ASSERT_EQUALS(Fixnum::from(i)->class_object(state), G(fixnum_class));
     }
+  }
+
+  void test_object_class() {
+    Array* ary = Array::create(state, 1);
+
+    TS_ASSERT_EQUALS(G(array), ary->class_object(state));
+  }
+
+  void test_object_class_with_superclass_chain() {
+    Module* mod = Module::create(state);
+    Class* cls = Class::create(state, G(object));
+    OBJECT obj = state->om->new_object(cls, 0);
+
+    /* This should be functionally correct but not actually the
+     * way a superclass chain is implemented. However, it doesn't
+     * require that we create a root for IncludedModule.
+     */
+    Module* m = cls->superclass();
+    cls->superclass(state, mod);
+    mod->superclass(state, m);
+
+    TS_ASSERT_EQUALS(cls, obj->class_object(state));
   }
 
   void test_symbol_class() {
