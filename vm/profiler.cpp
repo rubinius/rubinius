@@ -19,8 +19,15 @@
 
 #else
 
-#define current_time() ((uint64_t)clock())
-#define METHOD "clock"
+uint64_t current_time() {
+  timespec tp;
+  if (clock_gettime(CLOCK_REALTIME, &tp)) {
+    // error! Do something about it?
+    return 0U;
+  }
+  return tp.tv_sec * 1000000000UL + tp.tv_nsec;
+}
+#define METHOD "clock_gettime"
 
 #endif
 
@@ -69,7 +76,7 @@ namespace rubinius {
 
       return time * timebase.numer / timebase.denom;
 #else
-      return time / (CLOCKS_PER_SEC * 1000000000UL);
+      return time;
 #endif
 
     }
