@@ -125,6 +125,14 @@ class NewCompiler < SexpProcessor
     result
   end
 
+  def process_argscat exp
+    s(:dummy,
+      process(exp.shift),
+      process(exp.shift),
+      s(:cast_array),
+      s(:send, :+, 1))
+  end
+
   def process_array exp
     result = s(:dummy)
 
@@ -189,6 +197,7 @@ class NewCompiler < SexpProcessor
     args  = process(args)
 
     private_send = recv.nil?
+    recv ||= s(:push, :self)
     recv = s(:push, :self) if private_send
 
     case mesg    # TODO: this sucks... we shouldn't do this analysis here
@@ -203,7 +212,7 @@ class NewCompiler < SexpProcessor
 
   def process_colon2 exp
     s(:dummy,
-      exp.shift,
+      process(exp.shift),
       s(:find_const, exp.shift))
   end
 
@@ -369,6 +378,33 @@ class NewCompiler < SexpProcessor
     idx = name2slot lhs
 
     s(:push_local, idx)
+  end
+
+  def process_masgn exp
+    lhs    = exp.shift
+    rhs    = exp.shift
+
+    if rhs.nil? or rhs.first != :array then # HACK
+      exp.clear
+      return s(:not_yet!)
+    end
+
+    size   = rhs.size - 1
+
+    rhs[0] = :dummy # was array, wo don't want make_array
+
+    result = s(:dummy,
+               process(rhs),
+               s(:rotate, size))
+
+    lhs.shift # type
+    until lhs.empty? do
+      result << process(lhs.shift).compact # these lasgns produce nil rhs
+      result << s(:pop)
+    end
+
+    result << s(:push, :true) # FIX: this is just wrong
+    result
   end
 
   def process_or exp
@@ -559,6 +595,11 @@ class NewCompiler < SexpProcessor
       exp[1],
       exp[2],
       s(:send, :alias_method, 2, true))
+  end
+
+  def rewrite_attrasgn exp
+    exp[0] = :call
+    exp
   end
 
   def rewrite_back_ref exp
