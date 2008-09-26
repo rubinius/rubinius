@@ -34,6 +34,7 @@ namespace rubinius {
      * size. */
     MethodContext* caches[CountContextCaches];
 
+    ContextCache();
 
     void reset();
     MethodContext* get(size_t which);

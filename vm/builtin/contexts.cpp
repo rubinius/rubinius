@@ -132,7 +132,7 @@ initialize:
       } else if(stack_size != LargeContextSize) {
         return false;
       } else {
-        which = LargeContextSize;
+        which = LargeContextCache;
       }
 
       // HACK this is broken. It's adding context which

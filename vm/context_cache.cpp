@@ -3,6 +3,11 @@
 #include "context_cache.hpp"
 
 namespace rubinius {
+
+  ContextCache::ContextCache() {
+    reset();
+  }
+
   /* Reset all state to empty. */
   void ContextCache::reset() {
     reclaim = 0;
@@ -31,3 +36,4 @@ namespace rubinius {
   }
 
 };
+
