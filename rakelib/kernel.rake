@@ -125,9 +125,10 @@ rule ".rbc" do |t|
   compile_ruby src, rbc
 end
 
+compiler_sources = Dir["lib/compiler/*.rb"]
 compiler = []
 
-Dir["lib/compiler/*.rb"].each do |rb|
+compiler_sources.each do |rb|
   compiler << "#{rb}c"
   file "#{rb}c" => rb do
     compile_ruby rb, "#{rb}c"
@@ -136,12 +137,25 @@ end
 
 namespace :kernel do
 
+  task :check_compiler do
+    compiler_mtime = compiler_sources.map { |f| File::Stat.new(f).mtime }.max
+
+    kernel_mtime = all_kernel.select do |f|
+      f =~ /rbc$/ and File.exist? f
+    end.map do |f|
+      File::Stat.new(f).mtime
+    end.min
+
+    Rake::Task['kernel:clean'].invoke if compiler_mtime > kernel_mtime
+  end
+
   task :show do
     p modules
     p loose
   end
 
-  task :build => all_kernel + compiler + %w[runtime/platform.conf] do
+  task :build => ['kernel:check_compiler', all_kernel, compiler,
+                  'runtime/platform.conf'].flatten do
     modules.each do |name, files|
       create_load_order files, "runtime/#{name}/.load_order.txt"
     end
