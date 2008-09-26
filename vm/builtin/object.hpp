@@ -1,8 +1,9 @@
 #ifndef RBX_VM_BUILTIN_OBJECT_HPP
 #define RBX_VM_BUILTIN_OBJECT_HPP
 
-#include "oop.hpp"
-#include "prelude.hpp"
+#include "vm/oop.hpp"
+#include "vm/prelude.hpp"
+#include "vm/type_info.hpp"
 
 namespace rubinius {
 
@@ -50,7 +51,8 @@ namespace rubinius {
   public:
 
     /* Objects have no index fields past the header by default */
-    const static size_t fields = 0;
+    static const size_t fields = 0;
+    static const object_type type = ObjectType;
 
     /* accessors */
     attr_accessor(klass, Class);
@@ -191,6 +193,19 @@ namespace rubinius {
     // barrier when storing Fixnums or Symbols
     void write_barrier(STATE, Fixnum* obj) { }
     void write_barrier(STATE, Symbol* obj) { }
+
+  public:
+
+    /**
+     *  Static type information for Object.
+     */
+    class Info : public TypeInfo {
+    public:
+      virtual ~Info() {}
+
+      Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
+    };
+
   };
 
 }
