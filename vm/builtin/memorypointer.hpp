@@ -66,9 +66,11 @@ namespace rubinius {
     // Ruby.primitive :memorypointer_set_at_offset
     OBJECT set_at_offset(STATE, FIXNUM offset, FIXNUM type, OBJECT val);
 
+
+    /** TODO: Need cleanup here? */
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
+      Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
       virtual void mark(OBJECT t, ObjectMark& mark);
     };
   };

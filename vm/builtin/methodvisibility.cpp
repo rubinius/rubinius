@@ -1,11 +1,8 @@
-#include "builtin/class.hpp"
-#include "builtin/methodvisibility.hpp"
-#include "builtin/compiledmethod.hpp"
-#include "builtin/executable.hpp"
-#include "builtin/symbol.hpp"
-#include "vm.hpp"
+#include "vm/vm.hpp"
+#include "vm/object.hpp"
 
-#include <iostream>
+#include "builtin/methodvisibility.hpp"
+#include "builtin/symbol.hpp"
 
 namespace rubinius {
 

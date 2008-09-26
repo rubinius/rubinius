@@ -1,10 +1,10 @@
 #ifndef RBX_THREAD_HPP
 #define RBX_THREAD_HPP
 
-#include "builtin/object.hpp"
-#include "type_info.hpp"
+#include "vm/exception.hpp"
+#include "vm/type_info.hpp"
 
-#include "object.hpp" // TODO: break this file up... we just need Assertion
+#include "builtin/object.hpp"
 
 namespace rubinius {
   class Channel;

@@ -55,7 +55,7 @@ namespace rubinius {
   public: // Rubinius Type stuff
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
+      Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
       virtual void mark(OBJECT t, ObjectMark& mark);
       virtual void show(STATE, OBJECT self, int level);
       virtual void show_simple(STATE, OBJECT self, int level);

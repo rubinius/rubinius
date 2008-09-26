@@ -1,3 +1,5 @@
+#include "vm/object.hpp"
+
 #include "builtin/integer.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/bignum.hpp"
