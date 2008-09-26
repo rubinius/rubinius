@@ -56,7 +56,6 @@ tmtags
 
 /lib/etc.rb
 /lib/kernel.rb
-/lib/rbconfig.rb
 /lib/zlib.rb
 
 native/sexp
