@@ -569,8 +569,6 @@ end
 write_if_new "vm/gen/typechecks.gen.cpp" do |f|
   f.puts "void TypeInfo::auto_init(STATE) {"
   parser.classes.each do |n, cpp|
-    next if n == "Object"
-
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
     cpp.all_fields.each do |name, type, idx|
@@ -599,12 +597,14 @@ write_if_new "vm/gen/primitives_declare.hpp" do |f|
 end
 
 write_if_new "vm/gen/object_types.hpp" do |f|
+  stripped = parser.classes.reject {|n, cpp| cpp.name =~ /(Nil|True|False)Class/ }
+
   f.puts "typedef enum {"
   f.puts "  InvalidType = 0,"
   f.puts "  NilType,"
   f.puts "  TrueType,"
   f.puts "  FalseType,"
-  parser.classes.map { |n, cpp| cpp.name}.sort.each do |name|
+  stripped.map { |n, cpp| cpp.name }.sort.each do |name|
     f.puts "  #{name}Type,"
   end
   f.puts "  LastObjectType"
