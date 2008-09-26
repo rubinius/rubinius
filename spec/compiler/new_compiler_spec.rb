@@ -175,6 +175,9 @@ class NewCompiler < SexpProcessor
     call     = exp.shift
     recv     = call.delete_at(1)
     args     = call.pop
+
+    return s(:not_yet) unless Sexp === args # FIX
+
     arity    = args.size - 1
 
     call[0] = :send_with_block
@@ -472,18 +475,20 @@ class NewCompiler < SexpProcessor
   end
 
   def process_splat exp
-    val  = process(exp.shift)
-    _, recv, call = process(exp.shift)
+    return s(:dummy) if exp.empty? # TODO: fix? shouldn't even get here
+    var  = process(exp.shift)
+    call = process(exp.shift)
 
-    call[0] = :send_with_splat
-    call << false    # no clue
+    return var if call.nil? # TODO: also prolly shouldn't even get here
 
-    s(:dummy,
-      recv,
-      val,
-      s(:cast_array),
-      s(:push, :nil), # no clue
-      call)
+    call.last[0] = :send_with_splat
+    call.last << false # FIX: no clue
+
+    call[2, 0] = [var,
+                  s(:cast_array),
+                  s(:push, :nil)]
+
+    call
   end
 
   def process_undef exp
@@ -604,8 +609,8 @@ class NewCompiler < SexpProcessor
     s(:dummy,
       s(:push_cpath_top),
       s(:find_const, :Globals),
-      s(:push_literal, exp[1]),
-      exp[2],
+      s(:push_literal, exp.shift),
+      process(exp.shift),
       s(:send, :[]=, 2))
   end
 
@@ -618,7 +623,7 @@ class NewCompiler < SexpProcessor
       s(:dummy,
         s(:push_cpath_top),
         s(:find_const, :Globals),
-        s(:push_literal, exp.last),
+        s(:push_literal, exp.shift),
         s(:send, :[], 1))
     end
   end
@@ -693,10 +698,21 @@ class NewCompiler < SexpProcessor
     lhs = exp[1]
     rhs = exp[2]
 
-    if Symbol === lhs then
+    case lhs
+    when Symbol then
       lhs = s(:dummy, recv, s(:push_literal, lhs))
+    when Sexp then
+      case lhs.first
+      when :colon2 then
+        _, a, b = lhs
+        lhs = s(:dummy, a, s(:push_literal, b))
+      when :colon3 then # FIX: not sure, but I think this fails X::Y::Z::Q...
+        lhs = s(:dummy, s(:push_cpath_top), s(:push_literal, lhs.last))
+      else
+        raise "wtf: #{lhs.inspect}"
+      end
     else
-      lhs.last[0] = :push_literal
+      raise "wtf: #{lhs.inspect}"
     end
 
     s(:dummy, lhs, rhs, s(:send, mesg, 2))
@@ -748,7 +764,7 @@ class NewCompiler < SexpProcessor
   end
 
   # TODO: move to name2index sexp processor phase
-  def name2slot name, raise_if_missing = true
+  def name2slot name, raise_if_missing = false # TODO: true
     idx = @slots[name]
     if raise_if_missing then
       raise "unknown var name #{name.inspect} in #{@slots.inspect}" unless idx
