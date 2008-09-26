@@ -31,6 +31,12 @@ class TestGenerator
     @stream = []
     @ip = 0
     @lbl = 0
+    @slot = 0
+  end
+
+  def new_slot
+    @slot += 1
+    @slot
   end
 
   def new_label_id
@@ -128,6 +134,7 @@ class TestGenerator
 
     def ==(lbl)
       raise "Unset label!" unless @ip
+      return self.to_sym == lbl if Symbol === lbl
       @ip == lbl.ip
     end
   end
@@ -484,7 +491,7 @@ class TestGenerator
   def memoize
     memo = self.new_label
     self.add_literal nil
-    slot = @ip
+    slot = new_slot
     self.push_literal_at slot
     self.dup
     self.is_nil

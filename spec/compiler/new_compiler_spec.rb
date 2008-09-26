@@ -203,6 +203,8 @@ class NewCompiler < SexpProcessor
     case mesg    # TODO: this sucks... we shouldn't do this analysis here
     when :+ then
       s(:dummy, recv, args, s(:meta_send_op_plus))
+    when :- then
+      s(:dummy, recv, args, s(:meta_send_op_minus))
     when :== then
       s(:dummy, recv, args, s(:meta_send_op_equal))
     else
@@ -330,11 +332,117 @@ class NewCompiler < SexpProcessor
     s(:dummy, c, j2, t, j3, s2, f, s3).compact
   end
 
-  def process_lasgn exp
-    lhs = exp.shift # TODO: register name to slot
-    rhs = process(exp.shift)
+  def process_iter exp
+    call = exp.shift
+    args = exp.shift
+    body = exp.shift
 
+    # HACKS
+    msg            = :dunno_message
+    shift          = 0
+    block_count    = 0,
+    call_count     = 0,
+    block_send_vis = true,
+    shift          = 0,
+    nested         = false,
+    lvl            = 0
+
+    inner_top = new_jump
+
+    @jump = 0 # HACK
+
+    top       = new_jump
+    dunno1    = new_jump
+    uncaught  = new_jump
+    dunno2    = new_jump
+    bottom    = new_jump
+
+    call = process(call)
+    send = call.pop
+    send[0] = :send_with_block
+
+    s(:dummy,
+      call,
+
+      s(:create_block,
+        s(:method_description,
+          #       case block_count
+          #       when Float then # yes... I'm a dick
+          #         d.cast_for_single_block_arg
+          #         d.set_local 0
+          #       when -2 then
+          #         d.cast_for_multi_block_arg
+          #       when -1 then
+          #         d.cast_array
+          #         d.set_local_depth lvl, 0
+          #       when 0 then
+          #       when 1 then
+          s(:cast_for_single_block_arg),
+          s(:set_local_depth, lvl, 0),
+          #       else
+          #         d.cast_for_multi_block_arg
+          #         (0...block_count).each do |n|
+          #           d.shift_tuple
+          #           d.set_local_depth lvl, n
+          #           d.pop
+          #         end
+          #       end
+
+          s(:pop),
+          s(:push_modifiers),
+          s(:set_label, inner_top),
+          process(body),
+          s(:pop_modifiers),
+          s(:ret))),
+
+      s(:set_label, top),
+
+      s(:push_context),
+      s(:set_local, 0 + shift),
+      s(:pop),
+
+      send,
+
+      s(:goto, bottom),
+
+      s(:set_label, dunno1),
+
+      s(:push_exception),
+      s(:dup),
+      s(:push_cpath_top),
+      s(:find_const, :LongReturnException),
+      s(:swap),
+      s(:kind_of),
+      s(:gif, uncaught),
+
+      s(:dup),
+      s(:send, :context, 0),
+      s(:push_context),
+      s(:equal),
+      s(:gif, uncaught),
+
+      s(:clear_exception),
+      s(:dup),
+      s(:send, :is_return, 0),
+      s(:gif, dunno2),
+
+      #     unless nested then
+      s(:send, :value, 0),
+      s(:ret),
+      #     end
+
+      s(:set_label, uncaught),
+      s(:raise_exc),
+      s(:set_label, dunno2),
+      s(:send, :value, 0),
+      s(:set_label, bottom))
+  end
+
+  def process_lasgn exp
+    lhs = exp.shift
     idx = name2slot lhs, false
+
+    rhs = process(exp.shift)
 
     s(:dummy, rhs, s(:set_local, idx))
   end
@@ -354,20 +462,13 @@ class NewCompiler < SexpProcessor
     when Symbol then
       s(:push_unique_literal, val)
     when Regexp then
-      literal = new_literal
-
-      s(:dummy,
-        s(:add_literal, nil), # TODO: possibly rewrite this as s(:cache, o)
-        s(:push_literal_at, literal),
-        s(:dup),
-        process(s(:s_if, s(:is_nil), # TODO: flip to rewrite and process goes
-                  s(:pop),
-                  s(:push_const, :Regexp),
-                  s(:push_literal, val.source),
-                  s(:push, val.options),
-                  s(:send, :new, 2),
-                  s(:set_literal, literal),
-                  true)))
+      cache do
+        s(:dummy,
+          s(:push_const, :Regexp),
+          s(:push_literal, val.source),
+          s(:push, val.options),
+          s(:send, :new, 2))
+      end
     else
       raise "not yet"
     end
@@ -405,6 +506,31 @@ class NewCompiler < SexpProcessor
 
     result << s(:push, :true) # FIX: this is just wrong
     result
+  end
+
+  def process_match exp
+    # HACK: this is a bug in the old compiler
+    recv = process(s(:gvar, :$_))
+    recv[1, 0] = [recv.delete_at -2]
+
+    s(:dummy,
+      recv,
+      process(exp.shift),
+      s(:send, :=~, 1))
+  end
+
+  def process_match2 exp
+    s(:dummy,
+      process(exp.shift),
+      process(exp.shift),
+      s(:send, :=~, 1))
+  end
+
+  def process_match3 exp
+    s(:dummy,
+      process(exp.pop),
+      process(exp.shift),
+      s(:send, :=~, 1))
   end
 
   def process_or exp
@@ -552,6 +678,12 @@ class NewCompiler < SexpProcessor
                   s(:push, :nil)]
 
     call
+  end
+
+  def process_str exp
+    s(:dummy,
+      s(:push_literal, exp.shift),
+      s(:string_dup))
   end
 
   def process_undef exp
@@ -705,12 +837,6 @@ class NewCompiler < SexpProcessor
     s(:push, :self)
   end
 
-  def rewrite_str exp
-    s(:dummy,
-      s(:push_literal, exp[1]),
-      s(:string_dup))
-  end
-
   def rewrite_true exp
     s(:push, :true)
   end
@@ -734,6 +860,20 @@ class NewCompiler < SexpProcessor
 
   ############################################################
   # Helpers
+
+  def cache
+    literal = new_literal
+
+    s(:dummy,
+      s(:add_literal, nil),
+      s(:push_literal_at, literal),
+      s(:dup),
+      process(s(:s_if, s(:is_nil),
+                s(:pop),
+                yield,
+                s(:set_literal, literal),
+                true)))
+  end
 
   def cdecl_or_cvdecl exp, recv, mesg
     lhs = exp[1]
@@ -910,7 +1050,7 @@ describe "Compiler::*Nodes" do
 
       expected = s(:test_generator, *Sexp.from_array(expected.stream))
 
-      node.should == expected
+      expected.should == node
     end
   end
 end
