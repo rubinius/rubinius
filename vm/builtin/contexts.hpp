@@ -72,6 +72,9 @@ namespace rubinius {
     // Ruby.primitive :context_get_field
     OBJECT get_internal_data(STATE, FIXNUM type);
 
+    // Ruby.primitive :context_dup
+    MethodContext* dup(STATE);
+
     /* Locals manipulation functions */
     /* Locals are just stored at the top of the stack. */
     void set_local(size_t pos, OBJECT val) {

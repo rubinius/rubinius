@@ -185,6 +185,52 @@ initialize:
     return ctx;
   }
 
+  /* Called as the context_dup primitive
+   */
+  MethodContext* MethodContext::dup(STATE) {
+    MethodContext* ctx = create(state, this->stack_size);
+
+    ctx->sender(state, this->sender());
+    ctx->self(state, this->self());
+    ctx->cm(state, this->cm());
+    ctx->module(state, this->module());
+    ctx->block(state, this->block());
+    ctx->name(state, this->name());
+
+    if(this->obj_type == MethodContextType) {
+      ctx->home(state, ctx);
+    } else {
+      ctx->home(state, this->home());
+    }
+
+    /* Set the obj_type because we get called
+     * for both BlockContext and MethodContext
+     */
+    ctx->obj_type = this->obj_type;
+
+    ctx->vmm = this->vmm;
+    ctx->js = this->js;
+    ctx->ip = this->ip;
+    ctx->args = this->args;
+    ctx->stack_size = this->stack_size;
+
+    for(size_t i = 0; i < this->stack_size; i++) {
+      ctx->stk[i] = this->stk[i];
+    }
+
+    /* Stack Management procedures. Make sure that we don't
+     * miss object stored into the stack of a context
+     */
+    if(ctx->zone == MatureObjectZone) {
+      state->om->remember_object(ctx);
+    }
+
+    /* This ctx is escaping into Ruby-land */
+    ctx->reference(state);
+
+    return ctx;
+  }
+
   /* Retrieve the BlockEnvironment from +this+ BlockContext. We reuse the
    * block field from MethodContext and use a type-safe cast. */
   BlockEnvironment* BlockContext::env() {
