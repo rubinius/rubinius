@@ -1,38 +1,73 @@
-#ifndef RBX_TYPE_INFO_HPP
-#define RBX_TYPE_INFO_HPP
-
-#include "prelude.hpp"
-#include "object.hpp"
+#ifndef RBX_VM_TYPE_INFO_HPP
+#define RBX_VM_TYPE_INFO_HPP
 
 #include <map>
 #include <stdexcept>
 
-#include "gc.hpp"
+#include "vm/gc.hpp"
+#include "vm/object_types.hpp"
+#include "vm/prelude.hpp"
 
 namespace rubinius {
+
   class VM;
   class Class;
 
-  /* TypeInfo contains varies operations that are registered by types */
+  /**
+   *  Static type information for the VM.
+   *
+   *  Due to memory layout restrictions, virtual methods cannot exist
+   *  on builtin types. This class abstracts those operations out of
+   *  the classes themselves. Using virtual dispatch here allows the
+   *  correct method implementation to be invoked, based on the object's
+   *  obj_type field.
+   *
+   *  @see  doc/builtin_internal_resource_releasing.txt
+   *  @see  vm/object_types.hpp
+   *  @see  builtin/object.hpp
+   */
   class TypeInfo {
   public:
 
-    typedef std::map<native_int, long> Slots;
 
-    VM* state;
-    object_type type;
-    std::string type_name;
-    Slots slots;
+    typedef std::map<native_int, long> Slots;
 
     static void init(STATE);
     static void auto_init(STATE);
-    TypeInfo(object_type type);
     virtual void auto_mark(OBJECT obj, ObjectMark& mark);
 
-    // These are virtual methods that are 're-dispatched' using an object's
-    // 'obj_type' field to determine the correct type info
+  public:   /* Ctors */
+
+    /**
+     *  Make a new TypeInfo.
+     *
+     *  To support TypeInfo hierarchies where some classes may
+     *  and some may not need e.g. a cleanup, the instantiation
+     *  will set the cleanup flag if _any_ of the classes in
+     *  the chain request it.
+     */
+    TypeInfo(object_type type, bool cleanup = false);
+
     virtual ~TypeInfo();
+
+  public:   /* Interface */
+
+    /**
+     *  Internal resource cleanup.
+     *
+     *  This method is called with an object being collected if it is
+     *  marked as needing cleanup.
+     *
+     *  There are two things of note:
+     *
+     *  1.  Cleanup methods in subclasses MUST be marked virtual; and
+     *  2.  Each cleanup method MUST call its "super". In C++, this
+     *      means explicitly qualifying the method name as, e.g.
+     *
+     *          MySuperTypeInfo::cleanup(obj);
+     */
     virtual void cleanup(OBJECT obj);
+
     virtual void mark(OBJECT obj, ObjectMark& mark);
     virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
     virtual OBJECT get_field(STATE, OBJECT target, size_t index);
@@ -90,14 +125,40 @@ namespace rubinius {
      * Indents to level-1 and prints ">" + endl.
      */
     virtual void close_body(int level);
+
+  public:   /* Instance vars */
+
+    bool        instances_need_cleanup;
+    Slots       slots;
+    VM*         state;
+    object_type type;
+    std::string type_name;
+
   };
 
-#define BASIC_TYPEINFO(super) \
-  Info(object_type type) : super(type) { } \
-  virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val); \
-  virtual OBJECT get_field(STATE, OBJECT target, size_t index); \
-  virtual void auto_mark(OBJECT obj, ObjectMark& mark);
-
 }
+
+
+#define BASIC_TYPEINFO(super) \
+  Info(object_type type, bool cleanup = false) : super(type, cleanup) { } \
+  virtual void auto_mark(OBJECT obj, ObjectMark& mark); \
+  virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val); \
+  virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+
+/**
+ *  Generate TypeInfo declaration contents.
+ *
+ *  This version marks any object that has this type info in
+ *  its type info hierarchy as needing some internal resource
+ *  cleanup.
+ *
+ *  @see  doc/builtin_internal_resource_releasing.txt
+ */
+#define BASIC_TYPEINFO_WITH_CLEANUP(super) \
+  Info(object_type type, bool cleanup = true) : super(type, true) { } \
+  virtual void auto_mark(OBJECT obj, ObjectMark& mark); \
+  virtual void cleanup(Object* obj); \
+  virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val); \
+  virtual OBJECT get_field(STATE, OBJECT target, size_t index);
 
 #endif
