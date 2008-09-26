@@ -69,22 +69,12 @@ class NewCompiler < SexpProcessor
     result
   end
 
-  ##
-  # Invented node type is an if w/o an else body, allowing us to use
-  # this internally for several different forms.
-
-  def process_s_if exp
-    c = process(exp.shift)
-    flip = exp.pop if exp.last == true
-    t = process(s(:dummy, *exp))
-    j = flip ? :gif : :git
-
-    exp.clear # appease the sexp processor gods
-
-    j2 = s(j, new_jump)
-    s2 = s(:set_label, j2.last)
-
-    s(:dummy, c, j2, t, s2)
+  def process_arglist exp
+    result = s(:dummy)
+    until exp.empty? do
+      result << process(exp.shift)
+    end
+    result
   end
 
   def process_args exp
@@ -162,14 +152,6 @@ class NewCompiler < SexpProcessor
     result
   end
 
-  def process_arglist exp
-    result = s(:dummy)
-    until exp.empty? do
-      result << process(exp.shift)
-    end
-    result
-  end
-
   def process_block_pass exp
     block    = exp.shift
     call     = exp.shift
@@ -229,6 +211,10 @@ class NewCompiler < SexpProcessor
     s(:dummy,
       s(:push_cpath_top),
       s(:find_const, exp.shift))
+  end
+
+  def process_const exp
+    s(:push_const, exp.shift)
   end
 
   def defn_or_defs exp, type
@@ -291,6 +277,29 @@ class NewCompiler < SexpProcessor
 
   def process_evstr exp
     s(:dummy, process(exp.shift), s(:send, :to_s, 0, true))
+  end
+
+  def process_gasgn exp
+    s(:dummy,
+      s(:push_cpath_top),
+      s(:find_const, :Globals),
+      s(:push_literal, exp.shift),
+      process(exp.shift),
+      s(:send, :[]=, 2))
+  end
+
+  def process_gvar exp
+    case exp.last
+    when :$! then
+      exp.clear
+      s(:push_exception)
+    else
+      s(:dummy,
+        s(:push_cpath_top),
+        s(:find_const, :Globals),
+        s(:push_literal, exp.shift),
+        s(:send, :[], 1))
+    end
   end
 
   def process_if exp
@@ -388,43 +397,6 @@ class NewCompiler < SexpProcessor
     result
   end
 
-  def process_rescue exp
-    jump_top    = new_jump
-    jump_dunno1 = new_jump
-    jump_dunno2 = new_jump
-
-    # TODO: maybe make into block handler
-
-    else_body = exp.pop unless exp.last.first == :resbody
-
-    result = s(:dummy)
-    result << s(:push_modifiers)
-    result << s(:set_label, jump_top)
-    result << s(:set_label, jump_dunno1) # FIX: seriously, no clue... can't find
-
-    result << process(exp.shift)
-
-    resbodies = []
-    until exp.empty? do
-      resbodies << process(exp.shift)
-    end
-
-    result << s(:goto, @jump_else)
-    result << s(:set_label, jump_dunno2)
-
-    result.push(*resbodies)
-
-    result << s(:set_label, @jump_else) # TODO: don't emit if we don't have one!
-    result << process(else_body) if else_body
-    result << s(:set_label, @jump_handled)
-
-    @jump_handled = nil # FIX: see bitchy note below
-
-    result << s(:pop_modifiers)
-
-    result
-  end
-
   def process_resbody exp
     exceptions = exp.shift
     body       = exp.shift
@@ -468,10 +440,65 @@ class NewCompiler < SexpProcessor
     result
   end
 
+  def process_rescue exp
+    jump_top    = new_jump
+    jump_dunno1 = new_jump
+    jump_dunno2 = new_jump
+
+    # TODO: maybe make into block handler
+
+    else_body = exp.pop unless exp.last.first == :resbody
+
+    result = s(:dummy)
+    result << s(:push_modifiers)
+    result << s(:set_label, jump_top)
+    result << s(:set_label, jump_dunno1) # FIX: seriously, no clue... can't find
+
+    result << process(exp.shift)
+
+    resbodies = []
+    until exp.empty? do
+      resbodies << process(exp.shift)
+    end
+
+    result << s(:goto, @jump_else)
+    result << s(:set_label, jump_dunno2)
+
+    result.push(*resbodies)
+
+    result << s(:set_label, @jump_else) # TODO: don't emit if we don't have one!
+    result << process(else_body) if else_body
+    result << s(:set_label, @jump_handled)
+
+    @jump_handled = nil # FIX: see bitchy note below
+
+    result << s(:pop_modifiers)
+
+    result
+  end
+
   def process_return exp
     val = process(exp.shift) || s(:push, :nil)
 
     s(:dummy, val, s(:ret))
+  end
+
+  ##
+  # Invented node type is an if w/o an else body, allowing us to use
+  # this internally for several different forms.
+
+  def process_s_if exp
+    c = process(exp.shift)
+    flip = exp.pop if exp.last == true
+    t = process(s(:dummy, *exp))
+    j = flip ? :gif : :git
+
+    exp.clear # appease the sexp processor gods
+
+    j2 = s(j, new_jump)
+    s2 = s(:set_label, j2.last)
+
+    s(:dummy, c, j2, t, s2)
   end
 
   def process_splat exp
@@ -566,10 +593,6 @@ class NewCompiler < SexpProcessor
     class_or_module exp, :class
   end
 
-  def process_const exp
-    s(:push_const, exp.shift)
-  end
-
   def rewrite_cvar exp
     s(:dummy,
       s(:push_context),
@@ -603,29 +626,6 @@ class NewCompiler < SexpProcessor
 
   def rewrite_false exp
     s(:push, :false)
-  end
-
-  def process_gasgn exp
-    s(:dummy,
-      s(:push_cpath_top),
-      s(:find_const, :Globals),
-      s(:push_literal, exp.shift),
-      process(exp.shift),
-      s(:send, :[]=, 2))
-  end
-
-  def process_gvar exp
-    case exp.last
-    when :$! then
-      exp.clear
-      s(:push_exception)
-    else
-      s(:dummy,
-        s(:push_cpath_top),
-        s(:find_const, :Globals),
-        s(:push_literal, exp.shift),
-        s(:send, :[], 1))
-    end
   end
 
   def rewrite_hash exp
