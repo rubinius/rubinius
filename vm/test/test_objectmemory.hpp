@@ -1,5 +1,10 @@
 #include <iostream>
+
+#include "vm/gc.hpp"
+#include "vm/object.hpp"
 #include "objectmemory.hpp"
+
+#include "builtin/array.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -12,6 +17,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   void setUp() {
     state = new VM(1024);
+
   }
 
   void tearDown() {
@@ -20,6 +26,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   void test_new_object() {
     ObjectMemory om(state, 1024);
+
     OBJECT obj;
 
     TS_ASSERT_EQUALS(om.young.current->used(), 0U);
@@ -134,7 +141,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
   /* Could crash on failure */
   void test_collect_young_skips_byte_storage() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
+
     Tuple *obj, *obj2;
 
     obj =  (Tuple*)om.new_object_bytes(G(object), 3);
@@ -299,7 +307,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   void test_collect_young_copies_byte_bodies() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
+
     ByteArray* obj;
 
     obj = (ByteArray*)om.new_object_bytes(G(object), 3);
@@ -459,7 +468,6 @@ class TestObjectMemory : public CxxTest::TestSuite {
     TS_ASSERT(obj->mature_object_p());
   }
 
-
   void test_collect_mature_tells_objectmemory_about_collection() {
     ObjectMemory om(state, 1024);
     OBJECT obj;
@@ -490,6 +498,59 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     obj->zone = (gc_zone)0;
     TS_ASSERT(!om.valid_object_p(obj));
+  }
+
+  /* Resource cleanup tests */
+
+  void test_create_object_sets_cleanup_flag_if_class_so_indicates()
+  {
+    TypeInfo* ti = state->om->type_info[ObjectType];
+
+    TS_ASSERT_EQUALS(ti->instances_need_cleanup, false);
+
+    Object* obj = state->om->create_object(G(object), 1);
+
+    TS_ASSERT_EQUALS(obj->RequiresCleanup, false);
+
+    ti->instances_need_cleanup = true;
+
+    Object* obj2 = state->om->create_object(G(object), 1);
+
+    TS_ASSERT_EQUALS(obj2->RequiresCleanup, true);
+    TS_ASSERT_EQUALS(obj->RequiresCleanup, false);
+
+    ti->instances_need_cleanup = false;
+  }
+
+  /* TODO: Move this to test_gc when such exists. */
+
+    /* eep */
+    class Cleanupper : public TypeInfo {
+    public:
+      Object* squeaky;
+
+      Cleanupper() : TypeInfo(ObjectType, true), squeaky(NULL) {}
+
+      virtual void cleanup(Object* obj) { squeaky = obj; }
+    };
+
+  void test_gc_calls_cleanup_function_if_object_requires_cleanup()
+  {
+    /* Double eep */
+    Cleanupper* c = new Cleanupper();
+
+    TypeInfo* ti = state->om->type_info[ObjectType];
+    state->om->type_info[ObjectType] = c;
+
+    Object* obj = state->om->create_object(G(object), 1);
+
+    TS_ASSERT_EQUALS(obj->RequiresCleanup, true);
+
+    state->om->mature.delete_object(obj);
+
+    TS_ASSERT_EQUALS(c->squeaky, obj);
+
+    state->om->type_info[ObjectType] = ti;
   }
 
 };
