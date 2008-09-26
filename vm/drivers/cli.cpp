@@ -1,12 +1,14 @@
 #include <iostream>
-#include "environment.hpp"
-#include "object.hpp"
-#include "type_info.hpp"
-#include "builtin/task.hpp"
-
-#include <iostream>
 #include <fstream>
+
 #include <sys/stat.h>
+
+#include "vm/environment.hpp"
+#include "vm/object.hpp"
+#include "vm/oop.hpp"
+#include "vm/type_info.hpp"
+
+#include "builtin/task.hpp"
 
 using namespace std;
 using namespace rubinius;

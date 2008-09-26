@@ -210,7 +210,7 @@ namespace rubinius {
     set_class(obj, cls);
 
     obj->obj_type = (object_type)cls->instance_type()->to_native();
-    obj->RequiresCleanup = (cls->needs_cleanup() == Qtrue);
+    obj->RequiresCleanup = type_info[obj->obj_type]->instances_need_cleanup;
 
     return obj;
   }
