@@ -1,4 +1,6 @@
-#include "symboltable.hpp"
+#include "vm/symboltable.hpp"
+#include "vm/exception.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"

@@ -1,8 +1,8 @@
-#include "profiler.hpp"
-#include "vm.hpp"
+#include "vm/profiler.hpp"
+#include "vm/vm.hpp"
+#include "vm/object.hpp"
 
 #include "builtin/symbol.hpp"
-#include "builtin/object.hpp"
 
 // HACK figure out a better way to detect if we should use
 // mach_absolute_time

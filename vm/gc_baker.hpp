@@ -1,13 +1,16 @@
-#ifndef RBX_GC_BAKER_H
-#define RBX_GC_BAKER_H
-
-#include "gc.hpp"
-#include "gc_root.hpp"
-#include "object_position.hpp"
+#ifndef RBX_VM_GC_BAKER_HPP
+#define RBX_VM_GC_BAKER_HPP
 
 #include <iostream>
 
+#include "vm/gc.hpp"
+#include "vm/gc_root.hpp"
+#include "vm/object_position.hpp"
+
+#include "builtin/object.hpp"
+
 namespace rubinius {
+
   typedef void *address;
 
   class ObjectMemory;

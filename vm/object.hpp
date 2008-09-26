@@ -1,5 +1,5 @@
-#ifndef RBX_OOP_HPP
-#define RBX_OOP_HPP
+#ifndef RBX_VM_OBJECT_HPP
+#define RBX_VM_OBJECT_HPP
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -8,9 +8,8 @@
 #include <cassert>
 #include <vector>
 
-#include "prelude.hpp"
-#include "builtin/object.hpp"
-#include "exception.hpp"
+#include "vm/prelude.hpp"
+#include "vm/exception.hpp"
 
 /**
  *  @file   object.hpp

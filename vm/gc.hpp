@@ -1,7 +1,7 @@
-#ifndef RBX_GC_H
-#define RBX_GC_H
+#ifndef RBX_VM_GC_HPP
+#define RBX_VM_GC_HPP
 
-#include "object.hpp"
+#include "vm/prelude.hpp"
 
 namespace rubinius {
 
