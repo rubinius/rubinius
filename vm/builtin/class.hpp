@@ -11,19 +11,17 @@ namespace rubinius {
 
   class Class : public Module {
   public:
-    const static size_t fields = Module::fields + 4;
+    const static size_t fields = Module::fields + 3;
     const static object_type type = ClassType;
 
   private:
     FIXNUM instance_fields_; // slot
-    OBJECT needs_cleanup_;   // slot
     FIXNUM instance_type_;   // slot
 
   public:
     /* accessors */
 
     attr_accessor(instance_fields, Fixnum);
-    attr_accessor(needs_cleanup, Object);
     attr_accessor(instance_type, Fixnum);
 
     /* interface */

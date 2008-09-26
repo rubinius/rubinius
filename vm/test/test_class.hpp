@@ -20,7 +20,7 @@ class TestClass : public CxxTest::TestSuite {
   }
 
   void test_class_fields() {
-    TS_ASSERT_EQUALS(Module::fields + 4U, Class::fields);
+    TS_ASSERT_EQUALS(Module::fields + 3U, Class::fields);
   }
 
   void test_metaclass_fields() {

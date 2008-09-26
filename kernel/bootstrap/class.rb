@@ -35,10 +35,6 @@ class Class
   def object_type
     @object_type
   end
-
-  def needs_cleanup
-    @needs_cleanup
-  end
 end
 
 class RuntimePrimitive < Executable

@@ -53,7 +53,6 @@
 class Class
 
   protected :object_type
-  protected :needs_cleanup
 
   def initialize(sclass=Object)
     unless sclass.kind_of?(Class)
@@ -61,7 +60,6 @@ class Class
     end
 
     @instance_fields = sclass.instance_fields
-    @needs_cleanup = sclass.needs_cleanup
     @object_type = sclass.object_type
     @superclass = sclass
 
