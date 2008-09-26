@@ -54,8 +54,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      BASIC_TYPEINFO(TypeInfo)
-      virtual void cleanup(OBJECT obj);
+      BASIC_TYPEINFO_WITH_CLEANUP(TypeInfo)
     };
 
   };
