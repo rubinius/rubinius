@@ -35,8 +35,7 @@ class TestGenerator
   end
 
   def new_slot
-    @slot += 1
-    @slot
+    @ip
   end
 
   def new_label_id

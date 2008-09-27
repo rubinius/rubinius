@@ -8,6 +8,14 @@ def description name = nil
   s(:method_description, *Sexp.from_array(tg.stream))
 end
 
+class TestGenerator
+  alias :old_slot :new_slot
+  def new_slot
+    @slot += 1
+    @slot
+  end
+end
+
 require File.dirname(__FILE__) + '/compiler_test'
 
 class Symbol # TODO: nuke when we flip the compiler and can update the specs
