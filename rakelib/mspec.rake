@@ -1,5 +1,24 @@
 # -*- ruby -*-
 
+# TODO remove this when the compiler is
+# working in the C++ VM
+namespace :build do
+  desc "Temp task to build mspec with MRI"
+  task :mspec do
+    files = Dir["mspec/**/*.rb"]
+    files.concat %w(lib/pp.rb
+                    lib/prettyprint.rb
+                    lib/time.rb
+                    lib/rbconfig.rb
+                    lib/fileutils.rb
+                    lib/yaml.rb
+                   )
+    files.each do |path|
+      compile_ruby path, "#{path}c", true
+    end
+  end
+end
+
 namespace :mspec do
   desc "Synchronize mspec with another checkout"
   task :sync do
