@@ -95,6 +95,11 @@ class SexpProcessor
   attr_accessor :warn_on_default
 
   ##
+  # A scoped environment to make you happy.
+
+  attr_reader :env
+
+  ##
   # Creates a new SexpProcessor.  Use super to invoke this
   # initializer from SexpProcessor subclasses, then use the
   # attributes above to customize the functionality of the
@@ -191,7 +196,8 @@ class SexpProcessor
     exp_orig = exp.deep_clone if $DEBUG or
       @debug.has_key? type or @exceptions.has_key?(type)
 
-    raise UnsupportedNodeError, "'#{type}' is not a supported node type" if @unsupported.include? type
+    raise UnsupportedNodeError, "'#{type}' is not a supported node type" if
+      @unsupported.include? type
 
     if @debug.has_key? type then
       str = exp.inspect
@@ -251,10 +257,6 @@ class SexpProcessor
     result
   end
 
-  def generate # :nodoc:
-    raise NotImplementedError, "not implemented yet"
-  end
-
   ##
   # Raises unless the Sexp type for +list+ matches +typ+
 
@@ -302,6 +304,71 @@ class SexpProcessor
     end
 
     result
+  end
+
+  ##
+  # Add a scope level to the current env. Eg:
+  #
+  #   def process_defn exp
+  #     name = exp.shift
+  #     args = process(exp.shift)
+  #     scope do
+  #       body = process(exp.shift)
+  #       # ...
+  #     end
+  #   end
+  #
+  #   env[:x] = 42
+  #   scope do
+  #     env[:x]       # => 42
+  #     env[:y] = 24
+  #   end
+  #   env[:y]         # => nil
+
+  def scope &block
+    env.scope(&block)
+  end
+
+  ##
+  # I really hate this here, but I hate subdirs in my lib dir more...
+  # I guess it is kinda like shaving... I'll split this out when it
+  # itches too much...
+
+  class Environment
+    def initialize
+      @env = []
+      @env.unshift({})
+    end
+
+    def all
+      @env.reverse.inject { |env, scope| env.merge scope }
+    end
+
+    def depth
+      @env.length
+    end
+
+    # TODO: depth_of
+
+    def [] name
+      hash = @env.find { |closure| closure.has_key? name }
+      hash[name] if hash
+    end
+
+    def []= name, val
+      hash = @env.find { |closure| closure.has_key? name } || @env.first
+      hash[name] = val
+    end
+
+    def scope
+      @env.unshift({})
+      begin
+        yield
+      ensure
+        @env.shift
+        raise "You went too far unextending env" if @env.empty?
+      end
+    end
   end
 end
 
