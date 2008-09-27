@@ -119,7 +119,7 @@ class BlockEnvironment
   end
 
   def arity
-    method.required
+    method.required_args
   end
 end
 

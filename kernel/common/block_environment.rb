@@ -108,7 +108,7 @@ class BlockEnvironment
   end
 
   def arity
-    method.required
+    method.required_args
   end
 
   # Static scope for constant lookup

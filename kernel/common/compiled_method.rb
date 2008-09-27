@@ -156,7 +156,7 @@ class CompiledMethod < Executable
     @file = nil
     @name = nil
     @path = nil
-    @required = req
+    @required_args = req
     return self
   end
 
