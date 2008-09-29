@@ -138,11 +138,18 @@ class Compiler
       def bytecode(g, in_masgn = false)
         if in_masgn
           @in_masgn = true
+          @swap = (in_masgn == :swap)
           super(g)
         else
+          @swap = false
           super(g)
           # TODO - Pop the result so that the RHS is left on the stack
         end
+      end
+
+      def receiver_bytecode(g)
+        super(g)
+        g.swap if @swap
       end
 
       def emit_args(g)
@@ -1467,7 +1474,7 @@ class Compiler
           @assigns.body.each do |x|
             g.shift_tuple
             if x.is? AttrAssign
-              x.bytecode(g, true)
+              x.bytecode(g, :swap)
             else
               x.bytecode(g)
             end
