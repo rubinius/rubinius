@@ -1274,25 +1274,48 @@ class Compiler
         args = sexp[0]
 
         if args.nil? then
-          # raise "no: nil"
+          @arity = -1
         elsif args == 0 then
-          # raise "no: 0"
+          @arity = 0
         else
           case args[0]
           when :masgn then
             node = MAsgn.new(@compiler)
             node.block_args = true
-            args.shift # :masgn
-            # we don't know why this works, but it does...
-            # TODO: remove masgn entirely from iterargs, let iterargs deal
-            args.unshift nil if args.size == 1 && args.last == s(:splat)
-            args[0] = convert(args[0])
+            args.shift
+
+            # UR's masgn for "l { |*| }" is just s(:masgn, s(:splat)). So if we see this,
+            # unshift nil to hold the place of the normal assigns. That puts
+            # everything in the right position
+
+            if args.size == 1
+              args.unshift nil if args[0][0] == :splat
+            end
+
+            args[0] = convert(args[0]) if args[0]
+
+            # Looks like UnifiedRuby throws a s(:splat) in if there is an anon
+            # splat.
+
+            if args[1]
+              if args[1][0] == :splat
+                args[1] = true
+              else
+                args[1] = convert(args[1])
+              end
+            end
+
             node.args(*args)
+
+            @arity = node.arity
             return [node]
           else
+            @arity = 1
             return [convert(sexp[0])]
           end
         end
+
+        return nil
       end
 
       def args(child)
@@ -1309,14 +1332,7 @@ class Compiler
         end
       end
 
-      def arity
-        case @child
-        when nil
-          return 0
-        else
-          required.size # FIX: retarded amount of work to find the arity
-        end
-      end
+      attr_reader :arity
 
       def optional
         case @child
@@ -1477,7 +1493,7 @@ class Compiler
       def args(assigns, *rest)
         if @block_args
           @assigns = assigns
-          @splat = splat
+          @splat = rest.first
           @source = nil
         elsif rest.size == 1
           @assigns = assigns
@@ -1508,6 +1524,21 @@ class Compiler
       def required
         return [] if @assigns.nil?
         @assigns.body.map { |i| i.kind_of?(MAsgn) ? i.required : i.name }.flatten
+      end
+
+      def arity
+        if @assigns
+          fixed = @assigns.body.size
+        else
+          fixed = 0
+        end
+
+        if @splat
+          fixed += 1
+          return -fixed
+        end
+
+        return fixed
       end
     end
 

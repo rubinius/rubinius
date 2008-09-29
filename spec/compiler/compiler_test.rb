@@ -2818,7 +2818,7 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("iter_masgn_args_splat",
             "Compiler" => bytecode do |g|
               g.push :self
-              in_block_send :a, 2 do |d|
+              in_block_send :a, [2, 2] do |d|
                 d.push :self
                 d.push_local_depth 0, 1
                 d.send :p, 1, true

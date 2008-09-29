@@ -460,6 +460,8 @@ describe Compiler do
         d.shift_tuple
         d.set_local_depth 0,0
         d.pop
+        d.cast_array
+        d.set_local_depth 0, 1
         d.pop
         d.push_modifiers
         d.new_label.set!

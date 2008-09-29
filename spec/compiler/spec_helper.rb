@@ -323,6 +323,16 @@ class TestGenerator
       when Float then # yes... I'm a dick
         d.cast_for_single_block_arg
         d.set_local 0
+      when Array then # I do, am a dick.
+        d.cast_for_multi_block_arg
+        (0...block_count[0]).each do |n|
+          d.shift_tuple
+          d.set_local_depth lvl, n
+          d.pop
+        end
+
+        d.cast_array
+        d.set_local_depth lvl, block_count[1]
       when -2 then
         d.cast_for_multi_block_arg
       when -1 then
