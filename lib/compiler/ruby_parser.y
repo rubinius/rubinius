@@ -1385,11 +1385,19 @@ string_content : tSTRING_CONTENT
                    lexer.lex_strterm = val[1]
                    lexer.cond.lexpop
                    lexer.cmdarg.lexpop
-                   case val[2][0]
-                   when :str, :dstr, :evstr then
-                     result = val[2]
+
+                   case val[2]
+                   when Sexp then
+                     case val[2][0]
+                     when :str, :dstr, :evstr then
+                       result = val[2]
+                     else
+                       result = s(:evstr, val[2])
+                     end
+                   when nil then
+                     result = s(:evstr)
                    else
-                     result = s(:evstr, val[2])
+                     raise "unknown rescue body: #{val[2].inspect}"
                    end
                  }
 

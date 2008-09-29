@@ -371,7 +371,7 @@ class RubyParser < Racc::Parser
       end
     when :evstr then
       head[0] = :dstr if htype == :str
-      if head.size == 2 and tail[1][0] == :str then
+      if head.size == 2 and tail.size > 1 and tail[1][0] == :str then
         head[-1] << tail[1][-1]
         head[0] = :str if head.size == 2 # HACK ?
       else
