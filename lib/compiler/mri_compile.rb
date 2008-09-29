@@ -81,9 +81,10 @@ class String
   end
 end
 
-def mri_compile file, output, decode = false, flags = []
+def mri_compile file, output = nil, decode = false, flags = []
   puts "Compiling #{file}"
 
+  output ||= "#{file}c"
   top = Compiler.compile_file(file, flags)
   mar = Rubinius::CompiledFile::Marshal.new
 
@@ -95,7 +96,7 @@ def mri_compile file, output, decode = false, flags = []
     unless top == nt
       puts "FAILED ROUND TRIP."
       compare_cm(top, nt)
-      exit 1
+      raise SyntaxError, "compiler borked on #{file}"
     end
 
     Rubinius::CompiledFile.dump top, output
@@ -123,5 +124,9 @@ if __FILE__ == $0 then
   file   = ARGV.shift
   output = ARGV.shift
 
-  mri_compile file, output, decode, flags
+  begin
+    mri_compile file, output, decode, flags
+  rescue SyntaxError
+    exit 1
+  end
 end
