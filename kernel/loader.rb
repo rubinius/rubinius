@@ -197,7 +197,7 @@ begin
 
     Compile.execute eval_code
   elsif script
-    if File.exists?(script)
+    if File.exist?(script)
       $0 = script
       Compile.debug_script! if script_debug_requested
       Compile.load_from_extension arg
@@ -206,8 +206,8 @@ begin
         puts "Unable to find '#{script}'"
         exit! 1
       else
-        prog = File.join main_lib, "bin", script
-        if File.exists? prog
+        prog = File.join main_lib, "bin", "#{script}.rb"
+        if File.exist? prog
           $0 = prog
           load prog
         else
