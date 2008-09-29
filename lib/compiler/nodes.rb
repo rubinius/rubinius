@@ -409,8 +409,9 @@ class Compiler
         collapse_args()
       end
 
-      attr_accessor :object, :method, :arguments, :argcount
+      attr_accessor :object, :method, :arguments
       attr_reader :in_block
+      attr_writer :argcount
 
       def no_args?
         @arguments.nil? or @arguments.empty?
@@ -1009,17 +1010,17 @@ class Compiler
       def enlarge_context
         return # HACK disable for now
 
-        locals = @context.locals
+#         locals = @context.locals
 
-        if !locals
-          if @my_scope.size > 0
-            @context.locals = Tuple.new(@my_scope.size)
-            @context.method.local_names = @my_scope.encoded_order
-          end
-        elsif @my_scope.size > locals.size
-          @context.locals = locals.enlarge(@my_scope.size)
-          @context.method.local_names = @my_scope.encoded_order
-        end
+#         if !locals
+#           if @my_scope.size > 0
+#             @context.locals = Tuple.new(@my_scope.size)
+#             @context.method.local_names = @my_scope.encoded_order
+#           end
+#         elsif @my_scope.size > locals.size
+#           @context.locals = locals.enlarge(@my_scope.size)
+#           @context.method.local_names = @my_scope.encoded_order
+#         end
       end
 
     end

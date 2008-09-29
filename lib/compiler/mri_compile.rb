@@ -1,22 +1,4 @@
-require 'stringio'
-
 require File.dirname(__FILE__) + '/mri_shim'
-
-flags = []
-decode = false
-output = nil
-
-while arg = ARGV.shift
-  if arg == "-d"
-    decode = true
-    $VERBOSE = true
-  elsif /-f(.*)/.match(arg)
-    flags << $1
-  else
-    ARGV.unshift arg
-    break
-  end
-end
 
 def decode_cm(cm)
   puts "= #{cm.name} (0x#{cm.object_id.to_s(16)}) ======================"
@@ -99,24 +81,47 @@ class String
   end
 end
 
-file   = ARGV.shift
-output = ARGV.shift
+def mri_compile file, output, decode = false, flags = []
+  puts "Compiling #{file}"
 
-puts "Compiling #{file}"
+  top = Compiler.compile_file(file, flags)
+  mar = Rubinius::CompiledFile::Marshal.new
 
-top = Compiler.compile_file(file, flags)
-mar = Rubinius::CompiledFile::Marshal.new
+  decode_cm(top) if decode
 
-decode_cm(top) if decode
+  if output
+    str = mar.marshal(top)
+    nt = mar.unmarshal(str)
+    unless top == nt
+      puts "FAILED ROUND TRIP."
+      compare_cm(top, nt)
+      exit 1
+    end
 
-if output
-  str = mar.marshal(top)
-  nt = mar.unmarshal(str)
-  unless top == nt
-    puts "FAILED ROUND TRIP."
-    compare_cm(top, nt)
-    exit 1
+    Rubinius::CompiledFile.dump top, output
+  end
+end
+
+if __FILE__ == $0 then
+  flags = []
+  decode = false
+  output = nil
+
+  while arg = ARGV.shift
+    case arg
+    when "-d" then
+      decode = true
+      $VERBOSE = true
+    when /-f(.*)/ then
+      flags << $1
+    else
+      ARGV.unshift arg
+      break
+    end
   end
 
-  Rubinius::CompiledFile.dump top, output
+  file   = ARGV.shift
+  output = ARGV.shift
+
+  mri_compile file, output, decode, flags
 end
