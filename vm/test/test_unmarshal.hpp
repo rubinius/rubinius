@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <sstream>
-
+#include <cmath>
 
 
 using namespace rubinius;
@@ -92,7 +92,7 @@ public:
     TS_ASSERT(obj->symbol_p());
     TS_ASSERT_EQUALS(obj, state->symbol("blah"));
   }
-  
+
   void test_sendsite() {
     mar->sstream.str(std::string("S\n4\nblah\n"));
     OBJECT obj = mar->unmarshal();
@@ -107,7 +107,7 @@ public:
     OBJECT obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Array>(obj));
-    
+
     Array* ary = as<Array>(obj);
 
     TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(1));
@@ -140,6 +140,43 @@ public:
     Float* flt = as<Float>(obj);
 
     TS_ASSERT_EQUALS(flt->val, 15.5);
+  }
+
+  void test_float_infinity() {
+    mar->sstream.str(std::string("d\nInfinity\n"));
+
+    OBJECT obj = mar->unmarshal();
+
+    TS_ASSERT(kind_of<Float>(obj));
+
+    Float* flt = as<Float>(obj);
+
+    TS_ASSERT(std::isinf(flt->val));
+  }
+
+  void test_float_neg_infinity() {
+    mar->sstream.str(std::string("d\n-Infinity\n"));
+
+    OBJECT obj = mar->unmarshal();
+
+    TS_ASSERT(kind_of<Float>(obj));
+
+    Float* flt = as<Float>(obj);
+
+    TS_ASSERT(std::isinf(flt->val));
+    TS_ASSERT(flt->val < 0.0);
+  }
+
+  void test_float_nan() {
+    mar->sstream.str(std::string("d\nNaN\n"));
+
+    OBJECT obj = mar->unmarshal();
+
+    TS_ASSERT(kind_of<Float>(obj));
+
+    Float* flt = as<Float>(obj);
+
+    TS_ASSERT(std::isnan(flt->val));
   }
 
   void test_iseq() {
@@ -179,7 +216,7 @@ public:
     TS_ASSERT_EQUALS(cm->splat(), Qnil);
     TS_ASSERT(tuple_equals(cm->literals(), Tuple::from(state, 2, Fixnum::from(1), Fixnum::from(2))));
     TS_ASSERT_EQUALS(cm->exceptions(), Qnil);
-    TS_ASSERT(tuple_equals(cm->lines(), Tuple::from(state, 1, 
+    TS_ASSERT(tuple_equals(cm->lines(), Tuple::from(state, 1,
           Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(1), Fixnum::from(1)))));
 
     TS_ASSERT_EQUALS(cm->file(), state->symbol("not_real"));
