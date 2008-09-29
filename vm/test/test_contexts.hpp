@@ -2,6 +2,8 @@
 #include "objectmemory.hpp"
 #include "ffi.hpp"
 #include "builtin/contexts.hpp"
+#include "builtin/sendsite.hpp"
+#include "builtin/tuple.hpp"
 #include "context_cache.hpp"
 
 #include <cxxtest/TestSuite.h>
@@ -67,4 +69,77 @@ class TestContexts : public CxxTest::TestSuite {
     state->context_cache->reclaim = 1;
     TS_ASSERT(!ctx->recycle(state));
   }
+
+  void test_dup() {
+    // Create a realistic MethodContext
+    // Is there a better way to do this?
+    Task* task = Task::create(state);
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->iseq(state, InstructionSequence::create(state, 10));
+    cm->stack_size(state, Fixnum::from(10));
+    cm->local_count(state, Fixnum::from(0));
+    cm->literals(state, Tuple::create(state, 10));
+    cm->formalize(state);
+
+    MethodContext* ctx = MethodContext::create(state, Qnil, cm);
+    task->make_active(ctx);
+
+    opcode stream[10];
+    memset(stream, 0, sizeof(opcode) * 10);
+    stream[0] = InstructionSequence::insn_send_method;
+    stream[1] = (opcode)0;
+
+    CompiledMethod* target = CompiledMethod::create(state);
+    target->iseq(state, InstructionSequence::create(state, 1));
+    target->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args(state, Fixnum::from(0));
+    target->required_args(state, target->total_args());
+    target->stack_size(state, Fixnum::from(10));
+
+    SYMBOL name = state->symbol("blah");
+    G(true_class)->method_table()->store(state, name, target);
+    SendSite* ss = SendSite::create(state, name);
+
+    task->literals()->put(state, 0, ss);
+    task->push(Qtrue);
+
+    target->formalize(state);
+
+    // Dup right before we run so we can compare later
+    MethodContext* dup = ctx->dup(state);
+
+    // Compare the dup'd with the original
+    TS_ASSERT_EQUALS(ctx->sender(), dup->sender());
+    TS_ASSERT_EQUALS(dup, dup->home());
+    TS_ASSERT_EQUALS(ctx->self(), dup->self());
+    TS_ASSERT_EQUALS(ctx->cm(), dup->cm());
+    TS_ASSERT_EQUALS(ctx->module(), dup->module());
+    TS_ASSERT_EQUALS(ctx->block(), dup->block());
+    TS_ASSERT_EQUALS(ctx->name(), dup->name());
+
+    TS_ASSERT_EQUALS(ctx->vmm, dup->vmm);
+    TS_ASSERT_EQUALS(ctx->ip, dup->ip);
+    TS_ASSERT_EQUALS(ctx->args, dup->args);
+    TS_ASSERT_EQUALS(ctx->stack_size, dup->stack_size);
+
+    TS_ASSERT_SAME_DATA(&ctx->js, &dup->js, sizeof(dup->js));
+
+    // Run the method in the first context
+    task->execute_stream(stream);
+
+    // Check that we executed correctly
+    TS_ASSERT_EQUALS(task->active()->cm(), target);
+    TS_ASSERT_EQUALS(task->active()->args, 0U);
+    TS_ASSERT_EQUALS(task->self(), Qtrue);
+
+    // Run with the dup'd ctx
+    task->make_active(dup);
+    task->execute_stream(stream);
+
+    // Check again that we executed correctly
+    TS_ASSERT_EQUALS(task->active()->cm(), target);
+    TS_ASSERT_EQUALS(task->active()->args, 0U);
+    TS_ASSERT_EQUALS(task->self(), Qtrue);
+  }
 };
+

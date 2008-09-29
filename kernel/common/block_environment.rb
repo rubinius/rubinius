@@ -6,15 +6,13 @@
 
 class BlockEnvironment
 
-  def home        ; @home        ; end
-  def initial_ip  ; @initial_ip  ; end
-  def last_ip     ; @last_ip     ; end
-  def post_send   ; @post_send   ; end
-  def home_block  ; @home_block  ; end
-  def local_count ; @local_count ; end
-  def method      ; @method      ; end
+  attr_reader :home
+  attr_reader :home_block
+  attr_reader :local_count
+  attr_reader :method
 
   attr_accessor :proc_environment
+  
   def from_proc?
     @proc_environment
   end
@@ -24,11 +22,9 @@ class BlockEnvironment
   end
 
   def initial_ip=(ip)
-    @initial_ip = ip
   end
 
   def last_ip=(ip)
-    @last_ip = ip
   end
 
   def metadata_container
@@ -103,12 +99,8 @@ class BlockEnvironment
     obj.call(*args)
   end
 
-  def disable_long_return!
-    @post_send = nil
-  end
-
   def arity
-    method.required
+    method.required_args
   end
 
   # Static scope for constant lookup

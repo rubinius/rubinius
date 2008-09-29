@@ -41,7 +41,7 @@ class Compiler
       @exceptions = []
     end
 
-    attr_reader :ip, :cache_size, :exceptions, :stream, :literals
+    attr_reader :ip, :cache_size, :stream, :literals
     attr_accessor :break, :redo, :next, :retry, :ensure_return
 
     def ===(pattern)

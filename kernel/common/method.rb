@@ -59,7 +59,7 @@ class Method
   #   def foo(a, b, *c, &d); end   # arity => ((-2) -1) => -3
 
   def arity()
-    @compiled_method.required
+    @compiled_method.required_args
   end
 
   ##
@@ -182,7 +182,7 @@ class UnboundMethod
   # See Method#arity.
 
   def arity()
-    @compiled_method.required
+    @compiled_method.required_args
   end
 
   ##

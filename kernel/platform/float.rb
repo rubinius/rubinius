@@ -20,11 +20,5 @@ class Platform::Float
   attach_function 'frexp', [:double, :pointer], :double
   attach_function 'ldexp', [:double, :int], :double
   attach_function 'modf', [:double, :pointer], :double
-
-  def self.to_s_formatted(size, fmt, value)
-    s, p = Platform::POSIX.sprintf_f value, size, fmt
-    str = s.dup
-    p.free
-    return str
-  end
 end
+

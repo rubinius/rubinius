@@ -125,6 +125,7 @@ module Kernel
       # Otherwise add our metaclass, so thats where new methods go.
         compiled_method.scope = StaticScope.new(metaclass, compiled_method.scope)
       end
+      compiled_method.compile
 
       # This has to be setup so __FILE__ works in eval.
       script = CompiledMethod::Script.new
@@ -180,6 +181,7 @@ class Module
     ss.script = script
 
     compiled_method.scope = ss
+    compiled_method.compile
 
     # The gist of this code is that we need the receiver's static scope
     # but the caller's binding to implement the proper constant behavior

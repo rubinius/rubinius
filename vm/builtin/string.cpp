@@ -23,13 +23,18 @@ namespace rubinius {
     G(string)->set_object_type(state, StringType);
   }
 
-  /* String::size returns the actual number of bytes, without consideration
-   * for a trailing null byte.  String::create(state, "foo")->size() is 3.
+  /* String::size returns the number of actual bytes in the string NOT
+   * including the trailing NULL byte.
+   *
+   * String::create(state, "foo")->size() is 3.
    */
   size_t String::size() {
     return num_bytes_->to_native();
   }
 
+  /* Creates a String instance with +num_bytes+ == +size+ and
+   * having a ByteArray with at least (size + 1) bytes.
+   */
   String* String::create(STATE, FIXNUM size) {
     String *so;
 
@@ -42,7 +47,7 @@ namespace rubinius {
 
     size_t bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
-    ba->bytes[bytes] = 0;
+    ba->bytes[bytes-1] = 0;
 
     so->data(state, ba);
 

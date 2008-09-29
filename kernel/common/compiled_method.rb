@@ -73,7 +73,7 @@ class StaticScope
     @parent = par
   end
 
-  attr_accessor :script
+  attr_writer :script
 
   # Source code of this scope.
   def script
@@ -156,7 +156,7 @@ class CompiledMethod < Executable
     @file = nil
     @name = nil
     @path = nil
-    @required = req
+    @required_args = req
     return self
   end
 
@@ -338,7 +338,7 @@ class CompiledMethod < Executable
   # for use by the debugger, where the bytecode sequence to be decoded may not
   # exactly match the bytecode currently held by the CompiledMethod, typically
   # as a result of substituting yield_debugger instructions into the bytecode.
-  def decode(bytecodes = @bytecodes)
+  def decode(bytecodes = @iseq)
     stream = bytecodes.decode(false)
     ip = 0
     args_reg = 0

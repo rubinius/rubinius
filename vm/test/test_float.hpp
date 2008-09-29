@@ -34,16 +34,16 @@ class TestFloat : public CxxTest::TestSuite {
     Float* flt = Float::create(state, 1.0);
     TS_ASSERT_EQUALS(flt->val, 1.0);
   }
-  
+
   void test_coerce() {
     OBJECT o = Fixnum::from(5432);
     Float* coerced = Float::coerce(state, o);
     TS_ASSERT(kind_of<Float>(coerced));
-    
+
     Bignum* bn = Bignum::from(state, (native_int)2147483647);
     Float* coercedBn = Float::coerce(state, bn);
     TS_ASSERT(kind_of<Float>(coercedBn));
-    
+
     String* str = String::create(state, "blah");
     Float* coercedStr = Float::coerce(state, str);
     TS_ASSERT(kind_of<Float>(coercedStr));
@@ -293,9 +293,23 @@ class TestFloat : public CxxTest::TestSuite {
   }
 
   void test_into_string() {
-      Float* flt = Float::create(state, 1.0);
-      char buf[10];
-      flt->into_string(state, buf,10);
-      TS_ASSERT(strcmp(buf, "+1.000000") == 0);
+    Float* flt = Float::create(state, 1.0);
+    char buf[10];
+    flt->into_string(state, buf,10);
+    TS_ASSERT(strcmp(buf, "+1.000000") == 0);
+  }
+
+  void test_to_s_formatted() {
+    Float* f = Float::create(state, 3.14159);
+    String* format = String::create(state, "%#.15g");
+
+    String* s = f->to_s_formatted(state, format);
+
+    TS_ASSERT_SAME_DATA("3.14159000000000", s->c_str(), 16);
+    TS_ASSERT_EQUALS(16U, s->size());
+
+    format = String::create(state, "%#.256g");
+    TS_ASSERT_THROWS(f->to_s_formatted(state, format), const PrimitiveFailed &);
   }
 };
+

@@ -596,18 +596,7 @@ describe Compiler do
         d.pop
 
         d.push :nil
-        d.push_cpath_top
-        d.find_const :LongReturnException
-        d.send :allocate, 0
-        d.swap
-
-        # Set the return value from @value above.
-        d.push_local 0
-        d.swap
-        d.send :set_break_value, 2
-
-        # Now raise it.
-        d.raise_exc
+        d.break_raise
 
         d.pop_modifiers
         d.ret
@@ -1294,18 +1283,8 @@ describe Compiler do
         d.new_label.set! # redo
         d.push 12
 
-        d.push_cpath_top
-        d.find_const :LongReturnException
-        d.send :allocate, 0
-        d.swap
+        d.return_raise
 
-        # Set the return value from @value above.
-        d.push_local 0
-        d.swap
-        d.send :set_return_value, 2
-
-        # Now raise it.
-        d.raise_exc
         d.pop_modifiers
         d.ret
       end

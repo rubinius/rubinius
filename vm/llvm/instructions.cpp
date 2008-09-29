@@ -42,6 +42,8 @@ using namespace rubinius;
 extern "C" {
   bool send_slowly(Task* task, struct jit_state* const js, SYMBOL name, size_t args);
 
+#define RETURN(val) return val
+
 #ruby <<CODE
 require 'stringio'
 require 'vm/instructions.rb'
@@ -122,6 +124,9 @@ CODE
 #define next_op() *stream++
 #define next_int (opcode)(next_op())
 
+#undef RETURN
+#define RETURN(val) (void)val; return;
+
 void rubinius::Task::execute_stream(opcode* stream) {
   opcode op;
   Task* task = this;
@@ -140,6 +145,9 @@ CODE
 /* Use a simplier next_int */
 #undef next_int
 #define next_int ((opcode)(stream[ctx->ip++]))
+
+#undef RETURN
+#define RETURN(val) if(val) { return; } else { continue; }
 
 void VMMethod::resume(Task* task, MethodContext* ctx) {
   opcode* stream = ctx->vmm->opcodes;

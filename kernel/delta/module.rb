@@ -18,24 +18,11 @@ class Module
     new_name = normalize_name(new_name)
     current_name = normalize_name(current_name)
     meth = find_method_in_hierarchy(current_name)
-    # We valid +meth+ because all hell can break loose if method_table has unexpected
-    # objects in it.
+    if current_name == :e2mm_message or current_name == :Raise
+      p self.metaclass.method_table
+      p self.method_table
+    end
     if meth
-      if meth.kind_of? Tuple
-        meth = meth.dup
-
-        if !meth[0].kind_of?(Symbol) or
-             not (meth[1].kind_of?(CompiledMethod) or meth[1].kind_of?(AccessVarMethod))
-          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}'"
-        end
-
-      else
-        unless meth.kind_of? Executable or
-               meth.kind_of? CompiledMethod::Visibility then
-          meth.__show__
-          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}' #{meth.inspect}"
-        end
-      end
       method_table[new_name] = meth
       Rubinius::VM.reset_method_cache(new_name)
     else

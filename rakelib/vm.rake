@@ -39,7 +39,6 @@ INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
                   vm/gen/iseq_instruction_size.gen
                   vm/test/test_instructions.hpp ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
-                  vm/gen/simple_field.rb
                   vm/gen/typechecks.gen.cpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
@@ -218,7 +217,6 @@ files INSN_GEN, %w[vm/instructions.rb] do |t|
 end
 
 task :run_field_extract do
-  puts "GEN field_extract"
   field_extract field_extract_headers
 end
 

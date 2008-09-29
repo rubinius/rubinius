@@ -1891,6 +1891,11 @@ class ParseTreeTestCase < Test::Unit::TestCase
             "RawParseTree" => [:dregx, '', [:evstr, [:ivar, :@rakefile]]],
             "ParseTree"    => s(:dregx, '', s(:evstr, s(:ivar, :@rakefile))))
 
+  add_tests("dregx_interp_empty",
+            "Ruby"         => "/a#\{}b/",
+            "RawParseTree" => [:dregx, 'a', [:evstr], [:str, "b"]],
+            "ParseTree"    => s(:dregx, 'a', s(:evstr), s(:str, "b")))
+
   add_tests("dregx_n",
             "Ruby"         => '/#{1}/n',
             "RawParseTree" => [:dregx, '', [:evstr, [:lit, 1]], /x/n.options],
@@ -2937,6 +2942,26 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                 s(:array,
                                   s(:call, nil, :d, s(:arglist)),
                                   s(:call, nil, :e, s(:arglist)))))
+
+  add_tests("masgn_attrasgn_array_rhs",
+            "Ruby"         => "a.b, a.c, _ = q",
+            "RawParseTree" => [:masgn,
+                                [:array,
+                                  [:attrasgn, [:vcall, :a], :b=],
+                                  [:attrasgn, [:vcall, :a], :c=],
+                                  [:lasgn, :_]],
+                                [:to_ary, [:vcall, :q]]],
+            "ParseTree"    => s(:masgn,
+                                s(:array,
+                                  s(:attrasgn,
+                                    s(:call, nil, :a, s(:arglist)),
+                                    :b=, s(:arglist)),
+                                  s(:attrasgn,
+                                    s(:call, nil, :a, s(:arglist)),
+                                    :c=, s(:arglist)),
+                                  s(:lasgn, :_)),
+                                s(:to_ary,
+                                  s(:call, nil, :q, s(:arglist)))))
 
   add_tests("masgn_attrasgn_idx",
             "Ruby"         => "a, i, j = [], 1, 2\na[i], a[j] = a[j], a[i]\n",

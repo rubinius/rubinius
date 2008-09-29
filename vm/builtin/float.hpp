@@ -15,6 +15,7 @@
 
 namespace rubinius {
   class Array;
+  class String;
 
   class Float : public Numeric {
     public:
@@ -62,7 +63,7 @@ namespace rubinius {
     Float* mod(STATE, Float* other);
     // Ruby.primitive! :float_mod
     Float* mod(STATE, INTEGER other);
-    
+
     // Ruby.primitive! :float_divmod
     Array* divmod(STATE, Float* other);
     // Ruby.primitive! :float_divmod
@@ -117,6 +118,9 @@ namespace rubinius {
 
     // Ruby.primitive :float_to_i
     INTEGER to_i(STATE);
+
+    // Ruby.primitive :float_to_s_formatted
+    String* to_s_formatted(STATE, String* format);
 
     static int radix()      { return FLT_RADIX; }
     static int rounds()     { return FLT_ROUNDS; }

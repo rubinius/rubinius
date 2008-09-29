@@ -1490,15 +1490,7 @@ class CompilerTestCase < ParseTreeTestCase
                       d2.set_local_depth 1, 0
                       d2.push :nil
 
-                      d2.push_cpath_top
-                      d2.find_const :LongReturnException
-                      d2.send :allocate, 0
-                      d2.swap
-
-                      d2.push_local 0
-                      d2.swap
-                      d2.send :set_break_value, 2
-                      d2.raise_exc
+                      d2.break_raise
                     end
                   end
                 end
@@ -3113,6 +3105,35 @@ class CompilerTestCase < ParseTreeTestCase
               g.push :self
               g.send :b, 0, true
               g.send :c=, 1, false
+
+              g.pop
+
+              g.push :true
+            end)
+
+  add_tests("masgn_attrasgn_array_rhs",
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :q, 0, true
+              g.cast_tuple
+
+              g.shift_tuple
+              g.push :self
+              g.send :a, 0, true
+              g.swap
+              g.send :b=, 1, false
+              g.pop
+
+              g.shift_tuple
+              g.push :self
+              g.send :a, 0, true
+              g.swap
+              g.send :c=, 1, false
+              g.pop
+
+              g.shift_tuple
+              g.set_local 0
+              g.pop
 
               g.pop
 

@@ -225,33 +225,33 @@ class ReturnException < FlowControlException
   end
 end
 
+class ContextDestinationException < FlowControlException
+  attr_accessor :destination
+  attr_accessor :value
+end
+
+##
+# Flow control exception used to implement break inside a block. Never seen
+# by ruby code.
+
+class BlockBreakException < ContextDestinationException
+  def self.directed_to(context, value)
+    ctx = allocate
+    ctx.destination = context.env.home_block
+    ctx.value = value
+    return ctx
+  end
+end
+
 ##
 # Raised when returning from a block to handle proper flow control.  Never
 # seen by ruby code.
 
-class LongReturnException < FlowControlException
-  attr_accessor :context
-  attr_reader :value
-  attr_reader :is_return
-
-  def set_return_value(context, val)
-    @context = context
-    @value = val
-    @is_return = true
-
-    # Important! The bytecode uses the return value as the exception
-    # to raise.
-    return self
+class LongReturnException < ContextDestinationException
+  def self.directed_to(context, value)
+    ctx = allocate
+    ctx.destination = context.env.home
+    ctx.value = value
+    return ctx
   end
-
-  def set_break_value(context, val)
-    @context = context
-    @value = val
-    @is_return = false
-
-    # Important! The bytecode uses the return value as the exception
-    # to raise.
-    return self
-  end
-
 end

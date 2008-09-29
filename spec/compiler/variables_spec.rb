@@ -190,7 +190,7 @@ describe Compiler do
 
         d.push :self
         d.create_block i2
-        d.passed_block(0, true) do
+        d.break_rescue do
           d.send_with_block :go, 0, true
         end
         d.pop_modifiers

@@ -1,3 +1,9 @@
+############################################################
+# This file is imported from a different project.
+# DO NOT make modifications in this repo.
+# File a patch instead and assign it to Ryan Davis
+############################################################
+
 ##
 #
 # Totally minimal drop-in replacement for test-unit
@@ -6,6 +12,7 @@
 
 module Mini
   class Assertion < Exception; end
+  class Skip < Assertion; end
 
   file = if __FILE__ =~ /^[^\.]/ then # OMG ruby 1.9 is so lame (rubinius too)
            require 'pathname'
@@ -37,7 +44,9 @@ module Mini
 
   module Assertions
     def mu_pp(obj)
-      obj.inspect
+      s = obj.inspect
+      s = s.force_encoding(Encoding.default_external) if defined? Encoding
+      s
     end
 
     def _assertions= n
@@ -51,29 +60,32 @@ module Mini
     def assert test, msg = nil
       msg ||= "Failed assertion, no message given."
       self._assertions += 1
-      raise Mini::Assertion, msg unless test
+      unless test then
+        msg = msg.call if Proc === msg
+        raise Mini::Assertion, msg
+      end
       true
     end
 
     def assert_block msg = nil
-      msg = message msg, "Expected block to return true value"
+      msg = message(msg) { "Expected block to return true value" }
       assert yield, msg
     end
 
     def assert_empty obj, msg = nil
-      msg = message msg, "Expected #{obj.inspect} to be empty"
+      msg = message(msg) { "Expected #{obj.inspect} to be empty" }
       assert_respond_to obj, :empty?
       assert obj.empty?, msg
     end
 
     def assert_equal exp, act, msg = nil
-      msg = message msg, "Expected #{mu_pp(exp)}, not #{mu_pp(act)}"
+      msg = message(msg) { "Expected #{mu_pp(exp)}, not #{mu_pp(act)}" }
       assert(exp == act, msg)
     end
 
     def assert_in_delta exp, act, delta = 0.001, msg = nil
       n = (exp - act).abs
-      msg = message msg, "Expected #{exp} - #{act} (#{n}) to be < #{delta}"
+      msg = message(msg) { "Expected #{exp} - #{act} (#{n}) to be < #{delta}" }
       assert delta > n, msg
     end
 
@@ -82,37 +94,39 @@ module Mini
     end
 
     def assert_includes collection, obj, msg = nil
-      msg = message msg, "Expected #{mu_pp(collection)} to include #{mu_pp(obj)}"
+      msg = message(msg) { "Expected #{mu_pp(collection)} to include #{mu_pp(obj)}" }
       assert_respond_to collection, :include?
       assert collection.include?(obj), msg
     end
 
     def assert_instance_of cls, obj, msg = nil
-      msg = message msg, "Expected #{mu_pp(obj)} to be an instance of #{cls}"
+      msg = message(msg) { "Expected #{mu_pp(obj)} to be an instance of #{cls}" }
       flip = (Module === obj) && ! (Module === cls) # HACK for specs
       obj, cls = cls, obj if flip
       assert cls === obj, msg
     end
 
     def assert_kind_of cls, obj, msg = nil # TODO: merge with instance_of
-      msg = message msg, "Expected #{mu_pp(obj)} to be a kind of #{cls}"
+      msg = message(msg) { "Expected #{mu_pp(obj)} to be a kind of #{cls}" }
       flip = (Module === obj) && ! (Module === cls) # HACK for specs
       obj, cls = cls, obj if flip
       assert obj.kind_of?(cls), msg
     end
 
     def assert_match exp, act, msg = nil
-      msg = message msg, "Expected #{mu_pp(act)} to match #{mu_pp(exp)}"
+      msg = message(msg) { "Expected #{mu_pp(act)} to match #{mu_pp(exp)}" }
+      assert_respond_to act, :=~
+      exp = /#{exp}/ if String === exp && String === act
       assert act =~ exp, msg
     end
 
     def assert_nil obj, msg = nil
-      msg = message msg, "Expected #{mu_pp(obj)} to be nil"
+      msg = message(msg) { "Expected #{mu_pp(obj)} to be nil" }
       assert obj.nil?, msg
     end
 
     def assert_operator o1, op, o2, msg = nil
-      msg = message msg, "Expected #{mu_pp(o1)} to be #{op} #{mu_pp(o2)}"
+      msg = message(msg) { "Expected #{mu_pp(o1)} to be #{op} #{mu_pp(o2)}" }
       assert o1.__send__(op, o2), msg
     end
 
@@ -133,15 +147,21 @@ module Mini
     end
 
     def assert_respond_to obj, meth, msg = nil
-      msg = message msg, "Expected #{mu_pp(obj)} to respond to #{meth}"
+      msg = message(msg) { "Expected #{mu_pp(obj)} to respond to #{meth}" }
       flip = (Symbol === obj) && ! (Symbol === meth) # HACK for specs
       obj, meth = meth, obj if flip
       assert obj.respond_to?(meth), msg
     end
 
     def assert_same exp, act, msg = nil
-      msg = message msg, "Expected #{mu_pp(act)} to be the same as #{mu_pp(exp)}"
+      msg = message(msg) { "Expected #{mu_pp(act)} to be the same as #{mu_pp(exp)}" }
       assert exp.equal?(act), msg
+    end
+
+    def assert_send send_ary, msg = nil
+      recv, msg, *args = send_ary
+      msg = message(msg) { "Expected ##{msg} on #{mu_pp(recv)} to return true" }
+      assert recv.__send__(msg, *args), msg
     end
 
     def assert_throws sym, msg = nil
@@ -158,7 +178,7 @@ module Mini
         caught = false
       end
 
-      assert caught, message(msg, default)
+      assert caught, message(msg) { default }
     end
 
     def capture_io
@@ -180,21 +200,22 @@ module Mini
       "#{msg}\nClass: <#{e.class}>\nMessage: <#{e.message.inspect}>\n---Backtrace---\n#{Mini::filter_backtrace(e.backtrace).join("\n")}\n---------------"
     end
 
-    def fail msg = nil
+    def flunk msg = nil
       msg ||= "Epic Fail!"
       assert false, msg
     end
 
-    alias :flunk :fail
-
-    def message msg, default
-      if msg then
-        msg += '.' unless msg.empty?
-        msg += "\n#{default}."
-        msg.strip
-      else
-        "#{default}."
-      end
+    def message msg = nil, &default
+      proc {
+        if msg then
+          msg = msg.to_s unless String === msg
+          msg += '.' unless msg.empty?
+          msg += "\n#{default.call}."
+          msg.strip
+        else
+          "#{default.call}."
+        end
+      }
     end
 
     # used for counting assertions
@@ -208,19 +229,19 @@ module Mini
     end
 
     def refute_empty obj, msg = nil
-      msg = message msg, "Expected #{obj.inspect} to not be empty"
+      msg = message(msg) { "Expected #{obj.inspect} to not be empty" }
       assert_respond_to obj, :empty?
       refute obj.empty?, msg
     end
 
     def refute_equal exp, act, msg = nil
-      msg = message msg, "Expected #{mu_pp(act)} to not be equal to #{mu_pp(exp)}"
+      msg = message(msg) { "Expected #{mu_pp(act)} to not be equal to #{mu_pp(exp)}" }
       refute exp == act, msg
     end
 
     def refute_in_delta exp, act, delta = 0.001, msg = nil
       n = (exp - act).abs
-      msg = message msg, "Expected #{exp} - #{act} (#{n}) to not be < #{delta}"
+      msg = message(msg) { "Expected #{exp} - #{act} (#{n}) to not be < #{delta}" }
       refute delta > n, msg
     end
 
@@ -229,55 +250,60 @@ module Mini
     end
 
     def refute_includes collection, obj, msg = nil
-      msg = message msg, "Expected #{mu_pp(collection)} to not include #{mu_pp(obj)}"
+      msg = message(msg) { "Expected #{mu_pp(collection)} to not include #{mu_pp(obj)}" }
       assert_respond_to collection, :include?
       refute collection.include?(obj), msg
     end
 
     def refute_instance_of cls, obj, msg = nil
-      msg = message msg, "Expected #{mu_pp(obj)} to not be an instance of #{cls}"
+      msg = message(msg) { "Expected #{mu_pp(obj)} to not be an instance of #{cls}" }
       flip = (Module === obj) && ! (Module === cls) # HACK for specs
       obj, cls = cls, obj if flip
       refute cls === obj, msg
     end
 
     def refute_kind_of cls, obj, msg = nil # TODO: merge with instance_of
-      msg = message msg, "Expected #{mu_pp(obj)} to not be a kind of #{cls}"
+      msg = message(msg) { "Expected #{mu_pp(obj)} to not be a kind of #{cls}" }
       flip = (Module === obj) && ! (Module === cls) # HACK for specs
       obj, cls = cls, obj if flip
       refute obj.kind_of?(cls), msg
     end
 
     def refute_match exp, act, msg = nil
-      msg = message msg, "Expected #{mu_pp(act)} to not match #{mu_pp(exp)}"
+      msg = message(msg) { "Expected #{mu_pp(act)} to not match #{mu_pp(exp)}" }
       refute act =~ exp, msg
     end
 
     def refute_nil obj, msg = nil
-      msg = message msg, "Expected #{mu_pp(obj)} to not be nil"
+      msg = message(msg) { "Expected #{mu_pp(obj)} to not be nil" }
       refute obj.nil?, msg
     end
 
     def refute_operator o1, op, o2, msg = nil
-      msg = message msg, "Expected #{mu_pp(o1)} to not be #{op} #{mu_pp(o2)}"
+      msg = message(msg) { "Expected #{mu_pp(o1)} to not be #{op} #{mu_pp(o2)}" }
       refute o1.__send__(op, o2), msg
     end
 
     def refute_respond_to obj, meth, msg = nil
-      msg = message msg, "Expected #{mu_pp(obj)} to not respond to #{meth}"
+      msg = message(msg) { "Expected #{mu_pp(obj)} to not respond to #{meth}" }
       flip = (Symbol === obj) && ! (Symbol === meth) # HACK for specs
       obj, meth = meth, obj if flip
       refute obj.respond_to?(meth), msg
     end
 
     def refute_same exp, act, msg = nil
-      msg = message msg, "Expected #{mu_pp(act)} to not be the same as #{mu_pp(exp)}"
+      msg = message(msg) { "Expected #{mu_pp(act)} to not be the same as #{mu_pp(exp)}" }
       refute exp.equal?(act), msg
+    end
+
+    def skip msg = nil
+      msg ||= "Skipped, no message given"
+      raise Mini::Skip, msg
     end
   end
 
   class Test
-    VERSION = "1.2.1"
+    VERSION = "1.3.0"
 
     attr_reader :report, :failures, :errors
 
@@ -296,33 +322,41 @@ module Mini
       @@out = stream
     end
 
+    def location e
+      e.backtrace.find { |s|
+        s !~ /in .(assert|refute|flunk|pass|fail|raise)/
+      }.sub(/:in .*$/, '')
+    end
+
     def puke klass, meth, e
-      if Mini::Assertion === e then
-        @failures += 1
-
-        loc = e.backtrace.find { |s| s !~ /in .(assert|flunk|pass|fail|raise)/ }
-        loc.sub!(/:in .*$/, '')
-
-        @report << "Failure:\n#{meth}(#{klass}) [#{loc}]:\n#{e.message}\n"
-        'F'
-      else
-        @errors += 1
-        bt = Mini::filter_backtrace(e.backtrace).join("\n    ")
-        e = "Error:\n#{meth}(#{klass}):\n#{e.class}: #{e.message}\n    #{bt}\n"
-        @report << e
-        'E'
-      end
+      e = case e
+          when Mini::Skip then
+            @skips += 1
+            "Skipped:\n#{meth}(#{klass}) [#{location e}]:\n#{e.message}\n"
+          when Mini::Assertion then
+            @failures += 1
+            "Failure:\n#{meth}(#{klass}) [#{location e}]:\n#{e.message}\n"
+          else
+            @errors += 1
+            bt = Mini::filter_backtrace(e.backtrace).join("\n    ")
+            "Error:\n#{meth}(#{klass}):\n#{e.class}: #{e.message}\n    #{bt}\n"
+          end
+      @report << e
+      e[0, 1]
     end
 
     def initialize
       @report = []
-      @errors = @failures = 0
+      @errors = @failures = @skips = 0
+      @verbose = false
     end
 
     ##
     # Top level driver, controls all output and filtering.
 
     def run args
+      @verbose = args.delete('-v')
+
       filter = if args.first =~ /^(-n|--name)$/ then
                  args.shift
                  arg = args.shift
@@ -351,19 +385,21 @@ module Mini
       return failures + errors if @test_count > 0 # or return nil...
     end
 
-    def run_test_suites filter = /^test/
+    def run_test_suites filter = /./
       @test_count, @assertion_count = 0, 0
       old_sync, @@out.sync = @@out.sync, true if @@out.respond_to? :sync=
       TestCase.test_suites.each do |suite|
         suite.test_methods.grep(filter).each do |test|
           inst = suite.new test
           inst._assertions = 0
-          @@out.puts "\n#{test}: " if $DEBUG
+          @@out.print "#{suite}##{test}: " if @verbose
 
+          t = Time.now if @verbose
           result = inst.run(self)
 
+          @@out.print "%.2f s: " % (Time.now - t) if @verbose
           @@out.print result
-          @@out.puts if $DEBUG
+          @@out.puts if @verbose
           @test_count += 1
           @assertion_count += inst._assertions
         end
@@ -378,9 +414,12 @@ module Mini
       def run runner
         result = '.'
         begin
+          @passed = nil
           self.setup
           self.__send__ self.name
+          @passed = true
         rescue Exception => e
+          @passed = false
           result = runner.puke(self.class, self.name, e)
         ensure
           begin
@@ -394,6 +433,7 @@ module Mini
 
       def initialize name
         @name = name
+        @passed = nil
       end
 
       def self.reset
@@ -429,6 +469,10 @@ module Mini
 
       def setup; end
       def teardown; end
+
+      def passed?
+        @passed
+      end
 
       include Mini::Assertions
     end # class TestCase

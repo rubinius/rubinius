@@ -103,7 +103,9 @@ class MSpecOptions
         arg = argv.shift if arg.nil?
         raise ParseError, "No argument provided for #{opt}" unless arg
       end
-      option.block[arg] if option.block
+      if block = option.block
+        block.arity == 1 ? block[arg] : block[]
+      end
     end
     option
   end
