@@ -1463,10 +1463,8 @@ class Compiler
           # skip
         elsif @source.is? Splat or @source.is? ToArray
           @source.child.bytecode(g)
-        elsif @source.is? ConcatArgs
+        else
           @source.bytecode(g)
-        elsif @source
-          raise Error, "Unknown form: #{@source.class}"
         end
         g.cast_tuple
 
