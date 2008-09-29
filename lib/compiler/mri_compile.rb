@@ -51,7 +51,7 @@ def compare_cm(a,b)
       compare_cm(l1, l2)
     else
       if l1 != l2
-        puts "literal #{i} differs: #{l1.inspect} != #{l2.inspect}"
+        puts "literal #{i} differs: #{l1.inspect} != #{l2.inspect} (delta #{(l1 - l2).abs})"
       end
     end
   end
@@ -61,7 +61,23 @@ class Float
   undef_method :==
   def ==(other)
     return false unless Numeric === other
-    (self - other).abs < 1e-14
+
+    # This cannot be a simple abs magnitude test
+    # because the magnitude of the tolerance depends
+    # on the sign of the exponent. Instead do a
+    # magnitude test on the normalized fraction. A
+    # further complication occurs when the exponents
+    # differ by 1.
+    a = Math.frexp self
+    b = Math.frexp other
+    e = (a.last - b.last).abs
+    if e == 0
+      return (a.first - b.first).abs < 5e-14
+    elsif e == 1
+      return (a.first - b.first).abs < 0.5
+    else
+      return false
+    end
   end
 end
 
