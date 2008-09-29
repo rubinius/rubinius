@@ -73,7 +73,7 @@ class StaticScope
     @parent = par
   end
 
-  attr_accessor :script
+  attr_writer :script
 
   # Source code of this scope.
   def script
