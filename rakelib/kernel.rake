@@ -74,6 +74,8 @@ def create_load_order(files, output=".load_order.txt")
   end
 end
 
+require 'lib/compiler/mri_compile'
+
 def compile_ruby(src, rbc, check_mtime = false)
   if check_mtime and File.readable?(rbc)
     return if File.mtime(rbc) >= File.mtime(src)
@@ -82,8 +84,7 @@ def compile_ruby(src, rbc, check_mtime = false)
   dir = File.dirname rbc
   FileUtils.mkdir_p dir unless File.directory? dir
 
-  ruby "lib/compiler/mri_compile.rb -frbx-kernel #{src} #{rbc}",
-       :verbose => $verbose
+  mri_compile src, rbc, false, ["rbx-kernel"]
 end
 
 loose =  []
