@@ -1832,6 +1832,27 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :new, 2
             end)
 
+  add_tests("dregx_interp_empty",
+            "Compiler" => bytecode do |g|
+              g.push_const :Regexp
+
+              g.push_literal "b"
+              g.string_dup
+
+              g.push_literal ""
+              g.string_dup
+              g.send :to_s, 0, true
+
+              g.push_literal "a"
+              g.string_dup
+
+              g.string_append
+              g.string_append
+
+              g.push 0
+              g.send :new, 2
+            end)
+
   add_tests("dregx_n",
             "Compiler" => bytecode do |g|
               g.push_const :Regexp

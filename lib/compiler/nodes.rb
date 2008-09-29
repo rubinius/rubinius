@@ -2332,7 +2332,7 @@ class Compiler
       # Expected input is a sub-sexp that represents the
       # code to be run when evaluating or empty sexp.
       def consume(sexp)
-        sexp = [[:str, ""]] if sexp.empty?
+        sexp = [s(:str, "")] if sexp.empty?
         super(sexp)
       end
 
