@@ -3111,6 +3111,35 @@ class CompilerTestCase < ParseTreeTestCase
               g.push :true
             end)
 
+  add_tests("masgn_attrasgn_array_rhs",
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :q, 0, true
+              g.cast_tuple
+
+              g.shift_tuple
+              g.push :self
+              g.send :a, 0, true
+              g.swap
+              g.send :b=, 1, false
+              g.pop
+
+              g.shift_tuple
+              g.push :self
+              g.send :a, 0, true
+              g.swap
+              g.send :c=, 1, false
+              g.pop
+
+              g.shift_tuple
+              g.set_local 0
+              g.pop
+
+              g.pop
+
+              g.push :true
+            end)
+
   add_tests("masgn_attrasgn_idx",
             "Compiler" => bytecode do |g|
               g.make_array 0
