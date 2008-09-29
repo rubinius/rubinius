@@ -136,6 +136,8 @@ compiler_sources.each do |rb|
   end
 end
 
+task :kernel => 'kernel:build'
+
 namespace :kernel do
 
   task :check_compiler do
