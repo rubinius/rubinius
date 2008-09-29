@@ -2938,6 +2938,26 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                   s(:call, nil, :d, s(:arglist)),
                                   s(:call, nil, :e, s(:arglist)))))
 
+  add_tests("masgn_attrasgn_array_rhs",
+            "Ruby"         => "a.b, a.c, _ = q",
+            "RawParseTree" => [:masgn,
+                                [:array,
+                                  [:attrasgn, [:vcall, :a], :b=],
+                                  [:attrasgn, [:vcall, :a], :c=],
+                                  [:lasgn, :_]],
+                                [:to_ary, [:vcall, :q]]],
+            "ParseTree"    => s(:masgn,
+                                s(:array,
+                                  s(:attrasgn,
+                                    s(:call, nil, :a, s(:arglist)),
+                                    :b=, s(:arglist)),
+                                  s(:attrasgn,
+                                    s(:call, nil, :a, s(:arglist)),
+                                    :c=, s(:arglist)),
+                                  s(:lasgn, :_)),
+                                s(:to_ary,
+                                  s(:call, nil, :q, s(:arglist)))))
+
   add_tests("masgn_attrasgn_idx",
             "Ruby"         => "a, i, j = [], 1, 2\na[i], a[j] = a[j], a[i]\n",
             "RawParseTree" => [:block,
