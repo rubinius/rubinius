@@ -153,10 +153,10 @@ class Float < Numeric
     return (self < 0 ? "-Infinity" : "Infinity") if infinite?
     return "NaN" if nan?
 
-    str = Platform::Float.to_s_formatted STRLEN, "%#.15g", self
+    str = to_s_formatted "%#.15g"
     e = str.index('e') || str.size
     unless str[e-1].isdigit
-      str = Platform::Float.to_s_formatted STRLEN, "%#.14e", self
+      str = to_s_formatted "%#.14e"
       e = str.index('e') || str.size
     end
     str.gsub(/(\.\d+?)(0+)($|e[+-]\d*)/, '\1\3')
@@ -164,7 +164,8 @@ class Float < Numeric
   alias_method :inspect, :to_s
 
   def to_s_formatted(fmt)
-    Platform::Float.to_s_formatted STRLEN, fmt, self
+    Ruby.primitive :float_to_s_formatted
+    raise PrimitiveFailure, "String#to_s_formatted output exceeds buffer size"
   end
   private :to_s_formatted
 

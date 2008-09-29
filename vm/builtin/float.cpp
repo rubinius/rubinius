@@ -1,10 +1,12 @@
 #include "builtin/float.hpp"
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/string.hpp"
 
 #include "objectmemory.hpp"
 #include "prelude.hpp"
 #include "vm.hpp"
+#include "primitives.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -207,6 +209,20 @@ namespace rubinius {
       return Bignum::from_double(state, ceil(this->val));
     }
     return Bignum::from_double(state, this->val);
+  }
+
+#define FLOAT_TO_S_STRLEN   256
+
+  String* Float::to_s_formatted(STATE, String* format) {
+    char str[FLOAT_TO_S_STRLEN];
+
+    size_t size = snprintf(str, FLOAT_TO_S_STRLEN, format->c_str(), val);
+
+    if(size >= FLOAT_TO_S_STRLEN) {
+      PrimitiveFailed::raise();
+    }
+
+    return String::create(state, str, size);
   }
 
   void Float::into_string(STATE, char* buf, size_t sz) {
