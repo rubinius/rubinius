@@ -39,7 +39,6 @@ INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
                   vm/gen/iseq_instruction_size.gen
                   vm/test/test_instructions.hpp ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
-                  vm/gen/simple_field.rb
                   vm/gen/typechecks.gen.cpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]

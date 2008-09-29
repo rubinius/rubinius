@@ -49,7 +49,6 @@ end
 
 require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
 require File.dirname(__FILE__) + '/../../kernel/common/compiled_method'
-require File.dirname(__FILE__) + '/../../vm/gen/simple_field'
 
 class String
   def to_sexp(file = "(eval)", line = 1)
