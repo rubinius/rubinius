@@ -44,6 +44,9 @@ class Float
   def ==(other)
     return false unless Numeric === other
 
+    # Simple case
+    return true if self.eql? other
+
     # This cannot be a simple abs magnitude test
     # because the magnitude of the tolerance depends
     # on the sign of the exponent. Instead do a

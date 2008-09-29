@@ -101,7 +101,25 @@ module Rubinius
         when ?I
           return next_string.to_i
         when ?d
-          return next_string.to_f
+          str = next_string.chop
+
+          # handle the special NaN, Infinity and -Infinity differently
+          c = str[0]
+          c = str[1] if c == ?-
+          if c.between?(?0, ?9)
+            return str.to_f
+          else
+            case str.downcase
+            when "infinity"
+              return 1.0 / 0.0
+            when "-infinity"
+              return -1.0 / 0.0
+            when "nan"
+              return 0.0 / 0.0
+            else
+              raise TypeError, "Invalid Float format: #{str}"
+            end
+          end
         when ?s
           count = next_string.to_i
           str = next_bytes count
