@@ -1490,15 +1490,7 @@ class CompilerTestCase < ParseTreeTestCase
                       d2.set_local_depth 1, 0
                       d2.push :nil
 
-                      d2.push_cpath_top
-                      d2.find_const :LongReturnException
-                      d2.send :allocate, 0
-                      d2.swap
-
-                      d2.push_local 0
-                      d2.swap
-                      d2.send :set_break_value, 2
-                      d2.raise_exc
+                      d2.break_raise
                     end
                   end
                 end

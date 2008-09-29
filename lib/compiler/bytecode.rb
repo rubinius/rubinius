@@ -257,14 +257,13 @@ class Compiler
           g.goto g.break
         elsif @in_block
           g.push_cpath_top
-          g.find_const :LongReturnException
-          g.send :allocate, 0
+          g.find_const :BlockBreakException
           g.swap
 
-          # Set the return value from @value above.
-          g.push_local @check_var.slot
+          g.push_context
           g.swap
-          g.send :set_break_value, 2
+
+          g.send :directed_to, 2
 
           # Now raise it.
           g.raise_exc
@@ -353,7 +352,25 @@ class Compiler
         # @block might be BlockPass, and we don't generate the
         # LongReturnException detection code for that.
         if @block and @block.is? Iter
-          block_bytecode(g)
+          if @in_block
+            break_rescue(g) do
+              if @dynamic
+                g.send_with_splat @method, @argcount, allow_private?, false
+              else
+                g.send_with_block @method, @argcount, allow_private?
+              end
+            end
+          else
+            return_rescue(g) do
+              break_rescue(g) do
+                if @dynamic
+                  g.send_with_splat @method, @argcount, allow_private?, false
+                else
+                  g.send_with_block @method, @argcount, allow_private?
+                end
+              end
+            end
+          end
         elsif @dynamic
           g.send_with_splat @method, @argcount, allow_private?, @concat
         elsif @block
@@ -364,21 +381,50 @@ class Compiler
         end
       end
 
-      def block_bytecode(g)
+      def break_rescue(g)
         ok = g.new_label
         g.exceptions do |ex|
+          yield
+          g.goto ok
 
-          # Shove a references to this context away to use later.
+          ex.handle!
+
+          g.push_exception
+          g.dup
+          g.push_cpath_top
+          g.find_const :BlockBreakException
+          g.swap
+          g.kind_of
+
+          reraise = g.new_label
+          g.gif reraise
+
+          # Test if this LRE is for us
+          g.dup
+          g.send :destination, 0
           g.push_context
-          g.set_local @check_var.slot
-          g.pop
+          g.equal
 
-          if @dynamic
-            g.send_with_splat @method, @argcount, allow_private?, false
-          else
-            g.send_with_block @method, @argcount, allow_private?
-          end
+          g.gif reraise
 
+          # Ok, this is for us!
+          g.clear_exception
+
+          # We leave the value on the stack as the return value
+          g.send :value, 0
+
+          reraise.set!
+
+          g.raise_exc
+        end
+
+        ok.set!
+      end
+
+      def return_rescue(g)
+        ok = g.new_label
+        g.exceptions do |ex|
+          yield
           g.goto ok
 
           ex.handle!
@@ -390,39 +436,26 @@ class Compiler
           g.swap
           g.kind_of
 
-          after = g.new_label
-          g.gif after
+          reraise = g.new_label
+          g.gif reraise
 
           # Test if this LRE is for us
           g.dup
-          g.send :context, 0
+          g.send :destination, 0
           g.push_context
           g.equal
 
-          g.gif after
+          g.gif reraise
 
           # Ok, this is for us!
           g.clear_exception
 
-          # This is also used for break in a block. If break was used,
-          # is_return is false, so we just leave the value on the stack.
-          leave = g.new_label
-          g.dup
-          g.send :is_return, 0
-          g.gif leave
+          g.send :value, 0
+          g.ret
 
-          # If this is occuring already in a block, keep it raising.
-          unless @in_block
-            g.send :value, 0
-            g.ret
-          end
-
-          after.set!
+          reraise.set!
 
           g.raise_exc
-
-          leave.set!
-          g.send :value, 0
         end
 
         ok.set!
@@ -1963,13 +1996,11 @@ class Compiler
       def self.emit_lre(g, var)
         g.push_cpath_top
         g.find_const :LongReturnException
-        g.send :allocate, 0
         g.swap
 
-        # Set the return value from @value above.
-        g.push_local var.slot
+        g.push_context
         g.swap
-        g.send :set_return_value, 2
+        g.send :directed_to, 2
 
         # Now raise it.
         g.raise_exc

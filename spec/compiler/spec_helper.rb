@@ -174,14 +174,31 @@ class TestGenerator
     pop
   end
 
-  def passed_block(local=0, in_block=false)
+  def return_raise
+    push_cpath_top
+    find_const :LongReturnException
+    swap
+    push_context
+    swap
+    send :directed_to, 2
+    raise_exc
+  end
+
+  def break_raise
+    push_cpath_top
+    find_const :BlockBreakException
+    swap
+    push_context
+    swap
+    send :directed_to, 2
+    raise_exc
+
+  end
+
+  def return_rescue
     g = self
     ok = g.new_label
     g.exceptions do |ex|
-      g.push_context
-      g.set_local local
-      g.pop
-
       yield
       g.goto ok
 
@@ -194,38 +211,85 @@ class TestGenerator
       g.swap
       g.kind_of
 
-      after = g.new_label
-      g.gif after
+      reraise = g.new_label
+      g.gif reraise
 
       # Test if this LRE is for us
       g.dup
-      g.send :context, 0
+      g.send :destination, 0
       g.push_context
       g.equal
 
-      g.gif after
+      g.gif reraise
 
+      # Ok, this is for us!
       g.clear_exception
-      leave = g.new_label
-      g.dup
-      g.send :is_return, 0
 
-      g.gif leave
+      g.send :value, 0
+      g.ret
 
-      unless in_block
-        g.send :value, 0
-        g.ret
-      end
-
-      after.set!
+      reraise.set!
 
       g.raise_exc
-
-      leave.set!
-      g.send :value, 0
     end
 
     ok.set!
+  end
+
+  def break_rescue
+    g = self
+    ok = g.new_label
+    g.exceptions do |ex|
+      yield
+      g.goto ok
+
+      ex.handle!
+
+      g.push_exception
+      g.dup
+      g.push_cpath_top
+      g.find_const :BlockBreakException
+      g.swap
+      g.kind_of
+
+      reraise = g.new_label
+      g.gif reraise
+
+      # Test if this LRE is for us
+      g.dup
+      g.send :destination, 0
+      g.push_context
+      g.equal
+
+      g.gif reraise
+
+      # Ok, this is for us!
+      g.clear_exception
+
+      # We leave the value on the stack as the return value
+      g.send :value, 0
+
+      reraise.set!
+
+      g.raise_exc
+    end
+
+    ok.set!
+
+  end
+
+  def passed_block(local=0, in_block=false)
+    if in_block
+      break_rescue do
+        yield
+      end
+    else
+      return_rescue do
+        break_rescue do
+          yield
+        end
+      end
+    end
   end
 
   def push_literal_desc
@@ -288,53 +352,17 @@ class TestGenerator
       d.ret
     end
 
-    top      = self.new_label
-    dunno1   = self.new_label
-    dunno2   = self.new_label
-    uncaught = self.new_label
-    bottom   = self.new_label
-
-    top.set!
-
-    self.push_context
-    self.set_local 0 + shift
-    self.pop
-
-    self.send_with_block msg, call_count, block_send_vis
-
-    self.goto bottom
-
-    dunno1.set!
-
-    self.push_exception
-    self.dup
-    self.push_cpath_top
-    self.find_const :LongReturnException
-    self.swap
-    self.kind_of
-    self.gif uncaught
-
-    self.dup
-    self.send :context, 0
-    self.push_context
-    self.equal
-    self.gif uncaught
-
-    self.clear_exception
-    self.dup
-    self.send :is_return, 0
-    self.gif dunno2
-
-    unless nested then
-      self.send :value, 0
-      self.ret
+    if nested
+      break_rescue do
+        send_with_block msg, call_count, block_send_vis
+      end
+    else
+      return_rescue do
+        break_rescue do
+          send_with_block msg, call_count, block_send_vis
+        end
+      end
     end
-
-    uncaught.set!
-    self.raise_exc
-    dunno2.set!
-    self.send :value, 0
-    bottom.set!
   end
 
   def in_class name

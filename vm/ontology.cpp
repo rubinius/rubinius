@@ -321,7 +321,6 @@ namespace rubinius {
 
     fce = dexc(FlowControlException, exc);
     dexc(ReturnException, fce);
-    dexc(LongReturnException, fce);
 
     GO(exc_type).set(type);
     GO(exc_arg).set(arg);

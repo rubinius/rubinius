@@ -100,7 +100,6 @@ namespace rubinius {
   }
 
   void Task::restore_context(MethodContext* ctx) {
-
     literals(state, ctx->cm()->literals());
     active(state, ctx);
     home(state, ctx->home());
