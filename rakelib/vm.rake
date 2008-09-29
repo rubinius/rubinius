@@ -218,7 +218,6 @@ files INSN_GEN, %w[vm/instructions.rb] do |t|
 end
 
 task :run_field_extract do
-  puts "GEN field_extract"
   field_extract field_extract_headers
 end
 
