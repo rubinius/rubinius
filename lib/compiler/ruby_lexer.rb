@@ -246,6 +246,11 @@ class RubyLexer
     @lex_state = o
   end
 
+  attr_writer :lineno
+  def lineno
+    @lineno ||= src.lineno
+  end
+
   ##
   #  Parse a number from the input stream.
   #
@@ -357,6 +362,7 @@ class RubyLexer
     expand = (func & STR_FUNC_EXPAND) != 0
 
     unless func then
+      self.lineno = nil
       return :tSTRING_END
     end
 
@@ -368,9 +374,11 @@ class RubyLexer
         return ' '
       elsif regexp then
         self.yacc_value = self.regx_options
+        self.lineno = nil
         return :tREGEXP_END
       else
         self.yacc_value = s(term)
+        self.lineno = nil
         return :tSTRING_END
       end
     end
@@ -401,7 +409,7 @@ class RubyLexer
   end
 
   def rb_compile_error msg
-    msg += ". near line #{src.lineno}: #{src.rest[/^.*/].inspect}"
+    msg += ". near line #{self.lineno}: #{src.rest[/^.*/].inspect}"
     raise SyntaxError, msg
   end
 
@@ -429,7 +437,7 @@ class RubyLexer
       " "
     when src.scan(/[0-7]{1,3}/) then           # octal constant
       src.matched.to_i(8).chr
-    when src.scan(/x([0-9a-fA-Fa-f]{2})/) then # hex constant
+    when src.scan(/x([0-9a-fA-F]{1,2})/) then    # hex constant
       src[1].to_i(16).chr
     when src.scan(/M-\\/) then
       c = self.read_escape
@@ -483,14 +491,14 @@ class RubyLexer
 
   def s(*args)
     result = Sexp.new(*args)
-    result.line = src.lineno
+    result.line = self.lineno
     result.file = self.parser.file
     result
   end
 
   def src= src
     raise "bad src: #{src.inspect}" unless String === src
-    @src = StringScanner.new(src) # HACK $src
+    @src = RPStringScanner.new(src) # HACK $src
   end
 
   def store_comment
@@ -617,6 +625,7 @@ class RubyLexer
       if lex_strterm[0] == :heredoc then
         token = self.heredoc(lex_strterm)
         if token == :tSTRING_END then
+          self.lineno = nil
           self.lex_strterm = nil
           self.lex_state = :expr_end
         end
@@ -624,6 +633,7 @@ class RubyLexer
         token = self.parse_string(lex_strterm)
 
         if token == :tSTRING_END || token == :tREGEXP_END then
+          self.lineno = nil
           self.lex_strterm = nil
           self.lex_state = :expr_end
         end
@@ -639,12 +649,11 @@ class RubyLexer
 
     loop do
       case
-      when src.scan(/\004|\032|\000/), src.eos? then # ^D, ^Z, EOF
-        return RubyLexer::EOF
       when src.scan(/\ |\t|\f|\r|\13/) then # white spaces, 13 = '\v
         space_seen = true
         next
       when src.scan(/#|\n/) then
+        self.lineno = nil
         c = src.matched
         if c == '#' then
           src.unread c # ok
@@ -1127,6 +1136,7 @@ class RubyLexer
         return result
       when src.scan(/\\/) then
         if src.scan(/\n/) then
+          self.lineno = nil
           space_seen = true
           next
         end
@@ -1220,8 +1230,11 @@ class RubyLexer
         end
       when src.scan(/\_/) then
         if src.was_begin_of_line && src.scan(/_END__(\n|\Z)/) then
+          self.lineno = nil
           return RubyLexer::EOF
         end
+      when src.scan(/\004|\032|\000/), src.eos? then # ^D, ^Z, EOF
+        return RubyLexer::EOF
       else
         c = src.getch # FIX: I really hate this
         if c =~ /\W/ then

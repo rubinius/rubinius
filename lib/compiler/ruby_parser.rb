@@ -2885,7 +2885,7 @@ def _reduce_3(val, _values, result)
 
                     result << val[2] if val[2]
 
-                    result.line = val[1].line
+                    result.line = (val[0] || val[1]).line
                   elsif not val[2].nil? then
                     warning("else without rescue is useless")
                     result = block_append(result, val[2])
@@ -3366,7 +3366,6 @@ end
 
 def _reduce_76(val, _values, result)
                  result = self.aryset(val[0], val[2]);
-                 val[2][0] = :arglist
                
     result
 end
@@ -4451,11 +4450,11 @@ end
 
 def _reduce_296(val, _values, result)
                  block = val[5]
-                 val[2] = cond val[2]
-                 if val[2][0] == :not then
-                   result = s(:until, val[2].last, block, true);
+                 cond = self.cond val[2]
+                 if cond[0] == :not then
+                   result = s(:until, cond.last, block, true).line(val[0].line)
                  else
-                   result = s(:while, val[2], block, true);
+                   result = s(:while, cond, block, true).line(val[0].line)
                  end
                
     result
@@ -4477,9 +4476,9 @@ def _reduce_299(val, _values, result)
                  block = val[5]
                  val[2] = cond val[2]
                  if val[2][0] == :not then
-                   result = s(:while, val[2].last, block, true);
+                   result = s(:while, val[2].last, block, true).line(val[0].line)
                  else
-                   result = s(:until, val[2], block, true);
+                   result = s(:until, val[2], block, true).line(val[0].line)
                  end
                
     result
@@ -4548,7 +4547,7 @@ def _reduce_304(val, _values, result)
 end
 
 def _reduce_305(val, _values, result)
-                 result = s(:for, val[4], val[1])
+                 result = s(:for, val[4], val[1]).line(val[0].line)
                  result << val[7] if val[7]
                
     result
@@ -4636,7 +4635,7 @@ def _reduce_314(val, _values, result)
                  body = s(:block, body) unless body.first == :block
 
                  result = s(:defn, name.to_sym, args, s(:scope, body))
-                 result.line = name.line
+                 result.line = val[0].line
                  result.comments = self.comments.pop
 
                  self.env.unextend
@@ -4670,7 +4669,7 @@ def _reduce_317(val, _values, result)
                  body = s(:block, body) unless body.first == :block
 
                  result = s(:defs, recv, name.to_sym, args, s(:scope, body))
-                 result.line = name.line
+                 result.line = val[0].line
                  result.comments = self.comments.pop
 
                  self.env.unextend;
