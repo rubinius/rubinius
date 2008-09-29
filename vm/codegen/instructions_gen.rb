@@ -46,7 +46,7 @@ class Instructions
     # code returns void or bool.
     #
     def return_type
-      if /return\s+/.match(body)
+      if /RETURN/.match(body)
         "bool"
       else
         "void"
@@ -111,14 +111,14 @@ class Instructions
       args = impl.args
       case args.size
       when 2
-        io.puts "  int a1 = next_int;"
-        io.puts "  int a2 = next_int;"
-        io.puts "  op_#{impl.name.opcode}(task, js, a1, a2);"
+        io.puts "  int #{args[0]} = next_int;"
+        io.puts "  int #{args[1]} = next_int;"
+        io.puts "  #{impl.body}"
       when 1
-        io.puts "  int a1 = next_int;"
-        io.puts "  op_#{impl.name.opcode}(task, js, a1);"
+        io.puts "  int #{args[0]} = next_int;"
+        io.puts "  #{impl.body}"
       when 0
-        io.puts "  op_#{impl.name.opcode}(task, js);"
+        io.puts "  #{impl.body}"
       end
 
       if flow

@@ -739,11 +739,11 @@ class Instructions
 
       bool res = task->send_message_slowly(msg);
       msg.reset();
-      return res;
+      RETURN(res);
     }
 
     stack_push(res);
-    return false;
+    RETURN(false);
     CODE
   end
 
@@ -1405,10 +1405,10 @@ class Instructions
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       env->call(state, task, count);
-      return false;
+      RETURN(true);
     }
 
-    return send_slowly(task, js, G(sym_call), count);
+    RETURN(send_slowly(task, js, G(sym_call), count));
     CODE
   end
 
@@ -1476,10 +1476,10 @@ class Instructions
     if(!t1->reference_p() && !t2->reference_p()) {
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
-      return false;
+      RETURN(false);
     }
 
-    return send_slowly(task, js, G(sym_equal), 1);
+    RETURN(send_slowly(task, js, G(sym_equal), 1));
     CODE
   end
 
@@ -1524,10 +1524,10 @@ class Instructions
       int k = as<Integer>(t2)->to_native();
       stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
-      return false;
+      RETURN(false);
     }
 
-    return send_slowly(task, js, G(sym_gt), 1);
+    RETURN(send_slowly(task, js, G(sym_gt), 1));
     CODE
   end
 
@@ -1572,10 +1572,10 @@ class Instructions
       int k = as<Integer>(t2)->to_native();
       stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
-      return false;
+      RETURN(false);
     }
 
-    return send_slowly(task, js, G(sym_lt), 1);
+    RETURN(send_slowly(task, js, G(sym_lt), 1));
     CODE
   end
 
@@ -1621,10 +1621,10 @@ class Instructions
       stack_pop();
       OBJECT res = ((FIXNUM)(left))->sub(state, (FIXNUM)(right));
       stack_push(res);
-      return false;
+      RETURN(false);
     }
 
-    return send_slowly(task, js, G(sym_minus), 1);
+    RETURN(send_slowly(task, js, G(sym_minus), 1));
     CODE
   end
 
@@ -1671,10 +1671,10 @@ class Instructions
     if(!t1->reference_p() && !t2->reference_p()) {
       stack_pop();
       stack_set_top((t1 == t2) ? Qfalse : Qtrue);
-      return false;
+      RETURN(false);
     }
 
-    return send_slowly(task, js, G(sym_nequal), 1);
+    RETURN(send_slowly(task, js, G(sym_nequal), 1));
     CODE
   end
 
@@ -1720,10 +1720,10 @@ class Instructions
       stack_pop();
       OBJECT res = ((FIXNUM)(left))->add(state, (FIXNUM)(right));
       stack_push(res);
-      return false;
+      RETURN(false);
     }
 
-    return send_slowly(task, js, G(sym_plus), 1);
+    RETURN(send_slowly(task, js, G(sym_plus), 1));
     CODE
   end
 
@@ -1769,10 +1769,10 @@ class Instructions
     if((t1->fixnum_p() && t2->fixnum_p()) || (t1->symbol_p() && t2->symbol_p())) {
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
-      return false;
+      RETURN(false);
     }
 
-    return send_slowly(task, js, G(sym_tequal), 1);
+    RETURN(send_slowly(task, js, G(sym_tequal), 1));
     CODE
   end
 
@@ -2234,11 +2234,11 @@ class Instructions
 
       bool res = task->send_message_slowly(msg);
       msg.reset();
-      return res;
+      RETURN(res);
     }
 
     stack_push(res);
-    return false;
+    RETURN(false);
     CODE
   end
 
@@ -2878,7 +2878,7 @@ class Instructions
 
     bool res = task->send_message(msg);
     msg.reset();
-    return res;
+    RETURN(res);
     CODE
   end
 
@@ -2957,7 +2957,7 @@ class Instructions
 
     bool res = task->send_message(msg);
     msg.reset();
-    return res;
+    RETURN(res);
     CODE
   end
 
@@ -3039,7 +3039,7 @@ class Instructions
 
     bool res = task->send_message(msg);
     msg.reset();
-    return res;
+    RETURN(res);
     CODE
   end
 
@@ -3136,7 +3136,7 @@ class Instructions
 
     bool res = task->send_message(msg);
     msg.reset();
-    return res;
+    RETURN(res);
     CODE
   end
 
@@ -3223,7 +3223,7 @@ class Instructions
 
     bool res = task->send_message(msg);
     msg.reset();
-    return res;
+    RETURN(res);
     CODE
   end
 
@@ -3363,7 +3363,7 @@ class Instructions
 
     bool res = task->send_message(msg);
     msg.reset();
-    return res;
+    RETURN(res);
     CODE
   end
 
