@@ -75,6 +75,7 @@ namespace rubinius {
     ctx->block(state, Qnil);
 
     task->active(state, ctx);
+    task->home(state, ctx);
 
     return task;
   }
@@ -109,6 +110,15 @@ namespace rubinius {
      * miss object stored into the stack of a context */
     if(ctx->zone == MatureObjectZone) {
       state->om->remember_object(ctx);
+    }
+
+    // We do this because blocks set locals in their home and we need
+    // catch that.
+    //
+    // NOTE we could instead manually run the write barrier when setting
+    // locals.
+    if(home_->zone == MatureObjectZone && !home_->Remember) {
+      state->om->remember_object(home_);
     }
   }
 
@@ -629,6 +639,10 @@ stack_cleanup:
      * miss object stored into the stack of a context */
     if(active_->zone == MatureObjectZone) {
       state->om->remember_object(active_);
+    }
+
+    if(home_->zone == MatureObjectZone && !home_->Remember) {
+      state->om->remember_object(home_);
     }
   }
 
