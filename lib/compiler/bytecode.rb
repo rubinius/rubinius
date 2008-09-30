@@ -1,5 +1,5 @@
-# Implements methods on each Node subclass for generatng bytecode
-# from itself.
+# Each Node subclass is reopened here, and bytecode-generating
+# methods are added.
 
 require 'compiler/generator'
 

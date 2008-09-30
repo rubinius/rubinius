@@ -58,6 +58,10 @@ class String
 
     RubyParser.new.process(self, file)
   end
+
+  def prefix?(str)
+    self =~ /^#{str}/
+  end
 end
 
 def File.to_sexp(file, opt=nil)

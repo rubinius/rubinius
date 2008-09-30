@@ -1,10 +1,12 @@
+unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
+  require File.join(File.dirname(__FILE__), '..', 'compiler', 'mri_shim')
+end
+require 'compiler/text'
 
 if ARGV[0].prefix? "-I"
   extra = ARGV.shift[2..-1].split(":")
   extra.each { |n| $:.unshift n }
 end
-
-require 'compiler/text'
 
 # "Interactive" mode
 def interactive()
