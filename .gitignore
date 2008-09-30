@@ -37,8 +37,6 @@ rakelib/ryan.rake
 runtime/platform.conf
 runtime/pristine*
 scratch
-shotgun/lib/*.d
-shotgun/lib/subtend/*.d
 spec/ruby
 stamp-h1
 stats
@@ -74,112 +72,6 @@ native/bytecode/rubinius.rbc
 native/bytecode/compiler.rb
 native/bytecode/primitive_names.rb
 native/bytecode/system_hints.rbc
-
-shotgun/rubinius.bin
-shotgun/config.h
-shotgun/.libs
-shotgun/config.mk
-shotgun/config/*
-!shotgun/config/*.c
-shotgun/lib/librubinius.*
-shotgun/lib/librubinius-*
-
-shotgun/external_libs/cinvoke/Makefile
-shotgun/external_libs/cinvoke/lib/Makefile
-
-shotgun/external_libs/libedit/compat_conf.h
-shotgun/external_libs/libedit/config.status
-shotgun/external_libs/libedit/config.cache
-shotgun/external_libs/libedit/emacs.h
-shotgun/external_libs/libedit/vi.h
-shotgun/external_libs/libedit/fcns.c
-shotgun/external_libs/libedit/fcns.h
-shotgun/external_libs/libedit/config.log
-shotgun/external_libs/libedit/help.c
-shotgun/external_libs/libedit/common.h
-shotgun/external_libs/libedit/help.h
-shotgun/external_libs/libedit/libedit.a
-
-shotgun/external_libs/libev/.libs
-shotgun/external_libs/libev/config.h
-shotgun/external_libs/libev/Makefile
-shotgun/external_libs/libev/config.status
-shotgun/external_libs/libev/libtool
-shotgun/external_libs/libev/config.log
-shotgun/external_libs/libev/configure.ac
-
-shotgun/external_libs/libevent/sample/Makefile
-
-shotgun/external_libs/libevent/test/Makefile
-
-shotgun/external_libs/libltdl/.libs
-shotgun/external_libs/libltdl/Makefile
-shotgun/external_libs/libltdl/config.log
-shotgun/external_libs/libltdl/config.status
-shotgun/external_libs/libltdl/stamp-*
-shotgun/external_libs/libltdl/config.h
-shotgun/external_libs/libltdl/libtool
-
-# shotgun/external_libs/onig
-shotgun/external_libs/onig/config.status
-shotgun/external_libs/onig/config.log
-shotgun/external_libs/onig/config.h
-shotgun/external_libs/onig/.deps
-shotgun/external_libs/onig/Makefile
-shotgun/external_libs/onig/libtool
-shotgun/external_libs/onig/.libs
-shotgun/external_libs/onig/stamp-h1
-shotgun/external_libs/onig/onig-config
-
-# shotgun/external_libs/onig/doc
-
-# shotgun/external_libs/onig/enc
-
-# shotgun/external_libs/onig/sample
-shotgun/external_libs/onig/sample/crnl
-shotgun/external_libs/onig/sample/syntax
-shotgun/external_libs/onig/sample/simple
-shotgun/external_libs/onig/sample/encode
-shotgun/external_libs/onig/sample/listcap
-shotgun/external_libs/onig/sample/sql
-shotgun/external_libs/onig/sample/posix
-shotgun/external_libs/onig/sample/names
-shotgun/external_libs/onig/sample/.libs
-shotgun/external_libs/onig/sample/.deps
-shotgun/external_libs/onig/sample/Makefile
-
-# shotgun/external_libs/libstring
-shotgun/external_libs/libbstring/*.d
-shotgun/external_libs/libbstring/*.so
-shotgun/external_libs/libbstring/*.a
-
-# shotgun/external_libs/libcchash
-shotgun/external_libs/libcchash/*.d
-shotgun/external_libs/libcchash/*.so
-shotgun/external_libs/libcchash/*.a
-
-# shotgun/external_libs/libmpa
-shotgun/external_libs/libmpa/*.d
-shotgun/external_libs/libmpa/*.so
-shotgun/external_libs/libmpa/*.a
-
-# shotgun/lib
-shotgun/lib/.*.d
-shotgun/lib/*.gen
-shotgun/lib/auto.c
-shotgun/lib/auto.h
-shotgun/lib/grammar.c
-shotgun/lib/instruction_names.c
-shotgun/lib/instruction_names.h
-shotgun/lib/node_types.c
-shotgun/lib/node_types.h
-shotgun/lib/librubinius.a
-shotgun/lib/cpu_primitives.h
-shotgun/lib/primitive_indexes.h
-shotgun/lib/.libs
-
-# shotgun/lib/subtend
-shotgun/lib/subtend/.libs
 
 # LLVM and its Makefiles
 vm/external_libs/llvm/Makefile
