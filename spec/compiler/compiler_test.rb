@@ -3201,6 +3201,11 @@ class CompilerTestCase < ParseTreeTestCase
               g.push :true
             end)
 
+  add_tests("masgn_cdecl",
+            "Compiler" => bytecode do |g|
+              # TODO
+            end)
+
   add_tests("masgn_iasgn",
             "Compiler" => bytecode do |g|
               g.push :self
