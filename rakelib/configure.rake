@@ -94,7 +94,6 @@ def write_rbconfig
     f.puts '  else'
     f.puts '    CONFIG["rubyhdrdir"]         = "#{Rubinius::CODE_PATH}/$(host)"'
     f.puts '  end'
-    f.puts '  CONFIG["wordsize"]           = Rubinius::WORDSIZE'
 
     # TODO: we should compose sitelibdir from existing CONFIG keys
     f.puts "  CONFIG[\"sitelibdir\"]         = \"$(sitedir)/#{RBX_LIBVER}\""
