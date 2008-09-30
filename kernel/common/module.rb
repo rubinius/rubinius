@@ -385,11 +385,11 @@ class Module
 
     if meth.kind_of?(Proc)
       block_env = meth.block
-      cm = DelegatedMethod.build(:call_on_instance, block_env, true)
+      cm = DelegatedMethod.new(:call_on_instance, block_env, true)
     elsif meth.kind_of?(Method)
-      cm = DelegatedMethod.build(:call, meth, false)
+      cm = DelegatedMethod.new(:call, meth, false)
     elsif meth.kind_of?(UnboundMethod)
-      cm = DelegatedMethod.build(:call_on_instance, meth, true)
+      cm = DelegatedMethod.new(:call_on_instance, meth, true)
     else
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
