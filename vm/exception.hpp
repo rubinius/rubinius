@@ -66,9 +66,12 @@ namespace rubinius {
     const char* reason;
 
     static void raise(object_type type, OBJECT obj, const char* reason = NULL);
+    static void raise(const char* reason);
 
     TypeError(object_type type, OBJECT obj, const char* reason = NULL)
       : type(type), object(obj), reason(reason) { };
+    TypeError(const char* reason)
+      : type((object_type)0), object(Qnil), reason(reason) { };
   };
 
   class ArgumentError : public VMException {

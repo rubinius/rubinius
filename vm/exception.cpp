@@ -12,6 +12,10 @@ namespace rubinius {
     throw TypeError(type, obj, reason);
   }
 
+  void TypeError::raise(const char* reason) {
+    throw TypeError(reason);
+  }
+
   void ArgumentError::raise(size_t expected, size_t given) {
     throw ArgumentError(expected, given);
   }

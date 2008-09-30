@@ -45,6 +45,10 @@ class TestException : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(TypeError::raise(type, obj), const TypeError &);
   }
 
+  void test_type_error_raise_with_only_reason() {
+    TS_ASSERT_THROWS(TypeError::raise("failed"), const TypeError &);
+  }
+
   void test_assertion_raise() {
     TS_ASSERT_THROWS(Assertion::raise("failed"), const Assertion &);
   }
