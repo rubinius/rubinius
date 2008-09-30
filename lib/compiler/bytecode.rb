@@ -2025,7 +2025,7 @@ class Compiler
         g.pop
         g.open_metaclass
 
-        attach_and_call g, :__metaclass_init__
+        attach_and_call g, :__metaclass_init__, true
       end
     end
 

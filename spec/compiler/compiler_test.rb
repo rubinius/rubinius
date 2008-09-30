@@ -4137,6 +4137,8 @@ class CompilerTestCase < ParseTreeTestCase
                 g.dup
 
                 g.push_literal_desc do |d2|
+                  d2.push_self
+                  d2.add_scope
                   d2.push 42
                   d2.ret
                 end
@@ -4158,6 +4160,8 @@ class CompilerTestCase < ParseTreeTestCase
                 d.dup
 
                 d.push_literal_desc do |d2|
+                  d2.push_self
+                  d2.add_scope
                   d2.push :self
                   d2.send :a, 0, true
                   d2.ret

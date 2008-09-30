@@ -388,6 +388,8 @@ describe Compiler do
 
     gen sexp do |g|
       meth = description do |d|
+        d.push_self
+        d.add_scope
         d.push 12
         d.ret
       end
