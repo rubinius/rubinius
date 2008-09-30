@@ -729,7 +729,7 @@ class Compiler
     class ConstSet < Node
       kind :cdecl
 
-      def args(name, val)
+      def args(name, val=nil)
         @from_top = false
         @parent   = nil
         @value    = val

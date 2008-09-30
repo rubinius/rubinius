@@ -3203,7 +3203,34 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("masgn_cdecl",
             "Compiler" => bytecode do |g|
-              # TODO
+              g.push 1
+              g.push 2
+              g.push 3
+
+              g.rotate 3
+
+              g.push_context
+              g.swap
+              g.push_literal :A
+              g.swap
+              g.send :__const_set__, 2
+              g.pop
+
+              g.push_context
+              g.swap
+              g.push_literal :B
+              g.swap
+              g.send :__const_set__, 2
+              g.pop
+
+              g.push_context
+              g.swap
+              g.push_literal :C
+              g.swap
+              g.send :__const_set__, 2
+              g.pop
+
+              g.push :true
             end)
 
   add_tests("masgn_iasgn",
