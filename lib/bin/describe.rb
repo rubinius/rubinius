@@ -2,8 +2,9 @@ unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
   require File.join(File.dirname(__FILE__), '..', 'compiler', 'mri_shim')
 end
 require 'compiler/text'
+require 'pp'
 
-if ARGV[0].prefix? "-I"
+if ARGV[0] and ARGV[0].prefix? "-I"
   extra = ARGV.shift[2..-1].split(":")
   extra.each { |n| $:.unshift n }
 end
@@ -23,8 +24,8 @@ def interactive()
 
     code = code.to_sexp
 
+    pp code
     puts ""
-    puts code.indented_inspect
     puts c.into_script(code).to_description.generator.text
     puts ""
   end
@@ -32,7 +33,6 @@ def interactive()
   exit
 end
 
-require 'pp'
 
 Compiler.parse_flags ARGV
 
