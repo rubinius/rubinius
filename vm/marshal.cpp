@@ -11,6 +11,9 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
+#include <cctype>
+#include <cstring>
+
 namespace rubinius {
 
   using std::endl;
@@ -143,10 +146,39 @@ namespace rubinius {
   }
 
   Float* UnMarshaller::get_float() {
-    double val;
-    stream >> val;
+    char data[1024];
 
-    return Float::create(state, val);
+    // discard the delimiter
+    stream.get();
+
+    stream.getline(data, 1024);
+    if(stream.fail()) {
+      TypeError::raise("Unable to unmarshal Float: failed to read value");
+    }
+
+    char c = data[0];
+    if(c == '-') c = data[1];
+
+    if(std::isdigit(c)) {
+      // TODO: use ruby_strtod
+      return Float::create(state, strtod(data, NULL));
+    } else {
+      // avoid compiler warning
+      double zero = 0.0;
+      double val;
+
+      if(!strncasecmp(data, "Infinity", 8U)) {
+        val = 1.0;
+      } else if(!strncmp(data, "-Infinity", 9U)) {
+        val = -1.0;
+      } else if(!strncmp(data, "NaN", 3U)) {
+        val = zero;
+      } else {
+        TypeError::raise("Unable to unmarshal Float: invalid format");
+      }
+
+      return Float::create(state, val / zero);
+    }
   }
 
   void Marshaller::set_iseq(InstructionSequence* iseq) {
