@@ -2,6 +2,14 @@ require 'sexp_processor'
 
 module Rubinius; end
 class Rubinius::LitRewriter < SexpProcessor # TODO: move
+
+  def process(what)
+    out = super(what)
+    out.line = what.line
+    out.file = what.file
+    return out
+  end
+
   # HACK: until we figger out how PT should be
   def rewrite_dregx(exp)
     exp << 0 unless Integer === exp.last
