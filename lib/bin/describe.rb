@@ -1,13 +1,8 @@
 unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
   require File.join(File.dirname(__FILE__), '..', 'compiler', 'mri_shim')
 end
-require 'compiler/text'
-require 'pp'
 
-if ARGV[0] and ARGV[0].prefix? "-I"
-  extra = ARGV.shift[2..-1].split(":")
-  extra.each { |n| $:.unshift n }
-end
+require 'pp'
 
 # "Interactive" mode
 def interactive()
@@ -33,32 +28,64 @@ def interactive()
   exit
 end
 
+def describe_compiled_method(cm)
+  extra = cm.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
 
-Compiler.parse_flags ARGV
-
-file = ARGV.shift
-unless file
-  interactive()
-  exit 0
-end
-
-puts "File: #{file}"
-
-puts "Sexp:"
-pp File.to_sexp(file)
-
-puts "\nBytecode:"
-
-top = Compiler.compile_file(file)
-
-puts top.decode
-
-extra = top.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
-
-until extra.empty?
-  cm = extra.shift
-  puts "= #{cm.name} (0x#{cm.object_id.to_s(16)}) ======================"
+  name = cm.name ? cm.name.inspect : 'anonymous'
+  markers = (36 - name.size) / 2
+  heading = "#{'=' * markers} #{name} #{'=' * (markers + name.size % 2)}"
+  puts heading
+  puts "contains #{extra.size} CompiledMethods" unless extra.empty?
+  puts "object_id: 0x#{cm.object_id.to_s(16)}"
+  puts "total args: #{cm.total_args} required: #{cm.required_args}"
+  print " (splatted)" if cm.splat
+  puts "stack size: #{cm.stack_size}, local count: #{cm.local_count}"
+  puts ""
   puts cm.decode
-  extra += cm.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+  puts "-" * 38
+
+  until extra.empty?
+    puts ""
+    sub = extra.shift
+    describe_compiled_method(sub)
+    extra += sub.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+  end
 end
 
+
+if __FILE__ == $0 then
+  flags = []
+  file = nil
+
+  while arg = ARGV.shift
+    case arg
+    when /-I(.+)/ then
+      other_paths = $1[2..-1].split(":")
+      other_paths.each { |n| $:.unshift n }
+    when /-f(.+)/ then
+      flags << $1
+    else
+      file = arg
+      break
+    end
+  end
+
+  unless file
+    interactive()
+    exit 0
+  end
+
+  begin
+    puts "Enabled flags: #{flags.join(', ')}" unless flags.empty?
+    puts "File: #{file}"
+
+    puts "Sexp:"
+    pp File.to_sexp(file)
+
+    puts "\nCompiled output:"
+    top = Compiler.compile_file(file, flags)
+    describe_compiled_method(top)
+  rescue SyntaxError
+    exit 1
+  end
+end
