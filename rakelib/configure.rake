@@ -6,115 +6,6 @@ file 'lib/rbconfig.rb' do
   write_rbconfig
 end
 
-file 'kernel/bootstrap/rubinius_config.rb' =>
-     %w[rakelib/configuration.rb rakelib/configure.rake] do |task, args|
-  open task.name, 'w' do |io|
-    io << <<-EOF
-#--
-# This file was generated from rakelib/configure.rake
-#++
-
-module Rubinius
-  BUILDREV        = #{RBX_BUILDREV.inspect}
-  CODE_PATH       = #{RBX_CODE_PATH.inspect}
-  EXT_PATH        = #{RBX_EXT_PATH.inspect}
-  RBA_PATH        = #{RBX_RBA_PATH.inspect}
-  RBX_VERSION     = #{RBX_VERSION.inspect}
-end
-
-    EOF
-  end
-end
-
-file 'kernel/bootstrap/ruby_config.rb' =>
-     %w[rakelib/configuration.rb rakelib/configure.rake] do |task, args|
-  open task.name, 'w' do |io|
-    io << <<-EOF
-#--
-# This file was generated from rakelib/configure.rake
-#++
-
-PLATFORM          = #{RBX_HOST.inspect}
-
-RUBY_ENGINE       = #{RBX_RUBY_ENGINE.inspect}
-RUBY_PATCHLEVEL   = #{RBX_RUBY_PATCHLEVEL.inspect}
-RUBY_PLATFORM     = #{RBX_HOST.inspect}
-RUBY_RELEASE_DATE = #{RBX_RUBY_RELDATE.inspect}
-RUBY_VERSION      = #{RBX_RUBY_VERSION.inspect}
-
-VERSION           = #{RBX_RUBY_VERSION.inspect}
-    EOF
-  end
-end
-
-def write_config
-  Dir.chdir(File.join(RUBINIUS_BASE, 'shotgun')) do
-    File.open("config.mk", "w") do |f|
-      f.puts "BUILDREV        = #{BUILDREV}"
-      f.puts "ENGINE          = #{ENGINE}"
-      f.puts "PREFIX          = #{PREFIX}"
-      f.puts "RUBY_VERSION    = #{RBX_RUBY_VERSION}"
-      f.puts "RUBY_PATCHLEVEL = #{RBX_RUBY_PATCHLEVEL}"
-      f.puts "LIBVER          = #{LIBVER}"
-      f.puts "VERSION         = #{RBX_VERSION}"
-      f.puts "HOST            = #{HOST}"
-      f.puts "DARWIN          = #{DARWIN}"
-      f.puts "DISABLE_KQUEUE  = #{DISABLE_KQUEUE}"
-      f.puts "BINPATH         = #{BINPATH}"
-      f.puts "LIBPATH         = #{LIBPATH}"
-      f.puts "CODEPATH        = #{CODEPATH}"
-      f.puts "RBAPATH         = #{RBAPATH}"
-      f.puts "EXTPATH         = #{EXTPATH}"
-      f.puts "BUILDREV        = #{BUILDREV}"
-      f.puts "DTRACE          = #{DTRACE}"
-
-      case HOST
-      when /darwin9/ then
-        f.puts "MACOSX_DEPLOYMENT_TARGET=10.5"
-      when /darwin/ then
-        f.puts "MACOSX_DEPLOYMENT_TARGET=10.4"
-      end
-    end
-
-    unix_date = Time.now.strftime("%m/%d/%Y")
-
-    File.open("config.h", "w") do |f|
-      f.puts "#define CONFIG_DARWIN           #{DARWIN.to_s.inspect}"
-      f.puts "#define CONFIG_DISABLE_KQUEUE   #{DISABLE_KQUEUE}"
-      f.puts "#define CONFIG_HOST             #{HOST.inspect}"
-      f.puts "#define CONFIG_PREFIX           #{PREFIX.inspect}"
-      f.puts "#define CONFIG_VERSION          #{RBX_VERSION.inspect}"
-      f.puts "#define CONFIG_RUBY_VERSION     #{RBX_RUBY_VERSION.inspect}"
-      f.puts "#define CONFIG_RELDATE          #{unix_date.inspect}"
-      f.puts "#define CONFIG_RUBY_PATCHLEVEL  #{RBX_RUBY_PATCHLEVEL.inspect}"
-      f.puts "#define CONFIG_CODEPATH         #{CODEPATH.inspect}"
-      f.puts "#define CONFIG_RBAPATH          #{RBAPATH.inspect}"
-      f.puts "#define CONFIG_EXTPATH          #{EXTPATH.inspect}"
-      f.puts "#define CONFIG_BUILDREV         #{BUILDREV.inspect}"
-      f.puts "#define CONFIG_ENGINE           #{ENGINE.inspect}"
-      f.puts "#define CONFIG_CC               #{CC.inspect}"
-
-      if DTRACE then
-        f.puts "#define CONFIG_ENABLE_DTRACE 1"
-      end
-
-      if system "config/run is64bit > /dev/null" then
-        f.puts "#define CONFIG_WORDSIZE 64"
-        f.puts "#define CONFIG_ENABLE_DT 0"
-      else
-        f.puts "#define CONFIG_WORDSIZE 32"
-        f.puts "#define CONFIG_ENABLE_DT 1"
-      end
-
-      if system "config/run isbigendian > /dev/null" then
-        f.puts "#define CONFIG_BIG_ENDIAN 1"
-      else
-        f.puts "#define CONFIG_BIG_ENDIAN 0"
-      end
-    end
-  end
-end
-
 def write_rbconfig
   File.open 'lib/rbconfig.rb', 'w' do |f|
     f.puts '#--'
@@ -131,7 +22,7 @@ def write_rbconfig
     f.puts '  CONFIG = {}'
     f.puts
     f.puts '  CONFIG["prefix"]             = prefix'
-    f.puts %Q!  CONFIG["install_prefix"]     = "#{PREFIX}"!
+    f.puts %Q!  CONFIG["install_prefix"]     = "#{RBX_PREFIX}"!
     f.puts '  CONFIG["DLEXT"]              = Rubinius::LIBSUFFIX.dup'
     f.puts '  CONFIG["EXEEXT"]             = ""'
     f.puts '  CONFIG["ruby_install_name"]  = RUBY_ENGINE.dup'
@@ -141,7 +32,7 @@ def write_rbconfig
     f.puts '  if File.exists?(File.join(prefix, "bin", "rbx"))'
     f.puts '    CONFIG["bindir"]             = "$(exec_prefix)/bin"'
     f.puts '  else'
-    f.puts "    CONFIG[\"bindir\"]           = '#{BINPATH}'"
+    f.puts "    CONFIG[\"bindir\"]           = '#{RBX_BINPATH}'"
     f.puts '  end'
     f.puts '  CONFIG["sbindir"]            = "$(exec_prefix)/sbin"'
     f.puts '  CONFIG["libexecdir"]         = "$(exec_prefix)/libexec"'
@@ -206,7 +97,7 @@ def write_rbconfig
     f.puts '  CONFIG["wordsize"]           = Rubinius::WORDSIZE'
 
     # TODO: we should compose sitelibdir from existing CONFIG keys
-    f.puts "  CONFIG[\"sitelibdir\"]         = \"$(sitedir)/#{LIBVER}\""
+    f.puts "  CONFIG[\"sitelibdir\"]         = \"$(sitedir)/#{RBX_LIBVER}\""
 
     # TODO: we need to be able to discover these, but for now, UNIXy defaults
     f.puts '  # command line utilities'

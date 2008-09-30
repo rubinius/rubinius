@@ -104,10 +104,10 @@ task :build => %w[
   vm
   kernel:build
   build:compiler
+  lib/rbconfig.rb
 ]
 #  build:rbc
 #  lib/etc.rb
-#  lib/rbconfig.rb
 #  extensions
 
 namespace :build do
