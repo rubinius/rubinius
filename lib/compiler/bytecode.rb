@@ -420,9 +420,14 @@ class Compiler
           # We leave the value on the stack as the return value
           g.send :value, 0
 
+          done = g.new_label
+          g.goto done
+
           reraise.set!
 
           g.raise_exc
+
+          done.set!
         end
 
         ok.set!
