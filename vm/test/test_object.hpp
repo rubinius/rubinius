@@ -57,8 +57,7 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(as<String>(obj), TypeError);
     TS_ASSERT_THROWS(as<String>(fix), TypeError);
 
-//    TS_ASSERT_THROWS(as<Object>(uninitialized), Assertion);
-    TS_ASSERT_THROWS(as<String>(uninitialized), Assertion);
+    TS_ASSERT_THROWS(as<String>(uninitialized), const Assertion &);
   }
 
   void test_try_as() {
@@ -78,9 +77,9 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(try_as<String>(fix), static_cast<String*>(NULL));
 
     // Fail
-    TS_ASSERT_THROWS(try_as<String>(uninitialized), Assertion);
+    TS_ASSERT_THROWS(try_as<String>(uninitialized), const Assertion &);
     // Object casts have their own implementation
-    TS_ASSERT_THROWS(try_as<Object>(uninitialized), Assertion);
+    TS_ASSERT_THROWS(try_as<Object>(uninitialized), const Assertion &);
   }
 
   void test_dup() {

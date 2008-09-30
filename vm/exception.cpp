@@ -100,8 +100,13 @@ namespace rubinius {
     return s;
   }
 
-  VMException::VMException() {
+  VMException::VMException() : reason(NULL) {
     backtrace = new VMException::Backtrace(get_cpp_backtrace());
+  }
+
+  VMException::VMException(const char* reason) : reason(NULL) {
+    backtrace = new VMException::Backtrace(get_cpp_backtrace());
+    if(reason) this->reason = strdup(reason);
   }
 
   void VMException::print_backtrace() {

@@ -8,115 +8,141 @@
 #include "prelude.hpp"
 #include "builtin/object.hpp"
 
-/* Each exception class should define a +raise+ function. Code
- * should call the +raise+ function instead of throwing one of
- * the exceptions directly. This allows setting a breakpoint
- * on +raise+ to more easily debug exceptions. For example, to
- * cause a TypeError exception, use
- *
- *  TypeError::raise(type, obj, reason);
- *
- * instead of
- *
- *  throw TypeError(type, obj, reason);
- */
 namespace rubinius {
 
   void abort();
   void print_backtrace();
 
+  /**
+   * Base class for the various exception.
+   *
+   * Each exception class should define a +raise+ function. Code
+   * should call the +raise+ function instead of throwing one of
+   * the exceptions directly. This allows setting a breakpoint
+   * on +raise+ to more easily debug exceptions. For example, to
+   * cause a TypeError exception, use
+   *
+   *  TypeError::raise(type, obj, reason);
+   *
+   * instead of
+   *
+   *  throw TypeError(type, obj, reason);
+   */
   class VMException {
-  public:
+  public:   /* Instance vars */
+
+    char*   reason;
+
+  public:   /* Ctors */
+
+    VMException();
+    VMException(const char* reason);
+    ~VMException() { if(reason) free(reason); }
+
+  public:   /* Interface */
+
     typedef std::vector<std::string> Backtrace;
 
     Backtrace* backtrace;
-    VMException();
     void print_backtrace();
   };
 
-  class Assertion : public VMException
-  {
-    public:   /* Ctors */
+  class Assertion : public VMException {
+  public:   /* Ctors */
 
     /**
-     *  Constructor hidden behind Assertion::raise() usually.
-     *
-     *  The reason should live fine through the raise.
+     *  Use Assertion::raise to throw an Assertion exception.
      */
-    Assertion(const char* reason) : reason(reason) {}
-    ~Assertion() {}
+    Assertion(const char* reason) : VMException(reason) { }
 
-    public:   /* Interface */
+  public:   /* Interface */
 
     /**
-     *  Main interface for raising Assertion errors.
+     *  Throws an Assertion exception with explanation +mesg+.
      */
     static void raise(const char* mesg);
-
-
-    public:   /* Instance vars */
-
-    const char*   reason;
   };
 
   class TypeError : public VMException {
-  public:
+  public:   /* Instance vars */
+
     object_type type;
     OBJECT object;
-    const char* reason;
+
+  public:   /* Ctors */
+
+    TypeError(object_type type, OBJECT obj, const char* reason = NULL)
+      : VMException(reason), type(type), object(obj) { }
+    TypeError(const char* reason)
+      : VMException(reason), type((object_type)0), object(Qnil) { }
+
+  public:   /* Interface */
 
     static void raise(object_type type, OBJECT obj, const char* reason = NULL);
     static void raise(const char* reason);
-
-    TypeError(object_type type, OBJECT obj, const char* reason = NULL)
-      : type(type), object(obj), reason(reason) { };
-    TypeError(const char* reason)
-      : type((object_type)0), object(Qnil), reason(reason) { };
   };
 
   class ArgumentError : public VMException {
-  public:
+  public:   /* Instance vars */
+
     size_t expected;
     size_t given;
     char *reason;
 
+  public:   /* Ctors */
+
+    ArgumentError(size_t e, size_t g)
+      : VMException(), expected(e), given(g) { }
+    ArgumentError(const char* reason)
+      : VMException(reason), expected(0), given(0) { }
+
+  public:   /* Interface */
+
     static void raise(size_t expected, size_t given);
     static void raise(const char* reason);
-
-    ArgumentError(size_t e, size_t g) : expected(e), given(g), reason(NULL) { }
-    ArgumentError(const char* reason) : expected(0), given(0), reason(NULL) { this->reason = strdup(reason); }
-
-    ~ArgumentError() {
-      if(reason) free(reason);
-    }
   };
 
   class ObjectBoundsExceeded : public VMException {
-  public:
+  public:   /* Instance vars */
+
     OBJECT obj;
     size_t index;
 
-    static void raise(OBJECT o, size_t i);
+  public:   /* Ctors */
 
-    ObjectBoundsExceeded(OBJECT o, size_t i) : obj(o), index(i) { }
+    ObjectBoundsExceeded(OBJECT o, size_t i) : obj(obj), index(index) { }
+
+  public:   /* Interface */
+
+    static void raise(OBJECT obj, size_t index);
   };
 
   class ZeroDivisionError : public VMException {
-  public:
+  public:   /* Instance vars */
+
     INTEGER i;
-    const char* reason;
+
+  public:   /* Ctors */
 
     ZeroDivisionError(INTEGER i, const char* reason = NULL)
-      : i(i), reason(reason) { };
+      : VMException(reason), i(i) { }
+
+  public:   /* Interface */
+    // TODO: add ::raise
   };
 
   class FloatDomainError : public VMException {
-  public:
+  public:   /* Instance vars */
+
     double d;
-    const char* reason;
+
+  public:   /* Ctors */
 
     FloatDomainError(double d, const char* reason = NULL)
-      : d(d), reason(reason) { };
+      : VMException(reason), d(d) { }
+
+  public:   /* Interface */
+    // TODO: add ::raise
   };
 };
 
