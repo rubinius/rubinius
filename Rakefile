@@ -10,9 +10,6 @@ RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
 
 # require 'tsort'
 # require 'rakelib/rubinius'
-# require 'rakelib/struct_generator'
-# require 'rakelib/const_generator'
-# require 'rakelib/types_generator'
 
 task :default => %w[build vm:test spec:compiler]
 
@@ -88,14 +85,6 @@ task :run_ruby => %w[kernel:build vm/vm] # HACK argument + dependency is broken
 #   end
 # end
 
-# Rake::StructGeneratorTask.new do |t|
-#   t.dest = "lib/etc.rb"
-# end
-
-# Rake::StructGeneratorTask.new do |t|
-#   t.dest = 'lib/zlib.rb'
-# end
-
 # AllPreCompiled = Core.output + Bootstrap.output + PlatformFiles.output
 # AllPreCompiled << "runtime/loader.rbc"
 
@@ -104,10 +93,8 @@ task :build => %w[
   vm
   kernel:build
   lib/rbconfig.rb
+  extensions
 ]
-#  build:rbc
-#  lib/etc.rb
-#  extensions
 
 namespace :build do
 
@@ -197,24 +184,12 @@ desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]
 
 desc 'Remove rubinius build files'
-task :clean => %w[vm:clean kernel:clean clean:crap]
+task :clean => %w[vm:clean kernel:clean clean:crap extension:clean]
 
 desc 'Remove rubinius build files and external library build files'
 task :distclean => %w[vm:distclean]
 
 namespace :clean do
-#   desc "Cleans all compiled extension files (lib/ext)"
-#   task :extensions do
-#     Dir["lib/ext/**/*#{$dlext}"].each do |f|
-#       rm_f f, :verbose => $verbose
-#     end
-#   end
-
-#   desc "Cleans up generated files"
-#   task :generated do
-#     rm_f Dir["shotgun/lib/grammar.c"], :verbose => $verbose
-#   end
-
   desc "Cleans up editor files and other misc crap"
   task :crap do
     files = (Dir["*~"] + Dir["**/*~"]).uniq
