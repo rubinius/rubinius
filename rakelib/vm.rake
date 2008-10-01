@@ -310,7 +310,7 @@ namespace :vm do
   desc "Clean up vm build files"
   task :clean do
     files = [
-      objs, dep_file, TYPE_GEN, INSN_GEN,
+      objs, vm_objs, dep_file, TYPE_GEN, INSN_GEN,
       'vm/gen',
       'vm/test/runner',
       'vm/test/runner.cpp',
