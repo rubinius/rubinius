@@ -8,13 +8,6 @@
 #include <iostream>
 
 namespace rubinius {
-  OBJECT Tuple::at(size_t index) {
-    if(num_fields() <= index) {
-      ObjectBoundsExceeded::raise(this, index);
-    }
-    return field[index];
-  }
-
   /* The Tuple#at primitive. */
   OBJECT Tuple::at_prim(STATE, FIXNUM index_obj) {
     size_t index = index_obj->to_native();

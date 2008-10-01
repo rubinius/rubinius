@@ -50,21 +50,30 @@ namespace rubinius {
     this->total(state, Fixnum::from(0));
   }
 
+  // NOTE: We don't use Primitives::failure() here because the wrapper
+  // code makes sure we're only called when the arity and type are correct.
+  // Thus we know that this is a simple a[0] case only, which we can
+  // fully handle.
   OBJECT Array::aref(STATE, Fixnum* idx) {
     native_int index = idx->to_native();
+    const native_int total = total_->to_native();
 
-    if(index < 0 || index >= total_->to_native()) {
-      PrimitiveFailed::raise();
-    }
+    // Handle negative indexes
+    if(index < 0) index += total;
 
-    return this->get(state, index);
+    // Off the end, return nil
+    if(index >= total) return Qnil;
+
+    const native_int start = start_->to_native();
+
+    return tuple_->at(index + start);
   }
 
   OBJECT Array::aset(STATE, Fixnum* idx, OBJECT val) {
     native_int index = idx->to_native();
 
     if(index < 0) {
-      PrimitiveFailed::raise();
+      return Primitives::failure();
     }
 
     return this->set(state, index, val);
@@ -90,13 +99,13 @@ namespace rubinius {
     idx += start_->to_native();
 
     if(idx >= cur) {
-      size_t new_size = (cur == 0) ? 1 : cur;
-
-      /* geometric expansion to fit idx in */
-      while (new_size <= idx) {
-        new_size *= 2;
+      // Uses the same algo as 1.8 to resize the tuple
+      size_t new_size = cur / 2;
+      if(new_size < 3) {
+        new_size = 3;
       }
 
+      new_size += idx;
       Tuple* nt = Tuple::create(state, new_size);
       for(size_t i = 0; i < cur; i++) {
         nt->put(state, i, tup->at(i));

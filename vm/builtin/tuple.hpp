@@ -19,8 +19,6 @@ namespace rubinius {
     // Ruby.primitive :tuple_allocate
     static Tuple* allocate(STATE, FIXNUM fields);
 
-    OBJECT at(size_t index);
-
     // Ruby.primitive :tuple_at
     OBJECT at_prim(STATE, FIXNUM pos);
 
@@ -46,6 +44,15 @@ namespace rubinius {
 
     void replace_with(STATE, Tuple* other, int start, int end);
 
+  public: // Inline Functions
+    OBJECT at(size_t index) {
+      if(num_fields() <= index) {
+        ObjectBoundsExceeded::raise(this, index);
+      }
+      return field[index];
+    }
+
+  public: // Rubinius Type stuff
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
