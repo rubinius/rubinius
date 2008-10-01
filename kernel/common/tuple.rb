@@ -47,10 +47,11 @@ class Tuple
 
   def inspect
     str = "#<Tuple"
-    if fields != 0
-      str << ": #{join(", ", :inspect)}"
+    if fields == 0
+      str << " empty>"
+    else
+      str << ": #{join(", ", :inspect)}>"
     end
-    str << ">"
     return str
   end
 
