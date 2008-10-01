@@ -108,17 +108,16 @@ if LLVM_STYLE == "Release"
 end
 
 INCLUDES    = (EX_INC + %w[vm/test/cxxtest vm .]).map { |f| "-I#{f}" }
-if ENV["DEV"]
-  FLAGS       = %w(-Wall -Werror -ggdb3 -gdwarf-2 -O0 -fno-inline-functions -Wno-deprecated)
-else
-  FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated)
-end
-CC          = ENV['CC'] || "gcc"
+FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated)
 
-if ENV['FAST']
+unless ENV["DEV"]
   FLAGS << "-O3"
   FLAGS << "-finline-functions"
 end
+
+p FLAGS
+
+CC          = ENV['CC'] || "gcc"
 
 def compile(obj, src)
   unless defined? $llvm_c then
