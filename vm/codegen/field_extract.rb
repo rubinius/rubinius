@@ -9,7 +9,10 @@ class BasicPrimitive
     return str if @raw
     str << "  OBJECT ret;\n"
     str << "  OBJECT self;\n" if @pass_self
-    str << "  if(msg.args() != #{args}) goto fail;" if args
+    if args then
+      str << "  if(msg.args() != #{args})\n"
+      str << "    goto fail;\n\n"
+    end
     str << "  try {\n"
   end
 
@@ -19,7 +22,8 @@ class BasicPrimitive
     arg_types.each do |t|
       i += 1
       str << "    #{t}* a#{i};\n"
-      str << "    if((a#{i} = try_as<#{t}>(msg.get_argument(#{i}))) == NULL) goto fail;\n"
+      str << "    if((a#{i} = try_as<#{t}>(msg.get_argument(#{i}))) == NULL)\n"
+      str << "      goto fail;\n\n"
       args << "a#{i}"
     end
     args.unshift "self" if @pass_self
@@ -32,10 +36,11 @@ class BasicPrimitive
     str << "    ret = #{call}(#{args.join(', ')});\n"
     str << "  } catch(PrimitiveFailed& e) {\n"
     str << "    goto fail;\n"
-    str << "  }\n"
-    str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed)) goto fail;"
+    str << "  }\n\n"
+    str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))\n"
+    str << "    goto fail;\n\n"
     str << "  task->primitive_return(ret, msg);\n"
-    str << "  return false;\n"
+    str << "  return false;\n\n"
     str << "fail:\n"
     str << "  return VMMethod::execute(state, exec, task, msg);\n"
     str << "}\n\n"
@@ -63,7 +68,8 @@ class CPPPrimitive < BasicPrimitive
     output_header str, arg_count
 
     str << "    #{@type}* recv;\n"
-    str << "    if((recv = try_as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
+    str << "    if((recv = try_as<#{@type}>(msg.recv)) == NULL)\n"
+    str << "      goto fail;\n"
 
     # Raw primitives must return bool, not Object*
     if @raw
@@ -116,7 +122,9 @@ class CPPOverloadedPrimitive < BasicPrimitive
     output_header str, 1
 
     str << "    #{@type}* recv;\n"
-    str << "    if((recv = as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
+    str << "    if((recv = as<#{@type}>(msg.recv)) == NULL)\n"
+    str << "      goto fail;\n\n"
+
     @kinds.each do |prim|
       type = prim.arg_types.first
       str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
@@ -125,16 +133,18 @@ class CPPOverloadedPrimitive < BasicPrimitive
       else
         str << "      ret = recv->#{@cpp_name}(arg);\n"
       end
-      str << "    } else\n"
+      str << "    } else "
     end
+
     str << "      goto fail;\n"
 
     str << "  } catch(PrimitiveFailed& e) {\n"
     str << "    goto fail;\n"
-    str << "  }\n"
-    str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed)) goto fail;"
+    str << "  }\n\n"
+    str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))\n"
+    str << "    goto fail;\n\n"
     str << "  task->primitive_return(ret, msg);\n"
-    str << "  return false;\n"
+    str << "  return false;\n\n"
     str << "fail:\n"
     str << "  return VMMethod::execute(state, exec, task, msg);\n"
     str << "}\n\n"
