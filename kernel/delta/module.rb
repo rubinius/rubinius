@@ -18,10 +18,6 @@ class Module
     new_name = normalize_name(new_name)
     current_name = normalize_name(current_name)
     meth = find_method_in_hierarchy(current_name)
-    if current_name == :e2mm_message or current_name == :Raise
-      p self.metaclass.method_table
-      p self.method_table
-    end
     if meth
       method_table[new_name] = meth
       Rubinius::VM.reset_method_cache(new_name)
