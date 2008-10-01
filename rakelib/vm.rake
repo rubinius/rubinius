@@ -115,8 +115,6 @@ unless ENV["DEV"]
   FLAGS << "-finline-functions"
 end
 
-p FLAGS
-
 CC          = ENV['CC'] || "gcc"
 
 def compile(obj, src)
