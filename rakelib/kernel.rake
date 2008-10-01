@@ -126,7 +126,7 @@ rule ".rbc" do |t|
   compile_ruby src, rbc
 end
 
-compiler_sources = Dir["lib/compiler/*.rb"]
+compiler_sources = Dir["lib/compiler/*.rb"] + %w(lib/strscan.rb lib/stringio.rb lib/racc/parser.rb)
 compiler = []
 
 compiler_sources.each do |rb|
