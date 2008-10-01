@@ -10,7 +10,7 @@ class DelegatedMethod < Executable
     @pass_self = pass_self
   end
 
-  def call(called_methed, called_object, *args, &block)
+  def call(called_object, called_method, *args, &block)
     args.unshift called_object if @pass_self
     @receiver.__send__(@method, *args, &block)
   end
