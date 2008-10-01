@@ -165,7 +165,7 @@ namespace rubinius {
     } else {
       // avoid compiler warning
       double zero = 0.0;
-      double val;
+      double val = 0.0;
 
       if(!strncasecmp(data, "Infinity", 8U)) {
         val = 1.0;
