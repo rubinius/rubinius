@@ -7,13 +7,20 @@
 
 #include <stdexcept>
 
-
 namespace rubinius {
 
   class Primitives;
 
+  enum PrimitiveRuntimeCode {
+    kPrimitiveFailed = 0
+  };
+
   class Primitives {
   public:
+    static OBJECT failure() {
+      return reinterpret_cast<OBJECT>(kPrimitiveFailed);
+    }
+
     /*
      * The primitive generator emits one 'executor' function per
      * primitive. This simply checks the argument types and then
