@@ -117,7 +117,7 @@ end
 
 CC          = ENV['CC'] || "gcc"
 
-def compile(obj, src)
+def compile_c(obj, src)
   unless defined? $llvm_c then
     $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
     $llvm_c.delete_if { |e| e.index("-O") == 0 }
@@ -165,7 +165,7 @@ rule '.o' do |t|
   obj   = t.name
   src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.o'}\.c(pp)?$/}
 
-  compile obj, src
+  compile_c obj, src
 end
 
 def files targets, dependencies = nil, &block
@@ -249,7 +249,7 @@ file 'vm/compile' => EXTERNALS + objs + %w[vm/drivers/compile.o] do |t|
 end
 
 rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
-  compile 'vm/instructions.o', path
+  compile_c 'vm/instructions.o', path
 end
 
 rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp', *hdrs do |path|
