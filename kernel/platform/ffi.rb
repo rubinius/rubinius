@@ -539,7 +539,7 @@ class FFI::Struct
 
       code = FFI.find_type(f)
       cspec[name] = [offset, code]
-      ending = offset + FFI.type_size(f)
+      ending = offset + FFI.type_size(code)
       @size = ending if @size < ending
 
       i += 3
