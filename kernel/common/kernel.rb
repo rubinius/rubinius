@@ -102,6 +102,21 @@ module Kernel
   end
   private :FloatValue
 
+  alias_method :primitive_dup, :dup
+
+  def dup
+    copy = primitive_dup
+    copy.send :initialize_copy, self
+    copy
+  end
+
+  def initialize_copy(source)
+    unless source.class == self.class then
+      raise TypeError, "initialize_copy should take same class object"
+    end
+  end
+  private :initialize_copy
+
   ##
   #--
   # HACK todo handle cascading raises (ie, TypeError raise
@@ -349,11 +364,6 @@ module Kernel
     Signal.trap(sig, prc, &block)
   end
   module_function :trap
-
-  def initialize_copy(other)
-    return self
-  end
-  private :initialize_copy
 
   alias_method :__id__, :object_id
 
