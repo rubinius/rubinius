@@ -512,7 +512,7 @@ module FFI
 
   def self.type_size(type)
     Ruby.primitive :nativefunction_type_size
-    raise PrimitiveFailure, "Unable to find type size"
+    raise PrimitiveFailure, "Unable to find type size for #{type}"
   end
 
 end
