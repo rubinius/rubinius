@@ -391,6 +391,9 @@ class Compiler
 
       # Args could be an array, splat or argscat
       def collapse_args
+        # HACK handle eval wanting to inject locals
+        @local_rewrite = nil
+
         @in_block = get(:iter)
 
         return unless @arguments
@@ -407,6 +410,23 @@ class Compiler
         @object, @method, @arguments = object, meth, args
 
         collapse_args()
+
+        # HACK handle eval wanting to inject locals
+        if !object and get(:eval)
+          scope = get(:scope)
+
+          if get(:iter)
+            var, dep = scope.find_local meth, true, false
+          else
+            var, dep = scope.find_local meth, false, false
+          end
+
+          if var
+            @local_rewrite = LocalAccess.new(@compiler)
+            @local_rewrite.from_variable(var, dep)
+          end
+
+        end
       end
 
       attr_accessor :object, :method, :arguments

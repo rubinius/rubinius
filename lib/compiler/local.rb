@@ -44,26 +44,24 @@ class Compiler
     end
 
     def encoded_order
-      return # HACK disable for now, not needed
+       # figure out the size
+       size = 0
+       @names.each do |name|
+         size += 1 unless @locals[name].on_stack?
+       end
 
-#       # figure out the size
-#       size = 0
-#       @names.each do |name|
-#         size += 1 unless @locals[name].on_stack?
-#       end
+       return nil if size == 0
 
-#       return nil if size == 0
+       tup = Tuple.new(size)
 
-#       tup = Tuple.new(size)
+       @names.each do |name|
+         var = @locals[name]
+         unless var.on_stack?
+           tup[var.slot] = name
+         end
+       end
 
-#       @names.each do |name|
-#         var = @locals[name]
-#         unless var.on_stack?
-#           tup[var.slot] = name
-#         end
-#       end
-
-#       return tup
+       return tup
     end
 
     attr_reader :locals

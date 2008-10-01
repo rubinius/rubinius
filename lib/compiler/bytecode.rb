@@ -344,6 +344,12 @@ class Compiler
       def bytecode(g)
         g.set_line @line, @file
 
+        # HACK deal with locals being inject for eval
+        if @local_rewrite
+          @local_rewrite.bytecode(g)
+          return
+        end
+
         return if use_plugin(g, :call)
 
         receiver_bytecode(g)
