@@ -258,6 +258,8 @@ namespace rubinius {
     } else {
       G(rubinius)->set_const(state, "L64", Qtrue);
     }
+
+    G(rubinius)->set_const(state, "WORDSIZE", Fixnum::from(sizeof(void*) * 8));
   }
 
   void VM::bootstrap_symbol() {
