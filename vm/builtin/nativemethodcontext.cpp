@@ -99,5 +99,16 @@ namespace rubinius {
     my_handles->push_back(object);
     return (my_handles->size() - 1);
   }
+
+
+/* Info stuff */
+
+  void NativeMethodContext::Info::cleanup(Object* object)
+  {
+    NativeMethodContext* context = as<NativeMethodContext>(object);
+
+    delete [] static_cast<char*>(context->my_stack);
+    context->my_stack = NULL;
+  }
 }
 

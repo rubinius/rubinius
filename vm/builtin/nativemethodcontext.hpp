@@ -155,7 +155,7 @@ namespace rubinius {
     class Info : public MethodContext::Info
     {
     public:
-      BASIC_TYPEINFO(MethodContext::Info)
+      BASIC_TYPEINFO_WITH_CLEANUP(MethodContext::Info)
     };
 
   };    /* NativeMethodContext */
