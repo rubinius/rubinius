@@ -7,6 +7,7 @@
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
+#include "builtin/memorypointer.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
@@ -108,7 +109,7 @@ namespace rubinius {
         nmethod->method_name(state, method_name);
         nmethod->module(state, module);
 
-        nmethod->my_functor = reinterpret_cast<GenericFunctor>(functor);
+        nmethod->functor(state, MemoryPointer::create(state, reinterpret_cast<void*>(functor)));
 
         nmethod->set_executor(&NativeMethod::executor_implementation);
         nmethod->primitive(state, state->symbol("nativemethod_call"));
@@ -130,6 +131,8 @@ namespace rubinius {
     attr_accessor(method_name, Symbol);
     /** Module on which created. */
     attr_accessor(module, Module);
+    /** Function object that implements this method. */
+    attr_accessor(functor, MemoryPointer);
 
 
   public:   /* Interface */
@@ -189,12 +192,11 @@ namespace rubinius {
      */
     static void perform_call();
 
-
     /** Return the functor cast into the specified type. */
     template <typename FunctorType>
       FunctorType functor_as() const
       {
-        return reinterpret_cast<FunctorType>(my_functor);
+        return reinterpret_cast<FunctorType>(functor_->pointer);
       }
 
 
@@ -208,12 +210,8 @@ namespace rubinius {
     Symbol* method_name_;                             // slot
     /** Module on which created. */
     Module* module_;                                  // slot
-
-
-  private:  /* Instance variables */
-
     /** Function object that implements this method. */
-    GenericFunctor my_functor;
+    MemoryPointer* functor_;                          // slot
 
 
   public:   /* Type information */
