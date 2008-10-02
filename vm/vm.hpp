@@ -116,6 +116,8 @@ namespace rubinius {
     TypeInfo* find_type(int type);
 
     void init_ffi();
+    void init_native_libraries();
+
     Thread* current_thread();
     void collect();
 
