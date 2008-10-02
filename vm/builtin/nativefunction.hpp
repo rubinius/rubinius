@@ -27,8 +27,6 @@ namespace rubinius {
 
     /* interface */
 
-    static void* find_symbol(STATE, OBJECT library, String* name);
-
     static size_t type_size(size_t type);
 
     // Ruby.primitive :nativefunction_type_size

@@ -29,35 +29,10 @@
 #include "strlcpy.hpp"
 #include "strlcat.hpp"
 
-#ifdef _WIN32
-#define LIBSUFFIX ".dll"
-#else
-#ifdef __APPLE_CC__
-#define LIBSUFFIX ".bundle"
-#define LIBSUFFIX2 ".dylib"
-#else
-#define LIBSUFFIX ".so"
-#endif
-#endif
-
-#include "ltdl.h"
-
-#ifdef CONFIG_USE_LTDL
-#define dlhandle lt_dlhandle
-#define xdlopen(name) lt_dlopen(name)
-#define xdlsym lt_dlsym
-#define xdlsym2(name) lt_dlsym(NULL, name)
-#define xdlerror lt_dlerror
-#else
-#define dlhandle void*
-#define xdlopen(name) dlopen(name, RTLD_NOW | RTLD_GLOBAL)
-#define xdlsym dlsym
-#define xdlsym2(name) dlsym(RTLD_DEFAULT, name)
-#define xdlerror dlerror
-#endif
-
 
 #include "vm/builtin/nativefunction.hpp"
+
+#include "native_libraries.hpp"
 
 namespace rubinius {
 
@@ -65,8 +40,6 @@ namespace rubinius {
     GO(native_function).set(state->new_class("NativeFunction", G(executable),
           NativeFunction::fields));
     G(native_function)->set_object_type(state, NativeFunctionType);
-
-    G(rubinius)->set_const(state, "LIBSUFFIX", String::create(state, LIBSUFFIX));
   }
 
   /* Run when a NativeFunction is executed.  Executes the related C function.
@@ -126,47 +99,6 @@ namespace rubinius {
 
   FIXNUM NativeFunction::type_size_prim(STATE, FIXNUM type) {
     return Fixnum::from(NativeFunction::type_size(type->to_native()));
-  }
-
-  void* NativeFunction::find_symbol(STATE, OBJECT opath, String* name) {
-    dlhandle lib;
-    void *ep;
-    char sys_name[128];
-
-    if(opath->nil_p()) {
-      lib = xdlopen(NULL);
-      if(!lib) return NULL;
-    } else {
-      String* path = as<String>(opath);
-
-      /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
-         or whatever the library suffix is. */
-      memset(sys_name, 0, 128);
-      strlcpy(sys_name, path->byte_address(), sizeof(sys_name));
-      strlcat(sys_name, LIBSUFFIX, sizeof(sys_name));
-
-      /* Open it up. If this fails, then we just pretend like
-         the library isn't there. */
-      lib = xdlopen(sys_name);
-      if(!lib) {
-#ifdef LIBSUFFIX2
-        memset(sys_name, 0, 128);
-        strlcpy(sys_name, path->byte_address(), sizeof(sys_name));
-        strlcat(sys_name, LIBSUFFIX2, sizeof(sys_name));
-
-        lib = xdlopen(sys_name);
-        if(!lib) return NULL;
-#else
-          return NULL;
-#endif
-      }
-    }
-
-    ep = xdlsym(lib, name->byte_address());
-    if(!ep) {
-      ep = xdlsym2(name->byte_address());
-    }
-    return ep;
   }
 
   NativeFunction* NativeFunction::create(STATE, OBJECT name, int args) {
@@ -318,7 +250,8 @@ namespace rubinius {
     int i, tot, arg_count;
     OBJECT type; /* meths; */
 
-    ep = NativeFunction::find_symbol(state, library, name);
+    ep = NativeLibrary::find_symbol(name, library);
+
     if(!ep) return (NativeFunction*)Qnil;
 
     tot = args->size();
