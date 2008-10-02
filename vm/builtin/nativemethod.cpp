@@ -1,10 +1,14 @@
 #include "vm.hpp"
 
+#include "native_libraries.hpp"
+#include "primitives.hpp"
 #include "quantum_stack_leap.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/string.hpp"
 #include "builtin/task.hpp"
+#include "builtin/tuple.hpp"
 
 
 namespace rubinius {
@@ -27,17 +31,16 @@ namespace rubinius {
     return create<GenericFunctor>(state);
   }
 
-  /**
-   *  TODO: Context activation/reactivation needs to be redone.
-   */
-  bool NativeMethod::executor_implementation(VM* state, Executable* method, Task* task, Message& message)
+  bool NativeMethod::activate_from(NativeMethodContext* context)
   {
-    NativeMethodContext* context = NativeMethodContext::create(state, &message, task, as<NativeMethod>(method));
+    NativeMethodContext::current_context_is(context);
 
     store_current_execution_point_in(context->dispatch_point());
-    /* This is where control returns from calls */
 
-    if (  NativeMethodContext::ORIGINAL_CALL == context->action()  ) {
+    /* This is where control returns from jumps. Regrab context. */
+    context = NativeMethodContext::current();
+
+    if (  NativeMethodContext::ORIGINAL_CALL == context->action() ) {
       /* Actual dispatch must run in the new stack */
       create_execution_point_with_stack(context->c_call_point(), context->stack(), context->stacksize());
       set_function_to_run_in(context->c_call_point(), NativeMethod::perform_call);
@@ -48,18 +51,22 @@ namespace rubinius {
     switch (context->action()) {
       case NativeMethodContext::CALL_FROM_C:
 
-        task->send_message_slowly(context->message_from_c());
-
-        /* CompiledMethods are only loaded, not executed, so a
-         * different active context here means the call is "pending."
-         * So, we return from here which then allows the CM to really
-         * execute. Execution returns here when we are reactivated.
+        /*  CompiledMethods are only loaded, not executed, so a
+         *  So, we return from here which then allows the CM to really
+         *  execute.
+         *
+         *  The other types should already have invoked Task::simple_return()
+         *  which completes through resume() and CMs will get there later.
          */
-        if (task->active() != context) break;
+        context->my_task->send_message_slowly(context->message_from_c());
+        return true;
 
-        context->action(NativeMethodContext::RETURNED_BACK_TO_C);
-
+      case NativeMethodContext::RETURNED_BACK_TO_C:
         jump_to_execution_point_in(context->inside_c_method_point());
+        break;  /* Never reached */
+
+      case NativeMethodContext::RETURN_FROM_C:
+        context->my_task->native_return(context->return_value());
         break;
 
       default:
@@ -67,6 +74,37 @@ namespace rubinius {
     }
 
     return true;
+  }
+
+  bool NativeMethod::executor_implementation(VM* state, Executable* method, Task* task, Message& message)
+  {
+    NativeMethodContext* context = NativeMethodContext::create(state, &message, task, as<NativeMethod>(method));
+
+    task->literals(state, reinterpret_cast<Tuple*>(Qnil));
+    task->home(state, context->home());
+    task->self(state, context->self());
+    task->active(state, context);
+
+    return activate_from(context);
+  }
+
+  NativeMethod* NativeMethod::load_extension_entry_point(STATE, String* path, String* name)
+  {
+    void* func = NativeLibrary::find_symbol(name, path);
+
+    if (func == NULL) {
+      /* TODO: Pass error message up */
+      PrimitiveFailed::raise();
+    }
+
+    NativeMethod* m = NativeMethod::create(state,
+                                path,
+                                state->globals.rubinius.get(),
+                                name->to_sym(state),
+                                reinterpret_cast<GenericFunctor>(func),
+                                Fixnum::from(INIT_FUNCTION)
+                               );
+    return m;
   }
 
   /**
@@ -78,6 +116,9 @@ namespace rubinius {
    *    Arity -2:   VALUE func(VALUE receiver, VALUE argument_array);
    *    Arity -1:   VALUE func(int argument_count, VALUE*, VALUE receiver);
    *    Otherwise:  VALUE func(VALUE receiver, VALUE arg1[, VALUE arg2, ...]);
+   *
+   *  There is also a special-case arity, INIT_FUNCTION, which corresponds
+   *  to void (*)(void) and should never appear in user code.
    *
    *  @note   Currently supports functions with up to receiver + 5 (separate) arguments only!
    *          Anything beyond that should use one of the special arities instead.
@@ -108,6 +149,7 @@ namespace rubinius {
 
         Handle ret_handle = context->method()->functor_as<TwoArgFunctor>()(receiver, args);
 
+        context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
         break;
       }
@@ -122,6 +164,7 @@ namespace rubinius {
 
         Handle ret_handle = context->method()->functor_as<ArgcFunctor>()(message->total_args, args, receiver);
 
+        context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
         break;
       }
@@ -138,6 +181,7 @@ namespace rubinius {
 
         Handle ret_handle = functor(receiver);
 
+        context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
         break;
       }
@@ -148,6 +192,7 @@ namespace rubinius {
         Handle ret_handle = functor(receiver,
                                     context->handle_for(message->arguments->get(context->state(), 0)));
 
+        context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
         break;
       }
@@ -160,6 +205,7 @@ namespace rubinius {
                                     context->handle_for(message->arguments->get(context->state(), 1))
                                    );
 
+        context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
         break;
       }
@@ -173,6 +219,7 @@ namespace rubinius {
                                     context->handle_for(message->arguments->get(context->state(), 2))
                                    );
 
+        context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
         break;
       }
@@ -187,6 +234,7 @@ namespace rubinius {
                                     context->handle_for(message->arguments->get(context->state(), 3))
                                    );
 
+        context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
         break;
       }
@@ -202,7 +250,19 @@ namespace rubinius {
                                     context->handle_for(message->arguments->get(context->state(), 4))
                                    );
 
+        context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
+        break;
+      }
+
+      /* Extension entry point, should never occur for user code. */
+      case INIT_FUNCTION: {
+        InitFunctor functor = context->method()->functor_as<InitFunctor>();
+
+        functor();
+
+        context = NativeMethodContext::current();
+        context->return_value(Qnil);
         break;
       }
 

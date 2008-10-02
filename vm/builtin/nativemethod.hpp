@@ -28,6 +28,7 @@ namespace rubinius {
    *  in addition to the receiver instead.
    */
   enum Arity {
+    INIT_FUNCTION = -99,
     ARGS_IN_RUBY_ARRAY = -3,
     RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY = -2,
     ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER = -1
@@ -40,6 +41,8 @@ namespace rubinius {
   typedef     void (*GenericFunctor)(void);
 
   /* Actual functor types. */
+
+  typedef void   (*InitFunctor)     (void);   /**< The Init_<name> function. */
 
   typedef Handle (*ArgcFunctor)     (int, Handle*, Handle);
   typedef Handle (*OneArgFunctor)   (Handle);
@@ -134,16 +137,44 @@ namespace rubinius {
     /**
      *  Handle C method call including its callstack.
      *
-     *  Executor implementation.
-     *
      *  In addition to setting up the NativeMethodContext for the call
      *  and the call itself (arguments, return value and all), we also
      *  handle setting up further calls from the method to other Ruby
      *  or C methods.
      *
+     *  This method may be invoked by executor_implementation() or as
+     *  a part of a return from a child context.
+     *
+     *  Sets the given context as the current.
+     *
      *  @note   Shamelessly tramples over the standard VMExecutable@execute.
      */
+    static bool activate_from(NativeMethodContext* context);
+
+    /**
+     *  Enter a new NativeMethod the first time.
+     */
     static bool executor_implementation(VM* state, Executable* method, Task* task, Message& message);
+
+    /**
+     *  Attempt to load a C extension library and its main function.
+     *
+     *  The path should be the full path (relative or absolute) to the
+     *  library, without the file extension. The name should be the
+     *  entry point name, i.e. "Init_<extension>", where extension is
+     *  the basename of the library. The function signature is:
+     *
+     *    void Init_<name>();
+     *
+     *  A NativeMethod for the function is returned, and can be executed
+     *  to actually perform the loading.
+     *
+     *  Of possibly minor interest, the method's module is set to
+     *  Rubinius. It should be updated accordingly when properly
+     *  entered.
+     */
+    // Ruby.primitive :nativemethod_load_extension_entry_point
+    static NativeMethod* load_extension_entry_point(STATE, String* path, String* name);
 
     /**
      *  Call the C function.
