@@ -93,7 +93,7 @@ module Compile
 
     # ./ ../ ~/ /
     if path =~ %r{\A(?:(\.\.?)|(~))?/}
-      if $2    # ~ 
+      if $2    # ~
         rb.slice! '~/' if rb
         rbc.slice! '~/' if rbc
         ext.slice! '~/' if ext
@@ -275,9 +275,9 @@ module Compile
 
     if ext
       return false if requiring and $LOADED_FEATURES.include? ext
-      
+
       ext_path = "#{dir}#{ext}"
-      ext_name = File.basename ext, ".#{Rubinius::LIBSUFFIX}"
+      ext_name = File.basename ext, "#{Rubinius::LIBSUFFIX}"
 
       if File.file? ext_path
         case NativeMethod.load_extension(ext_path, ext_name)
@@ -299,12 +299,12 @@ module Compile
   def self.load_from_extension(path)
     path = StringValue(path)
     # Remap all library extensions behind the scenes, just like MRI
-    path.gsub!(/\.(so|bundle|dll|dylib)$/, ".#{Rubinius::LIBSUFFIX}")
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, "#{Rubinius::LIBSUFFIX}")
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
       rb, rbc, ext = path, "#{path}c", nil
-    elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
+    elsif path.suffix? "#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
     else
       dir, name = File.split(path)
@@ -374,7 +374,7 @@ module Kernel
   def load(path, opts = {:wrap => false, :recompile => false})
     path = StringValue(path)
     # Remap all library extensions behind the scenes, just like MRI
-    path.gsub!(/\.(so|bundle|dll|dylib)$/, ".#{Rubinius::LIBSUFFIX}")
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, "#{Rubinius::LIBSUFFIX}")
     
     opts = {:wrap => !!opts, :recompile => false} unless Hash === opts
 
@@ -382,7 +382,7 @@ module Kernel
       rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
       rb, rbc, ext = path, "#{path}c", nil
-    elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
+    elsif path.suffix? "#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
     else
       dir, name = File.split(path)
@@ -447,16 +447,16 @@ module Kernel
 
   def __split_path__(path)
     # Remap all library extensions behind the scenes, just like MRI
-    path.gsub!(/\.(so|bundle|dll|dylib)$/, ".#{Rubinius::LIBSUFFIX}")
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, "#{Rubinius::LIBSUFFIX}")
 
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
       rb, rbc, ext = path, "#{path}c", nil
-    elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
+    elsif path.suffix? "#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
     else
-      rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
+      rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}#{Rubinius::LIBSUFFIX}"
     end
     return rb,rbc,ext
   end
