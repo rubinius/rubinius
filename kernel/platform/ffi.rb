@@ -179,7 +179,8 @@ module FFI
     vals = { }
     section = "rbx.platform.#{name}."
     Rubinius::RUBY_CONFIG.section section do |key,value|
-      vals[key.substring(section.size - 1, key.length)] = value
+      key.substring(section.size, key.length).__show__
+      vals[key.substring(section.size, key.length)] = value
     end
     vals
   end
