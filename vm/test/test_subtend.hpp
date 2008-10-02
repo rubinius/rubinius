@@ -17,6 +17,23 @@
 #include "builtin/nativemethod.hpp"
 #include "builtin/nativemethodcontext.hpp"
 
+#include "subtend/ruby.h"
+
+/* Re-reset */
+#undef Qfalse
+#undef Qtrue
+#undef Qnil
+#undef Qundef
+
+#define Qfalse ((Object*)6L)
+#define Qtrue  ((Object*)10L)
+#define Qnil   ((Object*)14L)
+#define Qundef ((Object*)18L)
+
+#define Sfalse ((VALUE)6L)
+#define Strue  ((VALUE)10L)
+#define Snil   ((VALUE)14L)
+#define Sundef ((VALUE)18L)
 
 static NativeMethodContext* hidden_context = NULL;
 static Array* hidden_ruby_array = NULL;
@@ -98,6 +115,21 @@ extern "C" {
 
     return hidden_context->handle_for(Fixnum::from(5));
   }
+
+  Handle funcaller2(Handle receiver, Handle array, Handle obj)
+  {
+    hidden_context = NativeMethodContext::current();
+    Symbol* method = hidden_context->state()->symbol("blah");
+
+    Handle args[1];
+
+    args[0] = obj;
+
+    /* Handle ret = */ rb_funcall2(array, reinterpret_cast<ID>(method), 1, args);
+
+    return obj;
+  }
+
 }
 
 
@@ -418,6 +450,51 @@ class TestSubtend : public CxxTest::TestSuite
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
     TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value())->to_int(), arg_count);
+  }
+
+  void test_rb_funcall()
+  {
+    /* No actual Ruby code involved.. */
+    CompiledMethod* target = CompiledMethod::create(my_state);
+    target->iseq(my_state, InstructionSequence::create(my_state, 1));
+    target->iseq()->opcodes()->put(my_state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args(my_state, Fixnum::from(1));
+    target->required_args(my_state, target->total_args());
+    target->stack_size(my_state, Fixnum::from(1));
+
+    Symbol* name = my_state->symbol("blah");
+    my_state->globals.true_class.get()->method_table()->store(my_state, name, target);
+
+    target->formalize(my_state);
+
+    Array* args = Array::create(my_state, 2);
+    Object* obj = my_state->new_object(my_state->globals.object.get());
+
+    args->set(my_state, 0, Qtrue);
+    args->set(my_state, 1, obj);
+
+    Object* receiver = my_state->new_object(my_state->globals.object.get());
+
+    my_message->recv = receiver;
+    my_message->arguments = args;
+    my_message->total_args = 2;
+    my_message->name = my_state->symbol("__subtend_fake_funcall_test_method__");
+
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &funcaller2,
+                                                Fixnum::from(2));
+
+    /* This only loads the cm. */
+    method->execute(my_state, my_task, *my_message);
+
+    my_task->active()->vmm->resume(my_task, my_task->active());
+
+    TS_ASSERT_EQUALS(obj, my_task->active()->top());
+
+    /* TODO: Need some more reasonable tests here? */
   }
 
 };
