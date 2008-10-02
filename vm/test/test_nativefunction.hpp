@@ -47,33 +47,6 @@ class TestNativeFunction : public CxxTest::TestSuite {
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_OBJECT) >= 4);
   }
 
-  void test_find_symbol() {
-    void* ep;
-    String* name1 = String::create(state, "_blah_not_here");
-    String* name2 = String::create(state, "strlen");
-
-    ep = NativeFunction::find_symbol(state, Qnil, name1);
-    TS_ASSERT(!ep);
-
-    ep = NativeFunction::find_symbol(state, Qnil, name2);
-    TS_ASSERT(ep);
-  }
-
-  void test_find_symbol_in_library() {
-    void* ep;
-    String* lib1 = String::create(state, "blah");
-    String* lib2 = String::create(state, "libc");
-    String* name = String::create(state, "strlen");
-
-    ep = NativeFunction::find_symbol(state, lib1, name);
-    TS_ASSERT(!ep);
-
-    // TODO:  This is probably failing on Linux because libc is already loaded
-    //        so dlopen is returning NULL.
-    ep = NativeFunction::find_symbol(state, lib2, name);
-    TS_ASSERT(ep);
-  }
-
   void test_create() {
     NativeFunction* func = NativeFunction::create(state, state->symbol("blah"), 0);
     TS_ASSERT_EQUALS(func->name(), state->symbol("blah"));
