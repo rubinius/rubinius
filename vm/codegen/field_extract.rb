@@ -287,7 +287,12 @@ OBJECT #{@name}::Info::get_field(STATE, OBJECT _t, size_t index) {
   switch(index) {
 #{generate_gets}  }
 
-  throw std::runtime_error(\"Unable to access field\");
+  std::stringstream error;
+  error << "Unable to access field " << index << " in a #{@name} instance";
+
+  Assertion::raise(error.str().c_str());
+
+  return Qnil; // never reached
 }
 
     EOF
