@@ -188,6 +188,7 @@ namespace rubinius {
     SendSite::init(this);
     Selector::init(this);
     init_ffi();
+    init_native_libraries();
     Task::init(this);
     Thread::init(this);
     AccessVariable::init(this);
