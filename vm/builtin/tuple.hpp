@@ -2,6 +2,8 @@
 #define RBX_BUILTIN_TUPLE_HPP
 
 #include "builtin/object.hpp"
+
+#include "vm/exception.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
