@@ -129,12 +129,11 @@ namespace rubinius {
     // to preserve any IncludedModule instances; they will be shared
     // between all duplicates made from this object
     // TODO - Verify this statement
-    dup = state->om->new_object(lookup_begin(state), num_fields());
-    gc_zone zone = dup->zone;
-    dup->all_flags = all_flags;
-    dup->zone = zone;
-
+    dup = state->om->allocate_object(num_fields());
+    dup->initialize_copy(this, age);
     dup->copy_body(this);
+
+    dup->klass(state, lookup_begin(state));
 
     // HACK: If dup is mature, remember it.
     // We could inspect inspect the references we just copied to see

@@ -12,19 +12,25 @@ namespace rubinius {
     field_count = fields;
   }
 
-  void ObjectHeader::initialize_copy(Object* other, unsigned int age) {
+  void ObjectHeader::initialize_copy(Object* other, unsigned int new_age) {
     /* Even though we dup it, we have to be careful to maintain
      * the zone. */
-    gc_zone z         = this->zone;
-    this->all_flags   = other->all_flags;
-    this->zone        = z;
-    assert(z != UnspecifiedZone);
 
-    this->field_count = other->field_count;
-    this->Forwarded   = 0;
-    this->age         = age;
-    this->klass_      = other->klass();
-    this->ivars_      = other->ivars();
+    obj_type     = other->obj_type;
+    age          = new_age;
+    field_count  = other->field_count;
+    klass_       = other->klass_;
+    ivars_       = other->ivars_;
+
+    Forwarded    = 0;
+    ForeverYoung = other->ForeverYoung;
+    StoresBytes  = other->StoresBytes;
+    RequiresCleanup = other->RequiresCleanup;
+    IsBlockContext = other->IsBlockContext;
+    IsMeta       = other->IsMeta;
+    IsTainted    = other->IsTainted;
+    IsFrozen     = other->IsFrozen;
+    RefsAreWeak  = other->RefsAreWeak;
   }
 
   void ObjectHeader::copy_body(Object* other) {
