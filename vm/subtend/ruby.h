@@ -1,7 +1,7 @@
 #ifndef RBX_SUBTEND_RUBY_H
 #define RBX_SUBTEND_RUBY_H
 
-#include <cstddef>
+#include <stddef.h>
 #include <stdint.h>
 
 #define RUBY
@@ -35,10 +35,11 @@
 #define Qnil   ((VALUE)14L)
 #define Qundef ((VALUE)18L)
 
-typedef void (*SubtendGenericFunction)(void);
-
-
+#ifdef __cplusplus
 extern "C" {
+#endif
+
+  typedef void (*SubtendGenericFunction)(void);
 
   /** Call method on receiver, args as varargs. */
   VALUE rb_funcall(VALUE receiver, ID method_name, int arg_count, ...);
@@ -65,7 +66,10 @@ extern "C" {
   /** Generate a NativeMethod to represent a method defined as a C function. Records file. */
   #define rb_define_method(mod, name, fptr, arity) \
           rb_define_method_impl(__FILE__, mod, name, (SubtendGenericFunction)fptr, arity, 0)
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
 

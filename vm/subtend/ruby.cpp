@@ -53,13 +53,17 @@ namespace rubinius {
 
     Array* args = Array::create(context->state(), arg_count);
 
-    //TODO
+    for (std::size_t i = 0; i < arg_count; ++i) {
+      args->set(context->state(), i, context->object_from(arg_array[i]));
+    }
 
     msg.set_arguments(context->state(), args);
 
     context->action(NativeMethodContext::CALL_FROM_C);
     store_current_execution_point_in(context->inside_c_method_point());
     /* Execution resumes here when returning */
+
+    context = NativeMethodContext::current();
 
     if (context->action() != NativeMethodContext::RETURNED_BACK_TO_C) {
       jump_to_execution_point_in(context->dispatch_point());
@@ -69,7 +73,7 @@ namespace rubinius {
 
     VALUE ret = context->value_returned_to_c();
 
-    context->value_returned_to_c(Qnil);
+    context->value_returned_to_c(RBX_Qnil);
     context->message_from_c().reset();
 
     return ret;
