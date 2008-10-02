@@ -14,16 +14,19 @@ module Mini
   class Assertion < Exception; end
   class Skip < Assertion; end
 
-  file = if __FILE__ =~ /^[^\.]/ then # OMG ruby 1.9 is so lame (rubinius too)
+  file = if RUBY_VERSION =~ /^1\.9/ then  # bt's expanded, but __FILE__ isn't :(
+           File.expand_path __FILE__
+         elsif  __FILE__ =~ /^[^\.]/ then # assume both relative
            require 'pathname'
-           pwd = Pathname.new(Dir.pwd)
-           pn = Pathname.new(File.expand_path(__FILE__))
+           pwd = Pathname.new Dir.pwd
+           pn = Pathname.new File.expand_path(__FILE__)
            pn = File.join(".", pn.relative_path_from(pwd)) unless pn.relative?
            pn.to_s
-         else
+         else                             # assume both are expanded
            __FILE__
          end
 
+  # './lib' in project dir, or '/usr/local/blahblah' if installed
   MINI_DIR = File.dirname(File.dirname(file))
 
   def self.filter_backtrace bt
@@ -31,14 +34,12 @@ module Mini
 
     new_bt = []
     bt.each do |line|
-      break if line.index(MINI_DIR) == 0
+      break if line.rindex(MINI_DIR, 0)
       new_bt << line
     end
 
-    new_bt = bt.reject { |line| line.index(MINI_DIR) == 0 } if
-      new_bt.empty?
+    new_bt = bt.reject { |line| line.rindex(MINI_DIR, 0) } if new_bt.empty?
     new_bt = bt.dup if new_bt.empty?
-
     new_bt
   end
 
@@ -100,14 +101,15 @@ module Mini
     end
 
     def assert_instance_of cls, obj, msg = nil
-      msg = message(msg) { "Expected #{mu_pp(obj)} to be an instance of #{cls}" }
+      msg = message(msg) { "Expected #{mu_pp(obj)} to be an instance of #{cls}, not #{obj.class}" }
       flip = (Module === obj) && ! (Module === cls) # HACK for specs
       obj, cls = cls, obj if flip
       assert cls === obj, msg
     end
 
     def assert_kind_of cls, obj, msg = nil # TODO: merge with instance_of
-      msg = message(msg) { "Expected #{mu_pp(obj)} to be a kind of #{cls}" }
+      msg = message(msg) {
+        "Expected #{mu_pp(obj)} to be a kind of #{cls}, not #{obj.class}" }
       flip = (Module === obj) && ! (Module === cls) # HACK for specs
       obj, cls = cls, obj if flip
       assert obj.kind_of?(cls), msg
@@ -115,8 +117,8 @@ module Mini
 
     def assert_match exp, act, msg = nil
       msg = message(msg) { "Expected #{mu_pp(act)} to match #{mu_pp(exp)}" }
-      assert_respond_to act, :=~
-      exp = /#{exp}/ if String === exp && String === act
+      assert_respond_to act, :"=~"
+      (exp = /#{exp}/) if String === exp && String === act
       assert act =~ exp, msg
     end
 
@@ -137,8 +139,7 @@ module Mini
         yield
         should_raise = true
       rescue Exception => e
-        assert_includes exp, e.class
-        exception_details(e, "<#{mu_pp(exp)}> exception expected, not")
+        assert_includes(exp, e.class, exception_details(e, "<#{mu_pp(exp)}> exception expected, not"))
         return e
       end
 
@@ -147,21 +148,27 @@ module Mini
     end
 
     def assert_respond_to obj, meth, msg = nil
-      msg = message(msg) { "Expected #{mu_pp(obj)} to respond to #{meth}" }
+      msg = message(msg) {
+          "Expected #{mu_pp(obj)} (#{obj.class}) to respond to ##{meth}"
+        }
       flip = (Symbol === obj) && ! (Symbol === meth) # HACK for specs
       obj, meth = meth, obj if flip
       assert obj.respond_to?(meth), msg
     end
 
     def assert_same exp, act, msg = nil
-      msg = message(msg) { "Expected #{mu_pp(act)} to be the same as #{mu_pp(exp)}" }
+      msg = message(msg) {
+        data = [mu_pp(act), act.object_id, mu_pp(exp), exp.object_id]
+        "Expected %s (0x%x) to be the same as %s (0x%x)" % data
+      }
       assert exp.equal?(act), msg
     end
 
-    def assert_send send_ary, msg = nil
+    def assert_send send_ary, m = nil
       recv, msg, *args = send_ary
-      msg = message(msg) { "Expected ##{msg} on #{mu_pp(recv)} to return true" }
-      assert recv.__send__(msg, *args), msg
+      m = message(m) {
+        "Expected #{mu_pp(recv)}.#{msg}(*#{mu_pp(args)}) to return true" }
+      assert recv.__send__(msg, *args), m
     end
 
     def assert_throws sym, msg = nil
@@ -305,7 +312,8 @@ module Mini
   class Test
     VERSION = "1.3.0"
 
-    attr_reader :report, :failures, :errors
+    attr_accessor :report, :failures, :errors, :skips
+    attr_accessor :test_count, :assertion_count
 
     @@installed_at_exit ||= false
     @@out = $stdout
@@ -313,7 +321,7 @@ module Mini
     def self.autorun
       at_exit {
         exit_code = Mini::Test.new.run(ARGV)
-        exit exit_code if exit_code
+        exit false if exit_code && exit_code != 0
       } unless @@installed_at_exit
       @@installed_at_exit = true
     end
@@ -354,7 +362,7 @@ module Mini
     ##
     # Top level driver, controls all output and filtering.
 
-    def run args
+    def run args = []
       @verbose = args.delete('-v')
 
       filter = if args.first =~ /^(-n|--name)$/ then
@@ -379,8 +387,8 @@ module Mini
 
       @@out.puts
 
-      format = "%d tests, %d assertions, %d failures, %d errors"
-      @@out.puts format % [@test_count, @assertion_count, failures, errors]
+      format = "%d tests, %d assertions, %d failures, %d errors, %d skips"
+      @@out.puts format % [test_count, assertion_count, failures, errors, skips]
 
       return failures + errors if @test_count > 0 # or return nil...
     end
