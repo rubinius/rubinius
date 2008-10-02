@@ -4,6 +4,8 @@
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
+#include "builtin/nativemethod.hpp"
+#include "builtin/nativemethodcontext.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookuptable.hpp"
@@ -175,7 +177,7 @@ namespace rubinius {
        * Otherwise, generate an empty Array.
        *
        * NOTE: remember that total includes the number of fixed arguments,
-       * even if they're optional, so we can get msg.args() == 0, and 
+       * even if they're optional, so we can get msg.args() == 0, and
        * total == 1 */
       if(msg.args() > total) {
         size_t splat_size = msg.args() - total;
@@ -273,9 +275,56 @@ stack_cleanup:
     restore_context(target);
   }
 
+  /**
+   *  Note that we may end up returning from several NativeMethods
+   *  here.
+   *
+   *  TODO: Reproducing restore_context(). Update both until fixed.
+   */
   void Task::simple_return(OBJECT value) {
-    restore_sender();
-    active_->push(value);
+    NativeMethodContext* nmc = try_as<NativeMethodContext>(active_->sender());
+
+    if (nmc) {
+      literals(state, reinterpret_cast<Tuple*>(Qnil));
+      active(state, nmc);
+      home(state, nmc->home());
+      self(state, home_->self());
+
+      nmc->value_returned_to_c(value);
+      nmc->action(NativeMethodContext::RETURNED_BACK_TO_C);
+
+      NativeMethod::activate_from(nmc);
+    }
+    else {
+      restore_sender();
+      active_->push(value);
+    }
+  }
+
+  /* TODO: Mirrors restore_sender too much, unify. */
+  void Task::native_return(Object* return_value)
+  {
+    if (profiler) {
+      profiler->leave_method();
+    }
+
+    NativeMethodContext* nmc = try_as<NativeMethodContext>(active_->sender());
+
+    if (nmc) {
+      literals(state, reinterpret_cast<Tuple*>(Qnil));
+      active(state, nmc);
+      home(state, nmc->home());
+      self(state, home_->self());
+
+      nmc->value_returned_to_c(return_value);
+      nmc->action(NativeMethodContext::RETURNED_BACK_TO_C);
+
+      NativeMethod::activate_from(nmc);
+    }
+    else {
+      restore_context(active_->sender());
+      active_->push(return_value);
+    }
   }
 
   /* Called after a primitive has executed and wants to return a value. */
@@ -660,6 +709,7 @@ stack_cleanup:
     profiler = NULL;
   }
 
+  /* This should only ever run for CompiledMethods currently. */
   void Task::execute() {
     if(active_->nil_p()) return;
 
