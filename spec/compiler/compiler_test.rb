@@ -197,6 +197,85 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("begin_rescue_ensure",
             "Compiler" => bytecode do |g|
+              # TODO: refactor in_rescue to work with this... I think I have the
+              # pattern down now
+
+              jump_top        = g.new_label
+              jump_bottom     = g.new_label
+              label_1         = g.new_label
+              jump_ex1        = g.new_label
+              jump_ex1_body   = g.new_label
+              jump_unhandled  = g.new_label
+              jump_else       = g.new_label
+              jump_handled    = g.new_label
+              jump_ensure_bad = g.new_label
+
+              jump_top.set!
+
+              g.push_modifiers
+
+              label_1.set!
+              label_1.set! # FIX
+
+              g.push :self
+              g.send :a, 0, true
+
+              # TODO: g.goto_if_exception jump_ex1
+
+              g.goto jump_else
+
+              ############################################################
+              # 1st exception
+
+              jump_ex1.set! # TODO: magic jump! generate REAL bytecode!!
+
+              g.push_const :StandardError
+              g.push_exception
+              g.send :===, 1
+              g.git jump_ex1_body
+              g.goto jump_unhandled
+
+              jump_ex1_body.set!
+
+              g.push :nil
+              g.clear_exception
+              g.goto jump_handled
+
+              ############################################################
+              # unhandled exception
+
+              jump_unhandled.set!
+
+              g.push_exception
+              g.raise_exc
+
+              ############################################################
+              # else
+
+              jump_else.set!
+
+              ############################################################
+              # handled exceptions (ensure in this case)
+
+              jump_handled.set!
+
+              g.pop_modifiers
+              g.goto jump_bottom
+
+              jump_ensure_bad.set! # TODO: magic jump! generate REAL bytecode!!
+
+              g.push :nil
+              g.pop
+              g.push_exception
+              g.raise_exc
+
+              jump_bottom.set!
+              g.push :nil
+              g.pop
+            end)
+
+  add_tests("begin_rescue_ensure_all_empty",
+            "Compiler" => bytecode do |g|
               top    = g.new_label
               dunno  = g.new_label
               bottom = g.new_label
@@ -224,14 +303,131 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("begin_rescue_twice",
             "Compiler" => bytecode do |g|
-              g.push_modifiers
-              g.push :nil
-              g.pop_modifiers
+              jump_top        = g.new_label
+              jump_bottom     = g.new_label
+              label_1         = g.new_label
+              jump_ex1        = g.new_label
+              jump_ex1_body   = g.new_label
+              jump_unhandled  = g.new_label
+              jump_else       = g.new_label
+              jump_handled    = g.new_label
+              jump_ensure_bad = g.new_label
 
+
+              g.push_modifiers
+              jump_top.set!
+
+              label_1.set! # TODO: rename
+
+              g.push :self
+              g.send :a, 0, true
+
+              # TODO: g.goto_if_exception jump_ex1
+
+              g.goto jump_else
+
+              ############################################################
+              # 1st exception
+
+              jump_ex1.set! # TODO: magic jump! generate REAL bytecode!!
+
+              g.push_const :StandardError
+              g.push_exception
+              g.send :===, 1
+              g.git jump_ex1_body
+              g.goto jump_unhandled
+
+              jump_ex1_body.set!
+
+              g.push_exception
+              g.set_local 0
+
+              g.push :nil
+              g.clear_exception
+              g.goto jump_handled
+
+              ############################################################
+              # unhandled exception
+
+              jump_unhandled.set!
+
+              g.push_exception
+              g.raise_exc
+
+              ############################################################
+              # else
+
+              jump_else.set!
+
+              ############################################################
+              # handled exceptions (ensure in this case)
+
+              jump_handled.set!
+
+              g.pop_modifiers
               g.pop
 
+############################################################
+############################################################
+
+              jump_bottom     = g.new_label
+              label_1         = g.new_label
+              jump_ex1        = g.new_label
+              jump_ex1_body   = g.new_label
+              jump_unhandled  = g.new_label
+              jump_else       = g.new_label
+              jump_handled    = g.new_label
+              jump_ensure_bad = g.new_label
+
               g.push_modifiers
+
+              label_1.set!
+              label_1.set! # FIX
+
+              g.push :self
+              g.send :b, 0, true
+
+              # TODO: g.goto_if_exception jump_ex1
+
+              g.goto jump_else
+
+              ############################################################
+              # 1st exception
+
+              jump_ex1.set! # TODO: magic jump! generate REAL bytecode!!
+
+              g.push_const :StandardError
+              g.push_exception
+              g.send :===, 1
+              g.git jump_ex1_body
+              g.goto jump_unhandled
+
+              jump_ex1_body.set!
+
+              g.push_exception
+              g.set_local 0
               g.push :nil
+              g.clear_exception
+              g.goto jump_handled
+
+              ############################################################
+              # unhandled exception
+
+              jump_unhandled.set!
+
+              g.push_exception
+              g.raise_exc
+
+              ############################################################
+              # else
+
+              jump_else.set!
+
+              ############################################################
+              # handled exceptions (ensure in this case)
+
+              jump_handled.set!
+
               g.pop_modifiers
             end)
 
