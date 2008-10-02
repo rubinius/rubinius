@@ -62,7 +62,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     TS_ASSERT(!chan.called);
     state->events->poll();
     TS_ASSERT(!chan.called);
-    write(fds[1], "!", 1);
+    TS_ASSERT_EQUALS(write(fds[1], "!", 1),1);
     state->events->poll();
     TS_ASSERT(chan.called);
     TS_ASSERT_EQUALS(chan.value, Fixnum::from(fds[0]));
@@ -92,7 +92,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     char* str = buf->byte_address();
     str[0] = str[1] = 47;
 
-    write(fds[1], "!", 1);
+    TS_ASSERT_EQUALS(write(fds[1], "!", 1),1);
     state->events->poll();
     TS_ASSERT(chan.called);
     TS_ASSERT_EQUALS(chan.value, Fixnum::from(1));
