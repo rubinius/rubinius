@@ -184,10 +184,19 @@ desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]
 
 desc 'Remove rubinius build files'
-task :clean => %w[vm:clean kernel:clean clean:crap extension:clean]
+task :clean => %w[
+  vm:clean
+  kernel:clean
+  clean:crap
+  extension:clean
+  configure:clean
+]
 
 desc 'Remove rubinius build files and external library build files'
-task :distclean => %w[vm:distclean]
+task :distclean => %w[
+  clean
+  vm:distclean
+]
 
 namespace :clean do
   desc "Cleans up editor files and other misc crap"

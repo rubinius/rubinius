@@ -225,3 +225,53 @@ EOC
     f.puts "RbConfig = Config"
   end
 end
+
+file 'kernel/bootstrap/rubinius_config.rb' =>
+     %w[rakelib/configuration.rb rakelib/configure.rake] do |task, args|
+  open task.name, 'w' do |io|
+    io << <<-EOF
+#--
+# This file was generated from rakelib/configure.rake
+#++
+
+module Rubinius
+  BUILDREV        = #{RBX_BUILDREV.inspect}
+  CODE_PATH       = #{RBX_CODE_PATH.inspect}
+  EXT_PATH        = #{RBX_EXT_PATH.inspect}
+  RBA_PATH        = #{RBX_RBA_PATH.inspect}
+  RBX_VERSION     = #{RBX_VERSION.inspect}
+end
+
+    EOF
+  end
+end
+
+file 'kernel/bootstrap/ruby_config.rb' =>
+     %w[rakelib/configuration.rb rakelib/configure.rake] do |task, args|
+  open task.name, 'w' do |io|
+    io << <<-EOF
+#--
+# This file was generated from rakelib/configure.rake
+#++
+
+PLATFORM          = #{RBX_HOST.inspect}
+
+RUBY_ENGINE       = #{RBX_RUBY_ENGINE.inspect}
+RUBY_PATCHLEVEL   = #{RBX_RUBY_PATCHLEVEL.inspect}
+RUBY_PLATFORM     = #{RBX_HOST.inspect}
+RUBY_RELEASE_DATE = #{RBX_RUBY_RELDATE.inspect}
+RUBY_VERSION      = #{RBX_RUBY_VERSION.inspect}
+
+VERSION           = #{RBX_RUBY_VERSION.inspect}
+    EOF
+  end
+end
+
+namespace :configure do
+  task :clean do
+    rm 'lib/rbconfig.rb'
+    rm 'kernel/bootstrap/rubinius_config.rb'
+    rm 'kernel/bootstrap/ruby_config.rb'
+  end
+end
+
