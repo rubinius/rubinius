@@ -2,6 +2,7 @@
 #include "vm/exception.hpp"
 
 #include "builtin/array.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
@@ -15,7 +16,7 @@ namespace rubinius {
     size_t sym;
 
     if(str.size() == 0) {
-      ArgumentError::raise("cannot create a symbol from an empty string");
+      Exception::argument_error(state, "cannot create a symbol from an empty string");
     }
 
     hashval hash = String::hash_str((unsigned char*)str.c_str(), str.size());
@@ -46,7 +47,8 @@ namespace rubinius {
 
     for(size_t i = 0; i < str->size(); i++) {
       if(bytes[i] == 0) {
-        ArgumentError::raise("cannot create a symbol from a string containing `\\0'");
+        Exception::argument_error(state,
+            "cannot create a symbol from a string containing `\\0'");
       }
     }
 

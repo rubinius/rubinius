@@ -65,7 +65,7 @@ namespace rubinius {
     static void initialize_cache(STATE);
     static void reset_cache(STATE);
 
-    int  line();
+    int  line(STATE);
     bool recycle(STATE);
     void reference(STATE);
 

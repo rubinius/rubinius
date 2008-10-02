@@ -125,7 +125,7 @@ namespace rubinius {
     }
 
 
-  void type_assert(OBJECT obj, object_type type, const char* reason);
+  void type_assert(STATE, OBJECT obj, object_type type, const char* reason);
 
   /*
    * A rubinius object can be followed by:

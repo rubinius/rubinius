@@ -61,13 +61,6 @@ int main(int argc, char** argv) {
     env.run_file(loader);
     return 0;
 
-  } catch(ObjectBoundsExceeded &e) {
-    TypeInfo* info = env.state->find_type(e.obj->obj_type); // HACK use object
-
-    std::cout << "Bounds of object exceeded:" << std::endl;
-    std::cout << "  type: " << info->type_name << ", fields: " <<
-      e.obj->num_fields() << ", accessed: " << e.index << std::endl;
-    e.print_backtrace();
   } catch(Assertion &e) {
     std::cout << "VM Assertion:" << std::endl;
     std::cout << "  " << e.reason << std::endl;
@@ -75,6 +68,9 @@ int main(int argc, char** argv) {
 
     std::cout << "Ruby backtrace:" << std::endl;
     env.state->print_backtrace();
+  } catch(RubyException &e) {
+    // Prints Ruby backtrace, and VM backtrace if captured
+    e.show(env.state);
   } catch(TypeError &e) {
     std::cout << "Type Error detected:" << std::endl;
     TypeInfo* wanted = env.state->find_type(e.type);
@@ -96,10 +92,6 @@ int main(int argc, char** argv) {
     env.state->print_backtrace();
   } catch(std::runtime_error& e) {
     std::cout << "Runtime exception: " << e.what() << std::endl;
-  } catch(ArgumentError &e) {
-    std::cout << "Argument error: expected " << e.expected << ", given " <<
-      e.given << std::endl;
-    env.state->print_backtrace();
   } catch(VMException &e) {
     std::cout << "Unknown VM exception detected." << std::endl;
     e.print_backtrace();

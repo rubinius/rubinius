@@ -59,7 +59,7 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_allocate
     static CompiledMethod* create(STATE);
 
-    int start_line();
+    int start_line(STATE);
 
     // Use a stack of 1 so that the return value of the executed method
     // has a place to go
@@ -69,7 +69,7 @@ namespace rubinius {
     void post_marshal(STATE);
     size_t number_of_locals();
     VMMethod* formalize(STATE, bool ondemand=true);
-    void specialize(TypeInfo* ti);
+    void specialize(STATE, TypeInfo* ti);
 
     static bool default_executor(STATE, Executable*, Task*, Message&);
 

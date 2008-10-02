@@ -26,7 +26,7 @@ namespace rubinius {
     VMMethod(STATE, CompiledMethod* meth);
     virtual ~VMMethod();
 
-    virtual void specialize(TypeInfo* ti);
+    virtual void specialize(STATE, TypeInfo* ti);
     virtual void compile(STATE);
     static bool execute(STATE, Executable* meth, Task* task, Message& msg);
     virtual void resume(Task* task, MethodContext* ctx);

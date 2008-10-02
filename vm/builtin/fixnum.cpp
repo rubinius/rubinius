@@ -1,5 +1,6 @@
 
 #include "prelude.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/array.hpp"
@@ -119,7 +120,7 @@ namespace rubinius {
 
   INTEGER Fixnum::div(STATE, FIXNUM other) {
     if(other->to_native() == 0) {
-      throw ZeroDivisionError(other, "divided by 0");
+      Exception::zero_division_error(state, "divided by 0");
     }
     native_int numerator = to_native();
     native_int denominator = other->to_native();
@@ -153,7 +154,7 @@ namespace rubinius {
 
   Array* Fixnum::divmod(STATE, FIXNUM other) {
     if(other->to_native() == 0) {
-      throw ZeroDivisionError(other, "divided by 0");
+      Exception::zero_division_error(state, "divided by 0");
     }
     native_int numerator = to_native();
     native_int denominator = other->to_native();

@@ -31,7 +31,7 @@ namespace rubinius {
     static Module* create(STATE);
 
     // Ruby.primitive :module_new_instance
-    static Module* new_instance(STATE, OBJECT self); 
+    static Module* new_instance(STATE, OBJECT self);
 
     void setup(STATE);
     void setup(STATE, const char* name, Module* under = NULL);

@@ -62,7 +62,7 @@ public:
     TS_ASSERT_EQUALS(thr, thr2);
     TS_ASSERT_EQUALS(Thread::current(state), cur);
 
-    List* threads = as<List>(state->globals.scheduled_threads->at(priority));
+    List* threads = as<List>(state->globals.scheduled_threads->at(state, priority));
     TS_ASSERT_EQUALS(false, threads->empty_p());
 
     Thread* thr3 = as<Thread>(threads->shift(state));

@@ -54,11 +54,11 @@ namespace rubinius {
     return cm;
   }
 
-  int CompiledMethod::start_line() {
+  int CompiledMethod::start_line(STATE) {
     if(lines_->nil_p()) return -1;
     if(lines_->num_fields() < 1) return -1;
-    Tuple* top = as<Tuple>(lines_->at(0));
-    return as<Fixnum>(top->at(2))->to_native();
+    Tuple* top = as<Tuple>(lines_->at(state, 0));
+    return as<Fixnum>(top->at(state, 2))->to_native();
   }
 
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
@@ -89,8 +89,8 @@ namespace rubinius {
     return backend_method_;
   }
 
-  void CompiledMethod::specialize(TypeInfo* ti) {
-    backend_method_->specialize(ti);
+  void CompiledMethod::specialize(STATE, TypeInfo* ti) {
+    backend_method_->specialize(state, ti);
   }
 
   OBJECT CompiledMethod::compile(STATE) {

@@ -90,16 +90,16 @@ initialize:
     return ctx;
   }
 
-  int MethodContext::line() {
+  int MethodContext::line(STATE) {
     if(cm_->nil_p()) return -2;        // trampoline context
     if(cm_->lines()->nil_p()) return -3;
 
     for(size_t i = 0; i < cm_->lines()->num_fields(); i++) {
-      Tuple* entry = as<Tuple>(cm_->lines()->at(i));
+      Tuple* entry = as<Tuple>(cm_->lines()->at(state, i));
 
-      FIXNUM start_ip = as<Fixnum>(entry->at(0));
-      FIXNUM end_ip   = as<Fixnum>(entry->at(1));
-      FIXNUM line     = as<Fixnum>(entry->at(2));
+      FIXNUM start_ip = as<Fixnum>(entry->at(state, 0));
+      FIXNUM end_ip   = as<Fixnum>(entry->at(state, 1));
+      FIXNUM line     = as<Fixnum>(entry->at(state, 2));
 
       if(start_ip->to_native() <= ip && end_ip->to_native() >= ip)
         return line->to_native();

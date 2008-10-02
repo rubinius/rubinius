@@ -384,10 +384,11 @@ namespace rubinius {
 
   void VM::bootstrap_exceptions() {
     int sz;
-    sz = 3;
+    sz = Exception::fields;
 
-    Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vm;
+    Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vme;
     Class* fce;
+    Class* rng;
 
 #define dexc(name, sup) new_class(#name, sup, sz)
 
@@ -395,8 +396,6 @@ namespace rubinius {
     exc->set_object_type(state, ExceptionType);
     GO(exception).set(exc);
     dexc(fatal, exc);
-    vm = dexc(VMError, exc);
-    dexc(VMAssertion, vm);
     scp = dexc(ScriptError, exc);
     std = dexc(StandardError, exc);
     type = dexc(TypeError, std);
@@ -417,6 +416,15 @@ namespace rubinius {
     fce = dexc(FlowControlException, exc);
     dexc(ReturnException, fce);
 
+    rng = dexc(RangeError, std);
+    dexc(FloatDomainError, rng);
+    dexc(ZeroDivisionError, std);
+
+    // Some special exceptions scoped under the Rubinius module
+    vme = new_class("VMException", exc, sz, G(rubinius));
+    new_class("Assertion", vme, sz, G(rubinius));
+    new_class("ObjectBoundsExceededError", vme, sz, G(rubinius));
+
     GO(exc_type).set(type);
     GO(exc_arg).set(arg);
     GO(exc_loe).set(loe);
@@ -432,8 +440,6 @@ namespace rubinius {
     GO(errno_mapping).set(LookupTable::create(state));
 
     ern->set_const(state, symbol("Mapping"), G(errno_mapping));
-
-    sz = 4;
 
 #define set_syserr(num, name) ({ \
     Class* _cls = new_class(name, sce, sz, ern); \

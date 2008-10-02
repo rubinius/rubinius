@@ -274,9 +274,15 @@ class TestFloat : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Float::create(state, -1.4)->fround(state), Fixnum::from(-1));
     TS_ASSERT_EQUALS(Float::create(state, -1.5)->fround(state), Fixnum::from(-2));
 
-    TS_ASSERT_THROWS(Float::create(state,  0.0)->div(state, Float::create(state, 0.0))->fround(state), const FloatDomainError &);
-    TS_ASSERT_THROWS(Float::create(state,  1.0)->div(state, Float::create(state, 0.0))->fround(state), const FloatDomainError &);
-    TS_ASSERT_THROWS(Float::create(state, -1.0)->div(state, Float::create(state, 0.0))->fround(state), const FloatDomainError &);
+    Float* zero = Float::create(state,  0.0);
+    TS_ASSERT_THROWS_ASSERT(zero->div(state, zero)->fround(state), const RubyException &e,
+                            TS_ASSERT(Exception::float_domain_error_p(state, e.exception)));
+    Float* one = Float::create(state,  1.0);
+    TS_ASSERT_THROWS_ASSERT(one->div(state, zero)->fround(state), const RubyException &e,
+                            TS_ASSERT(Exception::float_domain_error_p(state, e.exception)));
+    Float* neg_one = Float::create(state,  1.0);
+    TS_ASSERT_THROWS_ASSERT(neg_one->div(state, zero)->fround(state), const RubyException &e,
+                            TS_ASSERT(Exception::float_domain_error_p(state, e.exception)));
   }
 
   void test_to_i() {
@@ -287,9 +293,15 @@ class TestFloat : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Float::create(state, -1.1)->to_i(state), Fixnum::from(-1));
     TS_ASSERT_EQUALS(Float::create(state, -1.9)->to_i(state), Fixnum::from(-1));
 
-    TS_ASSERT_THROWS(Float::create(state,  0.0)->div(state, Float::create(state, 0.0))->to_i(state), const FloatDomainError &);
-    TS_ASSERT_THROWS(Float::create(state,  1.0)->div(state, Float::create(state, 0.0))->to_i(state), const FloatDomainError &);
-    TS_ASSERT_THROWS(Float::create(state, -1.0)->div(state, Float::create(state, 0.0))->to_i(state), const FloatDomainError &);
+    Float* zero = Float::create(state,  0.0);
+    TS_ASSERT_THROWS_ASSERT(zero->div(state, zero)->to_i(state), const RubyException &e,
+                            TS_ASSERT(Exception::float_domain_error_p(state, e.exception)));
+    Float* one = Float::create(state,  1.0);
+    TS_ASSERT_THROWS_ASSERT(one->div(state, zero)->to_i(state), const RubyException &e,
+                            TS_ASSERT(Exception::float_domain_error_p(state, e.exception)));
+    Float* neg_one = Float::create(state,  1.0);
+    TS_ASSERT_THROWS_ASSERT(neg_one->div(state, zero)->to_i(state), const RubyException &e,
+                            TS_ASSERT(Exception::float_domain_error_p(state, e.exception)));
   }
 
   void test_into_string() {

@@ -9,6 +9,7 @@
 #include "builtin/object.hpp"
 
 namespace rubinius {
+  class Exception;
 
   void abort();
   void print_backtrace();
@@ -20,33 +21,40 @@ namespace rubinius {
    * should call the +raise+ function instead of throwing one of
    * the exceptions directly. This allows setting a breakpoint
    * on +raise+ to more easily debug exceptions. For example, to
-   * cause a TypeError exception, use
+   * cause a Assertion exception, use
    *
-   *  TypeError::raise(type, obj, reason);
+   *  Assertion::raise(type, obj, reason);
    *
    * instead of
    *
-   *  throw TypeError(type, obj, reason);
+   *  throw Assertion(type, obj, reason);
    */
   class VMException {
   public:   /* Instance vars */
 
+    typedef std::vector<std::string> Backtrace;
+
+    Backtrace* backtrace;
     char*   reason;
 
   public:   /* Ctors */
 
-    VMException();
-    VMException(const char* reason);
+    VMException(bool make_backtrace = true);
+    VMException(const char* reason, bool make_backtrace = true);
     ~VMException() { if(reason) free(reason); }
 
   public:   /* Interface */
 
-    typedef std::vector<std::string> Backtrace;
-
-    Backtrace* backtrace;
     void print_backtrace();
   };
 
+  /**
+   * An assertion in the VM failed for the given +reason+.
+   * Only use this exception if there is no possible hope
+   * of handling the condition in Ruby-land. Otherwise, use:
+   *
+   *   Exception::assertion_error(state, reason);
+   */
   class Assertion : public VMException {
   public:   /* Ctors */
 
@@ -58,9 +66,9 @@ namespace rubinius {
   public:   /* Interface */
 
     /**
-     *  Throws an Assertion exception with explanation +mesg+.
+     *  Throws an Assertion exception with explanation +reason+.
      */
-    static void raise(const char* mesg);
+    static void raise(const char* reason);
   };
 
   class TypeError : public VMException {
@@ -73,76 +81,36 @@ namespace rubinius {
 
     TypeError(object_type type, OBJECT obj, const char* reason = NULL)
       : VMException(reason), type(type), object(obj) { }
-    TypeError(const char* reason)
-      : VMException(reason), type((object_type)0), object(Qnil) { }
 
   public:   /* Interface */
 
     static void raise(object_type type, OBJECT obj, const char* reason = NULL);
-    static void raise(const char* reason);
   };
 
-  class ArgumentError : public VMException {
+  /**
+   * Any exceptional VM condition that can be handled in Ruby-land
+   * should be propagated using a RubyException. However, instead
+   * of using this exception directly, use the appropriate static
+   * method on the builtin class Exception.
+   */
+  class RubyException : public VMException {
   public:   /* Instance vars */
 
-    size_t expected;
-    size_t given;
-    char *reason;
+    Exception* exception;
 
   public:   /* Ctors */
 
-    ArgumentError(size_t e, size_t g)
-      : VMException(), expected(e), given(g) { }
-    ArgumentError(const char* reason)
-      : VMException(reason), expected(0), given(0) { }
+    RubyException(Exception* exception, bool make_backtrace);
 
   public:   /* Interface */
 
-    static void raise(size_t expected, size_t given);
-    static void raise(const char* reason);
-  };
+    static void raise(Exception* exception, bool make_backtrace = false);
 
-  class ObjectBoundsExceeded : public VMException {
-  public:   /* Instance vars */
-
-    OBJECT obj;
-    size_t index;
-
-  public:   /* Ctors */
-
-    ObjectBoundsExceeded(OBJECT o, size_t i) : obj(obj), index(index) { }
-
-  public:   /* Interface */
-
-    static void raise(OBJECT obj, size_t index);
-  };
-
-  class ZeroDivisionError : public VMException {
-  public:   /* Instance vars */
-
-    INTEGER i;
-
-  public:   /* Ctors */
-
-    ZeroDivisionError(INTEGER i, const char* reason = NULL)
-      : VMException(reason), i(i) { }
-
-  public:   /* Interface */
-    // TODO: add ::raise
-  };
-
-  class FloatDomainError : public VMException {
-  public:   /* Instance vars */
-
-    double d;
-
-  public:   /* Ctors */
-
-    FloatDomainError(double d, const char* reason = NULL)
-      : VMException(reason), d(d) { }
-
-  public:   /* Interface */
-    // TODO: add ::raise
+    /**
+     * Prints out the exception message and the Ruby backtrace.
+     * Also prints the VM backtrace if it was generated.
+     */
+    void show(STATE);
   };
 };
 

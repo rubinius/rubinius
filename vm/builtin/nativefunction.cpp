@@ -301,7 +301,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_CHAR: {
         char *tmp = (char*)malloc(sizeof(char));
         obj = msg->get_argument(i);
-        type_assert(obj, FixnumType, "converting to char");
+        type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (char)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
@@ -309,7 +309,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_UCHAR: {
         unsigned char *tmp = (unsigned char*)malloc(sizeof(char));
         obj = msg->get_argument(i);
-        type_assert(obj, FixnumType, "converting to char");
+        type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (unsigned char)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
@@ -317,7 +317,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_SHORT: {
         short *tmp = (short*)malloc(sizeof(short));
         obj = msg->get_argument(i);
-        type_assert(obj, FixnumType, "converting to char");
+        type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (short)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
@@ -325,7 +325,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_USHORT: {
         unsigned short *tmp = (unsigned short*)malloc(sizeof(short));
         obj = msg->get_argument(i);
-        type_assert(obj, FixnumType, "converting to char");
+        type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (unsigned short)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
@@ -336,7 +336,7 @@ namespace rubinius {
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_int();
         } else {
-          type_assert(obj, BignumType, "converting to int");
+          type_assert(state, obj, BignumType, "converting to int");
           *tmp = as<Bignum>(obj)->to_int();
         }
         values[i] = tmp;
@@ -348,7 +348,7 @@ namespace rubinius {
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_uint();
         } else {
-          type_assert(obj, BignumType, "converting to unsigned int");
+          type_assert(state, obj, BignumType, "converting to unsigned int");
           *tmp = as<Bignum>(obj)->to_uint();
         }
         values[i] = tmp;
@@ -360,7 +360,7 @@ namespace rubinius {
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_long();
         } else {
-          type_assert(obj, BignumType, "converting to long");
+          type_assert(state, obj, BignumType, "converting to long");
           *tmp = as<Bignum>(obj)->to_long();
         }
         values[i] = tmp;
@@ -372,7 +372,7 @@ namespace rubinius {
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_ulong();
         } else {
-          type_assert(obj, BignumType, "converting to unsigned long");
+          type_assert(state, obj, BignumType, "converting to unsigned long");
           *tmp = as<Bignum>(obj)->to_ulong();
         }
         values[i] = tmp;
@@ -381,7 +381,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_FLOAT: {
         float *tmp = (float*)malloc(sizeof(float));
         obj = msg->get_argument(i);
-        type_assert(obj, FloatType, "converting to float");
+        type_assert(state, obj, FloatType, "converting to float");
         *tmp = (float)as<Float>(obj)->to_double(state);
         values[i] = tmp;
         break;
@@ -389,7 +389,7 @@ namespace rubinius {
       case RBX_FFI_TYPE_DOUBLE: {
         double *tmp = (double*)malloc(sizeof(double));
         obj = msg->get_argument(i);
-        type_assert(obj, FloatType, "converting to double");
+        type_assert(state, obj, FloatType, "converting to double");
         *tmp = as<Float>(obj)->to_double(state);
         values[i] = tmp;
         break;
@@ -400,7 +400,7 @@ namespace rubinius {
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_long_long();
         } else {
-          type_assert(obj, BignumType, "converting to long long");
+          type_assert(state, obj, BignumType, "converting to long long");
           *tmp = as<Bignum>(obj)->to_long_long();
         }
         values[i] = tmp;
@@ -412,7 +412,7 @@ namespace rubinius {
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_ulong_long();
         } else {
-          type_assert(obj, BignumType, "converting to unsigned long long");
+          type_assert(state, obj, BignumType, "converting to unsigned long long");
           *tmp = as<Bignum>(obj)->to_ulong_long();
         }
         values[i] = tmp;
@@ -438,7 +438,7 @@ namespace rubinius {
           *tmp = NULL;
         } else {
           MemoryPointer *mp = as<MemoryPointer>(obj);
-          type_assert(obj, MemoryPointerType, "converting to pointer");
+          type_assert(state, obj, MemoryPointerType, "converting to pointer");
           *tmp = mp->pointer;
         }
         values[i] = tmp;

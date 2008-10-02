@@ -60,8 +60,8 @@ namespace rubinius {
     Array* entries = all_entries(state);
     for(i = 0; i < num; i++) {
       Tuple* entry = as<Tuple>(entries->get(state, i));
-      OBJECT key =   entry->at(0);
-      OBJECT value = entry->at(1);
+      OBJECT key =   entry->at(state, 0);
+      OBJECT value = entry->at(state, 1);
       dup->store(state, key, value);
     }
     return dup;
@@ -77,12 +77,12 @@ namespace rubinius {
   }
 
   OBJECT LookupTable::entry_append(STATE, Tuple* top, OBJECT nxt) {
-    Tuple* cur = try_as<Tuple>(top->at(2));
+    Tuple* cur = try_as<Tuple>(top->at(state, 2));
     Tuple* last = top;
 
     while(cur) {
       last = cur;
-      cur = try_as<Tuple>(cur->at(2));
+      cur = try_as<Tuple>(cur->at(state, 2));
     }
 
     last->put(state, 2, nxt);
@@ -94,14 +94,14 @@ namespace rubinius {
     Tuple* new_values = Tuple::create(state, size);
 
     for(size_t i = 0; i < num; i++) {
-      Tuple* entry = try_as<Tuple>(values_->at(i));
+      Tuple* entry = try_as<Tuple>(values_->at(state, i));
 
       while(entry) {
-        Tuple* link = try_as<Tuple>(entry->at(2));
+        Tuple* link = try_as<Tuple>(entry->at(state, 2));
         entry->put(state, 2, Qnil);
 
-        size_t bin = find_bin(key_hash(entry->at(0)), size);
-        Tuple* slot = try_as<Tuple>(new_values->at(bin));
+        size_t bin = find_bin(key_hash(entry->at(state, 0)), size);
+        Tuple* slot = try_as<Tuple>(new_values->at(state, bin));
 
         if(!slot) {
           new_values->put(state, bin, entry);
@@ -132,15 +132,15 @@ namespace rubinius {
     }
 
     bin = find_bin(key_hash(key), num_bins);
-    cur = entry = try_as<Tuple>(values_->at(bin));
+    cur = entry = try_as<Tuple>(values_->at(state, bin));
 
     while(entry) {
-      if(entry->at(0) == key) {
+      if(entry->at(state, 0) == key) {
         entry->put(state, 1, val);
         return val;
       }
       cur = entry;
-      entry = try_as<Tuple>(entry->at(2));
+      entry = try_as<Tuple>(entry->at(state, 2));
     }
 
     new_ent = entry_new(state, key, val);
@@ -162,24 +162,24 @@ namespace rubinius {
     bin = find_bin(key_hash(key), bins_->to_native());
 
     /* HACK: This should be fixed by not storing NULLs */
-    Object* data = values_->at(bin);
+    Object* data = values_->at(state, bin);
 
     if (!data) return NULL;
 
     entry = try_as<Tuple>(data);
 
     while(entry) {
-      if(entry->at(0) == key) {
+      if(entry->at(state, 0) == key) {
         return entry;
       }
-      entry = try_as<Tuple>(entry->at(2));
+      entry = try_as<Tuple>(entry->at(state, 2));
     }
     return NULL;
   }
 
   OBJECT LookupTable::fetch(STATE, OBJECT key) {
     Tuple* entry = find_entry(state, key);
-    if(entry) return entry->at(1);
+    if(entry) return entry->at(state, 1);
     return Qnil;
   }
 
@@ -187,7 +187,7 @@ namespace rubinius {
     Tuple* entry = find_entry(state, key);
     if(entry) {
       *found = true;
-      return entry->at(1);
+      return entry->at(state, 1);
     }
 
     *found = false;
@@ -202,7 +202,7 @@ namespace rubinius {
   OBJECT LookupTable::find(STATE, OBJECT key) {
     Tuple* entry = find_entry(state, key);
     if(entry) {
-      return entry->at(1);
+      return entry->at(state, 1);
     }
     return Qundef;
   }
@@ -223,15 +223,15 @@ namespace rubinius {
     }
 
     bin = find_bin(key_hash(key), num_bins);
-    entry = try_as<Tuple>(values_->at(bin));
+    entry = try_as<Tuple>(values_->at(state, bin));
 
     lst = NULL;
 
     while(entry) {
-      Object* link = entry->at(2);
+      Object* link = entry->at(state, 2);
 
-      if(entry->at(0) == key) {
-        val = entry->at(1);
+      if(entry->at(state, 0) == key) {
+        val = entry->at(state, 1);
         if(lst) {
           lst->put(state, 2, link);
         } else {
@@ -265,18 +265,18 @@ namespace rubinius {
     values = tbl->values();
 
     for(i = j = 0; i < num_bins; i++) {
-      entry = try_as<Tuple>(values->at(i));
+      entry = try_as<Tuple>(values->at(state, i));
 
       while(entry) {
         ary->set(state, j++, action(state, entry));
-        entry = try_as<Tuple>(entry->at(2));
+        entry = try_as<Tuple>(entry->at(state, 2));
       }
     }
     return ary;
   }
 
   OBJECT LookupTable::get_key(STATE, Tuple* entry) {
-    return entry->at(0);
+    return entry->at(state, 0);
   }
 
   Array* LookupTable::all_keys(STATE) {
@@ -284,7 +284,7 @@ namespace rubinius {
   }
 
   OBJECT LookupTable::get_value(STATE, Tuple* entry) {
-    return entry->at(1);
+    return entry->at(state, 1);
   }
 
   Array* LookupTable::all_values(STATE) {

@@ -205,9 +205,9 @@ class TestTask : public CxxTest::TestSuite {
     bool thrown = false;
     try {
       task->send_message(msg);
-    } catch(ArgumentError& error) {
-      TS_ASSERT_EQUALS(1U, error.given);
-      TS_ASSERT_EQUALS(2U, error.expected);
+    } catch(RubyException& error) {
+      TS_ASSERT(Exception::argument_error_p(state, error.exception));
+      TS_ASSERT_SAME_DATA("given 1, expected 2", error.exception->message()->c_str(), 19U);
       thrown = true;
     }
 
@@ -243,9 +243,9 @@ class TestTask : public CxxTest::TestSuite {
     bool thrown = false;
     try {
       task->send_message(msg);
-    } catch(ArgumentError& error) {
-      TS_ASSERT_EQUALS(3U, error.given);
-      TS_ASSERT_EQUALS(2U, error.expected);
+    } catch(RubyException& error) {
+      TS_ASSERT(Exception::argument_error_p(state, error.exception));
+      TS_ASSERT_SAME_DATA("given 3, expected 2", error.exception->message()->c_str(), 19U);
       thrown = true;
     }
 
@@ -360,7 +360,7 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(splat->get(state, 1), Fixnum::from(6));
   }
 
-  void test_send_message_throws_argerror_on_too_many_with_splat() {
+  void test_send_message_does_not_throw_argerror_on_too_many_with_splat() {
     CompiledMethod* cm = create_cm();
     cm->required_args(state, Fixnum::from(2));
     cm->total_args(state, cm->required_args());
@@ -383,14 +383,7 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = SendSite::create(state, state->symbol("blah"));
     msg.use_from_task(task, 3);
 
-    bool thrown = false;
-    try {
-      task->send_message(msg);
-    } catch(ArgumentError& error) {
-      thrown = true;
-    }
-
-    TS_ASSERT(!thrown);
+    task->send_message(msg);
   }
 
   /**
@@ -554,8 +547,8 @@ class TestTask : public CxxTest::TestSuite {
 
     Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qfalse);
 
-    TS_ASSERT_EQUALS(G(true_class), tup->at(1));
-    TS_ASSERT_EQUALS(cm,            tup->at(0));
+    TS_ASSERT_EQUALS(G(true_class), tup->at(state, 1));
+    TS_ASSERT_EQUALS(cm,            tup->at(state, 0));
   }
 
   void test_locate_method_on_private() {
@@ -606,8 +599,8 @@ class TestTask : public CxxTest::TestSuite {
 
     Tuple* tup = task->locate_method_on(Qtrue, state->symbol("blah"), Qtrue);
 
-    TS_ASSERT_EQUALS(G(true_class), tup->at(1));
-    TS_ASSERT_EQUALS(cm,            tup->at(0));
+    TS_ASSERT_EQUALS(G(true_class), tup->at(state, 1));
+    TS_ASSERT_EQUALS(cm,            tup->at(state, 0));
   }
 
   void test_attach_method() {

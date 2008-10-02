@@ -27,7 +27,7 @@ public:
     iseq->opcodes()->put(state, 0, Fixnum::from(0));
 
     cm->iseq(state, iseq);
-   
+
     VMMethod vmm(state, cm);
 
     TS_ASSERT_EQUALS(vmm.total, 1U);
@@ -50,7 +50,7 @@ public:
 
     TypeInfo ti(ObjectType);
     ti.slots[state->symbol("@blah")->index()] = 5;
-    vmm.specialize(&ti);
+    vmm.specialize(state, &ti);
 
     TS_ASSERT_EQUALS(vmm.total, 3U);
     TS_ASSERT_EQUALS(vmm.opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_push_my_field));

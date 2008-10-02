@@ -1,5 +1,9 @@
+#include "builtin/exception.hpp"
+
+#include "vm.hpp"
 #include "prelude.hpp"
 #include "exception.hpp"
+
 #include <vector>
 #include <iostream>
 #include <execinfo.h>
@@ -12,24 +16,22 @@ namespace rubinius {
     throw TypeError(type, obj, reason);
   }
 
-  void TypeError::raise(const char* reason) {
-    throw TypeError(reason);
+  void Assertion::raise(const char* reason) {
+    throw Assertion(reason);
   }
 
-  void ArgumentError::raise(size_t expected, size_t given) {
-    throw ArgumentError(expected, given);
+  RubyException::RubyException(Exception* exception, bool make_backtrace)
+      : VMException(make_backtrace), exception(exception) {
   }
 
-  void ArgumentError::raise(const char* reason) {
-    throw ArgumentError(reason);
+  void RubyException::raise(Exception* exception, bool make_backtrace) {
+    throw RubyException(exception, make_backtrace);
   }
 
-  void Assertion::raise(const char* mesg) {
-    throw Assertion(mesg);
-  }
-
-  void ObjectBoundsExceeded::raise(OBJECT o, size_t i) {
-    throw ObjectBoundsExceeded(o, i);
+  void RubyException::show(STATE) {
+    std::cout << exception->message();
+    print_backtrace();
+    state->print_backtrace();
   }
 
   static VMException::Backtrace get_trace(size_t skip) {
@@ -100,12 +102,18 @@ namespace rubinius {
     return s;
   }
 
-  VMException::VMException() : reason(NULL) {
-    backtrace = new VMException::Backtrace(get_cpp_backtrace());
+  VMException::VMException(bool make_backtrace)
+      : backtrace(NULL), reason(NULL) {
+    if(make_backtrace) {
+      backtrace = new VMException::Backtrace(get_cpp_backtrace());
+    }
   }
 
-  VMException::VMException(const char* reason) : reason(NULL) {
-    backtrace = new VMException::Backtrace(get_cpp_backtrace());
+  VMException::VMException(const char* reason, bool make_backtrace)
+      : backtrace(NULL), reason(NULL) {
+    if(make_backtrace) {
+      backtrace = new VMException::Backtrace(get_cpp_backtrace());
+    }
     if(reason) this->reason = strdup(reason);
   }
 

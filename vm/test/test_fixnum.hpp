@@ -1,3 +1,4 @@
+#include "builtin/exception.hpp"
 #include "builtin/list.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
@@ -38,7 +39,7 @@ class TestFixnum : public CxxTest::TestSuite {
     FIXNUM two = as<Fixnum>(one->add(state, one));
     TS_ASSERT_EQUALS(two->to_native(), 2);
   }
-  
+
   void test_add_overflows_to_bignum() {
     FIXNUM  one = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
     INTEGER two = as<Integer>(one->add(state, one));
@@ -146,7 +147,7 @@ class TestFixnum : public CxxTest::TestSuite {
     FIXNUM  one   = as<Fixnum>(Fixnum::from(2));
     Bignum* two   = Bignum::from(state, (native_int)FIXNUM_MAX + 10);
     INTEGER three = one->mul(state, two);
-    
+
     TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(three->to_native(), (FIXNUM_MAX + 10) * 2);
   }
@@ -163,7 +164,9 @@ class TestFixnum : public CxxTest::TestSuite {
     FIXNUM two = as<Fixnum>(one->div(state, one));
     TS_ASSERT_EQUALS(two->to_native(), 1);
 
-    TS_ASSERT_THROWS( one->div(state, Fixnum::from(0)), const ZeroDivisionError &);
+    FIXNUM zero = Fixnum::from(0);
+    TS_ASSERT_THROWS_ASSERT(one->div(state, zero), const RubyException &e,
+                            TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_div_a_bignum() {
@@ -171,7 +174,9 @@ class TestFixnum : public CxxTest::TestSuite {
     INTEGER res = one->div(state, Bignum::from(state, (native_int)FIXNUM_MAX + 10));
     TS_ASSERT_EQUALS(res->to_native(), 0);
 
-    TS_ASSERT_THROWS( one->div(state, Bignum::from(state, (native_int)0)), const ZeroDivisionError &);
+    Bignum* zero = Bignum::from(state, (native_int)0);
+    TS_ASSERT_THROWS_ASSERT(one->div(state, zero), const RubyException &e,
+                            TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_div_a_float() {
@@ -240,7 +245,9 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT(o2->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(o2)->to_native(), 3);
 
-    TS_ASSERT_THROWS( one->divmod(state, Fixnum::from(0)), const ZeroDivisionError &);
+    FIXNUM zero = Fixnum::from(0);
+    TS_ASSERT_THROWS_ASSERT(one->divmod(state, zero), const RubyException &e,
+                            TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_divmod_with_a_bignum() {
@@ -280,7 +287,7 @@ class TestFixnum : public CxxTest::TestSuite {
   void test_equal_with_a_bignum() {
     Bignum* obj1 = Bignum::from(state, (native_int)10);
     Bignum* obj2 = Bignum::from(state, (native_int)11);
-    
+
     TS_ASSERT_EQUALS(Fixnum::from(10)->equal(state, obj1), Qtrue);
     TS_ASSERT_EQUALS(Fixnum::from(10)->equal(state, obj2), Qfalse);
   }
@@ -288,7 +295,7 @@ class TestFixnum : public CxxTest::TestSuite {
   void test_equal_with_a_float() {
     Float* obj1 = Float::create(state, 10.0);
     Float* obj2 = Float::create(state, 10.1);
-    
+
     TS_ASSERT_EQUALS(Fixnum::from(10)->equal(state, obj1), Qtrue);
     TS_ASSERT_EQUALS(Fixnum::from(10)->equal(state, obj2), Qfalse);
   }
@@ -396,7 +403,7 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_size() {
-    TS_ASSERT_EQUALS(static_cast<unsigned int>(Fixnum::from(0)->size(state)->to_native()), 
+    TS_ASSERT_EQUALS(static_cast<unsigned int>(Fixnum::from(0)->size(state)->to_native()),
 		     sizeof(native_int));
   }
 

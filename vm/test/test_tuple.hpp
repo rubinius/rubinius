@@ -36,8 +36,9 @@ public:
 
   void test_at() {
     Tuple* tuple = new_tuple();
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(tuple->at(1)));
-    TS_ASSERT_THROWS(tuple->at(4), const ObjectBoundsExceeded &);
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(tuple->at(state, 1)));
+    TS_ASSERT_THROWS_ASSERT(tuple->at(state, 4), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
 
   void test_at_prim() {
@@ -63,8 +64,8 @@ public:
     Tuple* dest = Tuple::create(state, 2);
     dest->replace_with(state, tuple, 1, 2);
 
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(state, 1)));
   }
 
   void test_replace_with_this_shorter() {
@@ -76,8 +77,8 @@ public:
 
     dest->replace_with(state, tuple, 2, 3);
 
-    TS_ASSERT_EQUALS(Fixnum::from(9),  as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(42), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(9),  as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(42), as<Fixnum>(dest->at(state, 1)));
   }
 
   void test_replace_with_other_shorter() {
@@ -86,8 +87,8 @@ public:
     Tuple* dest = Tuple::create(state, 2);
     dest->replace_with(state, tuple, 0, 2);
 
-    TS_ASSERT_EQUALS(Fixnum::from(1),  as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(1),  as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 1)));
   }
 
   void test_replace_with_start_not_less_than_zero() {
@@ -96,8 +97,8 @@ public:
     Tuple* dest = Tuple::create(state, 2);
     dest->replace_with(state, tuple, -2, 2);
 
-    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 1)));
   }
 
   void test_copy_from() {
@@ -106,13 +107,13 @@ public:
     Tuple* dest = Tuple::create(state, 2);
     dest->copy_from(state, tuple, Fixnum::from(1), Fixnum::from(0));
 
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(state, 1)));
 
     dest->copy_from(state, tuple, Fixnum::from(1), Fixnum::from(1));
 
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 1)));
   }
 
   void test_copy_from_other_shorter() {
@@ -123,8 +124,8 @@ public:
     dest->put(state, 1, Fixnum::from(42));
     dest->copy_from(state, tuple, Fixnum::from(2), Fixnum::from(0));
 
-    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(42), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(42), as<Fixnum>(dest->at(state, 1)));
   }
 
   void test_copy_from_this_shorter() {
@@ -133,8 +134,8 @@ public:
     Tuple* dest = Tuple::create(state, 2);
     dest->copy_from(state, tuple, Fixnum::from(0), Fixnum::from(0));
 
-    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 1)));
   }
 
   void test_copy_from_start_not_less_than_zero() {
@@ -143,13 +144,13 @@ public:
     Tuple* dest = Tuple::create(state, 2);
     dest->copy_from(state, tuple, Fixnum::from(-1), Fixnum::from(0));
 
-    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 1)));
 
     dest->copy_from(state, tuple, Fixnum::from(1), Fixnum::from(-1));
 
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(0)));
-    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(1)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(state, 1)));
   }
 
   void test_shifted_by_zero() {
@@ -165,9 +166,9 @@ public:
     Tuple* dest = tuple->shifted(state, Fixnum::from(4));
 
     TS_ASSERT_EQUALS(dest->num_fields(), 7U);
-    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(4)));
-    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(5)));
-    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(6)));
+    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(state, 4)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 5)));
+    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(state, 6)));
   }
 
   void test_pattern() {
@@ -176,7 +177,7 @@ public:
 
     TS_ASSERT_EQUALS(5U, tuple->num_fields());
     for(size_t i = 0; i < 5; i++) {
-      TS_ASSERT_EQUALS(ten, tuple->at(i));
+      TS_ASSERT_EQUALS(ten, tuple->at(state, i));
     }
   }
 };

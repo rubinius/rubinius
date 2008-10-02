@@ -1,4 +1,5 @@
 #include "builtin/bignum.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
 #include "vm.hpp"
@@ -242,14 +243,18 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT(div->fixnum_p());
     TS_ASSERT_EQUALS(div->to_native(), 1);
 
-    TS_ASSERT_THROWS( b1->div(state, Bignum::from(state, (native_int)0)), const ZeroDivisionError &);
+    Bignum* zero = Bignum::from(state, (native_int)0);
+    TS_ASSERT_THROWS_ASSERT(b1->div(state, zero), const RubyException &e,
+                            TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_div_with_fixnum() {
     INTEGER div = b1->div(state, two);
     check_bignum(div,"1073741823");
 
-    TS_ASSERT_THROWS( b1->div(state, Fixnum::from(0)), const ZeroDivisionError &);
+    FIXNUM zero = Fixnum::from(0);
+    TS_ASSERT_THROWS_ASSERT(b1->div(state, zero), const RubyException &e,
+                            TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_div_with_float() {
@@ -265,27 +270,27 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(o1)->to_native(), 1);
     TS_ASSERT(o2->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(o2)->to_native(), 0);
-    
+
     ary1 = b1->divmod(state, two);
     o1 = ary1->get(state, 0);
     o2 = ary1->get(state, 1);
     check_bignum(o1,"1073741823");
     check_bignum(o2, "1");
-    
+
     Bignum* nbn1 = Bignum::from(state, (native_int)-2147483647);
-    
+
     ary1 = b1->divmod(state, nbn1);
     o1 = ary1->get(state, 0);
     o2 = ary1->get(state, 1);
     check_bignum(o1,"-1");
     check_bignum(o2, "0");
-    
+
     ary1 = nbn1->divmod(state, b1);
     o1 = ary1->get(state, 0);
     o2 = ary1->get(state, 1);
     check_bignum(o1,"-1");
     check_bignum(o2, "0");
-    
+
     ary1 = nbn1->divmod(state, nbn1);
     o1 = ary1->get(state, 0);
     o2 = ary1->get(state, 1);
@@ -297,13 +302,13 @@ class TestBignum : public CxxTest::TestSuite {
     o2 = ary1->get(state, 1);
     check_bignum(o1,"-25");
     check_bignum(o2, "89478478");
-    
+
     ary1 = nbn1->divmod(state, Fixnum::from(89478485));
     o1 = ary1->get(state, 0);
     o2 = ary1->get(state, 1);
     check_bignum(o1,"-25");
     check_bignum(o2, "89478478");
-    
+
     ary1 = b1->divmod(state, Fixnum::from(-89478485));
     o1 = ary1->get(state, 0);
     o2 = ary1->get(state, 1);

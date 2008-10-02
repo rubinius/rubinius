@@ -67,12 +67,12 @@ class TestLookupTable : public CxxTest::TestSuite {
     Tuple* entry = tbl->find_entry(state, k1);
     TS_ASSERT(entry);
 
-    TS_ASSERT(!entry->at(2)->nil_p());
-    TS_ASSERT_EQUALS(as<Tuple>(entry->at(2))->at(0), k2);
+    TS_ASSERT(!entry->at(state, 2)->nil_p());
+    TS_ASSERT_EQUALS(as<Tuple>(entry->at(state, 2))->at(state, 0), k2);
 
     entry = tbl->find_entry(state, k3);
     TS_ASSERT(!entry->nil_p());
-    TS_ASSERT_EQUALS(entry->at(0), k3);
+    TS_ASSERT_EQUALS(entry->at(state, 0), k3);
   }
 
   void test_store_resizes_table() {
@@ -115,7 +115,7 @@ class TestLookupTable : public CxxTest::TestSuite {
     tbl->store(state, k, Qtrue);
 
     Tuple* entry = tbl->find_entry(state, k);
-    TS_ASSERT_EQUALS(k, entry->at(0));
+    TS_ASSERT_EQUALS(k, entry->at(state, 0));
 
     entry = tbl->find_entry(state, Fixnum::from(40));
     TS_ASSERT(!entry);

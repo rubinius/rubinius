@@ -36,7 +36,7 @@ namespace rubinius {
     Tuple* ops = meth->iseq()->opcodes();
     OBJECT val;
     for(size_t index = 0; index < total; index++) {
-      val = ops->at(index);
+      val = ops->at(state, index);
       if(val->nil_p()) {
         opcodes[index] = 0;
       } else {
@@ -57,14 +57,14 @@ namespace rubinius {
    * index assigned.  Same for set_ivar/store_my_field.
    */
 
-  void VMMethod::specialize(TypeInfo* ti) {
+  void VMMethod::specialize(STATE, TypeInfo* ti) {
     type = ti;
     for(size_t i = 0; i < total;) {
       opcode op = opcodes[i];
 
       if(op == InstructionSequence::insn_push_ivar) {
         native_int idx = opcodes[i + 1];
-        native_int sym = as<Symbol>(original->literals()->at(idx))->index();
+        native_int sym = as<Symbol>(original->literals()->at(state, idx))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
@@ -73,7 +73,7 @@ namespace rubinius {
         }
       } else if(op == InstructionSequence::insn_set_ivar) {
         native_int idx = opcodes[i + 1];
-        native_int sym = as<Symbol>(original->literals()->at(idx))->index();
+        native_int sym = as<Symbol>(original->literals()->at(state, idx))->index();
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
@@ -124,7 +124,7 @@ namespace rubinius {
       }
 
       if(!prof_meth->file()) {
-        prof_meth->set_position(cm->file(), cm->start_line());
+        prof_meth->set_position(cm->file(), cm->start_line(state));
       }
     }
 

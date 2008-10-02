@@ -144,11 +144,10 @@ namespace rubinius {
     return obj;
   }
 
-  void type_assert(OBJECT obj, object_type type, const char* reason) {
-    if(obj->reference_p() && obj->obj_type != type) {
-      TypeError::raise(type, obj, reason);
-    } else if(type == FixnumType && !obj->fixnum_p()) {
-      TypeError::raise(type, obj, reason);
+  void type_assert(STATE, OBJECT obj, object_type type, const char* reason) {
+    if((obj->reference_p() && obj->obj_type != type)
+        || (type == FixnumType && !obj->fixnum_p())) {
+      Exception::type_error(state, type, obj, reason);
     }
   }
 
@@ -176,7 +175,7 @@ namespace rubinius {
     events->poll();
 
     for(size_t i = globals.scheduled_threads->num_fields() - 1; i > 0; i--) {
-      List* lst = as<List>(globals.scheduled_threads->at(i));
+      List* lst = as<List>(globals.scheduled_threads->at(this, i));
       if(lst->empty_p()) continue;
       next = as<Thread>(lst->shift(this));
       break;
@@ -199,7 +198,8 @@ namespace rubinius {
   }
 
   void VM::queue_thread(Thread* thread) {
-    List* lst = as<List>(globals.scheduled_threads->at(thread->priority()->to_native()));
+    List* lst = as<List>(globals.scheduled_threads->at(this,
+          thread->priority()->to_native()));
     lst->append(this, thread);
   }
 

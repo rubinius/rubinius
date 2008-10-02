@@ -34,8 +34,8 @@ public:
   bool tuple_equals(Tuple* x, Tuple* y) {
     if(x->num_fields() != y->num_fields()) return false;
     for(size_t i = 0; i < x->num_fields(); i++) {
-      OBJECT x1 = x->at(i);
-      OBJECT y1 = y->at(i);
+      OBJECT x1 = x->at(state, i);
+      OBJECT y1 = y->at(state, i);
 
       if(kind_of<Tuple>(x1)) {
         if(!tuple_equals(as<Tuple>(x1), as<Tuple>(y1))) return false;
@@ -126,8 +126,8 @@ public:
 
     Tuple* tup = as<Tuple>(obj);
 
-    TS_ASSERT_EQUALS(tup->at(0), Fixnum::from(2));
-    TS_ASSERT_EQUALS(tup->at(1), Fixnum::from(47));
+    TS_ASSERT_EQUALS(tup->at(state, 0), Fixnum::from(2));
+    TS_ASSERT_EQUALS(tup->at(state, 1), Fixnum::from(47));
   }
 
   void test_float() {
@@ -192,7 +192,7 @@ public:
 
     TS_ASSERT_EQUALS(seq->opcodes()->num_fields(), 1U);
 
-    TS_ASSERT_EQUALS(seq->opcodes()->at(0), Fixnum::from(0));
+    TS_ASSERT_EQUALS(seq->opcodes()->at(state, 0), Fixnum::from(0));
   }
 
   void test_cmethod() {

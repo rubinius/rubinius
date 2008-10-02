@@ -38,13 +38,13 @@ class TestCompactLookupTable : public CxxTest::TestSuite {
   }
 
   void test_add() {
-    TS_ASSERT_EQUALS(tbl->at(0), Qnil);
-    TS_ASSERT_EQUALS(tbl->at(1), Qnil);
+    TS_ASSERT_EQUALS(tbl->at(state, 0), Qnil);
+    TS_ASSERT_EQUALS(tbl->at(state, 1), Qnil);
 
     tbl->store(state, Fixnum::from(1), Fixnum::from(2));
 
-    TS_ASSERT_EQUALS(tbl->at(0), Fixnum::from(1));
-    TS_ASSERT_EQUALS(tbl->at(1), Fixnum::from(2));
+    TS_ASSERT_EQUALS(tbl->at(state, 0), Fixnum::from(1));
+    TS_ASSERT_EQUALS(tbl->at(state, 1), Fixnum::from(2));
   }
 
   void test_add_when_full() {

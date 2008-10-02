@@ -48,13 +48,15 @@ class TestSymbolTable : public CxxTest::TestSuite {
     String* str = String::create(state, "abxdc");
     str->byte_address()[2] = 0;
 
-    TS_ASSERT_THROWS(symbols->lookup(state, str), const ArgumentError &);
+    TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, str), const RubyException &e,
+                            TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
 
   void test_lookup_with_empty_string() {
     String* str = String::create(state, "");
 
-    TS_ASSERT_THROWS(symbols->lookup(state, str), const ArgumentError &);
+    TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, str), const RubyException &e,
+                            TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
 
   void test_lookup_colliding_hash() {

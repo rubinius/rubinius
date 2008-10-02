@@ -151,14 +151,14 @@ namespace rubinius {
 
     /* If too few args were passed in, throw an exception */
     if(msg.args() < required) {
-      throw ArgumentError(required, msg.args());
+      Exception::argument_error(state, required, msg.args());
     }
 
     /* If too many args were passed in, throw an exception.
      * If there is a splat, this check is disabled.
      */
     if(ctx->cm()->splat()->nil_p() && msg.args() > total) {
-      throw ArgumentError(required, msg.args());
+      Exception::argument_error(state, required, msg.args());
     }
 
     fixed = total;
@@ -348,9 +348,10 @@ stack_cleanup:
 
       if(!table->nil_p()) {
         for(size_t i = 0; i < table->num_fields(); i++) {
-          Tuple* entry = as<Tuple>(table->at(i));
-          if(as<Integer>(entry->at(0))->to_native() <= ip && as<Integer>(entry->at(1))->to_native() >= ip) {
-            set_ip(as<Integer>(entry->at(2))->to_native());
+          Tuple* entry = as<Tuple>(table->at(state, i));
+          if(as<Integer>(entry->at(state, 0))->to_native() <= ip
+              && as<Integer>(entry->at(state, 1))->to_native() >= ip) {
+            set_ip(as<Integer>(entry->at(state, 2))->to_native());
             return;
           }
         }
@@ -417,14 +418,14 @@ stack_cleanup:
       object_type type = (object_type)cls->instance_type()->to_native();
       TypeInfo* ti = state->om->type_info[type];
       if(ti) {
-        method->specialize(ti);
+        method->specialize(state, ti);
       }
     }
   }
 
   bool Task::check_serial(OBJECT obj, SYMBOL sel, int ser) {
     Tuple* tup = locate_method_on(obj, sel, Qtrue);
-    Executable* x = as<Executable>(tup->at(0));
+    Executable* x = as<Executable>(tup->at(state, 0));
 
     /* If the method is absent, then indicate that the serial number
      * is correct. */
@@ -535,7 +536,7 @@ stack_cleanup:
       std::cout << "mismatch: "
         << cls->name()->c_str(state)
         << " != " << as<Class>(super)->name()->c_str(state) << "\n";
-      TypeError::raise(Class::type, super, "superclass mismatch");
+      Exception::type_error(state, Class::type, super, "superclass mismatch");
     }
 
     return cls;
@@ -731,9 +732,8 @@ stack_cleanup:
           return;
         }
       }
-    } catch(ArgumentError &err) {
-      // Convert the C++ ArgumentError exception into a ruby one.
-      raise_exception(Exception::arg_error(state, err.expected, err.given));
+    } catch(RubyException &exc) {
+      raise_exception(exc.exception);
     }
   }
 
@@ -767,7 +767,7 @@ stack_cleanup:
 
       std::cout << " in ";
       if(SYMBOL file_sym = try_as<Symbol>(ctx->cm()->file())) {
-        std::cout << file_sym->c_str(state) << ":" << ctx->line();
+        std::cout << file_sym->c_str(state) << ":" << ctx->line(state);
       } else {
         std::cout << "<unknown>";
       }

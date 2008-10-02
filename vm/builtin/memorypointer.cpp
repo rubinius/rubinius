@@ -216,26 +216,26 @@ namespace rubinius {
 
     switch(type) {
     case RBX_FFI_TYPE_CHAR:
-      type_assert(val, FixnumType, "converting to char");
+      type_assert(state, val, FixnumType, "converting to char");
       WRITE(char, as<Fixnum>(val)->to_native());
       break;
     case RBX_FFI_TYPE_UCHAR:
-      type_assert(val, FixnumType, "converting to unsigned char");
+      type_assert(state, val, FixnumType, "converting to unsigned char");
       WRITE(unsigned char, as<Fixnum>(val)->to_native());
       break;
     case RBX_FFI_TYPE_SHORT:
-      type_assert(val, FixnumType, "converting to short");
+      type_assert(state, val, FixnumType, "converting to short");
       WRITE(short, as<Fixnum>(val)->to_native());
       break;
     case RBX_FFI_TYPE_USHORT:
-      type_assert(val, FixnumType, "converting to unsigned short");
+      type_assert(state, val, FixnumType, "converting to unsigned short");
       WRITE(unsigned short, as<Fixnum>(val)->to_native());
       break;
     case RBX_FFI_TYPE_INT:
       if(FIXNUM_P(val)) {
         WRITE(int, as<Fixnum>(val)->to_int());
       } else {
-        type_assert(val, BignumType, "converting to int");
+        type_assert(state, val, BignumType, "converting to int");
         WRITE(int, as<Bignum>(val)->to_int());
       }
       break;
@@ -243,7 +243,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(unsigned int, as<Fixnum>(val)->to_uint());
       } else {
-        type_assert(val, BignumType, "converting to unsigned int");
+        type_assert(state, val, BignumType, "converting to unsigned int");
         WRITE(unsigned int, as<Bignum>(val)->to_uint());
       }
       break;
@@ -251,7 +251,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(long, as<Fixnum>(val)->to_long());
       } else {
-        type_assert(val, BignumType, "converting to long");
+        type_assert(state, val, BignumType, "converting to long");
         WRITE(long, as<Bignum>(val)->to_long());
       }
       break;
@@ -259,19 +259,19 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(unsigned long, as<Fixnum>(val)->to_ulong());
       } else {
-        type_assert(val, BignumType, "converting to unsigned long");
+        type_assert(state, val, BignumType, "converting to unsigned long");
         WRITE(unsigned long, as<Bignum>(val)->to_ulong());
       }
       break;
     case RBX_FFI_TYPE_FLOAT: {
       Float* flt = as<Float>(val);
-      type_assert(val, FloatType, "converting to float");
+      type_assert(state, val, FloatType, "converting to float");
       WRITE(float, flt->to_double(state));
       break;
     }
     case RBX_FFI_TYPE_DOUBLE: {
       Float* flt = as<Float>(val);
-      type_assert(val, FloatType, "converting to double");
+      type_assert(state, val, FloatType, "converting to double");
       WRITE(double, flt->to_double(state));
       break;
     }
@@ -279,7 +279,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(long long, as<Fixnum>(val)->to_long_long());
       } else {
-        type_assert(val, BignumType, "converting to long long");
+        type_assert(state, val, BignumType, "converting to long long");
         WRITE(long long, as<Bignum>(val)->to_long_long());
       }
       break;
@@ -287,7 +287,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(unsigned long long, as<Fixnum>(val)->to_ulong_long());
       } else {
-        type_assert(val, BignumType, "converting to unsigned long long");
+        type_assert(state, val, BignumType, "converting to unsigned long long");
         WRITE(unsigned long long, as<Bignum>(val)->to_ulong_long());
       }
       break;
@@ -299,7 +299,7 @@ namespace rubinius {
         WRITE(void*, NULL);
       } else {
         MemoryPointer *mp = as<MemoryPointer>(val);
-        type_assert(val, MemoryPointerType, "converting to pointer");
+        type_assert(state, val, MemoryPointerType, "converting to pointer");
         WRITE(void*, mp->pointer);
       }
       break;

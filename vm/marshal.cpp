@@ -124,7 +124,7 @@ namespace rubinius {
     stream << "p" << endl << tup->num_fields() << endl;
 
     for(size_t i = 0; i < tup->num_fields(); i++) {
-      marshal(tup->at(i));
+      marshal(tup->at(state, i));
     }
   }
 
@@ -153,7 +153,7 @@ namespace rubinius {
 
     stream.getline(data, 1024);
     if(stream.fail()) {
-      TypeError::raise("Unable to unmarshal Float: failed to read value");
+      Exception::type_error(state, "Unable to unmarshal Float: failed to read value");
     }
 
     char c = data[0];
@@ -174,7 +174,7 @@ namespace rubinius {
       } else if(!strncmp(data, "NaN", 3U)) {
         val = zero;
       } else {
-        TypeError::raise("Unable to unmarshal Float: invalid format");
+        Exception::type_error(state, "Unable to unmarshal Float: invalid format");
       }
 
       return Float::create(state, val / zero);
@@ -185,7 +185,7 @@ namespace rubinius {
     Tuple* ops = iseq->opcodes();
     stream << "i" << endl << ops->num_fields() << endl;
     for(size_t i = 0; i < ops->num_fields(); i++) {
-      stream << as<Fixnum>(ops->at(i))->to_native() << endl;
+      stream << as<Fixnum>(ops->at(state, i))->to_native() << endl;
     }
   }
 

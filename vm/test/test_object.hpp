@@ -88,7 +88,7 @@ class TestObject : public CxxTest::TestSuite {
 
     Tuple* tup2 = (Tuple*)tup->dup(state);
 
-    TS_ASSERT_EQUALS(tup2->at(0), Qtrue);
+    TS_ASSERT_EQUALS(tup2->at(state, 0), Qtrue);
     TS_ASSERT_DIFFERS(tup->id(state), tup2->id(state));
   }
 
@@ -98,7 +98,7 @@ class TestObject : public CxxTest::TestSuite {
 
     Tuple* tup2 = (Tuple*)tup->clone(state);
 
-    TS_ASSERT_EQUALS(tup2->at(0), Qtrue);
+    TS_ASSERT_EQUALS(tup2->at(state, 0), Qtrue);
 
     TS_ASSERT_DIFFERS(tup2->id(state), tup->id(state));
 

@@ -49,7 +49,7 @@ class TestContexts : public CxxTest::TestSuite {
                                              Fixnum::from(20),
                                              Fixnum::from(10))));
 
-    TS_ASSERT_EQUALS(10, ctx->line());
+    TS_ASSERT_EQUALS(10, ctx->line(state));
   }
 
   void test_recycle() {

@@ -2,8 +2,7 @@
 #define RBX_BUILTIN_TUPLE_HPP
 
 #include "builtin/object.hpp"
-
-#include "vm/exception.hpp"
+#include "builtin/exception.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
@@ -47,9 +46,9 @@ namespace rubinius {
     void replace_with(STATE, Tuple* other, int start, int end);
 
   public: // Inline Functions
-    OBJECT at(size_t index) {
+    OBJECT at(STATE, size_t index) {
       if(num_fields() <= index) {
-        ObjectBoundsExceeded::raise(this, index);
+        Exception::object_bounds_exceeded_error(state, this, index);
       }
       return field[index];
     }

@@ -23,7 +23,7 @@ namespace rubinius {
 
   OBJECT CompactLookupTable::fetch(STATE, OBJECT key) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      if(at(i) == key) return at(i + 1);
+      if(at(state, i) == key) return at(state, i + 1);
     }
 
     return Qnil;
@@ -31,7 +31,7 @@ namespace rubinius {
 
   OBJECT CompactLookupTable::store(STATE, OBJECT key, OBJECT val) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      OBJECT tmp = at(i);
+      OBJECT tmp = at(state, i);
       if(tmp == key || tmp->nil_p()) {
         put(state, i, key);
         put(state, i + 1, val);
@@ -44,7 +44,7 @@ namespace rubinius {
 
   OBJECT CompactLookupTable::has_key(STATE, OBJECT key) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      if(at(i) == key) return Qtrue;
+      if(at(state, i) == key) return Qtrue;
     }
 
     return Qfalse;
@@ -54,7 +54,7 @@ namespace rubinius {
     Array* ary = Array::create(state, COMPACTLOOKUPTABLE_SIZE / 2);
 
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      OBJECT key = at(i);
+      OBJECT key = at(state, i);
       if(!key->nil_p()) ary->append(state, key);
     }
 
@@ -65,8 +65,8 @@ namespace rubinius {
     Array* ary = Array::create(state, COMPACTLOOKUPTABLE_SIZE / 2);
 
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      OBJECT key = at(i);
-      if(!key->nil_p()) ary->append(state, at(i + 1));
+      OBJECT key = at(state, i);
+      if(!key->nil_p()) ary->append(state, at(state, i + 1));
     }
 
     return ary;
@@ -76,8 +76,8 @@ namespace rubinius {
     LookupTable* tbl = (LookupTable*)LookupTable::create(state);
 
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      OBJECT key = at(i);
-      if(!key->nil_p()) tbl->store(state, key, at(i + 1));
+      OBJECT key = at(state, i);
+      if(!key->nil_p()) tbl->store(state, key, at(state, i + 1));
     }
 
     return tbl;

@@ -169,7 +169,7 @@ namespace rubinius {
       // ATM, only a Tuple can be marked weak.
       Tuple* tup = as<Tuple>(*i);
       for(size_t ti = 0; ti < tup->num_fields(); ti++) {
-        OBJECT obj = tup->at(ti);
+        OBJECT obj = tup->at(object_memory->state, ti);
         if(obj->young_object_p()) {
           if(!obj->marked_p()) {
             tup->field[ti] = Qnil;

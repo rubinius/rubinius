@@ -38,7 +38,7 @@ namespace rubinius {
     OBJECT i = Fixnum::from(0);
     as<Integer>(i);
     for(size_t i = 0; i < tup->num_fields(); i++) {
-      ary->set(state, i, tup->at(i));
+      ary->set(state, i, tup->at(state, i));
     }
 
     return ary;
@@ -66,7 +66,7 @@ namespace rubinius {
 
     const native_int start = start_->to_native();
 
-    return tuple_->at(index + start);
+    return tuple_->at(state, index + start);
   }
 
   OBJECT Array::aset(STATE, Fixnum* idx, OBJECT val) {
@@ -86,7 +86,7 @@ namespace rubinius {
 
     idx += start_->to_native();
 
-    return tuple_->at(idx);
+    return tuple_->at(state, idx);
   }
 
   OBJECT Array::set(STATE, size_t idx, OBJECT val) {
@@ -108,7 +108,7 @@ namespace rubinius {
       new_size += idx;
       Tuple* nt = Tuple::create(state, new_size);
       for(size_t i = 0; i < cur; i++) {
-        nt->put(state, i, tup->at(i));
+        nt->put(state, i, tup->at(state, i));
       }
 
       tuple(state, nt);
@@ -145,7 +145,7 @@ namespace rubinius {
     size_t max = size();
 
     for(size_t i = 0; i < max; i++) {
-      if(tuple_->at(i) == val) return true;
+      if(tuple_->at(state, i) == val) return true;
     }
 
     return false;

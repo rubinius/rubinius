@@ -18,7 +18,7 @@ namespace rubinius {
 
   OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {
     if(num_fields() <= idx) {
-      ObjectBoundsExceeded::raise(this, idx);
+      Exception::object_bounds_exceeded_error(state, this, idx);
     }
 
     this->field[idx] = val;
@@ -74,7 +74,7 @@ namespace rubinius {
     }
 
     for(size_t i = start, j = 0; i <= length; i++, j++) {
-      this->put(state, j, other->at(i));
+      this->put(state, j, other->at(state, i));
     }
   }
 
@@ -87,7 +87,7 @@ namespace rubinius {
       Tuple* tuple = Tuple::create(state, this->num_fields() + cnt);
 
       for(size_t i = 0; i < this->num_fields(); i++) {
-        tuple->put(state, i + cnt, this->at(i));
+        tuple->put(state, i + cnt, this->at(state, i));
       }
 
       return tuple;
@@ -104,7 +104,7 @@ namespace rubinius {
     if(src < 0) src = 0;
     if(dst < 0) dst = 0;
     for(i = src, j = dst; i < osz && j < sz; i++, j++) {
-      this->put(state, j, other->at(i));
+      this->put(state, j, other->at(state, i));
     }
 
     return this;
@@ -153,7 +153,7 @@ namespace rubinius {
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
-      OBJECT obj = tup->at(i);
+      OBJECT obj = tup->at(state, i);
       if(obj == tup) {
         class_info(state, self, true);
       } else {
@@ -179,7 +179,7 @@ namespace rubinius {
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
-      OBJECT obj = tup->at(i);
+      OBJECT obj = tup->at(state, i);
       if(Tuple* t = try_as<Tuple>(obj)) {
         class_info(state, self);
         std::cout << ": " << t->num_fields() << ">" << std::endl;

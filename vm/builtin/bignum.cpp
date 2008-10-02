@@ -6,6 +6,7 @@
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
@@ -423,7 +424,7 @@ namespace rubinius {
 
   INTEGER Bignum::divide(STATE, FIXNUM denominator, INTEGER* remainder) {
     if(denominator->to_native() == 0) {
-      throw ZeroDivisionError(denominator, "divided by 0");
+      Exception::zero_division_error(state, "divided by 0");
     }
 
     NMP;
@@ -456,7 +457,7 @@ namespace rubinius {
 
   INTEGER Bignum::divide(STATE, Bignum* b, INTEGER* remainder) {
     if(mp_cmp_d(MP(b), 0) == MP_EQ) {
-      throw ZeroDivisionError(b, "divided by 0");
+      Exception::zero_division_error(state, "divided by 0");
     }
 
     NMP;
@@ -963,9 +964,9 @@ namespace rubinius {
     value = (d < 0) ? -d : d;
 
     if(std::isinf(d)) {
-      throw FloatDomainError(d, d < 0 ? "-Infinity" : "Infinity");
+      Exception::float_domain_error(state, d < 0 ? "-Infinity" : "Infinity");
     } else if(std::isnan(d)) {
-      throw FloatDomainError(d, "NaN");
+      Exception::float_domain_error(state, "NaN");
     }
 
     while (!(value <= (LONG_MAX >> 1)) || 0 != (long)value) {

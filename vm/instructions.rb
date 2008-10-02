@@ -67,7 +67,7 @@ class Instructions
 
   def add_method(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
     OBJECT recv = stack_pop();
     Module* mod = try_as<Module>(recv);
     /* If the receiver is not a module, use the receiver's class_object instead */
@@ -175,7 +175,7 @@ class Instructions
 
   def attach_method(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
     OBJECT obj = stack_pop();
     OBJECT obj2 = stack_pop();
     CompiledMethod* meth = as<CompiledMethod>(obj2);
@@ -290,7 +290,7 @@ class Instructions
     int k = tup->num_fields();
     /* If there is only one thing in the tuple... */
     if(k == 1) {
-      OBJECT t1 = tup->at(0);
+      OBJECT t1 = tup->at(state, 0);
       /* and that thing is an array... */
       if(kind_of<Array>(t1)) { // HACK use try_as
         /* make a tuple out of the array contents... */
@@ -324,7 +324,7 @@ class Instructions
     run();
 
     tup = as<Tuple>(task->stack_top());
-    TS_ASSERT_EQUALS(tup->at(0), Fixnum::from(1));
+    TS_ASSERT_EQUALS(tup->at(state, 0), Fixnum::from(1));
     CODE
   end
 
@@ -358,7 +358,7 @@ class Instructions
     if(k == 0) {
       stack_push(Qnil);
     } else if(k == 1) {
-      stack_push(tup->at(0));
+      stack_push(tup->at(state, 0));
     } else {
       stack_push(Array::from_tuple(state, tup));
     }
@@ -436,13 +436,13 @@ class Instructions
     run();
 
     Tuple* tup = as<Tuple>(task->pop());
-    TS_ASSERT_EQUALS(tup->at(0), Qtrue);
+    TS_ASSERT_EQUALS(tup->at(state, 0), Qtrue);
 
     task->push(Qfalse);
     run();
 
     tup = as<Tuple>(task->pop());
-    TS_ASSERT_EQUALS(tup->at(0), Qfalse);
+    TS_ASSERT_EQUALS(tup->at(state, 0), Qfalse);
 
     tup = Tuple::create(state, 1);
     task->push(tup);
@@ -485,7 +485,7 @@ class Instructions
   def check_serial(index, serial)
     <<-CODE
     OBJECT t1 = stack_pop();
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
 
     if(task->check_serial(t1, sym, serial)) {
       stack_push(Qtrue);
@@ -594,7 +594,7 @@ class Instructions
   def create_block(index)
     <<-CODE
     /* the method */
-    OBJECT _lit = task->literals()->at(index);
+    OBJECT _lit = task->literals()->at(state, index);
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
     MethodContext* parent;
@@ -724,7 +724,7 @@ class Instructions
     <<-CODE
     bool found;
     Module* under = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
     OBJECT res = task->const_get(under, sym, &found);
     if(!found) {
       Message& msg = *task->msg;
@@ -1213,8 +1213,8 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(G(true_class), as<Tuple>(task->stack_top())->at(1));
-    TS_ASSERT_EQUALS(cm, as<Tuple>(task->stack_top())->at(0));
+    TS_ASSERT_EQUALS(G(true_class), as<Tuple>(task->stack_top())->at(state, 1));
+    TS_ASSERT_EQUALS(cm, as<Tuple>(task->stack_top())->at(state, 0));
     CODE
   end
   # [Operation]
@@ -1443,11 +1443,11 @@ class Instructions
     run();
 
     Tuple* args = as<Tuple>(task->pop());
-    TS_ASSERT_EQUALS(Qnil, args->at(0));
-    TS_ASSERT_EQUALS(Qfalse, args->at(1));
+    TS_ASSERT_EQUALS(Qnil, args->at(state, 0));
+    TS_ASSERT_EQUALS(Qfalse, args->at(state, 1));
 
-    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_push_true), task->active()->cm()->iseq()->opcodes()->at(0));
-    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_ret), task->active()->cm()->iseq()->opcodes()->at(1));
+    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_push_true), task->active()->cm()->iseq()->opcodes()->at(state, 0));
+    TS_ASSERT_EQUALS(Fixnum::from(InstructionSequence::insn_ret), task->active()->cm()->iseq()->opcodes()->at(state, 1));
     CODE
   end
 
@@ -1856,7 +1856,7 @@ class Instructions
     <<-CODE
     bool created;
     OBJECT super = stack_pop();
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
 
     Class* cls = task->open_class(super, sym, &created);
 
@@ -1923,7 +1923,7 @@ class Instructions
     bool created;
     OBJECT super = stack_pop();
     Module* under = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
 
     Class* cls = task->open_class(under, super, sym, &created);
     // TODO use created? it's only for running the opened_class hook, which
@@ -2009,7 +2009,7 @@ class Instructions
 
   def open_module(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
 
     stack_push(task->open_module(sym));
     CODE
@@ -2056,7 +2056,7 @@ class Instructions
   def open_module_under(index)
     <<-CODE
     Module* mod = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
 
     stack_push(task->open_module(mod, sym));
     CODE
@@ -2214,7 +2214,7 @@ class Instructions
   def push_const(index)
     <<-CODE
     bool found;
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
     OBJECT res = task->const_get(sym, &found);
     if(!found) {
       Message& msg = *task->msg;
@@ -2445,7 +2445,7 @@ class Instructions
 
   def push_ivar(index)
     <<-CODE
-    OBJECT sym = task->literals()->at(index);
+    OBJECT sym = task->literals()->at(state, index);
     stack_push(task->self()->get_ivar(state, sym));
     CODE
   end
@@ -2483,7 +2483,7 @@ class Instructions
 
   def push_literal(val)
     <<-CODE
-    OBJECT t2 = task->literals()->at(val);
+    OBJECT t2 = task->literals()->at(state, val);
     stack_push(t2);
     CODE
   end
@@ -2863,7 +2863,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(index));
+    msg.send_site = as<SendSite>(task->literals()->at(state, index));
     msg.recv = stack_top();
     msg.block = Qnil;
     msg.splat = Qnil;
@@ -2941,7 +2941,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(index));
+    msg.send_site = as<SendSite>(task->literals()->at(state, index));
     msg.recv = stack_back(count);
     msg.block = Qnil;
     msg.splat = Qnil;
@@ -3023,7 +3023,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(index));
+    msg.send_site = as<SendSite>(task->literals()->at(state, index));
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.total_args = count;
@@ -3114,7 +3114,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(index));
+    msg.send_site = as<SendSite>(task->literals()->at(state, index));
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
@@ -3207,7 +3207,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(index));
+    msg.send_site = as<SendSite>(task->literals()->at(state, index));
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.total_args = count;
@@ -3341,7 +3341,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(index));
+    msg.send_site = as<SendSite>(task->literals()->at(state, index));
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
@@ -3470,7 +3470,7 @@ class Instructions
 
   def set_const(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
     task->const_set(sym, stack_top());
     CODE
   end
@@ -3513,7 +3513,7 @@ class Instructions
 
   def set_const_at(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(index));
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
     OBJECT val = stack_pop();
     Module* under = as<Module>(stack_pop());
 
@@ -3554,7 +3554,7 @@ class Instructions
 
   def set_ivar(index)
     <<-CODE
-    OBJECT sym = task->literals()->at(index);
+    OBJECT sym = task->literals()->at(state, index);
     task->self()->set_ivar(state, sym, stack_top());
     CODE
   end
@@ -3610,7 +3610,7 @@ class Instructions
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
-    TS_ASSERT_EQUALS(task->literals()->at(0), Qtrue);
+    TS_ASSERT_EQUALS(task->literals()->at(state, 0), Qtrue);
     CODE
   end
 
@@ -3737,7 +3737,7 @@ class Instructions
       stack_push(Qnil);
     } else {
       int j = tuple->num_fields() - 1;
-      OBJECT shifted_value = tuple->at(0);
+      OBJECT shifted_value = tuple->at(state, 0);
 
       Tuple* new_tuple = Tuple::create(state, j);
       new_tuple->replace_with(state, tuple, 1, j);
@@ -3766,7 +3766,7 @@ class Instructions
 
       run();
       TS_ASSERT_EQUALS(Fixnum::from(10), as<Fixnum>(task->pop()));
-      TS_ASSERT_EQUALS(Fixnum::from(20), as<Tuple>(task->pop())->at(0));
+      TS_ASSERT_EQUALS(Fixnum::from(20), as<Tuple>(task->pop())->at(state, 0));
     CODE
   end
 

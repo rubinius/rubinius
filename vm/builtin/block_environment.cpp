@@ -50,7 +50,7 @@ namespace rubinius {
           as<Symbol>(home_->name()), home_->module()->name(), profiler::kBlock);
 
       if(!prof_meth->file()) {
-        prof_meth->set_position(method_->file(), method_->start_line());
+        prof_meth->set_position(method_->file(), method_->start_line(state));
       }
     }
     task->make_active(ctx);
@@ -76,7 +76,7 @@ namespace rubinius {
           as<Symbol>(home_->name()), home_->module()->name(), profiler::kBlock);
 
       if(!prof_meth->file()) {
-        prof_meth->set_position(method_->file(), method_->start_line());
+        prof_meth->set_position(method_->file(), method_->start_line(state));
       }
     }
     task->make_active(ctx);
@@ -118,7 +118,7 @@ namespace rubinius {
     if((vmm = active->vmm->blocks[index]) == NULL) {
       vmm = new VMMethod(state, cm);
       if(active->vmm->type) {
-        vmm->specialize(active->vmm->type);
+        vmm->specialize(state, active->vmm->type);
       }
       active->vmm->blocks[index] = vmm;
     }
