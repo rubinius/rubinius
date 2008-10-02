@@ -59,9 +59,8 @@ namespace rubinius {
     nmc->my_state = state;
     nmc->my_task = task;
 
-    /* TODO: Make active here. */
+    nmc->vmm = NULL;
 
-    current_context_is(nmc);
     return nmc;
   }
 

@@ -101,7 +101,7 @@ namespace rubinius {
 
     Task* task() { return my_task; }
 
-    void value_returned_to_c(Handle obj) { my_c_return_value = obj; }
+    void value_returned_to_c(Object* obj) { my_c_return_value = handle_for(obj); }
     Handle value_returned_to_c() { return my_c_return_value; }
 
     ExecutionPoint c_call_point() { return &my_c_call_point; }
