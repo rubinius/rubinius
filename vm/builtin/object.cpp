@@ -109,7 +109,7 @@ namespace rubinius {
       }
 
       if(mod->nil_p()) {
-        Assertion::raise("Object::class_object() failed to find a class");
+        Exception::assertion_error(state, "Object::class_object() failed to find a class");
       }
       return as<Class>(mod);
     }
@@ -454,7 +454,7 @@ namespace rubinius {
 
   Object* Object::yield_gdb(STATE, Object* obj) {
     obj->show(state);
-    Assertion::raise("yield_gdb called and not caught");
+    Exception::assertion_error(state, "yield_gdb called and not caught");
     return obj;
   }
 
