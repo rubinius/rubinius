@@ -463,6 +463,10 @@ class Compiler
       add :goto_if_true, lbl
     end
 
+    def equal()
+      add :equal
+    end
+
     def goto(lbl)
       add :goto, lbl
     end
