@@ -850,6 +850,7 @@ class Array
   # the Array is empty, without a count nil is returned,
   # otherwise an empty Array. Always returns an Array.
   def last(n = nil)
+    return if @total < 1
     return at(-1) unless n
 
     n = Type.coerce_to n, Fixnum, :to_int
