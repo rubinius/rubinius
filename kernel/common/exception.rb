@@ -84,13 +84,6 @@ class ZeroDivisionError < StandardError
 end
 
 class ArgumentError < StandardError
-  def message
-    unless @message
-      @message = "given #{@given}, expected #{@expected}"
-    end
-
-    @message
-  end
 end
 
 class IndexError < StandardError
@@ -195,6 +188,25 @@ class SystemCallError < StandardError
     super(message)
     @errno = errno
   end
+end
+
+##
+# Base class for various exceptions raised in the VM.
+
+class Rubinius::VMException < Exception
+end
+
+##
+# Raised in the VM when an assertion fails.
+
+class Rubinius::AssertionError < Rubinius::VMException
+end
+
+##
+# Raised in the VM when attempting to read/write outside
+# the bounds of an object.
+
+class Rubinius::ObjectBoundsExceededError < Rubinius::VMException
 end
 
 ##

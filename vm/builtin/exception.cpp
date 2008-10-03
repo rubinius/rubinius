@@ -129,7 +129,7 @@ namespace rubinius {
   }
 
   Class* Exception::get_assertion_error(STATE) {
-    return as<Class>(G(rubinius)->get_const(state, "Assertion"));
+    return as<Class>(G(rubinius)->get_const(state, "AssertionError"));
   }
 
   Class* Exception::get_object_bounds_exceeded_error(STATE) {

@@ -383,8 +383,7 @@ namespace rubinius {
   }
 
   void VM::bootstrap_exceptions() {
-    int sz;
-    sz = Exception::fields;
+    int sz = Exception::fields;
 
     Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vme;
     Class* fce;
@@ -422,7 +421,7 @@ namespace rubinius {
 
     // Some special exceptions scoped under the Rubinius module
     vme = new_class("VMException", exc, sz, G(rubinius));
-    new_class("Assertion", vme, sz, G(rubinius));
+    new_class("AssertionError", vme, sz, G(rubinius));
     new_class("ObjectBoundsExceededError", vme, sz, G(rubinius));
 
     GO(exc_type).set(type);
