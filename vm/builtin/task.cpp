@@ -88,7 +88,7 @@ namespace rubinius {
 
   MethodContext* Task::current_context(STATE) {
     MethodContext* context = active_;
-    context->reference(state); // HACK not implemented yet
+    context->reference(state);
     return context;
   }
 
@@ -262,6 +262,12 @@ stack_cleanup:
 
   OBJECT Task::call_object(STATE, OBJECT recv, SYMBOL meth, Array* args) {
     recv->send_on_task(state, this, meth, args);
+
+    // HACK by calling directly into another Task, the context cache gets
+    // confused. So we force references to the top contexts here to keep
+    // the cache sane.
+    active_->reference(state);
+    home_->reference(state);
     return Qtrue;
   }
 
@@ -725,8 +731,12 @@ stack_cleanup:
           // If we're switching tasks, return to the task monitor
           if(state->interrupts.switch_task) {
             state->interrupts.switch_task = false;
+            return;
           }
+
         }
+
+        if(state->wait_events) return;
 
         if(state->om->collect_young_now || state->om->collect_mature_now) {
           return;

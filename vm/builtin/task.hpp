@@ -178,6 +178,9 @@ namespace rubinius {
     public:
       Halt(const char* str) : std::runtime_error(str) { }
     };
+
+    class WaitOnEvents {
+    };
   };
 }
 

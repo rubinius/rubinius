@@ -14,11 +14,15 @@ class Thread
     Kernel.raise PrimitiveFailure, "primitive failed"
   end
 
-  def self.dequeue
+  def dequeue
     Ruby.primitive :thread_dequeue
     Kernel.raise PrimitiveFailure, "primitive failed"
   end
-  
+
+  def self.dequeue
+    Thread.current.dequeue
+  end
+
   def run
     Ruby.primitive :thread_run
     Kernel.raise ThreadError, "killed thread"

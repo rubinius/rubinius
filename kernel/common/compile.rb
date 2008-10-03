@@ -205,6 +205,10 @@ module Compile
           # Store it for the future
           Rubinius::CompiledFile.dump cm, rbc_path
         else
+          if $DEBUG_LOADING
+            STDERR.puts "[Loading #{rbc_path}]"
+          end
+
           compile_feature(rb, requiring) do
             cm = load_from_rbc(rbc_path, version_number)
             # cm is nil if the file is out of date, version wise.

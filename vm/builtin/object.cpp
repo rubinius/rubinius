@@ -345,6 +345,7 @@ namespace rubinius {
     msg.name = name;
     msg.recv = this;
     msg.lookup_from = this->lookup_begin(state);
+    msg.stack = 0;
 
     msg.set_arguments(state, args);
 

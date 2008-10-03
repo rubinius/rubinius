@@ -122,10 +122,11 @@ namespace rubinius {
     void collect();
 
     void return_value(OBJECT val);
-    void run_best_thread();
+    bool run_best_thread();
     void queue_thread(Thread* thread);
     void activate_thread(Thread* thread);
     void activate_task(Task* task);
+    bool find_and_activate_thread();
 
     void raise_from_errno(const char* reason);
     void raise_exception(Exception* exc);

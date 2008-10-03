@@ -968,7 +968,10 @@ ev_recommended_backends (void)
   flags &= ~EVBACKEND_KQUEUE;
 #endif
 #ifdef __APPLE__
-  // flags &= ~EVBACKEND_KQUEUE; for documentation
+  // kqueue is broken for anything but sockets and pipes
+  flags &= ~EVBACKEND_KQUEUE;
+
+  // poll uses kquueue
   flags &= ~EVBACKEND_POLL;
 #endif
 

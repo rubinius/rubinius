@@ -6,6 +6,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
 #include "builtin/contexts.hpp"
+#include "builtin/channel.hpp"
 
 #include "objectmemory.hpp"
 #include "vm.hpp"
@@ -29,6 +30,8 @@ namespace rubinius {
     thr->priority(state, Fixnum::from(2));
 
     thr->boot_task(state);
+    thr->sleep(state, Qtrue);
+    thr->alive(state, Qtrue);
 
     return thr;
   }
@@ -56,18 +59,43 @@ namespace rubinius {
     return this;
   }
 
+  // Called when VM is putting this Thread back into play. It
+  // doesn't mean it's about to run, just that it's scheduled
+  // to do so.
+  void Thread::woken(STATE) {
+    sleep(state, Qfalse);
+    channel(state, (Channel*)Qnil);
+  }
+
   void Thread::set_top(STATE, OBJECT val) {
     task_->active()->set_top(val);
   }
 
   void Thread::sleep_for(STATE, Channel* chan) {
     channel(state, chan);
-    set_ivar(state, state->symbol("@sleep"), Qtrue);
+    sleep(state, Qtrue);
   }
 
   Thread* Thread::wakeup(STATE) {
     state->queue_thread(this);
     return this;
+  }
+
+  OBJECT Thread::raise(STATE, Exception* exc) {
+    return task_->raise(state, exc);
+  }
+
+  bool Thread::dequeue_prim(STATE, Executable* exec, Task* task, Message& msg) {
+    alive(state, Qfalse);
+    task_ = (Task*)Qnil;
+
+    // TODO make sure this isn't in global.scheduled_threads
+
+    // TODO clear the channel's events rather than making sure there isn't one
+    assert(channel()->nil_p());
+
+    state->run_best_thread();
+    return true;
   }
 
 }

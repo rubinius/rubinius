@@ -10,6 +10,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/io.hpp"
+#include "builtin/contexts.hpp"
 
 #include "event.hpp"
 
@@ -38,6 +39,29 @@ namespace rubinius {
     return Qnil;
   }
 
+  bool Channel::receive_prim(STATE, Executable* exec, Task* task, Message& msg) {
+    // TODO check arity
+    //
+
+    // HACK manually clear the stack of msg's values
+    task->active()->clear_stack(msg.stack);
+
+    if(!value_->nil_p()) {
+      OBJECT val = as<List>(value_)->shift(state);
+      task->push(val);
+      return false;
+    }
+
+    /* We push nil on the stack to reserve a place to put the result. */
+    state->return_value(Qfalse);
+
+    G(current_thread)->sleep_for(state, this);
+    waiting_->append(state, G(current_thread));
+
+    state->run_best_thread();
+    return true;
+  }
+
   OBJECT Channel::receive(STATE) {
     if(!value_->nil_p()) {
       OBJECT val = as<List>(value_)->shift(state);
@@ -50,7 +74,9 @@ namespace rubinius {
 
     G(current_thread)->sleep_for(state, this);
     waiting_->append(state, G(current_thread));
+
     state->run_best_thread();
+
     return Qnil;
   }
 

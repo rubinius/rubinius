@@ -169,28 +169,29 @@ namespace rubinius {
     om->collect_mature(globals.roots);
   }
 
-  void VM::run_best_thread() {
-    Thread* next = NULL;
-
-    events->poll();
-
+  bool VM::find_and_activate_thread() {
     for(size_t i = globals.scheduled_threads->num_fields() - 1; i > 0; i--) {
       List* lst = as<List>(globals.scheduled_threads->at(this, i));
       if(lst->empty_p()) continue;
-      next = as<Thread>(lst->shift(this));
-      break;
+      activate_thread(as<Thread>(lst->shift(this)));
+      return true;
     }
 
-    if(!next) {
+    return false;
+  }
+
+  bool VM::run_best_thread() {
+    events->poll();
+
+    if(!find_and_activate_thread()) {
       if(events->num_of_events() == 0) {
         throw DeadLock("no runnable threads, present or future.");
       }
 
       wait_events = true;
-      return;
+      return false;
     }
-
-    activate_thread(next);
+    return true;
   }
 
   void VM::return_value(OBJECT val) {
@@ -201,6 +202,8 @@ namespace rubinius {
     List* lst = as<List>(globals.scheduled_threads->at(this,
           thread->priority()->to_native()));
     lst->append(this, thread);
+
+    thread->woken(this);
   }
 
   void VM::activate_thread(Thread* thread) {
@@ -208,6 +211,8 @@ namespace rubinius {
     if(globals.current_task.get() != thread->task()) {
       activate_task(thread->task());
     }
+
+    thread->woken(this);
   }
 
   void VM::activate_task(Task* task) {
@@ -251,6 +256,12 @@ namespace rubinius {
 
   void VM::run_and_monitor() {
     for(;;) {
+      while(wait_events) {
+        wait_events = false;
+        events->run_and_wait();
+        find_and_activate_thread();
+      }
+
       G(current_task)->check_interrupts();
       G(current_task)->execute();
     }

@@ -123,7 +123,14 @@ def compile_c(obj, src)
     $llvm_c.delete_if { |e| e.index("-O") == 0 }
   end
 
-  flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
+  flags = INCLUDES + FLAGS + $llvm_c
+
+  # GROSS
+  if src == "vm/test/runner.cpp"
+    flags.delete_if { |f| /-O.*/.match(f) }
+  end
+
+  flags = flags.join(" ")
 
   if $verbose
     sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1"

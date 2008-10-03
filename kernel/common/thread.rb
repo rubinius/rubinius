@@ -31,7 +31,6 @@ class Thread
 
   def setup(prime_lock)
     @group = nil
-    @sleep = true
     @alive = true
     @result = nil
     @exception = nil
@@ -39,6 +38,7 @@ class Thread
     @locals = LookupTable.new
     @lock = Channel.new
     @lock.send nil if prime_lock
+    @joins = []
   end
 
   def initialize(*args)

@@ -9,6 +9,7 @@
 namespace rubinius {
   class Channel;
   class Task;
+  class Exception;
 
   class Thread : public Object {
   public:
@@ -19,6 +20,8 @@ namespace rubinius {
     Task* task_;       // slot
     Channel* channel_; // slot
     FIXNUM priority_;  // slot
+    OBJECT alive_;     // slot
+    OBJECT sleep_;     // slot
 
   public:
     /* accessors */
@@ -26,6 +29,8 @@ namespace rubinius {
     attr_accessor(task, Task);
     attr_accessor(channel, Channel);
     attr_accessor(priority, Fixnum);
+    attr_accessor(sleep, Object);
+    attr_accessor(alive, Object);
 
     /* interface */
 
@@ -50,6 +55,15 @@ namespace rubinius {
 
     // Ruby.primitive :thread_schedule
     Thread* wakeup(STATE);
+
+    // Ruby.primitive :thread_raise
+    OBJECT raise(STATE, Exception* exc);
+
+    // Ruby.primitive? :thread_dequeue
+    bool dequeue_prim(STATE, Executable* exec, Task* task, Message& msg);
+
+    // Called by the VM when this thread has been schedule to run.
+    void Thread::woken(STATE);
 
     class Info : public TypeInfo {
     public:

@@ -82,7 +82,7 @@ class TestChannel : public CxxTest::TestSuite {
 
     chan->receive(state);
     TS_ASSERT_EQUALS(G(current_thread), other);
-    TS_ASSERT_EQUALS(orig->get_ivar(state, state->symbol("@sleep")), Qtrue);
+    TS_ASSERT_EQUALS(orig->sleep(), Qtrue);
   }
 
   void test_receive_causes_event_block() {

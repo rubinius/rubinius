@@ -57,7 +57,7 @@ public:
     CompiledMethod* cm = as<CompiledMethod>(cf->body(state));
     TS_ASSERT(cm);
 
-    Task* task = Task::create(state);
+    Task* task = state->new_task();
 
     Message msg(state);
     msg.set_args(0);
@@ -70,7 +70,7 @@ public:
 
     cm->execute(state, task, msg);
 
-    TS_ASSERT_THROWS(task->execute(), Task::Halt);
+    TS_ASSERT_THROWS(state->run_and_monitor(), Task::Halt);
 
     Class* cls = try_as<Class>(G(object)->get_const(state, "Blah"));
     TS_ASSERT(cls);
