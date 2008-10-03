@@ -63,7 +63,7 @@ namespace rubinius {
     bool dequeue_prim(STATE, Executable* exec, Task* task, Message& msg);
 
     // Called by the VM when this thread has been schedule to run.
-    void Thread::woken(STATE);
+    void woken(STATE);
 
     class Info : public TypeInfo {
     public:

@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_EXECUTABLE_HPP
 #define RBX_BUILTIN_EXECUTABLE_HPP
 
+#include <cassert>
+
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 #include "executor.hpp"

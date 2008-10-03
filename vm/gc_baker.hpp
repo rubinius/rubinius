@@ -2,6 +2,7 @@
 #define RBX_VM_GC_BAKER_HPP
 
 #include <iostream>
+#include <cstring>
 
 #include "vm/gc.hpp"
 #include "vm/gc_root.hpp"
