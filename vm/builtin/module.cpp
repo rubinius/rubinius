@@ -22,7 +22,7 @@ namespace rubinius {
     return mod;
   }
 
-  Module* Module::new_instance(STATE, OBJECT self) {
+  Module* Module::allocate(STATE, OBJECT self) {
     Module* module = Module::create(state);
 
     module->klass(state, (Class*)self);
@@ -101,7 +101,7 @@ namespace rubinius {
     return imod;
   }
 
-  IncludedModule* IncludedModule::new_instance(STATE, OBJECT self) {
+  IncludedModule* IncludedModule::allocate(STATE, OBJECT self) {
     IncludedModule* imod = IncludedModule::create(state);
 
     imod->klass(state, (Class*)self);

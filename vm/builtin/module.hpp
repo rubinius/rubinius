@@ -30,8 +30,8 @@ namespace rubinius {
     /* interface */
     static Module* create(STATE);
 
-    // Ruby.primitive :module_new_instance
-    static Module* new_instance(STATE, OBJECT self);
+    // Ruby.primitive :module_allocate
+    static Module* allocate(STATE, OBJECT self);
 
     void setup(STATE);
     void setup(STATE, const char* name, Module* under = NULL);
@@ -67,8 +67,8 @@ namespace rubinius {
     /* interface */
     static IncludedModule* create(STATE);
 
-    // Ruby.primitive :included_module_new_instance
-    static IncludedModule* new_instance(STATE, OBJECT self);
+    // Ruby.primitive :included_module_allocate
+    static IncludedModule* allocate(STATE, OBJECT self);
 
     class Info : public Module::Info {
     public:

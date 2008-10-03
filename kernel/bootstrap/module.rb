@@ -7,8 +7,8 @@ class Module
   def name           ; @name.to_s    ; end
 
   def self.allocate
-    Ruby.primitive :module_new_instance
-    raise PrimitiveFailure, "Module.new_instance primitive failed"
+    Ruby.primitive :module_allocate
+    raise PrimitiveFailure, "Module.allocate primitive failed"
   end
 
   # Ultra simple private

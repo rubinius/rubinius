@@ -80,8 +80,8 @@ class IncludedModule < Module
   def module    ; @module     ; end
 
   def self.allocate
-    Ruby.primitive :included_module_new_instance
-    raise PrimitiveFailure, "IncludedModule.new_instance primitive failed"
+    Ruby.primitive :included_module_allocate
+    raise PrimitiveFailure, "IncludedModule.allocate primitive failed"
   end
 
   def initialize(mod)
