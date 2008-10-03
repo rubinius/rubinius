@@ -20,5 +20,5 @@ class MSpecScript
                       ]
 
   # The default implementation to run the specs.
-  set :target, 'shotgun/rubinius'
+  set :target, 'bin/rbx'
 end
