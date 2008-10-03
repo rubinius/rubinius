@@ -323,10 +323,10 @@ class RubyParser < Racc::Parser
     super
     self.lexer = RubyLexer.new
     self.lexer.parser = self
-    self.in_def = false
-    self.in_single = 0
     @env = Environment.new
     @comments = []
+
+    self.reset
   end
 
   def list_append list, item # TODO: nuke me *sigh*
@@ -502,6 +502,14 @@ class RubyParser < Racc::Parser
       node.line = oldnode.line
     end
     node
+  end
+
+  def reset
+    lexer.reset
+    self.in_def = false
+    self.in_single = 0
+    self.env.reset
+    self.comments.clear
   end
 
   def ret_args node
@@ -688,7 +696,6 @@ end
 
 class Environment
   attr_reader :env, :dyn
-  attr_accessor :init
 
   def [] k
     self.all[k]
@@ -727,7 +734,13 @@ class Environment
     @dyn = []
     @env = []
     @use = []
-    @init = false
+    self.reset
+  end
+
+  def reset
+    @dyn.clear
+    @env.clear
+    @use.clear
     self.extend
   end
 
