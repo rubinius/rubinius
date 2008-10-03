@@ -89,27 +89,27 @@ namespace rubinius {
   }
 
   bool Exception::argument_error_p(STATE, Exception* exc) {
-    return exc->klass() == get_argument_error(state);
+    return exc->kind_of_p(state, get_argument_error(state));
   }
 
   bool Exception::type_error_p(STATE, Exception* exc) {
-    return exc->klass() == get_type_error(state);
+    return exc->kind_of_p(state, get_type_error(state));
   }
 
   bool Exception::zero_division_error_p(STATE, Exception* exc) {
-    return exc->klass() == get_zero_division_error(state);
+    return exc->kind_of_p(state, get_zero_division_error(state));
   }
 
   bool Exception::float_domain_error_p(STATE, Exception* exc) {
-    return exc->klass() == get_float_domain_error(state);
+    return exc->kind_of_p(state, get_float_domain_error(state));
   }
 
   bool Exception::assertion_error_p(STATE, Exception* exc) {
-    return exc->klass() == get_assertion_error(state);
+    return exc->kind_of_p(state, get_assertion_error(state));
   }
 
   bool Exception::object_bounds_exceeded_error_p(STATE, Exception* exc) {
-    return exc->klass() == get_object_bounds_exceeded_error(state);
+    return exc->kind_of_p(state, get_object_bounds_exceeded_error(state));
   }
 
   Class* Exception::get_argument_error(STATE) {
