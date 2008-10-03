@@ -65,6 +65,10 @@ namespace rubinius {
     attr_accessor(module, Object);
 
     /* interface */
+    static IncludedModule* create(STATE);
+
+    // Ruby.primitive :included_module_new_instance
+    static IncludedModule* new_instance(STATE, OBJECT self);
 
     class Info : public Module::Info {
     public:

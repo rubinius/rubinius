@@ -90,4 +90,23 @@ namespace rubinius {
     indent_attribute(level, "method_table"); mod->method_table()->show(state, level);
     close_body(level);
   }
+
+  IncludedModule* IncludedModule::create(STATE) {
+    IncludedModule* imod;
+    imod = (IncludedModule*)state->new_object(G(included_module));
+
+    imod->name(state, (SYMBOL)Qnil);
+    imod->superclass(state, (Module*)Qnil);
+
+    return imod;
+  }
+
+  IncludedModule* IncludedModule::new_instance(STATE, OBJECT self) {
+    IncludedModule* imod = IncludedModule::create(state);
+
+    imod->klass(state, (Class*)self);
+
+    return imod;
+  }
+
 }

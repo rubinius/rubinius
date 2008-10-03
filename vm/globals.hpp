@@ -56,7 +56,7 @@ namespace rubinius {
     TypedRoot<Class*> floatpoint, fastctx, data, nmc, task, list, list_node;
     TypedRoot<Class*> channel, thread, staticscope, send_site, selector, lookuptable;
     TypedRoot<Class*> iseq, executable, native_function, iobuffer;
-    TypedRoot<Class*> cmethod_vis;
+    TypedRoot<Class*> cmethod_vis, included_module;
 
     /* the primary symbol table */
     TypedRoot<SYMBOL> sym_method_missing;
@@ -147,6 +147,7 @@ namespace rubinius {
       native_function(&roots),
       iobuffer(&roots),
       cmethod_vis(&roots),
+      included_module(&roots),
       sym_method_missing(&roots),
       sym_inherited(&roots),
       sym_opened_class(&roots),

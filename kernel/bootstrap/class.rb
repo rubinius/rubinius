@@ -79,6 +79,11 @@ class IncludedModule < Module
   def superclass; @superclass ; end
   def module    ; @module     ; end
 
+  def self.allocate
+    Ruby.primitive :included_module_new_instance
+    raise PrimitiveFailure, "IncludedModule.new_instance primitive failed"
+  end
+
   def initialize(mod)
     @method_table = mod.method_table
     @method_cache = nil

@@ -165,6 +165,10 @@ namespace rubinius {
     globals.special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
     globals.special_classes[(uintptr_t)Qtrue ] = GO(true_class);
 
+    /* Create IncludedModule */
+    GO(included_module).set(new_class("IncludedModule", G(module)));
+    G(included_module)->instance_fields(state, Fixnum::from(IncludedModule::fields));
+    G(included_module)->set_object_type(state, IncludedModuleType);
 
     // Let all the builtin classes initialize themselves. This
     // typically means creating a Ruby class.
