@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 namespace rubinius {
@@ -87,15 +88,14 @@ namespace rubinius {
       Exception* exc = G(current_task)->exception();
       G(current_task)->active(state, exc->context());
 
-      String* message = String::create(state,
-          "exception detected at toplevel: ");
+      std::ostringstream msg;
+
+      msg << "exception detected at toplevel: ";
       if(!exc->message()->nil_p()) {
-        message->append(state, exc->message());
+        msg << exc->message()->c_str();
       }
-      message->append(state, " (");
-      message->append(state, exc->klass()->name()->to_str(state));
-      message->append(state, ")");
-      Assertion::raise(message->c_str());
+      msg << " (" << exc->klass()->name()->c_str(state) << ")";
+      Assertion::raise(msg.str().c_str());
     }
   }
 
