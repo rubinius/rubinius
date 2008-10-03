@@ -28,6 +28,9 @@ namespace rubinius {
     static Exception* create(STATE);
 
     static Exception* make_exception(STATE, Class* exc_class, const char* message);
+    static Exception* make_type_error(STATE, object_type type, OBJECT object,
+                           const char* reason = NULL);
+
     static void argument_error(STATE, int expected, int given);
     static void argument_error(STATE, const char* reason);
     static void type_error(STATE, const char* reason);
@@ -42,9 +45,9 @@ namespace rubinius {
     /**
      * Convenience predicates for checking the class of an
      * exception instance. These are provided as a way around
-     * creating a bunch more C++ globals and because the
-     * exception hierarchy (e.g. FloatDomainError) isn't
-     * always consistent.
+     * creating a bunch more C++ builtin classes and globals
+     * and because the exception hierarchy (e.g. FloatDomainError)
+     * isn't always consistent.
      */
     static bool argument_error_p(STATE, Exception* exc);
     static bool type_error_p(STATE, Exception* exc);

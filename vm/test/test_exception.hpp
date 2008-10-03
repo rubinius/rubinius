@@ -50,6 +50,14 @@ class TestException : public CxxTest::TestSuite {
         TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
 
+  void test_make_type_error() {
+    object_type type = ClassType;
+    OBJECT obj = G(object);
+
+    TS_ASSERT(Exception::type_error_p(state,
+          Exception::make_type_error(state, type, obj)));
+  }
+
   void test_ruby_exception_type_error() {
     object_type type = ClassType;
     OBJECT obj = G(object);

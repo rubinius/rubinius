@@ -41,11 +41,7 @@ namespace rubinius {
     RubyException::raise(make_exception(state, get_argument_error(state), reason));
   }
 
-  void Exception::type_error(STATE, const char* reason) {
-    RubyException::raise(make_exception(state, get_type_error(state), reason));
-  }
-
-  void Exception::type_error(STATE, object_type type, OBJECT object,
+  Exception* Exception::make_type_error(STATE, object_type type, OBJECT object,
                                    const char* reason) {
     std::ostringstream msg;
 
@@ -61,7 +57,16 @@ namespace rubinius {
 
     msg << " as type " << wanted->type_name << " (" << wanted->type << ")";
 
-    type_error(state, msg.str().c_str());
+    return make_exception(state, get_type_error(state), msg.str().c_str());
+  }
+
+  void Exception::type_error(STATE, const char* reason) {
+    RubyException::raise(make_exception(state, get_type_error(state), reason));
+  }
+
+  void Exception::type_error(STATE, object_type type, OBJECT object,
+                                   const char* reason) {
+    RubyException::raise(make_type_error(state, type, object, reason));
   }
 
   void Exception::float_domain_error(STATE, const char* reason) {

@@ -734,6 +734,9 @@ stack_cleanup:
       }
     } catch(RubyException &exc) {
       raise_exception(exc.exception);
+    } catch(TypeError &exc) {
+      Exception* e = Exception::make_type_error(state, exc.type, exc.object);
+      raise_exception(e);
     }
   }
 
