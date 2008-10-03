@@ -573,7 +573,11 @@ class Compiler
         nil
       end
 
+      attr_reader :outer_scope
+
       def consume(sexp, iter=false, eval=false)
+        @outer_scope = get(:scope)
+
         set(:scope => self, :iter => iter, :eval => eval) do
           out = convert(sexp[0])
           @all_scopes.each do |scope|
@@ -2564,6 +2568,9 @@ class Compiler
 
       def args
         @method = get(:scope)
+        if @method.is? SClass
+          @method = @method.outer_scope
+        end
       end
     end
   end
