@@ -10,10 +10,7 @@
 namespace rubinius {
   /* The Tuple#at primitive. */
   OBJECT Tuple::at_prim(STATE, FIXNUM index_obj) {
-    size_t index = index_obj->to_native();
-    if(num_fields() <= index) return Qnil;
-
-    return field[index];
+    return at(state, index_obj->to_native());
   }
 
   OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {

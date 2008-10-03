@@ -44,7 +44,8 @@ public:
   void test_at_prim() {
     Tuple* tuple = new_tuple();
     TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(tuple->at_prim(state, Fixnum::from(1))));
-    TS_ASSERT_EQUALS(Qnil, tuple->at_prim(state, Fixnum::from(4)));
+    TS_ASSERT_THROWS_ASSERT(tuple->at_prim(state, Fixnum::from(4)), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
 
   void test_put_prim() {
