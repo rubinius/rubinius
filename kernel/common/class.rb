@@ -60,7 +60,7 @@ class Class
     end
 
     @instance_fields = sclass.instance_fields
-    @object_type = sclass.object_type
+    @instance_type = sclass.object_type
     @superclass = sclass
 
     mc = self.metaclass

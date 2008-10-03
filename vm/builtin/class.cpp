@@ -28,6 +28,10 @@ namespace rubinius {
     return cls;
   }
 
+  Class* Class::s_allocate(STATE) {
+    return as<Class>(state->new_object(G(klass)));
+  }
+
   OBJECT Class::allocate(STATE) {
     return state->new_object(this);
   }

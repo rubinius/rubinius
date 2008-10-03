@@ -2,6 +2,11 @@
 
 class Class
 
+  def self.allocate
+    Ruby.primitive :class_s_allocate
+    raise PrimitiveFailure, "Unable to create a new Class"
+  end
+
   def allocate
     Ruby.primitive :class_allocate
     raise RuntimeError, "primitive 'class_allocate' failed on #{self.inspect}"
