@@ -14,7 +14,7 @@ namespace rubinius {
   Message::Message(STATE, Array* ary) :
       task(NULL), argument_start(0), send_site(NULL), name(NULL),
       recv(Qnil), block(Qnil), splat(Qnil), current_self(Qnil),
-      total_args(0), stack(0), start(0), priv(false), lookup_from(NULL), 
+      total_args(0), stack(0), start(0), priv(false), lookup_from(NULL),
       method(NULL), module(NULL), method_missing(false) {
     this->state = state;
     arguments = ary;
@@ -25,7 +25,7 @@ namespace rubinius {
       state(state), arguments(NULL), task(NULL),
       argument_start(0), send_site(NULL), name(NULL),
       recv(Qnil), block(Qnil), splat(Qnil), current_self(Qnil),
-      total_args(0), stack(0), start(0), priv(false), lookup_from(NULL), 
+      total_args(0), stack(0), start(0), priv(false), lookup_from(NULL),
       method(NULL), module(NULL), method_missing(false) { }
 
   OBJECT Message::get_argument(size_t index) {
@@ -44,7 +44,9 @@ namespace rubinius {
        */
       return task->active()->stack_back(total_args - start - index - 1);
     } else {
-      throw Assertion("message not setup properly");
+      Exception::assertion_error(state,
+          "message arguments are not set up properly");
+      return Qnil;  // unreachable, but makes compiler happy
     }
   }
 

@@ -11,7 +11,7 @@ namespace rubinius {
     std::string message = std::string("Called unbound or invalid primitive from: ");
     message += msg.name->to_str(state)->c_str();
 
-    Assertion::raise(message.c_str());
+    Exception::assertion_error(state, message.c_str());
 
     return false;
   }

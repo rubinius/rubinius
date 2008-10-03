@@ -102,7 +102,8 @@ namespace rubinius {
 
     // HACK todo remove this check once we're sure that it's always being set
     if(!msg.module) {
-      Assertion::raise("Message passed to executor did not have a module set");
+      Exception::assertion_error(state,
+          "Message passed to executor did not have a module set");
     }
     ctx->module(state, msg.module);
     ctx->name(state, msg.name);

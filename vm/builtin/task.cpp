@@ -212,7 +212,7 @@ stack_cleanup:
     ss << "unable to locate any method '" << msg.send_site->name()->c_str(state) <<
       "' from '" << msg.lookup_from->name()->c_str(state) << "'";
 
-    Assertion::raise((char*)ss.str().c_str());
+    Exception::assertion_error(msg.state, ss.str().c_str());
   }
 
   /* For details in msg, locate the proper method and begin execution

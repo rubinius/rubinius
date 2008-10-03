@@ -259,7 +259,7 @@ class CPPClass
     all_fields.each do |name, type, idx, flags|
       str << "  case #{idx}:\n"
       if flags[:readonly]
-        str << "    throw new Assertion(\"#{name} is readonly\");\n"
+        str << "    Exception::assertion_error(state, \"#{name} is readonly\");\n"
       else
         str << "    target->#{name}(state, (#{type}*)val);\n"
       end
@@ -290,7 +290,7 @@ OBJECT #{@name}::Info::get_field(STATE, OBJECT _t, size_t index) {
   std::stringstream error;
   error << "Unable to access field " << index << " in a #{@name} instance";
 
-  Assertion::raise(error.str().c_str());
+  Exception::assertion_error(state, error.str().c_str());
 
   return Qnil; // never reached
 }
