@@ -151,6 +151,9 @@ namespace rubinius {
 
     /* If too few args were passed in, throw an exception */
     if(msg.args() < required) {
+      // HACK. duplicated from below
+      active_->clear_stack(msg.stack);
+
       Exception::argument_error(state, required, msg.args());
     }
 
@@ -158,6 +161,9 @@ namespace rubinius {
      * If there is a splat, this check is disabled.
      */
     if(ctx->cm()->splat()->nil_p() && msg.args() > total) {
+      // HACK. duplicated from below
+      active_->clear_stack(msg.stack);
+
       Exception::argument_error(state, required, msg.args());
     }
 
@@ -240,6 +246,7 @@ stack_cleanup:
 
     SYMBOL original_name = msg.name;
     if(!GlobalCacheResolver::resolve(state, msg)) {
+      msg.method_missing = true;
       msg.name = G(sym_method_missing);
       msg.priv = true; // lets us look for method_missing anywhere
       if(!GlobalCacheResolver::resolve(state, msg)) {
