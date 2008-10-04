@@ -147,9 +147,10 @@ module Kernel
       STDERR.puts "Exception: `#{exc.class}' #{sender.location} - #{exc.message}"
     end
 
-    unless skip
-      exc.context = MethodContext.current.sender unless exc.context
+    if !skip and !exc.context
+      exc.context = MethodContext.current.sender
     end
+
     Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
   end
   module_function :raise

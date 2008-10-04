@@ -82,6 +82,10 @@ namespace rubinius {
   }
 
   OBJECT Thread::raise(STATE, Exception* exc) {
+    wakeup(state);
+    MethodContext* ctx = task_->active();
+    ctx->reference(state);
+    exc->context(state, ctx);
     return task_->raise(state, exc);
   }
 

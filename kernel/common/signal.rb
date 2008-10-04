@@ -5,7 +5,7 @@ module Signal
 
   @threads = {}
   @handlers = {}
-  
+
   def self.trap(sig, prc=nil, pass_ctx=false, &block)
     sig = sig.to_s if sig.kind_of?(Symbol)
 
@@ -46,7 +46,6 @@ module Signal
     thr = Thread.new do
       while true
         ctx = chan.receive
-        ctx.__show__
 
         # Run the handler in a new thread so chan.receive doesn't
         # block signals during handler execution, e.g., a SIGINT

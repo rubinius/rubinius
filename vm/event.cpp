@@ -133,15 +133,16 @@ namespace rubinius {
       return true;
     }
 
-    Signal::Signal(STATE, ObjectCallback *chan, int sig) : 
+    Signal::Signal(STATE, ObjectCallback *chan, int sig):
         Event(state, chan), signal(sig) {
       ev_signal_init(&ev, event::tramp<struct ev_signal>, sig);
       ev.data = this;
     }
 
     void Signal::start() {
+      // Only one signal event is valid per loop. We remove any that
+      // already exist.
       loop->remove_signal(signal);
-      loop->add_signal(signal, this);
       ev_signal_start(loop->base, &ev);
     }
 
@@ -219,8 +220,13 @@ namespace rubinius {
     void Loop::start(Event* ev) {
       ev->loop = this;
       ev->id = ++event_ids;
-      events.push_back(ev);
       ev->start();
+
+      // It's important this is last. Signal::start removes older Signal
+      // events by looking through +events+ on start. We don't want it
+      // to remove itself, so we do this after the event has actually
+      // started.
+      events.push_back(ev);
     }
 
     Loop::~Loop() {
@@ -290,10 +296,25 @@ namespace rubinius {
       }
     }
 
-    void Loop::remove_signal(int sig) {
+    // Look through events for a Signal object for +signal_number+
+    // If we find one, send nil to the channel and remove it.
+    void Loop::remove_signal(int signal_number) {
+      for(std::vector<Event*>::iterator it = events.begin();
+          it != events.end();) {
+
+        Event* ev = *it;
+        if(Signal* sig = dynamic_cast<Signal*>(ev)) {
+          if(sig->signal == signal_number) {
+            sig->channel->call(Qnil);
+            sig->stop();
+            it = events.erase(it);
+            continue;
+          }
+        }
+
+        it++;
+      }
     }
 
-    void Loop::add_signal(int sig, Signal* ev) {
-    }
   } // event
 } // rubinius

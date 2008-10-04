@@ -117,7 +117,6 @@ namespace rubinius {
       void clear_by_id(size_t id);
       void remove_event(Event* ev);
       void remove_signal(int sig);
-      void add_signal(int sig, Signal* handler);
     };
   };
 };

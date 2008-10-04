@@ -39,8 +39,9 @@ namespace rubinius {
 
     bootstrap_ontology();
 
-    events = new event::Loop(EVFLAG_FORKCHECK);
     signal_events = new event::Loop();
+    //events = new event::Loop(EVFLAG_FORKCHECK);
+    events = signal_events;
 
     global_cache = new GlobalCache;
 
@@ -52,7 +53,6 @@ namespace rubinius {
 
   VM::~VM() {
     delete om;
-    delete events;
     delete signal_events;
     delete global_cache;
     if(!reuse_llvm) llvm_cleanup();
@@ -259,7 +259,7 @@ namespace rubinius {
       while(wait_events) {
         wait_events = false;
         events->run_and_wait();
-        find_and_activate_thread();
+        wait_events = !find_and_activate_thread();
       }
 
       G(current_task)->check_interrupts();
