@@ -377,6 +377,29 @@ class MethodContext
     return obj
   end
 
+  attr_reader :dynamic_locals
+
+  ##
+  # Called from BlockContext#set_eval_local to assign a local created
+  # by eval.
+
+  def set_eval_local(name, val)
+    @dynamic_locals ||= LookupTable.new
+
+    @dynamic_locals[name] = val
+    return val
+  end
+
+  ##
+  # Called from BlockContext#get_eval_local to access a local created
+  # by eval.
+
+  def get_eval_local(name)
+    return nil unless @dynamic_locals
+
+    return @dynamic_locals[name]
+  end
+
 end
 
 ##

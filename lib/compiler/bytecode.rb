@@ -1298,7 +1298,11 @@ class Compiler
 
     class LocalAccess
       def bytecode(g)
-        if @variable.on_stack?
+        if @variable.kind_of? EvalExpression::DynamicLocal
+          g.push_context
+          g.push_literal @variable.name
+          g.send :get_eval_local, 1, false
+        elsif @variable.on_stack?
           if @variable.argument?
             g.from_fp @variable.stack_position
           else
@@ -1321,7 +1325,13 @@ class Compiler
         # No @value means assume that someone else put the value on the
         # stack (ie, an masgn)
 
-        if @variable.on_stack?
+        if @variable.kind_of? EvalExpression::DynamicLocal
+          g.push_context
+          g.swap
+          g.push_literal @variable.name
+          g.swap
+          g.send :set_eval_local, 2, false
+        elsif @variable.on_stack?
           if @variable.argument?
             raise Error, "Invalid access semantics for argument: #{@name}"
           end

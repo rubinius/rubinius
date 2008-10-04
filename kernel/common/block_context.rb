@@ -82,5 +82,21 @@ class BlockContext < MethodContext
     const_scope = env.constant_scope.module
     const_scope.__send__(:__const_set__, name, value)
   end
+
+  ##
+  # emitted by Kernel#eval'd expressions where new locals
+  # are introduced.
+
+  def set_eval_local(name, val)
+    home.set_eval_local name, val
+  end
+
+  ##
+  # emitted by Kernel#eval'd expressions to retrieve a
+  # dynamicly introduced local.
+
+  def get_eval_local(name)
+    home.get_eval_local(name)
+  end
 end
 

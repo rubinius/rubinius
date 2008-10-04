@@ -2,22 +2,26 @@
 # (due to alias_method)
 
 module Kernel
-  
+
   def local_variables
     ary = []
     ctx = MethodContext.current.sender
-    
+
     while ctx.kind_of? BlockContext
       if names = ctx.method.local_names
         names.each { |n| ary << n.to_s }
       end
       ctx = ctx.home
     end
-        
+
     if names = ctx.method.local_names
       names.each { |n| ary << n.to_s }
     end
-    
+
+    if dynamic = ctx.dynamic_locals
+      dynamic.keys.each { |n| ary << n.to_s }
+    end
+
     return ary
   end
   module_function :local_variables

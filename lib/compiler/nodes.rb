@@ -1008,6 +1008,17 @@ class Compiler
         @my_scope
       end
 
+      class DynamicLocal
+        attr_reader :name
+
+        def initialize(name)
+          @name = name
+        end
+
+        def assigned!
+        end
+      end
+
       def initialize(comp)
         super(comp)
 
@@ -1029,6 +1040,22 @@ class Compiler
         # Setup stuff so allocate_slot works
         @my_scope.scope = self
         @slot = @my_scope.size
+      end
+
+      def find_local(name, in_block=false, allocate=true)
+        if normal = super(name, in_block, false)
+          return normal
+        end
+
+        unless allocate
+          if dynamic = @context.dynamic_locals
+            return nil unless dynamic.key? name
+          else
+            return nil
+          end
+        end
+
+        return DynamicLocal.new(name)
       end
 
       def enlarge_context
