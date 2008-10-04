@@ -195,7 +195,7 @@ namespace rubinius {
     find_lost_souls();
 
     /* Check any weakrefs and replace dead objects with nil*/
-    // clean_weakrefs();
+    clean_weakrefs();
 
     /* Swap the 2 halves */
     BakerGC::Heap *x = next;
@@ -268,6 +268,9 @@ namespace rubinius {
         }
       }
     }
+
+    delete weak_refs;
+    weak_refs = NULL;
   }
 
   ObjectPosition BakerGC::validate_object(OBJECT obj) {

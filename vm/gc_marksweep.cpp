@@ -182,5 +182,8 @@ namespace rubinius {
         }
       }
     }
+
+    delete weak_refs;
+    weak_refs = NULL;
   }
 }
