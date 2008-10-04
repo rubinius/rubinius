@@ -2,6 +2,7 @@
 #include "builtin/bytearray.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 #include "builtin/bytearray.hpp"
@@ -60,8 +61,7 @@ namespace rubinius {
     position = lseek(fd, amount->to_long_long(), whence->to_native());
 
     if(position == -1) {
-      // HACK RAISE_FROM_ERRNO
-      throw std::runtime_error("IO::write primitive failed");
+      Exception::errno_error(state);
     }
 
     return Integer::from(state, position);
@@ -92,9 +92,8 @@ namespace rubinius {
   OBJECT IO::write(STATE, String* buf) {
     ssize_t cnt = ::write(this->to_fd(), buf->data()->bytes, buf->size());
 
-    // TODO: RAISE_FROM_ERRNO
     if(cnt == -1) {
-      throw std::runtime_error("IO::write primitive failed. (TODO RAISE_FROM_ERRNO)");
+      Exception::errno_error(state);
     }
 
     return Integer::from(state, cnt);

@@ -42,7 +42,7 @@ namespace rubinius {
     static void assertion_error(STATE, const char* reason = NULL);
     static void object_bounds_exceeded_error(STATE, OBJECT obj, size_t index);
 
-    static void errno_error(STATE, const char* reason, int ern = 0);
+    static void errno_error(STATE, const char* reason = NULL, int ern = 0);
 
     /**
      * Convenience predicates for checking the class of an

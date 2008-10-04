@@ -98,6 +98,8 @@ namespace rubinius {
     if(ern == 0) ern = errno;
     Class* exc_class = get_errno_error(state, ern);
 
+    if(!reason) reason = strerror(ern);
+
     if(exc_class->nil_p()) {
       std::ostringstream msg;
       msg << "Unknown errno " << ern;
