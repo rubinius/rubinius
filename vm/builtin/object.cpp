@@ -21,6 +21,7 @@
 #include <fstream>
 #include <cstdarg>
 #include <cstring>
+#include <sstream>
 
 namespace rubinius {
 
@@ -467,10 +468,18 @@ namespace rubinius {
     }
 
     std::ifstream stream(path->c_str());
-    if(!stream) throw std::runtime_error("Unable to open file to run");
+    if(!stream) {
+      std::ostringstream msg;
+      msg << "unable to open file to run: " << path->c_str();
+      Exception::io_error(state, msg.str().c_str());
+    }
 
     CompiledFile* cf = CompiledFile::load(stream);
-    if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
+    if(cf->magic != "!RBIX") {
+      std::ostringstream msg;
+      msg << "Invalid file" << path->c_str();
+      Exception::io_error(state, msg.str().c_str());
+    }
 
     return cf->body(state);
   }
