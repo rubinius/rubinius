@@ -45,7 +45,7 @@ namespace rubinius {
 
   /* The LookupTable.allocate primitive. */
   LookupTable* LookupTable::allocate(STATE) {
-    return LookupTable::create(state, LOOKUPTABLE_MIN_SIZE);
+    return create(state, LOOKUPTABLE_MIN_SIZE);
   }
 
   LookupTable* LookupTable::dup(STATE) {

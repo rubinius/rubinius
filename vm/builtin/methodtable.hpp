@@ -10,6 +10,9 @@ namespace rubinius {
 
     static MethodTable* create(STATE);
 
+    // Ruby.primitive :methodtable_allocate
+    static MethodTable* allocate(STATE);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

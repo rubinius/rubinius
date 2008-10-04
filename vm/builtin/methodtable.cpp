@@ -11,4 +11,8 @@ namespace rubinius {
 
     return tbl;
   }
+
+  MethodTable* MethodTable::allocate(STATE) {
+    return create(state);
+  }
 }

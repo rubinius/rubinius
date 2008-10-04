@@ -118,10 +118,10 @@ namespace rubinius {
     MetaClass::attach(this, cls, mc);
 
     // TODO not sure these are being setup properly
-    MetaClass::attach(this, G(metaclass));
-    MetaClass::attach(this, G(tuple));
-    MetaClass::attach(this, G(lookuptable));
-    MetaClass::attach(this, G(methtbl));
+    MetaClass::attach(this, G(metaclass), cls->metaclass(this));
+    MetaClass::attach(this, G(tuple), G(object)->metaclass(this));
+    MetaClass::attach(this, G(lookuptable), G(object)->metaclass(this));
+    MetaClass::attach(this, G(methtbl), G(lookuptable)->metaclass(this));
 
     // Now, finish initializing the special 7
     G(object)->setup(this, "Object");

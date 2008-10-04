@@ -36,6 +36,9 @@ class Module
   end
 
   def initialize(&block)
+    @method_table = MethodTable.new
+    @constants = LookupTable.new
+
     _eval_under(self, &block) if block
   end
 
