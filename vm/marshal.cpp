@@ -239,7 +239,7 @@ namespace rubinius {
 
   OBJECT UnMarshaller::unmarshal() {
     char code;
-    
+
     stream >> code;
 
     switch(code) {
@@ -270,7 +270,8 @@ namespace rubinius {
     default:
       std::string str = "unknown marshal code: ";
       str.append( 1, code );
-      throw std::runtime_error(str);
+      Exception::type_error(state, str.c_str());
+      return Qnil;    // make compiler happy
     }
   }
 
@@ -302,7 +303,7 @@ namespace rubinius {
     } else if(kind_of<CompiledMethod>(obj)) {
       set_cmethod(as<CompiledMethod>(obj));
     } else {
-      throw std::runtime_error("unknown object");
+      Exception::type_error(state, "unknown object");
     }
   }
 
