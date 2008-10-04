@@ -1,5 +1,6 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/lookuptable.hpp"
 #include "builtin/task.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
@@ -93,6 +94,20 @@ namespace rubinius {
                                         msg.str().c_str()));
   }
 
+  void Exception::errno_error(STATE, const char* reason, int ern) {
+    if(ern == 0) ern = errno;
+    Class* exc_class = get_errno_error(state, ern);
+
+    if(exc_class->nil_p()) {
+      std::ostringstream msg;
+      msg << "Unknown errno " << ern;
+      RubyException::raise(make_exception(state,
+            get_argument_error(state), msg.str().c_str()));
+    }
+
+    RubyException::raise(make_exception(state, exc_class, reason));
+  }
+
   bool Exception::argument_error_p(STATE, Exception* exc) {
     return exc->kind_of_p(state, get_argument_error(state));
   }
@@ -117,6 +132,14 @@ namespace rubinius {
     return exc->kind_of_p(state, get_object_bounds_exceeded_error(state));
   }
 
+  bool Exception::errno_error_p(STATE, Exception* exc) {
+    if(Class* cls = try_as<Class>(G(object)->get_const(state, "SystemCallError"))) {
+      return exc->kind_of_p(state, cls);
+    }
+
+    return false;
+  }
+
   Class* Exception::get_argument_error(STATE) {
     return G(exc_arg);
   }
@@ -139,5 +162,14 @@ namespace rubinius {
 
   Class* Exception::get_object_bounds_exceeded_error(STATE) {
     return as<Class>(G(rubinius)->get_const(state, "ObjectBoundsExceededError"));
+  }
+
+  Class* Exception::get_errno_error(STATE, int ern) {
+    if(Class* cls = try_as<Class>(G(errno_mapping)->fetch(
+            state, Fixnum::from(ern)))) {
+      return cls;
+    }
+
+    return (Class*)Qnil;
   }
 }

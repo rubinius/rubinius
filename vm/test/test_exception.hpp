@@ -2,6 +2,8 @@
 #include "object_types.hpp"
 #include "exception.hpp"
 
+#include <errno.h>
+
 #include <cxxtest/TestSuite.h>
 
 using namespace rubinius;
@@ -93,5 +95,21 @@ class TestException : public CxxTest::TestSuite {
         Exception::object_bounds_exceeded_error(state, G(object), 1U),
         const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+  }
+
+  void test_ruby_exception_errno_error() {
+    TS_ASSERT_THROWS_ASSERT(Exception::errno_error(state, "failed", ENOENT),
+        const RubyException &e,
+        TS_ASSERT(Exception::errno_error_p(state, e.exception)));
+  }
+
+  void test_ruby_exception_errno_error_raises_argument_error() {
+    TS_ASSERT_THROWS_ASSERT(Exception::errno_error(state, "failed", -1),
+        const RubyException &e,
+        TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+  }
+
+  void test_get_errno_error_invalid_errno() {
+    TS_ASSERT_EQUALS(Qnil, Exception::get_errno_error(state, -1));
   }
 };
