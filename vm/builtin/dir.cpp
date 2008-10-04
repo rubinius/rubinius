@@ -4,6 +4,7 @@
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/memorypointer.hpp"
 #include "builtin/string.hpp"
@@ -25,9 +26,8 @@ namespace rubinius {
   }
 
   void Dir::guard(STATE) {
-    // TODO: raise IOError, "closed directory" (RAISE_FROM_ERRNO)
     if(data_->nil_p()) {
-      throw std::runtime_error("dir->data is nil");
+      Exception::io_error(state, "closed directory");
     }
   }
 

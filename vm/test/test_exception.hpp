@@ -112,4 +112,10 @@ class TestException : public CxxTest::TestSuite {
   void test_get_errno_error_invalid_errno() {
     TS_ASSERT_EQUALS(Qnil, Exception::get_errno_error(state, -1));
   }
+
+  void test_ruby_exception_io_error() {
+    TS_ASSERT_THROWS_ASSERT(Exception::io_error(state, "failed"),
+        const RubyException &e,
+        TS_ASSERT(Exception::io_error_p(state, e.exception)));
+  }
 };

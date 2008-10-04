@@ -110,6 +110,10 @@ namespace rubinius {
     RubyException::raise(make_exception(state, exc_class, reason));
   }
 
+  void Exception::io_error(STATE, const char* reason) {
+    RubyException::raise(make_exception(state, get_io_error(state), reason));
+  }
+
   bool Exception::argument_error_p(STATE, Exception* exc) {
     return exc->kind_of_p(state, get_argument_error(state));
   }
@@ -140,6 +144,10 @@ namespace rubinius {
     }
 
     return false;
+  }
+
+  bool Exception::io_error_p(STATE, Exception* exc) {
+    return exc->kind_of_p(state, get_io_error(state));
   }
 
   Class* Exception::get_argument_error(STATE) {
@@ -173,5 +181,9 @@ namespace rubinius {
     }
 
     return (Class*)Qnil;
+  }
+
+  Class* Exception::get_io_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "IOError"));
   }
 }

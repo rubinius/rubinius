@@ -422,6 +422,7 @@ namespace rubinius {
     rng = dexc(RangeError, std);
     dexc(FloatDomainError, rng);
     dexc(ZeroDivisionError, std);
+    dexc(IOError, std);
 
     // Some special exceptions scoped under the Rubinius module
     vme = new_class("VMException", exc, sz, G(rubinius));
