@@ -87,7 +87,7 @@ class TestChannel : public CxxTest::TestSuite {
 
   void test_receive_causes_event_block() {
     ChannelCallback cb(state, chan);
-    event::Timer* timer = new event::Timer(state, &cb, 0.2);
+    event::Timer* timer = new event::Timer(state, &cb, 1.0);
 
     Thread* orig = G(current_thread);
     state->events->start(timer);
@@ -96,14 +96,14 @@ class TestChannel : public CxxTest::TestSuite {
 
     TS_ASSERT(!state->wait_events);
     chan->receive(state);
+    TS_ASSERT(state->wait_events);
 
     TS_ASSERT_EQUALS(chan->waiting()->locate(state, 0), G(current_thread));
 
-    TS_ASSERT(state->wait_events);
     state->events->run_and_wait();
 
     TS_ASSERT(chan->waiting()->empty_p());
-    
+
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(G(current_task)->calculate_sp(), 0);
     TS_ASSERT_EQUALS(stack[0], Qnil);
