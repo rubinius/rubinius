@@ -30,11 +30,13 @@ describe "Hash#==" do
 
   it "returns false when the numbers of keys differ without comparing any elements" do
     obj = mock('x')
+    h = { obj => obj }
+
     obj.should_not_receive(:==)
     obj.should_not_receive(:eql?)
 
-    {}.should_not == { obj => obj }
-    { obj => obj }.should_not == {}
+    {}.should_not == h
+    h.should_not == {}
   end
 
   it "compares keys with eql? semantics" do
