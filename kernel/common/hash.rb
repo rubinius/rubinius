@@ -191,6 +191,7 @@ class Hash
 
   def index(value)
     each { |k, v| return k if v == value }
+    nil
   end
 
   def inspect
