@@ -249,14 +249,20 @@ class Hash
 
   alias_method :rehash, :redistribute
 
-  def reject
-    accepted = {}
-    each { |key, value| accepted[key] = value unless yield key, value }
-    accepted
+  def reject(&block)
+    hsh = dup
+    hsh.reject! &block
+    hsh
   end
 
-  def reject!(&block)
-    replace reject(&block)
+  def reject!
+    raise LocalJumpError, "no block given" unless block_given? or empty?
+
+    rejected = select { |k, v| yield k, v }
+    return if rejected.empty?
+
+    rejected.each { |k, v| delete k }
+    self
   end
 
   def replace(other)
