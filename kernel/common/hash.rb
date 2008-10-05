@@ -218,7 +218,12 @@ class Hash
   end
 
   def key?(key)
-    each { |k, v| return true if k == key }
+    i = to_iter
+    while entry = i.next
+      begin
+        return true if entry.key_hash == key.hash and entry.key.eql? key
+      end while entry = entry.next
+    end
     false
   end
 
