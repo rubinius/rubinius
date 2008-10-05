@@ -80,6 +80,7 @@ bodystmt      : compstmt opt_rescue opt_else opt_ensure {
                   end
 
                   result = s(:ensure, result, val[3]).compact if val[3]
+                  # result.minimize_line if result
                 }
 
 compstmt     : stmts opt_terms {
@@ -88,7 +89,7 @@ compstmt     : stmts opt_terms {
                }
 
 stmts        : none
-             | stmt # TODO: wrap in newline node
+             | stmt
              | stmts terms stmt {
                  result = self.block_append(val[0], val[2])
                }
@@ -96,14 +97,17 @@ stmts        : none
                  result = val[1];
                }
 
-stmt          : kALIAS fitem { lexer.lex_state = :expr_fname } fitem {
-                  result = s(:alias, val[1], val[3])
+stmt          : kALIAS fitem {
+                  lexer.lex_state = :expr_fname
+                  result = self.lexer.lineno
+                } fitem {
+                  result = s(:alias, val[1], val[3]).line(val[2])
                 }
              | kALIAS tGVAR tGVAR {
                   result = s(:valias, val[1].to_sym, val[2].to_sym)
                  }
              | kALIAS tGVAR tBACK_REF {
-                 result = s(:valias, val[1].to_sym, :"$#{val[2].last}")
+                 result = s(:valias, val[1].to_sym, :"$#{val[2]}")
                }
              | kALIAS tGVAR tNTH_REF {
                   yyerror("can't make alias for the number variables");
@@ -129,6 +133,8 @@ stmt          : kALIAS fitem { lexer.lex_state = :expr_fname } fitem {
                }
              | stmt kWHILE_MOD expr_value {
                  block, expr, pre = val[0], val[2], true
+                 line = block.line
+
                  block, pre = block.last, false if block[0] == :begin
 
                  expr = cond expr
@@ -138,10 +144,12 @@ stmt          : kALIAS fitem { lexer.lex_state = :expr_fname } fitem {
                    result = s(:while, expr, block, pre)
                  end
 
-                 result.line(block.line)
+                 result.line = line
                }
              | stmt kUNTIL_MOD expr_value { # REFACTOR
                  block, expr, pre = val[0], val[2], true
+                 line = block.line
+
                  block, pre = block.last, false if block[0] == :begin
 
                  expr = cond expr
@@ -150,11 +158,11 @@ stmt          : kALIAS fitem { lexer.lex_state = :expr_fname } fitem {
                  else
                    result = s(:until, expr, block, pre)
                  end
-                 result.line(block.line)
+                 result.line = line
                }
              | stmt kRESCUE_MOD stmt {
                   result = s(:rescue, val[0], s(:resbody, s(:array), val[2]))
-                  result.line = val[0].line
+                  result.minimize_line
                  }
              | klBEGIN {
                  if (self.in_def || self.in_single > 0) then
@@ -200,19 +208,19 @@ stmt          : kALIAS fitem { lexer.lex_state = :expr_fname } fitem {
                     result << new_call(self.gettable(name), asgn_op,
                                 s(:arglist, val[2]))
                   end
-                  result.line = val[0].line
+                  # result.line = val[0].line
                  }
              | primary_value '[' aref_args tRBRACK tOP_ASGN command_call {
                   result = s(:op_asgn1, val[0], val[2], val[4].to_sym, val[5]);
                  }
              | primary_value tDOT tIDENTIFIER tOP_ASGN command_call {
-                  result = s(:op_asgn, val[0], val[4], val[2].value, val[3].value);
+                  result = s(:op_asgn, val[0], val[4], val[2], val[3]);
                  }
              | primary_value tDOT tCONSTANT tOP_ASGN command_call {
-                  result = s(:op_asgn, val[0], val[4], val[2].value, val[3].value);
+                  result = s(:op_asgn, val[0], val[4], val[2], val[3]);
                  }
              | primary_value tCOLON2 tIDENTIFIER tOP_ASGN command_call {
-                  result = s(:op_asgn, val[0], val[4], val[2].value, val[3].value);
+                  result = s(:op_asgn, val[0], val[4], val[2], val[3]);
                  }
              | backref tOP_ASGN command_call {
                   self.backref_assign_error(val[0]);
@@ -276,9 +284,11 @@ block_command : block_call
 
 cmd_brace_block : tLBRACE_ARG {
                     self.env.extend :dynamic
+                    result = self.lexer.lineno
                   } opt_block_var  { result = self.env.dynamic.keys }
                   compstmt tRCURLY {
                     result = new_iter nil, val[2], val[4]
+                    result.line = val[1]
                     self.env.unextend
                   }
 
@@ -369,20 +379,20 @@ mlhs_node    : variable {
                  result = self.aryset(val[0], val[2]);
                }
              | primary_value tDOT tIDENTIFIER {
-                 result = s(:attrasgn, val[0], :"#{val[2].value}=", s(:arglist));
+                 result = s(:attrasgn, val[0], :"#{val[2]}=", s(:arglist));
                }
              | primary_value tCOLON2 tIDENTIFIER {
-                 result = s(:attrasgn, val[0], :"#{val[2].value}=", s(:arglist));
+                 result = s(:attrasgn, val[0], :"#{val[2]}=", s(:arglist));
                }
              | primary_value tDOT tCONSTANT {
-                 result = s(:attrasgn, val[0], :"#{val[2].value}=", s(:arglist));
+                 result = s(:attrasgn, val[0], :"#{val[2]}=", s(:arglist));
                }
              | primary_value tCOLON2 tCONSTANT {
                  if (self.in_def || self.in_single > 0) then
                    yyerror("dynamic constant assignment");
                  end
 
-                 result = s(:const, s(:colon2, val[0], val[2].value.to_sym), nil)
+                 result = s(:const, s(:colon2, val[0], val[2].to_sym), nil)
                }
              | tCOLON3 tCONSTANT {
                  if (self.in_def || self.in_single > 0) then
@@ -402,13 +412,13 @@ lhs          : variable {
                  result = self.aryset(val[0], val[2]);
                }
              | primary_value tDOT tIDENTIFIER {
-                 result = s(:attrasgn, val[0], :"#{val[2].value}=")
+                 result = s(:attrasgn, val[0], :"#{val[2]}=")
                }
              | primary_value tCOLON2 tIDENTIFIER {
-                 result = s(:attrasgn, val[0], :"#{val[2].value}=")
+                 result = s(:attrasgn, val[0], :"#{val[2]}=")
                }
              | primary_value tDOT tCONSTANT {
-                 result = s(:attrasgn, val[0], :"#{val[2].value}=")
+                 result = s(:attrasgn, val[0], :"#{val[2]}=")
                }
              | primary_value tCOLON2 tCONSTANT {
                  if (self.in_def || self.in_single > 0) then
@@ -416,7 +426,7 @@ lhs          : variable {
                  end
 
                  result = s(:const,
-                            s(:colon2, val[0], val[2].value.to_sym))
+                            s(:colon2, val[0], val[2].to_sym))
                  }
              | tCOLON3 tCONSTANT {
                   if (self.in_def || self.in_single > 0) then
@@ -438,10 +448,10 @@ cpath         : tCOLON3 cname {
                   result = s(:colon3, val[1].to_sym)
                  }
              | cname {
-                  result = val[0].value.to_sym
+                  result = val[0].to_sym
                  }
              | primary_value tCOLON2 cname {
-                  result = s(:colon2, val[0], val[2].value.to_sym);
+                  result = s(:colon2, val[0], val[2].to_sym);
                  }
 
 fname         : tIDENTIFIER | tCONSTANT | tFID
@@ -486,41 +496,41 @@ arg          : lhs '=' arg {
              | lhs '=' arg kRESCUE_MOD arg {
                  result = self.node_assign(val[0],
                             s(:rescue, val[2], s(:resbody, s(:array), val[4])))
-                 result.line = val[0].line
+                 # result.line = val[0].line
                }
              | var_lhs tOP_ASGN arg {
-                 name = val[0].value
-                 asgn_op = val[1].to_sym
+                 lhs, asgn_op, arg = val[0], val[1].to_sym, val[2]
+                 name = lhs.value
 
-                 val[2] = remove_begin(val[2])
+                 arg = remove_begin(arg)
 
-                 case asgn_op # REFACTOR
-                 when :"||" then
-                   val[0] << val[2]
-                   result = s(:op_asgn_or, self.gettable(name), val[0]);
-                 when :"&&" then
-                   val[0] << val[2]
-                   result = s(:op_asgn_and, self.gettable(name), val[0]);
-                 else
-                   # TODO: why [2] ?
-                   val[0][2] = new_call(self.gettable(name), asgn_op,
-                                 s(:arglist, val[2]))
-                   result = val[0];
-                 end
-                 result.line = val[0].line
-                 }
+                 result = case asgn_op # REFACTOR
+                          when :"||" then
+                            lhs << arg
+                            s(:op_asgn_or, self.gettable(name), lhs)
+                          when :"&&" then
+                            lhs << arg
+                            s(:op_asgn_and, self.gettable(name), lhs)
+                          else
+                            # TODO: why [2] ?
+                            lhs[2] = new_call(self.gettable(name), asgn_op,
+                                              s(:arglist, arg))
+                            lhs
+                          end
+                 result.line = lhs.line
+               }
              | primary_value '[' aref_args tRBRACK tOP_ASGN arg {
                   result = s(:op_asgn1, val[0], val[2], val[4].to_sym, val[5]);
                   val[2][0] = :arglist
                  }
              | primary_value tDOT tIDENTIFIER tOP_ASGN arg {
-                  result = s(:op_asgn2, val[0], :"#{val[2].value}=", val[3].to_sym, val[4]);
+                  result = s(:op_asgn2, val[0], :"#{val[2]}=", val[3].to_sym, val[4]);
                  }
              | primary_value tDOT tCONSTANT tOP_ASGN arg {
-                  result = s(:op_asgn2, val[0], :"#{val[2].value}=", val[3].to_sym, val[4])
+                  result = s(:op_asgn2, val[0], :"#{val[2]}=", val[3].to_sym, val[4])
                  }
              | primary_value tCOLON2 tIDENTIFIER tOP_ASGN arg {
-                  result = s(:op_asgn, val[0], val[4], val[2].value, val[3].value);
+                  result = s(:op_asgn, val[0], val[4], val[2], val[3]);
                  }
              | primary_value tCOLON2 tCONSTANT tOP_ASGN arg {
                  yyerror("constant re-assignment");
@@ -829,14 +839,16 @@ primary      : literal
              | tFID {
                  result = new_call nil, val[0].to_sym
                }
-             | kBEGIN bodystmt kEND {
-                 unless val[1] then
+             | kBEGIN {
+                 result = self.lexer.lineno
+               } bodystmt kEND {
+                 unless val[2] then
                    result = s(:nil)
                  else
-                   result = s(:begin, val[1])
+                   result = s(:begin, val[2])
                  end
 
-                 result.line = val[0].line
+                 result.line = val[1]
                }
              | tLPAREN_ARG expr {
                   lexer.lex_state = :expr_endarg
@@ -888,10 +900,9 @@ primary      : literal
                  oper = val[0]
                  iter = val[1]
                  call = new_call(nil, oper.to_sym)
-                 call.line = oper.line
                  iter.insert 1, call
                  result = iter
-                 result.line = oper.line
+                 call.line ||= iter.line
                }
              | method_call
              | method_call brace_block {
@@ -907,6 +918,7 @@ primary      : literal
                  else
                    result = s(:if, val[1], val[3], val[4])
                  end
+                 # result.minimize_line
                }
              | kUNLESS expr_value then compstmt opt_else kEND {
                  val[1] = cond val[1]
@@ -915,7 +927,8 @@ primary      : literal
                  else
                    result = s(:if, val[1], val[4], val[3])
                  end
-                 }
+                 # result.minimize_line
+               }
              | kWHILE {
                  lexer.cond.push true
                } expr_value do {
@@ -924,10 +937,11 @@ primary      : literal
                  block = val[5]
                  cond = self.cond val[2]
                  if cond[0] == :not then
-                   result = s(:until, cond.last, block, true).line(val[0].line)
+                   result = s(:until, cond.last, block, true)
                  else
-                   result = s(:while, cond, block, true).line(val[0].line)
+                   result = s(:while, cond, block, true)
                  end
+                 # result.minimize_line
                }
              | kUNTIL {
                  lexer.cond.push true
@@ -937,16 +951,16 @@ primary      : literal
                  block = val[5]
                  val[2] = cond val[2]
                  if val[2][0] == :not then
-                   result = s(:while, val[2].last, block, true).line(val[0].line)
+                   result = s(:while, val[2].last, block, true) # .line(val[0].line)
                  else
-                   result = s(:until, val[2], block, true).line(val[0].line)
+                   result = s(:until, val[2], block, true) # .line(val[0].line)
                  end
+                 # result.minimize_line
                }
              | kCASE expr_value opt_terms case_body kEND {
-                  result = s(:case, val[1]);
-                  result.line = val[0].line
+                  expr, body = val[1], val[3]
+                  result = s(:case, expr);
 
-                  body = val[3]
                   while body and body.node_type == :when
                     result << body
                     body = body.delete_at 3
@@ -959,12 +973,12 @@ primary      : literal
                   else
                     result << nil
                   end
+                  # result.minimize_line
                  }
              | kCASE opt_terms case_body kEND {
-                  result = s(:case, nil); # REFACTOR
-                  result.line = val[0].line
+                  line, body = val[1], val[2]
+                  result = s(:case, nil) # REFACTOR
 
-                  body = val[2]
                   while body and body.first == :when
                     result << body
                     body = body.delete_at 3
@@ -977,57 +991,67 @@ primary      : literal
                   else
                     result << nil
                   end
+                  result.minimize_line
                }
              | kCASE opt_terms kELSE compstmt kEND { # TODO: need a test
                  result = s(:case, nil, val[3])
-                 result.line = val[0].line
+                 # result.minimize_line
                }
-            | kFOR block_var kIN {
+             | kFOR block_var kIN {
                  lexer.cond.push true
                } expr_value do {
                  lexer.cond.pop;
                } compstmt kEND {
-                 result = s(:for, val[4], val[1]).line(val[0].line)
+                 result = s(:for, val[4], val[1]) # .line(val[0].line)
                  result << val[7] if val[7]
                }
-             | kCLASS cpath superclass {
-                  self.comments.push self.lexer.comments
-                  if (self.in_def || self.in_single > 0) then
-                    yyerror("class definition in method body");
-                  end
-                  self.env.extend
-                } bodystmt kEND {
-                  scope = s(:scope, val[4]).compact
-                  result = s(:class, val[1], val[2], scope)
-                  result.line = val[0].line
-                  result.comments = self.comments.pop
-                  self.env.unextend
-                 }
-             | kCLASS tLSHFT expr {
-                  result = self.in_def
-                  self.in_def = false
-                } term {
-                  result = self.in_single
-                  self.in_single = 0
-                  self.env.extend;
-                } bodystmt kEND {
-                  scope = s(:scope, val[6]).compact
-                  result = s(:sclass, val[2], scope)
-                  result.line = val[0].line
-                  self.env.unextend;
-                  self.in_def = val[3]
-                  self.in_single = val[5]
-                 }
-             | kMODULE cpath {
+             | kCLASS {
+                 result = self.lexer.lineno
+               } cpath superclass {
+                 self.comments.push self.lexer.comments
+                 if (self.in_def || self.in_single > 0) then
+                   yyerror("class definition in method body");
+                 end
+                 self.env.extend
+               } bodystmt kEND {
+                 line, path, superclass, body = val[1], val[2], val[3], val[5]
+                 scope = s(:scope, body).compact
+                 result = s(:class, path, superclass, scope)
+                 result.line = line
+                 result.comments = self.comments.pop
+                 self.env.unextend
+               }
+             | kCLASS tLSHFT {
+                 result = self.lexer.lineno
+               } expr {
+                 result = self.in_def
+                 self.in_def = false
+               } term {
+                 result = self.in_single
+                 self.in_single = 0
+                 self.env.extend
+               } bodystmt kEND {
+                 recv, in_def, in_single, body = val[3], val[4], val[6], val[7]
+                 scope = s(:scope, body).compact
+                 result = s(:sclass, recv, scope)
+                 result.line = val[2]
+                 self.env.unextend
+                 self.in_def = in_def
+                 self.in_single = in_single
+               }
+             | kMODULE {
+                 result = self.lexer.lineno
+               }  cpath {
                  self.comments.push self.lexer.comments
                  yyerror("module definition in method body") if
                    self.in_def or self.in_single > 0
 
                  self.env.extend;
                } bodystmt kEND {
-                 body = val[3] ? s(:scope, val[3]) : s(:scope)
-                 result = s(:module, val[1], body)
-                 result.line = val[0].line
+                 line, path, body = val[1], val[2], val[4]
+                 body = s(:scope, body).compact
+                 result = s(:module, path, body)
+                 result.line = line
                  result.comments = self.comments.pop
                  self.env.unextend;
                }
@@ -1035,35 +1059,37 @@ primary      : literal
                  self.comments.push self.lexer.comments
                  self.in_def = true
                  self.env.extend
-               } f_arglist bodystmt kEND {
-                 name, args, body = val[1], val[3], val[4] # TODO: refactor
+                 result = self.lexer.lineno
+               } f_arglist bodystmt kEND { # TODO: refactor
+                 line, name, args, body = val[2], val[1], val[3], val[4]
                  body ||= s(:nil)
 
                  body ||= s(:block)
                  body = s(:block, body) unless body.first == :block
 
                  result = s(:defn, name.to_sym, args, s(:scope, body))
-                 result.line = val[0].line
+                 result.line = line
                  result.comments = self.comments.pop
 
                  self.env.unextend
                  self.in_def = false
                }
-             | kDEF singleton dot_or_colon { # 0-2, 3
+             | kDEF singleton dot_or_colon {
                  self.comments.push self.lexer.comments
                  lexer.lex_state = :expr_fname
-               } fname {                     # 4, 5
+               } fname {
                  self.in_single += 1
                  self.env.extend;
                  lexer.lex_state = :expr_end # force for args
-               } f_arglist bodystmt kEND {   # 6-8
+               } f_arglist bodystmt kEND {
                  recv, name, args, body = val[1], val[4], val[6], val[7]
+                 # recv, name, args, body = val[2], val[5], val[7], val[8]
 
                  body ||= s(:block)
                  body = s(:block, body) unless body.first == :block
 
                  result = s(:defs, recv, name.to_sym, args, s(:scope, body))
-                 result.line = val[0].line
+                 # result.line = val[1]
                  result.comments = self.comments.pop
 
                  self.env.unextend;
@@ -1127,7 +1153,7 @@ do_block      : kDO_BLOCK {
                   body   = val[4]
                   result = new_iter nil, vars, body
 
-                  self.env.unextend;
+                  self.env.unextend
                 }
 
 block_call    : command do_block {
@@ -1146,8 +1172,11 @@ block_call    : command do_block {
                   result << val[3] || s(:arglist)
               }
 
-method_call   : operation paren_args {
-                  result = new_call nil, val[0].to_sym, val[1]
+method_call   : operation {
+                  result = self.lexer.lineno
+                } paren_args {
+                  result = new_call nil, val[0].to_sym, val[2]
+                  result.line = val[1]
                 }
               | primary_value tDOT operation2 opt_paren_args {
                   result = new_call val[0], val[2].to_sym, val[3]
@@ -1157,9 +1186,11 @@ method_call   : operation paren_args {
                 }
               | primary_value tCOLON2 operation3 {
                   result = new_call val[0], val[2].to_sym
+                  result.minimize_line
                 }
               | kSUPER paren_args {
                   result = new_super val[1]
+                  result.minimize_line
                 }
               | kSUPER {
                   result = s(:zsuper)
@@ -1167,28 +1198,33 @@ method_call   : operation paren_args {
 
 brace_block   : tLCURLY {
                   self.env.extend :dynamic
+                  result = self.lexer.lineno
                 } opt_block_var { result = self.env.dynamic.keys }
                 compstmt tRCURLY { # REFACTOR
                   args   = val[2]
                   body   = val[4]
                   result = new_iter nil, args, body
                   self.env.unextend
-                  result.line = val[0].line
+                  result.line = val[1]
                 }
               | kDO {
                   self.env.extend :dynamic
+                  result = self.lexer.lineno
                 } opt_block_var { result = self.env.dynamic.keys }
                 compstmt kEND {
                   args = val[2]
                   body = val[4]
                   result = new_iter nil, args, body
                   self.env.unextend
-                  result.line = val[0].line
+                  result.line = val[1]
                 }
 
-case_body     : kWHEN when_args then compstmt cases {
-                  result = s(:when, val[1], val[3])
-                  result << val[4] if val[4]
+case_body     : kWHEN {
+                 result = self.lexer.lineno
+               } when_args then compstmt cases {
+                  result = s(:when, val[2], val[4])
+                  result.line = val[1]
+                  result << val[5] if val[5]
                 }
 
 when_args     : args
@@ -1205,7 +1241,7 @@ opt_rescue    : kRESCUE exc_list exc_var then compstmt opt_rescue {
                   exc_list = val[1] || s(:array)
 
                   result = s(:resbody, exc_list)
-                  result.line = val[0].line
+                  # result.line = val[1]
 
                   if val[2] then
                     l = val[2].line
@@ -1255,7 +1291,7 @@ string        : string1
                 }
 
 string1       : tSTRING_BEG string_contents tSTRING_END {
-                  result = val[1];
+                  result = val[1]
                 }
 
 xstring       : tXSTRING_BEG xstring_contents tSTRING_END {
@@ -1366,7 +1402,7 @@ xstring_contents: { result = nil }
                     result = literal_concat(val[0], val[1])
                   }
 
-string_content : tSTRING_CONTENT
+string_content : tSTRING_CONTENT { result = s(:str, val[0]) }
                | tSTRING_DVAR {
                    result = lexer.lex_strterm;
                    lexer.lex_strterm = nil
@@ -1452,16 +1488,16 @@ variable     : tIDENTIFIER
              | tCONSTANT
              | tCVAR
              | kNIL {
-                 result = s(:nil)
+                 result = :nil
                }
              | kSELF {
-                 result = s(:self)
+                 result = :self
                }
              | kTRUE {
-                 result = s(:true)
+                 result = :true
                }
              | kFALSE {
-                 result = s(:false)
+                 result = :false
                }
              | k__FILE__ {
                  result = :"__FILE__"
@@ -1478,10 +1514,11 @@ var_lhs        : variable {
                    result = self.assignable(val[0]);
                  }
 
-backref        : tNTH_REF | tBACK_REF
+backref        : tNTH_REF  { result = s(:nth_ref, val[0]) }
+               | tBACK_REF { result = s(:back_ref, val[0]) }
 
 superclass   : term {
-                 result = nil;
+                 result = nil
                }
              | tLT {
                  lexer.lex_state = :expr_beg

@@ -38,7 +38,7 @@ class RPStringScanner < StringScanner
   end
 
   def lineno
-    string[0..pos].count("\n") + 1
+    string[0...pos].count("\n") + 1
   end
 
   # TODO: once we get rid of these, we can make things like
@@ -284,7 +284,8 @@ class RubyParser < Racc::Parser
   end
 
   def gettable(id)
-    id = id.to_sym if Sexp === id # HACK
+    raise "no: #{id.inspect}" if Sexp === id
+    id = id.to_sym if Sexp   === id # HACK
     id = id.to_sym if String === id # HACK
 
     return s(:self)                  if id == :self
@@ -377,6 +378,9 @@ class RubyParser < Racc::Parser
       else
         head.push(tail)
       end
+    else
+      x = [head, tail]
+      raise "unknown type: #{x.inspect}"
     end
 
     return head
@@ -829,7 +833,8 @@ class Sexp
   end
 
   def minimize_line
-    @line = self.grep(Sexp).map { |s| s.line }.compact.min || self.line
+    linenos = self.grep(Sexp).map { |s| s.line } << self.line
+    @line = linenos.compact.min
   end
 
   def node_type
