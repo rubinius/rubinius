@@ -111,11 +111,16 @@ class Hash
   def self.allocate
     h = super()
 
-    # We don't need the nanny checking our symbols
-    h.send :set_instance_variable, :@records, MIN_SIZE
-    h.send :set_instance_variable, :@bins, Tuple.new(MIN_SIZE)
-    h.send :set_instance_variable, :@size, 0
+    h.__initialize__
     h
+  end
+
+  # Sets the underlying data structures.
+  def __initialize__
+    # We don't need the nanny checking our symbols
+    set_instance_variable :@records, MIN_SIZE
+    set_instance_variable :@bins, Tuple.new(MIN_SIZE)
+    set_instance_variable :@size, 0
   end
 
   # Returns the storage vector for Hash. The object should provide
