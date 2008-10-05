@@ -283,6 +283,7 @@ class Hash
     i = to_iter
     if entry = i.next
       bins[i.index] = entry.next
+      self.size -= 1
       return entry.key, entry.value
     end
   end
