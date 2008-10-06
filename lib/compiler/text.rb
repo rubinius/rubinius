@@ -82,7 +82,7 @@ class Compiler
         @text << "#{op}\n"
         advance
       else
-        @text << "#{op} #{args.join(' ', :inspect)}\n"
+        @text << "#{op} #{args.map {|a| a.inspect}.join(' ')}\n"
         advance 1 + args.size
       end
     end
