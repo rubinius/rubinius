@@ -477,7 +477,7 @@ namespace rubinius {
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") {
       std::ostringstream msg;
-      msg << "Invalid file" << path->c_str();
+      msg << "Invalid file: " << path->c_str();
       Exception::io_error(state, msg.str().c_str());
     }
 

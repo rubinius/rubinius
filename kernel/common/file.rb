@@ -1,18 +1,16 @@
 # depends on: io.rb class.rb module.rb enumerable.rb
 
 module Platform::POSIX
+  #--
+  # Internal class for accessing timevals
+  #++
   class TimeVal < FFI::Struct
     config 'rbx.platform.timeval', :tv_sec, :tv_usec
   end
 end
 
 class File < IO
-
   include Enumerable
-
-  #--
-  # Internal class for accessing timevals
-  #++
 
   class FileError < Exception; end
   class NoFileError < FileError; end
