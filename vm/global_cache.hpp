@@ -24,17 +24,6 @@ namespace rubinius {
 
     struct cache_entry entries[CPU_CACHE_SIZE];
 
-    void clear() {
-      for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
-        entries[i].klass = 0;
-        entries[i].name  = 0;
-        entries[i].module = 0;
-        entries[i].method = 0;
-        entries[i].is_public = true;
-        entries[i].method_missing = false;
-      }
-    }
-
     GlobalCache() {
       clear();
     }
@@ -50,16 +39,14 @@ namespace rubinius {
       return NULL;
     }
 
-    void clear(Module* cls, SYMBOL name) {
-      struct cache_entry* entry;
-
-      entry = entries + CPU_CACHE_HASH(cls, name);
-      if(entry->name == name && entry->klass == cls) {
-        entry->klass = NULL;
-        entry->name = NULL;
-        entry->module = NULL;
-        entry->method = NULL;
-        entry->method_missing = false;
+    void clear() {
+      for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
+        entries[i].klass = 0;
+        entries[i].name  = 0;
+        entries[i].module = 0;
+        entries[i].method = 0;
+        entries[i].is_public = true;
+        entries[i].method_missing = false;
       }
     }
 
@@ -72,6 +59,19 @@ namespace rubinius {
           entries[i].method = NULL;
           entries[i].method_missing = false;
         }
+      }
+    }
+
+    void clear(Module* cls, SYMBOL name) {
+      struct cache_entry* entry;
+
+      entry = entries + CPU_CACHE_HASH(cls, name);
+      if(entry->name == name && entry->klass == cls) {
+        entry->klass = NULL;
+        entry->name = NULL;
+        entry->module = NULL;
+        entry->method = NULL;
+        entry->method_missing = false;
       }
     }
 
