@@ -298,6 +298,7 @@ class MemoryPointer
     if type.kind_of? Fixnum
       size = type
     elsif type.kind_of? Symbol
+      type = FFI.find_type type
       size = FFI.type_size(type)
     else
       size = type.size
@@ -357,7 +358,7 @@ class MemoryPointer
   def free
     self.autorelease = false
     Platform::POSIX.free(self) unless null?
-    self.class.set_address self, nil
+    #self.class.set_address self, nil
   end
 
   # Write +obj+ as a C int at the memory pointed to.
