@@ -156,11 +156,7 @@ namespace rubinius {
   }
 
   OBJECT ObjectMemory::new_object(Class* cls, size_t fields) {
-    OBJECT obj = create_object(cls, fields);
-
-    obj->clear_fields();
-
-    return obj;
+    return create_object(cls, fields);
   }
 
   /* An Object field is the size of a pointer on any particular
