@@ -469,6 +469,8 @@ class TestGenerator
     jump_last    = self.new_label
     jump_matched = self.new_label
 
+    has_ensure = klasses.delete :ensure
+
     self.push_modifiers
 
     jump_top.set!
@@ -476,9 +478,9 @@ class TestGenerator
 
     yield :body
 
-    self.goto jump_else
+    self.goto jump_else # TODO: g.goto_if_exception jump_ex1
 
-    jump_matched.set!
+    jump_matched.set! # TODO: magic jump! generate REAL bytecode!
 
     klasses.flatten.each do |klass|
       jump_body = self.new_label
@@ -509,8 +511,21 @@ class TestGenerator
     yield :else
 
     jump_last.set!
-
     self.pop_modifiers
+
+    if has_ensure then
+      ensure_good = self.new_label
+      ensure_bad = self.new_label # TODO: magic jump!
+
+      self.goto ensure_good
+      ensure_bad.set!
+      yield :ensure
+      self.push_exception
+      self.raise_exc
+
+      ensure_good.set!
+      yield :ensure
+    end
   end
 
   def optional_arg slot
