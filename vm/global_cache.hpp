@@ -59,6 +59,7 @@ namespace rubinius {
         entry->name = NULL;
         entry->module = NULL;
         entry->method = NULL;
+        entry->method_missing = false;
       }
     }
 
@@ -69,6 +70,7 @@ namespace rubinius {
           entries[i].name = NULL;
           entries[i].module = NULL;
           entries[i].method = NULL;
+          entries[i].method_missing = false;
         }
       }
     }
