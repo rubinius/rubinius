@@ -24,7 +24,7 @@ task :compile_ruby, :file do |task, args|
 end
 task :compile_ruby => 'kernel:build' # HACK argument + dependency is broken
 
-desc "Run the given ruby fil ewith the vm"
+desc "Run the given ruby file with the vm"
 task :run_ruby, :file do |task, args|
   file = args[:file]
   raise ArgumentError, 'compile_ruby requires a file name' if file.nil?
@@ -39,6 +39,22 @@ task :run_ruby, :file do |task, args|
   sh 'vm/vm', rbc
 end
 task :run_ruby => %w[kernel:build vm/vm] # HACK argument + dependency is broken
+
+desc "Compile files with MRI because vm takes forever to do it"
+task :precompile => %w[extensions] do
+  FileList['lib/**/*.rb'].each do |rb|
+    next unless File.file? rb
+
+    rbc = "#{rb}c"
+
+    if File.exist? rbc then
+      rbc_mtime = File.mtime rbc
+      next if rbc_mtime >= COMPILER_MTIME or rbc_mtime >= File.mtime(rb)
+    end
+
+    mri_compile rb, rbc
+  end
+end
 
 # BUILD TASKS
 

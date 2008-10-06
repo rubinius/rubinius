@@ -126,10 +126,11 @@ rule ".rbc" do |t|
   compile_ruby src, rbc
 end
 
-compiler_sources = Dir["lib/compiler/*.rb"] + %w(lib/strscan.rb lib/stringio.rb lib/racc/parser.rb)
+COMPILER_SOURCES = Dir["lib/compiler/*.rb"] + %w(lib/strscan.rb lib/stringio.rb lib/racc/parser.rb)
+COMPILER_MTIME = COMPILER_SOURCES.map { |f| File::Stat.new(f).mtime }.max
 compiler = []
 
-compiler_sources.each do |rb|
+COMPILER_SOURCES.each do |rb|
   compiler << "#{rb}c"
   file "#{rb}c" => rb do
     compile_ruby rb, "#{rb}c"
@@ -141,15 +142,13 @@ task :kernel => 'kernel:build'
 namespace :kernel do
 
   task :check_compiler do
-    compiler_mtime = compiler_sources.map { |f| File::Stat.new(f).mtime }.max
-
     kernel_mtime = all_kernel.select do |f|
       f =~ /rbc$/ and File.exist? f
     end.map do |f|
       File::Stat.new(f).mtime
     end.min
 
-    Rake::Task['kernel:clean'].invoke if !kernel_mtime or compiler_mtime > kernel_mtime
+    Rake::Task['kernel:clean'].invoke if !kernel_mtime or COMPILER_MTIME > kernel_mtime
   end
 
   task :show do
