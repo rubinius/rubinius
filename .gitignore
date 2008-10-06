@@ -56,6 +56,9 @@ tmtags
 /lib/kernel.rb
 /lib/rbconfig.rb
 /lib/zlib.rb
+/lib/fcntl.rb
+/lib/openssl/digest.rb
+/lib/syslog.rb
 
 native/sexp
 native/translation
