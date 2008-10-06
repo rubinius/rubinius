@@ -97,6 +97,7 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen_iter sexp do |d|
+      d.cast_for_multi_block_arg
       d.cast_array
       d.set_local_depth 0, 0
     end
