@@ -738,7 +738,6 @@ class Instructions
       msg.set_arguments(state, args);
 
       bool res = task->send_message_slowly(msg);
-      msg.reset();
       RETURN(res);
     }
 
@@ -2233,7 +2232,6 @@ class Instructions
       msg.set_arguments(state, args);
 
       bool res = task->send_message_slowly(msg);
-      msg.reset();
       RETURN(res);
     }
 
@@ -2877,7 +2875,6 @@ class Instructions
     task->call_flags = 0;
 
     bool res = task->send_message(msg);
-    msg.reset();
     RETURN(res);
     CODE
   end
@@ -2956,7 +2953,6 @@ class Instructions
     task->call_flags = 0;
 
     bool res = task->send_message(msg);
-    msg.reset();
     RETURN(res);
     CODE
   end
@@ -3038,7 +3034,6 @@ class Instructions
     task->call_flags = 0;
 
     bool res = task->send_message(msg);
-    msg.reset();
     RETURN(res);
     CODE
   end
@@ -3135,7 +3130,6 @@ class Instructions
     task->call_flags = 0;
 
     bool res = task->send_message(msg);
-    msg.reset();
     RETURN(res);
     CODE
   end
@@ -3222,7 +3216,6 @@ class Instructions
     task->call_flags = 0;
 
     bool res = task->send_message(msg);
-    msg.reset();
     RETURN(res);
     CODE
   end
@@ -3362,7 +3355,6 @@ class Instructions
     task->call_flags = 0;
 
     bool res = task->send_message(msg);
-    msg.reset();
     RETURN(res);
     CODE
   end

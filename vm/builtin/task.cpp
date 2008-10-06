@@ -221,6 +221,21 @@ stack_cleanup:
     Exception::assertion_error(msg.state, ss.str().c_str());
   }
 
+  bool Task::execute_message(Message& msg) {
+    bool mc_installed;
+
+    try {
+      mc_installed = msg.method->execute(state, this, msg);
+    } catch (...) {
+      msg.reset();
+      throw;
+    }
+
+    msg.reset();
+
+    return mc_installed;
+  }
+
   /* For details in msg, locate the proper method and begin execution
    * of it. */
   bool Task::send_message(Message& msg) {
@@ -238,7 +253,7 @@ stack_cleanup:
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return msg.method->execute(state, this, msg);
+    return execute_message(msg);
   }
 
   bool Task::send_message_slowly(Message& msg) {
@@ -260,7 +275,7 @@ stack_cleanup:
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return msg.method->execute(state, this, msg);
+    return execute_message(msg);
   }
 
   bool Task::passed_arg_p(size_t pos) {
