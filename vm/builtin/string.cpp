@@ -71,7 +71,7 @@ namespace rubinius {
     so->hash_value(state, (INTEGER)Qnil);
 
     ByteArray* ba = ByteArray::create(state, bytes + 1);
-    if(str) memcpy(ba->bytes, str, bytes);
+    if(str) std::memcpy(ba->bytes, str, bytes);
     ba->bytes[bytes] = 0;
 
     so->data(state, ba);
@@ -393,7 +393,7 @@ namespace rubinius {
       this->shared(state, Qfalse);
     }
 
-    memcpy(data_->bytes, data->tr, data->last);
+    std::memcpy(data_->bytes, data->tr, data->last);
     data_->bytes[data->last] = 0;
 
     num_bytes(state, Fixnum::from(data->last));

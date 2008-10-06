@@ -85,7 +85,7 @@ class TestContexts : public CxxTest::TestSuite {
     task->make_active(ctx);
 
     opcode stream[10];
-    memset(stream, 0, sizeof(opcode) * 10);
+    std::memset(stream, 0, sizeof(opcode) * 10);
     stream[0] = InstructionSequence::insn_send_method;
     stream[1] = (opcode)0;
 

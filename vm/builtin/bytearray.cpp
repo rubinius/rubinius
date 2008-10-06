@@ -29,7 +29,7 @@ namespace rubinius {
     char* str = (char*)(this->bytes);
     char* out = ALLOC_N(char, sz);
 
-    memcpy(out, str, sz);
+    std::memcpy(out, str, sz);
 
     return out;
   }
@@ -83,7 +83,7 @@ namespace rubinius {
       Exception::object_bounds_exceeded_error(state, "move is more than available bytes");
     }
 
-    memmove(this->bytes + dst, this->bytes + src, cnt);
+    std::memmove(this->bytes + dst, this->bytes + src, cnt);
 
     return count;
   }
@@ -102,7 +102,7 @@ namespace rubinius {
     }
 
     ByteArray* ba = ByteArray::create(state, cnt + 1);
-    memcpy(ba->bytes, this->bytes + src, cnt);
+    std::memcpy(ba->bytes, this->bytes + src, cnt);
     ba->bytes[cnt] = 0;
 
     return ba;
@@ -129,7 +129,7 @@ namespace rubinius {
     // only compare the shortest string
     native_int len = m < n ? m : n;
 
-    native_int cmp = memcmp(this->bytes, other->bytes, len);
+    native_int cmp = std::memcmp(this->bytes, other->bytes, len);
 
     // even if substrings are equal, check actual requested limits
     // of comparison e.g. "xyz", "xyzZ"
@@ -150,7 +150,7 @@ namespace rubinius {
     native_int size = SIZE_OF_BODY(this);
     native_int osize = SIZE_OF_BODY(other);
 
-    memcpy(other->bytes, this->bytes, size < osize ? size : osize);
+    std::memcpy(other->bytes, this->bytes, size < osize ? size : osize);
 
     return other;
   }

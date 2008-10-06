@@ -56,7 +56,7 @@ class TestRegexp : public CxxTest::TestSuite {
 
   void test_create_with_bad_pattern() {
     char buf[1024];
-    memset(buf, 0, 1024);
+    std::memset(buf, 0, 1024);
 
     String *pat = String::create(state, "(?");
     OBJECT re = Regexp::create(state, pat, Fixnum::from(0), buf);

@@ -25,7 +25,7 @@ namespace rubinius {
   void Marshaller::set_bignum(Bignum* big) {
     char buf[1024];
 
-    memset(buf, 0, 1024);
+    std::memset(buf, 0, 1024);
     big->into_string(state, 10, buf, 1023);
 
     stream << "I" << endl << buf << endl;
@@ -33,7 +33,7 @@ namespace rubinius {
 
   OBJECT UnMarshaller::get_int() {
     char data[1024];
-    memset(data, 0, 1024);
+    std::memset(data, 0, 1024);
 
     stream >> data;
 
