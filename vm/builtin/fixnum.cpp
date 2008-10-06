@@ -361,7 +361,9 @@ namespace rubinius {
     j = base->to_native();
     k = to_native();
 
-    if(j < 2 || j > 36) throw PrimitiveFailed();
+    if(j < 2 || j > 36) {
+      Exception::argument_error(state, "invalid base");
+    }
 
     /* Algorithm taken from 1.8.4 rb_fix2str */
     if(k == 0) return String::create(state, "0");

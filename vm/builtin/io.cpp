@@ -55,7 +55,7 @@ namespace rubinius {
     off_t position;
 
     if(fd == -1) {
-      PrimitiveFailed::raise();
+      Exception::io_error(state, "closed stream");
     }
 
     position = lseek(fd, amount->to_long_long(), whence->to_native());
@@ -70,9 +70,9 @@ namespace rubinius {
   OBJECT IO::close(STATE) {
     int fd = descriptor_->to_native();
     if(fd == -1) {
-      PrimitiveFailed::raise();
+      Exception::io_error(state, "closed stream");
     } else if(::close(fd)) {
-      PrimitiveFailed::raise();
+      Exception::errno_error(state);
     } else {
       // HACK todo clear any events for this IO
       descriptor(state, Fixnum::from(-1));
@@ -104,7 +104,7 @@ namespace rubinius {
 
     ssize_t cnt = ::read(this->to_fd(), str->data()->bytes, bytes->to_native());
     if(cnt == -1) {
-      PrimitiveFailed::raise();
+      Exception::errno_error(state);
     } else if(cnt == 0) {
       return Qnil;
     }
@@ -117,7 +117,9 @@ namespace rubinius {
   OBJECT IO::query(STATE, SYMBOL op) {
     native_int fd = this->to_fd();
 
-    if(fd < 0) PrimitiveFailed::raise();
+    if(fd < 0) {
+      Exception::io_error(state, "closed stream");
+    }
 
     if(op == state->symbol("tty?")) {
       return isatty(fd) ? Qtrue : Qfalse;

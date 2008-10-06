@@ -1,6 +1,7 @@
 #include "builtin/string.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/float.hpp"
@@ -428,8 +429,10 @@ namespace rubinius {
     native_int osz = (native_int)other->size();
 
     if(src < 0) src = osz + src;
-    if(src >= osz || src < 0) {
-      PrimitiveFailed::raise();
+    if(src >= osz) {
+      Exception::object_bounds_exceeded_error(state, "start exceeds size of other");
+    } else if(src < 0) {
+      Exception::object_bounds_exceeded_error(state, "start less than zero");
     }
     if(src + cnt > osz) cnt = osz - src;
 
@@ -475,7 +478,7 @@ namespace rubinius {
         }
       }
     } else {
-      PrimitiveFailed::raise();
+      Exception::argument_error(state, "pattern must be Fixnum of String");
     }
 
     return s;
@@ -664,7 +667,7 @@ return_value:
 
   INTEGER String::to_inum_prim(STATE, FIXNUM base, OBJECT strict) {
     INTEGER val = to_i(state, base, strict);
-    if(val->nil_p()) throw PrimitiveFailed();
+    if(val->nil_p()) return (INTEGER)Primitives::failure();
 
     return val;
   }

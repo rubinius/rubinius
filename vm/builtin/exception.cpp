@@ -94,6 +94,11 @@ namespace rubinius {
                                         msg.str().c_str()));
   }
 
+  void Exception::object_bounds_exceeded_error(STATE, const char* reason) {
+    RubyException::raise(make_exception(state,
+          get_object_bounds_exceeded_error(state), reason));
+  }
+
   void Exception::errno_error(STATE, const char* reason, int ern) {
     if(ern == 0) ern = errno;
     Class* exc_class = get_errno_error(state, ern);

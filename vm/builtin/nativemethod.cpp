@@ -5,6 +5,7 @@
 #include "quantum_stack_leap.hpp"
 
 #include "builtin/array.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/string.hpp"
 #include "builtin/task.hpp"
@@ -94,7 +95,8 @@ namespace rubinius {
 
     if (func == NULL) {
       /* TODO: Pass error message up */
-      PrimitiveFailed::raise();
+      /* HACK: The exception should probably be raised from ::find_symbol */
+      Exception::assertion_error(state, "unable to load extension");
     }
 
     NativeMethod* m = NativeMethod::create(state,

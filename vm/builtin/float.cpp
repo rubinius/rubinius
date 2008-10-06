@@ -1,6 +1,7 @@
-#include "builtin/float.hpp"
 #include "builtin/array.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
 #include "builtin/string.hpp"
 
 #include "objectmemory.hpp"
@@ -10,6 +11,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <sstream>
 
 namespace rubinius {
 
@@ -211,7 +213,7 @@ namespace rubinius {
     return Bignum::from_double(state, this->val);
   }
 
-#define FLOAT_TO_S_STRLEN   256
+#define FLOAT_TO_S_STRLEN   1024
 
   String* Float::to_s_formatted(STATE, String* format) {
     char str[FLOAT_TO_S_STRLEN];
@@ -219,7 +221,9 @@ namespace rubinius {
     size_t size = snprintf(str, FLOAT_TO_S_STRLEN, format->c_str(), val);
 
     if(size >= FLOAT_TO_S_STRLEN) {
-      PrimitiveFailed::raise();
+      std::ostringstream msg;
+      msg << "formatted string exceeds " << FLOAT_TO_S_STRLEN << " bytes";
+      Exception::argument_error(state, msg.str().c_str());
     }
 
     return String::create(state, str, size);

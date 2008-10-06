@@ -70,9 +70,12 @@ class TestByteArray : public CxxTest::TestSuite {
   void test_get_byte_index_out_of_bounds() {
     ByteArray* b = String::create(state, "xyz")->data();
     native_int sz = b->size(state)->to_native();
-    TS_ASSERT_THROWS(b->get_byte(state, Fixnum::from(sz)), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->get_byte(state, Fixnum::from(sz+1)), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->get_byte(state, Fixnum::from(-1)), const PrimitiveFailed &);
+    TS_ASSERT_THROWS_ASSERT(b->get_byte(state, Fixnum::from(sz)), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->get_byte(state, Fixnum::from(sz+1)), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->get_byte(state, Fixnum::from(-1)), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
 
   void test_set_byte() {
@@ -86,9 +89,15 @@ class TestByteArray : public CxxTest::TestSuite {
   void test_set_byte_out_of_bounds() {
     ByteArray* b = String::create(state, "xyz")->data();
     native_int sz = b->size(state)->to_native();
-    TS_ASSERT_THROWS(b->set_byte(state, Fixnum::from(sz), Fixnum::from('0')), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->set_byte(state, Fixnum::from(sz+1), Fixnum::from('0')), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->set_byte(state, Fixnum::from(-1), Fixnum::from('0')), const PrimitiveFailed &);
+    TS_ASSERT_THROWS_ASSERT(b->set_byte(state, Fixnum::from(sz), Fixnum::from('0')),
+        const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->set_byte(state, Fixnum::from(sz+1), Fixnum::from('0')),
+        const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->set_byte(state, Fixnum::from(-1), Fixnum::from('0')),
+        const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
 
   void test_move_bytes() {
@@ -107,13 +116,19 @@ class TestByteArray : public CxxTest::TestSuite {
     INTEGER size = b->size(state);
     INTEGER size1 = Fixnum::from(b->size(state)->to_native()+1);
 
-    TS_ASSERT_THROWS(b->move_bytes(state, neg, zero, zero), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->move_bytes(state, zero, neg, zero), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->move_bytes(state, zero, zero, neg), const PrimitiveFailed &);
+    TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, neg, zero, zero), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, zero, neg, zero), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, zero, zero, neg), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
 
-    TS_ASSERT_THROWS(b->move_bytes(state, zero, size1, zero), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->move_bytes(state, zero, size, one), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->move_bytes(state, one, size, zero), const PrimitiveFailed &);
+    TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, zero, size1, zero), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, zero, size, one), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, one, size, zero), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
 
   void test_fetch_bytes() {
@@ -132,11 +147,15 @@ class TestByteArray : public CxxTest::TestSuite {
     INTEGER size = b->size(state);
     INTEGER size1 = Fixnum::from(b->size(state)->to_native()+1);
 
-    TS_ASSERT_THROWS(b->fetch_bytes(state, neg, zero), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->fetch_bytes(state, zero, neg), const PrimitiveFailed &);
+    TS_ASSERT_THROWS_ASSERT(b->fetch_bytes(state, neg, zero), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->fetch_bytes(state, zero, neg), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
 
-    TS_ASSERT_THROWS(b->fetch_bytes(state, zero, size1), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(b->fetch_bytes(state, one, size), const PrimitiveFailed &);
+    TS_ASSERT_THROWS_ASSERT(b->fetch_bytes(state, zero, size1), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(b->fetch_bytes(state, one, size), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
 
   void test_compare_bytes() {
@@ -166,8 +185,10 @@ class TestByteArray : public CxxTest::TestSuite {
     INTEGER zero = Fixnum::from(0);
     INTEGER neg = Fixnum::from(-1);
 
-    TS_ASSERT_THROWS(a->compare_bytes(state, b, neg, zero), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(a->compare_bytes(state, b, zero, neg), const PrimitiveFailed &);
+    TS_ASSERT_THROWS_ASSERT(a->compare_bytes(state, b, neg, zero), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(a->compare_bytes(state, b, zero, neg), const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
 
   void test_dup_into() {

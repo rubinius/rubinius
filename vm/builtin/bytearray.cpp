@@ -5,6 +5,7 @@
 #include "objectmemory.hpp"
 #include "primitives.hpp"
 #include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 
@@ -46,7 +47,7 @@ namespace rubinius {
     native_int idx = index->to_native();
 
     if(idx < 0 || idx >= size) {
-      PrimitiveFailed::raise();
+      Exception::object_bounds_exceeded_error(state, "index out of bounds");
     }
 
     return Fixnum::from(this->bytes[idx]);
@@ -57,7 +58,7 @@ namespace rubinius {
     native_int idx = index->to_native();
 
     if(idx < 0 || idx >= size) {
-      PrimitiveFailed::raise();
+      Exception::object_bounds_exceeded_error(state, "index out of bounds");
     }
 
     this->bytes[idx] = value->to_native();
@@ -70,8 +71,16 @@ namespace rubinius {
     native_int cnt = count->to_native();
     native_int dst = dest->to_native();
 
-    if(src + cnt > size || dst + cnt > size || src < 0 || dst < 0 || cnt < 0) {
-      PrimitiveFailed::raise();
+    if(src < 0) {
+      Exception::object_bounds_exceeded_error(state, "start less than zero");
+    } else if(dst < 0) {
+      Exception::object_bounds_exceeded_error(state, "dest less than zero");
+    } else if(cnt < 0) {
+      Exception::object_bounds_exceeded_error(state, "count less than zero");
+    } else if(dst + cnt > size) {
+      Exception::object_bounds_exceeded_error(state, "move is beyond end of bytearray");
+    } else if(src + cnt > size) {
+      Exception::object_bounds_exceeded_error(state, "move is more than available bytes");
     }
 
     memmove(this->bytes + dst, this->bytes + src, cnt);
@@ -84,8 +93,12 @@ namespace rubinius {
     native_int src = start->to_native();
     native_int cnt = count->to_native();
 
-    if(src + cnt > size || src < 0 || cnt < 0) {
-      PrimitiveFailed::raise();
+    if(src < 0) {
+      Exception::object_bounds_exceeded_error(state, "start less than zero");
+    } else if(cnt < 0) {
+      Exception::object_bounds_exceeded_error(state, "count less than zero");
+    } else if(src + cnt > size) {
+      Exception::object_bounds_exceeded_error(state, "fetch is more than available bytes");
     }
 
     ByteArray* ba = ByteArray::create(state, cnt + 1);
@@ -101,8 +114,12 @@ namespace rubinius {
     native_int slim = a->to_native();
     native_int olim = b->to_native();
 
-    if(slim < 0 || olim < 0) {
-      PrimitiveFailed::raise();
+    if(slim < 0) {
+      Exception::object_bounds_exceeded_error(state,
+          "bytes of self to compare is less than zero");
+    } else if(olim < 0) {
+      Exception::object_bounds_exceeded_error(state,
+          "bytes of other to compare is less than zero");
     }
 
     // clamp limits to actual sizes

@@ -320,8 +320,9 @@ class TestFloat : public CxxTest::TestSuite {
     TS_ASSERT_SAME_DATA("3.14159000000000", s->c_str(), 16);
     TS_ASSERT_EQUALS(16U, s->size());
 
-    format = String::create(state, "%#.256g");
-    TS_ASSERT_THROWS(f->to_s_formatted(state, format), const PrimitiveFailed &);
+    format = String::create(state, "%#.1024g");
+    TS_ASSERT_THROWS_ASSERT(f->to_s_formatted(state, format), const RubyException &e,
+                            TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
 };
 

@@ -64,7 +64,9 @@ class TestIO : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Qnil, io->query(state, state->symbol("unknown")));
 
     io->descriptor(state, Fixnum::from(-1));
-    TS_ASSERT_THROWS(io->query(state, state->symbol("tty?")), const PrimitiveFailed &);
+    TS_ASSERT_THROWS_ASSERT(io->query(state, state->symbol("tty?")),
+        const RubyException &e,
+        TS_ASSERT(Exception::io_error_p(state, e.exception)));
   }
 
   void test_query_tty() {

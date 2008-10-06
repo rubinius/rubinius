@@ -477,8 +477,12 @@ class TestString : public CxxTest::TestSuite {
   void test_compare_substring_throws_if_start_beyond_bounds() {
     String* a = String::create(state, "a");
     String* b = String::create(state, "aa");
-    TS_ASSERT_THROWS(a->compare_substring(state, b, Fixnum::from(-3), Fixnum::from(1)), const PrimitiveFailed &);
-    TS_ASSERT_THROWS(a->compare_substring(state, b, Fixnum::from(2), Fixnum::from(1)), const PrimitiveFailed &);
+    TS_ASSERT_THROWS_ASSERT(a->compare_substring(state, b, Fixnum::from(-3), Fixnum::from(1)),
+        const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
+    TS_ASSERT_THROWS_ASSERT(a->compare_substring(state, b, Fixnum::from(2), Fixnum::from(1)),
+        const RubyException &e,
+        TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }
 
   void test_pattern_from_character() {
