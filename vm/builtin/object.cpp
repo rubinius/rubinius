@@ -152,20 +152,25 @@ namespace rubinius {
   }
 
   OBJECT Object::clone(STATE) {
-    LookupTable* source_methods = this->metaclass(state)->method_table()->dup(state);
-    LookupTable* source_constants = this->metaclass(state)->constants()->dup(state);
-    OBJECT new_object = this->dup(state);
+    if(MetaClass* mc = try_as<MetaClass>(klass_)) {
+      LookupTable* source_methods = mc->method_table()->dup(state);
+      LookupTable* source_constants = mc->constants()->dup(state);
 
-    // TODO why can't we use new_object->metaclass(state) here? Why are
-    // we creating a metaclass by hand?
-    // Clone gets a new MetaClass
-    new_object->klass(state, (MetaClass*)state->new_object(G(metaclass)));
-    // Set the clone's method and constants tables to those
-    // of the receiver's metaclass
-    new_object->metaclass(state)->method_table(state, source_methods);
-    new_object->klass()->constants(state, source_constants);
+      OBJECT dup = state->om->allocate_object(num_fields());
+      dup->initialize_copy(this, age);
+      dup->copy_body(this);
 
-    return new_object;
+      // Ditch any metaclass we might have copied over.
+      dup->klass(state, class_object(state));
+
+      // Calling metaclass(state) will create a new MetaClass.
+      // Set the clone's method and constants tables to those
+      // of the receiver's metaclass
+      dup->metaclass(state)->method_table(state, source_methods);
+      dup->metaclass(state)->constants(state, source_constants);
+    }
+
+    return dup(state);
   }
 
   bool Object::kind_of_p(STATE, OBJECT cls) {
