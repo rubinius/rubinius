@@ -3617,7 +3617,7 @@ class Instructions
   # [Operation]
   #   Sets the value of a local variable
   # [Format]
-  #   \set_local local
+  #   \set_local index
   # [Stack Before]
   #   * value
   #   * ...
@@ -3625,9 +3625,8 @@ class Instructions
   #   * value
   #   * ...
   # [Description]
-  #   Pops +value+ off the stack, and uses it to set the value of the local
-  #   variable identified by the literal +local+. The value is then pushed back
-  #   onto the stack, to represent the return value from the expression.
+  #   Sets the local variable identified by +index+ to +value+.
+  #   The stack is not modified by this instruction.
 
   def set_local(index)
     <<-CODE
