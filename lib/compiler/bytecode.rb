@@ -1433,7 +1433,7 @@ class Compiler
 
         @assigns.body.each do |x|
           if x.is? AttrAssign
-            x.bytecode(g, true)
+            x.bytecode(g, :swap)
           else
             x.bytecode(g)
           end

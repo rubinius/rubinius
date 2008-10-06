@@ -3113,6 +3113,7 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.push :self
               g.send :b, 0, true
+              g.swap
               g.send :c=, 1, false
 
               g.pop
@@ -3177,11 +3178,13 @@ class CompilerTestCase < ParseTreeTestCase
               g.rotate 2
 
               g.push_local 0
+              g.swap
               g.push_local 1
               g.send :[]=, 2, false
               g.pop
 
               g.push_local 0
+              g.swap
               g.push_local 2
               g.send :[]=, 2, false
               g.pop

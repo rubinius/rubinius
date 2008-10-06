@@ -58,6 +58,7 @@ describe Compiler do
 
       g.push :self
       g.send :b, 0, true
+      g.swap
       g.send :c=, 1, false
 
       g.pop
