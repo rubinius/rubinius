@@ -113,7 +113,7 @@ describe Compiler do
     sexp = s(:rescue, s(:fixnum, 12),
              s(:resbody, s(:array, s(:const, :String),
                 s(:lasgn, :e, s(:gvar, :$!))),
-               s(:block, s(:fixnum, 13))))
+               s(:fixnum, 13)))
 
     sexp.should == parse(ruby)
 

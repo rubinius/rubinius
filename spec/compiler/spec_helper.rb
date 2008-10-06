@@ -462,46 +462,52 @@ class TestGenerator
     self.send :__module_init__, 0
   end
 
-  def in_rescue klass
+  def in_rescue *klasses
     jump_top     = self.new_label
     jump_ex_body = self.new_label
     jump_else    = self.new_label
     jump_last    = self.new_label
     jump_matched = self.new_label
-    jump_std_err = self.new_label
-    jump_reraise = self.new_label
 
     self.push_modifiers
 
     jump_top.set!
     jump_ex_body.set!
 
-    yield true
+    yield :body
 
     self.goto jump_else
 
     jump_matched.set!
 
-    self.push_const klass
-    self.push_exception
-    self.send :===, 1
-    self.git jump_std_err
+    klasses.flatten.each do |klass|
+      jump_body = self.new_label
+      jump_next = self.new_label
 
-    self.goto jump_reraise         # FIX: stupid jump, gif better
+      self.push_const klass
+      self.push_exception
+      self.send :===, 1
+      self.git jump_body
 
-    jump_std_err.set!
+      self.goto jump_next         # FIX: stupid jump, gifucked better
 
-    yield false
+      jump_body.set!
 
-    self.clear_exception
-    self.goto jump_last
+      yield klass
 
-    jump_reraise.set!
+      self.clear_exception
+      self.goto jump_last
+
+      jump_next.set!
+    end
 
     self.push_exception
     self.raise_exc
 
     jump_else.set!
+
+    yield :else
+
     jump_last.set!
 
     self.pop_modifiers

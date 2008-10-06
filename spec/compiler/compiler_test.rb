@@ -130,6 +130,30 @@ class CompilerTestCase < ParseTreeTestCase
               g.make_array 3
             end)
 
+  add_tests("array_pct_w",
+            "Compiler" => bytecode do |g|
+              g.push_literal "a"
+              g.string_dup
+              g.push_literal "b"
+              g.string_dup
+              g.push_literal "c"
+              g.string_dup
+              g.make_array 3
+            end)
+
+  add_tests("array_pct_w_dstr",
+            "Compiler" => bytecode do |g|
+              g.push_literal "a"
+              g.string_dup
+
+              g.push_literal "\#{@b}"
+              g.string_dup
+
+              g.push_literal "c"
+              g.string_dup
+              g.make_array 3
+            end)
+
   add_tests("attrasgn",
             "Compiler" => bytecode do |g|
               g.push 0
@@ -795,11 +819,12 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("block_stmt_after",
             "Compiler" => bytecode do |g|
               in_method :f do |d|
-                d.in_rescue(:StandardError) do |good_side|
-                  if good_side then
+                d.in_rescue :StandardError do |section|
+                  case section
+                  when :body then
                     d.push :self
                     d.send :b, 0, true
-                  else
+                  when :StandardError then
                     d.push :self
                     d.send :c, 0, true
                   end
@@ -821,11 +846,12 @@ class CompilerTestCase < ParseTreeTestCase
                 d.send :a, 0, true
                 d.pop
 
-                d.in_rescue(:StandardError) do |good_side|
-                  if good_side then
+                d.in_rescue :StandardError do |section|
+                  case section
+                  when :body then
                     d.push :self
                     d.send :b, 0, true
-                  else
+                  when :StandardError
                     d.push :self
                     d.send :c, 0, true
                   end
@@ -843,11 +869,12 @@ class CompilerTestCase < ParseTreeTestCase
                 d.send :a, 0, true
                 d.pop
 
-                d.in_rescue(:StandardError) do |good_side|
-                  if good_side then
+                d.in_rescue :StandardError do |section|
+                  case section
+                  when :body then
                     d.push :self
                     d.send :b, 0, true
-                  else
+                  when :StandardError then
                     d.push :self
                     d.send :c, 0, true
                   end
@@ -1677,11 +1704,12 @@ class CompilerTestCase < ParseTreeTestCase
                 d.send :full_message, 0, true
 
                 d.in_block_send :assert_block, 0, 1, true, 0, true do |d2|
-                  d2.in_rescue :Exception do |good_side|
-                    if good_side then
+                  d2.in_rescue :Exception do |section|
+                    case section
+                    when :body then
                       d2.push_block
                       d2.meta_send_call 0
-                    else
+                    when :Exception then
                       d2.push_exception
                       d2.set_local_depth 1, 0
                       d2.push :nil
@@ -1892,14 +1920,15 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("defn_rescue",
             "Compiler" => bytecode do |g|
               in_method :eql? do |d|
-                d.in_rescue :StandardError do |good_side|
-                  if good_side then
+                d.in_rescue :StandardError do |section|
+                  case section
+                  when :body then
                     d.push :self
                     d.send :uuid, 0, false
                     d.push_local 0
                     d.send :uuid, 0, false
                     d.meta_send_op_equal
-                  else
+                  when :StandardError then
                     d.push :false
                   end
                 end
@@ -2731,10 +2760,11 @@ class CompilerTestCase < ParseTreeTestCase
               g.find_const :Hash
               g.push 1
 
-              g.in_rescue :StandardError do |good_side|
-                if good_side then
+              g.in_rescue :StandardError do |section|
+                case section
+                when :body then
                   g.push 2
-                else
+                when :StandardError then
                   g.push 3
                 end
               end
@@ -3248,11 +3278,12 @@ class CompilerTestCase < ParseTreeTestCase
                 d.push :self
 
                 d.in_block_send :c, 0 do |d2|
-                  d2.in_rescue :RuntimeError do |good_side|
-                    if good_side then
+                  d2.in_rescue :RuntimeError do |section|
+                    case section
+                    when :body then
                       d2.push :self
                       d2.send :do_stuff, 0, true
-                    else
+                    when :RuntimeError then
                       d2.push_exception
                       d2.set_local_depth 0, 0
                       d2.push :self
@@ -4040,11 +4071,12 @@ class CompilerTestCase < ParseTreeTestCase
               g.git t
               g.pop
 
-              in_rescue :StandardError do |good_side|
-                if good_side then
+              in_rescue :StandardError do |section|
+                case section
+                when :body then
                   g.push :self
                   g.send :b, 0, true
-                else
+                when :StandardError then
                   g.push :self
                   g.send :c, 0, true
                 end
@@ -4249,11 +4281,12 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("rescue",
             "Compiler" => bytecode do |g|
-              in_rescue :StandardError do |good_side|
-                if good_side then
+              in_rescue :StandardError do |section|
+                case section
+                when :body then
                   g.push :self
                   g.send :blah, 0, true
-                else
+                when :StandardError then
                   g.push :nil
                 end
               end
@@ -4261,11 +4294,12 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("rescue_block_body",
             "Compiler" => bytecode do |g|
-              in_rescue :StandardError do |good_side| # FIX: wtf param
-                if good_side then
+              in_rescue :StandardError do |section|
+                case section
+                when :body then
                   g.push :self
                   g.send :a, 0, true
-                else
+                when :StandardError then
                   g.push_exception
                   g.set_local 0
                   g.push :self
@@ -4277,22 +4311,52 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
+  add_tests("rescue_block_body_3",
+            "Compiler" => bytecode do |g|
+              in_rescue :A, :B, :C do |section|
+                case section
+                when :body then
+                  g.push :self
+                  g.send :a, 0, true
+                when :A then
+                  g.push :self
+                  g.send :b, 0, true
+                when :B then
+                  g.push :self
+                  g.send :c, 0, true
+                when :C then
+                  g.push :self
+                  g.send :d, 0, true
+                end
+              end
+            end)
+
   add_tests("rescue_block_nada",
             "Compiler" => testcases['rescue']['Compiler'])
 
   add_tests("rescue_exceptions",
             "Compiler" => bytecode do |g|
-              in_rescue :RuntimeError do |good_side|
-                if good_side then
+              in_rescue :RuntimeError do |section|
+                case section
+                when :body then
                   g.push :self
                   g.send :blah, 0, true
-                else
+                when :RuntimeError then
                   g.push_exception
                   g.set_local 0
                   g.push :nil
                 end
               end
             end)
+
+  add_tests("rescue_lasgn",
+            "Compiler" => :skip)
+
+  add_tests("rescue_lasgn_var",
+            "Compiler" => :skip)
+
+  add_tests("rescue_lasgn_var_empty",
+            "Compiler" => :skip)
 
   add_tests("retry",
             "Compiler" => bytecode do |g| # TODO: maybe have a real example?
@@ -4482,11 +4546,12 @@ class CompilerTestCase < ParseTreeTestCase
               g.push :self
               g.send :a, 0, true
 
-              in_rescue :StandardError do |good_side|
-                if good_side then
+              in_rescue :StandardError do |section|
+                case section
+                when :body then
                   g.push :self
                   g.send :b, 0, true
-                else
+                when :StandardError then
                   g.push :self
                   g.send :c, 0, true
                 end
@@ -4504,11 +4569,12 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :c, 0, true
               g.gif f
 
-              in_rescue :StandardError do |good_side|
-                if good_side then
+              in_rescue :StandardError do |section|
+                case section
+                when :body then
                   g.push :self
                   g.send :b, 0, true
-                else
+                when :StandardError then
                   g.push :nil
                 end
               end
