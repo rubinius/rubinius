@@ -4985,21 +4985,13 @@ end
 # reduce 369 omitted
 
 def _reduce_370(val, _values, result)
-                  exc_list = val[1] || s(:array)
+                  klasses, var, body, rest = val[1], val[2], val[4], val[5]
 
-                  result = s(:resbody, exc_list)
-                  # result.line = val[1]
+                  klasses ||= s(:array)
+                  klasses << node_assign(var, s(:gvar, :"$!")) if var
 
-                  if val[2] then
-                    l = val[2].line
-                    exc_list << node_assign(val[2], s(:gvar, :"$!").line(l))
-
-                    val[4] = s(:block, val[4]).line(l) if
-                      val[4] && val[4][0] != :block
-                  end
-
-                  result << val[4]
-                  result << val[5] if val[5]
+                  result = s(:resbody, klasses, body)
+                  result << rest if rest # UGH, rewritten above
                  
     result
 end
@@ -5192,7 +5184,7 @@ def _reduce_396(val, _values, result)
 end
 
 def _reduce_397(val, _values, result)
-                   result = val[0] << val[1]
+                   result = val[0] << s(:str, val[1])
                  
     result
 end

@@ -6,7 +6,12 @@
 
 $TESTING = true
 
-require 'test/unit/testcase'
+begin
+  require 'mini/test'
+  module Test; module Unit; class TestCase < ::Mini::Test::TestCase; end;end;end
+rescue LoadError
+  require 'test/unit/testcase'
+end
 require 'sexp_processor' # for deep_clone
 
 # key:
@@ -303,6 +308,25 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                 s(:dstr, "", s(:evstr, s(:ivar, :@b))),
                                 s(:str, "c")),
             "Ruby2Ruby"    => "[\"a\", \"#\{@b}\", \"c\"]")
+
+  add_tests("array_pct_w",
+            "Ruby"         => "%w[a b c]",
+            "RawParseTree" => [:array, [:str, "a"], [:str, "b"], [:str, "c"]],
+            "ParseTree"    => s(:array,
+                                s(:str, "a"), s(:str, "b"), s(:str, "c")),
+            "Ruby2Ruby"    => "[\"a\", \"b\", \"c\"]")
+
+  add_tests("array_pct_w_dstr",
+            "Ruby"         => "%w[a #\{@b} c]",
+            "RawParseTree" => [:array,
+                               [:str, "a"],
+                               [:str, "#\{@b}"],
+                               [:str, "c"]],
+            "ParseTree"    => s(:array,
+                                s(:str, "a"),
+                                s(:str, "#\{@b}"),
+                                s(:str, "c")),
+            "Ruby2Ruby"    => "[\"a\", \"\\\#{@b}\", \"c\"]") # TODO: huh?
 
   add_tests("attrasgn",
             "Ruby"         => "y = 0\n42.method = y\n",
@@ -1436,7 +1460,7 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                         s(:array,
                                           s(:const, :Exception),
                                           s(:lasgn, :v, s(:gvar, :$!))),
-                                        s(:block, s(:break))))))))
+                                        s(:break)))))))
 
   add_tests("dasgn_mixed",
             "Ruby"         => "t = 0\nns.each { |n| t += n }\n",
@@ -2167,14 +2191,12 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                     s(:array,
                                       s(:const, :SyntaxError),
                                       s(:lasgn, :e1, s(:gvar, :$!))),
-                                    s(:block,
-                                      s(:lit, 2))),
+                                    s(:lit, 2)),
                                   s(:resbody,
                                     s(:array,
                                       s(:const, :Exception),
                                       s(:lasgn, :e2, s(:gvar, :$!))),
-                                    s(:block, # TODO: no block
-                                      s(:lit, 3))),
+                                    s(:lit, 3)),
                                   s(:lit, 4)),
                                 s(:lit, 5)))
 
@@ -2909,10 +2931,9 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                             s(:array,
                                               s(:const, :RuntimeError),
                                               s(:lasgn, :b, s(:gvar, :$!))),
-                                            s(:block,
-                                              s(:call, nil, :puts,
-                                                s(:arglist,
-                                                  s(:lvar, :b))))))))))))
+                                            s(:call, nil, :puts,
+                                              s(:arglist,
+                                                s(:lvar, :b)))))))))))
 
   add_tests("masgn",
             "Ruby"         => "a, b = c, d",
@@ -3540,6 +3561,26 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                     s(:call, nil, :c, s(:arglist)),
                                     s(:call, nil, :d, s(:arglist))))))
 
+  add_tests("rescue_block_body_3",
+            "Ruby"         => "begin\n  a\nrescue A\n  b\nrescue B\n  c\nrescue C\n  d\nend",
+            "RawParseTree" => [:begin,
+                               [:rescue,
+                                [:vcall, :a],
+                                [:resbody, [:array, [:const, :A]],
+                                 [:vcall, :b],
+                                 [:resbody, [:array, [:const, :B]],
+                                  [:vcall, :c],
+                                  [:resbody, [:array, [:const, :C]],
+                                   [:vcall, :d]]]]]],
+            "ParseTree"    => s(:rescue,
+                                s(:call, nil, :a, s(:arglist)),
+                                s(:resbody, s(:array, s(:const, :A)),
+                                  s(:call, nil, :b, s(:arglist))),
+                                s(:resbody, s(:array, s(:const, :B)),
+                                  s(:call, nil, :c, s(:arglist))),
+                                s(:resbody, s(:array, s(:const, :C)),
+                                  s(:call, nil, :d, s(:arglist)))))
+
   add_tests("rescue_block_nada",
             "Ruby"         => "begin\n  blah\nrescue\n  # do nothing\nend",
             "RawParseTree" => [:begin,
@@ -3562,6 +3603,47 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                   s(:array,
                                     s(:const, :RuntimeError),
                                     s(:lasgn, :r, s(:gvar, :$!))),
+                                  nil)))
+
+
+  add_tests("rescue_lasgn",
+            "Ruby"         => "begin\n  1\nrescue\n  var = 2\nend",
+            "RawParseTree" => [:begin,
+                               [:rescue,
+                                [:lit, 1],
+                                [:resbody, nil, [:lasgn, :var, [:lit, 2]]]]],
+            "ParseTree"    => s(:rescue,
+                                s(:lit, 1),
+                                s(:resbody,
+                                  s(:array),
+                                  s(:lasgn, :var, s(:lit, 2)))),
+            "Ruby2Ruby"    => "1 rescue var = 2")
+
+  add_tests("rescue_lasgn_var",
+            "Ruby"         => "begin\n  1\nrescue => e\n  var = 2\nend",
+            "RawParseTree" => [:begin,
+                               [:rescue,
+                                [:lit, 1],
+                                [:resbody, nil,
+                                 [:block,
+                                  [:lasgn, :e, [:gvar, :$!]],
+                                  [:lasgn, :var, [:lit, 2]]]]]],
+            "ParseTree"    => s(:rescue,
+                                s(:lit, 1),
+                                s(:resbody,
+                                  s(:array, s(:lasgn, :e, s(:gvar, :$!))),
+                                  s(:lasgn, :var, s(:lit, 2)))))
+
+  add_tests("rescue_lasgn_var_empty",
+            "Ruby"         => "begin\n  1\nrescue => e\n  # do nothing\nend",
+            "RawParseTree" => [:begin,
+                               [:rescue,
+                                [:lit, 1],
+                                [:resbody, nil, [:lasgn, :e, [:gvar, :$!]]]]],
+            "ParseTree"    => s(:rescue,
+                                s(:lit, 1),
+                                s(:resbody,
+                                  s(:array, s(:lasgn, :e, s(:gvar, :$!))),
                                   nil)))
 
   add_tests("retry",

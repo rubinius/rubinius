@@ -1238,21 +1238,13 @@ when_args     : args
 cases         : opt_else | case_body
 
 opt_rescue    : kRESCUE exc_list exc_var then compstmt opt_rescue {
-                  exc_list = val[1] || s(:array)
+                  klasses, var, body, rest = val[1], val[2], val[4], val[5]
 
-                  result = s(:resbody, exc_list)
-                  # result.line = val[1]
+                  klasses ||= s(:array)
+                  klasses << node_assign(var, s(:gvar, :"$!")) if var
 
-                  if val[2] then
-                    l = val[2].line
-                    exc_list << node_assign(val[2], s(:gvar, :"$!").line(l))
-
-                    val[4] = s(:block, val[4]).line(l) if
-                      val[4] && val[4][0] != :block
-                  end
-
-                  result << val[4]
-                  result << val[5] if val[5]
+                  result = s(:resbody, klasses, body)
+                  result << rest if rest # UGH, rewritten above
                  }
              | {result = nil;}
 
@@ -1389,7 +1381,7 @@ qword_list     : {
                    result = s(:array)
                  }
                | qword_list tSTRING_CONTENT ' ' {
-                   result = val[0] << val[1]
+                   result = val[0] << s(:str, val[1])
                  }
 
 string_contents: { result = s(:str, "") }
