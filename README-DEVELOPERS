@@ -313,33 +313,32 @@ The resulting glue code for overloaded methods looks something
 like the following, but please do not assume this sample is
 up-to-date:
 
-  bool Primitives::float_mul(STATE, VMExecutable* exec,
-                             Task* task, Message& msg) {
+  bool Primitives::float_mul(STATE, Executable* exec, Task* task, Message& msg) {
     OBJECT ret;
-    try {
-      // Attempt to treat the argument as a Float, but do not
-      // raise an exception if it is not.
-      // as<Float>, by contrast, would fail if the argument was
-      // not actually a Float instance.
-      if(Float* arg = try_as<Float>(msg.get_argument(0))) {
-        return as<Float>(msg.recv)->mul(state, arg);
-      }
-      if(Integer* arg = try_as<Integer>(msg.get_argument(0))) {
-        return as<Float>(msg.recv)->mul(state, arg);
-      }
-      else {
-        throw new Assertion("unable to resolve primitive float_mul types");
-      }
-    } catch(PrimitiveFailed& e) {
-      abort(); // The real behavior here is fancier than this example.
-      return true;
-    }
+    if(msg.args() != 1)
+      goto fail;
+
+    Float* recv;
+    if((recv = as<Float>(msg.recv)) == NULL)
+      goto fail;
+
+    if(Float* arg = try_as<Float>(msg.get_argument(0))) {
+      ret = recv->mul(state, arg);
+    } else   if(Integer* arg = try_as<Integer>(msg.get_argument(0))) {
+      ret = recv->mul(state, arg);
+    } else   goto fail;
+    if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))
+      goto fail;
+
     task->primitive_return(ret, msg);
     return false;
+
+  fail:
+    return VMMethod::execute(state, exec, task, msg);
   }
 
-To have a primitive fail, the primitive body should call
-PrimitiveFailed::raise(). This will cause the code following the
+To have a primitive fail, the primitive body should return
+Primitives::failure(). This will cause the code following the
 Ruby.primitive line in the kernel to be run. This provides a
 fallback so that the operation can be retried in Ruby.
 
@@ -347,7 +346,7 @@ If a primitive cannot be retried in Ruby or if there is some
 additional information that needs to be passed along to create
 the exception, it may raise other exceptions.
 
-TODO: document/implement e.g. raise_from_errno and other exceptions.
+See the section above on Exceptions.
 
 
 ==== Primitive tests
