@@ -193,7 +193,7 @@ class Time
     if secs_or_time.kind_of? Time
       return secs_or_time.dup
     end
-      
+
     Time.allocate.at_gmt(secs_or_time, msecs, false)
   end
 
@@ -425,10 +425,10 @@ class Time
       usec = ((sec % 1) * 1000000).to_i
       sec  = sec.to_i
     end
-    
+
     sec  = sec + (usec / 1000000)
     usec = usec % 1000000
-    
+
     @timeval = [sec, usec]
 
     if want_gmt

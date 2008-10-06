@@ -130,16 +130,16 @@ namespace rubinius {
       ret = Fixnum::from((unsigned int)(READ(unsigned short)));
       break;
     case RBX_FFI_TYPE_INT:
-      ret = Fixnum::from(READ(int));
+      ret = Integer::from(state, READ(int));
       break;
     case RBX_FFI_TYPE_UINT:
-      ret = Fixnum::from(READ(unsigned int));
+      ret = Integer::from(state, READ(unsigned int));
       break;
     case RBX_FFI_TYPE_LONG:
-      ret = Fixnum::from(READ(long));
+      ret = Integer::from(state, READ(long));
       break;
     case RBX_FFI_TYPE_ULONG:
-      ret = Fixnum::from(READ(unsigned long));
+      ret = Integer::from(state, READ(unsigned long));
       break;
     case RBX_FFI_TYPE_FLOAT:
       ret = Float::create(state, (double)READ(float));
@@ -148,10 +148,10 @@ namespace rubinius {
       ret = Float::create(state, READ(double));
       break;
     case RBX_FFI_TYPE_LONG_LONG:
-      ret = Fixnum::from(READ(long long));
+      ret = Integer::from(state, READ(long long));
       break;
     case RBX_FFI_TYPE_ULONG_LONG:
-      ret = Fixnum::from(READ(unsigned long long));
+      ret = Integer::from(state, READ(unsigned long long));
       break;
     case RBX_FFI_TYPE_OBJECT:
       ret = READ(OBJECT);
