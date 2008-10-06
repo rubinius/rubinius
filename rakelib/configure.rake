@@ -269,9 +269,9 @@ end
 
 namespace :configure do
   task :clean do
-    rm 'lib/rbconfig.rb'
-    rm 'kernel/bootstrap/rubinius_config.rb'
-    rm 'kernel/bootstrap/ruby_config.rb'
+    rm_f 'lib/rbconfig.rb'
+    rm_f 'kernel/bootstrap/rubinius_config.rb'
+    rm_f 'kernel/bootstrap/ruby_config.rb'
   end
 end
 
