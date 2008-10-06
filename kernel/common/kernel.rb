@@ -102,6 +102,14 @@ module Kernel
   end
   private :FloatValue
 
+  alias_method :primitive_clone, :clone
+
+  def clone
+    copy = primitive_clone
+    copy.send :initialize_copy, self
+    copy
+  end
+
   alias_method :primitive_dup, :dup
 
   def dup
