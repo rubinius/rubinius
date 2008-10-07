@@ -110,8 +110,15 @@ CODE
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.block = Qnil;
     msg.stack = args + 1;
+    
+    bool res;
+    try {
+      res = task->send_message_slowly(msg);
+    } catch(...) {
+      msg.reset();
+      throw;
+    }
 
-    bool res = task->send_message_slowly(msg);
     msg.reset();
     return res;
   }
