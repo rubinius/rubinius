@@ -33,12 +33,12 @@ class Class
     @instance_fields = num
   end
 
-  def object_type=(type)
-    @object_type = type
+  def instance_type=(type)
+    @instance_type = type
   end
 
-  def object_type
-    @object_type
+  def instance_type
+    @instance_type
   end
 end
 

@@ -52,7 +52,7 @@
 
 class Class
 
-  protected :object_type
+  protected :instance_type
 
   def initialize(sclass=Object)
     unless sclass.kind_of?(Class)
@@ -60,7 +60,7 @@ class Class
     end
 
     @instance_fields = sclass.instance_fields
-    @instance_type = sclass.object_type
+    @instance_type = sclass.instance_type
     @superclass = sclass
 
     mc = self.metaclass
