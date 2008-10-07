@@ -138,12 +138,34 @@ namespace rubinius {
   extern "C" {
     /* A wrapper because gdb can't do virtual dispatch. */
     void __show__(OBJECT obj) {
-      obj->show(VM::current_state());
+      if(obj->reference_p()) {
+        ObjectPosition pos = rubinius::VM::current_state()->om->validate_object(obj);
+        if(pos == cUnknown) {
+          std::cout << "<ERROR! Unknown object reference!>\n";
+        } else if(pos == cInWrongYoungHalf) {
+          std::cout << "<ERROR! Object reference points to old young half!>\n";
+        } else {
+          obj->show(VM::current_state());
+        }
+      } else {
+        obj->show(VM::current_state());
+      }
     }
 
     /* Similar to __show__ but only outputs #<SomeClass:0x2428999> */
     void __show_simple__(OBJECT obj) {
-      obj->show_simple(VM::current_state());
+      if(obj->reference_p()) {
+        ObjectPosition pos = rubinius::VM::current_state()->om->validate_object(obj);
+        if(pos == cUnknown) {
+          std::cout << "<ERROR! Unknown object reference!>\n";
+        } else if(pos == cInWrongYoungHalf) {
+          std::cout << "<ERROR! Object reference points to old young half!>\n";
+        } else {
+          obj->show_simple(VM::current_state());
+        }
+      } else {
+        obj->show_simple(VM::current_state());
+      }
     }
   }
 }
