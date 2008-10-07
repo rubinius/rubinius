@@ -180,17 +180,13 @@ namespace rubinius {
 /* SIGCHLD */
 
 
-    Child::Child(VM* state, ObjectCallback* channel, pid_t pid, int opts)
-      : _channel(channel)
-      , _options(opts)
-      , _pid(pid)
-    {
+    Child::Child(VM* state, ObjectCallback* channel, pid_t pid, int opts):
+      channel_(channel), options_(opts), pid_(pid) {
     }
 
     Child::~Child() {}
 
-    void Child::add(VM* state, ObjectCallback* channel, pid_t pid, int opts)
-    {
+    void Child::add(VM* state, ObjectCallback* channel, pid_t pid, int opts) {
       Child::waiters().push_back(new Child(state, channel, pid, opts));
     }
 
@@ -201,8 +197,7 @@ namespace rubinius {
      *
      *  foreach_and_remove_if algo sure would be nice.
      */
-    void Child::find_finished(VM* state)
-    {
+    void Child::find_finished(VM* state) {
       pid_t pid;
       int status;
 
@@ -212,40 +207,40 @@ namespace rubinius {
       Waiters& all = Child::waiters();
 
       switch (pid) {
-        case -1:    /* Error condition, pretty much only ECHILD */
-          if ( errno == ECHILD ) {
+      case -1:    /* Error condition, pretty much only ECHILD */
+        if ( errno == ECHILD ) {
 
-            for (Waiters::iterator it = all.begin(); it != all.end(); ++it) {
-              (*it)->_channel->call(Qfalse);
-            }
-
-            all.clear();
+          for (Waiters::iterator it = all.begin(); it != all.end(); ++it) {
+            (*it)->channel()->call(Qfalse);
           }
 
-          break;
+          all.clear();
+        }
 
-        case 0:       /* No stopped children */
+        break;
 
-          for (Waiters::iterator it = all.begin(); it != all.end(); /**/) {
-            if ( (*it)->_options & WNOHANG ) {
-              (*it)->_channel->call(Qnil);
-              delete *it;
-              it = all.erase(it);
-              continue;
-            }
-            ++it;
+      case 0:       /* No stopped children */
+
+        for (Waiters::iterator it = all.begin(); it != all.end(); /**/) {
+          if ( (*it)->options() & WNOHANG ) {
+            (*it)->channel()->call(Qnil);
+            delete *it;
+            it = all.erase(it);
+            continue;
           }
+          ++it;
+        }
 
-          break;
+        break;
 
-        default:      /* Got a pid */
-          assert(pid > 0);
+      default:      /* Got a pid */
+        assert(pid > 0);
 
-          Object* SP = Qtrue;
+        Object* SP = Qtrue;
 
-          if ( WIFEXITED(status) ) {
-            SP = as<Object>(Fixnum::from(WEXITSTATUS(status)));
-          }
+        if ( WIFEXITED(status) ) {
+          SP = as<Object>(Fixnum::from(WEXITSTATUS(status)));
+        }
 
           for (Waiters::iterator it = all.begin(); it != all.end(); /**/) {
             if ( (*it)->_pid == pid ) {
@@ -256,8 +251,10 @@ namespace rubinius {
             }
             ++it;
           }
+          ++it;
+        }
 
-          break;
+        break;
       }
     }
 

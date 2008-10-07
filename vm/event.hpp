@@ -127,7 +127,7 @@ namespace rubinius {
       class Event : public Signal {
       public:
 
-        Event(VM* state) : Signal(state, NULL, SIGCHLD) {}
+        Event(STATE) : Signal(state, NULL, SIGCHLD) {}
         virtual ~Event() {}
 
       public:
@@ -142,27 +142,34 @@ namespace rubinius {
 
     private:   /* Ctors */
 
-      Child(VM* state, ObjectCallback* channel, pid_t pid, int opts);
+      Child(STATE, ObjectCallback* channel, pid_t pid, int opts);
       ~Child();
 
 
     public:   /* Class interface */
 
       /** Add a new interested channel. */
-      static void     add(VM* state, ObjectCallback* channel, pid_t pid, int opts);
+      static void     add(STATE, ObjectCallback* channel, pid_t pid, int opts);
 
       /** Figure which child(ren) finished when SIGCHLD received. */
-      static void     find_finished(VM* state);
+      static void     find_finished(STATE);
 
       /** All current Child events. */
       static Waiters& waiters() { static Waiters our_waiters; return our_waiters; };
 
 
-    public:   /* Instance vars */
+    public:   /* Accessors */
 
-      ObjectCallback*   _channel;
-      int               _options;
-      pid_t             _pid;
+      ObjectCallback* channel() { return channel_; }
+      int             options() { return options_; }
+      pid_t           pid()     { return pid_; }
+
+
+    private:  /* Instance vars */
+
+      ObjectCallback*   channel_;
+      int               options_;
+      pid_t             pid_;
 
     };
 
