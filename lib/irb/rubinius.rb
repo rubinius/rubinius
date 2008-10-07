@@ -20,7 +20,7 @@ module IRB
               next unless continue
               recv = frame.describe
               loc = frame.location
-              if %r!kernel/core/eval.rb!.match(loc)
+              if %r!kernel/common/eval.rb!.match(loc)
                 continue = false
                 next
               end
