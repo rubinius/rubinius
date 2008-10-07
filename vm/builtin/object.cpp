@@ -270,7 +270,7 @@ namespace rubinius {
     return ivars_;
   }
 
-  OBJECT Object::get_ivar(STATE, OBJECT sym) {
+  OBJECT Object::get_ivar(STATE, SYMBOL sym) {
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {
@@ -278,6 +278,17 @@ namespace rubinius {
 
       if(tbl) return tbl->fetch(state, sym);
       return Qnil;
+    }
+
+    // We might be trying to access a slot, so try that first.
+
+    TypeInfo* ti = state->om->find_type_info(this);
+    if(ti) {
+      native_int idx = sym->index();
+      TypeInfo::Slots::iterator it = ti->slots.find(idx);
+      if(it != ti->slots.end()) {
+        return ti->get_field(state, this, it->second);
+      }
     }
 
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {

@@ -55,17 +55,6 @@ namespace rubinius {
     if(msg.args() != 0) {
       assert(0 && "implement raise exception");
     } else {
-      /* We might be trying to access a field, so check there first. */
-      TypeInfo* ti = state->om->find_type_info(msg.recv);
-      if(ti) {
-        TypeInfo::Slots::iterator it = ti->slots.find(idx);
-        if(it != ti->slots.end()) {
-          task->primitive_return(ti->get_field(state, msg.recv, it->second), msg);
-          return false;
-        }
-      }
-
-      /* Get a normal ivar. */
       task->primitive_return(msg.recv->get_ivar(state, access->name()), msg);
     }
 

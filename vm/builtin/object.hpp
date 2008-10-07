@@ -128,7 +128,7 @@ namespace rubinius {
     Class* metaclass(STATE);
 
     // Ruby.primitive :object_get_ivar
-    OBJECT get_ivar(STATE, OBJECT sym);
+    OBJECT get_ivar(STATE, SYMBOL sym);
 
     // Ruby.primitive :object_set_ivar
     OBJECT set_ivar(STATE, OBJECT sym, OBJECT val);

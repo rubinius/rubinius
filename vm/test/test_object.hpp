@@ -187,7 +187,7 @@ class TestObject : public CxxTest::TestSuite {
   void test_set_ivar() {
     size_t size = COMPACTLOOKUPTABLE_SIZE / 2 + 2;
     OBJECT obj = state->om->new_object(G(object), Object::fields);
-    OBJECT sym;
+    SYMBOL sym;
 
     for(size_t i = 0; i < size; i++) {
       std::stringstream name;
@@ -203,7 +203,7 @@ class TestObject : public CxxTest::TestSuite {
   void test_set_ivar_on_immediate() {
     size_t size = COMPACTLOOKUPTABLE_SIZE / 2 + 2;
     OBJECT obj = Fixnum::from(-10);
-    OBJECT sym;
+    SYMBOL sym;
 
     for(size_t i = 0; i < size; i++) {
       std::stringstream name;
@@ -217,7 +217,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_get_ivar() {
-    OBJECT sym = state->symbol("@test");
+    SYMBOL sym = state->symbol("@test");
     OBJECT val = Fixnum::from(33);
     OBJECT obj = state->om->new_object(G(object), Object::fields);
 
@@ -230,7 +230,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_get_ivar_on_immediate() {
-    OBJECT sym = state->symbol("@test");
+    SYMBOL sym = state->symbol("@test");
     OBJECT val = Fixnum::from(33);
     OBJECT obj = Fixnum::from(-10);
 

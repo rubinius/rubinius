@@ -2443,7 +2443,7 @@ class Instructions
 
   def push_ivar(index)
     <<-CODE
-    OBJECT sym = task->literals()->at(state, index);
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
     stack_push(task->self()->get_ivar(state, sym));
     CODE
   end
@@ -3546,7 +3546,7 @@ class Instructions
 
   def set_ivar(index)
     <<-CODE
-    OBJECT sym = task->literals()->at(state, index);
+    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
     task->self()->set_ivar(state, sym, stack_top());
     CODE
   end
