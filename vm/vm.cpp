@@ -41,9 +41,13 @@ namespace rubinius {
 
     bootstrap_ontology();
 
-    signal_events = new event::Loop();
-    //events = new event::Loop(EVFLAG_FORKCHECK);
+    /* TODO: Using a single default loop, revisit when many loops.
+     * TODO: This needs to be handled through the environment.
+     */
+    signal_events = new event::Loop(EVFLAG_FORKCHECK);
     events = signal_events;
+
+    signal_events->start(new event::Child::Event(this));
 
     global_cache = new GlobalCache;
 
