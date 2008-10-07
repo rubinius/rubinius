@@ -29,7 +29,6 @@
   NEW_STRUCT(m_obj, m, BASIC_CLASS(bignum), mp_int);
 
 
-#define MP(k) ((k)->mp_val())
 #define BDIGIT_DBL long long
 #define DIGIT_RADIX (1L << DIGIT_BIT)
 
@@ -193,7 +192,7 @@ namespace rubinius {
 
   void Bignum::Info::cleanup(OBJECT obj) {
     Bignum* big = as<Bignum>(obj);
-    mp_int *n = MP(big);
+    mp_int *n = big->mp_val();
     mp_clear(n);
   }
 
@@ -221,6 +220,11 @@ namespace rubinius {
     return o;
   }
 
+  Bignum* Bignum::initialize_copy(STATE, Bignum* other) {
+    mp_copy(mp_val(), other->mp_val());
+    return this;
+  }
+
   Bignum* Bignum::from(STATE, int num) {
     mp_int *a;
     Bignum* o;
@@ -239,7 +243,7 @@ namespace rubinius {
   Bignum* Bignum::from(STATE, unsigned int num) {
     Bignum* o;
     o = Bignum::create(state);
-    mp_set_int(MP(o), num);
+    mp_set_int(o->mp_val(), num);
     return o;
   }
 
@@ -261,7 +265,7 @@ namespace rubinius {
   Bignum* Bignum::from(STATE, unsigned long num) {
     Bignum* o;
     o = Bignum::create(state);
-    mp_set_long(MP(o), num);
+    mp_set_long(o->mp_val(), num);
     return o;
   }
 
@@ -287,7 +291,7 @@ namespace rubinius {
 
     if(val < 0) {
       ret = Bignum::from(state, (unsigned long long)-val);
-      MP(ret)->sign = MP_NEG;
+      ret->mp_val()->sign = MP_NEG;
     } else {
       ret = Bignum::from(state, (unsigned long long)val);
     }
@@ -300,33 +304,33 @@ namespace rubinius {
   }
 
   native_int Bignum::to_native() {
-    return (MP(this)->sign == MP_NEG) ? -mp_get_long(MP(this)) : mp_get_long(MP(this));
+    return (mp_val()->sign == MP_NEG) ? -mp_get_long(mp_val()) : mp_get_long(mp_val());
   }
 
   int Bignum::to_int() {
-    return (MP(this)->sign == MP_NEG) ? -mp_get_int(MP(this)) : mp_get_int(MP(this));
+    return (mp_val()->sign == MP_NEG) ? -mp_get_int(mp_val()) : mp_get_int(mp_val());
   }
 
   unsigned int Bignum::to_uint() {
-    return mp_get_int(MP(this));
+    return mp_get_int(mp_val());
   }
 
   long Bignum::to_long() {
-    return (MP(this)->sign == MP_NEG) ? -mp_get_long(MP(this)) : mp_get_long(MP(this));
+    return (mp_val()->sign == MP_NEG) ? -mp_get_long(mp_val()) : mp_get_long(mp_val());
   }
 
   unsigned long Bignum::to_ulong() {
-    return mp_get_long(MP(this));
+    return mp_get_long(mp_val());
   }
 
   long long Bignum::to_long_long() {
-    mp_int *s = MP(this);
+    mp_int *s = mp_val();
     return (s->sign == MP_NEG) ? -to_ulong_long() : to_ulong_long();
   }
 
   unsigned long long Bignum::to_ulong_long() {
     mp_int t;
-    mp_int *s = MP(this);
+    mp_int *s = mp_val();
     unsigned long long out, tmp;
 
     /* mp_get_int() gets only the lower 32 bits, on any platform. */
@@ -343,9 +347,9 @@ namespace rubinius {
   }
 
   INTEGER Bignum::normalize(STATE, Bignum* b) {
-    mp_clamp(MP(b));
+    mp_clamp(b->mp_val());
 
-    if((size_t)mp_count_bits(MP(b)) <= FIXNUM_WIDTH) {
+    if((size_t)mp_count_bits(b->mp_val()) <= FIXNUM_WIDTH) {
       native_int val;
       val = (native_int)b->to_native();
       return Fixnum::from(val);
@@ -357,16 +361,16 @@ namespace rubinius {
     NMP;
     native_int bi = b->to_native();
     if(bi > 0) {
-      mp_add_d(MP(this), bi, n);
+      mp_add_d(mp_val(), bi, n);
     } else {
-      mp_sub_d(MP(this), -bi, n);
+      mp_sub_d(mp_val(), -bi, n);
     }
     return Bignum::normalize(state, n_obj);
   }
 
   INTEGER Bignum::add(STATE, Bignum* b) {
     NMP;
-    mp_add(MP(this), MP(b), n);
+    mp_add(mp_val(), b->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -378,16 +382,16 @@ namespace rubinius {
     NMP;
     native_int bi = b->to_native();
     if(bi > 0) {
-      mp_sub_d(MP(this), bi, n);
+      mp_sub_d(mp_val(), bi, n);
     } else {
-      mp_add_d(MP(this), -bi, n);
+      mp_add_d(mp_val(), -bi, n);
     }
     return Bignum::normalize(state, n_obj);
   }
 
   INTEGER Bignum::sub(STATE, Bignum* b) {
     NMP;
-    mp_sub(MP(this), MP(b), n);
+    mp_sub(mp_val(), b->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -400,12 +404,12 @@ namespace rubinius {
 
     native_int bi = b->to_native();
     if(bi == 2) {
-      mp_mul_2(MP(this), n);
+      mp_mul_2(mp_val(), n);
     } else {
       if(bi > 0) {
-        mp_mul_d(MP(this), bi, n);
+        mp_mul_d(mp_val(), bi, n);
       } else {
-        mp_mul_d(MP(this), -bi, n);
+        mp_mul_d(mp_val(), -bi, n);
         mp_neg(n, n);
       }
     }
@@ -414,7 +418,7 @@ namespace rubinius {
 
   INTEGER Bignum::mul(STATE, Bignum* b) {
     NMP;
-    mp_mul(MP(this), MP(b), n);
+    mp_mul(mp_val(), b->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -432,14 +436,14 @@ namespace rubinius {
     native_int bi  = denominator->to_native();
     mp_digit r;
     if(bi < 0) {
-      mp_div_d(MP(this), -bi, n, &r);
+      mp_div_d(mp_val(), -bi, n, &r);
       mp_neg(n, n);
     } else {
-      mp_div_d(MP(this), bi, n, &r);
+      mp_div_d(mp_val(), bi, n, &r);
     }
 
     if(remainder) {
-      if(MP(this)->sign == MP_NEG) {
+      if(mp_val()->sign == MP_NEG) {
         *remainder = Fixnum::from(-(native_int)r);
       } else {
         *remainder = Fixnum::from((native_int)r);
@@ -456,17 +460,17 @@ namespace rubinius {
   }
 
   INTEGER Bignum::divide(STATE, Bignum* b, INTEGER* remainder) {
-    if(mp_cmp_d(MP(b), 0) == MP_EQ) {
+    if(mp_cmp_d(b->mp_val(), 0) == MP_EQ) {
       Exception::zero_division_error(state, "divided by 0");
     }
 
     NMP;
     MMP;
-    mp_div(MP(this), MP(b), n, m);
+    mp_div(mp_val(), b->mp_val(), n, m);
     if(mp_cmp_d(n, 0) == MP_LT && mp_cmp_d(m, 0) != MP_EQ) {
       mp_sub_d(n, 1, n);
-      mp_mul(MP(b), n, m);
-      mp_sub(MP(this), m, m);
+      mp_mul(b->mp_val(), n, m);
+      mp_sub(mp_val(), m, m);
     }
     if(remainder) {
       *remainder = Bignum::normalize(state, m_obj);
@@ -534,7 +538,7 @@ namespace rubinius {
     }
 
     /* Perhaps this should use mp_and rather than our own version */
-    bignum_bitwise_op(BITWISE_OP_AND, MP(this), MP(as<Bignum>(b)), n);
+    bignum_bitwise_op(BITWISE_OP_AND, mp_val(), as<Bignum>(b)->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -549,7 +553,7 @@ namespace rubinius {
       b = Bignum::from(state, b->to_native());
     }
     /* Perhaps this should use mp_or rather than our own version */
-    bignum_bitwise_op(BITWISE_OP_OR, MP(this), MP(as<Bignum>(b)), n);
+    bignum_bitwise_op(BITWISE_OP_OR, mp_val(), as<Bignum>(b)->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -564,7 +568,7 @@ namespace rubinius {
       b = Bignum::from(state, b->to_native());
     }
     /* Perhaps this should use mp_xor rather than our own version */
-    bignum_bitwise_op(BITWISE_OP_XOR, MP(this), MP(as<Bignum>(b)), n);
+    bignum_bitwise_op(BITWISE_OP_XOR, mp_val(), as<Bignum>(b)->mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -579,7 +583,7 @@ namespace rubinius {
     mp_int b; mp_init_set_int(&b, 1);
 
     /* inversion by -(a)-1 */
-    mp_neg(MP(this), &a);
+    mp_neg(mp_val(), &a);
     mp_sub(&a, &b, n);
 
     mp_clear(&a); mp_clear(&b);
@@ -589,7 +593,7 @@ namespace rubinius {
   INTEGER Bignum::neg(STATE) {
     NMP;
 
-    mp_neg(MP(this), n);
+    mp_neg(mp_val(), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -602,7 +606,7 @@ namespace rubinius {
     if(shift < 0) {
       return right_shift(state, Fixnum::from(-bits->to_native()));
     }
-    mp_int *a = MP(this);
+    mp_int *a = mp_val();
 
     mp_mul_2d(a, shift, n);
     n->sign = a->sign;
@@ -616,7 +620,7 @@ namespace rubinius {
       return left_shift(state, Fixnum::from(-bits->to_native()));
     }
 
-    mp_int * a = MP(this);
+    mp_int * a = mp_val();
     if ((shift / DIGIT_BIT) >= a->used) {
       if (a->sign == MP_ZPOS)
         return Fixnum::from(0);
@@ -638,7 +642,7 @@ namespace rubinius {
 
   OBJECT Bignum::equal(STATE, FIXNUM b) {
     native_int bi = b->to_native();
-    mp_int* a = MP(this);
+    mp_int* a = mp_val();
     if(bi < 0) {
       bi = -bi;
       mp_int n;
@@ -654,7 +658,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::equal(STATE, Bignum* b) {
-    if(mp_cmp(MP(this), MP(b)) == MP_EQ) {
+    if(mp_cmp(mp_val(), b->mp_val()) == MP_EQ) {
       return Qtrue;
     }
     return Qfalse;
@@ -666,7 +670,7 @@ namespace rubinius {
 
   FIXNUM Bignum::compare(STATE, FIXNUM b) {
     native_int bi = b->to_native();
-    mp_int* a = MP(this);
+    mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
       mp_init(&n);
@@ -692,7 +696,7 @@ namespace rubinius {
   }
 
   FIXNUM Bignum::compare(STATE, Bignum* b) {
-    switch(mp_cmp(MP(this), MP(b))) {
+    switch(mp_cmp(mp_val(), b->mp_val())) {
       case MP_LT:
         return Fixnum::from(-1);
       case MP_GT:
@@ -708,7 +712,7 @@ namespace rubinius {
   OBJECT Bignum::gt(STATE, FIXNUM b) {
     native_int bi = b->to_native();
 
-    mp_int* a = MP(this);
+    mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
       mp_init(&n);
@@ -728,7 +732,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::gt(STATE, Bignum* b) {
-    if(mp_cmp(MP(this), MP(b)) == MP_GT) {
+    if(mp_cmp(mp_val(), b->mp_val()) == MP_GT) {
       return Qtrue;
     }
     return Qfalse;
@@ -741,7 +745,7 @@ namespace rubinius {
   OBJECT Bignum::ge(STATE, FIXNUM b) {
     native_int bi = b->to_native();
 
-    mp_int* a = MP(this);
+    mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
       mp_init(&n);
@@ -766,7 +770,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::ge(STATE, Bignum* b) {
-    int r = mp_cmp(MP(this), MP(b));
+    int r = mp_cmp(mp_val(), b->mp_val());
     if(r == MP_GT || r == MP_EQ) {
       return Qtrue;
     }
@@ -776,7 +780,7 @@ namespace rubinius {
   OBJECT Bignum::lt(STATE, FIXNUM b) {
     native_int bi = b->to_native();
 
-    mp_int* a = MP(this);
+    mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
       mp_init(&n);
@@ -796,7 +800,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::lt(STATE, Bignum* b) {
-    if(mp_cmp(MP(this), MP(b)) == MP_LT) {
+    if(mp_cmp(mp_val(), b->mp_val()) == MP_LT) {
       return Qtrue;
     }
     return Qfalse;
@@ -809,7 +813,7 @@ namespace rubinius {
   OBJECT Bignum::le(STATE, FIXNUM b) {
     native_int bi = b->to_native();
 
-    mp_int* a = MP(this);
+    mp_int* a = mp_val();
     if(bi < 0) {
       mp_int n;
       mp_init(&n);
@@ -830,7 +834,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::le(STATE, Bignum* b) {
-    int r = mp_cmp(MP(this), MP(b));
+    int r = mp_cmp(mp_val(), b->mp_val());
     if(r == MP_LT || r == MP_EQ) {
       return Qtrue;
     }
@@ -853,7 +857,7 @@ namespace rubinius {
 
     for(;;) {
       buf = ALLOC_N(char, sz);
-      mp_toradix_nd(MP(this), buf, radix->to_native(), sz, &k);
+      mp_toradix_nd(mp_val(), buf, radix->to_native(), sz, &k);
       if(k < sz - 2) {
         obj = String::create(state, buf);
         FREE(buf);
@@ -914,7 +918,7 @@ namespace rubinius {
 
   void Bignum::into_string(STATE, size_t radix, char *buf, size_t sz) {
     int k;
-    mp_toradix_nd(MP(this), buf, radix, sz, &k);
+    mp_toradix_nd(mp_val(), buf, radix, sz, &k);
   }
 
   double Bignum::to_double(STATE) {
@@ -923,7 +927,7 @@ namespace rubinius {
     double m;
     mp_int *a;
 
-    a = MP(this);
+    a = mp_val();
 
     if (a->used == 0) {
       return 0;
@@ -1016,7 +1020,7 @@ namespace rubinius {
 
   INTEGER Bignum::size(STATE)
   {
-    int bits = mp_count_bits(MP(this));
+    int bits = mp_count_bits(mp_val());
     int bytes = (bits + 7) / 8;
 
     /* MRI returns this in words, but thats an implementation detail as far
@@ -1026,7 +1030,7 @@ namespace rubinius {
 
   hashval Bignum::hash_bignum(STATE)
   {
-    mp_int *a = MP(this);
+    mp_int *a = mp_val();
 
     /* Apparently, a couple bits of each a->dp[n] aren't actually used,
        (e.g. when DIGIT_BIT is 60) so this hash is actually including

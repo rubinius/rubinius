@@ -50,7 +50,9 @@ namespace rubinius {
     // Ruby.primitive :bignum_from_float
     static INTEGER from_float(STATE, Float* f);
 
-    void   debug(STATE);
+    // Ruby.primitive! :bignum_initialize_copy
+    Bignum* initialize_copy(STATE, Bignum* other);
+
     // Ruby.primitive! :bignum_add
     INTEGER add(STATE, FIXNUM b);
     // Ruby.primitive! :bignum_add

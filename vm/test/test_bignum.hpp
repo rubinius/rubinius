@@ -147,6 +147,13 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
   }
 
+  void test_dup() {
+    Bignum* obj = Bignum::create(state, Fixnum::from(13));
+    Bignum *dup = Bignum::create(state, Fixnum::from(0));
+    dup->initialize_copy(state, obj);
+    TS_ASSERT_EQUALS(obj->to_native(), dup->to_native());
+  }
+
   void test_normalize() {
     Bignum* obj = Bignum::from(state, (native_int)13);
     OBJECT out = Bignum::normalize(state, obj);
