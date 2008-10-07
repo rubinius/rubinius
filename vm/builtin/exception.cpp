@@ -201,4 +201,13 @@ namespace rubinius {
   Class* Exception::get_io_error(STATE) {
     return as<Class>(G(object)->get_const(state, "IOError"));
   }
+
+  void Exception::Info::show(STATE, OBJECT self, int level) {
+    Exception* exc = as<Exception>(self);
+
+    class_header(state, self);
+    indent_attribute(++level, "message"); exc->message()->show(state, level);
+    indent_attribute(level, "context"); exc->context()->show_simple(state, level);
+    close_body(level);
+  }
 }
