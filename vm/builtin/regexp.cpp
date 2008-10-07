@@ -27,6 +27,7 @@ namespace rubinius {
 
   void Regexp::Info::cleanup(OBJECT regexp) {
     onig_free(as<Regexp>(regexp)->onig_data);
+    as<Regexp>(regexp)->onig_data = NULL;
   }
 
   void Regexp::init(STATE) {
@@ -111,6 +112,7 @@ namespace rubinius {
     opts &= OPTION_MASK;
 
     Regexp* o_reg = (Regexp*)state->om->new_object(G(regexp), Regexp::fields);
+    o_reg->onig_data = NULL;
     err = onig_new(&o_reg->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info); 
 
     if(err != ONIG_NORMAL) {
