@@ -153,10 +153,6 @@ to be a simple test for that bit pattern.
     void* __body__[];
 
   public:
-    /* Initialize the objects data with the most basic info. This is done
-     * right after an object is created. */
-    void init(gc_zone zone, size_t fields);
-
     void initialize_copy(Object* other, unsigned int age);
 
     /* Copies the body of +other+ into +this+ */
@@ -167,6 +163,14 @@ to be a simple test for that bit pattern.
 
     /* Clear the body of the object, setting it to all 0s */
     void clear_body_to_null();
+
+    /* Initialize the objects data with the most basic info. This is done
+     * right after an object is created. */
+    void init(gc_zone loc, size_t fields) {
+      all_flags = 0;
+      zone = loc;
+      field_count = fields;
+    }
 
     uint32_t num_fields() {
       return field_count;

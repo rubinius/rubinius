@@ -119,44 +119,30 @@ namespace rubinius {
 
   OBJECT ObjectMemory::allocate_object(size_t fields) {
     OBJECT obj;
-    gc_zone loc;
 
     if(fields > large_object_threshold) {
       obj = mature.allocate(fields, &collect_mature_now);
-      loc = MatureObjectZone;
     } else {
-      if((obj = young.allocate(fields, &collect_young_now))) {
-        loc = YoungObjectZone;
-      } else {
+      obj = young.allocate(fields, &collect_young_now);
+      if(obj == NULL) {
         obj = mature.allocate(fields, &collect_mature_now);
-        loc = MatureObjectZone;
       }
     }
 
-    obj->klass(state, (Class*)Qnil);
-    obj->init(loc, fields);
     obj->clear_fields();
-    obj->obj_type = ObjectType;
-    return obj;
-  }
-
-  OBJECT ObjectMemory::allocate_mature(size_t fields, bool bytes) {
-    OBJECT obj = mature.allocate(fields, &collect_mature_now);
-
-    obj->klass(state, (Class*)Qnil);
-    obj->init(MatureObjectZone, fields);
-
-    if(bytes) {
-      obj->init_bytes();
-    } else {
-      obj->clear_fields();
-    }
-
     return obj;
   }
 
   OBJECT ObjectMemory::new_object(Class* cls, size_t fields) {
-    return create_object(cls, fields);
+    OBJECT obj;
+
+    obj = allocate_object(fields);
+    set_class(obj, cls);
+
+    obj->obj_type = (object_type)cls->instance_type()->to_native();
+    obj->RequiresCleanup = type_info[obj->obj_type]->instances_need_cleanup;
+
+    return obj;
   }
 
   /* An Object field is the size of a pointer on any particular
@@ -176,37 +162,9 @@ namespace rubinius {
       fields /= mag;
     }
 
-    OBJECT obj = create_object(cls, fields);
+    OBJECT obj = new_object(cls, fields);
 
     obj->init_bytes();
-
-    return obj;
-  }
-
-  OBJECT ObjectMemory::new_object_mature(Class* cls, size_t fields, bool bytes) {
-    OBJECT obj = mature.allocate(fields, &collect_mature_now);
-
-    obj->init(MatureObjectZone, fields);
-
-    if(bytes) {
-      obj->init_bytes();
-    } else {
-      obj->clear_fields();
-    }
-
-    set_class(obj, cls);
-
-    return obj;
-  }
-
-  OBJECT ObjectMemory::create_object(Class* cls, size_t fields) {
-    OBJECT obj;
-
-    obj = allocate_object(fields);
-    set_class(obj, cls);
-
-    obj->obj_type = (object_type)cls->instance_type()->to_native();
-    obj->RequiresCleanup = type_info[obj->obj_type]->instances_need_cleanup;
 
     return obj;
   }

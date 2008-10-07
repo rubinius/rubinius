@@ -34,9 +34,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     obj = om.allocate_object(3);
 
     TS_ASSERT_EQUALS(obj->num_fields(), 3U);
-    TS_ASSERT(obj->klass()->nil_p());
     TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
-    TS_ASSERT_EQUALS(obj->ivars(), Qnil);
 
     TS_ASSERT(om.young.current->used() == obj->size_in_bytes());
     TS_ASSERT(om.young.heap_a.used()  == obj->size_in_bytes());
@@ -161,23 +159,6 @@ class TestObjectMemory : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(obj->field[0], obj2);
   }
 
-  void test_new_object_mature() {
-    ObjectMemory om(state, 1024);
-    OBJECT obj;
-
-    obj = om.allocate_mature(3);
-    TS_ASSERT_EQUALS(obj->num_fields(), 3U);
-    TS_ASSERT(obj->klass()->nil_p());
-    TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
-    TS_ASSERT(obj->stores_references_p());
-
-    TS_ASSERT_EQUALS(om.young.current->used(), 0U);
-
-    obj = om.allocate_mature(3, true);
-    TS_ASSERT(obj->mature_object_p());
-    TS_ASSERT(obj->stores_bytes_p());
-  }
-
   void test_new_large_object() {
     ObjectMemory om(state, 1024);
     OBJECT obj;
@@ -186,7 +167,6 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     obj = om.allocate_object(20);
     TS_ASSERT_EQUALS(obj->num_fields(), 20U);
-    TS_ASSERT(obj->klass()->nil_p());
     TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
 
     TS_ASSERT_EQUALS(om.young.current->used(), 0U);
@@ -493,28 +473,25 @@ class TestObjectMemory : public CxxTest::TestSuite {
     obj = om.allocate_object(3);
     TS_ASSERT(om.valid_object_p(obj));
 
-    obj = om.allocate_mature(3);
-    TS_ASSERT(om.valid_object_p(obj));
-
     obj->zone = (gc_zone)0;
     TS_ASSERT(!om.valid_object_p(obj));
   }
 
   /* Resource cleanup tests */
 
-  void test_create_object_sets_cleanup_flag_if_class_so_indicates()
+  void test_new_object_sets_cleanup_flag_if_class_so_indicates()
   {
     TypeInfo* ti = state->om->type_info[ObjectType];
 
     TS_ASSERT_EQUALS(ti->instances_need_cleanup, false);
 
-    Object* obj = state->om->create_object(G(object), 1);
+    Object* obj = state->om->new_object(G(object), 1);
 
     TS_ASSERT_EQUALS(obj->RequiresCleanup, false);
 
     ti->instances_need_cleanup = true;
 
-    Object* obj2 = state->om->create_object(G(object), 1);
+    Object* obj2 = state->om->new_object(G(object), 1);
 
     TS_ASSERT_EQUALS(obj2->RequiresCleanup, true);
     TS_ASSERT_EQUALS(obj->RequiresCleanup, false);
@@ -542,7 +519,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     TypeInfo* ti = state->om->type_info[ObjectType];
     state->om->type_info[ObjectType] = c;
 
-    Object* obj = state->om->create_object(G(object), 1);
+    Object* obj = state->om->new_object(G(object), 1);
 
     TS_ASSERT_EQUALS(obj->RequiresCleanup, true);
 

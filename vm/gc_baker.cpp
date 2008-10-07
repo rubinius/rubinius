@@ -7,7 +7,6 @@
 #include "builtin/contexts.hpp"
 
 namespace rubinius {
-
   /* BakerGC::Heap methods */
   BakerGC::Heap::Heap(size_t bytes) {
     size = bytes;

@@ -53,11 +53,8 @@ namespace rubinius {
     void store_object(OBJECT target, size_t index, OBJECT val);
     void set_class(OBJECT target, OBJECT obj);
     OBJECT allocate_object(size_t fields);
-    OBJECT allocate_mature(size_t fields, bool bytes = false);
     OBJECT new_object(Class* cls, size_t fields);
     OBJECT new_object_bytes(Class* cls, size_t bytes);
-    OBJECT new_object_mature(Class* cls, size_t fields, bool bytes = false);
-    OBJECT create_object(Class* cls, size_t fields);
     TypeInfo* find_type_info(OBJECT obj);
     void set_young_lifetime(size_t age);
     void collect_young(Roots &roots);

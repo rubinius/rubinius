@@ -29,6 +29,8 @@ namespace rubinius {
     config.compile_up_front = false;
     context_cache = NULL;
 
+    VM::register_state(this);
+
     user_config = new ConfigParser();
 
     om = new ObjectMemory(this, bytes);
@@ -47,8 +49,6 @@ namespace rubinius {
 
     VMLLVMMethod::init("vm/instructions.bc");
     boot_threads();
-
-    VM::register_state(this);
   }
 
   VM::~VM() {

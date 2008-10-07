@@ -116,7 +116,7 @@ namespace rubinius {
         obj = (OBJECT)current->allocate(bytes);
       }
 
-      obj->zone = YoungObjectZone;
+      obj->init(YoungObjectZone, fields);
       return obj;
     }
 

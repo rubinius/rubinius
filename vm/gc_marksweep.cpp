@@ -10,7 +10,7 @@ namespace rubinius {
   MarkSweepGC::Entry::Entry(Header* h, size_t b, size_t f) {
     bytes = b;
     fields = f;
-    marked = FALSE;
+    marked = false;
     header = h;
   }
 
@@ -63,7 +63,7 @@ namespace rubinius {
 
     obj = header->to_object();
 
-    obj->zone = MatureObjectZone;
+    obj->init(MatureObjectZone, fields);
 
     return obj;
   }
@@ -75,6 +75,9 @@ namespace rubinius {
 
     allocated_objects--;
     allocated_bytes -= entry->bytes;
+
+    // A debugging tag to see if we try to use a free'd object
+    entry->header->to_object()->IsMeta = 1;
 
     free(entry->header);
   }

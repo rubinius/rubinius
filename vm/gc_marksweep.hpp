@@ -15,34 +15,34 @@ namespace rubinius {
   class ObjectMemory;
 
   class MarkSweepGC : public GarbageCollector {
-    public:
+  public:
 
     /* Utility classes */
     class Header;
 
     class Entry {
-      public:
+    public:
       /* Data members */
       int bytes;
       int fields;
-      int marked;
+      bool marked;
       Header *header;
 
       /* Inline methods */
       void mark() {
-        marked = TRUE;
+        marked = true;
       }
 
       void clear() {
-        marked = FALSE;
+        marked = false;
       }
 
       bool marked_p() {
-        return marked == TRUE;
+        return marked;
       }
 
       bool unmarked_p() {
-        return marked == FALSE;
+        return !marked;
       }
 
       /* Prototypes */

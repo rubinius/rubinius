@@ -43,7 +43,9 @@ namespace rubinius {
   void Object::set_forward(STATE, OBJECT fwd) {
     assert(zone == YoungObjectZone);
     Forwarded = 1;
-    klass(state, (Class*)fwd);
+    // DO NOT USE klass() because we need to get around the
+    // write barrier!
+    klass_ = (Class*)fwd;
   }
 
   void Object::write_barrier(STATE, OBJECT obj) {
