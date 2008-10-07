@@ -14,6 +14,12 @@
 #include <sstream>
 
 namespace rubinius {
+  void Exception::init(STATE) {
+    GO(exception).set(state->new_class("Exception", G(object),
+          Exception::fields));
+    G(exception)->set_object_type(state, ExceptionType);
+  }
+
   Exception* Exception::create(STATE) {
     return (Exception*)state->new_object(G(exception));
   }

@@ -209,4 +209,13 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "TaskProbe"), G(taskprobe));
   }
 
+  void test_exception() {
+    Class *cls;
+
+    cls = G(exception);
+
+    TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
+    TS_ASSERT_EQUALS(cls->superclass(), G(object));
+    check_const(exception, "Exception");
+  }
 };

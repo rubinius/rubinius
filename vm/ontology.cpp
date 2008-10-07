@@ -200,6 +200,7 @@ namespace rubinius {
     MemoryPointer::init(this);
     NativeFunction::init(this);
     TaskProbe::init(this);
+    Exception::init(this);
 
     NativeMethod::register_class_with(this);
     NativeMethodContext::register_class_with(this);
@@ -396,9 +397,7 @@ namespace rubinius {
 
 #define dexc(name, sup) new_class(#name, sup, sz)
 
-    exc = dexc(Exception, G(object));
-    exc->set_object_type(state, ExceptionType);
-    GO(exception).set(exc);
+    exc = G(exception);
     dexc(fatal, exc);
     scp = dexc(ScriptError, exc);
     std = dexc(StandardError, exc);

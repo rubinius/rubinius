@@ -25,6 +25,7 @@ namespace rubinius {
 
     /* interface */
 
+    static void init(STATE);
     static Exception* create(STATE);
 
     static Exception* make_exception(STATE, Class* exc_class, const char* message);
