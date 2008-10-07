@@ -119,14 +119,6 @@ class Time
     @is_gmt = is_gmt
   end
 
-  def dup
-    t = Time.allocate
-    t.instance_variable_set(:@timeval, @timeval)
-    t.instance_variable_set(:@tm, @tm)
-    t.instance_variable_set(:@is_gmt, @is_gmt)
-    t
-  end
-
   def self.local(first, *args)
     if args.size == 9
       second = first

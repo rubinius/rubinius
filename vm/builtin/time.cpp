@@ -27,6 +27,13 @@ namespace rubinius {
     return tm;
   }
 
+  Time* Time::initialize_copy(STATE, Time* other) {
+    this->timeval(state, other->timeval_);
+    this->tm(state, other->tm_);
+    this->is_gmt(state, other->is_gmt_);
+    return this;
+  }
+
   Time* Time::gettimeofday(STATE) {
     struct timeval tv;
 

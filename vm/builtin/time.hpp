@@ -32,6 +32,8 @@ namespace rubinius {
     // Ruby.primitive :time_allocate
     static Time* create(STATE);
 
+    Time* initialize_copy(STATE, Time* other);
+
     // Ruby.primitive :time_gettimeofday
     Time* gettimeofday(STATE);
 
