@@ -89,6 +89,7 @@ field_extract_headers = %w[
   vm/builtin/taskprobe.hpp
   vm/builtin/nativemethod.hpp
   vm/builtin/nativemethodcontext.hpp
+  vm/builtin/system.hpp
 ]
 
 BC          = "vm/instructions.bc"
