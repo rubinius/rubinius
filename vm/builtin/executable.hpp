@@ -38,7 +38,6 @@ namespace rubinius {
 
     /* Perform the actions of this Executable object. */
     bool execute(STATE, Task* task, Message& msg) {
-      assert(execute_ && (OBJECT)execute_ != Qnil);
       return execute_(state, this, task, msg);
     }
 
