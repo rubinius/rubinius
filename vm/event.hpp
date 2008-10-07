@@ -1,6 +1,8 @@
 #ifndef RBX_EVENT_HPP
 #define RBX_EVENT_HPP
 
+#include <list>
+
 #include <sys/wait.h>
 #include <ev.h>
 
@@ -8,10 +10,17 @@
 #include "builtin/task.hpp"
 #include "virtual.hpp"
 
+/*
+ *  TODO: We are probably leaking ObjectCallbacks */
 namespace rubinius {
   class IOBuffer;
 
   namespace event {
+
+    enum LoopTypes {
+      HANDLE_SIGNALS
+    };
+
     class Loop;
 
     class Event {
@@ -86,15 +95,80 @@ namespace rubinius {
       virtual bool activated();
     };
 
-    class Child : public Event {
-    public:
-      pid_t pid;
-      int options;
+    /**
+     *  Slightly different, since these events are not
+     *  tracked discretely by libev. Instead, we abstract
+     *  them out into their own list to be accessed when
+     *  a SIGCHLD occurs. Because of this, there is no
+     *  point in using the Event interface from above,
+     *  although the callback system is still useful for
+     *  us.
+     *
+     *  TODO: Cancel-by-id handling via negatives?
+     *
+     *  TODO: Review when multiple loops or native threads.
+     */
+    class Child {
+    public:   /* Types */
 
-      Child(STATE, ObjectCallback* chan, pid_t pid, int opts);
-      bool poll();
+      /*
+       *  TODO: If there is a really performance-strapped app that
+       *        bottlenecks here, revisit the map<pid_t, list<Child*>>
+       *        version. It is just overkill for now.
+       */
+      typedef std::list<Child*> Waiters;
+
+      typedef struct ev_signal Watcher;
+      typedef struct ev_loop EVLoop;
+
+      /**
+       *  Special case.
+       */
+      class Event : public Signal {
+      public:
+
+        Event(VM* state) : Signal(state, NULL, SIGCHLD) {}
+        virtual ~Event() {}
+
+      public:
+
+        virtual bool activated() { Child::find_finished(state); return false; }
+
+        /* TODO: Remove when continuum is set up properly. */
+        virtual void stop() { throw std::runtime_error("SIGCHLD handler stop()"); }
+
+      };
+
+
+    private:   /* Ctors */
+
+      Child(VM* state, ObjectCallback* channel, pid_t pid, int opts);
+      ~Child();
+
+
+    public:   /* Class interface */
+
+      /** Add a new interested channel. */
+      static void     add(VM* state, ObjectCallback* channel, pid_t pid, int opts);
+
+      /** Figure which child(ren) finished when SIGCHLD received. */
+      static void     find_finished(VM* state);
+
+      /** All current Child events. */
+      static Waiters& waiters() { static Waiters our_waiters; return our_waiters; };
+
+
+    public:   /* Instance vars */
+
+      ObjectCallback*   _channel;
+      int               _options;
+      pid_t             _pid;
+
     };
 
+    /**
+     *  TODO: Needs review when multiple loops are introduced.
+     */
     class Loop {
     public:
       struct ev_loop *base;
@@ -102,8 +176,7 @@ namespace rubinius {
       size_t event_ids;
       bool owner;
 
-      Loop();
-      Loop(int options);
+      Loop(int options = 0);
       Loop(struct ev_loop *loop);
       ~Loop();
 
@@ -118,6 +191,7 @@ namespace rubinius {
       void remove_event(Event* ev);
       void remove_signal(int sig);
     };
+
   };
 };
 

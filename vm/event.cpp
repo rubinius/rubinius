@@ -1,6 +1,8 @@
 /* A C++ wrapper around libev, which Rubinius uses for all event handling.
  * This is the folcrum of the thread subsystem. */
 
+#include <vector>
+
 #include "prelude.hpp"
 #include "object.hpp"
 #include "vm.hpp"
@@ -26,10 +28,10 @@
 #include <errno.h>
 #include <ev.h>
 
-#include <vector>
-
 namespace rubinius {
+
   namespace event {
+
     static void dispatch(Event *obj) {
       if(obj->activated()) {
         if(obj->loop) {
@@ -174,45 +176,98 @@ namespace rubinius {
       return true;
     }
 
-    Child::Child(STATE, ObjectCallback* chan, pid_t pid, int opts) :
-      Event(state, chan), pid(pid), options(opts) { }
 
-    bool Child::poll() {
-      pid_t p;
-      int status;
-      OBJECT ret;
+/* SIGCHLD */
 
-      while((p = waitpid(pid, &status, WNOHANG || options)) <= -1
-          && errno == EINTR);
 
-      if(p > 0) {
-        if(WIFEXITED(status)) {
-          ret = Fixnum::from(WEXITSTATUS(status));
-        } else {
-          /* Could support WIFSIGNALED also. */
-          ret = Qtrue;
-        }
-        channel->call(Tuple::from(state, 2, Fixnum::from(p), ret));
-      } else if(pid == -1 && errno == ECHILD) {
-        channel->call(Qfalse);
-      } else if(pid == 0 && (options & WNOHANG)) {
-        channel->call(Qnil);
-      } else {
-        return false;
-      }
-
-      return true;
+    Child::Child(VM* state, ObjectCallback* channel, pid_t pid, int opts)
+      : _channel(channel)
+      , _options(opts)
+      , _pid(pid)
+    {
     }
 
-    Loop::Loop(struct ev_loop *loop) : 
+    Child::~Child() {}
+
+    void Child::add(VM* state, ObjectCallback* channel, pid_t pid, int opts)
+    {
+      Child::waiters().push_back(new Child(state, channel, pid, opts));
+    }
+
+    /*
+     *  TODO: Should we re-loop if pid is not 0 to handle possible multiple?
+     *  TODO: Support WUNTRACED?
+     *  TODO: Review logic. Certainly not fully featured.
+     *
+     *  foreach_and_remove_if algo sure would be nice.
+     */
+    void Child::find_finished(VM* state)
+    {
+      pid_t pid;
+      int status;
+
+      while ((pid = ::waitpid(-1, &status, WNOHANG)) == -1 && errno == EINTR)
+        ;
+
+      Waiters& all = Child::waiters();
+
+      switch (pid) {
+        case -1:    /* Error condition, pretty much only ECHILD */
+          if ( errno == ECHILD ) {
+
+            for (Waiters::iterator it = all.begin(); it != all.end(); ++it) {
+              (*it)->_channel->call(Qfalse);
+            }
+
+            all.clear();
+          }
+
+          break;
+
+        case 0:       /* No stopped children */
+
+          for (Waiters::iterator it = all.begin(); it != all.end(); /**/) {
+            if ( (*it)->_options & WNOHANG ) {
+              (*it)->_channel->call(Qnil);
+              delete *it;
+              it = all.erase(it);
+              continue;
+            }
+            ++it;
+          }
+
+          break;
+
+        default:      /* Got a pid */
+          assert(pid > 0);
+
+          Object* SP = Qtrue;
+
+          if ( WIFEXITED(status) ) {
+            SP = as<Object>(Fixnum::from(WEXITSTATUS(status)));
+          }
+
+          for (Waiters::iterator it = all.begin(); it != all.end(); /**/) {
+            if ( (*it)->_pid == pid ) {
+              (*it)->_channel->call(Tuple::from(state, 2, Fixnum::from((*it)->_pid), SP));
+              delete *it;
+              it = all.erase(it);
+              continue;
+            }
+            ++it;
+          }
+
+          break;
+      }
+    }
+
+    Loop::Loop(struct ev_loop *loop) :
       base(loop), event_ids(0), owner(false) { }
 
-    Loop::Loop() : event_ids(0), owner(false) {
-      base = ev_default_loop(0);
-    }
+    Loop::Loop(int opts) : event_ids(0), owner(false) {
+      base = ev_default_loop(opts);
 
-    Loop::Loop(int opts) : event_ids(0), owner(true) {
-      base = ev_loop_new(opts);
+      /* TODO: Should fail here if default returns NULL */
     }
 
     /* Gives this loop ownership of +ev+, letting it delete +ev+
@@ -230,7 +285,9 @@ namespace rubinius {
     }
 
     Loop::~Loop() {
-      if(owner) ev_loop_destroy(base);
+      if (owner) {
+        ev_loop_destroy(base);
+      }
     }
 
     size_t Loop::num_of_events() {
