@@ -2,7 +2,8 @@
 
 class Exception
 
-  def message; @message ; end
+  attr_writer :message
+  attr_accessor :context
 
   def initialize(message = nil)
     @message = message
@@ -29,12 +30,12 @@ class Exception
     @message || self.class.to_s
   end
 
+  alias_method :message, :to_s
+  alias_method :to_str, :to_s
+
   def inspect
     "#<#{self.class.name}: #{self.to_s}>"
   end
-
-  alias_method :message, :to_s
-  alias_method :to_str, :to_s
 
   def self.exception(message=nil)
     self.new(message)
@@ -48,17 +49,8 @@ class Exception
     end
   end
 
-  def context
-    @context
-  end
-
-  def context=(other)
-    @context = other
-  end
-
   def location
-    ctx = self.context
-    [ctx.file.to_s, ctx.line]
+    [context.file.to_s, context.line]
   end
 end
 
