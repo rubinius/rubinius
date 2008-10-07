@@ -284,8 +284,7 @@ namespace rubinius {
 
     TypeInfo* ti = state->om->find_type_info(this);
     if(ti) {
-      native_int idx = sym->index();
-      TypeInfo::Slots::iterator it = ti->slots.find(idx);
+      TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
       if(it != ti->slots.end()) {
         return ti->get_field(state, this, it->second);
       }
@@ -300,7 +299,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  OBJECT Object::set_ivar(STATE, OBJECT sym, OBJECT val) {
+  OBJECT Object::set_ivar(STATE, SYMBOL sym, OBJECT val) {
     LookupTable* tbl;
 
     /* Implements the external ivars table for objects that don't
@@ -314,6 +313,16 @@ namespace rubinius {
       }
       tbl->store(state, sym, val);
       return val;
+    }
+
+    /* We might be trying to access a field, so check there first. */
+    TypeInfo* ti = state->om->find_type_info(this);
+    if(ti) {
+      TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
+      if(it != ti->slots.end()) {
+        ti->set_field(state, this, it->second, val);
+        return val;
+      }
     }
 
     /* Lazy creation of a lookuptable to store instance variables. */

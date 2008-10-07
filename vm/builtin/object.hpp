@@ -131,7 +131,7 @@ namespace rubinius {
     OBJECT get_ivar(STATE, SYMBOL sym);
 
     // Ruby.primitive :object_set_ivar
-    OBJECT set_ivar(STATE, OBJECT sym, OBJECT val);
+    OBJECT set_ivar(STATE, SYMBOL sym, OBJECT val);
 
     // Ruby.primitive :object_get_ivars
     OBJECT get_ivars(STATE);

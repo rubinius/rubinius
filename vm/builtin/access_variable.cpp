@@ -4,6 +4,7 @@
 #include "builtin/task.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/exception.hpp"
 
 #include "objectmemory.hpp"
 #include "message.hpp"
@@ -27,22 +28,11 @@ namespace rubinius {
    * to access instance variables of msg.recv */
   bool AccessVariable::access_execute(STATE, Executable* meth, Task* task, Message& msg) {
     AccessVariable* access = as<AccessVariable>(meth);
-    native_int idx = access->name()->index();
 
     /* The writer case. */
     if(access->write()->true_p()) {
       if(msg.args() != 1) {
-        assert(0 && "implement raise exception");
-      }
-      /* We might be trying to access a field, so check there first. */
-      TypeInfo* ti = state->om->find_type_info(msg.recv);
-      if(ti) {
-        TypeInfo::Slots::iterator it = ti->slots.find(idx);
-        if(it != ti->slots.end()) {
-          ti->set_field(state, msg.recv, it->second, msg.get_argument(0));
-          task->primitive_return(msg.get_argument(0), msg);
-          return false;
-        }
+        Exception::argument_error(state, 1, msg.args());
       }
 
       /* Fall through, handle it as a normal ivar. */
@@ -53,7 +43,7 @@ namespace rubinius {
 
     /* The read case. */
     if(msg.args() != 0) {
-      assert(0 && "implement raise exception");
+      Exception::argument_error(state, 0, msg.args());
     } else {
       task->primitive_return(msg.recv->get_ivar(state, access->name()), msg);
     }
