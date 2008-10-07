@@ -134,6 +134,21 @@ namespace rubinius {
     return Qnil;
   }
 
+  Object* Channel::send_on_stopped(VM* state, Channel* channel, Fixnum* pid, Fixnum* flags)
+  {
+    event::Child::add(state,
+                      new SendToChannel(state, channel),
+                      static_cast<pid_t>(pid->to_int()),
+                      flags->to_int() );
+
+    /* TODO: Figure out the cancellation by id method. */
+    return Qnil;
+  }
+
+
+
+/* ChannelCallback */
+
   ChannelCallback::ChannelCallback(STATE, Channel* chan) : ObjectCallback(state) {
     channel.set(chan, &GO(roots));
   }

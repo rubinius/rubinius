@@ -58,10 +58,18 @@ namespace rubinius {
     static OBJECT send_in_seconds(STATE, Channel* chan, Float* seconds, OBJECT tag);
     static OBJECT send_in_seconds(STATE, Channel* chan, double seconds, OBJECT tag);
 
+    /**
+     *  Event child process ending.
+     */
+    // Ruby.primitive :scheduler_send_on_stopped
+    static Object* send_on_stopped(STATE, Channel* channel, Fixnum* pid, Fixnum* flags);
+
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
     };
+
   };
 
   class ChannelCallback : public ObjectCallback {
