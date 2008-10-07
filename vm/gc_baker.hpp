@@ -36,6 +36,7 @@ namespace rubinius {
       address allocate(size_t size) {
         address addr;
         addr = current;
+        std::memset((void*)addr, 0, size);
         current = (address)((uintptr_t)current +  size);
 
         return addr;
@@ -115,7 +116,6 @@ namespace rubinius {
         obj = (OBJECT)current->allocate(bytes);
       }
 
-      obj->all_flags = 0;
       obj->zone = YoungObjectZone;
       return obj;
     }

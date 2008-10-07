@@ -46,7 +46,7 @@ namespace rubinius {
 
     // std::cout << "ms: " << bytes << ", fields: " << fields << "\n";
 
-    Header *header = (Header*)malloc(bytes);
+    Header *header = (Header*)calloc(1, bytes);
     Entry *entry = new Entry(header, bytes, fields);
     header->entry = entry;
 
@@ -63,7 +63,6 @@ namespace rubinius {
 
     obj = header->to_object();
 
-    obj->all_flags = 0;
     obj->zone = MatureObjectZone;
 
     return obj;
