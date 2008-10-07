@@ -188,7 +188,9 @@ namespace rubinius {
     events->poll();
 
     if(!find_and_activate_thread()) {
-      if(events->num_of_events() == 0) {
+      // It's 1 because the event that looks for SIGCHLD is
+      // always registered.
+      if(events->num_of_events() == 1) {
         throw DeadLock("no runnable threads, present or future.");
       }
 
