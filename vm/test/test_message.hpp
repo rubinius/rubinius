@@ -207,4 +207,23 @@ class TestMessage : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(msg.get_argument(0), shifted);
   }
+
+  void test_shift_argument_one_then_unshift_two() {
+    Message msg(state);
+    Task* task = Task::create(state, 10);
+    task->push(Fixnum::from(3));
+    task->push(state->symbol("to_int"));
+    msg.use_from_task(task, 1);
+
+    Symbol* shifted = as<Symbol>(msg.shift_argument(state));
+    TS_ASSERT_EQUALS(shifted, state->symbol("to_int"));
+    TS_ASSERT_EQUALS(0, msg.args());
+
+    msg.unshift_argument2(state, shifted, Fixnum::from(47));
+
+    TS_ASSERT_EQUALS(2, msg.args());
+
+    TS_ASSERT_EQUALS(msg.get_argument(0), shifted);
+    TS_ASSERT_EQUALS(msg.get_argument(1), Fixnum::from(47));
+  }
 };
