@@ -242,14 +242,17 @@ namespace rubinius {
           SP = as<Object>(Fixnum::from(WEXITSTATUS(status)));
         }
 
-          for (Waiters::iterator it = all.begin(); it != all.end(); /**/) {
-            if ( (*it)->_pid == pid ) {
-              (*it)->_channel->call(Tuple::from(state, 2, Fixnum::from((*it)->_pid), SP));
-              delete *it;
-              it = all.erase(it);
-              continue;
-            }
-            ++it;
+        for (Waiters::iterator it = all.begin(); it != all.end(); /**/) {
+          /* TODO: Should we check that the process exiting was launched
+           *       from the same VM instance? It might be useful to be
+           *       able to guarantee that one VM will not consume another's
+           *       children.
+           */
+          if ( (*it)->pid() == pid || (*it)->pid() == -1 ) {
+            (*it)->channel()->call(Tuple::from(state, 2, Fixnum::from(pid), SP));
+            delete *it;
+            it = all.erase(it);
+            continue;
           }
           ++it;
         }
