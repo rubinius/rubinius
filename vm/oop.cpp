@@ -32,7 +32,7 @@ namespace rubinius {
     void** dst = this->__body__;
 
     for(size_t counter = 0; counter < field_count; counter++) {
-      *dst++ = *src++;
+      dst[counter] = src[counter];
     }
   }
 
@@ -46,7 +46,7 @@ namespace rubinius {
     Object** dst = reinterpret_cast<Object**>(__body__);
 
     for(size_t counter = 0; counter < field_count; counter++) {
-      *dst++ = Qnil;
+      dst[counter] = Qnil;
     }
   }
 
@@ -54,7 +54,7 @@ namespace rubinius {
     uintptr_t** dst = reinterpret_cast<uintptr_t**>(__body__);
 
     for(size_t counter = 0; counter < field_count; counter++) {
-      *dst++ = 0;
+      dst[counter] = 0;
     }
 
   }

@@ -36,15 +36,6 @@ namespace rubinius {
       address allocate(size_t size) {
         address addr;
         addr = current;
-        std::memset((void*)addr, 0, size);
-        current = (address)((uintptr_t)current +  size);
-
-        return addr;
-      }
-
-      address allocate_dirty(size_t size) {
-        address addr;
-        addr = current;
         current = (address)((uintptr_t)current +  size);
 
         return addr;

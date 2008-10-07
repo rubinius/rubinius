@@ -37,7 +37,7 @@ namespace rubinius {
 
   OBJECT BakerGC::Heap::copy_object(OBJECT orig) {
     OBJECT tmp = (OBJECT)allocate(orig->size_in_bytes());
-    tmp->zone = YoungObjectZone;
+    tmp->init(YoungObjectZone, orig->num_fields());
 
     tmp->initialize_copy(orig, orig->age);
     tmp->copy_body(orig);
