@@ -95,19 +95,17 @@ namespace rubinius {
       return;
     }
 
-    arguments = Array::create(state, total_args);
+    Array* ary = Array::create(state, args() + 1);
 
-    size_t stack_pos = total_args - start - 1;
+    ary->set(state, 0, val);
 
-    arguments->set(state, 0, val);
-
-    for(size_t i = 1; i <= total_args; i++, stack_pos--) {
-      OBJECT arg = task->active()->stack_back(stack_pos);
-      arguments->set(state, i, arg);
+    for(size_t i = 0; i < args(); i++) {
+      ary->set(state, i + 1, get_argument(i));
     }
 
+    total_args = args() + 1;
     start = 0;
-    total_args++;
+    arguments = ary;
   }
 
   void Message::unshift_argument2(STATE, OBJECT one, OBJECT two) {
@@ -126,22 +124,18 @@ namespace rubinius {
       return;
     }
 
-    arguments = Array::create(state, total_args + 1);
+    Array* ary = Array::create(state, args() + 2);
 
-    size_t stack_pos = total_args - start - 1;
+    ary->set(state, 0, one);
+    ary->set(state, 1, two);
 
-    arguments->set(state, 0, one);
-    arguments->set(state, 1, two);
-
-    total_args++;
-
-    for(size_t i = 2; i <= total_args; i++, stack_pos--) {
-      OBJECT arg = task->active()->stack_back(stack_pos);
-      arguments->set(state, i, arg);
+    for(size_t i = 0; i < args(); i++) {
+      ary->set(state, i + 2, get_argument(i));
     }
 
+    total_args = args() + 2;
     start = 0;
-    total_args++;
+    arguments = ary;
   }
 
   OBJECT Message::shift_argument(STATE) {
