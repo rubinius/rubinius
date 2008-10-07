@@ -12,8 +12,8 @@ class IO
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def self.create_pipe(lhs, rhs)
-    Ruby.primitive :create_pipe
+  def self.connect_pipe(lhs, rhs)
+    Ruby.primitive :io_connect_pipe
     raise PrimitiveFailure, "primitive failed"
   end
 

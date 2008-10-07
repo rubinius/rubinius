@@ -35,6 +35,9 @@ namespace rubinius {
     static IO* create(STATE, int fd);
     void initialize(STATE, int fd, char* mode);
 
+    // Ruby.primitive :io_connect_pipe
+    static OBJECT connect_pipe(STATE, IO* lhs, IO* rhs);
+
     // Ruby.primitive :io_seek
     INTEGER seek(STATE, INTEGER amount, FIXNUM whence);
 
@@ -43,6 +46,9 @@ namespace rubinius {
 
     // Ruby.primitive :io_open
     static FIXNUM open(STATE, String* path, FIXNUM mode, FIXNUM perm);
+
+    // Ruby.primitive :io_reopen
+    OBJECT reopen(STATE, IO* other);
 
     // Ruby.primitive :io_close
     OBJECT close(STATE);

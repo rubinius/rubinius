@@ -279,7 +279,7 @@ class IO
   def self.pipe
     lhs = IO.allocate
     rhs = IO.allocate
-    out = create_pipe(lhs, rhs)
+    connect_pipe(lhs, rhs)
     lhs.setup
     rhs.setup
     return [lhs, rhs]

@@ -39,6 +39,32 @@ namespace rubinius {
     return create(state);
   }
 
+  OBJECT IO::connect_pipe(STATE, IO* lhs, IO* rhs) {
+    int fds[2];
+    if(pipe(fds) == -1) {
+      Exception::errno_error(state, "creating pipe");
+    }
+
+    lhs->descriptor(state, Fixnum::from(fds[0]));
+    rhs->descriptor(state, Fixnum::from(fds[1]));
+    return Qtrue;
+  }
+
+  OBJECT IO::reopen(STATE, IO* other) {
+    native_int cur_fd, other_fd;
+
+    cur_fd =   descriptor()->to_native();
+    other_fd = other->descriptor()->to_native();
+
+    if(dup2(other_fd, cur_fd) == -1) {
+      Exception::errno_error(state, "reopen");
+    }
+
+    // TODO: should we invalidate buffer_ and such?
+
+    return Qtrue;
+  }
+
   IO* IO::create(STATE, int fd) {
     IO* io = (IO*)state->new_object(G(io));
     io->descriptor(state, Fixnum::from(fd));

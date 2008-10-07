@@ -581,19 +581,13 @@ module Kernel
     pid = Process.fork
     if pid
       write.close
-      chan = Channel.new
       output = ""
-      buf = String.pattern 50, 0
-      while true
-        Scheduler.send_on_readable chan, read, buf, 50
-        res = chan.receive
-        if res.nil?
-          Process.waitpid(pid)
-          return output
-        else
-          output << buf
-        end
+      until read.eof?
+        output << read.read
       end
+
+      Process.waitpid(pid)
+      return output
     else
       read.close
       STDOUT.reopen write
