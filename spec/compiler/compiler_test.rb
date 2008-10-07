@@ -3180,12 +3180,14 @@ class CompilerTestCase < ParseTreeTestCase
               g.push_local 0
               g.swap
               g.push_local 1
+              g.swap
               g.send :[]=, 2, false
               g.pop
 
               g.push_local 0
               g.swap
               g.push_local 2
+              g.swap
               g.send :[]=, 2, false
               g.pop
 

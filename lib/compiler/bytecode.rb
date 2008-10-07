@@ -158,6 +158,7 @@ class Compiler
           if @rhs_expression
             extra = 2
             @rhs_expression.bytecode(g)
+            g.swap if @swap
           else
             extra = 1
           end
