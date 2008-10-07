@@ -217,11 +217,11 @@ class TestMessage : public CxxTest::TestSuite {
 
     Symbol* shifted = as<Symbol>(msg.shift_argument(state));
     TS_ASSERT_EQUALS(shifted, state->symbol("to_int"));
-    TS_ASSERT_EQUALS(0, msg.args());
+    TS_ASSERT_EQUALS(0U, msg.args());
 
     msg.unshift_argument2(state, shifted, Fixnum::from(47));
 
-    TS_ASSERT_EQUALS(2, msg.args());
+    TS_ASSERT_EQUALS(2U, msg.args());
 
     TS_ASSERT_EQUALS(msg.get_argument(0), shifted);
     TS_ASSERT_EQUALS(msg.get_argument(1), Fixnum::from(47));
