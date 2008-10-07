@@ -167,9 +167,9 @@ namespace rubinius {
 
     private:  /* Instance vars */
 
-      ObjectCallback*   channel_;
-      int               options_;
-      pid_t             pid_;
+      ObjectCallback* channel_;
+      int             options_;
+      pid_t           pid_;
 
     };
 

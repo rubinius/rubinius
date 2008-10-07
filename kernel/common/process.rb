@@ -229,11 +229,14 @@ module Process
 
     case pid
     when false
-      raise Errno::ECHILD
+      raise Errno::ECHILD, "No child processes!"
+
     when nil
       return nil
+
     else
       $? = Process::Status.new pid, status
+
     end
 
     pid

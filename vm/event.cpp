@@ -188,11 +188,15 @@ namespace rubinius {
 
     void Child::add(VM* state, ObjectCallback* channel, pid_t pid, int opts) {
       Child::waiters().push_back(new Child(state, channel, pid, opts));
+      /* TODO: This seems a bit cheap, but we need to force a check if there
+       *        are no child processes yet. */
+      Child::find_finished(state);
     }
 
     /*
      *  TODO: Should we re-loop if pid is not 0 to handle possible multiple?
      *  TODO: Support WUNTRACED?
+     *  TODO: Should we short-cut if there are no waiters?
      *  TODO: Review logic. Certainly not fully featured.
      *
      *  foreach_and_remove_if algo sure would be nice.
