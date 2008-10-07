@@ -51,7 +51,7 @@ module Process
   end
 
   def self.fork
-    pid = fork_prim
+    pid = perform_fork
     pid = nil if pid == 0
     if block_given? and pid.nil?
       yield nil
@@ -220,10 +220,13 @@ module Process
     Process.groups
   end
 
-  def self.wait(pid=-1, flags=0)
+  def self.wait(pid = -1, flags = 0)
     chan = Channel.new
+
     Scheduler.send_on_stopped(chan, pid, flags)
+
     pid, status = chan.receive
+
     case pid
     when false
       raise Errno::ECHILD
@@ -232,7 +235,8 @@ module Process
     else
       $? = Process::Status.new pid, status
     end
-    return pid
+
+    pid
   end
 
   def self.waitall
@@ -546,9 +550,9 @@ module Kernel
     if args.empty? and cmd.kind_of? String
       raise SystemCallError if cmd.empty?
       if /([*?{}\[\]<>()~&|$;'`"\n\s]|[^\w])/.match(cmd)
-        Process.replace "/bin/sh", ["sh", "-c", cmd]
+        Process.perform_exec "/bin/sh", ["sh", "-c", cmd]
       else
-        Process.replace cmd, [cmd]
+        Process.perform_exec cmd, [cmd]
       end
     else
       if cmd.kind_of? Array
@@ -563,7 +567,7 @@ module Kernel
         argv << arg.to_s
       end
 
-      Process.replace prog, argv
+      Process.perform_exec prog, argv
     end
   end
   module_function :exec
@@ -590,7 +594,7 @@ module Kernel
     else
       read.close
       STDOUT.reopen write
-      Process.replace "/bin/sh", ["sh", "-c", str]
+      Process.perform_exec "/bin/sh", ["sh", "-c", str]
     end
   end
 

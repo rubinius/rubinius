@@ -111,7 +111,7 @@ class Scheduler
 
   ##
   # Wrapper for the primitive, use +send_on_stopped+
-
+  #
   def self.send_on_stopped_prim(channel, pid, flags)
     Ruby.primitive :scheduler_send_on_stopped
     raise PrimitiveFailure, "primitive failed"

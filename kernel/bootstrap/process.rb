@@ -4,13 +4,11 @@ class Process
     raise PrimitiveFailure, "exit failed. Wow, something is screwed."
   end
 
-  def self.fork_prim
-    Ruby.primitive :fork_process
-    raise PrimitiveFailure, "primitive failed"
+  def self.perform_fork
+    Ruby.primitive :vm_fork
   end
 
-  def self.replace(file, arg)
-    Ruby.primitive :replace_process
-    raise Errno::ENOENT, "No such file or directory - #{file}"
+  def self.perform_exec(file, args)
+    Ruby.primitive :vm_exec
   end
 end
