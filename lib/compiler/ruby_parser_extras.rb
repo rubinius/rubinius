@@ -58,6 +58,22 @@ class RPStringScanner < StringScanner
     pos <= 2 or string[pos-2] == ?\n
   end
 
+  if ENV['DEBUG'] then
+    alias :old_getch :getch
+    def getch
+      c = self.old_getch
+      p :getch => [c, caller.first]
+      c
+    end
+
+    alias :old_scan :scan
+    def scan re
+      s = old_scan re
+      p :scan => [s, caller.first] if s
+      s
+    end
+  end
+
   # TODO:
   # def last_line(src)
   #   if n = src.rindex("\n")

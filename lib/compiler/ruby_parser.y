@@ -21,7 +21,7 @@ token kCLASS kMODULE kDEF kUNDEF kBEGIN kRESCUE kENSURE kEND kIF kUNLESS
       tLBRACK tRBRACK tLBRACE tLBRACE_ARG tSTAR tSTAR2 tAMPER tAMPER2
       tTILDE tPERCENT tDIVIDE tPLUS tMINUS tLT tGT tPIPE tBANG tCARET
       tLCURLY tRCURLY tBACK_REF2 tSYMBEG tSTRING_BEG tXSTRING_BEG tREGEXP_BEG
-      tWORDS_BEG tAWORDS_BEG tSTRING_DBEG tSTRING_DVAR tSTRING_END
+      tWORDS_BEG tAWORDS_BEG tSTRING_DBEG tSTRING_DVAR tSTRING_END tSTRING
       tLAST_TOKEN
 
 prechigh
@@ -1282,9 +1282,10 @@ string        : string1
                   result = self.literal_concat(val[0], val[1]);
                 }
 
-string1       : tSTRING_BEG string_contents tSTRING_END {
+string1      : tSTRING_BEG string_contents tSTRING_END {
                   result = val[1]
-                }
+                 }
+             | tSTRING { result = s(:str, val[0]) }
 
 xstring       : tXSTRING_BEG xstring_contents tSTRING_END {
                   node = val[1]
@@ -1561,7 +1562,7 @@ f_args       : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg {
                }
 
 f_norm_arg   : tCONSTANT {
-                 yyerror("formal argument cannot be a constant");
+                 yyerror "formal argument cannot be a constant: #{val[0]}"
                }
              | tIVAR {
                  yyerror("formal argument cannot be an instance variable");
