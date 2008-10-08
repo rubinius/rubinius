@@ -359,7 +359,7 @@ class IO
       if str == "+-+"
         yield nil
       else
-        Process.replace "/bin/sh", ["sh", "-c", str]
+        Process.perform_exec "/bin/sh", ["sh", "-c", str]
       end
     end
 
