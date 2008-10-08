@@ -448,6 +448,7 @@ namespace rubinius {
 #define set_syserr(num, name) ({ \
     Class* _cls = new_class(name, sce, sz, ern); \
     _cls->set_const(state, symbol("Errno"), Fixnum::from(num)); \
+    _cls->set_const(state, symbol("Strerror"), String::create(state, strerror(num))); \
     G(errno_mapping)->store(state, Fixnum::from(num), _cls); \
     })
 

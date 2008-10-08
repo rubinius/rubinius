@@ -103,14 +103,21 @@ class TestException : public CxxTest::TestSuite {
         TS_ASSERT(Exception::errno_error_p(state, e.exception)));
   }
 
-  void test_ruby_exception_errno_error_raises_argument_error() {
+  void test_ruby_exception_errno_error_sets_errno_ivar() {
+    TS_ASSERT_THROWS_ASSERT(Exception::errno_error(state, "failed", ENOENT),
+        const RubyException &e,
+        TS_ASSERT_EQUALS(Fixnum::from(ENOENT),
+                         e.exception->get_ivar(state, state->symbol("@errno"))));
+  }
+
+  void test_ruby_exception_errno_error_raises_system_call_error() {
     TS_ASSERT_THROWS_ASSERT(Exception::errno_error(state, "failed", -1),
         const RubyException &e,
-        TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+        TS_ASSERT(Exception::system_call_error_p(state, e.exception)));
   }
 
   void test_get_errno_error_invalid_errno() {
-    TS_ASSERT_EQUALS(Qnil, Exception::get_errno_error(state, -1));
+    TS_ASSERT_EQUALS(Qnil, Exception::get_errno_error(state, Fixnum::from(-1)));
   }
 
   void test_ruby_exception_io_error() {

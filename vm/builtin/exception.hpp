@@ -31,6 +31,7 @@ namespace rubinius {
     static Exception* make_exception(STATE, Class* exc_class, const char* message);
     static Exception* make_type_error(STATE, object_type type, OBJECT object,
                            const char* reason = NULL);
+    static Exception* make_errno_exception(STATE, Class* exc_class, OBJECT reason);
 
     static void argument_error(STATE, int expected, int given);
     static void argument_error(STATE, const char* reason);
@@ -46,6 +47,8 @@ namespace rubinius {
     static void object_bounds_exceeded_error(STATE, OBJECT obj, size_t index);
     static void object_bounds_exceeded_error(STATE, const char* reason);
 
+    // Ruby.primitive :exception_errno_error
+    static OBJECT errno_error(STATE, OBJECT reason, FIXNUM ern);
     static void errno_error(STATE, const char* reason = NULL, int ern = 0);
 
     /**
@@ -62,6 +65,7 @@ namespace rubinius {
     static bool assertion_error_p(STATE, Exception* exc);
     static bool object_bounds_exceeded_error_p(STATE, Exception* exc);
     static bool errno_error_p(STATE, Exception* exc);
+    static bool system_call_error_p(STATE, Exception* exc);
     static bool io_error_p(STATE, Exception* exc);
 
     static Class* get_argument_error(STATE);
@@ -70,8 +74,9 @@ namespace rubinius {
     static Class* get_float_domain_error(STATE);
     static Class* get_assertion_error(STATE);
     static Class* get_object_bounds_exceeded_error(STATE);
-    static Class* get_errno_error(STATE, int ern);
     static Class* get_io_error(STATE);
+    static Class* get_system_call_error(STATE);
+    static Class* get_errno_error(STATE, FIXNUM ern);
 
     class Info : public TypeInfo {
     public:

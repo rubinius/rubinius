@@ -1,4 +1,4 @@
-# depends on: class.rb
+# depends on: class.rb module.rb
 
 class Exception
 
@@ -170,15 +170,29 @@ class SyntaxError < ScriptError
 end
 
 class SystemCallError < StandardError
-  def errno; @errno ; end
 
-  def initialize(message, errno = nil)
-    if message.is_a?(Integer) && errno.nil?
+  attr_reader :errno
+
+  def self.errno_error(message, errno)
+    Ruby.primitive :exception_errno_error
+    raise PrimitiveFailure, "SystemCallError.errno_error failed"
+  end
+
+  def self.new(message, errno = nil)
+    if message.is_a? Integer
       errno   = message
-      message = "Unknown error"
+      message = nil
+    elsif message
+      message = StringValue message
     end
-    super(message)
-    @errno = errno
+
+    if errno and error = errno_error(message, errno)
+      return error
+    end
+
+    msg = "unknown error"
+    msg << " - #{message}" if message
+    super(msg)
   end
 end
 

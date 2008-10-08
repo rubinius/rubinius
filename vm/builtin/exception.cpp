@@ -109,20 +109,57 @@ namespace rubinius {
           get_object_bounds_exceeded_error(state), reason));
   }
 
-  void Exception::errno_error(STATE, const char* reason, int ern) {
-    if(ern == 0) ern = errno;
-    Class* exc_class = get_errno_error(state, ern);
+  Exception* Exception::make_errno_exception(STATE, Class* exc_class, OBJECT reason) {
+    Exception* exc = (Exception*)state->new_object(exc_class);
 
-    if(!reason) reason = strerror(ern);
+    MethodContext* ctx = G(current_task)->active();
+    ctx->reference(state);
+
+    exc->context(state, ctx);
+
+    String* message = (String*)reason;
+    if(String* str = try_as<String>(exc_class->get_const(state, "Strerror"))) {
+      str = str->string_dup(state);
+      if(String* r = try_as<String>(reason)) {
+        str->append(state, " - ");
+        message = str->append(state, r);
+      } else {
+        message = str;
+      }
+    }
+    exc->message(state, message);
+
+    exc->set_ivar(state, state->symbol("@errno"),
+                  exc_class->get_const(state, "Errno"));
+
+    return exc;
+  }
+
+  /* exception_errno_error primitive */
+  OBJECT Exception::errno_error(STATE, OBJECT reason, FIXNUM ern) {
+    Class* exc_class = get_errno_error(state, ern);
+    if(exc_class->nil_p()) return Qnil;
+
+    return make_errno_exception(state, exc_class, reason);
+  }
+
+  void Exception::errno_error(STATE, const char* reason, int ern) {
+    Exception* exc;
+
+    if(ern == 0) ern = errno;
+    Class* exc_class = get_errno_error(state, Fixnum::from(ern));
 
     if(exc_class->nil_p()) {
       std::ostringstream msg;
-      msg << "Unknown errno " << ern;
-      RubyException::raise(make_exception(state,
-            get_argument_error(state), msg.str().c_str()));
+      msg << "Unknown errno ";
+      if(reason) msg << ": " << reason;
+      exc = make_exception(state, get_system_call_error(state), msg.str().c_str());
+    } else {
+      String* msg = reason ? String::create(state, reason) : (String*)Qnil;
+      exc = make_errno_exception(state, exc_class, msg);
     }
 
-    RubyException::raise(make_exception(state, exc_class, reason));
+    RubyException::raise(exc);
   }
 
   void Exception::io_error(STATE, const char* reason) {
@@ -161,6 +198,10 @@ namespace rubinius {
     return false;
   }
 
+  bool Exception::system_call_error_p(STATE, Exception* exc) {
+    return exc->kind_of_p(state, get_system_call_error(state));
+  }
+
   bool Exception::io_error_p(STATE, Exception* exc) {
     return exc->kind_of_p(state, get_io_error(state));
   }
@@ -189,9 +230,12 @@ namespace rubinius {
     return as<Class>(G(rubinius)->get_const(state, "ObjectBoundsExceededError"));
   }
 
-  Class* Exception::get_errno_error(STATE, int ern) {
-    if(Class* cls = try_as<Class>(G(errno_mapping)->fetch(
-            state, Fixnum::from(ern)))) {
+  Class* Exception::get_system_call_error(STATE) {
+    return as<Class>(G(object)->get_const(state, "SystemCallError"));
+  }
+
+  Class* Exception::get_errno_error(STATE, FIXNUM ern) {
+    if(Class* cls = try_as<Class>(G(errno_mapping)->fetch(state, ern))) {
       return cls;
     }
 
