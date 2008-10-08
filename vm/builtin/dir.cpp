@@ -34,7 +34,7 @@ namespace rubinius {
   OBJECT Dir::open(STATE, String* path) {
     DIR* d = opendir(path->c_str());
 
-    if(!d) state->raise_from_errno("Unable to open directory");
+    if(!d) Exception::errno_error(state, "Unable to open directory");
     data(state, MemoryPointer::create(state, d));
 
     return Qnil;
