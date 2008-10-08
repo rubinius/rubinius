@@ -1945,7 +1945,8 @@ class Compiler
         assignment = nil
 
         if @conditions
-          if @conditions.last.is? LocalAssignment
+          if !@conditions.last.is?(ConstFind) and
+             !@conditions.last.is?(ConstAccess) then
             assignment = @conditions.pop
           end
 

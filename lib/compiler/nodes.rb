@@ -2144,7 +2144,9 @@ class Compiler
 
         # s(:array, s(:lasgn, ...)) - aka no exception
         if cond.is?(ArrayLiteral) &&
-            (cond.body.empty? || LocalAssignment === cond.body.first) then
+            (cond.body.empty? ||
+             (!cond.body.first.kind_of?(ConstFind) &&
+              !cond.body.first.kind_of?(ConstAccess))) then
           cf = ConstFind.new(@compiler)
           cf.args :StandardError
           cond.body.unshift cf
