@@ -74,31 +74,6 @@ class Numeric
     end
   end
 
-  def <(other)
-    b, a = math_coerce other, :compare_error
-    a < b
-  end
-
-  def <=(other)
-    b, a = math_coerce other, :compare_error
-    a <= b
-  end
-
-  def >(other)
-    b, a = math_coerce other, :compare_error
-    a > b
-  end
-
-  def >=(other)
-    b, a = math_coerce other, :compare_error
-    a >= b
-  end
-
-  def ==(other)
-    return true if other.equal?(self)
-    !!(other == self)
-  end
-
   def <=>(other)
     begin
       b, a = math_coerce other, :compare_error
