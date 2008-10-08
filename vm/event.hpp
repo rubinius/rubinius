@@ -142,7 +142,7 @@ namespace rubinius {
 
     private:   /* Ctors */
 
-      Child(STATE, ObjectCallback* channel, pid_t pid, int opts);
+      Child(ObjectCallback* channel, pid_t pid, int opts);
       ~Child();
 
 

@@ -180,14 +180,14 @@ namespace rubinius {
 /* SIGCHLD */
 
 
-    Child::Child(VM* state, ObjectCallback* channel, pid_t pid, int opts):
+    Child::Child(ObjectCallback* channel, pid_t pid, int opts):
       channel_(channel), options_(opts), pid_(pid) {
     }
 
     Child::~Child() {}
 
-    void Child::add(VM* state, ObjectCallback* channel, pid_t pid, int opts) {
-      Child::waiters().push_back(new Child(state, channel, pid, opts));
+    void Child::add(STATE, ObjectCallback* channel, pid_t pid, int opts) {
+      Child::waiters().push_back(new Child(channel, pid, opts));
       /* TODO: This seems a bit cheap, but we need to force a check if there
        *        are no child processes yet. */
       Child::find_finished(state);
