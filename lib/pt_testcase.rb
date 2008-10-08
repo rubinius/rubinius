@@ -6,11 +6,7 @@
 
 $TESTING = true
 
-begin
-  require 'mini/test'
-rescue LoadError
-  require 'test/unit/testcase'
-end
+require 'test/unit/testcase'
 require 'sexp_processor' # for deep_clone
 
 # key:
