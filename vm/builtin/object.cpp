@@ -176,15 +176,16 @@ namespace rubinius {
   }
 
   bool Object::kind_of_p(STATE, OBJECT cls) {
-    Class* found = class_object(state);
+    Module* found = class_object(state);
     if(found == cls) return true;
 
-    while(!found->nil_p()) {
-      found = (Class*)found->superclass();
+    for(;;) {
+      found = try_as<Module>(found->superclass());
+      if(!found) return false;
       if(found == cls) return true;
 
-      if(found->reference_p() && found->obj_type == IncludedModuleType) {
-        if(((IncludedModule*)found)->module() == cls) return true;
+      if(IncludedModule* im = try_as<IncludedModule>(found)) {
+        if(im->module() == cls) return true;
       }
     }
 
@@ -210,12 +211,11 @@ namespace rubinius {
       }
       hsh = hsh >> 2;
     } else {
-      if(kind_of_p(state, G(string))) {
-        hsh = ((String*)this)->hash_string(state);
-      } else if(kind_of_p(state, G(bignum))) {
-        hsh = ((Bignum*)this)->hash_bignum(state);
-      } else if(kind_of_p(state, G(floatpoint))) {
-        Float* flt = as<Float>(this);
+      if(String* string = try_as<String>(this)) {
+        hsh = string->hash_string(state);
+      } else if(Bignum* bignum = try_as<Bignum>(this)) {
+        hsh = bignum->hash_bignum(state);
+      } else if(Float* flt = try_as<Float>(this)) {
         hsh = String::hash_str((unsigned char *)(&(flt->val)), sizeof(double));
       } else {
         hsh = id(state)->to_native();

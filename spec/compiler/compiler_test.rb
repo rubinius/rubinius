@@ -4077,6 +4077,25 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
+  add_tests("rescue_block_body_ivar",
+            "Compiler" => bytecode do |g|
+              in_rescue :StandardError do |section|
+                case section
+                when :body then
+                  g.push :self
+                  g.send :a, 0, true
+                when :StandardError then
+                  g.push_exception
+                  g.set_ivar :@e
+                  g.push :self
+                  g.send :c, 0, true
+                  g.pop
+                  g.push :self
+                  g.send :d, 0, true
+                end
+              end
+            end)
+
   add_tests("rescue_block_body_3",
             "Compiler" => bytecode do |g|
               in_rescue :A, :B, :C do |section|
@@ -4122,6 +4141,9 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("rescue_lasgn_var_empty",
+            "Compiler" => :skip)
+
+  add_tests("rescue_iasgn_var_empty",
             "Compiler" => :skip)
 
   add_tests("retry",
