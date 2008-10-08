@@ -1035,6 +1035,7 @@ class IO
   # just to append a single line to it.
   #++
   def read_to_separator(sep)
+    return if @ibuffer.exhausted?
     return read_all unless sep
 
     sep = "\n\n" if sep.empty?
