@@ -64,7 +64,6 @@ namespace rubinius {
     return r;
   }
 
-
   int get_kcode_from_enc(OnigEncoding enc) {
     int r;
 
@@ -75,7 +74,7 @@ namespace rubinius {
     if (enc == ONIG_ENCODING_UTF8)   r = KCODE_UTF8;
     return r;
   }
-  
+
   struct _gather_data {
     STATE;
     LookupTable* tbl;
@@ -95,7 +94,23 @@ namespace rubinius {
     return 0;
   }
 
-  Regexp* Regexp::create(STATE, String* pattern, INTEGER options, char *err_buf) {
+  /*
+   * Only initialize the object, not oniguruma.  This allows copying of the
+   * regular expression via Regexp#initialize_copy
+   */
+  Regexp* Regexp::create(STATE) {
+    Regexp* o_reg = (Regexp*)state->om->new_object(G(regexp), Regexp::fields);
+
+    o_reg->onig_data = NULL;
+
+    return o_reg;
+  }
+
+  /*
+   * This is a primitive so #initialize_copy can work.
+   */
+  Regexp* Regexp::initialize(STATE, String* pattern, INTEGER options,
+                             OBJECT lang) {
     const UChar *pat;
     const UChar *end;
     OnigErrorInfo err_info;
@@ -111,37 +126,38 @@ namespace rubinius {
     enc   = get_enc_from_kcode(kcode);
     opts &= OPTION_MASK;
 
-    Regexp* o_reg = (Regexp*)state->om->new_object(G(regexp), Regexp::fields);
-    o_reg->onig_data = NULL;
-    err = onig_new(&o_reg->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info); 
+    err = onig_new(&this->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info);
 
     if(err != ONIG_NORMAL) {
       UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
+      char err_buf[1024];
       onig_error_code_to_str(onig_err_buf, err, &err_info);
       snprintf(err_buf, 1024, "%s: %s", onig_err_buf, pat);
-      return (Regexp*)Qnil;
+
+      Exception::regexp_error(state, err_buf);
     }
 
-    o_reg->source(state, pattern);
+    this->source(state, pattern);
 
-    num_names = onig_number_of_names(o_reg->onig_data);
+    num_names = onig_number_of_names(this->onig_data);
+
     if(num_names == 0) {
-      o_reg->names(state, (LookupTable*)Qnil);
+      this->names(state, (LookupTable*)Qnil);
     } else {
       struct _gather_data gd;
       gd.state = state;
       LookupTable* tbl = LookupTable::create(state);
       gd.tbl = tbl;
-      onig_foreach_name(o_reg->onig_data, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
-      o_reg->names(state, tbl);
+      onig_foreach_name(this->onig_data, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
+      this->names(state, tbl);
     }
 
-    return o_reg;
+    return this;
   }
 
   // 'self' is passed in automatically by the primitive glue
-  Regexp* Regexp::new_expression(STATE, OBJECT self, String* pattern, INTEGER options) {
-    Regexp* re = Regexp::create(state, pattern, options);
+  Regexp* Regexp::allocate(STATE, OBJECT self) {
+    Regexp* re = Regexp::create(state);
     re->klass(state, (Class*)self);
     return re;
   }

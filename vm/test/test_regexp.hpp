@@ -32,24 +32,33 @@ class TestRegexp : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    String *pat = String::create(state, ".");
-    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
-    TS_ASSERT_EQUALS(re->source(), pat);
-    TS_ASSERT_EQUALS(re->names(),  Qnil);
+    Regexp* re = Regexp::create(state);
+    TS_ASSERT(re->source()->nil_p());
+    TS_ASSERT(re->names()->nil_p());
     TS_ASSERT_EQUALS(re->klass(), G(regexp));
   }
 
-  void test_new_expression() {
+  void test_initialize() {
     String *pat = String::create(state, ".");
-    Class* sub = state->new_class("RegexpSub", G(regexp), 0);
-    Regexp* re = Regexp::new_expression(state, sub, pat, Fixnum::from(0));
+    Regexp* re = Regexp::create(state);
+    re->initialize(state, pat, Fixnum::from(0), Qnil);
+
     TS_ASSERT_EQUALS(re->source(), pat);
+    TS_ASSERT_EQUALS(re->names(),  Qnil);
+  }
+
+  void test_allocate() {
+    Class* sub = state->new_class("RegexpSub", G(regexp), 0);
+    Regexp* re = Regexp::allocate(state, sub);
+
     TS_ASSERT_EQUALS(re->klass(), sub);
   }
 
   void test_create_with_named_captures() {
     String *pat = String::create(state, "(?<blah>.)");
-    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
+    Regexp* re = Regexp::create(state);
+    re->initialize(state, pat, Fixnum::from(0), Qnil);
+
     TS_ASSERT_EQUALS(re->source(), pat);
     TS_ASSERT(re->names()->kind_of_p(state, G(lookuptable)));
   }
@@ -59,21 +68,23 @@ class TestRegexp : public CxxTest::TestSuite {
     std::memset(buf, 0, 1024);
 
     String *pat = String::create(state, "(?");
-    OBJECT re = Regexp::create(state, pat, Fixnum::from(0), buf);
-    TS_ASSERT(re->nil_p());
-    TS_ASSERT(strlen(buf) > 0);
+    Regexp* re = Regexp::create(state);
+    TS_ASSERT_THROWS(re->initialize(state, pat, Fixnum::from(0), Qnil),
+                     const RubyException &);
   }
 
   void test_options() {
     String *pat = String::create(state, ".");
-    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
+    Regexp* re = Regexp::create(state);
+    re->initialize(state, pat, Fixnum::from(0), Qnil);
 
     TS_ASSERT_EQUALS(as<Integer>(re->options(state))->to_native(), 16);
   }
 
   void test_match_region() {
     String *pat = String::create(state, ".");
-    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
+    Regexp* re = Regexp::create(state);
+    re->initialize(state, pat, Fixnum::from(0), Qnil);
 
     String *input = String::create(state, "abc");
 
@@ -90,7 +101,8 @@ class TestRegexp : public CxxTest::TestSuite {
 
   void test_match_region_without_matches() {
     String *pat = String::create(state, "d");
-    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
+    Regexp* re = Regexp::create(state);
+    re->initialize(state, pat, Fixnum::from(0), Qnil);
 
     String *input = String::create(state, "abc");
 
@@ -104,7 +116,8 @@ class TestRegexp : public CxxTest::TestSuite {
 
   void test_match_region_with_captures() {
     String *pat = String::create(state, ".(.)");
-    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
+    Regexp* re = Regexp::create(state);
+    re->initialize(state, pat, Fixnum::from(0), Qnil);
 
     String *input = String::create(state, "abc");
 
@@ -124,7 +137,8 @@ class TestRegexp : public CxxTest::TestSuite {
 
   void test_match_region_with_backward_captures() {
     String *pat = String::create(state, ".(.)");
-    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
+    Regexp* re = Regexp::create(state);
+    re->initialize(state, pat, Fixnum::from(0), Qnil);
 
     String *input = String::create(state, "abc");
 
@@ -144,7 +158,8 @@ class TestRegexp : public CxxTest::TestSuite {
 
   void test_match_start() {
     String *pat = String::create(state, ".");
-    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
+    Regexp* re = Regexp::create(state);
+    re->initialize(state, pat, Fixnum::from(0), Qnil);
 
     String *input = String::create(state, "abc");
 

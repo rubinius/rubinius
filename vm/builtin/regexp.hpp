@@ -37,8 +37,11 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-    static Regexp* create(STATE, String* pattern, INTEGER options, char* err_buf = NULL);
+    static Regexp* create(STATE);
     static char*  version(STATE);
+
+    // Ruby.primitive :regexp_initialize
+    Regexp* initialize(STATE, String* pattern, INTEGER options, OBJECT lang);
 
     // Ruby.primitive :regexp_options
     OBJECT options(STATE);
@@ -49,8 +52,8 @@ namespace rubinius {
     // Ruby.primitive :regexp_match_start
     OBJECT match_start(STATE, String* string, INTEGER start);
 
-    // Ruby.primitive :regexp_new
-    static Regexp* new_expression(STATE, OBJECT self, String* pattern, INTEGER options);
+    // Ruby.primitive :regexp_allocate
+    static Regexp* allocate(STATE, OBJECT self);
 
     class Info : public TypeInfo {
     public:

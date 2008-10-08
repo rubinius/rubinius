@@ -1,7 +1,17 @@
 class Regexp
-  def self.__regexp_new__(str, opts)
-    Ruby.primitive :regexp_new
-    raise PrimitiveFailure, "primitive failed"
+
+  def self.allocate
+    Ruby.primitive :regexp_allocate
+    raise PrimitiveFailure, "regexp_allocate primitive failed"
+  end
+
+  ##
+  # See Regexp.new. This may be overridden by subclasses.
+
+  def initialize(pattern, opts, lang)
+    Ruby.primitive :regexp_initialize
+    raise PrimitiveFailure,
+          "regexp_new(#{str.inspect}, #{opts}, #{lang.inspect}) primitive failed"
   end
 
   def search_region(str, start, finish, forward) # equiv to MRI's re_search

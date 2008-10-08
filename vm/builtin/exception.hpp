@@ -33,6 +33,7 @@ namespace rubinius {
 
     static void argument_error(STATE, int expected, int given);
     static void argument_error(STATE, const char* reason);
+    static void regexp_error(STATE, const char* reason);
     static void type_error(STATE, const char* reason);
     static void type_error(STATE, object_type type, OBJECT object,
                            const char* reason = NULL);

@@ -62,13 +62,9 @@ class Regexp
       opts |= KcodeValue[idx] if idx
     end
 
-    if self.class.equal? Regexp
-      return __regexp_new__(pattern, opts)
-    else
-      r = __regexp_new__(pattern, opts)
-      r.send :initialize, pattern, opts, lang
-      return r
-    end
+    r = allocate
+    r.send :initialize, pattern, opts, lang
+    r
   end
 
   #--
@@ -104,11 +100,8 @@ class Regexp
     alias_method :quote, :escape
   end
 
-  ##
-  # See Regexp.new. This may be overridden by subclasses.
-
-  def initialize(arg, opts, lang)
-    # Nothing to do
+  def initialize_copy(other)
+    initialize other.source, other.options, other.kcode
   end
 
   def self.last_match(field = nil)

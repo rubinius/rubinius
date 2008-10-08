@@ -61,6 +61,10 @@ namespace rubinius {
     return make_exception(state, get_type_error(state), msg.str().c_str());
   }
 
+  void Exception::regexp_error(STATE, const char* reason) {
+    RubyException::raise(make_exception(state, G(exc_rex), reason));
+  }
+
   void Exception::type_error(STATE, const char* reason) {
     RubyException::raise(make_exception(state, get_type_error(state), reason));
   }
