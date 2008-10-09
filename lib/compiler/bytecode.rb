@@ -1106,6 +1106,12 @@ class Compiler
       end
     end
 
+    class FloatLiteral
+      def bytecode(g)
+        g.push_literal @value
+      end
+    end
+
     class GVar
       def bytecode(g)
         if @name == :$!

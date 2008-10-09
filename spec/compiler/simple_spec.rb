@@ -173,7 +173,7 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      g.push num
+      g.push_literal num
     end
   end
 

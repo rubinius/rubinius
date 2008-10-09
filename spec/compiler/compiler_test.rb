@@ -2013,7 +2013,7 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.push_literal "%.2f" # 2
               g.string_dup
-              g.push 3.14159
+              g.push_literal 3.14159
               g.send :%, 1, false
               g.send :to_s, 0, true
 
@@ -2050,7 +2050,7 @@ class CompilerTestCase < ParseTreeTestCase
                 g.string_append
               end
 
-              g.push 3.14159      # - # 2
+              g.push_literal 3.14159      # - # 2
               g.send :%, 1, false
               g.send :to_s, 0, true
 
@@ -2942,7 +2942,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("lit_float",
             "Compiler" => bytecode do |g|
-              g.push 1.1
+              g.push_literal 1.1
             end)
 
   add_tests("lit_long",
@@ -3953,7 +3953,7 @@ class CompilerTestCase < ParseTreeTestCase
 
                 d.passed_arg 0
                 d.git opt_arg_1
-                d.push 0.0
+                d.push_literal 0.0
                 d.set_local 0
                 d.pop
 
@@ -3961,7 +3961,7 @@ class CompilerTestCase < ParseTreeTestCase
 
                 d.passed_arg 1
                 d.git opt_arg_2
-                d.push 0.0
+                d.push_literal 0.0
                 d.set_local 1
                 d.pop
 
