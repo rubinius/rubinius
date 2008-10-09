@@ -5,8 +5,13 @@ class Hash
   include Enumerable
 
   def self.[](*args)
-    if args.first.kind_of? Hash and args.size == 1
-      return new.replace(args.first)
+    if args.size == 1
+      obj = args.first
+      if obj.kind_of? Hash
+        return new.replace(obj)
+      elsif obj.respond_to? :to_hash
+        return new.replace(Type.coerce_to(obj, Hash, :to_hash))
+      end
     end
 
     if args.size & 1 == 1
