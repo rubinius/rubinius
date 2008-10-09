@@ -27,25 +27,16 @@ class MethodTable < LookupTable
   end
 
   def public_names
-    filter_names :public?
+    select { |n, m| m.public? }.map! { |n, m| n }
   end
 
   def private_names
-    filter_names :private?
+    select { |n, m| m.private? }.map! { |n, m| n }
   end
 
   def protected_names
-    filter_names :protected?
+    select { |n, m| m.protected? }.map! { |n, m| n }
   end
 
   alias_method :to_a, :public_names
-
-  def filter_names(filter)
-    map do |name, meth|
-      if meth.kind_of? Executable or
-         (meth.kind_of? CompiledMethod::Visibility and meth.__send__ filter) then
-        name
-      end
-    end.compact
-  end
 end
