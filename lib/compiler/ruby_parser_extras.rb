@@ -467,6 +467,7 @@ class RubyParser < Racc::Parser
       raise SyntaxError, "Block argument should not be given." if
         node.node_type == :block_pass
 
+      node[0] = :arglist if node[0] == :array
       node = node.last if node.node_type == :array and node.size == 2
     end
 
