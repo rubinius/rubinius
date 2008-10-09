@@ -2120,7 +2120,7 @@ class Instructions
   # [Operation]
   #   Test to determine whether a block argument was passed
   # [Format]
-  #   \passed_blockarg index
+  #   \passed_blockarg count
   # [Stack Before]
   #   * ...
   # [Stack After]
@@ -2139,6 +2139,24 @@ class Instructions
     }
     CODE
   end
+
+  def test_passed_blockarg
+    <<-CODE
+    task->blockargs = 0;
+    stream[1] = (opcode)1;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->pop(), Qfalse);
+
+    task->blockargs = 1;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->pop(), Qtrue);
+    CODE
+  end
+
 
   # [Operation]
   #   Pop an item off the stack and discard
