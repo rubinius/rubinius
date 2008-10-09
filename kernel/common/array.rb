@@ -863,22 +863,21 @@ class Array
 
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.
-  def map()
-    out = []
-    each { |elem|
-      #out << yield(elem) # HACK this should work, raises on #<< (I think)
-      val = yield(elem)
-      out << val
-    }
-    out
+  def map(&block)
+    dup.map!(&block)
   end
 
   alias_method :collect, :map
 
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
-  def map!(&block)
-    replace(map(&block))
+  def map!
+    i = 0
+    while i < @total
+      self[i] = yield self[i]
+      i += 1
+    end
+    self
   end
 
   alias_method :collect!, :map!
