@@ -12,8 +12,12 @@ class EnvironmentVariables
   end
 
   def []=(key, value)
-    value = value.nil? ? nil : StringValue(value)
-    EnvironmentVariables.setenv StringValue(key), value
+    key = StringValue(key)
+    if value.nil?
+      EnvironmentVariables.unsetenv(key)
+    else
+      EnvironmentVariables.setenv key, StringValue(value), 1
+    end
   end
   alias_method :store, :[]=
 
