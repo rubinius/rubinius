@@ -27,23 +27,23 @@ class MethodTable < LookupTable
   end
 
   def public_names
-    filter_names :public
+    filter_names :public?
   end
 
   def private_names
-    filter_names :private
+    filter_names :private?
   end
 
   def protected_names
-    filter_names :protected
+    filter_names :protected?
   end
 
   alias_method :to_a, :public_names
 
   def filter_names(filter)
     map do |name, meth|
-      if meth.kind_of? RuntimePrimitive or
-         (meth.kind_of?(Tuple) and meth.first == filter) then
+      if meth.kind_of? Executable or
+         (meth.kind_of? CompiledMethod::Visibility and meth.__send__ filter) then
         name
       end
     end.compact
