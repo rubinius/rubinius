@@ -173,14 +173,25 @@ class Hash
     i = to_iter
     while entry = i.next
       begin
-        yield entry.key, entry.value
+        yield [entry.key, entry.value]
       end while entry = entry.next
     end
 
     self
   end
 
-  alias_method :each_pair, :each
+  def each_pair
+    raise LocalJumpError, "no block given" unless block_given? or empty?
+
+    i = to_iter
+    while entry = i.next
+      begin
+        yield entry.key, entry.value
+      end while entry = entry.next
+    end
+
+    self
+  end
 
   def each_value
     raise LocalJumpError, "no block given" unless block_given? or empty?
