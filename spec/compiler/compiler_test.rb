@@ -4980,8 +4980,26 @@ class CompilerTestCase < ParseTreeTestCase
               g.push_block
               g.push 42
               g.push 24
+              g.meta_send_call 2
+            end)
+
+  add_tests("yield_array",
+            "Compiler" => bytecode do |g|
+              g.push_block
+              g.push 42
+              g.push 24
               g.make_array 2
               g.meta_send_call 1
+            end)
+
+  add_tests("yield_splat",
+            "Compiler" => bytecode do |g|
+              g.push_block
+              g.push :self
+              g.send :ary, 0, true
+              g.cast_array
+              g.push :nil
+              g.send_with_splat :call, 0, false, false
             end)
 
   add_tests("zarray",

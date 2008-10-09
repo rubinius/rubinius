@@ -341,7 +341,6 @@ class TestGenerator
       when -2 then
         d.cast_for_multi_block_arg
       when -1 then
-        d.cast_for_multi_block_arg
         d.cast_array
         d.set_local_depth lvl, 0
       when 0 then

@@ -374,7 +374,7 @@ describe Compiler do
       yield 1
     EOC
 
-      sexp = s(:yield, s(:fixnum, 1))
+      sexp = s(:yield, s(:arglist, s(:fixnum, 1)))
 
     sexp.should == parse(ruby)
 
@@ -390,7 +390,7 @@ describe Compiler do
       yield 1, 2
     EOC
 
-      sexp = s(:yield, s(:array, s(:fixnum, 1), s(:fixnum, 2)))
+      sexp = s(:yield, s(:arglist, s(:fixnum, 1), s(:fixnum, 2)))
 
     sexp.should == parse(ruby)
 
@@ -398,8 +398,7 @@ describe Compiler do
       g.push_block
       g.push 1
       g.push 2
-      g.make_array 2
-      g.meta_send_call 1
+      g.meta_send_call 2
     end
   end
 
@@ -408,7 +407,7 @@ describe Compiler do
       yield [1, 2]
     EOC
 
-      sexp = s(:yield, s(:array, s(:fixnum, 1), s(:fixnum, 2)))
+      sexp = s(:yield, s(:arglist, s(:array, s(:fixnum, 1), s(:fixnum, 2))))
 
     sexp.should == parse(ruby)
 

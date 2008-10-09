@@ -2577,8 +2577,8 @@ class Compiler
     class Yield < Call
       kind :yield
 
-      def args(args = nil, direct = false)
-        if direct and args.kind_of? ArrayLiteral
+      def args(args = nil)
+        if args.kind_of? ArgList
           @arguments = args.body
         elsif args.kind_of? DynamicArguments
           @arguments = args

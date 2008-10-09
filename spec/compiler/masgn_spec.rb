@@ -424,7 +424,6 @@ describe Compiler do
 
     gen sexp do |g|
       desc = description do |d|
-        d.cast_for_multi_block_arg
         d.cast_array
         d.set_local_depth 0, 0
         d.pop
