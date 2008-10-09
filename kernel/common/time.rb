@@ -104,7 +104,9 @@ class Time
     gmt = @is_gmt ? 1 : 0
 
     major = 1                     << 31 | # 1 bit
-            (@is_gmt ? 1 : 0)     << 30 | # 1 bit
+            # TODO - Submit bug ticket for 1.8.6
+            # MRI doesn't dump the GMT flag, and so we shouldn't either.
+            #                      (@is_gmt ? 1 : 0)     << 30 | # 1 bit
             @tm[TM_FIELDS[:year]] << 14 | # 16 bits
             @tm[TM_FIELDS[:mon]]  << 10 | # 4 bits
             @tm[TM_FIELDS[:mday]] <<  5 | # 5 bits
