@@ -205,5 +205,7 @@ class Hash
         entry = nxt
       end
     end
+
+    self
   end
 end
