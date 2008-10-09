@@ -35,8 +35,6 @@ namespace rubinius {
 
   Array* Array::from_tuple(STATE, Tuple* tup) {
     Array* ary = Array::create(state, tup->num_fields());
-    OBJECT i = Fixnum::from(0);
-    as<Integer>(i);
     for(size_t i = 0; i < tup->num_fields(); i++) {
       ary->set(state, i, tup->at(state, i));
     }
