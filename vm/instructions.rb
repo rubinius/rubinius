@@ -2089,15 +2089,33 @@ class Instructions
   #   specified argument index +index+ (0-based), and pushes the result of the
   #   test onto the stack.
 
-  def passed_arg(count)
+  def passed_arg(index)
     <<-CODE
-    if((unsigned long int)count < task->active()->args) {
+    if((unsigned long int)index < task->active()->args) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
     }
     CODE
   end
+
+  def test_passed_arg
+    <<-CODE
+    task->active()->args = 0;
+    stream[1] = (opcode)0;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->pop(), Qfalse);
+
+    task->active()->args = 1;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->pop(), Qtrue);
+    CODE
+  end
+
 
   # [Operation]
   #   Test to determine whether a block argument was passed
