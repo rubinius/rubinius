@@ -32,12 +32,35 @@ class TestArray : public CxxTest::TestSuite {
     ary->set(state, 0, Fixnum::from(1));
     ary->set(state, 1, Fixnum::from(4));
 
-    TS_ASSERT_EQUALS(4,
-        as<Fixnum>(ary->aref(state, Fixnum::from(1)))->to_native());
-
-    TS_ASSERT_EQUALS(Fixnum::from(4),
-                     ary->aref(state, Fixnum::from(-1)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), ary->aref(state, Fixnum::from(1)));
     TS_ASSERT_EQUALS(Qnil, ary->aref(state, Fixnum::from(2)));
+
+    // simulate #shift
+    ary->start(state, Fixnum::from(1));
+    ary->total(state, Fixnum::from(1));
+
+    TS_ASSERT_EQUALS(Fixnum::from(4), ary->aref(state, Fixnum::from(0)));
+    TS_ASSERT_EQUALS(Qnil, ary->aref(state, Fixnum::from(1)));
+  }
+
+  void test_aref_negative() {
+    Array* ary = Array::create(state, 3);
+    ary->set(state, 0, Fixnum::from(1));
+    ary->set(state, 1, Fixnum::from(4));
+    ary->set(state, 2, Fixnum::from(9));
+
+    TS_ASSERT_EQUALS(Fixnum::from(9),
+                     ary->aref(state, Fixnum::from(-1)));
+    TS_ASSERT_EQUALS(Fixnum::from(1), ary->aref(state, Fixnum::from(-3)));
+    TS_ASSERT_EQUALS(Qnil, ary->aref(state, Fixnum::from(-4)));
+
+    // simulate #shift
+    ary->start(state, Fixnum::from(1));
+    ary->total(state, Fixnum::from(2));
+
+    TS_ASSERT_EQUALS(Fixnum::from(9), ary->aref(state, Fixnum::from(-1)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), ary->aref(state, Fixnum::from(-2)));
+    TS_ASSERT_EQUALS(Qnil, ary->aref(state, Fixnum::from(-3)));
   }
 
   void test_aset() {

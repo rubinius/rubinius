@@ -52,21 +52,24 @@ namespace rubinius {
 
   // NOTE: We don't use Primitives::failure() here because the wrapper
   // code makes sure we're only called when the arity and type are correct.
-  // Thus we know that this is a simple a[0] case only, which we can
+  // Thus we know that this is a simple a[n] case only, which we can
   // fully handle.
   OBJECT Array::aref(STATE, Fixnum* idx) {
     native_int index = idx->to_native();
-    const native_int total = total_->to_native();
+    const native_int start = start_->to_native();
+    const native_int total = start + total_->to_native();
 
     // Handle negative indexes
-    if(index < 0) index += total;
+    if(index < 0) {
+      index += total;
+    } else {
+      index += start;
+    }
 
-    // Off the end, return nil
-    if(index >= total) return Qnil;
+    // Off either end, return nil
+    if(index >= total || index < start) return Qnil;
 
-    const native_int start = start_->to_native();
-
-    return tuple_->at(state, index + start);
+    return tuple_->at(state, index);
   }
 
   OBJECT Array::aset(STATE, Fixnum* idx, OBJECT val) {
