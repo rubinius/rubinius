@@ -4,6 +4,11 @@
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+# define HAVE_STRUCT_TM_TM_GMTOFF
+# define HAVE_STRUCT_TM_TM_ZONE
+#endif
+
 namespace rubinius {
   class Array;
   class String;
