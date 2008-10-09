@@ -254,7 +254,7 @@ class CPPClass
       if flags[:readonly]
         str << "    Exception::assertion_error(state, \"#{name} is readonly\");\n"
       else
-        str << "    target->#{name}(state, (#{type}*)val);\n"
+        str << "    target->#{name}(state, val->nil_p() ? (#{type}*)Qnil : as<#{type}>(val));\n"
       end
       str << "    return;\n"
     end

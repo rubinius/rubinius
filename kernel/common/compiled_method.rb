@@ -148,7 +148,7 @@ class CompiledMethod < Executable
 
   def from_string(bc, lcls, req)
     @iseq = bc
-    @primitive = -1
+    @primitive = nil
     @local_count = lcls
     @literals = Tuple.new(0)
     @exceptions = nil
