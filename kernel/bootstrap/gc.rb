@@ -4,7 +4,7 @@ class GC
   end
 
   def self.run(tenure)
-    Ruby.primitive :gc_start
+    Ruby.primitive :vm_gc_start
     raise PrimitiveFailure, "primitive failed"
   end
 end

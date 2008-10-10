@@ -487,6 +487,13 @@ namespace rubinius {
     return obj;
   }
 
+  OBJECT Object::vm_gc_start(STATE, OBJECT tenure) {
+    // Ignore tenure for now
+    state->om->collect_young_now = true;
+    state->om->collect_mature_now = true;
+    return Qnil;
+  }
+
   // HACK: remove this when performance is better and compiled_file.rb
   // unmarshal_data method works.
   OBJECT Object::compiledfile_load(STATE, String* path, OBJECT version) {

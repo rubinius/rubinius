@@ -180,6 +180,13 @@ namespace rubinius {
     // Ruby.primitive :vm_stop_profiler
     static OBJECT vm_stop_profiler(STATE, String* path);
 
+    // Perform GC as soon as possible. Tenure is an older flag
+    // which means "please tenure all young objects now". It
+    // is currently not enabled.
+    //
+    // Ruby.primitive :vm_gc_start
+    static OBJECT vm_gc_start(STATE, OBJECT tenure);
+
     // Ruby.primitive :yield_gdb
     static Object* yield_gdb(STATE, Object* obj);
 
