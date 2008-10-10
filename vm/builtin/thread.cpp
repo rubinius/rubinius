@@ -33,6 +33,9 @@ namespace rubinius {
     thr->sleep(state, Qtrue);
     thr->alive(state, Qtrue);
 
+    state->interrupts.use_preempt = true;
+    state->interrupts.enable_preempt = true;
+
     return thr;
   }
 
@@ -98,7 +101,7 @@ namespace rubinius {
     // TODO clear the channel's events rather than making sure there isn't one
     assert(channel()->nil_p());
 
-    state->run_best_thread();
+    state->check_events();
     return true;
   }
 

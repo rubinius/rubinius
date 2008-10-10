@@ -13,7 +13,7 @@ namespace rubinius {
 
   class Thread : public Object {
   public:
-    const static size_t fields = 5;
+    const static size_t fields = 6;
     const static object_type type = ThreadType;
 
   private:
@@ -22,6 +22,7 @@ namespace rubinius {
     FIXNUM priority_;  // slot
     OBJECT alive_;     // slot
     OBJECT sleep_;     // slot
+    OBJECT queued_;    // slot
 
   public:
     /* accessors */
@@ -31,6 +32,7 @@ namespace rubinius {
     attr_accessor(priority, Fixnum);
     attr_accessor(sleep, Object);
     attr_accessor(alive, Object);
+    attr_accessor(queued, Object);
 
     /* interface */
 

@@ -58,7 +58,7 @@ namespace rubinius {
     G(current_thread)->sleep_for(state, this);
     waiting_->append(state, G(current_thread));
 
-    state->run_best_thread();
+    state->check_events();
     return true;
   }
 

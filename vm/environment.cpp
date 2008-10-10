@@ -29,6 +29,10 @@ namespace rubinius {
     delete state;
   }
 
+  void Environment::enable_preemption() {
+    state->setup_preemption();
+  }
+
   void Environment::load_argv(int argc, char** argv) {
     state->set_const("ARG0", String::create(state, argv[0]));
 

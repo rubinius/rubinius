@@ -5,6 +5,8 @@
 #include "globals.hpp"
 #include "symboltable.hpp"
 
+#include <pthread.h>
+
 namespace llvm {
   class Module;
 }
@@ -36,8 +38,20 @@ namespace rubinius {
     bool check;
     bool switch_task;
     bool perform_gc;
+    bool check_events;
+    bool reschedule;
+    bool use_preempt;
+    bool enable_preempt;
 
-    Interrupts() : check(false), switch_task(false), perform_gc(false) { }
+    Interrupts() :
+      check(false),
+      switch_task(false),
+      perform_gc(false),
+      check_events(false),
+      reschedule(false),
+      use_preempt(false),
+      enable_preempt(false)
+    { }
   };
 
   class VM {
@@ -58,8 +72,10 @@ namespace rubinius {
     /* Used to implement a simple context cache */
     ContextCache* context_cache;
 
-    bool wait_events;
     bool reuse_llvm;
+
+    // The thread used to trigger preemptive thread switching
+    pthread_t preemption_thread;
 
     static const size_t default_bytes = 1048576;
 
@@ -122,6 +138,8 @@ namespace rubinius {
     void collect();
 
     void return_value(OBJECT val);
+
+    void check_events();
     bool run_best_thread();
     void queue_thread(Thread* thread);
     void activate_thread(Thread* thread);
@@ -143,6 +161,12 @@ namespace rubinius {
 
     // In an infinite loop, run the current task.
     void run_and_monitor();
+
+    void setup_preemption();
+
+    // Run in a seperate thread to provide preemptive thread
+    // scheduling.
+    void scheduler_loop();
   };
 };
 

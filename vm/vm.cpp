@@ -17,6 +17,7 @@
 #include "config.hpp"
 
 #include <iostream>
+#include <signal.h>
 
 // Reset macros since we're inside state
 #undef G
@@ -25,7 +26,7 @@
 #define GO(whatever) globals.whatever
 
 namespace rubinius {
-  VM::VM(size_t bytes) : wait_events(false), reuse_llvm(true) {
+  VM::VM(size_t bytes) : reuse_llvm(true) {
     config.compile_up_front = false;
     context_cache = NULL;
 
@@ -53,6 +54,11 @@ namespace rubinius {
 
     VMLLVMMethod::init("vm/instructions.bc");
     boot_threads();
+
+    // Force these back to false because creating the default Thread
+    // sets them to true.
+    interrupts.use_preempt = false;
+    interrupts.enable_preempt = false;
   }
 
   VM::~VM() {
@@ -177,11 +183,21 @@ namespace rubinius {
     for(size_t i = globals.scheduled_threads->num_fields() - 1; i > 0; i--) {
       List* lst = as<List>(globals.scheduled_threads->at(this, i));
       if(lst->empty_p()) continue;
-      activate_thread(as<Thread>(lst->shift(this)));
+
+      Thread* thr = as<Thread>(lst->shift(this));
+      thr->queued(this, Qfalse);
+
+      assert(thr->sleep() == Qfalse);
+      activate_thread(thr);
       return true;
     }
 
     return false;
+  }
+
+  void VM::check_events() {
+    interrupts.check = true;
+    interrupts.check_events = true;
   }
 
   bool VM::run_best_thread() {
@@ -194,7 +210,7 @@ namespace rubinius {
         throw DeadLock("no runnable threads, present or future.");
       }
 
-      wait_events = true;
+      interrupts.check_events = true;
       return false;
     }
     return true;
@@ -205,14 +221,20 @@ namespace rubinius {
   }
 
   void VM::queue_thread(Thread* thread) {
+    if(thread->queued() == Qtrue) return;
+
+    thread->woken(this);
+
     List* lst = as<List>(globals.scheduled_threads->at(this,
           thread->priority()->to_native()));
     lst->append(this, thread);
 
-    thread->woken(this);
+    thread->queued(this, Qtrue);
   }
 
   void VM::activate_thread(Thread* thread) {
+    assert(thread->queued() != Qtrue);
+
     globals.current_thread.set(thread);
     if(globals.current_task.get() != thread->task()) {
       activate_task(thread->task());
@@ -262,14 +284,71 @@ namespace rubinius {
 
   void VM::run_and_monitor() {
     for(;;) {
-      while(wait_events) {
-        wait_events = false;
-        events->run_and_wait();
-        wait_events = !find_and_activate_thread();
+      if(interrupts.check_events) {
+        interrupts.check_events = false;
+        interrupts.enable_preempt = false;
+
+        Thread* current = G(current_thread);
+        // The current thread isn't asleep, so we're being preemptive
+        if(current->alive() == Qtrue && current->sleep() != Qtrue) {
+          // Order is important here. We poll so any threads
+          // might get woken up if they need to be.
+          events->poll();
+
+          // Only then do we reschedule the current thread if
+          // we need to. queue_thread() puts the thread at the end
+          // of the list for it's priority, so we shouldn't starve
+          // anything this way.
+          queue_thread(G(current_thread));
+        }
+
+        while(!find_and_activate_thread()) {
+          events->run_and_wait();
+        }
+
+        interrupts.enable_preempt = interrupts.use_preempt;
       }
 
       G(current_task)->check_interrupts();
       G(current_task)->execute();
+    }
+  }
+
+  // Trampoline to call scheduler_loop()
+  static void* __thread_tramp__(void* arg) {
+    VM* state = static_cast<VM*>(arg);
+    state->scheduler_loop();
+    return NULL;
+  }
+
+  // Create the preemption thread and call scheduler_loop() in the new thread
+  void VM::setup_preemption() {
+    if(pthread_create(&preemption_thread, NULL, __thread_tramp__, this) != 0) {
+      std::cout << "Unable to create preemption thread!\n";
+    }
+  }
+
+  // Runs forever, telling the VM to reschedule threads ever 10 milliseconds
+  void VM::scheduler_loop() {
+    // First off, we don't want this thread ever receiving a signal.
+    sigset_t mask;
+    sigfillset(&mask);
+    if(pthread_sigmask(SIG_BLOCK, &mask, NULL) != 0) {
+      abort();
+    }
+
+    struct timespec requested;
+    struct timespec actual;
+
+    requested.tv_sec = 0;
+    requested.tv_nsec = 10000000; // 10 milliseconds
+
+    for(;;) {
+      nanosleep(&requested, &actual);
+      if(interrupts.enable_preempt) {
+        interrupts.reschedule = true;
+        interrupts.check_events = true;
+      }
     }
   }
 

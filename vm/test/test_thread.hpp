@@ -16,7 +16,7 @@ public:
   }
 
   void test_thread_fileds() {
-    TS_ASSERT_EQUALS(5U, Thread::fields);
+    TS_ASSERT_EQUALS(6U, Thread::fields);
   }
 
   void test_current() {

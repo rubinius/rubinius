@@ -58,6 +58,7 @@ int main(int argc, char** argv) {
 
     std::string loader = root + "/loader.rbc";
 
+    env.enable_preemption();
     env.run_file(loader);
     return 0;
 

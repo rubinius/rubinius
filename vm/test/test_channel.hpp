@@ -94,9 +94,9 @@ class TestChannel : public CxxTest::TestSuite {
 
     OBJECT* stack = G(current_task)->current_stack();
 
-    TS_ASSERT(!state->wait_events);
+    TS_ASSERT(!state->interrupts.check_events);
     chan->receive(state);
-    TS_ASSERT(state->wait_events);
+    TS_ASSERT(state->interrupts.check_events);
 
     TS_ASSERT_EQUALS(chan->waiting()->locate(state, 0), G(current_thread));
 
@@ -118,10 +118,10 @@ class TestChannel : public CxxTest::TestSuite {
 
     OBJECT* stack = G(current_task)->current_stack();
 
-    TS_ASSERT(!state->wait_events);
+    TS_ASSERT(!state->interrupts.check_events);
     usleep(300000);
     chan->receive(state);
-    TS_ASSERT(!state->wait_events);
+    TS_ASSERT(!state->interrupts.check_events);
 
     TS_ASSERT(chan->waiting()->empty_p());
 

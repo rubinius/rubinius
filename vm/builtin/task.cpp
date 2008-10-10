@@ -753,12 +753,11 @@ stack_cleanup:
           // If we're switching tasks, return to the task monitor
           if(state->interrupts.switch_task) {
             state->interrupts.switch_task = false;
-            return;
           }
 
-        }
+          return;
 
-        if(state->wait_events) return;
+        }
 
         if(state->om->collect_young_now || state->om->collect_mature_now) {
           return;
