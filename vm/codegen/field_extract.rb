@@ -32,7 +32,9 @@ class BasicPrimitive
   end
 
   def output_call(str, call, args)
+    str << "\n"
     str << "  ret = #{call}(#{args.join(', ')});\n"
+    str << "\n"
     str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))\n"
     str << "    goto fail;\n\n"
     str << "  task->primitive_return(ret, msg);\n"
@@ -69,7 +71,9 @@ class CPPPrimitive < BasicPrimitive
 
     # Raw primitives must return bool, not Object*
     if @raw
+      str << "\n"
       str << "  return recv->#{@cpp_name}(state, exec, task, msg);\n"
+      str << "\n"
       str << "fail:\n"
       str << "  return VMMethod::execute(state, exec, task, msg);\n"
       str << "}\n\n"
@@ -133,6 +137,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
     end
 
     str << "  goto fail;\n"
+    str << "\n"
 
     str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))\n"
     str << "    goto fail;\n\n"
