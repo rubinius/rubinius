@@ -3241,8 +3241,8 @@ class Instructions
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.total_args = count;
-    msg.recv = stack_back(count);
-    msg.stack = count + 1;
+    msg.recv = task->self();
+    msg.stack = count;
     msg.use_from_task(task, count);
 
     msg.priv = TRUE;
@@ -3285,7 +3285,7 @@ class Instructions
     task->active()->self(state, task->self());
 
     task->literals()->put(state, 0, ss);
-    task->push(obj);
+    task->push(Qnil); // sentinal value, to make sure it's not used
     task->push(Fixnum::from(3));
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active(), task->active(), 0);
@@ -3325,7 +3325,7 @@ class Instructions
     task->active()->self(state, task->self());
 
     task->literals()->put(state, 0, ss);
-    task->push(obj);
+    task->push(Qnil);
     task->push(Fixnum::from(3));
 
     be = BlockEnvironment::under_context(state, target, task->active(), task->active(), 0);

@@ -563,9 +563,9 @@ class Compiler
       idx = add_literal(ss)
 
       if splat
-        add :send_super_stack_with_block, idx, args
-      else
         add :send_super_stack_with_splat, idx, args
+      else
+        add :send_super_stack_with_block, idx, args
       end
     end
 

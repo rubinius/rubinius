@@ -439,6 +439,35 @@ describe Compiler do
     end
   end
 
+  it "compiles 'super()'" do
+    ruby = <<-EOC
+      def a
+        super()
+      end
+    EOC
+
+      sexp = s(:defn, :a,
+               s(:args),
+               s(:scope,
+                 s(:block,
+                   s(:super))))
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
+      desc = description do |d|
+        d.push_block
+        d.send_super :a, 0
+        d.ret
+      end
+
+      g.push_context
+      g.push_literal :a
+      g.push_literal desc
+      g.send :__add_method__, 2
+    end
+  end
+
   it "compiles 'super(1)'" do
     ruby = <<-EOC
       def a
@@ -457,8 +486,7 @@ describe Compiler do
     gen sexp do |g|
       desc = description do |d|
         d.push 1
-        d.push :nil
-        d.push :nil
+        d.push_block
         d.send_super :a, 1
         d.ret
       end
@@ -490,7 +518,7 @@ describe Compiler do
         d.push :self
         d.send :blah, 0, true
         d.cast_array
-        d.push :nil
+        d.push_block
         d.send_super :a, 0, true
         d.ret
       end
@@ -521,8 +549,7 @@ describe Compiler do
       desc = description do |d|
         d.push_local 0
         d.push_local 1
-        d.push :nil
-        d.push :nil
+        d.push_block
         d.send_super :a, 2
         d.ret
       end
@@ -554,7 +581,7 @@ describe Compiler do
         d.push_local 0
         d.push_local 1
         d.cast_array
-        d.push :nil
+        d.push_block
         d.send_super :a, 1, true
         d.ret
       end

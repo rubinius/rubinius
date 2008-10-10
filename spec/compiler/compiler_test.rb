@@ -613,7 +613,6 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               t = g.new_label
 
-              g.push :nil
               g.push :self
               g.send :prc, 0, true
 
@@ -4386,8 +4385,7 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               in_method :x do |d|
                 d.push 4
-                d.push :nil
-                d.push :nil
+                d.push_block
                 d.send_super :x, 1
               end
             end)
@@ -4398,8 +4396,6 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.push :self
               g.send :a, 0, true
-
-              g.push :nil
 
               g.push :self
               g.send :b, 0, true
@@ -4416,7 +4412,10 @@ class CompilerTestCase < ParseTreeTestCase
 
               t.set!
 
-              g.send_super nil, 1 # TODO: nil?
+              # nil here because the test isn't wrapped in a method, so
+              # there is no current method to pull the name of the method
+              # from
+              g.send_super nil, 1
             end)
 
   add_tests("super_block_splat",
@@ -4429,8 +4428,12 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.cast_array
 
-              g.push :nil
-              g.send_super nil, 1, true # TODO: nil?
+              g.push_block
+
+              # nil here because the test isn't wrapped in a method, so
+              # there is no current method to pull the name of the method
+              # from
+              g.send_super nil, 1, true
             end)
 
   add_tests("super_multi",
@@ -4439,8 +4442,7 @@ class CompilerTestCase < ParseTreeTestCase
                 d.push 4
                 d.push 2
                 d.push 1
-                d.push :nil
-                d.push :nil
+                d.push_block
                 d.send_super :x, 3
               end
             end)
@@ -5011,8 +5013,7 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("zsuper",
             "Compiler" => bytecode do |g|
               in_method :x do |d|
-                d.push :nil
-                d.push :nil
+                d.push_block
                 d.send_super :x, 0
               end
             end)

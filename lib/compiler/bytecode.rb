@@ -2150,13 +2150,10 @@ class Compiler
 
         emit_args(g)
 
-        # HACK super must have a splat here, no non-splat instruction
-        g.push :nil unless @dynamic
-
         if @block
           @block.bytecode(g)
         else
-          g.push :nil
+          g.push_block
         end
 
         if @dynamic
