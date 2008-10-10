@@ -369,6 +369,9 @@ file dep_file => srcs + hdrs + vm_srcs + generated do |t|
   warn "makedepend ..."
 
   dep = `#{cmd}`
+  if $?.exitstatus != 0
+    fail "error executing `makedepend`; is it in your $PATH?"
+  end
   dep.gsub!(%r% /usr/include\S+%, '') # speeds up rake a lot
   dep.gsub!(%r%^\S+:[^ ]%, '')
 
