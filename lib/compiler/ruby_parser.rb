@@ -1934,7 +1934,7 @@ racc_reduce_table = [
   2, 132, :_reduce_2,
   4, 134, :_reduce_3,
   2, 133, :_reduce_4,
-  1, 139, :_reduce_none,
+  1, 139, :_reduce_5,
   1, 139, :_reduce_none,
   3, 139, :_reduce_7,
   2, 139, :_reduce_8,
@@ -2924,7 +2924,10 @@ def _reduce_4(val, _values, result)
     result
 end
 
-# reduce 5 omitted
+def _reduce_5(val, _values, result)
+ s(:nil) 
+    result
+end
 
 # reduce 6 omitted
 

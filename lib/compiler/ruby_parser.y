@@ -88,7 +88,7 @@ compstmt     : stmts opt_terms {
                  result = remove_begin(result) if result
                }
 
-stmts        : none
+stmts        : none { s(:nil) }
              | stmt
              | stmts terms stmt {
                  result = self.block_append(val[0], val[2])
