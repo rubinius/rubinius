@@ -88,7 +88,7 @@ compstmt     : stmts opt_terms {
                  result = remove_begin(result) if result
                }
 
-stmts        : none { s(:nil) }
+stmts        : none
              | stmt
              | stmts terms stmt {
                  result = self.block_append(val[0], val[2])
@@ -857,7 +857,7 @@ primary      : literal
                   result = val[1];
                  }
              | tLPAREN compstmt tRPAREN {
-                 result = val[1];
+                 result = val[1] || s(:nil)
                  result.paren = true
                  }
              | primary_value tCOLON2 tCONSTANT {
