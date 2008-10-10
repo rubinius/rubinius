@@ -58,7 +58,10 @@ namespace rubinius {
   }
 
   Thread* Thread::run(STATE) {
+    state->queue_thread(Thread::current(state));
+
     state->activate_thread(this);
+
     return this;
   }
 
