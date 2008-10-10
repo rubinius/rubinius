@@ -17,7 +17,7 @@ namespace rubinius {
 #define attr_writer(name, type) \
   void name(STATE, type* obj) { \
     name ## _ = obj; \
-    if(zone == MatureObjectZone) this->write_barrier(state, (OBJECT)obj); \
+    if(zone == MatureObjectZone) this->write_barrier(state, obj); \
   }
 
 /**
@@ -76,8 +76,17 @@ namespace rubinius {
 
     void set_forward(STATE, OBJECT fwd);
 
-    /* Provides access to the GC write barrier from any object. */
-    void write_barrier(STATE, OBJECT obj);
+    /* Provides access to the GC write barrier from any object.
+     * We use void* as the type for obj to work around C++'s type system
+     * that requires full definitions of classes to be present for it
+     * figure out if you can properly pass an object (the superclass
+     * has to be known).
+     *
+     * If we have OBJECT obj here, then we either have to cast to call
+     * write_barrier (which means we lose the ability to have type specific
+     * write_barrier versions, which we do), or we have to include
+     * every header up front. We opt for the former. */
+    void write_barrier(STATE, void* obj);
 
     // Safely return the object type, even if the receiver is an immediate
     object_type get_type();

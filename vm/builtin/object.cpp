@@ -48,8 +48,8 @@ namespace rubinius {
     klass_ = (Class*)fwd;
   }
 
-  void Object::write_barrier(STATE, OBJECT obj) {
-    state->om->write_barrier(this, obj);
+  void Object::write_barrier(STATE, void* obj) {
+    state->om->write_barrier(this, reinterpret_cast<Object*>(obj));
   }
 
   // Safely return the object type, even if the receiver is an immediate
