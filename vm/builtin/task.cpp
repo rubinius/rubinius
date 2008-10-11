@@ -62,10 +62,7 @@ namespace rubinius {
     task->probe(state, state->probe.get());
     task->control_channel(state, (Channel*)Qnil);
     task->debug_channel(state, (Channel*)Qnil);
-    task->self(state, G(main));
-    task->literals(state, (Tuple*)Qnil);
     task->exception(state, (Exception*)Qnil);
-    task->home(state, (MethodContext*)Qnil);
 
     if(stack_size == 0) stack_size = CompiledMethod::tramp_stack_size;
 
@@ -77,7 +74,6 @@ namespace rubinius {
     ctx->block(state, Qnil);
 
     task->active(state, ctx);
-    task->home(state, ctx);
 
     return task;
   }
@@ -103,10 +99,7 @@ namespace rubinius {
   }
 
   void Task::restore_context(MethodContext* ctx) {
-    literals(state, ctx->cm()->literals());
     active(state, ctx);
-    home(state, ctx->home());
-    self(state, home_->self());
 
     /* Stack Management procedures. Make sure that we don't
      * miss object stored into the stack of a context */
@@ -119,8 +112,8 @@ namespace rubinius {
     //
     // NOTE we could instead manually run the write barrier when setting
     // locals.
-    if(home_->zone == MatureObjectZone && !home_->Remember) {
-      state->om->remember_object(home_);
+    if(home()->zone == MatureObjectZone && !home()->Remember) {
+      state->om->remember_object(home());
     }
   }
 
@@ -289,7 +282,7 @@ stack_cleanup:
     // confused. So we force references to the top contexts here to keep
     // the cache sane.
     active_->reference(state);
-    home_->reference(state);
+    home()->reference(state);
     return Qtrue;
   }
 
@@ -313,10 +306,7 @@ stack_cleanup:
     NativeMethodContext* nmc = try_as<NativeMethodContext>(active_->sender());
 
     if (nmc) {
-      literals(state, reinterpret_cast<Tuple*>(Qnil));
       active(state, nmc);
-      home(state, nmc->home());
-      self(state, home_->self());
 
       nmc->value_returned_to_c(value);
       nmc->action(NativeMethodContext::RETURNED_BACK_TO_C);
@@ -339,10 +329,7 @@ stack_cleanup:
     NativeMethodContext* nmc = try_as<NativeMethodContext>(active_->sender());
 
     if (nmc) {
-      literals(state, reinterpret_cast<Tuple*>(Qnil));
       active(state, nmc);
-      home(state, nmc->home());
-      self(state, home_->self());
 
       nmc->value_returned_to_c(return_value);
       nmc->action(NativeMethodContext::RETURNED_BACK_TO_C);
@@ -555,7 +542,7 @@ stack_cleanup:
   }
 
   Module* Task::current_module() {
-    return home_->module();
+    return home()->module();
   }
 
   static Class* check_superclass(STATE, Class* cls, OBJECT super) {
@@ -719,8 +706,8 @@ stack_cleanup:
       state->om->remember_object(active_);
     }
 
-    if(home_->zone == MatureObjectZone && !home_->Remember) {
-      state->om->remember_object(home_);
+    if(home()->zone == MatureObjectZone && !home()->Remember) {
+      state->om->remember_object(home());
     }
   }
 

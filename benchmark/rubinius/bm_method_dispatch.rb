@@ -98,6 +98,7 @@ cm = def foo
   self
 end
 
+=begin
 puts "Test ruby method (prim): 250k loops calling self's foo 100 times"
 per.times {
   puts Benchmark.measure {
@@ -123,6 +124,7 @@ begin
 rescue
   puts "No .primitive available"
 end
+=end
 
 puts "Test ruby method: 250k loops calling self's foo 100 times"
 per.times {

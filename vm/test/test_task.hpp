@@ -824,10 +824,11 @@ class TestTask : public CxxTest::TestSuite {
     Module* parent = state->new_module("Parent");
 
     MethodContext* ctx = MethodContext::create(state, 10);
+    ctx->home(state, ctx);
     ctx->module(state, parent);
 
     Task* task = Task::create(state, 10);
-    task->home(state, ctx);
+    task->active(state, ctx);
 
     TS_ASSERT_EQUALS(task->current_module(), parent);
   }

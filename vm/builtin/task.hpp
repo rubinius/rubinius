@@ -7,6 +7,9 @@
 #include "vmmethod.hpp" // opcode
 #include "jit_state.h" // jit_state
 
+#include "builtin/contexts.hpp"
+#include "builtin/compiledmethod.hpp"
+
 namespace rubinius {
 
   namespace profiler {
@@ -32,15 +35,7 @@ namespace rubinius {
     const static object_type type = TaskType;
 
   private:
-    OBJECT self_;           // slot
-
-    /* Literals are cached here for performance reasons.
-     * Otherwise, each reference would need to traverse:
-     * task->active->cm->literals
-     */
-    Tuple* literals_;       // slot
     MethodContext* active_; // slot
-    MethodContext* home_;   // slot
 
     /* globals */
     Exception* exception_;  // slot
@@ -65,10 +60,7 @@ namespace rubinius {
   public:
     /* accessors */
 
-    attr_accessor(self, Object);
-    attr_accessor(literals, Tuple);
     attr_accessor(active, MethodContext);
-    attr_accessor(home, MethodContext);
     attr_accessor(exception, Exception);
     attr_accessor(probe, TaskProbe);
     attr_accessor(debug_channel, Channel);
@@ -160,6 +152,26 @@ namespace rubinius {
     // Add +ctx+ to the context chain by setting the active context
     // to +ctx+'s sender and making +ctx+ active.
     void make_active(MethodContext* ctx);
+
+    Tuple* const literals() {
+      return active_->cm()->literals();
+    }
+
+    void literals(STATE, Tuple* tup) {
+      active_->cm()->literals(state, tup);
+    }
+
+    MethodContext* const home() {
+      return active_->home();
+    }
+
+    Object* const self() {
+      return home()->self();
+    }
+
+    void self(STATE, OBJECT obj) {
+      active_->self(state, obj);
+    }
 
   private:
     // Restore the state of the active contexts sender

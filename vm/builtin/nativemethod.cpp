@@ -81,9 +81,6 @@ namespace rubinius {
   {
     NativeMethodContext* context = NativeMethodContext::create(state, &message, task, as<NativeMethod>(method));
 
-    task->literals(state, reinterpret_cast<Tuple*>(Qnil));
-    task->home(state, context->home());
-    task->self(state, context->self());
     task->active(state, context);
 
     return activate_from(context);
