@@ -4,18 +4,18 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Breakpoint#disable" do
   before :each do
     @cm = BreakpointSpecs::Debuggee.instance_method(:simple_method).compiled_method
-    @cm.bytecodes = BreakpointSpecs::Debuggee.orig_bytecodes.dup
+    @cm.iseq = BreakpointSpecs::Debuggee.orig_bytecodes.dup
 
-    @orig = @cm.bytecodes.decode[4]
+    @orig = @cm.iseq.decode[4]
     @bp = GlobalBreakpoint.new(@cm,8) {}  # The fifth instruction has an IP of 8
     @bp.install
   end
 
   it "removes the yield_debugger instruction at the location specified by @ip" do
-    dc = @cm.bytecodes.decode
+    dc = @cm.iseq.decode
     dc[4].first.should == :yield_debugger
     @bp.remove
-    dc = @cm.bytecodes.decode
+    dc = @cm.iseq.decode
     dc[4].first.should_not == :yield_debugger
     dc[4].should == @orig
   end

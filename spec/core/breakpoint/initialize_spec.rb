@@ -5,7 +5,7 @@ describe "GlobalBreakpoint#initalize" do
 
   before :all do
     @cm = BreakpointSpecs::Debuggee.instance_method(:simple_method).compiled_method
-    @cm.bytecodes = BreakpointSpecs::Debuggee.orig_bytecodes.dup
+    @cm.iseq = BreakpointSpecs::Debuggee.orig_bytecodes.dup
   end
 
   it "converts a missing instruction pointer argument to 0" do
@@ -24,9 +24,9 @@ describe "GlobalBreakpoint#initalize" do
   end
 
   it "does not modify the compiled method instruction sequence" do
-    pre = @cm.bytecodes.decode
+    pre = @cm.iseq.decode
     bp = GlobalBreakpoint.new(@cm) {}
     bp.installed?.should == false
-    @cm.bytecodes.decode.should == pre
+    @cm.iseq.decode.should == pre
   end
 end

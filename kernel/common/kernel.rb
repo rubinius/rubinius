@@ -466,7 +466,7 @@ module Kernel
     end
 
     # Modify send site not to call this method again
-    bc = ctxt.method.bytecodes
+    bc = ctxt.method.iseq
     
     Breakpoint.encoder.replace_instruction(bc, ip-4, [:noop])
     Breakpoint.encoder.replace_instruction(bc, ip-2, [:noop])

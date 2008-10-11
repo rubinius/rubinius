@@ -179,7 +179,7 @@ class Debugger
     # Remove yield_debugger instructions (if any)
     if bp_list = @breakpoint_tracker.get_breakpoints_on(cm)
       @last_cm, @last_asm = cm, cm.decode
-      bc = cm.bytecodes.dup
+      bc = cm.iseq.dup
       bp_list.each do |bp|
         Breakpoint.encoder.replace_instruction(bc, bp.ip, bp.original_instruction)
       end

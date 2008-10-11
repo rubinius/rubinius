@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "MethodContext#reload_method" do
   before do
     @cm = ContextSpecs::A.ret_7_cm
-    @cm.bytecodes = ContextSpecs::A.orig_bytecodes.dup
+    @cm.iseq = ContextSpecs::A.orig_bytecodes.dup
     @cm.compile
     @a = ContextSpecs::A.new
     @listener = ContextSpecs::Listener.new
@@ -18,7 +18,7 @@ describe "MethodContext#reload_method" do
     @listener.wait_for_breakpoint
     @a.ret_7.should == 7
     @listener.wait_for_breakpoint do |ctxt|
-      @cm.bytecodes = @a.change_ret(5)
+      @cm.iseq = @a.change_ret(5)
     end
     @a.ret_7.should == 7
   end
@@ -27,7 +27,7 @@ describe "MethodContext#reload_method" do
     @listener.wait_for_breakpoint
     @a.ret_7.should == 7
     @listener.wait_for_breakpoint do |ctxt|
-      @cm.bytecodes = @a.change_ret(5)
+      @cm.iseq = @a.change_ret(5)
       @cm.compile
     end
     @a.ret_7.should == 5

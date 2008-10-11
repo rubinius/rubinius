@@ -55,7 +55,7 @@ class Breakpoint
   # Verifies that the specified instruction pointer is a valid instruction
   # pointer address for the compiled method.
   def validate_breakpoint_ip(ip)
-    bc = @method.bytecodes.decode(false)
+    bc = @method.iseq.decode(false)
     i = 0
     bc.each do |op|
       return true if i == ip
@@ -76,7 +76,7 @@ class Breakpoint
   ##
   # Makes the breakpoint active by inserting a yield_debugger instruction at the
   # breakpoint.
-  def install(ctxt=nil, bytecodes=@method.bytecodes)
+  def install(ctxt=nil, bytecodes=@method.iseq)
     Breakpoint.encoder.replace_instruction bytecodes, @ip, [:yield_debugger]
     modify_iseq ctxt, bytecodes
   end
@@ -85,7 +85,7 @@ class Breakpoint
   # Removes the breakpoint by removing the yield_debugger instruction at the
   # breakpoint. Returns the address of the breakpoint, so that the context IP
   # can be reset and execution can proceed following the breakpoint.
-  def remove(ctxt=nil, bytecodes=@method.bytecodes)
+  def remove(ctxt=nil, bytecodes=@method.iseq)
     Breakpoint.encoder.replace_instruction bytecodes, @ip, @original_instruction
     modify_iseq ctxt, bytecodes
     @ip
@@ -95,7 +95,7 @@ class Breakpoint
   # breakpoint target.
   def installed?
     if @method and @ip
-      op = Breakpoint.encoder.decode_instruction(@method.bytecodes, @ip)
+      op = Breakpoint.encoder.decode_instruction(@method.iseq, @ip)
       op.first.opcode == :yield_debugger
     end
   end
@@ -163,7 +163,7 @@ class GlobalBreakpoint < Breakpoint
     @hits = 0
     validate_breakpoint_ip @ip
 
-    @original_instruction = Breakpoint.encoder.decode_instruction(@method.bytecodes, @ip)
+    @original_instruction = Breakpoint.encoder.decode_instruction(@method.iseq, @ip)
   end
 
   attr_reader :id
@@ -337,7 +337,7 @@ class StepBreakpoint < Breakpoint
     if @break_type == :opcode_replacement
       # Set new breakpoint
       @method = @context.method
-      @original_instruction = Breakpoint.encoder.decode_instruction(@method.bytecodes, @ip)
+      @original_instruction = Breakpoint.encoder.decode_instruction(@method.iseq, @ip)
     end
   end
 
@@ -775,7 +775,7 @@ class BreakpointTracker
       task = thrd.task
       ctx = task.current_context
       mthd = ctx.method
-      bc = mthd.bytecodes.dup
+      bc = mthd.iseq.dup
 
       @bp_list.each do |bp|
         if bp.kind_of? GlobalBreakpoint
@@ -788,7 +788,7 @@ class BreakpointTracker
       end
 
       # Define a hash of task-specific bytecodes for use when installing
-      ctxt_bc = Hash.new {|h,mthd| h[mthd] = mthd ? mthd.bytecodes.dup : nil}
+      ctxt_bc = Hash.new {|h,mthd| h[mthd] = mthd ? mthd.iseq.dup : nil}
       ctxt_bc[mthd] = bc
       @task_breakpoints[task].each do |bp|
         if bp.trigger?(task) or bp.break_type.nil?

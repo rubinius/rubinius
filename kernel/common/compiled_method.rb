@@ -275,10 +275,6 @@ class CompiledMethod < Executable
     return -1
   end
 
-  def bytecodes=(other)
-    @iseq = other
-  end
-
   def first_line
     @lines.each do |ent|
       return ent[2] if ent[2] > 0

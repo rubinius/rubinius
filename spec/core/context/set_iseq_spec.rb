@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "MethodContext#set_iseq" do
   before do
     @cm = ContextSpecs::A.ret_7_cm
-    @cm.bytecodes = ContextSpecs::A.orig_bytecodes.dup
+    @cm.iseq = ContextSpecs::A.orig_bytecodes.dup
     @cm.compile
     @a = ContextSpecs::A.new
     @listener = ContextSpecs::Listener.new
@@ -34,7 +34,7 @@ describe "MethodContext#set_iseq" do
     # but should not if set_iseq has been used
     @listener.wait_for_breakpoint do |ctxt|
       ctxt.set_iseq @a.change_ret(3)
-      @cm.bytecodes = @a.change_ret(8)
+      @cm.iseq = @a.change_ret(8)
       @cm.compile
     end
     @a.ret_7.should == 3

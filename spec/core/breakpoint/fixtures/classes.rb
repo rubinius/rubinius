@@ -9,7 +9,7 @@ module BreakpointSpecs
     end
 
     # Need to do this because the specs modify the instruction sequence
-    @orig_bytecodes = cm.bytecodes.dup
+    @orig_bytecodes = cm.iseq.dup
 
     def self.orig_bytecodes
       @orig_bytecodes
