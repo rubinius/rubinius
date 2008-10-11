@@ -16,11 +16,11 @@ namespace rubinius {
 
     /* WARNING. Do not use this version if +num+ has the chance of being
      * greater than FIXNUM_MAX or less than FIXNUM_MIN. */
-    static FIXNUM Fixnum::from(native_int num) {
+    static FIXNUM from(native_int num) {
       return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
     }
 
-    native_int Fixnum::to_native() const {
+    native_int to_native() const {
       return STRIP_TAG(this);
     }
 
