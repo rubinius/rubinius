@@ -19,6 +19,9 @@
 #include <stdint.h>
 #include <vector>
 
+#include "optimize.hpp"
+#include "flags.hpp"
+
 namespace rubinius {
 
   /** Platform-dependent integer type large enough for pointers too. */

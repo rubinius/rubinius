@@ -96,22 +96,13 @@ namespace rubinius {
     CompiledMethod* cm = as<CompiledMethod>(exec);
 
     MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
-    /* The context returned by ::create has Object as its module, so we
-     * need to set it to the module of the actual Message we are sending.
-     */
-
-    // HACK todo remove this check once we're sure that it's always being set
-    if(!msg.module) {
-      Exception::assertion_error(state,
-          "Message passed to executor did not have a module set");
-    }
     ctx->module(state, msg.module);
     ctx->name(state, msg.name);
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);
 
-    if(task->profiler) {
+    if(unlikely(task->profiler)) {
       profiler::Method* prof_meth;
       if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
         OBJECT attached = mc->attached_instance();
