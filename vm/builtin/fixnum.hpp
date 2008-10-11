@@ -14,9 +14,15 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = FixnumType;
 
-    static FIXNUM from(native_int);
+    /* WARNING. Do not use this version if +num+ has the chance of being
+     * greater than FIXNUM_MAX or less than FIXNUM_MIN. */
+    static FIXNUM Fixnum::from(native_int num) {
+      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
+    }
 
-    native_int         to_native() const;
+    native_int Fixnum::to_native() const {
+      return STRIP_TAG(this);
+    }
 
     int                to_int() const;
     unsigned int       to_uint() const;
@@ -26,7 +32,14 @@ namespace rubinius {
     unsigned long long to_ulong_long() const;
 
     // Ruby.primitive! :fixnum_add
-    INTEGER add(STATE, FIXNUM other);
+    INTEGER add(STATE, FIXNUM other) {
+      native_int r = to_native() + other->to_native();
+      if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
+        return Bignum::from(state, r);
+      } else {
+        return Fixnum::from(r);
+      }
+    }
 
     // Ruby.primitive! :fixnum_add
     INTEGER add(STATE, Bignum* other);
@@ -35,7 +48,14 @@ namespace rubinius {
     Float* add(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_sub
-    INTEGER sub(STATE, FIXNUM other);
+    INTEGER sub(STATE, FIXNUM other) {
+      native_int r = to_native() - other->to_native();
+      if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
+        return Bignum::from(state, r);
+      } else {
+        return Fixnum::from(r);
+      }
+    }
 
     // Ruby.primitive! :fixnum_sub
     INTEGER sub(STATE, Bignum* other);
@@ -101,7 +121,9 @@ namespace rubinius {
     FIXNUM compare(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_gt
-    OBJECT gt(STATE, FIXNUM other);
+    OBJECT gt(STATE, FIXNUM other) {
+      return to_native() > other->to_native() ? Qtrue : Qfalse;
+    }
 
     // Ruby.primitive! :fixnum_gt
     OBJECT gt(STATE, Bignum* other);
@@ -119,7 +141,9 @@ namespace rubinius {
     OBJECT ge(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_lt
-    OBJECT lt(STATE, FIXNUM other);
+    OBJECT lt(STATE, FIXNUM other) {
+      return to_native() < other->to_native() ? Qtrue : Qfalse;
+    }
 
     // Ruby.primitive! :fixnum_lt
     OBJECT lt(STATE, Bignum* other);

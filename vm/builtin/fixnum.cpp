@@ -11,15 +11,6 @@
 #include <iostream>
 
 namespace rubinius {
-  /* WARNING. Do not use this version if +num+ has the chance of being
-   * greater than FIXNUM_MAX or less than FIXNUM_MIN. */
-  FIXNUM Fixnum::from(native_int num) {
-    return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
-  }
-
-  native_int Fixnum::to_native() const {
-    return STRIP_TAG(this);
-  }
 
   int Fixnum::to_int() const {
     return (int)STRIP_TAG(this);
@@ -45,30 +36,12 @@ namespace rubinius {
     return (unsigned long long)STRIP_TAG(this);
   }
 
-  INTEGER Fixnum::add(STATE, FIXNUM other) {
-    native_int r = to_native() + other->to_native();
-    if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
-      return Bignum::from(state, r);
-    } else {
-      return Fixnum::from(r);
-    }
-  }
-
   INTEGER Fixnum::add(STATE, Bignum* other) {
     return other->add(state, this);
   }
 
   Float* Fixnum::add(STATE, Float* other) {
     return other->add(state, this);
-  }
-
-  INTEGER Fixnum::sub(STATE, FIXNUM other) {
-    native_int r = to_native() - other->to_native();
-    if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
-      return Bignum::from(state, r);
-    } else {
-      return Fixnum::from(r);
-    }
   }
 
   INTEGER Fixnum::sub(STATE, Bignum* other) {
@@ -224,10 +197,6 @@ namespace rubinius {
     }
   }
 
-  OBJECT Fixnum::gt(STATE, FIXNUM other) {
-    return to_native() > other->to_native() ? Qtrue : Qfalse;
-  }
-
   OBJECT Fixnum::gt(STATE, Bignum* other) {
     return other->lt(state, this);
   }
@@ -246,10 +215,6 @@ namespace rubinius {
 
   OBJECT Fixnum::ge(STATE, Float* other) {
     return (double) to_native() >= other->val ? Qtrue : Qfalse;
-  }
-
-  OBJECT Fixnum::lt(STATE, FIXNUM other) {
-    return to_native() < other->to_native() ? Qtrue : Qfalse;
   }
 
   OBJECT Fixnum::lt(STATE, Bignum* other) {
