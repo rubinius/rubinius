@@ -196,7 +196,6 @@ namespace rubinius {
     /*
      *  TODO: Should we re-loop if pid is not 0 to handle possible multiple?
      *  TODO: Support WUNTRACED?
-     *  TODO: Should we short-cut if there are no waiters?
      *  TODO: Review logic. Certainly not fully featured.
      *
      *  foreach_and_remove_if algo sure would be nice.
@@ -205,10 +204,14 @@ namespace rubinius {
       pid_t pid;
       int status;
 
+      Waiters& all = Child::waiters();
+
+      if (all.size() == 0) {
+        return;
+      }
+
       while ((pid = ::waitpid(-1, &status, WNOHANG)) == -1 && errno == EINTR)
         ;
-
-      Waiters& all = Child::waiters();
 
       switch (pid) {
       case -1:    /* Error condition, pretty much only ECHILD */
