@@ -27,7 +27,7 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   void test_io_fields() {
-    TS_ASSERT_EQUALS(3U, IO::fields);
+    TS_ASSERT_EQUALS(5U, IO::fields);
   }
 
   void test_iobuffer_fields() {
@@ -36,7 +36,7 @@ class TestIO : public CxxTest::TestSuite {
 
   int make_io() {
     fname = tmpnam(NULL);
-    return open(fname, O_CREAT | O_RDWR | O_TRUNC, 
+    return open(fname, O_CREAT | O_RDWR | O_TRUNC,
 		S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
   }
 
@@ -46,7 +46,61 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    TS_ASSERT_EQUALS(io->descriptor()->to_native(), fd);
+    TS_ASSERT_EQUALS(fd, io->descriptor()->to_native());
+    TS_ASSERT_EQUALS(Fixnum::from(0), io->lineno());
+    TS_ASSERT(io->eof()->false_p());
+    int acc_mode = fcntl(io->to_fd(), F_GETFL);
+    TS_ASSERT(acc_mode >= 0);
+    TS_ASSERT_EQUALS(Fixnum::from(acc_mode), io->mode());
+    TS_ASSERT(kind_of<IOBuffer>(io->ibuffer()));
+  }
+
+  void test_allocate() {
+    io = IO::allocate(state, G(io));
+    TS_ASSERT(io->descriptor()->nil_p());
+    TS_ASSERT_EQUALS(Fixnum::from(0), io->lineno());
+    TS_ASSERT(io->eof()->false_p());
+    TS_ASSERT(io->mode()->nil_p());
+    TS_ASSERT(kind_of<IOBuffer>(io->ibuffer()));
+  }
+
+  void test_ensure_open() {
+    TS_ASSERT(io->ensure_open(state)->nil_p());
+    io->descriptor(state, (FIXNUM)Qnil);
+    TS_ASSERT_THROWS_ASSERT(io->ensure_open(state), const RubyException &e,
+        TS_ASSERT(Exception::io_error_p(state, e.exception)));
+    io->descriptor(state, Fixnum::from(-1));
+    TS_ASSERT_THROWS_ASSERT(io->ensure_open(state), const RubyException &e,
+        TS_ASSERT(Exception::io_error_p(state, e.exception)));
+  }
+
+  void test_set_mode() {
+    io->mode(state, (FIXNUM)Qnil);
+    TS_ASSERT(io->mode()->nil_p());
+    io->set_mode(state);
+    int acc_mode = fcntl(io->to_fd(), F_GETFL);
+    TS_ASSERT(acc_mode >= 0);
+    TS_ASSERT_EQUALS(Fixnum::from(acc_mode), io->mode());
+  }
+
+  void test_connect_pipe() {
+    IO* lhs = IO::allocate(state, G(io));
+    IO* rhs = IO::allocate(state, G(io));
+
+    TS_ASSERT(IO::connect_pipe(state, lhs, rhs)->true_p());
+    TS_ASSERT_EQUALS(Fixnum::from(0), lhs->lineno());
+    TS_ASSERT_EQUALS(Fixnum::from(0), rhs->lineno());
+    TS_ASSERT(kind_of<IOBuffer>(lhs->ibuffer()));
+    TS_ASSERT(kind_of<IOBuffer>(rhs->ibuffer()));
+    int acc_mode = fcntl(lhs->to_fd(), F_GETFL);
+    TS_ASSERT(acc_mode >= 0);
+    TS_ASSERT_EQUALS(Fixnum::from(acc_mode), lhs->mode());
+    acc_mode = fcntl(rhs->to_fd(), F_GETFL);
+    TS_ASSERT(acc_mode >= 0);
+    TS_ASSERT_EQUALS(Fixnum::from(acc_mode), rhs->mode());
+
+    lhs->close(state);
+    rhs->close(state);
   }
 
   void test_write() {

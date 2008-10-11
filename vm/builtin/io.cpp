@@ -23,20 +23,57 @@ namespace rubinius {
     G(iobuffer)->set_object_type(state, IOBufferType);
   }
 
-  IOBuffer* IOBuffer::create(STATE, size_t bytes) {
-    IOBuffer* buf = (IOBuffer*)state->new_object(G(iobuffer));
-    buf->storage(state, ByteArray::create(state, bytes));
-    buf->channel(state, Channel::create(state));
-    buf->total(state, Fixnum::from(bytes));
-    buf->used(state, Fixnum::from(0));
-    buf->start(state, Fixnum::from(0));
-    buf->eof(state, Qfalse);
-
-    return buf;
+  IO* IO::create(STATE, int fd) {
+    IO* io = (IO*)state->new_object(G(io));
+    io->descriptor(state, Fixnum::from(fd));
+    io->set_mode(state);
+    io->ibuffer(state, IOBuffer::create(state));
+    io->eof(state, Qfalse);
+    io->lineno(state, Fixnum::from(0));
+    return io;
   }
 
-  IOBuffer* IOBuffer::allocate(STATE) {
-    return create(state);
+  IO* IO::allocate(STATE, OBJECT self) {
+    IO* io = (IO*)state->new_object(G(io));
+    io->descriptor(state, (FIXNUM)Qnil);
+    io->mode(state, (FIXNUM)Qnil);
+    io->ibuffer(state, IOBuffer::create(state));
+    io->eof(state, Qfalse);
+    io->lineno(state, Fixnum::from(0));
+
+    // Ensure the instance's class is set (i.e. for subclasses of IO)
+    io->klass(state, as<Class>(self));
+    return io;
+  }
+
+  FIXNUM IO::open(STATE, String* path, FIXNUM mode, FIXNUM perm) {
+    int fd = ::open(path->c_str(), mode->to_native(), perm->to_native());
+    return Fixnum::from(fd);
+  }
+
+  OBJECT IO::reopen(STATE, IO* other) {
+    native_int cur_fd   = to_fd();
+    native_int other_fd = other->to_fd();
+
+    if(dup2(other_fd, cur_fd) == -1) {
+      Exception::errno_error(state, "reopen");
+    }
+
+    set_mode(state);
+    if(IOBuffer* ibuf = try_as<IOBuffer>(ibuffer())) {
+      ibuf->reset(state);
+    }
+
+    return Qtrue;
+  }
+
+  OBJECT IO::ensure_open(STATE) {
+    if(descriptor_->nil_p()) {
+      Exception::io_error(state, "uninitialized stream");
+    } else if(to_fd() == -1) {
+      Exception::io_error(state, "closed stream");
+    }
+    return Qnil;
   }
 
   OBJECT IO::connect_pipe(STATE, IO* lhs, IO* rhs) {
@@ -47,44 +84,16 @@ namespace rubinius {
 
     lhs->descriptor(state, Fixnum::from(fds[0]));
     rhs->descriptor(state, Fixnum::from(fds[1]));
+
+    lhs->set_mode(state);
+    rhs->set_mode(state);
     return Qtrue;
-  }
-
-  OBJECT IO::reopen(STATE, IO* other) {
-    native_int cur_fd, other_fd;
-
-    cur_fd =   descriptor()->to_native();
-    other_fd = other->descriptor()->to_native();
-
-    if(dup2(other_fd, cur_fd) == -1) {
-      Exception::errno_error(state, "reopen");
-    }
-
-    // TODO: should we invalidate buffer_ and such?
-
-    return Qtrue;
-  }
-
-  IO* IO::create(STATE, int fd) {
-    IO* io = (IO*)state->new_object(G(io));
-    io->descriptor(state, Fixnum::from(fd));
-    return io;
-  }
-
-  FIXNUM IO::open(STATE, String* path, FIXNUM mode, FIXNUM perm) {
-    int fd = ::open(path->c_str(), mode->to_native(), perm->to_native());
-    return Fixnum::from(fd);
   }
 
   INTEGER IO::seek(STATE, INTEGER amount, FIXNUM whence) {
-    int fd = descriptor_->to_native();
-    off_t position;
+    ensure_open(state);
 
-    if(fd == -1) {
-      Exception::io_error(state, "closed stream");
-    }
-
-    position = lseek(fd, amount->to_long_long(), whence->to_native());
+    off_t position = lseek(to_fd(), amount->to_long_long(), whence->to_native());
 
     if(position == -1) {
       Exception::errno_error(state);
@@ -94,10 +103,9 @@ namespace rubinius {
   }
 
   OBJECT IO::close(STATE) {
-    int fd = descriptor_->to_native();
-    if(fd == -1) {
-      Exception::io_error(state, "closed stream");
-    } else if(::close(fd)) {
+    ensure_open(state);
+
+    if(::close(to_fd())) {
       Exception::errno_error(state);
     } else {
       // HACK todo clear any events for this IO
@@ -106,13 +114,16 @@ namespace rubinius {
     return Qnil;
   }
 
-  void IO::initialize(STATE, int fd, char* mode) {
-    this->descriptor(state, Fixnum::from(fd));
-    this->mode(state, String::create(state, mode));
-  }
-
   native_int IO::to_fd() {
     return descriptor_->to_native();
+  }
+
+  void IO::set_mode(STATE) {
+    int acc_mode = fcntl(to_fd(), F_GETFL);
+    if(acc_mode < 0) {
+      Exception::errno_error(state);
+    }
+    mode(state, Fixnum::from(acc_mode));
   }
 
   OBJECT IO::write(STATE, String* buf) {
@@ -141,11 +152,9 @@ namespace rubinius {
   }
 
   OBJECT IO::query(STATE, SYMBOL op) {
-    native_int fd = this->to_fd();
+    ensure_open(state);
 
-    if(fd < 0) {
-      Exception::io_error(state, "closed stream");
-    }
+    native_int fd = to_fd();
 
     if(op == state->symbol("tty?")) {
       return isatty(fd) ? Qtrue : Qfalse;
@@ -154,6 +163,28 @@ namespace rubinius {
     } else {
       return Qnil;
     }
+  }
+
+  /* IOBuffer methods */
+
+  IOBuffer* IOBuffer::create(STATE, size_t bytes) {
+    IOBuffer* buf = (IOBuffer*)state->new_object(G(iobuffer));
+    buf->storage(state, ByteArray::create(state, bytes));
+    buf->channel(state, Channel::create(state));
+    buf->total(state, Fixnum::from(bytes));
+    buf->reset(state);
+
+    return buf;
+  }
+
+  IOBuffer* IOBuffer::allocate(STATE) {
+    return create(state);
+  }
+
+  void IOBuffer::reset(STATE) {
+    used(state, Fixnum::from(0));
+    start(state, Fixnum::from(0));
+    eof(state, Qfalse);
   }
 
   void IOBuffer::read_bytes(STATE, size_t bytes) {

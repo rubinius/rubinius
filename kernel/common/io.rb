@@ -137,6 +137,8 @@ class IO
   module Constants
     F_GETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_GETFL']
     F_SETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_SETFL']
+
+    # O_ACCMODE is /undocumented/ for fcntl() on some platforms
     ACCMODE  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.O_ACCMODE']
 
     SEEK_SET = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_SET']
@@ -165,8 +167,8 @@ class IO
 
   include Constants
 
-  def self.for_fd(fd = -1, mode = nil)
-    self.new(fd, mode)
+  def self.for_fd(fd, mode = nil)
+    new fd, mode
   end
 
   def self.foreach(name, sep_string = $/, &block)
@@ -194,8 +196,8 @@ class IO
   # The initialization will verify that the descriptor given is a valid one.
   # Errno::EBADF will be raised if that is not the case. If the mode is
   # incompatible, it will raise Errno::EINVAL instead.
-  def self.open(*args)
-    io = self.new(*args)
+  def self.open(fd, mode = nil)
+    io = new fd, mode
 
     return io unless block_given?
 
@@ -280,8 +282,6 @@ class IO
     lhs = IO.allocate
     rhs = IO.allocate
     connect_pipe(lhs, rhs)
-    lhs.setup
-    rhs.setup
     return [lhs, rhs]
   end
 
@@ -490,35 +490,31 @@ class IO
   # Opens the given path, returning the underlying file descriptor as a Fixnum.
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = "r", perm = 0666)
-    if mode.kind_of?(String)
-      mode = parse_mode(mode)
+    unless mode.kind_of? Integer
+      mode = parse_mode(StringValue(mode))
     end
 
-    return open_with_mode(path, mode, perm)
+    open_with_mode(path, mode, perm)
   end
 
   def initialize(fd, mode = nil)
     fd = Type.coerce_to fd, Integer, :to_int
 
-    # Descriptor must be an open and valid one
-    raise Errno::EBADF, "Invalid descriptor #{fd}" if fd < 0
-
     cur_mode = Platform::POSIX.fcntl(fd, F_GETFL, 0)
-    raise Errno::EBADF, "Invalid descriptor #{fd}" if cur_mode < 0
+    Errno.handle if cur_mode < 0
+    cur_mode &= ACCMODE
 
-    unless mode.nil?
-      # Must support the desired mode.
-      # O_ACCMODE is /undocumented/ for fcntl() on some platforms
-      # but it should work. If there is a problem, check it though.
+    if mode
       new_mode = IO.parse_mode(mode) & ACCMODE
-      cur_mode = cur_mode & ACCMODE
 
-      if cur_mode != RDWR and cur_mode != new_mode
-        raise Errno::EINVAL, "Invalid mode '#{mode}' for existing descriptor #{fd}"
+      read_only = cur_mode & ACC_MODE == RDONLY
+      if read_only and (new_mode == RDWR or new_mode == WRONLY)
+        raise Errno::EINVAL, "Invalid new mode '#{mode}' for existing descriptor #{fd}"
       end
     end
 
-    setup fd, mode
+    @descriptor = fd
+    @mode = mode || cur_mode
   end
 
   ##
@@ -528,14 +524,6 @@ class IO
   end
 
   private :initialize_copy
-
-  def setup(desc = nil, mode = nil)
-    @descriptor = desc if desc
-    @mode = mode if mode
-    @ibuffer = IO::Buffer.new
-    @eof = false
-    @lineno = 0
-  end
 
   def <<(obj)
     write(obj.to_s)
@@ -606,7 +594,7 @@ class IO
   end
 
   def dup
-    raise IOError, "closed stream" if closed?
+    ensure_open
     super
   end
 
@@ -624,7 +612,7 @@ class IO
   #  3: This is line three
   #  4: And so on...
   def each(sep=$/)
-    raise IOError, "closed stream" if closed?
+    ensure_open
 
     while line = read_to_separator(sep)
       yield line
@@ -674,6 +662,18 @@ class IO
 
   alias_method :eof, :eof?
 
+  def ensure_open_and_readable
+    ensure_open
+    write_only = @mode & ACCMODE == WRONLY
+    raise IOError, "not opened for reading" if write_only
+  end
+
+  def ensure_open_and_writable
+    ensure_open
+    read_only = @mode & ACCMODE == RDONLY
+    raise IOError, "not opened for writing" if read_only
+  end
+
   ##
   # Provides a mechanism for issuing low-level commands to
   # control or query file-oriented I/O streams. Arguments
@@ -683,7 +683,7 @@ class IO
   # might be a useful way to build this string). On Unix
   # platforms, see fcntl(2) for details. Not implemented on all platforms.
   def fcntl(command, arg=0)
-    raise IOError, "closed stream" if closed?
+    ensure_open
     if arg.kind_of? Fixnum then
       Platform::POSIX.fcntl(descriptor, command, arg)
     else
@@ -697,7 +697,7 @@ class IO
   #  $stdin.fileno    #=> 0
   #  $stdout.fileno   #=> 1
   def fileno
-    raise IOError, "closed stream" if closed?
+    ensure_open
     @descriptor
   end
 
@@ -714,7 +714,7 @@ class IO
   #
   #  no newline
   def flush
-    raise IOError, "closed stream" if closed?
+    ensure_open
     true
   end
 
@@ -722,10 +722,10 @@ class IO
   # Immediately writes all buffered data in ios to disk. Returns
   # nil if the underlying operating system does not support fsync(2).
   # Note that fsync differs from using IO#sync=. The latter ensures
-  # that data is flushed from Ruby‘s buffers, but doesn‘t not guarantee
+  # that data is flushed from Ruby's buffers, but does not guarantee
   # that the underlying operating system actually writes it to disk.
   def fsync
-    raise IOError, 'closed stream' if closed?
+    ensure_open
 
     err = Platform::POSIX.fsync @descriptor
 
@@ -760,7 +760,7 @@ class IO
   #  File.new("testfile").gets   #=> "This is line one\n"
   #  $_                          #=> "This is line one\n"
   def gets(sep=$/)
-    raise IOError, "closed stream" if closed?
+    ensure_open
 
     line = read_to_separator sep
     line.taint if line
@@ -791,7 +791,7 @@ class IO
   #  f.gets     #=> "This is line two\n"
   #  f.lineno   #=> 2
   def lineno
-    raise IOError, 'closed stream' if closed?
+    ensure_open
 
     @lineno
   end
@@ -809,7 +809,7 @@ class IO
   #  f.gets                     #=> "This is line two\n"
   #  $. # lineno of last read   #=> 1001
   def lineno=(line_number)
-    raise IOError, 'closed stream' if closed?
+    ensure_open
 
     raise TypeError if line_number.nil?
 
@@ -955,7 +955,7 @@ class IO
   #   f = File.new("testfile")
   #   f.read(16)   #=> "This is line one"
   def read(length=nil, buffer=nil)
-    raise IOError, "closed stream" if closed?
+    ensure_open
     buffer = StringValue buffer if buffer
 
     unless length
@@ -1015,7 +1015,7 @@ class IO
   # If the read buffer is not empty, read_nonblock reads from the
   # buffer like readpartial. In this case, read(2) is not called.
   def read_nonblock(size, buffer = nil)
-    raise IOError, "closed stream" if closed?
+    ensure_open
     prim_read(size, buffer)
   end
 
@@ -1149,7 +1149,7 @@ class IO
   # blocks on the situation IO#sysread causes Errno::EAGAIN as if the fd is blocking mode.
   def readpartial(size, buffer = nil)
     raise ArgumentError, 'negative string size' unless size >= 0
-    raise IOError, "closed stream" if closed?
+    ensure_open
 
     buffer = '' if buffer.nil?
 
@@ -1182,7 +1182,7 @@ class IO
               File.new other, mode
             end
 
-    raise IOError, 'closed stream' if other.closed?
+    other.ensure_open
 
     prim_reopen other
 
@@ -1219,7 +1219,7 @@ class IO
   #  f.seek(-13, IO::SEEK_END)   #=> 0
   #  f.readline                  #=> "And so on...\n"
   def seek(amount, whence=SEEK_SET)
-    raise IOError, "closed stream" if closed?
+    ensure_open
 
     # TODO: verify this
     # Unseek the still buffered amount
@@ -1241,7 +1241,7 @@ class IO
   #  s.blksize       #=> 4096
   #  s.atime         #=> Wed Apr 09 08:53:54 CDT 2003
   def stat
-    raise IOError, "closed stream" if closed?
+    ensure_open
 
     File::Stat.from_fd fileno
   end
@@ -1254,7 +1254,7 @@ class IO
   #  f = File.new("testfile")
   #  f.sync   #=> false
   def sync
-    raise IOError, "closed stream" if closed?
+    ensure_open
     true
   end
 
@@ -1264,7 +1264,7 @@ class IO
   # sync mode.
 
   def sync=(v)
-    raise IOError, "closed stream" if closed?
+    ensure_open
   end
 
   ##
@@ -1277,7 +1277,7 @@ class IO
   #  f.sysread(16)   #=> "This is line one"
   def sysread(size, buffer = nil)
     raise ArgumentError, 'negative string size' unless size >= 0
-    raise IOError, "closed stream" if closed?
+    ensure_open
 
     buffer = "\0" * size unless buffer
 
@@ -1296,7 +1296,7 @@ class IO
   #  f.sysseek(-13, IO::SEEK_END)   #=> 53
   #  f.sysread(10)                  #=> "And so on."
   def sysseek(amount, whence=SEEK_SET)
-    raise IOError, "closed stream" if closed?
+    ensure_open
     Platform::POSIX.lseek(@descriptor, amount, whence)
   end
 
@@ -1310,7 +1310,7 @@ class IO
   #  File.new("testfile").isatty   #=> false
   #  File.new("/dev/tty").isatty   #=> true
   def tty?
-    raise IOError, "closed stream" if closed?
+    ensure_open
     Platform::POSIX.isatty(@descriptor) == 1
   end
 
@@ -1342,13 +1342,11 @@ class IO
   end
 
   def write(data)
-    raise IOError, "closed stream" if closed?
+    ensure_open_and_writable
 
-    data = StringValue data
+    data = String data
 
     return 0 if data.length == 0
-    # HACK WTF?
-    #raise IOError if (Platform::POSIX.fcntl(@descriptor, F_GETFL, 0) & ACCMODE) == RDONLY
     prim_write(data)
   end
 

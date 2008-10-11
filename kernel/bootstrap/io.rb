@@ -7,14 +7,24 @@ class IO
     end
   end
 
+  def self.allocate
+    Ruby.primitive :io_allocate
+    raise PrimitiveFailure, "IO.allocate primitive failed"
+  end
+
   def self.open_with_mode(path, mode, perm)
     Ruby.primitive :io_open
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "IO.open_with_mode primitive failed"
   end
 
   def self.connect_pipe(lhs, rhs)
     Ruby.primitive :io_connect_pipe
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "IO.connect_pipe primitive failed"
+  end
+
+  def ensure_open
+    Ruby.primitive :io_ensure_open
+    raise PrimitiveFailure, "IO#ensure_open primitive failed"
   end
 
   def write(str)
@@ -24,17 +34,17 @@ class IO
 
   def blocking_read(size)
     Ruby.primitive :io_blocking_read
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "IO#blocking_read primitive failed"
   end
 
   def prim_reopen(other)
     Ruby.primitive :io_reopen
-    raise ArgumentError, "only accepts an IO object"
+    raise ArgumentError, "IO#prim_reopen only accepts an IO object"
   end
 
   def prim_seek(amount, whence)
     Ruby.primitive :io_seek
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "IO#prim_seek primitive failed"
   end
 
   def query(which)

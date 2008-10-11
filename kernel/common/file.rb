@@ -52,7 +52,7 @@ class File < IO
     Errno.handle path if fd < 0
 
     @path = path
-    setup fd
+    super(fd)
   end
 
   attr_reader :path

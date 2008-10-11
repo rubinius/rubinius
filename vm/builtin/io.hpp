@@ -12,28 +12,38 @@ namespace rubinius {
 
   class IO : public Object {
   public:
-    const static size_t fields = 3;
+    const static size_t fields = 5;
     const static object_type type = IOType;
 
   private:
     FIXNUM descriptor_; // slot
     OBJECT ibuffer_;    // slot
-    OBJECT mode_;       // slot
+    FIXNUM mode_;       // slot
+    OBJECT eof_;        // slot
+    FIXNUM lineno_;     // slot
 
   public:
     /* accessors */
 
     attr_accessor(descriptor, Fixnum);
     attr_accessor(ibuffer, Object);
-    attr_accessor(mode, Object);
+    attr_accessor(mode, Fixnum);
+    attr_accessor(eof, Object);
+    attr_accessor(lineno, Fixnum);
 
     /* interface */
 
-    native_int to_fd();
-
     static void init(STATE);
     static IO* create(STATE, int fd);
-    void initialize(STATE, int fd, char* mode);
+
+    native_int to_fd();
+    void set_mode(STATE);
+
+    // Ruby.primitive :io_allocate
+    static IO* allocate(STATE, OBJECT self);
+
+    // Ruby.primitive :io_ensure_open
+    OBJECT ensure_open(STATE);
 
     // Ruby.primitive :io_connect_pipe
     static OBJECT connect_pipe(STATE, IO* lhs, IO* rhs);
