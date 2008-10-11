@@ -70,8 +70,10 @@ namespace rubinius {
     MethodContext* ctx = MethodContext::create(state, G(main), cm);
 
     // fully initialize this context
+    ctx->sender(state, (MethodContext*)Qnil);
     ctx->name(state, state->symbol("__trampoline__"));
     ctx->block(state, Qnil);
+    ctx->module(state, G(object));
 
     task->active(state, ctx);
 

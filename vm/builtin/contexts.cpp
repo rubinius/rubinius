@@ -173,10 +173,8 @@ initialize:
   MethodContext* MethodContext::create(STATE, OBJECT recv, CompiledMethod* meth) {
     MethodContext* ctx = MethodContext::create(state, meth->stack_size()->to_native());
 
-    ctx->sender(state, (MethodContext*)Qnil);
     ctx->self(state, recv);
     ctx->cm(state, meth);
-    ctx->module(state, G(object));
     ctx->home(state, ctx);
 
     ctx->vmm = meth->backend_method_;
