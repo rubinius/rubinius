@@ -20,20 +20,24 @@
 #include "subtend/ruby.h"
 
 /* Re-reset */
-#undef Qfalse
-#undef Qtrue
-#undef Qnil
-#undef Qundef
+#undef  Qfalse
+#undef  Qtrue
+#undef  Qnil
+#undef  Qundef
 
-#define Qfalse ((Object*)6L)
-#define Qtrue  ((Object*)10L)
-#define Qnil   ((Object*)14L)
-#define Qundef ((Object*)18L)
+#define Qfalse RBX_Qfalse
+#define Qtrue  RBX_Qtrue
+#define Qnil   RBX_Qnil
+#define Qundef RBX_Qundef
 
 #define Sfalse ((VALUE)6L)
 #define Strue  ((VALUE)10L)
 #define Snil   ((VALUE)14L)
 #define Sundef ((VALUE)18L)
+
+/* From vm/objectmemory.hpp */
+#undef  ALLOC_N
+#define ALLOC_N(type, size) ((type*)calloc(size, sizeof(type)))
 
 static NativeMethodContext* hidden_context = NULL;
 static Array* hidden_ruby_array = NULL;
