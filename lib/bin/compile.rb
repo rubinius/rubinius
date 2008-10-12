@@ -1,10 +1,12 @@
+$: << "#{Dir.pwd}/lib"
+
 class ExtensionCompiler
-  
-  def initialize(extra=[], flags=[])
+
+  def initialize(extra = [], flags = [], rest = [])
     @includes = []
     @link_flags = []
-    @compile_flags = ["-g"]
-    
+    @compile_flags = ["-ggdb3 -O0"]
+
     extra.each do |e|
       if e.prefix?("-I")
         @includes << e
@@ -32,12 +34,12 @@ class ExtensionCompiler
 
     if $DEBUG
       @preserve_objects = true
-    end 
-    
-    if File.exists?("shotgun/lib/subtend/ruby.h")
-      @includes << "-I#{Dir.pwd}/shotgun/lib/subtend"
     end
-    
+
+    if File.exists?("vm/subtend/ruby.h")
+      @includes << "-I#{Dir.pwd}/vm/subtend"
+    end
+
   end
 
   def add_file(file)
@@ -244,7 +246,7 @@ if File.directory?(file)
     exit 1
   end
   puts "Building from instructions at #{rec}" if $VERBOSE
-  ext = ExtensionCompiler.new(ext_flags, ARGV)
+  ext = ExtensionCompiler.new(ext_flags, flags, ARGV)
   dsl = ExtensionCompiler::DSL.new(ext)
   dsl.setup
   cur = Dir.pwd
@@ -253,7 +255,7 @@ if File.directory?(file)
   ext.compile
 elsif file.suffix?(".c")
   puts "Compiling extension #{file}..."
-  ext = ExtensionCompiler.new(ext_flags, ARGV)
+  ext = ExtensionCompiler.new(ext_flags, flags, ARGV)
   ext.add_file file
   ext.compile
 else
