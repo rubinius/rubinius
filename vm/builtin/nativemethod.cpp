@@ -84,6 +84,14 @@ namespace rubinius {
   bool NativeMethod::executor_implementation(STATE, Executable* method, Task* task, Message& message) {
     NativeMethodContext* context = NativeMethodContext::create(state, &message, task, as<NativeMethod>(method));
 
+    /* Arguments may not have been set up properly yet.. sigh. */
+    if (message.arguments == NULL) {
+      message.import_arguments(state, task, message.total_args);
+    }
+
+    task->literals(state, reinterpret_cast<Tuple*>(Qnil));
+    task->home(state, context->home());
+    task->self(state, context->self());
     task->active(state, context);
 
     return activate_from(context);
