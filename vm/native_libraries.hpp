@@ -16,6 +16,8 @@
 
 #ifdef CONFIG_USE_LTDL
 
+#error
+
   #include "ltdl.h"
 
   #define rbx_dlhandle            lt_dlhandle
@@ -46,11 +48,11 @@ namespace rubinius {
   public:   /* Interface */
 
     /** Obtain function pointer to given symbol in given lib. */
-    static void*        find_symbol(String* name, Object* library_name);
+    static void*        find_symbol(STATE, String* name, Object* library_name);
     /** Loader error message, if any. */
     static String*      last_error_message();
     /** Load and open a native library (or this process if nil.) */
-    static rbx_dlhandle open(Object* library_name);
+    static rbx_dlhandle open(STATE, Object* library_name);
 
   };
 
