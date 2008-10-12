@@ -478,6 +478,8 @@ class CPPParser
           raw = m[1] == "?"
           prim = m[2]
           prototype = f.gets
+          pass_state = false
+          pass_self = false
 
           m = prototype_pattern.match(prototype)
           unless m
@@ -492,9 +494,6 @@ class CPPParser
             if args.first == "OBJECT self"
               args.shift and pass_self = true
             end
-          else
-            pass_state = false
-            pass_self = false
           end
 
           if raw then
