@@ -30,42 +30,50 @@ namespace rubinius {
   }
 
   NativeMethodContext* NativeMethodContext::create(VM* state,
-                                                   Message* msg = NULL,
-                                                   Task* task = as<Task>(Qnil),
-                                                   NativeMethod* method = reinterpret_cast<NativeMethod*>(Qnil)) /* TODO: wtf? */
+                                                   Message* msg,
+                                                   Task* task,
+                                                   NativeMethod* method)
   {
     static std::size_t context_size = sizeof(NativeMethodContext) + DEFAULT_STACK_SIZE;
 
-    NativeMethodContext* nmc = static_cast<NativeMethodContext*>(state->new_struct(G(nativectx), context_size));
+    NativeMethodContext* nmc = static_cast<NativeMethodContext*>(state->new_struct(G(nativectx),
+                                                                 context_size));
 
     /* MethodContext stuff. */
     nmc->sender(state, task->active());
-    nmc->home(state, const_cast<NativeMethodContext*>(nmc));
+    nmc->home(state, nmc);
     nmc->self(state, msg->recv);
     nmc->module(state, msg->module);
     nmc->name(state, as<Object>(msg->name));
+    nmc->block(state, msg->block);
+
+    /* Fake that which is not needed. */
+    nmc->cm(state, reinterpret_cast<CompiledMethod*>(Qnil));
+    nmc->vmm = NULL;
 
     /* Instead of storing the memory within as MethodContexts, we heap-allocate. */
     nmc->stack_size = DEFAULT_STACK_SIZE;
 
-    nmc->my_stack = static_cast<void*>(new char[nmc->stack_size]);
+    nmc->action_          = ORIGINAL_CALL;
+    nmc->handles_         = new HandleStorage();
+    nmc->message_         = msg;
+    nmc->message_from_c_  = new Message(state);
+    nmc->method_          = method;
+    nmc->return_value_    = as<Object>(Qnil);
+    nmc->stack_           = static_cast<void*>(new char[nmc->stack_size]);
+    nmc->state_           = state;
+    nmc->task_            = task;
 
-    nmc->my_action = ORIGINAL_CALL;
-    nmc->my_message = msg;
-    nmc->my_message_from_c = new Message(state);
-    nmc->my_method = method;
-    nmc->my_handles = new HandleStorage();
-    nmc->my_return_value = as<Object>(Qnil);
-    nmc->my_state = state;
-    nmc->my_task = task;
-
-    nmc->vmm = NULL;
+    /* Add the basic Handles. Always crossref with ruby.h when changing. */
+    nmc->handles_->push_back(Qfalse);
+    nmc->handles_->push_back(Qtrue);
+    nmc->handles_->push_back(Qnil);
+    nmc->handles_->push_back(Qundef);
 
     return nmc;
   }
 
-  NativeMethodContext* NativeMethodContext::allocate(VM* state)
-  {
+  NativeMethodContext* NativeMethodContext::allocate(VM* state) {
     return create(state);
   }
 
@@ -80,14 +88,39 @@ namespace rubinius {
   }
 
 
-  /* Instance methods */
+/* Instance methods */
+
+//  Object* NativeMethodContext::clone(STATE) {
+//    Object* other = dup(state);
+//
+//    other->copy_internal_state_from(state, this);
+//
+//    return other;
+//  }
+//
+//  Object* NativeMethodContext::dup(STATE) {
+//    Object* other = state->om->allocate_object(this->num_fields());
+//
+//    other->initialize_copy(this, age);
+//
+//    /* Use lookup_begin to preserve any IncludedModules. */
+//    other->klass(state, this->lookup_begin(state));
+//
+//    /* Redo all instance vars. */
+//
+//    if(other->zone == MatureObjectZone) {
+//      state->om->remember_object(other);
+//    }
+//
+//    return other;
+//  }
 
   /**
    *  TODO: Error conditions should assert?
    */
-  Object* NativeMethodContext::object_from(Handle handle)
-  {
-     return (*my_handles)[handle];
+  Handle NativeMethodContext::handle_for(Object* object) {
+    handles_->push_back(object);
+    return (handles_->size() - 1);
   }
 
   /**
@@ -102,12 +135,11 @@ namespace rubinius {
 
 /* Info stuff */
 
-  void NativeMethodContext::Info::cleanup(Object* object)
-  {
+  void NativeMethodContext::Info::cleanup(Object* object) {
     NativeMethodContext* context = as<NativeMethodContext>(object);
 
-    delete [] static_cast<char*>(context->my_stack);
-    context->my_stack = NULL;
+    delete [] static_cast<char*>(context->stack_);
+    context->stack_ = NULL;
   }
 }
 

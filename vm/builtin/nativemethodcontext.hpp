@@ -77,79 +77,98 @@ namespace rubinius {
   public:   /* Ctors */
 
     /** Create and populate context for a new C call. */
-    static NativeMethodContext* create(VM* state, Message* message, Task* task, NativeMethod* method);
+    static NativeMethodContext* create(VM* state,
+                                       Message* msg = NULL,
+                                       Task* task = as<Task>(Qnil),
+                                       NativeMethod* method = reinterpret_cast<NativeMethod*>(Qnil));
 
     /** Allocate a functional but empty context. */
     static NativeMethodContext* allocate(VM* state);
 
 
-  public:   /* Accessors */
-
-    VM* state() { return my_state; }
-
-    Action action() { return my_action; }
-    void action(Action action) { my_action = action; }
-
-    NativeMethod* method() { return my_method; }
-    HandleStorage& handles() { return *my_handles; }
-    Message* message() { return my_message; }
-
-    Message& message_from_c() { return *my_message_from_c; }
-
-    void return_value(Object* obj) { my_return_value = obj; }
-    Object* return_value() { return my_return_value; }
-
-    std::size_t stacksize() { return stack_size; }
-    void* stack() { return my_stack; }
-
-    Task* task() { return my_task; }
-
-    void value_returned_to_c(Object* obj) { my_c_return_value = handle_for(obj); }
-    Handle value_returned_to_c() { return my_c_return_value; }
-
-    ExecutionPoint c_call_point() { return &my_c_call_point; }
-    ExecutionPoint dispatch_point() { return &my_dispatch_point; }
-    ExecutionPoint inside_c_method_point() { return &my_inside_c_method_point; }
-
-
-  public:   /* Interface */
+  public:   /* Class interface */
 
     /** Record a NativeMethodContext as the currently active one. */
-    static void current_context_is(NativeMethodContext* context);
+    static void                 current_context_is(NativeMethodContext* context);
 
     /** Access currently active NativeMethodContext. */
     static NativeMethodContext* current();
 
-    /** Get the object corresponding to this handle. */
-    Object* object_from(Handle handle);
+    /** Global handles. TODO: Concurrency. */
+    static HandleStorage&       global_handles();
+
+
+  public:   /* Accessors */
+
+
+    Action          action()                    const { return action_; }
+    void            action(Action action)             { action_ = action; }
+    ExecutionPoint  c_call_point()                    { return &c_call_point_; }
+    ExecutionPoint  dispatch_point()                  { return &dispatch_point_; }
+    HandleStorage&  handles()                         { return *handles_; }
+    ExecutionPoint  inside_c_method_point()           { return &inside_c_method_point_; }
+    Message*        message()                   const { return message_; }
+    Message&        message_from_c()                  { return *message_from_c_; }
+    NativeMethod*   method()                    const { return method_; }
+    Object*         return_value()              const { return return_value_; }
+    void            return_value(Object* obj)         { return_value_ = obj; }
+    std::size_t     stacksize()                 const { return stack_size; }
+    void*           stack()                           { return stack_; }
+    VM*             state()                     const { return state_; }
+    Task*           task()                      const { return task_; }
+    Handle          value_returned_to_c()       const { return c_return_value_; }
+    void            value_returned_to_c(Object* obj)  { c_return_value_ = handle_for(obj); }
+
+
+  public:   /* Interface */
+
+//    /** Create new context using this one's data and internal state. @see dup(). */
+//    // Ruby.primitive :nativemethodcontext_clone
+//    Object*     clone(STATE);
+//
+//    /** Create a new context using this one's data but _not_ internal state. @see clone(). */
+//    // Ruby.primitive :nativemethodcontext_dup
+//    Object*     dup(STATE);
 
     /** Generate a handle to refer to the given object from C */
-    Handle handle_for(Object* obj);
+    Handle      handle_for(Object* obj);
+
+    /** Generate a global handle to refer to the given object from C */
+    Handle      handle_for_global(Object* obj);
+
+    /** Mark handles for GC, including the global handle set. */
+    void        mark_handles(ObjectMark& mark);
+
+    /** Get the object corresponding to this handle. */
+    Object*     object_from(Handle handle);
+
+    /** Get the object corresponding to this global handle. */
+    Object*     object_from_global(Handle handle);
 
 
-  public:  /* Instance vars */
+  private:  /* Instance vars */
 
     /* We are ignoring MethodContext's stk */
 
     /** Execution point where actual function call made (Subtend stack.) */
-    DECLARE_POINT_VARIABLE(my_c_call_point);
+    DECLARE_POINT_VARIABLE(c_call_point_);
 
     /** Execution point to return to for further handling (VM stack.) */
-    DECLARE_POINT_VARIABLE(my_dispatch_point);
+    DECLARE_POINT_VARIABLE(dispatch_point_);
 
     /** Execution point to return to from having made a call from a C method. */
-    DECLARE_POINT_VARIABLE(my_inside_c_method_point);
+    DECLARE_POINT_VARIABLE(inside_c_method_point_);
 
-    Action          my_action;            /**< Action for the VMNativeMethod to perform. */
-    Handle          my_c_return_value;    /**< Return value for a call back to VM. */
-    Message*        my_message;           /**< Message representing this call. */
-    Message*        my_message_from_c;    /**< Message for calls back from the method. */
-    NativeMethod*   my_method;            /**< Function-like object that actually implements the method. */
-    HandleStorage*  my_handles;           /**< Object handles for this call. */
-    Object*         my_return_value;      /**< Return value from the call. */
-    void*           my_stack;             /**< Stack for executing the C method. */
-    VM*             my_state;             /**< VM state for this invocation. */
-    Task*           my_task;              /**< Task in which we are running. */
+    Action          action_;            /**< Action for the VMNativeMethod to perform. */
+    Handle          c_return_value_;    /**< Return value for a call back to VM. */
+    Message*        message_;           /**< Message representing this call. */
+    Message*        message_from_c_;    /**< Message for calls back from the method. */
+    NativeMethod*   method_;            /**< Function-like object that actually implements the method. */
+    HandleStorage*  handles_;           /**< Object handles for this call. */
+    Object*         return_value_;      /**< Return value from the call. */
+    void*           stack_;             /**< Stack for executing the C method. */
+    VM*             state_;             /**< VM state for this invocation. */
+    Task*           task_;              /**< Task in which we are running. */
 
 
   public:
