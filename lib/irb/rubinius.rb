@@ -10,9 +10,9 @@ module IRB
           rescue SystemExit, ThrownValue => e
             $! = e
           rescue Object => e
-            
+
             puts "#{e.class}: #{e.message}"
-            
+
             bt = e.awesome_backtrace
 
             continue = true
@@ -24,14 +24,14 @@ module IRB
                 continue = false
                 next
               end
-              
+
               if %r!main.irb_binding!.match(recv)
                 puts "   from #{recv}"
                 break
               end
-              
+
               puts "   from #{recv} at #{loc}"
-            end            
+            end
           end
         end
       end

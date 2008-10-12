@@ -14,17 +14,17 @@ class ExtensionCompiler
         @link_flags << e
       end
     end
-    
+
     @output_name = nil
     @preserve_objects = false
-    
+
     @files = []
     @flags = flags
     flags.each do |i|
       if m = /output=(.*)/.match(i)
         @output_name = m[1]
       end
-      
+
       if i == "-p"
         @preserve_objects = true
       end
@@ -39,16 +39,16 @@ class ExtensionCompiler
     end
     
   end
-  
+
   def add_file(file)
     @files << file
     @output_name = file unless @output_name
   end
-  
+
   def set_output(output)
     @output_name = output
   end
-  
+
   def add_flag(flags, link=true)
     if link
       @link_flags << flags
@@ -56,47 +56,47 @@ class ExtensionCompiler
       @compile_flags << flags
     end
   end
-  
+
   def add_include(inc)
     @includes << "-I#{inc}"
   end
-  
+
   attr_reader :output
-  
+
   def calculate_output
     m = /(.*)\.[^\.]+/.match(@output_name)
     if m
-      @output = "#{m[1]}.#{Rubinius::LIBSUFFIX}"
+      @output = "#{m[1]}#{Rubinius::LIBSUFFIX}"
     else
-      @output = "#{@output_name}.#{Rubinius::LIBSUFFIX}"
+      @output = "#{@output_name}#{Rubinius::LIBSUFFIX}"
     end
   end
-    
+
   def windows?
     Rubinius::OS == :win32
   end
-  
+
   def gcc?
     Rubinius::COMPILER == :gcc
   end
-  
+
   def vcc?
     Rubinius::OS == :win32 and Rubinius::COMPILER == :microsoft
   end
-  
+
   def mingw?
-    Rubinius::OS == :win32 and Rubinius::COMPILER == :gcc  
+    Rubinius::OS == :win32 and Rubinius::COMPILER == :gcc
   end
-  
+
   def cygwin?
     Rubinius::OS == :cygwin
   end
-  
+
   def darwin?
     Rubinius::OS == :darwin
   end
-  
-  def compile_options    
+
+  def compile_options
     str = (@includes + @compile_flags).join(" ")
 
     if Rubinius::PLATFORM == :amd64 || ( Rubinius::PLATFORM == :x86 && gcc? )
@@ -105,15 +105,16 @@ class ExtensionCompiler
 
     str
   end
-    
+
   def compiler
     if ENV['CC']
       return ENV['CC']
     end
-    
-    Rubinius::COMPILER_PATH
+
+    # Meh
+    `which gcc`.chomp
   end
-  
+
   # Adapted from RubyInline
   def system_link_options
     if vcc?
@@ -128,39 +129,42 @@ class ExtensionCompiler
       "-shared"
     end
   end
-    
+
   def link_options
     opts = @link_flags.dup
     opts << system_link_options
-    
+
     return opts.join(" ")
   end
-  
+
   def compile_files
     @objects = []
     @files.each do |file|
-      cmd = "#{compiler} #{compile_options} -c -o #{file}.o #{file}"
+      out = file.sub /\.c$/, '.o'
+
+      cmd = "#{compiler} #{compile_options} -c -o #{out} #{file}"
       puts cmd if $VERBOSE
       system cmd
-      @objects << "#{file}.o"
+
+      @objects << out
     end
   end
-  
+
   def compile(report=true)
     compile_files
     calculate_output
     cmd = "#{compiler} #{link_options} #{@objects.join(' ')} -o #{@output}"
     puts cmd if $VERBOSE
     system cmd
-    
+
     return unless report
-    
+
     if File.exists?(@output)
       unless @preserve_objects
         puts "Cleaning up objects..."
         @objects.each { |o| system "rm #{o}" }
       end
-      
+
       puts "Created #{@output}" if report
     else
       if report
@@ -168,34 +172,34 @@ class ExtensionCompiler
       end
       exit 1
     end
-    
+
   end
-  
+
   class DSL
     def initialize(ec)
       @ec = ec
     end
-    
+
     def name(name)
       @ec.set_output name
     end
-    
+
     def files(glob)
       Dir[glob].each { |f| @ec.add_file f }
     end
-    
+
     def flags(*args)
       args.each { |a| @ec.add_flag a }
     end
-    
+
     def libs(*args)
       args.each { |a| @ec.add_flag "-l#{a}", true }
     end
-    
+
     def includes(*args)
       args.each { |a| @ec.add_include a }
     end
-    
+
     def setup
       $ec_dsl = self
     end
@@ -208,7 +212,7 @@ module Kernel
     $ec_dsl
   end
 end
- 
+
 rbx_flags = []
 ext_flags = []
 flags = []

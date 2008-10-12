@@ -1,15 +1,11 @@
-begin
-  require 'ext/readline/readline'
+require 'ext/readline/readline'
 
-  module Readline
-    def self.readline(prompt="", add_hist=true)
-      perform_readline(prompt, add_hist)
-    end
-
-    def readline(prompt="", add_hist=true)
-      Readline.perform_readline(prompt, add_hist)
-    end
+module Readline
+  def self.readline(prompt="", add_hist=true)
+    perform_readline(prompt, add_hist)
   end
-rescue
-  puts "Unable to load readline extension"
+
+  def readline(prompt="", add_hist=true)
+    Readline.perform_readline(prompt, add_hist)
+  end
 end
