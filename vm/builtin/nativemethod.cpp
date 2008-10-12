@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <execinfo.h>
 
 #include "vm.hpp"
@@ -126,18 +128,21 @@ namespace rubinius {
    *  @note   Currently supports functions with up to receiver + 5 (separate) arguments only!
    *          Anything beyond that should use one of the special arities instead.
    *
-   *  TODO:   Argument count check?
+   *  TODO:   Improve the arg handling. Currently we need to check whether
+   *          import_arguments() has already run (always occurs when there
+   *          is a splat.)
    *  TODO:   Check for inefficiencies.
    */
-  void NativeMethod::perform_call()
-  {
+  void NativeMethod::perform_call() {
     NativeMethodContext* context = NativeMethodContext::current();
 
     Message* message = context->message();
 
     Handle receiver = context->handle_for(message->recv);
 
-    switch (context->method()->arity()->to_int()) {
+    try {
+
+      switch (context->method()->arity()->to_int()) {
       case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
         Handle args = context->handle_for(message->arguments);
 
@@ -271,9 +276,23 @@ namespace rubinius {
 
       default:
         sassert(false && "Not a valid arity");
+      }
+
+    }
+    catch(const std::exception& ex) {
+      std::cerr << "Error in perform_call(): " << ex.what() << std::endl;
+      context->action(NativeMethodContext::ERROR_RAISED);
+      goto leave;
+    }
+    catch(...) {
+      std::cerr << "UNKNOWN error in perform_call()!" << std::endl;
+      context->action(NativeMethodContext::ERROR_RAISED);
+      goto leave;
     }
 
     context->action(NativeMethodContext::RETURN_FROM_C);
+
+  leave:
 
     jump_to_execution_point_in(context->dispatch_point());
     /* Never actually returns, control never reaches here. */
