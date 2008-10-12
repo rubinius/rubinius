@@ -39,20 +39,31 @@ class File < IO
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
   POSIX = Platform::POSIX
 
+  def self.open(path_or_fd, mode = "r", perm = 0666)
+    file = new path_or_fd, mode, perm
+
+    return file unless block_given?
+
+    begin
+      yield file
+    ensure
+      file.close rescue nil unless file.closed?
+    end
+  end
+
   def initialize(path_or_fd, mode = "r", perm = 0666)
-    if path_or_fd.kind_of?(Integer)
+    if path_or_fd.kind_of? Integer
       super(path_or_fd, mode)
       @path = nil
-      return self
+    else
+      path = StringValue(path_or_fd)
+
+      fd = IO.sysopen(path, mode, perm)
+      Errno.handle path if fd < 0
+
+      @path = path
+      super(fd)
     end
-
-    path = StringValue(path_or_fd)
-
-    fd = IO.sysopen(path, mode, perm)
-    Errno.handle path if fd < 0
-
-    @path = path
-    super(fd)
   end
 
   attr_reader :path

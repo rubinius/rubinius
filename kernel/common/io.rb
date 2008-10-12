@@ -505,11 +505,12 @@ class IO
     cur_mode &= ACCMODE
 
     if mode
-      new_mode = IO.parse_mode(mode) & ACCMODE
+      str_mode = StringValue mode
+      mode = IO.parse_mode(str_mode) & ACCMODE
 
       read_only = cur_mode & ACC_MODE == RDONLY
-      if read_only and (new_mode == RDWR or new_mode == WRONLY)
-        raise Errno::EINVAL, "Invalid new mode '#{mode}' for existing descriptor #{fd}"
+      if read_only and (mode == RDWR or mode == WRONLY)
+        raise Errno::EINVAL, "Invalid new mode '#{str_mode}' for existing descriptor #{fd}"
       end
     end
 
