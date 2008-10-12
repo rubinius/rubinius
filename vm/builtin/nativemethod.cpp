@@ -1,3 +1,5 @@
+#include <execinfo.h>
+
 #include "vm.hpp"
 
 #include "native_libraries.hpp"
@@ -21,19 +23,17 @@ namespace rubinius {
 /* Class methods */
 
 
-  void NativeMethod::register_class_with(VM* state)
-  {
+  void NativeMethod::register_class_with(STATE) {
     state->globals.nmethod.set(state->new_class("NativeMethod", state->globals.executable.get(), NativeMethod::fields));
     state->globals.nmethod.get()->set_object_type(state, NativeMethodType);
   }
 
-  NativeMethod* NativeMethod::allocate(VM* state)
-  {
+  NativeMethod* NativeMethod::allocate(STATE) {
     return create<GenericFunctor>(state);
   }
 
-  bool NativeMethod::activate_from(NativeMethodContext* context)
-  {
+  /** TODO: Set up a SIGSEGV/SIGBUS handler. */
+  bool NativeMethod::activate_from(NativeMethodContext* context) {
     NativeMethodContext::current_context_is(context);
 
     store_current_execution_point_in(context->dispatch_point());
@@ -41,7 +41,7 @@ namespace rubinius {
     /* This is where control returns from jumps. Regrab context. */
     context = NativeMethodContext::current();
 
-    if (  NativeMethodContext::ORIGINAL_CALL == context->action() ) {
+    if(NativeMethodContext::ORIGINAL_CALL == context->action()) {
       /* Actual dispatch must run in the new stack */
       create_execution_point_with_stack(context->c_call_point(), context->stack(), context->stacksize());
       set_function_to_run_in(context->c_call_point(), NativeMethod::perform_call);
@@ -49,36 +49,39 @@ namespace rubinius {
       jump_to_execution_point_in(context->c_call_point());
     }
 
-    switch (context->action()) {
-      case NativeMethodContext::CALL_FROM_C:
+    switch(context->action()) {
+    case NativeMethodContext::CALL_FROM_C:
 
-        /*  CompiledMethods are only loaded, not executed, so a
-         *  So, we return from here which then allows the CM to really
-         *  execute.
-         *
-         *  The other types should already have invoked Task::simple_return()
-         *  which completes through resume() and CMs will get there later.
-         */
-        context->my_task->send_message_slowly(context->message_from_c());
-        return true;
+      /*  CompiledMethods are only loaded, not executed, so a
+       *  So, we return from here which then allows the CM to really
+       *  execute.
+       *
+       *  The other types should already have invoked Task::simple_return()
+       *  which completes through resume() and CMs will get there later.
+       */
+      context->task()->send_message_slowly(context->message_from_c());
+      return true;
 
-      case NativeMethodContext::RETURNED_BACK_TO_C:
-        jump_to_execution_point_in(context->inside_c_method_point());
-        break;  /* Never reached */
+    case NativeMethodContext::RETURNED_BACK_TO_C:
+      jump_to_execution_point_in(context->inside_c_method_point());
+      break;  /* Never reached */
 
-      case NativeMethodContext::RETURN_FROM_C:
-        context->my_task->native_return(context->return_value());
-        break;
+    case NativeMethodContext::RETURN_FROM_C:
+      context->task()->native_return(context->return_value());
+      NativeMethodContext::current_context_is(NULL);
+      break;
 
-      default:
-        break;
+    case NativeMethodContext::SEGFAULT_DETECTED:
+      break;
+
+    default:
+      break;
     }
 
     return true;
   }
 
-  bool NativeMethod::executor_implementation(VM* state, Executable* method, Task* task, Message& message)
-  {
+  bool NativeMethod::executor_implementation(STATE, Executable* method, Task* task, Message& message) {
     NativeMethodContext* context = NativeMethodContext::create(state, &message, task, as<NativeMethod>(method));
 
     task->active(state, context);
@@ -86,23 +89,16 @@ namespace rubinius {
     return activate_from(context);
   }
 
-  NativeMethod* NativeMethod::load_extension_entry_point(STATE, String* path, String* name)
-  {
-    void* func = NativeLibrary::find_symbol(name, path);
-
-    if (func == NULL) {
-      /* TODO: Pass error message up */
-      /* HACK: The exception should probably be raised from ::find_symbol */
-      Exception::assertion_error(state, "unable to load extension");
-    }
+  NativeMethod* NativeMethod::load_extension_entry_point(STATE, String* path, String* name) {
+    void* func = NativeLibrary::find_symbol(state, name, path);
 
     NativeMethod* m = NativeMethod::create(state,
-                                path,
-                                state->globals.rubinius.get(),
-                                name->to_sym(state),
-                                reinterpret_cast<GenericFunctor>(func),
-                                Fixnum::from(INIT_FUNCTION)
-                               );
+                                           path,
+                                           state->globals.rubinius.get(),
+                                           name->to_sym(state),
+                                           reinterpret_cast<GenericFunctor>(func),
+                                           Fixnum::from(INIT_FUNCTION)
+                                          );
     return m;
   }
 
@@ -274,6 +270,5 @@ namespace rubinius {
     jump_to_execution_point_in(context->dispatch_point());
     /* Never actually returns, control never reaches here. */
   }
-
 
 }
