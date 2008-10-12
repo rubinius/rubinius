@@ -50,8 +50,8 @@ namespace rubinius {
     static void object_bounds_exceeded_error(STATE, const char* reason);
 
     /** Raise a SystemCallError with given message. */
-    static void Exception::system_call_error(STATE, const char* reason);
-    static void Exception::system_call_error(STATE, const std::string& reason);
+    static void system_call_error(STATE, const char* reason);
+    static void system_call_error(STATE, const std::string& reason);
 
     // Ruby.primitive :exception_errno_error
     static OBJECT errno_error(STATE, OBJECT reason, FIXNUM ern);
