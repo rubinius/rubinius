@@ -91,9 +91,6 @@ namespace rubinius {
       message.import_arguments(state, task, message.total_args);
     }
 
-    task->literals(state, reinterpret_cast<Tuple*>(Qnil));
-    task->home(state, context->home());
-    task->self(state, context->self());
     task->active(state, context);
 
     return activate_from(context);
