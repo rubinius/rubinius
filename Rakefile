@@ -42,7 +42,7 @@ task :run_ruby => %w[kernel:build vm/vm] # HACK argument + dependency is broken
 
 desc "Compile files with MRI because vm takes forever to do it"
 task :precompile => %w[extensions] do
-  FileList['lib/**/*.rb', 'spec/**/*.rb'].each do |rb|
+  FileList['{mspec,kernel,lib,spec}/**/*.rb'].each do |rb|
     next unless File.file? rb
 
     rbc = "#{rb}c"
