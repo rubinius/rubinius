@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_EXCEPTION_HPP
 #define RBX_BUILTIN_EXCEPTION_HPP
 
+#include <string>
+
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 
@@ -46,6 +48,10 @@ namespace rubinius {
     static void assertion_error(STATE, const char* reason = NULL);
     static void object_bounds_exceeded_error(STATE, OBJECT obj, size_t index);
     static void object_bounds_exceeded_error(STATE, const char* reason);
+
+    /** Raise a SystemCallError with given message. */
+    static void Exception::system_call_error(STATE, const char* reason);
+    static void Exception::system_call_error(STATE, const std::string& reason);
 
     // Ruby.primitive :exception_errno_error
     static OBJECT errno_error(STATE, OBJECT reason, FIXNUM ern);

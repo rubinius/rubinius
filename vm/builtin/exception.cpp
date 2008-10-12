@@ -92,6 +92,14 @@ namespace rubinius {
     RubyException::raise(make_exception(state, get_assertion_error(state), reason));
   }
 
+  void Exception::system_call_error(STATE, const char* reason) {
+    RubyException::raise(make_exception(state, get_system_call_error(state), reason));
+  }
+
+  void Exception::system_call_error(STATE, const std::string& reason) {
+    system_call_error(state, reason.c_str());
+  }
+
   void Exception::object_bounds_exceeded_error(STATE, OBJECT obj, size_t index) {
     TypeInfo* info = state->find_type(obj->obj_type); // HACK use object
     std::ostringstream msg;
