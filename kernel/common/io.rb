@@ -53,7 +53,8 @@ class IO
     # +IO+ instance. Any new data causes this method to return.
     #
     # Returns the number of bytes in the buffer.
-    def fill_from(io)
+    def fill_from(io, skip = nil)
+      discard skip if skip
       return size unless empty?
 
       reset!
@@ -74,9 +75,21 @@ class IO
     end
 
     ##
+    # Advances the beginning-of-buffer marker past any number
+    # of contiguous characters == +skip+. For example, if +skip+
+    # is ?\n and the buffer contents are "\n\n\nAbc...", the
+    # start marker will be positioned on 'A'.
+    def discard(skip)
+      while @start < @used
+        break unless @storage[@start] == skip
+        @start += 1
+      end
+    end
+
+    ##
     # Returns the number of bytes to fetch from the buffer up-to-
     # and-including +pattern+. Returns +nil+ if pattern is not found.
-    def find(pattern)
+    def find(pattern, discard = nil)
       return unless count = @storage.locate(pattern, @start)
       count - @start
     end
@@ -508,7 +521,7 @@ class IO
       str_mode = StringValue mode
       mode = IO.parse_mode(str_mode) & ACCMODE
 
-      read_only = cur_mode & ACC_MODE == RDONLY
+      read_only = cur_mode & ACCMODE == RDONLY
       if read_only and (mode == RDWR or mode == WRONLY)
         raise Errno::EINVAL, "Invalid new mode '#{str_mode}' for existing descriptor #{fd}"
       end
@@ -613,7 +626,7 @@ class IO
   #  3: This is line three
   #  4: And so on...
   def each(sep=$/)
-    ensure_open
+    ensure_open_and_readable
 
     while line = read_to_separator(sep)
       yield line
@@ -761,11 +774,13 @@ class IO
   #  File.new("testfile").gets   #=> "This is line one\n"
   #  $_                          #=> "This is line one\n"
   def gets(sep=$/)
-    ensure_open
+    ensure_open_and_readable
 
     line = read_to_separator sep
     line.taint if line
 
+    @lineno += 1
+    $. = @lineno
     $_ = line
 
     line
@@ -1039,11 +1054,16 @@ class IO
     return if @ibuffer.exhausted?
     return read_all unless sep
 
-    sep = "\n\n" if sep.empty?
+    if sep.empty?
+      sep = "\n\n"
+      skip = ?\n
+    else
+      skip = nil
+    end
 
     line = nil
     until @ibuffer.exhausted?
-      @ibuffer.fill_from self
+      @ibuffer.fill_from self, skip
 
       if count = @ibuffer.find(sep)
         str = @ibuffer.shift(count)
@@ -1059,8 +1079,8 @@ class IO
 
       break if count
     end
+    @ibuffer.discard skip if skip
 
-    $. = @lineno += 1 if line
     line
   end
 
