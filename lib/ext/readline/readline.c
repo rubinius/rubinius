@@ -3,6 +3,7 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <readline/readline.h>
@@ -42,6 +43,7 @@ readline_readline(VALUE self, VALUE tmp, VALUE add_hist)
 
     rb_secure(4);
     SafeStringValue(tmp);
+    // TODO: Free
     prompt = rb_str_get_char_ptr(tmp);
 
     if (!isatty(0) && errno == EBADF) rb_raise(rb_eIOError, "stdin closed");
