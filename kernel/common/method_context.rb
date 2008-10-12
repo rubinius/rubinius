@@ -402,12 +402,30 @@ class MethodContext
 
 end
 
-##
+#
 # Stores all the information about a running NativeMethod.
-
+#
 class NativeMethodContext
-  def location
+
+  #
+  # Special-needs copying.
+  #
+  def clone()
+    raise "Why the hell are we cloning a context?"
+    Ruby.primitive :nativemethodcontext_clone
+  end
+
+  #
+  # Special-needs copying.
+  #
+  def dup()
+    raise "Why the hell are we duping a context?"
+    Ruby.primitive :nativemethodcontext_dup
+  end
+
+  def location()
     "#{file}"
   end
+
 end
 

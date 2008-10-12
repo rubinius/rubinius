@@ -30,7 +30,6 @@ class NativeMethod < Executable
   #
   def self.load_entry_point(library_path, name)
     Ruby.primitive :nativemethod_load_extension_entry_point
-    raise PrimitiveFailure, "Unable to load #{name} in #{library_path}!"
   end
 
 end
