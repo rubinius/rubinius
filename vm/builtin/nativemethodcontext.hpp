@@ -186,6 +186,9 @@ namespace rubinius {
     {
     public:
       BASIC_TYPEINFO_WITH_CLEANUP(MethodContext::Info)
+
+      virtual void mark(Object* self, ObjectMark& mark);
+      virtual void show(STATE, Object* self, int level);
     };
 
   };    /* NativeMethodContext */

@@ -217,5 +217,35 @@ namespace rubinius {
     delete [] static_cast<char*>(context->stack_);
     context->stack_ = NULL;
   }
+
+  void NativeMethodContext::Info::mark(Object* self, ObjectMark& mark) {
+    auto_mark(self, mark);
+    as<NativeMethodContext>(self)->mark_handles(mark);
+  }
+
+  void NativeMethodContext::Info::show(STATE, Object* self, int level) {
+//    MethodContext* ctx = as<MethodContext>(self);
+//
+//    class_header(state, self);
+//    indent_attribute(++level, "name"); ctx->name()->show(state, level);
+//    indent_attribute(level, "sender");
+//    if(ctx->sender()->nil_p()) {
+//      ctx->sender()->show(state, level);
+//    } else {
+//      class_info(state, ctx->sender(), true);
+//    }
+//    indent_attribute(level, "home");
+//    if(ctx->home()->nil_p()) {
+//      ctx->home()->show(state, level);
+//    } else {
+//      class_info(state, ctx->home(), true);
+//    }
+//    indent_attribute(level, "self"); ctx->self()->show(state, level);
+//    indent_attribute(level, "cm"); ctx->cm()->show(state, level);
+//    indent_attribute(level, "module"); ctx->module()->show(state, level);
+//    indent_attribute(level, "block"); ctx->block()->show(state, level);
+//    close_body(level);
+  }
+
 }
 
