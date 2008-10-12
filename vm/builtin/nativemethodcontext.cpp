@@ -1,3 +1,6 @@
+#include <cstdlib>
+
+#include "objectmemory.hpp"
 #include "vm.hpp"
 
 #include "builtin/class.hpp"
@@ -87,6 +90,10 @@ namespace rubinius {
      return hidden_current_native_context;
   }
 
+  HandleStorage& NativeMethodContext::global_handles() {
+    static HandleStorage our_global_handles;
+    return our_global_handles;
+  }
 
 /* Instance methods */
 
@@ -116,7 +123,17 @@ namespace rubinius {
 //  }
 
   /**
-   *  TODO: Error conditions should assert?
+   *  NOTE: Unlike object_for(), this is _always_ a local Handle.
+   *        @see handle_for_global() instead.
+   *
+   *  TODO: Currently, a Handle may have an entry _both_ in local
+   *        handles as well as globals. This should hopefully not
+   *        cause problems since the main concern is only that the
+   *        global object must always be available. The extras are
+   *        unlikely to impede here, since the object itself is
+   *        guarded against collection.
+   *
+   *  TODO: Concurrency.
    */
   Handle NativeMethodContext::handle_for(Object* object) {
     handles_->push_back(object);
@@ -124,13 +141,72 @@ namespace rubinius {
   }
 
   /**
+   *  Global handles are negative starting at -1.
+   *
+   *  @see  discussion under handle_for().
+   *
+   *  TODO: Should the objects be remembered or set
+   *        mature here? Unlikely, but needs verification.
+   *
    *  TODO: Concurrency.
    */
-  Handle NativeMethodContext::handle_for(Object* object)
-  {
-    my_handles->push_back(object);
-    return (my_handles->size() - 1);
+  Handle NativeMethodContext::handle_for_global(Object* object) {
+    HandleStorage& globals = NativeMethodContext::global_handles();
+
+    /* No duplicates. Return existing entry if there is one. */
+    for(HandleStorage::iterator it = globals.begin(); it != globals.end(); ++it) {
+      if(*it == object) {
+        return (-1 - (it - globals.begin()));  /* Grabs the index. */
+      }
+    }
+
+    globals.push_back(object);
+
+    return (0 - globals.size());
   }
+
+  void NativeMethodContext::mark_handles(ObjectMark& mark) {
+    for (HandleStorage::iterator it = handles_->begin(); it != handles_->end(); ++it) {
+      Object* marked = mark.call(*it);
+
+      if (marked) {
+        *it = marked;
+        mark.just_set(this, marked);
+      }
+    }
+
+    HandleStorage& globals = NativeMethodContext::global_handles();
+
+    for (HandleStorage::iterator it = globals.begin(); it != globals.end(); ++it) {
+      Object* marked = mark.call(*it);
+
+      if (marked) {
+        *it = marked;
+        mark.just_set(this, marked);
+      }
+    }
+  }
+
+  /**
+   *  TODO: Error conditions should assert?
+   */
+  Object* NativeMethodContext::object_from(Handle handle) {
+    if(handle < 0) {
+      return object_from_global(handle);
+    }
+
+    return (*handles_)[handle];
+  }
+
+  /**
+   *  Global handles are negative starting at -1.
+   *
+   *  TODO: Error conditions should assert?
+   */
+  Object* NativeMethodContext::object_from_global(Handle handle) {
+    return NativeMethodContext::global_handles()[(-1 - handle)];
+  }
+
 
 
 /* Info stuff */

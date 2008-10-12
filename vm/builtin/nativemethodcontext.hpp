@@ -19,25 +19,31 @@ namespace rubinius {
   /* Forwards */
   class Message;
   class NativeMethod;
-  class Task;
 
 
   /** Theoretically this could be changed to some other storage.. */
   typedef std::vector<Object*> HandleStorage;
 
   /** More prosaic name for Handles. */
-  typedef std::size_t Handle;
+  typedef intptr_t Handle;
 
 
   /**
-  *  Method context for C-implemented methods.
+  *   Method context for C-implemented methods.
   *
-  *  TODO: Subclassing MethodContext is fucking ugly.
-  *        Create a Context superclass for both.
+  *   TODO: Add @current_line that can be updated by e.g.
+  *         macroed rb_funcall.
   *
-  *  TODO: Add tests.
+  *   TODO: Better Handle indexing? Currently there are
+  *         sizeof(size_t) / 2 regular handles available
+  *         because negative indices point to globals.
   *
-  *  TODO: Clarify terminology for vm->subtend->vm stuff.
+  *   TODO: Figure out how to handle Messages in dup/clone.
+  *
+  *   TODO: Subclassing MethodContext is fucking ugly.
+  *         Create a Context superclass for both.
+  *
+  *   TODO: Clarify terminology for vm->subtend->vm stuff.
   */
   class NativeMethodContext : public MethodContext {
   public:   /* Slots and bookkeeping. */
@@ -65,6 +71,8 @@ namespace rubinius {
       CALL_FROM_C,
       RETURNED_BACK_TO_C,
       RETURN_FROM_C,
+      ERROR_RAISED,
+      SEGFAULT_DETECTED
     };
 
 
