@@ -126,6 +126,16 @@ namespace rubinius {
     mode(state, Fixnum::from(acc_mode));
   }
 
+  void IO::force_read_only(STATE) {
+    int m = mode_->to_native();
+    mode(state, Fixnum::from((m & ~O_ACCMODE) | O_RDONLY));
+  }
+
+  void IO::force_write_only(STATE) {
+    int m = mode_->to_native();
+    mode(state, Fixnum::from((m & ~O_ACCMODE) | O_WRONLY));
+  }
+
   OBJECT IO::write(STATE, String* buf) {
     ssize_t cnt = ::write(this->to_fd(), buf->data()->bytes, buf->size());
 

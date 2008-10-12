@@ -38,6 +38,8 @@ namespace rubinius {
 
     native_int to_fd();
     void set_mode(STATE);
+    void force_read_only(STATE);
+    void force_write_only(STATE);
 
     // Ruby.primitive :io_allocate
     static IO* allocate(STATE, OBJECT self);

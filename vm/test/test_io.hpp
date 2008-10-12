@@ -83,6 +83,16 @@ class TestIO : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Fixnum::from(acc_mode), io->mode());
   }
 
+  void test_force_read_only() {
+    io->force_read_only(state);
+    TS_ASSERT((io->mode()->to_native() & O_ACCMODE) == O_RDONLY);
+  }
+
+  void test_force_write_only() {
+    io->force_write_only(state);
+    TS_ASSERT((io->mode()->to_native() & O_ACCMODE) == O_WRONLY);
+  }
+
   void test_connect_pipe() {
     IO* lhs = IO::allocate(state, G(io));
     IO* rhs = IO::allocate(state, G(io));

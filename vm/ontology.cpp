@@ -256,6 +256,10 @@ namespace rubinius {
     IO* out_io = IO::create(state, fileno(stdout));
     IO* err_io = IO::create(state, fileno(stderr));
 
+    in_io->force_read_only(state);
+    out_io->force_write_only(state);
+    err_io->force_write_only(state);
+
     G(object)->set_const(state, "STDIN",  in_io);
     G(object)->set_const(state, "STDOUT", out_io);
     G(object)->set_const(state, "STDERR", err_io);
