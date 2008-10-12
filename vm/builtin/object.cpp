@@ -125,54 +125,48 @@ namespace rubinius {
     return class_object(state);
   }
 
-  OBJECT Object::dup(STATE) {
-    OBJECT dup;
+  void Object::copy_internal_state_from(STATE, Object* original) {
+    if(MetaClass* mc = try_as<MetaClass>(original->klass())) {
+      /* Ditch any metaclass we might have copied over. */
+      this->klass(state, original->class_object(state));
 
-    // We will use lookup_begin here instead of class_object in order
-    // to preserve any IncludedModule instances; they will be shared
-    // between all duplicates made from this object
-    // TODO - Verify this statement
-    dup = state->om->allocate_object(num_fields());
-    dup->initialize_copy(this, age);
-    dup->copy_body(this);
-
-    dup->klass(state, lookup_begin(state));
-
-    // HACK: If dup is mature, remember it.
-    // We could inspect inspect the references we just copied to see
-    // if there are any young ones if dup is mature, then and only
-    // then remember dup. The up side to just remembering it like
-    // this is that dup is rarely mature, and the remember_set is
-    // flushed on each collection anyway.
-    if(dup->zone == MatureObjectZone) {
-      state->om->remember_object(dup);
-    }
-
-    // TODO - Duplicate ('make independent') ivars here
-
-    return dup;
-  }
-
-  OBJECT Object::clone(STATE) {
-    if(MetaClass* mc = try_as<MetaClass>(klass_)) {
       LookupTable* source_methods = mc->method_table()->dup(state);
       LookupTable* source_constants = mc->constants()->dup(state);
 
-      OBJECT dup = state->om->allocate_object(num_fields());
-      dup->initialize_copy(this, age);
-      dup->copy_body(this);
+      this->metaclass(state)->method_table(state, source_methods);
+      this->metaclass(state)->constants(state, source_constants);
+    }
+  }
 
-      // Ditch any metaclass we might have copied over.
-      dup->klass(state, class_object(state));
+  Object* Object::clone(STATE) {
+    Object* other = dup(state);
 
-      // Calling metaclass(state) will create a new MetaClass.
-      // Set the clone's method and constants tables to those
-      // of the receiver's metaclass
-      dup->metaclass(state)->method_table(state, source_methods);
-      dup->metaclass(state)->constants(state, source_constants);
+    other->copy_internal_state_from(state, this);
+
+    return other;
+  }
+
+  Object* Object::dup(STATE) {
+    Object* other = state->om->allocate_object(this->num_fields());
+
+    other->initialize_copy(this, age);
+    other->copy_body(this);
+
+    /* Use lookup_begin to preserve any IncludedModules. */
+    other->klass(state, this->lookup_begin(state));
+
+    // HACK: If other is mature, remember it.
+    // We could inspect inspect the references we just copied to see
+    // if there are any young ones if other is mature, then and only
+    // then remember other. The up side to just remembering it like
+    // this is that other is rarely mature, and the remember_set is
+    // flushed on each collection anyway.
+    if(other->zone == MatureObjectZone) {
+      state->om->remember_object(other);
     }
 
-    return dup(state);
+    /* TODO: dup instance vars. */
+    return other;
   }
 
   bool Object::kind_of_p(STATE, OBJECT cls) {

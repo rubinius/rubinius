@@ -110,11 +110,14 @@ namespace rubinius {
     // Ruby.primitive :object_frozen_p
     OBJECT frozen_p();
 
-    // Ruby.primitive :object_dup
-    OBJECT dup(STATE);
+    /** Copies metaclass from original to this one. @see clone(). */
+    void    copy_internal_state_from(STATE, Object* original);
 
     // Ruby.primitive :object_clone
-    OBJECT clone(STATE);
+    OBJECT  clone(STATE);
+
+    // Ruby.primitive :object_dup
+    OBJECT  dup(STATE);
 
     // Ruby.primitive :object_id
     INTEGER id(STATE);
