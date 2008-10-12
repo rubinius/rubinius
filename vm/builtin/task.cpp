@@ -125,6 +125,17 @@ namespace rubinius {
     restore_context(ctx);
   }
 
+  /**
+   *  TODO: Clean this up. Seriously. Currently it involves:
+   *        1. This method, called by VMMethod;
+   *        2. Message::get_argument();
+   *        3. Message::import_arguments();
+   *        4. Message::combine_with_splat();
+   *
+   *        combine_with_splat() is _always_ called for splats,
+   *        and it invokes Message::import_arguments() which
+   *        means this method is superfluous then.
+   */
   void Task::import_arguments(MethodContext* ctx, Message& msg) {
     size_t total = ctx->cm()->total_args()->to_native();
     size_t required = ctx->cm()->required_args()->to_native();
@@ -760,11 +771,13 @@ stack_cleanup:
     }
   }
 
+  /** TODO: Refactor the hell out of this with streams. */
   void Task::print_backtrace(MethodContext* ctx) {
     if(!ctx) ctx = active_;
 
     while(!ctx->nil_p()) {
-      std::cout << (void*)ctx << ": ";
+      std::cout << static_cast<void*>(ctx) << ": ";
+
       if(kind_of<BlockContext>(ctx)) {
         std::cout << "__block__";
       } else {
@@ -778,6 +791,13 @@ stack_cleanup:
           }
         } else {
           std::cout << ctx->module()->name()->c_str(state) << "#";
+        }
+
+        if (kind_of<NativeMethodContext>(ctx)) {
+          /* Muhahaa. */
+          std::cout << as<NativeMethodContext>(ctx) << std::endl;
+          ctx = ctx->sender();
+          continue;
         }
 
         SYMBOL name = try_as<Symbol>(ctx->name());
@@ -795,7 +815,7 @@ stack_cleanup:
         std::cout << "<unknown>";
       }
 
-      std::cout << "\n";
+      std::cout << std::endl;
       ctx = ctx->sender();
     }
   }
