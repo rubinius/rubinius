@@ -179,6 +179,7 @@ class InstructionSet
     {:opcode => :rotate, :args => [:int], :stack => [0,0]}
   ]
 
+
   class OpCode
     def initialize(opcode_info)
       @opcode_info = opcode_info
@@ -392,7 +393,8 @@ class InstructionSequence
         end
       end
       # Remove any noops or other junk at the end of the iseq
-      stream.slice! last_good.last, stream.size
+      # HACK Removed for now due to splat handling bug... is this still even necessary?
+      #stream.slice! last_good.last, stream.size
       if symbols_only
         stream.each {|i| i[0] = i[0].opcode}
       end
@@ -448,20 +450,19 @@ class InstructionSequence
       old_op = InstructionSet[old_inst]
       new_op = inst.first
       new_op = InstructionSet[inst.first] unless new_op.kind_of? InstructionSet::OpCode
-      @offset += old_op.arg_count * InstructionSet::InstructionSize
+      @offset += old_op.arg_count
       old_op.size.upto(new_op.size-1) do
         next_inst = iseq2int
         unless next_inst == 0
           raise ArgumentError, "Cannot replace an instruction with a larger instruction (existing #{old_op.opcode} / new #{new_op.opcode})"
         end
       end
-      @offset = start + InstructionSet::InstructionSize
-      replaced = [old_op.opcode]
 
+      @offset = start
+      replaced = [old_op.opcode]
       1.upto(old_op.arg_count) do
         replaced << iseq2int
-        @offset -= 1
-        int2str(0)  # Replace old args with 0
+        int2iseq(0)    # Replace any old opcode args with 0 (i.e. noop)
       end
 
       @offset = start
@@ -502,6 +503,16 @@ class InstructionSequence
       return op
     end
 
+    private :iseq2int
+
+    def int2iseq(op)
+      @iseq[@offset] = op
+      @offset += 1
+      return op
+    end
+
+    private :int2iseq
+
     def encode(inst)
       if inst.kind_of? Array
         opcode = inst.first
@@ -525,8 +536,12 @@ class InstructionSequence
       #print "%-30s" % inst.inspect
       #p [this, @stack_depth, @max_stack_depth]
 
-      @stack_depth += this
-      @max_stack_depth = @stack_depth if @stack_depth > @max_stack_depth
+      if @stack_depth
+        # @stack_depth not set when replacing instructions
+        # TODO: Does instruction replacement need to worry about stack depth?
+        @stack_depth += this
+        @max_stack_depth = @stack_depth if @stack_depth > @max_stack_depth
+      end
 
       begin
         @iseq[@offset] = opcode.bytecode
