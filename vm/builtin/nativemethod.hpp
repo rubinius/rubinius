@@ -2,8 +2,8 @@
 #define RBX_BUILTIN_NATIVEMETHOD_HPP
 
 /* Project */
-#include "executor.hpp"
-#include "vm.hpp"
+#include "vm/executor.hpp"
+#include "vm/vm.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
@@ -19,7 +19,6 @@ namespace rubinius {
   /* Forwards */
   class Message;
   class Task;
-  class VM;
 
 
   /**
@@ -74,7 +73,7 @@ namespace rubinius {
   public:   /* Ruby bookkeeping */
 
     /** Size in Object*'s. Executable + 2. */
-    const static std::size_t fields = 5;
+    const static std::size_t fields = Executable::fields + 5;
     /** Statically held object type. */
     const static object_type type = NativeMethodType;
 
@@ -112,7 +111,9 @@ namespace rubinius {
         nmethod->functor(state, MemoryPointer::create(state, reinterpret_cast<void*>(functor)));
 
         nmethod->set_executor(&NativeMethod::executor_implementation);
+
         nmethod->primitive(state, state->symbol("nativemethod_call"));
+        nmethod->serial(state, Fixnum::from(0));
 
         return nmethod;
       }
