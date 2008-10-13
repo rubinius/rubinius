@@ -160,7 +160,7 @@ extern "C" {
 #define ALLOC(type)       (type*) malloc(sizeof(type))
 
 /** Allocate memory for N of type. Must not be used to allocate Ruby objects. */
-#define ALLOC_N(type, n)  (type*) malloc(sizeof(type) * n)
+#define ALLOC_N(type, n)  (type*) malloc(sizeof(type) * (n))
 
 /** Interrupt checking (no-op). */
 #define CHECK_INTS        /* No-op */
