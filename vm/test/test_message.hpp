@@ -235,20 +235,20 @@ class TestMessage : public CxxTest::TestSuite {
     msg.use_from_task(task, 1);
 
     Array* ary = msg.as_array(state);
-    TS_ASSERT_EQUALS(ary->size(), 1);
+    TS_ASSERT_EQUALS(ary->size(), 1U);
     TS_ASSERT_EQUALS(ary->get(state, 0), sym);
 
     msg.unshift_argument(state, Fixnum::from(3));
 
     ary = msg.as_array(state);
-    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->size(), 2U);
     TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(3));
     TS_ASSERT_EQUALS(ary->get(state, 1), sym);
 
     msg.shift_argument(state);
 
     ary = msg.as_array(state);
-    TS_ASSERT_EQUALS(ary->size(), 1);
+    TS_ASSERT_EQUALS(ary->size(), 1U);
     TS_ASSERT_EQUALS(ary->get(state, 0), sym);
 
   }
