@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "vm.hpp"
 #include "objectmemory.hpp"
 #include "gc_marksweep.hpp"
 #include "builtin/class.hpp"
@@ -122,9 +123,14 @@ namespace rubinius {
 
     if(fields > large_object_threshold) {
       obj = mature.allocate(fields, &collect_mature_now);
+      if(collect_mature_now) {
+        state->interrupts.check = true;
+      }
     } else {
       obj = young.allocate(fields, &collect_young_now);
       if(obj == NULL) {
+        collect_young_now = true;
+        state->interrupts.check = true;
         obj = mature.allocate(fields, &collect_mature_now);
       }
     }

@@ -640,9 +640,6 @@ namespace rubinius {
           return;
         }
 
-        if(state->om->collect_young_now || state->om->collect_mature_now) {
-          return;
-        }
       }
     } catch(RubyException &exc) {
       raise_exception(exc.exception);
