@@ -38,6 +38,9 @@ namespace rubinius {
     // on before the ctx is used. We just waste precious time if we do.
 
     ctx->stack_size = stack;
+    for(size_t i = 0; i < stack; i++) {
+      ctx->stk[i] = Qnil;
+    }
 
     ctx->js.stack = ctx->stk - 1;
     ctx->js.stack_top = ctx->stk + stack;
