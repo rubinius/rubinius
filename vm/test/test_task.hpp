@@ -975,14 +975,6 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(task->current_ip(), 5);
   }
 
-  void test_check_interrupts() {
-    Task* task = Task::create(state);
-
-    task->check_interrupts();
-    TS_ASSERT(!state->om->collect_young_now);
-    TS_ASSERT(!state->om->collect_mature_now);
-  }
-
   void test_old_contexts_are_remembered_on_activate() {
     Task* task = Task::create(state);
     TS_ASSERT(!task->active()->Remember);

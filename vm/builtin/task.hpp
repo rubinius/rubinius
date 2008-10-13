@@ -126,7 +126,6 @@ namespace rubinius {
     void primitive_return(OBJECT val, Message& msg);
     void yield_debugger();
     bool check_serial(OBJECT obj, SYMBOL sel, int ser);
-    void check_interrupts();
 
     void execute_stream(opcode* stream);
     void push(OBJECT val);

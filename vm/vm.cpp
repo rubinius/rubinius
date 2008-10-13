@@ -179,6 +179,33 @@ namespace rubinius {
     om->collect_mature(globals.roots);
   }
 
+  void VM::collect_maybe() {
+    if(om->collect_young_now) {
+      om->collect_young_now = false;
+      om->collect_young(globals.roots);
+      context_cache->reset();
+      global_cache->clear();
+    }
+
+    if(om->collect_mature_now) {
+      om->collect_mature_now = false;
+      om->collect_mature(globals.roots);
+      context_cache->reset();
+      global_cache->clear();
+    }
+
+    /* Stack Management procedures. Make sure that we don't
+     * miss object stored into the stack of a context */
+    if(G(current_task)->active()->zone == MatureObjectZone) {
+      om->remember_object(G(current_task)->active());
+    }
+
+    if(G(current_task)->home()->zone == MatureObjectZone &&
+        !G(current_task)->home()->Remember) {
+      om->remember_object(G(current_task)->home());
+    }
+  }
+
   bool VM::find_and_activate_thread() {
     for(size_t i = globals.scheduled_threads->num_fields() - 1; i > 0; i--) {
       List* lst = as<List>(globals.scheduled_threads->at(this, i));
@@ -308,7 +335,7 @@ namespace rubinius {
         interrupts.enable_preempt = interrupts.use_preempt;
       }
 
-      G(current_task)->check_interrupts();
+      collect_maybe();
       G(current_task)->execute();
     }
   }

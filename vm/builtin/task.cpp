@@ -586,32 +586,6 @@ namespace rubinius {
     return active_->ip;
   }
 
-  void Task::check_interrupts() {
-    if(state->om->collect_young_now) {
-      state->om->collect_young_now = false;
-      state->om->collect_young(state->globals.roots);
-      state->context_cache->reset();
-      state->global_cache->clear();
-    }
-
-    if(state->om->collect_mature_now) {
-      state->om->collect_mature_now = false;
-      state->om->collect_mature(state->globals.roots);
-      state->context_cache->reset();
-      state->global_cache->clear();
-    }
-
-    /* Stack Management procedures. Make sure that we don't
-     * miss object stored into the stack of a context */
-    if(active_->zone == MatureObjectZone) {
-      state->om->remember_object(active_);
-    }
-
-    if(home()->zone == MatureObjectZone && !home()->Remember) {
-      state->om->remember_object(home());
-    }
-  }
-
   void Task::enable_profiler() {
     profiler = new profiler::Profiler();
   }

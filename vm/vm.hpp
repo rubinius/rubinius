@@ -137,6 +137,9 @@ namespace rubinius {
     Thread* current_thread();
     void collect();
 
+    // Check the flags in ObjectMemory and collect if we need to.
+    void collect_maybe();
+
     void return_value(OBJECT val);
 
     void check_events();
