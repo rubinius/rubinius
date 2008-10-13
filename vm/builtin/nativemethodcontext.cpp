@@ -47,7 +47,7 @@ namespace rubinius {
     nmc->home(state, nmc);
     nmc->self(state, msg->recv);
     nmc->module(state, msg->module);
-    nmc->name(state, as<Object>(msg->name));
+    nmc->name(state, msg->name);
     nmc->block(state, msg->block);
 
     /* Fake that which is not needed. */
@@ -62,7 +62,7 @@ namespace rubinius {
     nmc->message_         = msg;
     nmc->message_from_c_  = new Message(state);
     nmc->method_          = method;
-    nmc->return_value_    = as<Object>(Qnil);
+    nmc->return_value_    = Qnil;
     nmc->stack_           = static_cast<void*>(new char[nmc->stack_size]);
     nmc->state_           = state;
     nmc->task_            = task;

@@ -249,7 +249,6 @@ namespace rubinius {
 
     globals.current_task.set(task);
     interrupts.check = true;
-    interrupts.switch_task = true;
   }
 
   OBJECT VM::current_block() {

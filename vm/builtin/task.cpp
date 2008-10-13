@@ -660,14 +660,7 @@ namespace rubinius {
         // Should we inspect the other interrupts?
         if(state->interrupts.check) {
           state->interrupts.check = false;
-
-          // If we're switching tasks, return to the task monitor
-          if(state->interrupts.switch_task) {
-            state->interrupts.switch_task = false;
-          }
-
           return;
-
         }
 
         if(state->om->collect_young_now || state->om->collect_mature_now) {

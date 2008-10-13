@@ -76,9 +76,6 @@ namespace {
 
     msg.lookup_from = (msg.recv->lookup_begin(context->state()));
 
-    msg.task        = context->task();
-    msg.task->call_flags = 0;
-
     Array* args = Array::create(context->state(), arg_count);
 
     for (std::size_t i = 0; i < arg_count; ++i) {

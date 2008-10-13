@@ -2914,7 +2914,7 @@ class Instructions
     msg.recv = stack_top();
     msg.block = Qnil;
     msg.splat = Qnil;
-    msg.total_args = 0;
+    msg.use_from_task(task, 0);
     msg.stack = 1;
 
     msg.priv = task->call_flags & 1;
@@ -2991,9 +2991,8 @@ class Instructions
     msg.recv = stack_back(count);
     msg.block = Qnil;
     msg.splat = Qnil;
-    msg.total_args = count;
-    msg.stack = count + 1;
     msg.use_from_task(task, count);
+    msg.stack = count + 1;
 
     msg.priv = task->call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -3071,10 +3070,9 @@ class Instructions
     msg.send_site = as<SendSite>(task->literals()->at(state, index));
     msg.block = stack_pop();
     msg.splat = Qnil;
-    msg.total_args = count;
+    msg.use_from_task(task, count);
     msg.recv = stack_back(count);
     msg.stack = count + 1;
-    msg.use_from_task(task, count);
 
     msg.priv = task->call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -3162,13 +3160,11 @@ class Instructions
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
-    msg.total_args = count;
     msg.recv = stack_back(count);
     msg.stack = count + 1;
 
-    if(ary->nil_p()) {
-      msg.use_from_task(task, count);
-    } else {
+    msg.use_from_task(task, count);
+    if(!ary->nil_p()) {
       msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
     }
 
@@ -3253,10 +3249,9 @@ class Instructions
     msg.send_site = as<SendSite>(task->literals()->at(state, index));
     msg.block = stack_pop();
     msg.splat = Qnil;
-    msg.total_args = count;
+    msg.use_from_task(task, count);
     msg.recv = task->self();
     msg.stack = count;
-    msg.use_from_task(task, count);
 
     msg.priv = TRUE;
     msg.lookup_from = task->current_module()->superclass();
@@ -3387,13 +3382,11 @@ class Instructions
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
-    msg.total_args = count;
     msg.recv = task->self();
     msg.stack = count;
 
-    if(ary->nil_p()) {
-      msg.use_from_task(task, count);
-    } else {
+    msg.use_from_task(task, count);
+    if(!ary->nil_p()) {
       msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
     }
 

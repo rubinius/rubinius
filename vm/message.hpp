@@ -96,10 +96,7 @@ namespace rubinius {
     /**
      *  Set the associated Task and explictly give total argument count.
      */
-    void use_from_task(Task* task, size_t args) {
-      this->task = task;
-      this->total_args = args;
-    }
+    void use_from_task(Task* task, size_t args);
 
     /*
      * Package up the arguments and return them as an Array
@@ -113,8 +110,6 @@ namespace rubinius {
 
     STATE    /* state */;       /**< Access to the VM state. */
     Array*      arguments;      /**< Arguments from the call. */
-    Task*       task;           /**< Access to the Task the method call runs in. */
-    size_t      argument_start; /**< NOT USED. Index where arguments would start. */
 
     SendSite*   send_site;      /**< SendSite in which this call originates. */
     SYMBOL      name;           /**< Name of the method being called (comes from SendSite) */
@@ -136,6 +131,9 @@ namespace rubinius {
      * This means we need to unshift the name of the name the method
      * was called as. */
     bool        method_missing;
+
+    /** The caller's MethodContext, where to get arguments from*/
+    MethodContext* caller;
   };
 }
 

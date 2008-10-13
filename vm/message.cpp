@@ -12,26 +12,34 @@
 namespace rubinius {
 
   Message::Message(STATE, Array* ary) :
-      task(NULL), argument_start(0), send_site(NULL), name(NULL),
+      send_site(NULL), name(NULL),
       recv(Qnil), block(Qnil), splat(Qnil), current_self(Qnil),
       total_args(0), stack(0), start(0), priv(false), lookup_from(NULL),
-      method(NULL), module(NULL), method_missing(false) {
+      method(NULL), module(NULL), method_missing(false),
+      caller(NULL) {
     this->state = state;
     arguments = ary;
     total_args = arguments->size();
   }
 
   Message::Message(STATE) :
-      state(state), arguments(NULL), task(NULL),
-      argument_start(0), send_site(NULL), name(NULL),
+      state(state), arguments(NULL),
+      send_site(NULL), name(NULL),
       recv(Qnil), block(Qnil), splat(Qnil), current_self(Qnil),
       total_args(0), stack(0), start(0), priv(false), lookup_from(NULL),
-      method(NULL), module(NULL), method_missing(false) { }
+      method(NULL), module(NULL), method_missing(false),
+      caller(NULL)
+  { }
+
+  void Message::use_from_task(Task* task, size_t args) {
+    this->caller = task->active();
+    this->total_args = args;
+  }
 
   OBJECT Message::get_argument(size_t index) {
     if(arguments) {
       return arguments->get(state, start + index);
-    } else if(task) {
+    } else if(caller) {
       /* recv
        * arg0
        * arg1
@@ -42,7 +50,7 @@ namespace rubinius {
        * back 3 is recv, - 1 to get to the first arg
        * - index to get to which argument you want
        */
-      return task->active()->stack_back(total_args - start - index - 1);
+      return caller->stack_back(total_args - start - index - 1);
     } else {
       Exception::assertion_error(state,
           "message arguments are not set up properly");
@@ -69,7 +77,8 @@ namespace rubinius {
   }
 
   void Message::import_arguments(STATE, Task* task, size_t args) {
-    this->task = task;
+    this->caller = task->active();
+
     if(!arguments) {
       arguments = Array::create(state, args);
     }
@@ -77,7 +86,7 @@ namespace rubinius {
     size_t stack_pos = start + args - 1;
 
     for(size_t i = 0; i < args; i++, stack_pos--) {
-      OBJECT arg = task->active()->stack_back(stack_pos);
+      OBJECT arg = caller->stack_back(stack_pos);
       arguments->set(state, i, arg);
     }
 
