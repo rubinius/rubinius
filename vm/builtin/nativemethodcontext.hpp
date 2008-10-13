@@ -196,40 +196,5 @@ namespace rubinius {
 }
 
 
-/**
- *  Define stream inserter for NMC frame info.
- *
- *  The only info coming from the context is really the name, file + line.
- */
-template<typename CharType, typename Traits>
-  std::basic_ostream<CharType, Traits>& operator<<(std::basic_ostream<CharType, Traits>& stream,
-                                                   const rubinius::NativeMethodContext* nmc) {
-  /* No futzing with broken streams. */
-  if (!stream.good()) {
-    return stream;
-  }
-
-  /* Ugh, sentries. */
-  typename std::basic_ostream<CharType, Traits>::sentry guard(stream);
-
-  if (guard) {
-    /* Using another stream here automates manipulators, yay. */
-    std::ostringstream out;
-
-    rubinius::Object* name = const_cast<rubinius::NativeMethodContext*>(nmc)->name();
-
-    out << rubinius::as<rubinius::Symbol>(name)->c_str(nmc->state())
-        << " in "
-        << nmc->method()->file_name()->c_str()
-        << ":<No line from C extension>";
-
-    /* Yes, we want the C string. */
-    stream << out.str().c_str();
-  }
-
-  return stream;
-}
-
-
 #endif
 

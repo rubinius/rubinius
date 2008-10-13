@@ -584,7 +584,6 @@ extern "C" {
     return rb_str_new(string, std::strlen(string));
   }
 
-  /* WTF is this idiocy? */
   VALUE rb_string_value(VALUE* obj_handle) {
     *obj_handle = rb_obj_as_string(*obj_handle);
     return *obj_handle;
