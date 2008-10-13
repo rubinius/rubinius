@@ -32,19 +32,12 @@ namespace rubinius {
   /* Initialize +ctx+'s fields */
   static void init_context(STATE, MethodContext* ctx, size_t stack) {
     ctx->ip = 0;
-    ctx->block(state, Qnil);
-    ctx->name(state, Qnil);
-    ctx->home(state, (MethodContext*)Qnil);
     ctx->ivars(state, Qnil);
-    ctx->sender(state, (MethodContext*)Qnil);
-    ctx->self(state, Qnil);
-    ctx->cm(state, (CompiledMethod*)Qnil);
-    ctx->module(state, (Module*)Qnil);
+
+    // Don't initialize any fields you KNOW are always set later
+    // on before the ctx is used. We just waste precious time if we do.
 
     ctx->stack_size = stack;
-    for(size_t i = 0; i < stack; i++) {
-      ctx->stk[i] = Qnil;
-    }
 
     ctx->js.stack = ctx->stk - 1;
     ctx->js.stack_top = ctx->stk + stack;
@@ -171,14 +164,22 @@ initialize:
    * expected to SET any fields it needs to, e.g. +module+
    */
   MethodContext* MethodContext::create(STATE, OBJECT recv, CompiledMethod* meth) {
-    MethodContext* ctx = MethodContext::create(state, meth->stack_size()->to_native());
+    MethodContext* ctx = allocate(state, G(methctx), meth->backend_method_->stack_size);
 
     ctx->self(state, recv);
     ctx->cm(state, meth);
     ctx->home(state, ctx);
 
     ctx->vmm = meth->backend_method_;
-    ctx->position_stack(meth->number_of_locals() - 1);
+
+    // nil out just where the locals are
+    native_int locals = ctx->vmm->number_of_locals;
+
+    for(native_int i = 0; i < locals; i++) {
+      ctx->stk[i] = Qnil;
+    }
+
+    ctx->position_stack(locals - 1);
 
     return ctx;
   }
@@ -265,6 +266,9 @@ initialize:
    * worth of stack. */
   BlockContext* BlockContext::create(STATE, size_t stack_size) {
     BlockContext* ctx = (BlockContext*)allocate(state, G(blokctx), stack_size);
+    ctx->self(state, Qnil);
+    ctx->module(state, (Module*)Qnil);
+    ctx->name(state, Qnil);
     return ctx;
   }
 
@@ -281,6 +285,7 @@ initialize:
     OBJECT stack_obj, marked;
     for(size_t i = 0; i < ctx->stack_size; i++) {
       stack_obj = ctx->stack_at(i);
+      if(!stack_obj) continue;
       marked = mark.call(stack_obj);
       if(marked) {
         ctx->stack_put(i, marked);

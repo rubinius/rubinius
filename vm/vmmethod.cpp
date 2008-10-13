@@ -45,6 +45,9 @@ namespace rubinius {
       }
     }
 
+    stack_size =    meth->stack_size()->to_native();
+    number_of_locals = meth->number_of_locals();
+
     total_args =    meth->total_args()->to_native();
     required_args = meth->required_args()->to_native();
     if(meth->splat()->nil_p()) {

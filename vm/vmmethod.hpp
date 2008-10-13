@@ -27,6 +27,9 @@ namespace rubinius {
     native_int required_args;
     native_int splat_position;
 
+    native_int stack_size;
+    native_int number_of_locals;
+
     VMMethod(STATE, CompiledMethod* meth);
     virtual ~VMMethod();
 

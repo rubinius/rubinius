@@ -96,37 +96,9 @@ per.times {
   }
 }
 
-cm = def foo
+def foo
   self
 end
-
-=begin
-puts "Test ruby method (prim): 250k loops calling self's foo 100 times"
-per.times {
-  puts Benchmark.measure {
-    i = 0;
-    while i < total/4
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
-      i += 1;
-    end
-  }
-}
-
-begin
-  cm.primitive = nil
-rescue
-  puts "No .primitive available"
-end
-=end
 
 puts "Test ruby method: 250k loops calling self's foo 100 times"
 per.times {
