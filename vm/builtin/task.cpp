@@ -628,8 +628,6 @@ namespace rubinius {
 
   /* This should only ever run for CompiledMethods currently. */
   void Task::execute() {
-    if(active_->nil_p()) return;
-
     try {
       for(;;) {
         active_->vmm->resume(this, active_);
