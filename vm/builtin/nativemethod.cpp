@@ -151,13 +151,13 @@ namespace rubinius {
 
       case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
 
-        Handle* args = new Handle[message->total_args];
+        Handle* args = new Handle[message->args()];
 
-        for (std::size_t i = 0; i < message->total_args; ++i) {
+        for (std::size_t i = 0; i < message->args(); ++i) {
           args[i] = context->handle_for(message->get_argument(i));
         }
 
-        Handle ret_handle = context->method()->functor_as<ArgcFunctor>()(message->total_args, args, receiver);
+        Handle ret_handle = context->method()->functor_as<ArgcFunctor>()(message->args(), args, receiver);
 
         context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));

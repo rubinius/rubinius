@@ -177,7 +177,7 @@ class TestSubtend : public CxxTest::TestSuite
       control->set(my_state, i, obj);
     }
 
-    my_message->arguments = args;
+    my_message->set_arguments(my_state, args);
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(my_state,
@@ -217,7 +217,7 @@ class TestSubtend : public CxxTest::TestSuite
     Object* receiver = my_state->new_object(my_state->globals.object.get());
 
     my_message->recv = receiver;
-    my_message->arguments = args;
+    my_message->set_arguments(my_state, args);
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(my_state,
@@ -258,8 +258,7 @@ class TestSubtend : public CxxTest::TestSuite
     Object* receiver = my_state->new_object(my_state->globals.object.get());
 
     my_message->recv = receiver;
-    my_message->arguments = args;
-    my_message->total_args = 10;
+    my_message->set_arguments(my_state, args);
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(my_state,
@@ -303,8 +302,7 @@ class TestSubtend : public CxxTest::TestSuite
     Object* receiver = my_state->new_object(my_state->globals.object.get());
 
     my_message->recv = receiver;
-    my_message->arguments = args;
-    my_message->total_args = arg_count;
+    my_message->set_arguments(my_state, args);
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(my_state,
@@ -337,8 +335,7 @@ class TestSubtend : public CxxTest::TestSuite
     Object* receiver = my_state->new_object(my_state->globals.object.get());
 
     my_message->recv = receiver;
-    my_message->arguments = args;
-    my_message->total_args = arg_count;
+    my_message->set_arguments(my_state, args);
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(my_state,
@@ -371,8 +368,7 @@ class TestSubtend : public CxxTest::TestSuite
     Object* receiver = my_state->new_object(my_state->globals.object.get());
 
     my_message->recv = receiver;
-    my_message->arguments = args;
-    my_message->total_args = arg_count;
+    my_message->set_arguments(my_state, args);
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(my_state,
@@ -405,8 +401,7 @@ class TestSubtend : public CxxTest::TestSuite
     Object* receiver = my_state->new_object(my_state->globals.object.get());
 
     my_message->recv = receiver;
-    my_message->arguments = args;
-    my_message->total_args = arg_count;
+    my_message->set_arguments(my_state, args);
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(my_state,
@@ -439,8 +434,7 @@ class TestSubtend : public CxxTest::TestSuite
     Object* receiver = my_state->new_object(my_state->globals.object.get());
 
     my_message->recv = receiver;
-    my_message->arguments = args;
-    my_message->total_args = arg_count;
+    my_message->set_arguments(my_state, args);
     my_message->name = my_state->symbol("__subtend_fake_test_method__");
 
     NativeMethod* method = NativeMethod::create(my_state,
@@ -480,8 +474,7 @@ class TestSubtend : public CxxTest::TestSuite
     Object* receiver = my_state->new_object(my_state->globals.object.get());
 
     my_message->recv = receiver;
-    my_message->arguments = args;
-    my_message->total_args = 2;
+    my_message->set_arguments(my_state, args);
     my_message->name = my_state->symbol("__subtend_fake_funcall_test_method__");
 
     NativeMethod* method = NativeMethod::create(my_state,

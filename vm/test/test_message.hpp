@@ -163,12 +163,12 @@ class TestMessage : public CxxTest::TestSuite {
     msg.use_from_task(task, 2);
 
     TS_ASSERT_EQUALS(2U, msg.args());
-    TS_ASSERT_EQUALS(msg.start, 0U);
+    TS_ASSERT_EQUALS(msg.start(), 0U);
 
     FIXNUM shifted = as<Fixnum>(msg.shift_argument(state));
     TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
     TS_ASSERT_EQUALS(msg.args(), 1U);
-    TS_ASSERT_EQUALS(msg.start, 1U);
+    TS_ASSERT_EQUALS(msg.start(), 1U);
 
     TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(47));
   }
@@ -225,5 +225,31 @@ class TestMessage : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(msg.get_argument(0), shifted);
     TS_ASSERT_EQUALS(msg.get_argument(1), Fixnum::from(47));
+  }
+
+  void test_as_array() {
+    Message msg(state);
+    Task* task = Task::create(state, 10);
+    SYMBOL sym = state->symbol("to_int");
+    task->push(sym);
+    msg.use_from_task(task, 1);
+
+    Array* ary = msg.as_array(state);
+    TS_ASSERT_EQUALS(ary->size(), 1);
+    TS_ASSERT_EQUALS(ary->get(state, 0), sym);
+
+    msg.unshift_argument(state, Fixnum::from(3));
+
+    ary = msg.as_array(state);
+    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(ary->get(state, 1), sym);
+
+    msg.shift_argument(state);
+
+    ary = msg.as_array(state);
+    TS_ASSERT_EQUALS(ary->size(), 1);
+    TS_ASSERT_EQUALS(ary->get(state, 0), sym);
+
   }
 };

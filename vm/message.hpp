@@ -39,7 +39,7 @@ namespace rubinius {
     /**
      *  Number of remaining (unconsumed) arguments.
      */
-    size_t args() { return total_args - start; }
+    size_t args() { return total_args - start_; }
 
     /**
      *  Import arguments from the splat Array into arguments Array.
@@ -63,7 +63,7 @@ namespace rubinius {
      *  Drop arguments Array.
      */
     void reset() {
-      start = 0;
+      start_ = 0;
       arguments = NULL;
       method_missing = false;
     }
@@ -103,13 +103,13 @@ namespace rubinius {
      */
     Array* as_array(STATE);
 
-  public:   /* Instance variables */
-
-    /* TODO: Remove the unused ivars? */
-    /* TODO: Instance variables SHOULD always be alphabetised. */
-
+  private:
     STATE    /* state */;       /**< Access to the VM state. */
     Array*      arguments;      /**< Arguments from the call. */
+    size_t      total_args;     /**< Total number of arguments given, including unsplatted. */
+    size_t      start_;          /**< Index of first remaining argument in arguments. */
+
+  public:   /* Instance variables */
 
     SendSite*   send_site;      /**< SendSite in which this call originates. */
     SYMBOL      name;           /**< Name of the method being called (comes from SendSite) */
@@ -117,9 +117,7 @@ namespace rubinius {
     Object*     block;          /**< Block object or nil if no block. */
     Object*     splat;          /**< NOT USED. The splat argument to the call. */
     Object*     current_self;   /**< self at the point of the call. */
-    size_t      total_args;     /**< Total number of arguments given, including unsplatted. */
     size_t      stack;          /**< Number of arguments on the stack when call occurs + 1 for return value. */
-    size_t      start;          /**< Index of first remaining argument in arguments. */
     bool        priv;           /**< Indicates that this call can access private methods. */
 
     Module*     lookup_from;    /**< The Module in which is the first method table to look from. Usually MetaClass or Class. */
@@ -132,8 +130,13 @@ namespace rubinius {
      * was called as. */
     bool        method_missing;
 
+  private:
     /** The caller's MethodContext, where to get arguments from*/
     MethodContext* caller;
+
+
+  public: // accessors
+    size_t start() { return start_; }
   };
 }
 

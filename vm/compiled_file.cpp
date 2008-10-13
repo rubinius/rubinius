@@ -40,10 +40,10 @@ namespace rubinius {
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
     Message msg(state);
-    msg.total_args = 0;
     msg.recv = G(main);
     msg.name = cm->name();
     msg.module = G(object);
+    msg.use_from_task(task, 0);
 
     G(current_thread)->task(state, task);
     state->activate_task(task);

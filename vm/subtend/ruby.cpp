@@ -70,8 +70,7 @@ namespace {
     msg.recv        = context->object_from(receiver);
     msg.block       = RBX_Qnil;
     msg.splat       = RBX_Qnil;
-    msg.total_args  = arg_count;
-    msg.stack       = arg_count + 1;
+    msg.stack       = 0;
     msg.priv        = true;           /* TODO: Double-check this */
 
     msg.lookup_from = (msg.recv->lookup_begin(context->state()));
