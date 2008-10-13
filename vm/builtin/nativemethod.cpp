@@ -86,7 +86,11 @@ namespace rubinius {
   bool NativeMethod::executor_implementation(STATE, Executable* method, Task* task, Message& message) {
     NativeMethodContext* context = NativeMethodContext::create(state, &message, task, as<NativeMethod>(method));
 
-    /* Arguments may not have been set up properly yet.. sigh. */
+    /* Force the callers arguments to be imported into the arguments
+     * Array.
+     *
+     * TODO Don't depend on message.arguments! Use message.get_argument
+     * instead! */
     if (message.arguments == NULL) {
       message.import_arguments(state, task, message.total_args);
     }
@@ -113,6 +117,9 @@ namespace rubinius {
    *  This method always executes on the separate stack created for the context.
    *
    *  Fortunately for us, Message always has an Array of arguments.
+   *  TODO: WRONG! You should use Message::get_argument to pull in arguments!
+   *  TODO| There is only an arguments Array in a few cases, otherwise the arguments
+   *  TODO| are accessed directly from the caller's stack!
    *
    *    Arity -3:   VALUE func(VALUE argument_array);
    *    Arity -2:   VALUE func(VALUE receiver, VALUE argument_array);

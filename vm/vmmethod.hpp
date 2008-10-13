@@ -23,6 +23,10 @@ namespace rubinius {
     TypeInfo* type;
     std::vector<VMMethod*> blocks;
 
+    native_int total_args;
+    native_int required_args;
+    native_int splat_position;
+
     VMMethod(STATE, CompiledMethod* meth);
     virtual ~VMMethod();
 
@@ -30,6 +34,8 @@ namespace rubinius {
     virtual void compile(STATE);
     static bool execute(STATE, Executable* meth, Task* task, Message& msg);
     virtual void resume(Task* task, MethodContext* ctx);
+
+    void setup_argument_handler(CompiledMethod* meth);
 
     std::vector<Opcode*> create_opcodes();
 

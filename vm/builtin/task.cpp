@@ -126,6 +126,8 @@ namespace rubinius {
   }
 
   /**
+   *  TODO: I don't understand this TODO. Please clarify it. (emp)
+   *
    *  TODO: Clean this up. Seriously. Currently it involves:
    *        1. This method, called by VMMethod;
    *        2. Message::get_argument();
@@ -135,6 +137,9 @@ namespace rubinius {
    *        combine_with_splat() is _always_ called for splats,
    *        and it invokes Message::import_arguments() which
    *        means this method is superfluous then.
+   *
+   * (EMP) Surely this last statement is wrong. We have to pull the
+   * arguments into locals somehow. This is how it's done.
    */
   void Task::import_arguments(MethodContext* ctx, Message& msg) {
     size_t total = ctx->cm()->total_args()->to_native();

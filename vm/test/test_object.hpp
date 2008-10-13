@@ -378,7 +378,7 @@ class TestObject : public CxxTest::TestSuite {
     cm->total_args(state, Fixnum::from(0));
     cm->required_args(state, cm->total_args());
 
-    cm->formalize(state);
+    // cm->formalize(state);
 
     return cm;
   }

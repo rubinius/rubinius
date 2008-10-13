@@ -6,6 +6,8 @@ total = total.to_i
 
 per = 2
 
+puts "Iterations: #{total}"
+
 puts "Control: 1m loops accessing a local variable 100 times"
 per.times {
   puts Benchmark.measure {
@@ -141,6 +143,30 @@ per.times {
       foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
       foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
       foo; foo; foo; foo; foo; foo; foo; foo; foo; foo;
+      i += 1;
+    end
+  }
+}
+
+def foo2(a,b)
+  nil
+end
+
+puts "Test ruby method: 250k loops calling self's foo 100 times (with 2 args)"
+per.times {
+  puts Benchmark.measure {
+    i = 0;
+    while i < total/4
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
+      foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1); foo2(1,1);
       i += 1;
     end
   }
