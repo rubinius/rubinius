@@ -91,7 +91,6 @@ namespace rubinius {
 
     void execute();
     void execute_interp();
-    void import_arguments(MethodContext* ctx, Message& msg);
     bool passed_arg_p(size_t pos);
 
     void methctx_reference(MethodContext* ctx);
