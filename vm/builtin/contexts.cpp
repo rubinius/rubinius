@@ -128,8 +128,6 @@ initialize:
         which = LargeContextCache;
       }
 
-      // HACK this is broken. It's adding context which
-      // are still live into the cache (busting those contexts)
       state->context_cache->add(state, which, this);
       return true;
     }

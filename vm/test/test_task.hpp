@@ -508,35 +508,6 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ncur->sender(), cur);
   }
 
-  void test_simple_return() {
-    CompiledMethod* cm = create_cm();
-    cm->total_args(state, Fixnum::from(0));
-    cm->stack_size(state, Fixnum::from(1));
-
-    Task* task = Task::create(state, Qnil, cm);
-
-    MethodContext* top = task->active();
-
-    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
-
-    Message msg(state);
-    msg.recv = Qtrue;
-    msg.lookup_from = G(true_class);
-    msg.name = state->symbol("blah");
-    msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.set_args(0);
-
-    MethodContext* before = task->active();
-
-    task->send_message(msg);
-
-    TS_ASSERT_DIFFERS(before, task->active());
-
-    task->simple_return(Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->active(), before);
-    TS_ASSERT_EQUALS(task->active(), top);
-  }
-
   void test_locate_method_on() {
     CompiledMethod* cm = create_cm();
     cm->stack_size(state, Fixnum::from(1));

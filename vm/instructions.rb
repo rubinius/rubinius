@@ -2822,7 +2822,50 @@ class Instructions
 
   def ret
     <<-CODE
-    task->simple_return(stack_top());
+    OBJECT value = stack_top();
+    MethodContext* active_context = task->active();
+    MethodContext* dest = active_context->sender();
+
+    NativeMethodContext* nmc = try_as<NativeMethodContext>(dest);
+
+    if(unlikely(nmc)) {
+      task->active(state, nmc);
+
+      nmc->value_returned_to_c(value);
+      nmc->action(NativeMethodContext::RETURNED_BACK_TO_C);
+
+      NativeMethod::activate_from(nmc);
+    }
+    else {
+      // restore_sender();
+      // === manual inline ===
+      // == restore_sender ==
+
+      // if(unlikely(profiler)) profiler->leave_method();
+      /* Try to recycle this context to be used again. */
+      active_context->recycle(state);
+
+      // == restore_context ==
+      task->active(state, dest);
+
+      /* Stack Management procedures. Make sure that we don't
+       * miss object stored into the stack of a context */
+      if(dest->zone == MatureObjectZone) {
+        state->om->remember_object(dest);
+      }
+
+      // We do this because blocks set locals in their home and we need
+      // catch that.
+      //
+      // NOTE we could instead manually run the write barrier when setting
+      // locals.
+      if(dest->home()->zone == MatureObjectZone && !dest->home()->Remember) {
+        state->om->remember_object(dest->home());
+      }
+
+      // === end manual inline ===
+      dest->push(value);
+    }
     CODE
   end
 

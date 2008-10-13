@@ -213,34 +213,11 @@ namespace rubinius {
   void Task::restore_sender() {
     MethodContext *target = active_->sender();
 
-    if(profiler) profiler->leave_method();
+    if(unlikely(profiler)) profiler->leave_method();
     /* Try to recycle this context to be used again. */
     active_->recycle(state);
 
     restore_context(target);
-  }
-
-  /**
-   *  Note that we may end up returning from several NativeMethods
-   *  here.
-   *
-   *  TODO: Reproducing restore_context(). Update both until fixed.
-   */
-  void Task::simple_return(OBJECT value) {
-    NativeMethodContext* nmc = try_as<NativeMethodContext>(active_->sender());
-
-    if (nmc) {
-      active(state, nmc);
-
-      nmc->value_returned_to_c(value);
-      nmc->action(NativeMethodContext::RETURNED_BACK_TO_C);
-
-      NativeMethod::activate_from(nmc);
-    }
-    else {
-      restore_sender();
-      active_->push(value);
-    }
   }
 
   /* TODO: Mirrors restore_sender too much, unify. */

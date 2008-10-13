@@ -57,9 +57,6 @@ namespace rubinius {
       /*  CompiledMethods are only loaded, not executed, so a
        *  So, we return from here which then allows the CM to really
        *  execute.
-       *
-       *  The other types should already have invoked Task::simple_return()
-       *  which completes through resume() and CMs will get there later.
        */
       context->task()->send_message_slowly(context->message_from_c());
       return true;

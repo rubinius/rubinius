@@ -120,7 +120,6 @@ namespace rubinius {
 
     Tuple* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
 
-    void simple_return(OBJECT val);
     /** Returning from a NativeMethod and restoring sender. */
     void native_return(Object* return_value);
 

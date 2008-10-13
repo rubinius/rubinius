@@ -46,7 +46,7 @@ class Instructions
     # code returns void or bool.
     #
     def return_type
-      if /RETURN/.match(body)
+      if /RETURN\(/.match(body)
         "bool"
       else
         "void"
