@@ -86,15 +86,6 @@ namespace rubinius {
   bool NativeMethod::executor_implementation(STATE, Executable* method, Task* task, Message& message) {
     NativeMethodContext* context = NativeMethodContext::create(state, &message, task, as<NativeMethod>(method));
 
-    /* Force the callers arguments to be imported into the arguments
-     * Array.
-     *
-     * TODO Don't depend on message.arguments! Use message.get_argument
-     * instead! */
-    if (message.arguments == NULL) {
-      message.import_arguments(state, task, message.total_args);
-    }
-
     task->active(state, context);
 
     return activate_from(context);
@@ -116,11 +107,6 @@ namespace rubinius {
   /**
    *  This method always executes on the separate stack created for the context.
    *
-   *  Fortunately for us, Message always has an Array of arguments.
-   *  TODO: WRONG! You should use Message::get_argument to pull in arguments!
-   *  TODO| There is only an arguments Array in a few cases, otherwise the arguments
-   *  TODO| are accessed directly from the caller's stack!
-   *
    *    Arity -3:   VALUE func(VALUE argument_array);
    *    Arity -2:   VALUE func(VALUE receiver, VALUE argument_array);
    *    Arity -1:   VALUE func(int argument_count, VALUE*, VALUE receiver);
@@ -132,9 +118,6 @@ namespace rubinius {
    *  @note   Currently supports functions with up to receiver + 5 (separate) arguments only!
    *          Anything beyond that should use one of the special arities instead.
    *
-   *  TODO:   Improve the arg handling. Currently we need to check whether
-   *          import_arguments() has already run (always occurs when there
-   *          is a splat.)
    *  TODO:   Check for inefficiencies.
    */
   void NativeMethod::perform_call() {
@@ -148,7 +131,7 @@ namespace rubinius {
 
       switch (context->method()->arity()->to_int()) {
       case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
-        Handle args = context->handle_for(message->arguments);
+        Handle args = context->handle_for(message->as_array(context->state()));
 
         Handle ret_handle = context->method()->functor_as<OneArgFunctor>()(args);
 
@@ -157,7 +140,7 @@ namespace rubinius {
       }
 
       case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
-        Handle args = context->handle_for(message->arguments);
+        Handle args = context->handle_for(message->as_array(context->state()));
 
         Handle ret_handle = context->method()->functor_as<TwoArgFunctor>()(receiver, args);
 
@@ -171,7 +154,7 @@ namespace rubinius {
         Handle* args = new Handle[message->total_args];
 
         for (std::size_t i = 0; i < message->total_args; ++i) {
-          args[i] = context->handle_for(message->arguments->get(context->state(), i));
+          args[i] = context->handle_for(message->get_argument(i));
         }
 
         Handle ret_handle = context->method()->functor_as<ArgcFunctor>()(message->total_args, args, receiver);
@@ -202,7 +185,7 @@ namespace rubinius {
         TwoArgFunctor functor = context->method()->functor_as<TwoArgFunctor>();
 
         Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->arguments->get(context->state(), 0)));
+                                    context->handle_for(message->get_argument(0)));
 
         context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
@@ -213,8 +196,8 @@ namespace rubinius {
         ThreeArgFunctor functor = context->method()->functor_as<ThreeArgFunctor>();
 
         Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->arguments->get(context->state(), 0)),
-                                    context->handle_for(message->arguments->get(context->state(), 1))
+                                    context->handle_for(message->get_argument(0)),
+                                    context->handle_for(message->get_argument(1))
                                    );
 
         context = NativeMethodContext::current();
@@ -226,9 +209,9 @@ namespace rubinius {
         FourArgFunctor functor = context->method()->functor_as<FourArgFunctor>();
 
         Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->arguments->get(context->state(), 0)),
-                                    context->handle_for(message->arguments->get(context->state(), 1)),
-                                    context->handle_for(message->arguments->get(context->state(), 2))
+                                    context->handle_for(message->get_argument(0)),
+                                    context->handle_for(message->get_argument(1)),
+                                    context->handle_for(message->get_argument(2))
                                    );
 
         context = NativeMethodContext::current();
@@ -240,10 +223,10 @@ namespace rubinius {
         FiveArgFunctor functor = context->method()->functor_as<FiveArgFunctor>();
 
         Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->arguments->get(context->state(), 0)),
-                                    context->handle_for(message->arguments->get(context->state(), 1)),
-                                    context->handle_for(message->arguments->get(context->state(), 2)),
-                                    context->handle_for(message->arguments->get(context->state(), 3))
+                                    context->handle_for(message->get_argument(0)),
+                                    context->handle_for(message->get_argument(1)),
+                                    context->handle_for(message->get_argument(2)),
+                                    context->handle_for(message->get_argument(3))
                                    );
 
         context = NativeMethodContext::current();
@@ -255,11 +238,11 @@ namespace rubinius {
         SixArgFunctor functor = context->method()->functor_as<SixArgFunctor>();
 
         Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->arguments->get(context->state(), 0)),
-                                    context->handle_for(message->arguments->get(context->state(), 1)),
-                                    context->handle_for(message->arguments->get(context->state(), 2)),
-                                    context->handle_for(message->arguments->get(context->state(), 3)),
-                                    context->handle_for(message->arguments->get(context->state(), 4))
+                                    context->handle_for(message->get_argument(0)),
+                                    context->handle_for(message->get_argument(1)),
+                                    context->handle_for(message->get_argument(2)),
+                                    context->handle_for(message->get_argument(3)),
+                                    context->handle_for(message->get_argument(4))
                                    );
 
         context = NativeMethodContext::current();

@@ -84,6 +84,18 @@ namespace rubinius {
     total_args = args;
   }
 
+  Array* Message::as_array(STATE) {
+    if(arguments) return arguments;
+
+    Array* ary = Array::create(state, args());
+
+    for(size_t i = 0; i < args(); i++) {
+      ary->set(state, i, get_argument(i));
+    }
+
+    return ary;
+  }
+
   void Message::unshift_argument(STATE, OBJECT val) {
     if(arguments) {
       total_args++;

@@ -101,6 +101,11 @@ namespace rubinius {
       this->total_args = args;
     }
 
+    /*
+     * Package up the arguments and return them as an Array
+     */
+    Array* as_array(STATE);
+
   public:   /* Instance variables */
 
     /* TODO: Remove the unused ivars? */
