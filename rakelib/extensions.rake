@@ -5,26 +5,58 @@ task :extensions => %w[
   vm/vm
   kernel:build
 
-  lib/etc.rb
-  lib/fcntl.rb
-  lib/openssl/digest.rb
-  lib/syslog.rb
-  lib/zlib.rb
+  extension:readline
 ]
+
+#  lib/etc.rb
+#  lib/fcntl.rb
+#  lib/openssl/digest.rb
+#  lib/syslog.rb
+#  lib/zlib.rb
+
 #  extension:digest_rmd160
 #  extension:digest_md5
 #  extension:digest_sha1
 #  extension:digest_sha2
+
 #
-#  extension:readline
+# Ask the VM to build an extension from source.
+#
+def compile_extension(path, flags = "-d -p -C,-ggdb3 -C,-O0 -I#{Dir.pwd}/vm/subtend")
+  command = "./bin/rbx compile #{flags} #{path}"
+
+  puts "Executing `#{command}`" if $verbose
+
+  sh command
+end
 
 namespace :extension do
-  desc "Cleans all compiled extension files (lib/ext)"
+
+  desc "Cleans all C extension libraries and build products."
   task :clean do
-    Dir["lib/ext/**/*#{$dlext}"].each do |f|
+    Dir["lib/ext/**/*.{o,#{$dlext}}"].each do |f|
       rm_f f, :verbose => $verbose
     end
+
+#    FileList["lib/ext/**/*.o"].each {|f| rm f, :verbose => $verbose }
   end
+
+  desc "Build the readline extension"
+  task :readline => "lib/ext/readline/readline.#{$dlext}"
+
+  file "lib/ext/readline/readline.#{$dlext}" => FileList[
+       "lib/ext/readline/readline.c",
+       "lib/ext/readline/build.rb",
+       "vm/vm"
+  ] do
+    FileList["lib/ext/readline/readline.{o,#{$dlext}}"].each do |f|
+      rm f, :verbose => $verbose
+    end
+
+    compile_extension 'lib/ext/readline'
+  end
+
+  # The ones below are not used currently.
 
   FFI::Generator::Task.new %w[
     lib/etc.rb
@@ -91,16 +123,6 @@ namespace :extension do
     'lib/ext/mongrel/*.h',
   ] do
     compile_ruby "lib/ext/mongrel"
-  end
-
-  task :readline => %W[lib/ext/readline/readline.#{$dlext} lib/readline.rb]
-
-  file "lib/ext/readline/readline.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/*',
-    'lib/ext/readline/build.rb',
-    'lib/ext/readline/*.c'
-  ] do
-    compile_ruby "lib/ext/readline"
   end
 end
 

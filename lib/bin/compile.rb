@@ -2,42 +2,52 @@ $: << "#{Dir.pwd}/lib"
 
 class ExtensionCompiler
 
-  def initialize(extra = [], flags = [], rest = [])
+  def initialize(flags = [], extra = [])
+    @files = []
     @includes = []
     @link_flags = []
-    @compile_flags = ["-ggdb3 -O0"]
-
-    extra.each do |e|
-      if e.prefix?("-I")
-        @includes << e
-      elsif e.prefix?("-C,")
-        @compile_flags << e[3..-1]
-      else
-        @link_flags << e
-      end
-    end
+    @compile_flags = []
 
     @output_name = nil
-    @preserve_objects = false
+    @preserve_objects = true if $DEBUG
 
-    @files = []
-    @flags = flags
-    flags.each do |i|
-      if m = /output=(.*)/.match(i)
-        @output_name = m[1]
-      end
+    flags << "-h" unless extra.empty?
 
-      if i == "-p"
+    flags.each do |flag|
+      case flag
+      when /^-I/
+        @includes << flag
+
+      when /^-C,/
+        @compile_flags << flag[3..-1]
+
+      when /^-Wl,/
+        @link_flags << flag[4..-1]
+
+      when /output=(.*?)/
+        @output_name = $1
+
+      when /^-p$/
         @preserve_objects = true
+
+      when /^-d$/
+        $VERBOSE = 2
+
+      when /^-h$/
+        puts  "Options:\n\n" \
+              "         -I<includedir>      # E.g. -I/usr/local/include\n" \
+              "         -C,<compiler flag>  # E.g. -C,-ggdb3\n" \
+              "         -Wl,<linker flag>   # E.g. -Wl,-zelda\n" \
+              "         -p                  # Preserve objects\n" \
+              "         -d                  # Verbose output\n" \
+              "         output=<filename>   # E.g. output=moo.so"
+
+        exit 1
+
+      else
+        flags << "-h"
+
       end
-    end
-
-    if $DEBUG
-      @preserve_objects = true
-    end
-
-    if File.exists?("vm/subtend/ruby.h")
-      @includes << "-I#{Dir.pwd}/vm/subtend"
     end
 
   end
@@ -240,24 +250,34 @@ end
 file = ARGV.shift
 
 if File.directory?(file)
+
   rec = File.join(file, "build.rb")
+
   unless File.exists?(rec)
     puts "No build instructions found in #{file}"
     exit 1
   end
+
   puts "Building from instructions at #{rec}" if $VERBOSE
-  ext = ExtensionCompiler.new(ext_flags, flags, ARGV)
+
+  ext = ExtensionCompiler.new(flags, ARGV)
+
   dsl = ExtensionCompiler::DSL.new(ext)
   dsl.setup
+
   cur = Dir.pwd
   Dir.chdir file
   load "build.rb"
+
   ext.compile
+
 elsif file.suffix?(".c")
-  puts "Compiling extension #{file}..."
-  ext = ExtensionCompiler.new(ext_flags, flags, ARGV)
+  puts "Compiling extension #{file}..." if $VERBOSE
+
+  ext = ExtensionCompiler.new(flags, ARGV)
   ext.add_file file
   ext.compile
+
 else
   if File.exists?(file)
 
