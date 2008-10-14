@@ -59,7 +59,7 @@ class Instructions
     def signature
       av = args.map { |name| "int #{name}" }.join(", ")
       av = ", #{av}" unless av.empty?
-      "#{return_type} op_#{name.opcode}(Task* task, struct jit_state* const js #{av})"
+      "#{return_type} op_#{name.opcode}(VMMethod* vmm, Task* task, MethodContext* const ctx #{av})"
     end
   end
 

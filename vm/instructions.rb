@@ -1407,7 +1407,7 @@ class Instructions
       RETURN(true);
     }
 
-    RETURN(send_slowly(task, js, G(sym_call), count));
+    RETURN(send_slowly(vmm, task, ctx, G(sym_call), count));
     CODE
   end
 
@@ -1478,7 +1478,7 @@ class Instructions
       RETURN(false);
     }
 
-    RETURN(send_slowly(task, js, G(sym_equal), 1));
+    RETURN(send_slowly(vmm, task, ctx, G(sym_equal), 1));
     CODE
   end
 
@@ -1526,7 +1526,7 @@ class Instructions
       RETURN(false);
     }
 
-    RETURN(send_slowly(task, js, G(sym_gt), 1));
+    RETURN(send_slowly(vmm, task, ctx, G(sym_gt), 1));
     CODE
   end
 
@@ -1574,7 +1574,7 @@ class Instructions
       RETURN(false);
     }
 
-    RETURN(send_slowly(task, js, G(sym_lt), 1));
+    RETURN(send_slowly(vmm, task, ctx, G(sym_lt), 1));
     CODE
   end
 
@@ -1623,7 +1623,7 @@ class Instructions
       RETURN(false);
     }
 
-    RETURN(send_slowly(task, js, G(sym_minus), 1));
+    RETURN(send_slowly(vmm, task, ctx, G(sym_minus), 1));
     CODE
   end
 
@@ -1673,7 +1673,7 @@ class Instructions
       RETURN(false);
     }
 
-    RETURN(send_slowly(task, js, G(sym_nequal), 1));
+    RETURN(send_slowly(vmm, task, ctx, G(sym_nequal), 1));
     CODE
   end
 
@@ -1722,7 +1722,7 @@ class Instructions
       RETURN(false);
     }
 
-    RETURN(send_slowly(task, js, G(sym_plus), 1));
+    RETURN(send_slowly(vmm, task, ctx, G(sym_plus), 1));
     CODE
   end
 
@@ -1771,7 +1771,7 @@ class Instructions
       RETURN(false);
     }
 
-    RETURN(send_slowly(task, js, G(sym_tequal), 1));
+    RETURN(send_slowly(vmm, task, ctx, G(sym_tequal), 1));
     CODE
   end
 
@@ -2332,7 +2332,6 @@ class Instructions
 
   def push_context
     <<-CODE
-    MethodContext* ctx = task->active();
     ctx->reference(state);
     stack_push(ctx);
     CODE
@@ -2953,7 +2952,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(state, index));
+    msg.send_site = vmm->sendsites[index].get();
     msg.recv = stack_top();
     msg.block = Qnil;
     msg.splat = Qnil;
@@ -2983,6 +2982,9 @@ class Instructions
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
+
+    TypedRoot<SendSite*> tr_ss(state, ss);
+    ctx->vmm->sendsites = &tr_ss;
 
     task->literals()->put(state, 0, ss);
     task->push(Qtrue);
@@ -3030,7 +3032,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(state, index));
+    msg.send_site = vmm->sendsites[index].get();
     msg.recv = stack_back(count);
     msg.block = Qnil;
     msg.splat = Qnil;
@@ -3060,6 +3062,10 @@ class Instructions
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
+
+    TypedRoot<SendSite*> tr_ss(state, ss);
+    ctx->vmm->sendsites = &tr_ss;
+
 
     task->literals()->put(state, 0, ss);
     task->push(Qtrue);
@@ -3110,7 +3116,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(state, index));
+    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.use_from_task(task, count);
@@ -3140,6 +3146,8 @@ class Instructions
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
+    TypedRoot<SendSite*> tr_ss(state, ss);
+    ctx->vmm->sendsites = &tr_ss;
 
     task->literals()->put(state, 0, ss);
     task->push(Qtrue);
@@ -3199,7 +3207,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(state, index));
+    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
@@ -3234,6 +3242,8 @@ class Instructions
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
+    TypedRoot<SendSite*> tr_ss(state, ss);
+    ctx->vmm->sendsites = &tr_ss;
 
     task->literals()->put(state, 0, ss);
     task->push(Qtrue);
@@ -3289,7 +3299,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(state, index));
+    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.use_from_task(task, count);
@@ -3322,6 +3332,8 @@ class Instructions
     SYMBOL blah = state->symbol("blah");
     parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
+    TypedRoot<SendSite*> tr_ss(state, ss);
+    ctx->vmm->sendsites = &tr_ss;
 
     OBJECT obj = state->new_object(child);
     task->self(state, obj);
@@ -3421,7 +3433,7 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = as<SendSite>(task->literals()->at(state, index));
+    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
     msg.splat = Qnil;
@@ -3459,6 +3471,8 @@ class Instructions
     SYMBOL blah = state->symbol("blah");
     parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
+    TypedRoot<SendSite*> tr_ss(state, ss);
+    ctx->vmm->sendsites = &tr_ss;
 
     OBJECT obj = state->new_object(child);
     task->self(state, obj);

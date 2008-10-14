@@ -17,21 +17,21 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/nativemethodcontext.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/contexts.hpp"
 
-#include "jit_state.h"
 #include "objectmemory.hpp"
 
 using namespace rubinius;
 
-#define OP(name, args...) void name(Task* task, struct jit_state* const js, ## args)
-#define OP2(type, name, args...) type name(Task* task, struct jit_state* const js, ## args)
+// #define OP(name, args...) void name(Task* task, struct jit_state* const js, ## args)
+#define OP2(type, name, args...) type name(Task* task, MethodContext* const ctx, ## args)
 // HACK: sassert is stack protection
 // #define stack_push(val) ({ OBJECT _v = (val); sassert(_v && js->stack < js->stack_top); *++js->stack = _v; })
-#define stack_push(val) *++js->stack = (val)
-#define stack_pop() *js->stack--
-#define stack_top() *js->stack
-#define stack_back(count) *(js->stack - count)
-#define stack_set_top(val) *js->stack = (val)
+#define stack_push(val) *++ctx->js.stack = (val)
+#define stack_pop() *ctx->js.stack--
+#define stack_top() *ctx->js.stack
+#define stack_back(count) *(ctx->js.stack - count)
+#define stack_set_top(val) *ctx->js.stack = (val)
 
 #define SHOW(obj) (((NormalObject*)(obj))->show(state))
 
@@ -43,7 +43,7 @@ using namespace rubinius;
 #define cache_ip()
 
 extern "C" {
-  bool send_slowly(Task* task, struct jit_state* const js, SYMBOL name, size_t args);
+  bool send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, SYMBOL name, size_t args);
 
 #define RETURN(val) return val
 
@@ -105,7 +105,7 @@ CODE
     return val != Qundef;
   }
 
-  bool send_slowly(Task* task, struct jit_state* const js, SYMBOL name, size_t args) {
+  bool send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, SYMBOL name, size_t args) {
     Message& msg = *task->msg;
     msg.recv = stack_back(args);
     msg.import_arguments(state, task, args);
@@ -140,7 +140,8 @@ CODE
 void rubinius::Task::execute_stream(opcode* stream) {
   opcode op;
   Task* task = this;
-  struct jit_state* js = &active_->js;
+  MethodContext* ctx = active_;
+  VMMethod* const vmm = ctx->vmm;
 
   op = next_op();
 
@@ -160,8 +161,8 @@ CODE
 #define RETURN(val) if(val) { return; } else { continue; }
 
 void VMMethod::resume(Task* task, MethodContext* ctx) {
+  VMMethod* const vmm = this;
   opcode* stream = ctx->vmm->opcodes;
-  struct jit_state* js = &ctx->js;
   opcode op;
 
   for(;;) {

@@ -11,6 +11,8 @@
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/class.hpp"
+#include "builtin/sendsite.hpp"
+
 #include "profiler.hpp"
 
 /*
@@ -33,15 +35,45 @@ namespace rubinius {
     }
 
     opcodes = new opcode[total];
+    Tuple* literals = meth->literals();
+    if(literals->nil_p()) {
+      sendsites = NULL;
+    } else {
+      sendsites = new TypedRoot<SendSite*>[literals->num_fields()];
+    }
 
     Tuple* ops = meth->iseq()->opcodes();
     OBJECT val;
-    for(size_t index = 0; index < total; index++) {
+    for(size_t index = 0; index < total;) {
       val = ops->at(state, index);
       if(val->nil_p()) {
-        opcodes[index] = 0;
+        opcodes[index++] = 0;
       } else {
         opcodes[index] = as<Fixnum>(val)->to_native();
+        size_t width = InstructionSequence::instruction_width(opcodes[index]);
+
+        switch(width) {
+        case 2:
+          opcodes[index + 1] = as<Fixnum>(ops->at(state, index + 1))->to_native();
+          break;
+        case 3:
+          opcodes[index + 1] = as<Fixnum>(ops->at(state, index + 1))->to_native();
+          opcodes[index + 2] = as<Fixnum>(ops->at(state, index + 2))->to_native();
+          break;
+        }
+
+        switch(opcodes[index]) {
+        case InstructionSequence::insn_send_method:
+        case InstructionSequence::insn_send_stack:
+        case InstructionSequence::insn_send_stack_with_block:
+        case InstructionSequence::insn_send_stack_with_splat:
+        case InstructionSequence::insn_send_super_stack_with_block:
+        case InstructionSequence::insn_send_super_stack_with_splat:
+          native_int which = opcodes[index + 1];
+          sendsites[which].set(as<SendSite>(literals->at(state, which)), &state->globals.roots);
+        }
+
+        index += width;
       }
     }
 

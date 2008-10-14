@@ -22,6 +22,7 @@ namespace rubinius {
     TypedRoot<CompiledMethod*> original;
     TypeInfo* type;
     std::vector<VMMethod*> blocks;
+    TypedRoot<SendSite*> *sendsites;
 
     native_int total_args;
     native_int required_args;
