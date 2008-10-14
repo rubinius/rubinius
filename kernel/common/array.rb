@@ -967,32 +967,6 @@ class Array
       when 'x' then
         size = (t || 1).to_i
         ret << "\000" * size
-      when 'N' then
-        parts = []
-        4.times do                          # TODO: const?
-          parts << (item % 256).chr
-          item >>= 8
-        end
-        ret << parts.reverse.join
-        arr_idx += 1
-        item = nil
-        next # HACK
-      when 'V' then
-        parts = []
-        4.times do                          # TODO: const?
-          parts << (item % 256).chr
-          item >>= 8
-        end
-        ret << parts.join
-        arr_idx += 1
-      when 'v' then
-        parts = []
-        2.times do
-          parts << (item % 256).chr
-          item >>= 8
-        end
-        ret << parts.join
-        arr_idx += 1
       when 'a', 'A', 'Z' then
         item = Type.coerce_to(item, String, :to_str)
         size = case t
@@ -1122,33 +1096,40 @@ class Array
           "#{(line.size + ?\s).chr}#{encoded.join}\n"
         }.join.gsub(/ /, '`')
         arr_idx += 1
-      when 'i', 's', 'l', 'n', 'I', 'S', 'L' then
+      when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'V', 'v', 'N', 'n' then
         size = case t
                when nil
                  1
                when '*' then
-                 self.size
+                 self.size - arr_idx
                else
                  t.to_i
                end
 
         native        = t && t == '_'
         unsigned      = (kind =~ /I|S|L/)
-        little_endian = kind !~ /n/i && endian?(:little)
+        little_endian = case kind
+                        when 'V', 'v' then true
+                        when 'N', 'n' then false
+                        else endian?(:little)
+                        end
 
         raise "unsupported - fix me" if native
 
         unless native then
           bytes = case kind
-                  when /n/i then 2
-                  when /s/i then 2
-                  when /i/i then 4
-                  when /l/i then 4
+                  when 'L', 'l' then 4
+                  when 'I', 'i' then 4
+                  when 'S', 's' then 2
+                  when 'V'      then 4
+                  when 'v'      then 2
+                  when 'N'      then 4
+                  when 'n'      then 2
                   end
         end
 
         size.times do |i|
-          item = Type.coerce_to(self[arr_idx], Integer, :to_i)
+          item = Type.coerce_to(self[arr_idx], Integer, :to_int)
 
           # MRI seems only only raise RangeError at 2**32 and above, even shorts
           raise RangeError, "bignum too big to convert into 'unsigned long'" if
