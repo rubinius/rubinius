@@ -224,6 +224,8 @@ class Thread
       STDERR.puts "Exception: #{exc.message} (#{exc.class})"
     end
 
+    Kernel.raise exc if self == Thread.current
+
     raise_prim exc
   end
 
