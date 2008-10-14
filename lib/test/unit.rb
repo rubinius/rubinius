@@ -4,7 +4,7 @@
 # File a patch instead and assign it to Ryan Davis
 ############################################################
 
-require 'mini/test'
+require 'minitest/unit'
 require 'test/unit/testcase' # pull in deprecated functionality
 
-Mini::Test.autorun
+MiniTest::Unit.autorun

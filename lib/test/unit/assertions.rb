@@ -4,7 +4,7 @@
 # File a patch instead and assign it to Ryan Davis
 ############################################################
 
-require 'mini/test'
+require 'minitest/unit'
 require 'test/unit/deprecate'
 
 module Test; end
@@ -16,13 +16,13 @@ module Test::Unit # patch up bastards that that extend improperly.
 
     # this will break on junit and rubinius... *sigh*
     ObjectSpace.each_object(Module) do |offender|
-      offender.send :include, ::Mini::Assertions if offender < CRAP_ASSERTIONS
+      offender.send :include, ::MiniTest::Assertions if offender < CRAP_ASSERTIONS
     end rescue nil
 
     Test::Unit::TestCase.send :include, CRAP_ASSERTIONS
   end
 
-  Assertions = ::Mini::Assertions
+  Assertions = ::MiniTest::Assertions
 
   module Assertions
     def self.included mod
@@ -45,7 +45,7 @@ module Test::Unit
       self._assertions += 1
       yield
     rescue => e
-      raise Mini::Assertion, exception_details(e, "Exception raised:")
+      raise MiniTest::Assertion, exception_details(e, "Exception raised:")
     end
 
     def build_message(user_message, template_message, *args)    # 2009-06-01
