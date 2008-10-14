@@ -5,6 +5,9 @@ class Compiler
 
   class Generator
 
+    CALL_FLAG_PRIVATE = 1
+    CALL_FLAG_CONCAT = 2
+
     ##
     # Jump label for the goto instructions.
 
@@ -546,12 +549,10 @@ class Compiler
     end
 
     def send_with_splat(meth, args, priv=false, concat=false)
-      if priv or concat
-        val = 0
-        val |= 1 if priv
-        val |= 3 if concat
-        add :set_call_flags, val
-      end
+      val = 0
+      val |= CALL_FLAG_PRIVATE if priv
+      val |= CALL_FLAG_CONCAT  if concat
+      add :set_call_flags, val unless val == 0
 
       ss = SendSite.new meth
       idx = add_literal(ss)

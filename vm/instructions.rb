@@ -3208,7 +3208,7 @@ class Instructions
 
     msg.use_from_task(task, count);
     if(!ary->nil_p()) {
-      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 2 */
     }
 
     msg.priv = task->call_flags & 1;
@@ -3430,7 +3430,7 @@ class Instructions
 
     msg.use_from_task(task, count);
     if(!ary->nil_p()) {
-      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
+      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 2 */
     }
 
     msg.priv = TRUE;  // TODO: how do we test this?
