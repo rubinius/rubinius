@@ -678,8 +678,8 @@ class Array
 
         if two
           finish = Type.coerce_to two, Fixnum, :to_int
-          raise ArgumentError, "argument too big" if finish < 0 && start < finish.abs
           return self if finish < 1       # Nothing to modify
+          raise ArgumentError, "argument too big" if finish < 0 && start < finish.abs
 
           finish = start + finish - 1
         end
@@ -867,8 +867,14 @@ class Array
 
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.
-  def map(&block)
-    dup.map!(&block)
+  def map
+    out = []
+    i = 0
+    while i < @total
+      out << yield(at(i))
+      i += 1
+    end
+    out
   end
 
   alias_method :collect, :map
@@ -878,7 +884,7 @@ class Array
   def map!
     i = 0
     while i < @total
-      self[i] = yield self[i]
+      self[i] = yield(at(i))
       i += 1
     end
     self
