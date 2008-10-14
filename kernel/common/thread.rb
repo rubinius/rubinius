@@ -129,6 +129,9 @@ class Thread
     raise Die
   end
 
+  alias exit kill
+  alias terminate kill
+
   def status
     if alive?
       if @sleep
