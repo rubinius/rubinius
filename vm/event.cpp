@@ -1,6 +1,7 @@
 /* A C++ wrapper around libev, which Rubinius uses for all event handling.
  * This is the folcrum of the thread subsystem. */
 
+#include <sstream>
 #include <vector>
 
 #include "prelude.hpp"
@@ -188,83 +189,74 @@ namespace rubinius {
 
     void Child::add(STATE, ObjectCallback* channel, pid_t pid, int opts) {
       Child::waiters().push_back(new Child(channel, pid, opts));
-      /* TODO: This seems a bit cheap, but we need to force a check if there
-       *        are no child processes yet. */
-      Child::find_finished(state);
+
+      /*  This seems a bit cheap, but we need to force a check to
+       *  catch the case where wait is called before any child is
+       *  created, because such an occurrence must result in ECHILD.
+       */
+      if(Child::waiters().size() == 1) {
+        Child::find_finished(state);
+      }
     }
 
-    /*
-     *  TODO: Should we re-loop if pid is not 0 to handle possible multiple?
-     *  TODO: Support WUNTRACED?
-     *  TODO: Review logic. Certainly not fully featured.
+    /**
+     *  The idea here is that this method is called each time we receive
+     *  a SIGCHLD. Since we do not know which child exited, we check each
+     *  using waitpid(). The WNOHANG means that if the child is still up,
+     *  we can just move on to the next candidate and come back to check
+     *  later.
      *
-     *  foreach_and_remove_if algo sure would be nice.
+     *  To avoid a problem with calling wait before any children exist
+     *  not raising an error, ::add() explicitly runs this method when
+     *  the first waiter is added (whether at the start or at some point
+     *  when all waiters have been removed previously.)
+     *
+     *  TODO: Support WUNTRACED?
      */
     void Child::find_finished(VM* state) {
-      pid_t pid;
-      int status;
-
       Waiters& all = Child::waiters();
 
-      if (all.size() == 0) {
-        return;
-      }
+      for (Waiters::iterator it = all.begin(); it != all.end(); /* Updated in body */) {
+        int status = 0;
+        Child* waiter = *it;
 
-      while ((pid = ::waitpid(-1, &status, WNOHANG)) == -1 && errno == EINTR)
-        ;
+        pid_t pid = ::waitpid(waiter->pid(), &status, WNOHANG);
 
-      switch (pid) {
-      case -1:    /* Error condition, pretty much only ECHILD */
-        if ( errno == ECHILD ) {
-
-          for (Waiters::iterator it = all.begin(); it != all.end(); ++it) {
-            (*it)->channel()->call(Qfalse);
+        switch(pid) {
+        case -1:
+          if(errno == EINTR) {
+            continue; /* With the same iterator */
           }
 
-          all.clear();
-        }
+          if(errno == ECHILD) {
+            waiter->channel()->call(Qfalse);
+          }
 
-        break;
+          break;
 
-      case 0:       /* No stopped children */
-
-        for (Waiters::iterator it = all.begin(); it != all.end(); /**/) {
-          if ( (*it)->options() & WNOHANG ) {
-            (*it)->channel()->call(Qnil);
-            delete *it;
+        case 0:       /* No stopped children. */
+          if(waiter->options() & WNOHANG) {
+            waiter->channel()->call(Qnil);
             it = all.erase(it);
             continue;
           }
-          ++it;
-        }
 
-        break;
+          /* Hangers continue hanging */
+          break;
 
-      default:      /* Got a pid */
-        assert(pid > 0);
+        default:      /* Found it */
+          Object* SP = Qtrue;
 
-        Object* SP = Qtrue;
-
-        if ( WIFEXITED(status) ) {
-          SP = as<Object>(Fixnum::from(WEXITSTATUS(status)));
-        }
-
-        for (Waiters::iterator it = all.begin(); it != all.end(); /**/) {
-          /* TODO: Should we check that the process exiting was launched
-           *       from the same VM instance? It might be useful to be
-           *       able to guarantee that one VM will not consume another's
-           *       children.
-           */
-          if ( (*it)->pid() == pid || (*it)->pid() == -1 ) {
-            (*it)->channel()->call(Tuple::from(state, 2, Fixnum::from(pid), SP));
-            delete *it;
-            it = all.erase(it);
-            continue;
+          if ( WIFEXITED(status) ) {
+            SP = as<Object>(Fixnum::from(WEXITSTATUS(status)));
           }
-          ++it;
+
+          waiter->channel()->call(Tuple::from(state, 2, Fixnum::from(pid), SP));
+          it = all.erase(it);
+          continue;
         }
 
-        break;
+        ++it;
       }
     }
 
