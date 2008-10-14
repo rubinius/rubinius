@@ -101,6 +101,18 @@ class TestArray : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ary->get(state, 1), Qtrue);
   }
 
+  void test_pop() {
+    Array* ary = Array::create(state, 3);
+    ary->set(state, 0, Fixnum::from(1));
+    ary->set(state, 1, Fixnum::from(4));
+    ary->set(state, 2, Fixnum::from(9));
+
+    TS_ASSERT_EQUALS(Fixnum::from(9), ary->pop(state));
+    TS_ASSERT_EQUALS(Fixnum::from(4), ary->pop(state));
+    TS_ASSERT_EQUALS(Fixnum::from(1), ary->pop(state));
+    TS_ASSERT_EQUALS(Qnil, ary->pop(state));
+  }
+
   void test_includes_p() {
     Array* ary = Array::create(state, 1);
     ary->set(state, 0, Qtrue);

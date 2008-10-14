@@ -161,6 +161,16 @@ namespace rubinius {
     return false;
   }
 
+  OBJECT Array::pop(STATE) {
+    size_t cnt = total_->to_native();
+    size_t index = start_->to_native() + cnt;
+
+    if(index == 0) return Qnil;
+
+    total(state, Fixnum::from(cnt - 1));
+    return tuple_->at(state, index - 1);
+  }
+
   void Array::Info::show(STATE, Object* self, int level) {
     Array* ary = as<Array>(self);
     size_t size = ary->size();

@@ -60,6 +60,7 @@
 #undef Qnil
 #undef Qundef
 
+#undef ALLOC
 #undef ALLOC_N
 #undef NIL_P
 #undef RTEST

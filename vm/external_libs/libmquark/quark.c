@@ -57,7 +57,7 @@ static unsigned int string_hash(const void *val)
   const char *str = (const char *)val;
   int c;
 
-  while (c = *str++)
+  while ((c = *str++))
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
   return hash;

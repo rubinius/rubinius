@@ -32,6 +32,10 @@
 #include <sys/types.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Pointer Array
  * *************
  *
@@ -178,4 +182,9 @@ static inline int ptr_array_append(ptr_array self, const void *value)
  * Arguments: self, the pointer array
  */
 void ptr_array_clear(ptr_array self);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

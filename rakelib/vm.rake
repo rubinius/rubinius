@@ -23,9 +23,12 @@ tests.uniq!
 
 srcs        = FileList["vm/*.{cpp,c}"] + FileList["vm/builtin/*.{cpp,c}"]
 srcs       += FileList["vm/subtend/*.{cpp,c}"]
+srcs       += FileList["vm/parser/*.{cpp,c}"]
+srcs       << 'vm/parser/grammar.cpp'
 
 hdrs        = FileList["vm/*.{hpp,h}"] + FileList["vm/builtin/*.{hpp,h}"]
 hdrs       += FileList["vm/subtend/*.{hpp,h}"]
+hdrs       += FileList["vm/parser/*.{hpp,h}"]
 
 objs        = srcs.map { |f| f.sub(/c(pp)?$/, 'o') }
 
@@ -33,6 +36,7 @@ dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
 vm_srcs     = %w[ vm/drivers/cli.cpp ]
 EX_INC      = %w[ libtommath onig libffi/include
+                  libbstring libmquark libmpa libcchash
                   libltdl libev llvm/include
                 ].map { |f| "vm/external_libs/#{f}" }
 
@@ -98,6 +102,10 @@ BC          = "vm/instructions.bc"
 LLVM_A      = "vm/external_libs/llvm/#{LLVM_STYLE}/lib/libLLVMSystem.a"
 EXTERNALS   = %W[ #{LLVM_A}
                   vm/external_libs/libtommath/libtommath.a
+                  vm/external_libs/libbstring/libbstring.a
+                  vm/external_libs/libmpa/libptr_array.a
+                  vm/external_libs/libcchash/libcchash.a
+                  vm/external_libs/libmquark/libmquark.a
                   vm/external_libs/onig/.libs/libonig.a
                   vm/external_libs/libffi/.libs/libffi.a
                   vm/external_libs/libltdl/.libs/libltdl.a
@@ -351,6 +359,17 @@ file 'vm/test/runner.cpp' => tests + objs do
   tests << { :verbose => $verbose }
   sh("vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
      "--abort-on-fail", "-include=string.h", "-include=stdlib.h", "-o", "vm/test/runner.cpp", *tests)
+end
+
+file 'vm/parser/grammar.cpp' => 'vm/parser/grammar.y' do
+  src = 'vm/parser/grammar.y'
+  bison = "bison -o vm/parser/grammar.cpp #{src}"
+  if $verbose
+    sh bison
+  else
+    puts "BISON #{src}"
+    sh bison, :verbose => false
+  end
 end
 
 file 'vm/test/runner.o' => 'vm/test/runner.cpp' # no rule .o => .cpp

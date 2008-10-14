@@ -7,10 +7,14 @@
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
 
+#include "parser/grammar.hpp"
+
 #include "vm.hpp"
 #include "vm/object_utils.hpp"
 #include "primitives.hpp"
 #include "objectmemory.hpp"
+
+#include "bstrlib.h"
 
 #include <unistd.h>
 #include <iostream>
@@ -664,6 +668,12 @@ return_value:
     if(val->nil_p()) return (Integer*)Primitives::failure();
 
     return val;
+  }
+
+  OBJECT String::parse(STATE, String* name, Fixnum* line, Object* newlines) {
+    bstring str = blk2bstr(byte_address(), size());
+    return parser::syd_compile_string(state, name->c_str(), str,
+                                      line->to_native(), newlines->true_p());
   }
 
   void String::Info::show(STATE, Object* self, int level) {

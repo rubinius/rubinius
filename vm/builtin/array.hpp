@@ -46,6 +46,7 @@ namespace rubinius {
     void   unshift(STATE, Object* val);
     Object* shift(STATE);
     Object* append(STATE, Object* val);
+    OBJECT pop(STATE);
     bool   includes_p(STATE, Object* val);
 
     class Info : public TypeInfo {
