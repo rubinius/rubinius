@@ -39,6 +39,10 @@
 
 class Instructions
 
+  # HACK dup'd in lib/compiler/generator.rb
+  CALL_FLAG_PRIVATE = 1
+  CALL_FLAG_CONCAT  = 2
+
   # [Operation]
   #   Adds a method to a \class or module
   # [Format]
@@ -2959,7 +2963,7 @@ class Instructions
     msg.use_from_task(task, 0);
     msg.stack = 1;
 
-    msg.priv = task->call_flags & 1;
+    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
@@ -3039,7 +3043,7 @@ class Instructions
     msg.use_from_task(task, count);
     msg.stack = count + 1;
 
-    msg.priv = task->call_flags & 1;
+    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
@@ -3123,7 +3127,7 @@ class Instructions
     msg.recv = stack_back(count);
     msg.stack = count + 1;
 
-    msg.priv = task->call_flags & 1;
+    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
@@ -3216,10 +3220,14 @@ class Instructions
 
     msg.use_from_task(task, count);
     if(!ary->nil_p()) {
-      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 2 */
+      if(task->call_flags & #{CALL_FLAG_CONCAT}) {
+        msg.append_arguments(state, task, as<Array>(ary));
+      } else {
+        msg.append_splat(state, task, as<Array>(ary));
+      }
     }
 
-    msg.priv = task->call_flags & 1;
+    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
@@ -3442,7 +3450,11 @@ class Instructions
 
     msg.use_from_task(task, count);
     if(!ary->nil_p()) {
-      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 2 */
+      if(task->call_flags & #{CALL_FLAG_CONCAT}) {
+        msg.append_arguments(state, task, as<Array>(ary));
+      } else {
+        msg.append_splat(state, task, as<Array>(ary));
+      }
     }
 
     msg.priv = TRUE;  // TODO: how do we test this?

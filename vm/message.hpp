@@ -42,9 +42,14 @@ namespace rubinius {
     size_t args() { return total_args - start_; }
 
     /**
-     *  Import arguments from the splat Array into arguments Array.
+     *  Appends the task's arguments to the splat array.
      */
-    void combine_with_splat(STATE, Task* task, Array* splat);
+    void append_arguments(STATE, Task* task, Array* splat);
+
+    /**
+     *  Appends splat arguments to the task's arguments array.
+     */
+    void append_splat(STATE, Task* task, Array* splat);
 
     /**
      *  Argument at offset given from current start.
@@ -57,7 +62,7 @@ namespace rubinius {
     /**
      *  Copy arguments from stack into arguments Array.
      */
-    void import_arguments(STATE, Task* task, size_t args);
+    void import_arguments(STATE, Task* task, size_t args, size_t offset = 0);
 
     /**
      *  Drop arguments Array.

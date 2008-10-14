@@ -84,7 +84,18 @@ namespace rubinius {
     start_ = 0;
   }
 
-  void Message::combine_with_splat(STATE, Task* task, Array* splat) {
+  void Message::append_arguments(STATE, Task* task, Array* splat) {
+    arguments = Array::create(state, splat->size() + total_args);
+
+    for(size_t i = 0; i < splat->size(); i++) {
+      arguments->set(state, i, splat->get(state, i));
+    }
+
+    import_arguments(state, task, total_args, splat->size());
+    total_args += splat->size();
+  }
+
+  void Message::append_splat(STATE, Task* task, Array* splat) {
     arguments = Array::create(state, splat->size() + total_args);
 
     import_arguments(state, task, total_args);
@@ -96,7 +107,7 @@ namespace rubinius {
     }
   }
 
-  void Message::import_arguments(STATE, Task* task, size_t args) {
+  void Message::import_arguments(STATE, Task* task, size_t args, size_t offset) {
     this->caller = task->active();
 
     if(!arguments) {
@@ -104,8 +115,9 @@ namespace rubinius {
     }
 
     size_t stack_pos = start_ + args - 1;
+    size_t end = offset + args;
 
-    for(size_t i = 0; i < args; i++, stack_pos--) {
+    for(size_t i = offset; i < end; i++, stack_pos--) {
       OBJECT arg = caller->stack_back(stack_pos);
       arguments->set(state, i, arg);
     }

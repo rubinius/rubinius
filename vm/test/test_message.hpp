@@ -28,6 +28,54 @@ class TestMessage : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_append_arguments() {
+    CompiledMethod* cm = create_cm();
+    Task* task = Task::create(state, Qnil, cm);
+
+    task->push(Fixnum::from(3));
+    task->push(Fixnum::from(4));
+
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, state->symbol("blah"));
+    ary->set(state, 1, state->symbol("foo"));
+
+    Message msg(state);
+    msg.name = state->symbol("testes");
+    msg.set_args(2);
+    msg.append_arguments(state, task, ary);
+
+    TS_ASSERT_EQUALS(state->symbol("blah"), msg.get_argument(0));
+    TS_ASSERT_EQUALS(state->symbol("foo"),  msg.get_argument(1));
+    TS_ASSERT_EQUALS(Fixnum::from(3),       msg.get_argument(2));
+    TS_ASSERT_EQUALS(Fixnum::from(4),       msg.get_argument(3));
+
+    TS_ASSERT_EQUALS(4U, msg.args());
+  }
+
+  void test_append_splat() {
+    CompiledMethod* cm = create_cm();
+    Task* task = Task::create(state, Qnil, cm);
+
+    task->push(Fixnum::from(3));
+    task->push(Fixnum::from(4));
+
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, state->symbol("blah"));
+    ary->set(state, 1, state->symbol("foo"));
+
+    Message msg(state);
+    msg.name = state->symbol("testes");
+    msg.set_args(2);
+    msg.append_splat(state, task, ary);
+
+    TS_ASSERT_EQUALS(Fixnum::from(3),       msg.get_argument(0));
+    TS_ASSERT_EQUALS(Fixnum::from(4),       msg.get_argument(1));
+    TS_ASSERT_EQUALS(state->symbol("blah"), msg.get_argument(2));
+    TS_ASSERT_EQUALS(state->symbol("foo"),  msg.get_argument(3));
+
+    TS_ASSERT_EQUALS(4U, msg.args());
+  }
+
   void test_get_argument_from_array() {
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, Fixnum::from(3));
@@ -66,30 +114,6 @@ class TestMessage : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(0));
     TS_ASSERT_EQUALS(Fixnum::from(4), msg.get_argument(1));
     TS_ASSERT_EQUALS(2U, msg.args());
-  }
-
-  void test_combine_with_splat() {
-    CompiledMethod* cm = create_cm();
-    Task* task = Task::create(state, Qnil, cm);
-
-    task->push(Fixnum::from(3));
-    task->push(Fixnum::from(4));
-
-    Array* ary = Array::create(state, 2);
-    ary->set(state, 0, state->symbol("blah"));
-    ary->set(state, 1, state->symbol("foo"));
-
-    Message msg(state);
-    msg.name = state->symbol("testes");
-    msg.set_args(2);
-    msg.combine_with_splat(state, task, ary);
-
-    TS_ASSERT_EQUALS(Fixnum::from(3), msg.get_argument(0));
-    TS_ASSERT_EQUALS(Fixnum::from(4), msg.get_argument(1));
-    TS_ASSERT_EQUALS(state->symbol("blah"), msg.get_argument(2));
-    TS_ASSERT_EQUALS(state->symbol("foo"), msg.get_argument(3));
-
-    TS_ASSERT_EQUALS(4U, msg.args());
   }
 
   void test_use_from_task() {
