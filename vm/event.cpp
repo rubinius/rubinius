@@ -143,8 +143,7 @@ namespace rubinius {
     }
 
     void Signal::start() {
-      // Only one signal event is valid per loop. We remove any that
-      // already exist.
+      /* Only one event of a given signal type per loop. */
       loop->remove_signal(signal);
       ev_signal_start(loop->base, &ev);
     }
@@ -158,8 +157,9 @@ namespace rubinius {
       return false;
     }
 
-    Timer::Timer(STATE, ObjectCallback* chan, double seconds, OBJECT obj) :
-        Event(state, chan), tag(obj) {
+    Timer::Timer(STATE, ObjectCallback* chan, double seconds, OBJECT obj):
+      Event(state, chan), tag(obj)
+    {
       ev_timer_init(&ev, event::tramp<struct ev_timer>, (ev_tstamp)seconds, 0);
       ev.data = this;
     }
@@ -211,12 +211,12 @@ namespace rubinius {
      *  the first waiter is added (whether at the start or at some point
      *  when all waiters have been removed previously.)
      *
-     *  TODO: Support WUNTRACED?
+     *  TODO: Support WUNTRACED and other options?
      */
     void Child::find_finished(VM* state) {
       Waiters& all = Child::waiters();
 
-      for (Waiters::iterator it = all.begin(); it != all.end(); /* Updated in body */) {
+      for(Waiters::iterator it = all.begin(); it != all.end(); /* Updated in body */) {
         int status = 0;
         Child* waiter = *it;
 
@@ -241,13 +241,13 @@ namespace rubinius {
             continue;
           }
 
-          /* Hangers continue hanging */
+          /* Only blocking waits remain */
           break;
 
         default:      /* Found it */
           Object* SP = Qtrue;
 
-          if ( WIFEXITED(status) ) {
+          if(WIFEXITED(status)) {
             SP = as<Object>(Fixnum::from(WEXITSTATUS(status)));
           }
 

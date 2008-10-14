@@ -249,6 +249,12 @@ end
 
 file = ARGV.shift
 
+unless file
+  puts "Usage: compile [options] FILE|DIR"
+
+  exit 1
+end
+
 if File.directory?(file)
 
   rec = File.join(file, "build.rb")
