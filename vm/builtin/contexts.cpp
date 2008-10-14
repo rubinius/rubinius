@@ -300,6 +300,12 @@ initialize:
 
     class_header(state, self);
     indent_attribute(++level, "name"); ctx->name()->show(state, level);
+    indent_attribute(level, "sp");
+    std::cout << ctx->calculate_sp() << "\n";
+
+    indent_attribute(level, "ip");
+    std::cout << ctx->ip << "\n";
+
     indent_attribute(level, "sender");
     if(ctx->sender()->nil_p()) {
       ctx->sender()->show(state, level);

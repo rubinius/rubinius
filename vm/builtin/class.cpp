@@ -52,9 +52,16 @@ namespace rubinius {
 
   void MetaClass::Info::show(STATE, OBJECT self, int level) {
     MetaClass* cls = as<MetaClass>(self);
-    Module* mod = as<Module>(cls->attached_instance());
+    Module* mod = try_as<Module>(cls->attached_instance());
 
-    const char* name = mod->name()->nil_p() ? "<anonymous>" : mod->name()->c_str(state);
+    const char* name;
+
+    if(mod) {
+      name = mod->name()->nil_p() ? "<anonymous>" : mod->name()->c_str(state);
+    } else {
+      name = "<some object>";
+    }
+
     std::cout << "#<" << self->class_object(state)->name()->c_str(state) <<
       " " << name << ":" << (void*)self << ">" << std::endl;
   }

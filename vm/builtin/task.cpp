@@ -267,6 +267,10 @@ namespace rubinius {
           Tuple* entry = as<Tuple>(table->at(state, i));
           if(as<Integer>(entry->at(state, 0))->to_native() <= ip
               && as<Integer>(entry->at(state, 1))->to_native() >= ip) {
+            // Reset the stack back to the top. If we don't, then values
+            // on the stack when the exception occurs end up accumulate, and
+            // we run out of stack!
+            active_->position_stack(active_->vmm->number_of_locals - 1);
             set_ip(as<Integer>(entry->at(state, 2))->to_native());
             return;
           }
