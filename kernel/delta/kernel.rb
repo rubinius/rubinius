@@ -6,11 +6,11 @@ module Kernel
     ctx = myself.sender
 
     if myself.send_private?
-      raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
+      Kernel.raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
     elsif self.__kind_of__ Class or self.__kind_of__ Module
-      raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.__class__})", ctx, args)
+      Kernel.raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.__class__})", ctx, args)
     else
-      raise NoMethodError.new("No method '#{meth}' on an instance of #{self.__class__}.", ctx, args)
+      Kernel.raise NoMethodError.new("No method '#{meth}' on an instance of #{self.__class__}.", ctx, args)
     end
   end
 
