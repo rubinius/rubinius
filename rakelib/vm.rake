@@ -113,7 +113,6 @@ FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated)
 
 unless ENV["DEV"]
   FLAGS << "-O2"
-  FLAGS << "-finline-functions"
 end
 
 CC          = ENV['CC'] || "gcc"

@@ -23,7 +23,7 @@
 #if __GNUC__ >= 4 && __GNUC_MINOR__ >= 3
   #define SPECIALIZATION_STORAGE
 #else
-  #define SPECIALIZATION_STORAGE static
+  #define SPECIALIZATION_STORAGE static inline
 #endif
 
 namespace rubinius {
@@ -36,7 +36,7 @@ namespace rubinius {
    *  Given builtin-class +T+, return true if +obj+ is of class +T+
    */
   template <class T>
-    static bool kind_of(Object* obj) {
+    static inline bool kind_of(Object* obj) {
       if(REFERENCE_P(obj)) {
         return obj->obj_type == T::type;
       }
@@ -59,7 +59,7 @@ namespace rubinius {
    *  one.
    */
   template <class T>
-    static bool instance_of(Object* obj) {
+    static inline bool instance_of(Object* obj) {
       if(REFERENCE_P(obj)) {
         return obj->obj_type == T::type;
       }
@@ -89,7 +89,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static T* as(Object* obj) {
+    static inline T* as(Object* obj) {
       sassert(NULL != obj);
 
       if(!kind_of<T>(obj))
@@ -115,7 +115,7 @@ namespace rubinius {
    *  @see  builtin/object.cpp has specialised versions.
    */
   template <class T>
-    static T* try_as(Object* obj) {
+    static inline T* try_as(Object* obj) {
       sassert(NULL != obj);
 
       if(!kind_of<T>(obj))
