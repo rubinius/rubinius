@@ -453,9 +453,6 @@ namespace rubinius {
   static Class* check_superclass(STATE, Class* cls, OBJECT super) {
     if(super->nil_p()) return cls;
     if(cls->superclass() != super) {
-      std::cout << "mismatch: "
-        << cls->name()->c_str(state)
-        << " != " << as<Class>(super)->name()->c_str(state) << "\n";
       Exception::type_error(state, Class::type, super, "superclass mismatch");
     }
 
