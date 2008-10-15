@@ -1,14 +1,8 @@
 
 require 'rubygems'
 
-$" << "compiler/mri_shim"
-$" << "compiler/compiler"
-
-$: << "lib"
 require 'compiler/compiler'
 require 'compiler/text'
-$:.pop
-
 require 'kernel/delta/compiled_file'
 
 class SendSite
@@ -50,9 +44,7 @@ require File.dirname(__FILE__) + '/../../kernel/common/compiled_method'
 
 class String
   def to_sexp(file = "(eval)", line = 1)
-    $: << "lib/compiler"
     require 'ruby_parser'
-    $:.pop
 
     RubyParser.new.process(self, file)
   end

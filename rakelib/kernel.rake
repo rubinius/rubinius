@@ -74,6 +74,7 @@ def create_load_order(files, output=".load_order.txt")
   end
 end
 
+$: << 'lib'
 require 'lib/compiler/mri_compile'
 
 def compile_ruby(src, rbc, check_mtime = false)
@@ -126,7 +127,8 @@ rule ".rbc" do |t|
   compile_ruby src, rbc
 end
 
-COMPILER_SOURCES = Dir["lib/compiler/*.rb"] + %w(lib/strscan.rb lib/stringio.rb lib/racc/parser.rb)
+COMPILER_SOURCES = Dir["lib/compiler/*.rb"] +
+  %w(strscan stringio racc/parser ruby_lexer ruby_parser ruby_parser_extras sexp_processor).map { |f| "lib/#{f}.rb" }
 COMPILER_MTIME = COMPILER_SOURCES.map { |f| File::Stat.new(f).mtime }.max
 compiler = []
 
