@@ -1,4 +1,5 @@
 require 'tmpdir'
+require 'rakelib/rubinius'
 
 task :vm => 'vm/vm'
 
@@ -202,9 +203,9 @@ files EXTERNALS do |t|
   configure_path = File.join(path, 'configure')
 
   if File.exist? configure_path then
-    sh "cd #{path}; ./configure #{OPTIONS[t.name]} && make"
+    sh "cd #{path}; ./configure #{OPTIONS[t.name]} && #{make}"
   else
-    sh "cd #{path}; make"
+    sh "cd #{path}; #{make}"
   end
 end
 
@@ -331,7 +332,7 @@ namespace :vm do
   task :distclean => :clean do
     EXTERNALS.each do |lib|
       path = File.join(*lib.split(File::SEPARATOR)[0..2])
-      system "cd #{path}; make clean"
+      system "cd #{path}; #{make} clean"
     end
   end
 
