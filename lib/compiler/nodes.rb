@@ -337,11 +337,11 @@ class Compiler
     class BlockPass < Node
       kind :block_pass
 
-      def normalize(blk, call)
+      def normalize(blk)
         @block = blk
 
-        call.block = self
-        return call
+#         call.block = self
+#         return call
       end
 
       attr_accessor :block
@@ -1541,17 +1541,19 @@ class Compiler
         @block_args = false
       end
 
-      def args(assigns, *rest)
+      def args(assigns, rest)
         if @block_args
           @assigns = assigns
-          @splat = rest.first
-          @source = nil
-        elsif rest.size == 1
+          @splat   = rest
+          @source  = nil
+        elsif ArrayLiteral === rest
           @assigns = assigns
-          @source = rest.first
-          @splat = nil
+          @source  = rest
+          @splat   = rest.body.grep(Splat)
+          @splat &&= @splat.first
+          @source.body.reject! { |o| Splat === o }
         else
-          @assigns, @splat, @source = assigns, rest[0], rest[1]
+          @assigns, @splat, @source = assigns, nil, rest
         end
 
         # TODO: fix in sexp
@@ -2381,7 +2383,7 @@ class Compiler
     class Super < Call
       kind :super
 
-      def args(args=nil)
+      def args(*args)
         @method = get(:scope)
         @arguments = args
 
@@ -2577,16 +2579,8 @@ class Compiler
     class Yield < Call
       kind :yield
 
-      def args(args = nil)
-        if args.kind_of? ArgList
-          @arguments = args.body
-        elsif args.kind_of? DynamicArguments
-          @arguments = args
-        elsif args
-          @arguments = [args]
-        else
-          @arguments = []
-        end
+      def args(*args)
+        @arguments = args
       end
 
       attr_accessor :arguments

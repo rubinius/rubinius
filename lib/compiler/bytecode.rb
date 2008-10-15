@@ -325,21 +325,11 @@ class Compiler
         @dynamic = false
         @concat = false
 
-        if @arguments
-          if @arguments.kind_of? Array
-            @arguments.each do |x|
-              x.bytecode(g)
-            end
-            @argcount = @arguments.size
-          elsif @arguments.is? ConcatArgs or @arguments.is? Splat
-            @argcount = @arguments.call_bytecode(g)
-            @dynamic = true
-          else
-            raise Error, "Unknown argument syntax: #{@arguments.class}"
-          end
-        else
-          @argcount = 0
+        @arguments.each do |argument|
+          @dynamic ||= argument.is? Splat
+          argument.bytecode(g)
         end
+        @argcount = @arguments.size - (@dynamic ? 1 : 0)
       end
 
       def bytecode(g)

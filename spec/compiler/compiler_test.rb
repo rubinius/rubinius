@@ -5004,6 +5004,13 @@ class CompilerTestCase < ParseTreeTestCase
               g.send_with_splat :call, 0, false, false
             end)
 
+  add_tests("yield_zarray",
+            "Compiler" => bytecode do |g|
+              g.push_block
+              g.make_array 0
+              g.meta_send_call 1
+            end)
+
   add_tests("zarray",
             "Compiler" => bytecode do |g|
               g.make_array 0

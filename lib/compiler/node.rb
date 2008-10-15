@@ -89,7 +89,10 @@ class Compiler
           node.args(*args)
         end
       rescue ArgumentError => e
-        raise ArgumentError, "#{node.class}##{msg} passed #{e.message}: #{args.inspect}"
+        e2 = ArgumentError.new e.message +
+          ": #{node.class}##{msg} passed: #{args.inspect}"
+        e2.set_backtrace e.backtrace
+        raise e2
       end
 
       return node
@@ -155,6 +158,15 @@ class Compiler
       @compiler.plugins[kind].find do |plug|
         plug.handle(g, self, *args)
       end
+    end
+
+    def inspect
+      name = self.class.name.split(/::/).last
+      var = self.name rescue nil
+      val = self.value rescue nil
+      args = (Array(@body) + [var, val]).compact.map { |o| o.inspect }.join(", ")
+
+      "#{name}[#{args}]"
     end
   end
 end
