@@ -10,7 +10,7 @@ class BasicPrimitive
     str << "  OBJECT ret;\n"
     str << "  OBJECT self;\n" if @pass_self
     if args then
-      str << "  if(msg.args() != #{args})\n"
+      str << "  if(unlikely(msg.args() != #{args}))\n"
       str << "    goto fail;\n\n"
     end
   end
@@ -21,7 +21,7 @@ class BasicPrimitive
     arg_types.each do |t|
       i += 1
       str << "  #{t}* a#{i};\n"
-      str << "  if((a#{i} = try_as<#{t}>(msg.get_argument(#{i}))) == NULL)\n"
+      str << "  if(unlikely((a#{i} = try_as<#{t}>(msg.get_argument(#{i}))) == NULL))\n"
       str << "    goto fail;\n\n"
       args << "a#{i}"
     end
@@ -31,13 +31,19 @@ class BasicPrimitive
     return args
   end
 
+  def prim_return(str)
+    str << "MethodContext* current = task->active();\n"
+    str << "current->clear_stack(msg.stack);\n"
+    str << "current->push(ret);\n"
+  end
+
   def output_call(str, call, args)
     str << "\n"
     str << "  ret = #{call}(#{args.join(', ')});\n"
     str << "\n"
-    str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))\n"
+    str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
     str << "    goto fail;\n\n"
-    str << "  task->primitive_return(ret, msg);\n"
+    prim_return(str);
     str << "  return false;\n\n"
     str << "fail:\n"
     str << "  return VMMethod::execute(state, exec, task, msg);\n"
@@ -141,7 +147,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))\n"
     str << "    goto fail;\n\n"
-    str << "  task->primitive_return(ret, msg);\n"
+    prim_return(str);
     str << "  return false;\n\n"
     str << "fail:\n"
     str << "  return VMMethod::execute(state, exec, task, msg);\n"

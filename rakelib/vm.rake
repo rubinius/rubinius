@@ -110,7 +110,7 @@ if LLVM_STYLE == "Release"
 end
 
 INCLUDES    = (EX_INC + %w[vm/test/cxxtest vm .]).map { |f| "-I#{f}" }
-FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated)
+FLAGS       = %w(-pipe -Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated)
 
 unless ENV["DEV"]
   FLAGS << "-O2"
