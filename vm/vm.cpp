@@ -212,11 +212,17 @@ namespace rubinius {
       if(lst->empty_p()) continue;
 
       Thread* thr = as<Thread>(lst->shift(this));
-      thr->queued(this, Qfalse);
+      while(thr != Qnil) {
+        thr->queued(this, Qfalse);
 
-      assert(thr->sleep() == Qfalse);
-      activate_thread(thr);
-      return true;
+        if(thr->sleep() == Qtrue) {
+          thr = try_as<Thread>(lst->shift(this));
+          continue;
+        }
+
+        activate_thread(thr);
+        return true;
+      }
     }
 
     return false;
@@ -260,8 +266,6 @@ namespace rubinius {
   }
 
   void VM::activate_thread(Thread* thread) {
-    assert(thread->queued() != Qtrue);
-
     globals.current_thread.set(thread);
     if(globals.current_task.get() != thread->task()) {
       activate_task(thread->task());
