@@ -6,9 +6,10 @@ describe Compiler do
       [1, 2, *foo()]
     EOC
 
-    sexp = s(:argscat,
-             s(:array, s(:fixnum, 1), s(:fixnum, 2)),
-             s(:call, nil, :foo, s(:arglist)))
+    sexp = s(:array,
+             s(:fixnum, 1),
+             s(:fixnum, 2),
+             s(:splat, s(:call, nil, :foo, s(:arglist))))
 
     sexp.should == parse(ruby)
 
@@ -33,9 +34,10 @@ describe Compiler do
 
     sexp = s(:block,
              s(:lasgn, :x, s(:array, s(:fixnum, 42))),
-             s(:argscat,
-               s(:array, s(:fixnum, 1), s(:fixnum, 2)),
-               s(:lvar,  :x)))
+             s(:array,
+               s(:fixnum, 1),
+               s(:fixnum, 2),
+               s(:splat, s(:lvar,  :x))))
 
     sexp.should == parse(ruby)
 

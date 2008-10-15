@@ -479,8 +479,9 @@ describe Compiler do
     sexp = s(:rescue,
              s(:fixnum, 12),
              s(:resbody,
-               s(:argscat, s(:array, s(:const, :String)),
-                 s(:call, nil, :blah, s(:arglist))),
+               s(:array,
+                 s(:const, :String),
+                 s(:splat, s(:call, nil, :blah, s(:arglist)))),
                s(:fixnum, 13)))
 
     sexp.should == parse(ruby)

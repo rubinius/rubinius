@@ -263,9 +263,10 @@ describe Compiler do
     EOC
 
     sexp = s(:call, nil, :h,
-             s(:argscat,
-               s(:array, s(:fixnum, 1), s(:fixnum, 2)),
-               s(:call, nil, :a, s(:arglist))))
+             s(:arglist,
+               s(:fixnum, 1),
+               s(:fixnum, 2),
+               s(:splat, s(:call, nil, :a, s(:arglist)))))
 
     sexp.should == parse(ruby)
 
@@ -287,9 +288,12 @@ describe Compiler do
       f[*x] = 3
     EOC
 
-    sexp = s(:attrasgn, s(:call, nil, :f, s(:arglist)), :[]=,
-             s(:argspush,
-               s(:splat, s(:call, nil, :x, s(:arglist))), s(:fixnum, 3)))
+    sexp = s(:attrasgn,
+             s(:call, nil, :f, s(:arglist)),
+             :[]=,
+             s(:arglist,
+               s(:splat, s(:call, nil, :x, s(:arglist))),
+               s(:fixnum, 3)))
 
     sexp.should == parse(ruby)
 

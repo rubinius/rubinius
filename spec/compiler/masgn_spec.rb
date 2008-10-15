@@ -131,7 +131,7 @@ describe Compiler do
     EOC
 
     sexp = s(:masgn,
-             s(:array, s(:lasgn, :a)), s(:lasgn, :b),
+             s(:array, s(:lasgn, :a), s(:splat, s(:lasgn, :b))),
              s(:array, s(:fixnum, 1), s(:fixnum, 2), s(:fixnum, 3)))
 
     sexp.should == parse(ruby)
@@ -244,14 +244,15 @@ describe Compiler do
   end
 
   it "compiles 'a, b, c = 1, *d'" do
-    # TODO to ryan: [:masgn, [:array, ...], nil, [:array, [:fixnum, 1]], [:call, nil, :d]]
     ruby = <<-EOC
       a, b, c = 1, *d
     EOC
 
     sexp = s(:masgn,
              s(:array, s(:lasgn, :a), s(:lasgn, :b), s(:lasgn, :c)),
-             s(:argscat, s(:array, s(:fixnum, 1)), s(:call, nil, :d, s(:arglist))))
+             s(:array,
+               s(:fixnum, 1),
+               s(:splat, s(:call, nil, :d, s(:arglist)))))
 
     sexp.should == parse(ruby)
 

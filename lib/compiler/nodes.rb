@@ -398,7 +398,9 @@ class Compiler
 
         return unless @arguments
 
-        if @arguments.is? ArrayLiteral
+        if Array === @arguments then
+          @argcount = @arguments.size
+        elsif @arguments.is? ArrayLiteral
           @arguments = @arguments.body
           @argcount = @arguments.size
         else

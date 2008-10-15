@@ -142,7 +142,6 @@ end
 task :kernel => 'kernel:build'
 
 namespace :kernel do
-
   task :check_compiler do
     kernel_mtime = all_kernel.select do |f|
       f =~ /rbc$/ and File.exist? f

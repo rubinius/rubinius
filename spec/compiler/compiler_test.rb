@@ -609,27 +609,6 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
-  add_tests("block_pass_super",
-            "Compiler" => bytecode do |g|
-              t = g.new_label
-
-              g.push :self
-              g.send :prc, 0, true
-
-              g.dup
-              g.is_nil
-              g.git t
-
-              g.push_cpath_top
-              g.find_const :Proc
-              g.swap
-              g.send :__from_block__, 1
-
-              t.set!
-
-              g.send_super nil, 0
-            end)
-
   add_tests("block_pass_thingy",
             "Compiler" => bytecode do |g|
               t = g.new_label
@@ -4381,12 +4360,41 @@ class CompilerTestCase < ParseTreeTestCase
               g.open_module :Graffle
             end)
 
-  add_tests("super",
+  add_tests("super_0",
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push_block
+                d.send_super :x, 0
+              end
+            end)
+
+  add_tests("super_1",
             "Compiler" => bytecode do |g|
               in_method :x do |d|
                 d.push 4
                 d.push_block
                 d.send_super :x, 1
+              end
+            end)
+
+  add_tests("super_1_array",
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push 24
+                d.push 42
+                d.make_array 2
+                d.push_block
+                d.send_super :x, 1
+              end
+            end)
+
+  add_tests("super_n",
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push 24
+                d.push 42
+                d.push_block
+                d.send_super :x, 2
               end
             end)
 
@@ -4434,17 +4442,6 @@ class CompilerTestCase < ParseTreeTestCase
               # there is no current method to pull the name of the method
               # from
               g.send_super nil, 1, true
-            end)
-
-  add_tests("super_multi",
-            "Compiler" => bytecode do |g|
-              in_method :x do |d|
-                d.push 4
-                d.push 2
-                d.push 1
-                d.push_block
-                d.send_super :x, 3
-              end
             end)
 
   add_tests("svalue",

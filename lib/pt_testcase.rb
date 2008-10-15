@@ -652,13 +652,6 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                         s(:splat, s(:lvar, :args)),
                                         s(:block_pass, s(:lvar, :block))))))))
 
-  add_tests("block_pass_super",
-            "Ruby"         => "super(&prc)",
-            "RawParseTree" => [:block_pass, [:vcall, :prc], [:super]],
-            "ParseTree"    => s(:super,
-                                s(:block_pass,
-                                  s(:call, nil, :prc, s(:arglist)))))
-
   add_tests("block_pass_thingy",
             "Ruby"         => "r.read_body(dest, &block)",
             "RawParseTree" => [:block_pass,

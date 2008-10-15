@@ -1303,9 +1303,10 @@ describe Compiler do
     EOC
 
     sexp = s(:return,
-             s(:argscat,
-               s(:array, s(:fixnum, 1), s(:fixnum, 2)),
-               s(:call, nil, :c, s(:arglist))))
+             s(:array,
+               s(:fixnum, 1),
+               s(:fixnum, 2),
+               s(:splat, s(:call, nil, :c, s(:arglist)))))
 
     sexp.should == parse(ruby)
 
