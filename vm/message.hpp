@@ -108,6 +108,18 @@ namespace rubinius {
      */
     Array* as_array(STATE);
 
+    /*
+     * Returns the object that is currently self
+     */
+    OBJECT current_self();
+
+    /*
+     * Sets the caller context
+     */
+    void set_caller(MethodContext* ctx) {
+      caller = ctx;
+    }
+
   private:
     STATE    /* state */;       /**< Access to the VM state. */
     Array*      arguments;      /**< Arguments from the call. */
@@ -121,7 +133,6 @@ namespace rubinius {
     Object*     recv;           /**< Receiver in the call, i.e. obj in `obj.foo()` */
     Object*     block;          /**< Block object or nil if no block. */
     Object*     splat;          /**< NOT USED. The splat argument to the call. */
-    Object*     current_self;   /**< self at the point of the call. */
     size_t      stack;          /**< Number of arguments on the stack when call occurs + 1 for return value. */
     bool        priv;           /**< Indicates that this call can access private methods. */
 

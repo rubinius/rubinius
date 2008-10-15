@@ -26,8 +26,76 @@ namespace rubinius {
     return ss;
   }
 
+  inline static void lookup_normal(STATE, Message& msg) {
+    if(!GlobalCacheResolver::resolve(state, msg)) {
+      msg.method_missing = true;
+      msg.name = G(sym_method_missing);
+      msg.priv = true; // lets us look for method_missing anywhere
+      sassert(GlobalCacheResolver::resolve(state, msg));
+    }
+  }
+
+  class ClearStack {
+  public:
+    Message& msg;
+
+    ClearStack(Message& msg): msg(msg) { }
+    ~ClearStack() { msg.reset(); }
+  };
+
+  static bool mono_performer(STATE, Task* task, Message& msg) {
+    ClearStack cs(msg);
+    SYMBOL original_name = msg.name;
+
+    if(likely(msg.lookup_from == msg.send_site->recv_class())) {
+      msg.module = msg.send_site->module();
+      msg.method = msg.send_site->method();
+      msg.method_missing = msg.send_site->method_missing;
+
+      msg.send_site->hits++;
+    } else {
+      msg.send_site->misses++;
+      lookup_normal(state, msg);
+
+      msg.send_site->module(state, msg.module);
+      msg.send_site->method(state, msg.method);
+      msg.send_site->recv_class(state, msg.lookup_from);
+      msg.send_site->method_missing = msg.method_missing;
+    }
+
+    if(unlikely(msg.method_missing)) {
+      msg.unshift_argument(state, original_name);
+    }
+
+    return msg.method->execute(state, task, msg);
+  }
+
+
+  static bool basic_performer(STATE, Task* task, Message& msg) {
+    ClearStack cs(msg);
+    SYMBOL original_name = msg.name;
+
+    lookup_normal(state, msg);
+
+    // Populate for mono!
+    msg.send_site->module(state, msg.module);
+    msg.send_site->method(state, msg.method);
+    msg.send_site->recv_class(state, msg.lookup_from);
+    msg.send_site->method_missing = msg.method_missing;
+
+    msg.send_site->performer = mono_performer;
+
+    if(msg.method_missing) {
+      msg.unshift_argument(state, original_name);
+    }
+
+    return msg.method->execute(state, task, msg);
+  }
+
   void SendSite::initialize(STATE) {
     resolver = MonomorphicInlineCacheResolver::resolve;
+    performer = basic_performer;
+
     method(state, (Executable*)Qnil);
     module(state, (Module*)Qnil);
     recv_class(state, (Module*)Qnil);
@@ -107,7 +175,7 @@ namespace rubinius {
         } else if(vis->protected_p(state)) {
           /* The method is protected, but it's not being called from
            * the same module */
-          if(!msg.current_self->kind_of_p(state, module)) {
+          if(!msg.current_self()->kind_of_p(state, module)) {
             return false;
           }
         }

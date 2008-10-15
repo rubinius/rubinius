@@ -20,7 +20,6 @@ namespace rubinius {
     name(NULL),
     recv(Qnil),
     block(Qnil),
-    current_self(Qnil),
     stack(0),
     priv(false),
     lookup_from(NULL),
@@ -42,7 +41,6 @@ namespace rubinius {
     name(NULL),
     recv(Qnil),
     block(Qnil),
-    current_self(Qnil),
     stack(0),
     priv(false),
     lookup_from(NULL),
@@ -203,6 +201,10 @@ namespace rubinius {
     OBJECT first = get_argument(0);
     start_++;
     return first;
+  }
+
+  OBJECT Message::current_self() {
+    return caller->self();
   }
 
 }

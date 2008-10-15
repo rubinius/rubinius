@@ -85,7 +85,6 @@ class TestSendSite : public CxxTest::TestSuite {
     msg.name = sym;
     msg.lookup_from = meta;
     msg.recv = G(object);
-    msg.current_self = G(object);
     msg.send_site = ss;
     msg.module = (Module*)Qnil;
     msg.method = (Executable*)Qnil;
@@ -117,7 +116,6 @@ class TestSendSite : public CxxTest::TestSuite {
     msg.name = sym;
     msg.lookup_from = meta;
     msg.recv = G(object);
-    msg.current_self = G(object);
     msg.send_site = ss;
     msg.module = meta;
     msg.method = cm;
@@ -150,7 +148,6 @@ class TestSendSite : public CxxTest::TestSuite {
     msg.name = sym;
     msg.lookup_from = meta;
     msg.recv = G(object);
-    msg.current_self = G(object);
     msg.send_site = ss;
     msg.module = meta;
     msg.method = cm;

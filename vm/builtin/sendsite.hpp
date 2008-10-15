@@ -17,6 +17,8 @@ namespace rubinius {
     static const size_t fields = 10;
     static const object_type type = SendSiteType;
 
+    typedef bool (*Performer)(STATE, Task* task, Message& msg);
+
   private:
     SYMBOL name_;            // slot
     CompiledMethod* sender_; // slot
@@ -31,6 +33,7 @@ namespace rubinius {
     size_t hits;
     size_t misses;
     MethodResolver resolver;
+    Performer performer;
 
   public:
     /* accessors */

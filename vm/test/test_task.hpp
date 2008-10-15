@@ -437,6 +437,8 @@ class TestTask : public CxxTest::TestSuite {
 
     MethodContext* cur = task->active();
 
+    msg.set_caller(cur);
+
     task->send_message(msg);
 
     TS_ASSERT(cur != task->active());
@@ -497,6 +499,8 @@ class TestTask : public CxxTest::TestSuite {
     msg.set_args(0);
 
     MethodContext* cur = task->active();
+
+    msg.set_caller(cur);
 
     task->send_message_slowly(msg);
 

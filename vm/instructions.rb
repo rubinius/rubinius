@@ -1813,18 +1813,6 @@ class Instructions
 
   def noop
     <<-CODE
-    /* This seems really odd, I know. Seems like "oh, we can just delete this code!
-     * it does nothing!"
-     * Sadly, this is not true. I (Evan) found that without some code here, when
-     * g++ is compiled with optimizations, it bleeds some weird code into the next
-     * instruction (which is push_nil), making push_nil 2x slower. This is
-     * basically filler code to keep g++ happy.
-     *
-     * Don't delete it! Thanks!
-     *  -mgmt
-     */
-    stack_push(Qnil);
-    stack_pop();
     CODE
   end
 
@@ -2969,7 +2957,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
+    bool res = msg.send_site->performer(state, task, msg);
     RETURN(res);
     CODE
   end
@@ -3049,7 +3037,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
+    bool res = msg.send_site->performer(state, task, msg);
     RETURN(res);
     CODE
   end

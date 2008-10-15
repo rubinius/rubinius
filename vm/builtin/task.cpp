@@ -156,17 +156,7 @@ namespace rubinius {
   /* For details in msg, locate the proper method and begin execution
    * of it. */
   bool Task::send_message(Message& msg) {
-    msg.current_self = active_->self();
-
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
-    // HACK ug! do this up front, not way down here.
-    /*
-    if(CompiledMethod* cm = try_as<CompiledMethod>(msg.method)) {
-      if(!cm->backend_method_|| (OBJECT)cm->backend_method_ == Qnil) {
-        cm->formalize(state, false);
-      }
-    }
-    */
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
@@ -174,8 +164,6 @@ namespace rubinius {
   }
 
   bool Task::send_message_slowly(Message& msg) {
-    msg.current_self = active_->self();
-
     SYMBOL original_name = msg.name;
     if(!GlobalCacheResolver::resolve(state, msg)) {
       msg.method_missing = true;
@@ -291,6 +279,7 @@ namespace rubinius {
     msg.lookup_from = recv->lookup_begin(state);
     msg.name = sel;
     msg.priv = (priv_p == Qtrue);
+    msg.set_caller(active_);
 
     if(!GlobalCacheResolver::resolve(state, msg)) {
       return (Tuple*)Qnil;
