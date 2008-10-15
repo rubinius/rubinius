@@ -4,6 +4,7 @@
 #include <list>
 
 #include <sys/wait.h>
+#include <sys/signal.h>
 #include <ev.h>
 
 #include "prelude.hpp"
