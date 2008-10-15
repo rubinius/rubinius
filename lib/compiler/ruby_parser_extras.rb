@@ -18,11 +18,12 @@ class Regexp
   ENC_UTF8 = /x/u.options
 end
 
+# I hate ruby 1.9 string changes
 class Fixnum
   def ord
-    self # I hate ruby 1.9 string changes
+    self
   end
-end
+end unless "a"[0] == "a"
 
 class RPStringScanner < StringScanner
 #   if ENV['TALLY'] then
@@ -54,7 +55,11 @@ class RPStringScanner < StringScanner
     string[pos, 0] = str
   end
 
-  def was_begin_of_line
+  def begin_of_line?
+    pos == 0 or string[pos-1] == ?\n
+  end
+
+  def was_begin_of_line # TODO: kill me
     pos <= 2 or string[pos-2] == ?\n
   end
 
@@ -125,30 +130,28 @@ class RubyParser < Racc::Parser
 
     head = s(:block, head) unless head.node_type == :block
     head << tail
-    head.minimize_line
     head
   end
 
-  def arg_add(node1, node2)
+  def arg_add(node1, node2) # TODO: nuke
     return s(:arglist, node2) unless node1
 
     node1[0] = :arglist if node1[0] == :array
     return node1 << node2 if node1[0] == :arglist
 
-    return s(:argspush, node1, node2)
+    return s(:arglist, node1, node2)
   end
 
   def arg_blk_pass node1, node2 # TODO: nuke
-    if node2 then
-      node2.insert 1, node1
-      return node2
-    else
-      node1
-    end
+    node1 = s(:arglist, node1) unless [:arglist, :array].include? node1.first
+    node1 << node2 if node2
+    node1
   end
 
-  def arg_concat node1, node2
-    return node2.nil? ? node1 : s(:argscat, node1, node2)
+  def arg_concat node1, node2 # TODO: nuke
+    raise "huh" unless node2
+    node1 << s(:splat, node2).compact
+    node1
   end
 
   def args arg, optarg, rest_arg, block_arg
@@ -227,15 +230,19 @@ class RubyParser < Racc::Parser
       return tail
     end
 
+    line = [head.line, tail.line].compact.min
+
     head = remove_begin(head)
     head = s(:block, head) unless head[0] == :block
-    head.minimize_line
 
     if strip_tail_block and Sexp === tail and tail[0] == :block then
       head.push(*tail.values)
     else
       head << tail
     end
+
+    head.line = line
+    head
   end
 
   def cond node
@@ -277,7 +284,7 @@ class RubyParser < Racc::Parser
     _racc_do_parse_rb(_racc_setup, false)
   end if ENV['PURE_RUBY']
 
-  def get_match_node lhs, rhs
+  def get_match_node lhs, rhs # TODO: rename to new_match
     if lhs then
       case lhs[0]
       when :dregx, :dregx_once then
@@ -420,25 +427,122 @@ class RubyParser < Racc::Parser
     return s(type, left, right)
   end
 
-  def new_call recv, meth, args = nil
-    if args && args[0] == :block_pass then
-      new_args = args.array(true) || args.argscat(true) || args.splat(true) # FIX: fragile
-      new_args ||= s(:arglist)
-      new_args[0] = :arglist if new_args[0] == :array # TODO: remove
-
-      call = s(:call, recv, meth)
-      call.line(recv.line) if recv
-      call << new_args if new_args
-      args << call
-
-      return args
+  def new_aref val
+    val[2] ||= s(:arglist)
+    val[2][0] = :arglist if val[2][0] == :array # REFACTOR
+    if val[0].node_type == :self then
+      result = new_call nil, :"[]", val[2]
+    else
+      result = new_call val[0], :"[]", val[2]
     end
+    result
+  end
+
+  def new_body val
+    result = val[0]
+
+    if val[1] then
+      result = s(:rescue)
+      result << val[0] if val[0]
+
+      resbody = val[1]
+
+      while resbody do
+        result << resbody
+        resbody = resbody.resbody(true)
+      end
+
+      result << val[2] if val[2]
+
+      result.line = (val[0] || val[1]).line
+    elsif not val[2].nil? then
+      warning("else without rescue is useless")
+      result = block_append(result, val[2])
+    end
+
+    result = s(:ensure, result, val[3]).compact if val[3]
+    return result
+  end
+
+  def new_call recv, meth, args = nil
     result = s(:call, recv, meth)
-    result.line(recv.line) if recv
+    result.line = recv.line if recv
+
     args ||= s(:arglist)
-    args[0] = :arglist if args[0] == :array # TODO: remove
+    args[0] = :arglist if args.first == :array
+    args = s(:arglist, args) unless args.first == :arglist
     result << args
     result
+  end
+
+  def new_case expr, body
+    result = s(:case, expr)
+    line = (expr || body).line
+
+    while body and body.node_type == :when
+      result << body
+      body = body.delete_at 3
+    end
+
+    # else
+    body = nil if body == s(:block)
+    result << body
+
+    result.line = line
+    result
+  end
+
+  def new_class val
+    line, path, superclass, body = val[1], val[2], val[3], val[5]
+    scope = s(:scope, body).compact
+    result = s(:class, path, superclass, scope)
+    result.line = line
+    result.comments = self.comments.pop
+    result
+  end
+
+  def new_compstmt val
+    result = void_stmts(val[0])
+    result = remove_begin(result) if result
+    result
+  end
+
+  def new_defn val
+    line, name, args, body = val[2], val[1], val[3], val[4]
+    body ||= s(:nil)
+
+    body ||= s(:block)
+    body = s(:block, body) unless body.first == :block
+
+    result = s(:defn, name.to_sym, args, s(:scope, body))
+    result.line = line
+    result.comments = self.comments.pop
+    result
+  end
+
+  def new_defs val
+    recv, name, args, body = val[1], val[4], val[6], val[7]
+
+    body ||= s(:block)
+    body = s(:block, body) unless body.first == :block
+
+    result = s(:defs, recv, name.to_sym, args, s(:scope, body))
+    result.line = recv.line
+    result.comments = self.comments.pop
+    result
+  end
+
+  def new_for expr, var, body
+    result = s(:for, expr, var).line(var.line)
+    result << body if body
+    result
+  end
+
+  def new_if c, t, f
+    l = [c.line, t && t.line, f && f.line].compact.min
+    c = cond c
+    c, t, f = c.last, f, t if c[0] == :not
+    s(:if, c, t, f).line(l)
   end
 
   def new_iter call, args, body
@@ -446,32 +550,165 @@ class RubyParser < Racc::Parser
     result << call if call
     result << args
     result << body if body
-    result.minimize_line
+    result
+  end
+
+  def new_masgn lhs, rhs, wrap = false
+    rhs = value_expr(rhs)
+    rhs = lhs[1] ? s(:to_ary, rhs) : s(:array, rhs) if wrap
+
+    lhs.delete_at 1 if lhs[1].nil?
+    lhs << rhs
+
+    lhs
+  end
+
+  def new_module val
+    line, path, body = val[1], val[2], val[4]
+    body = s(:scope, body).compact
+    result = s(:module, path, body)
+    result.line = line
+    result.comments = self.comments.pop
+    result
+  end
+
+  def new_op_asgn val
+    lhs, asgn_op, arg = val[0], val[1].to_sym, val[2]
+    name = lhs.value
+    arg = remove_begin(arg)
+    result = case asgn_op # REFACTOR
+             when :"||" then
+               lhs << arg
+               s(:op_asgn_or, self.gettable(name), lhs)
+             when :"&&" then
+               lhs << arg
+               s(:op_asgn_and, self.gettable(name), lhs)
+             else
+               # TODO: why [2] ?
+               lhs[2] = new_call(self.gettable(name), asgn_op,
+                                 s(:arglist, arg))
+               lhs
+             end
+    result.line = lhs.line
+    result
+  end
+
+  def new_regexp val
+    node = val[1] || s(:str, '')
+    options = val[2]
+
+    o, k = 0, nil
+    options.split(//).each do |c| # FIX: this has a better home
+      v = {
+        'x' => Regexp::EXTENDED,
+        'i' => Regexp::IGNORECASE,
+        'm' => Regexp::MULTILINE,
+        'o' => Regexp::ONCE,
+        'n' => Regexp::ENC_NONE,
+        'e' => Regexp::ENC_EUC,
+        's' => Regexp::ENC_SJIS,
+        'u' => Regexp::ENC_UTF8,
+      }[c]
+      raise "unknown regexp option: #{c}" unless v
+      o += v
+      k = c if c =~ /[esu]/
+    end
+
+    case node[0]
+    when :str then
+      node[0] = :lit
+      node[1] = if k then
+                  Regexp.new(node[1], o, k)
+                else
+                  Regexp.new(node[1], o)
+                end
+    when :dstr then
+      if options =~ /o/ then
+        node[0] = :dregx_once
+      else
+        node[0] = :dregx
+      end
+      node << o if o and o != 0
+    else
+      node = s(:dregx, '', node);
+      node[0] = :dregx_once if options =~ /o/
+      node << o if o and o != 0
+    end
+
+    node
+  end
+
+  def new_sclass val
+    recv, in_def, in_single, body = val[3], val[4], val[6], val[7]
+    scope = s(:scope, body).compact
+    result = s(:sclass, recv, scope)
+    result.line = val[2]
+    self.in_def = in_def
+    self.in_single = in_single
     result
   end
 
   def new_super args
     if args && args.node_type == :block_pass then
-      t, body, bp = args
-      body, bp = bp, body unless bp
-      result = s(t, bp, s(:super, body).compact)
+      s(:super, args)
     else
-      result = s(:super)
-      result << args if args and args != s(:array)
+      args ||= s(:arglist)
+      s(:super, *args[1..-1])
     end
+  end
+
+  def new_undef n, m = nil
+    if m then
+      block_append(n, s(:undef, m))
+    else
+      s(:undef, n)
+    end
+  end
+
+  def new_until block, expr, pre
+    expr = (expr.first == :not ? expr.last : s(:not, expr)).line(expr.line)
+    new_while block, expr, pre
+  end
+
+  def new_while block, expr, pre
+    line = [block && block.line, expr.line].compact.min
+    block, pre = block.last, false if block && block[0] == :begin
+
+    expr = cond expr
+    result = if expr.first == :not then
+               s(:until, expr.last, block, pre)
+             else
+               s(:while, expr, block, pre)
+             end
+
+    result.line = line
     result
   end
 
-  def new_yield(node = nil)
-    if node then
-      raise SyntaxError, "Block argument should not be given." if
-        node.node_type == :block_pass
-
-      node[0] = :arglist if node[0] == :array
-      node = node.last if node.node_type == :array and node.size == 2
+  def new_xstring str
+    if str then
+      case str[0]
+      when :str
+        str[0] = :xstr
+      when :dstr
+        str[0] = :dxstr
+      else
+        str = s(:dxstr, '', str)
+      end
+      str
+    else
+      s(:xstr, '')
     end
+  end
 
-    return s(:yield, node).compact
+  def new_yield args = nil
+    raise SyntaxError, "Block argument should not be given." if
+      args && args.node_type == :block_pass
+
+    args ||= s(:arglist)
+    args = s(:arglist, args) unless [:arglist, :array].include? args.first
+
+    return s(:yield, *args[1..-1])
   end
 
   def next_token
@@ -482,7 +719,7 @@ class RubyParser < Racc::Parser
     end
   end
 
-  def node_assign(lhs, rhs)
+  def node_assign(lhs, rhs) # TODO: rename new_assign
     return nil unless lhs
 
     rhs = value_expr rhs
@@ -518,7 +755,7 @@ class RubyParser < Racc::Parser
 
   def remove_begin node
     oldnode = node
-    if node and node[0] == :begin and node.size == 2 then
+    if node and :begin == node[0] and node.size == 2 then
       node = node[-1]
       node.line = oldnode.line
     end
@@ -549,8 +786,6 @@ class RubyParser < Racc::Parser
 
   def s(*args)
     result = Sexp.new(*args)
-    subsexp = result.grep(Sexp)
-    result.line = subsexp.first.line unless subsexp.empty? # grab if possible
     result.line ||= lexer.lineno if lexer.src          # otherwise...
     result.file = self.file
     result
@@ -574,61 +809,23 @@ class RubyParser < Racc::Parser
   def warning s
     # do nothing for now
   end
+
+  alias :old_yyerror :yyerror
+  def yyerror msg
+    # for now do nothing with the msg
+    old_yyerror
+  end
 end
 
 class Keyword
   class KWtable
-    attr_accessor :name, :id, :state
+    attr_accessor :name, :state, :id0, :id1
     def initialize(name, id=[], state=nil)
-      @name = name
-      @id = id
+      @name  = name
+      @id0, @id1 = id
       @state = state
     end
-
-    def id0
-      self.id.first
-    end
-
-    def id1
-      self.id.last
-    end
   end
-
-  TOTAL_KEYWORDS  = 40
-  MIN_WORD_LENGTH =  2
-  MAX_WORD_LENGTH =  8
-  MIN_HASH_VALUE  =  6
-  MAX_HASH_VALUE  = 55
-  # maximum key range = 50, duplicates = 0
-
-  ASSO_VALUES = [
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 11, 56, 56, 36, 56,  1, 37,
-                 31,  1, 56, 56, 56, 56, 29, 56,  1, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56,  1, 56, 32,  1,  2,
-                 1,   1,  4, 23, 56, 17, 56, 20,  9,  2,
-                 9,  26, 14, 56,  5,  1,  1, 16, 56, 21,
-                 20,  9, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56, 56, 56, 56, 56,
-                 56, 56, 56, 56, 56, 56
-                ]
 
   ##
   # :expr_beg    = ignore newline, +/- is a sign.
@@ -641,8 +838,7 @@ class Keyword
   # :expr_dot    = right after . or ::, no reserved words.
   # :expr_class  = immediate after class, no here document.
 
-  WORDLIST = [
-              [""], [""], [""], [""], [""], [""],
+  wordlist = [
               ["end",      [:kEND,      :kEND        ], :expr_end   ],
               ["else",     [:kELSE,     :kELSE       ], :expr_beg   ],
               ["case",     [:kCASE,     :kCASE       ], :expr_beg   ],
@@ -682,36 +878,13 @@ class Keyword
               ["END",      [:klEND,     :klEND       ], :expr_end   ],
               ["BEGIN",    [:klBEGIN,   :klBEGIN     ], :expr_end   ],
               ["while",    [:kWHILE,    :kWHILE_MOD  ], :expr_beg   ],
-              [""], [""], [""], [""], [""], [""], [""], [""], [""],
-              [""],
               ["alias",    [:kALIAS,    :kALIAS      ], :expr_fname ],
              ].map { |args| KWtable.new(*args) }
 
-  def self.hash_keyword(str, len)
-    hval = len
+  WORDLIST = Hash[*wordlist.map { |o| [o.name, o] }.flatten]
 
-    case hval
-    when 2, 1 then
-      hval += ASSO_VALUES[str[0].ord]
-    else
-      hval += ASSO_VALUES[str[2].ord]
-      hval += ASSO_VALUES[str[0].ord]
-    end
-
-    hval += ASSO_VALUES[str[len - 1].ord]
-    return hval
-  end
-
-  def self.keyword(str, len = str.size)
-    if len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH then
-      key = hash_keyword(str, len)
-      if key <= MAX_HASH_VALUE && key >= 0 then
-        s = WORDLIST[key].name
-        return WORDLIST[key] if str == s
-      end
-    end
-
-    return nil
+  def self.keyword str
+    WORDLIST[str]
   end
 end
 
@@ -817,7 +990,6 @@ class StackState
   end
 
   def push val
-    raise if val != true and val != false
     @stack.push val
   end
 end
@@ -847,11 +1019,6 @@ class Sexp
 
   def line= n
     @line = n
-  end
-
-  def minimize_line
-    linenos = self.grep(Sexp).map { |s| s.line } << self.line
-    @line = linenos.compact.min
   end
 
   def node_type
