@@ -193,8 +193,11 @@ namespace rubinius {
       /*  This seems a bit cheap, but we need to force a check to
        *  catch the case where wait is called before any child is
        *  created, because such an occurrence must result in ECHILD.
+       *
+       *  Non-hanging force a check too, so that they do not
+       *  need to wait until the next signal arrives.
        */
-      if(Child::waiters().size() == 1) {
+      if((opts & WNOHANG) || Child::waiters().size() == 1) {
         Child::find_finished(state);
       }
     }
@@ -230,6 +233,8 @@ namespace rubinius {
 
           if(errno == ECHILD) {
             waiter->channel()->call(Qfalse);
+            it = all.erase(it);
+            continue;
           }
 
           break;
@@ -242,6 +247,7 @@ namespace rubinius {
           }
 
           /* Only blocking waits remain */
+          ++it;
           break;
 
         default:      /* Found it */
@@ -255,9 +261,7 @@ namespace rubinius {
           it = all.erase(it);
           continue;
         }
-
-        ++it;
-      }
+      }   /* for */
     }
 
     Loop::Loop(struct ev_loop *loop) :

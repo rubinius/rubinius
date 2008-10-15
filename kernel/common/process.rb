@@ -220,33 +220,77 @@ module Process
     Process.groups
   end
 
-  def self.wait(pid = -1, flags = 0)
-    chan = Channel.new
+  #
+  # Wait for the given process to exit.
+  #
+  # The pid may be the specific pid of some previously forked
+  # process, or -1 to indicate to watch for *any* child process
+  # exiting. Other options, such as process groups, may be available
+  # depending on the system.
+  #
+  # With no arguments the default is to block waiting for any
+  # child processes (pid -1.)
+  #
+  # The flag may be Process::WNOHANG, which indicates that
+  # the child should only be quickly checked. If it has not
+  # exited yet, nil is returned immediately instead.
+  #
+  # The return value is the exited pid or nil if Process::WNOHANG
+  # was used and the child had not yet exited.
+  #
+  # If the pid has exited, the global $? is set to a Process::Status
+  # object representing the exit status (and possibly other info) of
+  # the child.
+  #
+  # If there exists no such pid (e.g. never forked or already
+  # waited for), or no children at all, Errno::ECHILD is raised.
+  #
+  # TODO: Support other options such as WUNTRACED? --rue
+  #
+  def self.wait(pid_to_wait_for = -1, flags = 0)
+    waiter = Channel.new
 
-    Scheduler.send_on_stopped(chan, pid, flags)
+    Scheduler.send_on_stopped(waiter, pid_to_wait_for, flags)
 
-    pid, status = chan.receive
+    pid, status = waiter.receive
 
     case pid
     when false
-      raise Errno::ECHILD, "No child processes!"
+      if pid == -1
+        raise Errno::ECHILD, "There are no child processes!"
+      else
+        raise Errno::ECHILD, "No child process #{pid_to_wait_for}!"
+      end
 
     when nil
       return nil
 
     else
       $? = Process::Status.new pid, status
-
     end
 
     pid
   end
 
+  #
+  # Wait for all child processes.
+  #
+  # Blocks until all child processes have exited, and returns
+  # an Array of [pid, Process::Status] results, one for each
+  # child.
+  #
+  # Be mindful of the effects of creating new processes while
+  # .waitall has been called (usually in a different thread.)
+  # The .waitall call does not in any way check that it is only
+  # waiting for children that existed at the time it was called.
+  #
   def self.waitall
     statuses = []
+
     statuses << [Process.wait, $?] while true
+
   rescue Errno::ECHILD
-    return statuses
+    statuses
   end
 
   def self.wait2(pid=-1, flags=0)
@@ -259,13 +303,25 @@ module Process
     alias_method :waitpid2, :wait2
   end
 
+  #
+  # Indicate disinterest in child process.
+  #
+  # Sets up an internal wait on the given process ID.
+  # Only possibly real pids, i.e. positive numbers,
+  # may be waited for.
+  #
+  # TODO: Should an error be raised on ECHILD? --rue
+  #
+  # TODO: This operates on the assumption that waiting on
+  #       the event consumes very little resources. If this
+  #       is not the case, the check should be made WNOHANG
+  #       and called periodically.
+  #
   def self.detach(pid)
-    thr = Thread.new {
-      while true
-        break if Process.wait(pid, Process::WNOHANG)
-        sleep(1)
-      end
-    }
+    raise ArgumentError, "Only positive pids may be detached" unless pid > 0
+
+    # The evented system does not need a loop
+    Thread.new { Process.wait pid }
   end
 
   #--
