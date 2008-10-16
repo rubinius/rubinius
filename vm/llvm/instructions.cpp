@@ -4,7 +4,6 @@
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/sendsite.hpp"

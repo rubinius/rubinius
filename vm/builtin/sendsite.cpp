@@ -35,7 +35,7 @@ namespace rubinius {
     }
   }
 
-  static bool mono_performer(STATE, Task* task, Message& msg) {
+  bool SendSite::mono_performer(STATE, Task* task, Message& msg) {
     SYMBOL original_name = msg.name;
 
     if(likely(msg.lookup_from == msg.send_site->recv_class())) {
@@ -62,7 +62,7 @@ namespace rubinius {
   }
 
 
-  static bool basic_performer(STATE, Task* task, Message& msg) {
+  bool SendSite::basic_performer(STATE, Task* task, Message& msg) {
     SYMBOL original_name = msg.name;
 
     lookup_normal(state, msg);

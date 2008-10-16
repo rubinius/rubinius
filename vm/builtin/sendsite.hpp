@@ -64,6 +64,9 @@ namespace rubinius {
     void initialize(STATE);
     bool locate(STATE, Message& msg);
 
+    static bool mono_performer(STATE, Task* task, Message& msg);
+    static bool basic_performer(STATE, Task* task, Message& msg);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

@@ -219,7 +219,7 @@ namespace rubinius {
   }
 
   template <typename ArgumentHandler>
-  static bool execute_specialized(STATE, Executable* exec, Task* task, Message& msg) {
+  bool VMMethod::execute_specialized(STATE, Executable* exec, Task* task, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(exec);
 
     MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
