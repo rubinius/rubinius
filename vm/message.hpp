@@ -2,6 +2,9 @@
 #define RBX_MESSAGE_HPP
 
 #include "prelude.hpp"
+#include "builtin/array.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
 
@@ -39,37 +42,23 @@ namespace rubinius {
     /**
      *  Number of remaining (unconsumed) arguments.
      */
-    size_t args() { return total_args - start_; }
+    size_t args() { return total_args; }
 
     /**
      *  Appends the task's arguments to the splat array.
      */
-    void append_arguments(STATE, Task* task, Array* splat);
+    void append_arguments(STATE, Array* splat);
 
     /**
      *  Appends splat arguments to the task's arguments array.
      */
-    void append_splat(STATE, Task* task, Array* splat);
-
-    /**
-     *  Argument at offset given from current start.
-     *
-     *  Note that this is the *current* start, in the case
-     *  where arguments have already been consumed.
-     */
-    Object* get_argument(size_t index);
-
-    /**
-     *  Copy arguments from stack into arguments Array.
-     */
-    void import_arguments(STATE, Task* task, size_t args, size_t offset = 0);
+    void append_splat(STATE, Array* splat);
 
     /**
      *  Drop arguments Array.
      */
     void reset() {
-      start_ = 0;
-      arguments = NULL;
+      arguments_array = NULL;
       method_missing = false;
     }
 
@@ -98,11 +87,6 @@ namespace rubinius {
      */
     void unshift_argument2(STATE, OBJECT one, OBJECT two);
 
-    /**
-     *  Set the associated Task and explictly give total argument count.
-     */
-    void use_from_task(Task* task, size_t args);
-
     /*
      * Package up the arguments and return them as an Array
      */
@@ -120,11 +104,65 @@ namespace rubinius {
       caller = ctx;
     }
 
+    /*
+     * Setup the Message with the basic information
+     */
+    void setup(SendSite* ss, OBJECT obj, MethodContext* ctx, size_t arg_count,
+        size_t stack_size) {
+      method_missing = false;
+      arguments_array = NULL;
+      send_site = ss;
+      recv   = obj;
+      caller = ctx;
+      total_args   = arg_count;
+      stack  = stack_size;
+      stack_args_ = ctx->stack_back_position(arg_count - 1);
+      arguments_ = stack_args_;
+    }
+
+    /*
+     * Retrieve an argument from the stack
+     */
+    OBJECT get_stack_arg(int which) {
+      return stack_args_[which];
+    }
+
+    /*
+     * Shift the start of the arguments forward, discarding the top
+     * argument. */
+    OBJECT shift_stack_args() {
+      OBJECT obj = *stack_args_++;
+      arguments_ = stack_args_;
+      return obj;
+    }
+
+    /*
+     * Sets the Message to pull it's arguments from Array*
+     */
+    void use_array(Array* ary) {
+      total_args = ary->size();
+      arguments_array = ary;
+      arguments_ = ary->tuple()->field;
+    }
+
+    /*
+     * Retrieve the requested argument
+     */
+    OBJECT get_argument(size_t index) {
+      return arguments_[index];
+    }
+
+    /*
+     * Deprecated: Use the details to setup the Message
+     */
+    void use_from_task(Task* task, size_t args);
+
   private:
     STATE    /* state */;       /**< Access to the VM state. */
-    Array*      arguments;      /**< Arguments from the call. */
+    Array*      arguments_array;      /**< Arguments from the call. */
     size_t      total_args;     /**< Total number of arguments given, including unsplatted. */
-    size_t      start_;          /**< Index of first remaining argument in arguments. */
+    OBJECT*     stack_args_;
+    OBJECT*     arguments_;
 
   public:   /* Instance variables */
 
@@ -150,9 +188,6 @@ namespace rubinius {
     /** The caller's MethodContext, where to get arguments from*/
     MethodContext* caller;
 
-
-  public: // accessors
-    size_t start() { return start_; }
   };
 }
 

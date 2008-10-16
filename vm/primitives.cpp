@@ -3,6 +3,7 @@
 #include "primitives.hpp"
 #include "event.hpp"
 #include "gen/includes.hpp"
+#include "message.hpp"
 
 #include <iostream>
 

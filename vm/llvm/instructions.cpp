@@ -20,6 +20,7 @@
 #include "builtin/contexts.hpp"
 
 #include "objectmemory.hpp"
+#include "message.hpp"
 
 using namespace rubinius;
 
@@ -108,12 +109,12 @@ CODE
   bool send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, SYMBOL name, size_t args) {
     Message& msg = *task->msg;
     msg.recv = stack_back(args);
-    msg.import_arguments(state, task, args);
+    msg.use_from_task(task, args);
     msg.name = name;
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.block = Qnil;
     msg.stack = args + 1;
-    
+
     bool res;
     try {
       res = task->send_message_slowly(msg);

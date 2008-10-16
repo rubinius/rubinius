@@ -9,6 +9,7 @@
 
 #include "builtin/nativemethodcontext.hpp"
 
+#include "message.hpp"
 
 namespace rubinius {
 

@@ -22,6 +22,7 @@
 
 #include "objectmemory.hpp"
 #include "profiler.hpp"
+#include "message.hpp"
 
 #include <iostream>
 #include <fstream>

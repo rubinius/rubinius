@@ -2,7 +2,6 @@
 #define RBX_PRIMITIVES_HPP
 
 #include "object.hpp"
-#include "message.hpp"
 #include "executor.hpp"
 
 #include <stdexcept>
@@ -10,6 +9,7 @@
 namespace rubinius {
 
   class Primitives;
+  class Message;
 
   enum PrimitiveRuntimeCode {
     kPrimitiveFailed = 0

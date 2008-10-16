@@ -12,6 +12,7 @@
 #include "builtin/io.hpp"
 #include "builtin/contexts.hpp"
 
+#include "message.hpp"
 #include "event.hpp"
 
 namespace rubinius {

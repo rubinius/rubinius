@@ -42,7 +42,6 @@ class TestObject : public CxxTest::TestSuite {
     OBJECT obj = state->om->new_object(G(object), Object::fields);
     Fixnum* fix = Fixnum::from(1);
 
-    Object* uninitialized = NULL;
     Object* nil = Qnil;
 
     // OK
@@ -56,15 +55,12 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(as<String>(nil), TypeError);
     TS_ASSERT_THROWS(as<String>(obj), TypeError);
     TS_ASSERT_THROWS(as<String>(fix), TypeError);
-
-    TS_ASSERT_THROWS(as<String>(uninitialized), const Assertion &);
   }
 
   void test_try_as() {
     OBJECT obj = state->om->new_object(G(object), Object::fields);
     Fixnum* fix = Fixnum::from(1);
 
-    Object* uninitialized = NULL;
     Object* nil = Qnil;
 
     // OK
@@ -75,11 +71,6 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(try_as<String>(nil), static_cast<String*>(NULL));
     TS_ASSERT_EQUALS(try_as<String>(obj), static_cast<String*>(NULL));
     TS_ASSERT_EQUALS(try_as<String>(fix), static_cast<String*>(NULL));
-
-    // Fail
-    TS_ASSERT_THROWS(try_as<String>(uninitialized), const Assertion &);
-    // Object casts have their own implementation
-    TS_ASSERT_THROWS(try_as<Object>(uninitialized), const Assertion &);
   }
 
   void test_dup() {

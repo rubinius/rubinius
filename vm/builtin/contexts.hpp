@@ -104,6 +104,10 @@ namespace rubinius {
       return *pos;
     }
 
+    OBJECT* stack_back_position(size_t position) {
+      return js.stack - position;
+    }
+
     OBJECT top() {
       return *js.stack;
     }

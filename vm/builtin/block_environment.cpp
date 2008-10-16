@@ -14,6 +14,7 @@
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 #include "profiler.hpp"
+#include "message.hpp"
 
 #include <iostream>
 

@@ -15,12 +15,11 @@
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 
+#include "message.hpp"
 
 namespace rubinius {
 
   class Task;
-  class Message;
-
 
 /* Class methods */
 

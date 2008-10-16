@@ -44,6 +44,7 @@ namespace rubinius {
     OBJECT get(STATE, size_t idx);
     OBJECT set(STATE, size_t idx, OBJECT val);
     void   unshift(STATE, OBJECT val);
+    OBJECT shift(STATE);
     OBJECT append(STATE, OBJECT val);
     bool   includes_p(STATE, OBJECT val);
 

@@ -2944,12 +2944,15 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
-    msg.recv = stack_top();
+    msg.setup(
+      vmm->sendsites[index].get(),
+      stack_top(),
+      ctx,
+      0,
+      1);
+
     msg.block = Qnil;
     msg.splat = Qnil;
-    msg.use_from_task(task, 0);
-    msg.stack = 1;
 
     msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -3024,12 +3027,15 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
-    msg.recv = stack_back(count);
+    msg.setup(
+      vmm->sendsites[index].get(),
+      stack_back(count),
+      ctx,
+      count,
+      count + 1);
+
     msg.block = Qnil;
     msg.splat = Qnil;
-    msg.use_from_task(task, count);
-    msg.stack = count + 1;
 
     msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -3108,12 +3114,16 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
+
+    msg.setup(
+      vmm->sendsites[index].get(),
+      stack_back(count),
+      ctx,
+      count,
+      count + 1);
+
     msg.splat = Qnil;
-    msg.use_from_task(task, count);
-    msg.recv = stack_back(count);
-    msg.stack = count + 1;
 
     msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -3199,19 +3209,23 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
-    msg.splat = Qnil;
-    msg.recv = stack_back(count);
-    msg.stack = count + 1;
 
-    msg.use_from_task(task, count);
+    msg.setup(
+      vmm->sendsites[index].get(),
+      stack_back(count),
+      ctx,
+      count,
+      count + 1);
+
+    msg.splat = Qnil;
+
     if(!ary->nil_p()) {
       if(task->call_flags & #{CALL_FLAG_CONCAT}) {
-        msg.append_arguments(state, task, as<Array>(ary));
+        msg.append_arguments(state, as<Array>(ary));
       } else {
-        msg.append_splat(state, task, as<Array>(ary));
+        msg.append_splat(state, as<Array>(ary));
       }
     }
 
@@ -3295,12 +3309,16 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
+
+    msg.setup(
+      vmm->sendsites[index].get(),
+      task->self(),
+      ctx,
+      count,
+      count);
+
     msg.splat = Qnil;
-    msg.use_from_task(task, count);
-    msg.recv = task->self();
-    msg.stack = count;
 
     msg.priv = TRUE;
     msg.lookup_from = task->current_module()->superclass();
@@ -3429,19 +3447,23 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
-    msg.splat = Qnil;
-    msg.recv = task->self();
-    msg.stack = count;
 
-    msg.use_from_task(task, count);
+    msg.setup(
+      vmm->sendsites[index].get(),
+      task->self(),
+      ctx,
+      count,
+      count);
+
+    msg.splat = Qnil;
+
     if(!ary->nil_p()) {
       if(task->call_flags & #{CALL_FLAG_CONCAT}) {
-        msg.append_arguments(state, task, as<Array>(ary));
+        msg.append_arguments(state, as<Array>(ary));
       } else {
-        msg.append_splat(state, task, as<Array>(ary));
+        msg.append_splat(state, as<Array>(ary));
       }
     }
 
