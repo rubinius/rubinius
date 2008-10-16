@@ -247,7 +247,7 @@ namespace rubinius {
     Function* func = cast<Function>(
         operations->getOrInsertFunction(stream.str(), Type::VoidTy,
           PointerType::getUnqual(task_type), stack_type,
-          PointerType::getUnqual(Type::Int32Ty), NULL));
+          PointerType::getUnqual(Type::Int32Ty), (void *)NULL));
 
     return func;
   }
