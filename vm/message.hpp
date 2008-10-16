@@ -34,13 +34,13 @@ namespace rubinius {
   class Message {
   public:
 
-    Message(STATE, Array* ary);
     Message(STATE);
+    Message(STATE, Array* ary);
 
   public:   /* Interface */
 
     /**
-     *  Number of remaining (unconsumed) arguments.
+     *  The number of arguments available
      */
     size_t args() { return total_args; }
 
@@ -53,14 +53,6 @@ namespace rubinius {
      *  Appends splat arguments to the task's arguments array.
      */
     void append_splat(STATE, Array* splat);
-
-    /**
-     *  Drop arguments Array.
-     */
-    void reset() {
-      arguments_array = NULL;
-      method_missing = false;
-    }
 
     /**
      *  Explicitly set total number of arguments.

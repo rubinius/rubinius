@@ -115,7 +115,6 @@ namespace rubinius {
     void raise_exception(Exception *exc);
     bool send_message(Message& msg);
     bool send_message_slowly(Message& msg);
-    bool execute_message(Message& msg);
     Module* current_module();
 
     Tuple* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);

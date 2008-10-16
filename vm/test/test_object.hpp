@@ -393,6 +393,7 @@ class TestObject : public CxxTest::TestSuite {
     MethodContext* input_context = task->active();
 
     Message msg(state);
+    msg.block = Qnil;
     msg.recv = Qtrue;
     msg.lookup_from = G(true_class);
     msg.name = state->symbol("__send__");

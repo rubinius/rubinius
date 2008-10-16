@@ -115,16 +115,7 @@ CODE
     msg.block = Qnil;
     msg.stack = args + 1;
 
-    bool res;
-    try {
-      res = task->send_message_slowly(msg);
-    } catch(...) {
-      msg.reset();
-      throw;
-    }
-
-    msg.reset();
-    return res;
+    return task->send_message_slowly(msg);
   }
 }
 

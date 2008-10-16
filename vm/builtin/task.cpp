@@ -46,7 +46,7 @@ namespace rubinius {
   Task* Task::create(STATE, OBJECT recv, CompiledMethod* meth) {
     Task* task = create(state, 0);
 
-    Message msg(state, Array::create(state, 0));
+    Message msg(state);
     msg.name = meth->name() ? meth->name() : state->symbol("__weird_unnamed_method__");
     msg.module = recv->class_object(state);
     meth->execute(state, task, msg);
@@ -139,21 +139,6 @@ namespace rubinius {
     Exception::assertion_error(state, ss.str().c_str());
   }
 
-  bool Task::execute_message(Message& msg) {
-    bool mc_installed;
-
-    try {
-      mc_installed = msg.method->execute(state, this, msg);
-    } catch (...) {
-      msg.reset();
-      throw;
-    }
-
-    msg.reset();
-
-    return mc_installed;
-  }
-
   /* For details in msg, locate the proper method and begin execution
    * of it. */
   bool Task::send_message(Message& msg) {
@@ -161,7 +146,7 @@ namespace rubinius {
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return execute_message(msg);
+    return msg.method->execute(state, this, msg);
   }
 
   bool Task::send_message_slowly(Message& msg) {
@@ -181,7 +166,7 @@ namespace rubinius {
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return execute_message(msg);
+    return msg.method->execute(state, this, msg);
   }
 
   bool Task::passed_arg_p(size_t pos) {

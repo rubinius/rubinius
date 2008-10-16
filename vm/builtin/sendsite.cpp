@@ -35,16 +35,7 @@ namespace rubinius {
     }
   }
 
-  class ClearStack {
-  public:
-    Message& msg;
-
-    ClearStack(Message& msg): msg(msg) { }
-    ~ClearStack() { msg.reset(); }
-  };
-
   static bool mono_performer(STATE, Task* task, Message& msg) {
-    ClearStack cs(msg);
     SYMBOL original_name = msg.name;
 
     if(likely(msg.lookup_from == msg.send_site->recv_class())) {
@@ -72,7 +63,6 @@ namespace rubinius {
 
 
   static bool basic_performer(STATE, Task* task, Message& msg) {
-    ClearStack cs(msg);
     SYMBOL original_name = msg.name;
 
     lookup_normal(state, msg);
