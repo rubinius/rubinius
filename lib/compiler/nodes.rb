@@ -1575,6 +1575,8 @@ raise "no"
         if ArrayLiteral === rhs then
           @splat_rhs = rhs.body.grep(Splat).first
           @rhs.body.reject! { |o| Splat === o } if @splat_rhs
+        else
+          @splat_rhs = nil
         end
 
         # TODO: fix in sexp

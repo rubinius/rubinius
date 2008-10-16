@@ -330,7 +330,7 @@ class Compiler
         @dynamic = false
         @concat = false
 
-        @arguments ||= []
+        @arguments = Array(@arguments)
 
         @arguments.each do |argument|
           if argument.is? Splat then
@@ -1520,7 +1520,6 @@ class Compiler
         elsif @rhs.is? Splat or @rhs.is? ToArray
           @rhs.child.bytecode(g)
         else
-#          @rhs.bytecode(g)
           @rhs.body.each do |x|
             x.bytecode(g)
           end
@@ -2408,11 +2407,11 @@ class Compiler
         end
 
         if @method.arguments.splat
-          cc = ConcatArgs.new @compiler
+          cc = Splat.new @compiler
           la = LocalAccess.new @compiler
           la.from_variable @method.arguments.splat
 
-          cc.args args, la
+          cc.args la
           @arguments = cc
         else
           @arguments = args
