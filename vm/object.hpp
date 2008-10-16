@@ -90,10 +90,9 @@ namespace rubinius {
    */
   template <class T>
     static inline T* as(Object* obj) {
-      sassert(NULL != obj);
-
-      if(!kind_of<T>(obj))
+      if(!kind_of<T>(obj)) {
         TypeError::raise(T::type, obj);
+      }
 
       return static_cast<T*>(obj);
     }
@@ -116,10 +115,9 @@ namespace rubinius {
    */
   template <class T>
     static inline T* try_as(Object* obj) {
-      sassert(NULL != obj);
-
-      if(!kind_of<T>(obj))
+      if(!kind_of<T>(obj)) {
         return NULL;
+      }
 
       return static_cast<T*>(obj);
     }
