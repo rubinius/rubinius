@@ -1,6 +1,7 @@
 #ifndef RBX_VM_BUILTIN_OBJECT_HPP
 #define RBX_VM_BUILTIN_OBJECT_HPP
 
+#include "vm.hpp"
 #include "vm/oop.hpp"
 #include "vm/prelude.hpp"
 #include "vm/type_info.hpp"
@@ -67,9 +68,6 @@ namespace rubinius {
     OBJECT show_simple(STATE);
     OBJECT show_simple(STATE, int level);
 
-    bool fixnum_p();
-    bool symbol_p();
-
     /* Initialize the object as storing bytes, by setting the flag then clearing the
      * body of the object, by setting the entire body as bytes to 0 */
     void init_bytes();
@@ -127,7 +125,6 @@ namespace rubinius {
     void cleanup(STATE);
 
     bool kind_of_p(STATE, OBJECT cls);
-    Class* lookup_begin(STATE);
 
     // Ruby.primitive :object_class
     Class* class_object(STATE);
@@ -212,6 +209,19 @@ namespace rubinius {
     // barrier when storing Fixnums or Symbols
     void write_barrier(STATE, Fixnum* obj) { }
     void write_barrier(STATE, Symbol* obj) { }
+
+    bool fixnum_p() {
+      return FIXNUM_P(this);
+    }
+
+    bool symbol_p() {
+      return SYMBOL_P(this);
+    }
+
+    Class* lookup_begin(STATE) {
+      if(reference_p()) return klass_;
+      return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
+    }
 
   public:
 

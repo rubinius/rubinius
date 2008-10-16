@@ -16,6 +16,7 @@
 #include "global_cache.hpp"
 #include "config.hpp"
 #include "compiled_file.hpp"
+#include "message.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -24,14 +25,6 @@
 #include <sstream>
 
 namespace rubinius {
-
-  bool Object::fixnum_p() {
-    return FIXNUM_P(this);
-  }
-
-  bool Object::symbol_p() {
-    return SYMBOL_P(this);
-  }
 
   /* Initialize the object as storing bytes, by setting the flag then clearing the
    * body of the object, by setting the entire body as bytes to 0 */
@@ -120,10 +113,6 @@ namespace rubinius {
     return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
-  Class* Object::lookup_begin(STATE) {
-    if(reference_p()) return klass_;
-    return class_object(state);
-  }
 
   void Object::copy_internal_state_from(STATE, Object* original) {
     if(MetaClass* mc = try_as<MetaClass>(original->klass())) {
