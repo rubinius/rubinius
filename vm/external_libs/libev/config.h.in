@@ -9,6 +9,9 @@
 /* Define to 1 if you have the `epoll_ctl' function. */
 #undef HAVE_EPOLL_CTL
 
+/* Define to 1 if you have the `eventfd' function. */
+#undef HAVE_EVENTFD
+
 /* Define to 1 if you have the `inotify_init' function. */
 #undef HAVE_INOTIFY_INIT
 
@@ -59,6 +62,9 @@
 
 /* Define to 1 if you have the <sys/epoll.h> header file. */
 #undef HAVE_SYS_EPOLL_H
+
+/* Define to 1 if you have the <sys/eventfd.h> header file. */
+#undef HAVE_SYS_EVENTFD_H
 
 /* Define to 1 if you have the <sys/event.h> header file. */
 #undef HAVE_SYS_EVENT_H

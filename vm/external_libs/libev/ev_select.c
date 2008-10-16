@@ -1,7 +1,7 @@
 /*
  * libev select fd activity backend
  *
- * Copyright (c) 2007 Marc Alexander Lehmann <libev@schmorp.de>
+ * Copyright (c) 2007,2008 Marc Alexander Lehmann <libev@schmorp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modifica-
@@ -54,12 +54,8 @@
 #if EV_SELECT_IS_WINSOCKET
 # undef EV_SELECT_USE_FD_SET
 # define EV_SELECT_USE_FD_SET 1
-# undef EINTR
-# define EINTR WSAEINTR
-# undef EBADF
-# define EBADF WSAENOTSOCK
-# undef ENOMEM
-# define ENOMEM (errno + 1)
+# undef NFDBITS
+# define NFDBITS 0
 #endif
 
 #if !EV_SELECT_USE_FD_SET
@@ -83,22 +79,31 @@ select_modify (EV_P_ int fd, int oev, int nev)
     int handle = fd;
     #endif
 
-    if (nev & EV_READ)
-      FD_SET (handle, (fd_set *)vec_ri);
-    else
-      FD_CLR (handle, (fd_set *)vec_ri);
+    /* FD_SET is broken on windows (it adds the fd to a set twice or more,
+     * which eventually leads to overflows). Need to call it only on changes.
+     */
+    #if EV_SELECT_IS_WINSOCKET
+    if ((oev ^ nev) & EV_READ)
+    #endif
+      if (nev & EV_READ)
+        FD_SET (handle, (fd_set *)vec_ri);
+      else
+        FD_CLR (handle, (fd_set *)vec_ri);
 
-    if (nev & EV_WRITE)
-      FD_SET (handle, (fd_set *)vec_wi);
-    else
-      FD_CLR (handle, (fd_set *)vec_wi);
+    #if EV_SELECT_IS_WINSOCKET
+    if ((oev ^ nev) & EV_WRITE)
+    #endif
+      if (nev & EV_WRITE)
+        FD_SET (handle, (fd_set *)vec_wi);
+      else
+        FD_CLR (handle, (fd_set *)vec_wi);
 
 #else
 
-    int word = fd / NFDBITS;
-    int mask = 1UL << (fd % NFDBITS);
+    int     word = fd / NFDBITS;
+    fd_mask mask = 1UL << (fd % NFDBITS);
 
-    if (expect_false (vec_max < word + 1))
+    if (expect_false (vec_max <= word))
       {
         int new_max = word + 1;
 
@@ -106,10 +111,13 @@ select_modify (EV_P_ int fd, int oev, int nev)
         vec_ro = ev_realloc (vec_ro, new_max * NFDBYTES); /* could free/malloc */
         vec_wi = ev_realloc (vec_wi, new_max * NFDBYTES);
         vec_wo = ev_realloc (vec_wo, new_max * NFDBYTES); /* could free/malloc */
+        #ifdef _WIN32
+        vec_eo = ev_realloc (vec_eo, new_max * NFDBYTES); /* could free/malloc */
+        #endif
 
         for (; vec_max < new_max; ++vec_max)
-          ((fd_mask *)vec_ri)[vec_max] =
-          ((fd_mask *)vec_wi)[vec_max] = 0;
+          ((fd_mask *)vec_ri) [vec_max] =
+          ((fd_mask *)vec_wi) [vec_max] = 0;
       }
 
     ((fd_mask *)vec_ri) [word] |= mask;
@@ -128,24 +136,59 @@ select_poll (EV_P_ ev_tstamp timeout)
 {
   struct timeval tv;
   int res;
-
-#if EV_SELECT_USE_FD_SET
-  memcpy (vec_ro, vec_ri, sizeof (fd_set));
-  memcpy (vec_wo, vec_wi, sizeof (fd_set));
-#else
-  memcpy (vec_ro, vec_ri, vec_max * NFDBYTES);
-  memcpy (vec_wo, vec_wi, vec_max * NFDBYTES);
-#endif
+  int fd_setsize;
 
   tv.tv_sec  = (long)timeout;
   tv.tv_usec = (long)((timeout - (ev_tstamp)tv.tv_sec) * 1e6);
 
+#if EV_SELECT_USE_FD_SET
+  fd_setsize = sizeof (fd_set);
+#else
+  fd_setsize = vec_max * NFDBYTES;
+#endif
+
+  memcpy (vec_ro, vec_ri, fd_setsize);
+  memcpy (vec_wo, vec_wi, fd_setsize);
+
+#ifdef _WIN32
+  /* pass in the write set as except set.
+   * the idea behind this is to work around a windows bug that causes
+   * errors to be reported as an exception and not by setting
+   * the writable bit. this is so uncontrollably lame.
+   */
+  memcpy (vec_eo, vec_wi, fd_setsize);
+  res = select (vec_max * NFDBITS, (fd_set *)vec_ro, (fd_set *)vec_wo, (fd_set *)vec_eo, &tv);
+#else
   res = select (vec_max * NFDBITS, (fd_set *)vec_ro, (fd_set *)vec_wo, 0, &tv);
+#endif
 
   if (expect_false (res < 0))
     {
       #if EV_SELECT_IS_WINSOCKET
       errno = WSAGetLastError ();
+      #endif
+      #ifdef WSABASEERR
+      /* on windows, select returns incompatible error codes, fix this */
+      if (errno >= WSABASEERR && errno < WSABASEERR + 1000)
+        if (errno == WSAENOTSOCK)
+          errno = EBADF;
+        else
+          errno -= WSABASEERR;
+      #endif
+
+      #ifdef _WIN32
+      /* select on windows errornously returns EINVAL when no fd sets have been
+       * provided (this is documented). what microsoft doesn't tell you that this bug
+       * exists even when the fd sets are provided, so we have to check for this bug
+       * here and emulate by sleeping manually.
+       * we also get EINVAL when the timeout is invalid, but we ignore this case here
+       * and assume that EINVAL always means: you have to wait manually.
+       */
+      if (errno == EINVAL)
+        {
+          ev_sleep (timeout);
+          return;
+        }
       #endif
 
       if (errno == EBADF)
@@ -175,6 +218,9 @@ select_poll (EV_P_ ev_tstamp timeout)
 
           if (FD_ISSET (handle, (fd_set *)vec_ro)) events |= EV_READ;
           if (FD_ISSET (handle, (fd_set *)vec_wo)) events |= EV_WRITE;
+          #ifdef _WIN32
+          if (FD_ISSET (handle, (fd_set *)vec_eo)) events |= EV_WRITE;
+          #endif
 
           if (expect_true (events))
             fd_event (EV_A_ fd, events);
@@ -189,6 +235,9 @@ select_poll (EV_P_ ev_tstamp timeout)
       {
         fd_mask word_r = ((fd_mask *)vec_ro) [word];
         fd_mask word_w = ((fd_mask *)vec_wo) [word];
+        #ifdef _WIN32
+        word_w |= ((fd_mask *)vec_eo) [word];
+        #endif
 
         if (word_r || word_w)
           for (bit = NFDBITS; bit--; )
@@ -221,6 +270,9 @@ select_init (EV_P_ int flags)
   vec_ro  = ev_malloc (sizeof (fd_set));
   vec_wi  = ev_malloc (sizeof (fd_set)); FD_ZERO ((fd_set *)vec_wi);
   vec_wo  = ev_malloc (sizeof (fd_set));
+  #ifdef _WIN32
+  vec_eo  = ev_malloc (sizeof (fd_set));
+  #endif
 #else
   vec_max = 0;
   vec_ri  = 0; 

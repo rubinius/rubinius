@@ -1,7 +1,7 @@
 /*
  * libev poll fd activity backend
  *
- * Copyright (c) 2007 Marc Alexander Lehmann <libev@schmorp.de>
+ * Copyright (c) 2007,2008 Marc Alexander Lehmann <libev@schmorp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modifica-
@@ -86,7 +86,7 @@ poll_modify (EV_P_ int fd, int oev, int nev)
 static void
 poll_poll (EV_P_ ev_tstamp timeout)
 {
-  int i;
+  struct pollfd *p;
   int res = poll (polls, pollcnt, (int)ceil (timeout * 1000.));
 
   if (expect_false (res < 0))
@@ -97,20 +97,23 @@ poll_poll (EV_P_ ev_tstamp timeout)
         fd_enomem (EV_A);
       else if (errno != EINTR)
         syserr ("(libev) poll");
-
-      return;
     }
+  else
+    for (p = polls; res; ++p)
+      if (expect_false (p->revents)) /* this expect is debatable */
+        {
+          --res;
 
-  for (i = 0; i < pollcnt; ++i)
-    if (expect_false (polls [i].revents & POLLNVAL))
-      fd_kill (EV_A_ polls [i].fd);
-    else
-      fd_event (
-        EV_A_
-        polls [i].fd,
-        (polls [i].revents & (POLLOUT | POLLERR | POLLHUP) ? EV_WRITE : 0)
-        | (polls [i].revents & (POLLIN | POLLERR | POLLHUP) ? EV_READ : 0)
-      );
+          if (expect_false (p->revents & POLLNVAL))
+            fd_kill (EV_A_ p->fd);
+          else
+            fd_event (
+              EV_A_
+              p->fd,
+              (p->revents & (POLLOUT | POLLERR | POLLHUP) ? EV_WRITE : 0)
+              | (p->revents & (POLLIN | POLLERR | POLLHUP) ? EV_READ : 0)
+            );
+        }
 }
 
 int inline_size

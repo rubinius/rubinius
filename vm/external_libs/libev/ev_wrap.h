@@ -13,12 +13,16 @@
 #define backend_fudge ((loop)->backend_fudge)
 #define backend_modify ((loop)->backend_modify)
 #define backend_poll ((loop)->backend_poll)
+#define evfd ((loop)->evfd)
+#define evpipe ((loop)->evpipe)
+#define pipeev ((loop)->pipeev)
 #define curpid ((loop)->curpid)
 #define postfork ((loop)->postfork)
 #define vec_ri ((loop)->vec_ri)
 #define vec_ro ((loop)->vec_ro)
 #define vec_wi ((loop)->vec_wi)
 #define vec_wo ((loop)->vec_wo)
+#define vec_eo ((loop)->vec_eo)
 #define vec_max ((loop)->vec_max)
 #define polls ((loop)->polls)
 #define pollmax ((loop)->pollmax)
@@ -61,6 +65,10 @@
 #define forks ((loop)->forks)
 #define forkmax ((loop)->forkmax)
 #define forkcnt ((loop)->forkcnt)
+#define gotasync ((loop)->gotasync)
+#define asyncs ((loop)->asyncs)
+#define asyncmax ((loop)->asyncmax)
+#define asynccnt ((loop)->asynccnt)
 #define fs_fd ((loop)->fs_fd)
 #define fs_w ((loop)->fs_w)
 #define fs_hash ((loop)->fs_hash)
@@ -78,12 +86,16 @@
 #undef backend_fudge
 #undef backend_modify
 #undef backend_poll
+#undef evfd
+#undef evpipe
+#undef pipeev
 #undef curpid
 #undef postfork
 #undef vec_ri
 #undef vec_ro
 #undef vec_wi
 #undef vec_wo
+#undef vec_eo
 #undef vec_max
 #undef polls
 #undef pollmax
@@ -126,6 +138,10 @@
 #undef forks
 #undef forkmax
 #undef forkcnt
+#undef gotasync
+#undef asyncs
+#undef asyncmax
+#undef asynccnt
 #undef fs_fd
 #undef fs_w
 #undef fs_hash
