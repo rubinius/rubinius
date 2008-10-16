@@ -134,7 +134,7 @@ namespace rubinius {
     void use_array(Array* ary) {
       total_args = ary->size();
       arguments_array = ary;
-      arguments_ = ary->tuple()->field;
+      arguments_ = ary->tuple()->field + ary->start()->to_native();
     }
 
     /*
