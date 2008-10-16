@@ -109,8 +109,9 @@ if LLVM_STYLE == "Release"
   OPTIONS[LLVM_A] << " --enable-optimized"
 end
 
-INCLUDES    = (EX_INC + %w[vm/test/cxxtest vm .]).map { |f| "-I#{f}" }
-FLAGS       = %w(-pipe -Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated)
+INCLUDES    = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
+INCLUDES.map! { |f| "-I#{f}" }
+FLAGS       = %w(-pipe -Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated -fno-strict-aliasing)
 
 unless ENV["DEV"]
   FLAGS << "-O2"
