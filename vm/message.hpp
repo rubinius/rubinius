@@ -93,7 +93,11 @@ namespace rubinius {
      * Sets the caller context
      */
     void set_caller(MethodContext* ctx) {
-      caller = ctx;
+      caller_ = ctx;
+    }
+
+    MethodContext* caller() {
+      return caller_;
     }
 
     /*
@@ -105,7 +109,7 @@ namespace rubinius {
       arguments_array = NULL;
       send_site = ss;
       recv   = obj;
-      caller = ctx;
+      caller_ = ctx;
       total_args   = arg_count;
       stack  = stack_size;
       stack_args_ = ctx->stack_back_position(arg_count - 1);
@@ -178,7 +182,7 @@ namespace rubinius {
 
   private:
     /** The caller's MethodContext, where to get arguments from*/
-    MethodContext* caller;
+    MethodContext* caller_;
 
   };
 }

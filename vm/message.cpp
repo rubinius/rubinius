@@ -24,7 +24,7 @@ namespace rubinius {
     method(NULL),
     module(NULL),
     method_missing(false),
-    caller(NULL) {
+    caller_(NULL) {
       use_array(ary);
     }
 
@@ -42,7 +42,7 @@ namespace rubinius {
     method(NULL),
     module(NULL),
     method_missing(false),
-    caller(NULL) { }
+    caller_(NULL) { }
 
   void Message::set_arguments(STATE, Array* args) {
     use_array(args);
@@ -145,13 +145,13 @@ namespace rubinius {
   }
 
   OBJECT Message::current_self() {
-    return caller->self();
+    return caller_->self();
   }
 
   void Message::use_from_task(Task* task, size_t args) {
     set_caller(task->active());
     set_args(args);
-    stack_args_ = caller->stack_back_position(args - 1);
+    stack_args_ = caller_->stack_back_position(args - 1);
     arguments_ = stack_args_;
   }
 

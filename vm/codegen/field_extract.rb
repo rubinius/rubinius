@@ -3,20 +3,18 @@ class BasicPrimitive
   attr_accessor :pass_self
   attr_accessor :raw
 
-  def output_header(str, args)
+  def output_header(str)
     str << "bool Primitives::#{@name}(STATE, Executable* exec, Task* task, Message& msg) {\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  OBJECT ret;\n"
     str << "  OBJECT self;\n" if @pass_self
-    str << "  MethodContext* current = task->active();\n"
-    if args then
-      str << "  if(unlikely(msg.args() != #{args}))\n"
-      str << "    goto fail;\n\n"
-    end
   end
 
   def output_args(str, arg_types)
+    str << "  if(unlikely(msg.args() != #{arg_types.size}))\n"
+    str << "    goto fail;\n\n"
+
     args = []
     i = -1
     arg_types.each do |t|
@@ -34,8 +32,8 @@ class BasicPrimitive
   end
 
   def prim_return(str, indent=2)
-    str << "#{' ' * indent}current->clear_stack(msg.stack);\n"
-    str << "#{' ' * indent}current->push(ret);\n"
+    str << "#{' ' * indent}msg.caller()->clear_stack(msg.stack);\n"
+    str << "#{' ' * indent}msg.caller()->push(ret);\n"
   end
 
   def output_call(str, call, args)
@@ -70,7 +68,7 @@ class CPPPrimitive < BasicPrimitive
       arg_count = arg_types.size
     end
 
-    output_header str, arg_count
+    output_header str
 
     str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
     str << "  if(unlikely(recv == NULL)) goto fail;\n"
@@ -97,7 +95,7 @@ end
 class CPPStaticPrimitive < CPPPrimitive
   def generate_glue
     str = ""
-    output_header str, arg_types.size
+    output_header str
 
     args = output_args str, arg_types
     str << "    self = msg.recv;\n" if @pass_self
@@ -125,10 +123,11 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
   def generate_glue
     str = ""
-    output_header str, 1
+    output_header str
 
     str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
     str << "  if(likely(recv)) {\n"
+    str << "    if(msg.args() != 1) goto fail;\n"
 
     @kinds.each do |prim|
       type = prim.arg_types.first
