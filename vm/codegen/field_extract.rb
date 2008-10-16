@@ -9,6 +9,7 @@ class BasicPrimitive
     return str if @raw
     str << "  OBJECT ret;\n"
     str << "  OBJECT self;\n" if @pass_self
+    str << "  MethodContext* current = task->active();\n"
     if args then
       str << "  if(unlikely(msg.args() != #{args}))\n"
       str << "    goto fail;\n\n"
@@ -33,7 +34,6 @@ class BasicPrimitive
   end
 
   def prim_return(str, indent=2)
-    str << "#{' ' * indent}MethodContext* current = task->active();\n"
     str << "#{' ' * indent}current->clear_stack(msg.stack);\n"
     str << "#{' ' * indent}current->push(ret);\n"
   end
