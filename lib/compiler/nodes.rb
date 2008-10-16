@@ -233,7 +233,8 @@ class Compiler
 
         if @arguments.kind_of? Array
           @rhs_expression = @arguments.pop
-        elsif @arguments.is? PushArgs
+        elsif @arguments.is? Splat
+raise "no"
           @rhs_expression = nil
         else
           raise Error, "unknown argument form to attrassgn"
@@ -337,11 +338,8 @@ class Compiler
     class BlockPass < Node
       kind :block_pass
 
-      def normalize(blk)
+      def args blk
         @block = blk
-
-#         call.block = self
-#         return call
       end
 
       attr_accessor :block
@@ -389,6 +387,13 @@ class Compiler
     class Call < MethodCall
       kind :call
 
+      def inspect
+        name = self.class.name.split(/::/).last
+        args = Array(@body).map { |o| o.inspect }.join(", ")
+
+        "#{name}[#{@method.inspect}, #{args}]"
+      end
+
       # Args could be an array, splat or argscat
       def collapse_args
         # HACK handle eval wanting to inject locals
@@ -398,20 +403,18 @@ class Compiler
 
         return unless @arguments
 
-        if Array === @arguments then
-          @argcount = @arguments.size
-        elsif @arguments.is? ArrayLiteral
-          @arguments = @arguments.body
-          @argcount = @arguments.size
-        else
-          @argcount = nil
-        end
+        @arguments = @arguments.body
+
+        @block   = @arguments.grep(BlockPass).first
+        @arguments.reject! { |o| BlockPass === o } if @block
+
+        @argcount = @arguments.size
       end
 
       def args(object, meth, args=nil)
         @object, @method, @arguments = object, meth, args
 
-        collapse_args()
+        collapse_args
 
         # HACK handle eval wanting to inject locals
         if !object and get(:eval)
@@ -427,7 +430,6 @@ class Compiler
             @local_rewrite = LocalAccess.new(@compiler)
             @local_rewrite.from_variable(var, dep)
           end
-
         end
       end
 
@@ -775,7 +777,7 @@ raise "no"
       attr_accessor :from_top, :parent, :value, :name
     end
 
-    class Dasgn < Node
+    class Dasgn < Node # TODO: remove
       kind :dasgn
 
       def self.create(compiler, sexp)
@@ -783,7 +785,7 @@ raise "no"
       end
     end
 
-    class DasgnCurr < Node
+    class DasgnCurr < Node # TODO: remove
       kind :dasgn_curr
 
       def self.create(compiler, sexp)
@@ -851,7 +853,7 @@ raise "no"
       attr_accessor :expression
     end
 
-    class Dvar < Node
+    class Dvar < Node # TODO: remove
       kind :dvar
 
       def self.create(compiler, sexp)
@@ -1490,12 +1492,21 @@ raise "no"
         @value = val
         super(name)
 
+        if ArrayLiteral === @value then
+          @splat   = @value.body.grep(Splat).first
+          @value.body.reject! { |o| Splat === o } if @splat
+        else
+          @splat = nil
+        end
+
         @variable.assigned!
       end
 
-      attr_accessor :name, :value, :variable
+      attr_accessor :name, :variable, :value
 
       def from_variable(var, value=nil)
+raise "no"
+
         super(var)
 
         @value = value
@@ -1557,14 +1568,12 @@ raise "no"
         @rhs = rhs
 
         # FIX: this extraction should NOT be done
-        @splat_lhs   = lhs.body.grep(Splat)
-        @splat_lhs &&= @splat_lhs.first
+        @splat_lhs = lhs.body.grep(Splat).first
         @lhs.body.reject! { |o| Splat === o } if @splat_lhs
 
         # FIX: this extraction should NOT be done
         if ArrayLiteral === rhs then
-          @splat_rhs   = rhs.body.grep(Splat)
-          @splat_rhs &&= @splat_rhs.first
+          @splat_rhs = rhs.body.grep(Splat).first
           @rhs.body.reject! { |o| Splat === o } if @splat_rhs
         end
 
@@ -1679,7 +1688,7 @@ raise "huh"
       attr_accessor :target, :pattern
     end
 
-    class MethodCall < Node
+    class MethodCall < Node # TODO: rename to Call and fold together
       def initialize(comp)
         super(comp)
         @block = nil
@@ -2233,6 +2242,18 @@ raise "no"
 
       def args(child)
         @child = child
+
+        # TODO: this is, of course, violation of encapsulation
+        case @child
+        when ArrayLiteral then
+          @splat   = @child.body.grep(Splat).first
+          @child.body.reject! { |o| Splat === o } if @splat
+        when Splat then
+          @splat = @child
+          @child = nil
+        else
+          @splat = nil
+        end
       end
 
       attr_accessor :child
@@ -2367,6 +2388,10 @@ raise "no"
 
       attr_accessor :child
 
+      def inspect
+        name = self.class.name.split(/::/).last
+        "#{name}[#{@child.inspect}]"
+      end
     end
 
     # StringLiteral is a nondynamic string literal.
@@ -2399,7 +2424,8 @@ raise "no"
 
       def args(*args)
         @method = get(:scope)
-        @arguments = args
+        @arguments = ArgList.new(@compiler)
+        @arguments.body = args
 
         collapse_args()
       end

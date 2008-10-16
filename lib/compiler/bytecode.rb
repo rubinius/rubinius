@@ -166,11 +166,16 @@ class Compiler
           super(g)
 
           @argcount += extra
-        elsif @rhs_expression
+          return
+        end
+
+        if @rhs_expression then
           super(g)
           @rhs_expression.bytecode(g)
           @argcount += 1
-        else
+        end
+
+        unless @arguments.grep(Splat).empty? then
           # PushArgs only for this branch
           @arguments.attr_bytecode(g)
           @dynamic = true
@@ -1326,6 +1331,12 @@ class Compiler
           @value.bytecode(g)
         end
 
+        if @splat then
+          @splat.bytecode(g)
+          g.cast_array
+          g.send :+, 1
+        end
+
         # No @value means assume that someone else put the value on the
         # stack (ie, an masgn)
 
@@ -1395,26 +1406,19 @@ class Compiler
           if @rhs.is? ArrayLiteral
             if @splat_lhs
               if @splat_rhs then
-p 1
                 statement_bytecode(g)
               else
-p 2
                 array_bytecode(g)
               end
             else
-p 3
-              # statement_bytecode(g)
               flip_assign_bytecode(g)
             end
           else
-p 4
             statement_bytecode(g)
           end
         elsif @in_block
-p 5
           block_arg_bytecode(g)
         else
-p 6
           statement_bytecode(g)
         end
       end
@@ -2092,7 +2096,17 @@ p 6
 
     class SValue
       def bytecode(g)
-        @child.bytecode(g)
+        @child.bytecode(g) if @child
+
+        if @splat then
+          @splat.bytecode(g)
+
+          if @child then
+            g.cast_array
+            g.send :+, 1
+          end
+        end
+
         g.cast_array
 
         # If the array has 1 or 0 elements, grab the 0th element.
