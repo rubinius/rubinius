@@ -100,6 +100,7 @@ class Compiler
 
     def initialize(compiler)
       @compiler = compiler
+      @body = nil
     end
 
     def convert(x)
@@ -136,14 +137,10 @@ class Compiler
     end
 
     def inspect
-      kind = self.class.kind
-      if kind
-        prefix = "Compiler:#{self.class.kind}"
-      else
-        prefix = self.class.name
-      end
+      name = self.class.name.split(/::/).last
+      args = Array(@body).map { |o| o.inspect }.join(", ")
 
-      super
+      "#{name}[#{args}]"
     end
 
     def is?(clas)
@@ -158,15 +155,6 @@ class Compiler
       @compiler.plugins[kind].find do |plug|
         plug.handle(g, self, *args)
       end
-    end
-
-    def inspect
-      name = self.class.name.split(/::/).last
-      var = self.name rescue nil
-      val = self.value rescue nil
-      args = (Array(@body) + [var, val]).compact.map { |o| o.inspect }.join(", ")
-
-      "#{name}[#{args}]"
     end
   end
 end
