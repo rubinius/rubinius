@@ -89,7 +89,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.cast_array
               g.push :self
               g.send :c, 0, true
-              g.swap
+              # HACK: don't think this is right: g.swap
               g.push :nil
               g.send_with_splat :[]=, 1, false, true
             end)
@@ -1800,6 +1800,17 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("defs_empty",
             "Compiler" => bytecode do |g|
               g.push :self
+              in_method :empty, true do |d|
+                d.push :nil
+              end
+            end)
+
+  add_tests("defs_expr_wtf",
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.send :a, 0, true
+              g.send :b, 0, false
+
               in_method :empty, true do |d|
                 d.push :nil
               end
