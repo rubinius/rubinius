@@ -92,7 +92,7 @@ describe Compiler do
 
     sexp = s(:iter,
              s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
-             s(:masgn, s(:lasgn, :a)))
+             s(:masgn, s(:array, s(:splat, s(:lasgn, :a)))))
 
     sexp.should == parse(ruby)
 
@@ -135,8 +135,8 @@ describe Compiler do
              s(:masgn,
                s(:array,
                  s(:lasgn, :a),
-                 s(:lasgn, :b)),
-               s(:lasgn, :c)))
+                 s(:lasgn, :b),
+                 s(:splat, s(:lasgn, :c)))))
 
     sexp.should == parse(ruby)
 
@@ -195,8 +195,8 @@ describe Compiler do
                  s(:masgn,
                    s(:array,
                      s(:lasgn, :a),
-                     s(:lasgn, :b)))),
-               s(:lasgn, :c)))
+                     s(:lasgn, :b))),
+                 s(:splat, s(:lasgn, :c)))))
 
     sexp.should == parse(ruby)
 
@@ -268,7 +268,7 @@ describe Compiler do
 
     sexp = s(:iter,
              s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
-             s(:masgn, s(:splat)))
+             s(:masgn, s(:array, s(:splat))))
 
     sexp.should == parse(ruby)
 
@@ -284,7 +284,7 @@ describe Compiler do
 
     sexp = s(:iter,
              s(:call, s(:call, nil, :ary, s(:arglist)), :each, s(:arglist)),
-             s(:masgn, s(:array, s(:lasgn, :a)), s(:splat)))
+             s(:masgn, s(:array, s(:lasgn, :a), s(:splat))))
 
     sexp.should == parse(ruby)
 

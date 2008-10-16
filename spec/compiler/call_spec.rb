@@ -53,7 +53,8 @@ describe Compiler do
       blah(*a)
     EOC
 
-    sexp = s(:call, nil, :blah, s(:splat, s(:call, nil, :a, s(:arglist))))
+    sexp = s(:call, nil, :blah,
+             s(:arglist, s(:splat, s(:call, nil, :a, s(:arglist)))))
 
     sexp.should == parse(ruby)
 
@@ -164,7 +165,10 @@ describe Compiler do
     EOC
 
     sexp = s(:iter,
-             s(:call, s(:call, nil, :a, s(:arglist)), :b, s(:splat, s(:call, nil, :c, s(:arglist)))),
+             s(:call,
+               s(:call, nil, :a, s(:arglist)),
+               :b,
+               s(:arglist, s(:splat, s(:call, nil, :c, s(:arglist))))),
              nil,
              s(:fixnum, 12))
 
@@ -378,7 +382,7 @@ describe Compiler do
       yield 1
     EOC
 
-      sexp = s(:yield, s(:arglist, s(:fixnum, 1)))
+    sexp = s(:yield, s(:fixnum, 1))
 
     sexp.should == parse(ruby)
 
@@ -394,7 +398,7 @@ describe Compiler do
       yield 1, 2
     EOC
 
-      sexp = s(:yield, s(:arglist, s(:fixnum, 1), s(:fixnum, 2)))
+    sexp = s(:yield, s(:fixnum, 1), s(:fixnum, 2))
 
     sexp.should == parse(ruby)
 
@@ -411,7 +415,7 @@ describe Compiler do
       yield [1, 2]
     EOC
 
-      sexp = s(:yield, s(:arglist, s(:array, s(:fixnum, 1), s(:fixnum, 2))))
+    sexp = s(:yield, s(:array, s(:fixnum, 1), s(:fixnum, 2)))
 
     sexp.should == parse(ruby)
 
@@ -483,7 +487,7 @@ describe Compiler do
                s(:args),
                s(:scope,
                  s(:block,
-                   s(:super, s(:array, s(:fixnum, 1))))))
+                   s(:super, s(:fixnum, 1)))))
 
     sexp.should == parse(ruby)
 
@@ -602,9 +606,8 @@ describe Compiler do
       foo(&blah)
     EOC
 
-      sexp = s(:block_pass,
-               s(:call, nil, :blah, s(:arglist)),
-               s(:call, nil, :foo, s(:arglist)))
+    sexp = s(:call, nil, :foo,
+             s(:arglist, s(:block_pass, s(:call, nil, :blah, s(:arglist)))))
 
     sexp.should == parse(ruby)
 

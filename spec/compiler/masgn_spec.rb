@@ -159,7 +159,7 @@ describe Compiler do
     EOC
 
     sexp = s(:masgn,
-             s(:array, s(:lasgn, :a), s(:lasgn, :b)), s(:lasgn, :c),
+             s(:array, s(:lasgn, :a), s(:lasgn, :b), s(:splat, s(:lasgn, :c))),
              s(:array, s(:fixnum, 1), s(:fixnum, 2), s(:fixnum, 3)))
 
     sexp.should == parse(ruby)
@@ -197,7 +197,6 @@ describe Compiler do
 
       g.push :self
       g.send :b, 0, true
-      g.cast_array
       g.cast_array
       g.dup
       g.send :size, 0
@@ -283,7 +282,7 @@ describe Compiler do
     EOC
 
     sexp = s(:masgn,
-             s(:array, s(:lasgn, :a), s(:lasgn, :b)), s(:lasgn, :c),
+             s(:array, s(:lasgn, :a), s(:lasgn, :b), s(:splat, s(:lasgn, :c))),
              s(:splat, s(:call, nil, :d, s(:arglist))))
 
     sexp.should == parse(ruby)
@@ -419,7 +418,7 @@ describe Compiler do
 
     sexp = s(:iter,
              s(:call, s(:call, nil, :x, s(:arglist)), :each, s(:arglist)),
-             s(:masgn, s(:lasgn, :args)))
+             s(:masgn, s(:array, s(:splat, s(:lasgn, :args)))))
 
     sexp.should == parse(ruby)
 
@@ -452,7 +451,7 @@ describe Compiler do
 
     sexp = s(:iter,
              s(:call, s(:call, nil, :x, s(:arglist)), :each, s(:arglist)),
-             s(:masgn, s(:array, s(:lasgn, :a)), s(:lasgn, :b)))
+             s(:masgn, s(:array, s(:lasgn, :a), s(:splat, s(:lasgn, :b)))))
 
     sexp.should == parse(ruby)
 
