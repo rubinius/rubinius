@@ -1563,9 +1563,9 @@ p 6
           end
         end
 
-        # TODO: = 0 should be handled here
+        # TODO: = 0 (empty goalposts) should be handled here
 
-        if @splat_lhs and !@splat_lhs.kind_of? TrueClass
+        if @splat_lhs and @splat_lhs.child
           g.cast_array
           @splat_lhs.bytecode(g)
         end
@@ -1574,7 +1574,7 @@ p 6
       end
 
       def splat_only?
-        @lhs.nil? and @splat_lhs
+        @lhs.body.empty? and @splat_lhs and @splat_lhs.child
       end
     end
 
