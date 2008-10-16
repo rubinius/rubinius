@@ -21,7 +21,8 @@ class BasicPrimitive
     arg_types.each do |t|
       i += 1
       str << "  #{t}* a#{i};\n"
-      str << "  if(unlikely((a#{i} = try_as<#{t}>(msg.get_argument(#{i}))) == NULL))\n"
+      str << "  a#{i} = try_as<#{t}>(msg.get_argument(#{i}));\n"
+      str << "  if(unlikely(a#{i} == NULL))\n"
       str << "    goto fail;\n\n"
       args << "a#{i}"
     end
@@ -31,10 +32,10 @@ class BasicPrimitive
     return args
   end
 
-  def prim_return(str)
-    str << "MethodContext* current = task->active();\n"
-    str << "current->clear_stack(msg.stack);\n"
-    str << "current->push(ret);\n"
+  def prim_return(str, indent=2)
+    str << "#{' ' * indent}MethodContext* current = task->active();\n"
+    str << "#{' ' * indent}current->clear_stack(msg.stack);\n"
+    str << "#{' ' * indent}current->push(ret);\n"
   end
 
   def output_call(str, call, args)
@@ -71,9 +72,8 @@ class CPPPrimitive < BasicPrimitive
 
     output_header str, arg_count
 
-    str << "  #{@type}* recv;\n"
-    str << "  if((recv = try_as<#{@type}>(msg.recv)) == NULL)\n"
-    str << "    goto fail;\n"
+    str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
+    str << "  if(unlikely(recv == NULL)) goto fail;\n"
 
     # Raw primitives must return bool, not Object*
     if @raw
@@ -127,28 +127,26 @@ class CPPOverloadedPrimitive < BasicPrimitive
     str = ""
     output_header str, 1
 
-    str << "  #{@type}* recv;\n"
-    str << "  if((recv = as<#{@type}>(msg.recv)) == NULL)\n"
-    str << "    goto fail;\n\n"
+    str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
+    str << "  if(likely(recv)) {\n"
 
     @kinds.each do |prim|
       type = prim.arg_types.first
-      str << "  if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
+      str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
       if @pass_state
-        str << "    ret = recv->#{@cpp_name}(state, arg);\n"
+        str << "      ret = recv->#{@cpp_name}(state, arg);\n"
       else
-        str << "    ret = recv->#{@cpp_name}(arg);\n"
+        str << "      ret = recv->#{@cpp_name}(arg);\n"
       end
-      str << "  } else "
+      str << "      if(likely(ret != reinterpret_cast<Object*>(kPrimitiveFailed))) {\n"
+      prim_return(str, 8);
+      str << "        return false;\n"
+      str << "      }\n"
+      str << "    }\n"
+      str << "\n"
     end
 
-    str << "  goto fail;\n"
-    str << "\n"
-
-    str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))\n"
-    str << "    goto fail;\n\n"
-    prim_return(str);
-    str << "  return false;\n\n"
+    str << "  }\n"
     str << "fail:\n"
     str << "  return VMMethod::execute(state, exec, task, msg);\n"
     str << "}\n\n"
