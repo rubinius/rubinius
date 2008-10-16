@@ -695,6 +695,7 @@ class Compiler
       kind :argscat
 
       def args(rest, array)
+raise "no"
         @array = array
 
         if rest.kind_of? Array # TODO - When does this happen?
@@ -1358,7 +1359,14 @@ class Compiler
               end
             end
 
-            node.args(*args)
+            begin
+              node.args(*args)
+            rescue ArgumentError => e
+              e2 = ArgumentError.new e.message +
+                ": #{node.class} for IterArgs#args passed: #{args.inspect}"
+              e2.set_backtrace e.backtrace
+              raise e2
+            end
 
             @arity = node.arity
             return [node]
@@ -1543,24 +1551,27 @@ class Compiler
         @block_args = false
       end
 
-      def args(assigns, rest)
-        if @block_args
-          @assigns = assigns
-          @splat   = rest
-          @source  = nil
-        elsif ArrayLiteral === rest
-          @assigns = assigns
-          @source  = rest
-          @splat   = rest.body.grep(Splat)
-          @splat &&= @splat.first
-          @source.body.reject! { |o| Splat === o }
-        else
-          @assigns, @splat, @source = assigns, nil, rest
+      def args(lhs, rhs = nil)
+        # TODO: rename the ivars as well... nonsensical names...
+        @lhs = lhs
+        @rhs = rhs
+
+        # FIX: this extraction should NOT be done
+        @splat_lhs   = lhs.body.grep(Splat)
+        @splat_lhs &&= @splat_lhs.first
+        @lhs.body.reject! { |o| Splat === o } if @splat_lhs
+
+        # FIX: this extraction should NOT be done
+        if ArrayLiteral === rhs then
+          @splat_rhs   = rhs.body.grep(Splat)
+          @splat_rhs &&= @splat_rhs.first
+          @rhs.body.reject! { |o| Splat === o } if @splat_rhs
         end
 
         # TODO: fix in sexp
-        unless ArrayLiteral === @assigns then
-          @assigns, @splat = nil, @assigns
+        unless ArrayLiteral === @lhs then
+raise "huh"
+          @lhs, @splat_lhs = nil, @lhs
         end
 
         @in_block = false
@@ -1569,7 +1580,7 @@ class Compiler
       attr_accessor :assigns, :splat, :source, :in_block
 
       def empty?
-        @assigns.nil? and (@splat.equal?(true) or @splat.nil?)
+        @lhs.nil? and (@splat_lhs.equal?(true) or @splat_lhs.nil?)
       end
 
       def optional
@@ -1577,18 +1588,18 @@ class Compiler
       end
 
       def required
-        return [] if @assigns.nil?
-        @assigns.body.map { |i| i.kind_of?(MAsgn) ? i.required : i.name }.flatten
+        return [] if @lhs.nil?
+        @lhs.body.map { |i| i.kind_of?(MAsgn) ? i.required : i.name }.flatten
       end
 
       def arity
-        if @assigns
-          fixed = @assigns.body.size
+        if @lhs
+          fixed = @lhs.body.size
         else
           fixed = 0
         end
 
-        if @splat
+        if @splat_lhs
           fixed += 1
           return -fixed
         end
@@ -2059,6 +2070,7 @@ class Compiler
       kind :argspush
 
       def args(array, item)
+raise "no"
         @item = item
         unless array.is? Splat
           raise Error, "Unknown form of argspush: #{array.class}"

@@ -3291,7 +3291,6 @@ class CompilerTestCase < ParseTreeTestCase
               g.pop
 
               g.cast_array
-              g.cast_array
               g.pop
 
               g.push :true
@@ -4450,7 +4449,6 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.push :self
               g.send :b, 0, true
-              g.cast_array
               g.cast_array
               g.dup
 

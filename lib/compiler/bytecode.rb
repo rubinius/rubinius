@@ -325,10 +325,17 @@ class Compiler
         @dynamic = false
         @concat = false
 
+        @arguments ||= []
+
         @arguments.each do |argument|
-          @dynamic ||= argument.is? Splat
-          argument.bytecode(g)
+          if argument.is? Splat then
+            @dynamic = true
+            argument.call_bytecode(g)
+          else
+            argument.bytecode(g)
+          end
         end
+
         @argcount = @arguments.size - (@dynamic ? 1 : 0)
       end
 
@@ -1364,6 +1371,7 @@ class Compiler
 
     class MAsgn
       # MAsgn rules:
+      # FIX: this is all completely wrong
       # - MAsgn sexps always contain either 2 or 3 values
       # - If the masgn contains only 2 values:
       #   - it means there are no lasgns, i.e. the lhs consists solely of a splat
@@ -1379,31 +1387,43 @@ class Compiler
       #   - the third arg is either one of [:array, :splat, :argscat, :to_ary], or
       #     nil if the masgn represents block arguments.
       # - An MAsgn may contain nested masgns, e.g. a,(b,c) = 1,[2,3]. The nested
-      #   masgn(s) will have nil for their @assigns, since the assigns come from
+      #   masgn(s) will have nil for their @lhs, since the assigns come from
       #   the outermost masgn.
       def bytecode(g)
-        if @source
-          if @source.is? ArrayLiteral
-            if @splat
-              array_bytecode(g)
+        # FIX: this is completely insane...
+        if @rhs
+          if @rhs.is? ArrayLiteral
+            if @splat_lhs
+              if @splat_rhs then
+p 1
+                statement_bytecode(g)
+              else
+p 2
+                array_bytecode(g)
+              end
             else
+p 3
+              # statement_bytecode(g)
               flip_assign_bytecode(g)
             end
           else
+p 4
             statement_bytecode(g)
           end
         elsif @in_block
+p 5
           block_arg_bytecode(g)
         else
+p 6
           statement_bytecode(g)
         end
       end
 
       # Pad stack if there are insufficient source values for the assigns
       def pad_stack(g)
-        diff = -@source.body.size
-        if @assigns
-          diff += @assigns.body.size
+        diff = -@rhs.body.size
+        if @lhs
+          diff += @lhs.body.size
           if diff > 0
             diff.times { g.push :nil }
           end
@@ -1420,22 +1440,29 @@ class Compiler
         # than sources
         diff = pad_stack(g)
 
-        @source.body.each do |x|
+        @rhs.body.each do |x|
           x.bytecode(g)
         end
 
-        g.rotate @source.body.size
+        if @splat_rhs then
+          g.make_array @rhs.body.size
+          @splat_rhs.bytecode(g)
+          g.cast_array
+          g.send :+, 1
+        else
+          g.rotate @rhs.body.size if @rhs.respond_to? :body # HACK
+        end
 
         # Now all the source data is on the stack.
 
-        @assigns.body.each do |x|
+        @lhs.body.each do |x|
           if x.is? AttrAssign
             x.bytecode(g, :swap)
           else
             x.bytecode(g)
           end
           g.pop
-        end if @assigns
+        end if @lhs
 
         # Clean up the stack if there was extra sources
         if diff < 0
@@ -1447,23 +1474,30 @@ class Compiler
       end
 
       def array_bytecode(g)
-        @source.body.each do |x|
+        @rhs.body.each do |x|
           x.bytecode(g)
         end
 
-        diff = pad_stack(g)
-
-        if diff >= 0
-          sz = 0
+        if @splat_rhs then
+          g.make_array @rhs.body.size
+          @splat_rhs.bytecode(g)
+          g.cast_array
+          g.send :+, 1
         else
-          sz = -diff
+          diff = pad_stack(g)
+          if diff >= 0
+            sz = 0
+          else
+            sz = -diff
+          end
+
+          g.make_array sz
         end
 
-        g.make_array sz
-        @splat.bytecode(g) unless @splat.kind_of? TrueClass  # e.g. * = 1,2
+        @splat_lhs.bytecode(g) unless @splat_lhs.kind_of? TrueClass  # e.g. * = 1,2
         g.pop
-        if @assigns
-          @assigns.body.reverse_each do |x|
+        if @lhs
+          @lhs.body.reverse_each do |x|
             if x.is? AttrAssign
               x.bytecode(g, true)
             else
@@ -1477,17 +1511,30 @@ class Compiler
       end
 
       def statement_bytecode(g)
-        if @source.nil?
+        if @rhs.nil?
           # skip
-        elsif @source.is? Splat or @source.is? ToArray
-          @source.child.bytecode(g)
+        elsif @rhs.is? Splat or @rhs.is? ToArray
+          @rhs.child.bytecode(g)
         else
-          @source.bytecode(g)
+#          @rhs.bytecode(g)
+          @rhs.body.each do |x|
+            x.bytecode(g)
+          end
         end
+
+        if @splat_rhs then
+          g.make_array @rhs.body.size
+          @splat_rhs.bytecode(g)
+          g.cast_array
+          g.send :+, 1
+        else
+          g.rotate @rhs.body.size if @rhs.respond_to? :body # HACK
+        end
+
         g.cast_tuple
 
-        if @assigns
-          @assigns.body.each do |x|
+        if @lhs
+          @lhs.body.each do |x|
             g.shift_tuple
             if x.is? AttrAssign
               x.bytecode(g, :swap)
@@ -1498,9 +1545,9 @@ class Compiler
           end
         end
 
-        if @splat
+        if @splat_lhs
           g.cast_array
-          @splat.bytecode(g) unless @splat.kind_of? TrueClass # HACK dup
+          @splat_lhs.bytecode(g) unless @splat_lhs.kind_of? TrueClass # HACK dup
         end
         g.pop
 
@@ -1508,8 +1555,8 @@ class Compiler
       end
 
       def block_arg_bytecode(g)
-        if @assigns
-          @assigns.body.each do |x|
+        if @lhs
+          @lhs.body.each do |x|
             g.shift_tuple
             x.bytecode(g)
             g.pop
@@ -1518,16 +1565,16 @@ class Compiler
 
         # TODO: = 0 should be handled here
 
-        if @splat and !@splat.kind_of? TrueClass
+        if @splat_lhs and !@splat_lhs.kind_of? TrueClass
           g.cast_array
-          @splat.bytecode(g)
+          @splat_lhs.bytecode(g)
         end
 
         g.pop
       end
 
       def splat_only?
-        @assigns.nil? and @splat
+        @lhs.nil? and @splat_lhs
       end
     end
 
@@ -2115,7 +2162,6 @@ class Compiler
     class Splat
       def bytecode(g)
         @child.bytecode(g) if @child
-        g.cast_array
       end
 
       # Bytecode generation when a splat is used as a method arg
