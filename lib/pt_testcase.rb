@@ -1873,14 +1873,15 @@ class ParseTreeTestCase < Test::Unit::TestCase
                                 s(:scope, s(:block))))
 
   add_tests("defs_expr_wtf",
-            "Ruby"         => "def (1 + 1).empty(*)\n  # do nothing\nend",
+            "Ruby"         => "def (a.b).empty(*)\n  # do nothing\nend",
             "RawParseTree" => [:defs,
-                               [:call, [:lit, 1], :+, [:array, [:lit, 1]]],
+                               [:call, [:vcall, :a], :b],
                                :empty,
                                [:scope, [:args, :*]]],
             "ParseTree"    => s(:defs,
-                                s(:call, s(:lit, 1), :+,
-                                  s(:arglist, s(:lit, 1))),
+                                s(:call,
+                                  s(:call, nil, :a, s(:arglist)),
+                                  :b, s(:arglist)),
                                 :empty,
                                 s(:args, :*),
                                 s(:scope, s(:block))))
