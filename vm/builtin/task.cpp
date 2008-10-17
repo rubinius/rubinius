@@ -450,18 +450,6 @@ namespace rubinius {
     return cls;
   }
 
-  Class* Task::open_class(Module* under, OBJECT super, SYMBOL name, bool* created) {
-    bool found;
-
-    *created = false;
-
-    OBJECT obj = under->get_const(state, name, &found);
-    if(found) return check_superclass(state, as<Class>(obj), super);
-
-    *created = true;
-    return add_class(state, under, super, name);
-  }
-
   Class* Task::open_class(OBJECT super, SYMBOL name, bool* created) {
     Module* under;
 
@@ -474,27 +462,26 @@ namespace rubinius {
     return open_class(under, super, name, created);
   }
 
-  Module* Task::open_module(SYMBOL name) {
-    Module* mod;
-    Module* under;
-
+  Class* Task::open_class(Module* under, OBJECT super, SYMBOL name, bool* created) {
     bool found;
 
-    OBJECT obj = const_get(name, &found);
-    if(found) return as<Module>(obj);
+    *created = false;
 
-    mod = Module::create(state);
-    if(active_->cm()->scope()->nil_p()) {
-      under = G(object);
-      mod->name(state, name);
-    } else {
+    OBJECT obj = under->get_const(state, name, &found);
+    if(found) return check_superclass(state, as<Class>(obj), super);
+
+    *created = true;
+    return add_class(state, under, super, name);
+  }
+
+  Module* Task::open_module(Symbol* name) {
+    Module* under = state->globals.object.get();
+
+    if(!active_->cm()->scope()->nil_p()) {
       under = active_->cm()->scope()->module();
-      mod->set_name(state, under, name);
     }
 
-    under->set_const(state, name, mod);
-
-    return mod;
+    return open_module(under, name);
   }
 
   Module* Task::open_module(Module* under, SYMBOL name) {

@@ -106,8 +106,11 @@ namespace rubinius {
     void add_method(Module* obj, SYMBOL name, CompiledMethod* meth);
     Class* open_class(OBJECT super, SYMBOL name, bool* created);
     Class* open_class(Module* under, OBJECT super, SYMBOL name, bool* created);
-    Module* open_module(Module* under, SYMBOL name);
+
+    /** Reopen existing or create new Module by name in the current lexical scope. */
     Module* open_module(SYMBOL name);
+    /** Reopen existing or create new Module by name under the given enclosing Module. */
+    Module* open_module(Module* under, SYMBOL name);
 
     // Ruby.primitive :task_raise
     Task* raise(STATE, Exception *exc);
