@@ -2169,7 +2169,7 @@ raise "no"
         @body = body
         @splat = nil
 
-        # s(:array, s(:lasgn, ...)) - aka no exception
+        # eg rescue => e (no exception class listed)
         if cond.is?(ArrayLiteral) &&
             (cond.body.empty? ||
              (!cond.body.first.kind_of?(ConstFind) &&
@@ -2179,14 +2179,14 @@ raise "no"
           cond.body.unshift cf
         end
 
+
         if cond.is? ArrayLiteral
+          @splat = cond.body.grep(Splat).first
+          cond.body.reject! { |o| Splat === o } if @splat
           @conditions = cond.body
         elsif cond.is? Splat
           @conditions = nil
           @splat = cond.child
-        elsif cond.is? ConcatArgs
-          @conditions = cond.rest
-          @splat = cond.array
         else
           raise Error, "Unknown rescue condition form"
         end

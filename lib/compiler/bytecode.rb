@@ -181,6 +181,8 @@ class Compiler
           @dynamic = true
           @concat = true
           @argcount = 1
+
+          # HACK: g.swap
         end
       end
     end
@@ -1401,15 +1403,16 @@ class Compiler
       #   masgn(s) will have nil for their @lhs, since the assigns come from
       #   the outermost masgn.
       def bytecode(g)
-        # FIX: this is completely insane...
+        # FIX: this is completely insane... most brittle code EVER
+        # FIX: violation of encapsulation is rife in this file
         if @rhs
           if @rhs.is? ArrayLiteral
-            if @splat_lhs
-              if @splat_rhs then
-                statement_bytecode(g)
-              else
-                array_bytecode(g)
-              end
+            if @splat_lhs && @splat_rhs then
+              statement_bytecode(g)
+            elsif @splat_lhs then
+              array_bytecode(g)
+            elsif @splat_rhs then
+              statement_bytecode(g)
             else
               flip_assign_bytecode(g)
             end
@@ -2045,10 +2048,27 @@ class Compiler
           g.clear_exception
         end
 
-        if @value
-          @value.bytecode(g)
-        else
+        # UGH... more violation
+        case @value
+        when ArrayLiteral
+          splat = false
+          @value.body.each do |o|
+            case o
+            when Splat then
+              splat = true
+              g.make_array @value.body.size - 1
+              o.bytecode(g)
+              g.cast_array
+              g.send :+, 1
+            else
+              o.bytecode(g)
+            end
+          end
+          g.make_array @value.body.size unless splat
+        when nil
           g.push :nil
+        else
+          @value.bytecode(g)
         end
 
         if !force and @in_ensure
@@ -2412,10 +2432,10 @@ class Compiler
           la.from_variable @method.arguments.splat
 
           cc.args la
-          @arguments = cc
-        else
-          @arguments = args
+          args << cc
         end
+
+        @arguments = args
 
         super(g)
       end
