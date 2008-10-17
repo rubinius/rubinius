@@ -23,6 +23,16 @@ class TestDir : public CxxTest::TestSuite {
     delete state;
   }
 
+  char* make_directory() {
+    char* templ = strdup("/tmp/rubinius_TestDir.XXXX");
+    return mkdtemp(templ);
+  }
+
+  void remove_directory(char *dir) {
+    rmdir(dir);
+    free(dir);
+  }
+
   void test_dir_fields() {
     TS_ASSERT_EQUALS(1U, Dir::fields);
   }
@@ -65,12 +75,8 @@ class TestDir : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(d->closed_p(state), Qfalse);
   }
 
-  void remove_directory(const char *dir) {
-    rmdir(dir);
-  }
-
   void test_read() {
-    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
+    char *dir = make_directory();
     String* path = String::create(state, dir);
     d->open(state, path);
     String* name = (String*)d->read(state);
@@ -79,7 +85,7 @@ class TestDir : public CxxTest::TestSuite {
   }
 
   void test_read_returns_nil_when_no_more_entries() {
-    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
+    char *dir = make_directory();
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);
@@ -95,7 +101,7 @@ class TestDir : public CxxTest::TestSuite {
   */
 
   void test_control_tells_current_position() {
-    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
+    char *dir = make_directory();
     String* path = String::create(state, dir);
     d->open(state, path);
     FIXNUM pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
@@ -107,7 +113,7 @@ class TestDir : public CxxTest::TestSuite {
   }
 
   void test_control_rewinds_read_location() {
-    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
+    char *dir = make_directory();
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);
@@ -120,7 +126,7 @@ class TestDir : public CxxTest::TestSuite {
   }
 
   void test_control_seeks_to_a_known_position() {
-    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
+    char *dir = make_directory();
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);

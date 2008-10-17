@@ -35,7 +35,10 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   int make_io() {
-    return mkstemp((char *)"/tmp/rubinius_TestIO.XXXX");
+    char* templ = strdup("/tmp/rubinius_TestIO.XXXX");
+    int fd = mkstemp(templ);
+    free(templ);
+    return fd;
   }
 
   void remove_io(int fd) {
