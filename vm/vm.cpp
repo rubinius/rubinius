@@ -63,7 +63,9 @@ namespace rubinius {
 
   VM::~VM() {
     delete om;
+
     delete signal_events;
+
     delete global_cache;
     if(!reuse_llvm) llvm_cleanup();
   }

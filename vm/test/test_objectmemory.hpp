@@ -380,6 +380,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
     young->field[0] = mature;
     mature->field[0] = young;
 
+    /* allocate_object leaves the objs uninitialised */
+    young->klass_ = reinterpret_cast<Class*>(Qnil);
+    mature->klass_ = reinterpret_cast<Class*>(Qnil);
+
     om.write_barrier(young, mature);
     om.write_barrier(mature, young);
 

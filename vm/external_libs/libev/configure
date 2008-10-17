@@ -2204,7 +2204,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=libev
- VERSION=2.01
+ VERSION=3.44
 
 
 cat >>confdefs.h <<_ACEOF
@@ -19152,7 +19152,8 @@ fi
 
 
 
-for ac_header in sys/inotify.h sys/epoll.h sys/event.h sys/queue.h port.h poll.h sys/select.h
+
+for ac_header in sys/inotify.h sys/epoll.h sys/event.h sys/queue.h port.h poll.h sys/select.h sys/eventfd.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -19298,7 +19299,8 @@ done
 
 
 
-for ac_func in inotify_init epoll_ctl kqueue port_create poll select
+
+for ac_func in inotify_init epoll_ctl kqueue port_create poll select eventfd
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { echo "$as_me:$LINENO: checking for $ac_func" >&5

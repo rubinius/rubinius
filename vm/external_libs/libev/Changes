@@ -1,4 +1,105 @@
-Revision history for libev, a high-performance and full-featured event loop
+Revision history for libev, a high-performance and full-featured event loop.
+
+3.44 Mon Sep 29 05:18:39 CEST 2008
+	- embed watchers now automatically invoke ev_loop_fork on the
+          embedded loop when the parent loop forks.
+	- new function: ev_now_update (loop).
+	- verify_watcher was not marked static.
+        - improve the "associating..." manpage section.
+        - documentation tweaks here and there.
+
+3.43 Sun Jul  6 05:34:41 CEST 2008
+	- include more include files on windows to get struct _stati64
+          (reported by Chris Hulbert, but doesn't quite fix his issue).
+	- add missing #include <io.h> in ev.c on windows (reported by
+          Matt Tolton).
+
+3.42 Tue Jun 17 12:12:07 CEST 2008
+	- work around yet another windows bug: FD_SET actually adds fd's
+          multiple times to the fd_*SET*, despite official MSN docs claiming
+          otherwise. Reported and well-analysed by Matt Tolton.
+	- define NFDBITS to 0 when EV_SELECT_IS_WINSOCKET to make it compile
+          (reported any analysed by Chris Hulbert).
+        - fix a bug in ev_ebadf (this function is only used to catch
+          programming errors in the libev user). reported by Matt Tolton.
+        - fix a bug in fd_intern on win32 (could lead to compile errors
+          under some circumstances, but would work correctly if it compiles).
+          reported by Matt Tolton.
+        - (try to) work around missing lstat on windows.
+	- pass in the write fd set as except fd set under windows. windows
+          is so uncontrollably lame that it requires this. this means that
+          switching off oobinline is not supported (but tcp/ip doesn't
+          have oob, so that would be stupid anyways.
+        - use posix module symbol to auto-detect monotonic clock presence
+          and some other default values.
+
+3.41 Fri May 23 18:42:54 CEST 2008
+	- work around an obscure bug in winsocket select: if you
+          provide only empty fd sets then select returns WSAEINVAL. how sucky.
+        - improve timer scheduling stability and reduce use of time_epsilon.
+        - use 1-based 2-heap for EV_MINIMAL, simplifies code, reduces
+          codesize and makes for better cache-efficiency.
+        - use 3-based 4-heap for !EV_MINIMAL. this makes better use
+          of cpu cache lines and gives better growth behaviour than
+          2-based heaps.
+        - cache timestamp within heap for !EV_MINIMAL, to avoid random
+          memory accesses.
+        - document/add EV_USE_4HEAP and EV_HEAP_CACHE_AT.
+        - fix a potential aliasing issue in ev_timer_again.
+        - add/document ev_periodic_at, retract direct access to ->at.
+        - improve ev_stat docs.
+        - add portability requirements section.
+	- fix manpage headers etc.
+        - normalise WSA error codes to lower range on windows.
+        - add consistency check code that can be called automatically
+          or on demand to check for internal structures (ev_loop_verify).
+
+3.31 Wed Apr 16 20:45:04 CEST 2008
+	- added last minute fix for ev_poll.c by Brandon Black.
+
+3.3  Wed Apr 16 19:04:10 CEST 2008
+        - event_base_loopexit should return 0 on success
+          (W.C.A. Wijngaards).
+	- added linux eventfd support.
+        - try to autodetect epoll and inotify support
+          by libc header version if not using autoconf.
+        - new symbols: EV_DEFAULT_UC and EV_DEFAULT_UC_.
+        - declare functions defined in ev.h as inline if
+          C99 or gcc are available.
+        - enable inlining with gcc versions 2 and 3.
+        - work around broken poll implementations potentially
+          not clearing revents field in ev_poll (Brandon Black)
+          (no such systems are known at this time).
+        - work around a bug in realloc on openbsd and darwin,
+          also makes the errornous valgrind complaints
+          go away (noted by various people).
+        - fix ev_async_pending, add c++ wrapper for ev_async
+          (based on patch sent by Johannes Deisenhofer.
+        - add sensible set method to ev::embed.
+        - made integer constants type int in ev.h.
+
+3.2  Wed Apr  2 17:11:19 CEST 2008
+	- fix a 64 bit overflow issue in the select backend,
+          by using fd_mask instead of int for the mask.
+        - rename internal sighandler to avoid clash with very old perls.
+        - entering ev_loop will not clear the ONESHOT or NONBLOCKING
+          flags of any outer loops anymore.
+        - add ev_async_pending.
+
+3.1  Thu Mar 13 13:45:22 CET 2008
+	- implement ev_async watchers.
+        - only initialise signal pipe on demand.
+	- make use of sig_atomic_t configurable.
+        - improved documentation.
+
+3.0  Mon Jan 28 13:14:47 CET 2008
+	- API/ABI bump to version 3.0.
+	- ev++.h includes "ev.h" by default now, not <ev.h>.
+	- slightly improved documentation.
+	- speed up signal detection after a fork.
+        - only optionally return trace status changed in ev_child
+          watchers.
+        - experimental (and undocumented) loop wrappers for ev++.h.
 
 2.01 Tue Dec 25 08:04:41 CET 2007
 	- separate Changes file.
