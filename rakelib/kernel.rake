@@ -149,7 +149,7 @@ namespace :kernel do
       File::Stat.new(f).mtime
     end.min
 
-    Rake::Task['kernel:clean'].invoke if !kernel_mtime or COMPILER_MTIME > kernel_mtime
+    Rake::Task['kernel:clean'].invoke if !kernel_mtime or COMPILER_MTIME > kernel_mtime unless ENV['NOCLEAN']
   end
 
   task :show do
