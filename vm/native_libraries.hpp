@@ -20,7 +20,9 @@
 
   #include "ltdl.h"
 
+  #define rbx_dlinit()            lt_dlinit()
   #define rbx_dlhandle            lt_dlhandle
+  #define rbx_dldefault()         lt_dlopen(NULL)
   #define rbx_dlopen(name)        lt_dlopen(name)
   #define rbx_dlsym               lt_dlsym
   #define rbx_dlsym_default(name) lt_dlsym(NULL, name)
@@ -30,7 +32,9 @@
 
   #include <dlfcn.h>
 
+  #define rbx_dlinit()            /* No expansion */
   #define rbx_dlhandle            void*
+  #define rbx_dldefault()         RTLD_DEFAULT
   #define rbx_dlopen(name)        dlopen(name, RTLD_NOW | RTLD_GLOBAL)
   #define rbx_dlsym               dlsym
   #define rbx_dlsym_default(name) dlsym(RTLD_DEFAULT, name)

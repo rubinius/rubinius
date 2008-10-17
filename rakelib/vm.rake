@@ -111,7 +111,12 @@ end
 
 INCLUDES    = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
 INCLUDES.map! { |f| "-I#{f}" }
-FLAGS       = %w(-pipe -Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated -fno-strict-aliasing)
+FLAGS       = %w[
+  -pipe
+  -Wall -Werror -Wno-deprecated
+  -ggdb -gdwarf-2
+  -fno-strict-aliasing
+]
 
 unless ENV["DEV"]
   FLAGS << "-O2"
@@ -146,6 +151,7 @@ def ld t
   $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
 
   $link_opts += ' -Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux/i
+  $link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
 
   ld = ENV['LD'] || 'g++'
   o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')

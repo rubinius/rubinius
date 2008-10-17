@@ -15,6 +15,7 @@ namespace rubinius {
   void VM::init_native_libraries()
   {
     globals.rubinius.get()->set_const(this, "LIBSUFFIX", String::create(this, RBX_LIBSUFFIX));
+    rbx_dlinit();
   }
 
   void* NativeLibrary::find_symbol(STATE, String* name, Object* library_name) {
@@ -43,7 +44,7 @@ namespace rubinius {
 
     /* TODO: fix */
     if (name->nil_p()) {
-      return rbx_dlopen(NULL);
+      return rbx_dldefault();
     }
 
     /* We should always get path without file extension. */
