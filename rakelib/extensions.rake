@@ -6,6 +6,7 @@ task :extensions => %w[
   kernel:build
 
   extension:readline
+  extension:digest
 ]
 
 #  lib/etc.rb
@@ -13,11 +14,6 @@ task :extensions => %w[
 #  lib/openssl/digest.rb
 #  lib/syslog.rb
 #  lib/zlib.rb
-
-#  extension:digest_rmd160
-#  extension:digest_md5
-#  extension:digest_sha1
-#  extension:digest_sha2
 
 #
 # Ask the VM to build an extension from source.
@@ -45,8 +41,8 @@ namespace :extension do
   task :readline => "lib/ext/readline/readline.#{$dlext}"
 
   file "lib/ext/readline/readline.#{$dlext}" => FileList[
-       "lib/ext/readline/readline.c",
        "lib/ext/readline/build.rb",
+       "lib/ext/readline/readline.c",
        "vm/vm"
   ] do
     FileList["lib/ext/readline/readline.{o,#{$dlext}}"].each do |f|
@@ -55,6 +51,83 @@ namespace :extension do
 
     compile_extension 'lib/ext/readline'
   end
+
+  desc "Build the Digest extensions"
+  task :digest => %w[extension:digest:md5 extension:digest:rmd160
+                     extension:digest:sha1 extension:digest:sha2]
+
+
+  namespace :digest do
+
+    desc "Build Digest's MD5 extension."
+    task :md5 => "lib/ext/digest/md5/md5.#{$dlext}"
+
+    file "lib/ext/digest/md5/md5.#{$dlext}" => FileList[
+      'lib/ext/digest/md5/build.rb',
+      'lib/ext/digest/md5/*.c',
+      'lib/ext/digest/md5/*.h',
+      'lib/ext/digest/defs.h',
+      "vm/vm"
+    ] do
+      FileList["lib/ext/digest/md5/*.{o,#{$dlext}}"].each do |f|
+        rm f, :verbose => $verbose
+      end
+
+      compile_extension 'lib/ext/digest/md5'
+    end
+
+    desc "Build Digest's RMD160 extension."
+    task :rmd160 => "lib/ext/digest/rmd160/rmd160.#{$dlext}"
+
+    file "lib/ext/digest/rmd160/rmd160.#{$dlext}" => FileList[
+      'lib/ext/digest/rmd160/build.rb',
+      'lib/ext/digest/rmd160/*.c',
+      'lib/ext/digest/rmd160/*.h',
+      'lib/ext/digest/defs.h',
+      "vm/vm"
+    ] do
+      FileList["lib/ext/digest/rmd160/*.{o,#{$dlext}}"].each do |f|
+        rm f, :verbose => $verbose
+      end
+
+      compile_extension 'lib/ext/digest/rmd160'
+    end
+
+    desc "Build Digest's SHA1 extension."
+    task :sha1 => "lib/ext/digest/sha1/sha1.#{$dlext}"
+
+    file "lib/ext/digest/sha1/sha1.#{$dlext}" => FileList[
+      'lib/ext/digest/sha1/build.rb',
+      'lib/ext/digest/sha1/*.c',
+      'lib/ext/digest/sha1/*.h',
+      'lib/ext/digest/defs.h',
+      "vm/vm"
+    ] do
+      FileList["lib/ext/digest/sha1/*.{o,#{$dlext}}"].each do |f|
+        rm f, :verbose => $verbose
+      end
+
+      compile_extension 'lib/ext/digest/sha1'
+    end
+
+    desc "Build Digest's SHA2 extension."
+    task :sha2 => "lib/ext/digest/sha2/sha2.#{$dlext}"
+
+    file "lib/ext/digest/sha2/sha2.#{$dlext}" => FileList[
+      'lib/ext/digest/sha2/build.rb',
+      'lib/ext/digest/sha2/*.c',
+      'lib/ext/digest/sha2/*.h',
+      'lib/ext/digest/defs.h',
+      "vm/vm"
+    ] do
+      FileList["lib/ext/digest/sha2/*.{o,#{$dlext}}"].each do |f|
+        rm f, :verbose => $verbose
+      end
+
+      compile_extension 'lib/ext/digest/sha2'
+    end
+
+  end   # :digest
 
   # The ones below are not used currently.
 
@@ -65,54 +138,6 @@ namespace :extension do
     lib/syslog.rb
     lib/zlib.rb
   ]
-
-  task :digest_md5 => "lib/ext/digest/md5/md5.#{$dlext}"
-
-  file "lib/ext/digest/md5/md5.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/*',
-    'lib/ext/digest/md5/build.rb',
-    'lib/ext/digest/md5/*.c',
-    'lib/ext/digest/md5/*.h',
-    'lib/ext/digest/defs.h',
-  ] do
-    compile_ruby 'lib/ext/digest/md5'
-  end
-
-  task :digest_rmd160 => "lib/ext/digest/rmd160/rmd160.#{$dlext}"
-
-  file "lib/ext/digest/rmd160/rmd160.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/*',
-    'lib/ext/digest/rmd160/build.rb',
-    'lib/ext/digest/rmd160/*.c',
-    'lib/ext/digest/rmd160/*.h',
-    'lib/ext/digest/defs.h',
-  ] do
-    compile_ruby 'lib/ext/digest/rmd160'
-  end
-
-  task :digest_sha1 => "lib/ext/digest/sha1/sha1.#{$dlext}"
-
-  file "lib/ext/digest/sha1/sha1.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/*',
-    'lib/ext/digest/sha1/build.rb',
-    'lib/ext/digest/sha1/*.c',
-    'lib/ext/digest/sha1/*.h',
-    'lib/ext/digest/defs.h',
-  ] do
-    compile_ruby 'lib/ext/digest/sha1'
-  end
-
-  task :digest_sha2 => "lib/ext/digest/sha2/sha2.#{$dlext}"
-
-  file "lib/ext/digest/sha2/sha2.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/*',
-    'lib/ext/digest/sha2/build.rb',
-    'lib/ext/digest/sha2/*.c',
-    'lib/ext/digest/sha2/*.h',
-    'lib/ext/digest/defs.h',
-  ] do
-    compile_ruby 'lib/ext/digest/sha2'
-  end
 
   task :mongrel => "lib/ext/mongrel/http11.#{$dlext}"
 
