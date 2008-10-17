@@ -330,6 +330,9 @@ class TestObjectMemory : public CxxTest::TestSuite {
     om.large_object_threshold = 10;
 
     mature = om.allocate_object(20);
+
+    /* allocate_object leaves the objs uninitialised */
+    mature->klass_ = reinterpret_cast<Class*>(Qnil);
     TS_ASSERT(mature->mature_object_p());
     TS_ASSERT_EQUALS(om.mature.allocated_objects, 1U);
 
@@ -355,6 +358,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     young =  om.allocate_object(3);
     mature = om.allocate_object(20);
+
+    /* allocate_object leaves the objs uninitialised */
+    young->klass_ = reinterpret_cast<Class*>(Qnil);
+    mature->klass_ = reinterpret_cast<Class*>(Qnil);
 
     om.store_object(young, 0, mature);
 
@@ -405,6 +412,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
     obj =  (Tuple*)om.allocate_object(3);
     obj2 = (Tuple*)om.allocate_object(3);
 
+    /* allocate_object leaves the objs uninitialised */
+    obj->klass_ = reinterpret_cast<Class*>(Qnil);
+    obj2->klass_ = reinterpret_cast<Class*>(Qnil);
+
     obj2->field[1] = Qtrue;
     obj->field[0] = obj2;
     obj2->field[0] = obj;
@@ -433,6 +444,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     while(left > 0) {
       obj = om.allocate_object(3);
+      /* allocate_object leaves the objs uninitialised */
+      obj->klass_ = reinterpret_cast<Class*>(Qnil);
       left -= obj->size_in_bytes();
     }
 
@@ -446,6 +459,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     while(left > 0) {
       obj = om.allocate_object(3);
+      /* allocate_object leaves the objs uninitialised */
+      obj->klass_ = reinterpret_cast<Class*>(Qnil);
       left -= obj->size_in_bytes();
     }
 
@@ -464,6 +479,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     while(left > 0) {
       obj = om.allocate_object(4);
+      /* allocate_object leaves the objs uninitialised */
+      obj->klass_ = reinterpret_cast<Class*>(Qnil);
       left -= obj->size_in_bytes();
     }
 
