@@ -1,3 +1,7 @@
+#include <iostream>
+
+#include <cstdarg>
+
 #include "builtin/object.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
@@ -15,8 +19,6 @@
 #include "message.hpp"
 
 #include "vm/object_utils.hpp"
-
-#include <iostream>
 
 namespace rubinius {
 
