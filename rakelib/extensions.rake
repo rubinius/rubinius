@@ -18,8 +18,9 @@ task :extensions => %w[
 #
 # Ask the VM to build an extension from source.
 #
-def compile_extension(path, flags = "-d -p -C,-ggdb3 -C,-O0 -I#{Dir.pwd}/vm/subtend")
-  command = "./bin/rbx compile #{flags} #{path}"
+def compile_extension(path, flags = nil, extra_flags = nil)
+  flags ||= "-d -p -C,-ggdb3 -C,-O0 -I#{Dir.pwd}/vm/subtend"
+  command = "./bin/rbx compile #{flags} #{extra_flags} #{path}"
 
   puts "Executing `#{command}`" if $verbose
 
@@ -62,18 +63,18 @@ namespace :extension do
     desc "Build Digest's MD5 extension."
     task :md5 => "lib/ext/digest/md5/md5.#{$dlext}"
 
-    file "lib/ext/digest/md5/md5.#{$dlext}" => FileList[
-      'lib/ext/digest/md5/build.rb',
-      'lib/ext/digest/md5/*.c',
-      'lib/ext/digest/md5/*.h',
-      'lib/ext/digest/defs.h',
-      "vm/vm"
-    ] do
-      FileList["lib/ext/digest/md5/*.{o,#{$dlext}}"].each do |f|
+    # TODO: propogate the changes here down to the other "*"s below:
+    task "lib/ext/digest/md5/md5.#{$dlext}" =>
+      FileList['lib/ext/digest/md5/build.rb',
+               'lib/ext/digest/md5/{md5,md5init}.c',
+               'lib/ext/digest/md5/md5.h',
+               'lib/ext/digest/defs.h',
+               "vm/vm"] do
+      FileList["lib/ext/digest/md5/{md5,md5init}.{o,#{$dlext}}"].each do |f|
         rm f, :verbose => $verbose
       end
 
-      compile_extension 'lib/ext/digest/md5'
+      compile_extension 'lib/ext/digest/md5', nil
     end
 
     desc "Build Digest's RMD160 extension."
