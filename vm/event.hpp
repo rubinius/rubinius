@@ -146,9 +146,6 @@ namespace rubinius {
 
         /** Special override that invokes the main Child::find_finished(). */
         virtual bool activated() { Child::find_finished(state); return false; }
-
-        /** SIGCHLD handler should never be stopped. TODO: Fix w/ multithreads etc. */
-        virtual void stop() { throw std::runtime_error("SIGCHLD handler stop()"); }
       };
 
 
@@ -201,6 +198,7 @@ namespace rubinius {
       Loop(int options = 0);
       Loop(struct ev_loop *loop);
 
+      /** Stop any remaining watchers and kill the loop if we control it. */
       ~Loop();
 
 
@@ -223,6 +221,9 @@ namespace rubinius {
       struct ev_loop*     base;
       std::vector<Event*> events;
       size_t              event_ids;
+      /** Options given at time of creation. */
+      int                 options_;
+      /** Whether this Loop controls the event loop it uses. */
       bool                owner;
     };
 

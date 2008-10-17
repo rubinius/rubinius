@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "builtin/channel.hpp"
 #include "builtin/list.hpp"
 #include "builtin/symbol.hpp"
@@ -20,9 +22,18 @@ class TestChannel : public CxxTest::TestSuite {
 
   void setUp() {
     state = new VM();
+    /** TODO: This nasty hack allows tearing down the watchers.
+     *        Should be fixed properly at some point. --rue
+     */
+    state->events->owner = true;
+
     chan = Channel::create(state);
   }
 
+  /* TODO: This is a rather nasty workaround.
+   *       The default loop issue needs to be
+   *       addressed at some point when MVM is
+   *       acute. --rue */
   void tearDown() {
     delete state;
   }
