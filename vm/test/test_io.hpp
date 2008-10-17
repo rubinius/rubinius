@@ -35,9 +35,7 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   int make_io() {
-    fname = tmpnam(NULL);
-    return open(fname, O_CREAT | O_RDWR | O_TRUNC,
-		S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    return mkstemp((char *)"/tmp/rubinius_TestIO.XXXX");
   }
 
   void remove_io(int fd) {

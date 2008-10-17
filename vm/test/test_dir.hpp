@@ -65,18 +65,12 @@ class TestDir : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(d->closed_p(state), Qfalse);
   }
 
-  char* make_directory() {
-    char *dir = tmpnam(NULL);
-    mkdir(dir, S_IRWXU);
-    return dir;
-  }
-
   void remove_directory(const char *dir) {
     rmdir(dir);
   }
 
   void test_read() {
-    char *dir = make_directory();
+    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
     String* path = String::create(state, dir);
     d->open(state, path);
     String* name = (String*)d->read(state);
@@ -85,7 +79,7 @@ class TestDir : public CxxTest::TestSuite {
   }
 
   void test_read_returns_nil_when_no_more_entries() {
-    char *dir = make_directory();
+    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);
@@ -101,7 +95,7 @@ class TestDir : public CxxTest::TestSuite {
   */
 
   void test_control_tells_current_position() {
-    char *dir = make_directory();
+    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
     String* path = String::create(state, dir);
     d->open(state, path);
     FIXNUM pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
@@ -113,7 +107,7 @@ class TestDir : public CxxTest::TestSuite {
   }
 
   void test_control_rewinds_read_location() {
-    char *dir = make_directory();
+    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);
@@ -126,7 +120,7 @@ class TestDir : public CxxTest::TestSuite {
   }
 
   void test_control_seeks_to_a_known_position() {
-    char *dir = make_directory();
+    char *dir = mkdtemp((char *)"/tmp/rubinius_TestDir.XXXX");
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);
