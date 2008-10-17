@@ -630,6 +630,29 @@ describe Compiler do
     end
   end
 
+  it "compiles 'block.call(*args)'" do
+    ruby = <<-EOC
+      block.call(*args)
+    EOC
+
+    sexp = s(:call,
+             s(:call, nil, :block, s(:arglist)),
+             :call,
+             s(:arglist, s(:splat, s(:call, nil, :args, s(:arglist)))))
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
+      g.push :self
+      g.send :block, 0, true
+      g.push :self
+      g.send :args, 0, true
+      g.cast_array
+      g.push :nil
+      g.send_with_splat :call, 0, false, false
+    end
+  end
+
 # 1)
 # Compiler compiles 'foo(&blah)' FAILED
 # --- /tmp/eql.8927	2008-09-05 15:22:33.000000000 -0700
