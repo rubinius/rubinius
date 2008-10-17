@@ -218,11 +218,13 @@ class StringScanner
 
     rest = self.rest
 
-    @match = if headonly then
-               pattern.match_start rest, 0
-             else
-               pattern.match rest
-             end
+    if headonly then
+      # NOTE - match_start is an Oniguruma feature that Rubinius exposes.
+      # We use it here to avoid creating a new Regexp with '^' prepended.
+      @match = pattern.match_start rest, 0
+    else
+      @match = pattern.match rest
+    end
 
     return nil if match.nil?
 
