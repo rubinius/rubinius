@@ -96,7 +96,7 @@ class Compiler
         call.block.arguments.names.each do |name|
           exc.set_local name, args[i]
           i += 1
-        end if call.block.arguments.names # HACK ugh
+        end
 
         exc.execute call.block.body
 
@@ -168,8 +168,10 @@ class Compiler
       }
 
       def handle(g, call)
+        return false unless call.method == :call
+
         # Don't handle send's with a block or non static args.
-        return false if call.block or call.argcount.nil?
+        return false if call.block or !call.static_args?
 
         if name = Methods[call.method]
           call.receiver_bytecode(g)

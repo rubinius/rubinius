@@ -442,7 +442,11 @@ raise "no"
       end
 
       def static_args?
-        @arguments.nil? or @arguments.kind_of? Array
+        return false unless @arguments
+        return ! (@arguments[0].kind_of?(Splat)  or
+                  @arguments[-2].kind_of?(Splat) or
+                  @arguments[-1].kind_of?(Splat) or
+                  @arguments[-1].kind_of?(BlockPass))
       end
 
       def call?
@@ -1391,7 +1395,7 @@ raise "no"
         if @child.is? LocalAssignment
           [@child.name]
         else
-          @child.assigns.body.map { |i| i.name } if @child.assigns
+          @child.assigns.body.map { |i| i.name }
         end
       end
 
@@ -1588,7 +1592,11 @@ raise "huh"
         @in_block = false
       end
 
-      attr_accessor :assigns, :splat, :source, :in_block
+      def assigns
+        @lhs
+      end
+
+      attr_accessor :splat, :source, :in_block
 
       def empty?
         @lhs.nil? and (@splat_lhs.equal?(true) or @splat_lhs.nil?)
