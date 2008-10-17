@@ -96,7 +96,7 @@ class Compiler
         call.block.arguments.names.each do |name|
           exc.set_local name, args[i]
           i += 1
-        end
+        end if call.block.arguments.names # HACK ugh
 
         exc.execute call.block.body
 

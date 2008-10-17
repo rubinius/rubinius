@@ -82,7 +82,7 @@ class Compiler
     end
 
     def run(node)
-      node.bytecode self
+      node.bytecode self if node # HACK
     end
 
     # Formalizers

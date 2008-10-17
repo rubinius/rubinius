@@ -1391,7 +1391,7 @@ raise "no"
         if @child.is? LocalAssignment
           [@child.name]
         else
-          @child.assigns.body.map { |i| i.name }
+          @child.assigns.body.map { |i| i.name } if @child.assigns
         end
       end
 
