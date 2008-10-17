@@ -7,7 +7,7 @@ class String
   BASE_64_A2B[?\/] = ??
   BASE_64_A2B[?=]  = 0
 
-  def parse(name, line, newlines)
+  def parse(name, line)
     Ruby.primitive :string_parse
     raise PrimitiveFailure, "String#parse primitive failed"
   end
@@ -15,7 +15,7 @@ class String
   def to_sexp_pt(name="(eval)", line=1, rewriter=true)
     require 'compiler/lit_rewriter'
 
-    sexp = parse name, line, false
+    sexp = parse name, line
     if sexp.kind_of? Tuple
       exc = SyntaxError.new sexp.at(0)
       exc.import_position sexp[1], sexp[2], sexp[3]

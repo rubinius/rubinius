@@ -167,13 +167,9 @@ namespace rubinius {
 
 #define nd_3rd   u3.node
 
-
-    // #define ADD_LINE if(node && RTEST(line_numbers)) { array_push(current, INT2NUM(nd_line(node))); }
-#define ADD_LINE
-
 #define VALUE OBJECT
 
-#define add_to_parse_tree(a,n,i,l,m) syd_add_to_parse_tree(state,a,n,i,l,m)
+#define add_to_parse_tree(a,n,l) syd_add_to_parse_tree(state,a,n,l)
 #undef ID2SYM
 #define Q2SYM(v) quark_to_symbol(state, v)
 
@@ -194,11 +190,7 @@ namespace rubinius {
       return cstring_to_symbol(state, quark_to_string(id_to_quark(quark)));
     }
 
-    void syd_add_to_parse_tree(STATE, OBJECT ary,
-                               NODE * n,
-                               int newlines,
-                               ID * locals,
-                               int line_numbers) {
+    void syd_add_to_parse_tree(STATE, OBJECT ary, NODE* n, ID* locals) {
       NODE * volatile node = n;
       NODE * volatile contnode = NULL;
       VALUE old_ary = Qnil;
@@ -238,7 +230,7 @@ namespace rubinius {
 
         case NODE_BLOCK:
           if (contnode) {
-            add_to_parse_tree(current, node, newlines, locals, line_numbers);
+            add_to_parse_tree(current, node, locals);
             break;
           }
 
@@ -253,48 +245,35 @@ namespace rubinius {
 
         case NODE_FBODY:
         case NODE_DEFINED:
-          add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_head, locals);
           break;
 
         case NODE_COLON2:
-          add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_head, locals);
           array_push(current, Q2SYM(node->nd_mid));
           break;
 
         case NODE_MATCH2:
         case NODE_MATCH3:
-          add_to_parse_tree(current, node->nd_recv, newlines, locals, line_numbers);
-          add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_recv, locals);
+          add_to_parse_tree(current, node->nd_value, locals);
           break;
 
         case NODE_BEGIN:
         case NODE_OPT_N:
         case NODE_NOT:
-          add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_body, locals);
           break;
 
         case NODE_IF:
-          add_to_parse_tree(current, node->nd_cond, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_cond, locals);
           if (node->nd_body) {
-            add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
+            add_to_parse_tree(current, node->nd_body, locals);
           } else {
             array_push(current, Qnil);
           }
-          /* HACK: emit newline nodes to govern a nd_else if it's another if.
-           * the parser seems to not emit newlines properly at all. */
           if (node->nd_else) {
-            if(newlines && nd_type(node->nd_else) == NODE_IF) {
-              OBJECT nl;
-              nl = array_new(state, 4);
-              array_push(current, nl);
-              array_push(nl, SYM("newline"));
-              array_push(nl, I2N(nd_line(node->nd_else)));
-              array_push(nl, string_new(state, node->nd_else->nd_file));
-
-              add_to_parse_tree(nl, node->nd_else, newlines, locals, line_numbers);
-            } else {
-              add_to_parse_tree(current, node->nd_else, newlines, locals, line_numbers);
-            }
+            add_to_parse_tree(current, node->nd_else, locals);
           } else {
             array_push(current, Qnil);
           }
@@ -305,7 +284,7 @@ namespace rubinius {
           VALUE tmp, t2;
           int ic = in_case;
           in_case = 1;
-          add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers); /* expr */
+          add_to_parse_tree(current, node->nd_head, locals); /* expr */
           node = node->nd_body;
           tmp = array_new(state, 4);
           array_push(current, tmp);
@@ -319,10 +298,10 @@ namespace rubinius {
               array_push(t2, SYMBOL(get_node_type_string((enum node_type)nd_type(node))));
               array_push(tmp, t2);
 
-              add_to_parse_tree(t2, node->nd_head, newlines, locals, line_numbers); /* args */
+              add_to_parse_tree(t2, node->nd_head, locals); /* args */
               in_case = 0;
               if (node->nd_body) {
-                add_to_parse_tree(t2, node->nd_body, newlines, locals, line_numbers); /* body */
+                add_to_parse_tree(t2, node->nd_body, locals); /* body */
               } else {
                 array_push(t2, Qnil);
               }
@@ -331,7 +310,7 @@ namespace rubinius {
 
               node = node->nd_next;
             } else {
-              add_to_parse_tree(current, node, newlines, locals, line_numbers);
+              add_to_parse_tree(current, node, locals);
               break;                                          /* else */
             }
             if (! node) {
@@ -345,9 +324,9 @@ namespace rubinius {
         VALUE tmp, t2;
         if(in_case) {
           in_case = 0;
-          add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_head, locals);
           if(node->nd_body) {
-            add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
+            add_to_parse_tree(current, node->nd_body, locals);
           } else {
             array_push(current, Qnil);
           }
@@ -361,15 +340,15 @@ namespace rubinius {
           if(nd_type(node) == NODE_WHEN) {
             t2 = array_new(state, 4);
             array_push(tmp, t2);
-            add_to_parse_tree(t2, node->nd_head, newlines, locals, line_numbers); /* args */
+            add_to_parse_tree(t2, node->nd_head, locals); /* args */
             if (node->nd_body) {
-              add_to_parse_tree(t2, node->nd_body, newlines, locals, line_numbers); /* body */
+              add_to_parse_tree(t2, node->nd_body, locals); /* body */
             } else {
               array_push(t2, Qnil);
             }
             node = node->nd_next;
           } else {
-            add_to_parse_tree(current, node, newlines, locals, line_numbers);
+            add_to_parse_tree(current, node, locals);
             break;
           }
         }
@@ -381,9 +360,9 @@ namespace rubinius {
       }
       case NODE_WHILE:
       case NODE_UNTIL:
-        add_to_parse_tree(current,  node->nd_cond, newlines, locals, line_numbers);
+        add_to_parse_tree(current,  node->nd_cond, locals);
         if(node->nd_body) {
-          add_to_parse_tree(current,  node->nd_body, newlines, locals, line_numbers);
+          add_to_parse_tree(current,  node->nd_body, locals);
         } else {
           array_push(current, Qnil);
         }
@@ -391,17 +370,17 @@ namespace rubinius {
         break;
 
       case NODE_BLOCK_PASS:
-        add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
-        add_to_parse_tree(current, node->nd_iter, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_body, locals);
+        add_to_parse_tree(current, node->nd_iter, locals);
         break;
 
       case NODE_ITER:
       case NODE_FOR:
-        add_to_parse_tree(current, node->nd_iter, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_iter, locals);
         if (node->nd_var != (NODE *)1
             && node->nd_var != (NODE *)2
             && node->nd_var != NULL) {
-          add_to_parse_tree(current, node->nd_var, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_var, locals);
         } else {
           if (node->nd_var == NULL) {
             // e.g. proc {}
@@ -411,17 +390,17 @@ namespace rubinius {
             array_push(current, I2N(0));
           }
         }
-        add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_body, locals);
         break;
 
       case NODE_BREAK:
       case NODE_NEXT:
         if (node->nd_stts)
-          add_to_parse_tree(current, node->nd_stts, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_stts, locals);
         break;
       case NODE_YIELD:
         if (node->nd_stts) {
-          add_to_parse_tree(current, node->nd_stts, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_stts, locals);
         } else {
           array_push(current, Qnil);
         }
@@ -429,9 +408,9 @@ namespace rubinius {
         break;
 
       case NODE_RESCUE:
-          add_to_parse_tree(current, node->nd_1st, newlines, locals, line_numbers);
-          add_to_parse_tree(current, node->nd_2nd, newlines, locals, line_numbers);
-          add_to_parse_tree(current, node->nd_3rd, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_1st, locals);
+          add_to_parse_tree(current, node->nd_2nd, locals);
+          add_to_parse_tree(current, node->nd_3rd, locals);
         break;
 
       /* rescue body:
@@ -441,17 +420,17 @@ namespace rubinius {
 
       case NODE_RESBODY:
           if(node->nd_3rd) {
-              add_to_parse_tree(current, node->nd_3rd, newlines, locals, line_numbers);
+              add_to_parse_tree(current, node->nd_3rd, locals);
           } else {
               array_push(current, Qnil);
           }
           if(node->nd_2nd) {
-            add_to_parse_tree(current, node->nd_2nd, newlines, locals, line_numbers);
+            add_to_parse_tree(current, node->nd_2nd, locals);
           } else {
               array_push(current, Qnil);
           }
          if(node->nd_1st) {
-             add_to_parse_tree(current, node->nd_1st, newlines, locals, line_numbers);
+             add_to_parse_tree(current, node->nd_1st, locals);
          } else {
              array_push(current, Qnil);
          }
@@ -459,12 +438,12 @@ namespace rubinius {
 
       case NODE_ENSURE:
         if(node->nd_head) {
-          add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_head, locals);
         } else {
           array_push(current, Qnil);
         }
         if (node->nd_ensr) {
-          add_to_parse_tree(current, node->nd_ensr, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_ensr, locals);
         } else {
           array_push(current, Qnil);
         }
@@ -472,41 +451,41 @@ namespace rubinius {
 
       case NODE_AND:
       case NODE_OR:
-        add_to_parse_tree(current, node->nd_1st, newlines, locals, line_numbers);
-        add_to_parse_tree(current, node->nd_2nd, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_1st, locals);
+        add_to_parse_tree(current, node->nd_2nd, locals);
         break;
 
       case NODE_DOT2:
       case NODE_DOT3:
       case NODE_FLIP2:
       case NODE_FLIP3:
-        add_to_parse_tree(current, node->nd_beg, newlines, locals, line_numbers);
-        add_to_parse_tree(current, node->nd_end, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_beg, locals);
+        add_to_parse_tree(current, node->nd_end, locals);
         break;
 
       case NODE_RETURN:
         if (node->nd_stts)
-          add_to_parse_tree(current, node->nd_stts, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_stts, locals);
         break;
 
       case NODE_ARGSCAT:
       case NODE_ARGSPUSH:
-        add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
-        add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_head, locals);
+        add_to_parse_tree(current, node->nd_body, locals);
         break;
 
       case NODE_CALL:
       case NODE_FCALL:
       case NODE_VCALL:
         if (nd_type(node) != NODE_FCALL)
-          add_to_parse_tree(current, node->nd_recv, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_recv, locals);
         array_push(current, Q2SYM(node->nd_mid));
         if (node->nd_args || nd_type(node) != NODE_FCALL)
-          add_to_parse_tree(current, node->nd_args, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_args, locals);
         break;
 
       case NODE_SUPER:
-        add_to_parse_tree(current, node->nd_args, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_args, locals);
         break;
 
     /*
@@ -514,8 +493,8 @@ namespace rubinius {
         {
           struct BLOCK *data;
           Data_Get_Struct(node->nd_cval, struct BLOCK, data);
-          add_to_parse_tree(current, data->var, newlines, locals, line_numbers);
-          add_to_parse_tree(current, data->body, newlines, locals, line_numbers);
+          add_to_parse_tree(current, data->var, locals);
+          add_to_parse_tree(current, data->body, locals);
           break;
         }
         break;
@@ -525,13 +504,13 @@ namespace rubinius {
           struct METHOD *data;
           Data_Get_Struct(node->nd_cval, struct METHOD, data);
           array_push(current, Q2SYM(data->id));
-          add_to_parse_tree(current, data->body, newlines, locals, line_numbers);
+          add_to_parse_tree(current, data->body, locals);
           break;
         }
 
       case NODE_METHOD:
         fprintf(stderr, "u1 = %p u2 = %p u3 = %p\n", node->nd_1st, node->nd_2nd, node->nd_3rd);
-        add_to_parse_tree(current, node->nd_3rd, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_3rd, locals);
         break;
     */
 
@@ -542,7 +521,7 @@ namespace rubinius {
           int sz;
           // printf("=> scope %x, %d\n", node->nd_tbl, node->nd_tbl[0]);
           if(node->nd_next) {
-            add_to_parse_tree(current, node->nd_next, newlines, node->nd_tbl, line_numbers);
+            add_to_parse_tree(current, node->nd_next, node->nd_tbl);
           } else {
             array_push(current, Qnil);
           }
@@ -558,7 +537,7 @@ namespace rubinius {
         break;
 
       case NODE_OP_ASGN1:
-        add_to_parse_tree(current, node->nd_recv, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_recv, locals);
         switch(node->nd_mid) {
           case 0:
             array_push(current, SYMBOL("or"));
@@ -569,12 +548,12 @@ namespace rubinius {
           default:
             array_push(current, Q2SYM(node->nd_mid));
         }
-        //add_to_parse_tree(current, node->nd_args->nd_next, newlines, locals, line_numbers);
-        add_to_parse_tree(current, node->nd_args, newlines, locals, line_numbers);
+        //add_to_parse_tree(current, node->nd_args->nd_next, locals);
+        add_to_parse_tree(current, node->nd_args, locals);
         break;
 
       case NODE_OP_ASGN2:
-        add_to_parse_tree(current, node->nd_recv, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_recv, locals);
         array_push(current, Q2SYM(node->nd_next->nd_vid));
         switch(node->nd_next->nd_mid) {
           case 0:
@@ -588,20 +567,20 @@ namespace rubinius {
         }
 
         array_push(current, Q2SYM(node->nd_next->nd_aid));
-        add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_value, locals);
         break;
 
       case NODE_OP_ASGN_AND:
       case NODE_OP_ASGN_OR:
-        add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
-        add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_head, locals);
+        add_to_parse_tree(current, node->nd_value, locals);
         break;
 
       case NODE_MASGN:
-        add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_head, locals);
         if (node->nd_args) {
           if(node->nd_args != (NODE *)-1) {
-            add_to_parse_tree(current, node->nd_args, newlines, locals, line_numbers);
+            add_to_parse_tree(current, node->nd_args, locals);
           } else {
             array_push(current, Qtrue);
           }
@@ -609,7 +588,7 @@ namespace rubinius {
             array_push(current, Qnil);
         }
         if(node->nd_value) {
-            add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+            add_to_parse_tree(current, node->nd_value, locals);
         } else {
             array_push(current, Qnil);
         }
@@ -617,7 +596,7 @@ namespace rubinius {
 
       case NODE_LASGN:
         array_push(current, Q2SYM(node->nd_vid));
-        add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_value, locals);
         break;
       case NODE_IASGN:
       case NODE_DASGN:
@@ -626,7 +605,7 @@ namespace rubinius {
       case NODE_CVDECL:
       case NODE_GASGN:
         array_push(current, Q2SYM(node->nd_vid));
-        add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_value, locals);
         break;
 
       case NODE_CDECL:
@@ -637,13 +616,13 @@ namespace rubinius {
         }
 
         if(node->nd_value) {
-          add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_value, locals);
         } else{
           array_push(current, Qnil);
         }
 
         if(node->nd_next) {
-          add_to_parse_tree(current, node->nd_next, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_next, locals);
         } else {
           array_push(current, Qnil);
         }
@@ -673,13 +652,13 @@ namespace rubinius {
 
           list = node->nd_head;
           while (list) {
-              add_to_parse_tree(current, list->nd_head, newlines, locals, line_numbers);
+              add_to_parse_tree(current, list->nd_head, locals);
               list = list->nd_next;
               if (list == 0) {
                   printf("odd number list for Hash");
                   abort();
               }
-              add_to_parse_tree(current, list->nd_head, newlines, locals, line_numbers);
+              add_to_parse_tree(current, list->nd_head, locals);
               list = list->nd_next;
           }
         }
@@ -687,7 +666,7 @@ namespace rubinius {
 
       case NODE_ARRAY:
           while (node) {
-            add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+            add_to_parse_tree(current, node->nd_head, locals);
             node = node->nd_next;
           }
         break;
@@ -714,13 +693,13 @@ namespace rubinius {
             if (list->nd_head) {
               switch (nd_type(list->nd_head)) {
                 case NODE_STR:
-                  add_to_parse_tree(current, list->nd_head, newlines, locals, line_numbers);
+                  add_to_parse_tree(current, list->nd_head, locals);
                 break;
                 case NODE_EVSTR:
-                  add_to_parse_tree(current, list->nd_head, newlines, locals, line_numbers);
+                  add_to_parse_tree(current, list->nd_head, locals);
                 break;
                 default:
-                  add_to_parse_tree(current, list->nd_head, newlines, locals, line_numbers);
+                  add_to_parse_tree(current, list->nd_head, locals);
                 break;
               }
             }
@@ -740,29 +719,29 @@ namespace rubinius {
       case NODE_DEFS:
         if (node->nd_defn) {
           if (nd_type(node) == NODE_DEFS)
-              add_to_parse_tree(current, node->nd_recv, newlines, locals, line_numbers);
+              add_to_parse_tree(current, node->nd_recv, locals);
           array_push(current, Q2SYM(node->nd_mid));
-          add_to_parse_tree(current, node->nd_defn, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_defn, locals);
         }
         break;
 
       case NODE_CLASS:
       case NODE_MODULE:
-        add_to_parse_tree(current, node->nd_cpath, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_cpath, locals);
         // array_push(current, Q2SYM((ID)node->nd_cpath->nd_mid));
         if (nd_type(node) == NODE_CLASS) {
           if(node->nd_super) {
-            add_to_parse_tree(current, node->nd_super, newlines, locals, line_numbers);
+            add_to_parse_tree(current, node->nd_super, locals);
           } else {
             array_push(current, Qnil);
           }
         }
-        add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_body, locals);
         break;
 
       case NODE_SCLASS:
-        add_to_parse_tree(current, node->nd_recv, newlines, locals, line_numbers);
-        add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_recv, locals);
+        add_to_parse_tree(current, node->nd_body, locals);
         break;
 
       case NODE_ARGS:
@@ -831,7 +810,7 @@ namespace rubinius {
           optnode = node->nd_opt;
           /* block? */
           if (optnode) {
-              add_to_parse_tree(current, node->nd_opt, newlines, locals, line_numbers);
+              add_to_parse_tree(current, node->nd_opt, locals);
           } else {
             array_push(current, Qnil);
           }
@@ -891,28 +870,24 @@ namespace rubinius {
       case NODE_STR:              /* u1 */
         array_push(current, string_newfrombstr(state, node->nd_str));
         bdestroy(node->nd_str);
-      break;
+        break;
+
       case NODE_REGEX:
       case NODE_MATCH:
         array_push(current, string_newfrombstr(state, node->nd_str));
         array_push(current, I2N(node->nd_cnt));
         bdestroy(node->nd_str);
-      break;
+        break;
+
       case NODE_LIT:
         array_push(current, Q2SYM((uintptr_t)node->nd_lit));
         break;
       case NODE_NEWLINE:
-        ADD_LINE;
+        // newline nodes make Ryan deathly ill; ignore them completely
+        array_pop(state, ary);
+        node = node->nd_next;
+        goto again;
 
-        if(newlines) {
-          array_push(current, I2N(nd_line(node)));
-          array_push(current, string_new(state, node->nd_file));
-          add_to_parse_tree(current, node->nd_next, newlines, locals, line_numbers);
-        } else {
-          array_pop(state, ary);
-          node = node->nd_next;
-          goto again;
-        }
         break;
 
       case NODE_NTH_REF:          /* u2 u3 ($1) - u3 is local_cnt('~') ignorable? */
@@ -946,7 +921,7 @@ namespace rubinius {
       case NODE_SPLAT:
       case NODE_TO_ARY:
       case NODE_SVALUE:             /* a = b, c */
-        add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_head, locals);
         break;
 
       case NODE_ATTRASGN:           /* literal.meth = y u1 u2 u3 */
@@ -954,12 +929,12 @@ namespace rubinius {
         if (node->nd_1st == RNODE(1)) {
           array_push(current, Qnil);
           // array_push(current, rb_ary_new3(1, SYMBOL("self")));
-          // add_to_parse_tree(current, Qnil, newlines, locals, line_numbers);
+          // add_to_parse_tree(current, Qnil, locals);
         } else {
-          add_to_parse_tree(current, node->nd_1st, newlines, locals, line_numbers);
+          add_to_parse_tree(current, node->nd_1st, locals);
         }
         array_push(current, Q2SYM(node->u2.id));
-        add_to_parse_tree(current, node->nd_3rd, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_3rd, locals);
         break;
 
       case NODE_DSYM: {              /* :"#{foo}" u1 u2 u3 */
@@ -968,7 +943,7 @@ namespace rubinius {
         printf("DSYM: %s", get_node_type_string(nd_type(node->nd_head)));
         */
 
-        add_to_parse_tree(current, node->nd_3rd, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_3rd, locals);
 
         /* FIXME: Oh for the love of kittens and fuzzy stuff, please FIX ME!
          *        This hacks around a problem where the first string section
@@ -996,10 +971,10 @@ namespace rubinius {
         break;
       }
       case NODE_EVSTR:
-        add_to_parse_tree(current, node->nd_2nd, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_2nd, locals);
         break;
       case NODE_NEGATE:
-        add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+        add_to_parse_tree(current, node->nd_head, locals);
         break;
 
       case NODE_POSTEXE:            /* END { ... } */
@@ -1031,8 +1006,6 @@ namespace rubinius {
         array_push(current, I2N(nd_type(node)));
         break;
       }
-
-      ADD_LINE;
 
      /*  finish: */
       if (contnode) {

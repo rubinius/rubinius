@@ -2598,13 +2598,12 @@ lex_get_str(rb_parse_state *parse_state)
     return TRUE;
 }
 
-void syd_add_to_parse_tree(STATE, OBJECT ary,
-      NODE * n, int newlines, ID * locals, int line_numbers);
+void syd_add_to_parse_tree(STATE, OBJECT ary, NODE * n, ID * locals);
 
-static OBJECT convert_to_sexp(STATE, NODE *node, int newlines) {
+static OBJECT convert_to_sexp(STATE, NODE *node) {
   Array* ary;
   ary = Array::create(state, 1);
-  syd_add_to_parse_tree(state, ary, node, newlines, NULL, FALSE);
+  syd_add_to_parse_tree(state, ary, node, NULL);
   return ary->get(state, 0);
 }
 
@@ -2621,7 +2620,7 @@ lex_getline(rb_parse_state *parse_state)
 }
 
 OBJECT
-syd_compile_string(STATE, const char *f, bstring s, int line, int newlines)
+syd_compile_string(STATE, const char *f, bstring s, int line)
 {
     int n;
     rb_parse_state *parse_state;
@@ -2640,7 +2639,7 @@ syd_compile_string(STATE, const char *f, bstring s, int line, int newlines)
     n = yycompile(parse_state, (char*)f, line);
 
     if(parse_state->error == Qfalse) {
-        ret = convert_to_sexp(state, parse_state->top, newlines);
+        ret = convert_to_sexp(state, parse_state->top);
     } else {
         ret = parse_state->error;
     }
@@ -2676,7 +2675,7 @@ static bool parse_io_gets(rb_parse_state *parse_state) {
 }
 
 OBJECT
-syd_compile_file(STATE, const char *f, FILE *file, int start, int newlines)
+syd_compile_file(STATE, const char *f, FILE *file, int start)
 {
     int n;
     OBJECT ret;
@@ -2694,7 +2693,7 @@ syd_compile_file(STATE, const char *f, FILE *file, int start, int newlines)
     n = yycompile(parse_state, (char*)f, start);
 
     if(parse_state->error == Qfalse) {
-        ret = convert_to_sexp(state, parse_state->top, newlines);
+        ret = convert_to_sexp(state, parse_state->top);
     } else {
         ret = parse_state->error;
     }

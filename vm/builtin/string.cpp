@@ -670,10 +670,9 @@ return_value:
     return val;
   }
 
-  OBJECT String::parse(STATE, String* name, Fixnum* line, Object* newlines) {
+  OBJECT String::parse(STATE, String* name, Fixnum* line) {
     bstring str = blk2bstr(byte_address(), size());
-    return parser::syd_compile_string(state, name->c_str(), str,
-                                      line->to_native(), newlines->true_p());
+    return parser::syd_compile_string(state, name->c_str(), str, line->to_native());
   }
 
   void String::Info::show(STATE, Object* self, int level) {
