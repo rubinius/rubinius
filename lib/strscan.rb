@@ -219,9 +219,9 @@ class StringScanner
     rest = self.rest
 
     @match = if headonly then
-               rest.match(/\A#{pattern}/)
+               pattern.match_start rest, 0
              else
-               rest.match(pattern)
+               pattern.match rest
              end
 
     return nil if match.nil?
