@@ -24,7 +24,7 @@ class TestDir : public CxxTest::TestSuite {
   }
 
   char* make_directory() {
-    char* templ = strdup("/tmp/rubinius_TestDir.XXXX");
+    char* templ = strdup("/tmp/rubinius_TestDir.XXXXXX");
     return mkdtemp(templ);
   }
 

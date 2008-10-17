@@ -19,6 +19,9 @@ class TestIO : public CxxTest::TestSuite {
     state = new VM();
     fd = make_io();
     io = IO::create(state, fd);
+
+    /** @todo   Fix this. --rue */
+    fname = NULL;
   }
 
   void tearDown() {
@@ -35,8 +38,13 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   int make_io() {
-    char* templ = strdup("/tmp/rubinius_TestIO.XXXX");
+    char* templ = strdup("/tmp/rubinius_TestIO.XXXXXX");
     int fd = mkstemp(templ);
+
+    if(fd == -1) {
+      throw std::runtime_error(strerror(errno));
+    }
+
     free(templ);
     return fd;
   }
