@@ -12,17 +12,21 @@ class String
     raise PrimitiveFailure, "String#parse primitive failed"
   end
 
-  def to_sexp(name="(eval)", line=1, newlines=true)
-    out = parse(name, line, newlines)
-    if out.kind_of? Tuple
-      exc = SyntaxError.new out.at(0)
-      exc.import_position out.at(1), out.at(2), out.at(3)
+  def to_sexp_pt(name="(eval)", line=1, rewriter=true)
+    require 'compiler/lit_rewriter'
+
+    sexp = parse name, line, false
+    if sexp.kind_of? Tuple
+      exc = SyntaxError.new sexp.at(0)
+      exc.import_position sexp[1], sexp[2], sexp[3]
       exc.file = name
       raise exc
     end
 
-    out = [:newline, 0, "<empty: #{name}>", [:nil]] unless out
-    out
+    sexp = [:newline, 0, "<empty: #{name}>", [:nil]] unless sexp
+    sexp = Sexp.from_array sexp
+    sexp = Rubinius::LitRewriter.new.process sexp if rewriter
+    sexp
   end
 
   # TODO - Pass the starting line info into RubyParser
@@ -32,5 +36,13 @@ class String
     sexp = RubyParser.new.process(self, name)
     sexp = Rubinius::LitRewriter.new.process(sexp) if lit_rewriter
     sexp
+  end
+
+  def to_sexp(name="(eval)", line=1, rewriter=true)
+    if ENV['PT_PARSER']
+      to_sexp_pt name, line, rewriter
+    else
+      to_sexp_rp name, line, rewriter
+    end
   end
 end
