@@ -16,7 +16,7 @@ class StringScanner
 
   def [] n
     raise TypeError, "Bad argument #{n.inspect}" unless n.respond_to? :to_int
-    match.to_a[n]
+    match[n]
   end
 
   def bol?
@@ -226,9 +226,9 @@ class StringScanner
       @match = pattern.match rest
     end
 
-    return nil if match.nil?
+    return nil unless @match
 
-    m = rest[0...match.end(0)]
+    m = rest[0, @match.end(0)]
 
     if succptr then
       @prev_pos = pos
