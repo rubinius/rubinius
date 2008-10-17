@@ -309,7 +309,7 @@ describe Compiler do
       g.cast_array
 
       g.push 3
-      g.swap
+      # HACK: g.swap
       g.push :nil
       g.send_with_splat :[]=, 1, false, true
     end
