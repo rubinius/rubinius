@@ -15,7 +15,7 @@
  *
  *  TODO: Move the context to a hidden last parameter defaulting to
  *        current() so that we can pass around the context whenever
- *        possible.
+ *        possible? --rue
  */
 
 #include <stddef.h>
@@ -25,15 +25,18 @@
 
 /**
  *  In MRI, VALUE represents an object.
- *  In rbx, this is a Handle pointer.
+ *
+ *  In rbx, this is a Handle.
  */
 #define VALUE intptr_t
 
 /**
  *  In MRI, ID represents an interned string, i.e. a Symbol.
- *  In rbx, this is a Symbol pointer
+ *
+ *  In rbx, this is a Symbol pointer.
  */
 #define ID    intptr_t
+
 
 /* "Stash" the real versions. */
 #define RBX_Qfalse      (reinterpret_cast<Object*>(6UL))
@@ -48,6 +51,7 @@
 
 #define RBX_RTEST(o)    ((reinterpret_cast<uintptr_t>(o) & 0x7) != 0x6)
 
+
 /* Reset relative to our VALUEs */
 #undef Qfalse
 #undef Qtrue
@@ -58,11 +62,7 @@
 #undef NIL_P
 #undef RTEST
 
-/* Always update handle_for() and object_from() if changing. */
-#define Qfalse ((VALUE)0)
-#define Qtrue  ((VALUE)1)
-#define Qnil   ((VALUE)2)
-#define Qundef ((VALUE)3)
+
 
 /** Global class/object etc. types. */
 #ifdef __cplusplus
@@ -153,38 +153,20 @@ extern "C" {
 }
 #endif
 
+/* The immediates.
+ *
+ * Hardcoded in NativeMethodContext::register_class_with(),
+ * so change both files if absolutely necessary.
+ */
 
-/* Interface macros */
-
-/** Allocate memory for type. Must not be used to allocate Ruby objects. */
-#define ALLOC(type)       (type*) malloc(sizeof(type))
-
-/** Allocate memory for N of type. Must not be used to allocate Ruby objects. */
-#define ALLOC_N(type, n)  (type*) malloc(sizeof(type) * (n))
-
-/** Interrupt checking (no-op). */
-#define CHECK_INTS        /* No-op */
-
-/** Zero out N elements of type starting at given pointer. */
-#define MEMZERO(p,type,n) memset((p), 0, (sizeof(type) * (n)))
-
-/** Whether handle is Qnil. */
-#define NIL_P(v)          (v == Qnil)
-
-/** Convert numeric into an int. */
-#define NUM2INT(n)        FIX2INT((n))
-
-/** Get a handle for the Symbol object represented by ID. */
-#define ID2SYM(id)        rbx_subtend_hidden_id2sym((id))
-
-#define SafeStringValue   StringValue
-#define StringValue(v)    rb_string_value(&v)
-
-/** Retrieve the ID given a Symbol handle. */
-#define SYM2ID(sym)       rbx_subtend_hidden_sym2id((sym))
-
-/** False if expression evaluates to Qnil or Qfalse, true otherwise. */
-#define RTEST(v)          rbx_subtend_hidden_rtest((v))
+/** The false object. */
+#define Qfalse ((VALUE)-1)
+/** The true object. */
+#define Qtrue  ((VALUE)-2)
+/** The nil object. */
+#define Qnil   ((VALUE)-3)
+/** The undef object. NEVER EXPOSE THIS TO USER CODE. EVER. */
+#define Qundef ((VALUE)-4)
 
 
 /* Global Class objects */
@@ -248,9 +230,46 @@ extern "C" {
 #define rb_eThreadError       (rbx_subtend_hidden_error(RbxThreadError))
 #define rb_eZeroDivError      (rbx_subtend_hidden_error(RbxZeroDivisionError))
 
+
+/* Interface macros */
+
+/** Allocate memory for type. Must not be used to allocate Ruby objects. */
+#define ALLOC(type)       (type*) malloc(sizeof(type))
+
+/** Allocate memory for N of type. Must not be used to allocate Ruby objects. */
+#define ALLOC_N(type, n)  (type*) malloc(sizeof(type) * (n))
+
+/** Interrupt checking (no-op). */
+#define CHECK_INTS        /* No-op */
+
+/** Get a handle for the Symbol object represented by ID. */
+#define ID2SYM(id)        rbx_subtend_hidden_id2sym((id))
+
+/** Zero out N elements of type starting at given pointer. */
+#define MEMZERO(p,type,n) memset((p), 0, (sizeof(type) * (n)))
+
+/** Whether object is nil. */
+#define NIL_P(v)          rbx_subtend_hidden_nil_p((v))
+
+/** False if expression evaluates to nil or false, true otherwise. */
+#define RTEST(v)          rbx_subtend_hidden_rtest((v))
+
+/** Convert numeric into an int. */
+#define NUM2INT(n)        FIX2INT((n))
+
+/** Rubinius' SafeStringValue is the same as StringValue. */
+#define SafeStringValue   StringValue
+
+/** Modifies the VALUE object in place by calling rb_obj_as_string(). */
+#define StringValue(v)    rb_string_value(&(v))
+
+/** Retrieve the ID given a Symbol handle. */
+#define SYM2ID(sym)       rbx_subtend_hidden_sym2id((sym))
+
+
 /**
  *
- *  TODO:   The Handle management is ludicrously naive.
+ *  TODO:   The Handle management is ludicrously naive. --rue
  *
  */
 
@@ -262,25 +281,28 @@ extern "C" {
 
   typedef void (*SubtendGenericFunction)(void);
 
+  /** Backend for defining methods after normalization. @see rb_define_*_method. */
+  void    rbx_subtend_hidden_define_method(const char* file,
+                                           VALUE target,
+                                           const char* name,
+                                           SubtendGenericFunction fptr,
+                                           int arity,
+                                           RbxMethodKind kind);
+
   /** Retrieve a Handle to a globally available object. @NON_API */
-  VALUE rbx_subtend_hidden_global(RbxSubtendHiddenGlobal type);
+  VALUE   rbx_subtend_hidden_global(RbxSubtendHiddenGlobal type);
 
   /** Symbol Handle for an ID */
-  VALUE rbx_subtend_hidden_id2sym(ID id);
+  VALUE   rbx_subtend_hidden_id2sym(ID id);
 
-  /** ID from a Symbol Handle. */
-  ID    rbx_subtend_hidden_sym2id(VALUE symbol_handle);
+  /** False if expression evaluates to nil, true otherwise. */
+  int     rbx_subtend_hidden_nil_p(VALUE expression_result);
 
   /** False if expression evaluates to Qnil or Qfalse, true otherwise. */
-  int   rbx_subtend_hidden_rtest(VALUE expression_result);
+  int     rbx_subtend_hidden_rtest(VALUE expression_result);
 
-  /** Backend for defining methods after normalization. @see rb_define_*_method. */
-  void  rbx_subtend_hidden_define_method(const char* file,
-                                         VALUE target,
-                                         const char* name,
-                                         SubtendGenericFunction fptr,
-                                         int arity,
-                                         RbxMethodKind kind);
+  /** ID from a Symbol Handle. */
+  ID      rbx_subtend_hidden_sym2id(VALUE symbol_handle);
 
 
 

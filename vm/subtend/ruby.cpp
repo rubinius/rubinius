@@ -259,6 +259,12 @@ extern "C" {
     return context->handle_for(reinterpret_cast<Symbol*>(id));
   }
 
+  int rbx_subtend_hidden_nil_p(VALUE expression_result) {
+    NativeMethodContext* context = NativeMethodContext::current();
+
+    return RBX_NIL_P(context->object_from(expression_result));
+  }
+
   int rbx_subtend_hidden_rtest(VALUE expression_result) {
     NativeMethodContext* context = NativeMethodContext::current();
 
@@ -293,7 +299,7 @@ extern "C" {
     }
 
 
-    NativeMethod* method = NULL;         // Fortran FTW.
+    NativeMethod* method = NULL;
     method = NativeMethod::create(state,
                                   String::create(state, file),
                                   module,

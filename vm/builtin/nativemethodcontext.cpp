@@ -31,6 +31,13 @@ namespace rubinius {
   {
     state->globals.nativectx.set(state->new_class("NativeMethodContext", state->globals.methctx.get()));
     state->globals.nativectx.get()->set_object_type(state, NativeMethodContextType);
+
+    /* NOTE: These are hardcoded in vm/subtend/ruby.h. Update both files. */
+    HandleStorage& globals = NativeMethodContext::global_handles();
+    globals.push_back(Qfalse);
+    globals.push_back(Qtrue);
+    globals.push_back(Qnil);
+    globals.push_back(Qundef);
   }
 
   NativeMethodContext* NativeMethodContext::create(VM* state,
