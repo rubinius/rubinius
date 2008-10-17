@@ -7,6 +7,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 
+#include "message.hpp"
+
 #include <llvm/Module.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/Constants.h>
@@ -441,15 +443,15 @@ namespace rubinius {
     c_func = (CompiledFunction)engine->getPointerToFunction(func);
   }
 
-  bool VMLLVMMethod::uncompiled_execute(STATE, Executable* exec,
+  ExecuteStatus VMLLVMMethod::uncompiled_execute(STATE,
                                         Task* task, Message& msg) {
-    CompiledMethod* cm = as<CompiledMethod>(exec);
+    CompiledMethod* cm = as<CompiledMethod>(msg.method);
 
     VMLLVMMethod* real = new VMLLVMMethod(state, cm);
     cm->backend_method_ = real;
 
     real->compile(state);
-    return VMMethod::execute(state, cm, task, msg);
+    return VMMethod::execute(state, task, msg);
   }
 
   void VMLLVMMethod::resume(Task* task, MethodContext* ctx) {

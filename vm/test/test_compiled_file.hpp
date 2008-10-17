@@ -64,6 +64,7 @@ public:
     msg.recv = G(main);
     msg.module = G(object);
     msg.name = state->symbol("moob");
+    msg.method = cm;
 
     cm->scope(state, StaticScope::create(state));
     cm->scope()->module(state, G(object));

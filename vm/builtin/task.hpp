@@ -113,8 +113,8 @@ namespace rubinius {
     Task* raise(STATE, Exception *exc);
 
     void raise_exception(Exception *exc);
-    bool send_message(Message& msg);
-    bool send_message_slowly(Message& msg);
+    ExecuteStatus send_message(Message& msg);
+    ExecuteStatus send_message_slowly(Message& msg);
     Module* current_module();
 
     Tuple* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);

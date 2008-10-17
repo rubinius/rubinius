@@ -44,6 +44,7 @@ namespace rubinius {
     msg.setup(NULL, G(main), task->active(), 0, 0);
     msg.name = cm->name();
     msg.module = G(object);
+    msg.method = cm.get();
 
     G(current_thread)->task(state, task);
     state->activate_task(task);

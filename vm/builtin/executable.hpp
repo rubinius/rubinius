@@ -19,10 +19,10 @@ namespace rubinius {
     SYMBOL primitive_; // slot
     FIXNUM serial_;    // slot
 
-    // TODO: fix up data members that aren't slots
-    executor execute_;
-
   public:
+    // This one is public so it can be directly invoked.
+    executor execute;
+
     /* accessors */
 
     attr_accessor(primitive, Symbol);
@@ -31,18 +31,13 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-    static bool default_executor(STATE, Executable* exc, Task* task, Message& msg);
+    static ExecuteStatus default_executor(STATE, Task* task, Message& msg);
 
     // Ruby.primitive :executable_allocate
     static Executable* allocate(STATE, OBJECT self);
 
-    /* Perform the actions of this Executable object. */
-    bool execute(STATE, Task* task, Message& msg) {
-      return execute_(state, this, task, msg);
-    }
-
     void set_executor(rubinius::executor exc) {
-      execute_ = exc;
+      execute = exc;
     }
 
     class Info : public TypeInfo {

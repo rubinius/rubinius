@@ -49,6 +49,7 @@ namespace rubinius {
     Message msg(state);
     msg.name = meth->name() ? meth->name() : state->symbol("__weird_unnamed_method__");
     msg.module = recv->class_object(state);
+    msg.method = meth;
     meth->execute(state, task, msg);
 
     return task;
@@ -141,7 +142,7 @@ namespace rubinius {
 
   /* For details in msg, locate the proper method and begin execution
    * of it. */
-  bool Task::send_message(Message& msg) {
+  ExecuteStatus Task::send_message(Message& msg) {
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
@@ -149,7 +150,7 @@ namespace rubinius {
     return msg.method->execute(state, this, msg);
   }
 
-  bool Task::send_message_slowly(Message& msg) {
+  ExecuteStatus Task::send_message_slowly(Message& msg) {
     SYMBOL original_name = msg.name;
     if(!GlobalCacheResolver::resolve(state, msg)) {
       msg.method_missing = true;

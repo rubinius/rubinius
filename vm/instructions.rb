@@ -2960,8 +2960,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = msg.send_site->performer(state, task, msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3043,8 +3042,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = msg.send_site->performer(state, task, msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3131,8 +3129,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3235,8 +3232,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3326,8 +3322,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3473,8 +3468,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 

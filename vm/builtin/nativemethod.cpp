@@ -34,7 +34,7 @@ namespace rubinius {
   }
 
   /** TODO: Set up a SIGSEGV/SIGBUS handler. */
-  bool NativeMethod::activate_from(NativeMethodContext* context) {
+  ExecuteStatus NativeMethod::activate_from(NativeMethodContext* context) {
     NativeMethodContext::current_context_is(context);
 
     store_current_execution_point_in(context->dispatch_point());
@@ -57,8 +57,7 @@ namespace rubinius {
        *  So, we return from here which then allows the CM to really
        *  execute.
        */
-      context->task()->send_message_slowly(context->message_from_c());
-      return true;
+      return context->task()->send_message_slowly(context->message_from_c());
 
     case NativeMethodContext::RETURNED_BACK_TO_C:
       jump_to_execution_point_in(context->inside_c_method_point());
@@ -76,11 +75,12 @@ namespace rubinius {
       break;
     }
 
-    return true;
+    return cExecuteRestart;
   }
 
-  bool NativeMethod::executor_implementation(STATE, Executable* method, Task* task, Message& message) {
-    NativeMethodContext* context = NativeMethodContext::create(state, &message, task, as<NativeMethod>(method));
+  ExecuteStatus NativeMethod::executor_implementation(STATE, Task* task, Message& message) {
+    NativeMethodContext* context = NativeMethodContext::create(state,
+        &message, task, as<NativeMethod>(message.method));
 
     task->active(state, context);
 

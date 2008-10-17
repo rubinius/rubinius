@@ -3,11 +3,15 @@
 
 namespace rubinius {
   class VM;
-  class Executable;
   class Task;
   class Message;
 
-  typedef bool (*executor)(VM*, Executable*, Task*, Message& msg);
+  enum ExecuteStatus {
+    cExecuteContinue = 0,
+    cExecuteRestart
+  };
+
+  typedef ExecuteStatus (*executor)(VM*, Task*, Message& msg);
 }
 
 #endif

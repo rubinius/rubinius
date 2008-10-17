@@ -6,6 +6,8 @@
 #include "vm/prelude.hpp"
 #include "vm/type_info.hpp"
 
+#include "executor.hpp"
+
 namespace rubinius {
 
 /**
@@ -149,7 +151,7 @@ namespace rubinius {
     OBJECT kind_of_prim(STATE, Module* klass);
 
     // Ruby.primitive? :object_send
-    bool send_prim(STATE, Executable* exec, Task* task, Message& msg);
+    ExecuteStatus send_prim(STATE, Executable* exec, Task* task, Message& msg);
 
     // Setup the current task to send the method +meth+ to +this+ with a
     // variable number of arguments

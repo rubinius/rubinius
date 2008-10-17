@@ -5,6 +5,7 @@
 #include "vm/type_info.hpp"
 
 #include "builtin/object.hpp"
+#include "executor.hpp"
 
 namespace rubinius {
   class Channel;
@@ -62,7 +63,7 @@ namespace rubinius {
     OBJECT raise(STATE, Exception* exc);
 
     // Ruby.primitive? :thread_dequeue
-    bool dequeue_prim(STATE, Executable* exec, Task* task, Message& msg);
+    ExecuteStatus dequeue_prim(STATE, Executable* exec, Task* task, Message& msg);
 
     // Called by the VM when this thread has been schedule to run.
     void woken(STATE);

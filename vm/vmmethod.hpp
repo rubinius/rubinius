@@ -36,10 +36,10 @@ namespace rubinius {
 
     virtual void specialize(STATE, TypeInfo* ti);
     virtual void compile(STATE);
-    static bool execute(STATE, Executable* meth, Task* task, Message& msg);
+    static ExecuteStatus execute(STATE, Task* task, Message& msg);
 
     template <typename ArgumentHandler>
-      static bool execute_specialized(STATE, Executable* exec, Task* task, Message& msg);
+      static ExecuteStatus execute_specialized(STATE, Task* task, Message& msg);
 
     virtual void resume(Task* task, MethodContext* ctx);
 

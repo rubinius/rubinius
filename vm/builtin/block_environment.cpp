@@ -88,9 +88,9 @@ namespace rubinius {
   }
 
   // TODO - Untested!!!!!!!!!!
-  bool BlockEnvironment::call_prim(STATE, Executable* exec, Task* task, Message& msg) {
+  ExecuteStatus BlockEnvironment::call_prim(STATE, Executable* exec, Task* task, Message& msg) {
     call(state, task, msg);
-    return true;
+    return cExecuteRestart;
   }
 
   /*

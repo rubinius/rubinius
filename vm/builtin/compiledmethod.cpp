@@ -13,6 +13,7 @@
 #include "primitives.hpp"
 #include "llvm.hpp"
 #include "objectmemory.hpp"
+#include "message.hpp"
 
 namespace rubinius {
 
@@ -99,8 +100,8 @@ namespace rubinius {
     return this;
   }
 
-  bool CompiledMethod::default_executor(STATE, Executable* exec, Task* task, Message& msg) {
-    CompiledMethod* cm = as<CompiledMethod>(exec);
+  ExecuteStatus CompiledMethod::default_executor(STATE, Task* task, Message& msg) {
+    CompiledMethod* cm = as<CompiledMethod>(msg.method);
     cm->formalize(state, false);
     return cm->execute(state, task, msg);
   }

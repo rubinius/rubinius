@@ -4,7 +4,7 @@ class BasicPrimitive
   attr_accessor :raw
 
   def output_header(str)
-    str << "bool Primitives::#{@name}(STATE, Executable* exec, Task* task, Message& msg) {\n"
+    str << "ExecuteStatus Primitives::#{@name}(STATE, Task* task, Message& msg) {\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  OBJECT ret;\n"
@@ -43,9 +43,9 @@ class BasicPrimitive
     str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
     str << "    goto fail;\n\n"
     prim_return(str);
-    str << "  return false;\n\n"
+    str << "  return cExecuteContinue;\n\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, exec, task, msg);\n"
+    str << "  return VMMethod::execute(state, task, msg);\n"
     str << "}\n\n"
   end
 
@@ -73,13 +73,13 @@ class CPPPrimitive < BasicPrimitive
     str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
     str << "  if(unlikely(recv == NULL)) goto fail;\n"
 
-    # Raw primitives must return bool, not Object*
+    # Raw primitives must return ExecuteStatus, not Object*
     if @raw
       str << "\n"
-      str << "  return recv->#{@cpp_name}(state, exec, task, msg);\n"
+      str << "  return recv->#{@cpp_name}(state, msg.method, task, msg);\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return VMMethod::execute(state, exec, task, msg);\n"
+      str << "  return VMMethod::execute(state, task, msg);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -139,7 +139,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
       end
       str << "      if(likely(ret != reinterpret_cast<Object*>(kPrimitiveFailed))) {\n"
       prim_return(str, 8);
-      str << "        return false;\n"
+      str << "        return cExecuteContinue;\n"
       str << "      }\n"
       str << "    }\n"
       str << "\n"
@@ -147,7 +147,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  }\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, exec, task, msg);\n"
+    str << "  return VMMethod::execute(state, task, msg);\n"
     str << "}\n\n"
     return str
   end
@@ -596,7 +596,7 @@ end
 write_if_new "vm/gen/primitives_declare.hpp" do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
-      f.puts "static bool #{pn}(STATE, Executable* exec, Task* task, Message& msg);"
+      f.puts "static ExecuteStatus #{pn}(STATE, Task* task, Message& msg);"
     end
   end
 end

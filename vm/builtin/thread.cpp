@@ -95,7 +95,7 @@ namespace rubinius {
     return task_->raise(state, exc);
   }
 
-  bool Thread::dequeue_prim(STATE, Executable* exec, Task* task, Message& msg) {
+  ExecuteStatus Thread::dequeue_prim(STATE, Executable* exec, Task* task, Message& msg) {
     alive(state, Qfalse);
     task_ = (Task*)Qnil;
 
@@ -105,7 +105,7 @@ namespace rubinius {
     assert(channel()->nil_p());
 
     state->check_events();
-    return true;
+    return cExecuteRestart;
   }
 
 }

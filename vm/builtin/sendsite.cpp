@@ -9,6 +9,74 @@
 #include "objectmemory.hpp"
 
 namespace rubinius {
+  namespace performer {
+    /*
+     * A simple monomorphic cache resolver. Does not support
+     * method missing, so it must not be installed if method missing
+     * was used.
+     */
+    ExecuteStatus mono_performer(STATE, Task* task, Message& msg) {
+      if(likely(msg.lookup_from == msg.send_site->recv_class())) {
+        msg.module = msg.send_site->module();
+        msg.method = msg.send_site->method();
+
+        msg.send_site->hits++;
+      } else {
+        msg.send_site->misses++;
+        return basic_performer(state, task, msg);
+      }
+
+      return msg.method->execute(state, task, msg);
+    }
+
+    /**
+     * A simple monomorphic cache for when the destination method is
+     * a method_missing style dispatch.
+     */
+    ExecuteStatus mono_mm_performer(STATE, Task* task, Message& msg) {
+      if(likely(msg.lookup_from == msg.send_site->recv_class())) {
+        msg.module = msg.send_site->module();
+        msg.method = msg.send_site->method();
+
+        msg.send_site->hits++;
+      } else {
+        msg.send_site->misses++;
+        return basic_performer(state, task, msg);
+      }
+
+      msg.unshift_argument(state, msg.name);
+
+      return msg.method->execute(state, task, msg);
+
+    }
+
+    ExecuteStatus basic_performer(STATE, Task* task, Message& msg) {
+      SYMBOL original_name = msg.name;
+
+      if(!GlobalCacheResolver::resolve(state, msg)) {
+        msg.method_missing = true;
+        msg.name = G(sym_method_missing);
+        msg.priv = true; // lets us look for method_missing anywhere
+        sassert(GlobalCacheResolver::resolve(state, msg));
+      }
+
+      // Populate for mono!
+      msg.send_site->module(state, msg.module);
+      msg.send_site->method(state, msg.method);
+      msg.send_site->recv_class(state, msg.lookup_from);
+      msg.send_site->method_missing = msg.method_missing;
+
+      if(unlikely(msg.method_missing)) {
+        msg.unshift_argument(state, original_name);
+        msg.send_site->performer = mono_mm_performer;
+      } else {
+        msg.send_site->performer = mono_performer;
+      }
+
+      return msg.method->execute(state, task, msg);
+    }
+  }
+
   void SendSite::init(STATE) {
     GO(send_site).set(state->new_class("SendSite"));
     G(send_site)->set_object_type(state, SendSiteType);
@@ -26,65 +94,10 @@ namespace rubinius {
     return ss;
   }
 
-  inline static void lookup_normal(STATE, Message& msg) {
-    if(!GlobalCacheResolver::resolve(state, msg)) {
-      msg.method_missing = true;
-      msg.name = G(sym_method_missing);
-      msg.priv = true; // lets us look for method_missing anywhere
-      sassert(GlobalCacheResolver::resolve(state, msg));
-    }
-  }
-
-  bool SendSite::mono_performer(STATE, Task* task, Message& msg) {
-    SYMBOL original_name = msg.name;
-
-    if(likely(msg.lookup_from == msg.send_site->recv_class())) {
-      msg.module = msg.send_site->module();
-      msg.method = msg.send_site->method();
-      msg.method_missing = msg.send_site->method_missing;
-
-      msg.send_site->hits++;
-    } else {
-      msg.send_site->misses++;
-      lookup_normal(state, msg);
-
-      msg.send_site->module(state, msg.module);
-      msg.send_site->method(state, msg.method);
-      msg.send_site->recv_class(state, msg.lookup_from);
-      msg.send_site->method_missing = msg.method_missing;
-    }
-
-    if(unlikely(msg.method_missing)) {
-      msg.unshift_argument(state, original_name);
-    }
-
-    return msg.method->execute(state, task, msg);
-  }
-
-
-  bool SendSite::basic_performer(STATE, Task* task, Message& msg) {
-    SYMBOL original_name = msg.name;
-
-    lookup_normal(state, msg);
-
-    // Populate for mono!
-    msg.send_site->module(state, msg.module);
-    msg.send_site->method(state, msg.method);
-    msg.send_site->recv_class(state, msg.lookup_from);
-    msg.send_site->method_missing = msg.method_missing;
-
-    msg.send_site->performer = mono_performer;
-
-    if(msg.method_missing) {
-      msg.unshift_argument(state, original_name);
-    }
-
-    return msg.method->execute(state, task, msg);
-  }
 
   void SendSite::initialize(STATE) {
     resolver = MonomorphicInlineCacheResolver::resolve;
-    performer = basic_performer;
+    performer = performer::basic_performer;
 
     method(state, (Executable*)Qnil);
     module(state, (Module*)Qnil);

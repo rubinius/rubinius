@@ -219,8 +219,8 @@ namespace rubinius {
   }
 
   template <typename ArgumentHandler>
-  bool VMMethod::execute_specialized(STATE, Executable* exec, Task* task, Message& msg) {
-    CompiledMethod* cm = as<CompiledMethod>(exec);
+  ExecuteStatus VMMethod::execute_specialized(STATE, Task* task, Message& msg) {
+    CompiledMethod* cm = as<CompiledMethod>(msg.method);
 
     MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
 
@@ -276,7 +276,7 @@ namespace rubinius {
       }
     }
 
-    return true;
+    return cExecuteRestart;
   }
 
   void VMMethod::setup_argument_handler(CompiledMethod* meth) {
@@ -293,8 +293,8 @@ namespace rubinius {
    * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
    * CompiledMethod.
    */
-  bool VMMethod::execute(STATE, Executable* exec, Task* task, Message& msg) {
-    CompiledMethod* cm = as<CompiledMethod>(exec);
+  ExecuteStatus VMMethod::execute(STATE, Task* task, Message& msg) {
+    CompiledMethod* cm = as<CompiledMethod>(msg.method);
 
     MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
 
@@ -350,7 +350,7 @@ namespace rubinius {
       }
     }
 
-    return true;
+    return cExecuteRestart;
   }
 
   /* This is a noop for this class. */

@@ -23,7 +23,7 @@ namespace rubinius {
     virtual void compile(STATE);
     virtual void resume(Task* task, MethodContext* ctx);
 
-    static bool uncompiled_execute(STATE, Executable* exec, Task* task, Message& msg);
+    static ExecuteStatus uncompiled_execute(STATE, Task* task, Message& msg);
   };
 }
 
