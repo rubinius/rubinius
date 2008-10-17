@@ -3,25 +3,25 @@ class BasicPrimitive
   attr_accessor :pass_self
   attr_accessor :raw
 
-  def output_header(str, args)
-    str << "bool Primitives::#{@name}(STATE, Executable* exec, Task* task, Message& msg) {\n"
+  def output_header(str)
+    str << "ExecuteStatus Primitives::#{@name}(STATE, Task* task, Message& msg) {\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  OBJECT ret;\n"
     str << "  OBJECT self;\n" if @pass_self
-    if args then
-      str << "  if(msg.args() != #{args})\n"
-      str << "    goto fail;\n\n"
-    end
   end
 
   def output_args(str, arg_types)
+    str << "  if(unlikely(msg.args() != #{arg_types.size}))\n"
+    str << "    goto fail;\n\n"
+
     args = []
     i = -1
     arg_types.each do |t|
       i += 1
       str << "  #{t}* a#{i};\n"
-      str << "  if((a#{i} = try_as<#{t}>(msg.get_argument(#{i}))) == NULL)\n"
+      str << "  a#{i} = try_as<#{t}>(msg.get_argument(#{i}));\n"
+      str << "  if(unlikely(a#{i} == NULL))\n"
       str << "    goto fail;\n\n"
       args << "a#{i}"
     end
@@ -31,16 +31,21 @@ class BasicPrimitive
     return args
   end
 
+  def prim_return(str, indent=2)
+    str << "#{' ' * indent}msg.caller()->clear_stack(msg.stack);\n"
+    str << "#{' ' * indent}msg.caller()->push(ret);\n"
+  end
+
   def output_call(str, call, args)
     str << "\n"
     str << "  ret = #{call}(#{args.join(', ')});\n"
     str << "\n"
-    str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))\n"
+    str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
     str << "    goto fail;\n\n"
-    str << "  task->primitive_return(ret, msg);\n"
-    str << "  return false;\n\n"
+    prim_return(str);
+    str << "  return cExecuteContinue;\n\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, exec, task, msg);\n"
+    str << "  return VMMethod::execute(state, task, msg);\n"
     str << "}\n\n"
   end
 
@@ -63,19 +68,18 @@ class CPPPrimitive < BasicPrimitive
       arg_count = arg_types.size
     end
 
-    output_header str, arg_count
+    output_header str
 
-    str << "  #{@type}* recv;\n"
-    str << "  if((recv = try_as<#{@type}>(msg.recv)) == NULL)\n"
-    str << "    goto fail;\n"
+    str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
+    str << "  if(unlikely(recv == NULL)) goto fail;\n"
 
-    # Raw primitives must return bool, not Object*
+    # Raw primitives must return ExecuteStatus, not Object*
     if @raw
       str << "\n"
-      str << "  return recv->#{@cpp_name}(state, exec, task, msg);\n"
+      str << "  return recv->#{@cpp_name}(state, msg.method, task, msg);\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return VMMethod::execute(state, exec, task, msg);\n"
+      str << "  return VMMethod::execute(state, task, msg);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -91,7 +95,7 @@ end
 class CPPStaticPrimitive < CPPPrimitive
   def generate_glue
     str = ""
-    output_header str, arg_types.size
+    output_header str
 
     args = output_args str, arg_types
     str << "    self = msg.recv;\n" if @pass_self
@@ -119,32 +123,31 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
   def generate_glue
     str = ""
-    output_header str, 1
+    output_header str
 
-    str << "  #{@type}* recv;\n"
-    str << "  if((recv = as<#{@type}>(msg.recv)) == NULL)\n"
-    str << "    goto fail;\n\n"
+    str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
+    str << "  if(likely(recv)) {\n"
+    str << "    if(msg.args() != 1) goto fail;\n"
 
     @kinds.each do |prim|
       type = prim.arg_types.first
-      str << "  if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
+      str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
       if @pass_state
-        str << "    ret = recv->#{@cpp_name}(state, arg);\n"
+        str << "      ret = recv->#{@cpp_name}(state, arg);\n"
       else
-        str << "    ret = recv->#{@cpp_name}(arg);\n"
+        str << "      ret = recv->#{@cpp_name}(arg);\n"
       end
-      str << "  } else "
+      str << "      if(likely(ret != reinterpret_cast<Object*>(kPrimitiveFailed))) {\n"
+      prim_return(str, 8);
+      str << "        return cExecuteContinue;\n"
+      str << "      }\n"
+      str << "    }\n"
+      str << "\n"
     end
 
-    str << "  goto fail;\n"
-    str << "\n"
-
-    str << "  if(ret == reinterpret_cast<Object*>(kPrimitiveFailed))\n"
-    str << "    goto fail;\n\n"
-    str << "  task->primitive_return(ret, msg);\n"
-    str << "  return false;\n\n"
+    str << "  }\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, exec, task, msg);\n"
+    str << "  return VMMethod::execute(state, task, msg);\n"
     str << "}\n\n"
     return str
   end
@@ -593,7 +596,7 @@ end
 write_if_new "vm/gen/primitives_declare.hpp" do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
-      f.puts "static bool #{pn}(STATE, Executable* exec, Task* task, Message& msg);"
+      f.puts "static ExecuteStatus #{pn}(STATE, Task* task, Message& msg);"
     end
   end
 end

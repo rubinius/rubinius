@@ -2,6 +2,9 @@
 #define RBX_MESSAGE_HPP
 
 #include "prelude.hpp"
+#include "builtin/array.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
 
@@ -31,42 +34,25 @@ namespace rubinius {
   class Message {
   public:
 
-    Message(STATE, Array* ary);
     Message(STATE);
+    Message(STATE, Array* ary);
 
   public:   /* Interface */
 
     /**
-     *  Number of remaining (unconsumed) arguments.
+     *  The number of arguments available
      */
-    size_t args() { return total_args - start_; }
+    size_t args() { return total_args; }
 
     /**
-     *  Import arguments from the splat Array into arguments Array.
+     *  Appends the task's arguments to the splat array.
      */
-    void combine_with_splat(STATE, Task* task, Array* splat);
+    void append_arguments(STATE, Array* splat);
 
     /**
-     *  Argument at offset given from current start.
-     *
-     *  Note that this is the *current* start, in the case
-     *  where arguments have already been consumed.
+     *  Appends splat arguments to the task's arguments array.
      */
-    Object* get_argument(size_t index);
-
-    /**
-     *  Copy arguments from stack into arguments Array.
-     */
-    void import_arguments(STATE, Task* task, size_t args);
-
-    /**
-     *  Drop arguments Array.
-     */
-    void reset() {
-      start_ = 0;
-      arguments = NULL;
-      method_missing = false;
-    }
+    void append_splat(STATE, Array* splat);
 
     /**
      *  Explicitly set total number of arguments.
@@ -93,21 +79,86 @@ namespace rubinius {
      */
     void unshift_argument2(STATE, OBJECT one, OBJECT two);
 
-    /**
-     *  Set the associated Task and explictly give total argument count.
-     */
-    void use_from_task(Task* task, size_t args);
-
     /*
      * Package up the arguments and return them as an Array
      */
     Array* as_array(STATE);
 
+    /*
+     * Returns the object that is currently self
+     */
+    OBJECT current_self();
+
+    /*
+     * Sets the caller context
+     */
+    void set_caller(MethodContext* ctx) {
+      caller_ = ctx;
+    }
+
+    MethodContext* caller() {
+      return caller_;
+    }
+
+    /*
+     * Setup the Message with the basic information
+     */
+    void setup(SendSite* ss, OBJECT obj, MethodContext* ctx, size_t arg_count,
+        size_t stack_size) {
+      method_missing = false;
+      arguments_array = NULL;
+      send_site = ss;
+      recv   = obj;
+      caller_ = ctx;
+      total_args   = arg_count;
+      stack  = stack_size;
+      stack_args_ = ctx->stack_back_position(arg_count - 1);
+      arguments_ = stack_args_;
+    }
+
+    /*
+     * Retrieve an argument from the stack
+     */
+    OBJECT get_stack_arg(int which) {
+      return stack_args_[which];
+    }
+
+    /*
+     * Shift the start of the arguments forward, discarding the top
+     * argument. */
+    OBJECT shift_stack_args() {
+      OBJECT obj = *stack_args_++;
+      arguments_ = stack_args_;
+      return obj;
+    }
+
+    /*
+     * Sets the Message to pull it's arguments from Array*
+     */
+    void use_array(Array* ary) {
+      total_args = ary->size();
+      arguments_array = ary;
+      arguments_ = ary->tuple()->field + ary->start()->to_native();
+    }
+
+    /*
+     * Retrieve the requested argument
+     */
+    OBJECT get_argument(size_t index) {
+      return arguments_[index];
+    }
+
+    /*
+     * Deprecated: Use the details to setup the Message
+     */
+    void use_from_task(Task* task, size_t args);
+
   private:
     STATE    /* state */;       /**< Access to the VM state. */
-    Array*      arguments;      /**< Arguments from the call. */
+    Array*      arguments_array;      /**< Arguments from the call. */
     size_t      total_args;     /**< Total number of arguments given, including unsplatted. */
-    size_t      start_;          /**< Index of first remaining argument in arguments. */
+    OBJECT*     stack_args_;
+    OBJECT*     arguments_;
 
   public:   /* Instance variables */
 
@@ -116,7 +167,6 @@ namespace rubinius {
     Object*     recv;           /**< Receiver in the call, i.e. obj in `obj.foo()` */
     Object*     block;          /**< Block object or nil if no block. */
     Object*     splat;          /**< NOT USED. The splat argument to the call. */
-    Object*     current_self;   /**< self at the point of the call. */
     size_t      stack;          /**< Number of arguments on the stack when call occurs + 1 for return value. */
     bool        priv;           /**< Indicates that this call can access private methods. */
 
@@ -132,11 +182,8 @@ namespace rubinius {
 
   private:
     /** The caller's MethodContext, where to get arguments from*/
-    MethodContext* caller;
+    MethodContext* caller_;
 
-
-  public: // accessors
-    size_t start() { return start_; }
   };
 }
 

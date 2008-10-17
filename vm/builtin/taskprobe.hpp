@@ -3,7 +3,6 @@
 
 #include "builtin/object.hpp"
 #include "type_info.hpp"
-#include "message.hpp"
 
 namespace rubinius {
 
@@ -30,7 +29,7 @@ namespace rubinius {
   class Module;
   class CompiledMethod;
   class MethodContext;
-
+  class Message;
 
   /**
    * TaskProbe is a collection of probes that print out data

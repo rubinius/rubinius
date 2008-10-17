@@ -27,9 +27,22 @@ void ffi_set_errno(int n) {
   errno = n;
 }
 
+#ifdef timezone
 time_t ffi_timezone() {
   return timezone;
 }
+#else
+// try FreeBSD extensions to struct tm
+time_t ffi_timezone() {
+  struct tm *lt;
+  time_t t;
+
+  t = time(NULL);
+  lt = localtime(&t);
+
+  return lt->tm_gmtoff;
+}
+#endif
 
 char* ffi_tzname(int dst) {
   if(dst) {

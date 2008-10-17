@@ -1,4 +1,5 @@
 require 'tmpdir'
+require 'rakelib/rubinius'
 
 task :vm => 'vm/vm'
 
@@ -108,12 +109,12 @@ if LLVM_STYLE == "Release"
   OPTIONS[LLVM_A] << " --enable-optimized"
 end
 
-INCLUDES    = (EX_INC + %w[vm/test/cxxtest vm .]).map { |f| "-I#{f}" }
-FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated)
+INCLUDES    = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
+INCLUDES.map! { |f| "-I#{f}" }
+FLAGS       = %w(-pipe -Wall -Werror -ggdb -gdwarf-2 -Wno-deprecated -fno-strict-aliasing)
 
 unless ENV["DEV"]
   FLAGS << "-O2"
-  FLAGS << "-finline-functions"
 end
 
 CC          = ENV['CC'] || "gcc"
@@ -203,9 +204,9 @@ files EXTERNALS do |t|
   configure_path = File.join(path, 'configure')
 
   if File.exist? configure_path then
-    sh "cd #{path}; ./configure #{OPTIONS[t.name]} && make"
+    sh "cd #{path}; ./configure #{OPTIONS[t.name]} && #{make}"
   else
-    sh "cd #{path}; make"
+    sh "cd #{path}; #{make}"
   end
 end
 
@@ -332,7 +333,7 @@ namespace :vm do
   task :distclean => :clean do
     EXTERNALS.each do |lib|
       path = File.join(*lib.split(File::SEPARATOR)[0..2])
-      system "cd #{path}; make clean"
+      system "cd #{path}; #{make} clean"
     end
   end
 
@@ -384,7 +385,9 @@ import dep_file
 
 def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then
-    $ex_libs = EXTERNALS + [ "-ldl" ]
+    $ex_libs = EXTERNALS
+    $ex_libs << "-ldl" unless RUBY_PLATFORM =~ /bsd/
+    $ex_libs << "-lcrypt -L/usr/local/lib -lexecinfo" if RUBY_PLATFORM =~ /bsd/
     $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
 
     llvm_libfiles = `#{LLVM_CONFIG} --libfiles all`.split(/\s+/)

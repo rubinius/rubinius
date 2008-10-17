@@ -39,6 +39,10 @@
 
 class Instructions
 
+  # HACK dup'd in lib/compiler/generator.rb
+  CALL_FLAG_PRIVATE = 1
+  CALL_FLAG_CONCAT  = 2
+
   # [Operation]
   #   Adds a method to a \class or module
   # [Format]
@@ -1809,18 +1813,6 @@ class Instructions
 
   def noop
     <<-CODE
-    /* This seems really odd, I know. Seems like "oh, we can just delete this code!
-     * it does nothing!"
-     * Sadly, this is not true. I (Evan) found that without some code here, when
-     * g++ is compiled with optimizations, it bleeds some weird code into the next
-     * instruction (which is push_nil), making push_nil 2x slower. This is
-     * basically filler code to keep g++ happy.
-     *
-     * Don't delete it! Thanks!
-     *  -mgmt
-     */
-    stack_push(Qnil);
-    stack_pop();
     CODE
   end
 
@@ -2952,21 +2944,23 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
-    msg.recv = stack_top();
+    msg.setup(
+      vmm->sendsites[index].get(),
+      stack_top(),
+      ctx,
+      0,
+      1);
+
     msg.block = Qnil;
     msg.splat = Qnil;
-    msg.use_from_task(task, 0);
-    msg.stack = 1;
 
-    msg.priv = task->call_flags & 1;
+    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3032,21 +3026,23 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
-    msg.recv = stack_back(count);
+    msg.setup(
+      vmm->sendsites[index].get(),
+      stack_back(count),
+      ctx,
+      count,
+      count + 1);
+
     msg.block = Qnil;
     msg.splat = Qnil;
-    msg.use_from_task(task, count);
-    msg.stack = count + 1;
 
-    msg.priv = task->call_flags & 1;
+    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3116,21 +3112,24 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
-    msg.splat = Qnil;
-    msg.use_from_task(task, count);
-    msg.recv = stack_back(count);
-    msg.stack = count + 1;
 
-    msg.priv = task->call_flags & 1;
+    msg.setup(
+      vmm->sendsites[index].get(),
+      stack_back(count),
+      ctx,
+      count,
+      count + 1);
+
+    msg.splat = Qnil;
+
+    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3207,26 +3206,33 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
-    msg.splat = Qnil;
-    msg.recv = stack_back(count);
-    msg.stack = count + 1;
 
-    msg.use_from_task(task, count);
+    msg.setup(
+      vmm->sendsites[index].get(),
+      stack_back(count),
+      ctx,
+      count,
+      count + 1);
+
+    msg.splat = Qnil;
+
     if(!ary->nil_p()) {
-      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 2 */
+      if(task->call_flags & #{CALL_FLAG_CONCAT}) {
+        msg.append_arguments(state, as<Array>(ary));
+      } else {
+        msg.append_splat(state, as<Array>(ary));
+      }
     }
 
-    msg.priv = task->call_flags & 1;
+    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3299,12 +3305,16 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
+
+    msg.setup(
+      vmm->sendsites[index].get(),
+      task->self(),
+      ctx,
+      count,
+      count);
+
     msg.splat = Qnil;
-    msg.use_from_task(task, count);
-    msg.recv = task->self();
-    msg.stack = count;
 
     msg.priv = TRUE;
     msg.lookup_from = task->current_module()->superclass();
@@ -3312,8 +3322,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 
@@ -3433,16 +3442,24 @@ class Instructions
     <<-CODE
     Message& msg = *task->msg;
 
-    msg.send_site = vmm->sendsites[index].get();
     msg.block = stack_pop();
     OBJECT ary = stack_pop();
-    msg.splat = Qnil;
-    msg.recv = task->self();
-    msg.stack = count;
 
-    msg.use_from_task(task, count);
+    msg.setup(
+      vmm->sendsites[index].get(),
+      task->self(),
+      ctx,
+      count,
+      count);
+
+    msg.splat = Qnil;
+
     if(!ary->nil_p()) {
-      msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 2 */
+      if(task->call_flags & #{CALL_FLAG_CONCAT}) {
+        msg.append_arguments(state, as<Array>(ary));
+      } else {
+        msg.append_splat(state, as<Array>(ary));
+      }
     }
 
     msg.priv = TRUE;  // TODO: how do we test this?
@@ -3451,8 +3468,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    bool res = task->send_message(msg);
-    RETURN(res);
+    RETURN(msg.send_site->performer(state, task, msg));
     CODE
   end
 

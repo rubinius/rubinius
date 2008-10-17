@@ -30,10 +30,10 @@ namespace rubinius {
     return executable;
   }
 
-  bool Executable::default_executor(STATE, Executable* exc, Task* task, Message& msg) {
+  ExecuteStatus Executable::default_executor(STATE, Task* task, Message& msg) {
     msg.unshift_argument2(state, msg.recv, msg.name);
     msg.name = state->symbol("call");
-    msg.recv = exc;
+    msg.recv = msg.method;
     msg.lookup_from = msg.recv->lookup_begin(state);
     return task->send_message_slowly(msg);
   }

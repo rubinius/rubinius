@@ -17,6 +17,8 @@ namespace rubinius {
     static const size_t fields = 10;
     static const object_type type = SendSiteType;
 
+    typedef ExecuteStatus (*Performer)(STATE, Task* task, Message& msg);
+
   private:
     SYMBOL name_;            // slot
     CompiledMethod* sender_; // slot
@@ -31,6 +33,7 @@ namespace rubinius {
     size_t hits;
     size_t misses;
     MethodResolver resolver;
+    Performer performer;
 
   public:
     /* accessors */
@@ -67,6 +70,12 @@ namespace rubinius {
       virtual void show(STATE, OBJECT self, int level);
     };
   };
+
+  namespace performer {
+    ExecuteStatus basic_performer(STATE, Task* task, Message& msg);
+    ExecuteStatus mono_performer(STATE, Task* task, Message& msg);
+    ExecuteStatus mono_mm_performer(STATE, Task* task, Message& msg);
+  }
 
   /**
    *  Standard Ruby method lookup path.

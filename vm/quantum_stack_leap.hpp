@@ -33,11 +33,12 @@
 
   #define jump_to_execution_point_in(uctx)            setcontext((uctx))
 
-  #define create_execution_point_with_stack(uctx, stack, size) do { getcontext((uctx)); \
-                                                                    (uctx)->uc_link = NULL; \
-                                                                    (uctx)->uc_stack.ss_sp = (stack); \
-                                                                    (uctx)->uc_stack.ss_size = (size); \
-                                                                    (uctx)->uc_stack.ss_flags = 0; } while (0)
+  #define create_execution_point_with_stack(uctx, stack, size) do { \
+    getcontext((uctx)); \
+    (uctx)->uc_link = NULL; \
+    (uctx)->uc_stack.ss_sp = (char *)(stack); \
+    (uctx)->uc_stack.ss_size = (size); \
+    (uctx)->uc_stack.ss_flags = 0; } while (0)
 
   #define set_function_to_run_in(uctx, func)          makecontext((uctx), &(func), 0)
 

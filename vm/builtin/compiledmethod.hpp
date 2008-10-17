@@ -71,7 +71,7 @@ namespace rubinius {
     VMMethod* formalize(STATE, bool ondemand=true);
     void specialize(STATE, TypeInfo* ti);
 
-    static bool default_executor(STATE, Executable*, Task*, Message&);
+    static ExecuteStatus default_executor(STATE, Task*, Message&);
 
     // Ruby.primitive :compiledmethod_compile
     OBJECT compile(STATE);

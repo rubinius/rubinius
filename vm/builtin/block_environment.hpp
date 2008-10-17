@@ -50,7 +50,7 @@ namespace rubinius {
     BlockContext* create_context(STATE, MethodContext* sender);
 
     // Ruby.primitive? :block_call
-    bool call_prim(STATE, Executable* exec, Task* task, Message& msg);
+    ExecuteStatus call_prim(STATE, Executable* exec, Task* task, Message& msg);
 
     class Info : public TypeInfo {
     public:

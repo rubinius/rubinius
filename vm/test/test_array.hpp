@@ -107,4 +107,17 @@ class TestArray : public CxxTest::TestSuite {
     TS_ASSERT(ary->includes_p(state, Qtrue));
     TS_ASSERT(!ary->includes_p(state, Qfalse));
   }
+
+  void test_shift() {
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, Qtrue);
+    ary->set(state, 1, Qfalse);
+
+    OBJECT out = ary->shift(state);
+    TS_ASSERT_EQUALS(Qtrue, out);
+
+    TS_ASSERT_EQUALS(1U, ary->size());
+
+    TS_ASSERT_EQUALS(Qfalse, ary->get(state, 0));
+  }
 };

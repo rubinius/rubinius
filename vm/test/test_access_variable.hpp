@@ -37,7 +37,7 @@ class TestAccessVariable : public CxxTest::TestSuite {
     Message msg(state);
     msg.recv = G(object);
     msg.method = av;
-    msg.set_args(0);
+    msg.use_from_task(task, 0);
     av->name(state, state->symbol("@name"));
 
     TS_ASSERT(!av->execute(state, task, msg));
@@ -53,7 +53,7 @@ class TestAccessVariable : public CxxTest::TestSuite {
     Message msg(state);
     msg.recv = G(object);
     msg.method = av;
-    msg.set_args(0);
+    msg.use_from_task(task, 0);
     av->name(state, state->symbol("@name"));
     av->write(state, Qtrue);
 
@@ -74,7 +74,7 @@ class TestAccessVariable : public CxxTest::TestSuite {
     Message msg(state);
     msg.recv = G(object);
     msg.method = av;
-    msg.set_args(0);
+    msg.use_from_task(task, 0);
     av->name(state, state->symbol("@blah"));
 
     G(object)->set_ivar(state, av->name(), state->symbol("Sweet"));
@@ -92,7 +92,7 @@ class TestAccessVariable : public CxxTest::TestSuite {
     Message msg(state);
     msg.recv = G(object);
     msg.method = av;
-    msg.set_args(0);
+    msg.use_from_task(task, 0);
     av->name(state, state->symbol("@blah"));
     av->write(state, Qtrue);
 

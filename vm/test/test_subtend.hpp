@@ -187,6 +187,7 @@ class TestSubtend : public CxxTest::TestSuite
                                                 &minus_three_arity,
                                                 Fixnum::from(ARGS_IN_RUBY_ARRAY));
 
+    my_message->method = method;
     bool ret = method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(ret, true);
@@ -227,6 +228,7 @@ class TestSubtend : public CxxTest::TestSuite
                                                 &minus_two_arity,
                                                 Fixnum::from(RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY));
 
+    my_message->method = method;
     bool ret = method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(ret, true);
@@ -268,6 +270,7 @@ class TestSubtend : public CxxTest::TestSuite
                                                 &minus_one_arity,
                                                 Fixnum::from(ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER));
 
+    my_message->method = method;
     bool ret = method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(ret, true);
@@ -312,6 +315,7 @@ class TestSubtend : public CxxTest::TestSuite
                                                 &one_arg,
                                                 Fixnum::from(arg_count));
 
+    my_message->method = method;
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
@@ -345,6 +349,7 @@ class TestSubtend : public CxxTest::TestSuite
                                                 &two_arg,
                                                 Fixnum::from(arg_count));
 
+    my_message->method = method;
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
@@ -378,6 +383,7 @@ class TestSubtend : public CxxTest::TestSuite
                                                 &three_arg,
                                                 Fixnum::from(arg_count));
 
+    my_message->method = method;
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
@@ -411,6 +417,7 @@ class TestSubtend : public CxxTest::TestSuite
                                                 &four_arg,
                                                 Fixnum::from(arg_count));
 
+    my_message->method = method;
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
@@ -444,6 +451,7 @@ class TestSubtend : public CxxTest::TestSuite
                                                 &five_arg,
                                                 Fixnum::from(arg_count));
 
+    my_message->method = method;
     method->execute(my_state, my_task, *my_message);
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
@@ -484,6 +492,7 @@ class TestSubtend : public CxxTest::TestSuite
                                                 &funcaller2,
                                                 Fixnum::from(2));
 
+    my_message->method = method;
     /* This only loads the cm. */
     method->execute(my_state, my_task, *my_message);
 

@@ -43,7 +43,7 @@ namespace rubinius {
     /* HACK: this case seems like a reasonable exception
      * to using accessor functions
      */
-    Object** dst = reinterpret_cast<Object**>(__body__);
+    void** dst = this->__body__;
 
     for(size_t counter = 0; counter < field_count; counter++) {
       dst[counter] = Qnil;
@@ -51,7 +51,7 @@ namespace rubinius {
   }
 
   void ObjectHeader::clear_body_to_null() {
-    uintptr_t** dst = reinterpret_cast<uintptr_t**>(__body__);
+    void** dst = this->__body__;
 
     for(size_t counter = 0; counter < field_count; counter++) {
       dst[counter] = 0;

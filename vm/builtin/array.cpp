@@ -137,6 +137,13 @@ namespace rubinius {
     tuple(state, nt);
   }
 
+  OBJECT Array::shift(STATE) {
+    OBJECT obj = get(state, 0);
+    start(state, Fixnum::from(start_->to_native() + 1));
+    total(state, Fixnum::from(total_->to_native() - 1));
+    return obj;
+  }
+
   OBJECT Array::append(STATE, OBJECT val) {
     set(state, (size_t)total_->to_native(), val);
     return val;

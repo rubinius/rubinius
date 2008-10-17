@@ -153,12 +153,12 @@ namespace rubinius {
      *
      *  @note   Shamelessly tramples over the standard VMExecutable@execute.
      */
-    static bool activate_from(NativeMethodContext* context);
+    static ExecuteStatus activate_from(NativeMethodContext* context);
 
     /**
      *  Enter a new NativeMethod the first time.
      */
-    static bool executor_implementation(VM* state, Executable* method, Task* task, Message& message);
+    static ExecuteStatus executor_implementation(VM* state, Task* task, Message& message);
 
     /**
      *  Attempt to load a C extension library and its main function.

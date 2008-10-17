@@ -129,6 +129,9 @@ class Thread
     raise Die
   end
 
+  alias exit kill
+  alias terminate kill
+
   def status
     if alive?
       if @sleep
@@ -220,6 +223,8 @@ class Thread
     if $DEBUG
       STDERR.puts "Exception: #{exc.message} (#{exc.class})"
     end
+
+    Kernel.raise exc if self == Thread.current
 
     raise_prim exc
   end

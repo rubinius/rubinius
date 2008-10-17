@@ -16,24 +16,5 @@ namespace rubinius {
     }
   }
 
-  /* Retrieve a context from +which+ cache. Return NULL if the cache
-   * was empty. */
-  MethodContext* ContextCache::get(size_t which) {
-    MethodContext* ctx;
-    if((ctx = caches[which]) != Qnil) {
-      /* We chain off ->home */
-      caches[which] = ctx->home();
-      return ctx;
-    }
-
-    return NULL;
-  }
-
-  /* Add context +ctx+ to cache +which+. */
-  void ContextCache::add(STATE, size_t which, MethodContext* ctx) {
-    ctx->home(state, caches[which]);
-    caches[which] = ctx;
-  }
-
 };
 

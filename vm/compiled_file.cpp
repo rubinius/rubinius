@@ -15,6 +15,7 @@
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
 
+#include "message.hpp"
 #include "context_cache.hpp"
 
 namespace rubinius {
@@ -40,10 +41,10 @@ namespace rubinius {
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
     Message msg(state);
-    msg.recv = G(main);
+    msg.setup(NULL, G(main), task->active(), 0, 0);
     msg.name = cm->name();
     msg.module = G(object);
-    msg.use_from_task(task, 0);
+    msg.method = cm.get();
 
     G(current_thread)->task(state, task);
     state->activate_task(task);

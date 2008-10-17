@@ -98,7 +98,6 @@ namespace {
     VALUE ret = context->value_returned_to_c();
 
     context->value_returned_to_c(RBX_Qnil);
-    context->message_from_c().reset();
 
     return ret;
   }

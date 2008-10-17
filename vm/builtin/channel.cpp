@@ -12,6 +12,7 @@
 #include "builtin/io.hpp"
 #include "builtin/contexts.hpp"
 
+#include "message.hpp"
 #include "event.hpp"
 
 namespace rubinius {
@@ -39,7 +40,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  bool Channel::receive_prim(STATE, Executable* exec, Task* task, Message& msg) {
+  ExecuteStatus Channel::receive_prim(STATE, Executable* exec, Task* task, Message& msg) {
     // TODO check arity
     //
 
@@ -49,7 +50,7 @@ namespace rubinius {
     if(!value_->nil_p()) {
       OBJECT val = as<List>(value_)->shift(state);
       task->push(val);
-      return false;
+      return cExecuteContinue;
     }
 
     /* We push nil on the stack to reserve a place to put the result. */
@@ -59,7 +60,7 @@ namespace rubinius {
     waiting_->append(state, G(current_thread));
 
     state->check_events();
-    return true;
+    return cExecuteRestart;
   }
 
   OBJECT Channel::receive(STATE) {

@@ -22,6 +22,7 @@
 
 #include "objectmemory.hpp"
 #include "profiler.hpp"
+#include "message.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -45,9 +46,10 @@ namespace rubinius {
   Task* Task::create(STATE, OBJECT recv, CompiledMethod* meth) {
     Task* task = create(state, 0);
 
-    Message msg(state, Array::create(state, 0));
+    Message msg(state);
     msg.name = meth->name() ? meth->name() : state->symbol("__weird_unnamed_method__");
     msg.module = recv->class_object(state);
+    msg.method = meth;
     meth->execute(state, task, msg);
 
     return task;
@@ -138,44 +140,17 @@ namespace rubinius {
     Exception::assertion_error(state, ss.str().c_str());
   }
 
-  bool Task::execute_message(Message& msg) {
-    bool mc_installed;
-
-    try {
-      mc_installed = msg.method->execute(state, this, msg);
-    } catch (...) {
-      msg.reset();
-      throw;
-    }
-
-    msg.reset();
-
-    return mc_installed;
-  }
-
   /* For details in msg, locate the proper method and begin execution
    * of it. */
-  bool Task::send_message(Message& msg) {
-    msg.current_self = active_->self();
-
+  ExecuteStatus Task::send_message(Message& msg) {
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
-    // HACK ug! do this up front, not way down here.
-    /*
-    if(CompiledMethod* cm = try_as<CompiledMethod>(msg.method)) {
-      if(!cm->backend_method_|| (OBJECT)cm->backend_method_ == Qnil) {
-        cm->formalize(state, false);
-      }
-    }
-    */
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return execute_message(msg);
+    return msg.method->execute(state, this, msg);
   }
 
-  bool Task::send_message_slowly(Message& msg) {
-    msg.current_self = active_->self();
-
+  ExecuteStatus Task::send_message_slowly(Message& msg) {
     SYMBOL original_name = msg.name;
     if(!GlobalCacheResolver::resolve(state, msg)) {
       msg.method_missing = true;
@@ -192,7 +167,7 @@ namespace rubinius {
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return execute_message(msg);
+    return msg.method->execute(state, this, msg);
   }
 
   bool Task::passed_arg_p(size_t pos) {
@@ -291,6 +266,7 @@ namespace rubinius {
     msg.lookup_from = recv->lookup_begin(state);
     msg.name = sel;
     msg.priv = (priv_p == Qtrue);
+    msg.set_caller(active_);
 
     if(!GlobalCacheResolver::resolve(state, msg)) {
       return (Tuple*)Qnil;
@@ -453,9 +429,6 @@ namespace rubinius {
   static Class* check_superclass(STATE, Class* cls, OBJECT super) {
     if(super->nil_p()) return cls;
     if(cls->superclass() != super) {
-      std::cout << "mismatch: "
-        << cls->name()->c_str(state)
-        << " != " << as<Class>(super)->name()->c_str(state) << "\n";
       Exception::type_error(state, Class::type, super, "superclass mismatch");
     }
 

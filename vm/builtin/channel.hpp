@@ -40,7 +40,7 @@ namespace rubinius {
     OBJECT send(STATE, OBJECT);
 
     // Ruby.primitive? :channel_receive
-    bool receive_prim(STATE, Executable* exec, Task* task, Message& msg);
+    ExecuteStatus receive_prim(STATE, Executable* exec, Task* task, Message& msg);
 
     OBJECT receive(STATE);
     bool has_readers_p();

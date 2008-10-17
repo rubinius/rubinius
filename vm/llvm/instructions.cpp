@@ -4,7 +4,6 @@
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/sendsite.hpp"
@@ -20,6 +19,7 @@
 #include "builtin/contexts.hpp"
 
 #include "objectmemory.hpp"
+#include "message.hpp"
 
 using namespace rubinius;
 
@@ -43,7 +43,7 @@ using namespace rubinius;
 #define cache_ip()
 
 extern "C" {
-  bool send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, SYMBOL name, size_t args);
+  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, SYMBOL name, size_t args);
 
 #define RETURN(val) return val
 
@@ -105,25 +105,16 @@ CODE
     return val != Qundef;
   }
 
-  bool send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, SYMBOL name, size_t args) {
+  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, SYMBOL name, size_t args) {
     Message& msg = *task->msg;
     msg.recv = stack_back(args);
-    msg.import_arguments(state, task, args);
+    msg.use_from_task(task, args);
     msg.name = name;
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.block = Qnil;
     msg.stack = args + 1;
-    
-    bool res;
-    try {
-      res = task->send_message_slowly(msg);
-    } catch(...) {
-      msg.reset();
-      throw;
-    }
 
-    msg.reset();
-    return res;
+    return task->send_message_slowly(msg);
   }
 }
 
@@ -158,7 +149,7 @@ CODE
 #define next_int ((opcode)(stream[ctx->ip++]))
 
 #undef RETURN
-#define RETURN(val) if(val) { return; } else { continue; }
+#define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
 
 void VMMethod::resume(Task* task, MethodContext* ctx) {
   VMMethod* const vmm = this;

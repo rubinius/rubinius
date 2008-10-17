@@ -25,12 +25,12 @@ namespace rubinius {
 
   /* Calculate how much big of an object (in bytes) to allocate
    * for one with a body of +original+ and a stack of +stack+ */
-  static size_t add_stack(size_t original, size_t stack) {
+  static inline size_t add_stack(size_t original, size_t stack) {
     return original + (sizeof(OBJECT) * stack);
   }
 
   /* Initialize +ctx+'s fields */
-  static void init_context(STATE, MethodContext* ctx, size_t stack) {
+  static inline void init_context(STATE, MethodContext* ctx, size_t stack) {
     ctx->ip = 0;
     ctx->ivars(state, Qnil);
 
@@ -47,7 +47,7 @@ namespace rubinius {
   }
 
   /* Find a context to use. Either use a cache or create one in the heap. */
-  static MethodContext* allocate(STATE, Class* cls, size_t stack_size) {
+  static inline MethodContext* allocate(STATE, Class* cls, size_t stack_size) {
     MethodContext* ctx;
     size_t which_cache = SmallContextCache;
     size_t bytes;

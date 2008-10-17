@@ -2,7 +2,6 @@
 #define RBX_PRIMITIVES_HPP
 
 #include "object.hpp"
-#include "message.hpp"
 #include "executor.hpp"
 
 #include <stdexcept>
@@ -10,6 +9,7 @@
 namespace rubinius {
 
   class Primitives;
+  class Message;
 
   enum PrimitiveRuntimeCode {
     kPrimitiveFailed = 0
@@ -29,7 +29,7 @@ namespace rubinius {
      * Ruby code.
      */
     static executor resolve_primitive(STATE, SYMBOL name);
-    static bool unknown_primitive(STATE, Executable* exec, Task* task, Message& msg);
+    static ExecuteStatus unknown_primitive(STATE, Task* task, Message& msg);
 #include "gen/primitives_declare.hpp"
   };
 }
