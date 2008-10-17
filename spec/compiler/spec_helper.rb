@@ -592,6 +592,13 @@ def gen(sexp, plugins=[])
   @node.bytecode actual
   actual.should == expected
 
+  body = @node.body
+  if body.kind_of? Compiler::Node::Define
+    @required, @optional, @splat = body.argument_info
+  else
+    @args = nil
+  end
+
   @comp
 end
 

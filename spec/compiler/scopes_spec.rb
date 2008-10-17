@@ -265,6 +265,8 @@ describe Compiler do
       g.push_literal meth
       g.send :__add_method__, 2
     end
+
+    @splat.name.should == :b
   end
 
   it "compiles 'def a(&b); b; end'" do
