@@ -869,6 +869,25 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(parent->get_const(state, "Person"), mod);
   }
 
+  void test_open_nested_module_with_toplevel_name() {
+    Module* parent = state->new_module("Parent");
+
+    StaticScope* ps = StaticScope::create(state);
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
+
+    CompiledMethod* cm = create_cm();
+
+    Task* task = Task::create(state, Qnil, cm);
+    cm->scope(state, ps);
+
+    Module* mod = task->open_module(state->symbol("Class"));
+    TS_ASSERT(kind_of<Module>(mod));
+
+    TS_ASSERT_EQUALS(mod->name(), state->symbol("Parent::Class"));
+    TS_ASSERT_EQUALS(parent->get_const(state, "Class"), mod);
+  }
+
   void test_open_module_under_specific_module() {
     Module* parent = state->new_module("Parent");
 
