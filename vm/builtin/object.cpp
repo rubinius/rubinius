@@ -116,14 +116,14 @@ namespace rubinius {
 
   void Object::copy_internal_state_from(STATE, Object* original) {
     if(MetaClass* mc = try_as<MetaClass>(original->klass())) {
-      /* Ditch any metaclass we might have copied over. */
-      this->klass(state, original->class_object(state));
-
       LookupTable* source_methods = mc->method_table()->dup(state);
       LookupTable* source_constants = mc->constants()->dup(state);
 
       this->metaclass(state)->method_table(state, source_methods);
       this->metaclass(state)->constants(state, source_constants);
+
+      // This allows us to preserve included modules
+      this->metaclass(state)->superclass(state, mc->superclass());
     }
   }
 
@@ -141,11 +141,8 @@ namespace rubinius {
     other->initialize_copy(this, age);
     other->copy_body(this);
 
-    Class* meta = metaclass(state);
-    meta->set_ivar(state, G(sym_object_id), Qnil);
-
-    /* Use lookup_begin to preserve any IncludedModules. */
-    other->klass(state, this->lookup_begin(state));
+    // Set the dup's class this's class
+    other->klass(state, class_object(state));
 
     // HACK: If other is mature, remember it.
     // We could inspect inspect the references we just copied to see
