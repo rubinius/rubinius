@@ -14,33 +14,17 @@
 #endif
 
 
-#ifdef CONFIG_USE_LTDL
+/* Little dynamic loading API. */
 
-#error
+#include <dlfcn.h>
 
-  #include "ltdl.h"
-
-  #define rbx_dlinit()            lt_dlinit()
-  #define rbx_dlhandle            lt_dlhandle
-  #define rbx_dldefault()         lt_dlopen(NULL)
-  #define rbx_dlopen(name)        lt_dlopen(name)
-  #define rbx_dlsym               lt_dlsym
-  #define rbx_dlsym_default(name) lt_dlsym(NULL, name)
-  #define rbx_dlerror             lt_dlerror
-
-#else
-
-  #include <dlfcn.h>
-
-  #define rbx_dlinit()            /* No expansion */
-  #define rbx_dlhandle            void*
-  #define rbx_dldefault()         RTLD_DEFAULT
-  #define rbx_dlopen(name)        dlopen(name, RTLD_NOW | RTLD_GLOBAL)
-  #define rbx_dlsym               dlsym
-  #define rbx_dlsym_default(name) dlsym(RTLD_DEFAULT, name)
-  #define rbx_dlerror             dlerror
-
-#endif
+  #define rbx_dlerror         dlerror
+  #define rbx_dldefault()     RTLD_DEFAULT
+  #define rbx_dlhandle        void*
+  #define rbx_dlinit()        /* No expansion */
+  #define rbx_dlnosuch(ptr)   ((ptr) == NULL)
+  #define rbx_dlopen(name)    dlopen(name, RTLD_NOW | RTLD_GLOBAL)
+  #define rbx_dlsym           dlsym
 
 
 namespace rubinius {
@@ -52,11 +36,16 @@ namespace rubinius {
   public:   /* Interface */
 
     /** Obtain function pointer to given symbol in given lib. */
-    static void*        find_symbol(STATE, String* name, Object* library_name);
-    /** Loader error message, if any. */
-    static String*      last_error_message();
+    static void*          find_symbol(STATE, String* name, Object* library_name);
+
     /** Load and open a native library (or this process if nil.) */
-    static rbx_dlhandle open(STATE, Object* library_name);
+    static rbx_dlhandle   open(STATE, Object* library_name);
+
+
+  private:  /* Internals */
+
+    /** Pseudo-library handle to this process and all its symbols. */
+    static rbx_dlhandle   use_this_process();
 
   };
 

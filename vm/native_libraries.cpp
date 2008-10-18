@@ -12,60 +12,53 @@
 
 namespace rubinius {
 
-  void VM::init_native_libraries()
-  {
+  void VM::init_native_libraries() {
     globals.rubinius.get()->set_const(this, "LIBSUFFIX", String::create(this, RBX_LIBSUFFIX));
+
     rbx_dlinit();
   }
 
   void* NativeLibrary::find_symbol(STATE, String* name, Object* library_name) {
-    rbx_dlhandle library = open(state, library_name);
+    void* symbol = rbx_dlsym(NativeLibrary::open(state, library_name), name->c_str());
 
-    void* symbol = rbx_dlsym(library, name->c_str());
-
-    if (symbol == NULL) {
-      /* TODO: Why are we using this at all? dlopen should handle. */
-      symbol = rbx_dlsym_default(name->c_str());
-
-      if (symbol == NULL) {
-        std::string message("NativeLibrary::find_symbol(): ");
-        message += rbx_dlerror();
-
-        Exception::system_call_error(state, message);
-      }
+    if(rbx_dlnosuch(symbol)) {
+      std::string message("NativeLibrary::load_symbol(): ");
+      Exception::system_call_error(state, message + rbx_dlerror());
     }
 
     return symbol;
   }
 
-  /* TODO: Should be caching the default lib . */
   rbx_dlhandle NativeLibrary::open(STATE, Object* name) {
-    std::ostringstream error_message("NativeLibrary::open(): ");
-
-    /* TODO: fix */
     if (name->nil_p()) {
-      return rbx_dldefault();
+      return NativeLibrary::use_this_process();
     }
 
     /* We should always get path without file extension. */
     std::string path(as<String>(name)->c_str());
+    std::ostringstream error_message("NativeLibrary::open(): ");
 
     rbx_dlhandle library = rbx_dlopen((path + RBX_LIBSUFFIX).c_str());
 
     #ifdef RBX_LIBSUFFIX2
-    if (library == NULL) {
-      error_message << rbx_dlerror() << "; ";
+      if(rbx_dlnosuch(library)) {
+        error_message << rbx_dlerror() << "; ";
 
-      library = rbx_dlopen((path + RBX_LIBSUFFIX2).c_str());
-    }
+        library = rbx_dlopen((path + RBX_LIBSUFFIX2).c_str());
+      }
     #endif
 
-    if (library == NULL) {
+    if(rbx_dlnosuch(library)) {
       error_message << rbx_dlerror();
       Exception::system_call_error(state, error_message.str());
     }
 
     return library;
+  }
+
+  rbx_dlhandle NativeLibrary::use_this_process() {
+    static rbx_dlhandle self = rbx_dldefault();
+    return self;
   }
 
 }
