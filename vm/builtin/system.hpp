@@ -30,6 +30,10 @@ namespace rubinius {
 
   public:   /* Primitives */
 
+    /** Load a compiled file. */
+    // Ruby.primitive :compiledfile_load
+    static Object*  compiledfile_load(STATE, String* path, Object* version);
+
     /**
      *  When running under GDB, stop here.
      *
