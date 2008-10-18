@@ -64,16 +64,12 @@ namespace :extension do
     task :md5 => "lib/ext/digest/md5/md5.#{$dlext}"
 
     # TODO: propogate the changes here down to the other "*"s below:
-    task "lib/ext/digest/md5/md5.#{$dlext}" =>
+    file "lib/ext/digest/md5/md5.#{$dlext}" =>
       FileList['lib/ext/digest/md5/build.rb',
                'lib/ext/digest/md5/{md5,md5init}.c',
                'lib/ext/digest/md5/md5.h',
                'lib/ext/digest/defs.h',
                "vm/vm"] do
-      FileList["lib/ext/digest/md5/{md5,md5init}.{o,#{$dlext}}"].each do |f|
-        rm f, :verbose => $verbose
-      end
-
       compile_extension 'lib/ext/digest/md5', nil
     end
 
