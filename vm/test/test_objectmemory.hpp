@@ -91,7 +91,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     BakerGC::Heap *cur = om.young.next;
     TS_ASSERT_EQUALS(om.young.current->used(), obj->size_in_bytes() * 5);
 
-    Roots roots(0);
+    Roots roots;
     om.collect_young(roots);
 
     TS_ASSERT_EQUALS(om.young.current->used(), 0U);
@@ -118,7 +118,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.write_barrier(obj, obj2);
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, obj);
 
     om.collect_young(roots);
@@ -150,7 +150,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
      * just a generic series of bytes, not a reference. */
     obj->field[0] = obj2;
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, obj);
 
     om.collect_young(roots);
@@ -180,7 +180,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     obj = om.allocate_object(20);
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, obj);
 
     om.collect_young(roots);
@@ -203,7 +203,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     om.write_barrier(mature, young);
     TS_ASSERT_EQUALS(mature->Remember, 1U);
 
-    Roots roots(0);
+    Roots roots;
     om.collect_young(roots);
 
     TS_ASSERT(mature->field[0] != young);
@@ -216,7 +216,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     young = om.allocate_object(3);
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, young);
 
     om.set_young_lifetime(1);
@@ -246,7 +246,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     mature->field[0] = young;
     om.write_barrier(mature, young);
 
-    Roots roots(0);
+    Roots roots;
 
     om.set_young_lifetime(1);
 
@@ -274,7 +274,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.write_barrier(obj, obj2);
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, obj);
 
     om.collect_young(roots);
@@ -294,7 +294,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     obj = (ByteArray*)om.new_object_bytes(G(object), 3);
     obj->bytes[0] = 47;
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, obj);
 
     om.collect_young(roots);
@@ -311,7 +311,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     obj = om.allocate_object(3);
     obj->klass(state, (Class*)cls);
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, obj);
 
     om.collect_young(roots);
@@ -339,7 +339,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     MarkSweepGC::Entry *entry = om.mature.find_entry(mature);
     TS_ASSERT(entry->unmarked_p());
 
-    Roots roots(0);
+    Roots roots;
     om.collect_mature(roots);
 
     TS_ASSERT_EQUALS(om.mature.allocated_objects, 0U);
@@ -365,7 +365,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.store_object(young, 0, mature);
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, young);
 
     om.collect_mature(roots);
@@ -394,7 +394,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     om.write_barrier(young, mature);
     om.write_barrier(mature, young);
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, young);
 
     om.collect_mature(roots);
@@ -423,7 +423,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     om.write_barrier(obj, obj2);
     om.write_barrier(obj2, obj);
 
-    Roots roots(0);
+    Roots roots;
     Root r(&roots, obj);
 
     om.collect_young(roots);
