@@ -43,7 +43,7 @@ module FFI
 
     def create_backend(library, name, args, ret)
       Ruby.primitive :nativefunction_bind
-      raise NotFoundError.new(name, library) 
+      raise NotFoundError.new(name, library)
     end
 
     # Internal function, should not be used directly.
@@ -76,17 +76,17 @@ module FFI
       end
     end
 
-    # Setup the LD_LIBRARY_PATH 
+    # Setup the LD_LIBRARY_PATH
     def setup_ld_library_path(library)
       # If we have a specific reference to the library, we load it here
       specific_library = config("ld_library_path.#{library}")
       library = specific_library if specific_library
-      
-      # This adds general paths to the search 
+
+      # This adds general paths to the search
       if path = config("ld_library_path.default")
         ENV['LTDL_LIBRARY_PATH'] = [ENV['LTDL_LIBRARY_PATH'], path].compact.join(":")
       end
-      
+
       library
     end
 
@@ -262,7 +262,7 @@ end
 # give Rubinius the cast/read capabilities available in C, but using
 # high level methods.
 #
-# MemoryPointer objects can be put in autorelease mode. In this mode, 
+# MemoryPointer objects can be put in autorelease mode. In this mode,
 # when the GC cleans up a MemoryPointer object, the memory it points
 # to is passed to free(3), releasing the memory back to the OS.
 #
@@ -329,6 +329,17 @@ class MemoryPointer
     end
   end
 
+  def initialize_copy ptr
+    new_ptr = Platform::POSIX.malloc total
+    Platform::POSIX.memcpy new_ptr, ptr, total
+    self.address = new_ptr.address
+  end
+
+  def address= thingy
+    Ruby.primitive :memorypointer_set_address
+    raise PrimitiveFailure, "Unable to fuck over your address well enough"
+  end
+
   # Indicates how many bytes the chunk of memory that is pointed to takes up.
   attr_accessor :total
 
@@ -339,14 +350,14 @@ class MemoryPointer
   # element in memory. The position of the element is calculate from
   # +@type_size+ and +which+. A new MemoryPointer object is returned, which
   # points to the address of the element.
-  # 
+  #
   # Example:
   #   ptr = MemoryPointer.new(:int, 20)
   #   new_ptr = ptr[9]
   #
-  # c-equiv: 
+  # c-equiv:
   #   int *ptr = (int*)malloc(sizeof(int) * 20);
-  #   int *new_ptr; 
+  #   int *new_ptr;
   #   new_ptr = &ptr[9];
   #
   def [](which)
@@ -594,13 +605,9 @@ class FFI::Struct
     @pointer.free
   end
 
-  def dup
-    np = MemoryPointer.new size
-    Platform::POSIX.memcpy np, @pointer, size
-    return self.class.new(np)
+  def initialize_copy ptr
+    @pointer = @pointer.dup
   end
-
-  alias_method :clone, :dup
 
   def [](field)
     offset, type = @cspec[field]
