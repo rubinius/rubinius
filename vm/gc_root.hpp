@@ -1,111 +1,239 @@
 #ifndef RBX_GC_ROOT_HPP
 #define RBX_GC_ROOT_HPP
 
-#include "prelude.hpp"
-#include "oop.hpp"
+
 #include <stdexcept>
 
-#include "linkedlist.hpp"
+#include "vm/linkedlist.hpp"
+#include "vm/object.hpp"
+#include "vm/oop.hpp"
+#include "vm/prelude.hpp"
+
 
 namespace rubinius {
+
   class Root;
 
+
+  /**
+   *  Roots is a structure comprising of Root objects.
+   *
+   *  TODO: Add more information about class. --rue
+   *  TODO: Document methods. --rue
+   */
   class Roots : public LinkedList {
-  public:
-    Roots(size_t _dummy = 0) : LinkedList() { }
+  public:   /* Ctors */
+
+    Roots();
+
+
+  public:   /* Interface */
+
     Root* front();
   };
 
+
+  /**
+   *  A Root envelops an Object.
+   *
+   *  Each Root is also associated with a certain Roots structure
+   *  and could be used to access its other members. The Root can
+   *  be associated with (or "migrated to") a different Roots.
+   *
+   *  TODO: Document remaining methods. --rue
+   */
   class Root : public LinkedList::Node {
-  protected:
-    OBJECT object;
+  public:   /* Ctors */
 
-  private:
-    Roots* roots;
-
-  public:
-    Root(Roots* roots, OBJECT obj) : object(obj), roots(roots) {
-      roots->add(this);
-    }
-
-    Root(Roots* roots) : object(NULL), roots(roots) { }
+    /** Default-constructed root is blank. */
+    explicit Root();
 
     Root(STATE);
     Root(STATE, OBJECT obj);
+    Root(Roots* roots);
+    Root(Roots* roots, OBJECT obj);
 
-    explicit Root() : object(NULL), roots(NULL) { }
+    /** Copy construction uses set() semantics. */
+    Root(const Root& other);
 
-    Root(const Root& other) {
-      set(other.object, other.roots);
-    }
+    /** Assignment uses set() semantics. */
+    Root& operator=(Root& other);
 
-    ~Root() {
-      if(roots && object) roots->remove(this);
-    }
+    /** Destruction removes this one from the roots. */
+    ~Root();
 
-    OBJECT get() {
-      if(object) {
-        return object;
-      } else {
-        return Qnil;
-      }
-    }
 
-    void set(OBJECT obj, Roots* r) {
-      // Still in the same set, no problem, just repoint
-      // object.
-      if(roots == r) {
+  public:   /* Interface */
 
-        // We don't add the root until it's got an object.
-        if(!object) roots->add(this);
-        object = obj;
+    /** Obtain the enveloped Object or Qnil if none. */
+    OBJECT  get();
 
-      // Moving to a new set. Remove ourselves from
-      // the current set if we added ourself (we have an
-      // object)
-      } else {
-        if(object) roots->remove(this);
-        object = obj;
-        roots = r;
-        if(object) roots->add(this);
-      }
-    }
+    /**
+     *  Redoes the set of the existing Object and Roots.
+     *
+     *  TODO: Review. This method makes no sense to me. --rue
+     */
+    void    set(Roots* r);
 
-    void set(OBJECT obj) {
-      if(!roots) {
-        throw std::runtime_error("invalid Root usage. Set object before roots");
-      }
+    /** Envelope the given Object. Must have roots already. */
+    void    set(OBJECT obj);
 
-      set(obj, roots);
-    }
+    /** Envelope the given Object, migrating to given Roots if it is new. */
+    void    set(OBJECT obj, Roots* r);
 
-    void set(Roots* r) {
-      set(object, roots);
-    }
 
-    Root& operator=(Root& other) {
-      set(other.object, other.roots);
-      return *this;
-    }
+  protected:  /* Instance vars */
+
+    /** Enveloped Object. */
+    OBJECT  object;
+
+
+  private:    /* Instance vars */
+
+    /** The Roots structure this Root belongs to. */
+    Roots*  roots;
   };
 
-  template <typename T>
-    class TypedRoot : public Root {
-    public:
-      T operator->() {
-        if(object) {
-          return (T)object;
-        } else {
-          return (T)Qnil;
-        }
-      }
 
-      TypedRoot() : Root() { }
-      TypedRoot(Roots* roots) : Root(roots) { }
-      TypedRoot(STATE) : Root(state) { }
-      TypedRoot(STATE, T obj) : Root(state, obj) { }
-      T get() { return (T)object; }
+  /**
+   *  TypedRoot is a Root that knows the type of its Object.
+   *
+   *  TODO: Use base type of object rather than pointer type
+   *        as ObjType and change usage accordingly? This
+   *        allows, among other things, using `as()` rather
+   *        than a direct C++ cast. --rue
+   */
+  template <typename ObjType>
+    class TypedRoot : public Root {
+    public:   /* Ctors */
+
+      /** Default construction gives an empty TypedRoot. */
+      explicit TypedRoot();
+
+      /** As Root::Root(STATE), but retains object's type. */
+      TypedRoot(STATE);
+
+      /** As Root::Root(STATE, OBJECT), but retains object's type. */
+      TypedRoot(STATE, ObjType obj);
+
+      /** As Root::Root(roots), but retains object's type. */
+      TypedRoot(Roots* roots);
+
+
+    public:   /* Operators */
+
+      /** Transparently delegate dereferencing to enveloped object. */
+      ObjType   operator->();
+
+
+    public:   /* Interface */
+
+      /** Return the enveloped object as the real ObjType. */
+      ObjType   get();
     };
+
+
+/* Roots inlines */
+
+  inline Roots::Roots():
+    LinkedList()
+  { }
+
+
+/* Root inlines */
+
+
+  inline Root::Root():
+    LinkedList::Node(), object(NULL), roots(NULL)
+  { }
+
+  inline Root::Root(Roots* roots):
+    LinkedList::Node(), object(NULL), roots(roots)
+  { }
+
+  inline Root::Root(Roots* roots, OBJECT obj):
+    LinkedList::Node(), object(obj), roots(roots)
+  {
+      roots->add(this);
+  }
+
+  inline Root::Root(const Root& other):
+    LinkedList::Node(), object(NULL), roots(NULL)
+  {
+    set(other.object, other.roots);
+  }
+
+  inline Root::~Root() {
+    if(roots && object) {
+      roots->remove(this);
+    }
+  }
+
+  inline Root& Root::operator=(Root& other) {
+    set(other.object, other.roots);
+    return *this;
+  }
+
+  inline OBJECT Root::get() {
+    if(object) {
+      return object;
+    } else {
+      return Qnil;
+    }
+  }
+
+  inline void Root::set(Roots* /* other_roots */) {
+    set(object, roots);
+  }
+
+  inline void Root::set(OBJECT obj) {
+    if(!roots) {
+      throw std::runtime_error("invalid Root usage. Cannot set object before roots");
+    }
+
+    set(obj, roots);
+  }
+
+
+/* TypedRoot inlines */
+
+  template<typename ObjType>
+    inline TypedRoot<ObjType>::TypedRoot():
+      Root()
+    { }
+
+  template<typename ObjType>
+    inline TypedRoot<ObjType>::TypedRoot(Roots* roots):
+      Root(roots)
+    { }
+
+  template<typename ObjType>
+    inline TypedRoot<ObjType>::TypedRoot(STATE):
+      Root(state)
+    { }
+
+  template<typename ObjType>
+    inline TypedRoot<ObjType>::TypedRoot(STATE, ObjType obj):
+      Root(state, obj)
+    { }
+
+  /** TODO: Use as<ObjType>() when using base type instead of pointer. --rue */
+  template<typename ObjType>
+    inline ObjType TypedRoot<ObjType>::operator->() {
+      if(object) {
+        return reinterpret_cast<ObjType>(object);
+      }
+      else {
+        return reinterpret_cast<ObjType>(Qnil);
+      }
+    }
+
+  /** TODO: Use as<ObjType>() when using base type instead of pointer. --rue */
+  template<typename ObjType>
+    inline ObjType TypedRoot<ObjType>::get() {
+      return reinterpret_cast<ObjType>(object);
+    }
+
 }
 
 #endif
