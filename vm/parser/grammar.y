@@ -30,7 +30,6 @@
 
 namespace rubinius {
   namespace parser {
-static NODE *syd_node_newnode(rb_parse_state*, enum node_type, OBJECT, OBJECT, OBJECT);
 
 #undef VALUE
 
@@ -2598,12 +2597,12 @@ lex_get_str(rb_parse_state *parse_state)
     return TRUE;
 }
 
-void syd_add_to_parse_tree(STATE, OBJECT ary, NODE * n, ID * locals);
+void syd_add_to_parse_tree(STATE, rb_parse_state*, OBJECT, NODE*, ID*);
 
-static OBJECT convert_to_sexp(STATE, NODE *node) {
+static OBJECT convert_to_sexp(STATE, rb_parse_state *parse_state, NODE *node) {
   Array* ary;
   ary = Array::create(state, 1);
-  syd_add_to_parse_tree(state, ary, node, NULL);
+  syd_add_to_parse_tree(state, parse_state, ary, node, NULL);
   return ary->get(state, 0);
 }
 
@@ -2639,7 +2638,7 @@ syd_compile_string(STATE, const char *f, bstring s, int line)
     n = yycompile(parse_state, (char*)f, line);
 
     if(parse_state->error == Qfalse) {
-        ret = convert_to_sexp(state, parse_state->top);
+        ret = convert_to_sexp(state, parse_state, parse_state->top);
     } else {
         ret = parse_state->error;
     }
@@ -2693,7 +2692,7 @@ syd_compile_file(STATE, const char *f, FILE *file, int start)
     n = yycompile(parse_state, (char*)f, start);
 
     if(parse_state->error == Qfalse) {
-        ret = convert_to_sexp(state, parse_state->top);
+        ret = convert_to_sexp(state, parse_state, parse_state->top);
     } else {
         ret = parse_state->error;
     }
@@ -4602,7 +4601,7 @@ yylex(void *yylval_v, void *vstate)
 }
 
 
-static NODE*
+NODE*
 syd_node_newnode(rb_parse_state *st, enum node_type type,
                  OBJECT a0, OBJECT a1, OBJECT a2)
 {

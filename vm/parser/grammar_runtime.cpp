@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "parser/grammar.hpp"
+#include "parser/grammar_runtime.hpp"
 #include "parser/grammar_internal.hpp"
 
 #include "builtin/array.hpp"
@@ -20,11 +21,13 @@ namespace rubinius {
  * these expected functions.
  */
 #define array_new(s, n)       (OBJECT)Array::create(s, n)
-#define array_push(a, v)      as<Array>(a)->append(state, v)
+#define array_size(a)         as<Array>(a)->size()
+#define array_push(s, a, v)   as<Array>(a)->append(s, v)
 #define array_append(s, a, v) as<Array>(a)->append(s, v)
 #define array_pop(s, a)       as<Array>(a)->pop(s)
 #define array_get(s, a, i)    as<Array>(a)->get(s, i)
 #define array_set(s, a, i, v) as<Array>(a)->set(s, i, v)
+#define array_entry(s, a, i)  as<Array>(a)->aref(s, Fixnum::from(i))
 #define array_get_total(a)    as<Array>(a)->total()
 
 #define tuple_new(s, n)       (OBJECT)Tuple::create(s, n)
@@ -32,6 +35,7 @@ namespace rubinius {
 
 #define string_new(s, c)         (OBJECT)String::create(s, c)
 #define string_newfrombstr(s, b) string_new(s, bdatae(b, ""))
+#define string_concat(s, d, o)   as<String>(d)->append(s, as<String>(o))
 
 #define float_from_string(s, d)  (OBJECT)String::create(s, d)->to_f(s)
 
@@ -42,8 +46,7 @@ namespace rubinius {
 #define N2I(n) (n)->to_native()
 
 #define SYMBOL(str)               state->symbol(str)
-#define SYM(str)                  SYMBOL(str)
-#define cstring_to_symbol(s, str) s->symbol(str)
+#define STR2SYM(str)              state->symbol(as<String>(str))
 
     static OBJECT float_from_bstring(STATE, bstring str) {
       return float_from_string(state, bdata(str));
@@ -169,37 +172,38 @@ namespace rubinius {
 
 #define VALUE OBJECT
 
-#define add_to_parse_tree(a,n,l) syd_add_to_parse_tree(state,a,n,l)
+#define add_to_parse_tree(a,n,l) syd_add_to_parse_tree(state,parse_state,a,n,l)
 #undef ID2SYM
 #define Q2SYM(v) quark_to_symbol(state, v)
 
     const char *op_to_name(ID id);
 
-#if 0
-    static const char* print_quark(quark quark) {
-      return quark_to_string(id_to_quark(quark));
+    static OBJECT wrap_into_node(STATE, const char * name, OBJECT val) {
+      OBJECT ary = array_new(state, val ? 2 : 1);
+      array_push(state, ary, SYMBOL(name));
+      if (val) array_push(state, ary, val);
+      return ary;
     }
-#endif
 
     static OBJECT quark_to_symbol(STATE, quark quark) {
       const char *op;
       op = op_to_name(quark);
       if(op) {
-        return cstring_to_symbol(state, op);
+        return SYMBOL(op);
       }
-      return cstring_to_symbol(state, quark_to_string(id_to_quark(quark)));
+      return SYMBOL(quark_to_string(id_to_quark(quark)));
     }
 
-    void syd_add_to_parse_tree(STATE, OBJECT ary, NODE* n, ID* locals) {
+    void syd_add_to_parse_tree(STATE, rb_parse_state* parse_state,
+                               OBJECT ary, NODE* n, ID* locals) {
       NODE * volatile node = n;
-      NODE * volatile contnode = NULL;
-      VALUE old_ary = Qnil;
       VALUE current;
       VALUE node_name;
 
-      /* This is a dirty hack. This indicates if we're currently processing
-         a real case statement, so when can act properly. */
-      static int in_case = 0;
+      static int masgn_level = 0;
+      static unsigned case_level = 0;
+      static unsigned when_level = 0;
+      static unsigned inside_case_args = 0;
 
       if (!node) return;
 
@@ -221,26 +225,21 @@ namespace rubinius {
       }
 
       current = array_new(state, 4);
-      array_push(ary, current);
-      array_push(current, node_name);
-
-    again_no_block:
+      array_push(state, ary, current);
+      array_push(state, current, node_name);
 
         switch (nd_type(node)) {
 
         case NODE_BLOCK:
-          if (contnode) {
-            add_to_parse_tree(current, node, locals);
-            break;
+          while (node) {
+            add_to_parse_tree(current, node->nd_head, locals);
+            node = node->nd_next;
           }
-
-          contnode = node->nd_next;
-
-          /* NOTE: this will break the moment there is a block w/in a block */
-          old_ary = ary;
-          ary = current;
-          node = node->nd_head;
-          goto again;
+          if (!masgn_level && array_size(current) == 2) {
+            array_pop(state, ary);
+            array_push(state, ary, array_pop(state, current));
+            return;
+          }
           break;
 
         case NODE_FBODY:
@@ -250,7 +249,7 @@ namespace rubinius {
 
         case NODE_COLON2:
           add_to_parse_tree(current, node->nd_head, locals);
-          array_push(current, Q2SYM(node->nd_mid));
+          array_push(state, current, Q2SYM(node->nd_mid));
           break;
 
         case NODE_MATCH2:
@@ -270,103 +269,68 @@ namespace rubinius {
           if (node->nd_body) {
             add_to_parse_tree(current, node->nd_body, locals);
           } else {
-            array_push(current, Qnil);
+            array_push(state, current, Qnil);
           }
           if (node->nd_else) {
             add_to_parse_tree(current, node->nd_else, locals);
           } else {
-            array_push(current, Qnil);
+            array_push(state, current, Qnil);
           }
           break;
 
       case NODE_CASE:
-        {
-          VALUE tmp, t2;
-          int ic = in_case;
-          in_case = 1;
+        case_level++;
+        if(node->nd_head) {
           add_to_parse_tree(current, node->nd_head, locals); /* expr */
-          node = node->nd_body;
-          tmp = array_new(state, 4);
-          array_push(current, tmp);
-          while (node) {
-            if (nd_type(node) == NODE_NEWLINE) {
-              node = node->nd_next;
-            }
-
-            if (nd_type(node) == NODE_WHEN) {                 /* when */
-              t2 = array_new(state, 3);
-              array_push(t2, SYMBOL(get_node_type_string((enum node_type)nd_type(node))));
-              array_push(tmp, t2);
-
-              add_to_parse_tree(t2, node->nd_head, locals); /* args */
-              in_case = 0;
-              if (node->nd_body) {
-                add_to_parse_tree(t2, node->nd_body, locals); /* body */
-              } else {
-                array_push(t2, Qnil);
-              }
-
-              in_case = 1;
-
-              node = node->nd_next;
-            } else {
-              add_to_parse_tree(current, node, locals);
-              break;                                          /* else */
-            }
-            if (! node) {
-              array_push(current, Qnil);                     /* no else */
-            }
-          }
-          in_case = ic;
-          break;
+        } else {
+          array_push(state, current, Qnil);
         }
-      case NODE_WHEN: {
-        VALUE tmp, t2;
-        if(in_case) {
-          in_case = 0;
-          add_to_parse_tree(current, node->nd_head, locals);
-          if(node->nd_body) {
-            add_to_parse_tree(current, node->nd_body, locals);
-          } else {
-            array_push(current, Qnil);
-          }
-          in_case = 1;
-          break;
-        }
-        array_set(state, current, 0, cstring_to_symbol(state, "many_if"));
-        tmp = array_new(state, 4);
-        array_push(current, tmp);
+        node = node->nd_body;
         while(node) {
-          if(nd_type(node) == NODE_WHEN) {
-            t2 = array_new(state, 4);
-            array_push(tmp, t2);
-            add_to_parse_tree(t2, node->nd_head, locals); /* args */
-            if (node->nd_body) {
-              add_to_parse_tree(t2, node->nd_body, locals); /* body */
-            } else {
-              array_push(t2, Qnil);
-            }
+          add_to_parse_tree(current, node, locals);
+          if (nd_type(node) == NODE_WHEN) {                 /* when */
             node = node->nd_next;
           } else {
-            add_to_parse_tree(current, node, locals);
-            break;
+            break;                                          /* else */
+          }
+          if (!node) {
+            array_push(state, current, Qnil);               /* no else */
           }
         }
-
-        if(!node) {
-          array_push(current, Qnil);
-        }
+        case_level--;
         break;
-      }
+
+      case NODE_WHEN:
+        when_level++;
+        /* when without case, ie, no expr in case */
+        if(!inside_case_args && case_level < when_level) {
+          if(when_level > 0) when_level--;
+          array_pop(state, ary); /* reset what current is pointing at */
+          node = NEW_CASE(0, node);
+          goto again;
+        }
+        inside_case_args++;
+        add_to_parse_tree(current, node->nd_head, locals); /* args */
+        inside_case_args--;
+
+        if(node->nd_body) {
+          add_to_parse_tree(current, node->nd_body, locals); /* body */
+        } else {
+          array_push(state, current, Qnil);
+        }
+
+        if(when_level > 0) when_level--;
+        break;
+
       case NODE_WHILE:
       case NODE_UNTIL:
         add_to_parse_tree(current,  node->nd_cond, locals);
         if(node->nd_body) {
           add_to_parse_tree(current,  node->nd_body, locals);
         } else {
-          array_push(current, Qnil);
+          array_push(state, current, Qnil);
         }
-        array_push(current, node->nd_3rd == 0 ? Qfalse : Qtrue);
+        array_push(state, current, node->nd_3rd == 0 ? Qfalse : Qtrue);
         break;
 
       case NODE_BLOCK_PASS:
@@ -377,6 +341,7 @@ namespace rubinius {
       case NODE_ITER:
       case NODE_FOR:
         add_to_parse_tree(current, node->nd_iter, locals);
+        masgn_level++;
         if (node->nd_var != (NODE *)1
             && node->nd_var != (NODE *)2
             && node->nd_var != NULL) {
@@ -384,68 +349,49 @@ namespace rubinius {
         } else {
           if (node->nd_var == NULL) {
             // e.g. proc {}
-            array_push(current, Qnil);
+            array_push(state, current, Qnil);
           } else {
             // e.g. proc {||}
-            array_push(current, I2N(0));
+            array_push(state, current, I2N(0));
           }
         }
+        masgn_level--;
         add_to_parse_tree(current, node->nd_body, locals);
         break;
 
       case NODE_BREAK:
       case NODE_NEXT:
+      case NODE_YIELD:
         if (node->nd_stts)
           add_to_parse_tree(current, node->nd_stts, locals);
         break;
-      case NODE_YIELD:
-        if (node->nd_stts) {
-          add_to_parse_tree(current, node->nd_stts, locals);
-        } else {
-          array_push(current, Qnil);
-        }
-        array_push(current, node->u3.value);
-        break;
 
       case NODE_RESCUE:
-          add_to_parse_tree(current, node->nd_1st, locals);
-          add_to_parse_tree(current, node->nd_2nd, locals);
-          add_to_parse_tree(current, node->nd_3rd, locals);
+        add_to_parse_tree(current, node->nd_1st, locals);
+        add_to_parse_tree(current, node->nd_2nd, locals);
+        add_to_parse_tree(current, node->nd_3rd, locals);
         break;
 
       /* rescue body:
        * begin stmt rescue exception => var; stmt; [rescue e2 => v2; s2;]* end
        * stmt rescue stmt
-       * a = b rescue c */
+       * a = b rescue c
+       */
 
       case NODE_RESBODY:
-          if(node->nd_3rd) {
-              add_to_parse_tree(current, node->nd_3rd, locals);
-          } else {
-              array_push(current, Qnil);
-          }
-          if(node->nd_2nd) {
-            add_to_parse_tree(current, node->nd_2nd, locals);
-          } else {
-              array_push(current, Qnil);
-          }
-         if(node->nd_1st) {
-             add_to_parse_tree(current, node->nd_1st, locals);
-         } else {
-             array_push(current, Qnil);
-         }
+        if(node->nd_3rd) {
+          add_to_parse_tree(current, node->nd_3rd, locals);
+        } else {
+          array_push(state, current, Qnil);
+        }
+        add_to_parse_tree(current, node->nd_2nd, locals);
+        add_to_parse_tree(current, node->nd_1st, locals);
         break;
 
       case NODE_ENSURE:
-        if(node->nd_head) {
-          add_to_parse_tree(current, node->nd_head, locals);
-        } else {
-          array_push(current, Qnil);
-        }
+        add_to_parse_tree(current, node->nd_head, locals);
         if (node->nd_ensr) {
           add_to_parse_tree(current, node->nd_ensr, locals);
-        } else {
-          array_push(current, Qnil);
         }
         break;
 
@@ -464,8 +410,9 @@ namespace rubinius {
         break;
 
       case NODE_RETURN:
-        if (node->nd_stts)
+        if (node->nd_stts) {
           add_to_parse_tree(current, node->nd_stts, locals);
+        }
         break;
 
       case NODE_ARGSCAT:
@@ -477,11 +424,13 @@ namespace rubinius {
       case NODE_CALL:
       case NODE_FCALL:
       case NODE_VCALL:
-        if (nd_type(node) != NODE_FCALL)
+        if (nd_type(node) != NODE_FCALL) {
           add_to_parse_tree(current, node->nd_recv, locals);
-        array_push(current, Q2SYM(node->nd_mid));
-        if (node->nd_args || nd_type(node) != NODE_FCALL)
+        }
+        array_push(state, current, Q2SYM(node->nd_mid));
+        if (node->nd_args || nd_type(node) != NODE_FCALL) {
           add_to_parse_tree(current, node->nd_args, locals);
+        }
         break;
 
       case NODE_SUPER:
@@ -503,70 +452,52 @@ namespace rubinius {
         {
           struct METHOD *data;
           Data_Get_Struct(node->nd_cval, struct METHOD, data);
-          array_push(current, Q2SYM(data->id));
+          array_push(state, current, Q2SYM(data->id));
           add_to_parse_tree(current, data->body, locals);
           break;
         }
-
-      case NODE_METHOD:
-        fprintf(stderr, "u1 = %p u2 = %p u3 = %p\n", node->nd_1st, node->nd_2nd, node->nd_3rd);
-        add_to_parse_tree(current, node->nd_3rd, locals);
-        break;
     */
 
-      case NODE_SCOPE:
-        {
-          VALUE tbl;
-          int i;
-          int sz;
-          // printf("=> scope %x, %d\n", node->nd_tbl, node->nd_tbl[0]);
-          if(node->nd_next) {
-            add_to_parse_tree(current, node->nd_next, node->nd_tbl);
-          } else {
-            array_push(current, Qnil);
-          }
+      case NODE_METHOD:
+        add_to_parse_tree(current, node->nd_3rd, locals);
+        break;
 
-          sz = node->nd_tbl[0];
-          tbl = array_new(state, sz + 3);
-          for(i = 0; i < sz; i++) {
-            //printf("Would have called quark_to_symbol(state, %d)", node->nd_tbl[i+3]);
-            array_push(tbl, Q2SYM(node->nd_tbl[i + 3]));
-          }
-          array_push(current, tbl);
-        }
+      case NODE_SCOPE:
+        add_to_parse_tree(current, node->nd_next, node->nd_tbl);
         break;
 
       case NODE_OP_ASGN1:
         add_to_parse_tree(current, node->nd_recv, locals);
+        // HACK: after parser update to >= 1.8.6
+        // add_to_parse_tree(current, node->nd_args->nd_2nd, locals);
+        add_to_parse_tree(current, node->nd_args->nd_next, locals);
+        array_pop(state, array_entry(state, current, -1));
         switch(node->nd_mid) {
           case 0:
-            array_push(current, SYMBOL("or"));
+            array_push(state, current, SYMBOL("||"));
             break;
           case 1:
-            array_push(current, SYMBOL("and"));
+            array_push(state, current, SYMBOL("&&"));
             break;
           default:
-            array_push(current, Q2SYM(node->nd_mid));
+            array_push(state, current, Q2SYM(node->nd_mid));
         }
-        //add_to_parse_tree(current, node->nd_args->nd_next, locals);
-        add_to_parse_tree(current, node->nd_args, locals);
+        add_to_parse_tree(current, node->nd_args->nd_head, locals);
         break;
 
       case NODE_OP_ASGN2:
         add_to_parse_tree(current, node->nd_recv, locals);
-        array_push(current, Q2SYM(node->nd_next->nd_vid));
+        array_push(state, current, Q2SYM(node->nd_next->nd_aid));
         switch(node->nd_next->nd_mid) {
           case 0:
-            array_push(current, SYMBOL("or"));
+            array_push(state, current, SYMBOL("||"));
             break;
           case 1:
-            array_push(current, SYMBOL("and"));
+            array_push(state, current, SYMBOL("&&"));
             break;
           default:
-            array_push(current, Q2SYM(node->nd_next->nd_mid));
+            array_push(state, current, Q2SYM(node->nd_next->nd_mid));
         }
-
-        array_push(current, Q2SYM(node->nd_next->nd_aid));
         add_to_parse_tree(current, node->nd_value, locals);
         break;
 
@@ -577,118 +508,113 @@ namespace rubinius {
         break;
 
       case NODE_MASGN:
+        masgn_level++;
         add_to_parse_tree(current, node->nd_head, locals);
         if (node->nd_args) {
           if(node->nd_args != (NODE *)-1) {
             add_to_parse_tree(current, node->nd_args, locals);
           } else {
-            array_push(current, Qtrue);
+            array_push(state, current, wrap_into_node(state, "splat", 0));
           }
-        } else {
-            array_push(current, Qnil);
         }
-        if(node->nd_value) {
-            add_to_parse_tree(current, node->nd_value, locals);
-        } else {
-            array_push(current, Qnil);
-        }
+        add_to_parse_tree(current, node->nd_value, locals);
+        masgn_level--;
         break;
 
       case NODE_LASGN:
-        array_push(current, Q2SYM(node->nd_vid));
-        add_to_parse_tree(current, node->nd_value, locals);
-        break;
       case NODE_IASGN:
       case NODE_DASGN:
-      case NODE_DASGN_CURR:
       case NODE_CVASGN:
       case NODE_CVDECL:
       case NODE_GASGN:
-        array_push(current, Q2SYM(node->nd_vid));
+        array_push(state, current, Q2SYM(node->nd_vid));
         add_to_parse_tree(current, node->nd_value, locals);
         break;
 
       case NODE_CDECL:
-        if(node->nd_vid == 0) {
-            array_push(current, Qnil);
+        if(node->nd_vid) {
+          array_push(state, current, Q2SYM(node->nd_vid));
         } else {
-            array_push(current, Q2SYM(node->nd_vid));
+          add_to_parse_tree(current, node->nd_else, locals);
         }
 
-        if(node->nd_value) {
+        add_to_parse_tree(current, node->nd_value, locals);
+        break;
+
+      case NODE_DASGN_CURR:
+        array_push(state, current, Q2SYM(node->nd_vid));
+        if (node->nd_value) {
           add_to_parse_tree(current, node->nd_value, locals);
-        } else{
-          array_push(current, Qnil);
-        }
-
-        if(node->nd_next) {
-          add_to_parse_tree(current, node->nd_next, locals);
+          if (!masgn_level && array_size(current) == 2) {
+            array_pop(state, ary);
+            return;
+          }
         } else {
-          array_push(current, Qnil);
+          if (!masgn_level) {
+            array_pop(state, ary);
+            return;
+          }
         }
+        break;
+
+      case NODE_VALIAS:           /* u1 u2 (alias $global $global2) */
+        // HACK: after parser update to >= 1.8.6
+        // array_push(state, current, Q2SYM(node->u1.id));
+        // array_push(state, current, Q2SYM(node->u2.id));
+        array_push(state, current, Q2SYM(node->u2.id));
+        array_push(state, current, Q2SYM(node->u1.id));
         break;
 
       case NODE_ALIAS:            /* u1 u2 (alias :blah :blah2) */
-      case NODE_VALIAS:           /* u1 u2 (alias $global $global2) */
-        array_push(current, Q2SYM(node->u1.id));
-        array_push(current, Q2SYM(node->u2.id));
+        // HACK: after parser update to >= 1.8.6
+        // add_to_parse_tree(current, node->nd_1st, locals);
+        // add_to_parse_tree(current, node->nd_2nd, locals);
+        array_push(state, current, wrap_into_node(state, "lit", Q2SYM(node->u2.id)));
+        array_push(state, current, wrap_into_node(state, "lit", Q2SYM(node->u1.id)));
+        break;
+
+      case NODE_UNDEF:            /* u2    (undef instvar) */
+        // HACK: after parser update to >= 1.8.6
+        // add_to_parse_tree(current, node->nd_value, locals);
+        array_push(state, current, wrap_into_node(state, "lit", Q2SYM(node->u2.id)));
         break;
 
       case NODE_COLON3:           /* u2    (::OUTER_CONST) */
-      case NODE_UNDEF:            /* u2    (undef instvar) */
-        array_push(current, Q2SYM(node->u2.id));
+        array_push(state, current, Q2SYM(node->u2.id));
         break;
 
       case NODE_HASH:
         {
           NODE *list;
-
-          /* Support for sydneys flag on a Hash which indicates that it was
-             create implicitly from using a hash style syntax in a method call
-             but without using {}'s */
-          if(node->u2.argc) {
-              array_set(state, current, 0, SYMBOL("ihash"));
-          }
-
           list = node->nd_head;
           while (list) {
-              add_to_parse_tree(current, list->nd_head, locals);
-              list = list->nd_next;
-              if (list == 0) {
-                  printf("odd number list for Hash");
-                  abort();
-              }
-              add_to_parse_tree(current, list->nd_head, locals);
-              list = list->nd_next;
+            add_to_parse_tree(current, list->nd_head, locals);
+            list = list->nd_next;
+            if (list == 0) {
+              printf("odd number list for Hash");
+              abort();
+            }
+            add_to_parse_tree(current, list->nd_head, locals);
+            list = list->nd_next;
           }
         }
         break;
 
       case NODE_ARRAY:
-          while (node) {
-            add_to_parse_tree(current, node->nd_head, locals);
-            node = node->nd_next;
-          }
+        while (node) {
+          add_to_parse_tree(current, node->nd_head, locals);
+          node = node->nd_next;
+        }
         break;
 
       case NODE_DSTR:
+      case NODE_DSYM:
       case NODE_DXSTR:
       case NODE_DREGX:
       case NODE_DREGX_ONCE:
         {
           NODE *list = node->nd_next;
-          //if (nd_type(node) == NODE_DREGX || nd_type(node) == NODE_DREGX_ONCE) {
-          //  break;
-          //}
-          /*
-          if(0 && node->u2.id) {
-              rb_ary_pop(current);
-              array_push(current, SYMBOL("xstr_custom"));
-              array_push(current, Q2SYM(node->u2.id));
-          }
-          */
-          /* array_push(current, I2N(node->nd_cnt)); */
-          array_push(current, string_newfrombstr(state, node->nd_str));
+          array_push(state, current, string_newfrombstr(state, node->nd_str));
           while (list) {
             if (list->nd_head) {
               switch (nd_type(list->nd_head)) {
@@ -710,7 +636,9 @@ namespace rubinius {
           switch(nd_type(node)) {
           case NODE_DREGX:
           case NODE_DREGX_ONCE:
-            array_push(current, I2N(node->nd_cflag));
+            if (node->nd_cflag) {
+              array_push(state, current, I2N(node->nd_cflag));
+            }
           }
         }
         break;
@@ -720,20 +648,24 @@ namespace rubinius {
         if (node->nd_defn) {
           if (nd_type(node) == NODE_DEFS)
               add_to_parse_tree(current, node->nd_recv, locals);
-          array_push(current, Q2SYM(node->nd_mid));
+          array_push(state, current, Q2SYM(node->nd_mid));
           add_to_parse_tree(current, node->nd_defn, locals);
         }
         break;
 
       case NODE_CLASS:
       case NODE_MODULE:
-        add_to_parse_tree(current, node->nd_cpath, locals);
-        // array_push(current, Q2SYM((ID)node->nd_cpath->nd_mid));
+        if (nd_type(node->nd_cpath) == NODE_COLON2 && !node->nd_cpath->nd_vid) {
+          array_push(state, current, Q2SYM((ID)node->nd_cpath->nd_mid));
+        } else {
+          add_to_parse_tree(current, node->nd_cpath, locals);
+        }
+
         if (nd_type(node) == NODE_CLASS) {
           if(node->nd_super) {
             add_to_parse_tree(current, node->nd_super, locals);
           } else {
-            array_push(current, Qnil);
+            array_push(state, current, Qnil);
           }
         }
         add_to_parse_tree(current, node->nd_body, locals);
@@ -744,144 +676,127 @@ namespace rubinius {
         add_to_parse_tree(current, node->nd_body, locals);
         break;
 
-      case NODE_ARGS:
-        if (locals && (node->nd_cnt || node->nd_opt || node->nd_rest != -1)) {
-          int i;
-          NODE *optnode;
-          VALUE tmp;
-          long arg_count;
+      case NODE_ARGS: {
+        NODE *optnode;
+        int i = 0, max_args = node->nd_cnt;
 
-          if(locals[0] < (size_t)node->nd_cnt) {
-              printf("Corrupted args detected (count of %ld, local size of %ld)", node->nd_cnt, (long int)locals[0]);
-              abort();
+        /* push regular argument names */
+        for (; i < max_args; i++) {
+          array_push(state, current, Q2SYM(locals[i + 3]));
+        }
+
+        /* look for optional arguments */
+        masgn_level++;
+        optnode = node->nd_opt;
+        while (optnode) {
+          array_push(state, current, Q2SYM(locals[i + 3]));
+          i++;
+          optnode = optnode->nd_next;
+        }
+
+        // HACK: after parser update to >= 1.8.6
+        /* look for vargs */
+#if 0 // RUBY_VERSION_CODE > 184
+        if (node->nd_rest) {
+          VALUE sym = rb_str_new2("*");
+          if (locals[i + 3]) {
+            rb_str_concat(sym, rb_str_new2(rb_id2name(locals[i + 3])));
           }
-          tmp = array_new(state, node->nd_cnt);
-          array_push(current, tmp);
-          //printf("locals: %x (%d / cnt:%d)\n", locals, locals[0], node->nd_cnt);
-          for (i = 0; i < node->nd_cnt; i++) {
-            /* regular arg names
-            printf("Pushing %d/%d %d (%s)\n", i, node->nd_cnt, locals[i + 3],
-                print_quark(locals[i + 3]));
-            */
-            array_set(state, tmp, i, Q2SYM(locals[i + 3]));
-          }
-
-          tmp = array_new(state, 4);
-          array_push(current, tmp);
-
-          optnode = node->nd_opt;
-          while (optnode) {
-            /* optional arg names */
-            array_push(tmp, Q2SYM(locals[i + 3]));
-            i++;
-            optnode = optnode->nd_next;
-          }
-
-          arg_count = node->nd_rest;
+          sym = rb_str_intern(sym);
+          rb_ary_push(current, sym);
+        }
+#else
+        {
+          long arg_count = (long)node->nd_rest;
           if (arg_count > 0) {
             /* *arg name */
-            tmp = array_new(state, 4);
-            /* Hop over the statics --rue */
-            array_push(tmp, Q2SYM(locals[arg_count + 2]));
-            array_push(tmp, I2N(arg_count));
-            //VALUE sym = rb_str_intern(rb_str_plus(rb_str_new2("*"),
-            //        rb_str_new2(rb_id2name(locals[node->nd_rest + 1]))));
-            array_push(current, tmp);
+            OBJECT sym = string_new(state, "*");
+            if (locals[i + 3]) {
+              string_concat(state, sym, string_new(state, quark_to_string(locals[i + 3])));
+            }
+            array_push(state, current, STR2SYM(sym));
+          } else if (arg_count == 0) {
+            /* nothing to do in this case, empty list */
           } else if (arg_count == -1) {
-            array_push(current, Qnil);
             /* nothing to do in this case, handled above */
           } else if (arg_count == -2) {
-            array_push(current, Qnil);
             /* nothing to do in this case, no name == no use */
-          } else if (arg_count == 0) {
-            /* This happens when you have: def blah(*);end.
-             * The compiler still needs to be able to tell this apart
-             * from a method with no arguments, so we're storing [true] here.
-             */
-            tmp = array_new(state, 1);
-            array_push(tmp, Qtrue);
-            array_push(current, tmp);
+            array_push(state, current, SYMBOL("*"));
           } else {
+            // HACK: replace with Exception::argument_error()
             printf("Unknown arg_count %ld encountered while processing args.\n", arg_count);
-            break;
-            // exit(1);
-          }
-
-          optnode = node->nd_opt;
-          /* block? */
-          if (optnode) {
-              add_to_parse_tree(current, node->nd_opt, locals);
-          } else {
-            array_push(current, Qnil);
           }
         }
-        break;
+#endif
+
+        optnode = node->nd_opt;
+        if (optnode) {
+          add_to_parse_tree(current, node->nd_opt, locals);
+        }
+        masgn_level--;
+      }  break;
 
       case NODE_LVAR:
-        array_push(current, Q2SYM(node->nd_vid));
-        array_push(current, I2N(0));
-        // array_push(current, I2N(node->nd_cnt));
-      break;
-
       case NODE_DVAR:
       case NODE_IVAR:
       case NODE_CVAR:
       case NODE_GVAR:
       case NODE_CONST:
       case NODE_ATTRSET:
-        array_push(current, Q2SYM(node->nd_vid));
+        array_push(state, current, Q2SYM(node->nd_vid));
         break;
 
       case NODE_FIXNUM:
-        array_push(current, I2N(node->nd_cnt));
+        array_push(state, current, I2N(node->nd_cnt));
         break;
 
       case NODE_NUMBER:
         array_set(state, current, 0, SYMBOL("lit"));
-        array_push(current, bignum_from_bstring_detect(state, node->nd_str));
-      bdestroy(node->nd_str);
+        array_push(state, current, bignum_from_bstring_detect(state, node->nd_str));
+        bdestroy(node->nd_str);
         break;
 
       case NODE_HEXNUM:
         array_set(state, current, 0, SYMBOL("lit"));
-        array_push(current, bignum_from_bstring(state, node->nd_str, 16));
+        array_push(state, current, bignum_from_bstring(state, node->nd_str, 16));
         bdestroy(node->nd_str);
         break;
 
       case NODE_BINNUM:
         array_set(state, current, 0, SYMBOL("lit"));
-        array_push(current, bignum_from_bstring(state, node->nd_str, 2));
+        array_push(state, current, bignum_from_bstring(state, node->nd_str, 2));
         bdestroy(node->nd_str);
         break;
 
       case NODE_OCTNUM:
         array_set(state, current, 0, SYMBOL("lit"));
-        array_push(current, bignum_from_bstring(state, node->nd_str, 8));
+        array_push(state, current, bignum_from_bstring(state, node->nd_str, 8));
         bdestroy(node->nd_str);
       break;
 
       case NODE_FLOAT:
         array_set(state, current, 0, SYMBOL("lit"));
-        array_push(current, float_from_bstring(state, node->nd_str));
+        array_push(state, current, float_from_bstring(state, node->nd_str));
         bdestroy(node->nd_str);
       break;
 
       case NODE_XSTR:             /* u1    (%x{ls}) */
       case NODE_STR:              /* u1 */
-        array_push(current, string_newfrombstr(state, node->nd_str));
+        array_push(state, current, string_newfrombstr(state, node->nd_str));
         bdestroy(node->nd_str);
         break;
 
       case NODE_REGEX:
       case NODE_MATCH:
-        array_push(current, string_newfrombstr(state, node->nd_str));
-        array_push(current, I2N(node->nd_cnt));
+        array_push(state, current, string_newfrombstr(state, node->nd_str));
+        array_push(state, current, I2N(node->nd_cnt));
         bdestroy(node->nd_str);
         break;
 
       case NODE_LIT:
-        array_push(current, Q2SYM((uintptr_t)node->nd_lit));
+        array_push(state, current, Q2SYM((uintptr_t)node->nd_lit));
         break;
+
       case NODE_NEWLINE:
         // newline nodes make Ryan deathly ill; ignore them completely
         array_pop(state, ary);
@@ -891,19 +806,20 @@ namespace rubinius {
         break;
 
       case NODE_NTH_REF:          /* u2 u3 ($1) - u3 is local_cnt('~') ignorable? */
-        array_push(current, I2N(node->nd_nth));
+        array_push(state, current, I2N(node->nd_nth));
         break;
 
       case NODE_BACK_REF:         /* u2 u3 ($& etc) */
         {
-        char c = node->nd_nth;
-        array_push(current, I2N(c));
+          char str[2];
+          str[0] = node->nd_nth;
+          str[1] = 0;
+          array_push(state, current, SYMBOL(str));
         }
         break;
 
       case NODE_BLOCK_ARG:        /* u1 u3 (def x(&b) */
-        array_push(current, Q2SYM(node->u1.id));
-        array_push(current, I2N(node->nd_cnt));
+        array_push(state, current, Q2SYM(node->u1.id));
         break;
 
       /* these nodes are empty and do not require extra work: */
@@ -927,52 +843,18 @@ namespace rubinius {
       case NODE_ATTRASGN:           /* literal.meth = y u1 u2 u3 */
         /* node id node */
         if (node->nd_1st == RNODE(1)) {
-          array_push(current, Qnil);
-          // array_push(current, rb_ary_new3(1, SYMBOL("self")));
-          // add_to_parse_tree(current, Qnil, locals);
+          add_to_parse_tree(current, NEW_SELF(), locals);
         } else {
           add_to_parse_tree(current, node->nd_1st, locals);
         }
-        array_push(current, Q2SYM(node->u2.id));
+        array_push(state, current, Q2SYM(node->u2.id));
         add_to_parse_tree(current, node->nd_3rd, locals);
         break;
 
-      case NODE_DSYM: {              /* :"#{foo}" u1 u2 u3 */
-        /*
-        printf("DSYM: %s", node->nd_str->str);
-        printf("DSYM: %s", get_node_type_string(nd_type(node->nd_head)));
-        */
-
-        add_to_parse_tree(current, node->nd_3rd, locals);
-
-        /* FIXME: Oh for the love of kittens and fuzzy stuff, please FIX ME!
-         *        This hacks around a problem where the first string section
-         *        of a dsym is chopped off because it is being stored in this
-         *        node! -rue */
-
-        /* First we generate our very own manual dstr node */
-        OBJECT a2   = array_pop(state, current);
-        int sz      = N2I(array_get_total(a2));
-        OBJECT hack = array_new(state, sz);
-
-        array_append(state, hack, SYMBOL("dstr"));
-        array_append(state, hack, string_newfrombstr(state, node->nd_str));
-        bdestroy(node->nd_str);
-
-        int i = 1;
-        while (i < sz) {
-          array_append(state, hack, array_get(state, a2, i++));
-        }
-
-        /* Then we cleverly replace the array element with it! */
-        array_append(state, current, hack);
-
-        /* End hack */
-        break;
-      }
       case NODE_EVSTR:
         add_to_parse_tree(current, node->nd_2nd, locals);
         break;
+
       case NODE_NEGATE:
         add_to_parse_tree(current, node->nd_head, locals);
         break;
@@ -981,12 +863,13 @@ namespace rubinius {
         /* Nothing to do here... we are in an iter block */
         break;
 
-    /*
+      /*
       case NODE_CFUNC:
-        array_push(current, INT2FIX(node->nd_cfnc));
-        array_push(current, INT2FIX(node->nd_argc));
+        array_push(state, current, I2N(node->nd_cfnc));
+        array_push(state, current, I2N(node->nd_argc));
         break;
-    */
+      */
+
       /* Nodes we found but have yet to decypher
          I think these are all runtime only... not positive but... */
       case NODE_MEMO:               /* enum.c zip */
@@ -1001,20 +884,11 @@ namespace rubinius {
         if (RNODE(node)->u1.node != NULL) printf("unhandled u1 value");
         if (RNODE(node)->u2.node != NULL) printf("unhandled u2 value");
         if (RNODE(node)->u3.node != NULL) printf("unhandled u3 value");
-        if (0) fprintf(stderr, "u1 = %p u2 = %p u3 = %p\n", node->nd_1st, node->nd_2nd, node->nd_3rd);
-        array_push(current, I2N(-99));
-        array_push(current, I2N(nd_type(node)));
+        if (0) fprintf(stderr, "u1 = %p u2 = %p u3 = %p\n", node->nd_1st,
+                       node->nd_2nd, node->nd_3rd);
+        array_push(state, current, I2N(-99));
+        array_push(state, current, I2N(nd_type(node)));
         break;
-      }
-
-     /*  finish: */
-      if (contnode) {
-          node = contnode;
-          contnode = NULL;
-          current = ary;
-          ary = old_ary;
-          old_ary = Qnil;
-          goto again_no_block;
       }
     }
 
