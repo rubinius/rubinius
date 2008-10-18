@@ -281,7 +281,7 @@ extern "C" {
 
   typedef void (*SubtendGenericFunction)(void);
 
-  /** Backend for defining methods after normalization. @see rb_define_*_method. */
+  /** Backend for defining methods after normalization. @see rb_define_*_method. @internal. */
   void    rbx_subtend_hidden_define_method(const char* file,
                                            VALUE target,
                                            const char* name,
@@ -289,19 +289,22 @@ extern "C" {
                                            int arity,
                                            RbxMethodKind kind);
 
-  /** Retrieve a Handle to a globally available object. @NON_API */
+  /** Retrieve a Handle to an error class. @internal. */
+  VALUE rbx_subtend_hidden_error(RbxSubtendHiddenError type);
+
+  /** Retrieve a Handle to a globally available object. @internal. */
   VALUE   rbx_subtend_hidden_global(RbxSubtendHiddenGlobal type);
 
-  /** Symbol Handle for an ID */
+  /** Symbol Handle for an ID. @internal. */
   VALUE   rbx_subtend_hidden_id2sym(ID id);
 
-  /** False if expression evaluates to nil, true otherwise. */
+  /** False if expression evaluates to nil, true otherwise. @internal. */
   int     rbx_subtend_hidden_nil_p(VALUE expression_result);
 
-  /** False if expression evaluates to Qnil or Qfalse, true otherwise. */
+  /** False if expression evaluates to Qnil or Qfalse, true otherwise. @internal. */
   int     rbx_subtend_hidden_rtest(VALUE expression_result);
 
-  /** ID from a Symbol Handle. */
+  /** ID from a Symbol Handle. @internal. */
   ID      rbx_subtend_hidden_sym2id(VALUE symbol_handle);
 
 
@@ -392,6 +395,9 @@ extern "C" {
 
   /** Returns a _copy_ of the C string contained in given String. */
   char*   rb_str_get_char_ptr(VALUE str_handle);
+
+  /** Create a String using the designated length of given C string. */
+  VALUE   rb_str_new(const char* string, size_t length);
 
   /** Create a String from a C string. */
   VALUE   rb_str_new2(const char* string);
