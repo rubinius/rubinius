@@ -61,7 +61,7 @@ namespace :extension do
                  "lib/ext/digest/#{name}/{#{name},#{name}init}.c",
                  "lib/ext/digest/#{name}/#{name}.h",
                  "lib/ext/digest/defs.h"] do
-        compile_extension "lib/ext/digest/#{name}", nil
+        compile_extension "lib/ext/digest/#{name}"
       end
     end
 
