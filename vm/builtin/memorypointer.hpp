@@ -20,6 +20,9 @@ namespace rubinius {
     // Ruby.primitive :memorypointer_address
     Integer* get_address(STATE);
 
+    // Ruby.primitive :memorypointer_set_address
+    Integer* set_address(STATE, Integer* ptr);
+
     // Ruby.primitive :memorypointer_set_autorelease
     OBJECT set_autorelease(STATE, OBJECT val);
 
