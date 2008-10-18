@@ -158,6 +158,11 @@ class ExtensionCompiler
       puts cmd if $VERBOSE
       system cmd
 
+      unless $?.success?
+        puts "\n\n ** Compiling failed. Aborting.\n\n"
+        exit 1
+      end
+
       @objects << out
     end
   end

@@ -18,11 +18,12 @@ task :extensions => %w[
 #
 # Ask the VM to build an extension from source.
 #
-def compile_extension(path, flags = nil, extra_flags = nil)
-  flags ||= "-d -p -C,-ggdb3 -C,-O0 -I#{Dir.pwd}/vm/subtend"
-  command = "./bin/rbx compile #{flags} #{extra_flags} #{path}"
+def compile_extension(path, flags = "-d -p -I#{Dir.pwd}/vm/subtend")
+  cflags = Object.const_get(:FLAGS).reject {|f| f == "-Wno-deprecated" }
 
-  puts "Executing `#{command}`" if $verbose
+  cflags.each {|flag| flags << " -C,#{flag}" }
+
+  command = "./bin/rbx compile #{flags} #{path}"
 
   sh command
 end
@@ -34,8 +35,6 @@ namespace :extension do
     Dir["lib/ext/**/*.{o,#{$dlext}}"].each do |f|
       rm_f f, :verbose => $verbose
     end
-
-#    FileList["lib/ext/**/*.o"].each {|f| rm f, :verbose => $verbose }
   end
 
   desc "Build the readline extension"

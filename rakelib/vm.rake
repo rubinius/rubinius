@@ -109,17 +109,17 @@ if LLVM_STYLE == "Release"
   OPTIONS[LLVM_A] << " --enable-optimized"
 end
 
-INCLUDES    = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
+INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
 INCLUDES.map! { |f| "-I#{f}" }
-FLAGS       = %w[
-  -pipe
-  -Wall -Werror -Wno-deprecated
-  -ggdb -gdwarf-2
-  -fno-strict-aliasing
-]
 
-unless ENV["DEV"]
-  FLAGS << "-O2"
+# Build options
+FLAGS         = %w[ -pipe -Wall -Wextra -Wno-deprecated ]
+
+# Debugging support &c.
+if ENV["DEV"]
+  FLAGS.concat %w[ -Werror -ggdb3 -O0 -fno-inline]
+else
+  FLAGS.concat %w[ -O2 ]
 end
 
 CC          = ENV['CC'] || "gcc"
