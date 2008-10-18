@@ -1,5 +1,5 @@
-#ifndef RBS_AR_HPP
-#define RBS_AR_HPP
+#ifndef RBX_AR_HPP
+#define RBX_AR_HPP
 
 #include <fcntl.h>
 #include <cstring>
@@ -11,19 +11,36 @@
 #include <cstdlib>
 
 namespace rubinius {
+
+  /*
+   * TODO:  Name parameters to each_file(). --rue
+   * TODO:  Add comments for methods.
+   */
   class Ar {
-  public:
-    const char* path;
-    int fd;
+  public:   /* Ctors */
 
     Ar(const char* path);
     virtual ~Ar();
-    bool validate();
-    bool open();
-    char* file_name(char* name, long* size);
-    bool process();
-    virtual bool each_file(const char* path, uint8_t*, long) { return true; }
+
+
+  public:   /* Interface */
+
+    virtual bool  each_file(const char* /* path */, uint8_t*, long);
+    char*         file_name(char* name, long* size);
+    bool          open();
+    bool          process();
+    bool          validate();
+
+  public:   /* Instance vars */
+
+    const char* path;
+    int fd;
   };
+
+
+  inline bool Ar::each_file(const char* /* path */, uint8_t*, long) {
+    return true;
+  }
 }
 
 #endif
