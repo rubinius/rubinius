@@ -21,11 +21,40 @@ namespace rubinius {
 
   public:   /* Bookkeeping */
 
+    /** No fields since we should never be instantiated. */
     static const std::size_t fields = 0;
+
+    /** No particular type needed. TODO: Add VMType? --rue */
     static const object_type type = ObjectType;
 
 
   public:   /* Primitives */
+
+    /**
+     *  When running under GDB, stop here.
+     *
+     *  NOT IMPLEMENTED.
+     *
+     *  This ONLY works when the program is being run under GDB.
+     *
+     *  Using some rather nasty tricks, this primitive will cause
+     *  the program to stop inside this method and return control
+     *  to GDB for user input. The user can then return from this
+     *  method and continue debugging from the call point.
+     *
+     *  TODO: Actually attach GDB to the process at the time? --rue
+     */
+    // Ruby.primitive :yield_gdb
+    static Object* yield_gdb(STATE, Object* obj);
+
+    /**
+     *  Replace process with given program and args (exec()).
+     */
+    // Ruby.primitive :vm_exec
+    static Object*  vm_exec(STATE, String* path, Array* args);
+
+    // Ruby.primitive :vm_exit
+    static Object* vm_exit(STATE, FIXNUM code);
 
     /**
      *  System fork()
@@ -34,10 +63,72 @@ namespace rubinius {
     static Fixnum*  vm_fork(STATE);
 
     /**
-     *  Replace process with given program and args (exec()).
+     *  Force garbage collection as soon as possible.
+     *
+     *  The tenure flag is NOT USED currently, but its
+     *  intention is to indicate that all young objects
+     *  should be tenured now.
      */
-    // Ruby.primitive :vm_exec
-    static Object*  vm_exec(STATE, String* path, Array* args);
+    // Ruby.primitive :vm_gc_start
+    static Object* vm_gc_start(STATE, OBJECT tenure);
+
+    /**
+     *  Retrieve a value from VM configuration.
+     *
+     *  The config is essentially a hierarchical set of
+     *  values, indexed by strings in the form of "a.b.c",
+     *  for example "rbx.ffi.some_fictional_item".
+     *
+     *  @see  vm_get_config_section().
+     */
+    // Ruby.primitive :vm_get_config_item
+    static Object* vm_get_config_item(STATE, String* var);
+
+    /**
+     *  Retrieve all values from a VM config section.
+     *
+     *  For a section such as "rbx.ffi", an Array in the form
+     *  of [[key1, val1], ...] is returned.
+     *
+     *  @see  vm_get_config_item().
+     */
+    // Ruby.primitive :vm_get_config_section
+    static Object* vm_get_config_section(STATE, String* section);
+
+    /**
+     *  Clears caches for any methods with given name.
+     *
+     *  Clears both the global cache and the SendSite caches.
+     *  Typically used when e.g. a method is added to a Module's
+     *  MethodTable in order to ensure that the correct method
+     *  will be picked up from calls.
+     */
+    // Ruby.primitive :vm_reset_method_cache
+    static Object* vm_reset_method_cache(STATE, SYMBOL name);
+
+    /**
+     *  Writes backtrace to standard output.
+     */
+    // Ruby.primitive :vm_show_backtrace
+    static Object* vm_show_backtrace(STATE, MethodContext* ctx);
+
+    /**
+     *  Starts the profiler.
+     */
+    // Ruby.primitive :vm_start_profiler
+    static Object* vm_start_profiler(STATE);
+
+    /**
+     *  Stops the profiler.
+     */
+    // Ruby.primitive :vm_stop_profiler
+    static Object* vm_stop_profiler(STATE, String* path);
+
+    /**
+     *  Writes String to standard error stream.
+     */
+    // Ruby.primitive :vm_write_error
+    static Object* vm_write_error(STATE, String* str);
 
 
   public:   /* Type info */
@@ -47,6 +138,15 @@ namespace rubinius {
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) {}
       virtual ~Info() {}
     };
+
+
+  private:  /* Disallowed operations */
+
+    System();
+    ~System();
+
+    System(const System& other);
+    System& operator=(System& other);
 
   };
 

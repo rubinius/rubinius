@@ -54,9 +54,11 @@ namespace rubinius {
     return other;
   }
 
-  OBJECT Object::untaint() {
-    if(reference_p()) {
-      this->IsTainted = FALSE;
+  // HACK: remove this when performance is better and compiled_file.rb
+  // unmarshal_data method works.
+  OBJECT Object::compiledfile_load(STATE, String* path, OBJECT version) {
+    if(!state->probe->nil_p()) {
+      state->probe->load_runtime(state, std::string(path->c_str()));
     }
 
     std::ifstream stream(path->c_str());
@@ -66,18 +68,15 @@ namespace rubinius {
       Exception::io_error(state, msg.str().c_str());
     }
 
-  OBJECT Object::frozen_p() {
-    if(reference_p() && this->IsFrozen) {
-      return Qtrue;
-    } else {
-      return Qfalse;
+    CompiledFile* cf = CompiledFile::load(stream);
+    if(cf->magic != "!RBIX") {
+      std::ostringstream msg;
+      msg << "Invalid file: " << path->c_str();
+      Exception::io_error(state, msg.str().c_str());
     }
 
-      if(mod->nil_p()) {
-        Exception::assertion_error(state, "Object::class_object() failed to find a class");
-      }
-      return as<Class>(mod);
-    }
+    return cf->body(state);
+  }
 
   void Object::copy_flags(STATE, OBJECT source) {
     this->obj_type        = source->obj_type;

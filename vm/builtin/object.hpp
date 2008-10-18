@@ -101,7 +101,7 @@ namespace rubinius {
 
     /**
      *  Initialize the object to store bytes.
-     * 
+     *
      *  Sets flag and overwrites body with NULLs.
      */
     void        init_bytes();
@@ -330,8 +330,6 @@ namespace rubinius {
     // Ruby.primitive :object_untaint
     OBJECT    untaint();
 
-    // Ruby.primitive :compiledfile_load
-    static OBJECT compiledfile_load(STATE, String* path, OBJECT version);
 
   public:   /* accessors */
 
