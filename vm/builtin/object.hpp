@@ -5,7 +5,6 @@
 
 #include "vm.hpp"
 #include "vm/oop.hpp"
-#include "vm/prelude.hpp"
 #include "vm/type_info.hpp"
 
 #include "executor.hpp"

@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "vm/object_utils.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/list.hpp"
 #include "builtin/symbol.hpp"

@@ -1,6 +1,7 @@
 #include "builtin/exception.hpp"
 #include "builtin/list.hpp"
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 
 #include <cxxtest/TestSuite.h>

@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 #include "primitives.hpp"
 

@@ -1,7 +1,6 @@
 #ifndef RBX_MARKSWEEP_H
 #define RBX_MARKSWEEP_H
 
-#include "object.hpp"
 #include "gc.hpp"
 #include "gc_root.hpp"
 #include "object_position.hpp"
@@ -12,7 +11,10 @@
 
 namespace rubinius {
 
+  /* Forwards */
+  class Object;
   class ObjectMemory;
+
 
   class MarkSweepGC : public GarbageCollector {
   public:

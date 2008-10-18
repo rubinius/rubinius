@@ -1,7 +1,7 @@
 #include "prelude.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "ffi.hpp"
+#include "ffi_util.hpp"
 
 #include <cxxtest/TestSuite.h>
 

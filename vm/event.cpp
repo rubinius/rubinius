@@ -4,19 +4,6 @@
 #include <sstream>
 #include <vector>
 
-#include "prelude.hpp"
-#include "object.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
-
-#include "builtin/tuple.hpp"
-#include "builtin/integer.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/io.hpp"
-#include "builtin/thread.hpp"
-
-#include "event.hpp"
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>

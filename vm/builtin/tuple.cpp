@@ -1,5 +1,6 @@
 #include "builtin/tuple.hpp"
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/compactlookuptable.hpp"

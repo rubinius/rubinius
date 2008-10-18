@@ -10,19 +10,13 @@
 #include "builtin/array.hpp"
 #include "builtin/selector.hpp"
 #include "builtin/task.hpp"
-#include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
 #include "objectmemory.hpp"
-#include "global_cache.hpp"
-#include "config.hpp"
-#include "compiled_file.hpp"
 #include "message.hpp"
 
+#include "vm/object_utils.hpp"
+
 #include <iostream>
-#include <fstream>
-#include <cstdarg>
-#include <cstring>
-#include <sstream>
 
 namespace rubinius {
 

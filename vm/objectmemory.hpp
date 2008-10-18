@@ -1,14 +1,16 @@
 #ifndef RBX_OBJECTMEMORY_H
 #define RBX_OBJECTMEMORY_H
 
-#include "object.hpp"
 #include "gc_marksweep.hpp"
 #include "gc_baker.hpp"
+#include "prelude.hpp"
 #include "type_info.hpp"
 
 #include "object_position.hpp"
 
 namespace rubinius {
+
+  class Object;
 
   /* ObjectMemory is the primary API that the rest of the VM uses to interact
    * with actions such as allocating objects, storing data in objects, and

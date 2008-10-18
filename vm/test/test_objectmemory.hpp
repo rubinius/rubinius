@@ -1,7 +1,8 @@
 #include <iostream>
 
 #include "vm/gc.hpp"
-#include "vm/object.hpp"
+#include "vm/gc_root.hpp"
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 
 #include "builtin/array.hpp"

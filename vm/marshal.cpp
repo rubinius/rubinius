@@ -1,5 +1,10 @@
+#include <cctype>
+#include <cstring>
+
 #include "objectmemory.hpp"
 #include "marshal.hpp"
+
+#include "vm/object_utils.hpp"
 
 #include "builtin/sendsite.hpp"
 #include "builtin/array.hpp"
@@ -11,8 +16,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
-#include <cctype>
-#include <cstring>
 
 namespace rubinius {
 

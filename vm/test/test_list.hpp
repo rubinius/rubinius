@@ -1,5 +1,6 @@
-#include "builtin/list.hpp"
 #include "vm.hpp"
+#include "builtin/list.hpp"
+#include "builtin/fixnum.hpp"
 #include "objectmemory.hpp"
 
 #include <cxxtest/TestSuite.h>

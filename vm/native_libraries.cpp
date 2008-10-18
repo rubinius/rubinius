@@ -7,7 +7,7 @@
 #include "vm.hpp"
 #include "native_libraries.hpp"
 
-#include "vm/object.hpp"
+#include "vm/object_utils.hpp"
 
 
 namespace rubinius {

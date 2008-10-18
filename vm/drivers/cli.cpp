@@ -4,9 +4,9 @@
 #include <sys/stat.h>
 
 #include "vm/environment.hpp"
-#include "vm/object.hpp"
 #include "vm/oop.hpp"
 #include "vm/type_info.hpp"
+#include "vm/exception.hpp"
 
 #include "builtin/task.hpp"
 

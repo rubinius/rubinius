@@ -9,6 +9,7 @@
 #include "builtin/tuple.hpp"
 
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 
 #define OPTION_IGNORECASE ONIG_OPTION_IGNORECASE

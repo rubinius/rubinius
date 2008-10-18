@@ -1,4 +1,5 @@
 #include "compiled_file.hpp"
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 #include "builtin/task.hpp"
 #include "builtin/class.hpp"

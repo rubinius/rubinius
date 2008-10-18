@@ -9,6 +9,8 @@
 #include "compiled_file.hpp"
 #include "marshal.hpp"
 #include "objectmemory.hpp"
+#include "object_utils.hpp"
+
 #include "builtin/task.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/compiledmethod.hpp"

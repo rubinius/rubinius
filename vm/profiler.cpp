@@ -1,6 +1,7 @@
 #include "vm/profiler.hpp"
+
+#include "vm/object_utils.hpp"
 #include "vm/vm.hpp"
-#include "vm/object.hpp"
 
 #include "builtin/symbol.hpp"
 

@@ -1,4 +1,6 @@
+#include "vm/object_utils.hpp"
 #include "prelude.hpp"
+
 #include "builtin/access_variable.hpp"
 #include "builtin/class.hpp"
 #include "builtin/task.hpp"

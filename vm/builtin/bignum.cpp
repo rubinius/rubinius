@@ -1,7 +1,11 @@
 /* The implementation of Bignum, providing infinite size integers */
 
-#include "prelude.hpp"
-#include "object.hpp"
+#include <ctype.h>
+#include <math.h>
+#include <cmath>
+#include <iostream>
+
+#include "vm/object_utils.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"
@@ -10,11 +14,6 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
-
-#include <ctype.h>
-#include <math.h>
-#include <cmath>
-#include <iostream>
 
 #define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \

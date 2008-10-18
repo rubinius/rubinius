@@ -39,7 +39,7 @@ namespace rubinius {
   }
 
   /* Append +obj+ to the current List. */
-  void List::append(STATE, OBJECT obj) {
+  void List::append(STATE, Object* obj) {
     ListNode* node = (ListNode*)state->new_object(G(list_node));
     node->object(state, obj);
     ListNode* cur_last = last_;

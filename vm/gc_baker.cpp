@@ -3,6 +3,8 @@
 
 #include "gc_baker.hpp"
 #include "objectmemory.hpp"
+#include "vm/object_utils.hpp"
+
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
 

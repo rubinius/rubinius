@@ -1,4 +1,9 @@
 #include "llvm.hpp"
+
+#include "message.hpp"
+
+#include "vm/object_utils.hpp"
+
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/iseq.hpp"
@@ -6,8 +11,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
-
-#include "message.hpp"
 
 #include <llvm/Module.h>
 #include <llvm/DerivedTypes.h>

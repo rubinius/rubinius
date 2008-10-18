@@ -4,7 +4,12 @@
 #include <iostream>
 #include <sstream>
 
+#include "prelude.hpp"
+
 namespace rubinius {
+
+  class Object;
+
   class SendSite;
   class InstructionSequence;
   class CompiledMethod;

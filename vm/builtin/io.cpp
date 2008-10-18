@@ -10,6 +10,7 @@
 
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "vm/object_utils.hpp"
 
 #include <fcntl.h>
 #include <iostream>

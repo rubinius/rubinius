@@ -18,7 +18,7 @@
 
 #include "vm/global_cache.hpp"
 #include "vm/message.hpp"
-#include "vm/object.hpp"
+#include "vm/object_utils.hpp"
 #include "vm/objectmemory.hpp"
 #include "vm/quantum_stack_leap.hpp"
 #include "vm/vm.hpp"

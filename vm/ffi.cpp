@@ -7,8 +7,6 @@
 #include <sys/stat.h>
 #include <dlfcn.h>
 
-#include "prelude.hpp"
-#include "object.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
@@ -21,7 +19,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
-#include "ffi.hpp"
+#include "ffi_util.hpp"
 #include "message.hpp"
 
 namespace rubinius {

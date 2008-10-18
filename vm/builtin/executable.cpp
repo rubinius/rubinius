@@ -1,5 +1,5 @@
-#include "prelude.hpp"
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"

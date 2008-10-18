@@ -17,7 +17,6 @@
  */
 
 #include <stdint.h>
-#include <vector>
 
 #include "optimize.hpp"
 #include "flags.hpp"
@@ -27,27 +26,11 @@ namespace rubinius {
   /** Platform-dependent integer type large enough for pointers too. */
   typedef intptr_t native_int;
 
-  /* Forward declaration. */
-  class VM;
-
-  class Object;
-  typedef Object* OBJECT;
-  typedef std::vector<OBJECT> ObjectArray;
-
-  class Symbol;
-  typedef Symbol* SYMBOL;
-
-  class Fixnum;
-  typedef Fixnum* FIXNUM;
-
-  class Integer;
-  typedef Integer* INTEGER;
-
-#define FALSE false
-#define TRUE true
-#define STATE rubinius::VM *state
-#define G(whatever) state->globals.whatever.get()
-#define GO(whatever) state->globals.whatever
+  #define FALSE false
+  #define TRUE true
+  #define STATE rubinius::VM *state
+  #define G(whatever) state->globals.whatever.get()
+  #define GO(whatever) state->globals.whatever
 
 };
 

@@ -3,6 +3,7 @@
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 
 #include <cxxtest/TestSuite.h>

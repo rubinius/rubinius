@@ -7,6 +7,7 @@
 #include "builtin/string.hpp"
 
 #include "primitives.hpp"
+#include "vm/object_utils.hpp"
 
 #include <iostream>
 

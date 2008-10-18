@@ -1,6 +1,9 @@
-#include "vmmethod.hpp"
 #include "message.hpp"
 #include "objectmemory.hpp"
+#include "prelude.hpp"
+#include "vmmethod.hpp"
+
+#include "vm/object_utils.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/compiledmethod.hpp"

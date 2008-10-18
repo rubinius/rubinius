@@ -4,13 +4,16 @@
 #include "environment.hpp"
 #include "config.hpp" // HACK rename to config_parser.hpp
 #include "compiled_file.hpp"
+
+#include "vm/exception.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/task.hpp"
-#include "builtin/exception.hpp"
 #include "builtin/taskprobe.hpp"
 
 #include <iostream>

@@ -1,15 +1,36 @@
 #include <vector>
 #include <cerrno>
 
+#include <iostream>
+#include <fstream>
+#include <cstdarg>
+#include <cstring>
+#include <sstream>
+
 #include <unistd.h>
 
-#include "vm/object.hpp"
+#include "vm/object_utils.hpp"
 #include "vm/vm.hpp"
+
+#include "compiled_file.hpp"
+#include "objectmemory.hpp"
+#include "global_cache.hpp"
+#include "config.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
+#include "builtin/bignum.hpp"
+#include "builtin/class.hpp"
+#include "builtin/compactlookuptable.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/selector.hpp"
+#include "builtin/task.hpp"
+#include "builtin/taskprobe.hpp"
+#include "builtin/float.hpp"
 
 #include "builtin/system.hpp"
 

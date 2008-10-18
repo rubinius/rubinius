@@ -3,6 +3,9 @@
 #include "event.hpp"
 #include "global_cache.hpp"
 #include "llvm.hpp"
+
+#include "vm/object_utils.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"

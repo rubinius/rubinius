@@ -1,7 +1,7 @@
 #ifndef RBX_VM_GLOBAL_CACHE_HPP
 #define RBX_VM_GLOBAL_CACHE_HPP
 
-#include "vm/object.hpp"
+#include "vm/object_utils.hpp"
 
 #include "builtin/compiledmethod.hpp"
 #include "builtin/methodvisibility.hpp"

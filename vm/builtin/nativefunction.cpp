@@ -8,7 +8,7 @@
 #include <dlfcn.h>
 
 #include "prelude.hpp"
-#include "object.hpp"
+#include "object_utils.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
@@ -23,7 +23,7 @@
 #include "builtin/task.hpp"
 #include "builtin/contexts.hpp"
 
-#include "ffi.hpp"
+#include "ffi_util.hpp"
 #include "message.hpp"
 
 #include "strlcpy.hpp"

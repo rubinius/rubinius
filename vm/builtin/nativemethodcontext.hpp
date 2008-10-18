@@ -7,8 +7,10 @@
 
 /* Project */
 #include "quantum_stack_leap.hpp"
-
 #include "type_info.hpp"
+
+#include "vm/object_utils.hpp"
+
 #include "builtin/contexts.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"

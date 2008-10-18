@@ -1,4 +1,3 @@
-#include "objectmemory.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
@@ -6,6 +5,11 @@
 #include "builtin/tuple.hpp"
 
 #include "context_cache.hpp"
+#include "gc_object_mark.hpp"
+#include "objectmemory.hpp"
+
+#include "vm/object_utils.hpp"
+
 #include "builtin/contexts.hpp"
 #include "builtin/nativemethodcontext.hpp"
 

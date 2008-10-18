@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/lookuptable.hpp"
@@ -8,10 +10,10 @@
 #include "builtin/string.hpp"
 
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "exception.hpp"
 #include "type_info.hpp"
 
-#include <sstream>
 
 namespace rubinius {
   void Exception::init(STATE) {

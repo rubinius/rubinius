@@ -14,6 +14,7 @@
 #include "llvm.hpp"
 #include "objectmemory.hpp"
 #include "message.hpp"
+#include "vm/object_utils.hpp"
 
 namespace rubinius {
 

@@ -1,4 +1,6 @@
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"

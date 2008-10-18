@@ -1,7 +1,9 @@
 #ifndef RBX_VM_GC_HPP
 #define RBX_VM_GC_HPP
 
-#include "vm/prelude.hpp"
+#include "builtin/object.hpp"
+#include "vm/gc_object_mark.hpp"
+
 
 namespace rubinius {
 
@@ -20,15 +22,6 @@ namespace rubinius {
     void delete_object(OBJECT obj);
   };
 
-  class ObjectMark {
-  public:
-    GarbageCollector* gc;
-
-    ObjectMark(GarbageCollector* gc);
-    OBJECT call(OBJECT);
-    void set(OBJECT target, OBJECT* pos, OBJECT val);
-    void just_set(OBJECT target, OBJECT val);
-  };
 }
 
 #endif

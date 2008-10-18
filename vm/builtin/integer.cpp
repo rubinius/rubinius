@@ -1,4 +1,4 @@
-#include "vm/object.hpp"
+#include "vm/object_utils.hpp"
 
 #include "builtin/integer.hpp"
 #include "builtin/fixnum.hpp"

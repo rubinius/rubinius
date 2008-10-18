@@ -1,5 +1,5 @@
 #include "vm/vm.hpp"
-#include "vm/object.hpp"
+#include "vm/object_utils.hpp"
 
 #include "builtin/methodvisibility.hpp"
 #include "builtin/symbol.hpp"

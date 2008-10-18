@@ -6,9 +6,9 @@
 #include <sys/stat.h>
 #include <dlfcn.h>
 
-#include "prelude.hpp"
-#include "object.hpp"
 #include "vm.hpp"
+#include "oop.hpp"
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 
 #include "builtin/array.hpp"
@@ -20,7 +20,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
-#include "ffi.hpp"
+#include "ffi_util.hpp"
 #include "message.hpp"
 
 #include "strlcpy.hpp"

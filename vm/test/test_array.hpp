@@ -3,8 +3,9 @@
 #include "builtin/tuple.hpp"
 
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
-#include "ffi.hpp"
+#include "ffi_util.hpp"
 
 #include <cxxtest/TestSuite.h>
 

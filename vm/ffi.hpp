@@ -1,10 +1,6 @@
 #ifndef RBX_FFI_H
 #define RBX_FFI_H
 
-#include "ffi_util.hpp"
-
-#include "prelude.hpp"
-#include "object.hpp"
-
+/* What is the point of this file? --rue */
 
 #endif

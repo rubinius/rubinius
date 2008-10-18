@@ -5,8 +5,8 @@
 #include "builtin/string.hpp"
 
 #include "objectmemory.hpp"
-#include "prelude.hpp"
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "primitives.hpp"
 
 #include <cmath>

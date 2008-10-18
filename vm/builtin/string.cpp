@@ -8,6 +8,7 @@
 #include "builtin/integer.hpp"
 
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "primitives.hpp"
 #include "objectmemory.hpp"
 

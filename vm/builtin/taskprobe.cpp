@@ -8,6 +8,7 @@
 #include "builtin/task.hpp"
 #include "builtin/taskprobe.hpp"
 
+#include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 #include "vm.hpp"
 #include "jit_state.h"

@@ -1,5 +1,7 @@
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "builtin/bytearray.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/string.hpp"
 #include "primitives.hpp"
 

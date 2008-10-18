@@ -1,5 +1,5 @@
-#ifndef RBX_VM_OBJECT_HPP
-#define RBX_VM_OBJECT_HPP
+#ifndef RBX_VM_OBJECT_UTILS_HPP
+#define RBX_VM_OBJECT_UTILS_HPP
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -8,11 +8,11 @@
 #include <cassert>
 #include <vector>
 
-#include "vm/prelude.hpp"
+#include "builtin/object.hpp"
 #include "vm/exception.hpp"
 
 /**
- *  @file   object.hpp
+ *  @file   object_utils.hpp
  *
  *  Defines all the most common operations for dealing with
  *  objects, such as type checking and casting.
@@ -123,7 +123,7 @@ namespace rubinius {
     }
 
 
-  void type_assert(STATE, OBJECT obj, object_type type, const char* reason);
+  void type_assert(STATE, Object* obj, object_type type, const char* reason);
 
   /*
    * A rubinius object can be followed by:

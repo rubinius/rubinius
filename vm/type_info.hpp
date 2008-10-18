@@ -4,14 +4,15 @@
 #include <map>
 #include <stdexcept>
 
-#include "vm/gc.hpp"
+#include "vm/gc_object_mark.hpp"
 #include "vm/object_types.hpp"
 #include "vm/prelude.hpp"
 
 namespace rubinius {
 
-  class VM;
   class Class;
+  class Object;
+  class ObjectMark;
 
   /**
    *  Static type information for the VM.

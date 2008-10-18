@@ -5,7 +5,6 @@
 #include <stdexcept>
 
 #include "vm/linkedlist.hpp"
-#include "vm/object.hpp"
 #include "vm/oop.hpp"
 #include "vm/prelude.hpp"
 
@@ -24,8 +23,7 @@ namespace rubinius {
   class Roots : public LinkedList {
   public:   /* Ctors */
 
-    Roots();
-
+    explicit Roots();
 
   public:   /* Interface */
 

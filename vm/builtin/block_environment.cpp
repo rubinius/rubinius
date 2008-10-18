@@ -7,14 +7,17 @@
 #include "block_environment.hpp"
 #include "objectmemory.hpp"
 
+#include "vm/object_utils.hpp"
+
+#include "profiler.hpp"
+#include "message.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
-#include "profiler.hpp"
-#include "message.hpp"
 
 #include <iostream>
 

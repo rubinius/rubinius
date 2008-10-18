@@ -1,4 +1,5 @@
 #include "builtin/class.hpp"
+#include "vm/object_utils.hpp"
 #include "builtin/lookuptable.hpp"
 #include "object_types.hpp"
 

@@ -1,5 +1,6 @@
 #ifndef RBX_BUILTIN_INTEGER_HPP
 #define RBX_BUILTIN_INTEGER_HPP
+
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 
