@@ -26,77 +26,6 @@
 
 namespace rubinius {
 
-  /* Initialize the object as storing bytes, by setting the flag then clearing the
-   * body of the object, by setting the entire body as bytes to 0 */
-  void Object::init_bytes() {
-    this->StoresBytes = 1;
-    clear_body_to_null();
-  }
-
-  void Object::set_forward(STATE, OBJECT fwd) {
-    assert(zone == YoungObjectZone);
-    Forwarded = 1;
-    // DO NOT USE klass() because we need to get around the
-    // write barrier!
-    klass_ = (Class*)fwd;
-  }
-
-  void Object::write_barrier(STATE, void* obj) {
-    state->om->write_barrier(this, reinterpret_cast<Object*>(obj));
-  }
-
-  // Safely return the object type, even if the receiver is an immediate
-  object_type Object::get_type() {
-    if(reference_p()) return obj_type;
-    if(fixnum_p()) return FixnumType;
-    if(symbol_p()) return SymbolType;
-    if(nil_p()) return NilType;
-    if(true_p()) return TrueType;
-    if(false_p()) return FalseType;
-    return ObjectType;
-  }
-
-  TypeInfo* Object::type_info(STATE) {
-    return state->om->type_info[get_type()];
-  }
-
-  OBJECT Object::tainted_p() {
-    if(reference_p() && this->IsTainted) {
-      return Qtrue;
-    } else {
-      return Qfalse;
-    }
-  }
-
-  OBJECT Object::taint() {
-    if(reference_p()) {
-      this->IsTainted = TRUE;
-    }
-    return this;
-  }
-
-  OBJECT Object::untaint() {
-    if(reference_p()) {
-      this->IsTainted = FALSE;
-    }
-    return this;
-  }
-
-  OBJECT Object::freeze() {
-    if(reference_p()) {
-      this->IsFrozen = TRUE;
-    }
-    return this;
-  }
-
-  OBJECT Object::frozen_p() {
-    if(reference_p() && this->IsFrozen) {
-      return Qtrue;
-    } else {
-      return Qfalse;
-    }
-  }
-
   Class* Object::class_object(STATE) {
     if(reference_p()) {
       Module* mod = klass_;
@@ -113,6 +42,51 @@ namespace rubinius {
     return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
+  void Object::cleanup(STATE) {
+    type_info(state)->cleanup(this);
+  }
+
+  Object* Object::clone(STATE) {
+    Object* other = dup(state);
+
+    other->copy_internal_state_from(state, this);
+
+    return other;
+  }
+
+  OBJECT Object::untaint() {
+    if(reference_p()) {
+      this->IsTainted = FALSE;
+    }
+
+    std::ifstream stream(path->c_str());
+    if(!stream) {
+      std::ostringstream msg;
+      msg << "unable to open file to run: " << path->c_str();
+      Exception::io_error(state, msg.str().c_str());
+    }
+
+  OBJECT Object::frozen_p() {
+    if(reference_p() && this->IsFrozen) {
+      return Qtrue;
+    } else {
+      return Qfalse;
+    }
+
+      if(mod->nil_p()) {
+        Exception::assertion_error(state, "Object::class_object() failed to find a class");
+      }
+      return as<Class>(mod);
+    }
+
+  void Object::copy_flags(STATE, OBJECT source) {
+    this->obj_type        = source->obj_type;
+    this->StoresBytes     = source->StoresBytes;
+    this->RequiresCleanup = source->RequiresCleanup;
+    this->IsBlockContext  = source->IsBlockContext;
+    this->IsMeta          = source->IsMeta;
+  }
+
 
   void Object::copy_internal_state_from(STATE, Object* original) {
     if(MetaClass* mc = try_as<MetaClass>(original->klass())) {
@@ -125,14 +99,6 @@ namespace rubinius {
       // This allows us to preserve included modules
       this->metaclass(state)->superclass(state, mc->superclass());
     }
-  }
-
-  Object* Object::clone(STATE) {
-    Object* other = dup(state);
-
-    other->copy_internal_state_from(state, this);
-
-    return other;
   }
 
   Object* Object::dup(STATE) {
@@ -158,25 +124,70 @@ namespace rubinius {
     return other;
   }
 
-  bool Object::kind_of_p(STATE, OBJECT cls) {
-    Module* found = class_object(state);
-    if(found == cls) return true;
+  OBJECT Object::equal(STATE, OBJECT other) {
+    return this == other ? Qtrue : Qfalse;
+  }
 
-    for(;;) {
-      found = try_as<Module>(found->superclass());
-      if(!found) return false;
-      if(found == cls) return true;
+  OBJECT Object::freeze() {
+    if(reference_p()) {
+      this->IsFrozen = TRUE;
+    }
+    return this;
+  }
 
-      if(IncludedModule* im = try_as<IncludedModule>(found)) {
-        if(im->module() == cls) return true;
+  OBJECT Object::frozen_p() {
+    if(reference_p() && this->IsFrozen) {
+      return Qtrue;
+    } else {
+      return Qfalse;
+    }
+  }
+
+  OBJECT Object::get_field(STATE, size_t index) {
+    return type_info(state)->get_field(state, this, index);
+  }
+
+  OBJECT Object::get_ivar(STATE, SYMBOL sym) {
+    /* Implements the external ivars table for objects that don't
+       have their own space for ivars. */
+    if(!reference_p()) {
+      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+
+      if(tbl) return tbl->fetch(state, sym);
+      return Qnil;
+    }
+
+    // We might be trying to access a slot, so try that first.
+
+    TypeInfo* ti = state->om->find_type_info(this);
+    if(ti) {
+      TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
+      if(it != ti->slots.end()) {
+        return ti->get_field(state, this, it->second);
       }
     }
 
-    return false;
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+      return tbl->fetch(state, sym);
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+      return tbl->fetch(state, sym);
+    }
+
+    return Qnil;
   }
 
-  OBJECT Object::kind_of_prim(STATE, Module* klass) {
-    return kind_of_p(state, klass) ? Qtrue : Qfalse;
+  OBJECT Object::get_ivars(STATE) {
+    return ivars_;
+  }
+
+  object_type Object::get_type() {
+    if(reference_p()) return obj_type;
+    if(fixnum_p()) return FixnumType;
+    if(symbol_p()) return SymbolType;
+    if(nil_p()) return NilType;
+    if(true_p()) return TrueType;
+    if(false_p()) return FalseType;
+    return ObjectType;
   }
 
   hashval Object::hash(STATE) {
@@ -234,8 +245,32 @@ namespace rubinius {
     }
   }
 
-  OBJECT Object::equal(STATE, OBJECT other) {
-    return this == other ? Qtrue : Qfalse;
+  /* Initialize the object as storing bytes, by setting the flag then clearing the
+   * body of the object, by setting the entire body as bytes to 0 */
+  void Object::init_bytes() {
+    this->StoresBytes = 1;
+    clear_body_to_null();
+  }
+
+  bool Object::kind_of_p(STATE, OBJECT module) {
+    Module* found = class_object(state);
+    if(found == cls) return true;
+
+    for(;;) {
+      found = try_as<Module>(found->superclass());
+      if(!found) return false;
+      if(found == cls) return true;
+
+      if(IncludedModule* im = try_as<IncludedModule>(found)) {
+        if(im->module() == cls) return true;
+      }
+    }
+
+    return false;
+  }
+
+  OBJECT Object::kind_of_prim(STATE, Module* klass) {
+    return kind_of_p(state, klass) ? Qtrue : Qfalse;
   }
 
   Class* Object::metaclass(STATE) {
@@ -249,37 +284,50 @@ namespace rubinius {
     return class_object(state);
   }
 
-  OBJECT Object::get_ivars(STATE) {
-    return ivars_;
+  bool Object::send(STATE, SYMBOL name, size_t count_args, ...) {
+    va_list va;
+    Array* args = Array::create(state, count_args);
+
+    // Use the va_* macros to iterate over the variable number of
+    // arguments passed in.
+    va_start(va, count_args);
+    for(size_t i = 0; i < count_args; i++) {
+      args->set(state, i, va_arg(va, OBJECT));
+    }
+    va_end(va);
+
+    return send_on_task(state, G(current_task), name, args);
   }
 
-  OBJECT Object::get_ivar(STATE, SYMBOL sym) {
-    /* Implements the external ivars table for objects that don't
-       have their own space for ivars. */
-    if(!reference_p()) {
-      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+  bool Object::send_on_task(STATE, Task* task, SYMBOL name, Array* args) {
+    Message msg(state);
+    msg.name = name;
+    msg.recv = this;
+    msg.lookup_from = this->lookup_begin(state);
+    msg.stack = 0;
 
-      if(tbl) return tbl->fetch(state, sym);
-      return Qnil;
-    }
+    msg.set_arguments(state, args);
 
-    // We might be trying to access a slot, so try that first.
+    return task->send_message_slowly(msg);
+  }
 
-    TypeInfo* ti = state->om->find_type_info(this);
-    if(ti) {
-      TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
-      if(it != ti->slots.end()) {
-        return ti->get_field(state, this, it->second);
-      }
-    }
+  ExecuteStatus Object::send_prim(STATE, Executable* exec, Task* task, Message& msg) {
+    SYMBOL meth = as<Symbol>(msg.shift_argument(state));
+    msg.name = meth;
+    msg.priv = true;
+    return task->send_message_slowly(msg);
+  }
 
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
-      return tbl->fetch(state, sym);
-    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
-      return tbl->fetch(state, sym);
-    }
+  void Object::set_field(STATE, size_t index, OBJECT val) {
+    type_info(state)->set_field(state, this, index, val);
+  }
 
-    return Qnil;
+  void Object::set_forward(STATE, OBJECT fwd) {
+    assert(zone == YoungObjectZone);
+    Forwarded = 1;
+    // DO NOT USE klass() because we need to get around the
+    // write barrier!
+    klass_ = (Class*)fwd;
   }
 
   OBJECT Object::set_ivar(STATE, SYMBOL sym, OBJECT val) {
@@ -329,62 +377,6 @@ namespace rubinius {
     return val;
   }
 
-  ExecuteStatus Object::send_prim(STATE, Executable* exec, Task* task, Message& msg) {
-    SYMBOL meth = as<Symbol>(msg.shift_argument(state));
-    msg.name = meth;
-    msg.priv = true;
-    return task->send_message_slowly(msg);
-  }
-
-  bool Object::send(STATE, SYMBOL name, size_t count_args, ...) {
-    va_list va;
-    Array* args = Array::create(state, count_args);
-
-    // Use the va_* macros to iterate over the variable number of
-    // arguments passed in.
-    va_start(va, count_args);
-    for(size_t i = 0; i < count_args; i++) {
-      args->set(state, i, va_arg(va, OBJECT));
-    }
-    va_end(va);
-
-    return send_on_task(state, G(current_task), name, args);
-  }
-
-  bool Object::send_on_task(STATE, Task* task, SYMBOL name, Array* args) {
-    Message msg(state);
-    msg.name = name;
-    msg.recv = this;
-    msg.lookup_from = this->lookup_begin(state);
-    msg.stack = 0;
-
-    msg.set_arguments(state, args);
-
-    return task->send_message_slowly(msg);
-  }
-
-  void Object::cleanup(STATE) {
-    type_info(state)->cleanup(this);
-  }
-
-  void Object::copy_flags(STATE, OBJECT source) {
-    this->obj_type        = source->obj_type;
-    this->StoresBytes     = source->StoresBytes;
-    this->RequiresCleanup = source->RequiresCleanup;
-    this->IsBlockContext  = source->IsBlockContext;
-    this->IsMeta          = source->IsMeta;
-  }
-
-  // 'virtual' methods. They dispatch to the object's TypeInfo
-  // object to perform the work.
-  OBJECT Object::get_field(STATE, size_t index) {
-    return type_info(state)->get_field(state, this, index);
-  }
-
-  void Object::set_field(STATE, size_t index, OBJECT val) {
-    type_info(state)->set_field(state, this, index, val);
-  }
-
   OBJECT Object::show(STATE) {
     return this->show(state, 0);
   }
@@ -403,101 +395,45 @@ namespace rubinius {
     return Qnil;
   }
 
-  /* VM level primitives. This is a silly place, I know. */
-  OBJECT Object::vm_get_config_item(STATE, String* var) {
-    ConfigParser::Entry* ent = state->user_config->find(var->c_str());
-    if(!ent) return Qnil;
-
-    if(ent->is_number()) {
-      return Fixnum::from(atoi(ent->value.c_str()));
+  OBJECT Object::taint() {
+    if(reference_p()) {
+      this->IsTainted = TRUE;
     }
-    return String::create(state, ent->value.c_str());
+    return this;
   }
 
-  OBJECT Object::vm_get_config_section(STATE, String* section) {
-    ConfigParser::EntryList* list;
-
-    list = state->user_config->get_section(section->byte_address());
-
-    Array* ary = Array::create(state, list->size());
-    for(size_t i = 0; i < list->size(); i++) {
-      String* var = String::create(state, list->at(i)->variable.c_str());
-      String* val = String::create(state, list->at(i)->value.c_str());
-
-      ary->set(state, i, Tuple::from(state, 2, var, val));
+  OBJECT Object::tainted_p() {
+    if(reference_p() && this->IsTainted) {
+      return Qtrue;
+    } else {
+      return Qfalse;
     }
-
-    return ary;
   }
 
-  OBJECT Object::vm_write_error(STATE, String* str) {
-    std::cerr << str->byte_address() << std::endl;
-    return Qnil;
+  TypeInfo* Object::type_info(STATE) {
+    return state->om->type_info[get_type()];
   }
 
-  // Clears the global cache for all methods named +name+,
-  // also clears all sendsite caches matching that name.
-  OBJECT Object::vm_reset_method_cache(STATE, SYMBOL name) {
-    // 1. clear the global cache
-    state->global_cache->clear(name);
-    // 2. clear the send site caches
-    Selector::clear_by_name(state, name);
-    return name;
-  }
-
-  OBJECT Object::vm_exit(STATE, FIXNUM code) {
-    ::exit(code->to_native());
-  }
-
-  OBJECT Object::vm_show_backtrace(STATE, MethodContext* ctx) {
-    G(current_task)->print_backtrace(ctx);
-    return Qnil;
-  }
-
-  OBJECT Object::vm_start_profiler(STATE) {
-    G(current_task)->enable_profiler();
-    return Qtrue;
-  }
-
-  OBJECT Object::vm_stop_profiler(STATE, String* path) {
-    G(current_task)->disable_profiler(path->c_str());
-    return path;
-  }
-
-  Object* Object::yield_gdb(STATE, Object* obj) {
-    obj->show(state);
-    Exception::assertion_error(state, "yield_gdb called and not caught");
-    return obj;
-  }
-
-  OBJECT Object::vm_gc_start(STATE, OBJECT tenure) {
-    // Ignore tenure for now
-    state->om->collect_young_now = true;
-    state->om->collect_mature_now = true;
-    return Qnil;
-  }
-
-  // HACK: remove this when performance is better and compiled_file.rb
-  // unmarshal_data method works.
-  OBJECT Object::compiledfile_load(STATE, String* path, OBJECT version) {
-    if(!state->probe->nil_p()) {
-      state->probe->load_runtime(state, std::string(path->c_str()));
+  OBJECT Object::untaint() {
+    if(reference_p()) {
+      this->IsTainted = FALSE;
     }
-
-    std::ifstream stream(path->c_str());
-    if(!stream) {
-      std::ostringstream msg;
-      msg << "unable to open file to run: " << path->c_str();
-      Exception::io_error(state, msg.str().c_str());
-    }
-
-    CompiledFile* cf = CompiledFile::load(stream);
-    if(cf->magic != "!RBIX") {
-      std::ostringstream msg;
-      msg << "Invalid file: " << path->c_str();
-      Exception::io_error(state, msg.str().c_str());
-    }
-
-    return cf->body(state);
+    return this;
   }
+
+  /**
+   *  We use void* as the type for obj to work around C++'s type system
+   *  that requires full definitions of classes to be present for it
+   *  figure out if you can properly pass an object (the superclass
+   *  has to be known).
+   *
+   *  If we have OBJECT obj here, then we either have to cast to call
+   *  write_barrier (which means we lose the ability to have type specific
+   *  write_barrier versions, which we do), or we have to include
+   *  every header up front. We opt for the former.
+   */
+  void Object::write_barrier(STATE, void* obj) {
+    state->om->write_barrier(this, reinterpret_cast<Object*>(obj));
+  }
+
 }

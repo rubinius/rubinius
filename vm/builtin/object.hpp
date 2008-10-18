@@ -1,6 +1,8 @@
 #ifndef RBX_VM_BUILTIN_OBJECT_HPP
 #define RBX_VM_BUILTIN_OBJECT_HPP
 
+#include <vector>
+
 #include "vm.hpp"
 #include "vm/oop.hpp"
 #include "vm/prelude.hpp"
@@ -8,15 +10,16 @@
 
 #include "executor.hpp"
 
+
 namespace rubinius {
 
 /**
-* Create a writer method.
-*
-* For attr_writer(foo, SomeClass), creates void foo(STATE, SomeClass* obj)
-* that sets the instance variable foo_ to the object given and runs the write
-* barrier.
-*/
+ *  Create a writer method for a slot.
+ *
+ *  For attr_writer(foo, SomeClass), creates void foo(STATE, SomeClass* obj)
+ *  that sets the instance variable foo_ to the object given and runs the write
+ *  barrier.
+ */
 #define attr_writer(name, type) \
   void name(STATE, type* obj) { \
     name ## _ = obj; \
@@ -24,21 +27,22 @@ namespace rubinius {
   }
 
 /**
-* Create a reader method.
-*
-* For attr_reader(foo, SomeClass), creates SomeClass* foo() which returns the
-* instance variable foo_.
-*/
+ *  Create a reader method for a slot.
+ *
+ *  For attr_reader(foo, SomeClass), creates SomeClass* foo() which returns the
+ *  instance variable foo_.
+ */
 #define attr_reader(name, type) type* name() { return name ## _; }
 
 /**
-* Ruby-like accessor creation.
-*
-* Both attr_writer and attr_reader.
-*/
+ *  Ruby-like accessor creation for a slot.
+ *
+ *  Both attr_writer and attr_reader.
+ */
 #define attr_accessor(name, type) attr_reader(name, type) \
                                   attr_writer(name, type)
 
+  /* Forwards */
   class MetaClass;
   class Integer;
   class String;
@@ -50,182 +54,295 @@ namespace rubinius {
   class TypeInfo;
   class MethodContext;
 
-  class Object : public ObjectHeader {
-  public:
+  class Object;
 
-    /* Objects have no index fields past the header by default */
+  typedef std::vector<Object*> ObjectArray;
+
+
+  /**
+   *  Object is the basic Ruby object.
+   *
+   *  Because of needing to exactly control the in-memory layout of
+   *  Objects, none of the subclasses of Object (or ObjectHeader)
+   *  is allowed to use define virtual methods. In order to achieve
+   *  virtual dispatch for the cases where it is needed (it usually
+   *  is not), the TypeInfo class should be used. Each builtin class
+   *  defines a contained type Info which inherits--directly or not
+   *  from TypeInfo. TypeInfos use virtual methods to achieve dynamism.
+   *  Instances of these Info classes are held by the VM, where they
+   *  can be retrieved using a given Object's object_type. The Info
+   *  object will then dispatch the correct virtual method for the
+   *  type. The methods are written to understand the types they are
+   *  dealing with.
+   *
+   *  The class definition layout differs from the normal alphabetic
+   *  order in order to group the different aspects involved better
+   *  and to simplify finding/adding &c. related methods.
+   *
+   *  TODO: Remove the unimplemented definitions? --rue
+   *
+   *  @see  vm/type_info.hpp
+   *
+   */
+  class Object : public ObjectHeader {
+  public:   /* Slots and bookkeeping */
+
+    /** Objects have no index fields past the header by default */
     static const size_t fields = 0;
+
+    /** Class type identifier. */
     static const object_type type = ObjectType;
 
-    /* accessors */
-    attr_accessor(klass, Class);
-    attr_accessor(ivars, Object);
 
-    // Ruby.primitive :object_equal
-    OBJECT equal(STATE, OBJECT other);
+  public:   /* GC support, bookkeeping &c. */
 
-    // Ruby.primitive :object_show
-    OBJECT show(STATE);
-    OBJECT show(STATE, int level);
-    OBJECT show_simple(STATE);
-    OBJECT show_simple(STATE, int level);
+    /** Calls cleanup() on the TypeInfo for this object's type. */
+    void        cleanup(STATE);
 
-    /* Initialize the object as storing bytes, by setting the flag then clearing the
-     * body of the object, by setting the entire body as bytes to 0 */
-    void init_bytes();
+    /**
+     *  Initialize the object to store bytes.
+     * 
+     *  Sets flag and overwrites body with NULLs.
+     */
+    void        init_bytes();
 
-    void set_forward(STATE, OBJECT fwd);
-
-    /* Provides access to the GC write barrier from any object.
-     * We use void* as the type for obj to work around C++'s type system
-     * that requires full definitions of classes to be present for it
-     * figure out if you can properly pass an object (the superclass
-     * has to be known).
+    /**
+     *  Mark this Object forwarded by the GC.
      *
-     * If we have OBJECT obj here, then we either have to cast to call
-     * write_barrier (which means we lose the ability to have type specific
-     * write_barrier versions, which we do), or we have to include
-     * every header up front. We opt for the former. */
-    void write_barrier(STATE, void* obj);
+     *  Sets the forwarded flag and stores the given Object* in
+     *  the klass_ field where it can be reached. This object is
+     *  no longer valid and should be accessed through the new
+     *  Object* (but code outside of the GC framework should not
+     *  really run into this much if at all.)
+     *
+     *  TODO: Clarify the scenarios where an Object may exist
+     *        forwarded in user code if at all. --rue
+     */
+    void        set_forward(STATE, OBJECT fwd);
 
-    // Safely return the object type, even if the receiver is an immediate
-    object_type get_type();
+    /** Provides access to the GC write barrier from any object. */
+    void        write_barrier(STATE, void* obj);
 
-    // Return the TypeInfo object used to reflect on an object of this
-    // type.
-    TypeInfo* type_info(STATE);
+    /** Special-case write_barrier() for Fixnums. */
+    void        write_barrier(STATE, Fixnum* obj);
 
-    // Ruby.primitive :object_tainted_p
-    OBJECT tainted_p();
+    /** Special-case write_barrier() for Symbols. */
+    void        write_barrier(STATE, Symbol* obj);
 
-    // Ruby.primitive :object_taint
-    OBJECT taint();
 
-    // Ruby.primitive :object_untaint
-    OBJECT untaint();
+  public:   /* Type information, field access, copy support &c. */
 
-    // Ruby.primitive :object_freeze
-    OBJECT freeze();
-
-    // Ruby.primitive :object_frozen_p
-    OBJECT frozen_p();
+    /** Sets the other Object's flags the same as this. @see vm/oop.hpp. */
+    void        copy_flags(STATE, OBJECT other);
 
     /** Copies metaclass from original to this one. @see clone(). */
-    void    copy_internal_state_from(STATE, Object* original);
+    void        copy_internal_state_from(STATE, Object* original);
 
-    // Ruby.primitive :object_clone
-    OBJECT  clone(STATE);
+    /** NOT IMPLEMENTED. Copies instance variables to the other Object. */
+    void        copy_ivars(STATE, OBJECT other);
 
-    // Ruby.primitive :object_dup
-    OBJECT  dup(STATE);
+    /** NOT IMPLEMENTED. Copies this Object's MetaClass to the other Object. */
+    void        copy_metaclass(STATE, OBJECT other);
 
-    // Ruby.primitive :object_id
-    INTEGER id(STATE);
+    /** True if this Object* is actually a Fixnum, false otherwise. */
+    bool        fixnum_p();
 
-    OBJECT get_field(STATE, size_t index);
-    void   set_field(STATE, size_t index, OBJECT val);
-    void cleanup(STATE);
+    /**
+     *  Retrieve the Object stored in given field index of this Object.
+     *
+     *  Uses TypeInfo.
+     */
+    OBJECT      get_field(STATE, std::size_t index);
 
-    bool kind_of_p(STATE, OBJECT cls);
+    /** Safely return the object type, even if the receiver is an immediate. */
+    object_type get_type();
 
-    // Ruby.primitive :object_class
-    Class* class_object(STATE);
+    /** True if given Module is this Object's class, superclass or an included Module. */
+    bool        kind_of_p(STATE, OBJECT module);
 
-    hashval hash(STATE);
+    /** Store the given Object at given field index of this Object through TypeInfo. */
+    void        set_field(STATE, std::size_t index, OBJECT val);
 
-    // Ruby.primitive :object_hash
-    INTEGER hash_prim(STATE);
+    /** True if this Object* is actually a Symbol, false otherwise. */
+    bool        symbol_p();
 
-    Class* metaclass(STATE);
+    /** Return the TypeInfo for this Object's type. */
+    TypeInfo*   type_info(STATE);
 
-    // Ruby.primitive :object_get_ivar
-    OBJECT get_ivar(STATE, SYMBOL sym);
 
-    // Ruby.primitive :object_set_ivar
-    OBJECT set_ivar(STATE, SYMBOL sym, OBJECT val);
+  public:   /* Method dispatch stuff */
 
-    // Ruby.primitive :object_get_ivars
-    OBJECT get_ivars(STATE);
+    /** Class object in which to look for the MethodTable for this Object. */
+    Class*    lookup_begin(STATE);
 
-    // Ruby.primitive :object_kind_of
-    OBJECT kind_of_prim(STATE, Module* klass);
+    /**
+     *  Directly send a method to this Object.
+     *
+     *  Sets up the current task to send the given method name to this
+     *  Object, passing the given number of arguments through varargs.
+     *
+     *  Uses Task::send_message_slowly().
+     */
+    bool      send(STATE, SYMBOL meth, size_t args, ...);
 
+    /**
+     *  Directly send a method on this Object.
+     *
+     *  Sets up the current task to send the given method name on this
+     *  Object, passing arguments in a Ruby Array.
+     *
+     *  Uses Task::send_message_slowly().
+     */
+    bool      send_on_task(STATE, Task* task, SYMBOL name, Array* args);
+
+    /**
+     *  Perform a send from Ruby.
+     *
+     *  Uses Task::send_message_slowly().
+     *
+     *  TODO: Add more information, when is this used? --rue
+     */
     // Ruby.primitive? :object_send
     ExecuteStatus send_prim(STATE, Executable* exec, Task* task, Message& msg);
 
-    // Setup the current task to send the method +meth+ to +this+ with a
-    // variable number of arguments
-    bool send(STATE, SYMBOL meth, size_t args, ...);
 
-    // Setup +task+ to send the method +meth+ with +args+ to +this+
-    bool send_on_task(STATE, Task* task, SYMBOL name, Array* args);
+  public:   /* Ruby interface */
 
-    void copy_flags(STATE, OBJECT other);
-    void copy_ivars(STATE, OBJECT other);
-    void copy_metaclass(STATE, OBJECT other);
+    /**
+     *  Ruby #clone.
+     *
+     *  Creates and returns a new Object that is a copy of this one
+     *  including internal state.
+     *
+     *  @see  dup()
+     */
+    // Ruby.primitive :object_clone
+    OBJECT    clone(STATE);
 
-    /* VM level primitives. It's dumb to have them here, but it's more
-     * complicated to make field_extract parse non-Object classes. */
+    /** Returns the Class object of which this Object is an instance. */
+    // Ruby.primitive :object_class
+    Class*    class_object(STATE);
 
-    // Ruby.primitive :vm_get_config_item
-    static OBJECT vm_get_config_item(STATE, String* var);
+    /**
+     *  Ruby #dup.
+     *
+     *  Creates and returns a new Object that is a copy of this one
+     *  except for internal state.
+     *
+     *  @see  clone()
+     */
+    // Ruby.primitive :object_dup
+    OBJECT    dup(STATE);
 
-    // Ruby.primitive :vm_get_config_section
-    static OBJECT vm_get_config_section(STATE, String* section);
+    /**
+     *  Ruby #equal?.
+     *
+     *  Returns true if and only if this and the other object are
+     *  the SAME object, false otherwise.
+     */
+    // Ruby.primitive :object_equal
+    OBJECT    equal(STATE, OBJECT other);
 
-    // Ruby.primitive :vm_write_error
-    static OBJECT vm_write_error(STATE, String* str);
+    /** Sets the frozen flag. Rubinius does NOT currently support freezing. */
+    // Ruby.primitive :object_freeze
+    OBJECT    freeze();
 
-    // Ruby.primitive :vm_reset_method_cache
-    static OBJECT vm_reset_method_cache(STATE, SYMBOL name);
+    /** Returns true if this Object's frozen flag set, false otherwise. */
+    // Ruby.primitive :object_frozen_p
+    OBJECT    frozen_p();
 
-    // Ruby.primitive :vm_exit
-    static OBJECT vm_exit(STATE, FIXNUM code);
+    /**
+     *  Ruby #instance_variable_get.
+     *
+     *  Return the Object stored as instance variable under the given
+     *  identifier.
+     */
+    // Ruby.primitive :object_get_ivar
+    OBJECT    get_ivar(STATE, SYMBOL sym);
 
-    // Ruby.primitive :vm_show_backtrace
-    static OBJECT vm_show_backtrace(STATE, MethodContext* ctx);
+    /** Returns the structure containing this object's instance variables. */
+    // Ruby.primitive :object_get_ivars
+    OBJECT    get_ivars(STATE);
 
-    // Ruby.primitive :vm_start_profiler
-    static OBJECT vm_start_profiler(STATE);
+    /** Calculate a hash value for this object. */
+    hashval   hash(STATE);
 
-    // Ruby.primitive :vm_stop_profiler
-    static OBJECT vm_stop_profiler(STATE, String* path);
+    /** Returns the hash value as an Integer. @see hash(). */
+    // Ruby.primitive :object_hash
+    INTEGER   hash_prim(STATE);
 
-    // Perform GC as soon as possible. Tenure is an older flag
-    // which means "please tenure all young objects now". It
-    // is currently not enabled.
-    //
-    // Ruby.primitive :vm_gc_start
-    static OBJECT vm_gc_start(STATE, OBJECT tenure);
+    /** Returns an Integer ID for this object. Created as needed. */
+    // Ruby.primitive :object_id
+    INTEGER   id(STATE);
 
-    // Ruby.primitive :yield_gdb
-    static Object* yield_gdb(STATE, Object* obj);
+    /**
+     *  Ruby #kind_of?
+     *
+     *  Returns true if given Module is this Object's class,
+     *  superclass or an included Module, false otherwise.
+     */
+    // Ruby.primitive :object_kind_of
+    OBJECT    kind_of_prim(STATE, Module* klass);
 
-    // Hackety HACK, don't talk back; just remove compiledfile_load
-    // when ruby performance is better
+    /** Return object's MetaClass object. Created as needed. */
+    Class*    metaclass(STATE);
+
+    /**
+     *  Ruby #instance_variable_set
+     *
+     *  Store the given object in the instance variable by
+     *  given identifier.
+     */
+    // Ruby.primitive :object_set_ivar
+    OBJECT    set_ivar(STATE, SYMBOL sym, OBJECT val);
+
+    /** String describing this object (through TypeInfo.) */
+    // Ruby.primitive :object_show
+    OBJECT    show(STATE);
+    /** Indented String describing this object (through TypeInfo.) */
+    OBJECT    show(STATE, int level);
+    /** Shorter String describing this object (through TypeInfo.) */
+    OBJECT    show_simple(STATE);
+    /** Shorter indented String describing this object (through TypeInfo.) */
+    OBJECT    show_simple(STATE, int level);
+
+    /**
+     *  Set tainted flag on this object.
+     *
+     *  Rubinius DOES NOT currently support tainting.
+     */
+    // Ruby.primitive :object_taint
+    OBJECT    taint();
+
+    /**
+     *  Returns true if this object's tainted flag is set.
+     *
+     *  Rubinius DOES NOT currently support tainting.
+     */
+    // Ruby.primitive :object_tainted_p
+    OBJECT    tainted_p();
+
+    /**
+     *  Clears the tainted flag on this object.
+     *
+     *  Rubinius DOES NOT currently support tainting.
+     */
+    // Ruby.primitive :object_untaint
+    OBJECT    untaint();
 
     // Ruby.primitive :compiledfile_load
     static OBJECT compiledfile_load(STATE, String* path, OBJECT version);
 
-    // Overloads to shortcut (using C++'s type system) the write
-    // barrier when storing Fixnums or Symbols
-    void write_barrier(STATE, Fixnum* obj) { }
-    void write_barrier(STATE, Symbol* obj) { }
+  public:   /* accessors */
 
-    bool fixnum_p() {
-      return FIXNUM_P(this);
-    }
+    /* klass_ from ObjectHeader. */
+    attr_accessor(klass, Class);
 
-    bool symbol_p() {
-      return SYMBOL_P(this);
-    }
+    /* ivars_ from ObjectHeader. */
+    attr_accessor(ivars, Object);
 
-    Class* lookup_begin(STATE) {
-      if(reference_p()) return klass_;
-      return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
-    }
 
-  public:
+  public:   /* TypeInfo */
 
     /**
      *  Static type information for Object.
@@ -238,6 +355,33 @@ namespace rubinius {
     };
 
   };
+
+
+/* Object inlines -- Alphabetic, unlike class definition. */
+
+  inline bool Object::fixnum_p() {
+    return FIXNUM_P(this);
+  }
+
+  inline Class* Object::lookup_begin(STATE) {
+    if(reference_p()) {
+      return klass_;
+    }
+
+    return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
+  }
+
+  inline bool Object::symbol_p() {
+    return SYMBOL_P(this);
+  }
+
+  inline void Object::write_barrier(STATE, Fixnum* obj) {
+    /* No-op */
+  }
+
+  inline void Object::write_barrier(STATE, Symbol* obj) {
+    /* No-op */
+  }
 
 }
 
