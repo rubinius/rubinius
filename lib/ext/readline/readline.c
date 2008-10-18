@@ -21,9 +21,12 @@ static VALUE mReadline;
 #define COMPLETION_CASE_FOLD "completion_case_fold"
 static ID completion_proc, completion_case_fold;
 
-static int readline_event(void);
 static char **readline_attempted_completion_function(const char *text,
                                                      int start, int end);
+
+
+/* Unused.   --rue
+static int readline_event(void);
 
 static int
 readline_event()
@@ -32,6 +35,7 @@ readline_event()
     rb_thread_schedule();
     return 0;
 }
+*/
 
 static VALUE
 readline_readline(VALUE self, VALUE tmp, VALUE add_hist)
@@ -39,7 +43,9 @@ readline_readline(VALUE self, VALUE tmp, VALUE add_hist)
     VALUE result;
     char *prompt = NULL;
     char *buff;
+    /* Unused. --rue
     int status;
+    */
 
     rb_secure(4);
     SafeStringValue(tmp);
@@ -205,7 +211,9 @@ static VALUE
 readline_s_get_completion_append_character(self)
     VALUE self;
 {
+    /* Unused. --rue
     VALUE str;
+    */
 
     rb_secure(4);
     if (rl_completion_append_character == '\0')
@@ -263,7 +271,9 @@ static VALUE
 readline_s_set_completer_quote_characters(self, str)
     VALUE self, str;
 {
+    /* Unused. --rue
     static char *completer_quote_characters = NULL;
+    */
 
     rb_secure(4);
     SafeStringValue(str);
@@ -464,7 +474,10 @@ hist_delete_at(self, index)
 void
 Init_readline()
 {
+    /* Latter two unused. --rue
     VALUE history, fcomp, ucomp;
+    */
+    VALUE history;
 
     /* Allow conditional parsing of the ~/.inputrc file. */
     rl_readline_name = "Ruby";
