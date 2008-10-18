@@ -113,12 +113,18 @@ INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Build options
-FLAGS         = %w[ -pipe -Wall -Wextra -Wno-deprecated ]
+FLAGS         = %w[ -pipe -Wall -Wno-deprecated ]
 
-# Debugging support &c.
-if ENV["DEV"]
-  FLAGS.concat %w[ -Werror -ggdb3 -O0 -fno-inline]
+# Debugging support &c. NOTE: Only DEV=2+ treats warnings as errors.
+case ENV["DEV"]
+when "1"
+  FLAGS.concat %w[ -Wextra -ggdb3 -O0 -fno-inline]
+when "2", /strict/
+  FLAGS.concat %w[ -Wextra -Werror -ggdb3 -O0 -fno-inline]
+when "3", /ridiculous/
+  FLAGS.concat %w[ -Wextra -Weffc++ -Werror -ggdb3 -O0 -fno-inline]
 else
+  # By default, lax and optimised
   FLAGS.concat %w[ -O2 ]
 end
 
