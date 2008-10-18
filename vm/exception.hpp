@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "object_types.hpp"
 #include "prelude.hpp"
 #include "builtin/object.hpp"
 
