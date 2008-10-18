@@ -19,7 +19,7 @@ task :extensions => %w[
 # Ask the VM to build an extension from source.
 #
 def compile_extension(path, flags = "-d -p -I#{Dir.pwd}/vm/subtend")
-  cflags = Object.const_get(:FLAGS).reject {|f| f == "-Wno-deprecated" }
+  cflags = Object.const_get(:FLAGS).reject {|f| f =~ /-Wno-deprecated|-Weffc\+\+/ }
 
   cflags.each {|flag| flags << " -C,#{flag}" }
 

@@ -1,6 +1,6 @@
 #include "md5.h"
 #include "ruby.h"
 
-Init_md5()
+void Init_md5()
 {
 }

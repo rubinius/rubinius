@@ -121,10 +121,8 @@ namespace rubinius {
 
     /** Provides access to the GC write barrier from any object. */
     void        write_barrier(STATE, void* obj);
-
     /** Special-case write_barrier() for Fixnums. */
     void        write_barrier(STATE, Fixnum* obj);
-
     /** Special-case write_barrier() for Symbols. */
     void        write_barrier(STATE, Symbol* obj);
 
@@ -133,13 +131,10 @@ namespace rubinius {
 
     /** Sets the other Object's flags the same as this. @see vm/oop.hpp. */
     void        copy_flags(STATE, Object* other);
-
     /** Copies metaclass from original to this one. @see clone(). */
     void        copy_internal_state_from(STATE, Object* original);
-
     /** NOT IMPLEMENTED. Copies instance variables to the other Object. */
     void        copy_ivars(STATE, Object* other);
-
     /** NOT IMPLEMENTED. Copies this Object's MetaClass to the other Object. */
     void        copy_metaclass(STATE, Object* other);
 
@@ -151,7 +146,7 @@ namespace rubinius {
      *
      *  Uses TypeInfo.
      */
-    Object*      get_field(STATE, std::size_t index);
+    Object*     get_field(STATE, std::size_t index);
 
     /** Safely return the object type, even if the receiver is an immediate. */
     object_type get_type();
@@ -172,7 +167,7 @@ namespace rubinius {
   public:   /* Method dispatch stuff */
 
     /** Class object in which to look for the MethodTable for this Object. */
-    Class*    lookup_begin(STATE);
+    Class*      lookup_begin(STATE);
 
     /**
      *  Directly send a method to this Object.

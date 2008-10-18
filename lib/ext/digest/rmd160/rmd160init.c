@@ -1,6 +1,6 @@
 #include "rmd160.h"
 #include "ruby.h"
 
-Init_rmd160()
+void Init_rmd160()
 {
 }
