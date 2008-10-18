@@ -18,8 +18,8 @@ class TestProfiler : public CxxTest::TestSuite {
   }
 
   void test_enter_method() {
-    SYMBOL meth = state->symbol("blah");
-    SYMBOL klass = state->symbol("Sweet");
+    Symbol* meth = state->symbol("blah");
+    Symbol* klass = state->symbol("Sweet");
 
     profiler::Profiler prof;
 
@@ -39,7 +39,7 @@ class TestProfiler : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
     TS_ASSERT_EQUALS(prof.depth(), 2U);
 
-    SYMBOL meth2 = state->symbol("woo");
+    Symbol* meth2 = state->symbol("woo");
     prof.enter_method(meth2, klass);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 2U);
 
@@ -47,8 +47,8 @@ class TestProfiler : public CxxTest::TestSuite {
   }
 
   void test_leave_method() {
-    SYMBOL meth = state->symbol("blah");
-    SYMBOL klass = state->symbol("Sweet");
+    Symbol* meth = state->symbol("blah");
+    Symbol* klass = state->symbol("Sweet");
 
     profiler::Profiler prof;
 
@@ -65,15 +65,15 @@ class TestProfiler : public CxxTest::TestSuite {
   }
 
   void test_leave_method_adds_leaves() {
-    SYMBOL meth = state->symbol("blah");
-    SYMBOL klass = state->symbol("Sweet");
+    Symbol* meth = state->symbol("blah");
+    Symbol* klass = state->symbol("Sweet");
 
     profiler::Profiler prof;
 
     profiler::Method* outer = prof.enter_method(meth, klass);
     TS_ASSERT_EQUALS(prof.current_method(), outer);
 
-    SYMBOL meth2 = state->symbol("fun");
+    Symbol* meth2 = state->symbol("fun");
 
     profiler::Method* inner = prof.enter_method(meth2, klass);
     TS_ASSERT_EQUALS(prof.current_method(), inner);
@@ -99,10 +99,10 @@ class TestProfiler : public CxxTest::TestSuite {
   }
 
   void test_print_results() {
-    SYMBOL meth = state->symbol("blah");
-    SYMBOL meth2 = state->symbol("foo");
-    SYMBOL meth3 = state->symbol("done");
-    SYMBOL klass = state->symbol("Sweet");
+    Symbol* meth = state->symbol("blah");
+    Symbol* meth2 = state->symbol("foo");
+    Symbol* meth3 = state->symbol("done");
+    Symbol* klass = state->symbol("Sweet");
 
     profiler::Profiler prof;
 

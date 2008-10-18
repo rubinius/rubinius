@@ -30,7 +30,7 @@ namespace rubinius {
   /* Calculate how much big of an object (in bytes) to allocate
    * for one with a body of +original+ and a stack of +stack+ */
   static inline size_t add_stack(size_t original, size_t stack) {
-    return original + (sizeof(OBJECT) * stack);
+    return original + (sizeof(Object*) * stack);
   }
 
   /* Initialize +ctx+'s fields */
@@ -97,9 +97,9 @@ initialize:
     for(size_t i = 0; i < cm_->lines()->num_fields(); i++) {
       Tuple* entry = as<Tuple>(cm_->lines()->at(state, i));
 
-      FIXNUM start_ip = as<Fixnum>(entry->at(state, 0));
-      FIXNUM end_ip   = as<Fixnum>(entry->at(state, 1));
-      FIXNUM line     = as<Fixnum>(entry->at(state, 2));
+      Fixnum* start_ip = as<Fixnum>(entry->at(state, 0));
+      Fixnum* end_ip   = as<Fixnum>(entry->at(state, 1));
+      Fixnum* line     = as<Fixnum>(entry->at(state, 2));
 
       if(start_ip->to_native() <= ip && end_ip->to_native() >= ip)
         return line->to_native();
@@ -168,7 +168,7 @@ initialize:
    * The returned MethodContext is in an 'initial' state. The caller is
    * expected to SET any fields it needs to, e.g. +module+
    */
-  MethodContext* MethodContext::create(STATE, OBJECT recv, CompiledMethod* meth) {
+  MethodContext* MethodContext::create(STATE, Object* recv, CompiledMethod* meth) {
     MethodContext* ctx = allocate(state, G(methctx), meth->backend_method_->stack_size);
 
     ctx->self(state, recv);
@@ -257,7 +257,7 @@ initialize:
 
   /* Retrieve a field within the context, referenced by name. This
    * is used as a primitive. */
-  OBJECT MethodContext::get_internal_data(STATE, FIXNUM type) {
+  Object* MethodContext::get_internal_data(STATE, Fixnum* type) {
     switch(type->to_native()) {
     case 1:
       return Fixnum::from(ip);
@@ -277,7 +277,7 @@ initialize:
     return ctx;
   }
 
-  void MethodContext::Info::mark(OBJECT obj, ObjectMark& mark) {
+  void MethodContext::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 
     MethodContext* ctx = as<MethodContext>(obj);
@@ -287,11 +287,10 @@ initialize:
     }
 
     /* Now also mark the stack */
-    OBJECT stack_obj, marked;
     for(size_t i = 0; i < ctx->stack_size; i++) {
-      stack_obj = ctx->stack_at(i);
+      Object* stack_obj = ctx->stack_at(i);
       if(!stack_obj) continue;
-      marked = mark.call(stack_obj);
+      Object* marked = mark.call(stack_obj);
       if(marked) {
         ctx->stack_put(i, marked);
         mark.just_set(ctx, marked);
@@ -299,7 +298,7 @@ initialize:
     }
   }
 
-  void MethodContext::Info::show(STATE, OBJECT self, int level) {
+  void MethodContext::Info::show(STATE, Object* self, int level) {
     MethodContext* ctx = as<MethodContext>(self);
 
     class_header(state, self);

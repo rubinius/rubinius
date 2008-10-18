@@ -12,10 +12,10 @@ namespace rubinius {
     static const object_type type = NativeFunctionType;
 
   private:
-    OBJECT name_;         // slot
-    SYMBOL file_;         // slot
+    Object* name_;         // slot
+    Symbol* file_;         // slot
     MemoryPointer* data_; // slot
-    FIXNUM required_;     // slot
+    Fixnum* required_;     // slot
 
   public:
     /* accessors */
@@ -30,19 +30,19 @@ namespace rubinius {
     static size_t type_size(size_t type);
 
     // Ruby.primitive :nativefunction_type_size
-    static FIXNUM type_size_prim(STATE, FIXNUM type);
+    static Fixnum* type_size_prim(STATE, Fixnum* type);
 
     static void init(STATE);
 
-    static NativeFunction* create(STATE, OBJECT name, int args);
+    static NativeFunction* create(STATE, Object* name, int args);
     static ExecuteStatus execute(STATE, Task* task, Message& msg);
 
     // Ruby.primitive :nativefunction_bind
-    static NativeFunction* bind(STATE, OBJECT library, String* name, Array* args, OBJECT ret);
+    static NativeFunction* bind(STATE, Object* library, String* name, Array* args, Object* ret);
 
     void bind(STATE, int arg_count, int *arg_types, int ret_type, void* func);
     void **marshal_arguments(STATE, Message *msg);
-    OBJECT call(STATE, Message* msg);
+    Object* call(STATE, Message* msg);
 
     struct ffi_stub {
       ffi_cif cif;

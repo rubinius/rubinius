@@ -17,6 +17,7 @@ namespace rubinius {
   class Array;
   class Bignum;
   class Float;
+  class Symbol;
   class Tuple;
 
   class Marshaller {
@@ -26,11 +27,11 @@ namespace rubinius {
 
     Marshaller(STATE, std::ostream& stream) : state(state), stream(stream) { }
 
-    void marshal(OBJECT obj);
+    void marshal(Object* obj);
 
-    void set_int(OBJECT o);
+    void set_int(Object* o);
     void set_string(String* o);
-    void set_symbol(SYMBOL o);
+    void set_symbol(Symbol* o);
     void set_sendsite(SendSite* o);
     void set_array(Array* o);
     void set_tuple(Tuple* o);
@@ -48,11 +49,11 @@ namespace rubinius {
     UnMarshaller(STATE, std::istream& stream) :
       state(state), stream(stream) { }
 
-    OBJECT unmarshal();
+    Object* unmarshal();
 
-    OBJECT get_int();
+    Object* get_int();
     String* get_string();
-    SYMBOL get_symbol();
+    Symbol* get_symbol();
     SendSite* get_sendsite();
     Array* get_array();
     Tuple* get_tuple();

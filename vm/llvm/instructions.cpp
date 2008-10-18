@@ -43,7 +43,7 @@ using namespace rubinius;
 #define cache_ip()
 
 extern "C" {
-  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, SYMBOL name, size_t args);
+  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, Symbol* name, size_t args);
 
 #define RETURN(val) return val
 
@@ -91,21 +91,21 @@ CODE
   */
 
   OP2(bool, jit_goto_if_false) {
-    OBJECT val = stack_pop();
+    Object* val = stack_pop();
     return !RTEST(val);
   }
   
   OP2(bool, jit_goto_if_true) {
-    OBJECT val = stack_pop();
+    Object* val = stack_pop();
     return RTEST(val);
   }
 
   OP2(bool, jit_goto_if_defined) {
-    OBJECT val = stack_pop();
+    Object* val = stack_pop();
     return val != Qundef;
   }
 
-  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, SYMBOL name, size_t args) {
+  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, Symbol* name, size_t args) {
     Message& msg = *task->msg;
     msg.recv = stack_back(args);
     msg.use_from_task(task, args);

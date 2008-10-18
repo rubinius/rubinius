@@ -32,7 +32,7 @@ class TestLookupTable : public CxxTest::TestSuite {
     tbl->store(state, Qnil, Fixnum::from(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    OBJECT out = tbl->fetch(state, Qnil);
+    Object* out = tbl->fetch(state, Qnil);
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 47);
   }
 
@@ -41,7 +41,7 @@ class TestLookupTable : public CxxTest::TestSuite {
     tbl->store(state, Qnil, Fixnum::from(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    OBJECT out = tbl->fetch(state, Qnil);
+    Object* out = tbl->fetch(state, Qnil);
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 47);
 
     tbl->store(state, Qnil, Fixnum::from(42));
@@ -52,12 +52,12 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_store_handles_entries_in_same_bin() {
-    OBJECT k1 = Fixnum::from((4 << 4)  | 15);
-    OBJECT k2 = Fixnum::from((10 << 4) | 15);
-    OBJECT k3 = Fixnum::from((11 << 4) | 15);
-    OBJECT v1 = Qtrue;
-    OBJECT v2 = Qfalse;
-    OBJECT v3 = Qtrue;
+    Object* k1 = Fixnum::from((4 << 4)  | 15);
+    Object* k2 = Fixnum::from((10 << 4) | 15);
+    Object* k3 = Fixnum::from((11 << 4) | 15);
+    Object* v1 = Qtrue;
+    Object* v2 = Qfalse;
+    Object* v3 = Qtrue;
 
     tbl->store(state, k1, v1);
     tbl->store(state, k2, v2);
@@ -96,9 +96,9 @@ class TestLookupTable : public CxxTest::TestSuite {
     size_t i;
     size_t bins = tbl-> bins()->to_native() - 2;
 
-    OBJECT k1 = Fixnum::from((4 << 5)  | 31);
-    OBJECT k2 = Fixnum::from((10 << 5) | 31);
-    OBJECT k3 = Fixnum::from((11 << 5) | 31);
+    Object* k1 = Fixnum::from((4 << 5)  | 31);
+    Object* k2 = Fixnum::from((10 << 5) | 31);
+    Object* k3 = Fixnum::from((11 << 5) | 31);
     tbl->store(state, k1, Qtrue);
     tbl->store(state, k2, Qtrue);
     tbl->store(state, k3, Qtrue);
@@ -111,7 +111,7 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_find_entry() {
-    OBJECT k = Fixnum::from(47);
+    Object* k = Fixnum::from(47);
     tbl->store(state, k, Qtrue);
 
     Tuple* entry = tbl->find_entry(state, k);
@@ -122,10 +122,10 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_find() {
-    OBJECT k = Fixnum::from(47);
+    Object* k = Fixnum::from(47);
     tbl->store(state, k, Qtrue);
 
-    OBJECT out = tbl->find(state, k);
+    Object* out = tbl->find(state, k);
     TS_ASSERT_EQUALS(out, Qtrue);
 
     out = tbl->find(state, Fixnum::from(40));
@@ -133,10 +133,10 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_remove() {
-    OBJECT k = Fixnum::from(47);
+    Object* k = Fixnum::from(47);
     tbl->store(state, k, Qtrue);
 
-    OBJECT out = tbl->find(state, k);
+    Object* out = tbl->find(state, k);
     TS_ASSERT_EQUALS(out, Qtrue);
 
     out = tbl->remove(state, k);
@@ -157,7 +157,7 @@ class TestLookupTable : public CxxTest::TestSuite {
 
     TS_ASSERT(bins < (size_t)tbl-> bins()->to_native());
 
-    OBJECT out;
+    Object* out;
     for(size_t i = 0; i < bound; i++) {
       out = tbl->remove(state, Fixnum::from(i));
       TS_ASSERT_EQUALS(out, Qtrue);
@@ -167,9 +167,9 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_remove_works_for_chained_bins() {
-    OBJECT k1 = Fixnum::from((4 << 5)  | 31);
-    OBJECT k2 = Fixnum::from((10 << 5) | 31);
-    OBJECT k3 = Fixnum::from((11 << 5) | 31);
+    Object* k1 = Fixnum::from((4 << 5)  | 31);
+    Object* k2 = Fixnum::from((10 << 5) | 31);
+    Object* k3 = Fixnum::from((11 << 5) | 31);
     tbl->store(state, k1, Qnil);
     tbl->store(state, k2, Qtrue);
     tbl->store(state, k3, Qfalse);
@@ -182,13 +182,13 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_remove_works_for_unknown_key() {
-    OBJECT k1 = Fixnum::from(4);
+    Object* k1 = Fixnum::from(4);
 
     TS_ASSERT_EQUALS(Qnil, tbl->remove(state, k1));
   }
 
   void test_has_key() {
-    OBJECT k1 = Fixnum::from(4);
+    Object* k1 = Fixnum::from(4);
     TS_ASSERT_EQUALS(Qfalse, tbl->has_key(state, k1));
 
     tbl->store(state, k1, Qtrue);
@@ -197,7 +197,7 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_dup() {
-    OBJECT k1 = Fixnum::from(4);
+    Object* k1 = Fixnum::from(4);
 
     tbl->store(state, k1, Qtrue);
 
@@ -207,7 +207,7 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_all_keys() {
-    OBJECT k1 = Fixnum::from(4);
+    Object* k1 = Fixnum::from(4);
 
     tbl->store(state, k1, Qtrue);
     Array* ary = tbl->all_keys(state);
@@ -217,7 +217,7 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_all_values() {
-    OBJECT k1 = Fixnum::from(4);
+    Object* k1 = Fixnum::from(4);
 
     tbl->store(state, k1, Qtrue);
     Array* ary = tbl->all_values(state);

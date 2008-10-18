@@ -69,7 +69,7 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-    static Task* create(STATE, OBJECT recv, CompiledMethod* meth);
+    static Task* create(STATE, Object* recv, CompiledMethod* meth);
     // We actually use the value CompiledMethod::tramp_stack_size by default
     // inside the method though.
     static Task* create(STATE, size_t stack_size = 0);
@@ -87,7 +87,7 @@ namespace rubinius {
     MethodContext* current_context(STATE);
 
     // Ruby.primitive :task_call_object
-    OBJECT call_object(STATE, OBJECT recv, SYMBOL meth, Array* args);
+    Object* call_object(STATE, Object* recv, Symbol* meth, Array* args);
 
     void execute();
     void execute_interp();
@@ -97,20 +97,20 @@ namespace rubinius {
     void set_ip(int ip);
     int  current_ip();
 
-    OBJECT const_get(Module* under, SYMBOL name, bool* found);
-    OBJECT const_get(SYMBOL name, bool* found);
-    void   const_set(Module* under, SYMBOL sym, OBJECT val);
-    void   const_set(SYMBOL sym, OBJECT val);
+    Object* const_get(Module* under, Symbol* name, bool* found);
+    Object* const_get(Symbol* name, bool* found);
+    void   const_set(Module* under, Symbol* sym, Object* val);
+    void   const_set(Symbol* sym, Object* val);
 
-    void attach_method(OBJECT obj, SYMBOL name, CompiledMethod* meth);
-    void add_method(Module* obj, SYMBOL name, CompiledMethod* meth);
-    Class* open_class(OBJECT super, SYMBOL name, bool* created);
-    Class* open_class(Module* under, OBJECT super, SYMBOL name, bool* created);
+    void attach_method(Object* obj, Symbol* name, CompiledMethod* meth);
+    void add_method(Module* obj, Symbol* name, CompiledMethod* meth);
+    Class* open_class(Object* super, Symbol* name, bool* created);
+    Class* open_class(Module* under, Object* super, Symbol* name, bool* created);
 
     /** Reopen existing or create new Module by name in the current lexical scope. */
-    Module* open_module(SYMBOL name);
+    Module* open_module(Symbol* name);
     /** Reopen existing or create new Module by name under the given enclosing Module. */
-    Module* open_module(Module* under, SYMBOL name);
+    Module* open_module(Module* under, Symbol* name);
 
     // Ruby.primitive :task_raise
     Task* raise(STATE, Exception *exc);
@@ -120,26 +120,26 @@ namespace rubinius {
     ExecuteStatus send_message_slowly(Message& msg);
     Module* current_module();
 
-    Tuple* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
+    Tuple* locate_method_on(Object* obj, Symbol* sel, Object* priv);
 
     /** Returning from a NativeMethod and restoring sender. */
     void native_return(Object* return_value);
 
-    void primitive_return(OBJECT val, Message& msg);
+    void primitive_return(Object* val, Message& msg);
     void yield_debugger();
-    bool check_serial(OBJECT obj, SYMBOL sel, int ser);
+    bool check_serial(Object* obj, Symbol* sel, int ser);
 
     void execute_stream(opcode* stream);
-    void push(OBJECT val);
-    OBJECT pop();
-    OBJECT stack_top();
-    OBJECT stack_at(size_t pos);
+    void push(Object* val);
+    Object* pop();
+    Object* stack_top();
+    Object* stack_at(size_t pos);
     int  calculate_sp();
-    OBJECT* current_stack();
+    Object** current_stack();
 
     /* Locals manipulation */
-    void set_local(int pos, OBJECT val);
-    OBJECT get_local(int pos);
+    void set_local(int pos, Object* val);
+    Object* get_local(int pos);
 
     void print_stack();
     void print_backtrace(MethodContext* ctx = 0);
@@ -168,7 +168,7 @@ namespace rubinius {
       return home()->self();
     }
 
-    void self(STATE, OBJECT obj) {
+    void self(STATE, Object* obj) {
       active_->self(state, obj);
     }
 
@@ -183,7 +183,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
 
     class Halt : public std::runtime_error {

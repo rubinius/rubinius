@@ -51,7 +51,7 @@ namespace rubinius {
     }
 
     ExecuteStatus basic_performer(STATE, Task* task, Message& msg) {
-      SYMBOL original_name = msg.name;
+      Symbol* original_name = msg.name;
 
       if(!GlobalCacheResolver::resolve(state, msg)) {
         msg.method_missing = true;
@@ -82,9 +82,9 @@ namespace rubinius {
     G(send_site)->set_object_type(state, SendSiteType);
   }
 
-  SendSite* SendSite::create(STATE, OBJECT name) {
+  SendSite* SendSite::create(STATE, Object* name) {
     SendSite* ss = (SendSite*)state->new_struct(G(send_site), sizeof(SendSite));
-    ss->name(state, (SYMBOL)name);
+    ss->name(state, (Symbol*)name);
     ss->sender(state, (CompiledMethod*)Qnil);
     ss->selector(state, Selector::lookup(state, name));
 
@@ -106,16 +106,16 @@ namespace rubinius {
     hits = misses = 0;
   }
 
-  OBJECT SendSite::set_sender(STATE, CompiledMethod* cm) {
+  Object* SendSite::set_sender(STATE, CompiledMethod* cm) {
     sender(state, cm);
     return Qnil;
   }
 
-  OBJECT SendSite::hits_prim(STATE) {
+  Object* SendSite::hits_prim(STATE) {
     return Integer::from(state, hits);
   }
 
-  OBJECT SendSite::misses_prim(STATE) {
+  Object* SendSite::misses_prim(STATE) {
     return Integer::from(state, misses);
   }
 
@@ -123,7 +123,7 @@ namespace rubinius {
    * true if +msg+ was populated. */
 
   bool SendSite::locate(STATE, Message& msg) {
-    SYMBOL original_name = msg.name;
+    Symbol* original_name = msg.name;
 
     if(!resolver(state, msg)) {
       msg.method_missing = true;
@@ -147,7 +147,7 @@ namespace rubinius {
 
   bool HierarchyResolver::resolve(STATE, Message& msg) {
     Module* module = msg.lookup_from;
-    OBJECT entry;
+    Object* entry;
     MethodVisibility* vis;
 
     do {
@@ -256,7 +256,7 @@ keep_looking:
     return false;
   }
 
-  void SendSite::Info::show(STATE, OBJECT self, int level) {
+  void SendSite::Info::show(STATE, Object* self, int level) {
     SendSite* ss = as<SendSite>(self);
 
     class_header(state, self);

@@ -37,7 +37,7 @@ namespace rubinius {
   /* Creates a String instance with +num_bytes+ == +size+ and
    * having a ByteArray with at least (size + 1) bytes.
    */
-  String* String::create(STATE, FIXNUM size) {
+  String* String::create(STATE, Fixnum* size) {
     String *so;
 
     so = (String*)state->om->new_object(G(string), String::fields);
@@ -45,7 +45,7 @@ namespace rubinius {
     so->num_bytes(state, size);
     so->characters(state, size);
     so->encoding(state, Qnil);
-    so->hash_value(state, (INTEGER)Qnil);
+    so->hash_value(state, (Integer*)Qnil);
 
     size_t bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
@@ -69,7 +69,7 @@ namespace rubinius {
     so->num_bytes(state, Fixnum::from(bytes));
     so->characters(state, so->num_bytes());
     so->encoding(state, Qnil);
-    so->hash_value(state, (INTEGER)Qnil);
+    so->hash_value(state, (Integer*)Qnil);
 
     ByteArray* ba = ByteArray::create(state, bytes + 1);
     if(str) std::memcpy(ba->bytes, str, bytes);
@@ -80,13 +80,13 @@ namespace rubinius {
     return so;
   }
 
-  String* String::from_bytearray(STATE, ByteArray* ba, INTEGER start, INTEGER count) {
+  String* String::from_bytearray(STATE, ByteArray* ba, Integer* start, Integer* count) {
     String* s = (String*)state->om->new_object(G(string), String::fields);
 
     s->num_bytes(state, count);
     s->characters(state, count);
     s->encoding(state, Qnil);
-    s->hash_value(state, (INTEGER)Qnil);
+    s->hash_value(state, (Integer*)Qnil);
 
     // fetch_bytes NULL terminates
     s->data(state, ba->fetch_bytes(state, start, count));
@@ -126,7 +126,7 @@ namespace rubinius {
     return hv;
   }
 
-  SYMBOL String::to_sym(STATE) {
+  Symbol* String::to_sym(STATE) {
     return state->symbol(this);
   }
 
@@ -145,7 +145,7 @@ namespace rubinius {
     return c_string;
   }
 
-  bool String::string_equal_p(STATE, OBJECT a, OBJECT b) {
+  bool String::string_equal_p(STATE, Object* a, Object* b) {
     String* self = as<String>(a);
     String* other = as<String>(b);
 
@@ -157,7 +157,7 @@ namespace rubinius {
     return true;
   }
 
-  OBJECT String::equal(STATE, String* other) {
+  Object* String::equal(STATE, String* other) {
     bool ret = String::string_equal_p(state, this, other);
     return ret ? Qtrue : Qfalse;
   }
@@ -200,7 +200,7 @@ namespace rubinius {
 
     num_bytes(state, Integer::from(state, new_size));
     data(state, ba);
-    hash_value(state, (INTEGER)Qnil);
+    hash_value(state, (Integer*)Qnil);
 
     return this;
   }
@@ -228,7 +228,7 @@ namespace rubinius {
 
     num_bytes(state, Integer::from(state, new_size));
     data(state, d2);
-    hash_value(state, (INTEGER)Qnil);
+    hash_value(state, (Integer*)Qnil);
 
     return this;
   }
@@ -340,7 +340,7 @@ namespace rubinius {
     }
   };
 
-  FIXNUM String::tr_expand(STATE, OBJECT limit) {
+  Fixnum* String::tr_expand(STATE, Object* limit) {
     struct tr_data data;
     native_int seq;
     native_int max;
@@ -386,7 +386,7 @@ namespace rubinius {
     return tr_replace(state, &data);
   }
 
-  FIXNUM String::tr_replace(STATE, struct tr_data* data) {
+  Fixnum* String::tr_replace(STATE, struct tr_data* data) {
     if(data->last > (native_int)this->size() || shared_->true_p()) {
       ByteArray* ba = ByteArray::create(state, this->size() + 1);
 
@@ -403,7 +403,7 @@ namespace rubinius {
     return Fixnum::from(data->steps);
   }
 
-  String* String::copy_from(STATE, String* other, FIXNUM start, FIXNUM size, FIXNUM dest) {
+  String* String::copy_from(STATE, String* other, Fixnum* start, Fixnum* size, Fixnum* dest) {
     native_int src = start->to_native();
     native_int dst = dest->to_native();
     native_int cnt = size->to_native();
@@ -423,7 +423,7 @@ namespace rubinius {
     return this;
   }
 
-  FIXNUM String::compare_substring(STATE, String* other, FIXNUM start, FIXNUM size) {
+  Fixnum* String::compare_substring(STATE, String* other, Fixnum* start, Fixnum* size) {
     native_int src = start->to_native();
     native_int cnt = size->to_native();
     native_int sz = (native_int)this->size();
@@ -450,14 +450,14 @@ namespace rubinius {
     }
   }
 
-  String* String::pattern(STATE, OBJECT self, FIXNUM size, OBJECT pattern) {
+  String* String::pattern(STATE, Object* self, Fixnum* size, Object* pattern) {
     String* s = String::create(state, size);
     s->klass(state, (Class*)self);
     s->IsTainted = self->IsTainted;
 
     native_int cnt = size->to_native();
 
-    if(FIXNUM chr = try_as<Fixnum>(pattern)) {
+    if(Fixnum* chr = try_as<Fixnum>(pattern)) {
       std::memset(s->data()->bytes, (int)chr->to_native(), cnt);
     } else if(String* pat = try_as<String>(pattern)) {
       s->IsTainted |= pat->IsTainted;
@@ -490,13 +490,13 @@ namespace rubinius {
     return String::create(state, s);
   }
 
-  INTEGER String::to_i(STATE, FIXNUM fix_base, OBJECT strict) {
+  Integer* String::to_i(STATE, Fixnum* fix_base, Object* strict) {
     char* str = c_str();
     int base = fix_base->to_native();
     bool negative = false;
-    INTEGER value = Fixnum::from(0);
+    Integer* value = Fixnum::from(0);
 
-    if(base < 0 || base > 36) return (INTEGER)Qnil;
+    if(base < 0 || base > 36) return (Integer*)Qnil;
 
     // Move past any spaces
     while(*str == ' ') str++;
@@ -544,7 +544,7 @@ namespace rubinius {
           str--;
         // If there is more and we're strict, bail.
         } else if(chr && strict == Qtrue) {
-          return (INTEGER)Qnil;
+          return (Integer*)Qnil;
         } else {
           return value;
         }
@@ -575,7 +575,7 @@ namespace rubinius {
     // if we're not strict.
     if(*str == '_') {
       if(strict == Qtrue) {
-        return (INTEGER)Qnil;
+        return (Integer*)Qnil;
       } else {
         str++;
       }
@@ -597,7 +597,7 @@ namespace rubinius {
         // If there is more stuff after the spaces, get out of dodge.
         if(chr) {
           if(strict == Qtrue) {
-            return (INTEGER)Qnil;
+            return (Integer*)Qnil;
           } else {
             goto return_value;
           }
@@ -628,7 +628,7 @@ namespace rubinius {
       // mean it's invalid.
       if(chr >= base) {
         if(strict == Qtrue) {
-          return (INTEGER)Qnil;
+          return (Integer*)Qnil;
         } else {
           goto return_value;
         }
@@ -651,7 +651,7 @@ namespace rubinius {
 
     // If we last saw an underscore and we're strict, bail.
     if(underscore && strict == Qtrue) {
-      return (INTEGER)Qnil;
+      return (Integer*)Qnil;
     }
 
 return_value:
@@ -666,19 +666,19 @@ return_value:
     return value;
   }
 
-  INTEGER String::to_inum_prim(STATE, FIXNUM base, OBJECT strict) {
-    INTEGER val = to_i(state, base, strict);
-    if(val->nil_p()) return (INTEGER)Primitives::failure();
+  Integer* String::to_inum_prim(STATE, Fixnum* base, Object* strict) {
+    Integer* val = to_i(state, base, strict);
+    if(val->nil_p()) return (Integer*)Primitives::failure();
 
     return val;
   }
 
-  void String::Info::show(STATE, OBJECT self, int level) {
+  void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);
     std::cout << "\"" << str->c_str() << "\"" << std::endl;
   }
 
-  void String::Info::show_simple(STATE, OBJECT self, int level) {
+  void String::Info::show_simple(STATE, Object* self, int level) {
     show(state, self, level);
   }
 }

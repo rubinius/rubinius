@@ -58,7 +58,7 @@ namespace rubinius {
   }
 
   /* Return the +index+ numbered element from the beginning. */
-  OBJECT List::locate(STATE, size_t index) {
+  Object* List::locate(STATE, size_t index) {
     ListNode* cur = first_;
 
     while(index > 0) {
@@ -74,7 +74,7 @@ namespace rubinius {
 
   /* Return the first element in the list and remove it, moving all
    * other elements forward. */
-  OBJECT List::shift(STATE) {
+  Object* List::shift(STATE) {
     if(empty_p()) return Qnil;
 
     count(state, Integer::from(state, count_->to_native() - 1));
@@ -91,7 +91,7 @@ namespace rubinius {
   /* Search the List for +obj+ and remove all instances of it.
    *
    * Returns the number of elements removed. */
-  size_t List::remove(STATE, OBJECT obj) {
+  size_t List::remove(STATE, Object* obj) {
     if(empty_p()) return 0;
 
     size_t deleted = 0, counted = 0;

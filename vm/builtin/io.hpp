@@ -16,11 +16,11 @@ namespace rubinius {
     const static object_type type = IOType;
 
   private:
-    FIXNUM descriptor_; // slot
-    OBJECT ibuffer_;    // slot
-    FIXNUM mode_;       // slot
-    OBJECT eof_;        // slot
-    FIXNUM lineno_;     // slot
+    Fixnum* descriptor_; // slot
+    Object* ibuffer_;    // slot
+    Fixnum* mode_;       // slot
+    Object* eof_;        // slot
+    Fixnum* lineno_;     // slot
 
   public:
     /* accessors */
@@ -42,34 +42,34 @@ namespace rubinius {
     void force_write_only(STATE);
 
     // Ruby.primitive :io_allocate
-    static IO* allocate(STATE, OBJECT self);
+    static IO* allocate(STATE, Object* self);
 
     // Ruby.primitive :io_ensure_open
-    OBJECT ensure_open(STATE);
+    Object* ensure_open(STATE);
 
     // Ruby.primitive :io_connect_pipe
-    static OBJECT connect_pipe(STATE, IO* lhs, IO* rhs);
+    static Object* connect_pipe(STATE, IO* lhs, IO* rhs);
 
     // Ruby.primitive :io_seek
-    INTEGER seek(STATE, INTEGER amount, FIXNUM whence);
+    Integer* seek(STATE, Integer* amount, Fixnum* whence);
 
     // Ruby.primitive :io_write
-    OBJECT write(STATE, String* buf);
+    Object* write(STATE, String* buf);
 
     // Ruby.primitive :io_open
-    static FIXNUM open(STATE, String* path, FIXNUM mode, FIXNUM perm);
+    static Fixnum* open(STATE, String* path, Fixnum* mode, Fixnum* perm);
 
     // Ruby.primitive :io_reopen
-    OBJECT reopen(STATE, IO* other);
+    Object* reopen(STATE, IO* other);
 
     // Ruby.primitive :io_close
-    OBJECT close(STATE);
+    Object* close(STATE);
 
     // Ruby.primitive :io_blocking_read
-    OBJECT blocking_read(STATE, FIXNUM count);
+    Object* blocking_read(STATE, Fixnum* count);
 
     // Ruby.primitive :io_query
-    OBJECT query(STATE, SYMBOL op);
+    Object* query(STATE, Symbol* op);
 
     class Info : public TypeInfo {
     public:
@@ -88,10 +88,10 @@ namespace rubinius {
   private:
     ByteArray* storage_; // slot
     Channel* channel_;   // slot
-    INTEGER total_;      // slot
-    INTEGER used_;       // slot
-    INTEGER start_;      // slot
-    OBJECT eof_;         // slot
+    Integer* total_;      // slot
+    Integer* used_;       // slot
+    Integer* start_;      // slot
+    Object* eof_;         // slot
 
   public:
     /* accessors */

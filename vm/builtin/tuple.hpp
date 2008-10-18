@@ -12,41 +12,41 @@ namespace rubinius {
     const static object_type type = TupleType;
 
     /* Body access */
-    OBJECT field[];
+    Object* field[];
 
     static Tuple* create(STATE, size_t fields);
     static Tuple* from(STATE, size_t fields, ...);
 
     // Ruby.primitive :tuple_allocate
-    static Tuple* allocate(STATE, FIXNUM fields);
+    static Tuple* allocate(STATE, Fixnum* fields);
 
     // Ruby.primitive :tuple_at
-    OBJECT at_prim(STATE, FIXNUM pos);
+    Object* at_prim(STATE, Fixnum* pos);
 
-    OBJECT put(STATE, size_t idx, OBJECT val);
+    Object* put(STATE, size_t idx, Object* val);
 
     // Ruby.primitive :tuple_put
-    OBJECT put_prim(STATE, FIXNUM idx, OBJECT val);
+    Object* put_prim(STATE, Fixnum* idx, Object* val);
 
     // Ruby.primitive :tuple_fields
-    OBJECT fields_prim(STATE);
+    Object* fields_prim(STATE);
 
     // Ruby.primitive :tuple_pattern
-    static Tuple* pattern(STATE, FIXNUM size, OBJECT val);
+    static Tuple* pattern(STATE, Fixnum* size, Object* val);
 
     // Ruby.primitive :tuple_copy_from
-    Tuple* copy_from(STATE, Tuple* other, FIXNUM start, FIXNUM dest);
+    Tuple* copy_from(STATE, Tuple* other, Fixnum* start, Fixnum* dest);
 
     // Ruby.primitive :tuple_shifted
-    Tuple* shifted(STATE, FIXNUM num);
+    Tuple* shifted(STATE, Fixnum* num);
 
     // Ruby.primitive :tuple_create_weakref
-    static Tuple* create_weakref(STATE, OBJECT obj);
+    static Tuple* create_weakref(STATE, Object* obj);
 
     void replace_with(STATE, Tuple* other, int start, int end);
 
   public: // Inline Functions
-    OBJECT at(STATE, size_t index) {
+    Object* at(STATE, size_t index) {
       if(num_fields() <= index) {
         Exception::object_bounds_exceeded_error(state, this, index);
       }
@@ -57,9 +57,9 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
-      virtual void mark(OBJECT t, ObjectMark& mark);
-      virtual void show(STATE, OBJECT self, int level);
-      virtual void show_simple(STATE, OBJECT self, int level);
+      virtual void mark(Object* t, ObjectMark& mark);
+      virtual void show(STATE, Object* self, int level);
+      virtual void show_simple(STATE, Object* self, int level);
     };
   };
 };

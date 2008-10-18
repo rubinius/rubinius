@@ -29,7 +29,7 @@ class TestSendSite : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    OBJECT sym = state->symbol("blah");
+    Object* sym = state->symbol("blah");
     SendSite* ss = SendSite::create(state, sym);
     TS_ASSERT_EQUALS(ss->name(), sym);
     TS_ASSERT_EQUALS(ss->sender(), Qnil);
@@ -45,7 +45,7 @@ class TestSendSite : public CxxTest::TestSuite {
   }
 
   void test_initialize() {
-    OBJECT sym = state->symbol("blah");
+    Object* sym = state->symbol("blah");
     SendSite* ss = SendSite::create(state, sym);
     CompiledMethod* cm = CompiledMethod::create(state);
     MethodResolver fake = (MethodResolver)Qnil;
@@ -64,7 +64,7 @@ class TestSendSite : public CxxTest::TestSuite {
   }
 
   void test_set_sender() {
-    OBJECT sym = state->symbol("blah");
+    Object* sym = state->symbol("blah");
     SendSite* ss = SendSite::create(state, sym);
     TS_ASSERT_EQUALS(ss->sender(), Qnil);
 
@@ -75,7 +75,7 @@ class TestSendSite : public CxxTest::TestSuite {
 
   void test_mono_inline_cache_locate_failed() {
     Message msg(state);
-    SYMBOL sym = state->symbol("blah");
+    Symbol* sym = state->symbol("blah");
     SendSite* ss = SendSite::create(state, sym);
     Class* meta = G(object)->metaclass(state);
     CompiledMethod* cm = CompiledMethod::create(state);
@@ -100,7 +100,7 @@ class TestSendSite : public CxxTest::TestSuite {
 
   void test_mono_inline_cache_locate_succeeded() {
     Message msg(state);
-    SYMBOL sym = state->symbol("blah");
+    Symbol* sym = state->symbol("blah");
     SendSite* ss = SendSite::create(state, sym);
     Class* meta = G(object)->metaclass(state);
     CompiledMethod* cm = CompiledMethod::create(state);
@@ -131,7 +131,7 @@ class TestSendSite : public CxxTest::TestSuite {
 
   void test_mono_inline_cache_locate_respects_method_missing() {
     Message msg(state);
-    SYMBOL sym = state->symbol("blah");
+    Symbol* sym = state->symbol("blah");
     SendSite* ss = SendSite::create(state, sym);
     Class* meta = G(object)->metaclass(state);
     CompiledMethod* cm = CompiledMethod::create(state);
@@ -163,20 +163,20 @@ class TestSendSite : public CxxTest::TestSuite {
   }
 
   void test_misses_prim() {
-    SYMBOL sym = state->symbol("blah");
+    Symbol* sym = state->symbol("blah");
     SendSite* ss = SendSite::create(state, sym);
 
     ss->misses = 10;
 
-    TS_ASSERT_EQUALS(Fixnum::from(10), (FIXNUM)ss->misses_prim(state));
+    TS_ASSERT_EQUALS(Fixnum::from(10), (Fixnum*)ss->misses_prim(state));
   }
 
   void test_hits_prim() {
-    SYMBOL sym = state->symbol("blah");
+    Symbol* sym = state->symbol("blah");
     SendSite* ss = SendSite::create(state, sym);
 
     ss->hits = 10;
 
-    TS_ASSERT_EQUALS(Fixnum::from(10), (FIXNUM)ss->hits_prim(state));
+    TS_ASSERT_EQUALS(Fixnum::from(10), (Fixnum*)ss->hits_prim(state));
   }
 };

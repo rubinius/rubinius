@@ -2,9 +2,14 @@
 #define RBX_COMPILED_FILE_HPP
 
 #include <string>
+
 #include "prelude.hpp"
 
 namespace rubinius {
+
+  class Object;
+  class VM;
+
   class CompiledFile {
   public:
     std::string magic;
@@ -22,9 +27,10 @@ namespace rubinius {
 
 
     static CompiledFile* load(std::istream& stream);
-    OBJECT body(STATE);
+    Object* body(STATE);
     bool execute(STATE);
   };
+
 }
 
 #endif

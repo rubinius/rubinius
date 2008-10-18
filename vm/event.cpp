@@ -16,6 +16,20 @@
 #include <errno.h>
 #include <ev.h>
 
+#include "vm.hpp"
+#include "objectmemory.hpp"
+
+#include "vm/object_utils.hpp"
+
+#include "builtin/tuple.hpp"
+#include "builtin/integer.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/io.hpp"
+#include "builtin/thread.hpp"
+
+#include "event.hpp"
+
+
 namespace rubinius {
 
   namespace event {
@@ -79,7 +93,7 @@ namespace rubinius {
     }
 
     bool Read::activated() {
-      OBJECT ret;
+      Object* ret;
 
       if(buffer->nil_p()) {
         ret = Integer::from(state, fd);
@@ -144,7 +158,7 @@ namespace rubinius {
       return false;
     }
 
-    Timer::Timer(STATE, ObjectCallback* chan, double seconds, OBJECT obj):
+    Timer::Timer(STATE, ObjectCallback* chan, double seconds, Object* obj):
       Event(state, chan), tag(obj)
     {
       ev_timer_init(&ev, event::tramp<struct ev_timer>, (ev_tstamp)seconds, 0);

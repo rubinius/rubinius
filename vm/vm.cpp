@@ -90,7 +90,7 @@ namespace rubinius {
     activate_thread(thr);
   }
 
-  OBJECT VM::new_object(Class *cls) {
+  Object* VM::new_object(Class *cls) {
     return om->new_object(cls, cls->instance_fields()->to_native());
   }
 
@@ -141,25 +141,25 @@ namespace rubinius {
   }
 
 
-  SYMBOL VM::symbol(const char* str) {
+  Symbol* VM::symbol(const char* str) {
     return symbols.lookup(this, str);
   }
 
-  SYMBOL VM::symbol(String* str) {
+  Symbol* VM::symbol(String* str) {
     return symbols.lookup(this, str);
   }
 
-  SYMBOL VM::symbol(std::string str) {
+  Symbol* VM::symbol(std::string str) {
     return symbols.lookup(this, str);
   }
 
-  OBJECT VM::new_struct(Class* cls, size_t bytes) {
+  Object* VM::new_struct(Class* cls, size_t bytes) {
     Object* obj = om->new_object_bytes(cls, bytes);
     obj->ivars(this, Qnil);
     return obj;
   }
 
-  void type_assert(STATE, OBJECT obj, object_type type, const char* reason) {
+  void type_assert(STATE, Object* obj, object_type type, const char* reason) {
     if((obj->reference_p() && obj->obj_type != type)
         || (type == FixnumType && !obj->fixnum_p())) {
       Exception::type_error(state, type, obj, reason);
@@ -254,7 +254,7 @@ namespace rubinius {
     return true;
   }
 
-  void VM::return_value(OBJECT val) {
+  void VM::return_value(Object* val) {
     globals.current_task->push(val);
   }
 
@@ -287,7 +287,7 @@ namespace rubinius {
     interrupts.check = true;
   }
 
-  OBJECT VM::current_block() {
+  Object* VM::current_block() {
     return globals.current_task->active()->block();
   }
 
@@ -299,11 +299,11 @@ namespace rubinius {
     // TODO: implement me
   }
 
-  void VM::set_const(const char* name, OBJECT val) {
+  void VM::set_const(const char* name, Object* val) {
     globals.object->set_const(this, (char*)name, val);
   }
 
-  void VM::set_const(Module* mod, const char* name, OBJECT val) {
+  void VM::set_const(Module* mod, const char* name, Object* val) {
     mod->set_const(this, (char*)name, val);
   }
 

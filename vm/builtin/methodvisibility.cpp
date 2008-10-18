@@ -10,7 +10,7 @@ namespace rubinius {
     return (MethodVisibility*)state->new_object(G(cmethod_vis));
   }
 
-  void MethodVisibility::Info::show(STATE, OBJECT self, int level) {
+  void MethodVisibility::Info::show(STATE, Object* self, int level) {
     MethodVisibility* mv = as<MethodVisibility>(self);
 
     class_header(state, self);

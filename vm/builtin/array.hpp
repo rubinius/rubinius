@@ -14,10 +14,10 @@ namespace rubinius {
     const static object_type type = ArrayType;
 
   private:
-    INTEGER total_; // slot
+    Integer* total_; // slot
     Tuple* tuple_;  // slot
-    INTEGER start_; // slot
-    OBJECT shared_; // slot
+    Integer* start_; // slot
+    Object* shared_; // slot
 
   public:
     /* accessors */
@@ -36,22 +36,22 @@ namespace rubinius {
     void   setup(STATE, size_t size);
 
     // Ruby.primitive :array_aref
-    OBJECT aref(STATE, Fixnum* idx);
+    Object* aref(STATE, Fixnum* idx);
 
     // Ruby.primitive :array_aset
-    OBJECT aset(STATE, Fixnum* idx, OBJECT val);
+    Object* aset(STATE, Fixnum* idx, Object* val);
 
-    OBJECT get(STATE, size_t idx);
-    OBJECT set(STATE, size_t idx, OBJECT val);
-    void   unshift(STATE, OBJECT val);
-    OBJECT shift(STATE);
-    OBJECT append(STATE, OBJECT val);
-    bool   includes_p(STATE, OBJECT val);
+    Object* get(STATE, size_t idx);
+    Object* set(STATE, size_t idx, Object* val);
+    void   unshift(STATE, Object* val);
+    Object* shift(STATE);
+    Object* append(STATE, Object* val);
+    bool   includes_p(STATE, Object* val);
 
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 };

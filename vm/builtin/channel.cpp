@@ -24,7 +24,7 @@ namespace rubinius {
     return chan;
   }
 
-  OBJECT Channel::send(STATE, OBJECT val) {
+  Object* Channel::send(STATE, Object* val) {
     if(!waiting_->empty_p()) {
       Thread* thr = as<Thread>(waiting_->shift(state));
       thr->set_top(state, val);
@@ -49,7 +49,7 @@ namespace rubinius {
     task->active()->clear_stack(msg.stack);
 
     if(!value_->nil_p()) {
-      OBJECT val = as<List>(value_)->shift(state);
+      Object* val = as<List>(value_)->shift(state);
       task->push(val);
       return cExecuteContinue;
     }
@@ -64,9 +64,9 @@ namespace rubinius {
     return cExecuteRestart;
   }
 
-  OBJECT Channel::receive(STATE) {
+  Object* Channel::receive(STATE) {
     if(!value_->nil_p()) {
-      OBJECT val = as<List>(value_)->shift(state);
+      Object* val = as<List>(value_)->shift(state);
       state->return_value(val);
       return Qnil;
     }
@@ -92,24 +92,24 @@ namespace rubinius {
 
     SendToChannel(STATE, Channel* chan) : ObjectCallback(state), chan(state, chan) { }
 
-    virtual OBJECT object() {
+    virtual Object* object() {
       return chan.get();
     }
 
-    virtual void call(OBJECT obj) {
+    virtual void call(Object* obj) {
       chan->send(state, obj);
     }
   };
 
-  OBJECT Channel::send_on_signal(STATE, Channel* chan, FIXNUM signal) {
+  Object* Channel::send_on_signal(STATE, Channel* chan, Fixnum* signal) {
     SendToChannel* cb = new SendToChannel(state, chan);
     event::Signal* sig = new event::Signal(state, cb, signal->to_native());
     state->signal_events->start(sig);
     return signal;
   }
 
-  OBJECT Channel::send_on_readable(STATE, Channel* chan, IO* io,
-      IOBuffer* buffer, FIXNUM bytes) {
+  Object* Channel::send_on_readable(STATE, Channel* chan, IO* io,
+      IOBuffer* buffer, Fixnum* bytes) {
 
     SendToChannel* cb = new SendToChannel(state, chan);
     event::Read* sig = new event::Read(state, cb, io->to_fd());
@@ -119,17 +119,17 @@ namespace rubinius {
     return io;
   }
 
-  OBJECT Channel::send_in_microseconds(STATE, Channel* chan, Integer* useconds, OBJECT tag) {
+  Object* Channel::send_in_microseconds(STATE, Channel* chan, Integer* useconds, Object* tag) {
     double seconds = useconds->to_native() / 1000000.0;
 
     return send_in_seconds(state, chan, seconds, tag);
   }
 
-  OBJECT Channel::send_in_seconds(STATE, Channel* chan, Float* seconds, OBJECT tag) {
+  Object* Channel::send_in_seconds(STATE, Channel* chan, Float* seconds, Object* tag) {
     return send_in_seconds(state, chan, seconds->to_double(state), tag);
   }
 
-  OBJECT Channel::send_in_seconds(STATE, Channel* chan, double seconds, OBJECT tag) {
+  Object* Channel::send_in_seconds(STATE, Channel* chan, double seconds, Object* tag) {
     SendToChannel* cb = new SendToChannel(state, chan);
     event::Timer* sig = new event::Timer(state, cb, seconds, tag);
     state->events->start(sig);
@@ -155,7 +155,7 @@ namespace rubinius {
     channel.set(chan, &GO(roots));
   }
 
-  void ChannelCallback::call(OBJECT obj) {
+  void ChannelCallback::call(Object* obj) {
     channel->send(state, obj);
   }
 }

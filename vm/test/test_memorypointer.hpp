@@ -131,7 +131,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_at_offset() {
     char one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_at_offset(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR));
+    Object* obj = ptr->get_at_offset(state, Fixnum::from(0), Fixnum::from(RBX_FFI_TYPE_CHAR));
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -139,7 +139,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_at_offset() {
     char buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -151,7 +151,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_char() {
     char one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_CHAR);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_CHAR);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -160,7 +160,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_uchar() {
     unsigned char one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_UCHAR);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_UCHAR);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -169,7 +169,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_short() {
     short one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_SHORT);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_SHORT);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -178,7 +178,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_ushort() {
     unsigned short one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_USHORT);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_USHORT);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -187,7 +187,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_int() {
     int one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_INT);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_INT);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -196,7 +196,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_uint() {
     unsigned int one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_UINT);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_UINT);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -205,7 +205,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_long() {
     long one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_LONG);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_LONG);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -214,7 +214,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_ulong() {
     unsigned long one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_ULONG);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_ULONG);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -223,7 +223,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_float() {
     float one = 1.0;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_FLOAT);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_FLOAT);
 
     TS_ASSERT(obj->check_type(FloatType));
     TS_ASSERT_EQUALS(as<Float>(obj)->to_double(state), 1.0);
@@ -232,7 +232,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_double() {
     double one = 1.0;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_DOUBLE);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_DOUBLE);
 
     TS_ASSERT(obj->check_type(FloatType));
     TS_ASSERT_EQUALS(as<Float>(obj)->to_double(state), 1.0);
@@ -241,7 +241,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_ll() {
     long long one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_LONG_LONG);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_LONG_LONG);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
@@ -250,17 +250,17 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_ull() {
     unsigned long long one = 1;
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_ULONG_LONG);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_ULONG_LONG);
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
 
   void test_get_field_object() {
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     MemoryPointer* ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_OBJECT);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_OBJECT);
 
     TS_ASSERT_EQUALS(one, obj);
   }
@@ -271,7 +271,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, &val);
 
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_PTR);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_PTR);
     TS_ASSERT(obj->check_type(MemoryPointerType));
 
     TS_ASSERT_EQUALS(as<MemoryPointer>(obj)->pointer, val);
@@ -282,7 +282,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, &val);
 
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_PTR);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_PTR);
     TS_ASSERT(obj->nil_p());
   }
 
@@ -291,7 +291,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, &str);
 
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRING);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRING);
     TS_ASSERT(obj->check_type(StringType));
 
     String* so = as<String>(obj);
@@ -304,7 +304,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, &str);
 
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRING);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRING);
     TS_ASSERT(obj->nil_p());
   }
 
@@ -313,7 +313,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, &str);
 
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRPTR);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRPTR);
     TS_ASSERT(obj->check_type(ArrayType));
 
     Array* ary = as<Array>(obj);
@@ -333,7 +333,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, &str);
 
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRPTR);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_STRPTR);
     TS_ASSERT(obj->check_type(ArrayType));
 
     Array* ary = as<Array>(obj);
@@ -347,13 +347,13 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     char *str = NULL;
     MemoryPointer* ptr = MemoryPointer::create(state, &str);
 
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_VOID);
+    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_VOID);
     TS_ASSERT(obj->nil_p());
   }
 
   void test_set_field_char() {
     char buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -364,7 +364,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_uchar() {
     unsigned char buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -375,7 +375,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_short() {
     short buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -386,7 +386,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_ushort() {
     unsigned short buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -397,7 +397,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_int() {
     int buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -408,7 +408,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_int_bignum() {
     int buffer[1024];
-    OBJECT one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (native_int)1);
 
     buffer[0] = 0;
 
@@ -419,7 +419,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_uint() {
     unsigned int buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -430,7 +430,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_uint_bignum() {
     unsigned int buffer[1024];
-    OBJECT one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (native_int)1);
 
     buffer[0] = 0;
 
@@ -441,7 +441,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_long() {
     long buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -452,7 +452,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_long_bignum() {
     long buffer[1024];
-    OBJECT one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (native_int)1);
 
     buffer[0] = 0;
 
@@ -463,7 +463,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_ulong() {
     unsigned long buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -474,7 +474,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_ulong_bignum() {
     unsigned long buffer[1024];
-    OBJECT one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (native_int)1);
 
     buffer[0] = 0;
 
@@ -485,7 +485,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_float() {
     float buffer[1024];
-    OBJECT one = Float::create(state, 1.0);
+    Object* one = Float::create(state, 1.0);
 
     buffer[0] = 0.0;
 
@@ -496,7 +496,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_double() {
     double buffer[1024];
-    OBJECT one = Float::create(state, 1.0);
+    Object* one = Float::create(state, 1.0);
 
     buffer[0] = 0.0;
 
@@ -507,7 +507,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_ll() {
     long long buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -518,7 +518,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_ll_bignum() {
     long long buffer[1024];
-    OBJECT one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (native_int)1);
 
     buffer[0] = 0;
 
@@ -529,7 +529,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_ull() {
     unsigned long long buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -540,7 +540,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_ull_bignum() {
     unsigned long long buffer[1024];
-    OBJECT one = Bignum::from(state, (native_int)1);
+    Object* one = Bignum::from(state, (native_int)1);
 
     buffer[0] = 0;
 
@@ -550,8 +550,8 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   }
 
   void test_set_field_object() {
-    OBJECT buffer[1024];
-    OBJECT one = Fixnum::from(1);
+    Object* buffer[1024];
+    Object* one = Fixnum::from(1);
 
     buffer[0] = Qnil;
 
@@ -563,7 +563,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_set_field_ptr() {
     void* buffer[1024];
     int val = 3;
-    OBJECT one = MemoryPointer::create(state, &val);
+    Object* one = MemoryPointer::create(state, &val);
 
     buffer[0] = NULL;
 

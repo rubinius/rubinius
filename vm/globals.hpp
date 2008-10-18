@@ -38,6 +38,8 @@ namespace rubinius {
   class Thread;
   class Task;
   class Class;
+  class Symbol;
+
 
   struct Globals {
 
@@ -59,11 +61,11 @@ namespace rubinius {
     TypedRoot<Class*> cmethod_vis, included_module;
 
     /* the primary symbol table */
-    TypedRoot<SYMBOL> sym_method_missing;
-    TypedRoot<SYMBOL> sym_inherited, sym_opened_class;
-    TypedRoot<SYMBOL> sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
-    TypedRoot<SYMBOL> sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
-    TypedRoot<SYMBOL> sym_initialize;
+    TypedRoot<Symbol*> sym_method_missing;
+    TypedRoot<Symbol*> sym_inherited, sym_opened_class;
+    TypedRoot<Symbol*> sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
+    TypedRoot<Symbol*> sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
+    TypedRoot<Symbol*> sym_initialize;
 
     TypedRoot<Class*> exception;
     TypedRoot<Class*> exc_arg, exc_segfault;
@@ -75,16 +77,16 @@ namespace rubinius {
     TypedRoot<Tuple*> scheduled_threads;
     TypedRoot<LookupTable*> errno_mapping;
     TypedRoot<LookupTable*> selectors;
-    TypedRoot<OBJECT> config;
-    TypedRoot<SYMBOL> sym_send;
-    TypedRoot<SYMBOL> sym_public, sym_private, sym_protected, sym_const_missing;
-    TypedRoot<SYMBOL> sym_object_id, sym_call;
-    TypedRoot<OBJECT> top_scope, on_gc_channel;
+    TypedRoot<Object*> config;
+    TypedRoot<Symbol*> sym_send;
+    TypedRoot<Symbol*> sym_public, sym_private, sym_protected, sym_const_missing;
+    TypedRoot<Symbol*> sym_object_id, sym_call;
+    TypedRoot<Object*> top_scope, on_gc_channel;
 
     TypedRoot<Module*> vm;
     TypedRoot<Thread*> current_thread;
     TypedRoot<Task*> current_task;
-    TypedRoot<OBJECT> main;
+    TypedRoot<Object*> main;
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
     TypedRoot<Class*> access_variable;

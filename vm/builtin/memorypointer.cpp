@@ -54,13 +54,13 @@ namespace rubinius {
     return MemoryPointer::create(state, (char*)pointer + amount->to_native());
   }
 
-  OBJECT MemoryPointer::set_autorelease(STATE, OBJECT val) {
+  Object* MemoryPointer::set_autorelease(STATE, Object* val) {
     autorelease = val->true_p() ? true : false;
 
     return val;
   }
 
-  String* MemoryPointer::read_string(STATE, FIXNUM len) {
+  String* MemoryPointer::read_string(STATE, Fixnum* len) {
     // HM. This is pretty dangerous. Should we figure out how to
     // protect this?
     return String::create(state, (char*)pointer, len->to_native());
@@ -73,7 +73,7 @@ namespace rubinius {
     return String::create(state, (char*)pointer);
   }
 
-  MemoryPointer* MemoryPointer::write_string(STATE, String* str, FIXNUM len) {
+  MemoryPointer* MemoryPointer::write_string(STATE, String* str, Fixnum* len) {
     memcpy(pointer, (void*)str->byte_address(), len->to_native());
     return this;
   }
@@ -109,12 +109,12 @@ namespace rubinius {
     return MemoryPointer::create(state, *(void**)pointer);
   }
 
-  OBJECT MemoryPointer::get_at_offset(STATE, FIXNUM offset, FIXNUM type) {
+  Object* MemoryPointer::get_at_offset(STATE, Fixnum* offset, Fixnum* type) {
     return get_field(state, offset->to_native(), type->to_native());
   }
 
-  OBJECT MemoryPointer::get_field(STATE, int offset, int type) {
-    OBJECT ret;
+  Object* MemoryPointer::get_field(STATE, int offset, int type) {
+    Object* ret;
     char* ptr = (char*)pointer;
 
     ptr += offset;
@@ -159,7 +159,7 @@ namespace rubinius {
       ret = Integer::from(state, READ(unsigned long long));
       break;
     case RBX_FFI_TYPE_OBJECT:
-      ret = READ(OBJECT);
+      ret = READ(Object*);
       break;
     case RBX_FFI_TYPE_PTR: {
       void *lptr = READ(void*);
@@ -181,7 +181,8 @@ namespace rubinius {
     }
     case RBX_FFI_TYPE_STRPTR: {
       char* result;
-      OBJECT s, p;
+      Object* s;
+      Object* p;
 
       result = READ(char*);
 
@@ -207,12 +208,12 @@ namespace rubinius {
     return ret;
   }
 
-  OBJECT MemoryPointer::set_at_offset(STATE, FIXNUM offset, FIXNUM type, OBJECT val) {
+  Object* MemoryPointer::set_at_offset(STATE, Fixnum* offset, Fixnum* type, Object* val) {
     set_field(state, offset->to_native(), type->to_native(), val);
     return val;
   }
 
-  void MemoryPointer::set_field(STATE, int offset, int type, OBJECT val) {
+  void MemoryPointer::set_field(STATE, int offset, int type, Object* val) {
     char* ptr = (char*)pointer;
 
     ptr += offset;
@@ -297,7 +298,7 @@ namespace rubinius {
       }
       break;
     case RBX_FFI_TYPE_OBJECT:
-      WRITE(OBJECT, val);
+      WRITE(Object*, val);
       break;
     case RBX_FFI_TYPE_PTR:
       if(NIL_P(val)) {
@@ -328,7 +329,7 @@ namespace rubinius {
     }
   }
 
-  void MemoryPointer::Info::mark(OBJECT obj, ObjectMark& mark) {
+  void MemoryPointer::Info::mark(Object* obj, ObjectMark& mark) {
     // TODO: implement
   }
 }

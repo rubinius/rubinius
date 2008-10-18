@@ -27,14 +27,14 @@ class TestException : public CxxTest::TestSuite {
 
   void test_type_error_raise() {
     object_type type = ClassType;
-    OBJECT obj = G(object);
+    Object* obj = G(object);
 
     TS_ASSERT_THROWS(TypeError::raise(type, obj, "failed"), const TypeError &);
   }
 
   void test_type_error_raise_without_reason() {
     object_type type = ClassType;
-    OBJECT obj = G(object);
+    Object* obj = G(object);
 
     TS_ASSERT_THROWS(TypeError::raise(type, obj), const TypeError &);
   }
@@ -54,7 +54,7 @@ class TestException : public CxxTest::TestSuite {
 
   void test_make_type_error() {
     object_type type = ClassType;
-    OBJECT obj = G(object);
+    Object* obj = G(object);
 
     TS_ASSERT(Exception::type_error_p(state,
           Exception::make_type_error(state, type, obj)));
@@ -62,7 +62,7 @@ class TestException : public CxxTest::TestSuite {
 
   void test_ruby_exception_type_error() {
     object_type type = ClassType;
-    OBJECT obj = G(object);
+    Object* obj = G(object);
 
     TS_ASSERT_THROWS_ASSERT(Exception::type_error(state, type, obj),
         const RubyException &e,

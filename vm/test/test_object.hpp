@@ -25,21 +25,21 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_kind_of() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
     TS_ASSERT(kind_of<Object>(obj));
     TS_ASSERT(kind_of<Object>(Fixnum::from(1)));
     TS_ASSERT(kind_of<Object>(String::create(state, "blah")));
   }
 
   void test_instance_of() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
     TS_ASSERT(instance_of<Object>(obj));
     TS_ASSERT(!instance_of<Object>(Fixnum::from(1)));
     TS_ASSERT(!instance_of<Object>(String::create(state, "blah")));
   }
 
   void test_as() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
     Fixnum* fix = Fixnum::from(1);
 
     Object* nil = Qnil;
@@ -58,7 +58,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_try_as() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
     Fixnum* fix = Fixnum::from(1);
 
     Object* nil = Qnil;
@@ -146,7 +146,7 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Float::create(state, 15.0)->hash(state), Float::create(state, 15.0)->hash(state));
     TS_ASSERT(Float::create(state, 15.0)->hash(state) > 0);
 
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
     TS_ASSERT_EQUALS(obj->hash(state), obj->hash(state));
     TS_ASSERT(obj->hash(state) > 0);
 
@@ -177,8 +177,8 @@ class TestObject : public CxxTest::TestSuite {
 
   void test_set_ivar() {
     size_t size = COMPACTLOOKUPTABLE_SIZE / 2 + 2;
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
-    SYMBOL sym;
+    Object* obj = state->om->new_object(G(object), Object::fields);
+    Symbol* sym;
 
     for(size_t i = 0; i < size; i++) {
       std::stringstream name;
@@ -193,8 +193,8 @@ class TestObject : public CxxTest::TestSuite {
 
   void test_set_ivar_on_immediate() {
     size_t size = COMPACTLOOKUPTABLE_SIZE / 2 + 2;
-    OBJECT obj = Fixnum::from(-10);
-    SYMBOL sym;
+    Object* obj = Fixnum::from(-10);
+    Symbol* sym;
 
     for(size_t i = 0; i < size; i++) {
       std::stringstream name;
@@ -208,9 +208,9 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_get_ivar() {
-    SYMBOL sym = state->symbol("@test");
-    OBJECT val = Fixnum::from(33);
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Symbol* sym = state->symbol("@test");
+    Object* val = Fixnum::from(33);
+    Object* obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, state->symbol("@non_existent")));
     TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, sym));
@@ -221,9 +221,9 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_get_ivar_on_immediate() {
-    SYMBOL sym = state->symbol("@test");
-    OBJECT val = Fixnum::from(33);
-    OBJECT obj = Fixnum::from(-10);
+    Symbol* sym = state->symbol("@test");
+    Object* val = Fixnum::from(33);
+    Object* obj = Fixnum::from(-10);
 
     TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, state->symbol("@non_existent")));
     TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, sym));
@@ -234,12 +234,12 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_get_ivars() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
 
-    SYMBOL sym1 = state->symbol("@test1");
-    SYMBOL sym2 = state->symbol("@test2");
-    FIXNUM one = Fixnum::from(1);
-    FIXNUM two = Fixnum::from(2);
+    Symbol* sym1 = state->symbol("@test1");
+    Symbol* sym2 = state->symbol("@test2");
+    Fixnum* one = Fixnum::from(1);
+    Fixnum* two = Fixnum::from(2);
     obj->set_ivar(state, sym1, one);
     obj->set_ivar(state, sym2, two);
 
@@ -253,8 +253,8 @@ class TestObject : public CxxTest::TestSuite {
     Tuple* t1 = Tuple::create(state, 2);
     Tuple* t2 = Tuple::create(state, 2);
 
-    INTEGER id1 = t1->id(state);
-    INTEGER id2 = t2->id(state);
+    Integer* id1 = t1->id(state);
+    Integer* id2 = t2->id(state);
 
     TS_ASSERT(id1->to_native() > 0);
     TS_ASSERT(id2->to_native() > 0);
@@ -263,16 +263,16 @@ class TestObject : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(id1, t1->id(state));
 
-    INTEGER id3 = Fixnum::from(33)->id(state);
+    Integer* id3 = Fixnum::from(33)->id(state);
     TS_ASSERT_DIFFERS(id3, id1);
 
-    INTEGER id4 = Fixnum::from(33)->id(state);
+    Integer* id4 = Fixnum::from(33)->id(state);
     TS_ASSERT_EQUALS(id3, id4);
     TS_ASSERT(id4->to_native() % 2 != 0);
   }
 
   void test_tainted_p() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
     obj->IsTainted = TRUE;
@@ -280,7 +280,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_taint() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT(!obj->IsTainted);
     obj->taint();
@@ -288,7 +288,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_untaint() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
 
     obj->IsTainted = TRUE;
     TS_ASSERT(obj->IsTainted);
@@ -297,7 +297,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_frozen_p() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT_EQUALS(obj->frozen_p(), Qfalse);
     obj->IsFrozen = TRUE;
@@ -305,7 +305,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_freeze() {
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT(!obj->IsFrozen);
     obj->freeze();
@@ -339,7 +339,7 @@ class TestObject : public CxxTest::TestSuite {
   void test_object_class_with_superclass_chain() {
     Module* mod = Module::create(state);
     Class* cls = Class::create(state, G(object));
-    OBJECT obj = state->om->new_object(cls, 0);
+    Object* obj = state->om->new_object(cls, 0);
 
     /* This should be functionally correct but not actually the
      * way a superclass chain is implemented. However, it doesn't
@@ -510,7 +510,7 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Qtrue->get_type(), TrueType);
     TS_ASSERT_EQUALS(Qfalse->get_type(), FalseType);
     TS_ASSERT_EQUALS(state->symbol("blah")->get_type(), SymbolType);
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
     Bignum* big = Bignum::from(state, (native_int)13);
     TS_ASSERT_EQUALS(obj->get_type(), ObjectType);
     TS_ASSERT_EQUALS(big->get_type(), BignumType);

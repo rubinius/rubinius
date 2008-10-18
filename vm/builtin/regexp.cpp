@@ -26,7 +26,7 @@
 
 namespace rubinius {
 
-  void Regexp::Info::cleanup(OBJECT regexp) {
+  void Regexp::Info::cleanup(Object* regexp) {
     onig_free(as<Regexp>(regexp)->onig_data);
     as<Regexp>(regexp)->onig_data = NULL;
   }
@@ -110,8 +110,8 @@ namespace rubinius {
   /*
    * This is a primitive so #initialize_copy can work.
    */
-  Regexp* Regexp::initialize(STATE, String* pattern, INTEGER options,
-                             OBJECT lang) {
+  Regexp* Regexp::initialize(STATE, String* pattern, Integer* options,
+                             Object* lang) {
     const UChar *pat;
     const UChar *end;
     OnigErrorInfo err_info;
@@ -157,13 +157,13 @@ namespace rubinius {
   }
 
   // 'self' is passed in automatically by the primitive glue
-  Regexp* Regexp::allocate(STATE, OBJECT self) {
+  Regexp* Regexp::allocate(STATE, Object* self) {
     Regexp* re = Regexp::create(state);
     re->klass(state, (Class*)self);
     return re;
   }
 
-  OBJECT Regexp::options(STATE) {
+  Object* Regexp::options(STATE) {
     OnigEncoding   enc;
     OnigOptionType option;
     regex_t*       reg;
@@ -175,7 +175,7 @@ namespace rubinius {
     return Integer::from(state, ((int)(option & OPTION_MASK) | get_kcode_from_enc(enc)));
   }
 
-  static OBJECT _md_region_to_tuple(STATE, OnigRegion *region, int max) {
+  static Object* _md_region_to_tuple(STATE, OnigRegion *region, int max) {
     int i;
     Tuple* sub;
     Tuple* tup = Tuple::create(state, region->num_regs - 1);
@@ -188,7 +188,7 @@ namespace rubinius {
     return tup;
   }
 
-  static OBJECT get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int max) {
+  static Object* get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int max) {
     MatchData* md = (MatchData*)state->om->new_object(G(matchdata), MatchData::fields);
     md->source(state, string->string_dup(state));
     md->regexp(state, regexp);
@@ -201,11 +201,11 @@ namespace rubinius {
     return md;
   }
 
-  OBJECT Regexp::match_region(STATE, String* string, INTEGER start, INTEGER end, OBJECT forward) {
+  Object* Regexp::match_region(STATE, String* string, Integer* start, Integer* end, Object* forward) {
     int beg, max;
     const UChar *str;
     OnigRegion *region;
-    OBJECT md;
+    Object* md;
 
     region = onig_region_new();
 
@@ -228,11 +228,11 @@ namespace rubinius {
     return md;
   }
 
-  OBJECT Regexp::match_start(STATE, String* string, INTEGER start) {
+  Object* Regexp::match_start(STATE, String* string, Integer* start) {
     int beg, max;
     const UChar *str;
     OnigRegion *region;
-    OBJECT md = Qnil;
+    Object* md = Qnil;
 
     region = onig_region_new();
 

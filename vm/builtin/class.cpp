@@ -17,7 +17,7 @@ namespace rubinius {
   Class* Class::create(STATE, Class* super) {
     Class* cls = (Class*)state->new_object(G(klass));
 
-    cls->name(state, (SYMBOL)Qnil);
+    cls->name(state, (Symbol*)Qnil);
     cls->instance_fields(state, super->instance_fields());
     cls->instance_type(state, super->instance_type());
     cls->superclass(state, super);
@@ -33,11 +33,11 @@ namespace rubinius {
     return as<Class>(state->new_object(G(klass)));
   }
 
-  OBJECT Class::allocate(STATE) {
+  Object* Class::allocate(STATE) {
     return state->new_object(this);
   }
 
-  MetaClass* MetaClass::attach(STATE, OBJECT obj, OBJECT sup) {
+  MetaClass* MetaClass::attach(STATE, Object* obj, Object* sup) {
     MetaClass *meta;
 
     meta = (MetaClass*)state->new_object(G(metaclass));
@@ -51,7 +51,7 @@ namespace rubinius {
     return meta;
   }
 
-  void MetaClass::Info::show(STATE, OBJECT self, int level) {
+  void MetaClass::Info::show(STATE, Object* self, int level) {
     MetaClass* cls = as<MetaClass>(self);
     Module* mod = try_as<Module>(cls->attached_instance());
 

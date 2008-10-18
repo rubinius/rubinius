@@ -49,7 +49,7 @@ namespace rubinius {
   }
 
 
-  void Object::copy_flags(STATE, OBJECT source) {
+  void Object::copy_flags(STATE, Object* source) {
     this->obj_type        = source->obj_type;
     this->StoresBytes     = source->StoresBytes;
     this->RequiresCleanup = source->RequiresCleanup;
@@ -94,18 +94,18 @@ namespace rubinius {
     return other;
   }
 
-  OBJECT Object::equal(STATE, OBJECT other) {
+  Object* Object::equal(STATE, Object* other) {
     return this == other ? Qtrue : Qfalse;
   }
 
-  OBJECT Object::freeze() {
+  Object* Object::freeze() {
     if(reference_p()) {
       this->IsFrozen = TRUE;
     }
     return this;
   }
 
-  OBJECT Object::frozen_p() {
+  Object* Object::frozen_p() {
     if(reference_p() && this->IsFrozen) {
       return Qtrue;
     } else {
@@ -113,11 +113,11 @@ namespace rubinius {
     }
   }
 
-  OBJECT Object::get_field(STATE, size_t index) {
+  Object* Object::get_field(STATE, size_t index) {
     return type_info(state)->get_field(state, this, index);
   }
 
-  OBJECT Object::get_ivar(STATE, SYMBOL sym) {
+  Object* Object::get_ivar(STATE, Symbol* sym) {
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {
@@ -146,7 +146,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  OBJECT Object::get_ivars(STATE) {
+  Object* Object::get_ivars(STATE) {
     return ivars_;
   }
 
@@ -189,13 +189,13 @@ namespace rubinius {
     return hsh;
   }
 
-  INTEGER Object::hash_prim(STATE) {
+  Integer* Object::hash_prim(STATE) {
     return Integer::from(state, hash(state));
   }
 
-  INTEGER Object::id(STATE) {
+  Integer* Object::id(STATE) {
     if(reference_p()) {
-      OBJECT id;
+      Object* id;
 
       Class* meta = metaclass(state);
       id =   meta->get_ivar(state, G(sym_object_id));
@@ -222,24 +222,24 @@ namespace rubinius {
     clear_body_to_null();
   }
 
-  bool Object::kind_of_p(STATE, OBJECT module) {
+  bool Object::kind_of_p(STATE, Object* module) {
     Module* found = class_object(state);
-    if(found == cls) return true;
+    if(found == module) return true;
 
     for(;;) {
       found = try_as<Module>(found->superclass());
       if(!found) return false;
-      if(found == cls) return true;
+      if(found == module) return true;
 
       if(IncludedModule* im = try_as<IncludedModule>(found)) {
-        if(im->module() == cls) return true;
+        if(im->module() == module) return true;
       }
     }
 
     return false;
   }
 
-  OBJECT Object::kind_of_prim(STATE, Module* klass) {
+  Object* Object::kind_of_prim(STATE, Module* klass) {
     return kind_of_p(state, klass) ? Qtrue : Qfalse;
   }
 
@@ -254,7 +254,7 @@ namespace rubinius {
     return class_object(state);
   }
 
-  bool Object::send(STATE, SYMBOL name, size_t count_args, ...) {
+  bool Object::send(STATE, Symbol* name, size_t count_args, ...) {
     va_list va;
     Array* args = Array::create(state, count_args);
 
@@ -262,14 +262,14 @@ namespace rubinius {
     // arguments passed in.
     va_start(va, count_args);
     for(size_t i = 0; i < count_args; i++) {
-      args->set(state, i, va_arg(va, OBJECT));
+      args->set(state, i, va_arg(va, Object*));
     }
     va_end(va);
 
     return send_on_task(state, G(current_task), name, args);
   }
 
-  bool Object::send_on_task(STATE, Task* task, SYMBOL name, Array* args) {
+  bool Object::send_on_task(STATE, Task* task, Symbol* name, Array* args) {
     Message msg(state);
     msg.name = name;
     msg.recv = this;
@@ -282,17 +282,17 @@ namespace rubinius {
   }
 
   ExecuteStatus Object::send_prim(STATE, Executable* exec, Task* task, Message& msg) {
-    SYMBOL meth = as<Symbol>(msg.shift_argument(state));
+    Symbol* meth = as<Symbol>(msg.shift_argument(state));
     msg.name = meth;
     msg.priv = true;
     return task->send_message_slowly(msg);
   }
 
-  void Object::set_field(STATE, size_t index, OBJECT val) {
+  void Object::set_field(STATE, size_t index, Object* val) {
     type_info(state)->set_field(state, this, index, val);
   }
 
-  void Object::set_forward(STATE, OBJECT fwd) {
+  void Object::set_forward(STATE, Object* fwd) {
     assert(zone == YoungObjectZone);
     Forwarded = 1;
     // DO NOT USE klass() because we need to get around the
@@ -300,7 +300,7 @@ namespace rubinius {
     klass_ = (Class*)fwd;
   }
 
-  OBJECT Object::set_ivar(STATE, SYMBOL sym, OBJECT val) {
+  Object* Object::set_ivar(STATE, Symbol* sym, Object* val) {
     LookupTable* tbl;
 
     /* Implements the external ivars table for objects that don't
@@ -347,32 +347,32 @@ namespace rubinius {
     return val;
   }
 
-  OBJECT Object::show(STATE) {
+  Object* Object::show(STATE) {
     return this->show(state, 0);
   }
 
-  OBJECT Object::show(STATE, int level) {
+  Object* Object::show(STATE, int level) {
     type_info(state)->show(state, this, level);
     return Qnil;
   }
 
-  OBJECT Object::show_simple(STATE) {
+  Object* Object::show_simple(STATE) {
     return this->show_simple(state, 0);
   }
 
-  OBJECT Object::show_simple(STATE, int level) {
+  Object* Object::show_simple(STATE, int level) {
     type_info(state)->show_simple(state, this, level);
     return Qnil;
   }
 
-  OBJECT Object::taint() {
+  Object* Object::taint() {
     if(reference_p()) {
       this->IsTainted = TRUE;
     }
     return this;
   }
 
-  OBJECT Object::tainted_p() {
+  Object* Object::tainted_p() {
     if(reference_p() && this->IsTainted) {
       return Qtrue;
     } else {
@@ -384,7 +384,7 @@ namespace rubinius {
     return state->om->type_info[get_type()];
   }
 
-  OBJECT Object::untaint() {
+  Object* Object::untaint() {
     if(reference_p()) {
       this->IsTainted = FALSE;
     }
@@ -397,7 +397,7 @@ namespace rubinius {
    *  figure out if you can properly pass an object (the superclass
    *  has to be known).
    *
-   *  If we have OBJECT obj here, then we either have to cast to call
+   *  If we have Object* obj here, then we either have to cast to call
    *  write_barrier (which means we lose the ability to have type specific
    *  write_barrier versions, which we do), or we have to include
    *  every header up front. We opt for the former.

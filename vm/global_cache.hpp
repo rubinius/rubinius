@@ -15,7 +15,7 @@ namespace rubinius {
   public:
     struct cache_entry {
       Module* klass;
-      SYMBOL name;
+      Symbol* name;
       Module* module;
       Executable* method;
       bool is_public;
@@ -28,7 +28,7 @@ namespace rubinius {
       clear();
     }
 
-    struct cache_entry* lookup(Module* cls, SYMBOL name) {
+    struct cache_entry* lookup(Module* cls, Symbol* name) {
       struct cache_entry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
@@ -50,7 +50,7 @@ namespace rubinius {
       }
     }
 
-    void clear(SYMBOL name) {
+    void clear(Symbol* name) {
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
         if(entries[i].name == name) {
           entries[i].klass = NULL;
@@ -62,7 +62,7 @@ namespace rubinius {
       }
     }
 
-    void clear(Module* cls, SYMBOL name) {
+    void clear(Module* cls, Symbol* name) {
       struct cache_entry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);
@@ -75,7 +75,7 @@ namespace rubinius {
       }
     }
 
-    void retain(STATE, Module* cls, SYMBOL name, Module* mod, Executable* meth, bool missing) {
+    void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth, bool missing) {
       struct cache_entry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);

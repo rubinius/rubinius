@@ -26,7 +26,7 @@ class TestByteArray : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(0U, ByteArray::fields);
   }
   void test_create() {
-    size_t mag = sizeof(OBJECT);
+    size_t mag = sizeof(Object*);
     ByteArray* b;
 
     for(size_t i = 0; i <= mag; i++) {
@@ -112,11 +112,11 @@ class TestByteArray : public CxxTest::TestSuite {
   void test_move_bytes_out_of_bounds() {
     ByteArray* b = String::create(state, "xyzzy")->data();
 
-    INTEGER neg = Fixnum::from(-1);
-    INTEGER one = Fixnum::from(1);
-    INTEGER zero = Fixnum::from(0);
-    INTEGER size = b->size(state);
-    INTEGER size1 = Fixnum::from(b->size(state)->to_native()+1);
+    Integer* neg = Fixnum::from(-1);
+    Integer* one = Fixnum::from(1);
+    Integer* zero = Fixnum::from(0);
+    Integer* size = b->size(state);
+    Integer* size1 = Fixnum::from(b->size(state)->to_native()+1);
 
     TS_ASSERT_THROWS_ASSERT(b->move_bytes(state, neg, zero, zero), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
@@ -143,11 +143,11 @@ class TestByteArray : public CxxTest::TestSuite {
   void test_fetch_bytes_out_of_bounds() {
     ByteArray* b = String::create(state, "xyzzy")->data();
 
-    INTEGER neg = Fixnum::from(-1);
-    INTEGER zero = Fixnum::from(0);
-    INTEGER one = Fixnum::from(1);
-    INTEGER size = b->size(state);
-    INTEGER size1 = Fixnum::from(b->size(state)->to_native()+1);
+    Integer* neg = Fixnum::from(-1);
+    Integer* zero = Fixnum::from(0);
+    Integer* one = Fixnum::from(1);
+    Integer* size = b->size(state);
+    Integer* size1 = Fixnum::from(b->size(state)->to_native()+1);
 
     TS_ASSERT_THROWS_ASSERT(b->fetch_bytes(state, neg, zero), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
@@ -164,10 +164,10 @@ class TestByteArray : public CxxTest::TestSuite {
     ByteArray* a = String::create(state, "xyZzyx")->data();
     ByteArray* b = String::create(state, "xyzzyx")->data();
 
-    INTEGER two = Fixnum::from(2);
-    INTEGER three = Fixnum::from(3);
-    INTEGER size = Fixnum::from(8);
-    INTEGER size1 = Fixnum::from(9);
+    Integer* two = Fixnum::from(2);
+    Integer* three = Fixnum::from(3);
+    Integer* size = Fixnum::from(8);
+    Integer* size1 = Fixnum::from(9);
 
     TS_ASSERT_EQUALS(a->size(state)->to_native(), 8);
     TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
@@ -184,8 +184,8 @@ class TestByteArray : public CxxTest::TestSuite {
     ByteArray* a = String::create(state, "xyZzy")->data();
     ByteArray* b = String::create(state, "xyzzy")->data();
 
-    INTEGER zero = Fixnum::from(0);
-    INTEGER neg = Fixnum::from(-1);
+    Integer* zero = Fixnum::from(0);
+    Integer* neg = Fixnum::from(-1);
 
     TS_ASSERT_THROWS_ASSERT(a->compare_bytes(state, b, neg, zero), const RubyException &e,
         TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
@@ -215,18 +215,18 @@ class TestByteArray : public CxxTest::TestSuite {
 
   void test_locate() {
     ByteArray* a = String::create(state, "xyZfoo\nzyx")->data();
-    INTEGER zero = Integer::from(state, 0);
-    INTEGER three = Integer::from(state, 3);
-    FIXNUM seven = Fixnum::from(7);
+    Integer* zero = Integer::from(state, 0);
+    Integer* three = Integer::from(state, 3);
+    Fixnum* seven = Fixnum::from(7);
 
     String* foo_nl = String::create(state, "foo\n");
 
     TS_ASSERT_EQUALS(three, a->locate(state, String::create(state, ""), three));
     TS_ASSERT_EQUALS(Qnil, a->locate(state, String::create(state, "\n\n"), zero));
-    TS_ASSERT_EQUALS(seven, (FIXNUM)a->locate(state, String::create(state, "\n"), zero));
+    TS_ASSERT_EQUALS(seven, (Fixnum*)a->locate(state, String::create(state, "\n"), zero));
     TS_ASSERT_EQUALS(Qnil, a->locate(state, foo_nl, Integer::from(state, 4)));
-    TS_ASSERT_EQUALS(seven, (FIXNUM)a->locate(state, foo_nl, Integer::from(state, 2)));
-    TS_ASSERT_EQUALS(seven, (FIXNUM)a->locate(state, foo_nl, three));
-    TS_ASSERT_EQUALS(Fixnum::from(10), (FIXNUM)a->locate(state, String::create(state, "yx"), three));
+    TS_ASSERT_EQUALS(seven, (Fixnum*)a->locate(state, foo_nl, Integer::from(state, 2)));
+    TS_ASSERT_EQUALS(seven, (Fixnum*)a->locate(state, foo_nl, three));
+    TS_ASSERT_EQUALS(Fixnum::from(10), (Fixnum*)a->locate(state, String::create(state, "yx"), three));
   }
 };

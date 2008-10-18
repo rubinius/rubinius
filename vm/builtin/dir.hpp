@@ -26,15 +26,15 @@ namespace rubinius {
     static void init(STATE);
     static Dir* create(STATE);
     // Ruby.primitive :dir_open
-    OBJECT open(STATE, String *path);
+    Object* open(STATE, String *path);
     // Ruby.primitive :dir_close
-    OBJECT close(STATE);
+    Object* close(STATE);
     // Ruby.primitive :dir_closed_p
-    OBJECT closed_p(STATE);
+    Object* closed_p(STATE);
     // Ruby.primitive :dir_read
-    OBJECT read(STATE);
+    Object* read(STATE);
     // Ruby.primitive :dir_control
-    OBJECT control(STATE, FIXNUM kind, INTEGER pos);
+    Object* control(STATE, Fixnum* kind, Integer* pos);
     void guard(STATE);
 
     class Info : public TypeInfo {

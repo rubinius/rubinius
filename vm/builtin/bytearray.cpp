@@ -20,7 +20,7 @@ namespace rubinius {
     return (ByteArray*)state->om->new_object_bytes(G(bytearray), bytes);
   }
 
-  void ByteArray::Info::mark(OBJECT t, ObjectMark& mark) {
+  void ByteArray::Info::mark(Object* t, ObjectMark& mark) {
     // TODO: implement
   }
 
@@ -34,15 +34,15 @@ namespace rubinius {
     return out;
   }
 
-  ByteArray* ByteArray::allocate(STATE, INTEGER bytes) {
+  ByteArray* ByteArray::allocate(STATE, Integer* bytes) {
     return ByteArray::create(state, bytes->to_native());
   }
 
-  INTEGER ByteArray::size(STATE) {
+  Integer* ByteArray::size(STATE) {
     return Integer::from(state, SIZE_OF_BODY(this));
   }
 
-  FIXNUM ByteArray::get_byte(STATE, INTEGER index) {
+  Fixnum* ByteArray::get_byte(STATE, Integer* index) {
     native_int size = SIZE_OF_BODY(this);
     native_int idx = index->to_native();
 
@@ -53,7 +53,7 @@ namespace rubinius {
     return Fixnum::from(this->bytes[idx]);
   }
 
-  FIXNUM ByteArray::set_byte(STATE, INTEGER index, FIXNUM value) {
+  Fixnum* ByteArray::set_byte(STATE, Integer* index, Fixnum* value) {
     native_int size = SIZE_OF_BODY(this);
     native_int idx = index->to_native();
 
@@ -65,7 +65,7 @@ namespace rubinius {
     return Fixnum::from(this->bytes[idx]);
   }
 
-  INTEGER ByteArray::move_bytes(STATE, INTEGER start, INTEGER count, INTEGER dest) {
+  Integer* ByteArray::move_bytes(STATE, Integer* start, Integer* count, Integer* dest) {
     native_int size = SIZE_OF_BODY(this);
     native_int src = start->to_native();
     native_int cnt = count->to_native();
@@ -88,7 +88,7 @@ namespace rubinius {
     return count;
   }
 
-  ByteArray* ByteArray::fetch_bytes(STATE, INTEGER start, INTEGER count) {
+  ByteArray* ByteArray::fetch_bytes(STATE, Integer* start, Integer* count) {
     native_int size = SIZE_OF_BODY(this);
     native_int src = start->to_native();
     native_int cnt = count->to_native();
@@ -108,7 +108,7 @@ namespace rubinius {
     return ba;
   }
 
-  FIXNUM ByteArray::compare_bytes(STATE, ByteArray* other, INTEGER a, INTEGER b) {
+  Fixnum* ByteArray::compare_bytes(STATE, ByteArray* other, Integer* a, Integer* b) {
     native_int size = SIZE_OF_BODY(this);
     native_int osize = SIZE_OF_BODY(other);
     native_int slim = a->to_native();
@@ -155,7 +155,7 @@ namespace rubinius {
     return other;
   }
 
-  OBJECT ByteArray::locate(STATE, String* pattern, Integer* start) {
+  Object* ByteArray::locate(STATE, String* pattern, Integer* start) {
     native_int size = SIZE_OF_BODY(this);
     const char *pat = pattern->byte_address();
     native_int len = pattern->size();

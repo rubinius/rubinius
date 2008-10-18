@@ -37,7 +37,7 @@ namespace rubinius {
     return (unsigned long long)STRIP_TAG(this);
   }
 
-  INTEGER Fixnum::add(STATE, Bignum* other) {
+  Integer* Fixnum::add(STATE, Bignum* other) {
     return other->add(state, this);
   }
 
@@ -45,7 +45,7 @@ namespace rubinius {
     return other->add(state, this);
   }
 
-  INTEGER Fixnum::sub(STATE, Bignum* other) {
+  Integer* Fixnum::sub(STATE, Bignum* other) {
     return as<Bignum>(other->neg(state))->add(state, this);
   }
 
@@ -53,7 +53,7 @@ namespace rubinius {
     return Float::coerce(state, this)->sub(state, other);
   }
 
-  INTEGER Fixnum::mul(STATE, FIXNUM other) {
+  Integer* Fixnum::mul(STATE, Fixnum* other) {
     native_int a  = to_native();
     native_int b  = other->to_native();
 
@@ -84,7 +84,7 @@ namespace rubinius {
     return Fixnum::from(to_native() * other->to_native());
   }
 
-  INTEGER Fixnum::mul(STATE, Bignum* other) {
+  Integer* Fixnum::mul(STATE, Bignum* other) {
     return other->mul(state, this);
   }
 
@@ -92,7 +92,7 @@ namespace rubinius {
     return other->mul(state, this);
   }
 
-  INTEGER Fixnum::div(STATE, FIXNUM other) {
+  Integer* Fixnum::div(STATE, Fixnum* other) {
     if(other->to_native() == 0) {
       Exception::zero_division_error(state, "divided by 0");
     }
@@ -103,7 +103,7 @@ namespace rubinius {
     return Fixnum::from(quotient);
   }
 
-  INTEGER Fixnum::div(STATE, Bignum* other) {
+  Integer* Fixnum::div(STATE, Bignum* other) {
     return Bignum::from(state, to_native())->div(state, other);
   }
 
@@ -111,14 +111,14 @@ namespace rubinius {
     return Float::coerce(state, this)->div(state, other);
   }
 
-  INTEGER Fixnum::mod(STATE, FIXNUM other) {
+  Integer* Fixnum::mod(STATE, Fixnum* other) {
     native_int numerator = to_native();
     native_int denominator = other->to_native();
     native_int quotient = div(state, other)->to_native();
     return Fixnum::from(numerator - denominator * quotient);
   }
 
-  INTEGER Fixnum::mod(STATE, Bignum* other) {
+  Integer* Fixnum::mod(STATE, Bignum* other) {
     return Bignum::from(state, to_native())->mod(state, other);
   }
 
@@ -126,7 +126,7 @@ namespace rubinius {
     return Float::create(state, to_native())->mod(state, other);
   }
 
-  Array* Fixnum::divmod(STATE, FIXNUM other) {
+  Array* Fixnum::divmod(STATE, Fixnum* other) {
     if(other->to_native() == 0) {
       Exception::zero_division_error(state, "divided by 0");
     }
@@ -147,23 +147,23 @@ namespace rubinius {
     return Float::create(state, to_native())->divmod(state, other);
   }
 
-  INTEGER Fixnum::neg(STATE) {
+  Integer* Fixnum::neg(STATE) {
     return Fixnum::from(-to_native());
   }
 
-  OBJECT Fixnum::equal(STATE, FIXNUM other) {
+  Object* Fixnum::equal(STATE, Fixnum* other) {
     return to_native() == other->to_native() ? Qtrue : Qfalse;
   }
 
-  OBJECT Fixnum::equal(STATE, Bignum* other) {
+  Object* Fixnum::equal(STATE, Bignum* other) {
     return other->equal(state, this);
   }
 
-  OBJECT Fixnum::equal(STATE, Float* other) {
+  Object* Fixnum::equal(STATE, Float* other) {
     return (double)to_native() == other->val ? Qtrue : Qfalse;
   }
 
-  FIXNUM Fixnum::compare(STATE, FIXNUM other) {
+  Fixnum* Fixnum::compare(STATE, Fixnum* other) {
     native_int left  = to_native();
     native_int right = other->to_native();
     if(left == right) {
@@ -175,7 +175,7 @@ namespace rubinius {
     }
   }
 
-  FIXNUM Fixnum::compare(STATE, Bignum* other) {
+  Fixnum* Fixnum::compare(STATE, Bignum* other) {
     native_int res = other->compare(state, this)->to_native();
     if(res == 0) {
       return Fixnum::from(0);
@@ -186,7 +186,7 @@ namespace rubinius {
     }
   }
 
-  FIXNUM Fixnum::compare(STATE, Float* other) {
+  Fixnum* Fixnum::compare(STATE, Float* other) {
     double left  = (double)to_native();
     double right = other->val;
     if(left == right) {
@@ -198,47 +198,47 @@ namespace rubinius {
     }
   }
 
-  OBJECT Fixnum::gt(STATE, Bignum* other) {
+  Object* Fixnum::gt(STATE, Bignum* other) {
     return other->lt(state, this);
   }
 
-  OBJECT Fixnum::gt(STATE, Float* other) {
+  Object* Fixnum::gt(STATE, Float* other) {
     return (double) to_native() > other->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Fixnum::ge(STATE, FIXNUM other) {
+  Object* Fixnum::ge(STATE, Fixnum* other) {
     return to_native() >= other->to_native() ? Qtrue : Qfalse;
   }
 
-  OBJECT Fixnum::ge(STATE, Bignum* other) {
+  Object* Fixnum::ge(STATE, Bignum* other) {
     return other->le(state, this);
   }
 
-  OBJECT Fixnum::ge(STATE, Float* other) {
+  Object* Fixnum::ge(STATE, Float* other) {
     return (double) to_native() >= other->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Fixnum::lt(STATE, Bignum* other) {
+  Object* Fixnum::lt(STATE, Bignum* other) {
     return other->gt(state, this);
   }
 
-  OBJECT Fixnum::lt(STATE, Float* other) {
+  Object* Fixnum::lt(STATE, Float* other) {
     return (double) to_native() < other->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Fixnum::le(STATE, FIXNUM other) {
+  Object* Fixnum::le(STATE, Fixnum* other) {
     return to_native() <= other->to_native() ? Qtrue : Qfalse;
   }
 
-  OBJECT Fixnum::le(STATE, Bignum* other) {
+  Object* Fixnum::le(STATE, Bignum* other) {
     return other->ge(state, this);
   }
 
-  OBJECT Fixnum::le(STATE, Float* other) {
+  Object* Fixnum::le(STATE, Float* other) {
     return (double) to_native() <= other->val ? Qtrue : Qfalse;
   }
 
-  INTEGER Fixnum::left_shift(STATE, INTEGER bits) {
+  Integer* Fixnum::left_shift(STATE, Integer* bits) {
     native_int shift = bits->to_native();
     if(shift < 0) {
       return right_shift(state, Fixnum::from(-shift));
@@ -253,7 +253,7 @@ namespace rubinius {
     return Fixnum::from(self << shift);
   }
 
-  INTEGER Fixnum::right_shift(STATE, INTEGER bits) {
+  Integer* Fixnum::right_shift(STATE, Integer* bits) {
     native_int shift = bits->to_native();
     if(shift < 0) {
       return left_shift(state, Fixnum::from(-shift));
@@ -265,47 +265,47 @@ namespace rubinius {
     return Fixnum::from(a);
   }
 
-  INTEGER Fixnum::size(STATE) {
+  Integer* Fixnum::size(STATE) {
     return Fixnum::from(sizeof(native_int));
   }
 
-  INTEGER Fixnum::bit_and(STATE, FIXNUM other) {
+  Integer* Fixnum::bit_and(STATE, Fixnum* other) {
     return Fixnum::from(to_native() & other->to_native());
   }
 
-  INTEGER Fixnum::bit_and(STATE, Bignum* other) {
+  Integer* Fixnum::bit_and(STATE, Bignum* other) {
     return other->bit_and(state, this);
   }
 
-  INTEGER Fixnum::bit_and(STATE, Float* other) {
+  Integer* Fixnum::bit_and(STATE, Float* other) {
     return Fixnum::from(to_native() & (native_int)other->val);
   }
 
-  INTEGER Fixnum::bit_or(STATE, FIXNUM other) {
+  Integer* Fixnum::bit_or(STATE, Fixnum* other) {
     return Fixnum::from(to_native() | other->to_native());
   }
 
-  INTEGER Fixnum::bit_or(STATE, Bignum* other) {
+  Integer* Fixnum::bit_or(STATE, Bignum* other) {
     return other->bit_or(state, this);
   }
 
-  INTEGER Fixnum::bit_or(STATE, Float* other) {
+  Integer* Fixnum::bit_or(STATE, Float* other) {
     return Fixnum::from(to_native() | (native_int)other->val);
   }
 
-  INTEGER Fixnum::bit_xor(STATE, FIXNUM other) {
+  Integer* Fixnum::bit_xor(STATE, Fixnum* other) {
     return Fixnum::from(to_native() ^ other->to_native());
   }
 
-  INTEGER Fixnum::bit_xor(STATE, Bignum* other) {
+  Integer* Fixnum::bit_xor(STATE, Bignum* other) {
     return other->bit_xor(state, this);
   }
 
-  INTEGER Fixnum::bit_xor(STATE, Float* other) {
+  Integer* Fixnum::bit_xor(STATE, Float* other) {
     return Fixnum::from(to_native() ^ (native_int)other->val);
   }
 
-  INTEGER Fixnum::invert(STATE) {
+  Integer* Fixnum::invert(STATE) {
     return Fixnum::from(~to_native());
   }
 
@@ -354,7 +354,7 @@ namespace rubinius {
   Array* Fixnum::coerce(STATE, Bignum* other) {
     Array* ary = Array::create(state, 2);
 
-    if(FIXNUM fix = try_as<Fixnum>(Bignum::normalize(state, other))) {
+    if(Fixnum* fix = try_as<Fixnum>(Bignum::normalize(state, other))) {
       ary->set(state, 0, fix);
       ary->set(state, 1, this);
     } else {
@@ -365,7 +365,7 @@ namespace rubinius {
     return ary;
   }
 
-  Array* Fixnum::coerce(STATE, FIXNUM other) {
+  Array* Fixnum::coerce(STATE, Fixnum* other) {
     Array* ary = Array::create(state, 2);
 
     ary->set(state, 0, other);
@@ -374,14 +374,14 @@ namespace rubinius {
     return ary;
   }
 
-  void Fixnum::Info::show(STATE, OBJECT self, int level) {
-    FIXNUM f = as<Fixnum>(self);
+  void Fixnum::Info::show(STATE, Object* self, int level) {
+    Fixnum* f = as<Fixnum>(self);
     std::cout << f->to_native() << std::endl;
   }
 
-  void Fixnum::Info::show_simple(STATE, OBJECT self, int level) {
+  void Fixnum::Info::show_simple(STATE, Object* self, int level) {
     show(state, self, level);
   }
 
-  void Fixnum::Info::mark(OBJECT t, ObjectMark& mark) { }
+  void Fixnum::Info::mark(Object* t, ObjectMark& mark) { }
 }

@@ -20,7 +20,7 @@ namespace rubinius {
     typedef ExecuteStatus (*Performer)(STATE, Task* task, Message& msg);
 
   private:
-    SYMBOL name_;            // slot
+    Symbol* name_;            // slot
     CompiledMethod* sender_; // slot
     Selector* selector_;     // slot
     Executable* method_;     // slot
@@ -50,16 +50,16 @@ namespace rubinius {
     static void init(STATE);
 
     // Ruby.primitive :sendsite_create
-    static SendSite* create(STATE, OBJECT name);
+    static SendSite* create(STATE, Object* name);
 
     // Ruby.primitive :sendsite_set_sender
-    OBJECT set_sender(STATE, CompiledMethod* cm);
+    Object* set_sender(STATE, CompiledMethod* cm);
 
     // Ruby.primitive :sendsite_hits
-    OBJECT hits_prim(STATE);
+    Object* hits_prim(STATE);
 
     // Ruby.primitive :sendsite_misses
-    OBJECT misses_prim(STATE);
+    Object* misses_prim(STATE);
 
     void initialize(STATE);
     bool locate(STATE, Message& msg);
@@ -67,7 +67,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 

@@ -34,8 +34,8 @@ public:
   bool tuple_equals(Tuple* x, Tuple* y) {
     if(x->num_fields() != y->num_fields()) return false;
     for(size_t i = 0; i < x->num_fields(); i++) {
-      OBJECT x1 = x->at(state, i);
-      OBJECT y1 = y->at(state, i);
+      Object* x1 = x->at(state, i);
+      Object* y1 = y->at(state, i);
 
       if(kind_of<Tuple>(x1)) {
         if(!tuple_equals(as<Tuple>(x1), as<Tuple>(y1))) return false;
@@ -49,28 +49,28 @@ public:
 
   void test_nil() {
     mar->sstream.str(std::string("n\n"));
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT_EQUALS(obj, Qnil);
   }
 
   void test_true() {
     mar->sstream.str(std::string("t\n"));
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT_EQUALS(obj, Qtrue);
   }
 
   void test_false() {
     mar->sstream.str(std::string("f\n"));
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT_EQUALS(obj, Qfalse);
   }
 
   void test_int() {
     mar->sstream.str(std::string("I\n3\n"));
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(obj->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 3);
@@ -78,7 +78,7 @@ public:
 
   void test_string() {
     mar->sstream.str(std::string("s\n4\nblah\n"));
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<String>(obj));
     String *str = as<String>(obj);
@@ -87,7 +87,7 @@ public:
 
   void test_symbol() {
     mar->sstream.str(std::string("x\n4\nblah\n"));
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(obj->symbol_p());
     TS_ASSERT_EQUALS(obj, state->symbol("blah"));
@@ -95,7 +95,7 @@ public:
 
   void test_sendsite() {
     mar->sstream.str(std::string("S\n4\nblah\n"));
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<SendSite>(obj));
 
@@ -104,7 +104,7 @@ public:
 
   void test_array() {
     mar->sstream.str(std::string("A\n3\nI\n1\nx\n3\nfoo\ns\n4\nblah\n"));
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Array>(obj));
 
@@ -120,7 +120,7 @@ public:
   void test_tuple() {
     mar->sstream.str(std::string("p\n2\nI\n2\nI\n47\n"));
 
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Tuple>(obj));
 
@@ -133,7 +133,7 @@ public:
   void test_float() {
     mar->sstream.str(std::string("d\n15.5\n"));
 
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Float>(obj));
 
@@ -145,7 +145,7 @@ public:
   void test_float_infinity() {
     mar->sstream.str(std::string("d\nInfinity\n"));
 
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Float>(obj));
 
@@ -157,7 +157,7 @@ public:
   void test_float_neg_infinity() {
     mar->sstream.str(std::string("d\n-Infinity\n"));
 
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Float>(obj));
 
@@ -170,7 +170,7 @@ public:
   void test_float_nan() {
     mar->sstream.str(std::string("d\nNaN\n"));
 
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<Float>(obj));
 
@@ -182,7 +182,7 @@ public:
   void test_iseq() {
     mar->sstream.str(std::string("i\n1\n0\n"));
 
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<InstructionSequence>(obj));
 
@@ -199,7 +199,7 @@ public:
     std::string str = "M\n1\nn\nx\n12\nobject_equal\nx\n4\ntest\ni\n1\n0\nI\n10\nI\n0\nI\n0\nI\n0\nn\np\n2\nI\n1\nI\n2\nn\np\n1\np\n3\nI\n0\nI\n1\nI\n1\nx\n8\nnot_real\np\n1\nx\n4\nblah\n";
     mar->sstream.str(str);
 
-    OBJECT obj = mar->unmarshal();
+    Object* obj = mar->unmarshal();
 
     TS_ASSERT(kind_of<CompiledMethod>(obj));
 

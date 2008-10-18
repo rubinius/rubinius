@@ -20,10 +20,10 @@ class TestInteger : public CxxTest::TestSuite {
   }
 
   void test_kind_of_numeric() {
-    FIXNUM fix = Fixnum::from(13);
+    Fixnum* fix = Fixnum::from(13);
     Bignum* big = Bignum::from(state, (native_int)14);
     Float*  flt = Float::create(state, 15.0);
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT(kind_of<Numeric>(fix));
     TS_ASSERT(kind_of<Numeric>(big));
@@ -35,7 +35,7 @@ class TestInteger : public CxxTest::TestSuite {
   }
 
   void test_from_native_int() {
-    INTEGER obj = Integer::from(state, (native_int)13);
+    Integer* obj = Integer::from(state, (native_int)13);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int) 13);
 
     obj = Integer::from(state, (native_int)-13);
@@ -46,7 +46,7 @@ class TestInteger : public CxxTest::TestSuite {
   }
 
   void test_from_int() {
-    INTEGER obj = Integer::from(state, (int)13);
+    Integer* obj = Integer::from(state, (int)13);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int) 13);
 
     obj = Integer::from(state, (int)-13);
@@ -57,7 +57,7 @@ class TestInteger : public CxxTest::TestSuite {
   }
 
   void test_from_unsigned_int() {
-    INTEGER obj = Integer::from(state, (unsigned int)13);
+    Integer* obj = Integer::from(state, (unsigned int)13);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int) 13);
 
     obj = Integer::from(state, (unsigned int)2147483647);
@@ -65,7 +65,7 @@ class TestInteger : public CxxTest::TestSuite {
   }
 
   void test_from_unsigned_long() {
-    INTEGER obj = Integer::from(state, (unsigned long)13);
+    Integer* obj = Integer::from(state, (unsigned long)13);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int) 13);
 
     obj = Integer::from(state, (unsigned long)2147483647);
@@ -73,7 +73,7 @@ class TestInteger : public CxxTest::TestSuite {
   }
 
   void test_from_long_long() {
-    INTEGER obj = Integer::from(state, (long long)13);
+    Integer* obj = Integer::from(state, (long long)13);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int) 13);
 
     obj = Integer::from(state, (long long)-13);
@@ -84,7 +84,7 @@ class TestInteger : public CxxTest::TestSuite {
   }
 
   void test_from_unsigned_long_long() {
-    INTEGER obj = Integer::from(state, (unsigned long long)13);
+    Integer* obj = Integer::from(state, (unsigned long long)13);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int) 13);
 
     obj = Integer::from(state, (unsigned long long)-13);

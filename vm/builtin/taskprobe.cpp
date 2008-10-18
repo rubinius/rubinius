@@ -76,7 +76,7 @@ namespace rubinius {
     return 0;
   }
 
-  OBJECT TaskProbe::enable(STATE, SYMBOL probe) {
+  Object* TaskProbe::enable(STATE, Symbol* probe) {
     enable(std::string(probe->c_str(state)));
     return Qnil;
   }
@@ -85,7 +85,7 @@ namespace rubinius {
     this->flags |= probe_flag(probe);
   }
 
-  OBJECT TaskProbe::enabled_p(STATE, SYMBOL probe) {
+  Object* TaskProbe::enabled_p(STATE, Symbol* probe) {
     if(enabled_p(probe_flag(std::string(probe->c_str(state))))) {
       return Qtrue;
     }
@@ -97,7 +97,7 @@ namespace rubinius {
     return (this->flags & flag) != 0;
   }
 
-  OBJECT TaskProbe::disable(STATE, SYMBOL probe) {
+  Object* TaskProbe::disable(STATE, Symbol* probe) {
     disable(std::string(probe->c_str(state)));
     return Qnil;
   }
@@ -106,7 +106,7 @@ namespace rubinius {
     this->flags &= ~probe_flag(probe);
   }
 
-  void TaskProbe::added_method(Task* task, Module* mod, SYMBOL name, CompiledMethod *meth) {
+  void TaskProbe::added_method(Task* task, Module* mod, Symbol* name, CompiledMethod *meth) {
     if(enabled_p(PROBE_ADD_METHOD)) {
       std::cout << "[Added method '" <<
         name->to_str(task->state)->c_str() << "']" << std::endl;
@@ -173,7 +173,7 @@ namespace rubinius {
       std::cout << std::endl;
 
       if(stack_pos >= 0) {
-        OBJECT top = *ctx->js.stack;
+        Object* top = *ctx->js.stack;
         if(top->reference_p()) {
           ObjectPosition pos = task->state->om->validate_object(top);
           assert(pos != cInWrongYoungHalf);
@@ -195,6 +195,6 @@ namespace rubinius {
     }
   }
 
-  void TaskProbe::Info::mark(OBJECT t, ObjectMark& mark) { }
+  void TaskProbe::Info::mark(Object* t, ObjectMark& mark) { }
 
 }

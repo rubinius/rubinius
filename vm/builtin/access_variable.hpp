@@ -17,8 +17,8 @@ namespace rubinius {
     const static object_type type = AccessVariableType;
 
   private:
-    SYMBOL name_;  // slot
-    OBJECT write_; // slot
+    Symbol* name_;  // slot
+    Object* write_; // slot
 
   public:
     /* accessors */

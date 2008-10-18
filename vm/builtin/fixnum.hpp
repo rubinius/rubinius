@@ -16,8 +16,8 @@ namespace rubinius {
 
     /* WARNING. Do not use this version if +num+ has the chance of being
      * greater than FIXNUM_MAX or less than FIXNUM_MIN. */
-    static FIXNUM from(native_int num) {
-      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
+    static Fixnum* from(native_int num) {
+      return (Fixnum*)APPLY_TAG(num, TAG_FIXNUM);
     }
 
     native_int to_native() const {
@@ -32,7 +32,7 @@ namespace rubinius {
     unsigned long long to_ulong_long() const;
 
     // Ruby.primitive! :fixnum_add
-    INTEGER add(STATE, FIXNUM other) {
+    Integer* add(STATE, Fixnum* other) {
       native_int r = to_native() + other->to_native();
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
         return Bignum::from(state, r);
@@ -42,13 +42,13 @@ namespace rubinius {
     }
 
     // Ruby.primitive! :fixnum_add
-    INTEGER add(STATE, Bignum* other);
+    Integer* add(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_add
     Float* add(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_sub
-    INTEGER sub(STATE, FIXNUM other) {
+    Integer* sub(STATE, Fixnum* other) {
       native_int r = to_native() - other->to_native();
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
         return Bignum::from(state, r);
@@ -58,40 +58,40 @@ namespace rubinius {
     }
 
     // Ruby.primitive! :fixnum_sub
-    INTEGER sub(STATE, Bignum* other);
+    Integer* sub(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_sub
     Float* sub(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_mul
-    INTEGER mul(STATE, FIXNUM other);
+    Integer* mul(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_mul
-    INTEGER mul(STATE, Bignum* other);
+    Integer* mul(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_mul
     Float* mul(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_div
-    INTEGER div(STATE, FIXNUM other);
+    Integer* div(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_div
-    INTEGER div(STATE, Bignum* other);
+    Integer* div(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_div
     Float* div(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_mod
-    INTEGER mod(STATE, FIXNUM other);
+    Integer* mod(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_mod
-    INTEGER mod(STATE, Bignum* other);
+    Integer* mod(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_mod
     Float* mod(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_divmod
-    Array* divmod(STATE, FIXNUM other);
+    Array* divmod(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_divmod
     Array* divmod(STATE, Bignum* other);
@@ -100,104 +100,104 @@ namespace rubinius {
     Array* divmod(STATE, Float* other);
 
     // Ruby.primitive :fixnum_neg
-    INTEGER neg(STATE);
+    Integer* neg(STATE);
 
     // Ruby.primitive! :fixnum_equal
-    OBJECT equal(STATE, FIXNUM other);
+    Object* equal(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_equal
-    OBJECT equal(STATE, Bignum* other);
+    Object* equal(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_equal
-    OBJECT equal(STATE, Float* other);
+    Object* equal(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_compare
-    FIXNUM compare(STATE, FIXNUM other);
+    Fixnum* compare(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_compare
-    FIXNUM compare(STATE, Bignum* other);
+    Fixnum* compare(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_compare
-    FIXNUM compare(STATE, Float* other);
+    Fixnum* compare(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_gt
-    OBJECT gt(STATE, FIXNUM other) {
+    Object* gt(STATE, Fixnum* other) {
       return to_native() > other->to_native() ? Qtrue : Qfalse;
     }
 
     // Ruby.primitive! :fixnum_gt
-    OBJECT gt(STATE, Bignum* other);
+    Object* gt(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_gt
-    OBJECT gt(STATE, Float* other);
+    Object* gt(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_ge
-    OBJECT ge(STATE, FIXNUM other);
+    Object* ge(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_ge
-    OBJECT ge(STATE, Bignum* other);
+    Object* ge(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_ge
-    OBJECT ge(STATE, Float* other);
+    Object* ge(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_lt
-    OBJECT lt(STATE, FIXNUM other) {
+    Object* lt(STATE, Fixnum* other) {
       return to_native() < other->to_native() ? Qtrue : Qfalse;
     }
 
     // Ruby.primitive! :fixnum_lt
-    OBJECT lt(STATE, Bignum* other);
+    Object* lt(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_lt
-    OBJECT lt(STATE, Float* other);
+    Object* lt(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_le
-    OBJECT le(STATE, FIXNUM other);
+    Object* le(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_le
-    OBJECT le(STATE, Bignum* other);
+    Object* le(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_le
-    OBJECT le(STATE, Float* other);
+    Object* le(STATE, Float* other);
 
     // Ruby.primitive :fixnum_left_shift
-    INTEGER left_shift(STATE, INTEGER bits);
+    Integer* left_shift(STATE, Integer* bits);
 
     // Ruby.primitive :fixnum_right_shift
-    INTEGER right_shift(STATE, INTEGER bits);
+    Integer* right_shift(STATE, Integer* bits);
 
     // Ruby.primitive :fixnum_size
-    INTEGER size(STATE);
+    Integer* size(STATE);
 
     // Ruby.primitive! :fixnum_and
-    INTEGER bit_and(STATE, FIXNUM other);
+    Integer* bit_and(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_and
-    INTEGER bit_and(STATE, Bignum* other);
+    Integer* bit_and(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_and
-    INTEGER bit_and(STATE, Float* other);
+    Integer* bit_and(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_or
-    INTEGER bit_or(STATE, FIXNUM other);
+    Integer* bit_or(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_or
-    INTEGER bit_or(STATE, Bignum* other);
+    Integer* bit_or(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_or
-    INTEGER bit_or(STATE, Float* other);
+    Integer* bit_or(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_xor
-    INTEGER bit_xor(STATE, FIXNUM other);
+    Integer* bit_xor(STATE, Fixnum* other);
 
     // Ruby.primitive! :fixnum_xor
-    INTEGER bit_xor(STATE, Bignum* other);
+    Integer* bit_xor(STATE, Bignum* other);
 
     // Ruby.primitive! :fixnum_xor
-    INTEGER bit_xor(STATE, Float* other);
+    Integer* bit_xor(STATE, Float* other);
 
     // Ruby.primitive :fixnum_invert
-    INTEGER invert(STATE);
+    Integer* invert(STATE);
 
     // Ruby.primitive :fixnum_to_f
     Float* to_f(STATE);
@@ -210,18 +210,17 @@ namespace rubinius {
     // Ruby.primitive! :fixnum_coerce
     Array* coerce(STATE, Bignum* other);
     // Ruby.primitive! :fixnum_coerce
-    Array* coerce(STATE, FIXNUM other);
+    Array* coerce(STATE, Fixnum* other);
 
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
-      virtual void mark(OBJECT t, ObjectMark& mark);
-      virtual void show(STATE, OBJECT self, int level);
-      virtual void show_simple(STATE, OBJECT self, int level);
+      virtual void mark(Object* t, ObjectMark& mark);
+      virtual void show(STATE, Object* self, int level);
+      virtual void show_simple(STATE, Object* self, int level);
     };
   };
 
-  typedef Fixnum* FIXNUM;
 }
 
 #endif

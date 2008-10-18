@@ -26,7 +26,7 @@ namespace rubinius {
 #define TAG_DATA    0x3
 
 #define TAG(v) (((intptr_t)v) & TAG_MASK)
-#define APPLY_TAG(v, tag) ((OBJECT)(((intptr_t)v << TAG_SHIFT) | tag))
+#define APPLY_TAG(v, tag) ((Object*)(((intptr_t)v << TAG_SHIFT) | tag))
 #define STRIP_TAG(v) (((intptr_t)v) >> TAG_SHIFT)
 
 #define DATA_P(v) (TAG(v) == TAG_DATA)
@@ -39,7 +39,7 @@ namespace rubinius {
 #define DATA_TAG_CUSTOM 0x7
 
 #define DATA_TAG(v) ((intptr_t)(v) & DATA_MASK)
-#define DATA_APPLY_TAG(v, tag) (OBJECT)((v << DATA_SHIFT) | tag)
+#define DATA_APPLY_TAG(v, tag) (Object*)((v << DATA_SHIFT) | tag)
 #define DATA_STRIP_TAG(v) (((intptr_t)v) >> DATA_SHIFT)
 
 #define SYMBOL_P(v) (DATA_TAG(v) == DATA_TAG_SYMBOL)
@@ -65,10 +65,10 @@ false and nil share the same base bit pattern, allowing RTEST
 to be a simple test for that bit pattern.
 */
 
-#define FALSE_P(v) ((OBJECT)(v) == (OBJECT)Qfalse)
-#define TRUE_P(v) ((OBJECT)(v) == (OBJECT)Qtrue)
-#define NIL_P(v) ((OBJECT)(v) == (OBJECT)Qnil)
-#define UNDEF_P(v) ((OBJECT)(v) == (OBJECT)Qundef)
+#define FALSE_P(v) ((Object*)(v) == (Object*)Qfalse)
+#define TRUE_P(v) ((Object*)(v) == (Object*)Qtrue)
+#define NIL_P(v) ((Object*)(v) == (Object*)Qnil)
+#define UNDEF_P(v) ((Object*)(v) == (Object*)Qundef)
 #define RTEST(v) (((uintptr_t)(v) & 0x7) != 0x6)
 
 #define REFERENCE_P(v) (TAG(v) == TAG_REF)
@@ -78,11 +78,11 @@ to be a simple test for that bit pattern.
 
 #define SIZE_OF_OBJECT ((size_t)(sizeof(ObjectHeader*)))
 
-#define NUM_FIELDS(obj)                 (obj->field_count)
-#define SET_NUM_FIELDS(obj, fel)        (obj->field_count = fel)
+#define NUM_FIELDS(obj)                 ((obj)->field_count)
+#define SET_NUM_FIELDS(obj, fel)        ((obj)->field_count = (fel))
 #define SIZE_IN_BYTES_FIELDS(fel)       ((size_t)(sizeof(ObjectHeader) + \
-      (fel*SIZE_OF_OBJECT)))
-#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(ObjectHeader)/SIZE_OF_OBJECT + fel)
+      ((fel)*SIZE_OF_OBJECT)))
+#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(ObjectHeader)/SIZE_OF_OBJECT + (fel))
 #define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->num_fields())
 #define SIZE_OF_BODY(obj)               (obj->num_fields() * SIZE_OF_OBJECT)
 
@@ -246,7 +246,7 @@ to be a simple test for that bit pattern.
 
   };
 
-  /* Object access, lowest level. These read and set fields of an OBJECT
+  /* Object access, lowest level. These read and set fields of an Object*
    * directly. They're built on to integrate with the GC properly. */
 
 #define CLEAR_FLAGS(obj)     (obj)->all_flags = 0

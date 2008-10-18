@@ -16,13 +16,13 @@ namespace rubinius {
     LinkedList::Node(), object(NULL), roots(&state->globals.roots)
   { }
 
-  Root::Root(STATE, OBJECT obj):
+  Root::Root(STATE, Object* obj):
     LinkedList::Node(), object(NULL), roots(NULL)
   {
     set(obj, &state->globals.roots);
   }
 
-  void Root::set(OBJECT obj, Roots* r) {
+  void Root::set(Object* obj, Roots* r) {
     // Still in the same set, no problem, just repoint
     // object.
     if(roots == r) {

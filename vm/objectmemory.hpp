@@ -49,26 +49,26 @@ namespace rubinius {
     ObjectMemory(STATE, size_t young_bytes);
     ~ObjectMemory();
 
-    void remember_object(OBJECT target);
-    void unremember_object(OBJECT target);
+    void remember_object(Object* target);
+    void unremember_object(Object* target);
 
-    void store_object(OBJECT target, size_t index, OBJECT val);
-    void set_class(OBJECT target, OBJECT obj);
-    OBJECT allocate_object(size_t fields);
-    OBJECT new_object(Class* cls, size_t fields);
-    OBJECT new_object_bytes(Class* cls, size_t bytes);
-    TypeInfo* find_type_info(OBJECT obj);
+    void store_object(Object* target, size_t index, Object* val);
+    void set_class(Object* target, Object* obj);
+    Object* allocate_object(size_t fields);
+    Object* new_object(Class* cls, size_t fields);
+    Object* new_object_bytes(Class* cls, size_t bytes);
+    TypeInfo* find_type_info(Object* obj);
     void set_young_lifetime(size_t age);
     void collect_young(Roots &roots);
     void collect_mature(Roots &roots);
-    OBJECT promote_object(OBJECT obj);
-    bool valid_object_p(OBJECT obj);
+    Object* promote_object(Object* obj);
+    bool valid_object_p(Object* obj);
     void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
 
-    ObjectPosition validate_object(OBJECT obj);
+    ObjectPosition validate_object(Object* obj);
 
-    void write_barrier(OBJECT target, OBJECT val) {
+    void write_barrier(Object* target, Object* val) {
       if(target->Remember) return;
       if(!REFERENCE_P(val)) return;
       if(target->zone != MatureObjectZone) return;

@@ -189,20 +189,20 @@ namespace rubinius {
     mp_clear(&b);
   }
 
-  void Bignum::Info::cleanup(OBJECT obj) {
+  void Bignum::Info::cleanup(Object* obj) {
     Bignum* big = as<Bignum>(obj);
     mp_int *n = big->mp_val();
     mp_clear(n);
   }
 
-  void Bignum::Info::mark(OBJECT obj, ObjectMark& mark) { }
+  void Bignum::Info::mark(Object* obj, ObjectMark& mark) { }
 
-  void Bignum::Info::show(STATE, OBJECT self, int level) {
+  void Bignum::Info::show(STATE, Object* self, int level) {
     Bignum* b = as<Bignum>(self);
     std::cout << b->to_s(state, Fixnum::from(10))->c_str() << std::endl;
   }
 
-  void Bignum::Info::show_simple(STATE, OBJECT self, int level) {
+  void Bignum::Info::show_simple(STATE, Object* self, int level) {
     show(state, self, level);
   }
 
@@ -298,7 +298,7 @@ namespace rubinius {
     return ret;
   }
 
-  Bignum* Bignum::create(STATE, FIXNUM val) {
+  Bignum* Bignum::create(STATE, Fixnum* val) {
     return Bignum::from(state, val->to_native());
   }
 
@@ -345,7 +345,7 @@ namespace rubinius {
     return out;
   }
 
-  INTEGER Bignum::normalize(STATE, Bignum* b) {
+  Integer* Bignum::normalize(STATE, Bignum* b) {
     mp_clamp(b->mp_val());
 
     if((size_t)mp_count_bits(b->mp_val()) <= FIXNUM_WIDTH) {
@@ -356,7 +356,7 @@ namespace rubinius {
     return b;
   }
 
-  INTEGER Bignum::add(STATE, FIXNUM b) {
+  Integer* Bignum::add(STATE, Fixnum* b) {
     NMP;
     native_int bi = b->to_native();
     if(bi > 0) {
@@ -367,7 +367,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::add(STATE, Bignum* b) {
+  Integer* Bignum::add(STATE, Bignum* b) {
     NMP;
     mp_add(mp_val(), b->mp_val(), n);
     return Bignum::normalize(state, n_obj);
@@ -377,7 +377,7 @@ namespace rubinius {
     return b->add(state, this);
   }
 
-  INTEGER Bignum::sub(STATE, FIXNUM b) {
+  Integer* Bignum::sub(STATE, Fixnum* b) {
     NMP;
     native_int bi = b->to_native();
     if(bi > 0) {
@@ -388,7 +388,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::sub(STATE, Bignum* b) {
+  Integer* Bignum::sub(STATE, Bignum* b) {
     NMP;
     mp_sub(mp_val(), b->mp_val(), n);
     return Bignum::normalize(state, n_obj);
@@ -398,7 +398,7 @@ namespace rubinius {
     return Float::coerce(state, this)->sub(state, b);
   }
 
-  INTEGER Bignum::mul(STATE, FIXNUM b) {
+  Integer* Bignum::mul(STATE, Fixnum* b) {
     NMP;
 
     native_int bi = b->to_native();
@@ -415,7 +415,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::mul(STATE, Bignum* b) {
+  Integer* Bignum::mul(STATE, Bignum* b) {
     NMP;
     mp_mul(mp_val(), b->mp_val(), n);
     return Bignum::normalize(state, n_obj);
@@ -425,7 +425,7 @@ namespace rubinius {
     return b->mul(state, this);
   }
 
-  INTEGER Bignum::divide(STATE, FIXNUM denominator, INTEGER* remainder) {
+  Integer* Bignum::divide(STATE, Fixnum* denominator, Integer** remainder) {
     if(denominator->to_native() == 0) {
       Exception::zero_division_error(state, "divided by 0");
     }
@@ -458,7 +458,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::divide(STATE, Bignum* b, INTEGER* remainder) {
+  Integer* Bignum::divide(STATE, Bignum* b, Integer** remainder) {
     if(mp_cmp_d(b->mp_val(), 0) == MP_EQ) {
       Exception::zero_division_error(state, "divided by 0");
     }
@@ -477,11 +477,11 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::div(STATE, FIXNUM denominator) {
+  Integer* Bignum::div(STATE, Fixnum* denominator) {
     return divide(state, denominator, NULL);
   }
 
-  INTEGER Bignum::div(STATE, Bignum* denominator) {
+  Integer* Bignum::div(STATE, Bignum* denominator) {
     return divide(state, denominator, NULL);
   }
 
@@ -489,9 +489,9 @@ namespace rubinius {
     return Float::coerce(state, this)->div(state, other);
   }
 
-  Array* Bignum::divmod(STATE, FIXNUM denominator) {
-    INTEGER mod = Fixnum::from(0);
-    INTEGER quotient = divide(state, denominator, &mod);
+  Array* Bignum::divmod(STATE, Fixnum* denominator) {
+    Integer* mod = Fixnum::from(0);
+    Integer* quotient = divide(state, denominator, &mod);
 
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, quotient);
@@ -501,8 +501,8 @@ namespace rubinius {
   }
 
   Array* Bignum::divmod(STATE, Bignum* denominator) {
-    INTEGER mod = Fixnum::from(0);
-    INTEGER quotient = divide(state, denominator, &mod);
+    Integer* mod = Fixnum::from(0);
+    Integer* quotient = divide(state, denominator, &mod);
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, quotient);
     ary->set(state, 1, mod);
@@ -513,14 +513,14 @@ namespace rubinius {
     return Float::coerce(state, this)->divmod(state, denominator);
   }
 
-  INTEGER Bignum::mod(STATE, FIXNUM denominator) {
-    INTEGER mod = Fixnum::from(0);
+  Integer* Bignum::mod(STATE, Fixnum* denominator) {
+    Integer* mod = Fixnum::from(0);
     divide(state, denominator, &mod);
     return mod;
   }
 
-  INTEGER Bignum::mod(STATE, Bignum* denominator) {
-    INTEGER mod = Fixnum::from(0);
+  Integer* Bignum::mod(STATE, Bignum* denominator) {
+    Integer* mod = Fixnum::from(0);
     divide(state, denominator, &mod);
     return mod;
   }
@@ -529,7 +529,7 @@ namespace rubinius {
     return Float::coerce(state, this)->mod(state, denominator);
   }
 
-  INTEGER Bignum::bit_and(STATE, INTEGER b) {
+  Integer* Bignum::bit_and(STATE, Integer* b) {
     NMP;
 
     if(kind_of<Fixnum>(b)) {
@@ -541,11 +541,11 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::bit_and(STATE, Float* b) {
+  Integer* Bignum::bit_and(STATE, Float* b) {
     return bit_and(state, Bignum::from_double(state, b->val));
   }
 
-  INTEGER Bignum::bit_or(STATE, INTEGER b) {
+  Integer* Bignum::bit_or(STATE, Integer* b) {
     NMP;
 
     if(kind_of<Fixnum>(b)) {
@@ -556,11 +556,11 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::bit_or(STATE, Float* b) {
+  Integer* Bignum::bit_or(STATE, Float* b) {
     return bit_or(state, Bignum::from_double(state, b->val));
   }
 
-  INTEGER Bignum::bit_xor(STATE, INTEGER b) {
+  Integer* Bignum::bit_xor(STATE, Integer* b) {
     NMP;
 
     if(kind_of<Fixnum>(b)) {
@@ -571,11 +571,11 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::bit_xor(STATE, Float* b) {
+  Integer* Bignum::bit_xor(STATE, Float* b) {
     return bit_xor(state, Bignum::from_double(state, b->val));
   }
 
-  INTEGER Bignum::invert(STATE) {
+  Integer* Bignum::invert(STATE) {
     NMP;
 
     mp_int a; mp_init(&a);
@@ -589,7 +589,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::neg(STATE) {
+  Integer* Bignum::neg(STATE) {
     NMP;
 
     mp_neg(mp_val(), n);
@@ -599,7 +599,7 @@ namespace rubinius {
   /* These 2 don't use mp_lshd because it shifts by internal digits,
      not bits. */
 
-  INTEGER Bignum::left_shift(STATE, INTEGER bits) {
+  Integer* Bignum::left_shift(STATE, Integer* bits) {
     NMP;
     int shift = bits->to_native();
     if(shift < 0) {
@@ -612,7 +612,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::right_shift(STATE, INTEGER bits) {
+  Integer* Bignum::right_shift(STATE, Integer* bits) {
     NMP;
     int shift = bits->to_native();
     if(shift < 0) {
@@ -639,7 +639,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::equal(STATE, FIXNUM b) {
+  Object* Bignum::equal(STATE, Fixnum* b) {
     native_int bi = b->to_native();
     mp_int* a = mp_val();
     if(bi < 0) {
@@ -656,18 +656,18 @@ namespace rubinius {
     return Qfalse;
   }
 
-  OBJECT Bignum::equal(STATE, Bignum* b) {
+  Object* Bignum::equal(STATE, Bignum* b) {
     if(mp_cmp(mp_val(), b->mp_val()) == MP_EQ) {
       return Qtrue;
     }
     return Qfalse;
   }
 
-  OBJECT Bignum::equal(STATE, Float* b) {
+  Object* Bignum::equal(STATE, Float* b) {
     return Float::coerce(state, this)->equal(state, b);
   }
 
-  FIXNUM Bignum::compare(STATE, FIXNUM b) {
+  Fixnum* Bignum::compare(STATE, Fixnum* b) {
     native_int bi = b->to_native();
     mp_int* a = mp_val();
     if(bi < 0) {
@@ -694,7 +694,7 @@ namespace rubinius {
     return Fixnum::from(0);
   }
 
-  FIXNUM Bignum::compare(STATE, Bignum* b) {
+  Fixnum* Bignum::compare(STATE, Bignum* b) {
     switch(mp_cmp(mp_val(), b->mp_val())) {
       case MP_LT:
         return Fixnum::from(-1);
@@ -704,11 +704,11 @@ namespace rubinius {
     return Fixnum::from(0);
   }
 
-  FIXNUM Bignum::compare(STATE, Float* b) {
+  Fixnum* Bignum::compare(STATE, Float* b) {
     return Float::coerce(state, this)->compare(state, b);
   }
 
-  OBJECT Bignum::gt(STATE, FIXNUM b) {
+  Object* Bignum::gt(STATE, Fixnum* b) {
     native_int bi = b->to_native();
 
     mp_int* a = mp_val();
@@ -730,18 +730,18 @@ namespace rubinius {
     }
   }
 
-  OBJECT Bignum::gt(STATE, Bignum* b) {
+  Object* Bignum::gt(STATE, Bignum* b) {
     if(mp_cmp(mp_val(), b->mp_val()) == MP_GT) {
       return Qtrue;
     }
     return Qfalse;
   }
 
-  OBJECT Bignum::gt(STATE, Float* b) {
+  Object* Bignum::gt(STATE, Float* b) {
     return Float::coerce(state, this)->gt(state, b);
   }
 
-  OBJECT Bignum::ge(STATE, FIXNUM b) {
+  Object* Bignum::ge(STATE, Fixnum* b) {
     native_int bi = b->to_native();
 
     mp_int* a = mp_val();
@@ -764,11 +764,11 @@ namespace rubinius {
     }
   }
 
-  OBJECT Bignum::ge(STATE, Float* b) {
+  Object* Bignum::ge(STATE, Float* b) {
     return Float::coerce(state, this)->ge(state, b);
   }
 
-  OBJECT Bignum::ge(STATE, Bignum* b) {
+  Object* Bignum::ge(STATE, Bignum* b) {
     int r = mp_cmp(mp_val(), b->mp_val());
     if(r == MP_GT || r == MP_EQ) {
       return Qtrue;
@@ -776,7 +776,7 @@ namespace rubinius {
     return Qfalse;
   }
 
-  OBJECT Bignum::lt(STATE, FIXNUM b) {
+  Object* Bignum::lt(STATE, Fixnum* b) {
     native_int bi = b->to_native();
 
     mp_int* a = mp_val();
@@ -798,18 +798,18 @@ namespace rubinius {
     }
   }
 
-  OBJECT Bignum::lt(STATE, Bignum* b) {
+  Object* Bignum::lt(STATE, Bignum* b) {
     if(mp_cmp(mp_val(), b->mp_val()) == MP_LT) {
       return Qtrue;
     }
     return Qfalse;
   }
 
-  OBJECT Bignum::lt(STATE, Float* b) {
+  Object* Bignum::lt(STATE, Float* b) {
     return Float::coerce(state, this)->lt(state, b);
   }
 
-  OBJECT Bignum::le(STATE, FIXNUM b) {
+  Object* Bignum::le(STATE, Fixnum* b) {
     native_int bi = b->to_native();
 
     mp_int* a = mp_val();
@@ -832,7 +832,7 @@ namespace rubinius {
     }
   }
 
-  OBJECT Bignum::le(STATE, Bignum* b) {
+  Object* Bignum::le(STATE, Bignum* b) {
     int r = mp_cmp(mp_val(), b->mp_val());
     if(r == MP_LT || r == MP_EQ) {
       return Qtrue;
@@ -840,7 +840,7 @@ namespace rubinius {
     return Qfalse;
   }
 
-  OBJECT Bignum::le(STATE, Float* b) {
+  Object* Bignum::le(STATE, Float* b) {
     return Float::coerce(state, this)->le(state, b);
   }
 
@@ -848,7 +848,7 @@ namespace rubinius {
     return Float::coerce(state, this);
   }
 
-  String* Bignum::to_s(STATE, INTEGER radix) {
+  String* Bignum::to_s(STATE, Integer* radix) {
     char *buf;
     int sz = 1024;
     int k;
@@ -867,7 +867,7 @@ namespace rubinius {
     }
   }
 
-  INTEGER Bignum::from_string_detect(STATE, const char *str) {
+  Integer* Bignum::from_string_detect(STATE, const char *str) {
     const char *s;
     int radix;
     int sign;
@@ -909,7 +909,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::from_string(STATE, const char *str, size_t radix) {
+  Integer* Bignum::from_string(STATE, const char *str, size_t radix) {
     NMP;
     mp_read_radix(n, str, radix);
     return Bignum::normalize(state, n_obj);
@@ -953,11 +953,11 @@ namespace rubinius {
     return res;
   }
 
-  INTEGER Bignum::from_float(STATE, Float* f) {
+  Integer* Bignum::from_float(STATE, Float* f) {
     return Bignum::from_double(state, f->val);
   }
 
-  INTEGER Bignum::from_double(STATE, double d) {
+  Integer* Bignum::from_double(STATE, double d) {
     NMP;
 
     long i = 0;
@@ -1003,10 +1003,10 @@ namespace rubinius {
     return ary;
   }
 
-  Array* Bignum::coerce(STATE, FIXNUM other) {
+  Array* Bignum::coerce(STATE, Fixnum* other) {
     Array* ary = Array::create(state, 2);
 
-    if(FIXNUM fix = try_as<Fixnum>(Bignum::normalize(state, this))) {
+    if(Fixnum* fix = try_as<Fixnum>(Bignum::normalize(state, this))) {
       ary->set(state, 0, other);
       ary->set(state, 1, fix);
     } else {
@@ -1017,7 +1017,7 @@ namespace rubinius {
     return ary;
   }
 
-  INTEGER Bignum::size(STATE)
+  Integer* Bignum::size(STATE)
   {
     int bits = mp_count_bits(mp_val());
     int bytes = (bits + 7) / 8;

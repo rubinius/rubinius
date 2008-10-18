@@ -22,13 +22,13 @@ namespace rubinius {
     static CompactLookupTable* create(STATE);
 
     // Ruby.primitive :compactlookuptable_fetch
-    OBJECT fetch(STATE, OBJECT key);
+    Object* fetch(STATE, Object* key);
 
     // Ruby.primitive :compactlookuptable_store
-    OBJECT store(STATE, OBJECT key, OBJECT val);
+    Object* store(STATE, Object* key, Object* val);
 
     // Ruby.primitive :compactlookuptable_has_key
-    OBJECT has_key(STATE, OBJECT key);
+    Object* has_key(STATE, Object* key);
 
     // Ruby.primitive :compactlookuptable_keys
     Array* keys(STATE);
@@ -41,7 +41,7 @@ namespace rubinius {
     class Info : public Tuple::Info {
     public:
       Info(object_type type, bool cleanup = false) : Tuple::Info(type, cleanup) { }
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 };

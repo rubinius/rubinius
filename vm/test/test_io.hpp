@@ -67,7 +67,7 @@ class TestIO : public CxxTest::TestSuite {
 
   void test_ensure_open() {
     TS_ASSERT(io->ensure_open(state)->nil_p());
-    io->descriptor(state, (FIXNUM)Qnil);
+    io->descriptor(state, (Fixnum*)Qnil);
     TS_ASSERT_THROWS_ASSERT(io->ensure_open(state), const RubyException &e,
         TS_ASSERT(Exception::io_error_p(state, e.exception)));
     io->descriptor(state, Fixnum::from(-1));
@@ -76,7 +76,7 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   void test_set_mode() {
-    io->mode(state, (FIXNUM)Qnil);
+    io->mode(state, (Fixnum*)Qnil);
     TS_ASSERT(io->mode()->nil_p());
     io->set_mode(state);
     int acc_mode = fcntl(io->to_fd(), F_GETFL);
@@ -135,7 +135,7 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   void test_query_tty() {
-    SYMBOL tty_p = state->symbol("tty?");
+    Symbol* tty_p = state->symbol("tty?");
     TS_ASSERT_EQUALS(Qfalse, io->query(state, tty_p));
 
     IO* rb_stdout = try_as<IO>(G(object)->get_const(state, "STDOUT"));
@@ -152,7 +152,7 @@ class TestIO : public CxxTest::TestSuite {
 
   void test_create_buffer() {
     IOBuffer* buf = IOBuffer::create(state, 10);
-    FIXNUM zero = Fixnum::from(0);
+    Fixnum* zero = Fixnum::from(0);
 
     TS_ASSERT_EQUALS(zero, buf->start());
     TS_ASSERT_EQUALS(zero, buf->used());

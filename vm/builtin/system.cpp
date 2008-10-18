@@ -64,7 +64,7 @@ namespace rubinius {
     return cf->body(state);
   }
 
-  Object* Object::yield_gdb(STATE, Object* obj) {
+  Object* System::yield_gdb(STATE, Object* obj) {
     obj->show(state);
     Exception::assertion_error(state, "yield_gdb called and not caught");
     return obj;
@@ -90,7 +90,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  OBJECT Object::vm_exit(STATE, FIXNUM code) {
+  Object* System::vm_exit(STATE, Fixnum* code) {
     ::exit(code->to_native());
   }
 
@@ -109,14 +109,14 @@ namespace rubinius {
     return Fixnum::from(result);
   }
 
-  OBJECT Object::vm_gc_start(STATE, OBJECT tenure) {
+  Object* System::vm_gc_start(STATE, Object* tenure) {
     // Ignore tenure for now
     state->om->collect_young_now = true;
     state->om->collect_mature_now = true;
     return Qnil;
   }
 
-  OBJECT Object::vm_get_config_item(STATE, String* var) {
+  Object* System::vm_get_config_item(STATE, String* var) {
     ConfigParser::Entry* ent = state->user_config->find(var->c_str());
     if(!ent) return Qnil;
 
@@ -126,7 +126,7 @@ namespace rubinius {
     return String::create(state, ent->value.c_str());
   }
 
-  OBJECT Object::vm_get_config_section(STATE, String* section) {
+  Object* System::vm_get_config_section(STATE, String* section) {
     ConfigParser::EntryList* list;
 
     list = state->user_config->get_section(section->byte_address());
@@ -142,7 +142,7 @@ namespace rubinius {
     return ary;
   }
 
-  OBJECT Object::vm_reset_method_cache(STATE, SYMBOL name) {
+  Object* System::vm_reset_method_cache(STATE, Symbol* name) {
     // 1. clear the global cache
     state->global_cache->clear(name);
     // 2. clear the send site caches
@@ -150,22 +150,22 @@ namespace rubinius {
     return name;
   }
 
-  OBJECT Object::vm_show_backtrace(STATE, MethodContext* ctx) {
+  Object* System::vm_show_backtrace(STATE, MethodContext* ctx) {
     G(current_task)->print_backtrace(ctx);
     return Qnil;
   }
 
-  OBJECT Object::vm_start_profiler(STATE) {
+  Object* System::vm_start_profiler(STATE) {
     G(current_task)->enable_profiler();
     return Qtrue;
   }
 
-  OBJECT Object::vm_stop_profiler(STATE, String* path) {
+  Object* System::vm_stop_profiler(STATE, String* path) {
     G(current_task)->disable_profiler(path->c_str());
     return path;
   }
 
-  OBJECT Object::vm_write_error(STATE, String* str) {
+  Object* System::vm_write_error(STATE, String* str) {
     std::cerr << str->byte_address() << std::endl;
     return Qnil;
   }

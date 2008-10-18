@@ -16,9 +16,9 @@ namespace rubinius {
     G(executable)->set_object_type(state, ExecutableType);
   }
 
-  Executable* Executable::allocate(STATE, OBJECT self) {
+  Executable* Executable::allocate(STATE, Object* self) {
     Executable* executable = (Executable*)state->new_object(G(executable));
-    executable->primitive(state, (SYMBOL)Qnil);
+    executable->primitive(state, (Symbol*)Qnil);
     executable->serial(state, Fixnum::from(0));
 
     executable->set_executor(Executable::default_executor);

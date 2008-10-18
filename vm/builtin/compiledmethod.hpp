@@ -18,18 +18,18 @@ namespace rubinius {
     const static size_t saved_fields = 16;
 
   private:
-    SYMBOL name_;               // slot
+    Symbol* name_;               // slot
     InstructionSequence* iseq_; // slot
-    FIXNUM stack_size_;         // slot
-    FIXNUM local_count_;        // slot
-    FIXNUM required_args_;      // slot
-    FIXNUM total_args_;         // slot
-    OBJECT splat_;              // slot
+    Fixnum* stack_size_;         // slot
+    Fixnum* local_count_;        // slot
+    Fixnum* required_args_;      // slot
+    Fixnum* total_args_;         // slot
+    Object* splat_;              // slot
     Tuple* literals_;           // slot
     Tuple* exceptions_;         // slot
     Tuple* lines_;              // slot
     Tuple* local_names_;        // slot
-    SYMBOL file_;               // slot
+    Symbol* file_;               // slot
     StaticScope* scope_;        // slot
 
   public:
@@ -74,12 +74,12 @@ namespace rubinius {
     static ExecuteStatus default_executor(STATE, Task*, Message&);
 
     // Ruby.primitive :compiledmethod_compile
-    OBJECT compile(STATE);
+    Object* compile(STATE);
 
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 

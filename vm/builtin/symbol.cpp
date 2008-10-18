@@ -23,7 +23,7 @@ namespace rubinius {
     return DATA_STRIP_TAG(this);
   }
 
-  INTEGER Symbol::index(STATE) {
+  Integer* Symbol::index(STATE) {
     return Fixnum::from(this->index());
   }
 
@@ -43,14 +43,14 @@ namespace rubinius {
     return state->symbols.all_as_array(state);
   }
 
-  void Symbol::Info::show(STATE, OBJECT self, int level) {
-    SYMBOL sym = try_as<Symbol>(self);
+  void Symbol::Info::show(STATE, Object* self, int level) {
+    Symbol* sym = try_as<Symbol>(self);
     std::cout << ":" << sym->to_str(state)->c_str() << std::endl;
   }
 
-  void Symbol::Info::show_simple(STATE, OBJECT self, int level) {
+  void Symbol::Info::show_simple(STATE, Object* self, int level) {
     show(state, self, level);
   }
 
-  void Symbol::Info::mark(OBJECT t, ObjectMark& mark) { }
+  void Symbol::Info::mark(Object* t, ObjectMark& mark) { }
 }

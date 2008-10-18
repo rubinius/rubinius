@@ -31,7 +31,7 @@ namespace rubinius {
     }
   }
 
-  OBJECT Dir::open(STATE, String* path) {
+  Object* Dir::open(STATE, String* path) {
     DIR* d = opendir(path->c_str());
 
     if(!d) Exception::errno_error(state, "Unable to open directory");
@@ -40,7 +40,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  OBJECT Dir::close(STATE) {
+  Object* Dir::close(STATE) {
     guard(state);
 
     DIR* d = (DIR*)data_->pointer;
@@ -53,11 +53,11 @@ namespace rubinius {
     return Qfalse;
   }
 
-  OBJECT Dir::closed_p(STATE) {
+  Object* Dir::closed_p(STATE) {
     return data_->nil_p() ? Qtrue : Qfalse;
   }
 
-  OBJECT Dir::read(STATE) {
+  Object* Dir::read(STATE) {
     guard(state);
 
     DIR* d = (DIR*)data_->pointer;
@@ -68,7 +68,7 @@ namespace rubinius {
     return String::create(state, ent->d_name);
   }
 
-  OBJECT Dir::control(STATE, FIXNUM kind, INTEGER pos) {
+  Object* Dir::control(STATE, Fixnum* kind, Integer* pos) {
     guard(state);
 
     DIR* d = (DIR*)data_->pointer;

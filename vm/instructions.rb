@@ -71,8 +71,8 @@ class Instructions
 
   def add_method(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
-    OBJECT recv = stack_pop();
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Object* recv = stack_pop();
     Module* mod = try_as<Module>(recv);
     /* If the receiver is not a module, use the receiver's class_object instead */
     if(!mod) {
@@ -87,8 +87,8 @@ class Instructions
 
   def test_add_method
     <<-CODE
-    SYMBOL name1 = state->symbol("true_method");
-    SYMBOL name2 = state->symbol("kernel_method");
+    Symbol* name1 = state->symbol("true_method");
+    Symbol* name2 = state->symbol("kernel_method");
     task->literals()->put(state, 0, name1);
     task->literals()->put(state, 1, name2);
 
@@ -134,7 +134,7 @@ class Instructions
 
   def add_scope
     <<-CODE
-    OBJECT obj = stack_pop();
+    Object* obj = stack_pop();
     Module* mod = as<Module>(obj);
     StaticScope* scope = StaticScope::create(state);
     scope->module(state, mod);
@@ -179,9 +179,9 @@ class Instructions
 
   def attach_method(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
-    OBJECT obj = stack_pop();
-    OBJECT obj2 = stack_pop();
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Object* obj = stack_pop();
+    Object* obj2 = stack_pop();
     CompiledMethod* meth = as<CompiledMethod>(obj2);
 
     task->attach_method(obj, sym, meth);
@@ -191,7 +191,7 @@ class Instructions
 
   def test_attach_method
     <<-CODE
-    SYMBOL name = state->symbol("blah");
+    Symbol* name = state->symbol("blah");
     task->literals()->put(state, 0, name);
 
     task->push(cm);
@@ -232,7 +232,7 @@ class Instructions
 
   def cast_array
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     if(kind_of<Tuple>(t1)) {
       t1 = Array::from_tuple(state, as<Tuple>(t1));
     } else if(!kind_of<Array>(t1)) {
@@ -294,7 +294,7 @@ class Instructions
     int k = tup->num_fields();
     /* If there is only one thing in the tuple... */
     if(k == 1) {
-      OBJECT t1 = tup->at(state, 0);
+      Object* t1 = tup->at(state, 0);
       /* and that thing is an array... */
       if(kind_of<Array>(t1)) { // HACK use try_as
         /* make a tuple out of the array contents... */
@@ -412,7 +412,7 @@ class Instructions
 
   def cast_tuple
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     if(kind_of<Array>(t1)) {
       Array* ary = as<Array>(t1);
       int j = ary->size();
@@ -488,8 +488,8 @@ class Instructions
 
   def check_serial(index, serial)
     <<-CODE
-    OBJECT t1 = stack_pop();
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
+    Object* t1 = stack_pop();
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
 
     if(task->check_serial(t1, sym, serial)) {
       stack_push(Qtrue);
@@ -501,7 +501,7 @@ class Instructions
 
   def test_check_serial
     <<-CODE
-      FIXNUM s = Fixnum::from(100);
+      Fixnum* s = Fixnum::from(100);
       Symbol* sym = String::create(state, "to_s")->to_sym(state);
       task->literals()->put(state, 0, sym);
 
@@ -542,7 +542,7 @@ class Instructions
 
   def class
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     stack_push(t1->class_object(state));
     CODE
   end
@@ -598,7 +598,7 @@ class Instructions
   def create_block(index)
     <<-CODE
     /* the method */
-    OBJECT _lit = task->literals()->at(state, index);
+    Object* _lit = task->literals()->at(state, index);
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
     MethodContext* parent;
@@ -614,7 +614,7 @@ class Instructions
     // HACK not sure this needs to be here all the time
     cm->scope(state, task->active()->cm()->scope());
 
-    OBJECT t2 = BlockEnvironment::under_context(state, cm, parent, task->active(), index);
+    Object* t2 = BlockEnvironment::under_context(state, cm, parent, task->active(), index);
     stack_push(t2);
     CODE
   end
@@ -636,7 +636,7 @@ class Instructions
 
   def dup_top
     <<-CODE
-    OBJECT t1 = stack_top();
+    Object* t1 = stack_top();
     stack_push(t1);
     CODE
   end
@@ -676,8 +676,8 @@ class Instructions
 
   def equal
     <<-CODE
-    OBJECT t1 = stack_pop();
-    OBJECT t2 = stack_pop();
+    Object* t1 = stack_pop();
+    Object* t2 = stack_pop();
     stack_push(t1 == t2 ? Qtrue : Qfalse);
     CODE
   end
@@ -728,8 +728,8 @@ class Instructions
     <<-CODE
     bool found;
     Module* under = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
-    OBJECT res = task->const_get(under, sym, &found);
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Object* res = task->const_get(under, sym, &found);
     if(!found) {
       Message& msg = *task->msg;
       msg.recv = under;
@@ -752,7 +752,7 @@ class Instructions
 
   def test_find_const
     <<-CODE
-    SYMBOL name = state->symbol("Number");
+    Symbol* name = state->symbol("Number");
     G(true_class)->set_const(state, name, Fixnum::from(3));
 
     task->literals()->put(state, 0, name);
@@ -818,7 +818,7 @@ class Instructions
 
   def goto_if_defined(location)
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     if(t1 != Qundef) {
       task->set_ip(location);
     }
@@ -860,7 +860,7 @@ class Instructions
 
   def goto_if_false(location)
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     if(!RTEST(t1)) {
       task->set_ip(location);
       cache_ip();
@@ -903,7 +903,7 @@ class Instructions
 
   def goto_if_true(location)
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     if(RTEST(t1)) {
       task->set_ip(location);
       cache_ip();
@@ -978,7 +978,7 @@ class Instructions
 
   def instance_of
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     Class* cls = as<Class>(stack_pop());
     if(t1->class_object(state) == cls) {
       stack_push(Qtrue);
@@ -993,8 +993,8 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    OBJECT objp = state->new_object(parent);
-    OBJECT objc = state->new_object(child);
+    Object* objp = state->new_object(parent);
+    Object* objc = state->new_object(child);
 
     /* standard */
     task->push(parent);
@@ -1032,7 +1032,7 @@ class Instructions
 
   def is_fixnum
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     stack_push(t1->fixnum_p() ? Qtrue : Qfalse);
     CODE
   end
@@ -1064,7 +1064,7 @@ class Instructions
 
   def is_nil
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     stack_push(t1 == Qnil ? Qtrue : Qfalse);
     CODE
   end
@@ -1099,7 +1099,7 @@ class Instructions
 
   def is_symbol
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     stack_push(t1->symbol_p() ? Qtrue : Qfalse);
     CODE
   end
@@ -1139,7 +1139,7 @@ class Instructions
 
   def kind_of
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     Class* cls = as<Class>(stack_pop());
     if(t1->kind_of_p(state, cls)) {
       stack_push(Qtrue);
@@ -1154,8 +1154,8 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    OBJECT objp = state->new_object(parent);
-    OBJECT objc = state->new_object(child);
+    Object* objp = state->new_object(parent);
+    Object* objc = state->new_object(child);
 
     /* standard */
     task->push(parent);
@@ -1198,16 +1198,16 @@ class Instructions
 
   def locate_method
     <<-CODE
-    OBJECT t1 = stack_pop(); // include_private
-    SYMBOL name = as<Symbol>(stack_pop()); // meth
-    OBJECT t3 = stack_pop(); // self
+    Object* t1 = stack_pop(); // include_private
+    Symbol* name = as<Symbol>(stack_pop()); // meth
+    Object* t3 = stack_pop(); // self
     stack_push(task->locate_method_on(t3, name, t1));
     CODE
   end
 
   def test_locate_method
     <<-CODE
-    SYMBOL name = state->symbol("blah");
+    Symbol* name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, cm);
 
     task->push(Qtrue);
@@ -1241,7 +1241,7 @@ class Instructions
 
   def make_array(count)
     <<-CODE
-    OBJECT t2;
+    Object* t2;
     Array* ary = Array::create(state, count);
     int j = count - 1;
     for(; j >= 0; j--) {
@@ -1404,7 +1404,7 @@ class Instructions
 
   def meta_send_call(count)
     <<-CODE
-    OBJECT t1 = stack_back(count);
+    Object* t1 = stack_back(count);
 
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       env->call(state, task, count);
@@ -1473,8 +1473,8 @@ class Instructions
 
   def meta_send_op_equal
     <<-CODE
-    OBJECT t1 = stack_back(1);
-    OBJECT t2 = stack_back(0);
+    Object* t1 = stack_back(1);
+    Object* t2 = stack_back(0);
     /* If both are not references, compare them directly. */
     if(!t1->reference_p() && !t2->reference_p()) {
       stack_pop();
@@ -1488,8 +1488,8 @@ class Instructions
 
   def test_meta_send_op_equal
     <<-CODE
-    OBJECT one = Fixnum::from(1);
-    OBJECT two = Fixnum::from(2);
+    Object* one = Fixnum::from(1);
+    Object* two = Fixnum::from(2);
 
     task->push(two);
     task->push(one);
@@ -1520,8 +1520,8 @@ class Instructions
 
   def meta_send_op_gt
     <<-CODE
-    OBJECT t1 = stack_back(1);
-    OBJECT t2 = stack_back(0);
+    Object* t1 = stack_back(1);
+    Object* t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
       int j = as<Integer>(t1)->to_native();
       int k = as<Integer>(t2)->to_native();
@@ -1536,8 +1536,8 @@ class Instructions
 
   def test_meta_send_op_gt
     <<-CODE
-    OBJECT one = Fixnum::from(1);
-    OBJECT two = Fixnum::from(2);
+    Object* one = Fixnum::from(1);
+    Object* two = Fixnum::from(2);
 
     task->push(one);
     task->push(two);
@@ -1568,8 +1568,8 @@ class Instructions
 
   def meta_send_op_lt
     <<-CODE
-    OBJECT t1 = stack_back(1);
-    OBJECT t2 = stack_back(0);
+    Object* t1 = stack_back(1);
+    Object* t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
       int j = as<Integer>(t1)->to_native();
       int k = as<Integer>(t2)->to_native();
@@ -1584,8 +1584,8 @@ class Instructions
 
   def test_meta_send_op_lt
     <<-CODE
-    OBJECT one = Fixnum::from(1);
-    OBJECT two = Fixnum::from(2);
+    Object* one = Fixnum::from(1);
+    Object* two = Fixnum::from(2);
 
     task->push(one);
     task->push(two);
@@ -1616,13 +1616,13 @@ class Instructions
 
   def meta_send_op_minus
     <<-CODE
-    OBJECT left =  stack_back(1);
-    OBJECT right = stack_back(0);
+    Object* left =  stack_back(1);
+    Object* right = stack_back(0);
 
     if(both_fixnum_p(left, right)) {
       stack_pop();
       stack_pop();
-      OBJECT res = ((FIXNUM)(left))->sub(state, (FIXNUM)(right));
+      Object* res = ((Fixnum*)(left))->sub(state, (Fixnum*)(right));
       stack_push(res);
       RETURN(false);
     }
@@ -1633,8 +1633,8 @@ class Instructions
 
   def test_meta_send_op_minus
     <<-CODE
-    OBJECT one = Fixnum::from(1);
-    OBJECT two = Fixnum::from(2);
+    Object* one = Fixnum::from(1);
+    Object* two = Fixnum::from(2);
 
     task->push(two);
     task->push(one);
@@ -1668,8 +1668,8 @@ class Instructions
 
   def meta_send_op_nequal
     <<-CODE
-    OBJECT t1 = stack_back(1);
-    OBJECT t2 = stack_back(0);
+    Object* t1 = stack_back(1);
+    Object* t2 = stack_back(0);
     /* If both are not references, compare them directly. */
     if(!t1->reference_p() && !t2->reference_p()) {
       stack_pop();
@@ -1683,8 +1683,8 @@ class Instructions
 
   def test_meta_send_op_nequal
     <<-CODE
-    OBJECT one = Fixnum::from(1);
-    OBJECT two = Fixnum::from(2);
+    Object* one = Fixnum::from(1);
+    Object* two = Fixnum::from(2);
 
     task->push(two);
     task->push(one);
@@ -1715,13 +1715,13 @@ class Instructions
 
   def meta_send_op_plus
     <<-CODE
-    OBJECT left =  stack_back(1);
-    OBJECT right = stack_back(0);
+    Object* left =  stack_back(1);
+    Object* right = stack_back(0);
 
     if(both_fixnum_p(left, right)) {
       stack_pop();
       stack_pop();
-      OBJECT res = ((FIXNUM)(left))->add(state, (FIXNUM)(right));
+      Object* res = ((Fixnum*)(left))->add(state, (Fixnum*)(right));
       stack_push(res);
       RETURN(false);
     }
@@ -1732,8 +1732,8 @@ class Instructions
 
   def test_meta_send_op_plus
     <<-CODE
-    OBJECT one = Fixnum::from(1);
-    OBJECT two = Fixnum::from(2);
+    Object* one = Fixnum::from(1);
+    Object* two = Fixnum::from(2);
 
     task->push(one);
     task->push(two);
@@ -1766,8 +1766,8 @@ class Instructions
 
   def meta_send_op_tequal
     <<-CODE
-    OBJECT t1 = stack_back(1);
-    OBJECT t2 = stack_back(0);
+    Object* t1 = stack_back(1);
+    Object* t2 = stack_back(0);
     /* If both are fixnums, or both are symbols, compare the ops directly. */
     if((t1->fixnum_p() && t2->fixnum_p()) || (t1->symbol_p() && t2->symbol_p())) {
       stack_pop();
@@ -1781,8 +1781,8 @@ class Instructions
 
   def test_meta_send_op_tequal
     <<-CODE
-    OBJECT one = Fixnum::from(1);
-    OBJECT two = Fixnum::from(2);
+    Object* one = Fixnum::from(1);
+    Object* two = Fixnum::from(2);
 
     task->push(two);
     task->push(one);
@@ -1859,8 +1859,8 @@ class Instructions
   def open_class(index)
     <<-CODE
     bool created;
-    OBJECT super = stack_pop();
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
+    Object* super = stack_pop();
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
 
     Class* cls = task->open_class(super, sym, &created);
 
@@ -1870,7 +1870,7 @@ class Instructions
 
   def test_open_class
     <<-CODE
-    SYMBOL name = state->symbol("C");
+    Symbol* name = state->symbol("C");
 
     StaticScope* ps = StaticScope::create(state);
     ps->module(state, G(true_class));
@@ -1925,9 +1925,9 @@ class Instructions
   def open_class_under(index)
     <<-CODE
     bool created;
-    OBJECT super = stack_pop();
+    Object* super = stack_pop();
     Module* under = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
 
     Class* cls = task->open_class(under, super, sym, &created);
     // TODO use created? it's only for running the opened_class hook, which
@@ -1939,7 +1939,7 @@ class Instructions
 
   def test_open_class_under
     <<-CODE
-    SYMBOL name = state->symbol("C");
+    Symbol* name = state->symbol("C");
     task->push(G(true_class));
     task->push(Qnil);
 
@@ -1976,7 +1976,7 @@ class Instructions
 
   def open_metaclass
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     stack_push(t1->metaclass(state));
     CODE
   end
@@ -2013,7 +2013,7 @@ class Instructions
 
   def open_module(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
 
     stack_push(task->open_module(sym));
     CODE
@@ -2021,7 +2021,7 @@ class Instructions
 
   def test_open_module
     <<-CODE
-    SYMBOL name = state->symbol("C");
+    Symbol* name = state->symbol("C");
 
     StaticScope* ps = StaticScope::create(state);
     ps->module(state, G(true_class));
@@ -2060,7 +2060,7 @@ class Instructions
   def open_module_under(index)
     <<-CODE
     Module* mod = as<Module>(stack_pop());
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
 
     stack_push(task->open_module(mod, sym));
     CODE
@@ -2068,7 +2068,7 @@ class Instructions
 
   def test_open_module_under
     <<-CODE
-    SYMBOL name = state->symbol("C");
+    Symbol* name = state->symbol("C");
     task->push(G(true_class));
 
     task->literals()->put(state, 0, name);
@@ -2254,8 +2254,8 @@ class Instructions
   def push_const(index)
     <<-CODE
     bool found;
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
-    OBJECT res = task->const_get(sym, &found);
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Object* res = task->const_get(sym, &found);
     if(!found) {
       Message& msg = *task->msg;
       StaticScope* scope = task->active()->cm()->scope();
@@ -2296,7 +2296,7 @@ class Instructions
 
     cm->scope(state, cs);
 
-    SYMBOL name = state->symbol("Number");
+    Symbol* name = state->symbol("Number");
     parent->set_const(state, name, Fixnum::from(3));
 
     task->literals()->put(state, 0, name);
@@ -2483,14 +2483,14 @@ class Instructions
 
   def push_ivar(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
     stack_push(task->self()->get_ivar(state, sym));
     CODE
   end
 
   def test_push_ivar
     <<-CODE
-    SYMBOL name = state->symbol("@blah");
+    Symbol* name = state->symbol("@blah");
     task->self(state, Qtrue);
     task->self()->set_ivar(state, name, Qtrue);
     task->literals()->put(state, 0, name);
@@ -2521,7 +2521,7 @@ class Instructions
 
   def push_literal(val)
     <<-CODE
-    OBJECT t2 = task->literals()->at(state, val);
+    Object* t2 = task->literals()->at(state, val);
     stack_push(t2);
     CODE
   end
@@ -2790,7 +2790,7 @@ class Instructions
 
   def raise_exc
     <<-CODE
-    OBJECT t1 = stack_pop();
+    Object* t1 = stack_pop();
     task->raise_exception(as<Exception>(t1));
     CODE
   end
@@ -2813,7 +2813,7 @@ class Instructions
 
   def ret
     <<-CODE
-    OBJECT value = stack_top();
+    Object* value = stack_top();
     MethodContext* active_context = task->active();
     MethodContext* dest = active_context->sender();
 
@@ -2973,7 +2973,7 @@ class Instructions
     target->required_args(state, target->total_args());
     target->stack_size(state, Fixnum::from(10));
 
-    SYMBOL name = state->symbol("blah");
+    Symbol* name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
 
@@ -3055,7 +3055,7 @@ class Instructions
     target->required_args(state, target->total_args());
     target->stack_size(state, Fixnum::from(1));
 
-    SYMBOL name = state->symbol("blah");
+    Symbol* name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
 
@@ -3142,7 +3142,7 @@ class Instructions
     target->required_args(state, target->total_args());
     target->stack_size(state, Fixnum::from(1));
 
-    SYMBOL name = state->symbol("blah");
+    Symbol* name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
     TypedRoot<SendSite*> tr_ss(state, ss);
@@ -3207,7 +3207,7 @@ class Instructions
     Message& msg = *task->msg;
 
     msg.block = stack_pop();
-    OBJECT ary = stack_pop();
+    Object* ary = stack_pop();
 
     msg.setup(
       vmm->sendsites[index].get(),
@@ -3245,7 +3245,7 @@ class Instructions
     target->required_args(state, target->total_args());
     target->stack_size(state, Fixnum::from(2));
 
-    SYMBOL name = state->symbol("blah");
+    Symbol* name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
     TypedRoot<SendSite*> tr_ss(state, ss);
@@ -3338,13 +3338,13 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    SYMBOL blah = state->symbol("blah");
+    Symbol* blah = state->symbol("blah");
     parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
     TypedRoot<SendSite*> tr_ss(state, ss);
     ctx->vmm->sendsites = &tr_ss;
 
-    OBJECT obj = state->new_object(child);
+    Object* obj = state->new_object(child);
     task->self(state, obj);
 
     StaticScope *sc = StaticScope::create(state);
@@ -3443,7 +3443,7 @@ class Instructions
     Message& msg = *task->msg;
 
     msg.block = stack_pop();
-    OBJECT ary = stack_pop();
+    Object* ary = stack_pop();
 
     msg.setup(
       vmm->sendsites[index].get(),
@@ -3484,13 +3484,13 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    SYMBOL blah = state->symbol("blah");
+    Symbol* blah = state->symbol("blah");
     parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
     TypedRoot<SendSite*> tr_ss(state, ss);
     ctx->vmm->sendsites = &tr_ss;
 
-    OBJECT obj = state->new_object(child);
+    Object* obj = state->new_object(child);
     task->self(state, obj);
 
     StaticScope *sc = StaticScope::create(state);
@@ -3577,7 +3577,7 @@ class Instructions
 
   def set_const(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
     task->const_set(sym, stack_top());
     CODE
   end
@@ -3591,7 +3591,7 @@ class Instructions
     ps->parent(state, (StaticScope*)Qnil);
 
     cm->scope(state, ps);
-    SYMBOL name = state->symbol("Age");
+    Symbol* name = state->symbol("Age");
 
     task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
@@ -3620,8 +3620,8 @@ class Instructions
 
   def set_const_at(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
-    OBJECT val = stack_pop();
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Object* val = stack_pop();
     Module* under = as<Module>(stack_pop());
 
     task->const_set(under, sym, val);
@@ -3631,7 +3631,7 @@ class Instructions
 
   def test_set_const_at
     <<-CODE
-    SYMBOL name = state->symbol("Age");
+    Symbol* name = state->symbol("Age");
     task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
@@ -3661,14 +3661,14 @@ class Instructions
 
   def set_ivar(index)
     <<-CODE
-    SYMBOL sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
     task->self()->set_ivar(state, sym, stack_top());
     CODE
   end
 
   def test_set_ivar
     <<-CODE
-    SYMBOL name = state->symbol("@blah");
+    Symbol* name = state->symbol("@blah");
     task->self(state, Qtrue);
     task->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
@@ -3787,7 +3787,7 @@ class Instructions
       bc = as<BlockContext>(env->home_block());
     }
 
-    OBJECT t3 = stack_pop();
+    Object* t3 = stack_pop();
     bc->set_local(index, t3);
     stack_push(t3);
     CODE
@@ -3843,7 +3843,7 @@ class Instructions
       stack_push(Qnil);
     } else {
       int j = tuple->num_fields() - 1;
-      OBJECT shifted_value = tuple->at(state, 0);
+      Object* shifted_value = tuple->at(state, 0);
 
       Tuple* new_tuple = Tuple::create(state, j);
       new_tuple->replace_with(state, tuple, 1, j);
@@ -3904,7 +3904,7 @@ class Instructions
 
     task->self(state, cls);
 
-    SYMBOL name = state->symbol("Foo");
+    Symbol* name = state->symbol("Foo");
     task->push(name);
     stream[1] = (opcode)1;
 
@@ -4010,8 +4010,8 @@ class Instructions
 
   def swap_stack
     <<-CODE
-    OBJECT t1 = stack_pop();
-    OBJECT t2 = stack_pop();
+    Object* t1 = stack_pop();
+    Object* t2 = stack_pop();
     stack_push(t1);
     stack_push(t2);
     CODE

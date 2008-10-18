@@ -22,7 +22,7 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = FloatType;
 
-    static bool is_a(OBJECT obj) {
+    static bool is_a(Object* obj) {
       return obj->obj_type == FloatType;
     }
 
@@ -30,94 +30,94 @@ namespace rubinius {
 
     static void init(STATE);
     static Float* create(STATE, double val);
-    static Float* coerce(STATE, OBJECT value);
+    static Float* coerce(STATE, Object* value);
     double to_double(STATE) { return val; }
     void into_string(STATE, char* buf, size_t sz);
 
     // Ruby.primitive! :float_add
     Float* add(STATE, Float* other);
     // Ruby.primitive! :float_add
-    Float* add(STATE, INTEGER other);
+    Float* add(STATE, Integer* other);
 
     // Ruby.primitive! :float_sub
     Float* sub(STATE, Float* other);
     // Ruby.primitive! :float_sub
-    Float* sub(STATE, INTEGER other);
+    Float* sub(STATE, Integer* other);
 
     // Ruby.primitive! :float_mul
     Float* mul(STATE, Float* other);
     // Ruby.primitive! :float_mul
-    Float* mul(STATE, INTEGER other);
+    Float* mul(STATE, Integer* other);
 
     // Ruby.primitive! :float_pow
     Float* fpow(STATE, Float* other);
     // Ruby.primitive! :float_pow
-    Float* fpow(STATE, INTEGER other);
+    Float* fpow(STATE, Integer* other);
 
     // Ruby.primitive! :float_div
     Float* div(STATE, Float* other);
     // Ruby.primitive! :float_div
-    Float* div(STATE, INTEGER other);
+    Float* div(STATE, Integer* other);
 
     // Ruby.primitive! :float_mod
     Float* mod(STATE, Float* other);
     // Ruby.primitive! :float_mod
-    Float* mod(STATE, INTEGER other);
+    Float* mod(STATE, Integer* other);
 
     // Ruby.primitive! :float_divmod
     Array* divmod(STATE, Float* other);
     // Ruby.primitive! :float_divmod
-    Array* divmod(STATE, INTEGER other);
+    Array* divmod(STATE, Integer* other);
 
     // Ruby.primitive :float_neg
     Float* neg(STATE);
 
     // Ruby.primitive! :float_equal
-    OBJECT equal(STATE, Float* other);
+    Object* equal(STATE, Float* other);
     // Ruby.primitive! :float_equal
-    OBJECT equal(STATE, INTEGER other);
+    Object* equal(STATE, Integer* other);
 
     // Ruby.primitive! :float_eql
-    OBJECT eql(STATE, Float* other);
+    Object* eql(STATE, Float* other);
     // Ruby.primitive! :float_eql
-    OBJECT eql(STATE, INTEGER other);
+    Object* eql(STATE, Integer* other);
 
     // Ruby.primitive! :float_compare
-    FIXNUM compare(STATE, Float* other);
+    Fixnum* compare(STATE, Float* other);
     // Ruby.primitive! :float_compare
-    FIXNUM compare(STATE, INTEGER other);
+    Fixnum* compare(STATE, Integer* other);
 
     // Ruby.primitive! :float_gt
-    OBJECT gt(STATE, Float* other);
+    Object* gt(STATE, Float* other);
     // Ruby.primitive! :float_gt
-    OBJECT gt(STATE, INTEGER other);
+    Object* gt(STATE, Integer* other);
 
     // Ruby.primitive! :float_ge
-    OBJECT ge(STATE, Float* other);
+    Object* ge(STATE, Float* other);
     // Ruby.primitive! :float_ge
-    OBJECT ge(STATE, INTEGER other);
+    Object* ge(STATE, Integer* other);
 
     // Ruby.primitive! :float_lt
-    OBJECT lt(STATE, Float* other);
+    Object* lt(STATE, Float* other);
     // Ruby.primitive! :float_lt
-    OBJECT lt(STATE, INTEGER other);
+    Object* lt(STATE, Integer* other);
 
     // Ruby.primitive! :float_le
-    OBJECT le(STATE, Float* other);
+    Object* le(STATE, Float* other);
     // Ruby.primitive! :float_le
-    OBJECT le(STATE, INTEGER other);
+    Object* le(STATE, Integer* other);
 
     // Ruby.primitive :float_isinf
-    OBJECT fisinf(STATE);
+    Object* fisinf(STATE);
 
     // Ruby.primitive :float_isnan
-    OBJECT fisnan(STATE);
+    Object* fisnan(STATE);
 
     // Ruby.primitive :float_round
-    INTEGER fround(STATE);
+    Integer* fround(STATE);
 
     // Ruby.primitive :float_to_i
-    INTEGER to_i(STATE);
+    Integer* to_i(STATE);
 
     // Ruby.primitive :float_to_s_formatted
     String* to_s_formatted(STATE, String* format);
@@ -137,9 +137,9 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
-      virtual void mark(OBJECT t, ObjectMark& mark);
-      virtual void show(STATE, OBJECT self, int level);
-      virtual void show_simple(STATE, OBJECT self, int level);
+      virtual void mark(Object* t, ObjectMark& mark);
+      virtual void show(STATE, Object* self, int level);
+      virtual void show_simple(STATE, Object* self, int level);
     };
   };
 }

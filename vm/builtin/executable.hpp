@@ -16,8 +16,8 @@ namespace rubinius {
     const static object_type type = ExecutableType;
 
   private:
-    SYMBOL primitive_; // slot
-    FIXNUM serial_;    // slot
+    Symbol* primitive_; // slot
+    Fixnum* serial_;    // slot
 
   public:
     // This one is public so it can be directly invoked.
@@ -34,7 +34,7 @@ namespace rubinius {
     static ExecuteStatus default_executor(STATE, Task* task, Message& msg);
 
     // Ruby.primitive :executable_allocate
-    static Executable* allocate(STATE, OBJECT self);
+    static Executable* allocate(STATE, Object* self);
 
     void set_executor(rubinius::executor exc) {
       execute = exc;

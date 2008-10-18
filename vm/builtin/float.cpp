@@ -26,7 +26,7 @@ namespace rubinius {
     return flt;
   }
 
-  Float* Float::coerce(STATE, OBJECT value) {
+  Float* Float::coerce(STATE, Object* value) {
     if(value->fixnum_p()) {
       return Float::create(state, (double)(as<Fixnum>(value)->to_native()));
     } else if(kind_of<Bignum>(value)) {
@@ -42,7 +42,7 @@ namespace rubinius {
     return Float::create(state, this->val + other->val);
   }
 
-  Float* Float::add(STATE, INTEGER other) {
+  Float* Float::add(STATE, Integer* other) {
     return Float::create(state, this->val + Float::coerce(state, other)->val);
   }
 
@@ -50,7 +50,7 @@ namespace rubinius {
     return Float::create(state, this->val - other->val);
   }
 
-  Float* Float::sub(STATE, INTEGER other) {
+  Float* Float::sub(STATE, Integer* other) {
     return Float::create(state, this->val - Float::coerce(state, other)->val);
   }
 
@@ -58,7 +58,7 @@ namespace rubinius {
     return Float::create(state, this->val * other->val);
   }
 
-  Float* Float::mul(STATE, INTEGER other) {
+  Float* Float::mul(STATE, Integer* other) {
     return Float::create(state, this->val * Float::coerce(state, other)->val);
   }
 
@@ -66,7 +66,7 @@ namespace rubinius {
     return Float::create(state, pow(this->val, other->val));
   }
 
-  Float* Float::fpow(STATE, INTEGER other) {
+  Float* Float::fpow(STATE, Integer* other) {
     return Float::create(state, pow(this->val, Float::coerce(state, other)->val));
   }
 
@@ -74,7 +74,7 @@ namespace rubinius {
     return Float::create(state, this->val / other->val);
   }
 
-  Float* Float::div(STATE, INTEGER other) {
+  Float* Float::div(STATE, Integer* other) {
     return Float::create(state, this->val / Float::coerce(state, other)->val);
   }
 
@@ -87,7 +87,7 @@ namespace rubinius {
     return Float::create(state, res);
   }
 
-  Float* Float::mod(STATE, INTEGER other) {
+  Float* Float::mod(STATE, Integer* other) {
     return mod(state, Float::coerce(state, other));
   }
 
@@ -98,7 +98,7 @@ namespace rubinius {
     return ary;
   }
 
-  Array* Float::divmod(STATE, INTEGER other) {
+  Array* Float::divmod(STATE, Integer* other) {
     return divmod(state, Float::coerce(state, other));
   }
 
@@ -106,14 +106,14 @@ namespace rubinius {
     return Float::create(state, -this->val);
   }
 
-  OBJECT Float::equal(STATE, Float* other) {
+  Object* Float::equal(STATE, Float* other) {
     if(this->val == other->val) {
       return Qtrue;
     }
     return Qfalse;
   }
 
-  OBJECT Float::equal(STATE, INTEGER other) {
+  Object* Float::equal(STATE, Integer* other) {
     Float* o = Float::coerce(state, other);
     if(this->val == o->val) {
       return Qtrue;
@@ -121,18 +121,18 @@ namespace rubinius {
     return Qfalse;
   }
 
-  OBJECT Float::eql(STATE, Float* other) {
+  Object* Float::eql(STATE, Float* other) {
     if(this->val == other->val) {
       return Qtrue;
     }
     return Qfalse;
   }
 
-  OBJECT Float::eql(STATE, INTEGER other) {
+  Object* Float::eql(STATE, Integer* other) {
     return Qfalse;
   }
 
-  FIXNUM Float::compare(STATE, Float* other) {
+  Fixnum* Float::compare(STATE, Float* other) {
     if(this->val == other->val) {
       return Fixnum::from(0);
     } else if(this->val > other->val) {
@@ -142,7 +142,7 @@ namespace rubinius {
     }
   }
 
-  FIXNUM Float::compare(STATE, INTEGER other) {
+  Fixnum* Float::compare(STATE, Integer* other) {
     Float* o = Float::coerce(state, other);
     if(this->val == o->val) {
       return Fixnum::from(0);
@@ -153,39 +153,39 @@ namespace rubinius {
     }
   }
 
-  OBJECT Float::gt(STATE, Float* other) {
+  Object* Float::gt(STATE, Float* other) {
     return this->val > other->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Float::gt(STATE, INTEGER other) {
+  Object* Float::gt(STATE, Integer* other) {
     return this->val > Float::coerce(state, other)->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Float::ge(STATE, Float* other) {
+  Object* Float::ge(STATE, Float* other) {
     return this->val >= other->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Float::ge(STATE, INTEGER other) {
+  Object* Float::ge(STATE, Integer* other) {
     return this->val >= Float::coerce(state, other)->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Float::lt(STATE, Float* other) {
+  Object* Float::lt(STATE, Float* other) {
     return this->val < other->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Float::lt(STATE, INTEGER other) {
+  Object* Float::lt(STATE, Integer* other) {
     return this->val < Float::coerce(state, other)->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Float::le(STATE, Float* other) {
+  Object* Float::le(STATE, Float* other) {
     return this->val <= other->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Float::le(STATE, INTEGER other) {
+  Object* Float::le(STATE, Integer* other) {
     return this->val <= Float::coerce(state, other)->val ? Qtrue : Qfalse;
   }
 
-  OBJECT Float::fisinf(STATE) {
+  Object* Float::fisinf(STATE) {
     if(std::isinf(this->val) != 0) {
       return this->val < 0 ? Fixnum::from(-1) : Fixnum::from(1);
     } else {
@@ -193,18 +193,18 @@ namespace rubinius {
     }
   }
 
-  OBJECT Float::fisnan(STATE) {
+  Object* Float::fisnan(STATE) {
     return std::isnan(this->val) == 1 ? Qtrue : Qfalse;
   }
 
-  INTEGER Float::fround(STATE) {
+  Integer* Float::fround(STATE) {
     double value = this->val;
     if (value > 0.0) value = floor(value+0.5);
     if (value < 0.0) value = ceil(value-0.5);
     return Bignum::from_double(state, value);
   }
 
-  INTEGER Float::to_i(STATE) {
+  Integer* Float::to_i(STATE) {
     if(this->val > 0.0) {
       return Bignum::from_double(state, floor(this->val));
     } else if(this->val < 0.0) {
@@ -233,14 +233,14 @@ namespace rubinius {
     snprintf(buf, sz, "%+.17e", val);
   }
 
-  void Float::Info::mark(OBJECT t, ObjectMark& mark) { }
+  void Float::Info::mark(Object* t, ObjectMark& mark) { }
 
-  void Float::Info::show(STATE, OBJECT self, int level) {
+  void Float::Info::show(STATE, Object* self, int level) {
     Float* f = as<Float>(self);
     std::cout << f->val << std::endl;
   }
 
-  void Float::Info::show_simple(STATE, OBJECT self, int level) {
+  void Float::Info::show_simple(STATE, Object* self, int level) {
     show(state, self, level);
   }
 }

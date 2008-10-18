@@ -12,7 +12,7 @@ namespace rubinius {
     return strings.size() - 1;
   }
 
-  SYMBOL SymbolTable::lookup(STATE, std::string str) {
+  Symbol* SymbolTable::lookup(STATE, std::string str) {
     size_t sym;
 
     if(str.size() == 0) {
@@ -38,11 +38,11 @@ namespace rubinius {
     return Symbol::from_index(state, sym);
   }
 
-  SYMBOL SymbolTable::lookup(STATE, const char* str) {
+  Symbol* SymbolTable::lookup(STATE, const char* str) {
     return lookup(state, std::string(str));
   }
 
-  SYMBOL SymbolTable::lookup(STATE, String* str) {
+  Symbol* SymbolTable::lookup(STATE, String* str) {
     char* bytes = str->c_str();
 
     for(size_t i = 0; i < str->size(); i++) {
@@ -61,7 +61,7 @@ namespace rubinius {
     return String::create(state, str.c_str());
   }
 
-  const char* SymbolTable::lookup_cstring(STATE, SYMBOL sym) {
+  const char* SymbolTable::lookup_cstring(STATE, Symbol* sym) {
     std::string& str = strings[sym->index()];
     return str.c_str();
   }
@@ -76,7 +76,7 @@ namespace rubinius {
 
     for(SymbolMap::iterator s = symbols.begin(); s != symbols.end(); s++) {
       for(SymbolIds::iterator i = s->second.begin(); i != s->second.end(); i++) {
-        ary->set(state, idx++, (OBJECT)Symbol::from_index(state, *i));
+        ary->set(state, idx++, (Object*)Symbol::from_index(state, *i));
       }
     }
 

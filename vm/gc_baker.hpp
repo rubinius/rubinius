@@ -56,17 +56,17 @@ namespace rubinius {
         return scan == current;
       }
 
-      OBJECT next_unscanned() {
-        OBJECT obj;
+      Object* next_unscanned() {
+        Object* obj;
         if(fully_scanned_p()) return NULL;
 
-        obj = (OBJECT)scan;
+        obj = (Object*)scan;
         scan = (address)((uintptr_t)scan + obj->size_in_bytes());
         return obj;
       }
 
-      OBJECT first_object() {
-        return (OBJECT)start;
+      Object* first_object() {
+        return (Object*)start;
       }
 
       /* Prototypes */
@@ -75,7 +75,7 @@ namespace rubinius {
       void reset();
       size_t remaining();
       size_t used();
-      OBJECT copy_object(OBJECT);
+      Object* copy_object(Object*);
     };
 
     /* Fields */
@@ -87,9 +87,9 @@ namespace rubinius {
     size_t total_objects;
 
     /* Inline methods */
-    OBJECT allocate(size_t fields, bool *collect_now) {
+    Object* allocate(size_t fields, bool *collect_now) {
       size_t bytes = SIZE_IN_BYTES_FIELDS(fields);
-      OBJECT obj;
+      Object* obj;
 
       if(!current->enough_space_p(bytes)) {
 #if 0
@@ -97,14 +97,14 @@ namespace rubinius {
           return NULL;
         } else {
           total_objects++;
-          obj = (OBJECT)next->allocate(bytes);
+          obj = (Object*)next->allocate(bytes);
         }
 #endif
         *collect_now = true;
         return NULL;
       } else {
         total_objects++;
-        obj = (OBJECT)current->allocate(bytes);
+        obj = (Object*)current->allocate(bytes);
       }
 
       obj->init(YoungObjectZone, fields);
@@ -119,16 +119,16 @@ namespace rubinius {
     BakerGC(ObjectMemory *om, size_t size);
     virtual ~BakerGC();
     void free_objects();
-    virtual OBJECT saw_object(OBJECT obj);
+    virtual Object* saw_object(Object* obj);
     void    copy_unscanned();
     bool    fully_scanned_p();
     void    collect(Roots &roots);
     void    clear_marks();
-    OBJECT  next_object(OBJECT obj);
+    Object*  next_object(Object* obj);
     void    find_lost_souls();
     void    clean_weakrefs();
 
-    ObjectPosition validate_object(OBJECT obj);
+    ObjectPosition validate_object(Object* obj);
   };
 };
 

@@ -7,8 +7,8 @@ class BasicPrimitive
     str << "ExecuteStatus Primitives::#{@name}(STATE, Task* task, Message& msg) {\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
-    str << "  OBJECT ret;\n"
-    str << "  OBJECT self;\n" if @pass_self
+    str << "  Object* ret;\n"
+    str << "  Object* self;\n" if @pass_self
   end
 
   def output_args(str, arg_types)
@@ -275,14 +275,14 @@ class CPPClass
     return '' if out.strip.empty?
 
     <<-EOF
-void #{@name}::Info::set_field(STATE, OBJECT _t, size_t index, OBJECT val) {
+void #{@name}::Info::set_field(STATE, Object* _t, size_t index, Object* val) {
   #{@name}* target = as<#{@name}>(_t);
 
   switch(index) {
 #{out}  }
 }
 
-OBJECT #{@name}::Info::get_field(STATE, OBJECT _t, size_t index) {
+Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
   #{@name}* target = as<#{@name}>(_t);
 
   switch(index) {
@@ -308,7 +308,7 @@ OBJECT #{@name}::Info::get_field(STATE, OBJECT _t, size_t index) {
       str << <<-EOF
   {
     if(target->#{name}()->reference_p()) {
-      OBJECT res = mark.call(target->#{name}());
+      Object* res = mark.call(target->#{name}());
       if(res) target->#{name}(mark.gc->object_memory->state, (#{type}*)res);
     }
   }
@@ -325,7 +325,7 @@ OBJECT #{@name}::Info::get_field(STATE, OBJECT _t, size_t index) {
     str = ''
 
     str << <<-EOF unless marks.empty?
-void #{@name}::Info::auto_mark(OBJECT _t, ObjectMark& mark) {
+void #{@name}::Info::auto_mark(Object* _t, ObjectMark& mark) {
   #{@name}* target = as<#{@name}>(_t);
 
 #{marks}
@@ -382,16 +382,14 @@ class CPPParser
     @class_order = []
 
     @type_map = {
-      "SYMBOL" => :Symbol,
       "InstructionSequence" => :InstructionSequence,
-      "FIXNUM" => :Fixnum,
-      "OBJECT" => :Object,
+      "Symbol" => :Symbol,
       "Object" => :Object,
       "Tuple"  => :Tuple,
       "MemoryPointer" => :MemoryPointer,
       "StaticScope" => :StaticScope,
-      "INTEGER" => :Integer,
       "Integer" => :Integer,
+      "Fixnum" => :Fixnum,
       "MethodContext" => :MethodContext,
       "CompiledMethod" => :CompiledMethod,
       "String" => :String,
@@ -492,9 +490,9 @@ class CPPParser
           # If the first argument is the +STATE+ macro, handle it in +output_args+
           if args.first == "STATE"
             args.shift and pass_state = true
-            # If the second argument is +OBJECT self+, we will automatically pass
+            # If the second argument is +Object* self+, we will automatically pass
             # in the receiver of the primitive message in +output_call+
-            if args.first == "OBJECT self"
+            if args.first == "Object* self"
               args.shift and pass_self = true
             end
           end
@@ -635,7 +633,7 @@ write_if_new "vm/gen/primitives_glue.gen.cpp" do |f|
     end
   end
 
-  f.puts "executor Primitives::resolve_primitive(STATE, SYMBOL name) {"
+  f.puts "executor Primitives::resolve_primitive(STATE, Symbol* name) {"
 
   names.sort.each do |name|
     f.puts <<-EOF

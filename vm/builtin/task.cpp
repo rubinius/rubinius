@@ -43,7 +43,7 @@ namespace rubinius {
   /* HACK:  This method is never used except in tests.
    *        Get rid of it (and fix the tests..)
    */
-  Task* Task::create(STATE, OBJECT recv, CompiledMethod* meth) {
+  Task* Task::create(STATE, Object* recv, CompiledMethod* meth) {
     Task* task = create(state, 0);
 
     Message msg(state);
@@ -151,7 +151,7 @@ namespace rubinius {
   }
 
   ExecuteStatus Task::send_message_slowly(Message& msg) {
-    SYMBOL original_name = msg.name;
+    Symbol* original_name = msg.name;
     if(!GlobalCacheResolver::resolve(state, msg)) {
       msg.method_missing = true;
       msg.name = G(sym_method_missing);
@@ -174,7 +174,7 @@ namespace rubinius {
     return active_->args >= pos;
   }
 
-  OBJECT Task::call_object(STATE, OBJECT recv, SYMBOL meth, Array* args) {
+  Object* Task::call_object(STATE, Object* recv, Symbol* meth, Array* args) {
     recv->send_on_task(state, this, meth, args);
 
     // HACK by calling directly into another Task, the context cache gets
@@ -219,7 +219,7 @@ namespace rubinius {
   }
 
   /* Called after a primitive has executed and wants to return a value. */
-  void Task::primitive_return(OBJECT value, Message& msg) {
+  void Task::primitive_return(Object* value, Message& msg) {
     active_->clear_stack(msg.stack);
     push(value);
   }
@@ -259,7 +259,7 @@ namespace rubinius {
     }
   }
 
-  Tuple* Task::locate_method_on(OBJECT recv, SYMBOL sel, OBJECT priv_p) {
+  Tuple* Task::locate_method_on(Object* recv, Symbol* sel, Object* priv_p) {
     Message msg(state);
 
     msg.recv = recv;
@@ -282,7 +282,7 @@ namespace rubinius {
     return Tuple::from(state, 2, msg.method, msg.module);
   }
 
-  void Task::attach_method(OBJECT recv, SYMBOL name, CompiledMethod* method) {
+  void Task::attach_method(Object* recv, Symbol* name, CompiledMethod* method) {
     if(kind_of<Module>(recv)) {
       StaticScope* ss = StaticScope::create(state);
       ss->module(state, (Module*)recv);
@@ -296,7 +296,7 @@ namespace rubinius {
     add_method(recv->metaclass(state), name, method);
   }
 
-  void Task::add_method(Module* mod, SYMBOL name, CompiledMethod* method) {
+  void Task::add_method(Module* mod, Symbol* name, CompiledMethod* method) {
     method->scope(state, active_->cm()->scope());
     method->serial(state, Fixnum::from(0));
     mod->method_table()->store(state, name, method);
@@ -319,7 +319,7 @@ namespace rubinius {
     }
   }
 
-  bool Task::check_serial(OBJECT obj, SYMBOL sel, int ser) {
+  bool Task::check_serial(Object* obj, Symbol* sel, int ser) {
     Tuple* tup = locate_method_on(obj, sel, Qtrue);
     Executable* x = as<Executable>(tup->at(state, 0));
 
@@ -338,8 +338,8 @@ namespace rubinius {
    *   in +mod+,
    *   up +mod+'s superclass heirarchy.
    */
-  OBJECT Task::const_get(Module* mod, SYMBOL name, bool* found) {
-    OBJECT res;
+  Object* Task::const_get(Module* mod, Symbol* name, bool* found) {
+    Object* res;
 
     *found = false;
 
@@ -359,9 +359,9 @@ namespace rubinius {
    *   looking in the superclass's of the current lexical module,
    *   looking in Object.
    */
-  OBJECT Task::const_get(SYMBOL name, bool* found) {
+  Object* Task::const_get(Symbol* name, bool* found) {
     StaticScope *cur;
-    OBJECT result;
+    Object* result;
 
     *found = false;
 
@@ -390,11 +390,11 @@ namespace rubinius {
     return Qnil;
   }
 
-  void Task::const_set(Module* mod, SYMBOL name, OBJECT val) {
+  void Task::const_set(Module* mod, Symbol* name, Object* val) {
     mod->set_const(state, name, val);
   }
 
-  void Task::const_set(SYMBOL name, OBJECT val) {
+  void Task::const_set(Symbol* name, Object* val) {
     active_->cm()->scope()->module()->set_const(state, name, val);
   }
 
@@ -426,7 +426,7 @@ namespace rubinius {
     return home()->module();
   }
 
-  static Class* check_superclass(STATE, Class* cls, OBJECT super) {
+  static Class* check_superclass(STATE, Class* cls, Object* super) {
     if(super->nil_p()) return cls;
     if(cls->superclass() != super) {
       Exception::type_error(state, Class::type, super, "superclass mismatch");
@@ -435,7 +435,7 @@ namespace rubinius {
     return cls;
   }
 
-  static Class* add_class(STATE, Module* under, OBJECT super, SYMBOL name) {
+  static Class* add_class(STATE, Module* under, Object* super, Symbol* name) {
     if(super->nil_p()) super = G(object);
     Class* cls = Class::create(state, as<Class>(super));
 
@@ -450,7 +450,7 @@ namespace rubinius {
     return cls;
   }
 
-  Class* Task::open_class(OBJECT super, SYMBOL name, bool* created) {
+  Class* Task::open_class(Object* super, Symbol* name, bool* created) {
     Module* under;
 
     if(active_->cm()->scope()->nil_p()) {
@@ -462,12 +462,12 @@ namespace rubinius {
     return open_class(under, super, name, created);
   }
 
-  Class* Task::open_class(Module* under, OBJECT super, SYMBOL name, bool* created) {
+  Class* Task::open_class(Module* under, Object* super, Symbol* name, bool* created) {
     bool found;
 
     *created = false;
 
-    OBJECT obj = under->get_const(state, name, &found);
+    Object* obj = under->get_const(state, name, &found);
     if(found) return check_superclass(state, as<Class>(obj), super);
 
     *created = true;
@@ -484,11 +484,11 @@ namespace rubinius {
     return open_module(under, name);
   }
 
-  Module* Task::open_module(Module* under, SYMBOL name) {
+  Module* Task::open_module(Module* under, Symbol* name) {
     Module* mod;
     bool found;
 
-    OBJECT obj = const_get(under, name, &found);
+    Object* obj = const_get(under, name, &found);
     if(found) return as<Module>(obj);
 
     mod = Module::create(state);
@@ -505,24 +505,24 @@ namespace rubinius {
 
   /* Used only in debugging and testing. Direct access to the stack
    * can be dangerous. */
-  OBJECT* Task::current_stack() {
+  Object** Task::current_stack() {
     return active_->stk;
   }
 
-  void Task::push(OBJECT val) {
+  void Task::push(Object* val) {
     active_->push(val);
   }
 
-  OBJECT Task::pop() {
+  Object* Task::pop() {
     return active_->pop();
   }
 
-  OBJECT Task::stack_top() {
+  Object* Task::stack_top() {
     return active_->top();
   }
 
   /* Retrieve the object at position +pos+ in the current context */
-  OBJECT Task::stack_at(size_t pos) {
+  Object* Task::stack_at(size_t pos) {
     return active_->stack_at(pos);
   }
 
@@ -531,12 +531,12 @@ namespace rubinius {
   }
 
   /* Set the local variable at +pos+ to +val+ in the current context. */
-  void Task::set_local(int pos, OBJECT val) {
+  void Task::set_local(int pos, Object* val) {
     active_->set_local(pos, val);
   }
 
   /* Get local variable at +pos+ in the current context. */
-  OBJECT Task::get_local(int pos) {
+  Object* Task::get_local(int pos) {
     return active_->get_local(pos);
   }
 
@@ -614,7 +614,7 @@ namespace rubinius {
           continue;
         }
 
-        SYMBOL name = try_as<Symbol>(ctx->name());
+        Symbol* name = try_as<Symbol>(ctx->name());
         if(name) {
           std::cout << name->c_str(state);
         } else {
@@ -623,7 +623,7 @@ namespace rubinius {
       }
 
       std::cout << " in ";
-      if(SYMBOL file_sym = try_as<Symbol>(ctx->cm()->file())) {
+      if(Symbol* file_sym = try_as<Symbol>(ctx->cm()->file())) {
         std::cout << file_sym->c_str(state) << ":" << ctx->line(state);
       } else {
         std::cout << "<unknown>";
@@ -634,7 +634,7 @@ namespace rubinius {
     }
   }
 
-  void Task::Info::show(STATE, OBJECT self, int level) {
+  void Task::Info::show(STATE, Object* self, int level) {
     Task* task = as<Task>(self);
 
     class_header(state, self);

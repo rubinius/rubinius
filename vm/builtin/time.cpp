@@ -53,7 +53,7 @@ namespace rubinius {
     return this;
   }
 
-  Time* Time::time_switch(STATE, OBJECT gmt) {
+  Time* Time::time_switch(STATE, Object* gmt) {
     time_t seconds = ((Integer*)timeval_->get(state, 0))->to_native();
     struct tm *tm;
 
@@ -93,9 +93,9 @@ namespace rubinius {
     return this;
   }
 
-  Array* Time::mktime(STATE, FIXNUM sec, FIXNUM min, FIXNUM hour,
-                     FIXNUM mday, FIXNUM mon, FIXNUM year, FIXNUM usec,
-                     FIXNUM isdst, OBJECT from_gmt) {
+  Array* Time::mktime(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour,
+                     Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec,
+                     Fixnum* isdst, Object* from_gmt) {
     struct tm tm;
     char *old_tz = NULL;
     char old_tz_buf[128];
@@ -172,18 +172,18 @@ namespace rubinius {
     struct tm tm;
     char str[MAX_STRFTIME_OUTPUT];
 
-    tm.tm_sec = ((FIXNUM)ary->get(state, 0))->to_native();
-    tm.tm_min = ((FIXNUM)ary->get(state, 1))->to_native();
-    tm.tm_hour = ((FIXNUM)ary->get(state, 2))->to_native();
-    tm.tm_mday = ((FIXNUM)ary->get(state, 3))->to_native();
-    tm.tm_mon = ((FIXNUM)ary->get(state, 4))->to_native();
-    tm.tm_year = ((FIXNUM)ary->get(state, 5))->to_native();
-    tm.tm_wday = ((FIXNUM)ary->get(state, 6))->to_native();
-    tm.tm_yday = ((FIXNUM)ary->get(state, 7))->to_native();
-    tm.tm_isdst = ((FIXNUM)ary->get(state, 8))->to_native();
+    tm.tm_sec = ((Fixnum*)ary->get(state, 0))->to_native();
+    tm.tm_min = ((Fixnum*)ary->get(state, 1))->to_native();
+    tm.tm_hour = ((Fixnum*)ary->get(state, 2))->to_native();
+    tm.tm_mday = ((Fixnum*)ary->get(state, 3))->to_native();
+    tm.tm_mon = ((Fixnum*)ary->get(state, 4))->to_native();
+    tm.tm_year = ((Fixnum*)ary->get(state, 5))->to_native();
+    tm.tm_wday = ((Fixnum*)ary->get(state, 6))->to_native();
+    tm.tm_yday = ((Fixnum*)ary->get(state, 7))->to_native();
+    tm.tm_isdst = ((Fixnum*)ary->get(state, 8))->to_native();
 
 #ifdef HAVE_STRUCT_TM_TM_GMTOFF
-    tm.tm_gmtoff = ((FIXNUM)ary->get(state, 9))->to_native();
+    tm.tm_gmtoff = ((Fixnum*)ary->get(state, 9))->to_native();
 #endif
 
 #ifdef HAVE_STRUCT_TM_TM_ZONE

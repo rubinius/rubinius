@@ -22,6 +22,7 @@
 #include <string>
 
 namespace rubinius {
+
   Environment::Environment() {
     state = new VM();
     TaskProbe* probe = TaskProbe::create(state);

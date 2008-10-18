@@ -114,7 +114,7 @@ class TestArray : public CxxTest::TestSuite {
     ary->set(state, 0, Qtrue);
     ary->set(state, 1, Qfalse);
 
-    OBJECT out = ary->shift(state);
+    Object* out = ary->shift(state);
     TS_ASSERT_EQUALS(Qtrue, out);
 
     TS_ASSERT_EQUALS(1U, ary->size());

@@ -21,7 +21,7 @@ namespace rubinius {
     native_int index();
 
     // Ruby.primitive :symbol_index
-    INTEGER index(STATE);
+    Integer* index(STATE);
 
     static void init(STATE);
     static Symbol* from_index(STATE, size_t index);
@@ -38,13 +38,12 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
-      virtual void mark(OBJECT, ObjectMark& mark);
-      virtual void show(STATE, OBJECT self, int level);
-      virtual void show_simple(STATE, OBJECT self, int level);
+      virtual void mark(Object*, ObjectMark& mark);
+      virtual void show(STATE, Object* self, int level);
+      virtual void show_simple(STATE, Object* self, int level);
     };
   };
 
-  typedef Symbol* SYMBOL;
 }
 
 #endif

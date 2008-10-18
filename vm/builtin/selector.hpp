@@ -14,7 +14,7 @@ namespace rubinius {
     static const object_type type = SelectorType;
 
   private:
-    SYMBOL name_;       // slot
+    Symbol* name_;       // slot
     Array* send_sites_; // slot
 
   public:
@@ -26,11 +26,11 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-    static Selector* create(STATE, OBJECT name);
-    static Selector* lookup(STATE, OBJECT name);
-    static void      clear_by_name(STATE,  OBJECT name);
+    static Selector* create(STATE, Object* name);
+    static Selector* lookup(STATE, Object* name);
+    static void      clear_by_name(STATE,  Object* name);
 
-    OBJECT associate(STATE, SendSite* ss);
+    Object* associate(STATE, SendSite* ss);
     void   clear(STATE);
     bool   includes_p(STATE, SendSite* ss);
 

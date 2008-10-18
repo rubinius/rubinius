@@ -23,12 +23,14 @@
 
 namespace rubinius {
 
+  class VM;
+
   /** Platform-dependent integer type large enough for pointers too. */
   typedef intptr_t native_int;
 
   #define FALSE false
   #define TRUE true
-  #define STATE rubinius::VM *state
+  #define STATE rubinius::VM* state
   #define G(whatever) state->globals.whatever.get()
   #define GO(whatever) state->globals.whatever
 

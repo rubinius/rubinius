@@ -21,7 +21,7 @@ namespace rubinius {
   private:
     MethodContext* home_;       // slot
     MethodContext* home_block_; // slot
-    OBJECT local_count_;        // slot
+    Object* local_count_;        // slot
     CompiledMethod* method_;    // slot
 
   public:
@@ -55,7 +55,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 };

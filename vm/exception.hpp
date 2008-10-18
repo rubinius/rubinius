@@ -76,16 +76,16 @@ namespace rubinius {
   public:   /* Instance vars */
 
     object_type type;
-    OBJECT object;
+    Object* object;
 
   public:   /* Ctors */
 
-    TypeError(object_type type, OBJECT obj, const char* reason = NULL)
+    TypeError(object_type type, Object* obj, const char* reason = NULL)
       : VMException(reason), type(type), object(obj) { }
 
   public:   /* Interface */
 
-    static void raise(object_type type, OBJECT obj, const char* reason = NULL);
+    static void raise(object_type type, Object* obj, const char* reason = NULL);
   };
 
   /**

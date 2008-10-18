@@ -58,10 +58,10 @@ namespace rubinius {
 
       /* Inline methods */
 
-      /* Returns the OBJECT that this is header for, using simple
+      /* Returns the Object* that this is header for, using simple
        * pointer math. */
-      OBJECT to_object() {
-        return (OBJECT)((uintptr_t)this + sizeof(Header));
+      Object* to_object() {
+        return (Object*)((uintptr_t)this + sizeof(Header));
       }
     };
 
@@ -77,16 +77,16 @@ namespace rubinius {
     MarkSweepGC(ObjectMemory *om);
     virtual ~MarkSweepGC();
     void   free_objects();
-    OBJECT allocate(size_t fields, bool *collect_now);
-    OBJECT copy_object(OBJECT obj);
-    Entry *find_entry(OBJECT obj);
+    Object* allocate(size_t fields, bool *collect_now);
+    Object* copy_object(Object* obj);
+    Entry *find_entry(Object* obj);
     void   sweep_objects();
     void   clean_weakrefs();
     void   free_object(Entry *entry, bool fast = false);
-    virtual OBJECT saw_object(OBJECT obj);
+    virtual Object* saw_object(Object* obj);
     void   collect(Roots &roots);
 
-    ObjectPosition validate_object(OBJECT obj);
+    ObjectPosition validate_object(Object* obj);
   };
 };
 

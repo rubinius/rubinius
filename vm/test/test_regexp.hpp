@@ -88,9 +88,9 @@ class TestRegexp : public CxxTest::TestSuite {
 
     String *input = String::create(state, "abc");
 
-    FIXNUM start = Fixnum::from(0);
-    FIXNUM end =   Fixnum::from(3);
-    OBJECT forward = Qtrue;
+    Fixnum* start = Fixnum::from(0);
+    Fixnum* end =   Fixnum::from(3);
+    Object* forward = Qtrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
@@ -106,9 +106,9 @@ class TestRegexp : public CxxTest::TestSuite {
 
     String *input = String::create(state, "abc");
 
-    FIXNUM start = Fixnum::from(0);
-    FIXNUM end =   Fixnum::from(3);
-    OBJECT forward = Qtrue;
+    Fixnum* start = Fixnum::from(0);
+    Fixnum* end =   Fixnum::from(3);
+    Object* forward = Qtrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(matches->nil_p());
@@ -121,9 +121,9 @@ class TestRegexp : public CxxTest::TestSuite {
 
     String *input = String::create(state, "abc");
 
-    FIXNUM start = Fixnum::from(0);
-    FIXNUM end =   Fixnum::from(3);
-    OBJECT forward = Qtrue;
+    Fixnum* start = Fixnum::from(0);
+    Fixnum* end =   Fixnum::from(3);
+    Object* forward = Qtrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
@@ -142,9 +142,9 @@ class TestRegexp : public CxxTest::TestSuite {
 
     String *input = String::create(state, "abc");
 
-    FIXNUM start = Fixnum::from(0);
-    FIXNUM end =   Fixnum::from(3);
-    OBJECT forward = Qfalse;
+    Fixnum* start = Fixnum::from(0);
+    Fixnum* end =   Fixnum::from(3);
+    Object* forward = Qfalse;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
@@ -163,7 +163,7 @@ class TestRegexp : public CxxTest::TestSuite {
 
     String *input = String::create(state, "abc");
 
-    FIXNUM start = Fixnum::from(1);
+    Fixnum* start = Fixnum::from(1);
 
     MatchData* matches = (MatchData*)re->match_start(state, input, start);
     TS_ASSERT(!matches->nil_p());

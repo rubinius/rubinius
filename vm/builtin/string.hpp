@@ -33,12 +33,12 @@ namespace rubinius {
     const static object_type type = StringType;
 
   private:
-    INTEGER num_bytes_;  // slot
-    INTEGER characters_; // slot
-    OBJECT encoding_;    // slot
+    Integer* num_bytes_;  // slot
+    Integer* characters_; // slot
+    Object* encoding_;    // slot
     ByteArray* data_;    // slot
-    INTEGER hash_value_; // slot
-    OBJECT shared_;      // slot
+    Integer* hash_value_; // slot
+    Object* shared_;      // slot
 
   public:
     /* accessors */
@@ -54,15 +54,15 @@ namespace rubinius {
 
     static void init(STATE);
 
-    static String* create(STATE, FIXNUM size);
+    static String* create(STATE, Fixnum* size);
 
     // Ruby.primitive :string_from_bytearray
-    static String* from_bytearray(STATE, ByteArray* ba, INTEGER start, INTEGER count);
+    static String* from_bytearray(STATE, ByteArray* ba, Integer* start, Integer* count);
     static String* create(STATE, const char* str, size_t bytes = 0);
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
-    static bool string_equal_p(STATE, OBJECT self, OBJECT other);
+    static bool string_equal_p(STATE, Object* self, Object* other);
     // Ruby.primitive :string_equal
-    OBJECT equal(STATE, String* other);
+    Object* equal(STATE, String* other);
 
     // Returns the number of bytes this String contains
     size_t size();
@@ -84,7 +84,7 @@ namespace rubinius {
     void unshare(STATE);
     hashval hash_string(STATE);
     // Ruby.primitive :symbol_lookup
-    SYMBOL to_sym(STATE);
+    Symbol* to_sym(STATE);
 
     // Ruby.primitive :string_dup
     String* string_dup(STATE);
@@ -99,35 +99,35 @@ namespace rubinius {
     Float* to_f(STATE);
     double to_double(STATE);
 
-    INTEGER to_i(STATE, FIXNUM base = Fixnum::from(0), OBJECT strict = Qtrue);
+    Integer* to_i(STATE, Fixnum* base = Fixnum::from(0), Object* strict = Qtrue);
 
     // Ruby.primitive :string_to_inum
-    INTEGER to_inum_prim(STATE, FIXNUM base, OBJECT strict);
+    Integer* to_inum_prim(STATE, Fixnum* base, Object* strict);
 
     // Ruby.primitive :string_apply_and
     String* apply_and(STATE, String* other);
 
     // Ruby.primitive :string_tr_expand
-    FIXNUM tr_expand(STATE, OBJECT limit);
-    FIXNUM tr_replace(STATE, struct tr_data* data);
+    Fixnum* tr_expand(STATE, Object* limit);
+    Fixnum* tr_replace(STATE, struct tr_data* data);
 
     // Ruby.primitive :string_copy_from
-    String* copy_from(STATE, String* other, FIXNUM start, FIXNUM size, FIXNUM dest);
+    String* copy_from(STATE, String* other, Fixnum* start, Fixnum* size, Fixnum* dest);
 
     // Ruby.primitive :string_compare_substring
-    FIXNUM compare_substring(STATE, String* other, FIXNUM start, FIXNUM size);
+    Fixnum* compare_substring(STATE, String* other, Fixnum* start, Fixnum* size);
 
     // Ruby.primitive :string_crypt
     String* crypt(STATE, String* salt);
 
     // Ruby.primitive :string_pattern
-    static String* pattern(STATE, OBJECT self, FIXNUM size, OBJECT pattern);
+    static String* pattern(STATE, Object* self, Fixnum* size, Object* pattern);
 
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
-      virtual void show_simple(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
+      virtual void show_simple(STATE, Object* self, int level);
     };
   };
 };

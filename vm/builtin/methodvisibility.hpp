@@ -12,7 +12,7 @@ namespace rubinius {
     const static object_type type = MethodVisibilityType;
 
   private:
-    SYMBOL visibility_;  // slot
+    Symbol* visibility_;  // slot
     Executable* method_; // slot
 
   public:
@@ -40,7 +40,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 

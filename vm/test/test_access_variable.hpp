@@ -42,7 +42,7 @@ class TestAccessVariable : public CxxTest::TestSuite {
     av->name(state, state->symbol("@name"));
 
     TS_ASSERT(!av->execute(state, task, msg));
-    OBJECT ret = task->pop();
+    Object* ret = task->pop();
     TS_ASSERT(try_as<Symbol>(ret));
 
     TS_ASSERT_EQUALS(std::string("Object"), as<Symbol>(ret)->c_str(state));
@@ -58,12 +58,12 @@ class TestAccessVariable : public CxxTest::TestSuite {
     av->name(state, state->symbol("@name"));
     av->write(state, Qtrue);
 
-    SYMBOL val = state->symbol("Blah");
+    Symbol* val = state->symbol("Blah");
 
     msg.unshift_argument(state, val);
 
     TS_ASSERT(!av->execute(state, task, msg));
-    OBJECT ret = task->pop();
+    Object* ret = task->pop();
     TS_ASSERT_EQUALS(ret, val);
 
     TS_ASSERT_EQUALS(val, G(object)->name());
@@ -81,7 +81,7 @@ class TestAccessVariable : public CxxTest::TestSuite {
     G(object)->set_ivar(state, av->name(), state->symbol("Sweet"));
 
     TS_ASSERT(!av->execute(state, task, msg));
-    OBJECT ret = task->pop();
+    Object* ret = task->pop();
     TS_ASSERT(try_as<Symbol>(ret));
 
     TS_ASSERT_EQUALS(std::string("Sweet"), as<Symbol>(ret)->c_str(state));
@@ -97,15 +97,15 @@ class TestAccessVariable : public CxxTest::TestSuite {
     av->name(state, state->symbol("@blah"));
     av->write(state, Qtrue);
 
-    SYMBOL val = state->symbol("Blah");
+    Symbol* val = state->symbol("Blah");
 
     msg.unshift_argument(state, val);
 
     TS_ASSERT(!av->execute(state, task, msg));
-    OBJECT ret = task->pop();
+    Object* ret = task->pop();
     TS_ASSERT_EQUALS(ret, val);
 
-    SYMBOL out = as<Symbol>(G(object)->get_ivar(state, av->name()));
+    Symbol* out = as<Symbol>(G(object)->get_ivar(state, av->name()));
     TS_ASSERT_EQUALS(val, out);
   }
 

@@ -11,7 +11,8 @@ class TestList : public CxxTest::TestSuite {
   public:
 
   VM* state;
-  OBJECT one, two;
+  Object* one;
+  Object* two;
 
   void setUp() {
     state = new VM(1024);

@@ -81,7 +81,7 @@ namespace rubinius {
       backend_method_ = vmm;
 
       if(!primitive()->nil_p()) {
-        if(SYMBOL name = try_as<Symbol>(primitive())) {
+        if(Symbol* name = try_as<Symbol>(primitive())) {
           set_executor(Primitives::resolve_primitive(state, name));
         }
       }
@@ -95,7 +95,7 @@ namespace rubinius {
     backend_method_->specialize(state, ti);
   }
 
-  OBJECT CompiledMethod::compile(STATE) {
+  Object* CompiledMethod::compile(STATE) {
     backend_method_ = NULL;
     formalize(state);
     return this;
@@ -115,7 +115,7 @@ namespace rubinius {
     return local_count_->to_native();
   }
 
-  void CompiledMethod::Info::show(STATE, OBJECT self, int level) {
+  void CompiledMethod::Info::show(STATE, Object* self, int level) {
     CompiledMethod* cm = as<CompiledMethod>(self);
 
     class_header(state, self);

@@ -19,15 +19,15 @@ namespace rubinius {
     cls->set_const(state, state->symbol("ALL"), G(selectors));
   }
 
-  Selector* Selector::create(STATE, OBJECT name) {
+  Selector* Selector::create(STATE, Object* name) {
     Selector* sel = (Selector*)state->new_object(G(selector));
-    sel->name(state, (SYMBOL)name);
+    sel->name(state, (Symbol*)name);
     sel->send_sites(state, Array::create(state, 1));
 
     return sel;
   }
 
-  Selector* Selector::lookup(STATE, OBJECT name) {
+  Selector* Selector::lookup(STATE, Object* name) {
     Selector* sel = (Selector*)G(selectors)->fetch(state, name);
     if(!sel->nil_p()) return sel;
 
@@ -37,7 +37,7 @@ namespace rubinius {
     return sel;
   }
 
-  OBJECT Selector::associate(STATE, SendSite* ss) {
+  Object* Selector::associate(STATE, SendSite* ss) {
     send_sites_->append(state, ss);
     return ss;
   }
@@ -56,7 +56,7 @@ namespace rubinius {
     }
   }
 
-  void Selector::clear_by_name(STATE, OBJECT name) {
+  void Selector::clear_by_name(STATE, Object* name) {
     Selector* sel = (Selector*)G(selectors)->fetch(state, name);
     if(sel->nil_p()) return;
 

@@ -16,8 +16,8 @@ namespace rubinius {
 
   private:
     Tuple* values_;   // slot
-    INTEGER bins_;    // slot
-    INTEGER entries_; // slot
+    Integer* bins_;    // slot
+    Integer* entries_; // slot
 
   public:
     /* accessors */
@@ -35,38 +35,38 @@ namespace rubinius {
     static LookupTable* allocate(STATE);
 
     // Ruby.primitive :lookuptable_store
-    OBJECT store(STATE, OBJECT key, OBJECT val);
+    Object* store(STATE, Object* key, Object* val);
 
     // Ruby.primitive :lookuptable_fetch
-    OBJECT fetch(STATE, OBJECT key);
-    OBJECT fetch(STATE, OBJECT key, bool* found);
+    Object* fetch(STATE, Object* key);
+    Object* fetch(STATE, Object* key, bool* found);
 
     // Ruby.primitive :lookuptable_dup
     LookupTable* dup(STATE);
-    static OBJECT entry_new(STATE, OBJECT key, OBJECT val);
-    static OBJECT entry_append(STATE, Tuple* top, OBJECT nxt);
+    static Object* entry_new(STATE, Object* key, Object* val);
+    static Object* entry_append(STATE, Tuple* top, Object* nxt);
     void   redistribute(STATE, size_t size);
-    Tuple* find_entry(STATE, OBJECT key);
-    OBJECT find(STATE, OBJECT key);
+    Tuple* find_entry(STATE, Object* key);
+    Object* find(STATE, Object* key);
     // Ruby.primitive :lookuptable_delete
-    OBJECT remove(STATE, OBJECT key);
+    Object* remove(STATE, Object* key);
     // Ruby.primitive :lookuptable_has_key
-    OBJECT has_key(STATE, OBJECT key);
-    static Array* collect(STATE, LookupTable* tbl, OBJECT (*action)(STATE, Tuple*));
-    static OBJECT get_key(STATE, Tuple* entry);
+    Object* has_key(STATE, Object* key);
+    static Array* collect(STATE, LookupTable* tbl, Object* (*action)(STATE, Tuple*));
+    static Object* get_key(STATE, Tuple* entry);
     // Ruby.primitive :lookuptable_keys
     Array* all_keys(STATE);
-    static OBJECT get_value(STATE, Tuple* entry);
+    static Object* get_value(STATE, Tuple* entry);
     // Ruby.primitive :lookuptable_values
     Array* all_values(STATE);
-    static OBJECT get_entry(STATE, Tuple* entry);
+    static Object* get_entry(STATE, Tuple* entry);
     // Ruby.primitive :lookuptable_entries
     Array* all_entries(STATE);
 
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 

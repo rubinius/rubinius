@@ -26,10 +26,10 @@ class TestSymbolTable : public CxxTest::TestSuite {
   }
 
   void test_lookup_with_c_str() {
-    OBJECT sym = symbols->lookup(state, "unique");
+    Object* sym = symbols->lookup(state, "unique");
     TS_ASSERT(sym->symbol_p());
 
-    OBJECT sym2 = symbols->lookup(state, "unique");
+    Object* sym2 = symbols->lookup(state, "unique");
     TS_ASSERT_EQUALS(sym, sym2);
   }
 
@@ -37,10 +37,10 @@ class TestSymbolTable : public CxxTest::TestSuite {
     std::string str("unique");
     std::string str2("uniquer");
 
-    OBJECT sym = symbols->lookup(state, str);
+    Object* sym = symbols->lookup(state, str);
     TS_ASSERT(sym->symbol_p());
 
-    OBJECT sym2 = symbols->lookup(state, str2);
+    Object* sym2 = symbols->lookup(state, str2);
     TS_ASSERT_DIFFERS(sym, sym2);
   }
 
@@ -60,7 +60,8 @@ class TestSymbolTable : public CxxTest::TestSuite {
   }
 
   void test_lookup_colliding_hash() {
-    OBJECT sym, sym2;
+    Object* sym;
+    Object* sym2;
     const char* str = "__uint_fast64_t";
     const char* str2 = "TkIF_MOD";
 
@@ -79,7 +80,8 @@ class TestSymbolTable : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(a->hash_string(state), b->hash_string(state));
 
-    OBJECT sym, sym2;
+    Object* sym;
+    Object* sym2;
 
     sym  = symbols->lookup(state, a);
     sym2 = symbols->lookup(state, b);
@@ -115,7 +117,7 @@ class TestSymbolTable : public CxxTest::TestSuite {
   }
 
   void test_all_as_array() {
-    std::vector<SYMBOL> syms;
+    std::vector<Symbol*> syms;
 
     syms.push_back(symbols->lookup(state, "__uint_fast64_t"));
     syms.push_back(symbols->lookup(state, "ponies"));

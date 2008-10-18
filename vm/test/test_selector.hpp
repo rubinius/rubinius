@@ -33,7 +33,7 @@ class TestSelector : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    OBJECT sym = state->symbol("blah");
+    Object* sym = state->symbol("blah");
     Selector* sel = Selector::create(state, sym);
     TS_ASSERT_EQUALS(sel->name(), sym);
     TS_ASSERT(sel->send_sites()->kind_of_p(state, G(array)));

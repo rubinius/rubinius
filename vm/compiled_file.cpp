@@ -1,13 +1,15 @@
 /* A CompiledFile represents a .rbc. This class understands the layout
  * of a .rbc file. It can validate and load the body into a CompiledMethod
- * object. 
+ * object.
  *
  * CompiledFile::execute is a root stack frame in Rubinius. It's where
  * primary execution begins, when the VM loads the loader.rbc and executes
  * it. */
 
 #include "compiled_file.hpp"
+#include "context_cache.hpp"
 #include "marshal.hpp"
+#include "message.hpp"
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
 
@@ -17,8 +19,6 @@
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
 
-#include "message.hpp"
-#include "context_cache.hpp"
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {
@@ -33,7 +33,7 @@ namespace rubinius {
     return new CompiledFile(magic, ver, sum, &stream);
   }
 
-  OBJECT CompiledFile::body(STATE) {
+  Object* CompiledFile::body(STATE) {
     UnMarshaller mar(state, *stream);
     return mar.unmarshal();
   }

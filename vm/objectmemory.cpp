@@ -51,7 +51,7 @@ namespace rubinius {
     }
   }
 
-  bool ObjectMemory::valid_object_p(OBJECT obj) {
+  bool ObjectMemory::valid_object_p(Object* obj) {
     if(obj->young_object_p()) {
       return young.current->contains_p(obj);
     } else if(obj->mature_object_p()) {
@@ -63,8 +63,8 @@ namespace rubinius {
 
   /* Garbage collection */
 
-  OBJECT ObjectMemory::promote_object(OBJECT obj) {
-    OBJECT copy = mature.copy_object(obj);
+  Object* ObjectMemory::promote_object(Object* obj) {
+    Object* copy = mature.copy_object(obj);
     copy->zone = MatureObjectZone;
     return copy;
   }
@@ -86,7 +86,7 @@ namespace rubinius {
 
   /* Store an object into the remember set. Called when we've calculated
    * externally that the object in question needs to be remembered */
-  void ObjectMemory::remember_object(OBJECT target) {
+  void ObjectMemory::remember_object(Object* target) {
     assert(target->zone == MatureObjectZone);
     /* If it's already remembered, ignore this request */
     if(target->Remember) return;
@@ -94,7 +94,7 @@ namespace rubinius {
     remember_set->push_back(target);
   }
 
-  void ObjectMemory::unremember_object(OBJECT target) {
+  void ObjectMemory::unremember_object(Object* target) {
     for(ObjectArray::iterator oi = remember_set->begin();
         oi != remember_set->end();
         oi++) {
@@ -106,20 +106,20 @@ namespace rubinius {
   }
 
   // DEPRECATED
-  void ObjectMemory::store_object(OBJECT target, size_t index, OBJECT val) {
+  void ObjectMemory::store_object(Object* target, size_t index, Object* val) {
     ((Tuple*)target)->field[index] = val;
     write_barrier(target, val);
   }
 
-  void ObjectMemory::set_class(OBJECT target, OBJECT obj) {
+  void ObjectMemory::set_class(Object* target, Object* obj) {
     target->klass(state, (Class*)obj);
     if(obj->reference_p()) {
       write_barrier(target, obj);
     }
   }
 
-  OBJECT ObjectMemory::allocate_object(size_t fields) {
-    OBJECT obj;
+  Object* ObjectMemory::allocate_object(size_t fields) {
+    Object* obj;
 
     if(fields > large_object_threshold) {
       obj = mature.allocate(fields, &collect_mature_now);
@@ -139,8 +139,8 @@ namespace rubinius {
     return obj;
   }
 
-  OBJECT ObjectMemory::new_object(Class* cls, size_t fields) {
-    OBJECT obj;
+  Object* ObjectMemory::new_object(Class* cls, size_t fields) {
+    Object* obj;
 
     obj = allocate_object(fields);
     set_class(obj, cls);
@@ -153,12 +153,12 @@ namespace rubinius {
 
   /* An Object field is the size of a pointer on any particular
    * platform. An Object that stores bytes must be aligned to an
-   * integral number of fields. For example, if sizeof(OBJECT) == 4,
+   * integral number of fields. For example, if sizeof(Object*) == 4,
    * then an object that stores bytes must be 4, 8, 12, 16, ..., 4n
    * bytes in size. This corresponds to 1, 2, 3, 4, ..., n fields.
    */
-  OBJECT ObjectMemory::new_object_bytes(Class* cls, size_t bytes) {
-    const size_t mag = sizeof(OBJECT);
+  Object* ObjectMemory::new_object_bytes(Class* cls, size_t bytes) {
+    const size_t mag = sizeof(Object*);
     size_t fields;
 
     if(bytes == 0) {
@@ -168,18 +168,18 @@ namespace rubinius {
       fields /= mag;
     }
 
-    OBJECT obj = new_object(cls, fields);
+    Object* obj = new_object(cls, fields);
 
     obj->init_bytes();
 
     return obj;
   }
 
-  TypeInfo* ObjectMemory::find_type_info(OBJECT obj) {
+  TypeInfo* ObjectMemory::find_type_info(Object* obj) {
     return type_info[obj->obj_type];
   }
 
-  ObjectPosition ObjectMemory::validate_object(OBJECT obj) {
+  ObjectPosition ObjectMemory::validate_object(Object* obj) {
     ObjectPosition pos;
 
     pos = young.validate_object(obj);

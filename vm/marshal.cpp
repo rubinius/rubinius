@@ -21,7 +21,7 @@ namespace rubinius {
 
   using std::endl;
 
-  void Marshaller::set_int(OBJECT obj) {
+  void Marshaller::set_int(Object* obj) {
     stream << "I" << endl << as<Integer>(obj)->to_native() << endl;
   }
 
@@ -34,7 +34,7 @@ namespace rubinius {
     stream << "I" << endl << buf << endl;
   }
 
-  OBJECT UnMarshaller::get_int() {
+  Object* UnMarshaller::get_int() {
     char data[1024];
     std::memset(data, 0, 1024);
 
@@ -62,13 +62,13 @@ namespace rubinius {
     return str;
   }
 
-  void Marshaller::set_symbol(SYMBOL sym) {
+  void Marshaller::set_symbol(Symbol* sym) {
     String* str = sym->to_str(state);
     stream << "x" << endl << str->size() << endl;
     stream.write(str->byte_address(), str->size()) << endl;
   }
 
-  SYMBOL UnMarshaller::get_symbol() {
+  Symbol* UnMarshaller::get_symbol() {
     char data[1024];
     size_t count;
 
@@ -95,7 +95,7 @@ namespace rubinius {
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
-    SYMBOL sym = state->symbol(data);
+    Symbol* sym = state->symbol(data);
 
     return SendSite::create(state, sym);
   }
@@ -221,18 +221,18 @@ namespace rubinius {
     CompiledMethod* cm = CompiledMethod::create(state);
 
     cm->ivars(state, unmarshal());
-    cm->primitive(state, (SYMBOL)unmarshal());
-    cm->name(state, (SYMBOL)unmarshal());
+    cm->primitive(state, (Symbol*)unmarshal());
+    cm->name(state, (Symbol*)unmarshal());
     cm->iseq(state, (InstructionSequence*)unmarshal());
-    cm->stack_size(state, (FIXNUM)unmarshal());
-    cm->local_count(state, (FIXNUM)unmarshal());
-    cm->required_args(state, (FIXNUM)unmarshal());
-    cm->total_args(state, (FIXNUM)unmarshal());
+    cm->stack_size(state, (Fixnum*)unmarshal());
+    cm->local_count(state, (Fixnum*)unmarshal());
+    cm->required_args(state, (Fixnum*)unmarshal());
+    cm->total_args(state, (Fixnum*)unmarshal());
     cm->splat(state, unmarshal());
     cm->literals(state, (Tuple*)unmarshal());
     cm->exceptions(state, (Tuple*)unmarshal());
     cm->lines(state, (Tuple*)unmarshal());
-    cm->file(state, (SYMBOL)unmarshal());
+    cm->file(state, (Symbol*)unmarshal());
     cm->local_names(state, (Tuple*)unmarshal());
 
     cm->post_marshal(state);
@@ -240,7 +240,7 @@ namespace rubinius {
     return cm;
   }
 
-  OBJECT UnMarshaller::unmarshal() {
+  Object* UnMarshaller::unmarshal() {
     char code;
 
     stream >> code;
@@ -278,7 +278,7 @@ namespace rubinius {
     }
   }
 
-  void Marshaller::marshal(OBJECT obj) {
+  void Marshaller::marshal(Object* obj) {
     if(obj == Qnil) {
       stream << "n" << endl;
     } else if(obj == Qtrue) {
@@ -288,7 +288,7 @@ namespace rubinius {
     } else if(obj->fixnum_p()) {
       set_int(obj);
     } else if(obj->symbol_p()) {
-      set_symbol((SYMBOL)obj);
+      set_symbol((Symbol*)obj);
     } else if(kind_of<Bignum>(obj)) {
       set_bignum(as<Bignum>(obj));
     } else if(kind_of<String>(obj)) {

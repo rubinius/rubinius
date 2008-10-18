@@ -37,8 +37,8 @@ namespace rubinius {
     return bytes;
   }
 
-  OBJECT BakerGC::Heap::copy_object(OBJECT orig) {
-    OBJECT tmp = (OBJECT)allocate(orig->size_in_bytes());
+  Object* BakerGC::Heap::copy_object(Object* orig) {
+    Object* tmp = (Object*)allocate(orig->size_in_bytes());
     tmp->init(YoungObjectZone, orig->num_fields());
 
     tmp->initialize_copy(orig, orig->age);
@@ -60,8 +60,8 @@ namespace rubinius {
 
   BakerGC::~BakerGC() { }
 
-  OBJECT BakerGC::saw_object(OBJECT obj) {
-    OBJECT copy;
+  Object* BakerGC::saw_object(Object* obj) {
+    Object* copy;
 
     if(obj->zone != YoungObjectZone) return obj;
 
@@ -93,7 +93,7 @@ namespace rubinius {
   }
 
   void BakerGC::copy_unscanned() {
-    OBJECT iobj = next->next_unscanned();
+    Object* iobj = next->next_unscanned();
 
     while(iobj) {
       assert(iobj->zone == YoungObjectZone);
@@ -108,7 +108,7 @@ namespace rubinius {
 
   /* Perform garbage collection on the young objects. */
   void BakerGC::collect(Roots &roots) {
-    OBJECT tmp;
+    Object* tmp;
     ObjectArray *current_rs = object_memory->remember_set;
 
     object_memory->remember_set = new ObjectArray(0);
@@ -205,12 +205,12 @@ namespace rubinius {
     next->reset();
   }
 
-  OBJECT BakerGC::next_object(OBJECT obj) {
-    return (OBJECT)((uintptr_t)obj + obj->size_in_bytes());
+  Object* BakerGC::next_object(Object* obj) {
+    return (Object*)((uintptr_t)obj + obj->size_in_bytes());
   }
 
   void BakerGC::clear_marks() {
-    OBJECT obj = current->first_object();
+    Object* obj = current->first_object();
     while(obj < current->current) {
       obj->clear_mark();
       obj = next_object(obj);
@@ -224,7 +224,7 @@ namespace rubinius {
   }
 
   void BakerGC::free_objects() {
-    OBJECT obj = current->first_object();
+    Object* obj = current->first_object();
     while(obj < current->current) {
       delete_object(obj);
       obj = next_object(obj);
@@ -239,7 +239,7 @@ namespace rubinius {
   }
 
   void BakerGC::find_lost_souls() {
-    OBJECT obj = current->first_object();
+    Object* obj = current->first_object();
     while(obj < current->current) {
       if(!obj->forwarded_p()) delete_object(obj);
       obj = next_object(obj);
@@ -256,7 +256,7 @@ namespace rubinius {
       // ATM, only a Tuple can be marked weak.
       Tuple* tup = as<Tuple>(*i);
       for(size_t ti = 0; ti < tup->num_fields(); ti++) {
-        OBJECT obj = tup->at(object_memory->state, ti);
+        Object* obj = tup->at(object_memory->state, ti);
 
         if(!obj->reference_p()) continue;
 
@@ -277,7 +277,7 @@ namespace rubinius {
     weak_refs = NULL;
   }
 
-  ObjectPosition BakerGC::validate_object(OBJECT obj) {
+  ObjectPosition BakerGC::validate_object(Object* obj) {
     if(current->contains_p(obj)) {
       return cValid;
     } else if(next->contains_p(obj)) {

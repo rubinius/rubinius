@@ -35,109 +35,109 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_add() {
-    FIXNUM one = as<Fixnum>(Fixnum::from(1));
+    Fixnum* one = as<Fixnum>(Fixnum::from(1));
 
-    FIXNUM two = as<Fixnum>(one->add(state, one));
+    Fixnum* two = as<Fixnum>(one->add(state, one));
     TS_ASSERT_EQUALS(two->to_native(), 2);
   }
 
   void test_add_overflows_to_bignum() {
-    FIXNUM  one = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
-    INTEGER two = as<Integer>(one->add(state, one));
+    Fixnum*  one = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
+    Integer* two = as<Integer>(one->add(state, one));
 
     TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(two->to_native(), (FIXNUM_MAX - 10) * 2);
   }
 
   void test_add_underflows_to_bignum() {
-    FIXNUM  one = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
-    INTEGER two = as<Integer>(one->add(state, one));
+    Fixnum*  one = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
+    Integer* two = as<Integer>(one->add(state, one));
 
     TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(two->to_native(), (FIXNUM_MIN + 10) * 2);
   }
 
   void test_add_a_bignum() {
-    FIXNUM one  = as<Fixnum>(Fixnum::from(13));
+    Fixnum* one  = as<Fixnum>(Fixnum::from(13));
     Bignum* obj = Bignum::from(state, (native_int)FIXNUM_MAX - 10);
-    INTEGER res = one->add(state, obj);
+    Integer* res = one->add(state, obj);
     TS_ASSERT_EQUALS(res->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(res->to_native(), FIXNUM_MAX + 3);
   }
 
   void test_add_a_float() {
-    FIXNUM one = Fixnum::from(13);
+    Fixnum* one = Fixnum::from(13);
     Float* res = one->add(state, Float::create(state, 1.4));
     check_float(res, Float::create(state, 14.4));
   }
 
   void test_sub() {
-    FIXNUM one = as<Fixnum>(Fixnum::from(1));
+    Fixnum* one = as<Fixnum>(Fixnum::from(1));
 
-    FIXNUM zero = as<Fixnum>(one->sub(state, one));
+    Fixnum* zero = as<Fixnum>(one->sub(state, one));
     TS_ASSERT_EQUALS(zero->to_native(), 0);
   }
 
   void test_sub_overflows_to_bignum() {
-    FIXNUM  one   = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
-    FIXNUM  two   = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
-    INTEGER three = as<Integer>(two->sub(state, one));
+    Fixnum*  one   = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
+    Fixnum*  two   = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
+    Integer* three = as<Integer>(two->sub(state, one));
 
     TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(three->to_native(), FIXNUM_MAX - 10 - (FIXNUM_MIN + 10));
   }
 
   void test_sub_underflows_to_bignum() {
-    FIXNUM  one   = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
-    FIXNUM  two   = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
-    INTEGER three = as<Integer>(one->sub(state, two));
+    Fixnum*  one   = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
+    Fixnum*  two   = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
+    Integer* three = as<Integer>(one->sub(state, two));
 
     TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(three->to_native(), FIXNUM_MIN + 10 - (FIXNUM_MAX - 10));
   }
 
   void test_sub_a_bignum() {
-    FIXNUM one  = as<Fixnum>(Fixnum::from(13));
+    Fixnum* one  = as<Fixnum>(Fixnum::from(13));
     Bignum* obj = Bignum::from(state, (native_int)FIXNUM_MAX + 28);
-    INTEGER res = one->sub(state, obj);
+    Integer* res = one->sub(state, obj);
     TS_ASSERT_EQUALS(res->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(res->to_native(), 13 - (FIXNUM_MAX + 28));
   }
 
   void test_sub_a_float() {
-    FIXNUM one = Fixnum::from(13);
+    Fixnum* one = Fixnum::from(13);
     Float* res = one->sub(state, Float::create(state, 1.4));
     check_float(res, Float::create(state, 11.6));
   }
 
   void test_mul() {
-    FIXNUM one = as<Fixnum>(Fixnum::from(4));
+    Fixnum* one = as<Fixnum>(Fixnum::from(4));
 
-    FIXNUM two = as<Fixnum>(one->mul(state, one));
+    Fixnum* two = as<Fixnum>(one->mul(state, one));
     TS_ASSERT_EQUALS(two->to_native(), 16);
   }
 
   void test_mul_overflows_to_bignum() {
-    FIXNUM  one = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
-    INTEGER two = as<Integer>(one->mul(state, Fixnum::from(2)));
+    Fixnum*  one = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
+    Integer* two = as<Integer>(one->mul(state, Fixnum::from(2)));
 
     TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(two->to_native(), (FIXNUM_MAX - 10) * 2);
 
-    FIXNUM  three = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
-    INTEGER four  = as<Integer>(three->mul(state, Fixnum::from(2)));
+    Fixnum*  three = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
+    Integer* four  = as<Integer>(three->mul(state, Fixnum::from(2)));
 
     TS_ASSERT_EQUALS(four->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(four->to_native(), (FIXNUM_MIN + 10) * 2);
 
-    FIXNUM  five = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
-    INTEGER six  = as<Integer>(five->mul(state, Fixnum::from(-2)));
+    Fixnum*  five = as<Fixnum>(Fixnum::from(FIXNUM_MAX - 10));
+    Integer* six  = as<Integer>(five->mul(state, Fixnum::from(-2)));
 
     TS_ASSERT_EQUALS(six->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(six->to_native(), (FIXNUM_MAX - 10) * -2);
 
-    FIXNUM  seven = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
-    INTEGER eight = as<Integer>(seven->mul(state, Fixnum::from(-2)));
+    Fixnum*  seven = as<Fixnum>(Fixnum::from(FIXNUM_MIN + 10));
+    Integer* eight = as<Integer>(seven->mul(state, Fixnum::from(-2)));
 
     TS_ASSERT_EQUALS(eight->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(eight->to_native(), (FIXNUM_MIN + 10) * -2);
@@ -145,34 +145,34 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_mul_with_bignum() {
-    FIXNUM  one   = as<Fixnum>(Fixnum::from(2));
+    Fixnum*  one   = as<Fixnum>(Fixnum::from(2));
     Bignum* two   = Bignum::from(state, (native_int)FIXNUM_MAX + 10);
-    INTEGER three = one->mul(state, two);
+    Integer* three = one->mul(state, two);
 
     TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(three->to_native(), (FIXNUM_MAX + 10) * 2);
   }
 
   void test_mul_a_float() {
-    FIXNUM one = Fixnum::from(13);
+    Fixnum* one = Fixnum::from(13);
     Float* res = one->mul(state, Float::create(state, 1.4));
     check_float(res, Float::create(state, 18.2));
   }
 
   void test_div() {
-    FIXNUM one = as<Fixnum>(Fixnum::from(4));
+    Fixnum* one = as<Fixnum>(Fixnum::from(4));
 
-    FIXNUM two = as<Fixnum>(one->div(state, one));
+    Fixnum* two = as<Fixnum>(one->div(state, one));
     TS_ASSERT_EQUALS(two->to_native(), 1);
 
-    FIXNUM zero = Fixnum::from(0);
+    Fixnum* zero = Fixnum::from(0);
     TS_ASSERT_THROWS_ASSERT(one->div(state, zero), const RubyException &e,
                             TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_div_a_bignum() {
-    FIXNUM one = Fixnum::from(13);
-    INTEGER res = one->div(state, Bignum::from(state, (native_int)FIXNUM_MAX + 10));
+    Fixnum* one = Fixnum::from(13);
+    Integer* res = one->div(state, Bignum::from(state, (native_int)FIXNUM_MAX + 10));
     TS_ASSERT_EQUALS(res->to_native(), 0);
 
     Bignum* zero = Bignum::from(state, (native_int)0);
@@ -181,7 +181,7 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_div_a_float() {
-    FIXNUM one = Fixnum::from(13);
+    Fixnum* one = Fixnum::from(13);
     Float* res = one->div(state, Float::create(state, 1.4));
     check_float(res, Float::create(state, 9.28571428571));
   }
@@ -203,9 +203,9 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_mod() {
-    FIXNUM one = as<Fixnum>(Fixnum::from(4));
+    Fixnum* one = as<Fixnum>(Fixnum::from(4));
 
-    FIXNUM two = as<Fixnum>(one->mod(state, one));
+    Fixnum* two = as<Fixnum>(one->mod(state, one));
     TS_ASSERT_EQUALS(two->to_native(), 0);
   }
 
@@ -235,8 +235,8 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_divmod() {
-    FIXNUM one = as<Fixnum>(Fixnum::from(15));
-    FIXNUM two = as<Fixnum>(Fixnum::from(4));
+    Fixnum* one = as<Fixnum>(Fixnum::from(15));
+    Fixnum* two = as<Fixnum>(Fixnum::from(4));
 
     Array* ary1 = one->divmod(state, two);
     Object* o1 = ary1->get(state, 0);
@@ -246,13 +246,13 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT(o2->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(o2)->to_native(), 3);
 
-    FIXNUM zero = Fixnum::from(0);
+    Fixnum* zero = Fixnum::from(0);
     TS_ASSERT_THROWS_ASSERT(one->divmod(state, zero), const RubyException &e,
                             TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_divmod_with_a_bignum() {
-    FIXNUM one = as<Fixnum>(Fixnum::from(15));
+    Fixnum* one = as<Fixnum>(Fixnum::from(15));
     Bignum* two = Bignum::from(state, (native_int)4);
 
     Array* ary1 = one->divmod(state, two);
@@ -265,7 +265,7 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_divmod_with_a_float() {
-    FIXNUM one = as<Fixnum>(Fixnum::from(15));
+    Fixnum* one = as<Fixnum>(Fixnum::from(15));
 
     Array* ary1 = one->divmod(state, Float::create(state, -3.3));
     Object* o1 = ary1->get(state, 0);
@@ -388,7 +388,7 @@ class TestFixnum : public CxxTest::TestSuite {
   void test_left_shift() {
     TS_ASSERT_EQUALS(Fixnum::from(3)->left_shift(state, Fixnum::from(4)), Fixnum::from(48));
 
-    INTEGER i = Fixnum::from(1)->left_shift(state, Fixnum::from(FIXNUM_WIDTH));
+    Integer* i = Fixnum::from(1)->left_shift(state, Fixnum::from(FIXNUM_WIDTH));
     TS_ASSERT_EQUALS(i->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(i->to_native(), FIXNUM_MAX + 1);
 
@@ -489,12 +489,12 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_coerce_fixnum() {
-    FIXNUM one = Fixnum::from(1);
-    FIXNUM two = Fixnum::from(2);
+    Fixnum* one = Fixnum::from(1);
+    Fixnum* two = Fixnum::from(2);
     Array* ary = one->coerce(state, two);
 
-    FIXNUM a = try_as<Fixnum>(ary->get(state, 0));
-    FIXNUM b = try_as<Fixnum>(ary->get(state, 1));
+    Fixnum* a = try_as<Fixnum>(ary->get(state, 0));
+    Fixnum* b = try_as<Fixnum>(ary->get(state, 1));
 
     TS_ASSERT_EQUALS(2U, ary->size());
     TS_ASSERT(a);
@@ -504,12 +504,12 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_coerce_bignum() {
-    FIXNUM one = Fixnum::from(1);
+    Fixnum* one = Fixnum::from(1);
     Bignum* e = Bignum::create(state, one);
     Array* ary = one->coerce(state, e);
 
-    FIXNUM a = try_as<Fixnum>(ary->get(state, 0));
-    FIXNUM b = try_as<Fixnum>(ary->get(state, 1));
+    Fixnum* a = try_as<Fixnum>(ary->get(state, 0));
+    Fixnum* b = try_as<Fixnum>(ary->get(state, 1));
 
     TS_ASSERT_EQUALS(2U, ary->size());
     TS_ASSERT(a);

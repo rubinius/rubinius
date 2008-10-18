@@ -157,7 +157,7 @@ class TestMessage : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(2U, msg.args());
 
-    FIXNUM shifted = as<Fixnum>(msg.shift_argument(state));
+    Fixnum* shifted = as<Fixnum>(msg.shift_argument(state));
     TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
     TS_ASSERT_EQUALS(msg.args(), 1U);
 
@@ -171,7 +171,7 @@ class TestMessage : public CxxTest::TestSuite {
     task->push(Fixnum::from(47));
     msg.use_from_task(task, 2);
 
-    FIXNUM shifted = as<Fixnum>(msg.shift_argument(state));
+    Fixnum* shifted = as<Fixnum>(msg.shift_argument(state));
     TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
     TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(47));
 
@@ -240,7 +240,7 @@ class TestMessage : public CxxTest::TestSuite {
   void test_as_array() {
     Message msg(state);
     Task* task = Task::create(state, 10);
-    SYMBOL sym = state->symbol("to_int");
+    Symbol* sym = state->symbol("to_int");
     task->push(sym);
     msg.use_from_task(task, 1);
 

@@ -10,11 +10,11 @@
 
 namespace rubinius {
   /* The Tuple#at primitive. */
-  OBJECT Tuple::at_prim(STATE, FIXNUM index_obj) {
+  Object* Tuple::at_prim(STATE, Fixnum* index_obj) {
     return at(state, index_obj->to_native());
   }
 
-  OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {
+  Object* Tuple::put(STATE, size_t idx, Object* val) {
     if(num_fields() <= idx) {
       Exception::object_bounds_exceeded_error(state, this, idx);
     }
@@ -25,12 +25,12 @@ namespace rubinius {
   }
 
   /* The Tuple#put primitive. */
-  OBJECT Tuple::put_prim(STATE, FIXNUM index, OBJECT val) {
+  Object* Tuple::put_prim(STATE, Fixnum* index, Object* val) {
     return put(state, index->to_native(), val);
   }
 
   /* The Tuple#fields primitive. */
-  OBJECT Tuple::fields_prim(STATE) {
+  Object* Tuple::fields_prim(STATE) {
     return Integer::from(state, num_fields());
   }
 
@@ -48,7 +48,7 @@ namespace rubinius {
 
     va_start(ar, fields);
     for(size_t i = 0; i < fields; i++) {
-      tup->put(state, i, va_arg(ar, OBJECT));
+      tup->put(state, i, va_arg(ar, Object*));
     }
     va_end(ar);
 
@@ -76,7 +76,7 @@ namespace rubinius {
     }
   }
 
-  Tuple* Tuple::shifted(STATE, FIXNUM num) {
+  Tuple* Tuple::shifted(STATE, Fixnum* num) {
     native_int cnt = num->to_native();
 
     if(cnt == 0) {
@@ -92,7 +92,7 @@ namespace rubinius {
     }
   }
 
-  Tuple* Tuple::copy_from(STATE, Tuple* other, FIXNUM start, FIXNUM dest) {
+  Tuple* Tuple::copy_from(STATE, Tuple* other, Fixnum* start, Fixnum* dest) {
     native_int src = start->to_native();
     native_int dst = dest->to_native();
     native_int sz = this->num_fields();
@@ -109,7 +109,7 @@ namespace rubinius {
   }
 
   // TODO: performance primitive; could be replaced with Ruby
-  Tuple* Tuple::pattern(STATE, FIXNUM size, OBJECT val) {
+  Tuple* Tuple::pattern(STATE, Fixnum* size, Object* val) {
     native_int cnt = size->to_native();
     Tuple* tuple = Tuple::create(state, cnt);
 
@@ -120,14 +120,14 @@ namespace rubinius {
     return tuple;
   }
 
-  Tuple* Tuple::create_weakref(STATE, OBJECT obj) {
+  Tuple* Tuple::create_weakref(STATE, Object* obj) {
     Tuple* tup = Tuple::from(state, 1, obj);
     tup->RefsAreWeak = 1;
     return tup;
   }
 
-  void Tuple::Info::mark(OBJECT obj, ObjectMark& mark) {
-    OBJECT tmp;
+  void Tuple::Info::mark(Object* obj, ObjectMark& mark) {
+    Object* tmp;
     Tuple* tup = as<Tuple>(obj);
 
     for(size_t i = 0; i < tup->num_fields(); i++) {
@@ -136,7 +136,7 @@ namespace rubinius {
     }
   }
 
-  void Tuple::Info::show(STATE, OBJECT self, int level) {
+  void Tuple::Info::show(STATE, Object* self, int level) {
     Tuple* tup = as<Tuple>(self);
     size_t size = tup->num_fields();
     size_t stop = size < 6 ? size : 6;
@@ -151,7 +151,7 @@ namespace rubinius {
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
-      OBJECT obj = tup->at(state, i);
+      Object* obj = tup->at(state, i);
       if(obj == tup) {
         class_info(state, self, true);
       } else {
@@ -162,7 +162,7 @@ namespace rubinius {
     close_body(level);
   }
 
-  void Tuple::Info::show_simple(STATE, OBJECT self, int level) {
+  void Tuple::Info::show_simple(STATE, Object* self, int level) {
     Tuple* tup = as<Tuple>(self);
     size_t size = tup->num_fields();
     size_t stop = size < 6 ? size : 6;
@@ -177,7 +177,7 @@ namespace rubinius {
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
-      OBJECT obj = tup->at(state, i);
+      Object* obj = tup->at(state, i);
       if(Tuple* t = try_as<Tuple>(obj)) {
         class_info(state, self);
         std::cout << ": " << t->num_fields() << ">" << std::endl;

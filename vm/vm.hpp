@@ -1,7 +1,6 @@
 #ifndef RBX_VM_H
 #define RBX_VM_H
 
-#include "prelude.hpp"
 #include "globals.hpp"
 #include "symboltable.hpp"
 
@@ -28,6 +27,7 @@ namespace rubinius {
   class MethodContext;
   class ContextCache;
   class String;
+  class Symbol;
   class ConfigParser;
 
   struct Configuration {
@@ -98,7 +98,7 @@ namespace rubinius {
     void initialize_platform_data();
     void boot_threads();
 
-    OBJECT new_object(Class* cls);
+    Object* new_object(Class* cls);
 
     // Create an uninitialized Class object
     Class* new_basic_class(Class* sup, size_t fields);
@@ -121,12 +121,12 @@ namespace rubinius {
     Class* new_class_under(const char* name, Module* under);
 
     Module* new_module(const char* name, Module* under = NULL);
-    OBJECT new_struct(Class* cls, size_t bytes);
+    Object* new_struct(Class* cls, size_t bytes);
     Task* new_task();
 
-    SYMBOL symbol(const char* str);
-    SYMBOL symbol(String* str);
-    SYMBOL symbol(std::string str);
+    Symbol* symbol(const char* str);
+    Symbol* symbol(String* str);
+    Symbol* symbol(std::string str);
 
     void add_type_info(TypeInfo* ti);
     TypeInfo* find_type(int type);
@@ -140,7 +140,7 @@ namespace rubinius {
     // Check the flags in ObjectMemory and collect if we need to.
     void collect_maybe();
 
-    void return_value(OBJECT val);
+    void return_value(Object* val);
 
     void check_events();
     bool run_best_thread();
@@ -152,10 +152,10 @@ namespace rubinius {
     void raise_from_errno(const char* reason);
     void raise_exception(Exception* exc);
     Exception* new_exception(Class* cls, const char* msg);
-    OBJECT current_block();
+    Object* current_block();
 
-    void set_const(const char* name, OBJECT val);
-    void set_const(Module* mod, const char* name, OBJECT val);
+    void set_const(const char* name, Object* val);
+    void set_const(Module* mod, const char* name, Object* val);
 
     llvm::Module* llvm_module();
     void llvm_cleanup();

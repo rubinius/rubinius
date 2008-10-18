@@ -91,7 +91,7 @@ class TestContexts : public CxxTest::TestSuite {
     cm->local_count(state, Fixnum::from(0));
     cm->literals(state, Tuple::create(state, 10));
 
-    SYMBOL name = state->symbol("blah");
+    Symbol* name = state->symbol("blah");
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
 

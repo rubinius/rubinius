@@ -1,17 +1,22 @@
 #ifndef RBX_VMMETHOD_HPP
 #define RBX_VMMETHOD_HPP
 
-#include "primitives.hpp"
-#include "gc_root.hpp"
+#include <vector>
+
 #include "executor.hpp"
+#include "gc_root.hpp"
+#include "primitives.hpp"
+#include "type_info.hpp"
 
 namespace rubinius {
   typedef void* instlocation;
   typedef uint32_t opcode;
 
-  class Opcode;
   class CompiledMethod;
   class MethodContext;
+  class Opcode;
+  class SendSite;
+
 
   class VMMethod {
   public:

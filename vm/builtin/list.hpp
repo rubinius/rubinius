@@ -12,7 +12,7 @@ namespace rubinius {
     const static object_type type = ListNodeType;
 
   private:
-    OBJECT object_;  // slot
+    Object* object_;  // slot
     ListNode* next_; // slot
 
   public:
@@ -36,7 +36,7 @@ namespace rubinius {
     const static object_type type = ListType;
 
   private:
-    INTEGER count_;   // slot
+    Integer* count_;   // slot
     ListNode* first_; // slot
     ListNode* last_;  // slot
 
@@ -53,10 +53,10 @@ namespace rubinius {
     size_t size();
     static void init(STATE);
     static List* create(STATE);
-    void append(STATE, OBJECT obj);
-    OBJECT shift(STATE);
-    OBJECT locate(STATE, size_t index);
-    size_t remove(STATE, OBJECT obj);
+    void append(STATE, Object* obj);
+    Object* shift(STATE);
+    Object* locate(STATE, size_t index);
+    size_t remove(STATE, Object* obj);
 
     class Info : public TypeInfo {
     public:

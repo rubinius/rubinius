@@ -24,7 +24,7 @@ namespace rubinius {
     Integer* set_address(STATE, Integer* ptr);
 
     // Ruby.primitive :memorypointer_set_autorelease
-    OBJECT set_autorelease(STATE, OBJECT val);
+    Object* set_autorelease(STATE, Object* val);
 
     // Ruby.primitive :memorypointer_add
     MemoryPointer* add(STATE, Integer* amount);
@@ -51,30 +51,30 @@ namespace rubinius {
     MemoryPointer* read_pointer(STATE);
 
     // Ruby.primitive :memorypointer_read_string
-    String* read_string(STATE, FIXNUM len);
+    String* read_string(STATE, Fixnum* len);
 
     // Ruby.primitive :memorypointer_read_string_to_null
     String* read_string_to_null(STATE);
 
     // Ruby.primitive :memorypointer_write_string
-    MemoryPointer* write_string(STATE, String* str, FIXNUM len);
+    MemoryPointer* write_string(STATE, String* str, Fixnum* len);
 
-    OBJECT get_field(STATE, int offset, int type);
+    Object* get_field(STATE, int offset, int type);
 
     // Ruby.primitive :memorypointer_get_at_offset
-    OBJECT get_at_offset(STATE, FIXNUM offset, FIXNUM type);
+    Object* get_at_offset(STATE, Fixnum* offset, Fixnum* type);
 
-    void   set_field(STATE, int offset, int type, OBJECT val);
+    void   set_field(STATE, int offset, int type, Object* val);
 
     // Ruby.primitive :memorypointer_set_at_offset
-    OBJECT set_at_offset(STATE, FIXNUM offset, FIXNUM type, OBJECT val);
+    Object* set_at_offset(STATE, Fixnum* offset, Fixnum* type, Object* val);
 
 
     /** TODO: Need cleanup here? */
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
-      virtual void mark(OBJECT t, ObjectMark& mark);
+      virtual void mark(Object* t, ObjectMark& mark);
     };
   };
 }

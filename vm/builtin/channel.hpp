@@ -22,7 +22,7 @@ namespace rubinius {
     const static object_type type = ChannelType;
 
   private:
-    OBJECT value_;  // slot
+    Object* value_;  // slot
     List* waiting_; // slot
 
   public:
@@ -37,26 +37,26 @@ namespace rubinius {
     static Channel* create(STATE);
 
     // Ruby.primitive :channel_send
-    OBJECT send(STATE, OBJECT);
+    Object* send(STATE, Object*);
 
     // Ruby.primitive? :channel_receive
     ExecuteStatus receive_prim(STATE, Executable* exec, Task* task, Message& msg);
 
-    OBJECT receive(STATE);
+    Object* receive(STATE);
     bool has_readers_p();
 
     // Ruby.primitive :scheduler_send_on_signal
-    static OBJECT send_on_signal(STATE, Channel* chan, FIXNUM signal);
+    static Object* send_on_signal(STATE, Channel* chan, Fixnum* signal);
 
     // Ruby.primitive :scheduler_send_on_readable
-    static OBJECT send_on_readable(STATE, Channel* chan, IO* io, IOBuffer* buffer, FIXNUM bytes);
+    static Object* send_on_readable(STATE, Channel* chan, IO* io, IOBuffer* buffer, Fixnum* bytes);
 
     // Ruby.primitive :scheduler_send_in_microseconds
-    static OBJECT send_in_microseconds(STATE, Channel* chan, Integer* useconds, OBJECT tag);
+    static Object* send_in_microseconds(STATE, Channel* chan, Integer* useconds, Object* tag);
 
     // Ruby.primitive :scheduler_send_in_seconds
-    static OBJECT send_in_seconds(STATE, Channel* chan, Float* seconds, OBJECT tag);
-    static OBJECT send_in_seconds(STATE, Channel* chan, double seconds, OBJECT tag);
+    static Object* send_in_seconds(STATE, Channel* chan, Float* seconds, Object* tag);
+    static Object* send_in_seconds(STATE, Channel* chan, double seconds, Object* tag);
 
     /**
      *  Event child process ending.
@@ -77,7 +77,7 @@ namespace rubinius {
     TypedRoot<Channel*> channel;
 
     ChannelCallback(STATE, Channel* chan);
-    virtual void call(OBJECT obj);
+    virtual void call(Object* obj);
   };
 
 }

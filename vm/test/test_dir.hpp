@@ -104,10 +104,10 @@ class TestDir : public CxxTest::TestSuite {
     char *dir = make_directory();
     String* path = String::create(state, dir);
     d->open(state, path);
-    FIXNUM pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
+    Fixnum* pos = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
     TS_ASSERT_EQUALS(pos->to_native(), 0);
     d->read(state);
-    pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
+    pos = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
     TS_ASSERT_LESS_THAN(0, pos->to_native());
     remove_directory(dir);
   }
@@ -130,7 +130,7 @@ class TestDir : public CxxTest::TestSuite {
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);
-    FIXNUM pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
+    Fixnum* pos = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
     String* first = (String*)d->read(state);
 
     d->control(state, Fixnum::from(0), pos);

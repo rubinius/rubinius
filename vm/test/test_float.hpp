@@ -37,7 +37,7 @@ class TestFloat : public CxxTest::TestSuite {
   }
 
   void test_coerce() {
-    OBJECT o = Fixnum::from(5432);
+    Object* o = Fixnum::from(5432);
     Float* coerced = Float::coerce(state, o);
     TS_ASSERT(kind_of<Float>(coerced));
 

@@ -104,7 +104,7 @@ class TestChannel : public CxxTest::TestSuite {
     Thread* orig = G(current_thread);
     state->events->start(timer);
 
-    OBJECT* stack = G(current_task)->current_stack();
+    Object** stack = G(current_task)->current_stack();
 
     TS_ASSERT(!state->interrupts.check_events);
     chan->receive(state);
@@ -128,7 +128,7 @@ class TestChannel : public CxxTest::TestSuite {
     Thread* orig = G(current_thread);
     state->events->start(timer);
 
-    OBJECT* stack = G(current_task)->current_stack();
+    Object** stack = G(current_task)->current_stack();
 
     TS_ASSERT(!state->interrupts.check_events);
     usleep(300000);
@@ -160,12 +160,12 @@ class TestChannel : public CxxTest::TestSuite {
     struct timeval start, finish;
 
     Thread* orig = G(current_thread);
-    SYMBOL done = state->symbol("done");
+    Symbol* done = state->symbol("done");
     gettimeofday(&start, NULL);
 
-    OBJECT* stack = G(current_task)->current_stack();
+    Object** stack = G(current_task)->current_stack();
 
-    OBJECT ret = Channel::send_in_microseconds(state, chan, Fixnum::from(100000), done);
+    Object* ret = Channel::send_in_microseconds(state, chan, Fixnum::from(100000), done);
     usleep(200000);
     chan->receive(state);
 
@@ -181,12 +181,12 @@ class TestChannel : public CxxTest::TestSuite {
     struct timeval start, finish;
 
     Thread* orig = G(current_thread);
-    SYMBOL done = state->symbol("done");
+    Symbol* done = state->symbol("done");
     gettimeofday(&start, NULL);
 
-    OBJECT* stack = G(current_task)->current_stack();
+    Object** stack = G(current_task)->current_stack();
 
-    OBJECT ret = Channel::send_in_seconds(state, chan, point_one, done);
+    Object* ret = Channel::send_in_seconds(state, chan, point_one, done);
     usleep(201000);
     chan->receive(state);
 

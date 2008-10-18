@@ -77,7 +77,7 @@ namespace rubinius {
     /**
      *  Insert 2 arguments to the front of arguments and bump others back.
      */
-    void unshift_argument2(STATE, OBJECT one, OBJECT two);
+    void unshift_argument2(STATE, Object* one, Object* two);
 
     /*
      * Package up the arguments and return them as an Array
@@ -87,7 +87,7 @@ namespace rubinius {
     /*
      * Returns the object that is currently self
      */
-    OBJECT current_self();
+    Object* current_self();
 
     /*
      * Sets the caller context
@@ -103,7 +103,7 @@ namespace rubinius {
     /*
      * Setup the Message with the basic information
      */
-    void setup(SendSite* ss, OBJECT obj, MethodContext* ctx, size_t arg_count,
+    void setup(SendSite* ss, Object* obj, MethodContext* ctx, size_t arg_count,
         size_t stack_size) {
       method_missing = false;
       arguments_array = NULL;
@@ -119,15 +119,15 @@ namespace rubinius {
     /*
      * Retrieve an argument from the stack
      */
-    OBJECT get_stack_arg(int which) {
+    Object* get_stack_arg(int which) {
       return stack_args_[which];
     }
 
     /*
      * Shift the start of the arguments forward, discarding the top
      * argument. */
-    OBJECT shift_stack_args() {
-      OBJECT obj = *stack_args_++;
+    Object* shift_stack_args() {
+      Object* obj = *stack_args_++;
       arguments_ = stack_args_;
       return obj;
     }
@@ -144,7 +144,7 @@ namespace rubinius {
     /*
      * Retrieve the requested argument
      */
-    OBJECT get_argument(size_t index) {
+    Object* get_argument(size_t index) {
       return arguments_[index];
     }
 
@@ -154,16 +154,16 @@ namespace rubinius {
     void use_from_task(Task* task, size_t args);
 
   private:
-    STATE    /* state */;       /**< Access to the VM state. */
+    STATE       /* state */;       /**< Access to the VM state. */
     Array*      arguments_array;      /**< Arguments from the call. */
     size_t      total_args;     /**< Total number of arguments given, including unsplatted. */
-    OBJECT*     stack_args_;
-    OBJECT*     arguments_;
+    Object**    stack_args_;
+    Object**    arguments_;
 
   public:   /* Instance variables */
 
     SendSite*   send_site;      /**< SendSite in which this call originates. */
-    SYMBOL      name;           /**< Name of the method being called (comes from SendSite) */
+    Symbol*     name;           /**< Name of the method being called (comes from SendSite) */
     Object*     recv;           /**< Receiver in the call, i.e. obj in `obj.foo()` */
     Object*     block;          /**< Block object or nil if no block. */
     Object*     splat;          /**< NOT USED. The splat argument to the call. */

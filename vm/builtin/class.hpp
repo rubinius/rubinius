@@ -15,8 +15,8 @@ namespace rubinius {
     const static object_type type = ClassType;
 
   private:
-    FIXNUM instance_fields_; // slot
-    FIXNUM instance_type_;   // slot
+    Fixnum* instance_fields_; // slot
+    Fixnum* instance_type_;   // slot
 
   public:
     /* accessors */
@@ -36,7 +36,7 @@ namespace rubinius {
     static Class* s_allocate(STATE);
 
     // Ruby.primitive :class_allocate
-    OBJECT allocate(STATE);
+    Object* allocate(STATE);
 
     class Info : public Module::Info {
     public:
@@ -50,7 +50,7 @@ namespace rubinius {
     const static object_type type = MetaClassType;
 
   private:
-    OBJECT attached_instance_; // slot
+    Object* attached_instance_; // slot
 
   public:
     /* accessors */
@@ -59,12 +59,12 @@ namespace rubinius {
 
     /* interface */
 
-    static MetaClass* attach(STATE, OBJECT obj, OBJECT sup = NULL);
+    static MetaClass* attach(STATE, Object* obj, Object* sup = NULL);
 
     class Info : public Class::Info {
     public:
       BASIC_TYPEINFO(Class::Info)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 };

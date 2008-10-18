@@ -1,24 +1,29 @@
 #ifndef RBX_PRIMITIVES_HPP
 #define RBX_PRIMITIVES_HPP
 
-#include "object.hpp"
 #include "executor.hpp"
+#include "prelude.hpp"
 
 #include <stdexcept>
 
 namespace rubinius {
 
-  class Primitives;
+  /* Forwards */
+  class Object;
   class Message;
+  class Primitives;
+  class Symbol;
+
 
   enum PrimitiveRuntimeCode {
     kPrimitiveFailed = 0
   };
 
+
   class Primitives {
   public:
-    static OBJECT failure() {
-      return reinterpret_cast<OBJECT>(kPrimitiveFailed);
+    static Object* failure() {
+      return reinterpret_cast<Object*>(kPrimitiveFailed);
     }
 
     /*
@@ -28,9 +33,11 @@ namespace rubinius {
      * See VMMethod::execute for the version that handles 'regular'
      * Ruby code.
      */
-    static executor resolve_primitive(STATE, SYMBOL name);
+    static executor resolve_primitive(STATE, Symbol* name);
     static ExecuteStatus unknown_primitive(STATE, Task* task, Message& msg);
+
 #include "gen/primitives_declare.hpp"
+
   };
 }
 

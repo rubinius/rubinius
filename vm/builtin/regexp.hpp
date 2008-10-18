@@ -41,19 +41,19 @@ namespace rubinius {
     static char*  version(STATE);
 
     // Ruby.primitive :regexp_initialize
-    Regexp* initialize(STATE, String* pattern, INTEGER options, OBJECT lang);
+    Regexp* initialize(STATE, String* pattern, Integer* options, Object* lang);
 
     // Ruby.primitive :regexp_options
-    OBJECT options(STATE);
+    Object* options(STATE);
 
     // Ruby.primitive :regexp_search_region
-    OBJECT match_region(STATE, String* string, INTEGER start, INTEGER end, OBJECT forward);
+    Object* match_region(STATE, String* string, Integer* start, Integer* end, Object* forward);
 
     // Ruby.primitive :regexp_match_start
-    OBJECT match_start(STATE, String* string, INTEGER start);
+    Object* match_start(STATE, String* string, Integer* start);
 
     // Ruby.primitive :regexp_allocate
-    static Regexp* allocate(STATE, OBJECT self);
+    static Regexp* allocate(STATE, Object* self);
 
     class Info : public TypeInfo {
     public:

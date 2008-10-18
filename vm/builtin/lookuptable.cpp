@@ -61,15 +61,15 @@ namespace rubinius {
     Array* entries = all_entries(state);
     for(i = 0; i < num; i++) {
       Tuple* entry = as<Tuple>(entries->get(state, i));
-      OBJECT key =   entry->at(state, 0);
-      OBJECT value = entry->at(state, 1);
+      Object* key =   entry->at(state, 0);
+      Object* value = entry->at(state, 1);
       dup->store(state, key, value);
     }
     return dup;
 
   }
 
-  OBJECT LookupTable::entry_new(STATE, OBJECT key, OBJECT data) {
+  Object* LookupTable::entry_new(STATE, Object* key, Object* data) {
     Tuple* tup = Tuple::create(state, 3);
     tup->put(state, 0, key);
     tup->put(state, 1, data);
@@ -77,7 +77,7 @@ namespace rubinius {
     return tup;
   }
 
-  OBJECT LookupTable::entry_append(STATE, Tuple* top, OBJECT nxt) {
+  Object* LookupTable::entry_append(STATE, Tuple* top, Object* nxt) {
     Tuple* cur = try_as<Tuple>(top->at(state, 2));
     Tuple* last = top;
 
@@ -118,9 +118,9 @@ namespace rubinius {
     bins(state, Fixnum::from(size));
   }
 
-  OBJECT LookupTable::store(STATE, OBJECT key, OBJECT val) {
+  Object* LookupTable::store(STATE, Object* key, Object* val) {
     unsigned int num_entries, num_bins, bin;
-    OBJECT new_ent;
+    Object* new_ent;
     Tuple* cur;
     Tuple* entry;
 
@@ -155,7 +155,7 @@ namespace rubinius {
     return val;
   }
 
-  Tuple* LookupTable::find_entry(STATE, OBJECT key) {
+  Tuple* LookupTable::find_entry(STATE, Object* key) {
     unsigned int bin;
     Tuple* entry;
 
@@ -178,13 +178,13 @@ namespace rubinius {
     return NULL;
   }
 
-  OBJECT LookupTable::fetch(STATE, OBJECT key) {
+  Object* LookupTable::fetch(STATE, Object* key) {
     Tuple* entry = find_entry(state, key);
     if(entry) return entry->at(state, 1);
     return Qnil;
   }
 
-  OBJECT LookupTable::fetch(STATE, OBJECT key, bool* found) {
+  Object* LookupTable::fetch(STATE, Object* key, bool* found) {
     Tuple* entry = find_entry(state, key);
     if(entry) {
       *found = true;
@@ -200,7 +200,7 @@ namespace rubinius {
    * to distinguish x = {} from x = {:a => nil} and is used
    * in cpu.c in e.g. cpu_const_get_in_context.
    */
-  OBJECT LookupTable::find(STATE, OBJECT key) {
+  Object* LookupTable::find(STATE, Object* key) {
     Tuple* entry = find_entry(state, key);
     if(entry) {
       return entry->at(state, 1);
@@ -208,9 +208,9 @@ namespace rubinius {
     return Qundef;
   }
 
-  OBJECT LookupTable::remove(STATE, OBJECT key) {
+  Object* LookupTable::remove(STATE, Object* key) {
     hashval bin;
-    OBJECT val;
+    Object* val;
     Tuple* entry;
     Tuple* lst;
 
@@ -249,14 +249,14 @@ namespace rubinius {
     return Qnil;
   }
 
-  OBJECT LookupTable::has_key(STATE, OBJECT key) {
+  Object* LookupTable::has_key(STATE, Object* key) {
     Tuple* entry = find_entry(state, key);
 
     if(entry) return Qtrue;
     return Qfalse;
   }
 
-  Array* LookupTable::collect(STATE, LookupTable* tbl, OBJECT (*action)(STATE, Tuple*)) {
+  Array* LookupTable::collect(STATE, LookupTable* tbl, Object* (*action)(STATE, Tuple*)) {
     size_t i, j;
     Tuple* values;
     Tuple* entry;
@@ -276,7 +276,7 @@ namespace rubinius {
     return ary;
   }
 
-  OBJECT LookupTable::get_key(STATE, Tuple* entry) {
+  Object* LookupTable::get_key(STATE, Tuple* entry) {
     return entry->at(state, 0);
   }
 
@@ -284,7 +284,7 @@ namespace rubinius {
     return collect(state, this, get_key);
   }
 
-  OBJECT LookupTable::get_value(STATE, Tuple* entry) {
+  Object* LookupTable::get_value(STATE, Tuple* entry) {
     return entry->at(state, 1);
   }
 
@@ -292,7 +292,7 @@ namespace rubinius {
     return collect(state, this, get_value);
   }
 
-  OBJECT LookupTable::get_entry(STATE, Tuple* entry) {
+  Object* LookupTable::get_entry(STATE, Tuple* entry) {
     return entry;
   }
 
@@ -300,7 +300,7 @@ namespace rubinius {
     return collect(state, this, get_entry);
   }
 
-  void LookupTable::Info::show(STATE, OBJECT self, int level) {
+  void LookupTable::Info::show(STATE, Object* self, int level) {
     LookupTable* tbl = as<LookupTable>(self);
     size_t size = tbl->entries()->to_native();
     Array* keys = tbl->all_keys(state);

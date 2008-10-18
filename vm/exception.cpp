@@ -12,7 +12,7 @@
 
 namespace rubinius {
 
-  void TypeError::raise(object_type type, OBJECT obj, const char* reason) {
+  void TypeError::raise(object_type type, Object* obj, const char* reason) {
     throw TypeError(type, obj, reason);
   }
 

@@ -73,7 +73,7 @@ namespace rubinius {
     channel(state, (Channel*)Qnil);
   }
 
-  void Thread::set_top(STATE, OBJECT val) {
+  void Thread::set_top(STATE, Object* val) {
     task_->active()->set_top(val);
   }
 
@@ -87,7 +87,7 @@ namespace rubinius {
     return this;
   }
 
-  OBJECT Thread::raise(STATE, Exception* exc) {
+  Object* Thread::raise(STATE, Exception* exc) {
     wakeup(state);
     MethodContext* ctx = task_->active();
     ctx->reference(state);

@@ -14,7 +14,7 @@ namespace rubinius {
 
   private:
     Tuple* opcodes_;     // slot
-    FIXNUM stack_depth_; // slot
+    Fixnum* stack_depth_; // slot
 
   public:
     /* accessors */

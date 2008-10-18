@@ -62,7 +62,7 @@ class TestString : public CxxTest::TestSuite {
 
   void test_to_sym() {
     str = String::create(state, "blah");
-    OBJECT sym = str->to_sym(state);
+    Object* sym = str->to_sym(state);
 
     TS_ASSERT(sym->symbol_p());
   }
@@ -150,7 +150,7 @@ class TestString : public CxxTest::TestSuite {
 
   void test_to_i() {
     str = String::create(state, "0");
-    INTEGER val = str->to_i(state);
+    Integer* val = str->to_i(state);
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
 
@@ -355,22 +355,22 @@ class TestString : public CxxTest::TestSuite {
 
   void test_tr_expand_limit_processing() {
     String* s = String::create(state, "a-h");
-    FIXNUM five = Fixnum::from(5);
+    Fixnum* five = Fixnum::from(5);
     TS_ASSERT_EQUALS(s->tr_expand(state, five), five);
     TS_ASSERT_SAME_DATA(s->data()->bytes, "abcde", 5);
 
     s = String::create(state, "abc-ga-i");
-    FIXNUM ten = Fixnum::from(10);
+    Fixnum* ten = Fixnum::from(10);
     TS_ASSERT_EQUALS(s->tr_expand(state, ten), ten);
     TS_ASSERT_SAME_DATA(s->data()->bytes, "defgabc", 7);
 
     s = String::create(state, "abc-ga-i");
-    FIXNUM three = Fixnum::from(3);
+    Fixnum* three = Fixnum::from(3);
     TS_ASSERT_EQUALS(s->tr_expand(state, three), three);
     TS_ASSERT_SAME_DATA(s->data()->bytes, "abc", 3);
 
     s = String::create(state, "^abcde");
-    FIXNUM four = Fixnum::from(4);
+    Fixnum* four = Fixnum::from(4);
     TS_ASSERT_EQUALS(s->tr_expand(state, four), four);
     TS_ASSERT_SAME_DATA(s->data()->bytes, "abcd", 4);
   }
@@ -427,7 +427,7 @@ class TestString : public CxxTest::TestSuite {
   void test_compare_substring_less_than() {
     String* a = String::create(state, "abc");
     String* b = String::create(state, "defghi");
-    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(-6), Fixnum::from(3));
+    Fixnum* cmp = a->compare_substring(state, b, Fixnum::from(-6), Fixnum::from(3));
     TS_ASSERT_EQUALS(cmp, Fixnum::from(-1));
 
     a = String::create(state, "def");
@@ -439,7 +439,7 @@ class TestString : public CxxTest::TestSuite {
   void test_compare_substring_equal() {
     String* a = String::create(state, "abc");
     String* b = String::create(state, "ababcba");
-    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(2), Fixnum::from(2));
+    Fixnum* cmp = a->compare_substring(state, b, Fixnum::from(2), Fixnum::from(2));
     TS_ASSERT_EQUALS(cmp, Fixnum::from(0));
 
     a = String::create(state, "bbc");
@@ -451,7 +451,7 @@ class TestString : public CxxTest::TestSuite {
   void test_compare_substring_greater_than() {
     String* a = String::create(state, "def");
     String* b = String::create(state, "xyzabc");
-    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(-3), Fixnum::from(3));
+    Fixnum* cmp = a->compare_substring(state, b, Fixnum::from(-3), Fixnum::from(3));
     TS_ASSERT_EQUALS(cmp, Fixnum::from(1));
 
     a = String::create(state, "qrs");
@@ -463,14 +463,14 @@ class TestString : public CxxTest::TestSuite {
   void test_compare_substring_limit_to_self() {
     String* a = String::create(state, "aaa");
     String* b = String::create(state, "aaabbb");
-    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(0), Fixnum::from(5));
+    Fixnum* cmp = a->compare_substring(state, b, Fixnum::from(0), Fixnum::from(5));
     TS_ASSERT_EQUALS(cmp, Fixnum::from(0));
   }
 
   void test_compare_substring_limit_to_other() {
     String* a = String::create(state, "aaaa");
     String* b = String::create(state, "aaa");
-    FIXNUM cmp = a->compare_substring(state, b, Fixnum::from(1), Fixnum::from(3));
+    Fixnum* cmp = a->compare_substring(state, b, Fixnum::from(1), Fixnum::from(3));
     TS_ASSERT_EQUALS(cmp, Fixnum::from(0));
   }
 
@@ -491,7 +491,7 @@ class TestString : public CxxTest::TestSuite {
   }
 
   void test_pattern_from_string() {
-    FIXNUM ten = Fixnum::from(10);
+    Fixnum* ten = Fixnum::from(10);
     String* s = String::pattern(state, G(string), ten, String::create(state, "b"));
     TS_ASSERT_SAME_DATA(s->data()->bytes, "bbbbbbbbbb", 10);
 
@@ -521,7 +521,7 @@ class TestString : public CxxTest::TestSuite {
 
   void test_from_bytearray() {
     ByteArray* ba = String::create(state, "partial to ruby")->data();
-    INTEGER six = Integer::from(state, 6);
+    Integer* six = Integer::from(state, 6);
     String* s = String::from_bytearray(state, ba, six, six);
     TS_ASSERT_EQUALS(six, s->num_bytes());
     TS_ASSERT_SAME_DATA("l to r", s->c_str(), 6);

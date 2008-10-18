@@ -31,22 +31,22 @@ namespace rubinius {
     static Exception* create(STATE);
 
     static Exception* make_exception(STATE, Class* exc_class, const char* message);
-    static Exception* make_type_error(STATE, object_type type, OBJECT object,
+    static Exception* make_type_error(STATE, object_type type, Object* object,
                            const char* reason = NULL);
-    static Exception* make_errno_exception(STATE, Class* exc_class, OBJECT reason);
+    static Exception* make_errno_exception(STATE, Class* exc_class, Object* reason);
 
     static void argument_error(STATE, int expected, int given);
     static void argument_error(STATE, const char* reason);
     static void regexp_error(STATE, const char* reason);
     static void type_error(STATE, const char* reason);
-    static void type_error(STATE, object_type type, OBJECT object,
+    static void type_error(STATE, object_type type, Object* object,
                            const char* reason = NULL);
     static void float_domain_error(STATE, const char* reason = NULL);
     static void zero_division_error(STATE, const char* reason = NULL);
     static void io_error(STATE, const char* reason);
 
     static void assertion_error(STATE, const char* reason = NULL);
-    static void object_bounds_exceeded_error(STATE, OBJECT obj, size_t index);
+    static void object_bounds_exceeded_error(STATE, Object* obj, size_t index);
     static void object_bounds_exceeded_error(STATE, const char* reason);
 
     /** Raise a SystemCallError with given message. */
@@ -54,7 +54,7 @@ namespace rubinius {
     static void system_call_error(STATE, const std::string& reason);
 
     // Ruby.primitive :exception_errno_error
-    static OBJECT errno_error(STATE, OBJECT reason, FIXNUM ern);
+    static Object* errno_error(STATE, Object* reason, Fixnum* ern);
     static void errno_error(STATE, const char* reason = NULL, int ern = 0);
 
     /**
@@ -82,12 +82,12 @@ namespace rubinius {
     static Class* get_object_bounds_exceeded_error(STATE);
     static Class* get_io_error(STATE);
     static Class* get_system_call_error(STATE);
-    static Class* get_errno_error(STATE, FIXNUM ern);
+    static Class* get_errno_error(STATE, Fixnum* ern);
 
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 };

@@ -13,7 +13,7 @@ namespace rubinius {
   }
 
   void HeapDebug::walk(Roots &roots) {
-    OBJECT tmp;
+    Object* tmp;
 
     Root* root = static_cast<Root*>(roots.head());
     while(root) {
@@ -26,7 +26,7 @@ namespace rubinius {
     }
   }
 
-  OBJECT HeapDebug::saw_object(OBJECT obj) {
+  Object* HeapDebug::saw_object(Object* obj) {
     if(!obj->reference_p()) return NULL;
 
     if(seen[obj]) return NULL;

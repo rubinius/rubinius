@@ -88,7 +88,7 @@ namespace rubinius {
     return ary;
   }
 
-  void Message::unshift_argument(STATE, OBJECT val) {
+  void Message::unshift_argument(STATE, Object* val) {
     if(arguments_array) {
       arguments_array->unshift(state, val);
 
@@ -108,7 +108,7 @@ namespace rubinius {
     use_array(ary);
   }
 
-  void Message::unshift_argument2(STATE, OBJECT one, OBJECT two) {
+  void Message::unshift_argument2(STATE, Object* one, Object* two) {
     if(arguments_array) {
       arguments_array->unshift(state, two);
       arguments_array->unshift(state, one);
@@ -129,10 +129,10 @@ namespace rubinius {
     use_array(ary);
   }
 
-  OBJECT Message::shift_argument(STATE) {
+  Object* Message::shift_argument(STATE) {
     total_args--;
     if(arguments_array) {
-      OBJECT first = arguments_array->shift(state);
+      Object* first = arguments_array->shift(state);
 
       use_array(arguments_array);
 
@@ -142,7 +142,7 @@ namespace rubinius {
     }
   }
 
-  OBJECT Message::current_self() {
+  Object* Message::current_self() {
     return caller_->self();
   }
 

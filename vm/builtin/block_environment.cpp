@@ -36,7 +36,7 @@ namespace rubinius {
   }
 
   void BlockEnvironment::call(STATE, Task* task, size_t args) {
-    OBJECT val;
+    Object* val;
     if(args > 0) {
       Tuple* tup = Tuple::create(state, args);
       for(int i = args - 1; i >= 0; i--) {
@@ -62,7 +62,7 @@ namespace rubinius {
   }
 
   void BlockEnvironment::call(STATE, Task* task, Message& msg) {
-    OBJECT val;
+    Object* val;
     if(msg.args() > 0) {
       Tuple* tup = Tuple::create(state, msg.args());
       for(int i = msg.args() - 1; i >= 0; i--) {
@@ -139,7 +139,7 @@ namespace rubinius {
     return be;
   }
 
-  void BlockEnvironment::Info::show(STATE, OBJECT self, int level) {
+  void BlockEnvironment::Info::show(STATE, Object* self, int level) {
     BlockEnvironment* be = as<BlockEnvironment>(self);
 
     class_header(state, self);

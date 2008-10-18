@@ -47,9 +47,9 @@ namespace rubinius {
     explicit Root();
 
     Root(STATE);
-    Root(STATE, OBJECT obj);
+    Root(STATE, Object* obj);
     Root(Roots* roots);
-    Root(Roots* roots, OBJECT obj);
+    Root(Roots* roots, Object* obj);
 
     /** Copy construction uses set() semantics. */
     Root(const Root& other);
@@ -64,7 +64,7 @@ namespace rubinius {
   public:   /* Interface */
 
     /** Obtain the enveloped Object or Qnil if none. */
-    OBJECT  get();
+    Object*  get();
 
     /**
      *  Redoes the set of the existing Object and Roots.
@@ -74,16 +74,16 @@ namespace rubinius {
     void    set(Roots* r);
 
     /** Envelope the given Object. Must have roots already. */
-    void    set(OBJECT obj);
+    void    set(Object* obj);
 
     /** Envelope the given Object, migrating to given Roots if it is new. */
-    void    set(OBJECT obj, Roots* r);
+    void    set(Object* obj, Roots* r);
 
 
   protected:  /* Instance vars */
 
     /** Enveloped Object. */
-    OBJECT  object;
+    Object*  object;
 
 
   private:    /* Instance vars */
@@ -111,7 +111,7 @@ namespace rubinius {
       /** As Root::Root(STATE), but retains object's type. */
       TypedRoot(STATE);
 
-      /** As Root::Root(STATE, OBJECT), but retains object's type. */
+      /** As Root::Root(STATE, Object*), but retains object's type. */
       TypedRoot(STATE, ObjType obj);
 
       /** As Root::Root(roots), but retains object's type. */
@@ -149,7 +149,7 @@ namespace rubinius {
     LinkedList::Node(), object(NULL), roots(roots)
   { }
 
-  inline Root::Root(Roots* roots, OBJECT obj):
+  inline Root::Root(Roots* roots, Object* obj):
     LinkedList::Node(), object(obj), roots(roots)
   {
       roots->add(this);
@@ -172,7 +172,7 @@ namespace rubinius {
     return *this;
   }
 
-  inline OBJECT Root::get() {
+  inline Object* Root::get() {
     if(object) {
       return object;
     } else {
@@ -184,7 +184,7 @@ namespace rubinius {
     set(object, roots);
   }
 
-  inline void Root::set(OBJECT obj) {
+  inline void Root::set(Object* obj) {
     if(!roots) {
       throw std::runtime_error("invalid Root usage. Cannot set object before roots");
     }

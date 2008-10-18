@@ -41,9 +41,9 @@ namespace rubinius {
     }
   }
 
-  OBJECT MarkSweepGC::allocate(size_t fields, bool *collect_now) {
+  Object* MarkSweepGC::allocate(size_t fields, bool *collect_now) {
     size_t bytes;
-    OBJECT obj;
+    Object* obj;
 
     bytes = sizeof(Header) + SIZE_IN_BYTES_FIELDS(fields);
 
@@ -85,9 +85,9 @@ namespace rubinius {
     free(entry->header);
   }
 
-  OBJECT MarkSweepGC::copy_object(OBJECT orig) {
+  Object* MarkSweepGC::copy_object(Object* orig) {
     bool collect;
-    OBJECT obj = allocate(orig->num_fields(), &collect);
+    Object* obj = allocate(orig->num_fields(), &collect);
 
     obj->initialize_copy(orig, 0);
     obj->copy_body(orig);
@@ -95,12 +95,12 @@ namespace rubinius {
     return obj;
   }
 
-  MarkSweepGC::Entry *MarkSweepGC::find_entry(OBJECT obj) {
+  MarkSweepGC::Entry *MarkSweepGC::find_entry(Object* obj) {
     Header *header = (Header*)((uintptr_t)obj - sizeof(Header));
     return header->entry;
   }
 
-  OBJECT MarkSweepGC::saw_object(OBJECT obj) {
+  Object* MarkSweepGC::saw_object(Object* obj) {
     if(obj->young_object_p()) {
       if(obj->marked_p()) return NULL;
 
@@ -118,7 +118,7 @@ namespace rubinius {
   }
 
   void MarkSweepGC::collect(Roots &roots) {
-    OBJECT tmp;
+    Object* tmp;
 
     Root* root = static_cast<Root*>(roots.head());
     while(root) {
@@ -152,7 +152,7 @@ namespace rubinius {
     }
   }
 
-  ObjectPosition MarkSweepGC::validate_object(OBJECT obj) {
+  ObjectPosition MarkSweepGC::validate_object(Object* obj) {
     std::list<Entry*>::iterator i;
 
     for(i = entries.begin(); i != entries.end(); i++) {
@@ -175,7 +175,7 @@ namespace rubinius {
       // ATM, only a Tuple can be marked weak.
       Tuple* tup = as<Tuple>(*i);
       for(size_t ti = 0; ti < tup->num_fields(); ti++) {
-        OBJECT obj = tup->at(object_memory->state, ti);
+        Object* obj = tup->at(object_memory->state, ti);
 
         if(!obj->reference_p()) continue;
 

@@ -20,10 +20,10 @@ namespace rubinius {
   private:
     Task* task_;       // slot
     Channel* channel_; // slot
-    FIXNUM priority_;  // slot
-    OBJECT alive_;     // slot
-    OBJECT sleep_;     // slot
-    OBJECT queued_;    // slot
+    Fixnum* priority_;  // slot
+    Object* alive_;     // slot
+    Object* sleep_;     // slot
+    Object* queued_;    // slot
 
   public:
     /* accessors */
@@ -54,13 +54,13 @@ namespace rubinius {
     Thread* run(STATE);
 
     void sleep_for(STATE, Channel* chan);
-    void set_top(STATE, OBJECT val);
+    void set_top(STATE, Object* val);
 
     // Ruby.primitive :thread_schedule
     Thread* wakeup(STATE);
 
     // Ruby.primitive :thread_raise
-    OBJECT raise(STATE, Exception* exc);
+    Object* raise(STATE, Exception* exc);
 
     // Ruby.primitive? :thread_dequeue
     ExecuteStatus dequeue_prim(STATE, Executable* exec, Task* task, Message& msg);

@@ -54,7 +54,7 @@ namespace rubinius {
   // code makes sure we're only called when the arity and type are correct.
   // Thus we know that this is a simple a[n] case only, which we can
   // fully handle.
-  OBJECT Array::aref(STATE, Fixnum* idx) {
+  Object* Array::aref(STATE, Fixnum* idx) {
     native_int index = idx->to_native();
     const native_int start = start_->to_native();
     const native_int total = start + total_->to_native();
@@ -72,7 +72,7 @@ namespace rubinius {
     return tuple_->at(state, index);
   }
 
-  OBJECT Array::aset(STATE, Fixnum* idx, OBJECT val) {
+  Object* Array::aset(STATE, Fixnum* idx, Object* val) {
     native_int index = idx->to_native();
 
     if(index < 0) {
@@ -82,7 +82,7 @@ namespace rubinius {
     return this->set(state, index, val);
   }
 
-  OBJECT Array::get(STATE, size_t idx) {
+  Object* Array::get(STATE, size_t idx) {
     if(idx >= (size_t)total_->to_native()) {
       return Qnil;
     }
@@ -92,7 +92,7 @@ namespace rubinius {
     return tuple_->at(state, idx);
   }
 
-  OBJECT Array::set(STATE, size_t idx, OBJECT val) {
+  Object* Array::set(STATE, size_t idx, Object* val) {
     size_t cur, oidx;
 
     Tuple* tup = tuple_;
@@ -125,7 +125,7 @@ namespace rubinius {
     return val;
   }
 
-  void Array::unshift(STATE, OBJECT val) {
+  void Array::unshift(STATE, Object* val) {
     size_t new_size = total_->to_native() + 1;
     Tuple* nt = Tuple::create(state, new_size);
     for(size_t i = 0; i < (size_t)total_->to_native(); i++) {
@@ -139,19 +139,19 @@ namespace rubinius {
     tuple(state, nt);
   }
 
-  OBJECT Array::shift(STATE) {
-    OBJECT obj = get(state, 0);
+  Object* Array::shift(STATE) {
+    Object* obj = get(state, 0);
     start(state, Fixnum::from(start_->to_native() + 1));
     total(state, Fixnum::from(total_->to_native() - 1));
     return obj;
   }
 
-  OBJECT Array::append(STATE, OBJECT val) {
+  Object* Array::append(STATE, Object* val) {
     set(state, (size_t)total_->to_native(), val);
     return val;
   }
 
-  bool Array::includes_p(STATE, OBJECT val) {
+  bool Array::includes_p(STATE, Object* val) {
     size_t max = size();
 
     for(size_t i = 0; i < max; i++) {
@@ -161,7 +161,7 @@ namespace rubinius {
     return false;
   }
 
-  void Array::Info::show(STATE, OBJECT self, int level) {
+  void Array::Info::show(STATE, Object* self, int level) {
     Array* ary = as<Array>(self);
     size_t size = ary->size();
     size_t stop = size < 5 ? size : 5;
@@ -176,7 +176,7 @@ namespace rubinius {
     ++level;
     for(size_t i = 0; i < stop; i++) {
       indent(level);
-      OBJECT obj = ary->get(state, i);
+      Object* obj = ary->get(state, i);
       if(obj == ary) {
         class_info(state, obj, true);
       } else {

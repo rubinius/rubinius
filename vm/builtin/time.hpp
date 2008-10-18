@@ -21,7 +21,7 @@ namespace rubinius {
   private:
     Array* timeval_; // slot
     Array* tm_;      // slot
-    OBJECT is_gmt_;  // slot
+    Object* is_gmt_;  // slot
 
   public:
     /* accessors */
@@ -43,10 +43,10 @@ namespace rubinius {
     Time* gettimeofday(STATE);
 
     // Ruby.primitive :time_switch
-    Time* time_switch(STATE, OBJECT gmt);
+    Time* time_switch(STATE, Object* gmt);
 
     // Ruby.primitive :time_mktime
-    static Array* mktime(STATE, FIXNUM sec, FIXNUM min, FIXNUM hour, FIXNUM mday, FIXNUM mon, FIXNUM year, FIXNUM usec, FIXNUM isdst, OBJECT from_gmt);
+    static Array* mktime(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);
 
     // Ruby.primitive :time_strftime
     String* strftime(STATE, Array* ary, String* format);

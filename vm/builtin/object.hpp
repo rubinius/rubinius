@@ -43,6 +43,7 @@ namespace rubinius {
 
   /* Forwards */
   class MetaClass;
+  class Fixnum;
   class Integer;
   class String;
   class Module;
@@ -92,7 +93,6 @@ namespace rubinius {
     /** Class type identifier. */
     static const object_type type = ObjectType;
 
-
   public:   /* GC support, bookkeeping &c. */
 
     /** Calls cleanup() on the TypeInfo for this object's type. */
@@ -117,7 +117,7 @@ namespace rubinius {
      *  TODO: Clarify the scenarios where an Object may exist
      *        forwarded in user code if at all. --rue
      */
-    void        set_forward(STATE, OBJECT fwd);
+    void        set_forward(STATE, Object* fwd);
 
     /** Provides access to the GC write barrier from any object. */
     void        write_barrier(STATE, void* obj);
@@ -132,16 +132,16 @@ namespace rubinius {
   public:   /* Type information, field access, copy support &c. */
 
     /** Sets the other Object's flags the same as this. @see vm/oop.hpp. */
-    void        copy_flags(STATE, OBJECT other);
+    void        copy_flags(STATE, Object* other);
 
     /** Copies metaclass from original to this one. @see clone(). */
     void        copy_internal_state_from(STATE, Object* original);
 
     /** NOT IMPLEMENTED. Copies instance variables to the other Object. */
-    void        copy_ivars(STATE, OBJECT other);
+    void        copy_ivars(STATE, Object* other);
 
     /** NOT IMPLEMENTED. Copies this Object's MetaClass to the other Object. */
-    void        copy_metaclass(STATE, OBJECT other);
+    void        copy_metaclass(STATE, Object* other);
 
     /** True if this Object* is actually a Fixnum, false otherwise. */
     bool        fixnum_p();
@@ -151,16 +151,16 @@ namespace rubinius {
      *
      *  Uses TypeInfo.
      */
-    OBJECT      get_field(STATE, std::size_t index);
+    Object*      get_field(STATE, std::size_t index);
 
     /** Safely return the object type, even if the receiver is an immediate. */
     object_type get_type();
 
     /** True if given Module is this Object's class, superclass or an included Module. */
-    bool        kind_of_p(STATE, OBJECT module);
+    bool        kind_of_p(STATE, Object* module);
 
     /** Store the given Object at given field index of this Object through TypeInfo. */
-    void        set_field(STATE, std::size_t index, OBJECT val);
+    void        set_field(STATE, std::size_t index, Object* val);
 
     /** True if this Object* is actually a Symbol, false otherwise. */
     bool        symbol_p();
@@ -182,7 +182,7 @@ namespace rubinius {
      *
      *  Uses Task::send_message_slowly().
      */
-    bool      send(STATE, SYMBOL meth, size_t args, ...);
+    bool      send(STATE, Symbol* meth, size_t args, ...);
 
     /**
      *  Directly send a method on this Object.
@@ -192,7 +192,7 @@ namespace rubinius {
      *
      *  Uses Task::send_message_slowly().
      */
-    bool      send_on_task(STATE, Task* task, SYMBOL name, Array* args);
+    bool      send_on_task(STATE, Task* task, Symbol* name, Array* args);
 
     /**
      *  Perform a send from Ruby.
@@ -216,7 +216,7 @@ namespace rubinius {
      *  @see  dup()
      */
     // Ruby.primitive :object_clone
-    OBJECT    clone(STATE);
+    Object*   clone(STATE);
 
     /** Returns the Class object of which this Object is an instance. */
     // Ruby.primitive :object_class
@@ -231,7 +231,7 @@ namespace rubinius {
      *  @see  clone()
      */
     // Ruby.primitive :object_dup
-    OBJECT    dup(STATE);
+    Object*   dup(STATE);
 
     /**
      *  Ruby #equal?.
@@ -240,15 +240,15 @@ namespace rubinius {
      *  the SAME object, false otherwise.
      */
     // Ruby.primitive :object_equal
-    OBJECT    equal(STATE, OBJECT other);
+    Object*   equal(STATE, Object* other);
 
     /** Sets the frozen flag. Rubinius does NOT currently support freezing. */
     // Ruby.primitive :object_freeze
-    OBJECT    freeze();
+    Object*   freeze();
 
     /** Returns true if this Object's frozen flag set, false otherwise. */
     // Ruby.primitive :object_frozen_p
-    OBJECT    frozen_p();
+    Object*   frozen_p();
 
     /**
      *  Ruby #instance_variable_get.
@@ -257,22 +257,22 @@ namespace rubinius {
      *  identifier.
      */
     // Ruby.primitive :object_get_ivar
-    OBJECT    get_ivar(STATE, SYMBOL sym);
+    Object*   get_ivar(STATE, Symbol* sym);
 
     /** Returns the structure containing this object's instance variables. */
     // Ruby.primitive :object_get_ivars
-    OBJECT    get_ivars(STATE);
+    Object*   get_ivars(STATE);
 
     /** Calculate a hash value for this object. */
     hashval   hash(STATE);
 
     /** Returns the hash value as an Integer. @see hash(). */
     // Ruby.primitive :object_hash
-    INTEGER   hash_prim(STATE);
+    Integer*  hash_prim(STATE);
 
     /** Returns an Integer ID for this object. Created as needed. */
     // Ruby.primitive :object_id
-    INTEGER   id(STATE);
+    Integer*  id(STATE);
 
     /**
      *  Ruby #kind_of?
@@ -281,7 +281,7 @@ namespace rubinius {
      *  superclass or an included Module, false otherwise.
      */
     // Ruby.primitive :object_kind_of
-    OBJECT    kind_of_prim(STATE, Module* klass);
+    Object*   kind_of_prim(STATE, Module* klass);
 
     /** Return object's MetaClass object. Created as needed. */
     Class*    metaclass(STATE);
@@ -293,17 +293,17 @@ namespace rubinius {
      *  given identifier.
      */
     // Ruby.primitive :object_set_ivar
-    OBJECT    set_ivar(STATE, SYMBOL sym, OBJECT val);
+    Object*   set_ivar(STATE, Symbol* sym, Object* val);
 
     /** String describing this object (through TypeInfo.) */
     // Ruby.primitive :object_show
-    OBJECT    show(STATE);
+    Object*   show(STATE);
     /** Indented String describing this object (through TypeInfo.) */
-    OBJECT    show(STATE, int level);
+    Object*   show(STATE, int level);
     /** Shorter String describing this object (through TypeInfo.) */
-    OBJECT    show_simple(STATE);
+    Object*   show_simple(STATE);
     /** Shorter indented String describing this object (through TypeInfo.) */
-    OBJECT    show_simple(STATE, int level);
+    Object*   show_simple(STATE, int level);
 
     /**
      *  Set tainted flag on this object.
@@ -311,7 +311,7 @@ namespace rubinius {
      *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_taint
-    OBJECT    taint();
+    Object*   taint();
 
     /**
      *  Returns true if this object's tainted flag is set.
@@ -319,7 +319,7 @@ namespace rubinius {
      *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_tainted_p
-    OBJECT    tainted_p();
+    Object*   tainted_p();
 
     /**
      *  Clears the tainted flag on this object.
@@ -327,7 +327,7 @@ namespace rubinius {
      *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_untaint
-    OBJECT    untaint();
+    Object*   untaint();
 
 
   public:   /* accessors */

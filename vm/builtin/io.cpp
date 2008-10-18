@@ -34,10 +34,10 @@ namespace rubinius {
     return io;
   }
 
-  IO* IO::allocate(STATE, OBJECT self) {
+  IO* IO::allocate(STATE, Object* self) {
     IO* io = (IO*)state->new_object(G(io));
-    io->descriptor(state, (FIXNUM)Qnil);
-    io->mode(state, (FIXNUM)Qnil);
+    io->descriptor(state, (Fixnum*)Qnil);
+    io->mode(state, (Fixnum*)Qnil);
     io->ibuffer(state, IOBuffer::create(state));
     io->eof(state, Qfalse);
     io->lineno(state, Fixnum::from(0));
@@ -47,12 +47,12 @@ namespace rubinius {
     return io;
   }
 
-  FIXNUM IO::open(STATE, String* path, FIXNUM mode, FIXNUM perm) {
+  Fixnum* IO::open(STATE, String* path, Fixnum* mode, Fixnum* perm) {
     int fd = ::open(path->c_str(), mode->to_native(), perm->to_native());
     return Fixnum::from(fd);
   }
 
-  OBJECT IO::reopen(STATE, IO* other) {
+  Object* IO::reopen(STATE, IO* other) {
     native_int cur_fd   = to_fd();
     native_int other_fd = other->to_fd();
 
@@ -68,7 +68,7 @@ namespace rubinius {
     return Qtrue;
   }
 
-  OBJECT IO::ensure_open(STATE) {
+  Object* IO::ensure_open(STATE) {
     if(descriptor_->nil_p()) {
       Exception::io_error(state, "uninitialized stream");
     } else if(to_fd() == -1) {
@@ -77,7 +77,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  OBJECT IO::connect_pipe(STATE, IO* lhs, IO* rhs) {
+  Object* IO::connect_pipe(STATE, IO* lhs, IO* rhs) {
     int fds[2];
     if(pipe(fds) == -1) {
       Exception::errno_error(state, "creating pipe");
@@ -91,7 +91,7 @@ namespace rubinius {
     return Qtrue;
   }
 
-  INTEGER IO::seek(STATE, INTEGER amount, FIXNUM whence) {
+  Integer* IO::seek(STATE, Integer* amount, Fixnum* whence) {
     ensure_open(state);
 
     off_t position = lseek(to_fd(), amount->to_long_long(), whence->to_native());
@@ -103,7 +103,7 @@ namespace rubinius {
     return Integer::from(state, position);
   }
 
-  OBJECT IO::close(STATE) {
+  Object* IO::close(STATE) {
     ensure_open(state);
 
     if(::close(to_fd())) {
@@ -137,7 +137,7 @@ namespace rubinius {
     mode(state, Fixnum::from((m & ~O_ACCMODE) | O_WRONLY));
   }
 
-  OBJECT IO::write(STATE, String* buf) {
+  Object* IO::write(STATE, String* buf) {
     ssize_t cnt = ::write(this->to_fd(), buf->data()->bytes, buf->size());
 
     if(cnt == -1) {
@@ -147,7 +147,7 @@ namespace rubinius {
     return Integer::from(state, cnt);
   }
 
-  OBJECT IO::blocking_read(STATE, FIXNUM bytes) {
+  Object* IO::blocking_read(STATE, Fixnum* bytes) {
     String* str = String::create(state, bytes);
 
     ssize_t cnt = ::read(this->to_fd(), str->data()->bytes, bytes->to_native());
@@ -162,7 +162,7 @@ namespace rubinius {
     return str;
   }
 
-  OBJECT IO::query(STATE, SYMBOL op) {
+  Object* IO::query(STATE, Symbol* op) {
     ensure_open(state);
 
     native_int fd = to_fd();

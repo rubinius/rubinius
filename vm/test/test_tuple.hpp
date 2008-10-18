@@ -173,7 +173,7 @@ public:
   }
 
   void test_pattern() {
-    FIXNUM ten = Fixnum::from(10);
+    Fixnum* ten = Fixnum::from(10);
     Tuple* tuple = Tuple::pattern(state, Fixnum::from(5), ten);
 
     TS_ASSERT_EQUALS(5U, tuple->num_fields());

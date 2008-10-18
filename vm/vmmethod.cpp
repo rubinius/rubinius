@@ -46,7 +46,7 @@ namespace rubinius {
     }
 
     Tuple* ops = meth->iseq()->opcodes();
-    OBJECT val;
+    Object* val;
     for(size_t index = 0; index < total;) {
       val = ops->at(state, index);
       if(val->nil_p()) {
@@ -264,7 +264,7 @@ namespace rubinius {
     if(unlikely(task->profiler)) {
       profiler::Method* prof_meth;
       if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
-        OBJECT attached = mc->attached_instance();
+        Object* attached = mc->attached_instance();
         if(Module* mod = try_as<Module>(attached)) {
           prof_meth = task->profiler->enter_method(msg.name, mod->name(), profiler::kNormal);
         } else {
@@ -338,7 +338,7 @@ namespace rubinius {
     if(unlikely(task->profiler)) {
       profiler::Method* prof_meth;
       if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
-        OBJECT attached = mc->attached_instance();
+        Object* attached = mc->attached_instance();
         if(Module* mod = try_as<Module>(attached)) {
           prof_meth = task->profiler->enter_method(msg.name, mod->name(), profiler::kNormal);
         } else {

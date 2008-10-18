@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "vm/object_utils.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/lookuptable.hpp"
 
@@ -83,8 +84,8 @@ class TestCompactLookupTable : public CxxTest::TestSuite {
 
   void test_to_lookuptable() {
     LookupTable* lt;
-    OBJECT key = Fixnum::from(1);
-    OBJECT val = Fixnum::from(2);
+    Object* key = Fixnum::from(1);
+    Object* val = Fixnum::from(2);
 
     tbl->put(state, 2, key);
     tbl->put(state, 3, val);

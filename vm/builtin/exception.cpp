@@ -50,7 +50,7 @@ namespace rubinius {
     RubyException::raise(make_exception(state, get_argument_error(state), reason));
   }
 
-  Exception* Exception::make_type_error(STATE, object_type type, OBJECT object,
+  Exception* Exception::make_type_error(STATE, object_type type, Object* object,
                                    const char* reason) {
     std::ostringstream msg;
 
@@ -77,7 +77,7 @@ namespace rubinius {
     RubyException::raise(make_exception(state, get_type_error(state), reason));
   }
 
-  void Exception::type_error(STATE, object_type type, OBJECT object,
+  void Exception::type_error(STATE, object_type type, Object* object,
                                    const char* reason) {
     RubyException::raise(make_type_error(state, type, object, reason));
   }
@@ -102,7 +102,7 @@ namespace rubinius {
     system_call_error(state, reason.c_str());
   }
 
-  void Exception::object_bounds_exceeded_error(STATE, OBJECT obj, size_t index) {
+  void Exception::object_bounds_exceeded_error(STATE, Object* obj, size_t index) {
     TypeInfo* info = state->find_type(obj->obj_type); // HACK use object
     std::ostringstream msg;
 
@@ -119,7 +119,7 @@ namespace rubinius {
           get_object_bounds_exceeded_error(state), reason));
   }
 
-  Exception* Exception::make_errno_exception(STATE, Class* exc_class, OBJECT reason) {
+  Exception* Exception::make_errno_exception(STATE, Class* exc_class, Object* reason) {
     Exception* exc = (Exception*)state->new_object(exc_class);
 
     MethodContext* ctx = G(current_task)->active();
@@ -146,7 +146,7 @@ namespace rubinius {
   }
 
   /* exception_errno_error primitive */
-  OBJECT Exception::errno_error(STATE, OBJECT reason, FIXNUM ern) {
+  Object* Exception::errno_error(STATE, Object* reason, Fixnum* ern) {
     Class* exc_class = get_errno_error(state, ern);
     if(exc_class->nil_p()) return Qnil;
 
@@ -244,7 +244,7 @@ namespace rubinius {
     return as<Class>(G(object)->get_const(state, "SystemCallError"));
   }
 
-  Class* Exception::get_errno_error(STATE, FIXNUM ern) {
+  Class* Exception::get_errno_error(STATE, Fixnum* ern) {
     if(Class* cls = try_as<Class>(G(errno_mapping)->fetch(state, ern))) {
       return cls;
     }
@@ -256,7 +256,7 @@ namespace rubinius {
     return as<Class>(G(object)->get_const(state, "IOError"));
   }
 
-  void Exception::Info::show(STATE, OBJECT self, int level) {
+  void Exception::Info::show(STATE, Object* self, int level) {
     Exception* exc = as<Exception>(self);
 
     class_header(state, self);

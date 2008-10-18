@@ -47,7 +47,7 @@ namespace rubinius {
   ExecuteStatus NativeFunction::execute(STATE, Task* task, Message& msg) {
     NativeFunction* nfunc = as<NativeFunction>(msg.method);
 
-    OBJECT obj = nfunc->call(state, &msg);
+    Object* obj = nfunc->call(state, &msg);
 
     // Remove the arguments passed in from the stack
     task->active()->clear_stack(msg.stack);
@@ -97,11 +97,11 @@ namespace rubinius {
     }
   }
 
-  FIXNUM NativeFunction::type_size_prim(STATE, FIXNUM type) {
+  Fixnum* NativeFunction::type_size_prim(STATE, Fixnum* type) {
     return Fixnum::from(NativeFunction::type_size(type->to_native()));
   }
 
-  NativeFunction* NativeFunction::create(STATE, OBJECT name, int args) {
+  NativeFunction* NativeFunction::create(STATE, Object* name, int args) {
     NativeFunction* nf = (NativeFunction*)state->new_object(G(native_function));
     nf->primitive(state, state->symbol("nativefunction_call"));
     nf->required(state, Fixnum::from(args));
@@ -242,13 +242,13 @@ namespace rubinius {
   /* The main interface function, handles looking up the pointer in the library,
    * generating the stub, wrapping it up and attaching it to the module.
    */
-  NativeFunction* NativeFunction::bind(STATE, OBJECT library, String* name,
-      Array* args, OBJECT ret) {
+  NativeFunction* NativeFunction::bind(STATE, Object* library, String* name,
+      Array* args, Object* ret) {
     void *ep;
     int *arg_types;
     int ret_type;
     int i, tot, arg_count;
-    OBJECT type; /* meths; */
+    Object* type; /* meths; */
 
     ep = NativeLibrary::find_symbol(state, name, library);
 
@@ -291,7 +291,7 @@ namespace rubinius {
 
   void **NativeFunction::marshal_arguments(STATE, Message* msg) {
     void **values;
-    OBJECT obj;
+    Object* obj;
     struct ffi_stub *stub = (struct ffi_stub*)data_->pointer;
 
     values = ALLOC_N(void*, stub->arg_count);
@@ -425,7 +425,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_OBJECT: {
-        OBJECT *tmp = (OBJECT*)malloc(sizeof(OBJECT));
+        Object* *tmp = (Object**)malloc(sizeof(Object*));
         obj = msg->get_argument(i);
         *tmp = obj;
         values[i] = tmp;
@@ -462,8 +462,8 @@ namespace rubinius {
     return values;
   }
 
-  OBJECT NativeFunction::call(STATE, Message* msg) {
-    OBJECT ret;
+  Object* NativeFunction::call(STATE, Message* msg) {
+    Object* ret;
 
     struct ffi_stub *stub = (struct ffi_stub*)data_->pointer;
 
@@ -568,7 +568,8 @@ namespace rubinius {
     }
     case RBX_FFI_TYPE_STRPTR: {
       char* result;
-      OBJECT s, p;
+      Object* s;
+      Object* p;
 
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
 

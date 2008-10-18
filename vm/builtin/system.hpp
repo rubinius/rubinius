@@ -49,7 +49,7 @@ namespace rubinius {
      *  TODO: Actually attach GDB to the process at the time? --rue
      */
     // Ruby.primitive :yield_gdb
-    static Object* yield_gdb(STATE, Object* obj);
+    static Object*  yield_gdb(STATE, Object* obj);
 
     /**
      *  Replace process with given program and args (exec()).
@@ -58,7 +58,7 @@ namespace rubinius {
     static Object*  vm_exec(STATE, String* path, Array* args);
 
     // Ruby.primitive :vm_exit
-    static Object* vm_exit(STATE, FIXNUM code);
+    static Object*  vm_exit(STATE, Fixnum* code);
 
     /**
      *  System fork()
@@ -74,7 +74,7 @@ namespace rubinius {
      *  should be tenured now.
      */
     // Ruby.primitive :vm_gc_start
-    static Object* vm_gc_start(STATE, OBJECT tenure);
+    static Object*  vm_gc_start(STATE, Object* tenure);
 
     /**
      *  Retrieve a value from VM configuration.
@@ -86,7 +86,7 @@ namespace rubinius {
      *  @see  vm_get_config_section().
      */
     // Ruby.primitive :vm_get_config_item
-    static Object* vm_get_config_item(STATE, String* var);
+    static Object*  vm_get_config_item(STATE, String* var);
 
     /**
      *  Retrieve all values from a VM config section.
@@ -97,7 +97,7 @@ namespace rubinius {
      *  @see  vm_get_config_item().
      */
     // Ruby.primitive :vm_get_config_section
-    static Object* vm_get_config_section(STATE, String* section);
+    static Object*  vm_get_config_section(STATE, String* section);
 
     /**
      *  Clears caches for any methods with given name.
@@ -108,31 +108,31 @@ namespace rubinius {
      *  will be picked up from calls.
      */
     // Ruby.primitive :vm_reset_method_cache
-    static Object* vm_reset_method_cache(STATE, SYMBOL name);
+    static Object*  vm_reset_method_cache(STATE, Symbol* name);
 
     /**
      *  Writes backtrace to standard output.
      */
     // Ruby.primitive :vm_show_backtrace
-    static Object* vm_show_backtrace(STATE, MethodContext* ctx);
+    static Object*  vm_show_backtrace(STATE, MethodContext* ctx);
 
     /**
      *  Starts the profiler.
      */
     // Ruby.primitive :vm_start_profiler
-    static Object* vm_start_profiler(STATE);
+    static Object*  vm_start_profiler(STATE);
 
     /**
      *  Stops the profiler.
      */
     // Ruby.primitive :vm_stop_profiler
-    static Object* vm_stop_profiler(STATE, String* path);
+    static Object*  vm_stop_profiler(STATE, String* path);
 
     /**
      *  Writes String to standard error stream.
      */
     // Ruby.primitive :vm_write_error
-    static Object* vm_write_error(STATE, String* str);
+    static Object*  vm_write_error(STATE, String* str);
 
 
   public:   /* Type info */

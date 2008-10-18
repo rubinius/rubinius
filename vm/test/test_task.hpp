@@ -413,11 +413,11 @@ class TestTask : public CxxTest::TestSuite {
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    SYMBOL callee = state->symbol("callee");
+    Symbol* callee = state->symbol("callee");
     parent->method_table()->store(state, callee, vis);
 
-    OBJECT p = state->new_object(parent);
-    OBJECT c = state->new_object(child);
+    Object* p = state->new_object(parent);
+    Object* c = state->new_object(child);
     task->self(state, c);
 
     StaticScope *sc = StaticScope::create(state);
@@ -476,11 +476,11 @@ class TestTask : public CxxTest::TestSuite {
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    SYMBOL callee = state->symbol("callee");
+    Symbol* callee = state->symbol("callee");
     parent->method_table()->store(state, callee, vis);
 
-    OBJECT p = state->new_object(parent);
-    OBJECT c = state->new_object(child);
+    Object* p = state->new_object(parent);
+    Object* c = state->new_object(child);
     task->self(state, c);
 
     StaticScope *sc = StaticScope::create(state);
@@ -595,7 +595,7 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    SYMBOL blah = state->symbol("blah");
+    Symbol* blah = state->symbol("blah");
 
     state->global_cache->retain(state, G(true_class), blah, G(true_class), cm, false);
     task->add_method(G(true_class), state->symbol("blah"), cm);

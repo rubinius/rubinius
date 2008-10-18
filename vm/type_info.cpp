@@ -44,32 +44,32 @@ namespace rubinius {
    *  The method is still only called on objects who have at
    *  least one superclass requiring cleanup.
    */
-  void TypeInfo::cleanup(OBJECT obj)
+  void TypeInfo::cleanup(Object* obj)
   {
     /* Nada */
   }
 
-  void TypeInfo::set_field(STATE, OBJECT target, size_t index, OBJECT val) {
+  void TypeInfo::set_field(STATE, Object* target, size_t index, Object* val) {
     throw std::runtime_error("field access denied");
   }
 
-  OBJECT TypeInfo::get_field(STATE, OBJECT target, size_t index) {
+  Object* TypeInfo::get_field(STATE, Object* target, size_t index) {
     throw std::runtime_error("unable to access field");
   }
 
   /* By default, just call auto_mark(). This exists so that
    * other types can overload this to perform work before or
    * after auto_marking is done. */
-  void TypeInfo::mark(OBJECT obj, ObjectMark& mark) {
+  void TypeInfo::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
   }
 
   /* For each type, there is an automatically generated version
    * of this function (called via virtual dispatch) that marks
    * all slots. */
-  void TypeInfo::auto_mark(OBJECT obj, ObjectMark& mark) {
+  void TypeInfo::auto_mark(Object* obj, ObjectMark& mark) {
     // HACK copied from Tuple;
-    OBJECT tmp;
+    Object* tmp;
     Tuple* tup = static_cast<Tuple*>(obj);
 
     for(size_t i = 0; i < tup->num_fields(); i++) {
@@ -84,7 +84,7 @@ namespace rubinius {
     }
   }
 
-  void TypeInfo::class_info(STATE, OBJECT self, bool newline) {
+  void TypeInfo::class_info(STATE, Object* self, bool newline) {
     if(Module* mod = try_as<Module>(self)) {
       const char *name = mod->name()->nil_p() ? "<anonymous>" : mod->name()->c_str(state);
       std::cout << "#<" << name << "(" <<
@@ -96,7 +96,7 @@ namespace rubinius {
     if(newline) std::cout << ">\n";
   }
 
-  void TypeInfo::class_header(STATE, OBJECT self) {
+  void TypeInfo::class_header(STATE, Object* self) {
     class_info(state, self);
     std::cout << "\n";
   }
@@ -124,11 +124,11 @@ namespace rubinius {
     std::cout << ">" << std::endl;
   }
 
-  void TypeInfo::show(STATE, OBJECT self, int level) {
+  void TypeInfo::show(STATE, Object* self, int level) {
     class_info(state, self, true);
   }
 
-   void TypeInfo::show_simple(STATE, OBJECT self, int level) {
+   void TypeInfo::show_simple(STATE, Object* self, int level) {
      class_info(state, self, true);
    }
 
@@ -137,7 +137,7 @@ namespace rubinius {
   /* For use in gdb. */
   extern "C" {
     /* A wrapper because gdb can't do virtual dispatch. */
-    void __show__(OBJECT obj) {
+    void __show__(Object* obj) {
       if(obj->reference_p()) {
         ObjectPosition pos = rubinius::VM::current_state()->om->validate_object(obj);
         if(pos == cUnknown) {
@@ -153,7 +153,7 @@ namespace rubinius {
     }
 
     /* Similar to __show__ but only outputs #<SomeClass:0x2428999> */
-    void __show_simple__(OBJECT obj) {
+    void __show_simple__(Object* obj) {
       if(obj->reference_p()) {
         ObjectPosition pos = rubinius::VM::current_state()->om->validate_object(obj);
         if(pos == cUnknown) {

@@ -10,7 +10,7 @@ namespace rubinius {
 
   ObjectMark::ObjectMark(GarbageCollector* gc) : gc(gc) { }
 
-  OBJECT ObjectMark::call(OBJECT obj) {
+  Object* ObjectMark::call(Object* obj) {
     if(obj->reference_p()) {
       assert(obj->zone != UnspecifiedZone);
       return gc->saw_object(obj);
@@ -19,14 +19,14 @@ namespace rubinius {
     return NULL;
   }
 
-  void ObjectMark::set(OBJECT target, OBJECT* pos, OBJECT val) {
+  void ObjectMark::set(Object* target, Object** pos, Object* val) {
     *pos = val;
     if(val->reference_p()) {
       gc->object_memory->write_barrier(target, val);
     }
   }
 
-  void ObjectMark::just_set(OBJECT target, OBJECT val) {
+  void ObjectMark::just_set(Object* target, Object* val) {
     if(val->reference_p()) {
       gc->object_memory->write_barrier(target, val);
     }
@@ -38,8 +38,8 @@ namespace rubinius {
   /* Understands how to read the inside of an object and find all references
    * located within. It copies the objects pointed to, but does not follow into
    * those further (ie, not recursive) */
-  void GarbageCollector::scan_object(OBJECT obj) {
-    OBJECT slot;
+  void GarbageCollector::scan_object(Object* obj) {
+    Object* slot;
 
     // If this object's refs are weak, then add it to the weak_refs
     // vector and don't look at it otherwise.
@@ -68,7 +68,7 @@ namespace rubinius {
       ti->mark(obj, mark);
     } else if(obj->stores_references_p()) {
       // HACK copied from Tuple;
-      OBJECT tmp;
+      Object* tmp;
       Tuple* tup = static_cast<Tuple*>(obj);
 
       for(size_t i = 0; i < tup->num_fields(); i++) {
@@ -84,7 +84,7 @@ namespace rubinius {
     }
   }
 
-  void GarbageCollector::delete_object(OBJECT obj) {
+  void GarbageCollector::delete_object(Object* obj) {
     if (obj->RequiresCleanup) {
       object_memory->find_type_info(obj)->cleanup(obj);
     }

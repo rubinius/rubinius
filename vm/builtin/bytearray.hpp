@@ -20,10 +20,10 @@ namespace rubinius {
     static ByteArray* create(STATE, size_t bytes);
 
     // Ruby.primitive :bytearray_allocate
-    static ByteArray* allocate(STATE, INTEGER bytes);
+    static ByteArray* allocate(STATE, Integer* bytes);
 
     // Ruby.primitive :bytearray_size
-    INTEGER size(STATE);
+    Integer* size(STATE);
 
     // Return the number of bytes this ByteArray contains
     size_t size() {
@@ -31,19 +31,19 @@ namespace rubinius {
     }
 
     // Ruby.primitive :bytearray_get_byte
-    FIXNUM get_byte(STATE, INTEGER index);
+    Fixnum* get_byte(STATE, Integer* index);
 
     // Ruby.primitive :bytearray_set_byte
-    FIXNUM set_byte(STATE, INTEGER index, FIXNUM value);
+    Fixnum* set_byte(STATE, Integer* index, Fixnum* value);
 
     // Ruby.primitive :bytearray_move_bytes
-    INTEGER move_bytes(STATE, INTEGER start, INTEGER count, INTEGER dest);
+    Integer* move_bytes(STATE, Integer* start, Integer* count, Integer* dest);
 
     // Ruby.primitive :bytearray_fetch_bytes
-    ByteArray* fetch_bytes(STATE, INTEGER start, INTEGER count);
+    ByteArray* fetch_bytes(STATE, Integer* start, Integer* count);
 
     // Ruby.primitive :bytearray_compare_bytes
-    FIXNUM compare_bytes(STATE, ByteArray* other, INTEGER a, INTEGER b);
+    Fixnum* compare_bytes(STATE, ByteArray* other, Integer* a, Integer* b);
 
     // Ruby.primitive :bytearray_dup_into
     ByteArray* dup_into(STATE, ByteArray* other);
@@ -55,14 +55,14 @@ namespace rubinius {
      */
 
     // Ruby.primitive :bytearray_locate
-    OBJECT locate(STATE, String* pattern, Integer* start);
+    Object* locate(STATE, String* pattern, Integer* start);
 
     char* to_chars(STATE);
 
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false): TypeInfo(type, cleanup) { }
-      virtual void mark(OBJECT t, ObjectMark& mark);
+      virtual void mark(Object* t, ObjectMark& mark);
     };
   };
 };

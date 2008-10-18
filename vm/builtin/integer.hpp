@@ -20,12 +20,12 @@ namespace rubinius {
   public:
     static const object_type type = IntegerType;
 
-    static INTEGER from(STATE, int i);
-    static INTEGER from(STATE, unsigned int i);
-    static INTEGER from(STATE, long i);
-    static INTEGER from(STATE, unsigned long i);
-    static INTEGER from(STATE, long long i);
-    static INTEGER from(STATE, unsigned long long i);
+    static Integer* from(STATE, int i);
+    static Integer* from(STATE, unsigned int i);
+    static Integer* from(STATE, long i);
+    static Integer* from(STATE, unsigned long i);
+    static Integer* from(STATE, long long i);
+    static Integer* from(STATE, unsigned long long i);
 
     native_int to_native();
     long long to_long_long();

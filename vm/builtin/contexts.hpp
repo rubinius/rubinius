@@ -24,13 +24,13 @@ namespace rubinius {
   private:
     MethodContext* sender_; // slot
     MethodContext* home_;   // slot
-    OBJECT self_;           // slot
+    Object* self_;           // slot
 
     CompiledMethod* cm_;    // slot
 
     Module* module_;        // slot
-    OBJECT block_;          // slot
-    OBJECT name_;           // slot
+    Object* block_;          // slot
+    Object* name_;           // slot
 
   public:
     // TODO: fix up data members that aren't slots
@@ -44,7 +44,7 @@ namespace rubinius {
 
     size_t stack_size;
     // MUST BE AT THE LAST DATA MEMBER
-    OBJECT stk[];
+    Object* stk[];
 
   public:
     /* accessors */
@@ -61,7 +61,7 @@ namespace rubinius {
 
     static void init(STATE);
     static MethodContext* create(STATE, size_t stack_size);
-    static MethodContext* create(STATE, OBJECT recv, CompiledMethod* meth);
+    static MethodContext* create(STATE, Object* recv, CompiledMethod* meth);
     static void initialize_cache(STATE);
     static void reset_cache(STATE);
 
@@ -70,18 +70,18 @@ namespace rubinius {
     void reference(STATE);
 
     // Ruby.primitive :context_get_field
-    OBJECT get_internal_data(STATE, FIXNUM type);
+    Object* get_internal_data(STATE, Fixnum* type);
 
     // Ruby.primitive :context_dup
     MethodContext* dup(STATE);
 
     /* Locals manipulation functions */
     /* Locals are just stored at the top of the stack. */
-    void set_local(size_t pos, OBJECT val) {
+    void set_local(size_t pos, Object* val) {
       stk[pos] = val;
     }
 
-    OBJECT get_local(size_t pos) {
+    Object* get_local(size_t pos) {
       return stk[pos];
     }
 
@@ -91,36 +91,36 @@ namespace rubinius {
       js.stack -= amount;
     }
 
-    OBJECT pop() {
+    Object* pop() {
       return *js.stack--;
     }
 
-    void push(OBJECT value) {
+    void push(Object* value) {
       *++js.stack = value;
     }
 
-    OBJECT stack_back(size_t position) {
-      OBJECT* pos = js.stack - position;
+    Object* stack_back(size_t position) {
+      Object** pos = js.stack - position;
       return *pos;
     }
 
-    OBJECT* stack_back_position(size_t position) {
+    Object** stack_back_position(size_t position) {
       return js.stack - position;
     }
 
-    OBJECT top() {
+    Object* top() {
       return *js.stack;
     }
 
-    void set_top(OBJECT val) {
+    void set_top(Object* val) {
       *js.stack = val;
     }
 
-    OBJECT stack_at(size_t pos) {
+    Object* stack_at(size_t pos) {
       return stk[pos];
     }
 
-    void stack_put(size_t pos, OBJECT val) {
+    void stack_put(size_t pos, Object* val) {
       stk[pos] = val;
     }
 
@@ -140,8 +140,8 @@ namespace rubinius {
     public:
       BASIC_TYPEINFO(TypeInfo)
 
-      virtual void mark(OBJECT, ObjectMark& mark);
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void mark(Object*, ObjectMark& mark);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 

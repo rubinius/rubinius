@@ -15,7 +15,7 @@ namespace rubinius {
 
   private:
     LookupTable* method_table_; // slot
-    SYMBOL name_;               // slot
+    Symbol* name_;               // slot
     LookupTable* constants_;    // slot
     Module* superclass_;        // slot
 
@@ -31,23 +31,23 @@ namespace rubinius {
     static Module* create(STATE);
 
     // Ruby.primitive :module_allocate
-    static Module* allocate(STATE, OBJECT self);
+    static Module* allocate(STATE, Object* self);
 
     void setup(STATE);
     void setup(STATE, const char* name, Module* under = NULL);
-    void setup(STATE, SYMBOL name, Module* under = NULL);
-    void set_const(STATE, OBJECT sym, OBJECT val);
-    void set_const(STATE, const char* name, OBJECT val);
-    OBJECT get_const(STATE, SYMBOL sym);
-    OBJECT get_const(STATE, SYMBOL sym, bool* found);
-    OBJECT get_const(STATE, const char* sym);
+    void setup(STATE, Symbol* name, Module* under = NULL);
+    void set_const(STATE, Object* sym, Object* val);
+    void set_const(STATE, const char* name, Object* val);
+    Object* get_const(STATE, Symbol* sym);
+    Object* get_const(STATE, Symbol* sym, bool* found);
+    Object* get_const(STATE, const char* sym);
 
-    void set_name(STATE, Module* under, SYMBOL name);
+    void set_name(STATE, Module* under, Symbol* name);
 
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
-      virtual void show(STATE, OBJECT self, int level);
+      virtual void show(STATE, Object* self, int level);
     };
   };
 
@@ -57,7 +57,7 @@ namespace rubinius {
     const static object_type type = IncludedModuleType;
 
   private:
-    OBJECT module_; // slot
+    Object* module_; // slot
 
   public:
     /* accessors */
@@ -68,7 +68,7 @@ namespace rubinius {
     static IncludedModule* create(STATE);
 
     // Ruby.primitive :included_module_allocate
-    static IncludedModule* allocate(STATE, OBJECT self);
+    static IncludedModule* allocate(STATE, Object* self);
 
     class Info : public Module::Info {
     public:

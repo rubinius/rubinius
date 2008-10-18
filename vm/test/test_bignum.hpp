@@ -16,7 +16,7 @@ class TestBignum : public CxxTest::TestSuite {
   VM* state;
   Bignum* b1;
   Bignum* b2;
-  FIXNUM two;
+  Fixnum* two;
   double TOLERANCE;
 
   void setUp() {
@@ -157,7 +157,7 @@ class TestBignum : public CxxTest::TestSuite {
 
   void test_normalize() {
     Bignum* obj = Bignum::from(state, (native_int)13);
-    OBJECT out = Bignum::normalize(state, obj);
+    Object* out = Bignum::normalize(state, obj);
 
     TS_ASSERT(out->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -165,7 +165,7 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1, Bignum::normalize(state, b1));
   }
 
-  void check_bignum(OBJECT big, const char* val) {
+  void check_bignum(Object* big, const char* val) {
     char buf[1024];
     std::stringstream stream;
 
@@ -247,7 +247,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_div() {
-    INTEGER div = b1->div(state, b1);
+    Integer* div = b1->div(state, b1);
     TS_ASSERT(div->fixnum_p());
     TS_ASSERT_EQUALS(div->to_native(), 1);
 
@@ -257,10 +257,10 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_div_with_fixnum() {
-    INTEGER div = b1->div(state, two);
+    Integer* div = b1->div(state, two);
     check_bignum(div,"1073741823");
 
-    FIXNUM zero = Fixnum::from(0);
+    Fixnum* zero = Fixnum::from(0);
     TS_ASSERT_THROWS_ASSERT(b1->div(state, zero), const RubyException &e,
                             TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
@@ -331,7 +331,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_mod() {
-    INTEGER mod = b1->mod(state, Fixnum::from(-89478485));
+    Integer* mod = b1->mod(state, Fixnum::from(-89478485));
     check_bignum(mod, "-89478478");
     mod = b1->mod(state, Bignum::from(state, (native_int)-2147483645));
     check_bignum(mod, "-2147483643");
@@ -340,7 +340,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_left_shift() {
-    INTEGER shifted = b1->left_shift(state, Fixnum::from(3));
+    Integer* shifted = b1->left_shift(state, Fixnum::from(3));
     check_bignum(shifted, "17179869176");
 
     shifted = b1->left_shift(state, Fixnum::from(-3));
@@ -352,7 +352,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_right_shift() {
-    INTEGER shifted = b1->right_shift(state, Fixnum::from(3));
+    Integer* shifted = b1->right_shift(state, Fixnum::from(3));
     check_bignum(shifted, "268435455");
 
     shifted = b1->right_shift(state, Fixnum::from(-3));
@@ -417,12 +417,12 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_neg() {
-    INTEGER negated = b1->neg(state);
+    Integer* negated = b1->neg(state);
     check_bignum(negated, "-2147483647");
   }
 
   void test_invert() {
-    INTEGER inverted = b1->invert(state);
+    Integer* inverted = b1->invert(state);
     check_bignum(inverted, "-2147483648");
   }
 
@@ -563,7 +563,7 @@ class TestBignum : public CxxTest::TestSuite {
   void test_from_float() {
     double f = 2147483647.0;
 
-    OBJECT s = Bignum::from_float(state, Float::create(state, f));
+    Object* s = Bignum::from_float(state, Float::create(state, f));
     TS_ASSERT_EQUALS(as<Integer>(s)->to_native(), (long)f);
 
     f = -2147483647.0;
@@ -574,7 +574,7 @@ class TestBignum : public CxxTest::TestSuite {
 
 
   void test_from_double() { // TODO: wtf? this doesn't test bignum at all.
-    OBJECT s = Bignum::from_double(state, 1.0);
+    Object* s = Bignum::from_double(state, 1.0);
     TS_ASSERT(s->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(s)->to_native(), 1.0);
 
@@ -584,7 +584,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_from_string_detect() {
-    OBJECT b = Bignum::from_string_detect(state, "0x47");
+    Object* b = Bignum::from_string_detect(state, "0x47");
     TS_ASSERT(b->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(b)->to_native(), 0x47);
 
@@ -606,7 +606,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_from_string() {
-    OBJECT b = Bignum::from_string(state, "47", 10);
+    Object* b = Bignum::from_string(state, "47", 10);
     TS_ASSERT(b->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(b)->to_native(), 47);
   }
@@ -625,7 +625,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_size() {
-    OBJECT s = b1->size(state);
+    Object* s = b1->size(state);
     TS_ASSERT(s->fixnum_p());
     TS_ASSERT(as<Integer>(s)->to_native() > 0);
   }
@@ -651,8 +651,8 @@ class TestBignum : public CxxTest::TestSuite {
     Bignum* b = Bignum::create(state, two);
     Array* ary = b->coerce(state, two);
 
-    FIXNUM e = try_as<Fixnum>(ary->get(state, 0));
-    FIXNUM f = try_as<Fixnum>(ary->get(state, 1));
+    Fixnum* e = try_as<Fixnum>(ary->get(state, 0));
+    Fixnum* f = try_as<Fixnum>(ary->get(state, 1));
 
     TS_ASSERT_EQUALS(2U, ary->size());
     TS_ASSERT(e);

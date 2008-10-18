@@ -59,7 +59,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_STRING));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_INT);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_INT);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -71,7 +71,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(out->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 6);
@@ -84,7 +84,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_STRING));
     args->set(state, 1, Fixnum::from(RBX_FFI_TYPE_INT));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_STRING);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_STRING);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -97,7 +97,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<String>(out));
   }
@@ -108,7 +108,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_CHAR));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_CHAR);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_CHAR);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -120,7 +120,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(as<Fixnum>(out)->to_native(), 13);
@@ -132,7 +132,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_UCHAR));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_UCHAR);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_UCHAR);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -144,7 +144,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(as<Fixnum>(out)->to_native(), 13);
@@ -156,7 +156,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_SHORT));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_SHORT);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_SHORT);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -168,7 +168,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(as<Fixnum>(out)->to_native(), 13);
@@ -180,7 +180,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_USHORT));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_USHORT);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_USHORT);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -192,7 +192,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
 
@@ -213,7 +213,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_INT));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_INT);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_INT);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -225,7 +225,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -247,7 +247,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_UINT));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_UINT);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_UINT);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -259,7 +259,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -281,7 +281,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_LONG));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_LONG);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_LONG);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -293,7 +293,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -315,7 +315,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_ULONG));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_ULONG);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_ULONG);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -327,7 +327,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -349,7 +349,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_LONG_LONG));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_LONG_LONG);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_LONG_LONG);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -361,7 +361,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -383,7 +383,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_ULONG_LONG));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_ULONG_LONG);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_ULONG_LONG);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -395,7 +395,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -416,7 +416,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Array* args = Array::create(state, 0);
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_VOID);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_VOID);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -425,7 +425,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT_EQUALS(out, Qnil);
   }
@@ -436,7 +436,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_PTR));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_PTR);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_PTR);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -452,7 +452,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<MemoryPointer>(out));
     TS_ASSERT_EQUALS(as<MemoryPointer>(out)->pointer, ptr->pointer);
@@ -473,7 +473,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_FLOAT));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_FLOAT);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_FLOAT);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -485,7 +485,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Float>(out));
     TS_ASSERT(as<Float>(out)->val > 13.19);
@@ -498,7 +498,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_DOUBLE));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_DOUBLE);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_DOUBLE);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -510,7 +510,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Float>(out));
     TS_ASSERT_EQUALS(as<Float>(out)->val, 13.2);
@@ -522,7 +522,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_STRING));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_STRING);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_STRING);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -534,7 +534,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<String>(out));
     TS_ASSERT_EQUALS(as<String>(out)->byte_address(), std::string("whatever"));
@@ -555,7 +555,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_STRING));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_STRPTR);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_STRPTR);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -567,7 +567,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Array>(out));
 
@@ -600,7 +600,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_OBJECT));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_OBJECT);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_OBJECT);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -608,12 +608,12 @@ class TestNativeFunction : public CxxTest::TestSuite {
     TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
-    OBJECT obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->om->new_object(G(object), Object::fields);
     input->set(state, 0, obj);
 
     Message* msg = new Message(state, input);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Object>(out));
     TS_ASSERT_EQUALS(out, obj);
@@ -636,7 +636,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     Array* args = Array::create(state, 1);
     args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_STATE));
 
-    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_INT);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_INT);
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
@@ -645,7 +645,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     Message* msg = new Message(state);
 
-    OBJECT out = func->call(state, msg);
+    Object* out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT(as<Fixnum>(out)->to_native());

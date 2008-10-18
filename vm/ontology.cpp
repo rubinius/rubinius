@@ -114,7 +114,7 @@ namespace rubinius {
     /* Hook up the MetaClass protocols.
      * MetaClasses of subclasses point to the MetaClass of the
      * superclass. */
-    OBJECT mc = MetaClass::attach(this, object, cls);
+    Object* mc = MetaClass::attach(this, object, cls);
     mc = MetaClass::attach(this, G(module), mc);
     MetaClass::attach(this, cls, mc);
 

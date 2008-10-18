@@ -52,13 +52,13 @@ namespace rubinius {
     static TaskProbe* create(STATE);
 
     // Ruby.primitive :taskprobe_enable
-    OBJECT enable(STATE, SYMBOL probe);
+    Object* enable(STATE, Symbol* probe);
 
     // Ruby.primitive :taskprobe_disable
-    OBJECT disable(STATE, SYMBOL probe);
+    Object* disable(STATE, Symbol* probe);
 
     // Ruby.primitive :taskprobe_enabled_p
-    OBJECT enabled_p(STATE, SYMBOL probe);
+    Object* enabled_p(STATE, Symbol* probe);
 
     /**
      * Enables a probe specified by its string name. Called
@@ -107,7 +107,7 @@ namespace rubinius {
     /**
      * Prints the name of the Ruby method added to a method_table.
      */
-    void added_method(Task* task, Module* mod, SYMBOL name, CompiledMethod *meth);
+    void added_method(Task* task, Module* mod, Symbol* name, CompiledMethod *meth);
 
     /**
      * Prints the module and name of the method being executed.
@@ -148,7 +148,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false): TypeInfo(type, cleanup) { }
-      virtual void mark(OBJECT t, ObjectMark& mark);
+      virtual void mark(Object* t, ObjectMark& mark);
     };
   };
 }

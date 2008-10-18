@@ -13,13 +13,13 @@ using namespace rubinius;
 class TestChannelObject : public ObjectCallback {
 public:
   bool called;
-  OBJECT value;
+  Object* value;
 
   TestChannelObject(STATE) : ObjectCallback(state), called(false) { }
 
-  virtual OBJECT object() { return Qnil; }
+  virtual Object* object() { return Qnil; }
 
-  virtual void call(OBJECT obj) {
+  virtual void call(Object* obj) {
     called = true;
     value = obj;
   }
