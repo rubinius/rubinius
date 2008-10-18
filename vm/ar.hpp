@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <cstdlib>
 
+
 namespace rubinius {
 
   /*
@@ -31,10 +32,17 @@ namespace rubinius {
     bool          process();
     bool          validate();
 
+
   public:   /* Instance vars */
 
     const char* path;
     int fd;
+
+
+  private:  /* Disallowed */
+
+    Ar(const Ar& other);
+    Ar& operator=(Ar& other);
   };
 
 
