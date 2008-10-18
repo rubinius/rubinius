@@ -1,0 +1,33 @@
+def test_case
+{"RawParseTree"=>
+  [:lasgn,
+   :x,
+   [:if,
+    [:flip3,
+     [:call,
+      [:call, [:vcall, :i], :%, [:array, [:lit, 4]]],
+      :==,
+      [:array, [:lit, 0]]],
+     [:call,
+      [:call, [:vcall, :i], :%, [:array, [:lit, 3]]],
+      :==,
+      [:array, [:lit, 0]]]],
+    [:vcall, :i],
+    [:nil]]],
+ "Ruby"=>"x = if ((i % 4) == 0)...((i % 3) == 0) then\n  i\nelse\n  nil\nend",
+ "ParseTree"=>
+  s(:lasgn,
+   :x,
+   s(:if,
+    s(:flip3,
+     s(:call,
+      s(:call, s(:call, nil, :i, s(:arglist)), :%, s(:arglist, s(:lit, 4))),
+      :==,
+      s(:arglist, s(:lit, 0))),
+     s(:call,
+      s(:call, s(:call, nil, :i, s(:arglist)), :%, s(:arglist, s(:lit, 3))),
+      :==,
+      s(:arglist, s(:lit, 0)))),
+    s(:call, nil, :i, s(:arglist)),
+    s(:nil)))}
+end

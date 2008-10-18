@@ -1,0 +1,37 @@
+This directory contains a very simple [mr]spec-style runner and a bunch of files
+that contain 'test_case' methods returning a Hash of one node of the pt_testcase
+tests. It is done this way for the following reasons:
+
+* Speed. It was taking rbx+ruby_parser 6+ minutes to compile a file containing
+  the whole pt_testcase Hash versus 6 sec - 1 minute to run this way.
+* Simplicity. It is very easy to locate and edit one of the cases (yay, files
+  exist for a reason). It is also easy to compose specs to run.
+* Application. The runner presently assumes running under rbx, but this is a
+  single point of code and can easily be generalized, even allowing the
+  possibility of using a subprocess to generate the parse while using MRI to
+  execute the runner.
+
+
+Q. So, why wasn't mspec used?
+
+A. It could have been used. However, this is pretty simple, eh?
+
+
+Invoke the runner as follows:
+
+  bin/rbx spec/parser/run.rb (FILE|DIRECTORY|GLOB)+
+
+The runner is also chmod +x and the hashbang is bin/rbx.
+
+
+There is also a convenience script for extracting the individual parser tests
+from pt_testcase. Invoke as:
+
+  spec/parser/extract_cases.rb [DIRECTORY]
+
+It runs with MRI and puts the files in spec/parser by default.
+
+
+Finally, thanks to Ryan Davis for ParseTree and pt_testcase and for doing
+everything with tests in a way that drives me absolutely crazy, so I do it a
+better way.

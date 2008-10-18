@@ -1,0 +1,13 @@
+def test_case
+{"RawParseTree"=>
+  [:defn,
+   :x,
+   [:scope,
+    [:block, [:args], [:super, [:array, [:array, [:lit, 24], [:lit, 42]]]]]]],
+ "Ruby"=>"def x\n  super([24, 42])\nend",
+ "ParseTree"=>
+  s(:defn,
+   :x,
+   s(:args),
+   s(:scope, s(:block, s(:super, s(:array, s(:lit, 24), s(:lit, 42))))))}
+end

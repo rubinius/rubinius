@@ -1,0 +1,38 @@
+def test_case
+{"RawParseTree"=>
+  [:block,
+   [:lasgn, :array1, [:array, [:lit, 1], [:lit, 2], [:lit, 3]]],
+   [:lasgn, :array2, [:array, [:lit, 4], [:lit, 5], [:lit, 6], [:lit, 7]]],
+   [:iter,
+    [:call, [:lvar, :array1], :each],
+    [:dasgn_curr, :x],
+    [:iter,
+     [:call, [:lvar, :array2], :each],
+     [:dasgn_curr, :y],
+     [:block,
+      [:fcall, :puts, [:array, [:call, [:dvar, :x], :to_s]]],
+      [:fcall, :puts, [:array, [:call, [:dvar, :y], :to_s]]]]]]],
+ "Ruby"=>
+  "array1 = [1, 2, 3]\narray2 = [4, 5, 6, 7]\narray1.each do |x|\n  array2.each do |y|\n    puts(x.to_s)\n    puts(y.to_s)\n  end\nend\n",
+ "ParseTree"=>
+  s(:block,
+   s(:lasgn, :array1, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3))),
+   s(:lasgn,
+    :array2,
+    s(:array, s(:lit, 4), s(:lit, 5), s(:lit, 6), s(:lit, 7))),
+   s(:iter,
+    s(:call, s(:lvar, :array1), :each, s(:arglist)),
+    s(:lasgn, :x),
+    s(:iter,
+     s(:call, s(:lvar, :array2), :each, s(:arglist)),
+     s(:lasgn, :y),
+     s(:block,
+      s(:call,
+       nil,
+       :puts,
+       s(:arglist, s(:call, s(:lvar, :x), :to_s, s(:arglist)))),
+      s(:call,
+       nil,
+       :puts,
+       s(:arglist, s(:call, s(:lvar, :y), :to_s, s(:arglist))))))))}
+end
