@@ -45,11 +45,6 @@ namespace rubinius {
     return Integer::from(state, (size_t)pointer);
   }
 
-  Integer* MemoryPointer::set_address(STATE, Integer* ptr) {
-    pointer = (void*)ptr->to_native();
-    return ptr;
-  }
-
   MemoryPointer* MemoryPointer::add(STATE, Integer* amount) {
     return MemoryPointer::create(state, (char*)pointer + amount->to_native());
   }

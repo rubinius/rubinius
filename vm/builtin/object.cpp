@@ -141,9 +141,6 @@ namespace rubinius {
     other->initialize_copy(this, age);
     other->copy_body(this);
 
-    Class* meta = metaclass(state);
-    meta->set_ivar(state, G(sym_object_id), Qnil);
-
     /* Use lookup_begin to preserve any IncludedModules. */
     other->klass(state, this->lookup_begin(state));
 
