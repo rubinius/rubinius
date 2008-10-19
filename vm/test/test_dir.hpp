@@ -100,15 +100,15 @@ class TestDir : public CxxTest::TestSuite {
   }
   */
 
+  /** @todo Is it a valid assumption that the position always increases? */
   void test_control_tells_current_position() {
     char *dir = make_directory();
     String* path = String::create(state, dir);
     d->open(state, path);
     Fixnum* pos = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
-    TS_ASSERT_EQUALS(pos->to_native(), 0);
     d->read(state);
-    pos = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
-    TS_ASSERT_LESS_THAN(0, pos->to_native());
+    Fixnum* pos2 = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
+    TS_ASSERT_LESS_THAN(pos->to_native(), pos2->to_native());
     remove_directory(dir);
   }
 
