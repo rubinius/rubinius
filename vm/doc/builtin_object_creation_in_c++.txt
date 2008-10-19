@@ -1,3 +1,5 @@
+/** @page builtin_object_creation_in_c++.txt
+
  Object Creation in C++
 ========================
 
@@ -67,3 +69,4 @@ In order to avoid unnecessary confusion,
 * Builtins must not implement `initialize()`.
 * Builtins must not implement a C++ constructor.
 
+*/

@@ -2,6 +2,8 @@
 #define RBX_SUBTEND_RUBY_H
 
 /**
+ *  @file
+ *
  *  Notes:
  *
  *    - The function prefix rbx_subtend_hidden_* is used for those
