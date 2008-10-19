@@ -19,9 +19,25 @@ A. It could have been used. However, this is pretty simple, eh?
 
 Invoke the runner as follows:
 
-  bin/rbx spec/parser/run.rb (FILE|DIRECTORY|GLOB)+
+  bin/rbx spec/parser/run.rb [options] (FILE|DIRECTORY|GLOB)+
 
-The runner is also chmod +x and the hashbang is bin/rbx.
+The runner is also chmod +x and the hashbang is bin/rbx. Pass the -h option to
+see more options. It should give the following output:
+
+  $ spec/parser/run.rb -h
+  usage: run [options] (FILE|DIRECTORY|GLOB)+
+
+  -r      Compare to raw ParseTree
+  -p      Compare to ParseTree (default)
+  -R      Get sexp from RubyParser
+  -P      Get sexp from MRI parser + ParseTree builtin to rbx (default)
+  -X CMD  Get sexp from invoking CMD (use %s to indicate source substitution
+  -h      Show this message
+
+
+To invoke with an external parser, follow this example:
+
+  run.rb -r -X 'echo "%s" | parse_tree_show' spec/parser
 
 
 There is also a convenience script for extracting the individual parser tests
