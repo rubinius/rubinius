@@ -46,7 +46,7 @@ namespace rubinius {
     Channel* control_channel_; // slot
 
   public:
-    // TODO: fix up data members that aren't slots
+    // @todo fix up data members that aren't slots
     /* internal data */
     STATE;
     struct jit_state js;

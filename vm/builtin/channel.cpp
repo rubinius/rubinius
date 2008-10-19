@@ -143,7 +143,7 @@ namespace rubinius {
                       static_cast<pid_t>(pid->to_int()),
                       flags->to_int() );
 
-    /* TODO: Figure out the cancellation by id method. */
+    /* @todo Figure out the cancellation by id method. */
     return Qnil;
   }
 

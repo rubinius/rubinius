@@ -163,7 +163,7 @@ namespace rubinius {
     if(c == '-') c = data[1];
 
     if(std::isdigit(c)) {
-      // TODO: use ruby_strtod
+      // @todo use ruby_strtod
       return Float::create(state, strtod(data, NULL));
     } else {
       // avoid compiler warning

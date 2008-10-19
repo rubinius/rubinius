@@ -52,8 +52,8 @@ namespace {
   /**
    *  Common implementation for rb_funcall*
    *
-   *  TODO:   Set up permanent SendSites through macroing?
-   *  TODO:   Stricter action check?
+   *  @todo   Set up permanent SendSites through macroing?
+   *  @todo   Stricter action check?
    */
   static VALUE hidden_funcall_backend(VALUE receiver,
                                       ID method_name,
@@ -71,7 +71,7 @@ namespace {
     msg.block       = RBX_Qnil;
     msg.splat       = RBX_Qnil;
     msg.stack       = 0;
-    msg.priv        = true;           /* TODO: Double-check this */
+    msg.priv        = true;           /* @todo Double-check this */
 
     msg.lookup_from = (msg.recv->lookup_begin(context->state()));
 
@@ -112,7 +112,7 @@ namespace {
       name.assign(str.str());
     }
 
-    /* TODO: Need to strdup here to not point to junk but can it leak? */
+    /* @todo Need to strdup here to not point to junk but can it leak? */
     return context->state()->symbol(strdup(name.c_str()));
   }
 
@@ -134,7 +134,7 @@ extern "C" {
    *  to an invocation of this function to avoid tracking
    *  the classes on this side.
    *
-   *  TODO: Vectorise this or something.
+   *  @todo Vectorise this or something.
    */
   VALUE rbx_subtend_hidden_error(RbxSubtendHiddenError type) {
     switch (type) {
@@ -211,7 +211,7 @@ extern "C" {
   VALUE rbx_subtend_hidden_global(RbxSubtendHiddenGlobal type) {
     NativeMethodContext* context = NativeMethodContext::current();
 
-    /* TODO: Move these to static */
+    /* @todo Move these to static */
     switch (type) {
     case RbxArray:
       return context->handle_for_global(context->state()->globals.array.get());
@@ -312,7 +312,7 @@ extern "C" {
   }
 
 
-  /** TODO: Handle overflow properly. */
+  /** @todo Handle overflow properly. */
   int FIX2INT(VALUE num_handle) {
     NativeMethodContext* context = NativeMethodContext::current();
 
@@ -347,7 +347,7 @@ extern "C" {
     return context->handle_for(array);
   }
 
-  /* TODO: Check 64-bit? */
+  /* @todo Check 64-bit? */
   VALUE rb_ary_entry(VALUE self_handle, int index) {
     NativeMethodContext* context = NativeMethodContext::current();
 
@@ -400,7 +400,7 @@ extern "C" {
                                                  reinterpret_cast<Symbol*>(name)));
   }
 
-  /** TODO: Raise TypeError if given nil module. */
+  /** @todo Raise TypeError if given nil module. */
   void rb_define_const(VALUE module_handle, const char* name, VALUE obj_handle) {
     NativeMethodContext* context = NativeMethodContext::current();
 
@@ -548,7 +548,7 @@ extern "C" {
 
     String* self = as<String>(context->object_from(self_handle));
 
-    /* TODO: What kind of OOB checking is required? */
+    /* @todo What kind of OOB checking is required? */
     size_t offset_as_size = offset;
 
     if (offset < 0 || offset_as_size >= self->size()) {
@@ -561,7 +561,7 @@ extern "C" {
   size_t rb_str_get_char_len(VALUE self_handle) {
     NativeMethodContext* context = NativeMethodContext::current();
 
-    /* TODO: Is this correct? Is assuming no wide characters valid? */
+    /* @todo Is this correct? Is assuming no wide characters valid? */
     return as<String>(context->object_from(self_handle))->size();
   }
 

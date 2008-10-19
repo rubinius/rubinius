@@ -33,11 +33,11 @@ namespace rubinius {
     Object* name_;           // slot
 
   public:
-    // TODO: fix up data members that aren't slots
+    // @todo fix up data members that aren't slots
     VMMethod* vmm;
 
   public:
-    // TODO: fix up data members that aren't slots
+    // @todo fix up data members that aren't slots
     struct jit_state js;
     int    ip;
     size_t args;

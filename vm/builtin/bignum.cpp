@@ -44,7 +44,7 @@ namespace rubinius {
   static int mp_set_long (mp_int * a, unsigned long b)
   {
     int     err;
-    // TODO: Move these two values to bignum.h
+    // @todo Move these two values to bignum.h
     size_t  x = 0;
     size_t  count = sizeof(unsigned long) * 2;
     size_t  shift_width = (sizeof(unsigned long) * 8) - 4;

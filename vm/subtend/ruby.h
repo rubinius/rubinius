@@ -13,7 +13,7 @@
  *      namespace. These functions do not need to be usable by user
  *      code.
  *
- *  TODO: Move the context to a hidden last parameter defaulting to
+ *  @todo Move the context to a hidden last parameter defaulting to
  *        current() so that we can pass around the context whenever
  *        possible? --rue
  */
@@ -269,7 +269,7 @@ extern "C" {
 
 /**
  *
- *  TODO:   The Handle management is ludicrously naive. --rue
+ *  @todo   The Handle management is ludicrously naive. --rue
  *
  */
 
@@ -324,7 +324,7 @@ extern "C" {
   /** Return object at index. Out-of-bounds access returns Qnil. */
   VALUE   rb_ary_entry(VALUE self_handle, int index);
 
-  /** Number of elements in given Array. TODO: MRI specifies int return, problem? */
+  /** Number of elements in given Array. @todo MRI specifies int return, problem? */
   size_t  rb_ary_size(VALUE self_handle);
 
   /** @see rb_ivar_get */
@@ -353,7 +353,7 @@ extern "C" {
   #define rb_define_singleton_method(mod, name, fptr, arity) \
           rbx_subtend_hidden_define_method(__FILE__, mod, name, (SubtendGenericFunction)fptr, arity, RbxSingletonMethod)
 
-  /** TODO: Macro these so we can temporarily set nmc->line to __LINE__? */
+  /** @todo Macro these so we can temporarily set nmc->line to __LINE__? */
   /** Call method on receiver, args as varargs. */
   VALUE   rb_funcall(VALUE receiver, ID method_name, int arg_count, ...);
 
@@ -378,7 +378,7 @@ extern "C" {
   /** Call #to_s on object. */
   VALUE   rb_obj_as_string(VALUE obj_handle);
 
-  /** Raise error of given class using formatted message. TODO: Implement for real. */
+  /** Raise error of given class using formatted message. @todo Implement for real. */
   void    rb_raise(VALUE error_handle, const char* format_string, ...);
 
   /** 1 if obj.respond_to? method_name evaluates true, 0 otherwise. */
@@ -390,7 +390,7 @@ extern "C" {
   /** Return character at offset in String. Out-of-bounds returns '\0'. */
   char    rb_str_get_char(VALUE self_handle, int offset);
 
-  /** Return number of bytes in String. TODO: MRI returns int, problem? */
+  /** Return number of bytes in String. @todo MRI returns int, problem? */
   size_t  rb_str_get_char_len(VALUE self_handle);
 
   /** Returns a _copy_ of the C string contained in given String. */

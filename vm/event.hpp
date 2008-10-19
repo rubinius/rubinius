@@ -12,7 +12,7 @@
 #include "virtual.hpp"
 
 
-/** TODO: We are leaking ObjectCallbacks. They need to be deleted (elsewhere.) */
+/** @todo We are leaking ObjectCallbacks. They need to be deleted (elsewhere.) */
 namespace rubinius {
 
   class IOBuffer;
@@ -107,15 +107,15 @@ namespace rubinius {
      *
      *  @see  Further discussion below and in event.cpp.
      *
-     *  TODO: Cancel-by-id handling via negatives?
+     *  @todo Cancel-by-id handling via negatives?
      *
-     *  TODO: Review when multiple loops or native threads.
+     *  @todo Review when multiple loops or native threads.
      */
     class Child {
     public:   /* Types */
 
       /*
-       *  TODO: If there is a really performance-strapped app that
+       *  @todo If there is a really performance-strapped app that
        *        bottlenecks here, revisit the map<pid_t, list<Child*>>
        *        version. It is just overkill for now.
        */
@@ -190,7 +190,7 @@ namespace rubinius {
 
 
     /**
-     *  TODO: Needs review when multiple loops are introduced.
+     *  @todo Needs review when multiple loops are introduced.
      */
     class Loop {
     public:   /* Ctors */

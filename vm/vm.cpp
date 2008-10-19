@@ -45,8 +45,8 @@ namespace rubinius {
 
     bootstrap_ontology();
 
-    /* TODO: Using a single default loop, revisit when many loops.
-     * TODO: This needs to be handled through the environment.
+    /* @todo Using a single default loop, revisit when many loops.
+     * @todo This needs to be handled through the environment.
      */
     signal_events = new event::Loop(EVFLAG_FORKCHECK);
     events = signal_events;
@@ -292,11 +292,11 @@ namespace rubinius {
   }
 
   void VM::raise_from_errno(const char* msg) {
-    // TODO: implement me
+    // @todo implement me
   }
 
   void VM::raise_exception(Exception* exc) {
-    // TODO: implement me
+    // @todo implement me
   }
 
   void VM::set_const(const char* name, Object* val) {

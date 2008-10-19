@@ -28,7 +28,7 @@ namespace rubinius {
     Module* recv_class_;     // slot
 
   public:
-    // TODO: fix up data members that aren't slots
+    // @todo fix up data members that aren't slots
     bool   method_missing;
     size_t hits;
     size_t misses;

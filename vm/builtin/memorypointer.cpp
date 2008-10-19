@@ -330,6 +330,6 @@ namespace rubinius {
   }
 
   void MemoryPointer::Info::mark(Object* obj, ObjectMark& mark) {
-    // TODO: implement
+    // @todo implement
   }
 }

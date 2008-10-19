@@ -24,7 +24,7 @@ namespace rubinius {
     /** No fields since we should never be instantiated. */
     static const std::size_t fields = 0;
 
-    /** No particular type needed. TODO: Add VMType? --rue */
+    /** No particular type needed. @todo Add VMType? --rue */
     static const object_type type = ObjectType;
 
 
@@ -46,7 +46,7 @@ namespace rubinius {
      *  to GDB for user input. The user can then return from this
      *  method and continue debugging from the call point.
      *
-     *  TODO: Actually attach GDB to the process at the time? --rue
+     *  @todo Actually attach GDB to the process at the time? --rue
      */
     // Ruby.primitive :yield_gdb
     static Object*  yield_gdb(STATE, Object* obj);

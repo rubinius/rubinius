@@ -70,7 +70,7 @@ namespace rubinius {
     Object* set_at_offset(STATE, Fixnum* offset, Fixnum* type, Object* val);
 
 
-    /** TODO: Need cleanup here? */
+    /** @todo Need cleanup here? */
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }

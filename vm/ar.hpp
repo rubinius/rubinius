@@ -14,8 +14,8 @@
 namespace rubinius {
 
   /*
-   * TODO:  Name parameters to each_file(). --rue
-   * TODO:  Add comments for methods.
+   * @todo  Name parameters to each_file(). --rue
+   * @todo  Add comments for methods.
    */
   class Ar {
   public:   /* Ctors */

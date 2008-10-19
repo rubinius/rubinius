@@ -21,7 +21,7 @@ namespace rubinius {
   }
 
   void ByteArray::Info::mark(Object* t, ObjectMark& mark) {
-    // TODO: implement
+    // @todo implement
   }
 
   char* ByteArray::to_chars(STATE) {

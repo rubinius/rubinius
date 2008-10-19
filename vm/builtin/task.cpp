@@ -195,7 +195,7 @@ namespace rubinius {
     restore_context(target);
   }
 
-  /* TODO: Mirrors restore_sender too much, unify. */
+  /* @todo Mirrors restore_sender too much, unify. */
   void Task::native_return(Object* return_value)
   {
     if (profiler) {
@@ -585,7 +585,7 @@ namespace rubinius {
     }
   }
 
-  /** TODO: Refactor the hell out of this with streams. */
+  /** @todo Refactor the hell out of this with streams. */
   void Task::print_backtrace(MethodContext* ctx) {
     if(!ctx) ctx = active_;
 

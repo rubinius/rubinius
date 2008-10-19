@@ -595,7 +595,7 @@ namespace rubinius {
     }
     }
 
-    /* TODO: fix marshal_argumets to not malloc memory for every arg.
+    /* @todo fix marshal_argumets to not malloc memory for every arg.
      * use a single block. */
     /* Free the memory used to store the args */
     for(size_t i = 0; i < stub->arg_count; i++) {

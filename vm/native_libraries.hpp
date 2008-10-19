@@ -31,7 +31,7 @@ namespace rubinius {
 
   typedef void (*GenericFunctionPtr)(void);
 
-  /* TODO: Add ::close(), check use cases. */
+  /* @todo Add ::close(), check use cases. */
   class NativeLibrary {
   public:   /* Interface */
 

@@ -108,7 +108,7 @@ namespace rubinius {
     return this;
   }
 
-  // TODO: performance primitive; could be replaced with Ruby
+  // @todo performance primitive; could be replaced with Ruby
   Tuple* Tuple::pattern(STATE, Fixnum* size, Object* val) {
     native_int cnt = size->to_native();
     Tuple* tuple = Tuple::create(state, cnt);

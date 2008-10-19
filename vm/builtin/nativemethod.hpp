@@ -66,7 +66,7 @@ namespace rubinius {
    *  VALUE is an opaque type from which a handle to the actual object
    *  can be extracted. User code never operates on the VALUE itself.
    *
-   *  TODO:   Add tests specifically for NativeMethod.
+   *  @todo   Add tests specifically for NativeMethod.
    *          Currently only in Subtend tests.
    */
   class NativeMethod : public Executable {

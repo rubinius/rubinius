@@ -17,8 +17,8 @@ namespace rubinius {
   /**
    *  Roots is a structure comprising of Root objects.
    *
-   *  TODO: Add more information about class. --rue
-   *  TODO: Document methods. --rue
+   *  @todo Add more information about class. --rue
+   *  @todo Document methods. --rue
    */
   class Roots : public LinkedList {
   public:   /* Ctors */
@@ -38,7 +38,7 @@ namespace rubinius {
    *  and could be used to access its other members. The Root can
    *  be associated with (or "migrated to") a different Roots.
    *
-   *  TODO: Document remaining methods. --rue
+   *  @todo Document remaining methods. --rue
    */
   class Root : public LinkedList::Node {
   public:   /* Ctors */
@@ -69,7 +69,7 @@ namespace rubinius {
     /**
      *  Redoes the set of the existing Object and Roots.
      *
-     *  TODO: Review. This method makes no sense to me. --rue
+     *  @todo Review. This method makes no sense to me. --rue
      */
     void    set(Roots* r);
 
@@ -96,7 +96,7 @@ namespace rubinius {
   /**
    *  TypedRoot is a Root that knows the type of its Object.
    *
-   *  TODO: Use base type of object rather than pointer type
+   *  @todo Use base type of object rather than pointer type
    *        as ObjType and change usage accordingly? This
    *        allows, among other things, using `as()` rather
    *        than a direct C++ cast. --rue
@@ -215,7 +215,7 @@ namespace rubinius {
       Root(state, obj)
     { }
 
-  /** TODO: Use as<ObjType>() when using base type instead of pointer. --rue */
+  /** @todo Use as<ObjType>() when using base type instead of pointer. --rue */
   template<typename ObjType>
     inline ObjType TypedRoot<ObjType>::operator->() {
       if(object) {
@@ -226,7 +226,7 @@ namespace rubinius {
       }
     }
 
-  /** TODO: Use as<ObjType>() when using base type instead of pointer. --rue */
+  /** @todo Use as<ObjType>() when using base type instead of pointer. --rue */
   template<typename ObjType>
     inline ObjType TypedRoot<ObjType>::get() {
       return reinterpret_cast<ObjType>(object);

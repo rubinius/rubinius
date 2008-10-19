@@ -79,7 +79,7 @@ namespace rubinius {
    *  order in order to group the different aspects involved better
    *  and to simplify finding/adding &c. related methods.
    *
-   *  TODO: Remove the unimplemented definitions? --rue
+   *  @todo Remove the unimplemented definitions? --rue
    *
    *  @see  vm/type_info.hpp
    *
@@ -114,7 +114,7 @@ namespace rubinius {
      *  Object* (but code outside of the GC framework should not
      *  really run into this much if at all.)
      *
-     *  TODO: Clarify the scenarios where an Object may exist
+     *  @todo Clarify the scenarios where an Object may exist
      *        forwarded in user code if at all. --rue
      */
     void        set_forward(STATE, Object* fwd);
@@ -194,7 +194,7 @@ namespace rubinius {
      *
      *  Uses Task::send_message_slowly().
      *
-     *  TODO: Add more information, when is this used? --rue
+     *  @todo Add more information, when is this used? --rue
      */
     // Ruby.primitive? :object_send
     ExecuteStatus send_prim(STATE, Executable* exec, Task* task, Message& msg);

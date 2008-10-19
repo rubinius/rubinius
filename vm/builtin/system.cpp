@@ -70,7 +70,7 @@ namespace rubinius {
     return obj;
   }
 
-  /* TODO: Improve error messages */
+  /* @todo Improve error messages */
   Object* System::vm_exec(VM* state, String* path, Array* args)
   {
     std::size_t argc = args->size();
@@ -102,7 +102,7 @@ namespace rubinius {
       Exception::errno_error(state, "fork() failed!");
     }
 
-    /*  TODO: EVFLAG_FORKCHECK should remove need for any maintenance
+    /*  @todo EVFLAG_FORKCHECK should remove need for any maintenance
      *        here, but is there any other re-initialisation needed?
      */
 

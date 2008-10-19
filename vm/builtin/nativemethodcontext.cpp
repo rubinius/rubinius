@@ -20,7 +20,7 @@ namespace rubinius {
   /**
    *  Currently active NativeMethodContext access.
    *
-   *  TODO: use thread-local.
+   *  @todo use thread-local.
    */
   static NativeMethodContext* hidden_current_native_context = NULL;
 
@@ -134,14 +134,14 @@ namespace rubinius {
    *  NOTE: Unlike object_for(), this is _always_ a local Handle.
    *        @see handle_for_global() instead.
    *
-   *  TODO: Currently, a Handle may have an entry _both_ in local
+   *  @todo Currently, a Handle may have an entry _both_ in local
    *        handles as well as globals. This should hopefully not
    *        cause problems since the main concern is only that the
    *        global object must always be available. The extras are
    *        unlikely to impede here, since the object itself is
    *        guarded against collection.
    *
-   *  TODO: Concurrency.
+   *  @todo Concurrency.
    */
   Handle NativeMethodContext::handle_for(Object* object) {
     handles_->push_back(object);
@@ -153,10 +153,10 @@ namespace rubinius {
    *
    *  @see  discussion under handle_for().
    *
-   *  TODO: Should the objects be remembered or set
+   *  @todo Should the objects be remembered or set
    *        mature here? Unlikely, but needs verification.
    *
-   *  TODO: Concurrency.
+   *  @todo Concurrency.
    */
   Handle NativeMethodContext::handle_for_global(Object* object) {
     HandleStorage& globals = NativeMethodContext::global_handles();
@@ -196,7 +196,7 @@ namespace rubinius {
   }
 
   /**
-   *  TODO: Error conditions should assert?
+   *  @todo Error conditions should assert?
    */
   Object* NativeMethodContext::object_from(Handle handle) {
     if(handle < 0) {
@@ -209,7 +209,7 @@ namespace rubinius {
   /**
    *  Global handles are negative starting at -1.
    *
-   *  TODO: Error conditions should assert?
+   *  @todo Error conditions should assert?
    */
   Object* NativeMethodContext::object_from_global(Handle handle) {
     return NativeMethodContext::global_handles()[(-1 - handle)];

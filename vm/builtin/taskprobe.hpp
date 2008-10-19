@@ -121,7 +121,7 @@ namespace rubinius {
      * Prints the name of the Ruby method if unable to locate the
      * method.
      *
-     * TODO: This is currently invoked from Task::tragic_failure.
+     * @todo This is currently invoked from Task::tragic_failure.
      * That method raises an exception, so the lookup failure would
      * be printed anyway. Perhaps the probe would be more useful
      * before missing_method or elsewhere in the lookup algorithm.

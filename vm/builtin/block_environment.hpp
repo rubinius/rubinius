@@ -25,7 +25,7 @@ namespace rubinius {
     CompiledMethod* method_;    // slot
 
   public:
-    // TODO: fix up data members that aren't slots
+    // @todo fix up data members that aren't slots
     VMMethod* vmm;
 
   public:

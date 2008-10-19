@@ -33,7 +33,7 @@ namespace rubinius {
     return create<GenericFunctor>(state);
   }
 
-  /** TODO: Set up a SIGSEGV/SIGBUS handler. */
+  /** @todo Set up a SIGSEGV/SIGBUS handler. */
   ExecuteStatus NativeMethod::activate_from(NativeMethodContext* context) {
     NativeMethodContext::current_context_is(context);
 
@@ -114,7 +114,7 @@ namespace rubinius {
    *  @note   Currently supports functions with up to receiver + 5 (separate) arguments only!
    *          Anything beyond that should use one of the special arities instead.
    *
-   *  TODO:   Check for inefficiencies.
+   *  @todo   Check for inefficiencies.
    */
   void NativeMethod::perform_call() {
     NativeMethodContext* context = NativeMethodContext::current();

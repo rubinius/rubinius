@@ -215,7 +215,7 @@ namespace rubinius {
      *  the first waiter is added (whether at the start or at some point
      *  when all waiters have been removed previously.)
      *
-     *  TODO: Support WUNTRACED and other options?
+     *  @todo Support WUNTRACED and other options?
      */
     void Child::find_finished(VM* state) {
       Waiters& all = Child::waiters();
@@ -265,14 +265,14 @@ namespace rubinius {
       }   /* for */
     }
 
-    /** TODO: Fix the options. --rue */
+    /** @todo Fix the options. --rue */
     Loop::Loop(struct ev_loop *loop) :
       base(loop), event_ids(0), options_(0), owner(false) { }
 
     Loop::Loop(int opts) : event_ids(0), options_(opts), owner(false) {
       base = ev_default_loop(options_);
 
-      /* TODO: Should fail here if default returns NULL */
+      /* @todo Should fail here if default returns NULL */
     }
 
     /* Gives this loop ownership of +ev+, letting it delete +ev+
@@ -289,7 +289,7 @@ namespace rubinius {
       events.push_back(ev);
     }
 
-    /** TODO: Figure out what to do with default vs. regular loops. --rue */
+    /** @todo Figure out what to do with default vs. regular loops. --rue */
     Loop::~Loop() {
       if(owner) {
         std::vector<Event*>::iterator it;

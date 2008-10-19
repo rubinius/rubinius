@@ -206,7 +206,7 @@ namespace rubinius {
     NativeMethodContext::register_class_with(this);
   }
 
-  // TODO: document all the sections of bootstrap_ontology
+  // @todo document all the sections of bootstrap_ontology
   /* Creates the rubinius object universe from scratch. */
   void VM::bootstrap_ontology() {
 

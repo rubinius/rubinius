@@ -90,7 +90,7 @@ namespace rubinius {
       state->om->remember_object(other);
     }
 
-    /* TODO: dup instance vars. */
+    /* @todo dup instance vars. */
     return other;
   }
 

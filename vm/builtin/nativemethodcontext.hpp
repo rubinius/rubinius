@@ -33,19 +33,19 @@ namespace rubinius {
   /**
   *   Method context for C-implemented methods.
   *
-  *   TODO: Add @current_line that can be updated by e.g.
+  *   @todo Add @current_line that can be updated by e.g.
   *         macroed rb_funcall.
   *
-  *   TODO: Better Handle indexing? Currently there are
+  *   @todo Better Handle indexing? Currently there are
   *         sizeof(size_t) / 2 regular handles available
   *         because negative indices point to globals.
   *
-  *   TODO: Figure out how to handle Messages in dup/clone.
+  *   @todo Figure out how to handle Messages in dup/clone.
   *
-  *   TODO: Subclassing MethodContext is fucking ugly.
+  *   @todo Subclassing MethodContext is fucking ugly.
   *         Create a Context superclass for both.
   *
-  *   TODO: Clarify terminology for vm->subtend->vm stuff.
+  *   @todo Clarify terminology for vm->subtend->vm stuff.
   */
   class NativeMethodContext : public MethodContext {
   public:   /* Slots and bookkeeping. */
@@ -104,7 +104,7 @@ namespace rubinius {
     /** Access currently active NativeMethodContext. */
     static NativeMethodContext* current();
 
-    /** Global handles. TODO: Concurrency. */
+    /** Global handles. @todo Concurrency. */
     static HandleStorage&       global_handles();
 
 
