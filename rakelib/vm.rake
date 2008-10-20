@@ -115,10 +115,10 @@ INCLUDES.map! { |f| "-I#{f}" }
 # Build options
 FLAGS         = %w[ -pipe -Wall -Wno-deprecated ]
 
-# Debugging support &c. NOTE: Only DEV=2+ treats warnings as errors.
+# Debugging support etc. NOTE: Only DEV=2+ treats warnings as errors.
 case ENV["DEV"]
-when "1"
-  FLAGS.concat %w[ -Wextra -ggdb3 -O0 -fno-inline]
+when "1", /debug/
+  FLAGS.concat %w[ -ggdb3 -O0 -fno-inline]
 when "2", /strict/
   FLAGS.concat %w[ -Wextra -Werror -ggdb3 -O0 -fno-inline]
 when "3", /ridiculous/
