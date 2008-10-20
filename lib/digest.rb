@@ -19,10 +19,7 @@ module Digest
     klass = ::Class.new Digest::Instance
     Digest.const_set name, klass
 
-    context = ::Class.new FFI::Struct
-    # HACK FFI doesn't understand C arrays
-    context.instance_variable_set :@size, struct_size
-    klass.const_set :Context, context
+    klass.const_set :CONTEXT_SIZE, struct_size
 
     klass.attach_function init_function, :digest_init, [:pointer], :void
     klass.attach_function update_function, :digest_update,
@@ -57,14 +54,19 @@ module Digest
   # object to calculate message digest values.
   class Instance
 
+    attr_accessor :context
+
     def initialize
       @context = nil
       reset
     end
 
-    def initialize_copy(other)
-      @context = @context.dup
+    def clone
+      other = self.class.allocate
+      other.context = @context.dup
+      other
     end
+    alias :dup :clone
 
     # call-seq:
     #     digest_obj.update(string) -> digest_obj
@@ -76,7 +78,7 @@ module Digest
     # each implementation subclass. (One should be an alias for the
     # other)
     def update(string)
-      self.class.digest_update @context.pointer, string, string.length
+      self.class.digest_update @context, string, string.length
       self
     end
     alias :<< :update
@@ -93,7 +95,7 @@ module Digest
     # security reasons.
     def finish
       value = ' ' * digest_length
-      self.class.digest_finish @context.pointer, value
+      self.class.digest_finish @context, value
       @context.free
       @context = nil
       value
@@ -107,8 +109,9 @@ module Digest
     # This method is overridden by each implementation subclass.
     def reset
       @context.free if @context
-      @context = self.class::Context.new
-      self.class.digest_init @context.pointer
+      @context = MemoryPointer.new self.class::CONTEXT_SIZE
+
+      self.class.digest_init @context
     end
 
     # call-seq:
@@ -116,9 +119,10 @@ module Digest
     #
     # Returns a new, initialized copy of the digest object.  Equivalent
     # to digest_obj.clone.reset.
-    def new
-      self.clone.reset
-    end
+#    def new
+#      p :new
+#      self.clone.reset
+#    end
 
     # call-seq:
     #     digest_obj.digest -> string
@@ -130,16 +134,16 @@ module Digest
     # If a +string+ is given, returns the hash value for the given
     # +string+, resetting the digest to the initial state before and
     # after the process.
-    def digest(string=nil)
+    def digest(string = nil)
       if (string)
         reset
         update(string)
         value = finish
         reset
       else
-        clone = self.clone
-        value = clone.finish
-        clone.reset
+        other = clone
+        value = other.finish
+        other.reset
       end
 
       value

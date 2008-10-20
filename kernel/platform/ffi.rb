@@ -329,10 +329,20 @@ class MemoryPointer
     end
   end
 
-  def initialize_copy ptr
-    new_ptr = Platform::POSIX.malloc total
-    Platform::POSIX.memcpy new_ptr, ptr, total
-    self.address = new_ptr.address
+  def clone
+    other = Platform::POSIX.malloc total
+    other.total = total
+    other.type_size = type_size
+    Platform::POSIX.memcpy other, self, total
+    other
+  end
+
+  def dup
+    other = Platform::POSIX.malloc total
+    other.total = total
+    other.type_size = type_size
+    Platform::POSIX.memcpy other, self, total
+    other
   end
 
   def address= thingy

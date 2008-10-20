@@ -58,13 +58,15 @@
 #include "md5.h"
 #include <string.h>
 
+
+
 #ifdef TEST
 /*
  * Compile with -DTEST to create a self-contained executable test program.
  * The test program should print out the same values as given in section
  * A.5 of RFC 1321, reproduced below.
  */
-main()
+int main()
 {
     static const char *const test[7*2] = {
 	"", "d41d8cd98f00b204e9800998ecf8427e",
@@ -86,7 +88,7 @@ main()
 
 	MD5_Init(&state);
 	MD5_Update(&state, (const uint8_t *)test[i], strlen(test[i]));
-	MD5_Final(digest, &state);
+	MD5_Finish(&state, digest);
 	printf("MD5 (\"%s\") = ", test[i]);
 	for (di = 0; di < 16; ++di)
 	    sprintf(hex_output + di * 2, "%02x", digest[di]);
@@ -94,7 +96,8 @@ main()
 	if (strcmp(hex_output, test[i + 1]))
 	    printf("**** ERROR, should be: %s\n", test[i + 1]);
     }
-    return 0;
+
+  return 0;
 }
 #endif /* TEST */
 
