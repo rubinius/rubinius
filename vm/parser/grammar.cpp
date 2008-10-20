@@ -453,7 +453,7 @@ static ID  *syd_local_tbl(rb_parse_state *st);
 static ID   convert_op(ID id);
 
 static void tokadd(char c, rb_parse_state *parse_state);
-static int tokadd_string(int, int, int, int *, rb_parse_state*);
+static int tokadd_string(int, int, int, quark *, rb_parse_state*);
 
 #define SHOW_PARSER_WARNS 0
 
@@ -8076,7 +8076,7 @@ enum string_type {
     str_dsym   = (STR_FUNC_SYMBOL|STR_FUNC_EXPAND),
 };
 
-static int tokadd_string(int func, int term, int paren, int *nest, rb_parse_state *parse_state)
+static int tokadd_string(int func, int term, int paren, quark *nest, rb_parse_state *parse_state)
 {
     int c;
 
@@ -8196,7 +8196,7 @@ parse_string(NODE *quote, rb_parse_state *parse_state)
         tokadd('#', parse_state);
     }
     pushback(c, parse_state);
-    if (tokadd_string(func, term, paren, (int *)&quote->nd_nest, parse_state) == -1) {
+    if (tokadd_string(func, term, paren, &quote->nd_nest, parse_state) == -1) {
         ruby_sourceline = nd_line(quote);
         rb_compile_error("unterminated string meets end of file");
         return tSTRING_END;
