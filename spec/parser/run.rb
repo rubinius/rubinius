@@ -85,6 +85,13 @@ while x = ARGV.shift
     standard = 'ParseTree'
     sexp = :to_sexp_pt_u unless sexp
   elsif x == "-R"
+    begin
+      require 'ruby_parser'
+    rescue LoadError
+      puts "Unable to load RubyParser." \
+           "Consider running the script with ruby -I<whatever> -rruby_parser"
+      exit 1
+    end
     sexp = :to_sexp_rp
   elsif x == "-P"
     if standard == 'RawParseTree'

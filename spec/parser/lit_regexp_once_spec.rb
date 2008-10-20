@@ -1,5 +1,5 @@
 def test_case
-{"RawParseTree"=>[:lit, /x/],
+{"RawParseTree"=>[:regex, "x", 0],
  "Ruby"=>"/x/o",
  "ParseTree"=>s(:lit, /x/),
  "Ruby2Ruby"=>"/x/"}

@@ -4,7 +4,7 @@ def test_case
    "s1 '",
    [:evstr, [:const, :RUBY_PLATFORM]],
    [:str, "' s2\n"],
-   [:str, "(string)"],
+   [:evstr, [:file]],
    [:str, "\n"]],
  "Ruby"=>"<<-EOF\ns1 '\#{RUBY_PLATFORM}' s2\n\#{__FILE__}\n        EOF\n",
  "ParseTree"=>

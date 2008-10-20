@@ -6,7 +6,7 @@ def test_case
    [:str, " middle "],
    [:evstr, [:vcall, :to]],
    [:str, " ("],
-   [:str, "(string)"],
+   [:evstr, [:file]],
    [:str, ":"],
    [:evstr, [:lit, 1]],
    [:str, ")"]],

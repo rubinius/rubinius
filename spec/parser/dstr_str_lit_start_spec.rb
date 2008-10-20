@@ -1,7 +1,8 @@
 def test_case
 {"RawParseTree"=>
-  [:dstr,
-   "blah(string):",
+  [:dstr, "blah",
+   [:evstr, [:file]],
+   [:str, ":"],
    [:evstr, [:lit, 1]],
    [:str, ": warning: "],
    [:evstr, [:call, [:gvar, :$!], :message]],
