@@ -172,7 +172,7 @@ to be a simple test for that bit pattern.
       field_count = fields;
     }
 
-    uint32_t num_fields() {
+    uint32_t num_fields() const {
       return field_count;
     }
 
@@ -184,27 +184,27 @@ to be a simple test for that bit pattern.
       return num_fields() * sizeof(ObjectHeader);
     }
 
-    bool reference_p() {
+    bool reference_p() const {
       return REFERENCE_P(this);
     }
 
-    bool stores_bytes_p() {
+    bool stores_bytes_p() const {
       return StoresBytes;
     }
 
-    bool stores_references_p() {
+    bool stores_references_p() const {
       return !StoresBytes;
     }
 
-    bool young_object_p() {
+    bool young_object_p() const {
       return zone == YoungObjectZone;
     }
 
-    bool mature_object_p() {
+    bool mature_object_p() const {
       return zone == MatureObjectZone;
     }
 
-    bool forwarded_p() {
+    bool forwarded_p() const {
       return Forwarded == 1;
     }
 
@@ -212,7 +212,7 @@ to be a simple test for that bit pattern.
       return (Object*)klass_;
     }
 
-    bool marked_p() {
+    bool marked_p() const {
       return Marked == 1;
     }
 
@@ -224,23 +224,23 @@ to be a simple test for that bit pattern.
       Marked = 0;
     }
 
-    bool nil_p() {
+    bool nil_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qnil);
     }
 
-    bool undef_p() {
+    bool undef_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qundef);
     }
 
-    bool true_p() {
+    bool true_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qtrue);
     }
 
-    bool false_p() {
+    bool false_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qfalse);
     }
 
-    bool check_type(object_type type) {
+    bool check_type(object_type type) const {
       return reference_p() && obj_type == type;
     }
 

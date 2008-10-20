@@ -55,13 +55,13 @@ namespace rubinius {
     return lookup(state, bytes);
   }
 
-  String* SymbolTable::lookup_string(STATE, Symbol* sym) {
+  String* SymbolTable::lookup_string(STATE, const Symbol* sym) {
     std::string str = strings[sym->index()];
     // HACK does c_str() return a copy? If so, we need to free() it.
     return String::create(state, str.c_str());
   }
 
-  const char* SymbolTable::lookup_cstring(STATE, Symbol* sym) {
+  const char* SymbolTable::lookup_cstring(STATE, const Symbol* sym) {
     std::string& str = strings[sym->index()];
     return str.c_str();
   }

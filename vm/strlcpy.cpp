@@ -44,7 +44,8 @@ strlcpy (char *dst, const char *src, size_t siz)
 		if (siz)
 			*d = '\0'; /* NUL-terminate dst */
 
-		while (*s++);
+		while(*s++)
+      ;
 	}
 
 	return (s - src - 1); /* count does not include NUL */

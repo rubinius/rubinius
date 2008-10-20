@@ -365,7 +365,7 @@ void #{@name}::Info::auto_mark(Object* _t, ObjectMark& mark) {
     # We forward declare the class in here to keep everything happy
     str = <<-CPP
 template <>
-SPECIALIZATION_STORAGE bool kind_of<#{@name}>(Object* obj) {
+SPECIALIZATION_STORAGE bool kind_of<#{@name}>(const Object* obj) {
   return #{checks.join(' || ')};
 }
 

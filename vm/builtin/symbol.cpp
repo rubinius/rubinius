@@ -19,7 +19,7 @@ namespace rubinius {
     GO(symbol).set(state->new_class("Symbol"));
   }
 
-  native_int Symbol::index() {
+  native_int Symbol::index() const {
     return DATA_STRIP_TAG(this);
   }
 
@@ -35,7 +35,7 @@ namespace rubinius {
     return state->symbols.lookup_string(state, this);
   }
 
-  const char* Symbol::c_str(STATE) {
+  const char* Symbol::c_str(STATE) const {
     return state->symbols.lookup_cstring(state, this);
   }
 

@@ -152,19 +152,31 @@ namespace rubinius {
     // to +ctx+'s sender and making +ctx+ active.
     void make_active(MethodContext* ctx);
 
-    Tuple* const literals() {
-      return active_->cm()->literals();
-    }
-
     void literals(STATE, Tuple* tup) {
       active_->cm()->literals(state, tup);
     }
 
-    MethodContext* const home() {
+    const Tuple* literals() const {
+      return active_->cm()->literals();
+    }
+
+    Tuple* literals() {
+      return active_->cm()->literals();
+    }
+
+    const MethodContext* home() const {
       return active_->home();
     }
 
-    Object* const self() {
+    MethodContext* home() {
+      return active_->home();
+    }
+
+    const Object* self() const {
+      return home()->self();
+    }
+
+    Object* self() {
       return home()->self();
     }
 

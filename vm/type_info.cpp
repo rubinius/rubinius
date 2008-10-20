@@ -84,8 +84,8 @@ namespace rubinius {
     }
   }
 
-  void TypeInfo::class_info(STATE, Object* self, bool newline) {
-    if(Module* mod = try_as<Module>(self)) {
+  void TypeInfo::class_info(STATE, const Object* self, bool newline) {
+    if(const Module* mod = try_as<Module>(self)) {
       const char *name = mod->name()->nil_p() ? "<anonymous>" : mod->name()->c_str(state);
       std::cout << "#<" << name << "(" <<
         self->class_object(state)->name()->c_str(state) << ")";
@@ -96,7 +96,7 @@ namespace rubinius {
     if(newline) std::cout << ">\n";
   }
 
-  void TypeInfo::class_header(STATE, Object* self) {
+  void TypeInfo::class_header(STATE, const Object* self) {
     class_info(state, self);
     std::cout << "\n";
   }
@@ -124,11 +124,11 @@ namespace rubinius {
     std::cout << ">" << std::endl;
   }
 
-  void TypeInfo::show(STATE, Object* self, int level) {
+  void TypeInfo::show(STATE, const Object* self, int level) {
     class_info(state, self, true);
   }
 
-   void TypeInfo::show_simple(STATE, Object* self, int level) {
+   void TypeInfo::show_simple(STATE, const Object* self, int level) {
      class_info(state, self, true);
    }
 

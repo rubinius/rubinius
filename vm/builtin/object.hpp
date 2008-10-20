@@ -29,9 +29,10 @@ namespace rubinius {
  *  Create a reader method for a slot.
  *
  *  For attr_reader(foo, SomeClass), creates SomeClass* foo() which returns the
- *  instance variable foo_.
+ *  instance variable foo_. A const version is also generated.
  */
-#define attr_reader(name, type) type* name() { return name ## _; }
+#define attr_reader(name, type) type* name() { return name ## _; } \
+                                const type* name() const { return name ## _; }
 
 /**
  *  Ruby-like accessor creation for a slot.
@@ -78,6 +79,9 @@ namespace rubinius {
    *  The class definition layout differs from the normal alphabetic
    *  order in order to group the different aspects involved better
    *  and to simplify finding/adding &c. related methods.
+   *
+   *  @todo The entire codebase should be reviewed for const
+   *        correctness. --rue
    *
    *  @todo Remove the unimplemented definitions? --rue
    *
@@ -139,7 +143,7 @@ namespace rubinius {
     void        copy_metaclass(STATE, Object* other);
 
     /** True if this Object* is actually a Fixnum, false otherwise. */
-    bool        fixnum_p();
+    bool        fixnum_p() const;
 
     /**
      *  Retrieve the Object stored in given field index of this Object.
@@ -149,7 +153,7 @@ namespace rubinius {
     Object*     get_field(STATE, std::size_t index);
 
     /** Safely return the object type, even if the receiver is an immediate. */
-    object_type get_type();
+    object_type get_type() const;
 
     /** True if given Module is this Object's class, superclass or an included Module. */
     bool        kind_of_p(STATE, Object* module);
@@ -158,10 +162,10 @@ namespace rubinius {
     void        set_field(STATE, std::size_t index, Object* val);
 
     /** True if this Object* is actually a Symbol, false otherwise. */
-    bool        symbol_p();
+    bool        symbol_p() const;
 
     /** Return the TypeInfo for this Object's type. */
-    TypeInfo*   type_info(STATE);
+    TypeInfo*   type_info(STATE) const;
 
 
   public:   /* Method dispatch stuff */
@@ -215,7 +219,7 @@ namespace rubinius {
 
     /** Returns the Class object of which this Object is an instance. */
     // Ruby.primitive :object_class
-    Class*    class_object(STATE);
+    Class*    class_object(STATE) const;
 
     /**
      *  Ruby #dup.
@@ -292,13 +296,13 @@ namespace rubinius {
 
     /** String describing this object (through TypeInfo.) */
     // Ruby.primitive :object_show
-    Object*   show(STATE);
+    Object*   show(STATE) const;
     /** Indented String describing this object (through TypeInfo.) */
-    Object*   show(STATE, int level);
+    Object*   show(STATE, int level) const;
     /** Shorter String describing this object (through TypeInfo.) */
-    Object*   show_simple(STATE);
+    Object*   show_simple(STATE) const;
     /** Shorter indented String describing this object (through TypeInfo.) */
-    Object*   show_simple(STATE, int level);
+    Object*   show_simple(STATE, int level) const;
 
     /**
      *  Set tainted flag on this object.
@@ -351,7 +355,7 @@ namespace rubinius {
 
 /* Object inlines -- Alphabetic, unlike class definition. */
 
-  inline bool Object::fixnum_p() {
+  inline bool Object::fixnum_p() const {
     return FIXNUM_P(this);
   }
 
@@ -363,7 +367,7 @@ namespace rubinius {
     return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
-  inline bool Object::symbol_p() {
+  inline bool Object::symbol_p() const {
     return SYMBOL_P(this);
   }
 

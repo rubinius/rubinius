@@ -77,7 +77,7 @@ namespace rubinius {
      * and address. It is expected that classes will define their own
      * show output.
      */
-    virtual void show(STATE, Object* self, int level);
+    virtual void show(STATE, const Object* self, int level);
 
     /**
      * Currently prints the same output as show. Is specialized by
@@ -86,7 +86,7 @@ namespace rubinius {
      * and CompiledMethod. Immediates and numeric classes print
      * their value for both show and show_simple.
      */
-    virtual void show_simple(STATE, Object* self, int level);
+    virtual void show_simple(STATE, const Object* self, int level);
 
     /**
      * Prints spaces to indent the following text to the requested
@@ -106,7 +106,7 @@ namespace rubinius {
      *
      *   #<SomeClass:0x346882
      */
-    virtual void class_info(STATE, Object* self, bool newline = false);
+    virtual void class_info(STATE, const Object* self, bool newline = false);
 
     /**
      * Prints out the class name and address followed by a newline. Used
@@ -114,7 +114,7 @@ namespace rubinius {
      *
      *   #<SomeClass:0x3287648\n
      */
-    virtual void class_header(STATE, Object* self);
+    virtual void class_header(STATE, const Object* self);
 
     /**
      * Prints "..." + endl at the requested indent level.

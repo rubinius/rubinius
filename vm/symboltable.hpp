@@ -38,8 +38,8 @@ namespace rubinius {
     Symbol* lookup(STATE, std::string str);
     Symbol* lookup(STATE, const char* str);
     Symbol* lookup(STATE, String* str);
-    String* lookup_string(STATE, Symbol* sym);
-    const char* lookup_cstring(STATE, Symbol* sym);
+    String* lookup_string(STATE, const Symbol* sym);
+    const char* lookup_cstring(STATE, const Symbol* sym);
     size_t size();
     Array* all_as_array(STATE);
 

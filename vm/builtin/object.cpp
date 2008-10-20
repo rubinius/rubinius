@@ -22,7 +22,7 @@
 
 namespace rubinius {
 
-  Class* Object::class_object(STATE) {
+  Class* Object::class_object(STATE) const {
     if(reference_p()) {
       Module* mod = klass_;
       while(!mod->nil_p() && !instance_of<Class>(mod)) {
@@ -152,7 +152,7 @@ namespace rubinius {
     return ivars_;
   }
 
-  object_type Object::get_type() {
+  object_type Object::get_type() const {
     if(reference_p()) return obj_type;
     if(fixnum_p()) return FixnumType;
     if(symbol_p()) return SymbolType;
@@ -349,20 +349,20 @@ namespace rubinius {
     return val;
   }
 
-  Object* Object::show(STATE) {
+  Object* Object::show(STATE) const {
     return this->show(state, 0);
   }
 
-  Object* Object::show(STATE, int level) {
+  Object* Object::show(STATE, int level) const {
     type_info(state)->show(state, this, level);
     return Qnil;
   }
 
-  Object* Object::show_simple(STATE) {
+  Object* Object::show_simple(STATE) const {
     return this->show_simple(state, 0);
   }
 
-  Object* Object::show_simple(STATE, int level) {
+  Object* Object::show_simple(STATE, int level) const {
     type_info(state)->show_simple(state, this, level);
     return Qnil;
   }
@@ -382,7 +382,7 @@ namespace rubinius {
     }
   }
 
-  TypeInfo* Object::type_info(STATE) {
+  TypeInfo* Object::type_info(STATE) const {
     return state->om->type_info[get_type()];
   }
 

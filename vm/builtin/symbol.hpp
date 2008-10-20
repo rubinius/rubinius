@@ -18,7 +18,7 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = SymbolType;
 
-    native_int index();
+    native_int index() const;
 
     // Ruby.primitive :symbol_index
     Integer* index(STATE);
@@ -30,7 +30,7 @@ namespace rubinius {
     String* to_str(STATE);
 
     // Return the char* for the text that was symbolized
-    const char* c_str(STATE);
+    const char* c_str(STATE) const;
 
     // Ruby.primitive :symbol_all_symbols
     static Array* all_symbols(STATE);
