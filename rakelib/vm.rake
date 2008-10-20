@@ -218,7 +218,7 @@ namespace :build do
   end
 
   task :inline_flags => :normal_flags do
-    FLAGS.concat %w[ -Winline ]
+    FLAGS.concat %w[ -Winline -Wuninitialized ]
   end
 
   # -Wuninitialized requires -O, so it is not here.
@@ -228,11 +228,9 @@ namespace :build do
   end
 
   task :strict_flags => "build:debug_flags" do
-    FLAGS.concat %w[ -W -pedantic
+    FLAGS.concat %w[ -Wextra -W -pedantic
                      -Wshadow -Wfloat-equal -Wsign-conversion
-                     -Wno-long-long
-                     -Wextra -Wuninitialized
-                     -Wno-inline -Wno-unused-parameter
+                     -Wno-long-long -Wno-inline -Wno-unused-parameter
                    ]
   end
 
