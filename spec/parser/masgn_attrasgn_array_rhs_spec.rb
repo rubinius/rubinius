@@ -5,7 +5,6 @@ def test_case
     [:attrasgn, [:vcall, :a], :b=],
     [:attrasgn, [:vcall, :a], :c=],
     [:lasgn, :_]],
-   nil,
    [:to_ary, [:vcall, :q]]],
  "Ruby"=>"a.b, a.c, _ = q",
  "ParseTree"=>

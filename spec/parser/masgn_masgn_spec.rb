@@ -3,8 +3,7 @@ def test_case
   [:masgn,
    [:array,
     [:lasgn, :a],
-    [:masgn, [:array, [:lasgn, :b], [:lasgn, :c]], nil, nil]],
-   nil,
+    [:masgn, [:array, [:lasgn, :b], [:lasgn, :c]]]],
    [:to_ary, [:array, [:lit, 1], [:array, [:lit, 2], [:lit, 3]]]]],
  "Ruby"=>"a, (b, c) = [1, [2, 3]]",
  "ParseTree"=>

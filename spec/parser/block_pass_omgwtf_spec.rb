@@ -3,7 +3,7 @@ def test_case
   [:block_pass,
    [:iter,
     [:call, [:const, :Proc], :new],
-    [:masgn, nil, [:dasgn_curr, :args], nil],
+    [:masgn, [:dasgn_curr, :args]],
     [:nil]],
    [:fcall,
     :define_attr_method,

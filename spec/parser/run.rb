@@ -1,28 +1,37 @@
-#!bin/rbx
+#!/usr/bin/env ruby
 #
 # A tiny spec-style runner for working on a parser.
 
-def to_sexp_pt(source)
-  source.to_sexp_pt '(string)', 1, false
+def to_sexp_pt_r(source)
+  source.to_sexp_pt '(string)', 1, false, false
+end
+
+def to_sexp_pt_u(source)
+  source.to_sexp_pt '(string)', 1, false, true
 end
 
 def to_sexp_rp(source)
   RubyParser.new.process source, '(string)'
 end
 
-def to_sexp_x(cmd, source)
-  command = cmd % source
-  eval `#{command}`
+def to_sexp_x(cmd, str, source)
+  name = "__parser_spec_source__.rb"
+  File.open(name, "w") do |f|
+    f.puts str % source
+  end
+  eval `cat #{name} | #{cmd}`
+ensure
+  File.delete name rescue nil
 end
 
 # Runs the example after fetching the sexp from +sexp+
 # method. Compares the sexp to +standard+ from +hash+.
-def run(node, hash, standard, sexp, cmd)
+def run(node, hash, standard, sexp, cmd, str)
   src = hash['Ruby']
   expected = hash[standard].to_a
 
   if cmd
-    actual = send sexp, cmd, src
+    actual = send sexp, cmd, str, src
   else
     actual = send sexp, src
   end
@@ -43,18 +52,19 @@ def usage
   puts "-p      Compare to ParseTree (default)"
   puts "-R      Get sexp from RubyParser"
   puts "-P      Get sexp from MRI parser + ParseTree builtin to rbx (default)"
-  puts "-X CMD  Get sexp from invoking CMD (use %s to indicate source substitution"
+  puts "-X CMD  Get sexp from invoking CMD (see -s)"
+  puts "-s STR  Substitute into STR at %s"
   puts "-h      Show this message"
   puts ""
   exit 1
 end
 
-# defaults
-standard = 'ParseTree'
-sexp = :to_sexp_pt
-command = nil
-
 # command line processing
+standard = nil
+sexp = nil
+command = nil
+str = nil
+
 files = []
 while x = ARGV.shift
   if File.file? x
@@ -63,19 +73,32 @@ while x = ARGV.shift
     files.concat Dir["#{x}/**/*_spec.rb"]
   elsif x == "-r"
     standard = 'RawParseTree'
+    sexp = :to_sexp_pt_r unless sexp
   elsif x == "-p"
     standard = 'ParseTree'
+    sexp = :to_sexp_pt_u unless sexp
   elsif x == "-R"
     sexp = :to_sexp_rp
   elsif x == "-P"
-    sexp = :to_sexp_pt
+    if standard == 'RawParseTree'
+      sexp = :to_sexp_pt_r
+    else
+      sexp = :to_sexp_pt_u
+    end
   elsif x == "-X"
     command = ARGV.shift
     sexp = :to_sexp_x
+  elsif x == "-s"
+    str = ARGV.shift
   elsif x == "-h"
     usage
   end
 end
+
+# defaults
+standard = 'ParseTree' unless standard
+sexp = :to_sexp_pt_u unless sexp
+str = %Q{%s} unless str
 
 if files.empty?
   puts "No files given"
@@ -91,7 +114,7 @@ files.each do |name|
   load name
   begin
     node = File.basename(name, "_spec.rb").split("/").last
-    status, output = run(node, test_case, standard, sexp, command)
+    status, output = run(node, test_case, standard, sexp, command, str)
     if status
       print "."
     else

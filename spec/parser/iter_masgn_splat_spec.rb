@@ -2,7 +2,7 @@ def test_case
 {"RawParseTree"=>
   [:iter,
    [:fcall, :a],
-   [:masgn, nil, [:dasgn_curr, :c], nil],
+   [:masgn, [:dasgn_curr, :c]],
    [:fcall, :p, [:array, [:dvar, :c]]]],
  "Ruby"=>"a { |*c| p(c) }",
  "ParseTree"=>

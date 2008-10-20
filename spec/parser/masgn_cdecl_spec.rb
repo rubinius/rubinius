@@ -2,7 +2,6 @@ def test_case
 {"RawParseTree"=>
   [:masgn,
    [:array, [:cdecl, :A], [:cdecl, :B], [:cdecl, :C]],
-   nil,
    [:array, [:lit, 1], [:lit, 2], [:lit, 3]]],
  "Ruby"=>"A, B, C = 1, 2, 3",
  "ParseTree"=>

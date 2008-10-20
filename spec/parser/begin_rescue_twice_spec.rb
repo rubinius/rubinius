@@ -1,8 +1,7 @@
 def test_case
 {"RawParseTree"=>
   [:block,
-   [:begin,
-    [:rescue, [:vcall, :a], [:resbody, nil, [:lasgn, :mes, [:gvar, :$!]]]]],
+   [:rescue, [:vcall, :a], [:resbody, nil, [:lasgn, :mes, [:gvar, :$!]]]],
    [:begin,
     [:rescue, [:vcall, :b], [:resbody, nil, [:lasgn, :mes, [:gvar, :$!]]]]]],
  "Ruby"=>

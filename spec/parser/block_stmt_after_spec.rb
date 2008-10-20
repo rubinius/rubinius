@@ -5,7 +5,7 @@ def test_case
    [:scope,
     [:block,
      [:args],
-     [:begin, [:rescue, [:vcall, :b], [:resbody, nil, [:vcall, :c]]]],
+     [:rescue, [:vcall, :b], [:resbody, nil, [:vcall, :c]]],
      [:vcall, :d]]]],
  "Ruby"=>"def f\n  begin\n    b\n  rescue\n    c\n  end\n\n  d\nend",
  "ParseTree"=>

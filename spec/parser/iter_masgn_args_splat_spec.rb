@@ -4,8 +4,7 @@ def test_case
    [:fcall, :a],
    [:masgn,
     [:array, [:dasgn_curr, :b], [:dasgn_curr, :c]],
-    [:dasgn_curr, :d],
-    nil],
+    [:dasgn_curr, :d]],
    [:fcall, :p, [:array, [:dvar, :c]]]],
  "Ruby"=>"a { |b, c, *d| p(c) }",
  "ParseTree"=>
