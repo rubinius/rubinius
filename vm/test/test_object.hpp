@@ -77,10 +77,38 @@ class TestObject : public CxxTest::TestSuite {
     Tuple* tup = Tuple::create(state, 1);
     tup->put(state, 0, Qtrue);
 
-    Tuple* tup2 = (Tuple*)tup->dup(state);
+    tup->set_ivar(state, state->symbol("@name"), state->symbol("foo"));
+
+    Tuple* tup2 = as<Tuple>(tup->dup(state));
 
     TS_ASSERT_EQUALS(tup2->at(state, 0), Qtrue);
     TS_ASSERT_DIFFERS(tup->id(state), tup2->id(state));
+
+    TS_ASSERT(tup->ivars_ != tup2->ivars_);
+
+    TS_ASSERT_EQUALS(tup2->get_ivar(state, state->symbol("@name")),
+        state->symbol("foo"));
+
+    tup->ivars_ = as<CompactLookupTable>(tup->ivars_)->to_lookuptable(state);
+    Tuple* tup3 = as<Tuple>(tup->dup(state));
+
+    TS_ASSERT(tup->ivars_ != tup2->ivars_);
+    TS_ASSERT_EQUALS(tup3->get_ivar(state, state->symbol("@name")),
+        state->symbol("foo"));
+  }
+
+  void test_dup_ignores_metaclass() {
+    Tuple* tup = Tuple::create(state, 1);
+    tup->put(state, 0, Qtrue);
+
+    // Force it to exist.
+    tup->metaclass(state);
+
+    Tuple* tup2 = as<Tuple>(tup->dup(state));
+
+    TS_ASSERT(!try_as<MetaClass>(tup2->klass_));
+
+    TS_ASSERT_DIFFERS(tup->metaclass(state), tup2->metaclass(state));
   }
 
   void test_clone() {

@@ -92,7 +92,22 @@ namespace rubinius {
       state->om->remember_object(other);
     }
 
-    /* @todo dup instance vars. */
+    // Copy ivars.
+    if(ivars_->reference_p()) {
+      // NOTE Don't combine these 2 branches even though they both just call
+      // ::dup. There is a special LookupTable::dup that can only be seen
+      // when the receiver is of LookupTable* type. Without the explicit cast
+      // and call, the wrong one will be called.
+      if(LookupTable* lt = try_as<LookupTable>(ivars_)) {
+        other->ivars_ = lt->dup(state);
+      } else {
+        // Use as<> so that we throw a TypeError if there is something else
+        // here.
+        CompactLookupTable* clt = as<CompactLookupTable>(ivars_);
+        other->ivars_ = clt->dup(state);
+      };
+    }
+
     return other;
   }
 
