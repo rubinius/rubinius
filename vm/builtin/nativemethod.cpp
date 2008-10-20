@@ -1,7 +1,5 @@
 #include <iostream>
 
-#include <execinfo.h>
-
 #include "vm.hpp"
 
 #include "native_libraries.hpp"

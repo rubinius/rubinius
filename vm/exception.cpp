@@ -3,12 +3,16 @@
 #include "vm.hpp"
 #include "prelude.hpp"
 #include "exception.hpp"
+#include "detection.hpp"
 
 #include <vector>
 #include <iostream>
-#include <execinfo.h>
 #include <cxxabi.h>
 #include <cassert>
+
+#ifdef USE_EXECINFO
+#include <execinfo.h>
+#endif
 
 namespace rubinius {
 
@@ -35,7 +39,7 @@ namespace rubinius {
   }
 
   static VMException::Backtrace get_trace(size_t skip) {
-
+#ifdef USE_EXECINFO
     const size_t max_depth = 100;
     size_t stack_depth;
     void *stack_addrs[max_depth];
@@ -50,6 +54,10 @@ namespace rubinius {
       s.push_back(std::string(stack_strings[i]));
     }
     free(stack_strings); // malloc()ed by backtrace_symbols
+#else
+    VMException::Backtrace s;
+    s.push_back(std::string("C++ backtrace not available"));
+#endif
 
     return s;
   }
