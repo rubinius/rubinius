@@ -12,6 +12,11 @@ else
   LLVM_STYLE = "Release"
 end
 
+if ENV["DEV"]
+  raise "\n ** DEV is deprecated. See `rake build:help`\n\n"
+end
+
+
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
 tests       = FileList["vm/test/test_*.hpp"]
@@ -112,21 +117,8 @@ end
 INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
 INCLUDES.map! { |f| "-I#{f}" }
 
-# Build options
+# Default build options
 FLAGS         = %w[ -pipe -Wall -Wno-deprecated ]
-
-# Debugging support etc. NOTE: Only DEV=2+ treats warnings as errors.
-case ENV["DEV"]
-when "1", /debug/
-  FLAGS.concat %w[ -ggdb3 -O0 -fno-inline]
-when "2", /strict/
-  FLAGS.concat %w[ -Wextra -Werror -ggdb3 -O0 -fno-inline]
-when "3", /ridiculous/
-  FLAGS.concat %w[ -Wextra -Weffc++ -Werror -ggdb3 -O0 -fno-inline]
-else
-  # By default, lax and optimised
-  FLAGS.concat %w[ -O2 ]
-end
 
 CC          = ENV['CC'] || "gcc"
 
@@ -181,6 +173,111 @@ end
 
 ############################################################
 # Other Tasks
+
+# Build options.
+namespace :build do
+
+  # The top-level build task uses this, so undocumented.
+  task :normal      => %w[ build:normal_flags build:build ]
+
+  desc "Show methods that are not inlined in the optimized build"
+  task :inline      => %w[ build:inline_flags build:build ]
+
+  desc "Build debug image for GDB. No optimizations, more warnings."
+  task :debug       => %w[ build:debug_flags build:build ]
+
+  desc "Build to check for possible problems in the code. See build:help."
+  task :strict      => %w[ build:strict_flags build:build ]
+
+  desc "Build to enforce coding practices. See build:help for info."
+  task :ridiculous  => %w[ build:ridiculous_flags build:build ]
+
+  # Issue the actual build commands. NEVER USE DIRECTLY.
+  task :build => %w[ vm
+                     kernel:build
+                     lib/rbconfig.rb
+                     extensions
+                   ]
+
+  # Flag setup
+
+  task :normal_flags do
+    FLAGS.concat %w[ -O2 -Wuninitialized ]
+  end
+
+  task :inline_flags => :normal_flags do
+    FLAGS.concat %w[ -Winline ]
+  end
+
+  # -Wuninitialized requires -O, so it is not here.
+  task :debug_flags do
+    FLAGS.concat %w[ -ggdb3 -O0 -fno-inline
+                     -Wextra
+                     -Wno-inline -Wno-unused-parameter
+                   ]
+  end
+
+  task :strict_flags => "build:debug_flags" do
+    FLAGS.concat %w[ -W -pedantic
+                     -Wshadow -Wfloat-equal -Wsign-conversion
+                     -Wno-long-long
+                   ]
+  end
+
+  task :ridiculous_flags => "build:strict_flags" do
+    FLAGS.concat %w[ -Werror -Weffc++ ]
+  end
+
+  desc "Print more information about the build task options."
+  task :help do
+    puts <<-ENDHELP
+
+  There are five ways to build the VM. Each of the last three
+  special tasks is cumulative with the one(s) above it:
+
+
+   Users
+  -------
+
+  build             Build normal, optimized image.
+
+
+   Developers
+  ------------
+
+  build:inline      Use to check if any methods requested to be
+                    inlined were not. The image is otherwise the
+                    normal optimized one.
+
+  build:debug       Use when you need to debug in GDB. Builds an
+                    image with debugging symbols, optimizations
+                    are disabled and more warnings emitted by the
+                    compiler.
+
+  build:strict      Use to check for and fix potential problems
+                    in the codebase. Shows many more warnings.
+
+  build:ridiculous  Use to enforce good practices. Adds warnings
+                    for not abiding by "Efficient C++" guidelines
+                    and treats all warnings as errors. It may be
+                    necessary to disable some warning types for
+                    this build.
+
+  Notes:
+    - Unitialized variables are only detected by build and build:inline.
+    - Only build:ridiculous treats warnings as errors.
+    - If you do not want to use --trace but do want to see the exact
+      shell commands issued for compilation, invoke Rake thus:
+
+        `rake build:debug -- -v`
+
+    ENDHELP
+  end
+
+end
+
+
+# Compilation tasks
 
 rule '.o' do |t|
   obj   = t.name
@@ -284,7 +381,8 @@ namespace :vm do
     ENV['VERBOSE'] = '1' if $verbose
     sh 'vm/test/runner', :verbose => $verbose
   end
-  task :test => 'vm/test/runner'
+
+  task :test => %w[ build:debug_flags vm/test/runner ]
 
   task :coverage do
     Dir.mkdir "vm/test/coverage" unless File.directory? "vm/test/coverage"

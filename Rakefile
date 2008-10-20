@@ -2,7 +2,8 @@
 # NOTE! Please keep your tasks grouped together.
 
 $VERBOSE = true
-$verbose = Rake.application.options.trace
+$verbose = Rake.application.options.trace || ARGV.delete("-v")
+
 $dlext = Config::CONFIG["DLEXT"]
 $compiler = nil
 
@@ -56,13 +57,9 @@ task :precompile => %w[extensions] do
   end
 end
 
-desc "Build everything that needs to be built"
-task :build => %w[
-  vm
-  kernel:build
-  lib/rbconfig.rb
-  extensions
-]
+# See vm.rake for more information
+desc "Build everything that needs to be built at default level."
+task :build => "build:normal"
 
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]
