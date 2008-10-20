@@ -161,7 +161,7 @@ namespace rubinius {
     return false;
   }
 
-  OBJECT Array::pop(STATE) {
+  Object* Array::pop(STATE) {
     size_t cnt = total_->to_native();
     size_t index = start_->to_native() + cnt;
 

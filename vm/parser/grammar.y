@@ -47,7 +47,7 @@ namespace rubinius {
 #define ismbchar(c) (0)
 #define mbclen(c) (1)
 
-#define ID2SYM(i) (OBJECT)i
+#define ID2SYM(i) (Object*)i
 
 #define string_new(ptr, len) blk2bstr(ptr, len)
 #define string_new2(ptr) cstr2bstr(ptr)
@@ -2597,9 +2597,9 @@ lex_get_str(rb_parse_state *parse_state)
     return TRUE;
 }
 
-void syd_add_to_parse_tree(STATE, rb_parse_state*, OBJECT, NODE*, ID*);
+void syd_add_to_parse_tree(STATE, rb_parse_state*, Object*, NODE*, ID*);
 
-static OBJECT convert_to_sexp(STATE, rb_parse_state *parse_state, NODE *node) {
+static Object* convert_to_sexp(STATE, rb_parse_state *parse_state, NODE *node) {
   Array* ary;
   ary = Array::create(state, 1);
   syd_add_to_parse_tree(state, parse_state, ary, node, NULL);
@@ -2618,12 +2618,12 @@ lex_getline(rb_parse_state *parse_state)
   return parse_state->lex_gets(parse_state);
 }
 
-OBJECT
+Object*
 syd_compile_string(STATE, const char *f, bstring s, int line)
 {
     int n;
     rb_parse_state *parse_state;
-    OBJECT ret;
+    Object* ret;
     parse_state = alloc_parse_state();
     parse_state->state = state;
     parse_state->lex_string = s;
@@ -2673,11 +2673,11 @@ static bool parse_io_gets(rb_parse_state *parse_state) {
   return TRUE;
 }
 
-OBJECT
+Object*
 syd_compile_file(STATE, const char *f, FILE *file, int start)
 {
     int n;
-    OBJECT ret;
+    Object* ret;
     rb_parse_state *parse_state;
     parse_state = alloc_parse_state();
     parse_state->state = state;
@@ -3126,7 +3126,7 @@ static int tokadd_string(int func, int term, int paren, int *nest, rb_parse_stat
 }
 
 #define NEW_STRTERM(func, term, paren) \
-  syd_node_newnode(parse_state, NODE_STRTERM, (OBJECT)(func), (OBJECT)((term) | ((paren) << (CHAR_BIT * 2))), NULL)
+  syd_node_newnode(parse_state, NODE_STRTERM, (Object*)(func), (Object*)((term) | ((paren) << (CHAR_BIT * 2))), NULL)
 #define pslval ((YYSTYPE *)parse_state->lval)
 static int
 parse_string(NODE *quote, rb_parse_state *parse_state)
@@ -3263,9 +3263,9 @@ heredoc_identifier(rb_parse_state *parse_state)
        detect the end of the heredoc. */
     bstring str = bstrcpy(parse_state->lex_lastline);
     lex_strterm = syd_node_newnode(parse_state, NODE_HEREDOC,
-                                  (OBJECT)string_new(tok(), toklen()),  /* nd_lit */
-				   (OBJECT)len,                          /* nd_nth */
-				   (OBJECT)str);    /* nd_orig */
+                                  (Object*)string_new(tok(), toklen()),  /* nd_lit */
+				   (Object*)len,                          /* nd_nth */
+				   (Object*)str);    /* nd_orig */
     return term == '`' ? tXSTRING_BEG : tSTRING_BEG;
 }
 
@@ -4603,7 +4603,7 @@ yylex(void *yylval_v, void *vstate)
 
 NODE*
 syd_node_newnode(rb_parse_state *st, enum node_type type,
-                 OBJECT a0, OBJECT a1, OBJECT a2)
+                 Object* a0, Object* a1, Object* a2)
 {
     NODE *n = (NODE*)pt_allocate(st, sizeof(NODE));
 
@@ -5558,7 +5558,7 @@ ret_args(rb_parse_state *parse_state, NODE *node)
 static NODE *
 new_yield(rb_parse_state *parse_state, NODE *node)
 {
-    OBJECT state = Qtrue;
+    Object* state = Qtrue;
 
     if (node) {
         no_blockarg(node);

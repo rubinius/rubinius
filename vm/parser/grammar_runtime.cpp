@@ -10,7 +10,6 @@
 #include "builtin/bignum.hpp"
 #include "builtin/symbol.hpp"
 
-#include "object.hpp"
 #include "vm.hpp"
 
 namespace rubinius {
@@ -20,7 +19,7 @@ namespace rubinius {
  * PT below (beyond what is already changed) so define
  * these expected functions.
  */
-#define array_new(s, n)       (OBJECT)Array::create(s, n)
+#define array_new(s, n)       (Object*)Array::create(s, n)
 #define array_size(a)         as<Array>(a)->size()
 #define array_push(s, a, v)   as<Array>(a)->append(s, v)
 #define array_append(s, a, v) as<Array>(a)->append(s, v)
@@ -30,16 +29,16 @@ namespace rubinius {
 #define array_entry(s, a, i)  as<Array>(a)->aref(s, Fixnum::from(i))
 #define array_get_total(a)    as<Array>(a)->total()
 
-#define tuple_new(s, n)       (OBJECT)Tuple::create(s, n)
+#define tuple_new(s, n)       (Object*)Tuple::create(s, n)
 #define tuple_put(s, t, i, v) as<Tuple>(t)->put(s, i, v)
 
-#define string_new(s, c)         (OBJECT)String::create(s, c)
+#define string_new(s, c)         (Object*)String::create(s, c)
 #define string_newfrombstr(s, b) string_new(s, bdatae(b, ""))
 #define string_concat(s, d, o)   as<String>(d)->append(s, as<String>(o))
 
-#define float_from_string(s, d)  (OBJECT)String::create(s, d)->to_f(s)
+#define float_from_string(s, d)  (Object*)String::create(s, d)->to_f(s)
 
-#define bignum_from_string(s, d, r) (OBJECT)String::create(s, d)->to_i(s, Fixnum::from(r))
+#define bignum_from_string(s, d, r) (Object*)String::create(s, d)->to_i(s, Fixnum::from(r))
 #define bignum_from_string_detect(s, d) bignum_from_string(s, d, 0)
 
 #define I2N(i) Fixnum::from(i)
@@ -48,15 +47,15 @@ namespace rubinius {
 #define SYMBOL(str)               state->symbol(str)
 #define STR2SYM(str)              state->symbol(as<String>(str))
 
-    static OBJECT float_from_bstring(STATE, bstring str) {
+    static Object* float_from_bstring(STATE, bstring str) {
       return float_from_string(state, bdata(str));
     }
 
-    static OBJECT bignum_from_bstring_detect(STATE, bstring str) {
+    static Object* bignum_from_bstring_detect(STATE, bstring str) {
       return bignum_from_string_detect(state, bdata(str));
     }
 
-    static OBJECT bignum_from_bstring(STATE, bstring str, int radix) {
+    static Object* bignum_from_bstring(STATE, bstring str, int radix) {
       return bignum_from_string(state, bdata(str), radix);
     }
 
@@ -146,7 +145,7 @@ namespace rubinius {
     void create_error(rb_parse_state *parse_state, char *msg) {
       int col;
       STATE;
-      OBJECT tup;
+      Object* tup;
 
       state = parse_state->state;
 
@@ -170,7 +169,7 @@ namespace rubinius {
 
 #define nd_3rd   u3.node
 
-#define VALUE OBJECT
+#define VALUE Object*
 
 #define add_to_parse_tree(a,n,l) syd_add_to_parse_tree(state,parse_state,a,n,l)
 #undef ID2SYM
@@ -178,14 +177,14 @@ namespace rubinius {
 
     const char *op_to_name(ID id);
 
-    static OBJECT wrap_into_node(STATE, const char * name, OBJECT val) {
-      OBJECT ary = array_new(state, val ? 2 : 1);
+    static Object* wrap_into_node(STATE, const char * name, Object* val) {
+      Object* ary = array_new(state, val ? 2 : 1);
       array_push(state, ary, SYMBOL(name));
       if (val) array_push(state, ary, val);
       return ary;
     }
 
-    static OBJECT quark_to_symbol(STATE, quark quark) {
+    static Object* quark_to_symbol(STATE, quark quark) {
       const char *op;
       op = op_to_name(quark);
       if(op) {
@@ -195,7 +194,7 @@ namespace rubinius {
     }
 
     void syd_add_to_parse_tree(STATE, rb_parse_state* parse_state,
-                               OBJECT ary, NODE* n, ID* locals) {
+                               Object* ary, NODE* n, ID* locals) {
       NODE * volatile node = n;
       VALUE current;
       VALUE node_name;
@@ -710,7 +709,7 @@ namespace rubinius {
           long arg_count = (long)node->nd_rest;
           if (arg_count > 0) {
             /* *arg name */
-            OBJECT sym = string_new(state, "*");
+            Object* sym = string_new(state, "*");
             if (locals[i + 3]) {
               string_concat(state, sym, string_new(state, quark_to_string(locals[i + 3])));
             }

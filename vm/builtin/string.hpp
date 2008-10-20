@@ -124,7 +124,7 @@ namespace rubinius {
     static String* pattern(STATE, Object* self, Fixnum* size, Object* pattern);
 
     // Ruby.primitive :string_parse
-    OBJECT parse(STATE, String* name, Fixnum* line);
+    Object* parse(STATE, String* name, Fixnum* line);
 
     class Info : public TypeInfo {
     public:

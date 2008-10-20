@@ -12,12 +12,13 @@
 #include "parser/var_table.hpp"
 
 #include "prelude.hpp"
+#include "object_utils.hpp"
 
 namespace rubinius {
   namespace parser {
 
 #define ID    quark
-#define VALUE OBJECT
+#define VALUE Object*
 
     enum lex_state {
         EXPR_BEG,                   /* ignore newline, +/- is a sign. */
@@ -104,7 +105,7 @@ namespace rubinius {
       int memory_size;
 
       STATE;
-      OBJECT error;
+      Object* error;
 
     } rb_parse_state;
 

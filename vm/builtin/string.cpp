@@ -670,7 +670,7 @@ return_value:
     return val;
   }
 
-  OBJECT String::parse(STATE, String* name, Fixnum* line) {
+  Object* String::parse(STATE, String* name, Fixnum* line) {
     bstring str = blk2bstr(byte_address(), size());
     return parser::syd_compile_string(state, name->c_str(), str, line->to_native());
   }

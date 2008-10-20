@@ -30,7 +30,7 @@ namespace rubinius {
       union {
         RNode *node;
         ID id;
-        OBJECT value;
+        Object* value;
         ID *tbl;
         bstring string;
       } u1;
@@ -38,14 +38,14 @@ namespace rubinius {
         struct RNode *node;
         ID id;
         long argc;
-        OBJECT value;
+        Object* value;
       } u2;
       union {
         struct RNode *node;
         ID id;
         long state;
         long cnt;
-        OBJECT value;
+        Object* value;
         bstring string;
       } u3;
     } NODE;
@@ -134,7 +134,7 @@ namespace rubinius {
 #define nd_tag   u1.id
 #define nd_tval  u2.value
 
-#define NEW_NODE(t,a0,a1,a2) syd_node_newnode((rb_parse_state*)parse_state, (t),(OBJECT)(a0),(OBJECT)(a1),(OBJECT)(a2))
+#define NEW_NODE(t,a0,a1,a2) syd_node_newnode((rb_parse_state*)parse_state, (t),(Object*)(a0),(Object*)(a1),(Object*)(a2))
 
 #define NEW_METHOD(n,x) NEW_NODE(NODE_METHOD,x,n,0)
 #define NEW_FBODY(n,i,o) NEW_NODE(NODE_FBODY,n,i,o)
