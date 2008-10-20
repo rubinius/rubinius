@@ -1,6 +1,7 @@
 #ifndef RBX_STACK_JUMPER_HPP
 #define RBX_STACK_JUMPER_HPP
 
+#include "detection.hpp"
 
 /** API to hide stack jump mechanism. */
 
@@ -18,7 +19,7 @@
    *  that the ucontext_t's are sized up correctly. Otherwise they
    *  get written over :/
    */
-  #ifdef __APPLE__
+  #ifdef OS_X_10_5
     #define DECLARE_POINT_VARIABLE(name) ucontext_t name; \
                                          _STRUCT_MCONTEXT __ ## name ## _mc
   #else
