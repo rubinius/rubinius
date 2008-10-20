@@ -137,10 +137,11 @@ static void fixpos(NODE*,NODE*);
 static int value_expr0(NODE*,rb_parse_state*);
 static void void_expr0(NODE *);
 static void void_stmts(NODE*,rb_parse_state*);
-static NODE *remove_begin(NODE*);
-#define  value_expr(node)  value_expr0((node) = remove_begin(node), \
-                                       (rb_parse_state*)parse_state)
-#define void_expr(node) void_expr0((node) = remove_begin(node))
+static NODE *remove_begin(NODE*,rb_parse_state*);
+#define  value_expr(node)  value_expr0((node) = \
+                              remove_begin(node, (rb_parse_state*)parse_state), \
+                              (rb_parse_state*)parse_state)
+#define void_expr(node) void_expr0((node) = remove_begin(node, (rb_parse_state*)parse_state))
 
 static NODE *block_append(rb_parse_state*,NODE*,NODE*);
 static NODE *list_append(rb_parse_state*,NODE*,NODE*);
@@ -451,7 +452,7 @@ stmts           : none
                     }
                 | error stmt
                     {
-                        $$ = $2;
+                        $$ = remove_begin($2, vps);
                     }
                 ;
 
@@ -481,7 +482,7 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                     }
                 | stmt kIF_MOD expr_value
                     {
-                        $$ = NEW_IF(cond($3, vps), $1, 0);
+                        $$ = NEW_IF(cond($3, vps), remove_begin($1, vps), 0);
                         fixpos($$, $3);
                         if (cond_negative(&$$->nd_cond)) {
                             $$->nd_else = $$->nd_body;
@@ -490,7 +491,7 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                     }
                 | stmt kUNLESS_MOD expr_value
                     {
-                        $$ = NEW_UNLESS(cond($3, vps), $1, 0);
+                        $$ = NEW_UNLESS(cond($3, vps), remove_begin($1, vps), 0);
                         fixpos($$, $3);
                         if (cond_negative(&$$->nd_cond)) {
                             $$->nd_body = $$->nd_else;
@@ -523,7 +524,8 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                     }
                 | stmt kRESCUE_MOD stmt
                     {
-                        $$ = NEW_RESCUE($1, NEW_RESBODY(0,$3,0), 0);
+                        NODE *resq = NEW_RESBODY(0, remove_begin($3, vps), 0);
+                        $$ = NEW_RESCUE(remove_begin($1, vps), resq, 0);
                     }
                 | klBEGIN
                     {
@@ -589,11 +591,8 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                         NODE *args;
 
                         value_expr($6);
-                        args = NEW_LIST($6);
-                        if ($3 && nd_type($3) != NODE_ARRAY)
-                            $3 = NEW_LIST($3);
-                        $3 = list_append(vps, $3, NEW_NIL());
-                        list_concat(args, $3);
+                        if (!$3) $3 = NEW_ZARRAY();
+                        args = arg_concat(vps, $6, $3);
                         if ($5 == tOROP) {
                             $5 = 0;
                         }
@@ -1052,11 +1051,8 @@ arg             : lhs '=' arg
                         NODE *args;
 
                         value_expr($6);
-                        args = NEW_LIST($6);
-                        if ($3 && nd_type($3) != NODE_ARRAY)
-                            $3 = NEW_LIST($3);
-                        $3 = list_append(vps, $3, NEW_NIL());
-                        list_concat(args, $3);
+                        if (!$3) $3 = NEW_ZARRAY();
+                        args = arg_concat(vps, $6, $3);
                         if ($5 == tOROP) {
                             $5 = 0;
                         }
@@ -1163,7 +1159,12 @@ arg             : lhs '=' arg
                     }
                 | tUPLUS arg
                     {
-                        $$ = call_op($2, tUPLUS, 0, 0, vps);
+                        if ($2 && nd_type($2) == NODE_LIT) {
+                            $$ = $2;
+                        }
+                        else {
+                            $$ = call_op($2, tUPLUS, 0, 0, vps);
+                        }
                     }
                 | tUMINUS arg
                     {
@@ -1335,23 +1336,23 @@ call_args       : command
                     }
                 | assocs opt_block_arg
                     {
-                        $$ = NEW_LIST(NEW_POSITIONAL($1));
+                        $$ = NEW_LIST(NEW_HASH($1));
                         $$ = arg_blk_pass($$, $2);
                     }
                 | assocs ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat(vps, NEW_LIST(NEW_POSITIONAL($1)), $4);
+                        $$ = arg_concat(vps, NEW_LIST(NEW_HASH($1)), $4);
                         $$ = arg_blk_pass($$, $5);
                     }
                 | args ',' assocs opt_block_arg
                     {
-                        $$ = list_append(vps, $1, NEW_POSITIONAL($3));
+                        $$ = list_append(vps, $1, NEW_HASH($3));
                         $$ = arg_blk_pass($$, $4);
                     }
                 | args ',' assocs ',' tSTAR arg opt_block_arg
                     {
                         value_expr($6);
-                        $$ = arg_concat(vps, list_append(vps, $1, NEW_POSITIONAL($3)), $6);
+                        $$ = arg_concat(vps, list_append(vps, $1, NEW_HASH($3)), $6);
                         $$ = arg_blk_pass($$, $7);
                     }
                 | tSTAR arg_value opt_block_arg
@@ -1376,37 +1377,38 @@ call_args2      : arg_value ',' args opt_block_arg
                     }
                 | arg_value ',' args ',' tSTAR arg_value opt_block_arg
                     {
-            $$ = arg_concat(vps, list_concat(NEW_LIST($1),$3), $6);
+                        $$ = arg_concat(vps, list_concat(NEW_LIST($1),$3), $6);
                         $$ = arg_blk_pass($$, $7);
                     }
                 | assocs opt_block_arg
                     {
-                        $$ = NEW_LIST(NEW_POSITIONAL($1));
+                        $$ = NEW_LIST(NEW_HASH($1));
                         $$ = arg_blk_pass($$, $2);
                     }
                 | assocs ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat(vps, NEW_LIST(NEW_POSITIONAL($1)), $4);
+                        $$ = arg_concat(vps, NEW_LIST(NEW_HASH($1)), $4);
                         $$ = arg_blk_pass($$, $5);
                     }
                 | arg_value ',' assocs opt_block_arg
                     {
-                        $$ = list_append(vps, NEW_LIST($1), NEW_POSITIONAL($3));
+                        $$ = list_append(vps, NEW_LIST($1), NEW_HASH($3));
                         $$ = arg_blk_pass($$, $4);
                     }
                 | arg_value ',' args ',' assocs opt_block_arg
                     {
-                        $$ = list_append(vps, list_concat(NEW_LIST($1),$3), NEW_POSITIONAL($5));
+                        $$ = list_append(vps, list_concat(NEW_LIST($1),$3), NEW_HASH($5));
                         $$ = arg_blk_pass($$, $6);
                     }
                 | arg_value ',' assocs ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat(vps, list_append(vps, NEW_LIST($1), NEW_POSITIONAL($3)), $6);
+                        $$ = arg_concat(vps, list_append(vps, NEW_LIST($1), NEW_HASH($3)), $6);
                         $$ = arg_blk_pass($$, $7);
                     }
                 | arg_value ',' args ',' assocs ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat(vps, list_append(vps, list_concat(NEW_LIST($1), $3), NEW_POSITIONAL($5)), $8);
+                        $$ = arg_concat(vps, list_append(vps,
+                                        list_concat(NEW_LIST($1), $3), NEW_HASH($5)), $8);
                         $$ = arg_blk_pass($$, $9);
                     }
                 | tSTAR arg_value opt_block_arg
@@ -1510,6 +1512,7 @@ primary         : literal
                     }
                 | tLPAREN compstmt ')'
                     {
+                        if (!$2) $$ = NEW_NIL();
                         $$ = $2;
                     }
                 | primary_value tCOLON2 tCONSTANT
@@ -2001,7 +2004,6 @@ string1         : tSTRING_BEG string_contents tSTRING_END
 
 xstring         : tXSTRING_BEG xstring_contents tSTRING_END
                     {
-                        ID code = $1;
                         NODE *node = $2;
                         if (!node) {
                             node = NEW_XSTR(string_new(0, 0));
@@ -2018,11 +2020,6 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END
                                 node = NEW_NODE(NODE_DXSTR, string_new(0, 0), 1, NEW_LIST(node));
                                 break;
                             }
-                        }
-                        if(code) {
-                            node->u2.id = code;
-                        } else {
-                            node->u2.id = 0;
                         }
                         $$ = node;
                     }
@@ -2281,19 +2278,19 @@ f_arglist       : '(' f_args opt_nl ')'
 
 f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     {
-		      $$ = block_append(vps, NEW_ARGS((intptr_t)$1, $3, $5), $6);
+                        $$ = block_append(vps, NEW_ARGS((intptr_t)$1, $3, $5), $6);
                     }
                 | f_arg ',' f_optarg opt_f_block_arg
                     {
-		      $$ = block_append(vps, NEW_ARGS((intptr_t)$1, $3, -1), $4);
+                        $$ = block_append(vps, NEW_ARGS((intptr_t)$1, $3, 0), $4);
                     }
                 | f_arg ',' f_rest_arg opt_f_block_arg
                     {
-		      $$ = block_append(vps, NEW_ARGS((intptr_t)$1, 0, $3), $4);
+                        $$ = block_append(vps, NEW_ARGS((intptr_t)$1, 0, $3), $4);
                     }
                 | f_arg opt_f_block_arg
                     {
-		      $$ = block_append(vps, NEW_ARGS((intptr_t)$1, 0, -1), $2);
+                        $$ = block_append(vps, NEW_ARGS((intptr_t)$1, 0, 0), $2);
                     }
                 | f_optarg ',' f_rest_arg opt_f_block_arg
                     {
@@ -2301,7 +2298,7 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     }
                 | f_optarg opt_f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS(0, $1, -1), $2);
+                        $$ = block_append(vps, NEW_ARGS(0, $1, 0), $2);
                     }
                 | f_rest_arg opt_f_block_arg
                     {
@@ -2309,11 +2306,11 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     }
                 | f_block_arg
                     {
-                        $$ = block_append(vps, NEW_ARGS(0, 0, -1), $1);
+                        $$ = block_append(vps, NEW_ARGS(0, 0, 0), $1);
                     }
                 | /* none */
                     {
-                        $$ = NEW_ARGS(0, 0, -1);
+                        $$ = NEW_ARGS(0, 0, 0);
                     }
                 ;
 
@@ -2413,13 +2410,8 @@ opt_f_block_arg : ',' f_block_arg
 
 singleton       : var_ref
                     {
-                        if (nd_type($1) == NODE_SELF) {
-                            $$ = NEW_SELF();
-                        }
-                        else {
-                            $$ = $1;
-                            value_expr($$);
-                        }
+                        $$ = $1;
+                        value_expr($$);
                     }
                 | '(' {vps->lex_state = EXPR_BEG;} expr opt_nl ')'
                     {
@@ -4669,6 +4661,7 @@ block_append(rb_parse_state *parse_state, NODE *head, NODE *tail)
       case NODE_STR:
       case NODE_LIT:
         parser_warning(parse_state, h, "unused literal ignored");
+        return tail;
       default:
         h = end = NEW_BLOCK(head);
         end->nd_end = end;
@@ -5321,7 +5314,7 @@ void_stmts(NODE *node, rb_parse_state *parse_state)
 }
 
 static NODE *
-remove_begin(NODE *node)
+remove_begin(NODE *node, rb_parse_state *parse_state)
 {
     NODE **n = &node;
     while (*n) {

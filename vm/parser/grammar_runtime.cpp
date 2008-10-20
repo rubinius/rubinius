@@ -746,6 +746,7 @@ namespace rubinius {
         break;
 
       case NODE_FIXNUM:
+        array_set(state, current, 0, SYMBOL("lit"));
         array_push(state, current, I2N(node->nd_cnt));
         break;
 
