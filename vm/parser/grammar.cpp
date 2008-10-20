@@ -8451,6 +8451,8 @@ yylex(void *yylval_v, void *vstate)
     int cmd_state, comment_column;
     struct rb_parse_state *parse_state;
     bstring cur_line;
+    enum lex_state last_state;
+
     YYSTYPE *yylval = (YYSTYPE*)yylval_v;
     parse_state = (struct rb_parse_state*)vstate;
 
@@ -9395,6 +9397,7 @@ yylex(void *yylval_v, void *vstate)
         return '%';
 
       case '$':
+        last_state = parse_state->lex_state;
         parse_state->lex_state = EXPR_END;
         newtok(parse_state);
         c = nextc();
@@ -9438,6 +9441,7 @@ yylex(void *yylval_v, void *vstate)
             tokadd((char)c, parse_state);
             c = nextc();
             tokadd((char)c, parse_state);
+          gvar:
             tokfix();
             pslval->id = rb_intern(tok());
             /* xxx shouldn't check if valid option variable */
@@ -9447,6 +9451,11 @@ yylex(void *yylval_v, void *vstate)
           case '`':             /* $`: string before last match */
           case '\'':            /* $': string after last match */
           case '+':             /* $+: string matches last paren. */
+	    if (last_state == EXPR_FNAME) {
+		tokadd((char)'$', parse_state);
+		tokadd(c, parse_state);
+		goto gvar;
+	    }
             pslval->node = NEW_BACK_REF((intptr_t)c);
             return tBACK_REF;
 
@@ -9459,6 +9468,7 @@ yylex(void *yylval_v, void *vstate)
                 c = nextc();
             } while (ISDIGIT(c));
             pushback(c, parse_state);
+	    if (last_state == EXPR_FNAME) goto gvar;
             tokfix();
             pslval->node = NEW_NTH_REF((intptr_t)atoi(tok()+1));
             return tNTH_REF;
@@ -9536,6 +9546,7 @@ yylex(void *yylval_v, void *vstate)
     {
         int result = 0;
 
+        last_state = parse_state->lex_state;
         switch (tok()[0]) {
           case '$':
             parse_state->lex_state = EXPR_END;
@@ -9619,6 +9630,11 @@ yylex(void *yylval_v, void *vstate)
             }
         }
         pslval->id = rb_intern(tok());
+        if(is_local_id(pslval->id) &&
+           last_state != EXPR_DOT &&
+           local_id(pslval->id)) {
+           parse_state->lex_state = EXPR_END;
+        }
 
 /*         if (is_local_id(pslval->id) && local_id(pslval->id)) { */
 /*             parse_state->lex_state = EXPR_END; */
