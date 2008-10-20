@@ -34,7 +34,9 @@ namespace rubinius {
 
 #define string_new(s, c)         (Object*)String::create(s, c)
 #define string_newfrombstr(s, b) string_new(s, bdatae(b, ""))
-#define string_concat(s, d, o)   as<String>(d)->append(s, as<String>(o))
+#define string_concat(s, d, o)   (Object*)as<String>(d)->append(s, as<String>(o))
+#define string_append(s, d, o)   (Object*)as<String>(d)->append(s, o)
+#define string_c_str(s, d)       (char*)as<String>(d)->c_str()
 
 #define float_from_string(s, d)  (Object*)String::create(s, d)->to_f(s)
 
@@ -173,7 +175,8 @@ namespace rubinius {
 
 #define add_to_parse_tree(a,n,l) syd_add_to_parse_tree(state,parse_state,a,n,l)
 #undef ID2SYM
-#define Q2SYM(v) quark_to_symbol(state, v)
+#define Q2SYM(v)      quark_to_symbol(state, v)
+#define Q2SYM2(v, s)  quark_to_symbol_append(state, v, s)
 
     const char *op_to_name(ID id);
 
@@ -191,6 +194,25 @@ namespace rubinius {
         return SYMBOL(op);
       }
       return SYMBOL(quark_to_string(id_to_quark(quark)));
+    }
+
+    static Object* quark_to_symbol_append(STATE, quark quark, const char* other) {
+      Object* str;
+      const char *op, *s;
+
+      op = op_to_name(quark);
+      if(op) {
+        str = string_new(state, op);
+      } else {
+        str = string_new(state, quark_to_string(id_to_quark(quark)));
+      }
+
+      s = string_c_str(state, str);
+      if(s[strlen(s)-1] == '=') {
+        return STR2SYM(str);
+      } else {
+        return STR2SYM(string_append(state, str, other));
+      }
     }
 
     void syd_add_to_parse_tree(STATE, rb_parse_state* parse_state,
@@ -486,7 +508,7 @@ namespace rubinius {
 
       case NODE_OP_ASGN2:
         add_to_parse_tree(current, node->nd_recv, locals);
-        array_push(state, current, Q2SYM(node->nd_next->nd_aid));
+        array_push(state, current, Q2SYM2(node->nd_next->nd_aid, "="));
         switch(node->nd_next->nd_mid) {
           case 0:
             array_push(state, current, SYMBOL("||"));
@@ -711,7 +733,8 @@ namespace rubinius {
             /* *arg name */
             Object* sym = string_new(state, "*");
             if (locals[i + 3]) {
-              string_concat(state, sym, string_new(state, quark_to_string(locals[i + 3])));
+              string_concat(state, sym, string_new(state,
+                    quark_to_string(id_to_quark(locals[i + 3]))));
             }
             array_push(state, current, STR2SYM(sym));
           } else if (arg_count == 0) {
@@ -847,7 +870,7 @@ namespace rubinius {
         } else {
           add_to_parse_tree(current, node->nd_1st, locals);
         }
-        array_push(state, current, Q2SYM(node->u2.id));
+        array_push(state, current, Q2SYM2(node->u2.id, "="));
         add_to_parse_tree(current, node->nd_3rd, locals);
         break;
 
