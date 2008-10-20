@@ -61,12 +61,10 @@ module Digest
       reset
     end
 
-    def clone
-      other = self.class.allocate
-      other.context = @context.dup
-      other
+    def initialize_copy(original)
+      self.context = original.context.dup
+      self
     end
-    alias :dup :clone
 
     # call-seq:
     #     digest_obj.update(string) -> digest_obj
