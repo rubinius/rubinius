@@ -81,13 +81,22 @@ namespace rubinius {
       virtual bool activated();
     };
 
+    /**
+     *  @note   Unlike other Events, we use a dynamically allocated
+     *          ev_timer here because some evil shit libev does makes
+     *          the compiler think there may be something wrong with
+     *          ev_timer_init. I could not be bothered to figure out
+     *          whether the warning was for cause. And no, casting
+     *          does not work because it would potentially create a
+     *          temporary. --rue
+     */
     class Timer : public Event {
     public:
-      struct ev_timer ev;
+      struct ev_timer* timer;
       Object* tag;
 
       Timer(STATE, ObjectCallback* chan, double seconds, Object* obj = Qnil);
-      virtual ~Timer() { stop(); }
+      virtual ~Timer() { stop(); delete timer; }
       virtual void start();
       virtual void stop();
       virtual bool activated();

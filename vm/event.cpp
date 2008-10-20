@@ -161,16 +161,18 @@ namespace rubinius {
     Timer::Timer(STATE, ObjectCallback* chan, double seconds, Object* obj):
       Event(state, chan), tag(obj)
     {
-      ev_timer_init(&ev, event::tramp<struct ev_timer>, (ev_tstamp)seconds, 0);
-      ev.data = this;
+      timer = new struct ev_timer;
+
+      ev_timer_init(timer, event::tramp<ev_timer>, (ev_tstamp)seconds, 0);
+      timer->data = this;
     }
 
     void Timer::start() {
-      ev_timer_start(loop->base, &ev);
+      ev_timer_start(loop->base, timer);
     }
 
     void Timer::stop() {
-      ev_timer_stop(loop->base, &ev);
+      ev_timer_stop(loop->base, timer);
     }
 
     bool Timer::activated() {
