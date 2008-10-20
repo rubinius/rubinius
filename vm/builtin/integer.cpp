@@ -23,7 +23,7 @@ namespace rubinius {
   }
 
   Integer* Integer::from(STATE, int num) {
-#if (CONFIG_WORDSIZE != 64)
+#if (__WORDSIZE != 64)
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       /* Number is too big for Fixnum. Use Bignum. */
       return Bignum::from(state, (native_int)num);
@@ -33,7 +33,7 @@ namespace rubinius {
   }
 
   Integer* Integer::from(STATE, unsigned int num) {
-#if (CONFIG_WORDSIZE != 64)
+#if (__WORDSIZE != 64)
     if(num > FIXNUM_MAX) {
       return Bignum::from(state, (unsigned long)num);
     }
