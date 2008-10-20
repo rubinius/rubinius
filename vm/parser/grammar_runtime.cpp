@@ -15,9 +15,11 @@
 namespace rubinius {
   namespace parser {
 
-/* We don't want to maintain changes to the imported
- * PT below (beyond what is already changed) so define
- * these expected functions.
+/* A bunch of convenience macros that are closer to the MRI
+ * API than to Rubinius', making porting from ParseTree a
+ * little easier. This whole thing is a big hack and someday
+ * we'll have a PEG parser and we'll throw a big bonfire
+ * party and burn this code. Till then, it's hella fast.
  */
 #define array_new(s, n)       (Object*)Array::create(s, n)
 #define array_size(a)         as<Array>(a)->size()
@@ -576,24 +578,16 @@ namespace rubinius {
         break;
 
       case NODE_VALIAS:           /* u1 u2 (alias $global $global2) */
-        // HACK: after parser update to >= 1.8.6
-        // array_push(state, current, Q2SYM(node->u1.id));
-        // array_push(state, current, Q2SYM(node->u2.id));
         array_push(state, current, Q2SYM(node->u2.id));
         array_push(state, current, Q2SYM(node->u1.id));
         break;
 
       case NODE_ALIAS:            /* u1 u2 (alias :blah :blah2) */
-        // HACK: after parser update to >= 1.8.6
-        // add_to_parse_tree(current, node->nd_1st, locals);
-        // add_to_parse_tree(current, node->nd_2nd, locals);
         array_push(state, current, wrap_into_node(state, "lit", Q2SYM(node->u2.id)));
         array_push(state, current, wrap_into_node(state, "lit", Q2SYM(node->u1.id)));
         break;
 
       case NODE_UNDEF:            /* u2    (undef instvar) */
-        // HACK: after parser update to >= 1.8.6
-        // add_to_parse_tree(current, node->nd_value, locals);
         array_push(state, current, wrap_into_node(state, "lit", Q2SYM(node->u2.id)));
         break;
 
