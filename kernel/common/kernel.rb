@@ -47,7 +47,13 @@ module Kernel
   module_function :Float
 
   def Integer(obj)
-    return obj.to_inum(0, true) if obj.is_a?(String)
+    if obj.is_a?(String)
+      if obj == ''
+        raise ArgumentError, "invalid value for Integer: (empty string)"
+      else
+        return obj.to_inum(0, true)
+      end
+    end
     method = obj.respond_to?(:to_int) ? :to_int : :to_i
     Type.coerce_to(obj, Integer, method)
   end

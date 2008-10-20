@@ -496,10 +496,20 @@ namespace rubinius {
     bool negative = false;
     Integer* value = Fixnum::from(0);
 
-    if(base < 0 || base > 36) return (Integer*)Qnil;
+    if(base < 0 || base == 1 || base > 36) return (Integer*)Qnil;
+    // Strict mode can only be invoked from Ruby via Kernel#Integer()
+    // which does not allow bases other than 0.
+    if(base != 0 && strict == Qtrue) return (Integer*)Qnil;
 
-    // Move past any spaces
-    while(*str == ' ') str++;
+    // Skip any combination of leading whitespace and underscores.
+    // Leading whitespace is OK in strict mode, but underscores are not.
+    while(isspace(*str) || *str == '_') {
+      if(*str == '_' && strict == Qtrue) {
+        return (Integer*)Qnil;
+      } else {
+        str++;
+      }
+    }
 
     if(*str == '-') {
       str++;
@@ -523,63 +533,46 @@ namespace rubinius {
     if(*str == '0') {
       str++;
       switch(chr = *str++) {
-      case 'b':
+      case 'b': case 'B':
         detected_base = 2;
         break;
-      case 'o':
+      case 'o': case 'O':
         detected_base = 8;
         break;
-      case 'd': // does this really exist?
+      case 'd': case 'D':
         detected_base = 10;
         break;
-      case 'x':
+      case 'x': case 'X':
         detected_base = 16;
         break;
       default:
-        // Ok, it's the weird octal 0 start thing. If the next
-        // char is a valid octal character, then we switch to base
-        // 8. Otherwise it's an invalid base prefix and we bail.
-        if(chr >= '0' && chr <= '7') {
-          detected_base = 8;
-          str--;
-        // If there is more and we're strict, bail.
-        } else if(chr && strict == Qtrue) {
-          return (Integer*)Qnil;
-        } else {
-          return value;
-        }
-
-        break;
+        // If passed "017" and a base of 0, that is octal 15.
+        // Otherwise, it is whatever those digits would be in the
+        // specified base.
+        str--;
+        detected_base = 8;
       }
+    }
 
-      // If 0 was passed in as the base, we use the detected base.
-      if(base == 0) {
+    // If 0 was passed in as the base, we use the detected base.
+    if(base == 0) {
+
+      // Default to 10 if there is no input and no detected base.
+      if(detected_base == 0) {
+        base = 10;
+      } else {
         base = detected_base;
+      }
 
       // If the passed in base and the detected base contradict
-      // eachother, then rewind and process the whole string as
+      // each other, then rewind and process the whole string as
       // digits of the passed in base.
-      } else if(base != detected_base) {
-        // rewind the stream, and try and consume the prefix as
-        // digits in the number.
-        str = str_start;
-      }
+    } else if(base != detected_base) {
+      // rewind the stream, and try and consume the prefix as
+      // digits in the number.
+      str = str_start;
     }
 
-    // Default to 10 if there is no input and no detected base.
-    if(detected_base == 0 && base == 0) {
-      base = 10;
-    }
-
-    // A stupid boundry case. A _ is ok at the beginning of the beginning
-    // if we're not strict.
-    if(*str == '_') {
-      if(strict == Qtrue) {
-        return (Integer*)Qnil;
-      } else {
-        str++;
-      }
-    }
 
     bool underscore = false;
 
@@ -587,10 +580,10 @@ namespace rubinius {
       chr = *str++;
 
       // If we see space characters
-      if(chr == ' ' || chr == '\t' || chr == '\n') {
+      if(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
 
         // Eat them all
-        while(chr == ' ' || chr == '\t' || chr == '\n') {
+        while(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
           chr = *str++;
         }
 
@@ -630,7 +623,7 @@ namespace rubinius {
         if(strict == Qtrue) {
           return (Integer*)Qnil;
         } else {
-          goto return_value;
+          break;
         }
       }
 
