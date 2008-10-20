@@ -2,11 +2,11 @@ def test_case
 {"RawParseTree"=>
   [:iter,
    [:fcall, :a],
-   [:dasgn_curr, :x],
+   [:lasgn, :x],
    [:iter,
     [:fcall, :b],
-    [:dasgn, :x],
-    [:fcall, :puts, [:array, [:dvar, :x]]]]],
+    [:lasgn, :x],
+    [:fcall, :puts, [:array, [:lvar, :x]]]]],
  "Ruby"=>"a do |x|\n  b do |x|\n    puts x\n  end\nend",
  "ParseTree"=>
   s(:iter,

@@ -2,16 +2,16 @@ def test_case
 {"RawParseTree"=>
   [:iter,
    [:call, [:vcall, :a], :b],
-   [:masgn, [:array, [:dasgn_curr, :c], [:dasgn_curr, :d]]],
+   [:masgn, [:array, [:lasgn, :c], [:lasgn, :d]]],
    [:if,
-    [:call, [:vcall, :e], :f, [:array, [:dvar, :c]]],
+    [:call, [:vcall, :e], :f, [:array, [:lvar, :c]]],
     nil,
     [:block,
-     [:dasgn_curr, :g, [:false]],
+     [:lasgn, :g, [:false]],
      [:iter,
-      [:call, [:dvar, :d], :h],
-      [:masgn, [:array, [:dasgn_curr, :x], [:dasgn_curr, :i]]],
-      [:dasgn, :g, [:true]]]]]],
+      [:call, [:lvar, :d], :h],
+      [:masgn, [:array, [:lasgn, :x], [:lasgn, :i]]],
+      [:lasgn, :g, [:true]]]]]],
  "Ruby"=>
   "a.b do |c, d|\n  unless e.f(c) then\n    g = false\n    d.h { |x, i| g = true }\n  end\nend",
  "ParseTree"=>

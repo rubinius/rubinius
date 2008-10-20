@@ -2,8 +2,8 @@ def test_case
 {"RawParseTree"=>
   [:iter,
    [:fcall, :proc],
-   [:dasgn_curr, :x],
-   [:call, [:dvar, :x], :+, [:array, [:lit, 1]]]],
+   [:lasgn, :x],
+   [:call, [:lvar, :x], :+, [:array, [:lit, 1]]]],
  "Ruby"=>"proc { |x| (x + 1) }",
  "ParseTree"=>
   s(:iter,

@@ -2,6 +2,13 @@
 #
 # A tiny spec-style runner for working on a parser.
 
+begin
+  require 'sexp'
+rescue LoadError
+  require 'rubygems'
+  require 'sexp'
+end
+
 def to_sexp_pt_r(source)
   source.to_sexp_pt '(string)', 1, false, false
 end

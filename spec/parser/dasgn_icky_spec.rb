@@ -4,7 +4,7 @@ def test_case
    [:fcall, :a],
    nil,
    [:block,
-    [:dasgn_curr, :v, [:nil]],
+    [:lasgn, :v, [:nil]],
     [:iter,
      [:fcall, :assert_block, [:array, [:vcall, :full_message]]],
      nil,
@@ -13,7 +13,7 @@ def test_case
        [:yield],
        [:resbody,
         [:array, [:const, :Exception]],
-        [:block, [:dasgn, :v, [:gvar, :$!]], [:break]]]]]]]],
+        [:block, [:lasgn, :v, [:gvar, :$!]], [:break]]]]]]]],
  "Ruby"=>
   "a do\n  v = nil\n  assert_block(full_message) do\n    begin\n      yield\n    rescue Exception => v\n      break\n    end\n  end\nend",
  "ParseTree"=>

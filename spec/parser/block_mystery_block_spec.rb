@@ -7,9 +7,9 @@ def test_case
     [:vcall, :b],
     [:true],
     [:block,
-     [:dasgn_curr, :c, [:false]],
-     [:iter, [:fcall, :d], [:dasgn_curr, :x], [:dasgn, :c, [:true]]],
-     [:dvar, :c]]]],
+     [:lasgn, :c, [:false]],
+     [:iter, [:fcall, :d], [:lasgn, :x], [:lasgn, :c, [:true]]],
+     [:lvar, :c]]]],
  "Ruby"=>
   "a(b) do\n  if b then\n    true\n  else\n    c = false\n    d { |x| c = true }\n    c\n  end\nend",
  "ParseTree"=>

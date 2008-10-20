@@ -2,13 +2,13 @@ def test_case
 {"RawParseTree"=>
   [:iter,
    [:call, [:vcall, :as], :each],
-   [:dasgn_curr, :a],
-   [:dasgn_curr,
+   [:lasgn, :a],
+   [:lasgn,
     :b,
     [:call,
-     [:dvar, :b],
+     [:lvar, :b],
      :+,
-     [:array, [:call, [:dvar, :a], :b, [:array, [:false]]]]]]],
+     [:array, [:call, [:lvar, :a], :b, [:array, [:false]]]]]]],
  "Ruby"=>"as.each { |a|\n  b += a.b(false) }",
  "ParseTree"=>
   s(:iter,

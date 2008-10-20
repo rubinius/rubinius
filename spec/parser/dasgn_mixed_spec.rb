@@ -4,8 +4,8 @@ def test_case
    [:lasgn, :t, [:lit, 0]],
    [:iter,
     [:call, [:vcall, :ns], :each],
-    [:dasgn_curr, :n],
-    [:lasgn, :t, [:call, [:lvar, :t], :+, [:array, [:dvar, :n]]]]]],
+    [:lasgn, :n],
+    [:lasgn, :t, [:call, [:lvar, :t], :+, [:array, [:lvar, :n]]]]]],
  "Ruby"=>"t = 0\nns.each { |n| t += n }\n",
  "ParseTree"=>
   s(:block,

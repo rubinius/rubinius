@@ -3,9 +3,9 @@ def test_case
   [:iter,
    [:fcall, :a],
    [:masgn,
-    [:array, [:dasgn_curr, :b], [:dasgn_curr, :c]],
-    [:dasgn_curr, :d]],
-   [:fcall, :p, [:array, [:dvar, :c]]]],
+    [:array, [:lasgn, :b], [:lasgn, :c]],
+    [:lasgn, :d]],
+   [:fcall, :p, [:array, [:lvar, :c]]]],
  "Ruby"=>"a { |b, c, *d| p(c) }",
  "ParseTree"=>
   s(:iter,

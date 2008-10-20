@@ -16,8 +16,8 @@ def test_case
          [:resbody,
           [:array, [:const, :RuntimeError]],
           [:block,
-           [:dasgn_curr, :b, [:gvar, :$!]],
-           [:fcall, :puts, [:array, [:dvar, :b]]]]]]]]]]]],
+           [:lasgn, :b, [:gvar, :$!]],
+           [:fcall, :puts, [:array, [:lvar, :b]]]]]]]]]]]],
  "Ruby"=>
   "b = 42\ndef a\n  c do\n    begin\n      do_stuff\n    rescue RuntimeError => b\n      puts(b)\n    end\n  end\nend\n",
  "ParseTree"=>

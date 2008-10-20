@@ -5,13 +5,13 @@ def test_case
    [:lasgn, :array2, [:array, [:lit, 4], [:lit, 5], [:lit, 6], [:lit, 7]]],
    [:iter,
     [:call, [:lvar, :array1], :each],
-    [:dasgn_curr, :x],
+    [:lasgn, :x],
     [:iter,
      [:call, [:lvar, :array2], :each],
-     [:dasgn_curr, :y],
+     [:lasgn, :y],
      [:block,
-      [:fcall, :puts, [:array, [:call, [:dvar, :x], :to_s]]],
-      [:fcall, :puts, [:array, [:call, [:dvar, :y], :to_s]]]]]]],
+      [:fcall, :puts, [:array, [:call, [:lvar, :x], :to_s]]],
+      [:fcall, :puts, [:array, [:call, [:lvar, :y], :to_s]]]]]]],
  "Ruby"=>
   "array1 = [1, 2, 3]\narray2 = [4, 5, 6, 7]\narray1.each do |x|\n  array2.each do |y|\n    puts(x.to_s)\n    puts(y.to_s)\n  end\nend\n",
  "ParseTree"=>

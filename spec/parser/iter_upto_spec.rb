@@ -2,8 +2,8 @@ def test_case
 {"RawParseTree"=>
   [:iter,
    [:call, [:lit, 1], :upto, [:array, [:lit, 3]]],
-   [:dasgn_curr, :n],
-   [:fcall, :puts, [:array, [:call, [:dvar, :n], :to_s]]]],
+   [:lasgn, :n],
+   [:fcall, :puts, [:array, [:call, [:lvar, :n], :to_s]]]],
  "Ruby"=>"1.upto(3) { |n| puts(n.to_s) }",
  "ParseTree"=>
   s(:iter,
