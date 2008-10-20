@@ -12,10 +12,6 @@ else
   LLVM_STYLE = "Release"
 end
 
-if ENV["DEV"]
-  raise "\n ** DEV is deprecated. See `rake build:help`\n\n"
-end
-
 
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
@@ -120,6 +116,12 @@ INCLUDES.map! { |f| "-I#{f}" }
 # Default build options
 FLAGS         = %w[ -pipe -Wall -Wno-deprecated ]
 
+BUILD_PRETASKS = []
+
+if ENV['DEV']
+  BUILD_PRETASKS << "build:debug_flags"
+end
+
 CC          = ENV['CC'] || "gcc"
 
 def compile_c(obj, src)
@@ -193,7 +195,8 @@ namespace :build do
   task :ridiculous  => %w[ build:ridiculous_flags build:build ]
 
   # Issue the actual build commands. NEVER USE DIRECTLY.
-  task :build => %w[ vm
+  task :build => BUILD_PRETASKS +
+                 %w[ vm
                      kernel:build
                      lib/rbconfig.rb
                      extensions
@@ -202,7 +205,7 @@ namespace :build do
   # Flag setup
 
   task :normal_flags do
-    FLAGS.concat %w[ -O2 -Wuninitialized ]
+    FLAGS.concat %w[ -O2 -Werror ]
   end
 
   task :inline_flags => :normal_flags do
@@ -211,21 +214,21 @@ namespace :build do
 
   # -Wuninitialized requires -O, so it is not here.
   task :debug_flags do
-    FLAGS.concat %w[ -ggdb3 -O0 -fno-inline
-                     -Wextra
-                     -Wno-inline -Wno-unused-parameter
-                   ]
+    FLAGS.delete "-O2"
+    FLAGS.concat %w[ -ggdb3 -O0 -fno-inline ]
   end
 
   task :strict_flags => "build:debug_flags" do
     FLAGS.concat %w[ -W -pedantic
                      -Wshadow -Wfloat-equal -Wsign-conversion
                      -Wno-long-long
+                     -Wextra -Wuninitialized
+                     -Wno-inline -Wno-unused-parameter
                    ]
   end
 
   task :ridiculous_flags => "build:strict_flags" do
-    FLAGS.concat %w[ -Werror -Weffc++ ]
+    FLAGS.concat %w[ -Weffc++ ]
   end
 
   desc "Print more information about the build task options."
@@ -264,8 +267,6 @@ namespace :build do
                     this build.
 
   Notes:
-    - Unitialized variables are only detected by build and build:inline.
-    - Only build:ridiculous treats warnings as errors.
     - If you do not want to use --trace but do want to see the exact
       shell commands issued for compilation, invoke Rake thus:
 
