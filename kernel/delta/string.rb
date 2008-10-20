@@ -23,8 +23,8 @@ class String
   end
 
   def to_sexp_pt(name="(eval)", line=1, rewriter=true, unifier=true)
-    require 'unified_ruby'
     require 'compiler/lit_rewriter'
+    require 'unified_ruby'
 
     sexp = parse name, line
     if sexp.kind_of? Tuple
