@@ -7220,7 +7220,7 @@ yyreduce:
   case 465:
 #line 2385 "vm/parser/grammar.y"
     {
-                        (yyval.id) = 0;
+                        (yyval.id) = -2;
                     ;}
     break;
 

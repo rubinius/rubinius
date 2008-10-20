@@ -489,10 +489,7 @@ namespace rubinius {
 
       case NODE_OP_ASGN1:
         add_to_parse_tree(current, node->nd_recv, locals);
-        // HACK: after parser update to >= 1.8.6
-        // add_to_parse_tree(current, node->nd_args->nd_2nd, locals);
-        add_to_parse_tree(current, node->nd_args->nd_next, locals);
-        array_pop(state, array_entry(state, current, -1));
+        add_to_parse_tree(current, node->nd_args->nd_2nd, locals);
         switch(node->nd_mid) {
           case 0:
             array_push(state, current, SYMBOL("||"));
