@@ -79,6 +79,8 @@ Options:
   -ps            Run the Selector profiler.
   -pss           Run the SendSite profiler.
   -rlibrary      Require library before execution.
+  -P             Use MRI-based parser.
+  -R             Use RubyParser.
   -w             Enable warnings. (currently does nothing--compatibility)
   -v             Display the version and set $VERBOSE to true.
 END
@@ -152,6 +154,10 @@ begin
 
       # if missing, let it die a natural death
       ARGV.unshift file ? file : script
+    when '-P'
+      String.parser = :pt
+    when '-R'
+      String.parser = :rp
     when '-e'
       $0 = "(eval)"
       eval_code = ARGV.shift

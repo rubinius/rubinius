@@ -7,12 +7,23 @@ class String
   BASE_64_A2B[?\/] = ??
   BASE_64_A2B[?=]  = 0
 
+  @@parser = :rp
+
+  def self.parser=(parser)
+    @@parser = parser
+  end
+
+  def self.parser
+    @@parser
+  end
+
   def parse(name, line)
     Ruby.primitive :string_parse
     raise PrimitiveFailure, "String#parse primitive failed"
   end
 
-  def to_sexp_pt(name="(eval)", line=1, rewriter=true)
+  def to_sexp_pt(name="(eval)", line=1, rewriter=true, unifier=true)
+    require 'unified_ruby'
     require 'compiler/lit_rewriter'
 
     sexp = parse name, line
@@ -25,6 +36,7 @@ class String
 
     sexp = [:newline, 0, "<empty: #{name}>", [:nil]] unless sexp
     sexp = Sexp.from_array sexp
+    sexp = Unifier.new.process sexp if unifier
     sexp = Rubinius::LitRewriter.new.process sexp if rewriter
     sexp
   end
@@ -39,7 +51,7 @@ class String
   end
 
   def to_sexp(name="(eval)", line=1, rewriter=true)
-    if ENV['PT_PARSER']
+    if self.class.parser == :pt
       to_sexp_pt name, line, rewriter
     else
       to_sexp_rp name, line, rewriter
