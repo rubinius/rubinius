@@ -207,6 +207,7 @@ namespace :build do
                  %w[ vm
                      kernel:build
                      lib/rbconfig.rb
+                     build:ffi:preprocessor
                      extensions
                    ]
 
@@ -281,6 +282,22 @@ namespace :build do
         `rake build:debug -- -v`
 
     ENDHELP
+  end
+
+  namespace :ffi do
+
+    FFI_PREPROCESSABLES = %w[ lib/etc.rb
+                              lib/fcntl.rb
+                              lib/openssl/digest.rb
+                              lib/syslog.rb
+                              lib/zlib.rb
+                            ]
+
+    # Generate the .rb files from lib/*.rb.ffi
+    task :preprocessor => FFI_PREPROCESSABLES
+
+    FFI::Generator::Task.new FFI_PREPROCESSABLES
+
   end
 
 end

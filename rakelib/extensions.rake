@@ -73,14 +73,6 @@ namespace :extension do
 
   # The ones below are not used currently.
 
-  FFI::Generator::Task.new %w[
-    lib/etc.rb
-    lib/fcntl.rb
-    lib/openssl/digest.rb
-    lib/syslog.rb
-    lib/zlib.rb
-  ]
-
   task :mongrel => "lib/ext/mongrel/http11.#{$dlext}"
 
   file "lib/ext/mongrel/http11.#{$dlext}" => FileList[
