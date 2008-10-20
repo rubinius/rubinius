@@ -1,4 +1,4 @@
-= Installation guide for Rubinius as of 10/2007
+= Installation guide for Rubinius as of 10/2008
 
 If you are having trouble with installation, the #rubinius IRC channel on
 irc://irc.freenode.net will help.
@@ -13,15 +13,17 @@ needed and then any platform-specific requirements.
 
 === General requirements
 
-* "GCC version 4.x":http://gcc.gnu.org/
+* "GCC 4.x (both g++ and gcc)":http://gcc.gnu.org/
 * "GNU Bison":http://www.gnu.org/software/bison/
-* "gmake (GNU Make)":http://savannah.gnu.org/projects/make/
-* "pkg-config (configuration tool)":http://pkgconfig.freedesktop.org/
-* "libtool version >= 1.5":http://www.gnu.org/software/libtool/
 * "Ruby version >= 1.8.4 (the Ruby language)":http://www.ruby-lang.org/
 * "RubyGems (Ruby package manager)":http://www.rubygems.org/
 * "Git (source control used by rubinius)":http://git.or.cz/
-* "zip and unzip commands (archiving)":http://www.info-zip.org
+* "zlib compression library":http://www.zlib.net/
+
+Most systems already use GNU Make as their default, but for
+those using a BSD Make:
+
+* "gmake (GNU Make)":http://savannah.gnu.org/projects/make/
 
 Each package may have requirements of its own, of course.
 
@@ -35,6 +37,7 @@ for rubinius development.
 === Requirements through RubyGems
 
 * rake
+* ParseTree
 
 Rake may be obtained with the `gem install` command. See `gem help` and
 http://www.rubygems.org for more information.
@@ -48,40 +51,47 @@ http://www.rubygems.org for more information.
 * "libexecinfo (backtrace utilities)":http://www.freshports.org/devel/libexecinfo
 
 
+==== Debian/Ubuntu family systems
+
+For the build to succeed you will need these packages:
+
+* ruby-dev
+* libreadline5-dev
+* zlib1g-dev
+
+
 == Rubinius itself
 
 You need to check Rubinius out through Git (which we just installed). The
 invocation looks like this:
 
-  git clone http://git.rubini.us/code rubinius
+  git clone git://github.com/evanphx/rubinius.git
 
-For more information on rubinius' best practices for git, see "using
+For more information on Rubinius' best practices for git, see "using
 git":http://rubinius.lighthouseapp.com/projects/5089/using-git
 
 
 == Compiling Rubinius
 
-Once you have all the prerequisites installed, building rubinius is as simple
-as:
+The C++ VM is compiled using Rake. Typically, it will be as simple as:
 
-  cd /path/to/rubinius
   rake build
-
-This will give you a binary, @./shotgun/rubinius@ which can then be invoked to
-run scripts. If your system compiler is not GCC 4.x, you can set the CC environment variable:
-
-  CC=/path/to/gcc rake build
-
-If you want a development version (no optimisations, extra debug info), set the DEV environment variable:
-
-  DEV=1 rake build
 
 
 == Installing Rubinius
 
-To install @rbx@ as a shortcut for @./shotgun/rubinius@:
+The C++ should not currently be installed separately.
 
-  rake install
+
+== Running Rubinius
+
+Once compiled, you can verify the VM works:
+
+  bin/rbx -v
+
+Rubinius generally works like Ruby from the command-line. For example:
+
+  bin/rbx -e 'puts "Hello!"'
 
 
 == Troubleshooting and platform-specific notes
@@ -90,32 +100,4 @@ Right now, the very best thing to do is to join the #rubinius IRC channel on
 irc://irc.freenode.net.  The forums here are an alternative method though the
 response is probably not going to be as swift. We will try to collect tips
 here, too.
-
-
-=== 64-bit platforms
-
-Currently mostly works on amd64 and Opteron. Other 64-bit platforms have not
-been tested.
-
-
-=== Mac OS X with Fink
-
-See http://42squared.com/posts/how_to_install_rubinius_on_mac_os_x
-
-If you are getting an error like this one:
-
-  glibtool: link: cannot build libtool library `librubinius.la' from non-libtool objects: ...
-
-This is probably because you are using an old glibtool (1.3.5 or similar) that
-came with Fink.  This is the case when `which glibtool` returns
-/sw/bin/glibtool. You want to use /usr/bin/glibtool (1.5) instead.  If you are
-radical you can just `sudo rm /sw/bin/glibtool` to fix this mess.
-
-
-=== Ubuntu
-
-For the build to succeed you will need these packages:
-
-* libglib2.0-dev
-* zlib1g-dev
 

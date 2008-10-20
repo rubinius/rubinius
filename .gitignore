@@ -97,4 +97,4 @@ vm/external_libs/llvm/tools/Makefile
 vm/external_libs/llvm/utils/Makefile
 
 # Generated documentation
-vm/doc/generated_doc
+vm/doc/generated
