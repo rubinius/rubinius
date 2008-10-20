@@ -8314,7 +8314,7 @@ heredoc_restore(NODE *here, rb_parse_state *parse_state)
 }
 
 static int
-whole_match_p(char *eos, int len, int indent, rb_parse_state *parse_state)
+whole_match_p(const char *eos, int len, int indent, rb_parse_state *parse_state)
 {
     char *p = parse_state->lex_pbeg;
     int n;
