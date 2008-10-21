@@ -5,7 +5,7 @@ def test_case
    [:evstr, [:call, [:lit, 1], :+, [:array, [:lit, 1]]]],
    [:str, "blah\n"]],
  "Ruby"=>"<<EOM\n  blah\n\#{1 + 1}blah\nEOM\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:dstr,
    "  blah\n",
    s(:evstr, s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1)))),

@@ -8,7 +8,7 @@ def test_case
     [:lasgn, :x],
     [:fcall, :puts, [:array, [:lvar, :x]]]]],
  "Ruby"=>"a do |x|\n  b do |x|\n    puts x\n  end\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, nil, :a, s(:arglist)),
    s(:lasgn, :x),

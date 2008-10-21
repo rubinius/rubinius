@@ -6,7 +6,7 @@ def test_case
    [:scope,
     [:block, [:args, :y], [:call, [:lvar, :y], :+, [:array, [:lit, 1]]]]]],
  "Ruby"=>"def self.x(y)\n  (y + 1)\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defs,
    s(:self),
    :x,

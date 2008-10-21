@@ -7,7 +7,7 @@ def test_case
     [:evstr, [:call, [:str, "%.2f"], :%, [:array, [:lit, 3.14159]]]],
     [:str, "y"]]],
  "Ruby"=>"argl = 1\n\"x\#{(\"%.2f\" % 3.14159)}y\"\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :argl, s(:lit, 1)),
    s(:dstr,

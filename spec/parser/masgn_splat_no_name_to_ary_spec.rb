@@ -5,7 +5,7 @@ def test_case
    [:splat],
    [:to_ary, [:vcall, :c]]],
  "Ruby"=>"a, b, * = c",
- "ParseTree"=>
+ "RubyParser"=>
   s(:masgn,
    s(:array, s(:lasgn, :a), s(:lasgn, :b), s(:splat)),
    s(:to_ary, s(:call, nil, :c, s(:arglist))))}

@@ -1,3 +1,3 @@
 def test_case
-{"RawParseTree"=>[:negate, [:lit, 1]], "Ruby"=>"-1", "ParseTree"=>s(:lit, -1)}
+{"RawParseTree"=>[:negate, [:lit, 1]], "Ruby"=>"-1", "RubyParser"=>s(:lit, -1)}
 end

@@ -1,3 +1,3 @@
 def test_case
-{"RawParseTree"=>[:str, "x"], "Ruby"=>"\"x\"", "ParseTree"=>s(:str, "x")}
+{"RawParseTree"=>[:str, "x"], "Ruby"=>"\"x\"", "RubyParser"=>s(:str, "x")}
 end

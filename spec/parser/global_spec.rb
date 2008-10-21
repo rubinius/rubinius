@@ -1,5 +1,5 @@
 def test_case
 {"RawParseTree"=>[:gvar, :$stderr],
  "Ruby"=>"$stderr",
- "ParseTree"=>s(:gvar, :$stderr)}
+ "RubyParser"=>s(:gvar, :$stderr)}
 end

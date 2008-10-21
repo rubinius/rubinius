@@ -9,7 +9,7 @@ def test_case
    [:op_asgn2, [:call, [:call, [:lvar, :c], :d], :e], :f=, :"||", [:lit, 42]]],
  "Ruby"=>
   "s = Struct.new(:var)\nc = s.new(nil)\nc.var ||= 20\nc.var &&= 21\nc.var += 22\nc.d.e.f ||= 42\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn,
     :s,

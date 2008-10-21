@@ -7,7 +7,7 @@ def test_case
     [:call, [:lit, 3], :+, [:array, [:lit, 4]]]],
    false],
  "Ruby"=>"begin\n  (1 + 2)\n  (3 + 4)\nend while false",
- "ParseTree"=>
+ "RubyParser"=>
   s(:while,
    s(:false),
    s(:block,

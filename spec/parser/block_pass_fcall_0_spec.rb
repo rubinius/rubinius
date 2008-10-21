@@ -1,7 +1,7 @@
 def test_case
 {"RawParseTree"=>[:block_pass, [:vcall, :b], [:fcall, :a]],
  "Ruby"=>"a(&b)",
- "ParseTree"=>
+ "RubyParser"=>
   s(:call,
    nil,
    :a,

@@ -11,7 +11,7 @@ def test_case
    [:lit, :c]],
  "Ruby"=>
   "case\nwhen (a == 1) then\n  :a\nwhen (a == 2) then\n  :b\nelse\n  :c\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:case,
    nil,
    s(:when,

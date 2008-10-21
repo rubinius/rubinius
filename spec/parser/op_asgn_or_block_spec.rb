@@ -4,7 +4,7 @@ def test_case
    [:lvar, :a],
    [:lasgn, :a, [:rescue, [:vcall, :b], [:resbody, nil, [:vcall, :c]]]]],
  "Ruby"=>"a ||= begin\n        b\n      rescue\n        c\n      end",
- "ParseTree"=>
+ "RubyParser"=>
   s(:op_asgn_or,
    s(:lvar, :a),
    s(:lasgn,

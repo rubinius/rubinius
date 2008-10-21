@@ -1,3 +1,3 @@
 def test_case
-{"RawParseTree"=>[:const, :X], "Ruby"=>"X", "ParseTree"=>s(:const, :X)}
+{"RawParseTree"=>[:const, :X], "Ruby"=>"X", "RubyParser"=>s(:const, :X)}
 end

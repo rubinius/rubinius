@@ -4,7 +4,7 @@ def test_case
    :x,
    [:scope, [:block, [:args, :a, :*], [:fcall, :p, [:array, [:lvar, :a]]]]]],
  "Ruby"=>"def x(a, *)\n  p(a)\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :x,
    s(:args, :a, :*),

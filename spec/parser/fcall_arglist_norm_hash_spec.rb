@@ -6,7 +6,7 @@ def test_case
     [:lit, 42],
     [:hash, [:lit, :a], [:lit, 1], [:lit, :b], [:lit, 2]]]],
  "Ruby"=>"m(42, :a => 1, :b => 2)",
- "ParseTree"=>
+ "RubyParser"=>
   s(:call,
    nil,
    :m,

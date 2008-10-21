@@ -14,7 +14,7 @@ def test_case
     [:lit, 5]]],
  "Ruby"=>
   "begin\n  (1 + 1)\nrescue SyntaxError => e1\n  2\nrescue Exception => e2\n  3\nelse\n  4\nensure\n  5\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:ensure,
    s(:rescue,
     s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1))),

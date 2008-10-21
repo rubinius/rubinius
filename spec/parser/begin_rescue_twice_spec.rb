@@ -6,7 +6,7 @@ def test_case
     [:rescue, [:vcall, :b], [:resbody, nil, [:lasgn, :mes, [:gvar, :$!]]]]]],
  "Ruby"=>
   "begin\n  a\nrescue => mes\n  # do nothing\nend\nbegin\n  b\nrescue => mes\n  # do nothing\nend\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:rescue,
     s(:call, nil, :a, s(:arglist)),

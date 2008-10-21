@@ -7,7 +7,7 @@ def test_case
      [:array, [:const, :RuntimeError]],
      [:lasgn, :r, [:gvar, :$!]]]]],
  "Ruby"=>"begin\n  blah\nrescue RuntimeError => r\n  # do nothing\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:rescue,
    s(:call, nil, :blah, s(:arglist)),
    s(:resbody,

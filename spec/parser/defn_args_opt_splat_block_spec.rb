@@ -8,7 +8,7 @@ def test_case
      [:block_arg, :block],
      [:nil]]]],
  "Ruby"=>"def f(opt = 42, *rest, &block)\n  # do nothing\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :f,
    s(:args,

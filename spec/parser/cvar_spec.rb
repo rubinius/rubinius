@@ -1,3 +1,3 @@
 def test_case
-{"RawParseTree"=>[:cvar, :@@x], "Ruby"=>"@@x", "ParseTree"=>s(:cvar, :@@x)}
+{"RawParseTree"=>[:cvar, :@@x], "Ruby"=>"@@x", "RubyParser"=>s(:cvar, :@@x)}
 end

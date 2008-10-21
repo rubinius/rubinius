@@ -10,7 +10,7 @@ def test_case
       [:block, [:lasgn, :a, [:lit, 0.0]], [:lasgn, :b, [:lit, 0.0]]]],
      [:call, [:lvar, :a], :+, [:array, [:lvar, :b]]]]]],
  "Ruby"=>"def x(a=0.0,b=0.0)\n  a+b\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :x,
    s(:args,

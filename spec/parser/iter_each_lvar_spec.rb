@@ -7,7 +7,7 @@ def test_case
     [:lasgn, :x],
     [:fcall, :puts, [:array, [:call, [:lvar, :x], :to_s]]]]],
  "Ruby"=>"array = [1, 2, 3]\narray.each { |x| puts(x.to_s) }\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :array, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3))),
    s(:iter,

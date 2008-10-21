@@ -2,7 +2,7 @@ def test_case
 {"RawParseTree"=>
   [:for, [:vcall, :ary], [:lasgn, :o], [:fcall, :puts, [:array, [:lvar, :o]]]],
  "Ruby"=>"for o in ary do\n  puts(o)\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:for,
    s(:call, nil, :ary, s(:arglist)),
    s(:lasgn, :o),

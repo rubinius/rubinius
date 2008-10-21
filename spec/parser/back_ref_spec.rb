@@ -6,7 +6,7 @@ def test_case
    [:back_ref, :"'"],
    [:back_ref, :+]],
  "Ruby"=>"[$&, $`, $', $+]",
- "ParseTree"=>
+ "RubyParser"=>
   s(:array,
    s(:back_ref, :&),
    s(:back_ref, :`),

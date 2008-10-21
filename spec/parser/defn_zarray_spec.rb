@@ -5,7 +5,7 @@ def test_case
    [:scope,
     [:block, [:args], [:lasgn, :a, [:zarray]], [:return, [:lvar, :a]]]]],
  "Ruby"=>"def zarray\n  a = []\n  return a\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :zarray,
    s(:args),

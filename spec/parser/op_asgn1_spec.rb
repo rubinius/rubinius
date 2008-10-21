@@ -6,7 +6,7 @@ def test_case
    [:op_asgn1, [:lvar, :b], [:array, [:lit, 2]], :"&&", [:lit, 11]],
    [:op_asgn1, [:lvar, :b], [:array, [:lit, 3]], :+, [:lit, 12]]],
  "Ruby"=>"b = []\nb[1] ||= 10\nb[2] &&= 11\nb[3] += 12\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :b, s(:array)),
    s(:op_asgn1, s(:lvar, :b), s(:arglist, s(:lit, 1)), :"||", s(:lit, 10)),

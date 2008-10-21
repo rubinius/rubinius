@@ -9,7 +9,7 @@ def test_case
      [:hash, [:lit, :a], [:lit, 1], [:lit, :b], [:lit, 2]]],
     [:vcall, :c]]],
  "Ruby"=>"o.m(42, :a => 1, :b => 2, *c)",
- "ParseTree"=>
+ "RubyParser"=>
   s(:call,
    s(:call, nil, :o, s(:arglist)),
    :m,

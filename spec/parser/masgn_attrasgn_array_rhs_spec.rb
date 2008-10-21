@@ -7,7 +7,7 @@ def test_case
     [:lasgn, :_]],
    [:to_ary, [:vcall, :q]]],
  "Ruby"=>"a.b, a.c, _ = q",
- "ParseTree"=>
+ "RubyParser"=>
   s(:masgn,
    s(:array,
     s(:attrasgn, s(:call, nil, :a, s(:arglist)), :b=, s(:arglist)),

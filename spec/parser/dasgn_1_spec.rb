@@ -11,7 +11,7 @@ def test_case
      [:lasgn, :c, [:call, [:lvar, :c], :+, [:array, [:lit, 1]]]]],
     nil]],
  "Ruby"=>"a.each { |x| b.each { |y| c = (c + 1) } if true }",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, s(:call, nil, :a, s(:arglist)), :each, s(:arglist)),
    s(:lasgn, :x),

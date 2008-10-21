@@ -11,7 +11,7 @@ def test_case
    [:evstr, [:lit, 1]],
    [:str, ")"]],
  "Ruby"=>"\"before \#{from} middle \#{to} (\#{__FILE__}:\#{__LINE__})\"",
- "ParseTree"=>
+ "RubyParser"=>
   s(:dstr,
    "before ",
    s(:evstr, s(:call, nil, :from, s(:arglist))),

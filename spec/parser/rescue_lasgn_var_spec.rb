@@ -7,7 +7,7 @@ def test_case
      nil,
      [:block, [:lasgn, :e, [:gvar, :$!]], [:lasgn, :var, [:lit, 2]]]]]],
  "Ruby"=>"begin\n  1\nrescue => e\n  var = 2\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:rescue,
    s(:lit, 1),
    s(:resbody,

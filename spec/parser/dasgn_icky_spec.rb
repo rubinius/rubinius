@@ -16,7 +16,7 @@ def test_case
         [:block, [:lasgn, :v, [:gvar, :$!]], [:break]]]]]]]],
  "Ruby"=>
   "a do\n  v = nil\n  assert_block(full_message) do\n    begin\n      yield\n    rescue Exception => v\n      break\n    end\n  end\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, nil, :a, s(:arglist)),
    nil,

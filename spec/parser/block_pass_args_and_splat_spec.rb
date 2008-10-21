@@ -10,7 +10,7 @@ def test_case
       [:lvar, :block],
       [:fcall, :other, [:argscat, [:array, [:lit, 42]], [:lvar, :args]]]]]]],
  "Ruby"=>"def blah(*args, &block)\n  other(42, *args, &block)\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :blah,
    s(:args, :"*args", :"&block"),

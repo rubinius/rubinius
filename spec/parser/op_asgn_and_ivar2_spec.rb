@@ -12,7 +12,7 @@ def test_case
        :[],
        [:array, [:lit, :http_proxy]]]]]]],
  "Ruby"=>"@fetcher &&= new(Gem.configuration[:http_proxy])",
- "ParseTree"=>
+ "RubyParser"=>
   s(:op_asgn_and,
    s(:ivar, :@fetcher),
    s(:iasgn,

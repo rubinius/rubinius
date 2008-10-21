@@ -11,7 +11,7 @@ def test_case
       :+,
       [:array, [:str, "  second\n"]]]]]],
  "Ruby"=>"a += <<-H1 + b + <<-H2\n  first\nH1\n  second\nH2",
- "ParseTree"=>
+ "RubyParser"=>
   s(:lasgn,
    :a,
    s(:call,

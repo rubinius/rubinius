@@ -9,7 +9,7 @@ def test_case
      [:rescue, [:vcall, :b], [:resbody, nil, [:vcall, :c]]],
      [:vcall, :d]]]],
  "Ruby"=>"def f\n  a\n  begin\n    b\n  rescue\n    c\n  end\n  d\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :f,
    s(:args),

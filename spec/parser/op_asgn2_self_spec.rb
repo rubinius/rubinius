@@ -2,7 +2,7 @@ def test_case
 {"RawParseTree"=>
   [:op_asgn2, [:self], :"Bag=", :"||", [:call, [:const, :Bag], :new]],
  "Ruby"=>"self.Bag ||= Bag.new",
- "ParseTree"=>
+ "RubyParser"=>
   s(:op_asgn2,
    s(:self),
    :"Bag=",

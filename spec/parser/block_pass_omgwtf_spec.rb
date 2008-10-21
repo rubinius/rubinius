@@ -9,7 +9,7 @@ def test_case
     :define_attr_method,
     [:array, [:lit, :x], [:lit, :sequence_name]]]],
  "Ruby"=>"define_attr_method(:x, :sequence_name, &Proc.new { |*args| nil })",
- "ParseTree"=>
+ "RubyParser"=>
   s(:call,
    nil,
    :define_attr_method,

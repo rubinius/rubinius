@@ -4,7 +4,7 @@ def test_case
    [:vcall, :f1],
    [:block, [:undef, [:lit, :x]], [:undef, [:lit, :y]], [:undef, [:lit, :z]]]],
  "Ruby"=>"f1\nundef :x, :y, :z",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:call, nil, :f1, s(:arglist)),
    s(:block,

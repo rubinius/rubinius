@@ -6,7 +6,7 @@ def test_case
     [:lasgn, :y, [:lit, 1]],
     [:call, [:lvar, :y], :+, [:array, [:lit, 2]]]]],
  "Ruby"=>"x = (y = 1\n(y + 2))",
- "ParseTree"=>
+ "RubyParser"=>
   s(:lasgn,
    :x,
    s(:block,

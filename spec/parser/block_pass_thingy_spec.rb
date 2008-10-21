@@ -4,7 +4,7 @@ def test_case
    [:vcall, :block],
    [:call, [:vcall, :r], :read_body, [:array, [:vcall, :dest]]]],
  "Ruby"=>"r.read_body(dest, &block)",
- "ParseTree"=>
+ "RubyParser"=>
   s(:call,
    s(:call, nil, :r, s(:arglist)),
    :read_body,

@@ -10,7 +10,7 @@ def test_case
      :+,
      [:array, [:call, [:lvar, :a], :b, [:array, [:false]]]]]]],
  "Ruby"=>"as.each { |a|\n  b += a.b(false) }",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, s(:call, nil, :as, s(:arglist)), :each, s(:arglist)),
    s(:lasgn, :a),

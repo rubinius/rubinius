@@ -10,7 +10,7 @@ def test_case
    [:lvar, :a]],
  "Ruby"=>
   "a = if c\n      begin\n        b\n      rescue\n        nil\n      end\n    end\na",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn,
     :a,

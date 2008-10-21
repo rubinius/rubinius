@@ -6,7 +6,7 @@ def test_case
    [:undef, [:lit, :z]],
    [:vcall, :f2]],
  "Ruby"=>"undef :x, :y, :z\nf2",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:undef, s(:lit, :x)),
    s(:undef, s(:lit, :y)),

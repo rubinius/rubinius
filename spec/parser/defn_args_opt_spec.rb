@@ -5,7 +5,7 @@ def test_case
    [:scope,
     [:block, [:args, :opt, [:block, [:lasgn, :opt, [:lit, 42]]]], [:nil]]]],
  "Ruby"=>"def f(opt = 42)\n  # do nothing\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :f,
    s(:args, :opt, s(:block, s(:lasgn, :opt, s(:lit, 42)))),

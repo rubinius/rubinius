@@ -7,7 +7,7 @@ def test_case
    [:nil],
    nil],
  "Ruby"=>"if (x = 5\n(x + 1)) then\n  nil\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:if,
    s(:block,
     s(:lasgn, :x, s(:lit, 5)),

@@ -9,7 +9,7 @@ def test_case
    [:str, "55"],
    [:evstr, [:lit, 66]]],
  "Ruby"=>"\"\#{22}aa\" \"cd\#{44}\" \"55\" \"\#{66}\"",
- "ParseTree"=>
+ "RubyParser"=>
   s(:dstr,
    "",
    s(:evstr, s(:lit, 22)),

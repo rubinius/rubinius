@@ -9,7 +9,7 @@ def test_case
    [:evstr, [:cvar, :@@cvar]],
    [:str, " d"]],
  "Ruby"=>"\"a \#$global b \#@ivar c \#@@cvar d\"",
- "ParseTree"=>
+ "RubyParser"=>
   s(:dstr,
    "a ",
    s(:evstr, s(:gvar, :$global)),

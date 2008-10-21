@@ -12,7 +12,7 @@ def test_case
        [:block, [:args], [:fcall, :puts, [:array, [:str, "hello"]]]]]]]]],
  "Ruby"=>
   "class X\n  puts((1 + 1))\n  def blah\n    puts(\"hello\")\n  end\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:class,
    :X,
    nil,

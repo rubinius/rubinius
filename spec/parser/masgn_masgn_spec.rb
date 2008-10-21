@@ -6,7 +6,7 @@ def test_case
     [:masgn, [:array, [:lasgn, :b], [:lasgn, :c]]]],
    [:to_ary, [:array, [:lit, 1], [:array, [:lit, 2], [:lit, 3]]]]],
  "Ruby"=>"a, (b, c) = [1, [2, 3]]",
- "ParseTree"=>
+ "RubyParser"=>
   s(:masgn,
    s(:array,
     s(:lasgn, :a),

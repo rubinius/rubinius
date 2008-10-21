@@ -7,7 +7,7 @@ def test_case
      nil,
      [:block, [:iasgn, :@e, [:gvar, :$!]], [:vcall, :c], [:vcall, :d]]]]],
  "Ruby"=>"begin\n  a\nrescue => @e\n  c\n  d\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:rescue,
    s(:call, nil, :a, s(:arglist)),
    s(:resbody,

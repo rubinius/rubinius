@@ -5,7 +5,7 @@ def test_case
    :[]=,
    [:argspush, [:splat, [:vcall, :b]], [:vcall, :c]]],
  "Ruby"=>"a[*b] = c",
- "ParseTree"=>
+ "RubyParser"=>
   s(:attrasgn,
    s(:call, nil, :a, s(:arglist)),
    :[]=,

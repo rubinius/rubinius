@@ -1,3 +1,3 @@
 def test_case
-{"RawParseTree"=>[:retry], "Ruby"=>"retry", "ParseTree"=>s(:retry)}
+{"RawParseTree"=>[:retry], "Ruby"=>"retry", "RubyParser"=>s(:retry)}
 end

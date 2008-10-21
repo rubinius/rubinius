@@ -20,7 +20,7 @@ def test_case
            [:fcall, :puts, [:array, [:lvar, :b]]]]]]]]]]]],
  "Ruby"=>
   "b = 42\ndef a\n  c do\n    begin\n      do_stuff\n    rescue RuntimeError => b\n      puts(b)\n    end\n  end\nend\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :b, s(:lit, 42)),
    s(:defn,

@@ -23,7 +23,7 @@ def test_case
     [:lasgn, :result, [:lit, 7]]]],
  "Ruby"=>
   "var1 = 1\nvar2 = 2\nresult = nil\ncase var1\nwhen 1 then\n  case var2\n  when 1 then\n    result = 1\n  when 2 then\n    result = 2\n  else\n    result = 3\n  end\nwhen 2 then\n  case var2\n  when 1 then\n    result = 4\n  when 2 then\n    result = 5\n  else\n    result = 6\n  end\nelse\n  result = 7\nend\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :var1, s(:lit, 1)),
    s(:lasgn, :var2, s(:lit, 2)),

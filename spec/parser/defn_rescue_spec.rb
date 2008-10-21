@@ -13,7 +13,7 @@ def test_case
       [:resbody, nil, [:false]]]]]],
  "Ruby"=>
   "def eql?(resource)\n  (self.uuid == resource.uuid)\nrescue\n  false\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :eql?,
    s(:args, :resource),

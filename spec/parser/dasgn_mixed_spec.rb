@@ -7,7 +7,7 @@ def test_case
     [:lasgn, :n],
     [:lasgn, :t, [:call, [:lvar, :t], :+, [:array, [:lvar, :n]]]]]],
  "Ruby"=>"t = 0\nns.each { |n| t += n }\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :t, s(:lit, 0)),
    s(:iter,

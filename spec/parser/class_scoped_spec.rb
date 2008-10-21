@@ -2,7 +2,7 @@ def test_case
 {"RawParseTree"=>
   [:class, [:colon2, [:const, :X], :Y], nil, [:scope, [:vcall, :c]]],
  "Ruby"=>"class X::Y\n  c\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:class,
    s(:colon2, s(:const, :X), :Y),
    nil,

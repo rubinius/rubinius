@@ -7,7 +7,7 @@ def test_case
      [:args, :mand, :opt, [:block, [:lasgn, :opt, [:lit, 42]]]],
      [:nil]]]],
  "Ruby"=>"def f(mand, opt = 42)\n  # do nothing\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :f,
    s(:args, :mand, :opt, s(:block, s(:lasgn, :opt, s(:lit, 42)))),

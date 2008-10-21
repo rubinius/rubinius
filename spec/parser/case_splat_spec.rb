@@ -5,7 +5,7 @@ def test_case
    [:when, [:array, [:lit, :b], [:when, [:vcall, :c], nil]], [:vcall, :d]],
    [:vcall, :e]],
  "Ruby"=>"case a\nwhen :b, *c then\n  d\nelse\n  e\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:case,
    s(:call, nil, :a, s(:arglist)),
    s(:when,

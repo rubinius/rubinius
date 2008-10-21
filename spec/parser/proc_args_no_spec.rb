@@ -5,7 +5,7 @@ def test_case
    nil,
    [:call, [:vcall, :x], :+, [:array, [:lit, 1]]]],
  "Ruby"=>"proc { (x + 1) }",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, nil, :proc, s(:arglist)),
    nil,

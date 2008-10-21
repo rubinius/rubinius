@@ -2,7 +2,7 @@ def test_case
 {"RawParseTree"=>
   [:lasgn, :a, [:argscat, [:array, [:vcall, :b]], [:vcall, :c]]],
  "Ruby"=>"a = [b, *c]",
- "ParseTree"=>
+ "RubyParser"=>
   s(:lasgn,
    :a,
    s(:array,

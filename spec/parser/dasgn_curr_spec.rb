@@ -8,7 +8,7 @@ def test_case
     [:lasgn, :b, [:lvar, :a]],
     [:lasgn, :b, [:lasgn, :a, [:lvar, :x]]]]],
  "Ruby"=>"data.each do |x, y|\n  a = 1\n  b = a\n  b = a = x\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, s(:call, nil, :data, s(:arglist)), :each, s(:arglist)),
    s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y))),

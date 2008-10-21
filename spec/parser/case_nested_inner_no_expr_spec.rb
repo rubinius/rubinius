@@ -11,7 +11,7 @@ def test_case
    nil],
  "Ruby"=>
   "case a\nwhen b then\n  case\n  when (d and e) then\n    f\n  else\n    # do nothing\n  end\nelse\n  # do nothing\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:case,
    s(:call, nil, :a, s(:arglist)),
    s(:when,

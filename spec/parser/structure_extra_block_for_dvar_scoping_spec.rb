@@ -14,7 +14,7 @@ def test_case
       [:lasgn, :g, [:true]]]]]],
  "Ruby"=>
   "a.b do |c, d|\n  unless e.f(c) then\n    g = false\n    d.h { |x, i| g = true }\n  end\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, s(:call, nil, :a, s(:arglist)), :b, s(:arglist)),
    s(:masgn, s(:array, s(:lasgn, :c), s(:lasgn, :d))),

@@ -14,7 +14,7 @@ def test_case
     nil]],
  "Ruby"=>
   "a.each do |x|\n  if true then\n    c = 0\n    b.each { |y| c = (c + 1) }\n  end\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, s(:call, nil, :a, s(:arglist)), :each, s(:arglist)),
    s(:lasgn, :x),

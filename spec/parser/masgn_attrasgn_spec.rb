@@ -4,7 +4,7 @@ def test_case
    [:array, [:lasgn, :a], [:attrasgn, [:vcall, :b], :c=]],
    [:array, [:vcall, :d], [:vcall, :e]]],
  "Ruby"=>"a, b.c = d, e",
- "ParseTree"=>
+ "RubyParser"=>
   s(:masgn,
    s(:array,
     s(:lasgn, :a),

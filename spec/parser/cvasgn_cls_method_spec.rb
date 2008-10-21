@@ -6,7 +6,7 @@ def test_case
    [:scope,
     [:block, [:args, :boolean], [:cvasgn, :@@quiet_mode, [:lvar, :boolean]]]]],
  "Ruby"=>"def self.quiet_mode=(boolean)\n  @@quiet_mode = boolean\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defs,
    s(:self),
    :quiet_mode=,

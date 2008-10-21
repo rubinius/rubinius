@@ -8,7 +8,7 @@ def test_case
      [:sclass, [:self], [:scope, [:vcall, :a]]],
      [:class, :B, nil, [:scope]]]]],
  "Ruby"=>"class A\n  class << self\n    a\n  end\n  class B\n  end\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:class,
    :A,
    nil,

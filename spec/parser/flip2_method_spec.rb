@@ -5,7 +5,7 @@ def test_case
    [:nil],
    nil],
  "Ruby"=>"if 1..2.a?(b) then\n  nil\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:if,
    s(:flip2,
     s(:lit, 1),

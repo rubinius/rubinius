@@ -12,7 +12,7 @@ def test_case
       [:array, [:lit, 3.14159]]]],
     [:str, "y"]]],
  "Ruby"=>"max = 2\nargl = 1\n\"x\#{(\"%.\#{max}f\" % 3.14159)}y\"\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :max, s(:lit, 2)),
    s(:lasgn, :argl, s(:lit, 1)),

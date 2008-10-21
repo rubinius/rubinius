@@ -23,7 +23,7 @@ def test_case
     nil]],
  "Ruby"=>
   "var = 2\nresult = \"\"\ncase var\nwhen 1 then\n  puts(\"something\")\n  result = \"red\"\nwhen 2, 3 then\n  result = \"yellow\"\nwhen 4 then\n  # do nothing\nelse\n  result = \"green\"\nend\ncase result\nwhen \"red\" then\n  var = 1\nwhen \"yellow\" then\n  var = 2\nwhen \"green\" then\n  var = 3\nelse\n  # do nothing\nend\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :var, s(:lit, 2)),
    s(:lasgn, :result, s(:str, "")),

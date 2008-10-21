@@ -4,7 +4,7 @@ def test_case
    [:vcall, :c],
    [:call, [:vcall, :a], :b, [:array, [:lit, 1], [:lit, 2], [:lit, 3]]]],
  "Ruby"=>"a.b(1, 2, 3, &c)",
- "ParseTree"=>
+ "RubyParser"=>
   s(:call,
    s(:call, nil, :a, s(:arglist)),
    :b,

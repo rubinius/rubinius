@@ -4,7 +4,7 @@ def test_case
    :f,
    [:scope, [:block, [:args, :mand, :"*rest"], [:block_arg, :block], [:nil]]]],
  "Ruby"=>"def f(mand, *rest, &block)\n  # do nothing\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :f,
    s(:args, :mand, :"*rest", :"&block"),

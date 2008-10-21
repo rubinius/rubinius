@@ -2,7 +2,7 @@ def test_case
 {"RawParseTree"=>
   [:iter, [:fcall, :loop], nil, [:if, [:false], [:next, [:lit, 42]], nil]],
  "Ruby"=>"loop { next 42 if false }",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, nil, :loop, s(:arglist)),
    nil,

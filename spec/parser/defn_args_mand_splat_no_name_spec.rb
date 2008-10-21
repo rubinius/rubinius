@@ -7,7 +7,7 @@ def test_case
      [:args, :a, :"*args"],
      [:fcall, :p, [:array, [:lvar, :a], [:lvar, :args]]]]]],
  "Ruby"=>"def x(a, *args)\n  p(a, args)\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :x,
    s(:args, :a, :"*args"),

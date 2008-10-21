@@ -11,7 +11,7 @@ def test_case
       [:vcall, :c],
       [:resbody, [:array, [:const, :C]], [:vcall, :d]]]]]],
  "Ruby"=>"begin\n  a\nrescue A\n  b\nrescue B\n  c\nrescue C\n  d\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:rescue,
    s(:call, nil, :a, s(:arglist)),
    s(:resbody, s(:array, s(:const, :A)), s(:call, nil, :b, s(:arglist))),

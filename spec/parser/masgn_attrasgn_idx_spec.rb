@@ -12,7 +12,7 @@ def test_case
      [:call, [:lvar, :a], :[], [:array, [:lvar, :j]]],
      [:call, [:lvar, :a], :[], [:array, [:lvar, :i]]]]]],
  "Ruby"=>"a, i, j = [], 1, 2\na[i], a[j] = a[j], a[i]\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:masgn,
     s(:array, s(:lasgn, :a), s(:lasgn, :i), s(:lasgn, :j)),

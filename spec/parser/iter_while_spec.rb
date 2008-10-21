@@ -10,7 +10,7 @@ def test_case
     true]],
  "Ruby"=>
   "argl = 10\nwhile (argl >= 1) do\n  puts(\"hello\")\n  argl = (argl - 1)\nend\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :argl, s(:lit, 10)),
    s(:while,

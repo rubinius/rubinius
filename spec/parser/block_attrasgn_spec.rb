@@ -11,7 +11,7 @@ def test_case
      [:return, [:lvar, :bind]]]]],
  "Ruby"=>
   "def self.setup(ctx)\n  bind = allocate\n  bind.context = ctx\n  return bind\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defs,
    s(:self),
    :setup,

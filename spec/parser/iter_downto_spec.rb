@@ -5,7 +5,7 @@ def test_case
    [:lasgn, :n],
    [:fcall, :puts, [:array, [:call, [:lvar, :n], :to_s]]]],
  "Ruby"=>"3.downto(1) { |n| puts(n.to_s) }",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, s(:lit, 3), :downto, s(:arglist, s(:lit, 1))),
    s(:lasgn, :n),

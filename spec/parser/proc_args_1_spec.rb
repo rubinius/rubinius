@@ -5,7 +5,7 @@ def test_case
    [:lasgn, :x],
    [:call, [:lvar, :x], :+, [:array, [:lit, 1]]]],
  "Ruby"=>"proc { |x| (x + 1) }",
- "ParseTree"=>
+ "RubyParser"=>
   s(:iter,
    s(:call, nil, :proc, s(:arglist)),
    s(:lasgn, :x),

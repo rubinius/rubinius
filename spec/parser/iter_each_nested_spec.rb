@@ -14,7 +14,7 @@ def test_case
       [:fcall, :puts, [:array, [:call, [:lvar, :y], :to_s]]]]]]],
  "Ruby"=>
   "array1 = [1, 2, 3]\narray2 = [4, 5, 6, 7]\narray1.each do |x|\n  array2.each do |y|\n    puts(x.to_s)\n    puts(y.to_s)\n  end\nend\n",
- "ParseTree"=>
+ "RubyParser"=>
   s(:block,
    s(:lasgn, :array1, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3))),
    s(:lasgn,

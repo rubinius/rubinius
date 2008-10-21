@@ -15,7 +15,7 @@ def test_case
     [:vcall, :i],
     [:nil]]],
  "Ruby"=>"x = if ((i % 4) == 0)..((i % 3) == 0) then\n  i\nelse\n  nil\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:lasgn,
    :x,
    s(:if,

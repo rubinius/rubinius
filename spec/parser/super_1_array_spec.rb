@@ -5,7 +5,7 @@ def test_case
    [:scope,
     [:block, [:args], [:super, [:array, [:array, [:lit, 24], [:lit, 42]]]]]]],
  "Ruby"=>"def x\n  super([24, 42])\nend",
- "ParseTree"=>
+ "RubyParser"=>
   s(:defn,
    :x,
    s(:args),

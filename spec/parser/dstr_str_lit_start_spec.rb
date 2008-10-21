@@ -11,7 +11,7 @@ def test_case
    [:str, ")"]],
  "Ruby"=>
   "\"\#{\"blah\"}\#{__FILE__}:\#{__LINE__}: warning: \#{$!.message} (\#{$!.class})\"",
- "ParseTree"=>
+ "RubyParser"=>
   s(:dstr,
    "blah(string):",
    s(:evstr, s(:lit, 1)),
