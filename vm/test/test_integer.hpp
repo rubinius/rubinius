@@ -79,8 +79,8 @@ class TestInteger : public CxxTest::TestSuite {
     obj = Integer::from(state, (long long)-13);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int)-13);
 
-    obj = Integer::from(state, 214748364712331LL);
-    TS_ASSERT_EQUALS(as<Bignum>(obj)->to_long_long(), 214748364712331LL);
+    obj = Integer::from(state, 9223372036854775807LL);
+    TS_ASSERT_EQUALS(as<Bignum>(obj)->to_long_long(), 9223372036854775807LL);
   }
 
   void test_from_unsigned_long_long() {
@@ -90,7 +90,7 @@ class TestInteger : public CxxTest::TestSuite {
     obj = Integer::from(state, (unsigned long long)-13);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int)-13);
 
-    obj = Integer::from(state, 214748364712331ULL);
-    TS_ASSERT_EQUALS(as<Bignum>(obj)->to_ulong_long(), 214748364712331ULL);
+    obj = Integer::from(state, 9223372036854775808ULL);
+    TS_ASSERT_EQUALS(as<Bignum>(obj)->to_ulong_long(), 9223372036854775808ULL);
   }
 };

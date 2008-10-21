@@ -25,7 +25,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    int thing = 3.0;
+    int thing = 3;
     MemoryPointer* ptr = MemoryPointer::create(state, (void*)&thing);
     TS_ASSERT_EQUALS(ptr->pointer, &thing);
   }
@@ -121,7 +121,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   }
 
   void test_read_pointer() {
-    int one = 1;
+    uintptr_t one = 1;
     void *addr = &one;
     MemoryPointer* ptr = MemoryPointer::create(state, addr);
     MemoryPointer* p = ptr->read_pointer(state);

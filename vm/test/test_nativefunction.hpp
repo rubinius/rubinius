@@ -367,14 +367,14 @@ class TestNativeFunction : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
 
     input = Array::create(state, 1);
-    input->set(state, 0, Integer::from(state, 214748364741341LL));
+    input->set(state, 0, Integer::from(state, 9223372036854775807LL));
 
     msg = new Message(state, input);
 
     out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Bignum>(out));
-    TS_ASSERT_EQUALS(as<Bignum>(out)->to_long_long(), 214748364741341LL);
+    TS_ASSERT_EQUALS(as<Bignum>(out)->to_long_long(), 9223372036854775807LL);
   }
 
   void test_bind_with_unsigned_long_long() {
@@ -401,14 +401,14 @@ class TestNativeFunction : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
 
     input = Array::create(state, 1);
-    input->set(state, 0, Integer::from(state, 214748364741341ULL));
+    input->set(state, 0, Integer::from(state, 9223372036854775808ULL));
 
     msg = new Message(state, input);
 
     out = func->call(state, msg);
 
     TS_ASSERT(kind_of<Bignum>(out));
-    TS_ASSERT_EQUALS(as<Bignum>(out)->to_ulong_long(), 214748364741341ULL);
+    TS_ASSERT_EQUALS(as<Bignum>(out)->to_ulong_long(), 9223372036854775808ULL);
   }
 
   void test_bind_with_void() {

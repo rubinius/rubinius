@@ -81,7 +81,7 @@ namespace rubinius {
       }
     }
 
-    return Fixnum::from(to_native() * other->to_native());
+    return Fixnum::from(a * b);
   }
 
   Integer* Fixnum::mul(STATE, Bignum* other) {

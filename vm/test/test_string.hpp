@@ -231,12 +231,12 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 46234326);
 
-    str = String::create(state, "2137612900674276");
+    str = String::create(state, "9223372036854775807");
     val = str->to_i(state);
     TS_ASSERT(kind_of<Bignum>(val));
     Bignum *big;
 
-    big = Bignum::from(state, 46234326);
+    big = Bignum::from(state, 9223372036854775807LL);
     big = as<Bignum>(big->mul(state, big));
 
     TS_ASSERT(as<Bignum>(val)->equal(state, big));

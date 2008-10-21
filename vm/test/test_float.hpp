@@ -25,10 +25,7 @@ class TestFloat : public CxxTest::TestSuite {
   }
 
   void check_float(Float* f, Float* g) {
-    TS_ASSERT_RELATION(std::greater<double>, f->val + TOLERANCE, g->val);
-    TS_ASSERT_RELATION(std::greater<double>, f->val, g->val - TOLERANCE);
-    TS_ASSERT_RELATION(std::greater<double>, g->val + TOLERANCE, f->val);
-    TS_ASSERT_RELATION(std::greater<double>, g->val, f->val - TOLERANCE);
+    TS_ASSERT_DELTA(f->val, g->val, TOLERANCE);
   }
 
   void test_create() {

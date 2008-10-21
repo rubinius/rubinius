@@ -38,7 +38,7 @@ dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
 vm_srcs     = %w[ vm/drivers/cli.cpp ]
 EX_INC      = %w[ libtommath onig libffi/include
-                  libbstring libmquark libmpa libcchash
+                  libbstring libcchash libmquark libmpa
                   libltdl libev llvm/include
                 ].map { |f| "vm/external_libs/#{f}" }
 
@@ -103,11 +103,11 @@ field_extract_headers = %w[
 BC          = "vm/instructions.bc"
 LLVM_A      = "vm/external_libs/llvm/#{LLVM_STYLE}/lib/libLLVMSystem.a"
 EXTERNALS   = %W[ #{LLVM_A}
+                  vm/external_libs/libmquark/libmquark.a
+                  vm/external_libs/libcchash/libcchash.a
                   vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libbstring/libbstring.a
                   vm/external_libs/libmpa/libptr_array.a
-                  vm/external_libs/libcchash/libcchash.a
-                  vm/external_libs/libmquark/libmquark.a
                   vm/external_libs/onig/.libs/libonig.a
                   vm/external_libs/libffi/.libs/libffi.a
                   vm/external_libs/libltdl/.libs/libltdl.a
