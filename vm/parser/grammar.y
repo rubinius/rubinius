@@ -4076,7 +4076,13 @@ yylex(void *yylval_v, void *vstate)
                  */
                 errno = 0;
 
-                strtod(tok(), 0);
+		/* HACK: gcc 4.3.2 refuses to accept (void) to ignore
+		 * the return value so we have to invent something
+		 * fake for it to do instead
+		 */
+                double unused = strtod(tok(), 0);
+		unused += 1;
+
                 if (errno == ERANGE) {
                     rb_warn("Float %s out of range", tok());
                     errno = 0;

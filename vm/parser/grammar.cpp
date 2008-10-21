@@ -550,7 +550,7 @@ typedef union YYSTYPE
     int num;
     var_table vars;
 }
-/* Line 193 of yacc.c.  */
+/* Line 187 of yacc.c.  */
 #line 555 "vm/parser/grammar.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -614,7 +614,7 @@ typedef short int yytype_int16;
 #define YYSIZE_MAXIMUM ((YYSIZE_T) -1)
 
 #ifndef YY_
-# if defined YYENABLE_NLS && YYENABLE_NLS
+# if YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
 #   define YY_(msgid) dgettext ("bison-runtime", msgid)
@@ -3661,7 +3661,7 @@ while (YYID (0))
    we won't break user code: when these are the locations we know.  */
 
 #ifndef YY_LOCATION_PRINT
-# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+# if YYLTYPE_IS_TRIVIAL
 #  define YY_LOCATION_PRINT(File, Loc)			\
      fprintf (File, "%d.%d-%d.%d",			\
 	      (Loc).first_line, (Loc).first_column,	\
@@ -9112,7 +9112,13 @@ yylex(void *yylval_v, void *vstate)
                  */
                 errno = 0;
 
-                strtod(tok(), 0);
+		/* HACK: gcc 4.3.2 refuses to accept (void) to ignore
+		 * the return value so we have to invent something
+		 * fake for it to do instead
+		 */
+                double unused = strtod(tok(), 0);
+		unused += 1;
+
                 if (errno == ERANGE) {
                     rb_warn("Float %s out of range", tok());
                     errno = 0;
