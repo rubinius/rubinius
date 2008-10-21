@@ -2,8 +2,23 @@ require 'sexp_processor'
 require 'compiler/lit_rewriter'
 
 class Rubinius::SydneyRewriter < SexpProcessor
-  def rewrite_begin(exp)
-    exp.last
+  def self.sexp_from_array(ary)
+    ary = Array(ary)
+
+    result = Sexp.new
+
+    ary.each do |x|
+      if Array === x
+        exp = sexp_from_array(x)
+        exp.file = x.instance_variable_get :@file
+        exp.line = x.instance_variable_get :@line
+        result << exp
+      else
+        result << x
+      end
+    end
+
+    result
   end
 
   def rewrite_argscat(exp)
@@ -22,6 +37,10 @@ class Rubinius::SydneyRewriter < SexpProcessor
     exp << s(:arglist) unless Array === exp.last
 
     exp
+  end
+
+  def rewrite_begin(exp)
+    exp.last
   end
 
   def rewrite_block_pass(exp)
@@ -91,6 +110,26 @@ class Rubinius::SydneyRewriter < SexpProcessor
     result.insert 1, receiver
 
     result
+  end
+
+  def rewrite_dstr(exp)
+    str = exp[1]
+    if String === str
+      while Array === (s = exp[2]) and s.first == :str
+        exp.delete_at 2
+        str << s.last
+      end
+      exp[1] = str
+    end
+
+    exp[0] = :str if exp.size == 2 and String === exp.last
+
+    exp
+  end
+
+  def rewrite_evstr(exp)
+    return s(:str, exp.file) if exp.last == s(:file)
+    exp
   end
 
   # Adapted from UnifiedRuby

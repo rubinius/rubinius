@@ -5,10 +5,11 @@
 #include "parser/grammar_internal.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/string.hpp"
-#include "builtin/tuple.hpp"
 #include "builtin/bignum.hpp"
+#include "builtin/object.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
 
 #include "vm.hpp"
 
@@ -250,6 +251,9 @@ namespace rubinius {
       current = array_new(state, 4);
       array_push(state, ary, current);
       array_push(state, current, node_name);
+
+      current->set_ivar(state, SYMBOL("@file"), string_new(state, node->nd_file));
+      current->set_ivar(state, SYMBOL("@line"), Fixnum::from(nd_line(node)));
 
         switch (nd_type(node)) {
 
