@@ -93,7 +93,8 @@ namespace rubinius {
         return sizeof(void*);
 
       default:
-        return -1;
+        abort();
+		return 0;	// Keep GCC happy
     }
   }
 
