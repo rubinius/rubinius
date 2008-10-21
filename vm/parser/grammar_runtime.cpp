@@ -388,9 +388,18 @@ namespace rubinius {
 
       case NODE_BREAK:
       case NODE_NEXT:
-      case NODE_YIELD:
-        if (node->nd_stts)
+        if (node->nd_stts) {
           add_to_parse_tree(current, node->nd_stts, locals);
+        }
+        break;
+
+      case NODE_YIELD:
+        if (node->nd_stts) {
+          add_to_parse_tree(current, node->nd_stts, locals);
+        } else {
+          array_push(state, current, Qnil);
+        }
+        array_push(state, current, node->u3.value);
         break;
 
       case NODE_RESCUE:

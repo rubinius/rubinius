@@ -230,6 +230,26 @@ class Rubinius::SydneyRewriter < SexpProcessor
     rewrite_fcall(exp)
   end
 
+  def rewrite_yield(exp)
+    case exp.last
+    when true
+      exp.pop
+      args = exp.last
+      case args
+      when Array
+        if args.first == :array
+          args[0] = :yield
+          return args
+        end
+      end
+    when false
+      exp.pop
+      exp.pop unless exp.last
+    end
+
+    exp
+  end
+
   def rewrite_zarray(exp)
     s(:array)
   end
