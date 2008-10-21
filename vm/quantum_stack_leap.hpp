@@ -9,7 +9,7 @@
 
 #ifdef RBX_SUBTEND_BY_UCONTEXT
 
-  #include <ucontext.h>
+  #include "subtend/PortableUContext.h"
 
   #define HAS_UCONTEXT 1
 

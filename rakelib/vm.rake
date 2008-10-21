@@ -24,7 +24,7 @@ tests      << 'vm/test/test_instructions.hpp'
 tests.uniq!
 
 srcs        = FileList["vm/*.{cpp,c}"] + FileList["vm/builtin/*.{cpp,c}"]
-srcs       += FileList["vm/subtend/*.{cpp,c}"]
+srcs       += FileList["vm/subtend/*.{cpp,c,S}"]
 srcs       += FileList["vm/parser/*.{cpp,c}"]
 srcs       << 'vm/parser/grammar.cpp'
 
@@ -32,7 +32,7 @@ hdrs        = FileList["vm/*.{hpp,h}"] + FileList["vm/builtin/*.{hpp,h}"]
 hdrs       += FileList["vm/subtend/*.{hpp,h}"]
 hdrs       += FileList["vm/parser/*.{hpp,h}"]
 
-objs        = srcs.map { |f| f.sub(/c(pp)?$/, 'o') }
+objs        = srcs.map { |f| f.sub(/((c(pp)?)|S)$/, 'o') }
 
 dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
@@ -125,6 +125,9 @@ INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
 FLAGS         = %w[ -pipe -Wall -Wno-deprecated ]
+if RUBY_PLATFORM =~ /darwin/i && `sw_vers` =~ /10\.4/
+  FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)
+end
 
 BUILD_PRETASKS = []
 
@@ -146,6 +149,12 @@ def compile_c(obj, src)
   if src == "vm/test/runner.cpp"
     flags.delete_if { |f| /-O.*/.match(f) }
   end
+  
+  if src =~ /c$/
+    # command line option "-Wno-deprecated" is valid for C++ but not for C
+    flags.delete_if { |f| f == '-Wno-deprecated' }
+  end
+
 
   flags = flags.join(" ")
 
@@ -307,7 +316,7 @@ end
 
 rule '.o' do |t|
   obj   = t.name
-  src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.o'}\.c(pp)?$/}
+  src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.o'}\.((c(pp)?)|S)$/}
 
   compile_c obj, src
 end
