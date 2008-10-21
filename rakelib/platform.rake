@@ -1,6 +1,6 @@
-require 'lib/ffi/struct_generator'
-require 'lib/ffi/const_generator'
-require 'lib/ffi/types_generator'
+require 'ffi/struct_generator'
+require 'ffi/const_generator'
+require 'ffi/types_generator'
 
 deps = %w[Rakefile] + Dir['lib/ffi/*rb']
 
