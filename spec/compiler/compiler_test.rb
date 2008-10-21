@@ -89,7 +89,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.cast_array
               g.push :self
               g.send :c, 0, true
-              # HACK: don't think this is right: g.swap
+              g.swap
               g.push :nil
               g.send_with_splat :[]=, 1, false, true
             end)

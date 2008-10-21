@@ -182,7 +182,7 @@ class Compiler
           @concat = true
           @argcount = 1
 
-          # HACK: g.swap
+          g.swap
         end
       end
     end
