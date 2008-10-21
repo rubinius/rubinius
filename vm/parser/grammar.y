@@ -4080,8 +4080,7 @@ yylex(void *yylval_v, void *vstate)
 		 * the return value so we have to invent something
 		 * fake for it to do instead
 		 */
-                double unused = strtod(tok(), 0);
-		unused += 1;
+                if(strtod(tok(), 0));
 
                 if (errno == ERANGE) {
                     rb_warn("Float %s out of range", tok());
