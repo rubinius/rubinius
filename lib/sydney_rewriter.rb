@@ -18,6 +18,9 @@ class Rubinius::SydneyRewriter < SexpProcessor
   def rewrite_attrasgn(exp)
     ary = exp.array rescue nil
     ary[0] = :arglist if ary
+
+    exp << s(:arglist) unless Array === exp.last
+
     exp
   end
 
@@ -99,6 +102,29 @@ class Rubinius::SydneyRewriter < SexpProcessor
     rewrite_call(exp)
   end
 
+  # HACK: rewrite
+  def rewrite_masgn(exp)
+    if exp.size == 4
+      splat = exp.delete_at(2)
+      splat = s(:splat, splat) unless splat[0] == :splat
+      exp[1] << splat
+    elsif exp.size == 2
+      args = exp.last
+      case args
+      when Array
+        if args.first != :array
+          args = s(:splat, args) unless args.first == :splat
+          exp[-1] = s(:array, args)
+        end
+      end
+    end
+    exp
+  end
+
+  def rewrite_negate(exp)
+    s(:lit, -exp.last.last)
+  end
+
   def rewrite_op_asgn1(exp)
     args = exp[2]
     case args
@@ -118,6 +144,7 @@ class Rubinius::SydneyRewriter < SexpProcessor
     code = result
     while exp and exp.first == :resbody
       code << exp.shift
+
       list = exp.shift || s(:array)
       body = exp.empty? ? nil : exp.shift
       exp  = exp.empty? ? nil : exp.shift
@@ -132,6 +159,8 @@ class Rubinius::SydneyRewriter < SexpProcessor
         # TODO: check that it is assigning $!
         list << body.delete_at(1) if body[1].first == :lasgn
       end if body
+
+      body = s(:break) if body == s(:block, s(:break))
 
       code << list << body
       if exp then
