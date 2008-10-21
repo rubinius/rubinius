@@ -1,9 +1,9 @@
+require 'pp'
+
 unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
   $: << 'lib'
   require File.join(File.dirname(__FILE__), '..', 'compiler', 'mri_shim')
 end
-
-require 'pp'
 
 # "Interactive" mode
 def interactive()
@@ -53,8 +53,7 @@ def describe_compiled_method(cm)
   end
 end
 
-
-if __FILE__ == $0 then
+if __FILE__[$0] then
   flags = []
   file = nil
 
@@ -84,7 +83,7 @@ if __FILE__ == $0 then
     pp File.to_sexp(file)
 
     puts "\nCompiled output:"
-    top = Compiler.compile_file(file, flags)
+    top = Compile.compile_file(file, flags)
     describe_compiled_method(top)
   rescue SyntaxError
     exit 1
