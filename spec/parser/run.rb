@@ -9,6 +9,18 @@ rescue LoadError
   require 'sexp'
 end
 
+def sydney_parser(hash)
+  hash['SydneyParser'] || hash['RubyParser']
+end
+
+def ruby_parser(hash)
+  hash['RubyParser']
+end
+
+def raw_parse_tree(hash)
+  hash['RawParseTree']
+end
+
 def to_sexp_pt_r(source)
   source.to_sexp_pt '(string)', 1, false, false
 end
@@ -35,7 +47,7 @@ end
 # method. Compares the sexp to +standard+ from +hash+.
 def run(node, hash, standard, sexp, cmd, str)
   src = hash['Ruby']
-  expected = hash[standard].to_a
+  expected = send(standard, hash).to_a
 
   if cmd
     actual = send sexp, cmd, str, src
@@ -55,12 +67,13 @@ end
 def usage
   puts "usage: run [options] (FILE|DIRECTORY|GLOB)+"
   puts ""
-  puts "-r      Compare to raw ParseTree"
-  puts "-p      Compare to ParseTree (default)"
+  puts "-p      Compare to raw ParseTree"
+  puts "-r      Compare to RubyParser"
+  puts "-s      Compare to SydneyParser (default)"
   puts "-R      Get sexp from RubyParser"
-  puts "-P      Get sexp from MRI parser + ParseTree builtin to rbx (default)"
+  puts "-S      Get sexp from SydneyParser (default)"
   puts "-X CMD  Get sexp from invoking CMD (see -s)"
-  puts "-s STR  Substitute into STR at %s"
+  puts "-x STR  Substitute into STR at %s"
   puts "-h      Show this message"
   puts ""
   exit 1
@@ -78,11 +91,14 @@ while x = ARGV.shift
     files << x
   elsif File.directory? x
     files.concat Dir["#{x}/**/*_spec.rb"]
-  elsif x == "-r"
-    standard = 'RawParseTree'
-    sexp = :to_sexp_pt_r unless sexp
   elsif x == "-p"
-    standard = 'ParseTree'
+    standard = :raw_parse_tree
+    sexp = :to_sexp_pt_r unless sexp
+  elsif x == "-r"
+    standard = :ruby_parser
+    sexp = :to_sexp_rp unless sexp
+  elsif x == "-s"
+    standard = :sydney_parser
     sexp = :to_sexp_pt_u unless sexp
   elsif x == "-R"
     begin
@@ -93,8 +109,8 @@ while x = ARGV.shift
       exit 1
     end
     sexp = :to_sexp_rp
-  elsif x == "-P"
-    if standard == 'RawParseTree'
+  elsif x == "-S"
+    if standard == :raw_parse_tree
       sexp = :to_sexp_pt_r
     else
       sexp = :to_sexp_pt_u
@@ -102,7 +118,7 @@ while x = ARGV.shift
   elsif x == "-X"
     command = ARGV.shift
     sexp = :to_sexp_x
-  elsif x == "-s"
+  elsif x == "-x"
     str = ARGV.shift
   elsif x == "-h"
     usage
@@ -110,7 +126,7 @@ while x = ARGV.shift
 end
 
 # defaults
-standard = 'ParseTree' unless standard
+standard = :sydney_parser unless standard
 sexp = :to_sexp_pt_u unless sexp
 str = %Q{%s} unless str
 
