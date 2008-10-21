@@ -1,5 +1,3 @@
-require 'lib/ffi/generator_task'
-
 desc "Build extensions from lib/ext"
 task :extensions => %w[
   vm/vm

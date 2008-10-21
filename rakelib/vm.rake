@@ -1,6 +1,8 @@
 require 'tmpdir'
 require 'rakelib/rubinius'
 
+require 'lib/ffi/generator_task.rb'
+
 task :vm => 'vm/vm'
 
 ############################################################
