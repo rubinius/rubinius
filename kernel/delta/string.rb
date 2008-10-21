@@ -22,9 +22,11 @@ class String
     raise PrimitiveFailure, "String#parse primitive failed"
   end
 
-  def to_sexp_pt(name="(eval)", line=1, rewriter=true, unifier=true)
-    require 'compiler/lit_rewriter'
-    require 'unified_ruby'
+  def to_sexp_pt(name="(eval)", line=1, lit_rewriter=true, unifier=true)
+    # TODO: move under lib/compiler when done; if it is
+    # there while working on it, changes cause all files
+    # to be recompiled continually.
+    require 'sydney_rewriter'
 
     sexp = parse name, line
     if sexp.kind_of? Tuple
@@ -36,8 +38,7 @@ class String
 
     sexp = [:newline, 0, "<empty: #{name}>", [:nil]] unless sexp
     sexp = Sexp.from_array sexp
-    sexp = Unifier.new.process sexp if unifier
-    sexp = Rubinius::LitRewriter.new.process sexp if rewriter
+    sexp = Rubinius::SydneyRewriter.new.process sexp if unifier
     sexp
   end
 
