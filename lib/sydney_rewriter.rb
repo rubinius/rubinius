@@ -182,30 +182,42 @@ class Rubinius::SydneyRewriter < SexpProcessor
     exp
   end
 
+  def exception_asgn?(exp)
+    case exp.first
+    when :lasgn, :iasgn, :gasgn, :attrasgn
+      return true if exp.last == s(:gvar, :$!)
+      return false
+    end if Array === exp
+
+    false
+  end
+
   # Adapted from UnifiedRuby
   def rewrite_resbody(exp)
     result = s()
 
     code = result
-    while exp and exp.first == :resbody
+    while exp and exp.first == :resbody do
       code << exp.shift
-
       list = exp.shift || s(:array)
       body = exp.empty? ? nil : exp.shift
       exp  = exp.empty? ? nil : exp.shift
 
-      # code may be nil, :lasgn, or :block
       case body.first
-      when :lasgn then
-        # TODO: check that it is assigning $!
-        list << body
-        body = nil
-      when :block then
-        # TODO: check that it is assigning $!
-        list << body.delete_at(1) if body[1].first == :lasgn
-      end if body
+      when nil
+        # do nothing
+      when :block
+        if exception_asgn? body[1]
+          list << body.delete_at(1)
+        end
 
-      body = s(:break) if body == s(:block, s(:break))
+        body = body.last if body.size == 2
+      else
+        if exception_asgn? body
+          list << body
+          body = nil
+        end
+      end if body
 
       code << list << body
       if exp then
@@ -215,6 +227,40 @@ class Rubinius::SydneyRewriter < SexpProcessor
     end
 
     result
+  end
+
+  def flatten_resbody(exp, list)
+    sexp = s()
+    list << sexp
+    exp.each do |x|
+      if Array === x and x.first == :resbody
+        flatten_resbody(x, list)
+      else
+        sexp << x
+      end
+    end
+
+    list
+  end
+
+  # This rewrites
+  #   s(:rescue, ... s(:resbody, ... s(:resbody, ... s(:resbody, ...))))
+  # to
+  #   s(:rescue, ... s(:resbody, ...), s(:resbody, ...), ...)
+  #
+  # Since sexp_processor calls this method more than once, the rewrite
+  # must handle both cases.
+  def rewrite_rescue(exp)
+    sexp = s()
+    exp.each do |x|
+      if Array === x and x.first == :resbody
+        flatten_resbody(x, s()).each { |z| sexp << z }
+      else
+        sexp << x
+      end
+    end
+
+    sexp
   end
 
   def rewrite_super(exp)
@@ -260,4 +306,3 @@ class Rubinius::SydneyRewriter < SexpProcessor
     s(:array)
   end
 end
-
