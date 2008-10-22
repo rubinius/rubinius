@@ -141,22 +141,28 @@ class Rubinius::SydneyRewriter < SexpProcessor
     rewrite_call(exp)
   end
 
-  # HACK: rewrite
   def rewrite_masgn(exp)
-    if exp.size == 4
-      splat = exp.delete_at(2)
-      splat = s(:splat, splat) unless splat[0] == :splat
-      exp[1] << splat
-    elsif exp.size == 2
-      args = exp.last
-      case args
-      when Array
-        if args.first != :array
-          args = s(:splat, args) unless args.first == :splat
-          exp[-1] = s(:array, args)
-        end
+    last = exp.last
+    kind = last.first
+
+    case exp.size
+    when 2
+      unless kind == :array or kind == :to_ary
+        last = s(:splat, last) unless last.first == :splat
+        exp[1] = s(:array, last)
       end
+    when 3
+      unless kind == :array or kind == :to_ary
+        exp.pop
+        last = s(:splat, last) unless last.first == :splat
+        exp.last << last
+      end
+    when 4
+      last = exp.pop
+      exp = rewrite_masgn(exp)
+      exp << last
     end
+
     exp
   end
 
