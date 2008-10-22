@@ -1,7 +1,7 @@
 #include <cxxtest/TestSuite.h>
 
 /* System */
-#include <ucontext.h>
+#include "subtend/PortableUContext.h"
 
 /* Project */
 #include "vm.hpp"
