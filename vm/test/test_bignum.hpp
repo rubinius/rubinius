@@ -158,11 +158,12 @@ class TestBignum : public CxxTest::TestSuite {
   void test_normalize() {
     Bignum* obj = Bignum::from(state, (native_int)13);
     Object* out = Bignum::normalize(state, obj);
+    Bignum* large = Bignum::from(state, 9223372036854775807LL);
 
     TS_ASSERT(out->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
 
-    TS_ASSERT_EQUALS(b1, Bignum::normalize(state, b1));
+    TS_ASSERT_EQUALS(large, Bignum::normalize(state, large));
   }
 
   void check_bignum(Object* big, const char* val) {
@@ -657,7 +658,8 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(two, e);
     TS_ASSERT_EQUALS(Qtrue, b->equal(state, f));
 
-    ary = b1->coerce(state, two);
+    Bignum* large = Bignum::from(state, 9223372036854775807LL);
+    ary = large->coerce(state, two);
     Bignum* c = try_as<Bignum>(ary->get(state, 0));
     Bignum* d = try_as<Bignum>(ary->get(state, 1));
 
@@ -665,6 +667,6 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT(c);
     TS_ASSERT(d);
     TS_ASSERT_EQUALS(Qtrue, Bignum::create(state, two)->equal(state, c));
-    TS_ASSERT_EQUALS(Qtrue, b1->equal(state, d));
+    TS_ASSERT_EQUALS(Qtrue, large->equal(state, d));
   }
 };

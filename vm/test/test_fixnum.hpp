@@ -517,7 +517,7 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(one, a);
     TS_ASSERT_EQUALS(one, b);
 
-    Bignum* f = Bignum::from(state, (native_int)2147483647);
+    Bignum* f = Bignum::from(state, 9223372036854775807LL);
     ary = one->coerce(state, f);
     Bignum* c = try_as<Bignum>(ary->get(state, 0));
     Bignum* d = try_as<Bignum>(ary->get(state, 1));
