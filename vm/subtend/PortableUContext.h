@@ -14,6 +14,12 @@
   #endif
 #endif
 
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+
 #ifdef HAS_UCONTEXT
 
 #include <stdarg.h>
@@ -117,6 +123,10 @@
   #endif
   extern pid_t rfork_thread(int, void*, int(*)(void*), void*);
 #endif // OpenBSD
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // PortableUContext
 
