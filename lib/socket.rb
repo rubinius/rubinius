@@ -3,7 +3,13 @@ require 'fcntl'
 class SocketError < StandardError
 end
 
+# @todo   Socket#accept[_nonblock]
+# @todo   UNIXServer#accept[_nonblock]
+# @todo   UDPSocket#recvfrom
+
 class BasicSocket < IO
+
+
   def self.do_not_reverse_lookup=(setting)
     @no_reverse_lookup = setting
   end
@@ -26,13 +32,15 @@ class BasicSocket < IO
     when Fixnum then
       MemoryPointer.new :socklen_t do |val|
         val.write_int optval
-        error = Socket::Foreign.setsockopt(descriptor, level, optname, val,
-                                           val.size)
+        error = Socket::Foreign.setsockopt(descriptor, level,
+                                           optname, val,
+                                           val.total)
       end
     when String then
       MemoryPointer.new optval.size do |val|
         val.write_string optval
-        error = Socket::Foreign.setsockopt(descriptor, level, optname, val,
+        error = Socket::Foreign.setsockopt(descriptor, level,
+                                           optname, val,
                                            optval.size)
       end
     else
@@ -48,46 +56,127 @@ class BasicSocket < IO
     return Socket::Foreign.getsockname(descriptor)
   end
 
-  def send(msg, flags, *rest)
-    if ((rest.size != 2) && (rest.size != 0))
-      raise ArgumentError, '#send takes 0 or 2 arguments, passed #{rest.size}'
-    end
-    
-    connect(*rest) if rest.size == 2
-    bytes = msg.length
+  #
+  # Obtain peername information for this socket.
+  #
+  # @see  Socket.getpeername
+  #
+  def getpeername()
+    Socket::Foreign.getpeername @descriptor
+  end
+
+  #
+  #
+  #
+  def send(message, flags, to = nil)
+    connect to if to
+
+    bytes = message.length
     bytes_sent = 0
+
     MemoryPointer.new :char, bytes + 1 do |buffer|
-      buffer.write_string msg
+      buffer.write_string message
       bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
       Errno.handle 'send(2)' if bytes_sent < 0
     end
-    return bytes_sent
+
+    bytes_sent
+  end
+
+  def recvfrom(bytes_to_read, flags = 0)
+    bytes_to_read = Type.coerce_to bytes_to_read, Fixnum, :to_int
+    message = nil
+
+    MemoryPointer.new(:char, bytes_to_read + 1) do |buffer_p|
+      MemoryPointer.new :char, 128 do |sockaddr_storage_p|
+        MemoryPointer.new :socklen_t do |len_p|
+          len_p.write_int 128
+          bytes_read = Socket::Foreign.recvfrom(descriptor, buffer_p,
+                                                bytes_to_read, flags,
+                                                sockaddr_storage_p, len_p)
+          Errno.handle 'recvfrom(2)' if bytes_read < 0
+
+          message = buffer_p.read_string
+        end
+      end
+    end
+
+    message
   end
 
   def recv(bytes_to_read, flags = 0)
     bytes_to_read = Type.coerce_to bytes_to_read, Fixnum, :to_int
     buffer = MemoryPointer.new :char, bytes_to_read + 1
+
     # Wait until we have something to read, so we don't block other threads
     IO.select([self])
+
     bytes_read = Socket::Foreign.recv(descriptor, buffer, bytes_to_read, flags)
+
     Errno.handle 'recv(2)' if bytes_read < 0
+
     message = buffer.read_string(bytes_read)
     buffer.free
     return message
   end
+
+  #
+  # Sets socket nonblocking and reads up to given number of bytes.
+  #
+  # @todo   Should EWOULDBLOCK be passed unchanged? --rue
+  #
+  def recv_nonblock(bytes_to_read, flags = 0)
+    fcntl Fcntl::F_SETFL, Fcntl::O_NONBLOCK
+    recvfrom bytes_to_read, flags
+
+  rescue Errno::EWOULDBLOCK
+    raise Errno::EAGAIN
+  end
+
+
+#
+# @todo   Fix. This is horrible. --rue
+#
+#  #
+#  # Only close the read stream.
+#  #
+#  # This affects all processes using this stream!
+#  #
+#  def close_read()
+#    shutdown Socket::SHUT_RD
+#  end
+#
+#  #
+#  # Only close the write stream.
+#  #
+#  # This affects all processes using this stream!
+#  #
+#  def close_write()
+#    shutdown Socket::SHUT_WR
+#  end
+
+  def shutdown how
+    close
+  end
+
 end
 
 class Socket < BasicSocket
 
+  # @todo   Is omitting empty-value constants reasonable? --rue
   module Constants
-    FFI.config_hash("socket").each do |name, value|
-      const_set name, value
-    end
+    all_valid = FFI.config_hash("socket").reject {|name, value| value.empty? }
 
-    families = FFI.config_hash('socket').select { |name,| name =~ /^AF_/ }
-    families = families.map { |name, value| [value, name] }
+    all_valid.each {|name, value| const_set name, value.to_i }
 
-    AF_TO_FAMILY = Hash[*families.flatten]
+    afamilies = all_valid.select { |name,| name =~ /^AF_/ }
+    afamilies.map! {|name, value| [value.to_i, name] }
+
+    pfamilies = all_valid.select { |name,| name =~ /^PF_/ }
+    pfamilies.map! {|name, value| [value.to_i, name] }
+
+    AF_TO_FAMILY = Hash[*afamilies.flatten]
+    PF_TO_FAMILY = Hash[*pfamilies.flatten]
   end
 
   module Foreign
@@ -374,8 +463,35 @@ class Socket < BasicSocket
       Errno.handle 'accept(2)' if fd < 0
 
       socket = self.class.superclass.allocate
-      socket.__send__ :from_descriptor, fd
+      socket.__send__ :setup, fd
+      socket
     end
+
+    #
+    # Set nonblocking and accept.
+    #
+    def accept_nonblock
+      return if closed?
+
+      fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+
+      fd = nil
+      sockaddr = nil
+
+      MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
+        MemoryPointer.new :int do |size_p|
+          fd = Socket::Foreign.accept descriptor, sockaddr_p, size_p
+        end
+      end
+
+      Errno.handle 'accept(2)' if fd < 0
+
+      # TCPServer -> TCPSocket etc. *sigh*
+      socket = self.class.superclass.allocate
+      socket.__send__ :setup, fd
+      socket
+    end
+
   end
 
   include Socket::ListenAndAccept
@@ -391,7 +507,7 @@ class Socket < BasicSocket
     end
 
     def to_s
-      @p.read_string(@p.size)
+      @p.read_string(@p.total)
     end
 
   end
@@ -548,10 +664,14 @@ class Socket < BasicSocket
     setup descriptor
   end
 
-  def self.from_descriptor(fixnum)
-    sock = allocate()
-    sock.from_descriptor(fixnum)
-    return sock
+  class << self
+    def from_descriptor(fixnum)
+      sock = allocate()
+      sock.from_descriptor(fixnum)
+      return sock
+    end
+
+    alias :for_fd :from_descriptor
   end
 
   def from_descriptor(fixnum)
@@ -563,46 +683,76 @@ class Socket < BasicSocket
     err = Socket::Foreign.bind(descriptor, server_sockaddr)
     Errno.handle 'bind(2)' unless err == 0
   end
-end
 
-class UNIXSocket < BasicSocket
-  attr_accessor :path
+  # @todo  Should this be closing the descriptor? --rue
+  def connect(*args)
+    sockaddr  = if args.size == 1
+                  args.first
+                else
+                  Socket.pack_sockaddr_in args.first, args.last
+                end
 
-  def initialize(path)
-    @path = path
-    unix_setup
-  end
-  private :initialize
-
-  def unix_setup(server = false)
-    syscall = 'socket(2)'
-    status = nil
-    sock = Socket::Foreign.socket Socket::Constants::AF_UNIX, Socket::Constants::SOCK_STREAM, 0
-
-    # TODO - Do we need to sync = true here?
-    setup sock, 'rw'
-
-    Errno.handle syscall if descriptor < 0
-
-    sockaddr = Socket.pack_sockaddr_un(@path)
-
-    if server then
-      syscall = 'bind(2)'
-      status = Socket::Foreign.bind descriptor, sockaddr
-    else
-      syscall = 'connect(2)'
-      status = Socket::Foreign.connect descriptor, sockaddr
-    end
+    syscall = 'connect(2)'
+    status = Socket::Foreign.connect descriptor, sockaddr
 
     if status < 0 then
       Socket::Foreign.close descriptor
       Errno.handle syscall
     end
 
+    return 0
+  end
+
+end
+
+class UNIXSocket < BasicSocket
+  attr_accessor :path
+
+  class << self
+    alias :open :new
+  end
+
+  # Coding to the lowest standard here.
+  def recvfrom(bytes_to_read, flags = 0)
+    [super, ["AF_UNIX", ""]]
+  end
+
+  def initialize(path)
+    @path = path
+    unix_setup
+    @path = ""  # Client
+  end
+  private :initialize
+
+  def unix_setup(server = false)
+    status = nil
+    phase = 'socket(2)'
+    sock = Socket::Foreign.socket Socket::Constants::AF_UNIX, Socket::Constants::SOCK_STREAM, 0
+
+    # @todo - Do we need to sync = true here?
+    setup sock, 'r+'
+
+    Errno.handle phase if descriptor < 0
+
+    sockaddr = Socket.pack_sockaddr_un(@path)
+
     if server then
-      syscall = 'listen(2)'
+      phase = 'bind(2)'
+      status = Socket::Foreign.bind descriptor, sockaddr
+    else
+      phase = 'connect(2)'
+      status = Socket::Foreign.connect descriptor, sockaddr
+    end
+
+    if status < 0 then
+      Socket::Foreign.close descriptor
+      Errno.handle phase
+    end
+
+    if server then
+      phase = 'listen(2)'
       status = Socket::Foreign.listen descriptor, 5
-      Errno.handle syscall if status < 0
+      Errno.handle phase if status < 0
     end
 
     return sock
@@ -674,7 +824,15 @@ class IPSocket < BasicSocket
 
           mesg = buffer_p.read_string
           sockaddr = sockaddr_storage_p.read_string(len_p.read_int)
-					sockaddr = Socket::Foreign.unpack_sockaddr_in(sockaddr, false)
+
+          sockaddr_in = Socket::SockAddr_In.new(sockaddr)
+
+          # @todo *sigh* --rue
+          if sockaddr_in[:sin_family] == Socket::Constants::AF_UNSPEC
+            sockaddr_in[:sin_family] = Socket::Constants::AF_INET
+          end
+
+					sockaddr = Socket::Foreign.unpack_sockaddr_in(sockaddr_in.to_s, false)
           sender_sockaddr = [ "AF_INET", sockaddr[2], sockaddr[0], sockaddr[1] ]
         end
       end
@@ -689,19 +847,24 @@ class IPSocket < BasicSocket
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
     # Wait until we have something to read
+    # @todo  Why? ^^ --rue
     IO.select([self])
     return recvfrom(maxlen, flags)
   end
 end
 
 class UDPSocket < IPSocket
-  def initialize(*args)
-    socktype = Socket::AF_INET
-    raise ArgumentError, 'too many arguments' if args.size > 1
-    socktype = args[0] if args.size == 1
-    status = Socket::Foreign.socket socktype, Socket::SOCK_DGRAM,
-      Socket::IPPROTO_UDP
+
+  def self.open(socktype = Socket::AF_INET)
+    self.new socktype
+  end
+
+  def initialize(socktype = Socket::AF_INET)
+    status = Socket::Foreign.socket socktype,
+                                    Socket::SOCK_DGRAM,
+                                    Socket::IPPROTO_UDP
     Errno.handle 'socket(2)' if status < 0
+
     setup status
   end
 
@@ -721,14 +884,15 @@ class UDPSocket < IPSocket
       flags, family, socket_type, protocol, sockaddr, canonname = addrinfo
 
       status = Socket::Foreign.bind descriptor, sockaddr
-      syscall = 'bind(2)'
 
       break if status >= 0
     end
+
     if status < 0
-      Errno.handle syscall
+      Errno.handle 'bind(2)'
       Socket::Foreign.close descriptor
     end
+
     status
   end
 
@@ -737,11 +901,27 @@ class UDPSocket < IPSocket
     syscall = 'connect(2)'
     status = Socket::Foreign.connect descriptor, sockaddr
 
-    if status < 0 then
+    if status < 0
       Socket::Foreign.close descriptor
       Errno.handle syscall
     end
-    return 0
+
+    0
+  end
+
+  def send(message, flags, *to)
+    connect *to unless to.empty?
+
+    bytes = message.length
+    bytes_sent = 0
+
+    MemoryPointer.new :char, bytes + 1 do |buffer|
+      buffer.write_string message
+      bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
+      Errno.handle 'send(2)' if bytes_sent < 0
+    end
+
+    bytes_sent
   end
 
   def inspect
@@ -766,6 +946,15 @@ class TCPSocket < IPSocket
 
     [hostname, alternatives.uniq, family] + addresses.uniq
   end
+
+  #
+  # @todo   Is it correct to ignore the to? If not, does
+  #         the socket need to be reconnected? --rue
+  #
+  def send(bytes_to_read, flags, to = nil)
+    super(bytes_to_read, flags)
+  end
+
 
   def initialize(host, port)
     @host = host
