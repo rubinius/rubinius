@@ -103,11 +103,11 @@ field_extract_headers = %w[
 BC          = "vm/instructions.bc"
 LLVM_A      = "vm/external_libs/llvm/#{LLVM_STYLE}/lib/libLLVMSystem.a"
 EXTERNALS   = %W[ #{LLVM_A}
-                  vm/external_libs/libmquark/libmquark.a
+                  vm/external_libs/libmpa/libptr_array.a
                   vm/external_libs/libcchash/libcchash.a
+                  vm/external_libs/libmquark/libmquark.a
                   vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libbstring/libbstring.a
-                  vm/external_libs/libmpa/libptr_array.a
                   vm/external_libs/onig/.libs/libonig.a
                   vm/external_libs/libffi/.libs/libffi.a
                   vm/external_libs/libltdl/.libs/libltdl.a
@@ -532,7 +532,7 @@ import dep_file
 
 def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then
-    $ex_libs = EXTERNALS
+    $ex_libs = EXTERNALS.reverse
     $ex_libs << "-ldl" unless RUBY_PLATFORM =~ /bsd/
     $ex_libs << "-lcrypt -L/usr/local/lib -lexecinfo" if RUBY_PLATFORM =~ /bsd/
     $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
