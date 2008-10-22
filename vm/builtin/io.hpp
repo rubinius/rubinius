@@ -22,6 +22,7 @@ namespace rubinius {
     Object* eof_;        // slot
     Fixnum* lineno_;     // slot
 
+
   public:
     /* accessors */
 
@@ -38,6 +39,7 @@ namespace rubinius {
 
     native_int to_fd();
     void set_mode(STATE);
+    void unsafe_set_descriptor(native_int fd);
     void force_read_only(STATE);
     void force_write_only(STATE);
 
@@ -64,6 +66,16 @@ namespace rubinius {
 
     // Ruby.primitive :io_close
     Object* close(STATE);
+
+    /**
+     *  Shutdown a full-duplex descriptor's read and/or write stream.
+     *
+     *  Careful with this, it applies to full-duplex only.
+     *  It also shuts the stream *in all processes*, not
+     *  just the current one.
+     */
+    // Ruby.primitive :io_shutdown
+    Object* shutdown(STATE, Fixnum* how);
 
     // Ruby.primitive :io_blocking_read
     Object* blocking_read(STATE, Fixnum* count);

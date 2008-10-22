@@ -37,7 +37,7 @@ class String
     end
 
     sexp = [:newline, 0, "<empty: #{name}>", [:nil]] unless sexp
-    sexp = Sexp.from_array sexp
+    sexp = Rubinius::SydneyRewriter.sexp_from_array sexp
     sexp = Rubinius::SydneyRewriter.new.process sexp if unifier
     sexp
   end

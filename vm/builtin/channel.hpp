@@ -49,7 +49,7 @@ namespace rubinius {
     static Object* send_on_signal(STATE, Channel* chan, Fixnum* signal);
 
     // Ruby.primitive :scheduler_send_on_readable
-    static Object* send_on_readable(STATE, Channel* chan, IO* io, IOBuffer* buffer, Fixnum* bytes);
+    static Object* send_on_readable(STATE, Channel* chan, IO* io, Object* maybe_buffer, Fixnum* bytes);
 
     // Ruby.primitive :scheduler_send_in_microseconds
     static Object* send_in_microseconds(STATE, Channel* chan, Integer* useconds, Object* tag);

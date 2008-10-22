@@ -457,7 +457,7 @@ class IO
   # If +timeout+ is not nil, it specifies a maximum interval to wait
   # for the selection to complete. If timeout is nil, the select
   # blocks indefinitely.
-  # 
+  #
   # +write_array+, +error_array+, and +timeout+ may be left as nil if they are
   # unimportant
   def self.select(read_array, write_array = nil, error_array = nil,
@@ -466,7 +466,7 @@ class IO
 
     if read_array then
       read_array.each do |readable|
-        Scheduler.send_on_readable chan, readable, nil, nil
+        Scheduler.send_on_readable chan, readable, nil, -1
       end
     end
 
@@ -510,9 +510,22 @@ class IO
     open_with_mode(path, mode, perm)
   end
 
+  #
+  # Create a new IO associated with the given fd.
+  #
   def initialize(fd, mode = nil)
-    fd = Type.coerce_to fd, Integer, :to_int
+    setup Type.coerce_to(fd, Integer, :to_int), mode
+  end
 
+  #
+  # @internal
+  #
+  # Internally associate this object with the given descriptor.
+  #
+  # The mode will be checked and set as the current mode if
+  # the underlying descriptor allows it.
+  #
+  def setup(fd, mode = nil)
     cur_mode = Platform::POSIX.fcntl(fd, F_GETFL, 0)
     Errno.handle if cur_mode < 0
     cur_mode &= ACCMODE
@@ -530,6 +543,8 @@ class IO
     @descriptor = fd
     @mode = mode || cur_mode
   end
+
+  private :setup
 
   ##
   # Obtains a new duplicate descriptor for the current one.
@@ -1339,7 +1354,7 @@ class IO
 
   def wait_til_readable
     chan = Channel.new
-    Scheduler.send_on_readable chan, self, nil, nil
+    Scheduler.send_on_readable chan, self, nil, -1
     chan.receive
   end
 

@@ -1,3 +1,3 @@
 def test_case
-{"RawParseTree"=>[:yield], "Ruby"=>"yield", "RubyParser"=>s(:yield)}
+{"RawParseTree"=>[:yield, nil, false], "Ruby"=>"yield", "RubyParser"=>s(:yield)}
 end

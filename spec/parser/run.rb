@@ -68,11 +68,11 @@ def usage
   puts "usage: run [options] (FILE|DIRECTORY|GLOB)+"
   puts ""
   puts "-p      Compare to raw ParseTree"
-  puts "-r      Compare to RubyParser"
-  puts "-s      Compare to SydneyParser (default)"
+  puts "-r      Compare to RubyParser (default for -R)"
+  puts "-s      Compare to SydneyParser (default for -S)"
   puts "-R      Get sexp from RubyParser"
   puts "-S      Get sexp from SydneyParser (default)"
-  puts "-X CMD  Get sexp from invoking CMD (see -s)"
+  puts "-X CMD  Get sexp from invoking CMD (see -x)"
   puts "-x STR  Substitute into STR at %s"
   puts "-h      Show this message"
   puts ""
@@ -93,13 +93,10 @@ while x = ARGV.shift
     files.concat Dir["#{x}/**/*_spec.rb"]
   elsif x == "-p"
     standard = :raw_parse_tree
-    sexp = :to_sexp_pt_r unless sexp
   elsif x == "-r"
     standard = :ruby_parser
-    sexp = :to_sexp_rp unless sexp
   elsif x == "-s"
     standard = :sydney_parser
-    sexp = :to_sexp_pt_u unless sexp
   elsif x == "-R"
     begin
       require 'ruby_parser'
@@ -109,6 +106,7 @@ while x = ARGV.shift
       exit 1
     end
     sexp = :to_sexp_rp
+    standard = :ruby_parser unless standard
   elsif x == "-S"
     if standard == :raw_parse_tree
       sexp = :to_sexp_pt_r

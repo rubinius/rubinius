@@ -87,9 +87,9 @@ namespace rubinius {
       ev.data = this;
     }
 
-    void Read::into_buffer(rubinius::IOBuffer *buf, size_t bytes) {
+    void Read::into_buffer(Object* maybe_buffer, std::size_t bytes) {
       count = bytes;
-      buffer.set(buf);
+      buffer.set(maybe_buffer);
     }
 
     bool Read::activated() {

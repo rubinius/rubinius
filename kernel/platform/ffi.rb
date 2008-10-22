@@ -77,6 +77,7 @@ module FFI
     end
 
     # Setup the LD_LIBRARY_PATH
+    # @todo   Not using LTDL currently.
     def setup_ld_library_path(library)
       # If we have a specific reference to the library, we load it here
       specific_library = config("ld_library_path.#{library}")
@@ -468,7 +469,7 @@ class MemoryPointer
 
   def read_array_of_type(type, reader, length)
     ary = []
-    size = FFI.type_size(type)
+    size = FFI.type_size(FFI.find_type type)
     tmp = self
     length.times {
       ary << tmp.send(reader)
@@ -478,7 +479,7 @@ class MemoryPointer
   end
 
   def write_array_of_type(type, writer, ary)
-    size = FFI.type_size(type)
+    size = FFI.type_size(FFI.find_type type)
     tmp = self
     ary.each {|i|
       tmp.send(writer, i)

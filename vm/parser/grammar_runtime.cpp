@@ -5,10 +5,11 @@
 #include "parser/grammar_internal.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/string.hpp"
-#include "builtin/tuple.hpp"
 #include "builtin/bignum.hpp"
+#include "builtin/object.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
 
 #include "vm.hpp"
 
@@ -251,6 +252,9 @@ namespace rubinius {
       array_push(state, ary, current);
       array_push(state, current, node_name);
 
+      current->set_ivar(state, SYMBOL("@file"), string_new(state, node->nd_file));
+      current->set_ivar(state, SYMBOL("@line"), Fixnum::from(nd_line(node)));
+
         switch (nd_type(node)) {
 
         case NODE_BLOCK:
@@ -384,9 +388,18 @@ namespace rubinius {
 
       case NODE_BREAK:
       case NODE_NEXT:
-      case NODE_YIELD:
-        if (node->nd_stts)
+        if (node->nd_stts) {
           add_to_parse_tree(current, node->nd_stts, locals);
+        }
+        break;
+
+      case NODE_YIELD:
+        if (node->nd_stts) {
+          add_to_parse_tree(current, node->nd_stts, locals);
+        } else {
+          array_push(state, current, Qnil);
+        }
+        array_push(state, current, node->u3.value);
         break;
 
       case NODE_RESCUE:

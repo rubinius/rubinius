@@ -17,6 +17,11 @@ Q. So, why wasn't mspec used?
 A. It could have been used. However, this is pretty simple, eh?
 
 
+The example hashes contain keys for RubyParser and SydneyParser. The
+SydneyParser keys only exist where the output of SydneyParser after being passed
+through the rewriter differs from the expected output of RubyParser.
+
+
 Invoke the runner as follows:
 
   bin/rbx spec/parser/run.rb [options] (FILE|DIRECTORY|GLOB)+
@@ -24,15 +29,16 @@ Invoke the runner as follows:
 The runner is also chmod +x and will execute with /usr/bin/env ruby by default.
 Pass the -h option to see more options. It should give the following output:
 
-  $ spec/parser/run.rb -h
+  $ bin/rbx spec/parser/run.rb -h
   usage: run [options] (FILE|DIRECTORY|GLOB)+
 
-  -r      Compare to raw ParseTree
-  -p      Compare to ParseTree (default)
+  -p      Compare to raw ParseTree
+  -r      Compare to RubyParser (default for -R)
+  -s      Compare to SydneyParser (default for -S)
   -R      Get sexp from RubyParser
-  -P      Get sexp from MRI parser + ParseTree builtin to rbx (default)
-  -X CMD  Get sexp from invoking CMD (see -s)
-  -s STR  Substitute into STR at %s
+  -S      Get sexp from SydneyParser (default)
+  -X CMD  Get sexp from invoking CMD (see -x)
+  -x STR  Substitute into STR at %s
   -h      Show this message
 
 

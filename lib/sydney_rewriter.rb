@@ -2,8 +2,23 @@ require 'sexp_processor'
 require 'compiler/lit_rewriter'
 
 class Rubinius::SydneyRewriter < SexpProcessor
-  def rewrite_begin(exp)
-    exp.last
+  def self.sexp_from_array(ary)
+    ary = Array(ary)
+
+    result = Sexp.new
+
+    ary.each do |x|
+      if Array === x
+        exp = sexp_from_array(x)
+        exp.file = x.instance_variable_get :@file
+        exp.line = x.instance_variable_get :@line
+        result << exp
+      else
+        result << x
+      end
+    end
+
+    result
   end
 
   def rewrite_argscat(exp)
@@ -18,7 +33,14 @@ class Rubinius::SydneyRewriter < SexpProcessor
   def rewrite_attrasgn(exp)
     ary = exp.array rescue nil
     ary[0] = :arglist if ary
+
+    exp << s(:arglist) unless Array === exp.last
+
     exp
+  end
+
+  def rewrite_begin(exp)
+    exp.last
   end
 
   def rewrite_block_pass(exp)
@@ -90,6 +112,26 @@ class Rubinius::SydneyRewriter < SexpProcessor
     result
   end
 
+  def rewrite_dstr(exp)
+    str = exp[1]
+    if String === str
+      while Array === (s = exp[2]) and s.first == :str
+        exp.delete_at 2
+        str << s.last
+      end
+      exp[1] = str
+    end
+
+    exp[0] = :str if exp.size == 2 and String === exp.last
+
+    exp
+  end
+
+  def rewrite_evstr(exp)
+    return s(:str, exp.file) if exp.last == s(:file)
+    exp
+  end
+
   # Adapted from UnifiedRuby
   def rewrite_fcall(exp)
     exp[0] = :call
@@ -97,6 +139,35 @@ class Rubinius::SydneyRewriter < SexpProcessor
     exp.push nil if exp.size <= 3
 
     rewrite_call(exp)
+  end
+
+  def rewrite_masgn(exp)
+    last = exp.last
+    kind = last.first
+
+    case exp.size
+    when 2
+      unless kind == :array or kind == :to_ary
+        last = s(:splat, last) unless last.first == :splat
+        exp[1] = s(:array, last)
+      end
+    when 3
+      unless kind == :array or kind == :to_ary
+        exp.pop
+        last = s(:splat, last) unless last.first == :splat
+        exp.last << last
+      end
+    when 4
+      last = exp.pop
+      exp = rewrite_masgn(exp)
+      exp << last
+    end
+
+    exp
+  end
+
+  def rewrite_negate(exp)
+    s(:lit, -exp.last.last)
   end
 
   def rewrite_op_asgn1(exp)
@@ -118,6 +189,7 @@ class Rubinius::SydneyRewriter < SexpProcessor
     code = result
     while exp and exp.first == :resbody
       code << exp.shift
+
       list = exp.shift || s(:array)
       body = exp.empty? ? nil : exp.shift
       exp  = exp.empty? ? nil : exp.shift
@@ -132,6 +204,8 @@ class Rubinius::SydneyRewriter < SexpProcessor
         # TODO: check that it is assigning $!
         list << body.delete_at(1) if body[1].first == :lasgn
       end if body
+
+      body = s(:break) if body == s(:block, s(:break))
 
       code << list << body
       if exp then
@@ -160,6 +234,26 @@ class Rubinius::SydneyRewriter < SexpProcessor
   def rewrite_vcall(exp)
     exp.push nil
     rewrite_fcall(exp)
+  end
+
+  def rewrite_yield(exp)
+    case exp.last
+    when true
+      exp.pop
+      args = exp.last
+      case args
+      when Array
+        if args.first == :array
+          args[0] = :yield
+          return args
+        end
+      end
+    when false
+      exp.pop
+      exp.pop unless exp.last
+    end
+
+    exp
   end
 
   def rewrite_zarray(exp)

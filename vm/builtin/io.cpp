@@ -1,3 +1,10 @@
+#include <iostream>
+
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 #include "builtin/io.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/channel.hpp"
@@ -8,12 +15,12 @@
 #include "builtin/bytearray.hpp"
 #include "primitives.hpp"
 
+#include "vm/event.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "vm/object_utils.hpp"
 
-#include <fcntl.h>
-#include <iostream>
+#include "vm/object_utils.hpp"
 
 namespace rubinius {
   void IO::init(STATE) {
@@ -71,9 +78,14 @@ namespace rubinius {
   Object* IO::ensure_open(STATE) {
     if(descriptor_->nil_p()) {
       Exception::io_error(state, "uninitialized stream");
-    } else if(to_fd() == -1) {
+    }
+    else if(to_fd() == -1) {
       Exception::io_error(state, "closed stream");
     }
+    else if(to_fd() == -2) {
+      Exception::io_error(state, "shutdown stream");
+    }
+
     return Qnil;
   }
 
@@ -103,16 +115,75 @@ namespace rubinius {
     return Integer::from(state, position);
   }
 
+  /** This is NOT the same as shutdown(). */
   Object* IO::close(STATE) {
     ensure_open(state);
 
-    if(::close(to_fd())) {
+    /** @todo   Should this be just int? --rue */
+    native_int desc = to_fd();
+
+    switch(::close(desc)) {
+    case -1:
       Exception::errno_error(state);
-    } else {
-      // HACK todo clear any events for this IO
+      break;
+
+    case 0:
+      state->events->clear_by_fd(desc);
       descriptor(state, Fixnum::from(-1));
+      break;
+
+    default:
+      std::ostringstream message;
+      message << "::close(): Unknown error on fd " << desc;
+      Exception::system_call_error(state, message.str());
     }
+
     return Qnil;
+  }
+
+  /**
+   *  This is NOT the same as close().
+   *
+   *  @todo   Need to build the infrastructure to be able to only
+   *          remove read or write waiters if a partial shutdown
+   *          is requested. --rue
+   */
+  Object* IO::shutdown(STATE, Fixnum* how) {
+    ensure_open(state);
+
+    int which = how->to_int();
+    native_int desc = to_fd();
+
+    if(which != SHUT_RD && which != SHUT_WR && which != SHUT_RDWR) {
+      std::ostringstream message;
+      message << "::shutdown(): Invalid `how` " << which << " for fd " << desc;
+      Exception::argument_error(state, message.str().c_str());
+    }
+
+    switch(::shutdown(desc, which)) {
+    case -1:
+      Exception::errno_error(state);
+      break;
+
+    case 0:
+      if(which == SHUT_RDWR) {
+        /* Yes, it really does need to be closed still. */
+        (void) close(state);
+
+        descriptor(state, Fixnum::from(-2));
+      }
+
+      /** @todo   Fix when can only remove read or write events. --rue */
+      state->events->clear_by_fd(desc);
+      break;
+
+    default:
+      std::ostringstream message;
+      message << "::shutdown(): Unknown error on fd " << desc;
+      Exception::system_call_error(state, message.str());
+    }
+
+    return how;
   }
 
   native_int IO::to_fd() {
@@ -125,6 +196,10 @@ namespace rubinius {
       Exception::errno_error(state);
     }
     mode(state, Fixnum::from(acc_mode));
+  }
+
+  void IO::unsafe_set_descriptor(native_int fd) {
+    descriptor_ = Fixnum::from(fd);
   }
 
   void IO::force_read_only(STATE) {
@@ -176,7 +251,8 @@ namespace rubinius {
     }
   }
 
-  /* IOBuffer methods */
+
+/* IOBuffer methods */
 
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = (IOBuffer*)state->new_object(G(iobuffer));
