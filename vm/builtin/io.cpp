@@ -78,9 +78,14 @@ namespace rubinius {
   Object* IO::ensure_open(STATE) {
     if(descriptor_->nil_p()) {
       Exception::io_error(state, "uninitialized stream");
-    } else if(to_fd() == -1) {
+    }
+    else if(to_fd() == -1) {
       Exception::io_error(state, "closed stream");
     }
+    else if(to_fd() == -2) {
+      Exception::io_error(state, "shutdown stream");
+    }
+
     return Qnil;
   }
 
@@ -110,6 +115,7 @@ namespace rubinius {
     return Integer::from(state, position);
   }
 
+  /** This is NOT the same as shutdown(). */
   Object* IO::close(STATE) {
     ensure_open(state);
 
@@ -133,6 +139,51 @@ namespace rubinius {
     }
 
     return Qnil;
+  }
+
+  /**
+   *  This is NOT the same as close().
+   *
+   *  @todo   Need to build the infrastructure to be able to only
+   *          remove read or write waiters if a partial shutdown
+   *          is requested. --rue
+   */
+  Object* IO::shutdown(STATE, Fixnum* how) {
+    ensure_open(state);
+
+    int which = how->to_int();
+    native_int desc = to_fd();
+
+    if(which != SHUT_RD && which != SHUT_WR && which != SHUT_RDWR) {
+      std::ostringstream message;
+      message << "::shutdown(): Invalid `how` " << which << " for fd " << desc;
+      Exception::argument_error(state, message.str().c_str());
+    }
+
+    switch(::shutdown(desc, which)) {
+    case -1:
+      Exception::errno_error(state);
+      break;
+
+    case 0:
+      if(which == SHUT_RDWR) {
+        /* Yes, it really does need to be closed still. */
+        (void) close(state);
+
+        descriptor(state, Fixnum::from(-2));
+      }
+
+      /** @todo   Fix when can only remove read or write events. --rue */
+      state->events->clear_by_fd(desc);
+      break;
+
+    default:
+      std::ostringstream message;
+      message << "::shutdown(): Unknown error on fd " << desc;
+      Exception::system_call_error(state, message.str());
+    }
+
+    return how;
   }
 
   native_int IO::to_fd() {

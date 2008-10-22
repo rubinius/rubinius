@@ -68,4 +68,14 @@ class IO
     Ruby.primitive :io_close
     raise PrimitiveFailure, "IO#close primitive failed"
   end
+
+  #
+  # Close read and/or write stream of a full-duplex descriptor.
+  #
+  # @todo   More documentation. Much more. --rue
+  #
+  def shutdown(how)
+    Ruby.primitive :io_shutdown
+  end
+
 end

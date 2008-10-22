@@ -66,6 +66,16 @@ namespace rubinius {
     // Ruby.primitive :io_close
     Object* close(STATE);
 
+    /**
+     *  Shutdown a full-duplex descriptor's read and/or write stream.
+     *
+     *  Careful with this, it applies to full-duplex only.
+     *  It also shuts the stream *in all processes*, not
+     *  just the current one.
+     */
+    // Ruby.primitive :io_shutdown
+    Object* shutdown(STATE, Fixnum* how);
+
     // Ruby.primitive :io_blocking_read
     Object* blocking_read(STATE, Fixnum* count);
 
