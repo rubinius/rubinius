@@ -7,8 +7,7 @@
 
 // HACK figure out a better way to detect if we should use
 // mach_absolute_time
-#if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) && \
-    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1050
+#if 1
   #define USE_MACH_TIME
 #endif
 

@@ -79,6 +79,28 @@ task :distclean => %w[
   vm:distclean
 ]
 
+def rbx_compile(from)
+  sh "bin/rbx compile -f #{from}"
+end
+
+desc 'Compare an rbc file made by MRI with one made by rbx'
+task :compare, :file do |task, args|
+  file = args[:file]
+  raise "Please supply something that exists" unless File.exist? file
+  
+  mri_compile file, file + 'c.mri'
+  rbx_compile file
+  
+  File.open(file + 'c.mri') do |mri|
+    File.open(file + 'c') do |rbx|
+      while m = mri.gets and r = rbx.gets
+        puts "Line of Failure: #{rbx.lineno}" and break unless m === r
+      end
+    end
+  end
+  
+end
+
 namespace :clean do
   desc "Cleans up editor files and other misc crap"
   task :crap do
