@@ -466,7 +466,7 @@ class IO
 
     if read_array then
       read_array.each do |readable|
-        Scheduler.send_on_readable chan, readable, nil, nil
+        Scheduler.send_on_readable chan, readable, nil, -1
       end
     end
 
@@ -1339,7 +1339,7 @@ class IO
 
   def wait_til_readable
     chan = Channel.new
-    Scheduler.send_on_readable chan, self, nil, nil
+    Scheduler.send_on_readable chan, self, nil, -1
     chan.receive
   end
 

@@ -71,7 +71,7 @@ class Scheduler
 
   def self.send_on_readable(chan, io, buffer, nbytes)
     Ruby.primitive :scheduler_send_on_readable
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "send_on_readable failed"
   end
 
   ##
@@ -80,7 +80,7 @@ class Scheduler
 
   def self.send_on_writable(chan, io)
     Ruby.primitive :scheduler_send_on_writable
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "send_on_writable failed"
   end
 
   ##

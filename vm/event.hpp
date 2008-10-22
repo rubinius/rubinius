@@ -65,7 +65,7 @@ namespace rubinius {
 
       Read(STATE, ObjectCallback* chan, int fd);
       virtual ~Read() { }
-      void into_buffer(rubinius::IOBuffer* buffer, size_t bytes);
+      void into_buffer(Object* maybe_buffer, std::size_t bytes);
       virtual bool activated();
     };
 

@@ -109,11 +109,11 @@ namespace rubinius {
   }
 
   Object* Channel::send_on_readable(STATE, Channel* chan, IO* io,
-      IOBuffer* buffer, Fixnum* bytes) {
+      Object* maybe_buffer, Fixnum* bytes) {
 
     SendToChannel* cb = new SendToChannel(state, chan);
     event::Read* sig = new event::Read(state, cb, io->to_fd());
-    sig->into_buffer(buffer, bytes->to_native());
+    sig->into_buffer(maybe_buffer, bytes->to_native());
 
     state->events->start(sig);
     return io;
