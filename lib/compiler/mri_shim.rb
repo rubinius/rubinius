@@ -1,9 +1,15 @@
 
 require 'rubygems'
 
+$:.push "lib"
+require 'ruby_parser'
 require 'compiler/compiler'
 require 'compiler/text'
-require 'kernel/delta/compiled_file'
+$:.pop
+
+require File.dirname(__FILE__) + '/../../kernel/delta/compiled_file'
+require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
+require File.dirname(__FILE__) + '/../../kernel/common/compiled_method'
 
 class SendSite
   def initialize(name)
@@ -39,13 +45,9 @@ class Object
   end
 end
 
-require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
-require File.dirname(__FILE__) + '/../../kernel/common/compiled_method'
 
 class String
   def to_sexp(file = "(eval)", line = 1)
-    require 'ruby_parser'
-
     RubyParser.new.process(self, file)
   end
 
