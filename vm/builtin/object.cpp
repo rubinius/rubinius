@@ -299,8 +299,14 @@ namespace rubinius {
   }
 
   ExecuteStatus Object::send_prim(STATE, Executable* exec, Task* task, Message& msg) {
-    Symbol* meth = as<Symbol>(msg.shift_argument(state));
-    msg.name = meth;
+    Object* meth = msg.shift_argument(state);
+    Symbol* sym = try_as<Symbol>(meth);
+
+    if(!sym) {
+      sym = as<String>(meth)->to_sym(state);
+    }
+
+    msg.name = sym;
     msg.priv = true;
     return task->send_message_slowly(msg);
   }
