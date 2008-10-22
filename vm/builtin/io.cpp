@@ -252,20 +252,6 @@ namespace rubinius {
   }
 
 
-/* IO::Info methods. */
-
-  /** Plain ::close() if the fd is still open. */
-  void IO::Info::cleanup(Object* io) {
-    IO* i = as<IO>(io);
-    native_int fd = i->to_fd();
-
-    if(fd > 0) {
-      ::close(fd);
-      i->unsafe_set_descriptor(-1);
-    }
-  }
-
-
 /* IOBuffer methods */
 
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {

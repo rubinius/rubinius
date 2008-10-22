@@ -22,6 +22,7 @@ namespace rubinius {
     Object* eof_;        // slot
     Fixnum* lineno_;     // slot
 
+
   public:
     /* accessors */
 
@@ -84,7 +85,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      BASIC_TYPEINFO_WITH_CLEANUP(TypeInfo)
+      BASIC_TYPEINFO(TypeInfo)
     };
 
   };
