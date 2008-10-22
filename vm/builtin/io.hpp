@@ -38,6 +38,7 @@ namespace rubinius {
 
     native_int to_fd();
     void set_mode(STATE);
+    void unsafe_set_descriptor(native_int fd);
     void force_read_only(STATE);
     void force_write_only(STATE);
 
@@ -73,7 +74,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO_WITH_CLEANUP(TypeInfo)
     };
 
   };

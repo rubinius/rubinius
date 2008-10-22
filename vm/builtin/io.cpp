@@ -1,3 +1,10 @@
+#include <iostream>
+
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 #include "builtin/io.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/channel.hpp"
@@ -8,12 +15,12 @@
 #include "builtin/bytearray.hpp"
 #include "primitives.hpp"
 
+#include "vm/event.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "vm/object_utils.hpp"
 
-#include <fcntl.h>
-#include <iostream>
+#include "vm/object_utils.hpp"
 
 namespace rubinius {
   void IO::init(STATE) {
@@ -106,12 +113,25 @@ namespace rubinius {
   Object* IO::close(STATE) {
     ensure_open(state);
 
-    if(::close(to_fd())) {
+    /** @todo   Should this be just int? --rue */
+    native_int desc = to_fd();
+
+    switch(::close(desc)) {
+    case -1:
       Exception::errno_error(state);
-    } else {
-      // HACK todo clear any events for this IO
+      break;
+
+    case 0:
+      state->events->clear_by_fd(desc);
       descriptor(state, Fixnum::from(-1));
+      break;
+
+    default:
+      std::ostringstream message;
+      message << "::close(): Unknown error on fd " << desc;
+      Exception::system_call_error(state, message.str());
     }
+
     return Qnil;
   }
 
@@ -125,6 +145,10 @@ namespace rubinius {
       Exception::errno_error(state);
     }
     mode(state, Fixnum::from(acc_mode));
+  }
+
+  void IO::unsafe_set_descriptor(native_int fd) {
+    descriptor_ = Fixnum::from(fd);
   }
 
   void IO::force_read_only(STATE) {
@@ -176,7 +200,22 @@ namespace rubinius {
     }
   }
 
-  /* IOBuffer methods */
+
+/* IO::Info methods. */
+
+  /** Plain ::close() if the fd is still open. */
+  void IO::Info::cleanup(Object* io) {
+    IO* i = as<IO>(io);
+    native_int fd = i->to_fd();
+
+    if(fd > 0) {
+      ::close(fd);
+      i->unsafe_set_descriptor(-1);
+    }
+  }
+
+
+/* IOBuffer methods */
 
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = (IOBuffer*)state->new_object(G(iobuffer));
