@@ -33,6 +33,7 @@ namespace rubinius {
   }
 
   Integer* Integer::from(STATE, unsigned int num) {
+// @todo: Tiger doesn't define __WORDSIZE...
 #if (__WORDSIZE != 64)
     if(num > FIXNUM_MAX) {
       return Bignum::from(state, (unsigned long)num);
