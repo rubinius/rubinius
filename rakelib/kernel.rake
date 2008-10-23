@@ -74,7 +74,6 @@ def create_load_order(files, output=".load_order.txt")
   end
 end
 
-$: << 'lib'
 require 'lib/compiler/mri_compile'
 
 def compile_ruby(src, rbc, check_mtime = false)
