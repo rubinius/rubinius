@@ -204,7 +204,7 @@ class TestByteArray : public CxxTest::TestSuite {
     TS_ASSERT_SAME_DATA(b->bytes, "xyZzyx", 7);
 
     ByteArray* c = ByteArray::create(state, 0);
-    TS_ASSERT_EQUALS(c->size(state)->to_native(), sizeof(int));
+    TS_ASSERT_EQUALS(c->size(state)->to_native(), (int)sizeof(int));
     a->dup_into(state, c);
     TS_ASSERT_SAME_DATA(c->bytes, "xyZz", 4);
 
