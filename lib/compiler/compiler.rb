@@ -253,7 +253,19 @@ class Compiler
   class GenerationError < Error; end
 
   def show_errors(gen) # TODO: remove
-    yield
+    begin
+      yield
+    rescue GenerationError => e
+      raise e
+    rescue Object => e
+      puts "Bytecode generation error: "
+      puts "   #{e.message} (#{e.class})"
+      puts "   near #{gen.file||'<missing file>'}:#{gen.line||'<missing line>'}"
+      puts ""
+      puts e.backtrace
+
+      raise GenerationError, "unable to generate bytecode"
+    end
   end
 
 end

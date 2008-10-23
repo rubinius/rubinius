@@ -101,7 +101,7 @@ while x = ARGV.shift
     begin
       require 'ruby_parser'
     rescue LoadError
-      puts "Unable to load RubyParser." \
+      puts "Unable to load RubyParser.\n" \
            "Consider running the script with ruby -I<whatever> -rruby_parser"
       exit 1
     end

@@ -89,7 +89,7 @@ class Rubinius::SydneyRewriter < SexpProcessor
     if block_arg
       sym = :"&#{block_arg.last}"
       if Array === exp.args.last
-        exp.args.insert -2, sym
+        exp.args.insert(-2, sym)
       else
         exp.args << sym
       end
