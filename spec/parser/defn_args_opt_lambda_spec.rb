@@ -13,7 +13,7 @@ def test_case
        [:lasgn, :b, [:str, "1"]],
        [:lasgn,
         :c,
-        [:iter, [:fcall, :lambda], [:dasgn_curr, :n], [:dvar, :n]]]]],
+        [:iter, [:fcall, :lambda], [:lasgn, :n], [:lvar, :n]]]]],
      [:nil]]]],
  "Ruby"=>"def f(a = 42, b = '1', c=lambda {|n| n })\n  # do nothing\nend",
  "RubyParser"=>

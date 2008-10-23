@@ -10,7 +10,7 @@ def test_case
      nil,
      [:begin,
       [:rescue,
-       [:yield],
+       [:yield, nil, false],
        [:resbody,
         [:array, [:const, :Exception]],
         [:block, [:lasgn, :v, [:gvar, :$!]], [:break]]]]]]]],

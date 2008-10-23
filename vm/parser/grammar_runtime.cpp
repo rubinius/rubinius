@@ -710,50 +710,46 @@ namespace rubinius {
           array_push(state, current, Q2SYM(locals[i + 3]));
         }
 
-        /* look for optional arguments */
+        /* look for optional arguments: we cannot assume these
+         * are left-to-right what the locals array contains
+         * (e.g. def(a=1, b=2, c=lambda {|n| n } will have 'n'
+         * at i (above) + 2 + 3); instead we walk the chain
+         * and look at the actual LASGN nodes
+         */
         masgn_level++;
         optnode = node->nd_opt;
         while (optnode) {
-          array_push(state, current, Q2SYM(locals[i + 3]));
-          i++;
+          if(nd_type(optnode) == NODE_LASGN) {
+            array_push(state, current, Q2SYM(optnode->nd_vid));
+          } else if(nd_type(optnode) == NODE_BLOCK
+                    && nd_type(optnode->nd_head) == NODE_LASGN) {
+            array_push(state, current, Q2SYM(optnode->nd_head->nd_vid));
+          }
+          i++;  // do not use here but keep track for '*args' name below
           optnode = optnode->nd_next;
         }
 
-        // HACK: after parser update to >= 1.8.6
         /* look for vargs */
-#if 0 // RUBY_VERSION_CODE > 184
-        if (node->nd_rest) {
-          VALUE sym = rb_str_new2("*");
+        long arg_count = (long)node->nd_rest;
+        if (arg_count > 0) {
+          /* *arg name */
+          Object* sym = string_new(state, "*");
           if (locals[i + 3]) {
-            rb_str_concat(sym, rb_str_new2(rb_id2name(locals[i + 3])));
+            string_concat(state, sym, string_new(state,
+                  quark_to_string(id_to_quark(locals[i + 3]))));
           }
-          sym = rb_str_intern(sym);
-          rb_ary_push(current, sym);
+          array_push(state, current, STR2SYM(sym));
+        } else if (arg_count == 0) {
+          /* nothing to do in this case, empty list */
+        } else if (arg_count == -1) {
+          /* nothing to do in this case, handled above */
+        } else if (arg_count == -2) {
+          /* nothing to do in this case, no name == no use */
+          array_push(state, current, SYMBOL("*"));
+        } else {
+          // HACK: replace with Exception::argument_error()
+          printf("Unknown arg_count %ld encountered while processing args.\n", arg_count);
         }
-#else
-        {
-          long arg_count = (long)node->nd_rest;
-          if (arg_count > 0) {
-            /* *arg name */
-            Object* sym = string_new(state, "*");
-            if (locals[i + 3]) {
-              string_concat(state, sym, string_new(state,
-                    quark_to_string(id_to_quark(locals[i + 3]))));
-            }
-            array_push(state, current, STR2SYM(sym));
-          } else if (arg_count == 0) {
-            /* nothing to do in this case, empty list */
-          } else if (arg_count == -1) {
-            /* nothing to do in this case, handled above */
-          } else if (arg_count == -2) {
-            /* nothing to do in this case, no name == no use */
-            array_push(state, current, SYMBOL("*"));
-          } else {
-            // HACK: replace with Exception::argument_error()
-            printf("Unknown arg_count %ld encountered while processing args.\n", arg_count);
-          }
-        }
-#endif
 
         optnode = node->nd_opt;
         if (optnode) {

@@ -5011,6 +5011,9 @@ extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars)
     int i;
     NODE *var, *out = node;
 
+    // we don't create any DASGN_CURR nodes
+    goto out;
+
     if (!node) goto out;
     if(var_table_size(vars) == 0) goto out;
 
