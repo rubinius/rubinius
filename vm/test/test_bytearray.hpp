@@ -52,7 +52,7 @@ class TestByteArray : public CxxTest::TestSuite {
 
   void test_size() {
     ByteArray* b = ByteArray::create(state, 0);
-    TS_ASSERT_EQUALS(b->size(state), Fixnum::from(sizeof(int)));
+    TS_ASSERT_EQUALS(b->size(state), Fixnum::from(sizeof(Object*)));
   }
 
   void test_to_chars() {
@@ -204,7 +204,7 @@ class TestByteArray : public CxxTest::TestSuite {
     TS_ASSERT_SAME_DATA(b->bytes, "xyZzyx", 7);
 
     ByteArray* c = ByteArray::create(state, 0);
-    TS_ASSERT_EQUALS(c->size(state)->to_native(), (int)sizeof(int));
+    TS_ASSERT_EQUALS(c->size(state)->to_native(), (int)sizeof(Object*));
     a->dup_into(state, c);
     TS_ASSERT_SAME_DATA(c->bytes, "xyZz", 4);
 
