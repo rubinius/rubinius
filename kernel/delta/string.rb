@@ -7,14 +7,12 @@ class String
   BASE_64_A2B[?\/] = ??
   BASE_64_A2B[?=]  = 0
 
-  @@parser = :rp
-
-  def self.parser=(parser)
-    @@parser = parser
+  def self.sydney_parser
+    alias_method :to_sexp, :to_sexp_sydney_parser
   end
 
-  def self.parser
-    @@parser
+  def self.ruby_parser
+    alias_method :to_sexp, :to_sexp_ruby_parser
   end
 
   def parse(name, line)
@@ -22,11 +20,8 @@ class String
     raise PrimitiveFailure, "String#parse primitive failed"
   end
 
-  def to_sexp_pt(name="(eval)", line=1, lit_rewriter=true, unifier=true)
-    # TODO: move under lib/compiler when done; if it is
-    # there while working on it, changes cause all files
-    # to be recompiled continually.
-    require 'sydney_rewriter'
+  def to_sexp_sydney_parser(name="(eval)", line=1, lit_rewriter=true)
+    require 'compiler/sydney_rewriter'
 
     sexp = parse name, line
     if sexp.kind_of? Tuple
@@ -37,13 +32,12 @@ class String
     end
 
     sexp = [:newline, 0, "<empty: #{name}>", [:nil]] unless sexp
-    sexp = Rubinius::SydneyRewriter.sexp_from_array sexp
-    sexp = Rubinius::SydneyRewriter.new.process sexp if unifier
+    sexp = Rubinius::SydneyRewriter.new.process sexp, name, line
     sexp
   end
 
   # TODO - Pass the starting line info into RubyParser
-  def to_sexp_rp(name="(eval)", line = 1, lit_rewriter=true)
+  def to_sexp_ruby_parser(name="(eval)", line = 1, lit_rewriter=true)
     require 'ruby_parser'
     require 'compiler/lit_rewriter'
     sexp = RubyParser.new.process(self, name)
@@ -52,10 +46,6 @@ class String
   end
 
   def to_sexp(name="(eval)", line=1, rewriter=true)
-    if self.class.parser == :pt
-      to_sexp_pt name, line, rewriter
-    else
-      to_sexp_rp name, line, rewriter
-    end
+    to_sexp_ruby_parser name, line, rewriter
   end
 end

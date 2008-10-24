@@ -2,6 +2,8 @@
 begin
   ENV = EnvironmentVariables.new
 
+  String.sydney_parser if ENV['SYDNEY'] or ENV['SYDPARSE']
+
   # define a global "start time" to use for process calculation
   $STARTUP_TIME = Time.now
 rescue Object => e
@@ -79,7 +81,7 @@ Options:
   -ps            Run the Selector profiler.
   -pss           Run the SendSite profiler.
   -rlibrary      Require library before execution.
-  -P             Use MRI-based parser.
+  -P             Use SydneyParser.
   -R             Use RubyParser.
   -w             Enable warnings. (currently does nothing--compatibility)
   -v             Display the version and set $VERBOSE to true.
@@ -155,9 +157,9 @@ begin
       # if missing, let it die a natural death
       ARGV.unshift file ? file : script
     when '-P'
-      String.parser = :pt
+      String.sydney_parser
     when '-R'
-      String.parser = :rp
+      String.ruby_parser
     when '-e'
       $0 = "(eval)"
       eval_code = ARGV.shift
