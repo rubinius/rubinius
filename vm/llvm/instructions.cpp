@@ -21,6 +21,8 @@
 #include "objectmemory.hpp"
 #include "message.hpp"
 
+#define USE_JUMP_TABLE
+
 using namespace rubinius;
 
 // #define OP(name, args...) void name(Task* task, struct jit_state* const js, ## args)
@@ -154,8 +156,22 @@ CODE
 void VMMethod::resume(Task* task, MethodContext* ctx) {
   VMMethod* const vmm = this;
   opcode* stream = ctx->vmm->opcodes;
+#ifdef USE_JUMP_TABLE
+
+#undef RETURN
+#define RETURN(val) if((val) == cExecuteRestart) { return; } else { goto *insn_locations[stream[ctx->ip++]]; }
+
+#ruby <<CODE
+io = StringIO.new
+si.generate_jump_implementations impl, io, true
+puts io.string
+CODE
+
+#else
   opcode op;
 
+#undef RETURN
+#define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
   for(;;) {
     op = stream[ctx->ip++];
 
@@ -171,5 +187,5 @@ si.generate_decoder_switch impl, io, true
 puts io.string
 CODE
   }
-
+#endif // USE_JUMP_TABLE
 }

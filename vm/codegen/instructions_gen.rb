@@ -122,7 +122,7 @@ class Instructions
       end
 
       if flow
-        if [:send, :return, :raise].include?(impl.name.flow)
+        if [:return, :raise].include?(impl.name.flow)
           io.puts "  return;"
         end
       end
@@ -139,6 +139,46 @@ class Instructions
     io.puts %q!  std::cout << "Invalid instruction: " << InstructionSequence::get_instruction_name(op) << "\n"; abort();!
 
     io.puts "}"
+  end
+
+  # Using an array of Implementation objects, +methods+, print out
+  # the code for each instruction. This uses an indirect threaded
+  # goto to jump between instructions.
+  #
+  def generate_jump_implementations(methods, io, flow=false)
+    io.puts generate_jump_table()
+    io.puts "goto *insn_locations[stream[ctx->ip++]];"
+
+    methods.each do |impl|
+      io.puts "  op_impl_#{impl.name.opcode}: {"
+
+      args = impl.args
+      case args.size
+      when 2
+        io.puts "  int #{args[0]} = next_int;"
+        io.puts "  int #{args[1]} = next_int;"
+        io.puts "  #{impl.body}"
+      when 1
+        io.puts "  int #{args[0]} = next_int;"
+        io.puts "  #{impl.body}"
+      when 0
+        io.puts "  #{impl.body}"
+      end
+
+      if flow
+        if [:return, :raise].include?(impl.name.flow)
+          io.puts "  return;"
+        end
+      end
+
+      if [:push_const, :find_const].include?(impl.name.opcode)
+        io.puts "  return;"
+      end
+
+      io.puts "  goto *insn_locations[stream[ctx->ip++]];"
+      io.puts "  }"
+    end
+
   end
 
   # Print to +fd+ a cxxtest formatted class, which contains the test code
@@ -267,6 +307,16 @@ void #{meth}() {
   return instruction_names + instruction_name_offsets[op];
 }
 CODE
+  end
+
+  def generate_jump_table
+    str = "static const void* insn_locations[] = {\n"
+    InstructionSet::OpCodes.each do |ins|
+      str << "  &&op_impl_#{ins.opcode.to_s},\n"
+    end
+    str << "  NULL\n};\n"
+
+    return str
   end
 
   # Generate header information for instruction functions and other
