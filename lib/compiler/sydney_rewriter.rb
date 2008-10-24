@@ -1,17 +1,34 @@
-require 'sexp_processor'
 require 'compiler/lit_rewriter'
 
-class Rubinius::SydneyRewriter < SexpProcessor
-  def self.sexp_from_array(ary)
+class Sexp
+  def file
+    @file || "<missing filename>"
+  end
+
+  def line
+    @line || -1
+  end
+
+  def set_file(ary, file)
+    @file = ary.instance_variable_get(:@file) || file
+  end
+
+  def set_line(ary, line)
+    @line = ary.instance_variable_get(:@line) || line
+  end
+end
+
+class Rubinius::SydneyRewriter
+  def self.sexp_from_array(ary, file, line)
     ary = Array(ary)
 
     result = Sexp.new
+    result.set_file ary, file
+    result.set_line ary, line
 
     ary.each do |x|
       if Array === x
-        exp = sexp_from_array(x)
-        exp.file = x.instance_variable_get :@file
-        exp.line = x.instance_variable_get :@line
+        exp = sexp_from_array x, file, line
         result << exp
       else
         result << x
@@ -20,6 +37,50 @@ class Rubinius::SydneyRewriter < SexpProcessor
 
     result
   end
+
+  # Adapted from SexpProcessor
+  def self.rewriters
+    unless @rewriters
+      @rewriters = {}
+      public_instance_methods.each do |name|
+        if /^rewrite_(.*)/ =~ name
+          @rewriters[$1.to_sym] = name.to_sym
+        end
+      end
+    end
+    @rewriters
+  end
+
+  def process(exp, name="(eval)", line=1)
+    return exp unless Array === exp
+    exp = self.class.sexp_from_array exp, name, line
+    rewrite exp, name, line
+  end
+
+  # Adapted from SexpProcessor
+  def rewrite(exp, file, line)
+    orig = exp
+    type = exp.first
+
+    exp.map! { |sub| Array === sub ? rewrite(sub, file, line) : sub }
+
+    begin
+      meth = self.class.rewriters[type]
+      exp  = self.send(meth, exp) if meth
+
+      unless exp.equal? orig
+        exp.set_file orig.file, file
+        exp.set_line orig.line, line
+      end
+
+      break unless Sexp === exp
+      old_type, type = type, exp.first
+    end until old_type == type
+
+    exp
+  end
+
+  # Rewriters
 
   def rewrite_argscat(exp)
     exp[1] << s(:splat, exp.last)
