@@ -151,6 +151,8 @@ class TestSubtend : public CxxTest::TestSuite
     my_task = Task::create(my_state);
     my_message = new Message(my_state);
     my_module = Module::create(my_state);
+
+    my_message->set_caller(my_task->active());
   }
 
   void tearDown() {
@@ -320,6 +322,39 @@ class TestSubtend : public CxxTest::TestSuite
 
     TS_ASSERT_EQUALS(hidden_receiver, receiver);
     TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value())->to_int(), arg_count);
+  }
+
+  void test_ruby_to_c_call_clears_caller_stack()
+  {
+    Task* task = Task::create(my_state, 2);
+    task->push(Fixnum::from(4));
+
+    MethodContext* top = task->active();
+
+    TS_ASSERT_EQUALS(top->calculate_sp(), 0);
+
+    Object* receiver = my_state->new_object(my_state->globals.object.get());
+
+    my_message->recv = receiver;
+    my_message->use_from_task(task, 1);
+    my_message->name = my_state->symbol("__subtend_fake_test_method__");
+    my_message->stack = 1;
+
+    NativeMethod* method = NativeMethod::create(my_state,
+                                                String::create(my_state, __FILE__),
+                                                my_module,
+                                                my_message->name,
+                                                &one_arg,
+                                                Fixnum::from(1));
+
+    my_message->method = method;
+    method->execute(my_state, task, *my_message);
+
+    TS_ASSERT_EQUALS(task->active(), top);
+    TS_ASSERT_EQUALS(top->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(hidden_receiver, receiver);
+    TS_ASSERT_EQUALS(as<Fixnum>(hidden_context->return_value())->to_int(), 1);
+    TS_ASSERT_EQUALS(as<Fixnum>(top->pop())->to_int(), 1);
   }
 
   void test_ruby_to_c_call_with_recv_plus_two()

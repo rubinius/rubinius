@@ -126,6 +126,7 @@ namespace rubinius {
       switch (context->method()->arity()->to_int()) {
       case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
         Handle args = context->handle_for(message->as_array(context->state()));
+        message->clear_caller();
 
         Handle ret_handle = context->method()->functor_as<OneArgFunctor>()(args);
 
@@ -135,6 +136,7 @@ namespace rubinius {
 
       case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
         Handle args = context->handle_for(message->as_array(context->state()));
+        message->clear_caller();
 
         Handle ret_handle = context->method()->functor_as<TwoArgFunctor>()(receiver, args);
 
@@ -150,6 +152,7 @@ namespace rubinius {
         for (std::size_t i = 0; i < message->args(); ++i) {
           args[i] = context->handle_for(message->get_argument(i));
         }
+        message->clear_caller();
 
         Handle ret_handle = context->method()->functor_as<ArgcFunctor>()(message->args(), args, receiver);
 
@@ -167,6 +170,7 @@ namespace rubinius {
 
       case 0: {
         OneArgFunctor functor = context->method()->functor_as<OneArgFunctor>();
+        message->clear_caller();
 
         Handle ret_handle = functor(receiver);
 
@@ -178,8 +182,10 @@ namespace rubinius {
       case 1: {
         TwoArgFunctor functor = context->method()->functor_as<TwoArgFunctor>();
 
-        Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->get_argument(0)));
+        Handle a1 = context->handle_for(message->get_argument(0));
+        message->clear_caller();
+
+        Handle ret_handle = functor(receiver, a1);
 
         context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
@@ -189,10 +195,11 @@ namespace rubinius {
       case 2: {
         ThreeArgFunctor functor = context->method()->functor_as<ThreeArgFunctor>();
 
-        Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->get_argument(0)),
-                                    context->handle_for(message->get_argument(1))
-                                   );
+        Handle a1 = context->handle_for(message->get_argument(0));
+        Handle a2 = context->handle_for(message->get_argument(1));
+        message->clear_caller();
+
+        Handle ret_handle = functor(receiver, a1, a2);
 
         context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
@@ -201,12 +208,12 @@ namespace rubinius {
 
       case 3: {
         FourArgFunctor functor = context->method()->functor_as<FourArgFunctor>();
+        Handle a1 = context->handle_for(message->get_argument(0));
+        Handle a2 = context->handle_for(message->get_argument(1));
+        Handle a3 = context->handle_for(message->get_argument(2));
+        message->clear_caller();
 
-        Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->get_argument(0)),
-                                    context->handle_for(message->get_argument(1)),
-                                    context->handle_for(message->get_argument(2))
-                                   );
+        Handle ret_handle = functor(receiver, a1, a2, a3);
 
         context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
@@ -215,13 +222,13 @@ namespace rubinius {
 
       case 4: {
         FiveArgFunctor functor = context->method()->functor_as<FiveArgFunctor>();
+        Handle a1 = context->handle_for(message->get_argument(0));
+        Handle a2 = context->handle_for(message->get_argument(1));
+        Handle a3 = context->handle_for(message->get_argument(2));
+        Handle a4 = context->handle_for(message->get_argument(3));
+        message->clear_caller();
 
-        Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->get_argument(0)),
-                                    context->handle_for(message->get_argument(1)),
-                                    context->handle_for(message->get_argument(2)),
-                                    context->handle_for(message->get_argument(3))
-                                   );
+        Handle ret_handle = functor(receiver, a1, a2, a3, a4);
 
         context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
@@ -230,14 +237,14 @@ namespace rubinius {
 
       case 5: {
         SixArgFunctor functor = context->method()->functor_as<SixArgFunctor>();
+        Handle a1 = context->handle_for(message->get_argument(0));
+        Handle a2 = context->handle_for(message->get_argument(1));
+        Handle a3 = context->handle_for(message->get_argument(2));
+        Handle a4 = context->handle_for(message->get_argument(3));
+        Handle a5 = context->handle_for(message->get_argument(4));
+        message->clear_caller();
 
-        Handle ret_handle = functor(receiver,
-                                    context->handle_for(message->get_argument(0)),
-                                    context->handle_for(message->get_argument(1)),
-                                    context->handle_for(message->get_argument(2)),
-                                    context->handle_for(message->get_argument(3)),
-                                    context->handle_for(message->get_argument(4))
-                                   );
+        Handle ret_handle = functor(receiver, a1, a2, a3, a4, a5);
 
         context = NativeMethodContext::current();
         context->return_value(context->object_from(ret_handle));
@@ -247,6 +254,7 @@ namespace rubinius {
       /* Extension entry point, should never occur for user code. */
       case INIT_FUNCTION: {
         InitFunctor functor = context->method()->functor_as<InitFunctor>();
+        message->clear_caller();
 
         functor();
 

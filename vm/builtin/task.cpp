@@ -48,6 +48,7 @@ namespace rubinius {
     msg.name = meth->name() ? meth->name() : state->symbol("__weird_unnamed_method__");
     msg.module = recv->class_object(state);
     msg.method = meth;
+    msg.set_caller(task->active());
     meth->execute(state, task, msg);
 
     return task;

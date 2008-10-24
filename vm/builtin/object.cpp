@@ -292,6 +292,7 @@ namespace rubinius {
     msg.recv = this;
     msg.lookup_from = this->lookup_begin(state);
     msg.stack = 0;
+    msg.set_caller(task->active());
 
     msg.set_arguments(state, args);
 

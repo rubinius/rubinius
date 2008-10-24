@@ -240,7 +240,7 @@ namespace rubinius {
     ArgumentHandler args;
     if(args.call(state, vmm, ctx, msg) == false) {
       // Clear the values from the caller
-      task->active()->clear_stack(msg.stack);
+      msg.clear_caller();
 
       // TODO we've got full control here, we should just raise the exception
       // in the runtime here rather than throwing a C++ exception and raising
@@ -257,7 +257,7 @@ namespace rubinius {
 #endif
 
     // Clear the values from the caller
-    task->active()->clear_stack(msg.stack);
+    msg.clear_caller();
 
     task->make_active(ctx);
 

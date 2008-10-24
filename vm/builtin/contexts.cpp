@@ -100,8 +100,8 @@ namespace rubinius {
   }
 
   void MethodContext::post_copy(MethodContext* old) {
-    this->position_stack(old->calculate_sp());
     this->js.stack_top = this->stk + this->stack_size;
+    this->position_stack(old->calculate_sp());
     if(this->obj_type == MethodContextType) {
       assert(this->home() == old);
     }
@@ -136,11 +136,10 @@ namespace rubinius {
    * expected to SET any fields it needs to, e.g. +module+
    */
   MethodContext* MethodContext::create(STATE, Object* recv, CompiledMethod* meth) {
-    size_t stack_size = round_stack(meth->backend_method_->stack_size);
+    size_t stack_size = meth->backend_method_->stack_size;
 
     MethodContext* ctx = state->om->allocate_context(stack_size);
     if(likely(ctx)) {
-      assert((uintptr_t)ctx + ctx->full_size < (uintptr_t)state->om->contexts.last);
       ctx->klass_ = (Class*)Qnil;
       ctx->obj_type = MethodContextType;
 

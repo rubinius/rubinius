@@ -149,6 +149,13 @@ namespace rubinius {
     }
 
     /*
+     * Clear the caller's stack
+     */
+    void clear_caller() {
+      caller_->clear_stack(stack);
+    }
+
+    /*
      * Deprecated: Use the details to setup the Message
      */
     void use_from_task(Task* task, size_t args);

@@ -101,7 +101,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(G(true_class)->method_table()->fetch(state, name1), cm);
     /* Clear the stack for the next scenario */
-    task->pop(); task->pop();
+    task->pop();
 
     String* recv = String::create(state, "main");
 

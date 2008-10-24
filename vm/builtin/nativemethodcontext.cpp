@@ -83,6 +83,8 @@ namespace rubinius {
     nmc->handles_->push_back(Qnil);
     nmc->handles_->push_back(Qundef);
 
+    nmc->message_from_c_->set_caller(nmc);
+
     return nmc;
   }
 

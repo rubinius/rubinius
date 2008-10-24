@@ -66,6 +66,7 @@ public:
     msg.module = G(object);
     msg.name = state->symbol("moob");
     msg.method = cm;
+    msg.set_caller(task->active());
 
     cm->scope(state, StaticScope::create(state));
     cm->scope()->module(state, G(object));

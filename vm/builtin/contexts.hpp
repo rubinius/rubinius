@@ -91,14 +91,25 @@ namespace rubinius {
 
     void clear_stack(size_t amount) {
       js.stack -= amount;
+#ifdef EXTRA_STACK_PROTECTION
+      if(amount > 0) {
+        assert(js.stack >= stk - 1);
+      }
+#endif
     }
 
     Object* pop() {
+#ifdef EXTRA_STACK_PROTECTION
+      assert(js.stack >= stk);
+#endif
       return *js.stack--;
     }
 
     void push(Object* value) {
       *++js.stack = value;
+#ifdef EXTRA_STACK_PROTECTION
+      assert(js.stack < js.stack_top);
+#endif
     }
 
     Object* stack_back(size_t position) {
@@ -128,6 +139,11 @@ namespace rubinius {
 
     void position_stack(int pos) {
       js.stack = stk + pos;
+#ifdef EXTRA_STACK_PROTECTION
+      if(pos > 0) {
+        assert(js.stack >= stk && js.stack < js.stack_top);
+      }
+#endif
     }
 
     int calculate_sp() {
