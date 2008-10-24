@@ -304,6 +304,20 @@ class Hash
     self
   end
 
+  def select
+    raise LocalJumpError, "no block given" unless block_given? or empty?
+
+    selected = []
+    i = to_iter
+    while e = i.next
+      begin
+        selected << [e.key, e.value] if yield(e.key, e.value)
+      end while e = e.next
+    end
+
+    selected
+  end
+
   def shift
     return default(nil) if empty?
 
