@@ -287,6 +287,8 @@ class Rational < Numeric
   #
   # Don't use Rational.new!
   #
+  alias_method :eql?, :==
+  
   def == (other)
     if other.kind_of?(Rational)
       @numerator == other.numerator and @denominator == other.denominator
