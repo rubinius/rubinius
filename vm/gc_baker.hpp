@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstring>
 
+#include "vm/heap.hpp"
 #include "vm/gc.hpp"
 #include "vm/gc_root.hpp"
 #include "vm/object_position.hpp"
@@ -12,71 +13,10 @@
 
 namespace rubinius {
 
-  typedef void *address;
-
   class ObjectMemory;
 
   class BakerGC : public GarbageCollector {
-
     public:
-
-    class Heap {
-      /* Fields */
-
-      public:
-      address start;
-      address current;
-      address last;
-      address scan;
-
-      size_t size;
-
-      /* Inline methods */
-
-      address allocate(size_t size) {
-        address addr;
-        addr = current;
-        current = (address)((uintptr_t)current +  size);
-
-        return addr;
-      }
-
-      bool contains_p(address addr) {
-        if(addr < start) return false;
-        if(addr >= last) return false;
-        return true;
-      }
-
-      bool enough_space_p(size_t size) {
-        if((uintptr_t)current + size > (uintptr_t)last) return false;
-        return true;
-      }
-
-      bool fully_scanned_p() {
-        return scan == current;
-      }
-
-      Object* next_unscanned() {
-        Object* obj;
-        if(fully_scanned_p()) return NULL;
-
-        obj = (Object*)scan;
-        scan = (address)((uintptr_t)scan + obj->size_in_bytes());
-        return obj;
-      }
-
-      Object* first_object() {
-        return (Object*)start;
-      }
-
-      /* Prototypes */
-      Heap(size_t size);
-      ~Heap();
-      void reset();
-      size_t remaining();
-      size_t used();
-      Object* copy_object(Object*);
-    };
 
     /* Fields */
     Heap heap_a;
@@ -107,7 +47,7 @@ namespace rubinius {
         obj = (Object*)current->allocate(bytes);
       }
 
-      obj->init(YoungObjectZone, fields);
+      obj->init_header(YoungObjectZone, fields);
       return obj;
     }
 

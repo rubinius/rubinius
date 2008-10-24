@@ -11,8 +11,11 @@
 namespace rubinius {
 
   /* ObjectMemory methods */
-  ObjectMemory::ObjectMemory(STATE, size_t young_bytes)
-               :state(state), young(this, young_bytes), mature(this) {
+  ObjectMemory::ObjectMemory(STATE, size_t young_bytes):
+      state(state),
+      young(this, young_bytes),
+      mature(this),
+      contexts(cContextHeapSize) {
 
     remember_set = new ObjectArray(0);
 
@@ -25,6 +28,10 @@ namespace rubinius {
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;
     }
+
+    // Push the scan pointer off the bottom so nothing is seend
+    // as scaned
+    contexts.set_scan((address)(((uintptr_t)contexts.current) - 1));
   }
 
   ObjectMemory::~ObjectMemory() {
@@ -73,11 +80,14 @@ namespace rubinius {
     static int collect_times = 0;
     young.collect(roots);
     collect_times++;
+
+    contexts.reset();
   }
 
   void ObjectMemory::collect_mature(Roots &roots) {
     mature.collect(roots);
     young.clear_marks();
+    clear_context_marks();
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {
@@ -182,11 +192,22 @@ namespace rubinius {
   ObjectPosition ObjectMemory::validate_object(Object* obj) {
     ObjectPosition pos;
 
+    if(contexts.contains_p((address)obj)) return cContextStack;
+
     pos = young.validate_object(obj);
     if(pos != cUnknown) return pos;
 
     return mature.validate_object(obj);
   }
+
+  void ObjectMemory::clear_context_marks() {
+    Object* obj = contexts.first_object();
+    while(obj < contexts.current) {
+      obj->clear_mark();
+      obj = (Object*)((uintptr_t)obj + obj->size_in_bytes());
+    }
+  }
+
 };
 
 void* XMALLOC(size_t bytes) {

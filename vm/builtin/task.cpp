@@ -76,6 +76,7 @@ namespace rubinius {
     ctx->name(state, state->symbol("__trampoline__"));
     ctx->block(state, Qnil);
     ctx->module(state, G(object));
+    ctx->home(state, ctx);
 
     task->active(state, ctx);
 
@@ -104,7 +105,6 @@ namespace rubinius {
 
   void Task::restore_context(MethodContext* ctx) {
     active(state, ctx);
-
     /* Stack Management procedures. Make sure that we don't
      * miss object stored into the stack of a context */
     if(ctx->zone == MatureObjectZone) {
@@ -123,7 +123,6 @@ namespace rubinius {
 
   void Task::make_active(MethodContext* ctx) {
     ctx->sender(state, active_);
-
     restore_context(ctx);
   }
 
@@ -632,6 +631,10 @@ namespace rubinius {
       std::cout << std::endl;
       ctx = ctx->sender();
     }
+  }
+
+  void Task::Info::mark(Object* obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
   }
 
   void Task::Info::show(STATE, Object* self, int level) {

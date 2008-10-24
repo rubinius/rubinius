@@ -281,7 +281,7 @@ namespace rubinius {
 
   void VM::activate_task(Task* task) {
     // Don't try and reclaim any contexts, they belong to someone else.
-    context_cache->reclaim = 0;
+    om->clamp_contexts();
 
     globals.current_task.set(task);
     interrupts.check = true;

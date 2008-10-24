@@ -51,7 +51,9 @@ namespace rubinius {
                                                                  context_size));
 
     /* MethodContext stuff. */
-    nmc->sender(state, task->active());
+    MethodContext* sender = task->active();
+    sender->reference(state);
+    nmc->sender(state, sender);
     nmc->home(state, nmc);
     nmc->self(state, msg->recv);
     nmc->module(state, msg->module);

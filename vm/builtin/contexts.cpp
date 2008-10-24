@@ -15,8 +15,6 @@
 
 #include <iostream>
 
-#define DISABLE_CACHE 0
-
 namespace rubinius {
 
   void MethodContext::init(STATE) {
@@ -31,6 +29,16 @@ namespace rubinius {
    * for one with a body of +original+ and a stack of +stack+ */
   static inline size_t add_stack(size_t original, size_t stack) {
     return original + (sizeof(Object*) * stack);
+  }
+
+  static inline size_t round_stack(size_t original) {
+    if(original <= SmallContextSize) {
+      return SmallContextSize;
+    } else if(original <= LargeContextSize) {
+      return LargeContextSize;
+    }
+
+    return original;
   }
 
   /* Initialize +ctx+'s fields */
@@ -53,39 +61,20 @@ namespace rubinius {
   /* Find a context to use. Either use a cache or create one in the heap. */
   static inline MethodContext* allocate(STATE, Class* cls, size_t stack_size) {
     MethodContext* ctx;
-    size_t which_cache = SmallContextCache;
     size_t bytes;
 
-#if DISABLE_CACHE
-    goto allocate_heap;
-#endif
+    stack_size = round_stack(stack_size);
 
-    /* If it's small enough, use the set small size. */
-    if(stack_size < SmallContextSize) {
-      stack_size = SmallContextSize;
-
-    /* If it's bigger than our large size, always use the heap. */
-    } else if(stack_size > LargeContextSize) {
-      goto allocate_heap;
-
-    /* Otherwise use a large size. */
-    } else {
-      stack_size = LargeContextSize;
-      which_cache = LargeContextCache;
-    }
-
-    if((ctx = state->context_cache->get(which_cache)) != NULL) {
+    ctx = state->om->allocate_context(stack_size);
+    if(ctx) {
+      assert((uintptr_t)ctx + ctx->full_size < (uintptr_t)state->om->contexts.last);
+      ctx->klass(state, (Class*)Qnil);
       ctx->obj_type = (object_type)cls->instance_type()->to_native();
-      ctx->klass(state, cls);
-      goto initialize;
+    } else {
+      bytes = add_stack(sizeof(MethodContext), stack_size);
+      ctx = (MethodContext*)state->new_struct(cls, bytes);
     }
 
-allocate_heap:
-    bytes = add_stack(sizeof(MethodContext), stack_size);
-    ctx = (MethodContext*)state->new_struct(cls, bytes);
-
-initialize:
-    state->context_cache->reclaim++;
     init_context(state, ctx, stack_size);
     return ctx;
   }
@@ -120,26 +109,8 @@ initialize:
    * on it's size. Returns true if the context was recycled, otherwise
    * false. */
   bool MethodContext::recycle(STATE) {
-    if(state->context_cache->reclaim > 0) {
-      state->context_cache->reclaim--;
-
-      /* Only recycle young contexts */
-      if(zone != YoungObjectZone) return false;
-
-      size_t which;
-      if(stack_size == SmallContextSize) {
-        which = SmallContextCache;
-      } else if(stack_size != LargeContextSize) {
-        return false;
-      } else {
-        which = LargeContextCache;
-      }
-
-      state->context_cache->add(state, which, this);
-      return true;
-    }
-
-    return false;
+    if(zone != YoungObjectZone) return false;
+    return state->om->deallocate_context(this);
   }
 
   /* Create a ContextCache object and install it in +state+ */
@@ -169,20 +140,34 @@ initialize:
    * expected to SET any fields it needs to, e.g. +module+
    */
   MethodContext* MethodContext::create(STATE, Object* recv, CompiledMethod* meth) {
-    MethodContext* ctx = allocate(state, G(methctx), meth->backend_method_->stack_size);
+    size_t stack_size = round_stack(meth->backend_method_->stack_size);
 
-    ctx->self(state, recv);
-    ctx->cm(state, meth);
-    ctx->home(state, ctx);
+    MethodContext* ctx = state->om->allocate_context(stack_size);
+    if(likely(ctx)) {
+      assert((uintptr_t)ctx + ctx->full_size < (uintptr_t)state->om->contexts.last);
+      ctx->klass_ = (Class*)Qnil;
+      ctx->obj_type = MethodContextType;
+
+      ctx->self_ = recv;
+      ctx->cm_ = meth;
+      ctx->home_ = ctx;
+
+    } else {
+
+      size_t bytes = add_stack(sizeof(MethodContext), stack_size);
+      ctx = (MethodContext*)state->new_struct(G(methctx), bytes);
+
+      ctx->self(state, recv);
+      ctx->cm(state, meth);
+      ctx->home(state, ctx);
+    }
+
+    init_context(state, ctx, stack_size);
 
     ctx->vmm = meth->backend_method_;
 
     // nil out just where the locals are
     native_int locals = ctx->vmm->number_of_locals;
-
-    for(native_int i = 0; i < locals; i++) {
-      ctx->stk[i] = Qnil;
-    }
 
     ctx->position_stack(locals - 1);
 
@@ -193,6 +178,9 @@ initialize:
    */
   MethodContext* MethodContext::dup(STATE) {
     MethodContext* ctx = create(state, this->stack_size);
+
+    /* This ctx is escaping into Ruby-land */
+    ctx->reference(state);
 
     ctx->sender(state, this->sender());
     ctx->self(state, this->self());
@@ -229,9 +217,6 @@ initialize:
       state->om->remember_object(ctx);
     }
 
-    /* This ctx is escaping into Ruby-land */
-    ctx->reference(state);
-
     return ctx;
   }
 
@@ -247,12 +232,26 @@ initialize:
     return this->env();
   }
 
+  /* Lazy initialize fields that might have been left uninitialized
+   * when +this+ was only used in the context cache. */
+  void MethodContext::initialize_as_reference(STATE) {
+    switch(obj_type) {
+    case MethodContext::type:
+      this->klass(state, G(methctx));
+      break;
+    case BlockContext::type:
+      this->klass(state, G(blokctx));
+      break;
+    default:
+      abort();
+    }
+  }
+
   /* Called when a context is referenced. Typically, this is via the push_context
    * opcode or MethodContext#sender. */
   void MethodContext::reference(STATE) {
-    /* TODO when this is called via MethodContext#sender, we don't need to wipe
-     * out the reclaim count, since that context is alread protected. */
-    state->context_cache->reclaim = 0;
+    state->om->reference_context(this);
+    initialize_as_reference(state);
   }
 
   /* Retrieve a field within the context, referenced by name. This

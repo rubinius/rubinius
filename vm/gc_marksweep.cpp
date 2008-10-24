@@ -66,7 +66,7 @@ namespace rubinius {
 
     obj = header->to_object();
 
-    obj->init(MatureObjectZone, fields);
+    obj->init_header(MatureObjectZone, fields);
 
     return obj;
   }

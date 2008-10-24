@@ -166,7 +166,7 @@ to be a simple test for that bit pattern.
 
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
-    void init(gc_zone loc, size_t fields) {
+    void init_header(gc_zone loc, size_t fields) {
       all_flags = 0;
       zone = loc;
       field_count = fields;

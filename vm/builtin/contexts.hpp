@@ -42,6 +42,7 @@ namespace rubinius {
     int    ip;
     size_t args;
 
+    size_t full_size;
     size_t stack_size;
     // MUST BE AT THE LAST DATA MEMBER
     Object* stk[];
@@ -67,6 +68,7 @@ namespace rubinius {
 
     int  line(STATE);
     bool recycle(STATE);
+    void initialize_as_reference(STATE);
     void reference(STATE);
 
     // Ruby.primitive :context_get_field

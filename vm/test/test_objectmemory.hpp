@@ -91,7 +91,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     om.allocate_object(3);
     obj = om.allocate_object(3);
 
-    BakerGC::Heap *cur = om.young.next;
+    Heap *cur = om.young.next;
     TS_ASSERT_EQUALS(om.young.current->used(), obj->size_in_bytes() * 5);
 
     Roots roots;
@@ -554,6 +554,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(c->squeaky, obj);
 
     state->om->type_info[ObjectType] = ti;
+  }
+
+  void test_contexts_initialized() {
+    TS_ASSERT(state->om->contexts.scan <= state->om->contexts.current);
   }
 
 };

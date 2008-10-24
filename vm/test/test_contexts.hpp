@@ -54,11 +54,12 @@ class TestContexts : public CxxTest::TestSuite {
 
   void test_recycle() {
     MethodContext* ctx = MethodContext::create(state, 10);
-    state->context_cache->reclaim = 1;
+
+    TS_ASSERT(state->om->context_on_stack_p(ctx));
+    TS_ASSERT(!state->om->context_referenced_p(ctx));
 
     TS_ASSERT(ctx->recycle(state));
 
-    TS_ASSERT_EQUALS(state->context_cache->reclaim, 0);
     MethodContext* ctx2 = MethodContext::create(state, 10);
     TS_ASSERT_EQUALS(ctx, ctx2);
   }
@@ -66,8 +67,21 @@ class TestContexts : public CxxTest::TestSuite {
   void test_recycle_ignores_mature_contexts() {
     MethodContext* ctx = MethodContext::create(state, 10);
     ctx->zone = MatureObjectZone; // GROSS
-    state->context_cache->reclaim = 1;
     TS_ASSERT(!ctx->recycle(state));
+  }
+
+  void test_reference() {
+    MethodContext* ctx = MethodContext::create(state, 10);
+    TS_ASSERT(!state->om->context_referenced_p(ctx));
+    TS_ASSERT_EQUALS(ctx->klass_, Qnil);
+
+    ctx->reference(state);
+
+    TS_ASSERT_EQUALS(ctx->klass(), G(methctx));
+    TS_ASSERT(state->om->context_referenced_p(ctx));
+
+    MethodContext* ctx2 = MethodContext::create(state, 10);
+    TS_ASSERT(ctx != ctx2);
   }
 
   void test_dup() {

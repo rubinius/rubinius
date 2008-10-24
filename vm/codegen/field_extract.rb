@@ -249,6 +249,11 @@ class CPPClass
     str = ""
     all_fields.each do |name, type, idx, flags|
       str << "  case #{idx}:\n"
+      if type == :MethodContext or type == :BlockContext
+        str << "    if(MethodContext* sub = try_as<MethodContext>(target->#{name}())) {\n"
+        str << "      sub->reference(state);\n"
+        str << "    }\n"
+      end
       str << "    return target->#{name}();\n"
     end
 

@@ -9,44 +9,6 @@
 #include "builtin/contexts.hpp"
 
 namespace rubinius {
-  /* BakerGC::Heap methods */
-  BakerGC::Heap::Heap(size_t bytes) {
-    size = bytes;
-    start = (address)std::calloc(1, size);
-    scan = start;
-    last = (void*)((uintptr_t)start + bytes - 1);
-    reset();
-  }
-
-  BakerGC::Heap::~Heap() {
-    std::free(start);
-  }
-
-  void BakerGC::Heap::reset() {
-    current = start;
-    scan = start;
-  }
-
-  size_t BakerGC::Heap::remaining() {
-    size_t bytes = (uintptr_t)last - (uintptr_t)current;
-    return bytes;
-  }
-
-  size_t BakerGC::Heap::used() {
-    size_t bytes = (uintptr_t)current - (uintptr_t)start;
-    return bytes;
-  }
-
-  Object* BakerGC::Heap::copy_object(Object* orig) {
-    Object* tmp = (Object*)allocate(orig->size_in_bytes());
-    tmp->init(YoungObjectZone, orig->num_fields());
-
-    tmp->initialize_copy(orig, orig->age);
-    tmp->copy_body(orig);
-
-    return tmp;
-  }
-
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes) :
     GarbageCollector(om),
     heap_a(bytes),
@@ -199,7 +161,7 @@ namespace rubinius {
     clean_weakrefs();
 
     /* Swap the 2 halves */
-    BakerGC::Heap *x = next;
+    Heap *x = next;
     next = current;
     current = x;
     next->reset();

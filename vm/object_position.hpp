@@ -6,7 +6,8 @@ namespace rubinius {
     cUnknown,
     cValid,
     cInWrongYoungHalf,
-    cMatureObject
+    cMatureObject,
+    cContextStack
   };
 }
 

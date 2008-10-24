@@ -2814,7 +2814,7 @@ class Instructions
   def ret
     <<-CODE
     Object* value = stack_top();
-    MethodContext* active_context = task->active();
+    MethodContext* active_context = ctx;
     MethodContext* dest = active_context->sender();
 
     NativeMethodContext* nmc = try_as<NativeMethodContext>(dest);
