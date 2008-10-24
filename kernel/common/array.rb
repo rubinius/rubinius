@@ -868,10 +868,10 @@ class Array
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.
   def map
-    out = []
+    out = Array.new @total
     i = 0
     while i < @total
-      out << yield(at(i))
+      out[i] = yield(at(i))
       i += 1
     end
     out
