@@ -651,6 +651,36 @@ class TestNativeFunction : public CxxTest::TestSuite {
     TS_ASSERT(as<Fixnum>(out)->to_native());
   }
 
+  void test_call_clears_caller_stack() {
+    String* name = String::create(state, "dummy_long");
+
+    Array* args = Array::create(state, 1);
+    args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_LONG));
+
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_LONG);
+
+    NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
+
+    TS_ASSERT(!func->nil_p());
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
+
+    Task* task = Task::create(state, 2);
+    task->push(Fixnum::from(13));
+
+    Message msg(state);
+    msg.use_from_task(task, 1);
+    msg.stack = 1;
+
+    TS_ASSERT_EQUALS(task->active()->calculate_sp(), 0);
+
+    Object* out = func->call(state, &msg);
+
+    TS_ASSERT_EQUALS(task->active()->calculate_sp(), -1);
+
+    TS_ASSERT(kind_of<Integer>(out));
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
+  }
+
 };
 
 extern "C" {

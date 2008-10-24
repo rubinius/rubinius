@@ -49,9 +49,6 @@ namespace rubinius {
 
     Object* obj = nfunc->call(state, &msg);
 
-    // Remove the arguments passed in from the stack
-    task->active()->clear_stack(msg.stack);
-
     task->push(obj);
 
     return cExecuteContinue;
@@ -469,6 +466,12 @@ namespace rubinius {
     struct ffi_stub *stub = (struct ffi_stub*)data_->pointer;
 
     void **values = marshal_arguments(state, msg);
+
+    // @todo Remove this condition once the tests are cleaned
+    // up to setup Message properly.
+    if(msg->caller()) {
+      msg->clear_caller();
+    }
 
     switch(stub->ret_type) {
     case RBX_FFI_TYPE_CHAR: {
