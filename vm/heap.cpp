@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "vm/heap.hpp"
 
 namespace rubinius {
