@@ -1,6 +1,9 @@
 require 'pp'
 
-unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
+if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
+  Object.const_set(:Compiler, Compile.compiler)
+  require 'compiler/text'
+else
   $: << 'lib'
   require File.join(File.dirname(__FILE__), '..', 'compiler', 'mri_shim')
 end
@@ -53,7 +56,8 @@ def describe_compiled_method(cm)
   end
 end
 
-if __FILE__[$0] then
+# Temporary workaround for Rubinius bug in __FILE__ paths
+if __FILE__.include?($0) then
   flags = []
   file = nil
 
@@ -83,7 +87,7 @@ if __FILE__[$0] then
     pp File.to_sexp(file)
 
     puts "\nCompiled output:"
-    top = Compile.compile_file(file, flags)
+    top = Compiler.compile_file(file, flags)
     describe_compiled_method(top)
   rescue SyntaxError
     exit 1
