@@ -43,7 +43,7 @@ namespace rubinius {
 
 #define float_from_string(s, d)  (Object*)String::create(s, d)->to_f(s)
 
-#define bignum_from_string(s, d, r) (Object*)String::create(s, d)->to_i(s, Fixnum::from(r))
+#define bignum_from_string(s, d, r) string_new(s, d)->to_i(s, Fixnum::from(r), Qfalse)
 #define bignum_from_string_detect(s, d) bignum_from_string(s, d, 0)
 
 #define I2N(i) Fixnum::from(i)
