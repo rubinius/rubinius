@@ -43,7 +43,9 @@ class Compiler
     sexp = string.to_sexp(file, line)
 
     node    = new(Generator, binding).convert_sexp(s(:eval_expression, sexp))
-    cm      = node.to_description(:__eval_script__).to_cmethod
+    desc    = node.to_description(:__eval_script__)
+    desc.for_block = true
+    cm      = desc.to_cmethod
     cm.file = file.to_sym
 
     return cm
