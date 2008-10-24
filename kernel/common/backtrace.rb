@@ -22,7 +22,7 @@ class Backtrace
     @frames[index]
   end
 
-  def show(sep="\n", colorize = ENV["COLOR_IS_RAD"])
+  def show(sep="\n", colorize = ENV["RBX_COLOR"])
     first = true
     color_config = Rubinius::RUBY_CONFIG["rbx.colorize_backtraces"]
     if !colorize or color_config == "no" or color_config == "NO"
