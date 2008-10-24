@@ -225,7 +225,7 @@ namespace :build do
   # Flag setup
 
   task :normal_flags do
-    FLAGS.concat %w[ -O2 -Werror ]
+    FLAGS.concat %w[ -ggdb3 -O2 -Werror ]
   end
 
   task :inline_flags => :normal_flags do
@@ -233,9 +233,9 @@ namespace :build do
   end
 
   # -Wuninitialized requires -O, so it is not here.
-  task :debug_flags do
+  task :debug_flags => "build:normal_flags" do
     FLAGS.delete "-O2"
-    FLAGS.concat %w[ -ggdb3 -O0 -fno-inline ]
+    FLAGS.concat %w[ -O0 -fno-inline ]
   end
 
   task :strict_flags => "build:debug_flags" do
