@@ -4,7 +4,6 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 
-#include "context_cache.hpp"
 #include "gc_object_mark.hpp"
 #include "objectmemory.hpp"
 
@@ -14,6 +13,9 @@
 #include "builtin/nativemethodcontext.hpp"
 
 #include <iostream>
+
+#define SmallContextSize   16
+#define LargeContextSize   56
 
 namespace rubinius {
 
@@ -115,17 +117,11 @@ namespace rubinius {
 
   /* Create a ContextCache object and install it in +state+ */
   void MethodContext::initialize_cache(STATE) {
-    if(state->context_cache) {
-      delete state->context_cache;
-    }
-
-    state->context_cache = new ContextCache;
-    state->context_cache->reset();
   }
 
   /* Zero out the caches. */
   void MethodContext::reset_cache(STATE) {
-    state->context_cache->reset();
+    state->om->clamp_contexts();
   }
 
   /* Return a new +MethodContext+ object, which needs +stack_size fields

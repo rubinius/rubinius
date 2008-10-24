@@ -4,7 +4,6 @@
 #include "builtin/contexts.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/tuple.hpp"
-#include "context_cache.hpp"
 
 #include <cxxtest/TestSuite.h>
 

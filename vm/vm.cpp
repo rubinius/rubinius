@@ -16,7 +16,6 @@
 #include "builtin/string.hpp"
 #include "builtin/taskprobe.hpp"
 
-#include "context_cache.hpp"
 #include "config.hpp"
 
 #include <iostream>
@@ -31,7 +30,6 @@
 namespace rubinius {
   VM::VM(size_t bytes) : reuse_llvm(true) {
     config.compile_up_front = false;
-    context_cache = NULL;
 
     VM::register_state(this);
 
@@ -188,14 +186,12 @@ namespace rubinius {
     if(om->collect_young_now) {
       om->collect_young_now = false;
       om->collect_young(globals.roots);
-      context_cache->reset();
       global_cache->clear();
     }
 
     if(om->collect_mature_now) {
       om->collect_mature_now = false;
       om->collect_mature(globals.roots);
-      context_cache->reset();
       global_cache->clear();
     }
 

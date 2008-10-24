@@ -7,7 +7,6 @@
  * it. */
 
 #include "compiled_file.hpp"
-#include "context_cache.hpp"
 #include "marshal.hpp"
 #include "message.hpp"
 #include "objectmemory.hpp"

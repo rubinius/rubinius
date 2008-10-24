@@ -25,7 +25,6 @@ namespace rubinius {
   class TypeInfo;
   class Task;
   class MethodContext;
-  class ContextCache;
   class String;
   class Symbol;
   class ConfigParser;
@@ -68,9 +67,6 @@ namespace rubinius {
     Interrupts interrupts;
     SymbolTable symbols;
     ConfigParser *user_config;
-
-    /* Used to implement a simple context cache */
-    ContextCache* context_cache;
 
     bool reuse_llvm;
 
