@@ -21,15 +21,16 @@ def raw_parse_tree(hash)
   hash['RawParseTree']
 end
 
-def to_sexp_pt_r(source)
-  source.to_sexp_pt '(string)', 1, false, false
+def to_sexp_sydney_raw(source)
+  sexp = source.parse '(string)', 1
+  Sexp.from_array sexp
 end
 
-def to_sexp_pt_u(source)
-  source.to_sexp_pt '(string)', 1, false, true
+def to_sexp_sydney_unified(source)
+  source.to_sexp_sydney_parser '(string)'
 end
 
-def to_sexp_rp(source)
+def to_sexp_ruby_parser(source)
   RubyParser.new.process source, '(string)'
 end
 
@@ -67,23 +68,22 @@ end
 def usage
   puts "usage: run [options] (FILE|DIRECTORY|GLOB)+"
   puts ""
-  puts "-p      Compare to raw ParseTree"
-  puts "-r      Compare to RubyParser (default for -R)"
-  puts "-s      Compare to SydneyParser (default for -S)"
-  puts "-R      Get sexp from RubyParser"
-  puts "-S      Get sexp from SydneyParser (default)"
-  puts "-X CMD  Get sexp from invoking CMD (see -x)"
-  puts "-x STR  Substitute into STR at %s"
+  puts "-R      Test RubyParser"
+  puts "-s      Test raw SydneyParser"
+  puts "-S      Test rewritten SydneyParser"
+  puts "-x CMD  Test sexp from invoking CMD (see -t) against raw ParseTree"
+  puts "-X CMD  Test sexp from invoking CMD (see -t) against rewritten SydneyParser"
+  puts "-t STR  Substitute into template STR at %s"
   puts "-h      Show this message"
   puts ""
   exit 1
 end
 
-# command line processing
-standard = nil
-sexp = nil
+# defaults
+standard = :sydney_parser
+sexp = :to_sexp_sydney_unified
+str = %Q{%s}
 command = nil
-str = nil
 
 files = []
 while x = ARGV.shift
@@ -91,42 +91,42 @@ while x = ARGV.shift
     files << x
   elsif File.directory? x
     files.concat Dir["#{x}/**/*_spec.rb"]
-  elsif x == "-p"
-    standard = :raw_parse_tree
-  elsif x == "-r"
-    standard = :ruby_parser
-  elsif x == "-s"
-    standard = :sydney_parser
-  elsif x == "-R"
-    begin
-      require 'ruby_parser'
-    rescue LoadError
-      puts "Unable to load RubyParser.\n" \
-           "Consider running the script with ruby -I<whatever> -rruby_parser"
-      exit 1
-    end
-    sexp = :to_sexp_rp
-    standard = :ruby_parser unless standard
-  elsif x == "-S"
-    if standard == :raw_parse_tree
-      sexp = :to_sexp_pt_r
+  else
+    case x
+    when "-s"
+      standard = :raw_parse_tree
+      sexp = :to_sexp_sydney_raw
+    when "-S"
+      standard = :sydney_parser
+      sexp = :to_sexp_sydney_unified
+    when "-R"
+      begin
+        require 'ruby_parser'
+      rescue LoadError
+        puts "Unable to load RubyParser.\n" \
+             "Consider running the script with ruby -I<whatever> -rruby_parser"
+        exit 1
+      end
+      sexp = :to_sexp_ruby_parser
+      standard = :ruby_parser
+    when "-x"
+      command = ARGV.shift
+      standard = :raw_parse_tree
+      sexp = :to_sexp_x
+    when "-X"
+      command = ARGV.shift
+      standard = :sydney_parser
+      sexp = :to_sexp_x
+    when "-t"
+      str = ARGV.shift
+    when "-h"
+      usage
     else
-      sexp = :to_sexp_pt_u
+      puts "Unknown option: #{x}"
+      usage
     end
-  elsif x == "-X"
-    command = ARGV.shift
-    sexp = :to_sexp_x
-  elsif x == "-x"
-    str = ARGV.shift
-  elsif x == "-h"
-    usage
   end
 end
-
-# defaults
-standard = :sydney_parser unless standard
-sexp = :to_sexp_pt_u unless sexp
-str = %Q{%s} unless str
 
 if files.empty?
   puts "No files given"

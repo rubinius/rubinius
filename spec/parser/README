@@ -32,13 +32,12 @@ Pass the -h option to see more options. It should give the following output:
   $ bin/rbx spec/parser/run.rb -h
   usage: run [options] (FILE|DIRECTORY|GLOB)+
 
-  -p      Compare to raw ParseTree
-  -r      Compare to RubyParser (default for -R)
-  -s      Compare to SydneyParser (default for -S)
-  -R      Get sexp from RubyParser
-  -S      Get sexp from SydneyParser (default)
-  -X CMD  Get sexp from invoking CMD (see -x)
-  -x STR  Substitute into STR at %s
+  -R      Test RubyParser
+  -s      Test raw SydneyParser
+  -S      Test rewritten SydneyParser
+  -x CMD  Test sexp from invoking CMD (see -t) against raw ParseTree
+  -X CMD  Test sexp from invoking CMD (see -t) against rewritten SydneyParser
+  -t STR  Substitute into template STR at %s
   -h      Show this message
 
 
