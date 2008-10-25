@@ -83,9 +83,11 @@ namespace rubinius {
   }
 
   void VM::boot_threads() {
-    Thread* thr = Thread::create(this);
+    Thread* thread = Thread::create(this);
 
-    activate_thread(thr);
+    thread->sleep(this, Qfalse);
+    globals.current_thread.set(thread);
+    globals.current_task.set(thread->task());
   }
 
   Object* VM::new_object(Class *cls) {
@@ -208,20 +210,28 @@ namespace rubinius {
   }
 
   bool VM::find_and_activate_thread() {
-    for(size_t i = globals.scheduled_threads->num_fields() - 1; i > 0; i--) {
-      List* lst = as<List>(globals.scheduled_threads->at(this, i));
-      if(lst->empty_p()) continue;
+    Tuple* scheduled = globals.scheduled_threads.get();
 
-      Thread* thr = as<Thread>(lst->shift(this));
-      while(thr != Qnil) {
-        thr->queued(this, Qfalse);
+    for(std::size_t i = scheduled->num_fields() - 1; i > 0; i--) {
+      List* list = as<List>(scheduled->at(this, i));
 
-        if(thr->sleep() == Qtrue) {
-          thr = try_as<Thread>(lst->shift(this));
+      Thread* thread = try_as<Thread>(list->shift(this));
+
+      while(thread) {
+        thread->queued(this, Qfalse);
+
+        /** @todo   Should probably try to prevent dead threads here.. */
+        if(thread->alive() == Qfalse) {
+          thread = try_as<Thread>(list->shift(this));
           continue;
         }
 
-        activate_thread(thr);
+        if(thread->sleep() == Qtrue) {
+          thread = try_as<Thread>(list->shift(this));
+          continue;
+        }
+
+        activate_thread(thread);
         return true;
       }
     }
@@ -255,24 +265,43 @@ namespace rubinius {
   }
 
   void VM::queue_thread(Thread* thread) {
-    if(thread->queued() == Qtrue) return;
-
-    thread->woken(this);
+    if(thread->queued() == Qtrue) {
+      return;
+    }
 
     List* lst = as<List>(globals.scheduled_threads->at(this,
-          thread->priority()->to_native()));
+                         thread->priority()->to_native()));
     lst->append(this, thread);
 
     thread->queued(this, Qtrue);
   }
 
+  void VM::dequeue_thread(Thread* thread) {
+    thread->queued(this, false);
+
+    Tuple* scheduled = globals.scheduled_threads.get();
+
+    /** @todo  Could it be in more than one somehow? --rue */
+    List* list = try_as<List>(scheduled->at(this, thread->priority()->to_native()));
+    (void) list->remove(this, thread);
+
+    check_events();
+  }
+
   void VM::activate_thread(Thread* thread) {
+    if(thread == globals.current_thread.get()) {
+      return;
+    }
+    /* May have been using Tasks directly. */
+    globals.current_thread->task(this, globals.current_task.get());
+    queue_thread(globals.current_thread.get());
+
+    thread->sleep(this, Qfalse);
     globals.current_thread.set(thread);
+
     if(globals.current_task.get() != thread->task()) {
       activate_task(thread->task());
     }
-
-    thread->woken(this);
   }
 
   void VM::activate_task(Task* task) {
