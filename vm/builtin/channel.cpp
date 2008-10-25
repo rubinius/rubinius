@@ -28,7 +28,7 @@ namespace rubinius {
     if(!waiting_->empty_p()) {
       Thread* thr = as<Thread>(waiting_->shift(state));
       thr->set_top(state, val);
-      state->queue_thread(thr);
+      thr->wakeup(state);
       return Qnil;
     }
 
@@ -38,29 +38,38 @@ namespace rubinius {
 
       value(state, lst);
     }
+
     return Qnil;
   }
 
+  /** @todo   The list management is iffy. --rue */
   ExecuteStatus Channel::receive_prim(STATE, Executable* exec, Task* task, Message& msg) {
-    // TODO check arity
-    //
+    Thread* current = state->globals.current_thread.get();
+    Task* real_task = current->task();
 
-    // HACK manually clear the stack of msg's values
-    task->active()->clear_stack(msg.stack);
+    real_task->active()->clear_stack(msg.stack);
 
+    // @todo  check arity
     if(!value_->nil_p()) {
       Object* val = as<List>(value_)->shift(state);
       task->push(val);
       return cExecuteContinue;
     }
 
-    /* We push nil on the stack to reserve a place to put the result. */
-    state->return_value(Qfalse);
+    /* Saves space plus if thread woken forcibly, it gets the Qfalse. */
+    real_task->push(Qfalse);
 
-    G(current_thread)->sleep_for(state, this);
-    waiting_->append(state, G(current_thread));
+    current->sleep_for(state, this);
+    waiting_->append(state, current);
 
     state->check_events();
+
+    /* This sets the Task to continue from the next
+     * opcode when it eventually reactivates. Its
+     * stack will then have either the real received
+     * value or the default Qfalse if the thread
+     * was forced to stop waiting for us.
+     */
     return cExecuteRestart;
   }
 
