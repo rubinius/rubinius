@@ -87,6 +87,7 @@ class TestChannel : public CxxTest::TestSuite {
 
   void test_receive_causes_thread_switch() {
     Thread* other = Thread::create(state);
+    other->wakeup(state);
 
     Thread* orig = G(current_thread);
 
