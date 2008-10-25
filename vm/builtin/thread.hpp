@@ -18,12 +18,12 @@ namespace rubinius {
     const static object_type type = ThreadType;
 
   private:
-    Task* task_;       // slot
-    Channel* channel_; // slot
-    Fixnum* priority_;  // slot
-    Object* alive_;     // slot
-    Object* sleep_;     // slot
-    Object* queued_;    // slot
+    Task*     task_;      // slot
+    Channel*  channel_;   // slot
+    Fixnum*   priority_;  // slot
+    Object*   alive_;     // slot
+    Object*   sleep_;     // slot
+    Object*   queued_;    // slot
 
   public:
     /* accessors */
@@ -35,38 +35,40 @@ namespace rubinius {
     attr_accessor(alive, Object);
     attr_accessor(queued, Object);
 
-    /* interface */
+
+  public:   /* Interface */
+
 
     static void init(STATE);
 
-    // Ruby.primitive :thread_new
+    // Ruby.primitive :thread_allocate
     static Thread* create(STATE);
 
     // Ruby.primitive :thread_current
     static Thread* current(STATE);
 
-    void boot_task(STATE);
+    // Ruby.primitive :thread_exited
+    Object* exited(STATE);
 
-    // Ruby.primitive :thread_yield
-    static Object* pass(STATE);
-
-    // Ruby.primitive :thread_run
-    Thread* run(STATE);
-
-    void sleep_for(STATE, Channel* chan);
-    void set_top(STATE, Object* val);
-
-    // Ruby.primitive :thread_schedule
-    Thread* wakeup(STATE);
+    // Ruby.primitive :thread_pass
+    Object* pass(STATE);
 
     // Ruby.primitive :thread_raise
     Object* raise(STATE, Exception* exc);
 
-    // Ruby.primitive? :thread_dequeue
-    ExecuteStatus dequeue_prim(STATE, Executable* exec, Task* task, Message& msg);
+    /** Schedule to run again (not necessarily right now.) */
+    // Ruby.primitive :thread_wakeup
+    Thread* wakeup(STATE);
 
-    // Called by the VM when this thread has been schedule to run.
+    void boot_task(STATE);
+    void set_top(STATE, Object* val);
+    void sleep_for(STATE, Channel* chan);
+
+
     void woken(STATE);
+
+
+  public:   /* TypeInfo */
 
     class Info : public TypeInfo {
     public:
@@ -78,6 +80,7 @@ namespace rubinius {
   public:
     DeadLock(const char* msg) : Assertion(msg) { }
   };
+
 }
 
 #endif

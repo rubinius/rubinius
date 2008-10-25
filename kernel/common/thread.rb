@@ -45,6 +45,19 @@ class Thread
     new(*args, &block) # HACK
   end
 
+  #
+  # Ask the scheduler to try to find another thread to run.
+  #
+  # The other thread, if found, will be scheduled to run as
+  # soon as possible, although probably not before this call
+  # has returned.
+  #
+  # Caveat: currently it is very unlikely for a Thread with
+  #         a lower priority to be run.
+  #
+  def self.pass
+    current.pass
+  end
 
   #
   # Sleep current thread for defined number of seconds or indefinitely.

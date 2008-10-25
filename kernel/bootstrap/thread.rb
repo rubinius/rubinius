@@ -1,36 +1,33 @@
 class Thread
+
   def self.current
     Ruby.primitive :thread_current
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Kernel.raise PrimitiveFailure, "Failed to get current thread. UH-OH!"
   end
 
   def self.allocate
-    Ruby.primitive :thread_new
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Ruby.primitive :thread_allocate
+    Kernel.raise PrimitiveFailure, "Failed to allocate thread"
   end
 
-  def self.pass
-    Ruby.primitive :thread_yield
-    Kernel.raise PrimitiveFailure, "primitive failed"
+  def exited
+    Ruby.primitive :thread_exited
+    Kernel.raise PrimitiveFailure, "Failed to set thread exited"
   end
 
-  def dequeue
-    Ruby.primitive :thread_dequeue
-    Kernel.raise PrimitiveFailure, "primitive failed"
+  def pass
+    Ruby.primitive :thread_pass
+    Kernel.raise PrimitiveFailure, "Failed to pass"
   end
 
-  def self.dequeue
-    Thread.current.dequeue
-  end
-
-  def run
-    Ruby.primitive :thread_run
-    Kernel.raise ThreadError, "killed thread"
+  def raise_prim(exc)
+    Ruby.primitive :thread_raise
+    Kernel.raise PrimitiveFailure, "Failed to raise in thread"
   end
 
   def wakeup
-    Ruby.primitive :thread_schedule
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Ruby.primitive :thread_wakeup
+    Kernel.raise ThreadError, "Wakeup failed, thread may be dead"
   end
-  
+
 end
