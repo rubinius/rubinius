@@ -42,7 +42,10 @@ namespace rubinius {
     return Qnil;
   }
 
-  /** @todo   The list management is iffy. --rue */
+  /**
+   * @todo   The list management is iffy. Should probably just
+   *          always assume it is a list. --rue
+   */
   ExecuteStatus Channel::receive_prim(STATE, Executable* exec, Task* task, Message& msg) {
     Thread* current = state->globals.current_thread.get();
     Task* real_task = current->task();
@@ -51,8 +54,14 @@ namespace rubinius {
 
     // @todo  check arity
     if(!value_->nil_p()) {
-      Object* val = as<List>(value_)->shift(state);
-      task->push(val);
+      List* list = as<List>(value_);
+
+      real_task->push(list->shift(state));
+
+      if(list->size() == 0) {
+        value(state, Qnil);
+      }
+
       return cExecuteContinue;
     }
 
