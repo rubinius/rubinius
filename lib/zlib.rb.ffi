@@ -233,31 +233,40 @@ module Zlib
 
   class ZStream < FFI::Struct
 
-    @@@
-    struct do |s|
-      s.include "zlib.h"
+    #
+    # Wrapper for layout generation for subclasses
+    # since the inheritance is otherwise troublesome.
+    #
+    def self.use_zstream_layout
+      @@@
+      struct do |s|
+        s.include "zlib.h"
 
-      s.name "struct z_stream_s"
-      s.field :next_in,   :pointer
-      s.field :avail_in,  :uint
-      s.field :total_in,  :ulong
+        s.name "struct z_stream_s"
+        s.field :next_in,   :pointer
+        s.field :avail_in,  :uint
+        s.field :total_in,  :ulong
 
-      s.field :next_out,  :pointer
-      s.field :avail_out, :uint
-      s.field :total_out, :ulong
+        s.field :next_out,  :pointer
+        s.field :avail_out, :uint
+        s.field :total_out, :ulong
 
-      s.field :msg,       :string
-      s.field :state,     :pointer
+        s.field :msg,       :string
+        s.field :state,     :pointer
 
-      s.field :zalloc,    :pointer
-      s.field :zfree,     :pointer
-      s.field :opaque,    :pointer
+        s.field :zalloc,    :pointer
+        s.field :zfree,     :pointer
+        s.field :opaque,    :pointer
 
-      s.field :data_type, :int
-      s.field :adler,     :ulong
-      s.field :reserved,  :ulong
+        s.field :data_type, :int
+        s.field :adler,     :ulong
+        s.field :reserved,  :ulong
+      end
+      @@@
     end
-    @@@
+
+    use_zstream_layout
+
 
     #--
     # HACK from MRI's zlib.c
@@ -570,6 +579,9 @@ module Zlib
   # more information.
 
   class Deflate < ZStream
+
+    # Explicitly set the layout to avoid inheritance problems.
+    use_zstream_layout
 
     ##
     # Compresses the given +string+. Valid values of level are
@@ -1276,8 +1288,11 @@ module Zlib
   # Zlib:Inflate is the class for decompressing compressed data.  Unlike
   # Zlib::Deflate, an instance of this class is not able to duplicate (clone,
   # dup) itself.
-
+  #
   class Inflate < ZStream
+
+    # Explicitly set the layout to avoid inheritance problems.
+    use_zstream_layout
 
     ##
     # Decompresses +string+. Raises a Zlib::NeedDict exception if a preset
