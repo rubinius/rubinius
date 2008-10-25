@@ -62,13 +62,13 @@ class Thread
   # It is only possible to sleep the current thread, because doing so
   # for any other Thread is dangerous and complicated.
   #
-  def self.sleep(duration = nil)
+  def self.sleep(duration = Undefined)
     return 0 unless current.alive?
 
     chan = Channel.new
 
     # Without a duration, sleeps until explicitly woken by #run or similar.
-    Scheduler.send_in_seconds chan, duration.to_f, nil if duration
+    Scheduler.send_in_seconds chan, duration.to_f, nil unless duration.equal?(Undefined)
 
     chan.receive
   end

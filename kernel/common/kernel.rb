@@ -340,8 +340,8 @@ module Kernel
   #
   # Sleeps the current thread for +duration+ seconds.
   #
-  def sleep(duration = nil)
-    if duration && !duration.kind_of?(Numeric)
+  def sleep(duration = Undefined)
+    unless duration.equal?(Undefined) or duration.kind_of?(Numeric)
       raise TypeError, 'time interval must be a numeric value'
     end
 
