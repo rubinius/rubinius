@@ -8,25 +8,31 @@
 #include "executor.hpp"
 
 namespace rubinius {
-  class Channel;
-  class Task;
-  class Exception;
 
+  class Channel;
+  class Exception;
+  class Task;
+
+
+  /**
+   *  Ruby's green Thread backend.
+   *
+   *  Thread is the basic unit of concurrency for Ruby
+   *  code. The threads are not truly parallel and run
+   *  co-operatively at the system level. Pre-emption
+   *  is enabled by default but the switching logic is
+   *  the same as for an explicit schedule.
+   */
   class Thread : public Object {
   public:
     const static size_t fields = 6;
     const static object_type type = ThreadType;
 
-  private:
-    Task*     task_;      // slot
-    Channel*  channel_;   // slot
-    Fixnum*   priority_;  // slot
-    Object*   alive_;     // slot
-    Object*   sleep_;     // slot
-    Object*   queued_;    // slot
+    /** Register class with the VM. */
+    static void init(STATE);
 
-  public:
-    /* accessors */
+
+  public:   /* Accessors */
 
     attr_accessor(task, Task);
     attr_accessor(channel, Channel);
@@ -36,36 +42,86 @@ namespace rubinius {
     attr_accessor(queued, Object);
 
 
-  public:   /* Interface */
+  public:   /* Primitives */
 
-
-    static void init(STATE);
-
+    /**
+     *  Creates a new, sleeping and non-queued Thread.
+     */
     // Ruby.primitive :thread_allocate
     static Thread* create(STATE);
 
+    /**
+     *  Returns the currently executing Thread.
+     */
     // Ruby.primitive :thread_current
     static Thread* current(STATE);
 
+    /**
+     *  Mark the Thread dead and start removing it.
+     *
+     *  The Thread will stay around for a little bit, so
+     *  other logic still needs to ensure that they reject
+     *  any dead threads wherever necessary.
+     *
+     *  @todo   Investigate the possibility of truly removing
+     *          the Thread immediately. This is far more involved
+     *          and possibly too complicated to be worthwhile.
+     *          --rue
+     */
     // Ruby.primitive :thread_exited
     Object* exited(STATE);
 
+    /**
+     *  Attempt to schedule some other Thread.
+     *
+     *  The other Thread, if found, is set as the active
+     *  one but this only goes in effect once this pass
+     *  is over.
+     */
     // Ruby.primitive :thread_pass
     Object* pass(STATE);
 
+    /**
+     *  Raise exception in this Thread.
+     *
+     *  The Thread is woken first, then the given exception
+     *  is raised so that the Thread will proceed with exception
+     *  handling when it is scheduled (which may not be immediately.)
+     */
     // Ruby.primitive :thread_raise
     Object* raise(STATE, Exception* exc);
 
-    /** Schedule to run again (not necessarily right now.) */
+    /**
+     *  Schedule Thread to be run.
+     *
+     *  This wakes up a sleeping Thread, although it can also
+     *  be invoked on an already-running Thread. The Thread
+     *  is queued to be run, although not necessarily immediately.
+     */
     // Ruby.primitive :thread_wakeup
     Thread* wakeup(STATE);
 
+
+  public:   /* Interface */
+
+    /** Create a Task and associate it with this Thread. */
     void boot_task(STATE);
+
+    /** Set object as the top of the active stack. */
     void set_top(STATE, Object* val);
+
+    /** Have this Thread wait to receive from the Channel. */
     void sleep_for(STATE, Channel* chan);
 
 
-    void woken(STATE);
+  private:  /* Instance vars */
+
+    Task*     task_;      // slot
+    Channel*  channel_;   // slot
+    Fixnum*   priority_;  // slot
+    Object*   alive_;     // slot
+    Object*   sleep_;     // slot
+    Object*   queued_;    // slot
 
 
   public:   /* TypeInfo */

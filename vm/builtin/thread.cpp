@@ -63,11 +63,14 @@ namespace rubinius {
     return this;
   }
 
-  /** @todo   Should avoid running this thread (e.g. some lower-priority.) */
   Object* Thread::pass(STATE) {
+    /* Stash the Task in case it has changed. @todo Overcautious? --rue */
+    this->task(state, state->globals.current_task.get());
 
-    state->queue_thread(Thread::current(state));
-    state->find_and_activate_thread();
+    /* Delay queuing until another one is found to allow lower priority. */
+    if(state->find_and_activate_thread()) {
+      state->queue_thread(this);
+    }
 
     return Qnil;
   }
@@ -84,21 +87,20 @@ namespace rubinius {
 
   Thread* Thread::wakeup(STATE) {
     if(alive() == Qfalse) {
-      return Thread::current(state);
+      return kPrimitiveFailed;
     }
 
-    woken(state);
+    sleep(state, Qfalse);
+    /* Clearing the channel is OK because a sleep check by the VM. */
+    channel(state, (Channel*)Qnil);
 
     state->queue_thread(this);
 
     return this;
   }
 
-  void Thread::woken(STATE) {
-    sleep(state, Qfalse);
-    /* Clearing the channel is OK because a sleep check by the VM. */
-    channel(state, (Channel*)Qnil);
-  }
+
+/* Interface */
 
   void Thread::boot_task(STATE) {
     Task* task = Task::create(state);
