@@ -3,12 +3,15 @@ class MSpecScript
   # as the CI process.
   set :ci_files, [
     'spec/frozen/1.8/core',
-    'spec/frozen/1.8/language',
-    'spec/compiler',
-    'spec/core',
-    'spec/debugger',
-    'spec/subtend',
-    'spec/parser',
+
+    # These additional directories will be enabled as the
+    # specs in them are updated for the C++ VM.
+    # 'spec/frozen/1.8/language',
+    # 'spec/compiler',
+    # 'spec/core',
+    # 'spec/debugger',
+    # 'spec/subtend',
+    # 'spec/parser',
   ]
 
   # The set of substitutions to transform a spec filename
