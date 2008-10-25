@@ -9,6 +9,9 @@
 #include "builtin/channel.hpp"
 
 #include "objectmemory.hpp"
+#include "message.hpp"
+
+#include "vm/object_utils.hpp"
 #include "vm.hpp"
 
 namespace rubinius {
@@ -25,13 +28,19 @@ namespace rubinius {
     G(thread)->set_const(state, "ScheduledThreads", tup);
   }
 
+
+/* Primitives */
+
   Thread* Thread::create(STATE) {
     Thread* thr = (Thread*)state->new_object(G(thread));
+
+    thr->alive(state, Qtrue);
+    thr->channel(state, reinterpret_cast<Channel*>(Qnil));
     thr->priority(state, Fixnum::from(2));
+    thr->queued(state, Qfalse);
+    thr->sleep(state, Qtrue);
 
     thr->boot_task(state);
-    thr->sleep(state, Qtrue);
-    thr->alive(state, Qtrue);
 
     state->interrupts.use_preempt = true;
     state->interrupts.enable_preempt = true;
@@ -40,7 +49,7 @@ namespace rubinius {
   }
 
   Thread* Thread::current(STATE) {
-    return state->current_thread();
+    return state->globals.current_thread.get();
   }
 
   void Thread::boot_task(STATE) {
@@ -48,29 +57,46 @@ namespace rubinius {
     this->task(state, task);
   }
 
+  /** @todo   Should avoid running this thread (e.g. some lower-priority.) */
   Object* Thread::pass(STATE) {
-    Thread* current = Thread::current(state);
 
-    state->queue_thread(current);
-    state->run_best_thread();
+    state->queue_thread(Thread::current(state));
+    state->find_and_activate_thread();
 
     return Qnil;
   }
 
-  Thread* Thread::run(STATE) {
-    state->queue_thread(Thread::current(state));
+  Object* Thread::raise(STATE, Exception* error) {
+    wakeup(state);
 
-    state->activate_thread(this);
+    MethodContext* ctx = task_->active();
+    ctx->reference(state);
+    error->context(state, ctx);
+
+    return task_->raise(state, error);
+  }
+
+  Thread* Thread::wakeup(STATE) {
+    if(alive() == Qfalse) {
+      return Thread::current(state);
+    }
+
+    woken(state);
+
+    state->queue_thread(this);
 
     return this;
   }
 
-  // Called when VM is putting this Thread back into play. It
-  // doesn't mean it's about to run, just that it's scheduled
-  // to do so.
   void Thread::woken(STATE) {
     sleep(state, Qfalse);
+    /* Clearing the channel is OK because a sleep check by the VM. */
     channel(state, (Channel*)Qnil);
+  }
+
+  void Thread::boot_task(STATE) {
+    Task* task = Task::create(state);
+    this->task(state, task);
   }
 
   void Thread::set_top(STATE, Object* val) {
