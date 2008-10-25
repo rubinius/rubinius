@@ -29,16 +29,13 @@ class Thread
     "#<#{self.class}:0x#{object_id.to_s(16)} #{stat}>"
   end
 
-  def setup(prime_lock)
-    @group = nil
-    @alive = true
-    @result = nil
-    @exception = nil
-    @critical = false
-    @locals = LookupTable.new
-    @lock = Channel.new
-    @lock.send nil if prime_lock
-    @joins = []
+  def self.new(*args)
+    block = block_given?
+    thread = allocate()
+    thread.__send__ :initialize, *args, &block
+
+    thread.wakeup
+    thread
   end
 
   def self.start(*args, &block)
@@ -90,7 +87,7 @@ class Thread
     block.disable_long_return!
 
     setup(false)
-    setup_task do
+    setup_task {
       begin
         begin
           @lock.send nil
@@ -102,16 +99,14 @@ class Thread
           end
         ensure
           @lock.receive
-          @alive = false
-          @joins.each do |join|
-            join.send self
-          end
+          @joins.each {|join| join.send self }
         end
       rescue Die
         @exception = nil
       rescue Exception => e
         @exception = e
       ensure
+        exited
         @lock.send nil
       end
 
@@ -122,29 +117,27 @@ class Thread
           STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
         end
       end
-
-      Thread.dequeue
-    end
+    }
 
     Thread.current.group.add self
+    self
+  end
 
+  def setup(prime_lock)
+    @group = nil
+    @alive = true
+    @result = nil
+    @exception = nil
+    @critical = false
+    @locals = LookupTable.new
+    @lock = Channel.new
+    @lock.send nil if prime_lock
+    @joins = []
   end
 
   def setup_task
     block = block_given?
     @task.associate block
-  end
-
-  def self.new(*args)
-    block = block_given?
-    th = allocate()
-    th.__send__ :initialize, *args, &block
-    th.wakeup
-    return th
-  end
-
-  def self.start(*args, &block)
-    new(*args, &block) # HACK
   end
 
   def current_context
@@ -153,11 +146,9 @@ class Thread
 
   def alive?
     @lock.receive
-    begin
-      @alive
-    ensure
-      @lock.send nil
-    end
+    @alive
+  ensure
+    @lock.send nil
   end
 
   def stop?
@@ -165,11 +156,15 @@ class Thread
   end
 
   def kill
-    raise Die
+    self.raise Die
   end
 
   alias exit kill
   alias terminate kill
+
+  def sleeping?
+    @sleep
+  end
 
   def status
     if alive?
@@ -243,11 +238,6 @@ class Thread
   end
   private :join_inner
 
-  def raise_prim(exc)
-    Ruby.primitive :thread_raise
-  end
-  private :raise_prim
-
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
       exc = exc.exception msg
@@ -313,4 +303,8 @@ class Thread
   def self.list
     Thread.current.group.list
   end
+
+  private :raise_prim
+
+  alias :run :wakeup
 end
