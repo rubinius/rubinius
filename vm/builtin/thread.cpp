@@ -52,9 +52,15 @@ namespace rubinius {
     return state->globals.current_thread.get();
   }
 
-  void Thread::boot_task(STATE) {
-    Task* task = Task::create(state);
-    this->task(state, task);
+  /** @todo   Add voluntary/involuntary? --rue */
+  Object* Thread::exited(STATE) {
+    alive(state, Qfalse);
+    channel(state, (Channel*)Qnil);
+
+    state->dequeue_thread(this);
+    state->find_and_activate_thread();
+
+    return this;
   }
 
   /** @todo   Should avoid running this thread (e.g. some lower-priority.) */
@@ -106,32 +112,6 @@ namespace rubinius {
   void Thread::sleep_for(STATE, Channel* chan) {
     channel(state, chan);
     sleep(state, Qtrue);
-  }
-
-  Thread* Thread::wakeup(STATE) {
-    state->queue_thread(this);
-    return this;
-  }
-
-  Object* Thread::raise(STATE, Exception* exc) {
-    wakeup(state);
-    MethodContext* ctx = task_->active();
-    ctx->reference(state);
-    exc->context(state, ctx);
-    return task_->raise(state, exc);
-  }
-
-  ExecuteStatus Thread::dequeue_prim(STATE, Executable* exec, Task* task, Message& msg) {
-    alive(state, Qfalse);
-    task_ = (Task*)Qnil;
-
-    // TODO make sure this isn't in global.scheduled_threads
-
-    // TODO clear the channel's events rather than making sure there isn't one
-    assert(channel()->nil_p());
-
-    state->check_events();
-    return cExecuteRestart;
   }
 
 }
