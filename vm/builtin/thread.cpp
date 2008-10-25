@@ -49,7 +49,7 @@ namespace rubinius {
       Tuple* replacement = Tuple::create(state, (desired + 1));
       replacement->copy_from(state, scheduled, Fixnum::from(0), Fixnum::from(0));
 
-      for(std::size_t i = existing - 1; i < desired; ++i) {
+      for(std::size_t i = existing - 1; i <= desired; ++i) {
         if(replacement->at(state, i)->nil_p()) {
           replacement->put(state, i, List::create(state));
         }
