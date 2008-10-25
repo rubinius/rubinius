@@ -32,41 +32,93 @@ public:
     TS_ASSERT_DIFFERS(thr, Thread::current(state));
   }
 
+  void test_exited() {
+    Thread* cur = Thread::current(state);
+    Thread* thr = Thread::create(state);
+    Thread* thr2 = Thread::create(state);
+
+    thr->wakeup(state);
+    thr2->wakeup(state);
+
+    state->queue_thread(thr);
+    state->activate_thread(thr2);
+
+
+    TS_ASSERT_EQUALS(thr2, Thread::current(state));
+    TS_ASSERT_EQUALS(Qtrue, thr2->alive());
+
+    TS_ASSERT_EQUALS(Qtrue, thr->alive());
+    TS_ASSERT_EQUALS(Qfalse, thr->sleep());
+    TS_ASSERT_EQUALS(Qtrue, thr->queued());
+    
+    thr->exited(state);
+
+    TS_ASSERT_EQUALS(thr2, Thread::current(state));
+
+    TS_ASSERT_EQUALS(Qfalse, thr->alive());
+    TS_ASSERT_EQUALS(Qfalse, thr->queued());
+
+    thr2->exited(state);
+
+    TS_ASSERT_EQUALS(cur, Thread::current(state));
+
+    TS_ASSERT_EQUALS(Qfalse, thr->alive());
+    TS_ASSERT_EQUALS(Qfalse, thr->queued());
+  }
+
   void test_pass() {
     Thread* thr = Thread::create(state);
     thr->wakeup(state);
 
-    Object* obj = Thread::pass(state);
+    Object* obj = thr->pass(state);
 
     TS_ASSERT_EQUALS(Qnil, obj);
     TS_ASSERT_EQUALS(thr, Thread::current(state));
   }
 
-  void test_run() {
-    Thread* thr = Thread::create(state);
-
-    Thread* thr2 = thr->run(state);
-
-    TS_ASSERT_EQUALS(thr, thr2);
-    TS_ASSERT_EQUALS(Thread::current(state), thr);
-  }
-
   void test_wakeup() {
-    Thread* cur = Thread::current(state);
     Thread* thr = Thread::create(state);
-
-    int priority = thr->priority()->to_native();
+    thr->sleep(state, Qtrue);
 
     Thread* thr2 = thr->wakeup(state);
 
     TS_ASSERT_EQUALS(thr, thr2);
-    TS_ASSERT_EQUALS(Thread::current(state), cur);
 
-    List* threads = as<List>(state->globals.scheduled_threads->at(state, priority));
-    TS_ASSERT_EQUALS(false, threads->empty_p());
+    TS_ASSERT_EQUALS(thr->sleep(), Qfalse);
+    TS_ASSERT_EQUALS(thr->queued(), Qtrue);
+  }
 
-    Thread* thr3 = as<Thread>(threads->shift(state));
-    TS_ASSERT_EQUALS(thr, thr3);
+  void test_raise_dead() {
+    Thread* thr = Thread::create(state);
+    thr->alive(state, Qfalse);
+
+    TS_ASSERT_EQUALS(reinterpret_cast<Object*>(kPrimitiveFailed),
+                     reinterpret_cast<Object*>(thr->wakeup(state)));
+  }
+
+  void test_enlarge_for_priority() {
+    std::size_t current_max = state->globals.scheduled_threads->num_fields();
+
+    Thread* thread = Thread::create(state);
+
+
+    TS_ASSERT_EQUALS(state->globals.scheduled_threads->num_fields(),
+                     current_max);
+
+    thread->priority(state, Fixnum::from(current_max));
+
+    TS_ASSERT_EQUALS(state->globals.scheduled_threads->num_fields(),
+                     (current_max + 1));
+
+    thread->priority(state, Fixnum::from(1));
+
+    TS_ASSERT_EQUALS(state->globals.scheduled_threads->num_fields(),
+                     (current_max + 1));
+
+    thread->priority(state, Fixnum::from(current_max + 10));
+
+    TS_ASSERT_EQUALS(state->globals.scheduled_threads->num_fields(),
+                     (current_max + 11));
   }
 
 };
