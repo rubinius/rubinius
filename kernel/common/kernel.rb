@@ -337,21 +337,18 @@ module Kernel
   end
   module_function :loop
 
-  ##
+  #
   # Sleeps the current thread for +duration+ seconds.
-
-  def sleep(duration = Undefined)
-    start = Time.now
-    chan = Channel.new
-    # No duration means we sleep forever. By not registering anything with
-    # Scheduler, the receive call will effectively block until someone
-    # explicitely wakes this thread.
-    unless duration.equal?(Undefined)
-      raise TypeError, 'time interval must be a numeric value' unless duration.kind_of?(Numeric)
-      duration = Time.at duration
-      Scheduler.send_in_seconds(chan, duration.to_f, nil)
+  #
+  def sleep(duration = nil)
+    if duration && !duration.kind_of?(Numeric)
+      raise TypeError, 'time interval must be a numeric value'
     end
-    chan.receive
+
+    start = Time.now
+
+    Thread.current.sleep duration
+
     return (Time.now - start).round
   end
   module_function :sleep

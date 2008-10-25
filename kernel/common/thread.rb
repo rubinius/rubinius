@@ -41,6 +41,32 @@ class Thread
     @joins = []
   end
 
+  def self.start(*args, &block)
+    new(*args, &block) # HACK
+  end
+
+
+  #
+  # Sleep current thread for defined number of seconds or indefinitely.
+  #
+  # The sleep can be interrupted by an explicit #run call on the Thread
+  # in question.
+  #
+  # It is only possible to sleep the current thread, because doing so
+  # for any other Thread is dangerous and complicated.
+  #
+  def self.sleep(duration = nil)
+    return 0 unless alive?
+
+    chan = Channel.new
+
+    # Without a duration, sleeps until explicitly woken by #run or similar.
+    Scheduler.send_in_seconds chan, duration.to_f, nil if duration
+
+    chan.receive
+  end
+
+
   def initialize(*args)
     unless block_given?
       Kernel.raise ThreadError, "must be called with a block"
