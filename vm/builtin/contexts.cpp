@@ -272,9 +272,14 @@ namespace rubinius {
   }
 
   void MethodContext::Info::mark(Object* obj, ObjectMark& mark) {
-    auto_mark(obj, mark);
-
     MethodContext* ctx = as<MethodContext>(obj);
+
+    // Detect a context on the special context stack and fix it up.
+    if(ctx->klass_->nil_p()) {
+      ctx->initialize_as_reference(state);
+    }
+
+    auto_mark(obj, mark);
 
     if(ctx->obj_type == MethodContextType) {
       assert(ctx->home() == obj);
