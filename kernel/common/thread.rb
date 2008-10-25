@@ -49,9 +49,6 @@ class Thread
   # soon as possible, although probably not before this call
   # has returned.
   #
-  # Caveat: currently it is very unlikely for a Thread with
-  #         a lower priority to be run.
-  #
   def self.pass
     current.pass
   end

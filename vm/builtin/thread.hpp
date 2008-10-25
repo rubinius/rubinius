@@ -34,12 +34,15 @@ namespace rubinius {
 
   public:   /* Accessors */
 
-    attr_accessor(task, Task);
-    attr_accessor(channel, Channel);
-    attr_accessor(priority, Fixnum);
-    attr_accessor(sleep, Object);
     attr_accessor(alive, Object);
+    attr_accessor(channel, Channel);
+    attr_reader(priority, Fixnum);      /* Yes, reader only. See below. */
     attr_accessor(queued, Object);
+    attr_accessor(sleep, Object);
+    attr_accessor(task, Task);
+
+    /** Setting priority may need to enlarge ScheduledThreads. */
+    void priority(STATE, Fixnum* new_priority);
 
 
   public:   /* Primitives */

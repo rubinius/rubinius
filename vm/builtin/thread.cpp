@@ -15,10 +15,12 @@
 #include "vm.hpp"
 
 namespace rubinius {
+
   void Thread::init(STATE) {
-    Tuple* tup = Tuple::from(state, 7, List::create(state), List::create(state),
-        List::create(state), List::create(state), List::create(state),
-        List::create(state), List::create(state));
+    Tuple* tup = Tuple::from(state, 3,
+                             List::create(state),
+                             List::create(state),
+                             List::create(state) );
 
     GO(scheduled_threads).set(tup);
 
@@ -26,6 +28,38 @@ namespace rubinius {
     G(thread)->set_object_type(state, Thread::type);
 
     G(thread)->set_const(state, "ScheduledThreads", tup);
+  }
+
+
+/* Accessor implementation */
+
+  /** @todo   Should we queue thread? Probably unnecessary. --rue */
+  void Thread::priority(STATE, Fixnum* new_priority) {
+    /* This gets somewhat ugly to avoid existing lists. */
+    if(new_priority->to_native() < 0) {
+      Exception::argument_error(state, "Thread priority must be non-negative!");
+    }
+
+    Tuple* scheduled = state->globals.scheduled_threads.get();
+
+    std::size_t desired = new_priority->to_ulong();
+    std::size_t existing = scheduled->num_fields();
+
+    if(desired >= existing) {
+      Tuple* replacement = Tuple::create(state, (desired + 1));
+      replacement->copy_from(state, scheduled, Fixnum::from(0), Fixnum::from(0));
+
+      for(std::size_t i = existing - 1; i < desired; ++i) {
+        if(replacement->at(state, i)->nil_p()) {
+          replacement->put(state, i, List::create(state));
+        }
+      }
+
+      state->globals.scheduled_threads.set(replacement);
+      scheduled = replacement;
+    }
+
+    priority_ = new_priority;
   }
 
 
@@ -87,7 +121,7 @@ namespace rubinius {
 
   Thread* Thread::wakeup(STATE) {
     if(alive() == Qfalse) {
-      return kPrimitiveFailed;
+      return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
 
     sleep(state, Qfalse);
