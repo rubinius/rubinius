@@ -259,6 +259,7 @@ namespace rubinius {
     buf->storage(state, ByteArray::create(state, bytes));
     buf->channel(state, Channel::create(state));
     buf->total(state, Fixnum::from(bytes));
+    buf->used(state, Fixnum::from(0));
     buf->reset(state);
 
     return buf;

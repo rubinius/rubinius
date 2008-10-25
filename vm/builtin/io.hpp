@@ -131,8 +131,8 @@ namespace rubinius {
     public:
       BASIC_TYPEINFO(TypeInfo)
     };
-
   };
-};
+
+}
 
 #endif
