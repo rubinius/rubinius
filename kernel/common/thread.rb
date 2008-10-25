@@ -63,7 +63,7 @@ class Thread
   # for any other Thread is dangerous and complicated.
   #
   def self.sleep(duration = nil)
-    return 0 unless alive?
+    return 0 unless current.alive?
 
     chan = Channel.new
 
@@ -160,7 +160,10 @@ class Thread
   alias terminate kill
 
   def sleeping?
+    @lock.receive
     @sleep
+  ensure
+    @lock.send nil
   end
 
   def status

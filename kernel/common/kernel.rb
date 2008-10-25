@@ -347,7 +347,7 @@ module Kernel
 
     start = Time.now
 
-    Thread.current.sleep duration
+    Thread.sleep duration
 
     return (Time.now - start).round
   end
