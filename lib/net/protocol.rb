@@ -121,16 +121,22 @@ module Net # :nodoc:
         return rbuf_consume(@rbuf.size)
       end
     end
-        
+
     def readline
       readuntil("\n").chop
     end
 
     private
 
+    #
+    # @todo   Change when IO#sysread works.
+    #
     def rbuf_fill
       timeout(@read_timeout) {
-        @rbuf << @io.sysread(1024)
+        r = @io.read(1024)
+        raise EOFError, "Socket closed." unless r
+
+        @rbuf << r
       }
     end
 

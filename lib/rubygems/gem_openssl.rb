@@ -61,6 +61,11 @@ rescue LoadError, StandardError
   Gem.ssl_available = false
 end
 
+module Gem
+  module SSL
+  end
+end
+
 module Gem::SSL
 
   # We make our own versions of the constants here.  This allows us

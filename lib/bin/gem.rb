@@ -8,6 +8,7 @@
 require 'rubygems'
 require 'rubygems/gem_runner'
 
+
 required_version = Gem::Requirement.new ">= 1.8.3"
 
 unless required_version.satisfied_by? Gem::Version.new(RUBY_VERSION) then
@@ -19,5 +20,11 @@ end
 # it...its for the source building process.
 args = !ARGV.include?("--") ? ARGV.clone : ARGV[0...ARGV.index("--")]
 
-Gem::GemRunner.new.run args
+begin
+  Gem::GemRunner.new.run args
+rescue Exception => e
+  puts e.message
+  puts e.backtrace
+  exit 1
+end
 
