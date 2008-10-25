@@ -277,7 +277,7 @@ namespace rubinius {
   }
 
   void VM::dequeue_thread(Thread* thread) {
-    thread->queued(this, false);
+    thread->queued(this, Qfalse);
 
     Tuple* scheduled = globals.scheduled_threads.get();
 
@@ -290,8 +290,10 @@ namespace rubinius {
 
   void VM::activate_thread(Thread* thread) {
     if(thread == globals.current_thread.get()) {
+      thread->task(this, globals.current_task.get());
       return;
     }
+
     /* May have been using Tasks directly. */
     globals.current_thread->task(this, globals.current_task.get());
     queue_thread(globals.current_thread.get());
