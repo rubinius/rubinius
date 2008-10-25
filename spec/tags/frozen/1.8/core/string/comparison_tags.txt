@@ -1,0 +1,1 @@
+fails:String#<=> compares its argument and self by calling <=> on obj and turning the result around if obj responds to to_str

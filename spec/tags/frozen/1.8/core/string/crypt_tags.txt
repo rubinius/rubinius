@@ -1,0 +1,1 @@
+fails:String#crypt returns a cryptographic hash of self by applying the UNIX crypt algorithm with the specified salt

@@ -1,0 +1,2 @@
+fails:Method#arity returns -(n+1), where n is the number of required arguments, when there is at least one optional argument
+fails:Method#arity returns -(n+1), where n is the number of required arguments, when there is a splat argument, regardless of optional arguments

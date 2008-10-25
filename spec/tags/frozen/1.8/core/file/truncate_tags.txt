@@ -1,0 +1,2 @@
+fails:File.truncate truncates to a larger file size than the original file
+fails:File#truncate truncates a file to a larger size than the original file

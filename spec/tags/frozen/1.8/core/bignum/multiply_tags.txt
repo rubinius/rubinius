@@ -1,0 +1,2 @@
+fails:Bignum#* returns self multiplied by the given Integer
+

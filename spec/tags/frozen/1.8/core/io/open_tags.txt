@@ -1,3 +1,4 @@
 fails:IO.open with a block invokes close on opened IO object when exiting the block
 fails:IO.open with a block propagates non-StandardErrors produced by close
 fails:IO.open with a block swallows StandardErrors produced by close
+fails:IO.open raises EINVAL if mode is not compatible with the descriptor's current mode

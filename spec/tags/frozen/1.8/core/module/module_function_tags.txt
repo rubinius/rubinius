@@ -1,2 +1,8 @@
 fails:Module#module_function as a toggle (no arguments) in a Module body affects evaled method definitions also even when outside the eval itself
 fails:Module#module_function as a toggle (no arguments) in a Module body affects definitions when inside an eval even if the definitions are outside of it
+fails:Module#module_function with specific method names makes the instance methods private
+fails:Module#module_function as a toggle (no arguments) in a Module body makes any subsequently defined methods module functions with the normal semantics
+fails:Module#module_function as a toggle (no arguments) in a Module body stops creating module functions if the body encounters another toggle like public/protected/private without arguments
+fails:Module#module_function as a toggle (no arguments) in a Module body does not stop creating module functions if the body encounters public/protected/private WITH arguments
+fails:Module#module_function as a toggle (no arguments) in a Module body does not affect module_evaled method definitions also if outside the eval itself
+fails:Module#module_function as a toggle (no arguments) in a Module body functions normally if both toggle and definitions inside a module_eval

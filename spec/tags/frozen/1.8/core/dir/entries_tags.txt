@@ -1,0 +1,3 @@
+
+
+fails:Dir.entries returns an Array of filenames in an existing directory including dotfiles

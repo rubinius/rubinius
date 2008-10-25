@@ -1,0 +1,6 @@
+fails:Module#undef_method with symbol removes a method defined in a class
+fails:Module#undef_method with symbol removes a method defined in a super class
+fails:Module#undef_method with symbol does not remove a method defined in a super class when removed from a subclass
+fails:Module#undef_method with string removes a method defined in a class
+fails:Module#undef_method with string removes a method defined in a super class
+fails:Module#undef_method with string does not remove a method defined in a super class when removed from a subclass

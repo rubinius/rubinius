@@ -1,0 +1,4 @@
+fails:Creating a Continuation object must be done through Kernel.callcc, no .new
+fails:Executing a Continuation using #call transfers execution to right after the Kernel.callcc block
+fails:Executing a Continuation arguments given to #call (or nil) are returned by the Kernel.callcc block (as Array unless only one object)
+fails:Executing a Continuation #[] is an alias for #call

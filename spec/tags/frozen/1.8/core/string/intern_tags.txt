@@ -1,0 +1,1 @@
+fails:String#intern raises an ArgumentError when self can't be converted to symbol

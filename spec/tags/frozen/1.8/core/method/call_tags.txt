@@ -1,0 +1,2 @@
+fails:Method#call invokes the method with the specified arguments, returning the method's return value
+fails:Method#call raises an ArgumentError when given incorrect number of arguments

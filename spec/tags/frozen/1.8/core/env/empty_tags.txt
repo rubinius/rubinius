@@ -1,0 +1,1 @@
+fails:ENV.empty? return true if the Environment is empty

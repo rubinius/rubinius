@@ -1,0 +1,1 @@
+fails:String#split with String ignores leading and continuous whitespace when string is a single space

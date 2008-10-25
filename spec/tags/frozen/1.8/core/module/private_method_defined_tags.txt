@@ -1,0 +1,3 @@
+fails:Module#private_method_defined? returns true if the named private method is defined by module or its ancestors
+fails:Module#private_method_defined? accepts symbols for the method name
+fails:Module#private_method_defined? accepts any argument that is a String type

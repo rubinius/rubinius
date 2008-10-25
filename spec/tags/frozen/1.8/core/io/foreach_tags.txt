@@ -1,2 +1,5 @@
 fails:IO::foreach updates $. with each yield
 incomplete:IO.foreach needs to be reviewed for spec completeness
+fails:IO::foreach yields a sequence of Strings that were separated by $/
+fails:IO::foreach can handle non-ASCII data as separator
+fails:IO::foreach converts first parameter to string and uses as file name

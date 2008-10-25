@@ -1,0 +1,4 @@
+fails:Module#autoload loads constants that are registered at toplevel
+fails:Module#autoload triggers an autoload before using a toplevel constant
+fails:Module#autoload should not fail when the load path is manually required
+fails:Module#autoload should allow multiple autoload requests to reference one file

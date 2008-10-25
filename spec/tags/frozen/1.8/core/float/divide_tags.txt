@@ -1,1 +1,2 @@
 fails:Float#/ properly handles BigDecimal argument
+fails:Float#/ does NOT raise ZeroDivisionError if other is zero

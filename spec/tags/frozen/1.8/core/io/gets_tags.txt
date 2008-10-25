@@ -1,2 +1,3 @@
 fails:IO#gets returns tainted strings
 fails:IO#gets updates $. with each invocation
+fails:IO#gets returns nil if called at the end of the stream

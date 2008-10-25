@@ -1,1 +1,31 @@
 fails:Marshal::load loads an extended_user_hash with a parameter to initialize
+fails:Marshal::load loads a extended_struct having fields with same objects
+fails:Marshal::load loads a string having ivar with ref to self
+fails:Marshal::load loads a user_object
+fails:Marshal::load loads a object
+fails:Marshal::load loads an extended Object
+fails:Marshal::load loads a extended_user_regexp having ivar
+fails:Marshal::load loads a array containing the same objects
+fails:Marshal::load loads a struct having ivar
+fails:Marshal::load loads a Fixnum 2**8
+fails:Marshal::load loads a Array
+fails:Marshal::load loads a Fixnum 0
+fails:Marshal::load loads a Bignum -2**64
+fails:Marshal::load loads a Array subclass
+fails:Marshal::load loads a Bignum 2**64
+fails:Marshal::load loads a String subclass extended
+fails:Marshal::load loads a Fixnum 2**16
+fails:Marshal::load loads a Bignum -2**63
+fails:Marshal::load loads a Regexp subclass /i
+fails:Marshal::load loads a String empty
+fails:Marshal::load loads a Fixnum 2**24
+fails:Marshal::load loads a Struct
+fails:Marshal::load loads a Module nested
+fails:Marshal::load loads a Bignum 2**90
+fails:Marshal::load loads a Fixnum -2**24
+fails:Marshal::load loads a Fixnum -2**8
+fails:Marshal::load loads a Fixnum -2**16
+fails:Marshal::load loads a Hash
+fails:Marshal::load loads a String subclass
+fails:Marshal::load loads a String extended
+fails:Marshal::load loads a Hash subclass

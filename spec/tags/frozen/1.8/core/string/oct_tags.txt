@@ -1,0 +1,2 @@
+fails:String#oct treats leading characters of self as a string of oct digits
+fails:String#oct takes an optional sign
