@@ -240,17 +240,23 @@ namespace rubinius {
   }
 
   bool Object::kind_of_p(STATE, Object* module) {
-    Module* found = class_object(state);
-    if(found == module) return true;
+    Module* found = NULL;
 
-    for(;;) {
-      found = try_as<Module>(found->superclass());
-      if(!found) return false;
+    if(!reference_p()) {
+      found = state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
+    }
+    else {
+      found = try_as<Module>(klass_);
+    }
+
+    while(found) {
       if(found == module) return true;
 
       if(IncludedModule* im = try_as<IncludedModule>(found)) {
         if(im->module() == module) return true;
       }
+
+      found = try_as<Module>(found->superclass());
     }
 
     return false;
