@@ -96,6 +96,24 @@ class TestSymbolTable : public CxxTest::TestSuite {
     TS_ASSERT(!strncmp("circle", str->c_str(), 6));
   }
 
+  void test_lookup_nil() {
+    TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, reinterpret_cast<String*>(Qnil)),
+                            const RubyException &e,
+                            TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+  }
+
+  void test_lookup_string_nil() {
+    TS_ASSERT_THROWS_ASSERT(symbols->lookup_string(state, reinterpret_cast<Symbol*>(Qnil)),
+                            const RubyException &e,
+                            TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+  }
+
+  void test_lookup_cstring_nil() {
+    TS_ASSERT_THROWS_ASSERT(symbols->lookup_cstring(state, reinterpret_cast<Symbol*>(Qnil)),
+                            const RubyException &e,
+                            TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+  }
+
   void test_size() {
     symbols->lookup(state, "uno");
     symbols->lookup(state, "dos");

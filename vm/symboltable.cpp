@@ -16,7 +16,7 @@ namespace rubinius {
     size_t sym;
 
     if(str.size() == 0) {
-      Exception::argument_error(state, "cannot create a symbol from an empty string");
+      Exception::argument_error(state, "Cannot create a symbol from an empty string");
     }
 
     hashval hash = String::hash_str((unsigned char*)str.c_str(), str.size());
@@ -43,6 +43,10 @@ namespace rubinius {
   }
 
   Symbol* SymbolTable::lookup(STATE, String* str) {
+    if(str->nil_p()) {
+      Exception::argument_error(state, "Cannot look up Symbol from nil");
+    }
+
     char* bytes = str->c_str();
 
     for(size_t i = 0; i < str->size(); i++) {
@@ -56,12 +60,19 @@ namespace rubinius {
   }
 
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {
-    std::string str = strings[sym->index()];
-    // HACK does c_str() return a copy? If so, we need to free() it.
+    if(sym->nil_p()) {
+      Exception::argument_error(state, "Cannot look up Symbol from nil");
+    }
+
+    std::string& str = strings[sym->index()];
     return String::create(state, str.c_str());
   }
 
   const char* SymbolTable::lookup_cstring(STATE, const Symbol* sym) {
+    if(sym->nil_p()) {
+      Exception::argument_error(state, "Cannot look up Symbol from nil");
+    }
+
     std::string& str = strings[sym->index()];
     return str.c_str();
   }
