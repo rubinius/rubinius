@@ -92,6 +92,7 @@ namespace rubinius {
 
   Object* System::vm_exit(STATE, Fixnum* code) {
     ::exit(code->to_native());
+    return code;
   }
 
   Fixnum* System::vm_fork(VM* state)
