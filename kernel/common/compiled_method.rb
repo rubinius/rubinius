@@ -57,7 +57,7 @@ end
 #   module Fruits
 #     class Pineapple
 #       attr_reader :initialize_scope
-#   
+#
 #       def initialize(weight)
 #         @initialize_scope = MethodContext.current.method.scope
 #         @weight = weight
@@ -81,7 +81,11 @@ end
 #   => Object
 
 class StaticScope
-  def initialize(mod, par=nil)
+
+  #
+  # @todo  Verify the recursion here does not cause problems. --rue
+  #
+  def initialize(mod, par = self)
     @module = mod
     @parent = par
   end
@@ -104,7 +108,8 @@ class StaticScope
   end
 
   def inspect
-    "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent} module=#{@module}>"
+    parentage = @parent == self ? "<No further parent>" : @parent
+    "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{parentage} module=#{@module}>"
   end
 
   def to_s
@@ -174,11 +179,12 @@ class CompiledMethod < Executable
   end
 
   def inherit_scope(other)
-    if ss = other.scope
-      @scope = ss
-    else
-      @scope = StaticScope.new(Object)
-    end
+    @scope = other.scope
+#    if ss = other.scope
+#      @scope = ss
+#    else
+#      @scope = StaticScope.new(Object)
+#    end
   end
 
   def activate(recv, mod, args, locals=nil, &prc)
