@@ -96,7 +96,7 @@ namespace rubinius {
     IncludedModule* imod;
     imod = (IncludedModule*)state->new_object(G(included_module));
 
-    imod->name(state, (Symbol*)Qnil);
+    imod->name(state, state->symbol("<included module>"));
     imod->superclass(state, (Module*)Qnil);
 
     return imod;
