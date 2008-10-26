@@ -32,7 +32,7 @@ namespace rubinius {
 
     static Exception* make_exception(STATE, Class* exc_class, const char* message);
     static Exception* make_type_error(STATE, object_type type, Object* object,
-                           const char* reason = NULL);
+                                      const char* reason = NULL);
     static Exception* make_errno_exception(STATE, Class* exc_class, Object* reason);
 
     static void argument_error(STATE, int expected, int given);

@@ -50,8 +50,11 @@ namespace rubinius {
     RubyException::raise(make_exception(state, get_argument_error(state), reason));
   }
 
-  Exception* Exception::make_type_error(STATE, object_type type, Object* object,
-                                   const char* reason) {
+  Exception* Exception::make_type_error(STATE, object_type type, Object* object, const char* reason) {
+    if(reason) {
+      return make_exception(state, get_type_error(state), reason);
+    }
+
     std::ostringstream msg;
 
     TypeInfo* wanted = state->find_type(type);
