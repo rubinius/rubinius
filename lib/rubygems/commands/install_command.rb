@@ -6,15 +6,6 @@ require 'rubygems/local_remote_options'
 require 'rubygems/validator'
 require 'rubygems/version_option'
 
-module Gem
-  class Command; end
-
-  module Commands
-    class InstallCommand < Command; end
-  end
-
-end
-
 class Gem::Commands::InstallCommand < Gem::Command
 
   include Gem::VersionOption

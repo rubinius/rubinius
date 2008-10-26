@@ -178,10 +178,28 @@ namespace rubinius {
     return NULL;
   }
 
+  /** Same as fetch(state, key). */
+  Object* LookupTable::aref(STATE, Object* key) {
+    Tuple* entry = find_entry(state, key);
+    if(entry) return entry->at(state, 1);
+    return Qnil;
+  }
+
+  /** Same as aref(state, key). */
   Object* LookupTable::fetch(STATE, Object* key) {
     Tuple* entry = find_entry(state, key);
     if(entry) return entry->at(state, 1);
     return Qnil;
+  }
+
+  Object* LookupTable::fetch(STATE, Object* key, Object* return_on_failure) {
+    Tuple* entry = find_entry(state, key);
+
+    if(entry) {
+      return entry->at(state, 1);
+    }
+
+    return return_on_failure;
   }
 
   Object* LookupTable::fetch(STATE, Object* key, bool* found) {

@@ -32,7 +32,7 @@ class TestLookupTable : public CxxTest::TestSuite {
     tbl->store(state, Qnil, Fixnum::from(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    Object* out = tbl->fetch(state, Qnil);
+    Object* out = tbl->aref(state, Qnil);
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 47);
   }
 
@@ -41,13 +41,13 @@ class TestLookupTable : public CxxTest::TestSuite {
     tbl->store(state, Qnil, Fixnum::from(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    Object* out = tbl->fetch(state, Qnil);
+    Object* out = tbl->aref(state, Qnil);
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 47);
 
     tbl->store(state, Qnil, Fixnum::from(42));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
 
-    out = tbl->fetch(state, Qnil);
+    out = tbl->aref(state, Qnil);
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 42);
   }
 
@@ -88,7 +88,7 @@ class TestLookupTable : public CxxTest::TestSuite {
     TS_ASSERT((size_t)(tbl-> bins()->to_native()) > bins);
 
     for(i = 0; i < bins; i++) {
-      TS_ASSERT_EQUALS(Fixnum::from(i), tbl->fetch(state, Fixnum::from(i)));
+      TS_ASSERT_EQUALS(Fixnum::from(i), tbl->aref(state, Fixnum::from(i)));
     }
   }
 
@@ -203,7 +203,7 @@ class TestLookupTable : public CxxTest::TestSuite {
 
     LookupTable* tbl2 = tbl->dup(state);
 
-    TS_ASSERT_EQUALS(tbl2->fetch(state, k1), Qtrue);
+    TS_ASSERT_EQUALS(tbl2->aref(state, k1), Qtrue);
   }
 
   void test_all_keys() {
@@ -225,5 +225,23 @@ class TestLookupTable : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ary->total()->to_native(), 1);
     TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
 
+  }
+
+  void test_fetch_returns_found() {
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 0);
+    tbl->store(state, Qnil, Fixnum::from(47));
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
+
+    Object* out = tbl->fetch(state, Qnil, Qundef);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 47);
+  }
+
+  void test_fetch_returns_given_when_not_found() {
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 0);
+    tbl->store(state, Qnil, Fixnum::from(47));
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 1);
+
+    Object* out = tbl->fetch(state, Qtrue, Qundef);
+    TS_ASSERT_EQUALS(Qundef, out);
   }
 };

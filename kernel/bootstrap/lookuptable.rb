@@ -52,13 +52,18 @@ class LookupTable
   end
 
   def [](key)
-    Ruby.primitive :lookuptable_fetch
+    Ruby.primitive :lookuptable_aref
     raise PrimitiveFailure, "LookupTable#[] primitive failed"
   end
 
   def []=(key, val)
     Ruby.primitive :lookuptable_store
     raise PrimitiveFailure, "LookupTable#[]= primitive failed"
+  end
+
+  def fetch(key, return_on_failure)
+    Ruby.primitive :lookuptable_fetch
+    raise PrimitiveFailure, "fetch failed"
   end
 
   def key?(key)

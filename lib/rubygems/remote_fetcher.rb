@@ -3,12 +3,6 @@ require 'stringio'
 require 'uri'
 
 require 'rubygems'
-require "rubygems/exceptions"
-
-module Gem
-  class Exception < RuntimeError
-  end
-end
 
 ##
 # RemoteFetcher handles the details of fetching gems and gem information from
@@ -148,7 +142,7 @@ class Gem::RemoteFetcher
     raise FetchError.new('timed out', uri)
   rescue IOError, SocketError, SystemCallError => e
     raise FetchError.new("#{e.class}: #{e}", uri)
-  rescue Exception => e
+  rescue => e
     raise FetchError.new("#{e.class}: #{e}", uri)
   end
 

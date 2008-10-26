@@ -37,8 +37,14 @@ namespace rubinius {
     // Ruby.primitive :lookuptable_store
     Object* store(STATE, Object* key, Object* val);
 
-    // Ruby.primitive :lookuptable_fetch
+    // Ruby.primitive :lookuptable_aref
+    Object* aref(STATE, Object* key);
+    /** Compatibility, this is the same as aref(). */
     Object* fetch(STATE, Object* key);
+
+    // Ruby.primitive :lookuptable_fetch
+    Object* fetch(STATE, Object* key, Object* return_on_failure);
+
     Object* fetch(STATE, Object* key, bool* found);
 
     // Ruby.primitive :lookuptable_dup

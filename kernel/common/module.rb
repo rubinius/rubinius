@@ -695,19 +695,19 @@ class Module
   def recursive_const_get(name, missing=true)
     name = normalize_const_name(name)
 
-    current, constant = self, nil
+    current, constant = self, Undefined
 
     while current
-      constant = current.constants_table[name]
+      constant = current.constants_table.fetch name, Undefined
       constant = constant.call if constant.kind_of?(Autoload)
-      return constant if constant
+      return constant unless constant.equal?(Undefined)
       current = current.direct_superclass
     end
 
     if self.kind_of?(Module) and not self.kind_of?(Class)
-      constant = Object.constants_table[name]
+      constant = Object.constants_table.fetch name, Undefined
       constant = constant.call if constant.kind_of?(Autoload)
-      return constant if constant
+      return constant unless constant.equal?(Undefined)
     end
 
     return nil unless missing
