@@ -252,6 +252,10 @@ class Rubinius::SydneyRewriter
     exp
   end
 
+  def rewrite_match(exp)
+    s(:match, s(:regex, exp[1], exp[2]))
+  end
+
   def rewrite_negate(exp)
     s(:lit, -exp.last.last)
   end
