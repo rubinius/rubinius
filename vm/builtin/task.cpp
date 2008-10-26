@@ -578,7 +578,7 @@ namespace rubinius {
     } catch(RubyException &exc) {
       raise_exception(exc.exception);
     } catch(TypeError &exc) {
-      Exception* e = Exception::make_type_error(state, exc.type, exc.object);
+      Exception* e = Exception::make_type_error(state, exc.type, exc.object, exc.reason);
       raise_exception(e);
     }
   }
