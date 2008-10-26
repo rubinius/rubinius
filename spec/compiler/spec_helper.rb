@@ -1,5 +1,8 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+# Assume we can run the specs with rbx
+unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
+
 $: << 'lib'
 
 require File.dirname(__FILE__) + '/../../lib/compiler/compiler'
@@ -20,6 +23,9 @@ require "sexp_processor"
 load "kernel/delta/string.rb"
 
 require 'ruby_parser' # for s(...)
+
+end   # unless defined?(RUBY_ENGINE)
+
 def parse ruby
   ruby.to_sexp("spec")
 end
