@@ -2,6 +2,8 @@
 #
 # A tiny spec-style runner for working on a parser.
 
+require 'pp'
+
 begin
   require 'sexp'
 rescue LoadError
@@ -58,11 +60,23 @@ def run(node, hash, standard, sexp, cmd, str)
   actual = actual.to_a unless actual.instance_of? Array
 
   if actual != expected
-    return false, "#{node}\n\n#{src}\n\nexpected\n  #{actual.inspect}\n" \
-                  "to equal\n  #{expected.inspect}\n\n"
+    return false, "#{node}\n\n#{src}\n\nexpected\n#{actual.pretty_inspect}\n" \
+                  "to equal\n#{expected.pretty_inspect}\n\n"
   else
     return true, nil
   end
+end
+
+# Shows the sexp generate by the +sexp+ method from
+# the +source+ string.
+def show(source, sexp, cmd, str)
+  if cmd
+    result = send sexp, cmd, str, source
+  else
+    result = send sexp, source
+  end
+  result = result.to_a if sexp == :to_sexp_sydney_raw
+  pp result
 end
 
 def usage
@@ -74,15 +88,17 @@ def usage
   puts "-x CMD  Test sexp from invoking CMD (see -t) against raw ParseTree"
   puts "-X CMD  Test sexp from invoking CMD (see -t) against rewritten SydneyParser"
   puts "-t STR  Substitute into template STR at %s"
+  puts "-d      Display the sexp converted from reading STDIN"
   puts "-h      Show this message"
   puts ""
   exit 1
 end
 
 # defaults
+processor = :run
 standard = :sydney_parser
 sexp = :to_sexp_sydney_unified
-str = %Q{%s}
+template = %Q{%s}
 command = nil
 
 files = []
@@ -118,7 +134,9 @@ while x = ARGV.shift
       standard = :sydney_parser
       sexp = :to_sexp_x
     when "-t"
-      str = ARGV.shift
+      template = ARGV.shift
+    when "-d"
+      processor = :show
     when "-h"
       usage
     else
@@ -128,43 +146,48 @@ while x = ARGV.shift
   end
 end
 
-if files.empty?
-  puts "No files given"
-  usage
-end
+if processor == :show
+  str = STDIN.read
+  show(str, sexp, command, template) unless str.empty?
+else
+  if files.empty?
+    puts "No files given"
+    usage
+  end
 
-report = []
-total = failures = errors = 0
+  report = []
+  total = failures = errors = 0
 
-start = Time.now
-files.each do |name|
-  total += 1
-  load name
-  begin
-    node = File.basename(name, "_spec.rb").split("/").last
-    status, output = run(node, test_case, standard, sexp, command, str)
-    if status
-      print "."
-    else
-      print "F"
-      failures += 1
-      report << output
+  start = Time.now
+  files.each do |name|
+    total += 1
+    load name
+    begin
+      node = File.basename(name, "_spec.rb").split("/").last
+      status, output = run(node, test_case, standard, sexp, command, template)
+      if status
+        print "."
+      else
+        print "F"
+        failures += 1
+        report << output
+      end
+    rescue Object => e
+      print "E"
+      errors += 1
+      report << "#{name}\n#{e.inspect}\n#{e.backtrace.join("\n")}"
     end
-  rescue Object => e
-    print "E"
-    errors += 1
-    report << "#{name}\n#{e.inspect}\n#{e.backtrace.join("\n")}"
   end
-end
-finish = Time.now
+  finish = Time.now
 
-unless report.empty?
-  puts "\n"
-  report.each_with_index do |e, i|
-    puts "\n#{i+1})\n"
-    puts e
+  unless report.empty?
+    puts "\n"
+    report.each_with_index do |e, i|
+      puts "\n#{i+1})\n"
+      puts e
+    end
   end
-end
 
-puts "\nFinished in #{finish-start} seconds"
-puts "\n#{total} examples, #{failures} failures, #{errors} errors"
+  puts "\nFinished in #{finish-start} seconds"
+  puts "\n#{total} examples, #{failures} failures, #{errors} errors"
+end
