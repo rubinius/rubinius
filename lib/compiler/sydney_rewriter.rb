@@ -243,7 +243,7 @@ class Rubinius::SydneyRewriter
         case rhs.first
         when :array
           exp[1] = s(:array, s(:splat, lhs))
-          rhs[0] = :to_ary
+          rhs[0] = :to_ary if rhs.size == 2
         when :splat
           exp[1] = s(:array, s(:splat, lhs))
         end
