@@ -48,6 +48,13 @@ namespace rubinius {
     meta->superclass(state, (Module*)sup);
     obj->klass(state, meta);
 
+    meta->name(state, state->symbol("<metaclass>"));
+
+    /** @todo   These fields from Class are not set. Need to? --rue
+    Fixnum* instance_fields_; // slot
+    Fixnum* instance_type_;   // slot
+    */
+
     return meta;
   }
 
