@@ -18,7 +18,7 @@ class Module
   def method_cache    ; @method_cache ; end
   def constants_table ; @constants    ; end
   def encloser        ; @encloser  ; end
-  
+
   def constants_table=(c) ; @constants = c    ; end
   def method_table=(m)    ; @method_table = m ; end
 

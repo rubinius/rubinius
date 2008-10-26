@@ -4,11 +4,11 @@ class << MAIN
   def include(*mods)
     Object.include(*mods)
   end
-  
+
   def public(*methods)
     Object.public(*methods)
   end
-  
+
   def private(*methods)
     Object.private(*methods)
   end
@@ -16,7 +16,7 @@ class << MAIN
   def protected(*methods)
     Object.protected(*methods)
   end
-  
+
   def add_method(name, obj)
     Object.add_method(name, obj)
   end
