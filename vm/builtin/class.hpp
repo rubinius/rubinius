@@ -26,6 +26,9 @@ namespace rubinius {
 
     /* interface */
 
+    /** Returns actual superclass, skipping over IncludedModules */
+    Class* direct_superclass(STATE);
+
     void set_object_type(STATE, size_t type) {
       instance_type(state, Fixnum::from(type));
     }

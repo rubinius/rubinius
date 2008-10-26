@@ -37,6 +37,16 @@ namespace rubinius {
     return state->new_object(this);
   }
 
+  Class* Class::direct_superclass(STATE) {
+    Module* super = superclass();
+
+    while(kind_of<IncludedModule>(super)) {
+      super = super->superclass();
+    }
+
+    return as<Class>(super);
+  }
+
   MetaClass* MetaClass::attach(STATE, Object* obj, Object* sup) {
     MetaClass *meta;
 
