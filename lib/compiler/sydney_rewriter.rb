@@ -212,6 +212,7 @@ class Rubinius::SydneyRewriter
     rewrite_call(exp)
   end
 
+  # TODO: fix this clusterfuck in grammar_runtime.cpp
   def rewrite_masgn(exp)
     last = exp.last
 
@@ -229,11 +230,15 @@ class Rubinius::SydneyRewriter
         case rhs.first
         when :to_ary, :array
           # do nothing
+        when :splat
+          lhs << exp.pop if rhs.size == 1
         else
           last = exp.pop
-          last = s(:splat, last) unless last.first == :splat
+          last = s(:splat, last)
           lhs << last
         end
+      elsif lhs.first == :splat
+        exp[1] = s(:array, exp[1])
       else
         case rhs.first
         when :array
