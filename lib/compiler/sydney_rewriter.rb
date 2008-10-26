@@ -367,16 +367,6 @@ class Rubinius::SydneyRewriter
     exp
   end
 
-  def rewrite_svalue(exp)
-    # this rewrite is because of how argscat is rewritten
-    args = exp[1]
-    if Array === args and args.first == :splat
-      x = args[1]
-      exp[0] = :arglist if Array === x and x.first == :array
-    end
-    exp
-  end
-
   # Adapted from UnifiedRuby
   def rewrite_vcall(exp)
     exp.push nil
