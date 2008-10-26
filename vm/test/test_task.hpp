@@ -850,6 +850,32 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(G(object)->get_const(state, "Person"), cls);
   }
 
+  void test_open_class_fails_with_invalid_superclass() {
+    Module* parent = state->new_module("Parent");
+
+    StaticScope* ps = StaticScope::create(state);
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
+
+    CompiledMethod* cm = create_cm();
+
+    Task* task = Task::create(state, Qnil, cm);
+    cm->scope(state, ps);
+
+    bool created;
+    Class* cls = task->open_class(Qnil, state->symbol("Person"), &created);
+
+    bool raised = false;
+
+    try {
+      cls = task->open_class(G(array), state->symbol("Person"), &created);
+    } catch(const RubyException& e) {
+      raised = true;
+    }
+
+    TS_ASSERT_EQUALS(true, raised);
+  }
+
   void test_open_module() {
     Module* parent = state->new_module("Parent");
 
