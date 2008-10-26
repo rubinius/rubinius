@@ -120,6 +120,16 @@ class Rubinius::SydneyRewriter
     exp
   end
 
+  def rewrite_break(exp)
+    args = exp[1]
+    case args
+    when Array
+      args[0] = :arglist if args[0] == :svalue
+    end
+
+    exp
+  end
+
   # Adapted from UnifiedRuby
   def rewrite_call(exp)
     args = exp.last
@@ -204,24 +214,39 @@ class Rubinius::SydneyRewriter
 
   def rewrite_masgn(exp)
     last = exp.last
-    kind = last.first
 
     case exp.size
     when 2
+      kind = last.first
       unless kind == :array or kind == :to_ary
         last = s(:splat, last) unless last.first == :splat
         exp[1] = s(:array, last)
       end
     when 3
-      unless kind == :array or kind == :to_ary
-        exp.pop
-        last = s(:splat, last) unless last.first == :splat
-        exp.last << last
+      lhs, rhs = exp[1], exp[2]
+
+      if lhs.first == :array
+        case rhs.first
+        when :to_ary, :array
+          # do nothing
+        else
+          last = exp.pop
+          last = s(:splat, last) unless last.first == :splat
+          lhs << last
+        end
+      else
+        case rhs.first
+        when :array
+          exp[1] = s(:array, s(:splat, lhs))
+          rhs[0] = :to_ary
+        when :splat
+          exp[1] = s(:array, s(:splat, lhs))
+        end
       end
     when 4
-      last = exp.pop
-      exp = rewrite_masgn(exp)
-      exp << last
+      last = exp.delete_at 2
+      last = s(:splat, last) unless last.first == :splat
+      exp[1] << last
     end
 
     exp
@@ -325,6 +350,7 @@ class Rubinius::SydneyRewriter
   end
 
   def rewrite_super(exp)
+    # this rewrite is because of how argscat is rewritten
     args = exp[1]
     case args
     when Array
@@ -334,6 +360,16 @@ class Rubinius::SydneyRewriter
       end
     end
 
+    exp
+  end
+
+  def rewrite_svalue(exp)
+    # this rewrite is because of how argscat is rewritten
+    args = exp[1]
+    if Array === args and args.first == :splat
+      x = args[1]
+      exp[0] = :arglist if Array === x and x.first == :array
+    end
     exp
   end
 
