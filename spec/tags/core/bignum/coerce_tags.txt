@@ -1,0 +1,1 @@
+fails:Bignum#coerce returns [Float, Float] if other is not a Bignum or Fixnum

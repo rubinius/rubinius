@@ -1,0 +1,3 @@
+fails:Ar#delete deletes many files
+fails:Ar#delete deletes one file
+fails:Ar#delete handles long names

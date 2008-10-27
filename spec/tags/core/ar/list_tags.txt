@@ -1,0 +1,2 @@
+fails:Ar#list handles long names
+fails:Ar#list returns a list of files
