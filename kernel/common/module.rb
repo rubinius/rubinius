@@ -336,6 +336,9 @@ class Module
       cmethod = mod.method_table[name]
     end
 
+    # unwrap the real method from Visibility if needed
+    cmethod = cmethod.method if cmethod.kind_of? CompiledMethod::Visibility
+
     # We want to show the real module
     mod = mod.module if mod.class == IncludedModule
     return UnboundMethod.new(mod, cmethod, self) if cmethod

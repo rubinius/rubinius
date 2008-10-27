@@ -1,4 +1,4 @@
-class CompiledMethod
+class CompiledMethod < Executable
 
   def self.allocate
     Ruby.primitive :compiledmethod_allocate

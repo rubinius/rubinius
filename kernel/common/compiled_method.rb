@@ -117,6 +117,11 @@ class StaticScope
 end
 
 class CompiledMethod < Executable
+  class Visibility
+    attr_accessor :method
+    attr_reader   :visibility
+  end
+
   # Ivars: instance_variables, primitive, serial, name, iseq, stack_size,
   # local_count, required_args, total_args, splat, literals, exceptions,
   # lines, file, compiled, scope
