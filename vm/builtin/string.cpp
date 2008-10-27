@@ -508,6 +508,8 @@ namespace rubinius {
     if(*str == '-') {
       str++;
       negative = true;
+    } else if(*str == '+') {
+      str++;
     }
 
     char chr;

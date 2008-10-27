@@ -174,6 +174,14 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<Fixnum>(val));
     TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), -3);
 
+    str = String::create(state, "   +3");
+    val = str->to_i(state, Fixnum::from(10), Qfalse);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
+    val = str->to_i(state, Fixnum::from(0), Qtrue);
+    TS_ASSERT(kind_of<Fixnum>(val));
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 3);
+
     str = String::create(state, " 3F ");
     val = str->to_i(state);
     TS_ASSERT_EQUALS(val, Qnil);
