@@ -4,11 +4,11 @@ class MSpecScript
   set :ci_files, [
     'spec/frozen/1.8/core',
     'spec/frozen/1.8/language',
+    'spec/core',
 
     # These additional directories will be enabled as the
     # specs in them are updated for the C++ VM.
     # 'spec/compiler',
-    # 'spec/core',
     # 'spec/debugger',
     # 'spec/subtend',
     # 'spec/parser',
