@@ -33,7 +33,9 @@ class Proc
   end
 
   def self.new(compiled_method = nil)
-    if block_given?
+    if compiled_method
+      return Proc::CompiledMethod.new(compiled_method)
+    elsif block_given?
       env = MethodContext.current.block
     else
       # Support for ancient pre-block-pass style:
@@ -44,8 +46,6 @@ class Proc
 
     if env
       return __from_block__(env)
-    elsif compiled_method
-      return Proc::CompiledMethod.new(compiled_method)
     else
       raise ArgumentError, "tried to create a Proc object without a block"
     end
@@ -104,7 +104,16 @@ class Proc
     def self.__from_compiled_method__(cm)
       obj = allocate()
       obj.compiled_method = cm
-      obj.metaclass.method_table[:call] = obj.metaclass.method_table[:[]] = cm
+
+      # This bears explaining.
+      # We have a CompiledMethod object, so what we do is just make it
+      # our call method. We do this by putting it the method into our
+      # metaclass's MethodTable.
+      #
+      # This way, when someone sends us call or [], the method is automatically
+      # called.
+      obj.metaclass.method_table[:call] = cm
+      obj.metaclass.method_table[:[]]   = cm
       return obj
     end
 
