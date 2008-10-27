@@ -4,4 +4,5 @@ fails:IO#reopen reassociates self with a new stream opened on path, after some r
 fails:IO#reopen reassociates self with a new stream opened on path, after some writes
 fails:IO#reopen reassociates self with the I/O stream specified as an argument, after some reads
 fails:IO#reopen reassociates self to another file/descriptor but returns self
+fails:IO#reopen reassociates self with the I/O stream specified as an argument, after some sysreads
 fails:IO#reopen reassociates self with the I/O stream specified as an argument, after some writes
