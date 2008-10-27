@@ -45,8 +45,9 @@ namespace rubinius {
 
     /* @todo Using a single default loop, revisit when many loops.
      * @todo This needs to be handled through the environment.
+     * (disabled epoll backend as it frequently caused hangs on epoll_wait)
      */
-    signal_events = new event::Loop(EVFLAG_FORKCHECK);
+    signal_events = new event::Loop(EVFLAG_FORKCHECK | EVBACKEND_SELECT | EVBACKEND_POLL);
     events = signal_events;
 
     signal_events->start(new event::Child::Event(this));
