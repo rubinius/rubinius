@@ -115,6 +115,7 @@ namespace rubinius {
     return state->om->deallocate_context(this);
   }
 
+
   /* Create a ContextCache object and install it in +state+ */
   void MethodContext::initialize_cache(STATE) {
   }
@@ -277,6 +278,14 @@ namespace rubinius {
     // Detect a context on the special context stack and fix it up.
     if(ctx->klass_->nil_p()) {
       ctx->initialize_as_reference(state);
+    }
+
+    // MethodContext's need to be inspected on every GC collection, young
+    // and old. This is because we perform stores into the MethodContext's
+    // stack without running the write barrier. So if the context is
+    // in mature, we remember it.
+    if(!ctx->young_object_p()) {
+      mark.gc->object_memory->remember_object(ctx);
     }
 
     auto_mark(obj, mark);

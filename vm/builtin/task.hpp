@@ -150,7 +150,6 @@ namespace rubinius {
 
     // Add +ctx+ to the context chain by setting the active context
     // to +ctx+'s sender and making +ctx+ active.
-    void make_active(MethodContext* ctx);
 
     void literals(STATE, Tuple* tup) {
       active_->cm()->literals(state, tup);
@@ -182,6 +181,11 @@ namespace rubinius {
 
     void self(STATE, Object* obj) {
       active_->self(state, obj);
+    }
+
+    void make_active(MethodContext* ctx) {
+      ctx->sender(state, active_);
+      active(state, ctx);
     }
 
   private:

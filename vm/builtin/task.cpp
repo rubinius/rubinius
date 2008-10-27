@@ -104,25 +104,6 @@ namespace rubinius {
 
   void Task::restore_context(MethodContext* ctx) {
     active(state, ctx);
-    /* Stack Management procedures. Make sure that we don't
-     * miss object stored into the stack of a context */
-    if(ctx->zone == MatureObjectZone) {
-      state->om->remember_object(ctx);
-    }
-
-    // We do this because blocks set locals in their home and we need
-    // catch that.
-    //
-    // NOTE we could instead manually run the write barrier when setting
-    // locals.
-    if(home()->zone == MatureObjectZone && !home()->Remember) {
-      state->om->remember_object(home());
-    }
-  }
-
-  void Task::make_active(MethodContext* ctx) {
-    ctx->sender(state, active_);
-    restore_context(ctx);
   }
 
   /* Only called if send_message can't locate anything to run, which pretty

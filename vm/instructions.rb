@@ -2834,25 +2834,12 @@ class Instructions
 
       // if(unlikely(profiler)) profiler->leave_method();
       /* Try to recycle this context to be used again. */
-      active_context->recycle(state);
+      if(active_context->young_object_p()) {
+        state->om->deallocate_context(active_context);
+      }
 
       // == restore_context ==
       task->active(state, dest);
-
-      /* Stack Management procedures. Make sure that we don't
-       * miss object stored into the stack of a context */
-      if(dest->zone == MatureObjectZone) {
-        state->om->remember_object(dest);
-      }
-
-      // We do this because blocks set locals in their home and we need
-      // catch that.
-      //
-      // NOTE we could instead manually run the write barrier when setting
-      // locals.
-      if(dest->home()->zone == MatureObjectZone && !dest->home()->Remember) {
-        state->om->remember_object(dest->home());
-      }
 
       // === end manual inline ===
       dest->push(value);

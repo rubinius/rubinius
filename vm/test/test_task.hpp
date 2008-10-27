@@ -1024,24 +1024,6 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(task->current_ip(), 5);
   }
 
-  void test_old_contexts_are_remembered_on_activate() {
-    Task* task = Task::create(state);
-    TS_ASSERT(!task->active()->Remember);
-
-    /* Evil, but lets us test this easy. Don't do this in real
-     * code */
-    task->active()->zone = MatureObjectZone;
-
-    task->make_active(task->active());
-    TS_ASSERT(task->active()->Remember);
-
-    /* Check it only happens to old contexts. */
-    task = Task::create(state);
-    TS_ASSERT(!task->active()->Remember);
-    task->make_active(task->active());
-    TS_ASSERT(!task->active()->Remember);
-  }
-
   void test_call_object() {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state);
