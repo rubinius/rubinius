@@ -36,7 +36,6 @@ namespace rubinius {
 #define tuple_put(s, t, i, v) as<Tuple>(t)->put(s, i, v)
 
 #define string_new(s, c)         (Object*)String::create(s, c)
-#define string_newfrombstr(s, b) string_new(s, bdatae(b, ""))
 #define string_concat(s, d, o)   (Object*)as<String>(d)->append(s, as<String>(o))
 #define string_append(s, d, o)   (Object*)as<String>(d)->append(s, o)
 #define string_c_str(s, d)       (char*)as<String>(d)->c_str()
@@ -62,6 +61,15 @@ namespace rubinius {
 
     static Object* bignum_from_bstring(STATE, bstring str, int radix) {
       return bignum_from_string(state, bdata(str), radix);
+    }
+
+    static Object* string_newfrombstr(STATE, bstring str)
+    {
+      if(str == NULL) {
+        return String::create(state, "");
+      }
+
+      return String::create(state, (const char*)str->data, str->slen);
     }
 
     rb_parse_state *alloc_parse_state() {
