@@ -5,4 +5,22 @@ fails:Kernel#eval allows Proc and binding to be nested in horrible ways
 fails:Kernel#eval allows creating a new class in a binding
 fails:Kernel#eval allows creating a new class in a binding created by #eval
 fails:Kernel#eval allows creating a new class in a binding returned by a method defined with #eval
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 fails:Kernel#eval includes file and line information in syntax error

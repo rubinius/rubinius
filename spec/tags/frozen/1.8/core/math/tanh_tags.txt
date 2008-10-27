@@ -1,1 +1,13 @@
+
+
+
+
+
+
+
+
+
+
+
+
 fails:Math.tanh returns the hyperbolic tangent of the argument

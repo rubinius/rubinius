@@ -1,2 +1,34 @@
 fails:File#chmod always succeeds with any numeric values
 fails:File.chmod always succeeds with any numeric values
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

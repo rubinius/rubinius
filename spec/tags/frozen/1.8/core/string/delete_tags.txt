@@ -1,2 +1,18 @@
 fails:String#delete deletes all chars in a sequence
 fails:String#delete taints result when self is tainted
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

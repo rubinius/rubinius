@@ -1,1 +1,4 @@
 fails:Hash#delete calls eql? on colliding keys it finds
+
+
+

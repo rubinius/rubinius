@@ -1,1 +1,15 @@
 incomplete:Kernel#lambda needs to be reviewed for spec completeness
+
+
+
+
+
+
+
+
+
+
+
+
+
+

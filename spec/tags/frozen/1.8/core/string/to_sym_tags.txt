@@ -1,1 +1,3 @@
 fails:String#to_sym raises an ArgumentError when self can't be converted to symbol
+
+

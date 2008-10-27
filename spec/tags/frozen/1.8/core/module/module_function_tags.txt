@@ -6,3 +6,19 @@ fails:Module#module_function as a toggle (no arguments) in a Module body stops c
 fails:Module#module_function as a toggle (no arguments) in a Module body does not stop creating module functions if the body encounters public/protected/private WITH arguments
 fails:Module#module_function as a toggle (no arguments) in a Module body does not affect module_evaled method definitions also if outside the eval itself
 fails:Module#module_function as a toggle (no arguments) in a Module body functions normally if both toggle and definitions inside a module_eval
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

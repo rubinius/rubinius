@@ -1,1 +1,3 @@
 fails:Numeric#<=> returns 0 if self equals other
+
+

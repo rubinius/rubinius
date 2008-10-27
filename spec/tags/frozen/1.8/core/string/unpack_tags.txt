@@ -13,3 +13,15 @@ fails:String#unpack with 'H' and 'h' directives returns an array by decoding sel
 fails:String#unpack with 'IiLlSs' directives returns an array in little-endian (native format) by decoding self according to the format string
 fails:String#unpack with 'U' directive returns an array by decoding self according to the format string
 fails:String#unpack with 'A' directive returns an array by decoding self according to the format string
+
+
+
+
+
+
+
+
+
+
+
+

@@ -6,3 +6,7 @@ fails:Class.inherited is called by super from a method provided by an included m
 fails:Class.inherited is called by super even when marked as a private class method
 
 
+
+
+
+

@@ -1,1 +1,2 @@
 fails:Fixnum#== calls 'other == self' if the given argument is not a Fixnum
+

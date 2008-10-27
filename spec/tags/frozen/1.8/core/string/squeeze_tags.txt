@@ -1,2 +1,18 @@
 fails:String#squeeze squeezes all chars in a sequence
 fails:String#squeeze taints the result when self is tainted
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

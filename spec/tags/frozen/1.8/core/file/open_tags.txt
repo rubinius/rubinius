@@ -1,5 +1,4 @@
 fails:File.open with a block swallows StandardErrors produced by close
-fails:File.open opens a file with a file descriptor d and a block
 fails:File.open raises an IO exception when read in a block opened with File::RDONLY|File::APPEND mode
 fails:File.open raises an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND
 fails:File.open can read in a block when call open with RDONLY mode
@@ -11,4 +10,108 @@ fails:File.open opens a file when use File::WRONLY|File::APPEND mode
 fails:File.open truncates the file when passed File::TRUNC mode
 fails:File.open can't read in a block when call open with File::TRUNC mode
 fails:File.open opens a file for read-write and truncate the file
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 fails:File.open opens a file for binary read-write and truncate the file

@@ -2,3 +2,9 @@ fails:Proc.new returns from within a method
 fails:Proc.new with an associated block raises a LocalJumpError when context of the block no longer exists
 fails:Proc.new with an associated block returns from within enclosing method when 'return' is used in the block
 fails:Proc.new without a block raises an ArgumentError
+
+
+
+
+
+

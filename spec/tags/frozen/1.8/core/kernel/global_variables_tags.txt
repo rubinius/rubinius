@@ -1,1 +1,7 @@
 incomplete:Kernel#global_variables needs to be reviewed for spec completeness
+
+
+
+
+
+

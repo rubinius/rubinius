@@ -1,1 +1,3 @@
 fails:Struct#initialize is private
+
+

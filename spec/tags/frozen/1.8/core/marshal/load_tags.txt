@@ -16,7 +16,6 @@ fails:Marshal::load loads a Bignum 2**64
 fails:Marshal::load loads a String subclass extended
 fails:Marshal::load loads a Fixnum 2**16
 fails:Marshal::load loads a Bignum -2**63
-fails:Marshal::load loads a Regexp subclass /i
 fails:Marshal::load loads a String empty
 fails:Marshal::load loads a Fixnum 2**24
 fails:Marshal::load loads a Struct
@@ -29,3 +28,80 @@ fails:Marshal::load loads a Hash
 fails:Marshal::load loads a String subclass
 fails:Marshal::load loads a String extended
 fails:Marshal::load loads a Hash subclass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fails:Marshal::load loads a Regexp subclass /i

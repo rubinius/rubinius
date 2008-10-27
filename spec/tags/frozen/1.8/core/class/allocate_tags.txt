@@ -1,3 +1,7 @@
 fails:Class#allocate returns a fully-formed instance of Module
 
 
+
+
+
+

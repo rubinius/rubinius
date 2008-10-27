@@ -1,3 +1,5 @@
 fails:Bignum#== returns the result of 'other == self' as a boolean
 fails:Bignum#== calls 'other == self' if the given argument is not an Integer
 
+
+

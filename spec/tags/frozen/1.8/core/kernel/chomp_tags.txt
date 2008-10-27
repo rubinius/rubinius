@@ -1,2 +1,10 @@
 incomplete:Kernel.chomp needs to be reviewed for spec completeness
 incomplete:Kernel.chomp! needs to be reviewed for spec completeness
+
+
+
+
+
+
+
+
