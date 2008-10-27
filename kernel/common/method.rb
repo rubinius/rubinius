@@ -95,8 +95,7 @@ class Method
   # Returns a Proc object corresponding to this Method.
 
   def to_proc()
-    env = Method::AsBlockEnvironment.new self
-    Proc.__from_block__(env)
+    Proc::CompiledMethod.new @compiled_method
   end
 
   ##
@@ -110,26 +109,6 @@ class Method
     UnboundMethod.new(@defined_in, @compiled_method, @pulled_from)
   end
 
-end
-
-##
-# Wraps the Method into a BlockEnvironment, for use with Method#to_proc.
-
-class Method::AsBlockEnvironment < BlockEnvironment
-  def initialize(method)
-    @method = method
-  end
-  def method; @method.compiled_method; end
-  def file; method.file; end
-  def line; method.first_line; end
-  def redirect_to(obj)
-    @method = @method.unbind.bind(obj)
-  end
-  def call(*args); @method.call(*args); end
-  def call_on_instance(obj, *args)
-    redirect_to(obj).call(*args)
-  end
-  def arity; @method.arity; end
 end
 
 ##
