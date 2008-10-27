@@ -1,6 +1,6 @@
 require 'pp' # not sure why i have to do this...
 
-describe Rubinius::Inliner::SimpleSelfCallInliner do
+describe "Rubinius::Inliner::SimpleSelfCallInliner" do
   before :all do
     @inliner = Rubinius::Inliner::SimpleSelfCallInliner.new
   end

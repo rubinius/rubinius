@@ -1,15 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "IO buffer" do
-  before :all do
-    @old_size = IO::BufferSize
-    IO::BufferSize = 7
-  end
-
-  after :all do
-    IO::BufferSize = @old_size
-  end
-
   before :each do
     @fname = "test.txt"
     @contents = "1234567890"

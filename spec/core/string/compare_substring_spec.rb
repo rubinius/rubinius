@@ -24,8 +24,12 @@ describe "String#compare_substring" do
     "aaaa".compare_substring("aaa", 1, 3).should == 0
   end
 
-  it "raises PrimitiveFailure if start is beyond the bounds of other" do
-    lambda { "a".compare_substring("aa", -3, 1) }.should raise_error(IndexError)
-    lambda { "a".compare_substring("aa", 2, 1) }.should raise_error(IndexError)
+  it "raises Rubinius::ObjectBoundsExceededError if start is beyond the bounds of other" do
+    lambda {
+      "a".compare_substring("aa", -3, 1)
+    }.should raise_error(Rubinius::ObjectBoundsExceededError)
+    lambda {
+      "a".compare_substring("aa", 2, 1)
+    }.should raise_error(Rubinius::ObjectBoundsExceededError)
   end
 end

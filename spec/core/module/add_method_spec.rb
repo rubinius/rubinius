@@ -8,6 +8,8 @@ describe "Module.__add_method__" do
   end
 
   it "sets the staticscope of the CompiledMethod to the enclosing class or module" do
-    ModuleSpecs::A.method_table[:b][1].staticscope.module.should == ModuleSpecs::A
+    meth = ModuleSpecs::A.method_table[:b]
+    meth = meth.method if meth.kind_of? CompiledMethod::Visibility
+    meth.scope.module.should == ModuleSpecs::A
   end
 end

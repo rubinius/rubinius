@@ -12,7 +12,7 @@ describe "String#modified?" do
     str = "abcde"
     id = str.data.object_id
     size = str.size
-    str.bytes -= 1
+    str.num_bytes -= 1
     lambda { str.modified?(id, size) }.should raise_error(RuntimeError)
   end
 
