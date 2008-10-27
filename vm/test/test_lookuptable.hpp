@@ -27,6 +27,13 @@ class TestLookupTable : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(tbl-> bins()->to_native(), LOOKUPTABLE_MIN_SIZE);
   }
 
+  void test_allocate() {
+    Class* sub = state->new_class("LookupTableSub", G(lookuptable), 0);
+    LookupTable* tbl = LookupTable::allocate(state, sub);
+
+    TS_ASSERT_EQUALS(tbl->klass(), sub);
+  }
+
   void test_store_fetch() {
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 0);
     tbl->store(state, Qnil, Fixnum::from(47));

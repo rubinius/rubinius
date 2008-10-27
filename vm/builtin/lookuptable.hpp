@@ -32,7 +32,7 @@ namespace rubinius {
     void setup(STATE, size_t sz);
 
     // Ruby.primitive :lookuptable_allocate
-    static LookupTable* allocate(STATE);
+    static LookupTable* allocate(STATE, Object* self);
 
     // Ruby.primitive :lookuptable_store
     Object* store(STATE, Object* key, Object* val);
