@@ -809,14 +809,27 @@ module Kernel
 end
 
 class SystemExit < Exception
-  def initialize(status)
-    @status = status
-  end
+
+  ##
+  # Process exit status if this exception is raised
 
   attr_reader :status
 
-  def message
-    "System is exiting with code '#{status}'"
+  ##
+  # Creates a SystemExit exception with optional status and message.  If the
+  # status is omitted, Process::EXIT_SUCCESS is used.
+
+  def initialize(*args)
+    status = if args.first.kind_of? Fixnum then
+               args.shift
+             else
+               Process::EXIT_SUCCESS
+             end
+
+    super(*args)
+
+    @status = status
   end
+
 end
 
