@@ -77,15 +77,15 @@ end
 #   => Fruits
 #   irb(main):> pineapple.initialize_scope.parent.parent.module
 #   => Object
-#   irb(main):> pineapple.initialize_scope.parent.parent.parent.module
-#   => Object
-
+#   irb(main):> pineapple.initialize_scope.parent.parent.parent
+#   => nil
+#
 class StaticScope
 
   #
   # @todo  Verify the recursion here does not cause problems. --rue
   #
-  def initialize(mod, par = self)
+  def initialize(mod, par = nil)
     @module = mod
     @parent = par
   end
@@ -108,8 +108,7 @@ class StaticScope
   end
 
   def inspect
-    parentage = @parent == self ? "<No further parent>" : @parent
-    "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{parentage} module=#{@module}>"
+    "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent.inspect} module=#{@module}>"
   end
 
   def to_s
