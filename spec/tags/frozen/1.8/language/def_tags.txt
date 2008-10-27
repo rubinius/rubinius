@@ -3,3 +3,4 @@ fails:A method definition inside an instance_eval creates a singleton method
 fails:A method definition inside an instance_eval creates a class method when the receiver is a class
 fails:A method definition in an eval creates a class method
 fails:A singleton method definition can be declared for a class variable
+fails:An instance method definition with a splat allows only a single * argument

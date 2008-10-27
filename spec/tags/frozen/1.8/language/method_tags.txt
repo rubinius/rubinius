@@ -1,3 +1,4 @@
 fails:Calling a method with range in () should give higher priority to range
 fails:Calling a method fails with both lambda and block argument
 fails:Calling a private setter method permits self as a receiver
+fails:Calling a method with ambiguous missing parens, arguments go with innermost call

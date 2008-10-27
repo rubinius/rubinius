@@ -1,2 +1,6 @@
 fails:Executing return from within a block raises a LocalJumpError
 fails:Executing return from within a block causes the method calling the method that yields to the block to return
+fails:Assignment via return assigns objects to block variables
+fails:Assignment via return assigns objects to splatted block variables that include the splat operator inside the block
+fails:Assignment via return assigns splatted objects to block variables
+fails:Assignment via return assigns splatted objects to multiple block variables

@@ -1,0 +1,1 @@
+fails:A Symbol literal must not be an empty string
