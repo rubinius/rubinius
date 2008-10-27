@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-describe "Assignment via return" do
-  it "assigns objects to block variables" do
+describe "The return keyword" do
+  it "assigns to block variables" do
     def r; return nil; end;      a = r(); a.should == nil
     def r; return 1; end;        a = r(); a.should == 1
     def r; return []; end;       a = r(); a.should == []
@@ -11,14 +11,7 @@ describe "Assignment via return" do
     def r; return [*[]]; end;    a = r(); a.should == []
     def r; return [*[1]]; end;   a = r(); a.should == [1]
     def r; return [*[1,2]]; end; a = r(); a.should == [1,2]
-
-    # return with expressions separated by commas
-    def r; return 1, 2, 3; end;
-    a =  r(); a.should == [1, 2, 3]
-    a = *r(); a.should == [1, 2, 3]
-    *a =  r(); a.should == [[1, 2, 3]]
-    *a = *r(); a.should == [1, 2, 3]
-    a,*c = r(); [a, c].should == [1, [2,3]]
+    def r; return 1, 2, 3; end;  a =  r(); a.should == [1, 2, 3]
   end
 
   it "assigns splatted objects to block variables" do
@@ -32,7 +25,7 @@ describe "Assignment via return" do
     def r; return *[*[1,2]]; end; a = r(); a.should == [1,2]
   end
 
-  it "assigns objects to block variables that include the splat operator inside the block" do
+  it "assigns to a block variable with a splat on the RHS" do
     def r; return; end;          a = *r(); a.should == nil
     def r; return nil; end;      a = *r(); a.should == nil
     def r; return 1; end;        a = *r(); a.should == 1
@@ -44,9 +37,10 @@ describe "Assignment via return" do
     def r; return [*[]]; end;    a = *r(); a.should == nil
     def r; return [*[1]]; end;   a = *r(); a.should == 1
     def r; return [*[1,2]]; end; a = *r(); a.should == [1,2]
+    def r; return 1, 2, 3; end;  a = *r(); a.should == [1, 2, 3]
   end
-  
-  it "assigns objects to splatted block variables that include the splat operator inside the block" do
+
+  it "assigns to a block variable with a splat on the LHS" do
     def r; return *nil; end;      *a = r(); a.should == [nil]
     def r; return *1; end;        *a = r(); a.should == [1]
     def r; return *[]; end;       *a = r(); a.should == [nil]
@@ -56,9 +50,10 @@ describe "Assignment via return" do
     def r; return *[*[]]; end;    *a = r(); a.should == [nil]
     def r; return *[*[1]]; end;   *a = r(); a.should == [1]
     def r; return *[*[1,2]]; end; *a = r(); a.should == [[1,2]]
+    def r; return 1, 2, 3; end;   *a = r(); a.should == [[1, 2, 3]]
   end
-  
-  it "assigns objects to splatted block variables that include the splat operator inside the block" do
+
+  it "assigns to a block variable with splats on the LHS and RHS" do
     def r; return *nil; end;      *a = *r(); a.should == [nil]
     def r; return *1; end;        *a = *r(); a.should == [1]
     def r; return *[]; end;       *a = *r(); a.should == [nil]
@@ -67,10 +62,11 @@ describe "Assignment via return" do
     def r; return *[[]]; end;     *a = *r(); a.should == []
     def r; return *[*[]]; end;    *a = *r(); a.should == [nil]
     def r; return *[*[1]]; end;   *a = *r(); a.should == [1]
-    def r; return *[*[1,2]]; end; *a = *r(); a.should == [1,2]    
+    def r; return *[*[1,2]]; end; *a = *r(); a.should == [1,2]
+    def r; return 1, 2, 3; end;   *a = *r(); a.should == [1, 2, 3]
   end
-  
-  it "assigns objects to multiple block variables" do
+
+  it "assigns to multiple block variables" do
     def r; return; end;          a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
     def r; return nil; end;      a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
     def r; return 1; end;        a,b,*c = r(); [a,b,c].should == [1,nil,[]]
@@ -81,9 +77,10 @@ describe "Assignment via return" do
     def r; return [*[]]; end;    a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
     def r; return [*[1]]; end;   a,b,*c = r(); [a,b,c].should == [1,nil,[]]
     def r; return [*[1,2]]; end; a,b,*c = r(); [a,b,c].should == [1,2,[]]
+    def r; return 1, 2, 3; end;  a,*c = r(); [a, c].should == [1, [2,3]]
   end
-  
-  it "assigns splatted objects to multiple block variables" do
+
+  it "assigns to multiple block variables with a splatted value" do
     def r; return *nil; end;      a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
     def r; return *1; end;        a,b,*c = r(); [a,b,c].should == [1,nil,[]]
     def r; return *[]; end;       a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
@@ -92,7 +89,11 @@ describe "Assignment via return" do
     def r; return *[[]]; end;     a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
     def r; return *[*[]]; end;    a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
     def r; return *[*[1]]; end;   a,b,*c = r(); [a,b,c].should == [1,nil,[]]
-    def r; return *[*[1,2]]; end; a,b,*c = r(); [a,b,c].should == [1,2,[]]    
+    def r; return *[*[1,2]]; end; a,b,*c = r(); [a,b,c].should == [1,2,[]]
+  end
+
+  it "raises a ThreadError if used to exit a thread" do
+    lambda { Thread.new { return }.join }.should raise_error(ThreadError)
   end
 end
 
@@ -143,7 +144,7 @@ describe "Return from within a begin" do
         ensure
           a << 2
           return 2
-        end        
+        end
       ensure
         a << 1
         return 1
@@ -155,10 +156,22 @@ describe "Return from within a begin" do
   end
 end
 
-describe "Executing return from within a block" do
+describe "Return from within a block" do
   it "raises a LocalJumpError if there is no lexicaly enclosing method" do
     def f; yield end
     lambda { f { return 5 } }.should raise_error(LocalJumpError)
+  end
+
+  it "causes lambda to return nil if invoked without any arguments" do
+    lambda { return; 456 }.call.should be_nil
+  end
+
+  it "causes lambda to return nil if invoked with an empty expression" do
+    lambda { return (); 456 }.call.should be_nil
+  end
+
+  it "causes lambda to return the value passed to return" do
+    lambda { return 123; 456 }.call.should == 123
   end
 
   it "causes the method that lexically encloses the block to return" do
@@ -199,11 +212,6 @@ describe "Executing return from within a block" do
 
     ChainedReturnTest.enclosing_method.should == :return_value
   end
-end
 
-describe "The return statement" do
-  it "raises a ThreadError if used to exit a thread" do
-    lambda { Thread.new { return }.join }.should raise_error(ThreadError)
-  end    
 end
 
