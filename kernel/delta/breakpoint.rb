@@ -424,9 +424,6 @@ class StepBreakpoint < Breakpoint
   # points at which execution can fork, and determine where to set the next
   # breakpoint.
   def calculate_next_breakpoint(bc=nil)
-    Rubinius.compile_if($DEBUG) do
-      STDERR.puts "Should not be called when @steps == 0" if @steps == 0
-    end
     raise "Should not be called when @steps == 0" if @steps == 0
 
     ctxt = @context
@@ -730,8 +727,6 @@ class BreakpointTracker
       ctx.reload_method                 # Reset context bytecodes to those on CM
       ctx.ip -= 1 unless ctx.ip == 0    # Need to reset IP to original instruction
       ip = ctx.ip
-
-      Rubinius.compile_if($DEBUG) { STDOUT.puts "Breakpoint hit at #{ip}" }
 
       @bp_list = find_breakpoints(task, cm, ip)
       unless @bp_list.size > 0
