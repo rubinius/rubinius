@@ -276,7 +276,7 @@ module MSpec
       File.open(file, "w") do |f|
         lines.each do |line|
           unless pattern =~ line.chomp
-            f.puts line
+            f.puts line unless line.empty?
           else
             deleted = true
           end
