@@ -148,7 +148,7 @@ class EnvironmentVariables
 
   def to_hash
     environ = EnvironmentVariables.environ
-    environ.type_size = 4 # HACK no mapping from uintptr_t to 4 bytes
+    environ.type_size = FFI.type_size(FFI.find_type :pointer)
 
     i = 0
 
