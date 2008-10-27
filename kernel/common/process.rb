@@ -2,25 +2,31 @@
 
 module Process
   module Constants
+    EXIT_SUCCESS = Rubinius::RUBY_CONFIG['rbx.platform.process.EXIT_SUCCESS'] || 0
+    EXIT_FAILURE = Rubinius::RUBY_CONFIG['rbx.platform.process.EXIT_FAILURE'] || 1
+
+    PRIO_PGRP    = Rubinius::RUBY_CONFIG['rbx.platform.process.PRIO_PGRP']
+    PRIO_PROCESS = Rubinius::RUBY_CONFIG['rbx.platform.process.PRIO_PROCESS']
+    PRIO_USER    = Rubinius::RUBY_CONFIG['rbx.platform.process.PRIO_USER']
+
+    RLIM_INFINITY  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIM_INFINITY']
+    RLIM_SAVED_MAX = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIM_SAVED_MAX']
+    RLIM_SAVED_CUR = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIM_SAVED_CUR']
+
+    RLIMIT_AS      = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_AS']
+    RLIMIT_CORE    = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_CORE']
+    RLIMIT_CPU     = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_CPU']
+    RLIMIT_DATA    = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_DATA']
+    RLIMIT_FSIZE   = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_FSIZE']
+    RLIMIT_MEMLOCK = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_MEMLOCK']
+    RLIMIT_NOFILE  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_NOFILE']
+    RLIMIT_NPROC   = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_NPROC']
+    RLIMIT_RSS     = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_RSS']
+    RLIMIT_SBSIZE  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_SBSIZE']
+    RLIMIT_STACK   = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_STACK']
+
     WNOHANG = 1
     WUNTRACED = 2
-    PRIO_PROCESS  = Rubinius::RUBY_CONFIG['rbx.platform.process.PRIO_PROCESS']
-    PRIO_PGRP  = Rubinius::RUBY_CONFIG['rbx.platform.process.PRIO_PGRP']
-    PRIO_USER  = Rubinius::RUBY_CONFIG['rbx.platform.process.PRIO_USER']
-    RLIMIT_CPU  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_CPU']
-    RLIMIT_FSIZE  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_FSIZE']
-    RLIMIT_DATA  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_DATA']
-    RLIMIT_STACK  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_STACK']
-    RLIMIT_CORE  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_CORE']
-    RLIMIT_RSS  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_RSS']
-    RLIMIT_NPROC  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_NPROC']
-    RLIMIT_NOFILE  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_NOFILE']
-    RLIMIT_MEMLOCK  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_MEMLOCK']
-    RLIMIT_AS  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_AS']
-    RLIM_INFINITY  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIM_INFINITY']
-    RLIM_SAVED_MAX  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIM_SAVED_MAX']
-    RLIM_SAVED_CUR  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIM_SAVED_CUR']
-    RLIMIT_SBSIZE  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_SBSIZE']
   end
   include Constants
 

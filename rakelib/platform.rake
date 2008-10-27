@@ -422,8 +422,12 @@ file 'runtime/platform.conf' => deps do |task|
   process_cg = FFI::ConstGenerator.new 'rbx.platform.process' do |cg|
     cg.include 'sys/wait.h'
     cg.include 'sys/resource.h'
+    cg.include 'stdlib.h'
 
     process_constants = %w{
+      EXIT_SUCCESS
+      EXIT_FAILURE
+
       WNOHANG
       WUNTRACED
       PRIO_PROCESS
