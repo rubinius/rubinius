@@ -1,4 +1,3 @@
-fails:String#[]= with index sets the code of the character at idx to char modulo 256
 
 
 

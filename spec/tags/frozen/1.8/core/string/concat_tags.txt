@@ -1,4 +1,3 @@
-fails:String#concat with Fixnum converts the given Fixnum to a char before concatenating
 
 
 

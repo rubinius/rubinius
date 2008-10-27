@@ -1,4 +1,3 @@
-fails:String#dump produces a version of self with all nonprinting charaters replaced by \nnn notation
 
 
 

@@ -1,4 +1,3 @@
-fails:String#each_byte passes each byte in self to the given block
 
 
 
