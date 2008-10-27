@@ -5,13 +5,17 @@ describe :tuple_put, :shared => true do
     t.at(0).should == "Whee"
   end
 
-  it "raises an InvalidIndexError when index is greater than or equal to tuple size" do
+  it "raises an Rubinius::ObjectBoundsExceededError when index is greater than or equal to size" do
     t = Tuple.new(1)
-    lambda { t.send(@method, 1, 'wrong') }.should raise_error(InvalidIndexError)
+    lambda {
+      t.send(@method, 1, 'wrong')
+    }.should raise_error(Rubinius::ObjectBoundsExceededError)
   end
 
-  it "raises an InvalidIndexError when index is less than zero" do
+  it "raises an Rubinius::ObjectBoundsExceededError when index is less than zero" do
     t = Tuple.new(1)
-    lambda { t.send(@method, -1, 'wrong') }.should raise_error(InvalidIndexError)
+    lambda {
+      t.send(@method, -1, 'wrong')
+    }.should raise_error(Rubinius::ObjectBoundsExceededError)
   end
 end
