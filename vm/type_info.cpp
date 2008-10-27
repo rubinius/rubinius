@@ -124,11 +124,11 @@ namespace rubinius {
     std::cout << ">" << std::endl;
   }
 
-  void TypeInfo::show(STATE, const Object* self, int level) {
+  void TypeInfo::show(STATE, Object* self, int level) {
     class_info(state, self, true);
   }
 
-   void TypeInfo::show_simple(STATE, const Object* self, int level) {
+   void TypeInfo::show_simple(STATE, Object* self, int level) {
      class_info(state, self, true);
    }
 

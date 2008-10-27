@@ -73,20 +73,20 @@ namespace rubinius {
     virtual Object* get_field(STATE, Object* target, size_t index);
 
     /**
-     * Default output for any object. Prints just the class name
-     * and address. It is expected that classes will define their own
-     * show output.
-     */
-    virtual void show(STATE, const Object* self, int level);
-
-    /**
-     * Currently prints the same output as show. Is specialized by
+     * Currently prints the same output as show_simple. Is specialized by
      * complex classes to e.g. limit the recursion into nested
      * objects to make the output more manageable. See e.g. Tuple
      * and CompiledMethod. Immediates and numeric classes print
      * their value for both show and show_simple.
      */
-    virtual void show_simple(STATE, const Object* self, int level);
+    virtual void show(STATE, Object* self, int level);
+
+    /**
+     * Default output for any object. Prints just the class name
+     * and address. It is expected that classes will define their own
+     * show output.
+     */
+    virtual void show_simple(STATE, Object* self, int level);
 
     /**
      * Prints spaces to indent the following text to the requested

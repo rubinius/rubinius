@@ -377,20 +377,20 @@ namespace rubinius {
     return val;
   }
 
-  Object* Object::show(STATE) const {
-    return this->show(state, 0);
+  Object* Object::show(STATE) {
+    return show(state, 0);
   }
 
-  Object* Object::show(STATE, int level) const {
+  Object* Object::show(STATE, int level) {
     type_info(state)->show(state, this, level);
     return Qnil;
   }
 
-  Object* Object::show_simple(STATE) const {
-    return this->show_simple(state, 0);
+  Object* Object::show_simple(STATE) {
+    return show_simple(state, 0);
   }
 
-  Object* Object::show_simple(STATE, int level) const {
+  Object* Object::show_simple(STATE, int level) {
     type_info(state)->show_simple(state, this, level);
     return Qnil;
   }

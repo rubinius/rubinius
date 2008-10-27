@@ -296,13 +296,13 @@ namespace rubinius {
 
     /** String describing this object (through TypeInfo.) */
     // Ruby.primitive :object_show
-    Object*   show(STATE) const;
+    Object*   show(STATE);
     /** Indented String describing this object (through TypeInfo.) */
-    Object*   show(STATE, int level) const;
+    Object*   show(STATE, int level);
     /** Shorter String describing this object (through TypeInfo.) */
-    Object*   show_simple(STATE) const;
+    Object*   show_simple(STATE);
     /** Shorter indented String describing this object (through TypeInfo.) */
-    Object*   show_simple(STATE, int level) const;
+    Object*   show_simple(STATE, int level);
 
     /**
      *  Set tainted flag on this object.
