@@ -103,31 +103,7 @@ reopening those classes.
 
 == Getting the C++ branch
 
-Make a new clone of the repository to avoid mixups with master.
-For current committers:
-
-  cd $WHEREVER
-  git clone git@github.com:evanphx/rubinius.git cpp
-
-For others:
-
-  cd $WHEREVER
-  git clone git://github.com/evanphx/rubinius.git cpp
-
-After the clone, enter into the newly-created directory.
-
-To switch to the C++ branch:
-
-  git branch --track cpp origin/cpp
-  git checkout cpp
-
-The --track allows you to push and pull directly to/from the
-branch.
-
-If you want to name your local branch something other than 'cpp',
-please make sure you understand what `man git-push` is saying
-about pushing branches.
-
+The C++ branch is now master. There is nothing else you need do.
 
 == VM
 
