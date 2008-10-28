@@ -1,5 +1,3 @@
-fails:String#tr accepts c1-c2 notation to denote ranges of characters
-fails:String#tr pads to_str with its last char if it is shorter than from_string
 
 
 

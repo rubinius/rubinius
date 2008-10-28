@@ -1,4 +1,3 @@
-fails:String#tr_s accepts c1-c2 notation to denote ranges of characters
 
 
 
