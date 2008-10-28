@@ -210,7 +210,16 @@ namespace rubinius {
 
 };
 
+#define DEFAULT_MALLOC_THRESHOLD 10000000
+
+static long bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+
 void* XMALLOC(size_t bytes) {
+  bytes_until_collection -= bytes;
+  if(bytes_until_collection <= 0) {
+    rubinius::VM::current_state()->run_gc_soon();
+    bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+  }
   return malloc(bytes);
 }
 
@@ -219,10 +228,24 @@ void XFREE(void* ptr) {
 }
 
 void* XREALLOC(void* ptr, size_t bytes) {
+  bytes_until_collection -= bytes;
+  if(bytes_until_collection <= 0) {
+    rubinius::VM::current_state()->run_gc_soon();
+    bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+  }
+
   return realloc(ptr, bytes);
 }
 
-void* XCALLOC(size_t items, size_t bytes) {
-  return calloc(items, bytes);
+void* XCALLOC(size_t items, size_t bytes_per) {
+  size_t bytes = bytes_per * items;
+
+  bytes_until_collection -= bytes;
+  if(bytes_until_collection <= 0) {
+    rubinius::VM::current_state()->run_gc_soon();
+    bytes_until_collection = DEFAULT_MALLOC_THRESHOLD;
+  }
+
+  return calloc(items, bytes_per);
 }
 

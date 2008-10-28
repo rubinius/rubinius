@@ -180,6 +180,12 @@ namespace rubinius {
     return globals.current_thread.get();
   }
 
+  void VM::run_gc_soon() {
+    om->collect_young_now = true;
+    om->collect_mature_now = true;
+    interrupts.check = true;
+  }
+
   void VM::collect() {
     om->collect_young(globals.roots);
     om->collect_mature(globals.roots);

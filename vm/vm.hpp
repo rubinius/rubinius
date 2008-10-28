@@ -173,6 +173,9 @@ namespace rubinius {
     // Run in a seperate thread to provide preemptive thread
     // scheduling.
     void scheduler_loop();
+
+    // Run the garbage collectors as soon as you can
+    void run_gc_soon();
   };
 };
 

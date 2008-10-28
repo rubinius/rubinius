@@ -159,7 +159,10 @@ void VMMethod::resume(Task* task, MethodContext* ctx) {
 #ifdef USE_JUMP_TABLE
 
 #undef RETURN
-#define RETURN(val) if((val) == cExecuteRestart) { return; } else { goto *insn_locations[stream[ctx->ip++]]; }
+#define RETURN(val) if((val) == cExecuteRestart) { return; } else { \
+  if(unlikely(state->interrupts.check)) return;\
+  goto *insn_locations[stream[ctx->ip++]]; \
+}
 
 #ruby <<CODE
 io = StringIO.new
