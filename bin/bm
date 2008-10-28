@@ -13,7 +13,7 @@ require 'ostruct'
 BM_GLOB        = File.expand_path(File.join(File.dirname(__FILE__),'../benchmark/*/bm*.rb'))
 
 # Which Ruby runtimes to test: MRI should be first and Rubinius should be last
-$interpreters       = ['ruby','shotgun/rubinius']
+$interpreters       = ['ruby','bin/rbx']
 
 # WIDTH of test labels, required for nice formating
 WIDTH          = 50
@@ -55,7 +55,7 @@ options = OptionParser.new do |opts|
     when 'r19', 'ruby19'
       target = 'ruby19'
     when 'x', 'rbx', 'rubinius'
-      target = 'shotgun/rubinius'
+      target = 'bin/rbx'
     when 'j', 'jruby'
       target = 'jruby'
     else
@@ -103,7 +103,7 @@ class RbxBenchmarkFile
   end
 
   def pretty_interpreter
-    @interpreter.match(%r{ruby19|rubinius|ruby|jruby})[0]
+    @interpreter.match(%r{ruby19|rbx|ruby|jruby})[0]
   end
 
   def pretty_file
