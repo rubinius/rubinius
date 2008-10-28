@@ -619,6 +619,12 @@ namespace rubinius {
   }
 
   void Task::Info::mark(Object* obj, ObjectMark& mark) {
+    // Task's need to be inspected on every GC collection. This allows
+    // us to manipulate them without running the write barrier.
+    if(!obj->young_object_p()) {
+      mark.gc->object_memory->remember_object(obj);
+    }
+
     auto_mark(obj, mark);
   }
 
