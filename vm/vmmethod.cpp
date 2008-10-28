@@ -108,6 +108,39 @@ namespace rubinius {
     }
   };
 
+  // For when the method expects 1 and only 1 argument
+  class OneArgument {
+  public:
+    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+      if(msg.args() != 1) return false;
+      ctx->set_local(0, msg.get_argument(0));
+      return true;
+    }
+  };
+
+  // For when the method expects 2 and only 2 arguments
+  class TwoArguments {
+  public:
+    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+      if(msg.args() != 2) return false;
+      ctx->set_local(0, msg.get_argument(0));
+      ctx->set_local(1, msg.get_argument(1));
+      return true;
+    }
+  };
+
+  // For when the method expects 3 and only 3 arguments
+  class ThreeArguments {
+  public:
+    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+      if(msg.args() != 3) return false;
+      ctx->set_local(0, msg.get_argument(0));
+      ctx->set_local(1, msg.get_argument(1));
+      ctx->set_local(2, msg.get_argument(2));
+      return true;
+    }
+  };
+
   // For when the method expects a fixed number of arguments (no splat)
   class FixedArguments {
   public:
@@ -118,6 +151,22 @@ namespace rubinius {
         ctx->set_local(i, msg.get_argument(i));
       }
 
+      return true;
+    }
+  };
+
+  // For when a method takes all arguments as a splat
+  class SplatOnlyArgument {
+  public:
+    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+      const size_t total = msg.args();
+      Array* ary = Array::create(state, total);
+
+      for(size_t i = 0; i < total; i++) {
+        ary->set(state, i, msg.get_argument(i));
+      }
+
+      ctx->set_local(vmm->splat_position, ary);
       return true;
     }
   };
@@ -283,11 +332,41 @@ namespace rubinius {
   }
 
   void VMMethod::setup_argument_handler(CompiledMethod* meth) {
-    if(total_args == 0 && splat_position == -1) {
-      meth->set_executor(execute_specialized<NoArguments>);
-    } else {
-      meth->set_executor(execute_specialized<GenericArguments>);
+    // If there are no optionals, only a fixed number of positional arguments.
+    if(total_args == required_args) {
+      // if no arguments are expected
+      if(total_args == 0) {
+        // and there is no splat, use the fastest case.
+        if(splat_position == -1) {
+          meth->set_executor(execute_specialized<NoArguments>);
+
+        // otherwise use the splat only case.
+        } else {
+          meth->set_executor(execute_specialized<SplatOnlyArgument>);
+        }
+        return;
+
+      // Otherwise use the few specialized cases iff there is no splat
+      } else if(splat_position == -1) {
+        switch(total_args) {
+        case 1:
+          meth->set_executor(execute_specialized<OneArgument>);
+          return;
+        case 2:
+          meth->set_executor(execute_specialized<TwoArguments>);
+          return;
+        case 3:
+          meth->set_executor(execute_specialized<ThreeArguments>);
+          return;
+        default:
+          meth->set_executor(execute_specialized<FixedArguments>);
+          return;
+        }
+      }
     }
+
+    // Lastly, use the generic case that handles all cases
+    meth->set_executor(execute_specialized<GenericArguments>);
   }
 
   /* This is the execute implementation used by normal Ruby code,
