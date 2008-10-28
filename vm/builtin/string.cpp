@@ -335,24 +335,24 @@ namespace rubinius {
   };
 
   Fixnum* String::tr_expand(STATE, Object* limit) {
-    struct tr_data data;
+    struct tr_data tr_data;
     native_int seq;
     native_int max;
     native_int chr;
 
-    data.last = 0;
-    data.steps = 0;
+    tr_data.last = 0;
+    tr_data.steps = 0;
 
     if(Integer* lim = try_as<Integer>(limit)) {
-      data.limit = lim->to_native();
+      tr_data.limit = lim->to_native();
     } else {
-      data.limit = -1;
+      tr_data.limit = -1;
     }
 
     unsigned char* str = data_->bytes;
     native_int bytes = (native_int)this->size();
     native_int start = bytes > 1 && str[0] == '^' ? 1 : 0;
-    std::memset(data.set, -1, sizeof(native_int) * 256);
+    std::memset(tr_data.set, -1, sizeof(native_int) * 256);
 
     for(native_int i = start; i < bytes;) {
       chr = str[i];
@@ -362,39 +362,39 @@ namespace rubinius {
         max = ++i < bytes ? str[i] : -1;
         if(max >= 0) {
           while(chr <= max) {
-            if(data.assign(chr)) return tr_replace(state, &data);
+            if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
             chr++;
           }
           i++;
         } else {
-          if(data.assign(chr)) return tr_replace(state, &data);
-          if(data.assign(seq)) return tr_replace(state, &data);
+          if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
+          if(tr_data.assign(seq)) return tr_replace(state, &tr_data);
         }
       } else if(chr == '\\' && seq >= 0) {
         continue;
       } else {
-        if(data.assign(chr)) return tr_replace(state, &data);
+        if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
       }
     }
 
-    return tr_replace(state, &data);
+    return tr_replace(state, &tr_data);
   }
 
-  Fixnum* String::tr_replace(STATE, struct tr_data* data) {
-    if(data->last > (native_int)this->size() || shared_->true_p()) {
-      ByteArray* ba = ByteArray::create(state, this->size() + 1);
+  Fixnum* String::tr_replace(STATE, struct tr_data* tr_data) {
+    if(tr_data->last > (native_int)size() || shared_->true_p()) {
+      ByteArray* ba = ByteArray::create(state, tr_data->last + 1);
 
-      this->data(state, ba);
-      this->shared(state, Qfalse);
+      data(state, ba);
+      shared(state, Qfalse);
     }
 
-    std::memcpy(data_->bytes, data->tr, data->last);
-    data_->bytes[data->last] = 0;
+    std::memcpy(data_->bytes, tr_data->tr, tr_data->last);
+    data_->bytes[tr_data->last] = 0;
 
-    num_bytes(state, Fixnum::from(data->last));
+    num_bytes(state, Fixnum::from(tr_data->last));
     characters(state, num_bytes_);
 
-    return Fixnum::from(data->steps);
+    return Fixnum::from(tr_data->steps);
   }
 
   String* String::copy_from(STATE, String* other, Fixnum* start, Fixnum* size, Fixnum* dest) {
