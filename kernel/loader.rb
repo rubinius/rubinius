@@ -37,7 +37,7 @@ end
 # Setup $LOAD_PATH.
 
 additions = []
-additions << "lib"
+additions << File.expand_path("lib")
 
 # The main stdlib location
 # HACK todo remove this comment when we're setting this constant in the VM
