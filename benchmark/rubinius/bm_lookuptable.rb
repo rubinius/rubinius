@@ -14,6 +14,7 @@ def make_symbol
   make_string.to_sym
 end
 
+LookupTable = Hash unless defined?(LookupTable)
 table = LookupTable.new
 hash = {}
 
