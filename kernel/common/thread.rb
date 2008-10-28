@@ -103,8 +103,8 @@ class Thread
       rescue Exception => e
         @exception = e
       ensure
-        exited
         @lock.send nil
+        exited
       end
 
       if @exception
