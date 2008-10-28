@@ -163,7 +163,20 @@ namespace rubinius {
     return Qnil;
   }
 
+  /*
+   * Returns a LookupTable or a CompactLookupTable.  Below a certain number of
+   * instance variables a CompactTable is used to save memory.  See
+   * Object::get_ivar for how to fetch an item out of get_ivars depending upon
+   * storage type.
+   */
   Object* Object::get_ivars(STATE) {
+    if(!reference_p()) {
+      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+
+      if(tbl) return tbl;
+      return Qnil;
+    }
+
     return ivars_;
   }
 
