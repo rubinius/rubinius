@@ -285,26 +285,6 @@ namespace rubinius {
     return value;
   }
 
-  // Character-wise logical AND of two strings. Modifies the receiver.
-  String* String::apply_and(STATE, String* other) {
-    native_int count, i;
-    ByteArray* s = data_;
-    ByteArray* o = other->data();
-
-    if(num_bytes_ > other->num_bytes()) {
-      count = other->num_bytes()->to_native();
-    } else {
-      count = num_bytes_->to_native();
-    }
-
-    // Use && not & to keep 1's in the table.
-    for(i = 0; i < count; i++) {
-      s->bytes[i] = s->bytes[i] && o->bytes[i];
-    }
-
-    return this;
-  }
-
   struct tr_data {
     char tr[256];
     native_int set[256];

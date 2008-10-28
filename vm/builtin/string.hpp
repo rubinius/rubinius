@@ -104,9 +104,6 @@ namespace rubinius {
     // Ruby.primitive :string_to_inum
     Integer* to_inum_prim(STATE, Fixnum* base, Object* strict);
 
-    // Ruby.primitive :string_apply_and
-    String* apply_and(STATE, String* other);
-
     // Ruby.primitive :string_tr_expand
     Fixnum* tr_expand(STATE, Object* limit);
     Fixnum* tr_replace(STATE, struct tr_data* data);
