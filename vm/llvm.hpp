@@ -1,4 +1,5 @@
 #ifndef RBX_LLVM_HPP
+#ifdef ENABLE_LLVM
 
 #include "vmmethod.hpp"
 #include "builtin/compiledmethod.hpp"
@@ -27,4 +28,5 @@ namespace rubinius {
   };
 }
 
+#endif
 #endif

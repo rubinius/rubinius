@@ -160,8 +160,10 @@ namespace rubinius {
     void set_const(const char* name, Object* val);
     void set_const(Module* mod, const char* name, Object* val);
 
+#ifdef ENABLE_LLVM
     llvm::Module* llvm_module();
     void llvm_cleanup();
+#endif
 
     void print_backtrace();
 

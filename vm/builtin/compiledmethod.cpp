@@ -66,6 +66,7 @@ namespace rubinius {
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
     if(!backend_method_) {
       VMMethod* vmm = NULL;
+#ifdef ENABLE_LLVM
       /* Controls whether we use LLVM out of the gate or not. */
       if(state->config.compile_up_front) {
         if(ondemand) {
@@ -78,6 +79,9 @@ namespace rubinius {
       } else {
         vmm = new VMMethod(state, this);
       }
+#else
+      vmm = new VMMethod(state, this);
+#endif
       backend_method_ = vmm;
 
       if(!primitive()->nil_p()) {

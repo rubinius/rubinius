@@ -54,7 +54,9 @@ namespace rubinius {
 
     global_cache = new GlobalCache;
 
+#ifdef ENABLE_LLVM
     VMLLVMMethod::init("vm/instructions.bc");
+#endif
     boot_threads();
 
     // Force these back to false because creating the default Thread
@@ -69,7 +71,9 @@ namespace rubinius {
     delete signal_events;
 
     delete global_cache;
+#ifdef ENABLE_LLVM
     if(!reuse_llvm) llvm_cleanup();
+#endif
   }
 
   // HACK so not thread safe or anything!

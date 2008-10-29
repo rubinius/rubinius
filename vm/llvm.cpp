@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "llvm.hpp"
 
 #include "message.hpp"
@@ -464,3 +466,5 @@ namespace rubinius {
     }
   }
 }
+
+#endif

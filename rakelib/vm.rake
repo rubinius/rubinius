@@ -14,6 +14,8 @@ else
   LLVM_STYLE = "Release"
 end
 
+LLVM_ENABLE = false
+
 
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
@@ -101,9 +103,8 @@ field_extract_headers = %w[
 ]
 
 BC          = "vm/instructions.bc"
-LLVM_A      = "vm/external_libs/llvm/#{LLVM_STYLE}/lib/libLLVMSystem.a"
-EXTERNALS   = %W[ #{LLVM_A}
-                  vm/external_libs/libmpa/libptr_array.a
+
+EXTERNALS   = %W[ vm/external_libs/libmpa/libptr_array.a
                   vm/external_libs/libcchash/libcchash.a
                   vm/external_libs/libmquark/libmquark.a
                   vm/external_libs/libtommath/libtommath.a
@@ -112,6 +113,14 @@ EXTERNALS   = %W[ #{LLVM_A}
                   vm/external_libs/libffi/.libs/libffi.a
                   vm/external_libs/libltdl/.libs/libltdl.a
                   vm/external_libs/libev/.libs/libev.a ]
+
+if LLVM_ENABLE
+  LLVM_A = "vm/external_libs/llvm/#{LLVM_STYLE}/lib/libLLVMSystem.a"
+  EXTERNALS << LLVM_A
+else
+  LLVM_A = ""
+end
+
 OPTIONS     = {
                 LLVM_A => "--enable-targets=host-only"
               }
@@ -129,6 +138,10 @@ if RUBY_PLATFORM =~ /darwin/i && `sw_vers` =~ /10\.4/
   FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)
 end
 
+if LLVM_ENABLE
+  FLAGS << "-DENABLE_LLVM"
+end
+
 BUILD_PRETASKS = []
 
 if ENV['DEV']
@@ -138,12 +151,13 @@ end
 CC          = ENV['CC'] || "gcc"
 
 def compile_c(obj, src)
-  unless defined? $llvm_c then
+  flags = INCLUDES + FLAGS
+
+  if LLVM_ENABLE and !defined? $llvm_c then
     $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
     $llvm_c.delete_if { |e| e.index("-O") == 0 }
+    flags.concat $llvm_c
   end
-
-  flags = INCLUDES + FLAGS + $llvm_c
 
   # GROSS
   if src == "vm/test/runner.cpp"
@@ -167,7 +181,11 @@ def compile_c(obj, src)
 end
 
 def ld t
-  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
+  if LLVM_ENABLE
+    $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
+  else
+    $link_opts ||= ""
+  end
 
   $link_opts += ' -Wl,--export-dynamic' if RUBY_PLATFORM =~ /linux/i
   $link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
@@ -432,12 +450,16 @@ namespace :vm do
 
   task :coverage do
     Dir.mkdir "vm/test/coverage" unless File.directory? "vm/test/coverage"
-    unless defined? $llvm_c then
+    if LLVM_ENABLE and !defined? $llvm_c then
       $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
       $llvm_c.delete_if { |e| e.index("-O") == 0 }
     end
 
-    $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
+    if LLVM_ENABLE
+      $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
+    else
+      $link_opts ||= ""
+    end
 
     flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
 
@@ -546,8 +568,12 @@ def ex_libs # needs to be method to delay running of llvm_config
     $ex_libs << "-lcrypt -L/usr/local/lib -lexecinfo" if RUBY_PLATFORM =~ /bsd/
     $ex_libs << "-lrt -lcrypt" if RUBY_PLATFORM =~ /linux/
 
-    llvm_libfiles = `#{LLVM_CONFIG} --libfiles all`.split(/\s+/)
-    llvm_libfiles = llvm_libfiles.select { |f| File.file? f }
+    if LLVM_ENABLE
+      llvm_libfiles = `#{LLVM_CONFIG} --libfiles all`.split(/\s+/)
+      llvm_libfiles = llvm_libfiles.select { |f| File.file? f }
+    else
+      llvm_libfiles = []
+    end
 
     pwd = File.join Dir.pwd, '' # add /
     llvm_libfiles = llvm_libfiles.map { |f| f.sub pwd, '' }
