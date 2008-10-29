@@ -40,8 +40,8 @@ class Tuple
 
   def + o
     t = Tuple.new(size + o.size)
-    each_with_index { |e, i| t[i] = e }
-    o.each_with_index { |e, i| t[i + size] = e }
+    t.copy_from(self,0,0)
+    t.copy_from(o,0,size)
     t
   end
 
