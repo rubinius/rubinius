@@ -834,26 +834,27 @@ class Array
     end
 
     out = ""
-
-    @total.times do |i|
+    i = 0
+    while(i < @total)
       elem = at(i)
+      out.append sep unless (i == 0)
 
-      out << sep unless i == 0
       if elem.kind_of?(Array)
         if RecursionGuard.inspecting?(elem)
-          out << "[...]"
+          out.append "[...]"
         else
           RecursionGuard.inspect(self) do
-            out << elem.join(sep, method)
+            out.append elem.join(sep, method)
           end
         end
       else
         # HACK use __send__
         # out << elem.__send__(method)
-        out << elem.to_s
+        out.append elem.to_s
       end
+      i += 1
     end
-    out
+    out 
   end
 
   # Returns the last element or n elements of self. If
