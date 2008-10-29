@@ -13,3 +13,4 @@ fails:String#unpack with 'C' and 'c' directives returns an array by decoding sel
 
 
 
+fails:String#unpack with 'U' directive returns an array by decoding self according to the format string

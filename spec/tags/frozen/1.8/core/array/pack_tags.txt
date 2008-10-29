@@ -151,3 +151,10 @@ fails:Array#pack reuses last array element as often as needed to complete the st
 
 
 
+fails:Array#pack encodes a negative integer with ('i')
+fails:Array#pack encodes a negative integer in little-endian order with ('i')
+fails:Array#pack raises a RangeError when the negative integer is too big with ('l')
+fails:Array#pack encodes a negative integer with ('l')
+fails:Array#pack encodes a negative integer in little-endian order with ('l')
+fails:Array#pack raises a RangeError when the negative integer is too big with ('s')
+fails:Array#pack converts integers into UTF-8 encoded byte sequences with ('U')
