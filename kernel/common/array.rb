@@ -387,7 +387,11 @@ class Array
 
     return false unless size == other.size
 
-    size.times { |i| return false unless @tuple.at(@start + i) == other.at(i) }
+    i = 0
+    while(i < size)
+      return false unless @tuple.at(@start + i) == other.at(i)
+      i += 1
+    end
 
     true
   end
