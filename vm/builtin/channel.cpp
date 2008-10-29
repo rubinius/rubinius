@@ -32,7 +32,9 @@ namespace rubinius {
       return Qnil;
     }
 
-    if(value_->nil_p()) {
+    if(List* lst = try_as<List>(value_)) {
+      lst->append(state, val);
+    } else {
       List* lst = List::create(state);
       lst->append(state, val);
 

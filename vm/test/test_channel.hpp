@@ -48,6 +48,13 @@ class TestChannel : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<List>(chan->waiting()));
   }
 
+  void test_send_queues_values() {
+    chan->send(state, Qtrue);
+    TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 1);
+    chan->send(state, Qtrue);
+    TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 2);
+  }
+
   void test_send_then_receive() {
     Task* task = Task::create(state, 10);
 
