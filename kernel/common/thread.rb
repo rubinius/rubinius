@@ -84,7 +84,7 @@ class Thread
     block.disable_long_return!
 
     setup(false)
-    setup_task {
+    setup_task do
       begin
         begin
           @lock.send nil
@@ -92,7 +92,7 @@ class Thread
             @result = block.call(*args)
           rescue IllegalLongReturn, LongReturnException => e2
             Kernel.raise ThreadError,
-                      "return is not allowed across threads", e2.context
+              "return is not allowed across threads", e2.context
           end
         ensure
           @lock.receive
@@ -104,17 +104,20 @@ class Thread
         @exception = e
       ensure
         @lock.send nil
-        exited
       end
 
-      if @exception
-        if Thread.abort_on_exception
-          Thread.main.raise @exception
-        elsif $DEBUG
-          STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
+      begin
+        if @exception
+          if Thread.abort_on_exception
+            Thread.main.raise @exception
+          elsif $DEBUG
+            STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
+          end
         end
+      ensure
+        exited
       end
-    }
+    end
 
     Thread.current.group.add self
     self
