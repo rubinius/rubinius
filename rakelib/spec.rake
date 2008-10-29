@@ -118,6 +118,13 @@ namespace :spec do
     end
   end
 
+  task :sydney_parser do
+    warn "*** RUNNING WITH SYDNEY PARSER ***"
+    ENV['SYDNEY'] = '1'
+
+    sh "bin/mspec ci -t #{spec_target}"
+  end
+
   desc "Initialize spec/ruby with a rubyspec clone"
   task :init do
     unless is_git_dir spec_ruby
