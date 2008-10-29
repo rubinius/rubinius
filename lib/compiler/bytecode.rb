@@ -51,6 +51,18 @@ class Compiler
       @compiler.show_errors(gen, &block)
     end
 
+    # Called if used as the lhs of an ||=. Expected to yield if the
+    # value was not found, so the bytecode for it to be emitted.
+    def bytecode_for_or(g)
+      found = g.new_label
+      bytecode(g)
+      g.dup
+      g.git found
+      g.pop
+      yield
+      found.set!
+    end
+
     class AccessSlot
       def bytecode(g)
         g.push_my_field @index
@@ -299,6 +311,30 @@ class Compiler
         end
         g.push_literal @name
         g.send :class_variable_get, 1
+      end
+
+      def bytecode_for_or(g)
+        if @in_module
+          g.push :self
+        else
+          g.push_context
+        end
+
+        done =     g.new_label
+        notfound = g.new_label
+        g.push_literal @name
+        g.send :class_variable_defined?, 1
+        g.gif notfound
+
+        # Ok, we the value exists, get it.
+        bytecode(g)
+        g.goto done
+
+        # yield to generate the code for when it's not found
+        notfound.set!
+        yield
+
+        done.set!
       end
     end
 
@@ -1836,15 +1872,11 @@ class Compiler
     end
 
     class OpAssignAnd
-      def bytecode(g, use_gif=true)
+      def bytecode(g)
         @left.bytecode(g)
         lbl = g.new_label
         g.dup
-        if use_gif
-          g.gif lbl
-        else
-          g.git lbl
-        end
+        g.gif lbl
         g.pop
         @right.bytecode(g)
         lbl.set!
@@ -1853,7 +1885,9 @@ class Compiler
 
     class OpAssignOr
       def bytecode(g)
-        super(g, false)
+        @left.bytecode_for_or(g) do
+          @right.bytecode(g)
+        end
       end
     end
 

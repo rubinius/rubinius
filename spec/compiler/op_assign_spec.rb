@@ -279,4 +279,37 @@ describe Compiler do
       g.send :val=, 1
     end
   end
+
+  it "compiles '@@var ||= 3'" do
+    ruby = <<-EOC
+      @@var ||= 3
+    EOC
+
+    sexp = s(:op_asgn_or, s(:cvar, :@@var), s(:cvdecl, :@@var, s(:fixnum, 3)))
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
+      done = g.new_label
+      notfound = g.new_label
+
+      g.push_context
+      g.push_literal :@@var
+      g.send :class_variable_defined?, 1
+      g.gif notfound
+
+      g.push_context
+      g.push_literal :@@var
+      g.send :class_variable_get, 1
+      g.goto done
+
+      notfound.set!
+      g.push_context
+      g.push_literal :@@var
+      g.push 3
+      g.send :class_variable_set, 2
+
+      done.set!
+    end
+  end
 end
