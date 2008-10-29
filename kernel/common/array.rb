@@ -1391,9 +1391,11 @@ class Array
 
     tuple = Tuple.new @total
     i = 0
-    (@start + @total - 1).downto(@start) do |j|
+    j = @start + @total - 1
+    while(j >= @start) do
       tuple.put i, @tuple.at(j)
       i += 1
+      j -= 1      
     end
 
     @tuple = tuple
