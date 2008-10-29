@@ -9,8 +9,10 @@ class ByteArray
   alias_method :[]=, :set_byte
   
   def each
-    0.upto(self.size - 1) do |i|
+    i = 0
+    while(i < self.size) do
       yield get_byte(i)
+      i += 1
     end
   end
   
