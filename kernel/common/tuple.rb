@@ -86,9 +86,9 @@ class Tuple
 
   def to_a
     ary = []
-    each do |ent|
-      ary << ent
-    end
+    ary.tuple = dup
+    ary.total = fields
+    ary.start = 0
     return ary
   end
 
