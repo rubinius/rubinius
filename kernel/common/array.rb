@@ -338,12 +338,7 @@ class Array
   # Create a concatenation of the two Arrays.
   def +(other)
     other = Type.coerce_to other, Array, :to_ary
-    out = []
-
-    each { |e| out << e }
-    other.each { |e| out << e }
-
-    out
+    Array.new(self).concat(other)
   end
 
   # Creates a new Array that contains the items of the original
