@@ -2023,14 +2023,15 @@ class String
       set = Array.new 256, !count_char
       pattern.tr_expand! nil
 
-      j, chars = -1, pattern.size
+      j = 0
+      chars = pattern.size
       while j < chars do
         set[pattern[j]] = count_char
         j += 1
       end
 
       j = 0
-      while j < 255 do
+      while j < 256 do
         table[j] &&= set[j]
         j += 1
       end
