@@ -90,8 +90,14 @@ namespace rubinius {
 
   Object* Channel::receive(STATE) {
     if(!value_->nil_p()) {
-      Object* val = as<List>(value_)->shift(state);
-      state->return_value(val);
+      List* list = as<List>(value_);
+
+      state->return_value(list->shift(state));
+
+      if(list->size() == 0) {
+        value(state, Qnil);
+      }
+
       return Qnil;
     }
 
