@@ -1,3 +1,5 @@
+#include "builtin/channel.hpp"
+#include "builtin/list.hpp"
 #include "builtin/thread.hpp"
 
 using namespace rubinius;
@@ -50,7 +52,7 @@ public:
     TS_ASSERT_EQUALS(Qtrue, thr->alive());
     TS_ASSERT_EQUALS(Qfalse, thr->sleep());
     TS_ASSERT_EQUALS(Qtrue, thr->queued());
-    
+
     thr->exited(state);
 
     TS_ASSERT_EQUALS(thr2, Thread::current(state));
@@ -64,6 +66,25 @@ public:
 
     TS_ASSERT_EQUALS(Qfalse, thr->alive());
     TS_ASSERT_EQUALS(Qfalse, thr->queued());
+  }
+
+  void test_exited_cancels_channel_wait() {
+    Message fake_message(state);
+
+    Thread* current = Thread::current(state);
+    Channel* channel = Channel::create(state);
+
+    /* Avoid deadlock-ish */
+    state->queue_thread(Thread::create(state));
+
+    (void) channel->receive_prim(state, NULL, current->task(), fake_message);
+
+    List* list = as<List>(channel->waiting());
+    TS_ASSERT_EQUALS(current, as<Thread>(list->locate(state, 0)));
+
+    current->exited(state);
+
+    TS_ASSERT_EQUALS(0LL, list->count()->to_long_long());
   }
 
   void test_pass() {
@@ -86,6 +107,25 @@ public:
 
     TS_ASSERT_EQUALS(thr->sleep(), Qfalse);
     TS_ASSERT_EQUALS(thr->queued(), Qtrue);
+  }
+
+  void test_wakeup_cancels_channel_wait() {
+    Message fake_message(state);
+
+    Thread* current = Thread::current(state);
+    Channel* channel = Channel::create(state);
+
+    /* Avoid deadlock-ish */
+    state->queue_thread(Thread::create(state));
+
+    (void) channel->receive_prim(state, NULL, current->task(), fake_message);
+
+    List* list = as<List>(channel->waiting());
+    TS_ASSERT_EQUALS(current, as<Thread>(list->locate(state, 0)));
+
+    current->wakeup(state);
+
+    TS_ASSERT_EQUALS(0LL, list->count()->to_long_long());
   }
 
   void test_raise_dead() {
