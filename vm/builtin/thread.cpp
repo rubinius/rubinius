@@ -89,6 +89,11 @@ namespace rubinius {
   /** @todo   Add voluntary/involuntary? --rue */
   Object* Thread::exited(STATE) {
     alive(state, Qfalse);
+
+    if(!channel()->nil_p()) {
+      channel()->cancel_waiter(state, this);
+    }
+
     channel(state, (Channel*)Qnil);
 
     state->dequeue_thread(this);
@@ -125,7 +130,12 @@ namespace rubinius {
     }
 
     sleep(state, Qfalse);
-    /* Clearing the channel is OK because a sleep check by the VM. */
+
+    /** @todo   This is possibly unnecessary except for raise() and exited(). --rue */
+    if(!channel()->nil_p()) {
+      channel()->cancel_waiter(state, this);
+    }
+
     channel(state, (Channel*)Qnil);
 
     state->queue_thread(this);
