@@ -36,6 +36,9 @@ namespace rubinius {
     // Ruby.primitive :channel_new
     static Channel* create(STATE);
 
+    /** Remove Thread from waiting list, if it is there. */
+    void    cancel_waiter(STATE, const Thread* waiter);
+
     // Ruby.primitive :channel_send
     Object* send(STATE, Object*);
 

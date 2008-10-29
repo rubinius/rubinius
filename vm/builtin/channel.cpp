@@ -24,6 +24,11 @@ namespace rubinius {
     return chan;
   }
 
+  /** @todo Remove the event too? Should not affect code, but no need for it either. --rue */
+  void Channel::cancel_waiter(STATE, const Thread* waiter) {
+    waiting_->remove(state, waiter);
+  }
+
   Object* Channel::send(STATE, Object* val) {
     if(!waiting_->empty_p()) {
       Thread* thr = as<Thread>(waiting_->shift(state));
@@ -50,15 +55,14 @@ namespace rubinius {
    */
   ExecuteStatus Channel::receive_prim(STATE, Executable* exec, Task* task, Message& msg) {
     Thread* current = state->globals.current_thread.get();
-    Task* real_task = current->task();
 
-    real_task->active()->clear_stack(msg.stack);
+    task->active()->clear_stack(msg.stack);
 
     // @todo  check arity
     if(!value_->nil_p()) {
       List* list = as<List>(value_);
 
-      real_task->push(list->shift(state));
+      task->push(list->shift(state));
 
       if(list->size() == 0) {
         value(state, Qnil);
@@ -68,7 +72,7 @@ namespace rubinius {
     }
 
     /* Saves space plus if thread woken forcibly, it gets the Qfalse. */
-    real_task->push(Qfalse);
+    task->push(Qfalse);
 
     current->sleep_for(state, this);
     waiting_->append(state, current);
@@ -146,7 +150,8 @@ namespace rubinius {
   }
 
   Object* Channel::send_in_seconds(STATE, Channel* chan, Float* seconds, Object* tag) {
-    return send_in_seconds(state, chan, seconds->to_double(state), tag);
+    double secs = seconds->to_double(state);
+    return send_in_seconds(state, chan, secs, tag);
   }
 
   Object* Channel::send_in_seconds(STATE, Channel* chan, double seconds, Object* tag) {
