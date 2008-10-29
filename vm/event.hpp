@@ -92,11 +92,11 @@ namespace rubinius {
      */
     class Timer : public Event {
     public:
-      struct ev_timer* timer;
+      struct ev_timer timer_;
       Object* tag;
 
       Timer(STATE, ObjectCallback* chan, double seconds, Object* obj = Qnil);
-      virtual ~Timer() { stop(); delete timer; }
+      virtual ~Timer() { stop(); }
       virtual void start();
       virtual void stop();
       virtual bool activated();
