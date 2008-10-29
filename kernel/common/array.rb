@@ -707,7 +707,6 @@ class Array
       start.upto(finish) { |i|  @tuple.put @start + i, obj }
     end
 
-
     self
   end
 
@@ -754,7 +753,11 @@ class Array
   # Returns true if the given obj is present in the Array.
   # Presence is determined by calling elem == obj until found.
   def include?(obj)
-    @total.times { |i| return true if @tuple.at(@start + i) == obj }
+    i = 0
+    while i < @total do
+      return true if @tuple.at(@start + i) == obj
+      i += 1
+    end
     false
   end
 
