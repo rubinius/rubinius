@@ -328,7 +328,9 @@ class Compiler
 
         # Ok, we the value exists, get it.
         bytecode(g)
-        g.goto done
+        g.dup
+        g.git done
+        g.pop
 
         # yield to generate the code for when it's not found
         notfound.set!

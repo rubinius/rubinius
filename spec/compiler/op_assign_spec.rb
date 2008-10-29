@@ -301,7 +301,9 @@ describe Compiler do
       g.push_context
       g.push_literal :@@var
       g.send :class_variable_get, 1
-      g.goto done
+      g.dup
+      g.git done
+      g.pop
 
       notfound.set!
       g.push_context
