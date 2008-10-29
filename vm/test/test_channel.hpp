@@ -50,9 +50,9 @@ class TestChannel : public CxxTest::TestSuite {
 
   void test_send_queues_values() {
     chan->send(state, Qtrue);
-    TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 1);
+    TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 1U);
     chan->send(state, Qtrue);
-    TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 2);
+    TS_ASSERT_EQUALS(as<List>(chan->value())->size(), 2U);
   }
 
   void test_send_then_receive() {
