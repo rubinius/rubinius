@@ -145,9 +145,6 @@ class TestIO : public CxxTest::TestSuite {
   void test_query_tty() {
     Symbol* tty_p = state->symbol("tty?");
     TS_ASSERT_EQUALS(Qfalse, io->query(state, tty_p));
-
-    IO* rb_stdout = try_as<IO>(G(object)->get_const(state, "STDOUT"));
-    TS_ASSERT_EQUALS(Qtrue, rb_stdout->query(state, tty_p));
   }
 
   void test_query_ttyname() {
