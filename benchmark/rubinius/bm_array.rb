@@ -20,6 +20,12 @@ Benchmark.bmbm do |x|
       Array.new(i) {|i| i}
     end
   end
+
+  x.report 'Array#+' do
+    total.times do |i|
+      Array.new(i,0) + Array.new(i,0)
+    end
+  end
   
   x.report 'Array#include?' do
     total.times do |i|
