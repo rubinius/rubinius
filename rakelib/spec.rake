@@ -94,8 +94,6 @@ def spec_target
   target = ENV['SPEC_TARGET'] || 'rubinius'
   ENV['RBX_RUNTIME'] = 'runtime'
   if target == 'rubinius' then
-    puts "*** NOTE: running with SydneyParser enabled ***"
-    ENV["SYDNEY"] = "1"
     system %(bin/rbx -e 'puts "rubinius build: \#{Rubinius::BUILDREV}"')
   end
   target
