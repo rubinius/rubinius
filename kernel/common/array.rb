@@ -67,9 +67,17 @@ class Array
         @total = count
 
         if block_given?
-          count.times { |i| @tuple.put i, yield(i) }
+          i = 0
+          while i < count
+            @tuple.put i, yield(i)
+            i += 1
+          end          
         else
-          count.times { |i| @tuple.put i, obj }
+          i = 0
+          while i < count
+            @tuple.put i, obj
+            i += 1
+          end
         end
       end
     end
