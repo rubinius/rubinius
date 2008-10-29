@@ -167,9 +167,11 @@ begin
       if arg.prefix? "-I"
         more = arg[2..-1]
         if more.empty?
-          $LOAD_PATH.unshift(ARGV.shift)
+          path = File.expand_path ARGV.shift
+          $LOAD_PATH.unshift path
         else
           more.split(":").reverse_each do |path|
+            path = File.expand_path path
             $LOAD_PATH.unshift(path)
           end
         end
