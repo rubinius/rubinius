@@ -91,7 +91,7 @@ namespace rubinius {
   /* Search the List for +obj+ and remove all instances of it.
    *
    * Returns the number of elements removed. */
-  size_t List::remove(STATE, Object* obj) {
+  size_t List::remove(STATE, const Object* obj) {
     if(empty_p()) return 0;
 
     size_t deleted = 0, counted = 0;
@@ -128,5 +128,6 @@ namespace rubinius {
 
     return deleted;
   }
-};
+
+}
 

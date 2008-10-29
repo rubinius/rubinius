@@ -56,7 +56,7 @@ namespace rubinius {
     void append(STATE, Object* obj);
     Object* shift(STATE);
     Object* locate(STATE, size_t index);
-    size_t remove(STATE, Object* obj);
+    size_t remove(STATE, const Object* obj);
 
     class Info : public TypeInfo {
     public:
