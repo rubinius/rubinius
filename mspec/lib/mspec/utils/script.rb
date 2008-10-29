@@ -42,17 +42,11 @@ class MSpecScript
     end
 
     names.each do |name|
-      if File.exist?(File.expand_path(name))
-        Kernel.load(name)
-        break
-      end
+      return Kernel.load(name) if File.exist?(File.expand_path(name))
 
       config[:path].each do |dir|
         file = File.join dir, name
-        if File.exist? file
-          Kernel.load(file)
-          break
-        end
+        return Kernel.load(file) if File.exist? file
       end
     end
   end

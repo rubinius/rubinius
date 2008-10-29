@@ -12,7 +12,7 @@ class SpecGuard
   end
 
   def self.unregister
-    @tally.unregister if defined?(@tally) && @tally
+    @tally.unregister if @tally
   end
 
   def self.finish
