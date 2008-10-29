@@ -18,11 +18,19 @@ Benchmark.bmbm do |x|
     total.times { |i| byte_array.each { |a| a } }
   end
 
+  x.report("Array#each") do
+    total.times { |i| array.each { |a| a } }
+  end
+
   x.report("String#each") do
     total.times { |i| string.each {|a| a} }
   end
   
-  x.report("Array#each") do
-    total.times { |i| array.each { |a| a } }
+  x.report("String#each_byte") do
+    total.times { |i| string.each_byte {|a| a} }
   end
+  
+  x.report("String#each_char") do
+    total.times { |i| string.each_char {|a| a} }
+  end   
 end
