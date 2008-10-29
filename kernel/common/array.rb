@@ -764,7 +764,11 @@ class Array
   # Returns the index of the first element in the Array
   # for which elem == obj is true or nil.
   def index(obj)
-    @total.times { |i| return i if @tuple.at(@start + i) == obj }
+    i = 0
+    while i < @total do
+      return i if @tuple.at(@start + i) == obj
+      i += 1
+    end
     nil
   end
 
@@ -1413,7 +1417,11 @@ class Array
   # Returns the index of the last element in the Array
   # for which elem == obj is true.
   def rindex(obj)
-    (@total - 1).downto(0) { |i| return i if at(i) == obj }
+    i = @total - 1
+    while i >= 0 do
+      return i if at(i) == obj
+      i -= 1
+    end
     nil
   end
 
