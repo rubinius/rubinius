@@ -50,4 +50,10 @@ Benchmark.bmbm do |x|
       array.reverse
     end
   end
+
+  x.report 'Array#join' do
+    (total).times do |i|
+      Array.new(i).join
+    end
+  end
 end
