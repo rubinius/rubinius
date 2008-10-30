@@ -1123,9 +1123,7 @@ extern "C" {
     if(Fixnum* character = try_as<Fixnum>(other)) {
       char byte = character->to_uint();
 
-      if(0 <= byte && byte <= 0xff) {
-        return rb_str_cat(self_handle, &byte, 1);
-      }
+      return rb_str_cat(self_handle, &byte, 1);
     }
 
     return rb_str_append(self_handle, other_handle);
