@@ -293,7 +293,17 @@ extern "C" {
                                            RbxMethodKind kind);
 
   /** Retrieve a Handle to an error class. @internal. */
-  VALUE rbx_subtend_hidden_error(RbxSubtendHiddenError type);
+  VALUE   rbx_subtend_hidden_error(RbxSubtendHiddenError type);
+
+  /** Call method on receiver, args as varargs. */
+  VALUE   rbx_subtend_hidden_rb_funcall(const char* file, int line,
+                                        VALUE receiver, ID method_name,
+                                        int arg_count, ...);
+
+  /** Call the method with args provided in a C array. */
+  VALUE   rbx_subtend_hidden_rb_funcall2(const char* file, int line,
+                                         VALUE receiver, ID method_name,
+                                         int arg_count, VALUE* args);
 
   /** Retrieve a Handle to a globally available object. @internal. */
   VALUE   rbx_subtend_hidden_global(RbxSubtendHiddenGlobal type);
@@ -356,12 +366,38 @@ extern "C" {
   #define rb_define_singleton_method(mod, name, fptr, arity) \
           rbx_subtend_hidden_define_method(__FILE__, mod, name, (SubtendGenericFunction)fptr, arity, RbxSingletonMethod)
 
-  /** @todo Macro these so we can temporarily set nmc->line to __LINE__? */
-  /** Call method on receiver, args as varargs. */
-  VALUE   rb_funcall(VALUE receiver, ID method_name, int arg_count, ...);
+  /** Remove a previously declared global variable. */
+  void    rb_free_global(VALUE global_handle);
+
+  /**
+   *  Freeze object and return it.
+   *
+   *  NOT supported in Rubinius. Just returns itself.
+   */
+  #define rb_obj_freeze(object_handle) \
+          (object_handle)
+
+  /**
+   *  Call method on receiver, args as varargs.
+   *
+   *  @todo Requires C99, change later for production code if needed.
+   *        Pretty much all C++ compilers support this too.  It can be
+   *        done by introducing an intermediary function to grab the
+   *        debug info, but it is far uglier. --rue
+   */
+  #define rb_funcall(receiver, method_name, arg_count, ...) \
+          rbx_subtend_hidden_rb_funcall(__FILE__, __LINE__, \
+                                        (receiver), (method_name), \
+                                        (arg_count), __VA_ARGS__)
 
   /** Call the method with args provided in a C array. */
-  VALUE   rb_funcall2(VALUE receiver, ID method_name, int arg_count, VALUE* args);
+  #define rb_funcall2(receiver, method_name, arg_count, args) \
+          rbx_subtend_hidden_rb_funcall2(__FILE__, __LINE__, \
+                                         (receiver), (method_name), \
+                                         (arg_count), (args) )
+
+  /** Mark variable global. Will not be GC'd. */
+  void    rb_global_variable(VALUE* handle_address);
 
   /** Retrieve global by name. Because of MRI, the leading $ is optional but recommended. */
   VALUE   rb_gv_get(const char* name);

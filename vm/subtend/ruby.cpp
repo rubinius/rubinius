@@ -55,7 +55,9 @@ namespace {
    *  @todo   Set up permanent SendSites through macroing?
    *  @todo   Stricter action check?
    */
-  static VALUE hidden_funcall_backend(VALUE receiver,
+  static VALUE hidden_funcall_backend(const char* file,
+                                      int line,
+                                      VALUE receiver,
                                       ID method_name,
                                       std::size_t arg_count,
                                       VALUE* arg_array)
@@ -82,6 +84,9 @@ namespace {
     }
 
     msg.set_arguments(context->state(), args);
+
+    /* Set temporary location info. NOTE: not reset, so off until next call. */
+    context->current_location(file, line);
 
     context->action(NativeMethodContext::CALL_FROM_C);
     store_current_execution_point_in(context->inside_c_method_point());
@@ -201,6 +206,35 @@ extern "C" {
       return Qnil;
     }
   }
+
+  VALUE rbx_subtend_hidden_rb_funcall(const char* file, int line,
+                                      VALUE receiver, ID method_name,
+                                      int arg_count, ...)
+  {
+    va_list varargs;
+    va_start(varargs, arg_count);
+
+    VALUE* args = new VALUE[arg_count];
+
+    for (int i = 0; i < arg_count; ++i) {
+      args[i] = va_arg(varargs, VALUE);
+    }
+
+    va_end(varargs);
+
+    VALUE ret = hidden_funcall_backend(file, line, receiver, method_name, arg_count, args);
+
+    delete args;
+    return ret;
+  }
+
+  VALUE rbx_subtend_hidden_rb_funcall2(const char* file, int line,
+                                       VALUE receiver, ID method_name,
+                                       int arg_count, VALUE* args)
+  {
+    return hidden_funcall_backend(file, line, receiver, method_name, arg_count, args);
+  }
+
 
   /**
    *  All of the default rb_{c,m}* VALUEs are macroed
