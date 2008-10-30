@@ -69,6 +69,23 @@ namespace :extension do
     digest_task "sha2"
   end
 
+
+  # Undocumented, used by spec/subtend/subtend_helper to build the spec exts.
+  namespace :specs do
+
+    FileList["spec/subtend/ext/*.c"].each do |source|
+      name = File.basename source, ".c"
+      library = source.sub(/\.c/, ".#{$dlext}")
+
+      task name => library
+
+      file library => source do
+        compile_extension source
+      end
+    end
+
+  end
+
   # The ones below are not used currently.
 
   task :mongrel => "lib/ext/mongrel/http11.#{$dlext}"
