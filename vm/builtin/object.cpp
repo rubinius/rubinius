@@ -245,6 +245,12 @@ namespace rubinius {
     }
   }
 
+  void Object::infect(Object* other) {
+    if(this->tainted_p() == Qtrue) {
+      other->taint();
+    }
+  }
+
   /* Initialize the object as storing bytes, by setting the flag then clearing the
    * body of the object, by setting the entire body as bytes to 0 */
   void Object::init_bytes() {

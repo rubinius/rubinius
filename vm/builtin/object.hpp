@@ -274,6 +274,11 @@ namespace rubinius {
     Integer*  id(STATE);
 
     /**
+     * Taints other if this is tainted.
+     */
+    void Object::infect(Object* other);
+
+    /**
      *  Ruby #kind_of?
      *
      *  Returns true if given Module is this Object's class,

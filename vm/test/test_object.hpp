@@ -329,12 +329,51 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT(id4->to_native() % 2 != 0);
   }
 
+  void test_infect() {
+    Object* obj1 = util_new_object();
+    Object* obj2 = util_new_object();
+
+    TS_ASSERT_EQUALS(obj1->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+
+    obj1->infect(obj2);
+
+    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+
+    obj1->taint();
+    obj1->infect(obj2);
+
+    TS_ASSERT_EQUALS(obj2->tainted_p(), Qtrue);
+  }
+
+  void test_infect_non_reference() {
+    Object* obj1 = util_new_object();
+    Object* obj2 = Integer::from(state, 5);
+
+    obj1->infect(obj2);
+
+    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+
+    obj1->taint();
+    obj1->infect(obj2);
+
+    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+  }
+
   void test_tainted_p() {
     Object* obj = util_new_object();
 
     TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
-    obj->IsTainted = TRUE;
+    obj->taint();
     TS_ASSERT_EQUALS(obj->tainted_p(), Qtrue);
+  }
+
+  void test_tainted_p_non_reference() {
+    Object* obj = Integer::from(state, 5);
+
+    TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
+    obj->taint();
+    TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
   }
 
   void test_taint() {
