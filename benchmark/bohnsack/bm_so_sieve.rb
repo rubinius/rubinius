@@ -1,4 +1,4 @@
-max = Integer(ARGV.shift || 10000000)
+max = Integer(ARGV.shift || 1000000)
 	
 sieve = [nil, nil] + (2 .. max).to_a
 	
