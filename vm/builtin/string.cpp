@@ -190,32 +190,7 @@ namespace rubinius {
    * use the size of the string in Ruby to know the limits.
    */
   String* String::append(STATE, String* other) {
-    size_t new_size = size() + other->size();
-
-    size_t capacity = data_->size();
-    if(capacity <= (new_size + 1)) {      
-      while(capacity < (new_size + 1)) {
-	capacity = (capacity + 1) * 2;
-      }
-
-      // No need to call unshare and duplicate a ByteArray
-      // just to throw it away.
-      if(shared_) shared(state, Qfalse);
-
-      ByteArray *ba = ByteArray::create(state, capacity);
-      std::memcpy(ba->bytes, data_->bytes, size());
-      data(state, ba);
-    } else {
-      if(shared_) unshare(state);
-    } 
-   
-    std::memcpy(data_->bytes + size(), other->data()->bytes, other->size());      
-    data_->bytes[new_size] = 0;
-    
-    num_bytes(state, Integer::from(state, new_size));
-    hash_value(state, (Integer*)Qnil);
-
-    return this;
+    return append(state, other->c_str(), other->size());
   }
 
   String* String::append(STATE, const char* other) {
@@ -226,8 +201,8 @@ namespace rubinius {
     size_t new_size = size() + length;
     size_t capacity = data_->size();
 
-    if(capacity <= (new_size + 1)) {      
-      while(capacity < (new_size + 1)) {
+    if(capacity <= (new_size+1)) {      
+      while(capacity < (new_size+1)) {
         capacity = (capacity + 1) * 2;
       }
 
@@ -236,7 +211,7 @@ namespace rubinius {
       if(shared_) shared(state, Qfalse);
 
       // Leave one extra byte of room for the trailing null
-      ByteArray *ba = ByteArray::create(state, new_size + 1);
+      ByteArray *ba = ByteArray::create(state, capacity);
       std::memcpy(ba->bytes, data_->bytes, size());
       data(state, ba);
     } else {
