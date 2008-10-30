@@ -1415,7 +1415,11 @@ class Array
   # Goes through the Array back to front and yields
   # each element to the supplied block. Returns self.
   def reverse_each()
-    (@total - 1).downto(0) { |i| yield(at(i)) }
+    i = @total - 1
+    while i >= 0 do
+      yield(at(i))
+      i -= 1
+    end
     self
   end
 
