@@ -238,6 +238,8 @@ namespace rubinius {
     case BlockContext::type:
       this->klass(state, G(blokctx));
       break;
+    case NativeMethodContext::type:
+      break;
     default:
       abort();
     }
