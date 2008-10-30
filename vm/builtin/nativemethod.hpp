@@ -251,8 +251,10 @@ template<typename CharType, typename Traits>
 
     out << rubinius::as<rubinius::Symbol>(name)->c_str(nmc->state())
         << " in "
-        << nmc->method()->file_name()->c_str()
-        << ":<No line from C extension>";
+        << nmc->current_file()
+        << ":"
+        << nmc->current_line()
+        << " (last known information.)";
 
     /* Yes, we want the C string. */
     stream << out.str().c_str();
