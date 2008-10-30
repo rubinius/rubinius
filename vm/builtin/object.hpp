@@ -276,7 +276,7 @@ namespace rubinius {
     /**
      * Taints other if this is tainted.
      */
-    void Object::infect(Object* other);
+    void infect(Object* other);
 
     /**
      *  Ruby #kind_of?
