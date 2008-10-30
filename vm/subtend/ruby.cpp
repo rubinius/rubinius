@@ -1321,4 +1321,8 @@ extern "C" {
     return rb_funcall(block_handle, rb_intern("call"), 1, argument_handle);
   }
 
+  void ruby_xfree(void* x) {
+    if(x) free(x);
+  }
+
 }

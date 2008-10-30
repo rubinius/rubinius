@@ -856,6 +856,9 @@ char *StringValuePtr(VALUE str);
   /** Call block with given argument or raise error if no block given. */
   VALUE   rb_yield(VALUE argument_handle);
 
+  /** Frees x */
+  void    ruby_xfree(void* x);
+
 
 #ifdef __cplusplus
 }
