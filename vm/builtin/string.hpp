@@ -89,11 +89,31 @@ namespace rubinius {
     // Ruby.primitive :string_dup
     String* string_dup(STATE);
 
-    // Ruby.primitive :string_append
-    String* append(STATE, String* other);
-    String* append(STATE, const char* other);
     String* add(STATE, String* other);
     String* add(STATE, const char* other);
+
+    /**
+     *  Append other String to self.
+     *
+     *  Returns self.
+     */
+    // Ruby.primitive :string_append
+    String* append(STATE, String* other);
+
+    /**
+     *  Append C string to self.
+     *
+     *  strlen() is used to calculate number of bytes to append.
+     *  If the C string may contain NUL bytes, use the version
+     *  that takes a length argument instead. Returns self.
+     *
+     *  @see String::append(VM*, const char*, std::size_t)
+     */
+    String* append(STATE, const char* other);
+
+    /** Append length bytes from C string. Returns self. */
+    String* append(STATE, const char* other, std::size_t length);
+
 
     // Ruby.primitive :string_to_f
     Float* to_f(STATE);

@@ -218,19 +218,17 @@ namespace rubinius {
     return this;
   }
 
-  /* Since we're passed a C/C++ string, which is NULL
-   * terminated, we use strlen to determine the size of
-   * +other+. This is NOT the same as String::append
-   * above that takes a Ruby String*.
-   */
   String* String::append(STATE, const char* other) {
-    size_t len = strlen(other);
-    size_t new_size = size() + len;
+    return append(state, other, std::strlen(other));
+  }
 
+  String* String::append(STATE, const char* other, std::size_t length) {
+    size_t new_size = size() + length;
     size_t capacity = data_->size();
+
     if(capacity <= (new_size + 1)) {      
       while(capacity < (new_size + 1)) {
-	capacity = (capacity + 1) * 2;
+        capacity = (capacity + 1) * 2;
       }
 
       // No need to call unshare and duplicate a ByteArray
@@ -246,7 +244,7 @@ namespace rubinius {
     }
 
     // Append on top of the null byte at the end of s1, not after it
-    std::memcpy(data_->bytes + size(), other, len);
+    std::memcpy(data_->bytes + size(), other, length);
 
     // The 0-based index of the last character is new_size - 1
     data_->bytes[new_size] = 0;
