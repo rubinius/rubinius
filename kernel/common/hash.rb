@@ -134,6 +134,7 @@ class Hash
 
     if entry = bins[bin]
       result = entry.delete key, hsh
+
       bins[bin] = entry.next if result.nil?
       unless result
         self.size -= 1

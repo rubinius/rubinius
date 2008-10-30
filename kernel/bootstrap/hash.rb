@@ -48,13 +48,15 @@ class Hash
     # of the chain is unchanged. Returns +nil+ if the head of the
     # chain should be replaced with <code>head.next</code>. Returns
     # +true+ if the bucket was not found.
-    def delete(key, key_hash, parent = nil)
-      if self.key_hash == key_hash and key.eql? self.key
+    # FIX: cryptic. return a symbol for all 3 cases
+    def delete(k, k_hash, parent = nil)
+      # identity wins. see rb_any_cmp in hash.c in mri for clues.
+      if k.equal?(self.key) or (self.key_hash == k_hash and k.eql? self.key)
         return nil unless parent
         parent.next = self.next
         return false
       elsif nxt = self.next
-        return nxt.delete(key, key_hash, self)
+        return nxt.delete(k, k_hash, self)
       else
         return true
       end
