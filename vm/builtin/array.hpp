@@ -55,6 +55,7 @@ namespace rubinius {
       virtual void show(STATE, Object* self, int level);
     };
   };
-};
+
+}
 
 #endif

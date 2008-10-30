@@ -79,7 +79,7 @@ namespace rubinius {
     // object's data is null clamped properly.
     //
     // NOTE: do not free() or realloc() this buffer.
-    char* c_str();
+    const char* c_str();
 
     void unshare(STATE);
     hashval hash_string(STATE);

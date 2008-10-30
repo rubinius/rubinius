@@ -138,7 +138,7 @@ namespace rubinius {
     return (char*)data_->bytes;
   }
 
-  char* String::c_str() {
+  const char* String::c_str() {
     sassert(size() < data_->size());
 
     char* c_string = (char*)data_->bytes;
@@ -485,7 +485,7 @@ namespace rubinius {
   }
 
   Integer* String::to_i(STATE, Fixnum* fix_base, Object* strict) {
-    char* str = c_str();
+    const char* str = c_str();
     int base = fix_base->to_native();
     bool negative = false;
     Integer* value = Fixnum::from(0);
@@ -514,7 +514,7 @@ namespace rubinius {
 
     char chr;
     int detected_base = 0;
-    char* str_start = str;
+    const char* str_start = str;
 
     // Try and detect a base prefix on the front. We have to do this
     // even though we might have been told the base, because we have

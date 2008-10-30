@@ -187,13 +187,17 @@ namespace rubinius {
 #endif
 
 #ifdef HAVE_STRUCT_TM_TM_ZONE
-    tm.tm_zone = as<String>(ary->get(state, 10))->c_str();
+    /* strdup should be safe until someone has a TZ with a NUL byte.. */
+    tm.tm_zone = ::strdup(as<String>(ary->get(state, 10))->c_str());
 #endif
 
     size_t chars = ::strftime(str, MAX_STRFTIME_OUTPUT,
                               format->c_str(), &tm);
     str[MAX_STRFTIME_OUTPUT-1] = 0;
 
+#ifdef HAVE_STRUCT_TM_TM_ZONE
+    ::free(tm.tm_zone);
+#endif
     return String::create(state, str, chars);
   }
 }

@@ -47,9 +47,9 @@ namespace rubinius {
       Exception::argument_error(state, "Cannot look up Symbol from nil");
     }
 
-    char* bytes = str->c_str();
+    const char* bytes = str->c_str();
 
-    for(size_t i = 0; i < str->size(); i++) {
+    for(std::size_t i = 0; i < str->size(); i++) {
       if(bytes[i] == 0) {
         Exception::argument_error(state,
             "cannot create a symbol from a string containing `\\0'");

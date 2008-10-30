@@ -79,10 +79,11 @@ namespace rubinius {
     std::vector<char*> argv((argc + 1), NULL);
 
     for (std::size_t i = 0; i < argc; ++i) {
-      argv[i] = as<String>(args->get(state, i))->c_str();
+      /* strdup should be OK. Trying to exec with strings containing NUL == bad. --rue */
+      argv[i] = ::strdup(as<String>(args->get(state, i))->c_str());
     }
 
-    (void) ::execvp(path->c_str(), &argv[0]);
+    (void) ::execvp(path->c_str(), &argv[0]); /* std::vector is contiguous. --rue */
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp() failed!");
@@ -167,7 +168,7 @@ namespace rubinius {
   }
 
   Object* System::vm_write_error(STATE, String* str) {
-    std::cerr << str->byte_address() << std::endl;
+    std::cerr << str->c_str() << std::endl;
     return Qnil;
   }
 

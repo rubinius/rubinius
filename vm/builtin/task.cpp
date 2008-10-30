@@ -538,7 +538,7 @@ namespace rubinius {
     profiler = new profiler::Profiler();
   }
 
-  void Task::disable_profiler(char* results) {
+  void Task::disable_profiler(const char* results) {
     if(profiler) {
       std::ofstream stream(results);
       profiler->print_results(state, stream);
@@ -561,9 +561,9 @@ namespace rubinius {
         }
 
       }
-    } catch(RubyException &exc) {
+    } catch(const RubyException& exc) {
       raise_exception(exc.exception);
-    } catch(TypeError &exc) {
+    } catch(const TypeError& exc) {
       Exception* e = Exception::make_type_error(state, exc.type, exc.object, exc.reason);
       raise_exception(e);
     }

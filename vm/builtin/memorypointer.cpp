@@ -310,7 +310,7 @@ namespace rubinius {
       }
       break;
     case RBX_FFI_TYPE_STRING: {
-      char* result;
+      const char* result;
       if(NIL_P(val)) {
         result = NULL;
       } else {
@@ -321,7 +321,7 @@ namespace rubinius {
          * copy the string data instead */
         result = str->c_str();
       }
-      WRITE(char*, result);
+      WRITE(const char*, result);
       break;
     }
     default:

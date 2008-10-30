@@ -443,13 +443,14 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_STRING: {
-        char **tmp = (char**)malloc(sizeof(char*));
+        /** @todo String should be copied? --rue */
+        char** tmp = (char**)malloc(sizeof(char*));
         obj = msg->get_argument(i);
         if(NIL_P(obj)) {
           *tmp = NULL;
         } else {
-          String *so = as<String>(obj);
-          *tmp = so->c_str();
+          String* so = as<String>(obj);
+          *tmp = const_cast<char*>(so->c_str());
         }
         values[i] = tmp;
         break;
