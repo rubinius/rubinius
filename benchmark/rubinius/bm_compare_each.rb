@@ -22,6 +22,10 @@ Benchmark.bmbm do |x|
     total.times { |i| array.each { |a| a } }
   end
 
+  x.report("Array#reverse_each") do
+    total.times { |i| array.reverse_each { |a| a } }
+  end
+
   x.report("String#each") do
     total.times { |i| string.each {|a| a} }
   end
