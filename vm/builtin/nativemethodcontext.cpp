@@ -3,7 +3,9 @@
 #include "objectmemory.hpp"
 #include "vm.hpp"
 
+#include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
 
@@ -77,6 +79,9 @@ namespace rubinius {
     nmc->state_           = state;
     nmc->task_            = task;
 
+    nmc->current_file_    = ::strdup("<no file set>");
+    nmc->current_line_    = 0;
+
     /* Add the basic Handles. Always crossref with ruby.h when changing. */
     nmc->handles_->push_back(Qfalse);
     nmc->handles_->push_back(Qtrue);
@@ -107,32 +112,40 @@ namespace rubinius {
     return our_global_handles;
   }
 
+
+/* Primitives */
+
+    Object* NativeMethodContext::location(STATE) {
+      Array* array = Array::create(state, 2);
+      array->set(state, 0, String::create(state, current_file_));
+      array->set(state, 1, Fixnum::from(current_line_));
+      return array;
+    }
+
+
+
 /* Instance methods */
 
-//  Object* NativeMethodContext::clone(STATE) {
-//    Object* other = dup(state);
-//
-//    other->copy_internal_state_from(state, this);
-//
-//    return other;
-//  }
-//
-//  Object* NativeMethodContext::dup(STATE) {
-//    Object* other = state->om->allocate_object(this->num_fields());
-//
-//    other->initialize_copy(this, age);
-//
-//    /* Use lookup_begin to preserve any IncludedModules. */
-//    other->klass(state, this->lookup_begin(state));
-//
-//    /* Redo all instance vars. */
-//
-//    if(other->zone == MatureObjectZone) {
-//      state->om->remember_object(other);
-//    }
-//
-//    return other;
-//  }
+
+  const char* NativeMethodContext::current_file() const {
+    return current_file_;
+  }
+
+  std::size_t NativeMethodContext::current_line() const {
+    return current_line_;
+  }
+
+  void NativeMethodContext::current_location(const char* file, std::size_t line) {
+    if(current_file_) {
+      free(current_file_);
+    }
+    current_file_ = ::strdup(file);
+    current_line_ = line;
+  }
+
+  void NativeMethodContext::delete_global(Handle global_handle) {
+    NativeMethodContext::global_handles()[(-1 - global_handle)] = Qnil;
+  }
 
   /**
    *  NOTE: Unlike object_for(), this is _always_ a local Handle.
@@ -235,28 +248,7 @@ namespace rubinius {
     as<NativeMethodContext>(self)->mark_handles(mark);
   }
 
-  void NativeMethodContext::Info::show(STATE, Object* self, int level) {
-//    MethodContext* ctx = as<MethodContext>(self);
-//
-//    class_header(state, self);
-//    indent_attribute(++level, "name"); ctx->name()->show(state, level);
-//    indent_attribute(level, "sender");
-//    if(ctx->sender()->nil_p()) {
-//      ctx->sender()->show(state, level);
-//    } else {
-//      class_info(state, ctx->sender(), true);
-//    }
-//    indent_attribute(level, "home");
-//    if(ctx->home()->nil_p()) {
-//      ctx->home()->show(state, level);
-//    } else {
-//      class_info(state, ctx->home(), true);
-//    }
-//    indent_attribute(level, "self"); ctx->self()->show(state, level);
-//    indent_attribute(level, "cm"); ctx->cm()->show(state, level);
-//    indent_attribute(level, "module"); ctx->module()->show(state, level);
-//    indent_attribute(level, "block"); ctx->block()->show(state, level);
-//    close_body(level);
+  void NativeMethodContext::Info::show(Object* self, int level) {
   }
 
 }

@@ -108,6 +108,15 @@ namespace rubinius {
     static HandleStorage&       global_handles();
 
 
+  public:   /* Primitives */
+
+    /**
+     *  Returns [current_file, current_line].
+     */
+    // Ruby.primitive :nativemethodcontext_location
+    Object*     location(STATE);
+
+
   public:   /* Accessors */
 
 
@@ -132,13 +141,17 @@ namespace rubinius {
 
   public:   /* Interface */
 
-//    /** Create new context using this one's data and internal state. @see dup(). */
-//    // Ruby.primitive :nativemethodcontext_clone
-//    Object*     clone(STATE);
-//
-//    /** Create a new context using this one's data but _not_ internal state. @see clone(). */
-//    // Ruby.primitive :nativemethodcontext_dup
-//    Object*     dup(STATE);
+    /** Whatever file information we have last been updated with. */
+    const char* current_file() const;
+
+    /** Whatever line information we have been updated with */
+    std::size_t current_line() const;
+
+    /** Set approximate current file and line of execution. (Usually by rb_funcall*) */
+    void        current_location(const char* file, std::size_t line);
+
+    /** Set the given handle to Qnil. @todo   Improve. --rue */
+    void        delete_global(Handle global_handle);
 
     /** Generate a handle to refer to the given object from C */
     Handle      handle_for(Object* obj);
@@ -170,6 +183,8 @@ namespace rubinius {
     DECLARE_POINT_VARIABLE(inside_c_method_point_);
 
     Action          action_;            /**< Action for the VMNativeMethod to perform. */
+    char*           current_file_;      /**< Last updated file name in extension. */
+    std::size_t     current_line_;      /**< Last updated line number in extension. */
     Handle          c_return_value_;    /**< Return value for a call back to VM. */
     Message*        message_;           /**< Message representing this call. */
     Message*        message_from_c_;    /**< Message for calls back from the method. */
@@ -190,7 +205,7 @@ namespace rubinius {
       BASIC_TYPEINFO_WITH_CLEANUP(MethodContext::Info)
 
       virtual void mark(Object* self, ObjectMark& mark);
-      virtual void show(STATE, Object* self, int level);
+      virtual void show(Object* self, int level);
     };
 
   };    /* NativeMethodContext */

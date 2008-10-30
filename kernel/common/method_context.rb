@@ -405,7 +405,15 @@ end
 #
 # Stores all the information about a running NativeMethod.
 #
-class NativeMethodContext
+class NativeMethodContext < MethodContext
+
+  attr_accessor :sender
+  attr_accessor :home
+  attr_accessor :self
+  attr_accessor :cm
+  attr_accessor :module
+  attr_accessor :block
+  attr_accessor :name
 
   #
   # Special-needs copying.
@@ -424,8 +432,13 @@ class NativeMethodContext
   end
 
   def location()
-    "#{file}"
+    Ruby.primitive :nativemethodcontext_location
+    "<unable to retrieve location info>"
   end
 
+  def position_info()
+    file, line = location
+    "#{file}:#{line}, in `#{name}' (last known location)"
+  end
 end
 
