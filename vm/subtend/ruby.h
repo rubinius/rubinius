@@ -305,6 +305,9 @@ extern "C" {
 /** Get a handle for the Symbol object represented by ID. */
 #define ID2SYM(id)        rbx_subtend_hidden_id2sym((id))
 
+/** Infect o2 if o1 is tainted */
+#define OBJ_INFECT(o1, o2) rbx_subtend_hidden_infect((o1), (o2))
+
 /** Convert int to a Ruby Integer. */
 #define INT2FIX(i)        INT2NUM((i))
 
@@ -387,6 +390,9 @@ extern "C" {
 
   /** Symbol Handle for an ID. @internal. */
   VALUE   rbx_subtend_hidden_id2sym(ID id);
+
+  /** Infect obj2 if obj1 is tainted. */
+  void    rbx_subtend_hidden_infect(VALUE obj1, VALUE obj2);
 
   /** False if expression evaluates to nil, true otherwise. @internal. */
   int     rbx_subtend_hidden_nil_p(VALUE expression_result);

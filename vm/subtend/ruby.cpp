@@ -310,6 +310,15 @@ extern "C" {
     return context->handle_for(reinterpret_cast<Symbol*>(id));
   }
 
+  void rbx_subtend_hidden_infect(VALUE obj1, VALUE obj2) {
+    NativeMethodContext* context = NativeMethodContext::current();
+
+    Object* object1 = context->object_from(obj1);
+    Object* object2 = context->object_from(obj2);
+
+    object1->infect(object2);
+  }
+
   int rbx_subtend_hidden_nil_p(VALUE expression_result) {
     NativeMethodContext* context = NativeMethodContext::current();
 
