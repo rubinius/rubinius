@@ -325,6 +325,22 @@ extern "C" {
     return RBX_NIL_P(context->object_from(expression_result));
   }
 
+  long rbx_subtend_hidden_rstring_len(VALUE string_handle) {
+    NativeMethodContext* context = NativeMethodContext::current();
+
+    String* string = as<String>(context->object_from(string_handle));
+
+    return string->size();
+  }
+
+  char* rbx_subtend_hidden_rstring_ptr(VALUE string_handle) {
+    NativeMethodContext* context = NativeMethodContext::current();
+
+    String* string = as<String>(context->object_from(string_handle));
+
+    return string->byte_address();
+  }
+
   int rbx_subtend_hidden_rtest(VALUE expression_result) {
     NativeMethodContext* context = NativeMethodContext::current();
 

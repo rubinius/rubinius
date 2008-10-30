@@ -320,6 +320,12 @@ extern "C" {
 /** Whether object is nil. */
 #define NIL_P(v)          rbx_subtend_hidden_nil_p((v))
 
+/** The length of string str. */
+#define RSTRING_LEN(str)  rbx_subtend_hidden_rstring_len((str))
+
+/** The pointer to the string str's data. */
+#define RSTRING_PTR(str)  rbx_subtend_hidden_rstring_ptr((str))
+
 /** False if expression evaluates to nil or false, true otherwise. */
 #define RTEST(v)          rbx_subtend_hidden_rtest((v))
 
@@ -391,11 +397,17 @@ extern "C" {
   /** Symbol Handle for an ID. @internal. */
   VALUE   rbx_subtend_hidden_id2sym(ID id);
 
-  /** Infect obj2 if obj1 is tainted. */
+  /** Infect obj2 if obj1 is tainted. @internal.*/
   void    rbx_subtend_hidden_infect(VALUE obj1, VALUE obj2);
 
   /** False if expression evaluates to nil, true otherwise. @internal. */
   int     rbx_subtend_hidden_nil_p(VALUE expression_result);
+
+  /** Length of string string_handle. @internal. */
+  long    rbx_subtend_hidden_rstring_len(VALUE string_handle);
+
+  /** Pointer to string data in string_handle. @internal. */
+  char*   rbx_subtend_hidden_rstring_ptr(VALUE string_handle);
 
   /** False if expression evaluates to Qnil or Qfalse, true otherwise. @internal. */
   int     rbx_subtend_hidden_rtest(VALUE expression_result);
