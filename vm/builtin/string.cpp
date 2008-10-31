@@ -64,22 +64,11 @@ namespace rubinius {
    * +bytes+ is the number of 'real' characters in the string
    */
   String* String::create(STATE, const char* str, size_t bytes) {
-    String *so;
-
     if(bytes == 0 && str) bytes = strlen(str);
 
-    so = (String*)state->om->new_object(G(string), String::fields);
+    String *so = String::create(state, Fixnum::from(bytes));
 
-    so->num_bytes(state, Fixnum::from(bytes));
-    so->characters(state, so->num_bytes());
-    so->encoding(state, Qnil);
-    so->hash_value(state, (Integer*)Qnil);
-
-    ByteArray* ba = ByteArray::create(state, bytes + 1);
-    if(str) std::memcpy(ba->bytes, str, bytes);
-    ba->bytes[bytes] = 0;
-
-    so->data(state, ba);
+    if(str) std::memcpy(so->data_->bytes, str, bytes);
 
     return so;
   }
