@@ -1,3 +1,4 @@
+/** \file   Base template for generating vm/gen/instructions.cpp. */
 
 #include "builtin/object.hpp"
 #include "builtin/array.hpp"
@@ -27,9 +28,20 @@ using namespace rubinius;
 
 // #define OP(name, args...) void name(Task* task, struct jit_state* const js, ## args)
 #define OP2(type, name, args...) type name(Task* task, MethodContext* const ctx, ## args)
+
 // HACK: sassert is stack protection
 // #define stack_push(val) ({ OBJECT _v = (val); sassert(_v && js->stack < js->stack_top); *++js->stack = _v; })
-#define stack_push(val) *++ctx->js.stack = (val)
+
+/** @todo  This can be improved on. Sequence point in the increment forces
+ *         this execution order to avoid undefined behaviour of the increment
+ *         if an exception is raised in calculating val. One option is to
+ *         completely change js.stack to already point to next slot, but
+ *         this requires quite a few changes elsewhere. --rue */
+#define stack_push(val) stack_push_paste((val), __LINE__)
+#define stack_push_paste(val, line) stack_push_uniq((val), line)
+#define stack_push_uniq(val, line)  Object* __stack_push_temporary_ ## line = (val); \
+                                    *(++ctx->js.stack) = __stack_push_temporary_ ## line
+
 #define stack_pop() *ctx->js.stack--
 #define stack_top() *ctx->js.stack
 #define stack_back(count) *(ctx->js.stack - count)
