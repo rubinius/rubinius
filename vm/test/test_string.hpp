@@ -93,6 +93,7 @@ class TestString : public CxxTest::TestSuite {
     s1->append(state, "u\0ra");
 
     TS_ASSERT_EQUALS(7U, s1->size());
+    TS_ASSERT(s1->size() < s1->data()->size());
     TS_ASSERT_SAME_DATA("omote u\0", s1->byte_address(), 7);
   }
 
@@ -107,6 +108,7 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(s1->hash_value(), Qnil);
 
     TS_ASSERT_EQUALS(10U, s1->size());
+    TS_ASSERT(s1->size() < s1->data()->size());
     TS_ASSERT_SAME_DATA("omote u\0ra", s1->byte_address(), 9);
   }
 
