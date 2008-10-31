@@ -169,32 +169,18 @@ class NewCompiler < SexpProcessor
   end
 
   def process_block_pass exp
-#     block    = exp.shift
-#     call     = exp.shift
-#     recv     = call.delete_at(1)
-#     args     = call.pop
+    jump_proc = new_jump
 
-#     return s(:not_yet) unless Sexp === args # FIX
-
-#     arity    = args.size - 1
-
-#     call[0] = :send_with_block
-#     call << arity
-#     call << !recv
-
-#     s(:dummy,
-#       process(recv || s(:push, :self)),
-#       process(args),
-#       process(block),
-#       s(:dup),
-#       process(s(:s_if, s(:is_nil),
-#                 s(:push_cpath_top),
-#                 s(:find_const, :Proc),
-#                 s(:swap),
-#                 s(:send, :__from_block__, 1))),
-#       call)
-    exp.clear
-    s(:not_yet)
+    s(:dummy,
+      process(exp.shift),
+      s(:dup),
+      s(:is_nil),
+      s(:git, jump_proc),
+      s(:push_cpath_top),
+      s(:find_const, :Proc),
+      s(:swap),
+      s(:send, :__from_block__, 1),
+      s(:set_label, jump_proc))
   end
 
   def process_call exp
@@ -202,6 +188,11 @@ class NewCompiler < SexpProcessor
     mesg  = exp.shift
     args  = exp.shift
     arity = args.size - 1
+
+    block_pass = args.find { |s| Sexp === s && s[0] == :block_pass }
+    splat      = args.find { |s| Sexp === s && s[0] == :splat }
+    arity -= 1 if block_pass
+    arity -= 1 if splat
 
     args[0] = :dummy
     args  = process(args)
@@ -218,7 +209,20 @@ class NewCompiler < SexpProcessor
     when :== then
       s(:dummy, recv, args, s(:meta_send_op_equal))
     else
-      s(:dummy, recv, args, s(:send, mesg, arity, private_send))
+      if splat then
+        # FIX: I think this is tarded...
+        # FIX: we don't need send, send_with_splat, send_with_block... merge
+        if block_pass then
+          s(:dummy, recv, args,
+            s(:send_with_splat, mesg, arity, private_send, false))
+        else
+          s(:dummy, recv, args, s(:send_with_splat, mesg, arity, private_send))
+        end
+      elsif block_pass then
+        s(:dummy, recv, args, s(:send_with_block, mesg, arity, private_send))
+      else
+        s(:dummy, recv, args, s(:send, mesg, arity, private_send))
+      end
     end
   end
 
@@ -367,7 +371,7 @@ class NewCompiler < SexpProcessor
     dunno2    = new_jump
     bottom    = new_jump
 
-    return s(:dummy, :not_yet) if call == s(:postexe) # HACK
+    return s(:dummy, :not_yet_iter_postexe) if call == s(:postexe) # HACK
 
     call = process(call)
     send = call.pop
@@ -494,27 +498,34 @@ class NewCompiler < SexpProcessor
   end
 
   def process_masgn exp
-    lhs    = exp.shift
-    rhs    = exp.shift
+    lhs     = exp.shift
+    rhs     = exp.shift
+    lhs_n   = lhs && lhs.size - 1
+    rhs_n   = rhs && rhs.size - 1
+    lhs_ary = lhs && lhs.first == :array
+    rhs_ary = rhs && rhs.first == :array
 
-    if rhs.nil? or rhs.first != :array then # HACK
-      exp.clear
-      return s(:not_yet!)
+    rhs[0]  = :dummy if rhs_ary
+    lhs[0]  = :dummy if lhs_ary
+
+    result  = s(:dummy)
+
+    result << process(rhs)
+
+    if lhs.last.first == :splat then # minor layer violation
+      delta = rhs_n - lhs_n + 1
+      result << s(:make_array, delta) if delta > 0
     end
 
-    size   = rhs.size - 1
-
-    rhs[0] = :dummy # was array, wo don't want make_array
-
-    result = s(:dummy,
-               process(rhs),
-               s(:rotate, size))
-
+    subresult = []
     lhs.shift # type
     until lhs.empty? do
-      result << process(lhs.shift).compact # these lasgns produce nil rhs
-      result << s(:pop)
+      subresult.unshift s(:pop)
+      subresult.unshift(*process(lhs.shift))
     end
+
+    subresult.delete(:dummy)
+    result.push(*subresult.compact)
 
     result << s(:push, :true) # FIX: this is just wrong
     result
@@ -805,6 +816,15 @@ class NewCompiler < SexpProcessor
     s(:dummy,
       s(:push_literal, exp.shift),
       s(:string_dup))
+  end
+
+  def process_to_ary exp
+    sexp = process exp.shift
+
+    s(:dummy,
+      sexp,
+      s(:cast_tuple),
+      s(:shift_tuple))
   end
 
   def process_undef exp
