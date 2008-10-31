@@ -63,7 +63,7 @@ describe "Config::CONFIG" do
   it_has_keys 'Config::CONFIG', keys
 
   entries = {
-    "RUBY_SO_NAME"      => "rubinius-0.9.0",
+    "RUBY_SO_NAME"      => "rubinius-0.10.0",
     "ruby_install_name" => "rbx",
     "ruby_version"      => "1.8",
   }
@@ -99,7 +99,7 @@ describe "Config::MAKEFILE_CONFIG" do
     "archdir"            => "$(rubylibdir)/$(arch)",
     "sitearchdir"        => "$(sitelibdir)/$(sitearch)",
     "sitedir"            => "$(install_prefix)/lib/rubinius",
-    "rubyhdrdir"         => "$(prefix)/shotgun/lib/subtend"
+    "rubyhdrdir"         => "/usr/local/lib/rubinius/0.10/$(host)"
   }
 
   it_has_entries 'Config::MAKEFILE_CONFIG', entries
