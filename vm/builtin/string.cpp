@@ -183,14 +183,8 @@ namespace rubinius {
     shared(state, Qfalse);
   }
 
-  /* This is not the same as String::append below that
-   * takes a const char* other. In C/C++, strings are
-   * terminated with NULL. That's not true in Ruby, where
-   * strings may contain embedded NULL characters. We must
-   * use the size of the string in Ruby to know the limits.
-   */
   String* String::append(STATE, String* other) {
-    return append(state, other->c_str(), other->size());
+    return append(state, other->byte_address(), other->size());
   }
 
   String* String::append(STATE, const char* other) {
@@ -200,9 +194,10 @@ namespace rubinius {
   String* String::append(STATE, const char* other, std::size_t length) {
     size_t new_size = size() + length;
     size_t capacity = data_->size();
-
-    if(capacity <= (new_size+1)) {      
-      while(capacity < (new_size+1)) {
+    
+    if(capacity <= (new_size + 1)) {      
+      // capacity needs one extra byte of room for the trailing null
+      while(capacity < (new_size + 1)) {
         capacity = (capacity + 1) * 2;
       }
 
@@ -210,7 +205,6 @@ namespace rubinius {
       // just to throw it away.
       if(shared_) shared(state, Qfalse);
 
-      // Leave one extra byte of room for the trailing null
       ByteArray *ba = ByteArray::create(state, capacity);
       std::memcpy(ba->bytes, data_->bytes, size());
       data(state, ba);
