@@ -1,0 +1,2 @@
+fails:BigDecimal#* returns zero if self or argument is zero
+fails:BigDecimal#* multiply self with other

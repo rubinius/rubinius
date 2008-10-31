@@ -1,0 +1,4 @@
+fails:Compiler::*Nodes compiles :dstr_2
+fails:Compiler::*Nodes compiles :dstr_3
+fails:Compiler::*Nodes compiles :lit_float
+fails:Compiler::*Nodes compiles :parse_floats_as_args

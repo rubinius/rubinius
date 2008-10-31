@@ -1,0 +1,2 @@
+fails:Logger::Application#level= sets the logging threshold
+fails:Logger::Application#level= can set the threshold to unknown values

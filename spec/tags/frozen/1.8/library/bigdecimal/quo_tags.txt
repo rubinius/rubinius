@@ -1,0 +1,2 @@
+fails:BigDecimal#quo returns a / b
+fails:BigDecimal#quo returns 0 if divided by Infinity

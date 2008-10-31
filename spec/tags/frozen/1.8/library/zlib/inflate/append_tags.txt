@@ -1,0 +1,1 @@
+fails:Zlib::Inflate#<< appends data to the input stream

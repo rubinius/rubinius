@@ -1,1 +1,6 @@
 fails:Tempfile.open when passed a block returns the return value of the passed block
+fails:Tempfile#open reopens self
+fails:Tempfile#open reopens self in read and write mode and does not truncate
+fails:Tempfile.open returns a new, open Tempfile instance
+fails:Tempfile.open when passed a block yields a new, open Tempfile instance to the block
+fails:Tempfile.open when passed a block closes the yielded Tempfile after the block

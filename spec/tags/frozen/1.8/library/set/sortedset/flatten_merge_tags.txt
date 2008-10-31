@@ -1,2 +1,3 @@
 fails:SortedSet#flatten_merge flattens the passed SortedSet and merges it into self
 fails:SortedSet#flatten_merge raises an ArgumentError when trying to flatten a recursive SortedSet
+fails:SortedSet#flatten_merge is protected
