@@ -169,30 +169,32 @@ class NewCompiler < SexpProcessor
   end
 
   def process_block_pass exp
-    block    = exp.shift
-    call     = exp.shift
-    recv     = call.delete_at(1)
-    args     = call.pop
+#     block    = exp.shift
+#     call     = exp.shift
+#     recv     = call.delete_at(1)
+#     args     = call.pop
 
-    return s(:not_yet) unless Sexp === args # FIX
+#     return s(:not_yet) unless Sexp === args # FIX
 
-    arity    = args.size - 1
+#     arity    = args.size - 1
 
-    call[0] = :send_with_block
-    call << arity
-    call << !recv
+#     call[0] = :send_with_block
+#     call << arity
+#     call << !recv
 
-    s(:dummy,
-      process(recv || s(:push, :self)),
-      process(args),
-      process(block),
-      s(:dup),
-      process(s(:s_if, s(:is_nil),
-                s(:push_cpath_top),
-                s(:find_const, :Proc),
-                s(:swap),
-                s(:send, :__from_block__, 1))),
-      call)
+#     s(:dummy,
+#       process(recv || s(:push, :self)),
+#       process(args),
+#       process(block),
+#       s(:dup),
+#       process(s(:s_if, s(:is_nil),
+#                 s(:push_cpath_top),
+#                 s(:find_const, :Proc),
+#                 s(:swap),
+#                 s(:send, :__from_block__, 1))),
+#       call)
+    exp.clear
+    s(:not_yet)
   end
 
   def process_call exp
@@ -364,6 +366,8 @@ class NewCompiler < SexpProcessor
     uncaught  = new_jump
     dunno2    = new_jump
     bottom    = new_jump
+
+    return s(:dummy, :not_yet) if call == s(:postexe) # HACK
 
     call = process(call)
     send = call.pop
@@ -539,6 +543,115 @@ class NewCompiler < SexpProcessor
       process(exp.pop),
       process(exp.shift),
       s(:send, :=~, 1))
+  end
+
+  def process_op_asgn1 exp
+    lhs = process exp.shift
+    idx = process exp.shift
+    msg = exp.shift
+    rhs = process exp.shift
+
+
+    case msg
+    when :"&&", :"||" then # shortcuts need jumps
+      jump_set_type = msg == :"&&" ? :gif : :git
+      jump_set   = new_jump
+      jump_unset = new_jump
+      s(:dummy,
+        lhs,
+        s(:dup),
+        idx.deep_clone,
+        s(:send, :[], 1),
+        s(:dup),
+        s(jump_set_type, jump_set),
+        s(:pop),
+        idx,
+        rhs,
+        s(:send, :[]=, 2),
+        s(:goto, jump_unset),
+        s(:set_label, jump_set),
+        s(:swap),
+        s(:pop),
+        s(:set_label, jump_unset))
+    else
+      s(:dummy,
+        lhs,
+        s(:dup),
+        idx.deep_clone,
+        s(:send, :[], 1),
+        rhs,
+        s(:send, msg, 1),
+        idx,
+        s(:swap),
+        s(:send, :[]=, 2))
+    end
+  end
+
+  def process_op_asgn2 exp
+    lhs = process exp.shift
+    set = exp.shift
+    get = set.to_s[0..-2].to_sym
+    msg = exp.shift
+    rhs = process exp.shift
+
+    case msg
+    when :"&&", :"||" then # shortcuts need jumps
+      jump_set_type = msg == :"&&" ? :gif : :git
+      jump_set   = new_jump
+      jump_unset = new_jump
+      s(:dummy,
+        lhs,
+        s(:dup),
+        s(:send, get, 0),
+        s(:dup),
+        s(jump_set_type, jump_set),
+        s(:pop),
+        rhs,
+        s(:send, set, 1),
+        s(:goto, jump_unset),
+        s(:set_label, jump_set),
+        s(:swap),
+        s(:pop),
+        s(:set_label, jump_unset))
+    else
+      s(:dummy,
+        lhs,
+        s(:dup),
+        s(:send, get, 0),
+        rhs,
+        s(:send, msg, 1),
+        s(:send, set, 1))
+    end
+  end
+
+  def process_op_asgn_and exp
+    lhs = process exp.shift
+    rhs = process exp.shift
+
+    jump_set = new_jump
+
+    s(:dummy,
+      lhs,
+      s(:dup),
+      s(:gif, jump_set),
+      s(:pop),
+      rhs,
+      s(:set_label, jump_set))
+  end
+
+  def process_op_asgn_or exp
+    lhs = process exp.shift
+    rhs = process exp.shift
+
+    jump_set = new_jump
+
+    s(:dummy,
+      lhs,
+      s(:dup),
+      s(:git, jump_set),
+      s(:pop),
+      rhs,
+      s(:set_label, jump_set))
   end
 
   def process_or exp
