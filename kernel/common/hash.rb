@@ -88,6 +88,7 @@ class Hash
 
   def []=(key, value)
     key = key.dup if key.kind_of? String
+    # TODO: freeze if String
 
     hsh = key_hash key
     entry = self.entry key, hsh
@@ -129,6 +130,8 @@ class Hash
   end
 
   def delete(key)
+    key = key.dup if key.kind_of? String # to bypass singleton hash method
+
     hsh = key_hash key
     bin = entry_bin hsh
 
