@@ -141,11 +141,14 @@ class Array
       return nil
     end
 
+    return self.class.new if finish < start or count == 0
+
     out = self.class.new
-
-    return out if finish < start or count == 0
-
-    start.upto(finish) { |i| out << at(i) }
+    i = start
+    while(i <= finish)
+      out << at(i)
+      i += 1
+    end
     out
   end
 
