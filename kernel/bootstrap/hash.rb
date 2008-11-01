@@ -106,7 +106,7 @@ class Hash
 
   # Creates a fully-formed instance of Hash.
   #--
-  # @size is the number of pairs, equivalent to <code>hsh.size</code>.
+  # @count is the number of pairs, equivalent to <code>hsh.count</code>.
   # @records is the number of entries in +@bins+.
   # @bins is the vector of storage for the bucket chains.
   #++
@@ -122,7 +122,7 @@ class Hash
     # We don't need the nanny checking our symbols
     set_instance_variable :@records, MIN_SIZE
     set_instance_variable :@bins, Tuple.new(MIN_SIZE)
-    set_instance_variable :@size, 0
+    set_instance_variable :@count, 0
   end
 
   # Returns the storage vector for Hash. The object should provide
@@ -131,17 +131,21 @@ class Hash
     @bins
   end
 
-  # Returns the size of the storage vector (+@bins+).
+  # Returns the magnitude of the storage vector (+@bins+).
   def records
     @records
   end
 
-  def size
-    @size
+  # Retuns the number of items in the Hash.
+  def count
+    @count
   end
 
-  def size=(size)
-    @size = size
+  # Increments the number of items in the Hash and requests
+  # that the Hash be redistributed. The request will be
+  # honored if the Hash's density exceeds a threshold.
+  def count=(count)
+    @count = count
     redistribute false
   end
 
@@ -167,9 +171,9 @@ class Hash
     entry = @bins[bin]
     return entry if entry
 
-    self.size += 1
+    self.count += 1
 
-    # recalc the bin since #size may have invoked redistribute
+    # recalc the bin since #count may have invoked redistribute
     @bins[entry_bin(key_hash)] = Bucket.new key, nil, key_hash
   end
 
@@ -183,7 +187,7 @@ class Hash
   # Iterator instance will be invalid after a call to redistribute.
   # If +rehash+ is true, recalculate the key_hash for each key.
   def redistribute(rehash = true)
-    resize = @size >= MAX_DENSITY * @records
+    resize = @count >= MAX_DENSITY * @records
     return unless rehash or resize
 
     i = to_iter

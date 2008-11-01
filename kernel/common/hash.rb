@@ -56,7 +56,7 @@ class Hash
 
     # Pickaxe claims that defaults are compared, but MRI 1.8.[46] doesn't actually do that
     # return false unless other.default == default
-    each { |k, v| return false unless other[k] == v }
+    each_item { |k, v| return false unless other[k] == v }
     true
   end
 
@@ -92,7 +92,7 @@ class Hash
 
     hsh = key_hash key
     entry = self.entry key, hsh
-    self.size += 1 if entry.set(key, value, hsh)
+    self.count += 1 if entry.set(key, value, hsh)
 
     value
   end
@@ -140,7 +140,7 @@ class Hash
 
       bins[bin] = entry.next if result.nil?
       unless result
-        self.size -= 1
+        self.count -= 1
         return entry.value
       end
     end
@@ -149,8 +149,6 @@ class Hash
   end
 
   def delete_if(&block)
-    raise LocalJumpError, "no block given" unless block_given? or empty?
-
     select(&block).each { |k, v| delete k }
 
     self
@@ -164,29 +162,24 @@ class Hash
   end
 
   def each_key
-    raise LocalJumpError, "no block given" unless block_given? or empty?
-
-    each { |k, v| yield k }
+    each_item { |k, v| yield k }
 
     self
   end
 
   def each
-    raise LocalJumpError, "no block given" unless block_given? or empty?
-
-    i = to_iter
-    while entry = i.next
-      begin
-        yield [entry.key, entry.value]
-      end while entry = entry.next
-    end
+    each_item { |k, v| yield [k, v] }
 
     self
   end
 
-  def each_pair
-    raise LocalJumpError, "no block given" unless block_given? or empty?
-
+  # Yields key, value for each item in the Hash. This method
+  # is necessary to protect the essential iterator from subclasses
+  # (e.g. REXML::Attribute) that replace #each with a version
+  # that is incompatible with the dependencies here (e.g. defining
+  # #each -> #each_attribute -> #each_value, where we had been
+  # defining #each_value in terms of #each).
+  def each_item
     i = to_iter
     while entry = i.next
       begin
@@ -197,20 +190,22 @@ class Hash
     self
   end
 
-  def each_value
-    raise LocalJumpError, "no block given" unless block_given? or empty?
+  alias_method :each_pair, :each_item
 
-    each { |k, v| yield v }
+ def each_value
+    each_item { |k, v| yield v }
 
     self
   end
 
+  # Returns +size+ == 0. Does not use #count so that a subclass's
+  # idea of size will be consistent with emptiness.
   def empty?
     size == 0
   end
 
   def index(value)
-    each { |k, v| return k if v == value }
+    each_item { |k, v| return k if v == value }
     nil
   end
 
@@ -220,7 +215,7 @@ class Hash
 
     out = []
     RecursionGuard.inspect(self) do
-      each do |key, value|
+      each_item do |key, value|
         str =  key.inspect
         str << '=>'
         str << value.inspect
@@ -233,7 +228,7 @@ class Hash
 
   def invert
     inverted = {}
-    each { |key, value| inverted[value] = key }
+    each_item { |key, value| inverted[value] = key }
     inverted
   end
 
@@ -261,7 +256,7 @@ class Hash
 
   def merge!(other)
     other = Type.coerce_to other, Hash, :to_hash
-    other.each do |k, v|
+    other.each_item do |k, v|
       if block_given? and key? k
         self[k] = yield k, self[k], v
       else
@@ -281,8 +276,6 @@ class Hash
   end
 
   def reject!
-    raise LocalJumpError, "no block given" unless block_given? or empty?
-
     rejected = select { |k, v| yield k, v }
     return if rejected.empty?
 
@@ -295,7 +288,7 @@ class Hash
     return self if self.equal? other
 
     clear
-    other.each { |k, v| self[k] = v }
+    other.each_item { |k, v| self[k] = v }
 
     if other.default_proc
       @default = other.default_proc
@@ -309,8 +302,6 @@ class Hash
   end
 
   def select
-    raise LocalJumpError, "no block given" unless block_given? or empty?
-
     selected = []
     i = to_iter
     while e = i.next
@@ -328,12 +319,13 @@ class Hash
     i = to_iter
     if entry = i.next
       bins[i.index] = entry.next
-      self.size -= 1
+      self.count -= 1
       return entry.key, entry.value
     end
   end
 
-  alias_method :length, :size
+  alias_method :length, :count
+  alias_method :size,   :count
 
   def sort(&block)
     to_a.sort(&block)
@@ -352,7 +344,7 @@ class Hash
   end
 
   def value?(value)
-    each { |k, v| return true if v == value }
+    each_item { |k, v| return true if v == value }
     false
   end
   alias_method :has_value?, :value?
