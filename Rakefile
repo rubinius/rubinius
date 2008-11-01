@@ -14,7 +14,7 @@ $: << "lib"
 # require 'tsort'
 # require 'rakelib/rubinius'
 
-task :default => %w[build vm:test spec:sydney_parser]
+task :default => %w[build vm:test spec:sydney]
 
 desc "Compile the given ruby file into a .rbc file"
 task :compile_ruby, :file do |task, args|
