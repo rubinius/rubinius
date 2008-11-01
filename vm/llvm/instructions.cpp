@@ -32,15 +32,10 @@ using namespace rubinius;
 // HACK: sassert is stack protection
 // #define stack_push(val) ({ OBJECT _v = (val); sassert(_v && js->stack < js->stack_top); *++js->stack = _v; })
 
-/** @todo  This can be improved on. Sequence point in the increment forces
- *         this execution order to avoid undefined behaviour of the increment
- *         if an exception is raised in calculating val. One option is to
- *         completely change js.stack to already point to next slot, but
- *         this requires quite a few changes elsewhere. --rue */
-#define stack_push(val) stack_push_paste((val), __LINE__)
-#define stack_push_paste(val, line) stack_push_uniq((val), line)
-#define stack_push_uniq(val, line)  Object* __stack_push_temporary_ ## line = (val); \
-                                    *(++ctx->js.stack) = __stack_push_temporary_ ## line
+/** We have to use the local here we need to evaluate val before we alter
+ * the stack. The reason is evaluating val might throw an exception. The
+ * old code used an undefined behavior, this forces the order. */
+#define stack_push(val) ({ Object* __stack_v = (val); *++ctx->js.stack = __stack_v; })
 
 #define stack_pop() *ctx->js.stack--
 #define stack_top() *ctx->js.stack
