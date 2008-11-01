@@ -1,5 +1,6 @@
-#include "native_libraries.hpp"
+#include <cstdlib>
 
+#include "native_libraries.hpp"
 #include "builtin/exception.hpp"
 
 #include <cxxtest/TestSuite.h>
@@ -10,10 +11,12 @@ using namespace rubinius;
 class TestNativeLibrary : public CxxTest::TestSuite {
   public:
 
-  VM *state_;
+  VM* state_;
+  const char* lib_name_;
 
   void setUp() {
     state_ = new VM();
+    lib_name_ = ::getenv("LIBRUBY");
   }
 
   void tearDown() {
@@ -27,7 +30,7 @@ class TestNativeLibrary : public CxxTest::TestSuite {
   }
 
   void test_find_symbol_in_this_process_throws_on_unloaded_library() {
-    String* name = String::create(state_, "ruby_version"); /* libruby1.8 */
+    String* name = String::create(state_, "ruby_version"); /* libruby.1.8 */
 
     TS_ASSERT_THROWS(NativeLibrary::find_symbol(state_, name, Qnil),
                      RubyException);
@@ -53,10 +56,12 @@ class TestNativeLibrary : public CxxTest::TestSuite {
    */
 
   void test_find_symbol_in_library() {
-    String* lib = String::create(state_, "libruby1.8");
-    String* name = String::create(state_, "ruby_version");
+    if(lib_name_) {
+      String* lib = String::create(state_, lib_name_);
+      String* name = String::create(state_, "ruby_version");
 
-    TS_ASSERT(NativeLibrary::find_symbol(state_, name, lib));
+      TS_ASSERT(NativeLibrary::find_symbol(state_, name, lib));
+    }
   }
 
   void test_find_symbol_in_library_throws_on_nonexisting_library() {
@@ -68,11 +73,13 @@ class TestNativeLibrary : public CxxTest::TestSuite {
   }
 
   void test_find_symbol_in_library_throws_on_nonexisting_symbol() {
-    String* lib = String::create(state_, "libruby1.8");
-    String* name = String::create(state_, "python_version");
+    if(lib_name_) {
+      String* lib = String::create(state_, lib_name_);
+      String* name = String::create(state_, "python_version");
 
-    TS_ASSERT_THROWS(NativeLibrary::find_symbol(state_, name, lib),
-                     RubyException);
+      TS_ASSERT_THROWS(NativeLibrary::find_symbol(state_, name, lib),
+                       RubyException);
+    }
   }
 
 };
