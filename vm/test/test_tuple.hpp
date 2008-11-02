@@ -59,47 +59,69 @@ public:
     TS_ASSERT_EQUALS(Fixnum::from(3), as<Fixnum>(tuple->fields_prim(state)));
   }
 
-  void test_replace_with() {
+  void test_copy_range() {
     Tuple* tuple = new_tuple();
 
     Tuple* dest = Tuple::create(state, 2);
-    dest->replace_with(state, tuple, 1, 2);
+    dest->copy_range(state, tuple, 1, 2, 0);
 
     TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 0)));
     TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(state, 1)));
   }
 
-  void test_replace_with_this_shorter() {
+  void test_copy_range_this_shorter() {
     Tuple* tuple = new_tuple();
 
     Tuple* dest = Tuple::create(state, 2);
     dest->put(state, 0, Fixnum::from(42));
     dest->put(state, 1, Fixnum::from(42));
 
-    dest->replace_with(state, tuple, 2, 3);
+    dest->copy_range(state, tuple, 2, 3, 0);
 
     TS_ASSERT_EQUALS(Fixnum::from(9),  as<Fixnum>(dest->at(state, 0)));
     TS_ASSERT_EQUALS(Fixnum::from(42), as<Fixnum>(dest->at(state, 1)));
   }
 
-  void test_replace_with_other_shorter() {
+  void test_copy_range_other_shorter() {
     Tuple* tuple = new_tuple();
 
     Tuple* dest = Tuple::create(state, 2);
-    dest->replace_with(state, tuple, 0, 2);
+    dest->copy_range(state, tuple, 0, 2, 0);
 
     TS_ASSERT_EQUALS(Fixnum::from(1),  as<Fixnum>(dest->at(state, 0)));
     TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 1)));
   }
 
-  void test_replace_with_start_not_less_than_zero() {
+  void test_copy_range_start_not_less_than_zero() {
     Tuple* tuple = new_tuple();
 
     Tuple* dest = Tuple::create(state, 2);
-    dest->replace_with(state, tuple, -2, 2);
+    dest->copy_range(state, tuple, -2, 2, 0);
 
     TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(state, 0)));
     TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 1)));
+  }
+
+  void test_copy_range_with_dest() {
+    Tuple *tuple = new_tuple();
+    Tuple *dest = Tuple::create(state, 3);
+    dest->copy_range(state, tuple, 0, 1, 1);
+
+    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(state, 1)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 2)));    
+  }
+
+  void test_copy_range_wtih_source_empty() {
+    Tuple *tuple = Tuple::create(state, 0);
+    Tuple *dest = new_tuple();
+
+    dest->copy_range(state, tuple, 0, 1, 0);
+
+    TS_ASSERT_EQUALS(0U, tuple->num_fields());
+    TS_ASSERT_EQUALS(3U, dest->num_fields());
+    TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(dest->at(state, 0)));
+    TS_ASSERT_EQUALS(Fixnum::from(4), as<Fixnum>(dest->at(state, 1)));    
+    TS_ASSERT_EQUALS(Fixnum::from(9), as<Fixnum>(dest->at(state, 2)));    
   }
 
   void test_copy_from() {

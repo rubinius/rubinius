@@ -58,20 +58,16 @@ namespace rubinius {
   /*
    * Copies items from +other+ to this tuple from +start+ to +end+ inclusive.
    */
-  void Tuple::replace_with(STATE, Tuple* other, int start, int end) {
-    size_t length;
+  void Tuple::copy_range(STATE, Tuple* other, int start, int end, int dest) {
+    size_t sz = this->num_fields();
+    size_t osz = other->num_fields();
 
+    if(osz < 1) return;
     if(start < 0) start = 0;
-    if((size_t)end >= other->num_fields()) {
-      length = other->num_fields() - 1;
-    } else {
-      length = end;
-    }
-    if(length - start + 1 > this->num_fields()) {
-      length = start + this->num_fields() - 1;
-    }
-
-    for(size_t i = start, j = 0; i <= length; i++, j++) {
+    if(dest < 0) dest = 0;
+    size_t length = (size_t)end >= osz ? osz - 1 : end;
+    
+    for(size_t i = start, j = dest; i <= length && j < sz; ++i, ++j) {
       this->put(state, j, other->at(state, i));
     }
   }

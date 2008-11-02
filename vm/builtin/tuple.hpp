@@ -43,7 +43,7 @@ namespace rubinius {
     // Ruby.primitive :tuple_create_weakref
     static Tuple* create_weakref(STATE, Object* obj);
 
-    void replace_with(STATE, Tuple* other, int start, int end);
+    void copy_range(STATE, Tuple* other, int start, int end, int dest);
 
   public: // Inline Functions
     Object* at(STATE, size_t index) {

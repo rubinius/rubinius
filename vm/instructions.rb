@@ -3833,7 +3833,7 @@ class Instructions
       Object* shifted_value = tuple->at(state, 0);
 
       Tuple* new_tuple = Tuple::create(state, j);
-      new_tuple->replace_with(state, tuple, 1, j);
+      new_tuple->copy_range(state, tuple, 1, j, 0);
 
       stack_push(new_tuple);
       stack_push(shifted_value);
