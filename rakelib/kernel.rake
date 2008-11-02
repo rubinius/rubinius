@@ -76,7 +76,7 @@ end
 
 require 'lib/compiler/mri_compile'
 
-def compile_ruby(src, rbc, check_mtime = false)
+def compile_ruby(src, rbc, check_mtime = false, kernel = false)
   if check_mtime and File.readable?(rbc)
     return if File.mtime(rbc) >= File.mtime(src)
   end
@@ -84,7 +84,8 @@ def compile_ruby(src, rbc, check_mtime = false)
   dir = File.dirname rbc
   FileUtils.mkdir_p dir unless File.directory? dir
 
-  mri_compile src, rbc, false, ["rbx-kernel"]
+  flags = kernel ? ["rbx-safe-math", "rbx-kernel"] : []
+  mri_compile src, rbc, false, flags
 end
 
 loose =  []
@@ -107,11 +108,13 @@ all_kernel << 'kernel/bootstrap/ruby_config.rb'
 modules['bootstrap'] << 'kernel/bootstrap/rubinius_config.rb'
 modules['bootstrap'] << 'kernel/bootstrap/ruby_config.rb'
 modules.each do |name, files|
-  files.each do |file|
-    compiled = "runtime/#{name}/#{File.basename(file)}c"
-    all_kernel << compiled
+  files.each do |rb|
+    rbc = "runtime/#{name}/#{File.basename(rb)}c"
+    all_kernel << rbc
 
-    file compiled => file
+    file rbc => rb do
+      compile_ruby rb, rbc, false, true
+    end
   end
 end
 
@@ -135,7 +138,7 @@ compiler = []
 COMPILER_SOURCES.each do |rb|
   compiler << "#{rb}c"
   file "#{rb}c" => rb do
-    compile_ruby rb, "#{rb}c"
+    compile_ruby rb, "#{rb}c", false, true
   end
 end
 
