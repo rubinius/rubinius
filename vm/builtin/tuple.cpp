@@ -89,17 +89,9 @@ namespace rubinius {
   }
 
   Tuple* Tuple::copy_from(STATE, Tuple* other, Fixnum* start, Fixnum* dest) {
-    native_int src = start->to_native();
-    native_int dst = dest->to_native();
-    native_int sz = this->num_fields();
-    native_int osz = other->num_fields();
-    native_int i, j;
-
-    if(src < 0) src = 0;
-    if(dst < 0) dst = 0;
-    for(i = src, j = dst; i < osz && j < sz; i++, j++) {
-      this->put(state, j, other->at(state, i));
-    }
+    copy_range(state,other,
+	       start->to_native(), other->num_fields()-1, 
+	       dest->to_native());
 
     return this;
   }
