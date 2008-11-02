@@ -11,7 +11,6 @@ class MSpecScript
     'spec/core',
     'spec/frozen/1.8/library',
     '^spec/frozen/1.8/library/iconv',
-    '^spec/frozen/1.8/library/mathn',
     '^spec/frozen/1.8/library/readline',
     'spec/library',
   ]
