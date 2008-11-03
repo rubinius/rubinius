@@ -10,10 +10,18 @@ total.times do |i|
 end
 
 Benchmark.bmbm do |x|
-  x.report 'empty' do
+  x.report 'empty N' do
     total.times {|i| i }
   end
 
+  x.report 'empty N^2' do
+    total.times {|i| total.times {|j| j } }
+  end
+
+  x.report 'empty N(N+1)/2' do
+    total.times {|i| i.times {|j| j } }
+  end
+  
   x.report 'Tuple#initialize' do
     total.times do |i|
       Tuple.new(i)
