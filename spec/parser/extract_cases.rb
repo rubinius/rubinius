@@ -11,6 +11,8 @@ require 'pp'
 ParseTreeTestCase.testcases.sort.each do |node, hash|
   next if Array === hash['Ruby']
 
+  hash['RubyParser'] = hash.delete 'ParseTree'
+
   File.open("#{dir}/#{node}_spec.rb", "w") do |f|
     f.puts "def test_case"
     f.puts hash.pretty_inspect
