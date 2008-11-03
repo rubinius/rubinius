@@ -87,7 +87,7 @@ module MiniTest
     def assert_in_delta exp, act, delta = 0.001, msg = nil
       n = (exp - act).abs
       msg = message(msg) { "Expected #{exp} - #{act} (#{n}) to be < #{delta}" }
-      assert delta > n, msg
+      assert delta >= n, msg
     end
 
     def assert_in_epsilon a, b, epsilon = 0.001, msg = nil
@@ -139,7 +139,10 @@ module MiniTest
         yield
         should_raise = true
       rescue Exception => e
-        assert_includes(exp, e.class, exception_details(e, "<#{mu_pp(exp)}> exception expected, not"))
+        assert(exp.any? { |ex|
+                 ex.instance_of?(Module) ? e.kind_of?(ex) : ex == e.class
+               }, exception_details(e, "#{mu_pp(exp)} exception expected, not"))
+
         return e
       end
 
@@ -188,12 +191,12 @@ module MiniTest
       assert caught, message(msg) { default }
     end
 
-    def capture_io
-      require 'stringio'
+   def capture_io
+     require 'stringio'
 
-      orig_stdout, orig_stderr         = $stdout.dup, $stderr.dup
-      captured_stdout, captured_stderr = StringIO.new, StringIO.new
-      $stdout, $stderr                 = captured_stdout, captured_stderr
+     orig_stdout, orig_stderr         = $stdout, $stderr
+     captured_stdout, captured_stderr = StringIO.new, StringIO.new
+     $stdout, $stderr                 = captured_stdout, captured_stderr
 
       yield
 
@@ -303,14 +306,14 @@ module MiniTest
       refute exp.equal?(act), msg
     end
 
-    def skip msg = nil
+    def skip msg = nil, bt = caller
       msg ||= "Skipped, no message given"
-      raise MiniTest::Skip, msg
+      raise MiniTest::Skip, msg, bt
     end
   end
 
   class Unit
-    VERSION = "1.3.0"
+    VERSION = "1.3.1"
 
     attr_accessor :report, :failures, :errors, :skips
     attr_accessor :test_count, :assertion_count
@@ -318,12 +321,16 @@ module MiniTest
     @@installed_at_exit ||= false
     @@out = $stdout
 
+    def self.disable_autorun
+      @@installed_at_exit = true
+    end
+
     def self.autorun
       at_exit {
         exit_code = MiniTest::Unit.new.run(ARGV)
         exit false if exit_code && exit_code != 0
       } unless @@installed_at_exit
-      @@installed_at_exit = true
+      disable_autorun
     end
 
     def self.output= stream
