@@ -119,7 +119,7 @@ class RPStringScanner < StringScanner
 end
 
 class RubyParser < Racc::Parser
-  VERSION = '1.0.0'
+  VERSION = '2.0.0'
 
   attr_accessor :lexer, :in_def, :in_single, :file
   attr_reader :env, :comments
@@ -653,6 +653,10 @@ class RubyParser < Racc::Parser
       s(:super, args)
     else
       args ||= s(:arglist)
+      if args[0] == :arglist && args.splat then
+        args[0] = :array
+        args = s(:dummy, args)
+      end
       s(:super, *args[1..-1])
     end
   end
@@ -702,11 +706,16 @@ class RubyParser < Racc::Parser
   end
 
   def new_yield args = nil
+    # TODO: raise args.inspect unless [:arglist].include? args.first # HACK
     raise SyntaxError, "Block argument should not be given." if
       args && args.node_type == :block_pass
 
     args ||= s(:arglist)
-    args = s(:arglist, args) unless [:arglist, :array].include? args.first
+
+    # TODO: I can prolly clean this up
+    args[0] = :arglist       if args.first == :array
+    args[0] = :array         if args[0] == :arglist && args.splat
+    args = s(:arglist, args) unless args.first == :arglist
 
     return s(:yield, *args[1..-1])
   end
@@ -779,6 +788,7 @@ class RubyParser < Racc::Parser
       # HACK matz wraps ONE of the FOUR splats in a newline to
       # distinguish. I use paren for now. ugh
       node = s(:svalue, node) if node[0] == :splat and not node.paren
+      node[0] = :svalue if node[0] == :arglist && node[1][0] == :splat
     end
 
     node
