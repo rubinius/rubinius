@@ -42,6 +42,8 @@
 void inline_size
 pollidx_init (int *base, int count)
 {
+  /* consider using memset (.., -1, ...), which is pratically guarenteed
+   * to work on all systems implementing poll */
   while (count--)
     *base++ = -1;
 }
@@ -96,7 +98,7 @@ poll_poll (EV_P_ ev_tstamp timeout)
       else if (errno == ENOMEM && !syserr_cb)
         fd_enomem (EV_A);
       else if (errno != EINTR)
-        syserr ("(libev) poll");
+        ev_syserr ("(libev) poll");
     }
   else
     for (p = polls; res; ++p)

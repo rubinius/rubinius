@@ -1,5 +1,36 @@
 Revision history for libev, a high-performance and full-featured event loop.
 
+WISH? monotonic clocks times/GetTickCount for coarse corrections?
+
+3.48 Thu Oct 30 09:02:37 CET 2008
+	- further optimise away the EPOLL_CTL_ADD/MOD combo in the epoll
+          backend by assuming the kernel event mask hasn't changed if
+          ADD fails with EEXIST.
+        - work around spurious event notification bugs in epoll by using
+          a 32-bit generation counter. recreate kernel state if we receive
+          spurious notifications or unwanted events. this is very costly,
+          but I didn't come up with this horrible design.
+        - use memset to initialise most arrays now and do away with the
+          init functions.
+        - expand time-out strategies into a "Be smart about timeouts" section.
+        - drop the "struct" from all ev_watcher declarations in the
+          documentation and did other clarifications (yeah, it was a mistake
+          to have a struct AND a function called ev_loop).
+	- fix a bug where ev_default would not initialise the default
+          loop again after it was destroyed with ev_default_destroy.
+        - rename syserr to ev_syserr to avoid name clashes when embedding,
+          do similar changes for event.c.
+
+3.45 Tue Oct 21 21:59:26 CEST 2008
+	- disable inotify usage on linux <2.6.25, as it is broken
+          (reported by Yoann Vandoorselaere).
+        - ev_stat errornously would try to add inotify watchers
+          even when inotify wasn't available (this should only
+          have a performance impact).
+	- ev_once now passes both timeout and io to the callback if both
+          occur concurrently, instead of giving timeouts precedence.
+	- disable EV_USE_INOTIFY when sys/inotify.h is too old.
+
 3.44 Mon Sep 29 05:18:39 CEST 2008
 	- embed watchers now automatically invoke ev_loop_fork on the
           embedded loop when the parent loop forks.
