@@ -11,6 +11,7 @@
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
+#include "builtin/data.hpp"
 #include "builtin/dir.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
@@ -201,6 +202,7 @@ namespace rubinius {
     NativeFunction::init(this);
     TaskProbe::init(this);
     Exception::init(this);
+    Data::init(this);
 
     NativeMethod::register_class_with(this);
     NativeMethodContext::register_class_with(this);

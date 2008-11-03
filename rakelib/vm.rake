@@ -74,6 +74,7 @@ field_extract_headers = %w[
   vm/builtin/class.hpp
   vm/builtin/compiledmethod.hpp
   vm/builtin/contexts.hpp
+  vm/builtin/data.hpp
   vm/builtin/dir.hpp
   vm/builtin/exception.hpp
   vm/builtin/float.hpp
