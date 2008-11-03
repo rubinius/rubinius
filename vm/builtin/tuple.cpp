@@ -79,11 +79,7 @@ namespace rubinius {
       return this;
     } else {
       Tuple* tuple = Tuple::create(state, this->num_fields() + cnt);
-
-      for(size_t i = 0; i < this->num_fields(); i++) {
-        tuple->put(state, i + cnt, this->at(state, i));
-      }
-
+      tuple->copy_range(state, this, 0, this->num_fields() - 1, cnt); 
       return tuple;
     }
   }
