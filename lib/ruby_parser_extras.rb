@@ -119,7 +119,7 @@ class RPStringScanner < StringScanner
 end
 
 class RubyParser < Racc::Parser
-  VERSION = '2.0.0'
+  VERSION = '2.0.1'
 
   attr_accessor :lexer, :in_def, :in_single, :file
   attr_reader :env, :comments
@@ -653,10 +653,6 @@ class RubyParser < Racc::Parser
       s(:super, args)
     else
       args ||= s(:arglist)
-      if args[0] == :arglist && args.splat then
-        args[0] = :array
-        args = s(:dummy, args)
-      end
       s(:super, *args[1..-1])
     end
   end
@@ -714,7 +710,6 @@ class RubyParser < Racc::Parser
 
     # TODO: I can prolly clean this up
     args[0] = :arglist       if args.first == :array
-    args[0] = :array         if args[0] == :arglist && args.splat
     args = s(:arglist, args) unless args.first == :arglist
 
     return s(:yield, *args[1..-1])

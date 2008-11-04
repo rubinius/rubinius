@@ -4014,7 +4014,6 @@ end
 
 def _reduce_223(val, _values, result)
                       result = s(:array, s(:splat, val[1]))
-                      result.paren = true
                     
     result
 end

@@ -723,7 +723,6 @@ rule
                 | tSTAR arg opt_nl
                     {
                       result = s(:array, s(:splat, val[1]))
-                      result.paren = true
                     }
 
       paren_args: tLPAREN2 none tRPAREN
