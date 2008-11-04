@@ -28,7 +28,7 @@
 #define GO(whatever) globals.whatever
 
 namespace rubinius {
-  VM::VM(size_t bytes) : reuse_llvm(true) {
+  VM::VM(size_t bytes) : current_mark(NULL), reuse_llvm(true) {
     config.compile_up_front = false;
 
     VM::register_state(this);

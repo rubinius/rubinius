@@ -3,6 +3,7 @@
 
 #include "builtin/object.hpp"
 #include "builtin/class.hpp"
+#include "builtin/nativemethodcontext.hpp"
 #include "objectmemory.hpp"
 #include "type_info.hpp"
 
@@ -15,6 +16,8 @@ namespace rubinius {
     void (*mark_) (void*);
     void (*free_) (void*);
     void *data_;
+
+    NativeMethodContext* mark_context; // slot
 
     static void Data::init(STATE);
 

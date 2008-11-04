@@ -628,6 +628,9 @@ char *StringValuePtr(VALUE str);
                                          (receiver), (method_name), \
                                          (arg_count), (args) )
 
+  /** Mark ruby object ptr. */
+  void    rb_gc_mark(VALUE ptr);
+
   /** Mark variable global. Will not be GC'd. */
   void    rb_global_variable(VALUE* handle_address);
 

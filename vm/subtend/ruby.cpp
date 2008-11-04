@@ -846,6 +846,20 @@ extern "C" {
     }
   }
 
+  void rb_gc_mark(VALUE ptr) {
+    NativeMethodContext* context = NativeMethodContext::current();
+
+    Object* object = context->object_from(ptr);
+
+    if(object->reference_p()) {
+      Object* res = VM::current_state()->current_mark.call(object);
+
+      if(res) {
+        context->handles()[ptr] = res;
+      }
+    }
+  }
+
   /** @todo   Check logic. This alters the VALUE to be a global handler. --rue */
   void rb_global_variable(VALUE* address) {
     NativeMethodContext* context = NativeMethodContext::current();

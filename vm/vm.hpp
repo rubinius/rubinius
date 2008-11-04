@@ -3,6 +3,7 @@
 
 #include "globals.hpp"
 #include "symboltable.hpp"
+#include "gc_object_mark.hpp"
 
 #include <pthread.h>
 
@@ -67,6 +68,9 @@ namespace rubinius {
     Interrupts interrupts;
     SymbolTable symbols;
     ConfigParser *user_config;
+
+    // Temporary holder for rb_gc_mark() in subtend
+    ObjectMark current_mark;
 
     bool reuse_llvm;
 
