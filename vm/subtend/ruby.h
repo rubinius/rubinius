@@ -48,6 +48,11 @@
  */
 #define ID    intptr_t
 
+/**
+ * In MRI, RUBY_DATA_FUNC is used for the mark and free functions in
+ * Data_Wrap_Struct and Data_Make_Struct.
+ */
+typedef void (*RUBY_DATA_FUNC)(void*);
 
 /* "Stash" the real versions. */
 #define RBX_Qfalse      (reinterpret_cast<Object*>(6UL))
@@ -437,9 +442,16 @@ extern "C" {
   /** Convert unsigned int into a Numeric. */
   VALUE   UINT2NUM(unsigned int number);
 
-char *StringValuePtr(VALUE str);
+  char*   StringValuePtr(VALUE str);
 
+#define   Data_Make_Struct(klass, type, mark, free, sval) (\
+            sval = ALLOC(type), \
+            memset(sval, NULL, sizeof(type)), \
+            Data_Wrap_Struct(klass, mark, free, sval)\
+          )
 
+  VALUE   Data_Wrap_Struct(VALUE klass, RUBY_DATA_FUNC mark,
+                           RUBY_DATA_FUNC free, void* sval);
 
   /** Return obj if it is an Array, or return wrapped (i.e. [obj]) */
   VALUE   rb_Array(VALUE obj_handle);

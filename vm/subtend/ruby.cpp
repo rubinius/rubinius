@@ -8,6 +8,7 @@
 #include "builtin/array.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/bytearray.hpp"
+#include "builtin/data.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/integer.hpp"
@@ -37,6 +38,7 @@ using rubinius::Bignum;
 using rubinius::ByteArray;
 using rubinius::Class;
 using rubinius::ClassType;
+using rubinius::Data;
 using rubinius::Fixnum;
 using rubinius::Integer;
 using rubinius::Message;
@@ -478,6 +480,19 @@ extern "C" {
 
   VALUE UINT2NUM(unsigned int number) {
     return hidden_native2num<unsigned int>(number);
+  }
+
+  VALUE Data_Wrap_Struct(VALUE klass, RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free,
+                         void* ptr) {
+    NativeMethodContext* context = NativeMethodContext::current();
+
+    Class* data_klass = as<Class>(context->object_from(klass));
+
+    Data* data = Data::create(context->state(), ptr, mark, free);
+
+    data->klass(context->state(), data_klass);
+
+    return context->handle_for(data);
   }
 
   VALUE rb_Array(VALUE obj_handle) {

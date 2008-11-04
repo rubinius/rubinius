@@ -9,8 +9,8 @@ namespace rubinius {
     G(data)->set_object_type(state, DataType);
   }
 
-  Data* create(STATE, void* data_ptr, void (*mark) (void*),
-               void (*free) (void*)) {
+  Data* Data::create(STATE, void* data_ptr, void (*mark) (void*),
+                     void (*free) (void*)) {
     Data* data;
     data = (Data*)state->om->new_object(G(data), Data::fields);
 
