@@ -38,6 +38,45 @@ describe "return when passed a splat" do
     def r; ary = [1,2]; return *ary; end; r.should == [1,2]
     def r; ary = [1,2,3]; return *ary; end; r.should == [1,2,3]
   end
+
+  it "returns a non-array when used as a splat" do
+    def r; value = 1; return *value; end;  r.should == 1
+  end
+
+  it "calls 'to_a' on the splatted value first" do
+    def r
+      obj = Object.new
+      def obj.to_a
+        []
+      end
+
+      return *obj
+    end
+
+    r().should be_nil
+
+    def r
+      obj = Object.new
+      def obj.to_a
+        [1]
+      end
+
+      return *obj
+    end
+
+    r().should == 1
+
+    def r
+      obj = Object.new
+      def obj.to_a
+        [1,2]
+      end
+
+      return *obj
+    end
+
+    r().should == [1,2]
+  end
 end
 
 describe "return from within a begin" do
@@ -99,9 +138,9 @@ describe "return from within a begin" do
   end
 end
 
-describe "return from within a block" do
+describe "Return from within a block" do
   it "raises a LocalJumpError if there is no lexicaly enclosing method" do
-    def f; yield end
+    def f; yield; end
     lambda { f { return 5 } }.should raise_error(LocalJumpError)
   end
 
