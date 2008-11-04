@@ -1,5 +1,2 @@
-fails:The return keyword assigns splatted objects to block variables
-fails:The return keyword assigns to a block variable with a splat on the LHS
-fails:The return keyword assigns to a block variable with splats on the LHS and RHS
-fails:The return keyword assigns to multiple block variables with a splatted value
 fails:Return from within a block raises a LocalJumpError if there is no lexicaly enclosing method
+fails:The return keyword unwraps single-element and empty splatted arrays

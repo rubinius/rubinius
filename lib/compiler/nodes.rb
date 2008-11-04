@@ -2215,7 +2215,14 @@ raise "no"
       kind :return
 
       def args(val=nil)
+        @splat = false
+
+        if val && val.is?(ArrayLiteral)
+          @splat = val.body.grep(Splat).first
+        end
+
         @value = val
+
         @in_rescue = get(:in_rescue)
 
         if ens = get(:in_ensure)
@@ -2230,7 +2237,7 @@ raise "no"
         end
       end
 
-      attr_accessor :value, :in_rescue, :in_ensure, :in_block, :check_var
+      attr_accessor :value, :in_rescue, :in_ensure, :in_block, :check_var, :splat
     end
 
     class SClass < ClosedScope
@@ -2247,26 +2254,30 @@ raise "no"
       attr_accessor :object, :body
     end
 
+    # Wrapper around a multi-element expression
+    # Examples include: x = 1,2,3; return *1; x = *r; x = 1,2,3,*y
     class SValue < Node
       kind :svalue
 
-      def args(child)
-        @child = child
-
-        # TODO: this is, of course, violation of encapsulation
-        case @child
+      # If a Splat is contained in this SValue, it will be
+      # stored in '@splat'
+      # If there is an ArrayLiteral, it will be stored in '@literal'
+      def args(contents)
+        case contents
         when ArrayLiteral then
-          @splat   = @child.body.grep(Splat).first
-          @child.body.reject! { |o| Splat === o } if @splat
+          @splat = contents.body.grep(Splat).first
+          contents.body.reject! {|e| Splat === e} if @splat
+          @literal = contents
         when Splat then
-          @splat = @child
-          @child = nil
+          @splat = contents
+          @literal = nil
         else
           @splat = nil
+          @literal = contents
         end
       end
 
-      attr_accessor :child
+      attr_reader :splat, :literal
     end
 
     # +Scope+ is another special node type. It represents the scope

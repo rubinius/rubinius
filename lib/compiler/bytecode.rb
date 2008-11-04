@@ -63,6 +63,42 @@ class Compiler
       found.set!
     end
 
+    def unwrap_array(g)
+      # If the array has 1 or 0 elements, grab the 0th element.
+      # otherwise, leave the array on the stack.
+      g.cast_array
+      g.dup
+      g.send :size, 0
+      g.push 1
+      g.send :>, 1
+
+      lbl = g.new_label
+      g.git lbl
+
+      g.push 0
+      g.send :at, 1
+
+      lbl.set!
+    end
+
+    def wrap_array(g)
+      g.dup
+      g.push_cpath_top
+      g.find_const :Array
+      g.swap
+      g.kind_of
+
+      wrap = g.new_label
+      done = g.new_label
+      g.git wrap
+      g.cast_array
+      g.goto done
+
+      wrap.set!
+      g.make_array 1
+      done.set!
+    end
+
     class AccessSlot
       def bytecode(g)
         g.push_my_field @index
@@ -1575,9 +1611,8 @@ class Compiler
           g.rotate @rhs.body.size if @rhs.respond_to? :body # HACK
         end
 
-        g.cast_tuple
-
-        if @lhs
+        if @lhs && !@lhs.body.size.zero?
+          g.cast_tuple
           @lhs.body.each do |x|
             g.shift_tuple
             if x.is? AttrAssign
@@ -1590,11 +1625,17 @@ class Compiler
         end
 
         if @splat_lhs
-          g.cast_array
-          @splat_lhs.bytecode(g) unless @splat_lhs.kind_of? TrueClass # HACK dup
+          # *x = r() should wrap r()'s return value in an Array
+          # but a,b,*c = r() has no need to do so
+          should_wrap = @lhs.body.size.zero? ? true : false
+          should_wrap = false if @rhs.nil? || @rhs.is?(Splat)
+          g.cast_array unless should_wrap
+          set(:splat_lhs => should_wrap) do
+            @splat_lhs.bytecode(g)
+          end
         end
-        g.pop
 
+        g.pop
         g.push :true
       end
 
@@ -2084,27 +2125,16 @@ class Compiler
           g.clear_exception
         end
 
-        # UGH... more violation
-        case @value
-        when ArrayLiteral
-          splat = false
-          @value.body.each do |o|
-            case o
-            when Splat then
-              splat = true
-              g.make_array @value.body.size - 1
-              o.bytecode(g)
-              g.cast_array
-              g.send :+, 1
-            else
-              o.bytecode(g)
-            end
-          end
-          g.make_array @value.body.size unless splat
-        when nil
-          g.push :nil
-        else
+        # Literal ArrayList and a splat
+        if @splat
+          splat_node = @value.body.pop
           @value.bytecode(g)
+          splat_node.call_bytecode(g)
+          g.send :+, 1
+        elsif @value
+          @value.bytecode(g)
+        else
+          g.push :nil
         end
 
         if !force and @in_ensure
@@ -2151,35 +2181,20 @@ class Compiler
 
     class SValue
       def bytecode(g)
-        @child.bytecode(g) if @child
-
-        if @splat then
+        if @literal and @splat
+          # Both a literal list of args and a splat
+          # Create two arrays and combine them.
+          @literal.bytecode(g)
+          @splat.call_bytecode(g)
+          g.send :+, 1
+        elsif @literal
+          # Only a literal list of args, no splat
+          @literal.bytecode(g)
+        elsif @splat
+          # Just a splat, no literal args
           @splat.bytecode(g)
-
-          if @child then
-            g.cast_array
-            g.send :+, 1
-          end
+          unwrap_array(g)
         end
-
-        g.cast_array
-
-        # If the array has 1 or 0 elements, grab the 0th element.
-        # otherwise, leave the array on the stack.
-
-        g.dup
-        g.send :size, 0
-        g.push 1
-        g.swap
-        g.send :<, 1
-
-        lbl = g.new_label
-        g.git lbl
-
-        g.push 0
-        g.send :at, 1
-
-        lbl.set!
       end
     end
 
@@ -2228,15 +2243,23 @@ class Compiler
       end
     end
 
+    # TODO - This needs to handle the insane unwrapping logic of
+    # return *[*[1]]
     class Splat
       def bytecode(g)
-        @child.bytecode(g) if @child
+        if @child
+          if get(:splat_lhs) then
+            wrap_array(g)
+          end
+
+          @child.bytecode(g)
+        end
       end
 
       # Bytecode generation when a splat is used as a method arg
       def call_bytecode(g)
-        @child.bytecode(g)
-        g.cast_array
+        bytecode(g)
+        g.cast_array if @child
 
         return 0
       end

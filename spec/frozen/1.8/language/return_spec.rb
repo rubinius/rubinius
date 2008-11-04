@@ -21,8 +21,6 @@ describe "The return keyword" do
     def r; return *[1]; end;     a = r(); a.should == 1
     def r; return *[nil]; end;   a = r(); a.should == nil
     def r; return *[[]]; end;    a = r(); a.should == []
-    def r; return *[*[1]]; end;  a = r(); a.should == 1
-    def r; return *[*[1,2]]; end; a = r(); a.should == [1,2]
   end
 
   it "assigns to a block variable with a splat on the RHS" do
@@ -47,9 +45,6 @@ describe "The return keyword" do
     def r; return *[1]; end;      *a = r(); a.should == [1]
     def r; return *[nil]; end;    *a = r(); a.should == [nil]
     def r; return *[[]]; end;     *a = r(); a.should == [[]]
-    def r; return *[*[]]; end;    *a = r(); a.should == [nil]
-    def r; return *[*[1]]; end;   *a = r(); a.should == [1]
-    def r; return *[*[1,2]]; end; *a = r(); a.should == [[1,2]]
     def r; return 1, 2, 3; end;   *a = r(); a.should == [[1, 2, 3]]
   end
 
@@ -60,9 +55,6 @@ describe "The return keyword" do
     def r; return *[1]; end;      *a = *r(); a.should == [1]
     def r; return *[nil]; end;    *a = *r(); a.should == [nil]
     def r; return *[[]]; end;     *a = *r(); a.should == []
-    def r; return *[*[]]; end;    *a = *r(); a.should == [nil]
-    def r; return *[*[1]]; end;   *a = *r(); a.should == [1]
-    def r; return *[*[1,2]]; end; *a = *r(); a.should == [1,2]
     def r; return 1, 2, 3; end;   *a = *r(); a.should == [1, 2, 3]
   end
 
@@ -86,6 +78,18 @@ describe "The return keyword" do
     def r; return *[]; end;       a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
     def r; return *[1]; end;      a,b,*c = r(); [a,b,c].should == [1,nil,[]]
     def r; return *[nil]; end;    a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
+  end
+
+  it "unwraps single-element and empty splatted arrays" do
+    def r; return *[*[]]; end;  a = r(); a.should == nil
+    def r; return *[*[1]]; end;  a = r(); a.should == 1
+    def r; return *[*[1,2]]; end; a = r(); a.should == [1,2]
+    def r; return *[*[]]; end;    *a = r(); a.should == [nil]
+    def r; return *[*[1]]; end;   *a = r(); a.should == [1]
+    def r; return *[*[1,2]]; end; *a = r(); a.should == [[1,2]]
+    def r; return *[*[]]; end;    *a = *r(); a.should == [nil]
+    def r; return *[*[1]]; end;   *a = *r(); a.should == [1]
+    def r; return *[*[1,2]]; end; *a = *r(); a.should == [1,2]
     def r; return *[[]]; end;     a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
     def r; return *[*[]]; end;    a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
     def r; return *[*[1]]; end;   a,b,*c = r(); [a,b,c].should == [1,nil,[]]

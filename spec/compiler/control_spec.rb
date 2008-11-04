@@ -1297,6 +1297,35 @@ describe Compiler do
     end
   end
 
+  it "compiles 'return *1'" do
+    ruby = <<-EOC
+      return *1
+    EOC
+
+    sexp = s(:return,
+             s(:svalue,
+               s(:splat, s(:fixnum, 1))))
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
+      g.push 1 # 1
+      g.cast_array # [1]
+      g.dup # [1] [1]
+      g.send :size, 0 # size [1]
+      g.push 1 # 1 size [1]
+      g.send :>, 1 # bool [1]
+
+      more_than_one = g.new_label
+      g.git more_than_one # [1]
+
+      g.push 0 # 0 [1]
+      g.send :at, 1
+
+      more_than_one.set!
+      g.ret
+    end
+  end
+
   it "compiles 'return 1, 2, *c'" do
     ruby = <<-EOC
       return 1, 2, *c
