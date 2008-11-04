@@ -482,19 +482,6 @@ extern "C" {
     return hidden_native2num<unsigned int>(number);
   }
 
-  VALUE Data_Wrap_Struct(VALUE klass, RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free,
-                         void* ptr) {
-    NativeMethodContext* context = NativeMethodContext::current();
-
-    Class* data_klass = as<Class>(context->object_from(klass));
-
-    Data* data = Data::create(context->state(), ptr, mark, free);
-
-    data->klass(context->state(), data_klass);
-
-    return context->handle_for(data);
-  }
-
   VALUE rb_Array(VALUE obj_handle) {
     NativeMethodContext* context = NativeMethodContext::current();
 
@@ -782,6 +769,19 @@ extern "C" {
                       2,
                       context->handle_for(prefixed_by("@@", name)),
                       value);
+  }
+
+  VALUE rb_data_object_alloc(VALUE klass, RUBY_DATA_FUNC mark,
+                             RUBY_DATA_FUNC free, void* ptr) {
+    NativeMethodContext* context = NativeMethodContext::current();
+
+    Class* data_klass = as<Class>(context->object_from(klass));
+
+    Data* data = Data::create(context->state(), ptr, mark, free);
+
+    data->klass(context->state(), data_klass);
+
+    return context->handle_for(data);
   }
 
   void rb_define_alias(VALUE module_handle, const char* new_name, const char* old_name) {

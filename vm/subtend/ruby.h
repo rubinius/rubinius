@@ -450,8 +450,9 @@ extern "C" {
             Data_Wrap_Struct(klass, mark, free, sval)\
           )
 
-  VALUE   Data_Wrap_Struct(VALUE klass, RUBY_DATA_FUNC mark,
-                           RUBY_DATA_FUNC free, void* sval);
+#define   Data_Wrap_Struct(klass, mark, free, sval) \
+            rb_data_object_alloc(klass, (void*)sval, (RUBY_DATA_FUNC)mark, \
+                                 (RUBY_DATA_FUNC)free)
 
   /** Return obj if it is an Array, or return wrapped (i.e. [obj]) */
   VALUE   rb_Array(VALUE obj_handle);
@@ -559,6 +560,8 @@ extern "C" {
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
   VALUE   rb_cvar_set(VALUE module_handle, ID name, VALUE value);
 
+  VALUE   rb_data_object_alloc(VALUE klass, RUBY_DATA_FUNC mark,
+                               RUBY_DATA_FUNC free, void* sval);
   /** Alias method by old name as new name. Methods are independent of eachother. */
   void    rb_define_alias(VALUE module_handle, const char *new_name, const char *old_name);
 
