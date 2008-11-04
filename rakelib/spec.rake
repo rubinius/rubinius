@@ -118,8 +118,9 @@ namespace :spec do
     end
   end
 
-  task :sydney_parser do
-    warn "*** RUNNING WITH SYDNEY PARSER ***"
+  desc "Run all 'known good' specs with SydneyParser"
+  task :sydney do
+    warn "*** Running with SydneyParser enabled ***"
     ENV['SYDNEY'] = '1'
 
     sh "bin/mspec ci -t #{spec_target}"
@@ -199,6 +200,15 @@ namespace :spec do
 
   desc "Run continuous integration examples including stdlib"
   task :full => :build do
+    clear_compiler
+    sh "bin/mspec ci -t #{spec_target} -B full.mspec"
+  end
+
+  desc "Run continuous integration examples including stdlib with SydneyParser"
+  task :full_sydney => :build do
+    warn "*** Running with SydneyParser enabled ***"
+    ENV['SYDNEY'] = '1'
+
     clear_compiler
     sh "bin/mspec ci -t #{spec_target} -B full.mspec"
   end

@@ -97,34 +97,34 @@ describe Compiler do
     end
   end
 
-  it "compiles '1 / 1' using :/ without safemath" do
+  it "compiles '4 / 2' using :/ without safemath" do
     ruby = <<-EOC
-      1 / 1
+      4 / 2
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :/, s(:arglist, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 4), :/, s(:arglist, s(:fixnum, 2)))
 
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      g.push 1
-      g.push 1
+      g.push 4
+      g.push 2
       g.send :/, 1, false
     end
   end
 
-  it "compiles '1 / 1' using :divide with safemath" do
+  it "compiles '4 / 2' using :divide with safemath" do
     ruby = <<-EOC
-      1 / 1
+      4 / 2
     EOC
 
-    sexp = s(:call, s(:fixnum, 1), :/, s(:arglist, s(:fixnum, 1)))
+    sexp = s(:call, s(:fixnum, 4), :/, s(:arglist, s(:fixnum, 2)))
 
     sexp.should == parse(ruby)
 
     gen sexp, [:safemath] do |g|
-      g.push 1
-      g.push 1
+      g.push 4
+      g.push 2
       g.send :divide, 1, false
     end
   end

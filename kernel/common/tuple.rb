@@ -66,11 +66,11 @@ class Tuple
     count -= 1
     i = 0
     while i < count
-      str << at(i).__send__(meth)
-      str << sep.dup
+      str.append at(i).__send__(meth)
+      str.append sep.dup
       i += 1
     end
-    str << at(count).__send__(meth)
+    str.append at(count).__send__(meth)
     return str
   end
 

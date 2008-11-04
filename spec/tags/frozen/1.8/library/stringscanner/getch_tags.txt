@@ -1,1 +1,2 @@
 fails:StringScanner#getch is multi-byte character sensitive
+fails:StringScanner#getch does not accept any arguments

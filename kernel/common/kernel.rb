@@ -179,7 +179,6 @@ module Kernel
   module_function :warn
 
   def exit(code=0)
-    code = 0 if code.equal? true
     raise SystemExit.new(code)
   end
   module_function :exit
@@ -819,17 +818,8 @@ class SystemExit < Exception
   # Creates a SystemExit exception with optional status and message.  If the
   # status is omitted, Process::EXIT_SUCCESS is used.
 
-  def initialize(*args)
-    status = if args.first.kind_of? Fixnum then
-               args.shift
-             else
-               Process::EXIT_SUCCESS
-             end
-
-    super(*args)
-
-    @status = status
+  def initialize(status = Process::EXIT_SUCCESS)
+    @status = Type.coerce_to status, Fixnum, :to_int
   end
-
 end
 

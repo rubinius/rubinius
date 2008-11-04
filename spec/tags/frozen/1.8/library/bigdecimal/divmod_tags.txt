@@ -1,1 +1,9 @@
 fails:BigDecimal#divmod Can be reversed with * and +
+fails:BigDecimal#mod_part_of_divmod returns self modulo other
+fails:BigDecimal#mod_part_of_divmod returns a [Float value] when the argument is Float
+fails:BigDecimal#mod_part_of_divmod returns NaN if NaN is involved
+fails:BigDecimal#mod_part_of_divmod returns NaN if Infinity is involved
+fails:BigDecimal#mod_part_of_divmod raises TypeError if the argument cannot be coerced to BigDecimal
+fails:BigDecimal#mod_part_of_divmod does NOT raise ZeroDivisionError if other is zero
+fails:BigDecimal#divmod divides value, returns an array
+fails:BigDecimal#divmod array contains quotient and modulus as BigDecimal

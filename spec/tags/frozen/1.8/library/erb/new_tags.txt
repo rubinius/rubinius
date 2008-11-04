@@ -1,0 +1,6 @@
+fails:ERB.new remove "\n" when trim_mode is 1 or '>'
+fails:ERB.new remove spaces at beginning of line and "\n" when trim_mode is 2 or '<>'
+fails:ERB.new regards lines starting with '%' as '<% ... %>' and remove "\n" when trim_mode is '%>'
+fails:ERB.new regard lines starting with '%' as '<% ... %>' and remove "\n" when trim_mode is '%<>'
+fails:ERB.new regard lines starting with '%' as '<% ... %>' and spaces around '<%- -%>' when trim_mode is '%-'
+fails:ERB.new ignores '<%# ... %>'

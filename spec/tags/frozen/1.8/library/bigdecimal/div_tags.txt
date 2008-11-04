@@ -1,1 +1,4 @@
 fails:BigDecimal#div returns a / b with optional precision
+fails:BigDecimal#div with precision set to 0 returns a / b
+fails:BigDecimal#div with precision set to 0 returns 0 if divided by Infinity
+fails:BigDecimal#div returns 0 if divided by Infinity with given precision

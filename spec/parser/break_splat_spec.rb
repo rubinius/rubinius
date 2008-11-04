@@ -6,5 +6,5 @@ def test_case
   s(:iter,
    s(:call, nil, :loop, s(:arglist)),
    nil,
-   s(:break, s(:arglist, s(:splat, s(:array, s(:nil))))))}
+   s(:break, s(:svalue, s(:splat, s(:array, s(:nil))))))}
 end

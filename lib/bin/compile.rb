@@ -12,7 +12,7 @@ class ExtensionCompiler
     @preserve_objects = true if $DEBUG
 
     # @todo   Figure some sensible way to do this. --rue
-    flags << "-C,-std=c99"
+    #flags << "-C,-std=c99"
     flags << "-h" unless extra.empty?
 
     flags.each do |flag|

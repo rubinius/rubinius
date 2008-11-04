@@ -120,16 +120,6 @@ class Rubinius::SydneyRewriter
     exp
   end
 
-  def rewrite_break(exp)
-    args = exp[1]
-    case args
-    when Array
-      args[0] = :arglist if args[0] == :svalue
-    end
-
-    exp
-  end
-
   # Adapted from UnifiedRuby
   def rewrite_call(exp)
     args = exp.last

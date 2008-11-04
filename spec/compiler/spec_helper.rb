@@ -24,11 +24,16 @@ load "kernel/delta/string.rb"
 
 require 'ruby_parser' # for s(...)
 
+  # HACK HACK HACK
+  def parse ruby
+    ruby.to_sexp("spec")
+  end
+else
+  # HACK HACK HACK
+  def parse ruby
+    Rubinius::LitRewriter.new.process ruby.to_sexp("spec")
+  end
 end   # unless defined?(RUBY_ENGINE)
-
-def parse ruby
-  ruby.to_sexp("spec")
-end
 
 ######################################################################
 

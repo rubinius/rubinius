@@ -1,3 +1,4 @@
+/** \file   Base template for generating vm/gen/instructions.cpp. */
 
 #include "builtin/object.hpp"
 #include "builtin/array.hpp"
@@ -27,9 +28,15 @@ using namespace rubinius;
 
 // #define OP(name, args...) void name(Task* task, struct jit_state* const js, ## args)
 #define OP2(type, name, args...) type name(Task* task, MethodContext* const ctx, ## args)
+
 // HACK: sassert is stack protection
 // #define stack_push(val) ({ OBJECT _v = (val); sassert(_v && js->stack < js->stack_top); *++js->stack = _v; })
-#define stack_push(val) *++ctx->js.stack = (val)
+
+/** We have to use the local here we need to evaluate val before we alter
+ * the stack. The reason is evaluating val might throw an exception. The
+ * old code used an undefined behavior, this forces the order. */
+#define stack_push(val) ({ Object* __stack_v = (val); *++ctx->js.stack = __stack_v; })
+
 #define stack_pop() *ctx->js.stack--
 #define stack_top() *ctx->js.stack
 #define stack_back(count) *(ctx->js.stack - count)

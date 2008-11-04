@@ -1,0 +1,1 @@
+fails:Emumerable#to_set allows passing an alternate class for Set

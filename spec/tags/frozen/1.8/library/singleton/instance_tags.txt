@@ -1,0 +1,2 @@
+fails:Singleton.instance returns an instance of the singleton's subclasses
+fails:Singleton.instance returns the same instance for multiple class to instance on subclasses

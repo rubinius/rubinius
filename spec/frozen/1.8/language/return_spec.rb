@@ -1,103 +1,85 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-describe "The return keyword" do
-  it "assigns to block variables" do
-    def r; return nil; end;      a = r(); a.should == nil
-    def r; return 1; end;        a = r(); a.should == 1
-    def r; return []; end;       a = r(); a.should == []
-    def r; return [1]; end;      a = r(); a.should == [1]
-    def r; return [nil]; end;    a = r(); a.should == [nil]
-    def r; return [[]]; end;     a = r(); a.should == [[]]
-    def r; return [*[]]; end;    a = r(); a.should == []
-    def r; return [*[1]]; end;   a = r(); a.should == [1]
-    def r; return [*[1,2]]; end; a = r(); a.should == [1,2]
-    def r; return 1, 2, 3; end;  a =  r(); a.should == [1, 2, 3]
+describe "the return keyword" do
+
+  it "returns any object directly" do
+    def r; return 1; end;        r().should == 1
   end
 
-  it "assigns splatted objects to block variables" do
-    def r; return *nil; end;     a = r(); a.should == nil
-    def r; return *1; end;       a = r(); a.should == 1
-    def r; return *[]; end;      a = r(); a.should == nil
-    def r; return *[1]; end;     a = r(); a.should == 1
-    def r; return *[nil]; end;   a = r(); a.should == nil
-    def r; return *[[]]; end;    a = r(); a.should == []
-    def r; return *[*[1]]; end;  a = r(); a.should == 1
-    def r; return *[*[1,2]]; end; a = r(); a.should == [1,2]
+  it "returns an single element array directly" do
+    def r; return [1]; end;      r().should == [1]
   end
 
-  it "assigns to a block variable with a splat on the RHS" do
-    def r; return; end;          a = *r(); a.should == nil
-    def r; return nil; end;      a = *r(); a.should == nil
-    def r; return 1; end;        a = *r(); a.should == 1
-    def r; return []; end;       a = *r(); a.should == nil
-    def r; return [1]; end;      a = *r(); a.should == 1
-    def r; return [nil]; end;    a = *r(); a.should == nil
-    def r; return [[]]; end;     a = *r(); a.should == []
-    def r; return [1,2]; end;    a = *r(); a.should == [1,2]
-    def r; return [*[]]; end;    a = *r(); a.should == nil
-    def r; return [*[1]]; end;   a = *r(); a.should == 1
-    def r; return [*[1,2]]; end; a = *r(); a.should == [1,2]
-    def r; return 1, 2, 3; end;  a = *r(); a.should == [1, 2, 3]
+  it "returns an multi element array directly" do
+    def r; return [1,2]; end;    r().should == [1,2]
   end
 
-  it "assigns to a block variable with a splat on the LHS" do
-    def r; return *nil; end;      *a = r(); a.should == [nil]
-    def r; return *1; end;        *a = r(); a.should == [1]
-    def r; return *[]; end;       *a = r(); a.should == [nil]
-    def r; return *[1]; end;      *a = r(); a.should == [1]
-    def r; return *[nil]; end;    *a = r(); a.should == [nil]
-    def r; return *[[]]; end;     *a = r(); a.should == [[]]
-    def r; return *[*[]]; end;    *a = r(); a.should == [nil]
-    def r; return *[*[1]]; end;   *a = r(); a.should == [1]
-    def r; return *[*[1,2]]; end; *a = r(); a.should == [[1,2]]
-    def r; return 1, 2, 3; end;   *a = r(); a.should == [[1, 2, 3]]
+  it "returns nil by default" do
+    def r; return; end;          r().should be_nil
   end
+end
 
-  it "assigns to a block variable with splats on the LHS and RHS" do
-    def r; return *nil; end;      *a = *r(); a.should == [nil]
-    def r; return *1; end;        *a = *r(); a.should == [1]
-    def r; return *[]; end;       *a = *r(); a.should == [nil]
-    def r; return *[1]; end;      *a = *r(); a.should == [1]
-    def r; return *[nil]; end;    *a = *r(); a.should == [nil]
-    def r; return *[[]]; end;     *a = *r(); a.should == []
-    def r; return *[*[]]; end;    *a = *r(); a.should == [nil]
-    def r; return *[*[1]]; end;   *a = *r(); a.should == [1]
-    def r; return *[*[1,2]]; end; *a = *r(); a.should == [1,2]
-    def r; return 1, 2, 3; end;   *a = *r(); a.should == [1, 2, 3]
-  end
-
-  it "assigns to multiple block variables" do
-    def r; return; end;          a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return nil; end;      a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return 1; end;        a,b,*c = r(); [a,b,c].should == [1,nil,[]]
-    def r; return []; end;       a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return [1]; end;      a,b,*c = r(); [a,b,c].should == [1,nil,[]]
-    def r; return [nil]; end;    a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return [[]]; end;     a,b,*c = r(); [a,b,c].should == [[],nil,[]]
-    def r; return [*[]]; end;    a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return [*[1]]; end;   a,b,*c = r(); [a,b,c].should == [1,nil,[]]
-    def r; return [*[1,2]]; end; a,b,*c = r(); [a,b,c].should == [1,2,[]]
-    def r; return 1, 2, 3; end;  a,*c = r(); [a, c].should == [1, [2,3]]
-  end
-
-  it "assigns to multiple block variables with a splatted value" do
-    def r; return *nil; end;      a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return *1; end;        a,b,*c = r(); [a,b,c].should == [1,nil,[]]
-    def r; return *[]; end;       a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return *[1]; end;      a,b,*c = r(); [a,b,c].should == [1,nil,[]]
-    def r; return *[nil]; end;    a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return *[[]]; end;     a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return *[*[]]; end;    a,b,*c = r(); [a,b,c].should == [nil,nil,[]]
-    def r; return *[*[1]]; end;   a,b,*c = r(); [a,b,c].should == [1,nil,[]]
-    def r; return *[*[1,2]]; end; a,b,*c = r(); [a,b,c].should == [1,2,[]]
-  end
-
+describe "return in a Thread" do
   it "raises a ThreadError if used to exit a thread" do
     lambda { Thread.new { return }.join }.should raise_error(ThreadError)
   end
 end
 
-describe "Return from within a begin" do
+describe "return when passed a splat" do
+  it "returns nil when the ary is empty" do
+    def r; ary = []; return *ary; end;    r.should be_nil
+  end
+
+  it "returns the first element when the array is size of 1" do
+    def r; ary = [1]; return *ary; end;   r.should == 1
+  end
+
+  it "returns the whole array when size is greater than 1" do
+    def r; ary = [1,2]; return *ary; end; r.should == [1,2]
+    def r; ary = [1,2,3]; return *ary; end; r.should == [1,2,3]
+  end
+
+  it "returns a non-array when used as a splat" do
+    def r; value = 1; return *value; end;  r.should == 1
+  end
+
+  it "calls 'to_a' on the splatted value first" do
+    def r
+      obj = Object.new
+      def obj.to_a
+        []
+      end
+
+      return *obj
+    end
+
+    r().should be_nil
+
+    def r
+      obj = Object.new
+      def obj.to_a
+        [1]
+      end
+
+      return *obj
+    end
+
+    r().should == 1
+
+    def r
+      obj = Object.new
+      def obj.to_a
+        [1,2]
+      end
+
+      return *obj
+    end
+
+    r().should == [1,2]
+  end
+end
+
+describe "return from within a begin" do
   it "executes ensure before returning from function" do
     def f(a)
       begin
@@ -158,7 +140,7 @@ end
 
 describe "Return from within a block" do
   it "raises a LocalJumpError if there is no lexicaly enclosing method" do
-    def f; yield end
+    def f; yield; end
     lambda { f { return 5 } }.should raise_error(LocalJumpError)
   end
 

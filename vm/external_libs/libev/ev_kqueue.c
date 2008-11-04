@@ -101,7 +101,7 @@ kqueue_poll (EV_P_ ev_tstamp timeout)
   if (expect_false (res < 0))
     { 
       if (errno != EINTR)
-        syserr ("(libev) kevent");
+        ev_syserr ("(libev) kevent");
 
       return;
     } 
@@ -184,7 +184,7 @@ kqueue_fork (EV_P)
   close (backend_fd);
 
   while ((backend_fd = kqueue ()) < 0)
-    syserr ("(libev) kqueue");
+    ev_syserr ("(libev) kqueue");
 
   fcntl (backend_fd, F_SETFD, FD_CLOEXEC);
 

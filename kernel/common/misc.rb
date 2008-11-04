@@ -38,7 +38,7 @@ class NilClass
   alias_method :|, :^
 
   def call(*a)
-    raise LocalJumpError, "not callable"
+    raise LocalJumpError, "no block given or not callable"
   end
 end
 

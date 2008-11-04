@@ -1,0 +1,1 @@
+fails:URI#select conforms to the MatzRuby tests

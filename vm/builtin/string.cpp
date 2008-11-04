@@ -64,22 +64,11 @@ namespace rubinius {
    * +bytes+ is the number of 'real' characters in the string
    */
   String* String::create(STATE, const char* str, size_t bytes) {
-    String *so;
-
     if(bytes == 0 && str) bytes = strlen(str);
 
-    so = (String*)state->om->new_object(G(string), String::fields);
+    String *so = String::create(state, Fixnum::from(bytes));
 
-    so->num_bytes(state, Fixnum::from(bytes));
-    so->characters(state, so->num_bytes());
-    so->encoding(state, Qnil);
-    so->hash_value(state, (Integer*)Qnil);
-
-    ByteArray* ba = ByteArray::create(state, bytes + 1);
-    if(str) std::memcpy(ba->bytes, str, bytes);
-    ba->bytes[bytes] = 0;
-
-    so->data(state, ba);
+    if(str) std::memcpy(so->data_->bytes, str, bytes);
 
     return so;
   }
@@ -183,39 +172,8 @@ namespace rubinius {
     shared(state, Qfalse);
   }
 
-  /* This is not the same as String::append below that
-   * takes a const char* other. In C/C++, strings are
-   * terminated with NULL. That's not true in Ruby, where
-   * strings may contain embedded NULL characters. We must
-   * use the size of the string in Ruby to know the limits.
-   */
   String* String::append(STATE, String* other) {
-    size_t new_size = size() + other->size();
-
-    size_t capacity = data_->size();
-    if(capacity <= (new_size + 1)) {      
-      while(capacity < (new_size + 1)) {
-	capacity = (capacity + 1) * 2;
-      }
-
-      // No need to call unshare and duplicate a ByteArray
-      // just to throw it away.
-      if(shared_) shared(state, Qfalse);
-
-      ByteArray *ba = ByteArray::create(state, capacity);
-      std::memcpy(ba->bytes, data_->bytes, size());
-      data(state, ba);
-    } else {
-      if(shared_) unshare(state);
-    } 
-   
-    std::memcpy(data_->bytes + size(), other->data()->bytes, other->size());      
-    data_->bytes[new_size] = 0;
-    
-    num_bytes(state, Integer::from(state, new_size));
-    hash_value(state, (Integer*)Qnil);
-
-    return this;
+    return append(state, other->byte_address(), other->size());
   }
 
   String* String::append(STATE, const char* other) {
@@ -225,8 +183,9 @@ namespace rubinius {
   String* String::append(STATE, const char* other, std::size_t length) {
     size_t new_size = size() + length;
     size_t capacity = data_->size();
-
+    
     if(capacity <= (new_size + 1)) {      
+      // capacity needs one extra byte of room for the trailing null
       while(capacity < (new_size + 1)) {
         capacity = (capacity + 1) * 2;
       }
@@ -235,8 +194,7 @@ namespace rubinius {
       // just to throw it away.
       if(shared_) shared(state, Qfalse);
 
-      // Leave one extra byte of room for the trailing null
-      ByteArray *ba = ByteArray::create(state, new_size + 1);
+      ByteArray *ba = ByteArray::create(state, capacity);
       std::memcpy(ba->bytes, data_->bytes, size());
       data(state, ba);
     } else {

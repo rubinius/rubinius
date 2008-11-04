@@ -1,6 +1,24 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
+def make_hash_and_keys klass
+  h = Hash.new
+  if klass == String then
+    key1 = "key1"
+    key2 = "key2"
+  else
+    key1 = klass.new
+    key2 = klass.new
+  end
+  def key1.hash; 0; end
+  def key2.hash; 0; end
+
+  h[key1] = :val1
+  h[key2] = :val2
+
+  return h, key1, key2
+end
+
 describe "Hash#delete" do
   it "removes the entry and returns the deleted value" do
     h = {:a => 5, :b => 2}
@@ -8,39 +26,55 @@ describe "Hash#delete" do
     h.should == {:a => 5}
   end
 
-  it "calls eql? on colliding keys it finds" do
-    h = Hash.new
+  # TODO: these 2 specs use Object, we prolly need String as well, maybe
+  # Symbol and Fixnum. Those are pending a talk between Evan and Matz.
 
-    # a class that tracks how many times eql? is called
-    eql_counter = Class.new do
-      def eql_count; @eql_count ||= 0; end
-      def eql_count=(count); @eql_count = count; end
-      # defer to super, so both get inserted
-      def eql?(obj); self.eql_count += 1; super; end
-    end
+  it "uses eql? on colliding keys to determine deletion of Object keys" do
+    h, key1, key2 = make_hash_and_keys Object
+    h.size.should == 2
 
-    # two equals_counter objects with the same hash
-    obj1 = eql_counter.new
-    obj2 = eql_counter.new
-    def obj1.hash; 0; end
-    def obj2.hash; 0; end
+    def key1.eql?(obj); true; end
+    def key2.eql?(obj); true; end
 
-    h[obj1] = :a
-    h[obj2] = :b
+    h.delete(key1).should_not be_nil
 
-    # obj2 has the same hash, so eql? should have been called once
-    obj2.eql_count.should == 1
+    h.size.should == 1
+  end
 
-    # now always return true, so first key encountered is deleted
-    def obj1.eql?(obj); self.eql_count += 1; true; end
-    def obj2.eql?(obj); self.eql_count += 1; true; end
+  it "uses eql? on non-colliding keys to determine deletion of Object keys" do
+    h, key1, key2 = make_hash_and_keys Object
+    h.size.should == 2
 
-    # delete one of them
-    h.delete(obj1)
+    def key1.eql?(obj); false; end
+    def key2.eql?(obj); false; end
 
-    # assert that between the two objects, eql? was called twice total
-    # we can't assert specific counts since we shouldn't specify bucket ordering
-    (obj1.eql_count + obj2.eql_count).should == 2
+    h.delete(key1).should_not be_nil
+
+    h.size.should == 1
+  end
+
+  it "uses eql? on colliding keys to determine deletion of String keys" do
+    h, key1, key2 = make_hash_and_keys String
+    h.size.should == 2
+
+    def key1.eql?(obj); true; end
+    def key2.eql?(obj); true; end
+
+    h.delete(key1).should_not be_nil
+
+    h.size.should == 1
+  end
+
+  it "uses eql? on non-colliding keys to determine deletion of String keys" do
+    h, key1, key2 = make_hash_and_keys String
+    h.size.should == 2
+
+    def key1.eql?(obj); false; end
+    def key2.eql?(obj); false; end
+
+    h.delete(key1).should be_nil # Difference is HERE!
+
+    h.size.should == 2           # (and here)
   end
 
   it "calls supplied block if the key is not found" do
@@ -48,7 +82,7 @@ describe "Hash#delete" do
     Hash.new(:default).delete(:d) { 5 }.should == 5
     Hash.new() { :defualt }.delete(:d) { 5 }.should == 5
   end
-  
+
   it "returns nil if the key is not found when no block is given" do
     {:a => 1, :b => 10, :c => 100 }.delete(:d).should == nil
     Hash.new(:default).delete(:d).should == nil

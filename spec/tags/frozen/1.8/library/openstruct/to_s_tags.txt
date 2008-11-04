@@ -1,0 +1,1 @@
+fails:OpenStruct#to_s correctly handles self-referential OpenStructs

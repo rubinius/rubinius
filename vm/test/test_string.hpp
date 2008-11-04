@@ -36,7 +36,7 @@ class TestString : public CxxTest::TestSuite {
   void test_create_with_substring() {
     str = String::create(state, "blah", 2);
     TS_ASSERT_EQUALS(str->size(), 2U);
-    TS_ASSERT_SAME_DATA("bl", str->byte_address(), 3);
+    TS_ASSERT_SAME_DATA("bl\0", str->byte_address(), 4);
   }
 
   void test_create_with_null_and_zero_count() {
@@ -93,7 +93,18 @@ class TestString : public CxxTest::TestSuite {
     s1->append(state, "u\0ra");
 
     TS_ASSERT_EQUALS(7U, s1->size());
+    TS_ASSERT(s1->size() < s1->data()->size());
     TS_ASSERT_SAME_DATA("omote u\0", s1->byte_address(), 7);
+  }
+
+  void test_append__with_length() {
+    String* str = String::create(state, "foo");
+
+    str->append(state, "bar", 1U);
+
+    TS_ASSERT_EQUALS(4U, str->size());
+    TS_ASSERT(str->size() < str->data()->size());
+    TS_ASSERT_SAME_DATA("foob\0", str->byte_address(), 5);
   }
 
   void test_append_prim() {
@@ -107,14 +118,16 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(s1->hash_value(), Qnil);
 
     TS_ASSERT_EQUALS(10U, s1->size());
-    TS_ASSERT_SAME_DATA("omote u\0ra", s1->byte_address(), 9);
+    TS_ASSERT(s1->size() < s1->data()->size());
+    TS_ASSERT_SAME_DATA("omote u\0ra\0", s1->byte_address(), 10);
   }
 
   void test_append_with_charstar() {
     str = String::create(state, "blah");
     str->append(state, " foo");
 
-    TS_ASSERT_SAME_DATA("blah foo", str->byte_address(), 9);
+    TS_ASSERT_EQUALS(8U, str->size())
+    TS_ASSERT_SAME_DATA("blah foo\0", str->byte_address(), 9);
   }
 
   void test_add() {

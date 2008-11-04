@@ -132,7 +132,7 @@
 .\" ========================================================================
 .\"
 .IX Title "LIBEV 3"
-.TH LIBEV 3 "2008-09-29" "libev-3.44" "libev - high performance full featured event loop"
+.TH LIBEV 3 "2008-10-30" "libev-3.48" "libev - high performance full featured event loop"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -151,14 +151,14 @@ libev \- a high performance full\-featured event loop written in C
 \&   #include <ev.h>
 \&
 \&   // every watcher type has its own typedef\*(Aqd struct
-\&   // with the name ev_<type>
+\&   // with the name ev_TYPE
 \&   ev_io stdin_watcher;
 \&   ev_timer timeout_watcher;
 \&
 \&   // all watcher callbacks have a similar signature
 \&   // this callback is called when data is readable on stdin
 \&   static void
-\&   stdin_cb (EV_P_ struct ev_io *w, int revents)
+\&   stdin_cb (EV_P_ ev_io *w, int revents)
 \&   {
 \&     puts ("stdin ready");
 \&     // for one\-shot events, one must manually stop the watcher
@@ -171,7 +171,7 @@ libev \- a high performance full\-featured event loop written in C
 \&
 \&   // another callback, this time for a time\-out
 \&   static void
-\&   timeout_cb (EV_P_ struct ev_timer *w, int revents)
+\&   timeout_cb (EV_P_ ev_timer *w, int revents)
 \&   {
 \&     puts ("timeout");
 \&     // this causes the innermost ev_loop to stop iterating
@@ -182,7 +182,7 @@ libev \- a high performance full\-featured event loop written in C
 \&   main (void)
 \&   {
 \&     // use the default event loop unless you have special needs
-\&     struct ev_loop *loop = ev_default_loop (0);
+\&     ev_loop *loop = ev_default_loop (0);
 \&
 \&     // initialise an io watcher, then start it
 \&     // this one will watch for stdin to become readable
@@ -242,7 +242,7 @@ configuration will be described, which supports multiple event loops. For
 more info about various configuration options please have a look at
 \&\fB\s-1EMBED\s0\fR section in this manual. If libev was configured without support
 for multiple event loops, then all functions taking an initial argument of
-name \f(CW\*(C`loop\*(C'\fR (which is always of type \f(CW\*(C`struct ev_loop *\*(C'\fR) will not have
+name \f(CW\*(C`loop\*(C'\fR (which is always of type \f(CW\*(C`ev_loop *\*(C'\fR) will not have
 this argument.
 .Sh "\s-1TIME\s0 \s-1REPRESENTATION\s0"
 .IX Subsection "TIME REPRESENTATION"
@@ -408,9 +408,13 @@ Example: This is basically the same thing that libev does internally, too.
 .Ve
 .SH "FUNCTIONS CONTROLLING THE EVENT LOOP"
 .IX Header "FUNCTIONS CONTROLLING THE EVENT LOOP"
-An event loop is described by a \f(CW\*(C`struct ev_loop *\*(C'\fR. The library knows two
-types of such loops, the \fIdefault\fR loop, which supports signals and child
-events, and dynamically created loops which do not.
+An event loop is described by a \f(CW\*(C`struct ev_loop *\*(C'\fR (the \f(CW\*(C`struct\*(C'\fR
+is \fInot\fR optional in this case, as there is also an \f(CW\*(C`ev_loop\*(C'\fR
+\&\fIfunction\fR).
+.PP
+The library knows two types of such loops, the \fIdefault\fR loop, which
+supports signals and child events, and dynamically created loops which do
+not.
 .IP "struct ev_loop *ev_default_loop (unsigned int flags)" 4
 .IX Item "struct ev_loop *ev_default_loop (unsigned int flags)"
 This will initialise the default event loop if it hasn't been initialised
@@ -423,7 +427,7 @@ function.
 .Sp
 Note that this function is \fInot\fR thread-safe, so if you want to use it
 from multiple threads, you have to lock (note also that this is unlikely,
-as loops cannot bes hared easily between threads anyway).
+as loops cannot be shared easily between threads anyway).
 .Sp
 The default loop is the only loop that can handle \f(CW\*(C`ev_signal\*(C'\fR and
 \&\f(CW\*(C`ev_child\*(C'\fR watchers, and to do this, it always registers a handler
@@ -508,26 +512,39 @@ This backend maps \f(CW\*(C`EV_READ\*(C'\fR to \f(CW\*(C`POLLIN | POLLERR | POLL
 For few fds, this backend is a bit little slower than poll and select,
 but it scales phenomenally better. While poll and select usually scale
 like O(total_fds) where n is the total number of fds (or the highest fd),
-epoll scales either O(1) or O(active_fds). The epoll design has a number
-of shortcomings, such as silently dropping events in some hard-to-detect
-cases and requiring a system call per fd change, no fork support and bad
-support for dup.
+epoll scales either O(1) or O(active_fds).
+.Sp
+The epoll mechanism deserves honorable mention as the most misdesigned
+of the more advanced event mechanisms: mere annoyances include silently
+dropping file descriptors, requiring a system call per change per file
+descriptor (and unnecessary guessing of parameters), problems with dup and
+so on. The biggest issue is fork races, however \- if a program forks then
+\&\fIboth\fR parent and child process have to recreate the epoll set, which can
+take considerable time (one syscall per file descriptor) and is of course
+hard to detect.
+.Sp
+Epoll is also notoriously buggy \- embedding epoll fds \fIshould\fR work, but
+of course \fIdoesn't\fR, and epoll just loves to report events for totally
+\&\fIdifferent\fR file descriptors (even already closed ones, so one cannot
+even remove them from the set) than registered in the set (especially
+on \s-1SMP\s0 systems). Libev tries to counter these spurious notifications by
+employing an additional generation counter and comparing that against the
+events to filter out spurious ones, recreating the set when required.
 .Sp
 While stopping, setting and starting an I/O watcher in the same iteration
-will result in some caching, there is still a system call per such incident
-(because the fd could point to a different file description now), so its
-best to avoid that. Also, \f(CW\*(C`dup ()\*(C'\fR'ed file descriptors might not work
-very well if you register events for both fds.
-.Sp
-Please note that epoll sometimes generates spurious notifications, so you
-need to use non-blocking I/O or other means to avoid blocking when no data
-(or space) is available.
+will result in some caching, there is still a system call per such
+incident (because the same \fIfile descriptor\fR could point to a different
+\&\fIfile description\fR now), so its best to avoid that. Also, \f(CW\*(C`dup ()\*(C'\fR'ed
+file descriptors might not work very well if you register events for both
+file descriptors.
 .Sp
 Best performance from this backend is achieved by not unregistering all
 watchers for a file descriptor until it has been closed, if possible,
 i.e. keep at least one watcher active per fd at all times. Stopping and
 starting a watcher (without re-setting it) also usually doesn't cause
-extra overhead.
+extra overhead. A fork can both result in spurious notifications as well
+as in libev having to destroy and recreate the epoll object, which can
+take considerable time and thus should be avoided.
 .Sp
 While nominally embeddable in other event loops, this feature is broken in
 all kernel versions tested so far.
@@ -537,12 +554,15 @@ This backend maps \f(CW\*(C`EV_READ\*(C'\fR and \f(CW\*(C`EV_WRITE\*(C'\fR in th
 .ie n .IP """EVBACKEND_KQUEUE""  (value 8, most \s-1BSD\s0 clones)" 4
 .el .IP "\f(CWEVBACKEND_KQUEUE\fR  (value 8, most \s-1BSD\s0 clones)" 4
 .IX Item "EVBACKEND_KQUEUE  (value 8, most BSD clones)"
-Kqueue deserves special mention, as at the time of this writing, it was
-broken on all BSDs except NetBSD (usually it doesn't work reliably with
-anything but sockets and pipes, except on Darwin, where of course it's
-completely useless). For this reason it's not being \*(L"auto-detected\*(R" unless
-you explicitly specify it in the flags (i.e. using \f(CW\*(C`EVBACKEND_KQUEUE\*(C'\fR) or
-libev was compiled on a known-to-be-good (\-enough) system like NetBSD.
+Kqueue deserves special mention, as at the time of this writing, it
+was broken on all BSDs except NetBSD (usually it doesn't work reliably
+with anything but sockets and pipes, except on Darwin, where of course
+it's completely useless). Unlike epoll, however, whose brokenness
+is by design, these kqueue bugs can (and eventually will) be fixed
+without \s-1API\s0 changes to existing programs. For this reason it's not being
+\&\*(L"auto-detected\*(R" unless you explicitly specify it in the flags (i.e. using
+\&\f(CW\*(C`EVBACKEND_KQUEUE\*(C'\fR) or libev was compiled on a known-to-be-good (\-enough)
+system like NetBSD.
 .Sp
 You still can embed kqueue into a normal poll or select backend and use it
 only for sockets (after having made sure that sockets work with kqueue on
@@ -552,8 +572,9 @@ It scales in the same way as the epoll backend, but the interface to the
 kernel is more efficient (which says nothing about its actual speed, of
 course). While stopping, setting and starting an I/O watcher does never
 cause an extra system call as with \f(CW\*(C`EVBACKEND_EPOLL\*(C'\fR, it still adds up to
-two event changes per incident. Support for \f(CW\*(C`fork ()\*(C'\fR is very bad and it
-drops fds silently in similarly hard-to-detect cases.
+two event changes per incident. Support for \f(CW\*(C`fork ()\*(C'\fR is very bad (but
+sane, unlike epoll) and it drops fds silently in similarly hard-to-detect
+cases
 .Sp
 This backend usually performs well under most conditions.
 .Sp
@@ -592,7 +613,7 @@ might perform better.
 On the positive side, with the exception of the spurious readiness
 notifications, this backend actually performed fully to specification
 in all tests and is fully embeddable, which is a rare feat among the
-OS-specific backends.
+OS-specific backends (I vastly prefer correctness over speed hacks).
 .Sp
 This backend maps \f(CW\*(C`EV_READ\*(C'\fR and \f(CW\*(C`EV_WRITE\*(C'\fR in the same way as
 \&\f(CW\*(C`EVBACKEND_POLL\*(C'\fR.
@@ -662,9 +683,9 @@ calling this function, or cope with the fact afterwards (which is usually
 the easiest thing, you can just ignore the watchers and/or \f(CW\*(C`free ()\*(C'\fR them
 for example).
 .Sp
-Note that certain global state, such as signal state, will not be freed by
-this function, and related watchers (such as signal and child watchers)
-would need to be stopped manually.
+Note that certain global state, such as signal state (and installed signal
+handlers), will not be freed by this function, and related watchers (such
+as signal and child watchers) would need to be stopped manually.
 .Sp
 In general it is not advisable to call this function except in the
 rare occasion where you really need to free e.g. the signal handling
@@ -759,7 +780,7 @@ the loop.
 A flags value of \f(CW\*(C`EVLOOP_ONESHOT\*(C'\fR will look for new events (waiting if
 necessary) and will handle those and any already outstanding ones. It
 will block your process until at least one new event arrives (which could
-be an event internal to libev itself, so there is no guarentee that a
+be an event internal to libev itself, so there is no guarantee that a
 user-registered callback will be called), and will return after one
 iteration of the loop.
 .Sp
@@ -815,6 +836,8 @@ has processed all outstanding events). The \f(CW\*(C`how\*(C'\fR argument must b
 \&\f(CW\*(C`EVUNLOOP_ALL\*(C'\fR, which will make all nested \f(CW\*(C`ev_loop\*(C'\fR calls return.
 .Sp
 This \*(L"unloop state\*(R" will be cleared when entering \f(CW\*(C`ev_loop\*(C'\fR again.
+.Sp
+It is safe to call \f(CW\*(C`ev_unloop\*(C'\fR from otuside any \f(CW\*(C`ev_loop\*(C'\fR calls.
 .IP "ev_ref (loop)" 4
 .IX Item "ev_ref (loop)"
 .PD 0
@@ -841,7 +864,7 @@ Example: Create a signal watcher, but keep it from keeping \f(CW\*(C`ev_loop\*(C
 running when nothing else is active.
 .Sp
 .Vb 4
-\&   struct ev_signal exitsig;
+\&   ev_signal exitsig;
 \&   ev_signal_init (&exitsig, sig_cb, SIGINT);
 \&   ev_signal_start (loop, &exitsig);
 \&   evf_unref (loop);
@@ -902,7 +925,7 @@ they fire on, say, one-second boundaries only.
 .IP "ev_loop_verify (loop)" 4
 .IX Item "ev_loop_verify (loop)"
 This function only does something when \f(CW\*(C`EV_VERIFY\*(C'\fR support has been
-compiled in. which is the default for non-minimal builds. It tries to go
+compiled in, which is the default for non-minimal builds. It tries to go
 through all internal structures and checks them for validity. If anything
 is found to be inconsistent, it will print an error message to standard
 error and call \f(CW\*(C`abort ()\*(C'\fR.
@@ -912,28 +935,38 @@ circumstances, this function will never abort as of course libev keeps its
 data structures consistent.
 .SH "ANATOMY OF A WATCHER"
 .IX Header "ANATOMY OF A WATCHER"
+In the following description, uppercase \f(CW\*(C`TYPE\*(C'\fR in names stands for the
+watcher type, e.g. \f(CW\*(C`ev_TYPE_start\*(C'\fR can mean \f(CW\*(C`ev_timer_start\*(C'\fR for timer
+watchers and \f(CW\*(C`ev_io_start\*(C'\fR for I/O watchers.
+.PP
 A watcher is a structure that you create and register to record your
 interest in some event. For instance, if you want to wait for \s-1STDIN\s0 to
 become readable, you would create an \f(CW\*(C`ev_io\*(C'\fR watcher for that:
 .PP
 .Vb 5
-\&   static void my_cb (struct ev_loop *loop, struct ev_io *w, int revents)
+\&   static void my_cb (struct ev_loop *loop, ev_io *w, int revents)
 \&   {
 \&     ev_io_stop (w);
 \&     ev_unloop (loop, EVUNLOOP_ALL);
 \&   }
 \&
 \&   struct ev_loop *loop = ev_default_loop (0);
-\&   struct ev_io stdin_watcher;
+\&
+\&   ev_io stdin_watcher;
+\&
 \&   ev_init (&stdin_watcher, my_cb);
 \&   ev_io_set (&stdin_watcher, STDIN_FILENO, EV_READ);
 \&   ev_io_start (loop, &stdin_watcher);
+\&
 \&   ev_loop (loop, 0);
 .Ve
 .PP
 As you can see, you are responsible for allocating the memory for your
-watcher structures (and it is usually a bad idea to do this on the stack,
-although this can sometimes be quite valid).
+watcher structures (and it is \fIusually\fR a bad idea to do this on the
+stack).
+.PP
+Each watcher has an associated watcher structure (called \f(CW\*(C`struct ev_TYPE\*(C'\fR
+or simply \f(CW\*(C`ev_TYPE\*(C'\fR, as typedefs are provided for all watcher structs).
 .PP
 Each watcher structure must be initialised by a call to \f(CW\*(C`ev_init
 (watcher *, callback)\*(C'\fR, which expects a callback to be provided. This
@@ -941,19 +974,18 @@ callback gets invoked each time the event occurs (or, in the case of I/O
 watchers, each time the event loop detects that the file descriptor given
 is readable and/or writable).
 .PP
-Each watcher type has its own \f(CW\*(C`ev_<type>_set (watcher *, ...)\*(C'\fR macro
-with arguments specific to this watcher type. There is also a macro
-to combine initialisation and setting in one call: \f(CW\*(C`ev_<type>_init
-(watcher *, callback, ...)\*(C'\fR.
+Each watcher type further has its own \f(CW\*(C`ev_TYPE_set (watcher *, ...)\*(C'\fR
+macro to configure it, with arguments specific to the watcher type. There
+is also a macro to combine initialisation and setting in one call: \f(CW\*(C`ev_TYPE_init (watcher *, callback, ...)\*(C'\fR.
 .PP
 To make the watcher actually watch out for events, you have to start it
-with a watcher-specific start function (\f(CW\*(C`ev_<type>_start (loop, watcher
+with a watcher-specific start function (\f(CW\*(C`ev_TYPE_start (loop, watcher
 *)\*(C'\fR), and you can stop watching for events at any time by calling the
-corresponding stop function (\f(CW\*(C`ev_<type>_stop (loop, watcher *)\*(C'\fR.
+corresponding stop function (\f(CW\*(C`ev_TYPE_stop (loop, watcher *)\*(C'\fR.
 .PP
 As long as your watcher is active (has been started but not stopped) you
 must not touch the values stored in it. Most specifically you must never
-reinitialise it or call its \f(CW\*(C`set\*(C'\fR macro.
+reinitialise it or call its \f(CW\*(C`ev_TYPE_set\*(C'\fR macro.
 .PP
 Each and every callback receives the event loop pointer as first, the
 registered watcher structure as second, and a bitset of received events as
@@ -1030,8 +1062,12 @@ The given async watcher has been asynchronously notified (see \f(CW\*(C`ev_async
 An unspecified error has occurred, the watcher has been stopped. This might
 happen because the watcher could not be properly started because libev
 ran out of memory, a file descriptor was found to be closed or any other
-problem. You best act on it by reporting the problem and somehow coping
-with the watcher being stopped.
+problem. Libev considers these application bugs.
+.Sp
+You best act on it by reporting the problem and somehow coping with the
+watcher being stopped. Note that well-written programs should not receive
+an error ever, so when your watcher receives it, this usually indicates a
+bug in your program.
 .Sp
 Libev will usually signal a few \*(L"dummy\*(R" events together with an error, for
 example it might indicate that a fd is readable or writable, and if your
@@ -1041,8 +1077,6 @@ programs, though, as the fd could already be closed and reused for another
 thing, so beware.
 .Sh "\s-1GENERIC\s0 \s-1WATCHER\s0 \s-1FUNCTIONS\s0"
 .IX Subsection "GENERIC WATCHER FUNCTIONS"
-In the following description, \f(CW\*(C`TYPE\*(C'\fR stands for the watcher type,
-e.g. \f(CW\*(C`timer\*(C'\fR for \f(CW\*(C`ev_timer\*(C'\fR watchers and \f(CW\*(C`io\*(C'\fR for \f(CW\*(C`ev_io\*(C'\fR watchers.
 .ie n .IP """ev_init"" (ev_TYPE *watcher, callback)" 4
 .el .IP "\f(CWev_init\fR (ev_TYPE *watcher, callback)" 4
 .IX Item "ev_init (ev_TYPE *watcher, callback)"
@@ -1056,7 +1090,7 @@ which rolls both calls into one.
 You can reinitialise a watcher at any time as long as it has been stopped
 (or never started) and there are no pending events outstanding.
 .Sp
-The callback is always of type \f(CW\*(C`void (*)(ev_loop *loop, ev_TYPE *watcher,
+The callback is always of type \f(CW\*(C`void (*)(struct ev_loop *loop, ev_TYPE *watcher,
 int revents)\*(C'\fR.
 .Sp
 Example: Initialise an \f(CW\*(C`ev_io\*(C'\fR watcher in two steps.
@@ -1106,12 +1140,14 @@ whole section.
 .ie n .IP """ev_TYPE_stop"" (loop *, ev_TYPE *watcher)" 4
 .el .IP "\f(CWev_TYPE_stop\fR (loop *, ev_TYPE *watcher)" 4
 .IX Item "ev_TYPE_stop (loop *, ev_TYPE *watcher)"
-Stops the given watcher again (if active) and clears the pending
-status. It is possible that stopped watchers are pending (for example,
-non-repeating timers are being stopped when they become pending), but
-\&\f(CW\*(C`ev_TYPE_stop\*(C'\fR ensures that the watcher is neither active nor pending. If
-you want to free or reuse the memory used by the watcher it is therefore a
-good idea to always call its \f(CW\*(C`ev_TYPE_stop\*(C'\fR function.
+Stops the given watcher if active, and clears the pending status (whether
+the watcher was active or not).
+.Sp
+It is possible that stopped watchers are pending \- for example,
+non-repeating timers are being stopped when they become pending \- but
+calling \f(CW\*(C`ev_TYPE_stop\*(C'\fR ensures that the watcher is neither active nor
+pending. If you want to free or reuse the memory used by the watcher it is
+therefore a good idea to always call its \f(CW\*(C`ev_TYPE_stop\*(C'\fR function.
 .IP "bool ev_is_active (ev_TYPE *watcher)" 4
 .IX Item "bool ev_is_active (ev_TYPE *watcher)"
 Returns a true value iff the watcher is active (i.e. it has been started
@@ -1160,7 +1196,7 @@ always \f(CW0\fR, which is supposed to not be too high and not be too low :).
 .Sp
 Setting a priority outside the range of \f(CW\*(C`EV_MINPRI\*(C'\fR to \f(CW\*(C`EV_MAXPRI\*(C'\fR is
 fine, as long as you do not mind that the priority value you query might
-or might not have been adjusted to be within valid range.
+or might not have been clamped to the valid range.
 .IP "ev_invoke (loop, ev_TYPE *watcher, int revents)" 4
 .IX Item "ev_invoke (loop, ev_TYPE *watcher, int revents)"
 Invoke the \f(CW\*(C`watcher\*(C'\fR with the given \f(CW\*(C`loop\*(C'\fR and \f(CW\*(C`revents\*(C'\fR. Neither
@@ -1187,7 +1223,7 @@ data:
 .Vb 7
 \&   struct my_io
 \&   {
-\&     struct ev_io io;
+\&     ev_io io;
 \&     int otherfd;
 \&     void *somedata;
 \&     struct whatever *mostinteresting;
@@ -1202,7 +1238,7 @@ And since your callback will be called with a pointer to the watcher, you
 can cast it back to your own type:
 .PP
 .Vb 5
-\&   static void my_cb (struct ev_loop *loop, struct ev_io *w_, int revents)
+\&   static void my_cb (struct ev_loop *loop, ev_io *w_, int revents)
 \&   {
 \&     struct my_io *w = (struct my_io *)w_;
 \&     ...
@@ -1234,14 +1270,14 @@ programmers):
 \&   #include <stddef.h>
 \&
 \&   static void
-\&   t1_cb (EV_P_ struct ev_timer *w, int revents)
+\&   t1_cb (EV_P_ ev_timer *w, int revents)
 \&   {
 \&     struct my_biggy big = (struct my_biggy *
 \&       (((char *)w) \- offsetof (struct my_biggy, t1));
 \&   }
 \&
 \&   static void
-\&   t2_cb (EV_P_ struct ev_timer *w, int revents)
+\&   t2_cb (EV_P_ ev_timer *w, int revents)
 \&   {
 \&     struct my_biggy big = (struct my_biggy *
 \&       (((char *)w) \- offsetof (struct my_biggy, t2));
@@ -1385,7 +1421,7 @@ attempt to read a whole line in the callback.
 .PP
 .Vb 6
 \&   static void
-\&   stdin_readable_cb (struct ev_loop *loop, struct ev_io *w, int revents)
+\&   stdin_readable_cb (struct ev_loop *loop, ev_io *w, int revents)
 \&   {
 \&      ev_io_stop (loop, w);
 \&     .. read from stdin here (or from w\->fd) and handle any I/O errors
@@ -1393,7 +1429,7 @@ attempt to read a whole line in the callback.
 \&
 \&   ...
 \&   struct ev_loop *loop = ev_default_init (0);
-\&   struct ev_io stdin_readable;
+\&   ev_io stdin_readable;
 \&   ev_io_init (&stdin_readable, stdin_readable_cb, STDIN_FILENO, EV_READ);
 \&   ev_io_start (loop, &stdin_readable);
 \&   ev_loop (loop, 0);
@@ -1413,6 +1449,191 @@ monotonic clock option helps a lot here).
 The callback is guaranteed to be invoked only \fIafter\fR its timeout has
 passed, but if multiple timers become ready during the same loop iteration
 then order of execution is undefined.
+.PP
+\fIBe smart about timeouts\fR
+.IX Subsection "Be smart about timeouts"
+.PP
+Many real-world problems involve some kind of timeout, usually for error
+recovery. A typical example is an \s-1HTTP\s0 request \- if the other side hangs,
+you want to raise some error after a while.
+.PP
+What follows are some ways to handle this problem, from obvious and
+inefficient to smart and efficient.
+.PP
+In the following, a 60 second activity timeout is assumed \- a timeout that
+gets reset to 60 seconds each time there is activity (e.g. each time some
+data or other life sign was received).
+.IP "1. Use a timer and stop, reinitialise and start it on activity." 4
+.IX Item "1. Use a timer and stop, reinitialise and start it on activity."
+This is the most obvious, but not the most simple way: In the beginning,
+start the watcher:
+.Sp
+.Vb 2
+\&   ev_timer_init (timer, callback, 60., 0.);
+\&   ev_timer_start (loop, timer);
+.Ve
+.Sp
+Then, each time there is some activity, \f(CW\*(C`ev_timer_stop\*(C'\fR it, initialise it
+and start it again:
+.Sp
+.Vb 3
+\&   ev_timer_stop (loop, timer);
+\&   ev_timer_set (timer, 60., 0.);
+\&   ev_timer_start (loop, timer);
+.Ve
+.Sp
+This is relatively simple to implement, but means that each time there is
+some activity, libev will first have to remove the timer from its internal
+data structure and then add it again. Libev tries to be fast, but it's
+still not a constant-time operation.
+.ie n .IP "2. Use a timer and re-start it with ""ev_timer_again"" inactivity." 4
+.el .IP "2. Use a timer and re-start it with \f(CWev_timer_again\fR inactivity." 4
+.IX Item "2. Use a timer and re-start it with ev_timer_again inactivity."
+This is the easiest way, and involves using \f(CW\*(C`ev_timer_again\*(C'\fR instead of
+\&\f(CW\*(C`ev_timer_start\*(C'\fR.
+.Sp
+To implement this, configure an \f(CW\*(C`ev_timer\*(C'\fR with a \f(CW\*(C`repeat\*(C'\fR value
+of \f(CW60\fR and then call \f(CW\*(C`ev_timer_again\*(C'\fR at start and each time you
+successfully read or write some data. If you go into an idle state where
+you do not expect data to travel on the socket, you can \f(CW\*(C`ev_timer_stop\*(C'\fR
+the timer, and \f(CW\*(C`ev_timer_again\*(C'\fR will automatically restart it if need be.
+.Sp
+That means you can ignore both the \f(CW\*(C`ev_timer_start\*(C'\fR function and the
+\&\f(CW\*(C`after\*(C'\fR argument to \f(CW\*(C`ev_timer_set\*(C'\fR, and only ever use the \f(CW\*(C`repeat\*(C'\fR
+member and \f(CW\*(C`ev_timer_again\*(C'\fR.
+.Sp
+At start:
+.Sp
+.Vb 3
+\&   ev_timer_init (timer, callback);
+\&   timer\->repeat = 60.;
+\&   ev_timer_again (loop, timer);
+.Ve
+.Sp
+Each time there is some activity:
+.Sp
+.Vb 1
+\&   ev_timer_again (loop, timer);
+.Ve
+.Sp
+It is even possible to change the time-out on the fly, regardless of
+whether the watcher is active or not:
+.Sp
+.Vb 2
+\&   timer\->repeat = 30.;
+\&   ev_timer_again (loop, timer);
+.Ve
+.Sp
+This is slightly more efficient then stopping/starting the timer each time
+you want to modify its timeout value, as libev does not have to completely
+remove and re-insert the timer from/into its internal data structure.
+.Sp
+It is, however, even simpler than the \*(L"obvious\*(R" way to do it.
+.IP "3. Let the timer time out, but then re-arm it as required." 4
+.IX Item "3. Let the timer time out, but then re-arm it as required."
+This method is more tricky, but usually most efficient: Most timeouts are
+relatively long compared to the intervals between other activity \- in
+our example, within 60 seconds, there are usually many I/O events with
+associated activity resets.
+.Sp
+In this case, it would be more efficient to leave the \f(CW\*(C`ev_timer\*(C'\fR alone,
+but remember the time of last activity, and check for a real timeout only
+within the callback:
+.Sp
+.Vb 1
+\&   ev_tstamp last_activity; // time of last activity
+\&
+\&   static void
+\&   callback (EV_P_ ev_timer *w, int revents)
+\&   {
+\&     ev_tstamp now     = ev_now (EV_A);
+\&     ev_tstamp timeout = last_activity + 60.;
+\&
+\&     // if last_activity + 60. is older than now, we did time out
+\&     if (timeout < now)
+\&       {
+\&         // timeout occured, take action
+\&       }
+\&     else
+\&       {
+\&         // callback was invoked, but there was some activity, re\-arm
+\&         // the watcher to fire in last_activity + 60, which is
+\&         // guaranteed to be in the future, so "again" is positive:
+\&         w\->again = timeout \- now;
+\&         ev_timer_again (EV_A_ w);
+\&       }
+\&   }
+.Ve
+.Sp
+To summarise the callback: first calculate the real timeout (defined
+as \*(L"60 seconds after the last activity\*(R"), then check if that time has
+been reached, which means something \fIdid\fR, in fact, time out. Otherwise
+the callback was invoked too early (\f(CW\*(C`timeout\*(C'\fR is in the future), so
+re-schedule the timer to fire at that future time, to see if maybe we have
+a timeout then.
+.Sp
+Note how \f(CW\*(C`ev_timer_again\*(C'\fR is used, taking advantage of the
+\&\f(CW\*(C`ev_timer_again\*(C'\fR optimisation when the timer is already running.
+.Sp
+This scheme causes more callback invocations (about one every 60 seconds
+minus half the average time between activity), but virtually no calls to
+libev to change the timeout.
+.Sp
+To start the timer, simply initialise the watcher and set \f(CW\*(C`last_activity\*(C'\fR
+to the current time (meaning we just have some activity :), then call the
+callback, which will \*(L"do the right thing\*(R" and start the timer:
+.Sp
+.Vb 3
+\&   ev_timer_init (timer, callback);
+\&   last_activity = ev_now (loop);
+\&   callback (loop, timer, EV_TIMEOUT);
+.Ve
+.Sp
+And when there is some activity, simply store the current time in
+\&\f(CW\*(C`last_activity\*(C'\fR, no libev calls at all:
+.Sp
+.Vb 1
+\&   last_actiivty = ev_now (loop);
+.Ve
+.Sp
+This technique is slightly more complex, but in most cases where the
+time-out is unlikely to be triggered, much more efficient.
+.Sp
+Changing the timeout is trivial as well (if it isn't hard-coded in the
+callback :) \- just change the timeout and invoke the callback, which will
+fix things for you.
+.IP "4. Wee, just use a double-linked list for your timeouts." 4
+.IX Item "4. Wee, just use a double-linked list for your timeouts."
+If there is not one request, but many thousands (millions...), all
+employing some kind of timeout with the same timeout value, then one can
+do even better:
+.Sp
+When starting the timeout, calculate the timeout value and put the timeout
+at the \fIend\fR of the list.
+.Sp
+Then use an \f(CW\*(C`ev_timer\*(C'\fR to fire when the timeout at the \fIbeginning\fR of
+the list is expected to fire (for example, using the technique #3).
+.Sp
+When there is some activity, remove the timer from the list, recalculate
+the timeout, append it to the end of the list again, and make sure to
+update the \f(CW\*(C`ev_timer\*(C'\fR if it was taken from the beginning of the list.
+.Sp
+This way, one can manage an unlimited number of timeouts in O(1) time for
+starting, stopping and updating the timers, at the expense of a major
+complication, and having to use a constant timeout. The constant timeout
+ensures that the list stays sorted.
+.PP
+So which method the best?
+.PP
+Method #2 is a simple no-brain-required solution that is adequate in most
+situations. Method #3 requires a bit more thinking, but handles many cases
+better, and isn't very complicated either. In most case, choosing either
+one is fine, with #3 being better in typical situations.
+.PP
+Method #1 is almost always a bad idea, and buys you nothing. Method #4 is
+rather complicated, but extremely efficient, something that really pays
+off after the first million or so of active timers, i.e. it's usually
+overkill :)
 .PP
 \fIThe special problem of time updates\fR
 .IX Subsection "The special problem of time updates"
@@ -1468,38 +1689,8 @@ If the timer is started but non-repeating, stop it (as if it timed out).
 If the timer is repeating, either start it if necessary (with the
 \&\f(CW\*(C`repeat\*(C'\fR value), or reset the running timer to the \f(CW\*(C`repeat\*(C'\fR value.
 .Sp
-This sounds a bit complicated, but here is a useful and typical
-example: Imagine you have a \s-1TCP\s0 connection and you want a so-called idle
-timeout, that is, you want to be called when there have been, say, 60
-seconds of inactivity on the socket. The easiest way to do this is to
-configure an \f(CW\*(C`ev_timer\*(C'\fR with a \f(CW\*(C`repeat\*(C'\fR value of \f(CW60\fR and then call
-\&\f(CW\*(C`ev_timer_again\*(C'\fR each time you successfully read or write some data. If
-you go into an idle state where you do not expect data to travel on the
-socket, you can \f(CW\*(C`ev_timer_stop\*(C'\fR the timer, and \f(CW\*(C`ev_timer_again\*(C'\fR will
-automatically restart it if need be.
-.Sp
-That means you can ignore the \f(CW\*(C`after\*(C'\fR value and \f(CW\*(C`ev_timer_start\*(C'\fR
-altogether and only ever use the \f(CW\*(C`repeat\*(C'\fR value and \f(CW\*(C`ev_timer_again\*(C'\fR:
-.Sp
-.Vb 8
-\&   ev_timer_init (timer, callback, 0., 5.);
-\&   ev_timer_again (loop, timer);
-\&   ...
-\&   timer\->again = 17.;
-\&   ev_timer_again (loop, timer);
-\&   ...
-\&   timer\->again = 10.;
-\&   ev_timer_again (loop, timer);
-.Ve
-.Sp
-This is more slightly efficient then stopping/starting the timer each time
-you want to modify its timeout value.
-.Sp
-Note, however, that it is often even more efficient to remember the
-time of the last activity and let the timer time-out naturally. In the
-callback, you then check whether the time-out is real, or, if there was
-some activity, you reschedule the watcher to time-out in \*(L"last_activity +
-timeout \- ev_now ()\*(R" seconds.
+This sounds a bit complicated, see \*(L"Be smart about timeouts\*(R", above, for a
+usage example.
 .IP "ev_tstamp repeat [read\-write]" 4
 .IX Item "ev_tstamp repeat [read-write]"
 The current \f(CW\*(C`repeat\*(C'\fR value. Will be used each time the watcher times out
@@ -1513,12 +1704,12 @@ Example: Create a timer that fires after 60 seconds.
 .PP
 .Vb 5
 \&   static void
-\&   one_minute_cb (struct ev_loop *loop, struct ev_timer *w, int revents)
+\&   one_minute_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     .. one minute over, w is actually stopped right here
 \&   }
 \&
-\&   struct ev_timer mytimer;
+\&   ev_timer mytimer;
 \&   ev_timer_init (&mytimer, one_minute_cb, 60., 0.);
 \&   ev_timer_start (loop, &mytimer);
 .Ve
@@ -1528,12 +1719,12 @@ inactivity.
 .PP
 .Vb 5
 \&   static void
-\&   timeout_cb (struct ev_loop *loop, struct ev_timer *w, int revents)
+\&   timeout_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     .. ten seconds without any activity
 \&   }
 \&
-\&   struct ev_timer mytimer;
+\&   ev_timer mytimer;
 \&   ev_timer_init (&mytimer, timeout_cb, 0., 10.); /* note, only repeat used */
 \&   ev_timer_again (&mytimer); /* start timer */
 \&   ev_loop (loop, 0);
@@ -1630,11 +1821,12 @@ If you need to stop it, return \f(CW\*(C`now + 1e30\*(C'\fR (or so, fudge fudge)
 it afterwards (e.g. by starting an \f(CW\*(C`ev_prepare\*(C'\fR watcher, which is the
 only event loop modification you are allowed to do).
 .Sp
-The callback prototype is \f(CW\*(C`ev_tstamp (*reschedule_cb)(struct ev_periodic
+The callback prototype is \f(CW\*(C`ev_tstamp (*reschedule_cb)(ev_periodic
 *w, ev_tstamp now)\*(C'\fR, e.g.:
 .Sp
-.Vb 4
-\&   static ev_tstamp my_rescheduler (struct ev_periodic *w, ev_tstamp now)
+.Vb 5
+\&   static ev_tstamp
+\&   my_rescheduler (ev_periodic *w, ev_tstamp now)
 \&   {
 \&     return now + 60.;
 \&   }
@@ -1678,8 +1870,8 @@ timer fires or \f(CW\*(C`ev_periodic_again\*(C'\fR is being called.
 The current interval value. Can be modified any time, but changes only
 take effect when the periodic timer fires or \f(CW\*(C`ev_periodic_again\*(C'\fR is being
 called.
-.IP "ev_tstamp (*reschedule_cb)(struct ev_periodic *w, ev_tstamp now) [read\-write]" 4
-.IX Item "ev_tstamp (*reschedule_cb)(struct ev_periodic *w, ev_tstamp now) [read-write]"
+.IP "ev_tstamp (*reschedule_cb)(ev_periodic *w, ev_tstamp now) [read\-write]" 4
+.IX Item "ev_tstamp (*reschedule_cb)(ev_periodic *w, ev_tstamp now) [read-write]"
 The current reschedule callback, or \f(CW0\fR, if this functionality is
 switched off. Can be changed any time, but changes only take effect when
 the periodic timer fires or \f(CW\*(C`ev_periodic_again\*(C'\fR is being called.
@@ -1693,12 +1885,12 @@ potentially a lot of jitter, but good long-term stability.
 .PP
 .Vb 5
 \&   static void
-\&   clock_cb (struct ev_loop *loop, struct ev_io *w, int revents)
+\&   clock_cb (struct ev_loop *loop, ev_io *w, int revents)
 \&   {
 \&     ... its now a full hour (UTC, or TAI or whatever your clock follows)
 \&   }
 \&
-\&   struct ev_periodic hourly_tick;
+\&   ev_periodic hourly_tick;
 \&   ev_periodic_init (&hourly_tick, clock_cb, 0., 3600., 0);
 \&   ev_periodic_start (loop, &hourly_tick);
 .Ve
@@ -1709,7 +1901,7 @@ Example: The same as above, but use a reschedule callback to do it:
 \&   #include <math.h>
 \&
 \&   static ev_tstamp
-\&   my_scheduler_cb (struct ev_periodic *w, ev_tstamp now)
+\&   my_scheduler_cb (ev_periodic *w, ev_tstamp now)
 \&   {
 \&     return now + (3600. \- fmod (now, 3600.));
 \&   }
@@ -1720,7 +1912,7 @@ Example: The same as above, but use a reschedule callback to do it:
 Example: Call a callback every hour, starting now:
 .PP
 .Vb 4
-\&   struct ev_periodic hourly_tick;
+\&   ev_periodic hourly_tick;
 \&   ev_periodic_init (&hourly_tick, clock_cb,
 \&                     fmod (ev_now (loop), 3600.), 3600., 0);
 \&   ev_periodic_start (loop, &hourly_tick);
@@ -1767,18 +1959,18 @@ The signal the watcher watches out for.
 \fIExamples\fR
 .IX Subsection "Examples"
 .PP
-Example: Try to exit cleanly on \s-1SIGINT\s0 and \s-1SIGTERM\s0.
+Example: Try to exit cleanly on \s-1SIGINT\s0.
 .PP
 .Vb 5
 \&   static void
-\&   sigint_cb (struct ev_loop *loop, struct ev_signal *w, int revents)
+\&   sigint_cb (struct ev_loop *loop, ev_signal *w, int revents)
 \&   {
 \&     ev_unloop (loop, EVUNLOOP_ALL);
 \&   }
 \&
-\&   struct ev_signal signal_watcher;
+\&   ev_signal signal_watcher;
 \&   ev_signal_init (&signal_watcher, sigint_cb, SIGINT);
-\&   ev_signal_start (loop, &sigint_cb);
+\&   ev_signal_start (loop, &signal_watcher);
 .Ve
 .ie n .Sh """ev_child"" \- watch out for process status changes"
 .el .Sh "\f(CWev_child\fP \- watch out for process status changes"
@@ -1861,7 +2053,7 @@ its completion.
 \&   ev_child cw;
 \&
 \&   static void
-\&   child_cb (EV_P_ struct ev_child *w, int revents)
+\&   child_cb (EV_P_ ev_child *w, int revents)
 \&   {
 \&     ev_child_stop (EV_A_ w);
 \&     printf ("process %d exited with status %x\en", w\->rpid, w\->rstatus);
@@ -1886,8 +2078,9 @@ its completion.
 .el .Sh "\f(CWev_stat\fP \- did the file attributes just change?"
 .IX Subsection "ev_stat - did the file attributes just change?"
 This watches a file system path for attribute changes. That is, it calls
-\&\f(CW\*(C`stat\*(C'\fR regularly (or when the \s-1OS\s0 says it changed) and sees if it changed
-compared to the last time, invoking the callback if it did.
+\&\f(CW\*(C`stat\*(C'\fR on that path in regular intervals (or when the \s-1OS\s0 says it changed)
+and sees if it changed compared to the last time, invoking the callback if
+it did.
 .PP
 The path does not need to exist: changing from \*(L"path exists\*(R" to \*(L"path does
 not exist\*(R" is a status change like any other. The condition \*(L"path does
@@ -1895,17 +2088,18 @@ not exist\*(R" is signified by the \f(CW\*(C`st_nlink\*(C'\fR field being zero (
 otherwise always forced to be at least one) and all the other fields of
 the stat buffer having unspecified contents.
 .PP
-The path \fIshould\fR be absolute and \fImust not\fR end in a slash. If it is
-relative and your working directory changes, the behaviour is undefined.
+The path \fImust not\fR end in a slash or contain special components such as
+\&\f(CW\*(C`.\*(C'\fR or \f(CW\*(C`..\*(C'\fR. The path \fIshould\fR be absolute: If it is relative and
+your working directory changes, then the behaviour is undefined.
 .PP
-Since there is no standard kernel interface to do this, the portable
-implementation simply calls \f(CW\*(C`stat (2)\*(C'\fR regularly on the path to see if
-it changed somehow. You can specify a recommended polling interval for
-this case. If you specify a polling interval of \f(CW0\fR (highly recommended!)
-then a \fIsuitable, unspecified default\fR value will be used (which
-you can expect to be around five seconds, although this might change
-dynamically). Libev will also impose a minimum interval which is currently
-around \f(CW0.1\fR, but thats usually overkill.
+Since there is no portable change notification interface available, the
+portable implementation simply calls \f(CWstat(2)\fR regularly on the path
+to see if it changed somehow. You can specify a recommended polling
+interval for this case. If you specify a polling interval of \f(CW0\fR (highly
+recommended!) then a \fIsuitable, unspecified default\fR value will be used
+(which you can expect to be around five seconds, although this might
+change dynamically). Libev will also impose a minimum interval which is
+currently around \f(CW0.1\fR, but that's usually overkill.
 .PP
 This watcher type is not meant for massive numbers of stat watchers,
 as even with OS-supported change notifications, this can be
@@ -1926,7 +2120,7 @@ structure. When using the library from programs that change the \s-1ABI\s0 to
 use 64 bit file offsets the programs will fail. In that case you have to
 compile libev with the same flags to get binary compatibility. This is
 obviously the case with any flags that change the \s-1ABI\s0, but the problem is
-most noticeably disabled with ev_stat and large file support.
+most noticeably displayed with ev_stat and large file support.
 .PP
 The solution for this is to lobby your distribution maker to make large
 file interfaces available by default (as e.g. FreeBSD does) and not
@@ -1937,10 +2131,11 @@ default compilation environment.
 \fIInotify and Kqueue\fR
 .IX Subsection "Inotify and Kqueue"
 .PP
-When \f(CW\*(C`inotify (7)\*(C'\fR support has been compiled into libev (generally only
-available with Linux) and present at runtime, it will be used to speed up
-change detection where possible. The inotify descriptor will be created lazily
-when the first \f(CW\*(C`ev_stat\*(C'\fR watcher is being started.
+When \f(CW\*(C`inotify (7)\*(C'\fR support has been compiled into libev (generally
+only available with Linux 2.6.25 or above due to bugs in earlier
+implementations) and present at runtime, it will be used to speed up
+change detection where possible. The inotify descriptor will be created
+lazily when the first \f(CW\*(C`ev_stat\*(C'\fR watcher is being started.
 .PP
 Inotify presence does not change the semantics of \f(CW\*(C`ev_stat\*(C'\fR watchers
 except that changes might be detected earlier, and in some cases, to avoid
@@ -1956,9 +2151,9 @@ etc. is difficult.
 \fIThe special problem of stat time resolution\fR
 .IX Subsection "The special problem of stat time resolution"
 .PP
-The \f(CW\*(C`stat ()\*(C'\fR system call only supports full-second resolution portably, and
-even on systems where the resolution is higher, most file systems still
-only support whole seconds.
+The \f(CW\*(C`stat ()\*(C'\fR system call only supports full-second resolution portably,
+and even on systems where the resolution is higher, most file systems
+still only support whole seconds.
 .PP
 That means that, if the time is the only thing that changes, you can
 easily miss updates: on the first update, \f(CW\*(C`ev_stat\*(C'\fR detects a change and
@@ -2120,14 +2315,14 @@ callback, free it. Also, use no error checking, as usual.
 .PP
 .Vb 7
 \&   static void
-\&   idle_cb (struct ev_loop *loop, struct ev_idle *w, int revents)
+\&   idle_cb (struct ev_loop *loop, ev_idle *w, int revents)
 \&   {
 \&     free (w);
 \&     // now do something you wanted to do when the program has
 \&     // no longer anything immediate to do.
 \&   }
 \&
-\&   struct ev_idle *idle_watcher = malloc (sizeof (struct ev_idle));
+\&   ev_idle *idle_watcher = malloc (sizeof (ev_idle));
 \&   ev_idle_init (idle_watcher, idle_cb);
 \&   ev_idle_start (loop, idle_cb);
 .Ve
@@ -2218,13 +2413,13 @@ the callbacks for the IO/timeout watchers might not have been called yet.
 \&   static ev_timer tw;
 \&
 \&   static void
-\&   io_cb (ev_loop *loop, ev_io *w, int revents)
+\&   io_cb (struct ev_loop *loop, ev_io *w, int revents)
 \&   {
 \&   }
 \&
 \&   // create io watchers for each fd and a timer before blocking
 \&   static void
-\&   adns_prepare_cb (ev_loop *loop, ev_prepare *w, int revents)
+\&   adns_prepare_cb (struct ev_loop *loop, ev_prepare *w, int revents)
 \&   {
 \&     int timeout = 3600000;
 \&     struct pollfd fds [nfd];
@@ -2249,7 +2444,7 @@ the callbacks for the IO/timeout watchers might not have been called yet.
 \&
 \&   // stop all watchers after blocking
 \&   static void
-\&   adns_check_cb (ev_loop *loop, ev_check *w, int revents)
+\&   adns_check_cb (struct ev_loop *loop, ev_check *w, int revents)
 \&   {
 \&     ev_timer_stop (loop, &tw);
 \&
@@ -2430,7 +2625,7 @@ used).
 .Vb 3
 \&   struct ev_loop *loop_hi = ev_default_init (0);
 \&   struct ev_loop *loop_lo = 0;
-\&   struct ev_embed embed;
+\&   ev_embed embed;
 \&   
 \&   // see if there is a chance of getting one that works
 \&   // (remember that a flags value of 0 means autodetection)
@@ -2456,7 +2651,7 @@ kqueue implementation). Store the kqueue/socket\-only event loop in
 .Vb 3
 \&   struct ev_loop *loop = ev_default_init (0);
 \&   struct ev_loop *loop_socket = 0;
-\&   struct ev_embed embed;
+\&   ev_embed embed;
 \&   
 \&   if (ev_supported_backends () & ~ev_recommended_backends () & EVBACKEND_KQUEUE)
 \&     if ((loop_socket = ev_loop_new (EVBACKEND_KQUEUE))
@@ -2523,8 +2718,8 @@ queue:
 .IP "queueing from a signal handler context" 4
 .IX Item "queueing from a signal handler context"
 To implement race-free queueing, you simply add to the queue in the signal
-handler but you block the signal handler in the watcher callback. Here is an example that does that for
-some fictitious \s-1SIGUSR1\s0 handler:
+handler but you block the signal handler in the watcher callback. Here is
+an example that does that for some fictitious \s-1SIGUSR1\s0 handler:
 .Sp
 .Vb 1
 \&   static ev_async mysig;
@@ -2598,7 +2793,7 @@ employ a traditional mutex lock, such as in this pthread example:
 .IP "ev_async_init (ev_async *, callback)" 4
 .IX Item "ev_async_init (ev_async *, callback)"
 Initialises and configures the async watcher \- it has no parameters of any
-kind. There is a \f(CW\*(C`ev_asynd_set\*(C'\fR macro, but using it is utterly pointless,
+kind. There is a \f(CW\*(C`ev_async_set\*(C'\fR macro, but using it is utterly pointless,
 trust me.
 .IP "ev_async_send (loop, ev_async *)" 4
 .IX Item "ev_async_send (loop, ev_async *)"
@@ -2630,47 +2825,50 @@ There are some other functions of possible interest. Described. Here. Now.
 .IP "ev_once (loop, int fd, int events, ev_tstamp timeout, callback)" 4
 .IX Item "ev_once (loop, int fd, int events, ev_tstamp timeout, callback)"
 This function combines a simple timer and an I/O watcher, calls your
-callback on whichever event happens first and automatically stop both
+callback on whichever event happens first and automatically stops both
 watchers. This is useful if you want to wait for a single event on an fd
 or timeout without having to allocate/configure/start/stop/free one or
 more watchers yourself.
 .Sp
-If \f(CW\*(C`fd\*(C'\fR is less than 0, then no I/O watcher will be started and events
-is being ignored. Otherwise, an \f(CW\*(C`ev_io\*(C'\fR watcher for the given \f(CW\*(C`fd\*(C'\fR and
-\&\f(CW\*(C`events\*(C'\fR set will be created and started.
+If \f(CW\*(C`fd\*(C'\fR is less than 0, then no I/O watcher will be started and the
+\&\f(CW\*(C`events\*(C'\fR argument is being ignored. Otherwise, an \f(CW\*(C`ev_io\*(C'\fR watcher for
+the given \f(CW\*(C`fd\*(C'\fR and \f(CW\*(C`events\*(C'\fR set will be created and started.
 .Sp
 If \f(CW\*(C`timeout\*(C'\fR is less than 0, then no timeout watcher will be
 started. Otherwise an \f(CW\*(C`ev_timer\*(C'\fR watcher with after = \f(CW\*(C`timeout\*(C'\fR (and
-repeat = 0) will be started. While \f(CW0\fR is a valid timeout, it is of
-dubious value.
+repeat = 0) will be started. \f(CW0\fR is a valid timeout.
 .Sp
 The callback has the type \f(CW\*(C`void (*cb)(int revents, void *arg)\*(C'\fR and gets
 passed an \f(CW\*(C`revents\*(C'\fR set like normal event callbacks (a combination of
 \&\f(CW\*(C`EV_ERROR\*(C'\fR, \f(CW\*(C`EV_READ\*(C'\fR, \f(CW\*(C`EV_WRITE\*(C'\fR or \f(CW\*(C`EV_TIMEOUT\*(C'\fR) and the \f(CW\*(C`arg\*(C'\fR
-value passed to \f(CW\*(C`ev_once\*(C'\fR:
+value passed to \f(CW\*(C`ev_once\*(C'\fR. Note that it is possible to receive \fIboth\fR
+a timeout and an io event at the same time \- you probably should give io
+events precedence.
+.Sp
+Example: wait up to ten seconds for data to appear on \s-1STDIN_FILENO\s0.
 .Sp
 .Vb 7
 \&   static void stdin_ready (int revents, void *arg)
 \&   {
-\&     if (revents & EV_TIMEOUT)
-\&       /* doh, nothing entered */;
-\&     else if (revents & EV_READ)
+\&     if (revents & EV_READ)
 \&       /* stdin might have data for us, joy! */;
+\&     else if (revents & EV_TIMEOUT)
+\&       /* doh, nothing entered */;
 \&   }
 \&
 \&   ev_once (STDIN_FILENO, EV_READ, 10., stdin_ready, 0);
 .Ve
-.IP "ev_feed_event (ev_loop *, watcher *, int revents)" 4
-.IX Item "ev_feed_event (ev_loop *, watcher *, int revents)"
+.IP "ev_feed_event (struct ev_loop *, watcher *, int revents)" 4
+.IX Item "ev_feed_event (struct ev_loop *, watcher *, int revents)"
 Feeds the given event set into the event loop, as if the specified event
 had happened for the specified watcher (which must be a pointer to an
 initialised but not necessarily started event watcher).
-.IP "ev_feed_fd_event (ev_loop *, int fd, int revents)" 4
-.IX Item "ev_feed_fd_event (ev_loop *, int fd, int revents)"
+.IP "ev_feed_fd_event (struct ev_loop *, int fd, int revents)" 4
+.IX Item "ev_feed_fd_event (struct ev_loop *, int fd, int revents)"
 Feed an event on the given fd, as if a file descriptor backend detected
 the given events it.
-.IP "ev_feed_signal_event (ev_loop *loop, int signum)" 4
-.IX Item "ev_feed_signal_event (ev_loop *loop, int signum)"
+.IP "ev_feed_signal_event (struct ev_loop *loop, int signum)" 4
+.IX Item "ev_feed_signal_event (struct ev_loop *loop, int signum)"
 Feed an event as if the given signal occurred (\f(CW\*(C`loop\*(C'\fR must be the default
 loop!).
 .SH "LIBEVENT EMULATION"
@@ -2895,6 +3093,10 @@ more on top of it. It can be found via gem servers. Its homepage is at
 .IX Item "D"
 Leandro Lucarella has written a D language binding (\fIev.d\fR) for libev, to
 be found at <http://proj.llucax.com.ar/wiki/evd>.
+.IP "Ocaml" 4
+.IX Item "Ocaml"
+Erkki Seppala has written Ocaml bindings for libev, to be found at
+<http://modeemi.cs.tut.fi/~flux/software/ocaml\-ev/>.
 .SH "MACRO MAGIC"
 .IX Header "MACRO MAGIC"
 Libev can be compiled with a variety of options, the most fundamental
@@ -3006,7 +3208,7 @@ where you can put other configuration options):
 .Ve
 .PP
 Both header files and implementation files can be compiled with a \*(C+
-compiler (at least, thats a stated goal, and breakage will be treated
+compiler (at least, that's a stated goal, and breakage will be treated
 as a bug).
 .PP
 You need the following files in your source tree, or in a directory
@@ -3400,16 +3602,19 @@ And a \fIev_cpp.C\fR implementation file that contains libev proper and is compi
 \&   #include "ev_cpp.h"
 \&   #include "ev.c"
 .Ve
-.SH "THREADS AND COROUTINES"
-.IX Header "THREADS AND COROUTINES"
-.Sh "\s-1THREADS\s0"
+.SH "INTERACTION WITH OTHER PROGRAMS OR LIBRARIES"
+.IX Header "INTERACTION WITH OTHER PROGRAMS OR LIBRARIES"
+.Sh "\s-1THREADS\s0 \s-1AND\s0 \s-1COROUTINES\s0"
+.IX Subsection "THREADS AND COROUTINES"
+\fI\s-1THREADS\s0\fR
 .IX Subsection "THREADS"
+.PP
 All libev functions are reentrant and thread-safe unless explicitly
-documented otherwise, but it uses no locking itself. This means that you
-can use as many loops as you want in parallel, as long as there are no
-concurrent calls into any libev function with the same loop parameter
-(\f(CW\*(C`ev_default_*\*(C'\fR calls have an implicit default loop parameter, of
-course): libev guarantees that different event loops share no data
+documented otherwise, but libev implements no locking itself. This means
+that you can use as many loops as you want in parallel, as long as there
+are no concurrent calls into any libev function with the same loop
+parameter (\f(CW\*(C`ev_default_*\*(C'\fR calls have an implicit default loop parameter,
+of course): libev guarantees that different event loops share no data
 structures that need any locking.
 .PP
 Or to put it differently: calls with different loop parameters can be done
@@ -3454,81 +3659,84 @@ An example use would be to communicate signals or other events that only
 work in the default loop by registering the signal watcher with the
 default loop and triggering an \f(CW\*(C`ev_async\*(C'\fR watcher from the default loop
 watcher callback into the event loop interested in the signal.
-.Sh "\s-1COROUTINES\s0"
+.PP
+\fI\s-1COROUTINES\s0\fR
 .IX Subsection "COROUTINES"
-Libev is much more accommodating to coroutines (\*(L"cooperative threads\*(R"):
-libev fully supports nesting calls to it's functions from different
+.PP
+Libev is very accommodating to coroutines (\*(L"cooperative threads\*(R"):
+libev fully supports nesting calls to its functions from different
 coroutines (e.g. you can call \f(CW\*(C`ev_loop\*(C'\fR on the same loop from two
-different coroutines and switch freely between both coroutines running the
+different coroutines, and switch freely between both coroutines running the
 loop, as long as you don't confuse yourself). The only exception is that
 you must not do this from \f(CW\*(C`ev_periodic\*(C'\fR reschedule callbacks.
 .PP
 Care has been taken to ensure that libev does not keep local state inside
-\&\f(CW\*(C`ev_loop\*(C'\fR, and other calls do not usually allow coroutine switches.
-.SH "COMPLEXITIES"
-.IX Header "COMPLEXITIES"
-In this section the complexities of (many of) the algorithms used inside
-libev will be explained. For complexity discussions about backends see the
-documentation for \f(CW\*(C`ev_default_init\*(C'\fR.
+\&\f(CW\*(C`ev_loop\*(C'\fR, and other calls do not usually allow for coroutine switches as
+they do not call any callbacks.
+.Sh "\s-1COMPILER\s0 \s-1WARNINGS\s0"
+.IX Subsection "COMPILER WARNINGS"
+Depending on your compiler and compiler settings, you might get no or a
+lot of warnings when compiling libev code. Some people are apparently
+scared by this.
 .PP
-All of the following are about amortised time: If an array needs to be
-extended, libev needs to realloc and move the whole array, but this
-happens asymptotically never with higher number of elements, so O(1) might
-mean it might do a lengthy realloc operation in rare cases, but on average
-it is much faster and asymptotically approaches constant time.
-.IP "Starting and stopping timer/periodic watchers: O(log skipped_other_timers)" 4
-.IX Item "Starting and stopping timer/periodic watchers: O(log skipped_other_timers)"
-This means that, when you have a watcher that triggers in one hour and
-there are 100 watchers that would trigger before that then inserting will
-have to skip roughly seven (\f(CW\*(C`ld 100\*(C'\fR) of these watchers.
-.IP "Changing timer/periodic watchers (by autorepeat or calling again): O(log skipped_other_timers)" 4
-.IX Item "Changing timer/periodic watchers (by autorepeat or calling again): O(log skipped_other_timers)"
-That means that changing a timer costs less than removing/adding them
-as only the relative motion in the event queue has to be paid for.
-.IP "Starting io/check/prepare/idle/signal/child/fork/async watchers: O(1)" 4
-.IX Item "Starting io/check/prepare/idle/signal/child/fork/async watchers: O(1)"
-These just add the watcher into an array or at the head of a list.
-.IP "Stopping check/prepare/idle/fork/async watchers: O(1)" 4
-.IX Item "Stopping check/prepare/idle/fork/async watchers: O(1)"
-.PD 0
-.IP "Stopping an io/signal/child watcher: O(number_of_watchers_for_this_(fd/signal/pid % \s-1EV_PID_HASHSIZE\s0))" 4
-.IX Item "Stopping an io/signal/child watcher: O(number_of_watchers_for_this_(fd/signal/pid % EV_PID_HASHSIZE))"
-.PD
-These watchers are stored in lists then need to be walked to find the
-correct watcher to remove. The lists are usually short (you don't usually
-have many watchers waiting for the same fd or signal).
-.IP "Finding the next timer in each loop iteration: O(1)" 4
-.IX Item "Finding the next timer in each loop iteration: O(1)"
-By virtue of using a binary or 4\-heap, the next timer is always found at a
-fixed position in the storage array.
-.IP "Each change on a file descriptor per loop iteration: O(number_of_watchers_for_this_fd)" 4
-.IX Item "Each change on a file descriptor per loop iteration: O(number_of_watchers_for_this_fd)"
-A change means an I/O watcher gets started or stopped, which requires
-libev to recalculate its status (and possibly tell the kernel, depending
-on backend and whether \f(CW\*(C`ev_io_set\*(C'\fR was used).
-.IP "Activating one watcher (putting it into the pending state): O(1)" 4
-.IX Item "Activating one watcher (putting it into the pending state): O(1)"
-.PD 0
-.IP "Priority handling: O(number_of_priorities)" 4
-.IX Item "Priority handling: O(number_of_priorities)"
-.PD
-Priorities are implemented by allocating some space for each
-priority. When doing priority-based operations, libev usually has to
-linearly search all the priorities, but starting/stopping and activating
-watchers becomes O(1) with respect to priority handling.
-.IP "Sending an ev_async: O(1)" 4
-.IX Item "Sending an ev_async: O(1)"
-.PD 0
-.IP "Processing ev_async_send: O(number_of_async_watchers)" 4
-.IX Item "Processing ev_async_send: O(number_of_async_watchers)"
-.IP "Processing signals: O(max_signal_number)" 4
-.IX Item "Processing signals: O(max_signal_number)"
-.PD
-Sending involves a system call \fIiff\fR there were no other \f(CW\*(C`ev_async_send\*(C'\fR
-calls in the current loop iteration. Checking for async and signal events
-involves iterating over all running async watchers or all signal numbers.
-.SH "WIN32 PLATFORM LIMITATIONS AND WORKAROUNDS"
-.IX Header "WIN32 PLATFORM LIMITATIONS AND WORKAROUNDS"
+However, these are unavoidable for many reasons. For one, each compiler
+has different warnings, and each user has different tastes regarding
+warning options. \*(L"Warn-free\*(R" code therefore cannot be a goal except when
+targeting a specific compiler and compiler-version.
+.PP
+Another reason is that some compiler warnings require elaborate
+workarounds, or other changes to the code that make it less clear and less
+maintainable.
+.PP
+And of course, some compiler warnings are just plain stupid, or simply
+wrong (because they don't actually warn about the condition their message
+seems to warn about). For example, certain older gcc versions had some
+warnings that resulted an extreme number of false positives. These have
+been fixed, but some people still insist on making code warn-free with
+such buggy versions.
+.PP
+While libev is written to generate as few warnings as possible,
+\&\*(L"warn-free\*(R" code is not a goal, and it is recommended not to build libev
+with any compiler warnings enabled unless you are prepared to cope with
+them (e.g. by ignoring them). Remember that warnings are just that:
+warnings, not errors, or proof of bugs.
+.Sh "\s-1VALGRIND\s0"
+.IX Subsection "VALGRIND"
+Valgrind has a special section here because it is a popular tool that is
+highly useful. Unfortunately, valgrind reports are very hard to interpret.
+.PP
+If you think you found a bug (memory leak, uninitialised data access etc.)
+in libev, then check twice: If valgrind reports something like:
+.PP
+.Vb 3
+\&   ==2274==    definitely lost: 0 bytes in 0 blocks.
+\&   ==2274==      possibly lost: 0 bytes in 0 blocks.
+\&   ==2274==    still reachable: 256 bytes in 1 blocks.
+.Ve
+.PP
+Then there is no memory leak, just as memory accounted to global variables
+is not a memleak \- the memory is still being referenced, and didn't leak.
+.PP
+Similarly, under some circumstances, valgrind might report kernel bugs
+as if it were a bug in libev (e.g. in realloc or in the poll backend,
+although an acceptable workaround has been found here), or it might be
+confused.
+.PP
+Keep in mind that valgrind is a very good tool, but only a tool. Don't
+make it into some kind of religion.
+.PP
+If you are unsure about something, feel free to contact the mailing list
+with the full valgrind report and an explanation on why you think this
+is a bug in libev (best check the archives, too :). However, don't be
+annoyed when you get a brisk \*(L"this is no bug\*(R" answer and take the chance
+of learning how to interpret valgrind properly.
+.PP
+If you need, for some reason, empty reports from valgrind for your project
+I suggest using suppression lists.
+.SH "PORTABILITY NOTES"
+.IX Header "PORTABILITY NOTES"
+.Sh "\s-1WIN32\s0 \s-1PLATFORM\s0 \s-1LIMITATIONS\s0 \s-1AND\s0 \s-1WORKAROUNDS\s0"
+.IX Subsection "WIN32 PLATFORM LIMITATIONS AND WORKAROUNDS"
 Win32 doesn't support any of the standards (e.g. \s-1POSIX\s0) that libev
 requires, and its I/O model is fundamentally incompatible with the \s-1POSIX\s0
 model. Libev still offers limited functionality on this platform in
@@ -3623,10 +3831,10 @@ This might get you to about \f(CW512\fR or \f(CW2048\fR sockets (depending on
 windows version and/or the phase of the moon). To get more, you need to
 wrap all I/O functions and provide your own fd management, but the cost of
 calling select (O(nA\*^X)) will likely make this unworkable.
-.SH "PORTABILITY REQUIREMENTS"
-.IX Header "PORTABILITY REQUIREMENTS"
-In addition to a working ISO-C implementation, libev relies on a few
-additional extensions:
+.Sh "\s-1PORTABILITY\s0 \s-1REQUIREMENTS\s0"
+.IX Subsection "PORTABILITY REQUIREMENTS"
+In addition to a working ISO-C implementation and of course the
+backend-specific APIs, libev relies on a few additional extensions:
 .ie n .IP """void (*)(ev_watcher_type *, int revents)""\fR must have compatible calling conventions regardless of \f(CW""ev_watcher_type *""." 4
 .el .IP "\f(CWvoid (*)(ev_watcher_type *, int revents)\fR must have compatible calling conventions regardless of \f(CWev_watcher_type *\fR." 4
 .IX Item "void (*)(ev_watcher_type *, int revents) must have compatible calling conventions regardless of ev_watcher_type *."
@@ -3658,11 +3866,11 @@ well.
 .ie n .IP """long"" must be large enough for common memory allocation sizes" 4
 .el .IP "\f(CWlong\fR must be large enough for common memory allocation sizes" 4
 .IX Item "long must be large enough for common memory allocation sizes"
-To improve portability and simplify using libev, libev uses \f(CW\*(C`long\*(C'\fR
-internally instead of \f(CW\*(C`size_t\*(C'\fR when allocating its data structures. On
-non-POSIX systems (Microsoft...) this might be unexpectedly low, but
-is still at least 31 bits everywhere, which is enough for hundreds of
-millions of watchers.
+To improve portability and simplify its \s-1API\s0, libev uses \f(CW\*(C`long\*(C'\fR internally
+instead of \f(CW\*(C`size_t\*(C'\fR when allocating its data structures. On non-POSIX
+systems (Microsoft...) this might be unexpectedly low, but is still at
+least 31 bits everywhere, which is enough for hundreds of millions of
+watchers.
 .ie n .IP """double"" must hold a time value in seconds with enough accuracy" 4
 .el .IP "\f(CWdouble\fR must hold a time value in seconds with enough accuracy" 4
 .IX Item "double must hold a time value in seconds with enough accuracy"
@@ -3672,56 +3880,69 @@ enough for at least into the year 4000. This requirement is fulfilled by
 implementations implementing \s-1IEEE\s0 754 (basically all existing ones).
 .PP
 If you know of other additional requirements drop me a note.
-.SH "COMPILER WARNINGS"
-.IX Header "COMPILER WARNINGS"
-Depending on your compiler and compiler settings, you might get no or a
-lot of warnings when compiling libev code. Some people are apparently
-scared by this.
+.SH "ALGORITHMIC COMPLEXITIES"
+.IX Header "ALGORITHMIC COMPLEXITIES"
+In this section the complexities of (many of) the algorithms used inside
+libev will be documented. For complexity discussions about backends see
+the documentation for \f(CW\*(C`ev_default_init\*(C'\fR.
 .PP
-However, these are unavoidable for many reasons. For one, each compiler
-has different warnings, and each user has different tastes regarding
-warning options. \*(L"Warn-free\*(R" code therefore cannot be a goal except when
-targeting a specific compiler and compiler-version.
-.PP
-Another reason is that some compiler warnings require elaborate
-workarounds, or other changes to the code that make it less clear and less
-maintainable.
-.PP
-And of course, some compiler warnings are just plain stupid, or simply
-wrong (because they don't actually warn about the condition their message
-seems to warn about).
-.PP
-While libev is written to generate as few warnings as possible,
-\&\*(L"warn-free\*(R" code is not a goal, and it is recommended not to build libev
-with any compiler warnings enabled unless you are prepared to cope with
-them (e.g. by ignoring them). Remember that warnings are just that:
-warnings, not errors, or proof of bugs.
-.SH "VALGRIND"
-.IX Header "VALGRIND"
-Valgrind has a special section here because it is a popular tool that is
-highly useful, but valgrind reports are very hard to interpret.
-.PP
-If you think you found a bug (memory leak, uninitialised data access etc.)
-in libev, then check twice: If valgrind reports something like:
-.PP
-.Vb 3
-\&   ==2274==    definitely lost: 0 bytes in 0 blocks.
-\&   ==2274==      possibly lost: 0 bytes in 0 blocks.
-\&   ==2274==    still reachable: 256 bytes in 1 blocks.
-.Ve
-.PP
-Then there is no memory leak. Similarly, under some circumstances,
-valgrind might report kernel bugs as if it were a bug in libev, or it
-might be confused (it is a very good tool, but only a tool).
-.PP
-If you are unsure about something, feel free to contact the mailing list
-with the full valgrind report and an explanation on why you think this is
-a bug in libev. However, don't be annoyed when you get a brisk \*(L"this is
-no bug\*(R" answer and take the chance of learning how to interpret valgrind
-properly.
-.PP
-If you need, for some reason, empty reports from valgrind for your project
-I suggest using suppression lists.
+All of the following are about amortised time: If an array needs to be
+extended, libev needs to realloc and move the whole array, but this
+happens asymptotically rarer with higher number of elements, so O(1) might
+mean that libev does a lengthy realloc operation in rare cases, but on
+average it is much faster and asymptotically approaches constant time.
+.IP "Starting and stopping timer/periodic watchers: O(log skipped_other_timers)" 4
+.IX Item "Starting and stopping timer/periodic watchers: O(log skipped_other_timers)"
+This means that, when you have a watcher that triggers in one hour and
+there are 100 watchers that would trigger before that, then inserting will
+have to skip roughly seven (\f(CW\*(C`ld 100\*(C'\fR) of these watchers.
+.IP "Changing timer/periodic watchers (by autorepeat or calling again): O(log skipped_other_timers)" 4
+.IX Item "Changing timer/periodic watchers (by autorepeat or calling again): O(log skipped_other_timers)"
+That means that changing a timer costs less than removing/adding them,
+as only the relative motion in the event queue has to be paid for.
+.IP "Starting io/check/prepare/idle/signal/child/fork/async watchers: O(1)" 4
+.IX Item "Starting io/check/prepare/idle/signal/child/fork/async watchers: O(1)"
+These just add the watcher into an array or at the head of a list.
+.IP "Stopping check/prepare/idle/fork/async watchers: O(1)" 4
+.IX Item "Stopping check/prepare/idle/fork/async watchers: O(1)"
+.PD 0
+.IP "Stopping an io/signal/child watcher: O(number_of_watchers_for_this_(fd/signal/pid % \s-1EV_PID_HASHSIZE\s0))" 4
+.IX Item "Stopping an io/signal/child watcher: O(number_of_watchers_for_this_(fd/signal/pid % EV_PID_HASHSIZE))"
+.PD
+These watchers are stored in lists, so they need to be walked to find the
+correct watcher to remove. The lists are usually short (you don't usually
+have many watchers waiting for the same fd or signal: one is typical, two
+is rare).
+.IP "Finding the next timer in each loop iteration: O(1)" 4
+.IX Item "Finding the next timer in each loop iteration: O(1)"
+By virtue of using a binary or 4\-heap, the next timer is always found at a
+fixed position in the storage array.
+.IP "Each change on a file descriptor per loop iteration: O(number_of_watchers_for_this_fd)" 4
+.IX Item "Each change on a file descriptor per loop iteration: O(number_of_watchers_for_this_fd)"
+A change means an I/O watcher gets started or stopped, which requires
+libev to recalculate its status (and possibly tell the kernel, depending
+on backend and whether \f(CW\*(C`ev_io_set\*(C'\fR was used).
+.IP "Activating one watcher (putting it into the pending state): O(1)" 4
+.IX Item "Activating one watcher (putting it into the pending state): O(1)"
+.PD 0
+.IP "Priority handling: O(number_of_priorities)" 4
+.IX Item "Priority handling: O(number_of_priorities)"
+.PD
+Priorities are implemented by allocating some space for each
+priority. When doing priority-based operations, libev usually has to
+linearly search all the priorities, but starting/stopping and activating
+watchers becomes O(1) with respect to priority handling.
+.IP "Sending an ev_async: O(1)" 4
+.IX Item "Sending an ev_async: O(1)"
+.PD 0
+.IP "Processing ev_async_send: O(number_of_async_watchers)" 4
+.IX Item "Processing ev_async_send: O(number_of_async_watchers)"
+.IP "Processing signals: O(max_signal_number)" 4
+.IX Item "Processing signals: O(max_signal_number)"
+.PD
+Sending involves a system call \fIiff\fR there were no other \f(CW\*(C`ev_async_send\*(C'\fR
+calls in the current loop iteration. Checking for async and signal events
+involves iterating over all running async watchers or all signal numbers.
 .SH "AUTHOR"
 .IX Header "AUTHOR"
-Marc Lehmann <libev@schmorp.de>.
+Marc Lehmann <libev@schmorp.de>, with repeated corrections by Mikael Magnusson.

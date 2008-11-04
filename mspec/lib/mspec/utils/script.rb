@@ -76,11 +76,20 @@ class MSpecScript
     end
   end
 
+  def entries(pattern)
+    expanded = File.expand_path(pattern)
+    return [pattern] if File.file?(expanded)
+    return Dir[pattern+"/**/*_spec.rb"].sort if File.directory?(expanded)
+    []
+  end
+
   def files(list)
     list.inject([]) do |files, item|
-      stat = File.stat(File.expand_path(item))
-      files << item if stat.file?
-      files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
+      if item[0] == ?^
+        files -= entries(item[1..-1])
+      else
+        files += entries(item)
+      end
       files
     end
   end

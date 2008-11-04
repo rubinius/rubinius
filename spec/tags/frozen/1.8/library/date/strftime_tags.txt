@@ -1,0 +1,36 @@
+fails:Date#strftime should be able to print the full day name
+fails:Date#strftime should be able to print the short day name
+fails:Date#strftime should be able to print the full month name
+fails:Date#strftime should be able to print the short month name
+fails:Date#strftime should be able to print the century
+fails:Date#strftime should be able to print the month day with leading zeroes
+fails:Date#strftime should be able to print the month day with leading spaces
+fails:Date#strftime should be able to print the commercial year with leading zeroes
+fails:Date#strftime should be able to print the commercial year with only two digits
+fails:Date#strftime should be able to print the hour with leading zeroes (hour is always 00)
+fails:Date#strftime should be able to print the hour in 12 hour notation with leading zeroes
+fails:Date#strftime should be able to print the year day with leading zeroes
+fails:Date#strftime should be able to print the hour in 24 hour notation with leading spaces
+fails:Date#strftime should be able to print the hour in 12 hour notation with leading spaces
+fails:Date#strftime should be able to print the minutes with leading zeroes
+fails:Date#strftime should be able to print the month with leading zeroes
+fails:Date#strftime should be able to show AM/PM
+fails:Date#strftime should be able to show am/pm
+fails:Date#strftime should be able to show the number of seconds with leading zeroes
+fails:Date#strftime should be able to show the number of seconds since the unix epoch
+fails:Date#strftime should be able to show the week number with the week starting on sunday and monday
+fails:Date#strftime should be able to show the commercial week day
+fails:Date#strftime should be able to show the commercial week
+fails:Date#strftime should be able to show the week day
+fails:Date#strftime should be able to show the year in YYYY format
+fails:Date#strftime should be able to show the year in YY format
+fails:Date#strftime should be able to show the timezone of the date with a : separator
+fails:Date#strftime should be able to escape the % character
+fails:Date#strftime should be able to print the date in full
+fails:Date#strftime should be able to print the date with slashes
+fails:Date#strftime should be able to print the date as YYYY-MM-DD
+fails:Date#strftime should be able to show HH:MM
+fails:Date#strftime should be able to show HH:MM:SS AM/PM
+fails:Date#strftime should be able to show HH:MM:SS
+fails:Date#strftime should be able to show MM/DD/YY
+fails:Date#strftime should be able to show a full notation

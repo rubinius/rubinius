@@ -5,7 +5,7 @@ describe "Hash.allocate" do
   # it is set up correctly.
   it "initializes the Hash storage" do
     h = Hash.allocate
-    h.instance_variable_get(:@size).should == 0
+    h.instance_variable_get(:@count).should == 0
     h.instance_variable_get(:@records).should == Hash::MIN_SIZE
     h.instance_variable_get(:@bins).should be_kind_of(Tuple)
   end

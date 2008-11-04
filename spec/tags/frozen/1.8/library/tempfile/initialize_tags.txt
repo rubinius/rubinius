@@ -1,0 +1,1 @@
+fails:Tempfile#initialize opens a new tempfile with the passed name in the passed directory

@@ -141,11 +141,14 @@ class Array
       return nil
     end
 
+    return self.class.new if finish < start or count == 0
+
     out = self.class.new
-
-    return out if finish < start or count == 0
-
-    start.upto(finish) { |i| out << at(i) }
+    i = start
+    while(i <= finish)
+      out << at(i)
+      i += 1
+    end
     out
   end
 
@@ -1412,7 +1415,11 @@ class Array
   # Goes through the Array back to front and yields
   # each element to the supplied block. Returns self.
   def reverse_each()
-    (@total - 1).downto(0) { |i| yield(at(i)) }
+    i = @total - 1
+    while i >= 0 do
+      yield(at(i))
+      i -= 1
+    end
     self
   end
 

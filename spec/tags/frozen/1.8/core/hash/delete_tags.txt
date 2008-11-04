@@ -2,3 +2,4 @@ fails:Hash#delete calls eql? on colliding keys it finds
 
 
 
+fails:Hash#delete uses eql? on non-colliding keys to determine deletion of String keys

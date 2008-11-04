@@ -433,7 +433,7 @@ describe Compiler do
       yield *a
     EOC
 
-      sexp = s(:yield, s(:splat, s(:call, nil, :a, s(:arglist))))
+      sexp = s(:yield, s(:array, s(:splat, s(:call, nil, :a, s(:arglist)))))
 
     sexp.should == parse(ruby)
 
@@ -517,7 +517,7 @@ describe Compiler do
                s(:args),
                s(:scope,
                  s(:block,
-                   s(:super, s(:splat, s(:call, nil, :blah, s(:arglist)))))))
+                   s(:super, s(:array, s(:splat, s(:call, nil, :blah, s(:arglist))))))))
 
     sexp.should == parse(ruby)
 

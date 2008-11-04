@@ -89,6 +89,7 @@ def usage
   puts "-X CMD  Test sexp from invoking CMD (see -t) against rewritten SydneyParser"
   puts "-t STR  Substitute into template STR at %s"
   puts "-d      Display the sexp converted from reading STDIN"
+  puts "-V      Display more info while running"
   puts "-h      Show this message"
   puts ""
   exit 1
@@ -100,6 +101,7 @@ standard = :sydney_parser
 sexp = :to_sexp_sydney_unified
 template = %Q{%s}
 command = nil
+verbose = false
 
 files = []
 while x = ARGV.shift
@@ -137,6 +139,8 @@ while x = ARGV.shift
       template = ARGV.shift
     when "-d"
       processor = :show
+    when "-V"
+      verbose = true
     when "-h"
       usage
     else
@@ -161,6 +165,7 @@ else
   start = Time.now
   files.each do |name|
     total += 1
+    print "\n#{name.ljust(30)} " if verbose
     load name
     begin
       node = File.basename(name, "_spec.rb").split("/").last
