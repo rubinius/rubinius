@@ -1,2 +1,4 @@
 fails:Return from within a block raises a LocalJumpError if there is no lexicaly enclosing method
 fails:The return keyword unwraps single-element and empty splatted arrays
+fails:return when passed a splat calls 'to_a' on the splatted value first
+fails:return when passed a splat calls 'to_ary' on the splatted value first

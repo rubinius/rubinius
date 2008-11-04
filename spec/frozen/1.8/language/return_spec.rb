@@ -77,6 +77,41 @@ describe "return when passed a splat" do
 
     r().should == [1,2]
   end
+
+  it "calls 'to_ary' on the splatted value first" do
+    def r
+      obj = Object.new
+      def obj.to_ary
+        []
+      end
+
+      return *obj
+    end
+
+    r().should be_nil
+
+    def r
+      obj = Object.new
+      def obj.to_ary
+        [1]
+      end
+
+      return *obj
+    end
+
+    r().should == 1
+
+    def r
+      obj = Object.new
+      def obj.to_ary
+        [1,2]
+      end
+
+      return *obj
+    end
+
+    r().should == [1,2]
+  end
 end
 
 describe "return from within a begin" do
