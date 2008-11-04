@@ -3834,24 +3834,22 @@ class ParseTreeTestCase < Test::Unit::TestCase
   add_tests("splat_super",
             "Ruby"         => "super(*[1])",
             "RawParseTree" => [:super, [:splat, [:array, [:lit, 1]]]],
-            "ParseTree"    => s(:super, s(:array, s(:splat, s(:array, s(:lit, 1))))))
+            "ParseTree"    => s(:super, s(:splat, s(:array, s(:lit, 1)))))
 
   add_tests("splat_super_array",
             "Ruby"         => "super([*[1]])",
             "RawParseTree" => [:super, [:array, [:splat, [:array, [:lit, 1]]]]],
-            "ParseTree"    => s(:super, s(:array, s(:splat, s(:array, s(:lit, 1))))),
-            "Ruby2Ruby"    => "super(*[1])")
+            "ParseTree"    => s(:super, s(:array, s(:splat, s(:array, s(:lit, 1))))))
 
   add_tests("splat_yield",
             "Ruby"         => "yield(*[1])",
             "RawParseTree" => [:yield, [:splat, [:array, [:lit, 1]]]],
-            "ParseTree"    => s(:yield, s(:array, s(:splat, s(:array, s(:lit, 1))))))
+            "ParseTree"    => s(:yield, s(:splat, s(:array, s(:lit, 1)))))
 
   add_tests("splat_yield_array",
             "Ruby"         => "yield([*[1]])",
-            "RawParseTree" => [:yield, [:splat, [:array, [:lit, 1]]]],
-            "ParseTree"    => s(:yield, s(:array, s(:splat, s(:array, s(:lit, 1))))),
-            "Ruby2Ruby"    => "yield(*[1])")
+            "RawParseTree" => [:yield, [:splat, [:array, [:lit, 1]]], true],
+            "ParseTree"    => s(:yield, s(:array, s(:splat, s(:array, s(:lit, 1))))))
 
   add_tests("str",
             "Ruby"         => '"x"',
@@ -4401,11 +4399,6 @@ class ParseTreeTestCase < Test::Unit::TestCase
             "Ruby"         => "yield(42, 24)",
             "RawParseTree" => [:yield, [:array, [:lit, 42], [:lit, 24]]],
             "ParseTree"    => s(:yield, s(:lit, 42), s(:lit, 24)))
-
-  add_tests("yield_splat",
-            "Ruby"         => "yield(*ary)",
-            "RawParseTree" => [:yield, [:splat, [:vcall, :ary]]],
-            "ParseTree"    => s(:yield, s(:array, s(:splat, s(:call, nil, :ary, s(:arglist))))))
 
   add_tests("zarray",
             "Ruby"         => "a = []",
