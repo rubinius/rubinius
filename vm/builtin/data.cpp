@@ -1,4 +1,6 @@
 #include "builtin/data.hpp"
+#include "builtin/class.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
 

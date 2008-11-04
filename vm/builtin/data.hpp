@@ -2,9 +2,7 @@
 #define RBX_BUILTIN_DATA_HPP
 
 #include "builtin/object.hpp"
-#include "builtin/class.hpp"
 #include "builtin/nativemethodcontext.hpp"
-#include "objectmemory.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
