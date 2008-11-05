@@ -17,7 +17,7 @@ namespace rubinius {
 
     NativeMethodContext* mark_context; // slot
 
-    static void Data::init(STATE);
+    static void init(STATE);
 
     static Data* create(STATE, void* data,
                         void (*mark) (void*),
