@@ -1612,9 +1612,9 @@ class Compiler
         end
 
         if @lhs && !@lhs.body.size.zero?
-          g.cast_tuple
+          g.cast_array
           @lhs.body.each do |x|
-            g.shift_tuple
+            g.shift_array
             if x.is? AttrAssign
               x.bytecode(g, :swap)
             else
@@ -1641,8 +1641,9 @@ class Compiler
 
       def block_arg_bytecode(g)
         if @lhs
+          g.cast_array
           @lhs.body.each do |x|
-            g.shift_tuple
+            g.shift_array
             x.bytecode(g)
             g.pop
           end

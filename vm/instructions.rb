@@ -3807,6 +3807,68 @@ class Instructions
   # [Operation]
   #   Shifts the first item in a tuple onto the stack
   # [Format]
+  #   \shift_array
+  # [Stack Before]
+  #   * [value1, value2, ..., valueN]
+  #   * ...
+  # [Stack After]
+  #   * value1
+  #   * [value2, ..., valueN]
+  #   * ...
+  # [Description]
+  #   Pops an array off the top of the stack. If the array is empty, it is
+  #   pushed back onto the stack, followed by nil.
+  #   Otherwise, the array is shifted, then pushed back onto the stack,
+  #   followed by the object that was shifted from the front of the array.
+
+  def shift_array
+    <<-CODE
+    Array* array = as<Array>(stack_pop());
+    size_t size = (size_t)array->size();
+
+    if(size == 0) {
+      stack_push(array);
+      stack_push(Qnil);
+    } else {
+      size_t j = size - 1;
+      Object* shifted_value = array->get(state, 0);
+      Array* smaller_array = Array::create(state, j);
+
+      for(size_t i = 0; i < j; i++) {
+        smaller_array->set(state, i, array->get(state, i+1));
+      }
+
+      stack_push(smaller_array);
+      stack_push(shifted_value);
+    }
+    CODE
+  end
+
+  def test_shift_array
+    <<-CODE
+      Array* empty = Array::create(state, 0);
+      Array* array = Array::create(state, 2);
+      array->set(state, 0, Fixnum::from(10));
+      array->set(state, 1, Fixnum::from(20));
+
+      task->push(empty);
+
+      run();
+
+      TS_ASSERT_EQUALS(Qnil, task->pop());
+      TS_ASSERT_EQUALS(empty, task->pop());
+
+      task->push(array);
+
+      run();
+      TS_ASSERT_EQUALS(Fixnum::from(10), as<Fixnum>(task->pop()));
+      TS_ASSERT_EQUALS(Fixnum::from(20), as<Array>(task->pop())->get(state, 0));
+    CODE
+  end
+
+  # [Operation]
+  #   Shifts the first item in an tuple onto the stack
+  # [Format]
   #   \shift_tuple
   # [Stack Before]
   #   * [value1, value2, ..., valueN]
