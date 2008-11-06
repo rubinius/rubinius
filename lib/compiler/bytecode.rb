@@ -354,8 +354,16 @@ class Compiler
         else
           g.push_context
         end
+        #the value is on the stack if @value is nil
+        if !@value
+          g.swap
+        end
         g.push_literal @name
-        @value.bytecode(g)
+        if @value
+          @value.bytecode(g)
+        else
+          g.swap
+        end
         g.send :class_variable_set, 2
       end
     end

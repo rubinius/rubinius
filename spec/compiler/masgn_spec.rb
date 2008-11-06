@@ -506,6 +506,37 @@ describe Compiler do
     end
   end
 
+  it "compiles '@@a, @@b = 1, 2'" do
+    ruby = <<-EOC
+      @@a, @@b = 1, 2
+    EOC
+
+    sexp = s(:masgn,
+             s(:array, s(:cvdecl, :@@a), s(:cvdecl, :@@b)),
+             s(:array, s(:fixnum, 1), s(:fixnum, 2)))
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
+      g.push 1
+      g.push 2
+      g.rotate 2
+      g.push_context
+      g.swap
+      g.push_literal :@@a
+      g.swap
+      g.send :class_variable_set, 2
+      g.pop
+      g.push_context
+      g.swap
+      g.push_literal :@@b
+      g.swap
+      g.send :class_variable_set, 2
+      g.pop
+      g.push :true
+    end
+  end
+
   it "compiles '@a, $b = 1, 2'" do
     ruby = <<-EOC
       @a, $b = 1, 2

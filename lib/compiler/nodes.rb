@@ -372,7 +372,7 @@ raise "no"
     class CVarAssign < Node
       kind :cvasgn
 
-      def args(name, val)
+      def args(name, val=nil)
         @name, @value = name, val
         @in_module = get(:scope).module_body?
       end
