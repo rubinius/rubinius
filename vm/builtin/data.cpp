@@ -9,8 +9,7 @@ namespace rubinius {
     G(data)->set_object_type(state, DataType);
   }
 
-  Data* Data::create(STATE, void* data_ptr, void (*mark) (void*),
-                     void (*free) (void*)) {
+  Data* Data::create(STATE, void* data_ptr, MarkFunctor mark, FreeFunctor free) {
     Data* data;
     data = (Data*)state->om->new_object(G(data), Data::fields);
 
@@ -32,7 +31,7 @@ namespace rubinius {
       NativeMethodContext::current_context_is(data->mark_context);
       VM::current_state()->current_mark = mark;
 
-      (*data->mark_)((void*)data->mark_context->handle_for(data));
+      (*data->mark_)(reinterpret_cast<void*>(data->mark_context->handle_for(data)));
 
       VM::current_state()->current_mark = NULL;
       NativeMethodContext::current_context_is(orig_current);

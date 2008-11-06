@@ -6,22 +6,41 @@
 #include "type_info.hpp"
 
 namespace rubinius {
+
   class Data : public Object {
   public:
-    const static size_t fields = 0;
+    const static std::size_t fields = 0;
     const static object_type type = DataType;
 
-    void (*mark_) (void*);
-    void (*free_) (void*);
-    void *data_;
+    /**  Register class with the VM. */
+    static void   init(STATE);
 
-    NativeMethodContext* mark_context; // slot
 
-    static void init(STATE);
+  public:   /* Types */
 
-    static Data* create(STATE, void* data,
-                        void (*mark) (void*),
-                        void (*free) (void*));
+    /** The signature for the mark function. */
+    typedef   void (*MarkFunctor)(void*);
+
+    /** The signature for the free function. */
+    typedef   void (*FreeFunctor)(void*);
+
+
+  public:   /* Interface */
+
+    /** New Data instance. */
+    static Data*  create(STATE, void* data, MarkFunctor mark, FreeFunctor free);
+
+
+  private:  /* Instance variables */
+
+    NativeMethodContext*  mark_context; // slot
+
+    FreeFunctor           free_;
+    MarkFunctor           mark_;
+    void*                 data_;
+
+
+  public:   /* TypeInfo */
 
     class Info : public TypeInfo {
     public:
@@ -29,6 +48,7 @@ namespace rubinius {
       virtual void mark(Object* t, ObjectMark& mark);
     };
   };
-};
+
+}
 
 #endif
