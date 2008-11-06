@@ -22,6 +22,12 @@
 
 namespace rubinius {
 
+  Object* Object::change_class_to(STATE, Class* other_klass) {
+    this->klass(state, other_klass);
+
+    return this;
+  }
+
   Class* Object::class_object(STATE) const {
     if(reference_p()) {
       Module* mod = klass_;
@@ -50,7 +56,6 @@ namespace rubinius {
     return other;
   }
 
-
   void Object::copy_flags(STATE, Object* source) {
     this->obj_type        = source->obj_type;
     this->StoresBytes     = source->StoresBytes;
@@ -58,7 +63,6 @@ namespace rubinius {
     this->IsBlockContext  = source->IsBlockContext;
     this->IsMeta          = source->IsMeta;
   }
-
 
   void Object::copy_internal_state_from(STATE, Object* original) {
     if(MetaClass* mc = try_as<MetaClass>(original->klass())) {

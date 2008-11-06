@@ -20,6 +20,17 @@ class TestObject : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_change_class_to() {
+    Object* obj = util_new_object();
+    Tuple* tup = Tuple::create(state, 1);
+
+    Class* tup_class = tup->klass();
+
+    obj->change_class_to(state, tup_class);
+
+    TS_ASSERT_EQUALS(tup_class, obj->klass());
+  }
+
   void test_object_fields() {
     TS_ASSERT_EQUALS(0U, Object::fields);
   }

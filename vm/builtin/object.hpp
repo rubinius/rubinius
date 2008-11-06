@@ -207,6 +207,12 @@ namespace rubinius {
   public:   /* Ruby interface */
 
     /**
+     * Changes this object's class to other_klass.  Thar be dragons.
+     */
+    // Ruby.primitive :object_change_class_to
+    Object*   change_class_to(STATE, Class* other_klass);
+
+    /**
      *  Ruby #clone.
      *
      *  Creates and returns a new Object that is a copy of this one
