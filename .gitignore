@@ -42,6 +42,7 @@ stamp-h1
 stats
 tmp
 tmtags
+/tags
 
 /vm/log
 /vm/instructions.cpp
