@@ -226,6 +226,7 @@ class Array
           @start = 0
           @tuple = nt
         end                     # this should be an else
+
         f = @total
         t = newtotal
         while f > idx + cnt
@@ -233,24 +234,16 @@ class Array
           f -= 1
           @tuple.put(@start+t, @tuple.at(@start+f))
         end
+
         @total = newtotal
       end
-      replacement.each_with_index { |el, i|
-        @tuple.put(@start+idx+i, el)
-      }
-
+      @tuple.copy_from(replacement.tuple, replacement.start, @start+idx)
+            
       if replacement.size < cnt
-        f = @start + idx + cnt
-        t = @start + idx + replacement.size
-
-        # shift fields to the left
-        while f < @total
-          @tuple.put(t, @tuple.at(f))
-          t += 1
-          f += 1
-        end
-
+        @tuple.copy_from(@tuple, @start + idx + cnt, @start+idx+replacement.size)
+                
         # unset any extraneous fields
+        t = @start + idx + replacement.size + @total
         while t < @tuple.fields
           @tuple.put(t, nil)
           t += 1
@@ -332,8 +325,13 @@ class Array
 
       raise ArgumentError, "Count cannot be negative" if val < 0
 
-      out = self.class.new
-      val.times { out.push(*self) }
+      out = self.class.new()
+
+      i = 0
+      while(i < val)
+        out.concat self
+        i += 1
+      end
       out
     end
   end
@@ -604,7 +602,11 @@ class Array
     return false unless other.kind_of?(Array)
     return false if @total != other.size
 
-    each_with_index { |o, i| return false unless o.eql?(other[i]) }
+    i = 0
+    while(i < @total)
+      return false unless at(i).eql?(other[i])
+      i+=1
+    end
 
     true
   end
@@ -748,7 +750,11 @@ class Array
     # it does work. It should be replaced with something much better, but I'm not sure
     # what level it belongs at.
     str = ""
-    each { |item| str << item.hash.to_s }
+    i = 0
+    while(i < @total)
+      str.append at(i).hash.to_s
+      i+=1
+    end
     str.hash
   end
 
