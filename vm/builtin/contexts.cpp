@@ -268,9 +268,15 @@ namespace rubinius {
    * worth of stack. */
   BlockContext* BlockContext::create(STATE, size_t stack_size) {
     BlockContext* ctx = (BlockContext*)allocate(state, G(blokctx), stack_size);
-    ctx->self(state, Qnil);
-    ctx->module(state, (Module*)Qnil);
+
+    ctx->block(state, Qnil);
+    ctx->cm(state, reinterpret_cast<CompiledMethod*>(Qnil));
+    ctx->home(state, reinterpret_cast<MethodContext*>(Qnil));
+    ctx->module(state, reinterpret_cast<Module*>(Qnil));
     ctx->name(state, Qnil);
+    ctx->self(state, Qnil);
+    ctx->sender(state, reinterpret_cast<MethodContext*>(Qnil));
+
     return ctx;
   }
 
