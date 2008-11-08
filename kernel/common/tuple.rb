@@ -106,16 +106,6 @@ class Tuple
     put(b, temp)
   end
 
-  def enlarge(size)
-    if size > fields()
-      t = Tuple.new(size)
-      t.copy_from self, 0, 0
-      return t
-    end
-
-    return self
-  end
-
   alias_method :size, :fields
   alias_method :length, :fields
 

@@ -90,11 +90,4 @@ Benchmark.bmbm do |x|
       end
     end
   end
-
-  x.report 'Tuple#enlarge' do
-    tup = Tuple.new(10)
-    total.times do |i|
-      tup = tup.enlarge(i)
-    end
-  end
 end
