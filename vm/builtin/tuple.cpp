@@ -84,10 +84,14 @@ namespace rubinius {
     }
   }
 
+  Tuple* Tuple::copy_range(STATE, Tuple* other, Fixnum* start, Fixnum *end, Fixnum* dest) {
+    copy_range(state,other,start->to_native(),end->to_native(),dest->to_native());
+    
+    return this;
+  }
+
   Tuple* Tuple::copy_from(STATE, Tuple* other, Fixnum* start, Fixnum* dest) {
-    copy_range(state,other,
-	       start->to_native(), other->num_fields()-1, 
-	       dest->to_native());
+    copy_range(state,other,start->to_native(),other->num_fields()-1,dest->to_native());
 
     return this;
   }

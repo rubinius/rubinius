@@ -40,6 +40,11 @@ class Tuple
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def copy_range(other, start, count, dest)
+    Ruby.primitive :tuple_copy_range
+    raise PrimitiveFailure, "Tuple#copy_range primitive failed"
+  end
+  
   def copy_from(other, start, dest)
     Ruby.primitive :tuple_copy_from
     raise PrimitiveFailure, "Tuple#copy_from primitive failed"

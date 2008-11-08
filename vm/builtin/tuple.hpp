@@ -37,6 +37,9 @@ namespace rubinius {
     // Ruby.primitive :tuple_copy_from
     Tuple* copy_from(STATE, Tuple* other, Fixnum* start, Fixnum* dest);
 
+    // Ruby.primitive :tuple_copy_range
+    Tuple* copy_range(STATE, Tuple* other, Fixnum *start, Fixnum *end, Fixnum *dest);
+
     // Ruby.primitive :tuple_shifted
     Tuple* shifted(STATE, Fixnum* num);
 
