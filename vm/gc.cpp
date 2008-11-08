@@ -1,5 +1,5 @@
 /* The GC superclass methods, used by both GCs. */
-
+#include "object_utils.hpp"
 #include "gc.hpp"
 #include "objectmemory.hpp"
 
@@ -12,7 +12,7 @@ namespace rubinius {
 
   Object* ObjectMark::call(Object* obj) {
     if(obj->reference_p()) {
-      assert(obj->zone != UnspecifiedZone);
+      sassert(obj->zone != UnspecifiedZone);
       return gc->saw_object(obj);
     }
 
