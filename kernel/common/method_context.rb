@@ -100,8 +100,8 @@ class MethodContext
   end
   alias_method :inspect, :to_s
   # File in which associated method defined.
+
   def file
-    return "(unknown)" unless self.method
     method.file
   end
 
@@ -224,6 +224,8 @@ class MethodContext
 
     if kind_of? BlockContext
       str << "#{name} {}"
+    elsif kind_of? NativeMethodContext
+      str << "#{name} <C>"
     elsif name == method.name
       str << "#{name}"
     else
