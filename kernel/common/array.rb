@@ -534,7 +534,7 @@ class Array
     # Grab the object and adjust the indices for the rest
     obj = @tuple.at(@start + idx)
 
-    idx.upto(@total - 2) { |i| @tuple.put(@start + i, @tuple.at(@start + i + 1)) }
+    @tuple.copy_range(@tuple, @start+idx+1, @total-1 ,@start+idx)    
     @tuple.put(@start + @total - 1, nil)
 
     @total -= 1
@@ -1654,9 +1654,7 @@ class Array
 
     @tuple = @tuple.shifted(values.size)
 
-    values.each_with_index do |val, i|
-      @tuple.put i, val
-    end
+    @tuple.copy_range(values.tuple,values.start,values.total,0)
 
     @total += values.size
     self
