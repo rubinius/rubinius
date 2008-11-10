@@ -324,6 +324,34 @@ class TestGenerator
     self.create_block desc
   end
 
+  def array_of_splatted_array
+    self.make_array 0
+
+    self.push 1
+    self.make_array 1
+    self.cast_array
+
+    self.send :+, 1
+  end
+
+  def splatted_array
+    bottom = self.new_label
+
+    self.push 1
+    self.make_array 1
+    self.cast_array
+    self.dup
+    self.send :size, 0
+    self.push 1
+    self.send :>, 1
+    self.git bottom
+
+    self.push 0
+    self.send :at, 1
+
+    bottom.set!
+  end
+
   def in_block_send(msg,
                     block_count    = 0,
                     call_count     = 0,
