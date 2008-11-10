@@ -341,6 +341,7 @@ class TestGenerator
         d.set_local 0
       when Array then # I do, am a dick.
         d.cast_for_multi_block_arg
+        d.cast_array
         (0...block_count[0]).each do |n|
           d.shift_array
           d.set_local_depth lvl, n
@@ -351,7 +352,9 @@ class TestGenerator
         d.set_local_depth lvl, block_count[1]
       when -2 then
         d.cast_for_multi_block_arg
+        d.cast_array
       when -1 then
+        d.cast_array
         d.cast_array
         d.set_local_depth lvl, 0
       when 0 then
@@ -360,6 +363,7 @@ class TestGenerator
         d.set_local_depth lvl, 0
       else
         d.cast_for_multi_block_arg
+        d.cast_array
         (0...block_count).each do |n|
           d.shift_array
           d.set_local_depth lvl, n

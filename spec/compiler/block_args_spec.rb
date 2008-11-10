@@ -81,6 +81,7 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
+      d.cast_array
       d.lvar_at 0
     end
   end
@@ -97,6 +98,7 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen_iter sexp do |d|
+      d.cast_array
       d.cast_array
       d.set_local_depth 0, 0
     end
@@ -119,6 +121,7 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
+      d.cast_array
       3.times do |slot|
         d.lvar_at slot
       end
@@ -142,6 +145,7 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
+      d.cast_array
       d.lvar_at 0
       d.lvar_at 1
       d.cast_array
@@ -168,6 +172,7 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
+      d.cast_array
 
       # Pull the first element out and use it like a tuple.
       d.shift_array
@@ -202,6 +207,7 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
+      d.cast_array
       d.shift_array
       d.cast_array
 
@@ -240,6 +246,7 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
+      d.cast_array
       d.shift_array
       d.cast_array
 
@@ -274,6 +281,7 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
+      d.cast_array
     end
   end
 
@@ -290,6 +298,7 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
+      d.cast_array
       d.lvar_at 0
     end
   end

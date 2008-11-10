@@ -282,6 +282,7 @@ describe Compiler do
     gen(sexp) do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
+        d.cast_array
         d.shift_array
         d.set_local_depth 0, 0
         d.pop
@@ -392,6 +393,7 @@ describe Compiler do
     gen(sexp) do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
+        d.cast_array
         d.shift_array
         d.set_local 0
         d.pop
@@ -432,6 +434,7 @@ describe Compiler do
     gen(sexp) do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
+        d.cast_array
         d.shift_array
         d.set_local 0
         d.pop
