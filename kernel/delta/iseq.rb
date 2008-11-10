@@ -96,10 +96,6 @@ class InstructionSet
       :vm_flags => [:check_interrupts]},
     {:opcode => :open_module_under, :args => [:literal], :stack => [1,1],
       :vm_flags => [:check_interrupts]},
-    {:opcode => :shift_tuple, :args => [], :stack => [1,2],
-      :vm_flags => []},
-    {:opcode => :cast_tuple, :args => [], :stack => [1,1],
-      :vm_flags => []},
 
     # send opcodes
     {:opcode => :send_method, :args => [:literal], :stack => [1,1],
@@ -119,6 +115,7 @@ class InstructionSet
     {:opcode => :clear_exception, :args => [], :stack => [0,0]},
     {:opcode => :cast_array, :args => [], :stack => [1,1],
       :vm_flags => []},
+    {:opcode => :shift_array, :args => [], :stack => [1,2]},
     {:opcode => :raise_exc, :args => [], :stack => [0,0], :flow => :raise,
       :vm_flags => [:terminator]},
     {:opcode => :push_cpath_top, :args => [], :stack => [0,1]},
@@ -177,8 +174,7 @@ class InstructionSet
 
     {:opcode => :push_scope, :args => [], :stack => [0, 1]},
     {:opcode => :add_scope,  :args => [], :stack => [1, 0]},
-    {:opcode => :rotate, :args => [:int], :stack => [0,0]},
-    {:opcode => :shift_array, :args => [], :stack => [1,2]}
+    {:opcode => :rotate, :args => [:int], :stack => [0,0]}
   ]
 
 

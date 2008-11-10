@@ -394,69 +394,6 @@ class Instructions
   end
 
   # [Operation]
-  #   Convert stack object to a tuple
-  # [Format]
-  #   \cast_tuple
-  # [Stack Before]
-  #   * value
-  #   * ...
-  # [Stack After]
-  #   * tuple
-  #   * ...
-  # [Description]
-  #   If stack object is an array, create a new tuple from the array data
-  #
-  #   If the stack value is a tuple, leave the stack unmodified
-  #
-  #   Otherwise, create a unary tuple from the value on the stack
-
-  def cast_tuple
-    <<-CODE
-    Object* t1 = stack_pop();
-    if(kind_of<Array>(t1)) {
-      Array* ary = as<Array>(t1);
-      int j = ary->size();
-
-      Tuple* tup = Tuple::create(state, j);
-
-      for(int k = 0; k < j; k++) {
-        tup->put(state, k, ary->get(state, k));
-      }
-      t1 = tup;
-    } else if(!kind_of<Tuple>(t1)) {
-      Tuple* tup = Tuple::create(state, 1);
-      tup->put(state, 0, t1);
-      t1 = tup;
-    }
-    stack_push(t1);
-    CODE
-  end
-
-  def test_cast_tuple
-    <<-CODE
-    Array* custom = Array::create(state, 1);
-    custom->set(state, 0, Qtrue);
-    task->push(custom);
-    run();
-
-    Tuple* tup = as<Tuple>(task->pop());
-    TS_ASSERT_EQUALS(tup->at(state, 0), Qtrue);
-
-    task->push(Qfalse);
-    run();
-
-    tup = as<Tuple>(task->pop());
-    TS_ASSERT_EQUALS(tup->at(state, 0), Qfalse);
-
-    tup = Tuple::create(state, 1);
-    task->push(tup);
-    run();
-
-    TS_ASSERT_EQUALS(tup, task->stack_top());
-    CODE
-  end
-
-  # [Operation]
   #   Checks if the specified method serial number matches an expected value
   # [Format]
   #   \check_serial method serial
@@ -3863,65 +3800,6 @@ class Instructions
       run();
       TS_ASSERT_EQUALS(Fixnum::from(10), as<Fixnum>(task->pop()));
       TS_ASSERT_EQUALS(Fixnum::from(20), as<Array>(task->pop())->get(state, 0));
-    CODE
-  end
-
-  # [Operation]
-  #   Shifts the first item in an tuple onto the stack
-  # [Format]
-  #   \shift_tuple
-  # [Stack Before]
-  #   * [value1, value2, ..., valueN]
-  #   * ...
-  # [Stack After]
-  #   * value1
-  #   * [value2, ..., valueN]
-  #   * ...
-  # [Description]
-  #   Pops a tuple off the top of the stack. If the tuple is empty, the tuple
-  #   is pushed back onto the stack, followed by nil. Otherwise, the tuple is
-  #   shifted, with the tuple then pushed back onto the stack, followed by the
-  #   item that was previously at the head of the tuple.
-
-  def shift_tuple
-    <<-CODE
-    Tuple* tuple = as<Tuple>(stack_pop());
-
-    if(tuple->num_fields() == 0) {
-      stack_push(tuple);
-      stack_push(Qnil);
-    } else {
-      int j = tuple->num_fields() - 1;
-      Object* shifted_value = tuple->at(state, 0);
-
-      Tuple* new_tuple = Tuple::create(state, j);
-      new_tuple->copy_range(state, tuple, 1, j, 0);
-
-      stack_push(new_tuple);
-      stack_push(shifted_value);
-    }
-    CODE
-  end
-
-  def test_shift_tuple
-    <<-CODE
-      Tuple* empty_tuple = Tuple::create(state, 0);
-      Tuple* tuple = Tuple::create(state, 2);
-      tuple->put(state, 0, Fixnum::from(10));
-      tuple->put(state, 1, Fixnum::from(20));
-
-      task->push(empty_tuple);
-
-      run();
-
-      TS_ASSERT_EQUALS(Qnil, task->pop());
-      TS_ASSERT_EQUALS(empty_tuple, task->pop());
-
-      task->push(tuple);
-
-      run();
-      TS_ASSERT_EQUALS(Fixnum::from(10), as<Fixnum>(task->pop()));
-      TS_ASSERT_EQUALS(Fixnum::from(20), as<Tuple>(task->pop())->at(state, 0));
     CODE
   end
 
