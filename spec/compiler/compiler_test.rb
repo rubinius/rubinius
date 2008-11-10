@@ -4265,6 +4265,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("splat_fcall_array",
             "Compiler" => bytecode do |g|
+              g.push :self
               g.array_of_splatted_array
 
               g.send :meth, 1, true
@@ -4287,11 +4288,8 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("splat_lit_1",
             "Compiler" => bytecode do |g|
               g.make_array 0
-              g.cast_array
-
               g.push 1
-              g.make_array 1
-
+              g.cast_array
               g.send :+, 1
             end)
 
@@ -4299,10 +4297,9 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               g.push 1
               g.make_array 1
-              g.cast_array
 
               g.push 2
-              g.make_array 1
+              g.cast_array
 
               g.send :+, 1
             end)
@@ -4343,7 +4340,9 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("splat_super",
             "Compiler" => bytecode do |g|
-              g.splatted_array
+              g.push 1
+              g.make_array 1
+              g.cast_array
 
               g.push_block
               g.send_super nil, 0, true
@@ -4372,6 +4371,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("splat_yield_array",
             "Compiler" => bytecode do |g|
+              g.push_block
               g.array_of_splatted_array
 
               g.meta_send_call 1

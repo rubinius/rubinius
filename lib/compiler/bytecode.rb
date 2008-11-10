@@ -174,11 +174,18 @@ class Compiler
 
     class ArrayLiteral
       def bytecode(g)
+        splat = nil
+        if @body.last.kind_of?(Splat)
+          splat = @body.pop
+        end
+
         @body.each do |x|
           x.bytecode(g)
         end
 
         g.make_array @body.size
+
+        splat.bytecode_in_array_literal(g) if splat
       end
     end
 
@@ -1741,6 +1748,7 @@ class Compiler
           end
           g.ret
         else
+          @value.bytecode(g) if @value # next(raise("foo")) ha ha ha
           jump_error g, "next used in invalid context"
         end
       end
@@ -2263,6 +2271,14 @@ class Compiler
         g.cast_array if @child
 
         return 0
+      end
+
+      # Bytecode emitted when a splat is present in an ArrayLiteral
+      # expects the top of the stack to be an array
+      def bytecode_in_array_literal(g)
+        @child.bytecode(g)
+        g.cast_array
+        g.send :+, 1
       end
     end
 
