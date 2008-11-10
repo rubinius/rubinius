@@ -4,7 +4,6 @@
 # See LICENSE.txt for permissions.
 #++
 
-require 'test/unit'
 require File.join(File.expand_path(File.dirname(__FILE__)), 'gemutilities')
 require 'rubygems/version'
 
@@ -29,10 +28,10 @@ class TestGemVersion < RubyGemTestCase
   end
 
   def test_class_create_malformed
-    e = assert_raise ArgumentError do Gem::Version.create("junk") end
+    e = assert_raises ArgumentError do Gem::Version.create("junk") end
     assert_equal "Malformed version number string junk", e.message
 
-    e = assert_raise ArgumentError do Gem::Version.create("1.0\n2.0") end
+    e = assert_raises ArgumentError do Gem::Version.create("1.0\n2.0") end
     assert_equal "Malformed version number string 1.0\n2.0", e.message
   end
 
@@ -71,10 +70,14 @@ class TestGemVersion < RubyGemTestCase
   end
 
   def test_eql_eh
-    v = Gem::Version.new("1.2")
+    v1_2   = Gem::Version.new '1.2'
+    v1_2_0 = Gem::Version.new '1.2.0'
 
-    assert_equal true, v.eql?(@v1_2)
-    assert_equal true, @v1_2.eql?(v)
+    assert_equal true, v1_2.eql?(@v1_2)
+    assert_equal true, @v1_2.eql?(v1_2)
+
+    assert_equal false, v1_2_0.eql?(@v1_2)
+    assert_equal false, @v1_2.eql?(v1_2_0)
 
     assert_equal false, @v1_2.eql?(@v1_3)
     assert_equal false, @v1_3.eql?(@v1_2)
@@ -86,21 +89,26 @@ class TestGemVersion < RubyGemTestCase
     assert_equal v, @v1_2
     assert_equal @v1_2, v
 
-    assert_not_equal @v1_2, @v1_3
-    assert_not_equal @v1_3, @v1_2
+    refute_equal @v1_2, @v1_3
+    refute_equal @v1_3, @v1_2
   end
 
   def test_hash
-    v = Gem::Version.new("1.2")
-    assert_equal v.hash, @v1_2.hash
-    assert_not_equal @v1_2.hash, @v1_3.hash
+    v1_2   = Gem::Version.new "1.2"
+    v1_2_0 = Gem::Version.new "1.2.0"
+
+    assert_equal v1_2.hash, @v1_2.hash
+
+    refute_equal v1_2_0.hash, @v1_2.hash
+
+    refute_equal @v1_2.hash, @v1_3.hash
   end
 
   def test_illformed_requirements
     [ ">>> 1.3.5", "> blah" ].each do |rq|
-      assert_raises(ArgumentError, "req [#{rq}] should fail") {
-        Gem::Version::Requirement.new(rq)
-      }
+      assert_raises ArgumentError, "req [#{rq}] should fail" do
+        Gem::Version::Requirement.new rq
+      end
     end
   end
 

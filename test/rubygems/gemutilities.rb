@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 #--
 # Copyright 2006 by Chad Fowler, Rich Kilmer, Jim Weirich and others.
 # All rights reserved.
@@ -7,17 +6,28 @@
 
 at_exit { $SAFE = 1 }
 
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+
+require 'rubygems'
 require 'fileutils'
-require 'test/unit'
+begin
+  require 'minitest/unit'
+rescue LoadError
+  warn "Install minitest gem"
+  raise
+end
 require 'tmpdir'
-require 'tempfile'
 require 'uri'
-require 'rubygems/source_info_cache'
 require 'rubygems/package'
+require 'rubygems/test_utilities'
 
 require File.join(File.expand_path(File.dirname(__FILE__)), 'mockgemui')
 
 module Gem
+  def self.searcher=(searcher)
+    MUTEX.synchronize do @searcher = searcher end
+  end
+
   def self.source_index=(si)
     @@source_index = si
   end
@@ -25,55 +35,13 @@ module Gem
   def self.win_platform=(val)
     @@win_platform = val
   end
-end
 
-class FakeFetcher
-
-  attr_reader :data
-  attr_accessor :uri
-  attr_accessor :paths
-
-  def initialize
-    @data = {}
-    @paths = []
-    @uri = nil
-  end
-
-  def fetch_path(path)
-    path = path.to_s
-    @paths << path
-    raise ArgumentError, 'need full URI' unless path =~ %r'^http://'
-    data = @data[path]
-    raise Gem::RemoteFetcher::FetchError, "no data for #{path}" if data.nil?
-    data.respond_to?(:call) ? data.call : data
-  end
-
-  def fetch_size(path)
-    path = path.to_s
-    @paths << path
-    raise ArgumentError, 'need full URI' unless path =~ %r'^http://'
-    data = @data[path]
-    raise Gem::RemoteFetcher::FetchError, "no data for #{path}" if data.nil?
-    data.respond_to?(:call) ? data.call : data.length
-  end
-
-  def download spec, source_uri, install_dir = Gem.dir
-    name = "#{spec.full_name}.gem"
-    path = File.join(install_dir, 'cache', name)
-
-    if source_uri =~ /^http/ then
-      File.open(path, "wb") do |f|
-        f.write fetch_path(File.join(source_uri, "gems", name))
-      end
-    else
-      FileUtils.cp source_uri, path
-    end
-
-    path
+  module DefaultUserInteraction
+    @ui = MockGemUi.new
   end
 end
 
-class RubyGemTestCase < Test::Unit::TestCase
+class RubyGemTestCase < MiniTest::Unit::TestCase
 
   include Gem::DefaultUserInteraction
 
@@ -91,8 +59,15 @@ class RubyGemTestCase < Test::Unit::TestCase
     @gemhome = File.join @tempdir, "gemhome"
     @gemcache = File.join(@gemhome, "source_cache")
     @usrcache = File.join(@gemhome, ".gem", "user_cache")
+    @latest_usrcache = File.join(@gemhome, ".gem", "latest_user_cache")
+    @userhome = File.join @tempdir, 'userhome'
+
+    @orig_ENV_HOME = ENV['HOME']
+    ENV['HOME'] = @userhome
+    Gem.instance_variable_set :@user_home, nil
 
     FileUtils.mkdir_p @gemhome
+    FileUtils.mkdir_p @userhome
 
     ENV['GEMCACHE'] = @usrcache
     Gem.use_paths(@gemhome)
@@ -101,8 +76,11 @@ class RubyGemTestCase < Test::Unit::TestCase
     Gem.configuration.verbose = true
     Gem.configuration.update_sources = true
 
-    @gem_repo = "http://gems.example.com"
+    @gem_repo = "http://gems.example.com/"
+    @uri = URI.parse @gem_repo
     Gem.sources.replace [@gem_repo]
+
+    Gem::SpecFetcher.fetcher = nil
 
     @orig_BASERUBY = Gem::ConfigMap[:BASERUBY]
     Gem::ConfigMap[:BASERUBY] = Gem::ConfigMap[:RUBY_INSTALL_NAME]
@@ -121,6 +99,27 @@ class RubyGemTestCase < Test::Unit::TestCase
                                               'private_key.pem')
     @public_cert = File.expand_path File.join(File.dirname(__FILE__),
                                               'public_cert.pem')
+
+    Gem.post_install_hooks.clear
+    Gem.post_uninstall_hooks.clear
+    Gem.pre_install_hooks.clear
+    Gem.pre_uninstall_hooks.clear
+
+    Gem.post_install do |installer|
+      @post_install_hook_arg = installer
+    end
+
+    Gem.post_uninstall do |uninstaller|
+      @post_uninstall_hook_arg = uninstaller
+    end
+
+    Gem.pre_install do |installer|
+      @pre_install_hook_arg = installer
+    end
+
+    Gem.pre_uninstall do |uninstaller|
+      @pre_uninstall_hook_arg = uninstaller
+    end
   end
 
   def teardown
@@ -128,7 +127,7 @@ class RubyGemTestCase < Test::Unit::TestCase
     Gem::ConfigMap[:arch] = @orig_arch
 
     if defined? Gem::RemoteFetcher then
-      Gem::RemoteFetcher.instance_variable_set :@fetcher, nil
+      Gem::RemoteFetcher.fetcher = nil
     end
 
     FileUtils.rm_rf @tempdir
@@ -138,7 +137,12 @@ class RubyGemTestCase < Test::Unit::TestCase
     ENV.delete 'GEM_PATH'
 
     Gem.clear_paths
-    Gem::SourceInfoCache.instance_variable_set :@cache, nil
+
+    if @orig_ENV_HOME then
+      ENV['HOME'] = @orig_ENV_HOME
+    else
+      ENV.delete 'HOME'
+    end
   end
 
   def install_gem gem
@@ -151,29 +155,56 @@ class RubyGemTestCase < Test::Unit::TestCase
     end
 
     gem = File.join(@tempdir, "#{gem.full_name}.gem").untaint
-    Gem::Installer.new(gem).install
+    Gem::Installer.new(gem, :wrappers => true).install
   end
 
   def prep_cache_files(lc)
-    [ [lc.system_cache_file, 'sys'],
-      [lc.user_cache_file, 'usr'],
-    ].each do |fn, data|
-      FileUtils.mkdir_p File.dirname(fn).untaint
-      open(fn.dup.untaint, "wb") { |f| f.write(Marshal.dump({'key' => data})) }
+    @usr_si ||= Gem::SourceIndex.new
+    @usr_sice ||= Gem::SourceInfoCacheEntry.new @usr_si, 0
+
+    @sys_si ||= Gem::SourceIndex.new
+    @sys_sice ||= Gem::SourceInfoCacheEntry.new @sys_si, 0
+
+    latest_si = Gem::SourceIndex.new
+    latest_si.add_specs(*@sys_si.latest_specs)
+    latest_sys_sice = Gem::SourceInfoCacheEntry.new latest_si, 0
+
+    latest_si = Gem::SourceIndex.new
+    latest_si.add_specs(*@usr_si.latest_specs)
+    latest_usr_sice = Gem::SourceInfoCacheEntry.new latest_si, 0
+
+    [ [lc.system_cache_file, @sys_sice],
+      [lc.latest_system_cache_file, latest_sys_sice],
+      [lc.user_cache_file, @usr_sice],
+      [lc.latest_user_cache_file, latest_usr_sice],
+    ].each do |filename, data|
+      FileUtils.mkdir_p File.dirname(filename).untaint
+
+      open filename.dup.untaint, 'wb' do |f|
+        f.write Marshal.dump({ @gem_repo => data })
+      end
     end
   end
 
-  def read_cache(fn)
-    open(fn.dup.untaint) { |f| Marshal.load f.read }
+  def read_cache(path)
+    open path.dup.untaint, 'rb' do |io|
+      Marshal.load io.read
+    end
+  end
+
+  def read_binary(path)
+    Gem.read_binary path
   end
 
   def write_file(path)
     path = File.join(@gemhome, path)
     dir = File.dirname path
     FileUtils.mkdir_p dir
-    File.open(path, "w") { |io|
-      yield(io)
-    }
+
+    open path, 'wb' do |io|
+      yield io
+    end
+
     path
   end
 
@@ -201,6 +232,8 @@ class RubyGemTestCase < Test::Unit::TestCase
 
     spec.loaded_from = written_path
 
+    Gem.source_index.add_spec spec
+
     return spec
   end
 
@@ -224,6 +257,12 @@ class RubyGemTestCase < Test::Unit::TestCase
     end
   end
 
+  def util_clear_gems
+    FileUtils.rm_r File.join(@gemhome, 'gems')
+    FileUtils.rm_r File.join(@gemhome, 'specifications')
+    Gem.source_index.refresh!
+  end
+
   def util_gem(name, version, &block)
     spec = quick_gem(name, version, &block)
 
@@ -239,6 +278,16 @@ class RubyGemTestCase < Test::Unit::TestCase
     spec.loaded = false
 
     [spec, cache_file]
+  end
+
+  def util_gzip(data)
+    out = StringIO.new
+
+    Zlib::GzipWriter.wrap out do |io|
+      io.write data
+    end
+
+    out.string
   end
 
   def util_make_gems
@@ -273,7 +322,7 @@ class RubyGemTestCase < Test::Unit::TestCase
   end
 
   ##
-  # Set the platform to +cpu+ and +os+
+  # Set the platform to +arch+
 
   def util_set_arch(arch)
     Gem::ConfigMap[:arch] = arch
@@ -290,9 +339,7 @@ class RubyGemTestCase < Test::Unit::TestCase
     require 'socket'
     require 'rubygems/remote_fetcher'
 
-    @uri = URI.parse @gem_repo
-    @fetcher = FakeFetcher.new
-    @fetcher.uri = @uri
+    @fetcher = Gem::FakeFetcher.new
 
     util_make_gems
 
@@ -308,10 +355,11 @@ class RubyGemTestCase < Test::Unit::TestCase
     @source_index.add_spec @a_evil9
     @source_index.add_spec @c1_2
 
-    Gem::RemoteFetcher.instance_variable_set :@fetcher, @fetcher
+    Gem::RemoteFetcher.fetcher = @fetcher
   end
 
   def util_setup_source_info_cache(*specs)
+    require 'rubygems/source_info_cache'
     require 'rubygems/source_info_cache_entry'
 
     specs = Hash[*specs.map { |spec| [spec.full_name, spec] }.flatten]
@@ -319,8 +367,42 @@ class RubyGemTestCase < Test::Unit::TestCase
 
     sice = Gem::SourceInfoCacheEntry.new si, 0
     sic = Gem::SourceInfoCache.new
+
     sic.set_cache_data( { @gem_repo => sice } )
+    sic.update
+    sic.write_cache
+    sic.reset_cache_data
+
     Gem::SourceInfoCache.instance_variable_set :@cache, sic
+
+    si
+  end
+
+  def util_setup_spec_fetcher(*specs)
+    specs = Hash[*specs.map { |spec| [spec.full_name, spec] }.flatten]
+    si = Gem::SourceIndex.new specs
+
+    spec_fetcher = Gem::SpecFetcher.fetcher
+
+    spec_fetcher.specs[@uri] = []
+    si.gems.sort_by { |_, spec| spec }.each do |_, spec|
+      spec_tuple = [spec.name, spec.version, spec.original_platform]
+      spec_fetcher.specs[@uri] << spec_tuple
+    end
+
+    spec_fetcher.latest_specs[@uri] = []
+    si.latest_specs.sort.each do |spec|
+      spec_tuple = [spec.name, spec.version, spec.original_platform]
+      spec_fetcher.latest_specs[@uri] << spec_tuple
+    end
+
+    si.gems.sort_by { |_,spec| spec }.each do |_, spec|
+      path = "#{@gem_repo}quick/Marshal.#{Gem.marshal_version}/#{spec.original_name}.gemspec.rz"
+      data = Marshal.dump spec
+      data_deflate = Zlib::Deflate.deflate data
+      @fetcher.data[path] = data_deflate
+    end
+
     si
   end
 
@@ -336,42 +418,71 @@ class RubyGemTestCase < Test::Unit::TestCase
     Gem.win_platform?
   end
 
+  # NOTE Allow tests to use a random (but controlled) port number instead of
+  # a hardcoded one. This helps CI tools when running parallels builds on
+  # the same builder slave.
+  def self.process_based_port
+    @@process_based_port ||= 8000 + $$ % 1000
+  end
+
+  def process_based_port
+    self.class.process_based_port
+  end
+
+  def build_rake_in
+    gem_ruby = Gem.ruby
+    ruby = @@ruby
+    Gem.module_eval {@ruby = ruby}
+    env_rake = ENV["rake"]
+    ENV["rake"] = @@rake
+    yield @@rake
+  ensure
+    Gem.module_eval {@ruby = gem_ruby}
+    if env_rake
+      ENV["rake"] = env_rake
+    else
+      ENV.delete("rake")
+    end
+  end
+
+  def self.rubybin
+    if ruby = ENV["RUBY"]
+      return ruby
+    end
+    ruby = "ruby"
+    rubyexe = ruby+".exe"
+    3.times do
+      if File.exist? ruby and File.executable? ruby and !File.directory? ruby
+        return File.expand_path(ruby)
+      end
+      if File.exist? rubyexe and File.executable? rubyexe
+        return File.expand_path(rubyexe)
+      end
+      ruby = File.join("..", ruby)
+    end
+    begin
+      require "rbconfig"
+      File.join(
+        RbConfig::CONFIG["bindir"],
+	RbConfig::CONFIG["ruby_install_name"] + RbConfig::CONFIG["EXEEXT"]
+      )
+    rescue LoadError
+      "ruby"
+    end
+  end
+
+  @@ruby = rubybin
+  env_rake = ENV['rake']
+  ruby19_rake = File.expand_path("../../../bin/rake", __FILE__)
+  @@rake = if env_rake then
+             ENV["rake"]
+           elsif File.exist? ruby19_rake then
+             @@ruby + " " + ruby19_rake
+           else
+             'rake'
+           end
+
 end
 
-class TempIO
-
-  @@count = 0
-
-  def initialize(string = '')
-    @tempfile = Tempfile.new "TempIO-#{@@count ++ 1}"
-    @tempfile.write string
-    @tempfile.rewind
-  end
-
-  def method_missing(meth, *args, &block)
-    @tempfile.send(meth, *args, &block)
-  end
-
-  def respond_to?(meth)
-    @tempfile.respond_to? meth
-  end
-
-  def string
-    @tempfile.flush
-
-    open @tempfile.path, 'rb' do |io| io.read end
-  end
-
-end
-
-class Gem::Command; end
-module Gem::Commands; end
-
-class Gem::Commands::InstallCommand < Gem::Command
-  attr_reader :exit_code
-
-  def exit(code = 0)
-    @exit_code = code
-  end
-end
+MiniTest::Unit.autorun
 

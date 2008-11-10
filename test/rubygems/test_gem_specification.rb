@@ -5,7 +5,6 @@
 #++
 
 require 'stringio'
-require 'test/unit'
 require File.join(File.expand_path(File.dirname(__FILE__)), 'gemutilities')
 require 'rubygems/specification'
 
@@ -71,6 +70,8 @@ end
     File.open File.join(@tempdir, 'bin', 'exec'), 'w' do |fp|
       fp.puts "#!#{Gem.ruby}"
     end
+
+    @current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
   end
 
   def test_self_attribute_names
@@ -110,6 +111,19 @@ end
     actual_value = Gem::Specification.attribute_names.map { |a| a.to_s }.sort
 
     assert_equal expected_value, actual_value
+  end
+
+  def test_self__load_future
+    spec = Gem::Specification.new
+    spec.name = 'a'
+    spec.version = '1'
+    spec.specification_version = @current_version + 1
+
+    new_spec = Marshal.load Marshal.dump(spec)
+
+    assert_equal 'a', new_spec.name
+    assert_equal Gem::Version.new(1), new_spec.version
+    assert_equal @current_version, new_spec.specification_version
   end
 
   def test_self_load
@@ -213,6 +227,15 @@ end
     assert_equal 'old_platform', same_spec.original_platform
   end
 
+  def test_add_dependency_with_explicit_type
+    gem = quick_gem "awesome", "1.0" do |awesome|
+      awesome.add_development_dependency "monkey"
+    end
+
+    monkey = gem.dependencies.detect { |d| d.name == "monkey" }
+    assert_equal(:development, monkey.type)
+  end
+
   def test_author
     assert_equal 'A User', @a1.author
   end
@@ -282,6 +305,20 @@ end
     assert_equal [rake, jabber, pqa], @a1.dependencies
   end
 
+  def test_dependencies_scoped_by_type
+    gem = quick_gem "awesome", "1.0" do |awesome|
+      awesome.add_runtime_dependency "bonobo", []
+      awesome.add_development_dependency "monkey", []
+    end
+
+    bonobo = Gem::Dependency.new("bonobo", [])
+    monkey = Gem::Dependency.new("monkey", [], :development)
+
+    assert_equal([bonobo, monkey], gem.dependencies)
+    assert_equal([bonobo], gem.runtime_dependencies)
+    assert_equal([monkey], gem.development_dependencies)
+  end
+
   def test_description
     assert_equal 'This is a test description', @a1.description
   end
@@ -298,8 +335,8 @@ end
   def test_equals2
     assert_equal @a1, @a1
     assert_equal @a1, @a1.dup
-    assert_not_equal @a1, @a2
-    assert_not_equal @a1, Object.new
+    refute_equal @a1, @a2
+    refute_equal @a1, Object.new
   end
 
   # The cgikit specification was reported to be causing trouble in at least
@@ -331,16 +368,16 @@ end
     spec = @a1.dup
     spec.default_executable = 'xx'
 
-    assert_not_equal @a1, spec
-    assert_not_equal spec, @a1
+    refute_equal @a1, spec
+    refute_equal spec, @a1
   end
 
   def test_equals2_extensions
     spec = @a1.dup
     spec.extensions = 'xx'
 
-    assert_not_equal @a1, spec
-    assert_not_equal spec, @a1
+    refute_equal @a1, spec
+    refute_equal spec, @a1
   end
 
   def test_executables
@@ -423,6 +460,15 @@ end
                  @a1.full_gem_path
   end
 
+  def test_full_gem_path_double_slash
+    gemhome = @gemhome.sub(/\w\//, '\&/')
+    @a1.loaded_from = File.join gemhome, 'specifications',
+                                "#{@a1.full_name}.gemspec"
+
+    assert_equal File.join(@gemhome, 'gems', @a1.full_name),
+                 @a1.full_gem_path
+  end
+
   def test_full_name
     assert_equal 'a-1', @a1.full_name
 
@@ -453,13 +499,13 @@ end
   end
 
   def test_has_rdoc_eh
-    assert_equal true, @a1.has_rdoc?
+    assert @a1.has_rdoc?
   end
 
   def test_hash
     assert_equal @a1.hash, @a1.hash
     assert_equal @a1.hash, @a1.dup.hash
-    assert_not_equal @a1.hash, @a2.hash
+    refute_equal @a1.hash, @a2.hash
   end
 
   def test_lib_files
@@ -531,6 +577,17 @@ end
     assert_equal ['A working computer'], @a1.requirements
   end
 
+  def test_runtime_dependencies_legacy
+    # legacy gems don't have a type
+    @a1.runtime_dependencies.each do |dep|
+      dep.instance_variable_set :@type, nil
+    end
+
+    expected = %w[rake jabber4r pqa]
+
+    assert_equal expected, @a1.runtime_dependencies.map { |d| d.name }
+  end
+
   def test_spaceship_name
     s1 = quick_gem 'a', '1'
     s2 = quick_gem 'b', '1'
@@ -570,15 +627,18 @@ end
   end
 
   def test_to_ruby
+    @a2.add_runtime_dependency 'b', '1'
+    @a2.dependencies.first.instance_variable_set :@type, nil
     @a2.required_rubygems_version = Gem::Requirement.new '> 0'
 
     ruby_code = @a2.to_ruby
 
-    expected = "Gem::Specification.new do |s|
+    expected = <<-SPEC
+# -*- encoding: utf-8 -*-
+
+Gem::Specification.new do |s|
   s.name = %q{a}
   s.version = \"2\"
-
-  s.specification_version = #{Gem::Specification::CURRENT_SPECIFICATION_VERSION} if s.respond_to? :specification_version=
 
   s.required_rubygems_version = Gem::Requirement.new(\"> 0\") if s.respond_to? :required_rubygems_version=
   s.authors = [\"A User\"]
@@ -591,8 +651,21 @@ end
   s.require_paths = [\"lib\"]
   s.rubygems_version = %q{#{Gem::RubyGemsVersion}}
   s.summary = %q{this is a summary}
+
+  if s.respond_to? :specification_version then
+    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
+    s.specification_version = #{Gem::Specification::CURRENT_SPECIFICATION_VERSION}
+
+    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<b>, [\"= 1\"])
+    else
+      s.add_dependency(%q<b>, [\"= 1\"])
+    end
+  else
+    s.add_dependency(%q<b>, [\"= 1\"])
+  end
 end
-"
+    SPEC
 
     assert_equal expected, ruby_code
 
@@ -608,12 +681,13 @@ end
     local = Gem::Platform.local
     expected_platform = "[#{local.cpu.inspect}, #{local.os.inspect}, #{local.version.inspect}]"
 
-    expected = "Gem::Specification.new do |s|
+    expected = <<-SPEC
+# -*- encoding: utf-8 -*-
+
+Gem::Specification.new do |s|
   s.name = %q{a}
   s.version = \"1\"
   s.platform = Gem::Platform.new(#{expected_platform})
-
-  s.specification_version = 2 if s.respond_to? :specification_version=
 
   s.required_rubygems_version = Gem::Requirement.new(\">= 0\") if s.respond_to? :required_rubygems_version=
   s.authors = [\"A User\"]
@@ -633,11 +707,26 @@ end
   s.summary = %q{this is a summary}
   s.test_files = [\"test/suite.rb\"]
 
-  s.add_dependency(%q<rake>, [\"> 0.4\"])
-  s.add_dependency(%q<jabber4r>, [\"> 0.0.0\"])
-  s.add_dependency(%q<pqa>, [\"> 0.4\", \"<= 0.6\"])
+  if s.respond_to? :specification_version then
+    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
+    s.specification_version = 2
+
+    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<rake>, [\"> 0.4\"])
+      s.add_runtime_dependency(%q<jabber4r>, [\"> 0.0.0\"])
+      s.add_runtime_dependency(%q<pqa>, [\"> 0.4\", \"<= 0.6\"])
+    else
+      s.add_dependency(%q<rake>, [\"> 0.4\"])
+      s.add_dependency(%q<jabber4r>, [\"> 0.0.0\"])
+      s.add_dependency(%q<pqa>, [\"> 0.4\", \"<= 0.6\"])
+    end
+  else
+    s.add_dependency(%q<rake>, [\"> 0.4\"])
+    s.add_dependency(%q<jabber4r>, [\"> 0.0.0\"])
+    s.add_dependency(%q<pqa>, [\"> 0.4\", \"<= 0.6\"])
+  end
 end
-"
+    SPEC
 
     assert_equal expected, ruby_code
 
@@ -725,7 +814,7 @@ end
 
       @a1.authors = [Object.new]
 
-      e = assert_raise Gem::InvalidSpecificationException do
+      e = assert_raises Gem::InvalidSpecificationException do
         @a1.validate
       end
 
@@ -759,7 +848,7 @@ end
   end
 
   def test_validate_empty
-    e = assert_raise Gem::InvalidSpecificationException do
+    e = assert_raises Gem::InvalidSpecificationException do
       Gem::Specification.new.validate
     end
 
@@ -782,7 +871,7 @@ end
 
   def test_validate_empty_require_paths
     @a1.require_paths = []
-    e = assert_raise Gem::InvalidSpecificationException do
+    e = assert_raises Gem::InvalidSpecificationException do
       @a1.validate
     end
 
@@ -814,6 +903,15 @@ end
     end
   end
 
+  def test_validate_name
+    e = assert_raises Gem::InvalidSpecificationException do
+      @a1.name = :json
+      @a1.validate
+    end
+
+    assert_equal 'invalid value for attribute name: ":json"', e.message
+  end
+
   def test_validate_platform_legacy
     Dir.chdir @tempdir do
       @a1.platform = 'mswin32'
@@ -842,7 +940,7 @@ end
 
   def test_validate_rubygems_version
     @a1.rubygems_version = "3"
-    e = assert_raise Gem::InvalidSpecificationException do
+    e = assert_raises Gem::InvalidSpecificationException do
       @a1.validate
     end
 

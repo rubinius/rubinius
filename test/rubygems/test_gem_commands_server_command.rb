@@ -1,4 +1,3 @@
-require 'test/unit'
 require File.join(File.expand_path(File.dirname(__FILE__)), 'gemutilities')
 require 'rubygems/commands/server_command'
 
@@ -20,7 +19,7 @@ class TestGemCommandsServerCommand < RubyGemTestCase
     @cmd.send :handle_options, %w[-p 9999 -d /nonexistent --daemon]
 
     assert_equal true, @cmd.options[:daemon]
-    assert_equal '/nonexistent', @cmd.options[:gemdir]
+    assert_equal File.expand_path('/nonexistent'), @cmd.options[:gemdir]
     assert_equal 9999, @cmd.options[:port]
   end
 end

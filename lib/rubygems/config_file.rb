@@ -18,6 +18,18 @@ class Gem::ConfigFile
   DEFAULT_VERBOSITY = true
   DEFAULT_UPDATE_SOURCES = true
 
+  ##
+  # For Ruby packagers to set configuration defaults.  Set in
+  # rubygems/defaults/operating_system.rb
+
+  OPERATING_SYSTEM_DEFAULTS = {}
+
+  ##
+  # For Ruby implementers to set configuration defaults.  Set in
+  # rubygems/defaults/#{RUBY_ENGINE}.rb
+
+  PLATFORM_DEFAULTS = {}
+
   system_config_path = 
     begin
       require 'Win32API'
@@ -36,6 +48,11 @@ class Gem::ConfigFile
   
   # List of arguments supplied to the config file object.
   attr_reader :args
+
+  # Where to look for gems
+  attr_accessor :path
+
+  attr_accessor :home
 
   # True if we print backtraces on errors.
   attr_writer :backtrace
@@ -79,6 +96,7 @@ class Gem::ConfigFile
     arg_list = arg_list.map do |arg|
       if need_config_file_name then
         @config_file_name = arg
+        need_config_file_name = false
         nil
       elsif arg =~ /^--config-file=(.*)/ then
         @config_file_name = $1
@@ -97,16 +115,24 @@ class Gem::ConfigFile
     @verbose = DEFAULT_VERBOSITY
     @update_sources = DEFAULT_UPDATE_SOURCES
 
-    @hash = load_file(SYSTEM_WIDE_CONFIG_FILE)
-    @hash.merge!(load_file(config_file_name.dup.untaint))
+    operating_system_config = Marshal.load Marshal.dump(OPERATING_SYSTEM_DEFAULTS)
+    platform_config = Marshal.load Marshal.dump(PLATFORM_DEFAULTS)
+    system_config = load_file SYSTEM_WIDE_CONFIG_FILE
+    user_config = load_file config_file_name.dup.untaint
+
+    @hash = operating_system_config.merge platform_config
+    @hash = @hash.merge system_config
+    @hash = @hash.merge user_config
 
     # HACK these override command-line args, which is bad
     @backtrace = @hash[:backtrace] if @hash.key? :backtrace
     @benchmark = @hash[:benchmark] if @hash.key? :benchmark
     @bulk_threshold = @hash[:bulk_threshold] if @hash.key? :bulk_threshold
-    Gem.sources.replace @hash[:sources] if @hash.key? :sources
+    Gem.sources = @hash[:sources] if @hash.key? :sources
     @verbose = @hash[:verbose] if @hash.key? :verbose
     @update_sources = @hash[:update_sources] if @hash.key? :update_sources
+    @path = @hash[:gempath] if @hash.key? :gempath
+    @home = @hash[:gemhome] if @hash.key? :gemhome
 
     handle_arguments arg_list
   end

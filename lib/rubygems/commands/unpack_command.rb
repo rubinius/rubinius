@@ -43,7 +43,7 @@ class Gem::Commands::UnpackCommand < Gem::Command
       basename = File.basename(path).sub(/\.gem$/, '')
       target_dir = File.expand_path File.join(options[:target], basename)
       FileUtils.mkdir_p target_dir
-      Gem::Installer.new(path).unpack target_dir
+      Gem::Installer.new(path, :unpack => true).unpack target_dir
       say "Unpacked gem: '#{target_dir}'"
     else
       alert_error "Gem '#{gemname}' not installed."
@@ -68,7 +68,7 @@ class Gem::Commands::UnpackCommand < Gem::Command
   def get_path(gemname, version_req)
     return gemname if gemname =~ /\.gem$/i
 
-    specs = Gem::source_index.search(/\A#{gemname}\z/, version_req)
+    specs = Gem::source_index.find_name gemname, version_req
 
     selected = specs.sort_by { |s| s.version }.last
 

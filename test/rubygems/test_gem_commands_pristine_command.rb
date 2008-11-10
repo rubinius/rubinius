@@ -1,4 +1,3 @@
-require 'test/unit'
 require File.join(File.expand_path(File.dirname(__FILE__)), 'gemutilities')
 require 'rubygems/commands/pristine_command'
 
@@ -18,16 +17,24 @@ class TestGemCommandsPristineCommand < RubyGemTestCase
 
     install_gem a
 
+    foo_path = File.join @gemhome, 'gems', a.full_name, 'bin', 'foo'
+
+    File.open foo_path, 'w' do |io|
+      io.puts 'I changed it!'
+    end
+
     @cmd.options[:args] = %w[a]
 
     use_ui @ui do
       @cmd.execute
     end
 
+    assert_equal "#!/usr/bin/ruby\n", File.read(foo_path), foo_path
+
     out = @ui.output.split "\n"
 
     assert_equal "Restoring gem(s) to pristine condition...", out.shift
-    assert_equal "#{a.full_name} is in pristine condition", out.shift
+    assert_equal "Restored #{a.full_name}", out.shift
     assert out.empty?, out.inspect
   end
 
@@ -40,7 +47,7 @@ class TestGemCommandsPristineCommand < RubyGemTestCase
 
     install_gem a
 
-    gem_bin = File.join @gemhome, 'gems', "#{a.full_name}", 'bin', 'foo'
+    gem_bin = File.join @gemhome, 'gems', a.full_name, 'bin', 'foo'
 
     FileUtils.rm gem_bin
 
@@ -50,11 +57,12 @@ class TestGemCommandsPristineCommand < RubyGemTestCase
       @cmd.execute
     end
 
+    assert File.exist?(gem_bin)
+
     out = @ui.output.split "\n"
 
     assert_equal "Restoring gem(s) to pristine condition...", out.shift
-    assert_equal "Restoring 1 file to #{a.full_name}...", out.shift
-    assert_equal "  #{gem_bin}", out.shift
+    assert_equal "Restored #{a.full_name}", out.shift
     assert out.empty?, out.inspect
   end
 
@@ -87,7 +95,7 @@ class TestGemCommandsPristineCommand < RubyGemTestCase
   def test_execute_no_gem
     @cmd.options[:args] = %w[]
 
-    e = assert_raise Gem::CommandLineError do
+    e = assert_raises Gem::CommandLineError do
       use_ui @ui do
         @cmd.execute
       end

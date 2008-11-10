@@ -4,7 +4,6 @@
 # See LICENSE.txt for permissions.
 #++
 
-require 'test/unit'
 require File.join(File.expand_path(File.dirname(__FILE__)), 'gemutilities')
 require 'rubygems/command_manager'
 
@@ -66,7 +65,7 @@ class TestGemCommandManager < RubyGemTestCase
       assert_equal :both, check_options[:domain]
       assert_equal true, check_options[:wrappers]
       assert_equal Gem::Requirement.default, check_options[:version]
-      assert_equal Gem.dir, check_options[:install_dir]
+      assert_equal nil, check_options[:install_dir]
       assert_equal nil, check_options[:bin_dir]
 
       #check settings
@@ -166,7 +165,7 @@ class TestGemCommandManager < RubyGemTestCase
 
     #check defaults
     @command_manager.process_args("query")
-    assert_equal(/.*/, check_options[:name])
+    assert_equal(//, check_options[:name])
     assert_equal :local, check_options[:domain]
     assert_equal false, check_options[:details]
 

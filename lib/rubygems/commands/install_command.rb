@@ -38,6 +38,19 @@ class Gem::Commands::InstallCommand < Gem::Command
     "--no-test --install-dir #{Gem.dir}"
   end
 
+  def description # :nodoc:
+    <<-EOF
+The install command installs local or remote gem into a gem repository.
+
+For gems with executables ruby installs a wrapper file into the executable
+directory by deault.  This can be overridden with the --no-wrappers option.
+The wrapper allows you to choose among alternate gem versions using _version_.
+
+For example `rake _0.7.3_ --version` will run rake version 0.7.3 if a newer
+version is also installed.
+    EOF
+  end
+
   def usage # :nodoc:
     "#{program_name} GEMNAME [GEMNAME ...] [options] -- --build-flags"
   end
@@ -50,11 +63,7 @@ class Gem::Commands::InstallCommand < Gem::Command
 
     installed_gems = []
 
-    if options[:install_dir].nil? and RUBY_VERSION > '1.9' then
-      ENV.delete 'GEM_PATH'
-    else
-      ENV['GEM_PATH'] = options[:install_dir] # HACK what does this do?
-    end
+    ENV.delete 'GEM_PATH' if options[:install_dir].nil? and RUBY_VERSION > '1.9'
 
     install_options = {
       :env_shebang => options[:env_shebang],
@@ -110,6 +119,8 @@ class Gem::Commands::InstallCommand < Gem::Command
       installed_gems.each do |gem|
         Gem::DocManager.new(gem, options[:rdoc_args]).generate_ri
       end
+
+      Gem::DocManager.update_ri_cache
     end
 
     if options[:generate_rdoc] then

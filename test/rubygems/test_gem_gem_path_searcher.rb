@@ -1,14 +1,9 @@
-require 'test/unit'
 require File.join(File.expand_path(File.dirname(__FILE__)), 'gemutilities')
 require 'rubygems/gem_path_searcher'
 
 class Gem::GemPathSearcher
   attr_accessor :gemspecs
   attr_accessor :lib_dirs
-
-  public :init_gemspecs
-  public :matching_file
-  public :lib_dirs_for
 end
 
 class TestGemGemPathSearcher < RubyGemTestCase
@@ -28,13 +23,20 @@ class TestGemGemPathSearcher < RubyGemTestCase
     @bar1 = quick_gem 'bar', '0.1'
     @bar2 = quick_gem 'bar', '0.2'
 
-    Gem.source_index = util_setup_source_info_cache @foo1, @foo2, @bar1, @bar2
+    @fetcher = Gem::FakeFetcher.new
+    Gem::RemoteFetcher.fetcher = @fetcher
+
+    Gem.source_index = util_setup_spec_fetcher @foo1, @foo2, @bar1, @bar2
 
     @gps = Gem::GemPathSearcher.new
   end
 
   def test_find
     assert_equal @foo1, @gps.find('foo')
+  end
+
+  def test_find_all
+    assert_equal [@foo1], @gps.find_all('foo')
   end
 
   def test_init_gemspecs
@@ -48,9 +50,17 @@ class TestGemGemPathSearcher < RubyGemTestCase
     assert_equal expected, lib_dirs
   end
 
-  def test_matching_file
-    assert !@gps.matching_file(@foo1, 'bar')
-    assert @gps.matching_file(@foo1, 'foo')
+  def test_matching_file_eh
+    assert !@gps.matching_file?(@foo1, 'bar')
+    assert @gps.matching_file?(@foo1, 'foo')
+  end
+
+  def test_matching_files
+    assert_equal [], @gps.matching_files(@foo1, 'bar')
+
+    expected = File.join @foo1.full_gem_path, 'lib', 'foo.rb'
+
+    assert_equal [expected], @gps.matching_files(@foo1, 'foo')
   end
 
 end
