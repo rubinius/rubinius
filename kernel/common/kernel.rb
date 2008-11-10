@@ -818,6 +818,8 @@ class SystemExit < Exception
   ##
   # Creates a SystemExit exception with optional status and message.  If the
   # status is omitted, Process::EXIT_SUCCESS is used.
+  #--
+  # *args is used to simulate optional prepended argument like MRI
 
   def initialize(*args)
     status = if args.first.kind_of? Fixnum then
