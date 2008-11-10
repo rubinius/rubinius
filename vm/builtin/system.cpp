@@ -152,8 +152,13 @@ namespace rubinius {
     return name;
   }
 
-  Object* System::vm_show_backtrace(STATE, MethodContext* ctx) {
-    G(current_task)->print_backtrace(ctx);
+  Object* System::vm_show_backtrace(STATE, Object* ctx) {
+    if(ctx == Qnil) {
+      G(current_task)->print_backtrace(NULL);
+    } else {
+      G(current_task)->print_backtrace(as<MethodContext>(ctx));
+    }
+
     return Qnil;
   }
 

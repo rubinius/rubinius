@@ -16,10 +16,12 @@ class Rubinius::VM
 
   def self.write_error(str)
     Ruby.primitive :vm_write_error
+    raise PrimitiveFailure, "vm_write_error primitive failed"
   end
 
   def self.show_backtrace(ctx)
     Ruby.primitive :vm_show_backtrace
+    raise PrimitiveFailure, "vm_show_backtrace primitive failed"
   end
 
   def self.load_library(path, name)

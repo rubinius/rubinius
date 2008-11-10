@@ -114,7 +114,7 @@ namespace rubinius {
      *  Writes backtrace to standard output.
      */
     // Ruby.primitive :vm_show_backtrace
-    static Object*  vm_show_backtrace(STATE, MethodContext* ctx);
+    static Object*  vm_show_backtrace(STATE, Object* ctx);
 
     /**
      *  Starts the profiler.
