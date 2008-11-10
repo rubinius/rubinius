@@ -266,6 +266,8 @@ namespace rubinius {
     G(object)->set_const(state, "STDOUT", out_io);
     G(object)->set_const(state, "STDERR", err_io);
 
+    G(rubinius)->set_const(state, "BUILDDIR", String::create(state, BUILDDIR));
+
     if(sizeof(int) == sizeof(long)) {
       G(rubinius)->set_const(state, "L64", Qfalse);
     } else {

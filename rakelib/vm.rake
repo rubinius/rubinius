@@ -134,7 +134,7 @@ INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
-FLAGS         = %w[ -pipe -Wall -Wno-deprecated ]
+FLAGS         = %W[ -pipe -Wall -Wno-deprecated -DBUILDDIR=\\"#{Dir.pwd}\\"]
 if RUBY_PLATFORM =~ /darwin/i && `sw_vers` =~ /10\.4/
   FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)
 end
