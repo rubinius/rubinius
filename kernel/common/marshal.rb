@@ -150,7 +150,10 @@ end
 class Hash
   def to_marshal(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
-    out = ms.serialize_instance_variables_prefix(self)
+
+    excluded_ivars = %w[@bins @count @records]
+
+    out = ms.serialize_instance_variables_prefix self, excluded_ivars
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Hash)
     out << (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH)
@@ -162,7 +165,8 @@ class Hash
       end
     end
     out << (default ? ms.serialize(default) : '')
-    out << ms.serialize_instance_variables_suffix(self)
+    out << ms.serialize_instance_variables_suffix(self, false, false,
+                                                  excluded_ivars)
   end
 end
 
@@ -666,16 +670,26 @@ module Marshal
       str
     end
 
-    def serialize_instance_variables_prefix(obj)
-      if obj.instance_variables.length > 0
+    def serialize_instance_variables_prefix(obj, exclude_ivars = false)
+      ivars = obj.instance_variables
+
+      ivars -= exclude_ivars if exclude_ivars
+
+      if ivars.length > 0 then
         TYPE_IVAR + ''
       else
-      ''
+        ''
       end
     end
 
-    def serialize_instance_variables_suffix(obj, force = false, strip_ivars = false)
-      if force or obj.instance_variables.length > 0
+    def serialize_instance_variables_suffix(obj, force = false,
+                                            strip_ivars = false,
+                                            exclude_ivars = false)
+      ivars = obj.instance_variables
+
+      ivars -= exclude_ivars if exclude_ivars
+
+      if force or ivars.length > 0 then
         str = serialize_integer(obj.instance_variables.length)
         obj.instance_variables.each do |ivar|
           sym = ivar.to_sym
