@@ -60,14 +60,7 @@ namespace rubinius {
   public:
     /* accessors */
 
-    attr_reader(active, MethodContext);
-
-    // NOTE this is only allowed because we make sure that all Tasks
-    // are scanned during all collections.
-    void active(STATE, MethodContext* ctx) {
-      active_ = ctx;
-    }
-
+    attr_accessor(active, MethodContext);
     attr_accessor(exception, Exception);
     attr_accessor(probe, TaskProbe);
     attr_accessor(debug_channel, Channel);
