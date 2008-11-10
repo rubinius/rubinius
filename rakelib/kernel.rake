@@ -88,6 +88,20 @@ def compile_ruby(src, rbc, check_mtime = false, kernel = false)
   mri_compile src, rbc, false, flags
 end
 
+# drake does not allow invoke to be called inside tasks
+
+def kernel_clean
+  rm_rf %w[runtime/bootstrap runtime/platform runtime/common runtime/delta],
+        :verbose => $verbose
+
+  files_to_delete = []
+  files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"] + Dir["**/.*.rbc"]
+  files_to_delete += Dir["**/.load_order.txt"]
+  files_to_delete += ["runtime/platform.conf"]
+
+  rm_f files_to_delete, :verbose => $verbose
+end
+
 loose =  []
 modules = Hash.new { |h,k| h[k] = [] }
 
@@ -152,7 +166,7 @@ namespace :kernel do
       File::Stat.new(f).mtime
     end.min
 
-    Rake::Task['kernel:clean'].invoke if !kernel_mtime or COMPILER_MTIME > kernel_mtime unless ENV['NOCLEAN']
+    kernel_clean if !kernel_mtime or COMPILER_MTIME > kernel_mtime unless ENV['NOCLEAN']
   end
 
   task :show do
@@ -169,15 +183,7 @@ namespace :kernel do
 
   desc "clean up rbc files"
   task :clean do
-    rm_rf %w[runtime/bootstrap runtime/platform runtime/common runtime/delta],
-          :verbose => $verbose
-
-    files_to_delete = []
-    files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"] + Dir["**/.*.rbc"]
-    files_to_delete += Dir["**/.load_order.txt"]
-    files_to_delete += ["runtime/platform.conf"]
-
-    rm_f files_to_delete, :verbose => $verbose
+    kernel_clean
   end
 
   desc "Create dot(1) files of dependencies in bootstrap, common, delta"

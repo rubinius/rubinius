@@ -1,8 +1,5 @@
 desc "Build extensions from lib/ext"
 task :extensions => %w[
-  vm/vm
-  kernel:build
-
   extension:readline
   extension:digest
 ]
@@ -36,7 +33,7 @@ namespace :extension do
   end
 
   desc "Build the readline extension"
-  task :readline => "lib/ext/readline/readline.#{$dlext}"
+  task :readline => %W[kernel:build lib/ext/readline/readline.#{$dlext}]
 
   file "lib/ext/readline/readline.#{$dlext}" => FileList[
        "lib/ext/readline/build.rb",
@@ -53,7 +50,7 @@ namespace :extension do
   namespace :digest do
     def digest_task name
       desc "Build Digest's #{name} extension."
-      task name => "lib/ext/digest/#{name}/#{name}.#{$dlext}"
+      task name => %W[kernel:build lib/ext/digest/#{name}/#{name}.#{$dlext}]
       file "lib/ext/digest/#{name}/#{name}.#{$dlext}" =>
         FileList["lib/ext/digest/#{name}/build.rb",
                  "lib/ext/digest/#{name}/{#{name},#{name}init}.c",
@@ -88,7 +85,7 @@ namespace :extension do
 
   # The ones below are not used currently.
 
-  task :mongrel => "lib/ext/mongrel/http11.#{$dlext}"
+  task :mongrel => %W[kernel:build lib/ext/mongrel/http11.#{$dlext}]
 
   file "lib/ext/mongrel/http11.#{$dlext}" => FileList[
     'shotgun/lib/subtend/*',
