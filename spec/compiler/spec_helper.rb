@@ -174,13 +174,13 @@ class TestGenerator
   end
 
   def lvar_set slot
-    shift_tuple
+    shift_array
     set_local slot
     pop
   end
 
   def lvar_at slot
-    shift_tuple
+    shift_array
     set_local_depth 0, slot
     pop
   end
@@ -342,7 +342,7 @@ class TestGenerator
       when Array then # I do, am a dick.
         d.cast_for_multi_block_arg
         (0...block_count[0]).each do |n|
-          d.shift_tuple
+          d.shift_array
           d.set_local_depth lvl, n
           d.pop
         end
@@ -361,7 +361,7 @@ class TestGenerator
       else
         d.cast_for_multi_block_arg
         (0...block_count).each do |n|
-          d.shift_tuple
+          d.shift_array
           d.set_local_depth lvl, n
           d.pop
         end

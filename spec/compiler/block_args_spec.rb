@@ -170,8 +170,8 @@ describe Compiler do
       d.cast_for_multi_block_arg
 
       # Pull the first element out and use it like a tuple.
-      d.shift_tuple
-      d.cast_tuple
+      d.shift_array
+      d.cast_array
       d.lvar_at 0
       d.lvar_at 1
       d.pop
@@ -202,8 +202,8 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
-      d.shift_tuple
-      d.cast_tuple
+      d.shift_array
+      d.cast_array
 
       d.lvar_at 0
       d.lvar_at 1
@@ -240,13 +240,13 @@ describe Compiler do
 
     gen_iter sexp do |d|
       d.cast_for_multi_block_arg
-      d.shift_tuple
-      d.cast_tuple
+      d.shift_array
+      d.cast_array
 
       d.lvar_at 0
 
-      d.shift_tuple
-      d.cast_tuple
+      d.shift_array
+      d.cast_array
 
       d.lvar_at 1
       d.lvar_at 2

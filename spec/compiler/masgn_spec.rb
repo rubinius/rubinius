@@ -201,8 +201,7 @@ describe Compiler do
       g.dup
       g.send :size, 0
       g.push 1
-      g.swap
-      g.send :<, 1
+      g.send :>, 1
 
       g.git lbl
 
@@ -231,7 +230,7 @@ describe Compiler do
       g.push :self
       g.send :d, 0, true
 
-      g.cast_tuple
+      g.cast_array
 
       g.lvar_set 0
       g.lvar_set 1
@@ -264,7 +263,7 @@ describe Compiler do
       g.cast_array
 
       g.send :+, 1
-      g.cast_tuple
+      g.cast_array
 
       g.lvar_set 0
       g.lvar_set 1
@@ -291,7 +290,7 @@ describe Compiler do
       g.push :self
       g.send :d, 0, true
 
-      g.cast_tuple
+      g.cast_array
 
       g.lvar_set 0
       g.lvar_set 1
@@ -350,7 +349,7 @@ describe Compiler do
     gen sexp do |g|
       desc = description do |d|
         d.cast_for_multi_block_arg
-        d.shift_tuple
+        d.shift_array
         d.set_local_depth 0,0
         d.pop
         d.pop
@@ -386,10 +385,10 @@ describe Compiler do
     gen sexp do |g|
       desc = description do |d|
         d.cast_for_multi_block_arg
-        d.shift_tuple
+        d.shift_array
         d.set_local_depth 0,0
         d.pop
-        d.shift_tuple
+        d.shift_array
         d.set_local_depth 0,1
 
         d.pop
@@ -458,7 +457,7 @@ describe Compiler do
     gen sexp do |g|
       desc = description do |d|
         d.cast_for_multi_block_arg
-        d.shift_tuple
+        d.shift_array
         d.set_local_depth 0,0
         d.pop
         d.cast_array
@@ -578,14 +577,14 @@ describe Compiler do
       g.push :self
       g.send :key, 0, true
       g.send :hash_entry, 1, true
-      g.cast_tuple
-      g.shift_tuple
+      g.cast_array
+      g.shift_array
       g.set_local 0
       g.pop
-      g.shift_tuple
+      g.shift_array
       g.set_local 1
       g.pop
-      g.shift_tuple
+      g.shift_array
       g.set_local 2
       g.pop
       g.pop

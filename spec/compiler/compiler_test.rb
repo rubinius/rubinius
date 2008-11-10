@@ -51,8 +51,6 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("argscat_svalue",
             "Compiler" => bytecode do |g|
-              t = g.new_label
-
               g.push :self
               g.send :b, 0, true
               g.push :self
@@ -60,23 +58,8 @@ class CompilerTestCase < ParseTreeTestCase
               g.make_array 2
               g.push :self
               g.send :d, 0, true
-
               g.cast_array
               g.send :+, 1
-              g.cast_array
-              g.dup
-              g.send :size, 0
-              g.push 1
-              g.swap
-              g.send :<, 1 # TODO: or empty?
-
-              g.git t
-
-              g.push 0
-              g.send :at, 1
-
-              t.set!
-
               g.set_local 0
             end)
 
@@ -3072,13 +3055,13 @@ class CompilerTestCase < ParseTreeTestCase
               g.make_array 2
               g.cast_array
               g.send :+, 1
-              g.cast_tuple
+              g.cast_array
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 0
               g.pop
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 1
               g.pop
 
@@ -3114,23 +3097,23 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               g.push :self
               g.send :q, 0, true
-              g.cast_tuple
+              g.cast_array
 
-              g.shift_tuple
+              g.shift_array
               g.push :self
               g.send :a, 0, true
               g.swap
               g.send :b=, 1, false
               g.pop
 
-              g.shift_tuple
+              g.shift_array
               g.push :self
               g.send :a, 0, true
               g.swap
               g.send :c=, 1, false
               g.pop
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 0
               g.pop
 
@@ -3239,19 +3222,19 @@ class CompilerTestCase < ParseTreeTestCase
               g.push 3
               g.make_array 2
               g.make_array 2
-              g.cast_tuple
+              g.cast_array
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 0
               g.pop
 
-              g.shift_tuple
-              g.cast_tuple
-              g.shift_tuple
+              g.shift_array
+              g.cast_array
+              g.shift_array
               g.set_local 1
               g.pop
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 2
               g.pop
 
@@ -3291,13 +3274,13 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               g.push :self
               g.send :c, 0, true
-              g.cast_tuple
+              g.cast_array
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 0
               g.pop
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 1
               g.pop
 
@@ -3311,13 +3294,13 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               g.push :self
               g.send :c, 0, true
-              g.cast_tuple
+              g.cast_array
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 0
               g.pop
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 1
               g.pop
 
@@ -3331,13 +3314,13 @@ class CompilerTestCase < ParseTreeTestCase
               g.push :self
               g.send :d, 0, true
 
-              g.cast_tuple
+              g.cast_array
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 0
               g.pop
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 1
               g.pop
 
@@ -3356,13 +3339,13 @@ class CompilerTestCase < ParseTreeTestCase
               g.string_dup
               g.send :e, 1, false
 
-              g.cast_tuple
+              g.cast_array
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 0
               g.pop
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 1
               g.pop
 
@@ -4465,8 +4448,7 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.send :size, 0
               g.push 1
-              g.swap
-              g.send :<, 1
+              g.send :>, 1
               g.git t
 
               g.push 0
@@ -4479,13 +4461,13 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => bytecode do |g|
               g.push :self
               g.send :c, 0, true
-              g.cast_tuple
+              g.cast_array
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 0
               g.pop
 
-              g.shift_tuple
+              g.shift_array
               g.set_local 1
               g.pop
 
@@ -4991,23 +4973,13 @@ class CompilerTestCase < ParseTreeTestCase
               g.meta_send_call 2
             end)
 
-  add_tests("yield_array",
+  add_tests("yield_array_n",
             "Compiler" => bytecode do |g|
               g.push_block
               g.push 42
               g.push 24
               g.make_array 2
               g.meta_send_call 1
-            end)
-
-  add_tests("yield_splat",
-            "Compiler" => bytecode do |g|
-              g.push_block
-              g.push :self
-              g.send :ary, 0, true
-              g.cast_array
-              g.push :nil
-              g.send_with_splat :call, 0, false, false
             end)
 
   add_tests("yield_array_0",
@@ -5018,7 +4990,7 @@ class CompilerTestCase < ParseTreeTestCase
             end)
 
   # HACK: just to get the noise down until wilson and I sync back up
-  %w(return_1_splatted splat_array splat_break splat_break_array splat_fcall splat_fcall_array splat_lasgn splat_lasgn_array splat_lit_1 splat_lit_n splat_next splat_next_array splat_return splat_return_array splat_super splat_super_array splat_yield splat_yield_array yield_array yield_array_1 yield_array_n).each do |name|
+  %w(return_1_splatted splat_array splat_break splat_break_array splat_fcall splat_fcall_array splat_lasgn splat_lasgn_array splat_lit_1 splat_lit_n splat_next splat_next_array splat_return splat_return_array splat_super splat_super_array splat_yield splat_yield_array yield_array_1).each do |name|
        add_tests(name, "Compiler" => :skip)
      end
 
