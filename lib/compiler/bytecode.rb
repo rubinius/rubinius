@@ -1641,6 +1641,7 @@ class Compiler
 
       def block_arg_bytecode(g)
         if @lhs
+          g.cast_array
           @lhs.body.each do |x|
             g.shift_array
             x.bytecode(g)
