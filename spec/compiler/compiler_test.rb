@@ -1788,20 +1788,20 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
+  add_tests("defs_empty_args",
+            "Compiler" => bytecode do |g|
+              g.push :self
+              in_method :empty, true do |d|
+                d.push :nil
+              end
+            end)
+
   add_tests("defs_expr_wtf",
             "Compiler" => bytecode do |g|
               g.push :self
               g.send :a, 0, true
               g.send :b, 0, false
 
-              in_method :empty, true do |d|
-                d.push :nil
-              end
-            end)
-
-  add_tests("defs_empty_args",
-            "Compiler" => bytecode do |g|
-              g.push :self
               in_method :empty, true do |d|
                 d.push :nil
               end
@@ -4048,25 +4048,6 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
-  add_tests("rescue_block_body_ivar",
-            "Compiler" => bytecode do |g|
-              in_rescue :StandardError do |section|
-                case section
-                when :body then
-                  g.push :self
-                  g.send :a, 0, true
-                when :StandardError then
-                  g.push_exception
-                  g.set_ivar :@e
-                  g.push :self
-                  g.send :c, 0, true
-                  g.pop
-                  g.push :self
-                  g.send :d, 0, true
-                end
-              end
-            end)
-
   add_tests("rescue_block_body_3",
             "Compiler" => bytecode do |g|
               in_rescue :A, :B, :C do |section|
@@ -4081,6 +4062,25 @@ class CompilerTestCase < ParseTreeTestCase
                   g.push :self
                   g.send :c, 0, true
                 when :C then
+                  g.push :self
+                  g.send :d, 0, true
+                end
+              end
+            end)
+
+  add_tests("rescue_block_body_ivar",
+            "Compiler" => bytecode do |g|
+              in_rescue :StandardError do |section|
+                case section
+                when :body then
+                  g.push :self
+                  g.send :a, 0, true
+                when :StandardError then
+                  g.push_exception
+                  g.set_ivar :@e
+                  g.push :self
+                  g.send :c, 0, true
+                  g.pop
                   g.push :self
                   g.send :d, 0, true
                 end
@@ -4105,6 +4105,9 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
+  add_tests("rescue_iasgn_var_empty",
+            "Compiler" => :skip)
+
   add_tests("rescue_lasgn",
             "Compiler" => :skip)
 
@@ -4112,9 +4115,6 @@ class CompilerTestCase < ParseTreeTestCase
             "Compiler" => :skip)
 
   add_tests("rescue_lasgn_var_empty",
-            "Compiler" => :skip)
-
-  add_tests("rescue_iasgn_var_empty",
             "Compiler" => :skip)
 
   add_tests("retry",
@@ -4134,6 +4134,26 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("return_1",
             "Compiler" => bytecode do |g|
               g.push 1
+              g.ret
+            end)
+
+  add_tests("return_1_splatted",
+            "Compiler" => bytecode do |g|
+              bottom = g.new_label
+
+              g.push 1
+              g.cast_array
+              g.dup
+              g.send :size, 0
+              g.push 1
+              g.send :>, 1
+              g.git bottom
+
+              g.push 0
+              g.send :at, 1
+
+              bottom.set!
+
               g.ret
             end)
 
@@ -4205,6 +4225,238 @@ class CompilerTestCase < ParseTreeTestCase
                 d.push :nil
                 d.send_with_splat :a, 0, true, false
               end
+            end)
+
+  add_tests("splat_array",
+            "Compiler" => bytecode do |g| # FIX: this is wrong
+              g.push 1
+              g.make_array 1
+              g.make_array 1
+            end)
+
+  add_tests("splat_break",
+            "Compiler" => bytecode do |g|
+              bottom = g.new_label
+
+              g.push 1
+              g.make_array 1
+              g.cast_array
+              g.dup
+              g.send :size, 0
+              g.push 1
+              g.send :>, 1
+              g.git bottom
+
+              g.push 0
+              g.send :at, 1
+
+              bottom.set!
+
+              g.pop
+              g.push_const :Compile
+              g.send :__unexpected_break__, 0
+            end)
+
+  add_tests("splat_break_array",
+            "Compiler" => bytecode do |g| # FIX: this is wrong
+              g.push 1
+              g.make_array 1
+              g.make_array 1
+              g.pop
+              g.push_const :Compile
+              g.send :__unexpected_break__, 0
+            end)
+
+  add_tests("splat_fcall",
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push 1
+              g.make_array 1
+              g.cast_array
+              g.push :nil # TODO: brokey?
+              g.send_with_splat :meth, 0, true, false
+            end)
+
+  add_tests("splat_fcall_array",
+            "Compiler" => bytecode do |g| # FIX: this is wrong
+              g.push :self
+              g.push 1
+              g.make_array 1
+              g.make_array 1
+              g.send :meth, 1, true
+            end)
+
+  add_tests("splat_lasgn",
+            "Compiler" => bytecode do |g|
+              bottom = g.new_label
+
+              g.push 1
+              g.make_array 1
+              g.cast_array
+              g.dup
+              g.send :size, 0
+              g.push 1
+              g.send :>, 1
+              g.git bottom
+
+              g.push 0
+              g.send :at, 1
+
+              bottom.set!
+
+              g.set_local 0
+            end)
+
+  add_tests("splat_lasgn_array",
+            "Compiler" => bytecode do |g| # FIX: this is wrong
+              g.make_array 0
+              g.push 1
+              g.make_array 1
+              g.cast_array
+              g.send :+, 1
+              g.set_local 0
+            end)
+
+  add_tests("splat_lit_1",
+            "Compiler" => bytecode do |g| # FIX: this is wrong
+              g.push 1
+              g.make_array 1
+
+#               bottom = g.new_label
+
+#               g.push 1
+#               g.make_array 1
+#               g.send :size, 0
+#               g.push 1
+#               g.send :>, 1
+#               g.gif bottom
+#               g.push 0
+#               g.send :at, 1
+#               bottom.set!
+            end)
+
+  add_tests("splat_lit_n",
+            "Compiler" => bytecode do |g| # FIX: this is wrong... so wrong
+              g.push 1
+              g.push 2
+              g.make_array 2
+#               bottom = g.new_label
+
+#               g.push 1
+#               g.make_array 1
+
+#               g.push 2
+#               g.make_array 1
+#               g.send :size, 0
+#               g.push 1
+#               g.send :>, 1
+#               g.gif bottom
+#               g.push 0
+#               g.send :at, 1
+#               bottom.set!
+
+#               g.send :+, 1
+            end)
+
+  add_tests("splat_next",
+            "Compiler" => bytecode do |g|
+              g.push :self
+              g.push_const :LocalJumpError
+              g.push_literal "next used in invalid context"
+              g.send :raise, 2, true
+            end)
+
+  add_tests("splat_next_array",
+            "Compiler" => bytecode do |g| # FIX: this is wrong
+              g.push :self
+              g.push_const :LocalJumpError
+              g.push_literal "next used in invalid context"
+              g.send :raise, 2, true
+            end)
+
+  add_tests("splat_return", # TODO: nuke?
+            "Compiler" => bytecode do |g|
+              bottom = g.new_label
+
+              g.push 1
+              g.make_array 1
+              g.cast_array
+              g.dup
+              g.send :size, 0
+              g.push 1
+              g.send :>, 1
+              g.git bottom
+
+              g.push 0
+              g.send :at, 1
+
+              bottom.set!
+
+              g.ret
+            end)
+
+  add_tests("splat_return_array",
+            "Compiler" => bytecode do |g| # FIX: this is wrong
+              g.make_array 0
+              g.push 1
+              g.make_array 1
+              g.cast_array
+              g.send :+, 1
+              g.ret
+
+#               bottom = g.new_label
+
+#               g.make_array 0
+
+#               g.push 1
+#               g.make_array 1
+#               g.send :size, 0
+#               g.push 1
+#               g.send :>, 1
+#               g.gif bottom
+#               g.push 0
+#               g.send :at, 1
+#               bottom.set!
+
+#               g.send :+, 1
+#               g.ret
+            end)
+
+  add_tests("splat_super",
+            "Compiler" => bytecode do |g|
+              g.push 1
+              g.make_array 1
+              g.cast_array
+              g.push_block
+              g.send_super nil, 0, true
+            end)
+
+  add_tests("splat_super_array",
+            "Compiler" => bytecode do |g| # FIX: this is wrong
+              g.push 1
+              g.make_array 1
+              g.make_array 1
+              g.push_block
+              g.send_super nil, 1
+            end)
+
+  add_tests("splat_yield",
+            "Compiler" => bytecode do |g|
+              g.push_block
+              g.push 1
+              g.make_array 1
+              g.cast_array
+              g.push :nil
+              g.send_with_splat :call, 0, false, false
+            end)
+
+  add_tests("splat_yield_array",
+            "Compiler" => bytecode do |g| # FIX: this is wrong
+              g.push_block
+              g.push 1
+              g.make_array 1
+              g.make_array 1
+              g.meta_send_call 1
             end)
 
   add_tests("str",
@@ -4381,16 +4633,6 @@ class CompilerTestCase < ParseTreeTestCase
               end
             end)
 
-  add_tests("super_n",
-            "Compiler" => bytecode do |g|
-              in_method :x do |d|
-                d.push 24
-                d.push 42
-                d.push_block
-                d.send_super :x, 2
-              end
-            end)
-
   add_tests("super_block_pass",
             "Compiler" => bytecode do |g|
               t = g.new_label
@@ -4435,6 +4677,16 @@ class CompilerTestCase < ParseTreeTestCase
               # there is no current method to pull the name of the method
               # from
               g.send_super nil, 1, true
+            end)
+
+  add_tests("super_n",
+            "Compiler" => bytecode do |g|
+              in_method :x do |d|
+                d.push 24
+                d.push 42
+                d.push_block
+                d.send_super :x, 2
+              end
             end)
 
   add_tests("svalue",
@@ -4965,12 +5217,19 @@ class CompilerTestCase < ParseTreeTestCase
               g.meta_send_call 1
             end)
 
-  add_tests("yield_n",
+  add_tests("yield_array_0",
+            "Compiler" => bytecode do |g|
+              g.push_block
+              g.make_array 0
+              g.meta_send_call 1
+            end)
+
+  add_tests("yield_array_1",
             "Compiler" => bytecode do |g|
               g.push_block
               g.push 42
-              g.push 24
-              g.meta_send_call 2
+              g.make_array 1
+              g.meta_send_call 1
             end)
 
   add_tests("yield_array_n",
@@ -4982,17 +5241,13 @@ class CompilerTestCase < ParseTreeTestCase
               g.meta_send_call 1
             end)
 
-  add_tests("yield_array_0",
+  add_tests("yield_n",
             "Compiler" => bytecode do |g|
               g.push_block
-              g.make_array 0
-              g.meta_send_call 1
+              g.push 42
+              g.push 24
+              g.meta_send_call 2
             end)
-
-  # HACK: just to get the noise down until wilson and I sync back up
-  %w(return_1_splatted splat_array splat_break splat_break_array splat_fcall splat_fcall_array splat_lasgn splat_lasgn_array splat_lit_1 splat_lit_n splat_next splat_next_array splat_return splat_return_array splat_super splat_super_array splat_yield splat_yield_array yield_array_1).each do |name|
-       add_tests(name, "Compiler" => :skip)
-     end
 
   add_tests("zarray",
             "Compiler" => bytecode do |g|
