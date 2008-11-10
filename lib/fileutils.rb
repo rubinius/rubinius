@@ -216,7 +216,7 @@ module FileUtils
         begin
           fu_mkdir path, options[:mode]
         rescue SystemCallError => err
-          raise unless File.directory?(path)
+          raise(err) unless File.directory?(path)
         end
       end
     end
