@@ -3284,7 +3284,6 @@ class CompilerTestCase < ParseTreeTestCase
               g.set_local 1
               g.pop
 
-              g.cast_array
               g.pop
 
               g.push :true
