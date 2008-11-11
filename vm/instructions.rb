@@ -2130,6 +2130,40 @@ class Instructions
   end
 
   # [Operation]
+  #   Pop the first item off the stack and fill $! with it.
+  # [Format]
+  #   \pop_exception
+  # [Stack Before]
+  #   * exception
+  #   * ...
+  # [Stack After]
+  #   * ...
+  # [Description]
+  #   The top item on the stack becomes the current exception
+
+  def pop_exception
+    <<-CODE
+      Object* top = stack_pop();
+      if(top->nil_p()) {
+        task->exception(state, (Exception*)Qnil);
+      } else {
+        task->exception(state, as<Exception>(top));
+      }
+    CODE
+  end
+
+  def test_pop_exception
+    <<-CODE
+      Exception* exc = Exception::create(state);
+      task->push(exc);
+
+      TS_ASSERT_EQUALS(task->exception(), Qnil);
+      run();
+      TS_ASSERT_EQUALS(task->exception(), exc);
+    CODE
+  end
+
+  # [Operation]
   #   Pushes a block onto the stack
   # [Format]
   #   \push_block

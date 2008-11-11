@@ -352,6 +352,17 @@ class TestGenerator
     bottom.set!
   end
 
+  def save_exception(index = 0)
+    self.push_exception
+    self.set_local index
+    self.pop
+  end
+
+  def restore_exception(index = 0)
+    self.push_local index
+    self.pop_exception
+  end
+
   def in_block_send(msg,
                     block_count    = 0,
                     call_count     = 0,
@@ -515,6 +526,15 @@ class TestGenerator
 
     self.push_modifiers
 
+    saved_exception_index = klasses.detect { |a| a.instance_of?(Fixnum) }
+    if saved_exception_index
+      klasses.delete saved_exception_index
+    else
+      saved_exception_index = 0
+    end
+
+    self.save_exception saved_exception_index
+
     jump_top.set!
     jump_ex_body.set!
 
@@ -553,6 +573,7 @@ class TestGenerator
     yield :else
 
     jump_last.set!
+    self.restore_exception saved_exception_index
     self.pop_modifiers
 
     if has_ensure then

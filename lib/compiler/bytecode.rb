@@ -2000,10 +2000,14 @@ class Compiler
           end
         else
           g.retry = g.new_label
-          rr      = g.new_label
-          fls     = g.new_label
+          reraise = g.new_label
           els     = g.new_label
           last    = g.new_label
+
+          # Save the current exception into a local
+          g.push_exception
+          g.set_local @saved_exception.slot
+          g.pop
 
           g.exceptions do |ex|
             g.retry.set!
@@ -2013,9 +2017,9 @@ class Compiler
             ex.handle!
             max = @rescues.size - 1
             @rescues.each_with_index do |resbody, i|
-              resbody.bytecode(g, rr, last, i == max)
+              resbody.bytecode(g, reraise, last, i == max)
             end
-            rr.set!
+            reraise.set!
             g.push_exception
             g.raise_exc
           end
@@ -2026,6 +2030,9 @@ class Compiler
             @else.bytecode(g)
           end
           last.set!
+          # Restore the previous exception if execution reaches this point
+          g.push_local @saved_exception.slot
+          g.pop_exception
         end
         g.pop_modifiers
       end

@@ -174,7 +174,8 @@ class InstructionSet
 
     {:opcode => :push_scope, :args => [], :stack => [0, 1]},
     {:opcode => :add_scope,  :args => [], :stack => [1, 0]},
-    {:opcode => :rotate, :args => [:int], :stack => [0,0]}
+    {:opcode => :rotate, :args => [:int], :stack => [0,0]},
+    {:opcode => :pop_exception, :args => [], :stack => [1, 0]}
   ]
 
 

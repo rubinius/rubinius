@@ -2150,6 +2150,13 @@ raise "no"
 
       def args(body, res, els)
         @body, @rescues, @else = body, res, els
+
+        scope = get(:scope)
+        # Create a local (with a crazy name so that it cannot be accessed from Ruby)
+        # that will store whatever $! was when we entered this rescue body
+        # When the rescue body ends, this local is popped back into $!
+        # Designed to support nested rescues.
+        @saved_exception, _ = scope.locals["@saved_exception#{scope.locals.size}".to_sym]
       end
 
       def consume(sexp)

@@ -1233,7 +1233,9 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
-
+      g.push_exception
+      g.set_local 0
+      g.pop
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -1263,6 +1265,8 @@ describe Compiler do
 
       last.set!
 
+      g.push_local 0
+      g.pop_exception
       g.pop_modifiers
     end
   end

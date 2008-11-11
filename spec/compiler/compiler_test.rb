@@ -251,7 +251,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("begin_rescue_twice",
             "Compiler" => bytecode do |g|
-              in_rescue :StandardError do |section|
+              in_rescue :StandardError, 1 do |section|
                 case section
                 when :body then
                   g.push :self
@@ -265,7 +265,7 @@ class CompilerTestCase < ParseTreeTestCase
 
               g.pop
 
-              in_rescue :StandardError do |section|
+              in_rescue :StandardError, 2 do |section|
                 case section
                 when :body then
                   g.push :self
@@ -1505,7 +1505,7 @@ class CompilerTestCase < ParseTreeTestCase
                 d.send :full_message, 0, true
 
                 d.in_block_send :assert_block, 0, 1, true, 0, true do |d2|
-                  d2.in_rescue :Exception do |section|
+                  d2.in_rescue :Exception, 1 do |section|
                     case section
                     when :body then
                       d2.push_block
@@ -1721,7 +1721,7 @@ class CompilerTestCase < ParseTreeTestCase
   add_tests("defn_rescue",
             "Compiler" => bytecode do |g|
               in_method :eql? do |d|
-                d.in_rescue :StandardError do |section|
+                d.in_rescue :StandardError, 1 do |section|
                   case section
                   when :body then
                     d.push :self
@@ -2277,7 +2277,7 @@ class CompilerTestCase < ParseTreeTestCase
               jump_top        = g.new_label
               jump_top.set!
 
-              in_rescue :SyntaxError, :Exception, :ensure do |section|
+              in_rescue :SyntaxError, :Exception, :ensure, 2 do |section|
                 case section
                 when :body then
                   g.push 1
@@ -3807,7 +3807,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.git t
               g.pop
 
-              in_rescue :StandardError do |section|
+              in_rescue :StandardError, 1 do |section|
                 case section
                 when :body then
                   g.push :self
@@ -4030,7 +4030,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("rescue_block_body",
             "Compiler" => bytecode do |g|
-              in_rescue :StandardError do |section|
+              in_rescue :StandardError, 1 do |section|
                 case section
                 when :body then
                   g.push :self
@@ -4091,7 +4091,7 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("rescue_exceptions",
             "Compiler" => bytecode do |g|
-              in_rescue :RuntimeError do |section|
+              in_rescue :RuntimeError, 1 do |section|
                 case section
                 when :body then
                   g.push :self
@@ -4497,7 +4497,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :c, 0, true
               g.gif f
 
-              in_rescue :StandardError do |section|
+              in_rescue :StandardError, 1 do |section|
                 case section
                 when :body then
                   g.push :self

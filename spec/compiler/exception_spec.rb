@@ -72,6 +72,7 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
+      g.save_exception
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -97,6 +98,7 @@ describe Compiler do
       fin.set!
 
       last.set!
+      g.restore_exception
       g.pop_modifiers
     end
   end
@@ -126,6 +128,7 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
+      g.save_exception 1
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -153,6 +156,7 @@ describe Compiler do
       fin.set!
 
       last.set!
+      g.restore_exception 1
       g.pop_modifiers
     end
   end
@@ -182,6 +186,7 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
+      g.save_exception
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -208,6 +213,7 @@ describe Compiler do
       fin.set!
 
       last.set!
+      g.restore_exception
       g.pop_modifiers
     end
   end
@@ -239,6 +245,7 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
+      g.save_exception
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -270,6 +277,7 @@ describe Compiler do
       fin.set!
 
       last.set!
+      g.restore_exception
       g.pop_modifiers
     end
   end
@@ -306,6 +314,7 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
+      g.save_exception
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -345,6 +354,7 @@ describe Compiler do
       fin.set!
 
       last.set!
+      g.restore_exception
       g.pop_modifiers
     end
   end
@@ -378,6 +388,7 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
+      g.save_exception
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -405,6 +416,7 @@ describe Compiler do
       g.push 14
 
       last.set!
+      g.restore_exception
       g.pop_modifiers
     end
   end
@@ -435,6 +447,7 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
+      g.save_exception
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -462,6 +475,7 @@ describe Compiler do
       fin.set!
 
       last.set!
+      g.restore_exception
       g.pop_modifiers
     end
 
@@ -495,6 +509,7 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
+      g.save_exception
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -528,6 +543,7 @@ describe Compiler do
       fin.set!
 
       last.set!
+      g.restore_exception
       g.pop_modifiers
     end
 
@@ -558,6 +574,7 @@ describe Compiler do
       body       = g.new_label
 
       g.push_modifiers
+      g.save_exception
       exc_start.set!
       exc_start.set!
       g.push 12
@@ -585,6 +602,7 @@ describe Compiler do
       fin.set!
 
       last.set!
+      g.restore_exception
       g.pop_modifiers
     end
   end
