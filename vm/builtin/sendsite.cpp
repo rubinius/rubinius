@@ -57,7 +57,13 @@ namespace rubinius {
         msg.method_missing = true;
         msg.name = G(sym_method_missing);
         msg.priv = true; // lets us look for method_missing anywhere
-        sassert(GlobalCacheResolver::resolve(state, msg));
+
+        if(!GlobalCacheResolver::resolve(state, msg)) {
+          std::stringstream ss;
+          ss << "could not find method \"" << original_name->c_str(state);
+          ss << "\"";
+          Assertion::raise(ss.str().c_str());
+        }
       }
 
       // Populate for mono!
