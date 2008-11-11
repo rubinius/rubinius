@@ -40,12 +40,23 @@ class Compiler
       @file = nil
       @lines = []
       @primitive = nil
+      @last = nil
 
       @exceptions = []
     end
 
-    attr_reader :ip, :cache_size, :stream, :literals
+    attr_reader :cache_size, :literals
     attr_accessor :break, :redo, :next, :retry, :ensure_return
+
+    def stream
+      flush if @last
+      @stream
+    end
+
+    def ip
+      flush if @last
+      @ip
+    end
 
     def ===(pattern)
 
@@ -155,6 +166,7 @@ class Compiler
     end
 
     def to_cmethod(desc)
+      flush
       collapse_labels
 
       iseq = @encoder.encode_stream @stream
@@ -197,13 +209,30 @@ class Compiler
 
     # Helpers
 
-    def add(*what)
+    def add(*instruction)
+      what = @last
+      @last = instruction
+
+      return unless what
+
       @ip += what.size
       if what.size == 1
         @stream << what.first
       else
         @stream << what
       end
+    end
+
+    def flush
+      return unless @last
+      @ip += @last.size
+      if @last.size == 1
+        @stream << @last.first
+      else
+        @stream << @last
+      end
+
+      @last = nil
     end
 
     # Find the index for the specified literal, or create a new slot if the
@@ -226,6 +255,7 @@ class Compiler
     # Commands (these don't generate data in the stream)
 
     def advanced_since?(ip)
+      return true if @last
       @ip > ip
     end
 
@@ -338,6 +368,19 @@ class Compiler
     end
 
     # Operations
+
+    SideEffectFreePushes = [:push_nil, :push_true, :push_false,
+      :push_int, :meta_push_0, :meta_push_1, :meta_push_neg_1,
+      :meta_push_2, :push_self]
+
+    def pop
+      if @last and SideEffectFreePushes.include? @last.first
+        @last = nil
+      else
+        flush
+        add :pop
+      end
+    end
 
     def push(what)
       case what
@@ -516,6 +559,12 @@ class Compiler
 
     def make_array(count)
       add :make_array, count
+    end
+
+    def cast_array
+      unless @last and [:cast_array, :make_array].include? @last.first
+        add :cast_array
+      end
     end
 
     def send(meth, count, priv=false)

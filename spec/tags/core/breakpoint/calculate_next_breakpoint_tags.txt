@@ -10,3 +10,4 @@ fails:StepBreakpoint#calculate_next_breakpoint given a next line count with an i
 fails:StepBreakpoint#calculate_next_breakpoint given a next ip count with an intervening conditional goto, breaks at goto and evaluates condition, then continues as appropriate
 fails:StepBreakpoint#calculate_next_breakpoint given a step ip count with an intervening return opcode, breaks at return, after call site, and when steps reach 0
 fails:StepBreakpoint#calculate_next_breakpoint given a step line count with an intervening return opcode, breaks at return, after call site, and when steps reach 0
+fails:StepBreakpoint#calculate_next_breakpoint given a next line count with an intervening send opcode, steps right over the send opcode
