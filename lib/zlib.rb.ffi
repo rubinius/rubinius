@@ -360,14 +360,13 @@ module Zlib
       if @output.nil? then
         @output = ''
         @next_out = MemoryPointer.new CHUNK if @next_out.nil?
-        @next_out.write_string "\000" * CHUNK
-        self[:next_out] = @next_out
       else
         have = CHUNK - self[:avail_out]
         @output << @next_out.read_string(have)
-
-        self[:next_out] = @next_out # Zlib advances self[:next_out]
       end
+
+      @next_out.write_string "\000" * CHUNK
+      self[:next_out] = @next_out # Zlib advances self[:next_out]
 
       self[:avail_out] = CHUNK
     end
@@ -1288,7 +1287,7 @@ module Zlib
   # Zlib:Inflate is the class for decompressing compressed data.  Unlike
   # Zlib::Deflate, an instance of this class is not able to duplicate (clone,
   # dup) itself.
-  #
+
   class Inflate < ZStream
 
     # Explicitly set the layout to avoid inheritance problems.
