@@ -61,7 +61,7 @@ class Hash
   end
 
   def fetch(key, default = Undefined)
-    hsh = key_hash key
+    hsh = key.hash
     bin = entry_bin hsh
 
     if entry = bins[bin]
@@ -75,7 +75,7 @@ class Hash
   end
 
   def [](key)
-    hsh = key_hash key
+    hsh = key.hash
     bin = entry_bin hsh
 
     if entry = bins[bin]
@@ -90,7 +90,7 @@ class Hash
     key = key.dup if key.kind_of? String
     # TODO: freeze if String
 
-    hsh = key_hash key
+    hsh = key.hash
     entry = self.entry key, hsh
     self.count += 1 if entry.set(key, value, hsh)
 
@@ -132,7 +132,7 @@ class Hash
   def delete(key)
     key = key.dup if key.kind_of? String # to bypass singleton hash method
 
-    hsh = key_hash key
+    hsh = key.hash
     bin = entry_bin hsh
 
     if entry = bins[bin]

@@ -7,15 +7,13 @@
 #  Enumerable#max, #min, or #sort is used, the objects in the collection must
 #  also implement a meaningful <tt><=></tt> operator, as these methods rely on
 #  an ordering between members of the collection.
+#--
+# Just to save you 10 seconds, the reason we always use #each to extract
+# elements instead of something simpler is because Enumerable can not assume
+# any other methods than #each. If needed, class-specific versions of any of
+# these methods can be written *in those classes* to override these.
 
 module Enumerable
-
-  ##
-  #--
-  # Just to save you 10 seconds, the reason we always use #each to extract
-  # elements instead of something simpler is because Enumerable can not assume
-  # any other methods than #each. If needed, class-specific versions of any of
-  # these methods can be written *in those classes* to override these.
 
   class Sort
 
@@ -410,6 +408,7 @@ module Enumerable
 
   def group_by
     h = {}
+    i = 0
     each do |o|
       key = yield(o)
       if h.key?(key)

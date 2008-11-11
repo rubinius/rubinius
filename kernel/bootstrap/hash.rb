@@ -98,9 +98,6 @@ class Hash
   # MUST be a power of 2
   MIN_SIZE = 16
 
-  # Ensure that key_hash is a Fixnum
-  MAX_HASH_VALUE = 0x1fffffff
-
   # Allocate more storage when this full
   MAX_DENSITY = 0.75
 
@@ -154,13 +151,6 @@ class Hash
     Iterator.new @bins, @records
   end
 
-  # Returns a hash for key constrained to always be a Fixnum.
-  def key_hash(key)
-    hash = key.hash
-    hash = hash % MAX_HASH_VALUE unless hash.kind_of? Fixnum
-    hash
-  end
-
   # Returns a bucket for +key_hash+ from a bin. Creates a new
   # bucket if there was no bucket at that bin. The bucket may be
   # the head of a chain. Call <code>#find</code> to locate a value
@@ -198,7 +188,7 @@ class Hash
       while entry
         nxt = entry.next
 
-        entry.key_hash = key_hash entry.key if rehash
+        entry.key_hash = entry.key.hash if rehash
 
         bin = entry_bin entry.key_hash
         if head = @bins[bin]

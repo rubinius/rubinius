@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 describe "Hash#count" do
   it "returns the number of pairs in the Hash" do
     hash = Hash.allocate
-    hash.entry :key, hash.key_hash(:key)
+    hash.entry :key, :key.hash
     hash.count.should == hash.instance_variable_get(:@count)
   end
 end
