@@ -534,7 +534,6 @@ class Instructions
 
   def create_block(index)
     <<-CODE
-    /* the method */
     Object* _lit = task->literals()->at(state, index);
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
@@ -548,7 +547,6 @@ class Instructions
     parent->reference(state);
     task->active()->reference(state);
 
-    // HACK not sure this needs to be here all the time
     cm->scope(state, task->active()->cm()->scope());
 
     Object* t2 = BlockEnvironment::under_context(state, cm, parent, task->active(), index);
@@ -2729,6 +2727,18 @@ class Instructions
     <<-CODE
     Object* t1 = stack_pop();
     task->raise_exception(as<Exception>(t1));
+    CODE
+  end
+
+  def test_raise_exc
+    <<-CODE
+      Exception* exc = Exception::create(state);
+      task->push(exc);
+
+      TS_ASSERT_EQUALS(task->exception(), Qnil);
+      run();
+
+      TS_ASSERT_EQUALS(task->exception(), exc);
     CODE
   end
 

@@ -210,7 +210,7 @@ namespace rubinius {
   }
 
   void Task::raise_exception(Exception* exc) {
-    exception(state, exc); // HACK test that we set this
+    exception(state, exc);
 
     for(;;) {
       int ip = active_->ip;
