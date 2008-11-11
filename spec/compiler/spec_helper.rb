@@ -316,6 +316,20 @@ class TestGenerator
     self.push_literal desc
   end
 
+    def open_class(name)
+      add :open_class, name
+      dup
+      send :opened_class, 0
+      pop
+    end
+
+    def open_class_under(name)
+      add :open_class_under, name
+      dup
+      send :opened_class, 0
+      pop
+    end
+
   def create_block_desc
     desc = description do |d|
       yield d

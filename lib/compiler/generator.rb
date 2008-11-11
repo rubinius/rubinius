@@ -479,10 +479,16 @@ class Compiler
 
     def open_class(name)
       add :open_class, find_literal(name)
+      dup
+      send :opened_class, 0
+      pop
     end
 
     def open_class_under(name)
       add :open_class_under, find_literal(name)
+      dup
+      send :opened_class, 0
+      pop
     end
 
     def open_module(name)

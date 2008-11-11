@@ -1,3 +1,5 @@
+# depends on: opened_class_stub.rb
+
 class Array
   def total    ; @total ; end
   def tuple    ; @tuple ; end

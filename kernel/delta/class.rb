@@ -1,7 +1,7 @@
 class Class
-  def opened_class(cls)
-    cls = Object unless cls
-    cls.add_subclass(self)
+  def opened_class
+    cls = superclass || Object
+    cls.add_subclass self
 
     cls.send :inherited, self
 
