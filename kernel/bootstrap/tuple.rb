@@ -10,11 +10,6 @@ class Tuple
     raise PrimitiveFailure, "Tuple.pattern primitive failed"
   end
 
-  def shifted(distance)
-    Ruby.primitive :tuple_shifted
-    raise PrimitiveFailure, "primitive failed"
-  end
-
   def [](idx)
     Ruby.primitive :tuple_at
     raise InvalidIndexError, "Unable to access index '#{idx}' of #{self}"

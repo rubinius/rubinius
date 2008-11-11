@@ -72,18 +72,6 @@ namespace rubinius {
     }
   }
 
-  Tuple* Tuple::shifted(STATE, Fixnum* num) {
-    native_int cnt = num->to_native();
-
-    if(cnt == 0) {
-      return this;
-    } else {
-      Tuple* tuple = Tuple::create(state, this->num_fields() + cnt);
-      tuple->copy_range(state, this, 0, this->num_fields() - 1, cnt); 
-      return tuple;
-    }
-  }
-
   Tuple* Tuple::copy_range(STATE, Tuple* other, Fixnum* start, Fixnum *end, Fixnum* dest) {
     copy_range(state,other,start->to_native(),end->to_native(),dest->to_native());
     

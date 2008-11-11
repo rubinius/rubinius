@@ -1644,18 +1644,20 @@ class Array
   def length
     @total
   end
-
-  def unshift(*values)
-    while values.size > 0 && @start > 0
-      @start -= 1
-      @total += 1
-      @tuple.put @start, values.pop
+  
+  def unshift(*values)    
+    if(@start > values.size)
+      # fit the new values in between 0 and @start if possible
+      @start -= values.size
+      @tuple.copy_from(values.tuple,0,@start)
+    else
+      # FIXME: provision for more unshift prepends?
+      tuple = Tuple.new(@total+values.size)
+      tuple.copy_from(values.tuple,0,0)
+      tuple.copy_from(@tuple,@start,values.size)
+      @start = 0
+      @tuple = tuple
     end
-
-    @tuple = @tuple.shifted(values.size)
-
-    @tuple.copy_range(values.tuple,values.start,values.total,0)
-
     @total += values.size
     self
   end

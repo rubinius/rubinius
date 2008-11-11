@@ -40,9 +40,6 @@ namespace rubinius {
     // Ruby.primitive :tuple_copy_range
     Tuple* copy_range(STATE, Tuple* other, Fixnum *start, Fixnum *end, Fixnum *dest);
 
-    // Ruby.primitive :tuple_shifted
-    Tuple* shifted(STATE, Fixnum* num);
-
     // Ruby.primitive :tuple_create_weakref
     static Tuple* create_weakref(STATE, Object* obj);
 
