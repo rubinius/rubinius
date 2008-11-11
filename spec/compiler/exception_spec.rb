@@ -549,6 +549,141 @@ describe Compiler do
 
   end
 
+  it "compiles a rescue with a splat and an lvar" do
+    ruby = <<-EOC
+      begin
+        12
+      rescue *blah => e
+        13
+      end
+    EOC
+
+    sexp = s(:rescue,
+             s(:fixnum, 12),
+             s(:resbody,
+               s(:splat, s(:call, nil, :blah, s(:arglist)), s(:lasgn, :e, s(:gvar, :$!))),
+               s(:fixnum, 13)))
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
+      exc_start  = g.new_label
+      exc_handle = g.new_label
+      fin        = g.new_label
+      retr       = g.new_label
+      reraise    = g.new_label
+      last       = g.new_label
+      body       = g.new_label
+
+      g.push_modifiers
+      g.save_exception 1
+      exc_start.set!
+      retr.set!
+      g.push 12
+      g.goto fin
+
+      exc_handle.set!
+
+      g.push :self
+      g.send :blah, 0, true
+      g.cast_array
+      g.push_exception
+      g.set_local 0
+
+      g.send :__rescue_match__, 1
+      g.git body
+      g.goto reraise
+      body.set!
+
+      g.push 13
+      g.clear_exception
+      g.goto last
+
+      reraise.set!
+
+      g.push_exception
+      g.raise_exc
+
+      fin.set!
+
+      last.set!
+      g.restore_exception 1
+      g.pop_modifiers
+    end
+  end
+
+  it "compiles a rescue with a condition, splat, and lvar" do
+    ruby = <<-EOC
+      begin
+        12
+      rescue String, *blah => e
+        13
+      end
+    EOC
+
+    sexp = s(:rescue,
+             s(:fixnum, 12),
+             s(:resbody,
+               s(:array,
+                 s(:const, :String),
+                 s(:splat, s(:call, nil, :blah, s(:arglist))),
+                 s(:lasgn, :e, s(:gvar, :$!))),
+                 s(:fixnum, 13)))
+
+    sexp.should == parse(ruby)
+
+    gen sexp do |g|
+      exc_start  = g.new_label
+      exc_handle = g.new_label
+      fin        = g.new_label
+      retr       = g.new_label
+      reraise    = g.new_label
+      last       = g.new_label
+      body       = g.new_label
+
+      g.push_modifiers
+      g.save_exception 1
+      exc_start.set!
+      retr.set!
+      g.push 12
+      g.goto fin
+
+      exc_handle.set!
+
+      g.push_const :String
+      g.push_exception
+      g.send :===, 1
+      g.git body
+
+      g.push :self
+      g.send :blah, 0, true
+      g.cast_array
+      g.push_exception
+
+      g.send :__rescue_match__, 1
+      g.git body
+      g.goto reraise
+      body.set!
+      g.push_exception
+      g.set_local 0
+      g.push 13
+      g.clear_exception
+      g.goto last
+
+      reraise.set!
+
+      g.push_exception
+      g.raise_exc
+
+      fin.set!
+
+      last.set!
+      g.restore_exception 1
+      g.pop_modifiers
+    end
+  end
+
+
   it "clears the exception when there is a return in a rescue" do
     ruby = <<-EOC
       begin

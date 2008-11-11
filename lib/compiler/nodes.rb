@@ -2201,7 +2201,7 @@ raise "no"
           @conditions = cond.body
         elsif cond.is? Splat
           @conditions = nil
-          @splat = cond.child
+          @splat = cond
         else
           raise Error, "Unknown rescue condition form"
         end
@@ -2410,8 +2410,10 @@ raise "no"
     class Splat < DynamicArguments
       kind :splat
 
-      def args(child = nil)
+      def args(child = nil, rescue_clause = nil)
         @child = child
+        # rescue *blah => x creates a Splat node with elements
+        @rescue_clause = rescue_clause
       end
 
       attr_accessor :child

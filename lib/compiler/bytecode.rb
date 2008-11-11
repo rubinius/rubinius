@@ -2057,13 +2057,7 @@ class Compiler
           end
         end
 
-        if @splat
-          @splat.bytecode(g)
-          g.cast_array
-          g.push_exception
-          g.send :__rescue_match__, 1
-          g.git body
-        end
+        @splat.bytecode_in_rescue_clause(g, body) if @splat
 
         if last then
           g.goto reraise
@@ -2274,6 +2268,19 @@ class Compiler
         end
 
         @child.bytecode(g)
+      end
+
+      # rescue *blah => e has an lvar assignment as the second component
+      def bytecode_in_rescue_clause(g, body_label)
+        @child.bytecode(g)
+        g.cast_array
+        if @rescue_clause
+          @rescue_clause.bytecode(g)
+        else
+          g.push_exception
+        end
+        g.send :__rescue_match__, 1
+        g.git body_label
       end
 
       # If the top of the stack is already an Array, wrap it in another.
