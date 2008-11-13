@@ -1567,16 +1567,6 @@ class Array
     replace(ary) if size != ary.size
   end
 
-#  # Inserts the element to the front of the Array and
-#  # moves the other elements up by one index.
-#  def unshift(*val)
-#    raise TypeError, "Array is frozen" if frozen?
-#    return self if val.empty?
-#
-#    self[0, 0] = val
-#    self
-#  end
-
   # Returns a new Array populated from the elements in
   # self corresponding to the given selector(s.) The
   # arguments may be one or more integer indices or
