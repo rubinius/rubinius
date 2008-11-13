@@ -434,7 +434,7 @@ class NewCompiler < SexpProcessor
           #       else
           #         d.cast_for_multi_block_arg
           #         (0...block_count).each do |n|
-          #           d.shift_tuple
+          #           d.shift_array
           #           d.set_local_depth lvl, n
           #           d.pop
           #         end
@@ -534,12 +534,6 @@ class NewCompiler < SexpProcessor
 
     s(:push_local, idx)
   end
-
-# "Ruby"         => "a, b = c, d",
-# "ParseTree"    => s(:masgn,
-#                     s(:array, s(:lasgn, :a), s(:lasgn, :b)),
-#                     s(:array, s(:call, nil, :c, s(:arglist)),
-#                       s(:call, nil, :d, s(:arglist)))))
 
   def process_masgn exp
     lhs     = exp.shift
@@ -941,8 +935,8 @@ class NewCompiler < SexpProcessor
 
     s(:dummy,
       sexp,
-      s(:cast_tuple),
-      s(:shift_tuple))
+      s(:cast_array),
+      s(:shift_array))
   end
 
   def process_undef exp
