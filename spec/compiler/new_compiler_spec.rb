@@ -31,11 +31,14 @@ class Symbol # TODO: nuke when we flip the compiler and can update the specs
 end
 
 class NewCompiler < SexpProcessor
+  attr_reader :methods
+
   def initialize _ignored = nil
     super()
     self.auto_shift_type = true
     self.strict = false
 
+    @methods = []
     @slots = {}
     @current_slot = -1
     @jump = @literal = 0
@@ -273,6 +276,9 @@ class NewCompiler < SexpProcessor
   def defn_or_defs exp, type
     recv = process(exp.shift) if type == :defs
     name = exp.shift
+
+    methods.push name
+
     args = process(exp.shift)
     body = process(exp.shift)
     msg  = type == :defs ? :attach_method : :__add_method__
@@ -280,6 +286,8 @@ class NewCompiler < SexpProcessor
     body[0] = :method_description
     body[1, 0] = args[1..-1] # HACK: fucking fix dummy!
     body << s(:ret)
+
+    methods.pop
 
     s(:dummy,
       (recv if type == :defs),
@@ -891,6 +899,24 @@ class NewCompiler < SexpProcessor
     s(:dummy,
       s(:push_literal, exp.shift),
       s(:string_dup))
+  end
+
+  def process_super exp
+    name = methods.last || :wtf?
+    if exp.empty? then
+      s(:dummy,
+        s(:push_block),
+        s(:send_super, name, 0))
+    else
+      arity = exp.size
+      result = s(:dummy)
+      until exp.empty? do
+        result << process(exp.shift)
+      end
+      result << s(:push_block)
+      result << s(:send_super, name, arity)
+      result
+    end
   end
 
   def process_svalue exp
