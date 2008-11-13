@@ -859,6 +859,26 @@ class NewCompiler < SexpProcessor
     s(:dummy, c, j2, t, s2)
   end
 
+  def process_sclass exp
+    s(:dummy,
+      process(exp.shift), # receiver
+      s(:dup),
+      s(:send, :__verify_metaclass__, 0),
+      s(:pop),
+      s(:open_metaclass),
+      s(:dup),
+      s(:push_literal,
+        s(:method_description,
+          s(:push_self), # FIX
+          s(:add_scope),
+          process(exp.shift), # body
+          s(:ret))),
+      s(:swap),
+      s(:attach_method, :__metaclass_init__),
+      s(:pop),
+      s(:send, :__metaclass_init__, 0))
+  end
+
   def process_splat exp
     result = s(:dummy,
                process(exp.shift),
