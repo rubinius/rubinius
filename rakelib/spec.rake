@@ -99,7 +99,7 @@ def spec_target
   target
 end
 
-Rsync_options = "-avP --delete --exclude '*svn*' --exclude '*swp' --exclude '*rbc' --exclude '*.rej' --exclude '*.orig'"
+Rsync_options = "-avP --delete --exclude '*svn*' --exclude '*swp' --exclude '*rbc' --exclude '*.rej' --exclude '*.orig' --exclude 'tags'"
 
 def rsync(left, right)
   sh "rsync #{Rsync_options} #{left} #{right}"
