@@ -45,13 +45,13 @@ additions << File.expand_path("#{Rubinius::BUILDDIR}/lib")
 
 $LOAD_PATH.unshift(*additions)
 
+# Pull it out now so that later unshifts don't obsure it.
+main_lib = $LOAD_PATH.first
+
 if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
   rubylib_paths = ENV['RUBYLIB'].split(':')
   $LOAD_PATH.unshift(*rubylib_paths)
 end
-
-# Pull it out now so that later unshifts don't obsure it.
-main_lib = $LOAD_PATH.first
 
 # Allow system wide code preloading
 
