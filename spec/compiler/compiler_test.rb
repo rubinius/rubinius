@@ -2261,6 +2261,7 @@ class CompilerTestCase < ParseTreeTestCase
               g.pop
 
               g.push :self
+
               g.push_local 0
               g.send :to_s, 0, true
 

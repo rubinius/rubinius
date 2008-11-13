@@ -313,6 +313,16 @@ class NewCompiler < SexpProcessor
       *process_dstr(exp)[1..-1]) << s(:push, options) << s(:send, :new, 2)
   end
 
+  def process_dregx_once exp
+    options = Fixnum === exp.last ? exp.pop : 0
+
+    cache do
+      s(:dummy,
+        s(:push_const, :Regexp),
+        *process_dstr(exp)[1..-1]) << s(:push, options) << s(:send, :new, 2)
+    end
+  end
+
   def process_dstr exp
     result = s(:dummy)
 
@@ -336,8 +346,18 @@ class NewCompiler < SexpProcessor
     result
   end
 
+  def process_dsym exp
+    process_dstr(exp) << s(:send, :to_sym, 0, true)
+  end
+
+  def process_dxstr exp
+    s(:dummy,
+      s(:push, :self),
+      *process_dstr(exp)[1..-1]) << s(:send, :"`", 1, true) # HACK stupid splat
+  end
+
   def process_evstr exp
-    s(:dummy, process(exp.shift), s(:send, :to_s, 0, true))
+    s(:dummy, process(exp.shift || s(:str, "")), s(:send, :to_s, 0, true))
   end
 
   def process_for exp # TODO: dear god this needs massive refactoring
@@ -1046,6 +1066,7 @@ class NewCompiler < SexpProcessor
       result
     end
   end
+  alias :process_zsuper :process_super
 
   def process_svalue exp
     body = process(exp.shift)
