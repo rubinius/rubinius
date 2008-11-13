@@ -234,12 +234,6 @@ describe MSpecTag, "#run" do
   before :each do
     MSpec.stub!(:process)
 
-    stat = mock("stat")
-    stat.stub!(:file?).and_return(true)
-    stat.stub!(:directory?).and_return(false)
-    File.stub!(:expand_path)
-    File.stub!(:stat).and_return(stat)
-
     options = mock("MSpecOptions", :null_object => true)
     options.stub!(:parse).and_return(["one", "two"])
     MSpecOptions.stub!(:new).and_return(options)
@@ -248,6 +242,7 @@ describe MSpecTag, "#run" do
     @script = MSpecTag.new
     @script.stub!(:exit)
     @script.stub!(:config).and_return(@config)
+    @script.stub!(:files).and_return(["one", "two"])
     @script.options
   end
 
@@ -282,6 +277,9 @@ describe MSpecTag, "#register" do
     @config[:atags] = []
     @config[:astrings] = []
     @config[:ltags] = ["fails", "unstable"]
+
+    @script.stub!(:files).and_return([])
+    @script.options "fake"
 
     @t = mock("TagAction")
     @t.stub!(:register)
@@ -329,9 +327,9 @@ describe MSpecTag, "#register" do
       @script.register
     end
 
-    it "sets config[:formatter] to nil" do
+    it "sets config[:formatter] to false" do
       @script.register
-      @config[:formatter].should be_nil
+      @config[:formatter].should be_false
     end
   end
 
@@ -351,9 +349,9 @@ describe MSpecTag, "#register" do
       @script.register
     end
 
-    it "sets config[:formatter] to nil" do
+    it "sets config[:formatter] to false" do
       @script.register
-      @config[:formatter].should be_nil
+      @config[:formatter].should be_false
     end
   end
 end

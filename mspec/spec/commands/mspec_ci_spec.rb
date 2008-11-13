@@ -10,6 +10,7 @@ describe MSpecCI, "#options" do
 
     @script = MSpecCI.new
     @script.stub!(:config).and_return(@config)
+    @script.stub!(:files).and_return([])
   end
 
   it "enables the config option" do
@@ -76,16 +77,11 @@ describe MSpecCI, "#run" do
     TagFilter.stub!(:new).and_return(@filter)
     @filter.stub!(:register)
 
-    stat = mock("stat")
-    stat.stub!(:file?).and_return(true)
-    stat.stub!(:directory?).and_return(false)
-    File.stub!(:expand_path)
-    File.stub!(:stat).and_return(stat)
-
     @config = { :ci_files => ["one", "two"] }
     @script = MSpecCI.new
     @script.stub!(:exit)
     @script.stub!(:config).and_return(@config)
+    @script.stub!(:files).and_return(["one", "two"])
     @script.options
   end
 

@@ -46,13 +46,14 @@ class MSpecCI < MSpecScript
     options.doc "\n     $ mspec ci --spec-debug -S 'this crashes'"
     options.doc ""
 
-    @patterns = options.parse argv
-    @patterns = config[:ci_files] if @patterns.empty?
+    patterns = options.parse argv
+    patterns = config[:ci_files] if patterns.empty?
+    @files = files patterns
   end
 
   def run
     MSpec.register_tags_patterns config[:tags_patterns]
-    MSpec.register_files files(@patterns)
+    MSpec.register_files @files
     filter = TagFilter.new(:exclude,
         "fails", "critical", "unstable", "incomplete", "unsupported")
     filter.register

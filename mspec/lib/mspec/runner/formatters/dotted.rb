@@ -47,7 +47,7 @@ class DottedFormatter
 
   # Callback for the MSpec :before event. Resets the
   # +#exception?+ and +#failure+ flags.
-  def before(state)
+  def before(state = nil)
     @failure = @exception = false
   end
 
@@ -67,7 +67,7 @@ class DottedFormatter
   #   . = No failure or error
   #   F = An ExpectationNotMetError was raised
   #   E = Any exception other than ExpectationNotMetError
-  def after(state)
+  def after(state = nil)
     unless exception?
       print "."
     else

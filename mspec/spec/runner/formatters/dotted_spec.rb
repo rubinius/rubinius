@@ -40,12 +40,15 @@ describe DottedFormatter, "#register" do
 end
 
 describe DottedFormatter, "#print" do
+  before :each do
+    $stdout = IOStub.new
+  end
+
   after :each do
     $stdout = STDOUT
   end
 
   it "writes to $stdout by default" do
-    $stdout = IOStub.new
     formatter = DottedFormatter.new
     formatter.print "begonias"
     $stdout.should == "begonias"
@@ -60,14 +63,12 @@ describe DottedFormatter, "#print" do
   end
 
   it "flushes the IO output" do
-    $stdout = IOStub.new
     $stdout.should_receive(:flush)
     formatter = DottedFormatter.new
     formatter.print "begonias"
   end
 
   it "rescues errors from flush" do
-    $stdout = IOStub.new
     $stdout.should_receive(:flush).and_raise(RuntimeError.new)
     formatter = DottedFormatter.new
     formatter.print("begonias").should == nil

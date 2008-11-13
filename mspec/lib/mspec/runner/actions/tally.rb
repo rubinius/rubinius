@@ -1,5 +1,5 @@
 class Tally
-  attr_reader :files, :examples, :expectations, :failures, :errors
+  attr_accessor :files, :examples, :expectations, :failures, :errors
 
   def initialize
     @files = @examples = @expectations = @failures = @errors = 0

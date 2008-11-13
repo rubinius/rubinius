@@ -16,7 +16,7 @@ class MSpecScript
 
   def initialize
     config[:tags_dir]  = 'spec/tags'
-    config[:formatter] = DottedFormatter
+    config[:formatter] = nil
     config[:includes]  = []
     config[:excludes]  = []
     config[:patterns]  = []
@@ -52,6 +52,9 @@ class MSpecScript
   end
 
   def register
+    if config[:formatter].nil?
+      config[:formatter] = @files.size < 50 ? DottedFormatter : FileFormatter
+    end
     config[:formatter].new(config[:output]).register if config[:formatter]
 
     MatchFilter.new(:include, *config[:includes]).register    unless config[:includes].empty?
@@ -80,7 +83,7 @@ class MSpecScript
     expanded = File.expand_path(pattern)
     return [pattern] if File.file?(expanded)
     return Dir[pattern+"/**/*_spec.rb"].sort if File.directory?(expanded)
-    []
+    Dir[pattern]
   end
 
   def files(list)
@@ -98,6 +101,7 @@ class MSpecScript
     $VERBOSE = nil unless ENV['OUTPUT_WARNINGS']
     script = new
     script.load 'default.mspec'
+    script.load RUBY_VERSION.split('.')[0,2].join('.') + ".mspec"
     script.load '~/.mspecrc'
     script.options
     script.signals

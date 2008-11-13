@@ -80,12 +80,13 @@ class MSpecTag < MSpecScript
     options.doc "\n     $ mspec tag --list fails path/to/the/specs"
     options.doc ""
 
-    @patterns = options.parse argv
-    if @patterns.empty?
+    patterns = options.parse argv
+    if patterns.empty?
       puts options
       puts "No files specified."
       exit 1
     end
+    @files = files patterns
   end
 
   def register
@@ -97,7 +98,7 @@ class MSpecTag < MSpecScript
     when :list, :list_all
       tagger = TagListAction.new config[:tagger] == :list_all ? nil : config[:ltags]
       MSpec.register_mode :pretend
-      config[:formatter] = nil
+      config[:formatter] = false
     else
       raise ArgumentError, "No recognized action given"
     end
@@ -108,7 +109,7 @@ class MSpecTag < MSpecScript
 
   def run
     MSpec.register_tags_patterns config[:tags_patterns]
-    MSpec.register_files files(@patterns)
+    MSpec.register_files @files
 
     MSpec.process
     exit MSpec.exit_code

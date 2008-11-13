@@ -187,6 +187,9 @@ use nested or shared 'describe' blocks as appropriate and use the
 
 == Guards
 
+Since Ruby is not completely isolated from its platform or execution environment, the spec files may contain guards: conditions placed around a spec or a set of specs to enable or disable them. 
+
+You can find an overview of the current guards and their usage in: http://rubyspec.org/wiki/mspec/Guards .
 
 == Helpers
 

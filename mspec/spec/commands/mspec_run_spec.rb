@@ -2,6 +2,16 @@ require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/runner/mspec'
 require 'mspec/commands/mspec-run'
 
+describe MSpecRun, ".new" do
+  before :each do
+    @script = MSpecRun.new
+  end
+
+  it "sets config[:files] to an empty list" do
+    @script.config[:files].should == []
+  end
+end
+
 describe MSpecRun, "#options" do
   before :each do
     @stdout, $stdout = $stdout, IOStub.new
@@ -98,33 +108,35 @@ end
 
 describe MSpecRun, "#run" do
   before :each do
-    MSpec.stub!(:process)
-
-    stat = mock("stat")
-    stat.stub!(:file?).and_return(true)
-    stat.stub!(:directory?).and_return(false)
-    File.stub!(:expand_path)
-    File.stub!(:stat).and_return(stat)
-
-    options = mock("MSpecOptions", :null_object => true)
-    options.stub!(:parse).and_return(["one", "two"])
-    MSpecOptions.stub!(:new).and_return(options)
-
-    @config = { }
     @script = MSpecRun.new
     @script.stub!(:exit)
-    @script.stub!(:config).and_return(@config)
-    @script.options
+    @spec_dir = File.expand_path(File.dirname(__FILE__)+"/fixtures")
+    @file_patterns = [
+      @spec_dir+"/level2",
+      @spec_dir+"/one_spec.rb",
+      @spec_dir+"/two_spec.rb"]
+    @files = [
+      @spec_dir+"/level2/three_spec.rb",
+      @spec_dir+"/one_spec.rb",
+      @spec_dir+"/two_spec.rb"]
+    @script.options @file_patterns
   end
 
   it "registers the tags patterns" do
-    @config[:tags_patterns] = [/spec/, "tags"]
+    @script.config[:tags_patterns] = [/spec/, "tags"]
     MSpec.should_receive(:register_tags_patterns).with([/spec/, "tags"])
     @script.run
   end
 
   it "registers the files to process" do
-    MSpec.should_receive(:register_files).with(["one", "two"])
+    MSpec.should_receive(:register_files).with(@files)
+    @script.run
+  end
+
+  it "uses config[:files] if no files are given on the command line" do
+    @script.config[:files] = @file_patterns
+    MSpec.should_receive(:register_files).with(@files)
+    @script.options []
     @script.run
   end
 

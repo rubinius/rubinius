@@ -88,6 +88,9 @@ module Mock
 
   def self.verify_call(obj, sym, *args, &block)
     compare = *args
+    if RUBY_VERSION >= '1.9'
+      compare = compare.first if compare.length <= 1
+    end
 
     key = replaced_key obj, sym
     proxies = mocks[key] + stubs[key]

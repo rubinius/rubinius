@@ -33,6 +33,34 @@ describe MSpecScript, "#config" do
 end
 
 describe MSpecScript, ".main" do
+  before :all do
+    @verbose = $VERBOSE
+    $VERBOSE = nil
+  end
+
+  after :all do
+    $VERBOSE = @verbose
+  end
+
+  before :each do
+    @version = RUBY_VERSION
+    @script = mock("MSpecScript", :null_object => true)
+    MSpecScript.stub!(:new).and_return(@script)
+  end
+
+  after :each do
+    Object.const_set :RUBY_VERSION, @version
+  end
+
+  it "attempts to load a config file based on RUBY_VERSION" do
+    Object.const_set :RUBY_VERSION, "1.8.9"
+    version = "1.8.mspec"
+    @script.should_receive(:load).with(version)
+    MSpecScript.main
+  end
+end
+
+describe MSpecScript, ".main" do
   before :each do
     @script = mock("MSpecScript", :null_object => true)
     MSpecScript.stub!(:new).and_return(@script)
@@ -81,7 +109,7 @@ describe MSpecScript, "#initialize" do
 
   it "sets the default config values" do
     @config[:tags_dir].should   == 'spec/tags'
-    @config[:formatter].should  == DottedFormatter
+    @config[:formatter].should  == nil
     @config[:includes].should   == []
     @config[:excludes].should   == []
     @config[:patterns].should   == []
@@ -162,8 +190,8 @@ describe MSpecScript, "#register" do
     @script.register
   end
 
-  it "does not register the formatter if config[:formatter] is nil" do
-    @script.config[:formatter] = nil
+  it "does not register the formatter if config[:formatter] is false" do
+    @script.config[:formatter] = false
     @script.register
   end
 end
@@ -269,29 +297,51 @@ describe MSpecScript, "#signals" do
   end
 end
 
+describe MSpecScript, "#entries" do
+  before :each do
+    @script = MSpecScript.new
+  end
+
+  it "returns the pattern in an array if it is a file" do
+    File.should_receive(:expand_path).with("file").and_return("file")
+    File.should_receive(:file?).with("file").and_return(true)
+    @script.entries("file").should == ["file"]
+  end
+
+  it "returns Dir['pattern/**/*_spec.rb'] if pattern is a directory" do
+    File.should_receive(:expand_path).with("dir").and_return("dir")
+    File.should_receive(:file?).with("dir").and_return(false)
+    File.should_receive(:directory?).with("dir").and_return(true)
+    Dir.should_receive(:[]).with("dir/**/*_spec.rb").and_return(["dir1", "dir2"])
+    @script.entries("dir").should == ["dir1", "dir2"]
+  end
+
+  it "returns Dir[pattern] if pattern is neither a file nor a directory" do
+    File.should_receive(:expand_path).with("pattern").and_return("pattern")
+    File.should_receive(:file?).with("pattern").and_return(false)
+    File.should_receive(:directory?).with("pattern").and_return(false)
+    Dir.should_receive(:[]).with("pattern").and_return(["file1", "file2"])
+    @script.entries("pattern").should == ["file1", "file2"]
+  end
+end
+
 describe MSpecScript, "#files" do
   before :each do
     @script = MSpecScript.new
   end
 
-  it "returns entries unchanged if they are files" do
-    stat = mock("Stat")
-    stat.stub!(:file?).and_return(true)
-    stat.stub!(:directory?).and_return(false)
-    File.stub!(:stat).and_return(stat)
-    @script.files(["a", "b"]).should == ["a", "b"]
+  it "accumlates the values returned by #entries" do
+    @script.should_receive(:entries).and_return(["file1"], ["file2"])
+    @script.files(["a", "b"]).should == ["file1", "file2"]
   end
 
-  it "searches for _spec.rb files if the entry is a directory" do
-    File.should_receive(:expand_path).with("some/dir").and_return("some/dir")
-    stat = mock("Stat")
-    stat.should_receive(:file?).and_return(false)
-    stat.should_receive(:directory?).and_return(true)
-    File.stub!(:stat).and_return(stat)
+  it "strips a leading '^' and removes the values returned by #entries" do
+    @script.should_receive(:entries).and_return(["file1"], ["file2"], ["file1"])
+    @script.files(["a", "b", "^a"]).should == ["file2"]
+  end
 
-    Dir.should_receive(:[]).with("some/dir/**/*_spec.rb").and_return(
-      ["some/dir/file_spec.rb", "some/dir/other_spec.rb"])
-    @script.files(["some/dir"]).should ==
-      ["some/dir/file_spec.rb", "some/dir/other_spec.rb"]
+  it "processes the array elements in order" do
+    @script.should_receive(:entries).and_return(["file1"], ["file1"], ["file2"])
+    @script.files(["^a", "a", "b"]).should == ["file1", "file2"]
   end
 end

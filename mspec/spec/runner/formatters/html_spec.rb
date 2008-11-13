@@ -37,7 +37,7 @@ describe HtmlFormatter, "#start" do
     "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-<title>Spec Output For #{ruby_name} (1.8.6)</title>
+<title>Spec Output For #{ruby_name} (#{RUBY_VERSION})</title>
 <style type="text/css">
 ul {
   list-style: none;

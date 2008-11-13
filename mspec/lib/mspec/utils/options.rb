@@ -256,12 +256,16 @@ class MSpecOptions
         config[:formatter] = HtmlFormatter
       when 'd', 'dot', 'dotted'
         config[:formatter] = DottedFormatter
+      when 'f', 'file'
+        config[:formatter] = FileFormatter
       when 'u', 'unit', 'unitdiff'
         config[:formatter] = UnitdiffFormatter
       when 'm', 'summary'
         config[:formatter] = SummaryFormatter
       when 'a', '*', 'spin'
         config[:formatter] = SpinnerFormatter
+      when 't', 'method'
+        config[:formatter] = MethodFormatter
       when 'y', 'yaml'
         config[:formatter] = YamlFormatter
       else
@@ -275,9 +279,11 @@ class MSpecOptions
     doc "       s, spec, specdoc         SpecdocFormatter"
     doc "       h, html,                 HtmlFormatter"
     doc "       d, dot, dotted           DottedFormatter"
+    doc "       f, file                  FileFormatter"
     doc "       u, unit, unitdiff        UnitdiffFormatter"
     doc "       m, summary               SummaryFormatter"
     doc "       a, *, spin               SpinnerFormatter"
+    doc "       t, method                MethodFormatter"
     doc "       y, yaml                  YamlFormatter\n"
 
     on("-o", "--output", "FILE",

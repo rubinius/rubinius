@@ -8,6 +8,12 @@ require 'mspec/utils/script'
 
 
 class MSpecRun < MSpecScript
+  def initialize
+    super
+
+    config[:files] = []
+  end
+
   def options(argv=ARGV)
     options = MSpecOptions.new "mspec run [options] (FILE|DIRECTORY|GLOB)+", 30, config
 
@@ -53,17 +59,19 @@ class MSpecRun < MSpecScript
     options.doc "\n     $ mspec --spec-debug -S 'this crashes' path/to/the_file_spec.rb"
     options.doc ""
 
-    @patterns = options.parse argv
-    if @patterns.empty?
+    patterns = options.parse argv
+    patterns = config[:files] if patterns.empty?
+    if patterns.empty?
       puts options
       puts "No files specified."
       exit 1
     end
+    @files = files patterns
   end
 
   def run
     MSpec.register_tags_patterns config[:tags_patterns]
-    MSpec.register_files files(@patterns)
+    MSpec.register_files @files
 
     MSpec.process
     exit MSpec.exit_code

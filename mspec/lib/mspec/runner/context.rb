@@ -105,7 +105,7 @@ class ContextState
 
   # Returns a description string generated from self and all parents
   def description
-    @description ||= parents.inject([]) { |l,s| l << s.to_s }.join(" ")
+    @description ||= parents.map { |p| p.to_s }.join(" ")
   end
 
   # Injects the before/after blocks and examples from the shared
