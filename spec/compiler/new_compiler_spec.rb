@@ -776,6 +776,13 @@ class NewCompiler < SexpProcessor
                 s(:set_label, f))
   end
 
+  def process_nth_ref exp
+    s(:dummy,
+      s(:push_context),
+      s(:push, exp.shift),
+      s(:send, :nth_ref, 1))
+  end
+
   def process_op_asgn1 exp
     lhs = process exp.shift
     idx = process exp.shift
