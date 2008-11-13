@@ -340,6 +340,140 @@ class NewCompiler < SexpProcessor
     s(:dummy, process(exp.shift), s(:send, :to_s, 0, true))
   end
 
+  def process_for exp # TODO: dear god this needs massive refactoring
+    recv = exp.shift
+    args = exp.shift
+    body = exp.shift || s(:push, :nil)
+
+    call = s(:call, recv, :each, s(:arglist)) # HACK
+
+    # HACKS
+    msg            = :dunno_message
+    shift          = 0
+    block_count    = 0,
+    call_count     = 0,
+    block_send_vis = true,
+    shift          = 0,
+    nested         = false,
+    lvl            = 0
+
+    inner_top = new_jump
+
+    @jump = 0 # HACK
+
+    top      = new_jump # TODO: rename
+    dunno3   = new_jump
+    dunno1   = new_jump
+    uncaught = new_jump
+    dunno2   = new_jump
+    label_6  = new_jump
+    label_7  = new_jump
+    label_8  = new_jump
+    bottom   = new_jump
+
+    return s(:dummy, :not_yet_iter_postexe) if call == s(:postexe) # HACK
+
+    call = process(call)
+    send = call.pop
+    send[0] = :send_with_block
+
+    s(:dummy,
+      call,
+
+      s(:create_block,
+        s(:method_description,
+          #       case block_count
+          #       when Float then # yes... I'm a dick
+          s(:cast_for_single_block_arg),
+          s(:set_local, 0),
+          #       when -2 then
+          #         d.cast_for_multi_block_arg
+          #       when -1 then
+          #         d.cast_array
+          #         d.set_local_depth lvl, 0
+          #       when 0 then
+          #       when 1 then
+          #           s(:cast_for_single_block_arg),
+          #           s(:set_local_depth, lvl, 0),
+          #       else
+          #         d.cast_for_multi_block_arg
+          #         (0...block_count).each do |n|
+          #           d.shift_array
+          #           d.set_local_depth lvl, n
+          #           d.pop
+          #         end
+          #       end
+
+          s(:pop),
+          s(:push_modifiers),
+          s(:set_label, inner_top),
+          process(body),
+          s(:pop_modifiers),
+          s(:ret))),
+
+      s(:set_label, top),
+      s(:set_label, dunno3), # retry?
+
+      send,
+
+      s(:goto, label_6),
+
+      s(:set_label, dunno1),
+
+      s(:push_exception),
+      s(:dup),
+      s(:push_cpath_top),
+      s(:find_const, :BlockBreakException),
+      s(:swap),
+      s(:kind_of),
+      s(:gif, uncaught),
+
+      s(:dup),
+      s(:send, :destination, 0),
+      s(:push_context),
+      s(:equal),
+      s(:gif, uncaught),
+
+      s(:clear_exception),
+      s(:send, :value, 0),
+
+      s(:goto, dunno2),
+
+      s(:set_label, uncaught),
+      s(:raise_exc),
+      s(:set_label, dunno2),
+
+      s(:set_label, label_6),
+
+      s(:goto, bottom),
+
+      s(:set_label, label_7),
+
+      s(:push_exception),
+      s(:dup),
+      s(:push_cpath_top),
+      s(:find_const, :LongReturnException),
+      s(:swap),
+      s(:kind_of),
+      s(:gif, label_8),
+
+      s(:dup),
+      s(:send, :destination, 0),
+      s(:push_context),
+      s(:equal),
+      s(:gif, label_8),
+
+      s(:clear_exception),
+      s(:send, :value, 0),
+      s(:ret),
+
+      s(:set_label, label_8),
+
+      s(:raise_exc),
+
+      s(:set_label, bottom))
+  end
+
   def process_gasgn exp
     s(:dummy,
       s(:push_cpath_top),
