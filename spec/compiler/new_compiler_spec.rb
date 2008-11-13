@@ -141,16 +141,27 @@ class NewCompiler < SexpProcessor
       s(:send, :+, 1))
   end
 
-  def process_array exp
+  def consume_and_handle_splat exp
     result = s(:dummy)
 
     until exp.empty? do
+      break if exp.first.first == :splat
       result << process(exp.shift)
     end
 
-    result << s(:make_array, result.size - 1)
+    yield result if block_given?
+
+    unless exp.empty? then
+      result << process(exp.shift)
+    end
 
     result
+  end
+
+  def process_array exp
+    consume_and_handle_splat exp do |result|
+      result << s(:make_array, result.size - 1)
+    end
   end
 
   def process_block exp
@@ -183,6 +194,18 @@ class NewCompiler < SexpProcessor
       s(:set_label, jump_proc))
   end
 
+  def process_break exp
+    result = s(:dummy)
+    result << process(exp.shift) unless exp.empty?
+
+    # HACK - need to expand the tests
+    result.push(s(:pop),
+                s(:push_const, :Compile),
+                s(:send, :__unexpected_break__, 0))
+
+    result
+  end
+
   def process_call exp
     recv  = process(exp.shift)
     mesg  = exp.shift
@@ -201,6 +224,7 @@ class NewCompiler < SexpProcessor
     recv ||= s(:push, :self)
     recv = s(:push, :self) if private_send
 
+    # TODO: refactor these dummies
     case mesg    # TODO: this sucks... we shouldn't do this analysis here
     when :+ then
       s(:dummy, recv, args, s(:meta_send_op_plus))
@@ -216,7 +240,11 @@ class NewCompiler < SexpProcessor
           s(:dummy, recv, args,
             s(:send_with_splat, mesg, arity, private_send, false))
         else
-          s(:dummy, recv, args, s(:send_with_splat, mesg, arity, private_send))
+          s(:dummy,
+            recv,
+            args,
+            s(:push, :nil),
+            s(:send_with_splat, mesg, arity, private_send, false))
         end
       elsif block_pass then
         s(:dummy, recv, args, s(:send_with_block, mesg, arity, private_send))
@@ -467,7 +495,9 @@ class NewCompiler < SexpProcessor
     val = exp.shift
 
     case val
-    when Float, Integer then
+    when Float then
+      s(:push_literal, val)
+    when Integer then
       s(:push, val)
     when Range then
       if val.exclude_end? then
@@ -497,6 +527,12 @@ class NewCompiler < SexpProcessor
     s(:push_local, idx)
   end
 
+# "Ruby"         => "a, b = c, d",
+# "ParseTree"    => s(:masgn,
+#                     s(:array, s(:lasgn, :a), s(:lasgn, :b)),
+#                     s(:array, s(:call, nil, :c, s(:arglist)),
+#                       s(:call, nil, :d, s(:arglist)))))
+
   def process_masgn exp
     lhs     = exp.shift
     rhs     = exp.shift
@@ -511,17 +547,18 @@ class NewCompiler < SexpProcessor
     result  = s(:dummy)
 
     result << process(rhs)
+    result << s(:rotate, rhs_n)
 
     if lhs.last.first == :splat then # minor layer violation
       delta = rhs_n - lhs_n + 1
-      result << s(:make_array, delta) if delta > 0
+      # result << s(:make_array, delta) if delta > 0
     end
 
     subresult = []
     lhs.shift # type
-    until lhs.empty? do
-      subresult.unshift s(:pop)
-      subresult.unshift(*process(lhs.shift))
+    until lhs.empty? do # push/pop to get them on in reverse
+      subresult.push(*process(lhs.pop))
+      subresult.push s(:pop)
     end
 
     subresult.delete(:dummy)
@@ -554,6 +591,33 @@ class NewCompiler < SexpProcessor
       process(exp.pop),
       process(exp.shift),
       s(:send, :=~, 1))
+  end
+
+  def process_next exp
+    result = s(:dummy)
+    result << process(exp.shift) unless exp.empty?
+
+    # HACK - need to expand the tests
+    result.push(s(:push, :self),
+                s(:push_const, :LocalJumpError),
+                s(:push_literal, "next used in invalid context"),
+                s(:send, :raise, 2, true))
+
+    result
+  end
+
+  def process_not exp
+    result = s(:dummy,
+               process(exp.shift))
+
+    t, f = new_jump, new_jump
+
+    result.push(s(:git, t),
+                s(:push, :true),
+                s(:goto, f),
+                s(:set_label, t),
+                s(:push, :false),
+                s(:set_label, f))
   end
 
   def process_op_asgn1 exp
@@ -796,26 +860,34 @@ class NewCompiler < SexpProcessor
   end
 
   def process_splat exp
-    return s(:dummy) if exp.empty? # TODO: fix? shouldn't even get here
-    var  = process(exp.shift)
-    call = process(exp.shift)
-
-    return var if call.nil? # TODO: also prolly shouldn't even get here
-
-    call.last[0] = :send_with_splat
-    call.last << false # FIX: no clue
-
-    call[2, 0] = [var,
-                  s(:cast_array),
-                  s(:push, :nil)]
-
-    call
+    result = s(:dummy,
+               process(exp.shift),
+               s(:cast_array))
+    result << s(:send, :+, 1) if context[1] == :array
+    result
   end
 
   def process_str exp
     s(:dummy,
       s(:push_literal, exp.shift),
       s(:string_dup))
+  end
+
+  def process_svalue exp
+    body = process(exp.shift)
+
+    bottom = new_jump
+
+    s(:dummy,
+      body,
+      s(:dup),
+      s(:send, :size, 0),
+      s(:push, 1),
+      s(:send, :>, 1),
+      s(:git, bottom),
+      s(:push, 0),
+      s(:send, :at, 1),
+      s(:set_label, bottom))
   end
 
   def process_to_ary exp
@@ -1185,9 +1257,9 @@ describe "Compiler::*Nodes" do
       input.should_not == nil
       expected.should_not == nil
 
-      sexp   = Sexp.from_array input.to_sexp("(eval)", 1, false)
-      comp   = ::NewCompiler.new
-      node   = comp.process sexp
+      sexp = Sexp.from_array input.to_sexp("(eval)", 1, false)
+      comp = ::NewCompiler.new
+      node = comp.process sexp
 
       expected = s(:test_generator, *Sexp.from_array(expected.stream))
 
