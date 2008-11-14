@@ -149,7 +149,7 @@ class Array
       out = self.class.new
       out.tuple = Tuple.new(tot)
       out.total = tot
-      out.tuple.copy_range(@tuple, start, finish, 0)
+      out.tuple.copy_range(@tuple, @start+start, @start+finish, 0)
       return out
     end
   end
