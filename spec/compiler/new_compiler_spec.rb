@@ -297,6 +297,28 @@ class NewCompiler < SexpProcessor
       s(:send, msg, 2)).compact
   end
 
+  def process_defined exp
+    sexp = exp.shift
+    case sexp.first
+    when :gvar then
+      name = sexp.last
+      t = new_jump
+      f = new_jump
+      s(:dummy,
+        s(:push_const, :Globals),
+        s(:push_literal, name),
+        s(:send, :key?, 1),
+        s(:git, t),
+        s(:push, :nil),
+        s(:goto, f),
+        s(:set_label, t),
+        s(:push_literal, "global-variable"),
+        s(:set_label, f))
+    else
+      raise exp.inspect # TODO: needs more tests, on compiler side, not pptc
+    end
+  end
+
   def process_defn exp
     defn_or_defs exp, :defn
   end
