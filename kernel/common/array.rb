@@ -137,19 +137,21 @@ class Array
     finish = (@total - 1) if finish >= @total
 
     if finish < 0
-      return self.class.new if is_range
-      return nil
+      if is_range
+        return self.class.new
+      else
+        return nil
+      end
+    elsif finish < start or count == 0
+      return self.class.new
+    else
+      tot = finish-start+1
+      out = self.class.new
+      out.tuple = Tuple.new(tot)
+      out.total = tot
+      out.tuple.copy_range(@tuple, start, finish, 0)
+      return out
     end
-
-    return self.class.new if finish < start or count == 0
-
-    out = self.class.new
-    i = start
-    while(i <= finish)
-      out << at(i)
-      i += 1
-    end
-    out
   end
 
   alias_method :slice, :[]
