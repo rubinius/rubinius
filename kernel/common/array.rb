@@ -209,7 +209,7 @@ class Array
       if ent.nil?
         replacement = []
       elsif ent.is_a?(Array)
-        replacement = ent.dup
+        replacement = ent
       elsif ent.respond_to?(:to_ary)
         replacement = ent.to_ary
       else
