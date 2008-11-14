@@ -13,10 +13,9 @@ class Tuple
   include Enumerable
 
   def self.[](*args)
-    sz = args.size
-    tup = new(sz)
-    tup.copy_range(args.tuple, args.start, sz-1, 0)
-    return tup
+    start = args.start
+    tot = args.size
+    return new(tot).copy_range(args.tuple, start, start+tot-1, 0)
   end
 
   def to_s
