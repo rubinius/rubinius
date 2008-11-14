@@ -290,24 +290,28 @@ class Instructions
 
   def cast_for_multi_block_arg
     <<-CODE
-    Tuple* tup = as<Tuple>(stack_top());
-    int k = tup->num_fields();
-    /* If there is only one thing in the tuple... */
-    if(k == 1) {
-      Object* t1 = tup->at(state, 0);
-      /* and that thing is an array... */
-      if(kind_of<Array>(t1)) { // HACK use try_as
-        /* make a tuple out of the array contents... */
-        Array* ary = as<Array>(t1);
-        int j = ary->size();
-        Tuple* out = Tuple::create(state, j);
+    Object* obj = stack_top();
 
-        for(k = 0; k < j; k++) {
-          out->put(state, k, ary->get(state, k));
+    if(!obj->nil_p()) {
+      Tuple* tup = as<Tuple>(obj);
+      int k = tup->num_fields();
+      /* If there is only one thing in the tuple... */
+      if(k == 1) {
+        Object* t1 = tup->at(state, 0);
+        /* and that thing is an array... */
+        if(kind_of<Array>(t1)) { // HACK use try_as
+          /* make a tuple out of the array contents... */
+          Array* ary = as<Array>(t1);
+          int j = ary->size();
+          Tuple* out = Tuple::create(state, j);
+
+          for(k = 0; k < j; k++) {
+            out->put(state, k, ary->get(state, k));
+          }
+
+          /* and put it on the top of the stack. */
+          stack_set_top(out);
         }
-
-        /* and put it on the top of the stack. */
-        stack_set_top(out);
       }
     }
     CODE
@@ -3179,7 +3183,7 @@ class Instructions
 
     msg.setup(
       vmm->sendsites[index].get(),
-      stack_back(count),
+      stack_back(count), /* receiver */
       ctx,
       count,
       count + 1);

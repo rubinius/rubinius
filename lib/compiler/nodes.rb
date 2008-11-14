@@ -1700,6 +1700,7 @@ raise "huh"
 
     class MethodCall < Node # TODO: rename to Call and fold together
       def initialize(comp)
+        @method = nil
         super(comp)
         @block = nil
         scope = get(:scope)
@@ -2650,6 +2651,7 @@ raise "no"
       kind :yield
 
       def args(*args)
+        @dynamic = false
         @arguments = args
       end
 
