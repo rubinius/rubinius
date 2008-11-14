@@ -235,6 +235,8 @@ class NewCompiler < SexpProcessor
       s(:dummy, recv, args, s(:meta_send_op_minus))
     when :== then
       s(:dummy, recv, args, s(:meta_send_op_equal))
+    when :block_given? then
+      s(:dummy, args, s(:push_block)) # this sucks
     else
       if splat then
         # FIX: I think this is tarded...
