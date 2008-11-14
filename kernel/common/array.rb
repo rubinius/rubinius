@@ -154,59 +154,57 @@ class Array
 
   alias_method :slice, :[]
 
-  def []=(idx, ent, *args)
+  def []=(index, ent, *args)
     Ruby.primitive :array_aset
 
-    cnt = nil
+    ins_length = nil
     if args.size != 0
-      cnt = ent.to_int
-      ent = args[0]             # 2nd arg (cnt) is the optional one!
+      ins_length = ent.to_int
+      ent = args[0]             # 2nd arg (ins_length) is the optional one!
     end
 
     # Normalise Ranges
-    if idx.is_a?(Range)
-      if cnt
+    if index.is_a?(Range)
+      if ins_length
         raise ArgumentError, "Second argument invalid with a range"
       end
 
-      unless idx.first.respond_to?(:to_int)
-        raise TypeError, "can't convert #{idx.first.class} into Integer"
+      unless index.first.respond_to?(:to_int)
+        raise TypeError, "can't convert #{index.first.class} into Integer"
       end
 
-      unless idx.last.respond_to?(:to_int)
-        raise TypeError, "can't convert #{idx.last.class} into Integer"
+      unless index.last.respond_to?(:to_int)
+        raise TypeError, "can't convert #{index.last.class} into Integer"
       end
 
-      lst = idx.last.to_int
-      if lst < 0
-        lst += @total
-      end
-      lst += 1 unless idx.exclude_end?
+      last = index.last.to_int
+      last += @total if last < 0
+      last += 1 unless index.exclude_end?
 
-      idx = idx.first.to_int
-      if idx < 0
-        idx += @total
-        raise RangeError if idx < 0
+      index = index.first.to_int
+      if index < 0
+        index += @total
+        raise RangeError if index < 0
       end
 
       # m..n, m > n allowed
-      lst = idx if idx > lst
+      last = index if index > last
 
-      cnt = lst - idx
+      ins_length = last - index
+    else
+      index = index.to_int
+
+      if index < 0
+        index += @total
+        raise IndexError,"Index #{index-@total} out of bounds" if index < 0
+      end      
     end
 
-    idx = idx.to_int
+    if ins_length
+      # ins_length < 0 not allowed
+      raise IndexError.new("Negative length #{ins_length}") if ins_length < 0
 
-    if idx < 0
-      idx += @total
-      raise IndexError.new("Index #{idx -= @total} out of bounds") if idx < 0
-    end
-
-    if cnt
-      # count < 0 not allowed
-      raise IndexError.new("Negative length #{cnt}") if cnt < 0
-
-      cnt = @total - idx if cnt > @total - idx # MRI seems to be forgiving here!
+      ins_length = @total - index if ins_length > @total - index # MRI seems to be forgiving here!
 
       if ent.nil?
         replacement = []
@@ -217,52 +215,33 @@ class Array
       else
         replacement = [ent]
       end
-
-      if replacement.size > cnt
-        newtotal = @total + replacement.size - cnt
-        if newtotal > @tuple.fields - @start
-          nt = Tuple.new(newtotal + 10)
-          nt.copy_from @tuple, @start, 0 # FIXME: double copy of right part
-          @start = 0
-          @tuple = nt
-        end                     # this should be an else
-
-        f = @total
-        t = newtotal
-        while f > idx + cnt
-          t -= 1
-          f -= 1
-          @tuple.put(@start+t, @tuple.at(@start+f))
-        end
-
-        @total = newtotal
+      
+      newtotal = @total
+      if(replacement.size > ins_length)
+        newtotal += replacement.size - ins_length
+      else         
+        newtotal -= ins_length - replacement.size
       end
-      @tuple.copy_from(replacement.tuple, replacement.start, @start+idx)
-            
-      if replacement.size < cnt
-        @tuple.copy_from(@tuple, @start + idx + cnt, @start+idx+replacement.size)
+      
+      nt = Tuple.new(newtotal)
+      nt.copy_range(@tuple, @start, index, 0)
+      nt.copy_range(replacement.tuple, replacement.start, replacement.size-1, index)
+      nt.copy_range(@tuple, @start+index+ins_length, @total - 1, index+replacement.size)
+      @start = 0
+      @tuple = nt
+      @total = newtotal
                 
-        # unset any extraneous fields
-        t = @start + idx + replacement.size + @total
-        while t < @tuple.fields
-          @tuple.put(t, nil)
-          t += 1
-        end
+      return ent
+    else
+      nt = @start + index + 1
+      reallocate(nt) if @tuple.size < nt
 
-        @total -= (cnt - replacement.size)
+      @tuple.put @start + index, ent
+      if index >= @total - 1
+        @total = index + 1
       end
-
       return ent
     end
-
-    nt = @start + idx + 1
-    reallocate(nt) if @tuple.size < nt
-
-    @tuple.put @start + idx, ent
-    if idx >= @total - 1
-      @total = idx + 1
-    end
-    return ent
   end
 
   # Appends the object to the end of the Array.
