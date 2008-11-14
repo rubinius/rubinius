@@ -1,1 +1,0 @@
-fails:Ruby character strings interpolate class variables just with the # character

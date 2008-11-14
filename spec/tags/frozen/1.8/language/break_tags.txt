@@ -1,8 +1,3 @@
 fails:The break statement ends block execution if used whithin block
 fails:The break statement causes block to return value passed to break
 fails:The break statement causes block to return nil if no value passed to break
-fails:Breaking out of a loop with a value assigns splatted objects
-fails:Breaking out of a loop with a value assigns to a splatted reference
-fails:Breaking out of a loop with a value assigns splatted objects to a splatted reference
-fails:Breaking out of a loop with a value assigns splatted objects to a splatted reference from a splatted loop
-fails:Breaking out of a loop with a value assigns splatted objects to multiple block variables

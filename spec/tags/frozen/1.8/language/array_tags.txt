@@ -1,2 +1,0 @@
-fails:The unpacking splat operator (*) when applied to a literal nested array, unpacks its elements into the containing array
-fails:The unpacking splat operator (*) when applied to a nested referenced array, unpacks its elements into the containing array

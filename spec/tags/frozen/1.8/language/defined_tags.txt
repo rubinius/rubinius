@@ -1,1 +1,0 @@
-fails:The defined? keyword returns 'class variable' when @@x = 1; defined?(@@x) is sent

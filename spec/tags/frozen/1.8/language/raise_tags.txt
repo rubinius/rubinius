@@ -1,1 +1,0 @@
-fails:Kernel#raise inside a rescue block ignores inner exceptions
