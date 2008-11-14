@@ -15,12 +15,7 @@ class Tuple
   def self.[](*args)
     sz = args.size
     tup = new(sz)
-    i = 0
-    while i < sz
-      tup.put i, args[i]
-      i += 1
-    end
-
+    tup.copy_range(args.tuple, args.start, sz-1, 0)
     return tup
   end
 
