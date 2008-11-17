@@ -1669,12 +1669,21 @@ class Array
   private :reallocate
 
   def reallocate_shrink()
-    return if(@total > (@tuple.size / 3))
-    tup = Tuple.new(@tuple.size / 2)
-    new_start = (tup.size-@total)/2
-    tup.copy_range(@tuple, @start, @start+@total, new_start)
+    new_size = @tuple.size
+    return if(@total > (new_size / 3))
+
+    # halve the tuple size until the total > 1/3 the size of the total
+    begin
+      new_size /= 2
+    end while(@total < (new_size / 6)) 
+
+    tuple = Tuple.new(new_size)
+    # position values in the middle somewhere
+    new_start = (new_size-@total)/2 
+    tuple.copy_range(@tuple, @start, @start+@total, new_start)
+
     @start = new_start
-    @tuple = tup
+    @tuple = tuple
   end
 
   private :reallocate_shrink
