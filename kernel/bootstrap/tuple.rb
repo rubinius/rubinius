@@ -35,12 +35,7 @@ class Tuple
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def copy_range(other, start, count, dest)
-    Ruby.primitive :tuple_copy_range
-    raise PrimitiveFailure, "Tuple#copy_range primitive failed"
-  end
-  
-  def copy_from(other, start, dest)
+  def copy_from(other, start, length, dest)
     Ruby.primitive :tuple_copy_from
     raise PrimitiveFailure, "Tuple#copy_from primitive failed"
   end
@@ -50,4 +45,3 @@ class Tuple
     raise PrimitiveFailure, "Unable to create a weak reference"
   end
 end
-

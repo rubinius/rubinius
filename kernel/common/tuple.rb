@@ -15,7 +15,7 @@ class Tuple
   def self.[](*args)
     start = args.start
     tot = args.size
-    return new(tot).copy_range(args.tuple, start, start+tot-1, 0)
+    return new(tot).copy_from(args.tuple, start, tot, 0)
   end
 
   def to_s
@@ -34,8 +34,8 @@ class Tuple
 
   def + o
     t = Tuple.new(size + o.size)
-    t.copy_from(self,0,0)
-    t.copy_from(o,0,size)
+    t.copy_from(self,0,size,0)
+    t.copy_from(o,0,o.size,size)
     t
   end
 
@@ -89,7 +89,7 @@ class Tuple
   def shift
     return self unless fields > 0
     t = Tuple.new(fields-1)
-    t.copy_from self, 1, 0
+    t.copy_from self, 1, fields-1, 0
     return t
   end
 

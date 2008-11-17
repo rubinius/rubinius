@@ -47,7 +47,9 @@ namespace rubinius {
 
     if(desired >= existing) {
       Tuple* replacement = Tuple::create(state, (desired + 1));
-      replacement->copy_from(state, scheduled, Fixnum::from(0), Fixnum::from(0));
+      replacement->copy_from(state, scheduled, Fixnum::from(0),
+			     Fixnum::from(scheduled->num_fields()),
+			     Fixnum::from(0));
 
       for(std::size_t i = existing - 1; i <= desired; ++i) {
         if(replacement->at(state, i)->nil_p()) {

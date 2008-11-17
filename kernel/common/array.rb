@@ -56,7 +56,7 @@ class Array
 
         tuple = Tuple.new(ary.size + 10)
         @total = ary.size
-        tuple.copy_from ary.tuple, ary.start, 0
+        tuple.copy_from ary.tuple, ary.start, ary.size, 0
         @tuple = tuple
       else
         count = Type.coerce_to args.first, Fixnum, :to_int
@@ -149,7 +149,7 @@ class Array
       out = self.class.new
       out.tuple = Tuple.new(tot)
       out.total = tot
-      out.tuple.copy_range(@tuple, @start+start, @start+finish, 0)
+      out.tuple.copy_from(@tuple, @start+start, tot, 0)
       return out
     end
   end
@@ -186,7 +186,7 @@ class Array
       index = index.first.to_int
       if index < 0
         index += @total
-        raise RangeError if index < 0
+        raise RangeError, "Range begin #{index} out of bounds" if index < 0
       end
 
       # m..n, m > n allowed
@@ -206,7 +206,11 @@ class Array
       # ins_length < 0 not allowed
       raise IndexError.new("Negative length #{ins_length}") if ins_length < 0
 
-      ins_length = @total - index if ins_length > @total - index # MRI seems to be forgiving here!
+      # MRI seems to be forgiving here!
+      space = @total - index
+      if ins_length > space
+        ins_length = space > 0 ? space : 0
+      end
 
       if ent.nil?
         replacement = []
@@ -218,17 +222,20 @@ class Array
         replacement = [ent]
       end
       
-      newtotal = @total
+      newtotal = (index > @total) ? index : @total
       if(replacement.size > ins_length)
         newtotal += replacement.size - ins_length
-      else         
+      elsif(replacement.size < ins_length)
         newtotal -= ins_length - replacement.size
       end
       
       nt = Tuple.new(newtotal)
-      nt.copy_range(@tuple, @start, index, 0)
-      nt.copy_range(replacement.tuple, replacement.start, replacement.size-1, index)
-      nt.copy_range(@tuple, @start+index+ins_length, @total - 1, index+replacement.size)
+      nt.copy_from(@tuple, @start, index < @total ? index : @total, 0)
+      nt.copy_from(replacement.tuple, replacement.start, replacement.size, index)
+      if index < @total
+        nt.copy_from(@tuple, @start+index+ins_length, @total-index-ins_length,
+                     index+replacement.size)
+      end
       @start = 0
       @tuple = nt
       @total = newtotal
@@ -460,8 +467,8 @@ class Array
     ary = Type.coerce_to(other, Array, :to_ary)
     size = @total + ary.size
     tuple = Tuple.new size
-    tuple.copy_from @tuple, @start, 0 if @total > 0
-    tuple.copy_from ary.tuple, ary.start, @total
+    tuple.copy_from @tuple, @start, @total, 0 if @total > 0
+    tuple.copy_from ary.tuple, ary.start, ary.size, @total
     @tuple = tuple
     @start = 0
     @total = size
@@ -517,7 +524,7 @@ class Array
     # Grab the object and adjust the indices for the rest
     obj = @tuple.at(@start + idx)
 
-    @tuple.copy_range(@tuple, @start+idx+1, @total-1 ,@start+idx)    
+    @tuple.copy_from(@tuple, @start+idx+1, @total-idx-1, @start+idx)
     @tuple.put(@start + @total - 1, nil)
 
     @total -= 1
@@ -1628,12 +1635,12 @@ class Array
     if(@start > values.size)
       # fit the new values in between 0 and @start if possible
       @start -= values.size
-      @tuple.copy_from(values.tuple,0,@start)
+      @tuple.copy_from(values.tuple,0,values.size,@start)
     else
       # FIXME: provision for more unshift prepends?
       tuple = Tuple.new(@total+values.size)
-      tuple.copy_from(values.tuple,0,0)
-      tuple.copy_from(@tuple,@start,values.size)
+      tuple.copy_from(values.tuple,0,values.size,0)
+      tuple.copy_from(@tuple,@start,@total,values.size)
       @start = 0
       @tuple = tuple
     end
@@ -1659,11 +1666,10 @@ class Array
     end
 
     tuple = Tuple.new(new_size)
+    tuple.copy_from @tuple, @start, @total, 0
 
-    tuple.copy_from @tuple, @start, 0     # Swap over old data
-
-    @tuple = tuple
     @start = 0
+    @tuple = tuple
   end
 
   private :reallocate
@@ -1680,7 +1686,7 @@ class Array
     tuple = Tuple.new(new_size)
     # position values in the middle somewhere
     new_start = (new_size-@total)/2 
-    tuple.copy_range(@tuple, @start, @start+@total, new_start)
+    tuple.copy_from(@tuple, @start, @total, new_start)
 
     @start = new_start
     @tuple = tuple

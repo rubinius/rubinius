@@ -55,31 +55,32 @@ namespace rubinius {
     return tup;
   }
 
-  /*
-   * Copies items from +other+ to this tuple from +start+ to +end+ inclusive.
-   */
-  void Tuple::copy_range(STATE, Tuple* other, int start, int end, int dest) {
-    size_t sz = this->num_fields();
-    size_t osz = other->num_fields();
+  Tuple* Tuple::copy_from(STATE, Tuple* other, Fixnum* start, Fixnum *length, Fixnum* dest) {
+    size_t osize = other->num_fields();
+    size_t size = this->num_fields();
 
-    if(osz < 1) return;
-    if(start < 0) start = 0;
-    if(dest < 0) dest = 0;
-    size_t length = (size_t)end >= osz ? osz - 1 : end;
-    
-    for(size_t i = start, j = dest; i <= length && j < sz; ++i, ++j) {
-      this->put(state, j, other->at(state, i));
+    int olend = start->to_native();
+    int lend = dest->to_native();
+    int olength = length->to_native();
+
+    // left end should be within range
+    if(olend < 0 || (size_t)olend > osize) Exception::object_bounds_exceeded_error(state, other, olend);
+    if(lend < 0 || (size_t)lend > size) Exception::object_bounds_exceeded_error(state, this, lend);
+
+    // length can not be negative and must fit in src/dest
+    if(olength < 0) {
+      Exception::object_bounds_exceeded_error(state, "length must be positive");
     }
-  }
+    if((size_t)(olend + olength) > osize) {
+      Exception::object_bounds_exceeded_error(state, "length should not exceed size of source");
+    }
+    if((size_t)olength > (size - lend)) {
+      Exception::object_bounds_exceeded_error(state, "length should not exceed space in destination");
+    }
 
-  Tuple* Tuple::copy_range(STATE, Tuple* other, Fixnum* start, Fixnum *end, Fixnum* dest) {
-    copy_range(state,other,start->to_native(),end->to_native(),dest->to_native());
-    
-    return this;
-  }
-
-  Tuple* Tuple::copy_from(STATE, Tuple* other, Fixnum* start, Fixnum* dest) {
-    copy_range(state,other,start->to_native(),other->num_fields()-1,dest->to_native());
+    for(size_t src = olend, dst = lend; src < (size_t)(olend + olength); ++src, ++dst) {
+      this->put(state, dst, other->at(state,src));
+    }
 
     return this;
   }
@@ -129,9 +130,9 @@ namespace rubinius {
       indent(level);
       Object* obj = tup->at(state, i);
       if(obj == tup) {
-        class_info(state, self, true);
+	class_info(state, self, true);
       } else {
-        obj->show(state, level);
+	obj->show(state, level);
       }
     }
     if(tup->num_fields() > stop) ellipsis(level);
@@ -155,10 +156,10 @@ namespace rubinius {
       indent(level);
       Object* obj = tup->at(state, i);
       if(Tuple* t = try_as<Tuple>(obj)) {
-        class_info(state, self);
-        std::cout << ": " << t->num_fields() << ">" << std::endl;
+	class_info(state, self);
+	std::cout << ": " << t->num_fields() << ">" << std::endl;
       } else {
-        obj->show_simple(state, level);
+	obj->show_simple(state, level);
       }
     }
     if(tup->num_fields() > stop) ellipsis(level);

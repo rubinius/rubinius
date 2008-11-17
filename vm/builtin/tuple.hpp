@@ -35,15 +35,10 @@ namespace rubinius {
     static Tuple* pattern(STATE, Fixnum* size, Object* val);
 
     // Ruby.primitive :tuple_copy_from
-    Tuple* copy_from(STATE, Tuple* other, Fixnum* start, Fixnum* dest);
-
-    // Ruby.primitive :tuple_copy_range
-    Tuple* copy_range(STATE, Tuple* other, Fixnum *start, Fixnum *end, Fixnum *dest);
+    Tuple* copy_from(STATE, Tuple* other, Fixnum *start, Fixnum *length, Fixnum *dest);
 
     // Ruby.primitive :tuple_create_weakref
     static Tuple* create_weakref(STATE, Object* obj);
-
-    void copy_range(STATE, Tuple* other, int start, int end, int dest);
 
   public: // Inline Functions
     Object* at(STATE, size_t index) {
