@@ -31,7 +31,7 @@ class Symbol # TODO: nuke when we flip the compiler and can update the specs
 end
 
 class NewCompiler < SexpProcessor
-  attr_reader :methods
+  attr_reader :methods, :args
 
   def initialize _ignored = nil
     super()
@@ -39,6 +39,7 @@ class NewCompiler < SexpProcessor
     self.strict = false
 
     @methods = []
+    @args = []
     @slots = {}
     @current_slot = -1
     @jump = @literal = 0
@@ -259,6 +260,66 @@ class NewCompiler < SexpProcessor
     end
   end
 
+  def process_case exp
+    result = s(:dummy)
+    recv   = exp.shift
+    els    = exp.pop || s(:nil) # FIX: this is simply wrong - no else = no code
+
+    # TODO: cleanup
+    @case_bottom ||= []
+    @case_bottom.push nil # FIX: rbx bytecode is SO retarded
+
+    result << process(recv) if recv
+
+    until exp.empty? do
+      result << process(exp.shift)
+    end
+
+    result << s(:pop) << process(els) if els
+    result << s(:set_label, @case_bottom.pop)
+
+    result
+  end
+
+  def process_when exp
+    result   = s(:dummy)
+    expr     = exp.shift
+    body     = exp.shift || s(:nil)
+    multiple = expr.size > 2
+
+    expr.shift # :array
+
+    if multiple then
+      t = new_jump
+      f = new_jump
+      until expr.empty? do
+        result.push(s(:dup),
+                    process(expr.shift),
+                    s(:swap),
+                    s(:send, :===, 1),
+                    s(:git, t))
+      end
+      result.push(s(:goto, f),
+                  s(:set_label, t))
+    else
+      f = new_jump
+      result.push(s(:dup),
+                  process(expr.shift),
+                  s(:swap),
+                  s(:send, :===, 1),
+                  s(:gif, f))
+    end
+
+    @case_bottom[-1] ||= new_jump # FIX: rbx bytecode is so tarded
+
+    result.push s(:pop)
+    result.push process(body)
+
+    result.push(s(:goto, @case_bottom.last),
+                s(:set_label, f))
+    result
+  end
+
   def process_colon2 exp
     s(:dummy,
       process(exp.shift),
@@ -280,6 +341,7 @@ class NewCompiler < SexpProcessor
     name = exp.shift
 
     methods.push name
+    args.push(exp.first.find { |s| Sexp === s && s.first == :block_pass }) # FIX
 
     args = process(exp.shift)
     body = process(exp.shift)
@@ -289,6 +351,7 @@ class NewCompiler < SexpProcessor
     body[1, 0] = args[1..-1] # HACK: fucking fix dummy!
     body << s(:ret)
 
+    args.pop
     methods.pop
 
     s(:dummy,
@@ -387,7 +450,7 @@ class NewCompiler < SexpProcessor
   def process_for exp # TODO: dear god this needs massive refactoring
     recv = exp.shift
     args = exp.shift
-    body = exp.shift || s(:push, :nil)
+    body = exp.shift || s(:nil)
 
     call = s(:call, recv, :each, s(:arglist)) # HACK
 
@@ -944,7 +1007,7 @@ class NewCompiler < SexpProcessor
 
   def process_resbody exp
     exceptions = exp.shift
-    body       = exp.shift
+    body       = exp.shift || s(:nil)
 
     jump_ex_body  = new_jump
     jump_uncaught = new_jump
@@ -973,8 +1036,7 @@ class NewCompiler < SexpProcessor
 
     result << process(assign) if assign
 
-    body = process(body) || s(:push, :nil)
-    result << body
+    result << process(body)
 
     result << s(:clear_exception)
     result << s(:goto, @jump_handled)
@@ -1023,9 +1085,7 @@ class NewCompiler < SexpProcessor
   end
 
   def process_return exp
-    val = process(exp.shift) || s(:push, :nil)
-
-    s(:dummy, val, s(:ret))
+    s(:dummy, process(exp.shift || s(:nil)), s(:ret))
   end
 
   ##
@@ -1146,11 +1206,12 @@ class NewCompiler < SexpProcessor
     empty  = exp.empty?
     result = s(:dummy, s(:push_block))
 
+    arity = exp.size
     until exp.empty? do
       result << process(exp.shift)
     end
 
-    result << s(:meta_send_call, empty ? 0 : 1)
+    result << s(:meta_send_call, arity)
 
     result
   end
@@ -1267,6 +1328,8 @@ class NewCompiler < SexpProcessor
     s(:push, :nil)
   end
 
+  alias :process_nil :rewrite_nil # HACK
+
   def rewrite_scope exp
     exp[0] = :dummy
     exp
@@ -1341,7 +1404,7 @@ class NewCompiler < SexpProcessor
   def class_or_module exp, type
     _ = exp.shift # type
     name = exp.shift
-    supr = exp.shift || s(:push, :nil) if type == :class
+    supr = exp.shift || s(:nil) if type == :class
     body = exp.shift
 
     name = case name
@@ -1363,7 +1426,7 @@ class NewCompiler < SexpProcessor
            end
 
     result = s(:dummy,
-               supr,
+               process(supr),
                name).compact
 
     if body != s(:dummy) then # TODO: this seems icky
@@ -1434,7 +1497,7 @@ class NewCompiler < SexpProcessor
 
   def while_or_until exp, jump
     cond = exp.shift
-    body = exp.shift
+    body = exp.shift || s(:nil)
     pre  = exp.shift
 
     jump_top   = new_jump
@@ -1452,7 +1515,7 @@ class NewCompiler < SexpProcessor
       result << s(:set_label, jump_dunno)
     end
 
-    result << (process(body) || s(:push, :nil)) # TODO: ewww
+    result << process(body)
     result << s(:pop)
 
     unless pre then
