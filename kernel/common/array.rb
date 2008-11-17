@@ -250,7 +250,7 @@ class Array
   # Returns self so several appends can be chained.
   def <<(obj)
     nt = @start + @total + 1
-    reallocate nt if @tuple.size < nt
+    reallocate(nt) if @tuple.size < nt
     @tuple.put @start + @total, obj
     @total += 1
     self
@@ -450,6 +450,7 @@ class Array
 
       i += 1
     end
+    reallocate_shrink()
 
     nil
   end
@@ -498,6 +499,7 @@ class Array
 
       i += 1
     end
+    reallocate_shrink()
 
     yield if block_given?
   end
@@ -548,6 +550,7 @@ class Array
 
       i += 1
     end
+    reallocate_shrink()
 
     return self
   end
@@ -1272,10 +1275,12 @@ class Array
   def pop()
     return nil if empty?
 
-    # TODO Reduce tuple if there are a lot of free slots
-
-    elem = at(-1)
+    elem = @tuple.at(@start+@total-1)
+    @tuple.put(@start+@total-1,nil)
     @total -= 1
+
+    reallocate_shrink()
+
     elem
   end
 
@@ -1428,8 +1433,11 @@ class Array
     return nil if @total == 0
 
     obj = @tuple.at(@start)
+    @tuple.put(@start,nil)
     @start += 1
     @total -= 1
+
+    reallocate_shrink()
 
     obj
   end
@@ -1659,6 +1667,17 @@ class Array
   end
 
   private :reallocate
+
+  def reallocate_shrink()
+    return if(@total > (@tuple.size / 3))
+    tup = Tuple.new(@tuple.size / 2)
+    new_start = (tup.size-@total)/2
+    tup.copy_range(@tuple, @start, @start+@total, new_start)
+    @start = new_start
+    @tuple = tup
+  end
+
+  private :reallocate_shrink
 
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
