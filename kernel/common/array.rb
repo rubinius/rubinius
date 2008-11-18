@@ -1549,11 +1549,13 @@ class Array
   def uniq()
     seen, out = {}, self.class.new
 
-    each { |elem|
+    i = 0
+    while(i < @total)
+      elem = @tuple.at(@start+i)
       out << elem unless seen[elem]
       seen[elem] = true
-    }
-
+      i += 1
+    end
     out
   end
 
