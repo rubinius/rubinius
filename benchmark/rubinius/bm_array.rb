@@ -1,20 +1,17 @@
 require 'benchmark'
  
-total = (ENV['TOTAL'] || 1_000).to_i
+total = (ENV['TOTAL'] || 5_000).to_i
 
 array = Array.new(total) {|i| i}
-array_of_arrays = Array.new(total) do |i|
-  
-  Array.new((i%100)*2) {|j| j * (i%100+1) }
+array_of_arrays = Array.new(total) do |i|  
+  Array.new(i%100+10) {|j| j % 100 }
 end
+
+portion = array_of_arrays.first(total/2)
 
 Benchmark.bmbm do |x|
   x.report 'empty N' do
     total.times {|i| i }
-  end
-
-  x.report 'empty N^2' do
-    total.times {|i| total.times {|j| j } }
   end
 
   x.report 'empty N(N+1)/2' do
@@ -47,53 +44,66 @@ Benchmark.bmbm do |x|
   
   x.report 'Array#+' do
     total.times do |i|
-      Array.new(i,0) + Array.new(i,0)
+      Array.new(i,0) + array_of_arrays[i]
     end
   end  
 
   x.report 'Array#<<' do    
-    total.times do
-      arr = Array.new
-      total.times do |i|
-        arr << i
-      end
+    arr = Array.new
+    total.times do |i|
+      arr << i
     end
   end
   
   x.report 'Array#concat' do
+    total.times do |i|
+      Array.new(i,0).concat array_of_arrays[i]
+    end
+  end
+
+  x.report 'Array#concat(rep)' do
     arr = Array.new
     total.times do |i|
+      arr = Array.new if i % 100 == 0
       arr.concat array_of_arrays[i]
     end
   end
   
   x.report 'Array#[]' do
-    total.times do
-      total.times do |j|
-        array[j]
-      end
+    total.times do |j|
+      array[j]
     end
   end
 
   x.report 'Array#[i,offset]' do
-    total.times do
-      total.times do |j|
-        array[j%10,j%100]
-      end
+    total.times do |j|
+      array[total-j,j]
     end
   end
 
   x.report 'Array#[]=' do    
-    total.times do
-      total.times do |j|
-        array[j] = j
-      end
+    total.times do |j|
+      array[j] = j
+    end
+  end
+
+  x.report 'Array#[i,offset]=' do
+    arr = Array.new
+    total.times do |i|
+      arr = Array.new if i % 100 == 0
+      arr[i,i%100] = array_of_arrays[i]
     end
   end
 
   x.report 'Array#==' do
     total.times do |i|
       Array.new(i,0) == Array.new(i,0)
+    end
+  end
+
+  x.report 'Array#== dup' do
+    total.times do |i|
+      array_of_arrays[i] == Array.new(i%100+10) {|j| j % 100 }
     end
   end
   
@@ -122,55 +132,62 @@ Benchmark.bmbm do |x|
     end
   end
 
-  x.report 'Array#unshift' do
+  x.report 'Array#unshift(0)' do
+    arr = Array.new(total,0)
     total.times do |i|
-      arr = Array.new(i%100,0)
-      (i/2).times { arr.unshift 0 }
+      arr.unshift 0
     end
   end
 
-  x.report 'Array#push' do
+  x.report 'Array#unshift(1,2,3)' do
+    arr = Array.new(total,0)
     total.times do |i|
-      arr = Array.new(i%100,0)
-      (i/2).times { arr.push 0 }
+      arr.unshift(1,2,3)
     end
   end
 
-  x.report 'Array#pop' do
+  x.report 'Array#push(1)' do
+    arr = Array.new(total,0)
     total.times do |i|
-      arr = Array.new(i,0)
-      i.times { arr.pop }
+      arr.push 0
+    end
+  end
+
+  x.report 'Array#pop(1)' do
+    arr = Array.new(total,0)
+    total.times do |i|
+      arr.pop
     end
   end
   
   x.report 'Array#shift' do
-    total.times do |i|
-      arr = Array.new(i,0) 
-      i.times { arr.shift }
+    arr = Array.new(total,0) 
+    total.times do |i|      
+      arr.shift
     end
   end
 
   x.report 'Array#first' do
     total.times do |i|
-      array.first(i % 100)
+      array.first(i % 500)
     end
   end
 
   x.report 'Array#last' do
     total.times do |i|
-      array.last(i % 100)
+      array.last(i % 500)
     end
   end
   
   x.report 'Array#uniq' do    
     total.times do |i|
-      Array.new(i) {|j| j % 100 }.uniq
+      array_of_arrays[i].uniq
     end
   end
   
   x.report 'Array#reverse' do
     total.times do |i|
-      array.reverse
+      array_of_arrays[i].reverse
     end
   end
 
@@ -181,6 +198,6 @@ Benchmark.bmbm do |x|
   end
 
   x.report 'Array#join(arrays)' do
-    array_of_arrays.join
+    portion.join
   end
 end
