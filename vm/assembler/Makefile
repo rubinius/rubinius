@@ -21,13 +21,13 @@ example/vm: example/vm.o example/vm-main.cpp
 test/test32: test/test32.o
 	g++ -ggdb3 -Wall $(INCLUDES) -o test/test32 libudis86.a test/test32.o
 
-test/test32.o: test/test32.cpp assembler_x86.hpp
+test/test32.o: test/test32.cpp assembler_x86.hpp libudis86.a
 	g++ -ggdb3 $(INCLUDES) -o test/test32.o -c test/test32.cpp
 
 test/test64: test/test64.o
 	g++ -ggdb3 -Wall $(INCLUDES) -o test/test64 libudis86.a test/test64.o
 
-test/test64.o: test/test64.cpp assembler_x8664.hpp
+test/test64.o: test/test64.cpp assembler_x8664.hpp libudis86.a
 	g++ -ggdb3 $(INCLUDES) -o test/test64.o -c test/test64.cpp
 
 test: test/test32 test/test64
