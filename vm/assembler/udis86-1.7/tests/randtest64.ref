@@ -1,0 +1,2882 @@
+	mov edi, 0x95804fae
+	int1 
+	cli 
+	lea eax, [r8]
+	or al, 0xeb
+	invalid 
+	add eax, 0xcfca3a9d
+	xor eax, 0xfca13235
+	add dword [gs:rax], 0xf8
+	out dx, eax
+	invalid 
+	adc [rsi+0x63], ebp
+	js 0xffffffffffffffe4
+	invalid 
+	outsb 
+	mov cr1, [rcx-0x6e]
+	jnp 0xffffffffffffffac
+	xchg esi, eax
+	invalid 
+	lahf 
+	add bl, ch
+	out 0x9f, al
+	sar dword [rcx-0x61], 1
+	invalid 
+	invalid 
+	invalid 
+	jrcxz 0xffffffffffffffbd
+	invalid 
+	lock jl 0x81
+	mov ecx, 0xc0d32522
+	out 0x70, eax
+	push rsi
+	invalid 
+	invalid 
+	in al, dx
+	xchg ecx, eax
+	and ebp, esi
+	push rcx
+	mov cl, 0xc8
+	sbb al, 0x78
+	invalid 
+	shr ebp, 1
+	adc bh, [rcx+0x7b]
+	pop qword [rax-0x1]
+	jb 0x3e
+	xlatb 
+	invalid 
+	add dword [rcx+rdx*8+0x6df499f7], 0x97
+	mov gs, [rsi]
+	loope 0x71
+	mov al, 0x96
+	adc [rbx-0x6d93a7a2], ah
+	ret 0x7e85
+	add ch, ch
+	invalid 
+	invalid 
+	xchg esi, eax
+	mov bl, 0xe4
+	mov cr0, [rcx-0x250e7f9]
+	inc byte [rbx+rbp*4]
+	sbb dword [rsi+rcx*2], 0x9c886f44
+	push rdi
+	mov ecx, 0xd409a448
+	adc al, 0xe9
+	insd 
+	sub cl, bl
+	invalid 
+	cmc 
+	invalid 
+	add [rdi], bl
+	pop rcx
+	mov [rdi], ch
+	xchg edx, eax
+	invalid 
+	and [rcx], esp
+	push rbx
+	jbe 0xde
+	mov [rcx], edi
+	sar cl, cl
+	add [rbx+0x5e], cl
+	iretd 
+	invalid 
+	mov gs, [rdx]
+	adc eax, 0x1107e2e1
+	push rax
+	repne gs movsb 
+	scasb 
+	a32 jae 0x130
+	ret 
+	cmp eax, 0x5fe11475
+	stosd 
+	insd 
+	xor [rsp+0x69f80098], esi
+	xor eax, ebp
+	int3 
+	push 0xc8
+	cmp esi, [rdi-0x643cd6a8]
+	invalid 
+	xor al, [rax-0x5eae3741]
+	mov [0x93de01ed705fa0e8], eax
+	xor byte [rcx+0x4f], 0x37
+	ja 0xa6
+	xlatb 
+	o16 shl [rax], cl
+	mov bh, 0x91
+	push rbp
+	push rsi
+	nop 
+	push rsp
+	mov bl, 0x83
+	invalid 
+	pop rcx
+	mov ebx, 0xcf58c4e3
+	mov ecx, [rax+0x20]
+	jbe 0x145
+	o16 js 0x94
+	xor ch, [rax-0x65]
+	sahf 
+	or dil, [r14-0x243d2266]
+	and eax, 0x8134fcda
+	xchg [rdx], bh
+	mov al, 0xd0
+	xchg esp, eax
+	invalid 
+	sub eax, 0xe7fb27a4
+	cmc 
+	and eax, 0x7f5f47f6
+	jno 0x198
+	and dword [rsi-0x79], 0x84d0c980
+	cdq 
+	div word [rdi-0x44]
+	sub bl, ch
+	push rsp
+	or [rcx-0x522c65b6], dl
+	jnp 0xea
+	movsd 
+	sub al, 0xe0
+	wait 
+	invalid 
+	invalid 
+	invalid 
+	test al, 0x7b
+	int3 
+	cmpsd 
+	in al, 0xac
+	mov dl, 0xd8
+	push rsp
+	add edi, ecx
+	invalid 
+	invalid 
+	bswap ebp
+	sbb eax, 0x132463c4
+	sub [rcx-0x674b5c0b], al
+	fstp8 st1
+	or al, 0x40
+	out dx, eax
+	or [rcx-0x47], esp
+	jae 0x162
+	call 0xffffffff95858333
+	invalid 
+	ficom dword [rcx]
+	movsb 
+	invalid 
+	mov al, 0x78
+	xor eax, 0x62526832
+	int1 
+	or [rax-0x19702e11], cl
+	xchg ecx, eax
+	jns 0x112
+	pushfq 
+	jb 0x1cd
+	ficom word [rsi]
+	invalid 
+	invalid 
+	loopnz 0x14f
+	push rax
+	xor [rax+0x2f], esp
+	cli 
+	insd 
+	invalid 
+	jz 0x1d1
+	imul ebp, [rsi+0x3], 0x4cc67437
+	fbstp [rax]
+	ret 0x7e91
+	xor eax, 0x9d1189e
+	xchg edi, eax
+	sub eax, 0xe34fb563
+	adc dword [rdx+0x50], 0xbe
+	mov fs, [rsi]
+	sbb eax, 0x8507dfba
+	pop rsi
+	xchg [fs:rdi+0x772f0d6d], esi
+	movsb 
+	invalid 
+	pop rbx
+	add [rbx-0x3c2bb051], edx
+	add ebp, [rsi]
+	xor esi, [rbx+rdx*8-0x73]
+	xlatb 
+	mov esp, 0x84e415b
+	invalid 
+	iretd 
+	and esi, [rbx+0x42]
+	int3 
+	push rsi
+	sbb esp, [rdi]
+	jnz 0x222
+	mov edx, 0x27656695
+	xor dl, dl
+	outsb 
+	shl dl, 1
+	pop rbp
+	invalid 
+	sub [r14-0x9], r8d
+	call 0x2d044abe
+	ret 0xd5d9
+	loopnz 0x193
+	xchg ebx, eax
+	or edx, [rdx]
+	cld 
+	jp 0x227
+	and r13b, r11b
+	invalid 
+	retf 
+	xchg ebp, eax
+	in eax, 0xf1
+	invalid 
+	scasb 
+	invalid 
+	invalid 
+	mov eax, [0xddd71ebe4f574d9e]
+	lodsb 
+	xor al, 0xa3
+	xchg esp, eax
+	shl dword [rbp-0x4c633132], 0x48
+	invalid 
+	test al, 0xdd
+	mov edi, 0x4ebbc7d3
+	movsb 
+	or al, 0x7c
+	stosd 
+	push rcx
+	jnp 0x22d
+	xor bl, [rcx-0x786caa4d]
+	ror byte [rdx-0x4f], 0xf2
+	xchg ebp, eax
+	lock push rbx
+	xchg ecx, eax
+	push rbp
+	invalid 
+	or eax, 0xbcf5e5cb
+	ror dl, cl
+	mov al, [0xd37de9dbc81304ba]
+	adc edi, esp
+	std 
+	xor [rsi], edi
+	out 0x9b, al
+	invalid 
+	rol byte [rbp+rsi+0x33], 0x47
+	or al, 0x73
+	jle 0x1f9
+	push rax
+	mov [0xb14468fb5fa687e4], al
+	xor al, 0xf2
+	mov [0x287b5403d8ab4c3], eax
+	loop 0x267
+	fdiv st0, st0
+	lodsd 
+	sahf 
+	loopnz 0x2e6
+	pop rbp
+	mov [0xbf562ac34a3a6118], eax
+	xchg edx, eax
+	mov eax, [0xb5f0b3f7d9662e8f]
+	hlt 
+	rcl byte [rax+rdi*8-0x3f], 1
+	xor [fs:rdi-0x2b], ch
+	lahf 
+	push rbx
+	mov byte [rdi-0x712d8348], 0xac
+	retf 0xe411
+	sbb [rbp+rdx*8-0x1412e356], bl
+	mov [0x8f318a08bc346bfc], eax
+	pop rbp
+	invalid 
+	add [rip+0x22efb4e4], edx
+	or cl, [rsi]
+	push rsp
+	movsxd edx, dword [rip-0x2b463dea]
+	sar [rcx+0x7d], cl
+	retf 
+	invalid 
+	mov ebx, 0x93818ee4
+	jg 0x2c9
+	loope 0x34f
+	shr dl, 0x87
+	invalid 
+	xchg ecx, eax
+	adc [rdi-0x4a], dl
+	scasd 
+	push qword [rdi-0x62c36b91]
+	scasd 
+	in al, 0x1b
+	push rdi
+	fdiv qword [rcx+0x5f]
+	jae 0x2b6
+	jg 0x297
+	invalid 
+	test eax, 0x9b7c0025
+	sub dword [rbx], 0xfe1c3c3d
+	mov ch, 0xec
+	cmpsd 
+	jp 0x299
+	invalid 
+	push rdi
+	xor [rdx+rcx*2+0x498841f], edi
+	mov ebp, 0xf0b2a7ed
+	jnp 0x35a
+	sbb [rdi-0x44], ecx
+	loope 0x392
+	add [rbp-0xfea7e27], ecx
+	movsb 
+	hlt 
+	movsb 
+	invalid 
+	sbb al, 0x2d
+	cmpsb 
+	cwde 
+	invalid 
+	invalid 
+	mov [0x313df81954c7e06f], eax
+	push rbp
+	push rsp
+	mov edi, 0x78579764
+	xor [rbp-0x45], bh
+	fnstsw word [rcx-0x7f]
+	invalid 
+	shl dword [rcx], 0xe0
+	or esp, [rdi-0x2b2ad6da]
+	push rdi
+	movsxd ebx, dword [rdi+0x38ed8291]
+	in eax, dx
+	neg qword [rip+0x1d58c367]
+	stc 
+	insd 
+	mov cl, 0x34
+	mov dl, 0x1b
+	mov eax, [0x35867cbb0c33a1f8]
+	invalid 
+	mov [rbx], al
+	invalid 
+	out dx, al
+	lodsd 
+	invalid 
+	jnz 0x3b5
+	movsxd eax, edi
+	cmpsd 
+	hlt 
+	mov edi, 0x95ac2357
+	push rbp
+	pop r11
+	adc eax, 0x8ba88bc4
+	shr eax, cl
+	div byte [r9]
+	invalid 
+	pop rcx
+	fstp9 st0
+	mov ebp, 0xa44b1a13
+	xor esi, [rsi-0x27]
+	sbb [rsi], edx
+	ror byte [rcx-0x44c143de], cl
+	outsd 
+	and edi, [rsi-0x2aca0bcb]
+	scasd 
+	add [rax], dh
+	js 0x3dc
+	invalid 
+	and al, [rbp+0x23c5bfdf]
+	jge 0x3d9
+	xchg edi, eax
+	test [rcx+0x36], bl
+	xor eax, 0x2ef2dd51
+	mov esi, 0x6cdd5b1f
+	push rax
+	fstp qword [rax+0x7a564f77]
+	movsb 
+	mov esp, 0x6edc8fdc
+	xor eax, 0x57e4a5d1
+	mov edi, 0x4890a0bc
+	fdivr st0, st2
+	popfq 
+	jo 0x39f
+	invalid 
+	nop 
+	in eax, 0xe
+	in eax, 0xc1
+	cmp [rbp+rbx*2+0x1e18e69a], ah
+	xchg [rbx+0x514c44bd], ecx
+	invalid 
+	cmpsd 
+	outsd 
+	stosd 
+	wait 
+	invalid 
+	mov eax, 0xe426f49a
+	mov esi, 0x3d7db05c
+	and [rbx+0x34], esi
+	fisubr dword [rcx+0x9]
+	stosb 
+	cmp [rdi-0x5f634764], cl
+	jg 0x44a
+	cmp [rsi+0x55f9b487], dh
+	fild qword [rdi+0x31]
+	pop rax
+	invalid 
+	mov cl, 0x1f
+	clc 
+	jns 0x442
+	mov ebp, [rdx]
+	in eax, 0x6
+	mov ah, 0x85
+	adc ecx, [rbx-0x1d]
+	jnp 0x3ed
+	xchg esp, eax
+	invalid 
+	jg 0x491
+	invalid 
+	adc al, 0x11
+	fidiv word [rbp+0x4b4154c3]
+	jle 0x3db
+	test [rbp+0x72685122], eax
+	not byte [rdx+0x50]
+	mov [0xe4e9f270ab3ad9be], al
+	add eax, 0x6f043646
+	mov [0x1d76ebadb9c99ce8], eax
+	shl dword [rcx-0x71f25365], 1
+	adc eax, 0xaddf2af1
+	and al, 0x52
+	mov cl, al
+	push rdx
+	and eax, 0xf6050662
+	in al, dx
+	push rsi
+	jmp 0x4f3
+	push rbx
+	cld 
+	or al, 0xe4
+	jnz 0x4bd
+	shl byte [rax], 1
+	mov ecx, 0x10a2583c
+	mov esp, 0x8c1432da
+	jp 0x4af
+	invalid 
+	jmp dword far [rbx-0x914d8eb]
+	int 0xbb
+	outsq 
+	mov dl, 0x55
+	sbb al, 0xbb
+	xchg esp, eax
+	sbb eax, 0x6752a77e
+	and eax, 0xd7a1d401
+	test eax, 0xcacf5092
+	sar dword [rsi-0x77853110], 0xce
+	mov bh, 0xf7
+	and al, 0x80
+	cmp [rax+rdx*4], dh
+	in eax, 0xcf
+	xor [rsi], ch
+	scasd 
+	cmp eax, 0x2b823c89
+	mov [rax], dh
+	mov esi, 0x59a0f5b9
+	jle 0x47f
+	hlt 
+	invalid 
+	movsb 
+	lea esi, [rbx+0x33428281]
+	invalid 
+	mov esp, 0x777cb8f
+	wait 
+	repne push rsi
+	adc al, 0xb7
+	wait 
+	cmp eax, 0x8468a78a
+	fstp qword [rdx-0x6816cfc0]
+	invalid 
+	invalid 
+	mov [0xd3b81bcb2d7023a1], eax
+	mov r12, 0xb4a79c363ab79fff
+	lodsd 
+	or dh, [rdx]
+	invalid 
+	xor [rcx], ecx
+	mov edi, 0xa1440147
+	cmp [rbx-0x1d], eax
+	mov dword [rsp+rsi*4-0x70], 0xb08aa420
+	xchg ebp, eax
+	sbb ebp, ebx
+	mov bl, 0x42
+	xchg [rbp-0x1f], edi
+	xor eax, 0x23062d90
+	lock add bl, [rbx+0x2]
+	popfq 
+	leave 
+	sar dword [rcx-0x61], 0x7d
+	jp 0x4f2
+	xchg ebx, eax
+	mov ecx, 0x76700e5d
+	fsub dword [rax+0x38de11eb]
+	scasd 
+	stc 
+	xchg esi, eax
+	mov al, [0x3429ddfb4efd36a2]
+	out 0xf6, eax
+	add eax, 0x28f76ccd
+	invalid 
+	rep cmpsd 
+	leave 
+	pop rdi
+	jrcxz 0x52d
+	retf 0x3450
+	mov ch, ah
+	movsd 
+	stosb 
+	sti 
+	or bl, [rbx+0x1ea54199]
+	mov al, [0x4a4f4d93383cc0d6]
+	add [rax], rcx
+	adc al, 0x6e
+	leave 
+	adc al, 0x26
+	jmp 0x556
+	invalid 
+	insd 
+	invalid 
+	invalid 
+	and al, 0xc7
+	sub al, 0x77
+	or al, 0xae
+	xchg esp, eax
+	invalid 
+	retf 
+	repne cmp rax, 0x787cbcd0
+	cmp dh, bh
+	or edx, esi
+	jo 0x55b
+	xor al, 0x9b
+	test byte [rbp-0x428bfe9c], 0xe9
+	mov [0xb052f352d2e9e77a], eax
+	ja 0x57c
+	fidiv dword [rdx-0x6e519214]
+	rol bh, 1
+	and eax, 0x47c6ad88
+	cli 
+	out 0x66, eax
+	ja 0x5f0
+	mov [0x73068a7ed24da31c], al
+	or eax, 0xd9133977
+	xchg ebx, eax
+	xlatb 
+	cdq 
+	invalid 
+	sahf 
+	mov ebx, 0xff345910
+	mov al, [0x83e8a61f5ec8f4c1]
+	invalid 
+	invalid 
+	jns 0x5b9
+	mov bl, 0x7a
+	adc esi, eax
+	invalid 
+	hlt 
+	and al, 0x3b
+	adc [rsi+rcx*8], dl
+	rep fstp qword [rax+0x23]
+	out dx, ax
+	jno 0x59b
+	imul esp, ebp, 0xfd
+	or [rbp-0x51bba45e], ah
+	jrcxz 0x5d4
+	cmp bh, ah
+	in eax, dx
+	invalid 
+	nop 
+	sbb al, 0xd8
+	invalid 
+	jno 0x5ee
+	fdivr dword [rcx-0x4a]
+	popfq 
+	invalid 
+	pop rdi
+	in al, 0xa8
+	xchg ebx, eax
+	mov dh, 0x9f
+	invalid 
+	out dx, eax
+	nop 
+	test eax, 0x6ed9741d
+	mov eax, [0x2761c6f753344910]
+	invalid 
+	out dx, eax
+	adc ebx, [rdx-0xd26b757]
+	sub al, 0x46
+	mov eax, 0x83fec441
+	mov cl, 0x9d
+	scasd 
+	cmp esi, eax
+	sub [rdi-0x66], eax
+	invalid 
+	sti 
+	invalid 
+	mov al, [0xcca5604125e6ebf3]
+	test al, 0xc0
+	mov cl, 0x39
+	insd 
+	jmp 0x627
+	add eax, 0xda66295d
+	cmp [rdi+0x22], edi
+	push rax
+	sub al, 0x5e
+	sbb ecx, [rax]
+	xchg ecx, eax
+	out 0xe2, eax
+	pop rbx
+	jp 0x653
+	invalid 
+	cmp ebp, [rdx+0x2c79fa79]
+	shl byte [rdx-0x46991cdb], 1
+	in al, dx
+	lodsd 
+	insb 
+	add eax, 0x4e2eb90b
+	cmp al, 0xfb
+	sub eax, 0x52f2a8d8
+	mov ecx, [rsi+0x8]
+	and ecx, [rax-0x46070bae]
+	fcom st0, st7
+	int1 
+	mov esi, 0x700d5708
+	mov ebp, 0x678e58a1
+	adc esp, [rcx]
+	adc dword [rax], 0xbf
+	and dword [rsp+rdx*4], 0xc6
+	push rbx
+	sub eax, 0x9e1fa2af
+	mov ecx, 0xdcdf29ae
+	clc 
+	cmp cl, cl
+	cmc 
+	enter 0x4f3f, 0xf8
+	invalid 
+	xchg edx, eax
+	jno 0x66e
+	jmp 0x699
+	loop 0x6ad
+	jz 0x66e
+	invalid 
+	sbb edx, [rbx-0x18]
+	invalid 
+	sub eax, [rsi+rbp*2-0x378f579e]
+	mov esp, 0xd4e71aab
+	or cl, [rip+0x1b1a3f6c]
+	in eax, 0x7c
+	sbb eax, 0xb9b94d07
+	insd 
+	mov bl, 0x8a
+	push 0xf9
+	sbb ecx, [rax+0x1b31669e]
+	mov esi, 0xd1de5b3d
+	js 0x6fc
+	sbb eax, 0x6ffe0d5
+	jge 0x6c6
+	insb 
+	ret 0xda6
+	mov esp, 0x39e9ba3b
+	xchg ecx, eax
+	jle 0x793
+	mov edx, 0x840bd8e3
+	mov dh, 0xd1
+	invalid 
+	xor al, [rax+rcx*8-0x5fa220f]
+	adc ebx, eax
+	jle 0x7a4
+	jae 0x758
+	pop rsi
+	invalid 
+	hlt 
+	jbe 0x731
+	jge 0x78e
+	ret 
+	in al, dx
+	lodsd 
+	ja 0x74e
+	pop rbx
+	scasd 
+	cld 
+	mov bh, 0xa0
+	adc ah, [rax]
+	sbb al, 0x53
+	imul eax, [rcx-0x64f16c76], 0x53744fdc
+	cmpsb 
+	xchg [rdx+0x64915082], ebp
+	imul byte [r10-0x5d]
+	lahf 
+	add eax, 0x6086adde
+	or al, 0xfb
+	or eax, 0xa0926d7b
+	in eax, dx
+	in al, 0x36
+	jbe 0x73d
+	int1 
+	xlatb 
+	fidiv dword [rsi]
+	mov [rdi], dl
+	inc al
+	mov [rcx-0x67b89dad], esp
+	xlatb 
+	mov edx, 0x54abea50
+	jo 0x7ae
+	add dh, [rdi]
+	fsub qword [rcx]
+	xor [rdi+rcx+0x48], ebp
+	lahf 
+	movsxd ebp, dword [rdx-0x4b]
+	invalid 
+	clc 
+	mov esp, 0x9cbba834
+	std 
+	jrcxz 0x7a0
+	add r13, [r15-0x40]
+	mov edx, 0x9717a522
+	sub [rsp+rdi*4], ch
+	lahf 
+	mov esp, 0x47e94f18
+	xchg [ds:rsi], esi
+	pushfq 
+	push rbp
+	cmp edx, [rdi]
+	jz 0x834
+	xchg esp, eax
+	invalid 
+	push rcx
+	invalid 
+	stc 
+	inc byte [rdx+0x53fc8bf5]
+	sbb ah, [rsi+0xe069e65]
+	shr edx, cl
+	in al, dx
+	invalid 
+	xchg esp, eax
+	and [rdx], ecx
+	wait 
+	invalid 
+	jle 0x779
+	invalid 
+	mov [rcx-0x65], ah
+	invalid 
+	jnp 0x7f4
+	jmp 0x731edc27
+	jns 0x796
+	mov cl, 0xba
+	xor eax, 0x5713d376
+	jp 0x87b
+	cmp eax, [rax-0x2a]
+	xor dword [rdi], 0xbe56b7cd
+	jns 0x80f
+	xchg edi, eax
+	in al, dx
+	ret 0xfc88
+	xchg esp, eax
+	outsd 
+	mov ecx, 0xcb629fe0
+	outsd 
+	popfq 
+	push rsp
+	xchg ecx, eax
+	mov ecx, 0x3ff2b740
+	adc eax, 0xb4cf7f6a
+	movsxd ebx, dword [rsi-0x4442af85]
+	call dword far [rdi+0x63a461e9]
+	mov eax, [rbp+0x4d]
+	push rsi
+	invalid 
+	or eax, [rbp-0x14]
+	push rsi
+	sbb eax, 0x3e8fc0ae
+	and al, [rdi-0x3b]
+	push rcx
+	invalid 
+	xchg [rcx+0x6b], esp
+	fcmove st0, st4
+	invalid 
+	xchg ebp, eax
+	xchg ebx, eax
+	push qword [rbx]
+	sub [rax], dl
+	clc 
+	xor eax, 0xdc2ee2
+	add [rbx+0x55fcd786], eax
+	jg 0x88e
+	jmp 0xffffffff88ddccf9
+	pop rbp
+	cld 
+	in al, dx
+	and ecx, [rsi-0xceb0903]
+	xor [rsi+0x8], al
+	fstp qword [rax-0x6e]
+	ja 0x803
+	invalid 
+	sbb byte [rdi], 0x8a
+	out dx, eax
+	imul edx, [rdi-0x4a92ef92], 0x59
+	sub esi, [rip+0x2d7ff4e5]
+	stc 
+	mov [rbx], ds
+	or dword [rsp+rbx*8], 0x63ee6442
+	invalid 
+	push rax
+	invalid 
+	fsubrp st5, st0
+	jl 0x909
+	loop 0x832
+	mov esp, 0x34beb4a6
+	adc eax, 0xc6745838
+	out 0x71, al
+	cmp ch, dl
+	sub ecx, [rdx+0x5c519127]
+	sbb [rdi+0x33ca5cc1], ecx
+	invalid 
+	or eax, [rdx+0x0]
+	invalid 
+	movsd 
+	cmc 
+	cmpsb 
+	add [rbx+rax*4+0x11], ch
+	jz 0x848
+	and [rbp-0x2d], ebp
+	retf 
+	sbb [rcx], dl
+	mov dh, 0x35
+	rcl dword [rdi-0x1f], cl
+	or [rax-0x38], dh
+	invalid 
+	and [rax-0x2f], edi
+	mov cl, 0xc8
+	jrcxz 0x951
+	and eax, 0xe26682e6
+	sub al, dh
+	sub bh, [rax]
+	invalid 
+	sbb dl, [rdx-0xaaaaf2d]
+	jbe 0x93a
+	leave 
+	adc edx, [rbx]
+	mov cl, 0xbb
+	push rbx
+	and eax, [rax+0xa]
+	iretd 
+	outsd 
+	xor [rsi+0x10f4d0e8], edx
+	cmp eax, 0x1cf5d799
+	invalid 
+	loop 0x8f9
+	jbe 0x937
+	and r13, r11
+	sbb al, [rax+0x2f880b12]
+	pop rdi
+	nop 
+	xchg esp, eax
+	sti 
+	invalid 
+	movsxd esp, dword [rcx+0x31da1f77]
+	mov al, [0x58d87b9abdb8071b]
+	invalid 
+	pop rdx
+	sub eax, 0xda173f5c
+	retf 
+	and eax, 0x71674aa9
+	mov eax, [0x9bfd5c32310bed12]
+	invalid 
+	xlatb 
+	sub [rax], dil
+	jnz 0x8d3
+	invalid 
+	and rdi, [rsi-0x5b56010f]
+	or ebx, [ss:rax+0x2d]
+	adc ebp, ebx
+	adc [rsi-0x6ae02dcb], ecx
+	mov [rsi+0x3f], eax
+	ja 0x957
+	sub esp, edx
+	xor dword [rdi], 0xa7
+	loop 0x936
+	std 
+	mov bh, [rcx+0x46b49152]
+	in al, dx
+	mov dl, 0x45
+	xchg edx, eax
+	push 0xc5
+	wait 
+	pushfq 
+	sti 
+	in al, dx
+	jge 0x901
+	jbe 0x9be
+	xchg edx, eax
+	xchg r10d, eax
+	cmp ch, cl
+	loop 0x9d3
+	lodsq 
+	pop rbx
+	xchg [rdi-0x54b76ca0], ah
+	js 0x96e
+	mov ecx, 0xafdca604
+	stosd 
+	invalid 
+	adc esi, [rcx-0x51e827d8]
+	rcr byte [rbp+0x3a], 1
+	sub [rcx], eax
+	mov ebp, 0xffd342cb
+	and ah, ch
+	push rsp
+	loope 0x9b4
+	xor r10b, r11b
+	out dx, al
+	mov [rdi], esi
+	jl 0x982
+	invalid 
+	fld qword [rbp-0x7c]
+	insd 
+	wait 
+	push r15
+	adc ebx, [rdx-0x27]
+	invalid 
+	xor dword [rcx], 0x5c
+	dec byte [rsi-0x3f]
+	or [rdx], eax
+	xchg edx, eax
+	invalid 
+	outsd 
+	xor [rdi-0x7bceb489], edx
+	lea edx, [rcx+rbp*2-0xd]
+	mov edx, 0xbe94bcdf
+	mov ecx, 0x1314367e
+	invalid 
+	lock shl byte [rbx], 0x56
+	mov [rsi+0x194b4c6c], ss
+	out 0xbb, al
+	sub ecx, eax
+	or al, 0xaf
+	jno 0xa19
+	invalid 
+	popfq 
+	xor [rcx+0x2d0988f6], esp
+	wait 
+	mov eax, [0x9002615cbfbf9891]
+	add bl, [rbp+0x7c]
+	rcl edi, 0xe
+	iretd 
+	std 
+	int3 
+	stosd 
+	shl dword [rdx-0x34], 1
+	cmp dl, dh
+	jno 0xa01
+	adc dl, [rdx-0x5d8e538f]
+	invalid 
+	push rcx
+	int3 
+	invalid 
+	pushfq 
+	cmp ebp, ebx
+	jle 0x9e2
+	invalid 
+	cmp [rdi+0x5f], ah
+	jle 0xa98
+	in al, 0x2f
+	adc [rbx], eax
+	idiv ebp
+	invalid 
+	lea ebp, [rdx-0x6e]
+	pop r14
+	xor [rip+0x1aee8ce4], esp
+	jz 0xaa5
+	invalid 
+	sahf 
+	shl dword [rsi+0x47], 0xf0
+	movsd 
+	rol dword [r9+0x1b142a6a], 1
+	int3 
+	mov cl, 0x8a
+	lock repne cmp eax, ebp
+	mov [rsi+rbx*8], al
+	add al, 0x91
+	movsxd edx, dword [rdi]
+	jnz 0xa6c
+	invalid 
+	adc ecx, [rdi+0x7a]
+	jp 0xa88
+	invalid 
+	push rbx
+	mov [rbp-0x32], bh
+	or al, 0x23
+	iretd 
+	psubusb mm7, mm4
+	jrcxz 0xaaf
+	invalid 
+	invalid 
+	xchg ebx, eax
+	mov dl, 0x8e
+	test al, 0xcd
+	invalid 
+	adc al, 0x5b
+	sbb eax, 0x708660b
+	repne shl al, 0xf5
+	invalid 
+	invalid 
+	xchg ebx, eax
+	imul eax, [rbx], 0x59d49ea2
+	xchg ecx, eax
+	invalid 
+	invalid 
+	loopnz 0xa7e
+	jb 0xae5
+	and esp, esp
+	call 0xffffffffdd289080
+	jns 0xa40
+	invalid 
+	mov al, 0xfc
+	invalid 
+	jnz 0xa94
+	mov ecx, 0xbaf1b0a2
+	cmp [rbp+rdi*8-0x56cb209f], edx
+	cs movsb 
+	in al, dx
+	mov ecx, 0x8ee46992
+	mov edx, 0xf73d610b
+	test [rbx+rbx], ebx
+	insd 
+	mov ch, 0x66
+	sbb eax, [rdx-0x65c6cef9]
+	call 0xfffffffff9747199
+	btc [rcx], edi
+	invalid 
+	jl 0xb20
+	jrcxz 0xb2f
+	scasd 
+	cmpsb 
+	lahf 
+	invalid 
+	add al, 0x97
+	pushfq 
+	invalid 
+	invalid 
+	invalid 
+	invalid 
+	invalid 
+	jb 0xaaf
+	cmpsd 
+	sti 
+	invalid 
+	out dx, eax
+	mov [rdx+0x43], eax
+	xor eax, 0x604a48
+	fdiv qword [rbp-0x13]
+	cdq 
+	and eax, 0xe70452e6
+	lahf 
+	invalid 
+	jz 0xb01
+	push rbx
+	or esp, [rbx-0x16]
+	fbstp [rdi]
+	xor dword [rsi+rsi+0x5a920d7f], 0xc38b1a72
+	invalid 
+	rol dword [rax-0x8], 1
+	push dword 0xb5f787ab
+	cmp [rip-0x44816a06], ebp
+	test [r15+0x748ab13c], r12
+	invalid 
+	and dl, [rsi]
+	xchg [rax+rax*8+0x366852ed], bh
+	pop rax
+	in eax, dx
+	stosb 
+	popfq 
+	cli 
+	invalid 
+	sub [rcx-0x26edeab7], ah
+	fisub dword [rdx]
+	pop rdi
+	sahf 
+	std 
+	jnp 0xafd
+	push dword 0x657c0db7
+	push rdi
+	invalid 
+	int3 
+	mov ch, 0xb4
+	adc eax, 0xfc744747
+	mov dh, 0x9b
+	jns 0xbcd
+	std 
+	xor dh, al
+	push rdx
+	mov ebp, 0x95134ff4
+	xor ah, [rax+rcx*2]
+	jg 0xbab
+	invalid 
+	test [rdx-0x156fc96c], ecx
+	rep lodsb 
+	repne mov ecx, 0x793b9c9e
+	stc 
+	stosd 
+	invalid 
+	invalid 
+	sbb al, 0x4
+	mov [0x171fa672cbc2f994], al
+	sar dword [rip+0x44386b47], 0xbe
+	and bl, [rcx-0x7903995]
+	mov ch, 0x93
+	pop rdx
+	int 0x82
+	xchg edi, eax
+	mov bl, [rbx-0x56]
+	stosb 
+	invalid 
+	mov spl, 0x4d
+	or eax, [rdx-0x7592f5b1]
+	js 0xb49
+	or [rax+rsi+0x3f1aae4d], ecx
+	jp 0xb5b
+	movsd 
+	outsb 
+	nop 
+	sub ecx, [rdx]
+	out dx, al
+	sub eax, [rdx]
+	stc 
+	pop rdi
+	adc al, 0xbf
+	repne mov eax, [0xd8ee6375d45f0f35]
+	imul ebx, [rip+0x696e72bc], 0xe0
+	js 0xb9d
+	or [rax], ebp
+	invalid 
+	lock and [rbx+0x55], ch
+	test al, 0xca
+	cmpsd 
+	xor al, 0xdb
+	lock mov cl, bl
+	pop rbp
+	invalid 
+	int 0xbc
+	add eax, 0x4e7026e7
+	mov bpl, 0x50
+	xlatb 
+	test [rax+0x66e4487a], eax
+	or eax, 0xd31061f4
+	call 0xffffffffb945a135
+	invalid 
+	jle 0xbde
+	pop rbx
+	or dword [rax+rdx*2], 0xd2e35a54
+	fisubr word [rdx]
+	popfq 
+	out dx, eax
+	and [rsi], bh
+	mov ebx, 0x8089623
+	push rdx
+	jo 0xc82
+	xor ch, [rdx+0x4]
+	jb 0xc04
+	cmc 
+	neg byte [rsi-0x53]
+	pop rdx
+	sbb al, 0x3f
+	invalid 
+	mov ecx, 0xafa84356
+	nop 
+	mov al, 0xb5
+	or byte [rax+0x71], 0x43
+	xchg edx, eax
+	invalid 
+	movsxd ebx, dword [rdx-0x12d13e96]
+	invalid 
+	out dx, al
+	adc eax, 0xa897a4b9
+	a32 jz 0xc46
+	movsb 
+	imul esi, [rsi+0x53fbc5a1], 0x5a
+	jg 0xbda
+	invalid 
+	invalid 
+	jbe 0xc8c
+	lahf 
+	jge 0xca9
+	imul edi, [rax], 0x2c4aa59b
+	sub [rbp+0x3e], bl
+	and ebx, [rcx-0x3177f2f8]
+	sub [rbp+0x11], r9d
+	pop rsp
+	push r13
+	invalid 
+	mov ah, 0x36
+	jge 0xc35
+	jnp 0xcb2
+	pop rdx
+	or bpl, r8b
+	sub [rbx], ch
+	o16 jb 0xcf9
+	invalid 
+	sub eax, 0xc6c32927
+	mov [0xcd93ee45e262d532], eax
+	cmp al, 0x63
+	mov ecx, 0xd89bdfe3
+	invalid 
+	lock invalid 
+	xchg al, ch
+	add eax, 0x359ed371
+	sub al, [rdi+0x6932c6c5]
+	jmp 0xc39
+	xlatb 
+	invalid 
+	xor dh, [rdi]
+	movsxd ecx, dword [rsp+rdi*2]
+	test al, 0x4e
+	fbld [rcx+rcx*2-0xd]
+	pop rax
+	pop rdi
+	add dword [rdi+0x56ca6c2a], 0x15
+	scasb 
+	invalid 
+	sbb eax, 0xa744404f
+	int 0x66
+	sbb [rsi], esi
+	and [rsi], esi
+	invalid 
+	sub bh, cl
+	call 0xffffffffc8bd8c41
+	adc bl, [rsi]
+	stosd 
+	jz 0xcf3
+	rol ah, 1
+	int1 
+	mov bl, 0x4b
+	invalid 
+	or al, 0xd5
+	imul ecx, [rdx+0x1c187bd3], 0x6f7bffe8
+	sbb edi, ebp
+	push rbx
+	test al, 0x4a
+	fidivr word [rbx-0x242b8d19]
+	mov [0x5752c397fa1e3ac4], eax
+	invalid 
+	adc r8b, bpl
+	wait 
+	cdq 
+	out dx, al
+	test [rbx-0x27767354], ecx
+	fcom dword [rax-0x25]
+	stosb 
+	lahf 
+	a32 mov ebx, 0xeceb1d22
+	rcl byte [rcx-0x3356397a], 1
+	leave 
+	and dh, [rdi+0x109fe867]
+	retf 
+	mov edi, 0x7c84aa58
+	cld 
+	cmp esp, ebx
+	xchg [rbx-0x6a], edx
+	invalid 
+	mov cr1, [rbp+0x1b]
+	invalid 
+	cli 
+	xor ecx, [rax-0x23a33572]
+	jb 0xd25
+	imul ebx, ebx, 0x30976844
+	sbb eax, 0xd37c2cb
+	invalid 
+	xor dword [rsi], 0x1db6cb00
+	mov cl, 0x2c
+	mov [rsi-0x6f], edi
+	leave 
+	mov [rbx], bh
+	imul eax, [rsi], 0x894b630a
+	add eax, [rsi+0x65]
+	xchg edi, eax
+	sub edi, edx
+	repne or ebp, [rax-0x58]
+	loope 0xcfb
+	sub eax, 0x4b9f573e
+	lea edx, [rdi]
+	in al, 0x80
+	jae 0xd7d
+	xchg edi, eax
+	sbb al, 0x22
+	invalid 
+	lahf 
+	invalid 
+	invalid 
+	invalid 
+	push rdx
+	jno 0xda6
+	invalid 
+	ret 0xc7e4
+	invalid 
+	fbld [rbx]
+	mov edi, 0x10ad479b
+	repne sahf 
+	sbb ch, [rax+0x39b6e4c7]
+	fmul qword [rcx+0x7b14c8c2]
+	xchg edi, eax
+	int1 
+	mov ebx, [rcx+rsi]
+	fxch7 st0
+	pop r15
+	popfq 
+	xor eax, 0x78b5d870
+	mov esp, 0x72aa7c3b
+	cmp eax, 0xdca682af
+	invalid 
+	shl dword [rsp+rbp-0xc], cl
+	std 
+	xor al, 0x1d
+	or eax, 0x84135706
+	int1 
+	invalid 
+	out 0xfe, al
+	test byte [rax-0x6c], 0x2f
+	movsxd ebp, dword [rsi+0x37]
+	or al, 0xa8
+	xor [rdx], ah
+	xchg esi, eax
+	xchg ecx, eax
+	add [rdx+0x8], al
+	jl 0xdf6
+	ficom dword [rsi]
+	and byte [rcx], 0xbe
+	and al, 0xfd
+	test esi, esi
+	sub al, 0x33
+	int1 
+	jbe 0xe3c
+	invalid 
+	xor al, 0x89
+	mov ebp, 0x24ea9942
+	push rcx
+	jnz 0xddc
+	invalid 
+	retf 
+	scasb 
+	invalid 
+	mov [0xa334ad69764fda10], al
+	xor al, [rbp+0x1365310f]
+	add eax, 0x9236756a
+	mov bh, 0x9f
+	mov eax, 0xc973540d
+	xor eax, 0xd144f52
+	rol byte [rbp-0x3a6aaa95], 0x1f
+	jae 0xea7
+	xor [rsi+0x58], ebx
+	or bl, [rcx]
+	and ebx, [rdx-0x6]
+	test [rdi+0x4b2ab0c5], dh
+	and edi, [rcx-0x391bf36b]
+	stc 
+	mov al, [0xd7717d234da547be]
+	lock jbe 0xec9
+	mov ch, 0xa9
+	cmp [rdx+0x52], esp
+	xor al, 0x22
+	invalid 
+	sub dh, 0x45
+	sub eax, 0xb234d79d
+	mov bh, 0x55
+	mov ecx, 0x2e32c2c1
+	pop rax
+	or eax, [rbx+0xac8ed1]
+	invalid 
+	sub eax, 0x894f5fde
+	push dword 0xe04e1ab1
+	stosd 
+	out 0xbc, eax
+	pop rbp
+	and eax, 0x4f828d00
+	nop 
+	push rbx
+	xor al, 0x20
+	jno 0xe8c
+	sbb dword [rbx+0x23ce924], 0xf8a9277e
+	mov dl, 0xb
+	fcomp3 st6
+	out dx, al
+	sub [rbx+0x2a1886ca], edx
+	ficomp dword [rcx+0x523e59e8]
+	cmp [rbx+rax*4], ebp
+	in al, 0xdc
+	pop rsi
+	not dword [rdx+0x49]
+	lodsb 
+	in al, 0x43
+	invalid 
+	mov [0xd5e59a5afc88276e], eax
+	mov ch, 0xef
+	repne mov [0xa3ec8cfa02217a9a], eax
+	ret 0xe676
+	xchg [rax-0x5d9acac6], dl
+	adc [rdi], esp
+	add dh, dl
+	cmpsd 
+	ficomp dword [rcx+0x6393bcdf]
+	mov cl, 0x51
+	cli 
+	popfq 
+	invalid 
+	push rbp
+	adc [rbp-0x6fbc7a8f], ah
+	add ebp, ebx
+	maskmovq mm2, [rax-0x17]
+	js 0xee5
+	mov dl, bh
+	push rdi
+	push rdi
+	shr eax, cl
+	or eax, 0x25e8312c
+	xchg ebx, eax
+	sbb al, 0x80
+	and esi, [rcx]
+	test al, 0x14
+	invalid 
+	ret 
+	adc [r14+0x3b], esp
+	invalid 
+	cmp ebx, [rcx-0x34]
+	rol byte [rsi+0x477b9d74], cl
+	sbb eax, ebx
+	cdq 
+	push rbx
+	invalid 
+	ja 0xf88
+	invalid 
+	adc eax, 0x35fd79c6
+	wait 
+	xchg [rbp-0x6be506a5], ebp
+	fbld [rax-0x1cb9686a]
+	stosb 
+	mov [rdx+0x22], cr0
+	xchg edi, eax
+	imul esi, edi, 0xa2b53f5f
+	push rax
+	cmp [rcx+rbp*4], esp
+	invalid 
+	invalid 
+	or esi, edi
+	loope 0xf83
+	outsd 
+	call 0xffffffff96f1a13f
+	invalid 
+	sti 
+	mov ecx, 0x2bb9610f
+	lahf 
+	and bh, [rbx+0x4bf49c08]
+	imul dword [rbx-0x19]
+	test al, 0x67
+	shl dword [rdx], 0x17
+	in eax, 0xfd
+	wait 
+	cmp eax, 0x816f37f
+	adc [rax], ebp
+	push dword 0x844dd8cf
+	sub al, [rcx]
+	stosb 
+	shr dword [rax+0x5a994de7], 0xd
+	mov r15d, 0x35e63e4c
+	cwde 
+	add [rdi-0xa], ch
+	sub al, 0x99
+	jle 0xf79
+	push rsi
+	cmpsb 
+	sub dword [fs:rax+0x68], 0x7ef16c89
+	xor [rsi-0x4e], dh
+	cmp al, 0xa4
+	ror byte [rsi+0x4d005502], 0x8
+	scasb 
+	mul edi
+	invalid 
+	out 0x11, al
+	or ah, [rdi+0x7ee5927a]
+	fxch4 st1
+	pop rcx
+	add al, 0x60
+	invalid 
+	xor bl, [rbx+0x35f387ce]
+	add al, [rdi+0x1c8087e3]
+	sahf 
+	sub esi, ecx
+	invalid 
+	call 0x50247e10
+	popfq 
+	pop rbp
+	int 0x92
+	rcl dword [rbp+0x19f7c430], 1
+	iretd 
+	mov [0x13a0ab169814d961], al
+	out 0x29, al
+	xchg ebx, eax
+	sub bl, [rax]
+	idiv esi
+	sub eax, 0x8fd0971c
+	push rdx
+	sbb ecx, esp
+	retf 0x3ab0
+	xor al, 0x97
+	adc [rax], edi
+	jle 0xf8d
+	adc [rbx+0x12ac2e1d], edi
+	rcl ebx, 1
+	jnp 0xfa9
+	fist dword [rdi+rsi*8+0x61]
+	ja 0xfb0
+	scasd 
+	push rax
+	mov esp, 0x4e0f5827
+	stc 
+	invalid 
+	jnp 0x1027
+	xchg esp, eax
+	push rbx
+	push rdi
+	jnz 0x105f
+	mov [0xa481572c929b4468], eax
+	mov dh, 0x56
+	xchg esi, eax
+	add cl, [rsi]
+	shr [rdx-0x75], cl
+	jno 0xfc1
+	clc 
+	invalid 
+	xchg ecx, eax
+	jmp 0x41fee261
+	invalid 
+	cmp byte [rsp+rcx], 0xd0
+	pop rax
+	jp 0x1051
+	outsd 
+	test al, 0x78
+	mov bh, 0xd3
+	out 0x69, eax
+	mov [0x315cf7d53a661122], al
+	invalid 
+	mov cl, 0xcf
+	mov [r8], ds
+	mov [0xb3b880136689ce77], al
+	or [rbx-0x132ccee7], bl
+	js 0x1035
+	jmp 0x20210c31
+	invalid 
+	cmpsd 
+	jge 0x1090
+	mov [rdi+0x6445aac3], cr1
+	test [rax+0x57], ebp
+	push rax
+	in al, 0x10
+	int3 
+	loope 0x1051
+	jns 0x1054
+	call 0xffffffff8df4850a
+	mov ah, 0x7c
+	sar dword [rdx+rax], 1
+	mov esi, 0x2ededbe8
+	rol dword [rbx+0x1d65e59b], 0x60
+	scasd 
+	mov cl, 0xe0
+	or [rcx-0x6d], rdi
+	invalid 
+	add al, 0x7c
+	invalid 
+	adc esp, 0x5101715
+	jnz 0x1089
+	sbb al, 0x4d
+	or r12b, [r10]
+	push dword 0x4c073002
+	o16 cld 
+	sbb [fs:rsi], bl
+	ja 0x103c
+	pop rbp
+	push rbp
+	retf 0xb295
+	push rsi
+	lfs edx, [rbp-0x22f7e3a7]
+	mov [rax+0xa8511d4], cl
+	invalid 
+	retf 
+	iretd 
+	invalid 
+	jmp 0x1082
+	mov [0x319a974ae3814005], eax
+	hlt 
+	push rsi
+	cwde 
+	stosb 
+	lock stosd 
+	push rsi
+	or eax, 0x5769a868
+	fnstenv [rbx+rax*2+0x3a]
+	fmul qword [rdx-0x76]
+	invalid 
+	pop rbp
+	jle 0x10a3
+	pop rbx
+	adc eax, 0x90e1b11f
+	out dx, eax
+	xchg esp, eax
+	cmpsq 
+	xchg esi, eax
+	sub edi, ebp
+	imul byte [rdi+0x90a85bb]
+	rcl ebx, 1
+	mov esi, 0x2e7eab26
+	loopnz 0x10eb
+	jae 0x1180
+	clc 
+	out 0x76, al
+	pop rax
+	loop 0x1137
+	mov [0xb52e4e13044d0fdf], al
+	fmulp st2, st0
+	fild word [rdx]
+	in eax, dx
+	loopnz 0x10ad
+	and dl, [rbp+0x28]
+	invalid 
+	cmp [rax*4-0x99ed375], dl
+	movsd 
+	lodsd 
+	cmp eax, [rdx-0x6ab441ee]
+	push rax
+	int1 
+	lodsd 
+	jo 0x110b
+	pop rsi
+	push rdx
+	mov al, ah
+	iretd 
+	push rbp
+	add eax, 0x3014be2a
+	xchg ecx, eax
+	cmp esi, [rcx+0x8]
+	ret 0x6b83
+	mov dh, 0xbe
+	insb 
+	movsxd ecx, dword [rdx]
+	and [rdi], edx
+	clc 
+	loope 0x10e3
+	rep cdq 
+	invalid 
+	jnp 0x110f
+	sbb eax, 0x9a64c8f1
+	mov bh, 0x98
+	sub [rdi-0x2617e54f], edx
+	invalid 
+	push rcx
+	mov [0x579790fbb884f280], eax
+	js 0x117e
+	repne insb 
+	rcpps xmm4, xmm7
+	fstp qword [rip+0x67acc747]
+	add edx, [rcx-0x756dfb0e]
+	invalid 
+	invalid 
+	push rbp
+	sbb [rsi+rcx*8], bh
+	popfq 
+	rcr byte [rbp-0x24], 1
+	jns 0x113f
+	adc esp, [rip+0x449f06e8]
+	mov esp, 0x81827652
+	std 
+	leave 
+	invalid 
+	invalid 
+	invalid 
+	mov ecx, 0x83ba4d00
+	cmc 
+	sbb eax, 0x4233b376
+	pop rbp
+	invalid 
+	invalid 
+	repne rcl dword [rax], 0x25
+	invalid 
+	jb 0x11db
+	test al, 0xb6
+	lodsd 
+	loope 0x11f6
+	invalid 
+	jrcxz 0x11fb
+	xlatb 
+	push rsp
+	rol dword [rdi], 0x91
+	mov cl, [rdi+0x7c227c17]
+	mov [0xfc12f1bf4ab6de35], eax
+	retf 
+	or al, 0xe5
+	and al, 0xe3
+	std 
+	mov [rdi+rsi*2-0x1653644a], cr0
+	mov eax, [0x4eeffe24f6a896cb]
+	pushfq 
+	xchg ebp, eax
+	xchg esi, eax
+	xor cl, [rbx]
+	adc dword [rdx], 0x1d
+	push 0x1b
+	out dx, eax
+	xor eax, 0xead77ae7
+	ret 
+	or [rdx], ch
+	invalid 
+	pop rdx
+	jb 0x11da
+	or bl, r15b
+	lahf 
+	call 0x7374fe67
+	or [rax+0x1e], edx
+	in eax, dx
+	jmp 0x1252
+	push dword 0x44fc27c4
+	sahf 
+	invalid 
+	int 0x97
+	invalid 
+	int1 
+	add eax, 0x2db9f27a
+	sbb rsp, rdi
+	invalid 
+	cmp eax, ebp
+	jmp 0x11e8
+	mov al, [0x15e1c01d899bd4d5]
+	mov dh, 0x2a
+	mov cl, 0x25
+	loop 0x127f
+	invalid 
+	and dword [rcx-0x76], 0xb99f8636
+	test [rcx-0x384456bd], cl
+	xor [rdi-0x3d], dl
+	sbb eax, [rax]
+	xchg [rdx], bl
+	mov [0x8436cf4ab0c392e], al
+	pop rsp
+	pop rax
+	sahf 
+	out dx, al
+	mov [0x6ea05a4fe52d324f], eax
+	xor eax, edi
+	stosd 
+	test [rdx], bh
+	shr dword [rdi], 1
+	fadd st1, st0
+	fidivr word [r13-0x2d]
+	pop rsp
+	mov ecx, ss
+	out dx, eax
+	invalid 
+	add al, 0xb6
+	jo 0x1276
+	shr word [rcx], 1
+	invalid 
+	push rbp
+	retf 0x8a07
+	neg byte [rsi+0x2e311678]
+	invalid 
+	ror dword [rdi+0x7d1712ae], 1
+	pop rbp
+	cmp al, 0xd6
+	shr byte [rcx-0x76], 0xab
+	jae 0x1317
+	adc eax, esi
+	mov bl, 0x2a
+	mov al, [0x671a6c7401efe9cf]
+	mov fs, [rsi-0x226df648]
+	add eax, [rcx+rbp*2+0x74b3d204]
+	adc [rcx+0x5874d0e7], esi
+	invalid 
+	mov dh, 0x99
+	push rsi
+	lodsd 
+	insb 
+	rep int 0xc5
+	imul esi, [rsi-0x2be7450c], 0xdc3e6aa9
+	mov al, [0x6219c9da14f5a367]
+	pushfq 
+	cmp eax, 0x3f7b46d1
+	invalid 
+	xchg ebx, eax
+	std 
+	out dx, al
+	in al, 0x2d
+	sub [rcx+rbp*4+0x3257ed1b], ecx
+	hlt 
+	retf 0x52a7
+	invalid 
+	clc 
+	jp 0x1372
+	pop rcx
+	mov ch, 0x16
+	pop rdi
+	movsd 
+	mov al, [0xd61f8da50f676f88]
+	invalid 
+	add cl, bh
+	invalid 
+	ret 
+	invalid 
+	mov edi, 0x9aa0bc93
+	fst qword [rbp-0x60]
+	xor ch, [rcx-0xc]
+	o16 jl 0x131b
+	int1 
+	jg 0x134d
+	pop rbx
+	invalid 
+	cmp al, 0x16
+	and ecx, ecx
+	push rsp
+	invalid 
+	sti 
+	mov eax, [0xf5d91b3a2e5f2e6d]
+	a32 outsd 
+	invalid 
+	fidivr word [r15+0x19a7fbfd]
+	invalid 
+	invalid 
+	in eax, 0x3a
+	invalid 
+	imul esp, [rbp-0x4dd25066], 0xf9b49a78
+	invalid 
+	popfq 
+	mov al, [0xa6e05ab6eb9452f2]
+	or [rip-0x36e0ce0f], ch
+	sbb eax, ebp
+	outsb 
+	invalid 
+	invalid 
+	mov ebx, 0xd15a3fdb
+	and ebp, ebx
+	movsb 
+	cmpsd 
+	invalid 
+	not dword [rax+rdx*8+0x469f8f3]
+	xchg [rsi], r12
+	sbb [rcx+0x6f], esi
+	pop rax
+	invalid 
+	mov fs, [rax-0x30292aa4]
+	movsxd esp, dword [rdx+0x4d]
+	mov dl, dh
+	scasd 
+	xlatb 
+	sub bl, [rax-0x322ad67b]
+	mov eax, [0x35653e659a135194]
+	pop rdi
+	out dx, eax
+	invalid 
+	invalid 
+	push rax
+	mov ss, ebp
+	insb 
+	and byte [rbp+rax*4-0x54], 0x9f
+	push rsp
+	mov esp, 0xe5950f68
+	mov al, [0xdd71f2ad9dfefe12]
+	jb 0x13ca
+	xlatb 
+	or [rbx], esp
+	invalid 
+	jp 0x1370
+	call dword far [rdx+rcx*8-0x65be806a]
+	mov esi, 0xe6ba140e
+	loope 0x135f
+	int1 
+	add dl, bl
+	shl dword [rdx], cl
+	cmp ah, bh
+	adc eax, 0x6ce8b335
+	shr cl, 1
+	fst dword [ss:rbp+0x1548eb37]
+	adc al, 0x16
+	mov dword [rsi], 0x9b74e96e
+	mov al, [0xecffe0bdd7d81053]
+	test eax, 0xf072c923
+	invalid 
+	cdq 
+	scasd 
+	push 0xa3
+	movsd 
+	jno 0x13fa
+	int1 
+	popfq 
+	ret 0x7d8
+	mov ax, 0x3b54
+	imul esp, [rcx], 0x49ee5bc3
+	pop rsp
+	and eax, 0x910ef28a
+	xchg rsi, rax
+	stc 
+	jle 0x143a
+	jmp 0x13c2
+	test [rip-0x32d0b32c], ebp
+	mov esi, 0xa806610a
+	fnstcw word [rax-0x1eddbe6b]
+	xchg edx, eax
+	cmpsd 
+	push rsi
+	sbb [rax+rdi*4], ebp
+	leave 
+	fld dword [rdx-0x5aa8bc63]
+	mov ecx, [rdi+0x582c6389]
+	test eax, 0x22d7aebd
+	js 0x1429
+	sar dword [rdx+0x4f332cec], 0xdf
+	xor cl, ah
+	mov [0xa401424c9c31a845], al
+	xor esi, esp
+	mov edx, 0x8d76fdff
+	cmp edi, [rcx+0x55843717]
+	xchg ebx, eax
+	enter 0xd9ab, 0xfc
+	rcl byte [rbp+0x3f], cl
+	adc [rdx-0x7cb0224d], eax
+	sub al, 0x3a
+	mov al, [0x75ce4221c6bb70d2]
+	pop r12
+	or [rcx-0x61], ch
+	sub bh, 0xe4
+	out 0xe3, al
+	mov ah, ah
+	cmp cl, bl
+	xchg ebp, eax
+	js 0x14e2
+	add eax, 0x647dbe38
+	sahf 
+	xchg ebx, eax
+	loope 0x14dd
+	popfq 
+	mov al, [0x3b3c3b3d7f296e05]
+	sub [rax+rdi*4], ch
+	wait 
+	xchg ebx, eax
+	and [rcx], esi
+	mov ecx, 0x26b9bfa3
+	mov ah, 0xe
+	invalid 
+	loope 0x1543
+	push rbp
+	movsb 
+	lock sbb al, 0x1a
+	jl 0x14ad
+	sub al, 0x21
+	test [rbx], dl
+	add eax, esi
+	insd 
+	cmc 
+	xor eax, 0x58f5af66
+	enter 0xa7, 0xa9
+	or dword [rdx], 0xba
+	mov ebx, 0xe87ff0ca
+	invalid 
+	pop rsi
+	imul r15, [r15+rbp], 0xe5f147d2
+	ja 0x14e1
+	and al, 0xf7
+	stosd 
+	and [rax-0x5ff04554], ah
+	push rsi
+	jnz 0x14bc
+	jz 0x1540
+	invalid 
+	mov al, [fs:0x77cac247f9978476]
+	adc eax, 0xf17e329d
+	mov ch, 0xad
+	repne fisub word [rcx]
+	mov bh, 0x95
+	scasd 
+	mov ebp, 0xe42974fa
+	shl dword [cs:rax+0x7d], 0xb5
+	invalid 
+	adc ch, [rdi-0x28]
+	in eax, dx
+	fcom qword [rcx-0x57]
+	cwde 
+	invalid 
+	push rdx
+	jg 0x1583
+	cqo 
+	invalid 
+	inc byte [rsp]
+	or ah, ch
+	invalid 
+	lea esp, [rdx]
+	mov esi, 0x22fa717f
+	lock mov dh, 0x1d
+	jb 0x14ca
+	sub eax, 0xe4721f1d
+	out dx, al
+	wait 
+	adc al, [rcx+0x7e159d2e]
+	xchg [rax+0x59], cl
+	retf 0xd5f8
+	lock mov ah, al
+	lahf 
+	mov [0x11e645a8394bf5ea], al
+	fidivr dword [rbx]
+	cmp esp, esp
+	xor al, 0x1
+	lahf 
+	pop rax
+	sbb ebp, [rcx]
+	pop rsp
+	jmp 0x15a1
+	adc [rax-0x517d3357], edi
+	mov ebx, 0x4081775a
+	push rcx
+	and dh, [rdi+0x167a0a1c]
+	invalid 
+	invalid 
+	or al, 0x84
+	cmp eax, 0x9ca782ad
+	xchg [rdx+0x2], ecx
+	add [rcx+0xda06ed7], ch
+	or [rcx+0x155f52cb], dl
+	invalid 
+	sub eax, 0x5c5c79e3
+	push rbx
+	movsxd ebp, dword [rdi+rcx*4]
+	jns 0x1558
+	mov r8, 0xea11d2a8a9a984a2
+	mov bh, [rsi]
+	xor dl, al
+	xchg [rdx], dh
+	o16 mov ah, 0xc3
+	wait 
+	add [rbx-0x4], cl
+	repne iretd 
+	xor dh, [rax]
+	outsb 
+	mov [rbx], gs
+	leave 
+	add edx, ebx
+	push r10
+	ret 
+	sub al, 0x73
+	jz 0x15c4
+	jz 0x15e1
+	imul dword [rcx-0x39bdc9f9]
+	movsd 
+	pop rdi
+	std 
+	adc eax, 0xa9a370cb
+	fdivr qword [rdi]
+	and ah, 0xe2
+	stosd 
+	invalid 
+	jg 0x15dc
+	movsb 
+	test edi, esp
+	adc dil, r11b
+	a32 jmp 0x3f9e287b
+	int3 
+	jp 0x1619
+	in eax, 0xad
+	rcr dword [rdi+0x7cc0d60a], 1
+	invalid 
+	cmc 
+	adc edx, ebp
+	mov al, dl
+	sub bh, [rbp-0x6c7934fc]
+	sbb [rcx+0x6], edi
+	adc al, 0xe4
+	invalid 
+	mov bl, 0x1e
+	rcr dword [rax-0x5b], 0x13
+	invalid 
+	and eax, 0xf37ffe65
+	push rdi
+	xchg edx, eax
+	and eax, 0x23999b38
+	rcl byte [rip+0x1181eca], 0x2f
+	cmpsb 
+	invalid 
+	std 
+	and dh, [rax-0x52]
+	or [rsi-0x2595882a], bh
+	xor esi, [rbp-0x33]
+	jno 0x1612
+	hlt 
+	clc 
+	invalid 
+	adc ah, 0xaf
+	invalid 
+	mov [0xeabb59a06ed1dcaf], al
+	push rsi
+	cmp ebx, ebp
+	fnstenv [rdx-0x6e8e7abc]
+	sbb eax, 0xc47a9a29
+	lea ebp, [rdx]
+	popfq 
+	jno 0x1626
+	in al, 0x9e
+	push rsi
+	a32 hlt 
+	invalid 
+	mov [0x1efcc893905effe7], al
+	call rsp
+	mov edx, 0xa5e99ee0
+	invalid 
+	push dword 0x67ec8548
+	pop rbp
+	cmp ah, [rdi+0x30]
+	out 0xe6, al
+	sub eax, [rsi]
+	invalid 
+	jge 0x16b3
+	clc 
+	adc byte [ds:rdx-0x1e], 0x3e
+	rep fstp qword [rdi]
+	push rcx
+	xchg esi, eax
+	test al, 0x96
+	stc 
+	jz 0x1661
+	mov esi, 0x49cfb604
+	or eax, 0x6ea9445e
+	push 0x77
+	loop 0x1662
+	invalid 
+	xchg edi, eax
+	invalid 
+	invalid 
+	invalid 
+	cmp eax, 0xce5632a8
+	xor [rdx], dl
+	xchg ebp, eax
+	xor al, 0x70
+	mul byte [rbx]
+	shl dword [rbp+0x13], 0x62
+	scasb 
+	invalid 
+	ja 0x1689
+	outsd 
+	xchg edx, eax
+	push rbx
+	out 0xd9, al
+	o16 xor bl, [rbx]
+	int1 
+	imul ebp, [rsi+0x6418118], 0xbb5f1483
+	sub edx, [rip+0x3ec270c7]
+	xor al, 0xc
+	iretd 
+	lahf 
+	invalid 
+	retf 0x474
+	jo 0x168a
+	cmp dl, [rbp+0x439b5eb5]
+	int1 
+	invalid 
+	mov dh, 0x82
+	mov dh, [rcx-0x42c7efe8]
+	nop 
+	and al, 0xda
+	ja 0x1710
+	mov al, [0x8c8dc84c074e37a2]
+	sub eax, 0x9e2cad87
+	test dword [rsi+0x5e], 0xa79f92d7
+	xor edi, [rdi+rbx*4+0x35]
+	mov ah, 0xef
+	xchg [rdi-0x74], ah
+	pop rsp
+	fisub dword [rax+0x5f7e69a0]
+	adc [rbp+0x56], ch
+	jno 0x177c
+	mov esp, 0xe148d095
+	ret 0x5abf
+	or byte [rax-0x7cbb461e], 0xa1
+	mov edx, 0x793024a1
+	out dx, al
+	add eax, 0x38760464
+	ret 0xf750
+	mov eax, [rbp+0x22334ef8]
+	invalid 
+	sbb edx, [rdx+0x62a36164]
+	pop rsi
+	retf 0x78ab
+	push rsi
+	stosb 
+	or [rdi], ebp
+	or ch, [rsi+rsi*8+0x67]
+	std 
+	jae 0x172e
+	test dword [rdi-0x76], 0x4d148686
+	sti 
+	pop rdx
+	fs lodsb 
+	cmc 
+	add [rip+0x9ad6f4f], ecx
+	hlt 
+	adc ecx, eax
+	mov bl, ch
+	invalid 
+	imul ebx, [rbx+rsi*8+0x3b], 0x27
+	loop 0x1765
+	int1 
+	or eax, 0x723b6a7b
+	pop rbp
+	call 0x61e56998
+	int3 
+	sbb edx, [rsi]
+	popfq 
+	movsb 
+	fcom dword [rdx]
+	rcr dword [rbp-0x1babaa55], cl
+	test ebp, 0x9be65a09
+	adc [rdx], eax
+	out dx, al
+	ficom word [rbp+0x36]
+	imul ebp
+	invalid 
+	mov esi, 0x422b9112
+	or edx, eax
+	xchg [rsi+0x5571090b], bl
+	invalid 
+	outsb 
+	jg 0x17f2
+	cmpsd 
+	mov esp, 0x3fb40b93
+	cmpsd 
+	xchg esp, eax
+	movsb 
+	mov esp, 0xdac30464
+	rep pushfq 
+	or al, 0x20
+	mov esi, 0x2a8c97b2
+	imul edx, esp, 0xbb0ca76e
+	js 0x17b6
+	jz 0x17eb
+	jmp dword far [rcx-0xa]
+	mov eax, [0x9d9f7676a1397eef]
+	mov [0xa095e9a85b35f5c8], eax
+	test eax, 0xc8bd7b3e
+	mov [0x85ab25798d841f77], eax
+	or eax, [rbx]
+	lodsd 
+	sub [rcx-0x6f667f15], edx
+	imul esp, [rip-0x6ca30574], 0xc4
+	ret 
+	insb 
+	xor ch, [rdi]
+	retf 0xd0d4
+	nop 
+	mov esi, 0x856de28d
+	sahf 
+	movsxd esp, dword [rsi-0x5ef00d55]
+	invalid 
+	mov cl, 0x0
+	adc al, 0x6c
+	retf 
+	invalid 
+	invalid 
+	push 0xe6
+	jb 0x183d
+	jmp 0x180e
+	sar al, 0xef
+	loopnz 0x17e6
+	or eax, ebp
+	int3 
+	dec byte [rbx-0x2d]
+	stosb 
+	wait 
+	sub [rdi-0xf51f6de], dl
+	xor eax, 0x4a765e6
+	insd 
+	pop rax
+	xchg ebp, eax
+	pushfq 
+	pop rbp
+	and eax, 0xdc381f2
+	shl esp, 0x76
+	push rax
+	or [rip-0x5726b0b2], cl
+	scasb 
+	cmp al, 0x68
+	pop rsp
+	scasd 
+	add [rip+0x737676eb], dh
+	adc [rbp+0xf4a7402], bl
+	mov al, 0xde
+	out 0x4d, eax
+	mov ebx, [rdx+0xa5c12fe]
+	jae 0x18f9
+	sahf 
+	xlatb 
+	scasb 
+	hlt 
+	mov ecx, 0x457d4b74
+	out dx, al
+	jns 0x18eb
+	cmc 
+	movsxd edi, dword [rdi]
+	sbb eax, 0x20250ec9
+	xchg ecx, eax
+	mov edi, 0x43b176c7
+	iretd 
+	invalid 
+	invalid 
+	out 0x9c, al
+	std 
+	pop rsp
+	xor al, 0x91
+	push rbx
+	shr [rax], cl
+	mov [0x470aec75f35bbb75], eax
+	xor esp, edi
+	invalid 
+	rol eax, cl
+	test [rbx+0x3f], dl
+	push rdi
+	and eax, 0x32b2babb
+	push rsi
+	out 0x5e, eax
+	jo 0x1932
+	outsd 
+	stc 
+	push rsi
+	loop 0x18e2
+	sub [rdx-0x1228c2fe], eax
+	and [rax+0x4f821eb9], edi
+	xchg edx, eax
+	invalid 
+	jp 0x18f2
+	invalid 
+	jnz 0x1910
+	rol byte [rdx-0x6bac1aca], 0x4f
+	jae 0x18e3
+	xchg ebx, eax
+	pop rdi
+	out 0x95, eax
+	invalid 
+	nop 
+	ret 0x476e
+	iretd 
+	sar dword [rdx-0x78b760dd], cl
+	invalid 
+	test [rax+0x5fc8a2c2], bh
+	pop rdi
+	out dx, al
+	jno 0x18b4
+	and al, 0xa1
+	xchg edx, eax
+	invalid 
+	xchg ebx, eax
+	wait 
+	jz 0x197a
+	fild dword [rcx+0xc009371]
+	sub ecx, [rax+0x7979f270]
+	mov edi, ecx
+	invalid 
+	mov [rax+0x5cc0975], cs
+	sti 
+	mov ecx, 0x1dcf877a
+	fild word [rbp-0x6d]
+	in al, 0xb7
+	clc 
+	push rax
+	xor ecx, [0x410073a]
+	rcl dword [rdx-0x5331545a], cl
+	pop rsi
+	jnp 0x19a4
+	push dword 0x80472ab8
+	adc [rcx-0x3ebc4fc2], dh
+	pop rax
+	push rsp
+	push dword 0x6d340323
+	out dx, al
+	mov esp, 0x1c36e32
+	xor ebp, [rdi+0xe]
+	mov esi, 0x4c42f9c7
+	xor eax, 0xd6340960
+	invalid 
+	pop rsp
+	add [rbx+rcx*8], ecx
+	cmp eax, 0x32b1191a
+	sbb r10b, [rax+0x4537a12c]
+	cwde 
+	mov ecx, 0xc38677a
+	cmp [rax+0x61fcb9a5], dh
+	sbb [rsi-0x5cdc8b98], ebx
+	cmp eax, [rdx+0x4e]
+	jz 0x19f0
+	loop 0x195c
+	cmp bh, [rip+0x480f5d21]
+	add cl, [rcx+rbp*4-0x1d]
+	invalid 
+	mov cl, cl
+	mov [rsp+rbx-0x298651cb], ecx
+	in eax, dx
+	xor [rbx+0x2f], ch
+	invalid 
+	invalid 
+	test [rsi-0x5db17f2e], bh
+	outsd 
+	stosb 
+	add [fs:rax], dl
+	stosb 
+	jno 0x19a1
+	movsxd ecx, dword [rsi+0x57]
+	invalid 
+	mov al, 0xd4
+	sub edi, eax
+	retf 0x3e58
+	cmp [rsi-0x1e], edx
+	sti 
+	outsb 
+	xchg esp, eax
+	loope 0x1a4d
+	jp 0x1a3b
+	invalid 
+	sbb al, 0xf
+	invalid 
+	invalid 
+	retf 0xbf6c
+	mov dh, al
+	mov ebx, [rbp+0x30fd636f]
+	pop rbp
+	xor bh, cl
+	mov [rdx-0x6d], ch
+	xchg ecx, eax
+	sti 
+	sar dword [rcx+0x40], cl
+	mov ebx, 0x1a7e9f97
+	a32 sti 
+	add [rsi], al
+	pop rbp
+	fcmovb st0, st2
+	shl dword [rdx-0x34], 1
+	push rdx
+	push rdi
+	push rsi
+	push rsi
+	jmp qword near [rdx+rsi+0x78110a68]
+	sbb ebx, eax
+	ror byte [rdi-0x38], 1
+	shl dword [rbx], cl
+	call dword far [rcx+rdx*2-0x41f3f709]
+	cmp byte [rbx*4-0x6d860638], 0x49
+	jo 0x1a4f
+	lodsb 
+	or al, 0xca
+	invalid 
+	stosb 
+	jg 0x1aaa
+	pushfq 
+	invalid 
+	test [rsi+0x43], cl
+	neg dword [r11+rbp*8+0x4]
+	stosd 
+	mov esp, 0x40475c82
+	insd 
+	or [rax+rdx*8-0x2b65d9a4], al
+	invalid 
+	invalid 
+	xchg ecx, eax
+	pop rsi
+	nop 
+	pop rsp
+	cmp [rsi-0x38159f6b], ah
+	fcmovb st0, st1
+	xchg ecx, eax
+	pop rcx
+	pushfq 
+	o16 cmc 
+	call 0xffffffff8ce66f4d
+	mov r11b, 0xc9
+	invalid 
+	jo 0x1ac9
+	fcomi st0, st5
+	repne outsb 
+	invalid 
+	or bh, [rax+0x39]
+	sub ah, [rax]
+	mov dl, 0xb3
+	sub al, 0x98
+	push rdx
+	mov [rax+0xe], ah
+	shl [rdi+0x6eb5866c], cl
+	js 0x1aab
+	movsb 
+	xchg esp, eax
+	cmp al, 0x46
+	mov eax, [0xb8fbde058568d8a4]
+	invalid 
+	mov al, 0xa
+	jo 0x1b05
+	xor ebx, esp
+	invalid 
+	js 0x1a86
+	nop 
+	pushfq 
+	jnz 0x1ae9
+	push rsi
+	retf 0x694b
+	rcl byte [rdx-0x56], cl
+	out dx, al
+	scasd 
+	invalid 
+	jg 0x1ab8
+	sahf 
+	imul edx, [rax+0x6ddee1d1], 0xbec11bee
+	sbb [rdi+0x39], bh
+	mov al, [0x40299b4e984c8f12]
+	mov eax, 0x13aa826
+	mov bl, 0x79
+	ja 0x1a9d
+	cwde 
+	jmp 0xfffffffff3e40cd7
+	mov edx, 0x31d63c22
+	invalid 
+	adc al, 0x17
+	jz 0x1b23
+	mov ebx, 0xc379989d
+	fmul dword [rdi]
+	mov [rbx-0x35], edx
+	jle 0x1ac1
+	lodsd 
+	invalid 
+	iretd 
+	mov [rdx+0x781582cd], ch
+	or edi, [rdx]
+	add dword [ds:rdx+rcx-0x4dba991f], 0x4e
+	add dl, [rax-0x30031a9b]
+	invalid 
+	jae 0x1ad4
+	invalid 
+	imul ebx, [rbx], 0xb2
+	out 0x5d, al
+	xchg [rbx-0x217febf0], bh
+	int1 
+	cmp al, 0x91
+	mov edx, [rcx+0x46]
+	sbb al, 0x68
+	outsb 
+	adc al, 0x91
+	mov al, 0x9
+	jmp 0xfffffffff0b2372c
+	call qword near [rdx]
+	add eax, 0x1b448cbb
+	invalid 
+	mov ch, 0x79
+	out 0xca, eax
+	mov edx, 0x8ab07a67
+	invalid 
+	push rcx
+	shr edi, 0xb7
+	xor [rbx], edx
+	pop rsp
+	mov cr1, eax
+	shl dword [rcx-0x79b01cfc], cl
+	and [rip+0x5e540579], ebx
+	out 0xe2, eax
+	xor dh, [rsi+0x7a]
+	add al, 0xa3
+	invalid 
+	out 0x50, al
+	std 
+	invalid 
+	xchg [cs:rcx-0x1fdc4003], bh
+	add [rbp+0x13c88cdb], ch
+	fnstenv [rcx-0x694abe77]
+	sbb ah, cl
+	xchg edi, eax
+	adc cl, ch
+	in al, 0x61
+	jrcxz 0x1b3f
+	movsd 
+	mov edi, 0xfba7b96
+	xchg ebp, eax
+	and rax, 0xf98baabd
+	fidivr word [rbx-0x65]
+	adc [rbx-0x509d2ad6], cl
+	invalid 
+	js 0x1b68
+	test al, 0x15
+	sti 
+	stosb 
+	or dh, ch
+	fldenv [rip-0x7abb7547]
+	in al, dx
+	add bh, [rbx+0x665b4789]
+	mov [rdi], dh
+	mov esi, 0xa21f773b
+	sbb eax, [rbx-0xb]
+	invalid 
+	invalid 
+	push rsi
+	cmp eax, 0x68b484b6
+	pop rsi
+	cmp al, 0x52
+	sbb bl, [rbx+0x3a]
+	mov esp, 0xaed65363
+	mov eax, 0x5e63d139
+	mov dh, 0xe9
+	outsb 
+	repne sbb [rax], cx
+	scasd 
+	invalid 
+	adc dword [rbp-0x7ba8b8f0], 0x48c539c1
+	hlt 
+	repne xchg [rsi+rax*2-0x54], bl
+	or eax, 0xd8650c5e
+	jnz 0x1bd7
+	cmp bl, bh
+	or [rcx-0x28], ecx
+	ret 0xd22c
+	invalid 
+	pop rdi
+	scasb 
+	xchg [rbp+0x7], ecx
+	invalid 
+	movsb 
+	ret 
+	jl 0x1bde
+	pop rdx
+	std 
+	mov ebp, 0xab4c7bf4
+	invalid 
+	xor al, 0x7a
+	ret 0xf29c
+	invalid 
+	sub [rsi+0x6687ba93], esp
+	push rsp
+	mov dl, 0xbb
+	fldenv [rsi]
+	sbb al, 0xa1
+	fstp tword [rbp-0xa682773]
+	cmpsd 
+	mov al, 0x3f
+	in al, dx
+	cli 
+	xchg esp, eax
+	mov edi, 0xb30543cb
+	pop rbx
+	rcr dword [rbx+0x30], 0x67
+	sub dh, [rbp+0x1d]
+	pop rdi
+	test [rbx+0x6e], ch
+	xchg [rbx+0x657aa8b5], r12d
+	invalid 
+	and byte [rcx+0x703156eb], 0xb5
+	sbb ch, [rip+0x16860c65]
+	cmp [rax-0x1d], edx
+	mov es, [rdx+0x25cbccdb]
+	xor [ss:rax+0x2c97cfd0], esp
+	cmc 
+	loop 0x1c87
+	loopnz 0x1c57
+	jnp 0x1c40
+	invalid 
+	neg dword [rbx+0x156d414b]
+	nop 
+	invalid 
+	loopnz 0x1bfc
+	movsb 
+	invalid 
+	pop rbp
+	out 0x5c, eax
+	invalid 
+	invalid 
+	push rdi
+	adc edi, edx
+	sbb eax, [rbp-0x72ccc8fc]
+	mov es, edx
+	int 0x30
+	outsd 
+	mov eax, [0x750e2be16de489de]
+	int3 
+	invalid 
+	jge 0x1c94
+	add eax, 0x3dba2e6
+	cmp dh, ch
+	mov rdi, 0x77705d6d63c90f79
+	nop [rdi+0x65]
+	jz 0x1cdc
+	adc cl, ah
+	invalid 
+	invalid 
+	mov [0x19d6cf93d7b4ab26], al
+	invalid 
+	in al, 0x2c
+	pop rcx
+	pop rbx
+	rep insd 
+	scasd 
+	invalid 
+	invalid 
+	mov ebp, 0xc6c9b707
+	jp 0x1c6b
+	xlatb 
+	out dx, eax
+	retf 
+	and al, 0x70
+	push rbp
+	invalid 
+	pop rdi
+	cmp eax, 0x67917e82
+	or esp, ebx
+	retf 
+	in al, 0x3a
+	jno 0x1d19
+	cmp [rcx-0x47], bh
+	in al, 0x35
+	mov eax, 0x5264b9bd
+	push rsp
+	jo 0x1d1e
+	mov spl, 0x89
+	rol dword [rax-0x65], cl
+	in eax, 0x2d
+	mov ah, 0x36
+	invalid 
+	sti 
+	push rdx
+	invalid 
+	shr byte [rsp+rcx-0x3b24763], 0xb
+	invalid 
+	sbb dl, [rdi-0x4c0e59c9]
+	xor al, 0x89
+	int 0x35
+	sahf 
+	out 0x81, eax
+	invalid 
+	lock sti 
+	xchg ecx, eax
+	retf 
+	invalid 
+	in al, dx
+	jmp 0xffffffffdbe510b0
+	push rcx
+	jno 0x1cd3
+	fldcw word [rsi+0x12d2c7bf]
+	bswap eax
+	mov edi, 0xd7354899
+	invalid 
+	mov edi, 0xb0641f98
+	pop rbx
+	invalid 
+	ror byte [rsi], 0xed
+	or ebx, esi
+	fdivr dword [rdi+0x25]
+	xchg [rcx+rax*8-0x47], al
+	sub [rip-0x3218f81], ecx
+	jae 0x1d67
+	jae 0x1d5c
+	wait 
+	cmpsd 
+	invalid 
+	mov edx, 0x8dbce596
+	jle 0x1d8a
+	iretd 
+	std 
+	lodsb 
+	sbb [rdx+0x206cc62b], ebp
+	invalid 
+	pushfq 
+	jmp 0x1d3e
+	invalid 
+	invalid 
+	mov edi, 0x82cd3871
+	mov edx, 0xb24f9fa6
+	sbb dword [rdi+0x3d7a8375], 0x7f3dbb4b
+	lea esi, [rbx+0xb]
+	sub al, 0x7b
+	o16 ja 0x1dc3
+	sar edi, 0xf
+	cdq 
+	cwde 
+	mov eax, [0x4902a7b6776c0b6c]
+	jle 0x1dee
+	mov ch, [rax]
+	and edx, esi
+	scasb 
+	fcom2 st7
+	fstp qword [rax+rdx*8]
+	lodsb 
+	push rsp
+	jnz 0x1d35
+	out dx, al
+	wait 
+	adc ch, [rbx+0x56d5937d]
+	test eax, 0x54713fe4
+	loopnz 0x1d6b
+	xor eax, [rbp+0x72fd7a5e]
+	jmp 0x1dc4
+	in al, 0xfd
+	invalid 
+	a32 mov eax, 0x3c9c07ca
+	invalid 
+	fisttp qword [rcx-0x3d]
+	and bl, al
+	mov ebx, gs
+	xor [rdi], esi
+	invalid 
+	push rcx
+	cdq 
+	mov dl, 0x83
+	int1 
+	ret 0xb54
+	out dx, al
+	cmp al, 0x92
+	xchg esi, eax
+	sbb dh, cl
+	mov ebx, [rdx-0x49]
+	invalid 
+	xlatb 
+	lodsb 
+	imul ebp, [rax-0x5a6bfcd5], 0x18
+	nop 
+	int1 
+	loopnz 0x1df9
+	mov r9b, 0x1a
+	mov ch, al
+	jae 0x1df6
+	push rdi
+	sub al, 0xe4
+	or ah, bl
+	xchg ebx, eax
+	invalid 
+	fsub qword [rdx-0x46]
+	out 0xd4, al
+	xor al, ah
+	int3 
+	jp 0x1e4e
+	and ecx, esi
+	call 0x31131af9
+	pop rdx
+	outsd 
+	invalid 
+	or [rax+0x4b45f86], edx
+	cmp [rbx-0x13], al
+	ja 0x1e05
+	pop rsp
+	jbe 0x1e31
+	jge 0x1e1a
+	enter 0x1445, 0xe4
+	invalid 
+	jl 0x1dd4
+	pop rsi
+	nop 
+	jle 0x1e76
+	invalid 
+	ja 0x1ea5
+	ja 0x1e29
+	or [rbx], ecx
+	invalid 
+	movsd 
+	xor dl, al
+	add byte [rdi], 0x83
+	repne jmp 0x1dc9
+	jmp 0xffffffffe25d2049
+	mov edx, [rdx+0x25]
+	mov dl, 0xfe
+	pop rsi
+	int1 
+	test ebp, edi
+	jmp 0x1e47
+	movsd 
+	mov edi, 0x3acb210b
+	jo 0x1e45
+	mov ah, 0x1d
+	and [rax+rdx+0x37], bh
+	out dx, al
+	invalid 

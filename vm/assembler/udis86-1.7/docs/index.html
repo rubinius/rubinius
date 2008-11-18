@@ -1,0 +1,84 @@
+<html>
+<head>
+<title>Udis86 - Disassembler Library for x86 and AMD64 (x86-64)</title>
+<style type="text/css">@import 'style.css';</style>
+</head>
+<body>
+<div id="topbar"><h1>Udis86 - Disassembler Library for x86 and AMD64</h1></div>
+
+<div id="wrapper">
+
+<div id="content">
+
+<div>
+  <big>
+  <a href="udis86.pdf">Documentation</a> &middot; 
+  <a href="x86optable.xml">XML Optable</a> &middot;
+  <a href="#help">Help!</a> &middot;
+  <a href="#author">Author</a> &middot;
+  <a href="http://udis86.cvs.sourceforge.net/udis86/ud/CHANGES?view=markup&pathrev=HEAD">Changes</a> &middot;
+  <a href="http://sourceforge.net/projects/udis86">SF Project Page</a>
+  </big>
+</div>
+
+
+<p>Udis86 is an easy-to-use minimalistic disassembler library (<i>libudis86</i>) 
+for the x86 and AMD64 (x86-64) range of instruction set architectures. The primary
+intent of the design and development of udis86 is to aid software development 
+projects that entail binary code analysis.</p>
+
+<div class="box">
+  <big>Latest Release: <a href="http://prdownloads.sourceforge.net/udis86/udis86-1.7.tar.gz?download">udis86-1.7.tar.gz</a></big>
+</div>
+
+<h2>libudis86</h2>
+	<ol>
+	<li>Full support for the <i>x86 and x86-64 (AMD64)</i> range of instruction set
+	architectures.</li>
+	<li>Full support  for all <i> AMD-V, INTEL-VMX, MMX, SSE, SSE2, SSE3, FPU(x87), and 
+	AMD 3Dnow! </i>	instructions.</li>
+	<li>Supports 16bit, 32bit, and 64bit disassembly modes.</li>
+	<li>Supports instruction meta-data using XML based decode tables.</li>
+	<li>Generates output in <i>AT&T</i> or <i>INTEL</i> assembler language syntaxes.</li>
+	<li>Supports flexbile input methods: File, Buffer, and Hooks.</li>
+	<li>Thread-safe and Reentrant.</li>
+	<li>Clean and very easy-to-use API.</li>
+	</ol>
+
+<h2>udcli</h2>
+
+	A front-end incarnation of this library, udcli is a small command-line tool 
+	for your quick disassembly needs. 
+	<br/>
+	<div style="text-align:center; padding: 1em;">
+	<img src="ss.jpg" style="border: 1px double; padding: 2px;"/>
+	</div>
+
+<a name="help"></a>
+<h2>Help Needed</h2>
+
+	I am looking for developers who can help me with udis86 in the following 
+	areas,
+
+	<ul>
+	<li>Maintenance of the build system (especially for Windows)</li>
+	<li>Maintenance of the x86optable (adding new instructions, meta-data, etc.)</li>
+	<li>Testing udis86</li>
+	<li>Writing extensions for dynamic languages.</li>
+	</ul>
+
+	If you are interested, let me know at vivekATsig9DOTcom.
+
+<a name="author"></a>
+<h2>Author</h2>
+
+<p>Udis86 is a creation of <a href="http://sig9.com/vivek/">Vivek Mohan</a>.
+You can reach me at <i>vivek[at]sig9[dot]com</i>. Please let me know if you are
+using udis86, have ideas for it, or would like to comment on it.</p>
+
+
+<div style="text-align:center"><small>&copy; 2006, 2007, 2008 Vivek Mohan</small></div>
+</div>
+</div>
+</body>
+</html>

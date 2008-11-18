@@ -1,0 +1,10 @@
+	shl esi, 1
+	shl dh, 1
+	fstp1 st1
+	fcom2 st0
+	fcomp3 st0
+	fxch4 st0
+	fcomp5 st1
+	ffreep st3
+	fstp8 st0
+	fstp9 st0
