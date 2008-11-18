@@ -79,7 +79,11 @@ namespace rubinius {
     }
 
     for(size_t src = olend, dst = lend; src < (size_t)(olend + olength); ++src, ++dst) {
-      this->put(state, dst, other->at(state,src));
+      // Since we have carefully checked the bounds we don't need to do it in at/put
+      Object *obj = other->field[src];
+      this->field[dst] = obj;
+      // but this is necessary to keep the GC happy
+      if(obj->reference_p()) write_barrier(state, obj);
     }
 
     return this;
