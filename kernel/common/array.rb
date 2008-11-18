@@ -54,30 +54,24 @@ class Array
       if args.size == 1 and (args.first.__kind_of__ Array or args.first.respond_to? :to_ary)
         ary = Type.coerce_to args.first, Array, :to_ary
 
-        tuple = Tuple.new(ary.size + 10)
+        @tuple = ary.tuple.dup
+        @start = ary.start
         @total = ary.size
-        tuple.copy_from ary.tuple, ary.start, ary.size, 0
-        @tuple = tuple
       else
         count = Type.coerce_to args.first, Fixnum, :to_int
         raise ArgumentError, "Size must be positive" if count < 0
         obj = args[1]
 
-        @tuple = Tuple.new(count + 10)
         @total = count
-
         if block_given?
+          @tuple = Tuple.new(count)
           i = 0
           while i < count
             @tuple.put i, yield(i)
             i += 1
-          end          
-        else
-          i = 0
-          while i < count
-            @tuple.put i, obj
-            i += 1
           end
+        else
+          @tuple = Tuple.pattern(count, obj) 
         end
       end
     end
