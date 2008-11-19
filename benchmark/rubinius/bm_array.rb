@@ -30,6 +30,18 @@ Benchmark.bmbm do |x|
     end
   end
 
+  x.report 'Array#hash' do
+    total.times do |i|
+      array_of_arrays[i].hash
+    end
+  end
+
+#   x.report 'Array#hash(portion)' do
+#     total.times do
+#       portion.hash
+#     end
+#   end
+  
   x.report 'Array#dup' do
     total.times do |i|
       array_of_arrays[i].dup
@@ -96,8 +108,10 @@ Benchmark.bmbm do |x|
   end
 
   x.report 'Array#==' do
+    a = Array.new(total/10,0)
+    b = Array.new(total/10,0)
     total.times do |i|
-      Array.new(i,0) == Array.new(i,0)
+       a == b
     end
   end
 
