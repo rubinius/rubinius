@@ -7,7 +7,7 @@ array_of_arrays = Array.new(total) do |i|
   Array.new(i%100+10) {|j| j % 100 }
 end
 
-portion = array_of_arrays.first(total/2)
+portion = array_of_arrays.first(total/4)
 
 Benchmark.bmbm do |x|
   x.report 'empty N' do
@@ -36,11 +36,9 @@ Benchmark.bmbm do |x|
     end
   end
 
-#   x.report 'Array#hash(portion)' do
-#     total.times do
-#       portion.hash
-#     end
-#   end
+  x.report 'Array#hash(portion)' do
+    portion.hash
+  end
   
   x.report 'Array#dup' do
     total.times do |i|
@@ -211,7 +209,7 @@ Benchmark.bmbm do |x|
     end
   end
 
-  x.report 'Array#join(arrays)' do
+  x.report 'Array#join(portion)' do
     portion.join
   end
 end
