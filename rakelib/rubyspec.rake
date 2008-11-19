@@ -22,7 +22,14 @@ namespace :rubyspec do
     end
   end
 
-  desc "Commit changes to rubyspec sources"
+  desc "Report changes to the rubyspec sources"
+  task :status do
+    Dir.chdir spec_ruby do
+      system "git status"
+    end
+  end
+
+  desc "Commit changes to the rubyspec sources"
   task :commit do
     puts "\nCommitting changes to rubyspec sources..."
     Dir.chdir spec_ruby do
