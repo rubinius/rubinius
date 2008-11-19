@@ -209,6 +209,10 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Fixnum::from(-1)->hash(state), Fixnum::from(-1)->hash(state));
     TS_ASSERT(Fixnum::from(-1)->hash(state) > 0);
 
+    TS_ASSERT_DIFFERS(Fixnum::from(1)->hash(state), Fixnum::from(2)->hash(state));
+    TS_ASSERT_DIFFERS(Fixnum::from(-1)->hash(state), Fixnum::from(1)->hash(state));
+    TS_ASSERT_DIFFERS(Fixnum::from(-2)->hash(state), Fixnum::from(-1)->hash(state));
+
     TS_ASSERT_EQUALS(Bignum::from(state, (native_int)13)->hash(state), Bignum::from(state, (native_int)13)->hash(state));
     TS_ASSERT(Bignum::from(state, (native_int)13)->hash(state) > 0);
 
@@ -337,7 +341,11 @@ class TestObject : public CxxTest::TestSuite {
 
     Integer* id4 = Fixnum::from(33)->id(state);
     TS_ASSERT_EQUALS(id3, id4);
-    TS_ASSERT(id4->to_native() % 2 != 0);
+    TS_ASSERT(id4->to_native() % 2 == 1);
+
+    Integer* id5 = Fixnum::from(34)->id(state);
+    TS_ASSERT_DIFFERS(id4, id5);
+    TS_ASSERT(id5->to_native() % 2 == 1);
   }
 
   void test_infect() {

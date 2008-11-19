@@ -195,32 +195,24 @@ namespace rubinius {
   }
 
   hashval Object::hash(STATE) {
-    hashval hsh;
-    hsh = (hashval)(uintptr_t)this;
-
     if(!reference_p()) {
-      /* Get rid of the tag part (i.e. the part that indicate nature of self */
       if(fixnum_p()) {
-        native_int val = as<Integer>(this)->to_native();
-        /* We do this so the 2's complement will fit into 29 bits properly. */
-        if(val < 0) {
-          hsh = hsh >> 1;
-        }
+	/* Get rid of the tag part (i.e. the part that indicate nature of self */
+	return (as<Fixnum>(this)->to_native() << 1) | 1;
+      } else {
+	return (hashval)(uintptr_t)this >> 2;
       }
-      hsh = hsh >> 2;
     } else {
       if(String* string = try_as<String>(this)) {
-        hsh = string->hash_string(state);
+        return string->hash_string(state);
       } else if(Bignum* bignum = try_as<Bignum>(this)) {
-        hsh = bignum->hash_bignum(state);
+        return bignum->hash_bignum(state);
       } else if(Float* flt = try_as<Float>(this)) {
-        hsh = String::hash_str((unsigned char *)(&(flt->val)), sizeof(double));
+        return String::hash_str((unsigned char *)(&(flt->val)), sizeof(double));
       } else {
-        hsh = id(state)->to_native();
+        return id(state)->to_native();
       }
     }
-
-    return hsh;
   }
 
   Integer* Object::hash_prim(STATE) {
