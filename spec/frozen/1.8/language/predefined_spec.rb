@@ -132,6 +132,16 @@ describe "Predefined globals $1..N" do
 
     [$1, $2, $3, $4].should == ['f', 'o', 'o', nil]
   end
+
+  it "are nil unless a match group occurs" do
+    def test(arg)
+      case arg
+      when /-(.)?/
+        $1
+      end
+    end
+    test("-").should == nil
+  end
 end
 
 describe "Predefined global $stdout" do
@@ -307,7 +317,35 @@ $VERBOSE         Object          Set to true if the -v, --version, -W, or -w opt
 $-v              Object          Synonym for $VERBOSE. 
 $-w              Object          Synonym for $VERBOSE. 
 =end
+describe "Execution variable $:" do
+  it "is initialized to an array of strings" do
+    $:.is_a?(Array).should == true
+    ($:.length > 0).should == true
+  end
 
+  it "includes the current directory" do
+    $:.should include(".")
+  end
+
+  it "does not include on the taint check level > 1" do
+    begin
+      orig_opts, ENV['RUBYOPT'] = ENV['RUBYOPT'], '-T'
+      `#{RUBY_EXE} -e 'p $:.include?(".")'`.should == "false\n"
+    ensure
+      ENV['RUBYOPT'] = orig_opts
+    end
+  end
+
+  it "is the same object as $LOAD_PATH and $-I" do
+    $:.__id__.should == $LOAD_PATH.__id__
+    $:.__id__.should == $-I.__id__
+  end
+  
+  it "can be changed via <<" do
+    $: << "foo"
+    $:.should include("foo")
+  end
+end
 =begin
 Standard Objects 
 ---------------------------------------------------------------------------------------------------
@@ -404,20 +442,14 @@ TRUE                 TrueClass   Synonym for true.
 
 describe "The predefined global constants" do
   it "includes DATA when main script contains __END__" do
-    ruby = IO.popen(RUBY_NAME, "w+")
-    ruby.puts(
-      "puts Object.const_defined?(:DATA)",
-      "__END__"
-    )
-    ruby.close_write
-    ruby.gets.chomp.should == 'true'
+    ruby_exe(<<-EOF).chomp.should == 'true'
+    puts Object.const_defined?(:DATA)
+    __END__
+    EOF
   end
 
   it "does not include DATA when main script contains no __END__" do
-    ruby = IO.popen(RUBY_NAME, "w+")
-    ruby.puts("puts Object.const_defined?(:DATA)")
-    ruby.close_write
-    ruby.gets.chomp.should == 'false'
+    ruby_exe("puts Object.const_defined?(:DATA)").chomp.should == 'false'
   end
 
   it "includes TRUE" do
