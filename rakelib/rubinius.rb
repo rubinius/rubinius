@@ -36,7 +36,7 @@ end
 def rbx(*args)
   clear_compiler
 
-  sh('shotgun/rubinius', *args)
+  sh('bin/rbx', *args)
 end
 
 def newer?(file, cmp)
@@ -71,9 +71,9 @@ def compile(name, output=nil, check_mtime=false)
   if ENV['SYSTEM']
     sh "rbx compile -f #{flags} #{name} #{output}", :verbose => $verbose
   elsif ENV['GDB']
-    sh "shotgun/rubinius --gdb #{inc} compile #{flags} #{name} #{output}", :verbose => $verbose
+    sh "bin/rbx --gdb #{inc} compile #{flags} #{name} #{output}", :verbose => $verbose
   elsif ENV['NATIVE']
-    sh "shotgun/rubinius #{inc} compile #{flags} #{name} #{output}", :verbose => $verbose
+    sh "bin/rbx #{inc} compile #{flags} #{name} #{output}", :verbose => $verbose
   else
     ruby "lib/compiler/mri_compile.rb #{flags} #{name} #{output}"
   end

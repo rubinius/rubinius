@@ -30,7 +30,7 @@ if [[ $? -ne 0 ]]; then
 fi
 	
 # version and stuff
-./shotgun/rubinius -v -e 'true' &>ci_log
+./bin/rbx -v -e 'true' &>ci_log
 # a bit of a workaround because ci_log can exec
 ./bin/ci -f m &>>ci_log
 
