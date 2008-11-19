@@ -1,48 +1,58 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'net/ftp'
+require File.dirname(__FILE__) + "/fixtures/server"
 
 describe "Net::FTP#acct" do
   before(:each) do
-    @socket = mock("Socket")
-    @socket.stub!(:write)
-    @socket.stub!(:readline).and_return("226 Success")
+    @server = NetFTPSpecs::DummyFTP.new
+    @server.serve_once
 
     @ftp = Net::FTP.new
-    @ftp.instance_variable_set(:@sock, @socket)
+    @ftp.connect("localhost", 9921)
   end
 
-  it "writes the ACCT command to the socket" do
-    @socket.should_receive(:write).with("ACCT my_account\r\n")
+  after(:each) do
+    @ftp.quit rescue nil
+    @ftp.close
+    @server.stop
+  end
+
+  it "writes the ACCT command to the server" do
     @ftp.acct("my_account")
+    @ftp.last_response.should == "230 User 'my_account' logged in, proceed. (ACCT)\n"
+  end
+  
+  it "returns nil" do
+    @ftp.acct("my_account").should == nil
   end
   
   it "does not raise any error when the response code is 230" do
-    @socket.should_receive(:readline).and_return("230 User logged in, proceed.")
-    @ftp.acct("my_account")
+    @server.should_receive(:acct).and_respond("230 User logged in, proceed.")
+    lambda { @ftp.acct("my_account") }.should_not raise_error
   end
   
   it "raises a Net::FTPPermError when the response code is 530" do
-    @socket.should_receive(:readline).and_return("530 Not logged in.")
+    @server.should_receive(:acct).and_respond("530 Not logged in.")
     lambda { @ftp.acct("my_account") }.should raise_error(Net::FTPPermError)
   end
-
+  
   it "raises a Net::FTPPermError when the response code is 500" do
-    @socket.should_receive(:readline).and_return("500 Syntax error, command unrecognized.")
+    @server.should_receive(:acct).and_respond("500 Syntax error, command unrecognized.")
     lambda { @ftp.acct("my_account") }.should raise_error(Net::FTPPermError)
   end
   
   it "raises a Net::FTPPermError when the response code is 501" do
-    @socket.should_receive(:readline).and_return("501 Syntax error in parameters or arguments.")
+    @server.should_receive(:acct).and_respond("501 Syntax error in parameters or arguments.")
     lambda { @ftp.acct("my_account") }.should raise_error(Net::FTPPermError)
   end
-
+  
   it "raises a Net::FTPPermError when the response code is 503" do
-    @socket.should_receive(:readline).and_return("503 Bad sequence of commands.")
+    @server.should_receive(:acct).and_respond("503 Bad sequence of commands.")
     lambda { @ftp.acct("my_account") }.should raise_error(Net::FTPPermError)
   end
-
+  
   it "raises a Net::FTPTempError when the response code is 421" do
-    @socket.should_receive(:readline).and_return("421 Service not available, closing control connection.")
+    @server.should_receive(:acct).and_respond("421 Service not available, closing control connection.")
     lambda { @ftp.acct("my_account") }.should raise_error(Net::FTPTempError)
   end
 end

@@ -3,10 +3,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'resolv'
 
 describe "Resolv#getnames" do
-	it 'resolves 74.201.255.84' do # currently something in engineyard.com
+	it 'resolves 127.0.0.1' do
 		names = nil
 		lambda {
-			names = Resolv.getnames("74.201.255.84")
+			names = Resolv.getnames("127.0.0.1")
 		}.should_not raise_error(Resolv::ResolvError)
 		names.should_not == nil
 		names.size.should > 0

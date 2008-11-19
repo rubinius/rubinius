@@ -10,4 +10,14 @@ describe "Array#nitems" do
     [1, nil, 2, 3, nil, nil, 4].nitems.should == 4
     [1, nil, 2, false, 3, nil, nil, 4].nitems.should == 5
   end
+
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.nitems.should == 1
+
+    array = ArraySpecs.recursive_array
+    array.nitems.should == 8
+
+    [nil, empty, array].nitems.should == 2
+  end
 end

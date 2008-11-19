@@ -8,4 +8,12 @@ describe "IO.pipe" do
     r.read(16).should == "test_create_pipe"
     r.close
   end
+
+  it "returns two IO objects" do
+    r,w = IO.pipe
+    r.should be_kind_of(IO)
+    w.should be_kind_of(IO)
+  end
 end
+
+

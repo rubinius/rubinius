@@ -22,6 +22,7 @@ describe :file_zero, :shared => true do
   platform_is :windows do
     it "returns true for NUL" do
       @object.send(@method, 'NUL').should == true
+      @object.send(@method, 'nul').should == true
     end
   end
 

@@ -1,97 +1,74 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'cgi'
+require File.dirname(__FILE__) + "/fixtures/common"
 
-describe "CGI::HtmlExtension#file_field when passed no arguments" do
+describe "CGI::HtmlExtension#file_field" do
   before(:each) do
-    @html = Object.new
-    @html.extend(CGI::Html4)
-    @html.element_init
-    @html.extend(CGI::HtmlExtension)
-  end
-
-  it "returns a file-'input'-element without a name and a size of 20" do
-    @html.file_field.should == '<INPUT SIZE="20" NAME="" TYPE="file">'
+    @html = CGISpecs::HtmlExtension.new
   end
   
-  it "ignores a passed block" do
-    @html.file_field { "test" }.should == '<INPUT SIZE="20" NAME="" TYPE="file">'
-  end
-end
-
-describe "CGI::HtmlExtension#file_field when passed name" do
-  before(:each) do
-    @html = Object.new
-    @html.extend(CGI::Html4)
-    @html.element_init
-    @html.extend(CGI::HtmlExtension)
-  end
-
-  it "returns a checkbox-'input'-element with the passed name" do
-    @html.file_field("test").should == '<INPUT SIZE="20" NAME="test" TYPE="file">'
-  end
-
-  it "ignores a passed block" do
-    @html.file_field("test") { "test" }.should == '<INPUT SIZE="20" NAME="test" TYPE="file">'
-  end
-end
-
-describe "CGI::HtmlExtension#file_field when passed name, size" do
-  before(:each) do
-    @html = Object.new
-    @html.extend(CGI::Html4)
-    @html.element_init
-    @html.extend(CGI::HtmlExtension)
-  end
-
-  it "returns a checkbox-'input'-element with the passed name and size" do
-    @html.file_field("test", 40).should == '<INPUT SIZE="40" NAME="test" TYPE="file">'
-  end
-
-  it "ignores a passed block" do
-    expected = '<INPUT SIZE="40" NAME="test" TYPE="file">'
-    @html.file_field("test", 40) { "test" }.should == expected
-  end
-end
-
-describe "CGI::HtmlExtension#file_field when passed name, size, maxlength" do
-  before(:each) do
-    @html = Object.new
-    @html.extend(CGI::Html4)
-    @html.element_init
-    @html.extend(CGI::HtmlExtension)
-  end
-
-  it "returns a checkbox-'input'-element with the passed name, size and maxlength" do
-    expected = '<INPUT MAXLENGTH="100" SIZE="40" NAME="test" TYPE="file">'
-    @html.file_field("test", 40, 100).should == expected
-  end
-
-  it "ignores a passed block" do
-    expected = '<INPUT MAXLENGTH="100" SIZE="40" NAME="test" TYPE="file">'
-    @html.file_field("test", 40, 100) { "test" }.should == expected
-  end
-end
-
-describe "CGI::HtmlExtension#file_field when passed a Hash" do
-  before(:each) do
-    @html = Object.new
-    @html.extend(CGI::Html4)
-    @html.element_init
-    @html.extend(CGI::HtmlExtension)
-  end
-
-  ruby_bug "", "1.8.7" do
-    it "returns a file-'input'-element using the passed Hash for attributes" do
-      expected = '<INPUT SIZE="40" NAME="test" TYPE="file">'
-      @html.file_field("NAME" => "test", "SIZE" => 40).should == expected
-    
-      expected = '<INPUT MAXLENGTH="100" NAME="test" TYPE="file">'
-      @html.file_field("NAME" => "test", "MAXLENGTH" => 100).should == expected
+  describe "when passed no arguments" do
+    it "returns a file-'input'-element without a name and a size of 20" do
+      output = @html.file_field
+      output.should equal_element("INPUT", {"SIZE" => 20, "NAME" => "", "TYPE" => "file"}, "", :not_closed => true)
     end
 
     it "ignores a passed block" do
-      expected = '<INPUT SIZE="40" NAME="test" TYPE="file">'
-      @html.file_field("NAME" => "test", "SIZE" => 40) { "test" }.should == expected
+      output = @html.file_field { "test" }
+      output.should equal_element("INPUT", {"SIZE" => 20, "NAME" => "", "TYPE" => "file"}, "", :not_closed => true)
+    end
+  end
+  
+  describe "when passed name" do
+    it "returns a checkbox-'input'-element with the passed name" do
+      output = @html.file_field("Example")
+      output.should equal_element("INPUT", {"SIZE" => 20, "NAME" => "Example", "TYPE" => "file"}, "", :not_closed => true)
+    end
+
+    it "ignores a passed block" do
+      output = @html.file_field("Example") { "test" }
+      output.should equal_element("INPUT", {"SIZE" => 20, "NAME" => "Example", "TYPE" => "file"}, "", :not_closed => true)
+    end
+  end
+  
+  describe "when passed name, size" do
+    it "returns a checkbox-'input'-element with the passed name and size" do
+      output = @html.file_field("Example", 40)
+      output.should equal_element("INPUT", {"SIZE" => 40, "NAME" => "Example", "TYPE" => "file"}, "", :not_closed => true)
+    end
+
+    it "ignores a passed block" do
+      output = @html.file_field("Example", 40) { "test" }
+      output.should equal_element("INPUT", {"SIZE" => 40, "NAME" => "Example", "TYPE" => "file"}, "", :not_closed => true)
+    end
+  end
+  
+  describe "when passed name, size, maxlength" do
+    it "returns a checkbox-'input'-element with the passed name, size and maxlength" do
+      output = @html.file_field("Example", 40, 100)
+      output.should equal_element("INPUT", {"SIZE" => 40, "NAME" => "Example", "TYPE" => "file", "MAXLENGTH" => 100}, "", :not_closed => true)
+    end
+
+    it "ignores a passed block" do
+      output = @html.file_field("Example", 40, 100) { "test" }
+      output.should equal_element("INPUT", {"SIZE" => 40, "NAME" => "Example", "TYPE" => "file", "MAXLENGTH" => 100}, "", :not_closed => true)
+    end
+  end
+  
+  describe "when passed a Hash" do
+    ruby_bug "http://redmine.ruby-lang.org/issues/show/255", "1.8.7" do
+      it "returns a file-'input'-element using the passed Hash for attributes" do
+        output = @html.file_field("NAME" => "test", "SIZE" => 40)
+        output.should equal_element("INPUT", {"NAME" => "test", "SIZE" => 40}, "", :not_closed => true)
+        
+        output = @html.file_field("NAME" => "test", "MAXLENGTH" => 100)
+        output.should equal_element("INPUT", {"NAME" => "test", "MAXLENGTH" => 100}, "", :not_closed => true)
+      end
+
+      it "ignores a passed block" do
+        output = @html.file_field("NAME" => "test", "SIZE" => 40) { "test" }
+        output.should equal_element("INPUT", {"NAME" => "test", "SIZE" => 40}, "", :not_closed => true)
+      end
     end
   end
 end

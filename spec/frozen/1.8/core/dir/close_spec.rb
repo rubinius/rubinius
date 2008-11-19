@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/common'
 require File.dirname(__FILE__) + '/shared/closed'
 
 describe "Dir#close" do
+  platform_is_not :windows do
   it "closes the stream and fd and returns nil" do
     # This is a bit convoluted but we are trying to ensure the file gets closed.
     # To do that, we peek to see what the next FD number is and then probe that
@@ -15,6 +16,7 @@ describe "Dir#close" do
 
     dir.close.should == nil
     lambda { File.for_fd(peek).close }.should raise_error(SystemCallError)  # And closed here
+    end
   end
 end
 

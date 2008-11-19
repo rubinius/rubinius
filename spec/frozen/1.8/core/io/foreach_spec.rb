@@ -110,6 +110,3 @@ describe "IO::foreach" do
   end
 end
 
-describe "IO.foreach" do
-  it "needs to be reviewed for spec completeness"
-end

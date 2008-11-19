@@ -9,13 +9,16 @@ describe "Dir.pwd" do
     DirSpecs.clear_dirs
 
     begin
-      Dir.mkdir '???'
-      File.exist?('???').should == true
+      old_kcode, $KCODE=$KCODE,'u'
+      str = [0xe9].pack 'U' #Unicode é
+      Dir.mkdir str
+      File.exist?(str).should == true
 
       old_pwd = Dir.pwd
-      Dir.chdir('???') { Dir.pwd.should == File.join(old_pwd, '???') }
+      Dir.chdir(str) { Dir.pwd.should == File.join(old_pwd, str) }
     ensure
       DirSpecs.clear_dirs
+      $KCODE=old_kcode
     end
   end
 end

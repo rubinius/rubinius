@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ARGF.read" do
+  
   before :each do
     ARGV.clear
     @file1 = ARGFSpecs.fixture_file('file1.txt')
@@ -13,8 +14,7 @@ describe "ARGF.read" do
   end
 
   after :each do
-    # Close any open file
-    ARGF.close unless ARGF.closed?
+    ARGF.close
     ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
   
@@ -70,27 +70,29 @@ describe "ARGF.read" do
   end
   
   it "reads the contents of stdin" do
-    ARGFSpecs.file_args('-')
-    STDIN.reopen(ARGFSpecs.fixture_file('stdin.txt'))
-    ARGF.read.should ==  @contents_stdin
+    ARGFSpecs.ruby(:options => [], :code => <<-SRC, :args => ['-', "< #{@stdin}"]) do |f|
+        print ARGF.read
+      SRC
+      f.read.should == @contents_stdin
+    end
   end
   
+  # NOTE: the test below doesn't work because of a faulty implementation
+  # of IO#reopen which doesn't know how to reopen the STDIN IO
   it "reads a number of bytes from stdin" do
-    ARGFSpecs.file_args('-')
-    STDIN.reopen(ARGFSpecs.fixture_file('stdin.txt'))
-    ARGF.read(10).should ==  @contents_stdin[0,10]
+    ARGFSpecs.ruby(:options => [], :code => <<-SRC, :args => ['-', "< #{@stdin}"]) do |f|
+        print ARGF.read(10)
+      SRC
+      f.read.should == @contents_stdin[0,10]
+    end
   end
-  
-  it "reads a number of bytes from stdin" do
-    ARGFSpecs.file_args('-')
-    STDIN.reopen(ARGFSpecs.fixture_file('stdin.txt'))
-    ARGF.read(10).should ==  @contents_stdin[0,10]
-  end
-  
+   
   it "reads the contents of one file and stdin" do
-    ARGFSpecs.file_args('file1.txt', '-')
-    STDIN.reopen(ARGFSpecs.fixture_file('stdin.txt'))
-    ARGF.read.should ==  @contents_file1 + @contents_stdin
+    ARGFSpecs.ruby(:options => [], :code => <<-SRC, :args => [@file1, '-', "< #{@stdin}"]) do |f|
+        print ARGF.read
+      SRC
+      f.read.should == @contents_file1 + @contents_stdin
+    end
   end
   
   it "reads the contents of the same file twice" do

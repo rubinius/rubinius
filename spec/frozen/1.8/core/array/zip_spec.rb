@@ -11,7 +11,17 @@ describe "Array#zip" do
     [1, 2, 3, 4, 5].zip(["a", "b", "c", "d"]).should ==
       [[1, "a"], [2, "b"], [3, "c"], [4, "d"], [5, nil]]
   end
-  
+
+  it "properly handles recursive arrays" do
+    a = []; a << a
+    b = [1]; b << b
+
+    a.zip(a).should == [ [a[0], a[0]] ]
+    a.zip(b).should == [ [a[0], b[0]] ]
+    b.zip(a).should == [ [b[0], a[0]], [b[1], a[1]] ]
+    b.zip(b).should == [ [b[0], b[0]], [b[1], b[1]] ]
+  end
+
   # MRI 1.8.6 uses to_ary, but it's been fixed in 1.9
   compliant_on(:ruby, :jruby) do
     it "tries to convert the passed argument to an Array using #to_ary" do

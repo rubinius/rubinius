@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 if ENV['MRI'] then
-  $: << 'kernel/common'
+  $: << 'kernel/core'
   require 'unpack'
 end
 

@@ -23,6 +23,16 @@ describe "Array#&" do
     a.should == [1, 1, 3, 5]
   end
 
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    (empty & empty).should == empty
+
+    (ArraySpecs.recursive_array & []).should == []
+    ([] & ArraySpecs.recursive_array).should == []
+
+    (ArraySpecs.recursive_array & ArraySpecs.recursive_array).should == [1, 'two', 3.0]
+  end
+
   it "tries to convert the passed argument to an Array using #to_ary" do
     obj = mock('[1,2,3]')
     obj.should_receive(:to_ary).and_return([1, 2, 3])
@@ -36,8 +46,7 @@ describe "Array#&" do
     ([1, 2] & obj).should == [1, 2]
   end
 
-  # MRI follows hashing semantics here, so doesn't actually call eql?/hash for Fixnum/Symbol
-  it "acts as if using an  intermediate hash to collect values" do
+  it "determines equivalence between elements in the sense of eql?" do
     ([5.0, 4.0] & [5, 4]).should == []
     str = "x"
     ([str] & [str.dup]).should == [str]

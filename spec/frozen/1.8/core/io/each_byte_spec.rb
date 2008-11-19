@@ -22,4 +22,12 @@ describe "IO#each_byte" do
     end
   end
 
+  it "works on empty streams" do
+    f = File.new(tmp("io-each-byte-spec"), "w+") 
+    lambda { 
+      f.each_byte { |b| raise IOError }
+    }.should_not raise_error
+    f.close
+    File.unlink(tmp("io-each-byte-spec"))
+  end
 end

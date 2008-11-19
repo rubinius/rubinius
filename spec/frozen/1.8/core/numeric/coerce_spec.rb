@@ -38,13 +38,21 @@ describe "Numeric#coerce" do
   end
 
   it "raises a TypeError when other can't be coerced" do
-    @obj.should_receive(:to_f).exactly(2).times.and_return(10.5)
+    not_compliant_on :ironruby do
+      # This really is implementation specific - it relies on to_f being called on both parameters
+      # IronRuby bails out if other.to_f fails
+      @obj.should_receive(:to_f).exactly(2).times.and_return(10.5)
+    end
     lambda { @obj.coerce(nil)   }.should raise_error(TypeError)
     lambda { @obj.coerce(false) }.should raise_error(TypeError)    
   end
   
   it "raises an ArgumentError when other can't be converted to Float" do
-    @obj.should_receive(:to_f).and_return(10.5)
+    not_compliant_on :ironruby do
+      # This really is implementation specific - it relies on to_f being called on both parameters
+      # IronRuby bails out if other.to_f fails
+      @obj.should_receive(:to_f).and_return(10.5)
+    end
     lambda { @obj.coerce("test") }.should raise_error(ArgumentError)
   end
 end

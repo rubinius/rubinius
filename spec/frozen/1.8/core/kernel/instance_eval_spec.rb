@@ -14,6 +14,17 @@ describe "Kernel#instance_eval" do
     "hola".instance_eval { |o| o.size }.should == 4
   end
   
+  it "only binds the eval to the receiver" do
+    f = Object.new
+    f.instance_eval do 
+      def foo
+        1
+      end
+    end
+    f.foo.should == 1
+    lambda { Object.new.foo }.should raise_error(NoMethodError)
+  end
+
   it "binds self to the receiver" do
     s = "hola"
     (s == s.instance_eval { self }).should == true
@@ -24,6 +35,9 @@ describe "Kernel#instance_eval" do
   it "executes in the context of the receiver" do
     "Ruby-fu".instance_eval { size }.should == 7
     "hola".instance_eval("size").should == 4
+    Object.class_eval { "hola".instance_eval("to_s") }.should == "hola"
+    Object.class_eval { "Ruby-fu".instance_eval{ to_s } }.should == "Ruby-fu"
+
   end
 
   it "has access to receiver's instance variables" do

@@ -1,3 +1,5 @@
+require File.dirname(__FILE__) + '/../fixtures/classes'
+
 describe :io_new, :shared => true do
   before :all do
     @filename = tmp("rubinius-spec-io-new-#{$$}.txt")
@@ -70,4 +72,41 @@ describe :io_new, :shared => true do
     lambda { IO.send(@method, @file.fileno, 'r') }.should raise_error(Errno::EINVAL)
     lambda { io = IO.send(@method, @file.fileno, 'w'); io.close }.should_not raise_error
   end
+
+  it "raises IOError on closed stream" do
+    lambda { IO.new(IOSpecs.closed_file.fileno, 'w') }.should raise_error(IOError)
+  end
+  
+  it "does not close the stream automatically if given a block" do
+    begin
+      io = IO.new(@file.fileno, 'w') {|f| puts f.read }
+      io.closed?.should == false
+      @file.closed?.should == false
+    ensure
+      io.close
+    end
+  end
+
+  it "emits a warning if given a block" do
+    lambda {
+      io = IO.new(@file.fileno, 'w') {|io| puts io.read }
+      io.close
+    }.should complain(/IO::new.*does not take block.*IO::open.*instead/)
+  end
+  
+  it "accepts only one argument" do
+    # By default, IO.new without an arg assumes RO
+    @file.close
+    io = ""
+    @file = File.open @filename, 'r'
+    lambda { 
+      io = IO.new(@file.fileno) 
+    }.should_not raise_error()
+
+    io.close
+  end
+
+    it "cannot open an IO with incompatible flags" do
+      lambda { IO.new(@file.fileno, "r") }.should raise_error
+    end
 end

@@ -21,7 +21,7 @@ describe "BigDecimal#mod_part_of_divmod" do
   # BigDecimal#divmod[1] behaves exactly like #modulo
   before :all do
     class BigDecimal
-      def mod_part_of_dimvod(arg)
+      def mod_part_of_divmod(arg)
         divmod(arg)[1]
       end
     end
@@ -29,11 +29,11 @@ describe "BigDecimal#mod_part_of_divmod" do
 
   after :all do
     class BigDecimal
-      undef mod_part_of_dimvod
+      undef mod_part_of_divmod
     end
   end
 
-  it_behaves_like :bigdecimal_modulo, :mod_part_of_dimvod
+  it_behaves_like :bigdecimal_modulo, :mod_part_of_divmod
 
   it "does NOT raise ZeroDivisionError if other is zero" do
     bd6543 = BigDecimal.new("6543.21")

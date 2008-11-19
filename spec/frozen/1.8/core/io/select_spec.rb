@@ -44,6 +44,11 @@ describe "IO.select" do
     lambda { IO.select(nil, nil, Object.new)}.should raise_error(TypeError)
   end
 
-  it "needs to be reviewed for spec completeness"
+  it "does not raise errors if the first three arguments are nil" do
+    lambda { IO.select(nil, nil, nil, 0)}.should_not raise_error
+  end
 
+  it "does not accept negative timeouts" do
+    lambda { IO.select(nil, nil, nil, -5)}.should raise_error(ArgumentError)
+  end
 end

@@ -17,7 +17,7 @@ describe "Kernel.Integer when given a String" do
   it "raises an ArgumentError if the given String has no valid Integer representation" do
     [ "", "--2", "-+2", "++2", "a2", "2a", "__2",
       " _2", "2__", "2 _", "2 a"].each do |str|
-      lambda { Integer(str); p str }.should raise_error(ArgumentError)
+      lambda { Integer(str) }.should raise_error(ArgumentError)
     end
   end
 end

@@ -27,4 +27,20 @@ describe "Array#each_index" do
     x.each_index {|i| a << i; x.shift if (x[i]%2).zero? }.should equal(x)
     a.should == [0, 1, 2]
   end
+
+  ruby_version_is '' ... '1.8.7' do
+    it 'raises a LocalJumpError if no block given' do
+      lambda{ [1,2].each_index }.should raise_error(LocalJumpError, /no block given/)
+    end
+  end
+  ruby_version_is '1.8.7' ... '1.9' do
+    it 'returns an Enumerable::Enumerator if no block given' do
+      [1,2].each_index.should be_kind_of(Enumerable::Enumerator)
+    end
+  end
+  ruby_version_is '1.9' do
+    it 'returns an Enumerator if no block given' do
+      [1,2].each_index.should be_kind_of(Enumerator)
+    end
+  end
 end

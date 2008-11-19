@@ -127,6 +127,14 @@ describe "String#split with String" do
     end
   end
   
+  it "does not call constructor on created subclass instances" do
+    # can't call should_not_receive on an object that doesn't yet exist
+    # so failure here is signalled by exception, not expectation failure
+    
+    s = StringSpecs::StringWithRaisingConstructor.new('silly:string')
+    s.split(':').first.should == 'silly'
+  end
+    
   it "taints the resulting strings if self is tainted" do
     ["", "x.y.z.", "  x  y  "].each do |str|
       ["", ".", " "].each do |pat|
@@ -270,6 +278,14 @@ describe "String#split with Regexp" do
         end
       end
     end
+  end
+
+  it "does not call constructor on created subclass instances" do
+    # can't call should_not_receive on an object that doesn't yet exist
+    # so failure here is signalled by exception, not expectation failure
+    
+    s = StringSpecs::StringWithRaisingConstructor.new('silly:string')
+    s.split(/:/).first.should == 'silly'
   end
   
   it "taints the resulting strings if self is tainted" do

@@ -14,27 +14,12 @@ describe "Readline::HISTORY.each" do
     Readline::HISTORY.pop
   end
   
-  # This behaviour is a potential bug caused by
-  # Mac OS X use of editline instead of Readline.
-  # This bug should also exist on BSDs.
-  platform_is :darwin do
-    it "yields each item but the first in the history" do
-      result = []
-      Readline::HISTORY.each do |x|
-        result << x
-      end
-      result.should == ["2", "3"]
+  it "yields each item in the history" do
+    result = []
+    Readline::HISTORY.each do |x|
+      result << x
     end
-  end
-  
-  platform_is_not :darwin do
-    it "yields each item in the history" do
-      result = []
-      Readline::HISTORY.each do |x|
-        result << x
-      end
-      result.should == ["1", "2", "3"]
-    end
+    result.should == ["1", "2", "3"]
   end
 
   it "yields tainted Objects" do

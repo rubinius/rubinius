@@ -6,17 +6,14 @@ describe "Kernel.at_exit" do
     Kernel.private_instance_methods.should include("at_exit")
   end
 
-  # TODO: create a helper for invoking a subprocess of the 
-  # same implementation for this type of spec
-  #result = `#{RUBY_CLI} -e "at_exit {print 5}; print 6"`
-  #result.should == "65"
-  it "runs after all other code"
+  it "runs after all other code" do
+    ruby_exe("at_exit {print 5}; print 6").should == "65"
+  end
 
-  # TODO: create a helper for invoking a subprocess of the 
-  # same implementation for this type of spec
-  #result = `#{RUBY_CLI} -e "at_exit {print 4};at_exit {print 5}; print 6; at_exit {print 7}"`
-  #result.should == '6754'
-  it "runs in reverse order of registration"
+  it "runs in reverse order of registration" do
+    code = "at_exit {print 4};at_exit {print 5}; print 6; at_exit {print 7}"
+    ruby_exe(code).should == "6754"
+  end
 end
 
 describe "Kernel#at_exit" do

@@ -7,7 +7,7 @@ describe "Bignum#+" do
   
   it "returns self plus the given Integer" do
     (@bignum + 4).should == 9223372036854775888
-    (@bignum + 4.2).to_s.should == "9.22337203685478e+18"
+    (@bignum + 4.2).should be_close(9223372036854775888.2, TOLERANCE)
     (@bignum + bignum_value(3)).should == 18446744073709551695
   end
 

@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Class.inherited" do
 
   before :each do
-    ClassSpecs::Record.called nil
+    CoreClassSpecs::Record.called nil
   end
   
   it "is invoked with the child Class when self is subclassed" do
@@ -27,47 +27,47 @@ describe "Class.inherited" do
 
   it "is invoked only once per subclass" do
     expected = [
-      [ClassSpecs::Inherited::A, ClassSpecs::Inherited::B],
-      [ClassSpecs::Inherited::B, ClassSpecs::Inherited::C],
+      [CoreClassSpecs::Inherited::A, CoreClassSpecs::Inherited::B],
+      [CoreClassSpecs::Inherited::B, CoreClassSpecs::Inherited::C],
     ]
 
-    ClassSpecs::Inherited::A::SUBCLASSES.should == expected
+    CoreClassSpecs::Inherited::A::SUBCLASSES.should == expected
   end
 
   it "is called when marked as a private class method" do
-    ClassSpecs::A.private_class_method :inherited
-    ClassSpecs::Record.called?.should == nil
-    module ClassSpecs; class B < A; end; end
-    ClassSpecs::Record.called?.should == ClassSpecs::B
+    CoreClassSpecs::A.private_class_method :inherited
+    CoreClassSpecs::Record.called?.should == nil
+    module CoreClassSpecs; class B < A; end; end
+    CoreClassSpecs::Record.called?.should == CoreClassSpecs::B
   end
   
   it "is called when marked as a protected class method" do
-    class << ClassSpecs::A
+    class << CoreClassSpecs::A
       protected :inherited
     end
-    ClassSpecs::Record.called?.should == nil
-    module ClassSpecs; class C < A; end; end
-    ClassSpecs::Record.called?.should == ClassSpecs::C
+    CoreClassSpecs::Record.called?.should == nil
+    module CoreClassSpecs; class C < A; end; end
+    CoreClassSpecs::Record.called?.should == CoreClassSpecs::C
   end
   
   it "is called when marked as a public class method" do
-    ClassSpecs::A.public_class_method :inherited
-    ClassSpecs::Record.called?.should == nil
-    module ClassSpecs; class D < A; end; end
-    ClassSpecs::Record.called?.should == ClassSpecs::D
+    CoreClassSpecs::A.public_class_method :inherited
+    CoreClassSpecs::Record.called?.should == nil
+    module CoreClassSpecs; class D < A; end; end
+    CoreClassSpecs::Record.called?.should == CoreClassSpecs::D
   end
   
   it "is called by super from a method provided by an included module" do
-    ClassSpecs::Record.called?.should == nil
-    module ClassSpecs; class E < F; end; end
-    ClassSpecs::Record.called?.should == ClassSpecs::E
+    CoreClassSpecs::Record.called?.should == nil
+    module CoreClassSpecs; class E < F; end; end
+    CoreClassSpecs::Record.called?.should == CoreClassSpecs::E
   end
   
   it "is called by super even when marked as a private class method" do
-    ClassSpecs::Record.called?.should == nil
-    ClassSpecs::H.private_class_method :inherited
-    module ClassSpecs; class I < H; end; end
-    ClassSpecs::Record.called?.should == ClassSpecs::I
+    CoreClassSpecs::Record.called?.should == nil
+    CoreClassSpecs::H.private_class_method :inherited
+    module CoreClassSpecs; class I < H; end; end
+    CoreClassSpecs::Record.called?.should == CoreClassSpecs::I
   end
   
   it "will be invoked by child class regardless of visibility" do

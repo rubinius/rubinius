@@ -99,6 +99,13 @@ describe :array_slice, :shared => true do
     [ "a", "b", "c", "d", "e" ].send(@method, 0, 3).should == ["a", "b", "c"]
   end
 
+  it "returns the subarray which is independent to self with [index,count]" do
+    a = [1, 2, 3]
+    sub = a.send(@method, 1,2)
+    sub.replace([:a, :b])
+    a.should == [1, 2, 3]
+  end
+
   it "tries to convert the passed argument to an Integer using #to_int" do
     obj = mock('to_int')
     obj.stub!(:to_int).and_return(2)
@@ -239,6 +246,13 @@ describe :array_slice, :shared => true do
     a.send(@method, -5..10).should == nil
 
     a.should == [1, 2, 3, 4]
+  end
+
+  it "returns the subarray which is independent to self with [m..n]" do
+    a = [1, 2, 3]
+    sub = a.send(@method, 1..2)
+    sub.replace([:a, :b])
+    a.should == [1, 2, 3]
   end
 
   it "tries to convert Range elements to Integers using #to_int with [m..n] and [m...n]" do

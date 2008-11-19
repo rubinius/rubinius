@@ -41,68 +41,68 @@ describe "IO#gets" do
   it "updates lineno with each invocation" do
     count = 1
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
-       while (line = f.gets(nil))
-         f.lineno.should == count
-         count += 1
-       end
+      while (line = f.gets(nil))
+        f.lineno.should == count
+        count += 1
+      end
     end
 
     count = 1
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
-       while (line = f.gets(""))
-         f.lineno.should == count
-         count += 1
-       end
+      while (line = f.gets(""))
+        f.lineno.should == count
+        count += 1
+      end
     end
 
     count = 1
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
-       while (line = f.gets)
-         f.lineno.should == count
-         count += 1
-       end
+      while (line = f.gets)
+        f.lineno.should == count
+        count += 1
+      end
     end
 
     count = 1
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
-       while (line = f.gets("la"))
-         f.lineno.should == count
-         count += 1
-       end
+      while (line = f.gets("la"))
+        f.lineno.should == count
+        count += 1
+      end
     end
   end
 
   it "updates $. with each invocation" do
     count = 1
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
-       while (line = f.gets(nil))
-         $..should == count
-         count += 1
-       end
+      while (line = f.gets(nil))
+        $..should == count
+        count += 1
+      end
     end
 
     count = 1
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
-       while (line = f.gets(""))
-         $..should == count
-         count += 1
-       end
+      while (line = f.gets(""))
+        $..should == count
+        count += 1
+      end
     end
 
     count = 1
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
-       while (line = f.gets)
-         $..should == count
-         count += 1
-       end
+      while (line = f.gets)
+        $..should == count
+        count += 1
+      end
     end
 
     count = 1
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
-       while (line = f.gets("la"))
-         $..should == count
-         count += 1
-       end
+      while (line = f.gets("la"))
+        $..should == count
+        count += 1
+      end
     end
   end
 
@@ -156,11 +156,36 @@ describe "IO#gets" do
   end
 
   it "raises an IOError if the stream is not opened for reading" do
-    lambda { File.open(IOSpecs.gets_output, 'a') {|f| f.gets} }.should raise_error(IOError)
-    lambda { File.open(IOSpecs.gets_output, 'w') {|f| f.gets} }.should raise_error(IOError)
+    path = tmp("gets_spec")
+    lambda { File.open(path, 'a') {|f| f.gets} }.should raise_error(IOError)
+    lambda { File.open(path, 'w') {|f| f.gets} }.should raise_error(IOError)
+    File.unlink(path) if File.exist?(path)
   end
 
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_file.gets }.should raise_error(IOError)
+  end
+
+  it "fails on cloned opened streams" do
+    f = File.open(tmp("gets_specs"), "w")
+    f.puts("heh")
+    g = IO.new(f.fileno)
+    f.fileno.should == g.fileno
+    lambda { g.gets }.should raise_error(IOError)
+    g.close
+    File.unlink(tmp("gets_specs"))
+  end
+
+  it "accepts a separator" do
+    f = File.open(tmp("gets_specs"), "w")
+    f.print("A\n\n\nB\n")
+    f.close
+    f = File.new(tmp("gets_specs"), "r")
+    f.gets("\n\n")
+    b = f.gets("\n\n")
+    f.gets("\n\n")
+    f.close
+    b.should == "\nB\n"
+    File.unlink(tmp("gets_specs"))
   end
 end

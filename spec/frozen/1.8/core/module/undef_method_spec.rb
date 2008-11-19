@@ -1,12 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-# HACK: quick fix to get a CI set working. this code causes
-# TypeError:   Tried to use object of type Class (11) as type Class (11)
-#
-# Also, move this to the fixture file!!
-=begin
-mmodule ModuleSpecs
+module ModuleSpecs
   class NoInheritance
     def method_to_undef() 1 end
     def another_method_to_undef() 1 end
@@ -28,7 +23,6 @@ mmodule ModuleSpecs
   class Descendant < Ancestor
   end
 end
-=end
 
 describe "Module#undef_method with symbol" do
   it "removes a method defined in a class" do

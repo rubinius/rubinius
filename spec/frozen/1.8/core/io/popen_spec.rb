@@ -53,7 +53,5 @@ describe "IO::popen" do
       io.closed?.should == true
     end
   #end
-
-  it "needs to be reviewed for spec completeness"
 end
 

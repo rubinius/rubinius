@@ -48,23 +48,25 @@ describe "Dir.glob" do
 
     Dir.glob('**/', File::FNM_DOTMATCH).sort.should == expected
   end
+  
+  platform_is_not(:windows) do
+    it "matches the literal character '\\' with option File::FNM_NOESCAPE" do
+      Dir.mkdir 'foo?bar'
 
-  it "matches the literal character '\\' with option File::FNM_NOESCAPE" do
-    Dir.mkdir 'foo?bar'
+      begin
+        Dir.glob('foo?bar', File::FNM_NOESCAPE).should == %w|foo?bar|
+        Dir.glob('foo\?bar', File::FNM_NOESCAPE).should == []
+      ensure
+        Dir.rmdir 'foo?bar'
+      end
 
-    begin
-      Dir.glob('foo?bar', File::FNM_NOESCAPE).should == %w|foo?bar|
-      Dir.glob('foo\?bar', File::FNM_NOESCAPE).should == []
-    ensure
-      Dir.rmdir 'foo?bar'
-    end
+      Dir.mkdir 'foo\?bar'
 
-    Dir.mkdir 'foo\?bar'
-
-    begin
-      Dir.glob('foo\?bar', File::FNM_NOESCAPE).should == %w|foo\\?bar|
-    ensure
-      Dir.rmdir 'foo\?bar'
+      begin
+        Dir.glob('foo\?bar', File::FNM_NOESCAPE).should == %w|foo\\?bar|
+      ensure
+        Dir.rmdir 'foo\?bar'
+      end
     end
   end
 end

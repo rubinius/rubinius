@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ARGF.file" do
+  
   before :each do
     ARGV.clear
     @file1 = ARGFSpecs.fixture_file('file1.txt')
@@ -13,8 +14,7 @@ describe "ARGF.file" do
   end
 
   after :each do
-    # Close any open file (catch exception if already closed)
-    ARGF.close rescue nil
+    ARGF.close
     ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
   
@@ -29,7 +29,7 @@ describe "ARGF.file" do
     end while ARGF.gets
     # returns last current file even when closed
     res << ARGF.file.path
-    res.should == %w{file1 file1 file1 file2 file2 file2}.collect { |bn| tmp(bn+'.txt')}
+    res.should == [@file1, @file1, @file1, @file2, @file2, @file2]
   end
 
 end

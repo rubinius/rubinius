@@ -4,6 +4,15 @@ describe :module_class_eval, :shared => true do
     ModuleSpecs.send(@method, "1 + 1").should == 2
   end
 
+  it "does not add defined methods to other classes" do
+    FalseClass.class_eval do
+      def foo
+        'foo'
+      end
+    end
+    lambda {42.foo}.should raise_error(NoMethodError)
+  end
+
   it "defines constants in the receiver's scope" do
     ModuleSpecs.send(@method, "module NewEvaluatedModule;end")
     ModuleSpecs.const_defined?(:NewEvaluatedModule).should == true

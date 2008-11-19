@@ -8,4 +8,13 @@ describe "Array#to_ary" do
     a = ArraySpecs::MyArray[1, 2, 3]
     a.should equal(a.to_ary)
   end
+
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.to_ary.should == empty
+
+    array = ArraySpecs.recursive_array
+    array.to_ary.should == array
+  end
+
 end

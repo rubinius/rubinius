@@ -33,7 +33,7 @@ end
 
 describe "SystemCallError#message" do
   it "should return default message when no message given" do
-    SystemCallError.new(2**28).message.should =~ /Unknown error/
+    SystemCallError.new(2**28).message.should =~ /Unknown error/i
   end
 
   it "returns the message given as an argument to new" do

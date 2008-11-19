@@ -4,8 +4,8 @@ require 'socket'
 
 describe "Socket#for_fd given a file descriptor" do
   it "adopts that descriptor into a new Socket object" do
-    server = TCPServer.new("0.0.0.0", 50000)
-    client = TCPSocket.open("0.0.0.0", 50000)
+    server = TCPServer.new("0.0.0.0", SocketSpecs.port)
+    client = TCPSocket.open("0.0.0.0", SocketSpecs.port)
     host = server.accept_nonblock
 
     new_sock = Socket.for_fd(client.fileno)
@@ -21,6 +21,10 @@ describe "Socket#for_fd given a file descriptor" do
     client.write("bar")
     host.read(3).should == "foo"
     host.read(3).should == "bar"
+
+    server.close unless server.closed?
+    client.close unless server.closed?
+    new_sock.close unless new_sock.closed?
   end
 
   it "raises EBADF for a bad descriptor" do

@@ -12,8 +12,20 @@ describe "Set#classify" do
     res.sort.should == ["one", "two", "three", "four"].sort
   end
 
-  it "raises a LocalJumpError when passed no block" do
-    lambda { @set.classify }.should raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.8.8" do
+    it "raises a LocalJumpError when passed no block" do
+      lambda { @set.classify }.should raise_error(LocalJumpError)
+    end
+  end
+  
+  ruby_version_is "1.8.8" do
+    it "returns an Enumerator when passed no block" do
+      enum = @set.classify
+      enum.should be_kind_of(Enumerable::Enumerator)
+      
+      classified = enum.each { |x| x.length }
+      classified.should == { 3 => Set["one", "two"], 4 => Set["four"], 5 => Set["three"] }
+    end
   end
 
   it "classifies the Objects in self based on the block's return value" do

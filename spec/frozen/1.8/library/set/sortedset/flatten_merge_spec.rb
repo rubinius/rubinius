@@ -6,7 +6,7 @@ describe "SortedSet#flatten_merge" do
     SortedSet[].protected_methods.should include("flatten_merge")
   end
   
-  ruby_bug "http://redmine.ruby-lang.org/projects/ruby-18/issues/show?id=117", "1.8.7.47" do
+  ruby_bug "http://redmine.ruby-lang.org/projects/ruby-18/issues/show?id=117", "1.8.7" do
     it "flattens the passed SortedSet and merges it into self" do
       set1 = SortedSet[1, 2]
       set2 = SortedSet[3, 4, SortedSet[5, 6]]

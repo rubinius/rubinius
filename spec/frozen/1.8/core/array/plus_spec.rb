@@ -15,6 +15,17 @@ describe "Array#+" do
     ([1, 2, 3] + obj).should == [1, 2, 3, "x", "y"]
   end
 
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    (empty + empty).should == [empty, empty]
+
+    array = ArraySpecs.recursive_array
+    (empty + array).should == [empty, 1, 'two', 3.0, array, array, array, array, array]
+    (array + array).should == [
+      1, 'two', 3.0, array, array, array, array, array,
+      1, 'two', 3.0, array, array, array, array, array]
+  end
+
   it "checks whether the passed argument responds to #to_ary" do
     obj = mock('[:x]')
     obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)

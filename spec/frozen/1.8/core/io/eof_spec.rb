@@ -41,6 +41,7 @@ describe "IO#eof?" do
     File.open(tmp('empty.txt')) { |empty|
       empty.eof?.should == true
     }
+    File.unlink(tmp("empty.txt"))
   end
 
   it "returns false on just opened non-empty stream" do
@@ -57,11 +58,13 @@ describe "IO#eof?" do
   end
 
   it "raises IOError on stream not opened for reading" do
-    lambda {
-      File.open(tmp('empty.txt'), "w") { |empty|
+ 
+    File.open(tmp('empty.txt'), "w") { |empty|
+      lambda {
         empty.eof?
-      }
-    }.should raise_error(IOError)
+      }.should raise_error(IOError)
+    }
+    File.unlink(tmp("empty.txt"))
   end
 
   it "raises IOError on stream closed for reading by close_read" do

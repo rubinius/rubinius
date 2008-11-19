@@ -2,15 +2,17 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#insert" do
+  it "returns self" do
+    ary = []
+    ary.insert(0).should equal(ary)
+    ary.insert(0, :a).should equal(ary)
+  end
+
   it "inserts objects before the element at index for non-negative index" do
     ary = []
-    ary.insert(0, 3).should equal(ary)
-    ary.should == [3]
-
-    ary.insert(0, 1, 2).should equal(ary)
-    ary.should == [1, 2, 3]
-    ary.insert(0)
-    ary.should == [1, 2, 3]
+    ary.insert(0, 3).should == [3]
+    ary.insert(0, 1, 2).should == [1, 2, 3]
+    ary.insert(0).should == [1, 2, 3]
     
     # Let's just assume insert() always modifies the array from now on.
     ary.insert(1, 'a').should == [1, 'a', 2, 3]
@@ -67,10 +69,21 @@ describe "Array#insert" do
     obj.should_receive(:method_missing).with(:to_int).and_return(2)
     [].insert(obj, 'x').should == [nil, nil, 'x']
   end
+
+  it 'raises an ArgumentError if no argument passed' do
+    lambda { [].insert() }.should raise_error(ArgumentError)
+  end
   
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError on frozen arrays if modification takes place" do
-      lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(TypeError)
+  compliant_on :ruby, :jruby, :ir do
+    ruby_version_is '' ... '1.9' do
+      it "raises a TypeError on frozen arrays if modification takes place" do
+        lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(TypeError)
+      end
+    end
+    ruby_version_is '1.9' do
+      it "raises a RuntimeError on frozen arrays if modification takes place" do
+        lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(RuntimeError)
+      end
     end
 
     it "does not raise on frozen arrays if no modification takes place" do

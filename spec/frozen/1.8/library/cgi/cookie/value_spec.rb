@@ -30,7 +30,7 @@ describe "CGI::Cookie#value=" do
     @cookie.value.should == ["one", "two", "three"]
   end
   
-  ruby_bug "", "1.8.7.47" do
+  ruby_bug "http://redmine.ruby-lang.org/issues/show/229", "1.8.7" do
     it "automatically converts the passed Object to an Array using #Array" do
       @cookie.value = "test"
       @cookie.value.should == ["test"]

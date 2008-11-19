@@ -65,20 +65,20 @@ describe "BigDecimal#floor" do
 
     (1..10).each do |n|
       # 0.3, 0.33, 0.333, etc.
-      (@one/@three).floor(n).should == BigDecimal("0.#{'3'*n}")
+      (@one.div(@three,20)).floor(n).should == BigDecimal("0.#{'3'*n}")
       # 1.3, 1.33, 1.333, etc.
-      (@four/@three).floor(n).should == BigDecimal("1.#{'3'*n}")
-      (BigDecimal('31')/@three).floor(n).should == BigDecimal("10.#{'3'*n}")
+      (@four.div(@three,20)).floor(n).should == BigDecimal("1.#{'3'*n}")
+      (BigDecimal('31').div(@three,20)).floor(n).should == BigDecimal("10.#{'3'*n}")
     end
     (1..10).each do |n|
       # -0.4, -0.34, -0.334, etc.
-      (-@one/@three).floor(n).should == BigDecimal("-0.#{'3'*(n-1)}4")
+      (-@one.div(@three,20)).floor(n).should == BigDecimal("-0.#{'3'*(n-1)}4")
     end
     (1..10).each do |n|
-      (@three/@one).floor(n).should == @three
+      (@three.div(@one,20)).floor(n).should == @three
     end
     (1..10).each do |n|
-      (-@three/@one).floor(n).should == -@three
+      (-@three.div(@one,20)).floor(n).should == -@three
     end
   end
 

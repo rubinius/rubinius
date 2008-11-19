@@ -6,6 +6,14 @@ describe "Array#uniq" do
     ["a", "a", "b", "b", "c"].uniq.should == ["a", "b", "c"]
   end
 
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.uniq.should == [empty]
+
+    array = ArraySpecs.recursive_array
+    array.uniq.should == [1, 'two', 3.0, array]
+  end
+
   it "uses eql? semantics" do
     [1.0, 1].uniq.should == [1.0, 1]
   end
@@ -86,12 +94,24 @@ describe "Array#uniq!" do
     a = [ "a", "a", "b", "b", "c" ]
     a.should equal(a.uniq!)
   end
-  
+
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty_dup = empty.dup
+    empty.uniq!
+    empty.should == empty_dup
+
+    array = ArraySpecs.recursive_array
+    expected = array[0..3]
+    array.uniq!
+    array.should == expected
+  end
+
   it "returns nil if no changes are made to the array" do
     [ "a", "b", "c" ].uniq!.should == nil
   end
   
-  compliant_on :ruby, :jruby do
+  compliant_on :ruby, :jruby, :ir do
     it "raises a TypeError on a frozen array if modification would take place" do
       dup_ary = [1, 1, 2]
       dup_ary.freeze

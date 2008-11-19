@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ARGF.rewind" do
+  
   before :each do
     ARGV.clear
     @file1 = ARGFSpecs.fixture_file('file1.txt')
@@ -12,8 +13,7 @@ describe "ARGF.rewind" do
   end
 
   after :each do
-    # Close any open file (catch exception if already closed)
-    ARGF.close rescue nil
+    ARGF.close
     ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
     

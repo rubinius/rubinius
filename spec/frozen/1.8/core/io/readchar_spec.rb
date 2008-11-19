@@ -31,11 +31,13 @@ describe "IO#readchar" do
   end
 
   it "raises EOFError on empty stream" do
-    lambda {
-      File.open(tmp('empty.txt')) { |empty|
+    File.open(tmp('empty.txt'), "w+") { |empty|
+      lambda {
         empty.readchar
-      }
-    }.should raise_error(EOFError)
+      }.should raise_error(EOFError)
+    }
+
+    File.unlink(tmp("empty.txt"))
   end
   
   it "raises IOError on closed stream" do

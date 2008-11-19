@@ -10,7 +10,8 @@ describe :bigdecimal_power, :shared => true do
     e = BigDecimal("1.00000000000000000000123456789")
     one = BigDecimal("1")
     ten = BigDecimal("10")
-    tolerance = BigDecimal("1E-95")
+    # The tolerance is dependent upon the size of BASE_FIG
+    tolerance = BigDecimal("1E-70")
     ten_powers = BigDecimal("1E10000")
     pi = BigDecimal("3.14159265358979")
     e3_minus.send(@method, 2).should == e3_minus_power_2

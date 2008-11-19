@@ -12,8 +12,9 @@ describe "File.lchmod" do
     end
     
     after :each do
-      File.delete @fname if File.exist? @fname
+      # the link should be removed first
       File.delete @lname if File.exist? @lname
+      File.delete @fname if File.exist? @fname
     end
     
     it "changes the file mode of the link and not of the file" do

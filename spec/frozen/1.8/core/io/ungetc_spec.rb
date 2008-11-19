@@ -41,20 +41,22 @@ describe "IO#ungetc" do
   end
 
   it "pushes back one character when invoked on empty stream" do
-    File.open(tmp('empty.txt')) { |empty|
+    File.open(tmp('empty.txt'), "w+") { |empty|
       empty.getc().should == nil
       empty.ungetc(10)
       empty.getc.should == 10
     }
+    File.unlink(tmp("empty.txt"))
   end
 
   it "affects EOF state" do
-    File.open(tmp('empty.txt')) { |empty|
+    File.open(tmp('empty.txt'), "w+") { |empty|
       empty.eof?.should == true
       empty.getc.should == nil
       empty.ungetc(100)
       empty.eof?.should == false
     }
+    File.unlink(tmp("empty.txt"))
   end
 
   it "adjusts the stream position" do
@@ -72,22 +74,6 @@ describe "IO#ungetc" do
     @file.ungetc(98)
     @file.pos.should == pos - 1
   end
-
-  # TODO: file MRI bug
-  # Even though this behavior is clearly stated in ruby-doc
-  # for IO#ungetc, MRI doesn't follow it:
-  #
-  # "Only one character may be pushed back before a subsequent
-  # read operation (that is, you will be able to read only the
-  # last of several characters that have been pushed back)."
-  #
-  #it "pushing back only one character" do
-  #  @file.getc
-  #  10.times { @file.ungetc(90) }
-  #  @file.ungetc(80)
-  #  @file.read(1).should == "P"
-  #  @file.readline.should == "oici la ligne une.\n"
-  #end
 
   # TODO: file MRI bug
   # Another specified behavior that MRI doesn't follow:

@@ -14,4 +14,12 @@ describe "Array#to_a" do
     e.to_a.class.should == Array
     e.to_a.should == [1]
   end
+
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.to_a.should == empty
+
+    array = ArraySpecs.recursive_array
+    array.to_a.should == array
+  end
 end

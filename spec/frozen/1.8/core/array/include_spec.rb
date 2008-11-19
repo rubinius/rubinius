@@ -15,6 +15,8 @@ describe "Array#include?" do
     def o.==(other); other == 'a'; end
 
     [1, 2, o, "b"].include?('a').should == true
+
+    [1, 2.0, 3].include?(2).should == true
   end
 
   it "calls == on elements from left to right until success" do

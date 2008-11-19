@@ -1,4 +1,4 @@
-module ClassSpecs
+module CoreClassSpecs
   class Record
     def self.called(sym)
       @called = sym
@@ -11,7 +11,7 @@ module ClassSpecs
   
   module M
     def inherited(klass)
-      ::ClassSpecs::Record.called(klass)
+      ::CoreClassSpecs::Record.called(klass)
       super
     end
   end
@@ -23,7 +23,7 @@ module ClassSpecs
   
   class A
     def self.inherited(klass)
-      ::ClassSpecs::Record.called(klass)
+      ::CoreClassSpecs::Record.called(klass)
     end
   end
   

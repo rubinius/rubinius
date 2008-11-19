@@ -85,6 +85,16 @@ describe "File.truncate" do
   it "raises a TypeError if not passed an Integer type for the second argument" do
     lambda { File.truncate(@name, nil) }.should raise_error(TypeError)
   end
+
+  platform_is_not :windows do
+    it "truncates an absolute pathname file" do
+      absolute_pathname_file = "/tmp/#{@name}"
+      File.open(absolute_pathname_file,"w") { |f| f.write("1234567890") }
+      File.truncate(absolute_pathname_file, 5)
+      File.size(absolute_pathname_file).should == 5
+      File.delete(absolute_pathname_file) if File.exist?(absolute_pathname_file)
+    end
+  end
 end
 
 

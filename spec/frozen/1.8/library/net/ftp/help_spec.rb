@@ -1,53 +1,66 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'net/ftp'
+require File.dirname(__FILE__) + "/fixtures/server"
 
 describe "Net::FTP#help" do
+  def with_connection
+    yield
+  end
+  
   before(:each) do
-    @socket = mock("Socket")
-    @socket.stub!(:write)
-    @socket.stub!(:readline).and_return("226 Success")
+    @server = NetFTPSpecs::DummyFTP.new
+    @server.serve_once
 
     @ftp = Net::FTP.new
-    @ftp.instance_variable_set(:@sock, @socket)
+    @ftp.connect("localhost", 9921)
   end
 
-  it "writes the HELP command to the socket" do
-    @socket.should_receive(:write).with("HELP\r\n")
+  after(:each) do
+    @ftp.quit rescue nil
+    @ftp.close
+    @server.stop
+  end
+
+  it "writes the HELP command to the server" do
     @ftp.help
+    @ftp.last_response.should == "211 System status, or system help reply. (HELP)\n"
+  end
+  
+  it "returns the server's response" do
+    @ftp.help.should == "211 System status, or system help reply. (HELP)\n"
   end
 
   it "writes the HELP command with an optional parameter to the socket" do
-    @socket.should_receive(:write).with("HELP some parameter\r\n")
-    @ftp.help("some parameter")
+    @ftp.help("some parameter").should == "211 System status, or system help reply. (HELP some parameter)\n"
   end
 
   it "does not raise any error when the response code is 211" do
-    @socket.should_receive(:readline).and_return("211 System status, or system help reply.")
-    @ftp.help
+    @server.should_receive(:help).and_respond("211 System status, or system help reply.")
+    lambda { @ftp.help }.should_not raise_error
   end
 
   it "does not raise any error when the response code is 214" do
-    @socket.should_receive(:readline).and_return("214 Help message.")
-    @ftp.help
+    @server.should_receive(:help).and_respond("214 Help message.")
+    lambda { @ftp.help }.should_not raise_error
   end
 
   it "raises a Net::FTPPermError when the response code is 500" do
-    @socket.should_receive(:readline).and_return("500 Syntax error, command unrecognized.")
+    @server.should_receive(:help).and_respond("500 Syntax error, command unrecognized.")
     lambda { @ftp.help }.should raise_error(Net::FTPPermError)
   end
 
   it "raises a Net::FTPPermError when the response code is 501" do
-    @socket.should_receive(:readline).and_return("501 Syntax error in parameters or arguments.")
+    @server.should_receive(:help).and_respond("501 Syntax error in parameters or arguments.")
     lambda { @ftp.help }.should raise_error(Net::FTPPermError)
   end
 
   it "raises a Net::FTPPermError when the response code is 502" do
-    @socket.should_receive(:readline).and_return("502 Command not implemented.")
+    @server.should_receive(:help).and_respond("502 Command not implemented.")
     lambda { @ftp.help }.should raise_error(Net::FTPPermError)
   end
 
   it "raises a Net::FTPTempError when the response code is 421" do
-    @socket.should_receive(:readline).and_return("421 Service not available, closing control connection.")
+    @server.should_receive(:help).and_respond("421 Service not available, closing control connection.")
     lambda { @ftp.help }.should raise_error(Net::FTPTempError)
   end
 end

@@ -122,14 +122,16 @@ end
 
 describe "IO#readlines when in write-only mode" do
   it "raises an IOError" do
-    File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'a') do |io|
+    path = tmp("write_only_specs")
+    File.open(path, 'a') do |io|
       lambda { io.readlines }.should raise_error(IOError)
     end
 
-    File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt') do |io|
+    File.open(path) do |io|
       io.close_read
       lambda { io.readlines }.should raise_error(IOError)
     end
+    File.unlink(path) if File.exists?(path)
   end
 end
 

@@ -33,7 +33,17 @@ describe "Array#rindex" do
 
     sentinel.instance_variable_set(:@ary, ary)
     def sentinel.==(o) @ary.slice!(1..-1); false; end
-    
+
     ary.rindex(0).should == 0
+  end
+
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.rindex(empty).should == 0
+    empty.rindex(1).should be_nil
+
+    array = ArraySpecs.recursive_array
+    array.rindex(1).should == 0
+    array.rindex(array).should == 7
   end
 end

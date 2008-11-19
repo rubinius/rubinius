@@ -5,7 +5,7 @@ require File.dirname(__FILE__) + '/shared/closed'
 describe "Dir#read" do
   it "returns the file name in the current seek position" do
     # an FS does not necessarily impose order
-    ls = `ls -a #{DirSpecs.mock_dir}`.split
+    ls = Dir.entries DirSpecs.mock_dir
     dir = Dir.open DirSpecs.mock_dir
     ls.should include(dir.read)
     dir.close

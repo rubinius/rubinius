@@ -17,7 +17,9 @@ describe :stringio_each_byte, :shared => true do
 
   it "does not yield if the current position is out of bounds" do
     @io.pos = 1000
-    @io.send(@method) { |b| b }.should be_nil
+    seen = nil
+    @io.send(@method) { |b| seen = b }
+    seen.should be_nil
   end
 
   ruby_version_is "" ... "1.8.7" do

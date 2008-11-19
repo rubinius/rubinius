@@ -25,6 +25,7 @@ describe "BigDecimal#+" do
     (@one + @one_minus).should == @zero
     (@zero + @one).should == @one
     (@ten + @one).should == @eleven
+    (@frac_1 + @frac_2).should == BigDecimal("1.9E-99999")
     (@frac_2 + @frac_1).should == BigDecimal("1.9E-99999")
     (@frac_1 + @frac_1).should == BigDecimal("2E-99999")
 # can't do it this way because * isn't implemented yet

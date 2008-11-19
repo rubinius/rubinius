@@ -8,8 +8,11 @@ describe "BasicSocket#send" do
   end
 
   after :each do
-    @socket.close unless @socket.closed?
-    @server.close unless @server.closed?
+    @server.closed?.should be_false
+    @socket.closed?.should be_false
+
+    @server.close
+    @socket.close
   end
 
    it "sends a message to another socket and returns the number of bytes sent" do

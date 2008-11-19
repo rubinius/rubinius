@@ -7,6 +7,7 @@ describe "Array#index" do
     def x.==(obj) 3 == obj; end
 
     [2, x, 3, 1, 3, 1].index(3).should == 1
+    [2, 3.0, 3, x, 1, 3, 1].index(x).should == 1
   end
 
   it "returns 0 if first element == to object" do

@@ -27,15 +27,20 @@ module ARGFSpecs
   end
 
   def self.ruby(cmd_args)
-    ruby = self.rubybin
-    code_file = tmp('spec_code.rb')
-    File.open(code_file, 'w') { |fh| fh.write(cmd_args[:code])}
-    cmd = ([ruby] + cmd_args[:options] + [code_file] + cmd_args[:args]).join(' ')
-    f = IO.popen(cmd, 'r+')
-    yield(f)
-  ensure
-    f.close unless !f || f.closed?
-    #File.delete(code_file) if File.exists?(code_file)
+    begin
+      ruby = self.rubybin
+      code_file = tmp('spec_code.rb')
+      File.open(code_file, 'w') { |fh| fh.write(cmd_args[:code])}
+      cmd = ([ruby] + cmd_args[:options] + [code_file] + cmd_args[:args]).join(' ')
+      f = IO.popen(cmd, 'r+')
+      yield(f)
+    ensure
+      # TODO: reactivate this code when the pIO#reopen methos is fixed (for now
+      # it keeps raising an IO error saying the popen IO can not be reopened.
+      # Generally speaking the current implementation of IO#reopen is unable
+      # f.close unless f.nil? || f.closed?
+      File.delete(code_file) if File.exists?(code_file)
+    end
   end
 
   # TODO: put this into a helper in MSpec and require it in

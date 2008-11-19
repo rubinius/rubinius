@@ -10,4 +10,11 @@ module StringSpecs
       @special = str
     end
   end
+  
+  class StringWithRaisingConstructor < String
+    def initialize(str)
+      raise ArgumentError.new('constructor was called') unless str == 'silly:string'
+      self.replace(str)
+    end
+  end
 end

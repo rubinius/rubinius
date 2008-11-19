@@ -174,6 +174,10 @@ module KernelSpecs
       yield
     end
   end
+
+  def self.helper_script
+    File.dirname(__FILE__) + '/check_expansion.rb'
+  end
 end
 
 # for Kernel#sleep to have Channel in it's specs

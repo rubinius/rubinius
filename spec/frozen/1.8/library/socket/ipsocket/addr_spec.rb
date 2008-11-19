@@ -39,7 +39,7 @@ describe "Socket::IPSocket#addr" do
       addrinfo = @socket.addr
       addrinfo[0].should == "AF_INET"
       addrinfo[1].should == SocketSpecs.port
-      addrinfo[2].should == Socketspecs.hostname
+      addrinfo[2].should == SocketSpecs.hostname
       addrinfo[3].should == "127.0.0.1"
     end
 

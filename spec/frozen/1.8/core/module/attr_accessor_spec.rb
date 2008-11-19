@@ -19,6 +19,13 @@ describe "Module#attr_accessor" do
 
     o.b = "b"
     o.b.should == "b"
+    o.a = o.b = nil
+
+    o.send(:a=,"a")
+    o.send(:a).should == "a"
+
+    o.send(:b=, "b")
+    o.send(:b).should == "b"
   end
   
   it "converts non string/symbol/fixnum names to strings using to_str" do

@@ -51,4 +51,16 @@ describe "Time#strftime" do
     monday_first.strftime("%U").should == "00"
     monday_first.strftime("%W").should == "01"
   end
+
+  it "supports mm/dd/yy formatting with %D" do
+    now = Time.now
+    mmddyy = now.strftime('%m/%d/%y')
+    now.strftime('%D').should == mmddyy
+  end
+
+  it "supports HH:MM:SS formatting with %T" do
+    now = Time.now
+    hhmmss = now.strftime('%H:%M:%S')
+    now.strftime('%T').should == hhmmss
+  end
 end

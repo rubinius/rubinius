@@ -12,6 +12,16 @@ describe "Array#-" do
     ([1, 1, 2, 2, 3, 3, 4, 5] - [1, 2, 4]).should == [3, 3, 5]
   end
 
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    (empty - empty).should == []
+
+    ([] - ArraySpecs.recursive_array).should == []
+
+    array = ArraySpecs.recursive_array
+    (array - array).should == []
+  end
+
   it "tries to convert the passed arguments to Arrays using #to_ary" do
     obj = mock('[2,3,3,4]')
     obj.should_receive(:to_ary).and_return([2, 3, 3, 4])
@@ -23,6 +33,12 @@ describe "Array#-" do
     obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_ary).and_return([2, 3, 4])
     ([1, 1, 2, 2, 3, 4] - obj).should == [1, 1]
+  end
+
+  it "raises a TypeError if the passed argument is not an array and does not respond to #to_ary" do
+    obj = mock('not an array')
+    obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
+    lambda { [1, 2, 3] - obj }.should raise_error(TypeError)
   end
 
   it "does not return subclass instance for Array subclasses" do
@@ -54,5 +70,17 @@ describe "Array#-" do
     def obj2.eql? a; false; end
     
     ([obj1] - [obj2]).should == [obj1]
+  end
+
+  it "is not destructive" do
+    a = [1, 2, 3]
+    a - []
+    a.should == [1, 2, 3]
+    a - [1]
+    a.should == [1, 2, 3]
+    a - [1,2,3]
+    a.should == [1, 2, 3]
+    a - [:a, :b, :c]
+    a.should == [1, 2, 3]
   end
 end

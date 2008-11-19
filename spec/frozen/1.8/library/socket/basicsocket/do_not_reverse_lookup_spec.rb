@@ -4,18 +4,17 @@ require File.dirname(__FILE__) + '/../fixtures/classes'
 ruby_version_is ""..."1.9" do
   describe "BasicSocket.do_not_reverse_lookup" do
     before(:each) do
-      BasicSocket.do_not_reverse_lookup = true
       @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
       @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     end
     
     after(:each) do
-      BasicSocket.do_not_reverse_lookup = false
       @server.close unless @server.closed?
       @socket.close unless @socket.closed?
     end
 
     it "causes 'peeraddr' to avoid name lookups" do
+      BasicSocket.do_not_reverse_lookup = true
       @socket.peeraddr.should == ["AF_INET", SocketSpecs.port, "127.0.0.1", "127.0.0.1"]
     end
 

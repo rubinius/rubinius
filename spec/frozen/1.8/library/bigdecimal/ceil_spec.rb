@@ -69,20 +69,20 @@ describe "BigDecimal#ceil" do
 
     (1..10).each do |n|
       # 0.4, 0.34, 0.334, etc.
-      (@one/@three).ceil(n).should == BigDecimal("0.#{'3'*(n-1)}4")
+      (@one.div(@three,20)).ceil(n).should == BigDecimal("0.#{'3'*(n-1)}4")
       # 1.4, 1.34, 1.334, etc.
-      (@four/@three).ceil(n).should == BigDecimal("1.#{'3'*(n-1)}4")
-      (BigDecimal('31')/@three).ceil(n).should == BigDecimal("10.#{'3'*(n-1)}4")
+      (@four.div(@three,20)).ceil(n).should == BigDecimal("1.#{'3'*(n-1)}4")
+      (BigDecimal('31').div(@three,20)).ceil(n).should == BigDecimal("10.#{'3'*(n-1)}4")
     end
     (1..10).each do |n|
       # -0.4, -0.34, -0.334, etc.
-      (-@one/@three).ceil(n).should == BigDecimal("-0.#{'3'* n}")
+      (-@one.div(@three,20)).ceil(n).should == BigDecimal("-0.#{'3'* n}")
     end
     (1..10).each do |n|
-      (@three/@one).ceil(n).should == @three
+      (@three.div(@one,20)).ceil(n).should == @three
     end
     (1..10).each do |n|
-      (-@three/@one).ceil(n).should == -@three
+      (-@three.div(@one,20)).ceil(n).should == -@three
     end
   end
 

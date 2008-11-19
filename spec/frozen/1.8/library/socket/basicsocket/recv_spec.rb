@@ -8,6 +8,7 @@ describe "BasicSocket#recv" do
   end
 
   after :each do
+    @server.closed?.should be_false
     @server.close
   end
 
@@ -18,6 +19,8 @@ describe "BasicSocket#recv" do
       data = client.recv(10)
       client.close
     end
+    Thread.pass until t.status == "sleep" or t.status == nil
+    t.status.should_not be_nil
 
     socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     socket.send('hello', 0)
@@ -34,6 +37,8 @@ describe "BasicSocket#recv" do
       data = client.recv(10)    # in-band data (TCP), doesn't receive the flag.
       client.close
     end
+    Thread.pass until t.status == "sleep" or t.status == nil
+    t.status.should_not be_nil
     
     socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     socket.send('helloU', Socket::MSG_OOB)

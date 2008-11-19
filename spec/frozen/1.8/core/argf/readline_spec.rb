@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ARGF.readline" do
+  
   before :each do
     ARGV.clear
     @file1 = ARGFSpecs.fixture_file('file1.txt')
@@ -13,8 +14,7 @@ describe "ARGF.readline" do
   end
 
   after :each do
-    # Close any open file
-    ARGF.close unless ARGF.closed?
+    ARGF.close
     ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
 

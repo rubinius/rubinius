@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ARGF.readchar" do
+  
   before :each do
     ARGV.clear
     @file1 = ARGFSpecs.fixture_file('file1.txt')
@@ -13,25 +14,22 @@ describe "ARGF.readchar" do
   end
 
   after :each do
-    # Close any open file (catch exception if already closed)
-    ARGF.close rescue nil
+    ARGF.close
     ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
   
   it "reads each char of files" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt', '-')
-    STDIN.reopen(File.dirname(__FILE__) + '/fixtures/stdin.txt')
-    total_len = @contents_file1.size + @contents_file2.size + @contents_stdin.size
+    ARGFSpecs.file_args('file1.txt', 'file2.txt')
+    total_len = @contents_file1.size + @contents_file2.size
     stg = ""
     for i in 1..total_len
         stg << ARGF.readchar
     end
-    stg.should == @contents_file1 + @contents_file2 + @contents_stdin
+    stg.should == @contents_file1 + @contents_file2
   end
   
   it "raises EOFError when end of stream reached" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt', '-')
-    STDIN.reopen(File.dirname(__FILE__) + '/fixtures/stdin.txt')
+    ARGFSpecs.file_args('file1.txt', 'file2.txt')
     lambda { while c = ARGF.readchar;end }.should raise_error(EOFError)
   end
 end

@@ -21,13 +21,15 @@ describe "File.expand_path" do
     File.expand_path('a', nil).should == File.join(@base, 'a')
   end
 
-  it "converts a pathname to an absolute pathname, Ruby-Talk:18512 " do
-    # Because of Ruby-Talk:18512
-    File.expand_path('a.').should == File.join(@base, 'a.')
-    File.expand_path('.a').should == File.join(@base, '.a')
-    File.expand_path('a..').should == File.join(@base, 'a..')
-    File.expand_path('..a').should == File.join(@base, '..a')
-    File.expand_path('a../b').should == File.join(@base, 'a../b')
+  not_compliant_on :ironruby do
+    it "converts a pathname to an absolute pathname, Ruby-Talk:18512 " do
+      # Because of Ruby-Talk:18512
+      File.expand_path('a.').should == File.join(@base, 'a.')
+      File.expand_path('.a').should == File.join(@base, '.a')
+      File.expand_path('a..').should == File.join(@base, 'a..')
+      File.expand_path('..a').should == File.join(@base, '..a')
+      File.expand_path('a../b').should == File.join(@base, 'a../b')
+    end
   end
 
   it "converts a pathname to an absolute pathname, using a complete path" do

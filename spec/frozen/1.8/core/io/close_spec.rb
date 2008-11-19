@@ -2,11 +2,13 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "IO#close" do
   before :each do
-    @io = File.open tmp('io.close.txt'), 'w'
+    @path = tmp('io.close.txt')
+    @io = File.open @path, 'w'
   end
 
   after :each do
     @io.close unless @io.closed?
+    p = File.unlink(@path) 
   end
 
   it "closes the stream" do

@@ -9,7 +9,17 @@ describe "Array#rassoc" do
     ary.rassoc("d").should == [6, "d"]
     ary.rassoc("z").should == nil
   end
-  
+
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.rassoc([]).should be_nil
+    [[empty, empty]].rassoc(empty).should == [empty, empty]
+
+    array = ArraySpecs.recursive_array
+    array.rassoc(array).should be_nil
+    [[empty, array]].rassoc(array).should == [empty, array]
+  end
+
   it "calls elem == obj on the second element of each contained array" do
     key = 'foobar'
     o = mock('foobar')

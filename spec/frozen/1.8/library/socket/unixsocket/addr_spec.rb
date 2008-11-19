@@ -6,7 +6,6 @@ describe "UNIXSocket#addr" do
   not_supported_on :windows do
     before :all do
       @path = SocketSpecs.socket_path
-      File.unlink(@path) if File.exists?(@path)
       @server = UNIXServer.open(@path)
       @client = UNIXSocket.open(@path)
     end
@@ -14,6 +13,7 @@ describe "UNIXSocket#addr" do
     after :all do
       @client.close
       @server.close
+      File.unlink(@path) if File.exists?(@path)
     end
   
     it "returns the address family of this socket in an array" do

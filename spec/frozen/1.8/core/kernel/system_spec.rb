@@ -2,12 +2,13 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#system" do
+
   it "can run basic things that exist" do
     begin
       result = false
 
       File.exist?("happy").should == false
-      result = system("touch happy")
+      result = system("echo a >> happy")
       result.should == true
       File.exist?("happy").should == true
     ensure
@@ -36,8 +37,20 @@ describe "Kernel#system" do
   it "is a private method" do
     Kernel.private_instance_methods.should include("system")
   end
-end
 
-describe "Kernel.system" do
-  it "needs to be reviewed for spec completeness"
+  before :each do
+    ENV['TEST_SH_EXPANSION'] = 'foo'
+    @shell_var = platform_is(:windows) ? '%TEST_SH_EXPANSION%' : '$TEST_SH_EXPANSION'
+    @helper_script = KernelSpecs.helper_script
+  end
+
+  it "expands shell variables when given a single string argument" do
+    result = system("ruby #{@helper_script} #{@shell_var} foo")
+    result.should be_true
+  end
+  
+  it "does not expand shell variables when given multiples arguments" do
+    result = system("ruby", @helper_script, @shell_var, "foo")
+    result.should be_false
+  end
 end

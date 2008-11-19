@@ -20,7 +20,17 @@ describe "Array#shift" do
     [].shift.should == nil
   end
 
-  compliant_on :ruby, :jruby do
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.shift.should == []
+    empty.should == []
+
+    array = ArraySpecs.recursive_array
+    array.shift.should == 1
+    array[0..2].should == ['two', 3.0, array]
+  end
+
+  compliant_on :ruby, :jruby, :ir do
     it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.shift }.should raise_error(TypeError)
     end

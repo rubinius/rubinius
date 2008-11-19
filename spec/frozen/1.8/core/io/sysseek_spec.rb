@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "IO#sysseek on a file" do
   # TODO: This should be made more generic with seek spec
   before :each do
-    @file = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r+')
+    @file = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
     @io = IO.open @file.fileno, 'r'
   end
 
@@ -27,7 +27,7 @@ describe "IO#sysseek on a file" do
   it "warns if called immediately after a buffered IO#write" do
     begin
       # copy contents to a separate file
-      tmpfile = File.open("/tmp/tmp_IO_sysseek", "w")
+      tmpfile = File.open(tmp("tmp_IO_sysseek"), "w")
       tmpfile.write(@file.read)
       tmpfile.seek(0, File::SEEK_SET)
 

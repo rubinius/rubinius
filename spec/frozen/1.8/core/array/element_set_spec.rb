@@ -30,23 +30,36 @@ describe "Array#[]=" do
     a.should == ["A", [], "C", "d", "E", nil]
   end
   
-  it "removes the section defined by start, length when set to nil" do
-    a = ['a', 'b', 'c', 'd', 'e']
-    a[1, 3] = nil
-    a.should == ["a", "e"]
-  end
-  
-  it "sets the section defined by start, length to other" do
+  it "sets the section defined by [start,length] to other" do
     a = [1, 2, 3, 4, 5, 6]
     a[0, 1] = 2
     a[3, 2] = ['a', 'b', 'c', 'd']
     a.should == [2, 2, 3, "a", "b", "c", "d", 6]
   end
-  
-  it "removes the section defined by range when set to nil" do
-    a = [1, 2, 3, 4, 5]
-    a[0..1] = nil
-    a.should == [3, 4, 5]
+  it "replaces the section defined by [start,length] with the given values" do
+    a = [1, 2, 3, 4, 5, 6]
+    a[3, 2] = 'a', 'b', 'c', 'd'
+    a.should == [1, 2, 3, "a", "b", "c", "d", 6]
+  end
+
+  ruby_version_is '' ... '1.9' do
+    it "removes the section defined by [start,length] when set to nil" do
+      a = ['a', 'b', 'c', 'd', 'e']
+      a[1, 3] = nil
+      a.should == ["a", "e"]
+    end
+  end
+  ruby_version_is '1.9' do
+    it "just sets the section defined by [start,length] to other even if other is nil" do
+      a = ['a', 'b', 'c', 'd', 'e']
+      a[1, 3] = nil
+      a.should == ["a", nil, "e"]
+    end
+  end
+  it "returns nil if the rhs is nil" do
+    a = [1, 2, 3]
+    (a[1, 3] = nil).should == nil
+    (a[1..3] = nil).should == nil
   end
   
   it "sets the section defined by range to other" do
@@ -56,6 +69,32 @@ describe "Array#[]=" do
     a.should == [6, 9, 4, 6, 6, 6]
   end
 
+  it "replaces the section defined by range with the given values" do
+    a = [6, 5, 4, 3, 2, 1]
+    a[3..6] = :a, :b, :c
+    a.should == [6, 5, 4, :a, :b, :c]
+  end
+
+  ruby_version_is '' ... '1.9' do
+    it "removes the section defined by range when set to nil" do
+      a = [1, 2, 3, 4, 5]
+      a[0..1] = nil
+      a.should == [3, 4, 5]
+    end
+    it "just sets the section defined by range to nil when the rhs is [nil]." do
+      a = [1, 2, 3, 4, 5]
+      a[0..1] = [nil]
+      a.should == [nil, 3, 4, 5]
+    end
+  end
+  ruby_version_is '1.9' do
+    it "just sets the section defined by range to other even if other is nil" do
+      a = [1, 2, 3, 4, 5]
+      a[0..1] = nil
+      a.should == [nil, 3, 4, 5]
+    end
+  end
+  
   it "calls to_int on its start and length arguments" do
     obj = mock('to_int')
     obj.stub!(:to_int).and_return(2)
@@ -89,19 +128,76 @@ describe "Array#[]=" do
         end
       end
     end
+  end
 
-    # Now we only have to test cases where the start, length interface would
-    # have raise an exception because of negative size
+  it "inserts the given elements with [range] which the range is zero-width" do
+    ary = [1, 2, 3]
+    ary[1...1] = 0
+    ary.should == [1, 0, 2, 3]
     ary[1...1] = [5]
-    ary.should == [1, 5, 2, 3]
+    ary.should == [1, 5, 0, 2, 3]
+    ary[1...1] = :a, :b, :c
+    ary.should == [1, :a, :b, :c, 5, 0, 2, 3]
+  end
+
+  it "inserts the given elements with [start, length] which length is zero" do
+    ary = [1, 2, 3]
+    ary[1, 0] = 0
+    ary.should == [1, 0, 2, 3]
+    ary[1, 0] = [5]
+    ary.should == [1, 5, 0, 2, 3]
+    ary[1, 0] = :a, :b, :c
+    ary.should == [1, :a, :b, :c, 5, 0, 2, 3]
+  end
+
+  # Now we only have to test cases where the start, length interface would
+  # have raise an exception because of negative size
+  it "inserts the given elements with [range] which the range has negative width" do
+    ary = [1, 2, 3]
+    ary[1..0] = 0
+    ary.should == [1, 0, 2, 3]
     ary[1..0] = [4, 3]
-    ary.should == [1, 4, 3, 5, 2, 3]
-    ary[-1..0] = nil
-    ary.should == [1, 4, 3, 5, 2, 3]
-    ary[-3..2] = []
-    ary.should == [1, 4, 3, 5, 2, 3]
-    ary[4..2] = []
-    ary.should == [1, 4, 3, 5, 2, 3]
+    ary.should == [1, 4, 3, 0, 2, 3]
+    ary[1..0] = :a, :b, :c
+    ary.should == [1, :a, :b, :c, 4, 3, 0, 2, 3]
+  end
+
+  ruby_version_is '' ... '1.9' do
+    it "does nothing if the section defined by range is zero-width and the rhs is nil" do
+      ary = [1, 2, 3]
+      ary[1...1] = nil
+      ary.should == [1, 2, 3]
+    end
+    it "does nothing if the section defined by range has negative width and the rhs is nil" do
+      ary = [1, 2, 3]
+      ary[1..0] = nil
+      ary.should == [1, 2, 3]
+    end
+  end
+  ruby_version_is '1.9' do
+    it "just inserts nil if the section defined by range is zero-width and the rhs is nil" do
+      ary = [1, 2, 3]
+      ary[1...1] = nil
+      ary.should == [1, nil, 2, 3]
+    end
+    it "just inserts nil if the section defined by range has negative width and the rhs is nil" do
+      ary = [1, 2, 3]
+      ary[1..0] = nil
+      ary.should == [1, nil, 2, 3]
+    end
+  end
+
+  it "does nothing if the section defined by range is zero-width and the rhs is an empty array" do
+    ary = [1, 2, 3]
+    ary[1...1] = []
+    ary.should == [1, 2, 3]
+  end
+  it "does nothing if the section defined by range has negative width and the rhs is an empty array" do
+    ary = [1, 2, 3, 4, 5]
+    ary[1...0] = []
+    ary.should == [1, 2, 3, 4, 5]
+    ary[-2..2] = []
+    ary.should == [1, 2, 3, 4, 5]
   end
 
   it "tries to convert Range elements to Integers using #to_int with [m..n] and [m...n]" do
@@ -179,10 +275,17 @@ describe "Array#[]=" do
     ary.should == [5, 6, 7]
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError on a frozen array" do
-      lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(TypeError)
-    end  
+  compliant_on :ruby, :jruby, :ir do
+    ruby_version_is '' ... '1.9' do
+      it "raises a TypeError on a frozen array" do
+        lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(TypeError)
+      end  
+    end
+    ruby_version_is '1.9' do
+      it "raises a RuntimeError on a frozen array" do
+        lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(RuntimeError)
+      end  
+    end
   end
 end
 
@@ -229,19 +332,37 @@ describe "Array#[]= with [index, count]" do
     (a[2, 3] = [4, 5]).should == [4, 5]
   end
 
-  it "removes the section defined by start, length when set to nil" do
+  ruby_version_is '' ... '1.9' do
+    it "removes the section defined by [start,length] when set to nil" do
       a = ['a', 'b', 'c', 'd', 'e']
       a[1, 3] = nil
       a.should == ["a", "e"]
     end
+  end
+  ruby_version_is '1.9' do
+    it "just sets the section defined by [start,length] to nil even if the rhs is nil" do
+      a = ['a', 'b', 'c', 'd', 'e']
+      a[1, 3] = nil
+      a.should == ["a", nil, "e"]
+    end
+  end
     
-  it "removes the section when set to nil if negative index within bounds and cnt > 0" do
-    a = ['a', 'b', 'c', 'd', 'e']
-    a[-3, 2] = nil
-    a.should == ["a", "b", "e"]
+  ruby_version_is '' ... '1.9' do
+    it "removes the section when set to nil if negative index within bounds and cnt > 0" do
+      a = ['a', 'b', 'c', 'd', 'e']
+      a[-3, 2] = nil
+      a.should == ["a", "b", "e"]
+    end
+  end
+  ruby_version_is '1.9' do
+    it "just sets the section defined by [start,length] to nil if negative index within bounds, cnt > 0 and the rhs is nil" do
+      a = ['a', 'b', 'c', 'd', 'e']
+      a[-3, 2] = nil
+      a.should == ["a", "b", nil, "e"]
+    end
   end
   
-  it "replaces the section defined by start, length to other" do
+  it "replaces the section defined by [start,length] to other" do
       a = [1, 2, 3, 4, 5, 6]
       a[0, 1] = 2
       a[3, 2] = ['a', 'b', 'c', 'd']
@@ -289,113 +410,6 @@ describe "Array#[]= with [index, count]" do
     lambda { a[10, -1] = "" }.should raise_error(IndexError)
     lambda { [1, 2, 3, 4,  5][2, -1] = [7, 8] }.should raise_error(IndexError)
   end
-
-  it "sets elements when passed start, length" do
-    a = [];   a[0, 0] = nil;            a.should == []
-    a = [];   a[2, 0] = nil;            a.should == [nil, nil]
-    a = [];   a[0, 2] = nil;            a.should == []
-    a = [];   a[2, 2] = nil;            a.should == [nil, nil]
-
-    a = [];   a[0, 0] = [];             a.should == []
-    a = [];   a[2, 0] = [];             a.should == [nil, nil]
-    a = [];   a[0, 2] = [];             a.should == []
-    a = [];   a[2, 2] = [];             a.should == [nil, nil]
-
-    a = [];   a[0, 0] = ["a"];          a.should == ["a"]
-    a = [];   a[2, 0] = ["a"];          a.should == [nil, nil, "a"]
-    a = [];   a[0, 2] = ["a"];          a.should == ["a"]
-    a = [];   a[2, 2] = ["a"];          a.should == [nil, nil, "a"]
-    
-    a = [];   a[0, 0] = ["a","b"];      a.should == ["a", "b"]
-    a = [];   a[2, 0] = ["a","b"];      a.should == [nil, nil, "a", "b"]
-    a = [];   a[0, 2] = ["a","b"];      a.should == ["a", "b"]
-    a = [];   a[2, 2] = ["a","b"];      a.should == [nil, nil, "a", "b"]
-
-    a = [];   a[0, 0] = ["a","b","c"];  a.should == ["a", "b", "c"]
-    a = [];   a[2, 0] = ["a","b","c"];  a.should == [nil, nil, "a", "b", "c"]
-    a = [];   a[0, 2] = ["a","b","c"];  a.should == ["a", "b", "c"]
-    a = [];   a[2, 2] = ["a","b","c"];  a.should == [nil, nil, "a", "b", "c"]
-    
-    a = [1, 2, 3, 4]
-    a[0, 0] = [];         a.should == [1, 2, 3, 4]
-    a[1, 0] = [];         a.should == [1, 2, 3, 4]
-    a[-1,0] = [];         a.should == [1, 2, 3, 4]
-
-    a = [1, 2, 3, 4]
-    a[0, 0] = [8, 9, 9];  a.should == [8, 9, 9, 1, 2, 3, 4]
-    a = [1, 2, 3, 4]
-    a[1, 0] = [8, 9, 9];  a.should == [1, 8, 9, 9, 2, 3, 4]
-    a = [1, 2, 3, 4]
-    a[-1,0] = [8, 9, 9];  a.should == [1, 2, 3, 8, 9, 9, 4]
-    a = [1, 2, 3, 4]
-    a[4, 0] = [8, 9, 9];  a.should == [1, 2, 3, 4, 8, 9, 9]
-
-    a = [1, 2, 3, 4]
-    a[0, 1] = [9];        a.should == [9, 2, 3, 4]
-    a[1, 1] = [8];        a.should == [9, 8, 3, 4]
-    a[-1,1] = [7];        a.should == [9, 8, 3, 7]
-    a[4, 1] = [9];        a.should == [9, 8, 3, 7, 9]
-
-    a = [1, 2, 3, 4]
-    a[0, 1] = [8, 9];     a.should == [8, 9, 2, 3, 4]
-    a = [1, 2, 3, 4]
-    a[1, 1] = [8, 9];     a.should == [1, 8, 9, 3, 4]
-    a = [1, 2, 3, 4]
-    a[-1,1] = [8, 9];     a.should == [1, 2, 3, 8, 9]
-    a = [1, 2, 3, 4]
-    a[4, 1] = [8, 9];     a.should == [1, 2, 3, 4, 8, 9]
-    
-    a = [1, 2, 3, 4]
-    a[0, 2] = [8, 9];     a.should == [8, 9, 3, 4]
-    a = [1, 2, 3, 4]
-    a[1, 2] = [8, 9];     a.should == [1, 8, 9, 4]
-    a = [1, 2, 3, 4]
-    a[-2,2] = [8, 9];     a.should == [1, 2, 8, 9]
-    a = [1, 2, 3, 4]
-    a[-1,2] = [8, 9];     a.should == [1, 2, 3, 8, 9]
-    a = [1, 2, 3, 4]
-    a[4, 2] = [8, 9];     a.should == [1, 2, 3, 4, 8, 9]
-
-    a = [1, 2, 3, 4]
-    a[0, 2] = [7, 8, 9];  a.should == [7, 8, 9, 3, 4]
-    a = [1, 2, 3, 4]
-    a[1, 2] = [7, 8, 9];  a.should == [1, 7, 8, 9, 4]
-    a = [1, 2, 3, 4]
-    a[-2,2] = [7, 8, 9];  a.should == [1, 2, 7, 8, 9]
-    a = [1, 2, 3, 4]
-    a[-1,2] = [7, 8, 9];  a.should == [1, 2, 3, 7, 8, 9]
-    a = [1, 2, 3, 4]
-    a[4, 2] = [7, 8, 9];  a.should == [1, 2, 3, 4, 7, 8, 9]
-    
-    a = [1, 2, 3, 4]
-    a[0, 2] = [1, 1.25, 1.5, 1.75, 2]
-    a.should == [1, 1.25, 1.5, 1.75, 2, 3, 4]
-    a[1, 1] = a[3, 1] = []
-    a.should == [1, 1.5, 2, 3, 4]
-    a[0, 2] = [1]
-    a.should == [1, 2, 3, 4]
-    a[5, 0] = [4, 3, 2, 1]
-    a.should == [1, 2, 3, 4, nil, 4, 3, 2, 1]
-    a[-2, 5] = nil
-    a.should == [1, 2, 3, 4, nil, 4, 3]
-    a[-2, 5] = []
-    a.should == [1, 2, 3, 4, nil]
-    a[0, 2] = nil
-    a.should == [3, 4, nil]
-    a[0, 100] = [1, 2, 3]
-    a.should == [1, 2, 3]
-    a[0, 2] *= 2
-    a.should == [1, 2, 1, 2, 3]
-    a[0, 2] |= [2, 3, 4]
-    a.should == [1, 2, 3, 4, 1, 2, 3]
-    a[2, 0] += [3, 2, 2]
-    a.should == [1, 2, 3, 2, 2, 3, 4, 1, 2, 3]
-    a[0, 4] -= [2, 3]
-    a.should == [1, 2, 3, 4, 1, 2, 3]
-    a[0, 6] &= [4]
-    a.should == [4, 3]
-  end
-  
 end
 
 describe "Array#[]= with [m..n]" do
@@ -409,18 +423,31 @@ describe "Array#[]= with [m..n]" do
     (a[2..4] = [7, 8]).should == [7, 8]
   end
   
-  it "removes the section defined by range when set to nil" do
+  ruby_version_is '' ... '1.9' do
+    it "removes the section defined by range when set to nil" do
       a = [1, 2, 3, 4, 5]
       a[0..1] = nil
       a.should == [3, 4, 5]
     end
-
-  it "removes the section when set to nil if m and n < 0" do
-    a = [1, 2, 3, 4, 5]
-    a[-3..-2] = nil
-    a.should == [1, 2, 5]
+    it "removes the section when set to nil if m and n < 0" do
+      a = [1, 2, 3, 4, 5]
+      a[-3..-2] = nil
+      a.should == [1, 2, 5]
+    end
   end
-    
+  ruby_version_is '1.9' do
+    it "just sets the section defined by range to nil even if the rhs is nil" do
+      a = [1, 2, 3, 4, 5]
+      a[0..1] = nil
+      a.should == [nil, 3, 4, 5]
+    end
+    it "just sets the section defined by range to nil if m and n < 0 and the rhs is nil" do
+      a = [1, 2, 3, 4, 5]
+      a[-3..-2] = nil
+      a.should == [1, 2, nil, 5]
+    end
+  end
+
   it "replaces the section defined by range" do
       a = [6, 5, 4, 3, 2, 1]
       a[1...2] = 9

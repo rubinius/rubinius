@@ -5,6 +5,7 @@ describe "String#gsub with pattern and replacement" do
 
   it "doesn't freak out when replacing ^" do
     "Text\n".gsub(/^/, ' ').should == " Text\n"
+    "Text\nFoo".gsub(/^/, ' ').should == " Text\n Foo"
   end
 
   it "returns a copy of self with all occurrences of pattern replaced with replacement" do
@@ -208,6 +209,7 @@ describe "String#gsub with pattern and block" do
   it "returns a copy of self with all occurrences of pattern replaced with the block's return value" do
     "hello".gsub(/./) { |s| s.succ + ' ' }.should == "i f m m p "
     "hello!".gsub(/(.)(.)/) { |*a| a.inspect }.should == '["he"]["ll"]["o!"]'
+    "hello".gsub('l') { 'x'}.should == 'hexxo'
   end
   
   it "sets $~ for access from the block" do
@@ -320,7 +322,7 @@ describe "String#gsub! with pattern and replacement" do
     a.should == "hello"
   end
   
-  compliant_on :ruby, :jruby do
+  compliant_on :ruby, :jruby, :ironruby do
     it "raises a TypeError when self is frozen" do
       s = "hello"
       s.freeze
@@ -352,7 +354,7 @@ describe "String#gsub! with pattern and block" do
     a.should == "hello"
   end
   
-  compliant_on :ruby, :jruby do
+  compliant_on :ruby, :jruby, :ironruby do
     it "raises a RuntimeError when self is frozen" do
       s = "hello"
       s.freeze

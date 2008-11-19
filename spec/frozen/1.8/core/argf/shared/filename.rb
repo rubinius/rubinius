@@ -1,4 +1,5 @@
 describe :argf_filename, :shared => true do
+  
   before :each do
     ARGV.clear
     @file1 = ARGFSpecs.fixture_file('file1.txt')
@@ -10,8 +11,7 @@ describe :argf_filename, :shared => true do
   end
 
   after :each do
-    # Close any open file (catch exception if already closed)
-    ARGF.close rescue nil
+    ARGF.close
     ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
 
@@ -27,8 +27,7 @@ describe :argf_filename, :shared => true do
     end while ARGF.gets
     # returns last current file even when closed
     res << ARGF.send(@method)
-    res.collect { |f| File.expand_path(f) }.should == 
-      [@file1, @file1, @file1, @file2, @file2, @file2].collect { |f| File.expand_path(f)}
+    res.collect { |f| File.expand_path(f) }.should == [@file1, @file1, @file1, @file2, @file2, @file2]
   end
 
   # NOTE: this test assumes that fixtures files have two lines each
@@ -41,7 +40,6 @@ describe :argf_filename, :shared => true do
     end 
     # returns last current file even when closed
     res << $FILENAME
-    res.collect { |f| File.expand_path(f) }.should == 
-      [@file1, @file1, @file2, @file2, @file2].collect { |f| File.expand_path(f)}
+    res.collect { |f| File.expand_path(f) }.should == [@file1, @file1, @file2, @file2, @file2]
   end
 end

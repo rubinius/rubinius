@@ -9,4 +9,15 @@ describe "Array#select" do
   it "does not return subclass instance on Array subclasses" do
     ArraySpecs::MyArray[1, 2, 3].select { true }.class.should == Array
   end
+
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.select { true }.should == empty
+    empty.select { false }.should == []
+
+    array = ArraySpecs.recursive_array
+    array.select { true }.should == [1, 'two', 3.0, array, array, array, array, array]
+    array.select { false }.should == []
+  end
+
 end

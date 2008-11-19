@@ -1,7 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 $require_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/require')
+$require_tmp_dir = tmp("require_specs")
 $LOAD_PATH << $require_fixture_dir
+$LOAD_PATH << $require_tmp_dir
 
 $require_spec   = nil
 $require_spec_1 = nil
@@ -30,11 +32,15 @@ describe "Kernel#require" do
 
   # Avoid storing .rbc in repo
   before :all do
-    Dir.chdir($require_fixture_dir) {
-      `rm -f ./*.rbc`
-      `touch require_spec_dummy.#{Config::CONFIG['DLEXT']}`
-      `touch require_spec_dummy.rb`
+    Dir.mkdir($require_tmp_dir)
+    Dir.chdir($require_tmp_dir) { 
+      FileUtils.touch("require_spec_dummy.#{Config::CONFIG['DLEXT']}")
+      FileUtils.touch("require_spec_dummy.rb")
     }
+  end
+
+  after :all do
+    FileUtils.rm_rf($require_tmp_dir)
   end
 
   # The files used below just contain code that assigns
@@ -45,6 +51,9 @@ describe "Kernel#require" do
   #          load the same file. Be careful if you change the order
   #          or add items.
 
+  it "requires arbitrarily complex files (files with large numbers of AST nodes)" do
+    lambda {require File.expand_path(File.dirname(__FILE__)) + '/fixtures/test'}.should_not raise_error
+  end
   it "loads a .rb from an absolute path and returns true" do
     path = File.expand_path(File.dirname(__FILE__) + '/../../fixtures/require/require_spec_1.rb')
 
@@ -93,6 +102,20 @@ describe "Kernel#require" do
     $LOAD_PATH.delete name
   end
 
+  it "loads a file with ./filename even if . is not in path" do
+    Dir.chdir($require_fixture_dir) do |dir| 
+	 path_backup = $LOAD_PATH.clone
+	 $LOAD_PATH.clear
+	 $LOAD_PATH << "Someirrelevantpath"
+     begin
+      require('./require_spec.rb').should == true    
+     ensure
+	  $LOAD_PATH.clear
+	  $LOAD_PATH.concat(path_backup)    
+	 end 
+	end
+  end
+  
   it "appends a file with no extension with .rb/.<ext> in that order to locate file" do
     load('require_spec')
     $require_spec.should == :noext

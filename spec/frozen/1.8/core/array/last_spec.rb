@@ -10,7 +10,7 @@ describe "Array#last" do
     [].last.should == nil
   end
   
-  it "returns the last count elements" do
+  it "returns the last count elements if given a count" do
     [1, 2, 3, 4, 5, 9].last(3).should == [4, 5, 9]
   end
 
@@ -22,7 +22,11 @@ describe "Array#last" do
   it "returns an empty array when count == 0" do
     [1, 2, 3, 4, 5].last(0).should == []
   end
-  
+
+  it "returns an array containing the last element when passed count == 1" do
+    [1, 2, 3, 4, 5].last(1).should == [5]
+  end
+
   it "raises an ArgumentError when count is negative" do
     lambda { [1, 2].last(-1) }.should raise_error(ArgumentError)
   end
@@ -31,13 +35,44 @@ describe "Array#last" do
     [1, 2, 3, 4, 5, 9].last(10).should == [1, 2, 3, 4, 5, 9]
   end
 
-  it "uses to_int to convert its argument" do
-    o = mock('2')
-    lambda { [1, 2, 3].last o }.should raise_error(TypeError)
+  it "returns an array which is independent to the original when passed count" do
+    ary = [1, 2, 3, 4, 5]
+    ary.last(0).replace([1,2])
+    ary.should == [1, 2, 3, 4, 5]
+    ary.last(1).replace([1,2])
+    ary.should == [1, 2, 3, 4, 5]
+    ary.last(6).replace([1,2])
+    ary.should == [1, 2, 3, 4, 5]
+  end
 
-    def o.to_int(); 2; end
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.last.should equal(empty)
 
-    [1, 2, 3].last(o).should == [2, 3]
+    array = ArraySpecs.recursive_array
+    array.last.should equal(array)
+  end
+
+  it "tries to convert the passed argument to an Integer usinig #to_int" do
+    obj = mock('to_int')
+    obj.should_receive(:to_int).and_return(2)
+    [1, 2, 3, 4, 5].last(obj).should == [4, 5]
+  end
+
+  it "check whether the passed argument responds to #to_int" do
+    obj = mock('method_missing to_int')
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(2)
+    [1, 2, 3, 4, 5].last(obj).should == [4, 5]
+  end
+
+  it "raises a TypeError if the passed argument is not numeric" do
+    lambda { [1,2].last(nil) }.should raise_error(TypeError)
+    lambda { [1,2].last("a") }.should raise_error(TypeError)
+
+    obj = mock("nonnumeric")
+    obj.should_receive(:respond_to?).with(:to_int).and_return(false)
+    lambda { [1,2].last(obj) }.should raise_error(TypeError)
   end
 
   it "does not return subclass instance on Array subclasses" do
@@ -46,5 +81,15 @@ describe "Array#last" do
     ArraySpecs::MyArray[1, 2, 3].last(0).class.should == Array
     ArraySpecs::MyArray[1, 2, 3].last(1).class.should == Array
     ArraySpecs::MyArray[1, 2, 3].last(2).class.should == Array
+  end
+
+  it "is not destructive" do
+    a = [1, 2, 3]
+    a.last
+    a.should == [1, 2, 3]
+    a.last(2)
+    a.should == [1, 2, 3]
+    a.last(3)
+    a.should == [1, 2, 3]
   end
 end

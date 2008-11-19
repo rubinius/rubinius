@@ -1,19 +1,25 @@
 describe :net_ftp_last_response_code, :shared => true do
   before(:each) do
-    @socket = mock("Socket")
+    @server = NetFTPSpecs::DummyFTP.new
+    @server.serve_once
 
     @ftp = Net::FTP.new
-    @ftp.instance_variable_set(:@sock, @socket)
+    @ftp.connect("localhost", 9921)
+  end
+
+  after(:each) do
+    @ftp.quit rescue nil
+    @ftp.close
+    @server.stop
   end
 
   it "returns the response code for the last response" do
-    responses = [ "200 Command okay.", "212 Directory status." ]
-    @socket.should_receive(:readline).and_return(*responses)
-
-    @ftp.send(:getresp)
+    @server.should_receive(:help).and_respond("200 Command okay.")
+    @ftp.help
     @ftp.send(@method).should == "200"
 
-    @ftp.send(:getresp)
+    @server.should_receive(:help).and_respond("212 Directory status.")
+    @ftp.help
     @ftp.send(@method).should == "212"
   end
 end

@@ -25,6 +25,14 @@ describe "Array#values_at" do
     [1, 2, 3, 4, 5].values_at(6..4).should == []
   end
 
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.values_at(0, 1, 2).should == [empty, nil, nil]
+
+    array = ArraySpecs.recursive_array
+    array.values_at(0, 1, 2, 3).should == [1, 'two', 3.0, array]
+  end
+
   it "calls to_int on arguments of ranges when passes ranges" do
     from = mock('from')
     to = mock('to')

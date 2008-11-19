@@ -20,7 +20,7 @@ describe "Dir#each" do
 
   it "returns the directory which remains open" do
     # an FS does not necessarily impose order
-    ls = `ls -a #{DirSpecs.mock_dir}`.split
+    ls = Dir.entries(DirSpecs.mock_dir)
     @dir.each {}.should == @dir
     @dir.read.should == nil
     @dir.rewind

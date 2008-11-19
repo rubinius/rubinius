@@ -19,7 +19,7 @@ describe "Bignum#coerce when given a non Fixnum/Bignum" do
     lambda { a.coerce(1..4) }.should raise_error(TypeError)
     lambda { a.coerce(:test) }.should raise_error(TypeError)
 
-    compliant_on :ruby do
+    compliant_on :ruby, :ir do
       lambda { a.coerce(12.3) }.should raise_error(TypeError)
       lambda { a.coerce("123") }.should raise_error(TypeError)
     end

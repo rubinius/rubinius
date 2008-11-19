@@ -12,4 +12,8 @@ describe "Array.allocate" do
     ary << 1
     ary.should == [1]
   end
+  
+  it "does not accept any arguments" do
+    lambda { Array.allocate(1) }.should raise_error(ArgumentError)
+  end
 end

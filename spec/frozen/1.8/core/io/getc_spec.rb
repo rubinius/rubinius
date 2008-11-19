@@ -27,9 +27,10 @@ describe "IO#getc" do
   end
 
   it "returns nil on empty stream" do
-    File.open(tmp('empty.txt')) { |empty|
+    File.open(tmp('empty.txt'), "w+") { |empty|
       empty.getc.should == nil
     }
+    File.unlink(tmp("empty.txt"))
   end
 
   it "raises IOError on closed stream" do

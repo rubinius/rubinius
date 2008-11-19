@@ -32,15 +32,6 @@ describe "Iconv#iconv" do
     end
   end
 
-  it "when given nil resets the converter" do
-    Iconv.open "utf-16", "utf-8" do |conv|
-      conv.iconv("a").should equal_utf16("\xfe\xff\0a")
-      conv.iconv("a").should equal_utf16("\0a")
-      conv.iconv(nil)
-      conv.iconv("a").should equal_utf16("\xfe\xff\0a")
-    end
-  end
-
   it "when given a negative start position counts from the end of string" do
     Iconv.open "us-ascii", "us-ascii" do |conv|
       conv.iconv("testing", -7, 4).should == "test"
@@ -125,10 +116,6 @@ describe "Iconv.iconv" do
 
   it "returns an empty array when given no strings to convert" do
     Iconv.iconv("us-ascii", "utf-8").should == []
-  end
-
-  it "acts exactly as if invoking Iconv#iconv consecutively on the same converter" do
-    Iconv.iconv("utf-16", "utf-8", "a", "b", "c", nil, "d", "e").should equal_utf16(["\xfe\xff\0a", "\0b", "\0c", "", "\xfe\xff\0d", "\0e"])
   end
 
   it_behaves_like :iconv_initialize_exceptions, :iconv, "test"

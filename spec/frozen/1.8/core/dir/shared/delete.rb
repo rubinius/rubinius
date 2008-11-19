@@ -9,12 +9,17 @@ describe :dir_delete, :shared => true do
   end
 
   it "raises a SystemCallError if lacking adequate permissions to remove the directory" do
-    system "mkdir -p noperm_#{@method}/child"
-    system "chmod 0000 noperm_#{@method}"
+    FileUtils.mkdir_p("noperm_#{@method}/child")
+    File.chmod(0000, "noperm_#{@method}")
 
     lambda { Dir.send @method, "noperm_#{@method}/child" }.should raise_error(SystemCallError)
 
+    platform_is_not(:windows) do
     system "chmod 0777 noperm_#{@method}"
+    end
+    platform_is(:windows) do
+      File.chmod(0666, "noperm_#{@method}")
+    end
     Dir.rmdir "noperm_#{@method}/child"
     Dir.rmdir "noperm_#{@method}"
   end

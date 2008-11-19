@@ -207,7 +207,7 @@ describe "Marshal::load" do
   end
   
   it "raises EOFError on loading an empty file" do
-    temp_file = "marshal.rubinius.tmp.#{Process.pid}"
+    temp_file = tmp("marshal.rubinius.tmp.#{Process.pid}")
     file = File.new(temp_file, "w+")
     begin
       # TODO: This should be in an ensure block, but because of a bug in

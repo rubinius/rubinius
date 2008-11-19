@@ -1,40 +1,33 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'cgi'
+require File.dirname(__FILE__) + "/fixtures/common"
 
-describe "CGI::HtmlExtension#base when passed a String" do
+describe "CGI::HtmlExtension#base" do
   before(:each) do
-    @html = Object.new
-    @html.extend(CGI::Html4)
-    @html.element_init
-    @html.extend(CGI::HtmlExtension)
+    @html = CGISpecs::HtmlExtension.new
   end
   
-  it "returns a 'base'-element, using the passed String as the 'href'-attribute" do
-    expected = '<BASE HREF="http://www.example.com">'
-    @html.base("http://www.example.com").should == expected
-  end
+  describe "when bassed a String" do
+    it "returns a 'base'-element, using the passed String as the 'href'-attribute" do
+      output = @html.base("http://www.example.com")
+      output.should equal_element("BASE", {"HREF" => "http://www.example.com"}, nil, :not_closed => true)
+    end
 
-  it "includes the passed block's return value when passed a block" do
-    expected = '<BASE HREF="http://www.example.com">'
-    @html.base("http://www.example.com") { "Example" }.should == expected
-  end
-end
-
-describe "CGI::HtmlExtension#base when passed a Hash" do
-  before(:each) do
-    @html = Object.new
-    @html.extend(CGI::Html4)
-    @html.element_init
-    @html.extend(CGI::HtmlExtension)
+    it "ignores a passed block" do
+      output = @html.base("http://www.example.com") { "Example" }
+      output.should equal_element("BASE", {"HREF" => "http://www.example.com"}, nil, :not_closed => true)
+    end
   end
   
-  it "returns a 'base'-element, using the passed Hash for attributes" do
-    expected = '<BASE HREF="http://www.example.com" ID="test">'
-    @html.base("HREF" => "http://www.example.com", "ID" => "test").should == expected
-  end
+  describe "when passed a Hash" do
+    it "returns a 'base'-element, using the passed Hash for attributes" do
+      output = @html.base("HREF" => "http://www.example.com", "ID" => "test")
+      output.should equal_element("BASE", {"HREF" => "http://www.example.com", "ID" => "test"}, nil, :not_closed => true)
+    end
 
-  it "includes the passed block's return value when passed a block" do
-    expected = '<BASE HREF="http://www.example.com" ID="test">'
-    @html.base("HREF" => "http://www.example.com", "ID" => "test") { "Example" }.should == expected
+    it "ignores a passed block" do
+      output = @html.base("HREF" => "http://www.example.com", "ID" => "test") { "Example" }
+      output.should equal_element("BASE", {"HREF" => "http://www.example.com", "ID" => "test"}, nil, :not_closed => true)
+    end
   end
 end

@@ -3,8 +3,8 @@ describe :string_to_sym, :shared => true do
     "Koala".send(@method).should == :Koala
     'cat'.send(@method).should == :cat
     '@cat'.send(@method).should == :@cat
-
     'cat and dog'.send(@method).should == :"cat and dog"
+    "abc=".send(@method).should == :abc=
   end
 
   it "raises an ArgumentError when self can't be converted to symbol" do

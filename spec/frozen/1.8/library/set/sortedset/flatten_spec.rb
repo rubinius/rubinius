@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'set'
 
 describe "SortedSet#flatten" do
-  ruby_bug "http://redmine.ruby-lang.org/projects/ruby-18/issues/show?id=117", "1.8.7.47" do
+  ruby_bug "http://redmine.ruby-lang.org/projects/ruby-18/issues/show?id=117", "1.8.7" do
     it "returns a copy of self with each included SortedSet flattened" do
       set = SortedSet[1, 2, SortedSet[3, 4, SortedSet[5, 6, SortedSet[7, 8]]], 9, 10]
       flattened_set = set.flatten
@@ -14,7 +14,7 @@ describe "SortedSet#flatten" do
 end
 
 describe "SortedSet#flatten!" do
-  ruby_bug "http://redmine.ruby-lang.org/projects/ruby-18/issues/show?id=117", "1.8.7.47" do
+  ruby_bug "http://redmine.ruby-lang.org/projects/ruby-18/issues/show?id=117", "1.8.7" do
     it "flattens self" do
       set = SortedSet[1, 2, SortedSet[3, 4, SortedSet[5, 6, SortedSet[7, 8]]], 9, 10]
       set.flatten!

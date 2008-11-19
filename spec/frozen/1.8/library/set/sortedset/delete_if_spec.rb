@@ -27,7 +27,22 @@ describe "SortedSet#delete_if" do
     @set.delete_if { |x| x }.should equal(@set)
   end
 
-  it "raises a LocalJumpError when not passed a block" do
-    lambda { @set.delete_if }.should raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.8.8" do
+    it "raises a LocalJumpError when passed no block" do
+      lambda { @set.delete_if }.should raise_error(LocalJumpError)
+    end
+  end
+  
+  ruby_version_is "1.8.8" do
+    it "returns an Enumerator when passed no block" do
+      enum = @set.delete_if
+      enum.should be_kind_of(Enumerable::Enumerator)
+      
+      enum.each { |x| x.size == 3 }
+      
+      @set.should_not include("one")
+      @set.should_not include("two")
+      @set.should include("three")
+    end
   end
 end

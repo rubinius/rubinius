@@ -13,4 +13,8 @@ describe "Module#ancestors" do
   it "returns only modules and classes" do
     class << ModuleSpecs::Child; self; end.ancestors.should include(ModuleSpecs::Internal, Class, Module, Object, Kernel)
   end
+
+  it "has 1 entry per module or class" do
+    ModuleSpecs::Parent.ancestors.should == ModuleSpecs::Parent.ancestors.uniq
+  end
 end

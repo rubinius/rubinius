@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 if ENV['MRI'] then
-  $: << 'kernel/common'
+  $: << 'kernel/core'
   require 'pack'
 end
 
@@ -357,10 +357,51 @@ describe "Array#pack" do
       [1,1234,2].pack('i*').should == "\000\000\000\001\000\000\004\322\000\000\000\002"
     end
   end
-  
-  it "raises a RangeError when the positive integer is too big with ('i')" do
-    lambda { [2**32].pack('i') }.should raise_error(RangeError)
+
+  platform_is :wordsize => 64 do
+    it "raises a RangeError when the negative integer is too big with ('s')" do
+      lambda { [-2**64].pack('s') }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError when the positive integer is too big with ('i')" do
+      lambda { [2**64].pack('i') }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError when the negative integer is too big with ('l')" do
+      lambda { [-2**64].pack('l') }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError when the positive integer is too big with ('l')" do
+      lambda { [2**64].pack('l') }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError when the positive integer is too big with ('s')" do
+      lambda { [2**64].pack('s') }.should raise_error(RangeError)
+    end
   end
+
+  platform_is :wordsize => 32 do
+    it "raises a RangeError when the negative integer is too big with ('s')" do
+      lambda { [-2**32].pack('s') }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError when the positive integer is too big with ('i')" do
+      lambda { [2**32].pack('i') }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError when the negative integer is too big with ('l')" do
+      lambda { [-2**32].pack('l') }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError when the positive integer is too big with ('l')" do
+      lambda { [2**32].pack('l') }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError when the positive integer is too big with ('s')" do
+      lambda { [2**32].pack('s') }.should raise_error(RangeError)
+    end
+  end
+
 
   it "encodes a negative integer with ('i')" do
     [-1].pack('i').should == "\377\377\377\377"
@@ -378,9 +419,6 @@ describe "Array#pack" do
     end
   end
 
-  it "raises a RangeError when the negative integer is too big with ('l')" do
-    lambda { [-2**32].pack('l') }.should raise_error(RangeError)
-  end
  
   it "encodes a positive integer with ('l')" do
     [0].pack('l').should == "\000\000\000\000"
@@ -399,10 +437,6 @@ describe "Array#pack" do
     end
   end
 
-  it "raises a RangeError when the positive integer is too big with ('l')" do
-    lambda { [2**32].pack('l') }.should raise_error(RangeError)
-  end
-
   it "encodes a negative integer with ('l')" do
     [-1].pack('l').should == "\377\377\377\377"
   end
@@ -419,10 +453,6 @@ describe "Array#pack" do
     end
   end
 
-  it "raises a RangeError when the negative integer is too big with ('l')" do
-    lambda { [-2**32].pack('l') }.should raise_error(RangeError)
-  end 
-  
   it "enocdes string with Qouted Printable encoding with ('M')" do
     ["ABCDEF"].pack('M').should == "ABCDEF=\n"
   end
@@ -485,6 +515,14 @@ describe "Array#pack" do
 
   it "ignores star parameter with ('M')" do
     ["ABC", "DEF", "GHI"].pack('M*').should == ["ABC"].pack('M')
+  end
+
+  it "properly handles recursive arrays with ('M')" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.pack('M').should == "[...]=\n"
+
+    array = ArraySpecs.recursive_array
+    array.pack('M').should == "1=\n"
   end
 
   it "encodes string with Base64 encoding with ('m')" do
@@ -606,9 +644,6 @@ describe "Array#pack" do
     end
   end
 
-  it "raises a RangeError when the positive integer is too big with ('s')" do
-    lambda { [2**32].pack('s') }.should raise_error(RangeError)
-  end
 
   it "encodes a negative integer with ('s')" do
     [-1].pack('s').should == "\377\377"
@@ -626,9 +661,6 @@ describe "Array#pack" do
     end
   end
 
-  it "raises a RangeError when the negative integer is too big with ('s')" do
-    lambda { [-2**32].pack('s') }.should raise_error(RangeError)
-  end
 
   it "converts integers into UTF-8 encoded byte sequences with ('U')" do
     numbers = [0, 1, 15, 16, 127,
@@ -655,7 +687,7 @@ describe "Array#pack" do
   it "converts big integers into UTF-8 encoded byte sequences with ('U')" do 
     #these are actually failing on String#unpack
     #  they are not passing the 'utf8_regex_strict' test
-    compliant_on :ruby, :jruby do
+    compliant_on :ruby, :jruby, :ir do
       numbers = [ 2048, 4096, 2**16 -1, 2**16, 2**16 + 1, 2**30]
       numbers.each do |n|
         [n].pack('U').unpack('U').should == [n]
@@ -725,13 +757,35 @@ describe "Array#pack" do
     ['abcdef'].pack('A4X').should == 'abc'
   end
 
-  it "converts to BER-compressed integer with ('w')" do
-    [0].pack('w').should == "\000"
-    [1].pack('w').should == "\001"
-    [9999].pack('w').should == "\316\017"
-    [2**64].pack('w').should == "\202\200\200\200\200\200\200\200\200\000"
-    lambda { [-1].pack('w') }.should raise_error(ArgumentError)
-    lambda { [-2**256].pack('w') }.should raise_error(ArgumentError)
+  describe "with ('w')" do
+    it "converts to BER-compressed integer" do
+      [0].pack('w').should == "\000"
+      [1].pack('w').should == "\001"
+      [0, 1, 2].pack('w2').should == "\000\001"
+      [0, 1, 2].pack('w*').should == "\000\001\002"
+      [9999].pack('w').should == "\316\017"
+      [2**64].pack('w').should == "\202\200\200\200\200\200\200\200\200\000"
+      lambda { [-1].pack('w') }.should raise_error(ArgumentError)
+      lambda { [-2**256].pack('w') }.should raise_error(ArgumentError)
+    end
+
+    it "raises an ArgumentError if the count is greater than the number of remaining array elements" do
+      lambda { [1].pack('w2') }.should raise_error(ArgumentError, /few/)
+      lambda { [1, 2, 3, 4, 5].pack('w10') }.should raise_error(ArgumentError, /few/)
+    end
+
+    it "calls to_int on non-integer values before packing" do
+      obj = mock('1')
+      obj.should_receive(:to_int).and_return(1)
+      [obj].pack('w').should == "\001"
+    end
+
+    it "raises TypeError on nil and non-numeric arguments" do
+      lambda { [nil].pack('w') }.should raise_error(TypeError, /nil/)
+      lambda { [()].pack('w') }.should raise_error(TypeError, /nil/)
+      lambda { ['a'].pack('w') }.should raise_error(TypeError, /String/)
+      lambda { [Object.new].pack('w') }.should raise_error(TypeError, /Object/)
+    end
   end
 
   it "with count decreases result string by count chars with ('X')" do

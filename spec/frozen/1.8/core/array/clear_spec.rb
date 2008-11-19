@@ -21,11 +21,38 @@ describe "Array#clear" do
     a.size.should == 0
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError on a frozen array" do
+  it "keeps tainted status" do
+    a = [1]
+    a.taint
+    a.tainted?.should be_true
+    a.clear
+    a.tainted?.should be_true
+  end
+
+  ruby_version_is '1.9' do
+    it "keeps untrusted status" do
       a = [1]
-      a.freeze
-      lambda { a.clear }.should raise_error(TypeError)
+      a.untrust
+      a.untrusted?.should be_true
+      a.clear
+      a.untrusted?.should be_true
+    end
+  end
+
+  compliant_on :ruby, :jruby, :ir do
+    ruby_version_is '' ... '1.9' do
+      it "raises a TypeError on a frozen array" do
+        a = [1]
+        a.freeze
+        lambda { a.clear }.should raise_error(TypeError)
+      end
+    end
+    ruby_version_is '1.9' do
+      it "raises a RuntimeError on a frozen array" do
+        a = [1]
+        a.freeze
+        lambda { a.clear }.should raise_error(RuntimeError)
+      end
     end
   end
 end

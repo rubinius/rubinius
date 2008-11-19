@@ -16,8 +16,16 @@ describe "Array#push" do
     a.push("foo")
     a.should == ["b", "c", "foo"]
   end
-  
-  compliant_on :ruby, :jruby do
+
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.push(:last).should == [empty, :last]
+
+    array = ArraySpecs.recursive_array
+    array.push(:last).should == [1, 'two', 3.0, array, array, array, array, array, :last]
+  end
+
+  compliant_on :ruby, :jruby, :ir do
     it "raises a TypeError on a frozen array if modification takes place" do
       lambda { ArraySpecs.frozen_array.push(1) }.should raise_error(TypeError)
     end

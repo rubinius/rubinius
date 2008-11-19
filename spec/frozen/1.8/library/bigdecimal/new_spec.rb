@@ -24,7 +24,7 @@ describe "BigDecimal.new" do
 
   it "determines precision from initial value" do
     pi_string = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593014782083152134043"
-    BigDecimal.new(pi_string).precs[1].should >= pi_string.size
+    BigDecimal.new(pi_string).precs[1].should >= pi_string.size-1
   end
 
   it "ignores leading whitespace" do
@@ -48,7 +48,9 @@ describe "BigDecimal.new" do
 
   it "allows omitting the integer part" do
     BigDecimal.new(".123").should == BigDecimal.new("0.123")
+    ruby_version_is "1.8.6.5000" do
     BigDecimal.new("-.123").should == BigDecimal.new("-0.123")
+  end
   end
 
   it "allows for underscores in all parts" do

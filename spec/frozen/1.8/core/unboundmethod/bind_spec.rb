@@ -29,4 +29,9 @@ describe "UnboundMethod#bind" do
     obj = UnboundMethodSpecs::Methods.new
     @normal_um.bind(obj).should == obj.method(:foo)
   end
+
+  it "returns a callable method" do
+    obj = UnboundMethodSpecs::Methods.new
+    @normal_um.bind(obj).call.should == obj.foo
+  end
 end

@@ -7,6 +7,7 @@ describe "ARGF.pos" do
 end
 
 describe "ARGF.pos=" do
+  
   before :each do
     ARGV.clear
     @file1 = ARGFSpecs.fixture_file('file1.txt')
@@ -18,8 +19,7 @@ describe "ARGF.pos=" do
   end
 
   after :each do
-    # Close any open file (catch exception if already closed)
-    ARGF.close rescue nil
+    ARGF.close
     ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
     
@@ -42,6 +42,5 @@ describe "ARGF.pos=" do
     res.should == [linef1_2, linef1_1, linef2_1[1..-1], linef2_2[-1,1], ""]
     
   end
-  
 
 end

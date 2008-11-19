@@ -39,6 +39,15 @@ describe "Array#slice!" do
     a.should == []
   end
 
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.slice(0).should == empty
+
+    array = ArraySpecs.recursive_array
+    array.slice(4).should == array
+    array.slice(0..3).should == [1, 'two', 3.0, array]
+  end
+
   it "calls to_int on start and length arguments" do
     obj = mock('2')
     def obj.to_int() 2 end
@@ -143,7 +152,7 @@ describe "Array#slice!" do
     end
   end
 
-  compliant_on :ruby, :jruby do
+  compliant_on :ruby, :jruby, :ir do
     it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.slice!(0, 0) }.should raise_error(TypeError)
     end

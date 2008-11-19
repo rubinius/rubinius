@@ -74,4 +74,8 @@ module ClassSpecs
     class J < self 
     end
   end
+  
+  class L; end
+
+  class M < L; end
 end

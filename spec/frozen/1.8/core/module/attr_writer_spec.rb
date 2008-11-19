@@ -18,6 +18,10 @@ describe "Module#attr_writer" do
     o.respond_to?("test2=").should == true
     o.test2 = "test_2"
     o.instance_variable_get(:@test2).should == "test_2"
+    o.send(:test1=,"test_1 updated")
+    o.instance_variable_get(:@test1).should == "test_1 updated"
+    o.send(:test2=,"test_2 updated")
+    o.instance_variable_get(:@test2).should == "test_2 updated"
   end
 
   not_compliant_on :rubinius do

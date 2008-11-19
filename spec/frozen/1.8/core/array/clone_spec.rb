@@ -17,4 +17,17 @@ describe "Array#clone" do
       bb.frozen?.should == false
     end
   end
+
+  it "copies singleton methods" do
+    a = [1, 2, 3, 4]
+    b = [1, 2, 3, 4]
+    def a.a_singleton_method; end
+    aa = a.clone
+    bb = b.clone
+
+    a.respond_to?(:a_singleton_method).should be_true
+    b.respond_to?(:a_singleton_method).should be_false
+    aa.respond_to?(:a_singleton_method).should be_true
+    bb.respond_to?(:a_singleton_method).should be_false
+  end
 end

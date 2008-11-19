@@ -20,6 +20,8 @@ describe "Module#attr_reader" do
 
     o.a.should == "test"
     o.b.should == "test2"
+    o.send(:a).should == "test"
+    o.send(:b).should == "test2"
   end
 
   it "converts non string/symbol/fixnum names to strings using to_str" do

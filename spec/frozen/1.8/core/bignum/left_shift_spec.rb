@@ -29,14 +29,29 @@ describe "Bignum#<<" do
     obj.should_receive(:to_int).and_return("asdf")
     lambda { @bignum << obj }.should raise_error(TypeError)
   end
-  
-  it "raises a RangeError when the given argument is a Bignum" do
-    lambda { @bignum << bignum_value }.should raise_error(RangeError)
-    lambda { -@bignum << bignum_value }.should raise_error(RangeError)
-    
-    obj = mock("Converted to Integer")
-    obj.should_receive(:to_int).exactly(2).times.and_return(bignum_value)
-    lambda { @bignum << obj }.should raise_error(RangeError)
-    lambda { -@bignum << obj }.should raise_error(RangeError)
+
+  platform_is :wordsize => 32 do
+    it "raises a RangeError when the given argument is a Bignum" do
+      lambda { @bignum << bignum_value }.should raise_error(RangeError)
+      lambda { -@bignum << bignum_value }.should raise_error(RangeError)
+      
+      obj = mock("Converted to Integer")
+      obj.should_receive(:to_int).exactly(2).times.and_return(bignum_value)
+      lambda { @bignum << obj }.should raise_error(RangeError)
+      lambda { -@bignum << obj }.should raise_error(RangeError)
+    end
+  end
+
+  platform_is :wordsize => 64 do
+    it "raises a RangeError when the given argument is a Bignum" do
+      # check against 2**64 for 64-bit machines.
+      lambda { @bignum << (bignum_value << 1) }.should raise_error(RangeError)
+      lambda { -@bignum << (bignum_value << 1) }.should raise_error(RangeError)
+      
+      obj = mock("Converted to Integer")
+      obj.should_receive(:to_int).exactly(2).times.and_return(bignum_value << 1)
+      lambda { @bignum << obj }.should raise_error(RangeError)
+      lambda { -@bignum << obj }.should raise_error(RangeError)
+    end
   end
 end

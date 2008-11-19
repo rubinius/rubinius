@@ -68,10 +68,17 @@ describe "File.new" do
   end
 
   it "return a new File with modus fd " do
-    @fh = File.new(@file)
-    @fh = File.new(@fh.fileno)
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    begin
+      @fh_orig = File.new(@file)
+      @fh = File.new(@fh_orig.fileno)
+      @fh.class.should == File
+      File.exists?(@file).should == true
+    ensure
+      @fh.close rescue nil if @fh
+      @fh = nil
+      @fh_orig.close rescue nil if @fh_orig
+      @fh_orig = nil
+    end
   end
 
   it "create a new file when use File::EXCL mode " do

@@ -10,6 +10,14 @@ describe "Array#reverse" do
   it "returns subclass instance on Array subclasses" do
     ArraySpecs::MyArray[1, 2, 3].reverse.class.should == ArraySpecs::MyArray
   end
+
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.reverse.should == empty
+
+    array = ArraySpecs.recursive_array
+    array.reverse.should == [array, array, array, array, array, 3.0, 'two', 1]
+  end
 end
 
 describe "Array#reverse!" do
@@ -20,7 +28,15 @@ describe "Array#reverse!" do
     [].reverse!.should == []
   end
 
-  compliant_on :ruby, :jruby do
+  it "properly handles recursive arrays" do
+    empty = ArraySpecs.empty_recursive_array
+    empty.reverse!.should == [empty]
+
+    array = ArraySpecs.recursive_array
+    array.reverse!.should == [array, array, array, array, array, 3.0, 'two', 1]
+  end
+
+  compliant_on :ruby, :jruby, :ir do
     it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.reverse! }.should raise_error(TypeError)
     end

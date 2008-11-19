@@ -21,6 +21,8 @@ describe "Module#attr" do
 
     o.attr.should  == "test"
     o.attr3.should == "test3"
+    o.send(:attr).should == "test"
+    o.send(:attr3).should == "test3"
   end
   
   it "creates a setter for the given attribute name if writable is true" do

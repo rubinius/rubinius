@@ -6,6 +6,7 @@ describe "IO#close_read" do
 
   before :each do
     @io = IO.popen 'cat', "r+"
+    @path = tmp('io.close.txt')
   end
 
   after :each do
@@ -31,17 +32,18 @@ describe "IO#close_read" do
   end
 
   it "raises an IOError if the stream is writable and not duplexed" do
-    io = File.open tmp('io.close.txt'), 'w'
+    io = File.open @path, 'w'
 
     begin
       lambda { io.close_read }.should raise_error(IOError)
     ensure
       io.close unless io.closed?
     end
+    File.unlink(@path)
   end
 
   it "closes the stream if it is neither writable nor duplexed" do
-    io_close_path = tmp 'io.close.txt'
+    io_close_path = @path
     FileUtils.touch io_close_path
 
     io = File.open io_close_path
@@ -49,6 +51,7 @@ describe "IO#close_read" do
     io.close_read
 
     io.closed?.should == true
+    File.unlink(@path)
   end
 
   it "raises IOError on closed stream" do

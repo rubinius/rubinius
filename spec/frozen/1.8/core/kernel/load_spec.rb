@@ -34,7 +34,7 @@ describe "Kernel#load" do
   # Avoid storing .rbc in repo
   before :all do
     Dir.chdir($load_fixture_dir) do |dir|
-      `rm -f ./*.rbc`
+      FileUtils.rm_f(Dir["*.rbc"])
     end
   end
 

@@ -32,7 +32,7 @@ describe "Fixnum#>>" do
     lambda { 3 >> obj }.should raise_error(TypeError)
   end
 
-  it "does not raise RangeError when the given argument is out of range of Integer" do
+  it "does not raise RangeError when the given argument is out of range of Fixnum" do
     (obj1 = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
     (obj2 = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
     (3 >> obj1).should == 0

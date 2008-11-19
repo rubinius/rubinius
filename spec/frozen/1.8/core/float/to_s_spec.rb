@@ -8,6 +8,8 @@ describe "Float#to_s" do
     1000000000000.to_f.to_s.should == "1000000000000.0"
     10000000000000.to_f.to_s.should == "10000000000000.0"
     100000000000000.to_f.to_s.should == "1.0e+14"
+    -10000000000000.to_f.to_s.should == "-10000000000000.0"
+    -100000000000000.to_f.to_s.should == "-1.0e+14"
     1.87687113714737e-40.to_s.should == "1.87687113714737e-40"
     (0.0 / 0.0).to_s.should == "NaN"
     (1.0 / 0.0).to_s.should == "Infinity"
