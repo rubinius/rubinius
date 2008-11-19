@@ -49,6 +49,13 @@ namespace assembler_x8664 {
   Register no_base = rbp;
 
   class AssemblerX8664 : public assembler::Assembler {
+  public:
+    enum ModType {
+      ModAddr2Reg = 1,
+      ModReg2Addr = 2,
+      ModReg2Reg = 3
+    };
+
   private:
     void rex(Register &reg, bool imm64=false) {
       if(reg.extended_p()) {
@@ -72,8 +79,8 @@ namespace assembler_x8664 {
       if(prefix != 0x40) emit(prefix);
     }
 
-    void emit_modrm(int mod, int reg, int rm) {
-      emit((mod & 0x3) << 6 | (reg & 0x7) << 3 | (rm & 0x7));
+    void emit_modrm(ModType mod, int reg, int rm) {
+      emit(((int)mod << 6) | (reg & 0x7) << 3 | (rm & 0x7));
     }
 
   public:
@@ -114,11 +121,11 @@ namespace assembler_x8664 {
       // SIB. Therefore to address via r12, we have to use SIB.
       if(addr.base() == r12) {
         // 4 means use SIB, so we have to use it.
-        emit_modrm(2, 0, 4);
+        emit_modrm(ModReg2Addr, 0, 4);
         // rsp.code() means ignore the index.
         emit(0 << 6 | rsp.code() << 3 | addr.base().base_code());
       } else {
-        emit_modrm(2, 0, addr.base().base_code());
+        emit_modrm(ModReg2Addr, 0, addr.base().base_code());
       }
       emit_w(addr.offset());
       emit_w(val);
@@ -127,7 +134,81 @@ namespace assembler_x8664 {
     void mov(Register &dst, Register &src) {
       rex_rb(dst, src);
       emit(0x8b);
-      emit_modrm(3, dst.code(), src.code());
+      emit_modrm(ModReg2Reg, dst.code(), src.code());
+    }
+
+    void mov(Register &dst, const Address addr) {
+      rex_rb(dst, addr.base());
+      emit(0x8b);
+      emit_modrm(ModAddr2Reg, dst.base_code(), addr.base().base_code());
+      emit(addr.offset());
+    }
+
+    void mov(const Address addr, Register &src) {
+      rex_rb(src, addr.base());
+      emit(0x89);
+      emit_modrm(ModReg2Addr, src.base_code(), addr.base().base_code());
+      emit_w(addr.offset());
+    }
+
+    void push(Register &reg) {
+      rex(reg, true);
+      emit(0x50 | reg.base_code());
+    }
+
+    void push(uint32_t val) {
+      emit(0x68);
+      emit_w(val);
+    }
+
+    void push(const Address addr) {
+      rex(addr.base());
+      emit(0xff);
+
+      emit_modrm(ModReg2Addr, 6, addr.base().base_code());
+      emit_w(addr.offset());
+    }
+
+    void pop(Register &reg) {
+      rex(reg);
+      emit(0x58 | reg.base_code());
+    }
+
+    void lea(Register &dest, Register &base, int offset) {
+      rex_rb(dest, base);
+      emit(0x8d);
+      emit_modrm(ModReg2Addr, dest.base_code(), base.base_code());
+      emit_w(offset);
+    }
+
+    // Function setup/teardown
+
+    void leave() {
+      emit(0xc9);
+    }
+
+    void ret() {
+      emit(0xc3);
+    }
+
+    void sub(Register &reg, int val) {
+      rex(reg);
+      emit(0x81);
+      emit_modrm(ModReg2Reg, 5, reg.base_code());
+      emit_w(val);
+    }
+
+    void add(Register &reg, int val) {
+      rex(reg);
+      emit(0x81);
+      emit_modrm(ModReg2Reg, 0, reg.base_code());
+      emit_w(val);
+    }
+
+    void add(Register &dst, Register &src) {
+      rex_rb(dst, src);
+      emit(0x03);
+      emit_modrm(ModReg2Reg, dst.base_code(), src.base_code());
     }
 
     ud_t* disassemble() {
