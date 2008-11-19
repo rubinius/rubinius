@@ -6,3 +6,4 @@ fails:IO#reopen reassociates self with the I/O stream specified as an argument, 
 fails:IO#reopen reassociates self to another file/descriptor but returns self
 fails:IO#reopen reassociates self with the I/O stream specified as an argument, after some sysreads
 fails:IO#reopen reassociates self with the I/O stream specified as an argument, after some writes
+fails:IO#reopen reassociates self with new a new stream after some reads

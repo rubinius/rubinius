@@ -1,0 +1,1 @@
+fails:Array#push properly handles recursive arrays

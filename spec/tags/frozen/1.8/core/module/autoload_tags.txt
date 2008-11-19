@@ -14,3 +14,6 @@ fails:Module#autoload should allow multiple autoload requests to reference one f
 
 
 
+fails:Module#autoload doesn't call 'require' nor 'load' dynamically
+fails:Module#autoload with constant enumeration or removal doesn't trigger file load
+fails:Module#autoload uses dup copies for autoloaded constants

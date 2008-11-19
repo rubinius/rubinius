@@ -1,2 +1,3 @@
 
 
+fails:IO#each_byte works on empty streams

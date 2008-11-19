@@ -1,0 +1,1 @@
+fails:Array#select properly handles recursive arrays

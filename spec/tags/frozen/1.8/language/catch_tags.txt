@@ -1,0 +1,2 @@
+fails:The catch keyword only allows symbols and strings
+fails:The catch keyword matches strings as symbols

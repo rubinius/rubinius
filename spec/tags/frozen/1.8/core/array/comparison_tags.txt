@@ -5,3 +5,4 @@ fails:Array#<=> calls <=> left to right and return first non-0 result
 
 
 
+fails:Array#<=> properly handles recursive arrays

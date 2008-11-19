@@ -1,0 +1,1 @@
+fails:Array#to_a properly handles recursive arrays

@@ -4,3 +4,4 @@
 
 
 
+fails:Bignum#+ returns self plus the given Integer

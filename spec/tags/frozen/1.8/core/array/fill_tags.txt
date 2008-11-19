@@ -17,3 +17,7 @@ fails:Array#fill raises an ArgumentError or RangeError for too-large sizes
 
 
 
+fails:Array#fill raises an ArgumentError if no argument passed and no block given
+fails:Array#fill with (filler, index, length) raises a TypeError if the index is not numeric
+fails:Array#fill with (filler, index, length) raises an ArgumentError or RangeError for too-large sizes
+fails:Array#fill with (filler, range) raises a TypeError if the start or end of the passed range is not numeric

@@ -1,0 +1,3 @@
+fails:Array#join returns a string formed by concatenating each element.to_s separated by separator without trailing separator
+fails:Array#join raises a NoMethodError if an element does not respond to #to_s
+fails:Array#join returns a string which would be infected with taint of the array, its elements or the separator when the array is not empty

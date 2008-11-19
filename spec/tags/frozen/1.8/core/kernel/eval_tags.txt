@@ -24,3 +24,4 @@ fails:Kernel#eval allows creating a new class in a binding returned by a method 
 
 
 fails:Kernel#eval includes file and line information in syntax error
+fails:Kernel#eval should perform top level evaluations from inside a block

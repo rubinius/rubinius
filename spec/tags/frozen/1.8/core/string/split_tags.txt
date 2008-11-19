@@ -52,3 +52,5 @@
 
 
 
+fails:String#split with String does not call constructor on created subclass instances
+fails:String#split with Regexp does not call constructor on created subclass instances

@@ -1,0 +1,1 @@
+fails:Array#zip properly handles recursive arrays

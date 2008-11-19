@@ -1,0 +1,1 @@
+fails:Array#partition properly handles recursive arrays

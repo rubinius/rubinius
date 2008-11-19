@@ -1,0 +1,1 @@
+fails:UnboundMethod#bind returns a callable method

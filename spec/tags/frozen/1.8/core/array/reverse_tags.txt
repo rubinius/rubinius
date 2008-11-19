@@ -1,0 +1,2 @@
+fails:Array#reverse properly handles recursive arrays
+fails:Array#reverse! properly handles recursive arrays

@@ -7,3 +7,5 @@ fails:Array#uniq does not compare elements with different hash codes via eql?
 
 
 
+fails:Array#uniq properly handles recursive arrays
+fails:Array#uniq! properly handles recursive arrays

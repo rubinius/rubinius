@@ -1,0 +1,1 @@
+fails:Array#rassoc properly handles recursive arrays

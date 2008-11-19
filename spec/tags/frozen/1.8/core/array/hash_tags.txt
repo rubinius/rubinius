@@ -1,0 +1,1 @@
+fails:Array#hash properly handles recursive arrays
