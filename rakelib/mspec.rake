@@ -1,5 +1,7 @@
 # -*- ruby -*-
 
+require 'rakelib/git'
+
 namespace :mspec do
   desc "Synchronize mspec with another checkout"
   task :sync do
@@ -7,8 +9,8 @@ namespace :mspec do
       raise "Use DIR= to specify a checkout of mspec"
     end
 
-    unless File.directory?(dir)
-      raise "#{dir} isn't an mspec checkout. Use 'cd ~/git; git clone git://github.com/brixen/mspec.git'"
+    unless is_git_project dir, "mspec.git"
+      raise "#{dir} is not an mspec clone. Clone from 'git://github.com/rubyspec/mspec.git'"
     end
 
     rsync dir + "/*", "mspec"
@@ -17,22 +19,4 @@ namespace :mspec do
     sh "git add mspec/"
     sh "git commit -m 'Updated MSpec source to #{version}.' mspec"
   end
-
-  # TODO remove this when the compiler is
-  # working in the C++ VM
-  desc "Temp task to build mspec with MRI"
-  task :build => "kernel:build" do
-    files = Dir["mspec/**/*.rb"]
-    files.concat %w(lib/pp.rb
-                    lib/prettyprint.rb
-                    lib/time.rb
-                    lib/rbconfig.rb
-                    lib/fileutils.rb
-                    lib/yaml.rb
-                   )
-    files.each do |path|
-      compile_ruby path, "#{path}c", true
-    end
-  end
 end
-
