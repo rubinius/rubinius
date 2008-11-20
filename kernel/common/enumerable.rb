@@ -89,7 +89,7 @@ module Enumerable
   #   { 'a'=>1, 'b'=>2, 'c'=>3 }.to_a   #=> [["a", 1], ["b", 2], ["c", 3]]
 
   def to_a
-    collect { |e| e }
+    collect
   end
 
   alias_method :entries, :to_a
