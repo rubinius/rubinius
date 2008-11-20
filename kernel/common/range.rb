@@ -143,18 +143,18 @@ class Range
       first.upto(last, &block)
     elsif first.is_a?(String)
       first.upto(last) do |s|
-        block.call(s) unless @excl && s == last
+        yield s unless @excl && s == last
       end
     else
       current = first
       if @excl then
         while (current <=> last) < 0
-          block.call(current)
+          yield current
           current = current.succ
         end
       else
         while (c = current <=> last) && c <= 0
-          block.call(current)
+          yield current
           break if c == 0
           current = current.succ
         end
