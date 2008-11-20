@@ -10,6 +10,18 @@ Benchmark.bmbm do |x|
     total.times { }
   end
 
+  x.report("Enumerable#grep &block") do
+    total.times do |i|
+      fixnums.grep(i..total) {|x| x}
+    end
+  end
+
+  x.report("Enumerable#grep") do
+    total.times do |i|
+      fixnums.grep(i..total)
+    end
+  end
+
   x.report("Enumerable#all? &block") do
     total.times do |i|
       truths.all? {|x| x }
