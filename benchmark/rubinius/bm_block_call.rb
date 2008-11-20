@@ -1,35 +1,37 @@
 require 'benchmark'
 
-total = ENV['TOTAL'] || 1_000_000
+total = (ENV['TOTAL'] || 1_000_000).to_i
 
-total = total.to_i
-
-class Blah
-  def go(&b)
-    b.call
+def bcall(n,&b)
+  i = 0
+  while(i < n)      
+    b.call(i)
+    i += 1
   end
+end
 
-  def go2
-    yield
+def byield(n,&b)
+  i = 0
+  while(i < n)
+    yield i
+    i += 1
   end
 end
 
 Benchmark.bmbm do |x|
   x.report("yield") do
-    i = 0
-    b = Blah.new
-    while i < total
-      b.go2 { true }
-      i += 1
-    end
+    byield(total) {|x| x}
   end
 
   x.report("prc.call") do
-    i = 0
-    b = Blah.new
-    while i < total
-      b.go { true }
-      i += 1
-    end
+    bcall(total) {|x| x}
+  end
+
+  x.report("yield n") do
+    total.times { byield(1) {|x| x} }
+  end
+
+  x.report("prc.call n") do
+    total.times { bcall(1) {|x| x} }
   end
 end
