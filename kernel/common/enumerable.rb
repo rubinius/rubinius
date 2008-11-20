@@ -480,8 +480,11 @@ module Enumerable
   #   [ nil, true, 99 ].any?                             #=> true
 
   def any?(&prc)
-    prc = Proc.new { |obj| obj } unless block_given?
-    each { |o| return true if prc.call(o) }
+    if block_given?
+      each { |o| return true if yield(o) }
+    else
+      each { |o| return true if o }
+    end
     false
   end
 
@@ -500,9 +503,12 @@ module Enumerable
   #   [ nil, true, 99 ].one?                             #=> true
 
   def one?(&prc)
-    prc = Proc.new { |obj| obj } unless block_given?
     times = 0
-    each { |o| times += 1 if prc.call(o) }
+    if block_given?
+      each { |o| times += 1 if yield(o) }
+    else
+      each { |o| times += 1 if o }
+    end
     times == 1
   end
 
@@ -521,10 +527,12 @@ module Enumerable
   #    [ nil, true, 99 ].none?                             #=> true
 
   def none?(&prc)
-    prc = Proc.new { |obj| obj } unless block_given?
-    times = 0
-    each { |o| times += 1 if prc.call(o) }
-    times == 0
+    if block_given?
+      each { |o| return false if yield(o) }
+    else
+      each { |o| return false if o }
+    end
+    return true
   end
 
   ##
