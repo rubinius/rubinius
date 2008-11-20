@@ -549,13 +549,12 @@ module Enumerable
   #   a.min { |a,b| a.length <=> b.length }   #=> "dog"
 
   def min(&prc)
-    prc = Proc.new { |a, b| a <=> b } unless block_given?
     min = Undefined
     each do |o|
       if min.equal? Undefined
         min = o
       else
-        comp = prc.call(o, min)
+        comp = block_given? ? yield(o, min) : o <=> min
         if comp.nil?
           raise ArgumentError, "comparison of #{o.class} with #{min} failed"
         elsif comp < 0
@@ -581,13 +580,12 @@ module Enumerable
   #    a.max { |a,b| a.length <=> b.length }   #=> "albatross"
 
   def max(&prc)
-    prc = Proc.new { |a, b| a <=> b } unless block_given?
     max = Undefined
     each do |o|
       if max.equal? Undefined
         max = o
       else
-        comp = prc.call(o, max)
+        comp = block_given? ? yield(o, max) : o <=> max
         if comp.nil?
           raise ArgumentError, "comparison of #{o.class} with #{max} failed"
         elsif comp > 0
