@@ -426,34 +426,11 @@ class Array
   # Removes all nil elements from self, returns nil if no changes
   # TODO: Needs improvement
   def compact!()
-    i = @start
-    tot = @start + @total
-
-    # Low-level because pretty much anything else breaks everything
-    while i < tot
-      if @tuple.at(i).nil?
-        j = i
-        i += 1
-
-        while i < tot
-          if @tuple.at(i) != nil
-            @tuple.put j, @tuple.at(i)
-            j += 1
-          end
-
-          i += 1
-        end
-
-        # OK to leave tuple size larger?
-        @total = j - @start
-        return self
-      end
-
-      i += 1
+    if(inplace_delete(nil))
+      return self
+    else
+      return nil
     end
-    reallocate_shrink()
-
-    nil
   end
 
   # Appends the elements in the other Array to self
@@ -476,33 +453,12 @@ class Array
   # block is provided in which case the value of running it is
   # returned instead.
   def delete(obj)
-    i = @start
-    tot = @start + @total
-
-    # Leaves the tuple to the original size still
-    while i < tot
-      if @tuple.at(i) == obj
-        j = i
-        i += 1
-
-        while i < tot
-          if @tuple.at(i) != obj
-            @tuple.put(j, @tuple.at(i))
-            j += 1
-          end
-
-          i += 1
-        end
-
-        @total = j - @start
-        return obj
-      end
-
-      i += 1
+    return obj if inplace_delete(obj)
+    if block_given?
+      yield
+    else
+      nil
     end
-    reallocate_shrink()
-
-    yield if block_given?
   end
 
   # Deletes the element at the given index and returns
@@ -526,18 +482,25 @@ class Array
   end
 
   # Deletes every element from self for which block evaluates to true
-  def delete_if()
+  def delete_if(&block)
+    raise LocalJumpError, "no block given" unless block_given?
+    inplace_delete(nil,&block)
+    return self
+  end
+
+  # Generalized inplace delete used by delete_if, delete, and compact
+  def inplace_delete(obj = nil, &block)
     i = @start
-    tot = @total + @start
+    tot = @start + @total
 
     # Leaves the tuple to the original size still
     while i < tot
-      if yield @tuple.at(i)
+      if (block_given? ? yield(@tuple.at(i)) : (@tuple.at(i) == obj))
         j = i
         i += 1
 
         while i < tot
-          unless yield @tuple.at(i)
+          if (block_given? ? !yield(@tuple.at(i)) : (@tuple.at(i) != obj))
             @tuple.put(j, @tuple.at(i))
             j += 1
           end
@@ -546,15 +509,16 @@ class Array
         end
 
         @total = j - @start
-        return self
+        reallocate_shrink()
+        return true
       end
 
       i += 1
     end
-    reallocate_shrink()
-
-    return self
+    return false
   end
+
+  private :inplace_delete
 
   # Passes each element in the Array to the given block
   # and returns self.  We re-evaluate @total each time

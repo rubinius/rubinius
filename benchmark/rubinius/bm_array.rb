@@ -7,6 +7,7 @@ array_of_arrays = Array.new(total) do |i|
   Array.new(i%100+10) {|j| j % 100 }
 end
 
+scratch = Array.new(total) {|i| (i % 100 == 0) ? nil : i }
 portion = array_of_arrays.first(total/4)
 
 Benchmark.bmbm do |x|
@@ -141,6 +142,24 @@ Benchmark.bmbm do |x|
     total.times do |i|
       odd_even = i % 2
       array_of_arrays[i].select {|x| x % 2 == odd_even }
+    end
+  end
+
+  x.report 'Array#compact' do
+    total.times do |i|
+      scratch.dup.compact
+    end
+  end
+
+  x.report 'Array#delete' do
+    total.times do |i|
+      scratch.dup.delete(nil)
+    end
+  end
+
+  x.report 'Array#delete_if' do
+    total.times do |i|
+      scratch.dup.delete_if {|x| x == nil }
     end
   end
 
