@@ -133,9 +133,9 @@ namespace rubinius {
     Integer* bit_xor(STATE, Float* b);
 
     // Ruby.primitive :bignum_left_shift
-    Integer* left_shift(STATE, Integer* bits);
+    Integer* left_shift(STATE, Fixnum* bits);
     // Ruby.primitive :bignum_right_shift
-    Integer* right_shift(STATE, Integer* bits);
+    Integer* right_shift(STATE, Fixnum* bits);
 
     // Ruby.primitive! :bignum_gt
     Object* gt(STATE, Fixnum* b);

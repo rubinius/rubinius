@@ -599,7 +599,7 @@ namespace rubinius {
   /* These 2 don't use mp_lshd because it shifts by internal digits,
      not bits. */
 
-  Integer* Bignum::left_shift(STATE, Integer* bits) {
+  Integer* Bignum::left_shift(STATE, Fixnum* bits) {
     NMP;
     int shift = bits->to_native();
     if(shift < 0) {
@@ -612,7 +612,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  Integer* Bignum::right_shift(STATE, Integer* bits) {
+  Integer* Bignum::right_shift(STATE, Fixnum* bits) {
     NMP;
     int shift = bits->to_native();
     if(shift < 0) {

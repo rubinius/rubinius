@@ -72,21 +72,14 @@ class Fixnum < Integer
     super(o)
   end
 
-  def <<(c)
+  def <<(o)
     Ruby.primitive :fixnum_left_shift
-    c = Type.coerce_to(c, Integer, :to_int)
-    raise RangeError, "Object is out of range for a Fixnum" unless c.is_a?(Fixnum)
-    self << c
+    super(o)
   end
 
-  def >>(c)
+  def >>(o)
     Ruby.primitive :fixnum_right_shift
-    c = Type.coerce_to(c, Integer, :to_int)
-    if c > self.abs
-      return  0 if self >= 0
-      return -1 if self <  0
-    end
-    self >> c
+    super(o)
   end
 
   def __bignum_new__(value)

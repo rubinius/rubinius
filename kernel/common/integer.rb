@@ -27,6 +27,23 @@ class Integer < Numeric
     self ^ Type.coerce_to(other, Integer, :to_int)
   end
 
+  def <<(other)
+    other = Type.coerce_to(other, Integer, :to_int)
+    unless other.is_a?(Fixnum)
+      raise RangeError, "Object is out of range for a Fixnum"
+    end
+    self << other
+  end
+
+  def >>(other)
+    other = Type.coerce_to(other, Integer, :to_int)
+    if other > self.abs || other.is_a?(Bignum)
+      return  0 if self >= 0
+      return -1 if self <  0
+    end
+    self >> other
+  end
+
   def times
     i = 0
     while i < self

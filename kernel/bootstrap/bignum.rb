@@ -63,14 +63,14 @@ class Bignum < Integer
     super(o)
   end
 
-  def __bignum_left_shift__(s)
+  def <<(o)
     Ruby.primitive :bignum_left_shift
-    raise PrimitiveFailure, "primitive failed"
+    super(o)
   end
 
-  def __bignum_right_shift__(s)
+  def >>(o)
     Ruby.primitive :bignum_right_shift
-    raise PrimitiveFailure, "primitive failed"
+    super(o)
   end
 
   # comparison operators
