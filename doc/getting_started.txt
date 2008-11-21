@@ -1,0 +1,123 @@
+# Quick Start
+
+The following is a quick summary for building Rubinius. It assumes that you
+already have required libraries installed. For a more complete guide, see the
+next section.
+
+1. Install [ruby 1.8](http://www.ruby-lang.org/en/downloads/)
+2. Install [RubyGems](http://rubyforge.org/projects/rubygems)
+3. Install rake: <tt>gem install rake</tt>
+4. Install Git
+5. Clone rubinius: <tt>git clone git://github.com/evanphx/rubinius.git</tt>
+6. cd to your rubinius checkout
+7. <tt>rake</tt>
+8. <tt>bin/rbx -v</tt>
+
+
+# Getting Started
+
+If you are having trouble getting or building Rubinius, the #rubinius IRC
+channel on irc://irc.freenode.net can help. You can also ask on the [mailing
+list](http://groups.google.com/group/rubinius-dev).
+
+
+## Installing Required Libraries
+
+There are a few things that you need in order to be able to build and run
+Rubinius.  Once you have installed the general requirements, install the Gems
+needed and then any platform-specific requirements.
+
+
+### General requirements
+
+* [GCC 4.x (both g++ and gcc)](http://gcc.gnu.org/)
+* [GNU Bison](http://www.gnu.org/software/bison/)
+* [Ruby version >= 1.8.4 (the Ruby language)](http://www.ruby-lang.org/)
+* [RubyGems (Ruby package manager)](http://www.rubygems.org/)
+* [Git (source control used by rubinius)](http://git.or.cz/)
+* [zlib compression library](http://www.zlib.net/)
+
+Most systems already use GNU Make as their default, but for those using a BSD
+Make:
+
+* [gmake (GNU Make)](http://savannah.gnu.org/projects/make/
+
+Each package may have requirements of its own, of course.
+
+If you want to avoid overriding your existing environment, you may want to
+install everything under its own prefix (such as /usr/local) and to name
+programs so they don't collide with your existing installation (such as naming
+gmake 'gmake').  You can then adjust your PATH environment variable as needed
+for rubinius development.
+
+
+### Requirements through RubyGems
+
+* rake
+* ParseTree
+
+Rake may be obtained with the <tt>gem install</tt> command. See <tt>gem
+help</tt> and http://www.rubygems.org for more information.
+
+### System-dependent requirements
+
+
+#### FreeBSD, OpenBSD
+
+* [libexecinfo](http://www.freshports.org/devel/libexecinfo)
+
+
+#### Debian/Ubuntu family systems
+
+For the build to succeed you will need these packages:
+
+* ruby-dev (or ruby1.8-dev)
+* libreadline5-dev
+* zlib1g-dev
+
+
+## Getting Rubinius
+
+You need to clone the Rubinius source from the Github repository:
+
+  git clone git://github.com/evanphx/rubinius.git
+
+For more information on Rubinius' best practices for git, see
+[Using Git](/using_git.html)
+
+
+## Compiling Rubinius
+
+The C++ VM is compiled using Rake. Typically, it will be as simple as:
+
+  rake
+    OR
+  rake build
+
+If you plan on doing development work, or otherwise need debug access,
+use the +debug+ subtask:
+
+  rake build:debug
+
+
+## Installing Rubinius
+
+The installation task currently needs to be fixed. You should not install
+Rubinius. Patches to fix the install process are welcome.
+
+
+## Running Rubinius
+
+Once compiled, you can verify the VM works:
+
+  bin/rbx -v
+
+Rubinius generally works like Ruby from the command-line. For example:
+
+  bin/rbx -e 'puts "Hello!"'
+
+
+## Troubleshooting
+
+See [Common Problems](/common_problems.html) or ask questions in the #rubinius
+IRC channel on irc.freenode.net.

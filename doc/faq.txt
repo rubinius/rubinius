@@ -1,0 +1,45 @@
+# FAQ
+
+1. What is Rubinius?
+
+    It is an implementation of the Ruby programming language.
+
+1. What license does Rubinius use?
+
+    BSD. See the LICENSE file in the source code.
+
+1. Who contributes to Rubinius?
+
+    See [Community](/community.html)
+
+1. Does it run Rails?
+
+    Not yet.
+
+1. Does it run RubyGems?
+
+    Yes.
+
+1. Does it run Rake?
+
+    Maybe.
+
+1. Does it run the RubySpecs?
+
+    Yes. See [The Rubinius Specs](/specs.html)
+
+1. What platforms are supported?
+
+    Various x86 and x86_64 systems, both in 32-bit and 64-bit mode. The main
+    development platforms--and thereby the most stable--are x86 Mac OS X
+    (Leopard usually), x86[_64] GNU/Linux (anything from Arch to Gentoo to
+    Ubuntu) and x86[_64] *BSD (mainly FreeBSD).
+
+1. Does it run on Windows?
+
+    Not yet, but it will eventually. If you are interested in helping, try
+    compiling under Cygwin or MSys and report issues.
+
+1. Can I contribute?
+
+    Yes, please do. See [Contributing](/contributing.html)
