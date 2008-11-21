@@ -161,10 +161,10 @@ namespace rubinius {
     Object* le(STATE, Float* other);
 
     // Ruby.primitive :fixnum_left_shift
-    Integer* left_shift(STATE, Integer* bits);
+    Integer* left_shift(STATE, Fixnum* bits);
 
     // Ruby.primitive :fixnum_right_shift
-    Integer* right_shift(STATE, Integer* bits);
+    Integer* right_shift(STATE, Fixnum* bits);
 
     // Ruby.primitive :fixnum_size
     Integer* size(STATE);

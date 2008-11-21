@@ -238,7 +238,7 @@ namespace rubinius {
     return (double) to_native() <= other->val ? Qtrue : Qfalse;
   }
 
-  Integer* Fixnum::left_shift(STATE, Integer* bits) {
+  Integer* Fixnum::left_shift(STATE, Fixnum* bits) {
     native_int shift = bits->to_native();
     if(shift < 0) {
       return right_shift(state, Fixnum::from(-shift));
@@ -253,16 +253,13 @@ namespace rubinius {
     return Fixnum::from(self << shift);
   }
 
-  Integer* Fixnum::right_shift(STATE, Integer* bits) {
+  Integer* Fixnum::right_shift(STATE, Fixnum* bits) {
     native_int shift = bits->to_native();
     if(shift < 0) {
       return left_shift(state, Fixnum::from(-shift));
     }
 
-    native_int self = to_native();
-
-    native_int a = self >> shift;
-    return Fixnum::from(a);
+    return Fixnum::from(to_native() >> shift);
   }
 
   Integer* Fixnum::size(STATE) {
