@@ -1,0 +1,131 @@
+= Howto - Write a Ticket
+
+TODO: Imported from Lighthouse wiki. Needs review.
+
+Please follow the guidelines below when submitting a ticket for a problem with
+Rubinius:
+
+== General procedure for submitting a ticket
+
+=== 0. Double-check
+
+1.  Do a full rebuild after a `git pull` or fresh checkout.
+1.  Read [the common problems
+    page](/projects/5089/common-build-problems-and-solutions) to see if something
+    there resolves the issue.
+1.  Read [Howto - Develop with a separate RubySpec
+    repo](/projects/5089/howto-develop-with-a-separate-rubyspec-repo)
+
+=== 1. Title your ticket appropriately. Use a specific, preferrably short
+title and prefix it with:
+
+*   "[TODO]" - for reporting missing parts of Rubinius. For example, a missing
+    method
+*   "[BUG]" - for problems with Rubinius that you are reporting but for which
+    you currently have no solution
+*   "[PATCH]" - for any kind of problem with Rubinius for which you have
+    attached a solution (and specs if missing)
+*   "[FEATURE]" - for features that you are suggesting be added to Rubinius
+
+=== 2. Use tags
+
+Mark the ticket with some tags (the current ones are below the field for
+reference.) Most importantly, enter any [BUG] tickets with a @bug@ tag also
+and so on.
+
+=== 3. Give enough detail about the issue
+
+*   A way to reproduce the issue whether it is a formal spec, a code snippet,
+    a program or library etc. 
+*   Your machine information. `uname -a` is usually good (if there are any
+    "unknown" fields in it, please elaborate on those.)
+
+Whenever possible, try to reproduce the problem in a short, distilled example
+(a code snippet or actual spec)  if you found it as a part of a larger bit of
+code. For a feature, write up a use case that illustrates the utility of the
+proposal and the rationale for it.
+
+Actual specs and patches to fix the problem are most welcome!
+
+=== Additional instructions for [PATCH] tickets
+
+*   Can be just a set of specs.
+*   Patches must be accompanied by specs unless the specs already exist.
+*   Relevant part of spec output and the exact `bin/mspec` invocation from the
+    existing or added spec *before the fix*.
+*   The spec output and the exact `bin/mspec` invocation  showing success
+    *after* the fix.
+*   Additional description of your patch and how it fixes the problem. In
+    particular with new functionality please indicate if it was already
+    discussed on #rubinius or ruby-dev.
+
+Unless for some reason impossible, please use `git-format-patch` to create the
+patchset. It is much easier to apply and it preserves the correct attribution.
+Otherwise, a unified diff.
+
+== Example of submitting a [PATCH] ticket
+
+Suppose the following spec exists and is failing:
+
+    describe "Kernel.format" do
+      it "is accessible as a module function" do
+        Kernel.format("%s", "hello").should == "hello"
+      end
+    end
+
+*1. Ticket Title:*
+
+"[PATCH] No method 'format' on Kernel (Module)"
+
+*2. Tags:*
+
+"patch core spec"
+
+*3. Ticket Message:*
+
+The method 'format' is not available as a module function of Kernel.
+
+    $ bin/mspec spec/ruby/1.8/core/kernel/format_spec.rb 
+    Started
+    .E
+
+    1)
+    Kernel.format is accessible as a module function ERROR
+    No method 'format' on Kernel (Module):
+
+The method 'format' already exists but has not been set as a module function.
+This patch does so.
+
+After the patch is applied:
+
+    $ bin/mspec spec/ruby/1.8/core/kernel/format_spec.rb 
+    Started
+    ..
+
+    Finished in 0.016031 seconds
+
+    2 examples, 2 expectations, 0 failures, 0 errors
+
+*4. Attachment:*
+
+Finally, you would attach the patch to the ticket. Below the patch is
+reproduced inline for completeness:
+
+    From c61cecce6442347ebbdf1ded7a5c0832c97582c1 Mon Sep 17 00:00:00 2001
+    From: Brian Ford <bford@engineyard.com>
+    Date: Sat, 19 Jan 2008 17:48:19 -0800
+    Subject: [PATCH] Set Kernel#format as a module function.
+
+
+    diff --git a/kernel/core/kernel.rb b/kernel/core/kernel.rb
+    index 2d2e508..f2a382e 100644
+    --- a/kernel/core/kernel.rb
+    +++ b/kernel/core/kernel.rb
+    @@ -150,6 +150,7 @@ module Kernel
+       end
+       alias_method :format, :sprintf
+       module_function :sprintf
+    +  module_function :format
+       module_function :abort
+       
+       def puts(*a)
