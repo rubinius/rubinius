@@ -1,4 +1,4 @@
-= The Rubinius Virtual Machine
+# The Rubinius Virtual Machine
 
 TODO: Imported from Lighthouse wiki. Outdated. Needs significant revision.
 
@@ -7,7 +7,7 @@ from his earlier VM implemented in Ruby.
 
 The VM has several basic parts: parser, CPU, garbage collector.
 
-== Object model
+## Object model
 
 In Ruby, everything is an object.  In the Rubinius C code, these are kept as
 `OBJECT`, which are `uintptr_t`.
@@ -56,7 +56,7 @@ contain the actual array, and `String` uses an ancillary data structure
 data structure for a different-sized one, the Array/String can change its size
 and still stay the same object.
 
-== Source Files
+## Source Files
 
 The basic object model is defined in `include/rubinius.h`.  All other C files
 are in `shotgun/lib`, a prefix which will be elided in the rest of this.
@@ -102,7 +102,7 @@ activation records:
 `heap.c`, `object_memory.c` and `state.c` are the basis for memory management,
 see below.
 
-== Garbage Collection
+## Garbage Collection
 
 Garbage Collection is central to the workings of a VM for a modern language
 like Ruby.  Ruby does not provide a way for objects to be deleted; instead,

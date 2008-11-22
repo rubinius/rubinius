@@ -1,3 +1,5 @@
+= Contributing to Rubinius
+
 There are as many ways to help with Rubinius as there are people. The
 following are just some ideas. Understand that Rubinius is a large,
 fast-moving project, so you will likely need to coordinate your efforts with
@@ -16,34 +18,30 @@ that the next doc writer can be annoying with other questions.
 
 ## Write Specs
 
-# Find unspecified behaviors. Be vicious ! Once you found a nice corner-case, write a spec. See "Howto - Write a spec":/projects/5089/howto-write-a-spec
-# Fix the specs by running them against MatzRuby. Use <code>rake spec:check</code> OR @bin/mspec -t ruby spec/ruby@ to run all the specs that should pass on MatzRuby
-# ...
+1.  Find unspecified behaviors. Be vicious! Once you found a nice
+    corner-case, write a spec. See 0Howto - Write a
+    spec](/howto/write_a_spec.html)
+1.  Fix the specs by running them against MatzRuby. Use `rake
+    spec:check` OR `bin/mspec -t ruby spec/ruby` to run all the specs that
+    should pass on MatzRuby
 
 ## Run your code
 
-You code it often more vicious than the specs. Run your pet project under rubinius and report crashes ! See "Howto - Write a ticket":/projects/5089/howto-write-a-ticket.
+You code it often more vicious than the specs. Run your pet project under
+rubinius and report crashes! See [Howto - Write a
+ticket](/howto/write_a_ticket.html)
 
 ## Cleanup code
 
-Search for tags like TODO, HACK, FIXME in the code and fix them. Once you're finished, submit a ticket with the [PATCH] tag and a small description. See "Howto - Write a ticket":/projects/5089/howto-write-a-ticket.
+Search for tags like TODO, HACK, FIXME in the code and fix them. Once you're
+finished, submit a ticket with the [PATCH] tag and a small description. See
+[Howto - Write a ticket](/howto/write_a_ticket.html)
 
 I use : `grep -re "TODO\|HACK\|FIXME" .`
 
-You can also run failing specs and try to fix them. I use `bin/ci -i` and `rake todo`
+You can also run failing specs and try to fix them. I use `bin/ci -i` and
+`rake todo`
 
-h5. What can I do to help?<br/>
-# Run the specs and help write code in kernel/ to make the specs pass.<br/>
-# If you're up on your C skills, ask in the IRC channel about helping work on the VM.<br/>
-# Tell your friends about the project, get the buzz going.<br/>
-# Provide moral support for other developers in any form.<br/>
-
-h5. I want to get involved! What is a good place to start?<br />
-# A fun way to get in is to pick an application or library that you have written--or one that you frequently use--and try to run it. If it works, great! If, as is still quite possible if not even likely, it does <em>not</em> work, you have a good spot to start from. Try to isolate the source of 
-the failure and write a spec for it.
-# The other popular way is to just either run the specs and see what still fails, or to identify and add missing specs.
-
-Either way, once you have a spec to work on, you can see if you can identify where the implementation is wrong and possibly fix it! If it turns out the problem is too tricky for you to solve, you should just move onto a different issue and maybe return to the original later (<em>ed. note: Trust me, it still happens to us all continuously. If you do not know X, someone else will and if someone else does not know Y, you might. Teamwork and communication are paramount! --rue</em>.)
 
 ## Ask For Help
 
@@ -52,13 +50,32 @@ too, if possible. We will certainly accept and appreciate simple bug reports,
 but it is extremely helpful if you can actively help us identify (and maybe
 even fix) the problem.
 
-h5. It is all so confusing! There is the VM, the kernel, the libraries, the specs, polymorphic caches, pneumatic stegosauruses.. how can I possibly understand all of this?
-* You do not need to know or understand everything immediately. You should just have a great time exploring the codebase, not feel like it is some kind of an exam cram. In fact, it is highly recommended that you start off focusing on a narrow area and work your way to how it fits in the big picture. While Rubinius is actually an exceptionally straightforward and elegant VM and language implementation (MatzRuby 1.9, for example, is two orders of magnitude larger), there is still a lot of information to discover and absorb. Ask questions!
+Q.  It is all so confusing! There is the VM, the kernel, the libraries, the
+    specs, polymorphic caches, pneumatic stegosauruses... How can I possibly
+    understand all of this?
 
-h5. I don't like the style of the specs or the kernel or the vm, can I clean it up and you'll accept the patch?<br/>
-# No.<br/>
-# The implementation is pretty straightforward and idiomatic Ruby (or C++.) However, out of necessity many parts of the kernel are implemented using simple constructs and could perhaps be expressed more succintly. There is almost always a good reason for this, ranging from compiler support to maybe not having a certain method or class available yet. If it really bothers you, ask us first, we'll discuss it.
+A.  You do not need to know or understand everything immediately. You should
+    just have a great time exploring the codebase, not feel like it is some
+    kind of an exam cram. In fact, it is highly recommended that you start off
+    focusing on a narrow area and work your way to how it fits in the big
+    picture. While Rubinius is actually an exceptionally straightforward and
+    elegant VM and language implementation (MatzRuby 1.9, for example, is two
+    orders of magnitude larger), there is still a lot of information to
+    discover and absorb. Ask questions!
 
-h5. Will you reject my patch if my style is "more Rubyesque"?<br />
-* If the patch works (e.g. does not use features that cannot be guaranteed to exist in all cases), it will not be rejected based on a stylistic qualm. The code is most welcome. But "clever" or obscure code is not.
+Q.  I don't like the style of the specs or the kernel or the vm, can I clean
+    it up and you'll accept the patch?
+
+A.  That depends. The implementation is pretty straightforward and idiomatic
+    Ruby (or C++.) However, out of necessity many parts of the kernel are
+    implemented using simple constructs and could perhaps be expressed more
+    succintly. There is almost always a good reason for this, ranging from
+    compiler support to maybe not having a certain method or class available
+    yet.  If it really bothers you, ask us first, we'll discuss it.
+
+Q.  Will you reject my patch if my style is "more Rubyesque"?
+
+A.  If the patch works (e.g. does not use features that cannot be guaranteed
+    to exist in all cases), it will not be rejected based on a stylistic
+    qualm.  The code is most welcome. But "clever" or obscure code is not.
 

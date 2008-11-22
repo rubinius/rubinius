@@ -1,8 +1,8 @@
-= Running Gems on Rubinius
+# Running Gems on Rubinius
 
 TODO: Imported from Lighthouse wiki. Likely outdated
 
-== Main problem areas of Gem support
+## Main problem areas of Gem support
 
 Many Gems either depend on currently not supported Ruby Standard Library
 functionality or on not implemented Subtend (the MRI compatibility layer)
@@ -11,7 +11,7 @@ functionality.
 Another problem to Gem support is left-to-right evaluation that is not yet
 supported in Rubinius, but should be soon.
 
-== Popular Gems
+## Popular Gems
 
 Here is a list of popular RubyGems that could be used to test Rubinius' compliance:
 
@@ -36,7 +36,7 @@ Here is a list of popular RubyGems that could be used to test Rubinius' complian
 * Newjs
 * merb-core
 
-== Ruby/Mysql
+## Ruby/Mysql
 
 Tested on April 27 (under shotgun, needs to be tested under the new C++ VM).
 Seems to be stable and usable, no problems with running SQL-Queries (Create,

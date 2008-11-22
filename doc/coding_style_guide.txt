@@ -1,12 +1,12 @@
-= Coding Style Guide
+# Coding Style Guide
 
-== All Code
+## All Code
 
 *   Configure your editor for soft tabs, not hard tabs
 *   Expand tabs to two spaces
 *   Leave a trailing newline at the end of each file
 
-== C++ Code
+## C++ Code
 
 *   No space between condition and paren.
       if(1)
@@ -23,7 +23,7 @@
     *NOT* `person1(char *name)`.
 
 
-== Ruby Code
+## Ruby Code
 
 *   See `kernel/core/array.rb` for a style reference.
 *   Methods: Try to keep your methods short--one screenful and try to adhere
@@ -53,7 +53,7 @@
           do_something_with elem
         end
 
-== Documentation
+## Documentation
 
 *   Use RDoc for documentation in Ruby code.
 *   Use DOxygen for documentation in C++ code.

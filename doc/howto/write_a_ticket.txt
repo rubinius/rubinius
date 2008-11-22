@@ -1,13 +1,13 @@
-= Howto - Write a Ticket
+# Howto - Write a Ticket
 
 TODO: Imported from Lighthouse wiki. Needs review.
 
 Please follow the guidelines below when submitting a ticket for a problem with
 Rubinius:
 
-== General procedure for submitting a ticket
+## General procedure for submitting a ticket
 
-=== 0. Double-check
+### 0. Double-check
 
 1.  Do a full rebuild after a `git pull` or fresh checkout.
 1.  Read [the common problems
@@ -16,7 +16,7 @@ Rubinius:
 1.  Read [Howto - Develop with a separate RubySpec
     repo](/projects/5089/howto-develop-with-a-separate-rubyspec-repo)
 
-=== 1. Title your ticket appropriately. Use a specific, preferrably short
+### 1. Title your ticket appropriately. Use a specific, preferrably short
 title and prefix it with:
 
 *   "[TODO]" - for reporting missing parts of Rubinius. For example, a missing
@@ -27,13 +27,13 @@ title and prefix it with:
     attached a solution (and specs if missing)
 *   "[FEATURE]" - for features that you are suggesting be added to Rubinius
 
-=== 2. Use tags
+### 2. Use tags
 
 Mark the ticket with some tags (the current ones are below the field for
 reference.) Most importantly, enter any [BUG] tickets with a @bug@ tag also
 and so on.
 
-=== 3. Give enough detail about the issue
+### 3. Give enough detail about the issue
 
 *   A way to reproduce the issue whether it is a formal spec, a code snippet,
     a program or library etc. 
@@ -47,7 +47,7 @@ proposal and the rationale for it.
 
 Actual specs and patches to fix the problem are most welcome!
 
-=== Additional instructions for [PATCH] tickets
+### Additional instructions for [PATCH] tickets
 
 *   Can be just a set of specs.
 *   Patches must be accompanied by specs unless the specs already exist.
@@ -63,7 +63,7 @@ Unless for some reason impossible, please use `git-format-patch` to create the
 patchset. It is much easier to apply and it preserves the correct attribution.
 Otherwise, a unified diff.
 
-== Example of submitting a [PATCH] ticket
+## Example of submitting a [PATCH] ticket
 
 Suppose the following spec exists and is failing:
 

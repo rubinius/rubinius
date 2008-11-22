@@ -1,4 +1,4 @@
-= Extending Standard Library Specs
+# Extending Standard Library Specs
 
 TODO: Imported from Lighthouse wiki. Likely outdated
 
@@ -8,7 +8,7 @@ needs and potentially moved to the [RubySpec](http://rubyspec.org) website.
 
 Libraries that need to be spec'ed:
 
-== Small or General usage libs
+## Small or General usage libs
 
 * Abbrev
 * Complex
@@ -38,9 +38,9 @@ Libraries that need to be spec'ed:
 * WeBrick
 * XMLRPC
 
-== Used by popular apps/libs
+## Used by popular apps/libs
 
-=== Smaller ones
+### Smaller ones
 
 * Benchmark
 * Mutex_m
@@ -51,7 +51,7 @@ Libraries that need to be spec'ed:
 * Set
 * TimeOut
 
-=== Larger ones
+### Larger ones
 
 * BigDecimal
 * CGI
@@ -69,9 +69,9 @@ Libraries that need to be spec'ed:
 * ZLib
 
 
-== Assigned 
+## Assigned 
 
-=== Federico is covering:
+### Federico is covering:
 
 * <del>REXML</del>
 * <del>YAML</del>
@@ -79,7 +79,7 @@ Libraries that need to be spec'ed:
 * <del>Socket</del>
 * <del>IO</del>
 
-=== Arthur is covering:
+### Arthur is covering:
 
 * <del>CGI</del>
 * <del>StringIO</del>

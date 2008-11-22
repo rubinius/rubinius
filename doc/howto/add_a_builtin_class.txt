@@ -1,4 +1,4 @@
-= Howto - Add a Builtin Class to the VM
+# Howto - Add a Builtin Class to the VM
 
 TODO: Imported from Lighthouse wiki. Needs review and update.
 

@@ -1,4 +1,4 @@
-= Howto - Fix a Failing Spec
+# Howto - Fix a Failing Spec
 
 Make sure you have read:
 

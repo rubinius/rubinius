@@ -1,4 +1,4 @@
-= Howto - Write a Ruby Spec
+# Howto - Write a Ruby Spec
 
 Make sure you have read:
 

@@ -1,4 +1,4 @@
-= Rubinius Specs
+# Rubinius Specs
 
 TODO: Imported from Lighthouse wiki. Needs review and update.
 
@@ -10,9 +10,40 @@ divided into two parts:
 1.  And all the other files under the `spec` directory that describe the
     behavior of _Rubinius_
 
-TODO: Explain about developing specs with the hybrid repo.
+With the release of the [RubySpec](http://github.com/rubyspec/rubyspec)
+project, the Rubinius git repository is now a hybrid repository containing
+four different elements.
 
-== Organization
+1.  the Rubinius code itself
+1.  a _copy_ of the [MSpec code](http://github.com/rubyspec/mspec/tree/master)
+    at $ROOT/mspec
+1.  a _copy_ of the [RubySpec
+    specs](ttp://github.com/rubyspec/rubyspec/tree/master) at
+    $ROOT/spec/frozen
+1.  the RubySpec specs as a _clone_ at $ROOT/spec/ruby
+
+The purpose of the copy of the RubySpecs at $ROOT/spec/frozen ("frozen specs")
+is to ensure that there are no regressions caused by new Rubinius code. Since
+Rubinius does not pass all the RubySpecs, there are a set of tags in
+$ROOT/spec/tags/frozen that are synchronized with the frozen specs and exclude
+known failures. These tags are used by the <code>rake spec</code>, <code>rake
+spec:full</code> (i.e. `bin/mspec ci` and `bin/mspec ci -B full.mspec`)
+commands to run the complete set of specs that are expected to pass.
+
+The clone at $ROOT/spec/ruby is provided _merely for your convenience_. You do
+not have to commit to RubySpecs from this clone. There is nothing special
+about the clone. It is not part of the Rubinius repository at all. However,
+there are several convenience rake tasks to assist you in working with it.
+
+Note that the Rubinius spec directory has been a hybrid since its inception.
+The RubySpecs are describing the behavior of _MatzRuby_. Rubinius is only
+matching that behavior. The rest of the specs are describing behavior
+_specific to Rubinius_ that may or may not be relevant to matching the
+behavior described by the RubySpecs (e.g. $ROOT/spec/compiler or
+$ROOT/spec/library/actor).
+
+
+## Organization
 
 The Rubinius specs follow the same general organization (although in different
 directories) and style as the RubySpecs. So, a good place to start is by
@@ -25,7 +56,7 @@ reading through the "RubySpec":http://rubyspec.org documentation.
 *   [Runners](http://rubyspec.org/wiki/mspec/Runners)
 *   [Creating files with mkspec](http://rubyspec.org/wiki/mspec/Mkspec)
 
-=== Ruby specs
+### Ruby specs
 
 The Rubinius repository contains two copies of the RubySpecs. The
 `spec/frozen` directory is a git submodule of the RubySpec repository. The
@@ -41,7 +72,7 @@ The Rubinius repository also contains a _clone_ of the RubySpecs repository in
 the `spec/ruby` directory. This clone is included for the convenience of
 making changes to the RubySpec files directly. 
 
-===. Rubinius specs
+### Rubinius specs
 
 All the other directories under the `spec` directory except for `spec/ruby`
 and `spec/frozen` are for specs _specific to Rubinius_. The directories are
@@ -50,7 +81,7 @@ the Rubinius compiler.
 
 Three directories could be confusing so those are described in more detail here.
 
-==== spec/core
+#### spec/core
 
 This directory is for _Rubinius specific_ extensions to MatzRuby core library.
 For example, Rubinius has a Tuple and ByteArray class. The specs for these are
@@ -60,18 +91,18 @@ Rubinius handles coercion of Bignum and other numeric differently. The
 `spec/core` directory parallels the purpose of the `spec/ruby/1.8/core`
 directory from the RubySpecs.
 
-h4. spec/language
+#### spec/language
 
 Again, this directory contains Rubinius specific specs related to the Ruby
 language. The directory parallels the `spec/ruby/1.8/language` directory.
 
-h4. spec/library
+#### spec/library
 
 This directory contains Rubinius specific standard library classes (e.g.
 Actor, VMActor) and Rubinius specific behavior of methods of MatzRuby standard
 library classes.
 
-h2. Subtend
+## Subtend
 
 Subtend is the Rubinius component that provides a C API compatible with MRI.
 Writing specs for the subtend functions involves writing a C extension. Review

@@ -1,4 +1,4 @@
-= Howto - Write a Rubinius Spec
+# Howto - Write a Rubinius Spec
 
 Make sure you have read:
 

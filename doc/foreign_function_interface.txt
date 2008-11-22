@@ -1,4 +1,4 @@
-= Foreign Function Interface - FFI
+# Foreign Function Interface - FFI
 
 TODO: Imported from Lighthouse wiki. Likely outdated
 
@@ -6,17 +6,17 @@ TODO: Imported from Lighthouse wiki. Likely outdated
 This section is highly underdeveloped.
 
 
-=== Overview
+## Overview
 
 To do.
 
 
-=== Usage
+## Usage
 
 The main interface function to FFI is `Module#attach_foreign.` Extracted
 documentation on its usage is below:    
 
-==== Module#attach_foreign
+### Module#attach_foreign
 
 Create a wrapper to a function in a C-linked library that exists somewhere in
 the system. If a specific library is not given, the function is assumed to
