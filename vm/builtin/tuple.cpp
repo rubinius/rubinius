@@ -89,6 +89,43 @@ namespace rubinius {
     return this;
   }
 
+  Integer* Tuple::delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj) {
+    int size = this->num_fields();
+    int lend = start->to_native();
+    int rend = lend + length->to_native();
+
+    if(size == 0) return Fixnum::from(0);
+    if(lend < 0 || lend >= size) Exception::object_bounds_exceeded_error(state, this, lend);
+    if(rend < 0 || rend > size) Exception::object_bounds_exceeded_error(state, this, rend);
+
+    int i = lend;
+    while(i < rend) {
+      if(this->at(state,i) == obj) {
+	int j = i;
+	++i;
+	while(i < rend) {
+	  Object *val = this->field[i];
+	  if(val != obj) {
+	    // no need to set write_barrier since it's already
+	    // referenced to this object
+	    this->field[j] = val;
+	    ++j;
+	  }
+	  ++i;
+	}
+	// cleanup all the bins after
+	i = j;
+	while(i < rend) {
+	  this->field[i] = Qnil;
+	  ++i;
+	}
+	return Fixnum::from(rend-j);
+      }
+      ++i;
+    }
+    return Fixnum::from(0);
+  }
+
   // @todo performance primitive; could be replaced with Ruby
   Tuple* Tuple::pattern(STATE, Fixnum* size, Object* val) {
     native_int cnt = size->to_native();

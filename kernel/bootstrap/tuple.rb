@@ -40,6 +40,11 @@ class Tuple
     raise PrimitiveFailure, "Tuple#copy_from primitive failed"
   end
 
+  def delete(start,length,object)
+    Ruby.primitive :tuple_delete_inplace
+    raise PrimitiveFailure, "Tuple#delete primitive failed"
+  end
+
   def self.create_weakref(object)
     Ruby.primitive :tuple_create_weakref
     raise PrimitiveFailure, "Unable to create a weak reference"
