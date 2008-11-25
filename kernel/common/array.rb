@@ -1067,7 +1067,7 @@ class Array
 
         arr_idx += 1
       when 'w' then
-        item = Type.coerce_to(item, Integer, :to_i)
+        item = Type.coerce_to(item, Integer, :to_int)
         raise ArgumentError, "can't compress negative numbers" if item < 0
 
         ret << (item & 0x7f)

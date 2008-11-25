@@ -1,33 +1,6 @@
 fails:Array#pack converts big integers into UTF-8 encoded byte sequences with ('U')
-fails:Array#pack returns null padded string with ('a<count>')
-fails:Array#pack conversion edge case: all zeros with ('B')
-fails:Array#pack conversion edge case: edge sequences not in first char with ('B')
-fails:Array#pack returns zero-char for each 2 of count that greater than string length with ('B')
-fails:Array#pack returns extra zero char if count is odd and greater than string length with ('B')
-fails:Array#pack starts new char if string is ended before char's 8 bits with ('B')
-fails:Array#pack conversion edge case: all zeros with ('b')
-fails:Array#pack conversion edge case: edge sequences not in first char with ('b')
-fails:Array#pack returns zero-char for each 2 of count that greater than string length with ('b')
-fails:Array#pack returns extra zero char if count is odd and greater than string length with ('b')
-fails:Array#pack starts new char if argument string is ended before char's 8 bits with ('b')
-fails:Array#pack encodes a positive integer with ('i')
-fails:Array#pack encodes a positive integer in little-endian order with ('i')
-fails:Array#pack encodes 4 positive integers in little-endian order with ('i4')
-fails:Array#pack encodes remaining integers in little-endian order with ('i*')
-fails:Array#pack encodes a positive integer with ('l')
-fails:Array#pack encodes a positive integer in little-endian order with ('l')
 fails:Array#pack encodes a long in network-order with ('N')
-fails:Array#pack encodes a long in little-endian order with ('V')
-fails:Array#pack encodes a short in little-endian order with ('v')
-fails:Array#pack encodes a positive integer with ('s')
-fails:Array#pack encodes a positive integer in little-endian order with ('s')
 fails:Array#pack converts to BER-compressed integer with ('w')
-fails:Array#pack returns zero-char string with ('x')
-fails:Array#pack returns string of count zero chars with count and ('x')
-fails:Array#pack doesn't increment the array index count with ('x')
-fails:Array#pack returns null padded string with ('Z')
-fails:Array#pack returns the whole argument string plus null char with star parameter with ('Z')
-fails:Array#pack reuses last array element as often as needed to complete the string
 
 
 
@@ -151,14 +124,6 @@ fails:Array#pack reuses last array element as often as needed to complete the st
 
 
 
-fails:Array#pack encodes a negative integer with ('i')
-fails:Array#pack encodes a negative integer in little-endian order with ('i')
-fails:Array#pack raises a RangeError when the negative integer is too big with ('l')
-fails:Array#pack encodes a negative integer with ('l')
-fails:Array#pack encodes a negative integer in little-endian order with ('l')
-fails:Array#pack raises a RangeError when the negative integer is too big with ('s')
-fails:Array#pack converts integers into UTF-8 encoded byte sequences with ('U')
 fails:Array#pack with ('w') converts to BER-compressed integer
 fails:Array#pack with ('w') raises an ArgumentError if the count is greater than the number of remaining array elements
-fails:Array#pack with ('w') calls to_int on non-integer values before packing
 fails:Array#pack with ('w') raises TypeError on nil and non-numeric arguments
