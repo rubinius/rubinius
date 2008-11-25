@@ -1,4 +1,5 @@
 fails:Array#pack converts big integers into UTF-8 encoded byte sequences with ('U')
+fails:Array#pack converts integers into UTF-8 encoded byte sequences with ('U')
 fails:Array#pack encodes a long in network-order with ('N')
 fails:Array#pack converts to BER-compressed integer with ('w')
 
