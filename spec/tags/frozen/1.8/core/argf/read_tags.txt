@@ -1,1 +1,2 @@
 fails:ARGF.read reads the contents of one file and stdin
+fails:ARGF.read reads a number of bytes from stdin
