@@ -1,1 +1,2 @@
 incomplete:Rational#% needs to be reviewed for spec completeness
+fails:Rational#% returns the remainder when this value is divided by other
