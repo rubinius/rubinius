@@ -1,35 +1,173 @@
-Evan Phoenix <ephoenix@engineyard.com>
-- 'evan' on irc
-- Mastermind
-- VM Creator
+#  Authors
+# =========
+#
+# This is a reasonably complete list of everyone who has committed
+# code to Rubinius, although there are probably a few persons still
+# missing. The list is just ordered by first name here, but the file
+# is (and should be kept) YAML-formatted.
+#
+# Please feel free to add any personal details.
 
-Wilson Bilkovich <wbilkovich@engineyard.com>
-- 'defiler' on irc
-- Compiler Admiral
-- misc grindings on internal combustion parts (the engine still explodes)
+---
 
-Brian Ford <bford@engineyard.com>
-- 'brixen' on irc
-- Spec/Testing General
-- writes lots of specs
-
-Matthew Elder <sseses@gmail.com>
-- 'mae' on irc
-- progress verification (classes/methods) bin/compare.rb
-- wants to improve specs when rubinius is more mature
-- primitives.rb cleanup with GUARD and POP macros
-
-Frédérick Ros <sl33p3r@free.fr>
-- '_sleeper_' on irc
-- architecture agnostic compiled files fan
-- C warnings hunter
-
-Eero Saynatkari <rubinius-ml@projects.kittensoft.org>
-- 'rue' on irc
-- Miscellaneous codings 
-- 64-bit and *BSD support
-- Newsletterist
-
-Kevin Clark <kevin.clark@gmail.com>
-- 'kevinclark' on irc
-- subtend work
+- Adam Gardiner:        { irc:  agardiner }
+- Adam Shelly:          { irc:  therealadam }
+- Adam Wiggins:
+- Aki Reijonen:         { irc:  loop }
+- Akshay Rawat:
+- Alan Hurdle:          { irc:  hurdlea }
+- Alexander Kellett:    { irc:  lypanov }
+- Alexandre Perrin:
+- Alister Lee:
+- Amarkj:
+- Andrew Goodney:
+- Andrew Thompson:      { irc: Vagabond }
+- Ari Brown:            { seydar }
+- Arthur Schreiber:     { irc: NoKarma }
+- Arthur Zapparoli:
+- aquasync:
+- Ben Askins:
+- Ben Brinckerhoff:
+- Ben Burkert:
+- Ben Curren:
+- Ben Hughes:
+- Benjamin Andresen:
+- Benjamin Stiglitz:
+- Bremac:
+- Brian Donovan:
+- Brian Ford:           { irc: brixen }
+- Brian Takita:
+- Bryan Helmkamp:
+- Carsten Bormann:      { irc: cabo }
+- Caleb Tennis:         { irc: ctennis }
+- Cezar Sa Espinola:
+- Chad Fowler:
+- Charles Comstock:     { irc: dgtized }
+- Charles Lowe:
+- Charles Oliver Nutter:{ irc: headius }
+- Chen Yufei:
+- Chris Pettitt:
+- Chris Shea:
+- Chris Shoemaker:      { irc: shoe }
+- Christopher Thompson:
+- Chris Wanstrath:      { irc: defunkt }
+- Chuck Remes:          { irc: cremes }
+- Curtis Schofield:
+- Daniel Lucraft:       { irc: dan_lucraft }
+- Daniel Luz:
+- David Altenburg:
+- David Salamon:
+- David Waite:          { irc: ddubs }
+- David Whittington:    { irc: djwhitt }
+- David Yip:
+- Defn:
+- Dirkjan Bussink:      { irc: dbussink }
+- Drew Olson:
+- Eero Saynatkari:      { irc: rue,           email: rubinius@projects.kittensoft.org }
+- Eric Hodel:           { irc: drbrain }
+- Evan Phoenix:         { irc: evan }
+- Federico Builes:      { irc: fbuilesv }
+- Florian Gross:        { irc: flgr }
+- Gaston Ramos:
+- Gerardo Santana:
+- Gianluigi Spagnuolo:
+- Glenn Davy:
+- Graham:
+- Gregor Schmidt:
+- Haofei Wang:
+- Hapk:
+- Hemant Kumar:         { irc: gnufied }
+- Hongli Lai:           { irc: FooBarWidget }
+- Hunter Kelly:
+- Jacob Maine:
+- Janico Greifenberg:
+- Jared Luxenberg:
+- Jason Yates:
+- Jeff Rose:
+- Jeremy Durham:
+- Jeremy Roach:         { irc: jero5 }
+- Joachim Martensson:
+- Joe Van Dyk:
+- John Barnette:
+- John Hornbeck:        { irc: hornbeck }
+- Jon Guymon:
+- Jonas Pfenniger:      { irc: zimbatm }
+- Jonathan Younger:
+- Juha Pohjalainen:
+- Julian Leviston:
+- Justin Weiss:
+- Kamal Fariz Mahyuddin { irc: kamal_fariz }
+- Kevin Clark:
+- Lachie Cox:           { irc: lachie }
+- Le Huy:
+- Lee Jensen:
+- Lincoln Stoll:
+- Luis Lavena:
+- Luke Randall:
+- Makoto Kuwata:
+- Marcus Crafter:       { irc: crafterm }
+- Marius Nuennerich:
+- Mark Somerville:
+- Marnen Laibow-Koser:
+- Martin Kuehl:
+- Martin Stannard:
+- Matijs van Zuijlen:
+- Matt Palmer:
+- Matt Pelletier:
+- Matthew Draper:
+- Matthew Elder:        { irc: mae }
+- Matthias Reitinger:
+- Matthijs Langenberg:
+- MenTaLguY:            { irc: MenTaLguY }
+- Michael Fellinger:    { irc: manveru }
+- Michael Klishin:
+- Mitchell Riley:
+- Mutwin Kraus:         { irc: mutle }
+- Myles Byrne:
+- Nathan Sobo:
+- Nathan Witmer:
+- Nic Williams:         { irc: dr_nic }
+- Nikolai Lugovoi:
+- Nitay:
+- Nolan Darilek:
+- Norgg:
+- nikosd:
+- Oleg Dashevskii:
+- Pat Eyler:            { irc: pate }
+- Patrick Hurley:
+- Paul Meserve:
+- Paul Thornthwaite:
+- Pedro Del Gallego:
+- Phil Hagelberg:       { irc: technomancy }
+- Philipp Bruschweiler:
+- Pierre Yager:
+- Ragnar Dahlen:
+- Richard Heycock:
+- Ruben Nine:
+- Ryan Davis:           { irc: zenspider }
+- Ryan T Mulligan:
+- rnicholson:
+- Sam Aaron:
+- Scott Taylor:
+- Sean Bryant:
+- Shoaib Kamil:
+- Stephen Bannasch:
+- Stuart Halloway:
+- Thomas Lachmann:
+- Tilman Sauerbeck:     { irc: tilman }
+- Todd A. Fisher:
+- Thomas Lockney:
+- Tom Mornini:          { irc: tmornini }
+- Tom Preston-Warner:   { irc: mojombo }
+- Tony Arcieri:         { irc: tarcieri }
+- Trotter Cashion:
+- Tyler McMullen:
+- Victor Hugo Borja:
+- Vincent Lu:
+- Vitaliy Geraymovych:
+- Vladimir Sizikov:     { irc: VVSiz }
+- Warren Seen:
+- William Morgan:       { irc: wmorgan }
+- Wilson Bilkovich:     { irc: Defiler }
+- Yehuda Katz:          { irc: wycats }
+- Zhang Chiyuan:        { irc: pluskid }
