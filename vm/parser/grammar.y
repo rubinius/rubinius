@@ -166,7 +166,7 @@ static NODE *syd_gettable(rb_parse_state*,ID);
 static NODE *assignable(ID,NODE*,rb_parse_state*);
 static NODE *aryset(NODE*,NODE*,rb_parse_state*);
 static NODE *attrset(NODE*,ID,rb_parse_state*);
-static void rb_backref_error(NODE*);
+static void rb_backref_error(NODE*,rb_parse_state*);
 static NODE *node_assign(NODE*,NODE*,rb_parse_state*);
 
 static NODE *match_gen(NODE*,NODE*,rb_parse_state*);
@@ -186,6 +186,20 @@ static int tokadd_string(int, int, int, quark *, rb_parse_state*);
 
 #define SHOW_PARSER_WARNS 0
 
+static int rb_compile_error(rb_parse_state *st, const char *fmt, ...) {
+  va_list ar;
+  char msg[256];
+  int count;
+
+  va_start(ar, fmt);
+  count = vsnprintf(msg, 256, fmt, ar);
+  va_end(ar);
+
+  syd_yyerror(msg, st);
+
+  return count;
+}
+
 static int _debug_print(const char *fmt, ...) {
 #if SHOW_PARSER_WARNS
   va_list ar;
@@ -202,7 +216,6 @@ static int _debug_print(const char *fmt, ...) {
 
 #define rb_warn _debug_print
 #define rb_warning _debug_print
-#define rb_compile_error _debug_print
 
 static ID rb_intern(const char *name);
 static ID rb_id_attrset(ID);
@@ -640,7 +653,7 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                     }
                 | backref tOP_ASGN command_call
                     {
-                        rb_backref_error($1);
+                        rb_backref_error($1, vps);
                         $$ = 0;
                     }
                 | lhs '=' mrhs
@@ -738,7 +751,7 @@ command         : operation command_args       %prec tLOWEST
                         $$ = new_fcall(vps, $1, $2);
                         if ($3) {
                             if (nd_type($$) == NODE_BLOCK_PASS) {
-                                rb_compile_error("both block arg and actual block given");
+                                rb_compile_error(vps, "both block arg and actual block given");
                             }
                             $3->nd_iter = $$;
                             $$ = $3;
@@ -755,7 +768,7 @@ command         : operation command_args       %prec tLOWEST
                         $$ = new_call(vps, $1, $3, $4);
                         if ($5) {
                             if (nd_type($$) == NODE_BLOCK_PASS) {
-                                rb_compile_error("both block arg and actual block given");
+                                rb_compile_error(vps, "both block arg and actual block given");
                             }
                             $5->nd_iter = $$;
                             $$ = $5;
@@ -772,7 +785,7 @@ command         : operation command_args       %prec tLOWEST
                         $$ = new_call(vps, $1, $3, $4);
                         if ($5) {
                             if (nd_type($$) == NODE_BLOCK_PASS) {
-                                rb_compile_error("both block arg and actual block given");
+                                rb_compile_error(vps, "both block arg and actual block given");
                             }
                             $5->nd_iter = $$;
                             $$ = $5;
@@ -882,7 +895,7 @@ mlhs_node       : variable
                     }
                 | backref
                     {
-                        rb_backref_error($1);
+                        rb_backref_error($1, vps);
                         $$ = 0;
                     }
                 ;
@@ -921,7 +934,7 @@ lhs             : variable
                     }
                 | backref
                     {
-                        rb_backref_error($1);
+                        rb_backref_error($1, vps);
                         $$ = 0;
                     }
                 ;
@@ -1110,7 +1123,7 @@ arg             : lhs '=' arg
                     }
                 | backref tOP_ASGN arg
                     {
-                        rb_backref_error($1);
+                        rb_backref_error($1, vps);
                         $$ = 0;
                     }
                 | arg tDOT2 arg
@@ -1576,7 +1589,7 @@ primary         : literal
                 | method_call brace_block
                     {
                         if ($1 && nd_type($1) == NODE_BLOCK_PASS) {
-                            rb_compile_error("both block arg and actual block given");
+                            rb_compile_error(vps, "both block arg and actual block given");
                         }
                         $2->nd_iter = $1;
                         $$ = $2;
@@ -1829,7 +1842,7 @@ do_block        : kDO_BLOCK
 block_call      : command do_block
                     {
                         if ($1 && nd_type($1) == NODE_BLOCK_PASS) {
-                            rb_compile_error("both block arg and actual block given");
+                            rb_compile_error(vps, "both block arg and actual block given");
                         }
                         $2->nd_iter = $1;
                         $$ = $2;
@@ -3016,7 +3029,7 @@ regx_options(rb_parse_state *parse_state)
     pushback(c, parse_state);
     if (toklen()) {
         tokfix();
-        rb_compile_error("unknown regexp option%s - %s",
+        rb_compile_error(parse_state, "unknown regexp option%s - %s",
                          toklen() > 1 ? "s" : "", tok());
     }
     return options | kcode;
@@ -3109,7 +3122,7 @@ static int tokadd_string(int func, int term, int paren, quark *nest, rb_parse_st
         }
         if (!c && (func & STR_FUNC_SYMBOL)) {
             func &= ~STR_FUNC_SYMBOL;
-            rb_compile_error("symbol cannot contain '\\0'");
+            rb_compile_error(parse_state, "symbol cannot contain '\\0'");
             continue;
         }
         tokadd((char)c, parse_state);
@@ -3162,7 +3175,7 @@ parse_string(NODE *quote, rb_parse_state *parse_state)
     pushback(c, parse_state);
     if (tokadd_string(func, term, paren, &quote->nd_nest, parse_state) == -1) {
         ruby_sourceline = nd_line(quote);
-        rb_compile_error("unterminated string meets end of file");
+        rb_compile_error(parse_state, "unterminated string meets end of file");
         return tSTRING_END;
     }
 
@@ -3208,7 +3221,7 @@ heredoc_identifier(rb_parse_state *parse_state)
         }
         /* Ack! end of file or end of string. */
         if (c == -1) {
-            rb_compile_error("unterminated here document identifier");
+            rb_compile_error(parse_state, "unterminated here document identifier");
             return 0;
         }
 
@@ -3314,7 +3327,7 @@ here_document(NODE *here, rb_parse_state *parse_state)
     /* Ack! EOF or end of input string! */
     if ((c = nextc()) == -1) {
       error:
-        rb_compile_error("can't find string \"%s\" anywhere before EOF", eos);
+        rb_compile_error(parse_state, "can't find string \"%s\" anywhere before EOF", eos);
         heredoc_restore(lex_strterm, parse_state);
         lex_strterm = 0;
         return 0;
@@ -3553,7 +3566,7 @@ yylex(void *yylval_v, void *vstate)
                     parse_state->lex_p = parse_state->lex_pend;
                     c = nextc();
                     if (c == -1) {
-                        rb_compile_error("embedded document meets end of file");
+                        rb_compile_error(parse_state, "embedded document meets end of file");
                         return 0;
                     }
                     if (c != '=') continue;
@@ -3679,7 +3692,7 @@ yylex(void *yylval_v, void *vstate)
         }
         c = nextc();
         if (c == -1) {
-            rb_compile_error("incomplete character syntax");
+            rb_compile_error(parse_state, "incomplete character syntax");
             return 0;
         }
         if (ISSPACE(c)){
@@ -4290,7 +4303,7 @@ yylex(void *yylval_v, void *vstate)
                 }
             }
             if (c == -1 || term == -1) {
-                rb_compile_error("unterminated quoted string meets end of file");
+                rb_compile_error(parse_state, "unterminated quoted string meets end of file");
                 return 0;
             }
             paren = term;
@@ -4462,10 +4475,12 @@ yylex(void *yylval_v, void *vstate)
         }
         if (ISDIGIT(c)) {
             if (tokidx == 1) {
-                rb_compile_error("`@%c' is not allowed as an instance variable name", c);
+                rb_compile_error(parse_state,
+                    "`@%c' is not allowed as an instance variable name", c);
             }
             else {
-                rb_compile_error("`@@%c' is not allowed as a class variable name", c);
+                rb_compile_error(parse_state,
+                    "`@@%c' is not allowed as a class variable name", c);
             }
         }
         if (!is_identchar(c)) {
@@ -4484,7 +4499,7 @@ yylex(void *yylval_v, void *vstate)
 
       default:
         if (!is_identchar(c)) {
-            rb_compile_error("Invalid char `\\%03o' in expression", c);
+            rb_compile_error(parse_state, "Invalid char `\\%03o' in expression", c);
             goto retry;
         }
 
@@ -4992,7 +5007,7 @@ syd_gettable(rb_parse_state *parse_state, ID id)
         return NEW_CVAR(id);
     }
     /* FIXME: indicate which identifier. */
-    rb_compile_error("identifier is not valid 1\n");
+    rb_compile_error(parse_state, "identifier is not valid 1\n");
     return 0;
 }
 
@@ -5075,7 +5090,7 @@ assignable(ID id, NODE *val, rb_parse_state *parse_state)
     }
     else {
         /* FIXME: indicate which identifier. */
-        rb_compile_error("identifier is not valid 2 (%d)\n", id);
+        rb_compile_error(parse_state, "identifier is not valid 2 (%d)\n", id);
     }
     return 0;
 }
@@ -5110,14 +5125,14 @@ attrset(NODE *recv, ID id, rb_parse_state *parse_state)
 }
 
 static void
-rb_backref_error(NODE *node)
+rb_backref_error(NODE *node, rb_parse_state *parse_state)
 {
     switch (nd_type(node)) {
       case NODE_NTH_REF:
-        rb_compile_error("Can't set variable $%u", node->nd_nth);
+        rb_compile_error(parse_state, "Can't set variable $%u", node->nd_nth);
         break;
       case NODE_BACK_REF:
-        rb_compile_error("Can't set variable $%c", (int)node->nd_nth);
+        rb_compile_error(parse_state, "Can't set variable $%c", (int)node->nd_nth);
         break;
     }
 }
@@ -5550,10 +5565,10 @@ cond_negative(NODE **nodep)
 }
 
 static void
-no_blockarg(NODE *node)
+no_blockarg(rb_parse_state *parse_state, NODE *node)
 {
     if (node && nd_type(node) == NODE_BLOCK_PASS) {
-        rb_compile_error("block argument should not be given");
+        rb_compile_error(parse_state, "block argument should not be given");
     }
 }
 
@@ -5561,7 +5576,7 @@ static NODE *
 ret_args(rb_parse_state *parse_state, NODE *node)
 {
     if (node) {
-        no_blockarg(node);
+        no_blockarg(parse_state, node);
         if (nd_type(node) == NODE_ARRAY && node->nd_next == 0) {
             node = node->nd_head;
         }
@@ -5578,7 +5593,7 @@ new_yield(rb_parse_state *parse_state, NODE *node)
     Object* state = Qtrue;
 
     if (node) {
-        no_blockarg(node);
+        no_blockarg(parse_state, node);
         if (nd_type(node) == NODE_ARRAY && node->nd_next == 0) {
             node = node->nd_head;
             state = Qfalse;
