@@ -1,2 +1,1 @@
 fails:ARGF.readlines reads all lines of all files
-fails:ARGF.readlines returns nil when end of stream reached

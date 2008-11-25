@@ -1,2 +1,1 @@
 fails:ARGF.to_a reads all lines of all files
-fails:ARGF.to_a returns nil when end of stream reached

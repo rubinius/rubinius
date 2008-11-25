@@ -1,2 +1,1 @@
 fails:ARGF.readchar reads each char of files
-fails:ARGF.readchar raises EOFError when end of stream reached
