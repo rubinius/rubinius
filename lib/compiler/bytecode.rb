@@ -354,16 +354,17 @@ class Compiler
         else
           g.push_context
         end
+
         #the value is on the stack if @value is nil
-        if !@value
-          g.swap
-        end
-        g.push_literal @name
         if @value
+          g.push_literal @name
           @value.bytecode(g)
         else
-          g.swap
+          g.swap # switch places with receiver
+          g.push_literal @name
+          g.swap # switch places with the value
         end
+
         g.send :class_variable_set, 2
       end
     end
