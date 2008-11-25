@@ -47,10 +47,9 @@ namespace rubinius {
     if(d) {
       data(state, (MemoryPointer*)Qnil);
       closedir(d);
-      return Qtrue;
     }
 
-    return Qfalse;
+    return Qnil;
   }
 
   Object* Dir::closed_p(STATE) {

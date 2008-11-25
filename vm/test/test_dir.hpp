@@ -64,7 +64,7 @@ class TestDir : public CxxTest::TestSuite {
   void test_close() {
     String* path = String::create(state, ".");
     d->open(state, path);
-    TS_ASSERT_EQUALS(d->close(state), Qtrue);
+    TS_ASSERT_EQUALS(d->close(state), Qnil);
     TS_ASSERT(d->data()->nil_p());
   }
 

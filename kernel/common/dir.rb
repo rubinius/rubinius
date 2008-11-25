@@ -13,7 +13,7 @@ class Dir
   def self.glob(pattern, flags = 0)
     matches = []
 
-    glob_brace_expand pattern, flags & ~GLOB_VERBOSE, matches
+    glob_brace_expand pattern.to_str, flags & ~GLOB_VERBOSE, matches
 
     matches
   end
