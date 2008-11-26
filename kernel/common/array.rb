@@ -666,8 +666,15 @@ class Array
   # If no argument is given, returns nil if the item
   # is not found. If there is an argument, an empty
   # Array is returned instead.
-  def first(n = nil)
-    return at(0) unless n
+  def first(*n)
+    return at(0) if n.size == 0
+    raise ArgumentError, "Wrong number of arguments" if n.size > 1
+
+    n = n.first
+
+    unless n.respond_to?(:to_int)
+      raise TypeError, "Can't convert #{n.class} into Integer"
+    end
 
     n = Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0

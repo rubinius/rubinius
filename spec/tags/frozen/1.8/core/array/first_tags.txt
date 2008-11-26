@@ -1,1 +1,0 @@
-fails:Array#first raises a TypeError if the passed argument is not numeric
