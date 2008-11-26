@@ -1,1 +1,0 @@
-fails:Array#map returns a copy of self if no block given

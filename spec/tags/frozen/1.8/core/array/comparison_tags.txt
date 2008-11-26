@@ -1,5 +1,3 @@
-fails:Array#<=> returns +1 if the array is longer than the other array
-fails:Array#<=> calls <=> left to right and return first non-0 result
 
 
 
