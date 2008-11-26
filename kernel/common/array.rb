@@ -420,7 +420,8 @@ class Array
 
   # Returns a copy of self with all nil elements removed
   def compact()
-    dup.compact! || self
+    out = dup
+    out.compact! || out
   end
 
   # Removes all nil elements from self, returns nil if no changes
