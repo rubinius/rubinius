@@ -838,6 +838,7 @@ class Array
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.
   def map
+    return dup unless block_given?
     out = Array.new @total
     i = 0
     while i < @total
