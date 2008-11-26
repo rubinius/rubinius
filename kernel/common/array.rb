@@ -828,13 +828,19 @@ class Array
   # Returns the last element or n elements of self. If
   # the Array is empty, without a count nil is returned,
   # otherwise an empty Array. Always returns an Array.
-  def last(n = nil)
+  def last(*n)
     if @total < 1
-      return if n.nil?
+      return if n.first.nil?
       return []
     end
+    return at(-1) if n.size == 0
+    raise ArgumentError, "Wrong number of arguments" if n.size > 1
 
-    return at(-1) unless n
+    n = n.first
+
+    unless n.respond_to?(:to_int)
+      raise TypeError, "Can't convert #{n.class} into Integer"
+    end
 
     n = Type.coerce_to n, Fixnum, :to_int
     return [] if n.zero?
