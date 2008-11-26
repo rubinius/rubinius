@@ -604,6 +604,7 @@ class Array
   #
   def fill(*args)
     raise ArgumentError, "Wrong number of arguments" if block_given? and args.size > 2
+    raise ArgumentError, "Wrong number of arguments" if !block_given? and args.size == 0
     raise ArgumentError, "Wrong number of arguments" if args.size > 3
 
     # Normalise arguments
