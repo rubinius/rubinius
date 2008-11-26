@@ -37,6 +37,8 @@ module Rubinius
       File.open(file, "w") do |f|
         new("!RBIX", 0, "x").encode_to(f, cm)
       end
+    rescue Errno::EACCES
+      # just skip writing the compiled file if we don't have permissions
     end
 
     ##
