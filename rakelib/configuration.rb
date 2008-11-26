@@ -2,7 +2,6 @@
 
 RBX_DTRACE          = ENV['DTRACE']
 RBX_RUBY_ENGINE     = 'rbx'
-RBX_PREFIX          = ENV['PREFIX'] || '/usr/local'
 RBX_RUBY_VERSION    = '1.8.6'
 RBX_RUBY_PATCHLEVEL = '111'
 RBX_RUBY_RELDATE    = '12/31/2009'
@@ -11,20 +10,38 @@ RBX_VERSION         = "#{RBX_LIBVER}.0"
 RBX_HOST            = `./rakelib/config.guess`.chomp
 RBX_BUILDREV        = `git rev-list --all | head -n1`.chomp
 RBX_CC              = ENV['CC'] || 'gcc'
-RBX_BINPATH         = "#{RBX_PREFIX}/bin"
-RBX_LIBPATH         = "#{RBX_PREFIX}/lib"
-RBX_CODE_PATH       = "#{RBX_PREFIX}/lib/rubinius/#{RBX_LIBVER}"
-RBX_RBA_PATH        = "#{RBX_PREFIX}/lib/rubinius/#{RBX_LIBVER}/runtime"
-RBX_EXT_PATH        = "#{RBX_PREFIX}/lib/rubinius/#{RBX_LIBVER}/#{RBX_HOST}"
+
+# There are two ways to build Rubinius: development and install.
+# We assume that if ENV['PREFIX'] is set, we are building in
+# install mode, otherwise development mode. For more details,
+# see doc/build_system.txt.
+if ENV['PREFIX']
+  RBX_PREFIX          = ENV['PREFIX']
+  RBX_BINPATH         = "#{RBX_PREFIX}/bin"
+  RBX_LIBPATH         = "#{RBX_PREFIX}/lib"
+  RBX_BASE_PATH       = "#{RBX_PREFIX}/lib/rubinius/#{RBX_LIBVER}"
+else
+  RBX_PREFIX          = Dir.pwd
+  RBX_BASE_PATH       = RBX_PREFIX
+  RBX_BINPATH         = "#{RBX_BASE_PATH}/bin"
+  RBX_LIBPATH         = "#{RBX_BASE_PATH}/vm"
+end
+
+# RubyGems is already using Rubinius::CODE_PATH so we will
+# continue to support it, although BASE_PATH is probably
+# a better description.
+RBX_CODE_PATH       = RBX_BASE_PATH
+RBX_RBA_PATH        = "#{RBX_BASE_PATH}/runtime"
+RBX_EXT_PATH        = "#{RBX_BASE_PATH}/#{RBX_LIBVER}/#{RBX_HOST}"
 
 case RBX_HOST
-when /darwin9/ then
+when /darwin9/
   RBX_DARWIN         = 1
   RBX_DISABLE_KQUEUE = 1
-when /darwin/ then
+when /darwin/
   RBX_DARWIN         = 1
   RBX_DISABLE_KQUEUE = 1
-when /freebsd/ then
+when /freebsd/
   RBX_DARWIN         = 0
   RBX_DISABLE_KQUEUE = 1
 else

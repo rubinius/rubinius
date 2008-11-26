@@ -134,7 +134,15 @@ INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
-FLAGS         = %W[ -pipe -Wall -Wno-deprecated -DBUILDDIR=\\"#{Dir.pwd}\\"]
+def add_directory_defines(flags)
+  flags.delete_if { |f| /^-D(RBA|BASE)_PATH/ =~ f }
+  flags << %[-DBASE_PATH=\\"#{RBX_BASE_PATH}\\"]
+  flags << %[-DRBA_PATH=\\"#{RBX_RBA_PATH}\\"]
+end
+
+FLAGS         = %W[ -pipe -Wall -Wno-deprecated ]
+add_directory_defines FLAGS
+
 if RUBY_PLATFORM =~ /darwin/i && `sw_vers` =~ /10\.4/
   FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)
 end
@@ -164,7 +172,7 @@ def compile_c(obj, src)
   if src == "vm/test/runner.cpp"
     flags.delete_if { |f| /-O.*/.match(f) }
   end
-  
+
   if src =~ /c$/
     # command line option "-Wno-deprecated" is valid for C++ but not for C
     flags.delete_if { |f| f == '-Wno-deprecated' }

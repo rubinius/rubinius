@@ -236,6 +236,7 @@ file 'kernel/bootstrap/rubinius_config.rb' =>
 
 module Rubinius
   BUILDREV        = #{RBX_BUILDREV.inspect}
+  BASE_PATH       = #{RBX_BASE_PATH.inspect}
   CODE_PATH       = #{RBX_CODE_PATH.inspect}
   EXT_PATH        = #{RBX_EXT_PATH.inspect}
   RBA_PATH        = #{RBX_RBA_PATH.inspect}

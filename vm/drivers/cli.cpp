@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
     if(!runtime) {
       struct stat st;
 
-      runtime = BUILDDIR "/runtime";
+      runtime = RBA_PATH;
       if(stat(runtime, &st) == -1 || !S_ISDIR(st.st_mode)) {
         Assertion::raise("set RBX_RUNTIME to runtime (or equiv)");
       }
