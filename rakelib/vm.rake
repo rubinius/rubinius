@@ -1,5 +1,6 @@
 require 'tmpdir'
 require 'rakelib/rubinius'
+require 'rakelib/configuration'
 
 require 'lib/ffi/generator_task.rb'
 
