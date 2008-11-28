@@ -15,7 +15,7 @@ RBX_CC              = ENV['CC'] || 'gcc'
 # We assume that if ENV['PREFIX'] is set, we are building in
 # install mode, otherwise development mode. For more details,
 # see doc/build_system.txt.
-if Rake.application.top_level_tasks.grep(/install/)
+if Rake.application.top_level_tasks.include?("install")
   ENV['PREFIX']       = "/usr/local" unless ENV['PREFIX']
   RBX_PREFIX          = ENV['PREFIX']
   RBX_BINPATH         = "#{RBX_PREFIX}/bin"
