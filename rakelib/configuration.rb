@@ -15,16 +15,19 @@ RBX_CC              = ENV['CC'] || 'gcc'
 # We assume that if ENV['PREFIX'] is set, we are building in
 # install mode, otherwise development mode. For more details,
 # see doc/build_system.txt.
-if ENV['PREFIX']
+if Rake.application.top_level_tasks.grep(/install/)
+  ENV['PREFIX']       = "/usr/local" unless ENV['PREFIX']
   RBX_PREFIX          = ENV['PREFIX']
   RBX_BINPATH         = "#{RBX_PREFIX}/bin"
   RBX_LIBPATH         = "#{RBX_PREFIX}/lib"
   RBX_BASE_PATH       = "#{RBX_PREFIX}/lib/rubinius/#{RBX_LIBVER}"
+  RBX_EXT_PATH        = "#{RBX_BASE_PATH}/#{RBX_HOST}"
 else
   RBX_PREFIX          = Dir.pwd
   RBX_BASE_PATH       = RBX_PREFIX
   RBX_BINPATH         = "#{RBX_BASE_PATH}/bin"
   RBX_LIBPATH         = "#{RBX_BASE_PATH}/vm"
+  RBX_EXT_PATH        = "#{RBX_BASE_PATH}/#{RBX_LIBVER}/#{RBX_HOST}"
 end
 
 # RubyGems is already using Rubinius::CODE_PATH so we will
@@ -32,7 +35,8 @@ end
 # a better description.
 RBX_CODE_PATH       = RBX_BASE_PATH
 RBX_RBA_PATH        = "#{RBX_BASE_PATH}/runtime"
-RBX_EXT_PATH        = "#{RBX_BASE_PATH}/#{RBX_LIBVER}/#{RBX_HOST}"
+RBX_BIN_PATH        = "#{RBX_BASE_PATH}/bin"
+RBX_LIB_PATH        = "#{RBX_BASE_PATH}/lib"
 
 case RBX_HOST
 when /darwin9/

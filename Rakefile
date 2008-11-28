@@ -11,9 +11,6 @@ RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
 
 $: << "lib"
 
-# require 'tsort'
-# require 'rakelib/rubinius'
-
 task :default => %w[build vm:test spec:sydney]
 
 desc "Compile the given ruby file into a .rbc file"
@@ -81,6 +78,74 @@ task :distclean => %w[
   vm:distclean
 ]
 
+def install_bin
+  File.join RBX_BINPATH, 'rbx'
+end
+
+desc "Uninstall Rubinius"
+task :uninstall do
+  rm_rf install_bin
+  rm_rf RBX_BASE_PATH
+end
+
+desc "Install Rubinius"
+task :install => %w[
+  clean
+  install:build
+  install:files
+] do
+  sh "rake clean"
+  puts "Install complete."
+  puts "The install versions of files have been cleaned."
+  puts "Run 'rake build' to rebuild development versions."
+end
+
+namespace :install do
+  # Internal task, not documented with desc. Shells out
+  # to perform the build. See reason in doc/build_system.txt.
+  task :build do
+    ENV['RBX_RUNTIME'] = File.join(Dir.pwd, 'runtime')
+    sh "rake build"
+  end
+
+  # Internal task, not documented with desc. Performs the
+  # actual file installation enabling the :install task
+  # to clean up after itself.
+  task :files do
+    mkdir_p RBX_BASE_PATH, :verbose => true
+    mkdir_p RBX_RBA_PATH, :verbose => true
+    mkdir_p RBX_EXT_PATH, :verbose => true
+    mkdir_p RBX_BIN_PATH, :verbose => true
+    mkdir_p RBX_LIB_PATH, :verbose => true
+
+    install "vm/subtend/ruby.h", File.join(RBX_EXT_PATH, "ruby.h"),
+      :mode => 0644, :verbose => true
+
+    File.open File.join(RBX_EXT_PATH, "defines.h"), "w" do |f|
+      f.puts "// This file left empty"
+    end
+
+    File.open File.join(RBX_EXT_PATH, "missing.h"), "w" do |f|
+      f.puts "// This file left empty"
+    end
+
+    core_files = Rake::FileList.new('runtime/index',
+                                    'runtime/platform.conf',
+                                    'runtime/**/*.rb{a,c}',
+                                    'runtime/**/.load_order.txt')
+    install_files core_files, RBX_RBA_PATH
+
+    lib_files = Rake::FileList.new 'lib/**/*'
+    install_files lib_files, RBX_LIB_PATH
+
+    Rake::FileList.new("#{RBX_LIB_PATH}/**/*.rb").sort.each do |rb|
+      compile_ruby rb, "#{rb}c"
+    end
+
+    install 'vm/vm', install_bin, :mode => 0755, :verbose => true
+  end
+end
+
 def rbx_compile(from)
   sh "bin/rbx compile -f #{from}"
 end
@@ -89,10 +154,10 @@ desc 'Compare an rbc file made by MRI with one made by rbx'
 task :compare, :file do |task, args|
   file = args[:file]
   raise "Please supply something that exists" unless File.exist? file
-  
+
   mri_compile file, file + 'c.mri'
   rbx_compile file
-  
+
   File.open(file + 'c.mri') do |mri|
     File.open(file + 'c') do |rbx|
       while m = mri.gets and r = rbx.gets
@@ -100,7 +165,7 @@ task :compare, :file do |task, args|
       end
     end
   end
-  
+
 end
 
 namespace :clean do

@@ -50,6 +50,8 @@ INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
                   vm/gen/iseq_instruction_size.gen
                   vm/test/test_instructions.hpp ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
+                  vm/gen/kind_of.hpp
+                  vm/gen/object_types.hpp
                   vm/gen/typechecks.gen.cpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
@@ -135,14 +137,10 @@ INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
-def add_directory_defines(flags)
-  flags.delete_if { |f| /^-D(RBA|BASE)_PATH/ =~ f }
-  flags << %[-DBASE_PATH=\\"#{RBX_BASE_PATH}\\"]
-  flags << %[-DRBA_PATH=\\"#{RBX_RBA_PATH}\\"]
-end
-
-FLAGS         = %W[ -pipe -Wall -Wno-deprecated ]
-add_directory_defines FLAGS
+FLAGS         = %W[ -pipe -Wall -Wno-deprecated
+                    -DBASE_PATH=\\"#{RBX_BASE_PATH}\\"
+                    -DRBA_PATH=\\"#{RBX_RBA_PATH}\\"
+                ]
 
 if RUBY_PLATFORM =~ /darwin/i && `sw_vers` =~ /10\.4/
   FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)

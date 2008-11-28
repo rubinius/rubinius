@@ -2,6 +2,7 @@
 begin
   ENV = EnvironmentVariables.new
 
+  String.ruby_parser if ENV['RUBY_PARSER']
   String.sydney_parser if ENV['SYDNEY'] or ENV['SYDPARSE']
 
   # define a global "start time" to use for process calculation
@@ -36,8 +37,12 @@ end
 
 # Setup $LOAD_PATH.
 
+# Add a fallback directory if Rubinius::LIB_PATH doesn't exist
+lib_path = File.expand_path(Rubinius::LIB_PATH)
+lib_path = File.join(Dir.pwd, 'lib') unless File.exists?(lib_path)
+
 additions = []
-additions << File.expand_path("#{Rubinius::BASE_PATH}/lib")
+additions << lib_path
 
 # The main stdlib location
 # HACK todo remove this comment when we're setting this constant in the VM

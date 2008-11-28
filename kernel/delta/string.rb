@@ -46,6 +46,6 @@ class String
   end
 
   def to_sexp(name="(eval)", line=1, rewriter=true)
-    to_sexp_ruby_parser name, line, rewriter
+    to_sexp_sydney_parser name, line, rewriter
   end
 end

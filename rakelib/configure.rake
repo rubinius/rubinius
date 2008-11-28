@@ -240,6 +240,8 @@ module Rubinius
   CODE_PATH       = #{RBX_CODE_PATH.inspect}
   EXT_PATH        = #{RBX_EXT_PATH.inspect}
   RBA_PATH        = #{RBX_RBA_PATH.inspect}
+  BIN_PATH        = #{RBX_BIN_PATH.inspect}
+  LIB_PATH        = #{RBX_LIB_PATH.inspect}
   RBX_VERSION     = #{RBX_VERSION.inspect}
 end
 
