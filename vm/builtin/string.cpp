@@ -183,12 +183,10 @@ namespace rubinius {
   String* String::append(STATE, const char* other, std::size_t length) {
     size_t new_size = size() + length;
     size_t capacity = data_->size();
-    
-    if(capacity <= (new_size + 1)) {      
+
+    if(capacity < (new_size + 1)) {
       // capacity needs one extra byte of room for the trailing null
-      while(capacity < (new_size + 1)) {
-        capacity = (capacity + 1) * 2;
-      }
+      capacity = new_size + 1;
 
       // No need to call unshare and duplicate a ByteArray
       // just to throw it away.
