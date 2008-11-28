@@ -27,15 +27,15 @@ class MethodTable < LookupTable
   end
 
   def public_names
-    select { |n, m| m.public? }.map! { |n, m| n }
+    select { |n, m| m && m.public? }.map! { |n, m| n }
   end
 
   def private_names
-    select { |n, m| m.private? }.map! { |n, m| n }
+    select { |n, m| m && m.private? }.map! { |n, m| n }
   end
 
   def protected_names
-    select { |n, m| m.protected? }.map! { |n, m| n }
+    select { |n, m| m && m.protected? }.map! { |n, m| n }
   end
 
   alias_method :to_a, :public_names
