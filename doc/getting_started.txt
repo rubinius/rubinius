@@ -5,13 +5,13 @@ already have required libraries installed. For a more complete guide, see the
 next section.
 
 1. Install [ruby 1.8](http://www.ruby-lang.org/en/downloads/)
-2. Install [RubyGems](http://rubyforge.org/projects/rubygems)
-3. Install rake: <tt>gem install rake</tt>
-4. Install Git
-5. Clone rubinius: <tt>git clone git://github.com/evanphx/rubinius.git</tt>
-6. cd to your rubinius checkout
-7. <tt>rake</tt>
-8. <tt>bin/rbx -v</tt>
+1. Install [RubyGems](http://rubyforge.org/projects/rubygems)
+1. Install rake: <tt>gem install rake</tt>
+1. Install Git
+1. Clone rubinius: <tt>git clone git://github.com/evanphx/rubinius.git</tt>
+1. cd to your rubinius checkout
+1. `rake`
+1. `bin/rbx -v`
 
 
 # Getting Started
@@ -90,31 +90,31 @@ For more information on Rubinius' best practices for git, see
 
 The C++ VM is compiled using Rake. Typically, it will be as simple as:
 
-  rake
-    OR
-  rake build
+    rake
+      OR
+    rake build
 
 If you plan on doing development work, or otherwise need debug access,
 use the +debug+ subtask:
 
-  rake build:debug
+    rake build:debug
 
 
 ## Installing Rubinius
 
-The installation task currently needs to be fixed. You should not install
-Rubinius. Patches to fix the install process are welcome.
+Run the 'rake install' task to install Rubinius (you may need sudo). Run the
+'rake uninstall' task to uninstall Rubinius.
 
 
 ## Running Rubinius
 
 Once compiled, you can verify the VM works:
 
-  bin/rbx -v
+    bin/rbx -v
 
 Rubinius generally works like Ruby from the command-line. For example:
 
-  bin/rbx -e 'puts "Hello!"'
+    bin/rbx -e 'puts "Hello!"'
 
 
 ## Troubleshooting
