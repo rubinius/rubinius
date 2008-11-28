@@ -12,12 +12,12 @@ RBX_BUILDREV        = `git rev-list --all | head -n1`.chomp
 RBX_CC              = ENV['CC'] || 'gcc'
 
 # There are two ways to build Rubinius: development and install.
-# We assume that if ENV['PREFIX'] is set, we are building in
+# We assume that if ENV['RBX_PREFIX'] is set, we are building in
 # install mode, otherwise development mode. For more details,
 # see doc/build_system.txt.
-if Rake.application.top_level_tasks.include?("install")
-  ENV['PREFIX']       = "/usr/local" unless ENV['PREFIX']
-  RBX_PREFIX          = ENV['PREFIX']
+install = ! Rake.application.top_level_tasks.grep(/install/).empty?
+if install || ENV['RBX_PREFIX']
+  RBX_PREFIX          = ENV['RBX_PREFIX'] || "/usr/local"
   RBX_BINPATH         = "#{RBX_PREFIX}/bin"
   RBX_LIBPATH         = "#{RBX_PREFIX}/lib"
   RBX_BASE_PATH       = "#{RBX_PREFIX}/lib/rubinius/#{RBX_LIBVER}"

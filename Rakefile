@@ -104,6 +104,7 @@ namespace :install do
   # Internal task, not documented with desc. Shells out
   # to perform the build. See reason in doc/build_system.txt.
   task :build do
+    ENV['RBX_PREFIX'] = ENV['PREFIX'] || "/usr/local"
     ENV['RBX_RUNTIME'] = File.join(Dir.pwd, 'runtime')
     sh "rake build"
   end
