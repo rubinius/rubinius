@@ -666,11 +666,8 @@ class Array
   # If no argument is given, returns nil if the item
   # is not found. If there is an argument, an empty
   # Array is returned instead.
-  def first(*n)
-    return at(0) if n.size == 0
-    raise ArgumentError, "Wrong number of arguments" if n.size > 1
-
-    n = n.first
+  def first(n = Undefined)
+    return at(0) if n.equal? Undefined
 
     unless n.respond_to?(:to_int)
       raise TypeError, "Can't convert #{n.class} into Integer"
@@ -828,15 +825,12 @@ class Array
   # Returns the last element or n elements of self. If
   # the Array is empty, without a count nil is returned,
   # otherwise an empty Array. Always returns an Array.
-  def last(*n)
+  def last(n = Undefined)
     if @total < 1
-      return if n.first.nil?
+      return if n.equal? Undefined
       return []
     end
-    return at(-1) if n.size == 0
-    raise ArgumentError, "Wrong number of arguments" if n.size > 1
-
-    n = n.first
+    return at(-1) if n.equal? Undefined
 
     unless n.respond_to?(:to_int)
       raise TypeError, "Can't convert #{n.class} into Integer"
