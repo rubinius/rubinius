@@ -580,7 +580,9 @@ class IO
   #  prog.rb:3:in `readlines': not opened for reading (IOError)
   #   from prog.rb:3
   def close_read
-    # TODO raise IOError if writable
+    if @mode == WRONLY || @mode == RDWR
+      raise IOError, 'closing non-duplex IO for reading'
+    end
     close
   end
 
@@ -598,7 +600,9 @@ class IO
   #   from prog.rb:3:in `print'
   #   from prog.rb:3
   def close_write
-    # TODO raise IOError if readable
+    if @mode == RDONLY || @mode == RDWR
+      raise IOError, 'closing non-duplex IO for writing'
+    end
     close
   end
 
