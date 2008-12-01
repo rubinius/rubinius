@@ -1,8 +1,2 @@
 fails:IO#close_write raises an IOError if the stream is not duplexed.
 fails:IO#close_write raises an IOError if the stream is readable and not duplexed
-
-
-
-
-
-

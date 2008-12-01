@@ -1,18 +1,2 @@
 incomplete:Kernel.catch needs to be reviewed for spec completeness
 fails:Kernel.catch raises TypeError if the argument is not a symbol
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

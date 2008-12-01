@@ -1,16 +1,2 @@
 fails:Proc#[] sets self's single parameter to an Array of all given values
 fails:Proc#call on a Proc created with Proc.new replaces missing arguments with nil
-
-
-
-
-
-
-
-
-
-
-
-
-
-

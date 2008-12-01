@@ -1,7 +1,1 @@
-
-
-
-
-
-
 fails:Bignum#** returns self raised to other power

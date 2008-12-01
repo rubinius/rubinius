@@ -8,11 +8,3 @@ fails:IO#each when passed a seperator tries to convert the passed seperator to a
 fails:IO#each when passed a seperator checks whether the passed seperator responds to #to_str
 fails:IO#each yields each line to the passed block
 fails:IO#each yields each line starting from the current position
-
-
-
-
-
-
-
-

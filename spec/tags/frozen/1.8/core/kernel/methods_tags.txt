@@ -1,16 +1,2 @@
 fails:Kernel#methods does not include any .undef'd methods
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 fails:Kernel#methods does not include any .undef'd methods even if method is inherited

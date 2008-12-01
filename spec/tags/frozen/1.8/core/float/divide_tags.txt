@@ -1,5 +1,3 @@
 fails:Float#/ properly handles BigDecimal argument
-
-
 fails:Float#/ does NOT raise ZeroDivisionError if other is zero
 fails:Float#/ returns self divided by other
