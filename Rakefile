@@ -86,6 +86,7 @@ desc "Uninstall Rubinius"
 task :uninstall do
   rm_rf install_bin
   rm_rf RBX_BASE_PATH
+  sh "rake clean"
 end
 
 desc "Install Rubinius"
