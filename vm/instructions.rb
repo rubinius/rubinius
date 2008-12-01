@@ -682,6 +682,16 @@ class Instructions
 
       bool res = task->send_message_slowly(msg);
       RETURN(res);
+    } else if(kind_of<Autoload>(res)) {
+      Message& msg = *task->msg;
+      msg.recv = res;
+      msg.name = G(sym_call);
+      msg.stack = 0;
+      msg.lookup_from = res->lookup_begin(state);
+      msg.set_args(0);
+
+      bool res = task->send_message_slowly(msg);
+      RETURN(res);
     }
 
     stack_push(res);
@@ -2244,6 +2254,16 @@ class Instructions
       Array* args = Array::create(state, 1);
       args->set(state, 0, sym);
       msg.set_arguments(state, args);
+
+      bool res = task->send_message_slowly(msg);
+      RETURN(res);
+    } else if(kind_of<Autoload>(res)) {
+      Message& msg = *task->msg;
+      msg.recv = res;
+      msg.name = G(sym_call);
+      msg.stack = 0;
+      msg.lookup_from = res->lookup_begin(state);
+      msg.set_args(0);
 
       bool res = task->send_message_slowly(msg);
       RETURN(res);

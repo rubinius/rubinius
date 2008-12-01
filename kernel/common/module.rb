@@ -679,7 +679,11 @@ class Module
   def remove_const(name)
     sym = name.to_sym
     const_missing(name) unless constants_table.has_key?(sym)
-    constants_table.delete(sym)
+    val = constants_table.delete(sym)
+
+    # Silly API compac. Shield Autoload instances
+    return nil if val.kind_of? Autoload
+    val
   end
 
   private :remove_const
@@ -754,5 +758,15 @@ class Module
 
   private :valid_const_name?
 
+  def initialize_copy(other)
+    @constants = @constants.dup
+    @method_table = @method_table.dup
+
+    @constants.each do |name, val|
+      if val.kind_of? Autoload
+        @constants[name] = Autoload.new(val.name, self, val.original_path)
+      end
+    end
+  end
 
 end

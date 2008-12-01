@@ -102,6 +102,8 @@ namespace rubinius {
 
     TypedRoot<Class*> data;
 
+    TypedRoot<Class*> autoload; /**< Autoload class */
+
     /* Add new globals above this line. */
 
     /* Leave this as the last data member always */
@@ -203,8 +205,8 @@ namespace rubinius {
 
       nmethod(&roots),
       nativectx(&roots),     /**< NativeMethodContext */
-
-      data(&roots)
+      data(&roots),
+      autoload(&roots)
 
       /* Add initialize of globals above this line. */
     { }

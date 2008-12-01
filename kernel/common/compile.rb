@@ -443,13 +443,13 @@ module Kernel
   #
   def require(path)
     path = StringValue(path)
-    rb, rbc, ext = __split_path__ path
+    rb, rbc, ext = Compile.split_path path
     Autoload.remove(rb)
     Compile.unified_load path, rb, rbc, ext, true
   end
   module_function :require
 
-  def __split_path__(path)
+  def Compile.split_path(path)
     # Remap all library extensions behind the scenes, just like MRI
     path.gsub!(/\.(so|bundle|dll|dylib)$/, "#{Rubinius::LIBSUFFIX}")
 
@@ -464,6 +464,5 @@ module Kernel
     end
     return rb,rbc,ext
   end
-  private :__split_path__
 end
 

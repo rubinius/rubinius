@@ -36,6 +36,7 @@
 #include "builtin/time.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/taskprobe.hpp"
+#include "builtin/autoload.hpp"
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
@@ -203,6 +204,7 @@ namespace rubinius {
     TaskProbe::init(this);
     Exception::init(this);
     Data::init(this);
+    Autoload::init(this);
 
     NativeMethod::register_class_with(this);
     NativeMethodContext::register_class_with(this);

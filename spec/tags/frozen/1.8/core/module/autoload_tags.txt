@@ -1,7 +1,3 @@
-fails:Module#autoload loads constants that are registered at toplevel
-fails:Module#autoload triggers an autoload before using a toplevel constant
-fails:Module#autoload should not fail when the load path is manually required
-fails:Module#autoload should allow multiple autoload requests to reference one file
 
 
 
@@ -15,5 +11,3 @@ fails:Module#autoload should allow multiple autoload requests to reference one f
 
 
 fails:Module#autoload doesn't call 'require' nor 'load' dynamically
-fails:Module#autoload with constant enumeration or removal doesn't trigger file load
-fails:Module#autoload uses dup copies for autoloaded constants
