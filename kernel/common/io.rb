@@ -689,7 +689,8 @@ class IO
   #  r.eof?  # blocks forever
   # Note that IO#eof? reads data to a input buffer. So IO#sysread doesn't work with IO#eof?.
   def eof?
-    read 0 # HACK force check
+    ensure_open_and_readable
+    @ibuffer.fill_from self unless @ibuffer.exhausted?
     @eof and @ibuffer.exhausted?
   end
 

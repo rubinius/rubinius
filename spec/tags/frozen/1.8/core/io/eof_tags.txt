@@ -1,7 +1,1 @@
-fails:IO#eof? raises IOError on stream closed for reading by close_read
 fails:IO#eof? returns true after reading with sysread
-fails:IO#eof? returns true after reading with read
-fails:IO#eof? returns true on just opened empty stream
-fails:IO#eof? raises IOError on stream not opened for reading
-fails:IO#eof? returns true on one-byte stream after single-byte read
-fails:IO#eof? returns true on receiving side of Pipe when writing side is closed
