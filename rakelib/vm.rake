@@ -104,6 +104,7 @@ field_extract_headers = %w[
   vm/builtin/nativemethod.hpp
   vm/builtin/nativemethodcontext.hpp
   vm/builtin/system.hpp
+  vm/builtin/autoload.hpp
 ]
 
 BC          = "vm/instructions.bc"
