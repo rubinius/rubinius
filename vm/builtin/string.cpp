@@ -50,6 +50,7 @@ namespace rubinius {
     so->characters(state, size);
     so->encoding(state, Qnil);
     so->hash_value(state, (Integer*)Qnil);
+    so->shared(state, Qfalse);
 
     size_t bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
@@ -80,6 +81,7 @@ namespace rubinius {
     s->characters(state, count);
     s->encoding(state, Qnil);
     s->hash_value(state, (Integer*)Qnil);
+    s->shared(state, Qfalse);
 
     // fetch_bytes NULL terminates
     s->data(state, ba->fetch_bytes(state, start, count));
@@ -186,17 +188,19 @@ namespace rubinius {
 
     if(capacity < (new_size + 1)) {
       // capacity needs one extra byte of room for the trailing null
-      capacity = new_size + 1;
+      do {
+	capacity *= 2;
+      } while(capacity < (new_size + 1));
 
       // No need to call unshare and duplicate a ByteArray
       // just to throw it away.
-      if(shared_) shared(state, Qfalse);
+      if(shared_ == Qtrue) shared(state, Qfalse);
 
       ByteArray *ba = ByteArray::create(state, capacity);
       std::memcpy(ba->bytes, data_->bytes, size());
       data(state, ba);
     } else {
-      if(shared_) unshare(state);
+      if(shared_ == Qtrue) unshare(state);
     }
 
     // Append on top of the null byte at the end of s1, not after it
