@@ -489,13 +489,12 @@ namespace assembler_x86 {
     }
 
     // bytes for the epilogue code, used with read_eip
-    const static int EpilogueSize = 11;
-    void epilogue(int stack) {
+    const static int EpilogueSize = 5;
+    void epilogue() {
       pop(ebx);
       pop(esi);
       pop(edi);
 
-      add(esp, stack);
       leave();
       ret();
     }

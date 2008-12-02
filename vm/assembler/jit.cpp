@@ -161,7 +161,7 @@ namespace rubinius {
 
     a.set_label(fin);
     ops.store_ip(ecx, edx);
-    a.epilogue(0);
+    a.epilogue();
 
     a.show();
   }

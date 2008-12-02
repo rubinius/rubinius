@@ -98,7 +98,7 @@ RegisterVM::Function RegisterVM::compile(int* op, int size) {
       break;
 
     case exit:
-      a.epilogue(stack);
+      a.epilogue();
       break;
 
     case jump:

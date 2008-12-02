@@ -124,7 +124,7 @@ namespace operations {
 
     void epilogue() {
       s.assembler().add(esp, 0x20);
-      s.assembler().epilogue(prologue_stack_);
+      s.assembler().epilogue();
     }
 
     void call_operation(void* func) {

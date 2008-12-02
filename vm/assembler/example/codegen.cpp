@@ -40,7 +40,7 @@ int main4(int argc, char** argv) {
   a.mov(a.address(esi), 57);
   a.mov(a.address(ebx, offsetof(struct state, top)), esi);
 
-  a.epilogue(s);
+  a.epilogue();
 
   a.show();
   ptr_add func = (ptr_add)a.buffer();
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
   a.add(eax, ecx);
 
   a.set_label(retrn);
-  a.epilogue(s);
+  a.epilogue();
 
   a.show();
 
@@ -111,7 +111,7 @@ int main3(int argc, char** argv) {
   AssemblerX86::NearJumpLocation of;
   a.jump_if_overflow(of);
   a.mov(eax, 0);
-  a.epilogue(10);
+  a.epilogue();
 
   a.set_label(of);
 
@@ -122,7 +122,7 @@ int main3(int argc, char** argv) {
 
   a.sub(esp, 8);
   a.mov(eax, 1);
-  a.epilogue(0);
+  a.epilogue();
 
   a.show();
 
@@ -152,7 +152,7 @@ int main2(int argc, char** argv) {
 
   a.set_label(done);
   a.mov(eax, 47);
-  a.epilogue(0);
+  a.epilogue();
 
   a.show();
   //int_only func = (int_only)a.buffer();

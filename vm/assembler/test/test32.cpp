@@ -708,7 +708,7 @@ void test_prologue2() {
 
 void test_epilogue() {
   AssemblerX86 a;
-  a.epilogue(18);
+  a.epilogue();
   ud_t *ud = a.disassemble();
 
   assert_kind(UD_Ipop);
@@ -724,14 +724,6 @@ void test_epilogue() {
   assert_kind(UD_Ipop);
   assert_op(0, type, UD_OP_REG);
   assert_op(0, base, UD_R_EDI);
-
-  ud_disassemble(ud);
-  assert_kind(UD_Iadd);
-  assert_op(0, type, UD_OP_REG);
-  assert_op(0, base, UD_R_ESP);
-  assert_op(1, type, UD_OP_IMM);
-  assert_op(1, base, UD_NONE);
-  assert_op(1, lval.udword, 18);
 
   ud_disassemble(ud);
   assert_kind(UD_Ileave);
