@@ -2,7 +2,19 @@ require 'benchmark'
  
 total = (ENV['TOTAL'] || 1_000).to_i
 
-Tuple = Array unless defined?(Tuple)
+unless defined?(Tuple)
+  Tuple = Array
+  class Tuple
+    def swap(i,j)
+      temp = at(i)
+      put(i, at(j))
+      put(j, temp)
+    end
+
+    alias :at :[]
+    alias :put :[]=
+  end
+end
 
 tuple = Tuple.new(total)
 total.times do |i|
