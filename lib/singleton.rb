@@ -100,17 +100,21 @@ module Singleton
 
   class << Singleton
     def __init__(klass)
-      klass.instance_eval {
+      klass.instance_eval do
         @singleton__instance__ = nil
         @singleton__mutex__ = Mutex.new
-      }
-      def klass.instance
-        return @singleton__instance__ if @singleton__instance__
-        @singleton__mutex__.synchronize {
+        def instance
           return @singleton__instance__ if @singleton__instance__
-          @singleton__instance__ = new()
-        }
-        @singleton__instance__
+          @singleton__mutex__.synchronize do
+            return @singleton__instance__ if @singleton__instance__
+            @singleton__instance__ = new()
+          end
+          @singleton__instance__
+        end
+        private
+        def _instantiate?
+          @singleton__instance__
+        end
       end
       klass
     end
