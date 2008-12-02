@@ -1,1 +1,0 @@
-fails:ARGF.rewind goes back to beginning of current file

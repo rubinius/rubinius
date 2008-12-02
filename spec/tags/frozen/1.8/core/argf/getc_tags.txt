@@ -1,1 +1,0 @@
-fails:ARGF.getc reads each char of files

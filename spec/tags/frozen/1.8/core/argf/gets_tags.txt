@@ -1,2 +1,0 @@
-fails:ARGF.gets reads all lines of two files
-fails:ARGF.gets returns nil when reaching end of files
