@@ -1,0 +1,8 @@
+# Various Projects to Contribute
+
+There are a lot of "wouldn't it be nice if..." out there. This page collects
+some of those.
+
+* Screencasts for various activities like cloning and building Rubinius,
+  running specs, making a patch, etc.
+* Add RDoc from MRI to all of kernel/**/*.rb.
