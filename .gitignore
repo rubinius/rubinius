@@ -116,8 +116,7 @@ vm/external_libs/llvm/utils/Makefile
 vm/doc/generated
 
 # Assembler
-vm/assembler/test/test32
-vm/assembler/test/test64
+vm/assembler/test
 vm/assembler/udis86-1.7/Makefile
 vm/assembler/udis86-1.7/config.h
 vm/assembler/udis86-1.7/config.log

@@ -376,7 +376,7 @@ end
 objs += ["vm/instructions.o"] # NOTE: BC isn't added due to llvm-g++ requirement
 
 files EXTERNALS do |t|
-  path = File.join(*split_all(t.name)[0..2])
+  path = File.join(*split_all(t.name)[0..-2])
   configure_path = File.join(path, 'configure')
 
   if File.exist? configure_path then
