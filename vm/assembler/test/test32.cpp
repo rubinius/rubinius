@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <cassert>
 
 #include "assembler_x86.hpp"
 
