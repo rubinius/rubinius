@@ -113,7 +113,6 @@ field_extract_headers = %w[
 BC          = "vm/instructions.bc"
 
 EXTERNALS   = %W[ vm/external_libs/libmpa/libptr_array.a
-                  vm/assembler/libudis86.a
                   vm/external_libs/libcchash/libcchash.a
                   vm/external_libs/libmquark/libmquark.a
                   vm/external_libs/libtommath/libtommath.a
@@ -204,7 +203,7 @@ def ld t
   $link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
 
   ld = ENV['LD'] || 'g++'
-  o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
+  o  = t.prerequisites.find_all { |f| f =~ /[oa]$/ }.join(' ')
   l  = ex_libs.join(' ')
 
   if $verbose
@@ -386,6 +385,10 @@ files EXTERNALS do |t|
   end
 end
 
+file "vm/assembler/libudis86.a" do
+  sh "cd vm/assembler; make"
+end
+
 file 'vm/primitives.o'                => 'vm/codegen/field_extract.rb'
 file 'vm/primitives.o'                => TYPE_GEN
 file 'vm/codegen/instructions_gen.rb' => 'kernel/delta/iseq.rb'
@@ -405,7 +408,7 @@ end
 files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
 end
 
-file 'vm/jit-test' => EXTERNALS + objs + jit_objs do |t|
+file 'vm/jit-test' => EXTERNALS + objs + jit_objs + ["vm/assembler/libudis86.a"] do |t|
   ld t
 end
 
