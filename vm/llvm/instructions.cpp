@@ -21,6 +21,7 @@
 
 #include "objectmemory.hpp"
 #include "message.hpp"
+#include "instructions.hpp"
 
 #define USE_JUMP_TABLE
 
@@ -47,7 +48,7 @@ using namespace rubinius;
 #define state task->state
 
 #define I2N(num) APPLY_TAG(num, TAG_FIXNUM)
-#define both_fixnum_p(_p1, _p2) ((intptr_t)_p1 & (intptr_t)_p2 & TAG_FIXNUM)
+#define both_fixnum_p(_p1, _p2) (FIXNUM_P(_p1) && FIXNUM_P(_p2))
 
 #define cache_ip()
 
