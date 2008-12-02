@@ -9,6 +9,7 @@ describe MSpecMain, "#options" do
 
     @script = MSpecMain.new
     @script.stub!(:config).and_return(@config)
+    @script.stub!(:load)
   end
 
   it "enables the configure option" do
@@ -19,6 +20,11 @@ describe MSpecMain, "#options" do
   it "provides a custom action (block) to the config option" do
     @script.options ["-B", "config"]
     @config[:options].should include("-B", "config")
+  end
+
+  it "loads the file specified by the config option" do
+    @script.should_receive(:load).with("config")
+    @script.options ["-B", "config"]
   end
 
   it "enables the target options" do

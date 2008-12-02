@@ -98,10 +98,9 @@ describe Object, "#ruby_exe" do
     $VERBOSE = @verbose
   end
 
-  it "executes the argument if it is a file that exists and is executable" do
+  it "executes the argument if it is a file that exists" do
     code = "some/ruby/file.rb"
     File.should_receive(:exists?).with(code).and_return(true)
-    File.should_receive(:executable?).with(code).and_return(true)
     @script.should_receive(:`).with("ruby_spec_exe -w -Q some/ruby/file.rb")
     @script.ruby_exe code
   end

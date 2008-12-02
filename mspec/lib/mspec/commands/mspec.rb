@@ -29,6 +29,7 @@ class MSpecMain < MSpecScript
     options.doc "  with different implementations like ruby, jruby, rbx, etc.\n"
 
     options.configure do |f|
+      load f
       config[:options] << '-B' << f
     end
 

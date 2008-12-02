@@ -32,7 +32,7 @@ describe MSpecScript, "#config" do
   end
 end
 
-describe MSpecScript, ".main" do
+describe MSpecScript, "#load_default" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -44,19 +44,30 @@ describe MSpecScript, ".main" do
 
   before :each do
     @version = RUBY_VERSION
-    @script = mock("MSpecScript", :null_object => true)
+    if Object.const_defined? :RUBY_ENGINE
+      @engine = Object.const_get :RUBY_ENGINE
+    end
+    @script = MSpecScript.new
     MSpecScript.stub!(:new).and_return(@script)
   end
 
   after :each do
     Object.const_set :RUBY_VERSION, @version
+    Object.const_set :RUBY_ENGINE, @engine if @engine
   end
 
-  it "attempts to load a config file based on RUBY_VERSION" do
+  it "attempts to load 'default.mspec'" do
+    @script.should_receive(:load).with('default.mspec').and_return(true)
+    @script.load_default
+  end
+
+  it "attempts to load a config file based on RUBY_ENGINE and RUBY_VERSION" do
+    Object.const_set :RUBY_ENGINE, "ybur"
     Object.const_set :RUBY_VERSION, "1.8.9"
-    version = "1.8.mspec"
-    @script.should_receive(:load).with(version)
-    MSpecScript.main
+    default = "ybur.1.8.mspec"
+    @script.should_receive(:load).with('default.mspec').and_return(false)
+    @script.should_receive(:load).with(default)
+    @script.load_default
   end
 end
 
@@ -71,8 +82,8 @@ describe MSpecScript, ".main" do
     MSpecScript.main
   end
 
-  it "attempts to load the 'default.mspec' script" do
-    @script.should_receive(:load).with('default.mspec')
+  it "attempts to load the default config" do
+    @script.should_receive(:load_default)
     MSpecScript.main
   end
 
@@ -108,7 +119,6 @@ describe MSpecScript, "#initialize" do
   end
 
   it "sets the default config values" do
-    @config[:tags_dir].should   == 'spec/tags'
     @config[:formatter].should  == nil
     @config[:includes].should   == []
     @config[:excludes].should   == []
