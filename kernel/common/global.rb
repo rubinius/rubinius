@@ -27,6 +27,7 @@ class GlobalVariables
     @internal[:$LOADED_FEATURES] = loaded_features
     @internal[:$LOAD_PATH]       = load_path
     @internal[:$SAFE]            = 0
+    @internal[:$FILENAME]        = '-'
     @internal[:$stderr]          = STDERR
     @internal[:$stdin]           = STDIN
     @internal[:$stdout]          = STDOUT
@@ -54,10 +55,14 @@ class GlobalVariables
   end
 
   def []=(key, data)
-    if !@internal.key?(key) && alias_key = @alias[key] then
+    if !@internal.key?(key) && alias_key = @alias[key]
       @internal[alias_key] = data
-    elsif @hooks.key? key then
-      @hooks[key][1].arity == 1 ? @hooks[key][1].call(data) : @hooks[key][1].call(data, key)
+    elsif @hooks.key? key
+      if @hooks[key][1].arity == 1
+        @internal[key] = @hooks[key][1].call(data)
+      else
+        @internal[key] = @hooks[key][1].call(data, key)
+      end
     else
       @internal[key] = data
     end
@@ -66,7 +71,7 @@ class GlobalVariables
   def add_alias(from, to)
     if hook = @hooks[from]
       @hooks[to] = hook
-    elsif alias_key = @alias[from] then
+    elsif alias_key = @alias[from]
       @alias[to] = alias_key
     else
       @alias[to] = from

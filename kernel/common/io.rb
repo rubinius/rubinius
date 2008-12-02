@@ -1240,6 +1240,7 @@ class IO
   #  f.readline   #=> "This is line one\n"
   def rewind
     seek 0
+    #ARGF.lineno -= @lineno
     @lineno = 0
     @eof = false
     return 0

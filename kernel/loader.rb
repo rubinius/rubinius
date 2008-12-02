@@ -187,6 +187,9 @@ begin
         else
           require more
         end
+      elsif arg.prefix? "-i"
+        # in place edit mode
+        $-i = arg[2..-1]
       elsif arg == "-"
         $0 = "-"
         Compile.execute STDIN.read

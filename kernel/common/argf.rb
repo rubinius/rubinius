@@ -1,10 +1,12 @@
-# depends on: class.rb
+# depends on: class.rb enumerable.rb
 
 ##
 # The virtual concatenation file of the files given on command line (or from
 # $stdin if no files were given).
 
 class ARGFClass
+  include Enumerable
+
   def getc
     stream = next_stream
     stream.getc if stream
@@ -99,9 +101,10 @@ class ARGFClass
     @lineno || 0
   end
 
-  def lineno= value
-    current_stream.lineno = value
-    $. = @lineno = value
+  def lineno=(value)
+    stream = current_stream
+    stream.lineno = value if stream
+    @lineno = value
     @last_stream_lineno = 0
   end
 
