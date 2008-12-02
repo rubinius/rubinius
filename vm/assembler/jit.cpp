@@ -39,7 +39,13 @@ namespace rubinius {
     // A label pointing to the code for each virtual ip
     std::vector<AssemblerX86::NearJumpLocation> labels(vmm->total);
 
+    // The location of the instructions that save ip into the current
+    // MethodContext then clear the stack and return
     AssemblerX86::NearJumpLocation fin;
+
+    // The location of just the instructions that clear the stack and return
+    AssemblerX86::NearJumpLocation real_fin;
+
     ops.prologue();
 
     // Pull native_ip out of the method_context and jump to it if
@@ -71,6 +77,10 @@ namespace rubinius {
       if(last_imm) {
         *last_imm = (uint32_t)a.pc();
         last_imm = NULL;
+        // Because this is now a jump destination, reset the register
+        // usage since we don't know the state off things when we're
+        // jumped here.
+        ops.reset_usage();
       }
 
       switch(op) {
@@ -135,7 +145,8 @@ namespace rubinius {
           abort();
         }
 
-        if(instructions::check_status(op)) {
+        instructions::Status status = instructions::check_status(op);
+        if(status == instructions::MightReturn) {
           // EDX will contain the native ip, to be stored
           // back into the MethodContext in the epilogue.
           a.mov_delayed(edx, &last_imm);
@@ -151,6 +162,8 @@ namespace rubinius {
           // stores ecx as the virtual ip and returns.
           a.cmp(eax, cExecuteRestart);
           a.jump_if_equal(fin);
+        } else if(status == instructions::Terminate) {
+          a.jump(real_fin);
         }
         break;
       }
@@ -161,7 +174,9 @@ namespace rubinius {
 
     a.set_label(fin);
     ops.store_ip(ecx, edx);
-    a.epilogue();
+
+    a.set_label(real_fin);
+    ops.epilogue();
 
     a.show();
   }

@@ -430,6 +430,22 @@ void test_bit_or() {
   cout << "test_bit_or: reg and imm ok!\n";
 }
 
+void test_bit_or2() {
+  AssemblerX86 a;
+  a.bit_or(eax, a.address(ecx, 0));
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Ior);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_EAX);
+
+  assert_op(1, type, UD_OP_MEM);
+  assert_op(1, base, UD_R_ECX);
+  assert_op(1, lval.udword, 0);
+
+  delete ud;
+  cout << "test_bit_or: reg and address ok!\n";
+}
+
 void test_bit_and1() {
   AssemblerX86 a;
   a.bit_and(eax, 2);
@@ -862,6 +878,7 @@ int main(int argc, char** argv) {
   test_shift_right();
   test_shift_left();
   test_bit_or();
+  test_bit_or2();
   test_bit_and1();
   test_bit_and2();
   test_test1();

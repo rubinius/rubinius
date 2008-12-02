@@ -204,7 +204,7 @@ void test_check_both_fixnum() {
 
   ud_disassemble(ud);
 
-  assert_kind(UD_Iand);
+  assert_kind(UD_Ior);
   assert_op(0, type, UD_OP_REG);
   assert_op(0, base, UD_R_ECX);
 
@@ -220,7 +220,7 @@ void test_check_both_fixnum() {
 
   assert_op(1, type, UD_OP_IMM);
   assert_op(1, base, UD_NONE);
-  assert_op(1, lval.udword, TAG_FIXNUM);
+  assert_op(1, lval.udword, TAG_MASK);
 
   ud_disassemble(ud);
 
@@ -243,7 +243,7 @@ void test_check_both_fixnum() {
 
 void test_load_stack_pointer() {
   AssemblerX86 a;
-  StackOperations s(a, esi);
+  StackOperations s(a, ebx);
   ObjectOperations ops(s);
 
   ops.load_stack_pointer();
@@ -251,17 +251,17 @@ void test_load_stack_pointer() {
   ud_t *ud = a.disassemble();
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_REG);
-  assert_op(0, base, UD_R_EAX);
+  assert_op(0, base, UD_R_ESI);
   assert_op(1, type, UD_OP_MEM);
   assert_op(1, base, UD_R_EBP);
-  assert_op(1, lval.udword, 8);
+  assert_op(1, lval.udword, 16);
 
   ud_disassemble(ud);
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_REG);
-  assert_op(0, base, UD_R_ESI);
+  assert_op(0, base, UD_R_EBX);
   assert_op(1, type, UD_OP_MEM);
-  assert_op(1, base, UD_R_EAX);
+  assert_op(1, base, UD_R_ESI);
   assert_op(1, lval.udword, FIELD_OFFSET(rubinius::MethodContext, js.stack));
 
   delete ud;
@@ -271,7 +271,7 @@ void test_load_stack_pointer() {
 
 void test_save_stack_pointer() {
   AssemblerX86 a;
-  StackOperations s(a, esi);
+  StackOperations s(a, ebx);
   ObjectOperations ops(s);
 
   ops.save_stack_pointer();
@@ -279,18 +279,18 @@ void test_save_stack_pointer() {
   ud_t *ud = a.disassemble();
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_REG);
-  assert_op(0, base, UD_R_EAX);
+  assert_op(0, base, UD_R_ESI);
   assert_op(1, type, UD_OP_MEM);
   assert_op(1, base, UD_R_EBP);
-  assert_op(1, lval.udword, 8);
+  assert_op(1, lval.udword, 16);
 
   ud_disassemble(ud);
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_MEM);
-  assert_op(0, base, UD_R_EAX);
+  assert_op(0, base, UD_R_ESI);
   assert_op(0, lval.udword, FIELD_OFFSET(rubinius::MethodContext, js.stack));
   assert_op(1, type, UD_OP_REG);
-  assert_op(1, base, UD_R_ESI);
+  assert_op(1, base, UD_R_EBX);
 
   delete ud;
 
@@ -743,6 +743,42 @@ void test_jump_if_false() {
   cout << "test_jump_if_false: ok!\n";
 }
 
+void test_esi_value_is_remembered() {
+  AssemblerX86 a;
+  StackOperations s(a, esi);
+  ObjectOperations ops(s);
+
+  ops.load_self(ecx);
+  ops.load_self(ecx);
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Imov);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_ESI);
+
+  assert_op(1, type, UD_OP_MEM);
+  assert_op(1, base, UD_R_EBP);
+  assert_op(1, lval.udword, 16);
+
+  ud_disassemble(ud);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_ECX);
+
+  assert_op(1, type, UD_OP_MEM);
+  assert_op(1, base, UD_R_ESI);
+  assert_op(1, lval.udword, FIELD_OFFSET(rubinius::MethodContext, self_));
+
+  ud_disassemble(ud);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_ECX);
+
+  assert_op(1, type, UD_OP_MEM);
+  assert_op(1, base, UD_R_ESI);
+  assert_op(1, lval.udword, FIELD_OFFSET(rubinius::MethodContext, self_));
+
+  delete ud;
+  cout << "test_esi_value_is_remembered: ok!\n";
+}
+
 
 int main(int argc, char** argv) {
   test_push();
@@ -775,4 +811,5 @@ int main(int argc, char** argv) {
   test_load_self();
 
   test_store_call_flags();
+  test_esi_value_is_remembered();
 }

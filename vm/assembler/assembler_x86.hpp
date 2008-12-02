@@ -267,6 +267,12 @@ namespace assembler_x86 {
       emit_w(val);
     }
 
+    void bit_or(Register &dst, const Address addr) {
+      emit(0x0b);
+      emit_modrm(Mod32Displacement, dst.code(), addr.base().code());
+      emit_w(addr.offset());
+    }
+
     void bit_and(Register &reg, int val) {
       emit(0x81);
       emit_modrm(ModReg2Reg, 4, reg.code());

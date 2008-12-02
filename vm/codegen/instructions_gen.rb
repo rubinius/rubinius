@@ -361,18 +361,20 @@ CODE
     str << " NULL };\n"
     str << " if(op >= #{size}) return NULL;\n"
     str << " return implementations[op]; }\n"
-    str << "bool check_status(int op) {\n"
-    str << "static bool check_status[] = {\n"
+    str << "Status check_status(int op) {\n"
+    str << "static Status check_status[] = {\n"
     methods = decode_methods()
     methods.each do |impl|
       if impl.custom_continue?
-        str << "true,\n"
+        str << "MightReturn,\n"
+      elsif [:return, :raise].include?(impl.name.flow)
+        str << "Terminate,\n"
       else
-        str << "false,\n"
+        str << "Unchanged,\n"
       end
     end
-    str << " false };\n"
-    str << "if(op >= #{size}) return false;\n"
+    str << " Unchanged };\n"
+    str << "if(op >= #{size}) return Unchanged;\n"
     str << "return check_status[op]; }"
     str
   end

@@ -66,48 +66,66 @@ namespace operations {
     }
   };
 
+  enum RegisterUsage {
+    Unknown,
+    Arg0,
+    Arg1,
+    Arg2,
+    Arg3
+  };
+
   class ObjectOperations {
     StackOperations &s;
-    int prologue_stack_;
+    RegisterUsage esi_usage;
 
   public:
     ObjectOperations(StackOperations &s)
       : s(s)
-      , prologue_stack_(0) { }
+      , esi_usage(Unknown)
+    { }
+
+    void reset_usage() {
+      esi_usage = Unknown;
+    }
 
     void check_both_fixnum(AssemblerX86::NearJumpLocation &are_not) {
       Register& scratch = ecx;
 
       s.load_nth(scratch, 0);
-      s.assembler().bit_and(scratch, s.position(1));
-      s.assembler().bit_and(scratch, TAG_FIXNUM);
+      s.assembler().bit_or(scratch, s.position(1));
+      s.assembler().bit_and(scratch, TAG_MASK);
       s.assembler().cmp(scratch, TAG_FIXNUM);
       s.assembler().jump_if_not_equal(are_not);
     }
 
+    void load_mc() {
+      if(esi_usage != Arg2) s.assembler().load_arg(esi, 2);
+      esi_usage = Arg2;
+    }
+
     void load_stack_pointer() {
-      // Pull jit_state* into eax
-      s.assembler().load_arg(eax, 0);
+      load_mc();
 
       // Pull jit_state.stack into the stack pointer
-      s.assembler().mov(s.stack_pointer(), s.assembler().address(eax,
+      s.assembler().mov(s.stack_pointer(), s.assembler().address(esi,
         FIELD_OFFSET(rubinius::MethodContext, js.stack)));
     }
 
     void save_stack_pointer() {
-      // Pull jit_state* into eax
-      s.assembler().load_arg(eax, 0);
+      load_mc();
 
       // Mov the stack pointer into  jit_state.stack
       s.assembler().mov(
-          s.assembler().address(eax,
+          s.assembler().address(esi,
             FIELD_OFFSET(rubinius::MethodContext, js.stack)),
           s.stack_pointer());
     }
 
     void prologue() {
       AssemblerX86& a = s.assembler();
-      prologue_stack_ =  a.prologue(0);
+
+      // Do the normal prologue
+      a.prologue(0);
 
       // seed the stack with the operation arguments so we don't have
       // to push them over and over again
@@ -123,7 +141,10 @@ namespace operations {
     }
 
     void epilogue() {
+      // Remove the spots for 8 args we setup in prologue
       s.assembler().add(esp, 0x20);
+
+      // Do the normal epilogue too
       s.assembler().epilogue();
     }
 
@@ -145,14 +166,14 @@ namespace operations {
     }
 
     void store_mc_field(Register& reg, int pos) {
+      load_mc();
       AssemblerX86 &a = s.assembler();
-      a.load_arg(esi, 2);
       a.mov(a.address(esi, pos), reg);
     }
 
     void load_mc_field(Register& reg, int pos) {
+      load_mc();
       AssemblerX86 &a = s.assembler();
-      a.load_arg(esi, 2);
       a.mov(reg, a.address(esi, pos));
     }
 
@@ -169,8 +190,8 @@ namespace operations {
     }
 
     void store_ip(Register& virtual_ip, Register& native_ip) {
+      load_mc();
       AssemblerX86 &a = s.assembler();
-      a.load_arg(esi, 2);
       a.mov(a.address(esi, FIELD_OFFSET(rubinius::MethodContext, ip)), virtual_ip);
       a.mov(a.address(esi, FIELD_OFFSET(rubinius::MethodContext, native_ip)), native_ip);
     }
@@ -181,7 +202,8 @@ namespace operations {
 
     void store_call_flags(int val) {
       AssemblerX86 &a = s.assembler();
-      a.load_arg(esi, 1);
+      if(esi_usage != Arg1) a.load_arg(esi, 1);
+      esi_usage = Arg1;
       a.mov(a.address(esi, FIELD_OFFSET(rubinius::Task, call_flags)), val);
     }
 
