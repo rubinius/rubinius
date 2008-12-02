@@ -55,7 +55,7 @@ namespace rubinius {
 
      Bit layout of special literals:
 
-6:false    110   % 6 = 6
+6:false     110   % 6 = 6
 14:nil     1110   % 6 = 6
 10:true    1010   % 6 = 2
 18:undef  10010   % 6 = 2

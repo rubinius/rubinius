@@ -4100,6 +4100,10 @@ if $0 == __FILE__
     f.puts si.generate_names_header
   end
 
+  File.open("vm/gen/implementation_prototype.hpp","w") do |f|
+    f.puts si.generate_ops_prototypes
+  end
+
   File.open("vm/gen/iseq_instruction_size.gen", "w") do |f|
     f.puts si.generate_size
   end

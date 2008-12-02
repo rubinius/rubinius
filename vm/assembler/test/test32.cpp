@@ -94,6 +94,64 @@ void test_mov5() {
   cout << "test_mov: reg to address ok!\n";
 }
 
+void test_mov6() {
+  AssemblerX86 a;
+  a.mov(a.address(esp, 4), ebx);
+  ud_t *ud = a.disassemble();
+
+  assert_kind(UD_Imov);
+  assert_op(0, type, UD_OP_MEM);
+  assert_op(0, base, UD_R_ESP);
+  assert_op(0, lval.uword, 4);
+
+  assert_op(1, type, UD_OP_REG);
+  assert_op(1, base, UD_R_EBX);
+
+  delete ud;
+  cout << "test_mov: reg to address (esp base) ok!\n";
+}
+
+void test_mov_delayed1() {
+  AssemblerX86 a;
+  uint32_t* loc;
+  a.mov_delayed(ebx, &loc);
+  ud_t *ud = a.disassemble();
+
+  assert_kind(UD_Imov);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_EBX);
+
+  assert_op(1, type, UD_OP_IMM);
+  assert_op(1, lval.udword, 0);
+
+  delete ud;
+  cout << "test_mov: delayed imm to reg (base case) ok!\n";
+
+}
+
+void test_mov_delayed2() {
+  AssemblerX86 a;
+  uint32_t* loc;
+  a.mov_delayed(ebx, &loc);
+  *loc = 0x47;
+  ud_t *ud = a.disassemble();
+
+  assert_kind(UD_Imov);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_EBX);
+
+  assert_op(1, type, UD_OP_IMM);
+  assert_op(1, lval.udword, 0x47);
+
+  delete ud;
+  cout << "test_mov: delayed imm to reg ok!\n";
+}
+
+void test_mov_delayed() {
+  test_mov_delayed1();
+  test_mov_delayed2();
+}
+
 void test_push1() {
   AssemblerX86 a;
   a.push(eax);
@@ -371,6 +429,38 @@ void test_bit_or() {
   cout << "test_bit_or: reg and imm ok!\n";
 }
 
+void test_bit_and1() {
+  AssemblerX86 a;
+  a.bit_and(eax, 2);
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Iand);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_EAX);
+
+  assert_op(1, type, UD_OP_IMM);
+  assert_op(1, base, UD_NONE);
+  assert_op(1, lval.uword, 2);
+
+  delete ud;
+  cout << "test_bit_and: reg and imm ok!\n";
+}
+
+void test_bit_and2() {
+  AssemblerX86 a;
+  a.bit_and(eax, a.address(ecx, 0));
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Iand);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_EAX);
+
+  assert_op(1, type, UD_OP_MEM);
+  assert_op(1, base, UD_R_ECX);
+  assert_op(1, lval.udword, 0);
+
+  delete ud;
+  cout << "test_bit_and: reg and address ok!\n";
+}
+
 void test_test1() {
   AssemblerX86 a;
   a.test(eax, esi);
@@ -467,6 +557,21 @@ void test_jump_if_equal() {
 
   delete ud;
   cout << "test_jump_if_equal: imm ok!\n";
+}
+
+void test_jump_if_not_equal() {
+  AssemblerX86 a;
+  AssemblerX86::NearJumpLocation label;
+  a.set_label(label);
+  a.jump_if_not_equal(label);
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Ijnz);
+  assert_op(0, type, UD_OP_JIMM);
+  assert_op(0, base, UD_NONE);
+  assert_op(0, lval.udword, (uintptr_t)label.destination() - (uintptr_t)a.pc());
+
+  delete ud;
+  cout << "test_jump_if_not_equal: imm ok!\n";
 }
 
 void test_jump_if_overflow() {
@@ -722,12 +827,29 @@ void test_load_arg() {
   cout << "test_load_arg: ok!\n";
 }
 
+void test_push_arg() {
+  AssemblerX86 a;
+  a.push_arg(7);
+
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Ipush);
+  assert_op(0, type, UD_OP_MEM);
+  assert_op(0, base, UD_R_EBP);
+  assert_op(0, lval.udword, 36);
+
+  delete ud;
+  cout << "test_push_arg: ok!\n";
+}
+
 int main(int argc, char** argv) {
   test_mov1();
   test_mov2();
   test_mov3();
   test_mov4();
   test_mov5();
+  test_mov6();
+  test_mov_delayed();
+
   test_push1();
   test_push2();
   test_push3();
@@ -747,6 +869,8 @@ int main(int argc, char** argv) {
   test_shift_right();
   test_shift_left();
   test_bit_or();
+  test_bit_and1();
+  test_bit_and2();
   test_test1();
   test_test2();
   test_call1();
@@ -754,6 +878,7 @@ int main(int argc, char** argv) {
   test_jump1();
   test_jump2();
   test_jump_if_equal();
+  test_jump_if_not_equal();
   test_jump_if_overflow();
   test_read_eip();
   test_prologue();
@@ -764,4 +889,5 @@ int main(int argc, char** argv) {
   test_end_call();
   test_end_call2();
   test_load_arg();
+  test_push_arg();
 }

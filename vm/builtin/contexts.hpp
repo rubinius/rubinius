@@ -24,13 +24,17 @@ namespace rubinius {
   private:
     MethodContext* sender_; // slot
     MethodContext* home_;   // slot
-    Object* self_;           // slot
 
     CompiledMethod* cm_;    // slot
 
     Module* module_;        // slot
     Object* block_;          // slot
     Object* name_;           // slot
+
+    // Public slots. These have to be public because we access
+    // them directly via machine code.
+  public:
+    Object* self_;           // slot
 
   public:
     // @todo fix up data members that aren't slots
@@ -40,6 +44,7 @@ namespace rubinius {
     // @todo fix up data members that aren't slots
     struct jit_state js;
     int    ip;
+    void*  native_ip;
     size_t args;
 
     size_t full_size;

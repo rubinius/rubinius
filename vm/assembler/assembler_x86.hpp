@@ -1,10 +1,14 @@
-#include "udis86.h"
+#ifndef RBX_ASSEMBLER_X86
+#define RBX_ASSEMBLER_X86
+
 #include <iostream>
 
 #include <stdint.h>
 #include <stdio.h>
+#include <dlfcn.h>
 
 #include "assembler.hpp"
+#include "udis86.h"
 
 namespace assembler_x86 {
 
@@ -20,50 +24,52 @@ namespace assembler_x86 {
     int code() {
       return code_;
     }
+
+    bool operator==(Register& other) {
+      return code() == other.code();
+    }
   };
 
-  Register eax = { 0 };
-  Register ecx = { 1 };
-  Register edx = { 2 };
-  Register ebx = { 3 };
-  Register esp = { 4 };
-  Register ebp = { 5 };
-  Register esi = { 6 };
-  Register edi = { 7 };
-  Register no_reg = { -1 };
-  Register no_base = ebp;
-
+  // Set in assembler_x86.cpp so they're not defined multiple times.
+  extern Register eax;
+  extern Register ecx;
+  extern Register edx;
+  extern Register ebx;
+  extern Register esp;
+  extern Register ebp;
+  extern Register esi;
+  extern Register edi;
+  extern Register no_reg;
+  extern Register no_base;
 
   class AssemblerX86 : public assembler::Assembler {
+  public:
+    // See http://wiki.osdev.org/X86_Instruction_Encoding
+    // for info on how the mod bits are interpretted
+    enum ModType {
+      ModNone = 0,
+      ModAddr2Reg = 1,
+      ModReg2Addr = 2,
+      ModReg2Reg = 3,
+
+      Mod8Displacement = 1,
+      Mod32Displacement = 2,
+      ModXMM = 3
+    };
+
   private:
-    // Emits the r/m operand code for transfering between
-    // 2 registers
-    void emit_rm_reg2reg(Register &dst, Register& src) {
-      //  | mod   | reg             | r/m       |
-      emit(3 << 6 | dst.code() << 3 | src.code());
-    }
-
-    void emit_rm_disp(Register &reg, int val) {
-      //  | mod   | reg             | r/m|
-      emit(0 << 6 | reg.code() << 3 | no_base.code());
-      emit_w(val);
-    }
-
-    void emit_rm_reg2reg_offset(Register &dst, Register &src, int8_t offset) {
-      //  | mod   | reg             | r/m |
-      emit(1 << 6 | dst.code() << 3 | src.code());
-      emit(offset);
-    }
-
     const static int AddOperation = 0;
     const static int SubOperation = 5;
     const static int CompareOperation = 7;
 
     void emit_math(int operation, Register& reg, int val) {
       emit(0x81);
-      Register op = { operation };
-      emit_rm_reg2reg(op, reg);
+      emit_modrm(ModReg2Reg, operation, reg.code());
       emit_w(val);
+    }
+
+    void emit_modrm(ModType mod, int reg, int rm) {
+      emit(((int)mod << 6) | (reg & 0x7) << 3 | (rm & 0x7));
     }
 
   public:
@@ -103,28 +109,55 @@ namespace assembler_x86 {
     void mov(const Address addr, int val) {
       emit(0xc7);
 
-      Register op = { 0 };
+      // esp is a special case, so we have to use the SIB extension
+      // to deref via esp directly.
+      if(addr.base() == esp) {
+        // 4 means use SIB, so we have to use it.
+        emit_modrm(Mod32Displacement, 0, 4);
+        // esp.code() means ignore the index.
+        emit(0 << 6 | esp.code() << 3 | addr.base().code());
+      } else {
+        emit_modrm(Mod32Displacement, 0, addr.base().code());
+      }
 
-      //  | mod   | reg             | r/m|
-      emit(2 << 6 | op.code() << 3 | addr.base().code());
       emit_w(addr.offset());
       emit_w(val);
     }
 
     void mov(Register &dst, Register &src) {
       emit(0x8b);
-      emit_rm_reg2reg(dst, src);
+      emit_modrm(ModReg2Reg, dst.code(), src.code());
     }
 
     void mov(Register &dst, const Address addr) {
       emit(0x8b);
-      emit_rm_reg2reg_offset(dst, addr.base(), addr.offset());
+      emit_modrm(Mod32Displacement, dst.code(), addr.base().code());
+      emit_w(addr.offset());
     }
 
     void mov(const Address addr, Register &val) {
       emit(0x89);
-      emit(2 << 6 | val.code() << 3 | addr.base().code());
+      // esp is a special case, so we have to use the SIB extension
+      // to deref via esp directly.
+      if(addr.base() == esp) {
+        // 4 means use SIB, so we have to use it.
+        emit_modrm(Mod32Displacement, val.code(), 4);
+        // 0 means no scale
+        // esp.code() means ignore the index.
+        emit_modrm(ModNone, esp.code(), addr.base().code());
+      } else {
+        emit_modrm(Mod32Displacement, val.code(), addr.base().code());
+      }
       emit_w(addr.offset());
+    }
+
+    // Sets up a mov instruction of an immediate value to register.
+    // The immediate value is initialized to 0, and it's location
+    // in memory is returned so it can be updated directly.
+    void mov_delayed(Register &reg, uint32_t** loc) {
+      emit(0xb8 | reg.code());
+      *loc = (uint32_t*)pc_;
+      emit_w(0);
     }
 
     void push(Register &reg) {
@@ -143,9 +176,7 @@ namespace assembler_x86 {
     void push(const Address addr) {
       emit(0xff);
 
-      Register op = { 6 };
-
-      emit(2 << 6 | op.code() << 3 | addr.base().code());
+      emit_modrm(Mod32Displacement, 6, addr.base().code());
       emit_w(addr.offset());
     }
 
@@ -155,7 +186,7 @@ namespace assembler_x86 {
 
     void lea(Register &dest, Register &base, int offset) {
       emit(0x8d);
-      emit(2 << 6 | dest.code() << 3 | base.code());
+      emit_modrm(Mod32Displacement, dest.code(), base.code());
       emit_w(offset);
     }
 
@@ -191,7 +222,7 @@ namespace assembler_x86 {
 
     void add(Register &dst, Register &src) {
       emit(0x03);
-      emit_rm_reg2reg(dst, src);
+      emit_modrm(ModReg2Reg, dst.code(), src.code());
     }
 
     void dec(Register &reg) {
@@ -208,48 +239,56 @@ namespace assembler_x86 {
 
     void cmp(Register &lhs, Register &rhs) {
       emit(0x3b);
-      emit_rm_reg2reg(lhs, rhs);
+      emit_modrm(ModReg2Reg, lhs.code(), rhs.code());
     }
 
     void cmp(const Address addr, int val) {
       emit(0x81);
-      Register op = { CompareOperation};
-      emit_rm_reg2reg_offset(op, addr.base(), addr.offset());
+      emit_modrm(Mod32Displacement, CompareOperation, addr.base().code());
+      emit_w(addr.offset());
       emit_w(val);
     }
 
     void shift_right(Register &reg, int count) {
       emit(0xc1);
-      Register op = { 7 };
-      emit_rm_reg2reg(op, reg);
+      emit_modrm(ModReg2Reg, 7, reg.code());
       emit(count);
     }
 
     void shift_left(Register &reg, int count) {
       emit(0xc1);
-      Register op = { 4 };
-      emit_rm_reg2reg(op, reg);
+      emit_modrm(ModReg2Reg, 4, reg.code());
       emit(count);
     }
 
     void bit_or(Register &reg, int val) {
       emit(0x81);
-      Register op = { 1 };
-      emit_rm_reg2reg(op, reg);
+      emit_modrm(ModReg2Reg, 1, reg.code());
       emit_w(val);
+    }
+
+    void bit_and(Register &reg, int val) {
+      emit(0x81);
+      emit_modrm(ModReg2Reg, 4, reg.code());
+      emit_w(val);
+    }
+
+    void bit_and(Register &dst, const Address addr) {
+      emit(0x23);
+      emit_modrm(Mod32Displacement, dst.code(), addr.base().code());
+      emit_w(addr.offset());
     }
 
     // Testing
 
     void test(Register &lhs, Register &rhs) {
       emit(0x85);
-      emit_rm_reg2reg(rhs, lhs);
+      emit_modrm(ModReg2Reg, rhs.code(), lhs.code());
     }
 
     void test(Register &reg, const int val) {
       emit(0xf7);
-      Register op = { 0 };
-      emit_rm_reg2reg(op, reg);
+      emit_modrm(ModReg2Reg, 0, reg.code());
       emit_w(val);
     }
 
@@ -257,8 +296,7 @@ namespace assembler_x86 {
 
     void call(Register &reg) {
       emit(0xff);
-      Register op = { 2 };
-      emit_rm_reg2reg(op, reg);
+      emit_modrm(ModReg2Reg, 2, reg.code());
     }
 
     void call(void* func) {
@@ -308,13 +346,19 @@ namespace assembler_x86 {
 
     void jump(Register &reg) {
       emit(0xff);
-      Register op = { 4 };
-      emit_rm_reg2reg(op, reg);
+      emit_modrm(ModReg2Reg, 4, reg.code());
     }
 
     void jump_if_equal(NearJumpLocation& loc) {
       emit(0x0f);
       emit(0x84);
+      loc.set_pc(pc_);
+      emit_w(loc.operand());
+    }
+
+    void jump_if_not_equal(NearJumpLocation& loc) {
+      emit(0x0f);
+      emit(0x85);
       loc.set_pc(pc_);
       emit_w(loc.operand());
     }
@@ -476,31 +520,15 @@ namespace assembler_x86 {
       mov(reg, address(ebp, 8 + (which * 4)));
     }
 
+    void push_arg(int which) {
+      push(address(ebp, 8 + (which * 4)));
+    }
+
     // Disassembling
-
-    void show() {
-      ud_t ud;
-
-      ud_init(&ud);
-      ud_set_mode(&ud, 32);
-      ud_set_syntax(&ud, UD_SYN_ATT);
-      ud_set_input_buffer(&ud, (uint8_t*)buffer_, pc_ - buffer_);
-
-      while(ud_disassemble(&ud)) {
-        std::cout << (void*)(reinterpret_cast<int>(buffer_) + ud_insn_off(&ud));
-        std::cout << "  " << ud_insn_asm(&ud) << "\n";
-      }
-    }
-
-    ud_t* disassemble() {
-      ud_t *ud = new ud_t();
-      ud_init(ud);
-      ud_set_mode(ud, 32);
-      ud_set_syntax(ud, UD_SYN_ATT);
-      ud_set_input_buffer(ud, (uint8_t*)buffer_, pc_ - buffer_);
-      ud_disassemble(ud);
-      return ud;
-    }
+    void show();
+    ud_t* disassemble();
   };
 
 }
+
+#endif

@@ -154,6 +154,8 @@ ud_translate_att(struct ud *u)
   if (u->pfx_repne)
 		mkasm(u,  "repne ");
 
+  int star = 0;
+
   /* special instructions */
   switch (u->mnemonic) {
 	case UD_Iretf: 
@@ -165,6 +167,7 @@ ud_translate_att(struct ud *u)
 	case UD_Ijmp:
 	case UD_Icall:
 		if (u->br_far) mkasm(u,  "l");
+                if(u->operand[0].type == UD_OP_REG) star = 1;
 		mkasm(u, "%s", ud_lookup_mnemonic(u->mnemonic));
 		break;
 	case UD_Ibound:
@@ -195,6 +198,7 @@ ud_translate_att(struct ud *u)
  	mkasm(u, "q");
 
   mkasm(u, " ");
+  if(star) mkasm(u, "*");
 
   if (u->operand[2].type != UD_NONE) {
 	gen_operand(u, &u->operand[2]);

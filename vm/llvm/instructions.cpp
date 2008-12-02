@@ -199,3 +199,11 @@ CODE
   }
 #endif // USE_JUMP_TABLE
 }
+
+namespace rubinius {
+namespace instructions {
+#ruby <<CODE
+puts si.generate_implementation_info
+CODE
+}
+}

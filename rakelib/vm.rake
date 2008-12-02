@@ -40,6 +40,9 @@ objs        = srcs.map { |f| f.sub(/((c(pp)?)|S)$/, 'o') }
 dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
 vm_srcs     = %w[ vm/drivers/cli.cpp ]
+
+jit_objs    = %w[ vm/drivers/jit-test.o vm/assembler/jit.o vm/assembler/assembler_x86.o ]
+jit_srcs    = %w[ vm/drivers/jit-test.cpp vm/assembler/jit.cpp vm/assembler/assembler_x86.cpp]
 EX_INC      = %w[ libtommath onig libffi/include
                   libbstring libcchash libmquark libmpa
                   libltdl libev llvm/include
@@ -110,6 +113,7 @@ field_extract_headers = %w[
 BC          = "vm/instructions.bc"
 
 EXTERNALS   = %W[ vm/external_libs/libmpa/libptr_array.a
+                  vm/assembler/libudis86.a
                   vm/external_libs/libcchash/libcchash.a
                   vm/external_libs/libmquark/libmquark.a
                   vm/external_libs/libtommath/libtommath.a
@@ -134,7 +138,7 @@ if LLVM_STYLE == "Release"
   OPTIONS[LLVM_A] << " --enable-optimized"
 end
 
-INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm .]
+INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm . vm/assembler vm/assembler/udis86-1.7]
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
@@ -363,6 +367,7 @@ file  "vm/type_info.o"    => "vm/gen/typechecks.gen.cpp"
 file  "vm/primitives.hpp" => "vm/gen/primitives_declare.hpp"
 files Dir["vm/builtin/*.hpp"], INSN_GEN
 files vm_objs, vm_srcs
+files jit_objs, jit_srcs
 
 objs.zip(srcs).each do |obj, src|
   file obj => src
@@ -398,6 +403,10 @@ task :run_field_extract do
 end
 
 files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
+end
+
+file 'vm/jit-test' => EXTERNALS + objs + jit_objs do |t|
+  ld t
 end
 
 file 'vm/vm' => EXTERNALS + objs + vm_objs do |t|

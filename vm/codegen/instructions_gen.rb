@@ -53,13 +53,19 @@ class Instructions
       end
     end
 
+    # Indicates if this opcode dynamicly defines whether
+    # execution should continue
+    def custom_continue?
+      /RETURN\(/.match(body)
+    end
+
     # Generate a C signature for the implementation code, to be used as a
     # function.
     #
     def signature
       av = args.map { |name| "int #{name}" }.join(", ")
       av = ", #{av}" unless av.empty?
-      "#{return_type} op_#{name.opcode}(VMMethod* vmm, Task* task, MethodContext* const ctx #{av})"
+      "bool op_#{name.opcode}(rubinius::VMMethod* vmm, rubinius::Task* task, rubinius::MethodContext* const ctx #{av})"
     end
   end
 
@@ -94,6 +100,9 @@ class Instructions
     methods.each do |impl|
       io.puts "#{impl.signature} {"
       io.puts impl.body
+      unless impl.custom_continue?
+        io.puts "return cExecuteContinue;"
+      end
       io.puts "}"
     end
   end
@@ -321,6 +330,51 @@ CODE
     str << "  NULL\n};\n"
 
     return str
+  end
+
+  def generate_ops_prototypes
+    str = ""
+    str << "namespace rubinius {\n"
+    str << "  class VMMethod;\n"
+    str << "  class Task;\n"
+    str << "  class MethodContext;\n"
+    str << "}\n"
+
+    str = "extern \"C\" {\n"
+    methods = decode_methods()
+    methods.each do |impl|
+      str << impl.signature << ";\n"
+    end
+    str << "}\n"
+    return str
+  end
+
+  def generate_implementation_info
+    str = ""
+    size = InstructionSet::OpCodes.size
+    str << "void* implementation(int op) {\n"
+    str << "static void* implementations[] = {\n"
+    InstructionSet::OpCodes.each do |ins|
+      str << "(void*)op_#{ins.opcode.to_s},\n"
+    end
+
+    str << " NULL };\n"
+    str << " if(op >= #{size}) return NULL;\n"
+    str << " return implementations[op]; }\n"
+    str << "bool check_status(int op) {\n"
+    str << "static bool check_status[] = {\n"
+    methods = decode_methods()
+    methods.each do |impl|
+      if impl.custom_continue?
+        str << "true,\n"
+      else
+        str << "false,\n"
+      end
+    end
+    str << " false };\n"
+    str << "if(op >= #{size}) return false;\n"
+    str << "return check_status[op]; }"
+    str
   end
 
   # Generate header information for instruction functions and other
