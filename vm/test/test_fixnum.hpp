@@ -150,7 +150,9 @@ class TestFixnum : public CxxTest::TestSuite {
     Integer* three = one->mul(state, two);
 
     TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
-    TS_ASSERT_EQUALS(three->to_native(), (FIXNUM_MAX + 10) * 2);
+    Bignum* expected = as<Bignum>(two->mul(state, Fixnum::from(2)));
+
+    TS_ASSERT(as<Bignum>(three)->equal(state, expected));
   }
 
   void test_mul_a_float() {
