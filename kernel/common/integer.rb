@@ -96,7 +96,7 @@ class Integer < Numeric
     end
     
     return 1 if exp == 0
-    return self if exp == 1 || self == 0 || self == 1
+    return self if exp == 1 || (self == 0 && exp > 0) || self == 1
     return exp % 2 == 0 ? 1 : -1 if self == -1
     
     if exp < 0
