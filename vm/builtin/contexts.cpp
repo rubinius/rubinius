@@ -48,6 +48,10 @@ namespace rubinius {
     ctx->ip = 0;
     ctx->ivars(state, Qnil);
 
+    // Do this here because it's possible for us to pass a context
+    // around and it could leak out before the real sender is set.
+    ctx->sender(state, (MethodContext*)Qnil);
+
     // Don't initialize any fields you KNOW are always set later
     // on before the ctx is used. We just waste precious time if we do.
 
@@ -286,6 +290,18 @@ namespace rubinius {
     // Detect a context on the special context stack and fix it up.
     if(ctx->klass_->nil_p()) {
       ctx->initialize_as_reference(state);
+    }
+
+    // FIXME this is to help detect an ellusive bug
+    if(!ctx->sender()->nil_p() && ctx->sender()->zone == UnspecifiedZone) {
+      ObjectPosition pos = mark.gc->object_memory->validate_object(ctx->sender());
+      if(pos == cContextStack) {
+        Assertion::raise("A sender on the context stack has an UnspecifiedZone");
+      } else if(pos == cUnknown){
+        Assertion::raise("A sender in unknown memory has an UnspecifiedZone");
+      } else {
+        Assertion::raise("A sender in normal heap has an UnspecifiedZone");
+      }
     }
 
     // MethodContext's need to be inspected on every GC collection, young

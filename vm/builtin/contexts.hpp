@@ -23,17 +23,26 @@ namespace rubinius {
 
   private:
     MethodContext* sender_; // slot
+
+    // initialized in ::create
     MethodContext* home_;   // slot
 
+    // initialized in ::create
     CompiledMethod* cm_;    // slot
 
+    // initialized in ::execute_specialized
     Module* module_;        // slot
+
+    // initialized in ::execute_specialized
     Object* block_;          // slot
+
+    // initialized in ::execute_specialized
     Object* name_;           // slot
 
     // Public slots. These have to be public because we access
     // them directly via machine code.
   public:
+    // initialized in ::create
     Object* self_;           // slot
 
   public:
