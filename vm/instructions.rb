@@ -1471,9 +1471,9 @@ class Instructions
     <<-CODE
     Object* t1 = stack_back(1);
     Object* t2 = stack_back(0);
-    if(t1->fixnum_p() && t2->fixnum_p()) {
-      int j = as<Integer>(t1)->to_native();
-      int k = as<Integer>(t2)->to_native();
+    if(both_fixnum_p(t1, t2)) {
+      native_int j = as<Integer>(t1)->to_native();
+      native_int k = as<Integer>(t2)->to_native();
       stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
       RETURN(false);
@@ -1519,9 +1519,9 @@ class Instructions
     <<-CODE
     Object* t1 = stack_back(1);
     Object* t2 = stack_back(0);
-    if(t1->fixnum_p() && t2->fixnum_p()) {
-      int j = as<Integer>(t1)->to_native();
-      int k = as<Integer>(t2)->to_native();
+    if(both_fixnum_p(t1, t2)) {
+      native_int j = as<Integer>(t1)->to_native();
+      native_int k = as<Integer>(t2)->to_native();
       stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
       RETURN(false);
