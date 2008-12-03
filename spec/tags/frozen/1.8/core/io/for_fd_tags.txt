@@ -1,4 +1,1 @@
 incomplete:IO.for_fd needs to be reviewed for spec completeness
-fails:IO.for_fd raises EINVAL if mode is not compatible with the descriptor's current mode
-fails:IO.for_fd emits a warning if given a block
-fails:IO.for_fd cannot open an IO with incompatible flags

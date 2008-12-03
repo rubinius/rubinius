@@ -514,6 +514,9 @@ class IO
   # Create a new IO associated with the given fd.
   #
   def initialize(fd, mode = nil)
+    if block_given?
+      Rubinius.warn 'IO::new() does not take block; use IO::open() instead'
+    end
     setup Type.coerce_to(fd, Integer, :to_int), mode
   end
 
@@ -534,8 +537,7 @@ class IO
       str_mode = StringValue mode
       mode = IO.parse_mode(str_mode) & ACCMODE
 
-      read_only = cur_mode & ACCMODE == RDONLY
-      if read_only and (mode == RDWR or mode == WRONLY)
+      if (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
         raise Errno::EINVAL, "Invalid new mode '#{str_mode}' for existing descriptor #{fd}"
       end
     end
