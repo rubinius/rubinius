@@ -12,15 +12,15 @@ describe "Bignum" do
   end
 
   platform_is :wordsize => 64 do
-    it "has positive threshold value 2 ** 60" do
-      max = 2 ** 60
+    it "has positive threshold value 2 ** 62" do
+      max = 2 ** 62
       max.class.should == Bignum
       sub = max - 1
-      sub.should == 1152921504606846975
+      sub.should == 4611686018427387903
       sub.class.should == Fixnum
     end
   end
-  
+
   platform_is :wordsize => 32 do
     it "has negative threshold value -(2 ** 30)" do
       min = -2 ** 30
@@ -32,11 +32,11 @@ describe "Bignum" do
   end
 
   platform_is :wordsize => 64 do
-    it "has negative threshold value -(2 ** 60)" do
-      min = -2 ** 60
+    it "has negative threshold value -(2 ** 62)" do
+      min = -2 ** 62
       min.class.should == Bignum
       sub = min + 1
-      sub.should == -1152921504606846975
+      sub.should == -4611686018427387903
       sub.class.should == Fixnum
     end
   end
