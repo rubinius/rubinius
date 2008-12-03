@@ -29,7 +29,7 @@ namespace rubinius {
       return Bignum::from(state, (native_int)num);
     }
 #endif
-    return (Fixnum*)APPLY_TAG(num, TAG_FIXNUM);
+    return (Fixnum*)APPLY_FIXNUM_TAG(num);
   }
 
   Integer* Integer::from(STATE, unsigned int num) {
@@ -39,35 +39,35 @@ namespace rubinius {
       return Bignum::from(state, (unsigned long)num);
     }
 #endif
-    return (Fixnum*)APPLY_TAG((native_int)num, TAG_FIXNUM);
+    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
   }
 
   Integer* Integer::from(STATE, unsigned long num) {
     if(num > FIXNUM_MAX) {
       return Bignum::from(state, num);
     }
-    return (Fixnum*)APPLY_TAG((native_int)num, TAG_FIXNUM);
+    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
   }
 
   Integer* Integer::from(STATE, long num) {
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       return Bignum::from(state, num);
     }
-    return (Fixnum*)APPLY_TAG((native_int)num, TAG_FIXNUM);
+    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
   }
 
   Integer* Integer::from(STATE, long long num) {
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       return Bignum::from(state, num);
     }
-    return (Fixnum*)APPLY_TAG((native_int)num, TAG_FIXNUM);
+    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
   }
 
   Integer* Integer::from(STATE, unsigned long long num) {
     if(num > FIXNUM_MAX) {
       return Bignum::from(state, num);
     }
-    return (Fixnum*)APPLY_TAG((native_int)num, TAG_FIXNUM);
+    return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
   }
 
 }

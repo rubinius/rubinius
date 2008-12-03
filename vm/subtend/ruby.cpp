@@ -701,9 +701,9 @@ extern "C" {
 
     if(NIL_P(return_handle)) {
       rb_raise(rb_eTypeError, "can't convert %s into %s",
-               NIL_P(object_handle) ? "nil" :
-                TRUE_P(object_handle) ? "true" :
-                  FALSE_P(object_handle) ? "false" :
+               RBX_NIL_P(object_handle) ? "nil" :
+                RBX_TRUE_P(object_handle) ? "true" :
+                  RBX_FALSE_P(object_handle) ? "false" :
                     rb_obj_classname(object_handle),
                type_name);
     }

@@ -40,7 +40,6 @@
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
-#define CUSTOM_CLASS GO(object)
 
 namespace rubinius {
 
@@ -152,18 +151,16 @@ namespace rubinius {
 
     // Setup the special_class lookup table. We use this to resolve
     // the classes for Fixnum's, nil, true and false.
-    for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
-      globals.special_classes[i + 0] = GO(object); /* unused slot */
-      globals.special_classes[i + 1] = GO(fixnum_class);
-      globals.special_classes[i + 2] = GO(object); /* unused slot */
-      if(((i + 3) & 0x7) == 0x3) {
-        globals.special_classes[i + 3] = GO(symbol);
+    for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i++) {
+      if(SYMBOL_P(i)) {
+        globals.special_classes[i] = GO(symbol);
+      } else if(FIXNUM_P(i)) {
+        globals.special_classes[i] = GO(fixnum_class);
       } else {
-        globals.special_classes[i + 3] = CUSTOM_CLASS;
+        globals.special_classes[i] = GO(object); /* unused slot */
       }
     }
 
-    globals.special_classes[(uintptr_t)Qundef] = GO(object); /* unused slot */
     globals.special_classes[(uintptr_t)Qfalse] = GO(false_class);
     globals.special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
     globals.special_classes[(uintptr_t)Qtrue ] = GO(true_class);

@@ -196,11 +196,12 @@ namespace rubinius {
 
   hashval Object::hash(STATE) {
     if(!reference_p()) {
-      if(fixnum_p()) {
-	/* Get rid of the tag part (i.e. the part that indicate nature of self */
-	return (as<Fixnum>(this)->to_native() << 1) | 1;
+      if(Fixnum* fix = try_as<Fixnum>(this)) {
+        return fix->to_native();
+      } else if(Symbol* sym = try_as<Symbol>(this)) {
+        return sym->index();
       } else {
-	return (hashval)(uintptr_t)this >> 2;
+        return (native_int)this;
       }
     } else {
       if(String* string = try_as<String>(this)) {
@@ -259,8 +260,7 @@ namespace rubinius {
 
     if(!reference_p()) {
       found = state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
-    }
-    else {
+    } else {
       found = try_as<Module>(klass_);
     }
 

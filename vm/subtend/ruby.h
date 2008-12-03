@@ -55,17 +55,17 @@
 typedef void (*RUBY_DATA_FUNC)(void*);
 
 /* "Stash" the real versions. */
-#define RBX_Qfalse      (reinterpret_cast<Object*>(6UL))
-#define RBX_Qtrue       (reinterpret_cast<Object*>(10UL))
-#define RBX_Qnil        (reinterpret_cast<Object*>(14UL))
-#define RBX_Qundef      (reinterpret_cast<Object*>(18UL))
+#define RBX_Qfalse      (reinterpret_cast<Object*>(0x0aUL))
+#define RBX_Qnil        (reinterpret_cast<Object*>(0x1aUL))
+#define RBX_Qtrue       (reinterpret_cast<Object*>(0x12UL))
+#define RBX_Qundef      (reinterpret_cast<Object*>(0x22UL))
 
 #define RBX_FALSE_P(o)  (reinterpret_cast<Object*>((o)) == RBX_Qfalse)
 #define RBX_TRUE_P(o)   (reinterpret_cast<Object*>((o)) == RBX_Qtrue)
 #define RBX_NIL_P(o)    (reinterpret_cast<Object*>((o)) == RBX_Qnil)
 #define RBX_UNDEF_P(o)  (reinterpret_cast<Object*>((o)) == RBX_Qundef)
 
-#define RBX_RTEST(o)    ((reinterpret_cast<uintptr_t>(o) & 0x7) != 0x6)
+#define RBX_RTEST(o)    ((reinterpret_cast<uintptr_t>(o) & 0xf) != 0xa)
 
 
 /* Reset relative to our VALUEs */

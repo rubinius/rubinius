@@ -203,12 +203,6 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Qfalse->hash(state), Qfalse->hash(state));
     TS_ASSERT(Qfalse->hash(state) > 0);
 
-    TS_ASSERT_EQUALS(Fixnum::from(1)->hash(state), Fixnum::from(1)->hash(state));
-    TS_ASSERT(Fixnum::from(1)->hash(state) > 0);
-
-    TS_ASSERT_EQUALS(Fixnum::from(-1)->hash(state), Fixnum::from(-1)->hash(state));
-    TS_ASSERT(Fixnum::from(-1)->hash(state) > 0);
-
     TS_ASSERT_DIFFERS(Fixnum::from(1)->hash(state), Fixnum::from(2)->hash(state));
     TS_ASSERT_DIFFERS(Fixnum::from(-1)->hash(state), Fixnum::from(1)->hash(state));
     TS_ASSERT_DIFFERS(Fixnum::from(-2)->hash(state), Fixnum::from(-1)->hash(state));

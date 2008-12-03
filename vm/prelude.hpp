@@ -28,6 +28,9 @@ namespace rubinius {
   /** Platform-dependent integer type large enough for pointers too. */
   typedef intptr_t native_int;
 
+  typedef native_int hashval;
+
+
   #define FALSE false
   #define TRUE true
   #define STATE rubinius::VM* state

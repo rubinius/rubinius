@@ -29,7 +29,7 @@
 
 
 #define BDIGIT_DBL long long
-#define DIGIT_RADIX (1L << DIGIT_BIT)
+#define DIGIT_RADIX (1UL << DIGIT_BIT)
 
 namespace rubinius {
 

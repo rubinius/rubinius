@@ -20,7 +20,7 @@ namespace rubinius {
   }
 
   native_int Symbol::index() const {
-    return DATA_STRIP_TAG(this);
+    return STRIP_SYMBOL_TAG(this);
   }
 
   Integer* Symbol::index(STATE) {
@@ -28,7 +28,7 @@ namespace rubinius {
   }
 
   Symbol* Symbol::from_index(STATE, size_t index) {
-    return (Symbol*)DATA_APPLY_TAG(index, DATA_TAG_SYMBOL);
+    return (Symbol*)APPLY_SYMBOL_TAG(index);
   }
 
   String* Symbol::to_str(STATE) {
@@ -45,7 +45,7 @@ namespace rubinius {
 
   void Symbol::Info::show(STATE, Object* self, int level) {
     Symbol* sym = try_as<Symbol>(self);
-    std::cout << ":" << sym->to_str(state)->c_str() << std::endl;
+    std::cout << ":" << sym->c_str(state) << std::endl;
   }
 
   void Symbol::Info::show_simple(STATE, Object* self, int level) {

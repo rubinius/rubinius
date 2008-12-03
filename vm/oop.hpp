@@ -9,69 +9,79 @@
 
 namespace rubinius {
 
-  /* OOP layout:
-   * [30 (or 62) bits of data | 2 bits of tag]
-   * if tag == 00, the whole thing is a pointer to a memory location.
-   * if tag == 01, the data is a fixnum
-   * if tag == 10, the data is a literal
-   * if tag == 11, the data is any data, using the DATA_* macros
-   */
+/* We use a variable length OOP tag system:
+ * The tag represents 1 to 3 bits which uniquely
+ * identify a data type.
+ *
+ *   1 == rest is a fixnum
+ *  00 == rest is an object reference
+ * 010 == rest is a boolean literal
+ * 110 == rest is a symbol
+*/
 
-#define TAG_MASK    0x3
-#define TAG_SHIFT   2
+#define TAG_REF          0x0
+#define TAG_REF_MASK     3
 
-#define TAG_REF     0x0
-#define TAG_FIXNUM  0x1
-#define TAG_LITERAL 0x2
-#define TAG_DATA    0x3
+#define TAG_FIXNUM       0x1
+#define TAG_FIXNUM_SHIFT 1
+#define TAG_FIXNUM_MASK  1
 
-#define TAG(v) (((intptr_t)v) & TAG_MASK)
-#define APPLY_TAG(v, tag) ((Object*)(((intptr_t)v << TAG_SHIFT) | tag))
-#define STRIP_TAG(v) (((intptr_t)v) >> TAG_SHIFT)
+#define TAG_BOOL         0x2
 
-#define DATA_P(v) (TAG(v) == TAG_DATA)
-#define FIXNUM_P(v) (TAG(v) == TAG_FIXNUM)
+#define TAG_SYMBOL       0x6
+#define TAG_SYMBOL_SHIFT 3
+#define TAG_SYMBOL_MASK  7
 
-#define DATA_MASK   0x7
-#define DATA_SHIFT  3
+#define APPLY_FIXNUM_TAG(v) ((Object*)(((intptr_t)(v) << TAG_FIXNUM_SHIFT) | TAG_FIXNUM))
+#define STRIP_FIXNUM_TAG(v) (((intptr_t)v) >> TAG_FIXNUM_SHIFT)
 
-#define DATA_TAG_SYMBOL 0x3
-#define DATA_TAG_CUSTOM 0x7
+#define APPLY_SYMBOL_TAG(v) ((Object*)(((intptr_t)(v) << TAG_SYMBOL_SHIFT) | TAG_SYMBOL))
+#define STRIP_SYMBOL_TAG(v) (((intptr_t)v) >> TAG_SYMBOL_SHIFT)
 
-#define DATA_TAG(v) ((intptr_t)(v) & DATA_MASK)
-#define DATA_APPLY_TAG(v, tag) (Object*)((v << DATA_SHIFT) | tag)
-#define DATA_STRIP_TAG(v) (((intptr_t)v) >> DATA_SHIFT)
-
-#define SYMBOL_P(v) (DATA_TAG(v) == DATA_TAG_SYMBOL)
-#define CUSTOM_P(v) (DATA_TAG(v) == DATA_TAG_CUSTOM)
+#define REFERENCE_P(v) (((intptr_t)(v) & TAG_REF_MASK) == TAG_REF)
+#define FIXNUM_P(v)    (((intptr_t)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
+#define SYMBOL_P(v)    (((intptr_t)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
 
   /* How many bits of data are available in fixnum, not including
      the sign. */
-#define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_SHIFT - 2)
-#define FIXNUM_MAX (((native_int)1 << FIXNUM_WIDTH) - 1)
-#define FIXNUM_MIN (-(FIXNUM_MAX) - 1)
+#define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
+#define FIXNUM_MAX   (((native_int)1 << FIXNUM_WIDTH) - 1)
+#define FIXNUM_MIN   (-(FIXNUM_MAX) - 1)
 
   /* Standard Rubinius Representation
 
      Bit layout of special literals:
 
-6:false     110   % 6 = 6
-14:nil     1110   % 6 = 6
-10:true    1010   % 6 = 2
-18:undef  10010   % 6 = 2
+0x0a:false    1010   % 0xa = 0xa
+0x1a:nil     11010   % 0xa = 0xa
+0x12:true    10010   % 0xa = 0x2
+0x22:undef  100010   % 0xa = 0x2
 
 
 false and nil share the same base bit pattern, allowing RTEST
 to be a simple test for that bit pattern.
 */
 
-#define FALSE_P(v) ((Object*)(v) == (Object*)Qfalse)
-#define TRUE_P(v) ((Object*)(v) == (Object*)Qtrue)
-#define NIL_P(v) ((Object*)(v) == (Object*)Qnil)
-#define UNDEF_P(v) ((Object*)(v) == (Object*)Qundef)
-#define RTEST(v) (((uintptr_t)(v) & 0x7) != 0x6)
+/* NOTE if these change, be sure to update subtend/ruby.h, it contains
+ * a private copy of these constants */
 
-#define REFERENCE_P(v) (TAG(v) == TAG_REF)
+/* NOTE ALSO! the special clases array uses this bit pattern, so
+ * if you change this, be sure to update the special class array! */
+#define Qfalse ((Object*)0x0aL)
+#define Qnil   ((Object*)0x1aL)
+#define Qtrue  ((Object*)0x12L)
+#define Qundef ((Object*)0x22L)
+
+// Indicates the mask to use to check if a value is ruby false.
+// This mask matches both false and nil ONLY.
+#define FALSE_MASK 0xf
+
+#define FALSE_P(v) (((Object*)(v)) == Qfalse)
+#define TRUE_P(v)  (((Object*)(v)) == Qtrue)
+#define NIL_P(v)   (((Object*)(v)) == Qnil)
+#define UNDEF_P(v) ((Object*)(v) == Qundef)
+#define RTEST(v)   (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)Qfalse)
+
 
 #define INDEXED(obj) (REFERENCE_P(obj) && !obj->StoresBytes)
 #define STORE_BYTES(obj) (REFERENCE_P(obj) && obj->StoresBytes)
@@ -86,10 +96,6 @@ to be a simple test for that bit pattern.
 #define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->num_fields())
 #define SIZE_OF_BODY(obj)               (obj->num_fields() * SIZE_OF_OBJECT)
 
-#define Qfalse ((Object*)6L)
-#define Qnil   ((Object*)14L)
-#define Qtrue  ((Object*)10L)
-#define Qundef ((Object*)18L)
 
   /* rubinius_object gc zone, takes up two bits */
   typedef enum
@@ -99,8 +105,6 @@ to be a simple test for that bit pattern.
     YoungObjectZone  = 2,
     LargeObjectZone  = 3,
   } gc_zone;
-
-  typedef size_t hashval;
 
   /* the sizeof(class ObjectHeader) must an increment of the platform 
      pointer size, so that the bytes located directly after a

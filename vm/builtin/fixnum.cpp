@@ -14,27 +14,27 @@
 namespace rubinius {
 
   int Fixnum::to_int() const {
-    return (int)STRIP_TAG(this);
+    return (int)STRIP_FIXNUM_TAG(this);
   }
 
   unsigned int Fixnum::to_uint() const {
-    return (unsigned int)STRIP_TAG(this);
+    return (unsigned int)STRIP_FIXNUM_TAG(this);
   }
 
   long Fixnum::to_long() const {
-    return (long)STRIP_TAG(this);
+    return (long)STRIP_FIXNUM_TAG(this);
   }
 
   unsigned long Fixnum::to_ulong() const {
-    return (unsigned long)STRIP_TAG(this);
+    return (unsigned long)STRIP_FIXNUM_TAG(this);
   }
 
   long long Fixnum::to_long_long() const {
-    return (long long)STRIP_TAG(this);
+    return (long long)STRIP_FIXNUM_TAG(this);
   }
 
   unsigned long long Fixnum::to_ulong_long() const {
-    return (unsigned long long)STRIP_TAG(this);
+    return (unsigned long long)STRIP_FIXNUM_TAG(this);
   }
 
   Integer* Fixnum::add(STATE, Bignum* other) {
