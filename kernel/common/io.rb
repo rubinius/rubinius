@@ -647,9 +647,12 @@ class IO
   def each(sep=$/)
     ensure_open_and_readable
 
+    sep = sep.to_str if sep
     while line = read_to_separator(sep)
       yield line
     end
+
+    self
   end
 
   alias_method :each_line, :each
@@ -1101,7 +1104,7 @@ class IO
     end
     @ibuffer.discard skip if skip
 
-    line
+    line unless line.empty?
   end
 
   private :read_to_separator
