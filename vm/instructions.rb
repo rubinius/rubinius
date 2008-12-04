@@ -3349,7 +3349,7 @@ class Instructions
     task->active()->self(state, task->self());
 
     task->literals()->put(state, 0, ss);
-    task->push(Qnil); // sentinal value, to make sure it's not used
+    task->push(Qnil); // sentinal value, to make sure its not used
     task->push(Fixnum::from(3));
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active(), task->active(), 0);
