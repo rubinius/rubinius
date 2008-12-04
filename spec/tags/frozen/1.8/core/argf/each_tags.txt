@@ -1,1 +1,0 @@
-fails:ARGF.each reads each line of files

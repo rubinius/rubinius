@@ -104,7 +104,7 @@ class ARGFClass
   def lineno=(value)
     stream = current_stream
     stream.lineno = value if stream
-    @lineno = value
+    $. = @lineno = value
     @last_stream_lineno = 0
   end
 
