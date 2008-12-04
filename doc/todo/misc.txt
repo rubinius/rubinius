@@ -6,3 +6,6 @@ some of those.
 * Screencasts for various activities like cloning and building Rubinius,
   running specs, making a patch, etc.
 * Add RDoc from MRI to all of kernel/**/*.rb.
+* Improve docs for GC and object memory.
+* Improve docs for FFI.
+* Improve docs for VM.
