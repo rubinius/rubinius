@@ -59,7 +59,12 @@ class Method
   #   def foo(a, b, *c, &d); end   # arity => ((-2) -1) => -3
 
   def arity()
-    @compiled_method.required_args
+    if @compiled_method.required_args == @compiled_method.total_args and
+       @compiled_method.splat.nil?
+      @compiled_method.required_args
+    else
+      -(@compiled_method.required_args + 1)
+    end
   end
 
   ##
