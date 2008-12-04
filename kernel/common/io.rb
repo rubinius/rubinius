@@ -1247,7 +1247,6 @@ class IO
     seek 0
     #ARGF.lineno -= @lineno
     @lineno = 0
-    @eof = false
     return 0
   end
 
@@ -1272,9 +1271,9 @@ class IO
     # Unseek the still buffered amount
     unless @ibuffer.empty?
       prim_seek(@ibuffer.start - @ibuffer.used, SEEK_CUR)
-      @ibuffer.reset!
-      @eof = false
     end
+    @ibuffer.reset!
+    @eof = false
 
     prim_seek amount, whence
   end
