@@ -34,6 +34,22 @@ namespace rubinius {
   typedef std::tr1::unordered_map<hashval, SymbolIds> SymbolMap;
 
   class SymbolTable {
+  public: // Types
+
+    // We encode in the symbol some information about it, mostly
+    // what kind of prefix it has. This lets us ask questions
+    // easily about it without having to get the string representation
+    // and perform comparisons against the char data.
+    enum Kind {
+      Normal,
+      Constant,
+      IVar,
+      CVar,
+      System
+    };
+
+    typedef std::vector<Kind> SymbolKinds;
+
   public:
     Symbol* lookup(STATE, std::string str);
     Symbol* lookup(STATE, const char* str);
@@ -43,11 +59,15 @@ namespace rubinius {
     size_t size();
     Array* all_as_array(STATE);
 
+    Kind kind(STATE, const Symbol* sym);
+
   private:
     SymbolMap symbols;
     SymbolStrings strings;
+    SymbolKinds kinds;
 
     size_t add(std::string str);
+    Kind   detect_kind(const char* str, int size);
   };
 };
 

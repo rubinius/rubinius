@@ -570,7 +570,12 @@ module Kernel
     vars = get_instance_variables
     return [] unless vars
 
-    return vars.keys.collect { |v| v.to_s }
+    output = []
+    vars.keys.each do |key|
+      output << key.to_s if key.is_ivar?
+    end
+
+    return output
   end
 
   def instance_variable_defined?(name)

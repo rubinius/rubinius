@@ -7,8 +7,45 @@
 #include "builtin/symbol.hpp"
 
 namespace rubinius {
+
+  SymbolTable::Kind SymbolTable::detect_kind(const char* str, int size) {
+    const char one = str[0];
+
+    // A constant begins with an uppercase letter.
+    if(one >= 'A' && one <= 'Z') {
+      return SymbolTable::Constant;
+    }
+
+    if(one == '@' && size > 1) {
+      // A class variable begins with @@
+      if(str[1] == '@') {
+        if(size > 2) {
+          return SymbolTable::CVar;
+        } else {
+          return SymbolTable::Normal;
+        }
+      }
+
+      // An instance variable begins with @
+      return SymbolTable::IVar;
+    }
+
+    // A system variable begins with __
+    if(size > 2 && one == '_' && str[1] == '_') {
+      return SymbolTable::System;
+    }
+
+    // Everything else is normal
+    return SymbolTable::Normal;
+  }
+
+  SymbolTable::Kind SymbolTable::kind(STATE, const Symbol* sym) {
+    return kinds[sym->index()];
+  }
+
   size_t SymbolTable::add(std::string str) {
     strings.push_back(str);
+    kinds.push_back(detect_kind(str.c_str(), str.size()));
     return strings.size() - 1;
   }
 

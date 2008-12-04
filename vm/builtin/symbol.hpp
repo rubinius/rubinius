@@ -35,6 +35,9 @@ namespace rubinius {
     // Ruby.primitive :symbol_all_symbols
     static Array* all_symbols(STATE);
 
+    // Ruby.primitive :symbol_is_ivar
+    Object* is_ivar_p(STATE);
+
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
