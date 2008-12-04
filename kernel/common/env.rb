@@ -22,7 +22,9 @@ class EnvironmentVariables
   alias_method :store, :[]=
 
   def delete(key)
-    env_set(StringValue(key), nil)
+    existing_value = self[key]
+    self[key] = nil if existing_value
+    existing_value
   end
 
   def fetch(*params)

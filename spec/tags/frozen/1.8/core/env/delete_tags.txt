@@ -1,1 +1,0 @@
-fails:ENV.delete removes the variable and return its value

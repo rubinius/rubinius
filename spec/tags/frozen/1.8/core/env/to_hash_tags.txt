@@ -1,1 +1,0 @@
-fails:ENV.to_hash returns the ENV as a hash
