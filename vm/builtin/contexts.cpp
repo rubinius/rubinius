@@ -294,6 +294,13 @@ namespace rubinius {
 
     // FIXME this is to help detect an ellusive bug
     if(!ctx->sender()->nil_p() && ctx->sender()->zone == UnspecifiedZone) {
+      MethodContext* s = ctx->sender();
+      std::cout << "Corrupt context detected!\n";
+      std::cout << "origin = " << obj << "\n";
+      std::cout << "object = " << s << "\n";
+      std::cout << "full_size = " << s->full_size << "\n";
+      std::cout << "klass = " << s->klass_ << "\n";
+
       ObjectPosition pos = mark.gc->object_memory->validate_object(ctx->sender());
       if(pos == cContextStack) {
         Assertion::raise("A sender on the context stack has an UnspecifiedZone");
