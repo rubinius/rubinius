@@ -104,11 +104,19 @@ namespace rubinius {
       // and call, the wrong one will be called.
       if(LookupTable* lt = try_as<LookupTable>(ivars_)) {
         other->ivars_ = lt->dup(state);
+
+        // We store the object_id in the ivar table, so nuke it.
+        lt->remove(state, G(sym_object_id));
       } else {
         // Use as<> so that we throw a TypeError if there is something else
         // here.
         CompactLookupTable* clt = as<CompactLookupTable>(ivars_);
         other->ivars_ = clt->dup(state);
+
+        // We store the object_id in the ivar table, so nuke it.
+        if(clt->has_key(state, G(sym_object_id))) {
+          clt->store(state, G(sym_object_id), Qnil);
+        }
       };
     }
 
@@ -222,17 +230,14 @@ namespace rubinius {
 
   Integer* Object::id(STATE) {
     if(reference_p()) {
-      Object* id;
-
-      Class* meta = metaclass(state);
-      id =   meta->get_ivar(state, G(sym_object_id));
+      Object* id = get_ivar(state, G(sym_object_id));
 
       /* Lazy allocate object's ids, since most don't need them. */
       if(id->nil_p()) {
         /* All references have an even object_id. last_object_id starts out at 0
          * but we don't want to use 0 as an object_id, so we just add before using */
         id = Fixnum::from(state->om->last_object_id += 2);
-        meta->set_ivar(state, G(sym_object_id), id);
+        set_ivar(state, G(sym_object_id), id);
       }
 
       return as<Integer>(id);
