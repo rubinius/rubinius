@@ -1,110 +1,106 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ARGF.read" do
-  
   before :each do
-    ARGV.clear
-    @file1 = ARGFSpecs.fixture_file('file1.txt')
-    @file2 = ARGFSpecs.fixture_file('file2.txt')
-    @stdin = ARGFSpecs.fixture_file('stdin.txt')
-    @contents_file1 = File.read(@file1)
-    @contents_file2 = File.read(@file2)
-    @contents_stdin = File.read(@stdin)
+    @file1_name = fixture __FILE__, "file1.txt"
+    @file2_name = fixture __FILE__, "file2.txt"
+    @stdin_name = fixture __FILE__, "stdin.txt"
+
+    @file1 = File.read @file1_name
+    @file2 = File.read @file2_name
+    @stdin = File.read @stdin_name
   end
 
   after :each do
     ARGF.close
-    ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
-  
+
   it "reads the contents of a file" do
-    ARGFSpecs.file_args('file1.txt')
-    ARGF.read().should == @contents_file1
+    argv [@file1_name] do
+      ARGF.read().should == @file1
+    end
   end
 
   it "treats first nil argument as no length limit" do
-    ARGFSpecs.file_args('file1.txt')
-    ARGF.read(nil).should == @contents_file1
+    argv [@file1_name] do
+      ARGF.read(nil).should == @file1
+    end
   end
-  
+
   it "treats second nil argument as no output buffer" do
-    ARGFSpecs.file_args('file1.txt')
-    ARGF.read(nil, nil).should == @contents_file1
+    argv [@file1_name] do
+      ARGF.read(nil, nil).should == @file1
+    end
   end
-  
+
   it "treats second argument as an output buffer" do
-    ARGFSpecs.file_args('file1.txt')
-    buffer = ""
-    ARGF.read(nil, buffer)
-    buffer.should == @contents_file1
+    argv [@file1_name] do
+      buffer = ""
+      ARGF.read(nil, buffer)
+      buffer.should == @file1
+    end
   end
-  
+
   it "reads a number of bytes from the first file" do
-    ARGFSpecs.file_args('file1.txt')
-    ARGF.read(5).should == @contents_file1[0,5]
+    argv [@file1_name] do
+      ARGF.read(5).should == @file1[0,5]
+    end
   end
-  
+
   it "reads from a single file consecutively" do
-    ARGFSpecs.file_args('file1.txt')
-    ARGF.read(1).should == @contents_file1[0,1]
-    ARGF.read(2).should == @contents_file1[1,2]
-    ARGF.read(3).should == @contents_file1[3,3]
+    argv [@file1_name] do
+      ARGF.read(1).should == @file1[0,1]
+      ARGF.read(2).should == @file1[1,2]
+      ARGF.read(3).should == @file1[3,3]
+    end
   end
-  
+
   it "reads the contents of two files" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt')
-    ARGF.read.should ==  @contents_file1 + @contents_file2
+    argv [@file1_name, @file2_name] do
+      ARGF.read.should ==  @file1 + @file2
+    end
   end
-  
+
   it "reads the contents of one file and some characters from the second" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt')
-    len = @contents_file1.size + @contents_file2.size/2
-    ARGF.read(len).should ==  (@contents_file1 + @contents_file2)[0,len]
+    argv [@file1_name, @file2_name] do
+      len = @file1.size + (@file2.size / 2)
+      ARGF.read(len).should ==  (@file1 + @file2)[0,len]
+    end
   end
-  
+
   it "reads across two files consecutively" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt')
-    ARGF.read(@contents_file1.length-2 ).should == @contents_file1[0..-3]
-    ARGF.read(2+5).should == @contents_file1[-2..-1] + @contents_file2[0,5]
+    argv [@file1_name, @file2_name] do
+      ARGF.read(@file1.size - 2).should == @file1[0..-3]
+      ARGF.read(2+5).should == @file1[-2..-1] + @file2[0,5]
+    end
   end
-  
+
   it "reads the contents of stdin" do
-    ARGFSpecs.ruby(:options => [], :code => <<-SRC, :args => ['-', "< #{@stdin}"]) do |f|
-        print ARGF.read
-      SRC
-      f.read.should == @contents_stdin
-    end
+    stdin = ruby_exe("print ARGF.read", :args => "< #{@stdin_name}")
+    stdin.should == @stdin
   end
-  
-  # NOTE: the test below doesn't work because of a faulty implementation
-  # of IO#reopen which doesn't know how to reopen the STDIN IO
+
   it "reads a number of bytes from stdin" do
-    ARGFSpecs.ruby(:options => [], :code => <<-SRC, :args => ['-', "< #{@stdin}"]) do |f|
-        print ARGF.read(10)
-      SRC
-      f.read.should == @contents_stdin[0,10]
-    end
+    stdin = ruby_exe("print ARGF.read(10)", :args => "< #{@stdin_name}")
+    stdin.should == @stdin[0,10]
   end
-   
+
   it "reads the contents of one file and stdin" do
-    ARGFSpecs.ruby(:options => [], :code => <<-SRC, :args => [@file1, '-', "< #{@stdin}"]) do |f|
-        print ARGF.read
-      SRC
-      f.read.should == @contents_file1 + @contents_stdin
-    end
+    stdin = ruby_exe("print ARGF.read", :args => "#{@file1_name} - < #{@stdin_name}")
+    stdin.should == @file1 + @stdin
   end
-  
+
   it "reads the contents of the same file twice" do
-    ARGFSpecs.file_args('file1.txt', 'file1.txt')
-    ARGF.read.should ==  @contents_file1 + @contents_file1
-  end
-  
-  not_supported_on :windows do  
-    it "reads the contents of a special device file" do
-      ARGFSpecs.file_args('/dev/zero')
-      ARGF.read(100).should ==  "\000" * 100
+    argv [@file1_name, @file1_name] do
+      ARGF.read.should == @file1 + @file1
     end
   end
-  
+
+  not_supported_on :windows do
+    it "reads the contents of a special device file" do
+      argv ['/dev/zero'] do
+        ARGF.read(100).should == "\000" * 100
+      end
+    end
+  end
 end

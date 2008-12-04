@@ -21,6 +21,10 @@ describe "Kernel#system" do
     result.should == false
   end
 
+  it "does not write to stderr when it can't find a command" do
+    system("sad").should output_to_fd("") # nothing in stderr
+  end  
+
   it "uses /bin/sh if freaky shit is in the command" do
     begin
       result = false

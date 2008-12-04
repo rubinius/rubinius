@@ -21,7 +21,7 @@ describe "CSV.parse_row" do
     parsed_row = []
     parsed_count, next_row_index = CSV::parse_row parse_me, next_row_index, parsed_row
     parsed_count.should == 0
-    next_row_index.dhoul == 0
+    next_row_index.should == 0
     parsed_row.should == []
   end  
   

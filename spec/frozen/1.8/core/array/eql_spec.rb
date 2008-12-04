@@ -37,19 +37,21 @@ describe "Array#eql?" do
     c = [obj, obj, obj, obj]
     c.should eql(a)
   end
-  
-  it "properly handles recursive arrays" do
-    empty = ArraySpecs.empty_recursive_array
-    empty2 = []; empty2 << empty2
-    empty.should eql(empty.dup)
-    empty.should_not eql(empty2)
 
-    array = ArraySpecs.recursive_array
-    array.should eql(array)
-    array.should eql(array.dup)
+  ruby_bug "#", "1.8.6.277" do
+    it "properly handles recursive arrays" do
+      empty = ArraySpecs.empty_recursive_array
+      empty2 = []; empty2 << empty2
+      empty.should eql(empty.dup)
+      empty.should_not eql(empty2)
 
-    array.should_not eql(empty)
-    array.should_not eql([1, 2])
+      array = ArraySpecs.recursive_array
+      array.should eql(array)
+      array.should eql(array.dup)
+
+      array.should_not eql(empty)
+      array.should_not eql([1, 2])
+    end
   end
 
   it "ignores array class differences" do

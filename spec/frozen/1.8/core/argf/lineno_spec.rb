@@ -1,43 +1,47 @@
-require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "ARGF.lineno" do
-  
   before :each do
-    ARGV.clear
-    @file1 = ARGFSpecs.fixture_file('file1.txt')
-    @file2 = ARGFSpecs.fixture_file('file2.txt')
-    @stdin = ARGFSpecs.fixture_file('stdin.txt')
-    @contents_file1 = File.read(@file1)
-    @contents_file2 = File.read(@file2)
-    @contents_stdin = File.read(@stdin)
+    @file1 = fixture __FILE__, "file1.txt"
+    @file2 = fixture __FILE__, "file2.txt"
   end
 
   after :each do
     ARGF.close
-    ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
-  
+
   # NOTE: this test assumes that fixtures files have two lines each
-  # SO DO NOT modify the fixture files!!!
+  # TODO: break this into four specs
   it "returns the current line number on each file" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt', 'file1.txt', 'file2.txt')
-    res = []
-    
-    ARGF.gets; res << ARGF.lineno # 1
-    ARGF.gets; res << ARGF.lineno # 2
-    ARGF.gets; res << ARGF.lineno # 3
-    ARGF.gets; res << ARGF.lineno # 4
-    ARGF.rewind; res << ARGF.lineno # 4
-    ARGF.gets; res << ARGF.lineno # 3
-    ARGF.lineno = 1000; res << $.
-    ARGF.gets; res << $. # 1001
-    ARGF.gets; res << $. # 1002
-    $. = 2000
-    ARGF.gets; res << $. # 2001
-    ARGF.gets; res << $. # 2002
-    ARGF.read; res << $. # 2002 (beyond end of stream)
+    argv [@file1, @file2, @file1, @file2] do
+      ARGF.gets
+      ARGF.lineno.should == 1
+      ARGF.gets
+      ARGF.lineno.should == 2
+      ARGF.gets
+      ARGF.lineno.should == 3
+      ARGF.gets
+      ARGF.lineno.should == 4
 
-    res.should == [1, 2, 3, 4, 4, 3, 1000, 1001, 1002, 2001, 2002, 2002]
+      ARGF.rewind
+      ARGF.lineno.should == 4
+      ARGF.gets
+      ARGF.lineno.should == 3
+
+      ARGF.lineno = 1000
+      $..should == 1000
+      ARGF.gets
+      $..should == 1001
+      ARGF.gets
+      $..should == 1002
+
+      $. = 2000
+      ARGF.gets
+      $..should == 2001
+      ARGF.gets
+      $..should == 2002
+      ARGF.read
+      $..should == 2002
+    end
   end
-
 end

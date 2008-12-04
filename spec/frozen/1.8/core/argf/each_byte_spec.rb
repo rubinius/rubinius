@@ -1,28 +1,24 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ARGF.each_byte" do
-  
   before :each do
-    ARGV.clear
-    @file1 = ARGFSpecs.fixture_file('file1.txt')
-    @file2 = ARGFSpecs.fixture_file('file2.txt')
-    @stdin = ARGFSpecs.fixture_file('stdin.txt')
-    @contents_file1 = File.read(@file1)
-    @contents_file2 = File.read(@file2)
-    @contents_stdin = File.read(@stdin)
+    @file1_name = fixture __FILE__, "file1.txt"
+    @file2_name = fixture __FILE__, "file2.txt"
+
+    @bytes = []
+    File.read(@file1_name).each_byte { |b| @bytes << b }
+    File.read(@file2_name).each_byte { |b| @bytes << b }
   end
 
   after :each do
     ARGF.close
-    ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
-  
+
   it "reads each byte of files" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt')
-    byte_list = []
-    ARGF.each_byte { |b| byte_list << b }
-    byte_list.should == (@contents_file1 + @contents_file2).split('').collect { |c| c[0]} # ord
+    argv [@file1_name, @file2_name] do
+      bytes = []
+      ARGF.each_byte { |b| bytes << b }
+      bytes.should == @bytes
+    end
   end
-  
 end

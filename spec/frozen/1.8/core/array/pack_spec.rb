@@ -330,6 +330,25 @@ describe "Array#pack" do
     [2**32-1].pack('i').should == "\377\377\377\377"
   end
 
+  # this also goes for all the numeric type chars 
+  it "coerces numerical values correctly with ('i')" do
+    _MyClassWithToInt = Class.new do
+      def to_int
+        0
+      end
+    end
+
+    _MyClassWithToI = Class.new do
+      def to_i
+        0
+      end
+    end
+
+    [_MyClassWithToInt.new].pack('i').should == "\000\000\000\000"
+    lambda { [nil].pack('i') }.should raise_error(TypeError)
+    lambda { [_MyClassWithToI.new].pack('v') }.should raise_error(TypeError)
+  end
+
   little_endian do
     it "encodes a positive integer in little-endian order with ('i')" do
       [1].pack('i').should == "\001\000\000\000"
@@ -341,6 +360,11 @@ describe "Array#pack" do
     
     it "encodes remaining integers in little-endian order with ('i*')" do
       [1,1234,2].pack('i*').should == "\001\000\000\000\322\004\000\000\002\000\000\000"
+    end
+
+    it "correctly handles additional prefix and suffix codes with an asterix ('i*')" do
+      [1,1234,2].pack('ii*').should == "\001\000\000\000\322\004\000\000\002\000\000\000"
+      lambda { [1,1234,2].pack('i*i') }.should raise_error(ArgumentError)
     end
   end
   
@@ -355,6 +379,11 @@ describe "Array#pack" do
     
     it "encodes remaining integers in big-endian order with ('i*')" do
       [1,1234,2].pack('i*').should == "\000\000\000\001\000\000\004\322\000\000\000\002"
+    end
+
+    it "correctly handles additional prefix and suffix codes with an asterix ('i*')" do
+      [1,1234,2].pack('ii*').should == "\000\000\000\001\000\000\004\322\000\000\000\002"
+      lambda { [1,1234,2].pack('i*i') }.should raise_error(ArgumentError)
     end
   end
 
@@ -625,6 +654,10 @@ describe "Array#pack" do
 
     [65536].pack('v').should == "\000\000"
     [-65536].pack('v').should == "\000\000"
+  end
+
+  it "encodes remaining shorts in little-endian order with ('v*')" do
+    [1,1].pack('v*').should == "\001\000\001\000"
   end
 
   it "encodes a positive integer with ('s')" do

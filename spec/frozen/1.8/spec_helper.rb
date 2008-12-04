@@ -40,8 +40,8 @@ unless ENV['MSPEC_RUNNER']
 end
 
 v = MSpec::VERSION.split('.').collect { |d| "1%02d" % d.to_i }.join.to_i
-unless v >= 101105101
-  puts "Please install MSpec version >= 1.5.1 to run the specs"
+unless v >= 101105102
+  puts "Please install MSpec version >= 1.5.2 to run the specs"
   exit 1
 end
 

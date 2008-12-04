@@ -64,19 +64,21 @@ describe "Array#<=>" do
     (lhs <=> rhs).should == +1
   end
 
-  it "properly handles recursive arrays" do
-    empty = ArraySpecs.empty_recursive_array
-    (empty <=> empty).should == 0
-    (empty <=> []).should == 1
-    ([] <=> empty).should == -1
+  ruby_bug "#", "1.8.6.277" do
+    it "properly handles recursive arrays" do
+      empty = ArraySpecs.empty_recursive_array
+      (empty <=> empty).should == 0
+      (empty <=> []).should == 1
+      ([] <=> empty).should == -1
 
-    (ArraySpecs.recursive_array <=> []).should == 1
-    ([] <=> ArraySpecs.recursive_array).should == -1
+      (ArraySpecs.recursive_array <=> []).should == 1
+      ([] <=> ArraySpecs.recursive_array).should == -1
 
-    (ArraySpecs.recursive_array <=> ArraySpecs.empty_recursive_array).should == nil
+      (ArraySpecs.recursive_array <=> ArraySpecs.empty_recursive_array).should == nil
 
-    array = ArraySpecs.recursive_array
-    (array <=> array).should == 0
+      array = ArraySpecs.recursive_array
+      (array <=> array).should == 0
+    end
   end
 
   it "tries to convert the passed argument to an Array using #to_ary" do

@@ -1,34 +1,30 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ARGF.close" do
-  
   before :each do
-    ARGV.clear
-    @file1 = ARGFSpecs.fixture_file('file1.txt')
-    @file2 = ARGFSpecs.fixture_file('file2.txt')
-    @stdin = ARGFSpecs.fixture_file('stdin.txt')
-    @contents_file1 = File.read(@file1)
-    @contents_file2 = File.read(@file2)
-    @contents_stdin = File.read(@stdin)
+    @file1_name = fixture __FILE__, "file1.txt"
+    @file2_name = fixture __FILE__, "file2.txt"
+
+    @file1 = File.readlines @file1_name
+    @file2 = File.read @file2_name
   end
 
   after :each do
     ARGF.close
-    ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
-  
+
   it "closes the current file and read the next one" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt')
-    ARGF.close
-    ARGF.read.should == @contents_file2
+    argv [@file1_name, @file2_name] do
+      ARGF.close
+      ARGF.read.should == @file2
+    end
   end
-  
+
   it "reads one line from the first file, closes it and read the next one" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt')
-    ARGF.gets.should == @contents_file1.split($/).first+$/
-    ARGF.close
-    ARGF.read.should == @contents_file2
+    argv [@file1_name, @file2_name] do
+      ARGF.gets.should == @file1.first
+      ARGF.close
+      ARGF.read.should == @file2
+    end
   end
-  
 end

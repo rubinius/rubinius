@@ -14,6 +14,12 @@ describe "Array#delete" do
     a.should == [1, 2, 4, 5]
   end
 
+  it "calculates equality correctly for reference values" do
+    a = ["foo", "bar", "foo", "quux", "foo"]
+    a.delete "foo"
+    a.should == ["bar","quux"]
+  end
+  
   it "returns object or nil if no elements match object" do
     [1, 2, 4, 5].delete(1).should == 1
     [1, 2, 4, 5].delete(3).should == nil

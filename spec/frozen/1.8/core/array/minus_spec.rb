@@ -12,14 +12,16 @@ describe "Array#-" do
     ([1, 1, 2, 2, 3, 3, 4, 5] - [1, 2, 4]).should == [3, 3, 5]
   end
 
-  it "properly handles recursive arrays" do
-    empty = ArraySpecs.empty_recursive_array
-    (empty - empty).should == []
+  ruby_bug "#", "1.8.6.277" do
+    it "properly handles recursive arrays" do
+      empty = ArraySpecs.empty_recursive_array
+      (empty - empty).should == []
 
-    ([] - ArraySpecs.recursive_array).should == []
+      ([] - ArraySpecs.recursive_array).should == []
 
-    array = ArraySpecs.recursive_array
-    (array - array).should == []
+      array = ArraySpecs.recursive_array
+      (array - array).should == []
+    end
   end
 
   it "tries to convert the passed arguments to Arrays using #to_ary" do

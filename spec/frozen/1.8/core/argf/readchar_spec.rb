@@ -1,35 +1,23 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/getc'
+
+describe "ARGF.getc" do
+  it_behaves_like :argf_getc, :readchar
+end
 
 describe "ARGF.readchar" do
-  
   before :each do
-    ARGV.clear
-    @file1 = ARGFSpecs.fixture_file('file1.txt')
-    @file2 = ARGFSpecs.fixture_file('file2.txt')
-    @stdin = ARGFSpecs.fixture_file('stdin.txt')
-    @contents_file1 = File.read(@file1)
-    @contents_file2 = File.read(@file2)
-    @contents_stdin = File.read(@stdin)
+    @file1 = fixture __FILE__, "file1.txt"
+    @file2 = fixture __FILE__, "file2.txt"
   end
 
   after :each do
     ARGF.close
-    ARGFSpecs.fixture_file_delete(@file1,@file2,@stdin)
   end
-  
-  it "reads each char of files" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt')
-    total_len = @contents_file1.size + @contents_file2.size
-    stg = ""
-    for i in 1..total_len
-        stg << ARGF.readchar
-    end
-    stg.should == @contents_file1 + @contents_file2
-  end
-  
+
   it "raises EOFError when end of stream reached" do
-    ARGFSpecs.file_args('file1.txt', 'file2.txt')
-    lambda { while c = ARGF.readchar;end }.should raise_error(EOFError)
+    argv [@file1, @file2] do
+      lambda { while c = ARGF.readchar; end }.should raise_error(EOFError)
+    end
   end
 end

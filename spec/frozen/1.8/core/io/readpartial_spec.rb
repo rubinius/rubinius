@@ -46,6 +46,26 @@ describe "IO#readpartial" do
     @wr.write("b")
     @rd.readpartial(2).should == "b"
   end
+  
+  it "discards the existing buffer content upon successful read" do
+    buffer = "existing"
+    @wr.write("hello world")
+    @wr.close
+    @rd.readpartial(11, buffer)
+    buffer.should == "hello world"
+  end
+  
+  it "discards the existing buffer content upon error" do
+    buffer = 'hello'
+    @wr.close
+    lambda { @rd.readpartial(1, buffer) }.should raise_error(EOFError)
+    buffer.should be_empty
+  end
+  
+  it "raises IOError if the stream is closed" do
+    @wr.close
+    lambda { @rd.readpartial(1) }.should raise_error(IOError)
+  end
 
   it "raises ArgumentError if the negative argument is provided" do
     lambda { @rd.readpartial(-1) }.should raise_error(ArgumentError, /negative/)

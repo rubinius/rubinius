@@ -5,15 +5,15 @@ describe "String#%" do
   it "formats multiple expressions" do
     ("%b %x %d %s" % [10, 10, 10, 10]).should == "1010 a 10 10"
   end
-  
+
   it "formats expressions mid string" do
     ("hello %s!" % "world").should == "hello world!"
   end
-  
+
   it "formats %% into %" do
     ("%d%% %s" % [10, "of chickens!"]).should == "10% of chickens!"
   end
-  
+
   it "formats single % characters before a newline or NULL as literal %s" do
     ("%" % []).should == "%"
     ("foo%" % []).should == "foo%"
@@ -24,7 +24,7 @@ describe "String#%" do
     ("%\n.3f" % 1.2).should == "%\n.3f"
     ("%\0.3f" % 1.2).should == "%\0.3f"
   end
-  
+
   it "raises an error if single % appears anywhere else" do
     lambda { (" % " % []) }.should raise_error(ArgumentError)
     lambda { ("foo%quux" % []) }.should raise_error(ArgumentError)
@@ -69,12 +69,12 @@ describe "String#%" do
       $stderr = s
     end
   end
-  
+
   it "always allows unused arguments when positional argument style is used" do
     begin
       old_debug = $DEBUG
       $DEBUG = false
-      
+
       ("%2$s" % [1, 2, 3]).should == "2"
       $DEBUG = true
       ("%2$s" % [1, 2, 3]).should == "2"
@@ -82,11 +82,11 @@ describe "String#%" do
       $DEBUG = old_debug
     end
   end
-  
+
   it "replaces trailing absolute argument specifier without type with percent sign" do
     ("hello %1$" % "foo").should == "hello %"
   end
-  
+
   it "raises an ArgumentError when given invalid argument specifiers" do
     lambda { "%1" % [] }.should raise_error(ArgumentError)
     lambda { "%+" % [] }.should raise_error(ArgumentError)
@@ -118,13 +118,13 @@ describe "String#%" do
     lambda { "%.5.*s" % [5, 5] }.should raise_error(ArgumentError)
     lambda { "%.*.5s" % [5, 5] }.should raise_error(ArgumentError)
   end
-  
+
   it "raises an ArgumentError when there are less arguments than format specifiers" do
     ("foo" % []).should == "foo"
     lambda { "%s" % []     }.should raise_error(ArgumentError)
     lambda { "%s %s" % [1] }.should raise_error(ArgumentError)
   end
-  
+
   it "raises an ArgumentError when absolute and relative argument numbers are mixed" do
     lambda { "%s %1$s" % "foo" }.should raise_error(ArgumentError)
     lambda { "%1$s %s" % "foo" }.should raise_error(ArgumentError)
@@ -137,12 +137,12 @@ describe "String#%" do
     lambda { "%*2$.*2$s" % [5, 5, 5] }.should raise_error(ArgumentError)
     lambda { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
   end
-  
+
   it "allows reuse of the one argument multiple via absolute argument numbers" do
     ("%1$s %1$s" % "foo").should == "foo foo"
     ("%1$s %2$s %1$s %2$s" % ["foo", "bar"]).should == "foo bar foo bar"
   end
-  
+
   it "always interprets an array argument as a list of argument parameters" do
     lambda { "%p" % [] }.should raise_error(ArgumentError)
     ("%p" % [1]).should == "1"
@@ -154,19 +154,19 @@ describe "String#%" do
     ("%p" % StringSpecs::MyArray[1]).should == "1"
     ("%p %p" % StringSpecs::MyArray[1, 2]).should == "1 2"
   end
-  
+
   it "allows positional arguments for width star and precision star arguments" do
     ("%*1$.*2$3$d" % [10, 5, 1]).should == "     00001"
   end
-  
+
   it "calls to_int on width star and precision star tokens" do
     w = mock('10')
     def w.to_int() 10 end
     p = mock('5')
     def p.to_int() 5 end
-    
+
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
-    
+
     w = mock('10')
     w.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     w.should_receive(:method_missing).with(:to_int).and_return(10)
@@ -208,7 +208,7 @@ describe "String#%" do
     def universal.to_int() 0 end
     def universal.to_str() "0" end
     def universal.to_f() 0.0 end
-    
+
     [
       "", "foo",
       "%b", "%B", "%c", "%d", "%e", "%E",
@@ -218,7 +218,7 @@ describe "String#%" do
       subcls_format = StringSpecs::MyString.new(format)
       subcls_format.taint
       format.taint
-      
+
       (format % universal).tainted?.should == true
       (subcls_format % universal).tainted?.should == true
     end
@@ -234,7 +234,7 @@ describe "String#%" do
     ("%05b" % 10).should == "01010"
     ("%*b" % [10, 6]).should == "       110"
     ("%*b" % [-10, 6]).should == "110       "
-    
+
     ("%b" % -5).should == "..1011"
     ("%0b" % -5).should == "1011"
     ("%.4b" % 2).should == "0010"
@@ -246,7 +246,7 @@ describe "String#%" do
     ("%b" % -(2 ** 64 + 5)).should ==
     "..101111111111111111111111111111111111111111111111111111111111111011"
   end
-  
+
   it "supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #" do
     ("%B" % 10).should == ("%b" % 10)
     ("% B" % 10).should == ("% b" % 10)
@@ -268,48 +268,50 @@ describe "String#%" do
 
     ("%#B" % 10).should == "0B1010"
   end
-    
+
   it "supports character formats using %c" do
     ("%c" % 10).should == "\n"
     ("%2$c" % [10, 11, 14]).should == "\v"
     ("%-4c" % 10).should == "\n   "
     ("%*c" % [10, 3]).should == "         \003"
     ("%c" % (256 + 42)).should == "*"
-    
+
     lambda { "%c" % Object }.should raise_error(TypeError)
   end
-  
+
   it "uses argument % 256" do
     ("%c" % [256 * 3 + 64]).should == ("%c" % 64)
     ("%c" % -200).should == ("%c" % 56)
   end
 
-  it "calls #to_ary on argument for %c formats" do
-    obj = mock('65')
-    obj.should_receive(:to_ary).and_return([65])
-    ("%c" % obj).should == ("%c" % [65])
+  ruby_version_is "1.8.6.278" do
+    it "calls #to_ary on argument for %c formats" do
+      obj = mock('65')
+      obj.should_receive(:to_ary).and_return([65])
+      ("%c" % obj).should == ("%c" % [65])
 
-    obj = mock('65')
-    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_ary).and_return([65])
-    ("%c" % obj).should == "A"
+      obj = mock('65')
+      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return([65])
+      ("%c" % obj).should == "A"
+    end
+
+    it "calls #to_int on argument for %c formats, if the argument does not respond to #to_ary" do
+      obj = mock('65')
+      def obj.to_int() 65 end
+      ("%c" % obj).should == ("%c" % obj.to_int)
+
+      obj = mock('65')
+      obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(65)
+      ("%c" % obj).should == "A"
+    end
   end
 
-  it "calls #to_int on argument for %c formats, if the argument does not respond to #to_ary" do
-    obj = mock('65')
-    def obj.to_int() 65 end
-    ("%c" % obj).should == ("%c" % obj.to_int)
-
-    obj = mock('65')
-    obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(65)
-    ("%c" % obj).should == "A"
-  end
-  
   %w(d i).each do |f|
     format = "%" + f
-    
+
     it "supports integer formats using #{format}" do
       ("%#{f}" % 10).should == "10"
       ("% #{f}" % 10).should == " 10"
@@ -340,7 +342,7 @@ describe "String#%" do
       ("%e" % (-0e0/0)).should == "nan"
     end
   end
-  
+
   # Inf, -Inf, and NaN are identifiers for results of floating point operations
   # that cannot be expressed with any value in the set of real numbers. Upcasing
   # or downcasing these identifiers for %e or %E, which refers to the case of the
@@ -352,7 +354,7 @@ describe "String#%" do
       ("%e" % (-0e0/0)).should == "NaN"
       ("%e" % (0.0/0)).should == "NaN"
     end
-    
+
     it "supports float formats using %E, but Inf, -Inf, and NaN are not floats" do
       ("%E" % 1e1020).should == "Inf"
       ("%E" % -1e1020).should == "-Inf"
@@ -364,7 +366,7 @@ describe "String#%" do
       ("%E" % (-0e0/0)).should == "NaN"
     end
   end
-  
+
   it "supports float formats using %E" do
     ("%E" % 10).should == "1.000000E+01"
     ("% E" % 10).should == " 1.000000E+01"
@@ -386,7 +388,7 @@ describe "String#%" do
       ("%E" % (0.0/0)).should == "NAN"
       ("%E" % (-0e0/0)).should == "NAN"
     end
-    
+
     platform_is :darwin do
       it "pads with zeros using %E with Inf, -Inf, and NaN" do
         ("%010E" % -1e1020).should == "-000000INF"
@@ -394,7 +396,7 @@ describe "String#%" do
         ("%010E" % (0.0/0)).should == "0000000NAN"
       end
     end
-    
+
     platform_is_not :darwin do
       it "pads with spaces for %E with Inf, -Inf, and NaN" do
         ("%010E" % -1e1020).should == "      -INF"
@@ -403,7 +405,7 @@ describe "String#%" do
       end
     end
   end
-  
+
   it "supports float formats using %f" do
     ("%f" % 10).should == "10.000000"
     ("% f" % 10).should == " 10.000000"
@@ -414,7 +416,7 @@ describe "String#%" do
     ("%05f" % 10).should == "10.000000"
     ("%*f" % [10, 9]).should == "  9.000000"
   end
-  
+
   it "supports float formats using %g" do
     ("%g" % 10).should == "10"
     ("% g" % 10).should == " 10"
@@ -425,7 +427,7 @@ describe "String#%" do
     ("%05g" % 10).should == "00010"
     ("%*g" % [10, 9]).should == "         9"
   end
-  
+
   it "supports float formats using %G" do
     ("%G" % 10).should == "10"
     ("% G" % 10).should == " 10"
@@ -436,7 +438,7 @@ describe "String#%" do
     ("%05G" % 10).should == "00010"
     ("%*G" % [10, 9]).should == "         9"
   end
-  
+
   it "supports octal formats using %o" do
     ("%o" % 10).should == "12"
     ("% o" % 10).should == " 12"
@@ -459,14 +461,14 @@ describe "String#%" do
     ("%+o" % -26).should == "-32"
     ("%o" % -(2 ** 64 + 5)).should == "..75777777777777777777773"
   end
-  
+
   it "supports inspect formats using %p" do
     ("%p" % 10).should == "10"
     ("%1$p" % [10, 5]).should == "10"
     ("%-22p" % 10).should == "10                    "
     ("%*p" % [10, 10]).should == "        10"
   end
-  
+
   it "calls inspect on arguments for %p format" do
     obj = mock('obj')
     def obj.inspect() "obj" end
@@ -476,42 +478,42 @@ describe "String#%" do
     # obj = mock('obj')
     # class << obj; undef :inspect; end
     # def obj.method_missing(*args) "obj" end
-    # ("%p" % obj).should == "obj"    
+    # ("%p" % obj).should == "obj"
   end
-  
+
   it "taints result for %p when argument.inspect is tainted" do
     obj = mock('x')
     def obj.inspect() "x".taint end
-    
+
     ("%p" % obj).tainted?.should == true
-    
+
     obj = mock('x'); obj.taint
     def obj.inspect() "x" end
-    
+
     ("%p" % obj).tainted?.should == false
   end
-  
+
   it "supports string formats using %s" do
     ("%s" % 10).should == "10"
     ("%1$s" % [10, 8]).should == "10"
     ("%-5s" % 10).should == "10   "
     ("%*s" % [10, 9]).should == "         9"
   end
-  
+
   it "calls to_s on arguments for %s format" do
     obj = mock('obj')
     def obj.to_s() "obj" end
-    
+
     ("%s" % obj).should == "obj"
 
     # undef doesn't work
     # obj = mock('obj')
     # class << obj; undef :to_s; end
     # def obj.method_missing(*args) "obj" end
-    # 
+    #
     # ("%s" % obj).should == "obj"
   end
-  
+
   it "taints result for %s when argument is tainted" do
     ("%s" % "x".taint).tainted?.should == true
     ("%s" % mock('x').taint).tainted?.should == true
@@ -524,7 +526,7 @@ describe "String#%" do
     block = lambda { "%.25555555555555555555555555555555555555s" % "hello world" }
     block.should raise_error(ArgumentError)
   end
-  
+
   # Note: %u has been changed to an alias for %d in MRI 1.9 trunk.
   # Let's wait a bit for it to cool down and see if it will
   # be changed for 1.8 as well.
@@ -543,15 +545,15 @@ describe "String#%" do
     ("%.1u" % -5).should == (2**64 - 5).to_s
     ("%.7u" % -5).should == (2**64 - 5).to_s
     ("%.10u" % -5).should == (2**64 - 5).to_s
-  end  
-    
+  end
+
   platform_is_not :wordsize => 64 do
     ("%u" % -5).should == "..#{2**32 - 5}"
     ("%0u" % -5).should == (2**32 - 5).to_s
     ("%.1u" % -5).should == (2**32 - 5).to_s
     ("%.7u" % -5).should == (2**32 - 5).to_s
     ("%.10u" % -5).should == (2**32 - 5).to_s
-  end  
+  end
 
     deviates_on :ruby do
       ("% u" % -26).should == "-26"
@@ -574,7 +576,7 @@ describe "String#%" do
       lambda { ("%u" % -(2 ** 64 + 5)) }.should raise_error(ArgumentError)
     end
   end
-  
+
   it "supports hex formats using %x" do
     ("%x" % 10).should == "a"
     ("% x" % 10).should == " a"
@@ -596,7 +598,7 @@ describe "String#%" do
     ("%x" % 0xFFFFFFFF).should == "ffffffff"
     ("%x" % -(2 ** 64 + 5)).should == "..fefffffffffffffffb"
   end
-  
+
   it "supports hex formats using %X" do
     ("%X" % 10).should == "A"
     ("% X" % 10).should == " A"
@@ -606,7 +608,7 @@ describe "String#%" do
     ("%-9X" % 10).should == "A        "
     ("%05X" % 10).should == "0000A"
     ("%*X" % [10, 6]).should == "         6"
-    
+
     ("%X" % -5).should == "..FB"
     ("%0X" % -5).should == "FB"
     ("%.1X" % -5).should == "FB"
@@ -617,10 +619,10 @@ describe "String#%" do
     ("%X" % 0xFFFFFFFF).should == "FFFFFFFF"
     ("%X" % -(2 ** 64 + 5)).should == "..FEFFFFFFFFFFFFFFFB"
   end
-  
+
   %w(b d i o u x X).each do |f|
     format = "%" + f
-    
+
     it "behaves as if calling Kernel#Integer for #{format} argument, if it does not respond to #to_ary" do
       (format % "10").should == (format % Kernel.Integer("10"))
       (format % nil).should == (format % Kernel.Integer(nil))
@@ -634,14 +636,14 @@ describe "String#%" do
       }.should_not raise_error(ArgumentError)
 
       lambda { format % "0__7_7_7" }.should raise_error(ArgumentError)
-      
+
       lambda { format % "" }.should raise_error(ArgumentError)
       lambda { format % "x" }.should raise_error(ArgumentError)
       lambda { format % "5x" }.should raise_error(ArgumentError)
       lambda { format % "08" }.should raise_error(ArgumentError)
       lambda { format % "0b2" }.should raise_error(ArgumentError)
       lambda { format % "123__456" }.should raise_error(ArgumentError)
-      
+
       obj = mock('5')
       obj.should_receive(:to_i).and_return(5)
       (format % obj).should == (format % 5)
@@ -667,7 +669,7 @@ describe "String#%" do
       obj.should_receive(:respond_to?).with(:to_i).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_i).any_number_of_times.and_return(65)
       (format % obj).should == (format % 65)
-      
+
       obj = mock('4')
       def obj.respond_to?(arg) [:to_i, :to_int].include?(arg) end
       def obj.method_missing(name, *args)
@@ -675,22 +677,24 @@ describe "String#%" do
       end
       (format % obj).should == (format % 4)
     end
-    
+
     it "doesn't taint the result for #{format} when argument is tainted" do
       (format % "5".taint).tainted?.should == false
     end
   end
-  
+
   %w(e E f g G).each do |f|
     format = "%" + f
-    
-    it "tries to convert the passed argument to an Array using #to_ary" do
-      obj = mock('3.14')
-      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return([3.14])
-      (format % obj).should == (format % [3.14])
+
+    ruby_version_is "1.8.6.278" do
+      it "tries to convert the passed argument to an Array using #to_ary" do
+        obj = mock('3.14')
+        obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+        obj.should_receive(:method_missing).with(:to_ary).and_return([3.14])
+        (format % obj).should == (format % [3.14])
+      end
     end
-    
+
     it "behaves as if calling Kernel#Float for #{format} arguments, when the passed argument does not respond to #to_ary" do
       (format % 10).should == (format % 10.0)
       (format % "-10.4e-20").should == (format % -10.4e-20)
@@ -699,7 +703,7 @@ describe "String#%" do
       # Something's strange with this spec:
       # it works just fine in individual mode, but not when run as part of a group
       (format % "10_1_0.5_5_5").should == (format % 1010.555)
-      
+
       (format % "0777").should == (format % 777)
 
       lambda { format % "" }.should raise_error(ArgumentError)
@@ -712,7 +716,7 @@ describe "String#%" do
       lambda { format % "10e10.5" }.should raise_error(ArgumentError)
       lambda { format % "10__10" }.should raise_error(ArgumentError)
       lambda { format % "10.10__10" }.should raise_error(ArgumentError)
-      
+
       obj = mock('5.0')
       obj.should_receive(:to_f).and_return(5.0)
       (format % obj).should == (format % 5.0)
@@ -723,7 +727,7 @@ describe "String#%" do
       obj.should_receive(:method_missing).with(:to_f).and_return(3.14)
       (format % obj).should == (format % 3.14)
     end
-    
+
     it "doesn't taint the result for #{format} when argument is tainted" do
       (format % "5".taint).tainted?.should == false
     end

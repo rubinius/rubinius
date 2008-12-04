@@ -84,6 +84,8 @@ module ModuleSpecs
     end
     attr_accessor :accessor_method
 
+    def undefed_child() end
+
     def public_child() end
 
     protected

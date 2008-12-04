@@ -23,14 +23,16 @@ describe "Array#&" do
     a.should == [1, 1, 3, 5]
   end
 
-  it "properly handles recursive arrays" do
-    empty = ArraySpecs.empty_recursive_array
-    (empty & empty).should == empty
+  ruby_bug "#", "1.8.6.277" do
+    it "properly handles recursive arrays" do
+      empty = ArraySpecs.empty_recursive_array
+      (empty & empty).should == empty
 
-    (ArraySpecs.recursive_array & []).should == []
-    ([] & ArraySpecs.recursive_array).should == []
+      (ArraySpecs.recursive_array & []).should == []
+      ([] & ArraySpecs.recursive_array).should == []
 
-    (ArraySpecs.recursive_array & ArraySpecs.recursive_array).should == [1, 'two', 3.0]
+      (ArraySpecs.recursive_array & ArraySpecs.recursive_array).should == [1, 'two', 3.0]
+    end
   end
 
   it "tries to convert the passed argument to an Array using #to_ary" do
