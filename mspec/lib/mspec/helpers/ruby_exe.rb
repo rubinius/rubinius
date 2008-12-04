@@ -21,6 +21,18 @@ require 'mspec/ruby_name'
 #
 #   `#{RUBY_EXE} -e #{'puts "hello, world."'}`
 #
+# The ruby_exe helper also accepts an options hash with two
+# keys: :options and :args. For example:
+#
+#   ruby_exe('file.rb', :options => "-w", :args => "> file.txt")
+#
+# will be executed as
+#
+#   `#{RUBY_EXE} -w #{'file.rb'} > file.txt`
+#
+# If +nil+ is passed for the first argument, the command line
+# will be built only from the options hash.
+#
 # The RUBY_EXE constant can be set explicitly since the value
 # is used each time ruby_exe is invoked. The mspec runner script
 # will set ENV['RUBY_EXE'] to the name of the executable used
@@ -84,12 +96,11 @@ class Object
     nil
   end
 
-  def ruby_exe(code)
-    if File.exists?(code)
-      `#{RUBY_EXE} #{ENV['RUBY_FLAGS']} #{code}`
-    else
-      `#{RUBY_EXE} #{ENV['RUBY_FLAGS']} -e #{code.inspect}`
-    end
+  def ruby_exe(code, opts = {})
+    body = code
+    body = "-e #{code.inspect}" if code and not File.exists?(code)
+    cmd = [RUBY_EXE, ENV['RUBY_FLAGS'], opts[:options], body, opts[:args]]
+    `#{cmd.compact.join(' ')}`
   end
 
   unless Object.const_defined?(:RUBY_EXE) and RUBY_EXE

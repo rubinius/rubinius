@@ -256,7 +256,7 @@ describe MSpecMain, "#run" do
 
   it "uses exec to invoke the runner script" do
     @script.should_receive(:exec).with("ruby", "-v", %r"mspec/bin/mspec-run$")
-    @script.options
+    @script.options []
     @script.run
   end
 

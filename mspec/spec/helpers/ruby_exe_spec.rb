@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/helpers/ruby_exe' 
+require 'mspec/helpers/ruby_exe'
 require 'rbconfig'
 
 class RubyExeSpecs
@@ -89,6 +89,9 @@ describe Object, "#ruby_exe" do
     @ruby_exe = Object.const_get :RUBY_EXE
     Object.const_set :RUBY_EXE, 'ruby_spec_exe'
 
+    @file = "some/ruby/file.rb"
+    @code = %(some "real" 'ruby' code)
+
     @script = RubyExeSpecs.new
   end
 
@@ -99,16 +102,34 @@ describe Object, "#ruby_exe" do
   end
 
   it "executes the argument if it is a file that exists" do
-    code = "some/ruby/file.rb"
-    File.should_receive(:exists?).with(code).and_return(true)
+    File.should_receive(:exists?).with(@file).and_return(true)
     @script.should_receive(:`).with("ruby_spec_exe -w -Q some/ruby/file.rb")
-    @script.ruby_exe code
+    @script.ruby_exe @file
+  end
+
+  it "executes the file with options and arguments" do
+    File.should_receive(:exists?).with(@file).and_return(true)
+    @script.should_receive(:`).with(
+      "ruby_spec_exe -w -Q -w -Cdir some/ruby/file.rb < file.txt")
+    @script.ruby_exe @file, :options => "-w -Cdir", :args => "< file.txt"
   end
 
   it "executes the argument with -e" do
-    code = %(some "real" 'ruby' code)
-    File.should_receive(:exists?).with(code).and_return(false)
-    @script.should_receive(:`).with(%(ruby_spec_exe -w -Q -e "some \\"real\\" 'ruby' code"))
-    @script.ruby_exe code
+    File.should_receive(:exists?).with(@code).and_return(false)
+    @script.should_receive(:`).with(
+      %(ruby_spec_exe -w -Q -e "some \\"real\\" 'ruby' code"))
+    @script.ruby_exe @code
+  end
+
+  it "executes the code with options and arguments" do
+    File.should_receive(:exists?).with(@code).and_return(false)
+    @script.should_receive(:`).with(
+      %(ruby_spec_exe -w -Q -W0 -Cdir -e "some \\"real\\" 'ruby' code" < file.txt))
+    @script.ruby_exe @code, :options => "-W0 -Cdir", :args => "< file.txt"
+  end
+
+  it "executes with options and arguments but without code or file" do
+    @script.should_receive(:`).with("ruby_spec_exe -w -Q -c > file.txt")
+    @script.ruby_exe nil, :options => "-c", :args => "> file.txt"
   end
 end
