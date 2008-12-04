@@ -1,6 +1,0 @@
-fails:on empty file returns nil when length provided
-fails:IO.read returns nil at end-of-file with a length
-fails:IO.read returns nil at end-of-file when length is passed
-fails:IO.read on an empty file returns nil when length is passed
-fails:IO#read with length argument returns nil when the current pos is bigger than the content size
-fails:IO#read truncates the buffer when too big

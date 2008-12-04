@@ -1016,6 +1016,7 @@ class IO
 
       count = available > needed ? needed : available
       str << @ibuffer.shift(count)
+      str = nil if str.empty?
 
       needed -= count
     end
