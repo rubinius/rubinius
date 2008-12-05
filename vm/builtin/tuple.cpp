@@ -89,7 +89,7 @@ namespace rubinius {
     return this;
   }
 
-  Integer* Tuple::delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj) {
+  Fixnum* Tuple::delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj) {
     int size = this->num_fields();
     int lend = start->to_native();
     int rend = lend + length->to_native();

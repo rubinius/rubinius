@@ -38,7 +38,7 @@ namespace rubinius {
     Tuple* copy_from(STATE, Tuple* other, Fixnum *start, Fixnum *length, Fixnum *dest);
 
     // Ruby.primitive :tuple_delete_inplace
-    Integer* delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj);
+    Fixnum* delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj);
 
     // Ruby.primitive :tuple_create_weakref
     static Tuple* create_weakref(STATE, Object* obj);

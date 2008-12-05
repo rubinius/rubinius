@@ -510,25 +510,7 @@ extern "C" {
     NativeMethodContext* context = NativeMethodContext::current();
 
     Array* self = as<Array>(context->object_from(self_handle));
-
-    size_t size = self->size();
-
-    if (size == 0) {
-      return Qnil;
-    }
-
-    if (index < 0) {
-      index += size;
-    }
-
-    size_t as_size = index;
-
-    /* No error for out-of-bounds. */
-    if (index < 0 || as_size >= size) {
-      return Qnil;
-    }
-
-    return context->handle_for(self->get(context->state(), as_size));
+    return context->handle_for(self->get(context->state(), index));
   }
 
   VALUE rb_ary_join(VALUE self_handle, VALUE separator_handle) {
@@ -551,7 +533,7 @@ extern "C" {
 
     Array* array = Array::create(context->state(), (length * 2));
     array->start(context->state(), Fixnum::from(0));
-    array->total(context->state(), Integer::from(context->state(), length));
+    array->total(context->state(), Fixnum::from(length));
     /* OK, so we are probably screwed anyway if a Fixnum is too small. :) */
 
     return context->handle_for(array);
@@ -563,7 +545,7 @@ extern "C" {
 
     Array* array = Array::create(context->state(), (length * 2));
     array->start(context->state(), Fixnum::from(0));
-    array->total(context->state(), Integer::from(context->state(), length));
+    array->total(context->state(), Fixnum::from(length));
 
     if (object_handle) {
       Object* object = context->object_from(*object_handle);

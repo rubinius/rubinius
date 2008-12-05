@@ -14,17 +14,17 @@ namespace rubinius {
     const static object_type type = ArrayType;
 
   private:
-    Integer* total_; // slot
+    Fixnum* total_; // slot
     Tuple* tuple_;  // slot
-    Integer* start_; // slot
+    Fixnum* start_; // slot
     Object* shared_; // slot
 
   public:
     /* accessors */
 
-    attr_accessor(total, Integer);
+    attr_accessor(total, Fixnum);
     attr_accessor(tuple, Tuple);
-    attr_accessor(start, Integer);
+    attr_accessor(start, Fixnum);
     attr_accessor(shared, Object);
 
     /* interface */

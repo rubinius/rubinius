@@ -106,10 +106,7 @@ namespace rubinius {
       }
 
       Tuple* nt = Tuple::create(state, new_size+idx);
-      nt->copy_from(state, tuple_,
-                    Fixnum::from(start_->to_native()),
-                    Fixnum::from(total_->to_native()),
-                    Fixnum::from(0));
+      nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
       tuple(state, nt);
       start(state, Fixnum::from(0));
       idx = oidx;
@@ -132,9 +129,7 @@ namespace rubinius {
       total(state, Fixnum::from(new_size));
     } else {
       Tuple* nt = Tuple::create(state, new_size);
-      nt->copy_from(state, tuple_,
-		    Fixnum::from(start_->to_native()),
-		    Fixnum::from(total_->to_native()),
+      nt->copy_from(state, tuple_, start_, total_,
 		    Fixnum::from(1));
       nt->put(state, 0, val);
 
