@@ -68,6 +68,11 @@ namespace rubinius {
    * of this function (called via virtual dispatch) that marks
    * all slots. */
   void TypeInfo::auto_mark(Object* obj, ObjectMark& mark) {
+    // HACK: should not inspect an object that stores bytes
+    // for references. Evan said auto_mark is slated for
+    // destruction also.
+    if(obj->stores_bytes_p()) return;
+
     // HACK copied from Tuple;
     Object* tmp;
     Tuple* tup = static_cast<Tuple*>(obj);
