@@ -35,6 +35,11 @@ Here is a list of popular RubyGems that could be used to test Rubinius' complian
 * Newgem
 * Newjs
 * merb-core
+* naturalsort
+* object_proxy
+* rwb
+* behaviors
+* Memoized
 
 ## Ruby/Mysql
 
