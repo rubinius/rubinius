@@ -1,4 +1,3 @@
-fails:Array#* with an integer properly handles recursive arrays
 fails:Array#* raises a TypeError if the argument can neither be converted to a string nor an integer
 fails:Array#* with an integer copies the taint status of the original array even if the array is empty
 fails:Array#* with an integer copies the taint status of the original array if the passed count is not 0

@@ -1,1 +1,0 @@
-fails:Array#shift properly handles recursive arrays

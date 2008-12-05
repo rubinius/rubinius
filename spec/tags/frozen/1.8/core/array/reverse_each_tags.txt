@@ -1,1 +1,0 @@
-fails:Array#reverse_each properly handles recursive arrays

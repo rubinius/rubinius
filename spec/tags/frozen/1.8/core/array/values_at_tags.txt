@@ -1,1 +1,0 @@
-fails:Array#values_at properly handles recursive arrays

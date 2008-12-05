@@ -1,3 +1,1 @@
-fails:Array#sort properly handles recursive arrays
-fails:Array#sort! properly handles recursive arrays
 fails:Array#sort! temporarily freezes self and recovers after sorted

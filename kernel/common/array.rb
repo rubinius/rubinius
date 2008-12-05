@@ -346,12 +346,23 @@ class Array
   def <=>(other)
     other = Type.coerce_to other, Array, :to_ary
 
-    size.times { |i|
-      return 1 unless other.size > i
-
-      diff = at(i) <=> other.at(i)
-      return diff if diff != 0
-    }
+    RecursionGuard.inspect(self) do
+      i = 0
+      while(i < size)
+        return 1 unless other.size > i
+        curr = at(i)
+        if(RecursionGuard.inspecting?(curr))
+          unless curr.equals?(other.at(i))
+            return 1 if size > other.size
+            return -1 if size < other.size
+          end
+        else
+          diff = curr <=> other.at(i)
+          return diff if diff != 0
+        end
+        i += 1
+      end
+    end
 
     return 1 if size > other.size
     return -1 if size < other.size
@@ -370,10 +381,17 @@ class Array
 
     return false unless size == other.size
 
-    i = 0
-    while(i < size)
-      return false unless @tuple.at(@start + i) == other.at(i)
-      i += 1
+    RecursionGuard.inspect(self) do
+      i = 0
+      while(i < size)
+        curr = at(i)
+        if RecursionGuard.inspecting?(curr)
+          return false unless curr.equal? other.at(i)
+        else
+          return false unless curr == other.at(i)
+        end
+        i += 1
+      end
     end
 
     true
@@ -549,10 +567,17 @@ class Array
     return false unless other.kind_of?(Array)
     return false if @total != other.size
 
-    i = 0
-    while(i < @total)
-      return false unless at(i).eql?(other[i])
-      i+=1
+    RecursionGuard.inspect(self) do
+      i = 0
+      while(i < @total)
+        curr = at(i)
+        if RecursionGuard.inspecting?(curr)
+          return false unless curr.equal?(other.at(i))
+        else
+          return false unless curr.eql?(other.at(i))
+        end
+        i+=1
+      end
     end
 
     true
@@ -702,10 +727,17 @@ class Array
     # it does work. It should be replaced with something much better, but I'm not sure
     # what level it belongs at.
     str = ""
-    i = 0
-    while(i < @total)
-      str.append at(i).hash.to_s
-      i+=1
+    RecursionGuard.inspect(self) do
+      i = 0
+      while(i < @total)
+        curr = at(i)
+        if RecursionGuard.inspecting?(curr)
+          str.append curr.object_id.to_s
+        else
+          str.append curr.hash.to_s
+        end
+        i+=1
+      end
     end
     str.hash
   end

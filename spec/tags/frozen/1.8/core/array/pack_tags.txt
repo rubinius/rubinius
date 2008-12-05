@@ -3,5 +3,4 @@ fails:Array#pack encodes a long in network-order with ('N')
 fails:Array#pack converts to BER-compressed integer with ('w')
 fails:Array#pack with ('w') converts to BER-compressed integer
 fails:Array#pack with ('w') raises an ArgumentError if the count is greater than the number of remaining array elements
-fails:Array#pack converts integers into UTF-8 encoded byte sequences with ('U')
 fails:Array#pack with ('w') raises TypeError on nil and non-numeric arguments

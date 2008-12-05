@@ -1,2 +1,1 @@
-fails:Array#- properly handles recursive arrays
 fails:Array#- raises a TypeError if the passed argument is not an array and does not respond to #to_ary

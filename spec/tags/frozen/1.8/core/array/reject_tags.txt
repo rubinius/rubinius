@@ -1,2 +1,0 @@
-fails:Array#reject properly handles recursive arrays
-fails:Array#reject! properly handles recursive arrays
