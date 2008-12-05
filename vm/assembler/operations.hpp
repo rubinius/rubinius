@@ -154,14 +154,14 @@ namespace operations {
 
     void call_operation(void* func, int arg) {
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esp, 24), arg);
+      a.mov(a.address(esp, 16), arg);
       a.call(func);
     }
 
     void call_operation(void* func, int arg, int arg2) {
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esp, 24), arg);
-      a.mov(a.address(esp, 28), arg2);
+      a.mov(a.address(esp, 16), arg);
+      a.mov(a.address(esp, 20), arg2);
       a.call(func);
     }
 

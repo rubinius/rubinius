@@ -453,7 +453,7 @@ void test_call_operation2() {
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_MEM);
   assert_op(0, base, UD_R_ESP);
-  assert_op(0, lval.udword, 24);
+  assert_op(0, lval.udword, 16);
 
   assert_op(1, type, UD_OP_IMM);
   assert_op(1, base, UD_NONE);
@@ -479,7 +479,7 @@ void test_call_operation3() {
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_MEM);
   assert_op(0, base, UD_R_ESP);
-  assert_op(0, lval.udword, 24);
+  assert_op(0, lval.udword, 16);
 
   assert_op(1, type, UD_OP_IMM);
   assert_op(1, base, UD_NONE);
@@ -489,7 +489,7 @@ void test_call_operation3() {
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_MEM);
   assert_op(0, base, UD_R_ESP);
-  assert_op(0, lval.udword, 28);
+  assert_op(0, lval.udword, 20);
 
   assert_op(1, type, UD_OP_IMM);
   assert_op(1, base, UD_NONE);
