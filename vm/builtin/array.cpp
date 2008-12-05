@@ -36,11 +36,12 @@ namespace rubinius {
   }
 
   Array* Array::from_tuple(STATE, Tuple* tup) {
-    Array* ary = Array::create(state, tup->num_fields());
-    for(size_t i = 0; i < tup->num_fields(); i++) {
-      ary->set(state, i, tup->at(state, i));
-    }
-
+    size_t length = tup->num_fields();
+    Array* ary = Array::create(state, length);
+    ary->tuple_->copy_from(state, tup,
+			   Fixnum::from(0), Fixnum::from(length),
+			   Fixnum::from(0));
+    ary->total(state, Fixnum::from(length));
     return ary;
   }
 
@@ -93,32 +94,28 @@ namespace rubinius {
   }
 
   Object* Array::set(STATE, size_t idx, Object* val) {
-    size_t cur, oidx;
-
-    Tuple* tup = tuple_;
-    cur = tup->num_fields();
-
-    oidx = idx;
+    size_t tuple_size = tuple_->num_fields();
+    size_t oidx = idx;
     idx += start_->to_native();
 
-    if(idx >= cur) {
+    if(idx >= tuple_size) {
       // Uses the same algo as 1.8 to resize the tuple
-      size_t new_size = cur / 2;
+      size_t new_size = tuple_size / 2;
       if(new_size < 3) {
         new_size = 3;
       }
 
-      new_size += idx;
-      Tuple* nt = Tuple::create(state, new_size);
-      for(size_t i = 0; i < cur; i++) {
-        nt->put(state, i, tup->at(state, i));
-      }
-
+      Tuple* nt = Tuple::create(state, new_size+idx);
+      nt->copy_from(state, tuple_,
+                    Fixnum::from(start_->to_native()),
+                    Fixnum::from(total_->to_native()),
+                    Fixnum::from(0));
       tuple(state, nt);
-      tup = nt;
+      start(state, Fixnum::from(0));
+      idx = oidx;
     }
 
-    tup->put(state, idx, val);
+    tuple_->put(state, idx, val);
     if((size_t)total_->to_native() <= oidx) {
       total(state, Fixnum::from(oidx+1));
     }
@@ -127,22 +124,34 @@ namespace rubinius {
 
   void Array::unshift(STATE, Object* val) {
     size_t new_size = total_->to_native() + 1;
-    Tuple* nt = Tuple::create(state, new_size);
-    for(size_t i = 0; i < (size_t)total_->to_native(); i++) {
-      nt->put(state, i + 1, get(state, i));
+    size_t lend = start_->to_native();
+
+    if(lend > 0) {
+      tuple_->put(state, lend-1, val);
+      start(state, Fixnum::from(lend-1));
+      total(state, Fixnum::from(new_size));
+    } else {
+      Tuple* nt = Tuple::create(state, new_size);
+      nt->copy_from(state, tuple_,
+		    Fixnum::from(start_->to_native()),
+		    Fixnum::from(total_->to_native()),
+		    Fixnum::from(1));
+      nt->put(state, 0, val);
+
+      total(state, Fixnum::from(new_size));
+      start(state, Fixnum::from(0));
+      tuple(state, nt);
     }
-
-    nt->put(state, 0, val);
-    total(state, Fixnum::from(new_size));
-    start(state, Fixnum::from(0));
-
-    tuple(state, nt);
   }
 
   Object* Array::shift(STATE) {
+    size_t cnt = total_->to_native();
+
+    if(cnt == 0) return Qnil;
     Object* obj = get(state, 0);
+    set(state, 0, Qnil);
     start(state, Fixnum::from(start_->to_native() + 1));
-    total(state, Fixnum::from(total_->to_native() - 1));
+    total(state, Fixnum::from(cnt - 1));
     return obj;
   }
 
@@ -152,10 +161,10 @@ namespace rubinius {
   }
 
   bool Array::includes_p(STATE, Object* val) {
-    size_t max = size();
+    size_t cnt = total_->to_native();
 
-    for(size_t i = 0; i < max; i++) {
-      if(tuple_->at(state, i) == val) return true;
+    for(size_t i = 0; i < cnt; i++) {
+      if(get(state, i) == val) return true;
     }
 
     return false;
@@ -163,12 +172,12 @@ namespace rubinius {
 
   Object* Array::pop(STATE) {
     size_t cnt = total_->to_native();
-    size_t index = start_->to_native() + cnt;
 
-    if(index == 0) return Qnil;
-
+    if(cnt == 0) return Qnil;
+    Object *obj = get(state, cnt - 1);
+    set(state, cnt-1, Qnil);
     total(state, Fixnum::from(cnt - 1));
-    return tuple_->at(state, index - 1);
+    return obj;
   }
 
   void Array::Info::show(STATE, Object* self, int level) {

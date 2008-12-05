@@ -51,7 +51,7 @@ class TestArray : public CxxTest::TestSuite {
     ary->set(state, 2, Fixnum::from(9));
 
     TS_ASSERT_EQUALS(Fixnum::from(9),
-                     ary->aref(state, Fixnum::from(-1)));
+		     ary->aref(state, Fixnum::from(-1)));
     TS_ASSERT_EQUALS(Fixnum::from(1), ary->aref(state, Fixnum::from(-3)));
     TS_ASSERT_EQUALS(Qnil, ary->aref(state, Fixnum::from(-4)));
 
@@ -99,6 +99,12 @@ class TestArray : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ary->size(), 2U);
     TS_ASSERT_EQUALS(ary->get(state, 0), Qfalse);
     TS_ASSERT_EQUALS(ary->get(state, 1), Qtrue);
+
+    TS_ASSERT_EQUALS(ary->shift(state),Qfalse);
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(1)));
+    ary->unshift(state, Qnil);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Qnil);
+    TS_ASSERT_EQUALS(ary->get(state, 1), Qtrue);
   }
 
   void test_pop() {
@@ -107,10 +113,10 @@ class TestArray : public CxxTest::TestSuite {
     ary->set(state, 1, Fixnum::from(4));
     ary->set(state, 2, Fixnum::from(9));
 
-    TS_ASSERT_EQUALS(Fixnum::from(9), ary->pop(state));
-    TS_ASSERT_EQUALS(Fixnum::from(4), ary->pop(state));
-    TS_ASSERT_EQUALS(Fixnum::from(1), ary->pop(state));
-    TS_ASSERT_EQUALS(Qnil, ary->pop(state));
+    TS_ASSERT_EQUALS(ary->pop(state), Fixnum::from(9));
+    TS_ASSERT_EQUALS(ary->pop(state), Fixnum::from(4));
+    TS_ASSERT_EQUALS(ary->pop(state), Fixnum::from(1));
+    TS_ASSERT_EQUALS(ary->pop(state), Qnil);
   }
 
   void test_includes_p() {
@@ -123,14 +129,43 @@ class TestArray : public CxxTest::TestSuite {
 
   void test_shift() {
     Array* ary = Array::create(state, 2);
-    ary->set(state, 0, Qtrue);
-    ary->set(state, 1, Qfalse);
+    ary->set(state, 0, Fixnum::from(1));
+    ary->set(state, 1, Fixnum::from(4));
+    ary->set(state, 2, Fixnum::from(9));
 
-    Object* out = ary->shift(state);
-    TS_ASSERT_EQUALS(Qtrue, out);
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(0)));
+    TS_ASSERT_EQUALS(ary->total(), as<Integer>(Fixnum::from(3)));
 
-    TS_ASSERT_EQUALS(1U, ary->size());
+    TS_ASSERT_EQUALS(ary->shift(state), Fixnum::from(1));
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(1)));
+    TS_ASSERT_EQUALS(ary->total(), as<Integer>(Fixnum::from(2)));
 
-    TS_ASSERT_EQUALS(Qfalse, ary->get(state, 0));
+    TS_ASSERT_EQUALS(ary->shift(state), Fixnum::from(4));
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(2)));
+    TS_ASSERT_EQUALS(ary->total(), as<Integer>(Fixnum::from(1)));
+
+    TS_ASSERT_EQUALS(ary->shift(state), Fixnum::from(9));
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(3)));
+    TS_ASSERT_EQUALS(ary->total(), as<Integer>(Fixnum::from(0)));
+
+    TS_ASSERT_EQUALS(ary->shift(state), Qnil);
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(3)));
+    TS_ASSERT_EQUALS(ary->total(), as<Integer>(Fixnum::from(0)));
+
+    ary->append(state, Qtrue);
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(3)));
+    TS_ASSERT_EQUALS(ary->total(), as<Integer>(Fixnum::from(1)));
+
+    TS_ASSERT_EQUALS(ary->shift(state), Qtrue);
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(4)));
+    TS_ASSERT_EQUALS(ary->total(), as<Integer>(Fixnum::from(0)));
+
+    ary->unshift(state, Qfalse);
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(3)));
+    TS_ASSERT_EQUALS(ary->total(), as<Integer>(Fixnum::from(1)));
+
+    TS_ASSERT_EQUALS(ary->shift(state), Qfalse);
+    TS_ASSERT_EQUALS(ary->start(), as<Integer>(Fixnum::from(4)));
+    TS_ASSERT_EQUALS(ary->total(), as<Integer>(Fixnum::from(0)));
   }
 };
