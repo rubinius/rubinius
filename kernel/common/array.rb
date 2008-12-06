@@ -307,18 +307,12 @@ class Array
 
       raise ArgumentError, "Count cannot be negative" if val < 0
 
-      sz = self.size()
-      new_size = val * sz
-
-      nt = Tuple.new(new_size)
       out = self.class.new()
-      out.tuple = nt
-      out.total = new_size
 
       i = 0
-      while(i < new_size)
-        nt.copy_from(@tuple,@start,@total, i)
-        i += sz
+      while(i < val)
+        out.concat self
+        i += 1
       end
       out
     end
@@ -477,17 +471,14 @@ class Array
   # block is provided in which case the value of running it is
   # returned instead.
   def delete(obj)
-    key = obj
-    unless obj.kind_of? ImmediateValue
-      key = Undefined
-      i = @start
-      tot = @start + @total
-      while(i < tot)
-        if(@tuple.at(i) == obj)
-          @tuple.put(i, key)
-        end
-        i+=1
+    key = Undefined
+    i = @start
+    tot = @start + @total
+    while(i < tot)
+      if(@tuple.at(i) == obj)
+        @tuple.put(i, key)
       end
+      i+=1
     end
 
     if((deleted = @tuple.delete(@start,@total,key)) > 0)
