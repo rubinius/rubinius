@@ -90,14 +90,10 @@ class Fixnum < Integer
   # comparison operators
   
   def ==(o)
-    unless o.__kind_of__ Fixnum
-      o == self
-    else
-      Ruby.primitive :fixnum_equal
-      super(o)
-    end
+    Ruby.primitive :fixnum_equal
+    super(o)
   end
-
+  
   def <=>(other)
     Ruby.primitive :fixnum_compare
     super(other)
