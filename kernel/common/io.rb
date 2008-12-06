@@ -801,14 +801,13 @@ class IO
   def gets(sep=$/)
     ensure_open_and_readable
 
-    line = read_to_separator sep
-    line.taint if line
+    if line = read_to_separator(sep)
+      line.taint
+      @lineno += 1
+      $. = @lineno
+    end
 
-    @lineno += 1
-    $. = @lineno
     $_ = line
-
-    line
   end
 
   ##
@@ -1080,6 +1079,8 @@ class IO
     return if @ibuffer.exhausted?
     return read_all unless sep
 
+    sep = StringValue(sep) if sep
+
     if sep.empty?
       sep = "\n\n"
       skip = ?\n
@@ -1139,11 +1140,16 @@ class IO
   #  f = File.new("testfile")
   #  f.readlines[0]   #=> "This is line one\n"
   def readlines(sep=$/)
+    sep = StringValue(sep) if sep
+
+    old_line = $_
     ary = Array.new
     while line = gets(sep)
       ary << line
     end
-    return ary
+    $_ = old_line
+
+    ary
   end
 
   ##

@@ -18,11 +18,15 @@ module Type
   def self.coerce_to(obj, cls, meth)
     return obj if self.obj_kind_of?(obj, cls)
 
-    begin
-      ret = obj.__send__(meth)
-    rescue Exception => e
-      raise TypeError, "Coercion error: #{obj.inspect}.#{meth} => #{cls} failed:\n" \
-                       "(#{e.message})"
+    if obj.respond_to? meth
+      begin
+        ret = obj.__send__(meth)
+      rescue Exception => e
+        raise TypeError, "Coercion error: #{obj.inspect}.#{meth} => #{cls} failed:\n" \
+                         "(#{e.message})"
+      end
+    else
+      raise TypeError, "Coercion error: #{obj.inspect} does not respond to #{meth}"
     end
 
     return ret if self.obj_kind_of?(ret, cls)
