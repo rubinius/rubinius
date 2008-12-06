@@ -439,7 +439,8 @@ class IO
   #  a = IO.readlines("testfile")
   #  a[0]   #=> "This is line one\n"
   def self.readlines(name, sep_string = $/)
-    io = File.open(StringValue(name), 'r')
+    name = Type.check_and_coerce_to(name, String, :to_str)
+    io = File.open(name, 'r')
     return if io.nil?
 
     begin
@@ -1079,7 +1080,7 @@ class IO
     return if @ibuffer.exhausted?
     return read_all unless sep
 
-    sep = StringValue(sep) if sep
+    sep = Type.check_and_coerce_to(sep, String, :to_str) if sep
 
     if sep.empty?
       sep = "\n\n"
@@ -1140,7 +1141,7 @@ class IO
   #  f = File.new("testfile")
   #  f.readlines[0]   #=> "This is line one\n"
   def readlines(sep=$/)
-    sep = StringValue(sep) if sep
+    sep = Type.check_and_coerce_to(sep, String, :to_str) if sep
 
     old_line = $_
     ary = Array.new
