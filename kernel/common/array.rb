@@ -307,12 +307,18 @@ class Array
 
       raise ArgumentError, "Count cannot be negative" if val < 0
 
+      sz = self.size()
+      new_size = val * sz
+
+      nt = Tuple.new(new_size)
       out = self.class.new()
+      out.tuple = nt
+      out.total = new_size
 
       i = 0
-      while(i < val)
-        out.concat self
-        i += 1
+      while(i < new_size)
+        nt.copy_from(@tuple,@start,@total, i)
+        i += sz
       end
       out
     end
