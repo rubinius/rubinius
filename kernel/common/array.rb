@@ -638,7 +638,7 @@ class Array
     if one.kind_of? Range
       raise TypeError, "Length invalid with range" if args.size > 1   # WTF, MRI, TypeError?
 
-      start, finish = Type.coerce_to(one.begin, Fixnum, :to_int), Type.coerce_to(one.end, Fixnum, :to_int)
+      start, finish = Type.check_and_coerce_to(one.begin, Fixnum, :to_int), Type.check_and_coerce_to(one.end, Fixnum, :to_int)
 
       start += @total if start < 0
       finish += @total if finish < 0
@@ -653,13 +653,13 @@ class Array
 
     else
       if one
-        start = Type.coerce_to one, Fixnum, :to_int
+        start = Type.check_and_coerce_to one, Fixnum, :to_int
 
         start += @total if start < 0
         start = 0 if start < 0            # MRI comp adjusts to 0
 
         if two
-          finish = Type.coerce_to two, Fixnum, :to_int
+          finish = Type.check_and_coerce_to two, Fixnum, :to_int
           return self if finish < 1       # Nothing to modify
           raise ArgumentError, "argument too big" if finish < 0 && start < finish.abs
 
