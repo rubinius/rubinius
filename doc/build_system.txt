@@ -3,7 +3,7 @@
 TODO: Many details are missing.
 
 Rubinius uniformly uses Rake as the build system for its own files. However
-Rubinius also encludes the source for several external libraries and these
+Rubinius also includes the source for several external libraries and these
 typically use makefiles.
 
 ## Development versus Install Builds
