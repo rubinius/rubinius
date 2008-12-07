@@ -15,10 +15,9 @@ class IO
   # equals total, no additional bytes will be filled until the
   # buffer is emptied.
   #
-  # As a write buffer, +empty_to+ (TODO implement, +empty_to+ is
-  # the opposite of +fill_from+) removes bytes from +start+ up to
-  # +used+. When +start+ equals +used+, no additional bytes will
-  # be emptied until the buffer is filled.
+  # As a write buffer, +empty_to+ removes bytes from +start+ up
+  # to +used+. When +start+ equals +used+, no additional bytes
+  # will be emptied until the buffer is filled.
   #
   # IO presents a stream of input. Buffer presents buckets of
   # input. IO's task is to chain the buckets so the user sees
@@ -54,6 +53,7 @@ class IO
     #
     # Returns the number of bytes in the buffer.
     def fill_from(io, skip = nil)
+      empty_to io
       discard skip if skip
       return size unless empty?
 
@@ -70,6 +70,16 @@ class IO
         io.eof!
         @eof = true
       end
+
+      return size
+    end
+
+    def empty_to(io)
+      return 0 if @write_synced or empty?
+      @write_synced = true
+
+      io.prim_write(String.from_bytearray @storage, @start, size)
+      reset!
 
       return size
     end
@@ -117,6 +127,19 @@ class IO
     def reset!
       @start = @used = 0
       @eof = false
+      @write_synced = true
+    end
+
+    def write_synced?
+      @write_synced
+    end
+
+    def unseek!(io)
+      # Unseek the still buffered amount
+      unless empty?
+        io.prim_seek(@start - @used, IO::SEEK_CUR)
+      end
+      reset!
     end
 
     ##
@@ -130,6 +153,24 @@ class IO
       @start += total
 
       return str
+    end
+
+    ##
+    # Returns the number of bytes that could be written to the buffer.
+    # If the number is less then the expected, then we need to +empty_to+
+    # the IO, and +unshift+ again beginning at +start_pos+.
+    def unshift(str, start_pos = 0)
+      @write_synced = false
+      total_sz = str.size - start_pos
+      total_sz = @total - @start if total_sz > @total - @start
+
+      # TODO: memcpy bytes in a Primitive ?
+      total_sz.times do |i|
+        @storage[i + @used] = str.data[i + start_pos]
+      end
+      @used += total_sz
+
+      total_sz
     end
 
     ##
@@ -295,6 +336,8 @@ class IO
     lhs = IO.allocate
     rhs = IO.allocate
     connect_pipe(lhs, rhs)
+    lhs.sync = true
+    rhs.sync = true
     return [lhs, rhs]
   end
 
@@ -755,7 +798,8 @@ class IO
   #  no newline
   def flush
     ensure_open
-    true
+    @ibuffer.empty_to self
+    self
   end
 
   ##
@@ -765,7 +809,7 @@ class IO
   # that data is flushed from Ruby's buffers, but does not guarantee
   # that the underlying operating system actually writes it to disk.
   def fsync
-    ensure_open
+    flush
 
     err = Platform::POSIX.fsync @descriptor
 
@@ -1273,14 +1317,9 @@ class IO
   #  f.seek(-13, IO::SEEK_END)   #=> 0
   #  f.readline                  #=> "And so on...\n"
   def seek(amount, whence=SEEK_SET)
-    ensure_open
+    flush
 
-    # TODO: verify this
-    # Unseek the still buffered amount
-    unless @ibuffer.empty?
-      prim_seek(@ibuffer.start - @ibuffer.used, SEEK_CUR)
-    end
-    @ibuffer.reset!
+    @ibuffer.unseek! self
     @eof = false
 
     prim_seek amount, whence
@@ -1301,7 +1340,7 @@ class IO
   end
 
   ##
-  # Returns the current ``sync mode’’ of ios. When sync mode is true,
+  # Returns the current "sync mode" of ios. When sync mode is true,
   # all output is immediately flushed to the underlying operating
   # system and is not buffered by Ruby internally. See also IO#fsync.
   #
@@ -1309,16 +1348,17 @@ class IO
   #  f.sync   #=> false
   def sync
     ensure_open
-    true
+    @sync == true
   end
 
   ##
-  #--
-  # The current implementation does no write buffering, so we're always in
-  # sync mode.
-
+  # Sets the "sync mode" to true or false. When sync mode is true,
+  # all output is immediately flushed to the underlying operating
+  # system and is not buffered internally. Returns the new state.
+  # See also IO#fsync.
   def sync=(v)
     ensure_open
+    @sync = (v == true)
   end
 
   ##
@@ -1377,6 +1417,7 @@ class IO
   end
 
   alias_method :prim_write, :write
+  alias_method :prim_close, :close
 
   ##
   # Pushes back one character (passed as a parameter) onto ios,
@@ -1396,15 +1437,37 @@ class IO
   end
 
   def write(data)
+    data = String data
+    return 0 if data.length == 0
+
     ensure_open_and_writable
 
-    data = String data
+    flush_stream = [STDOUT.fileno, STDERR.fileno].include? fileno
 
+    @ibuffer.unseek! self if @ibuffer.write_synced?
+    bytes_to_write = data.size
+    while bytes_to_write > 0
+      bytes_to_write -= @ibuffer.unshift(data, data.size - bytes_to_write)
+      @ibuffer.empty_to self if @ibuffer.full? or sync or flush_stream
+    end
+
+    data.size
+  end
+
+  def syswrite(data)
+    data = String data
     return 0 if data.length == 0
+
+    ensure_open_and_writable
+
     prim_write(data)
   end
 
-  alias_method :syswrite, :write
+  def close
+    flush
+    prim_close
+  end
+
   alias_method :write_nonblock, :write
 
 end
@@ -1443,6 +1506,7 @@ class IO::BidirectionalPipe < IO
     @pid = pid
     @read = read
     @write = write
+    @sync = true
   end
 
   def check_read
