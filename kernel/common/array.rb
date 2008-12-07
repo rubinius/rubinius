@@ -828,6 +828,7 @@ class Array
     end
 
     out = ""
+    out.taint if sep.tainted? or self.tainted?
     i = 0
     while(i < @total)
       elem = at(i)
@@ -845,10 +846,11 @@ class Array
         # HACK use __send__
         # out << elem.__send__(method)
         out.append elem.to_s
+        out.taint if elem.tainted? and not out.tainted?
       end
       i += 1
     end
-    out 
+    out
   end
 
   # Returns the last element or n elements of self. If
