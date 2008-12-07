@@ -8,7 +8,9 @@ class EnvironmentVariables
   include Enumerable
 
   def [](key)
-    EnvironmentVariables.getenv StringValue(key)
+    value = EnvironmentVariables.getenv StringValue(key)
+    value.taint unless value.nil?
+    value
   end
 
   def []=(key, value)
@@ -18,6 +20,7 @@ class EnvironmentVariables
     else
       EnvironmentVariables.setenv key, StringValue(value), 1
     end
+    value
   end
   alias_method :store, :[]=
 
@@ -159,6 +162,8 @@ class EnvironmentVariables
     until environ[i].read_pointer.null? do
       entry = environ[i].read_pointer.read_string
       key, value = entry.split '=', 2
+      value.taint unless value.nil?
+      key.taint unless key.nil?
       hash[key] = value
       i += 1
     end
