@@ -96,6 +96,7 @@ namespace rubinius {
 
   VMMethod::~VMMethod() {
     delete[] opcodes;
+    delete[] sendsites;
   }
 
   // Argument handler implementations
