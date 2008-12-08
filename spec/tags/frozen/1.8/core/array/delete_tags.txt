@@ -1,1 +1,0 @@
-fails:Array#delete removes elements that are #== to object

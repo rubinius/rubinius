@@ -477,17 +477,14 @@ class Array
   # block is provided in which case the value of running it is
   # returned instead.
   def delete(obj)
-    key = obj
-    unless obj.kind_of? ImmediateValue
-      key = Undefined
-      i = @start
-      tot = @start + @total
-      while(i < tot)
-        if(@tuple.at(i) == obj)
-          @tuple.put(i, key)
-        end
-        i+=1
+    key = Undefined
+    i = @start
+    tot = @start + @total
+    while(i < tot)
+      if(@tuple.at(i) == obj)
+        @tuple.put(i, key)
       end
+      i+=1
     end
 
     if((deleted = @tuple.delete(@start,@total,key)) > 0)
