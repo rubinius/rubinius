@@ -76,6 +76,9 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_compile
     Object* compile(STATE);
 
+    // Ruby.primitive? :compiledmethod_activate
+    ExecuteStatus activate(STATE, Executable* exec, Task* task, Message& msg);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

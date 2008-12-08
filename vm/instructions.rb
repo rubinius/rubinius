@@ -1089,8 +1089,8 @@ class Instructions
   def kind_of
     <<-CODE
     Object* t1 = stack_pop();
-    Class* cls = as<Class>(stack_pop());
-    if(t1->kind_of_p(state, cls)) {
+    Object* mod = stack_pop();
+    if(t1->kind_of_p(state, mod)) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);

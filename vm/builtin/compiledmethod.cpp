@@ -119,6 +119,28 @@ namespace rubinius {
     return local_count_->to_native();
   }
 
+  ExecuteStatus CompiledMethod::activate(STATE, Executable* exec, Task* task, Message& msg) {
+    CompiledMethod* meth = as<CompiledMethod>(msg.recv);
+    Object* recv = msg.get_argument(0);
+    Module* mod  = as<Module>(msg.get_argument(1));
+    Array*  args = as<Array>(msg.get_argument(2));
+    // Leave msg.block set and pass it through.
+
+    msg.recv = recv;
+    msg.method = meth;
+    msg.module = mod;
+    msg.set_arguments(state, args);
+    msg.name = meth->name();
+    msg.priv = true;
+    msg.method_missing = false;
+
+    // NOTE even when we're activating a method_missing, we don't
+    // push the name given, because there really isn't one. So if
+    // this is used to call a method_missing, you have to supply all
+    // the args.
+    return meth->execute(state, task, msg);
+  }
+
   void CompiledMethod::Info::show(STATE, Object* self, int level) {
     CompiledMethod* cm = as<CompiledMethod>(self);
 

@@ -10,6 +10,11 @@ class CompiledMethod < Executable
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def activate(recv, mod, args)
+    Ruby.primitive :compiledmethod_activate
+    raise PrimitiveFailure, "CompiledMethod#activate failed"
+  end
+
   ##
   # A method's visibility
 
