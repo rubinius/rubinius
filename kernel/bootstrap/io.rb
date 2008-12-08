@@ -5,6 +5,11 @@ class IO
       Ruby.primitive :iobuffer_allocate
       raise PrimitiveFailure, "IO::Buffer.allocate primitive failed"
     end
+
+    def fill_storage(start_self, data, start_data, size)
+      Ruby.primitive :iobuffer_fill_storage
+      raise PrimitiveFailure, "IO::Buffer#fill_storage primitive failed"
+    end
   end
 
   def self.allocate

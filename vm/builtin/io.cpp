@@ -269,6 +269,11 @@ namespace rubinius {
     return create(state);
   }
 
+  Object* IOBuffer::fill_storage(STATE, Fixnum* start_self, ByteArray* data, Fixnum* start_data, Fixnum* size) {
+    memcpy(storage_->bytes + start_self->to_native(), data->bytes + start_data->to_native(), size->to_native());
+    return Qnil;
+  }
+
   void IOBuffer::reset(STATE) {
     used(state, Fixnum::from(0));
     start(state, Fixnum::from(0));

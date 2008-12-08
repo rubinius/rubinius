@@ -164,10 +164,7 @@ class IO
       total_sz = str.size - start_pos
       total_sz = @total - @start if total_sz > @total - @start
 
-      # TODO: memcpy bytes in a Primitive ?
-      total_sz.times do |i|
-        @storage[i + @used] = str.data[i + start_pos]
-      end
+      fill_storage @used, str.data, start_pos, total_sz
       @used += total_sz
 
       total_sz
@@ -588,6 +585,7 @@ class IO
 
     @descriptor = fd
     @mode = mode || cur_mode
+    @sync = [STDOUT.fileno, STDERR.fileno].include? fd
   end
 
   private :setup
@@ -1442,13 +1440,11 @@ class IO
 
     ensure_open_and_writable
 
-    flush_stream = [STDOUT.fileno, STDERR.fileno].include? fileno
-
     @ibuffer.unseek! self if @ibuffer.write_synced?
     bytes_to_write = data.size
     while bytes_to_write > 0
       bytes_to_write -= @ibuffer.unshift(data, data.size - bytes_to_write)
-      @ibuffer.empty_to self if @ibuffer.full? or sync or flush_stream
+      @ibuffer.empty_to self if @ibuffer.full? or sync
     end
 
     data.size

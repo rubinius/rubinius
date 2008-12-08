@@ -12,7 +12,7 @@ namespace rubinius {
 
   class IO : public Object {
   public:
-    const static size_t fields = 5;
+    const static size_t fields = 6;
     const static object_type type = IOType;
 
   private:
@@ -21,6 +21,7 @@ namespace rubinius {
     Fixnum* mode_;       // slot
     Object* eof_;        // slot
     Fixnum* lineno_;     // slot
+    Object* sync_;       // slot
 
 
   public:
@@ -31,6 +32,7 @@ namespace rubinius {
     attr_accessor(mode, Fixnum);
     attr_accessor(eof, Object);
     attr_accessor(lineno, Fixnum);
+    attr_accessor(sync, Object);
 
     /* interface */
 
@@ -120,6 +122,9 @@ namespace rubinius {
     static IOBuffer* create(STATE, size_t bytes = IOBUFFER_SIZE);
     // Ruby.primitive :iobuffer_allocate
     static IOBuffer* allocate(STATE);
+
+    // Ruby.primitive :iobuffer_fill_storage
+    Object* fill_storage(STATE, Fixnum* start_self, ByteArray* data, Fixnum* start_data, Fixnum* size);
     void reset(STATE);
     String* drain(STATE);
     char* byte_address();

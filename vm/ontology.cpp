@@ -257,6 +257,9 @@ namespace rubinius {
     IO* out_io = IO::create(state, fileno(stdout));
     IO* err_io = IO::create(state, fileno(stderr));
 
+    out_io->sync(state, Qtrue);
+    err_io->sync(state, Qtrue);
+
     in_io->force_read_only(state);
     out_io->force_write_only(state);
     err_io->force_write_only(state);
