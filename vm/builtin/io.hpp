@@ -96,7 +96,7 @@ namespace rubinius {
 
   class IOBuffer : public Object {
   public:
-    const static size_t fields = 6;
+    const static size_t fields = 7;
     const static object_type type = IOBufferType;
 
   private:
@@ -106,6 +106,7 @@ namespace rubinius {
     Integer* used_;       // slot
     Integer* start_;      // slot
     Object* eof_;         // slot
+    Object* write_synced_;// slot
 
   public:
     /* accessors */
@@ -116,6 +117,7 @@ namespace rubinius {
     attr_accessor(used, Integer);
     attr_accessor(start, Integer);
     attr_accessor(eof, Object);
+    attr_accessor(write_synced, Object);
 
     /* interface */
 
@@ -123,8 +125,8 @@ namespace rubinius {
     // Ruby.primitive :iobuffer_allocate
     static IOBuffer* allocate(STATE);
 
-    // Ruby.primitive :iobuffer_fill_storage
-    Object* fill_storage(STATE, Fixnum* start_self, ByteArray* data, Fixnum* start_data, Fixnum* size);
+    // Ruby.primitive :iobuffer_unshift
+    Object* unshift(STATE, String* str, Fixnum* start_pos);
     void reset(STATE);
     String* drain(STATE);
     char* byte_address();

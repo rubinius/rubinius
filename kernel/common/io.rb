@@ -156,21 +156,6 @@ class IO
     end
 
     ##
-    # Returns the number of bytes that could be written to the buffer.
-    # If the number is less then the expected, then we need to +empty_to+
-    # the IO, and +unshift+ again beginning at +start_pos+.
-    def unshift(str, start_pos = 0)
-      @write_synced = false
-      total_sz = str.size - start_pos
-      total_sz = @total - @start if total_sz > @total - @start
-
-      fill_storage @used, str.data, start_pos, total_sz
-      @used += total_sz
-
-      total_sz
-    end
-
-    ##
     # Returns the number of bytes available in the buffer.
     def size
       @used - @start

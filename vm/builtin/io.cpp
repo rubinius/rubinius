@@ -269,9 +269,21 @@ namespace rubinius {
     return create(state);
   }
 
-  Object* IOBuffer::fill_storage(STATE, Fixnum* start_self, ByteArray* data, Fixnum* start_data, Fixnum* size) {
-    memcpy(storage_->bytes + start_self->to_native(), data->bytes + start_data->to_native(), size->to_native());
-    return Qnil;
+  Object* IOBuffer::unshift(STATE, String* str, Fixnum* start_pos) {
+    write_synced(state, Qfalse);
+    native_int start_pos_native = start_pos->to_native();
+    native_int total_sz = str->size() - start_pos_native;
+    native_int used_native = used_->to_native();
+    native_int available_space = total_->to_native() - used_native;
+
+    if(total_sz > available_space) {
+      total_sz = available_space;
+    }
+
+    memcpy(storage_->bytes + used_native, str->byte_address() + start_pos_native, total_sz);
+    used(state, Fixnum::from(used_native + total_sz));
+
+    return Fixnum::from(total_sz);
   }
 
   void IOBuffer::reset(STATE) {

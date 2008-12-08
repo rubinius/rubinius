@@ -6,9 +6,13 @@ class IO
       raise PrimitiveFailure, "IO::Buffer.allocate primitive failed"
     end
 
-    def fill_storage(start_self, data, start_data, size)
-      Ruby.primitive :iobuffer_fill_storage
-      raise PrimitiveFailure, "IO::Buffer#fill_storage primitive failed"
+    ##
+    # Returns the number of bytes that could be written to the buffer.
+    # If the number is less then the expected, then we need to +empty_to+
+    # the IO, and +unshift+ again beginning at +start_pos+.
+    def unshift(str, start_pos)
+      Ruby.primitive :iobuffer_unshift
+      raise PrimitiveFailure, "IO::Buffer#unshift primitive failed"
     end
   end
 

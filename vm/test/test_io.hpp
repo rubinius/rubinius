@@ -34,7 +34,7 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   void test_iobuffer_fields() {
-    TS_ASSERT_EQUALS(6U, IOBuffer::fields);
+    TS_ASSERT_EQUALS(7U, IOBuffer::fields);
   }
 
   int make_io() {
