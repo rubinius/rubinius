@@ -352,15 +352,15 @@ CODE
   def generate_implementation_info
     str = ""
     size = InstructionSet::OpCodes.size
-    str << "void* implementation(int op) {\n"
-    str << "static void* implementations[] = {\n"
+    str << "const Implementation* implementation(int op) {\n"
+    str << "static Implementation implementations[] = {\n"
     InstructionSet::OpCodes.each do |ins|
-      str << "(void*)op_#{ins.opcode.to_s},\n"
+      str << "{ (void*)op_#{ins.opcode.to_s}, \"op_#{ins.opcode.to_s}\" },\n"
     end
 
-    str << " NULL };\n"
+    str << " { NULL, NULL} };\n"
     str << " if(op >= #{size}) return NULL;\n"
-    str << " return implementations[op]; }\n"
+    str << " return &implementations[op]; }\n"
     str << "Status check_status(int op) {\n"
     str << "static Status check_status[] = {\n"
     methods = decode_methods()

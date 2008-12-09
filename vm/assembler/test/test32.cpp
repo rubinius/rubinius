@@ -478,6 +478,21 @@ void test_bit_and2() {
   cout << "test_bit_and: reg and address ok!\n";
 }
 
+void test_bit_and3() {
+  AssemblerX86 a;
+  a.bit_and(eax, ecx);
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Iand);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_EAX);
+
+  assert_op(1, type, UD_OP_REG);
+  assert_op(1, base, UD_R_ECX);
+
+  delete ud;
+  cout << "test_bit_and: reg and reg ok!\n";
+}
+
 void test_test1() {
   AssemblerX86 a;
   a.test(eax, esi);
@@ -530,8 +545,101 @@ void test_call2() {
   assert_op(0, base, UD_NONE);
   assert_op(0, lval.udword, (uintptr_t)puts - (uintptr_t)a.pc());
 
+  void* addr = (void*)((uint8_t*)a.pc() - 4);
+  Relocation* rel = a.find_relocation(addr);
+  assert(rel);
+  assert(rel->kind() == Relocation::Relative);
+  assert(rel->address() == (void*)puts);
+
   delete ud;
   cout << "test_call: imm ok!\n";
+}
+
+void test_call3() {
+  AssemblerX86 a;
+  a.call((void*)0x47, "puts");
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Icall);
+  assert_op(0, type, UD_OP_JIMM);
+  assert_op(0, base, UD_NONE);
+  assert_op(0, lval.udword, 0x47 - (uintptr_t)a.pc());
+
+  void* addr = (void*)((uint8_t*)a.pc() - 4);
+  Relocation* rel = a.find_relocation(addr);
+  assert(rel);
+  assert(rel->kind() == Relocation::Relative);
+  assert(rel->target_kind() == Relocation::Symbol);
+  assert(rel->symbol() == std::string("puts"));
+  assert(rel->address() == (void*)0x47);
+
+  rel->resolve_and_write();
+  assert(rel->address() == (void*)puts);
+  ud = a.disassemble();
+  assert_kind(UD_Icall);
+  assert_op(0, type, UD_OP_JIMM);
+  assert_op(0, base, UD_NONE);
+  assert_op(0, lval.udword, (uintptr_t)puts - (uintptr_t)a.pc());
+
+  delete ud;
+  cout << "test_call: symbol ok!\n";
+}
+
+void test_jump1_multiple() {
+  AssemblerX86 a;
+  AssemblerX86::NearJumpLocation label;
+  a.set_label(label);
+  a.jump(label);
+  a.nop();
+  a.jump(label);
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Ijmp);
+  assert_op(0, type, UD_OP_JIMM);
+  assert_op(0, base, UD_NONE);
+  uintptr_t loc = (uintptr_t)a.buffer() + ud->pc;
+  assert_op(0, lval.udword, (uintptr_t)label.destination() - loc);
+
+  ud_disassemble(ud);
+  assert_kind(UD_Inop);
+
+  ud_disassemble(ud);
+  assert_kind(UD_Ijmp);
+  assert_op(0, type, UD_OP_JIMM);
+  assert_op(0, base, UD_NONE);
+  loc = (uintptr_t)a.buffer() + ud->pc;
+  assert_op(0, lval.udword, (uintptr_t)label.destination() - loc);
+
+  delete ud;
+  cout << "test_jump: multiple sources ok!\n";
+}
+
+void test_jump1_multiple_with_fixup() {
+  AssemblerX86 a;
+  AssemblerX86::NearJumpLocation label;
+  a.jump(label);
+  a.nop();
+  a.jump(label);
+  a.nop();
+  a.set_label(label);
+
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Ijmp);
+  assert_op(0, type, UD_OP_JIMM);
+  assert_op(0, base, UD_NONE);
+  uintptr_t loc = (uintptr_t)a.buffer() + ud->pc;
+  assert_op(0, lval.udword, (uintptr_t)label.destination() - loc);
+
+  ud_disassemble(ud);
+  assert_kind(UD_Inop);
+
+  ud_disassemble(ud);
+  assert_kind(UD_Ijmp);
+  assert_op(0, type, UD_OP_JIMM);
+  assert_op(0, base, UD_NONE);
+  loc = (uintptr_t)a.buffer() + ud->pc;
+  assert_op(0, lval.udword, (uintptr_t)label.destination() - loc);
+
+  delete ud;
+  cout << "test_jump: multiple sources ok!\n";
 }
 
 void test_jump1() {
@@ -546,7 +654,10 @@ void test_jump1() {
   assert_op(0, lval.udword, (uintptr_t)label.destination() - (uintptr_t)a.pc());
 
   delete ud;
-  cout << "test_jump: imm ok!\n";
+  cout << "test_jump: label ok!\n";
+
+  test_jump1_multiple();
+  test_jump1_multiple_with_fixup();
 }
 
 void test_jump2() {
@@ -559,6 +670,25 @@ void test_jump2() {
 
   delete ud;
   cout << "test_jump: reg ok!\n";
+}
+
+void test_jump3() {
+  AssemblerX86 a;
+  a.jump((void*)puts);
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Ijmp);
+  assert_op(0, type, UD_OP_JIMM);
+  assert_op(0, base, UD_NONE);
+  assert_op(0, lval.udword, (uintptr_t)puts - (uintptr_t)a.pc());
+
+  void* addr = (void*)((uint8_t*)a.pc() - 4);
+  Relocation* rel = a.find_relocation(addr);
+  assert(rel);
+  assert(rel->kind() == Relocation::Relative);
+  assert(rel->address() == (void*)puts);
+
+  delete ud;
+  cout << "test_jump: absolute ok!\n";
 }
 
 void test_jump_if_equal() {
@@ -881,12 +1011,15 @@ int main(int argc, char** argv) {
   test_bit_or2();
   test_bit_and1();
   test_bit_and2();
+  test_bit_and3();
   test_test1();
   test_test2();
   test_call1();
   test_call2();
+  test_call3();
   test_jump1();
   test_jump2();
+  test_jump3();
   test_jump_if_equal();
   test_jump_if_not_equal();
   test_jump_if_overflow();

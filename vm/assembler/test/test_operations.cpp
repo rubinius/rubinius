@@ -204,7 +204,7 @@ void test_check_both_fixnum() {
 
   ud_disassemble(ud);
 
-  assert_kind(UD_Ior);
+  assert_kind(UD_Iand);
   assert_op(0, type, UD_OP_REG);
   assert_op(0, base, UD_R_ECX);
 
@@ -214,17 +214,7 @@ void test_check_both_fixnum() {
 
   ud_disassemble(ud);
 
-  assert_kind(UD_Iand);
-  assert_op(0, type, UD_OP_REG);
-  assert_op(0, base, UD_R_ECX);
-
-  assert_op(1, type, UD_OP_IMM);
-  assert_op(1, base, UD_NONE);
-  assert_op(1, lval.udword, TAG_MASK);
-
-  ud_disassemble(ud);
-
-  assert_kind(UD_Icmp);
+  assert_kind(UD_Itest);
   assert_op(0, type, UD_OP_REG);
   assert_op(0, base, UD_R_ECX);
 
@@ -432,7 +422,7 @@ void test_call_operation1() {
   StackOperations s(a, esi);
   ObjectOperations ops(s);
 
-  ops.call_operation((void*)&test_op1);
+  ops.call_operation((void*)&test_op1, "test_op1");
   ud_t *ud = a.disassemble();
 
   assert_kind(UD_Icall);
@@ -448,7 +438,7 @@ void test_call_operation2() {
   StackOperations s(a, esi);
   ObjectOperations ops(s);
 
-  ops.call_operation((void*)&test_op1, 0x47);
+  ops.call_operation((void*)&test_op1, "test_op1", 0x47);
   ud_t *ud = a.disassemble();
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_MEM);
@@ -463,7 +453,7 @@ void test_call_operation2() {
   assert_kind(UD_Icall);
   assert_op(0, type, UD_OP_JIMM);
   assert_op(0, base, UD_NONE);
-  assert_op(0, lval.udword, (uintptr_t)test_op1- (uintptr_t)a.pc());
+  assert_op(0, lval.udword, (uintptr_t)test_op1 - (uintptr_t)a.pc());
 
   delete ud;
   cout << "test_call_operation: one arg ok!\n";
@@ -474,7 +464,7 @@ void test_call_operation3() {
   StackOperations s(a, esi);
   ObjectOperations ops(s);
 
-  ops.call_operation((void*)&test_op1, 0x47, 0x22);
+  ops.call_operation((void*)&test_op1, "test_op1", 0x47, 0x22);
   ud_t *ud = a.disassemble();
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_MEM);

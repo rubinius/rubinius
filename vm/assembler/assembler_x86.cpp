@@ -48,4 +48,34 @@ namespace assembler_x86 {
     ud_disassemble(ud);
     return ud;
   }
+
+  void AssemblerX86::show_relocations() {
+    std::cout << "Relocations:\n";
+    for(Relocations::iterator i = relocations_.begin();
+        i != relocations_.end();
+        i++) {
+      std::cout << i->first << ": ";
+      std::cout << "address=" << i->second->address();
+      switch(i->second->kind()) {
+        std::cout << " absolute";
+        break;
+      case Relocation::Relative:
+        std::cout << " relative";
+        break;
+      case Relocation::LocalAbsolute:
+        std::cout << " local";
+        break;
+      }
+
+      switch(i->second->target_kind()) {
+      case Relocation::Absolute:
+        break;
+      case Relocation::Symbol:
+        std::cout << " symbol='" << i->second->symbol() << "'";
+        break;
+      }
+
+      std::cout << "\n";
+    }
+  }
 }

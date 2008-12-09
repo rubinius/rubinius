@@ -3,7 +3,12 @@
 
 namespace rubinius {
   namespace instructions {
-    void* implementation(int op);
+    struct Implementation {
+      void* address;
+      const char* name;
+    };
+
+    const Implementation* implementation(int op);
 
     enum Status {
       Unchanged,

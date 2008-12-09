@@ -92,9 +92,8 @@ namespace operations {
       Register& scratch = ecx;
 
       s.load_nth(scratch, 0);
-      s.assembler().bit_or(scratch, s.position(1));
-      s.assembler().bit_and(scratch, TAG_MASK);
-      s.assembler().cmp(scratch, TAG_FIXNUM);
+      s.assembler().bit_and(scratch, s.position(1));
+      s.assembler().test(scratch, TAG_FIXNUM);
       s.assembler().jump_if_not_equal(are_not);
     }
 
@@ -148,21 +147,35 @@ namespace operations {
       s.assembler().epilogue();
     }
 
-    void call_operation(void* func) {
-      s.assembler().call(func);
+    // Attempts to call +func+ as a symbol.
+    void call_via_symbol(void* func) {
+      Dl_info info;
+      if(!dladdr(func, &info)) {
+        throw std::runtime_error("Unable to find symbol");
+      }
+
+      if(!info.dli_sname || info.dli_saddr != func) {
+        throw std::runtime_error("Unable to resolve symbol properly");
+      }
+
+      s.assembler().call(func, info.dli_sname);
     }
 
-    void call_operation(void* func, int arg) {
+    void call_operation(void* func, const char* name) {
+      s.assembler().call(func, name);
+    }
+
+    void call_operation(void* func, const char* name, int arg) {
       AssemblerX86 &a = s.assembler();
       a.mov(a.address(esp, 16), arg);
-      a.call(func);
+      a.call(func, name);
     }
 
-    void call_operation(void* func, int arg, int arg2) {
+    void call_operation(void* func, const char* name, int arg, int arg2) {
       AssemblerX86 &a = s.assembler();
       a.mov(a.address(esp, 16), arg);
       a.mov(a.address(esp, 20), arg2);
-      a.call(func);
+      a.call(func, name);
     }
 
     void store_mc_field(Register& reg, int pos) {

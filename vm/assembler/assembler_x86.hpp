@@ -2,6 +2,9 @@
 #define RBX_ASSEMBLER_X86
 
 #include <iostream>
+#include <vector>
+#include <map>
+#include <string>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -42,8 +45,120 @@ namespace assembler_x86 {
   extern Register no_reg;
   extern Register no_base;
 
-  class AssemblerX86 : public assembler::Assembler {
+  class Relocation {
+  public: // Types
+    enum Kind {
+      Relative,
+      LocalAbsolute
+    };
+
+    enum TargetKind {
+      Absolute,
+      Symbol
+    };
+
+  private:
+    Kind  kind_;
+    void* instruction_location_;
+    void* address_;
+    int   offset_;
+    TargetKind target_kind_;
+    std::string* symbol_;
+
   public:
+
+    Relocation(Kind kind, void* insn, void* address, int offset = 4)
+      : kind_(kind)
+      , instruction_location_(insn)
+      , address_(address)
+      , offset_(offset)
+      , target_kind_(Absolute)
+      , symbol_(0)
+    { }
+
+    Kind kind() {
+      return kind_;
+    }
+
+    TargetKind target_kind() {
+      return target_kind_;
+    }
+
+    void* instruction_location() {
+      return instruction_location_;
+    }
+
+    void* address() {
+      return address_;
+    }
+
+    intptr_t value() {
+      intptr_t insn = reinterpret_cast<intptr_t>(instruction_location_);
+      intptr_t val = reinterpret_cast<intptr_t>(address_);
+      if(kind_ == Relative) {
+        val -= (insn + offset_);
+      }
+
+      return val;
+    }
+
+    // Write the relocation out to memory
+    void write() {
+      intptr_t* write_to = reinterpret_cast<intptr_t*>(instruction_location_);
+      *write_to = value();
+    }
+
+    void references_symbol(const char* name) {
+      if(symbol_) delete symbol_;
+      symbol_ = new std::string(name);
+      target_kind_ = Symbol;
+    }
+
+    std::string& symbol() {
+      return *symbol_;
+    }
+
+    static void* resolve_symbol(std::string& str) {
+      return dlsym(RTLD_DEFAULT, str.c_str());
+    }
+
+    void resolve_and_write() {
+      if(target_kind_ == Symbol) {
+        if(!symbol_) {
+          std::cout << "Symbol relocation setup, but no symbol present!\n";
+          return;
+        }
+
+        void* new_addr = Relocation::resolve_symbol(*symbol_);
+        if(new_addr) {
+          address_ = new_addr;
+        } else {
+          std::cout << "Unable to resolve symbol '" << *symbol_ << "': "
+                    << dlerror() << "\n";
+        }
+      }
+
+      write();
+    }
+
+    void adjust_base(void* old_base, void* new_base) {
+      intptr_t ob = reinterpret_cast<intptr_t>(old_base);
+      intptr_t nb = reinterpret_cast<intptr_t>(new_base);
+
+      instruction_location_ = reinterpret_cast<void*>(
+        nb + (reinterpret_cast<intptr_t>(instruction_location_) - ob));
+
+      if(kind_ == Relocation::LocalAbsolute) {
+        intptr_t diff = reinterpret_cast<intptr_t>(address_) - ob;
+        address_ = reinterpret_cast<void*>(nb + diff);
+      }
+    }
+  };
+
+  typedef std::map<void*, Relocation*> Relocations;
+
+  class AssemblerX86 : public assembler::Assembler {
+  public: // Types
     // See http://wiki.osdev.org/X86_Instruction_Encoding
     // for info on how the mod bits are interpretted
     enum ModType {
@@ -58,6 +173,9 @@ namespace assembler_x86 {
     };
 
   private:
+
+    Relocations relocations_;
+
     const static int AddOperation = 0;
     const static int SubOperation = 5;
     const static int CompareOperation = 7;
@@ -74,6 +192,30 @@ namespace assembler_x86 {
 
   public:
     AssemblerX86() : Assembler() { }
+    AssemblerX86(uint8_t* buffer, AssemblerX86 &other)
+      : Assembler(buffer)
+    {
+      memcpy(buffer, other.buffer(), other.used_bytes());
+      for(Relocations::iterator i = other.relocations_.begin();
+          i != other.relocations_.end();
+          i++) {
+        Relocation* rel = new Relocation(*i->second);
+        rel->adjust_base(other.buffer(), buffer);
+        relocations_[rel->instruction_location()] = rel;
+
+        rel->resolve_and_write();
+      }
+
+      pc_ = buffer + other.used_bytes();
+    }
+
+    ~AssemblerX86() {
+      for(Relocations::iterator i = relocations_.begin();
+          i != relocations_.end();
+          i++) {
+        delete i->second;
+      }
+    }
 
     class Address {
       Register& base_;
@@ -94,6 +236,15 @@ namespace assembler_x86 {
 
     Address address(Register &r, int o = 0) {
       return Address(r, o);
+    }
+
+    // Relocation
+    Relocation* find_relocation(void* address) {
+      return relocations_[address];
+    }
+
+    void add_relocation(void* addr, Relocation* rel) {
+      relocations_[addr] = rel;
     }
 
     // Data movement
@@ -188,6 +339,10 @@ namespace assembler_x86 {
       emit(0x8d);
       emit_modrm(Mod32Displacement, dest.code(), base.code());
       emit_w(offset);
+    }
+
+    void nop() {
+      emit(0x90);
     }
 
     // Function setup/teardown
@@ -285,6 +440,11 @@ namespace assembler_x86 {
       emit_w(addr.offset());
     }
 
+    void bit_and(Register &dst, Register &reg) {
+      emit(0x23);
+      emit_modrm(ModReg2Reg, dst.code(), reg.code());
+    }
+
     // Testing
 
     void test(Register &lhs, Register &rhs) {
@@ -307,47 +467,87 @@ namespace assembler_x86 {
 
     void call(void* func) {
       emit(0xe8);
-      uint8_t* addr = (uint8_t*)func;
-      emit_w(addr - (pc_ + sizeof(uint32_t)));
+      void* position = (void*)pc_;
+      emit_w(0); // save the space
+
+      Relocation* rel = new Relocation(Relocation::Relative, position, func);
+      relocations_[position] = rel;
+
+      rel->write();
+    }
+
+    // Used for calling to a symbol that may need to be fixed up
+    // via dlsym() later.
+    void call(void* func, const char* name) {
+      emit(0xe8);
+      void* position = (void*)pc_;
+      emit_w(0); // save the space
+
+      Relocation* rel = new Relocation(Relocation::Relative, position, func);
+      rel->references_symbol(name);
+
+      relocations_[position] = rel;
+
+      rel->write();
+
     }
 
     // Jump
 
+    typedef std::vector<uint8_t*> Locations;
+
     class NearJumpLocation {
-      uint8_t *pc_;
+      Locations *fixups_;
       uint8_t *destination_;
 
     public:
 
-      NearJumpLocation() : pc_(0), destination_(0) { }
+      NearJumpLocation() : fixups_(0), destination_(0) { }
 
-      void set_pc(uint8_t *pc) {
-        pc_ = pc;
+      Locations& fixups() {
+        return *fixups_;
       }
-
-      uint8_t* pc() { return pc_; }
 
       void set_destination(uint8_t *dest) {
         destination_ = dest;
+
+        if(!fixups_) return;
+
+        for(Locations::iterator i = fixups_->begin();
+            i != fixups_->end();
+            i++) {
+          *reinterpret_cast<uint32_t*>(*i) = dest - (*i + 4);
+        }
+
+        // We're done with the fixups, get rid of them.
+        delete fixups_;
+        fixups_ = 0;
       }
 
       uint8_t *destination() {
         return destination_;
       }
 
-      int operand() {
-        if(destination_ == 0) return 0;
+      bool bound_p() {
+        return destination_ != 0;
+      }
+
+      int operand(uint8_t* location) {
+        if(!bound_p()) {
+          if(!fixups_) fixups_ = new Locations;
+          fixups_->push_back(location);
+          return 0;
+        }
         // The 4 here is because thats the size of the operand
         // is 4 bytes and  EIP points to the next instruction
         // when jump runs
-        return destination_ - (pc_ + 4);
+        return destination_ - (location + 4);
       }
     };
 
     void jump(NearJumpLocation& loc) {
       emit(0xe9);
-      loc.set_pc(pc_);
-      emit_w(loc.operand());
+      emit_w(loc.operand(pc_));
     }
 
     void jump(Register &reg) {
@@ -355,33 +555,37 @@ namespace assembler_x86 {
       emit_modrm(ModReg2Reg, 4, reg.code());
     }
 
+    void jump(void* address) {
+      emit(0xe9);
+      void* position = (void*)pc_;
+      emit_w(0); // save the space
+
+      Relocation* rel = new Relocation(Relocation::Relative, position, address);
+      relocations_[position] = rel;
+
+      rel->write();
+    }
+
     void jump_if_equal(NearJumpLocation& loc) {
       emit(0x0f);
       emit(0x84);
-      loc.set_pc(pc_);
-      emit_w(loc.operand());
+      emit_w(loc.operand(pc_));
     }
 
     void jump_if_not_equal(NearJumpLocation& loc) {
       emit(0x0f);
       emit(0x85);
-      loc.set_pc(pc_);
-      emit_w(loc.operand());
+      emit_w(loc.operand(pc_));
     }
 
     void jump_if_overflow(NearJumpLocation& loc) {
       emit(0x0f);
       emit(0x80);
-      loc.set_pc(pc_);
-      emit_w(loc.operand());
+      emit_w(loc.operand(pc_));
     }
 
     void set_label(NearJumpLocation& loc) {
       loc.set_destination(pc_);
-
-      if(loc.pc() != NULL) {
-        emit_at_w(loc.pc(), loc.operand());
-      }
     }
 
     class InstructionDisplacement {
@@ -532,6 +736,7 @@ namespace assembler_x86 {
     // Disassembling
     void show();
     ud_t* disassemble();
+    void show_relocations();
   };
 
 }

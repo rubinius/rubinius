@@ -48,6 +48,11 @@ namespace assembler {
       pc_ = buffer_;
     }
 
+    Assembler(uint8_t* buffer)
+      : buffer_(buffer)
+      , pc_(buffer)
+    { }
+
     ~Assembler() {
       delete buffer_;
     }
@@ -58,6 +63,10 @@ namespace assembler {
 
     void* pc() {
       return (void*)pc_;
+    }
+
+    int used_bytes() {
+      return pc_ - buffer_;
     }
   };
 }
