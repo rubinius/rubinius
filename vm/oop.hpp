@@ -67,9 +67,13 @@ to be a simple test for that bit pattern.
 
 /* NOTE ALSO! the special clases array uses this bit pattern, so
  * if you change this, be sure to update the special class array! */
+const int cFalse = 0x0aL;
 #define Qfalse ((Object*)0x0aL)
+const int cNil   = 0x1aL;
 #define Qnil   ((Object*)0x1aL)
+const int cTrue  = 0x12L;
 #define Qtrue  ((Object*)0x12L)
+const int cUndef = 0x22L;
 #define Qundef ((Object*)0x22L)
 
 // Indicates the mask to use to check if a value is ruby false.

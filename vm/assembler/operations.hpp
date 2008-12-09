@@ -224,8 +224,8 @@ namespace operations {
     // jump to +lbl+
     void jump_if_true(Register& reg, AssemblerX86::NearJumpLocation& lbl) {
       AssemblerX86 &a = s.assembler();
-      a.bit_and(reg, 0x7); // 0x7 is the common mask for both nil and false
-      a.cmp(reg, 0x6);     // both nil and false have 0x6 in the low 3 bits
+      a.bit_and(reg, FALSE_MASK); // the common mask for both nil and false
+      a.cmp(reg, rubinius::cFalse);     // both nil and false have Qfalse in the low 3 bits
       a.jump_if_not_equal(lbl);
     }
 
@@ -233,8 +233,8 @@ namespace operations {
     // jump to +lbl+
     void jump_if_false(Register& reg, AssemblerX86::NearJumpLocation& lbl) {
       AssemblerX86 &a = s.assembler();
-      a.bit_and(reg, 0x7); // 0x7 is the common mask for both nil and false
-      a.cmp(reg, 0x6);     // both nil and false have 0x6 in the low 3 bits
+      a.bit_and(reg, FALSE_MASK); // common mask for both nil and false
+      a.cmp(reg, rubinius::cFalse);    // both nil and false have Qfalse in the low 3 bits
       a.jump_if_equal(lbl);
     }
   };
