@@ -9,15 +9,16 @@ module ObjectSpace
     emit_subclasses(Object, block)
   end
   
-  def self.emit_subclasses(start, prc)
-    subs = start.__subclasses__
+  def self.emit_subclasses(start, prc, skip_list = [])
+    subs = start.__subclasses__ - skip_list
+    skip_list += subs
     return 0 unless subs
     count = 0
     
     subs.each do |c|
       count += 1
       prc.call(c)
-      count += emit_subclasses(c, prc)
+      count += emit_subclasses(c, prc, skip_list)
     end
     
     return count
