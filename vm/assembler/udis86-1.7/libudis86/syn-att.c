@@ -46,13 +46,22 @@ gen_operand(struct ud* u, struct ud_operand* op)
 			if (op->lval.sbyte < 0)
 				mkasm(u, "-0x%x", (-op->lval.sbyte) & 0xff);
 			else	mkasm(u, "0x%x", op->lval.sbyte);
-		} 
-		else if (op->offset == 16) 
-			mkasm(u, "0x%x", op->lval.uword);
-		else if (op->offset == 32) 
-			mkasm(u, "0x%lx", op->lval.udword);
-		else if (op->offset == 64) 
-			mkasm(u, "0x" FMT64 "x", op->lval.uqword);
+		}
+		else if (op->offset == 16) {
+      if(!op->base || op->lval.uword > 0) {
+  			mkasm(u, "0x%x", op->lval.uword);
+      }
+    }
+		else if (op->offset == 32) {
+      if(!op->base || op->lval.udword > 0) {
+			  mkasm(u, "0x%lx", op->lval.udword);
+      }
+    }
+		else if (op->offset == 64) {
+      if(!op->base || op->lval.uqword > 0) {
+			  mkasm(u, "0x" FMT64 "x", op->lval.uqword);
+      }
+    }
 
 		if (op->base)
 			mkasm(u, "(%%%s", ud_reg_tab[op->base - UD_R_AL]);
