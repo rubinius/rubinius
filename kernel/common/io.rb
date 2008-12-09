@@ -1342,7 +1342,7 @@ class IO
   # See also IO#fsync.
   def sync=(v)
     ensure_open
-    @sync = (v == true)
+    @sync = (v and true)
   end
 
   ##
