@@ -9,3 +9,5 @@ module Readline
     Readline.perform_readline(prompt, add_hist)
   end
 end
+
+Readline::HISTORY.extend Enumerable
