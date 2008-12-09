@@ -71,15 +71,15 @@ class TestLookupTable : public CxxTest::TestSuite {
     tbl->store(state, k3, v3);
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 3);
 
-    Tuple* entry = tbl->find_entry(state, k1);
-    TS_ASSERT(entry);
+    LookupTableBucket* entry = tbl->find_entry(state, k1);
+    TS_ASSERT(entry != Qnil);
 
-    TS_ASSERT(!entry->at(state, 2)->nil_p());
-    TS_ASSERT_EQUALS(as<Tuple>(entry->at(state, 2))->at(state, 0), k2);
+    TS_ASSERT(entry->next() != Qnil);
+    TS_ASSERT_EQUALS(entry->next()->key(), k2);
 
     entry = tbl->find_entry(state, k3);
-    TS_ASSERT(!entry->nil_p());
-    TS_ASSERT_EQUALS(entry->at(state, 0), k3);
+    TS_ASSERT(entry != Qnil);
+    TS_ASSERT_EQUALS(entry->key(), k3);
   }
 
   void test_store_resizes_table() {
@@ -121,11 +121,13 @@ class TestLookupTable : public CxxTest::TestSuite {
     Object* k = Fixnum::from(47);
     tbl->store(state, k, Qtrue);
 
-    Tuple* entry = tbl->find_entry(state, k);
-    TS_ASSERT_EQUALS(k, entry->at(state, 0));
+    LookupTableBucket* entry = tbl->find_entry(state, k);
+    TS_ASSERT(entry != Qnil);
+    TS_ASSERT_EQUALS(entry->key(),k);
+    TS_ASSERT_EQUALS(entry->value(),Qtrue);
 
     entry = tbl->find_entry(state, Fixnum::from(40));
-    TS_ASSERT(!entry);
+    TS_ASSERT(entry == Qnil);
   }
 
   void test_find() {

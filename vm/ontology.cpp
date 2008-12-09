@@ -57,8 +57,8 @@ namespace rubinius {
        recursion. */
     Class *cls = (Class*)om->allocate_object(Class::fields);
 
-    /* We create these 7 classes in a particular way and in a particular
-     * order. We need all 7 to create fully initialized Classes and
+    /* We create these 8 classes in a particular way and in a particular
+     * order. We need all 8 to create fully initialized Classes and
      * Modules, so we just create them all uninitialized, then initialize
      * them all at once */
 
@@ -96,6 +96,10 @@ namespace rubinius {
     GO(lookuptable).set(new_basic_class(object, LookupTable::fields));
     G(lookuptable)->set_object_type(state, LookupTableType);
 
+    /* Create LookupTableBucket */
+    GO(lookuptablebucket).set(new_basic_class(object, LookupTableBucket::fields));
+    G(lookuptablebucket)->set_object_type(state, LookupTableBucketType);
+
     /* Create MethodTable */
     GO(methtbl).set(new_basic_class(G(lookuptable), MethodTable::fields));
     G(methtbl)->set_object_type(state, MethodTableType);
@@ -107,9 +111,10 @@ namespace rubinius {
      *  Object
      *  Tuple
      *  LookupTable
+     *  LookupTableBucket
      *  MethodTable
      *
-     *  With these 7 in place, we can now create fully initialized classes
+     *  With these 8 in place, we can now create fully initialized classes
      *  and modules. */
 
     /* Hook up the MetaClass protocols.
@@ -123,9 +128,10 @@ namespace rubinius {
     MetaClass::attach(this, G(metaclass), cls->metaclass(this));
     MetaClass::attach(this, G(tuple), G(object)->metaclass(this));
     MetaClass::attach(this, G(lookuptable), G(object)->metaclass(this));
+    MetaClass::attach(this, G(lookuptablebucket), G(object)->metaclass(this));
     MetaClass::attach(this, G(methtbl), G(lookuptable)->metaclass(this));
 
-    // Now, finish initializing the special 7
+    // Now, finish initializing the special 8
     G(object)->setup(this, "Object");
     G(klass)->setup(this, "Class");
     G(module)->setup(this, "Module");
@@ -133,6 +139,7 @@ namespace rubinius {
     G(tuple)->setup(this, "Tuple");
     G(lookuptable)->setup(this, "LookupTable");
     G(methtbl)->setup(this, "MethodTable");
+    G(lookuptablebucket)->setup(this, "Bucket", G(lookuptable));
   }
 
   void VM::initialize_builtin_classes() {

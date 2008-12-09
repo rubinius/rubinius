@@ -19,7 +19,8 @@
 #   end
 #
 #   l[:a] = 1
-#   l.show  # => #<Tuple: nil, ..., nil, #<Tuple: :a, 1, nil>, nil, nil, nil>
+#   l.show  # => #<Tuple: nil, ..., nil, #<Bucket: @key=>:a, @value=>1,
+#                         @next=>nil>, nil, nil, nil>
 #
 # where ... is ten "nil, " entries. This only works for Objects that
 # are tagged data (see e.g. shotgun/lib/oop.h). This will NOT work with
@@ -30,6 +31,12 @@
 # used generally like Hash.
 
 class LookupTable
+  class Bucket
+    def key;   @key   ; end
+    def value; @value ; end
+    def next;  @next  ; end
+  end
+
   def values;  @values  ; end
   def bins;    @bins    ; end
   def size;    @entries ; end
@@ -99,7 +106,7 @@ class LookupTable
     total = ents.start + ents.total
     while i < total
       entry = ents[i]
-      yield [entry.at(0), entry.at(1)]
+      yield [entry.key, entry.value]
       i += 1
     end
     self

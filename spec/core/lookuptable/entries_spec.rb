@@ -6,8 +6,8 @@ describe "LookupTable#entries" do
   end
 
   it "returns an Array of the entries in the LookupTable" do
-    entries = @lt.entries.sort { |a, b| a[0].to_s <=> b[0].to_s }
-    entries.collect { |e| e[0] }.should == [:a, :b, :c]
-    entries.collect { |e| e[1] }.should == [1, 2, 3]
+    entries = @lt.entries.sort { |a, b| a.key.to_s <=> b.key.to_s }
+    entries.collect { |e| e.key }.should == [:a, :b, :c]
+    entries.collect { |e| e.value }.should == [1, 2, 3]
   end
 end

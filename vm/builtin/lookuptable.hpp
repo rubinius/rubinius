@@ -5,8 +5,32 @@
 #include "type_info.hpp"
 
 namespace rubinius {
+
   class Tuple;
   class Array;
+
+  class LookupTableBucket : public Object {
+  public:
+    const static size_t fields = 3;
+    const static object_type type = LookupTableBucketType;
+  private:
+    Object *key_;   // slot
+    Object *value_; // slot
+    LookupTableBucket *next_;  // slot
+  public:
+    attr_accessor(key, Object);
+    attr_accessor(value, Object);
+    attr_accessor(next, LookupTableBucket);
+
+    static LookupTableBucket* create(STATE, Object* key, Object* value);
+
+    Object* append(STATE, LookupTableBucket *nxt);
+
+    class Info : public TypeInfo {
+    public:
+      BASIC_TYPEINFO(TypeInfo)
+    };
+  };
 
   #define LOOKUPTABLE_MIN_SIZE 16
   class LookupTable : public Object {
@@ -49,23 +73,21 @@ namespace rubinius {
 
     // Ruby.primitive :lookuptable_dup
     LookupTable* dup(STATE);
-    static Object* entry_new(STATE, Object* key, Object* val);
-    static Object* entry_append(STATE, Tuple* top, Object* nxt);
     void   redistribute(STATE, size_t size);
-    Tuple* find_entry(STATE, Object* key);
+    LookupTableBucket* find_entry(STATE, Object* key);
     Object* find(STATE, Object* key);
     // Ruby.primitive :lookuptable_delete
     Object* remove(STATE, Object* key);
     // Ruby.primitive :lookuptable_has_key
     Object* has_key(STATE, Object* key);
-    static Array* collect(STATE, LookupTable* tbl, Object* (*action)(STATE, Tuple*));
-    static Object* get_key(STATE, Tuple* entry);
+    static Array* collect(STATE, LookupTable* tbl, Object* (*action)(STATE, LookupTableBucket*));
+    static Object* get_key(STATE, LookupTableBucket* entry);
     // Ruby.primitive :lookuptable_keys
     Array* all_keys(STATE);
-    static Object* get_value(STATE, Tuple* entry);
+    static Object* get_value(STATE, LookupTableBucket* entry);
     // Ruby.primitive :lookuptable_values
     Array* all_values(STATE);
-    static Object* get_entry(STATE, Tuple* entry);
+    static Object* get_entry(STATE, LookupTableBucket* entry);
     // Ruby.primitive :lookuptable_entries
     Array* all_entries(STATE);
 
@@ -75,7 +97,6 @@ namespace rubinius {
       virtual void show(STATE, Object* self, int level);
     };
   };
-
 };
 
 #endif
