@@ -24,6 +24,7 @@
 .load_order.txt
 .spec/bm.yml
 /rubinius_tasks.dot
+/nbproject
 CI-specs
 COMMIT
 TAGS
