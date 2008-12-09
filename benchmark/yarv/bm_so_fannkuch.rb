@@ -40,6 +40,6 @@ end
 def puts *args
 end
 
-N = 8 # (ARGV[0] || 1).to_i
+N = 10 # (ARGV[0] || 1).to_i
 puts "Pfannkuchen(#{N}) = #{fannkuch(N)}"
 
