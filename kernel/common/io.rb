@@ -136,6 +136,7 @@ class IO
 
     def unseek!(io)
       # Unseek the still buffered amount
+      return unless write_synced?
       unless empty?
         io.prim_seek(@start - @used, IO::SEEK_CUR)
       end
@@ -1353,16 +1354,22 @@ class IO
   #  f = File.new("testfile")
   #  f.sysread(16)   #=> "This is line one"
   def sysread(size, buffer = nil)
+    flush
+    raise IOError unless @ibuffer.empty?
     raise ArgumentError, 'negative string size' unless size >= 0
-    ensure_open
 
-    buffer = "\0" * size unless buffer
+    buffer = StringValue buffer if buffer
 
     chan = Channel.new
-    Scheduler.send_on_readable chan, self, buffer, size
-    raise EOFError if chan.receive.nil?
+    Scheduler.send_on_readable chan, self, nil, size
+    # waits until stream is ready for reading
+    chan.receive
+    str = blocking_read size
+    raise EOFError if str.nil?
 
-    buffer
+    buffer.replace str if buffer
+
+    str
   end
 
   ##
@@ -1374,7 +1381,15 @@ class IO
   #  f.sysread(10)                  #=> "And so on."
   def sysseek(amount, whence=SEEK_SET)
     ensure_open
-    Platform::POSIX.lseek(@descriptor, amount, whence)
+    if @ibuffer.write_synced?
+      raise IOError unless @ibuffer.empty?
+    else
+      Rubinius.warn 'sysseek for buffered IO'
+    end
+
+    amount = Integer(amount)
+
+    prim_seek amount, whence
   end
 
   def to_io
@@ -1425,7 +1440,7 @@ class IO
 
     ensure_open_and_writable
 
-    @ibuffer.unseek! self if @ibuffer.write_synced?
+    @ibuffer.unseek! self
     bytes_to_write = data.size
     while bytes_to_write > 0
       bytes_to_write -= @ibuffer.unshift(data, data.size - bytes_to_write)
@@ -1440,6 +1455,7 @@ class IO
     return 0 if data.length == 0
 
     ensure_open_and_writable
+    @ibuffer.unseek! self
 
     prim_write(data)
   end
