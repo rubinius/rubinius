@@ -23,11 +23,11 @@ namespace rubinius {
   }
 
   Exception* Exception::create(STATE) {
-    return (Exception*)state->new_object(G(exception));
+    return state->new_object<Exception>(G(exception));
   }
 
   Exception* Exception::make_exception(STATE, Class* exc_class, const char* message) {
-    Exception* exc = (Exception*)state->new_object(exc_class);
+    Exception* exc = state->new_object<Exception>(exc_class);
 
     MethodContext* ctx = G(current_task)->active();
     ctx->reference(state);
@@ -123,7 +123,7 @@ namespace rubinius {
   }
 
   Exception* Exception::make_errno_exception(STATE, Class* exc_class, Object* reason) {
-    Exception* exc = (Exception*)state->new_object(exc_class);
+    Exception* exc = state->new_object<Exception>(exc_class);
 
     MethodContext* ctx = G(current_task)->active();
     ctx->reference(state);

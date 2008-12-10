@@ -11,7 +11,7 @@ namespace rubinius {
   }
 
   InstructionSequence* InstructionSequence::create(STATE, size_t instructions) {
-    InstructionSequence* is = (InstructionSequence*)state->new_object(G(iseq));
+    InstructionSequence* is = state->new_object<InstructionSequence>(G(iseq));
     is->opcodes(state, Tuple::create(state, instructions));
     return is;
   }

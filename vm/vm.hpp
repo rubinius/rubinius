@@ -98,7 +98,20 @@ namespace rubinius {
     void initialize_platform_data();
     void boot_threads();
 
-    Object* new_object(Class* cls);
+    Object* new_object_typed(Class* cls, size_t bytes, object_type type);
+    Object* new_object_from_type(Class* cls, TypeInfo* ti);
+
+    template <class T>
+      T* new_object(Class *cls) {
+        return reinterpret_cast<T*>(new_object_typed(cls, sizeof(T), T::type));
+      }
+
+    template <class T>
+      T* new_struct(Class* cls, size_t bytes = 0) {
+        T* obj = reinterpret_cast<T*>(new_object_typed(cls, sizeof(T) + bytes, T::type));
+        obj->init_bytes();
+        return obj;
+      }
 
     // Create an uninitialized Class object
     Class* new_basic_class(Class* sup, size_t fields);
@@ -121,7 +134,6 @@ namespace rubinius {
     Class* new_class_under(const char* name, Module* under);
 
     Module* new_module(const char* name, Module* under = NULL);
-    Object* new_struct(Class* cls, size_t bytes);
     Task* new_task();
 
     Symbol* symbol(const char* str);

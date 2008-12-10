@@ -173,7 +173,7 @@ class TestSubtend : public CxxTest::TestSuite
     Array* control = Array::create(my_state, 10);
 
     for (std::size_t i = 0; i < 10; ++i) {
-      Object* obj = my_state->new_object(my_state->globals.object.get());
+      Object* obj = my_state->new_object<Object>(my_state->globals.object.get());
 
       args->set(my_state, i, obj);
       control->set(my_state, i, obj);
@@ -211,13 +211,13 @@ class TestSubtend : public CxxTest::TestSuite
     Array* control = Array::create(my_state, 10);
 
     for (std::size_t i = 0; i < 10; ++i) {
-      Object* obj = my_state->new_object(my_state->globals.object.get());
+      Object* obj = my_state->new_object<Object>(my_state->globals.object.get());
 
       args->set(my_state, i, obj);
       control->set(my_state, i, obj);
     }
 
-    Object* receiver = my_state->new_object(my_state->globals.object.get());
+    Object* receiver = my_state->new_object<Object>(my_state->globals.object.get());
 
     my_message->recv = receiver;
     my_message->set_arguments(my_state, args);
@@ -253,13 +253,13 @@ class TestSubtend : public CxxTest::TestSuite
     Array* control = Array::create(my_state, 10);
 
     for (std::size_t i = 0; i < 10; ++i) {
-      Object* obj = my_state->new_object(my_state->globals.object.get());
+      Object* obj = my_state->new_object<Object>(my_state->globals.object.get());
 
       args->set(my_state, i, obj);
       control->set(my_state, i, obj);
     }
 
-    Object* receiver = my_state->new_object(my_state->globals.object.get());
+    Object* receiver = my_state->new_object<Object>(my_state->globals.object.get());
 
     my_message->recv = receiver;
     my_message->set_arguments(my_state, args);
@@ -298,13 +298,13 @@ class TestSubtend : public CxxTest::TestSuite
     Array* control = Array::create(my_state, arg_count);
 
     for (int i = 0; i < arg_count; ++i) {
-      Object* obj = my_state->new_object(my_state->globals.object.get());
+      Object* obj = my_state->new_object<Object>(my_state->globals.object.get());
 
       args->set(my_state, i, obj);
       control->set(my_state, i, obj);
     }
 
-    Object* receiver = my_state->new_object(my_state->globals.object.get());
+    Object* receiver = my_state->new_object<Object>(my_state->globals.object.get());
 
     my_message->recv = receiver;
     my_message->set_arguments(my_state, args);
@@ -333,7 +333,7 @@ class TestSubtend : public CxxTest::TestSuite
 
     TS_ASSERT_EQUALS(top->calculate_sp(), 0);
 
-    Object* receiver = my_state->new_object(my_state->globals.object.get());
+    Object* receiver = my_state->new_object<Object>(my_state->globals.object.get());
 
     my_message->recv = receiver;
     my_message->use_from_task(task, 1);
@@ -365,13 +365,13 @@ class TestSubtend : public CxxTest::TestSuite
     Array* control = Array::create(my_state, arg_count);
 
     for (int i = 0; i < arg_count; ++i) {
-      Object* obj = my_state->new_object(my_state->globals.object.get());
+      Object* obj = my_state->new_object<Object>(my_state->globals.object.get());
 
       args->set(my_state, i, obj);
       control->set(my_state, i, obj);
     }
 
-    Object* receiver = my_state->new_object(my_state->globals.object.get());
+    Object* receiver = my_state->new_object<Object>(my_state->globals.object.get());
 
     my_message->recv = receiver;
     my_message->set_arguments(my_state, args);
@@ -399,13 +399,13 @@ class TestSubtend : public CxxTest::TestSuite
     Array* control = Array::create(my_state, arg_count);
 
     for (int i = 0; i < arg_count; ++i) {
-      Object* obj = my_state->new_object(my_state->globals.object.get());
+      Object* obj = my_state->new_object<Object>(my_state->globals.object.get());
 
       args->set(my_state, i, obj);
       control->set(my_state, i, obj);
     }
 
-    Object* receiver = my_state->new_object(my_state->globals.object.get());
+    Object* receiver = my_state->new_object<Object>(my_state->globals.object.get());
 
     my_message->recv = receiver;
     my_message->set_arguments(my_state, args);
@@ -433,13 +433,13 @@ class TestSubtend : public CxxTest::TestSuite
     Array* control = Array::create(my_state, arg_count);
 
     for (int i = 0; i < arg_count; ++i) {
-      Object* obj = my_state->new_object(my_state->globals.object.get());
+      Object* obj = my_state->new_object<Object>(my_state->globals.object.get());
 
       args->set(my_state, i, obj);
       control->set(my_state, i, obj);
     }
 
-    Object* receiver = my_state->new_object(my_state->globals.object.get());
+    Object* receiver = my_state->new_object<Object>(my_state->globals.object.get());
 
     my_message->recv = receiver;
     my_message->set_arguments(my_state, args);
@@ -467,13 +467,13 @@ class TestSubtend : public CxxTest::TestSuite
     Array* control = Array::create(my_state, arg_count);
 
     for (int i = 0; i < arg_count; ++i) {
-      Object* obj = my_state->new_object(my_state->globals.object.get());
+      Object* obj = my_state->new_object<Object>(my_state->globals.object.get());
 
       args->set(my_state, i, obj);
       control->set(my_state, i, obj);
     }
 
-    Object* receiver = my_state->new_object(my_state->globals.object.get());
+    Object* receiver = my_state->new_object<Object>(my_state->globals.object.get());
 
     my_message->recv = receiver;
     my_message->set_arguments(my_state, args);
@@ -509,12 +509,12 @@ class TestSubtend : public CxxTest::TestSuite
     target->formalize(my_state);
 
     Array* args = Array::create(my_state, 2);
-    Object* obj = my_state->new_object(my_state->globals.object.get());
+    Object* obj = my_state->new_object<Object>(my_state->globals.object.get());
 
     args->set(my_state, 0, Qtrue);
     args->set(my_state, 1, obj);
 
-    Object* receiver = my_state->new_object(my_state->globals.object.get());
+    Object* receiver = my_state->new_object<Object>(my_state->globals.object.get());
 
     my_message->recv = receiver;
     my_message->set_arguments(my_state, args);

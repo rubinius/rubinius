@@ -101,7 +101,7 @@ namespace rubinius {
                                   FunctorType functor = static_cast<GenericFunctor>(NULL),
                                   Fixnum* arity = as<Fixnum>(Qnil))
       {
-        NativeMethod* nmethod = static_cast<NativeMethod*>(state->new_object(state->globals.nmethod.get()));
+        NativeMethod* nmethod = state->new_object<NativeMethod>(G(nmethod));
 
         nmethod->arity(state, arity);
         nmethod->file_name(state, file_name);

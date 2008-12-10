@@ -23,6 +23,7 @@ namespace rubinius {
 
   TypeInfo::TypeInfo(object_type type, bool cleanup)
     : instances_need_cleanup(cleanup)
+    , instance_size(sizeof(Object))
     , slots()
     , state(NULL)
     , type(type)

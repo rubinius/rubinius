@@ -28,7 +28,7 @@ namespace rubinius {
 
   Array* Array::create(STATE, size_t idx) {
     Array* ary;
-    ary = (Array*)state->om->new_object(G(array), Array::fields);
+    ary = state->new_object<Array>(G(array));
 
     ary->setup(state, idx);
 

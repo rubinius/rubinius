@@ -92,8 +92,7 @@ const int cUndef = 0x22L;
 
 #define SIZE_OF_OBJECT ((size_t)(sizeof(ObjectHeader*)))
 
-#define NUM_FIELDS(obj)                 ((obj)->field_count)
-#define SET_NUM_FIELDS(obj, fel)        ((obj)->field_count = (fel))
+#define NUM_FIELDS(obj)                 ((obj)->num_fields())
 #define SIZE_IN_BYTES_FIELDS(fel)       ((size_t)(sizeof(ObjectHeader) + \
       ((fel)*SIZE_OF_OBJECT)))
 #define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(ObjectHeader)/SIZE_OF_OBJECT + (fel))
@@ -153,8 +152,8 @@ const int cUndef = 0x22L;
     Object* ivars_;
 
   private:
-    // The number of fields this object uses.
-    uint32_t field_count;
+    // The number of bytes this object uses.
+    uint32_t bytes_;
 
     // Defined so ObjectHeader can easily access the data just beyond
     // it.
@@ -174,22 +173,26 @@ const int cUndef = 0x22L;
 
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
-    void init_header(gc_zone loc, size_t fields) {
+    void init_header(gc_zone loc, size_t bytes) {
       all_flags = 0;
       zone = loc;
-      field_count = fields;
+      bytes_ = bytes;
     }
 
     uint32_t num_fields() const {
-      return field_count;
+      return (bytes_ - sizeof(ObjectHeader)) / sizeof(Object*);
     }
 
-    size_t size_in_bytes() {
-      return SIZE_IN_BYTES(this);
+    size_t size_in_bytes() const {
+      return bytes_;
     }
 
     size_t body_in_bytes() {
-      return num_fields() * sizeof(ObjectHeader);
+      return bytes_ - sizeof(ObjectHeader); // HUH => num_fields() * sizeof(ObjectHeader);
+    }
+
+    size_t total_size() const {
+      return bytes_;
     }
 
     bool reference_p() const {

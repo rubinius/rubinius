@@ -11,6 +11,6 @@ namespace rubinius {
   }
 
   StaticScope* StaticScope::create(STATE) {
-    return (StaticScope*)state->new_object(G(staticscope));
+    return state->new_object<StaticScope>(G(staticscope));
   }
 }

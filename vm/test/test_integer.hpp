@@ -23,7 +23,7 @@ class TestInteger : public CxxTest::TestSuite {
     Fixnum* fix = Fixnum::from(13);
     Bignum* big = Bignum::from(state, (native_int)14);
     Float*  flt = Float::create(state, 15.0);
-    Object* obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->new_object<Object>(G(object));
 
     TS_ASSERT(kind_of<Numeric>(fix));
     TS_ASSERT(kind_of<Numeric>(big));

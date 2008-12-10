@@ -34,8 +34,7 @@ namespace rubinius {
   }
 
   MemoryPointer* MemoryPointer::create(STATE, void* ptr) {
-    MemoryPointer* obj = (MemoryPointer*)state->new_struct(G(memory_pointer),
-        sizeof(MemoryPointer));
+    MemoryPointer* obj = state->new_struct<MemoryPointer>(G(memory_pointer));
     obj->pointer = ptr;
     obj->autorelease = false;
     return obj;

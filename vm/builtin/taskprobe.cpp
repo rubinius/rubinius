@@ -27,8 +27,7 @@ namespace rubinius {
   }
 
   TaskProbe* TaskProbe::create(STATE) {
-    TaskProbe* probe = (TaskProbe*)state->om->new_object(G(taskprobe),
-                                                         TaskProbe::fields);
+    TaskProbe* probe = state->new_object<TaskProbe>(G(taskprobe));
     probe->flags = 0;
     return probe;
   }

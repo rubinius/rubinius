@@ -100,7 +100,7 @@ namespace rubinius {
    * regular expression via Regexp#initialize_copy
    */
   Regexp* Regexp::create(STATE) {
-    Regexp* o_reg = (Regexp*)state->om->new_object(G(regexp), Regexp::fields);
+    Regexp* o_reg = state->new_object<Regexp>(G(regexp));
 
     o_reg->onig_data = NULL;
 
@@ -189,7 +189,7 @@ namespace rubinius {
   }
 
   static Object* get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int max) {
-    MatchData* md = (MatchData*)state->om->new_object(G(matchdata), MatchData::fields);
+    MatchData* md = state->new_object<MatchData>(G(matchdata));
     md->source(state, string->string_dup(state));
     md->regexp(state, regexp);
     Tuple* tup = Tuple::create(state, 2);

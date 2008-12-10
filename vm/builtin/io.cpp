@@ -32,7 +32,7 @@ namespace rubinius {
   }
 
   IO* IO::create(STATE, int fd) {
-    IO* io = (IO*)state->new_object(G(io));
+    IO* io = state->new_object<IO>(G(io));
     io->descriptor(state, Fixnum::from(fd));
     io->set_mode(state);
     io->ibuffer(state, IOBuffer::create(state));
@@ -42,7 +42,7 @@ namespace rubinius {
   }
 
   IO* IO::allocate(STATE, Object* self) {
-    IO* io = (IO*)state->new_object(G(io));
+    IO* io = state->new_object<IO>(G(io));
     io->descriptor(state, (Fixnum*)Qnil);
     io->mode(state, (Fixnum*)Qnil);
     io->ibuffer(state, IOBuffer::create(state));
@@ -255,7 +255,7 @@ namespace rubinius {
 /* IOBuffer methods */
 
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
-    IOBuffer* buf = (IOBuffer*)state->new_object(G(iobuffer));
+    IOBuffer* buf = state->new_object<IOBuffer>(G(iobuffer));
     buf->storage(state, ByteArray::create(state, bytes));
     buf->channel(state, Channel::create(state));
     buf->total(state, Fixnum::from(bytes));

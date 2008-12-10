@@ -78,7 +78,7 @@ namespace rubinius {
   }
 
   Object* Object::dup(STATE) {
-    Object* other = state->om->allocate_object(this->num_fields());
+    Object* other = state->om->allocate_object(this->total_size());
 
     other->initialize_copy(this, age);
     other->copy_body(this);

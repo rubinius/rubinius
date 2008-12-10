@@ -89,7 +89,7 @@ namespace rubinius {
   }
 
   SendSite* SendSite::create(STATE, Object* name) {
-    SendSite* ss = (SendSite*)state->new_struct(G(send_site), sizeof(SendSite));
+    SendSite* ss = state->new_struct<SendSite>(G(send_site));
     ss->name(state, (Symbol*)name);
     ss->sender(state, (CompiledMethod*)Qnil);
     ss->selector(state, Selector::lookup(state, name));

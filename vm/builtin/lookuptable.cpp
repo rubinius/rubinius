@@ -29,8 +29,7 @@ namespace rubinius {
   LookupTable* LookupTable::create(STATE, size_t size) {
     LookupTable *tbl;
 
-    tbl = (LookupTable*)state->om->new_object(G(lookuptable),
-                                              LookupTable::fields);
+    tbl = state->new_object<LookupTable>(G(lookuptable));
     tbl->setup(state, size);
 
     return tbl;
@@ -304,8 +303,8 @@ namespace rubinius {
 
   LookupTableBucket* LookupTableBucket::create(STATE, Object *key, Object *value) {
     LookupTableBucket *entry =
-      (LookupTableBucket*)state->om->new_object(G(lookuptablebucket),
-                                                LookupTableBucket::fields);
+      state->new_object<LookupTableBucket>(G(lookuptablebucket));
+
     entry->key(state, key);
     entry->value(state, value);
     return entry;

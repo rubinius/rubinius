@@ -29,7 +29,10 @@ class TestByteArray : public CxxTest::TestSuite {
     size_t mag = sizeof(Object*);
     ByteArray* b;
 
-    for(size_t i = 0; i <= mag; i++) {
+    b = ByteArray::create(state, 0);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), (native_int)0);
+
+    for(size_t i = 1; i <= mag; i++) {
       b = ByteArray::create(state, i);
       TS_ASSERT_EQUALS(b->size(state)->to_native(), (native_int)mag);
     }
@@ -51,7 +54,7 @@ class TestByteArray : public CxxTest::TestSuite {
   }
 
   void test_size() {
-    ByteArray* b = ByteArray::create(state, 0);
+    ByteArray* b = ByteArray::create(state, 1);
     TS_ASSERT_EQUALS(b->size(state), Fixnum::from(sizeof(Object*)));
   }
 
@@ -203,7 +206,7 @@ class TestByteArray : public CxxTest::TestSuite {
     a->dup_into(state, b);
     TS_ASSERT_SAME_DATA(b->bytes, "xyZzyx", 7);
 
-    ByteArray* c = ByteArray::create(state, 0);
+    ByteArray* c = ByteArray::create(state, 1);
     TS_ASSERT_EQUALS(c->size(state)->to_native(), (int)sizeof(Object*));
     a->dup_into(state, c);
     TS_ASSERT_SAME_DATA(c->bytes, "xyZz", 4);

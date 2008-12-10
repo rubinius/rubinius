@@ -4,7 +4,7 @@
 
 namespace rubinius {
   Autoload* Autoload::create(STATE) {
-    return (Autoload*)state->new_object(G(autoload));
+    return state->new_object<Autoload>(G(autoload));
   }
 
   void Autoload::init(STATE) {

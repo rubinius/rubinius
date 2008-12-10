@@ -416,8 +416,8 @@ class TestTask : public CxxTest::TestSuite {
     Symbol* callee = state->symbol("callee");
     parent->method_table()->store(state, callee, vis);
 
-    Object* p = state->new_object(parent);
-    Object* c = state->new_object(child);
+    Object* p = state->new_object<Object>(parent);
+    Object* c = state->new_object<Object>(child);
     task->self(state, c);
 
     StaticScope *sc = StaticScope::create(state);
@@ -479,8 +479,8 @@ class TestTask : public CxxTest::TestSuite {
     Symbol* callee = state->symbol("callee");
     parent->method_table()->store(state, callee, vis);
 
-    Object* p = state->new_object(parent);
-    Object* c = state->new_object(child);
+    Object* p = state->new_object<Object>(parent);
+    Object* c = state->new_object<Object>(child);
     task->self(state, c);
 
     StaticScope *sc = StaticScope::create(state);

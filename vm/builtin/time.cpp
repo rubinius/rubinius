@@ -20,7 +20,7 @@ namespace rubinius {
   }
 
   Time* Time::create(STATE) {
-    Time* tm = (Time*)state->om->new_object(G(time_class), Time::fields);
+    Time* tm = state->new_object<Time>(G(time_class));
 
     tm->gettimeofday(state);
     tm->time_switch(state, Qfalse);

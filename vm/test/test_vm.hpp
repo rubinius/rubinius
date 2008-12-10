@@ -53,14 +53,6 @@ class TestVM : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(sym1, sym2);
   }
 
-  void test_new_object_uses_field_count_from_class() {
-    Class* cls = state->new_class("Blah", G(object), 3);
-
-    Object* blah = state->new_object(cls);
-
-    TS_ASSERT_EQUALS(blah->num_fields(), 3U);
-  }
-
   void test_globals() {
     TS_ASSERT_EQUALS(state->globals.roots.size(), 123U);
   }

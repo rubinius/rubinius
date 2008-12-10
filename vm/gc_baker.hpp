@@ -27,8 +27,7 @@ namespace rubinius {
     size_t total_objects;
 
     /* Inline methods */
-    Object* allocate(size_t fields, bool *collect_now) {
-      size_t bytes = SIZE_IN_BYTES_FIELDS(fields);
+    Object* allocate(size_t bytes, bool *collect_now) {
       Object* obj;
 
       if(!current->enough_space_p(bytes)) {
@@ -47,7 +46,7 @@ namespace rubinius {
         obj = (Object*)current->allocate(bytes);
       }
 
-      obj->init_header(YoungObjectZone, fields);
+      obj->init_header(YoungObjectZone, bytes);
       return obj;
     }
 

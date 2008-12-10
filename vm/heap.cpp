@@ -31,6 +31,7 @@ namespace rubinius {
   }
 
   Object* Heap::copy_object(Object* orig) {
+    assert(orig->size_in_bytes() % 4 == 0);
     Object* tmp = (Object*)allocate(orig->size_in_bytes());
     tmp->init_header(YoungObjectZone, orig->num_fields());
 

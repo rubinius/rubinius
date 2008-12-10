@@ -55,7 +55,7 @@ namespace rubinius {
   void VM::bootstrap_class() {
     /* Class is created first by hand, and twiddle to setup the internal
        recursion. */
-    Class *cls = (Class*)om->allocate_object(Class::fields);
+    Class *cls = (Class*)om->allocate_object(sizeof(Class));
 
     /* We create these 8 classes in a particular way and in a particular
      * order. We need all 8 to create fully initialized Classes and
@@ -243,7 +243,7 @@ namespace rubinius {
      * Create any 'stock' objects
      */
 
-    Object* main = om->new_object(G(object), 1);
+    Object* main = new_object<Object>(G(object));
     GO(main).set(main);
     G(object)->set_const(this, "MAIN", main); // HACK test hooking up MAIN
 

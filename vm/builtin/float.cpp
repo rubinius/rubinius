@@ -21,7 +21,7 @@ namespace rubinius {
   }
 
   Float* Float::create(STATE, double val) {
-    Float* flt = (Float*)state->new_struct(G(floatpoint), sizeof(Float));
+    Float* flt = state->new_struct<Float>(G(floatpoint));
     flt->val = val;
     return flt;
   }

@@ -100,7 +100,7 @@ namespace rubinius {
   }
 
   NativeFunction* NativeFunction::create(STATE, Object* name, int args) {
-    NativeFunction* nf = (NativeFunction*)state->new_object(G(native_function));
+    NativeFunction* nf = state->new_object<NativeFunction>(G(native_function));
     nf->primitive(state, state->symbol("nativefunction_call"));
     nf->required(state, Fixnum::from(args));
     nf->serial(state, Fixnum::from(0));

@@ -68,7 +68,7 @@ namespace rubinius {
 /* Primitives */
 
   Thread* Thread::create(STATE) {
-    Thread* thr = (Thread*)state->new_object(G(thread));
+    Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->alive(state, Qtrue);
     thr->channel(state, reinterpret_cast<Channel*>(Qnil));

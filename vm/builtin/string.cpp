@@ -44,7 +44,7 @@ namespace rubinius {
   String* String::create(STATE, Fixnum* size) {
     String *so;
 
-    so = (String*)state->om->new_object(G(string), String::fields);
+    so = state->new_object<String>(G(string));
 
     so->num_bytes(state, size);
     so->characters(state, size);
@@ -75,7 +75,7 @@ namespace rubinius {
   }
 
   String* String::from_bytearray(STATE, ByteArray* ba, Integer* start, Integer* count) {
-    String* s = (String*)state->om->new_object(G(string), String::fields);
+    String* s = state->new_object<String>(G(string));
 
     s->num_bytes(state, count);
     s->characters(state, count);

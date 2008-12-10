@@ -32,7 +32,7 @@ namespace rubinius {
 
   /* Create a new List object, containing no elements. */
   List* List::create(STATE) {
-    List* list = (List*)state->new_object(G(list));
+    List* list = state->new_object<List>(G(list));
     list->count(state, Fixnum::from(0));
 
     return list;
@@ -40,7 +40,7 @@ namespace rubinius {
 
   /* Append +obj+ to the current List. */
   void List::append(STATE, Object* obj) {
-    ListNode* node = (ListNode*)state->new_object(G(list_node));
+    ListNode* node = state->new_object<ListNode>(G(list_node));
     node->object(state, obj);
     ListNode* cur_last = last_;
 

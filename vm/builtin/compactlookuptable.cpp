@@ -18,8 +18,8 @@ namespace rubinius {
   }
 
   CompactLookupTable* CompactLookupTable::create(STATE) {
-    return (CompactLookupTable*)state->om->new_object(G(compactlookuptable),
-                                                      COMPACTLOOKUPTABLE_SIZE);
+    return state->om->new_object_variable<CompactLookupTable>
+      (G(compactlookuptable), COMPACTLOOKUPTABLE_SIZE);
   }
 
   Object* CompactLookupTable::fetch(STATE, Object* key) {

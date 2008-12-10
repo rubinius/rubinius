@@ -55,7 +55,7 @@ namespace rubinius {
   }
 
   Task* Task::create(STATE, size_t stack_size) {
-    Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
+    Task* task = state->new_struct<Task>(G(task));
     task->state = state;
     task->call_flags = 0;
     task->msg = new Message(state);

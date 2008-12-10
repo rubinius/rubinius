@@ -11,7 +11,7 @@ namespace rubinius {
 
   Data* Data::create(STATE, void* data_ptr, MarkFunctor mark, FreeFunctor free) {
     Data* data;
-    data = (Data*)state->om->new_object(G(data), Data::fields);
+    data = state->new_object<Data>(G(data));
 
     data->data_ = data_ptr;
     data->mark_ = mark;

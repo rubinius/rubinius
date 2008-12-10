@@ -583,6 +583,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
       f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
     end
     f.puts "    ti->type_name = std::string(\"#{n}\");"
+    f.puts "    ti->instance_size = sizeof(#{n});"
     f.puts "    state->add_type_info(ti);"
     f.puts "  }"
     f.puts

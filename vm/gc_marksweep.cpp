@@ -41,16 +41,16 @@ namespace rubinius {
     }
   }
 
-  Object* MarkSweepGC::allocate(size_t fields, bool *collect_now) {
+  Object* MarkSweepGC::allocate(size_t obj_bytes, bool *collect_now) {
     size_t bytes;
     Object* obj;
 
-    bytes = sizeof(Header) + SIZE_IN_BYTES_FIELDS(fields);
+    bytes = sizeof(Header) + obj_bytes;
 
     // std::cout << "ms: " << bytes << ", fields: " << fields << "\n";
 
     Header *header = (Header*)malloc(bytes);
-    Entry *entry = new Entry(header, bytes, fields);
+    Entry *entry = new Entry(header, bytes, obj_bytes);
     header->entry = entry;
 
     entries.push_back(entry);
@@ -66,7 +66,7 @@ namespace rubinius {
 
     obj = header->to_object();
 
-    obj->init_header(MatureObjectZone, fields);
+    obj->init_header(MatureObjectZone, obj_bytes);
 
     return obj;
   }
@@ -87,7 +87,7 @@ namespace rubinius {
 
   Object* MarkSweepGC::copy_object(Object* orig) {
     bool collect;
-    Object* obj = allocate(orig->num_fields(), &collect);
+    Object* obj = allocate(orig->size_in_bytes(), &collect);
 
     obj->initialize_copy(orig, 0);
     obj->copy_body(orig);

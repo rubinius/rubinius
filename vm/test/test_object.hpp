@@ -168,7 +168,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_dup_bytes() {
-    ByteArray* obj = (ByteArray*)state->om->new_object_bytes(G(object), 1);
+    ByteArray* obj = state->om->new_object_bytes<ByteArray>(G(object), 1);
     obj->StoresBytes = 1;
 
     obj->bytes[0] = 8;
@@ -449,7 +449,7 @@ class TestObject : public CxxTest::TestSuite {
   void test_object_class_with_superclass_chain() {
     Module* mod = Module::create(state);
     Class* cls = Class::create(state, G(object));
-    Object* obj = state->om->new_object(cls, 0);
+    Object* obj = state->new_object<Object>(cls);
 
     /* This should be functionally correct but not actually the
      * way a superclass chain is implemented. However, it doesn't
@@ -663,6 +663,6 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   Object* util_new_object() {
-    return state->om->new_object(G(object), Object::fields);
+    return state->new_object<Object>(G(object));
   }
 };

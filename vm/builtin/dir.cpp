@@ -19,7 +19,7 @@ namespace rubinius {
   }
 
   Dir* Dir::create(STATE) {
-    Dir* d = (Dir*)state->om->new_object(G(dir), Dir::fields);
+    Dir* d = state->new_object<Dir>(G(dir));
     d->data(state, (MemoryPointer*)Qnil);
 
     return d;

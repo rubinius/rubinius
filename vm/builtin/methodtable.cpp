@@ -6,7 +6,7 @@ namespace rubinius {
   MethodTable* MethodTable::create(STATE) {
     MethodTable *tbl;
 
-    tbl = (MethodTable*)state->new_object(G(methtbl));
+    tbl = state->new_object<MethodTable>(G(methtbl));
     tbl->setup(state, 0);
 
     return tbl;

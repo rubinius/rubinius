@@ -128,20 +128,20 @@ namespace rubinius {
     }
   }
 
-  Object* ObjectMemory::allocate_object(size_t fields) {
+  Object* ObjectMemory::allocate_object(size_t bytes) {
     Object* obj;
 
-    if(fields > large_object_threshold) {
-      obj = mature.allocate(fields, &collect_mature_now);
+    if(bytes > large_object_threshold) {
+      obj = mature.allocate(bytes, &collect_mature_now);
       if(collect_mature_now) {
         state->interrupts.check = true;
       }
     } else {
-      obj = young.allocate(fields, &collect_young_now);
+      obj = young.allocate(bytes, &collect_young_now);
       if(obj == NULL) {
         collect_young_now = true;
         state->interrupts.check = true;
-        obj = mature.allocate(fields, &collect_mature_now);
+        obj = mature.allocate(bytes, &collect_mature_now);
       }
     }
 
@@ -149,38 +149,15 @@ namespace rubinius {
     return obj;
   }
 
-  Object* ObjectMemory::new_object(Class* cls, size_t fields) {
+
+  Object* ObjectMemory::new_object_typed(Class* cls, size_t bytes, object_type type) {
     Object* obj;
 
-    obj = allocate_object(fields);
+    obj = allocate_object(bytes);
     set_class(obj, cls);
 
-    obj->obj_type = (object_type)cls->instance_type()->to_native();
-    obj->RequiresCleanup = type_info[obj->obj_type]->instances_need_cleanup;
-
-    return obj;
-  }
-
-  /* An Object field is the size of a pointer on any particular
-   * platform. An Object that stores bytes must be aligned to an
-   * integral number of fields. For example, if sizeof(Object*) == 4,
-   * then an object that stores bytes must be 4, 8, 12, 16, ..., 4n
-   * bytes in size. This corresponds to 1, 2, 3, 4, ..., n fields.
-   */
-  Object* ObjectMemory::new_object_bytes(Class* cls, size_t bytes) {
-    const size_t mag = sizeof(Object*);
-    size_t fields;
-
-    if(bytes == 0) {
-      fields = 1;
-    } else {
-      fields = bytes % mag == 0 ? bytes  : bytes + mag;
-      fields /= mag;
-    }
-
-    Object* obj = new_object(cls, fields);
-
-    obj->init_bytes();
+    obj->obj_type = type;
+    obj->RequiresCleanup = type_info[type]->instances_need_cleanup;
 
     return obj;
   }

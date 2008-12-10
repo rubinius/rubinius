@@ -30,7 +30,7 @@ namespace rubinius {
   }
 
   BlockEnvironment* BlockEnvironment::allocate(STATE) {
-    BlockEnvironment* env = (BlockEnvironment*)state->new_object(G(blokenv));
+    BlockEnvironment* env = state->new_object<BlockEnvironment>(G(blokenv));
     env->vmm = NULL;
     return env;
   }
@@ -118,7 +118,7 @@ namespace rubinius {
   BlockEnvironment* BlockEnvironment::under_context(STATE, CompiledMethod* cm,
       MethodContext* parent, MethodContext* active, size_t index) {
 
-    BlockEnvironment* be = (BlockEnvironment*)state->new_object(G(blokenv));
+    BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
 
 
     VMMethod* vmm;

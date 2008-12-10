@@ -904,7 +904,9 @@ extern "C" {
   VALUE rb_obj_alloc(VALUE class_handle) {
     NativeMethodContext* context = NativeMethodContext::current();
 
-    Object* object = context->state()->new_object(as<Class>(context->object_from(class_handle)));
+    // TODO using Object as the template param means this can't allocate builtin
+    // types properly!
+    Object* object = context->state()->new_object<Object>(as<Class>(context->object_from(class_handle)));
     return context->handle_for(object);
   }
 

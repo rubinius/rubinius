@@ -10,7 +10,7 @@ namespace rubinius {
 
     obj_type     = other->obj_type;
     age          = new_age;
-    field_count  = other->field_count;
+    bytes_       = other->bytes_;
     klass_       = other->klass_;
     ivars_       = other->ivars_;
 
@@ -26,10 +26,11 @@ namespace rubinius {
   }
 
   void ObjectHeader::copy_body(Object* other) {
-    assert(this->field_count == other->field_count);
+    assert(this->bytes_ == other->bytes_);
 
     void** src = other->__body__;
     void** dst = this->__body__;
+    size_t field_count = num_fields();
 
     for(size_t counter = 0; counter < field_count; counter++) {
       dst[counter] = src[counter];
@@ -44,6 +45,7 @@ namespace rubinius {
      * to using accessor functions
      */
     void** dst = this->__body__;
+    size_t field_count = num_fields();
 
     for(size_t counter = 0; counter < field_count; counter++) {
       dst[counter] = Qnil;
@@ -52,6 +54,7 @@ namespace rubinius {
 
   void ObjectHeader::clear_body_to_null() {
     void** dst = this->__body__;
+    size_t field_count = num_fields();
 
     for(size_t counter = 0; counter < field_count; counter++) {
       dst[counter] = 0;

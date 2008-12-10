@@ -59,9 +59,29 @@ namespace rubinius {
 
     void store_object(Object* target, size_t index, Object* val);
     void set_class(Object* target, Object* obj);
-    Object* allocate_object(size_t fields);
-    Object* new_object(Class* cls, size_t fields);
-    Object* new_object_bytes(Class* cls, size_t bytes);
+    Object* allocate_object(size_t bytes);
+
+    Object* ObjectMemory::new_object_typed(Class* cls, size_t bytes, object_type type);
+
+    template <class T>
+      T* new_object_bytes(Class* cls, size_t bytes) {
+        // Only works because sizeof(Object*) will alwasy be a power of 2
+        const int rounding_value = sizeof(Object*) - 1;
+
+        // round up
+        bytes = (sizeof(T) + bytes + rounding_value) & ~rounding_value;
+        T* obj = reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+
+        obj->init_bytes();
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_object_variable(Class* cls, size_t fields) {
+        return reinterpret_cast<T*>(new_object_typed(cls, sizeof(T) + (fields * sizeof(Object*)), T::type));
+      }
+
     TypeInfo* find_type_info(Object* obj);
     void set_young_lifetime(size_t age);
     void collect_young(Roots &roots);
@@ -98,8 +118,8 @@ namespace rubinius {
 
       // Masquerade as being in the Young zone so the write barrier
       // stays happy.
-      ctx->init_header(YoungObjectZone,
-                      ((sizeof(MethodContext) - sizeof(ObjectHeader))/ sizeof(Object*)) + stack_slots);
+      ctx->init_header(YoungObjectZone, sizeof(MethodContext) +
+          (stack_slots * sizeof(Object*)));
 
       ctx->full_size = full_size;
       return ctx;

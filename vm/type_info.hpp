@@ -129,6 +129,7 @@ namespace rubinius {
   public:   /* Instance vars */
 
     bool        instances_need_cleanup;
+    size_t      instance_size;
     Slots       slots;
     VM*         state;
     object_type type;

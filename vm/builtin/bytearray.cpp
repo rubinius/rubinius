@@ -17,7 +17,7 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::create(STATE, size_t bytes) {
-    return (ByteArray*)state->om->new_object_bytes(G(bytearray), bytes);
+    return state->om->new_object_bytes<ByteArray>(G(bytearray), bytes);
   }
 
   void ByteArray::Info::mark(Object* t, ObjectMark& mark) {

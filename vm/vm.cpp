@@ -95,12 +95,16 @@ namespace rubinius {
     globals.current_task.set(thread->task());
   }
 
-  Object* VM::new_object(Class *cls) {
-    return om->new_object(cls, cls->instance_fields()->to_native());
+  Object* VM::new_object_typed(Class* cls, size_t bytes, object_type type) {
+    return om->new_object_typed(cls, bytes, type);
+  }
+
+  Object* VM::new_object_from_type(Class* cls, TypeInfo* ti) {
+    return om->new_object_typed(cls, ti->instance_size, ti->type);
   }
 
   Class* VM::new_basic_class(Class* sup, size_t fields) {
-    Class *cls = (Class*)om->new_object(G(klass), Class::fields);
+    Class *cls = new_object<Class>(G(klass));
     cls->instance_fields(this, Fixnum::from(fields));
     if(sup->nil_p()) {
       cls->instance_type(this, Fixnum::from(ObjectType));
@@ -140,7 +144,7 @@ namespace rubinius {
   }
 
   Module* VM::new_module(const char* name, Module* under) {
-    Module *mod = (Module*)om->new_object(G(module), Module::fields);
+    Module *mod = new_object<Module>(G(module));
     mod->setup(this, name, under);
     return mod;
   }
@@ -156,12 +160,6 @@ namespace rubinius {
 
   Symbol* VM::symbol(std::string str) {
     return symbols.lookup(this, str);
-  }
-
-  Object* VM::new_struct(Class* cls, size_t bytes) {
-    Object* obj = om->new_object_bytes(cls, bytes);
-    obj->ivars(this, Qnil);
-    return obj;
   }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {

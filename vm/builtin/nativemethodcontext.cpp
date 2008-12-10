@@ -47,10 +47,8 @@ namespace rubinius {
                                                    Task* task,
                                                    NativeMethod* method)
   {
-    static std::size_t context_size = sizeof(NativeMethodContext) + DEFAULT_STACK_SIZE;
-
-    NativeMethodContext* nmc = static_cast<NativeMethodContext*>(state->new_struct(G(nativectx),
-                                                                 context_size));
+    NativeMethodContext* nmc = state->new_struct<NativeMethodContext>(
+        G(nativectx), DEFAULT_STACK_SIZE);
 
     /* MethodContext stuff. */
     MethodContext* sender = task->active();

@@ -214,7 +214,7 @@ namespace rubinius {
 
   Bignum* Bignum::create(STATE) {
     Bignum* o;
-    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
+    o = state->new_struct<Bignum>(G(bignum));
     mp_init(o->mp_val());
     return o;
   }

@@ -7,7 +7,7 @@
 namespace rubinius {
 
   MethodVisibility* MethodVisibility::create(STATE) {
-    return (MethodVisibility*)state->new_object(G(cmethod_vis));
+    return state->new_object<MethodVisibility>(G(cmethod_vis));
   }
 
   void MethodVisibility::Info::show(STATE, Object* self, int level) {

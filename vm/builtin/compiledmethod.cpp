@@ -28,7 +28,7 @@ namespace rubinius {
   }
 
   CompiledMethod* CompiledMethod::create(STATE) {
-    CompiledMethod* cm = (CompiledMethod*)state->new_object(G(cmethod));
+    CompiledMethod* cm = state->new_object<CompiledMethod>(G(cmethod));
     cm->local_count(state, Fixnum::from(0));
     cm->set_executor(CompiledMethod::default_executor);
     cm->backend_method_ = NULL;

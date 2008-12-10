@@ -46,6 +46,7 @@ namespace rubinius {
   /* Initialize +ctx+'s fields */
   static inline void init_context(STATE, MethodContext* ctx, size_t stack) {
     ctx->ip = 0;
+    ctx->native_ip = 0;
     ctx->ivars(state, Qnil);
 
     // Do this here because it's possible for us to pass a context
@@ -65,25 +66,24 @@ namespace rubinius {
   }
 
   /* Find a context to use. Either use a cache or create one in the heap. */
-  static inline MethodContext* allocate(STATE, Class* cls, size_t stack_size) {
-    MethodContext* ctx;
-    size_t bytes;
+  template <class T>
+    static inline T* allocate(STATE, Class* cls, size_t stack_size) {
+      T* ctx;
 
-    stack_size = round_stack(stack_size);
+      stack_size = round_stack(stack_size);
 
-    ctx = state->om->allocate_context(stack_size);
-    if(ctx) {
-      assert((uintptr_t)ctx + ctx->full_size < (uintptr_t)state->om->contexts.last);
-      ctx->klass(state, (Class*)Qnil);
-      ctx->obj_type = (object_type)cls->instance_type()->to_native();
-    } else {
-      bytes = add_stack(sizeof(MethodContext), stack_size);
-      ctx = (MethodContext*)state->new_struct(cls, bytes);
+      ctx = reinterpret_cast<T*>(state->om->allocate_context(stack_size));
+      if(ctx) {
+        assert((uintptr_t)ctx + ctx->full_size < (uintptr_t)state->om->contexts.last);
+        ctx->klass(state, (Class*)Qnil);
+        ctx->obj_type = T::type;
+      } else {
+        ctx = state->new_struct<T>(cls, stack_size * sizeof(Object*));
+      }
+
+      init_context(state, ctx, stack_size);
+      return ctx;
     }
-
-    init_context(state, ctx, stack_size);
-    return ctx;
-  }
 
   int MethodContext::line(STATE) {
     if(cm_->nil_p()) return -2;        // trampoline context
@@ -133,7 +133,7 @@ namespace rubinius {
    * worth of stack.
    */
   MethodContext* MethodContext::create(STATE, size_t stack_size) {
-    return allocate(state, G(methctx), stack_size);
+    return allocate<MethodContext>(state, G(methctx), stack_size);
   }
 
   /* Generate a MethodContext for the provided receiver and CompiledMethod
@@ -153,9 +153,7 @@ namespace rubinius {
       ctx->home_ = ctx;
 
     } else {
-
-      size_t bytes = add_stack(sizeof(MethodContext), stack_size);
-      ctx = (MethodContext*)state->new_struct(G(methctx), bytes);
+      ctx = state->new_struct<MethodContext>(G(methctx), stack_size * sizeof(Object*));
 
       ctx->self(state, recv);
       ctx->cm(state, meth);
@@ -271,7 +269,7 @@ namespace rubinius {
   /* Return a new +BlockContext+ object, which needs +stack_size+ fields
    * worth of stack. */
   BlockContext* BlockContext::create(STATE, size_t stack_size) {
-    BlockContext* ctx = (BlockContext*)allocate(state, G(blokctx), stack_size);
+    BlockContext* ctx = allocate<BlockContext>(state, G(blokctx), stack_size);
 
     ctx->block(state, Qnil);
     ctx->cm(state, reinterpret_cast<CompiledMethod*>(Qnil));

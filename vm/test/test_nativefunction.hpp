@@ -608,7 +608,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
     Array* input = Array::create(state, 1);
-    Object* obj = state->om->new_object(G(object), Object::fields);
+    Object* obj = state->new_object<Object>(G(object));
     input->set(state, 0, obj);
 
     Message* msg = new Message(state, input);

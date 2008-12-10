@@ -20,7 +20,7 @@ namespace rubinius {
   }
 
   Selector* Selector::create(STATE, Object* name) {
-    Selector* sel = (Selector*)state->new_object(G(selector));
+    Selector* sel = state->new_object<Selector>(G(selector));
     sel->name(state, (Symbol*)name);
     sel->send_sites(state, Array::create(state, 1));
 

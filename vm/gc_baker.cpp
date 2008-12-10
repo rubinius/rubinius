@@ -40,6 +40,7 @@ namespace rubinius {
       promoted_->push_back(copy);
     } else if(next->enough_space_p(obj->size_in_bytes())) {
       copy = next->copy_object(obj);
+      assert(copy->reference_p());
       total_objects++;
     } else {
       copy = object_memory->promote_object(obj);

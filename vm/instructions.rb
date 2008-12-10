@@ -942,8 +942,8 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    Object* objp = state->new_object(parent);
-    Object* objc = state->new_object(child);
+    Object* objp = state->new_object<Object>(parent);
+    Object* objc = state->new_object<Object>(child);
 
     /* standard */
     task->push(parent);
@@ -1103,8 +1103,8 @@ class Instructions
     Class* parent = state->new_class("Parent", G(object), 1);
     Class* child =  state->new_class("Child", parent, 1);
 
-    Object* objp = state->new_object(parent);
-    Object* objc = state->new_object(child);
+    Object* objp = state->new_object<Object>(parent);
+    Object* objc = state->new_object<Object>(child);
 
     /* standard */
     task->push(parent);
@@ -3336,7 +3336,7 @@ class Instructions
     TypedRoot<SendSite*> tr_ss(state, ss);
     ctx->vmm->sendsites = &tr_ss;
 
-    Object* obj = state->new_object(child);
+    Object* obj = state->new_object<Object>(child);
     task->self(state, obj);
 
     StaticScope *sc = StaticScope::create(state);
@@ -3482,7 +3482,7 @@ class Instructions
     TypedRoot<SendSite*> tr_ss(state, ss);
     ctx->vmm->sendsites = &tr_ss;
 
-    Object* obj = state->new_object(child);
+    Object* obj = state->new_object<Object>(child);
     task->self(state, obj);
 
     StaticScope *sc = StaticScope::create(state);

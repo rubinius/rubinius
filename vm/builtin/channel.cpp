@@ -18,7 +18,7 @@
 
 namespace rubinius {
   Channel* Channel::create(STATE) {
-    Channel* chan = (Channel*)state->new_object(G(channel));
+    Channel* chan = state->new_object<Channel>(G(channel));
     chan->waiting(state, List::create(state));
 
     return chan;
