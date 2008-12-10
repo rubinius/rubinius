@@ -220,7 +220,13 @@ namespace rubinius {
           "' called='" << meth->called_times();
 
         if(meth->file()) {
-          stream << "' file='" << meth->file()->c_str(state) <<
+          const char *file;
+          if(meth->file()->nil_p()) {
+            file = "unknown file";
+          } else {
+            file = meth->file()->c_str(state);
+          }
+          stream << "' file='" << file <<
                     "' line='" << meth->line();
         }
 
