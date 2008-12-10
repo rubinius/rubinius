@@ -36,13 +36,17 @@ effort is shifting toward performance, rather than completeness.
 * Bring modern techniques to the Ruby runtime. Pluggable garbage collectors and
   code optimizers are possible examples.
 
-6. Contributing
+6. Tickets
+
+See doc/howto/write_a_ticket.txt
+
+7. Contributing
 
 The Rubinius team welcomes contributions, bug reports, test cases, and
 monetary support. One possible way to help is implement Ruby library classes.
 See doc/contributing.txt to get started.
 
-7. Architecture
+8. Architecture
 
 While most of the Rubinius features are implemented in Ruby, the VM itself is
 written in C++. This is likely to continue to be the case in the coming

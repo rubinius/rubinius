@@ -1,53 +1,51 @@
 # Howto - Write a Ticket
 
-TODO: Imported from Lighthouse wiki. Needs review.
+To be useful, tickets must be concise, focused, and actionable. If not, the
+ticket will languish and become clutter. Accordingly, tickets must fall into
+one (or more) of the following categories:
 
-Please follow the guidelines below when submitting a ticket for a problem with
-Rubinius:
+1.  A precise command line history showing how to install and invoke the
+    program and showing the backtrace for an exception.
+1.  A short piece of code illustrating the problem and the command line to
+    invoke it.
+1.  A patch, **including specs if they do not already exist**, and showing the
+    spec runs before and after applying the patch.
+
+If your issue doesn't fit into one of the categories, it is not invalid. It is
+simply not appropriate for a ticket.
+
+1.  If it is a feature, consider discussing it on the mailing list. Also, you
+    could take a crack at implementing it and demonstrate how your feature is
+    useful.
+1.  If it is a library or gem that is not working, take some time to dig in
+    and see if you can create a reproduction for an issue and post that as a
+    ticket.
+
+There are various wishlist items, upcoming features, and lists of gems in the
+doc/todo/ directory.
+
 
 ## General procedure for submitting a ticket
 
-### 0. Double-check
+1.  Double-check.
 
-1.  Do a full rebuild after a `git pull` or fresh checkout.
-1.  Read [the common problems
-    page](/projects/5089/common-build-problems-and-solutions) to see if something
-    there resolves the issue.
-1.  Read [Howto - Develop with a separate RubySpec
-    repo](/projects/5089/howto-develop-with-a-separate-rubyspec-repo)
+    1.  Do a full rebuild (`rake clean; rake`) after a `git pull` or fresh clone.
+    1.  Read doc/common_problems.txt see if something there resolves the issue.
+    1.  Read doc/rubinius_specs.txt
 
-### 1. Title your ticket appropriately. Use a specific, preferrably short
-title and prefix it with:
+1.  Give your ticket a specific, preferably short title.
 
-*   "[TODO]" - for reporting missing parts of Rubinius. For example, a missing
-    method
-*   "[BUG]" - for problems with Rubinius that you are reporting but for which
-    you currently have no solution
-*   "[PATCH]" - for any kind of problem with Rubinius for which you have
-    attached a solution (and specs if missing)
-*   "[FEATURE]" - for features that you are suggesting be added to Rubinius
+1.  Give your ticket appropriate tags.
 
-### 2. Use tags
+1.  Give enough detail about the issue.
 
-Mark the ticket with some tags (the current ones are below the field for
-reference.) Most importantly, enter any [BUG] tickets with a @bug@ tag also
-and so on.
+    *   The command line for invoking the program
+    *   The backtrace or result from the program versus expected result.
+    *   Your machine information. `uname -a` is usually good (if there are any
+        "unknown" fields in it, please elaborate on those.)
 
-### 3. Give enough detail about the issue
 
-*   A way to reproduce the issue whether it is a formal spec, a code snippet,
-    a program or library etc. 
-*   Your machine information. `uname -a` is usually good (if there are any
-    "unknown" fields in it, please elaborate on those.)
-
-Whenever possible, try to reproduce the problem in a short, distilled example
-(a code snippet or actual spec)  if you found it as a part of a larger bit of
-code. For a feature, write up a use case that illustrates the utility of the
-proposal and the rationale for it.
-
-Actual specs and patches to fix the problem are most welcome!
-
-### Additional instructions for [PATCH] tickets
+## Additional instructions for [PATCH] tickets
 
 *   Can be just a set of specs.
 *   Patches must be accompanied by specs unless the specs already exist.
@@ -63,7 +61,8 @@ Unless for some reason impossible, please use `git-format-patch` to create the
 patchset. It is much easier to apply and it preserves the correct attribution.
 Otherwise, a unified diff.
 
-## Example of submitting a [PATCH] ticket
+
+## Example of submitting a patch
 
 Suppose the following spec exists and is failing:
 
@@ -73,40 +72,40 @@ Suppose the following spec exists and is failing:
       end
     end
 
-*1. Ticket Title:*
+1.  Ticket Title:
 
-"[PATCH] No method 'format' on Kernel (Module)"
+    "[PATCH] No method 'format' on Kernel (Module)"
 
-*2. Tags:*
+1.  Tags:
 
-"patch core spec"
+    "patch core spec"
 
-*3. Ticket Message:*
+1.  Ticket Message:
 
-The method 'format' is not available as a module function of Kernel.
+    The method 'format' is not available as a module function of Kernel.
 
-    $ bin/mspec spec/ruby/1.8/core/kernel/format_spec.rb 
-    Started
-    .E
+        $ bin/mspec spec/ruby/1.8/core/kernel/format_spec.rb
+        Started
+        .E
 
-    1)
-    Kernel.format is accessible as a module function ERROR
-    No method 'format' on Kernel (Module):
+        1)
+        Kernel.format is accessible as a module function ERROR
+        No method 'format' on Kernel (Module):
 
-The method 'format' already exists but has not been set as a module function.
-This patch does so.
+    The method 'format' already exists but has not been set as a module
+    function.  This patch does so.
 
-After the patch is applied:
+    After the patch is applied:
 
-    $ bin/mspec spec/ruby/1.8/core/kernel/format_spec.rb 
-    Started
-    ..
+        $ bin/mspec spec/ruby/1.8/core/kernel/format_spec.rb
+        Started
+        ..
 
-    Finished in 0.016031 seconds
+        Finished in 0.016031 seconds
 
-    2 examples, 2 expectations, 0 failures, 0 errors
+        2 examples, 2 expectations, 0 failures, 0 errors
 
-*4. Attachment:*
+1. Attachment:
 
 Finally, you would attach the patch to the ticket. Below the patch is
 reproduced inline for completeness:
@@ -127,5 +126,5 @@ reproduced inline for completeness:
        module_function :sprintf
     +  module_function :format
        module_function :abort
-       
+
        def puts(*a)
