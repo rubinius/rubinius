@@ -103,9 +103,8 @@ namespace rubinius {
     return om->new_object_typed(cls, ti->instance_size, ti->type);
   }
 
-  Class* VM::new_basic_class(Class* sup, size_t fields) {
+  Class* VM::new_basic_class(Class* sup) {
     Class *cls = new_object<Class>(G(klass));
-    cls->instance_fields(this, Fixnum::from(fields));
     if(sup->nil_p()) {
       cls->instance_type(this, Fixnum::from(ObjectType));
     } else {
@@ -117,21 +116,15 @@ namespace rubinius {
   }
 
   Class* VM::new_class(const char* name) {
-    return new_class(name, G(object), G(object)->instance_fields()->to_native(),
-        G(object));
+    return new_class(name, G(object), G(object));
   }
 
   Class* VM::new_class(const char* name, Class* super_class) {
-    return new_class(name, super_class, G(object)->instance_fields()->to_native(),
-        G(object));
+    return new_class(name, super_class, G(object));
   }
 
-  Class* VM::new_class(const char* name, Class* sup, size_t fields) {
-    return new_class(name, sup, fields, G(object));
-  }
-
-  Class* VM::new_class(const char* name, Class* sup, size_t fields, Module* under) {
-    Class* cls = new_basic_class(sup, fields);
+  Class* VM::new_class(const char* name, Class* sup, Module* under) {
+    Class* cls = new_basic_class(sup);
     cls->setup(this, name, under);
 
     // HACK test that we've got the MOP setup properly
@@ -140,7 +133,7 @@ namespace rubinius {
   }
 
   Class* VM::new_class_under(const char* name, Module* under) {
-    return new_class(name, G(object), G(object)->instance_fields()->to_native(), under);
+    return new_class(name, G(object), under);
   }
 
   Module* VM::new_module(const char* name, Module* under) {

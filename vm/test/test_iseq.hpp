@@ -18,7 +18,4 @@ class TestInstructionSequence : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_instructionsequence_fields() {
-    TS_ASSERT_EQUALS(2U, InstructionSequence::fields);
-  }
 };

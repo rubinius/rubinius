@@ -24,10 +24,6 @@ class TestArray : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_array_fields() {
-    TS_ASSERT_EQUALS(4U, Array::fields);
-  }
-
   void test_aref() {
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, Fixnum::from(1));

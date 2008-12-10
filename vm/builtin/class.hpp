@@ -11,7 +11,6 @@ namespace rubinius {
 
   class Class : public Module {
   public:
-    const static size_t fields = Module::fields + 3;
     const static object_type type = ClassType;
 
   private:
@@ -49,7 +48,6 @@ namespace rubinius {
 
   class MetaClass : public Class {
   public:
-    const static size_t fields = Class::fields + 1;
     const static object_type type = MetaClassType;
 
   private:

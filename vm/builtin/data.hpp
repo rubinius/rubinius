@@ -9,7 +9,6 @@ namespace rubinius {
 
   class Data : public Object {
   public:
-    const static std::size_t fields = 0;
     const static object_type type = DataType;
 
     /**  Register class with the VM. */

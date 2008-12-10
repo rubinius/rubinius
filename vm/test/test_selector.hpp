@@ -21,10 +21,6 @@ class TestSelector : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_selector_fields() {
-    TS_ASSERT_EQUALS(2U, Selector::fields);
-  }
-
   void test_init() {
     TS_ASSERT(G(selector)->kind_of_p(state, G(klass)));
     TS_ASSERT_EQUALS(G(selector)->instance_type()->to_native(), SelectorType);

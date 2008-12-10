@@ -20,12 +20,11 @@ namespace rubinius {
   /* Register the List and List::Node classes as globals */
   void List::init(STATE) {
     Class* cls;
-    cls = state->new_class("List", G(object), List::fields);
+    cls = state->new_class("List", G(object));
     GO(list).set(cls);
     cls->set_object_type(state, ListType);
 
-    GO(list_node).set(state->new_class("Node", G(object),
-                                                ListNode::fields, cls));
+    GO(list_node).set(state->new_class("Node", G(object), cls));
 
     G(list_node)->set_object_type(state, ListNodeType);
   }

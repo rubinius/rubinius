@@ -10,7 +10,6 @@ namespace rubinius {
 
   class StaticScope : public Object {
   public:
-    const static size_t fields = 2;
     const static object_type type = StaticScopeType;
 
   private:

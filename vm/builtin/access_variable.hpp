@@ -13,7 +13,6 @@ namespace rubinius {
 
   class AccessVariable : public Executable {
   public:
-    const static size_t fields = Executable::fields + 2;
     const static object_type type = AccessVariableType;
 
   private:

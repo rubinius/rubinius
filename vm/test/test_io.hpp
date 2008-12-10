@@ -29,14 +29,6 @@ class TestIO : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_io_fields() {
-    TS_ASSERT_EQUALS(6U, IO::fields);
-  }
-
-  void test_iobuffer_fields() {
-    TS_ASSERT_EQUALS(7U, IOBuffer::fields);
-  }
-
   int make_io() {
     char* templ = strdup("/tmp/rubinius_TestIO.XXXXXX");
     int fd = mkstemp(templ);

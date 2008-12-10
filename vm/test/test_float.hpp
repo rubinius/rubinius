@@ -20,10 +20,6 @@ class TestFloat : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_float_fields() {
-    TS_ASSERT_EQUALS(0U, Float::fields);
-  }
-
   void check_float(Float* f, Float* g) {
     TS_ASSERT_DELTA(f->val, g->val, TOLERANCE);
   }

@@ -21,9 +21,6 @@ namespace rubinius {
 
   public:   /* Bookkeeping */
 
-    /** No fields since we should never be instantiated. */
-    static const std::size_t fields = 0;
-
     /** No particular type needed. @todo Add VMType? --rue */
     static const object_type type = ObjectType;
 

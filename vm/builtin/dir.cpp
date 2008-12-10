@@ -14,7 +14,7 @@
 
 namespace rubinius {
   void Dir::init(STATE) {
-    GO(dir).set(state->new_class("Dir", G(object), Dir::fields));
+    GO(dir).set(state->new_class("Dir", G(object)));
     G(dir)->set_object_type(state, DirType);
   }
 

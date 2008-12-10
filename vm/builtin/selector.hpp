@@ -10,7 +10,6 @@ namespace rubinius {
 
   class Selector : public Object {
   public:
-    static const size_t fields = 2;
     static const object_type type = SelectorType;
 
   private:

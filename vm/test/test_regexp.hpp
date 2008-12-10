@@ -18,14 +18,6 @@ class TestRegexp : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_regexp_fields() {
-    TS_ASSERT_EQUALS(3U, Regexp::fields);
-  }
-
-  void test_matchdata_fields() {
-    TS_ASSERT_EQUALS(4U, MatchData::fields);
-  }
-
   void test_version() {
     char* ver = Regexp::version(state);
     TS_ASSERT(strlen(ver) > 0);

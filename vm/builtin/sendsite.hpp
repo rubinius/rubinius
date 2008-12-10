@@ -14,7 +14,6 @@ namespace rubinius {
 
   class SendSite : public Object {
   public:
-    static const size_t fields = 10;
     static const object_type type = SendSiteType;
 
     typedef ExecuteStatus (*Performer)(STATE, Task* task, Message& msg);

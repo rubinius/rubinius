@@ -37,8 +37,7 @@
 namespace rubinius {
 
   void NativeFunction::init(STATE) {
-    GO(native_function).set(state->new_class("NativeFunction", G(executable),
-          NativeFunction::fields));
+    GO(native_function).set(state->new_class("NativeFunction", G(executable)));
     G(native_function)->set_object_type(state, NativeFunctionType);
   }
 

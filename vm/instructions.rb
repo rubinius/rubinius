@@ -939,8 +939,8 @@ class Instructions
 
   def test_instance_of
     <<-CODE
-    Class* parent = state->new_class("Parent", G(object), 1);
-    Class* child =  state->new_class("Child", parent, 1);
+    Class* parent = state->new_class("Parent", G(object));
+    Class* child =  state->new_class("Child", parent);
 
     Object* objp = state->new_object<Object>(parent);
     Object* objc = state->new_object<Object>(child);
@@ -1100,8 +1100,8 @@ class Instructions
 
   def test_kind_of
     <<-CODE
-    Class* parent = state->new_class("Parent", G(object), 1);
-    Class* child =  state->new_class("Child", parent, 1);
+    Class* parent = state->new_class("Parent", G(object));
+    Class* child =  state->new_class("Child", parent);
 
     Object* objp = state->new_object<Object>(parent);
     Object* objc = state->new_object<Object>(child);
@@ -3327,8 +3327,8 @@ class Instructions
     target->required_args(state, target->total_args());
     target->stack_size(state, Fixnum::from(1));
 
-    Class* parent = state->new_class("Parent", G(object), 1);
-    Class* child =  state->new_class("Child", parent, 1);
+    Class* parent = state->new_class("Parent", G(object));
+    Class* child =  state->new_class("Child", parent);
 
     Symbol* blah = state->symbol("blah");
     parent->method_table()->store(state, blah, target);
@@ -3473,8 +3473,8 @@ class Instructions
     target->required_args(state, target->total_args());
     target->stack_size(state, Fixnum::from(2));
 
-    Class* parent = state->new_class("Parent", G(object), 1);
-    Class* child =  state->new_class("Child", parent, 1);
+    Class* parent = state->new_class("Parent", G(object));
+    Class* child =  state->new_class("Child", parent);
 
     Symbol* blah = state->symbol("blah");
     parent->method_table()->store(state, blah, target);

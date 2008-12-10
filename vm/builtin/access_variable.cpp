@@ -15,8 +15,7 @@ namespace rubinius {
 
   void AccessVariable::init(STATE) {
     // HACK test superclass of AccessVariable
-    GO(access_variable).set(state->new_class("AccessVariable", G(executable),
-          AccessVariable::fields));
+    GO(access_variable).set(state->new_class("AccessVariable", G(executable)));
     G(access_variable)->set_object_type(state, AccessVariableType);
   }
 

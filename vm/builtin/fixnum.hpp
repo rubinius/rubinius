@@ -11,7 +11,6 @@ namespace rubinius {
 
   class Fixnum : public Integer {
   public:
-    const static size_t fields = 0;
     const static object_type type = FixnumType;
 
     /* WARNING. Do not use this version if +num+ has the chance of being

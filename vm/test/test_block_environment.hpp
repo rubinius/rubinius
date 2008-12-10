@@ -17,8 +17,4 @@ class TestBlockEnvironment : public CxxTest::TestSuite {
   void tearDown() {
     delete state;
   }
-
-  void test_block_environment_fields() {
-    TS_ASSERT_EQUALS(5U, BlockEnvironment::fields);
-  }
 };

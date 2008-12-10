@@ -25,7 +25,7 @@
 namespace rubinius {
 
   void String::init(STATE) {
-    GO(string).set(state->new_class("String", G(object), String::fields));
+    GO(string).set(state->new_class("String", G(object)));
     G(string)->set_object_type(state, StringType);
   }
 

@@ -39,10 +39,6 @@ class TestTask : public CxxTest::TestSuite {
     return cm;
   }
 
-  void test_task_fields() {
-    TS_ASSERT_EQUALS(0U, Task::fields);
-  }
-
   void test_create() {
     Task* task = Task::create(state);
 
@@ -410,8 +406,8 @@ class TestTask : public CxxTest::TestSuite {
     vis->method(state, cm);
     vis->visibility(state, G(sym_protected));
 
-    Class* parent = state->new_class("Parent", G(object), 1);
-    Class* child =  state->new_class("Child", parent, 1);
+    Class* parent = state->new_class("Parent", G(object));
+    Class* child =  state->new_class("Child", parent);
 
     Symbol* callee = state->symbol("callee");
     parent->method_table()->store(state, callee, vis);
@@ -473,8 +469,8 @@ class TestTask : public CxxTest::TestSuite {
     vis->method(state, cm);
     vis->visibility(state, G(sym_protected));
 
-    Class* parent = state->new_class("Parent", G(object), 1);
-    Class* child =  state->new_class("Child", parent, 1);
+    Class* parent = state->new_class("Parent", G(object));
+    Class* child =  state->new_class("Child", parent);
 
     Symbol* callee = state->symbol("callee");
     parent->method_table()->store(state, callee, vis);

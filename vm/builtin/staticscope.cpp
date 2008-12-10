@@ -5,8 +5,7 @@
 
 namespace rubinius {
   void StaticScope::init(STATE) {
-    GO(staticscope).set(state->new_class("StaticScope", G(object),
-          StaticScope::fields));
+    GO(staticscope).set(state->new_class("StaticScope", G(object)));
     G(staticscope)->set_object_type(state, StaticScopeType);
   }
 

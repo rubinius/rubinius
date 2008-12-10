@@ -25,7 +25,6 @@ namespace rubinius {
    */
   class Thread : public Object {
   public:
-    const static size_t fields = 6;
     const static object_type type = ThreadType;
 
     /** Register class with the VM. */

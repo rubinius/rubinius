@@ -8,7 +8,6 @@ namespace rubinius {
 
   class Autoload : public Object {
   public:
-    const static size_t fields = 0;
     const static object_type type = AutoloadType;
 
     /**  Register class with the VM. */

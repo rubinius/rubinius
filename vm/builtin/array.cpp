@@ -18,7 +18,7 @@
 namespace rubinius {
 
   void Array::init(STATE) {
-    GO(array).set(state->new_class("Array", G(object), Array::fields));
+    GO(array).set(state->new_class("Array", G(object)));
     G(array)->set_object_type(state, ArrayType);
   }
 

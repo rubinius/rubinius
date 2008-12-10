@@ -28,10 +28,6 @@ class TestAccessVariable : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_access_variable_fields() {
-    TS_ASSERT_EQUALS(Executable::fields + 2U, AccessVariable::fields);
-  }
-
   void test_access_variable_is_slot() {
     AccessVariable* av = AccessVariable::allocate(state);
     Task* task = Task::create(state, 10);

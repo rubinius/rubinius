@@ -22,9 +22,6 @@ class TestByteArray : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_bytearray_fields() {
-    TS_ASSERT_EQUALS(0U, ByteArray::fields);
-  }
   void test_create() {
     size_t mag = sizeof(Object*);
     ByteArray* b;

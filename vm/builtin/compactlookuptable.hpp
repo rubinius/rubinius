@@ -13,7 +13,6 @@ namespace rubinius {
   #define COMPACTLOOKUPTABLE_SIZE 12U
   class CompactLookupTable : public Tuple {
   public:
-    const static size_t fields = 0;
     const static object_type type = CompactLookupTableType;
 
     static void init(STATE);

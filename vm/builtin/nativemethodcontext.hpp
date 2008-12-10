@@ -49,9 +49,6 @@ namespace rubinius {
   */
   class NativeMethodContext : public MethodContext {
   public:   /* Slots and bookkeeping. */
-
-    /** Dynamically calculated size. (TODO) */
-    const static std::size_t fields = 0;
     const static object_type type = NativeMethodContextType;
 
     /** Add the class object to the object space. */

@@ -15,7 +15,6 @@ namespace rubinius {
    */
   class Symbol : public Object {
   public:
-    const static size_t fields = 0;
     const static object_type type = SymbolType;
 
     native_int index() const;

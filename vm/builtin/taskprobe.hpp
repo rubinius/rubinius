@@ -38,7 +38,6 @@ namespace rubinius {
    */
   class TaskProbe : public Object {
   public:
-    const static size_t fields = 1;
     const static object_type type = TaskProbeType;
 
     /**

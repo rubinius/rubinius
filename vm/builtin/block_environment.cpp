@@ -24,8 +24,7 @@
 namespace rubinius {
 
   void BlockEnvironment::init(STATE) {
-    GO(blokenv).set(state->new_class("BlockEnvironment", G(object), 
-          BlockEnvironment::fields));
+    GO(blokenv).set(state->new_class("BlockEnvironment", G(object)));
     G(blokenv)->set_object_type(state, BlockEnvironmentType);
   }
 

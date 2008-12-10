@@ -18,10 +18,6 @@ class TestString : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_string_fields() {
-    TS_ASSERT_EQUALS(6U, String::fields);
-  }
-
   void test_create_with_size() {
     str = String::create(state, Fixnum::from(4));
     TS_ASSERT_EQUALS(str->size(), 4U);

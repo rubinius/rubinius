@@ -17,8 +17,7 @@
 
 namespace rubinius {
   void Exception::init(STATE) {
-    GO(exception).set(state->new_class("Exception", G(object),
-          Exception::fields));
+    GO(exception).set(state->new_class("Exception", G(object)));
     G(exception)->set_object_type(state, ExceptionType);
   }
 

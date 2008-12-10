@@ -67,41 +67,40 @@ namespace rubinius {
     cls->ivars(state, Qnil);
     cls->obj_type = ClassType;
 
-    cls->instance_fields(state, Fixnum::from(Class::fields));
     cls->set_object_type(state, ClassType);
 
     /* Set Class into the globals */
     GO(klass).set(cls);
 
     /* Now do Object */
-    Class *object = new_basic_class((Class*)Qnil, Object::fields);
+    Class *object = new_basic_class((Class*)Qnil);
     GO(object).set(object);
 
     /* Now Module */
-    GO(module).set(new_basic_class(object, Module::fields));
+    GO(module).set(new_basic_class(object));
     G(module)->set_object_type(state, ModuleType);
 
     /* Fixup Class's superclass to be Module */
     cls->superclass(state, G(module));
 
     /* Create MetaClass */
-    GO(metaclass).set(new_basic_class(cls, MetaClass::fields));
+    GO(metaclass).set(new_basic_class(cls));
     G(metaclass)->set_object_type(state, MetaClassType);
 
     /* Create Tuple */
-    GO(tuple).set(new_basic_class(object, Tuple::fields));
+    GO(tuple).set(new_basic_class(object));
     G(tuple)->set_object_type(state, TupleType);
 
     /* Create LookupTable */
-    GO(lookuptable).set(new_basic_class(object, LookupTable::fields));
+    GO(lookuptable).set(new_basic_class(object));
     G(lookuptable)->set_object_type(state, LookupTableType);
 
     /* Create LookupTableBucket */
-    GO(lookuptablebucket).set(new_basic_class(object, LookupTableBucket::fields));
+    GO(lookuptablebucket).set(new_basic_class(object));
     G(lookuptablebucket)->set_object_type(state, LookupTableBucketType);
 
     /* Create MethodTable */
-    GO(methtbl).set(new_basic_class(G(lookuptable), MethodTable::fields));
+    GO(methtbl).set(new_basic_class(G(lookuptable)));
     G(methtbl)->set_object_type(state, MethodTableType);
 
     /* Now, we have:
@@ -174,7 +173,6 @@ namespace rubinius {
 
     /* Create IncludedModule */
     GO(included_module).set(new_class("IncludedModule", G(module)));
-    G(included_module)->instance_fields(state, Fixnum::from(IncludedModule::fields));
     G(included_module)->set_object_type(state, IncludedModuleType);
 
     // Let all the builtin classes initialize themselves. This
@@ -404,13 +402,11 @@ namespace rubinius {
   }
 
   void VM::bootstrap_exceptions() {
-    int sz = Exception::fields;
-
     Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vme;
     Class* fce;
     Class* rng;
 
-#define dexc(name, sup) new_class(#name, sup, sz)
+#define dexc(name, sup) new_class(#name, sup)
 
     exc = G(exception);
     dexc(fatal, exc);
@@ -440,9 +436,9 @@ namespace rubinius {
     dexc(IOError, std);
 
     // Some special exceptions scoped under the Rubinius module
-    vme = new_class("VMException", exc, sz, G(rubinius));
-    new_class("AssertionError", vme, sz, G(rubinius));
-    new_class("ObjectBoundsExceededError", vme, sz, G(rubinius));
+    vme = new_class("VMException", exc, G(rubinius));
+    new_class("AssertionError", vme, G(rubinius));
+    new_class("ObjectBoundsExceededError", vme, G(rubinius));
 
     GO(exc_type).set(type);
     GO(exc_arg).set(arg);
@@ -461,7 +457,7 @@ namespace rubinius {
     ern->set_const(state, symbol("Mapping"), G(errno_mapping));
 
 #define set_syserr(num, name) ({ \
-    Class* _cls = new_class(name, sce, sz, ern); \
+    Class* _cls = new_class(name, sce, ern); \
     _cls->set_const(state, symbol("Errno"), Fixnum::from(num)); \
     _cls->set_const(state, symbol("Strerror"), String::create(state, strerror(num))); \
     G(errno_mapping)->store(state, Fixnum::from(num), _cls); \

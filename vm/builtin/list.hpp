@@ -8,7 +8,6 @@ namespace rubinius {
 
   class ListNode : public Object {
   public:
-    const static size_t fields = 2;
     const static object_type type = ListNodeType;
 
   private:
@@ -32,7 +31,6 @@ namespace rubinius {
 
   class List : public Object {
   public:
-    const static size_t fields = 3;
     const static object_type type = ListType;
 
   private:

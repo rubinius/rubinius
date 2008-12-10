@@ -8,10 +8,11 @@
 using namespace rubinius;
 
 class TestCompactLookupTable : public CxxTest::TestSuite {
-  public:
+public:
 
   VM *state;
   CompactLookupTable *tbl;
+
   void setUp() {
     state = new VM(1024);
     tbl = CompactLookupTable::create(state);
@@ -19,10 +20,6 @@ class TestCompactLookupTable : public CxxTest::TestSuite {
 
   void tearDown() {
     delete state;
-  }
-
-  void test_compactlookuptable_fields() {
-    TS_ASSERT_EQUALS(0U, CompactLookupTable::fields);
   }
 
   void test_create() {

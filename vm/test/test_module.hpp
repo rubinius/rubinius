@@ -17,14 +17,6 @@ class TestModule : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_module_fields() {
-    TS_ASSERT_EQUALS(4U, Module::fields);
-  }
-
-  void test_includedmodule_fields() {
-    TS_ASSERT_EQUALS(Module::fields + 1U, IncludedModule::fields);
-  }
-
   void test_create() {
     Module* m = Module::create(state);
     TS_ASSERT_EQUALS(m->name(), Qnil);

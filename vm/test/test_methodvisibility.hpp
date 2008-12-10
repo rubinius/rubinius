@@ -17,8 +17,4 @@ class TestMethodVisibility : public CxxTest::TestSuite {
   void tearDown() {
     delete state;
   }
-
-  void test_methodvisibility_fields() {
-    TS_ASSERT_EQUALS(2U, MethodVisibility::fields);
-  }
 };

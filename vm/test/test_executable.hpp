@@ -18,7 +18,4 @@ class TestExecutable : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_executable_fields() {
-    TS_ASSERT_EQUALS(3U, Executable::fields);
-  }
 };

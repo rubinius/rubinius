@@ -17,10 +17,6 @@ public:
     delete state;
   }
 
-  void test_thread_fileds() {
-    TS_ASSERT_EQUALS(6U, Thread::fields);
-  }
-
   void test_current() {
     Object* current_thread = state->globals.current_thread.get();
 

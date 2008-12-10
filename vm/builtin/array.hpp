@@ -10,7 +10,6 @@ namespace rubinius {
 
   class Array : public Object {
   public:
-    const static size_t fields = 4;
     const static object_type type = ArrayType;
 
   private:

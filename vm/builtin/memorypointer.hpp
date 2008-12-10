@@ -6,8 +6,7 @@
 
 namespace rubinius {
   class MemoryPointer : public Object {
-    public:
-    const static size_t fields = 0;
+  public:
     const static object_type type = MemoryPointerType;
 
     void* pointer;

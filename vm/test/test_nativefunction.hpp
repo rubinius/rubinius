@@ -23,10 +23,6 @@ class TestNativeFunction : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_nativefunction_fields() {
-    TS_ASSERT_EQUALS(7U, NativeFunction::fields);
-  }
-
   void test_type_size() {
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_CHAR) == 1);
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_UCHAR) == 1);

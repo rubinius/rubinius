@@ -91,9 +91,6 @@ namespace rubinius {
   class Object : public ObjectHeader {
   public:   /* Slots and bookkeeping */
 
-    /** Objects have no index fields past the header by default */
-    static const size_t fields = 0;
-
     /** Class type identifier. */
     static const object_type type = ObjectType;
 

@@ -21,7 +21,7 @@ namespace rubinius {
 
   void TaskProbe::init(STATE) {
     GO(taskprobe).set(state->new_class("TaskProbe", G(object),
-                                       TaskProbe::fields, G(rubinius)));
+                                        G(rubinius)));
     G(taskprobe)->name(state, state->symbol("Rubinius::TaskProbe"));
     G(taskprobe)->set_object_type(state, TaskProbe::type);
   }

@@ -19,10 +19,6 @@ class TestSendSite : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_sendsite_fields() {
-    TS_ASSERT_EQUALS(10U, SendSite::fields);
-  }
-
   void test_init() {
     TS_ASSERT(G(send_site)->kind_of_p(state, G(klass)));
     TS_ASSERT_EQUALS(G(send_site)->instance_type()->to_native(), SendSiteType);

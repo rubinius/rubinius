@@ -33,10 +33,6 @@ class TestDir : public CxxTest::TestSuite {
     free(dir);
   }
 
-  void test_dir_fields() {
-    TS_ASSERT_EQUALS(1U, Dir::fields);
-  }
-
   void test_create() {
     TS_ASSERT(kind_of<Dir>(d));
     TS_ASSERT(d->data()->nil_p());

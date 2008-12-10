@@ -10,7 +10,6 @@ namespace rubinius {
 
   class Dir : public Object {
   public:
-    const static size_t fields = 1;
     const static object_type type = DirType;
 
   private:

@@ -18,7 +18,4 @@ class TestStaticScope : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_staticscope_fields() {
-    TS_ASSERT_EQUALS(2U, StaticScope::fields);
-  }
 };

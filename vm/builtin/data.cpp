@@ -5,7 +5,7 @@
 namespace rubinius {
 
   void Data::init(STATE) {
-    GO(data).set(state->new_class("Data", G(object), Data::fields));
+    GO(data).set(state->new_class("Data", G(object)));
     G(data)->set_object_type(state, DataType);
   }
 

@@ -9,8 +9,7 @@
 
 namespace rubinius {
   class ByteArray : public Object {
-    public:
-    const static size_t fields = 0;
+  public:
     const static object_type type = ByteArrayType;
 
     // Body access

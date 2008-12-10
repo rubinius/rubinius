@@ -20,7 +20,6 @@ namespace rubinius {
 
   class Regexp : public Object {
   public:
-    const static size_t fields = 3;
     const static object_type type = RegexpType;
 
   private:

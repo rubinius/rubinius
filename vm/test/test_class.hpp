@@ -20,14 +20,6 @@ class TestClass : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_class_fields() {
-    TS_ASSERT_EQUALS(Module::fields + 3U, Class::fields);
-  }
-
-  void test_metaclass_fields() {
-    TS_ASSERT_EQUALS(Class::fields + 1U, MetaClass::fields);
-  }
-
   void test_create() {
     Class* c = Class::create(state, G(object));
 

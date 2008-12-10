@@ -10,8 +10,7 @@ namespace rubinius {
   class Float;
 
   class Bignum : public Integer {
-    public:
-    const static size_t fields = 1;
+  public:
     const static object_type type = BignumType;
 
     mp_int mp_val_;

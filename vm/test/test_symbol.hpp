@@ -18,10 +18,6 @@ class TestSymbol : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_symbol_fields() {
-    TS_ASSERT_EQUALS(0U, Symbol::fields);
-  }
-
   void test_index() {
     Symbol* sym = state->symbol("blah");
 

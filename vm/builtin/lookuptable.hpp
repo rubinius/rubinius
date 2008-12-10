@@ -11,12 +11,13 @@ namespace rubinius {
 
   class LookupTableBucket : public Object {
   public:
-    const static size_t fields = 3;
     const static object_type type = LookupTableBucketType;
+
   private:
     Object *key_;   // slot
     Object *value_; // slot
     LookupTableBucket *next_;  // slot
+
   public:
     attr_accessor(key, Object);
     attr_accessor(value, Object);
@@ -35,7 +36,6 @@ namespace rubinius {
   #define LOOKUPTABLE_MIN_SIZE 16
   class LookupTable : public Object {
   public:
-    const static size_t fields = 3;
     const static object_type type = LookupTableType;
 
   private:

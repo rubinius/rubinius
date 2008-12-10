@@ -12,7 +12,6 @@ namespace rubinius {
 
   class IO : public Object {
   public:
-    const static size_t fields = 6;
     const static object_type type = IOType;
 
   private:

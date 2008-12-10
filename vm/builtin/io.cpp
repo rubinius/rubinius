@@ -24,10 +24,10 @@
 
 namespace rubinius {
   void IO::init(STATE) {
-    GO(io).set(state->new_class("IO", G(object), IO::fields));
+    GO(io).set(state->new_class("IO", G(object)));
     G(io)->set_object_type(state, IOType);
 
-    GO(iobuffer).set(state->new_class("Buffer", G(object), IOBuffer::fields, G(io)));
+    GO(iobuffer).set(state->new_class("Buffer", G(object), G(io)));
     G(iobuffer)->set_object_type(state, IOBufferType);
   }
 

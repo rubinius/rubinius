@@ -72,8 +72,6 @@ namespace rubinius {
   class NativeMethod : public Executable {
   public:   /* Ruby bookkeeping */
 
-    /** Size in Object*'s. Executable + 2. */
-    const static std::size_t fields = Executable::fields + 5;
     /** Statically held object type. */
     const static object_type type = NativeMethodType;
 

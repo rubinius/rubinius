@@ -19,11 +19,10 @@
 namespace rubinius {
 
   void CompiledMethod::init(STATE) {
-    GO(cmethod).set(state->new_class("CompiledMethod", G(executable), CompiledMethod::fields));
+    GO(cmethod).set(state->new_class("CompiledMethod", G(executable)));
     G(cmethod)->set_object_type(state, CompiledMethodType);
 
-    GO(cmethod_vis).set(state->new_class("Visibility", G(object),
-        MethodVisibility::fields, G(cmethod)));
+    GO(cmethod_vis).set(state->new_class("Visibility", G(object), G(cmethod)));
     G(cmethod_vis)->set_object_type(state, MethodVisibilityType);
   }
 

@@ -6,7 +6,7 @@
 
 namespace rubinius {
   void InstructionSequence::init(STATE) {
-    GO(iseq).set(state->new_class("InstructionSequence", G(object), InstructionSequence::fields));
+    GO(iseq).set(state->new_class("InstructionSequence", G(object)));
     G(iseq)->set_object_type(state, InstructionSequenceType);
   }
 

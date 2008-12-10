@@ -12,7 +12,6 @@ namespace rubinius {
 
   class Exception : public Object {
   public:
-    const static size_t fields = 2;
     const static object_type type = ExceptionType;
 
   private:

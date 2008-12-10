@@ -21,10 +21,6 @@ class TestException : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_exception_fields() {
-    TS_ASSERT_EQUALS(2U, Exception::fields);
-  }
-
   void test_type_error_raise() {
     object_type type = ClassType;
     Object* obj = G(object);

@@ -8,7 +8,6 @@
 namespace rubinius {
   class Tuple : public Object {
   public:
-    const static size_t fields = 0;
     const static object_type type = TupleType;
 
     /* Body access */

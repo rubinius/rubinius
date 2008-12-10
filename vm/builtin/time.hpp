@@ -15,7 +15,6 @@ namespace rubinius {
 
   class Time : public Object {
   public:
-    const static size_t fields = 3;
     const static object_type type = TimeType;
 
   private:

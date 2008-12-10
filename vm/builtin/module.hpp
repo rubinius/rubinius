@@ -10,7 +10,6 @@ namespace rubinius {
 
   class Module : public Object {
   public:
-    const static size_t fields = 4;
     const static object_type type = ModuleType;
 
   private:
@@ -53,7 +52,6 @@ namespace rubinius {
 
   class IncludedModule : public Module {
   public:
-    const static size_t fields = Module::fields + 1;
     const static object_type type = IncludedModuleType;
 
   private:

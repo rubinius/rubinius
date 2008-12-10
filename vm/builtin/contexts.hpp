@@ -17,8 +17,6 @@ namespace rubinius {
 
   class MethodContext : public Object {
   public:
-    // fields is 0 because it is dynamically calculated
-    const static size_t fields = 0;
     const static object_type type = MethodContextType;
 
   private:
@@ -179,8 +177,6 @@ namespace rubinius {
 
   class BlockContext : public MethodContext {
     public:
-    // fields is 0 because it is dynamically calculated
-    const static size_t fields = 0;
     const static object_type type = BlockContextType;
 
     BlockEnvironment* env();

@@ -31,10 +31,6 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(tup_class, obj->klass());
   }
 
-  void test_object_fields() {
-    TS_ASSERT_EQUALS(0U, Object::fields);
-  }
-
   void test_kind_of() {
     Object* obj = util_new_object();
     TS_ASSERT(kind_of<Object>(obj));

@@ -23,7 +23,7 @@ namespace rubinius {
 
 
   void NativeMethod::register_class_with(STATE) {
-    state->globals.nmethod.set(state->new_class("NativeMethod", state->globals.executable.get(), NativeMethod::fields));
+    state->globals.nmethod.set(state->new_class("NativeMethod", G(executable)));
     state->globals.nmethod.get()->set_object_type(state, NativeMethodType);
   }
 

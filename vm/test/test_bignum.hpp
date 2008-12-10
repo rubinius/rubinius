@@ -31,10 +31,6 @@ class TestBignum : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_bignum_fields() {
-    TS_ASSERT_EQUALS(1U, Bignum::fields);
-  }
-
   void test_from_int() {
     Bignum* obj = Bignum::from(state, (int)13);
     TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
