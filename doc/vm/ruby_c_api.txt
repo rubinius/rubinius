@@ -1,0 +1,5 @@
+# Ruby C-API
+
+Rubinius implements the Ruby (MRI) C-API in a component named 'Subtend'.
+
+TODO: document subtend.

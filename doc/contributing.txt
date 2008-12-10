@@ -27,7 +27,7 @@ that the next doc writer can be annoying with other questions.
 
 ## Run your code
 
-You code it often more vicious than the specs. Run your pet project under
+Your code it often more vicious than the specs. Run your pet project under
 rubinius and report crashes! See [Howto - Write a
 ticket](/howto/write_a_ticket.html)
 
@@ -37,10 +37,10 @@ Search for tags like TODO, HACK, FIXME in the code and fix them. Once you're
 finished, submit a ticket with the [PATCH] tag and a small description. See
 [Howto - Write a ticket](/howto/write_a_ticket.html)
 
-I use : `grep -re "TODO\|HACK\|FIXME" .`
+I use : `grep -re "@todo\|TODO\|HACK\|FIXME" .`
 
-You can also run failing specs and try to fix them. I use `bin/ci -i` and
-`rake todo`
+You can also run failing specs and try to fix them. I use `bin/mspec
+spec/frozen`, `rake todo`, or `bin/mspec tag --list fails spec/frozen`.
 
 
 ## Ask For Help
@@ -48,7 +48,8 @@ You can also run failing specs and try to fix them. I use `bin/ci -i` and
 Anything that we can do to help, we will. Make sure to do your own research
 too, if possible. We will certainly accept and appreciate simple bug reports,
 but it is extremely helpful if you can actively help us identify (and maybe
-even fix) the problem.
+even fix) the problem. Again, see [Howto - Write a
+ticket](/howto/write_a_ticket.html)
 
 Q.  It is all so confusing! There is the VM, the kernel, the libraries, the
     specs, polymorphic caches, pneumatic stegosauruses... How can I possibly

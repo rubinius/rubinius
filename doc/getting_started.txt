@@ -100,6 +100,43 @@ use the +debug+ subtask:
     rake build:debug
 
 
+## Running VM Tests
+
+Build and run the tests:
+
+  rake vm:test
+
+To run only one test suite, use:
+
+  rake vm:test[SomeClass]
+
+If you want to run a single test suite under gdb, use:
+
+  SUITE="SomeClass" gdb vm/test/runner
+
+
+## Running the Specs
+
+Rubinius includes a stable copy of the RubySpecs that is tagged so that a
+clean set (i.e. passing 100%) of specs can be run as part of the continuous
+integration (CI) process. To run the CI specs:
+
+    rake spec
+
+OR
+
+    bin/mspec ci
+
+To run the most current version of RubySpec:
+
+    rake rubyspec:update
+    bin/mspec spec/ruby
+
+To run a particular spec file, for example, the Array specs:
+
+    bin/mspec spec/ruby/1.8/core/array
+
+
 ## Installing Rubinius
 
 Run the 'rake install' task to install Rubinius (you may need sudo). Run the
@@ -115,6 +152,10 @@ Once compiled, you can verify the VM works:
 Rubinius generally works like Ruby from the command-line. For example:
 
     bin/rbx -e 'puts "Hello!"'
+
+To run a ruby file named 'code.rb':
+
+    bin/rbx code.rb
 
 
 ## Troubleshooting

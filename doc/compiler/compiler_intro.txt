@@ -1,3 +1,5 @@
+TODO: Break into files in the doc/compiler/ directory.
+
 = Introduction to the Rubinius compiler
 
 This document presents the sequence of transformations that it takes

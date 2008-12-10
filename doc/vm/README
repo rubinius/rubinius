@@ -1,4 +1,0 @@
-This directory contains documentation for the Rubinius VM.
-
-Run `rake doc:vm` to freshen this documentation.
-
