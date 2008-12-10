@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <cstring>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -195,7 +196,7 @@ namespace assembler_x86 {
     AssemblerX86(uint8_t* buffer, AssemblerX86 &other)
       : Assembler(buffer)
     {
-      memcpy(buffer, other.buffer(), other.used_bytes());
+      std::memcpy(buffer, other.buffer(), other.used_bytes());
       for(Relocations::iterator i = other.relocations_.begin();
           i != other.relocations_.end();
           i++) {
