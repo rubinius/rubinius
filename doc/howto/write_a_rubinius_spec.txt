@@ -7,7 +7,7 @@ Make sure you have read:
 
 Then, follow these steps to write a spec for Rubinius:
 
-1.  Run <code>rake git:update</code> to ensure your code is current
+1.  Ensure your code is current, run `git pull`
 1.  Run `rake` to ensure your build is current
 1.  Edit a file under `spec/core`, `spec/compiler`, `spec/debugger,` etc
 1.  Run `bin/mspec spec/some/spec_file.rb` to confirm that it fails
