@@ -61,7 +61,7 @@ namespace rubinius {
     void set_class(Object* target, Object* obj);
     Object* allocate_object(size_t bytes);
 
-    Object* ObjectMemory::new_object_typed(Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed(Class* cls, size_t bytes, object_type type);
 
     template <class T>
       T* new_object_bytes(Class* cls, size_t bytes) {
