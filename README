@@ -1,25 +1,29 @@
 1. What is Rubinius
 
-Rubinius is an execution environment for the Ruby programming language.
-It is comprised of three major pieces: a compiler, a 'kernel' (otherwise
-known as the Ruby Core Library), and a virtual machine.
-The project's goal is to create a top-of-the-line Ruby implementation.
+Rubinius is an execution environment for the Ruby programming language.  It is
+comprised of three major pieces: a compiler, a 'kernel' (otherwise known as
+the Ruby Core Library), and a virtual machine. The project's goal is to create
+a top-of-the-line Ruby implementation.
 
-2. Running Rubinius
+2. License
 
-Refer to the INSTALL file for instructions on getting and building Rubinius.
+Rubinius uses the BSD license. See LICENSE for details.
 
-3. Status
+3. Running Rubinius
+
+See doc/getting_started.txt.
+
+4. Status
 
 Rubinius is under heavy development and currently supports the core Ruby
-classes and kernel methods. The majority of the existing Ruby libraries
-should run without modification.  If your MRI 1.8.6-compatible code does not
-run under Rubinius, please open a bug ticket.
+classes and kernel methods. The majority of the existing Ruby libraries should
+run without modification.  If your MRI 1.8.6-compatible code does not run
+under Rubinius, please open a bug ticket. See doc/howto/write_a_ticket.txt.
 
 As Rubinius becomes more and more compatible with Ruby 1.8, the development
 effort is shifting toward performance, rather than completeness.
 
-4. Goals
+5. Goals
 
 * Thread safety. Rubinius intends to be thread-safe so you could embed more
   than one interpreter in a single application. It does not currently meet
@@ -27,24 +31,22 @@ effort is shifting toward performance, rather than completeness.
 
 * Clean, readable code that is easy for users to understand and extend.
 
-* Reliable, rock-solid code.  Valgrind is used to help verify correctness.
+* Reliable, rock-solid code. Valgrind is used to help verify correctness.
 
 * Bring modern techniques to the Ruby runtime. Pluggable garbage collectors and
   code optimizers are possible examples.
 
-5. Volunteering to Help
+6. Contributing
 
-The Rubinius team welcomes contributions, bug reports, test cases, and monetary
-support. One possible way to help is implement Ruby library classes. Visit
-http://rubinius.lighthouseapp.com for documentation on how to begin hacking
-Rubinius.
+The Rubinius team welcomes contributions, bug reports, test cases, and
+monetary support. One possible way to help is implement Ruby library classes.
+See doc/contributing.txt to get started.
 
-6. Architecture
+7. Architecture
 
-While most of the Rubinius features are implemented in Ruby, the VM itself
-is written in C++. This is likely to continue to be the case in the coming
+While most of the Rubinius features are implemented in Ruby, the VM itself is
+written in C++. This is likely to continue to be the case in the coming
 months, partly to ease the integration of LLVM into the Rubinius system.
 
 The compiler, assembler, and bytecode generators are all written in Ruby, and
 can be found under the ./lib/compiler directory.
-
