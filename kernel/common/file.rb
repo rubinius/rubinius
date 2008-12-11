@@ -868,6 +868,11 @@ class File < IO
     Stat.new(@path).atime
   end
 
+  def reopen(other, mode = 'r+')
+    rewind
+    super(other, mode)
+  end
+
   def chmod(mode)
     mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
     POSIX.fchmod(@descriptor, mode)

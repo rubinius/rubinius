@@ -1257,7 +1257,8 @@ class IO
   #  f2.readlines[0]   #=> "This is line one\n"
   #  f2.reopen(f1)     #=> #<File:testfile>
   #  f2.readlines[0]   #=> "This is line one\n"
-  def reopen(other, mode = 'r')
+  def reopen(other, mode = 'r+')
+    flush
     other = if other.respond_to? :to_io then
               other.to_io
             else
