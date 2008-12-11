@@ -19,7 +19,7 @@ namespace rubinius {
     Object* ibuffer_;    // slot
     Fixnum* mode_;       // slot
     Object* eof_;        // slot
-    Fixnum* lineno_;     // slot
+    Integer* lineno_;    // slot
     Object* sync_;       // slot
 
 
@@ -30,7 +30,7 @@ namespace rubinius {
     attr_accessor(ibuffer, Object);
     attr_accessor(mode, Fixnum);
     attr_accessor(eof, Object);
-    attr_accessor(lineno, Fixnum);
+    attr_accessor(lineno, Integer);
     attr_accessor(sync, Object);
 
     /* interface */
