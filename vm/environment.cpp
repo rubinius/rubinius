@@ -42,7 +42,7 @@ namespace rubinius {
 
     Array* ary = Array::create(state, argc - 1);
     for(int i = 0; i < argc - 1; i++) {
-      ary->set(state, i, String::create(state, argv[i + 1]));
+      ary->set(state, i, String::create(state, argv[i + 1])->taint());
     }
 
     state->set_const("ARGV", ary);
