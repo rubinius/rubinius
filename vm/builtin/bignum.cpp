@@ -209,7 +209,6 @@ namespace rubinius {
   void Bignum::init(STATE) {
     GO(bignum).set(state->new_class("Bignum", G(integer)));
     G(bignum)->set_object_type(state, BignumType);
-    state->add_type_info(new Bignum::Info(Bignum::type));
   }
 
   Bignum* Bignum::create(STATE) {

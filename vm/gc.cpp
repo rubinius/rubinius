@@ -63,25 +63,10 @@ namespace rubinius {
     }
 
     TypeInfo* ti = object_memory->type_info[obj->obj_type];
-    if(ti) {
-      ObjectMark mark(this);
-      ti->mark(obj, mark);
-    } else if(obj->stores_references_p()) {
-      // HACK copied from Tuple;
-      Object* tmp;
-      Tuple* tup = static_cast<Tuple*>(obj);
+    assert(ti);
 
-      for(size_t i = 0; i < tup->num_fields(); i++) {
-        tmp = tup->field[i];
-        if(tmp->reference_p()) {
-          tmp = saw_object(tmp);
-          if(tmp) {
-            tup->field[i] = tmp;
-            object_memory->write_barrier(tup, tmp);
-          }
-        }
-      }
-    }
+    ObjectMark mark(this);
+    ti->mark(obj, mark);
   }
 
   void GarbageCollector::delete_object(Object* obj) {

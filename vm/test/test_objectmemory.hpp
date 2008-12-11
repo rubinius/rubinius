@@ -26,7 +26,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
   }
 
   Object* util_new_object(ObjectMemory &om, int count = 3) {
-    return om.allocate_object(sizeof(Object) + (sizeof(Object*) * count));
+    return om.new_object_variable<Tuple>((Class*)Qnil, count);
   }
 
   void test_new_object() {

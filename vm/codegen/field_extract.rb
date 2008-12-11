@@ -575,21 +575,32 @@ write_if_new 'vm/gen/includes.hpp' do |f|
 end
 
 write_if_new "vm/gen/typechecks.gen.cpp" do |f|
-  f.puts "void TypeInfo::auto_init(STATE) {"
+  f.puts "void TypeInfo::auto_init(ObjectMemory* om) {"
   parser.classes.each do |n, cpp|
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
-    cpp.all_fields.each do |name, type, idx|
-      f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
-    end
     f.puts "    ti->type_name = std::string(\"#{n}\");"
     f.puts "    ti->instance_size = sizeof(#{n});"
-    f.puts "    state->add_type_info(ti);"
+    f.puts "    om->type_info[#{n}::type] = ti;"
     f.puts "  }"
     f.puts
   end
   f.puts "}"
   f.puts
+
+  f.puts "void TypeInfo::auto_learn_fields(STATE) {"
+  parser.classes.each do |n, cpp|
+    f.puts "  {"
+    f.puts "    TypeInfo* ti = state->find_type(#{n}::type);"
+    f.puts "    ti->set_state(state);"
+    cpp.all_fields.each do |name, type, idx|
+      f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
+    end
+    f.puts "  }"
+    f.puts
+  end
+
+  f.puts "}"
 
   parser.classes.each do |n, cpp|
     f.puts cpp.generate_typechecks

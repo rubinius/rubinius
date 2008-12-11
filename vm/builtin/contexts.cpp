@@ -287,7 +287,7 @@ namespace rubinius {
 
     // Detect a context on the special context stack and fix it up.
     if(ctx->klass_->nil_p()) {
-      ctx->initialize_as_reference(state);
+      ctx->initialize_as_reference(state());
     }
 
     // FIXME this is to help detect an ellusive bug

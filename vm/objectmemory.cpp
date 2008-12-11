@@ -32,6 +32,8 @@ namespace rubinius {
     // Push the scan pointer off the bottom so nothing is seend
     // as scaned
     contexts.set_scan((address)(((uintptr_t)contexts.current) - 1));
+
+    TypeInfo::init(this);
   }
 
   ObjectMemory::~ObjectMemory() {

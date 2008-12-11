@@ -13,6 +13,7 @@ namespace rubinius {
   class Class;
   class Object;
   class ObjectMark;
+  class ObjectMemory;
 
   /**
    *  Static type information for the VM.
@@ -28,12 +29,26 @@ namespace rubinius {
    *  @see  builtin/object.hpp
    */
   class TypeInfo {
-  public:
+  public: // Types
 
     typedef std::map<native_int, long> Slots;
 
-    static void init(STATE);
-    static void auto_init(STATE);
+  private: /* Instance vars */
+    VM*         state_;
+
+  public:
+
+    bool        instances_need_cleanup;
+    size_t      instance_size;
+    Slots       slots;
+    object_type type;
+    std::string type_name;
+
+  public: /* Class initializers */
+
+    static void init(ObjectMemory* om);
+    static void auto_init(ObjectMemory* om);
+    static void auto_learn_fields(STATE);
     virtual void auto_mark(Object* obj, ObjectMark& mark);
 
   public:   /* Ctors */
@@ -51,6 +66,14 @@ namespace rubinius {
     virtual ~TypeInfo();
 
   public:   /* Interface */
+
+    void set_state(STATE) {
+      state_ = state;
+    }
+
+    VM* state() {
+      return state_;
+    }
 
     /**
      *  Internal resource cleanup.
@@ -125,15 +148,6 @@ namespace rubinius {
      * Indents to level-1 and prints ">" + endl.
      */
     virtual void close_body(int level);
-
-  public:   /* Instance vars */
-
-    bool        instances_need_cleanup;
-    size_t      instance_size;
-    Slots       slots;
-    VM*         state;
-    object_type type;
-    std::string type_name;
 
   };
 

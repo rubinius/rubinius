@@ -136,7 +136,6 @@ namespace rubinius {
     Symbol* symbol(String* str);
     Symbol* symbol(std::string str);
 
-    void add_type_info(TypeInfo* ti);
     TypeInfo* find_type(int type);
 
     void init_ffi();

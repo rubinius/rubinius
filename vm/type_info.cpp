@@ -10,22 +10,22 @@
 
 namespace rubinius {
 
-  void TypeInfo::init(STATE) {
+  void TypeInfo::init(ObjectMemory* om) {
     // Call the automatically generated function
-    auto_init(state);
+    auto_init(om);
 
     // Give Object a TypeInfo entry
     TypeInfo* object_type_info = new TypeInfo(ObjectType);
     object_type_info->type_name = std::string("Object");
-    state->add_type_info(object_type_info);
+    om->type_info[ObjectType] = object_type_info;
   }
 
 
   TypeInfo::TypeInfo(object_type type, bool cleanup)
-    : instances_need_cleanup(cleanup)
+    : state_(NULL)
+    , instances_need_cleanup(cleanup)
     , instance_size(sizeof(Object))
     , slots()
-    , state(NULL)
     , type(type)
     , type_name()
   {

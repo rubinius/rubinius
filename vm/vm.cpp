@@ -39,7 +39,7 @@ namespace rubinius {
     probe.set(Qnil, &globals.roots);
 
     MethodContext::initialize_cache(this);
-    TypeInfo::init(this);
+    TypeInfo::auto_learn_fields(this);
 
     bootstrap_ontology();
 
@@ -160,11 +160,6 @@ namespace rubinius {
         || (type == FixnumType && !obj->fixnum_p())) {
       Exception::type_error(state, type, obj, reason);
     }
-  }
-
-  void VM::add_type_info(TypeInfo* ti) {
-    om->add_type_info(ti);
-    ti->state = this;
   }
 
   TypeInfo* VM::find_type(int type) {
