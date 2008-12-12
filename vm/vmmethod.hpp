@@ -11,11 +11,13 @@
 namespace rubinius {
   typedef void* instlocation;
   typedef uint32_t opcode;
+  typedef uint8_t bpflags;
 
   class CompiledMethod;
   class MethodContext;
   class Opcode;
   class SendSite;
+  class BreakpointFlags;
 
 
   class VMMethod {
@@ -51,6 +53,8 @@ namespace rubinius {
     void setup_argument_handler(CompiledMethod* meth);
 
     std::vector<Opcode*> create_opcodes();
+
+    void set_breakpoint_flags(STATE, size_t ip, bpflags flags);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

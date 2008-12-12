@@ -496,6 +496,23 @@ namespace rubinius {
     return ops;
   }
 
+  /*
+   * Sets breakpoint flags on the specified opcode.
+   */
+  void VMMethod::set_breakpoint_flags(STATE, size_t ip, bpflags flags) {
+    /* Ensure ip is valid */
+    VMMethod::Iterator iter(this);
+    for(; !iter.end(); iter.inc()) {
+      if(iter.position == ip) break;
+    }
+    if(ip != iter.position) {
+      Exception::argument_error(state, "Invalid instruction address");
+    }
+
+    opcodes[ip] &= ~(255 << 24);    // Clear the high byte
+    opcodes[ip] |= (flags << 24);
+  }
+
   bool Opcode::is_goto() {
     switch(op) {
     case InstructionSequence::insn_goto_if_false:
