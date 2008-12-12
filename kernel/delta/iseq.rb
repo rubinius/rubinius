@@ -21,18 +21,11 @@ class InstructionSet
   #   number of operands consumed/produced is calculated based on another
   #   value, and cannot be determined just from the opcode.
   #
-  #   Negative codes
-  #   consist of 3-digits, where:
-  #   - the first digit is a multiplier (normally 1, but make_hash has a value
-  #     of 2);
-  #   - the second digit is the where the arg to be multiplied comes from;
+  #   Negative codes consist of 2-digits, where:
+  #   - the first digit is where the arg to be multiplied comes from;
   #     1 = first opcode arg, 2 = second opcode arg, 3 = arg register;
   #   - the final digit is a constant number to be added to the result.
   #
-  #   The value -999 is a special value, indicating that the result cannot be
-  #   calculated from the bytecode, since it is dependent on the number of
-  #   items in an array that will be on the stack when the opcode is
-  #   encountered.
   # - If the opcode can change the flow of execution, it will have a :flow key,
   #   followed by a value indicating whether the opcode performs a :send, a
   #   :goto, or a :return.
@@ -73,7 +66,7 @@ class InstructionSet
     {:opcode => :set_local, :args => [:local], :stack => [1,1]},
     {:opcode => :push_local, :args => [:local], :stack => [0,1]},
     {:opcode => :push_exception, :args => [], :stack => [0,1]},
-    {:opcode => :make_array, :args => [:int], :stack => [-110,1],
+    {:opcode => :make_array, :args => [:int], :stack => [-10,1],
       :vm_flags => []},
     {:opcode => :set_ivar, :args => [:literal], :stack => [1,1],
       :vm_flags => []},
@@ -101,15 +94,15 @@ class InstructionSet
     {:opcode => :send_method, :args => [:literal], :stack => [1,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :send_stack, :args => [:literal, :int], 
-      :stack => [-121,1], :flow => :send, :vm_flags => [:check_interrupts]},
+      :stack => [-21,1], :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :send_stack_with_block, :args => [:literal, :int],
-      :stack => [-122,1], :flow => :send, :vm_flags => [:check_interrupts]},
+      :stack => [-22,1], :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :send_stack_with_splat, :args => [:literal, :int], 
-      :stack => [-123,1], :flow => :send, :vm_flags => [:check_interrupts]},
+      :stack => [-23,1], :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :send_super_stack_with_block,  :args => [:literal, :int],
-      :stack => [-121,1], :flow => :send, :vm_flags => [:check_interrupts]},
+      :stack => [-21,1], :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :send_super_stack_with_splat, :args => [:literal, :int],
-      :stack => [-122,1], :flow => :send},
+      :stack => [-22,1], :flow => :send},
 
     {:opcode => :push_block, :args => [], :stack => [0,1]},
     {:opcode => :clear_exception, :args => [], :stack => [0,0]},
@@ -169,7 +162,7 @@ class InstructionSet
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :meta_send_op_nequal, :args => [], :stack => [2,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
-    {:opcode => :meta_send_call, :args => [:int], :stack => [-111,1],
+    {:opcode => :meta_send_call, :args => [:int], :stack => [-11,1],
       :flow => :send},
 
     {:opcode => :push_scope, :args => [], :stack => [0, 1]},
@@ -219,20 +212,13 @@ class InstructionSet
     #
     # If the value is positive, it is the exact number of items consumed.
     #
-    # If the value is negative, it is a 3-digit number where:
-    # - first digit is a multiplier (1 or 2)
-    # - second digit is the opcode arg to be multiplied (1 or 2), or the
+    # If the value is negative, it is a 2-digit number where:
+    # - first digit is the opcode arg to be multiplied (1 or 2), or the
     #   contents of the args register (3) at that point.
     # - third digit is a constant arg count to be added to the result
     #
-    # For example, the value -210 would indicate that the number of stack
-    # items consumed by the opcode is 2 * the value of the first opcode arg.
-    #
-    # The special value -999 is reserved for cases where the number of
-    # arguments consumed cannot be determined from the bytecode itself. This
-    # is currently only the case with :push_array, although opcodes that use
-    # the args register may also be indeterminate if used with
-    # :cast_array_for_args.
+    # For example, the value -10 would indicate that the number of stack
+    # items consumed by the opcode is the value of the first opcode arg.
 
     def stack_consumed
       @opcode_info[:stack].first
@@ -240,24 +226,6 @@ class InstructionSet
 
     ##
     # Returns the number of items produced off of the stack by this opcode.
-    #
-    # If the value is positive, it is the exact number of items produced.
-    #
-    # NOTE at present, all opcodes are either positive or 0. The variable
-    # scheme below is not used at present, and may never be again.
-    #
-    # If the value is negative, it is a 3-digit number where:
-    # - first digit is a multiplier (1 or 2)
-    # - second digit is the opcode arg to be multiplied
-    # - third digit is a constant arg count to be added to the result
-    #
-    # For example, the value -110 would indicate that the number of stack
-    # items produced by the opcode is 1 * the value of the first opcode arg.
-    #
-    # The special values -990 to -999 are reserved for cases where the number
-    # of arguments produced or consumed cannot be determined from the bytecode
-    # itself. This is currently only the case with :push_array and
-    # :send_with_arg_register.
 
     def stack_produced
       @opcode_info[:stack].last
@@ -266,14 +234,14 @@ class InstructionSet
     # Indicates how the stack changes with this instruction. Positive numbers
     # meaning how far the sp is pushed forward, negative how far back.
     # +inst+ is an Array in the same format that Encoder#encode takes as input
+
     def stack_difference(inst)
       consumed = stack_consumed()
       if consumed < 0
         consumed = -consumed
-        mult =   consumed / 100
-        arg =   (consumed % 100) / 10
-        const = (consumed % 100) % 10
-        consumed = (mult * inst[arg]) + const
+        arg =   consumed / 10
+        const = consumed % 10
+        consumed = inst[arg] + const
       end
       produced = stack_produced()
 

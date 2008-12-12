@@ -387,25 +387,15 @@ class CompiledMethod < Executable
 
   ##
   # Calculates the minimum stack size required for this method.
-  #
-  # Returns two values:
-  # * The minimum size stack required
-  # * A flag indicating whether this is an exact size, or a minimum
   def min_stack_size
     dc = decode
     high_mark = 0
-    exact = true
     dc.inject(0) do |sz,op|
-      i,flg = op.stack_produced
-      sz += i
-      exact &&= flg
-      i,flg = op.stack_consumed
-      sz -= i
-      exact &&= flg
+      sz += op.stack_produced - op.stack_consumed
       high_mark = sz if sz > high_mark
       sz
     end
-    return high_mark, exact
+    return high_mark
   end
 
   # Represents virtual machine's CPU instruction.
