@@ -19,19 +19,19 @@ example/vm: example/vm.o example/vm-main.cpp
 	g++ -ggdb3 -O2 -Wall $(INCLUDES) -o example/vm libudis86.a example/vm.o example/vm-main.o
 
 test/test32: test/test32.o assembler_x86.o
-	g++ -ggdb3 -Wall $(INCLUDES) -o test/test32 libudis86.a test/test32.o assembler_x86.o
+	g++ -ggdb3 -Wall $(INCLUDES) -o test/test32 -ldl test/test32.o assembler_x86.o libudis86.a
 
 test/test32.o: test/test32.cpp assembler_x86.hpp libudis86.a
 	g++ -ggdb3 $(INCLUDES) -o test/test32.o -c test/test32.cpp
 
 test/test64: test/test64.o
-	g++ -ggdb3 -Wall $(INCLUDES) -o test/test64 libudis86.a test/test64.o
+	g++ -ggdb3 -Wall $(INCLUDES) -o test/test64 -ldl test/test64.o libudis86.a
 
 test/test64.o: test/test64.cpp assembler_x8664.hpp libudis86.a
 	g++ -ggdb3 $(INCLUDES) -o test/test64.o -c test/test64.cpp
 
 test/test_operations: test/test_operations.o assembler_x86.o
-	g++ -ggdb3 -Wall $(INCLUDES) -o test/test_operations libudis86.a test/test_operations.o  assembler_x86.o
+	g++ -ggdb3 -Wall $(INCLUDES) -o test/test_operations -ldl test/test_operations.o assembler_x86.o libudis86.a
 
 test/test_operations.o: test/test_operations.cpp operations.hpp assembler_x86.hpp libudis86.a
 	g++ -ggdb3 $(INCLUDES) -o test/test_operations.o -c test/test_operations.cpp
@@ -41,7 +41,7 @@ test: test/test32 test/test64 test/test_operations
 	@echo "---- operations" && ./test/test_operations
 
 clean:
-	rm -f test/*.o test/test32 test/test64 example/*.o example/codegen example/vm
+	rm -f *.o test/*.o test/test32 test/test64 example/*.o example/codegen example/vm
 
 distclean: clean
 	rm -f libudis86.a

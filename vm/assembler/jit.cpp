@@ -1,4 +1,4 @@
-#include "assembler_x86.hpp"
+#include "assembler/assembler_x86.hpp"
 #include "oop.hpp"
 #include "jit_state.h"
 #include "operations.hpp"
@@ -10,37 +10,48 @@
 #include "builtin/fixnum.hpp"
 
 #include "instructions.hpp"
-#include "jit.hpp"
+#include "assembler/jit.hpp"
 
+using namespace assembler;
 using namespace assembler_x86;
 using namespace operations;
 using namespace rubinius;
 
+extern "C" {
+  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, Symbol* name, size_t args);
+}
+
 namespace rubinius {
   JITCompiler::JITCompiler()
     : stack_cached_(false)
+    , buffer_(new uint8_t[1024*1024])
     , a()
     , s(a, ebx)
     , ops(s) { }
 
-  void JITCompiler::cache_stack() {
-    if(stack_cached_) return;
+  JITCompiler::~JITCompiler() {
+    delete buffer_;
+  }
+
+  void JITCompiler::cache_stack(bool force) {
+    if(!force && stack_cached_) return;
     stack_cached_ = true;
     ops.load_stack_pointer();
   }
 
-  void JITCompiler::uncache_stack() {
-    if(!stack_cached_) return;
+  void JITCompiler::uncache_stack(bool force) {
+    if(!force && !stack_cached_) return;
     stack_cached_ = false;
     ops.save_stack_pointer();
   }
 
-  void JITCompiler::slow_plus_path() {
-
+  ExecuteStatus JITCompiler::slow_plus_path(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx) {
+    return send_slowly(vmm, task, ctx, task->state->globals.sym_plus.get(), 1);
   }
 
-  static void maybe_return(AssemblerX86 &a, int i, uint32_t **last_imm,
-      AssemblerX86::NearJumpLocation &fin) {
+  void JITCompiler::maybe_return(int i, uint32_t **last_imm, AssemblerX86::NearJumpLocation &fin) {
+
     // EDX will contain the native ip, to be stored
     // back into the MethodContext in the epilogue.
     a.mov_delayed(edx, last_imm);
@@ -56,6 +67,7 @@ namespace rubinius {
     // stores ecx as the virtual ip and returns.
     a.cmp(eax, cExecuteRestart);
     a.jump_if_equal(fin);
+
   }
 
   void JITCompiler::compile(VMMethod* vmm) {
@@ -104,6 +116,10 @@ namespace rubinius {
       // If we registers an immediate to be update, do it now.
       // TODO a.pc() is bigger than a uint32_t on 64bit
       if(last_imm) {
+        // Since we're at the beginning of a new block, we have to reset the
+        // stack caching.
+        uncache_stack();
+
         *last_imm = (uint32_t)a.pc();
         Relocation* rel = new Relocation(Relocation::LocalAbsolute,
             last_imm, a.pc(), 0);
@@ -117,32 +133,65 @@ namespace rubinius {
       }
 
       switch(op) {
+      case InstructionSequence::insn_noop:
+        break;
       case InstructionSequence::insn_goto:
         a.jump(labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_goto_if_false:
         cache_stack();
-        s.load_nth(esi, 0);
-        ops.jump_if_false(esi, labels[vmm->opcodes[i + 1]]);
+        s.load_nth(eax, 0);
+        s.pop();
+        ops.jump_if_false(eax, labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_goto_if_true:
         cache_stack();
-        s.load_nth(esi, 0);
-        ops.jump_if_true(esi, labels[vmm->opcodes[i + 1]]);
+        s.load_nth(eax, 0);
+        s.pop();
+        ops.jump_if_true(eax, labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_goto_if_defined:
         cache_stack();
-        s.load_nth(esi, 0);
-        a.cmp(esi, (int)Qundef);
+        s.load_nth(eax, 0);
+        s.pop();
+        a.cmp(eax, (int)Qundef);
         a.jump_if_not_equal(labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_pop:
         cache_stack();
         s.pop();
         break;
+      case InstructionSequence::insn_dup_top:
+        cache_stack();
+        s.load_nth(eax, 0);
+        s.push(eax);
+        break;
+      case InstructionSequence::insn_rotate:
+        if(vmm->opcodes[i + 1] != 2) goto call_op;
+        // Fall through and use swap if it's just 2
+      case InstructionSequence::insn_swap_stack:
+        cache_stack();
+        s.load_nth(eax, 0);
+        s.load_nth(ecx, 1);
+        a.mov(s.position(1), eax);
+        s.set_top(ecx);
+        break;
+      case InstructionSequence::insn_halt:
+        a.mov(edx, static_cast<uint32_t>(-1));
+        a.mov(ecx, static_cast<uint32_t>(-1));
+        a.jump(fin);
+        break;
       case InstructionSequence::insn_push_true:
         cache_stack();
         s.push((int)Qtrue);
+        break;
+      case InstructionSequence::insn_push_false:
+        cache_stack();
+        s.push((int)Qfalse);
+        break;
+      case InstructionSequence::insn_push_nil:
+        cache_stack();
+        s.push((int)Qnil);
         break;
       case InstructionSequence::insn_meta_push_0:
         cache_stack();
@@ -160,6 +209,10 @@ namespace rubinius {
         cache_stack();
         s.push((int)Fixnum::from(-1));
         break;
+      case InstructionSequence::insn_push_int:
+        cache_stack();
+        s.push((int)Fixnum::from(vmm->opcodes[i + 1]));
+        break;
       case InstructionSequence::insn_push_self:
         cache_stack();
         ops.load_self(eax);
@@ -167,6 +220,24 @@ namespace rubinius {
         break;
 
       // Now, for a bit more complicated ones...
+      //
+      case InstructionSequence::insn_push_local:
+        cache_stack();
+        ops.get_local(eax, vmm->opcodes[i + 1]);
+        s.push(eax);
+        break;
+
+      case InstructionSequence::insn_set_local:
+        cache_stack();
+        s.load_nth(edx, 0);
+        ops.set_local(edx, vmm->opcodes[i + 1]);
+        break;
+
+      case InstructionSequence::insn_push_literal:
+        cache_stack();
+        ops.get_literal(eax, vmm->opcodes[i + 1]);
+        s.push(eax);
+        break;
 
       case InstructionSequence::insn_meta_send_op_plus: {
         cache_stack();
@@ -184,7 +255,10 @@ namespace rubinius {
         a.mov(edx, eax);
         a.bit_and(edx, ecx);
         a.test(edx, TAG_FIXNUM);
-        a.jump_if_not_equal(slow_plus);
+
+        // This seems odd, like the condition is backwards, but thats
+        // how test works.
+        a.jump_if_equal(slow_plus);
 
         // Ok, they're are both fixnums...
         // And add them together directly
@@ -195,18 +269,28 @@ namespace rubinius {
 
         // Everything was good, so subtract 1 because the tag adds an
         // extra 1 to the result
-        a.dec(eax);
+        a.sub(eax, 1);
 
         // Remove one from the stack
         s.pop();
 
         // Put the result on the stack
         s.set_top(eax);
+
+        // Uncache the stack register to match what slow path
+        // leaves things at
+        uncache_stack();
         a.jump(done);
 
         a.set_label(slow_plus);
+        uncache_stack(true);
         ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
-        maybe_return(a, i, &last_imm, fin);
+        maybe_return(i, &last_imm, fin);
+
+        // This is a phi point, where the fast path and slow path merge.
+        // We have to be sure that the stack cache settings are in sync
+        // for both paths taken at this point. To be sure of that, we
+        // always run cache_stack() after calling slow_path_plus.
         a.set_label(done);
         break;
       }
@@ -218,6 +302,7 @@ namespace rubinius {
         // for any instruction we don't handle with a special code sequence,
         // just call the regular function for it.
       default: {
+call_op:
         uncache_stack();
         const instructions::Implementation* impl = instructions::implementation(op);
         switch(width) {
@@ -241,7 +326,7 @@ namespace rubinius {
 
         instructions::Status status = instructions::check_status(op);
         if(status == instructions::MightReturn) {
-          maybe_return(a, i, &last_imm, fin);
+          maybe_return(i, &last_imm, fin);
         } else if(status == instructions::Terminate) {
           a.jump(real_fin);
         }
@@ -253,27 +338,12 @@ namespace rubinius {
     }
 
     a.set_label(fin);
+
+    // We could be jumping here from anywhere, assume nothing.
+    ops.reset_usage();
     ops.store_ip(ecx, edx);
 
     a.set_label(real_fin);
     ops.epilogue();
-
-    a.show();
-    a.show_relocations();
-
-    std::cout << "Virtual to Native:\n";
-    for(CodeMap::iterator i = virtual2native.begin();
-        i != virtual2native.end();
-        i++) {
-      std::cout << i->first << " => " << i->second << "\n";
-    }
-
-    std::cout << "\n== reloc ==\n";
-
-    uint8_t *buf2 = new uint8_t[1024];
-    AssemblerX86 a2(buf2, a);
-    a2.show_relocations();
-    std::cout << "\n== code ==\n";
-    a2.show();
   }
 }

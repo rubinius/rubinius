@@ -6,6 +6,7 @@
 #include "jit_state.h"
 #include "builtin/contexts.hpp"
 #include "builtin/task.hpp"
+#include "builtin/tuple.hpp"
 
 namespace operations {
 
@@ -32,7 +33,7 @@ namespace operations {
     }
 
     AssemblerX86::Address position(int which) {
-      return a.address(sp, which * EntryWidth);
+      return a.address(sp, -(which * EntryWidth));
     }
 
     void set_top(uint32_t val) {
@@ -54,7 +55,7 @@ namespace operations {
     }
 
     void load_nth(Register &dst, int which) {
-      a.mov(dst, a.address(sp, which * EntryWidth));
+      a.mov(dst, a.address(sp, -(which * EntryWidth)));
     }
 
     void clear(int count) {
@@ -98,8 +99,10 @@ namespace operations {
     }
 
     void load_mc() {
-      if(esi_usage != Arg2) s.assembler().load_arg(esi, 2);
-      esi_usage = Arg2;
+      if(esi_usage != Arg2) {
+        s.assembler().load_arg(esi, 2);
+        esi_usage = Arg2;
+      }
     }
 
     void load_stack_pointer() {
@@ -129,11 +132,12 @@ namespace operations {
       // seed the stack with the operation arguments so we don't have
       // to push them over and over again
       //
-      // First, add some space for 4 extra args
-      a.sub(esp, 0x10);
+      // First, add some space for 5 extra args
+      // This seems like a lot, but we need space for at least 2 AND
+      // we have to keep the stack aligned properly.
+      a.sub(esp, 0x14);
 
       // Now push the incoming arguments on
-      a.push_arg(3);
       a.push_arg(2);
       a.push_arg(1);
       a.push_arg(0);
@@ -167,14 +171,14 @@ namespace operations {
 
     void call_operation(void* func, const char* name, int arg) {
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esp, 16), arg);
+      a.mov(a.address(esp, 12), arg);
       a.call(func, name);
     }
 
     void call_operation(void* func, const char* name, int arg, int arg2) {
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esp, 16), arg);
-      a.mov(a.address(esp, 20), arg2);
+      a.mov(a.address(esp, 12), arg);
+      a.mov(a.address(esp, 16), arg2);
       a.call(func, name);
     }
 
@@ -213,10 +217,47 @@ namespace operations {
       load_mc_field(reg, FIELD_OFFSET(rubinius::MethodContext, self_));
     }
 
+    void load_home(Register& reg) {
+      load_mc_field(reg, FIELD_OFFSET(rubinius::MethodContext, home_));
+    }
+
+    void load_literals(Register& reg) {
+      load_mc_field(reg, FIELD_OFFSET(rubinius::MethodContext, cm_));
+      AssemblerX86 &a = s.assembler();
+      a.mov(reg, a.address(reg, FIELD_OFFSET(rubinius::CompiledMethod, literals_)));
+    }
+
+    void set_local(Register& val, int which) {
+      load_home(eax);
+      AssemblerX86 &a = s.assembler();
+      int base =   FIELD_OFFSET(rubinius::MethodContext, stk);
+      int offset = which * sizeof(void*);
+      a.mov(a.address(eax, base + offset), val);
+    }
+
+    void get_local(Register& val, int which) {
+      load_home(eax);
+      AssemblerX86 &a = s.assembler();
+      int base =   FIELD_OFFSET(rubinius::MethodContext, stk);
+      int offset = which * sizeof(void*);
+      a.mov(val, a.address(eax, base + offset));
+    }
+
+    void get_literal(Register& dst, int which) {
+      load_literals(dst);
+
+      int base =   FIELD_OFFSET(rubinius::Tuple, field);
+      int offset = which * sizeof(void*);
+      AssemblerX86 &a = s.assembler();
+      a.mov(dst, a.address(dst, base + offset));
+    }
+
     void store_call_flags(int val) {
       AssemblerX86 &a = s.assembler();
-      if(esi_usage != Arg1) a.load_arg(esi, 1);
-      esi_usage = Arg1;
+      if(esi_usage != Arg1) {
+        a.load_arg(esi, 1);
+        esi_usage = Arg1;
+      }
       a.mov(a.address(esi, FIELD_OFFSET(rubinius::Task, call_flags)), val);
     }
 

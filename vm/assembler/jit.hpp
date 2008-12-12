@@ -1,18 +1,16 @@
-#include "assembler_x86.hpp"
-#include "operations.hpp"
-
-#include <map>
+#include "assembler/assembler_x86.hpp"
+#include "assembler/operations.hpp"
+#include "assembler/code_map.hpp"
 
 namespace rubinius {
   class VMMethod;
+  class MachineMethod;
 
   class JITCompiler {
-  public: // Types
-    typedef std::map<rubinius::opcode, void*> CodeMap;
-
   private: // data
     // indicates if ebx contains the current stack top
     bool stack_cached_;
+    uint8_t* buffer_;
 
     assembler_x86::AssemblerX86 a;
     operations::StackOperations s;
@@ -23,15 +21,32 @@ namespace rubinius {
 
   public:
     JITCompiler();
-    void compile(VMMethod*);
+    ~JITCompiler();
 
-    static void slow_plus_path();
+    assembler_x86::AssemblerX86& assembler() {
+      return a;
+    }
+
+    CodeMap& code_map() {
+      return virtual2native;
+    }
+
+    void compile(VMMethod*);
+    void show();
+
+    static ExecuteStatus slow_plus_path(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
 
   private:
+
+    // Emit code to check %eax and determine if a new context was
+    // installed.
+    void maybe_return(int i, uint32_t **last_imm, assembler_x86::AssemblerX86::NearJumpLocation& fin);
+
     // Pull the stack pointer into ebx if it's not there already
-    void cache_stack();
+    void cache_stack(bool force = false);
 
     // Save ebx back into the MethodContext if it's currently cached
-    void uncache_stack();
+    void uncache_stack(bool force = false);
   };
+
 }

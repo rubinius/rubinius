@@ -115,7 +115,7 @@ void test_load_nth() {
 
   assert_op(1, type, UD_OP_MEM);
   assert_op(1, base, UD_R_ESI);
-  assert_op(1, lval.udword, 12);
+  assert_op(1, lval.sbyte, -12);
 
   delete ud;
 
@@ -210,7 +210,7 @@ void test_check_both_fixnum() {
 
   assert_op(1, type, UD_OP_MEM);
   assert_op(1, base, UD_R_ESI);
-  assert_op(1, lval.udword, 4);
+  assert_op(1, lval.sbyte, -4);
 
   ud_disassemble(ud);
 
@@ -337,30 +337,23 @@ void test_prologue() {
   assert_op(0, base, UD_R_ESP);
   assert_op(1, type, UD_OP_IMM);
   assert_op(1, base, UD_NONE);
-  assert_op(1, lval.udword, 0x10); // 0x10 is enough for 4 extra args
-
-  // arg 1
-  ud_disassemble(ud);
-  assert_kind(UD_Ipush);
-  assert_op(0, type, UD_OP_MEM);
-  assert_op(0, base, UD_R_EBP);
-  assert_op(0, lval.udword, 20);
-
-  // arg 2
-  ud_disassemble(ud);
-  assert_kind(UD_Ipush);
-  assert_op(0, type, UD_OP_MEM);
-  assert_op(0, base, UD_R_EBP);
-  assert_op(0, lval.udword, 16);
+  assert_op(1, lval.udword, 0x14); // 0x14 is enough for 4 extra args
 
   // arg 3
   ud_disassemble(ud);
   assert_kind(UD_Ipush);
   assert_op(0, type, UD_OP_MEM);
   assert_op(0, base, UD_R_EBP);
+  assert_op(0, lval.udword, 16);
+
+  // arg 2
+  ud_disassemble(ud);
+  assert_kind(UD_Ipush);
+  assert_op(0, type, UD_OP_MEM);
+  assert_op(0, base, UD_R_EBP);
   assert_op(0, lval.udword, 12);
 
-  // arg 4
+  // arg 1
   ud_disassemble(ud);
   assert_kind(UD_Ipush);
   assert_op(0, type, UD_OP_MEM);
@@ -443,7 +436,7 @@ void test_call_operation2() {
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_MEM);
   assert_op(0, base, UD_R_ESP);
-  assert_op(0, lval.udword, 16);
+  assert_op(0, lval.udword, 12);
 
   assert_op(1, type, UD_OP_IMM);
   assert_op(1, base, UD_NONE);
@@ -469,7 +462,7 @@ void test_call_operation3() {
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_MEM);
   assert_op(0, base, UD_R_ESP);
-  assert_op(0, lval.udword, 16);
+  assert_op(0, lval.udword, 12);
 
   assert_op(1, type, UD_OP_IMM);
   assert_op(1, base, UD_NONE);
@@ -479,7 +472,7 @@ void test_call_operation3() {
   assert_kind(UD_Imov);
   assert_op(0, type, UD_OP_MEM);
   assert_op(0, base, UD_R_ESP);
-  assert_op(0, lval.udword, 20);
+  assert_op(0, lval.udword, 16);
 
   assert_op(1, type, UD_OP_IMM);
   assert_op(1, base, UD_NONE);
@@ -681,14 +674,14 @@ void test_jump_if_true() {
   assert_op(0, type, UD_OP_REG);
   assert_op(0, base, UD_R_ECX);
   assert_op(1, type, UD_OP_IMM);
-  assert_op(1, lval.udword, 0x7);
+  assert_op(1, lval.udword, FALSE_MASK);
 
   ud_disassemble(ud);
   assert_kind(UD_Icmp);
   assert_op(0, type, UD_OP_REG);
   assert_op(0, base, UD_R_ECX);
   assert_op(1, type, UD_OP_IMM);
-  assert_op(1, lval.udword, 0x6);
+  assert_op(1, lval.udword, rubinius::cFalse);
 
   ud_disassemble(ud);
   assert_kind(UD_Ijnz);
@@ -714,14 +707,14 @@ void test_jump_if_false() {
   assert_op(0, type, UD_OP_REG);
   assert_op(0, base, UD_R_ECX);
   assert_op(1, type, UD_OP_IMM);
-  assert_op(1, lval.udword, 0x7);
+  assert_op(1, lval.udword, FALSE_MASK);
 
   ud_disassemble(ud);
   assert_kind(UD_Icmp);
   assert_op(0, type, UD_OP_REG);
   assert_op(0, base, UD_R_ECX);
   assert_op(1, type, UD_OP_IMM);
-  assert_op(1, lval.udword, 0x6);
+  assert_op(1, lval.udword, rubinius::cFalse);
 
   ud_disassemble(ud);
   assert_kind(UD_Ijz);
