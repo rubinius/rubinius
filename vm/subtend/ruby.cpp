@@ -1267,8 +1267,16 @@ extern "C" {
     return rb_str_get_char_ptr(rb_string_value(object_variable));
   }
 
-  VALUE rb_tainted_str_new2(const char* str) {
-    return rb_str_new2(str);
+  VALUE rb_tainted_str_new2(const char* string) {
+    if(string == NULL) {
+      rb_raise(rb_eArgError, "NULL pointer given");
+    }
+
+    NativeMethodContext* context = NativeMethodContext::current();
+
+    return context->handle_for(
+      String::create(context->state(), string, std::strlen(string))->taint()
+    );
   }
 
   void rb_thread_schedule() {
