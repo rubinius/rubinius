@@ -552,7 +552,8 @@ namespace rubinius {
   void Task::execute() {
     try {
       for(;;) {
-        active_->vmm->resume(this, active_);
+        VMMethod* const vmm = active_->vmm;
+        vmm->run(vmm, this, active_);
 
         // Should we inspect the other interrupts?
         if(state->interrupts.check) {

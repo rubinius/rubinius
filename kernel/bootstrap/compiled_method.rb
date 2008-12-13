@@ -10,6 +10,11 @@ class CompiledMethod < Executable
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def make_machine_method
+    Ruby.primitive :compiledmethod_make_machine_method
+    raise PrimitiveFailure, "primitive failed"
+  end
+
   def activate(recv, mod, args)
     Ruby.primitive :compiledmethod_activate
     raise PrimitiveFailure, "CompiledMethod#activate failed"

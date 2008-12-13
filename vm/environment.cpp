@@ -2,7 +2,7 @@
  * VMs, as well as imports C data from the process into Rubyland. */
 #include "prelude.hpp"
 #include "environment.hpp"
-#include "config.hpp" // HACK rename to config_parser.hpp
+#include "config_parser.hpp"
 #include "compiled_file.hpp"
 
 #include "vm/exception.hpp"

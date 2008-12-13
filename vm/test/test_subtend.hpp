@@ -531,7 +531,7 @@ class TestSubtend : public CxxTest::TestSuite
     /* This only loads the cm. */
     method->execute(my_state, my_task, *my_message);
 
-    my_task->active()->vmm->resume(my_task, my_task->active());
+    my_task->active()->vmm->run(my_task->active()->vmm, my_task, my_task->active());
 
     TS_ASSERT_EQUALS(obj, my_task->active()->top());
 

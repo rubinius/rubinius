@@ -1,7 +1,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <string>
-#include "config.hpp"
+#include "config_parser.hpp"
 
 namespace rubinius {
   /* utility: checks whether string contains only digits */

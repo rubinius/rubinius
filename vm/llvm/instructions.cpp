@@ -160,8 +160,7 @@ CODE
 #undef RETURN
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
 
-void VMMethod::resume(Task* task, MethodContext* ctx) {
-  VMMethod* const vmm = this;
+void VMMethod::interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx) {
   opcode* stream = ctx->vmm->opcodes;
 #ifdef USE_JUMP_TABLE
 

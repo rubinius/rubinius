@@ -1,4 +1,4 @@
-#include "config.hpp"
+#include "config_parser.hpp"
 
 #include <cxxtest/TestSuite.h>
 

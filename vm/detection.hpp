@@ -19,6 +19,10 @@
 #define OS_X_ANCIENT
 #endif
 
+#if defined(i386) || defined(__i386) || defined(__i386__)
+#define IS_X86
+#endif
+
 /** CONFIGURE */
 
 #ifndef OS_X_ANCIENT

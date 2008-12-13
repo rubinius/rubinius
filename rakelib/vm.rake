@@ -1,8 +1,12 @@
 require 'tmpdir'
 require 'rakelib/rubinius'
 require 'rakelib/configuration'
+require 'ostruct'
 
 require 'lib/ffi/generator_task.rb'
+
+config = OpenStruct.new
+config.use_jit = true
 
 task :vm => 'vm/vm'
 
@@ -41,8 +45,14 @@ dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
 vm_srcs     = %w[ vm/drivers/cli.cpp ]
 
-jit_objs    = %w[ vm/drivers/jit-test.o vm/assembler/jit.o vm/assembler/assembler_x86.o ]
-jit_srcs    = %w[ vm/drivers/jit-test.cpp vm/assembler/jit.cpp vm/assembler/assembler_x86.cpp]
+jit_objs    = %w[ vm/assembler/jit.o vm/assembler/assembler_x86.o ]
+jit_srcs    = %w[ vm/assembler/jit.cpp vm/assembler/assembler_x86.cpp]
+
+if config.use_jit
+  objs += jit_objs
+  srcs += jit_srcs
+end
+
 EX_INC      = %w[ libtommath onig libffi/include
                   libbstring libcchash libmquark libmpa
                   libltdl libev llvm/include
@@ -108,6 +118,7 @@ field_extract_headers = %w[
   vm/builtin/nativemethodcontext.hpp
   vm/builtin/system.hpp
   vm/builtin/autoload.hpp
+  vm/builtin/machine_method.hpp
 ]
 
 BC          = "vm/instructions.bc"
@@ -121,6 +132,10 @@ EXTERNALS   = %W[ vm/external_libs/libmpa/libptr_array.a
                   vm/external_libs/libffi/.libs/libffi.a
                   vm/external_libs/libltdl/.libs/libltdl.a
                   vm/external_libs/libev/.libs/libev.a ]
+
+if config.use_jit
+  EXTERNALS << "vm/assembler/libudis86.a"
+end
 
 if LLVM_ENABLE
   LLVM_A = "vm/external_libs/llvm/#{LLVM_STYLE}/lib/libLLVMSystem.a"

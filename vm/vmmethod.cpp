@@ -15,6 +15,7 @@
 #include "builtin/contexts.hpp"
 #include "builtin/class.hpp"
 #include "builtin/sendsite.hpp"
+#include "builtin/machine_method.hpp"
 
 #include "profiler.hpp"
 
@@ -27,9 +28,12 @@ namespace rubinius {
   /*
    * Turns a CompiledMethod's InstructionSequence into a C array of opcodes.
    */
-  VMMethod::VMMethod(STATE, CompiledMethod* meth) :
-      original(state, meth), type(NULL) {
-
+  VMMethod::VMMethod(STATE, CompiledMethod* meth)
+    : machine_method_(state)
+    , run(VMMethod::interpreter)
+    , original(state, meth)
+    , type(NULL)
+  {
     meth->set_executor(VMMethod::execute);
 
     total = meth->iseq()->opcodes()->num_fields();
@@ -97,6 +101,10 @@ namespace rubinius {
   VMMethod::~VMMethod() {
     delete[] opcodes;
     delete[] sendsites;
+  }
+
+  void VMMethod::set_machine_method(MachineMethod* mm) {
+    machine_method_.set(mm);
   }
 
   // Argument handler implementations
