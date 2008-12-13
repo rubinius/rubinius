@@ -70,13 +70,14 @@ namespace rubinius {
       return false;
     }
 
-    Write::Write(STATE, ObjectCallback* chan, int fd) : IO(state, chan) {
+    Write::Write(STATE, ObjectCallback* chan, int ifd) : IO(state, chan) {
+      fd = ifd;
       ev_io_init(&ev, event::tramp<struct ev_io>, fd, EV_WRITE);
       ev.data = this;
     }
 
     bool Write::activated() {
-      channel->call(Qnil);
+      channel->call(Integer::from(state, fd));
       return true;
     }
 

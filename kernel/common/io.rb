@@ -489,41 +489,59 @@ class IO
   # unimportant
   def self.select(read_array, write_array = nil, error_array = nil,
                   timeout = nil)
+    # TODO libev doesn't seem to support exception fd set.
+    raise NotImplementedError, "error_array is not supported" if error_array
+
+    if timeout
+      timeout = Integer timeout
+      raise ArgumentError, 'timeout must be positive' if timeout < 0
+    end
+
     chan = Channel.new
 
-    if read_array then
-      read_array.each do |readable|
-        Scheduler.send_on_readable chan, readable, nil, -1
+    fd_map = {}
+    [read_array, write_array, error_array].each_with_index do |io_array, pos|
+      next unless io_array
+      raise TypeError, "wrong argument type #{io_array.class} (expected Array)" unless Type.obj_kind_of?(io_array, Array)
+
+      io_array.each do |io|
+        io_obj = Type.coerce_to(io, IO, :to_io)
+        fd_map[io_obj.fileno] = [pos, io]
+
+        case pos
+        when 0 # read_array
+          Scheduler.send_on_readable chan, io_obj, nil, -1
+        when 1 # write_array
+          Scheduler.send_on_writable chan, io_obj
+        end
       end
     end
 
-    raise NotImplementedError, "write_array is not supported" if write_array
-    raise NotImplementedError, "error_array is not supported" if error_array
-
-    # HACK can't do this yet
-    #if write_array then
-    #  write_array.each do |writable|
-    #    Scheduler.send_on_writable chan, writable, nil, nil
-    #  end
-    #end
-    #
-    #if error_array then
-    #  error_array.each do |errorable|
-    #    Scheduler.send_on_error chan, errorable, nil, nil
-    #  end
-    #end
-
     Scheduler.send_in_microseconds chan, (timeout * 1_000_000).to_i, nil if timeout
 
+    # blocks until a fd is ready, or timeout
     value = chan.receive
+    other_values = chan.value
 
-    return nil if value == 1 # timeout
+    if other_values
+      # we have more objects ready to be received, let's count them.
+      available_count = other_values.count
+    else
+      return nil if value.nil? # tired of waiting, timed out
+      available_count = 0
+    end
 
-    io = read_array.find { |readable| readable.fileno == value }
+    ret = [[], [], []]
+    while true
+      if value
+        fd_info = fd_map[value]
+        ret[fd_info[0]] << fd_info[1]
+      end
+      break if (available_count -= 1) < 0
+      value = chan.receive
+    end
 
-    return nil if io.nil?
-
-    [[io], [], []]
+    ret
   end
 
   ##
