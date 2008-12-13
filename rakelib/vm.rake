@@ -402,7 +402,7 @@ if config.use_jit
 end
 
 file "vm/assembler/libudis86.a" do
-  sh "cd vm/assembler; make"
+  sh "cd vm/assembler; make libudis86.a"
 end
 
 file 'vm/primitives.o'                => 'vm/codegen/field_extract.rb'
