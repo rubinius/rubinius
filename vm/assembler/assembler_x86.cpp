@@ -30,9 +30,10 @@ namespace assembler_x86 {
     ud_set_input_buffer(&ud, reinterpret_cast<uint8_t*>(buffer), size);
 
     while(ud_disassemble(&ud)) {
-      std::cout << std::setw(10) << std::right;
-      std::cout << (void*)(reinterpret_cast<int>(buffer) + ud_insn_off(&ud));
-      std::cout << "  ";
+      std::cout << std::setw(10) << std::right
+                << reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(buffer) + ud_insn_off(&ud))
+                << "  ";
+
       if(show_hex) {
         if(ud_insn_len(&ud) <= 6) {
           std::cout << std::setw(12);
