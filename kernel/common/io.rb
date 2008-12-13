@@ -493,7 +493,7 @@ class IO
     raise NotImplementedError, "error_array is not supported" if error_array
 
     if timeout
-      timeout = Integer timeout
+      raise TypeError, "timeout must be numeric" unless Type.obj_kind_of?(timeout, Numeric)
       raise ArgumentError, 'timeout must be positive' if timeout < 0
     end
 
