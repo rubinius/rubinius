@@ -252,10 +252,6 @@ namespace assembler_x86 {
       emit_w(val);
     }
 
-    void push_address(void* addr) {
-      push((uint32_t)addr);
-    }
-
     void push(const Address addr) {
       emit(0xff);
 
@@ -588,26 +584,6 @@ namespace assembler_x86 {
     }
 
     // Meta instructions
-
-    class FuturePosition {
-      uint8_t *replace_at_;
-
-    public:
-      FuturePosition() : replace_at_(0) { }
-
-      void set_replace_at(uint8_t* rp) {
-        replace_at_ = rp;
-      }
-
-      void update(void* loc) {
-        *reinterpret_cast<uint32_t*>(replace_at_) = (uint32_t)loc;
-      }
-    };
-
-    void mov(Register &reg, FuturePosition &pos) {
-      pos.set_replace_at(pc_ + MovWithRegisterWidth);
-      mov(eax, 0);
-    }
 
     int prologue(int stack) {
       push(ebp);
