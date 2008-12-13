@@ -133,9 +133,6 @@ EXTERNALS   = %W[ vm/external_libs/libmpa/libptr_array.a
                   vm/external_libs/libltdl/.libs/libltdl.a
                   vm/external_libs/libev/.libs/libev.a ]
 
-if config.use_jit
-  EXTERNALS << "vm/assembler/libudis86.a"
-end
 
 if LLVM_ENABLE
   LLVM_A = "vm/external_libs/llvm/#{LLVM_STYLE}/lib/libLLVMSystem.a"
@@ -398,6 +395,10 @@ files EXTERNALS do |t|
   else
     sh "cd #{path}; #{make}"
   end
+end
+
+if config.use_jit
+  EXTERNALS << "vm/assembler/libudis86.a"
 end
 
 file "vm/assembler/libudis86.a" do
