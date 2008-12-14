@@ -1,6 +1,7 @@
 #include "prelude.hpp"
 #include "builtin/class.hpp"
 #include "builtin/machine_method.hpp"
+#include "vm/exception.hpp"
 
 #include "detection.hpp"
 
