@@ -36,23 +36,23 @@ module ObjectSpace
     end
 
     if [TrueClass, FalseClass, NilClass].include? what
-      block.call what.new
+      yield what.new
       return 1
     end
 
     if what == GlobalVariables
-      block.call(Globals)
+      yield Globals
       return 1
     end
 
     if defined?(Singleton) and what.ancestors.include?(Singleton)
       return 0 unless what.instance_eval { _instantiate? }
-      block.call(what.instance)
+      yield what.instance
       return 1
     end
 
     if what.is_a? MetaClass
-      block.call(what.attached_instance)
+      yield what.attached_instance
       return 1
     end
 
@@ -62,7 +62,7 @@ module ObjectSpace
     each_object do |obj|
       if obj.is_a? what
         count += 1
-        block.call(obj)
+        yield obj
       end
     end
     count
@@ -72,7 +72,7 @@ module ObjectSpace
   protected
 
   def self.recursive_loop(start, each_block, skip = [], &grepper)
-    list = grepper.call(start)
+    list = yield start
     list -= skip
     list.inject(0) do |count, element|
       unless skip.include? element
