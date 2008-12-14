@@ -658,23 +658,6 @@ namespace rubinius {
     close_body(level);
   }
 
-  static Task* task_dup_helper(STATE, Task* t) {
-    Task* task = state->new_struct<Task>(G(task));
-
-    task->state = state;
-    task->call_flags = t->call_flags;
-    task->msg = new Message(state);
-    task->profiler = NULL;
-    task->probe(state, state->probe.get());
-    task->control_channel(state, (Channel*)Qnil);
-    task->debug_channel(state, (Channel*)Qnil);
-    task->exception(state, (Exception*)Qnil);
-
-    task->active(state, t->active()->dup_chain(state));
-
-    return task;
-  }
-
   ExecuteStatus Task::task_dup(STATE, Executable* exec, Task* task_, Message& msg) {
 
     Task* recv = try_as<Task>(msg.recv);
@@ -685,7 +668,18 @@ namespace rubinius {
       goto fail;
     }
 
-    Task* ret = task_dup_helper(state, recv);
+    Task* ret = state->new_struct<Task>(G(task));
+
+    ret->state = state;
+    ret->call_flags = recv->call_flags;
+    ret->msg = new Message(state);
+    ret->profiler = NULL;
+    ret->probe(state, state->probe.get());
+    ret->control_channel(state, (Channel*)Qnil);
+    ret->debug_channel(state, (Channel*)Qnil);
+    ret->exception(state, (Exception*)Qnil);
+
+    ret->active(state, recv->active()->dup_chain(state));
 
     ret->active()->clear_stack(msg.stack);
     ret->active()->push((Object*)Qnil);

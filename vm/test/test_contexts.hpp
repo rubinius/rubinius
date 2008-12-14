@@ -125,7 +125,7 @@ class TestContexts : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ctx->args, dup->args);
     TS_ASSERT_EQUALS(ctx->stack_size, dup->stack_size);
 
-    //TS_ASSERT_SAME_DATA(&ctx->js, &dup->js, sizeof(dup->js));
+    TS_ASSERT_SAME_DATA(ctx->stk, dup->stk, sizeof(Object *)*ctx->stack_size);
   }
 };
 
