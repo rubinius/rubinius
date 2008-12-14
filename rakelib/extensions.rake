@@ -37,7 +37,7 @@ namespace :extension do
 
   file "lib/ext/readline/readline.#{$dlext}" => FileList[
        "lib/ext/readline/build.rb",
-       "lib/ext/readline/readline.c",
+       "lib/ext/readline/readline.c"
   ] do
     compile_extension 'lib/ext/readline'
   end
@@ -91,7 +91,7 @@ namespace :extension do
     'shotgun/lib/subtend/*',
     'lib/ext/mongrel/build.rb',
     'lib/ext/mongrel/*.c',
-    'lib/ext/mongrel/*.h',
+    'lib/ext/mongrel/*.h'
   ] do
     compile_ruby "lib/ext/mongrel"
   end
