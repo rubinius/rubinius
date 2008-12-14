@@ -7,6 +7,7 @@
 #include "assembler_x86.hpp"
 
 using namespace std;
+using namespace assembler;
 using namespace assembler_x86;
 
 #define assert_kind(what) assert(ud->mnemonic == what)
@@ -700,7 +701,8 @@ void test_jump_if_equal() {
   assert_kind(UD_Ijz);
   assert_op(0, type, UD_OP_JIMM);
   assert_op(0, base, UD_NONE);
-  assert_op(0, lval.udword, (uintptr_t)label.destination() - (uintptr_t)a.pc());
+  int8_t offset = (intptr_t)label.destination() - (intptr_t)a.pc();
+  assert_op(0, lval.sbyte, offset);
 
   delete ud;
   cout << "test_jump_if_equal: imm ok!\n";
@@ -715,7 +717,7 @@ void test_jump_if_not_equal() {
   assert_kind(UD_Ijnz);
   assert_op(0, type, UD_OP_JIMM);
   assert_op(0, base, UD_NONE);
-  assert_op(0, lval.udword, (uintptr_t)label.destination() - (uintptr_t)a.pc());
+  assert_op(0, lval.sbyte, (uintptr_t)label.destination() - (uintptr_t)a.pc());
 
   delete ud;
   cout << "test_jump_if_not_equal: imm ok!\n";
@@ -730,7 +732,7 @@ void test_jump_if_overflow() {
   assert_kind(UD_Ijo);
   assert_op(0, type, UD_OP_JIMM);
   assert_op(0, base, UD_NONE);
-  assert_op(0, lval.udword, (uintptr_t)label.destination() - (uintptr_t)a.pc());
+  assert_op(0, lval.sbyte, (uintptr_t)label.destination() - (uintptr_t)a.pc());
 
   delete ud;
   cout << "test_jump_if_overflow: imm ok!\n";

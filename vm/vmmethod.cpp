@@ -15,6 +15,7 @@
 #include "builtin/contexts.hpp"
 #include "builtin/class.hpp"
 #include "builtin/sendsite.hpp"
+#include "builtin/machine_method.hpp"
 
 #include "profiler.hpp"
 
@@ -27,9 +28,12 @@ namespace rubinius {
   /*
    * Turns a CompiledMethod's InstructionSequence into a C array of opcodes.
    */
-  VMMethod::VMMethod(STATE, CompiledMethod* meth) :
-      original(state, meth), type(NULL) {
-
+  VMMethod::VMMethod(STATE, CompiledMethod* meth)
+    : machine_method_(state)
+    , run(VMMethod::interpreter)
+    , original(state, meth)
+    , type(NULL)
+  {
     meth->set_executor(VMMethod::execute);
 
     total = meth->iseq()->opcodes()->num_fields();
@@ -97,6 +101,10 @@ namespace rubinius {
   VMMethod::~VMMethod() {
     delete[] opcodes;
     delete[] sendsites;
+  }
+
+  void VMMethod::set_machine_method(MachineMethod* mm) {
+    machine_method_.set(mm);
   }
 
   // Argument handler implementations
@@ -494,6 +502,23 @@ namespace rubinius {
     }
 
     return ops;
+  }
+
+  /*
+   * Sets breakpoint flags on the specified opcode.
+   */
+  void VMMethod::set_breakpoint_flags(STATE, size_t ip, bpflags flags) {
+    /* Ensure ip is valid */
+    VMMethod::Iterator iter(this);
+    for(; !iter.end(); iter.inc()) {
+      if(iter.position == ip) break;
+    }
+    if(ip != iter.position) {
+      Exception::argument_error(state, "Invalid instruction address");
+    }
+
+    opcodes[ip] &= ~(255 << 24);    // Clear the high byte
+    opcodes[ip] |= (flags << 24);
   }
 
   bool Opcode::is_goto() {

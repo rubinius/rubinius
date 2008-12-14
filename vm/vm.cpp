@@ -16,7 +16,7 @@
 #include "builtin/string.hpp"
 #include "builtin/taskprobe.hpp"
 
-#include "config.hpp"
+#include "config_parser.hpp"
 
 #include <iostream>
 #include <signal.h>

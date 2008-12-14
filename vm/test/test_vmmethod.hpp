@@ -58,4 +58,29 @@ public:
     TS_ASSERT_EQUALS(vmm.opcodes[2], static_cast<unsigned int>(InstructionSequence::insn_push_nil));
   }
 
+  void test_set_breakpoint_flags() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
+    cm->literals(state, tup);
+
+    InstructionSequence* iseq = InstructionSequence::create(state, 3);
+    iseq->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_ivar));
+    iseq->opcodes()->put(state, 1, Fixnum::from(0));
+    iseq->opcodes()->put(state, 2, Fixnum::from(InstructionSequence::insn_push_nil));
+
+    cm->iseq(state, iseq);
+
+    VMMethod vmm(state, cm);
+
+    vmm.set_breakpoint_flags(state, 0, 1);
+    TS_ASSERT_EQUALS(vmm.opcodes[0], (1 << 24) | static_cast<unsigned int>(InstructionSequence::insn_push_ivar));
+
+    vmm.set_breakpoint_flags(state, 0, 7);
+    TS_ASSERT_EQUALS(vmm.opcodes[0], (7 << 24) | static_cast<unsigned int>(InstructionSequence::insn_push_ivar));
+
+    vmm.set_breakpoint_flags(state, 0, 0);
+    TS_ASSERT_EQUALS(vmm.opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_push_ivar));
+
+    TS_ASSERT_THROWS(vmm.set_breakpoint_flags(state, 1, 1), const RubyException &e);
+  }
 };

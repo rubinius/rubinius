@@ -1,6 +1,11 @@
 #include "assembler_x86.hpp"
 
+#include <iostream>
+#include <iomanip>
+
 namespace assembler_x86 {
+  using namespace assembler;
+
   Register eax = { 0 };
   Register ecx = { 1 };
   Register edx = { 2 };
@@ -13,20 +18,35 @@ namespace assembler_x86 {
   Register no_base = ebp;
 
   void AssemblerX86::show() {
+    show_buffer(buffer_, pc_ - buffer_);
+  }
+
+  void AssemblerX86::show_buffer(void* buffer, size_t size, bool show_hex) {
     ud_t ud;
 
     ud_init(&ud);
     ud_set_mode(&ud, 32);
     ud_set_syntax(&ud, UD_SYN_ATT);
-    ud_set_input_buffer(&ud, (uint8_t*)buffer_, pc_ - buffer_);
+    ud_set_input_buffer(&ud, reinterpret_cast<uint8_t*>(buffer), size);
 
     while(ud_disassemble(&ud)) {
-      std::cout << (void*)(reinterpret_cast<int>(buffer_) + ud_insn_off(&ud));
-      std::cout << "  " << ud_insn_asm(&ud);
+      std::cout << std::setw(10) << std::right
+                << reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(buffer) + ud_insn_off(&ud))
+                << "  ";
+
+      if(show_hex) {
+        if(ud_insn_len(&ud) <= 6) {
+          std::cout << std::setw(12);
+        } else {
+          std::cout << std::setw(24);
+        }
+        std::cout << std::left << ud_insn_hex(&ud) << "  ";
+      }
+      std::cout << std::setw(24) << std::left << ud_insn_asm(&ud);
 
       if(ud.operand[0].type == UD_OP_JIMM) {
-        const void* addr = (const void*)((uintptr_t)buffer_ + ud.pc + (int)ud.operand[0].lval.udword);
-        std::cout << "    ; " << addr;
+        const void* addr = (const void*)((uintptr_t)buffer + ud.pc + (int)ud.operand[0].lval.udword);
+        std::cout << " ; " << addr;
         if(ud.mnemonic == UD_Icall) {
           Dl_info info;
           if(dladdr(addr, &info)) {

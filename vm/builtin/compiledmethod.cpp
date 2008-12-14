@@ -7,6 +7,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
+#include "builtin/machine_method.hpp"
 
 #include "ffi.hpp"
 #include "marshal.hpp"
@@ -138,6 +139,13 @@ namespace rubinius {
     // this is used to call a method_missing, you have to supply all
     // the args.
     return meth->execute(state, task, msg);
+  }
+
+  MachineMethod* CompiledMethod::make_machine_method(STATE) {
+    if(backend_method_ == 0) return (MachineMethod*)Qnil;
+    JITCompiler jit;
+    jit.compile(backend_method_);
+    return MachineMethod::create(state, backend_method_, jit);
   }
 
   void CompiledMethod::Info::show(STATE, Object* self, int level) {

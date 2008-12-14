@@ -6,13 +6,15 @@
 #include <map>
 #include <string>
 #include <cstring>
+#include <iomanip>
 
 #include <stdint.h>
 #include <stdio.h>
 #include <dlfcn.h>
 
-#include "assembler.hpp"
+#include "assembler/assembler.hpp"
 #include "udis86.h"
+#include "assembler/relocation.hpp"
 
 namespace assembler_x86 {
 
@@ -46,118 +48,6 @@ namespace assembler_x86 {
   extern Register no_reg;
   extern Register no_base;
 
-  class Relocation {
-  public: // Types
-    enum Kind {
-      Relative,
-      LocalAbsolute
-    };
-
-    enum TargetKind {
-      Absolute,
-      Symbol
-    };
-
-  private:
-    Kind  kind_;
-    void* instruction_location_;
-    void* address_;
-    int   offset_;
-    TargetKind target_kind_;
-    std::string* symbol_;
-
-  public:
-
-    Relocation(Kind kind, void* insn, void* address, int offset = 4)
-      : kind_(kind)
-      , instruction_location_(insn)
-      , address_(address)
-      , offset_(offset)
-      , target_kind_(Absolute)
-      , symbol_(0)
-    { }
-
-    Kind kind() {
-      return kind_;
-    }
-
-    TargetKind target_kind() {
-      return target_kind_;
-    }
-
-    void* instruction_location() {
-      return instruction_location_;
-    }
-
-    void* address() {
-      return address_;
-    }
-
-    intptr_t value() {
-      intptr_t insn = reinterpret_cast<intptr_t>(instruction_location_);
-      intptr_t val = reinterpret_cast<intptr_t>(address_);
-      if(kind_ == Relative) {
-        val -= (insn + offset_);
-      }
-
-      return val;
-    }
-
-    // Write the relocation out to memory
-    void write() {
-      intptr_t* write_to = reinterpret_cast<intptr_t*>(instruction_location_);
-      *write_to = value();
-    }
-
-    void references_symbol(const char* name) {
-      if(symbol_) delete symbol_;
-      symbol_ = new std::string(name);
-      target_kind_ = Symbol;
-    }
-
-    std::string& symbol() {
-      return *symbol_;
-    }
-
-    static void* resolve_symbol(std::string& str) {
-      return dlsym(RTLD_DEFAULT, str.c_str());
-    }
-
-    void resolve_and_write() {
-      if(target_kind_ == Symbol) {
-        if(!symbol_) {
-          std::cout << "Symbol relocation setup, but no symbol present!\n";
-          return;
-        }
-
-        void* new_addr = Relocation::resolve_symbol(*symbol_);
-        if(new_addr) {
-          address_ = new_addr;
-        } else {
-          std::cout << "Unable to resolve symbol '" << *symbol_ << "': "
-                    << dlerror() << "\n";
-        }
-      }
-
-      write();
-    }
-
-    void adjust_base(void* old_base, void* new_base) {
-      intptr_t ob = reinterpret_cast<intptr_t>(old_base);
-      intptr_t nb = reinterpret_cast<intptr_t>(new_base);
-
-      instruction_location_ = reinterpret_cast<void*>(
-        nb + (reinterpret_cast<intptr_t>(instruction_location_) - ob));
-
-      if(kind_ == Relocation::LocalAbsolute) {
-        intptr_t diff = reinterpret_cast<intptr_t>(address_) - ob;
-        address_ = reinterpret_cast<void*>(nb + diff);
-      }
-    }
-  };
-
-  typedef std::map<void*, Relocation*> Relocations;
-
   class AssemblerX86 : public assembler::Assembler {
   public: // Types
     // See http://wiki.osdev.org/X86_Instruction_Encoding
@@ -172,51 +62,6 @@ namespace assembler_x86 {
       Mod32Displacement = 2,
       ModXMM = 3
     };
-
-  private:
-
-    Relocations relocations_;
-
-    const static int AddOperation = 0;
-    const static int SubOperation = 5;
-    const static int CompareOperation = 7;
-
-    void emit_math(int operation, Register& reg, int val) {
-      emit(0x81);
-      emit_modrm(ModReg2Reg, operation, reg.code());
-      emit_w(val);
-    }
-
-    void emit_modrm(ModType mod, int reg, int rm) {
-      emit(((int)mod << 6) | (reg & 0x7) << 3 | (rm & 0x7));
-    }
-
-  public:
-    AssemblerX86() : Assembler() { }
-    AssemblerX86(uint8_t* buffer, AssemblerX86 &other)
-      : Assembler(buffer)
-    {
-      std::memcpy(buffer, other.buffer(), other.used_bytes());
-      for(Relocations::iterator i = other.relocations_.begin();
-          i != other.relocations_.end();
-          i++) {
-        Relocation* rel = new Relocation(*i->second);
-        rel->adjust_base(other.buffer(), buffer);
-        relocations_[rel->instruction_location()] = rel;
-
-        rel->resolve_and_write();
-      }
-
-      pc_ = buffer + other.used_bytes();
-    }
-
-    ~AssemblerX86() {
-      for(Relocations::iterator i = relocations_.begin();
-          i != relocations_.end();
-          i++) {
-        delete i->second;
-      }
-    }
 
     class Address {
       Register& base_;
@@ -235,17 +80,100 @@ namespace assembler_x86 {
       }
     };
 
+
+  private:
+
+    assembler::Relocations relocations_;
+
+    const static int AddOperation = 0;
+    const static int SubOperation = 5;
+    const static int CompareOperation = 7;
+
+    void emit_math(int operation, Register& reg, int val) {
+      if(val < 255 && val > -255) {
+        emit(0x83);
+        emit_modrm(ModReg2Reg, operation, reg.code());
+        emit((int8_t)val);
+      } else {
+        emit(0x81);
+        emit_modrm(ModReg2Reg, operation, reg.code());
+        emit_w(val);
+      }
+    }
+
+    void emit_modrm(ModType mod, int reg, int rm) {
+      emit(((int)mod << 6) | (reg & 0x7) << 3 | (rm & 0x7));
+    }
+
+    void emit_modrm(const Address& addr, int reg, int rm) {
+      ModType mod;
+      int displacement = addr.offset();
+
+      if(displacement < 255 && displacement > -255) {
+        mod = Mod8Displacement;
+      } else {
+        mod = Mod32Displacement;
+      }
+
+      emit(((int)mod << 6) | (reg & 0x7) << 3 | (rm & 0x7));
+    }
+
+    void emit_displacement(const Address& addr) {
+      int displacement = addr.offset();
+      if(displacement < 255 && displacement > -255) {
+        // Be sure to cast so that the sign is extended properly.
+        emit((int8_t)displacement);
+      } else {
+        emit_w(displacement);
+      }
+
+    }
+
+  public:
+    AssemblerX86() : Assembler() { }
+
+    AssemblerX86(uint8_t* buffer) : Assembler(buffer) { }
+
+    AssemblerX86(uint8_t* buffer, AssemblerX86 &other)
+      : Assembler(buffer)
+    {
+      std::memcpy(buffer, other.buffer(), other.used_bytes());
+      for(assembler::Relocations::iterator i = other.relocations_.begin();
+          i != other.relocations_.end();
+          i++) {
+        assembler::Relocation* rel = new assembler::Relocation(*i->second);
+        rel->adjust_base(other.buffer(), buffer);
+        relocations_[rel->instruction_location()] = rel;
+
+        rel->resolve_and_write();
+      }
+
+      pc_ = buffer + other.used_bytes();
+    }
+
+    ~AssemblerX86() {
+      for(assembler::Relocations::iterator i = relocations_.begin();
+          i != relocations_.end();
+          i++) {
+        delete i->second;
+      }
+    }
+
     Address address(Register &r, int o = 0) {
       return Address(r, o);
     }
 
     // Relocation
-    Relocation* find_relocation(void* address) {
+    assembler::Relocation* find_relocation(void* address) {
       return relocations_[address];
     }
 
-    void add_relocation(void* addr, Relocation* rel) {
+    void add_relocation(void* addr, assembler::Relocation* rel) {
       relocations_[addr] = rel;
+    }
+
+    assembler::Relocations& relocations() {
+      return relocations_;
     }
 
     // Data movement
@@ -265,14 +193,14 @@ namespace assembler_x86 {
       // to deref via esp directly.
       if(addr.base() == esp) {
         // 4 means use SIB, so we have to use it.
-        emit_modrm(Mod32Displacement, 0, 4);
+        emit_modrm(addr, 0, 4);
         // esp.code() means ignore the index.
-        emit(0 << 6 | esp.code() << 3 | addr.base().code());
+        emit_modrm(ModNone, esp.code(), addr.base().code());
       } else {
-        emit_modrm(Mod32Displacement, 0, addr.base().code());
+        emit_modrm(addr, 0, addr.base().code());
       }
 
-      emit_w(addr.offset());
+      emit_displacement(addr);
       emit_w(val);
     }
 
@@ -283,24 +211,27 @@ namespace assembler_x86 {
 
     void mov(Register &dst, const Address addr) {
       emit(0x8b);
-      emit_modrm(Mod32Displacement, dst.code(), addr.base().code());
-      emit_w(addr.offset());
+
+      emit_modrm(addr, dst.code(), addr.base().code());
+      emit_displacement(addr);
     }
 
     void mov(const Address addr, Register &val) {
       emit(0x89);
+
       // esp is a special case, so we have to use the SIB extension
       // to deref via esp directly.
       if(addr.base() == esp) {
         // 4 means use SIB, so we have to use it.
-        emit_modrm(Mod32Displacement, val.code(), 4);
+        emit_modrm(addr, val.code(), 4);
         // 0 means no scale
         // esp.code() means ignore the index.
         emit_modrm(ModNone, esp.code(), addr.base().code());
       } else {
-        emit_modrm(Mod32Displacement, val.code(), addr.base().code());
+        emit_modrm(addr, val.code(), addr.base().code());
       }
-      emit_w(addr.offset());
+
+      emit_displacement(addr);
     }
 
     // Sets up a mov instruction of an immediate value to register.
@@ -321,15 +252,11 @@ namespace assembler_x86 {
       emit_w(val);
     }
 
-    void push_address(void* addr) {
-      push((uint32_t)addr);
-    }
-
     void push(const Address addr) {
       emit(0xff);
 
-      emit_modrm(Mod32Displacement, 6, addr.base().code());
-      emit_w(addr.offset());
+      emit_modrm(addr, 6, addr.base().code());
+      emit_displacement(addr);
     }
 
     void pop(Register &dst) {
@@ -400,8 +327,9 @@ namespace assembler_x86 {
 
     void cmp(const Address addr, int val) {
       emit(0x81);
-      emit_modrm(Mod32Displacement, CompareOperation, addr.base().code());
-      emit_w(addr.offset());
+
+      emit_modrm(addr, CompareOperation, addr.base().code());
+      emit_displacement(addr);
       emit_w(val);
     }
 
@@ -425,8 +353,9 @@ namespace assembler_x86 {
 
     void bit_or(Register &dst, const Address addr) {
       emit(0x0b);
-      emit_modrm(Mod32Displacement, dst.code(), addr.base().code());
-      emit_w(addr.offset());
+
+      emit_modrm(addr, dst.code(), addr.base().code());
+      emit_displacement(addr);
     }
 
     void bit_and(Register &reg, int val) {
@@ -437,8 +366,9 @@ namespace assembler_x86 {
 
     void bit_and(Register &dst, const Address addr) {
       emit(0x23);
-      emit_modrm(Mod32Displacement, dst.code(), addr.base().code());
-      emit_w(addr.offset());
+
+      emit_modrm(addr, dst.code(), addr.base().code());
+      emit_displacement(addr);
     }
 
     void bit_and(Register &dst, Register &reg) {
@@ -471,7 +401,8 @@ namespace assembler_x86 {
       void* position = (void*)pc_;
       emit_w(0); // save the space
 
-      Relocation* rel = new Relocation(Relocation::Relative, position, func);
+      assembler::Relocation* rel = new assembler::Relocation(
+          assembler::Relocation::Relative, position, func);
       relocations_[position] = rel;
 
       rel->write();
@@ -484,7 +415,8 @@ namespace assembler_x86 {
       void* position = (void*)pc_;
       emit_w(0); // save the space
 
-      Relocation* rel = new Relocation(Relocation::Relative, position, func);
+      assembler::Relocation* rel = new assembler::Relocation(
+          assembler::Relocation::Relative, position, func);
       rel->references_symbol(name);
 
       relocations_[position] = rel;
@@ -561,7 +493,8 @@ namespace assembler_x86 {
       void* position = (void*)pc_;
       emit_w(0); // save the space
 
-      Relocation* rel = new Relocation(Relocation::Relative, position, address);
+      assembler::Relocation* rel = new assembler::Relocation(
+          assembler::Relocation::Relative, position, address);
       relocations_[position] = rel;
 
       rel->write();
@@ -652,26 +585,6 @@ namespace assembler_x86 {
 
     // Meta instructions
 
-    class FuturePosition {
-      uint8_t *replace_at_;
-
-    public:
-      FuturePosition() : replace_at_(0) { }
-
-      void set_replace_at(uint8_t* rp) {
-        replace_at_ = rp;
-      }
-
-      void update(void* loc) {
-        *reinterpret_cast<uint32_t*>(replace_at_) = (uint32_t)loc;
-      }
-    };
-
-    void mov(Register &reg, FuturePosition &pos) {
-      pos.set_replace_at(pc_ + MovWithRegisterWidth);
-      mov(eax, 0);
-    }
-
     int prologue(int stack) {
       push(ebp);
       mov(ebp, esp);
@@ -736,6 +649,7 @@ namespace assembler_x86 {
 
     // Disassembling
     void show();
+    static void show_buffer(void* buffer, size_t size, bool show_hex = false);
     ud_t* disassemble();
     void show_relocations();
   };

@@ -75,8 +75,8 @@ class Scheduler
   end
 
   ##
-  # Instructs the VM to send +nil+ to +channel+ when +io+ is writable.
-  # Returns an event id, for use with #cancel
+  # Instructs the VM to send the file descriptor for +io+ to +channel+
+  # when +io+ is writable. Returns an event id, for use with #cancel
 
   def self.send_on_writable(chan, io)
     Ruby.primitive :scheduler_send_on_writable

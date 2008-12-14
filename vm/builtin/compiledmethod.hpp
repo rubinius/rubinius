@@ -10,6 +10,7 @@ namespace rubinius {
   class MemoryPointer;
   class VMMethod;
   class StaticScope;
+  class MachineMethod;
 
   class CompiledMethod : public Executable {
   public:
@@ -23,7 +24,6 @@ namespace rubinius {
     Fixnum* required_args_;      // slot
     Fixnum* total_args_;         // slot
     Object* splat_;              // slot
-    Tuple* literals_;           // slot
     Tuple* exceptions_;         // slot
     Tuple* lines_;              // slot
     Tuple* local_names_;        // slot
@@ -31,6 +31,9 @@ namespace rubinius {
     StaticScope* scope_;        // slot
 
   public:
+    // Access directly from assembly, so has to be public.
+    Tuple* literals_;           // slot
+
     /* accessors */
 
     VMMethod* backend_method_;
@@ -73,6 +76,9 @@ namespace rubinius {
 
     // Ruby.primitive :compiledmethod_compile
     Object* compile(STATE);
+
+    // Ruby.primitive :compiledmethod_make_machine_method
+    MachineMethod* make_machine_method(STATE);
 
     // Ruby.primitive? :compiledmethod_activate
     ExecuteStatus activate(STATE, Executable* exec, Task* task, Message& msg);

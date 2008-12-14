@@ -37,6 +37,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/autoload.hpp"
+#include "builtin/machine_method.hpp"
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
@@ -207,6 +208,7 @@ namespace rubinius {
     Exception::init(this);
     Data::init(this);
     Autoload::init(this);
+    MachineMethod::init(this);
 
     NativeMethod::register_class_with(this);
     NativeMethodContext::register_class_with(this);

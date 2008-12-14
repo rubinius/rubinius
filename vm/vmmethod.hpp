@@ -11,16 +11,28 @@
 namespace rubinius {
   typedef void* instlocation;
   typedef uint32_t opcode;
+  typedef uint8_t bpflags;
 
   class CompiledMethod;
   class MethodContext;
   class Opcode;
   class SendSite;
+  class BreakpointFlags;
+  class VMMethod;
+  class Task;
+  class MachineMethod;
 
+  typedef void (*Runner)(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
 
   class VMMethod {
+  private:
+    TypedRoot<MachineMethod*> machine_method_;
+
   public:
     static instlocation* instructions;
+
+    // To run this method, we execute this function pointer
+    Runner run;
 
     opcode* opcodes;
     std::size_t total;
@@ -37,20 +49,28 @@ namespace rubinius {
     native_int number_of_locals;
 
     VMMethod(STATE, CompiledMethod* meth);
-    virtual ~VMMethod();
+    ~VMMethod();
 
-    virtual void specialize(STATE, TypeInfo* ti);
-    virtual void compile(STATE);
+    MachineMethod* machine_method() {
+      return machine_method_.get();
+    }
+
+    void set_machine_method(MachineMethod* mm);
+
+    void specialize(STATE, TypeInfo* ti);
+    void compile(STATE);
     static ExecuteStatus execute(STATE, Task* task, Message& msg);
 
     template <typename ArgumentHandler>
       static ExecuteStatus execute_specialized(STATE, Task* task, Message& msg);
 
-    virtual void resume(Task* task, MethodContext* ctx);
+    static void interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
 
     void setup_argument_handler(CompiledMethod* meth);
 
     std::vector<Opcode*> create_opcodes();
+
+    void set_breakpoint_flags(STATE, size_t ip, bpflags flags);
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

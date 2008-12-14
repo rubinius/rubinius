@@ -149,6 +149,14 @@ namespace rubinius {
     return io;
   }
 
+  Object* Channel::send_on_writable(STATE, Channel* chan, IO* io) {
+    SendToChannel* cb = new SendToChannel(state, chan);
+    event::Write* sig = new event::Write(state, cb, io->to_fd());
+
+    state->events->start(sig);
+    return io;
+  }
+
   Object* Channel::send_in_microseconds(STATE, Channel* chan, Integer* useconds, Object* tag) {
     double seconds = useconds->to_native() / 1000000.0;
 

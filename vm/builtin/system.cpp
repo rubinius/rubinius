@@ -15,7 +15,7 @@
 #include "compiled_file.hpp"
 #include "objectmemory.hpp"
 #include "global_cache.hpp"
-#include "config.hpp"
+#include "config_parser.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
