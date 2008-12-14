@@ -5,18 +5,20 @@ module ObjectSpace
   # HACK: Tryes to handle as much as it can.
   # Any way to get a list of all instances? Or of all objects?
   def self.each_object(what = nil, &block)
-    # Now this will become ugly.
-    case
 
-    when (what and not what.is_a? Module)
-      raise TypeError, "class or module required"
+    raise TypeError, "class or module required" if what and not what.is_a? Module
+    
+    if what == nil
+      raise ArgumentError, "ObjectSpace cannot loop through all objects yet"
+    end
 
-    when what == Class
-      recursive_loop(Object, block) { |a_class| a_class.__subclasses__ }
+    if what == Class
+      return recursive_loop(Object, block) { |a_class| a_class.__subclasses__ }
+    end
 
-    when what == Module
-      recursive_loop(Object, block) do |a_module|
-        (a_module.constants.inject([]) do |list, const|
+    if  what == Module
+      return recursive_loop(Object, block) do |a_module|
+        a_module.constants.inject([]) do |list, const|
           begin
             const = a_module.const_get const
             list << const if const.is_a? Module
@@ -24,48 +26,47 @@ module ObjectSpace
           rescue NameError, LoadError # Handles autoloading.
           end
           list
-        end).uniq
+        end
       end
+    end
 
-    when what == Fixnum
-      (Platform::Fixnum.MIN .. Platform::Fixnum.MAX).each(&block)
+    if what == Fixnum
+      Platform::Fixnum.MIN.upto(Platform::Fixnum.MAX, &block)
+      return Platform::Fixnum.MAX - Platform::Fixnum.MIN
+    end
 
-    when [TrueClass, FalseClass, NilClass].include?(what)
+    if [TrueClass, FalseClass, NilClass].include? what
       block.call what.new
       return 1
+    end
 
-    when what == GlobalVariables
+    if what == GlobalVariables
       block.call(Globals)
       return 1
+    end
 
-    when (defined?(Singleton) and what.ancestors.include?(Singleton))
+    if defined?(Singleton) and what.ancestors.include?(Singleton)
       return 0 unless what.instance_eval { _instantiate? }
       block.call(what.instance)
       return 1
+    end
 
-    when what.is_a?(MetaClass)
+    if what.is_a? MetaClass
       block.call(what.attached_instance)
       return 1
-
-    when what.respond_to?(:each_instance)
-      return what.each_instance(&block)
-
-    when nil
-      raise ArgumentError, "ObjectSpace cannot loop through all objects yet"
-
-    else
-      # Remove the following line when each_object(nil) is implemented.
-      raise ArgumentError, "ObjectSpace doesn't support '#{what}' yet"
-      count = 0
-      each_object do |obj|
-        if obj.is_a? what
-          count += 1
-          block.call(obj)
-        end
-      end
-      count
-
     end
+
+    # Remove the following line when each_object(nil) is implemented.
+    raise ArgumentError, "ObjectSpace doesn't support '#{what}' yet"
+    count = 0
+    each_object do |obj|
+      if obj.is_a? what
+        count += 1
+        block.call(obj)
+      end
+    end
+    count
+
   end
   
   protected
