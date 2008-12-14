@@ -15,6 +15,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/thread.hpp"
 
 #include "global_cache.hpp"
 
@@ -84,6 +85,21 @@ namespace rubinius {
 
   Task* Task::current(STATE) {
     return state->globals.current_task.get();
+  }
+
+  ExecuteStatus Task::set_current(STATE, Executable* exec, Task* task_, Message& msg) {
+
+    //if(unlikely(msg.args() != 1)) goto fail;
+
+    Task* tsk;
+    tsk = try_as<Task>(msg.get_argument(0));
+    //if(unlikely(tsk == NULL)) goto fail;
+
+    Thread::current(state)->task(state, tsk);
+    state->globals.current_task.set(tsk);
+
+    state->interrupts.check = true; // HACK, forcing jump out of Task::execute() loop
+    return cExecuteRestart;
   }
 
   MethodContext* Task::current_context(STATE) {
@@ -640,5 +656,47 @@ namespace rubinius {
     indent_attribute(level, "debug_channel"); task->debug_channel()->show(state, level);
     indent_attribute(level, "control_channel"); task->control_channel()->show(state, level);
     close_body(level);
+  }
+
+  static Task* task_dup_helper(STATE, Task* t) {
+    Task* task = state->new_struct<Task>(G(task));
+
+    task->state = state;
+    task->call_flags = t->call_flags;
+    task->msg = new Message(state);
+    task->profiler = NULL;
+    task->probe(state, state->probe.get());
+    task->control_channel(state, (Channel*)Qnil);
+    task->debug_channel(state, (Channel*)Qnil);
+    task->exception(state, (Exception*)Qnil);
+
+    task->active(state, t->active()->dup_chain(state));
+
+    return task;
+  }
+
+  ExecuteStatus Task::task_dup(STATE, Executable* exec, Task* task_, Message& msg) {
+
+    Task* recv = try_as<Task>(msg.recv);
+    if(unlikely(recv == NULL)) {
+      goto fail;
+    }
+    if(unlikely(msg.args() != 0)) {
+      goto fail;
+    }
+
+    Task* ret = task_dup_helper(state, recv);
+
+    ret->active()->clear_stack(msg.stack);
+    ret->active()->push((Object*)Qnil);
+
+    msg.caller()->clear_stack(msg.stack);
+    msg.caller()->push(ret);
+
+    return cExecuteContinue;
+
+  fail:
+    return VMMethod::execute(state, task_, msg);
+
   }
 }

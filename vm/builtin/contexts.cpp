@@ -208,6 +208,9 @@ namespace rubinius {
       ctx->stk[i] = this->stk[i];
     }
 
+    ctx->js.stack_top = ctx->stk + ctx->stack_size;
+    ctx->position_stack(this->calculate_sp());
+
     /* Stack Management procedures. Make sure that we don't
      * miss object stored into the stack of a context
      */
@@ -216,6 +219,16 @@ namespace rubinius {
     }
 
     return ctx;
+  }
+
+  MethodContext* MethodContext::dup_chain(STATE) {
+    MethodContext* ret = this->dup(state);
+
+    for(MethodContext* ctx = ret; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
+      ctx->sender(state, ctx->sender()->dup(state));
+    }
+
+    return ret;
   }
 
   /* Retrieve the BlockEnvironment from +this+ BlockContext. We reuse the

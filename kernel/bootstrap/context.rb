@@ -74,6 +74,11 @@ class MethodContext
     raise PrimitiveFailure, "primitive failed"
   end
 
+#  def dup_chain
+#    Ruby.primitive :context_dup_chain
+#    raise PrimitiveFailure, "primitive failed"
+#  end
+#
   def _get_field(int)
     Ruby.primitive :context_get_field
     raise PrimitiveFailure, "primitive failed"
