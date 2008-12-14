@@ -254,10 +254,10 @@ end
 
 class BlockBreakException < ContextDestinationException
   def self.directed_to(context, value)
-    ctx = allocate
-    ctx.destination = context.env.home_block
-    ctx.value = value
-    return ctx
+    exc = allocate
+    exc.destination = context.env.home_block
+    exc.value = value
+    return exc
   end
 end
 
@@ -267,9 +267,9 @@ end
 
 class LongReturnException < ContextDestinationException
   def self.directed_to(context, value)
-    ctx = allocate
-    ctx.destination = context.env.home
-    ctx.value = value
-    return ctx
+    exc = allocate
+    exc.destination = context.env.home
+    exc.value = value
+    return exc
   end
 end
