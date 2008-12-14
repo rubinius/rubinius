@@ -50,9 +50,6 @@ module ObjectSpace
     when what.respond_to?(:each_instance)
       return what.each_instance(&block)
 
-    when what.is_a?(Enumerable)
-      return what.inject(0) { |o| block.call(o) }
-
     when nil
       raise ArgumentError, "ObjectSpace cannot loop through all objects yet"
 
