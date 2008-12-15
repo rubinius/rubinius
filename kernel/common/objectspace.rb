@@ -70,7 +70,7 @@ module ObjectSpace
     # Remove the following line when each_object(nil) is implemented.
     raise ArgumentError, "ObjectSpace doesn't support '#{what}' yet"
 
-    # Simply loop through all objects an checkt wheter those are a +what+.
+    # Simply loop through all objects and checkt wheter those are a +what+.
     count = 0
     each_object do |obj|
       if obj.is_a? what
