@@ -107,7 +107,7 @@ namespace rubinius {
     this->js.stack_top = this->stk + this->stack_size;
     this->position_stack(old->calculate_sp());
     if(this->obj_type == MethodContextType) {
-      assert(this->home() == old);
+      assert(this->home() == old->home());
     }
   }
 
@@ -187,11 +187,7 @@ namespace rubinius {
     ctx->block(state, this->block());
     ctx->name(state, this->name());
 
-    if(this->obj_type == MethodContextType) {
-      ctx->home(state, ctx);
-    } else {
-      ctx->home(state, this->home());
-    }
+    ctx->home(state, this->home());
 
     /* Set the obj_type because we get called
      * for both BlockContext and MethodContext
@@ -331,10 +327,6 @@ namespace rubinius {
     }
 
     auto_mark(obj, mark);
-
-    if(ctx->obj_type == MethodContextType) {
-      assert(ctx->home() == obj);
-    }
 
     /* Now also mark the stack */
     for(size_t i = 0; i < ctx->stack_size; i++) {
