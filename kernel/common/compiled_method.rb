@@ -196,12 +196,22 @@ class CompiledMethod < Executable
     raise PrimitiveFailure, "Unable to call #{@name} on #{recv.inspect}"
   end
 
+  def set_breakpoint(ip)
+    Ruby.primitive :compiledmethod_set_breakpoint
+    raise PrimitiveFailure, "Unable to set breakpoint on #{recv.inspect} at #{ip}"
+  end
+  
+  def breakpoint?(ip)
+    Ruby.primitive :compiledmethod_is_breakpoint
+    raise PrimitiveFailure, "Unable to retrieve breakpoint status on #{recv.inspect} at #{ip}"
+  end
+
   # Accessor for a hash of filenames (as per $" / $LOADED_FEATURES) to the
   # script CompiledMethod.
   def self.scripts
     @scripts ||= {}
   end
-  
+
   # Helper function for searching for a CM given a file name; applies similar
   # search and path expansion rules as load/require, so that the full path to
   # the file need not be specified.
@@ -211,7 +221,7 @@ class CompiledMethod < Executable
     end
     # ./ ../ ~/ /
     if filename =~ %r{\A(?:(\.\.?)|(~))?/}
-      if $2    # ~ 
+      if $2    # ~
         filename.slice! '~/'
         return scripts["#{ENV['HOME']}/#{filename}"]
       else    # . or ..
@@ -322,7 +332,7 @@ class CompiledMethod < Executable
   # Locates the CompiledMethod and instruction address (IP) of the first
   # instruction on the specified line. This method recursively examines child
   # compiled methods until an exact match for the searched line is found.
-  # It returns both the matching CompiledMethod and the IP of the first 
+  # It returns both the matching CompiledMethod and the IP of the first
   # instruction on the requested line, or nil if no match for the specified line
   # is found.
 
@@ -484,29 +494,22 @@ class CompiledMethod < Executable
 
     def calculate_stack_usage(code, args_reg=0)
       usage = code
-      exact = true
       if code < 0
         usage = 0
-        if code == -999
-          exact = false
-        else
-          # Stack usage depends on opcode args
-          code *= -1
-          mult, code = code.divmod(100)
-          arg, code = code.divmod(10)
-          if arg >= 1 and arg <= 2
-            # Opcode consumes/produces a multiple of the value in the specified
-            # opcode arg
-            usage += mult * args[arg-1]
-          elsif arg == 3
-            # Opcode consumes number of args specified in args register
-            usage += mult * args_reg
-            exact = false
-          end
-          usage += code
+        # Stack usage depends on opcode args
+        code *= -1
+        arg, code = code.divmod(10)
+        if arg >= 1 and arg <= 2
+          # Opcode consumes/produces a multiple of the value in the specified
+          # opcode arg
+          usage += args[arg-1]
+        elsif arg == 3
+          # Opcode consumes number of args specified in args register
+          usage += args_reg
         end
+        usage += code
       end
-      return usage, exact
+      return usage
     end
 
     def to_s

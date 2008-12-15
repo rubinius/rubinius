@@ -85,6 +85,12 @@ namespace rubinius {
 
     bool is_rescue_target(STATE, int ip);
 
+    // Ruby.primitive :compiledmethod_set_breakpoint
+    Object* set_breakpoint(STATE, Fixnum* ip);
+
+    // Ruby.primitive :compiledmethod_is_breakpoint
+    Object* is_breakpoint(STATE, Fixnum* ip);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
