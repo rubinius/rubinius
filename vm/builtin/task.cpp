@@ -661,12 +661,6 @@ namespace rubinius {
   ExecuteStatus Task::task_dup(STATE, Executable* exec, Task* task_, Message& msg) {
 
     Task* recv = try_as<Task>(msg.recv);
-    if(unlikely(recv == NULL)) {
-      goto fail;
-    }
-    if(unlikely(msg.args() != 0)) {
-      goto fail;
-    }
 
     Task* ret = state->new_struct<Task>(G(task));
 
@@ -688,9 +682,6 @@ namespace rubinius {
     msg.caller()->push(ret);
 
     return cExecuteContinue;
-
-  fail:
-    return VMMethod::execute(state, task_, msg);
-
   }
 }
+
