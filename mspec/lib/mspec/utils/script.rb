@@ -116,15 +116,35 @@ class MSpecScript
     end
   end
 
-  # Resolves +pattern+ as a file name, directory name or pattern.
+  # Attempts to resolve +partial+ as a file or directory name in the
+  # following order:
+  #
+  #   1. +partial+
+  #   2. +partial+ + "_spec.rb"
+  #   3. <tt>File.join(config[:prefix], partial)</tt>
+  #   4. <tt>File.join(config[:prefix], partial + "_spec.rb")</tt>
+  #
   # If it is a file name, returns the name as an entry in an array.
   # If it is a directory, returns all *_spec.rb files in the
-  # directory and subdirectory. Otherwise, passes +pattern+ to +Dir[]+.
-  def entries(pattern)
-    expanded = File.expand_path(pattern)
-    return [pattern] if File.file?(expanded)
-    return Dir[pattern+"/**/*_spec.rb"].sort if File.directory?(expanded)
-    Dir[pattern]
+  # directory and subdirectories.
+  #
+  # If unable to resolve +partial+, returns <tt>Dir[partial]</tt>.
+  def entries(partial)
+    file = partial + "_spec.rb"
+    patterns = [partial]
+    patterns << file
+    if config[:prefix]
+      patterns << File.join(config[:prefix], partial)
+      patterns << File.join(config[:prefix], file)
+    end
+
+    patterns.each do |pattern|
+      expanded = File.expand_path(pattern)
+      return [pattern] if File.file?(expanded)
+      return Dir[pattern+"/**/*_spec.rb"].sort if File.directory?(expanded)
+    end
+
+    Dir[partial]
   end
 
   # Resolves each entry in +list+ to a set of files. If the entry

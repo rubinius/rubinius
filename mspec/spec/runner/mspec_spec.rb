@@ -376,6 +376,30 @@ describe MSpec, ".read_tags" do
   end
 end
 
+describe MSpec, ".write_tags" do
+  before :each do
+    FileUtils.cp File.dirname(__FILE__) + "/tags.txt", tmp("tags.txt")
+    MSpec.stub!(:tags_file).and_return(tmp("tags.txt"))
+    @tag1 = SpecTag.new "check(broken):Tag#rewrite works"
+    @tag2 = SpecTag.new "broken:Tag#write_tags fails"
+  end
+
+  after :all do
+    File.delete tmp("tags.txt") rescue nil
+  end
+
+  it "overwrites the tags in the tag file" do
+    IO.read(tmp("tags.txt")).should == %[fail(broken):Some#method? works
+incomplete(20%):The#best method ever
+benchmark(0.01825):The#fastest method today
+]
+    MSpec.write_tags [@tag1, @tag2]
+    IO.read(tmp("tags.txt")).should == %[check(broken):Tag#rewrite works
+broken:Tag#write_tags fails
+]
+  end
+end
+
 describe MSpec, ".write_tag" do
   before :each do
     FileUtils.stub!(:mkdir_p)

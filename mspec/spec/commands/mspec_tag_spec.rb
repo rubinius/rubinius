@@ -3,6 +3,7 @@ require 'mspec/runner/mspec'
 require 'mspec/commands/mspec-tag'
 require 'mspec/runner/actions/tag'
 require 'mspec/runner/actions/taglist'
+require 'mspec/runner/actions/tagpurge'
 
 describe MSpecTag, ".new" do
   before :each do
@@ -228,6 +229,20 @@ describe MSpecTag, "options" do
       @config[:tagger].should == :list_all
     end
   end
+
+  describe "--purge" do
+    it "is enabled with #options" do
+      @options.stub!(:on)
+      @options.should_receive(:on).with("--purge", an_instance_of(String))
+      @script.options ["file.rb"]
+    end
+
+    it "sets the mode to :purge" do
+      @config[:tagger] = nil
+      @script.options ["--purge", "file.rb"]
+      @config[:tagger].should == :purge
+    end
+  end
 end
 
 describe MSpecTag, "#run" do
@@ -345,6 +360,28 @@ describe MSpecTag, "#register" do
     end
 
     it "registers MSpec pretend mode" do
+      MSpec.should_receive(:register_mode).with(:pretend)
+      @script.register
+    end
+
+    it "sets config[:formatter] to false" do
+      @script.register
+      @config[:formatter].should be_false
+    end
+  end
+
+  describe "when config[:tagger] is :purge" do
+    before :each do
+      @config[:tagger] = :purge
+    end
+
+    it "creates a TagPurgeAction" do
+      TagPurgeAction.should_receive(:new).and_return(@tl)
+      @tl.should_receive(:register)
+      @script.register
+    end
+
+    it "registers MSpec in pretend mode" do
       MSpec.should_receive(:register_mode).with(:pretend)
       @script.register
     end

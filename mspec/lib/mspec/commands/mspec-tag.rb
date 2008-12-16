@@ -66,6 +66,9 @@ class MSpecTag < MSpecScript
     options.on("--list-all", "Display descriptions of any tagged specs") do
       config[:tagger] = :list_all
     end
+    options.on("--purge", "Remove all tags not matching any specs") do
+      config[:tagger] = :purge
+    end
 
     options.doc "\n Help!"
     options.version MSpec::VERSION
@@ -97,6 +100,10 @@ class MSpecTag < MSpecScript
                              config[:atags], config[:astrings])
     when :list, :list_all
       tagger = TagListAction.new config[:tagger] == :list_all ? nil : config[:ltags]
+      MSpec.register_mode :pretend
+      config[:formatter] = false
+    when :purge
+      tagger = TagPurgeAction.new
       MSpec.register_mode :pretend
       config[:formatter] = false
     else

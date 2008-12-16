@@ -253,6 +253,17 @@ module MSpec
     tags
   end
 
+  # Writes each tag in +tags+ to the tag file. Overwrites the
+  # tag file if it exists.
+  def self.write_tags(tags)
+    file = tags_file
+    path = File.dirname file
+    FileUtils.mkdir_p path unless File.exist? path
+    File.open(file, "w") do |f|
+      tags.each { |t| f.puts t }
+    end
+  end
+
   def self.write_tag(tag)
     string = tag.to_s
     file = tags_file
