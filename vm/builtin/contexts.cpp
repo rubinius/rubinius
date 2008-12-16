@@ -2,6 +2,7 @@
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/lookuptable.hpp"
 #include "builtin/tuple.hpp"
 
 #include "gc_object_mark.hpp"
@@ -107,7 +108,7 @@ namespace rubinius {
     this->js.stack_top = this->stk + this->stack_size;
     this->position_stack(old->calculate_sp());
     if(this->obj_type == MethodContextType) {
-      assert(this->home() == old);
+      assert(this->home() == old->home());
     }
   }
 
@@ -187,11 +188,7 @@ namespace rubinius {
     ctx->block(state, this->block());
     ctx->name(state, this->name());
 
-    if(this->obj_type == MethodContextType) {
-      ctx->home(state, ctx);
-    } else {
-      ctx->home(state, this->home());
-    }
+    ctx->home(state, this->home());
 
     /* Set the obj_type because we get called
      * for both BlockContext and MethodContext
@@ -208,6 +205,9 @@ namespace rubinius {
       ctx->stk[i] = this->stk[i];
     }
 
+    ctx->js.stack_top = ctx->stk + ctx->stack_size;
+    ctx->position_stack(this->calculate_sp());
+
     /* Stack Management procedures. Make sure that we don't
      * miss object stored into the stack of a context
      */
@@ -216,6 +216,40 @@ namespace rubinius {
     }
 
     return ctx;
+  }
+
+  MethodContext* MethodContext::dup_chain(STATE) {
+
+    LookupTable* map = LookupTable::create(state);
+
+    MethodContext* ret = this->dup(state);
+
+    for(MethodContext* ctx = ret; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
+      MethodContext* old_sender = ctx->sender();
+      ctx->sender(state, old_sender->dup(state));
+      if(old_sender->obj_type == MethodContextType) {
+        map->store(state, old_sender, ctx->sender());
+      }
+    }
+
+    for(MethodContext* ctx = ret; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
+      if(ctx->obj_type == BlockContextType) {
+        BlockEnvironment* old_env = as<BlockContext>(ctx)->env();
+        Object* new_env_home = map->aref(state, (old_env->home()));
+        if(new_env_home->nil_p()) continue;
+        BlockEnvironment* new_env = old_env->dup(state);
+        new_env->home(state, as<MethodContext>(new_env_home));
+        ctx->block(state, new_env);
+      }
+    }
+
+    for(MethodContext* ctx = this; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
+      if(ctx->obj_type == MethodContextType) {
+        map->remove(state, ctx);
+      }
+    }
+
+    return ret;
   }
 
   /* Retrieve the BlockEnvironment from +this+ BlockContext. We reuse the
@@ -318,10 +352,6 @@ namespace rubinius {
     }
 
     auto_mark(obj, mark);
-
-    if(ctx->obj_type == MethodContextType) {
-      assert(ctx->home() == obj);
-    }
 
     /* Now also mark the stack */
     for(size_t i = 0; i < ctx->stack_size; i++) {

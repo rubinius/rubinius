@@ -90,6 +90,9 @@ namespace rubinius {
     // Ruby.primitive :context_dup
     MethodContext* dup(STATE);
 
+    // Ruby.primitive :context_dup_chain
+    MethodContext* dup_chain(STATE);
+
     /* Locals manipulation functions */
     /* Locals are just stored at the top of the stack. */
     void set_local(size_t pos, Object* val) {

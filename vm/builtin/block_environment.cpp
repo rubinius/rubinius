@@ -138,6 +138,19 @@ namespace rubinius {
     return be;
   }
 
+  BlockEnvironment* BlockEnvironment::dup(STATE) {
+    BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
+
+    be->home(state, home_);
+    be->home_block(state, home_block_);
+    be->method(state, method_);
+    be->local_count(state, local_count_);
+    be->vmm = this->vmm;
+
+    return be;
+  }
+
+
   void BlockEnvironment::Info::show(STATE, Object* self, int level) {
     BlockEnvironment* be = as<BlockEnvironment>(self);
 

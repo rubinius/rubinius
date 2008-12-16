@@ -113,7 +113,7 @@ class TestContexts : public CxxTest::TestSuite {
 
     // Compare the dup'd with the original
     TS_ASSERT_EQUALS(ctx->sender(), dup->sender());
-    TS_ASSERT_EQUALS(dup, dup->home());
+    TS_ASSERT_EQUALS(ctx->home(), dup->home());
     TS_ASSERT_EQUALS(ctx->self(), dup->self());
     TS_ASSERT_EQUALS(ctx->cm(), dup->cm());
     TS_ASSERT_EQUALS(ctx->module(), dup->module());
@@ -125,7 +125,7 @@ class TestContexts : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ctx->args, dup->args);
     TS_ASSERT_EQUALS(ctx->stack_size, dup->stack_size);
 
-    TS_ASSERT_SAME_DATA(&ctx->js, &dup->js, sizeof(dup->js));
+    TS_ASSERT_SAME_DATA(ctx->stk, dup->stk, sizeof(Object *)*ctx->stack_size);
   }
 };
 

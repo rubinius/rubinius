@@ -15,6 +15,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/thread.hpp"
 
 #include "global_cache.hpp"
 
@@ -84,6 +85,21 @@ namespace rubinius {
 
   Task* Task::current(STATE) {
     return state->globals.current_task.get();
+  }
+
+  ExecuteStatus Task::set_current(STATE, Executable* exec, Task* task_, Message& msg) {
+
+    //if(unlikely(msg.args() != 1)) goto fail;
+
+    Task* tsk;
+    tsk = try_as<Task>(msg.get_argument(0));
+    //if(unlikely(tsk == NULL)) goto fail;
+
+    Thread::current(state)->task(state, tsk);
+    state->globals.current_task.set(tsk);
+
+    state->interrupts.check = true; // HACK, forcing jump out of Task::execute() loop
+    return cExecuteRestart;
   }
 
   MethodContext* Task::current_context(STATE) {
@@ -641,4 +657,31 @@ namespace rubinius {
     indent_attribute(level, "control_channel"); task->control_channel()->show(state, level);
     close_body(level);
   }
+
+  ExecuteStatus Task::task_dup(STATE, Executable* exec, Task* task_, Message& msg) {
+
+    Task* recv = try_as<Task>(msg.recv);
+
+    Task* ret = state->new_struct<Task>(G(task));
+
+    ret->state = state;
+    ret->call_flags = recv->call_flags;
+    ret->msg = new Message(state);
+    ret->profiler = NULL;
+    ret->probe(state, state->probe.get());
+    ret->control_channel(state, (Channel*)Qnil);
+    ret->debug_channel(state, (Channel*)Qnil);
+    ret->exception(state, (Exception*)Qnil);
+
+    ret->active(state, recv->active()->dup_chain(state));
+
+    ret->active()->clear_stack(msg.stack);
+    ret->active()->push((Object*)Qnil);
+
+    msg.caller()->clear_stack(msg.stack);
+    msg.caller()->push(ret);
+
+    return cExecuteContinue;
+  }
 }
+
