@@ -35,11 +35,8 @@ module ObjectSpace
       end
     end
 
-    # Looping through all fixnums.
-    if what == Fixnum
-      Platform::Fixnum.MIN.upto(Platform::Fixnum.MAX, &block)
-      return Platform::Fixnum.MAX - Platform::Fixnum.MIN
-    end
+    # This is what MRI does:
+    return 0 if [Fixnum, Symbol].include? what
 
     # Those are singeltons.
     if [TrueClass, FalseClass, NilClass].include? what
