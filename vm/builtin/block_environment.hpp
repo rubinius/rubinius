@@ -51,6 +51,8 @@ namespace rubinius {
     // Ruby.primitive? :block_call
     ExecuteStatus call_prim(STATE, Executable* exec, Task* task, Message& msg);
 
+    BlockEnvironment* dup(STATE);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

@@ -2,6 +2,7 @@
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/lookuptable.hpp"
 #include "builtin/tuple.hpp"
 
 #include "gc_object_mark.hpp"
@@ -218,10 +219,34 @@ namespace rubinius {
   }
 
   MethodContext* MethodContext::dup_chain(STATE) {
+
+    LookupTable* map = LookupTable::create(state);
+
     MethodContext* ret = this->dup(state);
 
     for(MethodContext* ctx = ret; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
-      ctx->sender(state, ctx->sender()->dup(state));
+      MethodContext* old_sender = ctx->sender();
+      ctx->sender(state, old_sender->dup(state));
+      if(old_sender->obj_type == MethodContextType) {
+        map->store(state, old_sender, ctx->sender());
+      }
+    }
+
+    for(MethodContext* ctx = ret; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
+      if(ctx->obj_type == BlockContextType) {
+        BlockEnvironment* old_env = as<BlockContext>(ctx)->env();
+        Object* new_env_home = map->aref(state, (old_env->home()));
+        if(new_env_home->nil_p()) continue;
+        BlockEnvironment* new_env = old_env->dup(state);
+        new_env->home(state, as<MethodContext>(new_env_home));
+        ctx->block(state, new_env);
+      }
+    }
+
+    for(MethodContext* ctx = this; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
+      if(ctx->obj_type == MethodContextType) {
+        map->remove(state, ctx);
+      }
     }
 
     return ret;
