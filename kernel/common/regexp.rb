@@ -20,6 +20,30 @@ class Regexp
   KCODE_UTF8    = 64
   KCODE_MASK    = 112
 
+  ESCAPE_TABLE  = {
+    ?\  => '\\ ',   # '?\ ' is a space
+    ?[  => '\\[',
+    ?]  => '\\]',
+    ?{  => '\\{',
+    ?}  => '\\}',
+    ?(  => '\\(',
+    ?)  => '\\)',
+    ?|  => '\\|',
+    ?-  => '\\-',
+    ?*  => '\\*',
+    ?.  => '\\.',
+    ?\\ => '\\\\',
+    ??  => '\\?',
+    ?+  => '\\+',
+    ?^  => '\\^',
+    ?$  => '\\$',
+    ?#  => '\\#',
+    ?\n => '\\n',
+    ?\r => '\\r',
+    ?\f => '\\f',
+    ?\t => '\\t'
+  }
+
   ##
   # Constructs a new regular expression from the given pattern. The pattern
   # may either be a String or a Regexp. If given a Regexp, options are copied
@@ -67,29 +91,13 @@ class Regexp
     r
   end
 
-  #--
-  # FIXME - Optimize me using String#[], String#chr, etc.
-  # Do away with the control-character comparisons.
-  #++
-
   def self.escape(str)
-    meta = %w![ ] { } ( ) | - * . \\ ? + ^ $ #!
     quoted = ""
-    str.codepoints.each do |c|
-      quoted << if meta.include?(c)
-      "\\#{c}"
-      elsif c == "\n"
-      "\\n"
-      elsif c == "\r"
-      "\\r"
-      elsif c == "\f"
-      "\\f"
-      elsif c == "\t"
-      "\\t"
-      elsif c == " "
-      "\\ "
+    StringValue(str).each_byte do |c|
+      if escaped = ESCAPE_TABLE[c]
+        quoted << escaped
       else
-        c
+        quoted << c
       end
     end
     quoted
