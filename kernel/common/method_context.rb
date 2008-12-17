@@ -123,30 +123,7 @@ class MethodContext
   end
 
   ##
-  # Copies context. If locals is true local variable values are also copied
-  # into new context.
-
-  def copy(locals=false)
-    d = self.dup
-    return d unless locals
-
-    i = 0
-    lc = self.locals
-    tot = lc.fields
-    nl = Tuple.new(tot)
-    while i < tot
-      nl.put i, lc.at(i)
-      i += 1
-    end
-
-    # d.put 10, nl
-
-    return d
-  end
-
-  ##
   # Place in the source that this method was created at.
-
   def location
     l = line()
     if l == 0
