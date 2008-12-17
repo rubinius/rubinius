@@ -148,8 +148,7 @@ namespace rubinius {
       case InstructionSequence::insn_noop:
         break;
       case InstructionSequence::insn_goto:
-        opcode dest = vmm->opcodes[i + 1];
-        a.jump(labels[dest]);
+        a.jump(labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_goto_if_false:
         cache_stack();
