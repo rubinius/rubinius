@@ -167,7 +167,7 @@ namespace rubinius {
         cache_stack();
         s.load_nth(eax, 0);
         s.pop();
-        a.cmp(eax, (int)Qundef);
+        a.cmp(eax, (uintptr_t)Qundef);
         a.jump_if_not_equal(labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_pop:
@@ -196,35 +196,35 @@ namespace rubinius {
         break;
       case InstructionSequence::insn_push_true:
         cache_stack();
-        s.push((int)Qtrue);
+        s.push((uintptr_t)Qtrue);
         break;
       case InstructionSequence::insn_push_false:
         cache_stack();
-        s.push((int)Qfalse);
+        s.push((uintptr_t)Qfalse);
         break;
       case InstructionSequence::insn_push_nil:
         cache_stack();
-        s.push((int)Qnil);
+        s.push((uintptr_t)Qnil);
         break;
       case InstructionSequence::insn_meta_push_0:
         cache_stack();
-        s.push((int)Fixnum::from(0));
+        s.push((uintptr_t)Fixnum::from(0));
         break;
       case InstructionSequence::insn_meta_push_1:
         cache_stack();
-        s.push((int)Fixnum::from(1));
+        s.push((uintptr_t)Fixnum::from(1));
         break;
       case InstructionSequence::insn_meta_push_2:
         cache_stack();
-        s.push((int)Fixnum::from(2));
+        s.push((uintptr_t)Fixnum::from(2));
         break;
       case InstructionSequence::insn_meta_push_neg_1:
         cache_stack();
-        s.push((int)Fixnum::from(-1));
+        s.push((uintptr_t)Fixnum::from(-1));
         break;
       case InstructionSequence::insn_push_int:
         cache_stack();
-        s.push((int)Fixnum::from(vmm->opcodes[i + 1]));
+        s.push((uintptr_t)Fixnum::from(vmm->opcodes[i + 1]));
         break;
       case InstructionSequence::insn_push_self:
         cache_stack();
