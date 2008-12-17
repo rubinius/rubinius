@@ -54,7 +54,8 @@ class MethodContext
   end
 
   def locals
-    _get_field(8)
+    Ruby.primitive :context_locals
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def locals=(val)

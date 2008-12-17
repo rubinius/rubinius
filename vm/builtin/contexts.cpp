@@ -300,6 +300,15 @@ namespace rubinius {
     return Qnil;
   }
 
+  Array* MethodContext::locals(STATE) {
+    int n = this->vmm->number_of_locals;
+    Array* ary = Array::create(state, n);
+    for(int i = 0; i < n; i++) {
+      ary->set(state, i, this->get_local(i));
+    }
+    return ary;
+  }
+
   /* Return a new +BlockContext+ object, which needs +stack_size+ fields
    * worth of stack. */
   BlockContext* BlockContext::create(STATE, size_t stack_size) {

@@ -1,6 +1,7 @@
 #ifndef RBX_BUILTIN_CONTEXTS_HPP
 #define RBX_BUILTIN_CONTEXTS_HPP
 
+#include "builtin/array.hpp"
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 #include "vmmethod.hpp"
@@ -86,6 +87,9 @@ namespace rubinius {
 
     // Ruby.primitive :context_get_field
     Object* get_internal_data(STATE, Fixnum* type);
+
+    // Ruby.primitive :context_locals
+    Array* locals(STATE);
 
     // Ruby.primitive :context_dup
     MethodContext* dup(STATE);
