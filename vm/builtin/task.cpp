@@ -16,6 +16,7 @@
 #include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/thread.hpp"
+#include "builtin/machine_method.hpp"
 
 #include "global_cache.hpp"
 
@@ -543,6 +544,12 @@ namespace rubinius {
   /* Move the active context to executing instruction +ip+. */
   void Task::set_ip(int ip) {
     active_->ip = ip;
+    if(active_->native_ip != NULL) {
+      MachineMethod* mm = active_->vmm->machine_method();
+      assert(mm);
+      active_->native_ip = mm->resolve_virtual_ip(ip);
+      assert(active_->native_ip);
+    }
   }
 
   /* Returns the current instruction the active context is on. */

@@ -8,6 +8,7 @@
 #include "builtin/iseq.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/lookuptable.hpp"
 
 #include "instructions.hpp"
 #include "assembler/jit.hpp"
@@ -92,7 +93,7 @@ namespace rubinius {
 
   }
 
-  void JITCompiler::compile(VMMethod* vmm) {
+  void JITCompiler::compile(STATE, VMMethod* vmm) {
     // Used for fixups
     uintptr_t* last_imm = NULL;
 
@@ -125,6 +126,8 @@ namespace rubinius {
 
     a.set_label(normal_start);
 
+    CompiledMethod* cm = vmm->original.get();
+
     for(size_t i = 0; i < vmm->total;) {
       opcode op = vmm->opcodes[i];
       size_t width = InstructionSequence::instruction_width(op);
@@ -151,6 +154,10 @@ namespace rubinius {
         // Because this is now a jump destination, reset the register
         // usage since we don't know the state off things when we're
         // jumped here.
+        ops.reset_usage();
+      } else if(cm->is_rescue_target(state, i)) {
+        // This is a jump destination via the exception table, reset
+        // things and register it.
         ops.reset_usage();
       }
 

@@ -5,6 +5,7 @@
 namespace rubinius {
   class VMMethod;
   class MachineMethod;
+  class VM;
 
   class JITCompiler {
   private: // data
@@ -31,7 +32,7 @@ namespace rubinius {
       return virtual2native;
     }
 
-    void compile(VMMethod*);
+    void compile(VM*, VMMethod*);
     void show();
 
     static ExecuteStatus slow_plus_path(VMMethod* const vmm, Task* const task,

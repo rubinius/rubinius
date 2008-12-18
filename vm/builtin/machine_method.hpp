@@ -14,7 +14,7 @@ namespace rubinius {
     VMMethod* vmmethod_;
     size_t code_size_;
     CodeMap* virtual2native_;
-    assembler::Relocations* relocations_;
+    assembler::Relocation** relocations_;
 
     void* function_;
 
@@ -38,6 +38,8 @@ namespace rubinius {
 
     // Ruby.primitive :machine_method_activate
     Object* activate();
+
+    void* resolve_virtual_ip(opcode ip);
   };
 }
 
