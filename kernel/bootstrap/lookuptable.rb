@@ -37,6 +37,21 @@ class LookupTable
     def next;  @next  ; end
   end
 
+  class Association
+    def key;   @key   ; end
+    def value; @value ; end
+    def value=(v); @value = v; end
+
+    def self.new(name, value)
+      Ruby.primitive :lookuptableassociation_allocate
+      raise PrimitiveFailure, "LookupTable::Association.allocate failed"
+    end
+
+    def inspect
+      "#<LookupTable::Association @key=#{@key.inspect} @value=#{@value.inspect}>"
+    end
+  end
+
   def values;  @values  ; end
   def bins;    @bins    ; end
   def size;    @entries ; end

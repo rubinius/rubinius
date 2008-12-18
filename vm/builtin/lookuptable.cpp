@@ -322,4 +322,13 @@ namespace rubinius {
     last->next(state, nxt);
     return nxt;
   }
+
+  LookupTableAssociation* LookupTableAssociation::create(STATE, Object *key, Object *value) {
+    LookupTableAssociation *entry =
+      state->new_object<LookupTableAssociation>(G(lookuptableassociation));
+
+    entry->key(state, key);
+    entry->value(state, value);
+    return entry;
+  }
 }

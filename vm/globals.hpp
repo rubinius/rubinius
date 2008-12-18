@@ -90,6 +90,7 @@ namespace rubinius {
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
     TypedRoot<Class*> lookuptablebucket;
+    TypedRoot<Class*> lookuptableassociation;
     TypedRoot<Class*> access_variable;
     TypedRoot<Module*> rubinius;
     TypedRoot<Class*> time_class;
@@ -198,6 +199,7 @@ namespace rubinius {
       dir(&roots),
       compactlookuptable(&roots),
       lookuptablebucket(&roots),
+      lookuptableassociation(&roots),
       access_variable(&roots),
       rubinius(&roots),
       time_class(&roots),

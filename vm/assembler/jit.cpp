@@ -403,6 +403,35 @@ namespace rubinius {
         break;
       }
 
+      case InstructionSequence::insn_push_const_fast: {
+        cache_stack();
+        AssemblerX86::NearJumpLocation slow_path;
+        AssemblerX86::NearJumpLocation done;
+
+        ops.get_literal(eax, vmm->opcodes[i + 2]);
+        a.cmp(eax, reinterpret_cast<uintptr_t>(Qnil));
+        a.jump_if_equal(slow_path);
+        a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::LookupTableAssociation, value_)));
+        // TODO this doesn't support autoload!
+        s.push(eax);
+
+        // Uncache the stack register to match what slow path
+        // leaves things at
+        uncache_stack();
+        a.jump(done);
+
+        a.set_label(slow_path);
+        uncache_stack(true);
+        const instructions::Implementation* impl = instructions::implementation(op);
+        ops.call_operation(impl->address, impl->name,
+            vmm->opcodes[i + 1],
+            vmm->opcodes[i + 2]);
+        maybe_return(i, &last_imm, fin);
+
+        a.set_label(done);
+        break;
+      }
+
       case InstructionSequence::insn_set_call_flags:
         ops.store_call_flags(vmm->opcodes[i + 1]);
         break;

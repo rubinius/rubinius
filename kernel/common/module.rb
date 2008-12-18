@@ -14,11 +14,10 @@
 
 class Module
 
-  def method_table    ; @method_table ; end
-  def method_cache    ; @method_cache ; end
-  def constants_table ; @constants    ; end
-  def encloser        ; @encloser  ; end
+  def constants_table() ; @constants ; end
 
+  # I (Evan) don't like either of these. I think they could easily
+  # break things. We should check on that.
   def constants_table=(c) ; @constants = c    ; end
   def method_table=(m)    ; @method_table = m ; end
 
@@ -537,7 +536,7 @@ class Module
       const = current
       defined = pieces.all? do |piece|
         if const.is_a?(Module) and const.constants_table.key?(piece)
-          const = const.constants_table[piece]
+          const = const.constants_table[piece].value
           true
         end
       end
@@ -550,7 +549,15 @@ class Module
     if value.is_a? Module
       value.set_name_if_necessary(name, self)
     end
-    constants_table[normalize_const_name(name)] = value
+
+    name = normalize_const_name(name)
+    assoc = constant_table[name]
+
+    if assoc
+      assoc.value = value
+    else
+      constants_table[name] = LookupTable::Association.new(name, value)
+    end
 
     return value
   end
@@ -663,7 +670,7 @@ class Module
     name = normalize_const_name(name)
     raise ArgumentError, "empty file name" if path.empty?
     trigger = Autoload.new(name, self, path)
-    constants_table[name] = trigger
+    constants_table[name] = LookupTable::Association.new(name, trigger)
     return nil
   end
 
@@ -671,15 +678,20 @@ class Module
   def autoload?(name)
     name = name.to_sym
     return unless constants_table.key?(name)
-    trigger = constants_table[name]
+    trigger = constants_table[name].value
     return unless trigger.kind_of?(Autoload)
     trigger.original_path
   end
 
   def remove_const(name)
     sym = name.to_sym
-    const_missing(name) unless constants_table.has_key?(sym)
-    val = constants_table.delete(sym)
+    unless constants_table.has_key?(sym)
+      return const_missing(name)
+    end
+
+    assoc = constants_table.delete(sym)
+
+    val = assoc.value
 
     # Silly API compac. Shield Autoload instances
     return nil if val.kind_of? Autoload
@@ -705,16 +717,23 @@ class Module
     current, constant = self, Undefined
 
     while current
-      constant = current.constants_table.fetch name, Undefined
-      constant = constant.call if constant.kind_of?(Autoload)
-      return constant unless constant.equal?(Undefined)
+      assoc = current.constants_table.fetch name, Undefined
+      unless assoc.equal?(Undefined)
+        constant = assoc.value
+        constant = constant.call if constant.kind_of?(Autoload)
+        return constant
+      end
+
       current = current.direct_superclass
     end
 
-    if self.kind_of?(Module) and not self.kind_of?(Class)
-      constant = Object.constants_table.fetch name, Undefined
-      constant = constant.call if constant.kind_of?(Autoload)
-      return constant unless constant.equal?(Undefined)
+    if instance_of?(Module)
+      assoc = Object.constants_table.fetch name, Undefined
+      unless assoc.equal?(Undefined)
+        constant = assoc.value
+        constant = constant.call if constant.kind_of?(Autoload)
+        return constant
+      end
     end
 
     return nil unless missing
@@ -759,14 +778,22 @@ class Module
   private :valid_const_name?
 
   def initialize_copy(other)
-    @constants = @constants.dup
     @method_table = @method_table.dup
 
-    @constants.each do |name, val|
+    old_constants = @constants
+    new_constants = LookupTable.new
+
+    old_constants.each do |name, assoc|
+      new_assoc = assoc.dup
+      new_constants[name] = new_assoc
+
+      val = new_assoc.value
       if val.kind_of? Autoload
-        @constants[name] = Autoload.new(val.name, self, val.original_path)
+        new_assoc.value = Autoload.new(val.name, self, val.original_path)
       end
     end
+
+    @constants = new_constants
   end
 
 end
