@@ -2334,6 +2334,7 @@ class Instructions
     Object* assoc = task->literals()->at(state, association_index);
     // The association has been set, return the value from it directly.
     if(assoc->nil_p()) {
+slow_path:
       Symbol* sym = as<Symbol>(task->literals()->at(state, symbol_index));
       LookupTableAssociation* assoc = task->const_get_association(sym, &found);
       if(found) {
@@ -2359,7 +2360,9 @@ class Instructions
         RETURN(res);
       }
     } else {
-      res = as<LookupTableAssociation>(assoc)->value();
+      LookupTableAssociation* real_assoc = as<LookupTableAssociation>(assoc);
+      if(real_assoc->active() == Qfalse) goto slow_path;
+      res = real_assoc->value();
     }
 
     if(kind_of<Autoload>(res)) {

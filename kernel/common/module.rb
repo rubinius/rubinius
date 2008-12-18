@@ -567,9 +567,26 @@ class Module
   # userland.
 
   def __const_set__(name, value)
-    if constants_table[normalize_const_name(name)]
-      warn "already initialized constant #{name}"
+    const_name = normalize_const_name(name)
+
+    mod = self
+    while mod
+      assoc = mod.constants_table[const_name]
+      break if assoc
+      mod = mod.direct_superclass
     end
+
+    if mod
+      if mod == self
+        warn "already initialized constant #{name}"
+      else
+        # We're masking an existing constant. Invalid it.
+        assoc.active = false
+        mod.constants_table[const_name] =
+          LookupTable::Association.new(const_name, assoc.value)
+      end
+    end
+
     return const_set(name, value)
   end
 

@@ -40,7 +40,9 @@ class LookupTable
   class Association
     def key;   @key   ; end
     def value; @value ; end
-    def value=(v); @value = v; end
+    def value=(v);  @value = v;  end
+    def active?;    @active;     end
+    def active=(v); @active = v; end
 
     def self.new(name, value)
       Ruby.primitive :lookuptableassociation_allocate
@@ -48,7 +50,7 @@ class LookupTable
     end
 
     def inspect
-      "#<LookupTable::Association @key=#{@key.inspect} @value=#{@value.inspect}>"
+      "#<LookupTable::Association:0x#{object_id.to_s(16)} @key=#{@key.inspect} @value=#{@value.inspect} @valid=#{@active.inspect}>"
     end
   end
 

@@ -67,13 +67,16 @@ namespace rubinius {
 
     if(found) {
       LookupTableAssociation* assoc = as<LookupTableAssociation>(obj);
-      assoc->value(state, val);
-    } else {
-      LookupTableAssociation* assoc =
-        LookupTableAssociation::create(state, sym, val);
-
-      constants_->store(state, sym, assoc);
+      if(assoc->active() != Qfalse) {
+        assoc->value(state, val);
+        return;
+      }
     }
+
+    LookupTableAssociation* assoc =
+      LookupTableAssociation::create(state, sym, val);
+
+    constants_->store(state, sym, assoc);
   }
 
   void Module::set_const(STATE, const char* name, Object* val) {

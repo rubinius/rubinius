@@ -329,6 +329,7 @@ namespace rubinius {
 
     entry->key(state, key);
     entry->value(state, value);
+    entry->active(state, Qtrue);
     return entry;
   }
 }
