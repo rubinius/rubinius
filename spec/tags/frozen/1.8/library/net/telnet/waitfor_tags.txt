@@ -1,0 +1,1 @@
+incomplete:Net::Telnet#waitfor needs to be reviewed for spec completeness

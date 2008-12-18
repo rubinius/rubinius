@@ -1,0 +1,2 @@
+incomplete:Readline.completion_append_character needs to be reviewed for spec completeness
+incomplete:Readline.completion_append_character= needs to be reviewed for spec completeness
