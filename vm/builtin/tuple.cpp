@@ -48,7 +48,10 @@ namespace rubinius {
 
     va_start(ar, fields);
     for(size_t i = 0; i < fields; i++) {
-      tup->put(state, i, va_arg(ar, Object*));
+      Object *obj = va_arg(ar, Object*);
+      // fields equals size so bounds checking is unecessary
+      tup->field[i] = obj;
+      if(obj->reference_p()) tup->write_barrier(state, obj);
     }
     va_end(ar);
 
