@@ -1,5 +1,5 @@
 class Object
-  def flunk
-    Expectation.fail_with "This example", "is a failure"
+  def flunk(msg="This example is a failure")
+    Expectation.fail_with "Failed:", msg
   end
 end

@@ -31,13 +31,17 @@ class TagPurgeAction < TagListAction
   end
 
   # Rewrites any matching tags. Prints non-matching tags.
+  # Deletes the tag file if there were no tags (this cleans
+  # up empty or malformed tag files).
   def unload
-    return unless @filter
+    if @filter
+      matched = @tags.select { |t| @matching.any? { |s| s == t.description } }
+      MSpec.write_tags matched
 
-    matched = @tags.select { |t| @matching.any? { |s| s == t.description } }
-    MSpec.write_tags matched
-
-    (@tags - matched).each { |t| print t.description, "\n" }
+      (@tags - matched).each { |t| print t.description, "\n" }
+    else
+      MSpec.delete_tags
+    end
   end
 
   def register

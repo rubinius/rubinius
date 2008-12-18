@@ -101,6 +101,33 @@ describe TagPurgeAction, "#unload" do
   end
 end
 
+describe TagPurgeAction, "#unload" do
+  before :each do
+    @stdout = $stdout
+    $stdout = IOStub.new
+
+    MSpec.stub!(:read_tags).and_return([])
+
+    @state = mock("ExampleState")
+    @state.stub!(:description).and_return("I'm unstable")
+
+    @action = TagPurgeAction.new
+    @action.load
+    @action.after @state
+  end
+
+  after :each do
+    $stdout = @stdout
+  end
+
+  it "deletes the tag file if no tags were found" do
+    MSpec.should_not_receive(:write_tags)
+    MSpec.should_receive(:delete_tags)
+    @action.unload
+    $stdout.should == ""
+  end
+end
+
 describe TagPurgeAction, "#register" do
   before :each do
     MSpec.stub!(:register)

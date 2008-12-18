@@ -376,6 +376,22 @@ describe MSpec, ".read_tags" do
   end
 end
 
+describe MSpec, ".read_tags" do
+  before :each do
+    @tag = SpecTag.new "fails:Some#method"
+    File.open(tmp("tags.txt"), "w") do |f|
+      f.puts ""
+      f.puts @tag
+      f.puts ""
+    end
+    MSpec.stub!(:tags_file).and_return(tmp("tags.txt"))
+  end
+
+  it "does not return a tag object for empty lines" do
+    MSpec.read_tags(["fails"]).should == [@tag]
+  end
+end
+
 describe MSpec, ".write_tags" do
   before :each do
     FileUtils.cp File.dirname(__FILE__) + "/tags.txt", tmp("tags.txt")
@@ -455,6 +471,19 @@ benchmark(0.01825):The#fastest method today
     MSpec.delete_tag(SpecTag.new("incomplete:The#best method ever")).should == true
     MSpec.delete_tag(SpecTag.new("benchmark:The#fastest method today")).should == true
     File.exist?(tmp("tags.txt")).should == false
+  end
+end
+
+describe MSpec, ".delete_tags" do
+  before :each do
+    @tags = tmp("tags.txt")
+    FileUtils.cp File.dirname(__FILE__) + "/tags.txt", @tags
+    MSpec.stub!(:tags_file).and_return(@tags)
+  end
+
+  it "deletes the tag file" do
+    MSpec.delete_tags
+    File.exists?(@tags).should be_false
   end
 end
 

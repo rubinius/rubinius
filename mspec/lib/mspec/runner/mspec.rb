@@ -245,6 +245,8 @@ module MSpec
     if File.exist? file
       File.open(file, "r") do |f|
         f.each_line do |line|
+          line.chomp!
+          next if line.empty?
           tag = SpecTag.new line.chomp
           tags << tag if keys.include? tag.tag
         end
@@ -264,11 +266,13 @@ module MSpec
     end
   end
 
+  # Writes +tag+ to the tag file if it does not already exist.
+  # Returns +true+ if the tag is written, +false+ otherwise.
   def self.write_tag(tag)
     string = tag.to_s
     file = tags_file
     path = File.dirname file
-    FileUtils.mkdir_p(path) unless File.exist?(path)
+    FileUtils.mkdir_p path unless File.exist? path
     if File.exist? file
       File.open(file, "r") do |f|
         f.each_line { |line| return false if line.chomp == string }
@@ -278,6 +282,9 @@ module MSpec
     return true
   end
 
+  # Deletes +tag+ from the tag file if it exists. Returns +true+
+  # if the tag is deleted, +false+ otherwise. Deletes the tag
+  # file if it is empty.
   def self.delete_tag(tag)
     deleted = false
     pattern = /#{tag.tag}.*#{Regexp.escape tag.description}/
@@ -296,5 +303,11 @@ module MSpec
       File.delete file unless File.size? file
     end
     return deleted
+  end
+
+  # Removes the tag file associated with a spec file.
+  def self.delete_tags
+    file = tags_file
+    File.delete file if File.exists? file
   end
 end
