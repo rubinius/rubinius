@@ -134,8 +134,13 @@ namespace rubinius {
     native_int cnt = size->to_native();
     Tuple* tuple = Tuple::create(state, cnt);
 
+    // val is referend size times, we only need to hit the write
+    // barrier once
+    if(val->reference_p()) tuple->write_barrier(state, val);
     for(native_int i = 0; i < cnt; i++) {
-      tuple->put(state, i, val);
+      // bounds checking is covered because we instantiated the tuple
+      // in this method
+      tuple->field[i] = val;
     }
 
     return tuple;
