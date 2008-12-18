@@ -62,6 +62,16 @@ namespace rubinius {
     return send_slowly(vmm, task, ctx, task->state->globals.sym_minus.get(), 1);
   }
 
+  ExecuteStatus JITCompiler::slow_equal_path(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx) {
+    return send_slowly(vmm, task, ctx, task->state->globals.sym_equal.get(), 1);
+  }
+
+  ExecuteStatus JITCompiler::slow_nequal_path(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx) {
+    return send_slowly(vmm, task, ctx, task->state->globals.sym_nequal.get(), 1);
+  }
+
   void JITCompiler::maybe_return(int i, uintptr_t **last_imm, AssemblerX86::NearJumpLocation &fin) {
 
     // EDX will contain the native ip, to be stored
@@ -320,6 +330,68 @@ namespace rubinius {
         // We have to be sure that the stack cache settings are in sync
         // for both paths taken at this point. To be sure of that, we
         // always run cache_stack() after calling slow_path_plus.
+        a.set_label(done);
+        break;
+      }
+
+      case InstructionSequence::insn_meta_send_op_equal:
+      case InstructionSequence::insn_meta_send_op_nequal: {
+        cache_stack();
+        AssemblerX86::NearJumpLocation equal_path;
+        AssemblerX86::NearJumpLocation slow_path;
+        AssemblerX86::NearJumpLocation done;
+
+        s.load_nth(ecx, 0);
+        s.load_nth(edx, 1);
+
+        a.mov(eax, ecx);
+        a.bit_and(eax, TAG_REF_MASK);
+
+        a.cmp(eax, 0);
+        a.jump_if_equal(slow_path);
+
+        a.mov(eax, edx);
+        a.bit_and(eax, TAG_REF_MASK);
+
+        a.cmp(eax, 0);
+        a.jump_if_equal(slow_path);
+
+        // Ok, both are not references
+
+        s.pop();
+
+        a.cmp(ecx, edx);
+        a.jump_if_equal(equal_path);
+
+        if(op == InstructionSequence::insn_meta_send_op_equal) {
+          s.set_top(cFalse);
+          a.jump(done);
+
+          a.set_label(equal_path);
+
+          s.set_top(cTrue);
+          a.jump(done);
+        }
+        else {
+          s.set_top(cTrue);
+          a.jump(done);
+
+          a.set_label(equal_path);
+
+          s.set_top(cFalse);
+          a.jump(done);
+        }
+
+        a.set_label(slow_path);
+        uncache_stack(true);
+
+        if(op == InstructionSequence::insn_meta_send_op_equal) {
+          ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
+        } else {
+          ops.call_via_symbol((void*)JITCompiler::slow_nequal_path);
+        }
+        maybe_return(i, &last_imm, fin);
+
         a.set_label(done);
         break;
       }

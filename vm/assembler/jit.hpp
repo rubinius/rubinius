@@ -40,6 +40,12 @@ namespace rubinius {
     static ExecuteStatus slow_minus_path(VMMethod* const vmm, Task* const task,
         MethodContext* const ctx);
 
+    static ExecuteStatus slow_equal_path(VMMethod* const vmm, Task* const task,
+        MethodContext* const ctx);
+
+    static ExecuteStatus slow_nequal_path(VMMethod* const vmm, Task* const task,
+        MethodContext* const ctx);
+
     static ExecuteStatus check_interrupts(VMMethod* const vmm, Task* const task,
       MethodContext* const ctx);
 
