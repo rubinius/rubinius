@@ -95,9 +95,9 @@ class Regexp
     quoted = ""
     StringValue(str).each_byte do |c|
       if escaped = ESCAPE_TABLE[c]
-        quoted << escaped
+        quoted.append escaped
       else
-        quoted << c
+        quoted.append c.chr
       end
     end
     quoted
