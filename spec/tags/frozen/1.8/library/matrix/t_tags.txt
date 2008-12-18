@@ -1,1 +1,0 @@
-incomplete:Matrix#t needs to be reviewed for spec completeness

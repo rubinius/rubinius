@@ -1,1 +1,0 @@
-incomplete:Rational#denominator needs to be reviewed for spec completeness

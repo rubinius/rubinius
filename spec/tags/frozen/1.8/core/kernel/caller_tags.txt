@@ -1,4 +1,3 @@
-incomplete:Kernel.caller needs to be reviewed for spec completeness
 fails:Kernel#caller in a Proc or eval returns the definition trace of a block when evaluated in a Proc binding
 fails:Kernel#caller in a Proc or eval returns the definition trace of a Proc
 fails:Kernel#caller in a Proc or eval returns the correct caller line from a called Proc

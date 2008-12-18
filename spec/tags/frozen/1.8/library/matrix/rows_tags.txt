@@ -1,1 +1,0 @@
-incomplete:Matrix.rows needs to be reviewed for spec completeness

@@ -1,1 +1,0 @@
-incomplete:CGI::QueryExtension#content_type needs to be reviewed for spec completeness

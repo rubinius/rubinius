@@ -1,1 +1,0 @@
-incomplete:CGI::QueryExtension#user_agent needs to be reviewed for spec completeness

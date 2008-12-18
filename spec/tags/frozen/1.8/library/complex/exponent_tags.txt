@@ -1,2 +1,1 @@
-incomplete:Complex#** needs to be reviewed for spec completeness
 fails:Complex#** when given 0 returns Complex(1)

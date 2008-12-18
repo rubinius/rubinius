@@ -1,1 +1,0 @@
-incomplete:Rational#inspect needs to be reviewed for spec completeness

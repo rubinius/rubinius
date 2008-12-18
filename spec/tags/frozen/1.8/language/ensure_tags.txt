@@ -1,1 +1,0 @@
-fails:The ensure keyword propagates the original exception even when exceptions are caught inside the ensure block

@@ -1,4 +1,3 @@
-incomplete:CGI::HtmlExtension#file_field needs to be reviewed for spec completeness
 fails:CGI::HtmlExtension#file_field when passed a Hash returns a file-'input'-element using the passed Hash for attributes
 fails:CGI::HtmlExtension#file_field when passed a Hash ignores a passed block
 unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#file_field when passed no arguments returns a file-'input'-element without a name and a size of 20

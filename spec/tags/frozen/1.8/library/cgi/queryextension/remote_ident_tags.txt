@@ -1,1 +1,0 @@
-incomplete:CGI::QueryExtension#remote_ident needs to be reviewed for spec completeness

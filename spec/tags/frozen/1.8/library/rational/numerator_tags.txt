@@ -1,1 +1,0 @@
-incomplete:Rational#numerator needs to be reviewed for spec completeness

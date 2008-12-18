@@ -1,8 +1,0 @@
-fails:Iconv#iconv to utf-16, when given an empty string or empty range, always returns an empty string
-fails:Iconv#iconv raises Iconv::IllegalSequence when faced with an invalid byte
-fails:Iconv.iconv acts exactly as if invoking Iconv#iconv consecutively on the same converter
-fails:The 'utf-8' decoder rejects surrogate characters
-fails:The 'utf-16' decoder rejects surrogates without pairs
-unstable:Iconv#iconv when given nil resets the converter
-fails:Iconv#iconv when given a positive length
-fails:Iconv#iconv when given a negative length

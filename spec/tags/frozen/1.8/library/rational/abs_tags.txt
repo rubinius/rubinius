@@ -1,1 +1,0 @@
-incomplete:Rational#abs needs to be reviewed for spec completeness

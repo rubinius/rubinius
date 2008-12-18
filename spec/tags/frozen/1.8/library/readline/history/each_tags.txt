@@ -1,2 +1,1 @@
-fails:Readline::HISTORY.each yields each item but the first in the history
 fails:Readline::HISTORY.each yields tainted Objects
