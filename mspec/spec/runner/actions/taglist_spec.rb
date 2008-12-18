@@ -54,7 +54,7 @@ describe TagListAction, "#start" do
   end
 end
 
-describe TagListAction, "#laod" do
+describe TagListAction, "#load" do
   before :each do
     @t1 = SpecTag.new "fails:I fail"
     @t2 = SpecTag.new "unstable:I'm unstable"

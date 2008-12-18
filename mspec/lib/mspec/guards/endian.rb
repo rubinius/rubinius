@@ -10,7 +10,7 @@ class BigEndianGuard < SpecGuard
   private :pattern
 
   def match?
-    pattern[-1] == 1
+    pattern[-1] == ?\001
   end
 end
 
@@ -21,7 +21,7 @@ class LittleEndianGuard < SpecGuard
   private :pattern
 
   def match?
-    pattern[-1] == 0
+    pattern[-1] == ?\000
   end
 end
 

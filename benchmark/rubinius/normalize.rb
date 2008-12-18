@@ -38,7 +38,7 @@ end
 result = result.sort { |a, b| b[1]['ratio'] <=> a[1]['ratio'] }
 
 # output
-format = "%-30s%10s%10s%12s"
+format = "%-30s%12s%12s%15s"
 puts format % ['Method', 'MRI', 'RBX', 'Ratio']
 result.each do |k,v|
   puts format % [k, "%.6f" % v['MRI'], "%.6f" % v['RBX'], "%.6f" % v['ratio']]

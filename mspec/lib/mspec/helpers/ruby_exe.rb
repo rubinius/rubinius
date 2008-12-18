@@ -91,7 +91,16 @@ class Object
   def resolve_ruby_exe
     [:env, :engine, :name, :install_name].each do |option|
       exe = ruby_exe_options option
-      return exe if exe and File.exists?(exe) and File.executable?(exe)
+
+      # TODO: It has been reported that File.executable is not reliable
+      # on Windows platforms (see commit 56bc555c). So, we check the
+      # platform. This check is the same as the one used by the guards.
+      # This test should be abstracted so it is available in general to
+      # MSpec code.
+      if exe and File.exists?(exe) and
+          (RUBY_PLATFORM.match(/(mswin|mingw)/) || File.executable?(exe))
+        return exe
+      end
     end
     nil
   end

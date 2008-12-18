@@ -142,7 +142,10 @@ namespace rubinius {
   }
 
   MachineMethod* CompiledMethod::make_machine_method(STATE) {
-    if(backend_method_ == 0) return (MachineMethod*)Qnil;
+    if(backend_method_ == 0) {
+      formalize(state, false);
+    }
+
     JITCompiler jit;
     jit.compile(backend_method_);
     return MachineMethod::create(state, backend_method_, jit);

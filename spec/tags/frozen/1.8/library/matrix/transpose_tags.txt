@@ -1,1 +1,0 @@
-incomplete:Matrix#transpose needs to be reviewed for spec completeness

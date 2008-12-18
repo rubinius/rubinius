@@ -180,9 +180,9 @@ namespace rubinius {
     Tuple* sub;
     Tuple* tup = Tuple::create(state, region->num_regs - 1);
     for(i = 1; i < region->num_regs; i++) {
-      sub = Tuple::create(state, 2);
-      sub->put(state, 0, Integer::from(state, region->beg[i]));
-      sub->put(state, 1, Integer::from(state, region->end[i]));
+      sub = Tuple::from(state, 2,
+			Integer::from(state, region->beg[i]),
+			Integer::from(state, region->end[i]));
       tup->put(state, i - 1, sub);
     }
     return tup;
@@ -192,10 +192,9 @@ namespace rubinius {
     MatchData* md = state->new_object<MatchData>(G(matchdata));
     md->source(state, string->string_dup(state));
     md->regexp(state, regexp);
-    Tuple* tup = Tuple::create(state, 2);
-    tup->put(state, 0, Integer::from(state, region->beg[0]));
-    tup->put(state, 1, Integer::from(state, region->end[0]));
-
+    Tuple* tup = Tuple::from(state, 2,
+			     Integer::from(state, region->beg[0]),
+			     Integer::from(state, region->end[0]));
     md->full(state, tup);
     md->region(state, (Tuple*)_md_region_to_tuple(state, region, max));
     return md;

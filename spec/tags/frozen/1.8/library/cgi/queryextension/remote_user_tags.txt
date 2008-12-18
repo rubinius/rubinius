@@ -1,1 +1,0 @@
-incomplete:CGI::QueryExtension#remote_user needs to be reviewed for spec completeness

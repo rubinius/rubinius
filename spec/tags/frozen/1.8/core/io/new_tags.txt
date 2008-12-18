@@ -1,1 +1,0 @@
-incomplete:IO#initialize needs to be reviewed for spec completeness

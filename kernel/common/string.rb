@@ -2163,17 +2163,6 @@ class String
     replace str
   end
 
-  # FIXME - Make Unicode-safe
-  def codepoints
-    chars = []
-    i = 0
-    while i < @num_bytes
-      chars << self.substring(i, 1)
-      i += 1
-    end
-    chars
-  end
-
   def prefix?(other)
     size = other.size
     return false if size > @num_bytes

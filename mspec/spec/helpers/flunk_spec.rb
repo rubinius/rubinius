@@ -12,4 +12,8 @@ describe Object, "#flunk" do
   it "raises an ExpectationNotMetError unconditionally" do
     lambda { flunk }.should raise_error(ExpectationNotMetError)
   end
+
+  it "accepts on argument for an optional message" do
+    lambda {flunk "test"}.should raise_error(ExpectationNotMetError)
+  end
 end

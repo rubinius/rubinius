@@ -34,13 +34,20 @@ namespace rubinius {
     void compile(VMMethod*);
     void show();
 
-    static ExecuteStatus slow_plus_path(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
+    static ExecuteStatus slow_plus_path(VMMethod* const vmm, Task* const task,
+        MethodContext* const ctx);
+
+    static ExecuteStatus slow_minus_path(VMMethod* const vmm, Task* const task,
+        MethodContext* const ctx);
+
+    static ExecuteStatus check_interrupts(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx);
 
   private:
 
     // Emit code to check %eax and determine if a new context was
     // installed.
-    void maybe_return(int i, uint32_t **last_imm, assembler_x86::AssemblerX86::NearJumpLocation& fin);
+    void maybe_return(int i, uintptr_t **last_imm, assembler_x86::AssemblerX86::NearJumpLocation& fin);
 
     // Pull the stack pointer into ebx if it's not there already
     void cache_stack(bool force = false);

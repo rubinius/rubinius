@@ -2,6 +2,10 @@
 
 #include <iostream>
 #include <iomanip>
+#include <cstdlib>
+
+// for abi::__cxa_demangle
+#include <cxxabi.h>
 
 namespace assembler_x86 {
   using namespace assembler;
@@ -50,7 +54,17 @@ namespace assembler_x86 {
         if(ud.mnemonic == UD_Icall) {
           Dl_info info;
           if(dladdr(addr, &info)) {
-            std::cout << " " << info.dli_sname;
+            int status = 0;
+            char* cpp_name = abi::__cxa_demangle(info.dli_sname, 0, 0, &status);
+            if(status >= 0) {
+              // Chop off the arg info from the signature output
+              char *paren = strstr(cpp_name, "(");
+              *paren = 0;
+              std::cout << " " << cpp_name;
+              free(cpp_name);
+            } else {
+              std::cout << " " << info.dli_sname;
+            }
           }
         }
       }

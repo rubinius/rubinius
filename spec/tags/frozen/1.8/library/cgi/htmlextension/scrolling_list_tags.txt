@@ -1,2 +1,0 @@
-incomplete:CGI::HtmlExtension#scrolling_list needs to be reviewed for spec completeness
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#scrolling_list needs to be reviewed for spec completeness

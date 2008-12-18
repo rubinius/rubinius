@@ -61,15 +61,40 @@ end
 
 describe "#resolve_ruby_exe" do
   before :all do
+    @verbose = $VERBOSE
+    $VERBOSE = nil
+
+    @name = "ruby_spec_exe"
+  end
+
+  before :each do
+    @ruby_platform = Object.const_get :RUBY_PLATFORM
+
     @script = RubyExeSpecs.new
   end
 
+  after :each do
+    Object.const_set :RUBY_PLATFORM, @ruby_platform
+  end
+
+  after :all do
+    $VERBOSE = @verbose
+  end
+
   it "returns the value returned by #ruby_exe_options if it exists and is executable" do
-    name = "ruby_spec_exe"
-    @script.should_receive(:ruby_exe_options).and_return(name)
-    File.should_receive(:exists?).with(name).and_return(true)
-    File.should_receive(:executable?).with(name).and_return(true)
-    @script.resolve_ruby_exe.should == name
+    Object.const_set :RUBY_PLATFORM, "notwindows"
+    @script.should_receive(:ruby_exe_options).and_return(@name)
+    File.should_receive(:exists?).with(@name).and_return(true)
+    File.should_receive(:executable?).with(@name).and_return(true)
+    @script.resolve_ruby_exe.should == @name
+  end
+
+  it "returns the value returned by #ruby_exe_options if it exists on Windows platforms" do
+    Object.const_set :RUBY_PLATFORM, "mswin"
+    @script.should_receive(:ruby_exe_options).and_return(@name)
+    File.should_receive(:exists?).with(@name).and_return(true)
+    File.should_not_receive(:executable?)
+    @script.resolve_ruby_exe.should == @name
   end
 
   it "returns nil if no exe is found" do

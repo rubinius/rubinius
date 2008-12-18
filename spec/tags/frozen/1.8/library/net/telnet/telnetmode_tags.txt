@@ -1,0 +1,2 @@
+incomplete:Net::Telnet#telnetmode needs to be reviewed for spec completeness
+incomplete:Net::Telnet#telnetmode= needs to be reviewed for spec completeness

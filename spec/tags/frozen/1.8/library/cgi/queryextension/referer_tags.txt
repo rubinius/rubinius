@@ -1,1 +1,0 @@
-incomplete:CGI::QueryExtension#referer needs to be reviewed for spec completeness

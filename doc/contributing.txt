@@ -1,4 +1,4 @@
-= Contributing to Rubinius
+# Contributing to Rubinius
 
 There are as many ways to help with Rubinius as there are people. The
 following are just some ideas. Understand that Rubinius is a large,
@@ -6,18 +6,30 @@ fast-moving project, so you will likely need to coordinate your efforts with
 others. A great deal of communication occurs on the #rubinius IRC channel.
 There are logs for the channel and a mailing list. See link:community.txt
 
-## Triage tickets
+
+## Triage Tickets
 
   * Revive or close old tickets.
   * Build minimalist cases that reproduce the bugs
+
 
 ## Write docs
 
 Annoy people on the channel by asking how things work. Then write them down so
 that the next doc writer can be annoying with other questions.
 
+
+## Fix Failing Specs
+
+1.  Run `bin/mspec tag --list fails` to show specs tagged as failing
+1.  Run `bin/mspec spec/frozen/1.8/<some dir>`
+
+
 ## Write Specs
 
+1.  Run `bin/mspec tag --list incomplete` to show specs that have been tagged
+    as incomplete. These specs may simply need review, or there could be specs
+    missing for a particular class.
 1.  Find unspecified behaviors. Be vicious! Once you found a nice
     corner-case, write a spec. See 0Howto - Write a
     spec](/howto/write_a_spec.html)
@@ -25,13 +37,15 @@ that the next doc writer can be annoying with other questions.
     spec:check` OR `bin/mspec -t ruby spec/ruby` to run all the specs that
     should pass on MatzRuby
 
-## Run your code
+
+## Run Your Code
 
 Your code it often more vicious than the specs. Run your pet project under
 rubinius and report crashes! See [Howto - Write a
 ticket](/howto/write_a_ticket.html)
 
-## Cleanup code
+
+## Cleanup Code
 
 Search for tags like TODO, HACK, FIXME in the code and fix them. Once you're
 finished, submit a ticket with the [PATCH] tag and a small description. See
@@ -79,4 +93,3 @@ Q.  Will you reject my patch if my style is "more Rubyesque"?
 A.  If the patch works (e.g. does not use features that cannot be guaranteed
     to exist in all cases), it will not be rejected based on a stylistic
     qualm.  The code is most welcome. But "clever" or obscure code is not.
-

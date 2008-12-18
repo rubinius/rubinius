@@ -1,1 +1,0 @@
-fails:TCPSocket#gethostbyname returns an array with 4 elements of information on the hostname

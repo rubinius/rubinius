@@ -1,4 +1,3 @@
-incomplete:CGI#initialize needs to be reviewed for spec completeness
 unstable:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html4Tr, CGI::Html4Fr and CGI::HtmlExtension when the passed type is 'html4Fr'
 unstable:CGI#initialize when passed type extends self with CGI::QueryExtension, CGI::Html4 and CGI::HtmlExtension when the passed type is 'html4'
 unstable:CGI#initialize when passed type extends self with CGI::QueryExtension

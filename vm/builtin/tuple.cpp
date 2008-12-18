@@ -48,7 +48,10 @@ namespace rubinius {
 
     va_start(ar, fields);
     for(size_t i = 0; i < fields; i++) {
-      tup->put(state, i, va_arg(ar, Object*));
+      Object *obj = va_arg(ar, Object*);
+      // fields equals size so bounds checking is unecessary
+      tup->field[i] = obj;
+      if(obj->reference_p()) tup->write_barrier(state, obj);
     }
     va_end(ar);
 
@@ -131,8 +134,13 @@ namespace rubinius {
     native_int cnt = size->to_native();
     Tuple* tuple = Tuple::create(state, cnt);
 
+    // val is referend size times, we only need to hit the write
+    // barrier once
+    if(val->reference_p()) tuple->write_barrier(state, val);
     for(native_int i = 0; i < cnt; i++) {
-      tuple->put(state, i, val);
+      // bounds checking is covered because we instantiated the tuple
+      // in this method
+      tuple->field[i] = val;
     }
 
     return tuple;

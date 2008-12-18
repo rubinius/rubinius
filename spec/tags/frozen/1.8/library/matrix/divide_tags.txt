@@ -1,2 +1,0 @@
-incomplete:Matrix#/ needs to be reviewed for spec completeness
-fails:Matrix#/ returns the result of dividing self by another Matrix

@@ -1,2 +1,0 @@
-incomplete:CGI::HtmlExtension#submit needs to be reviewed for spec completeness
-unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#submit needs to be reviewed for spec completeness

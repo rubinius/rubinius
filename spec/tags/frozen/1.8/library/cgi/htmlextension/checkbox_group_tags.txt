@@ -1,4 +1,3 @@
-incomplete:CGI::HtmlExtension#checkbox_group needs to be reviewed for spec completeness
 fails:CGI::HtmlExtension#checkbox_group when passed name, values ... returns a sequence of 'checkbox'-elements with the passed name and the passed values
 fails:CGI::HtmlExtension#checkbox_group when passed name, values ... allows passing a value inside an Array
 fails:CGI::HtmlExtension#checkbox_group when passed name, values ... allows passing a value as an Array containing the value and the checked state or a label

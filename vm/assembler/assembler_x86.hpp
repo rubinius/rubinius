@@ -237,9 +237,9 @@ namespace assembler_x86 {
     // Sets up a mov instruction of an immediate value to register.
     // The immediate value is initialized to 0, and it's location
     // in memory is returned so it can be updated directly.
-    void mov_delayed(Register &reg, uint32_t** loc) {
+    void mov_delayed(Register &reg, uintptr_t** loc) {
       emit(0xb8 | reg.code());
-      *loc = (uint32_t*)pc_;
+      *loc = (uintptr_t*)pc_;
       emit_w(0);
     }
 
@@ -305,6 +305,11 @@ namespace assembler_x86 {
 
     void add(Register &dst, Register &src) {
       emit(0x03);
+      emit_modrm(ModReg2Reg, dst.code(), src.code());
+    }
+
+    void sub(Register &dst, Register &src) {
+      emit(0x2b);
       emit_modrm(ModReg2Reg, dst.code(), src.code());
     }
 

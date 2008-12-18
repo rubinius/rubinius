@@ -1,1 +1,0 @@
-incomplete:CGI::Cookie#domain= needs to be reviewed for spec completeness

@@ -1,1 +1,0 @@
-incomplete:CGI::QueryExtension::Value#[] needs to be reviewed for spec completeness

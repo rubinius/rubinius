@@ -1,2 +1,0 @@
-incomplete:CGI::QueryExtension#params needs to be reviewed for spec completeness
-incomplete:CGI::QueryExtension#params= needs to be reviewed for spec completeness

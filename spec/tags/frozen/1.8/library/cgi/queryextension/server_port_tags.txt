@@ -1,1 +1,0 @@
-incomplete:CGI::QueryExtension#server_port needs to be reviewed for spec completeness

@@ -1,1 +1,0 @@
-fails:Module#const_defined? returns true if constant with the given String is defined in its parent

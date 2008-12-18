@@ -1,1 +1,0 @@
-incomplete:IO.for_fd needs to be reviewed for spec completeness

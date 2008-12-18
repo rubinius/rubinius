@@ -1,4 +1,4 @@
-= Method Contract
+# Method Contract
 
 Methods contain a contract that method implements and the caller
 must adhere to. Herein are pieces of the method contract.
@@ -19,7 +19,7 @@ C. As hinted to in A2, a method may provide default values for arguments.
 	 The default values are evaluated in the context of the method, not the
    caller.
 
-= Future Contracts
+# Future Contracts
 
 A. The method provides names for each argument.
    1. The caller may provide values for those arguments by name.

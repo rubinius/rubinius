@@ -1,2 +1,1 @@
-incomplete:IO.select needs to be reviewed for spec completeness
 fails:IO.select raises TypeError if the first three arguments are not Arrays

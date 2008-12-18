@@ -1,1 +1,0 @@
-incomplete:CGI::QueryExtension#path_info needs to be reviewed for spec completeness

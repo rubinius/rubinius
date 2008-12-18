@@ -1,2 +1,0 @@
-fails:Marshal.load on singleton object previously serialised in this process returns the singleton instance
-fails:Singleton._load returns the singleton instance for anything passed in for a singleton clone

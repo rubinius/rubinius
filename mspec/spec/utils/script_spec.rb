@@ -310,6 +310,10 @@ end
 describe MSpecScript, "#entries" do
   before :each do
     @script = MSpecScript.new
+
+    File.stub!(:expand_path).and_return("name")
+    File.stub!(:file?).and_return(false)
+    File.stub!(:directory?).and_return(false)
   end
 
   it "returns the pattern in an array if it is a file" do
@@ -319,19 +323,40 @@ describe MSpecScript, "#entries" do
   end
 
   it "returns Dir['pattern/**/*_spec.rb'] if pattern is a directory" do
-    File.should_receive(:expand_path).with("dir").and_return("dir")
-    File.should_receive(:file?).with("dir").and_return(false)
-    File.should_receive(:directory?).with("dir").and_return(true)
-    Dir.should_receive(:[]).with("dir/**/*_spec.rb").and_return(["dir1", "dir2"])
-    @script.entries("dir").should == ["dir1", "dir2"]
+    File.should_receive(:directory?).with("name").and_return(true)
+    Dir.should_receive(:[]).with("name/**/*_spec.rb").and_return(["dir1", "dir2"])
+    @script.entries("name").should == ["dir1", "dir2"]
   end
 
   it "returns Dir[pattern] if pattern is neither a file nor a directory" do
-    File.should_receive(:expand_path).with("pattern").and_return("pattern")
-    File.should_receive(:file?).with("pattern").and_return(false)
-    File.should_receive(:directory?).with("pattern").and_return(false)
     Dir.should_receive(:[]).with("pattern").and_return(["file1", "file2"])
     @script.entries("pattern").should == ["file1", "file2"]
+  end
+
+  describe "with config[:prefix] set" do
+    before :each do
+      prefix = "prefix/dir"
+      @script.config[:prefix] = prefix
+      @name = prefix + "/name"
+    end
+
+    it "returns the pattern in an array if it is a file" do
+      File.should_receive(:expand_path).with(@name).and_return(@name)
+      File.should_receive(:file?).with(@name).and_return(true)
+      @script.entries("name").should == [@name]
+    end
+
+    it "returns Dir['pattern/**/*_spec.rb'] if pattern is a directory" do
+      File.should_receive(:expand_path).with(@name).and_return(@name)
+      File.should_receive(:directory?).with(@name).and_return(true)
+      Dir.should_receive(:[]).with(@name + "/**/*_spec.rb").and_return(["dir1", "dir2"])
+      @script.entries("name").should == ["dir1", "dir2"]
+    end
+
+    it "returns Dir[pattern] if pattern is neither a file nor a directory" do
+      Dir.should_receive(:[]).with("pattern").and_return(["file1", "file2"])
+      @script.entries("pattern").should == ["file1", "file2"]
+    end
   end
 end
 

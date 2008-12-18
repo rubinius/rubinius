@@ -96,7 +96,10 @@ def spec_ruby
   "./spec/ruby"
 end
 
-Rsync_options = "-avP --delete --exclude '*svn*' --exclude '*swp' --exclude '*rbc' --exclude '*.rej' --exclude '*.orig' --exclude 'tags'"
+# Don't use -a (--archive) as it includes -t, --times which can
+# cause .rbc files to not be regenerated when they should.
+Rsync_options = "-rlpgoDvP --delete --exclude '*svn*' --exclude '*swp' " \
+                "--exclude '*rbc' --exclude '*.rej' --exclude '*.orig' --exclude 'tags'"
 
 def rsync(left, right)
   sh "rsync #{Rsync_options} #{left} #{right}"

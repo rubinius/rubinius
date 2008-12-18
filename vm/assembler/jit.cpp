@@ -11,6 +11,7 @@
 
 #include "instructions.hpp"
 #include "assembler/jit.hpp"
+#include "event.hpp"
 
 using namespace assembler;
 using namespace assembler_x86;
@@ -45,12 +46,23 @@ namespace rubinius {
     ops.save_stack_pointer();
   }
 
+  ExecuteStatus JITCompiler::check_interrupts(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx) {
+    task->state->events->poll();
+    return task->state->interrupts.check_events ? cExecuteRestart : cExecuteContinue;
+  }
+
   ExecuteStatus JITCompiler::slow_plus_path(VMMethod* const vmm, Task* const task,
       MethodContext* const ctx) {
     return send_slowly(vmm, task, ctx, task->state->globals.sym_plus.get(), 1);
   }
 
-  void JITCompiler::maybe_return(int i, uint32_t **last_imm, AssemblerX86::NearJumpLocation &fin) {
+  ExecuteStatus JITCompiler::slow_minus_path(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx) {
+    return send_slowly(vmm, task, ctx, task->state->globals.sym_minus.get(), 1);
+  }
+
+  void JITCompiler::maybe_return(int i, uintptr_t **last_imm, AssemblerX86::NearJumpLocation &fin) {
 
     // EDX will contain the native ip, to be stored
     // back into the MethodContext in the epilogue.
@@ -72,7 +84,7 @@ namespace rubinius {
 
   void JITCompiler::compile(VMMethod* vmm) {
     // Used for fixups
-    uint32_t* last_imm = NULL;
+    uintptr_t* last_imm = NULL;
 
     // A label pointing to the code for each virtual ip
     std::vector<AssemblerX86::NearJumpLocation> labels(vmm->total);
@@ -120,7 +132,7 @@ namespace rubinius {
         // stack caching.
         uncache_stack();
 
-        *last_imm = (uint32_t)a.pc();
+        *last_imm = (uintptr_t)a.pc();
         Relocation* rel = new Relocation(Relocation::LocalAbsolute,
             last_imm, a.pc(), 0);
         a.add_relocation(last_imm, rel);
@@ -154,7 +166,7 @@ namespace rubinius {
         cache_stack();
         s.load_nth(eax, 0);
         s.pop();
-        a.cmp(eax, (int)Qundef);
+        a.cmp(eax, (uintptr_t)Qundef);
         a.jump_if_not_equal(labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_pop:
@@ -183,35 +195,35 @@ namespace rubinius {
         break;
       case InstructionSequence::insn_push_true:
         cache_stack();
-        s.push((int)Qtrue);
+        s.push((uintptr_t)Qtrue);
         break;
       case InstructionSequence::insn_push_false:
         cache_stack();
-        s.push((int)Qfalse);
+        s.push((uintptr_t)Qfalse);
         break;
       case InstructionSequence::insn_push_nil:
         cache_stack();
-        s.push((int)Qnil);
+        s.push((uintptr_t)Qnil);
         break;
       case InstructionSequence::insn_meta_push_0:
         cache_stack();
-        s.push((int)Fixnum::from(0));
+        s.push((uintptr_t)Fixnum::from(0));
         break;
       case InstructionSequence::insn_meta_push_1:
         cache_stack();
-        s.push((int)Fixnum::from(1));
+        s.push((uintptr_t)Fixnum::from(1));
         break;
       case InstructionSequence::insn_meta_push_2:
         cache_stack();
-        s.push((int)Fixnum::from(2));
+        s.push((uintptr_t)Fixnum::from(2));
         break;
       case InstructionSequence::insn_meta_push_neg_1:
         cache_stack();
-        s.push((int)Fixnum::from(-1));
+        s.push((uintptr_t)Fixnum::from(-1));
         break;
       case InstructionSequence::insn_push_int:
         cache_stack();
-        s.push((int)Fixnum::from(vmm->opcodes[i + 1]));
+        s.push((uintptr_t)Fixnum::from(vmm->opcodes[i + 1]));
         break;
       case InstructionSequence::insn_push_self:
         cache_stack();
@@ -239,17 +251,18 @@ namespace rubinius {
         s.push(eax);
         break;
 
+      case InstructionSequence::insn_meta_send_op_minus:
       case InstructionSequence::insn_meta_send_op_plus: {
         cache_stack();
-        AssemblerX86::NearJumpLocation slow_plus;
+        AssemblerX86::NearJumpLocation slow_path;
         AssemblerX86::NearJumpLocation done;
 
         // This code is HIGHLY aware that the tag bit for fixnum
         // is a 1 in the low position only.
 
         // Pull in the top 2 entries on the stack into registers
-        s.load_nth(eax, 0);
-        s.load_nth(ecx, 1);
+        s.load_nth(ecx, 0);
+        s.load_nth(eax, 1);
 
         // Perform the bit and to find out if they're both fixnums
         a.mov(edx, eax);
@@ -258,18 +271,30 @@ namespace rubinius {
 
         // This seems odd, like the condition is backwards, but thats
         // how test works.
-        a.jump_if_equal(slow_plus);
+        a.jump_if_equal(slow_path);
 
         // Ok, they're are both fixnums...
-        // And add them together directly
-        a.add(eax, ecx);
+        if(op == InstructionSequence::insn_meta_send_op_plus) {
+          // And add them together directly
+          a.add(eax, ecx);
 
-        // Check the x86 overflow bit, and if so, run the slow path
-        a.jump_if_overflow(slow_plus);
+          // Check the x86 overflow bit, and if so, run the slow path
+          a.jump_if_overflow(slow_path);
 
-        // Everything was good, so subtract 1 because the tag adds an
-        // extra 1 to the result
-        a.sub(eax, 1);
+          // Everything was good, so subtract 1 because the tag adds an
+          // extra 1 to the result
+          a.sub(eax, 1);
+        } else {
+          // And subtract them together directly
+          a.sub(eax, ecx);
+
+          // Check the x86 overflow bit, and if so, run the slow path
+          a.jump_if_overflow(slow_path);
+
+          // Everything was good, so add 1 because the tag subtracts an
+          // extra 1 to the result
+          a.add(eax, 1);
+        }
 
         // Remove one from the stack
         s.pop();
@@ -282,9 +307,13 @@ namespace rubinius {
         uncache_stack();
         a.jump(done);
 
-        a.set_label(slow_plus);
+        a.set_label(slow_path);
         uncache_stack(true);
-        ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
+        if(op == InstructionSequence::insn_meta_send_op_plus) {
+          ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
+        } else {
+          ops.call_via_symbol((void*)JITCompiler::slow_minus_path);
+        }
         maybe_return(i, &last_imm, fin);
 
         // This is a phi point, where the fast path and slow path merge.
