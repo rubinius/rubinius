@@ -9,8 +9,8 @@ describe "CompiledMethod#min_stack_size" do
   end
 
   it "calculates the minimum stack size required by a method" do
-    @cm1.min_stack_size.should == [2,true]
-    @cm2.min_stack_size.should == [3,true]
-    @cm3.min_stack_size.should == [4,false]
+    @cm1.min_stack_size.should == 2
+    @cm2.min_stack_size.should == 2
+    @cm3.min_stack_size.should == 6
   end
 end

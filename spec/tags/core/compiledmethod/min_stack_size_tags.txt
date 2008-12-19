@@ -1,1 +1,0 @@
-fails:CompiledMethod#min_stack_size calculates the minimum stack size required by a method

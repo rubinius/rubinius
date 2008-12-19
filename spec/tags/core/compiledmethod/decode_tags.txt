@@ -1,7 +1,0 @@
-fails:CompiledMethod::Instruction #opcode returns a symbol representing the opcode for the corresponding instruction
-fails:CompiledMethod::Instruction #args returns an array containing the opcode arguments
-fails:CompiledMethod::Instruction #args returns local variable names, rather than the index into the locals tuple
-fails:CompiledMethod#decode returns an array of Instruction objects representing the instruction sequence
-fails:CompiledMethod::Instruction #args returns literal values, rather than the index into the literals tuple
-fails:CompiledMethod::Instruction #stack_consumed returns a count of the stack operands consumed by the instruction
-fails:CompiledMethod::Instruction #stack_produced returns a count of the stack operands produced by the instruction

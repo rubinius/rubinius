@@ -413,7 +413,7 @@ class CompiledMethod < Executable
   # sequences known as iSeq, forming body
   # of CompiledMethods.
   #
-  # To generate VM optcodes documentation
+  # To generate VM opcodes documentation
   # use rake doc:vm task.
   class Instruction
     def initialize(inst, cm, ip, args_reg)
