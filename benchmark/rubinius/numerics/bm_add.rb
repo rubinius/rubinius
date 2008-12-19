@@ -2,6 +2,7 @@ require 'benchmark'
 
 total = (ENV['TOTAL'] || 1_000).to_i
 
+srand(42)
 fixnums = Array.new(total).fill { |a| rand(100_000) }
 bignums = Array.new(total).fill { |a| 0xffff_ffff_ffff_ffff + rand(100_000) }
 floats = Array.new(total).fill { |a| rand * 100_000 }
