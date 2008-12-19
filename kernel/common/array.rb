@@ -1536,8 +1536,10 @@ class Array
     i = 0
     while(i < @total)
       elem = at(i)
-      out << elem unless seen[elem]
-      seen[elem] = true
+      unless seen[elem]
+        out << elem
+        seen[elem] = true
+      end
       i += 1
     end
     out
