@@ -136,6 +136,11 @@ namespace rubinius {
     // Ruby.primitive :bignum_right_shift
     Integer* right_shift(STATE, Fixnum* bits);
 
+    // Ruby.primitive! :bignum_pow
+    Object* pow(STATE, Fixnum *exponent);
+    // Ruby.primitive! :bignum_pow
+    Float* pow(STATE, Float *exponent);
+
     // Ruby.primitive! :bignum_gt
     Object* gt(STATE, Fixnum* b);
     // Ruby.primitive! :bignum_gt

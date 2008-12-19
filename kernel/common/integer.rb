@@ -89,32 +89,12 @@ class Integer < Numeric
     index < 0 ? 0 : (self >> index) & 1
   end
 
+  # FIXME: implement a fast way to calculate bignum exponents
   def **(exp)
-    if !exp.is_a?(Integer)
-      b, a = math_coerce(exp)
-      return a ** b
+    if exp.is_a?(Bignum)
+      raise TypeError, "Bignum exponent #{exp} too large"
     end
-    
-    return 1 if exp == 0
-    return self if exp == 1 || (self == 0 && exp > 0) || self == 1
-    return exp % 2 == 0 ? 1 : -1 if self == -1
-    
-    if exp < 0
-      Float(self) ** Float(exp)
-    else
-      out = 1
-      base = self
-      while exp > 0
-        if (exp & 1) != 0
-          out *= base
-          exp -= 1
-        else
-          base *= base
-          exp >>= 1
-        end
-      end
-      out
-    end
+    super(exp)
   end
 
   def next
