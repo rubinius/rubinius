@@ -8,6 +8,7 @@
 #include "builtin/iseq.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/lookuptable.hpp"
 
 #include "instructions.hpp"
 #include "assembler/jit.hpp"
@@ -62,6 +63,16 @@ namespace rubinius {
     return send_slowly(vmm, task, ctx, task->state->globals.sym_minus.get(), 1);
   }
 
+  ExecuteStatus JITCompiler::slow_equal_path(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx) {
+    return send_slowly(vmm, task, ctx, task->state->globals.sym_equal.get(), 1);
+  }
+
+  ExecuteStatus JITCompiler::slow_nequal_path(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx) {
+    return send_slowly(vmm, task, ctx, task->state->globals.sym_nequal.get(), 1);
+  }
+
   void JITCompiler::maybe_return(int i, uintptr_t **last_imm, AssemblerX86::NearJumpLocation &fin) {
 
     // EDX will contain the native ip, to be stored
@@ -82,7 +93,7 @@ namespace rubinius {
 
   }
 
-  void JITCompiler::compile(VMMethod* vmm) {
+  void JITCompiler::compile(STATE, VMMethod* vmm) {
     // Used for fixups
     uintptr_t* last_imm = NULL;
 
@@ -115,6 +126,8 @@ namespace rubinius {
 
     a.set_label(normal_start);
 
+    CompiledMethod* cm = vmm->original.get();
+
     for(size_t i = 0; i < vmm->total;) {
       opcode op = vmm->opcodes[i];
       size_t width = InstructionSequence::instruction_width(op);
@@ -141,6 +154,10 @@ namespace rubinius {
         // Because this is now a jump destination, reset the register
         // usage since we don't know the state off things when we're
         // jumped here.
+        ops.reset_usage();
+      } else if(cm->is_rescue_target(state, i)) {
+        // This is a jump destination via the exception table, reset
+        // things and register it.
         ops.reset_usage();
       }
 
@@ -320,6 +337,97 @@ namespace rubinius {
         // We have to be sure that the stack cache settings are in sync
         // for both paths taken at this point. To be sure of that, we
         // always run cache_stack() after calling slow_path_plus.
+        a.set_label(done);
+        break;
+      }
+
+      case InstructionSequence::insn_meta_send_op_equal:
+      case InstructionSequence::insn_meta_send_op_nequal: {
+        cache_stack();
+        AssemblerX86::NearJumpLocation equal_path;
+        AssemblerX86::NearJumpLocation slow_path;
+        AssemblerX86::NearJumpLocation done;
+
+        s.load_nth(ecx, 0);
+        s.load_nth(edx, 1);
+
+        a.mov(eax, ecx);
+        a.bit_and(eax, TAG_REF_MASK);
+
+        a.cmp(eax, 0);
+        a.jump_if_equal(slow_path);
+
+        a.mov(eax, edx);
+        a.bit_and(eax, TAG_REF_MASK);
+
+        a.cmp(eax, 0);
+        a.jump_if_equal(slow_path);
+
+        // Ok, both are not references
+
+        s.pop();
+
+        a.cmp(ecx, edx);
+        a.jump_if_equal(equal_path);
+
+        if(op == InstructionSequence::insn_meta_send_op_equal) {
+          s.set_top(cFalse);
+          a.jump(done);
+
+          a.set_label(equal_path);
+
+          s.set_top(cTrue);
+          a.jump(done);
+        }
+        else {
+          s.set_top(cTrue);
+          a.jump(done);
+
+          a.set_label(equal_path);
+
+          s.set_top(cFalse);
+          a.jump(done);
+        }
+
+        a.set_label(slow_path);
+        uncache_stack(true);
+
+        if(op == InstructionSequence::insn_meta_send_op_equal) {
+          ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
+        } else {
+          ops.call_via_symbol((void*)JITCompiler::slow_nequal_path);
+        }
+        maybe_return(i, &last_imm, fin);
+
+        a.set_label(done);
+        break;
+      }
+
+      case InstructionSequence::insn_push_const_fast: {
+        cache_stack();
+        AssemblerX86::NearJumpLocation slow_path;
+        AssemblerX86::NearJumpLocation done;
+
+        ops.get_literal(eax, vmm->opcodes[i + 2]);
+        a.cmp(eax, reinterpret_cast<uintptr_t>(Qnil));
+        a.jump_if_equal(slow_path);
+        a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::LookupTableAssociation, value_)));
+        // TODO this doesn't support autoload!
+        s.push(eax);
+
+        // Uncache the stack register to match what slow path
+        // leaves things at
+        uncache_stack();
+        a.jump(done);
+
+        a.set_label(slow_path);
+        uncache_stack(true);
+        const instructions::Implementation* impl = instructions::implementation(op);
+        ops.call_operation(impl->address, impl->name,
+            vmm->opcodes[i + 1],
+            vmm->opcodes[i + 2]);
+        maybe_return(i, &last_imm, fin);
+
         a.set_label(done);
         break;
       }

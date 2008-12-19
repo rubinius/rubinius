@@ -380,6 +380,7 @@ class Array
   # are equal according to first_e == second_e . Both
   # Array subclasses and to_ary objects are accepted.
   def ==(other)
+    return true if equal?(other)
     unless other.kind_of? Array
       return false unless other.respond_to? :to_ary
       other = other.to_ary
@@ -408,16 +409,16 @@ class Array
   # contained Array using elem == obj. Returns the first contained
   # Array that matches (the first 'associated' Array) or nil.
   def assoc(obj)
-    # FIX: use break when it works again
-    found, res = nil, nil
-
-    each { |elem|
-      if found.nil? and elem.kind_of? Array and elem.first == obj
-        found, res = true, elem
+    i = 0
+    while(i < @total)
+      elem = at(i)
+      if elem.kind_of? Array and elem.first == obj
+        return elem
       end
-    }
+      i += 1
+    end
 
-    res
+    nil
   end
 
   # Returns the element at the given index. If the
@@ -750,7 +751,7 @@ class Array
   def include?(obj)
     i = 0
     while i < @total do
-      return true if @tuple.at(@start + i) == obj
+      return true if at(i) == obj
       i += 1
     end
     false
@@ -761,7 +762,7 @@ class Array
   def index(obj)
     i = 0
     while i < @total do
-      return i if @tuple.at(@start + i) == obj
+      return i if at(i) == obj
       i += 1
     end
     nil
@@ -1265,9 +1266,9 @@ class Array
   def pop()
     return nil if empty?
 
-    elem = @tuple.at(@start+@total-1)
-    @tuple.put(@start+@total-1,nil)
+    elem = at(@total-1)
     @total -= 1
+    @tuple.put(@start+@total,nil)
 
     reallocate_shrink()
 
@@ -1534,7 +1535,7 @@ class Array
 
     i = 0
     while(i < @total)
-      elem = @tuple.at(@start+i)
+      elem = at(i)
       out << elem unless seen[elem]
       seen[elem] = true
       i += 1

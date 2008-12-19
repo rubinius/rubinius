@@ -100,6 +100,10 @@ namespace rubinius {
     GO(lookuptablebucket).set(new_basic_class(object));
     G(lookuptablebucket)->set_object_type(state, LookupTableBucketType);
 
+    /* Create LookupTableAssociation */
+    GO(lookuptableassociation).set(new_basic_class(object));
+    G(lookuptableassociation)->set_object_type(state, LookupTableAssociationType);
+
     /* Create MethodTable */
     GO(methtbl).set(new_basic_class(G(lookuptable)));
     G(methtbl)->set_object_type(state, MethodTableType);
@@ -112,6 +116,7 @@ namespace rubinius {
      *  Tuple
      *  LookupTable
      *  LookupTableBucket
+     *  LookupTableAssociation
      *  MethodTable
      *
      *  With these 8 in place, we can now create fully initialized classes
@@ -129,9 +134,10 @@ namespace rubinius {
     MetaClass::attach(this, G(tuple), G(object)->metaclass(this));
     MetaClass::attach(this, G(lookuptable), G(object)->metaclass(this));
     MetaClass::attach(this, G(lookuptablebucket), G(object)->metaclass(this));
+    MetaClass::attach(this, G(lookuptableassociation), G(object)->metaclass(this));
     MetaClass::attach(this, G(methtbl), G(lookuptable)->metaclass(this));
 
-    // Now, finish initializing the special 8
+    // Now, finish initializing the special 9
     G(object)->setup(this, "Object");
     G(klass)->setup(this, "Class");
     G(module)->setup(this, "Module");
@@ -140,6 +146,9 @@ namespace rubinius {
     G(lookuptable)->setup(this, "LookupTable");
     G(methtbl)->setup(this, "MethodTable");
     G(lookuptablebucket)->setup(this, "Bucket", G(lookuptable));
+    G(lookuptablebucket)->name(state, symbol("LookupTable::Bucket"));
+    G(lookuptableassociation)->setup(this, "Association", G(lookuptable));
+    G(lookuptableassociation)->name(state, symbol("LookupTable::Association"));
   }
 
   void VM::initialize_builtin_classes() {

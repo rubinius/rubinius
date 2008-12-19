@@ -129,7 +129,7 @@ const int cUndef = 0x22L;
   public:
     union {
       struct {
-        object_type     obj_type    : 6;
+        object_type     obj_type    : 8;
         gc_zone         zone        : 2;
         unsigned int    age         : 3;
 

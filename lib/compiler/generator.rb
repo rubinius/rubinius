@@ -462,7 +462,7 @@ class Compiler
     end
 
     def push_const(name)
-      add :push_const, find_literal(name)
+      add :push_const_fast, find_literal(name), add_literal(nil)
     end
 
     def find_const(name)

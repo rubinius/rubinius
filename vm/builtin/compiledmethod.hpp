@@ -83,6 +83,8 @@ namespace rubinius {
     // Ruby.primitive? :compiledmethod_activate
     ExecuteStatus activate(STATE, Executable* exec, Task* task, Message& msg);
 
+    bool is_rescue_target(STATE, int ip);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

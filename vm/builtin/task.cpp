@@ -16,6 +16,7 @@
 #include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/thread.hpp"
+#include "builtin/machine_method.hpp"
 
 #include "global_cache.hpp"
 
@@ -353,16 +354,18 @@ namespace rubinius {
    *   looking in the up lexical scope,
    *   looking in the superclass's of the current lexical module,
    *   looking in Object.
+   *
+   * Returns the LookupTableAssociation object used to store the constant
    */
-  Object* Task::const_get(Symbol* name, bool* found) {
+  LookupTableAssociation* Task::const_get_association(Symbol* name, bool* found) {
     StaticScope *cur;
-    Object* result;
+    LookupTableAssociation* result;
 
     *found = false;
 
     cur = active_->cm()->scope();
     while(!cur->nil_p()) {
-      result = cur->module()->get_const(state, name, found);
+      result = cur->module()->get_const_association(state, name, found);
       if(*found) return result;
 
       if(cur->module() == G(object)) break;
@@ -372,17 +375,26 @@ namespace rubinius {
 
     Module* mod = active_->cm()->scope()->module();
     while(!mod->nil_p()) {
-      result = mod->get_const(state, name, found);
+      result = mod->get_const_association(state, name, found);
       if(*found) return result;
 
       mod = mod->superclass();
     }
 
     /* Lastly, check Object specificly */
-    result = G(object)->get_const(state, name, found);
+    result = G(object)->get_const_association(state, name, found);
     if(*found) return result;
 
-    return Qnil;
+    return reinterpret_cast<LookupTableAssociation*>(Qnil);
+  }
+
+  Object* Task::const_get(Symbol* name, bool* found) {
+    LookupTableAssociation* assoc = const_get_association(name, found);
+    if(*found) {
+      return assoc->value();
+    } else {
+      return Qnil;
+    }
   }
 
   void Task::const_set(Module* mod, Symbol* name, Object* val) {
@@ -543,6 +555,12 @@ namespace rubinius {
   /* Move the active context to executing instruction +ip+. */
   void Task::set_ip(int ip) {
     active_->ip = ip;
+    if(active_->native_ip != NULL) {
+      MachineMethod* mm = active_->vmm->machine_method();
+      assert(mm);
+      active_->native_ip = mm->resolve_virtual_ip(ip);
+      assert(active_->native_ip);
+    }
   }
 
   /* Returns the current instruction the active context is on. */

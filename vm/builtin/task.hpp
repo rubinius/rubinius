@@ -21,6 +21,7 @@ namespace rubinius {
   class Exception;
   class TaskProbe;
   class Tuple;
+  class LookupTableAssociation;
 
   class Task;
 
@@ -102,6 +103,7 @@ namespace rubinius {
     void set_ip(int ip);
     int  current_ip();
 
+    LookupTableAssociation* const_get_association(Symbol* name, bool* found);
     Object* const_get(Module* under, Symbol* name, bool* found);
     Object* const_get(Symbol* name, bool* found);
     void   const_set(Module* under, Symbol* sym, Object* val);

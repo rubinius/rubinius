@@ -5,6 +5,8 @@
 
 #include "detection.hpp"
 
+// #define MM_DEBUG
+
 namespace rubinius {
 
   void MachineMethod::init(STATE) {
@@ -18,23 +20,31 @@ namespace rubinius {
     mm->vmmethod_ = vmm;
     mm->code_size_ = code_size;
     mm->virtual2native_ = new CodeMap(jit.code_map());
-    mm->relocations_ = new assembler::Relocations();
 
     mm->set_function(reinterpret_cast<void*>(malloc(code_size)));
     std::memcpy(mm->function(), jit.assembler().buffer(), code_size);
 
     assembler::Relocations& current = jit.assembler().relocations();
+    mm->relocations_ = new assembler::Relocation*[current.size()];
+
+    int j = 0;
     for(assembler::Relocations::iterator i = current.begin();
         i != current.end();
-        i++) {
+        i++, j++) {
       assembler::Relocation* rel = new assembler::Relocation(*i->second);
       rel->adjust_base(jit.assembler().buffer(), mm->function());
-      mm->relocations_->insert(std::pair<void*, assembler::Relocation*>(rel->instruction_location(), rel));
+      mm->relocations_[j] = rel;
 
       rel->resolve_and_write();
     }
 
     return mm;
+  }
+
+  void* MachineMethod::resolve_virtual_ip(opcode ip) {
+    CodeMap::iterator i = virtual2native_->find(ip);
+    if(i == virtual2native_->end()) return NULL;
+    return i->second;
   }
 
   Object* MachineMethod::show() {
@@ -63,8 +73,11 @@ namespace rubinius {
 
   Object* MachineMethod::activate() {
 #ifdef IS_X86
-    // vmmethod_->run = (Runner)function();
+#ifdef MM_DEBUG
     vmmethod_->run = MachineMethod::run_code;
+#else
+    vmmethod_->run = (Runner)function();
+#endif
     vmmethod_->set_machine_method(this);
     return Qtrue;
 #else

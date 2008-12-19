@@ -147,8 +147,20 @@ namespace rubinius {
     }
 
     JITCompiler jit;
-    jit.compile(backend_method_);
+    jit.compile(state, backend_method_);
     return MachineMethod::create(state, backend_method_, jit);
+  }
+
+  bool CompiledMethod::is_rescue_target(STATE, int ip) {
+    Tuple* table = exceptions();
+
+    if(table->nil_p()) return false;
+    for(size_t i = 0; i < table->num_fields(); i++) {
+      Tuple* entry = as<Tuple>(table->at(state, i));
+      if(as<Fixnum>(entry->at(state, 2))->to_native() == ip) return true;
+    }
+
+    return false;
   }
 
   void CompiledMethod::Info::show(STATE, Object* self, int level) {

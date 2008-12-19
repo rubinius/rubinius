@@ -2303,6 +2303,125 @@ class Instructions
   end
 
   # [Operation]
+  #   Pushes a constant onto the stack. Caches the lookup to provide
+  #   faster future lookup
+  # [Format]
+  #   \push_const_fast symbol_index association_index
+  # [Stack Before]
+  #   * ...
+  # [Stack After]
+  #   * const
+  #   * ...
+  # [Description]
+  #   Locates the constant indicated by the literal +constant+ from the
+  #   current context, and pushes it onto the stack. If the constant cannot be
+  #   found in the current context, nothing is pushed onto the stack, and a
+  #   NameError exception is raised.
+  #
+  #   Internally, the constant is cached via the internal Association object
+  #   in the literals spot specified by the second arg. This allows for future
+  #   lookup to not require the full LookupTable resolution.
+  # [Example]
+  #   <code>
+  #     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
+  #   </code>
+
+  def push_const_fast(symbol_index, association_index)
+    <<-CODE
+    bool found;
+    Object* res;
+
+    Object* assoc = task->literals()->at(state, association_index);
+    // The association has been set, return the value from it directly.
+    if(assoc->nil_p()) {
+slow_path:
+      Symbol* sym = as<Symbol>(task->literals()->at(state, symbol_index));
+      LookupTableAssociation* assoc = task->const_get_association(sym, &found);
+      if(found) {
+        task->literals()->put(state, association_index, assoc);
+        res = assoc->value();
+      } else {
+        Message& msg = *task->msg;
+        StaticScope* scope = task->active()->cm()->scope();
+        if(scope->nil_p()) {
+          msg.recv = G(object);
+        } else {
+          msg.recv = scope->module();
+        }
+        msg.name = state->symbol("const_missing");
+        msg.block = Qnil;
+        msg.stack = 0;
+        msg.lookup_from = msg.recv->lookup_begin(state);
+        Array* args = Array::create(state, 1);
+        args->set(state, 0, sym);
+        msg.set_arguments(state, args);
+
+        bool res = task->send_message_slowly(msg);
+        RETURN(res);
+      }
+    } else {
+      LookupTableAssociation* real_assoc = as<LookupTableAssociation>(assoc);
+      if(real_assoc->active() == Qfalse) goto slow_path;
+      res = real_assoc->value();
+    }
+
+    if(kind_of<Autoload>(res)) {
+      Message& msg = *task->msg;
+      msg.recv = res;
+      msg.name = G(sym_call);
+      msg.stack = 0;
+      msg.lookup_from = res->lookup_begin(state);
+      msg.set_args(0);
+
+      bool res = task->send_message_slowly(msg);
+      RETURN(res);
+    }
+
+    stack_push(res);
+    RETURN(false);
+    CODE
+  end
+
+  def test_push_const_fast
+    <<-CODE
+    Module* parent = state->new_module("Parent");
+    Module* child =  state->new_module("Parent::Child");
+
+    StaticScope* ps = StaticScope::create(state);
+    ps->module(state, parent);
+    ps->parent(state, (StaticScope*)Qnil);
+
+    StaticScope* cs = StaticScope::create(state);
+    cs->module(state, child);
+    cs->parent(state, ps);
+
+    cm->scope(state, cs);
+
+    Symbol* name = state->symbol("Number");
+    parent->set_const(state, name, Fixnum::from(3));
+
+    task->literals()->put(state, 0, name);
+    stream[1] = (opcode)0;
+    stream[2] = (opcode)1;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->stack_top(), Fixnum::from(3));
+    Object* obj = task->literals()->at(state, 1);
+    TS_ASSERT(!obj->nil_p());
+    TS_ASSERT(kind_of<LookupTableAssociation>(obj));
+    LookupTableAssociation* assoc = as<LookupTableAssociation>(obj);
+
+    TS_ASSERT_EQUALS(assoc->value(), Fixnum::from(3));
+
+    assoc->value(state, Fixnum::from(42));
+
+    run();
+    TS_ASSERT_EQUALS(task->stack_top(), Fixnum::from(42));
+    CODE
+  end
+
+  # [Operation]
   #   Pushes the current method context onto the stack
   # [Format]
   #   \push_context
