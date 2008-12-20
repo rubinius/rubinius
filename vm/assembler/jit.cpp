@@ -151,9 +151,6 @@ namespace rubinius {
       // If we registers an immediate to be update, do it now.
       // TODO a.pc() is bigger than a uint32_t on 64bit
       if(last_imm) {
-        // Since we're at the beginning of a new block, we have to reset the
-        // stack caching.
-        uncache_stack();
 
         *last_imm = (uintptr_t)a.pc();
         Relocation* rel = new Relocation(Relocation::LocalAbsolute,
@@ -329,9 +326,6 @@ namespace rubinius {
         // Put the result on the stack
         s.set_top(eax);
 
-        // Uncache the stack register to match what slow path
-        // leaves things at
-        uncache_stack();
         a.jump(done);
 
         a.set_label(slow_path);
@@ -485,9 +479,6 @@ namespace rubinius {
         // TODO this doesn't support autoload!
         s.push(eax);
 
-        // Uncache the stack register to match what slow path
-        // leaves things at
-        uncache_stack();
         a.jump(done);
 
         a.set_label(slow_path);
@@ -549,6 +540,7 @@ call_op:
     // We could be jumping here from anywhere, assume nothing.
     ops.reset_usage();
     ops.store_ip(ecx, edx);
+    uncache_stack();
 
     a.set_label(real_fin);
     ops.epilogue();
