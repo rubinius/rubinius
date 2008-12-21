@@ -566,8 +566,36 @@ class Module
   # \_\_const_set__ is emitted by the compiler for const assignment in
   # userland.
 
+  def clear_associations(name)
+    return if RecursionGuard.inspecting?(self)
+
+    RecursionGuard.inspect(self) do
+      if assoc = @constants[name]
+        assoc.active = false
+        @constants[name] = LookupTable::Association.new(name, assoc.value)
+      end
+
+      @constants.each do |key, assoc|
+        if assoc.value.kind_of? Module
+          assoc.value.clear_associations(name)
+        end
+      end
+
+      if ds = direct_superclass() and ds != Object
+        ds.clear_associations(name)
+      end
+    end
+  end
+
   def __const_set__(name, value)
     const_name = normalize_const_name(name)
+
+    # check all subscopes and invalidate Associations found for +const_name+
+    @constants.each_entry do |key, assoc|
+      if assoc.value.kind_of? Module
+        assoc.value.clear_associations(const_name)
+      end
+    end
 
     mod = self
     while mod
