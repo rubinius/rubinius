@@ -128,7 +128,7 @@ namespace rubinius {
     // storage area.
     bool deallocate_context(MethodContext* ctx) {
       // If ctx is less than the scan, we ignore deallocating it.
-      if(ctx < contexts.start || ctx < contexts.scan) return false;
+      if(ctx < contexts.start || ctx > contexts.last || ctx < contexts.scan) return false;
       contexts.put_back(ctx->full_size);
       assert(contexts.current >= contexts.start);
       return true;
