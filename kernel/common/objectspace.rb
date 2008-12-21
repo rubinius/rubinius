@@ -2,12 +2,12 @@
 
 module ObjectSpace
 
-  # HACK: Tryes to handle as much as it can.
-  # Any way to get a list of all instances? Or of all objects?
+  # Tryes to handle as much as it can.
   def self.each_object(what = nil, &block)
 
     raise TypeError, "class or module required" if what and not what.is_a? Module
-    
+
+    # Any way to get a list of all objects?
     if what == nil
       raise ArgumentError, "ObjectSpace cannot loop through all objects yet"
     end
@@ -44,6 +44,12 @@ module ObjectSpace
       return 1
     end
 
+    # This list is available.
+    if what == Thread
+      Thread.list.each(&block)
+      return Thread.list.size
+    end
+
     # In the unlikely case that someone would create another instance
     # of GlobalVariables, this wouldn't work.
     if what == GlobalVariables
@@ -64,18 +70,24 @@ module ObjectSpace
       return 1
     end
 
-    # Remove the following line when each_object(nil) is implemented.
-    raise ArgumentError, "ObjectSpace doesn't support '#{what}' yet"
-
-    # Simply loop through all objects and checkt wheter those are a +what+.
-    count = 0
-    each_object do |obj|
-      if obj.is_a? what
-        count += 1
-        yield obj
+    # Simply loop through all instances of superclass and check.
+    # Note: Rescue may be removed as soon as each_object(Object) is supported,
+    # if ever.
+    begin
+      count = 0
+      each_object(what.superclass) do |obj|
+        if obj.is_a? what
+          count += 1
+          yield obj
+        end
       end
+      count
+    rescue ArgumentError => e
+      if e.message =~ /^ObjectSpace/
+        e.message = "ObjectSpace doesn't support '#{what}' yet"
+      end
+      raise e
     end
-    count
 
   end
   
