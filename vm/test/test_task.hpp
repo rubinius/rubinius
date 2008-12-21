@@ -933,16 +933,26 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->iseq(state, InstructionSequence::create(state, 40));
     cm->total_args(state, Fixnum::from(0));
-    cm->stack_size(state, Fixnum::from(1));
-    cm->exceptions(state, Tuple::from(state, 1,
-        Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(3), Fixnum::from(5))));
+    cm->stack_size(state, Fixnum::from(10));
 
     Task* task = Task::create(state, Qnil, cm);
 
     MethodContext* top = task->active();
     task->set_ip(3);
 
-    /* Call a method ... */
+    // Test that when we raise, the ip and sp are set to
+    // the values passed to push_unwind (for ip) and the
+    // current value (for sp)
+
+    top->push(Fixnum::from(0));
+
+    top->push_unwind(5);
+    int saved_sp = top->calculate_sp();
+
+    top->push(Fixnum::from(1));
+    top->push(Fixnum::from(2));
+
+    /* Call a method that raises an exception */
     CompiledMethod* cm2 = create_cm();
 
     G(true_class)->method_table()->store(state, state->symbol("blah"), cm2);
@@ -964,6 +974,8 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(task, t2);
     TS_ASSERT_EQUALS(task->active(), top);
     TS_ASSERT_EQUALS(task->current_ip(), 5);
+    TS_ASSERT_EQUALS(top->calculate_sp(), saved_sp);
+    TS_ASSERT(!top->has_unwinds_p());
   }
 
   void test_raise_exception() {
@@ -978,6 +990,18 @@ class TestTask : public CxxTest::TestSuite {
 
     MethodContext* top = task->active();
     task->set_ip(3);
+
+    // Test that when we raise, the ip and sp are set to
+    // the values passed to push_unwind (for ip) and the
+    // current value (for sp)
+
+    top->push(Fixnum::from(0));
+
+    top->push_unwind(5);
+    int saved_sp = top->calculate_sp();
+
+    top->push(Fixnum::from(1));
+    top->push(Fixnum::from(2));
 
     /* Call a method ... */
     CompiledMethod* cm2 = create_cm();
@@ -1000,6 +1024,8 @@ class TestTask : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(task->active(), top);
     TS_ASSERT_EQUALS(task->current_ip(), 5);
+    TS_ASSERT_EQUALS(top->calculate_sp(), saved_sp);
+    TS_ASSERT(!top->has_unwinds_p());
   }
 
   void test_raise_exception_into_sender() {
@@ -1010,6 +1036,18 @@ class TestTask : public CxxTest::TestSuite {
         Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(3), Fixnum::from(5))));
 
     Task* task = Task::create(state, Qnil, cm);
+    MethodContext* top = task->active();
+
+    // Test that when we raise, the ip and sp are set to
+    // the values passed to push_unwind (for ip) and the
+    // current value (for sp)
+
+    top->push(Fixnum::from(0));
+
+    top->push_unwind(5);
+
+    top->push(Fixnum::from(1));
+    top->push(Fixnum::from(2));
 
     task->set_ip(3);
 

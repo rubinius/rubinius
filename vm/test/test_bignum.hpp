@@ -366,6 +366,14 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(shifted, "-1");
   }
 
+  void test_pow() {
+    Bignum *base = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(30)));
+    check_bignum(base, "1073741824");
+
+    check_bignum(base->pow(state, Fixnum::from(7)),
+		 "1645504557321206042154969182557350504982735865633579863348609024");
+  }
+
   void test_equal() {
     TS_ASSERT_EQUALS(b1->equal(state, b1), Qtrue);
     TS_ASSERT_EQUALS(b1->equal(state, b2), Qfalse);

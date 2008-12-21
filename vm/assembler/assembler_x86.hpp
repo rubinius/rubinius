@@ -517,6 +517,18 @@ namespace assembler_x86 {
       emit_w(loc.operand(pc_));
     }
 
+    void jump_if_greater(NearJumpLocation& loc) {
+      emit(0x0f);
+      emit(0x8f);
+      emit_w(loc.operand(pc_));
+    }
+
+    void jump_if_less(NearJumpLocation& loc) {
+      emit(0x0f);
+      emit(0x8c);
+      emit_w(loc.operand(pc_));
+    }
+
     void jump_if_overflow(NearJumpLocation& loc) {
       emit(0x0f);
       emit(0x80);

@@ -350,12 +350,14 @@ raise "no"
       def args(value=nil)
         @value = value
 
+        @pop_unwind = get(:pop_unwind);
+
         if @in_block = get(:iter)
           @check_var, _ = get(:scope).find_local :@lre
         end
       end
 
-      attr_accessor :value, :in_block
+      attr_accessor :value, :in_block, :pop_unwind
     end
 
     class CVar < Node
@@ -803,7 +805,7 @@ raise "no"
       def consume(sexp)
         name, args, body = sexp
 
-        set(:iter => false, :in_ensure => false) do
+        set(:iter => false, :in_ensure => false, :pop_unwind => false) do
           args = super([args]) # FIX: that array is dumb
           body = super([body]) # FIX: that array is dumb
         end
@@ -968,8 +970,10 @@ raise "no"
 
       def consume(sexp)
         opts = {}
-        set(:in_ensure, opts) do
-          sexp[0] = convert(sexp[0])
+        set(:pop_unwind) do
+          set(:in_ensure, opts) do
+            sexp[0] = convert(sexp[0])
+          end
         end
 
         # Propagate did_return up to an outer ensure
@@ -1293,7 +1297,9 @@ raise "no"
 
         if c.is? Call and c.method == :loop
           sexp[1] = convert(sexp[1])
-          sexp[2] = convert(sexp[2])
+          set(:pop_unwind, false) do
+            sexp[2] = convert(sexp[2])
+          end
           return sexp
         end
 
@@ -2165,7 +2171,12 @@ raise "no"
         els  = sexp.pop   if sexp.last  && sexp.last.first  != :resbody
         res  = sexp
 
-        body = convert(body) if body
+        if body
+          set(:pop_unwind) do
+            body = convert(body)
+          end
+        end
+
         set(:in_rescue) do
           res.map! { |r| convert(r) }
           res = nil if res.empty?
@@ -2639,6 +2650,16 @@ raise "no"
     #
     class While < Node
       kind :while
+
+      def consume(sexp)
+        sexp[0] = convert(sexp[0])
+
+        set(:pop_unwind, false) do
+          sexp[1] = convert(sexp[1])
+        end
+
+        sexp
+      end
 
       def args(cond, body, check_first=true)
         @condition, @body, @check_first = cond, expand(body), check_first

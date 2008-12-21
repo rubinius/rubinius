@@ -15,7 +15,7 @@ class LookupTable
   end
 
   def inspect
-    ents = collect { |k,v| " #{k.inspect}=>#{v}" }.join(",")
+    ents = collect { |k,v| " #{k.inspect}=>#{v.inspect}" }.join(",")
     "#<#{self.class}" + ents + ">"
   end
 end

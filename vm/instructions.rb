@@ -4199,6 +4199,19 @@ slow_path:
     CODE
   end
 
+
+  def setup_unwind(ip)
+    <<-CODE
+    ctx->push_unwind(ip);
+    CODE
+  end
+
+  def pop_unwind
+    <<-CODE
+    ctx->pop_unwind();
+    CODE
+  end
+
 end
 
 # == Manipulation ==

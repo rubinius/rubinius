@@ -230,22 +230,11 @@ namespace rubinius {
     exception(state, exc);
 
     for(;;) {
-      int ip = active_->ip;
-      Tuple* table = active_->cm()->exceptions();
-
-      if(!table->nil_p()) {
-        for(size_t i = 0; i < table->num_fields(); i++) {
-          Tuple* entry = as<Tuple>(table->at(state, i));
-          if(as<Integer>(entry->at(state, 0))->to_native() <= ip
-              && as<Integer>(entry->at(state, 1))->to_native() >= ip) {
-            // Reset the stack back to the top. If we don't, then values
-            // on the stack when the exception occurs end up accumulate, and
-            // we run out of stack!
-            active_->position_stack(active_->vmm->number_of_locals - 1);
-            set_ip(as<Integer>(entry->at(state, 2))->to_native());
-            return;
-          }
-        }
+      if(active_->has_unwinds_p()) {
+        MethodContext::UnwindInfo& info = active_->pop_unwind();
+        active_->position_stack(info.stack_depth);
+        set_ip(info.target_ip);
+        return;
       }
 
       if(active_->sender()->nil_p()) break;
@@ -623,10 +612,16 @@ namespace rubinius {
               ":" << (void*)meta->attached_instance() << ">.";
           }
         } else {
-          std::cout << ctx->module()->name()->c_str(state) << "#";
+          const char* mod_name;
+          if(ctx->module()->name()->nil_p()) {
+            mod_name = "<unknown>";
+          } else {
+            mod_name = ctx->module()->name()->c_str(state);
+          }
+          std::cout << mod_name << "#";
         }
 
-        if (kind_of<NativeMethodContext>(ctx)) {
+        if(kind_of<NativeMethodContext>(ctx)) {
           /* Muhahaa. */
           std::cout << as<NativeMethodContext>(ctx) << std::endl;
           ctx = ctx->sender();

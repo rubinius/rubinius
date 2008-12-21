@@ -163,6 +163,20 @@ namespace rubinius {
     return false;
   }
 
+  Object* CompiledMethod::set_breakpoint(STATE, Fixnum* ip) {
+    if(backend_method_ == 0) return Qnil;
+    // TOOD: Ensure that backend_method_ is running the debugger interpreter
+    backend_method_->set_breakpoint_flags(state, ip->to_native(), cBreakpoint);
+    return ip;
+  }
+
+  Object* CompiledMethod::is_breakpoint(STATE, Fixnum* ip) {
+    if(backend_method_ == 0) return Qnil;
+    if(backend_method_->get_breakpoint_flags(state, ip->to_native()) == cBreakpoint)
+        return Qtrue;
+    return Qfalse;
+  }
+
   void CompiledMethod::Info::show(STATE, Object* self, int level) {
     CompiledMethod* cm = as<CompiledMethod>(self);
 

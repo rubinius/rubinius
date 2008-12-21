@@ -82,6 +82,11 @@ class Fixnum < Integer
     super(o)
   end
 
+  def **(o)
+    Ruby.primitive :fixnum_pow
+    super(o)
+  end
+
   def __bignum_new__(value)
     Ruby.primitive :bignum_new
     raise PrimitiveFailure, "primitive failed"

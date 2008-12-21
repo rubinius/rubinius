@@ -73,6 +73,11 @@ class Bignum < Integer
     super(o)
   end
 
+  def **(o)
+    Ruby.primitive :bignum_pow
+    super(o)
+  end
+
   # comparison operators
 
   def <(o)

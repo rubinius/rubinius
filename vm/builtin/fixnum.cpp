@@ -151,6 +151,14 @@ namespace rubinius {
     return Fixnum::from(-to_native());
   }
 
+  Object* Fixnum::pow(STATE, Fixnum *exponent) {
+    return Bignum::from(state, to_native())->pow(state, exponent);
+  }
+
+  Float* Fixnum::pow(STATE, Float *exponent) {
+    return this->to_f(state)->fpow(state, exponent);
+  }
+
   Object* Fixnum::equal(STATE, Fixnum* other) {
     return to_native() == other->to_native() ? Qtrue : Qfalse;
   }

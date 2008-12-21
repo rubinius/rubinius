@@ -278,6 +278,16 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Fixnum::from(-3)->neg(state),  Fixnum::from(3));
   }
 
+  void test_pow() {
+    TS_ASSERT_EQUALS(Fixnum::from(0)->pow(state, Fixnum::from(1)), Fixnum::from(0));
+    TS_ASSERT_EQUALS(Fixnum::from(7)->pow(state, Fixnum::from(0)), Fixnum::from(1));
+    TS_ASSERT_EQUALS(Fixnum::from(-1)->pow(state, Fixnum::from(0)), Fixnum::from(1));
+    TS_ASSERT_EQUALS(Fixnum::from(-1)->pow(state, Fixnum::from(1)), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(Fixnum::from(-1)->pow(state, Fixnum::from(2)), Fixnum::from(1));
+    TS_ASSERT_EQUALS(Fixnum::from(7)->pow(state, Fixnum::from(5)), Fixnum::from(16807));
+    check_float(as<Float>(Fixnum::from(100)->pow(state, Fixnum::from(-1))), Float::create(state,.01));
+  }
+
   void test_equal() {
     TS_ASSERT_EQUALS(Fixnum::from(3)->equal(state, Fixnum::from(3)), Qtrue);
     TS_ASSERT_EQUALS(Fixnum::from(4)->equal(state, Fixnum::from(3)), Qfalse);

@@ -129,6 +129,20 @@ class LookupTable
     self
   end
 
+  def each_entry
+    raise LocalJumpError, "no block given" unless block_given? or @entries == 0
+
+    ents = entries
+    i = ents.start
+    total = ents.start + ents.total
+    while i < total
+      entry = ents[i]
+      yield entry.key, entry.value
+      i += 1
+    end
+    self
+  end
+
   alias_method :length,   :size
   alias_method :has_key?, :key?
   alias_method :include?, :key?

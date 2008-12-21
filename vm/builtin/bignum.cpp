@@ -638,6 +638,24 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
+  Object* Bignum::pow(STATE, Fixnum *exponent) {
+    NMP;
+
+    int exp = exponent->to_native();
+    if(exp < 0) {
+      return this->to_float(state)->fpow(state, exponent);
+    }
+
+    mp_int *a = mp_val();
+    mp_expt_d(a, exp, n);
+
+    return Bignum::normalize(state, n_obj);
+  }
+
+  Float* Bignum::pow(STATE, Float *exponent) {
+    return this->to_float(state)->fpow(state, exponent);
+  }
+
   Object* Bignum::equal(STATE, Fixnum* b) {
     native_int bi = b->to_native();
     mp_int* a = mp_val();

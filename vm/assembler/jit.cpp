@@ -73,6 +73,16 @@ namespace rubinius {
     return send_slowly(vmm, task, ctx, task->state->globals.sym_nequal.get(), 1);
   }
 
+  ExecuteStatus JITCompiler::slow_lt_path(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx) {
+    return send_slowly(vmm, task, ctx, task->state->globals.sym_lt.get(), 1);
+  }
+
+  ExecuteStatus JITCompiler::slow_gt_path(VMMethod* const vmm, Task* const task,
+      MethodContext* const ctx) {
+    return send_slowly(vmm, task, ctx, task->state->globals.sym_gt.get(), 1);
+  }
+
   void JITCompiler::maybe_return(int i, uintptr_t **last_imm, AssemblerX86::NearJumpLocation &fin) {
 
     // EDX will contain the native ip, to be stored
@@ -141,9 +151,6 @@ namespace rubinius {
       // If we registers an immediate to be update, do it now.
       // TODO a.pc() is bigger than a uint32_t on 64bit
       if(last_imm) {
-        // Since we're at the beginning of a new block, we have to reset the
-        // stack caching.
-        uncache_stack();
 
         *last_imm = (uintptr_t)a.pc();
         Relocation* rel = new Relocation(Relocation::LocalAbsolute,
@@ -319,9 +326,6 @@ namespace rubinius {
         // Put the result on the stack
         s.set_top(eax);
 
-        // Uncache the stack register to match what slow path
-        // leaves things at
-        uncache_stack();
         a.jump(done);
 
         a.set_label(slow_path);
@@ -354,13 +358,13 @@ namespace rubinius {
         a.mov(eax, ecx);
         a.bit_and(eax, TAG_REF_MASK);
 
-        a.cmp(eax, 0);
+        a.cmp(eax, TAG_REF);
         a.jump_if_equal(slow_path);
 
         a.mov(eax, edx);
         a.bit_and(eax, TAG_REF_MASK);
 
-        a.cmp(eax, 0);
+        a.cmp(eax, TAG_REF);
         a.jump_if_equal(slow_path);
 
         // Ok, both are not references
@@ -403,6 +407,66 @@ namespace rubinius {
         break;
       }
 
+      case InstructionSequence::insn_meta_send_op_lt:
+      case InstructionSequence::insn_meta_send_op_gt: {
+        cache_stack();
+        AssemblerX86::NearJumpLocation slow_path;
+        AssemblerX86::NearJumpLocation done;
+
+        s.load_nth(ecx, 0);
+        s.load_nth(edx, 1);
+
+        a.mov(eax, ecx);
+        a.bit_and(eax, edx);
+        a.bit_and(eax, TAG_FIXNUM_MASK);
+
+        a.cmp(eax, TAG_FIXNUM);
+        a.jump_if_not_equal(slow_path);
+
+        // Ok, both are fixnums
+        // no need to strip the tags in this case
+        // stack top is rhs operand
+
+        s.pop();
+        a.cmp(edx, ecx);
+
+        if(op == InstructionSequence::insn_meta_send_op_lt) {
+          AssemblerX86::NearJumpLocation less_path;
+
+          a.jump_if_less(less_path);
+          s.set_top(cFalse);
+          a.jump(done);
+
+          a.set_label(less_path);
+          s.set_top(cTrue);
+          a.jump(done);
+        }
+        else {
+          AssemblerX86::NearJumpLocation greater_path;
+
+          a.jump_if_greater(greater_path);
+          s.set_top(cFalse);
+          a.jump(done);
+
+          a.set_label(greater_path);
+          s.set_top(cTrue);
+          a.jump(done);
+        }
+
+        a.set_label(slow_path);
+        uncache_stack(true);
+
+        if(op == InstructionSequence::insn_meta_send_op_lt) {
+          ops.call_via_symbol((void*)JITCompiler::slow_lt_path);
+        } else {
+          ops.call_via_symbol((void*)JITCompiler::slow_gt_path);
+        }
+        maybe_return(i, &last_imm, fin);
+
+        a.set_label(done);
+        break;
+      }
+
       case InstructionSequence::insn_push_const_fast: {
         cache_stack();
         AssemblerX86::NearJumpLocation slow_path;
@@ -415,9 +479,6 @@ namespace rubinius {
         // TODO this doesn't support autoload!
         s.push(eax);
 
-        // Uncache the stack register to match what slow path
-        // leaves things at
-        uncache_stack();
         a.jump(done);
 
         a.set_label(slow_path);
@@ -479,6 +540,7 @@ call_op:
     // We could be jumping here from anywhere, assume nothing.
     ops.reset_usage();
     ops.store_ip(ecx, edx);
+    uncache_stack();
 
     a.set_label(real_fin);
     ops.epilogue();
