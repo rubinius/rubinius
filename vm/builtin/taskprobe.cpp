@@ -108,7 +108,7 @@ namespace rubinius {
   void TaskProbe::added_method(Task* task, Module* mod, Symbol* name, CompiledMethod *meth) {
     if(enabled_p(PROBE_ADD_METHOD)) {
       std::cout << "[Added method '" <<
-        name->to_str(task->state)->c_str() << "']" << std::endl;
+        name->c_str(task->state) << "']" << std::endl;
     }
   }
 
@@ -156,8 +156,15 @@ namespace rubinius {
 
   void TaskProbe::execute_instruction(Task* task, MethodContext* ctx, opcode op) {
     if(enabled_p(PROBE_EXECUTE_INSTRUCTION)) {
+      const char* name;
+      if(ctx->cm()->name()->nil_p()) {
+        name = "<unknown>";
+      } else {
+        name = ctx->cm()->name()->c_str(task->state);
+      }
+
       std::cout << std::left << std::setw(27) <<
-        ctx->cm()->name()->c_str(task->state) << "+" <<
+        name << "+" <<
         std::right << std::setw(4) << ctx->ip << ": " <<
         std::left << std::setw(30) <<
         InstructionSequence::get_instruction_name(op) << " ";

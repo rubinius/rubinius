@@ -287,6 +287,8 @@ class Compiler
       def bytecode(g)
         do_value(g)
 
+        g.pop_unwind if @pop_unwind
+
         if g.break
           g.goto g.break
         elsif @in_block
@@ -411,21 +413,15 @@ class Compiler
 
         return if use_plugin(g, :call)
 
-        receiver_bytecode(g)
-
-        emit_args(g)
-
-        if @block
-          @block.bytecode(g)
-        elsif @dynamic
-          g.push :nil
-        end
-
         # @block might be BlockPass, and we don't generate the
         # LongReturnException detection code for that.
         if @block and @block.is? Iter
           if @in_block
             break_rescue(g) do
+              receiver_bytecode(g)
+              emit_args(g)
+              @block.bytecode(g)
+
               if @dynamic
                 g.send_with_splat @method, @argcount, allow_private?, false
               else
@@ -435,6 +431,10 @@ class Compiler
           else
             return_rescue(g) do
               break_rescue(g) do
+                receiver_bytecode(g)
+                emit_args(g)
+                @block.bytecode(g)
+
                 if @dynamic
                   g.send_with_splat @method, @argcount, allow_private?, false
                 else
@@ -443,13 +443,24 @@ class Compiler
               end
             end
           end
-        elsif @dynamic
-          g.send_with_splat @method, @argcount, allow_private?, @concat
-        elsif @block
-          # Only BlockPass currently
-          g.send_with_block @method, @argcount, allow_private?
         else
-          g.send @method, @argcount, allow_private?
+          receiver_bytecode(g)
+          emit_args(g)
+
+          if @block
+            @block.bytecode(g)
+          elsif @dynamic
+            g.push :nil
+          end
+
+          if @dynamic
+            g.send_with_splat @method, @argcount, allow_private?, @concat
+          elsif @block
+            # Only BlockPass currently
+            g.send_with_block @method, @argcount, allow_private?
+          else
+            g.send @method, @argcount, allow_private?
+          end
         end
       end
 
@@ -457,7 +468,7 @@ class Compiler
         ok = g.new_label
         g.exceptions do |ex|
           yield
-          g.goto ok
+          ex.escape ok
 
           ex.handle!
 
@@ -502,7 +513,7 @@ class Compiler
         ok = g.new_label
         g.exceptions do |ex|
           yield
-          g.goto ok
+          ex.escape ok
 
           ex.handle!
 
@@ -1080,7 +1091,7 @@ class Compiler
         ok = g.new_label
         g.exceptions do |ex|
           @body.bytecode(g)
-          g.goto ok
+          ex.escape ok
 
           ex.handle!
 
@@ -1704,6 +1715,8 @@ class Compiler
 
     class Next
       def bytecode(g)
+        g.pop_unwind if @pop_unwind
+
         if g.next
           g.goto g.next
         elsif @in_block
@@ -1965,6 +1978,8 @@ class Compiler
 
     class Redo
       def bytecode(g)
+        g.pop_unwind if @pop_unwind
+
         if g.redo
           g.goto g.redo
         else
@@ -2018,10 +2033,10 @@ class Compiler
           g.set_local @saved_exception.slot
           g.pop
 
+          g.retry.set!
           g.exceptions do |ex|
-            g.retry.set!
             @body.bytecode(g)
-            g.goto els
+            ex.escape els
 
             ex.handle!
             max = @rescues.size - 1

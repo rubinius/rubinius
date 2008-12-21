@@ -46,8 +46,10 @@ namespace rubinius {
 
   /* Initialize +ctx+'s fields */
   static inline void init_context(STATE, MethodContext* ctx, size_t stack) {
+    ctx->StoresBytes = 1;
     ctx->ip = 0;
     ctx->native_ip = 0;
+    ctx->current_unwind = 0;
     ctx->ivars(state, Qnil);
 
     // Do this here because it's possible for us to pass a context
@@ -63,7 +65,7 @@ namespace rubinius {
     }
 
     ctx->js.stack = ctx->stk - 1;
-    ctx->js.stack_top = ctx->stk + stack;
+    ctx->js.stack_top = (ctx->stk + stack - 1);
   }
 
   /* Find a context to use. Either use a cache or create one in the heap. */
@@ -79,6 +81,9 @@ namespace rubinius {
         ctx->klass(state, (Class*)Qnil);
         ctx->obj_type = T::type;
       } else {
+        // We're going to end up referencing a stack context from a heap
+        // context, so we need to be sure all stack contexts stick around!
+        state->om->clamp_contexts();
         ctx = state->new_struct<T>(cls, stack_size * sizeof(Object*));
       }
 
@@ -105,7 +110,7 @@ namespace rubinius {
   }
 
   void MethodContext::post_copy(MethodContext* old) {
-    this->js.stack_top = this->stk + this->stack_size;
+    this->js.stack_top = this->stk + (this->stack_size - 1);
     this->position_stack(old->calculate_sp());
     if(this->obj_type == MethodContextType) {
       assert(this->home() == old->home());
@@ -154,6 +159,9 @@ namespace rubinius {
       ctx->home_ = ctx;
 
     } else {
+      // We're going to end up referencing a stack context from a heap
+      // context, so we need to be sure all stack contexts stick around!
+      state->om->clamp_contexts();
       ctx = state->new_struct<MethodContext>(G(methctx), stack_size * sizeof(Object*));
 
       ctx->self(state, recv);
@@ -201,11 +209,18 @@ namespace rubinius {
     ctx->args = this->args;
     ctx->stack_size = this->stack_size;
 
+    ctx->full_size = this->full_size;
+    ctx->current_unwind = this->current_unwind;
+
+    for(int i = 0; i < this->current_unwind; i++) {
+      ctx->unwinds[i] = this->unwinds[i];
+    }
+
     for(size_t i = 0; i < this->stack_size; i++) {
       ctx->stk[i] = this->stk[i];
     }
 
-    ctx->js.stack_top = ctx->stk + ctx->stack_size;
+    ctx->js.stack_top = ctx->stk + (ctx->stack_size - 1);
     ctx->position_stack(this->calculate_sp());
 
     /* Stack Management procedures. Make sure that we don't
@@ -334,7 +349,9 @@ namespace rubinius {
     }
 
     // FIXME this is to help detect an ellusive bug
-    if(!ctx->sender()->nil_p() && ctx->sender()->zone == UnspecifiedZone) {
+    if(!ctx->sender()->nil_p() &&
+        (ctx->sender()->zone == UnspecifiedZone ||
+         !ctx->sender()->StoresBytes)) {
       MethodContext* s = ctx->sender();
       std::cout << "Corrupt context detected!\n";
       std::cout << "origin = " << obj << "\n";
@@ -389,7 +406,11 @@ namespace rubinius {
     if(ctx->sender()->nil_p()) {
       ctx->sender()->show(state, level);
     } else {
-      class_info(state, ctx->sender(), true);
+      if(ctx->sender()->klass()->nil_p()) {
+        std::cout << "<stack context:" << (void*)ctx->sender() << ">\n";
+      } else {
+        class_info(state, ctx->sender(), true);
+      }
     }
     indent_attribute(level, "home");
     if(ctx->home()->nil_p()) {

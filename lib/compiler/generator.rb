@@ -309,12 +309,20 @@ class Compiler
       end
 
       def start!
+        @handler = @generator.new_label
         @start = @generator.ip
+        @generator.setup_unwind @handler
       end
 
       def handle!
+        @handler.set!
         @handler = @generator.ip
         @end = @handler - 1
+      end
+
+      def escape(label)
+        @generator.pop_unwind
+        @generator.goto label
       end
 
       def range

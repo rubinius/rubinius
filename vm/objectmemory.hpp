@@ -118,8 +118,7 @@ namespace rubinius {
 
       // Masquerade as being in the Young zone so the write barrier
       // stays happy.
-      ctx->init_header(YoungObjectZone, sizeof(MethodContext) +
-          (stack_slots * sizeof(Object*)));
+      ctx->init_header(YoungObjectZone, full_size);
 
       ctx->full_size = full_size;
       return ctx;
@@ -129,7 +128,7 @@ namespace rubinius {
     // storage area.
     bool deallocate_context(MethodContext* ctx) {
       // If ctx is less than the scan, we ignore deallocating it.
-      if(!context_on_stack_p(ctx) || ctx < contexts.scan) return false;
+      if(ctx < contexts.start || ctx < contexts.scan) return false;
       contexts.put_back(ctx->full_size);
       assert(contexts.current >= contexts.start);
       return true;
@@ -150,7 +149,8 @@ namespace rubinius {
     // Make sure that all existing contexts are not automatically
     // deallocated
     void clamp_contexts() {
-      contexts.set_scan(contexts.current);
+      void* barrier = reinterpret_cast<void*>((uintptr_t)contexts.current + 1);
+      contexts.set_scan(barrier);
     }
 
     void write_barrier(Object* target, Object* val) {

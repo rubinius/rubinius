@@ -16,9 +16,18 @@ namespace rubinius {
   class Tuple;
   class Module;
 
+  // TODO figure out if this is a good number
+  const int kMaxUnwindInfos = 20;
+
   class MethodContext : public Object {
   public:
     const static object_type type = MethodContextType;
+
+  public: // Types
+    struct UnwindInfo {
+      uint32_t target_ip;
+      uint32_t stack_depth;
+    };
 
   private:
     MethodContext* sender_; // slot
@@ -58,6 +67,9 @@ namespace rubinius {
 
     size_t full_size;
     size_t stack_size;
+    int    current_unwind;
+    UnwindInfo unwinds[kMaxUnwindInfos];
+
     // MUST BE AT THE LAST DATA MEMBER
     Object* stk[];
 
@@ -168,6 +180,23 @@ namespace rubinius {
 
     int calculate_sp() {
       return js.stack - stk;
+    }
+
+    // Manage the dynamic Unwind stack for this context
+    void push_unwind(int target_ip) {
+      assert(current_unwind < kMaxUnwindInfos);
+      UnwindInfo& info = unwinds[current_unwind++];
+      info.target_ip = target_ip;
+      info.stack_depth = calculate_sp();
+    }
+
+    UnwindInfo& pop_unwind() {
+      assert(current_unwind > 0);
+      return unwinds[--current_unwind];
+    }
+
+    bool has_unwinds_p() {
+      return current_unwind > 0;
     }
 
     /* Run after a context is copied, allowing it to fix up

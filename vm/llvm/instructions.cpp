@@ -24,7 +24,6 @@
 #include "message.hpp"
 #include "instructions.hpp"
 
-#define USE_JUMP_TABLE
 
 using namespace rubinius;
 
@@ -32,17 +31,27 @@ using namespace rubinius;
 #define OP2(type, name, args...) type name(Task* task, MethodContext* const ctx, ## args)
 
 // HACK: sassert is stack protection
-// #define stack_push(val) ({ OBJECT _v = (val); sassert(_v && js->stack < js->stack_top); *++js->stack = _v; })
+#ifdef RBX_DEBUG
+
+#define stack_push(val) ({ Object* _v = (val); sassert(_v && (int)_v != 0x10 && ctx->js.stack < ctx->js.stack_top); *++ctx->js.stack = _v; })
+#define stack_pop() ({ assert(ctx->js.stack >= ctx->stk); *ctx->js.stack--; })
+#define stack_set_top(val) ({ Object* _v = (val); assert((int)(_v) != 0x10); *ctx->js.stack = _v; })
+
+#else
 
 /** We have to use the local here we need to evaluate val before we alter
  * the stack. The reason is evaluating val might throw an exception. The
  * old code used an undefined behavior, this forces the order. */
 #define stack_push(val) ({ Object* __stack_v = (val); *++ctx->js.stack = __stack_v; })
-
 #define stack_pop() *ctx->js.stack--
+#define stack_set_top(val) *ctx->js.stack = (val)
+
+#define USE_JUMP_TABLE
+
+#endif
+
 #define stack_top() *ctx->js.stack
 #define stack_back(count) *(ctx->js.stack - count)
-#define stack_set_top(val) *ctx->js.stack = (val)
 
 #define SHOW(obj) (((NormalObject*)(obj))->show(state))
 
