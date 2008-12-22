@@ -29,6 +29,8 @@ int main(int argc, char **argv) {
 
   VMMethod* vmm = as<CompiledMethod>(cf->body(&state))->formalize(&state, false);
 
+  delete cf;
+
   MachineMethod* mm = compiler.compile(vmm);
   mm->show();
   return 0;

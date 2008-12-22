@@ -105,6 +105,8 @@ namespace rubinius {
       msg << " (" << exc->klass()->name()->c_str(state) << ")";
       Assertion::raise(msg.str().c_str());
     }
+
+    delete cf;
   }
 
 }

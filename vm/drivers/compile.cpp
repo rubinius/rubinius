@@ -68,6 +68,8 @@ int main(int argc, char** argv) {
 
   CompiledMethod* meth = as<CompiledMethod>(cf->body(env.state));
 
+  delete cf;
+
   VMLLVMMethod* lm = new VMLLVMMethod(env.state, meth);
   lm->compile(env.state);
 

@@ -66,10 +66,9 @@ namespace rubinius {
   }
 
   VM::~VM() {
+    delete user_config;
     delete om;
-
     delete signal_events;
-
     delete global_cache;
 #ifdef ENABLE_LLVM
     if(!reuse_llvm) llvm_cleanup();

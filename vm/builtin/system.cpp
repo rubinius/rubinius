@@ -61,7 +61,10 @@ namespace rubinius {
       Exception::io_error(state, msg.str().c_str());
     }
 
-    return cf->body(state);
+    Object *body = cf->body(state);
+
+    delete cf;
+    return body;
   }
 
   Object* System::yield_gdb(STATE, Object* obj) {
@@ -125,6 +128,7 @@ namespace rubinius {
     if(ent->is_number()) {
       return Fixnum::from(atoi(ent->value.c_str()));
     }
+
     return String::create(state, ent->value.c_str());
   }
 
