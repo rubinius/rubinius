@@ -4144,6 +4144,35 @@ slow_path:
     CODE
   end
 
+  def move_down(positions)
+    <<-CODE
+    Object* val = stack_top();
+    for(int i = 0; i < positions; i++) {
+      int target = -i;
+      int current = target - 1;
+      ctx->js.stack[target] = ctx->js.stack[current];
+    }
+    ctx->js.stack[-positions] = val;
+    CODE
+  end
+
+  def test_move_down
+    <<-CODE
+    ctx->push(Fixnum::from(0));
+    ctx->push(Fixnum::from(1));
+    ctx->push(Fixnum::from(2));
+    ctx->push(Fixnum::from(3));
+
+    stream[1] = (opcode)3;
+    run();
+
+    TS_ASSERT_EQUALS(ctx->pop(), Fixnum::from(2));
+    TS_ASSERT_EQUALS(ctx->pop(), Fixnum::from(1));
+    TS_ASSERT_EQUALS(ctx->pop(), Fixnum::from(0));
+    TS_ASSERT_EQUALS(ctx->pop(), Fixnum::from(3));
+    CODE
+  end
+
   # [Operation]
   #   Placeholder for a removed opcode
   # [Format]

@@ -47,7 +47,7 @@ class Compiler
 
   class Node
 
-    def show_errors(gen, &block) # TODO: remove
+    def show_errors(gen, &block)
       @compiler.show_errors(gen, &block)
     end
 
@@ -162,7 +162,7 @@ class Compiler
         else
           @swap = false
           super(g)
-          # TODO - Pop the result so that the RHS is left on the stack
+          g.pop
         end
       end
 
@@ -194,7 +194,15 @@ class Compiler
           @argcount += 1
         end
 
-        unless @arguments.grep(Splat).empty? then
+        if @arguments.grep(Splat).empty?
+          g.dup
+          # + 1 for the receiver
+          g.move_down @argcount + 1
+        else
+          g.dup
+          # + 1 for the receiver
+          g.move_down @argcount + 2
+
           # PushArgs only for this branch
           @arguments.attr_bytecode(g)
           @dynamic = true
@@ -203,6 +211,7 @@ class Compiler
 
           g.swap
         end
+
       end
     end
 
@@ -1949,8 +1958,6 @@ class Compiler
         g.cast_array
         @item.bytecode(g)
         g.swap
-        # TODO this needs to make sure that @item is left on the stack
-        # as the return value always.
       end
     end
 
