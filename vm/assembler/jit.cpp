@@ -85,6 +85,9 @@ namespace rubinius {
 
   void JITCompiler::maybe_return(int i, uintptr_t **last_imm, AssemblerX86::NearJumpLocation &fin) {
 
+    // after every call instruction that's passed the ctx
+    cache_stack();
+
     // EDX will contain the native ip, to be stored
     // back into the MethodContext in the epilogue.
     a.mov_delayed(edx, last_imm);
@@ -118,6 +121,7 @@ namespace rubinius {
     AssemblerX86::NearJumpLocation real_fin;
 
     ops.prologue();
+    cache_stack();
 
     // Pull native_ip out of the method_context and jump to it if
     // it's not 0.
@@ -175,30 +179,25 @@ namespace rubinius {
         a.jump(labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_goto_if_false:
-        cache_stack();
         s.load_nth(eax, 0);
         s.pop();
         ops.jump_if_false(eax, labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_goto_if_true:
-        cache_stack();
         s.load_nth(eax, 0);
         s.pop();
         ops.jump_if_true(eax, labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_goto_if_defined:
-        cache_stack();
         s.load_nth(eax, 0);
         s.pop();
         a.cmp(eax, (uintptr_t)Qundef);
         a.jump_if_not_equal(labels[vmm->opcodes[i + 1]]);
         break;
       case InstructionSequence::insn_pop:
-        cache_stack();
         s.pop();
         break;
       case InstructionSequence::insn_dup_top:
-        cache_stack();
         s.load_nth(eax, 0);
         s.push(eax);
         break;
@@ -206,7 +205,6 @@ namespace rubinius {
         if(vmm->opcodes[i + 1] != 2) goto call_op;
         // Fall through and use swap if it's just 2
       case InstructionSequence::insn_swap_stack:
-        cache_stack();
         s.load_nth(eax, 0);
         s.load_nth(ecx, 1);
         a.mov(s.position(1), eax);
@@ -218,39 +216,30 @@ namespace rubinius {
         a.jump(fin);
         break;
       case InstructionSequence::insn_push_true:
-        cache_stack();
         s.push((uintptr_t)Qtrue);
         break;
       case InstructionSequence::insn_push_false:
-        cache_stack();
         s.push((uintptr_t)Qfalse);
         break;
       case InstructionSequence::insn_push_nil:
-        cache_stack();
         s.push((uintptr_t)Qnil);
         break;
       case InstructionSequence::insn_meta_push_0:
-        cache_stack();
         s.push((uintptr_t)Fixnum::from(0));
         break;
       case InstructionSequence::insn_meta_push_1:
-        cache_stack();
         s.push((uintptr_t)Fixnum::from(1));
         break;
       case InstructionSequence::insn_meta_push_2:
-        cache_stack();
         s.push((uintptr_t)Fixnum::from(2));
         break;
       case InstructionSequence::insn_meta_push_neg_1:
-        cache_stack();
         s.push((uintptr_t)Fixnum::from(-1));
         break;
       case InstructionSequence::insn_push_int:
-        cache_stack();
         s.push((uintptr_t)Fixnum::from(vmm->opcodes[i + 1]));
         break;
       case InstructionSequence::insn_push_self:
-        cache_stack();
         ops.load_self(eax);
         s.push(eax);
         break;
@@ -258,26 +247,22 @@ namespace rubinius {
       // Now, for a bit more complicated ones...
       //
       case InstructionSequence::insn_push_local:
-        cache_stack();
         ops.get_local(eax, vmm->opcodes[i + 1]);
         s.push(eax);
         break;
 
       case InstructionSequence::insn_set_local:
-        cache_stack();
         s.load_nth(edx, 0);
         ops.set_local(edx, vmm->opcodes[i + 1]);
         break;
 
       case InstructionSequence::insn_push_literal:
-        cache_stack();
         ops.get_literal(eax, vmm->opcodes[i + 1]);
         s.push(eax);
         break;
 
       case InstructionSequence::insn_meta_send_op_minus:
       case InstructionSequence::insn_meta_send_op_plus: {
-        cache_stack();
         AssemblerX86::NearJumpLocation slow_path;
         AssemblerX86::NearJumpLocation done;
 
@@ -329,7 +314,7 @@ namespace rubinius {
         a.jump(done);
 
         a.set_label(slow_path);
-        uncache_stack(true);
+        uncache_stack();
         if(op == InstructionSequence::insn_meta_send_op_plus) {
           ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
         } else {
@@ -347,7 +332,6 @@ namespace rubinius {
 
       case InstructionSequence::insn_meta_send_op_equal:
       case InstructionSequence::insn_meta_send_op_nequal: {
-        cache_stack();
         AssemblerX86::NearJumpLocation equal_path;
         AssemblerX86::NearJumpLocation slow_path;
         AssemblerX86::NearJumpLocation done;
@@ -394,7 +378,7 @@ namespace rubinius {
         }
 
         a.set_label(slow_path);
-        uncache_stack(true);
+        uncache_stack();
 
         if(op == InstructionSequence::insn_meta_send_op_equal) {
           ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
@@ -409,7 +393,6 @@ namespace rubinius {
 
       case InstructionSequence::insn_meta_send_op_lt:
       case InstructionSequence::insn_meta_send_op_gt: {
-        cache_stack();
         AssemblerX86::NearJumpLocation slow_path;
         AssemblerX86::NearJumpLocation done;
 
@@ -454,7 +437,7 @@ namespace rubinius {
         }
 
         a.set_label(slow_path);
-        uncache_stack(true);
+        uncache_stack();
 
         if(op == InstructionSequence::insn_meta_send_op_lt) {
           ops.call_via_symbol((void*)JITCompiler::slow_lt_path);
@@ -468,7 +451,6 @@ namespace rubinius {
       }
 
       case InstructionSequence::insn_push_const_fast: {
-        cache_stack();
         AssemblerX86::NearJumpLocation slow_path;
         AssemblerX86::NearJumpLocation done;
 
@@ -482,7 +464,7 @@ namespace rubinius {
         a.jump(done);
 
         a.set_label(slow_path);
-        uncache_stack(true);
+        uncache_stack();
         const instructions::Implementation* impl = instructions::implementation(op);
         ops.call_operation(impl->address, impl->name,
             vmm->opcodes[i + 1],
