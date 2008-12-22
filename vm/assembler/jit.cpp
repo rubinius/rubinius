@@ -509,6 +509,8 @@ call_op:
           maybe_return(i, &last_imm, fin);
         } else if(status == instructions::Terminate) {
           a.jump(real_fin);
+        } else {
+          cache_stack();
         }
         break;
       }
