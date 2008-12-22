@@ -4215,8 +4215,8 @@ slow_path:
     run();
 
     TS_ASSERT_EQUALS(ctx->current_unwind, 1);
-    TS_ASSERT_EQUALS(ctx->unwinds[0].target_ip, 15);
-    TS_ASSERT_EQUALS(ctx->unwinds[0].stack_depth, 1);
+    TS_ASSERT_EQUALS(ctx->unwinds[0].target_ip, 15U);
+    TS_ASSERT_EQUALS(ctx->unwinds[0].stack_depth, 1U);
     CODE
   end
 
