@@ -156,7 +156,7 @@ class Instructions
   #
   def generate_jump_implementations(methods, io, flow=false)
     io.puts generate_jump_table()
-    io.puts "goto *insn_locations[stream[ctx->ip++]];"
+    io.puts "DISPATCH_NEXT_INSN;"
 
     methods.each do |impl|
       io.puts "  op_impl_#{impl.name.opcode}: {"
@@ -188,7 +188,7 @@ class Instructions
         io.puts "    if(unlikely(state->interrupts.check)) return;"
       end
 
-      io.puts "  goto *insn_locations[stream[ctx->ip++]];"
+      io.puts "  DISPATCH_NEXT_INSN;"
       io.puts "  }"
     end
 

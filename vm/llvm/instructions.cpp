@@ -174,10 +174,13 @@ void VMMethod::interpreter(VMMethod* const vmm, Task* const task, MethodContext*
   opcode* stream = ctx->vmm->opcodes;
 #ifdef USE_JUMP_TABLE
 
+#undef DISPATCH_NEXT_INSN
+#define DISPATCH_NEXT_INSN goto *insn_locations[stream[ctx->ip++]];
+
 #undef RETURN
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { \
   if(unlikely(state->interrupts.check)) return;\
-  goto *insn_locations[stream[ctx->ip++]]; \
+  DISPATCH_NEXT_INSN; \
 }
 
 #ruby <<CODE
@@ -188,6 +191,52 @@ CODE
 
 #else
   opcode op;
+
+#undef RETURN
+#define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
+  for(;;) {
+    op = stream[ctx->ip++];
+
+#if FLAG_FIRE_PROBE_INSTRUCTION
+    if(!task->probe()->nil_p()) {
+      task->probe()->execute_instruction(task, ctx, op);
+    }
+#endif
+
+#ruby <<CODE
+io = StringIO.new
+si.generate_decoder_switch impl, io, true
+puts io.string
+CODE
+  }
+#endif // USE_JUMP_TABLE
+}
+
+void VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx) {
+  opcode* stream = ctx->vmm->opcodes;
+  opcode op;
+#ifdef USE_JUMP_TABLE
+
+#undef DISPATCH_NEXT_INSN
+#define DISPATCH_NEXT_INSN op = stream[ctx->ip++]; \
+  if(unlikely(op & cBreakpoint << 24)) { \
+    op &= !(255 << 24); \
+  } \
+  goto *insn_locations[op];
+
+#undef RETURN
+#define RETURN(val) if((val) == cExecuteRestart) { return; } else { \
+  if(unlikely(state->interrupts.check)) return;\
+  DISPATCH_NEXT_INSN; \
+}
+
+#ruby <<CODE
+io = StringIO.new
+si.generate_jump_implementations impl, io, true
+puts io.string
+CODE
+
+#else
 
 #undef RETURN
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
