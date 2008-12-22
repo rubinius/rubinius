@@ -124,10 +124,8 @@ namespace rubinius {
   }
 
   void ObjectMemory::set_class(Object* target, Object* obj) {
+    // the setter calls write_barrier when necessary.
     target->klass(state, (Class*)obj);
-    if(obj->reference_p()) {
-      write_barrier(target, obj);
-    }
   }
 
   Object* ObjectMemory::allocate_object(size_t bytes) {
