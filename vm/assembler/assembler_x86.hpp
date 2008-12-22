@@ -90,7 +90,7 @@ namespace assembler_x86 {
     const static int CompareOperation = 7;
 
     void emit_math(int operation, Register& reg, int val) {
-      if(val < 255 && val > -255) {
+      if(val < 128 && val >= -128) {
         emit(0x83);
         emit_modrm(ModReg2Reg, operation, reg.code());
         emit((int8_t)val);
@@ -109,7 +109,7 @@ namespace assembler_x86 {
       ModType mod;
       int displacement = addr.offset();
 
-      if(displacement < 255 && displacement > -255) {
+      if(displacement < 128 && displacement >= -128) {
         mod = Mod8Displacement;
       } else {
         mod = Mod32Displacement;
@@ -120,7 +120,7 @@ namespace assembler_x86 {
 
     void emit_displacement(const Address& addr) {
       int displacement = addr.offset();
-      if(displacement < 255 && displacement > -255) {
+      if(displacement < 128 && displacement >= -128) {
         // Be sure to cast so that the sign is extended properly.
         emit((int8_t)displacement);
       } else {
