@@ -1798,7 +1798,7 @@ class Compiler
 
         # A special case, where we use the value as boolean
         if @kind == :or or @kind == :and
-            fnd = g.new_label
+          fnd = g.new_label
           fin = g.new_label
 
           # We dup the value from [] to leave it as the value of the
@@ -1806,7 +1806,7 @@ class Compiler
 
           g.dup
           if @kind == :or
-              g.git fnd
+            g.git fnd
           else
             g.gif fnd
           end
@@ -1822,7 +1822,12 @@ class Compiler
 
           @value.bytecode(g)
 
+          # retain the rhs as the expression value
+          g.dup
+          g.move_down @index.size + 2
+
           g.send :[]=, @index.size + 1
+          g.pop
           g.goto fin
 
           fnd.set!
@@ -1855,9 +1860,13 @@ class Compiler
             g.swap
           end
 
-          # X: Call []=(:a, 5) on h
+          # retain the rhs as the expression value
+          g.dup
+          g.move_down @index.size + 2
 
+          # X: Call []=(:a, 5) on h
           g.send :[]=, @index.size + 1
+          g.pop
         end
       end
     end
@@ -1872,12 +1881,12 @@ class Compiler
         # X: TOS = 2
 
         if @kind == :or or @kind == :and
-            fnd = g.new_label
+          fnd = g.new_label
           fin = g.new_label
 
           g.dup
           if @kind == :or
-              g.git fnd
+            g.git fnd
           else
             g.gif fnd
           end
@@ -1886,8 +1895,14 @@ class Compiler
           g.pop
           @value.bytecode(g)
 
+          # Retain the this value to use as the expression value
+          g.dup
+          g.move_down 2
+
           # Call the assignement method, passing @value as the argument
           g.send @assign, 1
+          g.pop
+
           g.goto fin
 
           fnd.set!
@@ -1902,11 +1917,16 @@ class Compiler
           # X: TOS = 3
           # X: 2 + 3
           g.send @kind, 1
+
+          # Retain the this value to use as the expression value
+          g.dup
+          g.move_down 2
           # X: TOS = 5
           g.send @assign, 1
           # X: TOS = 5 (or whatever a=() returns)
-          # TODO this should force 5 to be the value of the expresion
-          # not the return value of a=.
+
+          # Discard the methods return value
+          g.pop
         end
       end
     end
