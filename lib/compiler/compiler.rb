@@ -277,4 +277,5 @@ require 'compiler/local'
 require 'compiler/bytecode'
 require 'compiler/generator'
 require 'compiler/plugins'
+require 'compiler/stack'
 

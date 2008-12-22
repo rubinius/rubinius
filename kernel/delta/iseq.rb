@@ -67,7 +67,7 @@ class InstructionSet
     {:opcode => :push_local, :args => [:local], :stack => [0,1]},
     {:opcode => :push_exception, :args => [], :stack => [0,1]},
     {:opcode => :make_array, :args => [:int], :stack => [-10,1],
-      :vm_flags => []},
+      :vm_flags => [], :variable_stack => [0,1]},
     {:opcode => :set_ivar, :args => [:literal], :stack => [1,1],
       :vm_flags => []},
     {:opcode => :push_ivar, :args => [:literal], :stack => [0,1]},
@@ -93,16 +93,21 @@ class InstructionSet
     # send opcodes
     {:opcode => :send_method, :args => [:literal], :stack => [1,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
-    {:opcode => :send_stack, :args => [:literal, :int], 
-      :stack => [-21,1], :flow => :send, :vm_flags => [:check_interrupts]},
+    {:opcode => :send_stack, :args => [:literal, :int],
+      :stack => [-21,1], :flow => :send, :vm_flags => [:check_interrupts],
+      :variable_stack => [1,2]},
     {:opcode => :send_stack_with_block, :args => [:literal, :int],
-      :stack => [-22,1], :flow => :send, :vm_flags => [:check_interrupts]},
-    {:opcode => :send_stack_with_splat, :args => [:literal, :int], 
-      :stack => [-23,1], :flow => :send, :vm_flags => [:check_interrupts]},
+      :stack => [-22,1], :flow => :send, :vm_flags => [:check_interrupts],
+      :variable_stack => [2,2]},
+    {:opcode => :send_stack_with_splat, :args => [:literal, :int],
+      :stack => [-23,1], :flow => :send, :vm_flags => [:check_interrupts],
+      :variable_stack => [3,2]},
     {:opcode => :send_super_stack_with_block,  :args => [:literal, :int],
-      :stack => [-21,1], :flow => :send, :vm_flags => [:check_interrupts]},
+      :stack => [-21,1], :flow => :send, :vm_flags => [:check_interrupts],
+      :variable_stack => [1,2]},
     {:opcode => :send_super_stack_with_splat, :args => [:literal, :int],
-      :stack => [-22,1], :flow => :send},
+      :stack => [-22,1], :flow => :send,
+      :variable_stack => [2,2]},
 
     {:opcode => :push_block, :args => [], :stack => [0,1]},
     {:opcode => :clear_exception, :args => [], :stack => [0,0]},
@@ -163,7 +168,7 @@ class InstructionSet
     {:opcode => :meta_send_op_nequal, :args => [], :stack => [2,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :meta_send_call, :args => [:int], :stack => [-11,1],
-      :flow => :send},
+      :flow => :send, :variable_stack => [1,1]},
 
     {:opcode => :push_scope, :args => [], :stack => [0, 1]},
     {:opcode => :add_scope,  :args => [], :stack => [1, 0]},
@@ -251,6 +256,10 @@ class InstructionSet
       produced = stack_produced()
 
       return produced - consumed
+    end
+
+    def variable_stack
+      @opcode_info[:variable_stack]
     end
 
     def check_interrupts?

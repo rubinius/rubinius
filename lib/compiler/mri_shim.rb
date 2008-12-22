@@ -4,6 +4,7 @@ require 'rubygems'
 $:.push "lib"
 require 'ruby_parser'
 require 'compiler/text'
+require 'compiler/stack'
 $:.pop
 
 require File.dirname(__FILE__) + '/../../kernel/delta/compiled_file'

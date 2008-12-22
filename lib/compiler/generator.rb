@@ -172,6 +172,9 @@ class Compiler
       iseq = @encoder.encode_stream @stream
       cm = CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
 
+      sdc = Compiler::StackDepthCalculator.new(iseq)
+      sdc_stack = sdc.run
+
       cm.total_args = desc.required + desc.optional
       cm.required_args = desc.required
       cm.literals = encode_literals(cm)
@@ -185,7 +188,7 @@ class Compiler
         cm.splat = nil
       end
 
-      cm.stack_size = desc.locals.size + iseq.stack_depth
+      cm.stack_size = desc.locals.size + sdc_stack
 
       # Reserve space for the tuple we use as block args
       cm.stack_size += 1 if desc.for_block
