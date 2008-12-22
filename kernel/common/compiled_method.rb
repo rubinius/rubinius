@@ -398,14 +398,27 @@ class CompiledMethod < Executable
   ##
   # Calculates the minimum stack size required for this method.
   def min_stack_size
-    dc = decode
-    high_mark = 0
-    dc.inject(0) do |sz,op|
-      sz += op.stack_produced - op.stack_consumed
-      high_mark = sz if sz > high_mark
-      sz
+    require 'compiler/stack'
+    sdc = Compiler::StackDepthCalculator.new(@iseq)
+    sdc.run
+  end
+
+  # Graphs the control flow of this method
+  def graph_control(file, open_now=false)
+    require 'compiler/blocks'
+    require 'compiler/blocks_graph'
+
+    be = Compiler::BlockExtractor.new(@iseq)
+    entry = be.run
+    grapher = Compiler::BlockGrapher.new(entry)
+    grapher.run(file)
+
+    # :) for OS X
+    if open_now
+      `open #{file}`
     end
-    return high_mark
+
+    file
   end
 
   # Represents virtual machine's CPU instruction.

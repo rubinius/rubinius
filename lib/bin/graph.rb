@@ -9,6 +9,7 @@ else
 end
 
 require 'compiler/blocks'
+require 'compiler/blocks_graph'
 
 file = ARGV.shift
 flags = []
@@ -27,35 +28,6 @@ style = (ARGV.shift || "full").to_sym
 
 entry = be.run
 
-File.open(output, "w") do |f|
-  f.puts "digraph G {"
-  f.puts "  labeljust=l;"
-  bi = Compiler::BlockExtractor::BlockInspector.new do |b|
-    if style == :full
-      str = b.instructions.map do |i|
-        if i.kind_of? Array
-          i.join(" ")
-        else
-          i.to_s
-        end
-      end.join("\\n")
-
-      f.puts "  b#{b.block_id} [shape=box, label=\"<block #{b.block_id} @ #{b.ip}>\\n#{str}\"];"
-    else
-      f.puts "  b#{b.block_id} [shape=box, label=\"block #{b.block_id}\"];"
-    end
-
-    b.next_blocks.each do |sub, reason|
-      if reason == :condition
-        f.puts "  b#{b.block_id} -> b#{sub.block_id} [style=dotted];"
-      else
-        f.puts "  b#{b.block_id} -> b#{sub.block_id};"
-      end
-    end
-  end
-
-  bi.run(entry)
-
-  f.puts "}"
-end
+grapher = Compiler::BlockGrapher.new(entry, style)
+grapher.run(output)
 
