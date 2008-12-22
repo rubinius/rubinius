@@ -3000,18 +3000,17 @@ slow_path:
 
   def rotate(count)
     <<-CODE
-    Object** objs = new Object*[count];
     int i;
+    int diff = count / 2;
+    Object* tmp;
 
-    for(i = 0; i < count; i++) {
-      objs[i] = stack_pop();
+    for(i = 0; i < diff; i++) {
+      int offset = count - i - 1;
+      tmp = ctx->js.stack[-offset];
+      ctx->js.stack[-offset] = ctx->js.stack[-i];
+      ctx->js.stack[-i] = tmp;
     }
 
-    for(i = 0; i < count; i++) {
-      stack_push(objs[i]);
-    }
-
-    delete[] objs;
     CODE
   end
 
