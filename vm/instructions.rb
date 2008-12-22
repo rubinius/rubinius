@@ -4206,9 +4206,33 @@ slow_path:
     CODE
   end
 
+  def test_setup_unwind
+    <<-CODE
+    ctx->push(Fixnum::from(0));
+    ctx->push(Fixnum::from(0));
+
+    stream[1] = (opcode)15;
+    run();
+
+    TS_ASSERT_EQUALS(ctx->current_unwind, 1);
+    TS_ASSERT_EQUALS(ctx->unwinds[0].target_ip, 15);
+    TS_ASSERT_EQUALS(ctx->unwinds[0].stack_depth, 1);
+    CODE
+  end
+
   def pop_unwind
     <<-CODE
     ctx->pop_unwind();
+    CODE
+  end
+
+  def test_pop_unwind
+    <<-CODE
+    ctx->push_unwind(0);
+
+    run();
+
+    TS_ASSERT_EQUALS(ctx->current_unwind, 0);
     CODE
   end
 
