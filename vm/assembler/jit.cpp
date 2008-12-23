@@ -27,12 +27,13 @@ namespace rubinius {
   JITCompiler::JITCompiler()
     : stack_cached_(false)
     , buffer_(new uint8_t[1024*1024])
-    , a()
+    , a(buffer_)
     , s(a, ebx)
     , ops(s) { }
 
   JITCompiler::~JITCompiler() {
-    delete buffer_;
+    memset(buffer_, 0, 1024*1024);
+    delete[] buffer_;
   }
 
   void JITCompiler::cache_stack(bool force) {
@@ -140,17 +141,12 @@ namespace rubinius {
 
     a.set_label(normal_start);
 
-    CompiledMethod* cm = vmm->original.get();
-
     for(size_t i = 0; i < vmm->total;) {
       opcode op = vmm->opcodes[i];
       size_t width = InstructionSequence::instruction_width(op);
 
       // Set the label location
       a.set_label(labels[i]);
-
-      // Update our table of virtual ip to native ip
-      virtual2native[i] = reinterpret_cast<void*>(a.pc());
 
       // If we registers an immediate to be update, do it now.
       // TODO a.pc() is bigger than a uint32_t on 64bit
@@ -166,8 +162,12 @@ namespace rubinius {
         // usage since we don't know the state off things when we're
         // jumped here.
         ops.reset_usage();
-      } else if(cm->is_rescue_target(state, i)) {
-        // This is a jump destination via the exception table, reset
+      } else if(labels[i].flags() | cFlagUnwoundTo) {
+        // Update our table of virtual ip to native ip
+        virtual2native[i] = reinterpret_cast<void*>(a.pc());
+
+        labels[i].flags() |= cRecordV2N;
+        // This is a jump destination for exceptions, reset
         // things and register it.
         ops.reset_usage();
       }
@@ -194,6 +194,9 @@ namespace rubinius {
         a.cmp(eax, (uintptr_t)Qundef);
         a.jump_if_not_equal(labels[vmm->opcodes[i + 1]]);
         break;
+      case InstructionSequence::insn_setup_unwind:
+        labels[vmm->opcodes[i + 1]].flags() |= cFlagUnwoundTo;
+        goto call_op;
       case InstructionSequence::insn_pop:
         s.pop();
         break;

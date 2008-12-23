@@ -17,6 +17,7 @@ namespace assembler {
   protected:
     uint8_t* buffer_;
     uint8_t* pc_;
+    bool     own_buffer_;
 
     void emit(uint8_t val) {
       *reinterpret_cast<uint8_t*>(pc_) = val;
@@ -43,7 +44,7 @@ namespace assembler {
     }
 
   public:
-    Assembler() {
+    Assembler() : own_buffer_(true) {
       buffer_ = new uint8_t[1024];
       pc_ = buffer_;
     }
@@ -51,10 +52,13 @@ namespace assembler {
     Assembler(uint8_t* buffer)
       : buffer_(buffer)
       , pc_(buffer)
+      , own_buffer_(false)
     { }
 
     ~Assembler() {
-      delete buffer_;
+      if(own_buffer_) {
+        delete[] buffer_;
+      }
     }
 
     void* buffer() {

@@ -437,13 +437,18 @@ namespace assembler_x86 {
     class NearJumpLocation {
       Locations *fixups_;
       uint8_t *destination_;
+      uint32_t flags_;
 
     public:
 
-      NearJumpLocation() : fixups_(0), destination_(0) { }
+      NearJumpLocation() : fixups_(0), destination_(0), flags_(0) { }
 
       Locations& fixups() {
         return *fixups_;
+      }
+
+      uint32_t& flags() {
+        return flags_;
       }
 
       void set_destination(uint8_t *dest) {

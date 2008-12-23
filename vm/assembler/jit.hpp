@@ -21,6 +21,9 @@ namespace rubinius {
     CodeMap virtual2native;
 
   public:
+    const static int cFlagUnwoundTo = (1 << 0);
+    const static int cRecordV2N     = (1 << 1);
+
     JITCompiler();
     ~JITCompiler();
 

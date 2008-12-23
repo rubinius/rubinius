@@ -13,13 +13,20 @@ namespace rubinius {
     GO(machine_method).set(state->new_class_under("MachineMethod", G(rubinius)));
   }
 
+  static void* adjust(void* old_base, void* new_base, void* address) {
+    uintptr_t diff = reinterpret_cast<uintptr_t>(new_base) -
+                     reinterpret_cast<uintptr_t>(old_base);
+
+    return reinterpret_cast<void*>(
+        reinterpret_cast<uintptr_t>(address) + diff);
+  }
+
   MachineMethod* MachineMethod::create(STATE, VMMethod* vmm, JITCompiler& jit) {
     size_t code_size = jit.assembler().used_bytes();
     MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
 
     mm->vmmethod_ = vmm;
     mm->code_size_ = code_size;
-    mm->virtual2native_ = new CodeMap(jit.code_map());
 
     mm->set_function(reinterpret_cast<void*>(malloc(code_size)));
     std::memcpy(mm->function(), jit.assembler().buffer(), code_size);
@@ -36,6 +43,15 @@ namespace rubinius {
       mm->relocations_[j] = rel;
 
       rel->resolve_and_write();
+    }
+
+    mm->virtual2native_ = new CodeMap();
+    CodeMap& v2n = *mm->virtual2native_;
+
+    for(CodeMap::iterator i = jit.code_map().begin();
+        i != jit.code_map().end();
+        i++) {
+      v2n[i->first] = adjust(jit.assembler().buffer(), mm->function(), i->second);
     }
 
     return mm;
