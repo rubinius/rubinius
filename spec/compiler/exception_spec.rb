@@ -64,8 +64,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -73,31 +71,34 @@ describe Compiler do
 
       g.push_modifiers
       g.save_exception
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-      g.push_const :String
-      g.push_exception
-      g.send :===, 1
-
-      g.git body
-      g.goto rr
-      body.set!
-      g.push 13
-      g.clear_exception
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
 
-      g.push_exception
-      g.raise_exc
+        ex.escape fin
+        ex.handle!
 
-      fin.set!
+        g.push_const :String
+        g.push_exception
+        g.send :===, 1
 
-      last.set!
+        g.git body
+        g.goto rr
+        body.set!
+        g.push 13
+        g.clear_exception
+        g.goto last
+
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+
+        last.set!
+      end
       g.restore_exception
       g.pop_modifiers
     end
@@ -120,8 +121,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -129,33 +128,35 @@ describe Compiler do
 
       g.push_modifiers
       g.save_exception 1
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-      g.push_const :String
-      g.push_exception
-      g.send :===, 1
-
-      g.git body
-      g.goto rr
-      body.set!
-      g.push_exception
-      g.set_local 0
-      g.push 13
-      g.clear_exception
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push_exception
-      g.raise_exc
+        ex.handle!
+        g.push_const :String
+        g.push_exception
+        g.send :===, 1
 
-      fin.set!
+        g.git body
+        g.goto rr
+        body.set!
+        g.push_exception
+        g.set_local 0
+        g.push 13
+        g.clear_exception
+        g.goto last
 
-      last.set!
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+
+        last.set!
+      end
       g.restore_exception 1
       g.pop_modifiers
     end
@@ -178,8 +179,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -187,32 +186,34 @@ describe Compiler do
 
       g.push_modifiers
       g.save_exception
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-
-      g.push_const :StandardError
-      g.push_exception
-      g.send :===, 1
-      g.git body
-      g.goto rr
-      body.set!
-
-      g.push 13
-      g.clear_exception
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push_exception
-      g.raise_exc
+        ex.handle!
 
-      fin.set!
+        g.push_const :StandardError
+        g.push_exception
+        g.send :===, 1
+        g.git body
+        g.goto rr
+        body.set!
 
-      last.set!
+        g.push 13
+        g.clear_exception
+        g.goto last
+
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+
+        last.set!
+      end
       g.restore_exception
       g.pop_modifiers
     end
@@ -237,8 +238,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -246,37 +245,40 @@ describe Compiler do
 
       g.push_modifiers
       g.save_exception
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-
-      g.push_const :String
-      g.push_exception
-      g.send :===, 1
-      g.git body
-
-      g.push_const :Blah
-      g.push_exception
-      g.send :===, 1
-      g.git body
-
-      g.goto rr
-      body.set!
-      g.push 13
-      g.clear_exception
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push_exception
-      g.raise_exc
+        ex.handle!
 
-      fin.set!
+        g.push_const :String
+        g.push_exception
+        g.send :===, 1
+        g.git body
 
-      last.set!
+        g.push_const :Blah
+        g.push_exception
+        g.send :===, 1
+        g.git body
+
+        g.goto rr
+        body.set!
+        g.push 13
+        g.clear_exception
+        g.goto last
+
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+
+        last.set!
+      end
+
       g.restore_exception
       g.pop_modifiers
     end
@@ -305,8 +307,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -315,45 +315,47 @@ describe Compiler do
 
       g.push_modifiers
       g.save_exception
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-
-      g.push_const :String
-      g.push_exception
-      g.send :===, 1
-      g.git body
-
-      g.goto next_cond
-      body.set!
-      g.push 13
-      g.clear_exception
-      g.goto last
-
-      next_cond.set!
-      body2 = g.new_label
-      g.push_const :Blah
-      g.push_exception
-      g.send :===, 1
-      g.git body2
-
-      g.goto rr
-      body2.set!
-      g.push 14
-      g.clear_exception
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push_exception
-      g.raise_exc
+        ex.handle!
 
-      fin.set!
+        g.push_const :String
+        g.push_exception
+        g.send :===, 1
+        g.git body
 
-      last.set!
+        g.goto next_cond
+        body.set!
+        g.push 13
+        g.clear_exception
+        g.goto last
+
+        next_cond.set!
+        body2 = g.new_label
+        g.push_const :Blah
+        g.push_exception
+        g.send :===, 1
+        g.git body2
+
+        g.goto rr
+        body2.set!
+        g.push 14
+        g.clear_exception
+        g.goto last
+
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+
+        last.set!
+      end
       g.restore_exception
       g.pop_modifiers
     end
@@ -380,8 +382,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -389,33 +389,35 @@ describe Compiler do
 
       g.push_modifiers
       g.save_exception
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-      g.push_const :String
-      g.push_exception
-      g.send :===, 1
-
-      g.git body
-      g.goto rr
-      body.set!
-      g.push 13
-      g.clear_exception
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push_exception
-      g.raise_exc
+        ex.handle!
+        g.push_const :String
+        g.push_exception
+        g.send :===, 1
 
-      fin.set!
-      g.pop
-      g.push 14
+        g.git body
+        g.goto rr
+        body.set!
+        g.push 13
+        g.clear_exception
+        g.goto last
 
-      last.set!
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+        g.pop
+        g.push 14
+
+        last.set!
+      end
       g.restore_exception
       g.pop_modifiers
     end
@@ -439,8 +441,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -448,33 +448,35 @@ describe Compiler do
 
       g.push_modifiers
       g.save_exception
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-      g.push :self
-      g.send :blah, 0, true
-      g.cast_array
-      g.push_exception
-      g.send :__rescue_match__, 1
-
-      g.git body
-      g.goto rr
-      body.set!
-      g.push 13
-      g.clear_exception
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push_exception
-      g.raise_exc
+        ex.handle!
+        g.push :self
+        g.send :blah, 0, true
+        g.cast_array
+        g.push_exception
+        g.send :__rescue_match__, 1
 
-      fin.set!
+        g.git body
+        g.goto rr
+        body.set!
+        g.push 13
+        g.clear_exception
+        g.goto last
 
-      last.set!
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+
+        last.set!
+      end
       g.restore_exception
       g.pop_modifiers
     end
@@ -501,8 +503,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -510,39 +510,41 @@ describe Compiler do
 
       g.push_modifiers
       g.save_exception
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-
-      g.push_const :String
-      g.push_exception
-      g.send :===, 1
-      g.git body
-
-      g.push :self
-      g.send :blah, 0, true
-      g.cast_array
-      g.push_exception
-
-      g.send :__rescue_match__, 1
-      g.git body
-      g.goto rr
-      body.set!
-      g.push 13
-      g.clear_exception
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push_exception
-      g.raise_exc
+        ex.handle!
 
-      fin.set!
+        g.push_const :String
+        g.push_exception
+        g.send :===, 1
+        g.git body
 
-      last.set!
+        g.push :self
+        g.send :blah, 0, true
+        g.cast_array
+        g.push_exception
+
+        g.send :__rescue_match__, 1
+        g.git body
+        g.goto rr
+        body.set!
+        g.push 13
+        g.clear_exception
+        g.goto last
+
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+
+        last.set!
+      end
       g.restore_exception
       g.pop_modifiers
     end
@@ -567,46 +569,46 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
-      retr       = g.new_label
+      rr         = g.new_label
       reraise    = g.new_label
       last       = g.new_label
       body       = g.new_label
 
       g.push_modifiers
       g.save_exception 1
-      exc_start.set!
-      retr.set!
-      g.push 12
-      g.goto fin
 
-      exc_handle.set!
+      rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push :self
-      g.send :blah, 0, true
-      g.cast_array
-      g.push_exception
-      g.set_local 0
+        ex.handle!
 
-      g.send :__rescue_match__, 1
-      g.git body
-      g.goto reraise
-      body.set!
+        g.push :self
+        g.send :blah, 0, true
+        g.cast_array
+        g.push_exception
+        g.set_local 0
 
-      g.push 13
-      g.clear_exception
-      g.goto last
+        g.send :__rescue_match__, 1
+        g.git body
+        g.goto reraise
+        body.set!
 
-      reraise.set!
+        g.push 13
+        g.clear_exception
+        g.goto last
 
-      g.push_exception
-      g.raise_exc
+        reraise.set!
 
-      fin.set!
+        g.push_exception
+        g.raise_exc
 
-      last.set!
+        fin.set!
+
+        last.set!
+      end
       g.restore_exception 1
       g.pop_modifiers
     end
@@ -633,51 +635,51 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
-      retr       = g.new_label
+      rr         = g.new_label
       reraise    = g.new_label
       last       = g.new_label
       body       = g.new_label
 
       g.push_modifiers
       g.save_exception 1
-      exc_start.set!
-      retr.set!
-      g.push 12
-      g.goto fin
 
-      exc_handle.set!
+      rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push_const :String
-      g.push_exception
-      g.send :===, 1
-      g.git body
+        ex.handle!
 
-      g.push :self
-      g.send :blah, 0, true
-      g.cast_array
-      g.push_exception
+        g.push_const :String
+        g.push_exception
+        g.send :===, 1
+        g.git body
 
-      g.send :__rescue_match__, 1
-      g.git body
-      g.goto reraise
-      body.set!
-      g.push_exception
-      g.set_local 0
-      g.push 13
-      g.clear_exception
-      g.goto last
+        g.push :self
+        g.send :blah, 0, true
+        g.cast_array
+        g.push_exception
 
-      reraise.set!
+        g.send :__rescue_match__, 1
+        g.git body
+        g.goto reraise
+        body.set!
+        g.push_exception
+        g.set_local 0
+        g.push 13
+        g.clear_exception
+        g.goto last
 
-      g.push_exception
-      g.raise_exc
+        reraise.set!
 
-      fin.set!
+        g.push_exception
+        g.raise_exc
 
-      last.set!
+        fin.set!
+
+        last.set!
+      end
       g.restore_exception 1
       g.pop_modifiers
     end
@@ -701,8 +703,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -710,33 +710,35 @@ describe Compiler do
 
       g.push_modifiers
       g.save_exception
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-      g.push_const :String
-      g.push_exception
-      g.send :===, 1
-
-      g.git body
-      g.goto rr
-      body.set!
-      g.clear_exception
-      g.push :nil
-      g.ret
-      g.clear_exception
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
+        ex.escape fin
 
-      g.push_exception
-      g.raise_exc
+        ex.handle!
+        g.push_const :String
+        g.push_exception
+        g.send :===, 1
 
-      fin.set!
+        g.git body
+        g.goto rr
+        body.set!
+        g.clear_exception
+        g.push :nil
+        g.ret
+        g.clear_exception
+        g.goto last
 
-      last.set!
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+
+        last.set!
+      end
       g.restore_exception
       g.pop_modifiers
     end
@@ -760,8 +762,8 @@ describe Compiler do
 
       g.exceptions do |ex|
         g.push 12
-        g.goto ok
 
+        ex.escape ok
         ex.handle!
 
         g.push 13

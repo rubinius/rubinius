@@ -326,10 +326,10 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.send :x, 0, true
-      g.create_block desc
       g.passed_block do
+        g.push :self
+        g.send :x, 0, true
+        g.create_block desc
         g.send_with_block :each, 0, false
       end
     end
@@ -361,10 +361,10 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.send :x, 0, true
-      g.create_block desc
       g.passed_block do
+        g.push :self
+        g.send :x, 0, true
+        g.create_block desc
         g.send_with_block :each, 0, false
       end
     end
@@ -402,10 +402,10 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.send :x, 0, true
-      g.create_block desc
       g.passed_block do
+        g.push :self
+        g.send :x, 0, true
+        g.create_block desc
         g.send_with_block :each, 0, false
       end
     end
@@ -436,10 +436,10 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.send :x, 0, true
-      g.create_block desc
       g.passed_block do
+        g.push :self
+        g.send :x, 0, true
+        g.create_block desc
         g.send_with_block :each, 0, false
       end
     end
@@ -474,10 +474,10 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.send :x, 0, true
-      g.create_block desc
       g.passed_block do
+        g.push :self
+        g.send :x, 0, true
+        g.create_block desc
         g.send_with_block :each, 0, false
       end
     end

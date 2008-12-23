@@ -72,9 +72,12 @@ class CompilerTestCase < ParseTreeTestCase
               g.cast_array
               g.push :self
               g.send :c, 0, true
+              g.dup
+              g.move_down 3
               g.swap
               g.push :nil
               g.send_with_splat :[]=, 1, false, true
+              g.pop
             end)
 
   add_tests("array",
@@ -144,7 +147,10 @@ class CompilerTestCase < ParseTreeTestCase
               g.pop
               g.push 42
               g.push_local 0
+              g.dup
+              g.move_down 2
               g.send :method=, 1, false
+              g.pop
             end)
 
   add_tests("attrasgn_index_equals",
@@ -153,7 +159,10 @@ class CompilerTestCase < ParseTreeTestCase
               g.send :a, 0, true
               g.push 42
               g.push 24
+              g.dup
+              g.move_down 3
               g.send :[]=, 2, false
+              g.pop
             end)
 
   add_tests("attrasgn_index_equals_space",
@@ -164,7 +173,10 @@ class CompilerTestCase < ParseTreeTestCase
               g.push_local 0
               g.push 42
               g.push 24
+              g.dup
+              g.move_down 3
               g.send :[]=, 2, false
+              g.pop
             end)
 
   add_tests("back_ref",
@@ -204,9 +216,6 @@ class CompilerTestCase < ParseTreeTestCase
 
   add_tests("begin_rescue_ensure",
             "Compiler" => bytecode do |g|
-              jump_top = g.new_label
-              jump_top.set!
-
               in_rescue :StandardError, :ensure do |section|
                 case section
                 when :body then

@@ -24,6 +24,8 @@ load "kernel/delta/string.rb"
 
 require 'ruby_parser' # for s(...)
 
+String.ruby_parser
+
   # HACK HACK HACK
   def parse ruby
     ruby.to_sexp("spec")
@@ -155,9 +157,11 @@ class TestGenerator
   end
 
   class ExceptionBlock
-    def initialize(start, handler)
-      @start = start
-      @handler = handler
+    def initialize(g)
+      @generator = g
+      @start = g.new_label
+      @handler = g.new_label
+      g.setup_unwind @handler
     end
 
     attr_accessor :start, :fin, :handler
@@ -165,10 +169,15 @@ class TestGenerator
     def handle!
       @handler.set!
     end
+
+    def escape(label)
+      @generator.pop_unwind
+      @generator.goto label
+    end
   end
 
   def exceptions
-    eb = ExceptionBlock.new(self.new_label, self.new_label)
+    eb = ExceptionBlock.new(self)
     eb.start.set!
     yield eb
   end
@@ -211,7 +220,7 @@ class TestGenerator
     ok = g.new_label
     g.exceptions do |ex|
       yield
-      g.goto ok
+      ex.escape ok
 
       ex.handle!
 
@@ -252,7 +261,7 @@ class TestGenerator
     ok = g.new_label
     g.exceptions do |ex|
       yield
-      g.goto ok
+      ex.escape ok
 
       ex.handle!
 
@@ -529,17 +538,14 @@ class TestGenerator
     self.send :__module_init__, 0
   end
 
-  def in_rescue *klasses
-    jump_top     = self.new_label
-    jump_ex_body = self.new_label
-    jump_else    = self.new_label
-    jump_last    = self.new_label
-    jump_matched = self.new_label
-
-    has_ensure = klasses.delete :ensure
-
+  def in_rescue(*klasses)
     self.push_modifiers
 
+    jump_retry   = self.new_label
+    jump_else    = self.new_label
+    jump_last    = self.new_label
+
+    has_ensure = klasses.delete :ensure
     saved_exception_index = klasses.detect { |a| a.instance_of?(Fixnum) }
     if saved_exception_index
       klasses.delete saved_exception_index
@@ -549,38 +555,39 @@ class TestGenerator
 
     self.save_exception saved_exception_index
 
-    jump_top.set!
-    jump_ex_body.set!
+    jump_retry.set!
+    exceptions do |ex|
 
-    yield :body
+      yield :body
 
-    self.goto jump_else # TODO: g.goto_if_exception jump_ex1
+      ex.escape jump_else
 
-    jump_matched.set! # TODO: magic jump! generate REAL bytecode!
+      ex.handle!
 
-    klasses.flatten.each do |klass|
-      jump_body = self.new_label
-      jump_next = self.new_label
+      klasses.flatten.each do |klass|
+        jump_body = self.new_label
+        jump_next = self.new_label
 
-      self.push_const klass
+        self.push_const klass
+        self.push_exception
+        self.send :===, 1
+        self.git jump_body
+
+        self.goto jump_next         # FIX: stupid jump, gifucked better
+
+        jump_body.set!
+
+        yield klass
+
+        self.clear_exception
+        self.goto jump_last
+
+        jump_next.set!
+      end
+
       self.push_exception
-      self.send :===, 1
-      self.git jump_body
-
-      self.goto jump_next         # FIX: stupid jump, gifucked better
-
-      jump_body.set!
-
-      yield klass
-
-      self.clear_exception
-      self.goto jump_last
-
-      jump_next.set!
+      self.raise_exc
     end
-
-    self.push_exception
-    self.raise_exc
 
     jump_else.set!
 
@@ -682,21 +689,21 @@ end
 
 def gen_iter x # TODO: fold this up into TestGenerator instead
   gen x do |g|
-    g.push :self
-    g.send :ary, 0, true
-
-    g.create_block_desc do |d|
-      yield d
-
-      d.pop
-      d.push_modifiers
-      d.new_label.set!
-      d.push :nil
-      d.pop_modifiers
-      d.ret
-    end
-
     g.passed_block do
+      g.push :self
+      g.send :ary, 0, true
+
+      g.create_block_desc do |d|
+        yield d
+
+        d.pop
+        d.push_modifiers
+        d.new_label.set!
+        d.push :nil
+        d.pop_modifiers
+        d.ret
+      end
+
       g.send_with_block :each, 0, false
     end
   end

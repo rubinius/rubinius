@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
-  it "annoys me to no end that I have to verify stuff this way" do
+  it "populates argument information" do
     sexp = s(:args, :mand1, :mand2, :opt1, :opt2, :"*rest", :"&block",
              s(:block,
                s(:lasgn, :opt1, s(:fixnum, 42)),
@@ -22,7 +22,7 @@ describe Compiler do
     args.defaults.map { |m| [m.name, m.value.value] }.should == expected
   end
 
-  it "should have had a lot more defn specs" do
+  it "handles all kinds of arguments in a def" do
     ruby = "def f(mand1, mand2, opt1 = 42, opt2 = 24, *rest, &block) x(mand1, mand2, opt1, opt2, rest, block) end"
 
     sexp = s(:defn, :f,
@@ -228,9 +228,9 @@ describe Compiler do
           i.ret
         end
 
-        d.make_array 0
-        d.create_block iter
         d.passed_block(1) do
+          d.make_array 0
+          d.create_block iter
           d.send_with_block :each, 0, false
         end
         d.ret
@@ -369,11 +369,9 @@ describe Compiler do
         l.ret
       end
 
-      g.push :self
-
-      g.create_block lam
-
       g.passed_block do
+        g.push :self
+        g.create_block lam
         g.send_with_block :lambda, 0, true
       end
     end

@@ -104,9 +104,9 @@ describe Compiler do
       g.push 12
       g.set_local 0
       g.pop
-      g.push :self
-      g.create_block iter
       g.passed_block(1) do
+        g.push :self
+        g.create_block iter
         g.send_with_block :go, 0, true
       end
     end
@@ -140,9 +140,9 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.create_block iter
       g.passed_block do
+        g.push :self
+        g.create_block iter
         g.send_with_block :go, 0, true
       end
     end
@@ -188,18 +188,18 @@ describe Compiler do
           j.ret
         end
 
-        d.push :self
-        d.create_block i2
         d.break_rescue do
+          d.push :self
+          d.create_block i2
           d.send_with_block :go, 0, true
         end
         d.pop_modifiers
         d.ret
       end
 
-      g.push :self
-      g.create_block iter
       g.passed_block do
+        g.push :self
+        g.create_block iter
         g.send_with_block :go, 0, true
       end
     end

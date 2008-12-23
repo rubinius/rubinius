@@ -150,10 +150,10 @@ describe Compiler do
         d.ret
       end
 
-      g.push 10
-      g.push 2
-      g.create_block desc
       g.passed_block do
+        g.push 10
+        g.push 2
+        g.create_block desc
         g.send_with_block :times, 1, false
       end
     end
@@ -184,16 +184,16 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.send :a, 0, true
-
-      g.push :self
-      g.send :c, 0, true
-      g.cast_array
-
-      g.create_block desc
-
       g.passed_block do
+        g.push :self
+        g.send :a, 0, true
+
+        g.push :self
+        g.send :c, 0, true
+        g.cast_array
+
+        g.create_block desc
+
         g.send_with_splat :b, 0, false, false
       end
     end
@@ -214,7 +214,10 @@ describe Compiler do
       g.send :h, 0, true
       g.push_unique_literal :blah
       g.push 8
+      g.dup
+      g.move_down 3
       g.send :[]=, 2, false
+      g.pop
     end
   end
 
@@ -232,7 +235,10 @@ describe Compiler do
       g.push :self
       g.send :a, 0, true
       g.push 8
+      g.dup
+      g.move_down 2
       g.send :b=, 1, false
+      g.pop
     end
   end
 
@@ -256,7 +262,10 @@ describe Compiler do
       g.push 0
       g.push :self
       g.send :other_string, 0, true
+      g.dup
+      g.move_down 4
       g.send :[]=, 3, false
+      g.pop
     end
   end
 
@@ -309,9 +318,12 @@ describe Compiler do
       g.cast_array
 
       g.push 3
+      g.dup
+      g.move_down 3
       g.swap
       g.push :nil
       g.send_with_splat :[]=, 1, false, true
+      g.pop
     end
   end
 
@@ -702,9 +714,9 @@ describe Compiler do
 
       desc.required = -1
 
-      g.push :self
-      g.create_block desc
       g.passed_block do
+        g.push :self
+        g.create_block desc
         g.send_with_block :at_exit, 0, true
       end
     end

@@ -253,13 +253,13 @@ describe Compiler do
         d.ret
       end
 
-      g.push_cpath_top
-      g.find_const :Range
-      g.push 1
-      g.push 2
-      g.send :new, 2
-      g.create_block iter
       g.passed_block do
+        g.push_cpath_top
+        g.find_const :Range
+        g.push 1
+        g.push 2
+        g.send :new, 2
+        g.create_block iter
         g.send_with_block :each, 0, false
       end
     end
@@ -297,10 +297,10 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.send :x, 0, true
-      g.create_block iter
       g.passed_block do
+        g.push :self
+        g.send :x, 0, true
+        g.create_block iter
         g.send_with_block :each, 0, false
       end
     end
@@ -329,13 +329,13 @@ describe Compiler do
         d.ret
       end
 
-      g.push_cpath_top
-      g.find_const :Range
-      g.push 1
-      g.push 2
-      g.send :new, 2
-      g.create_block iter
       g.passed_block(1) do
+        g.push_cpath_top
+        g.find_const :Range
+        g.push 1
+        g.push 2
+        g.send :new, 2
+        g.create_block iter
         g.send_with_block :each, 0, false
       end
     end
@@ -364,13 +364,13 @@ describe Compiler do
         d.ret
       end
 
-      g.push_cpath_top
-      g.find_const :Range
-      g.push 1
-      g.push 2
-      g.send :new, 2
-      g.create_block iter
       g.passed_block do
+        g.push_cpath_top
+        g.find_const :Range
+        g.push 1
+        g.push 2
+        g.send :new, 2
+        g.create_block iter
         g.send_with_block :each, 0, false
       end
     end
@@ -408,10 +408,10 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.send :x, 0, true
-      g.create_block iter
       g.passed_block(2) do
+        g.push :self
+        g.send :x, 0, true
+        g.create_block iter
         g.send_with_block :each, 0, false
       end
     end
@@ -450,10 +450,10 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.send :x, 0, true
-      g.create_block iter
       g.passed_block(2) do
+        g.push :self
+        g.send :x, 0, true
+        g.create_block iter
         g.send_with_block :each, 0, false
       end
     end
@@ -605,9 +605,9 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.create_block iter
       g.passed_block do
+        g.push :self
+        g.create_block iter
         g.send_with_block :go, 0, true
       end
     end
@@ -706,9 +706,9 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.create_block iter
       g.passed_block do
+        g.push :self
+        g.create_block iter
         g.send_with_block :go, 0, true
       end
     end
@@ -1225,8 +1225,6 @@ describe Compiler do
     sexp.should == parse(ruby)
 
     gen sexp do |g|
-      exc_start  = g.new_label
-      exc_handle = g.new_label
       fin        = g.new_label
       rr         = g.new_label
       last       = g.new_label
@@ -1236,34 +1234,37 @@ describe Compiler do
       g.push_exception
       g.set_local 0
       g.pop
-      exc_start.set!
-      exc_start.set!
-      g.push 12
-      g.goto fin
-
-      exc_handle.set!
-      g.push_const :String
-      g.push_exception
-      g.send :===, 1
-
-      g.git body
-      g.goto rr
-      body.set!
-      g.clear_exception
-      g.push 13
-      g.ret
-      g.clear_exception
-
-      g.goto last
 
       rr.set!
+      g.exceptions do |ex|
+        g.push 12
 
-      g.push_exception
-      g.raise_exc
+        ex.escape fin
+        ex.handle!
 
-      fin.set!
+        g.push_const :String
+        g.push_exception
+        g.send :===, 1
 
-      last.set!
+        g.git body
+        g.goto rr
+        body.set!
+        g.clear_exception
+        g.push 13
+        g.ret
+        g.clear_exception
+
+        g.goto last
+
+        rr.set!
+
+        g.push_exception
+        g.raise_exc
+
+        fin.set!
+
+        last.set!
+      end
 
       g.push_local 0
       g.pop_exception
@@ -1296,9 +1297,9 @@ describe Compiler do
         d.ret
       end
 
-      g.push :self
-      g.create_block iter
       g.passed_block do
+        g.push :self
+        g.create_block iter
         g.send_with_block :go, 0, true
       end
     end

@@ -77,7 +77,10 @@ describe Compiler do
       g.pop
       g.push_unique_literal :blah
       g.push 8
+      g.dup
+      g.move_down 3
       g.send :[]=, 2
+      g.pop
       g.goto fin
 
       found.set!
@@ -118,7 +121,10 @@ describe Compiler do
       g.pop
       g.push_unique_literal :blah
       g.push 8
+      g.dup
+      g.move_down 3
       g.send :[]=, 2
+      g.pop
       g.goto fin
 
       found.set!
@@ -157,7 +163,10 @@ describe Compiler do
       g.send :"^", 1
       g.push_unique_literal :blah
       g.swap
+      g.dup
+      g.move_down 3
       g.send :[]=, 2
+      g.pop
     end
 
   end
@@ -189,7 +198,10 @@ describe Compiler do
       g.swap
       g.push 1
       g.swap
+      g.dup
+      g.move_down 4
       g.send :[]=, 3
+      g.pop
     end
   end
 
@@ -218,7 +230,10 @@ describe Compiler do
 
       g.pop
       g.push 6
+      g.dup
+      g.move_down 2
       g.send :val=, 1
+      g.pop
       g.goto fin
 
       fnd.set!
@@ -250,7 +265,10 @@ describe Compiler do
 
       g.pop
       g.push 7
+      g.dup
+      g.move_down 2
       g.send :val=, 1
+      g.pop
       g.goto fin
 
       fnd.set!
@@ -276,7 +294,10 @@ describe Compiler do
       g.send :val, 0
       g.push 8
       g.send :"^", 1
+      g.dup
+      g.move_down 2
       g.send :val=, 1
+      g.pop
     end
   end
 
