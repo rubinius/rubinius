@@ -471,6 +471,8 @@ raise "no"
 
       def consume(sexp)
         els = nil
+        condition = convert(sexp[0])
+
         # Detect PT format
         if sexp[1][0] == :when
           i = 1
@@ -487,7 +489,7 @@ raise "no"
           end
           els = convert(sexp[2])
         end
-        [convert(sexp[0]), whens, els]
+        [condition, whens, els]
       end
 
       def args(recv, whens, els)
@@ -1486,6 +1488,10 @@ raise "no"
     class LocalAccess < LocalVariable
       kind :lvar
 
+      def consume(sexp)
+        super(sexp, false)
+      end
+
       def args(name, idx = nil)
         @name = name
         super(name)
@@ -1532,15 +1538,15 @@ raise "no"
     end
 
     class LocalVariable < Node
-      def consume(sexp)
+      def consume(sexp, allocate=true)
         name = sexp[0]
 
         scope = get(:scope)
 
         if get(:iter)
-          @variable, @depth = scope.find_local name, true
+          @variable, @depth = scope.find_local name, true, allocate
         else
-          @variable, @depth = scope.find_local name
+          @variable, @depth = scope.find_local name, false, allocate
         end
 
         super(sexp)
@@ -1931,6 +1937,7 @@ raise "huh"
       kind :op_asgn1
 
       def consume(sexp)
+        lhs = convert(sexp[0])
         # Detect PT form
         if sexp.size == 4
           idx = convert(sexp[1]).body
@@ -1955,7 +1962,7 @@ raise "huh"
           end
           which = sexp[1]
         end
-        [convert(sexp[0]), which, idx, val]
+        [lhs, which, idx, val]
       end
 
       def args(obj, kind, index, value)
@@ -2007,6 +2014,15 @@ raise "huh"
 
     class OpAssignAnd < Node
       kind :op_asgn_and
+
+      # We need to convert them in the proper order for scoping.
+      # Things created in assigment are available to access (like locals)
+      def consume(sexp)
+        assignment = convert(sexp[1])
+        access     = convert(sexp[0])
+
+        return [access, assignment]
+      end
 
       def args(left, right)
         @left, @right = left, right
@@ -2652,10 +2668,23 @@ raise "no"
       kind :while
 
       def consume(sexp)
-        sexp[0] = convert(sexp[0])
+        # The 3rd element is a flag that indicates if this is
+        # normal while or a do/while style
+        #
+        # The order of converting matters so that locals are seen
+        # properly.
+        if sexp[2]
+          sexp[0] = convert(sexp[0])
 
-        set(:pop_unwind, false) do
-          sexp[1] = convert(sexp[1])
+          set(:pop_unwind, false) do
+            sexp[1] = convert(sexp[1])
+          end
+        else
+          set(:pop_unwind, false) do
+            sexp[1] = convert(sexp[1])
+          end
+
+          sexp[0] = convert(sexp[0])
         end
 
         sexp

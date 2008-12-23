@@ -1383,7 +1383,11 @@ class Compiler
 
     class LocalAccess
       def bytecode(g)
-        if @variable.kind_of? EvalExpression::DynamicLocal
+        # No variable? Ok, send a method instead.
+        if !@variable
+          g.push_self
+          g.send @name, 0
+        elsif @variable.kind_of? EvalExpression::DynamicLocal
           g.push_context
           g.push_literal @variable.name
           g.send :get_eval_local, 1, false
