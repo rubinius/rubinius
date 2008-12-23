@@ -256,6 +256,8 @@ begin
 rescue SystemExit => e
   code = e.status
 rescue Object => e
+  original_context = e.context
+
   begin
     if e.kind_of? Exception or e.kind_of? ThrownValue
       msg = e.message
@@ -278,9 +280,22 @@ rescue Object => e
     puts e.awesome_backtrace.show
     code = 1
   rescue Object => e2
-    puts "Unable to build backtrace due to errors"
+    puts "\n====================================="
+    puts "Unable to build proper backtrace due to errors!"
+    puts
     puts "Original Exception: #{e.inspect} (#{e.class})"
+    if original_context
+      puts "Lowlevel backtrace:"
+      Rubinius::VM.show_backtrace(original_context)
+      puts
+    end
+
     puts "New Exception: #{e2.inspect} (#{e.class})"
+    new_context = e2.context
+    if new_context
+      puts "Lowlevel backtrace:"
+      Rubinius::VM.show_backtrace(new_context)
+    end
     code = 128
   end
 end
