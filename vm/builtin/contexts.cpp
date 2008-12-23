@@ -310,6 +310,14 @@ namespace rubinius {
     switch(type->to_native()) {
     case 1:
       return Fixnum::from(ip);
+    case 2:
+      return Fixnum::from(calculate_sp());
+    case 3:
+      if(native_ip == 0) {
+        return Qnil;
+      } else {
+        return Integer::from(state, reinterpret_cast<uintptr_t>(native_ip));
+      }
     }
 
     sassert(0 && "invalid index");

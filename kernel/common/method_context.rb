@@ -208,6 +208,11 @@ class MethodContext
     else
       str << "#{name} (#{method.name})"
     end
+
+    if jit_compiled?
+      str << " <JIT>"
+    end
+    return str
   end
 
   def const_defined?(name)
