@@ -197,6 +197,7 @@ namespace rubinius {
     ctx->name(state, this->name());
 
     ctx->home(state, this->home());
+    this->home()->reference(state); // so that the closure won't be deallocated.
 
     /* Set the obj_type because we get called
      * for both BlockContext and MethodContext
