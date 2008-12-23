@@ -219,9 +219,10 @@ void VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, Metho
 
 #undef DISPATCH_NEXT_INSN
 #define DISPATCH_NEXT_INSN op = stream[ctx->ip++]; \
-  if(unlikely(op & cBreakpoint << 24)) { \
-    op &= !(255 << 24); \
+  if(unlikely(op & cBreakpoint)) { \
+    task->yield_debugger(); \
   } \
+  op &= 0x00ffffff; \
   goto *insn_locations[op];
 
 #undef RETURN

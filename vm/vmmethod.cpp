@@ -517,8 +517,8 @@ namespace rubinius {
       Exception::argument_error(state, "Invalid instruction address");
     }
 
-    opcodes[ip] &= ~(255 << 24);    // Clear the high byte
-    opcodes[ip] |= (flags << 24);
+    opcodes[ip] &= 0x00ffffff;    // Clear the high byte
+    opcodes[ip] |= flags & 0xff000000;
   }
 
   /*
@@ -534,7 +534,7 @@ namespace rubinius {
       Exception::argument_error(state, "Invalid instruction address");
     }
 
-    return ((opcodes[ip] & 255 << 24) >> 24);
+    return opcodes[ip] & 0xff000000;
   }
 
   bool Opcode::is_goto() {

@@ -72,10 +72,10 @@ public:
 
     VMMethod vmm(state, cm);
 
-    vmm.set_breakpoint_flags(state, 0, 1);
+    vmm.set_breakpoint_flags(state, 0, 1 << 24);
     TS_ASSERT_EQUALS(vmm.opcodes[0], (1 << 24) | static_cast<unsigned int>(InstructionSequence::insn_push_ivar));
 
-    vmm.set_breakpoint_flags(state, 0, 7);
+    vmm.set_breakpoint_flags(state, 0, 7 << 24);
     TS_ASSERT_EQUALS(vmm.opcodes[0], (7 << 24) | static_cast<unsigned int>(InstructionSequence::insn_push_ivar));
 
     vmm.set_breakpoint_flags(state, 0, 0);
@@ -99,7 +99,7 @@ public:
     VMMethod vmm(state, cm);
 
     TS_ASSERT_EQUALS(vmm.get_breakpoint_flags(state, 0), 0);
-    TS_ASSERT_EQUALS(vmm.get_breakpoint_flags(state, 2), 4);
+    TS_ASSERT_EQUALS(vmm.get_breakpoint_flags(state, 2), 4 << 24);
 
     TS_ASSERT_THROWS(vmm.get_breakpoint_flags(state, 1), const RubyException &e);
   }

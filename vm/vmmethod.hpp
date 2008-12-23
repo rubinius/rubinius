@@ -11,10 +11,11 @@
 namespace rubinius {
   typedef void* instlocation;
   typedef uint32_t opcode;
-  typedef uint8_t bpflags;
+  typedef uint32_t bpflags;
 
-  const bpflags cBreakpoint = 1 << 0;
-  const bpflags cBreakAfterSend = 1 << 1;
+  // Breakpoint flags are set in the high byte of an opcode
+  const bpflags cBreakpoint = 1 << 24;
+  const bpflags cBreakAfterSend = 1 << 25;
 
   class CompiledMethod;
   class MethodContext;
