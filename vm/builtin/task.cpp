@@ -406,11 +406,11 @@ namespace rubinius {
       control_channel(state, Channel::create(state));
     }
 
-    sassert(control_channel_->has_readers_p());
+    //sassert(chan->has_readers_p());
 
     active_->reference(state);
 
-    debug_channel_->send(state, active_);
+    chan->send(state, this);
     control_channel_->receive(state);
   }
 
