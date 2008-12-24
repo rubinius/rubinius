@@ -200,7 +200,7 @@ class CompiledMethod < Executable
     Ruby.primitive :compiledmethod_set_breakpoint
     raise PrimitiveFailure, "Unable to set breakpoint on #{recv.inspect} at #{ip}"
   end
-  
+
   def breakpoint?(ip)
     Ruby.primitive :compiledmethod_is_breakpoint
     raise PrimitiveFailure, "Unable to retrieve breakpoint status on #{recv.inspect} at #{ip}"
