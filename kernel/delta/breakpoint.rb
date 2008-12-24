@@ -4,11 +4,11 @@
 # Breakpoint objects represent debugging breakpoints in the bytecode of
 # CompiledMethod objects.
 # --
-# In Rubinius, a breakpoint is represented by substituting the special opcode
-# yield_debugger into the instruction sequence at the point at which execution
-# is to be suspended. When the VM hits this opcode, it signals the debug thread
-# that is waiting on the running thread's debug_channel, and then suspends the
-# running thread until a signal is received on its control_channel.
+# In Rubinius, a breakpoint is represented by setting a flag on an opcode in
+# the instruction sequence at the point at which execution is to be suspended.
+# When the VM hits this opcode, it signals the debug thread that is waiting on
+# the running thread's debug_channel, and then suspends the running thread
+# until a signal is received on its control_channel.
 #
 # Breakpoint is a superclass to a number of subclasses used for different
 # breakpoint scenarios.
@@ -36,9 +36,6 @@ class Breakpoint
   attr_reader :method
   # Returns the IP address of the breakpoint
   attr_reader :ip
-  # Provide a way to set the correct original instruction to be used when
-  # removing a breakpoint that was set at the same location as an existing one.
-  attr_accessor :original_instruction
 
   # Returns the name of the file in which the breakpoint is set
   def file
@@ -74,11 +71,10 @@ class Breakpoint
   end
 
   ##
-  # Makes the breakpoint active by inserting a yield_debugger instruction at the
-  # breakpoint.
+  # Makes the breakpoint active by setting a breakpoint flag on the instruction at
+  # the breakpoint.
   def install(ctxt=nil, bytecodes=@method.iseq)
-    Breakpoint.encoder.replace_instruction bytecodes, @ip, [:yield_debugger]
-    modify_iseq ctxt, bytecodes
+    @method.set_breakpoint @ip
   end
 
   ##
@@ -86,32 +82,16 @@ class Breakpoint
   # breakpoint. Returns the address of the breakpoint, so that the context IP
   # can be reset and execution can proceed following the breakpoint.
   def remove(ctxt=nil, bytecodes=@method.iseq)
-    Breakpoint.encoder.replace_instruction bytecodes, @ip, @original_instruction
-    modify_iseq ctxt, bytecodes
+    raise NotImplementedError
     @ip
   end
 
-  # Returns true if a :yield_debugger instruction is currently installed at the
-  # breakpoint target.
+  # Returns true if a breakpoint flag is currently set at the breakpoint target.
   def installed?
     if @method and @ip
-      op = Breakpoint.encoder.decode_instruction(@method.iseq, @ip)
-      op.first.opcode == :yield_debugger
+      @method.breakpoint? @ip
     end
   end
-
-  # Modifies an instruction sequence on either the compiled method (for a
-  # global change), or a single context.
-  def modify_iseq(ctxt, bytecodes)
-    if ctxt
-      # Change should be visible only to the specified context
-      ctxt.set_iseq(bytecodes)
-    else
-      # Have the compiled method re-compile it's bytecode to pick up changes
-      @method.compile
-    end
-  end
-  protected :modify_iseq
 
   # Executes the callback block that was provided for when a breakpoint was hit.
   def call_handler(thread, ctx)
@@ -162,8 +142,6 @@ class GlobalBreakpoint < Breakpoint
     self.condition = selector[:condition]
     @hits = 0
     validate_breakpoint_ip @ip
-
-    @original_instruction = Breakpoint.encoder.decode_instruction(@method.iseq, @ip)
   end
 
   attr_reader :id
@@ -337,7 +315,6 @@ class StepBreakpoint < Breakpoint
     if @break_type == :opcode_replacement
       # Set new breakpoint
       @method = @context.method
-      @original_instruction = Breakpoint.encoder.decode_instruction(@method.iseq, @ip)
     end
   end
 
@@ -633,6 +610,7 @@ class BreakpointTracker
       cm = method.compiled_method
     end
 
+    selector = {:ip => selector} if selector.kind_of? Fixnum
     bp = GlobalBreakpoint.new(cm, selector)
     if @global_breakpoints[cm][bp.ip]
       raise ArgumentError, "A breakpoint is already set for #{cm.name} at IP:#{bp.ip}"
