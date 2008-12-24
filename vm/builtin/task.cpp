@@ -90,11 +90,7 @@ namespace rubinius {
 
   ExecuteStatus Task::set_current(STATE, Executable* exec, Task* task_, Message& msg) {
 
-    //if(unlikely(msg.args() != 1)) goto fail;
-
-    Task* tsk;
-    tsk = try_as<Task>(msg.get_argument(0));
-    //if(unlikely(tsk == NULL)) goto fail;
+    Task* tsk = try_as<Task>(msg.get_argument(0));
 
     Thread::current(state)->task(state, tsk);
     state->globals.current_task.set(tsk);
