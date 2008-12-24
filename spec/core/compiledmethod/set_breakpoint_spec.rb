@@ -4,6 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/breakpoint_classes'
 describe "CompiledMethod#set_breakpoint" do
   before :each do
     @cm = BreakpointSpecs::Debuggee.instance_method(:simple_method).compiled_method
+    @cm.compile
   end
 
   it "sets a breakpoint flag at the location specified" do
@@ -13,6 +14,6 @@ describe "CompiledMethod#set_breakpoint" do
   end
 
   it "raises an exception if an invalid IP is specified" do
-    lambda { @cm.set_breakpoint(2) }.should raise_error(ArgumentError)
+    lambda { @cm.set_breakpoint(1) }.should raise_error(ArgumentError)
   end
 end
