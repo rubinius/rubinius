@@ -15,9 +15,6 @@
 
 #include <iostream>
 
-#define SmallContextSize   16
-#define LargeContextSize   56
-
 namespace rubinius {
 
   void MethodContext::init(STATE) {
@@ -26,22 +23,6 @@ namespace rubinius {
 
     GO(blokctx).set(state->new_class("BlockContext", G(methctx)));
     G(blokctx)->set_object_type(state, BlockContextType);
-  }
-
-  /* Calculate how much big of an object (in bytes) to allocate
-   * for one with a body of +original+ and a stack of +stack+ */
-  static inline size_t add_stack(size_t original, size_t stack) {
-    return original + (sizeof(Object*) * stack);
-  }
-
-  static inline size_t round_stack(size_t original) {
-    if(original <= SmallContextSize) {
-      return SmallContextSize;
-    } else if(original <= LargeContextSize) {
-      return LargeContextSize;
-    }
-
-    return original;
   }
 
   /* Initialize +ctx+'s fields */
@@ -72,8 +53,6 @@ namespace rubinius {
   template <class T>
     static inline T* allocate(STATE, Class* cls, size_t stack_size) {
       T* ctx;
-
-      stack_size = round_stack(stack_size);
 
       ctx = reinterpret_cast<T*>(state->om->allocate_context(stack_size));
       if(ctx) {
