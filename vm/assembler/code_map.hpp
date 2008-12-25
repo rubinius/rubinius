@@ -2,9 +2,11 @@
 #define RBX_ASM_CODE_MAP
 
 #include <map>
+#include <string>
 
 namespace rubinius {
-  typedef std::map<rubinius::opcode, void*> CodeMap;
+  typedef std::map<int, void*> CodeMap;
+  typedef std::map<void*, const char*> AddressComments;
 }
 
 #endif

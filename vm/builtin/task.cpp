@@ -639,6 +639,12 @@ namespace rubinius {
         std::cout << "<unknown>";
       }
 
+      if(ctx->native_ip) {
+        std::cout << " <JIT:" << ctx->vmm->machine_method()->function()
+          << "/" << ctx->native_ip << ">";
+      }
+
+
       std::cout << std::endl;
       ctx = ctx->sender();
     }

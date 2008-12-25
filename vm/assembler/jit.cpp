@@ -121,6 +121,8 @@ namespace rubinius {
     // The location of just the instructions that clear the stack and return
     AssemblerX86::NearJumpLocation real_fin;
 
+    comments_[a.pc()] = "prologue";
+
     ops.prologue();
     cache_stack();
 
@@ -133,6 +135,8 @@ namespace rubinius {
     // because our jump destinations are always right after calls
     // out to implementions and thus have uncached ebx.
     AssemblerX86::NearJumpLocation normal_start;
+
+    comments_[a.pc()] = "method reentry";
 
     ops.load_native_ip(eax);
     a.cmp(eax, 0);
@@ -148,6 +152,8 @@ namespace rubinius {
       // Set the label location
       a.set_label(labels[i]);
 
+      comments_[a.pc()] = InstructionSequence::get_instruction_name(op);
+
       // If we registers an immediate to be update, do it now.
       // TODO a.pc() is bigger than a uint32_t on 64bit
       if(last_imm) {
@@ -162,7 +168,7 @@ namespace rubinius {
         // usage since we don't know the state off things when we're
         // jumped here.
         ops.reset_usage();
-      } else if(labels[i].flags() | cFlagUnwoundTo) {
+      } else if(labels[i].flags() & cFlagUnwoundTo) {
         // Update our table of virtual ip to native ip
         virtual2native[i] = reinterpret_cast<void*>(a.pc());
 
@@ -512,6 +518,7 @@ call_op:
           maybe_return(i, &last_imm, fin);
         } else if(status == instructions::Terminate) {
           a.jump(real_fin);
+          cache_stack();
         } else {
           cache_stack();
         }
@@ -521,6 +528,8 @@ call_op:
 
       i += width;
     }
+
+    comments_[a.pc()] = "epilogue";
 
     a.set_label(fin);
 

@@ -20,6 +20,9 @@ namespace rubinius {
     // Contains the mapping between virtual ip and native ip
     CodeMap virtual2native;
 
+    // Contains comments about addresses
+    AddressComments comments_;
+
   public:
     const static int cFlagUnwoundTo = (1 << 0);
     const static int cRecordV2N     = (1 << 1);
@@ -33,6 +36,10 @@ namespace rubinius {
 
     CodeMap& code_map() {
       return virtual2native;
+    }
+
+    AddressComments& comments() {
+      return comments_;
     }
 
     void compile(VM*, VMMethod*);

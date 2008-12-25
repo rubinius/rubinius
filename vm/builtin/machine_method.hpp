@@ -14,6 +14,7 @@ namespace rubinius {
     VMMethod* vmmethod_;
     size_t code_size_;
     CodeMap* virtual2native_;
+    AddressComments* comments_;
     assembler::Relocation** relocations_;
 
     void* function_;

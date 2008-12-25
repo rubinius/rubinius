@@ -25,7 +25,8 @@ namespace assembler_x86 {
     show_buffer(buffer_, pc_ - buffer_);
   }
 
-  void AssemblerX86::show_buffer(void* buffer, size_t size, bool show_hex) {
+  void AssemblerX86::show_buffer(void* buffer, size_t size, bool show_hex,
+      rubinius::AddressComments* comments) {
     ud_t ud;
 
     ud_init(&ud);
@@ -34,8 +35,18 @@ namespace assembler_x86 {
     ud_set_input_buffer(&ud, reinterpret_cast<uint8_t*>(buffer), size);
 
     while(ud_disassemble(&ud)) {
+      void* address = reinterpret_cast<void*>(
+          reinterpret_cast<uintptr_t>(buffer) + ud_insn_off(&ud));
+
+      if(comments) {
+        rubinius::AddressComments::iterator i = comments->find(address);
+        if(i != comments->end()) {
+          std::cout << "         ;  " << i->second << "\n";
+        }
+      }
+
       std::cout << std::setw(10) << std::right
-                << reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(buffer) + ud_insn_off(&ud))
+                << address
                 << "  ";
 
       if(show_hex) {

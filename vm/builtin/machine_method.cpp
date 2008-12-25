@@ -54,6 +54,16 @@ namespace rubinius {
       v2n[i->first] = adjust(jit.assembler().buffer(), mm->function(), i->second);
     }
 
+    mm->comments_ = new AddressComments();
+    AddressComments& comments = *mm->comments_;
+
+    for(AddressComments::iterator i = jit.comments().begin();
+        i != jit.comments().end();
+        i++) {
+      comments[adjust(jit.assembler().buffer(), mm->function(), i->first)] =
+          i->second;
+    }
+
     return mm;
   }
 
@@ -72,7 +82,7 @@ namespace rubinius {
     ratio = (double)code_size_ / ((double)vmmethod_->total * sizeof(rubinius::opcode));
     std::cout << "       memory ratio: " << ratio << "\n";
     std::cout << "\n== x86 assembly ==\n";
-    assembler_x86::AssemblerX86::show_buffer(function(), code_size_);
+    assembler_x86::AssemblerX86::show_buffer(function(), code_size_, false, comments_);
     return Qnil;
   }
 

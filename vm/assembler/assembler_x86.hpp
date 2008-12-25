@@ -15,6 +15,7 @@
 #include "assembler/assembler.hpp"
 #include "udis86.h"
 #include "assembler/relocation.hpp"
+#include "assembler/code_map.hpp"
 
 namespace assembler_x86 {
 
@@ -671,7 +672,8 @@ namespace assembler_x86 {
 
     // Disassembling
     void show();
-    static void show_buffer(void* buffer, size_t size, bool show_hex = false);
+    static void show_buffer(void* buffer, size_t size, bool show_hex = false,
+        rubinius::AddressComments* comments = NULL);
     ud_t* disassemble();
     void show_relocations();
   };

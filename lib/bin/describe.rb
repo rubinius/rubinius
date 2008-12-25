@@ -32,7 +32,7 @@ def interactive()
   exit
 end
 
-def describe_compiled_method(cm)
+def describe_compiled_method(cm, dis=false)
   extra = cm.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
 
   name = cm.name ? cm.name.inspect : 'anonymous'
@@ -48,12 +48,20 @@ def describe_compiled_method(cm)
   puts cm.decode
   puts "-" * 38
 
+  if dis
+    mm = cm.make_machine_method
+    puts "\nx86 Assembly:"
+    mm.disassemble
+    puts
+  end
+
   until extra.empty?
     puts ""
     sub = extra.shift
-    describe_compiled_method(sub)
+    describe_compiled_method(sub, dis)
     extra += sub.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
   end
+
 end
 
 # Temporary workaround for Rubinius bug in __FILE__ paths
@@ -88,7 +96,8 @@ if __FILE__.include?($0) then
 
     puts "\nCompiled output:"
     top = Compiler.compile_file(file, flags)
-    describe_compiled_method(top)
+    describe_compiled_method(top, flags.include?("dis"))
+
   rescue SyntaxError
     exit 1
   end
