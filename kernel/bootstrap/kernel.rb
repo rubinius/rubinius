@@ -64,7 +64,7 @@ module Kernel
   end
 
   def method_missing(meth, *args)
-    raise NoMethodError, "Unable to send '#{meth}' on '#{self}'"
+    raise NoMethodError, "Unable to send '#{meth}' on '#{self}' (#{self.class})"
   end
 
   def object_id

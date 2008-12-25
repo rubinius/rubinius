@@ -1,4 +1,46 @@
 module Kernel
+
+  ##
+  #--
+  # HACK todo handle cascading raises (ie, TypeError raise
+  # raising forever blows)
+  #++
+
+  def raise(exc=Undefined, msg=nil, trace=nil)
+    skip = false
+    if exc.equal? Undefined
+      exc = $!
+      if exc
+        skip = true
+      else
+        exc = RuntimeError.new("No current exception")
+      end
+    elsif exc.respond_to? :exception
+      exc = exc.exception msg
+      raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
+      exc.set_backtrace trace if trace
+    elsif exc.kind_of? String or !exc
+      exc = ::RuntimeError.exception exc
+    else
+      raise ::TypeError, 'exception class/object expected'
+    end
+
+    if $DEBUG and $VERBOSE != nil
+      sender = MethodContext.current.sender
+      STDERR.puts "Exception: `#{exc.class}' #{sender.location} - #{exc.message}"
+    end
+
+    if !skip and !exc.context
+      exc.context = MethodContext.current.sender
+    end
+
+    Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
+  end
+  module_function :raise
+
+  alias_method :fail, :raise
+  module_function :fail
+
   def method_missing(meth, *args)
     # Exclude method_missing from the backtrace since it only confuses
     # people.
