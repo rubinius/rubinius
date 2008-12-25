@@ -410,7 +410,7 @@ namespace rubinius {
 
     active_->reference(state);
 
-    chan->send(state, this);
+    chan->send(state, G(current_thread));
     control_channel_->receive(state);
   }
 
