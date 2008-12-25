@@ -173,7 +173,7 @@ namespace rubinius {
 
   Object* CompiledMethod::is_breakpoint(STATE, Fixnum* ip) {
     // TODO Return an exception indicating the problem
-    if(backend_method_ == 0) return Qnil;
+    if(backend_method_ == 0) return Qfalse;
     if(backend_method_->get_breakpoint_flags(state, ip->to_native()) == cBreakpoint)
         return Qtrue;
     return Qfalse;

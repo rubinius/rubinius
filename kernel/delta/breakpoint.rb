@@ -89,8 +89,10 @@ class Breakpoint
   # Returns true if a breakpoint flag is currently set at the breakpoint target.
   def installed?
     if @method and @ip
-      @method.breakpoint? @ip
+      return @method.breakpoint? @ip
     end
+
+    return false
   end
 
   # Executes the callback block that was provided for when a breakpoint was hit.
