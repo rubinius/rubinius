@@ -90,53 +90,48 @@ class Array
   def [](arg1, arg2 = nil)
     Ruby.primitive :array_aref
 
-    # Normalise the argument variants
-    start_idx, finish_idx, count, simple, is_range = nil, nil, nil, false, false
-
     if arg1.kind_of? Range
-      is_range = true
-      start_idx, finish_idx = arg1.begin, arg1.end
-    elsif arg2
-      start_idx, count = arg1, Type.coerce_to(arg2, Fixnum, :to_int)
-      return nil if count < 0       # No need to go further
+      start_idx = Type.coerce_to arg1.begin, Fixnum, :to_int
     else
-      start_idx, finish_idx, simple = arg1, arg1, true
+      start_idx = Type.coerce_to arg1, Fixnum, :to_int
+      if arg2
+        count = Type.coerce_to arg2, Fixnum, :to_int
+        return nil if count < 0       # No need to go further
+      else # repeat prim case after coercing with to_int
+        # Convert negative indices
+        start_idx += @total if start_idx < 0
+        return nil if start_idx < 0 or start_idx >= @total
+        return @tuple.at(@start + start_idx)
+      end
     end
 
     # Convert negative indices
-    start_idx = Type.coerce_to start_idx, Fixnum, :to_int
     start_idx += @total if start_idx < 0
 
-    if simple
-      return nil if start_idx < 0 or start_idx >= @total
-      return @tuple.at(@start + start_idx)
-    # ONE past end only, MRI compat
-    elsif start_idx == @total
-      return self.class.new
-    elsif start_idx < 0 or start_idx >= @total
-      return nil
-    end
-
-
-    finish_idx = Type.coerce_to finish_idx, Fixnum, :to_int if finish_idx
-    finish_idx = (start_idx + count - 1) if count    # For non-ranges
-
-    finish_idx += @total if finish_idx < 0
-
-    finish_idx -= 1 if is_range and arg1.exclude_end?
-
-    # Going past the end is ignored (sort of)
-    finish_idx = (@total - 1) if finish_idx >= @total
-
-    if finish_idx < 0
-      if is_range
+    if start_idx < 0 or start_idx >= @total
+      # ONE past end only, MRI compat
+      if start_idx == @total
         return self.class.new
       else
         return nil
       end
-    elsif finish_idx < start_idx or count == 0
+    end
+
+    if count
+      return self.class.new if count == 0
+      finish_idx = start_idx + count - 1
+    else # from a range
+      finish_idx = Type.coerce_to arg1.end, Fixnum, :to_int
+      finish_idx += @total if finish_idx < 0
+      finish_idx -= 1 if arg1.exclude_end?
+    end
+
+    if finish_idx < start_idx
       return self.class.new
     else
+      # Going past the end is ignored (sort of)
+      finish_idx = (@total - 1) if finish_idx >= @total
+
       tot = finish_idx - start_idx + 1
       out = self.class.new
       out.tuple = Tuple.new(tot)
