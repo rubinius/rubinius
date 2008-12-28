@@ -87,63 +87,61 @@ class Array
   # indices count from the end. Returns nil if the index or subarray
   # request cannot be completed. Array#slice is synonymous with #[].
   # Subclasses return instances of themselves.
-  def [](one, two = nil)
+  def [](arg1, arg2 = nil)
     Ruby.primitive :array_aref
 
     # Normalise the argument variants
-    start, finish, count, simple, is_range = nil, nil, nil, false, false
+    start_idx, finish_idx, count, simple, is_range = nil, nil, nil, false, false
 
-    if one.kind_of? Range
+    if arg1.kind_of? Range
       is_range = true
-      start, finish = one.begin, one.end
-    elsif two
-      start, count = one, Type.coerce_to(two, Fixnum, :to_int)
+      start_idx, finish_idx = arg1.begin, arg1.end
+    elsif arg2
+      start_idx, count = arg1, Type.coerce_to(arg2, Fixnum, :to_int)
       return nil if count < 0       # No need to go further
     else
-      start, finish, simple = one, one, true
+      start_idx, finish_idx, simple = arg1, arg1, true
     end
 
     # Convert negative indices
-    start = Type.coerce_to start, Fixnum, :to_int
-    start += @total if start < 0
+    start_idx = Type.coerce_to start_idx, Fixnum, :to_int
+    start_idx += @total if start_idx < 0
 
     if simple
-      return nil if start < 0 or start >= @total
-      return @tuple.at(@start + start)
-
+      return nil if start_idx < 0 or start_idx >= @total
+      return @tuple.at(@start + start_idx)
     # ONE past end only, MRI compat
-    elsif start == @total
+    elsif start_idx == @total
       return self.class.new
-
-    elsif start < 0 or start >= @total
+    elsif start_idx < 0 or start_idx >= @total
       return nil
     end
 
 
-    finish = Type.coerce_to finish, Fixnum, :to_int if finish
-    finish = (start + count - 1) if count    # For non-ranges
+    finish_idx = Type.coerce_to finish_idx, Fixnum, :to_int if finish_idx
+    finish_idx = (start_idx + count - 1) if count    # For non-ranges
 
-    finish += @total if finish < 0
+    finish_idx += @total if finish_idx < 0
 
-    finish -= 1 if is_range and one.exclude_end?
+    finish_idx -= 1 if is_range and arg1.exclude_end?
 
     # Going past the end is ignored (sort of)
-    finish = (@total - 1) if finish >= @total
+    finish_idx = (@total - 1) if finish_idx >= @total
 
-    if finish < 0
+    if finish_idx < 0
       if is_range
         return self.class.new
       else
         return nil
       end
-    elsif finish < start or count == 0
+    elsif finish_idx < start_idx or count == 0
       return self.class.new
     else
-      tot = finish-start+1
+      tot = finish_idx - start_idx + 1
       out = self.class.new
       out.tuple = Tuple.new(tot)
       out.total = tot
-      out.tuple.copy_from(@tuple, @start+start, tot, 0)
+      out.tuple.copy_from(@tuple, @start + start_idx, tot, 0)
       return out
     end
   end
