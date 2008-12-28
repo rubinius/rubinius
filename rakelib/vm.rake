@@ -119,6 +119,7 @@ field_extract_headers = %w[
   vm/builtin/system.hpp
   vm/builtin/autoload.hpp
   vm/builtin/machine_method.hpp
+  vm/builtin/block_wrapper.hpp
 ]
 
 BC          = "vm/instructions.bc"

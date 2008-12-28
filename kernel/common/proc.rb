@@ -1,26 +1,12 @@
 # depends on: class.rb block_context.rb binding.rb
 
-class Proc
-
-  def block; @block ; end
-
-  def block=(other)
-    @block = other
-  end
-
-  def binding
-    bind = Binding.setup @block.home_block
-    bind.proc_environment = @block
-    bind
-  end
-
-  def caller(start = 0)
-    @block.home_block.stack_trace_starting_at(start)
-  end
+module Proc
 
   def self.__from_block__(env)
+    Ruby.primitive :block_wrapper_from_env
+
     if env.__kind_of__(BlockEnvironment)
-      obj = allocate()
+      obj = FromBlock.allocate
       obj.block = env
       return obj
     else
@@ -51,8 +37,21 @@ class Proc
     end
   end
 
+  attr_accessor :block
+
+  def binding
+    bind = Binding.setup @block.home_block
+    bind.proc_environment = @block
+    bind
+  end
+
+  def caller(start = 0)
+    @block.home_block.stack_trace_starting_at(start)
+  end
+
+
   def inspect
-    "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{@block.home_block.file}:#{@block.home_block.line}>"
+    "#<Proc:0x#{self.object_id.to_s(16)} @ #{@block.home_block.file}:#{@block.home_block.line}>"
   end
 
   alias_method :to_s, :inspect
@@ -70,13 +69,20 @@ class Proc
     self
   end
 
-  def call(*args)
-    @block.call(*args)
+  FromBlock = Rubinius::BlockWrapper
+  class FromBlock
+    include Proc
+
+    alias_method :[], :call
   end
 
-  alias_method :[], :call
+  class Function
+    include Proc
 
-  class Function < Proc
+    def initialize(block)
+      @block = block
+    end
+
     def call(*args)
       a = arity()
       unless a < 0 or a == 1 or args.size == a
@@ -89,11 +95,12 @@ class Proc
         return e.value
       end
     end
-    
+
     alias_method :[], :call
   end
 
-  class CompiledMethod < Proc
+  class CompiledMethod
+    include Proc
 
     def compiled_method; @compiled_method; end
 

@@ -1358,6 +1358,9 @@ class Instructions
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       env->call(state, task, count);
       RETURN(true);
+    } else if(BlockWrapper* wrapper = try_as<BlockWrapper>(t1)) {
+      wrapper->call(state, task, count);
+      RETURN(true);
     }
 
     RETURN(send_slowly(vmm, task, ctx, G(sym_call), count));

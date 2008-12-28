@@ -106,6 +106,7 @@ namespace rubinius {
 
     TypedRoot<Class*> autoload; /**< Autoload class */
     TypedRoot<Class*> machine_method; /**< MachineMethod class */
+    TypedRoot<Class*> block_wrapper; /**< BlockWrapper class */
 
     /* Add new globals above this line. */
 
@@ -212,7 +213,8 @@ namespace rubinius {
       nativectx(&roots),     /**< NativeMethodContext */
       data(&roots),
       autoload(&roots),
-      machine_method(&roots)
+      machine_method(&roots),
+      block_wrapper(&roots)
 
       /* Add initialize of globals above this line. */
     { }

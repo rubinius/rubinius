@@ -38,6 +38,7 @@
 #include "builtin/taskprobe.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/machine_method.hpp"
+#include "builtin/block_wrapper.hpp"
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
@@ -218,6 +219,7 @@ namespace rubinius {
     Data::init(this);
     Autoload::init(this);
     MachineMethod::init(this);
+    BlockWrapper::init(this);
 
     NativeMethod::register_class_with(this);
     NativeMethodContext::register_class_with(this);

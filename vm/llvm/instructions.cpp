@@ -19,6 +19,7 @@
 #include "builtin/nativemethod.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/lookuptable.hpp"
+#include "builtin/block_wrapper.hpp"
 
 #include "objectmemory.hpp"
 #include "message.hpp"
