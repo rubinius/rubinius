@@ -1,14 +1,15 @@
 require 'benchmark'
- 
+
+srand(42)
 total = (ENV['TOTAL'] || 5_000).to_i
 
 array = Array.new(total) {|i| i}
 array_of_arrays = Array.new(total) do |i|  
-  Array.new(i%100+10) {|j| j % 100 }
+  Array.new(rand(total/10)) {|j| j % 100 }
 end
 
-scratch = Array.new(total) {|i| (i % 100 == 0) ? nil : i }
-portion = array_of_arrays.first(total/4)
+scratch = Array.new(total) {|i| (rand(100) == 1) ? nil : i }
+portion = array_of_arrays.first(total/10)
 
 Benchmark.bmbm do |x|
   x.report 'empty N' do
@@ -89,6 +90,12 @@ Benchmark.bmbm do |x|
   x.report 'Array#[i,offset]' do
     total.times do |j|
       array[total-j,j]
+    end
+  end
+
+  x.report 'Array#[i..total]' do
+    total.times do |j|
+      array[j..total]
     end
   end
 
