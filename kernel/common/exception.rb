@@ -13,6 +13,10 @@ class Exception
 
   def backtrace
     if @backtrace
+      if @backtrace.kind_of? Array
+        return @backtrace
+      end
+
       return @backtrace.to_mri
     end
 
