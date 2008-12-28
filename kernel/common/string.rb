@@ -1431,12 +1431,6 @@ class String
       end
     end
 
-    # Support subclasses
-    ret = ret.map { |str| self.class.new(str) } if !self.instance_of?(String)
-
-    # Taint all
-    ret = ret.map { |str| str.taint } if self.tainted?
-
     ret
   end
 
