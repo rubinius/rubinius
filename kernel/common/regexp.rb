@@ -532,13 +532,13 @@ class MatchData
   end
 
   def pre_match
-    return "" if full.at(0) == 0
+    return @source.substring(0, 0) if full.at(0) == 0
     nd = full.at(0) - 1
     @source[0, nd+1]
   end
 
   def pre_match_from(idx)
-    return "" if full.at(0) == 0
+    return @source.substring(0, 0) if full.at(0) == 0
     nd = full.at(0) - 1
     @source[idx, nd-idx+1]
   end
