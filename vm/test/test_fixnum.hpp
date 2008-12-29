@@ -209,18 +209,22 @@ class TestFixnum : public CxxTest::TestSuite {
 
   void test_mod_with_positive_arguments() {
     TS_ASSERT_EQUALS(Fixnum::from(3)->mod(state, Fixnum::from(2)), Fixnum::from(1));
+    TS_ASSERT_EQUALS(Fixnum::from(200)->mod(state, Fixnum::from(256)), Fixnum::from(200));
   }
 
   void test_mod_with_first_negative_argument() {
     TS_ASSERT_EQUALS(Fixnum::from(-3)->mod(state, Fixnum::from(2)), Fixnum::from(1));
+    TS_ASSERT_EQUALS(Fixnum::from(-200)->mod(state, Fixnum::from(256)), Fixnum::from(56));
   }
 
   void test_mod_with_second_negative_argument() {
     TS_ASSERT_EQUALS(Fixnum::from(3)->mod(state, Fixnum::from(-2)), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(Fixnum::from(200)->mod(state, Fixnum::from(-256)), Fixnum::from(-56));
   }
 
   void test_mod_with_negative_arguments() {
     TS_ASSERT_EQUALS(Fixnum::from(-3)->mod(state, Fixnum::from(-2)), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(Fixnum::from(-200)->mod(state, Fixnum::from(-256)), Fixnum::from(-200));
   }
 
   void test_mod_with_a_bignum() {
