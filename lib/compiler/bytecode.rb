@@ -267,8 +267,7 @@ class Compiler
         g.dup
         g.is_nil
         g.git nil_block
-        g.push_cpath_top
-        g.find_const :Proc
+        g.find_cpath_top_const :Proc
         g.swap
 
         g.send :__from_block__, 1
@@ -301,8 +300,7 @@ class Compiler
         if g.break
           g.goto g.break
         elsif @in_block
-          g.push_cpath_top
-          g.find_const :BlockBreakException
+          g.find_cpath_top_const :BlockBreakException
           g.swap
 
           g.push_context
@@ -483,8 +481,7 @@ class Compiler
 
           g.push_exception
           g.dup
-          g.push_cpath_top
-          g.find_const :BlockBreakException
+          g.find_cpath_top_const :BlockBreakException
           g.swap
           g.kind_of
 
@@ -528,8 +525,7 @@ class Compiler
 
           g.push_exception
           g.dup
-          g.push_cpath_top
-          g.find_const :LongReturnException
+          g.find_cpath_top_const :LongReturnException
           g.swap
           g.kind_of
 
@@ -1195,12 +1191,10 @@ class Compiler
         if @name == :$!
           g.push_exception
         elsif @name == :$~
-          g.push_cpath_top
-          g.find_const :Regexp
+          g.find_cpath_top_const :Regexp
           g.send :last_match, 0
         else
-          g.push_cpath_top
-          g.find_const :Globals
+          g.find_cpath_top_const :Globals
           g.push_literal @name
           g.send :[], 1
         end
@@ -1216,26 +1210,22 @@ class Compiler
           g.raise_exc
         elsif @name == :$~
           if @value
-            g.push_cpath_top
-            g.find_const :Regexp
+            g.find_cpath_top_const :Regexp
             @value.bytecode(g)
             g.send :my_last_match=, 1
           else
-            g.push_cpath_top
-            g.find_const :Regexp
+            g.find_cpath_top_const :Regexp
             g.swap
             g.send :my_last_match=, 1
           end
         else
           if @value
-            g.push_cpath_top
-            g.find_const :Globals
+            g.find_cpath_top_const :Globals
             g.push_literal @name
             @value.bytecode(g)
             g.send :[]=, 2
           else
-            g.push_cpath_top
-            g.find_const :Globals
+            g.find_cpath_top_const :Globals
             g.swap
             g.push_literal @name
             g.swap
@@ -1250,8 +1240,7 @@ class Compiler
         count = @body.size
         i = 0
 
-        g.push_cpath_top
-        g.find_const :Hash
+        g.find_cpath_top_const :Hash
 
         while i < count
           v = @body[i]
@@ -1664,8 +1653,7 @@ class Compiler
     class Match
       def bytecode(g)
         g.push_literal :$_
-        g.push_cpath_top
-        g.find_const :Globals
+        g.find_cpath_top_const :Globals
         g.send :[], 1
 
         @pattern.bytecode(g)
@@ -1987,8 +1975,7 @@ class Compiler
 
     class Range
       def bytecode(g)
-        g.push_cpath_top
-        g.find_const :Range
+        g.find_cpath_top_const :Range
         @start.bytecode(g)
         @finish.bytecode(g)
         g.send :new, 2
@@ -1997,8 +1984,7 @@ class Compiler
 
     class RangeExclude
       def bytecode(g)
-        g.push_cpath_top
-        g.find_const :Range
+        g.find_cpath_top_const :Range
         @start.bytecode(g)
         @finish.bytecode(g)
         g.push :true
@@ -2160,8 +2146,7 @@ class Compiler
         end
 
         if !force and @in_ensure
-          g.push_cpath_top
-          g.find_const :ReturnException
+          g.find_cpath_top_const :ReturnException
           g.swap
           g.send :new, 1
           g.raise_exc
@@ -2176,8 +2161,7 @@ class Compiler
       end
 
       def self.emit_lre(g, var)
-        g.push_cpath_top
-        g.find_const :LongReturnException
+        g.find_cpath_top_const :LongReturnException
         g.swap
 
         g.push_context
@@ -2342,8 +2326,7 @@ class Compiler
       # If it is anything else, use cast_array
       def wrap_array(g)
         g.dup
-        g.push_cpath_top
-        g.find_const :Array
+        g.find_cpath_top_const :Array
         g.swap
         g.kind_of
 
@@ -2425,8 +2408,7 @@ class Compiler
 
     class VAlias
       def bytecode(g)
-        g.push_cpath_top
-        g.find_const :Globals
+        g.find_cpath_top_const :Globals
         g.push_literal @new
         g.push_literal @current
         g.send :add_alias, 2
