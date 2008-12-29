@@ -566,7 +566,7 @@ class Compiler
         @receiver.bytecode(g) if @receiver
         @whens.each do |w|
           nxt = g.new_label
-          w.bytecode(g, !!@receiver, nxt, fin)
+          w.bytecode(g, @receiver ? true : false, nxt, fin)
           nxt.set!
         end
 
@@ -1112,7 +1112,7 @@ class Compiler
             g.dup
             g.push_const :ReturnException
             g.swap
-            g.send :===, 1
+            g.kind_of
 
             after = g.new_label
             g.gif after
@@ -1615,7 +1615,7 @@ class Compiler
           g.rotate @rhs.body.size if @rhs.respond_to? :body # HACK
         end
 
-        if @lhs && !@lhs.body.size.zero?
+        if @lhs && !@lhs.body.empty?
           g.cast_array
           @lhs.body.each do |x|
             g.shift_array
