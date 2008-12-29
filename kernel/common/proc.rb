@@ -1,6 +1,6 @@
 # depends on: class.rb block_context.rb binding.rb
 
-module Proc
+class Proc
 
   def self.__from_block__(env)
     Ruby.primitive :block_wrapper_from_env
@@ -69,18 +69,15 @@ module Proc
     self
   end
 
-  FromBlock = Rubinius::BlockWrapper
   class FromBlock
-    include Proc
-
     alias_method :[], :call
   end
 
-  class Function
-    include Proc
-
-    def initialize(block)
-      @block = block
+  class Function < Proc
+    def self.__setup__(block)
+      obj = allocate()
+      obj.block = block
+      return obj
     end
 
     def call(*args)
@@ -99,9 +96,7 @@ module Proc
     alias_method :[], :call
   end
 
-  class CompiledMethod
-    include Proc
-
+  class CompiledMethod < Proc
     def compiled_method; @compiled_method; end
 
     def compiled_method=(other)

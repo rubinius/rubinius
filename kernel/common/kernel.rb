@@ -281,7 +281,7 @@ module Kernel
 
     block.disable_long_return!
 
-    return Proc::Function.new(block)
+    return Proc::Function.__setup__(block)
   end
   alias_method :proc, :lambda
   module_function :lambda

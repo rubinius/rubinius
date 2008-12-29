@@ -8,10 +8,11 @@
 namespace rubinius {
 
   void BlockWrapper::init(STATE) {
+    Class* cls = state->new_class("Proc", G(object));
     GO(block_wrapper).set(
-        state->new_class("BlockWrapper", G(object), G(rubinius)));
+        state->new_class("FromBlock", cls, cls));
     G(block_wrapper)->set_object_type(state, BlockEnvironmentType);
-    G(block_wrapper)->name(state, state->symbol("Rubinius::BlockWrapper"));
+    G(block_wrapper)->name(state, state->symbol("Proc::FromBlock"));
   }
 
   BlockWrapper* BlockWrapper::create(STATE, Object* self) {
