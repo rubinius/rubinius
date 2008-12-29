@@ -1,2 +1,1 @@
 fails:String#% tries to convert the argument to Array by calling #to_ary
-fails:String#% uses argument % 256
