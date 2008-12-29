@@ -115,7 +115,13 @@ namespace rubinius {
     native_int numerator = to_native();
     native_int denominator = other->to_native();
     native_int quotient = div(state, other)->to_native();
-    return Fixnum::from(numerator - denominator * quotient);
+    native_int modulo = numerator - denominator * quotient;
+    
+    if((modulo < 0 && denominator > 0) || (modulo > 0 && denominator < 0)) {
+      return Fixnum::from(modulo + denominator);
+    } else {
+      return Fixnum::from(modulo);
+    }
   }
 
   Integer* Fixnum::mod(STATE, Bignum* other) {
