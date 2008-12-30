@@ -367,14 +367,26 @@ namespace rubinius {
 
     auto_mark(obj, mark);
 
-    /* Now also mark the stack */
-    for(size_t i = 0; i < ctx->stack_size; i++) {
-      Object* stack_obj = ctx->stack_at(i);
-      if(!stack_obj) continue;
-      Object* marked = mark.call(stack_obj);
-      if(marked) {
-        ctx->stack_put(i, marked);
-        mark.just_set(ctx, marked);
+    /* Now also mark the stack. Set elements after sp to nil to prevent
+     * memory leak */
+    int sp = ctx->calculate_sp();
+    if(sp < 0) {
+      for(size_t i = 0; i < ctx->stack_size; i++) {
+        ctx->stack_put(i, Qnil);
+      }
+    } else {
+      size_t usp = sp;
+      for(size_t i = 0; i <= usp; i++) {
+        Object* stack_obj = ctx->stack_at(i);
+        if(!stack_obj) continue;
+        Object* marked = mark.call(stack_obj);
+        if(marked) {
+          ctx->stack_put(i, marked);
+          mark.just_set(ctx, marked);
+        }
+      }
+      for(size_t i = usp+1; i < ctx->stack_size; i++) {
+        ctx->stack_put(i, Qnil);
       }
     }
   }
