@@ -105,6 +105,7 @@ namespace rubinius {
     ctx->block(state, this);
     ctx->cm(state, method_);
     ctx->home(state, home_);
+    ctx->locals_home(state, home_->locals_home());
 
     ctx->vmm = vmm ? vmm : method_->backend_method_;
     ctx->ip = 0;
