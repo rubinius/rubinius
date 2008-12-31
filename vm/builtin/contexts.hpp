@@ -47,20 +47,9 @@ namespace rubinius {
     // initialized in ::create
     MethodContext* home_;   // slot
 
-    /*
-     * home_ and locals_home_: when a context is dup'd, or when a block
-     * context is created by a block environment, the new context shares some
-     * information with the original (or some existing context). The sharing
-     * is achieved by linking it back to the other context via home_ and
-     * locals_home_. To access local variables, use locals_home() (see
-     * instructions push_local and set_local.) To access other information,
-     * use home().
-     */
-    // initialized in ::create
-    MethodContext* locals_home_;   // slot
-
     // initialized in ::create
     CompiledMethod* cm_;    // slot
+
 
     // initialized in ::create
     Object* self_;           // slot
@@ -89,7 +78,6 @@ namespace rubinius {
 
     attr_accessor(sender, MethodContext);
     attr_accessor(home, MethodContext);
-    attr_accessor(locals_home, MethodContext);
     attr_accessor(self, Object);
     attr_accessor(cm, CompiledMethod);
     attr_accessor(module, Module);

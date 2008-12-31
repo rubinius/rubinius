@@ -2666,7 +2666,7 @@ slow_path:
 
   def push_local(index)
     <<-CODE
-    stack_push(task->locals_home()->get_local(index)); // HACK test vs. ->home-less
+    stack_push(task->home()->get_local(index)); // HACK test vs. ->home-less
     CODE
   end
 
@@ -3850,7 +3850,7 @@ slow_path:
 
   def set_local(index)
     <<-CODE
-    task->locals_home()->set_local(index, stack_top()); // HACK test vs. ->home-less
+    task->home()->set_local(index, stack_top()); // HACK test vs. ->home-less
     CODE
   end
 

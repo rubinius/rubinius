@@ -178,14 +178,6 @@ namespace rubinius {
       return active_->home();
     }
 
-    const MethodContext* locals_home() const {
-      return active_->locals_home();
-    }
-
-    MethodContext* locals_home() {
-      return active_->locals_home();
-    }
-
     const Object* self() const {
       return home()->self();
     }

@@ -136,7 +136,6 @@ namespace rubinius {
       ctx->self_ = recv;
       ctx->cm_ = meth;
       ctx->home_ = ctx;
-      ctx->locals_home_ = ctx;
 
     } else {
       // We're going to end up referencing a stack context from a heap
@@ -147,7 +146,6 @@ namespace rubinius {
       ctx->self(state, recv);
       ctx->cm(state, meth);
       ctx->home(state, ctx);
-      ctx->locals_home(state, ctx);
     }
 
     init_context(state, ctx, stack_size);
@@ -179,9 +177,6 @@ namespace rubinius {
 
     ctx->home(state, this->home());
     this->home()->reference(state); // so that the closure won't be deallocated.
-
-    ctx->locals_home(state, this->locals_home());
-    this->locals_home()->reference(state);
 
     /* Set the obj_type because we get called
      * for both BlockContext and MethodContext
@@ -325,7 +320,6 @@ namespace rubinius {
     ctx->block(state, Qnil);
     ctx->cm(state, reinterpret_cast<CompiledMethod*>(Qnil));
     ctx->home(state, reinterpret_cast<MethodContext*>(Qnil));
-    ctx->locals_home(state, reinterpret_cast<MethodContext*>(Qnil));
     ctx->module(state, reinterpret_cast<Module*>(Qnil));
     ctx->name(state, Qnil);
     ctx->self(state, Qnil);
