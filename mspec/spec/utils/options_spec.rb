@@ -467,6 +467,44 @@ describe "The -B, --config FILE option" do
   end
 end
 
+describe "The -C, --chdir DIR option" do
+  before :each do
+    @options, @config = new_option
+    @options.chdir
+  end
+
+  it "is enabled with #chdir" do
+    @options.should_receive(:on).with("-C", "--chdir", "DIR",
+        an_instance_of(String))
+    @options.chdir
+  end
+
+  it "changes the working directory to DIR" do
+    Dir.should_receive(:chdir).with("dir").twice
+    ["-C", "--chdir"].each do |opt|
+      @options.parse [opt, "dir"]
+    end
+  end
+end
+
+describe "The --prefix STR option" do
+  before :each do
+    @options, @config = new_option
+  end
+
+  it "is enabled with #prefix" do
+    @options.should_receive(:on).with("--prefix", "STR",
+       an_instance_of(String))
+    @options.prefix
+  end
+
+  it "sets the prefix config value" do
+    @options.prefix
+    @options.parse ["--prefix", "some/dir"]
+    @config[:prefix].should == "some/dir"
+  end
+end
+
 describe "The -n, --name RUBY_NAME option" do
   before :each do
     @verbose, $VERBOSE = $VERBOSE, nil
@@ -923,7 +961,7 @@ describe "The -W, --excl-profile FILE option" do
   end
 end
 
-describe "The -Z", "--dry-run option" do
+describe "The -Z, --dry-run option" do
   before :each do
     @options, @config = new_option
     @options.pretend
@@ -939,6 +977,40 @@ describe "The -Z", "--dry-run option" do
     ["-Z", "--dry-run"].each do |opt|
       @options.parse opt
     end
+  end
+end
+
+describe "The --background option" do
+  before :each do
+    @options, @config = new_option
+  end
+
+  it "is enabled with #background" do
+    @options.should_receive(:on).with("--background", an_instance_of(String))
+    @options.background
+  end
+
+  it "registers the MSpec background mode" do
+    MSpec.should_receive(:register_mode).with(:background)
+    @options.background
+    @options.parse "--background"
+  end
+end
+
+describe "The --unguarded option" do
+  before :each do
+    @options, @config = new_option
+    @options.unguarded
+  end
+
+  it "is enabled with #unguarded" do
+    @options.should_receive(:on).with("--unguarded", an_instance_of(String))
+    @options.unguarded
+  end
+
+  it "registers the MSpec unguarded mode" do
+    MSpec.should_receive(:register_mode).with(:unguarded)
+    @options.parse "--unguarded"
   end
 end
 

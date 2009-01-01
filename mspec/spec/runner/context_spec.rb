@@ -208,14 +208,14 @@ describe ContextState, "#protect" do
     @c = lambda { raise Exception, "Fail!" }
   end
 
-  it "returns true and does execute any blocks if check is true and MSpec.pretend_mode? is true" do
-    MSpec.stub!(:pretend_mode?).and_return(true)
+  it "returns true and does execute any blocks if check and MSpec.mode?(:pretend) are true" do
+    MSpec.should_receive(:mode?).with(:pretend).and_return(true)
     ContextState.new("").protect("message", [@a, @b]).should be_true
     ScratchPad.recorded.should == []
   end
 
-  it "executes the blocks if MSpec.pretend_mode? is false" do
-    MSpec.stub!(:pretend_mode?).and_return(false)
+  it "executes the blocks if MSpec.mode?(:pretend) is false" do
+    MSpec.should_receive(:mode?).with(:pretend).and_return(false)
     ContextState.new("").protect("message", [@a, @b])
     ScratchPad.recorded.should == [:a, :b]
   end

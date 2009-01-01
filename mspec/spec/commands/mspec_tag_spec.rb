@@ -68,6 +68,11 @@ describe MSpecTag, "#options" do
     @script.options @argv
   end
 
+  it "enables the unguarded option" do
+    @options.should_receive(:unguarded)
+    @script.options @argv
+  end
+
   it "enables the interrupt single specs option" do
     @options.should_receive(:interrupt)
     @script.options @argv
@@ -372,6 +377,7 @@ describe MSpecTag, "#register" do
 
   describe "when config[:tagger] is :purge" do
     before :each do
+      MSpec.stub!(:register_mode)
       @config[:tagger] = :purge
     end
 
@@ -383,6 +389,11 @@ describe MSpecTag, "#register" do
 
     it "registers MSpec in pretend mode" do
       MSpec.should_receive(:register_mode).with(:pretend)
+      @script.register
+    end
+
+    it "registers MSpec in unguarded mode" do
+      MSpec.should_receive(:register_mode).with(:unguarded)
       @script.register
     end
 

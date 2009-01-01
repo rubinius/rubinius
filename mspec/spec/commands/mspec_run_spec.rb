@@ -33,6 +33,16 @@ describe MSpecRun, "#options" do
     @script.options @argv
   end
 
+  it "enables the chdir option" do
+    @options.should_receive(:chdir)
+    @script.options @argv
+  end
+
+  it "enables the prefix option" do
+    @options.should_receive(:prefix)
+    @script.options @argv
+  end
+
   it "enables the configure option" do
     @options.should_receive(:configure)
     @script.options @argv
@@ -55,6 +65,16 @@ describe MSpecRun, "#options" do
 
   it "enables the dry run option" do
     @options.should_receive(:pretend)
+    @script.options @argv
+  end
+
+  it "enables the background option" do
+    @options.should_receive(:background)
+    @script.options @argv
+  end
+
+  it "enables the unguarded option" do
+    @options.should_receive(:unguarded)
     @script.options @argv
   end
 

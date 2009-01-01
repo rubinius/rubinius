@@ -32,31 +32,10 @@ describe MSpecMain, "#options" do
     @script.options
   end
 
-  it "enables the version option" do
-    @options.should_receive(:version)
-    @script.options
-  end
-
   it "sets config[:options] to all argv entries that are not registered options" do
     @options.on "-X", "--exclude", "ARG", "description"
     @script.options [".", "-G", "fail", "-X", "ARG", "--list", "unstable", "some/file.rb"]
     @config[:options].should == [".", "-G", "fail", "--list", "unstable", "some/file.rb"]
-  end
-
-  it "passes -h, --help to the subscript" do
-    ["-h", "--help"].each do |opt|
-      @config[:options] = []
-      @script.options ["ci", opt]
-      @config[:options].sort.should == ["-h"]
-    end
-  end
-
-  it "passes -v, --version to the subscript" do
-    ["-v", "--version"].each do |opt|
-      @config[:options] = []
-      @script.options ["ci", opt]
-      @config[:options].sort.should == ["-v"]
-    end
   end
 end
 
@@ -390,10 +369,51 @@ describe "The -h, --help option" do
     @script.options
   end
 
+  it "passes the option to the subscript" do
+    ["-h", "--help"].each do |opt|
+      @config[:options] = []
+      @script.options ["ci", opt]
+      @config[:options].sort.should == ["-h"]
+    end
+  end
+
   it "prints help and exits" do
     @script.should_receive(:puts).twice
     @script.should_receive(:exit).twice
     ["-h", "--help"].each do |opt|
+      @script.options [opt]
+    end
+  end
+end
+
+describe "The -v, --version option" do
+  before :each do
+    @options, @config = new_option
+    MSpecOptions.stub!(:new).and_return(@options)
+    @script = MSpecMain.new
+    @script.stub!(:config).and_return(@config)
+  end
+
+  it "is enabled by #options" do
+    @options.stub!(:on)
+    @options.should_receive(:on).with("-v", "--version", an_instance_of(String))
+    @script.options
+  end
+
+  it "passes the option to the subscripts" do
+    ["-v", "--version"].each do |opt|
+      @config[:options] = []
+      @script.options ["ci", opt]
+      @config[:options].sort.should == ["-v"]
+    end
+  end
+
+  it "prints the version and exits if no subscript is invoked" do
+    @config[:command] = nil
+    File.stub!(:basename).and_return("mspec")
+    @script.should_receive(:puts).twice.with("mspec #{MSpec::VERSION}")
+    @script.should_receive(:exit).twice
+    ["-v", "--version"].each do |opt|
       @script.options [opt]
     end
   end

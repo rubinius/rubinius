@@ -11,7 +11,7 @@ describe Object, "#fixture" do
     name.should == "#{@dir}/some/path/fixtures/dir/file.txt"
   end
 
-  it "omits '/shared' if it the suffix of the directory string" do
+  it "omits '/shared' if it is the suffix of the directory string" do
     name = fixture("some/path/shared/file.rb", "dir", "file.txt")
     name.should == "#{@dir}/some/path/fixtures/dir/file.txt"
   end

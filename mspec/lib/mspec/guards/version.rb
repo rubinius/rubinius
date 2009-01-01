@@ -1,32 +1,27 @@
+require 'mspec/utils/version'
 require 'mspec/guards/guard'
 
 class VersionGuard < SpecGuard
   def initialize(version)
     case version
     when String
-      @version = to_v version
+      @version = SpecVersion.new version
     when Range
-      a = to_v version.first
-      b = to_v version.last
+      a = SpecVersion.new version.first
+      b = SpecVersion.new version.last
       @version = version.exclude_end? ? a...b : a..b
     end
   end
 
-  def to_v(str)
-    major, minor, tiny, patch = str.split "."
-    ("1%02d%02d%02d%04d" % [major, minor, tiny, patch].map { |x| x.to_i }).to_i
-  end
-
   def ruby_version
-    to_v("#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}")
+    @ruby_version ||= SpecVersion.new self.class.ruby_version(:full)
   end
 
   def match?
-    case @version
-    when Integer
-      ruby_version >= @version
-    when Range
+    if Range === @version
       @version.include? ruby_version
+    else
+      ruby_version >= @version
     end
   end
 end

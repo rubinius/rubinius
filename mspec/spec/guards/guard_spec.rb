@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/utils/ruby_name'
 require 'mspec/guards/guard'
 require 'rbconfig'
 
@@ -38,29 +39,100 @@ describe SpecGuard, ".unregister" do
   end
 end
 
+describe SpecGuard, ".ruby_version" do
+  before :all do
+    @ruby_version = Object.const_get :RUBY_VERSION
+    @ruby_patchlevel = Object.const_get :RUBY_PATCHLEVEL
+
+    Object.const_set :RUBY_VERSION, "8.2.3"
+    Object.const_set :RUBY_PATCHLEVEL, 71
+  end
+
+  after :all do
+    Object.const_set :RUBY_VERSION, @ruby_version
+    Object.const_set :RUBY_PATCHLEVEL, @ruby_patchlevel
+  end
+
+  it "returns the version and patchlevel for :full" do
+    SpecGuard.ruby_version(:full).should == "8.2.3.71"
+  end
+
+  it "returns major.minor.tiny for :tiny" do
+    SpecGuard.ruby_version(:tiny).should == "8.2.3"
+  end
+
+  it "returns major.minor.tiny for :teeny" do
+    SpecGuard.ruby_version(:tiny).should == "8.2.3"
+  end
+
+  it "returns major.minor for :minor" do
+    SpecGuard.ruby_version(:minor).should == "8.2"
+  end
+
+  it "defaults to :minor" do
+    SpecGuard.ruby_version.should == "8.2"
+  end
+
+  it "returns major for :major" do
+    SpecGuard.ruby_version(:major).should == "8"
+  end
+end
+
+describe SpecGuard, ".windows?" do
+  before :all do
+    @ruby_platform = Object.const_get :RUBY_PLATFORM
+  end
+
+  after :all do
+    Object.const_set :RUBY_PLATFORM, @ruby_platform
+  end
+
+  it "returns true if key is mswin32" do
+    SpecGuard.windows?("mswin32").should be_true
+  end
+
+  it "returns true if key is mingw" do
+    SpecGuard.windows?("mingw").should be_true
+  end
+
+  it "returns false for non-windows" do
+    SpecGuard.windows?("notwindows").should be_false
+  end
+
+  it "uses RUBY_PLATFORM by default" do
+    Object.const_set :RUBY_PLATFORM, "mswin32"
+    SpecGuard.windows?.should be_true
+  end
+end
+
 describe SpecGuard, "#yield?" do
   before :each do
-    MSpec.store :mode, nil
+    MSpec.clear_modes
     @guard = SpecGuard.new
   end
 
-  it "returns true if MSpec.verify_mode? is true" do
-    MSpec.should_receive(:verify_mode?).and_return(true)
+  it "returns true if MSpec.mode?(:unguarded) is true" do
+    MSpec.register_mode :unguarded
     @guard.yield?.should == true
   end
 
-  it "returns true if MSpec.verify_mode? is true regardless of invert being true" do
-    MSpec.should_receive(:verify_mode?).and_return(true)
+  it "returns true if MSpec.mode?(:verify) is true" do
+    MSpec.register_mode :verify
+    @guard.yield?.should == true
+  end
+
+  it "returns true if MSpec.mode?(:verify) is true regardless of invert being true" do
+    MSpec.register_mode :verify
     @guard.yield?(true).should == true
   end
 
-  it "returns true if MSpec.report_mode? is true" do
-    MSpec.should_receive(:report_mode?).and_return(true)
+  it "returns true if MSpec.mode?(:report) is true" do
+    MSpec.register_mode :report
     @guard.yield?.should == true
   end
 
-  it "returns true if MSpec.report_mode? is true regardless of invert being true" do
-    MSpec.should_receive(:report_mode?).and_return(true)
+  it "returns true if MSpec.mode?(:report) is true regardless of invert being true" do
+    MSpec.register_mode :report
     @guard.yield?(true).should == true
   end
 

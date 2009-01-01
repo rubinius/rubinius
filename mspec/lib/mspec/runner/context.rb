@@ -124,10 +124,10 @@ class ContextState
 
   # Evaluates each block in +blocks+ using the +MSpec.protect+ method
   # so that exceptions are handled and tallied. Returns true and does
-  # NOT evaluate any blocks if +check+ is true and +MSpec.pretend_mode?+
-  # is true.
+  # NOT evaluate any blocks if +check+ is true and
+  # <tt>MSpec.mode?(:pretend)</tt> is true.
   def protect(what, blocks, check=true)
-    return true if check and MSpec.pretend_mode?
+    return true if check and MSpec.mode? :pretend
     Array(blocks).all? { |block| MSpec.protect what, &block }
   end
 

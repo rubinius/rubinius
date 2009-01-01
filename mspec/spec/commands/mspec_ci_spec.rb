@@ -13,6 +13,16 @@ describe MSpecCI, "#options" do
     @script.stub!(:files).and_return([])
   end
 
+  it "enables the chdir option" do
+    @options.should_receive(:chdir)
+    @script.options
+  end
+
+  it "enables the prefix option" do
+    @options.should_receive(:prefix)
+    @script.options
+  end
+
   it "enables the config option" do
     @options.should_receive(:configure)
     @script.options
@@ -30,6 +40,16 @@ describe MSpecCI, "#options" do
 
   it "enables the dry run option" do
     @options.should_receive(:pretend)
+    @script.options
+  end
+
+  it "enables the background option" do
+    @options.should_receive(:background)
+    @script.options
+  end
+
+  it "enables the unguarded option" do
+    @options.should_receive(:unguarded)
     @script.options
   end
 
