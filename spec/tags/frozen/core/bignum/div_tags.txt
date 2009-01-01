@@ -1,0 +1,2 @@
+fails:Bignum#div returns a result of integer division of self by a float argument
+fails:Bignum#div raises FloatDomainError if the argument is a float zero
