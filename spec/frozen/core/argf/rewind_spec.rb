@@ -1,0 +1,37 @@
+require File.dirname(__FILE__) + '/../../spec_helper'
+
+describe "ARGF.rewind" do
+  before :each do
+    @file1_name = fixture __FILE__, "file1.txt"
+    @file2_name = fixture __FILE__, "file2.txt"
+
+    @file1 = File.readlines @file1_name
+    @file2 = File.readlines @file2_name
+  end
+
+  after :each do
+    ARGF.close
+  end
+
+  # NOTE: this test assumes that fixtures files have two lines each
+  it "goes back to beginning of current file" do
+    argv [@file1_name, @file2_name] do
+      ARGF.gets;
+      ARGF.rewind;
+      ARGF.gets.should == @file1.first
+
+      ARGF.gets # finish reading file1
+
+      ARGF.gets
+      ARGF.rewind
+      ARGF.gets.should == @file2.first
+    end
+  end
+
+  it "raises an ArgumentError when end of stream reached" do
+    argv [@file1_name, @file2_name] do
+      ARGF.read
+      lambda { ARGF.rewind }.should raise_error(ArgumentError)
+    end
+  end
+end
