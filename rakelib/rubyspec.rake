@@ -49,11 +49,12 @@ namespace :rubyspec do
   task :sync => :update do
     dir = ENV['DIR'] || spec_ruby
 
+    rm_rf "spec/frozen"
     rsync dir + "/*", "spec/frozen"
 
     version = Dir.chdir(dir) { `git log --pretty=oneline -1`[0..7] }
     sh "git add spec/frozen/"
-    sh "git commit -m 'Updated RubySpec source to #{version}.' spec/frozen"
+    sh "git commit -m 'Updated CI frozen specs to RubySpec #{version}.' spec/frozen"
   end
 
   desc "Switch to the rubyspec commiter URL"
