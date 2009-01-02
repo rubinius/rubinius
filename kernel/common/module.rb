@@ -258,7 +258,7 @@ class Module
 
   def undef_method(*names)
     names.each do |name|
-      name = normalize_name(name)
+      name = Type.coerce_to_symbol(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
       method_table[name] = false
@@ -272,7 +272,7 @@ class Module
 
   def remove_method(*names)
     names.each do |name|
-      name = normalize_name(name)
+      name = Type.coerce_to_symbol(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
       unless self.method_table[name]
@@ -309,7 +309,7 @@ class Module
   end
 
   def method_defined?(sym)
-    sym = normalize_name(sym)
+    sym = Type.coerce_to_symbol(sym)
     m = find_method_in_hierarchy sym
     m &&= Tuple[:public, m] unless m.is_a? Tuple
     m ? [:public,:protected].include?(m.first) : false
@@ -431,7 +431,7 @@ class Module
   end
 
   def set_visibility(meth, vis, where = nil)
-    name = normalize_name(meth)
+    name = Type.coerce_to_symbol(meth)
     vis = vis.to_sym
 
     if entry = method_table[name] then
@@ -788,23 +788,8 @@ class Module
 
   private :recursive_const_get
 
-  def normalize_name(name)
-    sym_name = nil
-    if name.respond_to?(:to_sym)
-      warn 'do not use Fixnums as Symbols' if name.kind_of?(Fixnum)
-      sym_name = name.to_sym
-    elsif name.respond_to?(:to_str)
-      sym_name = StringValue(name).to_sym
-    end
-    raise TypeError, "#{name} is not a symbol" unless sym_name
-
-    sym_name
-  end
-
-  private :normalize_name
-
   def normalize_const_name(name)
-    name = normalize_name(name)
+    name = Type.coerce_to_symbol(name)
     raise NameError, "wrong constant name #{name}" unless valid_const_name?(name)
     name
   end

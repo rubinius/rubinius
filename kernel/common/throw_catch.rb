@@ -58,12 +58,13 @@ end
 
 module Kernel
   def catch(sym)
+    symbol = Type.coerce_to_symbol(sym)
     begin
-      ThrownValue.register(sym) do
+      ThrownValue.register(symbol) do
         yield
       end
     rescue ThrownValue => val
-      return val.value if val.name == sym
+      return val.value if val.name == symbol
       Rubinius.asm(val) do |v|
         v.bytecode(self)
         raise_exc
@@ -73,11 +74,13 @@ module Kernel
   module_function :catch
 
   def throw(sym, value = nil)
-    unless ThrownValue.available? sym
-      raise NameError.new("uncaught throw `#{sym}'", sym.to_sym)
-    end
+    symbol = Type.coerce_to_symbol(sym)
     
-    exc = ThrownValue.new(sym, value, MethodContext.current.sender)
+    unless ThrownValue.available? symbol
+      raise NameError.new("uncaught throw `#{sym}'", symbol)
+    end
+
+    exc = ThrownValue.new(symbol, value, MethodContext.current.sender)
     Rubinius.asm(exc) do |v|
       v.bytecode(self)
       raise_exc

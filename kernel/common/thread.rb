@@ -262,15 +262,11 @@ class Thread
   end
 
   def [](key)
-    raise TypeError,     "#{key} is not a symbol" if key.kind_of?(NilClass)
-    raise ArgumentError, "#{key} is not a symbol" unless key.kind_of?(Symbol) or key.kind_of?(String)
-    @locals[Type.coerce_to(key,Symbol,:to_sym)]
+    @locals[Type.coerce_to_symbol(key)]
   end
 
   def []=(key, value)
-    raise TypeError,     "#{key} is not a symbol" if key.kind_of?(NilClass)
-    raise ArgumentError, "#{key} is not a symbol" unless key.kind_of?(Symbol) or key.kind_of?(String)
-    @locals[Type.coerce_to(key,Symbol,:to_sym)] = value
+    @locals[Type.coerce_to_symbol(key)] = value
   end
 
   def keys
@@ -278,9 +274,7 @@ class Thread
   end
 
   def key?(key)
-    raise TypeError,     "#{key} is not a symbol" if key.kind_of?(NilClass)
-    raise ArgumentError, "#{key} is not a symbol" unless key.kind_of?(Symbol) or key.kind_of?(String)
-    @locals.key?(Type.coerce_to(key,Symbol,:to_sym))
+    @locals.key?(Type.coerce_to_symbol(key))
   end
 
   def set_debugging(dc, cc)

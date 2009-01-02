@@ -15,8 +15,8 @@ class Module
   end
 
   def alias_method(new_name, current_name)
-    new_name = normalize_name(new_name)
-    current_name = normalize_name(current_name)
+    new_name = Type.coerce_to_symbol(new_name)
+    current_name = Type.coerce_to_symbol(current_name)
     meth = find_method_in_hierarchy(current_name)
     if meth
       method_table[new_name] = meth
@@ -41,7 +41,7 @@ class Module
     else
       mc = self.metaclass
       args.each do |meth|
-        method_name = normalize_name meth
+        method_name = Type.coerce_to_symbol meth
         method = find_method_in_hierarchy(method_name)
         mc.method_table[method_name] = method.dup
         mc.set_visibility method_name, :public
@@ -106,7 +106,7 @@ class Module
 
   def attr_reader(*names)
     names.each do |name|
-      normalized = normalize_name(name)
+      normalized = Type.coerce_to_symbol(name)
       method_table[normalized] = AccessVariable.get_ivar normalized
     end
 
@@ -115,7 +115,7 @@ class Module
 
   def attr_writer(*names)
     names.each do |name|
-      normalized = normalize_name(name)
+      normalized = Type.coerce_to_symbol(name)
       writer_name = "#{normalized}=".to_sym
       method_table[writer_name] = AccessVariable.set_ivar normalized
     end

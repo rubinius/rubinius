@@ -39,6 +39,16 @@ module Type
       raise TypeError, "Coercion error: #{obj.inspect} does not respond to #{meth}"
     end
   end
+
+  def self.coerce_to_symbol(obj)
+    if obj.kind_of? Fixnum
+      warn 'do not use Fixnums as Symbols'
+      raise ArgumentError, "#{obj} is is not a symbol"
+    end
+    obj = obj.to_str if obj.respond_to?(:to_str)
+
+    coerce_to(obj, Symbol, :to_sym)
+  end
 end
 
 module Kernel
