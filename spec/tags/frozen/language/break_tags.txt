@@ -1,3 +1,4 @@
 fails:The break statement ends block execution if used whithin block
 fails:The break statement causes block to return value passed to break
 fails:The break statement causes block to return nil if no value passed to break
+fails:The break statement causes block to return nil if an empty expression passed to break

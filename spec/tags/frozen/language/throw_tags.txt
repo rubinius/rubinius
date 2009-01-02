@@ -1,1 +1,3 @@
 fails:The throw keyword raises a ThreadError if used to exit a thread
+fails:The throw keyword only allows symbols and strings as it's argument
+fails:The throw keyword converts strings to a symbol

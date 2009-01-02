@@ -1,2 +1,3 @@
 fails:Float#CONSTANTS the EPSILON value is 
 fails:Float#CONSTANTS the MIN is 2.2250738585072e-308
+fails:Float#CONSTANTS the MAX is 1.79769313486232e+308
