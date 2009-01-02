@@ -148,7 +148,7 @@ class Array
 
     ins_length = nil
     if args.size != 0
-      ins_length = ent.to_int
+      ins_length = Type.coerce_to ent, Integer, :to_int
       ent = args[0]             # 2nd arg (ins_length) is the optional one!
     end
 
@@ -158,22 +158,14 @@ class Array
         raise ArgumentError, "Second argument invalid with a range"
       end
 
-      unless index.first.respond_to?(:to_int)
-        raise TypeError, "can't convert #{index.first.class} into Integer"
-      end
-
-      unless index.last.respond_to?(:to_int)
-        raise TypeError, "can't convert #{index.last.class} into Integer"
-      end
-
-      last = index.last.to_int
+      last = Type.coerce_to index.last, Integer, :to_int
       last += @total if last < 0
       last += 1 unless index.exclude_end?
 
-      index = index.first.to_int
+      index = Type.coerce_to index.first, Integer, :to_int
       if index < 0
         index += @total
-        raise RangeError, "Range begin #{index} out of bounds" if index < 0
+        raise RangeError, "Range begin #{index-@total} out of bounds" if index < 0
       end
 
       # m..n, m > n allowed
@@ -181,7 +173,7 @@ class Array
 
       ins_length = last - index
     else
-      index = index.to_int
+      index = Type.coerce_to index, Integer, :to_int
 
       if index < 0
         index += @total
@@ -191,7 +183,7 @@ class Array
 
     if ins_length
       # ins_length < 0 not allowed
-      raise IndexError.new("Negative length #{ins_length}") if ins_length < 0
+      raise IndexError, "Negative length #{ins_length}" if ins_length < 0
 
       # MRI seems to be forgiving here!
       space = @total - index
