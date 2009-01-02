@@ -1,3 +1,0 @@
-fails:Constant lookup rule looks up in modules included in Object
-fails:Constant declaration can be done under modules
-fails:Constant declaration can be done under classes
