@@ -50,7 +50,11 @@ class Array
   def initialize(*args)
     raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
 
-    unless args.empty?
+    if args.empty?
+      @tuple = Tuple.new 8
+      @start = 0
+      @total = 0
+    else
       if args.size == 1 and (args.first.__kind_of__ Array or args.first.respond_to? :to_ary)
         ary = Type.coerce_to args.first, Array, :to_ary
 
@@ -58,8 +62,9 @@ class Array
         @start = ary.start
         @total = ary.size
       else
-        count = Type.coerce_to args.first, Fixnum, :to_int
-        raise ArgumentError, "Size must be positive" if count < 0
+        count = Type.check_and_coerce_to args.first, Integer, :to_int
+        raise ArgumentError, "size must be positive" if count < 0
+        raise ArgumentError, "size must be a Fixnum" unless count.is_a? Fixnum
         obj = args[1]
 
         @total = count
@@ -683,11 +688,7 @@ class Array
   def first(n = Undefined)
     return at(0) if n.equal? Undefined
 
-    unless n.respond_to?(:to_int)
-      raise TypeError, "Can't convert #{n.class} into Integer"
-    end
-
-    n = Type.coerce_to n, Fixnum, :to_int
+    n = Type.check_and_coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
 
     Array.new(self[0...n])

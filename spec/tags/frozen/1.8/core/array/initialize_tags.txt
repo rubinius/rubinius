@@ -1,4 +1,1 @@
-fails:Array#initialize with no arguments makes the array empty
-fails:Array#initialize with (size, object) raises an ArgumentError if size is too large
-fails:Array#initialize with (size, object) raises a TypeError if the passed size is no numeric
 fails:Array#initialize with (size, object) makes the array contain values the given block would yield even if it would break in the block
