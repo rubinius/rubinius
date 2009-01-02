@@ -43,9 +43,13 @@ class Bignum < Integer
     self == value
   end
 
+  def div(other)
+    (self / other).to_i
+  end
+
   alias_method :modulo, :%
   
-  alias_method :div, :/
+  #alias_method :div, :/
 
   private :radix_to_s # in kernel/bootstrap/bignum.rb
 end
