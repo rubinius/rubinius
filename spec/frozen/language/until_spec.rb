@@ -63,15 +63,6 @@ describe "The until expression" do
     end.should == nil
   end
 
-  it "evaluates the body if expression is empty" do
-    a = []
-    until ()
-      a << :body_evaluated
-      break
-    end
-    a.should == [:body_evaluated]
-  end
-
   it "stops running body if interrupted by break" do
     i = 0
     until i > 9
