@@ -11,9 +11,13 @@ describe MSpec, ".register_files" do
 end
 
 describe MSpec, ".register_mode" do
+  before :each do
+    MSpec.clear_modes
+  end
+
   it "sets execution mode flags" do
     MSpec.register_mode :verify
-    MSpec.retrieve(:mode).should == :verify
+    MSpec.retrieve(:modes).should == [:verify]
   end
 end
 
@@ -196,27 +200,30 @@ describe MSpec, ".actions" do
   end
 end
 
-describe MSpec, ".verify_mode?" do
+describe MSpec, ".mode?" do
   before :each do
-    MSpec.store :mode, nil
+    MSpec.clear_modes
   end
 
-  it "returns true if register_mode(:verify) is called" do
-    MSpec.verify_mode?.should == false
+  it "returns true if the mode has been set" do
+    MSpec.mode?(:verify).should == false
     MSpec.register_mode :verify
-    MSpec.verify_mode?.should == true
+    MSpec.mode?(:verify).should == true
   end
 end
 
-describe MSpec, ".report_mode?" do
-  before :each do
-    MSpec.store :mode, nil
-  end
+describe MSpec, ".clear_modes" do
+  it "clears all registered modes" do
+    MSpec.register_mode(:pretend)
+    MSpec.register_mode(:verify)
 
-  it "returns true if register_mode(:report) is called" do
-    MSpec.report_mode?.should == false
-    MSpec.register_mode :report
-    MSpec.report_mode?.should == true
+    MSpec.mode?(:pretend).should == true
+    MSpec.mode?(:verify).should == true
+
+    MSpec.clear_modes
+
+    MSpec.mode?(:pretend).should == false
+    MSpec.mode?(:verify).should == false
   end
 end
 

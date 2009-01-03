@@ -327,10 +327,36 @@ class MSpecOptions
     end
   end
 
+  def chdir
+    on("-C", "--chdir", "DIR",
+       "Change the working directory to DIR before running specs") do |d|
+      Dir.chdir d
+    end
+  end
+
+  def prefix
+    on("--prefix", "STR", "Prepend STR when resolving spec file names") do |p|
+      config[:prefix] = p
+    end
+  end
+
   def pretend
     on("-Z", "--dry-run",
        "Invoke formatters and other actions, but don't execute the specs") do
       MSpec.register_mode :pretend
+    end
+  end
+
+  def background
+    on("--background",
+       "Enable guard for specs that may hang in background processes") do
+      MSpec.register_mode :background
+    end
+  end
+
+  def unguarded
+    on("--unguarded", "Turn off all guards") do
+      MSpec.register_mode :unguarded
     end
   end
 

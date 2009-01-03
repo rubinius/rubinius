@@ -53,7 +53,7 @@ class MSpecMain < MSpecScript
       if config[:command]
         config[:options] << "-v"
       else
-        puts options
+        puts "#{File.basename $0} #{MSpec::VERSION}"
         exit
       end
     end

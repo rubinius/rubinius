@@ -1,1 +1,0 @@
-fails:An instance method definition with a splat allows only a single * argument

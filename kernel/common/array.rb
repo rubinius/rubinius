@@ -348,7 +348,7 @@ class Array
         return 1 unless other.size > i
         curr = at(i)
         if(RecursionGuard.inspecting?(curr))
-          unless curr.equals?(other.at(i))
+          unless curr.equal?(other.at(i))
             return 1 if size > other.size
             return -1 if size < other.size
           end

@@ -1,4 +1,5 @@
-require 'mspec/ruby_name'
+require 'mspec/utils/ruby_name'
+require 'mspec/guards/guard'
 
 # The ruby_exe helper provides a wrapper for invoking the
 # same Ruby interpreter as the one running the specs and
@@ -90,16 +91,14 @@ class Object
 
   def resolve_ruby_exe
     [:env, :engine, :name, :install_name].each do |option|
-      exe = ruby_exe_options option
+      next unless cmd = ruby_exe_options(option)
+      exe = cmd.split.first
 
-      # TODO: It has been reported that File.executable is not reliable
+      # It has been reported that File.executable is not reliable
       # on Windows platforms (see commit 56bc555c). So, we check the
-      # platform. This check is the same as the one used by the guards.
-      # This test should be abstracted so it is available in general to
-      # MSpec code.
-      if exe and File.exists?(exe) and
-          (RUBY_PLATFORM.match(/(mswin|mingw)/) || File.executable?(exe))
-        return exe
+      # platform. 
+      if File.exists?(exe) and (SpecGuard.windows? or File.executable?(exe))
+        return cmd
       end
     end
     nil

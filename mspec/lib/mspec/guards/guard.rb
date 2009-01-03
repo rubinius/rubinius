@@ -19,16 +19,47 @@ class SpecGuard
     print "\n#{self.class}\n#{@tally.format}\n"
   end
 
+  # Returns a partial Ruby version string based on +which+. For example,
+  # if RUBY_VERSION = 8.2.3 and RUBY_PATCHLEVEL = 71:
+  #
+  #  :major  => "8"
+  #  :minor  => "8.2"
+  #  :tiny   => "8.2.3"
+  #  :teeny  => "8.2.3"
+  #  :full   => "8.2.3.71"
+  def self.ruby_version(which = :minor)
+    case which
+    when :major
+      n = 1
+    when :minor
+      n = 2
+    when :tiny, :teeny
+      n = 3
+    else
+      n = 4
+    end
+
+    version = "#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}"
+    version.split('.')[0,n].join('.')
+  end
+
+  def self.windows?(key = RUBY_PLATFORM)
+    !!key.match(/(mswin|mingw)/)
+  end
+
+
   def initialize(*args)
     @args = args
   end
 
   def yield?(invert=false)
-    if MSpec.report_mode?
+    if MSpec.mode? :unguarded
+      return true
+    elsif MSpec.mode? :report
       self.class.register
       MSpec.register :before, self
       return true
-    elsif MSpec.verify_mode?
+    elsif MSpec.mode? :verify
       self.class.register
       MSpec.register :after, self
       return true
@@ -75,7 +106,7 @@ class SpecGuard
   end
 
   def windows?(sym, key)
-    sym == :windows && !!key.match(/(mswin|mingw)/)
+    sym == :windows && SpecGuard.windows?(key)
   end
 
   def platform?(*args)

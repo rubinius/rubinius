@@ -1,0 +1,18 @@
+require File.dirname(__FILE__) + '/../../spec_helper'
+
+describe "ARGF.to_s" do
+  before :each do
+    @file1 = fixture __FILE__, "file1.txt"
+    @file2 = fixture __FILE__, "file2.txt"
+  end
+
+  after :each do
+    ARGF.close
+  end
+
+  it "returns 'ARGF'" do
+    argv [@file1, @file2] do
+      ARGF.to_s.should == "ARGF"
+    end
+  end
+end

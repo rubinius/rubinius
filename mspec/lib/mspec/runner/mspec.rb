@@ -15,10 +15,10 @@ module MSpec
   @exclude = nil
   @include = nil
   @leave   = nil
-  @mode    = nil
   @load    = nil
   @unload  = nil
   @current = nil
+  @modes   = []
   @shared  = {}
   @exception    = nil
   @randomize    = nil
@@ -125,8 +125,26 @@ module MSpec
     store :tags_patterns, patterns
   end
 
+  # Registers an operating mode. Modes recognized by MSpec:
+  #
+  #   :pretend - actions execute but specs are not run
+  #   :verify - specs are run despite guards and the result is
+  #             verified to match the expectation of the guard
+  #   :report - specs that are guarded are reported
+  #   :unguarded - all guards are forced off
   def self.register_mode(mode)
-    store :mode, mode
+    modes = retrieve :modes
+    modes << mode unless modes.include? mode
+  end
+
+  # Clears all registered modes.
+  def self.clear_modes
+    store :modes, []
+  end
+
+  # Returns +true+ if +mode+ is registered.
+  def self.mode?(mode)
+    retrieve(:modes).include? mode
   end
 
   def self.retrieve(symbol)
@@ -172,18 +190,6 @@ module MSpec
     if value = retrieve(symbol)
       value.delete action
     end
-  end
-
-  def self.verify_mode?
-    @mode == :verify
-  end
-
-  def self.report_mode?
-    @mode == :report
-  end
-
-  def self.pretend_mode?
-    @mode == :pretend
   end
 
   def self.randomize(flag=true)

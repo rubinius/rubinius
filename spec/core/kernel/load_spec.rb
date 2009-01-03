@@ -3,9 +3,9 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 # FIXME: somehow make these fixture dirs independent of the
 # rubyspec submodule dir in spec/frozen, otherwise these specs
 # won't behave the same with the clone of rubyspecs in spec/ruby.
-$load_fixture_dir = (File.dirname(__FILE__) + '/../../frozen/1.8/fixtures/load')
+$load_fixture_dir = (File.dirname(__FILE__) + '/../../frozen/fixtures/load')
 $LOAD_PATH << $load_fixture_dir
-$LOAD_PATH << (File.dirname(__FILE__) + '/../../frozen/1.8/fixtures/load/load_spec_rba.rba')
+$LOAD_PATH << (File.dirname(__FILE__) + '/../../frozen/fixtures/load/load_spec_rba.rba')
 
 $load_spec_1 = nil
 $load_spec_2 = nil

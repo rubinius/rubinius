@@ -1,6 +1,8 @@
 require 'rubygems'
 require 'spec/rake/spectask'
 require 'rake/gempackagetask'
+
+$:.unshift File.expand_path(File.dirname(__FILE__) + '/lib')
 require 'lib/mspec/version'
 
 Spec::Rake::SpecTask.new
@@ -10,13 +12,13 @@ task :default => :spec
 
 spec = Gem::Specification.new do |s|
   s.name                      = %q{mspec}
-  s.version                   = MSpec::VERSION
+  s.version                   = MSpec::VERSION.to_s
 
   s.specification_version     = 2 if s.respond_to? :specification_version=
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors                   = ["Brian Ford"]
-  s.date                      = %q{2008-12-1}
+  s.date                      = %q{2008-12-29}
   s.email                     = %q{bford@engineyard.com}
   s.has_rdoc                  = true
   s.extra_rdoc_files          = %w[ README LICENSE ]

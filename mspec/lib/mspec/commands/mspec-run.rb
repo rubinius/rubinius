@@ -28,10 +28,14 @@ class MSpecRun < MSpecScript
     options.filters
 
     options.doc "\n How to modify the execution"
+    options.chdir
+    options.prefix
     options.configure { |f| load f }
     options.name
     options.randomize
     options.pretend
+    options.background
+    options.unguarded
     options.interrupt
 
     options.doc "\n How to display their output"

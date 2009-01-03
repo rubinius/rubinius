@@ -1,0 +1,1 @@
+fails:Array literals [] treats empty expressions as nil elements
