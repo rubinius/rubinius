@@ -56,7 +56,7 @@
 ## Documentation
 
 *   Use RDoc for documentation in Ruby code.
-*   Use DOxygen for documentation in C++ code.
+*   Use Doxygen for documentation in C++ code.
 *   Use Markdown for documentation in the /doc directory. See [Markdown
     syntax](http://daringfireball.net/projects/markdown/syntax) Set the text
     width to 78 characters and use hard breaks.
