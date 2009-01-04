@@ -39,38 +39,44 @@ class Array
   # will be run size times to fill the Array with its
   # result. The block supercedes any object given. If
   # neither is provided, the Array is filled with nil.
-  def initialize(*args)
-    raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
+  def initialize(size_or_array=Undefined, obj=Undefined)
+    if size_or_array.equal? Undefined
+      unless @total == 0
+        @total = @start = 0
+        @tuple = Tuple.new 8
+      end
 
-    if args.empty?
-      @tuple = Tuple.new 8
-      @start = 0
-      @total = 0
-    else
-      if args.size == 1 and (args.first.__kind_of__ Array or args.first.respond_to? :to_ary)
-        ary = Type.coerce_to args.first, Array, :to_ary
+      return self
+    end
+
+    if obj.equal? Undefined
+      obj = nil
+
+      if size_or_array.respond_to? :to_ary
+        ary = Type.coerce_to size_or_array, Array, :to_ary
 
         @tuple = ary.tuple.dup
         @start = ary.start
         @total = ary.size
-      else
-        count = Type.check_and_coerce_to args.first, Integer, :to_int
-        raise ArgumentError, "size must be positive" if count < 0
-        raise ArgumentError, "size must be a Fixnum" unless count.is_a? Fixnum
-        obj = args[1]
 
-        @total = count
-        if block_given?
-          @tuple = Tuple.new(count)
-          i = 0
-          while i < count
-            @tuple.put i, yield(i)
-            i += 1
-          end
-        else
-          @tuple = Tuple.pattern(count, obj) 
-        end
+        return self
       end
+    end
+
+    size = Type.coerce_to size_or_array, Integer, :to_int
+    raise ArgumentError, "size must be positive" if size < 0
+    raise ArgumentError, "size must be a Fixnum" unless size.is_a? Fixnum
+
+    if block_given?
+      @tuple = Tuple.new size
+      @total = i = 0
+      while i < size
+        @tuple.put i, yield(i)
+        @total = i += 1
+      end
+    else
+      @total = size
+      @tuple = Tuple.pattern size, obj
     end
 
     self
