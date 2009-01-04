@@ -44,7 +44,7 @@ describe "Kernel.throw" do
   it "raises NameError if there is no catch block for the symbol" do
     proc {
       throw :blah
-    }.should raise_error(NameError, "uncaught throw `blah'") { |error|
+    }.should raise_error(NameError) { |error|
       # TODO:
       # See: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/17629
       #

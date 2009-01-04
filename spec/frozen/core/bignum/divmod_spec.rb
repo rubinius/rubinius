@@ -4,7 +4,7 @@ describe "Bignum#divmod" do
   before(:each) do
     @bignum = bignum_value(55)
   end
-  
+
   # Based on MRI's test/test_integer.rb (test_divmod),
   # MRI maintains the following property:
   # if q, r = a.divmod(b) ==>
@@ -26,15 +26,15 @@ describe "Bignum#divmod" do
     (-10**50).divmod(10**40 + 1).should == [-10000000000, 10000000000]
     (10**50).divmod(-(10**40 + 1)).should == [-10000000000, -10000000000]
   end
-  
+
   it "raises a ZeroDivisionError when the given argument is 0" do
     lambda { @bignum.divmod(0) }.should raise_error(ZeroDivisionError)
     lambda { (-@bignum).divmod(0) }.should raise_error(ZeroDivisionError)
   end
-  
+
   it "raises a FloatDomainError when the given argument is 0 and a Float" do
-    lambda { @bignum.divmod(0.0) }.should raise_error(FloatDomainError, "NaN")
-    lambda { (-@bignum).divmod(0.0) }.should raise_error(FloatDomainError, "NaN")
+    lambda { @bignum.divmod(0.0) }.should raise_error(FloatDomainError)
+    lambda { (-@bignum).divmod(0.0) }.should raise_error(FloatDomainError)
   end
 
   it "raises a TypeError when the given argument is not an Integer" do

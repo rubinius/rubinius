@@ -36,11 +36,11 @@ describe "Enumerable#any?" do
   it "does not hide exceptions out of #each" do
     lambda {
       EnumerableSpecs::ThrowingEach.new.any?
-    }.should raise_error(RuntimeError, "from each")
+    }.should raise_error(RuntimeError)
 
     lambda {
       EnumerableSpecs::ThrowingEach.new.any? { false }
-    }.should raise_error(RuntimeError, "from each")
+    }.should raise_error(RuntimeError)
   end
 
   describe "with no block" do
@@ -122,7 +122,7 @@ describe "Enumerable#any?" do
     it "does not hide exceptions out of the block" do
       lambda {
         @enum.any? { raise "from block" }
-      }.should raise_error(RuntimeError, "from block")
+      }.should raise_error(RuntimeError)
     end
   end
 end

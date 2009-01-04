@@ -56,4 +56,8 @@ module Private
        "foo"
      end
    end
+
+   class H < A
+     private :foo
+   end
 end

@@ -50,7 +50,7 @@ describe "File.open" do
           end
         end
       end
-    }.should raise_error(Exception, "exception out of close")
+    }.should raise_error(Exception)
   end
 
   it "with a block swallows StandardErrors produced by close" do

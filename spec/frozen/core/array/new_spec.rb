@@ -2,112 +2,126 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array.new" do
-  it "returns a new array when not passed arguments" do
-    a = Array.new
-    a.class.should == Array
+  it "returns an instance of Array" do
+    Array.new.class.should == Array
   end
 
-  it "returns an instance of the subclass when called for a subclass of Array" do
-    b = ArraySpecs::MyArray.new
-    b.class.should == ArraySpecs::MyArray
+  it "returns an instance of a subclass" do
+    ArraySpecs::MyArray.new.class.should == ArraySpecs::MyArray
   end
-  
-  it "raises an ArgumentError when passed a negative size" do
+
+  it "raise an ArgumentError if passed 3 or more arguments" do
+    lambda do
+      [1, 2].send :initialize, 1, 'x', true
+    end.should raise_error(ArgumentError)
+    lambda do
+      [1, 2].send(:initialize, 1, 'x', true) {}
+    end.should raise_error(ArgumentError)
+  end
+end
+
+describe "Array.new with no arguments" do
+  it "returns an empty array" do
+    Array.new.should be_empty
+  end
+
+  it "does not use the given block" do
+    lambda{ Array.new { raise } }.should_not raise_error
+  end
+end
+
+describe "Array.new with (array)" do
+  it "returns an array initialized to the other array" do
+    b = [4, 5, 6]
+    Array.new(b).should == b
+  end
+
+  it "does not use the given block" do
+    lambda{ Array.new([1, 2]) { raise } }.should_not raise_error
+  end
+
+  it "calls #to_ary to convert the value to an array" do
+    a = mock("array")
+    a.should_receive(:to_ary).and_return([1, 2])
+    a.should_not_receive(:to_int)
+    Array.new(a).should == [1, 2]
+  end
+
+  it "does not call #to_ary on instances of Array or subclasses of Array" do
+    a = [1, 2]
+    a.should_not_receive(:to_ary)
+    Array.new(a)
+  end
+
+  it "raises a TypeError if an Array type argument and a default object" do
+    lambda { Array.new([1, 2], 1) }.should raise_error(TypeError)
+  end
+end
+
+describe "Array.new with (size, object=nil)" do
+  it "returns an array of size filled with object" do
+    obj = [3]
+    a = Array.new(2, obj)
+    a.should == [obj, obj]
+    a[0].should equal(obj)
+    a[1].should equal(obj)
+  end
+
+  it "returns an array of size filled with nil when object is omitted" do
+    Array.new(3).should == [nil, nil, nil]
+  end
+
+  it "raises an ArgumentError if size is negative" do
+    lambda { Array.new(-1, :a) }.should raise_error(ArgumentError)
     lambda { Array.new(-1) }.should raise_error(ArgumentError)
   end
 
   platform_is :wordsize => 32 do
-    it "raises an ArgumentError when passed a too large size" do
-      enough_large_size = 2**32/4 + 1
-      lambda { Array.new(enough_large_size) }.should raise_error(ArgumentError)
+    it "raises an ArgumentError if size is too large" do
+      max_size = ArraySpecs.max_32bit_size
+      lambda { Array.new(max_size + 1) }.should raise_error(ArgumentError)
     end
   end
+
   platform_is :wordsize => 64 do
-    it "raises an ArgumentError when passed a too large size" do
-      enough_large_size = 2**64/8 + 1
-      lambda { Array.new(enough_large_size) }.should raise_error(ArgumentError)
+    it "raises an ArgumentError if size is too large" do
+      max_size = ArraySpecs.max_64bit_size
+      lambda { Array.new(max_size + 1) }.should raise_error(ArgumentError)
     end
   end
 
-  it "returns a new array of size with nil elements" do
-    Array.new(5).should == [nil, nil, nil, nil, nil]
+  it "calls #to_int to convert the size argument to an Integer when object is given" do
+    obj = mock('1')
+    obj.should_receive(:to_int).and_return(1)
+    Array.new(obj, :a).should == [:a]
+  end
 
-    a = ArraySpecs::MyArray.new(5)
-    a.class.should == ArraySpecs::MyArray
-    (1...5).each do |i|
-      a[0].should == nil
+  it "calls #to_int to convert the size argument to an Integer when object is not given" do
+    obj = mock('1')
+    obj.should_receive(:to_int).and_return(1)
+    Array.new(obj).should == [nil]
+  end
+
+  it "raises a TypeError if the size argument is not an Integer type" do
+    obj = mock('nonnumeric')
+    obj.stub!(:to_ary).and_return([1, 2])
+    lambda{ Array.new(obj, :a) }.should raise_error(TypeError)
+  end
+
+  it "yields the index of the element and sets the element to the value of the block" do
+    Array.new(3) { |i| i.to_s }.should == ['0', '1', '2']
+  end
+
+  it "uses the block value instead of using the default value" do
+    Array.new(3, :obj) { |i| i.to_s }.should == ['0', '1', '2']
+  end
+
+  it "returns the value passed to break" do
+    a = Array.new(3) do |i|
+      break if i == 2
+      i.to_s
     end
-  end
 
-  it "tries to convert the passed arguments to Arrays using #to_ary" do
-    obj = mock('[:foo]')
-    obj.should_receive(:to_ary).and_return([:foo])
-    Array.new(obj).should == [:foo]
-  end
-  
-  it "checks whether the passed argument responds to #to_ary" do
-    obj = mock('[:foo]')
-    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_ary).any_number_of_times.and_return([:foo])
-    Array.new(obj).should == [:foo]
-  end
-  
-  it "tries to convert the passed arguments to Integers using #to_int when they don't respond to #to_ary" do
-    obj = mock('3')
-    obj.should_receive(:to_int).and_return(3)
-    Array.new(obj).should == [nil, nil, nil]
-  end
-
-  it "checks whether the passed argument responds to #to_int if they don't respond to #to_ary" do
-    obj = mock('3')
-    obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(3)
-    Array.new(obj).should == [nil, nil, nil]
-  end
-
-  it "returns a new array of size default objects" do
-    Array.new(4, true).should == [true, true, true, true]
-
-    a = ArraySpecs::MyArray.new(4, true)
-    a.class.should == ArraySpecs::MyArray
-    a.inspect.should == [true, true, true, true].inspect
-  end
-
-  it "does not copy the object given as default" do
-    str = "x"
-    ary = Array.new(4, str)
-    ary[0].object_id.should == str.object_id
-    ary[1].object_id.should == str.object_id
-    ary[2].object_id.should == str.object_id
-    ary[3].object_id.should == str.object_id
-  end
-  
-  it "does not call to_ary on Array subclasses when passed an array-like argument" do
-    Array.new(ArraySpecs::ToAryArray[5, 6, 7]).should == [5, 6, 7]
-  end
-  
-  it "calls to_ary on an argument before to_int" do
-    obj = mock('[1,2,3]')
-    def obj.to_ary() [1, 2, 3] end
-    def obj.to_int() 3 end
-
-    Array.new(obj).should == [1, 2, 3]
-  end
-    
-  it "returns an array of size elements from the result of passing each index to block" do
-    Array.new(5) { |i| i + 1 }.should == [1, 2, 3, 4, 5]
-    
-    a = ArraySpecs::MyArray.new(5) { |i| i + 1 }
-    a.class.should == ArraySpecs::MyArray
-    a[0].should == 1
-    a[1].should == 2
-    a[2].should == 3
-    a[3].should == 4
-    a[4].should == 5
-  end  
-
-  it "will fail if a to_ary is supplied as the first argument and a second argument is given" do
-    lambda { Array.new([1, 2], 1) }.should raise_error(TypeError)
+    a.should == nil
   end
 end

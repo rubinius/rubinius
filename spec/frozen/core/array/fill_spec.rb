@@ -137,7 +137,7 @@ describe "Array#fill with (filler, index, length)" do
     a = [1, 2, 3]
     a.size.should == 3
     a.fill 'a', 0, 10
-    a.size.should == 10 
+    a.size.should == 10
   end
 
   it "pads between the last element and the index with nil if given an index which is greater than size of the array" do
@@ -209,7 +209,7 @@ describe "Array#fill with (filler, index, length)" do
     filler.should_not_receive(:to_int)
     [1, 2, 3, 4, 5].fill(filler, obj, obj).should == [1, 2, filler, filler, 5]
   end
-  
+
   it "checks whether the passed arguments respond to #to_int" do
     obj = mock('method_missing to_int')
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
@@ -224,7 +224,7 @@ describe "Array#fill with (filler, index, length)" do
     obj.should_receive(:respond_to?).with(:to_int).and_return(false)
     lambda { [].fill('a', obj) }.should raise_error(TypeError)
   end
-  
+
   platform_is :wordsize => 32 do
     it "raises an ArgumentError or RangeError for too-large sizes" do
       arr = [1, 2, 3]
@@ -256,7 +256,7 @@ describe "Array#fill with (filler, range)" do
     [1, 2, 3, 4, 5, 6].fill('x', 0...0).should == [1, 2, 3, 4, 5, 6]
     [1, 2, 3, 4, 5, 6].fill('x', 1..1).should == [1, 'x', 3, 4, 5, 6]
   end
-  
+
   it "replaces all elements in range with the value of block" do
     [1, 1, 1, 1, 1, 1].fill(1..6) { |i| i + 1 }.should == [1, 2, 3, 4, 5, 6, 7]
   end
@@ -319,13 +319,13 @@ describe "Array#fill with (filler, range)" do
   end
 
   it "raise an exception if some of the given range lies before the first of the array" do
-    lambda { [1, 2, 3].fill('x', -5..-3) }.should raise_error(RangeError, /-5\.\.-3/)
-    lambda { [1, 2, 3].fill('x', -5...-3) }.should raise_error(RangeError, /-5\.\.\.-3/)
-    lambda { [1, 2, 3].fill('x', -5..-4) }.should raise_error(RangeError, /-5\.\.-4/)
+    lambda { [1, 2, 3].fill('x', -5..-3) }.should raise_error(RangeError)
+    lambda { [1, 2, 3].fill('x', -5...-3) }.should raise_error(RangeError)
+    lambda { [1, 2, 3].fill('x', -5..-4) }.should raise_error(RangeError)
 
-    lambda { [1, 2, 3].fill(-5..-3, &@never_passed) }.should raise_error(RangeError, /-5\.\.-3/)
-    lambda { [1, 2, 3].fill(-5...-3, &@never_passed) }.should raise_error(RangeError, /-5\.\.\.-3/)
-    lambda { [1, 2, 3].fill(-5..-4, &@never_passed) }.should raise_error(RangeError, /-5\.\.-4/)
+    lambda { [1, 2, 3].fill(-5..-3, &@never_passed) }.should raise_error(RangeError)
+    lambda { [1, 2, 3].fill(-5...-3, &@never_passed) }.should raise_error(RangeError)
+    lambda { [1, 2, 3].fill(-5..-4, &@never_passed) }.should raise_error(RangeError)
   end
 
   it "tries to convert the start and end of the passed range to Integers using #to_int" do
@@ -336,7 +336,7 @@ describe "Array#fill with (filler, range)" do
     filler.should_not_receive(:to_int)
     [1, 2, 3, 4, 5].fill(filler, obj..obj).should == [1, 2, filler, 4, 5]
   end
-  
+
   it "checks whether the start and end of the passed range respond to #to_int" do
     obj = mock('method_missing to_int')
     def obj.<=>(rhs); rhs == self ? 0 : nil end

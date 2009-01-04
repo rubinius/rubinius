@@ -3,11 +3,11 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#delete_if" do
   before do
-    @a = [ "a", "b", "c" ] 
+    @a = [ "a", "b", "c" ]
   end
 
   it "removes each element for which block returns true" do
-    @a = [ "a", "b", "c" ] 
+    @a = [ "a", "b", "c" ]
     @a.delete_if { |x| x >= "b" }
     @a.should == ["a"]
   end
@@ -18,7 +18,7 @@ describe "Array#delete_if" do
 
   ruby_version_is "" ... "1.8.7" do
     it "raises a LocalJumpError if no block given" do
-      lambda { @a.delete_if }.should raise_error(LocalJumpError, /no block given/)
+      lambda { @a.delete_if }.should raise_error(LocalJumpError)
     end
   end
   ruby_version_is "1.8.7" ... "1.9" do

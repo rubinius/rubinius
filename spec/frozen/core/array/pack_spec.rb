@@ -2324,8 +2324,8 @@ describe "Array#pack with format 'w'" do
   end
 
   it "raises an ArgumentError if the count is greater than the number of remaining array elements" do
-    lambda { [1].pack('w2') }.should raise_error(ArgumentError, /few/)
-    lambda { [1, 2, 3, 4, 5].pack('w10') }.should raise_error(ArgumentError, /few/)
+    lambda { [1].pack('w2') }.should raise_error(ArgumentError)
+    lambda { [1, 2, 3, 4, 5].pack('w10') }.should raise_error(ArgumentError)
   end
 
   it "calls to_int on non-integer values before packing" do
@@ -2343,10 +2343,10 @@ describe "Array#pack with format 'w'" do
 
 
   it "raises TypeError on nil and non-numeric arguments" do
-    lambda { [nil].pack('w') }.should raise_error(TypeError, /nil/)
-    lambda { [()].pack('w') }.should raise_error(TypeError, /nil/)
-    lambda { ['a'].pack('w') }.should raise_error(TypeError, /String/)
-    lambda { [Object.new].pack('w') }.should raise_error(TypeError, /Object/)
+    lambda { [nil].pack('w') }.should raise_error(TypeError)
+    lambda { [()].pack('w') }.should raise_error(TypeError)
+    lambda { ['a'].pack('w') }.should raise_error(TypeError)
+    lambda { [Object.new].pack('w') }.should raise_error(TypeError)
   end
 
   ruby_version_is '1.9' do
@@ -2641,8 +2641,8 @@ describe "Array#pack with format 'P'" do
   end
 
   it "raises an ArgumentError if count is greater than the corresponding string in array" do
-    lambda { ["abc", "def"].pack("P3") }.should_not raise_error(ArgumentError, /short buffer/)
-    lambda { ["ab", "def"].pack("P3") }.should raise_error(ArgumentError, /short buffer/)
+    lambda { ["abc", "def"].pack("P3") }.should_not raise_error(ArgumentError)
+    lambda { ["ab", "def"].pack("P3") }.should raise_error(ArgumentError)
   end
 
   ruby_version_is '1.9' do

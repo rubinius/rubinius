@@ -51,7 +51,7 @@ describe "IO#close on an IO.popen stream" do
 
     io.close
 
-    lambda { io.pid }.should raise_error(IOError, 'closed stream')
+    lambda { io.pid }.should raise_error(IOError)
   end
 
   it "sets $?" do

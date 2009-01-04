@@ -1,8 +1,12 @@
 class MSpecScript
-  # An ordered list of the directories containing specs to run
-  set :files, [
-    'language',
-    'core',
+  # Language features specs
+  set :language, [ 'language' ]
+
+  # Core library specs
+  set :core, [ 'core' ]
+
+  # Standard library specs
+  set :library, [
     'library',
 
     # 1.9 feature
@@ -17,6 +21,9 @@ class MSpecScript
     '^library/rake',
     '^library/rubygems',
   ]
+
+  # An ordered list of the directories containing specs to run
+  set :files, get(:language) + get(:core) + get(:library)
 
   # The default implementation to run the specs.
   set :target, 'ruby'
