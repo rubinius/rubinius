@@ -25,6 +25,18 @@ class MSpecScript
     config[key] = value
   end
 
+  # Gets the value of +key+ from the config object. Simplifies
+  # getting values in a config file:
+  #
+  #   class MSpecScript
+  #     set :a, 1
+  #     set :b, 2
+  #     set :c, get(:a) + get(:b)
+  #   end
+  def self.get(key)
+    config[key]
+  end
+
   def initialize
     config[:formatter] = nil
     config[:includes]  = []
@@ -148,13 +160,22 @@ class MSpecScript
     Dir[partial]
   end
 
-  # Resolves each entry in +list+ to a set of files. If the entry
-  # has a leading '^' character, the list of files is subtracted
-  # from the list of files accumulated to that point.
+  # Resolves each entry in +list+ to a set of files.
+  #
+  # If the entry has a leading '^' character, the list of files
+  # is subtracted from the list of files accumulated to that point.
+  #
+  # If the entry has a leading ':' character, the corresponding
+  # key is looked up in the config object and the entries in the
+  # value retrieved are processed through #entries.
   def files(list)
     list.inject([]) do |files, item|
-      if item[0] == ?^
+      case item[0]
+      when ?^
         files -= entries(item[1..-1])
+      when ?:
+        key = item[1..-1].to_sym
+        files += files(Array(config[key]))
       else
         files += entries(item)
       end

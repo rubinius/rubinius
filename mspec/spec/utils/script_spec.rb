@@ -19,6 +19,13 @@ describe MSpecScript, ".set" do
   end
 end
 
+describe MSpecScript, ".get" do
+  it "gets the config hash value for a key" do
+    MSpecScript.set :a, 10
+    MSpecScript.get(:a).should == 10
+  end
+end
+
 describe MSpecScript, "#config" do
   it "returns the MSpecScript config hash" do
     MSpecScript.set :b, 5
@@ -378,5 +385,26 @@ describe MSpecScript, "#files" do
   it "processes the array elements in order" do
     @script.should_receive(:entries).and_return(["file1"], ["file1"], ["file2"])
     @script.files(["^a", "a", "b"]).should == ["file1", "file2"]
+  end
+end
+
+describe MSpecScript, "#files" do
+  before :each do
+    MSpecScript.set :files, ["file1", "file2"]
+
+    @script = MSpecScript.new
+  end
+
+  after :each do
+    MSpecScript.config.delete :files
+  end
+
+  it "looks up items with leading ':' in the config object" do
+    @script.should_receive(:entries).and_return(["file1"], ["file2"])
+    @script.files(":files").should == ["file1", "file2"]
+  end
+
+  it "returns an empty list if the config key is not set" do
+    @script.files(":all_files").should == []
   end
 end
