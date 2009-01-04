@@ -24,7 +24,7 @@ namespace rubinius {
 
     native_int wordsize = as<Fixnum>(
         G(rubinius)->get_const(state, "WORDSIZE"))->to_native();
-    size_t maxsize = ((size_t)::exp2(wordsize)) / (wordsize/8U);
+    size_t maxsize = ((size_t)::exp2(wordsize)-1) / (wordsize/8U);
     G(array)->set_const(state, "MAX_SIZE", Fixnum::from(maxsize));
   }
 
