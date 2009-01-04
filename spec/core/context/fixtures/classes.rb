@@ -66,6 +66,18 @@ module ContextSpecs
     end
   end
 
+  class B
+    def inspect_stack(depth)
+      ctx = Rubinius::Task.current.current_context
+      #puts ctx.method.decode
+      inspector 'First', :second, 3, [4, 5, 6], ctx.stack_at(depth)
+    end
+
+    def inspector(*args)
+      args.last
+    end
+  end
+
   # Simple listener class to receive call-backs when yield_debugger is hit
   class Listener
     def initialize

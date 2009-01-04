@@ -384,6 +384,22 @@ class MethodContext
     return @dynamic_locals[name]
   end
 
+  # Returns the current depth of the stack for this context.
+  def stack_depth
+    Ruby.primitive :context_stack_depth
+    Kernel.raise PrimitiveFailure, "primitive failed"
+  end
+
+  # Returns the value at the specified depth on the task stack, where depth is
+  # a positive integer counting down from the top of the stack.
+  def stack_at(depth)
+    Ruby.primitive :context_stack_at
+
+    # If we get here, the primitive failed
+    # Kernel raise is used, since we don't want to use the raise primitive above
+    Kernel.raise ArgumentError, "#{self.class} stack index out of range"
+  end
+
 end
 
 #
