@@ -24,6 +24,13 @@ class TestArray : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_allocate() {
+    Class* sub = state->new_class("ArraySub", G(array), 0);
+    Array* ary = Array::allocate(state, sub);
+
+    TS_ASSERT_EQUALS(ary->klass(), sub);
+  }
+
   void test_aref() {
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, Fixnum::from(1));

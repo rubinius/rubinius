@@ -28,14 +28,6 @@ class Array
     new args
   end
 
-  def self.allocate
-    ary = super()
-    ary.start = 0
-    ary.total = 0
-    ary.tuple = Tuple.new 8
-    ary
-  end
-
   # Creates a new Array. Without arguments, an empty
   # Array is returned. If the only argument is an object
   # that responds to +to_ary+, a copy of that Array is
