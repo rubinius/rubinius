@@ -9,6 +9,7 @@
 #include "primitives.hpp"
 
 #include <iostream>
+#include <cmath>
 
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.
