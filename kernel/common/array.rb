@@ -65,7 +65,7 @@ class Array
 
     size = Type.coerce_to size_or_array, Integer, :to_int
     raise ArgumentError, "size must be positive" if size < 0
-    raise ArgumentError, "size must be a Fixnum" unless size.is_a? Fixnum
+    raise ArgumentError, "size must be <= #{MAX_SIZE}" if size > MAX_SIZE
 
     if block_given?
       @tuple = Tuple.new size

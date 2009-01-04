@@ -244,7 +244,7 @@ namespace rubinius {
      * Create our Rubinius module that we hang stuff off
      */
 
-    GO(rubinius).set(new_module("Rubinius"));
+    initialize_fundamental_constants();
 
     bootstrap_symbol();
     initialize_builtin_classes();
@@ -269,6 +269,18 @@ namespace rubinius {
     initialize_platform_data();
   }
 
+  void VM::initialize_fundamental_constants() {
+    GO(rubinius).set(new_module("Rubinius"));
+
+    if(sizeof(int) == sizeof(long)) {
+      G(rubinius)->set_const(state, "L64", Qfalse);
+    } else {
+      G(rubinius)->set_const(state, "L64", Qtrue);
+    }
+
+    G(rubinius)->set_const(state, "WORDSIZE", Fixnum::from(sizeof(void*) * 8));
+  }
+
   void VM::initialize_platform_data() {
     // HACK test hooking up IO
     IO* in_io  = IO::create(state, fileno(stdin));
@@ -285,14 +297,6 @@ namespace rubinius {
     G(object)->set_const(state, "STDIN",  in_io);
     G(object)->set_const(state, "STDOUT", out_io);
     G(object)->set_const(state, "STDERR", err_io);
-
-    if(sizeof(int) == sizeof(long)) {
-      G(rubinius)->set_const(state, "L64", Qfalse);
-    } else {
-      G(rubinius)->set_const(state, "L64", Qtrue);
-    }
-
-    G(rubinius)->set_const(state, "WORDSIZE", Fixnum::from(sizeof(void*) * 8));
 
 #if defined(__ppc__) || defined(__POWERPC__) || defined(_POWER)
     G(rubinius)->set_const(state, "PLATFORM", symbol("ppc"));
