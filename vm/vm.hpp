@@ -102,7 +102,7 @@ namespace rubinius {
     static const int cReasonTypeError = 2;
     static const int cReasonAssertion = 3;
 
-    static const size_t default_bytes = 1048576;
+    static const size_t default_bytes = 1048576 * 3;
 
     /* Inline methods */
     /* Prototypes */
