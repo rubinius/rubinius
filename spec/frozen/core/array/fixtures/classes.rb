@@ -1,4 +1,24 @@
 module ArraySpecs
+  not_compliant_on :rubinius do
+    def self.max_32bit_size
+      2**32/4
+    end
+
+    def self.max_64bit_size
+      2**64/8
+    end
+  end
+
+  deviates_on :rubinius do
+    def self.max_32bit_size
+      2**30-1
+    end
+
+    def self.max_64bit_size
+      2**62-1
+    end
+  end
+
   def self.frozen_array
     @frozen_array ||= [1,2,3]
     @frozen_array.freeze
@@ -32,6 +52,8 @@ module ArraySpecs
     end
   end
 
+  # TODO: replace specs that use this with #should_not_receive(:to_ary)
+  # expectations on regular objects (e.g. Array instances).
   class ToAryArray < Array
     def to_ary() ["to_ary", "was", "called!"] end
   end
@@ -42,18 +64,16 @@ module ArraySpecs
     def ==(other); other == 'it'; end
   end
 
-  class D 
-    def <=>(obj) 
+  class D
+    def <=>(obj)
       return 4 <=> obj unless obj.class == D
       0
     end
   end
-  
+
   class SubArray < Array
-    attr_reader :special
-    
-    def initialize(size=0)
-      @special = size
+    def initialize(*args)
+      ScratchPad.record args
     end
   end
 end

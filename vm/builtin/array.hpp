@@ -34,6 +34,9 @@ namespace rubinius {
     static Array* from_tuple(STATE, Tuple* tup);
     void   setup(STATE, size_t size);
 
+    // Ruby.primitive :array_allocate
+    static Array* allocate(STATE, Object* self);
+
     // Ruby.primitive :array_aref
     Object* aref(STATE, Fixnum* idx);
 

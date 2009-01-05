@@ -1,1 +1,0 @@
-fails:Array.new raises an ArgumentError when passed a too large size

@@ -1,8 +1,12 @@
 class MSpecScript
-  # An ordered list of the directories containing specs to run
-  set :files, [
-    'language',
-    'core',
+  # Language features specs
+  set :language, [ 'language' ]
+
+  # Core library specs
+  set :core, [ 'core' ]
+
+  # Standard library specs
+  set :library, [
     'library',
 
     # obsolete libraries
@@ -33,6 +37,9 @@ class MSpecScript
 
     '^library/dl',  # reimplemented and API changed
   ]
+
+  # An ordered list of the directories containing specs to run
+  set :files, get(:language) + get(:core) + get(:library)
 
   # The default implementation to run the specs.
   # TODO: this needs to be more sophisticated since the

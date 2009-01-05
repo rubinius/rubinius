@@ -88,7 +88,7 @@ describe :array_collect_b, :shared => true do
   ruby_version_is '' ... '1.8.7' do
     it 'raises LocalJumpError if no block given' do
       a = [1, 2, 3]
-      lambda { a.send(@method) }.should raise_error(LocalJumpError, /no block given/)
+      lambda { a.send(@method) }.should raise_error(LocalJumpError)
     end
   end
   ruby_version_is '1.8.7' ... '1.9' do

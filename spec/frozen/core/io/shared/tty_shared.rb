@@ -1,9 +1,11 @@
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe :io_tty, :shared => true do
-  # Yeah, this will probably break.
-  it "returns true if this stream is a terminal device (TTY)" do
-    File.open('/dev/tty') {|f| f.send @method }.should == true
+  with_tty do
+    # Yeah, this will probably break.
+    it "returns true if this stream is a terminal device (TTY)" do
+      File.open('/dev/tty') {|f| f.send @method }.should == true
+    end
   end
 
   it "returns false if this stream is not a terminal device (TTY)" do

@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Array#pop" do
   it "removes and returns the last element of the array" do
     a = ["a", 1, nil, true]
-    
+
     a.pop.should == true
     a.should == ["a", 1, nil]
 
@@ -17,7 +17,7 @@ describe "Array#pop" do
     a.pop.should == "a"
     a.should == []
   end
-  
+
   it "returns nil if there are no more elements" do
     [].pop.should == nil
   end
@@ -111,7 +111,7 @@ describe "Array#pop" do
       end
 
       it "raises an ArgumentError if n is negative" do
-        lambda{ [1, 2, 3].pop(-1) }.should raise_error(ArgumentError, /negative/)
+        lambda{ [1, 2, 3].pop(-1) }.should raise_error(ArgumentError)
       end
 
       it "tries to convert n to an Integer using #to_int" do

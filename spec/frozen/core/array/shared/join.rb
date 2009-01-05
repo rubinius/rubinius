@@ -18,9 +18,9 @@ describe :array_join, :shared => true do
   it "raises a NoMethodError if an element does not respond to #to_s" do
     obj = mock('o')
     class << obj; undef :to_s; end
-    lambda{ [1,obj].send(@method, ':') }.should raise_error(NoMethodError, /to_s/)
+    lambda{ [1,obj].send(@method, ':') }.should raise_error(NoMethodError)
   end
-  
+
   it "uses the same separator with nested arrays" do
     [1, [2, [3, 4], 5], 6].send(@method, ":").should == "1:2:3:4:5:6"
     [1, [2, ArraySpecs::MyArray[3, 4], 5], 6].send(@method, ":").should == "1:2:3:4:5:6"
@@ -31,7 +31,7 @@ describe :array_join, :shared => true do
     obj.should_receive(:to_str).and_return("::")
     [1, 2, 3, 4].send(@method, obj).should == '1::2::3::4'
   end
-  
+
   it "checks whether the passed seperator responds to #to_str" do
     obj = mock('.')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
@@ -62,7 +62,7 @@ describe :array_join, :shared => true do
     str = x.send(@method, '/')
     str.should include("one/two")
     str.should include("three/four")
-    
+
     x = []
     y = []
     y << 9 << x << 8 << y << 7
@@ -102,7 +102,7 @@ describe :array_join, :shared => true do
   end
 
   ruby_version_is '1.9' do
-    it "does not consider untrustworthiness of either the array or the separator when the array is empty" do 
+    it "does not consider untrustworthiness of either the array or the separator when the array is empty" do
       [].send(@method, ":").untrusted?.should == false
       [].untrust.send(@method, ":").untrusted?.should == false
       [].send(@method, ":".untrust).untrusted?.should == false

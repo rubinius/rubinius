@@ -16,14 +16,15 @@ ruby_version_is "1.9" do
     end
 
     it "is equal to the specified encoding when a magic comment exists" do
-      eval("# coding: ASCII-8BIT\n__ENCODING__".force_encoding("US-ASCII")).should == Encoding::ASCII_8BIT
-      eval("# coding: US-ASCII\n__ENCODING__".force_encoding("ASCII-8BIT")).should == Encoding::US_ASCII
+      code = "# coding: ASCII-8BIT\n__ENCODING__".force_encoding("US-ASCII")
+      eval(code).should == Encoding::ASCII_8BIT
+
+      code = "# coding: US-ASCII\n__ENCODING__".force_encoding("ASCII-8BIT")
+      eval(code).should == Encoding::US_ASCII
     end
 
     it "is not assignable" do
-      lambda {
-        eval("__ENCODING__ = nil")
-      }.should raise_error(SyntaxError, /Can't assign to __ENCODING__/)
+      lambda { eval("__ENCODING__ = nil") }.should raise_error(SyntaxError)
     end
   end
 end

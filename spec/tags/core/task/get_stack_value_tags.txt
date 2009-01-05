@@ -1,1 +1,0 @@
-fails:Task#get_stack_value throws an ArgumentError if depth is out of range

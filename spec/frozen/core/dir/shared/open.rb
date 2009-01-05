@@ -6,7 +6,9 @@ describe :dir_open, :shared => true do
   end
 
   it "raises a SystemCallError if the directory does not exist" do
-    lambda {  Dir.send @method, DirSpecs.nonexistent }.should raise_error(SystemCallError)
+    lambda do
+      Dir.send @method, DirSpecs.nonexistent
+    end.should raise_error(SystemCallError)
   end
 
   it "may take a block which is yielded to with the Dir instance" do
@@ -19,15 +21,19 @@ describe :dir_open, :shared => true do
 
   it "closes the Dir instance when the block exits if given a block" do
     closed_dir = Dir.send(@method, DirSpecs.mock_dir) { |dir| dir }
-    lambda { closed_dir.close }.should raise_error(IOError, "closed directory")
+    lambda { closed_dir.close }.should raise_error(IOError)
   end
 
   it "closes the Dir instance when the block exits the block even due to an exception" do
     @closed_dir = nil
 
-    l = lambda { Dir.send(@method, DirSpecs.mock_dir) { |dir| @closed_dir = dir; raise } }
-    l.should raise_error
+    lambda do
+      Dir.send(@method, DirSpecs.mock_dir) do |dir|
+        @closed_dir = dir
+        raise
+      end
+    end.should raise_error
 
-    lambda { @closed_dir.close }.should raise_error(IOError, "closed directory")
+    lambda { @closed_dir.close }.should raise_error(IOError)
   end
 end

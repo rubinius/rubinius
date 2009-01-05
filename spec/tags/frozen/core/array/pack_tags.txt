@@ -249,3 +249,15 @@ fails:Array#pack with format 'P' consumes one array item per a format
 fails:Array#pack with format 'P' ignores '*' parameter
 fails:Array#pack with format 'P' returns a pointer to zero-length byte sequence if count = 0 with
 fails:Array#pack with format 'P' raises an ArgumentError if count is greater than the corresponding string in array
+fails(on 64bit):Array#pack with format 'i!' drops higher bytes when a pack argument is >= 2**32
+fails(on 64bit):Array#pack with format 'i!' drops higher bytes when a pack argument is < -2**32
+fails(on 64bit):Array#pack with format 'i_' drops higher bytes when a pack argument is >= 2**32
+fails(on 64bit):Array#pack with format 'i_' drops higher bytes when a pack argument is < -2**32
+fails(on 64bit):Array#pack with format 'I!' drops higher bytes when a pack argument is >= 2**32
+fails(on 64bit):Array#pack with format 'I!' drops higher bytes when a pack argument is < -2**32
+fails(on 64bit):Array#pack with format 'I_' drops higher bytes when a pack argument is >= 2**32
+fails(on 64bit):Array#pack with format 'I_' drops higher bytes when a pack argument is < -2**32
+fails(on 64bit):Array#pack with format 'l!' returns a string containing 8 bytes for an integer
+fails(on 64bit):Array#pack with format 'l_' returns a string containing 8 bytes for an integer
+fails(on 64bit):Array#pack with format 'L!' returns a string containing 8 bytes for an integer
+fails(on 64bit):Array#pack with format 'L_' returns a string containing 8 bytes for an integer

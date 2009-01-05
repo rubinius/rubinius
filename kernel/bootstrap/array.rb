@@ -5,6 +5,11 @@ class Array
   def tuple    ; @tuple ; end
   def start    ; @start ; end
 
+  def self.allocate
+    Ruby.primitive :array_allocate
+    raise PrimitiveFailure, "Array.allocate primitive failed"
+  end
+
   def size
     @total
   end

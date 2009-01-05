@@ -182,6 +182,19 @@ namespace rubinius {
       return js.stack - stk;
     }
 
+
+    // Ruby.primitive :context_stack_depth
+    Fixnum* stack_depth() {
+      return Fixnum::from(calculate_sp());
+    }
+
+    // Ruby.primitive :context_stack_at
+    Object* stack_at_prim(STATE, Fixnum *depth) {
+      int d = depth->to_native();
+      if(d < 0 || d >= calculate_sp()) return Primitives::failure();
+      return stack_at(depth->to_native());
+    }
+
     // Manage the dynamic Unwind stack for this context
     void push_unwind(int target_ip) {
       assert(current_unwind < kMaxUnwindInfos);

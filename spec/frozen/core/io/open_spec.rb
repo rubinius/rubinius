@@ -39,7 +39,7 @@ describe "IO.open" do
           end
         end
       end # IO object is closed here
-    }.should raise_error(Exception, "exception out of close")
+    }.should raise_error(Exception)
   end
 
   it "with a block swallows StandardErrors produced by close" do

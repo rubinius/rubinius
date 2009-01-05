@@ -94,6 +94,7 @@ namespace rubinius {
     void bootstrap_ontology();
     void bootstrap_symbol();
     void bootstrap_exceptions();
+    void initialize_fundamental_constants();
     void initialize_builtin_classes();
     void initialize_platform_data();
     void boot_threads();

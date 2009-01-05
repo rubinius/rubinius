@@ -9,6 +9,7 @@
 #include "primitives.hpp"
 
 #include <iostream>
+#include <cmath>
 
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.
@@ -20,6 +21,8 @@ namespace rubinius {
   void Array::init(STATE) {
     GO(array).set(state->new_class("Array", G(object)));
     G(array)->set_object_type(state, ArrayType);
+
+    G(array)->set_const(state, "MAX_SIZE", Fixnum::from(FIXNUM_MAX));
   }
 
   size_t Array::size() {
@@ -32,6 +35,13 @@ namespace rubinius {
 
     ary->setup(state, idx);
 
+    return ary;
+  }
+
+  // 'self' is passed in automatically by the primitive glue
+  Array* Array::allocate(STATE, Object* self) {
+    Array* ary = Array::create(state, 0U);
+    ary->klass(state, (Class*)self);
     return ary;
   }
 
