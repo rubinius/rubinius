@@ -367,10 +367,12 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_pow() {
-    Bignum *base = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(30)));
-    check_bignum(base, "1073741824");
+    Bignum *base1 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(30)));
+    check_bignum(base1, "1073741824");
+    Bignum *base2 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(32)));
+    check_bignum(base2, "4294967296");
 
-    check_bignum(base->pow(state, Fixnum::from(7)),
+    check_bignum(base1->pow(state, Fixnum::from(7)),
 		 "1645504557321206042154969182557350504982735865633579863348609024");
   }
 
@@ -535,6 +537,14 @@ class TestBignum : public CxxTest::TestSuite {
 
   void test_to_float() {
     check_float(b1->to_float(state), Float::create(state, 2147483647.0));
+    check_float(b2->to_float(state), Float::create(state, 2147483646.0));
+
+    Bignum *b3 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(32)));
+    check_float(b3->to_float(state), Float::create(state, 4294967296.0));
+    Bignum *b4 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(33)));
+    check_float(b4->to_float(state), Float::create(state, 8589934592.0));
+    Bignum *b5 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(34)));
+    check_float(b5->to_float(state), Float::create(state, 17179869184.0));
   }
 
   void test_to_float_huge_positive() {
