@@ -83,6 +83,9 @@ namespace rubinius {
     // How much time is spent running the JIT
     uint64_t jit_timing;
 
+    // How many methods have been compiled by the JIT
+    uint64_t jitted_methods;
+
     // The safe position on the stack used to handle rare
     // events.
     sigjmp_buf safe_position;

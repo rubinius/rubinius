@@ -96,7 +96,8 @@ namespace rubinius {
 
   Object* System::vm_exit(STATE, Fixnum* code) {
     if(getenv("JIT_STATS")) {
-      std::cout << "JIT Time: " << (state->jit_timing / 1000000) << "ms\n";
+      std::cout << "JITed methods: " << state->jitted_methods << "\n";
+      std::cout << "     JIT Time: " << (state->jit_timing / 1000000) << "ms\n";
     }
     ::exit(code->to_native());
     return code;

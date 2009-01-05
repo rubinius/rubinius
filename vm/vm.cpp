@@ -32,6 +32,7 @@ namespace rubinius {
     : current_mark(NULL)
     , reuse_llvm(true)
     , jit_timing(0)
+    , jitted_methods(0)
     , use_safe_position(false)
   {
     config.compile_up_front = false;

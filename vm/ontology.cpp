@@ -397,6 +397,12 @@ namespace rubinius {
 #else
     G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
 #endif
+
+#ifdef USE_USAGE_JIT
+    G(rubinius)->set_const(state, "JIT", symbol("usage"));
+#else
+    G(rubinius)->set_const(state, "JIT", Qfalse);
+#endif
   }
 
   void VM::bootstrap_symbol() {

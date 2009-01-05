@@ -188,6 +188,7 @@ namespace rubinius {
     ctx->run = this->run;
     ctx->js = this->js;
     ctx->ip = this->ip;
+    ctx->native_ip = this->native_ip;
     ctx->args = this->args;
     ctx->stack_size = this->stack_size;
 

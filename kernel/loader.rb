@@ -122,6 +122,9 @@ begin
       exit 0 if ARGV.empty?
     when "-vm"
       puts "[Interpreter type: #{Rubinius::INTERPRETER}]"
+      if jit = Rubinius::JIT
+        puts "[JIT enabled: #{jit}]"
+      end
     when "-w"
       # do nothing (HACK)
     when '-dc'

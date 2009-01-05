@@ -22,9 +22,8 @@
 #include "timing.hpp"
 #include "config.h"
 
-// #define USE_USAGE_JIT
 #define CALLS_TIL_JIT 50
-#define JIT_MAX_METHOD_SIZE 512
+#define JIT_MAX_METHOD_SIZE 2048
 
 /*
  * An internalization of a CompiledMethod which holds the instructions for the
@@ -339,6 +338,7 @@ namespace rubinius {
     // for this method.
     if(vmm->call_count >= 0) {
       if(vmm->call_count >= CALLS_TIL_JIT) {
+        state->jitted_methods++;
         uint64_t start = get_current_time();
         MachineMethod* mm = cm->make_machine_method(state);
         mm->activate();
