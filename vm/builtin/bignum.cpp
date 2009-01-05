@@ -862,7 +862,7 @@ namespace rubinius {
   }
 
   Float* Bignum::to_float(STATE) {
-    return Float::coerce(state, this);
+    return Float::create(state, to_double(state));
   }
 
   String* Bignum::to_s(STATE, Integer* radix) {
@@ -938,26 +938,16 @@ namespace rubinius {
   }
 
   double Bignum::to_double(STATE) {
-    int i;
-    double res;
-    double m;
-    mp_int *a;
-
-    a = mp_val();
-
-    if (a->used == 0) {
-      return 0;
-    }
+    mp_int *a = mp_val();
 
     /* get number of digits of the lsb we have to read */
-    i = a->used;
-    m = DIGIT_RADIX;
+    int i = a->used;
 
-    /* get most significant digit of result */
-    res = DIGIT(a,i);
-
-    while (--i >= 0) {
-      res = (res * m) + DIGIT(a,i);
+    double res = 0.0;
+    /* loop down from the most significant digit of result */
+    while(i > 0) {
+      --i;
+      res = (res * (double)DIGIT_RADIX) + DIGIT(a,i);
     }
 
     if(std::isinf(res)) {
