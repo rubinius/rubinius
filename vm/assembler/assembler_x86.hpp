@@ -536,7 +536,7 @@ namespace assembler_x86 {
       // index == what register to use as the table index
       // 5     == add displacement
       emit_modrm(scale, index.code(), 5);
-      emit_w(reinterpret_cast<uint32_t>(table));
+      emit_w(reinterpret_cast<uintptr_t>(table));
     }
 
     void jump(void* address) {
