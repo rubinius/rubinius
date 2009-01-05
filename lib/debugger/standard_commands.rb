@@ -1,3 +1,5 @@
+require 'pp'
+
 # Defines standard debugger commands that are always available
 class Debugger
 
@@ -358,7 +360,7 @@ class Debugger
       end
 
       output = Output.info("S-expression for source lines [#{first+1}-#{last+1}] in #{file}:")
-      sexp = lines[first..last].join().to_sexp.indented_inspect
+      sexp = lines[first..last].join().to_sexp.pretty_inspect
       output << sexp
       output
     end
