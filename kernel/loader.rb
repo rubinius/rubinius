@@ -120,6 +120,8 @@ begin
       puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
       exit 0 if ARGV.empty?
+    when "-vm"
+      puts "[Interpreter type: #{Rubinius::INTERPRETER}]"
     when "-w"
       # do nothing (HACK)
     when '-dc'

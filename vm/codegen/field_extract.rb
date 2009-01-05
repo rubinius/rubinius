@@ -38,7 +38,12 @@ class BasicPrimitive
 
   def output_call(str, call, args)
     str << "\n"
-    str << "  ret = #{call}(#{args.join(', ')});\n"
+    str << "  try {\n"
+    str << "    ret = #{call}(#{args.join(', ')});\n"
+    str << "  } catch(const RubyException& exc) {\n"
+    str << "    task->raise_exception(exc.exception);\n"
+    str << "    return cExecuteRestart;\n"
+    str << "  }\n"
     str << "\n"
     str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
     str << "    goto fail;\n\n"
@@ -138,11 +143,16 @@ class CPPOverloadedPrimitive < BasicPrimitive
     @kinds.each do |prim|
       type = prim.arg_types.first
       str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
+      str << "      try {\n"
       if @pass_state
         str << "      ret = recv->#{@cpp_name}(state, arg);\n"
       else
         str << "      ret = recv->#{@cpp_name}(arg);\n"
       end
+      str << "      } catch(const RubyException& exc) {\n"
+      str << "        task->raise_exception(exc.exception);\n"
+      str << "        return cExecuteRestart;\n"
+      str << "      }\n"
       str << "      if(likely(ret != reinterpret_cast<Object*>(kPrimitiveFailed))) {\n"
       prim_return(str, 8);
       str << "        return cExecuteContinue;\n"

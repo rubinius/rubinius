@@ -37,6 +37,16 @@ namespace rubinius {
     return exc;
   }
 
+  Exception* Exception::make_argument_error(STATE, int expected, int given) {
+    Exception* exc = state->new_object<Exception>(G(exc_arg));
+    MethodContext* ctx = G(current_task)->active();
+    ctx->reference(state);
+    exc->context(state, ctx);
+    exc->set_ivar(state, state->symbol("@given"), Fixnum::from(given));
+    exc->set_ivar(state, state->symbol("@expected"), Fixnum::from(expected));
+    return exc;
+  }
+
   void Exception::argument_error(STATE, int expected, int given) {
     std::ostringstream msg;
 

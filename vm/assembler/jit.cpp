@@ -26,14 +26,25 @@ extern "C" {
 namespace rubinius {
   JITCompiler::JITCompiler()
     : stack_cached_(false)
+    , own_buffer_(true)
     , buffer_(new uint8_t[1024*1024])
     , a(buffer_)
     , s(a, ebx)
     , ops(s) { }
 
+  JITCompiler::JITCompiler(uint8_t* buf)
+    : stack_cached_(false)
+    , own_buffer_(false)
+    , buffer_(buf)
+    , a(buffer_)
+    , s(a, ebx)
+    , ops(s) { }
+
   JITCompiler::~JITCompiler() {
-    memset(buffer_, 0, 1024*1024);
-    delete[] buffer_;
+    if(own_buffer_) {
+      memset(buffer_, 0, 1024*1024);
+      delete[] buffer_;
+    }
   }
 
   void JITCompiler::cache_stack(bool force) {
@@ -104,7 +115,176 @@ namespace rubinius {
     // stores ecx as the virtual ip and returns.
     a.cmp(eax, cExecuteRestart);
     a.jump_if_equal(fin);
+  }
 
+  void JITCompiler::emit_fast_math(AssemblerX86::NearJumpLocation& done, bool add) {
+    AssemblerX86::NearJumpLocation slow_path;
+
+    // This code is HIGHLY aware that the tag bit for fixnum
+    // is a 1 in the low position only.
+
+    // Pull in the top 2 entries on the stack into registers
+    s.load_nth(ecx, 0);
+    s.load_nth(eax, 1);
+
+    // Perform the bit and to find out if they're both fixnums
+    a.mov(edx, eax);
+    a.bit_and(edx, ecx);
+    a.test(edx, TAG_FIXNUM);
+
+    // This seems odd, like the condition is backwards, but thats
+    // how test works.
+    a.jump_if_equal(slow_path);
+
+    // Ok, they're are both fixnums...
+    if(add) {
+      // And add them together directly
+      a.add(eax, ecx);
+
+      // Check the x86 overflow bit, and if so, run the slow path
+      a.jump_if_overflow(slow_path);
+
+      // Everything was good, so subtract 1 because the tag adds an
+      // extra 1 to the result
+      a.sub(eax, 1);
+    } else {
+      // And subtract them together directly
+      a.sub(eax, ecx);
+
+      // Check the x86 overflow bit, and if so, run the slow path
+      a.jump_if_overflow(slow_path);
+
+      // Everything was good, so add 1 because the tag subtracts an
+      // extra 1 to the result
+      a.add(eax, 1);
+    }
+
+    // Remove one from the stack
+    s.pop();
+
+    // Put the result on the stack
+    s.set_top(eax);
+
+    a.jump(done);
+
+    a.set_label(slow_path);
+    uncache_stack();
+    if(add) {
+      ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
+    } else {
+      ops.call_via_symbol((void*)JITCompiler::slow_minus_path);
+    }
+    cache_stack();
+  }
+
+  void JITCompiler::emit_fast_equal(AssemblerX86::NearJumpLocation& done, bool equal) {
+    AssemblerX86::NearJumpLocation equal_path;
+    AssemblerX86::NearJumpLocation slow_path;
+
+    s.load_nth(ecx, 0);
+    s.load_nth(edx, 1);
+
+    a.mov(eax, ecx);
+    a.bit_and(eax, TAG_REF_MASK);
+
+    a.cmp(eax, TAG_REF);
+    a.jump_if_equal(slow_path);
+
+    a.mov(eax, edx);
+    a.bit_and(eax, TAG_REF_MASK);
+
+    a.cmp(eax, TAG_REF);
+    a.jump_if_equal(slow_path);
+
+    // Ok, both are not references
+
+    s.pop();
+
+    a.cmp(ecx, edx);
+    a.jump_if_equal(equal_path);
+
+    if(equal) {
+      s.set_top(cFalse);
+      a.jump(done);
+
+      a.set_label(equal_path);
+
+      s.set_top(cTrue);
+      a.jump(done);
+    } else {
+      s.set_top(cTrue);
+      a.jump(done);
+
+      a.set_label(equal_path);
+
+      s.set_top(cFalse);
+      a.jump(done);
+    }
+
+    a.set_label(slow_path);
+    uncache_stack();
+
+    if(equal) {
+      ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
+    } else {
+      ops.call_via_symbol((void*)JITCompiler::slow_nequal_path);
+    }
+
+    cache_stack();
+  }
+
+  void JITCompiler::emit_fast_compare(AssemblerX86::NearJumpLocation& done, bool less) {
+    AssemblerX86::NearJumpLocation slow_path;
+
+    s.load_nth(ecx, 0);
+    s.load_nth(edx, 1);
+
+    a.mov(eax, ecx);
+    a.bit_and(eax, edx);
+    a.bit_and(eax, TAG_FIXNUM_MASK);
+
+    a.cmp(eax, TAG_FIXNUM);
+    a.jump_if_not_equal(slow_path);
+
+    // Ok, both are fixnums
+    // no need to strip the tags in this case
+    // stack top is rhs operand
+
+    s.pop();
+    a.cmp(edx, ecx);
+
+    if(less) {
+      AssemblerX86::NearJumpLocation less_path;
+
+      a.jump_if_less(less_path);
+      s.set_top(cFalse);
+      a.jump(done);
+
+      a.set_label(less_path);
+      s.set_top(cTrue);
+      a.jump(done);
+    } else {
+      AssemblerX86::NearJumpLocation greater_path;
+
+      a.jump_if_greater(greater_path);
+      s.set_top(cFalse);
+      a.jump(done);
+
+      a.set_label(greater_path);
+      s.set_top(cTrue);
+      a.jump(done);
+    }
+
+    a.set_label(slow_path);
+    uncache_stack();
+
+    if(less) {
+      ops.call_via_symbol((void*)JITCompiler::slow_lt_path);
+    } else {
+      ops.call_via_symbol((void*)JITCompiler::slow_gt_path);
+    }
+
+    cache_stack();
   }
 
   void JITCompiler::compile(STATE, VMMethod* vmm) {
@@ -272,63 +452,8 @@ namespace rubinius {
 
       case InstructionSequence::insn_meta_send_op_minus:
       case InstructionSequence::insn_meta_send_op_plus: {
-        AssemblerX86::NearJumpLocation slow_path;
         AssemblerX86::NearJumpLocation done;
-
-        // This code is HIGHLY aware that the tag bit for fixnum
-        // is a 1 in the low position only.
-
-        // Pull in the top 2 entries on the stack into registers
-        s.load_nth(ecx, 0);
-        s.load_nth(eax, 1);
-
-        // Perform the bit and to find out if they're both fixnums
-        a.mov(edx, eax);
-        a.bit_and(edx, ecx);
-        a.test(edx, TAG_FIXNUM);
-
-        // This seems odd, like the condition is backwards, but thats
-        // how test works.
-        a.jump_if_equal(slow_path);
-
-        // Ok, they're are both fixnums...
-        if(op == InstructionSequence::insn_meta_send_op_plus) {
-          // And add them together directly
-          a.add(eax, ecx);
-
-          // Check the x86 overflow bit, and if so, run the slow path
-          a.jump_if_overflow(slow_path);
-
-          // Everything was good, so subtract 1 because the tag adds an
-          // extra 1 to the result
-          a.sub(eax, 1);
-        } else {
-          // And subtract them together directly
-          a.sub(eax, ecx);
-
-          // Check the x86 overflow bit, and if so, run the slow path
-          a.jump_if_overflow(slow_path);
-
-          // Everything was good, so add 1 because the tag subtracts an
-          // extra 1 to the result
-          a.add(eax, 1);
-        }
-
-        // Remove one from the stack
-        s.pop();
-
-        // Put the result on the stack
-        s.set_top(eax);
-
-        a.jump(done);
-
-        a.set_label(slow_path);
-        uncache_stack();
-        if(op == InstructionSequence::insn_meta_send_op_plus) {
-          ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
-        } else {
-          ops.call_via_symbol((void*)JITCompiler::slow_minus_path);
-        }
+        emit_fast_math(done, op == InstructionSequence::insn_meta_send_op_plus);
         maybe_return(i, &last_imm, fin);
 
         // This is a phi point, where the fast path and slow path merge.
@@ -341,59 +466,8 @@ namespace rubinius {
 
       case InstructionSequence::insn_meta_send_op_equal:
       case InstructionSequence::insn_meta_send_op_nequal: {
-        AssemblerX86::NearJumpLocation equal_path;
-        AssemblerX86::NearJumpLocation slow_path;
         AssemblerX86::NearJumpLocation done;
-
-        s.load_nth(ecx, 0);
-        s.load_nth(edx, 1);
-
-        a.mov(eax, ecx);
-        a.bit_and(eax, TAG_REF_MASK);
-
-        a.cmp(eax, TAG_REF);
-        a.jump_if_equal(slow_path);
-
-        a.mov(eax, edx);
-        a.bit_and(eax, TAG_REF_MASK);
-
-        a.cmp(eax, TAG_REF);
-        a.jump_if_equal(slow_path);
-
-        // Ok, both are not references
-
-        s.pop();
-
-        a.cmp(ecx, edx);
-        a.jump_if_equal(equal_path);
-
-        if(op == InstructionSequence::insn_meta_send_op_equal) {
-          s.set_top(cFalse);
-          a.jump(done);
-
-          a.set_label(equal_path);
-
-          s.set_top(cTrue);
-          a.jump(done);
-        }
-        else {
-          s.set_top(cTrue);
-          a.jump(done);
-
-          a.set_label(equal_path);
-
-          s.set_top(cFalse);
-          a.jump(done);
-        }
-
-        a.set_label(slow_path);
-        uncache_stack();
-
-        if(op == InstructionSequence::insn_meta_send_op_equal) {
-          ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
-        } else {
-          ops.call_via_symbol((void*)JITCompiler::slow_nequal_path);
-        }
+        emit_fast_equal(done, op == InstructionSequence::insn_meta_send_op_equal);
         maybe_return(i, &last_imm, fin);
 
         a.set_label(done);
@@ -402,57 +476,8 @@ namespace rubinius {
 
       case InstructionSequence::insn_meta_send_op_lt:
       case InstructionSequence::insn_meta_send_op_gt: {
-        AssemblerX86::NearJumpLocation slow_path;
         AssemblerX86::NearJumpLocation done;
-
-        s.load_nth(ecx, 0);
-        s.load_nth(edx, 1);
-
-        a.mov(eax, ecx);
-        a.bit_and(eax, edx);
-        a.bit_and(eax, TAG_FIXNUM_MASK);
-
-        a.cmp(eax, TAG_FIXNUM);
-        a.jump_if_not_equal(slow_path);
-
-        // Ok, both are fixnums
-        // no need to strip the tags in this case
-        // stack top is rhs operand
-
-        s.pop();
-        a.cmp(edx, ecx);
-
-        if(op == InstructionSequence::insn_meta_send_op_lt) {
-          AssemblerX86::NearJumpLocation less_path;
-
-          a.jump_if_less(less_path);
-          s.set_top(cFalse);
-          a.jump(done);
-
-          a.set_label(less_path);
-          s.set_top(cTrue);
-          a.jump(done);
-        }
-        else {
-          AssemblerX86::NearJumpLocation greater_path;
-
-          a.jump_if_greater(greater_path);
-          s.set_top(cFalse);
-          a.jump(done);
-
-          a.set_label(greater_path);
-          s.set_top(cTrue);
-          a.jump(done);
-        }
-
-        a.set_label(slow_path);
-        uncache_stack();
-
-        if(op == InstructionSequence::insn_meta_send_op_lt) {
-          ops.call_via_symbol((void*)JITCompiler::slow_lt_path);
-        } else {
-          ops.call_via_symbol((void*)JITCompiler::slow_gt_path);
-        }
+        emit_fast_compare(done, op == InstructionSequence::insn_meta_send_op_lt);
         maybe_return(i, &last_imm, fin);
 
         a.set_label(done);
@@ -540,5 +565,290 @@ call_op:
 
     a.set_label(real_fin);
     ops.epilogue();
+  }
+
+  /*
+  static void show_info(VMMethod* const vmm, Task* const task,
+                        MethodContext* const ctx, void* ebx) {
+    std::cout << (void*)ctx << " " <<
+      InstructionSequence::get_instruction_name(vmm->opcodes[ctx->ip - 1]) <<
+      " @ " << ctx->ip - 1 <<
+      " stack=" << ebx << "/" << ctx->js.stack << "/" << ctx->stk <<
+      "\n";
+  }
+
+  static void show_info2(VMMethod* const vmm, Task* const task,
+                        MethodContext* const ctx, void* ebx) {
+    std::cout << "     " <<
+      InstructionSequence::get_instruction_name(vmm->opcodes[ctx->ip - 1]) <<
+      " @ " << ctx->ip - 1 <<
+      " stack=" << ebx <<
+      "\n";
+  }
+  */
+
+  void JITCompiler::emit_opcode(opcode op, AssemblerX86::NearJumpLocation& fin) {
+    switch(op) {
+    case InstructionSequence::insn_noop:
+      break;
+    case InstructionSequence::insn_goto:
+      ops.load_next_opcode(eax);
+      ops.store_virtual_ip(eax);
+      break;
+    case InstructionSequence::insn_goto_if_false: {
+      ops.load_and_increment_ip(edx);
+      s.load_nth(eax, 0);
+      s.pop();
+
+      AssemblerX86::NearJumpLocation set, done;
+
+      ops.jump_if_false(eax, set);
+      a.jump(done);
+
+      a.set_label(set);
+      ops.load_opcode(eax, edi, edx);
+      ops.store_virtual_ip(eax);
+
+      a.set_label(done);
+      break;
+    }
+    case InstructionSequence::insn_goto_if_true: {
+      ops.load_and_increment_ip(edx);
+      s.load_nth(eax, 0);
+      s.pop();
+
+      AssemblerX86::NearJumpLocation set, done;
+
+      ops.jump_if_true(eax, set);
+      a.jump(done);
+
+      a.set_label(set);
+      ops.load_opcode(eax, edi, edx);
+      ops.store_virtual_ip(eax);
+
+      a.set_label(done);
+      break;
+    }
+    case InstructionSequence::insn_goto_if_defined: {
+      ops.load_and_increment_ip(edx);
+      s.load_nth(eax, 0);
+      s.pop();
+
+      AssemblerX86::NearJumpLocation set, done;
+
+      a.cmp(eax, (uintptr_t)Qundef);
+      a.jump_if_not_equal(set);
+      a.jump(done);
+
+      a.set_label(set);
+      ops.load_opcode(eax, edi, edx);
+      ops.store_virtual_ip(eax);
+
+      a.set_label(done);
+      break;
+    }
+    case InstructionSequence::insn_pop:
+      s.pop();
+      break;
+    case InstructionSequence::insn_dup_top:
+      s.load_nth(eax, 0);
+      s.push(eax);
+      break;
+    case InstructionSequence::insn_swap_stack:
+      s.load_nth(eax, 0);
+      s.load_nth(ecx, 1);
+      a.mov(s.position(1), eax);
+      s.set_top(ecx);
+      break;
+    case InstructionSequence::insn_halt:
+      a.mov(ecx, static_cast<uint32_t>(-1));
+      ops.store_virtual_ip(ecx);
+      a.jump(fin);
+      break;
+    case InstructionSequence::insn_push_true:
+      s.push((uintptr_t)Qtrue);
+      break;
+    case InstructionSequence::insn_push_false:
+      s.push((uintptr_t)Qfalse);
+      break;
+    case InstructionSequence::insn_push_nil:
+      s.push((uintptr_t)Qnil);
+      break;
+    case InstructionSequence::insn_meta_push_0:
+      s.push((uintptr_t)Fixnum::from(0));
+      break;
+    case InstructionSequence::insn_meta_push_1:
+      s.push((uintptr_t)Fixnum::from(1));
+      break;
+    case InstructionSequence::insn_meta_push_2:
+      s.push((uintptr_t)Fixnum::from(2));
+      break;
+    case InstructionSequence::insn_meta_push_neg_1:
+      s.push((uintptr_t)Fixnum::from(-1));
+      break;
+    case InstructionSequence::insn_push_int:
+      ops.load_next_opcode(eax);
+      ops.tag_fixnum(eax);
+      s.push(eax);
+      break;
+    case InstructionSequence::insn_push_self:
+      ops.load_self(eax);
+      s.push(eax);
+      break;
+    case InstructionSequence::insn_push_local:
+      ops.load_next_opcode(ecx);
+      ops.get_local(eax, ecx);        // eax == local
+      s.push(eax);
+      break;
+    case InstructionSequence::insn_set_local:
+      ops.load_next_opcode(ecx);
+      s.load_nth(edx, 0);
+      ops.set_local(edx, ecx);
+      break;
+    case InstructionSequence::insn_push_literal:
+      ops.load_next_opcode(ecx);
+      ops.get_literal(eax, ecx);
+      s.push(eax);
+      break;
+    case InstructionSequence::insn_meta_send_op_minus:
+    case InstructionSequence::insn_meta_send_op_plus: {
+      AssemblerX86::NearJumpLocation done;
+      emit_fast_math(done, op == InstructionSequence::insn_meta_send_op_plus);
+
+      // If the return value of the operation (located in eax),
+      // is cExecuteRestart, then jump to the epilogue, which
+      // stores ecx as the virtual ip and returns.
+      a.cmp(eax, cExecuteRestart);
+      a.jump_if_equal(fin);
+
+      // This is a phi point, where the fast path and slow path merge.
+      // We have to be sure that the stack cache settings are in sync
+      // for both paths taken at this point. To be sure of that, we
+      // always run cache_stack() after calling slow_path_plus.
+      a.set_label(done);
+      break;
+    }
+
+    case InstructionSequence::insn_meta_send_op_equal:
+    case InstructionSequence::insn_meta_send_op_nequal: {
+      AssemblerX86::NearJumpLocation done;
+      emit_fast_equal(done, op == InstructionSequence::insn_meta_send_op_equal);
+
+      // If the return value of the operation (located in eax),
+      // is cExecuteRestart, then jump to the epilogue, which
+      // stores ecx as the virtual ip and returns.
+      a.cmp(eax, cExecuteRestart);
+      a.jump_if_equal(fin);
+
+      a.set_label(done);
+      break;
+    }
+
+
+    case InstructionSequence::insn_meta_send_op_lt:
+    case InstructionSequence::insn_meta_send_op_gt: {
+      AssemblerX86::NearJumpLocation done;
+      emit_fast_compare(done, op == InstructionSequence::insn_meta_send_op_lt);
+      a.cmp(eax, cExecuteRestart);
+      a.jump_if_equal(fin);
+
+      a.set_label(done);
+      break;
+    }
+
+    case InstructionSequence::insn_set_call_flags:
+      ops.load_next_opcode(ecx);
+      ops.store_call_flags(ecx);
+      break;
+
+    default: {
+      uncache_stack();
+      // ops.call_operation(reinterpret_cast<void*>(show_info), "show_info", ebx);
+
+      size_t width = InstructionSequence::instruction_width(op);
+      const instructions::Implementation* impl = instructions::implementation(op);
+      switch(width) {
+      case 1:
+        ops.call_operation(impl->address, impl->name);
+        break;
+      case 2:
+        ops.load_next_opcode(eax);
+        ops.call_operation(impl->address, impl->name, eax);
+        break;
+      case 3:
+        ops.load_next_opcode(eax);
+        ops.load_next_opcode(ecx);
+        ops.call_operation(impl->address, impl->name, eax, ecx);
+        break;
+      default:
+        std::cout << "Invalid width '" << width << "' for instruction '" <<
+          op << "'\n";
+        abort();
+      }
+
+      cache_stack();
+
+      instructions::Status status = instructions::check_status(op);
+      if(status == instructions::MightReturn) {
+        a.cmp(eax, cExecuteRestart);
+        a.jump_if_equal(fin);
+      } else if(status == instructions::Terminate) {
+        a.jump(fin);
+      }
+      break;
+    }
+    }
+  }
+
+  // Generate a function to interprete the bytecode of a method.
+  // Fixed registers:
+  //   ebx: the stack top. Sync'd with the context when needed
+  //   edi: the opcodes array. Pulled out at the top only.
+  //
+  // Specialty registers:
+  //   esi: Holds either the context or the task. Loaded as needed
+  //        by operations methods.
+  //
+  // Scratch registers:
+  //   eax, ecx, edx
+  //
+  void** JITCompiler::create_interpreter(STATE) {
+    // A label for each operation
+    std::vector<AssemblerX86::NearJumpLocation> labels(InstructionSequence::cTotal);
+
+    // The lookup table to use
+    void** table = new void*[InstructionSequence::cTotal];
+
+    AssemblerX86::NearJumpLocation fin;
+
+    ops.prologue();
+    cache_stack();
+    ops.load_opcodes(edi);
+    ops.load_and_increment_ip(eax);
+    ops.load_opcode(eax, edi, eax);
+    a.jump_via_table(table, eax);
+
+    for(opcode i = 0; i < InstructionSequence::cTotal; i++) {
+      a.set_label(labels[i]);
+
+      // ops.call_operation(reinterpret_cast<void*>(show_info2), "show_info2", ebx);
+
+      emit_opcode(i, fin);
+      ops.load_and_increment_ip(eax);
+      ops.load_opcode(eax, edi, eax);
+      a.jump_via_table(table, eax);
+    }
+
+    ops.reset_usage();
+    a.set_label(fin);
+    uncache_stack();
+    ops.epilogue();
+
+    // Fill out table now
+    for(opcode i = 0; i < InstructionSequence::cTotal; i++) {
+      table[i] = labels[i].destination();
+    }
+
+    return table;
   }
 }

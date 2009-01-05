@@ -17,11 +17,22 @@
 namespace rubinius {
 
   void TypeError::raise(object_type type, Object* obj, const char* reason) {
-    throw TypeError(type, obj, reason);
+    VM* state = VM::current_state();
+    if(!state || !state->use_safe_position) {
+      throw TypeError(type, obj, reason);
+    }
+
+    state->raise_typeerror_safely(new TypeError(type, obj, reason));
+    // Not reached.
   }
 
   void Assertion::raise(const char* reason) {
-    throw Assertion(reason);
+    VM* state = VM::current_state();
+    if(!state || !state->use_safe_position) {
+      throw Assertion(reason);
+    }
+    state->raise_assertion_safely(new Assertion(reason));
+    // Not reached.
   }
 
   RubyException::RubyException(Exception* exception, bool make_backtrace)
@@ -29,7 +40,13 @@ namespace rubinius {
   }
 
   void RubyException::raise(Exception* exception, bool make_backtrace) {
-    throw RubyException(exception, make_backtrace);
+    VM* state = VM::current_state();
+    if(!state || !state->use_safe_position) {
+      throw RubyException(exception, make_backtrace);
+    }
+
+    state->raise_exception_safely(exception);
+    // Not reached.
   }
 
   void RubyException::show(STATE) {

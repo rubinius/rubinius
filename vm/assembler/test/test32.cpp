@@ -115,7 +115,7 @@ void test_mov6() {
 
 void test_mov_delayed1() {
   AssemblerX86 a;
-  uint32_t* loc;
+  uintptr_t* loc;
   a.mov_delayed(ebx, &loc);
   ud_t *ud = a.disassemble();
 
@@ -133,7 +133,7 @@ void test_mov_delayed1() {
 
 void test_mov_delayed2() {
   AssemblerX86 a;
-  uint32_t* loc;
+  uintptr_t* loc;
   a.mov_delayed(ebx, &loc);
   *loc = 0x47;
   ud_t *ud = a.disassemble();
@@ -152,6 +152,58 @@ void test_mov_delayed2() {
 void test_mov_delayed() {
   test_mov_delayed1();
   test_mov_delayed2();
+}
+
+void test_mov_scaled() {
+  AssemblerX86 a;
+  a.mov_scaled(eax, esi, ecx, 4);
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Imov);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_EAX);
+
+  assert_op(1, base, UD_R_ESI);
+  assert_op(1, index, UD_R_ECX);
+  assert_op(1, scale, 4);
+
+  delete ud;
+  cout << "test_mov_scaled: ok!\n";
+}
+
+void test_mov_to_table() {
+  AssemblerX86 a;
+  a.mov_to_table(eax, esi, 4, 80, ecx);
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Imov);
+  assert_op(0, type, UD_OP_MEM);
+  assert_op(0, base, UD_R_EAX);
+  assert_op(0, index, UD_R_ESI);
+  assert_op(0, scale, 4);
+  assert_op(0, lval.udword, 80);
+
+  assert_op(1, type, UD_OP_REG);
+  assert_op(1, base, UD_R_ECX);
+
+  delete ud;
+  cout << "test_mov_to_table: ok!\n";
+}
+
+void test_mov_from_table() {
+  AssemblerX86 a;
+  a.mov_from_table(ecx, eax, esi, 4, 80);
+  ud_t *ud = a.disassemble();
+  assert_kind(UD_Imov);
+  assert_op(0, type, UD_OP_REG);
+  assert_op(0, base, UD_R_ECX);
+
+  assert_op(1, type, UD_OP_MEM);
+  assert_op(1, base, UD_R_EAX);
+  assert_op(1, index, UD_R_ESI);
+  assert_op(1, scale, 4);
+  assert_op(1, lval.udword, 80);
+
+  delete ud;
+  cout << "test_mov_from_table: ok!\n";
 }
 
 void test_push1() {
@@ -982,6 +1034,20 @@ void test_push_arg() {
   cout << "test_push_arg: ok!\n";
 }
 
+void test_jump_via_table() {
+  AssemblerX86 a;
+  a.jump_via_table(reinterpret_cast<void**>(400), eax);
+
+  ud_t* ud = a.disassemble();
+  assert_kind(UD_Ijmp);
+  assert_op(0, type, UD_OP_MEM);
+  assert_op(0, base, UD_NONE);
+  assert_op(0, index, UD_R_EAX);
+  assert_op(0, scale, 4);
+  assert_op(0, lval.udword, 400);
+  cout << "test_jump_via_table: ok!\n";
+}
+
 int main(int argc, char** argv) {
   test_mov1();
   test_mov2();
@@ -1035,4 +1101,8 @@ int main(int argc, char** argv) {
   test_end_call2();
   test_load_arg();
   test_push_arg();
+  test_jump_via_table();
+  test_mov_scaled();
+  test_mov_to_table();
+  test_mov_from_table();
 }

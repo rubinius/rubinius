@@ -60,6 +60,7 @@ namespace rubinius {
 
   public:
     // @todo fix up data members that aren't slots
+    Runner run;
     struct jit_state js;
     int    ip;
     void*  native_ip;

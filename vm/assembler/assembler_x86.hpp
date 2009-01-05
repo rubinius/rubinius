@@ -61,7 +61,10 @@ namespace assembler_x86 {
 
       Mod8Displacement = 1,
       Mod32Displacement = 2,
-      ModXMM = 3
+      ModXMM = 3,
+
+      Mod2 = 2,
+      Mod3 = 3
     };
 
     class Address {
@@ -217,6 +220,27 @@ namespace assembler_x86 {
       emit_displacement(addr);
     }
 
+    void mov_scaled(Register& dst, Register& base, Register& index, int scale) {
+      emit(0x8b);
+      emit_modrm(ModNone, dst.code(), esp.code());
+      emit_modrm(scale == 4 ? Mod2 : Mod3, index.code(), base.code());
+    }
+
+    void mov_to_table(Register& base, Register& index, int scale, int disp, Register& val) {
+      emit(0x89);
+      emit_modrm(Mod2, val.code(), esp.code());
+      emit_modrm(scale == 4 ? Mod2 : Mod3, index.code(), base.code());
+      emit_w(disp);
+    }
+
+    void mov_from_table(Register& val, Register& base, Register& index,
+                        int scale, int disp) {
+      emit(0x8b);
+      emit_modrm(Mod2, val.code(), esp.code());
+      emit_modrm(scale == 4 ? Mod2 : Mod3, index.code(), base.code());
+      emit_w(disp);
+    }
+
     void mov(const Address addr, Register &val) {
       emit(0x89);
 
@@ -234,6 +258,7 @@ namespace assembler_x86 {
 
       emit_displacement(addr);
     }
+
 
     // Sets up a mov instruction of an immediate value to register.
     // The immediate value is initialized to 0, and it's location
@@ -497,6 +522,21 @@ namespace assembler_x86 {
     void jump(Register &reg) {
       emit(0xff);
       emit_modrm(ModReg2Reg, 4, reg.code());
+    }
+
+    void jump_via_table(void** table, Register& index) {
+      emit(0xff);
+      // 0 == No table register
+      // 4 == /4 is the spec for the jump instruction
+      // 4 == Use SIB byte
+      emit_modrm(ModNone, 4, 4);
+      ModType scale = (sizeof(void*) == 4) ? Mod2 : Mod3;
+
+      // scale == how much to multiple the index by
+      // index == what register to use as the table index
+      // 5     == add displacement
+      emit_modrm(scale, index.code(), 5);
+      emit_w(reinterpret_cast<uint32_t>(table));
     }
 
     void jump(void* address) {

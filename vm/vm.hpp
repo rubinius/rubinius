@@ -6,6 +6,7 @@
 #include "gc_object_mark.hpp"
 
 #include <pthread.h>
+#include <setjmp.h>
 
 namespace llvm {
   class Module;
@@ -29,6 +30,8 @@ namespace rubinius {
   class String;
   class Symbol;
   class ConfigParser;
+  class TypeError;
+  class Assertion;
 
   struct Configuration {
     bool compile_up_front;
@@ -55,7 +58,7 @@ namespace rubinius {
   };
 
   class VM {
-    public:
+  public:
     /* Data members */
     Globals globals;
     ObjectMemory* om;
@@ -76,6 +79,28 @@ namespace rubinius {
 
     // The thread used to trigger preemptive thread switching
     pthread_t preemption_thread;
+
+    // How much time is spent running the JIT
+    uint64_t jit_timing;
+
+    // The safe position on the stack used to handle rare
+    // events.
+    sigjmp_buf safe_position;
+
+    // Indicates if safe_position should be used, or if the error
+    // should be thrown as a C++ exception.
+    bool use_safe_position;
+
+    // Data used with safe_position.
+    union {
+      Exception* exc;
+      TypeError* type_error;
+      Assertion* assertion;
+    } safe_position_data;
+
+    static const int cReasonException = 1;
+    static const int cReasonTypeError = 2;
+    static const int cReasonAssertion = 3;
 
     static const size_t default_bytes = 1048576;
 
@@ -98,6 +123,10 @@ namespace rubinius {
     void initialize_builtin_classes();
     void initialize_platform_data();
     void boot_threads();
+
+    void raise_exception_safely(Exception* exc);
+    void raise_typeerror_safely(TypeError* exc);
+    void raise_assertion_safely(Assertion* exc);
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_from_type(Class* cls, TypeInfo* ti);

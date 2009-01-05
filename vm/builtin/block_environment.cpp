@@ -107,6 +107,8 @@ namespace rubinius {
     ctx->home(state, home_);
 
     ctx->vmm = vmm ? vmm : method_->backend_method_;
+    ctx->run = ctx->vmm->run;
+
     ctx->ip = 0;
     // HACK dup'd from MethodContext
     ctx->position_stack(method_->number_of_locals() - 1);

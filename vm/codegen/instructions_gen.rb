@@ -391,6 +391,8 @@ CODE
     end
     str << "} instruction_names;\n"
 
+    str << "const static unsigned int cTotal = #{InstructionSet::OpCodes.size};\n"
+
     str
   end
 end

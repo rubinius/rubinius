@@ -46,7 +46,9 @@ int main(int argc, char** argv) {
 
       runtime = RBA_PATH;
       if(stat(runtime, &st) == -1 || !S_ISDIR(st.st_mode)) {
-        Assertion::raise("set RBX_RUNTIME to runtime (or equiv)");
+        // Use throw rather than ::raise here because we're outside
+        // the VM really.
+        throw new Assertion("set RBX_RUNTIME to runtime (or equiv)");
       }
     }
 
@@ -62,13 +64,14 @@ int main(int argc, char** argv) {
     env.run_file(loader);
     return 0;
 
-  } catch(Assertion &e) {
+  } catch(Assertion *e) {
     std::cout << "VM Assertion:" << std::endl;
-    std::cout << "  " << e.reason << std::endl;
-    e.print_backtrace();
+    std::cout << "  " << e->reason << std::endl;
+    e->print_backtrace();
 
     std::cout << "Ruby backtrace:" << std::endl;
     env.state->print_backtrace();
+    delete e;
   } catch(RubyException &e) {
     // Prints Ruby backtrace, and VM backtrace if captured
     e.show(env.state);
