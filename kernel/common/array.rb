@@ -1163,9 +1163,9 @@ class Array
         size.times do |i|
           item = Type.coerce_to(self[arr_idx], Integer, :to_int)
 
-          # MRI seems only only raise RangeError at 2**32 and above, even shorts
-          raise RangeError, "bignum too big to convert into 'unsigned long'" if
-            item.abs >= 2**32 # FIX: const
+          if item.abs >= 2**Rubinius::WORDSIZE
+            raise RangeError, "bignum too big to convert into 'unsigned long'"
+          end
 
             ret << if little_endian then
                      item += 2 ** (8 * bytes) if item < 0
