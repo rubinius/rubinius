@@ -26,7 +26,7 @@ class TestArray : public CxxTest::TestSuite {
 
   void test_init() {
 #if __WORDSIZE == 64
-    size_t max_size = 2305843009213693952U;
+    size_t max_size = 4611686018427387903U;
 #else
     size_t max_size = 1073741823U;
 #endif

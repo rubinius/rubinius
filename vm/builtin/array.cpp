@@ -22,10 +22,7 @@ namespace rubinius {
     GO(array).set(state->new_class("Array", G(object)));
     G(array)->set_object_type(state, ArrayType);
 
-    native_int wordsize = as<Fixnum>(
-        G(rubinius)->get_const(state, "WORDSIZE"))->to_native();
-    size_t maxsize = ((size_t)::exp2(wordsize)-1) / (wordsize/8U);
-    G(array)->set_const(state, "MAX_SIZE", Fixnum::from(maxsize));
+    G(array)->set_const(state, "MAX_SIZE", Fixnum::from(FIXNUM_MAX));
   }
 
   size_t Array::size() {

@@ -1,10 +1,22 @@
 module ArraySpecs
-  def self.max_32bit_size
-    2**32/4
+  not_compliant_on :rubinius do
+    def self.max_32bit_size
+      2**32/4
+    end
+
+    def self.max_64bit_size
+      2**64/8
+    end
   end
 
-  def self.max_64bit_size
-    2**64/8
+  deviates_on :rubinius do
+    def self.max_32bit_size
+      2**30-1
+    end
+
+    def self.max_64bit_size
+      2**62-1
+    end
   end
 
   def self.frozen_array
