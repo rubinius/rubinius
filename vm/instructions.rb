@@ -2959,7 +2959,8 @@ slow_path:
       // === manual inline ===
       // == restore_sender ==
 
-      // if(unlikely(profiler)) profiler->leave_method();
+      if(unlikely(task->profiler)) task->profiler->leave_method();
+
       /* Try to recycle this context to be used again. */
       if(active_context->young_object_p()) {
         state->om->deallocate_context(active_context);

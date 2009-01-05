@@ -21,6 +21,7 @@ namespace rubinius {
   class Exception;
   class TaskProbe;
   class Tuple;
+  class LookupTable;
   class LookupTableAssociation;
 
   class Task;
@@ -153,7 +154,7 @@ namespace rubinius {
     void tragic_failure(Message& msg);
 
     void enable_profiler();
-    void disable_profiler(const char* results);
+    LookupTable* disable_profiler();
 
     // Add +ctx+ to the context chain by setting the active context
     // to +ctx+'s sender and making +ctx+ active.

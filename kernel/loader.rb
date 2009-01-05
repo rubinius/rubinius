@@ -14,10 +14,6 @@ rescue Object => e
   exit 2
 end
 
-if profile = ENV['PROFILE']
-  Rubinius::VM.start_profiler
-end
-
 # Set up a handler for SIGINT that raises Interrupt on the main thread
 Signal.action("INT") do |_|
   thread = Thread.main
@@ -82,12 +78,12 @@ Options:
   -e 'code'      Directly compile and execute code (no file provided).
   -Idir1[:dir2]  Add directories to $LOAD_PATH.
   -S script      Run script using PATH environment variable to find it.
-  -p             Run the profiler.
-  -ps            Run the Selector profiler.
-  -pss           Run the SendSite profiler.
+  -P             Run the profiler.
+  -Ps            Run the Selector profiler.
+  -Pss           Run the SendSite profiler.
   -rlibrary      Require library before execution.
-  -P             Use SydneyParser.
-  -R             Use RubyParser.
+  --syndey       Use SydneyParser.
+  --ruby_parser  Use RubyParser.
   -w             Enable warnings. (currently does nothing--compatibility)
   -v             Display the version and set $VERBOSE to true.
 END
@@ -108,6 +104,7 @@ eval_code = nil
 script = nil
 
 begin
+
   script_debug_requested = false
   until ARGV.empty?
     arg = ARGV.shift
@@ -156,12 +153,12 @@ begin
       end
       $DEBUG_SERVER.listen
       script_debug_requested = true
-    when '-p'
+    when '-P'
       require 'profile'
-    when '-ps'
+    when '-Ps'
       count = (ARGV.first =~ /^\d+$/) ? ARGV.shift : '30'
       show_selectors = count.to_i
-    when '-pss'
+    when '-Pss'
       count = (ARGV.first =~ /^\d+$/) ? ARGV.shift : '30'
       show_sendsites = count.to_i
     when '-S'
@@ -174,9 +171,9 @@ begin
 
       # if missing, let it die a natural death
       ARGV.unshift file ? file : script
-    when '-P'
+    when '--syndey'
       String.sydney_parser
-    when '-R'
+    when '--ruby_parser'
       String.ruby_parser
     when '-e'
       $0 = "(eval)"
@@ -342,7 +339,7 @@ rescue Object => e
 end
 
 if show_selectors
-  ps = Sampler::Selectors.new
+  ps = Rubinius::Profiler::Selectors.new
   begin
     ps.show_stats show_selectors
   rescue Object => e
@@ -355,7 +352,7 @@ if show_selectors
 end
 
 if show_sendsites
-  ps = Sampler::SendSites.new
+  ps = Rubinius::Profiler::SendSites.new
   begin
     ps.show_stats show_sendsites
   rescue Object => e
@@ -367,11 +364,6 @@ if show_sendsites
   end
 end
 
-if profile
-  Rubinius::VM.stop_profiler profile
-  puts "[Saved profiling data to '#{profile}']"
-end
-
 if Rubinius::RUBY_CONFIG['rbx.jit_stats']
   stats = Rubinius::VM.jit_info
   puts "JIT time spent: #{stats[0] / 1000000}ms"
@@ -379,4 +371,3 @@ if Rubinius::RUBY_CONFIG['rbx.jit_stats']
 end
 
 Process.exit(code || 0)
-

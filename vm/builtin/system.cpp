@@ -172,14 +172,13 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* System::vm_start_profiler(STATE) {
+  Object* System::vm_profiler_instrumenter_start(STATE) {
     G(current_task)->enable_profiler();
     return Qtrue;
   }
 
-  Object* System::vm_stop_profiler(STATE, String* path) {
-    G(current_task)->disable_profiler(path->c_str());
-    return path;
+  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
+    return G(current_task)->disable_profiler();
   }
 
   Object* System::vm_write_error(STATE, String* str) {

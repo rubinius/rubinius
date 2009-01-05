@@ -98,7 +98,7 @@ class TestProfiler : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(leaf->total_time(), mo2->total_time());
   }
 
-  void test_print_results() {
+  void test_results() {
     Symbol* meth = state->symbol("blah");
     Symbol* meth2 = state->symbol("foo");
     Symbol* meth3 = state->symbol("done");
@@ -123,11 +123,8 @@ class TestProfiler : public CxxTest::TestSuite {
 
     prof.leave_method();
 
-    std::stringstream stream;
-    prof.print_results(state, stream);
+    LookupTable* results = prof.results(state);
 
-    // This is a bullshit test, but i'm too lazy to test the entire
-    // form of the XML for now.
-    TS_ASSERT(stream.str().find("profile") != std::string::npos);
+    TS_ASSERT(!results->nil_p());
   }
 };
