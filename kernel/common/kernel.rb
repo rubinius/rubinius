@@ -235,8 +235,17 @@ module Kernel
   # sequence number
   #++
 
-  def srand(seed)
+  def srand(seed=0)
     cur = Kernel.current_srand
+    if seed == 0
+      begin
+        File.open("/dev/urandom", "r") do |f|
+          seed = f.read(10).unpack("I*")[0]
+        end
+      rescue Errno::ENOENT, Errno::EPERM, Errno::EACCES
+        seed = Time.now.to_i    
+      end
+    end
     Platform::POSIX.srand(seed.to_i)
     Kernel.current_srand = seed.to_i
     return cur
