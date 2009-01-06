@@ -36,13 +36,11 @@ namespace rubinius {
 
   void VMMethod::init(STATE) {
 #ifdef USE_DYNAMIC_INTERPRETER
-    if(getenv("DISABLE_DYN")) {
-      // std::cout << "[dynamic interpreter disabled]\n";
+    if(!state->config.dynamic_interpreter_enabled) {
       dynamic_interpreter = NULL;
       standard_interpreter = interpreter;
       return;
     }
-    // std::cout << "[Using dynamic interpreter]\n";
 
     if(dynamic_interpreter == NULL) {
       uint8_t* buffer = new uint8_t[1024 * 1024 * 1024];
@@ -136,7 +134,7 @@ namespace rubinius {
 
 #ifdef USE_USAGE_JIT
     // Disable JIT for large methods
-    if(total < JIT_MAX_METHOD_SIZE) {
+    if(state->config.jit_enabled && total < JIT_MAX_METHOD_SIZE) {
       call_count = 0;
     } else {
       call_count = -1;

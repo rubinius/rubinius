@@ -125,6 +125,8 @@ begin
       puts "[Interpreter type: #{Rubinius::INTERPRETER}]"
       if jit = Rubinius::JIT
         puts "[JIT enabled: #{jit}]"
+      else
+        puts "[JIT disabled]"
       end
     when "-w"
       # do nothing (HACK)
@@ -363,6 +365,12 @@ end
 if profile
   Rubinius::VM.stop_profiler profile
   puts "[Saved profiling data to '#{profile}']"
+end
+
+if Rubinius::RUBY_CONFIG['rbx.jit_stats']
+  stats = Rubinius::VM.jit_info
+  puts "JIT time spent: #{stats[0] / 1000000}ms"
+  puts " JITed methods: #{stats[1]}"
 end
 
 Process.exit(code || 0)

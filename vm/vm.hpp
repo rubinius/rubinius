@@ -35,6 +35,8 @@ namespace rubinius {
 
   struct Configuration {
     bool compile_up_front;
+    bool jit_enabled;
+    bool dynamic_interpreter_enabled;
   };
 
   struct Interrupts {
@@ -109,8 +111,11 @@ namespace rubinius {
 
     /* Inline methods */
     /* Prototypes */
-    VM(size_t bytes = default_bytes);
+    VM(size_t bytes = default_bytes, bool boot_now = true);
     ~VM();
+
+    // Initialize the basic objects and the execution machinery
+    void boot();
 
     // Returns the current VM state object.
     static VM* current_state();

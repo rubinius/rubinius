@@ -393,13 +393,21 @@ namespace rubinius {
     }
 
 #ifdef USE_DYNAMIC_INTERPRETER
-    G(rubinius)->set_const(state, "INTERPRETER", symbol("dynamic"));
+    if(config.dynamic_interpreter_enabled) {
+      G(rubinius)->set_const(state, "INTERPRETER", symbol("dynamic"));
+    } else {
+      G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
+    }
 #else
     G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
 #endif
 
 #ifdef USE_USAGE_JIT
-    G(rubinius)->set_const(state, "JIT", symbol("usage"));
+    if(config.jit_enabled) {
+      G(rubinius)->set_const(state, "JIT", symbol("usage"));
+    } else {
+      G(rubinius)->set_const(state, "JIT", Qfalse);
+    }
 #else
     G(rubinius)->set_const(state, "JIT", Qfalse);
 #endif

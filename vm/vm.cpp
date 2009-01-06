@@ -17,6 +17,7 @@
 #include "builtin/taskprobe.hpp"
 
 #include "config_parser.hpp"
+#include "config.h"
 
 #include <iostream>
 #include <signal.h>
@@ -28,7 +29,7 @@
 #define GO(whatever) globals.whatever
 
 namespace rubinius {
-  VM::VM(size_t bytes)
+  VM::VM(size_t bytes, bool boot)
     : current_mark(NULL)
     , reuse_llvm(true)
     , jit_timing(0)
@@ -36,6 +37,8 @@ namespace rubinius {
     , use_safe_position(false)
   {
     config.compile_up_front = false;
+    config.jit_enabled = false;
+    config.dynamic_interpreter_enabled = false;
 
     VM::register_state(this);
 
@@ -43,6 +46,32 @@ namespace rubinius {
 
     om = new ObjectMemory(this, bytes);
     probe.set(Qnil, &globals.roots);
+
+    if(boot) this->boot();
+  }
+
+  VM::~VM() {
+    delete user_config;
+    delete om;
+    delete signal_events;
+    delete global_cache;
+#ifdef ENABLE_LLVM
+    if(!reuse_llvm) llvm_cleanup();
+#endif
+  }
+
+  void VM::boot() {
+#ifdef USE_USAGE_JIT
+    if(user_config->find("rbx.jit")) {
+      config.jit_enabled = true;
+    }
+#endif
+
+#ifdef USE_DYNAMIC_INTERPRETER
+    if(user_config->find("rbx.dyni")) {
+      config.dynamic_interpreter_enabled = true;
+    }
+#endif
 
     MethodContext::initialize_cache(this);
     TypeInfo::auto_learn_fields(this);
@@ -71,16 +100,6 @@ namespace rubinius {
     // sets them to true.
     interrupts.use_preempt = false;
     interrupts.enable_preempt = false;
-  }
-
-  VM::~VM() {
-    delete user_config;
-    delete om;
-    delete signal_events;
-    delete global_cache;
-#ifdef ENABLE_LLVM
-    if(!reuse_llvm) llvm_cleanup();
-#endif
   }
 
   // HACK so not thread safe or anything!

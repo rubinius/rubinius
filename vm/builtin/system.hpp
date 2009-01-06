@@ -131,6 +131,12 @@ namespace rubinius {
     // Ruby.primitive :vm_write_error
     static Object*  vm_write_error(STATE, String* str);
 
+    /**
+     *  Returns information about how the JIT is working.
+     */
+    // Ruby.primitive :vm_jit_info
+    static Object*  vm_jit_info(STATE);
+
 
   public:   /* Type info */
 

@@ -36,7 +36,7 @@ static void load_runtime_kernel(Environment& env, std::string root) {
 
 int main(int argc, char** argv) {
   Environment env;
-  env.load_argv(argc, argv);
+  env.load_config_argv(argc, argv);
 
   try {
     const char* runtime = getenv("RBX_RUNTIME");
@@ -55,6 +55,8 @@ int main(int argc, char** argv) {
     std::string root = std::string(runtime);
 
     env.load_platform_conf(root);
+    env.boot_vm();
+    env.load_argv(argc, argv);
 
     load_runtime_kernel(env, std::string(root));
 

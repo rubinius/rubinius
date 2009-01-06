@@ -24,7 +24,7 @@
 namespace rubinius {
 
   Environment::Environment() {
-    state = new VM();
+    state = new VM(VM::default_bytes, false);
     TaskProbe* probe = TaskProbe::create(state);
     state->probe.set(probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil);
   }
@@ -37,12 +37,34 @@ namespace rubinius {
     state->setup_preemption();
   }
 
+  void Environment::load_config_argv(int argc, char** argv) {
+    for(int i=1; i < argc; i++) {
+      char* arg = argv[i];
+      if(strncmp(arg, "-X", 2) == 0) {
+        state->user_config->import_line(arg + 2);
+        continue;
+      }
+
+      if(arg[0] != '-' || strcmp(arg, "--") == 0) return;
+    }
+  }
+
   void Environment::load_argv(int argc, char** argv) {
+    bool process_xflags = true;
     state->set_const("ARG0", String::create(state, argv[0]));
 
     Array* ary = Array::create(state, argc - 1);
-    for(int i = 0; i < argc - 1; i++) {
-      ary->set(state, i, String::create(state, argv[i + 1])->taint());
+    int which_arg = 0;
+    for(int i=1; i < argc; i++) {
+      char* arg = argv[i];
+
+      if(arg[0] != '-' || strcmp(arg, "--") == 0) {
+        process_xflags = false;
+      }
+
+      if(!process_xflags || strncmp(arg, "-X", 2) != 0) {
+        ary->set(state, which_arg++, String::create(state, arg)->taint());
+      }
     }
 
     state->set_const("ARGV", ary);
@@ -76,6 +98,10 @@ namespace rubinius {
     }
 
     state->user_config->import_stream(stream);
+  }
+
+  void Environment::boot_vm() {
+    state->boot();
   }
 
   void Environment::run_file(std::string file) {
