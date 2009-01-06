@@ -31,18 +31,21 @@ namespace rubinius {
     char* var = strdup(line);
     char* equals = strstr(var, "=");
 
-    // Just the variable name means true, as in enable
-    if(!equals) {
-      equals = "true";
-    } else {
+    Entry* entry = new ConfigParser::Entry();
+
+    if(equals) {
       /* Split the string. */
       *equals++ = 0;
     }
 
-    Entry* entry = new ConfigParser::Entry();
-
     entry->variable = std::string(trim_str(var));
-    entry->value =    std::string(trim_str(equals));
+
+    // Just the variable name means true, as in enable
+    if(equals) {
+      entry->value = std::string(trim_str(equals));
+    } else {
+      entry->value = std::string("true");
+    }
 
     free(var);
 
