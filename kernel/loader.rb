@@ -103,6 +103,7 @@ MethodContext.current.method.scope = StaticScope.new(Object)
 
 TOPLEVEL_BINDING = binding()
 
+show_eval = false
 eval_code = nil
 script = nil
 
@@ -173,6 +174,8 @@ begin
     when '-e'
       $0 = "(eval)"
       eval_code = ARGV.shift
+    when '-ed'
+      show_eval = true
     else
       if arg.prefix? "-I"
         more = arg[2..-1]
@@ -215,8 +218,12 @@ begin
     # If we also caught a script to run, we just treat it like
     # another arg.
     ARGV.unshift script if script
-
-    Compile.execute eval_code
+    eval(eval_code, TOPLEVEL_BINDING) do |compiled_method|
+      if show_eval
+        p eval_code.to_sexp("(eval)", 1)
+        puts compiled_method.decode
+      end
+    end
   elsif script
     if File.exist?(script)
       $0 = script

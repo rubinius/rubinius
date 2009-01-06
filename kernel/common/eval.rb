@@ -50,6 +50,8 @@ module Kernel
     compiled_method = Compile.compile_string string, binding.context, filename, lineno
     compiled_method.scope = binding.context.method.scope.dup
 
+    yield compiled_method if block_given?
+
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
     script.path = filename
