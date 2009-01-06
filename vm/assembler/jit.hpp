@@ -11,6 +11,8 @@ namespace rubinius {
   private: // data
     // indicates if ebx contains the current stack top
     bool stack_cached_;
+
+    bool own_buffer_;
     uint8_t* buffer_;
 
     assembler_x86::AssemblerX86 a;
@@ -28,6 +30,7 @@ namespace rubinius {
     const static int cRecordV2N     = (1 << 1);
 
     JITCompiler();
+    JITCompiler(uint8_t* buffer);
     ~JITCompiler();
 
     assembler_x86::AssemblerX86& assembler() {
@@ -44,6 +47,13 @@ namespace rubinius {
 
     void compile(VM*, VMMethod*);
     void show();
+
+    void** create_interpreter(VM*);
+
+    void emit_fast_math(assembler_x86::AssemblerX86::NearJumpLocation& done, bool add);
+    void emit_fast_equal(assembler_x86::AssemblerX86::NearJumpLocation& done, bool equal);
+    void emit_fast_compare(assembler_x86::AssemblerX86::NearJumpLocation& done, bool less);
+    void emit_opcode(opcode op, assembler_x86::AssemblerX86::NearJumpLocation& fin);
 
     static ExecuteStatus slow_plus_path(VMMethod* const vmm, Task* const task,
         MethodContext* const ctx);

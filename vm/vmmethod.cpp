@@ -19,18 +19,53 @@
 
 #include "profiler.hpp"
 
+#include "timing.hpp"
+#include "config.h"
+
+#define CALLS_TIL_JIT 50
+#define JIT_MAX_METHOD_SIZE 2048
+
 /*
  * An internalization of a CompiledMethod which holds the instructions for the
  * method.
  */
 namespace rubinius {
 
+  static Runner standard_interpreter = 0;
+  static Runner dynamic_interpreter = 0;
+
+  void VMMethod::init(STATE) {
+#ifdef USE_DYNAMIC_INTERPRETER
+    if(!state->config.dynamic_interpreter_enabled) {
+      dynamic_interpreter = NULL;
+      standard_interpreter = interpreter;
+      return;
+    }
+
+    if(dynamic_interpreter == NULL) {
+      uint8_t* buffer = new uint8_t[1024 * 1024 * 1024];
+      JITCompiler jit(buffer);
+      jit.create_interpreter(state);
+      if(getenv("DUMP_DYN")) {
+        jit.assembler().show();
+      }
+
+      dynamic_interpreter = reinterpret_cast<Runner>(buffer);
+    }
+
+    standard_interpreter = dynamic_interpreter;
+#else
+    dynamic_interpreter = NULL;
+    standard_interpreter = interpreter;
+#endif
+  }
+
   /*
    * Turns a CompiledMethod's InstructionSequence into a C array of opcodes.
    */
   VMMethod::VMMethod(STATE, CompiledMethod* meth)
     : machine_method_(state)
-    , run(VMMethod::interpreter)
+    , run(standard_interpreter)
     , original(state, meth)
     , type(NULL)
   {
@@ -96,6 +131,17 @@ namespace rubinius {
     }
 
     setup_argument_handler(meth);
+
+#ifdef USE_USAGE_JIT
+    // Disable JIT for large methods
+    if(state->config.jit_enabled && total < JIT_MAX_METHOD_SIZE) {
+      call_count = 0;
+    } else {
+      call_count = -1;
+    }
+#else
+    call_count = 0;
+#endif
   }
 
   VMMethod::~VMMethod() {
@@ -283,9 +329,26 @@ namespace rubinius {
   ExecuteStatus VMMethod::execute_specialized(STATE, Task* task, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
 
-    MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
-
     VMMethod* vmm = cm->backend_method_;
+
+#ifdef USE_USAGE_JIT
+    // A negative call_count means we've disabled usage based JIT
+    // for this method.
+    if(vmm->call_count >= 0) {
+      if(vmm->call_count >= CALLS_TIL_JIT) {
+        state->jitted_methods++;
+        uint64_t start = get_current_time();
+        MachineMethod* mm = cm->make_machine_method(state);
+        mm->activate();
+        vmm->call_count = -1;
+        state->jit_timing += (get_current_time() - start);
+      } else {
+        vmm->call_count++;
+      }
+    }
+#endif
+
+    MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
 
     // Copy in things we all need.
     ctx->module(state, msg.module);
@@ -300,11 +363,9 @@ namespace rubinius {
       // Clear the values from the caller
       msg.clear_caller();
 
-      // TODO we've got full control here, we should just raise the exception
-      // in the runtime here rather than throwing a C++ exception and raising
-      // it later.
-
-      Exception::argument_error(state, vmm->required_args, msg.args());
+      task->raise_exception(
+          Exception::make_argument_error(state, vmm->required_args, msg.args()));
+      return cExecuteRestart;
       // never reached!
     }
 
@@ -404,12 +465,9 @@ namespace rubinius {
       // Clear the values from the caller
       task->active()->clear_stack(msg.stack);
 
-      // TODO we've got full control here, we should just raise the exception
-      // in the runtime here rather than throwing a C++ exception and raising
-      // it later.
-
-      Exception::argument_error(state, vmm->required_args, msg.args());
-      // never reached!
+      task->raise_exception(
+          Exception::make_argument_error(state, vmm->required_args, msg.args()));
+      return cExecuteRestart;
     }
 
 #if 0

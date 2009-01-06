@@ -175,7 +175,20 @@ namespace operations {
       a.call(func, name);
     }
 
+    void call_operation(void* func, const char* name, Register& arg) {
+      AssemblerX86 &a = s.assembler();
+      a.mov(a.address(esp, 12), arg);
+      a.call(func, name);
+    }
+
     void call_operation(void* func, const char* name, int arg, int arg2) {
+      AssemblerX86 &a = s.assembler();
+      a.mov(a.address(esp, 12), arg);
+      a.mov(a.address(esp, 16), arg2);
+      a.call(func, name);
+    }
+
+    void call_operation(void* func, const char* name, Register& arg, Register& arg2) {
       AssemblerX86 &a = s.assembler();
       a.mov(a.address(esp, 12), arg);
       a.mov(a.address(esp, 16), arg2);
@@ -213,8 +226,34 @@ namespace operations {
       a.mov(a.address(esi, FIELD_OFFSET(rubinius::MethodContext, native_ip)), native_ip);
     }
 
+    void load_and_increment_ip(Register& reg) {
+      load_mc();
+      AssemblerX86 &a = s.assembler();
+      a.mov(reg, a.address(esi, FIELD_OFFSET(rubinius::MethodContext, ip)));
+      a.add(a.address(esi, FIELD_OFFSET(rubinius::MethodContext, ip)), 1);
+    }
+
+    void load_opcodes(Register& reg) {
+      load_mc();
+      AssemblerX86 &a = s.assembler();
+      a.load_arg(reg, 0);
+      a.mov(reg, a.address(reg, FIELD_OFFSET(rubinius::VMMethod, opcodes)));
+    }
+
+    void load_opcode(Register& dest, Register& table, Register& index) {
+      AssemblerX86 &a = s.assembler();
+      a.mov_scaled(dest, table, index, sizeof(int));
+    }
+
+    void load_next_opcode(Register& dest) {
+      load_and_increment_ip(dest);
+      load_opcode(dest, edi, dest);
+    }
+
     void load_self(Register& reg) {
-      load_mc_field(reg, FIELD_OFFSET(rubinius::MethodContext, self_));
+      load_home(reg);
+      AssemblerX86 &a = s.assembler();
+      a.mov(reg, a.address(reg, FIELD_OFFSET(rubinius::MethodContext, self_)));
     }
 
     void load_home(Register& reg) {
@@ -235,12 +274,26 @@ namespace operations {
       a.mov(a.address(eax, base + offset), val);
     }
 
+    void set_local(Register& val, Register& which) {
+      load_home(eax);
+      AssemblerX86 &a = s.assembler();
+      int base =   FIELD_OFFSET(rubinius::MethodContext, stk);
+      a.mov_to_table(eax, which, sizeof(void*), base, val);
+    }
+
     void get_local(Register& val, int which) {
       load_home(eax);
       AssemblerX86 &a = s.assembler();
       int base =   FIELD_OFFSET(rubinius::MethodContext, stk);
       int offset = which * sizeof(void*);
       a.mov(val, a.address(eax, base + offset));
+    }
+
+    void get_local(Register& val, Register& which) {
+      load_home(eax);
+      AssemblerX86 &a = s.assembler();
+      int base =   FIELD_OFFSET(rubinius::MethodContext, stk);
+      a.mov_from_table(val, eax, which, sizeof(void*), base);
     }
 
     void get_literal(Register& dst, int which) {
@@ -252,13 +305,34 @@ namespace operations {
       a.mov(dst, a.address(dst, base + offset));
     }
 
+    void get_literal(Register& dst, Register& which) {
+      load_literals(dst);
+
+      int base =   FIELD_OFFSET(rubinius::Tuple, field);
+      AssemblerX86 &a = s.assembler();
+      a.mov_from_table(dst, dst, which, sizeof(void*), base);
+    }
+
+    void tag_fixnum(Register& val) {
+      AssemblerX86 &a = s.assembler();
+      a.shift_left(val, 1);
+      a.bit_or(val, 1);
+    }
+
+    void untag_fixnum(Register& val) {
+      s.assembler().shift_right(val, 1);
+    }
+
     void store_call_flags(int val) {
       AssemblerX86 &a = s.assembler();
-      if(esi_usage != Arg1) {
-        a.load_arg(esi, 1);
-        esi_usage = Arg1;
-      }
-      a.mov(a.address(esi, FIELD_OFFSET(rubinius::Task, call_flags)), val);
+      a.load_arg(eax, 1);
+      a.mov(a.address(eax, FIELD_OFFSET(rubinius::Task, call_flags)), val);
+    }
+
+    void store_call_flags(Register& val) {
+      AssemblerX86 &a = s.assembler();
+      a.load_arg(eax, 1);
+      a.mov(a.address(eax, FIELD_OFFSET(rubinius::Task, call_flags)), val);
     }
 
     // If the value in +reg+ is what ruby calls true (not false or nil),
@@ -278,6 +352,7 @@ namespace operations {
       a.cmp(reg, rubinius::cFalse);    // both nil and false have Qfalse in the low 3 bits
       a.jump_if_equal(lbl);
     }
+
   };
 }
 

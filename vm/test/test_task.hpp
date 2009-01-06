@@ -198,16 +198,12 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = SendSite::create(state, state->symbol("blah"));
     msg.use_from_task(task, 1);
 
-    bool thrown = false;
-    try {
-      task->send_message(msg);
-    } catch(RubyException& error) {
-      TS_ASSERT(Exception::argument_error_p(state, error.exception));
-      TS_ASSERT_SAME_DATA("given 1, expected 2", error.exception->message()->c_str(), 19U);
-      thrown = true;
-    }
-
-    TS_ASSERT(thrown);
+    task->send_message(msg);
+    Exception* exception = task->exception();
+    TS_ASSERT(exception != Qnil);
+    TS_ASSERT(Exception::argument_error_p(state, exception));
+    TS_ASSERT_EQUALS(exception->get_ivar(state, state->symbol("@given")), Fixnum::from(1));
+    TS_ASSERT_EQUALS(exception->get_ivar(state, state->symbol("@expected")), Fixnum::from(2));
 
     TS_ASSERT_EQUALS(task->active(), top);
   }
@@ -236,16 +232,12 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = SendSite::create(state, state->symbol("blah"));
     msg.use_from_task(task, 3);
 
-    bool thrown = false;
-    try {
-      task->send_message(msg);
-    } catch(RubyException& error) {
-      TS_ASSERT(Exception::argument_error_p(state, error.exception));
-      TS_ASSERT_SAME_DATA("given 3, expected 2", error.exception->message()->c_str(), 19U);
-      thrown = true;
-    }
-
-    TS_ASSERT(thrown);
+    task->send_message(msg);
+    Exception* exception = task->exception();
+    TS_ASSERT(exception != Qnil);
+    TS_ASSERT(Exception::argument_error_p(state, exception));
+    TS_ASSERT_EQUALS(exception->get_ivar(state, state->symbol("@given")), Fixnum::from(3));
+    TS_ASSERT_EQUALS(exception->get_ivar(state, state->symbol("@expected")), Fixnum::from(2));
 
     TS_ASSERT_EQUALS(task->active(), top);
   }

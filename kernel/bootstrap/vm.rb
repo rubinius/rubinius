@@ -4,6 +4,11 @@ class Rubinius::VM
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def self.jit_info
+    Ruby.primitive :vm_jit_info
+    raise PrimitiveFailure, "primitive failed"
+  end
+
   def self.start_profiler
     Ruby.primitive :vm_start_profiler
     raise PrimitiveFailure, "unable to start profiler"

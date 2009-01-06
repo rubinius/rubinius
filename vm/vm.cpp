@@ -17,6 +17,7 @@
 #include "builtin/taskprobe.hpp"
 
 #include "config_parser.hpp"
+#include "config.h"
 
 #include <iostream>
 #include <signal.h>
@@ -28,8 +29,16 @@
 #define GO(whatever) globals.whatever
 
 namespace rubinius {
-  VM::VM(size_t bytes) : current_mark(NULL), reuse_llvm(true) {
+  VM::VM(size_t bytes, bool boot)
+    : current_mark(NULL)
+    , reuse_llvm(true)
+    , jit_timing(0)
+    , jitted_methods(0)
+    , use_safe_position(false)
+  {
     config.compile_up_front = false;
+    config.jit_enabled = false;
+    config.dynamic_interpreter_enabled = false;
 
     VM::register_state(this);
 
@@ -37,6 +46,32 @@ namespace rubinius {
 
     om = new ObjectMemory(this, bytes);
     probe.set(Qnil, &globals.roots);
+
+    if(boot) this->boot();
+  }
+
+  VM::~VM() {
+    delete user_config;
+    delete om;
+    delete signal_events;
+    delete global_cache;
+#ifdef ENABLE_LLVM
+    if(!reuse_llvm) llvm_cleanup();
+#endif
+  }
+
+  void VM::boot() {
+#ifdef USE_USAGE_JIT
+    if(user_config->find("rbx.jit")) {
+      config.jit_enabled = true;
+    }
+#endif
+
+#ifdef USE_DYNAMIC_INTERPRETER
+    if(user_config->find("rbx.dyni")) {
+      config.dynamic_interpreter_enabled = true;
+    }
+#endif
 
     MethodContext::initialize_cache(this);
     TypeInfo::auto_learn_fields(this);
@@ -54,6 +89,8 @@ namespace rubinius {
 
     global_cache = new GlobalCache;
 
+    VMMethod::init(this);
+
 #ifdef ENABLE_LLVM
     VMLLVMMethod::init("vm/instructions.bc");
 #endif
@@ -63,16 +100,6 @@ namespace rubinius {
     // sets them to true.
     interrupts.use_preempt = false;
     interrupts.enable_preempt = false;
-  }
-
-  VM::~VM() {
-    delete user_config;
-    delete om;
-    delete signal_events;
-    delete global_cache;
-#ifdef ENABLE_LLVM
-    if(!reuse_llvm) llvm_cleanup();
-#endif
   }
 
   // HACK so not thread safe or anything!
@@ -340,7 +367,53 @@ namespace rubinius {
     return task;
   }
 
+  void VM::raise_exception_safely(Exception* exc) {
+    safe_position_data.exc = exc;
+    siglongjmp(safe_position, cReasonException);
+    // Never reached.
+  }
+
+  void VM::raise_typeerror_safely(TypeError* err) {
+    safe_position_data.type_error = err;
+    siglongjmp(safe_position, cReasonTypeError);
+    // Never reached.
+  }
+
+  void VM::raise_assertion_safely(Assertion* err) {
+    safe_position_data.assertion = err;
+    siglongjmp(safe_position, cReasonAssertion);
+    // Never reached.
+  }
+
   void VM::run_and_monitor() {
+    int reason;
+
+    use_safe_position = true;
+    reason = sigsetjmp(safe_position, 0);
+    // If reason is not 0, then we're here because of a longjmp.
+    if(reason) {
+      switch(reason) {
+      case cReasonException:
+        G(current_task)->raise_exception(safe_position_data.exc);
+        break;
+      case cReasonTypeError: {
+        TypeError* exc = safe_position_data.type_error;
+        Exception* e = Exception::make_type_error(this, exc->type, exc->object, exc->reason);
+        G(current_task)->raise_exception(e);
+        delete exc;
+        safe_position_data.type_error = NULL;
+        break;
+      }
+      case cReasonAssertion:
+        throw safe_position_data.assertion;
+
+      default:
+        break;
+        // We're not sure what this is. Oh well, hopefully the longjmp
+        // user knew what they were doing.
+      }
+    }
+
     for(;;) {
       if(interrupts.check_events) {
         interrupts.check_events = false;

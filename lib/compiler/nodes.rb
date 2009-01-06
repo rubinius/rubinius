@@ -1070,6 +1070,10 @@ raise "no"
           end
         end
 
+        # Seed the dynamic_locals table with the name, so key? works
+        # later.
+        @context.set_eval_local name, nil
+
         return DynamicLocal.new(name)
       end
 

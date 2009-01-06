@@ -23,6 +23,14 @@
 #define IS_X86
 #endif
 
+#if defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#define IS_X8664
+
+#elif defined(IS_X86)
+#define IS_X8632
+
+#endif
+
 /** CONFIGURE */
 
 #ifndef OS_X_ANCIENT

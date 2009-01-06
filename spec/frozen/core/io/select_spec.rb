@@ -14,7 +14,7 @@ describe "IO.select" do
     timeout = 0.5
     start = Time.now
     IO.select [@rd], nil, nil, timeout
-    (Time.now - start).should be_close(timeout, 0.05)
+    (Time.now - start).should be_close(timeout, 0.5)
   end
 
   it "returns immediately all objects that are ready for I/O when timeout is 0" do

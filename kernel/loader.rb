@@ -103,6 +103,7 @@ MethodContext.current.method.scope = StaticScope.new(Object)
 
 TOPLEVEL_BINDING = binding()
 
+show_eval = false
 eval_code = nil
 script = nil
 
@@ -119,6 +120,18 @@ begin
     when "-v"
       puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
+      exit 0 if ARGV.empty?
+    when "-vv"
+      puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+      $VERBOSE = true
+      puts "Options:"
+      puts "  Interpreter type: #{Rubinius::INTERPRETER}"
+      if jit = Rubinius::JIT
+        puts "  JIT enabled: #{jit}"
+      else
+        puts "  JIT disabled"
+      end
+      puts
       exit 0 if ARGV.empty?
     when "-w"
       # do nothing (HACK)
@@ -168,6 +181,8 @@ begin
     when '-e'
       $0 = "(eval)"
       eval_code = ARGV.shift
+    when '-ed'
+      show_eval = true
     else
       if arg.prefix? "-I"
         more = arg[2..-1]
@@ -210,8 +225,12 @@ begin
     # If we also caught a script to run, we just treat it like
     # another arg.
     ARGV.unshift script if script
-
-    Compile.execute eval_code
+    eval(eval_code, TOPLEVEL_BINDING) do |compiled_method|
+      if show_eval
+        p eval_code.to_sexp("(eval)", 1)
+        puts compiled_method.decode
+      end
+    end
   elsif script
     if File.exist?(script)
       $0 = script
@@ -351,6 +370,12 @@ end
 if profile
   Rubinius::VM.stop_profiler profile
   puts "[Saved profiling data to '#{profile}']"
+end
+
+if Rubinius::RUBY_CONFIG['rbx.jit_stats']
+  stats = Rubinius::VM.jit_info
+  puts "JIT time spent: #{stats[0] / 1000000}ms"
+  puts " JITed methods: #{stats[1]}"
 end
 
 Process.exit(code || 0)

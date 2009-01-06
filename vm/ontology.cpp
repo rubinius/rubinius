@@ -40,6 +40,8 @@
 #include "builtin/machine_method.hpp"
 #include "builtin/block_wrapper.hpp"
 
+#include "config.h"
+
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
 
@@ -389,6 +391,26 @@ namespace rubinius {
     } else {
       G(rubinius)->set_const(state, "ENDIAN", symbol("big"));
     }
+
+#ifdef USE_DYNAMIC_INTERPRETER
+    if(config.dynamic_interpreter_enabled) {
+      G(rubinius)->set_const(state, "INTERPRETER", symbol("dynamic"));
+    } else {
+      G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
+    }
+#else
+    G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
+#endif
+
+#ifdef USE_USAGE_JIT
+    if(config.jit_enabled) {
+      G(rubinius)->set_const(state, "JIT", symbol("usage"));
+    } else {
+      G(rubinius)->set_const(state, "JIT", Qfalse);
+    }
+#else
+    G(rubinius)->set_const(state, "JIT", Qfalse);
+#endif
   }
 
   void VM::bootstrap_symbol() {

@@ -25,7 +25,6 @@
 #include "message.hpp"
 #include "instructions.hpp"
 
-
 using namespace rubinius;
 
 // #define OP(name, args...) void name(Task* task, struct jit_state* const js, ## args)

@@ -136,13 +136,6 @@ class Compiler
       @compiler.set(tag, val, &b)
     end
 
-    def inspect
-      name = self.class.name.split(/::/).last
-      args = Array(@body).map { |o| o.inspect }.join(", ")
-
-      "#{name}[#{args}]"
-    end
-
     def is?(clas)
       self.kind_of?(clas)
     end

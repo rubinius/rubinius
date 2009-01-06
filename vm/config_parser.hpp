@@ -12,6 +12,7 @@ namespace rubinius {
       std::string value;
 
       bool is_number();
+      bool is_true();
       bool in_section(std::string prefix);
     };
 
@@ -23,6 +24,7 @@ namespace rubinius {
     virtual ~ConfigParser();
 
     Entry* parse_line(const char* line);
+    void   import_line(const char* line);
     void   import_stream(std::istream&);
     Entry* find(std::string variable);
     EntryList* get_section(std::string prefix);

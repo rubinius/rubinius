@@ -95,6 +95,10 @@ namespace rubinius {
   }
 
   Object* System::vm_exit(STATE, Fixnum* code) {
+    if(getenv("JIT_STATS")) {
+      std::cout << "JITed methods: " << state->jitted_methods << "\n";
+      std::cout << "     JIT Time: " << (state->jit_timing / 1000000) << "ms\n";
+    }
     ::exit(code->to_native());
     return code;
   }
@@ -127,6 +131,8 @@ namespace rubinius {
 
     if(ent->is_number()) {
       return Fixnum::from(atoi(ent->value.c_str()));
+    } else if(ent->is_true()) {
+      return Qtrue;
     }
 
     return String::create(state, ent->value.c_str());
@@ -179,6 +185,18 @@ namespace rubinius {
   Object* System::vm_write_error(STATE, String* str) {
     std::cerr << str->c_str() << std::endl;
     return Qnil;
+  }
+
+  Object*  System::vm_jit_info(STATE) {
+    if(!state->config.jit_enabled) {
+      return Qnil;
+    }
+
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, Integer::from(state, state->jit_timing));
+    ary->set(state, 1, Integer::from(state, state->jitted_methods));
+
+    return ary;
   }
 
 }

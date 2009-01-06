@@ -572,7 +572,10 @@ namespace rubinius {
     try {
       for(;;) {
         VMMethod* const vmm = active_->vmm;
-        vmm->run(vmm, this, active_);
+        active_->run(vmm, this, active_);
+        if(active_->ip < 0) {
+          throw Task::Halt("Task halted");
+        }
 
         // Should we inspect the other interrupts?
         if(state->interrupts.check) {
@@ -639,7 +642,9 @@ namespace rubinius {
         std::cout << "<unknown>";
       }
 
-      if(ctx->native_ip) {
+      MachineMethod* mm = ctx->vmm->machine_method();
+
+      if(mm && mm->function()) {
         std::cout << " <JIT:" << ctx->vmm->machine_method()->function()
           << "/" << ctx->native_ip << ">";
       }

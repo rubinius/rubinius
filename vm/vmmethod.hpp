@@ -51,6 +51,11 @@ namespace rubinius {
     native_int stack_size;
     native_int number_of_locals;
 
+    native_int call_count;
+
+  public: // Methods
+    static void init(STATE);
+
     VMMethod(STATE, CompiledMethod* meth);
     ~VMMethod();
 

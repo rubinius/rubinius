@@ -17,8 +17,6 @@ class TestConfig : public CxxTest::TestSuite {
   void test_parse_line() {
     ConfigParser cfg;
 
-    TS_ASSERT(!cfg.parse_line("blah"));
-
     ConfigParser::Entry* e = cfg.parse_line("rbx.blah = 8");
     TS_ASSERT_EQUALS(std::string("rbx.blah"), e->variable);
     TS_ASSERT_EQUALS(std::string("8"), e->value);

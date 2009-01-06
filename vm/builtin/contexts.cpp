@@ -151,6 +151,7 @@ namespace rubinius {
     init_context(state, ctx, stack_size);
 
     ctx->vmm = meth->backend_method_;
+    ctx->run = ctx->vmm->run;
 
     // nil out just where the locals are
     native_int locals = ctx->vmm->number_of_locals;
@@ -184,8 +185,10 @@ namespace rubinius {
     ctx->obj_type = this->obj_type;
 
     ctx->vmm = this->vmm;
+    ctx->run = this->run;
     ctx->js = this->js;
     ctx->ip = this->ip;
+    ctx->native_ip = this->native_ip;
     ctx->args = this->args;
     ctx->stack_size = this->stack_size;
 
