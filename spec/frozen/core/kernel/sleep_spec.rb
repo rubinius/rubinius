@@ -10,7 +10,7 @@ describe "Kernel#sleep" do
     duration = 0.1
     start = Time.now
     sleep duration
-    (Time.now - start).should be_close(duration, 0.05)
+    (Time.now - start).should be_close(duration, 0.1)
   end
   
   it "returns the rounded number of seconds asleep" do
