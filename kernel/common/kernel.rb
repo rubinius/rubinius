@@ -248,7 +248,7 @@ module Kernel
     end
     Platform::POSIX.srand(seed.to_i)
     Kernel.current_srand = seed.to_i
-    return cur
+    cur
   end
   module_function :srand
 
