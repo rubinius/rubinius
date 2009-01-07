@@ -966,13 +966,18 @@ class Array
   #       Z     |  Same as ``a'', except that null is added with *
 
   def pack schema
-    Packer.new(self,schema).parse
+    Packer.new(self,schema).dispatch
   end
 
   class Packer
     def initialize(array,schema)
       @source = array
+      @schema = schema
+      @index = 0
+      @result = ""
+    end
 
+    def parse(schema)
       # The schema is an array of arrays like [["A", "6"], ["u", "*"],
       # ["X", ""]]. It represents the parsed form of "A6u*X".  Remove
       # strings in the schema between # and \n
@@ -980,14 +985,10 @@ class Array
       schema = schema.scan(/([^\s\d\*][\d\*]*)/).flatten.map {|x|
         x.match(/([^\s\d\*])([\d\*]*)/)[1..-1]
       }
-
-      @schema = schema
-      @index = 0
-      @result = ""
     end
 
-    def parse()
-      @schema.each do |kind, t|
+    def dispatch()
+      parse(@schema).each do |kind, t|
         t = nil if t.empty?
 
         case kind # TODO: switch kind to ints
@@ -1007,7 +1008,8 @@ class Array
         when 'M' then
           # for some reason MRI responds to to_s here
           item = Type.coerce_to(fetch_item(), String, :to_s)
-          @result << item.scan(/.{1,73}/m).map { |line| # 75 chars per line incl =\n
+          # 75 chars per line includes =\n
+          @result << item.scan(/.{1,73}/m).map { |line|
             line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
           }.join
         when 'm' then
