@@ -1012,16 +1012,8 @@ class Array
           }.join
         when 'm' then
           base64encode(kind, t)
-        when 'w' then
-          item = Type.coerce_to(fetch_item(), Integer, :to_int)
-          raise ArgumentError, "can't compress negative numbers" if item < 0
-
-          @result << (item & 0x7f)
-          while (item >>= 7) > 0 do
-            @result << ((item & 0x7f) | 0x80)
-          end
-
-          @result.reverse! # FIX - breaks anything following BER?
+        when 'w';
+          ber_compress(kind, t)
         when 'u' then
           uuencode(kind, t)
         when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'V', 'v', 'N', 'n' then
@@ -1150,6 +1142,7 @@ class Array
                  end
     end
 
+    # i, s, l, n, I, S, L, V, v, N, n
     def numeric(kind, t)
       size = case t
              when nil
@@ -1217,6 +1210,19 @@ class Array
 
         "#{encoded.join}\n"
       }.join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
+    end
+
+    # w
+    def ber_compress(kind, t)
+      item = Type.coerce_to(fetch_item(), Integer, :to_int)
+      raise ArgumentError, "can't compress negative numbers" if item < 0
+
+      @result << (item & 0x7f)
+      while (item >>= 7) > 0 do
+        @result << ((item & 0x7f) | 0x80)
+      end
+
+      @result.reverse! # FIX - breaks anything following BER?
     end
 
     # u
