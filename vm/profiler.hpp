@@ -183,8 +183,12 @@ namespace std {
 }
 
 namespace rubinius {
+    class CompiledMethod;
+    class Message;
+    class MethodContext;
 
   namespace profiler {
+
     class Profiler {
       typedef std::tr1::unordered_map<Key, Method*> MethodMap;
 
@@ -197,12 +201,17 @@ namespace rubinius {
     public:
       Profiler();
       ~Profiler();
-      Method* enter_method(Symbol* meth, Object* container, Kind kind = kNormal);
+
+      void enter_method(STATE, Message&, CompiledMethod*);
+      void enter_block(STATE, MethodContext*, CompiledMethod*);
+      Method* record_method(STATE, CompiledMethod*, Symbol*, Object*, Kind kind = kNormal);
       void leave_method();
+
       size_t number_of_entries();
       Method* find_key(Key& key);
       size_t depth();
-      LookupTable* results(VM* state);
+
+      LookupTable* results(STATE);
 
       Method* current_method() {
         return current_;

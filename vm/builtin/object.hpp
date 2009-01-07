@@ -336,6 +336,14 @@ namespace rubinius {
     // Ruby.primitive :object_untaint
     Object*   untaint();
 
+    /**
+     *  Returns an #inspect-like representation of an Object for
+     *  use in C++ code. Not called from Ruby code.
+     *
+     *  If address is true, uses the actual address of the object.
+     *  Otherwise, uses the object's id().
+     */
+    const char* to_s(STATE, bool address = false);
 
   public:   /* accessors */
 

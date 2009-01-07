@@ -20,7 +20,7 @@ namespace rubinius {
   private:
     MethodContext* home_;       // slot
     MethodContext* home_block_; // slot
-    Object* local_count_;        // slot
+    Object* local_count_;       // slot
     CompiledMethod* method_;    // slot
 
   public:

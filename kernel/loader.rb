@@ -82,7 +82,7 @@ Options:
   -Ps            Run the Selector profiler.
   -Pss           Run the SendSite profiler.
   -rlibrary      Require library before execution.
-  --syndey       Use SydneyParser.
+  --sydney       Use SydneyParser.
   --ruby_parser  Use RubyParser.
   -w             Enable warnings. (currently does nothing--compatibility)
   -v             Display the version and set $VERBOSE to true.
@@ -171,7 +171,7 @@ begin
 
       # if missing, let it die a natural death
       ARGV.unshift file ? file : script
-    when '--syndey'
+    when '--sydney'
       String.sydney_parser
     when '--ruby_parser'
       String.ruby_parser

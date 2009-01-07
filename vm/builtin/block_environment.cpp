@@ -48,14 +48,9 @@ namespace rubinius {
     }
     task->pop(); // Remove this from the stack.
     BlockContext* ctx = create_context(state, task->active());
-    if(task->profiler) {
-      profiler::Method* prof_meth = task->profiler->enter_method(
-          as<Symbol>(home_->name()), home_->module()->name(), profiler::kBlock);
 
-      if(!prof_meth->file()) {
-        prof_meth->set_position(method_->file(), method_->start_line(state));
-      }
-    }
+    if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
+
     task->make_active(ctx);
     task->push(val);
   }
@@ -73,14 +68,8 @@ namespace rubinius {
       val = Qnil;
     }
     BlockContext* ctx = create_context(state, task->active());
-    if(task->profiler) {
-      profiler::Method* prof_meth = task->profiler->enter_method(
-          as<Symbol>(home_->name()), home_->module()->name(), profiler::kBlock);
 
-      if(!prof_meth->file()) {
-        prof_meth->set_position(method_->file(), method_->start_line(state));
-      }
-    }
+    if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
     // HACK: manually clear the stack used as args.
     task->active()->clear_stack(msg.stack);

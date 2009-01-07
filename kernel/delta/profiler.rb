@@ -10,7 +10,19 @@ module Rubinius::Profiler
     MS_PER_NS  = 1.0e-6
 
     # This is the set of Rubinius implementation classes to filter
-    KERNEL_CLASSES = /^(Compiler|InstructionSet|Rubinius|InstructionSequence|CompiledMethod|Sexp|BlockEnvironment|AccessVariable|MethodContext|IncludedModule)/
+    KERNEL_CLASSES = Regexp.new %w[
+      ^AccessVariable
+      ^BlockEnvironment
+      ^CompiledMethod
+      ^Compiler
+      ^IncludedModule
+      ^InstructionSequence
+      ^InstructionSet
+      ^MethodContext
+      ^RecursionGuard
+      ^Rubinius
+      ^Sexp
+    ].join("|")
 
     # If +filter+ is true, omit Rubinius implementation classes from the
       # profile. The core library classes are still shown. If +filter+ is
@@ -61,7 +73,9 @@ module Rubinius::Profiler
         callee_total = m[:leaves].inject(0) { |sum, leaf| sum + leaf.last }
         total += method_total
 
-        [method_total, method_total - callee_total, m[:called], m[:name]]
+        name = m[:name]
+        name = "#toplevel" if name == "<metaclass>#__script__ {}"
+        [method_total, method_total - callee_total, m[:called], name]
       end
 
       data.sort! { |a, b| b.first <=> a.first }

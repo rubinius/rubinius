@@ -380,23 +380,7 @@ namespace rubinius {
 
     task->make_active(ctx);
 
-    if(unlikely(task->profiler)) {
-      profiler::Method* prof_meth;
-      if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
-        Object* attached = mc->attached_instance();
-        if(Module* mod = try_as<Module>(attached)) {
-          prof_meth = task->profiler->enter_method(msg.name, mod->name(), profiler::kNormal);
-        } else {
-          prof_meth = task->profiler->enter_method(msg.name, attached->id(state), profiler::kNormal);
-        }
-      } else {
-        prof_meth = task->profiler->enter_method(msg.name, msg.module->name(), profiler::kSingleton);
-      }
-
-      if(!prof_meth->file()) {
-        prof_meth->set_position(cm->file(), cm->start_line(state));
-      }
-    }
+    if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
     return cExecuteRestart;
   }
@@ -481,23 +465,7 @@ namespace rubinius {
 
     task->make_active(ctx);
 
-    if(unlikely(task->profiler)) {
-      profiler::Method* prof_meth;
-      if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
-        Object* attached = mc->attached_instance();
-        if(Module* mod = try_as<Module>(attached)) {
-          prof_meth = task->profiler->enter_method(msg.name, mod->name(), profiler::kNormal);
-        } else {
-          prof_meth = task->profiler->enter_method(msg.name, attached->id(state), profiler::kNormal);
-        }
-      } else {
-        prof_meth = task->profiler->enter_method(msg.name, msg.module->name(), profiler::kSingleton);
-      }
-
-      if(!prof_meth->file()) {
-        prof_meth->set_position(cm->file(), cm->start_line(state));
-      }
-    }
+    if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
     return cExecuteRestart;
   }

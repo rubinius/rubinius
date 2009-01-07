@@ -3,11 +3,16 @@
 #include "vm/object_utils.hpp"
 
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/contexts.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/lookuptable.hpp"
+#include "builtin/module.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "detection.hpp"
+#include "message.hpp"
 
 #include "timing.hpp"
 
@@ -62,7 +67,8 @@ namespace rubinius {
     }
 
     String* Method::name(STATE) {
-      const char *module = "unknown";
+      const char *module = "";
+      const char *method_name = method()->c_str(state);
 
       if(Symbol* klass = try_as<Symbol>(container())) {
         module = klass->c_str(state);
@@ -72,17 +78,19 @@ namespace rubinius {
 
       switch(kind()) {
       case kNormal:
-        name->append(state, ".");
+        name->append(state, "#");
+        name->append(state, method_name);
         break;
       case kSingleton:
-        name->append(state, "#");
+        name->append(state, ".");
+        name->append(state, method_name);
         break;
       case kBlock:
-        name->append(state, "#.");
+        name->append(state, "#");
+        name->append(state, method_name);
+        name->append(state, " {}");
         break;
       }
-
-      name->append(state, method()->c_str(state));
 
       return name;
     }
@@ -127,35 +135,56 @@ namespace rubinius {
       delete top_;
     }
 
-    Method* Profiler::enter_method(Symbol* name, Object* container, Kind kind) {
+    void Profiler::enter_block(STATE, MethodContext* ctx, CompiledMethod* cm) {
+      record_method(state, cm, as<Symbol>(ctx->name()), ctx->module()->name(), kBlock);
+    }
+
+    void Profiler::enter_method(STATE, Message &msg, CompiledMethod* cm) {
+      if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
+        Object* attached = mc->attached_instance();
+
+        if(Module* mod = try_as<Module>(attached)) {
+          record_method(state, cm, msg.name, mod->name(), kSingleton);
+        } else {
+          const char* name = msg.recv->to_s(state);
+          record_method(state, cm, msg.name, state->symbol(name), kSingleton);
+        }
+      } else {
+        record_method(state, cm, msg.name, msg.module->name(), kNormal);
+      }
+    }
+
+    Method* Profiler::record_method(STATE, CompiledMethod* cm, Symbol* name,
+                                 Object* container, Kind kind) {
       Key key(name, container, kind);
 
-      Method* meth;
-
-      meth = find_key(key);
-      if(!meth) {
-        meth = new Method(methods_.size(), name, container, kind);
-        methods_[key] = meth;
+      Method* method = find_key(key);
+      if(!method) {
+        method = new Method(methods_.size(), name, container, kind);
+        methods_[key] = method;
       }
 
-      Leaf* leaf = current_->find_leaf(meth);
+      Leaf* leaf = current_->find_leaf(method);
 
-      current_ = meth;
+      current_ = method;
 
-      meth->called();
+      method->called();
+
+      if(!method->file()) {
+        method->set_position(cm->file(), cm->start_line(state));
+      }
 
       Invocation invoke(leaf);
       invoke.start();
       running_.push(invoke);
 
-      return meth;
+      return method;
     }
 
     void Profiler::leave_method() {
+      // Depending on when we started profiling, there could be calls
+      // above the first time we entered a method, so ignore these.
       if(running_.empty()) return;
-
-      // Re-enable when enter/leave calls are correct
-      // assert(!running_.empty());
 
       Invocation& invoke = running_.top();
       invoke.stop();
