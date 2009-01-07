@@ -1011,11 +1011,11 @@ class Array
             line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
           }.join
         when 'm' then
-          base64encode(kind, t)
+          @result << encode(kind, t, :base64).join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
         when 'w';
           ber_compress(kind, t)
         when 'u' then
-          uuencode(kind, t)
+          @result << encode(kind, t, :uuencode).join.gsub(/ /, '`')
         when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'V', 'v', 'N', 'n' then
           numeric(kind, t)
         when 'H', 'h' then
@@ -1191,27 +1191,6 @@ class Array
       end
     end
 
-    # m
-    def base64encode(kind, t)
-      # REFACTOR: merge with u
-      item = Type.coerce_to(fetch_item(), String, :to_str)
-
-      @result << item.scan(/.{1,45}/m).map { |line|
-        encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
-          a = a[0]
-          b = b[0] || 0
-          c = c[0] || 0
-
-          [BASE_64_B2A[( a >> 2                    ) & 077],
-           BASE_64_B2A[((a << 4) | ((b >> 4) & 017)) & 077],
-           BASE_64_B2A[((b << 2) | ((c >> 6) & 003)) & 077],
-           BASE_64_B2A[( c                         ) & 077]]
-        }.flatten
-
-        "#{encoded.join}\n"
-      }.join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
-    end
-
     # w
     def ber_compress(kind, t)
       item = Type.coerce_to(fetch_item(), Integer, :to_int)
@@ -1225,26 +1204,35 @@ class Array
       @result.reverse! # FIX - breaks anything following BER?
     end
 
-    # u
-    def uuencode(kind, t)
-      # REFACTOR: merge with m
+    # u, m
+    def encode(kind, t, type = :base64)
       item = Type.coerce_to(fetch_item(), String, :to_str)
 
       # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
-      @result << item.scan(/.{1,45}/m).map { |line|
+      item.scan(/.{1,45}/m).map { |line|
         encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
           a = a[0]
           b = b[0] || 0
           c = c[0] || 0
 
-          [(?\s + (( a >> 2                    ) & 077)).chr,
-           (?\s + (((a << 4) | ((b >> 4) & 017)) & 077)).chr,
-           (?\s + (((b << 2) | ((c >> 6) & 003)) & 077)).chr,
-           (?\s + (( c                         ) & 077)).chr]
+          arr = [( a >> 2                    ) & 077,
+                 ((a << 4) | ((b >> 4) & 017)) & 077,
+                 ((b << 2) | ((c >> 6) & 003)) & 077,
+                 ( c                         ) & 077]
+          if(type == :uuencode)
+            arr.map {|x| (?\s+x).chr }
+          else
+            arr.map {|x| BASE_64_B2A[x] }
+          end
         }.flatten
 
-        "#{(line.size + ?\s).chr}#{encoded.join}\n"
-      }.join.gsub(/ /, '`')
+        l = "#{encoded.join}\n"
+        if(type == :uuencode)
+          (line.size + ?\s).chr+l
+        else
+          l
+        end
+      }
     end
 
     # U
