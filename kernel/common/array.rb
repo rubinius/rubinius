@@ -966,284 +966,324 @@ class Array
   #       Z     |  Same as ``a'', except that null is added with *
 
   def pack schema
-    # The schema is an array of arrays like [["A", "6"], ["u", "*"],
-    # ["X", ""]]. It represents the parsed form of "A6u*X".  Remove
-    # strings in the schema between # and \n
-    schema = schema.gsub(/#.*/, '')
-    schema = schema.scan(/([^\s\d\*][\d\*]*)/).flatten.map {|x|
-      x.match(/([^\s\d\*])([\d\*]*)/)[1..-1]
-    }
+    Packer.new(self,schema).parse
+  end
 
-    ret = ""
-    arr_idx = 0
+  class Packer
+    def initialize(array,schema)
+      @source = array
 
-    schema.each do |kind, t|
-      # p :iter => [kind, t]
-      item = self[arr_idx]
-      t = nil if t.empty?
+      # The schema is an array of arrays like [["A", "6"], ["u", "*"],
+      # ["X", ""]]. It represents the parsed form of "A6u*X".  Remove
+      # strings in the schema between # and \n
+      schema = schema.gsub(/#.*/, '')
+      schema = schema.scan(/([^\s\d\*][\d\*]*)/).flatten.map {|x|
+        x.match(/([^\s\d\*])([\d\*]*)/)[1..-1]
+      }
+
+      @schema = schema
+      @index = 0
+      @result = ""
+    end
+
+    def parse()
+      @schema.each do |kind, t|
+        t = nil if t.empty?
+
+        case kind # TODO: switch kind to ints
+        when 'X' then
+          size = (t || 1).to_i
+          raise ArgumentError, "you're backing up too far" if size > @result.size
+          @result[-size..-1] = '' if size > 0
+        when 'x' then
+          size = (t || 1).to_i
+          @result << "\000" * size
+        when 'a', 'A', 'Z' then
+          ascii_string(kind, t)
+        when 'b', 'B' then
+          bit_string(kind, t)
+        when 'c', 'C' then
+          character(t)
+        when 'M' then
+          # for some reason MRI responds to to_s here
+          item = Type.coerce_to(fetch_item(), String, :to_s)
+          @result << item.scan(/.{1,73}/m).map { |line| # 75 chars per line incl =\n
+            line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
+          }.join
+        when 'm' then
+          base64encode(kind, t)
+        when 'w' then
+          item = Type.coerce_to(fetch_item(), Integer, :to_int)
+          raise ArgumentError, "can't compress negative numbers" if item < 0
+
+          @result << (item & 0x7f)
+          while (item >>= 7) > 0 do
+            @result << ((item & 0x7f) | 0x80)
+          end
+
+          @result.reverse! # FIX - breaks anything following BER?
+        when 'u' then
+          uuencode(kind, t)
+        when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'V', 'v', 'N', 'n' then
+          numeric(kind, t)
+        when 'H', 'h' then
+          hex_string(kind, t)
+        when 'U' then
+          utf_string(kind, t)
+        else
+          raise ArgumentError, "Unknown kind #{kind}"
+        end
+      end
+
+      return @result
+    end
+
+    def fetch_item
+      raise ArgumentError, "too few array elements" if
+        @index >= @source.length
+
+      item = @source[@index]
+      @index += 1
+      return item
+    end
+
+    # A, a, Z
+    def ascii_string(kind, t)
+      item = fetch_item()
+      # MRI nil compatibilty for string functions
+      item = "" if item.nil?
+
+      item = Type.coerce_to(item, String, :to_str)
+      size = case t
+             when nil
+               1
+             when '*' then
+               item.size + (kind == "Z" ? 1 : 0)
+             else
+               t.to_i
+             end
+
+      padsize = size - item.size
+      filler  = kind == "A" ? " " : "\0"
+
+      @result << item.split(//).first(size).join
+      @result << filler * padsize if padsize > 0
+    end
+
+    # B, b
+    def bit_string(kind, t)
+      item = fetch_item()
+      # MRI nil compatibilty for string functions
+      item = "" if item.nil?
+
+      item = Type.coerce_to(item, String, :to_str)
+      byte = 0
+      lsb  = (kind == "b")
+      size = case t
+             when nil
+               1
+             when '*' then
+               item.size
+             else
+               t.to_i
+             end
+
+      bits = item.split(//).map { |c| c[0] & 01 }
+      min = [size, item.size].min
+
+      bits.first(min).each_with_index do |bit, i| # TODO: this can be cleaner
+        i &= 07
+
+        byte |= bit << (lsb ? i : 07 - i)
+
+        if i == 07 then
+          @result << byte.chr
+          byte = 0
+        end
+      end
+
+      # always output an incomplete byte
+      if ((size & 07) != 0 || min != size) && item.size > 0 then
+        @result << byte.chr
+      end
+
+      # Emulate the weird MRI spec for every 2 chars over output a \000 # FIX
+      (item.length).step(size-1, 2) { |i| @result << 0 } if size > item.length
+    end
+
+    # C, c
+    def character(t)
+      size = case t
+             when nil
+               1
+             when '*' then
+               @source.size # TODO: - @index?
+             else
+               t.to_i
+             end
+
+      size.times do
+        @result << (Type.coerce_to(fetch_item(), Integer, :to_int) & 0xff).chr
+      end
+    end
+
+    # H, h
+    def hex_string(kind, t)
+      item = fetch_item()
 
       # MRI nil compatibilty for string functions
-      item = "" if item.nil? && kind =~ /[aAZbBhH]/
+      item = "" if item.nil?
 
-      # if there's no item, that means there's more schema items than
-      # array items, so throw an error. All actions that DON'T
-      # increment arr_idx must occur before this test.
-      raise ArgumentError, "too few array elements" if
-        arr_idx >= self.length and kind !~ /x/i
+      size = if t.nil?
+               0
+             elsif t == "*"
+               item.length
+             else
+               t.to_i
+             end
+      str = item.scan(/..?/).first(size)
 
-      case kind # TODO: switch kind to ints
-      when 'X' then
-        size = (t || 1).to_i
-        raise ArgumentError, "you're backing up too far" if size > ret.size
-        ret[-size..-1] = '' if size > 0
-      when 'x' then
-        size = (t || 1).to_i
-        ret << "\000" * size
-      when 'a', 'A', 'Z' then
-        item = Type.coerce_to(item, String, :to_str)
-        size = case t
-               when nil
-                 1
-               when '*' then
-                 item.size + (kind == "Z" ? 1 : 0)
-               else
-                 t.to_i
-               end
+      @result << if kind == "h" then
+                   str.map { |b| b.reverse.hex.chr }.join
+                 else
+                   str.map { |b| b.        hex.chr }.join
+                 end
+    end
 
-        padsize = size - item.size
-        filler  = kind == "A" ? " " : "\0"
+    def numeric(kind, t)
+      size = case t
+             when nil
+               1
+             when '*' then
+               @source.size - @index
+             else
+               t.to_i
+             end
 
-        ret << item.split(//).first(size).join
-        ret << filler * padsize if padsize > 0
+      native        = t && t == '_'
+      unsigned      = (kind =~ /I|S|L/)
+      little_endian = case kind
+                      when 'V', 'v' then true
+                      when 'N', 'n' then false
+                      else endian?(:little)
+                      end
 
-        arr_idx += 1
-      when 'b', 'B' then
-        item = Type.coerce_to(item, String, :to_str)
-        byte = 0
-        lsb  = (kind == "b")
-        size = case t
-               when nil
-                 1
-               when '*' then
-                 item.size
-               else
-                 t.to_i
-               end
+      raise "unsupported - fix me" if native
 
-        bits = item.split(//).map { |c| c[0] & 01 }
-        min = [size, item.size].min
+      unless native then
+        bytes = case kind
+                when 'L', 'l' then 4
+                when 'I', 'i' then 4
+                when 'S', 's' then 2
+                when 'V'      then 4
+                when 'v'      then 2
+                when 'N'      then 4
+                when 'n'      then 2
+                end
+      end
 
-        bits.first(min).each_with_index do |bit, i| # TODO: this can be cleaner
-          i &= 07
+      size.times do |i|
+        item = Type.coerce_to(fetch_item(), Integer, :to_int)
 
-          byte |= bit << (lsb ? i : 07 - i)
-
-          if i == 07 then
-            ret << byte.chr
-            byte = 0
-          end
+        if item.abs >= 2**Rubinius::WORDSIZE
+          raise RangeError, "bignum too big to convert into 'unsigned long'"
         end
 
-        # always output an incomplete byte
-        if ((size & 07) != 0 || min != size) && item.size > 0 then
-          ret << byte.chr
-        end
-
-        # Emulate the weird MRI spec for every 2 chars over output a \000 # FIX
-        (item.length).step(size-1, 2) { |i| ret << 0 } if size > item.length
-
-        arr_idx += 1
-      when 'c', 'C' then
-        size = case t
-               when nil
-                 1
-               when '*' then
-                 self.size # TODO: - arr_idx?
-               else
-                 t.to_i
-               end
-
-        # FIX: uhh... size is the same as length. just tests that arr_idx == 0
-        raise ArgumentError, "too few array elements" if
-          arr_idx + size > self.length
-
-        sub = self[arr_idx...arr_idx+size]
-        sub.map! { |o| (Type.coerce_to(o, Integer, :to_int) & 0xff).chr }
-        ret << sub.join
-
-        arr_idx += size
-      when 'M' then
-        # for some reason MRI responds to to_s here
-        item = Type.coerce_to(item, String, :to_s)
-        ret << item.scan(/.{1,73}/m).map { |line| # 75 chars per line incl =\n
-          line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
-        }.join
-        arr_idx += 1
-      when 'm' then # REFACTOR: merge with u
-        item = Type.coerce_to(item, String, :to_str)
-
-        ret << item.scan(/.{1,45}/m).map { |line|
-          encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
-            a = a[0]
-            b = b[0] || 0
-            c = c[0] || 0
-
-            [BASE_64_B2A[( a >> 2                    ) & 077],
-             BASE_64_B2A[((a << 4) | ((b >> 4) & 017)) & 077],
-             BASE_64_B2A[((b << 2) | ((c >> 6) & 003)) & 077],
-             BASE_64_B2A[( c                         ) & 077]]
-          }
-
-          "#{encoded.flatten.join}\n"
-        }.join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
-
-        arr_idx += 1
-      when 'w' then
-        item = Type.coerce_to(item, Integer, :to_int)
-        raise ArgumentError, "can't compress negative numbers" if item < 0
-
-        ret << (item & 0x7f)
-        while (item >>= 7) > 0 do
-          ret << ((item & 0x7f) | 0x80)
-        end
-
-        ret.reverse! # FIX - breaks anything following BER?
-        arr_idx += 1
-      when 'u' then # REFACTOR: merge with m
-        item = Type.coerce_to(item, String, :to_str)
-
-        # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
-        ret << item.scan(/.{1,45}/m).map { |line|
-          encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
-            a = a[0]
-            b = b[0] || 0
-            c = c[0] || 0
-
-            [(?\s + (( a >> 2                    ) & 077)).chr,
-             (?\s + (((a << 4) | ((b >> 4) & 017)) & 077)).chr,
-             (?\s + (((b << 2) | ((c >> 6) & 003)) & 077)).chr,
-             (?\s + (( c                         ) & 077)).chr]
-          }.flatten
-
-          "#{(line.size + ?\s).chr}#{encoded.join}\n"
-        }.join.gsub(/ /, '`')
-        arr_idx += 1
-      when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'V', 'v', 'N', 'n' then
-        size = case t
-               when nil
-                 1
-               when '*' then
-                 self.size - arr_idx
-               else
-                 t.to_i
-               end
-
-        native        = t && t == '_'
-        unsigned      = (kind =~ /I|S|L/)
-        little_endian = case kind
-                        when 'V', 'v' then true
-                        when 'N', 'n' then false
-                        else endian?(:little)
-                        end
-
-        raise "unsupported - fix me" if native
-
-        unless native then
-          bytes = case kind
-                  when 'L', 'l' then 4
-                  when 'I', 'i' then 4
-                  when 'S', 's' then 2
-                  when 'V'      then 4
-                  when 'v'      then 2
-                  when 'N'      then 4
-                  when 'n'      then 2
-                  end
-        end
-
-        size.times do |i|
-          item = Type.coerce_to(self[arr_idx], Integer, :to_int)
-
-          if item.abs >= 2**Rubinius::WORDSIZE
-            raise RangeError, "bignum too big to convert into 'unsigned long'"
-          end
-
-            ret << if little_endian then
+        @result << if little_endian then
                      item += 2 ** (8 * bytes) if item < 0
                      (0...bytes).map { |b| ((item >> (b * 8)) & 0xFF).chr }
                    else # ugly
                      (0...bytes).map {n=(item % 256).chr;item /= 256; n}.reverse
                    end.join
-          arr_idx += 1
-        end
-      when 'H', 'h' then
-        size = if t.nil?
-                 0
-               elsif t == "*"
-                 item.length
-               else
-                 t.to_i
-               end
-        str = item.scan(/..?/).first(size)
-
-        ret << if kind == "h" then
-                 str.map { |b| b.reverse.hex.chr }.join
-               else
-                 str.map { |b| b.        hex.chr }.join
-               end
-
-        arr_idx += 1
-      when 'U' then
-        count = if t.nil? then
-                  1
-                elsif t == "*"
-                  self.size - arr_idx
-                else
-                  t.to_i
-                end
-
-        raise ArgumentError, "too few array elements" if
-          arr_idx + count > self.length
-
-        count.times do
-          item = Type.coerce_to(self[arr_idx], Integer, :to_i)
-
-          raise RangeError, "pack(U): value out of range" if item < 0
-
-          bytes = 0
-          f = [2 ** 7, 2 ** 11, 2 ** 16, 2 ** 21, 2 ** 26, 2 ** 31].find { |n|
-            bytes += 1
-            item < n
-          }
-
-          raise RangeError, "pack(U): value out of range" if f.nil?
-
-          if bytes == 1 then
-            ret << item
-            bytes = 0
-          end
-
-          i = bytes
-
-          buf = []
-          if i > 0 then
-            (i-1).times do
-              buf.unshift((item | 0x80) & 0xBF)
-              item >>= 6
-            end
-            # catch the highest bits - the mask depends on the byte count
-            buf.unshift(item | ((0x3F00 >> bytes)) & 0xFC)
-          end
-
-          ret << buf.map { |n| n.chr }.join
-
-          arr_idx += 1
-        end
-      else
-        raise ArgumentError, "Unknown kind #{kind}"
       end
     end
 
-    return ret
+    # m
+    def base64encode(kind, t)
+      # REFACTOR: merge with u
+      item = Type.coerce_to(fetch_item(), String, :to_str)
+
+      @result << item.scan(/.{1,45}/m).map { |line|
+        encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
+          a = a[0]
+          b = b[0] || 0
+          c = c[0] || 0
+
+          [BASE_64_B2A[( a >> 2                    ) & 077],
+           BASE_64_B2A[((a << 4) | ((b >> 4) & 017)) & 077],
+           BASE_64_B2A[((b << 2) | ((c >> 6) & 003)) & 077],
+           BASE_64_B2A[( c                         ) & 077]]
+        }.flatten
+
+        "#{encoded.join}\n"
+      }.join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
+    end
+
+    # u
+    def uuencode(kind, t)
+      # REFACTOR: merge with m
+      item = Type.coerce_to(fetch_item(), String, :to_str)
+
+      # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
+      @result << item.scan(/.{1,45}/m).map { |line|
+        encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
+          a = a[0]
+          b = b[0] || 0
+          c = c[0] || 0
+
+          [(?\s + (( a >> 2                    ) & 077)).chr,
+           (?\s + (((a << 4) | ((b >> 4) & 017)) & 077)).chr,
+           (?\s + (((b << 2) | ((c >> 6) & 003)) & 077)).chr,
+           (?\s + (( c                         ) & 077)).chr]
+        }.flatten
+
+        "#{(line.size + ?\s).chr}#{encoded.join}\n"
+      }.join.gsub(/ /, '`')
+    end
+
+    # U
+    def utf_string(kind, t)
+      count = if t.nil? then
+                1
+              elsif t == "*"
+                @source.size - @index
+              else
+                t.to_i
+              end
+
+      count.times do
+        item = Type.coerce_to(fetch_item(), Integer, :to_i)
+
+        raise RangeError, "pack(U): value out of range" if item < 0
+
+        bytes = 0
+        f = [2 ** 7, 2 ** 11, 2 ** 16, 2 ** 21, 2 ** 26, 2 ** 31].find { |n|
+          bytes += 1
+          item < n
+        }
+
+        raise RangeError, "pack(U): value out of range" if f.nil?
+
+        if bytes == 1 then
+          @result << item
+          bytes = 0
+        end
+
+        i = bytes
+
+        buf = []
+        if i > 0 then
+          (i-1).times do
+            buf.unshift((item | 0x80) & 0xBF)
+            item >>= 6
+          end
+          # catch the highest bits - the mask depends on the byte count
+          buf.unshift(item | ((0x3F00 >> bytes)) & 0xFC)
+        end
+
+        @result << buf.map { |n| n.chr }.join
+      end
+    end
   end
 
   # Removes and returns the last element from the Array.

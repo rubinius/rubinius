@@ -18,15 +18,7 @@ fails:Array#pack with format 'h' consumes only one array item per a format
 fails:Array#pack with format 'h' tries to convert the pack argument to a String using #to_str
 fails:Array#pack with format 'h' checks whether the pack argument responds to #to_str
 fails:Array#pack with format 'n' regards negative values as 2's complement in order to converts it to positive
-fails:Array#pack with format 'n' raises an ArgumentError if count is greater than array elements left
-fails:Array#pack with format 'v' raises an ArgumentError if count is greater than array elements left
 fails:Array#pack with format 'N' regards negative values as 2's complement in order to converts it to positive
-fails:Array#pack with format 'N' raises an ArgumentError if count is greater than array elements left
-fails:Array#pack with format 'V' raises an ArgumentError if count is greater than array elements left
-fails:Array#pack with format 's' raises an ArgumentError if count is greater than array elements left
-fails:Array#pack with format 'S' raises an ArgumentError if count is greater than array elements left
-fails:Array#pack with format 'l' raises an ArgumentError if count is greater than array elements left
-fails:Array#pack with format 'L' raises an ArgumentError if count is greater than array elements left
 fails:Array#pack with format 'q' returns a string containing 8 bytes for an integer
 fails:Array#pack with format 'q' regards negative values as 2's complement in order to converts it to positive
 fails:Array#pack with format 'q' raises a RangeError when a pack argument is >= 2**64
@@ -65,7 +57,6 @@ fails:Array#pack with format 's_' checks whether the pack argument responds to #
 fails:Array#pack with format 's_' processes count number of array elements if count given
 fails:Array#pack with format 's_' returns empty string if count = 0
 fails:Array#pack with format 's_' with star parameter processes all remaining array items
-fails:Array#pack with format 'S!' raises an ArgumentError if count is greater than array elements left
 fails:Array#pack with format 'S_' returns a string containing 2 bytes for an integer
 fails:Array#pack with format 'S_' regards negative values as 2's complement in order to converts it to positive
 fails:Array#pack with format 'S_' drops higher bytes when a pack argument is >= 2**16
@@ -75,7 +66,6 @@ fails:Array#pack with format 'S_' checks whether the pack argument responds to #
 fails:Array#pack with format 'S_' processes count number of array elements if count given
 fails:Array#pack with format 'S_' returns empty string if count = 0
 fails:Array#pack with format 'S_' with star parameter processes all remaining array items
-fails:Array#pack with format 'i' raises an ArgumentError if count is greater than array elements left
 fails:Array#pack with format 'i!' returns a string containing 4 bytes for an integer
 fails:Array#pack with format 'i!' regards negative values as 2's complement in order to converts it to positive
 fails:Array#pack with format 'i!' tries to convert the pack argument to an Integer using #to_int
@@ -90,7 +80,6 @@ fails:Array#pack with format 'i_' checks whether the pack argument responds to #
 fails:Array#pack with format 'i_' processes count number of array elements if count given
 fails:Array#pack with format 'i_' returns empty string if count = 0
 fails:Array#pack with format 'i_' with star parameter processes all remaining array items
-fails:Array#pack with format 'I' raises an ArgumentError if count is greater than array elements left
 fails:Array#pack with format 'I!' returns a string containing 4 bytes for an integer
 fails:Array#pack with format 'I!' regards negative values as 2's complement in order to converts it to positive
 fails:Array#pack with format 'I!' tries to convert the pack argument to an Integer using #to_int
