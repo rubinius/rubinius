@@ -202,7 +202,7 @@ class Compiler
 
         call.receiver_bytecode(g)
         g.dup
-        g.check_serial :new, KernelMethodSerial
+        idx = g.check_serial idx, KernelMethodSerial
         g.gif slow
 
         # fast path
@@ -217,7 +217,14 @@ class Compiler
         # slow path
         slow.set!
         call.emit_args(g)
-        g.send :new, call.argcount, call.allow_private?
+        g.add :set_call_flags, 1
+        count = call.argcount
+        if count == 0
+          g.add :send_method, idx
+        else
+          g.add :send_stack, idx, count
+        end
+
         done.set!
 
         return true

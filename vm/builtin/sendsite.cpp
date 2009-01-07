@@ -147,6 +147,36 @@ namespace rubinius {
     return true;
   }
 
+  bool SendSite::check_serial(STATE, MethodContext* current, Object* recv, int serial) {
+    // If empty, fill.
+    if(method_ == Qnil) {
+      Message msg(state);
+      msg.recv = recv;
+      msg.lookup_from = recv->lookup_begin(state);
+      msg.name = name_;
+      msg.priv = false;
+      msg.set_caller(current);
+
+      // Can't be resolved initially? bail.
+      if(!GlobalCacheResolver::resolve(state, msg)) {
+        return false;
+      }
+
+      module(state, msg.module);
+      method(state, msg.method);
+      recv_class(state, msg.lookup_from);
+      method_missing = msg.method_missing;
+
+      if(unlikely(method_missing)) {
+        this->performer = performer::mono_mm_performer;
+      } else {
+        this->performer = performer::mono_performer;
+      }
+    }
+
+    return method_->serial()->to_native() == serial;
+  }
+
   /* Fill in details about +msg+ by looking up the class heirarchy
    * and in method tables. Returns true if lookup was successful
    * and +msg+ is now filled in. */

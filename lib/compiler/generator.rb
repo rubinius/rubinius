@@ -642,8 +642,9 @@ class Compiler
     end
 
     def check_serial(sym, serial)
-      idx = find_literal(sym)
+      idx = add_literal SendSite.new(:new)
       add :check_serial, idx, serial.to_i
+      return idx
     end
 
     def create_block(desc)

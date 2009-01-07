@@ -400,7 +400,7 @@ class Instructions
   # [Operation]
   #   Checks if the specified method serial number matches an expected value
   # [Format]
-  #   \check_serial method serial
+  #   \check_serial sendsite serial
   # [Stack Before]
   #   * obj
   #   * ...
@@ -429,10 +429,10 @@ class Instructions
 
   def check_serial(index, serial)
     <<-CODE
-    Object* t1 = stack_pop();
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Object* recv = stack_pop();
+    SendSite* ss = as<SendSite>(task->literals()->at(state, index));
 
-    if(task->check_serial(t1, sym, serial)) {
+    if(ss->check_serial(state, ctx, recv, serial)) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -444,7 +444,8 @@ class Instructions
     <<-CODE
       Fixnum* s = Fixnum::from(100);
       Symbol* sym = String::create(state, "to_s")->to_sym(state);
-      task->literals()->put(state, 0, sym);
+      SendSite* ss = SendSite::create(state, sym);
+      task->literals()->put(state, 0, ss);
 
       TS_ASSERT_EQUALS(Qnil, cm->serial());
       task->add_method(G(fixnum_class), sym, cm);
