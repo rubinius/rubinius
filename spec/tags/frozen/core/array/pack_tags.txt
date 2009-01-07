@@ -218,7 +218,6 @@ fails:Array#pack with '@' is able to work with 'X'
 fails:Array#pack with format 'p' consumes a String
 fails:Array#pack with format 'p' tries to convert the pack argument to a String using #to_str
 fails:Array#pack with format 'p' checks whether the pack argument responds to #to_str
-fails:Array#pack with format 'p' returns empty string if count = 0 with
 fails:Array#pack with format 'p' only takes as many elements as specified after ('p')
 fails:Array#pack with format 'p' consumes the whole argument string with star parameter
 fails:Array#pack with format 'P' consumes a String

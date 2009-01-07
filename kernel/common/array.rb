@@ -970,6 +970,7 @@ class Array
   end
 
   class Packer
+    POINTER_SIZE = Rubinius::L64 ? 8 : 4
     def initialize(array,schema)
       @source = array
       @schema = schema
@@ -1022,9 +1023,8 @@ class Array
           decimal(kind, t)
         when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'V', 'v', 'N', 'n' then
           integer(kind, t)
-        when 'P', 'p' then
-          item = Type.coerce_to(fetch_item(), String, :to_str)
-          raise ArgumentError, "#{kind} not implemented"
+        when 'p', 'P' then
+          pointer(kind, t)
         when 'Q', 'q' then
           item = Type.coerce_to(fetch_item(), Fixnum, :to_int)
           raise ArgumentError, "#{kind} not implemented"
@@ -1128,6 +1128,34 @@ class Array
 
       size.times do
         @result << (Type.coerce_to(fetch_item(), Integer, :to_int) & 0xff).chr
+      end
+    end
+
+    # P, p
+    def pointer(kind, t)
+      count = if t.nil? then
+                1
+              elsif t == "*"
+                if(kind == 'p')
+                  @source.size - @index
+                else
+                  1
+                end
+              else
+                t.to_i
+              end
+
+      raise ArgumentError, "too few array elements" if
+        @index + count > @source.length
+
+      count.times do
+        item = fetch_item()
+        if(item == nil)
+          @result << "\x00"*POINTER_SIZE
+        else
+          item = Type.check_and_coerce_to(item, String, :to_str)
+          raise NotImplemented
+        end
       end
     end
 
