@@ -1014,18 +1014,26 @@ class Array
           }.join
         when 'm' then
           @result << encode(kind, t, :base64).join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
-        when 'w';
+        when 'w' then
           ber_compress(kind, t)
         when 'u' then
           @result << encode(kind, t, :uuencode).join.gsub(/ /, '`')
+        when 'd', 'D', 'e', 'E', 'f', 'F', 'g', 'G' then
+          decimal(kind, t)
         when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'V', 'v', 'N', 'n' then
-          numeric(kind, t)
+          integer(kind, t)
+        when 'P', 'p' then
+          raise ArgumentError, "#{kind} not implemented"
+        when 'Q', 'q' then
+          raise ArgumentError, "#{kind} not implemented"
         when 'H', 'h' then
           hex_string(kind, t)
         when 'U' then
           utf_string(kind, t)
+        when '%'
+          raise ArgumentError, "#{kind} not implemented"
         else
-          raise ArgumentError, "Unknown kind #{kind}"
+          raise ArgumentError, "#{kind} not implemented"
         end
       end
 
@@ -1123,13 +1131,13 @@ class Array
 
     # H, h
     def hex_string(kind, t)
-      item = fetch_item()
+      item = Type.coerce_to(fetch_item(), String, :to_str)
 
       # MRI nil compatibilty for string functions
       item = "" if item.nil?
 
       size = if t.nil?
-               0
+               1
              elsif t == "*"
                item.length
              else
@@ -1144,13 +1152,19 @@ class Array
                  end
     end
 
-    # i, s, l, n, I, S, L, V, v, N, n
-    def numeric(kind, t)
+    def decimal(kind, t)
+      raise ArgumentError, "not implemented #{kind}, #{t}"
+    end
+
+    # i, s, l, n, I, S, L, V, v, N
+    def integer(kind, t)
       size = case t
              when nil
                1
              when '*' then
                @source.size - @index
+             when "_", "!" then
+               raise ArgumentError, "invalid tail #{t} for #{kind}"
              else
                t.to_i
              end
@@ -1163,7 +1177,7 @@ class Array
                       else endian?(:little)
                       end
 
-      raise "unsupported - fix me" if native
+      raise ArgumentError, "unsupported - fix me" if native
 
       unless native then
         bytes = case kind
@@ -1176,6 +1190,9 @@ class Array
                 when 'n'      then 2
                 end
       end
+
+      raise ArgumentError, "too few array elements" if
+        @index + size > @source.length
 
       size.times do |i|
         item = Type.coerce_to(fetch_item(), Integer, :to_int)

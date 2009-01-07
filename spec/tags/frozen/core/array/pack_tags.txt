@@ -6,17 +6,12 @@ fails:Array#pack with format 'H' fills the rest bytes with 0 if pack argument ha
 fails:Array#pack with format 'H' fills low-nibble of the last byte with 0 when count is odd even if pack argument has insufficient length
 fails:Array#pack with format 'H' considers count = 1 if count omited
 fails:Array#pack with format 'H' consumes only one array item per a format
-fails:Array#pack with format 'H' tries to convert the pack argument to a String using #to_str
-fails:Array#pack with format 'H' checks whether the pack argument responds to #to_str
-fails:Array#pack with format 'h' encodes hexadecimal digits to byte sequence in the order of low-nibble first
 fails:Array#pack with format 'h' ignores rest of the pack argument when the argument is too long
 fails:Array#pack with format 'h' fills low-nibble of the last byte with 0 when count is odd
 fails:Array#pack with format 'h' fills the rest bytes with 0 if pack argument has insufficient length
 fails:Array#pack with format 'h' fills high-nibble of the last byte with 0 when count is odd even if pack argument has insufficient length
 fails:Array#pack with format 'h' considers count = 1 if count omited
 fails:Array#pack with format 'h' consumes only one array item per a format
-fails:Array#pack with format 'h' tries to convert the pack argument to a String using #to_str
-fails:Array#pack with format 'h' checks whether the pack argument responds to #to_str
 fails:Array#pack with format 'n' regards negative values as 2's complement in order to converts it to positive
 fails:Array#pack with format 'N' regards negative values as 2's complement in order to converts it to positive
 fails:Array#pack with format 'q' returns a string containing 8 bytes for an integer
