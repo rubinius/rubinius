@@ -1023,8 +1023,10 @@ class Array
         when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'V', 'v', 'N', 'n' then
           integer(kind, t)
         when 'P', 'p' then
+          item = Type.coerce_to(fetch_item(), String, :to_str)
           raise ArgumentError, "#{kind} not implemented"
         when 'Q', 'q' then
+          item = Type.coerce_to(fetch_item(), Fixnum, :to_int)
           raise ArgumentError, "#{kind} not implemented"
         when 'H', 'h' then
           hex_string(kind, t)

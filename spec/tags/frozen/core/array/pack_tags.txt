@@ -20,7 +20,6 @@ fails:Array#pack with format 'q' raises a RangeError when a pack argument is >= 
 fails:Array#pack with format 'q' raises a RangeError when a pack argument is <= -2**64
 fails:Array#pack with format 'q' tries to convert the pack argument to an Integer using #to_int
 fails:Array#pack with format 'q' checks whether the pack argument responds to #to_int
-fails:Array#pack with format 'q' raises a TypeError if a pack argument can't be coerced to Integer
 fails:Array#pack with format 'q' processes count number of array elements if count given
 fails:Array#pack with format 'q' returns empty string if count = 0
 fails:Array#pack with format 'q' with star parameter processes all remaining array items
@@ -30,7 +29,6 @@ fails:Array#pack with format 'Q' raises a RangeError when a pack argument is >= 
 fails:Array#pack with format 'Q' raises a RangeError when a pack argument is <= -2**64
 fails:Array#pack with format 'Q' tries to convert the pack argument to an Integer using #to_int
 fails:Array#pack with format 'Q' checks whether the pack argument responds to #to_int
-fails:Array#pack with format 'Q' raises a TypeError if a pack argument can't be coerced to Integer
 fails:Array#pack with format 'Q' processes count number of array elements if count given
 fails:Array#pack with format 'Q' returns empty string if count = 0
 fails:Array#pack with format 'Q' with star parameter processes all remaining array items
@@ -220,7 +218,6 @@ fails:Array#pack with '@' is able to work with 'X'
 fails:Array#pack with format 'p' consumes a String
 fails:Array#pack with format 'p' tries to convert the pack argument to a String using #to_str
 fails:Array#pack with format 'p' checks whether the pack argument responds to #to_str
-fails:Array#pack with format 'p' raises a TypeError if corresponding array item is not String
 fails:Array#pack with format 'p' returns empty string if count = 0 with
 fails:Array#pack with format 'p' only takes as many elements as specified after ('p')
 fails:Array#pack with format 'p' consumes the whole argument string with star parameter
@@ -228,7 +225,6 @@ fails:Array#pack with format 'P' consumes a String
 fails:Array#pack with format 'P' returns null pointer when passed nil
 fails:Array#pack with format 'P' tries to convert the pack argument to a String using #to_str
 fails:Array#pack with format 'P' checks whether the pack argument responds to #to_str
-fails:Array#pack with format 'P' raises a TypeError if corresponding array item is not String
 fails:Array#pack with format 'P' consumes one array item per a format
 fails:Array#pack with format 'P' ignores '*' parameter
 fails:Array#pack with format 'P' returns a pointer to zero-length byte sequence if count = 0 with
