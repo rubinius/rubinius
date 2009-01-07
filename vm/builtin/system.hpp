@@ -137,6 +137,12 @@ namespace rubinius {
     // Ruby.primitive :vm_jit_info
     static Object*  vm_jit_info(STATE);
 
+    /**
+     *  Returns information about the GC.
+     */
+    // Ruby.primitive :vm_gc_info
+    static Object*  vm_gc_info(STATE);
+
 
   public:   /* Type info */
 

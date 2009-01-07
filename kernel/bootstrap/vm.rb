@@ -9,6 +9,11 @@ class Rubinius::VM
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def self.gc_info
+    Ruby.primitive :vm_gc_info
+    raise PrimitiveFailure, "primitive failed"
+  end
+
   def self.write_error(str)
     Ruby.primitive :vm_write_error
     raise PrimitiveFailure, "vm_write_error primitive failed"

@@ -18,6 +18,7 @@
 
 #include "config_parser.hpp"
 #include "config.h"
+#include "timing.hpp"
 
 #include <iostream>
 #include <signal.h>
@@ -32,8 +33,6 @@ namespace rubinius {
   VM::VM(size_t bytes, bool boot)
     : current_mark(NULL)
     , reuse_llvm(true)
-    , jit_timing(0)
-    , jitted_methods(0)
     , use_safe_position(false)
   {
     config.compile_up_front = false;
@@ -203,20 +202,32 @@ namespace rubinius {
   }
 
   void VM::collect() {
+    uint64_t start = get_current_time();
+
     om->collect_young(globals.roots);
     om->collect_mature(globals.roots);
+
+    stats.time_in_gc += (get_current_time() - start);
   }
 
   void VM::collect_maybe() {
     if(om->collect_young_now) {
       om->collect_young_now = false;
+
+      uint64_t start = get_current_time();
       om->collect_young(globals.roots);
+      stats.time_in_gc += (get_current_time() - start);
+
       global_cache->clear();
     }
 
     if(om->collect_mature_now) {
       om->collect_mature_now = false;
+
+      uint64_t start = get_current_time();
       om->collect_mature(globals.roots);
+      stats.time_in_gc += (get_current_time() - start);
+
       global_cache->clear();
     }
 

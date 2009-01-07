@@ -336,12 +336,12 @@ namespace rubinius {
     // for this method.
     if(vmm->call_count >= 0) {
       if(vmm->call_count >= CALLS_TIL_JIT) {
-        state->jitted_methods++;
+        state->stats.jitted_methods++;
         uint64_t start = get_current_time();
         MachineMethod* mm = cm->make_machine_method(state);
         mm->activate();
         vmm->call_count = -1;
-        state->jit_timing += (get_current_time() - start);
+        state->stats.jit_timing += (get_current_time() - start);
       } else {
         vmm->call_count++;
       }

@@ -59,6 +59,23 @@ namespace rubinius {
     { }
   };
 
+  struct Stats {
+    // How much time is spent running the JIT
+    uint64_t jit_timing;
+
+    // How many methods have been compiled by the JIT
+    uint64_t jitted_methods;
+
+    // How much time is spent in the GC
+    uint64_t time_in_gc;
+
+    Stats()
+      : jit_timing(0)
+      , jitted_methods(0)
+      , time_in_gc(0)
+    {}
+  };
+
   class VM {
   public:
     /* Data members */
@@ -74,6 +91,8 @@ namespace rubinius {
     SymbolTable symbols;
     ConfigParser *user_config;
 
+    Stats stats;
+
     // Temporary holder for rb_gc_mark() in subtend
     ObjectMark current_mark;
 
@@ -81,12 +100,6 @@ namespace rubinius {
 
     // The thread used to trigger preemptive thread switching
     pthread_t preemption_thread;
-
-    // How much time is spent running the JIT
-    uint64_t jit_timing;
-
-    // How many methods have been compiled by the JIT
-    uint64_t jitted_methods;
 
     // The safe position on the stack used to handle rare
     // events.

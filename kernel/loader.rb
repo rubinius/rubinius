@@ -115,11 +115,11 @@ begin
       puts RBS_USAGE
       exit 1
     when "-v"
-      puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+      puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{RUBY_VERSION}) (#{Rubinius::BUILDREV[0..8]} #{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
       exit 0 if ARGV.empty?
     when "-vv"
-      puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+      puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{RUBY_VERSION}) (#{Rubinius::BUILDREV[0..8]} #{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
       puts "Options:"
       puts "  Interpreter type: #{Rubinius::INTERPRETER}"
@@ -368,6 +368,11 @@ if Rubinius::RUBY_CONFIG['rbx.jit_stats']
   stats = Rubinius::VM.jit_info
   puts "JIT time spent: #{stats[0] / 1000000}ms"
   puts " JITed methods: #{stats[1]}"
+end
+
+if Rubinius::RUBY_CONFIG['rbx.gc_stats']
+  timing = Rubinius::VM.gc_info
+  puts "Time spent in GC: #{timing / 1000000}ms"
 end
 
 Process.exit(code || 0)

@@ -9,33 +9,7 @@
 #include "builtin/symbol.hpp"
 #include "detection.hpp"
 
-// HACK figure out a better way to detect if we should use
-// mach_absolute_time
-#if defined(OS_X_ANCIENT) || \
-	defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) && \
-    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1050
-  #define USE_MACH_TIME
-#endif
-
-#ifdef USE_MACH_TIME
-
-#include <mach/mach_time.h>
-#define current_time() mach_absolute_time()
-#define METHOD "mach_absolute_time"
-
-#else
-
-uint64_t current_time() {
-  timespec tp;
-  if (clock_gettime(CLOCK_REALTIME, &tp)) {
-    // error! Do something about it?
-    return 0U;
-  }
-  return tp.tv_sec * 1000000000UL + tp.tv_nsec;
-}
-#define METHOD "clock_gettime"
-
-#endif
+#include "timing.hpp"
 
 #include <time.h>
 
@@ -57,11 +31,11 @@ namespace rubinius {
     }
 
     void Invocation::start() {
-      start_time_ = current_time();
+      start_time_ = get_current_time();
     }
 
     void Invocation::stop() {
-      leaf_->add_total_time(current_time() - start_time_);
+      leaf_->add_total_time(get_current_time() - start_time_);
     }
 
     Method::~Method() {
@@ -220,7 +194,7 @@ namespace rubinius {
       profile->store(state, state->symbol("num_methods"),
                      Integer::from(state, methods_.size()));
       profile->store(state, state->symbol("method"),
-                     String::create(state, METHOD));
+                     String::create(state, TIMING_METHOD));
 
       LookupTable* methods = LookupTable::create(state);
       profile->store(state, state->symbol("methods"), methods);
