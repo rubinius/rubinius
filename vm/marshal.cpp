@@ -4,7 +4,8 @@
 #include "objectmemory.hpp"
 #include "marshal.hpp"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
+#include "strtod.hpp"
 
 #include "builtin/sendsite.hpp"
 #include "builtin/array.hpp"
@@ -163,7 +164,6 @@ namespace rubinius {
     if(c == '-') c = data[1];
 
     if(std::isdigit(c)) {
-      // @todo use ruby_strtod
       return Float::create(state, strtod(data, NULL));
     } else {
       // avoid compiler warning

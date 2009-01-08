@@ -213,7 +213,10 @@ namespace rubinius {
     return Bignum::from_double(state, this->val);
   }
 
-#define FLOAT_TO_S_STRLEN   1024
+/* It requires "%.1022f" to print all digits of Float::MIN.
+ * If you really need more digits than that, change this constant.
+ */
+#define FLOAT_TO_S_STRLEN   1280
 
   String* Float::to_s_formatted(STATE, String* format) {
     char str[FLOAT_TO_S_STRLEN];
