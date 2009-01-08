@@ -1,6 +1,13 @@
-# depends on: array.rb string.rb
+# depends on: array.rb string.rb hash.rb range.rb
 
 class Array::Packer
+  BASE_64_B2A = {}
+  (00..25).each {|x| BASE_64_B2A[x] = (?A + x - 00).chr}
+  (26..51).each {|x| BASE_64_B2A[x] = (?a + x - 26).chr}
+  (52..61).each {|x| BASE_64_B2A[x] = (?0 + x - 52).chr}
+  BASE_64_B2A[62] = '+'
+  BASE_64_B2A[63] = '/'
+
   POINTER_SIZE = Rubinius::L64 ? 8 : 4
   def initialize(array,schema)
     @source = array
@@ -287,7 +294,7 @@ class Array::Packer
         if(type == :uuencode)
           arr.map {|x| (?\s+x).chr }
         else
-          arr.map {|x| Array::BASE_64_B2A[x] }
+          arr.map {|x| BASE_64_B2A[x] }
         end
       }.flatten
 
@@ -338,6 +345,14 @@ class Array::Packer
 end
 
 class String::Unpacker
+  BASE_64_A2B = {}
+  (?A..?Z).each {|x| BASE_64_A2B[x] = x - ?A}
+  (?a..?z).each {|x| BASE_64_A2B[x] = x - ?a + 26}
+  (?0..?9).each {|x| BASE_64_A2B[x] = x - ?0 + 52}
+  BASE_64_A2B[?+]  = ?>
+  BASE_64_A2B[?\/] = ??
+  BASE_64_A2B[?=]  = 0
+
   def initialize(source, schema)
     @source = source
     @schema = schema
@@ -577,10 +592,10 @@ class String::Unpacker
                 s      = buffer[0..3]
                 buffer = buffer[4..-1]
 
-                a = String::BASE_64_A2B[s[0]]
-                b = String::BASE_64_A2B[s[1]]
-                c = String::BASE_64_A2B[s[2]]
-                d = String::BASE_64_A2B[s[3]]
+                a = BASE_64_A2B[s[0]]
+                b = BASE_64_A2B[s[1]]
+                c = BASE_64_A2B[s[2]]
+                d = BASE_64_A2B[s[3]]
 
                 # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
                 decoded = [a << 2 | b >> 4,
