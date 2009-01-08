@@ -135,8 +135,17 @@ namespace rubinius {
       delete top_;
     }
 
+    Symbol* Profiler::module_name(Module* module) {
+      if(IncludedModule* im = try_as<IncludedModule>(module)) {
+        return im->module()->name();
+      } else {
+        return module->name();
+      }
+    }
+
     void Profiler::enter_block(STATE, MethodContext* ctx, CompiledMethod* cm) {
-      record_method(state, cm, as<Symbol>(ctx->name()), ctx->module()->name(), kBlock);
+      record_method(state, cm, as<Symbol>(ctx->name()),
+          module_name(ctx->module()), kBlock);
     }
 
     void Profiler::enter_primitive(STATE, Message& msg) {
@@ -154,7 +163,7 @@ namespace rubinius {
           record_method(state, cm, msg.name, name, kSingleton);
         }
       } else {
-        record_method(state, cm, msg.name, msg.module->name(), kNormal);
+        record_method(state, cm, msg.name, module_name(msg.module), kNormal);
       }
     }
 

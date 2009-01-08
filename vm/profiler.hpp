@@ -202,6 +202,7 @@ namespace rubinius {
       Profiler();
       ~Profiler();
 
+      Symbol* module_name(Module* module);
       void enter_method(STATE, Message&, CompiledMethod*);
       void enter_primitive(STATE, Message&);
       void enter_block(STATE, MethodContext*, CompiledMethod*);

@@ -47,6 +47,21 @@ class TestProfiler : public CxxTest::TestSuite {
     TS_ASSERT_SAME_DATA("Object#meth {}", name->byte_address(), 14);
   }
 
+  void test_module_name() {
+    Symbol* name = state->symbol("ModName");
+
+    Module* mod = Module::create(state);
+    mod->name(state, name);
+
+    IncludedModule* im = IncludedModule::create(state);
+    im->module(state, mod);
+
+    profiler::Profiler prof;
+
+    TS_ASSERT_EQUALS(name, prof.module_name(im));
+    TS_ASSERT_EQUALS(name, prof.module_name(mod));
+  }
+
   void test_enter_block() {
     Symbol* meth = state->symbol("meth");
     Symbol* klass = state->symbol("Object");
