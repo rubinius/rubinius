@@ -322,7 +322,7 @@ class Array
   # Array that do not appear in the other Array, effectively
   # 'deducting' those items. The matching method is Hash-based.
   def -(other)
-    other = Type.coerce_to other, Array, :to_ary
+    other = Type.check_and_coerce_to other, Array, :to_ary
     out, exclude = [], {}
 
     other.each { |x| exclude[x] = true }
