@@ -99,6 +99,36 @@ class TestProfiler : public CxxTest::TestSuite {
     TS_ASSERT(prof.find_key(key1));
   }
 
+  void test_enter_primitive() {
+    Symbol* meth = state->symbol("meth");
+    Symbol* klass = state->symbol("Object");
+
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->name(state, meth);
+
+    profiler::Profiler prof;
+
+    Message msg(state);
+    msg.module = G(object);
+    msg.name = meth;
+
+    prof.enter_primitive(state, msg);
+    TS_ASSERT_EQUALS(prof.depth(), 1U);
+    TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
+
+    profiler::Key key(meth, klass, profiler::kNormal);
+    TS_ASSERT(prof.find_key(key));
+
+    msg.module = G(object)->metaclass(state);
+
+    prof.enter_primitive(state, msg);
+    TS_ASSERT_EQUALS(prof.depth(), 2U);
+    TS_ASSERT_EQUALS(prof.number_of_entries(), 2U);
+
+    profiler::Key key1(meth, klass, profiler::kNormal);
+    TS_ASSERT(prof.find_key(key1));
+  }
+
   void test_record_method() {
     Symbol* meth = state->symbol("blah");
     Symbol* klass = state->symbol("Sweet");
@@ -216,5 +246,24 @@ class TestProfiler : public CxxTest::TestSuite {
     LookupTable* results = prof.results(state);
 
     TS_ASSERT(!results->nil_p());
+    TS_ASSERT(!results->fetch(state, state->symbol("method"))->nil_p());
+    TS_ASSERT_EQUALS(Fixnum::from(3),
+        results->fetch(state, state->symbol("num_methods")));
+
+    LookupTable* methods = as<LookupTable>(
+        results->fetch(state, state->symbol("methods")));
+    TS_ASSERT_EQUALS(Integer::from(state, 3), methods->entries());
+
+    LookupTable* method = as<LookupTable>(
+        methods->fetch(state, Fixnum::from(1)));
+    TS_ASSERT_EQUALS(Integer::from(state, 6), method->entries());
+    TS_ASSERT_EQUALS(Fixnum::from(1),
+        method->fetch(state, state->symbol("called")));
+    TS_ASSERT_SAME_DATA("Sweet#blah", as<String>(method->fetch(state,
+          state->symbol("name")))->byte_address(), 9);
+    TS_ASSERT(kind_of<Array>(method->fetch(state, state->symbol("leaves"))));
+    TS_ASSERT(method->has_key(state, state->symbol("total"))->true_p());
+    TS_ASSERT(method->has_key(state, state->symbol("file"))->true_p());
+    TS_ASSERT(method->has_key(state, state->symbol("line"))->true_p());
   }
 };

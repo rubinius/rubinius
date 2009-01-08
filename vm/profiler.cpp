@@ -139,6 +139,10 @@ namespace rubinius {
       record_method(state, cm, as<Symbol>(ctx->name()), ctx->module()->name(), kBlock);
     }
 
+    void Profiler::enter_primitive(STATE, Message& msg) {
+      enter_method(state, msg, (CompiledMethod*)Qnil);
+    }
+
     void Profiler::enter_method(STATE, Message &msg, CompiledMethod* cm) {
       if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
         Object* attached = mc->attached_instance();
@@ -170,7 +174,7 @@ namespace rubinius {
 
       method->called();
 
-      if(!method->file()) {
+      if(!method->file() && !cm->nil_p()) {
         method->set_position(cm->file(), cm->start_line(state));
       }
 
