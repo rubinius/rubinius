@@ -1062,6 +1062,17 @@ class Array
       return item
     end
 
+    def parse_tail(t, remaining = @source.size - @index)
+      case t
+      when nil
+        1
+      when '*' then
+        remaining
+      else
+        t.to_i
+      end
+    end
+
     # A, a, Z
     def ascii_string(kind, t)
       item = fetch_item()
@@ -1069,14 +1080,7 @@ class Array
       item = "" if item.nil?
 
       item = Type.coerce_to(item, String, :to_str)
-      size = case t
-             when nil
-               1
-             when '*' then
-               item.size + (kind == "Z" ? 1 : 0)
-             else
-               t.to_i
-             end
+      size = parse_tail(t, item.size + (kind == "Z" ? 1 : 0))
 
       padsize = size - item.size
       filler  = kind == "A" ? " " : "\0"
@@ -1094,14 +1098,7 @@ class Array
       item = Type.coerce_to(item, String, :to_str)
       byte = 0
       lsb  = (kind == "b")
-      size = case t
-             when nil
-               1
-             when '*' then
-               item.size
-             else
-               t.to_i
-             end
+      size = parse_tail(t, item.size)
 
       bits = item.split(//).map { |c| c[0] & 01 }
       min = [size, item.size].min
@@ -1128,34 +1125,14 @@ class Array
 
     # C, c
     def character(t)
-      size = case t
-             when nil
-               1
-             when '*' then
-               @source.size # TODO: - @index?
-             else
-               t.to_i
-             end
-
-      size.times do
+      parse_tail(t).times do
         @result << (Type.coerce_to(fetch_item(), Integer, :to_int) & 0xff).chr
       end
     end
 
     # P, p
     def pointer(kind, t)
-      count = if t.nil? then
-                1
-              elsif t == "*"
-                if(kind == 'p')
-                  @source.size - @index
-                else
-                  1
-                end
-              else
-                t.to_i
-              end
-
+      count = parse_tail(t, kind == 'p' ? @source.size - @index : 1)
       raise ArgumentError, "too few array elements" if
         @index + count > @source.length
 
@@ -1177,13 +1154,7 @@ class Array
       # MRI nil compatibilty for string functions
       item = "" if item.nil?
 
-      size = if t.nil?
-               1
-             elsif t == "*"
-               item.length
-             else
-               t.to_i
-             end
+      size = parse_tail(t, item.length)
       str = item.scan(/..?/).first(size)
 
       @result << if kind == "h" then
@@ -1199,16 +1170,7 @@ class Array
 
     # i, s, l, n, I, S, L, V, v, N
     def integer(kind, t)
-      size = case t
-             when nil
-               1
-             when '*' then
-               @source.size - @index
-             when "_", "!" then
-               raise ArgumentError, "invalid tail #{t} for #{kind}"
-             else
-               t.to_i
-             end
+      size = parse_tail(t)
 
       native        = t && t == '_'
       unsigned      = (kind =~ /I|S|L/)
@@ -1297,15 +1259,7 @@ class Array
 
     # U
     def utf_string(kind, t)
-      count = if t.nil? then
-                1
-              elsif t == "*"
-                @source.size - @index
-              else
-                t.to_i
-              end
-
-      count.times do
+      parse_tail(t).times do
         item = Type.coerce_to(fetch_item(), Integer, :to_i)
 
         raise RangeError, "pack(U): value out of range" if item < 0
