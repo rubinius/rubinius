@@ -398,7 +398,7 @@ namespace rubinius {
     return val;
   }
 
-  const char* Object::to_s(STATE, bool address) {
+  String* Object::to_s(STATE, bool address) {
     std::stringstream name;
 
     name << "#<";
@@ -425,7 +425,7 @@ namespace rubinius {
     }
     name << ">";
 
-    return name.str().c_str();
+    return String::create(state, name.str().c_str());
   }
 
   Object* Object::show(STATE) {

@@ -343,7 +343,7 @@ namespace rubinius {
      *  If address is true, uses the actual address of the object.
      *  Otherwise, uses the object's id().
      */
-    const char* to_s(STATE, bool address = false);
+    String* to_s(STATE, bool address = false);
 
   public:   /* accessors */
 

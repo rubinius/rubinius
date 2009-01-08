@@ -146,8 +146,8 @@ namespace rubinius {
         if(Module* mod = try_as<Module>(attached)) {
           record_method(state, cm, msg.name, mod->name(), kSingleton);
         } else {
-          const char* name = msg.recv->to_s(state);
-          record_method(state, cm, msg.name, state->symbol(name), kSingleton);
+          Symbol* name = msg.recv->to_s(state)->to_sym(state);
+          record_method(state, cm, msg.name, name, kSingleton);
         }
       } else {
         record_method(state, cm, msg.name, msg.module->name(), kNormal);
