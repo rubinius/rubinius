@@ -983,8 +983,8 @@ class Array
       # ["X", ""]]. It represents the parsed form of "A6u*X".  Remove
       # strings in the schema between # and \n
       schema = schema.gsub(/#.*/, '')
-      schema = schema.scan(/([^\s\d\*][\d\*]*)/).flatten.map {|x|
-        x.match(/([^\s\d\*])([\d\*]*)/)[1..-1]
+      schema = schema.scan(/([^\s\d!_\*][\d!_\*]*)/).flatten.map {|x|
+        x.match(/([^\s\d!_\*])([\d!_\*]*)/)[1..-1]
       }
     end
 
@@ -1005,7 +1005,7 @@ class Array
         when 'b', 'B' then
           bit_string(kind, t)
         when 'c', 'C' then
-          character(t)
+          character(kind, t)
         when 'M' then
           # for some reason MRI responds to to_s here
           item = Type.coerce_to(fetch_item(), String, :to_s)
@@ -1045,8 +1045,6 @@ class Array
           end
         when '%'
           raise ArgumentError, "#{kind} not implemented"
-        else
-          raise ArgumentError, "#{kind} not implemented"
         end
       end
 
@@ -1062,14 +1060,20 @@ class Array
       return item
     end
 
-    def parse_tail(t, remaining = @source.size - @index)
+    def parse_tail(t, kind, remaining = @source.size - @index)
       case t
       when nil
         1
       when '*' then
         remaining
       else
-        t.to_i
+        m = t.match(/(\d+)/)
+        if(t.include?('_') || t.include?('!'))
+          unless 'sSiIlL'.include?(kind)
+            raise ArgumentError, "#{t} allowed only after types sSiIlL"
+          end
+        end
+        m ? m[0].to_i : 1
       end
     end
 
@@ -1080,7 +1084,7 @@ class Array
       item = "" if item.nil?
 
       item = Type.coerce_to(item, String, :to_str)
-      size = parse_tail(t, item.size + (kind == "Z" ? 1 : 0))
+      size = parse_tail(t, kind, item.size + (kind == "Z" ? 1 : 0))
 
       padsize = size - item.size
       filler  = kind == "A" ? " " : "\0"
@@ -1098,7 +1102,7 @@ class Array
       item = Type.coerce_to(item, String, :to_str)
       byte = 0
       lsb  = (kind == "b")
-      size = parse_tail(t, item.size)
+      size = parse_tail(t, kind, item.size)
 
       bits = item.split(//).map { |c| c[0] & 01 }
       min = [size, item.size].min
@@ -1124,17 +1128,17 @@ class Array
     end
 
     # C, c
-    def character(t)
-      parse_tail(t).times do
+    def character(kind, t)
+      parse_tail(t, kind).times do
         @result << (Type.coerce_to(fetch_item(), Integer, :to_int) & 0xff).chr
       end
     end
 
     # P, p
     def pointer(kind, t)
-      count = parse_tail(t, kind == 'p' ? @source.size - @index : 1)
+      count = parse_tail(t, kind, kind == 'p' ? @source.size - @index : 1)
       raise ArgumentError, "too few array elements" if
-        @index + count > @source.length
+        @index + count > @source.length && kind == 'p'
 
       count.times do
         item = fetch_item()
@@ -1142,7 +1146,7 @@ class Array
           @result << "\x00"*POINTER_SIZE
         else
           item = Type.check_and_coerce_to(item, String, :to_str)
-          raise NotImplemented
+          raise ArgumentError, "not implemented"
         end
       end
     end
@@ -1154,7 +1158,7 @@ class Array
       # MRI nil compatibilty for string functions
       item = "" if item.nil?
 
-      size = parse_tail(t, item.length)
+      size = parse_tail(t, kind, item.length)
       str = item.scan(/..?/).first(size)
 
       @result << if kind == "h" then
@@ -1165,22 +1169,28 @@ class Array
     end
 
     def decimal(kind, t)
-      raise ArgumentError, "not implemented #{kind}, #{t}"
+      item = fetch_item()
+      item = Type.check_and_coerce_to(item, Float, :to_f)
+
+      raise ArgumentError, "not implemented"
     end
 
     # i, s, l, n, I, S, L, V, v, N
     def integer(kind, t)
-      size = parse_tail(t)
+      size = parse_tail(t, kind)
 
-      native        = t && t == '_'
+      if(t && (t.include?('_') || t.include?('!')))
+        native = t
+      else
+        native = false
+      end
+
       unsigned      = (kind =~ /I|S|L/)
       little_endian = case kind
                       when 'V', 'v' then true
                       when 'N', 'n' then false
                       else endian?(:little)
                       end
-
-      raise ArgumentError, "unsupported - fix me" if native
 
       unless native then
         bytes = case kind
@@ -1203,6 +1213,8 @@ class Array
         if item.abs >= 2**Rubinius::WORDSIZE
           raise RangeError, "bignum too big to convert into 'unsigned long'"
         end
+
+        raise ArgumentError, "unsupported - fix me" if native
 
         @result << if little_endian then
                      item += 2 ** (8 * bytes) if item < 0
@@ -1259,7 +1271,7 @@ class Array
 
     # U
     def utf_string(kind, t)
-      parse_tail(t).times do
+      parse_tail(t, kind).times do
         item = Type.coerce_to(fetch_item(), Integer, :to_i)
 
         raise RangeError, "pack(U): value out of range" if item < 0
@@ -1375,7 +1387,7 @@ class Array
     while(j >= @start) do
       tuple.put i, @tuple.at(j)
       i += 1
-      j -= 1      
+      j -= 1
     end
 
     @tuple = tuple
