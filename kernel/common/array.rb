@@ -1032,6 +1032,17 @@ class Array
           hex_string(kind, t)
         when 'U' then
           utf_string(kind, t)
+        when '@'
+          pos = if(t.nil?)
+                 raise ArgumentError
+               else
+                 t.to_i
+               end
+          if(pos < @result.size)
+            @result = @result[0...pos]
+          elsif(pos > @result.size)
+            @result << "\x00" * (pos - @result.size)
+          end
         when '%'
           raise ArgumentError, "#{kind} not implemented"
         else
