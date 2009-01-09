@@ -1062,9 +1062,15 @@ raise "no"
           return normal
         end
 
+        existing = false
+
         unless allocate
           if dynamic = @context.dynamic_locals
-            return nil unless dynamic.key? name
+            if dynamic.key? name
+              existing = true
+            else
+              return nil
+            end
           else
             return nil
           end
@@ -1072,7 +1078,7 @@ raise "no"
 
         # Seed the dynamic_locals table with the name, so key? works
         # later.
-        @context.set_eval_local name, nil
+        @context.set_eval_local(name, nil) unless existing
 
         return DynamicLocal.new(name)
       end

@@ -402,6 +402,20 @@ class MethodContext
 
 end
 
+class BlockContext
+  def dynamic_locals
+    home.dynamic_locals
+  end
+
+  def set_eval_local(name, val)
+    home.set_eval_local name, val
+  end
+
+  def get_eval_local(name)
+    home.get_eval_local name
+  end
+end
+
 #
 # Stores all the information about a running NativeMethod.
 #
