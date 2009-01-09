@@ -1,1 +1,0 @@
-fails:Float.induced_from converts passed Fixnums or Bignums to Floats (using #to_f)
