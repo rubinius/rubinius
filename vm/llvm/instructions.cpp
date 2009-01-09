@@ -213,6 +213,12 @@ CODE
 #endif // USE_JUMP_TABLE
 }
 
+
+/* The debugger interpreter loop is used to run a method when a breakpoint
+ * has been set. It has additional overhead, since it needs to inspect
+ * each opcode for the breakpoint flag. It is installed on the VMMethod when
+ * a breakpoint is set on compiled method.
+ */
 void VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx) {
   opcode* stream = ctx->vmm->opcodes;
   opcode op;

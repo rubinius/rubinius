@@ -39,6 +39,7 @@ namespace rubinius {
     attr_accessor(queued, Object);
     attr_accessor(sleep, Object);
     attr_accessor(task, Task);
+    attr_accessor(frozen_stack, Object);
 
     /** Setting priority may need to enlarge ScheduledThreads. */
     void priority(STATE, Fixnum* new_priority);
@@ -118,12 +119,13 @@ namespace rubinius {
 
   private:  /* Instance vars */
 
-    Task*     task_;      // slot
-    Channel*  channel_;   // slot
-    Fixnum*   priority_;  // slot
-    Object*   alive_;     // slot
-    Object*   sleep_;     // slot
-    Object*   queued_;    // slot
+    Task*     task_;         // slot
+    Channel*  channel_;      // slot
+    Fixnum*   priority_;     // slot
+    Object*   alive_;        // slot
+    Object*   sleep_;        // slot
+    Object*   queued_;       // slot
+    Object*   frozen_stack_; // slot
 
 
   public:   /* TypeInfo */

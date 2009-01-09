@@ -390,7 +390,6 @@ namespace rubinius {
     active_->cm()->scope()->module()->set_const(state, name, val);
   }
 
-  // TODO - Make sure this cannot contaminate the stack!
   void Task::yield_debugger() {
     Channel* chan;
     if(debug_channel_->nil_p()) {
@@ -411,7 +410,7 @@ namespace rubinius {
     active_->reference(state);
 
     chan->send(state, G(current_thread));
-    control_channel_->receive(state);
+    control_channel_->receive(state, true);
   }
 
   Module* Task::current_module() {

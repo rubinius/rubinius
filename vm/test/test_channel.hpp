@@ -70,6 +70,20 @@ class TestChannel : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(lst->size(), 0U);
   }
 
+  void test_receive_with_frozen_stack() {
+    Task* task = Task::create(state, 10);
+    state->globals.current_task.set(task);
+
+    Thread* thread = Thread::create(state);
+    state->globals.current_thread.set(thread);
+
+    task->push(Qfalse);
+    chan->send(state, Qtrue);
+    chan->receive(state, true);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(task->stack_top(), Qfalse);
+  }
+
   void test_receive_causes_deadlock() {
     Task* task = Task::create(state, 10);
 

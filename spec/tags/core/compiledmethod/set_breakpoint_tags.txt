@@ -1,1 +1,0 @@
-fails:CompiledMethod#set_breakpoint causes execution to be suspended and the debug channel to be signalled when the breakpoint is hit

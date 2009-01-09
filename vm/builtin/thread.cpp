@@ -75,6 +75,7 @@ namespace rubinius {
     thr->priority(state, Fixnum::from(2));
     thr->queued(state, Qfalse);
     thr->sleep(state, Qtrue);
+    thr->frozen_stack(state, Qfalse);
 
     thr->boot_task(state);
 

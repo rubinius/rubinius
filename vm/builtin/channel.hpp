@@ -44,7 +44,7 @@ namespace rubinius {
     // Ruby.primitive? :channel_receive
     ExecuteStatus receive_prim(STATE, Executable* exec, Task* task, Message& msg);
 
-    Object* receive(STATE);
+    Object* receive(STATE, bool freeze_stack=false);
     bool has_readers_p();
 
     // Ruby.primitive :scheduler_send_on_signal

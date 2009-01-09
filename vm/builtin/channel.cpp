@@ -32,7 +32,11 @@ namespace rubinius {
   Object* Channel::send(STATE, Object* val) {
     if(!waiting_->empty_p()) {
       Thread* thr = as<Thread>(waiting_->shift(state));
-      thr->set_top(state, val);
+      if(thr->frozen_stack() == Qfalse) {
+        thr->set_top(state, val);
+      } else {
+        thr->frozen_stack(state, Qfalse);
+      }
       thr->wakeup(state);
       return Qnil;
     }
@@ -88,11 +92,13 @@ namespace rubinius {
     return cExecuteRestart;
   }
 
-  Object* Channel::receive(STATE) {
+  Object* Channel::receive(STATE, bool freeze_stack) {
     if(!value_->nil_p()) {
       List* list = as<List>(value_);
 
-      state->return_value(list->shift(state));
+      if(!freeze_stack) {
+        state->return_value(list->shift(state));
+      }
 
       if(list->size() == 0) {
         value(state, Qnil);
@@ -101,11 +107,16 @@ namespace rubinius {
       return Qnil;
     }
 
-    /* We push nil on the stack to reserve a place to put the result. */
-    state->return_value(Qfalse);
+    Thread* thr = G(current_thread);
+    if(!freeze_stack) {
+      /* We push nil on the stack to reserve a place to put the result. */
+      state->return_value(Qfalse);
+    } else {
+      thr->frozen_stack(state, Qtrue);
+    }
 
-    G(current_thread)->sleep_for(state, this);
-    waiting_->append(state, G(current_thread));
+    thr->sleep_for(state, this);
+    waiting_->append(state, thr);
 
     state->run_best_thread();
 
