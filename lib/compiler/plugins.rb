@@ -185,6 +185,53 @@ class Compiler
     end
 
     ##
+    # Handles speeding up #new
+
+    class FastNew < Plugin
+      plugin :fastnew
+
+      # FIXME duplicated from kernel/common/compiled_method.rb
+      KernelMethodSerial = 47
+
+      def handle(g, call)
+        return false unless call.method == :new
+        return false if call.block or !call.static_args?
+
+        slow = g.new_label
+        done = g.new_label
+
+        call.receiver_bytecode(g)
+        g.dup
+        idx = g.check_serial idx, KernelMethodSerial
+        g.gif slow
+
+        # fast path
+        g.send :allocate, 0
+        g.dup
+        call.emit_args(g)
+        g.send :initialize, call.argcount, true
+        g.pop
+
+        g.goto done
+
+        # slow path
+        slow.set!
+        call.emit_args(g)
+        g.add :set_call_flags, 1
+        count = call.argcount
+        if count == 0
+          g.add :send_method, idx
+        else
+          g.add :send_stack, idx, count
+        end
+
+        done.set!
+
+        return true
+      end
+    end
+
+    ##
     # Handles emitting save VM instructions for redifinition of math operators.
 
     class SafeMathOperators < Plugin

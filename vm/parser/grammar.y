@@ -4084,21 +4084,6 @@ yylex(void *yylval_v, void *vstate)
                 yyerror(tmp);
             }
             if (is_float) {
-                /* Some implementations of strtod() don't guarantee to
-                 * set errno, so we need to reset it ourselves.
-                 */
-                errno = 0;
-
-		/* HACK: gcc 4.3.2 refuses to accept (void) to ignore
-		 * the return value so we have to invent something
-		 * fake for it to do instead
-		 */
-                if(strtod(tok(), 0));
-
-                if (errno == ERANGE) {
-                    rb_warn("Float %s out of range", tok());
-                    errno = 0;
-                }
                 pslval->node = NEW_FLOAT(string_new2(tok()));
                 return tFLOAT;
             }

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 
 #include <cstdarg>
 
@@ -395,6 +396,36 @@ namespace rubinius {
 
     try_as<LookupTable>(ivars_)->store(state, sym, val);
     return val;
+  }
+
+  String* Object::to_s(STATE, bool address) {
+    std::stringstream name;
+
+    name << "#<";
+    if(Module* mod = try_as<Module>(this)) {
+      if(mod->name()->nil_p()) {
+        name << "Class";
+      } else {
+        name << mod->name()->c_str(state);
+      }
+      name << "(" << this->class_object(state)->name()->c_str(state) << ")";
+    } else {
+      if(this->class_object(state)->name()->nil_p()) {
+        name << "Object";
+      } else {
+        name << this->class_object(state)->name()->c_str(state);
+      }
+    }
+
+    name << ":";
+    if(address) {
+      name << reinterpret_cast<void*>(this);
+    } else {
+      name << "0x" << std::hex << this->id(state)->to_native();
+    }
+    name << ">";
+
+    return String::create(state, name.str().c_str());
   }
 
   Object* Object::show(STATE) {

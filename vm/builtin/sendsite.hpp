@@ -9,6 +9,7 @@ namespace rubinius {
   class Selector;
   class Message;
   class SendSite;
+  class MethodContext;
 
   typedef bool (*MethodResolver)(STATE, Message& msg);
 
@@ -62,6 +63,10 @@ namespace rubinius {
 
     void initialize(STATE);
     bool locate(STATE, Message& msg);
+
+    // Check and see if the method referenced has the given serial
+    // Sideffect: populates the sendsite if empty
+    bool check_serial(STATE, MethodContext* current, Object* reciever, int serial);
 
     class Info : public TypeInfo {
     public:

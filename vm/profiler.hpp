@@ -1,6 +1,8 @@
 #ifndef RBX_PROFILER_HPP
 #define RBX_PROFILER_HPP
 
+#include "vm/vm.hpp"
+
 #include <stdint.h>
 #include <stdio.h>
 
@@ -13,6 +15,8 @@ namespace rubinius {
   class VM;
   class Symbol;
   class Object;
+  class LookupTable;
+  class String;
 
   namespace profiler {
 
@@ -67,7 +71,7 @@ namespace rubinius {
       Object*  container_;
       Kind     kind_;
       uint64_t total_time_;
-      Leaves leaves_;
+      Leaves   leaves_;
       uint64_t called_times_;
       Symbol*  file_;
       int      line_;
@@ -110,6 +114,8 @@ namespace rubinius {
         return kind_;
       }
 
+      String* name(STATE);
+
       Symbol* file() {
         return file_;
       }
@@ -151,7 +157,7 @@ namespace rubinius {
     class Invocation {
     private:
       uint64_t start_time_;
-      Leaf* leaf_;
+      Leaf*    leaf_;
 
     public:
       Invocation(Leaf* meth) : leaf_(meth) { }
@@ -177,8 +183,12 @@ namespace std {
 }
 
 namespace rubinius {
+    class CompiledMethod;
+    class Message;
+    class MethodContext;
 
   namespace profiler {
+
     class Profiler {
       typedef std::tr1::unordered_map<Key, Method*> MethodMap;
 
@@ -191,12 +201,19 @@ namespace rubinius {
     public:
       Profiler();
       ~Profiler();
-      Method* enter_method(Symbol* meth, Object* container, Kind kind = kNormal);
+
+      Symbol* module_name(Module* module);
+      void enter_method(STATE, Message&, CompiledMethod*);
+      void enter_primitive(STATE, Message&);
+      void enter_block(STATE, MethodContext*, CompiledMethod*);
+      Method* record_method(STATE, CompiledMethod*, Symbol*, Object*, Kind kind = kNormal);
       void leave_method();
+
       size_t number_of_entries();
       Method* find_key(Key& key);
       size_t depth();
-      void   print_results(VM* state, std::ostream& stream);
+
+      LookupTable* results(STATE);
 
       Method* current_method() {
         return current_;

@@ -557,14 +557,16 @@ namespace rubinius {
     profiler = new profiler::Profiler();
   }
 
-  void Task::disable_profiler(const char* results) {
+  LookupTable* Task::disable_profiler() {
+    LookupTable* tbl = (LookupTable*)Qnil;
+
     if(profiler) {
-      std::ofstream stream(results);
-      profiler->print_results(state, stream);
+      tbl = profiler->results(state);
       delete profiler;
     }
-
     profiler = NULL;
+
+    return tbl;
   }
 
   /* This should only ever run for CompiledMethods currently. */

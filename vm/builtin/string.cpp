@@ -10,9 +10,10 @@
 #include "parser/grammar.hpp"
 
 #include "vm.hpp"
-#include "vm/object_utils.hpp"
-#include "primitives.hpp"
+#include "object_utils.hpp"
 #include "objectmemory.hpp"
+#include "primitives.hpp"
+#include "strtod.hpp"
 
 #include "bstrlib.h"
 

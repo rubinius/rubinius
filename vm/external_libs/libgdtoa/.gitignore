@@ -1,0 +1,4 @@
+# Config generated files for endianness, etc.
+
+arith.h
+gd_qnan.h

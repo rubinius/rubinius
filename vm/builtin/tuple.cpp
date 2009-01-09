@@ -67,21 +67,32 @@ namespace rubinius {
     int olength = length->to_native();
 
     // left end should be within range
-    if(olend < 0 || (size_t)olend > osize) Exception::object_bounds_exceeded_error(state, other, olend);
-    if(lend < 0 || (size_t)lend > size) Exception::object_bounds_exceeded_error(state, this, lend);
+    if(olend < 0 || (size_t)olend > osize) {
+      Exception::object_bounds_exceeded_error(state, other, olend);
+    }
+
+    if(lend < 0 || (size_t)lend > size) {
+      Exception::object_bounds_exceeded_error(state, this, lend);
+    }
 
     // length can not be negative and must fit in src/dest
     if(olength < 0) {
       Exception::object_bounds_exceeded_error(state, "length must be positive");
     }
+
     if((size_t)(olend + olength) > osize) {
-      Exception::object_bounds_exceeded_error(state, "length should not exceed size of source");
-    }
-    if((size_t)olength > (size - lend)) {
-      Exception::object_bounds_exceeded_error(state, "length should not exceed space in destination");
+      Exception::object_bounds_exceeded_error(state,
+          "length should not exceed size of source");
     }
 
-    for(size_t src = olend, dst = lend; src < (size_t)(olend + olength); ++src, ++dst) {
+    if((size_t)olength > (size - lend)) {
+      Exception::object_bounds_exceeded_error(state,
+          "length should not exceed space in destination");
+    }
+
+    for(size_t src = olend, dst = lend;
+        src < (size_t)(olend + olength);
+        ++src, ++dst) {
       // Since we have carefully checked the bounds we don't need to do it in at/put
       Object *obj = other->field[src];
       this->field[dst] = obj;
@@ -98,31 +109,36 @@ namespace rubinius {
     int rend = lend + length->to_native();
 
     if(size == 0) return Fixnum::from(0);
-    if(lend < 0 || lend >= size) Exception::object_bounds_exceeded_error(state, this, lend);
-    if(rend < 0 || rend > size) Exception::object_bounds_exceeded_error(state, this, rend);
+    if(lend < 0 || lend >= size) {
+      Exception::object_bounds_exceeded_error(state, this, lend);
+    }
+
+    if(rend < 0 || rend > size) {
+      Exception::object_bounds_exceeded_error(state, this, rend);
+    }
 
     int i = lend;
     while(i < rend) {
       if(this->at(state,i) == obj) {
-	int j = i;
-	++i;
-	while(i < rend) {
-	  Object *val = this->field[i];
-	  if(val != obj) {
-	    // no need to set write_barrier since it's already
-	    // referenced to this object
-	    this->field[j] = val;
-	    ++j;
-	  }
-	  ++i;
-	}
-	// cleanup all the bins after
-	i = j;
-	while(i < rend) {
-	  this->field[i] = Qnil;
-	  ++i;
-	}
-	return Fixnum::from(rend-j);
+        int j = i;
+        ++i;
+        while(i < rend) {
+          Object *val = this->field[i];
+          if(val != obj) {
+            // no need to set write_barrier since it's already
+            // referenced to this object
+            this->field[j] = val;
+            ++j;
+          }
+          ++i;
+        }
+        // cleanup all the bins after
+        i = j;
+        while(i < rend) {
+          this->field[i] = Qnil;
+          ++i;
+        }
+        return Fixnum::from(rend-j);
       }
       ++i;
     }
@@ -179,9 +195,9 @@ namespace rubinius {
       indent(level);
       Object* obj = tup->at(state, i);
       if(obj == tup) {
-	class_info(state, self, true);
+        class_info(state, self, true);
       } else {
-	obj->show(state, level);
+        obj->show(state, level);
       }
     }
     if(tup->num_fields() > stop) ellipsis(level);
@@ -205,10 +221,10 @@ namespace rubinius {
       indent(level);
       Object* obj = tup->at(state, i);
       if(Tuple* t = try_as<Tuple>(obj)) {
-	class_info(state, self);
-	std::cout << ": " << t->num_fields() << ">" << std::endl;
+        class_info(state, self);
+        std::cout << ": " << t->num_fields() << ">" << std::endl;
       } else {
-	obj->show_simple(state, level);
+        obj->show_simple(state, level);
       }
     }
     if(tup->num_fields() > stop) ellipsis(level);

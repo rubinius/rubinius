@@ -106,10 +106,16 @@ module Rubinius
           str = next_string.chop
 
           # handle the special NaN, Infinity and -Infinity differently
-          c = str[0]
-          c = str[1] if c == ?-
-          if c.between?(?0, ?9)
-            return str.to_f
+          if str[0] == ?\     # leading space
+            x = str.to_f
+            e = str[-5..-1].to_i
+
+            # This is necessary because (2**1024).to_f yields Infinity
+            if e == 1024
+              return x * 2 ** 512 * 2 ** 512
+            else
+              return x * 2 ** e
+            end
           else
             case str.downcase
             when "infinity"
@@ -289,7 +295,16 @@ module Rubinius
             str << marshal(ele)
           end
         when Float
-          str << "d\n#{val}\n"
+          str << "d\n"
+          if val.infinite?
+            str << "-" if val < 0.0
+            str << "Infinity"
+          elsif val.nan?
+            str << "NaN"
+          else
+            str << " %+.54f %5d" % Math.frexp(val)
+          end
+          str << "\n"
         when InstructionSequence
           str << "i\n#{val.size}\n"
           val.opcodes.each do |op|

@@ -109,8 +109,9 @@ public:
   }
 
   void test_float() {
-    mar->marshal(Float::create(state, 15.5));
-    TS_ASSERT_EQUALS(mar->sstream.str(), std::string("d\n15.5\n"));
+    mar->marshal(Float::create(state, 1.0 / 6.0));
+    TS_ASSERT_EQUALS(mar->sstream.str(),
+        std::string("d\n +0.666666666666666629659232512494781985878944396972656250    -2\n"));
   }
 
   void test_iseq() {

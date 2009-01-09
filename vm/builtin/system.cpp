@@ -95,10 +95,6 @@ namespace rubinius {
   }
 
   Object* System::vm_exit(STATE, Fixnum* code) {
-    if(getenv("JIT_STATS")) {
-      std::cout << "JITed methods: " << state->jitted_methods << "\n";
-      std::cout << "     JIT Time: " << (state->jit_timing / 1000000) << "ms\n";
-    }
     ::exit(code->to_native());
     return code;
   }
@@ -172,14 +168,13 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* System::vm_start_profiler(STATE) {
+  Object* System::vm_profiler_instrumenter_start(STATE) {
     G(current_task)->enable_profiler();
     return Qtrue;
   }
 
-  Object* System::vm_stop_profiler(STATE, String* path) {
-    G(current_task)->disable_profiler(path->c_str());
-    return path;
+  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
+    return G(current_task)->disable_profiler();
   }
 
   Object* System::vm_write_error(STATE, String* str) {
@@ -193,10 +188,14 @@ namespace rubinius {
     }
 
     Array* ary = Array::create(state, 2);
-    ary->set(state, 0, Integer::from(state, state->jit_timing));
-    ary->set(state, 1, Integer::from(state, state->jitted_methods));
+    ary->set(state, 0, Integer::from(state, state->stats.jit_timing));
+    ary->set(state, 1, Integer::from(state, state->stats.jitted_methods));
 
     return ary;
+  }
+
+  Object*  System::vm_gc_info(STATE) {
+    return Integer::from(state, state->stats.time_in_gc);
   }
 
 }

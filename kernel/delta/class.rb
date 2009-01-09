@@ -43,3 +43,6 @@ class Class
 
   alias_method :dup, :clone
 end
+
+cm = Class.method_table[:new]
+cm.serial = CompiledMethod::KernelMethodSerial

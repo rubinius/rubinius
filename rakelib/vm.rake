@@ -53,7 +53,7 @@ if config.use_jit
   srcs += jit_srcs
 end
 
-EX_INC      = %w[ libtommath onig libffi/include
+EX_INC      = %w[ libtommath libgdtoa onig libffi/include
                   libbstring libcchash libmquark libmpa
                   libltdl libev llvm/include
                 ].map { |f| "vm/external_libs/#{f}" }
@@ -129,6 +129,7 @@ EXTERNALS   = %W[ vm/external_libs/libmpa/libptr_array.a
                   vm/external_libs/libmquark/libmquark.a
                   vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/libbstring/libbstring.a
+                  vm/external_libs/libgdtoa/libgdtoa.a
                   vm/external_libs/onig/.libs/libonig.a
                   vm/external_libs/libffi/.libs/libffi.a
                   vm/external_libs/libltdl/.libs/libltdl.a

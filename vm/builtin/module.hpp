@@ -57,12 +57,12 @@ namespace rubinius {
     const static object_type type = IncludedModuleType;
 
   private:
-    Object* module_; // slot
+    Module* module_; // slot
 
   public:
     /* accessors */
 
-    attr_accessor(module, Object);
+    attr_accessor(module, Module);
 
     /* interface */
     static IncludedModule* create(STATE);

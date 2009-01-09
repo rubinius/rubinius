@@ -122,6 +122,10 @@ class CompiledMethod < Executable
     attr_reader   :visibility
   end
 
+  # Any CompiledMethod with this value in it's serial slot
+  # is expected to be the default, kernel version
+  KernelMethodSerial = 47
+
   # Ivars: instance_variables, primitive, serial, name, iseq, stack_size,
   # local_count, required_args, total_args, splat, literals, exceptions,
   # lines, file, compiled, scope

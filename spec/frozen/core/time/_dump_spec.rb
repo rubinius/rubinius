@@ -11,13 +11,13 @@ describe "Time#_dump" do
   ruby_bug("http://redmine.ruby-lang.org/issues/show/627", "1.8.7") do
     it "preserves the GMT flag" do
       @t.gmt?.should == true
-      dump = @t._dump.unpack("LL").first
+      dump = @t._dump.unpack("VV").first
       ((dump >> 30) & 0x1).should == 1
     end
 
     it "dumps a Time object to a bytestring" do
       @s.should be_kind_of(String)
-      @s.should == [3222863947, 2235564032].pack("LL")
+      @s.should == [3222863947, 2235564032].pack("VV")
     end
 
     it "dumps an array with a date as first element" do
@@ -28,7 +28,7 @@ describe "Time#_dump" do
                        @t.mday << 5 |
                             @t.hour
 
-      high.should == @s.unpack("LL").first
+      high.should == @s.unpack("VV").first
     end
   end
 
@@ -36,7 +36,7 @@ describe "Time#_dump" do
     low =  @t.min  << 26 |
            @t.sec  << 20 |
            @t.usec
-    low.should == @s.unpack("LL").last
+    low.should == @s.unpack("VV").last
   end
 end
 

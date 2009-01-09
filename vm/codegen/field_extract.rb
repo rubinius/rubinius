@@ -39,7 +39,9 @@ class BasicPrimitive
   def output_call(str, call, args)
     str << "\n"
     str << "  try {\n"
+    str << "    if(unlikely(task->profiler)) task->profiler->enter_primitive(state, msg);\n"
     str << "    ret = #{call}(#{args.join(', ')});\n"
+    str << "    if(unlikely(task->profiler)) task->profiler->leave_method();\n"
     str << "  } catch(const RubyException& exc) {\n"
     str << "    task->raise_exception(exc.exception);\n"
     str << "    return cExecuteRestart;\n"
@@ -144,11 +146,14 @@ class CPPOverloadedPrimitive < BasicPrimitive
       type = prim.arg_types.first
       str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
       str << "      try {\n"
+      str << "        if(unlikely(task->profiler))\n"
+      str << "          task->profiler->enter_primitive(state, msg);\n"
       if @pass_state
         str << "      ret = recv->#{@cpp_name}(state, arg);\n"
       else
         str << "      ret = recv->#{@cpp_name}(arg);\n"
       end
+      str << "        if(unlikely(task->profiler)) task->profiler->leave_method();\n"
       str << "      } catch(const RubyException& exc) {\n"
       str << "        task->raise_exception(exc.exception);\n"
       str << "        return cExecuteRestart;\n"

@@ -146,6 +146,7 @@ end
 COMPILER_SOURCES = Dir["lib/compiler/*.rb"] +
   %w(strscan stringio racc/parser ruby_lexer ruby_parser
      ruby_parser_extras sexp sexp_processor).map { |f| "lib/#{f}.rb" }
+COMPILER_SOURCES << "kernel/delta/compiled_file.rb"
 COMPILER_MTIME = COMPILER_SOURCES.map { |f| File::Stat.new(f).mtime }.max
 compiler = []
 

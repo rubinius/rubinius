@@ -1,38 +1,20 @@
 #include "vm/profiler.hpp"
 
 #include "vm/object_utils.hpp"
-#include "vm/vm.hpp"
 
+#include "builtin/array.hpp"
+#include "builtin/class.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/integer.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/module.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "detection.hpp"
+#include "message.hpp"
 
-// HACK figure out a better way to detect if we should use
-// mach_absolute_time
-#if defined(OS_X_ANCIENT) || \
-	defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) && \
-    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1050
-  #define USE_MACH_TIME
-#endif
-
-#ifdef USE_MACH_TIME
-
-#include <mach/mach_time.h>
-#define current_time() mach_absolute_time()
-#define METHOD "mach_absolute_time"
-
-#else
-
-uint64_t current_time() {
-  timespec tp;
-  if (clock_gettime(CLOCK_REALTIME, &tp)) {
-    // error! Do something about it?
-    return 0U;
-  }
-  return tp.tv_sec * 1000000000UL + tp.tv_nsec;
-}
-#define METHOD "clock_gettime"
-
-#endif
+#include "timing.hpp"
 
 #include <time.h>
 
@@ -54,11 +36,11 @@ namespace rubinius {
     }
 
     void Invocation::start() {
-      start_time_ = current_time();
+      start_time_ = get_current_time();
     }
 
     void Invocation::stop() {
-      leaf_->add_total_time(current_time() - start_time_);
+      leaf_->add_total_time(get_current_time() - start_time_);
     }
 
     Method::~Method() {
@@ -82,6 +64,35 @@ namespace rubinius {
       return time;
 #endif
 
+    }
+
+    String* Method::name(STATE) {
+      const char *module = "";
+      const char *method_name = method()->c_str(state);
+
+      if(Symbol* klass = try_as<Symbol>(container())) {
+        module = klass->c_str(state);
+      }
+
+      String* name = String::create(state, module);
+
+      switch(kind()) {
+      case kNormal:
+        name->append(state, "#");
+        name->append(state, method_name);
+        break;
+      case kSingleton:
+        name->append(state, ".");
+        name->append(state, method_name);
+        break;
+      case kBlock:
+        name->append(state, "#");
+        name->append(state, method_name);
+        name->append(state, " {}");
+        break;
+      }
+
+      return name;
     }
 
     uint64_t Method::total_time_in_ns() {
@@ -124,32 +135,69 @@ namespace rubinius {
       delete top_;
     }
 
-    Method* Profiler::enter_method(Symbol* name, Object* container, Kind kind) {
+    Symbol* Profiler::module_name(Module* module) {
+      if(IncludedModule* im = try_as<IncludedModule>(module)) {
+        return im->module()->name();
+      } else {
+        return module->name();
+      }
+    }
+
+    void Profiler::enter_block(STATE, MethodContext* ctx, CompiledMethod* cm) {
+      record_method(state, cm, as<Symbol>(ctx->name()),
+          module_name(ctx->module()), kBlock);
+    }
+
+    void Profiler::enter_primitive(STATE, Message& msg) {
+      enter_method(state, msg, (CompiledMethod*)Qnil);
+    }
+
+    void Profiler::enter_method(STATE, Message &msg, CompiledMethod* cm) {
+      if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
+        Object* attached = mc->attached_instance();
+
+        if(Module* mod = try_as<Module>(attached)) {
+          record_method(state, cm, msg.name, mod->name(), kSingleton);
+        } else {
+          Symbol* name = msg.recv->to_s(state)->to_sym(state);
+          record_method(state, cm, msg.name, name, kSingleton);
+        }
+      } else {
+        record_method(state, cm, msg.name, module_name(msg.module), kNormal);
+      }
+    }
+
+    Method* Profiler::record_method(STATE, CompiledMethod* cm, Symbol* name,
+                                 Object* container, Kind kind) {
       Key key(name, container, kind);
 
-      Method* meth;
-
-      meth = find_key(key);
-      if(!meth) {
-        meth = new Method(methods_.size(), name, container, kind);
-        methods_[key] = meth;
+      Method* method = find_key(key);
+      if(!method) {
+        method = new Method(methods_.size(), name, container, kind);
+        methods_[key] = method;
       }
 
-      Leaf* leaf = current_->find_leaf(meth);
+      Leaf* leaf = current_->find_leaf(method);
 
-      current_ = meth;
+      current_ = method;
 
-      meth->called();
+      method->called();
+
+      if(!method->file() && !cm->nil_p()) {
+        method->set_position(cm->file(), cm->start_line(state));
+      }
 
       Invocation invoke(leaf);
       invoke.start();
       running_.push(invoke);
 
-      return meth;
+      return method;
     }
 
     void Profiler::leave_method() {
-      assert(!running_.empty());
+      // Depending on when we started profiling, there could be calls
+      // above the first time we entered a method, so ignore these.
+      if(running_.empty()) return;
 
       Invocation& invoke = running_.top();
       invoke.stop();
@@ -175,11 +223,7 @@ namespace rubinius {
       return methods_[key];
     }
 
-    static bool method_cmp(Method* a, Method* b) {
-      return a->total_time() > b->total_time();
-    }
-
-    void Profiler::print_results(STATE, std::ostream& stream) {
+    LookupTable* Profiler::results(STATE) {
       std::vector<Method*> all_methods(0);
 
       for(MethodMap::iterator i = methods_.begin();
@@ -188,36 +232,28 @@ namespace rubinius {
         all_methods.push_back(i->second);
       }
 
-      std::sort(all_methods.begin(), all_methods.end(), method_cmp);
+      LookupTable* profile = LookupTable::create(state);
+      profile->store(state, state->symbol("num_methods"),
+                     Integer::from(state, methods_.size()));
+      profile->store(state, state->symbol("method"),
+                     String::create(state, TIMING_METHOD));
 
-      stream << "<profile methods='" << methods_.size() <<
-        "' method='" << METHOD << "'>\n";
+      LookupTable* methods = LookupTable::create(state);
+      profile->store(state, state->symbol("methods"), methods);
 
       for(std::vector<Method*>::iterator i = all_methods.begin();
           i != all_methods.end();
           i++) {
         Method* meth = *i;
-        stream << "<method id='" << meth->id() << "' name='";
+        LookupTable* method = LookupTable::create(state);
 
-        if(Symbol* klass = try_as<Symbol>(meth->container())) {
-          stream << klass->c_str(state);
-        } else {
-          stream << "unknown";
-        }
+        methods->store(state, Fixnum::from(meth->id()), method);
 
-        Kind kind = meth->kind();
-        if(kind == kNormal) {
-          stream << ".";
-        } else if(kind == kSingleton) {
-          stream << "#";
-        } else if(kind == kBlock) {
-          stream << "#.";
-        }
-
-        stream << meth->method()->c_str(state);
-
-        stream << "' total='" << meth->total_time_in_ns() <<
-          "' called='" << meth->called_times();
+        method->store(state, state->symbol("name"), meth->name(state));
+        method->store(state, state->symbol("total"),
+                      Integer::from(state, meth->total_time_in_ns()));
+        method->store(state, state->symbol("called"),
+                      Fixnum::from(meth->called_times()));
 
         if(meth->file()) {
           const char *file;
@@ -226,23 +262,29 @@ namespace rubinius {
           } else {
             file = meth->file()->c_str(state);
           }
-          stream << "' file='" << file <<
-                    "' line='" << meth->line();
+
+          method->store(state, state->symbol("file"), String::create(state, file));
+          method->store(state, state->symbol("line"), Fixnum::from(meth->line()));
         }
 
-        stream << "'>\n";
+        Array* leaves = Array::create(state, meth->number_of_leaves());
+        method->store(state, state->symbol("leaves"), leaves);
 
+        size_t idx = 0;
         for(Leaves::iterator li = meth->leaves_begin();
             li != meth->leaves_end();
             li++) {
           Leaf* leaf = li->second;
-          stream << "  <leaf id='" << leaf->method()->id() <<
-            "' total='" << leaf->total_time_in_ns() << "'/>\n";
+
+          Array* l = Array::create(state, 2);
+          leaves->set(state, idx++, l);
+
+          l->set(state, 0, Fixnum::from(leaf->method()->id()));
+          l->set(state, 1, Integer::from(state, leaf->total_time_in_ns()));
         }
-        stream << "</method>\n";
       }
 
-      stream << "</profile>\n";
+      return profile;
     }
   }
 }

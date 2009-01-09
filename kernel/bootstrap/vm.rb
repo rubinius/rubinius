@@ -9,14 +9,9 @@ class Rubinius::VM
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def self.start_profiler
-    Ruby.primitive :vm_start_profiler
-    raise PrimitiveFailure, "unable to start profiler"
-  end
-
-  def self.stop_profiler(path)
-    Ruby.primitive :vm_stop_profiler
-    raise PrimitiveFailure, "unable to stop profiler"
+  def self.gc_info
+    Ruby.primitive :vm_gc_info
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def self.write_error(str)

@@ -1,10 +1,13 @@
 #include <cctype>
 #include <cstring>
+#include <cmath>
+#include <iomanip>
 
 #include "objectmemory.hpp"
 #include "marshal.hpp"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
+#include "strtod.hpp"
 
 #include "builtin/sendsite.hpp"
 #include "builtin/array.hpp"
@@ -144,8 +147,30 @@ namespace rubinius {
     return tup;
   }
 
+#define FLOAT_EXP_OFFSET    58
+#define FLOAT_MAX_BUFFER    65
+
   void Marshaller::set_float(Float* flt) {
-    stream << "d" << endl << flt->val << endl;
+    double val = flt->val;
+
+    stream << "d" << endl;
+
+    if(std::isinf(val)) {
+      if(val < 0.0) stream << "-";
+      stream << "Infinity";
+    } else if(std::isnan(val)) {
+      stream << "NaN";
+    } else {
+      char   data[FLOAT_MAX_BUFFER];
+      double x;
+      int    e;
+
+      x = ::frexp(val, &e);
+      snprintf(data, FLOAT_MAX_BUFFER, " %+.54f %5d", x, e);
+      stream << data;
+    }
+
+    stream << endl;
   }
 
   Float* UnMarshaller::get_float() {
@@ -159,12 +184,20 @@ namespace rubinius {
       Exception::type_error(state, "Unable to unmarshal Float: failed to read value");
     }
 
-    char c = data[0];
-    if(c == '-') c = data[1];
+    if(data[0] == ' ') {
+      double x;
+      long   e;
 
-    if(std::isdigit(c)) {
-      // @todo use ruby_strtod
-      return Float::create(state, strtod(data, NULL));
+      x = strtod(data, NULL);
+      e = strtol(data+FLOAT_EXP_OFFSET, NULL, 10);
+
+      // This is necessary because exp2(1024) yields inf
+      if(e == 1024) {
+        double root_exp = ::exp2(512);
+        return Float::create(state, x * root_exp * root_exp);
+      } else {
+        return Float::create(state, x * ::exp2(e));
+      }
     } else {
       // avoid compiler warning
       double zero = 0.0;
@@ -172,9 +205,9 @@ namespace rubinius {
 
       if(!strncasecmp(data, "Infinity", 8U)) {
         val = 1.0;
-      } else if(!strncmp(data, "-Infinity", 9U)) {
+      } else if(!strncasecmp(data, "-Infinity", 9U)) {
         val = -1.0;
-      } else if(!strncmp(data, "NaN", 3U)) {
+      } else if(!strncasecmp(data, "NaN", 3U)) {
         val = zero;
       } else {
         Exception::type_error(state, "Unable to unmarshal Float: invalid format");

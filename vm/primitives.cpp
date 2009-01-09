@@ -4,6 +4,7 @@
 #include "event.hpp"
 #include "gen/includes.hpp"
 #include "message.hpp"
+#include "profiler.hpp"
 
 #include <iostream>
 

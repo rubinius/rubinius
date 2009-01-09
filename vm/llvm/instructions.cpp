@@ -24,6 +24,7 @@
 #include "objectmemory.hpp"
 #include "message.hpp"
 #include "instructions.hpp"
+#include "profiler.hpp"
 
 using namespace rubinius;
 
