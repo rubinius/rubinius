@@ -131,7 +131,8 @@ public:
   }
 
   void test_float() {
-    mar->sstream.str(std::string("d\n15.5\n"));
+    mar->sstream.str(
+        std::string("d\n +0.666666666666666629659232512494781985878944396972656250    -2\n"));
 
     Object* obj = mar->unmarshal();
 
@@ -139,7 +140,17 @@ public:
 
     Float* flt = as<Float>(obj);
 
-    TS_ASSERT_EQUALS(flt->val, 15.5);
+    TS_ASSERT_EQUALS(flt->val, 1.0 / 6.0);
+
+    mar->sstream.str(
+        std::string("d\n +0.999999999999999888977697537484345957636833190917968750  1024\n"));
+    obj = mar->unmarshal();
+
+    TS_ASSERT(kind_of<Float>(obj));
+
+    flt = as<Float>(obj);
+
+    TS_ASSERT_EQUALS(flt->val, DBL_MAX);
   }
 
   void test_float_infinity() {
