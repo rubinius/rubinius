@@ -111,7 +111,7 @@ module Rubinius
             e = str[-5..-1].to_i
 
             # This is necessary because (2**1024).to_f yields Infinity
-            if e.abs == 1024
+            if e == 1024
               return x * 2 ** 512 * 2 ** 512
             else
               return x * 2 ** e
