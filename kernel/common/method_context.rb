@@ -331,7 +331,7 @@ class MethodContext
     s = MethodContext.current.sender
     scope = s.method_scope || :public
 
-    if name == :initialize or scope == :module
+    if name == :initialize or scope == :module or name == :initialize_copy
       visibility = :private
     else
       visibility = scope
