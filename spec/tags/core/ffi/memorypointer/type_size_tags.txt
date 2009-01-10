@@ -1,0 +1,1 @@
+incomplete:FFI::MemoryPointer#type_size needs to be reviewed for spec completeness

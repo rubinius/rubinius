@@ -1,0 +1,1 @@
+incomplete:FFI::Struct#pointer needs to be reviewed for spec completeness

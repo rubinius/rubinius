@@ -29,7 +29,8 @@
 namespace rubinius {
 
   void MemoryPointer::init(STATE) {
-    GO(memory_pointer).set(state->new_class("MemoryPointer"));
+    Module* ffi = as<Module>(G(object)->get_const(state, "FFI"));
+    GO(memory_pointer).set(state->new_class_under("MemoryPointer", ffi));
     G(memory_pointer)->set_object_type(state, MemoryPointerType);
   }
 

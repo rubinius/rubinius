@@ -11,35 +11,37 @@ using namespace rubinius;
 class TestNativeLibrary : public CxxTest::TestSuite {
   public:
 
-  VM* state_;
-  const char* lib_name_;
+  VM* state;
+  const char* lib_name;
 
   void setUp() {
-    state_ = new VM();
-    lib_name_ = ::getenv("LIBRUBY");
+    state = new VM();
+    lib_name = ::getenv("LIBRUBY");
   }
 
   void tearDown() {
-    delete state_;
+    delete state;
   }
 
   void test_find_symbol_in_this_process() {
-    String* name = String::create(state_, "strlen");      /* libc */
+    String* name = String::create(state, "strlen");      /* libc */
 
-    TS_ASSERT(NativeLibrary::find_symbol(state_, name, Qnil));
+    TS_ASSERT(NativeLibrary::find_symbol(state, name, Qnil));
   }
 
-  void test_find_symbol_in_this_process_throws_on_unloaded_library() {
-    String* name = String::create(state_, "ruby_version"); /* libruby.1.8 */
+  void test_find_symbol_in_this_process_with_unloaded_library() {
+    String* name = String::create(state, "ruby_version"); /* libruby.1.8 */
 
-    TS_ASSERT_THROWS(NativeLibrary::find_symbol(state_, name, Qnil),
+    TS_ASSERT(!NativeLibrary::find_symbol(state, name, Qnil, false));
+    TS_ASSERT_THROWS(NativeLibrary::find_symbol(state, name, Qnil),
                      RubyException);
   }
 
-  void test_find_symbol_in_this_process_throws_on_nonexisting_symbol() {
-    String* name = String::create(state_, "nonesuch_just_made__u___p__yep____");
+  void test_find_symbol_in_this_process_with_nonexisting_symbol() {
+    String* name = String::create(state, "nonesuch_just_made__u___p__yep____");
 
-    TS_ASSERT_THROWS(NativeLibrary::find_symbol(state_, name, Qnil),
+    TS_ASSERT(!NativeLibrary::find_symbol(state, name, Qnil, false));
+    TS_ASSERT_THROWS(NativeLibrary::find_symbol(state, name, Qnil),
                      RubyException);
   }
 
@@ -56,28 +58,30 @@ class TestNativeLibrary : public CxxTest::TestSuite {
    */
 
   void test_find_symbol_in_library() {
-    if(lib_name_) {
-      String* lib = String::create(state_, lib_name_);
-      String* name = String::create(state_, "ruby_version");
+    if(lib_name) {
+      String* lib = String::create(state, lib_name);
+      String* name = String::create(state, "ruby_version");
 
-      TS_ASSERT(NativeLibrary::find_symbol(state_, name, lib));
+      TS_ASSERT(NativeLibrary::find_symbol(state, name, lib));
     }
   }
 
-  void test_find_symbol_in_library_throws_on_nonexisting_library() {
-    String* lib = String::create(state_, "blah");
-    String* name = String::create(state_, "ruby_version");
+  void test_find_symbol_in_library_with_nonexisting_library() {
+    String* lib = String::create(state, "blah");
+    String* name = String::create(state, "ruby_version");
 
-    TS_ASSERT_THROWS(NativeLibrary::find_symbol(state_, name, lib),
+    TS_ASSERT(!NativeLibrary::find_symbol(state, name, lib, false));
+    TS_ASSERT_THROWS(NativeLibrary::find_symbol(state, name, lib),
                      RubyException);
   }
 
-  void test_find_symbol_in_library_throws_on_nonexisting_symbol() {
-    if(lib_name_) {
-      String* lib = String::create(state_, lib_name_);
-      String* name = String::create(state_, "python_version");
+  void test_find_symbol_in_library_with_nonexisting_symbol() {
+    if(lib_name) {
+      String* lib = String::create(state, lib_name);
+      String* name = String::create(state, "python_version");
 
-      TS_ASSERT_THROWS(NativeLibrary::find_symbol(state_, name, lib),
+      TS_ASSERT(!NativeLibrary::find_symbol(state, name, lib, false));
+      TS_ASSERT_THROWS(NativeLibrary::find_symbol(state, name, lib),
                        RubyException);
     }
   }

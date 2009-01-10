@@ -107,7 +107,7 @@ module Math
   
   def frexp(x)
     x = Float(x)
-    MemoryPointer.new :int do |exp|
+    FFI::MemoryPointer.new :int do |exp|
       result = Platform::Math.frexp x, exp
       [result, exp.read_int]
     end

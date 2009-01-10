@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+# TODO: Obsolete. Rework if appropriate for FFI::Library#attach_function
+
 describe "NativeFunction#call" do
   before :each do
     @func = FFI.create_function(FFI::USE_THIS_PROCESS_AS_LIBRARY,

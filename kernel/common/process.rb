@@ -204,7 +204,7 @@ module Process
 
   def self.groups
     g = []
-    MemoryPointer.new(:int, @maxgroups) { |p|
+    FFI::MemoryPointer.new(:int, @maxgroups) { |p|
       num_groups = Platform::POSIX.getgroups(@maxgroups, p)
       Errno.handle if num_groups == -1
       g = p.read_array_of_int(num_groups)
@@ -214,7 +214,7 @@ module Process
 
   def self.groups=(g)
     @maxgroups = g.length if g.length > @maxgroups
-    MemoryPointer.new(:int, @maxgroups) { |p|
+    FFI::MemoryPointer.new(:int, @maxgroups) { |p|
       p.write_array_of_int(g)
       Errno.handle if -1 == Platform::POSIX.setgroups(g.length, p)
     }

@@ -1,0 +1,1 @@
+incomplete:FFI::Struct#initialize_copy needs to be reviewed for spec completeness

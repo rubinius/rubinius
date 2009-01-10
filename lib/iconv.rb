@@ -2,17 +2,19 @@
 
 
 class Iconv
+  extend FFI::Library
 
-  set_ffi_lib FFI::USE_THIS_PROCESS_AS_LIBRARY, "libiconv"
+  ffi_lib FFI::USE_THIS_PROCESS_AS_LIBRARY, "libiconv"
 
-  attach_function "iconv_open",  :create,  [:string, :string], :pointer
-  attach_function "iconv_close", :close, [:pointer],         :int
-  attach_function "iconv", :convert, [:pointer, :pointer, :pointer, :pointer, :pointer], :long
+  attach_function :create,  "iconv_open", [:string, :string], :pointer
+  attach_function :close,   "iconv_close", [:pointer], :int
+  attach_function :convert, "iconv",
+                            [:pointer, :pointer, :pointer, :pointer, :pointer], :long
 
   module Failure
     attr_reader :success
     attr_reader :failed
-  
+
     def initialize(mesg, success, failed)
       super(mesg)
       @success = success
@@ -69,7 +71,7 @@ class Iconv
 
   def close
     return if @closed
-    
+
     begin
       iconv nil
     ensure
@@ -102,7 +104,7 @@ class Iconv
         end
       end
     end
-    
+
     converted
   end
 
@@ -134,10 +136,10 @@ class Iconv
 
     raise ArgumentError.new("closed iconv") if @closed
 
-    l1 = MemoryPointer.new(:pointer)
-    l2 = MemoryPointer.new(:pointer)
+    l1 = FFI::MemoryPointer.new(:pointer)
+    l2 = FFI::MemoryPointer.new(:pointer)
 
-    ic = MemoryPointer.new(:long)
+    ic = FFI::MemoryPointer.new(:long)
     if str then
 
       if not str.instance_of? String then
@@ -148,7 +150,7 @@ class Iconv
         end
       end
 
-      is = MemoryPointer.new(str.size + 10)
+      is = FFI::MemoryPointer.new(str.size + 10)
       is.write_string str, str.size
 
       l1.write_long is.address
@@ -181,8 +183,8 @@ class Iconv
 
     # Totally made up metric
     output = 1024
-    os = MemoryPointer.new(output)
-    oc = MemoryPointer.new(:long)
+    os = FFI::MemoryPointer.new(output)
+    oc = FFI::MemoryPointer.new(:long)
 
     result = ""
 

@@ -247,7 +247,7 @@ namespace rubinius {
     int i, tot, arg_count;
     Object* type; /* meths; */
 
-    ep = NativeLibrary::find_symbol(state, name, library);
+    ep = NativeLibrary::find_symbol(state, name, library, false);
 
     if(!ep) return (NativeFunction*)Qnil;
 

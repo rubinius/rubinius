@@ -1,0 +1,1 @@
+incomplete:FFI::Struct.new needs to be reviewed for spec completeness

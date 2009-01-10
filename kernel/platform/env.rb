@@ -1,12 +1,11 @@
-# depends on: ffi.rb
+# depends on: library.rb
 
 class EnvironmentVariables
-  include FFI
+  extend FFI::Library
 
-  attach_function 'getenv', :getenv, [:string], :string
-  attach_function 'putenv', :putenv, [:string], :int
-  attach_function 'setenv', :setenv, [:string, :string, :int], :int
-  attach_function 'unsetenv', :unsetenv, [:string], :int
-
-  attach_function 'ffi_environ', :environ, [], :pointer
+  attach_function :getenv,   [:string], :string
+  attach_function :putenv,   [:string], :int
+  attach_function :setenv,   [:string,  :string, :int], :int
+  attach_function :unsetenv, [:string], :int
+  attach_function :environ,  'ffi_environ', [], :pointer
 end

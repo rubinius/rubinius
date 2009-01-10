@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+# TODO: This method no longer exists. Rework appropriate specs for
+# #attach_function and remove this file
 
 module FFISpecs
   LIB_EXTS   = [Rubinius::LIBSUFFIX]

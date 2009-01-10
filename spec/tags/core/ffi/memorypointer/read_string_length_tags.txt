@@ -1,0 +1,1 @@
+incomplete:FFI::MemoryPointer#read_string_length needs to be reviewed for spec completeness

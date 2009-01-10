@@ -780,7 +780,7 @@ class File < IO
   # of file names in the argument list.
   #  #=> Integer
   def self.utime(a_in, m_in, *paths)
-    ptr = MemoryPointer.new(POSIX::TimeVal, 2)
+    ptr = FFI::MemoryPointer.new(POSIX::TimeVal, 2)
     atime = POSIX::TimeVal.new ptr
     mtime = POSIX::TimeVal.new ptr[1]
     atime[:tv_sec] = a_in.to_i

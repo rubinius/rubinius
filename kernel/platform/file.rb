@@ -1,4 +1,4 @@
-# depends on: ffi.rb
+# depends on: library.rb
 
 ##
 # Platform specific behavior for the File class.

@@ -1,0 +1,1 @@
+incomplete:FFI::MemoryPointer#write_array_of_int needs to be reviewed for spec completeness

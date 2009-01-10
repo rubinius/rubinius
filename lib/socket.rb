@@ -30,14 +30,14 @@ class BasicSocket < IO
 
     case optval
     when Fixnum then
-      MemoryPointer.new :socklen_t do |val|
+      FFI::MemoryPointer.new :socklen_t do |val|
         val.write_int optval
         error = Socket::Foreign.setsockopt(descriptor, level,
                                            optname, val,
                                            val.total)
       end
     when String then
-      MemoryPointer.new optval.size do |val|
+      FFI::MemoryPointer.new optval.size do |val|
         val.write_string optval
         error = Socket::Foreign.setsockopt(descriptor, level,
                                            optname, val,
@@ -74,7 +74,7 @@ class BasicSocket < IO
     bytes = message.length
     bytes_sent = 0
 
-    MemoryPointer.new :char, bytes + 1 do |buffer|
+    FFI::MemoryPointer.new :char, bytes + 1 do |buffer|
       buffer.write_string message
       bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
       Errno.handle 'send(2)' if bytes_sent < 0
@@ -87,9 +87,9 @@ class BasicSocket < IO
     bytes_to_read = Type.coerce_to bytes_to_read, Fixnum, :to_int
     message = nil
 
-    MemoryPointer.new(:char, bytes_to_read + 1) do |buffer_p|
-      MemoryPointer.new :char, 128 do |sockaddr_storage_p|
-        MemoryPointer.new :socklen_t do |len_p|
+    FFI::MemoryPointer.new(:char, bytes_to_read + 1) do |buffer_p|
+      FFI::MemoryPointer.new :char, 128 do |sockaddr_storage_p|
+        FFI::MemoryPointer.new :socklen_t do |len_p|
           len_p.write_int 128
           bytes_read = Socket::Foreign.recvfrom(descriptor, buffer_p,
                                                 bytes_to_read, flags,
@@ -106,7 +106,7 @@ class BasicSocket < IO
 
   def recv(bytes_to_read, flags = 0)
     bytes_to_read = Type.coerce_to bytes_to_read, Fixnum, :to_int
-    buffer = MemoryPointer.new :char, bytes_to_read + 1
+    buffer = FFI::MemoryPointer.new :char, bytes_to_read + 1
 
     # Wait until we have something to read, so we don't block other threads
     IO.select([self])
@@ -180,53 +180,50 @@ class Socket < BasicSocket
   end
 
   module Foreign
+    extend FFI::Library
+
     class AddrInfo < FFI::Struct
       config("rbx.platform.addrinfo", :ai_flags, :ai_family, :ai_socktype,
              :ai_protocol, :ai_addrlen, :ai_addr, :ai_canonname, :ai_next)
     end
 
-    attach_function "accept", :accept, [:int, :pointer, :pointer], :int
-    attach_function "bind", :_bind, [:int, :pointer, :socklen_t], :int
-    attach_function "close", :close, [:int], :int
-    attach_function "connect", :_connect, [:int, :pointer, :socklen_t], :int
-    attach_function "listen", :listen, [:int, :int], :int
-    attach_function "socket", :socket, [:int, :int, :int], :int
-    attach_function "send", :send, [:int, :pointer, :int, :int], :int
-    attach_function "recv", :recv, [:int, :pointer, :int, :int], :int
-    attach_function "recvfrom", :recvfrom, [:int, :pointer, :size_t, :int,
-                    :pointer, :pointer], :int
+    attach_function :_bind,    "bind", [:int, :pointer, :socklen_t], :int
+    attach_function :_connect, "connect", [:int, :pointer, :socklen_t], :int
 
-    attach_function "getsockopt", :_getsockopt,
-                    [:int, :int, :int, :pointer, :pointer], :int
-    attach_function "setsockopt", :setsockopt,
-                    [:int, :int, :int, :pointer, :socklen_t], :int
+    attach_function :accept,   [:int, :pointer, :pointer], :int
+    attach_function :close,    [:int], :int
+    attach_function :listen,   [:int, :int], :int
+    attach_function :socket,   [:int, :int, :int], :int
+    attach_function :send,     [:int, :pointer, :int, :int], :int
+    attach_function :recv,     [:int, :pointer, :int, :int], :int
+    attach_function :recvfrom, [:int, :pointer, :size_t, :int,
+                                :pointer, :pointer], :int
 
-    attach_function "gai_strerror", :gai_strerror, [:int], :string
+    attach_function :_getsockopt,
+                    "getsockopt", [:int, :int, :int, :pointer, :pointer], :int
+    attach_function :_getaddrinfo,
+                    "getaddrinfo", [:string, :string, :pointer, :pointer], :int
 
-    attach_function "getaddrinfo", :_getaddrinfo,
-                    [:string, :string, :pointer, :pointer], :int
-    attach_function "freeaddrinfo", :freeaddrinfo, [:pointer], :void
-    attach_function "getpeername", :_getpeername,
-                    [:int, :pointer, :pointer], :int
-    attach_function "getsockname", :_getsockname,
-                    [:int, :pointer, :pointer], :int
+    attach_function :gai_strerror,  [:int], :string
+    attach_function :setsockopt,    [:int, :int, :int, :pointer, :socklen_t], :int
+    attach_function :freeaddrinfo,  [:pointer], :void
+    attach_function :_getpeername,  "getpeername", [:int, :pointer, :pointer], :int
+    attach_function :_getsockname,  "getsockname", [:int, :pointer, :pointer], :int
 
-    attach_function "socketpair", :socketpair,
-                    [:int, :int, :int, :pointer], :int
+    attach_function :socketpair,    [:int, :int, :int, :pointer], :int
 
-    attach_function "gethostname", :gethostname, [:pointer, :size_t], :int
-    attach_function "getservbyname", :getservbyname,
-                    [:pointer, :pointer], :pointer
+    attach_function :gethostname,   [:pointer, :size_t], :int
+    attach_function :getservbyname, [:pointer, :pointer], :pointer
 
-    attach_function "htons", :htons, [:u_int16_t], :u_int16_t
-    attach_function "ntohs", :ntohs, [:u_int16_t], :u_int16_t
+    attach_function :htons,         [:u_int16_t], :u_int16_t
+    attach_function :ntohs,         [:u_int16_t], :u_int16_t
 
-    attach_function "getnameinfo", :_getnameinfo,
-                    [:pointer, :socklen_t, :pointer, :socklen_t,
-                     :pointer, :socklen_t, :int], :int
+    attach_function :_getnameinfo,
+                    "getnameinfo", [:pointer, :socklen_t, :pointer, :socklen_t,
+                                    :pointer, :socklen_t, :int], :int
 
     def self.bind(descriptor, sockaddr)
-      MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
+      FFI::MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
         sockaddr_p.write_string sockaddr, sockaddr.length
 
         _bind descriptor, sockaddr_p, sockaddr.length
@@ -235,7 +232,7 @@ class Socket < BasicSocket
 
     def self.connect(descriptor, sockaddr)
       err = 0
-      MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
+      FFI::MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
         sockaddr_p.write_string sockaddr, sockaddr.length
 
         err = _connect descriptor, sockaddr_p, sockaddr.length
@@ -246,8 +243,8 @@ class Socket < BasicSocket
     end
 
     def self.getsockopt(descriptor, level, optname)
-      MemoryPointer.new 256 do |val| # HACK magic number
-        MemoryPointer.new :socklen_t do |length|
+      FFI::MemoryPointer.new 256 do |val| # HACK magic number
+        FFI::MemoryPointer.new :socklen_t do |length|
           length.write_int 256 # HACK magic number
 
           err = Socket::Foreign._getsockopt descriptor, level, optname, val, length
@@ -275,7 +272,7 @@ class Socket < BasicSocket
         end
       end
 
-      res_p = MemoryPointer.new :pointer
+      res_p = FFI::MemoryPointer.new :pointer
 
       err = _getaddrinfo host, service, hints.pointer, res_p
 
@@ -330,9 +327,9 @@ class Socket < BasicSocket
       name_info = []
       value = nil
 
-      MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
-        MemoryPointer.new :char, Socket::Constants::NI_MAXHOST do |node|
-          MemoryPointer.new :char, Socket::Constants::NI_MAXSERV do |service|
+      FFI::MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
+        FFI::MemoryPointer.new :char, Socket::Constants::NI_MAXHOST do |node|
+          FFI::MemoryPointer.new :char, Socket::Constants::NI_MAXSERV do |service|
             sockaddr_p.write_string sockaddr, sockaddr.length
 
             if reverse_lookup then
@@ -370,8 +367,8 @@ class Socket < BasicSocket
     end
 
     def self.getpeername(descriptor)
-      MemoryPointer.new :char, 128 do |sockaddr_storage_p|
-        MemoryPointer.new :socklen_t do |len_p|
+      FFI::MemoryPointer.new :char, 128 do |sockaddr_storage_p|
+        FFI::MemoryPointer.new :socklen_t do |len_p|
           len_p.write_int 128
 
           err = _getpeername descriptor, sockaddr_storage_p, len_p
@@ -384,8 +381,8 @@ class Socket < BasicSocket
     end
 
     def self.getsockname(descriptor)
-      MemoryPointer.new :char, 128 do |sockaddr_storage_p|
-        MemoryPointer.new :socklen_t do |len_p|
+      FFI::MemoryPointer.new :char, 128 do |sockaddr_storage_p|
+        FFI::MemoryPointer.new :socklen_t do |len_p|
           len_p.write_int 128
 
           err = _getsockname descriptor, sockaddr_storage_p, len_p
@@ -403,7 +400,7 @@ class Socket < BasicSocket
       hints[:ai_socktype] = type
       hints[:ai_flags] = flags
 
-      res_p = MemoryPointer.new :pointer
+      res_p = FFI::MemoryPointer.new :pointer
 
       err = _getaddrinfo name, port, hints.pointer, res_p
 
@@ -454,8 +451,8 @@ class Socket < BasicSocket
       fd = nil
       sockaddr = nil
 
-      MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
-        MemoryPointer.new :int do |size_p|
+      FFI::MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
+        FFI::MemoryPointer.new :int do |size_p|
           fd = Socket::Foreign.accept descriptor, sockaddr_p, size_p
         end
       end
@@ -478,8 +475,8 @@ class Socket < BasicSocket
       fd = nil
       sockaddr = nil
 
-      MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
-        MemoryPointer.new :int do |size_p|
+      FFI::MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
+        FFI::MemoryPointer.new :int do |size_p|
           fd = Socket::Foreign.accept descriptor, sockaddr_p, size_p
         end
       end
@@ -501,7 +498,7 @@ class Socket < BasicSocket
     config("rbx.platform.sockaddr_in", :sin_family, :sin_port, :sin_addr, :sin_zero)
 
     def initialize(sockaddrin)
-      @p = MemoryPointer.new sockaddrin.size
+      @p = FFI::MemoryPointer.new sockaddrin.size
       @p.write_string(sockaddrin)
       super(@p)
     end
@@ -521,7 +518,7 @@ class Socket < BasicSocket
       if(filename && filename.length > maxfnsize )
         raise ArgumentError, "too long unix socket path (max: #{fnsize}bytes)"
       end
-      @p = MemoryPointer.new self.size
+      @p = FFI::MemoryPointer.new self.size
       if filename
         @p.write_string( [Socket::AF_UNIX].pack("s") + filename )
       end
@@ -562,7 +559,7 @@ class Socket < BasicSocket
   end
 
   def self.gethostname
-    MemoryPointer.new :char, 1024 do |mp|  #magic number 1024 comes from MRI
+    FFI::MemoryPointer.new :char, 1024 do |mp|  #magic number 1024 comes from MRI
       Socket::Foreign.gethostname(mp, 1024) # same here
       return mp.read_string
     end
@@ -572,7 +569,7 @@ class Socket < BasicSocket
     config("rbx.platform.servent", :s_name, :s_aliases, :s_port, :s_proto)
 
     def initialize(data)
-      @p = MemoryPointer.new data.size
+      @p = FFI::MemoryPointer.new data.size
       @p.write_string(data)
       super(@p)
     end
@@ -584,8 +581,8 @@ class Socket < BasicSocket
   end
 
   def self.getservbyname(service, proto='tcp')
-    MemoryPointer.new :char, service.length + 1 do |svc|
-      MemoryPointer.new :char, proto.length + 1 do |prot|
+    FFI::MemoryPointer.new :char, service.length + 1 do |svc|
+      FFI::MemoryPointer.new :char, proto.length + 1 do |prot|
         svc.write_string(service + "\0")
         prot.write_string(proto + "\0")
         fn = Socket::Foreign.getservbyname(svc, prot)
@@ -620,7 +617,7 @@ class Socket < BasicSocket
   end
 
   def self.socketpair(domain, type, protocol)
-    MemoryPointer.new :int, 2 do |mp|
+    FFI::MemoryPointer.new :int, 2 do |mp|
       Socket::Foreign.socketpair(domain, type, protocol, mp)
       fd0, fd1 = mp.read_array_of_int(2)
 
@@ -814,9 +811,9 @@ class IPSocket < BasicSocket
     mesg = nil
     sender_sockaddr = nil
 
-    MemoryPointer.new(:char, maxlen + 1) do |buffer_p|
-      MemoryPointer.new :char, 128 do |sockaddr_storage_p|
-        MemoryPointer.new :socklen_t do |len_p|
+    FFI::MemoryPointer.new(:char, maxlen + 1) do |buffer_p|
+      FFI::MemoryPointer.new :char, 128 do |sockaddr_storage_p|
+        FFI::MemoryPointer.new :socklen_t do |len_p|
           len_p.write_int 128
           bytes_read = Socket::Foreign.recvfrom(descriptor, buffer_p, maxlen,
             flags, sockaddr_storage_p, len_p)
@@ -915,7 +912,7 @@ class UDPSocket < IPSocket
     bytes = message.length
     bytes_sent = 0
 
-    MemoryPointer.new :char, bytes + 1 do |buffer|
+    FFI::MemoryPointer.new :char, bytes + 1 do |buffer|
       buffer.write_string message
       bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
       Errno.handle 'send(2)' if bytes_sent < 0

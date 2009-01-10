@@ -1,0 +1,1 @@
+incomplete:FFI::MemoryPointer#write_float needs to be reviewed for spec completeness

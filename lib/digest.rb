@@ -17,15 +17,14 @@ module Digest
   def self.create(name, init_function, update_function, finish_function,
                   struct_size, block_length, digest_length)
     klass = ::Class.new Digest::Instance
+    klass.extend FFI::Library
     Digest.const_set name, klass
 
     klass.const_set :CONTEXT_SIZE, struct_size
 
-    klass.attach_function init_function, :digest_init, [:pointer], :void
-    klass.attach_function update_function, :digest_update,
-                          [:pointer, :string, :int], :void
-    klass.attach_function finish_function, :digest_finish,
-                          [:pointer, :string], :void
+    klass.attach_function :digest_init,   init_function, [:pointer], :void
+    klass.attach_function :digest_update, update_function, [:pointer, :string, :int], :void
+    klass.attach_function :digest_finish, finish_function, [:pointer, :string], :void
 
     klass.const_set :BLOCK_LENGTH, block_length
     klass.const_set :DIGEST_LENGTH, digest_length
@@ -107,7 +106,7 @@ module Digest
     # This method is overridden by each implementation subclass.
     def reset
       @context.free if @context
-      @context = MemoryPointer.new self.class::CONTEXT_SIZE
+      @context = FFI::MemoryPointer.new self.class::CONTEXT_SIZE
 
       self.class.digest_init @context
     end

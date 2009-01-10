@@ -2,7 +2,9 @@ module OpenSSL
   module Digest
     # Native OpenSSL functions and structs
     module Foreign
-      set_ffi_lib "libssl"
+      extend FFI::Library
+
+      ffi_lib "libssl"
 
       # OpenSSL structure representing a message digest algorithm
       class EVP_MD < FFI::Struct
@@ -53,28 +55,30 @@ module OpenSSL
       end
 
       # const EVP_MD *EVP_get_digestbyname(const char *name);
-      attach_function "EVP_get_digestbyname", "ossl_digest_getbyname", [:string], :pointer
+      attach_function :ossl_digest_getbyname, "EVP_get_digestbyname", [:string], :pointer
 
       #void OpenSSL_add_all_digests(void);
-      attach_function "OpenSSL_add_all_digests", "ossl_add_digests", [], :void
+      attach_function :ossl_add_digests, "OpenSSL_add_all_digests", [], :void
 
       # int EVP_DigestInit_ex(EVP_MD_CTX *ctx, const EVP_MD *type, ENGINE *impl);
-      attach_function "EVP_DigestInit_ex", "ossl_digest_init_ex", [:pointer, :pointer, :pointer], :int
+      attach_function :ossl_digest_init_ex, "EVP_DigestInit_ex",
+            [:pointer, :pointer, :pointer], :int
 
       #int EVP_DigestUpdate(EVP_MD_CTX *ctx, const void *d, size_t cnt);
-      attach_function "EVP_DigestUpdate", "ossl_digest_update", [:pointer, :string, :size_t], :int
+      attach_function :ossl_digest_update, "EVP_DigestUpdate",
+            [:pointer, :string, :size_t], :int
 
       #EVP_MD_CTX *EVP_MD_CTX_create(void);
-      attach_function "EVP_MD_CTX_create", "ossl_digest_ctx_create", [], :pointer
+      attach_function :ossl_digest_ctx_create, "EVP_MD_CTX_create", [], :pointer
 
       #int EVP_MD_CTX_copy_ex(EVP_MD_CTX *out,const EVP_MD_CTX *in);
-      attach_function "EVP_MD_CTX_copy_ex", "ossl_digest_ctx_copy", [:pointer, :pointer], :int
+      attach_function :ossl_digest_ctx_copy, "EVP_MD_CTX_copy_ex", [:pointer, :pointer], :int
 
       #int EVP_MD_CTX_cleanup(EVP_MD_CTX *ctx);
-      attach_function "EVP_MD_CTX_cleanup", "ossl_digest_ctx_cleanup", [:pointer], :int
+      attach_function :ossl_digest_ctx_cleanup, "EVP_MD_CTX_cleanup", [:pointer], :int
 
       #int EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *md, unsigned int *s);
-      attach_function "EVP_DigestFinal_ex", "ossl_digest_final_ex", [:pointer, :pointer, :pointer], :int
+      attach_function :ossl_digest_final_ex, "EVP_DigestFinal_ex", [:pointer, :pointer, :pointer], :int
 
     end # Foreign
 
@@ -148,8 +152,8 @@ module OpenSSL
         final_ctx = Foreign::EVP_MD_CTX.new(final)
 
         # Create a buffer to hold the finalized output
-        buffer = MemoryPointer.new(final_ctx.digest_size)
-        buffer_size = MemoryPointer.new(:uint)
+        buffer = FFI::MemoryPointer.new(final_ctx.digest_size)
+        buffer_size = FFI::MemoryPointer.new(:uint)
         buffer_size.write_int(buffer.total)
 
         # Finalize and write-protect the duplicated context

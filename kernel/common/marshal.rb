@@ -555,8 +555,9 @@ module Marshal
       @symlinks[obj.object_id]
     end
 
+    # TODO: this method is already available on Math
     def frexp(flt)
-      ptr = MemoryPointer.new :int
+      ptr = FFI::MemoryPointer.new :int
       return Platform::Float.frexp(flt, ptr)
     ensure
       ptr.free if ptr
@@ -606,8 +607,9 @@ module Marshal
       Platform::Float.ldexp flt, exp
     end
 
+    # TODO: add this method to Math
     def modf(flt)
-      ptr = MemoryPointer.new :double
+      ptr = FFI::MemoryPointer.new :double
 
       flt = Platform::Float.modf flt, ptr
       num = ptr.read_float

@@ -1,9 +1,12 @@
 module OpenSSL
   class HMAC
     module Foreign
-      set_ffi_lib "libcrypto"
+      extend FFI::Library
+
+      ffi_lib "libcrypto"
+
       # HMAC(evp_md, key, key_len, data, data_len, md, buffer_length)
-      attach_function "HMAC", :ossl_hmac,
+      attach_function :ossl_hmac, "HMAC",
             [:pointer, :string, :int, :string, :int, :string, :pointer], :pointer
     end
 
@@ -19,7 +22,7 @@ module OpenSSL
 
       # Fetch the message digest structure from the Digest argument
       evp_md = md.__send__(:message_digest_backend)
-      buffer_size = MemoryPointer.new(:uint)
+      buffer_size = FFI::MemoryPointer.new(:uint)
 
       buf = Foreign.ossl_hmac(evp_md, key, key.size, data, data.size, nil, buffer_size)
       buf.read_string(buffer_size.read_int)

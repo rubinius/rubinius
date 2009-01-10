@@ -1,0 +1,1 @@
+incomplete:FFI::Library#attach_function needs to be reviewed for spec completeness

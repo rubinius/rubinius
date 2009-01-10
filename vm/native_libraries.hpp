@@ -36,16 +36,16 @@ namespace rubinius {
   public:   /* Interface */
 
     /** Obtain function pointer to given symbol in given lib. */
-    static void*          find_symbol(STATE, String* name, Object* library_name);
+    static void* find_symbol(STATE, String* name, Object* library_name, bool raise = true);
 
     /** Load and open a native library (or this process if nil.) */
-    static rbx_dlhandle   open(STATE, Object* library_name);
+    static rbx_dlhandle open(STATE, Object* library_name, bool raise = true);
 
 
   private:  /* Internals */
 
     /** Pseudo-library handle to this process and all its symbols. */
-    static rbx_dlhandle   use_this_process();
+    static rbx_dlhandle use_this_process();
 
   };
 

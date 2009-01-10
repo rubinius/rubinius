@@ -1,0 +1,1 @@
+incomplete:FFI::MemoryPointer#address needs to be reviewed for spec completeness

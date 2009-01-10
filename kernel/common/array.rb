@@ -416,11 +416,7 @@ class Array
   def at(idx)
     Ruby.primitive :array_aref
     idx = Type.coerce_to idx, Fixnum, :to_int
-    idx += @total if idx < 0
-
-    return nil if idx < 0 or idx >= @total
-
-    @tuple.at @start + idx
+    at idx
   end
 
   # Removes all elements in the Array and leaves it empty
@@ -526,18 +522,6 @@ class Array
       reallocate_shrink()
     end
     return self
-  end
-
-  # Passes each element in the Array to the given block
-  # and returns self.  We re-evaluate @total each time
-  # through the loop in case the array has changed.
-  def each()
-    i = 0
-    while i < @total
-      yield at(i)
-      i += 1
-    end
-    self
   end
 
   # Passes each index of the Array to the given block
@@ -866,31 +850,7 @@ class Array
     Array.new self[-n..-1]
   end
 
-  # Creates a new Array from the return values of passing
-  # each element in self to the supplied block.
-  def map
-    return dup unless block_given?
-    out = Array.new @total
-    i = 0
-    while i < @total
-      out[i] = yield(at(i))
-      i += 1
-    end
-    out
-  end
-
   alias_method :collect, :map
-
-  # Replaces each element in self with the return value
-  # of passing that element to the supplied block.
-  def map!
-    i = 0
-    while i < @total
-      self[i] = yield(at(i))
-      i += 1
-    end
-    self
-  end
 
   alias_method :collect!, :map!
 
