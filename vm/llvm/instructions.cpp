@@ -20,6 +20,7 @@
 #include "builtin/contexts.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/block_wrapper.hpp"
+#include "builtin/thread.hpp"
 
 #include "objectmemory.hpp"
 #include "message.hpp"
@@ -227,7 +228,11 @@ void VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, Metho
 #undef DISPATCH_NEXT_INSN
 #define DISPATCH_NEXT_INSN op = stream[ctx->ip++]; \
   if(unlikely(op & cBreakpoint)) { \
-    task->yield_debugger(); \
+    if(G(current_thread)->frozen_stack() == Qfalse) { \
+      task->yield_debugger(); \
+    } else { \
+      G(current_thread)->frozen_stack(state, Qfalse); \
+    } \
   } \
   op &= 0x00ffffff; \
   goto *insn_locations[op];

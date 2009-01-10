@@ -409,8 +409,10 @@ namespace rubinius {
 
     active_->reference(state);
 
-    chan->send(state, G(current_thread));
-    control_channel_->receive(state, true);
+    Thread* thr = G(current_thread);
+    thr->frozen_stack(state, Qtrue);
+    chan->send(state, thr);
+    control_channel_->receive(state);
   }
 
   Module* Task::current_module() {

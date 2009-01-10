@@ -76,10 +76,11 @@ class TestChannel : public CxxTest::TestSuite {
 
     Thread* thread = Thread::create(state);
     state->globals.current_thread.set(thread);
+    thread->frozen_stack(state, Qtrue);
 
     task->push(Qfalse);
     chan->send(state, Qtrue);
-    chan->receive(state, true);
+    chan->receive(state);
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT_EQUALS(task->stack_top(), Qfalse);
   }
