@@ -195,7 +195,7 @@ module Kernel
 
   def puts(*a)
     $stdout.puts(*a)
-    return nil
+    nil
   end
   module_function :puts
 
@@ -243,7 +243,7 @@ module Kernel
           seed = f.read(10).unpack("I*")[0]
         end
       rescue Errno::ENOENT, Errno::EPERM, Errno::EACCES
-        seed = Time.now.to_i    
+        seed = Time.now.to_i
       end
     end
     Platform::POSIX.srand(seed.to_i)
@@ -457,13 +457,13 @@ module Kernel
       bp = dbg.set_breakpoint(cm, ip)
     end
 
-    # Modify send site not to call this method again
-    bc = ctxt.method.iseq
-    
-    Breakpoint.encoder.replace_instruction(bc, ip-4, [:noop])
-    Breakpoint.encoder.replace_instruction(bc, ip-2, [:noop])
+    # TODO Modify send site not to call this method again
+    #bc = ctxt.method.iseq
 
-    ctxt.reload_method
+    #Breakpoint.encoder.replace_instruction(bc, ip-4, [:noop])
+    #Breakpoint.encoder.replace_instruction(bc, ip-2, [:noop])
+
+    #ctxt.reload_method
   end
 
   alias_method :breakpoint, :debugger
@@ -512,7 +512,7 @@ module Kernel
   #       @secret = 99
   #     end
   #   end
-  #   
+  #
   #   k = Klass.new
   #   k.instance_exec(5) {|x| @secret+x }   #=> 104
 
@@ -680,7 +680,7 @@ module Kernel
     raise NotImplementedError
   end
   module_function :set_trace_func
-  
+
   def syscall(*args)
     raise NotImplementedError
   end
@@ -703,7 +703,7 @@ module Kernel
     $_ = $_.chomp(string)
   end
   module_function :chomp
-  
+
   def chomp!(string=$/)
     ensure_last_read_string
     $_.chomp!(string)
@@ -715,7 +715,7 @@ module Kernel
     $_ = $_.chop(string)
   end
   module_function :chop
-  
+
   def chop!(string=$/)
     ensure_last_read_string
     $_.chop!(string)
@@ -742,7 +742,7 @@ module Kernel
     $stdin.readline(sep)
   end
   module_function :readline
-  
+
   def readlines(sep)
     $stdin.readlines(sep)
   end
@@ -753,7 +753,7 @@ module Kernel
     $_ = $_.gsub(pattern, rep, &block)
   end
   module_function :gsub
-  
+
   def gsub!(pattern, rep=nil, &block)
     ensure_last_read_string
     $_.gsub!(pattern, rep, &block)
@@ -765,7 +765,7 @@ module Kernel
     $_ = $_.sub(pattern, rep, &block)
   end
   module_function :sub
-  
+
   def sub!(pattern, rep=nil, &block)
     ensure_last_read_string
     $_.sub!(pattern, rep, &block)

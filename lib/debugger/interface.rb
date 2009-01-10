@@ -96,8 +96,7 @@ class Debugger
   # Simple command-line interface to the Debugger
   class CmdLineInterface < Interface
     def initialize(out=STDOUT, err=STDERR)
-      # HACK readline causes `rake spec` to hang in ioctl()
-      require 'readline-native'
+      require 'readline'
       @out, @err = out, err
       load_commands
       Debugger.instance.interface = self

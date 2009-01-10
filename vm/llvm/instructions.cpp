@@ -229,7 +229,9 @@ void VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, Metho
 #define DISPATCH_NEXT_INSN op = stream[ctx->ip++]; \
   if(unlikely(op & cBreakpoint)) { \
     if(G(current_thread)->frozen_stack() == Qfalse) { \
+      ctx->ip--; \
       task->yield_debugger(); \
+      return; \
     } else { \
       G(current_thread)->frozen_stack(state, Qfalse); \
     } \

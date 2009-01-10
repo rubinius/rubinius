@@ -704,8 +704,6 @@ class BreakpointTracker
       task = @thread.task
       ctx = task.current_context
       cm = ctx.method
-      ctx.reload_method                 # Reset context bytecodes to those on CM
-      ctx.ip -= 1 unless ctx.ip == 0    # Need to reset IP to original instruction
       ip = ctx.ip
 
       @bp_list = find_breakpoints(task, cm, ip)
@@ -755,10 +753,10 @@ class BreakpointTracker
       @bp_list.each do |bp|
         if bp.kind_of? GlobalBreakpoint
           # Ensure global breakpoint is removed from current context so we can resume
-          bp.remove(ctx, bc)
+          #bp.remove(ctx, bc)
           # Create a BreakpointRestorer breakpoint to restore the globabl
           # breakpoint on the current context
-          @task_breakpoints[task] << BreakpointRestorer.new(task) if get_breakpoint(mthd, ctx.ip)
+          #@task_breakpoints[task] << BreakpointRestorer.new(task) if get_breakpoint(mthd, ctx.ip)
         end
       end
 
@@ -769,12 +767,12 @@ class BreakpointTracker
         if bp.trigger?(task) or bp.break_type.nil?
           # Locate next step breakpoint location
           bp.set_next_breakpoint bc
-          if bp.break_type == :opcode_replacement and
-            bp.original_instruction.first.opcode == :yield_debugger
+          #if bp.break_type == :opcode_replacement and
+            #bp.original_instruction.first.opcode == :yield_debugger
             # Step breakpoint has set its next breakpoint at same location as an
             # existing breakpoint, so get the actual original instruction
-            bp.original_instruction = find_breakpoints(task, bp.method, bp.ip).first.original_instruction
-          end
+            #bp.original_instruction = find_breakpoints(task, bp.method, bp.ip).first.original_instruction
+          #end
         end
         # Install the yield_debugger / debug_on_ctxt_change
         bp.install ctxt_bc[bp.method]
