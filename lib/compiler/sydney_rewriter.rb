@@ -19,6 +19,8 @@ class Sexp
 end
 
 class Rubinius::SydneyRewriter
+  attr_reader :context
+
   def self.sexp_from_array(ary, file, line)
     ary = Array(ary)
 
@@ -51,6 +53,10 @@ class Rubinius::SydneyRewriter
     @rewriters
   end
 
+  def initialize
+    @context = []
+  end
+
   def process(exp, name="(eval)", line=1)
     return exp unless Array === exp
     exp = self.class.sexp_from_array exp, name, line
@@ -62,7 +68,14 @@ class Rubinius::SydneyRewriter
     orig = exp
     type = exp.first
 
-    exp.map! { |sub| Array === sub ? rewrite(sub, file, line) : sub }
+    exp.map! do |sub|
+      if Array === sub
+        context.push type
+        rewrite sub, file, line
+      else
+        sub
+      end
+    end
 
     begin
       meth = self.class.rewriters[type]
@@ -77,7 +90,13 @@ class Rubinius::SydneyRewriter
       old_type, type = type, exp.first
     end until old_type == type
 
+    context.pop
     exp
+  end
+
+  def kind(exp)
+    return nil unless Array === exp
+    exp.first
   end
 
   # Rewriters
@@ -176,7 +195,7 @@ class Rubinius::SydneyRewriter
   def rewrite_dstr(exp)
     str = exp[1]
     if String === str
-      while Array === (s = exp[2]) and s.first == :str
+      while kind(s = exp[2]) == :str
         exp.delete_at 2
         str << s.last
       end
@@ -257,11 +276,8 @@ class Rubinius::SydneyRewriter
 
   def rewrite_op_asgn1(exp)
     args = exp[2]
-    case args
-    when Array
-      if args.first == :array
-        args[0] = :arglist
-      end
+    if kind(args) == :array
+      args[0] = :arglist
     end
 
     exp
@@ -318,7 +334,7 @@ class Rubinius::SydneyRewriter
     sexp = s()
     list << sexp
     exp.each do |x|
-      if Array === x and x.first == :resbody
+      if kind(x) == :resbody
         flatten_resbody(x, list)
       else
         sexp << x
@@ -338,7 +354,7 @@ class Rubinius::SydneyRewriter
   def rewrite_rescue(exp)
     sexp = s()
     exp.each do |x|
-      if Array === x and x.first == :resbody
+      if kind(x) == :resbody
         flatten_resbody(x, s()).each { |z| sexp << z }
       else
         sexp << x
@@ -348,15 +364,23 @@ class Rubinius::SydneyRewriter
     sexp
   end
 
+  def rewrite_splat(exp)
+    case context.last
+    when nil, :fcall, :break, :lasgn, :next, :return
+      return s(:array, exp)
+    when :array
+      return s(:array, exp) if context[-2] == :fcall
+    end
+
+    exp
+  end
+
   def rewrite_super(exp)
     # this rewrite is because of how argscat is rewritten
     args = exp[1]
-    case args
-    when Array
-      if args.first == :array
-        args[0] = :super
-        return args
-      end
+    if kind(args) == :array and kind(args[1]) != :splat
+      args[0] = :super
+      return args
     end
 
     exp
@@ -369,20 +393,20 @@ class Rubinius::SydneyRewriter
   end
 
   def rewrite_yield(exp)
-    case exp.last
+    flag = exp.pop
+    args = exp.last
+    case flag
     when true
-      exp.pop
-      args = exp.last
-      case args
-      when Array
-        if args.first == :array
-          args[0] = :yield
-          return args
-        end
+      if kind(args) == :array
+        args[0] = :yield
+        return args
       end
     when false
-      exp.pop
-      exp.pop unless exp.last
+      if kind(args) == :splat
+        exp[1] = s(:array, args)
+      else
+        exp.pop unless args
+      end
     end
 
     exp
