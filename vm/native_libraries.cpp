@@ -18,12 +18,14 @@ namespace rubinius {
     rbx_dlinit();
   }
 
+  // @todo Fix this. There should be a single interface to getting a symbol.
+  // FFI expects to be able to search several libraries and fail to bind a
+  // symbol, handling the ultimate failure itself. NativeMethod (subtend)
+  // expects to fail if unable to bind and searches only the current process.
+  // When is there ever a need to open a library without binding a symbol?
+  // Also, rbx_dldefault returns different values on different systems.
   void* NativeLibrary::find_symbol(STATE, String* name, Object* library_name, bool raise) {
     rbx_dlhandle library = NativeLibrary::open(state, library_name, raise);
-
-    // if raise is true, ::open will raise an exception on failure
-    if(rbx_dlnosuch(library)) return NULL;
-
     void* symbol = rbx_dlsym(library, name->c_str());
 
     if(rbx_dlnosuch(symbol)) {
