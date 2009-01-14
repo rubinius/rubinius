@@ -555,14 +555,6 @@ module Marshal
       @symlinks[obj.object_id]
     end
 
-    # TODO: this method is already available on Math
-    def frexp(flt)
-      ptr = FFI::MemoryPointer.new :int
-      return Platform::Float.frexp(flt, ptr)
-    ensure
-      ptr.free if ptr
-    end
-
     def get_byte_sequence
       size = construct_integer
       consume size
@@ -601,22 +593,6 @@ module Marshal
       else
         raise ArgumentError, "expected TYPE_SYMBOL or TYPE_SYMLINK, got #{type.inspect}"
       end
-    end
-
-    def ldexp(flt, exp)
-      Platform::Float.ldexp flt, exp
-    end
-
-    # TODO: add this method to Math
-    def modf(flt)
-      ptr = FFI::MemoryPointer.new :double
-
-      flt = Platform::Float.modf flt, ptr
-      num = ptr.read_float
-
-      return flt, num
-    ensure
-      ptr.free if ptr
     end
 
     def prepare_ivar(ivar)
@@ -658,10 +634,10 @@ module Marshal
 
     def serialize_float_thing(flt)
       str = ''
-      (flt, ) = modf(ldexp(frexp(flt.abs), 37));
+      flt = Math.modf(Math.ldexp(Math.frexp(flt.abs)[0], 37))[0]
       str << "\0" if flt > 0
       while flt > 0
-        (flt, n) = modf(ldexp(flt, 32))
+        flt, n = Math.modf(Math.ldexp(flt, 32))
         n = n.to_i
         str << to_byte(n >> 24)
         str << to_byte(n >> 16)

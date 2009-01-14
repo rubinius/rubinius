@@ -29,6 +29,9 @@ module Platform::Math
   attach_function :erf,   [:double], :double
   attach_function :erfc,  [:double], :double
 
+  # Rubinius-specific, used in Marshal
+  attach_function :modf,  [:double, :pointer], :double
+
   # TODO: we need a way to determine whether a function
   # is defined for a particular platform.
   #
