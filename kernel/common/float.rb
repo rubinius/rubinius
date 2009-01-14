@@ -4,19 +4,6 @@ class Float < Numeric
 
   include Precision
 
-  RADIX      = Platform::Float.RADIX
-  ROUNDS     = Platform::Float.ROUNDS
-  MIN        = Platform::Float.MIN
-  MAX        = Platform::Float.MAX
-  MIN_EXP    = Platform::Float.MIN_EXP
-  MAX_EXP    = Platform::Float.MAX_EXP
-  MIN_10_EXP = Platform::Float.MIN_10_EXP
-  MAX_10_EXP = Platform::Float.MAX_10_EXP
-  DIG        = Platform::Float.DIG
-  MANT_DIG   = Platform::Float.MANT_DIG
-  EPSILON    = Platform::Float.EPSILON
-  STRLEN     = 32
-
   def self.induced_from(obj)
     case obj
     when Float, Bignum, Fixnum

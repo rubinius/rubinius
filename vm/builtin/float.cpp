@@ -18,6 +18,19 @@ namespace rubinius {
   void Float::init(STATE) {
     GO(floatpoint).set(state->new_class("Float", G(numeric)));
     G(floatpoint)->set_object_type(state, FloatType);
+
+    G(floatpoint)->set_const(state, "RADIX",      Fixnum::from(FLT_RADIX));
+    G(floatpoint)->set_const(state, "ROUNDS",     Fixnum::from(FLT_ROUNDS));
+    G(floatpoint)->set_const(state, "MIN",        Float::create(state, DBL_MIN));
+    G(floatpoint)->set_const(state, "MAX",        Float::create(state, DBL_MAX));
+    G(floatpoint)->set_const(state, "MIN_EXP",    Fixnum::from(DBL_MIN_EXP));
+    G(floatpoint)->set_const(state, "MAX_EXP",    Fixnum::from(DBL_MAX_EXP));
+    G(floatpoint)->set_const(state, "MIN_10_EXP", Fixnum::from(DBL_MIN_10_EXP));
+    G(floatpoint)->set_const(state, "MAX_10_EXP", Fixnum::from(DBL_MAX_10_EXP));
+    G(floatpoint)->set_const(state, "DIG",        Fixnum::from(DBL_DIG));
+    G(floatpoint)->set_const(state, "MANT_DIG",   Fixnum::from(DBL_MANT_DIG));
+    G(floatpoint)->set_const(state, "EPSILON",    Float::create(state, DBL_EPSILON));
+
   }
 
   Float* Float::create(STATE, double val) {
@@ -247,18 +260,3 @@ namespace rubinius {
     show(state, self, level);
   }
 }
-
-extern "C" {
-  int float_radix()      { return FLT_RADIX; }
-  int float_rounds()     { return FLT_ROUNDS; }
-  double float_min()     { return DBL_MIN; }
-  double float_max()     { return DBL_MAX; }
-  int float_min_exp()    { return DBL_MIN_EXP; }
-  int float_max_exp()    { return DBL_MAX_EXP; }
-  int float_min_10_exp() { return DBL_MIN_10_EXP; }
-  int float_max_10_exp() { return DBL_MAX_10_EXP; }
-  int float_dig()        { return DBL_DIG; }
-  int float_mant_dig()   { return DBL_MANT_DIG; }
-  double float_epsilon() { return DBL_EPSILON; }
-}
-
