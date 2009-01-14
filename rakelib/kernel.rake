@@ -7,13 +7,13 @@
 #   # depends on: b.rb
 #
 # The 'depends on:' declaration takes a space separated list of file.
-# When the '.load_order.txt' file is created, a topological sort
+# When the 'load_order.txt' file is created, a topological sort
 # (see name caveat in TSort) of the dependencies is performed
 # so files that are depended on are loaded first.
 #
 # If there is a 'depends on:' declarations for a non-existent file,
 # or if there are cyclic dependencies, this method will not create
-# the '.load_order.txt' file.
+# the 'load_order.txt' file.
 
 require 'tsort'
 
@@ -30,7 +30,7 @@ class Hash
   end
 end
 
-def create_load_order(files, output=".load_order.txt")
+def create_load_order(files, output="load_order.txt")
   d = Hash.new { |h,k| h[k] = [] }
 
   # assume all the files are in the same directory
@@ -64,11 +64,11 @@ def create_load_order(files, output=".load_order.txt")
         f.puts File.basename(n, ".*") + ".rbc"
       end
     rescue IndexError => e
-      puts "Unable to generate '.load_order.txt'"
+      puts "Unable to generate 'load_order.txt'"
       puts "Most likely, a file includes a 'depends on:' declaration for a non-existent file"
       raise e
     rescue TSort::Cyclic => e
-      puts "Unable to generate '.load_order.txt' due to a cyclic dependency\n  (#{e.message})"
+      puts "Unable to generate 'load_order.txt' due to a cyclic dependency\n  (#{e.message})"
       raise e
     end
   end
@@ -96,7 +96,7 @@ def kernel_clean
 
   files_to_delete = []
   files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"] + Dir["**/.*.rbc"]
-  files_to_delete += Dir["**/.load_order.txt"]
+  files_to_delete += Dir["**/load_order.txt"]
   files_to_delete += ["runtime/platform.conf"]
 
   rm_f files_to_delete, :verbose => $verbose
@@ -178,7 +178,7 @@ namespace :kernel do
   task :build => ['kernel:check_compiler', all_kernel, compiler,
                   'runtime/platform.conf'].flatten do
     modules.each do |name, files|
-      create_load_order files, "runtime/#{name}/.load_order.txt"
+      create_load_order files, "runtime/#{name}/load_order.txt"
     end
   end
 

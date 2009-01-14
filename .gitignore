@@ -21,7 +21,7 @@
 .hg
 .hgignore
 .libs
-.load_order.txt
+load_order.txt
 .spec/bm.yml
 /rubinius_tasks.dot
 /nbproject

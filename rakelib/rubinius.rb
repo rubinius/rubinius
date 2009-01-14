@@ -100,7 +100,7 @@ class CodeGroup
     @rba_name = "#{rba_name}.rba"
 
     if load_order
-      @load_order = File.join @compile_dir, '.load_order.txt'
+      @load_order = File.join @compile_dir, 'load_order.txt'
     else
       @load_order = nil
     end
@@ -163,7 +163,7 @@ class CodeGroup
         ar_name = File.join '..', 'stable', @rba_name
         rm_f ar_name, :verbose => $verbose
 
-        File.readlines('.load_order.txt').each do |file|
+        File.readlines('load_order.txt').each do |file|
           ar_add ar_name, file.strip
         end
       end
