@@ -32,115 +32,63 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_from_int() {
-    Bignum* obj = Bignum::from(state, (int)13);
-    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
-    TS_ASSERT(kind_of<Bignum>(obj));
-    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+    Bignum* obj = Bignum::from(state, 2147483647);
+    TS_ASSERT_EQUALS(2147483647, obj->to_int());
+    TS_ASSERT_EQUALS(2147483647, obj->to_native());
   }
 
   void test_from_int_negative() {
-    Bignum* obj = Bignum::from(state, (int)-13);
-    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
-    TS_ASSERT(kind_of<Bignum>(obj));
-    TS_ASSERT_EQUALS(obj->to_native(), (native_int)-13);
+    // http://gcc.gnu.org/ml/gcc-bugs/2003-04/msg00082.html
+    Bignum* obj = Bignum::from(state, 0x80000000);
+    TS_ASSERT_EQUALS(0x80000000, obj->to_int());
   }
 
   void test_from_unsigned_int() {
-    Bignum* obj = Bignum::from(state, (unsigned int)13);
-    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
-    TS_ASSERT(kind_of<Bignum>(obj));
-    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+    Bignum* obj = Bignum::from(state, 4294967295U);
+    TS_ASSERT_EQUALS(4294967295U, obj->to_uint());
   }
 
   void test_from_long() {
-    Bignum* obj = Bignum::from(state, (long)13);
-    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
-    TS_ASSERT(kind_of<Bignum>(obj));
-    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+    Bignum* obj = Bignum::from(state, 2147483647L);
+    TS_ASSERT_EQUALS(2147483647L, obj->to_long());
   }
 
   void test_from_long_negative() {
-    Bignum* obj = Bignum::from(state, (long)-13);
-    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
-    TS_ASSERT(kind_of<Bignum>(obj));
-    TS_ASSERT_EQUALS(obj->to_native(), (native_int)-13);
+    // http://gcc.gnu.org/ml/gcc-bugs/2003-04/msg00082.html
+    Bignum* obj = Bignum::from(state, 0x80000000L);
+    TS_ASSERT_EQUALS(0x80000000L, obj->to_long());
   }
 
   void test_from_unsigned_long() {
-    Bignum* obj = Bignum::from(state, (unsigned long)13);
-    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
-    TS_ASSERT(kind_of<Bignum>(obj));
-    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+    Bignum* obj = Bignum::from(state, 4294967295LU);
+    TS_ASSERT_EQUALS(4294967295LU, obj->to_ulong());
   }
 
   void test_from_long_long() {
-    Bignum* obj = Bignum::from(state, (long long)13);
-    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
-    TS_ASSERT(kind_of<Bignum>(obj));
-    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+    Bignum* obj = Bignum::from(state, 9223372036854775807LL);
+    TS_ASSERT_EQUALS(9223372036854775807LL, obj->to_long_long());
   }
 
   void test_from_long_long_negative() {
-    Bignum* obj = Bignum::from(state, (long long)-13);
-    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
-    TS_ASSERT(kind_of<Bignum>(obj));
-    TS_ASSERT_EQUALS(obj->to_native(), (native_int)-13);
+    Bignum* obj = Bignum::from(state, 0x8000000000000000LL);
+    TS_ASSERT_EQUALS((long long)0x8000000000000000LL, obj->to_long_long());
   }
 
   void test_from_unsigned_long_long() {
-    Bignum* obj = Bignum::from(state, (unsigned long long)13);
-    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
-    TS_ASSERT(kind_of<Bignum>(obj));
-    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
-  }
-
-  void test_to_int() {
-    Bignum* obj = Bignum::from(state, (native_int)13);
-    TS_ASSERT_EQUALS(obj->to_int(), (int)13);
-  }
-
-  void test_to_int_negative() {
-    Bignum* obj = Bignum::from(state, (native_int)-13);
-    TS_ASSERT_EQUALS(obj->to_int(), (int)-13);
-  }
-
-  void test_to_unsigned_int() {
-    Bignum* obj = Bignum::from(state, (native_int)13);
-    TS_ASSERT_EQUALS(obj->to_uint(), (unsigned int)13);
-  }
-
-  void test_to_long() {
-    Bignum* obj = Bignum::from(state, (native_int)13);
-    TS_ASSERT_EQUALS(obj->to_long(), (long)13);
-  }
-
-  void test_to_long_negative() {
-    Bignum* obj = Bignum::from(state, (native_int)-13);
-    TS_ASSERT_EQUALS(obj->to_long(), (long)-13);
-  }
-
-  void test_to_unsigned_long() {
-    Bignum* obj = Bignum::from(state, (native_int)13);
-    TS_ASSERT_EQUALS(obj->to_ulong(), (unsigned long)13);
-  }
-
-  void test_to_long_long() {
-    Bignum* obj = Bignum::from(state, (native_int)13);
-    TS_ASSERT_EQUALS(obj->to_long_long(), (long long)13);
-  }
-
-  void test_to_long_long_negative() {
-    Bignum* obj = Bignum::from(state, (native_int)-13);
-    TS_ASSERT_EQUALS(obj->to_long_long(), (long long)-13);
-  }
-
-  void test_to_unsigned_long_long() {
-    Bignum* obj = Bignum::from(state, (native_int)13);
-    TS_ASSERT_EQUALS(obj->to_ulong_long(), (unsigned long long)13);
+    Bignum* obj = Bignum::from(state, 18446744073709551615LLU);
+    TS_ASSERT_EQUALS(18446744073709551615LLU, obj->to_ulong_long());
   }
 
   void test_create() {
+    Bignum* obj = Bignum::create(state);
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT(kind_of<Bignum>(obj));
+  }
+
+  void test_create_primitive() {
     Bignum* obj = Bignum::create(state, Fixnum::from(13));
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT(kind_of<Bignum>(obj));
     TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
   }
 
@@ -176,36 +124,119 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void check_bignum(Object* big, const char* val) {
-    char buf[1024];
-    std::stringstream stream;
-
-    if(!big->fixnum_p()) {
-      ((Bignum*)big)->into_string(state, 10, buf, 1024);
-      stream << "bignum not correct: " << buf << " != " << val;
-      TSM_ASSERT_EQUALS(stream.str().c_str(), strcmp(val, buf), 0);
-    } else {
-      std::stringstream str2;
-      str2 << as<Integer>(big)->to_native();
-      stream << "bignum not correct: " << str2.str() << " != " << val;
-      TSM_ASSERT_EQUALS(stream.str().c_str(), strcmp(val, str2.str().c_str()), 0);
-    }
+    TS_FAIL("Remove check_bignum");
   }
 
   void check_float(Float* f, Float* g) {
     TS_ASSERT_DELTA(f->val, g->val, TOLERANCE);
   }
 
-  void test_add() {
-    check_bignum(b1->add(state, b1), "4294967294");
-    check_bignum(b1->add(state, Fixnum::from(1)), "2147483648");
+  void test_add_positive_range() {
+    Bignum* fix = Bignum::from(state, FIXNUM_MAX-1);
+    Integer* sum = fix->add(state, Bignum::from(state, 1));
+
+    TS_ASSERT(kind_of<Fixnum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, sum->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MAX+1);
+    sum = fix->add(state, Bignum::from(state, -1));
+
+    TS_ASSERT(kind_of<Fixnum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, sum->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MAX);
+    sum = fix->add(state, Bignum::from(state, 1));
+
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
+
+    Bignum* big = Bignum::from(state, FIXNUM_MAX+2);
+    sum = big->add(state, Bignum::from(state, -1));
+
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
+  }
+
+  void test_add_negative_range() {
+    Bignum* fix = Bignum::from(state, FIXNUM_MIN-1);
+    Integer* sum = fix->add(state, Bignum::from(state, 1));
+
+    TS_ASSERT(kind_of<Fixnum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN+1);
+    sum = fix->add(state, Bignum::from(state, -1));
+
+    TS_ASSERT(kind_of<Fixnum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN-2);
+    sum = fix->add(state, Bignum::from(state, 1));
+
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, sum->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN);
+    sum = fix->add(state, Bignum::from(state, -1));
+
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, sum->to_native());
   }
 
   void test_add_with_positive_fixnum() {
-    check_bignum(b1->add(state, Fixnum::from(100)), "2147483747");
+    Fixnum* one = Fixnum::from(1);
+
+    Bignum* fix = Bignum::from(state, FIXNUM_MAX-1);
+    Integer* sum = fix->add(state, one);
+
+    TS_ASSERT(kind_of<Fixnum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, sum->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN-1);
+    sum = fix->add(state, one);
+
+    TS_ASSERT(kind_of<Fixnum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
+
+    Bignum* big = Bignum::from(state, FIXNUM_MAX);
+    sum = big->add(state, one);
+
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
+
+    big = Bignum::from(state, FIXNUM_MIN-2);
+    sum = big->add(state, one);
+
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, sum->to_native());
   }
 
   void test_add_with_negative_fixnum() {
-    check_bignum(b1->add(state, Fixnum::from(-100)), "2147483547");
+    Fixnum* neg_one = Fixnum::from(-1);
+
+    Bignum* fix = Bignum::from(state, FIXNUM_MAX+1);
+    Integer* sum = fix->add(state, neg_one);
+
+    TS_ASSERT(kind_of<Fixnum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, sum->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN+1);
+    sum = fix->add(state, neg_one);
+
+    TS_ASSERT(kind_of<Fixnum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, sum->to_native());
+
+    Bignum* big = Bignum::from(state, FIXNUM_MAX+2);
+    sum = big->add(state, neg_one);
+
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, sum->to_native());
+
+    big = Bignum::from(state, FIXNUM_MIN);
+    sum = big->add(state, neg_one);
+
+    TS_ASSERT(kind_of<Bignum>(sum));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, sum->to_native());
   }
 
   void test_add_with_float() {
@@ -214,17 +245,112 @@ class TestBignum : public CxxTest::TestSuite {
     check_float(a, Float::create(state, (double)FIXNUM_MAX + 10.2));
   }
 
-  void test_sub() {
-    check_bignum(b1->sub(state, b1), "0");
-    check_bignum(b1->sub(state, Fixnum::from(1)), "2147483646");
+  void test_sub_positive_range() {
+    Bignum* fix = Bignum::from(state, FIXNUM_MAX+1);
+    Integer* diff = fix->sub(state, Bignum::from(state, 1));
+
+    TS_ASSERT(kind_of<Fixnum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, diff->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MAX-1);
+    diff = fix->sub(state, Bignum::from(state, -1));
+
+    TS_ASSERT(kind_of<Fixnum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, diff->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MAX+2);
+    diff = fix->sub(state, Bignum::from(state, 1));
+
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, diff->to_native());
+
+    Bignum* big = Bignum::from(state, FIXNUM_MAX);
+    diff = big->sub(state, Bignum::from(state, -1));
+
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, diff->to_native());
+  }
+
+  void test_sub_negative_range() {
+    Bignum* fix = Bignum::from(state, FIXNUM_MIN+1);
+    Integer* diff = fix->sub(state, Bignum::from(state, 1));
+
+    TS_ASSERT(kind_of<Fixnum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN-1);
+    diff = fix->sub(state, Bignum::from(state, -1));
+
+    TS_ASSERT(kind_of<Fixnum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN);
+    diff = fix->sub(state, Bignum::from(state, 1));
+
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, diff->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN-2);
+    diff = fix->sub(state, Bignum::from(state, -1));
+
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, diff->to_native());
   }
 
   void test_sub_with_positive_fixnum() {
-    check_bignum(b1->sub(state, Fixnum::from(100)), "2147483547");
+    Fixnum* one = Fixnum::from(1);
+
+    Bignum* fix = Bignum::from(state, FIXNUM_MAX+1);
+    Integer* diff = fix->sub(state, one);
+
+    TS_ASSERT(kind_of<Fixnum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, diff->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN+1);
+    diff = fix->sub(state, one);
+
+    TS_ASSERT(kind_of<Fixnum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
+
+    Bignum* big = Bignum::from(state, FIXNUM_MAX+2);
+    diff = big->sub(state, one);
+
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, diff->to_native());
+
+    big = Bignum::from(state, FIXNUM_MIN);
+    diff = big->sub(state, one);
+
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, diff->to_native());
   }
 
   void test_sub_with_negative_fixnum() {
-    check_bignum(b1->sub(state, Fixnum::from(-100)), "2147483747");
+    Fixnum* neg_one = Fixnum::from(-1);
+
+    Bignum* fix = Bignum::from(state, FIXNUM_MAX-1);
+    Integer* diff = fix->sub(state, neg_one);
+
+    TS_ASSERT(kind_of<Fixnum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, diff->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MIN-1);
+    diff = fix->sub(state, neg_one);
+
+    TS_ASSERT(kind_of<Fixnum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, diff->to_native());
+
+    Bignum* big = Bignum::from(state, FIXNUM_MAX);
+    diff = big->sub(state, neg_one);
+
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, diff->to_native());
+
+    big = Bignum::from(state, FIXNUM_MIN-2);
+    diff = big->sub(state, neg_one);
+
+    TS_ASSERT(kind_of<Bignum>(diff));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, diff->to_native());
   }
 
   void test_sub_with_float() {
@@ -233,18 +359,114 @@ class TestBignum : public CxxTest::TestSuite {
     check_float(a, Float::create(state, (double)FIXNUM_MAX + 9.8));
   }
 
-  void test_mul() {
-    check_bignum(b1->mul(state, b1), "4611686014132420609");
-    check_bignum(b1->mul(state, Fixnum::from(2)), "4294967294");
-    check_bignum(b1->mul(state, Fixnum::from(1)), "2147483647");
+  void test_mul_positive_range() {
+    Bignum* third = Bignum::from(state, FIXNUM_MAX / 3);
+    Integer* max = third->mul(state, Bignum::from(state, 3));
+
+    TS_ASSERT(kind_of<Fixnum>(max));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, max->to_native());
+
+    Bignum* neg_third = Bignum::from(state, FIXNUM_MIN / 3);
+    max = neg_third->mul(state, Bignum::from(state, -3));
+
+    TS_ASSERT(kind_of<Fixnum>(max));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, max->to_native());
+
+    Bignum* half = Bignum::from(state, (FIXNUM_MAX + 1) / 2);
+    Integer* max_plus1 = half->mul(state, Bignum::from(state, 2));
+
+    TS_ASSERT(kind_of<Bignum>(max_plus1));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
+
+    Bignum* neg_half = Bignum::from(state, (FIXNUM_MIN - 1) / 2);
+    max_plus1 = neg_half->mul(state, Bignum::from(state, -2));
+
+    TS_ASSERT(kind_of<Bignum>(max_plus1));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
+  }
+
+  void test_mul_negative_range() {
+    Bignum* third = Bignum::from(state, FIXNUM_MAX / 3);
+    Integer* min = third->mul(state, Bignum::from(state, -3));
+
+    TS_ASSERT(kind_of<Fixnum>(min));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, min->to_native());
+
+    Bignum* neg_third = Bignum::from(state, FIXNUM_MIN / 3);
+    min = neg_third->mul(state, Bignum::from(state, 3));
+
+    TS_ASSERT(kind_of<Fixnum>(min));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, min->to_native());
+
+    Bignum* half = Bignum::from(state, (FIXNUM_MAX + 1) / 2);
+    Integer* min_minus1 = half->mul(state, Bignum::from(state, -2));
+
+    TS_ASSERT(kind_of<Bignum>(min_minus1));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
+
+    Bignum* neg_half = Bignum::from(state, (FIXNUM_MIN - 1) / 2);
+    min_minus1 = neg_half->mul(state, Bignum::from(state, 2));
+
+    TS_ASSERT(kind_of<Bignum>(min_minus1));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
   }
 
   void test_mul_with_positive_fixnum() {
-    check_bignum(b1->mul(state, Fixnum::from(100)), "214748364700");
+    Fixnum* two = Fixnum::from(2);
+    Fixnum* three = Fixnum::from(3);
+
+    Bignum* half = Bignum::from(state, (FIXNUM_MAX + 1) / 2);
+    Integer* max_plus1 = half->mul(state, two);
+
+    TS_ASSERT(kind_of<Bignum>(max_plus1));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
+
+    Bignum* neg_half = Bignum::from(state, (FIXNUM_MIN - 1) / 2);
+    Integer* min_minus1 = neg_half->mul(state, two);
+
+    TS_ASSERT(kind_of<Bignum>(min_minus1));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
+
+    Bignum* third = Bignum::from(state, FIXNUM_MAX / 3);
+    Integer* max = third->mul(state, three);
+
+    TS_ASSERT(kind_of<Fixnum>(max));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, max->to_native());
+
+    Bignum* neg_third = Bignum::from(state, FIXNUM_MIN / 3);
+    Integer* min = neg_third->mul(state, three);
+
+    TS_ASSERT(kind_of<Fixnum>(min));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, min->to_native());
   }
 
   void test_mul_with_negative_fixnum() {
-    check_bignum(b1->mul(state, Fixnum::from(-100)), "-214748364700");
+    Fixnum* neg_two = Fixnum::from(-2);
+    Fixnum* neg_three = Fixnum::from(-3);
+
+    Bignum* neg_half = Bignum::from(state, (FIXNUM_MIN - 1) / 2);
+    Integer* max_plus1 = neg_half->mul(state, neg_two);
+
+    TS_ASSERT(kind_of<Bignum>(max_plus1));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
+
+    Bignum* half = Bignum::from(state, (FIXNUM_MAX + 1) / 2);
+    Integer* min_minus1 = half->mul(state, neg_two);
+
+    TS_ASSERT(kind_of<Bignum>(min_minus1));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
+
+    Bignum* neg_third = Bignum::from(state, FIXNUM_MIN / 3);
+    Integer* max = neg_third->mul(state, neg_three);
+
+    TS_ASSERT(kind_of<Fixnum>(max));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, max->to_native());
+
+    Bignum* third = Bignum::from(state, FIXNUM_MAX / 3);
+    Integer* min = third->mul(state, neg_three);
+
+    TS_ASSERT(kind_of<Fixnum>(min));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, min->to_native());
   }
 
   void test_mul_with_float() {
@@ -254,22 +476,69 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_div() {
-    Integer* div = b1->div(state, b1);
-    TS_ASSERT(div->fixnum_p());
-    TS_ASSERT_EQUALS(div->to_native(), 1);
+    Bignum* two = Bignum::from(state, 2);
+    Bignum* neg_two = Bignum::from(state, -2);
+
+    unsigned long big_int = FIXNUM_MAX + 1;
+
+    Bignum* big = Bignum::from(state, big_int * 2);
+    Integer* max_plus1 = big->div(state, two);
+
+    TS_ASSERT(kind_of<Bignum>(max_plus1));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
+
+    Integer* min_minus1 = big->div(state, neg_two);
+
+    TS_ASSERT(kind_of<Bignum>(min_minus1));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
+
+    big = Bignum::from(state, FIXNUM_MAX * 2);
+    Integer* max = big->div(state, two);
+
+    TS_ASSERT(kind_of<Fixnum>(max));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, max->to_native());
+
+    Integer* min = big->div(state, neg_two);
+
+    TS_ASSERT(kind_of<Fixnum>(min));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, min->to_native());
 
     Bignum* zero = Bignum::from(state, (native_int)0);
     TS_ASSERT_THROWS_ASSERT(b1->div(state, zero), const RubyException &e,
-                            TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
+        TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_div_with_fixnum() {
-    Integer* div = b1->div(state, two);
-    check_bignum(div,"1073741823");
+    Fixnum* two = Fixnum::from(2);
+    Fixnum* neg_two = Fixnum::from(-2);
+
+    unsigned long long big_int = FIXNUM_MAX + 1;
+
+    Bignum* big = Bignum::from(state, big_int * 2);
+    Integer* max_plus1 = big->div(state, two);
+
+    TS_ASSERT(kind_of<Bignum>(max_plus1));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
+
+    Integer* min_minus1 = big->div(state, neg_two);
+
+    TS_ASSERT(kind_of<Bignum>(min_minus1));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
+
+    big = Bignum::from(state, FIXNUM_MAX * 2);
+    Integer* max = big->div(state, two);
+
+    TS_ASSERT(kind_of<Fixnum>(max));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, max->to_native());
+
+    Integer* min = big->div(state, neg_two);
+
+    TS_ASSERT(kind_of<Fixnum>(min));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, min->to_native());
 
     Fixnum* zero = Fixnum::from(0);
     TS_ASSERT_THROWS_ASSERT(b1->div(state, zero), const RubyException &e,
-                            TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
+        TS_ASSERT(Exception::zero_division_error_p(state, e.exception)));
   }
 
   void test_div_with_float() {
@@ -278,115 +547,176 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_divmod() {
-    Array* ary1 = b1->divmod(state, b1);
-    Object* o1 = ary1->get(state, 0);
-    Object* o2 = ary1->get(state, 1);
-    TS_ASSERT(o1->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(o1)->to_native(), 1);
-    TS_ASSERT(o2->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(o2)->to_native(), 0);
+    Array* ary = b1->divmod(state, b1);
+    TS_ASSERT_EQUALS(1, as<Fixnum>(ary->get(state, 0))->to_native());
+    TS_ASSERT_EQUALS(0, as<Fixnum>(ary->get(state, 1))->to_native());
 
-    ary1 = b1->divmod(state, two);
-    o1 = ary1->get(state, 0);
-    o2 = ary1->get(state, 1);
-    check_bignum(o1,"1073741823");
-    check_bignum(o2, "1");
+    ary = b1->divmod(state, two);
+    TS_ASSERT_EQUALS(1073741823, as<Fixnum>(ary->get(state, 0))->to_native());
+    TS_ASSERT_EQUALS(1, as<Fixnum>(ary->get(state, 1))->to_native());
 
-    Bignum* nbn1 = Bignum::from(state, (native_int)-2147483647);
+    Bignum* nbn1 = Bignum::from(state, -2147483647);
+    ary = b1->divmod(state, nbn1);
+    TS_ASSERT_EQUALS(-1, as<Fixnum>(ary->get(state, 0))->to_native());
+    TS_ASSERT_EQUALS(0, as<Fixnum>(ary->get(state, 1))->to_native());
 
-    ary1 = b1->divmod(state, nbn1);
-    o1 = ary1->get(state, 0);
-    o2 = ary1->get(state, 1);
-    check_bignum(o1,"-1");
-    check_bignum(o2, "0");
+    ary = nbn1->divmod(state, b1);
+    TS_ASSERT_EQUALS(-1, as<Fixnum>(ary->get(state, 0))->to_native());
+    TS_ASSERT_EQUALS(0, as<Fixnum>(ary->get(state, 1))->to_native());
 
-    ary1 = nbn1->divmod(state, b1);
-    o1 = ary1->get(state, 0);
-    o2 = ary1->get(state, 1);
-    check_bignum(o1,"-1");
-    check_bignum(o2, "0");
+    ary = nbn1->divmod(state, nbn1);
+    TS_ASSERT_EQUALS(1, as<Fixnum>(ary->get(state, 0))->to_native());
+    TS_ASSERT_EQUALS(0, as<Fixnum>(ary->get(state, 1))->to_native());
 
-    ary1 = nbn1->divmod(state, nbn1);
-    o1 = ary1->get(state, 0);
-    o2 = ary1->get(state, 1);
-    check_bignum(o1,"1");
-    check_bignum(o2, "0");
+    ary = nbn1->divmod(state, Bignum::from(state, 89478485));
+    TS_ASSERT_EQUALS(-25, as<Fixnum>(ary->get(state, 0))->to_native());
+    TS_ASSERT_EQUALS(89478478, as<Fixnum>(ary->get(state, 1))->to_native());
 
-    ary1 = nbn1->divmod(state, Bignum::from(state, (native_int)89478485));
-    o1 = ary1->get(state, 0);
-    o2 = ary1->get(state, 1);
-    check_bignum(o1,"-25");
-    check_bignum(o2, "89478478");
+    ary = nbn1->divmod(state, Fixnum::from(89478485));
+    TS_ASSERT_EQUALS(-25, as<Fixnum>(ary->get(state, 0))->to_native());
+    TS_ASSERT_EQUALS(89478478, as<Fixnum>(ary->get(state, 1))->to_native());
 
-    ary1 = nbn1->divmod(state, Fixnum::from(89478485));
-    o1 = ary1->get(state, 0);
-    o2 = ary1->get(state, 1);
-    check_bignum(o1,"-25");
-    check_bignum(o2, "89478478");
+    ary = b1->divmod(state, Fixnum::from(-89478485));
+    TS_ASSERT_EQUALS(-25, as<Fixnum>(ary->get(state, 0))->to_native());
+    TS_ASSERT_EQUALS(-89478478, as<Fixnum>(ary->get(state, 1))->to_native());
 
-    ary1 = b1->divmod(state, Fixnum::from(-89478485));
-    o1 = ary1->get(state, 0);
-    o2 = ary1->get(state, 1);
-    check_bignum(o1,"-25");
-    check_bignum(o2, "-89478478");
-
-    ary1 = b1->divmod(state, Float::create(state, 2.5));
-    o1 = ary1->get(state, 0);
-    o2 = ary1->get(state, 1);
-    check_bignum(o1,"858993458");
-    check_float(as<Float>(o2), Float::create(state, 2.0));
+    ary = b1->divmod(state, Float::create(state, 2.5));
+    TS_ASSERT_EQUALS(858993458, as<Fixnum>(ary->get(state, 0))->to_native());
+    check_float(as<Float>(ary->get(state, 1)), Float::create(state, 2.0));
   }
 
   void test_mod() {
-    Integer* mod = b1->mod(state, Fixnum::from(-89478485));
-    check_bignum(mod, "-89478478");
-    mod = b1->mod(state, Bignum::from(state, (native_int)-2147483645));
-    check_bignum(mod, "-2147483643");
+    Bignum* neg = Bignum::from(state, FIXNUM_MIN-2);
+    Integer* fix = neg->mod(state, Bignum::from(state, FIXNUM_MAX+1));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, fix->to_native());
+
+    Bignum* pos = Bignum::from(state, FIXNUM_MAX+2);
+    fix = pos->mod(state, Bignum::from(state, FIXNUM_MIN-1));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
+
+    neg = Bignum::from(state, FIXNUM_MIN-3);
+    Integer* big = neg->mod(state, Bignum::from(state, FIXNUM_MAX+2));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, big->to_native());
+
+    pos = Bignum::from(state, FIXNUM_MAX+3);
+    big = pos->mod(state, Bignum::from(state, FIXNUM_MIN-2));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, big->to_native());
+  }
+
+  void test_mod_with_fixnum() {
+    Bignum* neg = Bignum::from(state, FIXNUM_MIN-1);
+    Integer* fix = neg->mod(state, Fixnum::from(FIXNUM_MAX));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MAX-1, fix->to_native());
+
+    Bignum* pos = Bignum::from(state, FIXNUM_MAX+1);
+    fix = pos->mod(state, Fixnum::from(FIXNUM_MIN));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MIN+1, fix->to_native());
+  }
+
+  void test_mod_with_float() {
     Float* f = b1->mod(state, Float::create(state, -21483645.2));
     check_float(f, Float::create(state, -880872.999999925));
   }
 
   void test_left_shift() {
-    Integer* shifted = b1->left_shift(state, Fixnum::from(3));
-    check_bignum(shifted, "17179869176");
+    Bignum* one = Bignum::from(state, 1);
+    Bignum* neg_one = Bignum::from(state, -1);
 
-    shifted = b1->left_shift(state, Fixnum::from(-3));
-    check_bignum(shifted, "268435455");
+    Fixnum* width_minus1 = Fixnum::from(FIXNUM_WIDTH-1);
+    Fixnum* width = Fixnum::from(FIXNUM_WIDTH);
 
-    Bignum* nbn1 = Bignum::from(state, (native_int)-2147483647);
-    shifted = nbn1->left_shift(state, Fixnum::from(3));
-    check_bignum(shifted, "-17179869176");
+    Integer* fix = one->left_shift(state, width_minus1);
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(1 << (FIXNUM_WIDTH-1), fix->to_native());
+
+    fix = neg_one->left_shift(state, width_minus1);
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(-1 << (FIXNUM_WIDTH-1), fix->to_native());
+
+    Integer* max_plus1 = one->left_shift(state, width);
+
+    TS_ASSERT(kind_of<Bignum>(max_plus1));
+    TS_ASSERT_EQUALS(FIXNUM_MAX + 1, max_plus1->to_native());
+
+    Integer* min_minus1 = neg_one->left_shift(state, width);
+
+    TS_ASSERT(kind_of<Bignum>(min_minus1));
+    TS_ASSERT_EQUALS(FIXNUM_MIN - 1, min_minus1->to_native());
   }
 
   void test_right_shift() {
-    Integer* shifted = b1->right_shift(state, Fixnum::from(3));
-    check_bignum(shifted, "268435455");
+    Bignum* one = Bignum::from(state, 1);
+    Bignum* neg_one = Bignum::from(state, -1);
 
-    shifted = b1->right_shift(state, Fixnum::from(-3));
-    check_bignum(shifted, "17179869176");
+    Fixnum* neg_width_minus1 = Fixnum::from(-(FIXNUM_WIDTH-1));
+    Fixnum* neg_width = Fixnum::from(-FIXNUM_WIDTH);
 
-    shifted = b1->right_shift(state, Fixnum::from(1048576));
-    check_bignum(shifted, "0");
+    Integer* fix = one->right_shift(state, neg_width_minus1);
 
-    shifted = b1->right_shift(state, Fixnum::from(0));
-    check_bignum(shifted, "2147483647");
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(1 << (FIXNUM_WIDTH-1), fix->to_native());
 
-    Bignum* nbn1 = Bignum::from(state, (native_int)-2147483647);
-    shifted = nbn1->right_shift(state, Fixnum::from(3));
-    check_bignum(shifted, "-268435456");
+    fix = neg_one->right_shift(state, neg_width_minus1);
 
-    shifted = nbn1->right_shift(state, Fixnum::from(1048576));
-    check_bignum(shifted, "-1");
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(-1 << (FIXNUM_WIDTH-1), fix->to_native());
+
+    Integer* max_plus1 = one->right_shift(state, neg_width);
+
+    TS_ASSERT(kind_of<Bignum>(max_plus1));
+    TS_ASSERT_EQUALS(FIXNUM_MAX + 1, max_plus1->to_native());
+
+    Integer* min_minus1 = neg_one->right_shift(state, neg_width);
+
+    TS_ASSERT(kind_of<Bignum>(min_minus1));
+    TS_ASSERT_EQUALS(FIXNUM_MIN - 1, min_minus1->to_native());
   }
 
   void test_pow() {
-    Bignum *base1 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(30)));
-    check_bignum(base1, "1073741824");
-    Bignum *base2 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(32)));
-    check_bignum(base2, "4294967296");
+    Bignum* two = Bignum::from(state, 2);
+    Bignum* neg_two = Bignum::from(state, -2);
 
-    check_bignum(base1->pow(state, Fixnum::from(7)),
-		 "1645504557321206042154969182557350504982735865633579863348609024");
+    Fixnum* width_minus1 = Fixnum::from(FIXNUM_WIDTH-1);
+    Fixnum* width = Fixnum::from(FIXNUM_WIDTH);
+
+    Integer* fix = as<Integer>(two->pow(state, width_minus1));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(1 << (FIXNUM_WIDTH-1), fix->to_native());
+
+    fix = as<Integer>(neg_two->pow(state, width_minus1));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(-1 << (FIXNUM_WIDTH-1), fix->to_native());
+
+    Integer* max_plus1 = as<Integer>(two->pow(state, width));
+
+    TS_ASSERT(kind_of<Bignum>(max_plus1));
+    TS_ASSERT_EQUALS(FIXNUM_MAX + 1, max_plus1->to_native());
+
+    Integer* big = as<Integer>(neg_two->pow(state, width));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(1 << (FIXNUM_WIDTH), big->to_native());
+
+    big = as<Integer>(neg_two->pow(state, Fixnum::from(FIXNUM_WIDTH+1)));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(-1LL << (FIXNUM_WIDTH+1), as<Bignum>(big)->to_long_long());
   }
 
   void test_equal() {
@@ -414,138 +744,307 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_compare_with_fixnum() {
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)3)->compare(state, Fixnum::from(3)), Fixnum::from(0));
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)3)->compare(state, Fixnum::from(2)), Fixnum::from(1));
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)3)->compare(state, Fixnum::from(4)), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(Fixnum::from(0),
+        Bignum::from(state, (native_int)3)->compare(state, Fixnum::from(3)));
+    TS_ASSERT_EQUALS(Fixnum::from(1),
+        Bignum::from(state, (native_int)3)->compare(state, Fixnum::from(2)));
+    TS_ASSERT_EQUALS(Fixnum::from(-1),
+        Bignum::from(state, (native_int)3)->compare(state, Fixnum::from(4)));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->compare(state, Fixnum::from(-3)), Fixnum::from(0));
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->compare(state, Fixnum::from(-2)), Fixnum::from(-1));
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->compare(state, Fixnum::from(-4)), Fixnum::from(1));
+    TS_ASSERT_EQUALS(Fixnum::from(0),
+        Bignum::from(state, (native_int)-3)->compare(state, Fixnum::from(-3)));
+    TS_ASSERT_EQUALS(Fixnum::from(-1),
+        Bignum::from(state, (native_int)-3)->compare(state, Fixnum::from(-2)));
+    TS_ASSERT_EQUALS(Fixnum::from(1),
+        Bignum::from(state, (native_int)-3)->compare(state, Fixnum::from(-4)));
   }
 
   void test_compare_with_float() {
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)3)->compare(state, Float::create(state, 3.0)), Fixnum::from(0));
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)3)->compare(state, Float::create(state, 2.9)), Fixnum::from(1));
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)3)->compare(state, Float::create(state, 3.1)), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(Fixnum::from(0),
+        Bignum::from(state, (native_int)3)->compare(state, Float::create(state, 3.0)));
+    TS_ASSERT_EQUALS(Fixnum::from(1),
+        Bignum::from(state, (native_int)3)->compare(state, Float::create(state, 2.9)));
+    TS_ASSERT_EQUALS(Fixnum::from(-1),
+        Bignum::from(state, (native_int)3)->compare(state, Float::create(state, 3.1)));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->compare(state, Float::create(state, -3.0)), Fixnum::from(0));
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->compare(state, Float::create(state, -2.9)), Fixnum::from(-1));
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->compare(state, Float::create(state, -3.1)), Fixnum::from(1));
+    TS_ASSERT_EQUALS(Fixnum::from(0),
+        Bignum::from(state, (native_int)-3)->compare(state, Float::create(state, -3.0)));
+    TS_ASSERT_EQUALS(Fixnum::from(-1),
+        Bignum::from(state, (native_int)-3)->compare(state, Float::create(state, -2.9)));
+    TS_ASSERT_EQUALS(Fixnum::from(1),
+        Bignum::from(state, (native_int)-3)->compare(state, Float::create(state, -3.1)));
   }
 
   void test_neg() {
-    Integer* negated = b1->neg(state);
-    check_bignum(negated, "-2147483647");
+    Bignum* big = Bignum::from(state, FIXNUM_MAX+1);
+    Integer* negated = big->neg(state);
+
+    TS_ASSERT(kind_of<Bignum>(negated));
+    TS_ASSERT_EQUALS(-(FIXNUM_MAX+1), negated->to_native());
+
+    Bignum* fix = Bignum::from(state, FIXNUM_MAX);
+    negated = fix->neg(state);
+
+    TS_ASSERT(kind_of<Fixnum>(negated));
+    TS_ASSERT_EQUALS(-FIXNUM_MAX, negated->to_native());
   }
 
   void test_invert() {
-    Integer* inverted = b1->invert(state);
-    check_bignum(inverted, "-2147483648");
+    Bignum* fix = Bignum::from(state, FIXNUM_MAX-1);
+    Integer* inverted = fix->invert(state);
+
+    TS_ASSERT(kind_of<Fixnum>(inverted));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, inverted->to_native());
+
+    fix = Bignum::from(state, FIXNUM_MAX);
+    inverted = fix->invert(state);
+
+    TS_ASSERT(kind_of<Bignum>(inverted));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, inverted->to_native());
   }
 
   void test_bit_and() {
-    Bignum* bn1 = Bignum::from(state, (native_int)2109047783);
-    Bignum* nbn1 = Bignum::from(state, (native_int)-2109047783);
-    check_bignum(bn1->bit_and(state, Fixnum::from(-23472)), "2109046848");
-    check_bignum(nbn1->bit_and(state, Fixnum::from(23472056)), "4334616");
+    Bignum* pos = Bignum::from(state, (1<<FIXNUM_WIDTH)|(1<<(FIXNUM_WIDTH-1)));
+    Integer* fix = pos->bit_and(state, Bignum::from(state, FIXNUM_MAX));
 
-    Bignum* bn2 = Bignum::from(state, (native_int)23472);
-    Bignum* nbn2 = Bignum::from(state, (native_int)-23472);
-    check_bignum(bn2->bit_and(state, Fixnum::from(-21090)), "2448");
-    check_bignum(nbn2->bit_and(state, Fixnum::from(2109047)), "2106448");
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(1<<(FIXNUM_WIDTH-1), fix->to_native());
 
-    check_bignum(bn2->bit_and(state, Float::create(state, -21090.2)), "2448");
-    check_bignum(nbn2->bit_and(state, Float::create(state, 2109047.7)), "2106448");
+    Bignum* neg = Bignum::from(state, FIXNUM_MIN);
+    fix = neg->bit_and(state, Bignum::from(state, FIXNUM_MIN));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
+
+    Integer* big = pos->bit_and(state, Bignum::from(state, (FIXNUM_MAX+1)));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(1<<FIXNUM_WIDTH, big->to_native());
+
+    neg = Bignum::from(state, -1 << FIXNUM_WIDTH);
+    big = neg->bit_and(state, Bignum::from(state, FIXNUM_MIN-1));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, big->to_native());
+  }
+
+  void test_bit_and_with_fixnum() {
+    Bignum* pos = Bignum::from(state, (1<<FIXNUM_WIDTH)|(1<<(FIXNUM_WIDTH-1)));
+    Integer* fix = pos->bit_and(state, Fixnum::from(FIXNUM_MAX));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(1<<(FIXNUM_WIDTH-1), fix->to_native());
+
+    Bignum* neg = Bignum::from(state, FIXNUM_MIN);
+    fix = neg->bit_and(state, Fixnum::from(FIXNUM_MIN));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
+  }
+
+  void test_bit_and_with_float() {
+    Bignum* pos = Bignum::from(state, 23472);
+    Integer* fix = pos->bit_and(state, Float::create(state, -21090.2));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(2448, fix->to_native());
+
+    Bignum* neg = Bignum::from(state, -23472);
+    fix = neg->bit_and(state, Float::create(state, 2109047.7));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(2106448, fix->to_native());
   }
 
   void test_bit_or() {
-    Bignum* bn1 = Bignum::from(state, (native_int)2109047783);
-    Bignum* nbn1 = Bignum::from(state, (native_int)-2109047783);
-    check_bignum(bn1->bit_or(state, Fixnum::from(-23472)), "-22537");
-    check_bignum(nbn1->bit_or(state, Fixnum::from(23472056)), "-2089910343");
+    Bignum* pos = Bignum::from(state, 1);
+    Integer* fix = pos->bit_or(state, Bignum::from(state, FIXNUM_MAX));
 
-    Bignum* bn2 = Bignum::from(state, (native_int)23472);
-    Bignum* nbn2 = Bignum::from(state, (native_int)-23472);
-    check_bignum(bn2->bit_or(state, Fixnum::from(-21090)), "-66");
-    check_bignum(nbn2->bit_or(state, Fixnum::from(2109047)), "-20873");
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, fix->to_native());
 
-    check_bignum(bn2->bit_or(state, Float::create(state, -21090.1)), "-66");
-    check_bignum(nbn2->bit_or(state, Float::create(state, 2109047.9)), "-20873");
+    Bignum* neg = Bignum::from(state, FIXNUM_MIN);
+    fix = neg->bit_or(state, Bignum::from(state, FIXNUM_MIN));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
+
+    Integer* big = pos->bit_or(state, Bignum::from(state, (FIXNUM_MAX+1)));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS((1<<FIXNUM_WIDTH)|1, big->to_native());
+
+    neg = Bignum::from(state, -1 << FIXNUM_WIDTH);
+    big = neg->bit_or(state, Bignum::from(state, FIXNUM_MIN-1));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, big->to_native());
+  }
+
+  void test_bit_or_with_fixnum() {
+    Bignum* pos = Bignum::from(state, 1);
+    Integer* fix = pos->bit_or(state, Fixnum::from(FIXNUM_MAX));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, fix->to_native());
+
+    Bignum* neg = Bignum::from(state, FIXNUM_MIN);
+    fix = neg->bit_or(state, Fixnum::from(FIXNUM_MIN));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
+  }
+
+  void test_bit_or_with_float() {
+    Bignum* pos = Bignum::from(state, 23472);
+    Integer* fix = pos->bit_or(state, Float::create(state, -21090.1));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(-66, fix->to_native());
+
+    Bignum* neg = Bignum::from(state, -23472);
+    fix = neg->bit_or(state, Float::create(state, 2109047.9));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(-20873, fix->to_native());
   }
 
   void test_bit_xor() {
-    Bignum* bn1 = Bignum::from(state, (native_int)2109047783);
-    Bignum* nbn1 = Bignum::from(state, (native_int)-2109047783);
-    check_bignum(bn1->bit_xor(state, Fixnum::from(-23472)), "-2109069385");
-    check_bignum(nbn1->bit_xor(state, Fixnum::from(23472056)), "-2094244959");
+    Bignum* pos = Bignum::from(state, 1);
+    Integer* fix = pos->bit_xor(state, Bignum::from(state, FIXNUM_MAX-1));
 
-    Bignum* bn2 = Bignum::from(state, (native_int)23472);
-    Bignum* nbn2 = Bignum::from(state, (native_int)-23472);
-    check_bignum(bn2->bit_xor(state, Fixnum::from(-21090)), "-2514");
-    check_bignum(nbn2->bit_xor(state, Fixnum::from(2109047)), "-2127321");
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, fix->to_native());
 
-    check_bignum(bn2->bit_xor(state, Float::create(state, -21090.1)), "-2514");
-    check_bignum(nbn2->bit_xor(state, Float::create(state, 2109047.9)), "-2127321");
+    Bignum* neg = Bignum::from(state, 1);
+    fix = neg->bit_xor(state, Bignum::from(state, FIXNUM_MIN-1));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
+
+    pos = Bignum::from(state, (FIXNUM_MAX+1)|FIXNUM_MAX);
+    Integer* big = pos->bit_xor(state, Bignum::from(state, FIXNUM_MAX));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, big->to_native());
+
+    neg = Bignum::from(state, FIXNUM_MAX);
+    big = neg->bit_xor(state, Bignum::from(state, -1));
+
+    TS_ASSERT(kind_of<Bignum>(big));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, big->to_native());
+  }
+
+  void test_bit_xor_with_fixnum() {
+    Bignum* pos = Bignum::from(state, 1);
+    Integer* fix = pos->bit_xor(state, Fixnum::from(FIXNUM_MAX-1));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MAX, fix->to_native());
+
+    Bignum* neg = Bignum::from(state, FIXNUM_MIN-1);
+    fix = neg->bit_xor(state, Fixnum::from(1));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, fix->to_native());
+  }
+
+  void test_bit_xor_with_float() {
+    Bignum* pos = Bignum::from(state, 23472);
+    Integer* fix = pos->bit_xor(state, Float::create(state, -21090.1));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(-2514, fix->to_native());
+
+    Bignum* neg = Bignum::from(state, -23472);
+    fix = neg->bit_xor(state, Float::create(state, 2109047.9));
+
+    TS_ASSERT(kind_of<Fixnum>(fix));
+    TS_ASSERT_EQUALS(-2127321, fix->to_native());
   }
 
   void test_gt() {
-    TS_ASSERT_EQUALS(b1->gt(state, b2), Qtrue);
-    TS_ASSERT_EQUALS(b2->gt(state, b1), Qfalse);
-    TS_ASSERT_EQUALS(b1->gt(state, b1), Qfalse);
-    TS_ASSERT_EQUALS(b1->gt(state, two), Qtrue);
+    TS_ASSERT_EQUALS(Qtrue,  b1->gt(state, b2));
+    TS_ASSERT_EQUALS(Qfalse, b2->gt(state, b1));
+    TS_ASSERT_EQUALS(Qfalse, b1->gt(state, b1));
+    TS_ASSERT_EQUALS(Qtrue,  b1->gt(state, two));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->gt(state, Fixnum::from(-3)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->gt(state, Fixnum::from(-2)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->gt(state, Fixnum::from(-4)), Qtrue);
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->gt(state, Fixnum::from(-3)));
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->gt(state, Fixnum::from(-2)));
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->gt(state, Fixnum::from(-4)));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->gt(state, Float::create(state, -3.0)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->gt(state, Float::create(state, -2.9)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->gt(state, Float::create(state, -3.1)), Qtrue);
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->gt(state, Float::create(state, -3.0)));
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->gt(state, Float::create(state, -2.9)));
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->gt(state, Float::create(state, -3.1)));
   }
 
   void test_ge() {
-    TS_ASSERT_EQUALS(b1->ge(state, b2), Qtrue);
-    TS_ASSERT_EQUALS(b2->ge(state, b1), Qfalse);
-    TS_ASSERT_EQUALS(b1->ge(state, b1), Qtrue);
-    TS_ASSERT_EQUALS(b1->ge(state, two), Qtrue);
+    TS_ASSERT_EQUALS(Qtrue,  b1->ge(state, b2));
+    TS_ASSERT_EQUALS(Qfalse, b2->ge(state, b1));
+    TS_ASSERT_EQUALS(Qtrue,  b1->ge(state, b1));
+    TS_ASSERT_EQUALS(Qtrue,  b1->ge(state, two));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->ge(state, Fixnum::from(-3)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->ge(state, Fixnum::from(-2)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->ge(state, Fixnum::from(-4)), Qtrue);
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->ge(state, Fixnum::from(-3)));
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->ge(state, Fixnum::from(-2)));
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->ge(state, Fixnum::from(-4)));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->ge(state, Float::create(state, -3.0)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->ge(state, Float::create(state, -2.9)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->ge(state, Float::create(state, -3.1)), Qtrue);
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->ge(state, Float::create(state, -3.0)));
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->ge(state, Float::create(state, -2.9)));
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->ge(state, Float::create(state, -3.1)));
   }
 
   void test_lt() {
-    TS_ASSERT_EQUALS(b1->lt(state, b2), Qfalse);
-    TS_ASSERT_EQUALS(b2->lt(state, b1), Qtrue);
-    TS_ASSERT_EQUALS(b1->lt(state, b1), Qfalse);
-    TS_ASSERT_EQUALS(b1->lt(state, two), Qfalse);
+    TS_ASSERT_EQUALS(Qfalse, b1->lt(state, b2));
+    TS_ASSERT_EQUALS(Qtrue,  b2->lt(state, b1));
+    TS_ASSERT_EQUALS(Qfalse, b1->lt(state, b1));
+    TS_ASSERT_EQUALS(Qfalse, b1->lt(state, two));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->lt(state, Fixnum::from(-3)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->lt(state, Fixnum::from(-2)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->lt(state, Fixnum::from(-4)), Qfalse);
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->lt(state, Fixnum::from(-3)));
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->lt(state, Fixnum::from(-2)));
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->lt(state, Fixnum::from(-4)));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->lt(state, Float::create(state, -3.0)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->lt(state, Float::create(state, -2.9)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->lt(state, Float::create(state, -3.1)), Qfalse);
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->lt(state, Float::create(state, -3.0)));
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->lt(state, Float::create(state, -2.9)));
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->lt(state, Float::create(state, -3.1)));
   }
 
   void test_le() {
-    TS_ASSERT_EQUALS(b1->le(state, b2), Qfalse);
-    TS_ASSERT_EQUALS(b2->le(state, b1), Qtrue);
-    TS_ASSERT_EQUALS(b1->le(state, b1), Qtrue);
-    TS_ASSERT_EQUALS(b1->le(state, two), Qfalse);
+    TS_ASSERT_EQUALS(Qfalse, b1->le(state, b2));
+    TS_ASSERT_EQUALS(Qtrue,  b2->le(state, b1));
+    TS_ASSERT_EQUALS(Qtrue,  b1->le(state, b1));
+    TS_ASSERT_EQUALS(Qfalse, b1->le(state, two));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->le(state, Fixnum::from(-3)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->le(state, Fixnum::from(-2)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->le(state, Fixnum::from(-4)), Qfalse);
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->le(state, Fixnum::from(-3)));
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->le(state, Fixnum::from(-2)));
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->le(state, Fixnum::from(-4)));
 
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->le(state, Float::create(state, -3.0)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->le(state, Float::create(state, -2.9)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->le(state, Float::create(state, -3.1)), Qfalse);
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->le(state, Float::create(state, -3.0)));
+    TS_ASSERT_EQUALS(Qtrue,
+        Bignum::from(state, (native_int)-3)->le(state, Float::create(state, -2.9)));
+    TS_ASSERT_EQUALS(Qfalse,
+        Bignum::from(state, (native_int)-3)->le(state, Float::create(state, -3.1)));
   }
 
   void test_to_float() {
@@ -560,28 +1059,26 @@ class TestBignum : public CxxTest::TestSuite {
     check_float(b5->to_float(state), Float::create(state, 17179869184.0));
   }
 
+  /* Math.frexp(Float::MAX) => [1.0 - Float::EPSILON, 1024]. In other words,
+   * the biggest floating point value that can be represented in IEEE 754 is
+   * (2 ** 1024) * (1.0 - Float::EPSILON), so (2 ** 1024) is the smallest
+   * mathematical integer (i.e. Bignum) that will cause a floating point
+   * Infinity value.
+   */
   void test_to_float_huge_positive() {
-    /* Make sure we have a big enough bignum */
-    char* buf = new char[2048];
-    for(int i = 0; i < 2047; i++) {
-      buf[i] = '1';
-    }
-    buf[2047] = '\0';
-    Bignum* b = as<Bignum>(Bignum::from_string(state, buf, 10));
-    Float*  f = b->to_float(state);
+    Bignum* big = Bignum::from(state, 2);
+    big = as<Bignum>(big->pow(state, Fixnum::from(1024)));
+
+    Float* f = big->to_float(state);
     TS_ASSERT_EQUALS(f->fisinf(state), Fixnum::from(1));
   }
 
   void test_to_float_huge_negative() {
-    /* Make sure we have a big enough bignum */
-    char* buf = new char[2049];
-    buf[0] = '-';
-    for(int i = 1; i < 2048; i++) {
-      buf[i] = '1';
-    }
-    buf[2048] = '\0';
-    Bignum* b = as<Bignum>(Bignum::from_string(state, buf, 10));
-    Float*  f = b->to_float(state);
+    Bignum* big = Bignum::from(state, 2);
+    big = as<Bignum>(big->pow(state, Fixnum::from(1024)));
+    big = as<Bignum>(big->mul(state, Fixnum::from(-1)));
+
+    Float* f = big->to_float(state);
     TS_ASSERT_EQUALS(f->fisinf(state), Fixnum::from(-1));
   }
 

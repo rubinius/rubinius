@@ -58,7 +58,6 @@ class TestFixnum : public CxxTest::TestSuite {
 
     TS_ASSERT(kind_of<Bignum>(max_plus1));
     TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
-    TS_ASSERT(Bignum::from(state, FIXNUM_MAX+1)->equal(state, as<Bignum>(max_plus1)));
   }
 
   void test_add_underflows_to_bignum() {
@@ -67,7 +66,6 @@ class TestFixnum : public CxxTest::TestSuite {
 
     TS_ASSERT(kind_of<Bignum>(min_minus1));
     TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
-    TS_ASSERT(Bignum::from(state, FIXNUM_MIN-1)->equal(state, as<Bignum>(min_minus1)));
   }
 
   void test_add_a_bignum() {
@@ -99,7 +97,6 @@ class TestFixnum : public CxxTest::TestSuite {
 
     TS_ASSERT(kind_of<Bignum>(max_plus1));
     TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
-    TS_ASSERT(Bignum::from(state, FIXNUM_MAX+1)->equal(state, as<Bignum>(max_plus1)));
   }
 
   void test_sub_underflows_to_bignum() {
@@ -108,7 +105,6 @@ class TestFixnum : public CxxTest::TestSuite {
 
     TS_ASSERT(kind_of<Bignum>(min_minus1));
     TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
-    TS_ASSERT(Bignum::from(state, FIXNUM_MIN-1)->equal(state, as<Bignum>(min_minus1)));
   }
 
   void test_sub_a_bignum() {
@@ -133,11 +129,21 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<Fixnum>(max));
     TS_ASSERT_EQUALS(FIXNUM_MAX, max->to_native());
 
+    Integer* min = third->mul(state, Fixnum::from(-3));
+
+    TS_ASSERT(kind_of<Fixnum>(min));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, min->to_native());
+
     Fixnum* neg_third = Fixnum::from((FIXNUM_MIN) / 3);
     max = neg_third->mul(state, Fixnum::from(-3));
 
     TS_ASSERT(kind_of<Fixnum>(max));
     TS_ASSERT_EQUALS(FIXNUM_MAX, max->to_native());
+
+    min = neg_third->mul(state, Fixnum::from(3));
+
+    TS_ASSERT(kind_of<Fixnum>(min));
+    TS_ASSERT_EQUALS(FIXNUM_MIN, min->to_native());
   }
 
   void test_mul_overflows_to_bignum() {
@@ -145,13 +151,13 @@ class TestFixnum : public CxxTest::TestSuite {
     Integer* max_plus1 = half->mul(state, Fixnum::from(2));
 
     TS_ASSERT(kind_of<Bignum>(max_plus1));
-    TS_ASSERT(Bignum::from(state, FIXNUM_MAX+1)->equal(state, as<Bignum>(max_plus1)));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
 
     Fixnum* neg_half = Fixnum::from((FIXNUM_MIN - 1) / 2);
     max_plus1 = neg_half->mul(state, Fixnum::from(-2));
 
     TS_ASSERT(kind_of<Bignum>(max_plus1));
-    TS_ASSERT(Bignum::from(state, FIXNUM_MAX+1)->equal(state, as<Bignum>(max_plus1)));
+    TS_ASSERT_EQUALS(FIXNUM_MAX+1, max_plus1->to_native());
   }
 
   void test_mul_underflows_to_bignum() {
@@ -159,13 +165,13 @@ class TestFixnum : public CxxTest::TestSuite {
     Integer* min_minus1 = half->mul(state, Fixnum::from(-2));
 
     TS_ASSERT(kind_of<Bignum>(min_minus1));
-    TS_ASSERT(Bignum::from(state, FIXNUM_MIN-1)->equal(state, as<Bignum>(min_minus1)));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
 
     Fixnum* neg_half = Fixnum::from((FIXNUM_MIN - 1) / 2);
     min_minus1 = neg_half->mul(state, Fixnum::from(2));
 
     TS_ASSERT(kind_of<Bignum>(min_minus1));
-    TS_ASSERT(Bignum::from(state, FIXNUM_MIN-1)->equal(state, as<Bignum>(min_minus1)));
+    TS_ASSERT_EQUALS(FIXNUM_MIN-1, min_minus1->to_native());
   }
 
   void test_mul_with_bignum() {
@@ -176,7 +182,7 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
     Bignum* expected = as<Bignum>(two->mul(state, Fixnum::from(2)));
 
-    TS_ASSERT(as<Bignum>(three)->equal(state, expected));
+    TS_ASSERT_EQUALS(Qtrue, as<Bignum>(three)->equal(state, expected));
   }
 
   void test_mul_a_float() {
@@ -330,7 +336,7 @@ class TestFixnum : public CxxTest::TestSuite {
     Integer* max_plus1 = as<Integer>(Fixnum::from(2)->pow(state, Fixnum::from(FIXNUM_WIDTH)));
 
     TS_ASSERT(kind_of<Bignum>(max_plus1));
-    TS_ASSERT(Bignum::from(state, FIXNUM_MAX + 1)->equal(state, as<Bignum>(max_plus1)));
+    TS_ASSERT_EQUALS(FIXNUM_MAX + 1, max_plus1->to_native());
   }
 
   void test_pow_underflows_to_bignum() {
@@ -478,12 +484,12 @@ class TestFixnum : public CxxTest::TestSuite {
     Integer* max_plus1 = Fixnum::from(1)->left_shift(state, Fixnum::from(FIXNUM_WIDTH));
 
     TS_ASSERT(kind_of<Bignum>(max_plus1));
-    TS_ASSERT(Bignum::from(state, FIXNUM_MAX + 1)->equal(state, as<Bignum>(max_plus1)));
+    TS_ASSERT_EQUALS(FIXNUM_MAX + 1, max_plus1->to_native());
 
     Integer* min_minus1 = Fixnum::from(-1)->left_shift(state, Fixnum::from(FIXNUM_WIDTH));
 
     TS_ASSERT(kind_of<Bignum>(min_minus1));
-    TS_ASSERT(Bignum::from(state, FIXNUM_MIN - 1)->equal(state, as<Bignum>(min_minus1)));
+    TS_ASSERT_EQUALS(FIXNUM_MIN - 1, min_minus1->to_native());
   }
 
   void test_right_shift() {
@@ -514,12 +520,12 @@ class TestFixnum : public CxxTest::TestSuite {
     Integer* max_plus1 = Fixnum::from(1)->right_shift(state, Fixnum::from(-FIXNUM_WIDTH));
 
     TS_ASSERT(kind_of<Bignum>(max_plus1));
-    TS_ASSERT(Bignum::from(state, FIXNUM_MAX + 1)->equal(state, as<Bignum>(max_plus1)));
+    TS_ASSERT_EQUALS(FIXNUM_MAX + 1, max_plus1->to_native());
 
     Integer* min_minus1 = Fixnum::from(-1)->right_shift(state, Fixnum::from(-FIXNUM_WIDTH));
 
     TS_ASSERT(kind_of<Bignum>(min_minus1));
-    TS_ASSERT(Bignum::from(state, FIXNUM_MIN - 1)->equal(state, as<Bignum>(min_minus1)));
+    TS_ASSERT_EQUALS(FIXNUM_MIN - 1, min_minus1->to_native());
   }
 
   void test_size() {
