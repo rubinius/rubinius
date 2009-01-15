@@ -13,6 +13,14 @@
 
 namespace rubinius {
 
+  void Fixnum::init(STATE) {
+    GO(fixnum_class).set(state->new_class("Fixnum", G(integer)));
+    G(fixnum_class)->instance_type(state, Fixnum::from(FixnumType));
+
+    G(fixnum_class)->set_const(state, "MIN", Fixnum::from(FIXNUM_MIN));
+    G(fixnum_class)->set_const(state, "MAX", Fixnum::from(FIXNUM_MAX));
+  }
+
   int Fixnum::to_int() const {
     return (int)STRIP_FIXNUM_TAG(this);
   }
@@ -157,11 +165,11 @@ namespace rubinius {
     return Fixnum::from(-to_native());
   }
 
-  Object* Fixnum::pow(STATE, Fixnum *exponent) {
+  Object* Fixnum::pow(STATE, Fixnum* exponent) {
     return Bignum::from(state, to_native())->pow(state, exponent);
   }
 
-  Float* Fixnum::pow(STATE, Float *exponent) {
+  Float* Fixnum::pow(STATE, Float* exponent) {
     return this->to_f(state)->fpow(state, exponent);
   }
 
@@ -260,7 +268,8 @@ namespace rubinius {
 
     native_int self = to_native();
 
-    if(shift > (native_int)FIXNUM_WIDTH || self >> ((native_int)FIXNUM_WIDTH - shift) > 0) {
+    if(shift >= (native_int)FIXNUM_WIDTH
+        || self >> ((native_int)FIXNUM_WIDTH - shift) > 0) {
       return Bignum::from(state, self)->left_shift(state, bits);
     }
 

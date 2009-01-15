@@ -13,6 +13,8 @@ namespace rubinius {
   public:
     const static object_type type = FixnumType;
 
+    static void init(STATE);
+
     /* WARNING. Do not use this version if +num+ has the chance of being
      * greater than FIXNUM_MAX or less than FIXNUM_MIN. */
     static Fixnum* from(native_int num) {

@@ -152,14 +152,27 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_normalize() {
-    Bignum* obj = Bignum::from(state, (native_int)13);
-    Object* out = Bignum::normalize(state, obj);
-    Bignum* large = Bignum::from(state, 9223372036854775807LL);
+    Bignum* max_fix = Bignum::from(state, FIXNUM_MAX);
+    Integer* max = Bignum::normalize(state, max_fix);
 
-    TS_ASSERT(out->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
+    TS_ASSERT(kind_of<Fixnum>(max));
+    TS_ASSERT_EQUALS(Fixnum::from(FIXNUM_MAX), as<Fixnum>(max));
 
-    TS_ASSERT_EQUALS(large, Bignum::normalize(state, large));
+    Bignum* min_fix = Bignum::from(state, FIXNUM_MIN);
+    Integer* min = Bignum::normalize(state, min_fix);
+
+    TS_ASSERT(kind_of<Fixnum>(min));
+    TS_ASSERT_EQUALS(Fixnum::from(FIXNUM_MIN), as<Fixnum>(min));
+
+    Bignum* max_fix_plus1 = Bignum::from(state, FIXNUM_MAX+1);
+
+    TS_ASSERT(kind_of<Bignum>(max_fix_plus1));
+    TS_ASSERT(Bignum::from(state, FIXNUM_MAX+1)->equal(state, max_fix_plus1));
+
+    Bignum* min_fix_minus1 = Bignum::from(state, FIXNUM_MIN-1);
+
+    TS_ASSERT(kind_of<Bignum>(min_fix_minus1));
+    TS_ASSERT(Bignum::from(state, FIXNUM_MIN-1)->equal(state, min_fix_minus1));
   }
 
   void check_bignum(Object* big, const char* val) {

@@ -42,25 +42,31 @@ namespace rubinius {
 #define FIXNUM_P(v)    (((intptr_t)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
 #define SYMBOL_P(v)    (((intptr_t)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
 
-  /* How many bits of data are available in fixnum, not including
-     the sign. */
+/* How many bits of data are available in fixnum, not including the sign. */
 #define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_FIXNUM_SHIFT - 1)
 #define FIXNUM_MAX   (((native_int)1 << FIXNUM_WIDTH) - 1)
-#define FIXNUM_MIN   (-(FIXNUM_MAX) - 1)
 
-  /* Standard Rubinius Representation
+/* This would naturally be (-(FIXNUM_MAX) - 1) considering the range of bits
+ * and how twos-complement works. However, the libtommath library used by
+ * Bignum does not store negative numbers in twos-complement. Consequently,
+ * this value of FIXNUM_MIN allows for checking that a value is in the Fixnum
+ * range merely by checking a count of the bits used to represent the number.
+ */
+#define FIXNUM_MIN   (-(FIXNUM_MAX))
 
-     Bit layout of special literals:
-
-0x0a:false    1010   % 0xa = 0xa
-0x1a:nil     11010   % 0xa = 0xa
-0x12:true    10010   % 0xa = 0x2
-0x22:undef  100010   % 0xa = 0x2
-
-
-false and nil share the same base bit pattern, allowing RTEST
-to be a simple test for that bit pattern.
-*/
+/* Standard Rubinius Representation
+ *
+ * Bit layout of special literals:
+ *
+ * 0x0a:false    1010   % 0xa = 0xa
+ * 0x1a:nil     11010   % 0xa = 0xa
+ * 0x12:true    10010   % 0xa = 0x2
+ * 0x22:undef  100010   % 0xa = 0x2
+ *
+ *
+ * false and nil share the same base bit pattern, allowing RTEST
+ * to be a simple test for that bit pattern.
+ */
 
 /* NOTE if these change, be sure to update subtend/ruby.h, it contains
  * a private copy of these constants */

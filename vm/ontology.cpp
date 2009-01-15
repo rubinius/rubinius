@@ -164,8 +164,7 @@ namespace rubinius {
     GO(numeric).set(numeric);
     Class* integer = new_class("Integer", numeric);
     GO(integer).set(integer);
-    GO(fixnum_class).set(new_class("Fixnum", integer));
-    G(fixnum_class)->instance_type(state, Fixnum::from(FixnumType));
+    Fixnum::init(this);
     Symbol::init(this);
 
     // Setup the special_class lookup table. We use this to resolve
