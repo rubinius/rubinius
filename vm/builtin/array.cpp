@@ -21,8 +21,6 @@ namespace rubinius {
   void Array::init(STATE) {
     GO(array).set(state->new_class("Array", G(object)));
     G(array)->set_object_type(state, ArrayType);
-
-    G(array)->set_const(state, "MAX_SIZE", Fixnum::from(FIXNUM_MAX));
   }
 
   size_t Array::size() {

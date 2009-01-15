@@ -24,15 +24,6 @@ class TestArray : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_init() {
-#if __WORDSIZE == 64
-    size_t max_size = 4611686018427387903U;
-#else
-    size_t max_size = 1073741823U;
-#endif
-    TS_ASSERT_EQUALS(Fixnum::from(max_size), G(array)->get_const(state, "MAX_SIZE"));
-  }
-
   void test_allocate() {
     Class* sub = state->new_class("ArraySub", G(array), 0);
     Array* ary = Array::allocate(state, sub);

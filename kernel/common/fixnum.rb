@@ -8,8 +8,6 @@
 
 class Fixnum < Integer
 
-  MAX = Platform::Fixnum.MAX
-
   def self.induced_from(obj)
     case obj
     when Fixnum
@@ -33,7 +31,7 @@ class Fixnum < Integer
 
   alias_method :/, :divide
   alias_method :modulo, :%
-  
+
   def to_s(base=10)
     raise ArgumentError, 'base must be between 2 and 36' unless base.between?(2, 36)
     based_to_s(base)
@@ -44,7 +42,7 @@ class Fixnum < Integer
   def taint
     self
   end
-  
+
   def untaint
     self
   end
