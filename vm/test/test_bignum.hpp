@@ -123,10 +123,6 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT(Bignum::from(state, FIXNUM_MIN-1)->equal(state, min_fix_minus1));
   }
 
-  void check_bignum(Object* big, const char* val) {
-    TS_FAIL("Remove check_bignum");
-  }
-
   void check_float(Float* f, Float* g) {
     TS_ASSERT_DELTA(f->val, g->val, TOLERANCE);
   }
