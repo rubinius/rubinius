@@ -77,12 +77,14 @@ module DirSpecs
       ]
     end
     
+    umask = File.umask 0
     FileUtils.rm_rf mock_dir
     files.each do |file|
       file = File.join mock_dir, file
       FileUtils.mkdir_p File.dirname(file)
       FileUtils.touch file
     end
+    File.umask umask
   end
 
   def self.expected_paths
