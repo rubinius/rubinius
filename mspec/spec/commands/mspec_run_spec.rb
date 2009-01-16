@@ -124,6 +124,11 @@ describe MSpecRun, "#options" do
     @script.options
     $stdout.should =~ /No files specified/
   end
+
+  it "calls #custom_options" do
+    @script.should_receive(:custom_options).with(@options)
+    @script.options @argv
+  end
 end
 
 describe MSpecRun, "#run" do

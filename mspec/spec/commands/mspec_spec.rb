@@ -37,6 +37,11 @@ describe MSpecMain, "#options" do
     @script.options [".", "-G", "fail", "-X", "ARG", "--list", "unstable", "some/file.rb"]
     @config[:options].should == [".", "-G", "fail", "--list", "unstable", "some/file.rb"]
   end
+
+  it "calls #custom_options" do
+    @script.should_receive(:custom_options).with(@options)
+    @script.options
+  end
 end
 
 describe MSpecMain, "#parallel" do

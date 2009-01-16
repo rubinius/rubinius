@@ -87,6 +87,11 @@ describe MSpecCI, "#options" do
     @options.should_receive(:help)
     @script.options
   end
+
+  it "calls #custom_options" do
+    @script.should_receive(:custom_options).with(@options)
+    @script.options
+  end
 end
 
 describe MSpecCI, "#run" do

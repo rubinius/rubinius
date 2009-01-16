@@ -53,6 +53,9 @@ class MSpecRun < MSpecScript
     options.version MSpec::VERSION
     options.help
 
+    options.doc "\n Custom options"
+    custom_options options
+
     options.doc "\n How might this work in the real world?"
     options.doc "\n   1. To simply run some specs"
     options.doc "\n     $ mspec path/to/the/specs"

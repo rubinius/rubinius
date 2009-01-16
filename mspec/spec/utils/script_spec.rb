@@ -193,6 +193,21 @@ describe MSpecScript, "#load" do
   end
 end
 
+describe MSpecScript, "#custom_options" do
+  before :each do
+    @script = MSpecScript.new
+  end
+
+  after :each do
+  end
+
+  it "prints 'None'" do
+    options = mock("options")
+    options.should_receive(:doc).with("   No custom options registered")
+    @script.custom_options options
+  end
+end
+
 describe MSpecScript, "#register" do
   before :each do
     @script = MSpecScript.new
@@ -209,6 +224,11 @@ describe MSpecScript, "#register" do
 
   it "does not register the formatter if config[:formatter] is false" do
     @script.config[:formatter] = false
+    @script.register
+  end
+
+  it "calls #custom_register" do
+    @script.should_receive(:custom_register)
     @script.register
   end
 end

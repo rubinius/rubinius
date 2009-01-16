@@ -75,6 +75,9 @@ class MSpecTag < MSpecScript
     options.version MSpec::VERSION
     options.help
 
+    options.doc "\n Custom options"
+    custom_options options
+
     options.doc "\n How might this work in the real world?"
     options.doc "\n   1. To add the 'fails' tag to failing specs"
     options.doc "\n     $ mspec tag path/to/the_file_spec.rb"

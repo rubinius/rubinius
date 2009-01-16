@@ -24,9 +24,9 @@ class MSpecMain < MSpecScript
 
     options = MSpecOptions.new "mspec [COMMAND] [options] (FILE|DIRECTORY|GLOB)+", 30, config
 
-    options.doc "  The mspec command sets up and invokes the sub-commands"
-    options.doc "  (see below) to enable, for instance, running the specs"
-    options.doc "  with different implementations like ruby, jruby, rbx, etc.\n"
+    options.doc " The mspec command sets up and invokes the sub-commands"
+    options.doc " (see below) to enable, for instance, running the specs"
+    options.doc " with different implementations like ruby, jruby, rbx, etc.\n"
 
     options.configure do |f|
       load f
@@ -66,12 +66,15 @@ class MSpecMain < MSpecScript
       end
     end
 
+    options.doc "\n Custom options"
+    custom_options options
+
     # The rest of the help output
-    options.doc "\n  where COMMAND is one of:\n"
-    options.doc "    run - Run the specified specs (default)"
-    options.doc "    ci  - Run the known good specs"
-    options.doc "    tag - Add or remove tags\n"
-    options.doc "  mspec COMMAND -h for more options\n"
+    options.doc "\n where COMMAND is one of:\n"
+    options.doc "   run - Run the specified specs (default)"
+    options.doc "   ci  - Run the known good specs"
+    options.doc "   tag - Add or remove tags\n"
+    options.doc " mspec COMMAND -h for more options\n"
 
     options.on_extra { |o| config[:options] << o }
     config[:options].concat options.parse(argv)

@@ -98,6 +98,11 @@ describe MSpecTag, "#options" do
     @script.options @argv
   end
 
+  it "calls #custom_options" do
+    @script.should_receive(:custom_options).with(@options)
+    @script.options @argv
+  end
+
   it "exits if there are no files to process" do
     @options.should_receive(:parse).and_return([])
     @script.should_receive(:exit)
