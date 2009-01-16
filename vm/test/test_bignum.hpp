@@ -40,7 +40,7 @@ class TestBignum : public CxxTest::TestSuite {
   void test_from_int_negative() {
     // http://gcc.gnu.org/ml/gcc-bugs/2003-04/msg00082.html
     Bignum* obj = Bignum::from(state, 0x80000000);
-    TS_ASSERT_EQUALS(0x80000000, obj->to_int());
+    TS_ASSERT_EQUALS((int)0x80000000, obj->to_int());
   }
 
   void test_from_unsigned_int() {
@@ -56,7 +56,7 @@ class TestBignum : public CxxTest::TestSuite {
   void test_from_long_negative() {
     // http://gcc.gnu.org/ml/gcc-bugs/2003-04/msg00082.html
     Bignum* obj = Bignum::from(state, 0x80000000L);
-    TS_ASSERT_EQUALS(0x80000000L, obj->to_long());
+    TS_ASSERT_EQUALS((long)0x80000000L, obj->to_long());
   }
 
   void test_from_unsigned_long() {
