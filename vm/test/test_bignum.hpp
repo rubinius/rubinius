@@ -636,12 +636,12 @@ class TestBignum : public CxxTest::TestSuite {
     Integer* fix = one->left_shift(state, width_minus1);
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(1 << (FIXNUM_WIDTH-1), fix->to_native());
+    TS_ASSERT_EQUALS(1L << (FIXNUM_WIDTH-1), fix->to_native());
 
     fix = neg_one->left_shift(state, width_minus1);
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(-1 << (FIXNUM_WIDTH-1), fix->to_native());
+    TS_ASSERT_EQUALS(-1L << (FIXNUM_WIDTH-1), fix->to_native());
 
     Integer* max_plus1 = one->left_shift(state, width);
 
@@ -664,12 +664,12 @@ class TestBignum : public CxxTest::TestSuite {
     Integer* fix = one->right_shift(state, neg_width_minus1);
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(1 << (FIXNUM_WIDTH-1), fix->to_native());
+    TS_ASSERT_EQUALS(1L << (FIXNUM_WIDTH-1), fix->to_native());
 
     fix = neg_one->right_shift(state, neg_width_minus1);
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(-1 << (FIXNUM_WIDTH-1), fix->to_native());
+    TS_ASSERT_EQUALS(-1L << (FIXNUM_WIDTH-1), fix->to_native());
 
     Integer* max_plus1 = one->right_shift(state, neg_width);
 
@@ -692,12 +692,12 @@ class TestBignum : public CxxTest::TestSuite {
     Integer* fix = as<Integer>(two->pow(state, width_minus1));
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(1 << (FIXNUM_WIDTH-1), fix->to_native());
+    TS_ASSERT_EQUALS(1L << (FIXNUM_WIDTH-1), fix->to_native());
 
     fix = as<Integer>(neg_two->pow(state, width_minus1));
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(-1 << (FIXNUM_WIDTH-1), fix->to_native());
+    TS_ASSERT_EQUALS(-1L << (FIXNUM_WIDTH-1), fix->to_native());
 
     Integer* max_plus1 = as<Integer>(two->pow(state, width));
 
@@ -707,7 +707,7 @@ class TestBignum : public CxxTest::TestSuite {
     Integer* big = as<Integer>(neg_two->pow(state, width));
 
     TS_ASSERT(kind_of<Bignum>(big));
-    TS_ASSERT_EQUALS(1 << (FIXNUM_WIDTH), big->to_native());
+    TS_ASSERT_EQUALS(1L << (FIXNUM_WIDTH), big->to_native());
 
     big = as<Integer>(neg_two->pow(state, Fixnum::from(FIXNUM_WIDTH+1)));
 
@@ -800,11 +800,11 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_bit_and() {
-    Bignum* pos = Bignum::from(state, (1<<FIXNUM_WIDTH)|(1<<(FIXNUM_WIDTH-1)));
+    Bignum* pos = Bignum::from(state, (1L<<FIXNUM_WIDTH)|(1L<<(FIXNUM_WIDTH-1)));
     Integer* fix = pos->bit_and(state, Bignum::from(state, FIXNUM_MAX));
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(1<<(FIXNUM_WIDTH-1), fix->to_native());
+    TS_ASSERT_EQUALS(1L<<(FIXNUM_WIDTH-1), fix->to_native());
 
     Bignum* neg = Bignum::from(state, FIXNUM_MIN);
     fix = neg->bit_and(state, Bignum::from(state, FIXNUM_MIN));
@@ -815,9 +815,9 @@ class TestBignum : public CxxTest::TestSuite {
     Integer* big = pos->bit_and(state, Bignum::from(state, (FIXNUM_MAX+1)));
 
     TS_ASSERT(kind_of<Bignum>(big));
-    TS_ASSERT_EQUALS(1<<FIXNUM_WIDTH, big->to_native());
+    TS_ASSERT_EQUALS(1L<<FIXNUM_WIDTH, big->to_native());
 
-    neg = Bignum::from(state, -1 << FIXNUM_WIDTH);
+    neg = Bignum::from(state, -1L << FIXNUM_WIDTH);
     big = neg->bit_and(state, Bignum::from(state, FIXNUM_MIN-1));
 
     TS_ASSERT(kind_of<Bignum>(big));
@@ -825,11 +825,11 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_bit_and_with_fixnum() {
-    Bignum* pos = Bignum::from(state, (1<<FIXNUM_WIDTH)|(1<<(FIXNUM_WIDTH-1)));
+    Bignum* pos = Bignum::from(state, (1L<<FIXNUM_WIDTH)|(1L<<(FIXNUM_WIDTH-1)));
     Integer* fix = pos->bit_and(state, Fixnum::from(FIXNUM_MAX));
 
     TS_ASSERT(kind_of<Fixnum>(fix));
-    TS_ASSERT_EQUALS(1<<(FIXNUM_WIDTH-1), fix->to_native());
+    TS_ASSERT_EQUALS(1L<<(FIXNUM_WIDTH-1), fix->to_native());
 
     Bignum* neg = Bignum::from(state, FIXNUM_MIN);
     fix = neg->bit_and(state, Fixnum::from(FIXNUM_MIN));
@@ -868,9 +868,9 @@ class TestBignum : public CxxTest::TestSuite {
     Integer* big = pos->bit_or(state, Bignum::from(state, (FIXNUM_MAX+1)));
 
     TS_ASSERT(kind_of<Bignum>(big));
-    TS_ASSERT_EQUALS((1<<FIXNUM_WIDTH)|1, big->to_native());
+    TS_ASSERT_EQUALS((1L<<FIXNUM_WIDTH)|1, big->to_native());
 
-    neg = Bignum::from(state, -1 << FIXNUM_WIDTH);
+    neg = Bignum::from(state, -1L << FIXNUM_WIDTH);
     big = neg->bit_or(state, Bignum::from(state, FIXNUM_MIN-1));
 
     TS_ASSERT(kind_of<Bignum>(big));
