@@ -108,7 +108,12 @@ class MSpecScript
     if config[:formatter].nil?
       config[:formatter] = @files.size < 50 ? DottedFormatter : FileFormatter
     end
-    config[:formatter].new(config[:output]).register if config[:formatter]
+
+    if config[:formatter]
+      formatter = config[:formatter].new(config[:output])
+      formatter.register
+      MSpec.store :formatter, formatter
+    end
 
     MatchFilter.new(:include, *config[:includes]).register    unless config[:includes].empty?
     MatchFilter.new(:exclude, *config[:excludes]).register    unless config[:excludes].empty?

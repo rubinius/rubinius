@@ -231,6 +231,18 @@ describe MSpecScript, "#register" do
     @script.should_receive(:custom_register)
     @script.register
   end
+
+  it "registers :formatter with the formatter instance" do
+    @formatter.stub!(:new).and_return(@formatter)
+    MSpec.should_receive(:store).with(:formatter, @formatter)
+    @script.register
+  end
+
+  it "does not register :formatter if config[:formatter] is false" do
+    @script.config[:formatter] = false
+    MSpec.should_not_receive(:store)
+    @script.register
+  end
 end
 
 describe MSpecScript, "#register" do
