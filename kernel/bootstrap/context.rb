@@ -9,8 +9,8 @@ class MethodContext
   end
 
   def activate(val)
-    Ruby.primitive :activate_context    
-    raise PrimitiveFailure, "primitive failed"
+    Ruby.primitive :activate_context
+    raise PrimitiveFailure, "MethodContext#activate primitive failed"
   end
 
   def sender
@@ -55,7 +55,7 @@ class MethodContext
 
   def locals
     Ruby.primitive :context_locals
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "MethodContext#locals primitive failed"
   end
 
   def name
@@ -68,12 +68,12 @@ class MethodContext
 
   def dup
     Ruby.primitive :context_dup
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "MethodContext#dup primitive failed"
   end
 
   def _get_field(int)
     Ruby.primitive :context_get_field
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "MethodContext#_get_field primitive failed"
   end
 end
 
@@ -89,11 +89,11 @@ class BlockEnvironment
 
   def self.allocate
     Ruby.primitive :blockenvironment_allocate
-    raise PrimitiveFailure, "unable to create BlockEnvironment"
+    raise PrimitiveFailure, "BlockEnvironment.allocate primitive failed"
   end
 
   def call(*args)
     Ruby.primitive :block_call
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "BlockEnvironment#call primitive failed"
   end
 end

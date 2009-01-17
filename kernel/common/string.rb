@@ -1003,12 +1003,6 @@ class String
     str
   end
 
-  # Returns the length of <i>self</i>.
-  def length
-    @num_bytes
-  end
-  alias_method :size, :length
-
   # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
   # <code>String</code> of length <i>integer</i> with <i>self</i> left justified
   # and padded with <i>padstr</i>; otherwise, returns <i>self</i>.

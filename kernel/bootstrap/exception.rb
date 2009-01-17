@@ -1,5 +1,3 @@
-# depends on: module.rb lookuptable.rb symbol.rb string.rb
-
 ##
 # Abstract class for implementing flow control in Rubinius.  Never seen by
 # ruby code.

@@ -1,12 +1,14 @@
 class Rubinius::Task
+  attr_accessor :probe
+
   def self.current
     Ruby.primitive :task_current
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Kernel.raise PrimitiveFailure, "Rubinius::Task.current primitive failed"
   end
 
   def self.create
     Ruby.primitive :task_dup
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Kernel.raise PrimitiveFailure, "Rubinius::Task.create primitive failed"
   end
 
   def self.new(&pr)
@@ -18,12 +20,12 @@ class Rubinius::Task
 
   def dup
     Ruby.primitive :task_dup
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Kernel.raise PrimitiveFailure, "Rubinius::Task#dup primitive failed"
   end
 
   def current_context
     Ruby.primitive :task_current_context
-    Kernel.raise PrimitiveFailure, 'task_current_context primitive failed'
+    Kernel.raise PrimitiveFailure, 'Rubinius::Task#current_context primitive failed'
   end
 
   def inspect
@@ -46,44 +48,35 @@ class Rubinius::Task
 
   def set_debugging(dc, cc)
     Ruby.primitive :task_set_debugging
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Kernel.raise PrimitiveFailure, "Rubinius::Task#set_debugging primitive failed"
   end
 
   def debug_channel
     Ruby.primitive :task_debug_channel
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Kernel.raise PrimitiveFailure, "Rubinius::Task#debug_channel primitive failed"
   end
 
   def control_channel
     Ruby.primitive :task_control_channel
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Kernel.raise PrimitiveFailure, "Rubinius::Task#control_channel primitive failed"
   end
 
   # Returns the current state of the debug_context_change flag
   def debug_context_change
     Ruby.primitive :task_get_debug_context_change
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Kernel.raise PrimitiveFailure, "Rubinius::Task#debug_context_change primitive failed"
   end
-  
+
   # Sets a flag on the task which will cause the task to yield to the debugger
   # when the context changes. This is used to handle breakpoints that need to be
   # triggered following a control flow change, e.g. after a send or return.
   def debug_context_change=(val)
     Ruby.primitive :task_set_debug_context_change
-    Kernel.raise PrimitiveFailure, "primitive failed"
+    Kernel.raise PrimitiveFailure, "Rubinius::Task#debug_context_change= primitive failed"
   end
-  
+
   def raise(exc)
     Ruby.primitive :task_raise
-    Kernel.raise PrimitiveFailure, "primitive failed"
-  end
-
-  def probe
-    @probe
-  end
-
-  def probe=(probe)
-    @probe = probe
+    Kernel.raise PrimitiveFailure, "Rubinius::Task#raise primitive failed"
   end
 end
-

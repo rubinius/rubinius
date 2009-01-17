@@ -1,17 +1,14 @@
-# depends on: opened_class_stub.rb
-
 class Array
-  def total    ; @total ; end
-  def tuple    ; @tuple ; end
-  def start    ; @start ; end
+  attr_accessor :total
+  attr_accessor :tuple
+  attr_accessor :start
+
+  alias_method :size,   :total
+  alias_method :length, :total
 
   def self.allocate
     Ruby.primitive :array_allocate
     raise PrimitiveFailure, "Array.allocate primitive failed"
-  end
-
-  def size
-    @total
   end
 
   # THIS MUST NOT BE REMOVED. the kernel requires a simple

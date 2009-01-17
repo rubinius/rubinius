@@ -132,7 +132,15 @@ modules.each do |name, files|
   end
 end
 
+all_kernel << 'runtime/alpha.rbc'
 all_kernel << 'runtime/loader.rbc'
+
+file 'runtime/alpha.rbc' => 'kernel/alpha.rb' do |t|
+  rbc = t.name
+  src = t.prerequisites.first
+
+  compile_ruby src, rbc, false, true
+end
 
 file 'runtime/loader.rbc' => 'kernel/loader.rb'
 

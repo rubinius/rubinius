@@ -1,16 +1,16 @@
 class MetaClass
   # Do not define #methods as an accessor for @methods, use #method_table instead
-  def method_cache     ; @method_cache      ; end
-  def name             ; @name              ; end
-  def constants_table  ; @constants         ; end
-  def encloser         ; @encloser          ; end
-  def superclass       ; @superclass        ; end
-  def instance_fields  ; @instance_fields   ; end
-  def instance_flags   ; @instance_flags    ; end
-  def attached_instance; @attached_instance ; end
+  #
+  attr_reader :attached_instance
+  attr_reader :encloser
+  attr_reader :instance_fields
+  attr_reader :instance_flags
+  attr_reader :method_cache
+  attr_reader :method_table
+  attr_reader :name
+  attr_reader :superclass
 
-  def method_table
-    @method_table
+  def constants_table
+    @constants
   end
 end
-

@@ -5,6 +5,7 @@
 #include "exception.hpp"
 #include "detection.hpp"
 
+#include <cctype>
 #include <vector>
 #include <iostream>
 #include <cxxabi.h>
@@ -79,9 +80,20 @@ namespace rubinius {
     return s;
   }
 
+  static void squeeze_space(std::string& str) {
+    std::string ws = "    ";
+
+    std::string::size_type pos = str.find(ws);
+    if(pos == std::string::npos) return;
+
+    std::string::size_type i = pos + 4;
+    while(std::isspace(str[i])) i++;
+    str.erase(pos + 2, i - pos - 2);
+  }
 
   static void demangle(VMException::Backtrace& s) {
     for (size_t i = 0; i < s.size(); i++) {
+      squeeze_space(s[i]);
       const char* str = s[i].c_str();
       const char* pos = strstr(str, " _Z");
       /* Found a mangle. */

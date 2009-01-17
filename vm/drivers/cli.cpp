@@ -21,6 +21,8 @@ static void load_runtime_kernel(Environment& env, std::string root) {
     exit(1);
   }
 
+  env.run_file(root + "/alpha.rbc");
+
   while(!stream.eof()) {
     std::string line;
 
@@ -68,10 +70,10 @@ int main(int argc, char** argv) {
 
   } catch(Assertion *e) {
     std::cout << "VM Assertion:" << std::endl;
-    std::cout << "  " << e->reason << std::endl;
+    std::cout << "  " << e->reason << std::endl << std::endl;
     e->print_backtrace();
 
-    std::cout << "Ruby backtrace:" << std::endl;
+    std::cout << std::endl << "Ruby backtrace:" << std::endl;
     env.state->print_backtrace();
     delete e;
   } catch(RubyException &e) {

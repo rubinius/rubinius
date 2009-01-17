@@ -10,10 +10,6 @@
 # Arrays can be created with the <tt>[]</tt> syntax, or via <tt>Array.new</tt>.
 
 class Array
-  def total=(n) ; @total = n ; end
-  def tuple=(t) ; @tuple = t ; end
-  def start=(s) ; @start = s ; end
-
   include Enumerable
 
   # The flow control for many of these methods is
@@ -181,7 +177,7 @@ class Array
       if index < 0
         index += @total
         raise IndexError,"Index #{index-@total} out of bounds" if index < 0
-      end      
+      end
     end
 
     if ins_length
@@ -203,14 +199,14 @@ class Array
       else
         replacement = [ent]
       end
-      
+
       newtotal = (index > @total) ? index : @total
       if(replacement.size > ins_length)
         newtotal += replacement.size - ins_length
       elsif(replacement.size < ins_length)
         newtotal -= ins_length - replacement.size
       end
-      
+
       nt = Tuple.new(newtotal)
       nt.copy_from(@tuple, @start, index < @total ? index : @total, 0)
       nt.copy_from(replacement.tuple, replacement.start, replacement.size, index)
@@ -221,7 +217,7 @@ class Array
       @start = 0
       @tuple = nt
       @total = newtotal
-                
+
       return ent
     else
       nt = @start + index + 1
@@ -1240,11 +1236,7 @@ class Array
     @total
   end
 
-  def length
-    @total
-  end
-  
-  def unshift(*values)    
+  def unshift(*values)
     if(@start > values.size)
       # fit the new values in between 0 and @start if possible
       @start -= values.size
@@ -1294,11 +1286,11 @@ class Array
     # halve the tuple size until the total > 1/3 the size of the total
     begin
       new_size /= 2
-    end while(@total < (new_size / 6)) 
+    end while(@total < (new_size / 6))
 
     tuple = Tuple.new(new_size)
     # position values in the middle somewhere
-    new_start = (new_size-@total)/2 
+    new_start = (new_size-@total)/2
     tuple.copy_from(@tuple, @start, @total, new_start)
 
     @start = new_start
@@ -1649,7 +1641,7 @@ class Array
       i += 1
     end
   end
-  
+
   def __rescue_match__(exception)
     i = 0
     while i < @total
@@ -1658,11 +1650,9 @@ class Array
     end
     false
   end
-  
+
   private :qsort
   private :isort
   private :qsort_block
   private :isort_block
 end
-
-

@@ -1,5 +1,3 @@
-# TODO - Needs ivar_as_index removal cleanup
-
 ##
 # Channel is a FIFO, thread-aware value passing class that can hold any number
 # of objects similar to Queue.  Use #send to add objects to the channel and
@@ -20,13 +18,13 @@ class Channel
   # Returns nil if nothing is waiting, or a List object which contains all
   # Thread objects waiting on this Channel.
 
-  def waiting() @waiting end
+  attr_reader :waiting
 
   ##
   # Returns nil if there are no values, otherwise a List object containing all
   # values the Channel contains.
 
-  def value() @value end
+  attr_reader :value
 
   ##
   # Creates a new Channel and registers it with the VM.
@@ -44,6 +42,8 @@ class Channel
     Ruby.primitive :channel_send
     raise PrimitiveFailure, "primitive failed"
   end
+
+  alias_method :<<, :send
 
   ##
   # Removes and returns the first value from the Channel.  If the channel
@@ -85,4 +85,3 @@ class Channel
   end
 
 end
-

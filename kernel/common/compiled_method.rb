@@ -117,11 +117,6 @@ class StaticScope
 end
 
 class CompiledMethod < Executable
-  class Visibility
-    attr_accessor :method
-    attr_reader   :visibility
-  end
-
   # Any CompiledMethod with this value in it's serial slot
   # is expected to be the default, kernel version
   KernelMethodSerial = 47
@@ -188,11 +183,6 @@ class CompiledMethod < Executable
 
   def inherit_scope(other)
     @scope = other.scope
-#    if ss = other.scope
-#      @scope = ss
-#    else
-#      @scope = StaticScope.new(Object)
-#    end
   end
 
   def activate(recv, mod, args, locals=nil, &prc)

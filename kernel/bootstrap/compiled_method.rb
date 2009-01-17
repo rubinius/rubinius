@@ -2,17 +2,17 @@ class CompiledMethod < Executable
 
   def self.allocate
     Ruby.primitive :compiledmethod_allocate
-    raise PrimitiveFailure, "unable to create a CompiledMethod"
+    raise PrimitiveFailure, "CompiledMethod.allocate primitive failed"
   end
 
   def compile
     Ruby.primitive :compiledmethod_compile
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "CompiledMethod#compile primitive failed"
   end
 
   def make_machine_method
     Ruby.primitive :compiledmethod_make_machine_method
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "CompiledMethod#make_machine_method primitive failed"
   end
 
   def activate(recv, mod, args)
@@ -21,46 +21,29 @@ class CompiledMethod < Executable
   end
 
   ##
-  # A method's visibility
+  # An instance of Visibility is stored in a class's or module's
+  # method table and records a method's visibility. The Visibility
+  # instance contains a reference to the actual compiled method.
 
   class Visibility
+    attr_accessor :method
+    attr_accessor :visibility
 
-    ##
-    # Create a MethodVisibility for +method+ with +visibility+
-
-    def initialize(method, visibility)
-      @method = method
-      @visibility = visibility
-    end
-
-    ##
     # Is this method private?
-
     def private?
       @visibility == :private
     end
 
     ##
     # Is this method protected?
-
     def protected?
       @visibility == :protected
     end
 
     ##
     # Is this method public?
-
     def public?
       @visibility == :public
     end
-
-    ##
-    # Sets a visibility's visibility
-
-    def visibility=(visibility)
-      @visibility = visibility
-    end
-
   end
-
 end

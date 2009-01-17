@@ -2,7 +2,7 @@ class Regexp
 
   def self.allocate
     Ruby.primitive :regexp_allocate
-    raise PrimitiveFailure, "regexp_allocate primitive failed"
+    raise PrimitiveFailure, "Regexp.allocate primitive failed"
   end
 
   ##
@@ -16,16 +16,16 @@ class Regexp
 
   def search_region(str, start, finish, forward) # equiv to MRI's re_search
     Ruby.primitive :regexp_search_region
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Regexp#search_region primitive failed"
   end
 
   def match_start(str, offset) # equiv to MRI's re_match
     Ruby.primitive :regexp_match_start
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Regexp#match_start primitive failed"
   end
 
   def options
     Ruby.primitive :regexp_options
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Regexp#options primitive failed"
   end
 end

@@ -4,30 +4,9 @@ class String
     raise PrimitiveFailure, "String.pattern primitive failed"
   end
 
-  # Returns the <code>Symbol</code> corresponding to <i>self</i>, creating the
-  # symbol if it did not previously exist. See <code>Symbol#id2name</code>.
-  #
-  #   "Koala".intern         #=> :Koala
-  #   s = 'cat'.to_sym       #=> :cat
-  #   s == :cat              #=> true
-  #   s = '@cat'.to_sym      #=> :@cat
-  #   s == :@cat             #=> true
-  #
-  # This can also be used to create symbols that cannot be represented using the
-  # <code>:xxx</code> notation.
-  #
-  #   'cat and dog'.to_sym   #=> :"cat and dog"
-  #--
-  # TODO: Add taintedness-check
-  #++
-  def to_sym
-    Ruby.primitive :symbol_lookup
-    raise PrimitiveFailure, "Unable to symbolize: #{self.dump}"
-  end
-
   def to_f
     Ruby.primitive :string_to_f
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "String#to_f primitive failed"
   end
 
   def __crypt__(other_str)
@@ -37,16 +16,12 @@ class String
 
   def append(str)
     Ruby.primitive :string_append
-    raise TypeError, "only a String instance is accepted"
+    raise TypeError, "String#append primitive only accepts Strings"
   end
 
   def dup
     Ruby.primitive :string_dup
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def to_s
-    self
+    raise PrimitiveFailure, "String#dup primitive failed"
   end
 
   def copy_from(other, start, size, dest)
@@ -72,7 +47,10 @@ class String
     Ruby.primitive :string_equal
   end
 
+  # Returns the length of <i>self</i>.
   def length
     @num_bytes
   end
+
+  alias_method :size, :length
 end

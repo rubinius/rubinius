@@ -15,21 +15,10 @@ class Object
     return tup
   end
 
-  def __show__
-    Ruby.primitive :object_show
-  end
-
   def metaclass
     class << self;self;end
   end
-  alias_method :__metaclass__, :metaclass  
-  # TODO - Improve this check for metaclass support
-  # TODO - Make this private in core
-  def __verify_metaclass__
-    if self.__kind_of__(Fixnum) or self.__kind_of__(Symbol)
-      raise TypeError, "no virtual class for #{self.class}"
-    end
-  end
+  alias_method :__metaclass__, :metaclass
 
   def get_instance_variables
     Ruby.primitive :object_get_ivars

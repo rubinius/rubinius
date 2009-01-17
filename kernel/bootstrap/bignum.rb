@@ -28,7 +28,7 @@ class Bignum < Integer
     Ruby.primitive :bignum_mul
     super(o)
   end
-  
+
   # this method is aliased to / in core
   # see README-DEVELOPERS regarding safe math compiler plugin
   def divide(o)
@@ -133,8 +133,9 @@ class Bignum < Integer
   end
 
   def to_s(radix=10)
-    raise ArgumentError, 'base must be between 2 and 36' unless
-      radix.between?(2, 36)
+    unless radix.between?(2, 36)
+      raise ArgumentError, 'base must be between 2 and 36'
+    end
     radix_to_s(radix)
   end
 

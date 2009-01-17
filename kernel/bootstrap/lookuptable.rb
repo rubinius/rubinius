@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 ##
 # A LookupTable is similar to a Hash in that keys are used to set and
 # reference values. However, unlike Hash, whether a key matches an
@@ -32,17 +30,20 @@
 
 class LookupTable
   class Bucket
-    def key;   @key   ; end
-    def value; @value ; end
-    def next;  @next  ; end
+    attr_reader :key
+    attr_reader :value
+    attr_reader :next
   end
 
   class Association
-    def key;   @key   ; end
-    def value; @value ; end
-    def value=(v);  @value = v;  end
-    def active?;    @active;     end
-    def active=(v); @active = v; end
+    attr_reader :key
+    attr_writer :active
+
+    attr_accessor :value
+
+    def active?
+      @active
+    end
 
     def self.new(name, value)
       Ruby.primitive :lookuptableassociation_allocate
@@ -54,9 +55,14 @@ class LookupTable
     end
   end
 
-  def values;  @values  ; end
-  def bins;    @bins    ; end
-  def size;    @entries ; end
+  attr_reader :values
+  attr_reader :bins
+
+  def size
+    @entries
+  end
+
+  alias_method :length, :size
 
   def self.allocate
     Ruby.primitive :lookuptable_allocate
@@ -75,15 +81,7 @@ class LookupTable
     raise PrimitiveFailure, "LookupTable#dup primitive failed"
   end
 
-  def [](key)
-    Ruby.primitive :lookuptable_aref
-    raise PrimitiveFailure, "LookupTable#[] primitive failed"
-  end
-
-  def []=(key, val)
-    Ruby.primitive :lookuptable_store
-    raise PrimitiveFailure, "LookupTable#[]= primitive failed"
-  end
+  alias_method :clone, :dup
 
   def fetch(key, return_on_failure)
     Ruby.primitive :lookuptable_fetch
@@ -94,6 +92,10 @@ class LookupTable
     Ruby.primitive :lookuptable_has_key
     raise PrimitiveFailure, "LookupTable#key? primitive failed"
   end
+
+  alias_method :has_key?, :key?
+  alias_method :include?, :key?
+  alias_method :member?,  :key?
 
   def delete(key)
     Ruby.primitive :lookuptable_delete
@@ -142,10 +144,4 @@ class LookupTable
     end
     self
   end
-
-  alias_method :length,   :size
-  alias_method :has_key?, :key?
-  alias_method :include?, :key?
-  alias_method :member?,  :key?
-  alias_method :clone,    :dup
 end

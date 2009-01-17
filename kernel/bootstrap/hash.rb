@@ -1,5 +1,3 @@
-# depends on: module.rb symbol.rb string.rb lookuptable.rb
-
 class Hash
 
   # Bucket abstracts storage and search of entries in Hash.

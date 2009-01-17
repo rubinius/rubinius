@@ -2,7 +2,7 @@ class Tuple
 
   def self.new(cnt)
     Ruby.primitive :tuple_allocate
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Tuple.new primitive failed"
   end
 
   def self.pattern(size, obj)
@@ -32,7 +32,7 @@ class Tuple
 
   def fields
     Ruby.primitive :tuple_fields
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Tuple#fields primitive failed"
   end
 
   def copy_from(other, start, length, dest)
@@ -47,6 +47,6 @@ class Tuple
 
   def self.create_weakref(object)
     Ruby.primitive :tuple_create_weakref
-    raise PrimitiveFailure, "Unable to create a weak reference"
+    raise PrimitiveFailure, "Tuple.create_weakref failed, unable to create a weak reference"
   end
 end
