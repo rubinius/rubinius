@@ -22,7 +22,7 @@ class Object
       raise ArgumentError, "#{name.inspect} is not a symbol"
     else
       raise TypeError, "#{name.inspect} is not a symbol" unless name.respond_to?(:to_str)
-      name = name.to_str
+      name = Type.coerce_to(name, String, :to_str)
       return name.to_sym if name[0] == ?@
     end
 
