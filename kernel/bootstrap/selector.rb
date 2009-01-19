@@ -11,6 +11,6 @@ class Selector
 
   def clear
     Ruby.primitive :selector_clear
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Selector#clear primitive failed"
   end
 end

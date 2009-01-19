@@ -1,6 +1,3 @@
-class InvalidIndexError < Exception
-end
-
 class Object
 
   def __find_method__(meth)
@@ -22,16 +19,16 @@ class Object
 
   def get_instance_variables
     Ruby.primitive :object_get_ivars
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Object#get_instance_variables primitive failed"
   end
 
   def get_instance_variable(sym)
     Ruby.primitive :object_get_ivar
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Object#get_instance_variable primitive failed"
   end
 
   def set_instance_variable(sym, value)
     Ruby.primitive :object_set_ivar
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Object#set_instance_variable primitive failed"
   end
 end

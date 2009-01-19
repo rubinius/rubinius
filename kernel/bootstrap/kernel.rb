@@ -2,22 +2,22 @@ module Kernel
 
   def clone
     Ruby.primitive :object_clone
-    raise TypeError, "unable to clone"
+    raise TypeError, "Kernel#clone primitive failed"
   end
 
   def dup
     Ruby.primitive :object_dup
-    raise TypeError, "unable to dup"
+    raise TypeError, "Kernel#dup primitive failed"
   end
 
   def equal?(other)
     Ruby.primitive :object_equal
-    raise PrimitiveFailure, "Object#equal? failed."
+    raise PrimitiveFailure, "Kernel#equal? primitive failed"
   end
 
   def eql?(other) # HACK dup of equal?
     Ruby.primitive :object_equal
-    raise PrimitiveFailure, "Object#eql? failed."
+    raise PrimitiveFailure, "Kernel#eql? primitive failed"
   end
 
   def extend(*mods)
@@ -27,17 +27,17 @@ module Kernel
 
   def freeze
     Ruby.primitive :object_freeze
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Kernel#freeze primitive failed"
   end
 
   def frozen?
     Ruby.primitive :object_frozen_p
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Kernel#frozen? primitive failed"
   end
 
   def hash
     Ruby.primitive :object_hash
-    raise PrimitiveFailure, "Object#hash failed."
+    raise PrimitiveFailure, "Kernel#hash primitive failed"
   end
 
   def inspect
@@ -46,7 +46,7 @@ module Kernel
 
   def object_id
     Ruby.primitive :object_id
-    raise PrimitiveFailure, "Object#object_id failed."
+    raise PrimitiveFailure, "Kernel#object_id primitive failed"
   end
 
   def respond_to?(meth,include_private=false)
@@ -62,22 +62,22 @@ module Kernel
 
   def taint
     Ruby.primitive :object_taint
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Kernel#taint primitive failed"
   end
 
   def tainted?
     Ruby.primitive :object_tainted_p
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Kernel#tainted? primitive failed"
   end
 
   def untaint
     Ruby.primitive :object_untaint
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Kernel#untaint primitive failed"
   end
 
   def yield_gdb(obj)
     Ruby.primitive :yield_gdb
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Kernel#yield_gdb primitive failed"
   end
 
 end

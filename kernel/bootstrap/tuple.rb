@@ -12,22 +12,22 @@ class Tuple
 
   def [](idx)
     Ruby.primitive :tuple_at
-    raise InvalidIndexError, "Unable to access index '#{idx}' of #{self}"
+    raise PrimitiveFailure, "Tuple#[] primitive failed"
   end
 
   def []=(idx, val)
     Ruby.primitive :tuple_put
-    raise InvalidIndexError, "Unable to set index '#{idx}' of #{self}"
+    raise PrimitiveFailure, "Tuple#[]= primitive failed"
   end
 
   def at(idx)
     Ruby.primitive :tuple_at
-    raise InvalidIndexError, "Unable to access index '#{idx}' of #{self}"
+    raise PrimitiveFailure, "Tuple#[] primitive failed"
   end
 
   def put(idx, val)
     Ruby.primitive :tuple_put
-    raise InvalidIndexError, "Unable to set index '#{idx}' of #{self}"
+    raise PrimitiveFailure, "Tuple#[]= primitive failed"
   end
 
   def fields

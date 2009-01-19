@@ -31,7 +31,7 @@ class Channel
 
   def self.new
     Ruby.primitive :channel_new
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Channel.new primitive failed"
   end
 
   ##
@@ -40,7 +40,7 @@ class Channel
 
   def send(obj)
     Ruby.primitive :channel_send
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Channel#send primitive failed"
   end
 
   alias_method :<<, :send
@@ -51,7 +51,7 @@ class Channel
 
   def receive
     Ruby.primitive :channel_receive
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Channel#receive primitive failed"
   end
 
   ##
