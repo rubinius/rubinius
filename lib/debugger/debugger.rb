@@ -52,20 +52,28 @@ class Debugger
         end
         @breakpoint_tracker.wake_target(@debug_thread) unless @quit  # defer wake until we cleanup
       end
-      # Release singleton, since our loop thread is exiting
-      Debugger.__clear_instance
 
-      # Remove all remaining breakpoints
-      @breakpoint_tracker.clear_breakpoints
+      begin
+        # Release singleton, since our loop thread is exiting
+        Debugger.__clear_instance
 
-      # De-register debugger on the global debug channel
-      Rubinius::VM.debug_channel = nil
+        # Remove all remaining breakpoints
+        @breakpoint_tracker.clear_breakpoints
 
-      if @debug_thread
-        # @debug_thread will be nil if debugger was quit from other than this thread
-        @breakpoint_tracker.wake_target(@debug_thread)
+        # De-register debugger on the global debug channel
+        Rubinius::VM.debug_channel = nil
+
+        if @debug_thread
+          # @debug_thread will be nil if debugger was quit from other than this thread
+          @breakpoint_tracker.wake_target(@debug_thread)
+        end
+        @breakpoint_tracker.release_waiting_threads
+      rescue Exception => e
+        # An exception has occurred in the breakpoint or debugger code
+        STDERR.puts "An exception occured while exiting the debugger:"
+        STDERR.puts e.to_s
+        STDERR.puts e.awesome_backtrace
       end
-      @breakpoint_tracker.release_waiting_threads
     end
     Thread.pass until waiting_for_breakpoint?
   end
@@ -158,7 +166,9 @@ class Debugger
     @interface.at_breakpoint(self, thread, ctxt, bp_list)
   end
 
-  # Retrieves the source code for the specified file, if it exists
+  # Retrieves the source code for the specified file, if it exists.
+  # The last source listing is cached, since it is common to list the source
+  # for a file multiple times.
   def source_for(file)
     return @last_lines if file == @last_file
 
@@ -170,25 +180,13 @@ class Debugger
   end
 
   # Returns the decoded instruction sequence for the specified CompiledMethod.
-  # This should be used in preference to calling #decode directly on the method,
-  # since it returns the original instruction sequence, not the current iseq
-  # which may contain yield_debugger instructions.
+  # The last decode listing is cached, since it is common to list the bytecode
+  # for a method multiple times.
   def asm_for(cm)
     return @last_asm if cm == @last_cm
 
-    # Remove yield_debugger instructions (if any)
-    if bp_list = @breakpoint_tracker.get_breakpoints_on(cm)
-      @last_cm, @last_asm = cm, cm.decode
-      bc = cm.iseq.dup
-      bp_list.each do |bp|
-        Breakpoint.encoder.replace_instruction(bc, bp.ip, bp.original_instruction)
-      end
-      @last_cm, @last_asm = cm, cm.decode(bc)
-    else
-      @last_cm, @last_asm = cm, cm.decode
-    end
+    @last_cm, @last_asm = cm, cm.decode
     @last_asm
   end
 end
-
 
