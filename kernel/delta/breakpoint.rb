@@ -78,11 +78,10 @@ class Breakpoint
   end
 
   ##
-  # Removes the breakpoint by removing the yield_debugger instruction at the
-  # breakpoint. Returns the address of the breakpoint, so that the context IP
-  # can be reset and execution can proceed following the breakpoint.
+  # Removes the breakpoint by removing the yield_debugger flag at the
+  # breakpoint. Returns the address of the breakpoint.
   def remove(ctxt=nil, bytecodes=@method.iseq)
-    raise NotImplementedError
+    @method.clear_breakpoint @ip
     @ip
   end
 

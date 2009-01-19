@@ -171,6 +171,15 @@ namespace rubinius {
     return ip;
   }
 
+  Object* CompiledMethod::clear_breakpoint(STATE, Fixnum* ip) {
+    // TODO Return an exception indicating the problem
+    if(backend_method_ == 0) return Qnil;
+    backend_method_->run = VMMethod::interpreter;
+    backend_method_->set_breakpoint_flags(state, ip->to_native(),
+            backend_method_->get_breakpoint_flags(state, ip->to_native()) & ~cBreakpoint);
+    return ip;
+  }
+
   Object* CompiledMethod::is_breakpoint(STATE, Fixnum* ip) {
     // TODO Return an exception indicating the problem
     if(backend_method_ == 0) return Qfalse;

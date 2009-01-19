@@ -88,6 +88,9 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_set_breakpoint
     Object* set_breakpoint(STATE, Fixnum* ip);
 
+    // Ruby.primitive :compiledmethod_clear_breakpoint
+    Object* clear_breakpoint(STATE, Fixnum* ip);
+
     // Ruby.primitive :compiledmethod_is_breakpoint
     Object* is_breakpoint(STATE, Fixnum* ip);
 
