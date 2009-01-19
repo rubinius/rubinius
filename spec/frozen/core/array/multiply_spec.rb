@@ -15,24 +15,8 @@ describe "Array#*" do
     ([1, 2, 3, 4] * obj).should == [1, 2, 3, 4, 1, 2, 3, 4]
   end
 
-  it "checks whether the passed argument responds to #to_str" do
-    obj = mock('.')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return(".")
-    ([1,2] * obj).should == '1.2'
-  end
-
-  it "checks whether the passed argument responds to #to_int" do
-    obj = mock('2')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(2)
-    ([1,2] * obj).should == [1,2,1,2]
-  end
-
   it "raises a TypeError if the argument can neither be converted to a string nor an integer" do
-    obj = mock('wrong argument')
-    obj.should_receive(:respond_to?).with(:to_str).and_return(false)
-    obj.should_receive(:respond_to?).with(:to_int).and_return(false)
+    obj = mock('not a string or integer')
     lambda{ [1,2] * obj }.should raise_error(TypeError)
   end
 

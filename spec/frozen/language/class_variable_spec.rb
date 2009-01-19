@@ -1,81 +1,56 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../fixtures/class_variables'
 
-module ClassVariableSpec
-  class A
-    @@a_cvar = :a_cvar
-    def a_cvar() @@a_cvar end
-    def a_cvar=(val) @@a_cvar = val end
-  end
-
-  class B < A; end
-
-  module M
-    @@cvar = :value
-
-    def cvar
-      @@cvar
-    end
-    
-    def cvar=(val)
-      @@cvar = val
-    end
-  end
-
-  class C
-    extend M
-    
-    def self.cvar?
-      self.class_variable_defined?(:@@cvar)
-    end
-    
-    def self.cvar2=(val)
-      @@cvar = val
-    end
-  end
-end
-
-describe "A Class Variable" do
+describe "A class variable" do
   it "can be accessed from a subclass" do
-    ClassVariableSpec::B.new.a_cvar.should == :a_cvar
+    ClassVariablesSpec::ClassB.new.cvar_a.should == :cvar_a
   end
 
-  it "sets the value in the superclass from the subclass" do
-    a = ClassVariableSpec::A.new
-    b = ClassVariableSpec::B.new
-    b.a_cvar = :new_val
+  it "is set in the superclass" do
+    a = ClassVariablesSpec::ClassA.new
+    b = ClassVariablesSpec::ClassB.new
+    b.cvar_a = :new_val
 
-    [a.a_cvar].should == [:new_val]
-  end
-
-  it "retrieves the value from the place it is defined" do
-    [ClassVariableSpec::C.cvar.should] == [:value]
+    a.cvar_a.should == :new_val
   end
 end
 
-describe "A Class Variable defined in a Module" do
-  it "can be accessed from Classes that are extended by the Module" do
-    ClassVariableSpec::C.cvar.should == :value
+describe "A class variable defined in a module" do
+  it "can be accessed from classes that extend the module" do
+    ClassVariablesSpec::ClassC.cvar_m.should == :value
+  end
+
+  it "is not defined in these classes" do
+    ClassVariablesSpec::ClassC.cvar_defined?.should be_false
   end
   
-  it "is not defined in these Classes" do
-    ClassVariableSpec::C.cvar?.should be_false
-  end
-  
-  it "only updates the Class Variable in the Module when using a Method defined in the Module" do
-    ClassVariableSpec::C.cvar = "new value"
-    ClassVariableSpec::C.cvar.should == "new value"
+  it "is only updated in the module a method defined in the module is used" do
+    ClassVariablesSpec::ClassC.cvar_m = "new value"
+    ClassVariablesSpec::ClassC.cvar_m.should == "new value"
     
-    ClassVariableSpec::C.cvar?.should be_false
+    ClassVariablesSpec::ClassC.cvar_defined?.should be_false
   end
   
-  it "does updates the Class Variable in the Module but in the Class when using a Method defined in the Class" do
-    ClassVariableSpec::C.cvar2 = "new value"    
-    ClassVariableSpec::C.cvar?.should be_true
+  it "is updated in the class when a Method defined in the class is used" do
+    ClassVariablesSpec::ClassC.cvar_c = "new value"    
+    ClassVariablesSpec::ClassC.cvar_defined?.should be_true
   end
-  
-  it "allows to retrieve the Class Variable in the Class with methods from the Module" do
-    ClassVariableSpec::C.cvar2 = "new value"
-    
-    ClassVariableSpec::C.cvar.should == "new value"
+
+  it "can be accessed inside the class using the module methods" do
+    ClassVariablesSpec::ClassC.cvar_c = "new value"
+
+    ClassVariablesSpec::ClassC.cvar_m.should == "new value"
+  end
+
+  it "can be accessed from modules that extend the module" do
+    ClassVariablesSpec::ModuleO.cvar_n.should == :value
+  end
+
+  it "is defined in the extended module" do
+    ClassVariablesSpec::ModuleN.class_variable_defined?(:@@cvar_n).should be_true
+  end
+
+  it "is not defined in the extending module" do
+    ClassVariablesSpec::ModuleO.class_variable_defined?(:@@cvar_n).should be_false
   end
 end

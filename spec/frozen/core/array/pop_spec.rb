@@ -125,13 +125,6 @@ describe "Array#pop" do
         a.should == []
       end
 
-      it "checks whether the passed argument responds to #to_int" do
-        obj = mock('method_missing to_int')
-        obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-        obj.should_receive(:method_missing).with(:to_int).and_return(2)
-        ["a", "b", "c"].pop(obj).should == ["b", "c"]
-      end
-
       it "raises a TypeError when the passed n can be coerced to Integer" do
         lambda{ [1, 2].pop("cat") }.should raise_error(TypeError)
         lambda{ [1, 2].pop(nil) }.should raise_error(TypeError)

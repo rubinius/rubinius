@@ -107,13 +107,7 @@ describe "String#to_i" do
   
   it "tries to convert the base to an integer using to_int" do
     obj = mock('8')
-    def obj.to_int() 8 end
-    
-    "777".to_i(obj).should == 0777
-
-    obj = mock('8')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(8)
+    obj.should_receive(:to_int).and_return(8)
 
     "777".to_i(obj).should == 0777
   end

@@ -222,22 +222,6 @@ describe "Array#[]=" do
     lambda { a[from .. "b"] = [] }.should raise_error(TypeError)
   end
 
-  it "checks whether the Range elements respond to #to_int with [m..n] and [m...n]" do
-    from = mock('from')
-    to = mock('to')
-
-    def from.<=>(o) 0 end
-    def to.<=>(o) 0 end
-
-    from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    from.should_receive(:method_missing).with(:to_int).and_return(1)
-
-    to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    to.should_receive(:method_missing).with(:to_int).and_return(-2)
-
-    [1, 2, 3, 4][from .. to] = ["a", "b", "c"]
-  end
-
   it "raises an IndexError when passed indexes out of bounds" do
     a = [1, 2, 3, 4]
     lambda { a[-5] = ""      }.should raise_error(IndexError)

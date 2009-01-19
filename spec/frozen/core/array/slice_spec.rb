@@ -61,14 +61,6 @@ describe "Array#slice!" do
     a.should == []
   end
 
-  it "checks whether the start and length respond to #to_int" do
-    obj = mock('2')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(2)
-    a = [1, 2, 3, 4, 5]
-    a.slice!(obj).should == 3
-  end
-
   it "removes and return elements in range" do
     a = [1, 2, 3, 4, 5, 6, 7, 8]
     a.slice!(1..4).should == [2, 3, 4, 5]
@@ -101,22 +93,6 @@ describe "Array#slice!" do
 
     lambda { a.slice!("a" .. "b")  }.should raise_error(TypeError)
     lambda { a.slice!(from .. "b") }.should raise_error(TypeError)
-  end
-
-  it "checks whether the range arguments respond to #to_int" do
-    from = mock('from')
-    to = mock('to')
-
-    def from.<=>(o) 0 end
-    def to.<=>(o) 0 end
-
-    from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    from.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(1)
-    to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    to.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(-2)
-
-    a = [1, 2, 3, 4, 5]
-    a.slice!(from .. to).should == [2, 3, 4]
   end
 
   ruby_version_is "" ... "1.8.7" do

@@ -59,19 +59,11 @@ describe "Array#last" do
     [1, 2, 3, 4, 5].last(obj).should == [4, 5]
   end
 
-  it "check whether the passed argument responds to #to_int" do
-    obj = mock('method_missing to_int')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(2)
-    [1, 2, 3, 4, 5].last(obj).should == [4, 5]
-  end
-
   it "raises a TypeError if the passed argument is not numeric" do
     lambda { [1,2].last(nil) }.should raise_error(TypeError)
     lambda { [1,2].last("a") }.should raise_error(TypeError)
 
     obj = mock("nonnumeric")
-    obj.should_receive(:respond_to?).with(:to_int).and_return(false)
     lambda { [1,2].last(obj) }.should raise_error(TypeError)
   end
 

@@ -48,15 +48,10 @@ describe "String#crypt" do
     lambda { "hello".crypt("f") }.should raise_error(ArgumentError)
   end
 
-  it "converts the salt arg to a string via to_str" do
+  it "calls #to_str to converts the salt arg to a String" do
     obj = mock('aa')
-    def obj.to_str() "aa" end
-    
-    "".crypt(obj).should == "aaQSqAReePlq6"
+    obj.should_receive(:to_str).and_return("aa")
 
-    obj = mock('aa')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("aa")
     "".crypt(obj).should == "aaQSqAReePlq6"
   end
 

@@ -17,13 +17,8 @@ describe "String#replace" do
   
   it "tries to convert other to string using to_str" do
     other = mock('x')
-    def other.to_str() "an object converted to a string" end
-    "hello".replace(other).should == "an object converted to a string"
-
-    obj = mock('X')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("X")
-    "hello".replace(obj).should == "X"
+    other.should_receive(:to_str).and_return("converted to a string")
+    "hello".replace(other).should == "converted to a string"
   end
   
   it "raises a TypeError if other can't be converted to string" do

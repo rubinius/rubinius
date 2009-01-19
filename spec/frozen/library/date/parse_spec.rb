@@ -33,7 +33,11 @@ describe "Date#parse" do
 
   it "can handle DDD as year day number" do
     d = Date.parse("100")
-    d.should == Date.civil(Date.today.year, 4, 9)
+    if Date.gregorian_leap?(Date.today.year)
+      d.should == Date.civil(Date.today.year, 4, 9)
+    else
+      d.should == Date.civil(Date.today.year, 4, 10)
+    end
   end
 
   it "can handle MMDD as month and day" do

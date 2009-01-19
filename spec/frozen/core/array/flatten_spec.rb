@@ -28,16 +28,8 @@ describe "Array#flatten" do
       [ 1, 2, [3, [4, 5] ] ].flatten(obj).should == [1, 2, 3, [4, 5]]
     end
 
-    it "checks wheter the passed argument responds to #to_int" do
-      obj = mock('method_missing to_int')
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(1)
-      [1, 2, [3, [4, 5] ] ].flatten(obj).should == [1, 2, 3, [4, 5]]
-    end
-    
     it "raises a TypeError when the passed Object can't be converted to an Integer" do
       obj = mock("Not converted")
-      obj.should_receive(:respond_to?).with(:to_int).and_return(false)
       lambda { [ 1, 2, [3, [4, 5] ] ].flatten(obj) }.should raise_error(TypeError)
     end
   end
@@ -134,13 +126,6 @@ describe "Array#flatten!" do
       [ 1, 2, [3, [4, 5] ] ].flatten!(obj).should == [1, 2, 3, [4, 5]]
     end
 
-    it "checks wheter the passed argument responds to #to_int" do
-      obj = mock('method_missing to_int')
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(1)
-      [1, 2, [3, [4, 5] ] ].flatten!(obj).should == [1, 2, 3, [4, 5]]
-    end
-    
     it "raises a TypeError when the passed Object can't be converted to an Integer" do
       obj = mock("Not converted")
       lambda { [ 1, 2, [3, [4, 5] ] ].flatten!(obj) }.should raise_error(TypeError)

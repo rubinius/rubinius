@@ -43,14 +43,6 @@ describe "StringIO#reopen when passed [Object, Integer]" do
     lambda { @io.reopen(Object.new, IO::RDWR) }.should raise_error(TypeError)
   end
   
-  it "checks whether the passed Object responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("reopened")
-    @io.reopen(obj, IO::RDONLY)
-    @io.string.should == "reopened"
-  end
-  
   not_compliant_on :rubinius do
     it "raises an Errno::EACCES when trying to reopen self with a frozen String in write-mode" do
       lambda { @io.reopen("burn".freeze, IO::WRONLY) }.should raise_error(Errno::EACCES)
@@ -120,14 +112,6 @@ describe "StringIO#reopen when passed [Object, Object]" do
     lambda { @io.reopen(Object.new, "r") }.should raise_error(TypeError)
   end
   
-  it "checks whether the passed Object responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("reopened")
-    @io.reopen(obj, "r")
-    @io.string.should == "reopened"
-  end
-
   ruby_bug "#", "1.8.7" do
     it "resets self's position to 0" do
       @io.read(5)
@@ -149,13 +133,6 @@ describe "StringIO#reopen when passed [Object, Object]" do
     @io.closed_read?.should be_false
     @io.closed_write?.should be_true
     @io.string.should == "reopened"
-  end
-  
-  it "checks whether the passed mode-Object responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).any_number_of_times.with(:to_str).and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("r")
-    @io.reopen("reopened", obj)
   end
 
   not_compliant_on :rubinius do
@@ -236,14 +213,6 @@ describe "StringIO#reopen when passed [Object]" do
   it "taints self when the passed Object was tainted" do
     @io.reopen(StringIO.new("reopened").taint)
     @io.tainted?.should be_true
-  end
-
-  it "checks whether the passed Object responds to #to_strio" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_strio).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_strio).and_return(StringIO.new("reopened"))
-    @io.reopen(obj)
-    @io.string.should == "reopened"
   end
 end
 

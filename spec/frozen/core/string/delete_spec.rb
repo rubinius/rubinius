@@ -59,21 +59,16 @@ describe "String#delete" do
 
   it "tries to convert each set arg to a string using to_str" do
     other_string = mock('lo')
-    def other_string.to_str() "lo" end
-    
-    other_string2 = mock('o')
-    def other_string2.to_str() "o" end
-    
-    "hello world".delete(other_string, other_string2).should == "hell wrld"
+    other_string.should_receive(:to_str).and_return("lo")
 
-    obj = mock('x')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("o")
-    "hello world".delete(obj).should == "hell wrld"
+    other_string2 = mock('o')
+    other_string2.should_receive(:to_str).and_return("o")
+
+    "hello world".delete(other_string, other_string2).should == "hell wrld"
   end
   
   it "raises a TypeError when one set arg can't be converted to a string" do
-    lambda { "hello world".delete(?o)        }.should raise_error(TypeError)
+    lambda { "hello world".delete(100)       }.should raise_error(TypeError)
     lambda { "hello world".delete(:o)        }.should raise_error(TypeError)
     lambda { "hello world".delete(mock('x')) }.should raise_error(TypeError)
   end

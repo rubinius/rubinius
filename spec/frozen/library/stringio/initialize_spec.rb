@@ -121,18 +121,11 @@ describe "StringIO#initialize when passed [Object, mode]" do
     obj = mock('to_str')
     obj.should_receive(:to_str).and_return("r")
     @io.send(:initialize, "example", obj)
-    
+
     @io.closed_read?.should be_false
     @io.closed_write?.should be_true
   end
 
-  it "checks whether the passed mode responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("r")
-    @io.send(:initialize, "example", obj)
-  end
-  
   not_compliant_on :rubinius do
     it "raises an Errno::EACCES error when passed a frozen string with a write-mode" do
       (str = "example").freeze
@@ -166,14 +159,6 @@ describe "StringIO#initialize when passed [Object]" do
     @io.string.should == "example"
   end
 
-  it "checks whether the passed argument responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("example")
-    @io.send(:initialize, obj)
-    @io.string.should == "example"
-  end
-  
   not_compliant_on :rubinius do
     it "automatically sets the mode to read-only when passed a frozen string" do
       (str = "example").freeze

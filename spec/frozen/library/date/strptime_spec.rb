@@ -65,7 +65,11 @@ describe "Date#strftime" do
 
   it "should be able to parse the year day with leading zeroes" do
     d = Date.today
-    Date.strptime("097", "%j").should == Date.civil(2008, 4, 6)
+    if Date.gregorian_leap?(Date.today.year)
+      Date.strptime("097", "%j").should == Date.civil(d.year, 4, 6)
+    else
+      Date.strptime("097", "%j").should == Date.civil(d.year, 4, 7)
+    end
   end
 
   it "should be able to parse the month with leading zeroes" do

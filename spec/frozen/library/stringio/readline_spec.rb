@@ -55,13 +55,6 @@ describe "StringIO#readline when passed [seperator]" do
     obj.should_receive(:to_str).and_return(">")
     @io.readline(obj).should == "this>"
   end
-
-  it "checks whether the passed seperator responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return(">")
-    @io.readline(obj).should == "this>"
-  end
 end
 
 describe "StringIO#readline when passed no argument" do

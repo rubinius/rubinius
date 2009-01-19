@@ -161,18 +161,10 @@ describe "String#%" do
 
   it "calls to_int on width star and precision star tokens" do
     w = mock('10')
-    def w.to_int() 10 end
-    p = mock('5')
-    def p.to_int() 5 end
+    w.should_receive(:to_int).and_return(10)
 
-    ("%*.*f" % [w, p, 1]).should == "   1.00000"
-
-    w = mock('10')
-    w.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    w.should_receive(:method_missing).with(:to_int).and_return(10)
     p = mock('5')
-    p.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    p.should_receive(:method_missing).with(:to_int).and_return(5)
+    p.should_receive(:to_int).and_return(5)
 
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
   end
@@ -289,23 +281,13 @@ describe "String#%" do
       obj = mock('65')
       obj.should_receive(:to_ary).and_return([65])
       ("%c" % obj).should == ("%c" % [65])
-
-      obj = mock('65')
-      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return([65])
-      ("%c" % obj).should == "A"
     end
 
     it "calls #to_int on argument for %c formats, if the argument does not respond to #to_ary" do
       obj = mock('65')
-      def obj.to_int() 65 end
-      ("%c" % obj).should == ("%c" % obj.to_int)
+      obj.should_receive(:to_int).and_return(65)
 
-      obj = mock('65')
-      obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(65)
-      ("%c" % obj).should == "A"
+      ("%c" % obj).should == ("%c" % 65)
     end
   end
 
@@ -648,34 +630,10 @@ describe "String#%" do
       obj.should_receive(:to_i).and_return(5)
       (format % obj).should == (format % 5)
 
-      obj = mock('5')
-      obj.should_receive(:to_int).and_return(5)
-      (format % obj).should == (format % 5)
-
-      obj = mock('4')
-      def obj.to_int() 4 end
-      def obj.to_i() 0 end
-      (format % obj).should == (format % 4)
-
-      obj = mock('65')
-      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(false)
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(65)
-      (format % obj).should == (format % 65)
-
-      obj = mock('65')
-      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(false)
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(false)
-      obj.should_receive(:respond_to?).with(:to_i).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_i).any_number_of_times.and_return(65)
-      (format % obj).should == (format % 65)
-
-      obj = mock('4')
-      def obj.respond_to?(arg) [:to_i, :to_int].include?(arg) end
-      def obj.method_missing(name, *args)
-        name == :to_int ? 4 : 0 unless name == :to_ary
-      end
-      (format % obj).should == (format % 4)
+      obj = mock('6')
+      obj.stub!(:to_i).and_return(5)
+      obj.should_receive(:to_int).and_return(6)
+      (format % obj).should == (format % 6)
     end
 
     it "doesn't taint the result for #{format} when argument is tainted" do
@@ -689,8 +647,7 @@ describe "String#%" do
     ruby_version_is "1.8.6.278" do
       it "tries to convert the passed argument to an Array using #to_ary" do
         obj = mock('3.14')
-        obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-        obj.should_receive(:method_missing).with(:to_ary).and_return([3.14])
+        obj.should_receive(:to_ary).and_return([3.14])
         (format % obj).should == (format % [3.14])
       end
     end
@@ -720,12 +677,6 @@ describe "String#%" do
       obj = mock('5.0')
       obj.should_receive(:to_f).and_return(5.0)
       (format % obj).should == (format % 5.0)
-
-      obj = mock('3.14')
-      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(false)
-      obj.should_receive(:respond_to?).with(:to_f).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_f).and_return(3.14)
-      (format % obj).should == (format % 3.14)
     end
 
     it "doesn't taint the result for #{format} when argument is tainted" do

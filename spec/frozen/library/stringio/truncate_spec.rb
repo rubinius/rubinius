@@ -56,14 +56,6 @@ describe "StringIO#truncate when passed [length]" do
   it "raises a TypeError when the passed length can't be converted to an Integer" do
     lambda { @io.truncate(Object.new) }.should raise_error(TypeError)
   end
-  
-  it "checks whether the passed length responds to #to_int" do
-    obj = mock('method_missing to_int')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(4)
-    @io.truncate(obj)
-    @io.string.should == "1234"
-  end
 end
 
 describe "StringIO#truncate when self is not writable" do

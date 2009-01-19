@@ -29,17 +29,9 @@ describe "Array#-" do
     obj.should_receive(:to_ary).and_return([2, 3, 3, 4])
     ([1, 1, 2, 2, 3, 4] - obj).should == [1, 1]
   end
-  
-  it "checks whether the passed argument responds to #to_ary" do
-    obj = mock('[2,3,4]')
-    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_ary).and_return([2, 3, 4])
-    ([1, 1, 2, 2, 3, 4] - obj).should == [1, 1]
-  end
 
-  it "raises a TypeError if the passed argument is not an array and does not respond to #to_ary" do
+  it "raises a TypeError if the argument cannot be coerced to an Array by calling #to_ary" do
     obj = mock('not an array')
-    obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
     lambda { [1, 2, 3] - obj }.should raise_error(TypeError)
   end
 

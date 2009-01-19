@@ -210,18 +210,10 @@ describe "Array#fill with (filler, index, length)" do
     [1, 2, 3, 4, 5].fill(filler, obj, obj).should == [1, 2, filler, filler, 5]
   end
 
-  it "checks whether the passed arguments respond to #to_int" do
-    obj = mock('method_missing to_int')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).twice.and_return(2)
-    [1, 2, 3, 4, 5].fill('a', obj, obj).should == [1, 2, "a", "a", 5]
-  end
-
   it "raises a TypeError if the index is not numeric" do
     lambda { [].fill 'a', true }.should raise_error(TypeError)
 
     obj = mock('nonnumeric')
-    obj.should_receive(:respond_to?).with(:to_int).and_return(false)
     lambda { [].fill('a', obj) }.should raise_error(TypeError)
   end
 
@@ -337,18 +329,9 @@ describe "Array#fill with (filler, range)" do
     [1, 2, 3, 4, 5].fill(filler, obj..obj).should == [1, 2, filler, 4, 5]
   end
 
-  it "checks whether the start and end of the passed range respond to #to_int" do
-    obj = mock('method_missing to_int')
-    def obj.<=>(rhs); rhs == self ? 0 : nil end
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).twice.and_return(2)
-    [1, 2, 3, 4, 5].fill('a', obj..obj).should == [1, 2, "a", 4, 5]
-  end
-
   it "raises a TypeError if the start or end of the passed range is not numeric" do
     obj = mock('nonnumeric')
     def obj.<=>(rhs); rhs == self ? 0 : nil end
-    obj.should_receive(:respond_to?).with(:to_int).and_return(false)
     lambda { [].fill('a', obj..obj) }.should raise_error(TypeError)
   end
 end

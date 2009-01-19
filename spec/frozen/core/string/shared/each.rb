@@ -67,18 +67,10 @@ describe :string_each, :shared => true do
 
   it "tries to convert the separator to a string using to_str" do
     separator = mock('l')
-    def separator.to_str() 'l' end
+    separator.should_receive(:to_str).and_return("l")
 
     a = []
     "hello\nworld".send(@method, separator) { |s| a << s }
-    a.should == [ "hel", "l", "o\nworl", "d" ]
-
-    obj = mock('l')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("l")
-
-    a = []
-    "hello\nworld".send(@method, obj) { |s| a << s }
     a.should == [ "hel", "l", "o\nworl", "d" ]
   end
 

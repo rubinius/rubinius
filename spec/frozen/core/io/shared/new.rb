@@ -76,7 +76,7 @@ describe :io_new, :shared => true do
   it "raises IOError on closed stream" do
     lambda { IO.new(IOSpecs.closed_file.fileno, 'w') }.should raise_error(IOError)
   end
-  
+
   it "does not close the stream automatically if given a block" do
     begin
       io = IO.new(@file.fileno, 'w') {|f| puts f.read }
@@ -93,14 +93,14 @@ describe :io_new, :shared => true do
       io.close
     }.should complain(/IO::new.*does not take block.*IO::open.*instead/)
   end
-  
+
   it "accepts only one argument" do
     # By default, IO.new without an arg assumes RO
     @file.close
     io = ""
     @file = File.open @filename, 'r'
-    lambda { 
-      io = IO.new(@file.fileno) 
+    lambda {
+      io = IO.new(@file.fileno)
     }.should_not raise_error()
 
     io.close

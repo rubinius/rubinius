@@ -30,13 +30,6 @@ describe "Array#delete_at" do
     [1, 2].delete_at(obj).should == 2
   end
 
-  it "checks whether the passed argument responds to #to_int" do
-    obj = mock('method_missing to_int')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(-1)
-    [1, 2].delete_at(obj).should == 2
-  end
-
   it "accepts negative indices" do
     a = [1, 2]
     a.delete_at(-2).should == 1

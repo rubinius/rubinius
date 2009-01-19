@@ -14,16 +14,6 @@ describe :hash_replace, :shared => true do
     h.should == {1 => 2, 3 => 4}
   end
 
-  it "checks whether the passed argument responds to #to_hash" do
-    obj = mock('{1=>2,3=>4}')
-    obj.should_receive(:respond_to?).with(:to_hash).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_hash).and_return({1 => 2, 3 => 4})
-
-    h = {}
-    h.send(@method, obj)
-    h.should == {1 => 2, 3 => 4}
-  end
-
   it "calls to_hash on hash subclasses" do
     h = {}
     h.send(@method, ToHashHash[1 => 2])

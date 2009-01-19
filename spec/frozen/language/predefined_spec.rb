@@ -178,7 +178,7 @@ describe "Predefined global $stdout" do
     obj = mock('object')
     lambda { $stdout = obj }.should raise_error(TypeError)
 
-    obj.should_receive(:respond_to?).with(:write).and_return(true);
+    obj.stub!(:write)
     lambda { $stdout = obj }.should_not raise_error()
   end
 end

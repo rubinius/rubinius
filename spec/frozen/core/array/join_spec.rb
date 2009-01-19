@@ -25,9 +25,14 @@ describe "Array#join" do
     a.join(sep).should == ""
   end
 
-  it "raises a TypeError if the passed separator is not a string and does not respond to #to_str" do
-    obj = mock('.')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(false)
+  it "calls #to_str to convert the separator to a String" do
+    sep = mock("separator")
+    sep.should_receive(:to_str).and_return(", ")
+    [1, 2].send(@method, sep).should == "1, 2"
+  end
+
+  it "raises a TypeError if the separator cannot be coerced to a String by calling #to_str" do
+    obj = mock("not a string")
     lambda { [1, 2].send(@method, obj) }.should raise_error(TypeError)
   end
 end

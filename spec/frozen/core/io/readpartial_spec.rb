@@ -55,6 +55,13 @@ describe "IO#readpartial" do
     buffer.should == "hello world"
   end
 
+  it "raises EOFError on EOF" do
+    @wr.write("abc")
+    @wr.close
+    @rd.readpartial(10).should == 'abc'
+    lambda { @rd.readpartial(10) }.should raise_error(EOFError)
+  end
+
   it "discards the existing buffer content upon error" do
     buffer = 'hello'
     @wr.close

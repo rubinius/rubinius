@@ -40,13 +40,6 @@ describe "Array#&" do
     obj.should_receive(:to_ary).and_return([1, 2, 3])
     ([1, 2] & obj).should == ([1, 2])
   end
-  
-  it "checks whether the passed argument responds to #to_ary" do
-    obj = mock('[1,2,3]')
-    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
-    ([1, 2] & obj).should == [1, 2]
-  end
 
   it "determines equivalence between elements in the sense of eql?" do
     ([5.0, 4.0] & [5, 4]).should == []

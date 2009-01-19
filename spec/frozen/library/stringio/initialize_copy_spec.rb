@@ -22,14 +22,6 @@ describe "StringIO#initialize_copy" do
     @io.string.should == "converted"
   end
 
-  it "checks whether the passed argument responds to #to_strio" do
-    obj = mock('method_missing to_strio')
-    obj.should_receive(:respond_to?).with(:to_strio).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_strio).and_return(StringIO.new("converted"))
-    @io.send(:initialize_copy, obj)
-    @io.string.should == "converted"
-  end
-
   it "copies the passed StringIO's content to self" do
     @io.send(:initialize_copy, @orig_io)
     @io.string.should == "Original StringIO"

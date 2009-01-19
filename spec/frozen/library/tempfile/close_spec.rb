@@ -18,9 +18,7 @@ describe "Tempfile#close when passed [true]" do
   end
   
   after(:each) do
-    # Explicitly close the tempfile, as we
-    # might stub/mock File.unlink calls.
-    @tempfile.close
+    @tempfile.unlink
   end
   
   it "closes self" do
@@ -29,8 +27,8 @@ describe "Tempfile#close when passed [true]" do
   end
   
   it "unlinks self" do
-    File.should_receive(:unlink)
     @tempfile.close(true)
+    File.exists?(@tempfile.path).should be_false
   end
 end
 
@@ -40,9 +38,7 @@ describe "Tempfile#close!" do
   end
   
   after(:each) do
-    # Explicitly close the tempfile, as we
-    # might stub/mock File.unlink calls.
-    @tempfile.close
+    @tempfile.unlink
   end
   
   it "closes self" do
@@ -51,7 +47,7 @@ describe "Tempfile#close!" do
   end
   
   it "unlinks self" do
-    File.should_receive(:unlink)
     @tempfile.close!
+    File.exists?(@tempfile.path).should be_false
   end
 end

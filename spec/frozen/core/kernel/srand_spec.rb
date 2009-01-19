@@ -17,6 +17,16 @@ describe "Kernel.srand" do
     srand(10)
     rand.should == x
   end
+
+  it "defaults number to a random value" do
+    lambda { srand }.should_not raise_error
+    srand.should_not == 0
+  end
+
+  it "calls #to_i on number" do
+    srand(3.8)
+    srand.should == 3
+  end
 end
 
 describe "Kernel#srand" do

@@ -28,16 +28,6 @@ describe :stringio_each_separator, :shared => true do
     seen.should == ["a ", "b ", "c ", "d ", "e\n1 ", "2 ", "3 ", "4 ", "5"]
   end
 
-  it "checks whether the passed seperator responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).any_number_of_times.with(:to_str).and_return(true)
-    obj.should_receive(:method_missing).any_number_of_times.with(:to_str).and_return(" ")
-
-    seen = []
-    @io.send(@method, obj) { |l| seen << l }
-    seen.should == ["a ", "b ", "c ", "d ", "e\n1 ", "2 ", "3 ", "4 ", "5"]
-  end
-
   it "yields self's content starting from the current position when the passed seperator is nil" do
     seen = []
     io = StringIO.new("1 2 1 2 1 2")

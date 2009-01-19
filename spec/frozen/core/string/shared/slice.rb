@@ -18,11 +18,6 @@ describe :string_slice, :shared => true do
     obj = mock('1')
     obj.should_receive(:to_int).and_return(1)
     "hello".send(@method, obj).should == ?e
-
-    obj = mock('1')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(1)
-    "hello".send(@method, obj).should == ?e
   end
 
   it "raises a TypeError if the given index is nil" do
@@ -123,11 +118,6 @@ describe :string_slice_index_length, :shared => true do
     "hello".send(@method, obj, 1).should == "l"
     "hello".send(@method, obj, obj).should == "ll"
     "hello".send(@method, 0, obj).should == "he"
-
-    obj = mock('2')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).exactly(2).times.and_return(2)
-    "hello".send(@method, obj, obj).should == "ll"
   end
 
   it "raises a TypeError when idx or length can't be converted to an integer" do
@@ -230,27 +220,13 @@ describe :string_slice_range, :shared => true do
     to = mock('to')
 
     # So we can construct a range out of them...
-    def from.<=>(o) 0 end
-    def to.<=>(o) 0 end
+    from.should_receive(:<=>).twice.and_return(0)
 
-    def from.to_int() 1 end
-    def to.to_int() -2 end
+    from.should_receive(:to_int).twice.and_return(1)
+    to.should_receive(:to_int).twice.and_return(-2)
 
     "hello there".send(@method, from..to).should == "ello ther"
     "hello there".send(@method, from...to).should == "ello the"
-
-    from = mock('from')
-    to = mock('to')
-
-    def from.<=>(o) 0 end
-    def to.<=>(o) 0 end
-
-    from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    from.should_receive(:method_missing).with(:to_int).and_return(1)
-    to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    to.should_receive(:method_missing).with(:to_int).and_return(-2)
-
-    "hello there".send(@method, from..to).should == "ello ther"
   end
 
   it "works with Range subclasses" do
@@ -355,11 +331,6 @@ describe :string_slice_regexp_index, :shared => true do
     obj.should_receive(:to_int).and_return(2)
 
     "har".send(@method, /(.)(.)(.)/, 1.5).should == "h"
-    "har".send(@method, /(.)(.)(.)/, obj).should == "a"
-
-    obj = mock('2')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(2)
     "har".send(@method, /(.)(.)(.)/, obj).should == "a"
   end
 

@@ -52,17 +52,11 @@ describe "String#[]= with index" do
     str = "hello"
     str[0.5] = ?c
     str.should == "cello"
-  
+
     obj = mock('-1')
     obj.should_receive(:to_int).and_return(-1)
     str[obj] = ?y
     str.should == "celly"
-  
-    obj = mock('-1')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(-1)
-    str[obj] = ?!
-    str.should == "cell!"
   end
   
   it "sets the code to char % 256" do
@@ -147,34 +141,20 @@ describe "String#[]= with String" do
     str = "hello"
     str[0.5] = "hi "
     str.should == "hi ello"
-  
+
     obj = mock('-1')
     obj.should_receive(:to_int).and_return(-1)
     str[obj] = "!"
     str.should == "hi ell!"
-  
-    obj = mock('-1')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(-1)
-    str[obj] = "e vator"
-    str.should == "hi elle vator"
   end
   
-  it "tries to convert other_str to a String using to_str" do
+  it "calls #to_str to convert other to a String" do
     other_str = mock('-test-')
-    def other_str.to_str() "-test-" end
-    
+    other_str.should_receive(:to_str).and_return("-test-")
+
     a = "abc"
     a[1] = other_str
     a.should == "a-test-c"
-    
-    obj = mock('ROAR')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("ROAR")
-
-    a = "abc"
-    a[1] = obj
-    a.should == "aROARc"
   end
   
   it "raises a TypeError if other_str can't be converted to a String" do

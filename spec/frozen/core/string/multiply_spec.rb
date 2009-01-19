@@ -11,15 +11,11 @@ describe "String#*" do
   it "tries to convert the given argument to an integer using to_int" do
     ("cool" * 3.1).should == "coolcoolcool"
     ("a" * 3.999).should == "aaa"
-    
+
     a = mock('4')
-    def a.to_int() 4; end
+    a.should_receive(:to_int).and_return(4)
+
     ("a" * a).should == "aaaa"
-    
-    a = mock('4')
-    a.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    a.should_receive(:method_missing).with(:to_int).and_return(4)
-    ("a" * a).should == "aaaa"    
   end
   
   it "raises an ArgumentError when given integer is negative" do

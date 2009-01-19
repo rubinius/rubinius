@@ -63,13 +63,6 @@ describe "Array#insert" do
     [].insert(obj, 'x').should == [nil, nil, 'x']
   end
 
-  it "checks whether the passed position argument responds to #to_int" do
-    obj = mock('2')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(2)
-    [].insert(obj, 'x').should == [nil, nil, 'x']
-  end
-
   it 'raises an ArgumentError if no argument passed' do
     lambda { [].insert() }.should raise_error(ArgumentError)
   end

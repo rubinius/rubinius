@@ -12,17 +12,16 @@ describe "String#==" do
     ('hello' == :hello).should == false
     ('hello' == mock('x')).should == false
   end
-  
+
   it "returns obj == self if obj responds to to_str" do
     obj = Object.new
-    def obj.to_str() nil end
-    def obj.==(o) true end
-    ('hello' == obj).should ==  true
-    ('world!' == obj).should == true
-    
-    obj = mock('x')
-    obj.should_receive(:respond_to?).with(:to_str).and_return(true)
+
+    # String#== merely checks if #to_str is defined. It does
+    # not call it.
+    obj.stub!(:to_str)
+
     obj.should_receive(:==).and_return(true)
-    ("abc" == obj).should == true
+
+    ('hello' == obj).should ==  true
   end
 end

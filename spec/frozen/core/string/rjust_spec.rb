@@ -40,16 +40,11 @@ describe "String#rjust with length, padding" do
 
   it "tries to convert length to an integer using to_int" do
     "^".rjust(3.8, "^_").should == "^_^"
-    
+
     obj = mock('3')
-    def obj.to_int() 3 end
-      
+    obj.should_receive(:to_int).and_return(3)
+
     "o".rjust(obj, "o_").should == "o_o"
-    
-    obj = mock('3')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(3)
-    "~".rjust(obj, "~_").should == "~_~"
   end
   
   it "raises a TypeError when length can't be converted to an integer" do
@@ -61,15 +56,9 @@ describe "String#rjust with length, padding" do
 
   it "tries to convert padstr to a string using to_str" do
     padstr = mock('123')
-    def padstr.to_str() "123" end
-    
+    padstr.should_receive(:to_str).and_return("123")
+
     "hello".rjust(10, padstr).should == "12312hello"
-
-    obj = mock('k')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("k")
-
-    "hello".rjust(7, obj).should == "kkhello"
   end
 
   it "raises a TypeError when padstr can't be converted" do

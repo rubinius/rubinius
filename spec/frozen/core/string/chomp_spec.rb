@@ -70,17 +70,11 @@ describe "String#chomp with separator" do
     "hello".chomp("llo".taint).tainted?.should == false
   end
   
-  it "tries to convert separator to a string using to_str" do
+  it "calls #to_str to convert separator to a String" do
     separator = mock('llo')
-    def separator.to_str() "llo" end
-    
-    "hello".chomp(separator).should == "he"
-    
-    obj = mock('x')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("k")
+    separator.should_receive(:to_str).and_return("llo")
 
-    "hark".chomp(obj).should == "har"
+    "hello".chomp(separator).should == "he"
   end
   
   it "raises a TypeError if separator can't be converted to a string" do

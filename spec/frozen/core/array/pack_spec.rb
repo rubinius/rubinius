@@ -172,13 +172,6 @@ describe "Array#pack with ASCII-string format", :shared => true do
     [obj].pack(format).should == "a"
   end
 
-  it "checks whether the pack argument responds to #to_str" do
-    obj = mock("method_missing to_str")
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("abc")
-    [obj].pack(format).should == "a"
-  end
-
   it "raises a TypeError if array item is not String with ('A<count>')" do
     lambda { [123].pack(format(5)) }.should raise_error(TypeError)
     lambda { [:hello].pack(format(5)) }.should raise_error(TypeError)
@@ -474,13 +467,6 @@ describe "Array#pack with format 'H'" do
     [obj].pack('H2').should == "\x41"
   end
 
-  it "checks whether the pack argument responds to #to_str" do
-    obj = mock("method_missing to_str")
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("41")
-    [obj].pack('H2').should == "\x41"
-  end
-
   ruby_version_is '1.9' do
     it "returns an ASCII-8BIT string" do
       ["41"].pack("H").encoding.should == Encoding::ASCII_8BIT
@@ -548,13 +534,6 @@ describe "Array#pack with format 'h'" do
     [obj].pack('h2').should == "\x41"
   end
 
-  it "checks whether the pack argument responds to #to_str" do
-    obj = mock("method_missing to_str")
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("14")
-    [obj].pack('h2').should == "\x41"
-  end
-
   ruby_version_is '1.9' do
     it "returns an ASCII-8BIT string" do
       ["14"].pack("h").encoding.should == Encoding::ASCII_8BIT
@@ -618,13 +597,6 @@ describe "Array#pack with integer format (8bit)", :shared => true do
 
     obj = mock('to_int')
     obj.should_receive(:to_int).and_return(5)
-    [obj].pack(format).should == binary("\x05")
-  end
-
-  it "checks whether the pack argument responds to #to_int" do
-    obj = mock("method_missing to_int")
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(5)
     [obj].pack(format).should == binary("\x05")
   end
 
@@ -760,13 +732,6 @@ describe "Array#pack with integer format (16bit, little endian)", :shared => tru
     [obj].pack(format).should == binary("\x05\x00")
   end
 
-  it "checks whether the pack argument responds to #to_int" do
-    obj = mock("method_missing to_int")
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(5)
-    [obj].pack(format).should == binary("\x05\x00")
-  end
-
   it "raises a TypeError if a pack argument can't be coerced to Integer" do
     lambda { ["5"].pack(format) }.should raise_error(TypeError)
 
@@ -892,13 +857,6 @@ describe "Array#pack with integer format (16bit, big endian)", :shared => true d
     end
   end
 
-  it "checks whether the pack argument responds to #to_int" do
-    obj = mock("method_missing to_int")
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(5)
-    [obj].pack(format).should == binary("\x00\x05")
-  end
-
   it "raises a TypeError if a pack argument can't be coerced to Integer" do
     lambda { ["5"].pack(format) }.should raise_error(TypeError)
 
@@ -996,13 +954,6 @@ describe "Array#pack with integer format (32bit, little endian)", :shared => tru
 
     obj = mock('to_int')
     obj.should_receive(:to_int).and_return(5)
-    [obj].pack(format).should == binary("\x05\x00\x00\x00")
-  end
-
-  it "checks whether the pack argument responds to #to_int" do
-    obj = mock("method_missing to_int")
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(5)
     [obj].pack(format).should == binary("\x05\x00\x00\x00")
   end
 
@@ -1106,13 +1057,6 @@ describe "Array#pack with integer format (32bit, big endian)", :shared => true d
     [obj].pack(format).should == binary("\x00\x00\x00\x05")
   end
 
-  it "checks whether the pack argument responds to #to_int" do
-    obj = mock("method_missing to_int")
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(5)
-    [obj].pack(format).should == binary("\x00\x00\x00\x05")
-  end
-
   it "raises a TypeError if a pack argument can't be coerced to Integer" do
     lambda { ["5"].pack(format) }.should raise_error(TypeError)
 
@@ -1195,13 +1139,6 @@ describe "Array#pack with integer format (64bit, little endian)", :shared => tru
 
     obj = mock('to_int')
     obj.should_receive(:to_int).and_return(5)
-    [obj].pack(format).should == binary("\x05\x00\x00\x00\x00\x00\x00\x00")
-  end
-
-  it "checks whether the pack argument responds to #to_int" do
-    obj = mock("method_missing to_int")
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(5)
     [obj].pack(format).should == binary("\x05\x00\x00\x00\x00\x00\x00\x00")
   end
 
@@ -1300,13 +1237,6 @@ describe "Array#pack with integer format (64bit, big endian)", :shared => true d
     [obj].pack(format).should == binary("\x00\x00\x00\x00\x00\x00\x00\x05")
   end
 
-  it "checks whether the pack argument responds to #to_int" do
-    obj = mock("method_missing to_int")
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(5)
-    [obj].pack(format).should == binary("\x00\x00\x00\x00\x00\x00\x00\x05")
-  end
-
   it "raises a TypeError if a pack argument can't be coerced to Integer" do
     lambda { ["5"].pack(format) }.should raise_error(TypeError)
 
@@ -1331,11 +1261,11 @@ describe "Array#pack with integer format (64bit, big endian)", :shared => true d
 
   it "with star parameter processes all remaining array items" do
     [1, 2, 3, 4, 5].pack(format('*')).should == binary(
-      "\x01\x00\x00\x00\x00\x00\x00\x00" +
-      "\x02\x00\x00\x00\x00\x00\x00\x00" +
-      "\x03\x00\x00\x00\x00\x00\x00\x00" +
-      "\x04\x00\x00\x00\x00\x00\x00\x00" +
-      "\x05\x00\x00\x00\x00\x00\x00\x00" )
+      "\x00\x00\x00\x00\x00\x00\x00\x01" +
+      "\x00\x00\x00\x00\x00\x00\x00\x02" +
+      "\x00\x00\x00\x00\x00\x00\x00\x03" +
+      "\x00\x00\x00\x00\x00\x00\x00\x04" +
+      "\x00\x00\x00\x00\x00\x00\x00\x05" )
   end
 
   it "raises an ArgumentError if count is greater than array elements left" do
@@ -1623,13 +1553,6 @@ describe "Array#pack with float format", :shared => true do
   it "tries to convert the pack argument to a Float using #to_f" do
     obj = mock('to_f')
     obj.should_receive(:to_f).and_return(1.5)
-    lambda{ [obj].pack(format) }.should_not raise_error
-  end
-
-  it "checks whether the pack argument responds to #to_str" do
-    obj = mock("method_missing to_f")
-    obj.should_receive(:respond_to?).with(:to_f).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_f).and_return(1.5)
     lambda{ [obj].pack(format) }.should_not raise_error
   end
 
@@ -2119,13 +2042,6 @@ describe "Array#pack with format 'm'" do
     [obj].pack('m').should == "QUJD\n"
   end
 
-  it "checks whether the pack argument responds to #to_str" do
-    obj = mock("method_missing to_str")
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("ABC")
-    [obj].pack('m').should == "QUJD\n"
-  end
-
   it "raises a TypeError if corresponding array item is not string" do
     lambda { [123].pack('m') }.should raise_error(TypeError)
     lambda { [:hello].pack('m') }.should raise_error(TypeError)
@@ -2288,13 +2204,6 @@ describe "Array#pack with format 'u'" do
     [obj].pack('u').should == "#04)#\n"
   end
 
-  it "checks whether the pack argument responds to #to_str" do
-    obj = mock("method_missing to_str")
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("ABC")
-    [obj].pack('u').should == "#04)#\n"
-  end
-
   it "raises a TypeError if corresponding array item is not string" do
     lambda { [123].pack('u') }.should raise_error(TypeError)
     lambda { [:hello].pack('u') }.should raise_error(TypeError)
@@ -2333,14 +2242,6 @@ describe "Array#pack with format 'w'" do
     obj.should_receive(:to_int).and_return(1)
     [obj].pack('w').should == binary("\001")
   end
-
-  it "checks whether the pack argument responds to #to_int" do
-    obj = mock("method_missing to_int")
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(1)
-    [obj].pack('w').should == binary("\001")
-  end
-
 
   it "raises TypeError on nil and non-numeric arguments" do
     lambda { [nil].pack('w') }.should raise_error(TypeError)
@@ -2500,154 +2401,146 @@ describe "Array#pack with pointer format", :shared => true do
     end
   end
 
-  it "returns a pointer to internal byte sequence" do
-    ["abc"].pack('p').length.should == @pointer_size
-  end
+  not_supported_on :jruby do
+    it "returns a pointer to internal byte sequence" do
+      ["abc"].pack('p').length.should == @pointer_size
+    end
 
-  it "returns a pointer which is able to dereferenced into NUL terminated byte sequence" do 
-    ptr = ["\x41\x42\x43"].pack('p')
-    cstr(ptr)[0].should == 0x41
-    cstr(ptr)[1].should == 0x42
-    cstr(ptr)[2].should == 0x43
-    cstr(ptr)[3].should == 0x00
+    it "returns a pointer which is able to dereferenced into NUL terminated byte sequence" do 
+      ptr = ["\x41\x42\x43"].pack('p')
+      cstr(ptr)[0].should == 0x41
+      cstr(ptr)[1].should == 0x42
+      cstr(ptr)[2].should == 0x43
+      cstr(ptr)[3].should == 0x00
 
-    ptr = [utf8("\xE3\x81\x82")].pack('p')  # Japanese Hiragana 'A' in UTF-8
-    (cstr(ptr)[0] & 0xFF).should == 0xE3
-    (cstr(ptr)[1] & 0xFF).should == 0x81
-    (cstr(ptr)[2] & 0xFF).should == 0x82
-    (cstr(ptr)[3] & 0xFF).should == 0x00
-  end
+      ptr = [utf8("\xE3\x81\x82")].pack('p')  # Japanese Hiragana 'A' in UTF-8
+      (cstr(ptr)[0] & 0xFF).should == 0xE3
+      (cstr(ptr)[1] & 0xFF).should == 0x81
+      (cstr(ptr)[2] & 0xFF).should == 0x82
+      (cstr(ptr)[3] & 0xFF).should == 0x00
+    end
 
-  it "returns a pointer which is able to dereferenced into a right value" do
-    str = "Tim"
-    ptr = [str].pack('p')
-    cstr(ptr)[0] = cbyte(?J)
-    str.should == "Jim"
-  end
+    it "returns a pointer which is able to dereferenced into a right value" do
+      str = "Tim"
+      ptr = [str].pack('p')
+      cstr(ptr)[0] = cbyte(?J)
+      str.should == "Jim"
+    end
 
-  # TODO: Is there an architecture whose internal representation of NULL pointer is not zero and on which Ruby can work?
-  it "returns null pointer when passed nil" do
-    [nil].pack('p').should == "\x00" * @pointer_size
+    # TODO: Is there an architecture whose internal representation of NULL pointer is not zero and on which Ruby can work?
+    it "returns null pointer when passed nil" do
+      [nil].pack('p').should == "\x00" * @pointer_size
+    end
   end
 end
 
 describe "Array#pack with format 'p'" do
-  it "consumes a String" do
-    lambda { ["abc"].pack('p') }.should_not raise_error
-    ["abc", 0x7E].pack('pC')[-1, 1].should == "\x7E"
-  end
+  not_supported_on :jruby do
+    it "consumes a String" do
+      lambda { ["abc"].pack('p') }.should_not raise_error
+      ["abc", 0x7E].pack('pC')[-1, 1].should == "\x7E"
+    end
 
-  compliant_on :ruby do
-    it_behaves_like "Array#pack with pointer format", 'p'
-  end
+    compliant_on :ruby do
+      it_behaves_like "Array#pack with pointer format", 'p'
+    end
 
-  it "tries to convert the pack argument to a String using #to_str" do
-    obj = mock('to_str')
-    obj.should_receive(:to_str).and_return("abc")
-    lambda{ [obj].pack('p') }.should_not raise_error
-  end
+    it "tries to convert the pack argument to a String using #to_str" do
+      obj = mock('to_str')
+      obj.should_receive(:to_str).and_return("abc")
+      lambda{ [obj].pack('p') }.should_not raise_error
+    end
 
-  it "checks whether the pack argument responds to #to_str" do
-    obj = mock("method_missing to_str")
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("41")
-    lambda{ [obj].pack('p') }.should_not raise_error
-  end
+    it "raises a TypeError if corresponding array item is not String" do
+      lambda { [123].pack('p') }.should raise_error(TypeError)
+      lambda { [:data].pack('p') }.should raise_error(TypeError)
+      lambda { [mock('not string')].pack('p') }.should raise_error(TypeError)
+    end
 
-  it "raises a TypeError if corresponding array item is not String" do
-    lambda { [123].pack('p') }.should raise_error(TypeError)
-    lambda { [:data].pack('p') }.should raise_error(TypeError)
-    lambda { [mock('not string')].pack('p') }.should raise_error(TypeError)
-  end
+    it "returns empty string if count = 0 with" do
+      ['abcde'].pack("p0").should == ''
+    end
 
-  it "returns empty string if count = 0 with" do
-    ['abcde'].pack("p0").should == ''
-  end
+    it "only takes as many elements as specified after ('p')" do
+      ary = ["abc", "def", "ghi", "jkl"]
+      ary.pack('p').should == [ary[0]].pack('p')
+      ary.pack('p2').should == [ary[0]].pack('p') + [ary[1]].pack('p')
+      ary.pack('p2p').should == [ary[0]].pack('p') + [ary[1]].pack('p') + [ary[2]].pack('p')
+    end
 
-  it "only takes as many elements as specified after ('p')" do
-    ary = ["abc", "def", "ghi", "jkl"]
-    ary.pack('p').should == [ary[0]].pack('p')
-    ary.pack('p2').should == [ary[0]].pack('p') + [ary[1]].pack('p')
-    ary.pack('p2p').should == [ary[0]].pack('p') + [ary[1]].pack('p') + [ary[2]].pack('p')
-  end
+    it "consumes the whole argument string with star parameter" do
+      ary = ["abc", "def", "ghi", "jkl"]
+      ary.pack('p*').should == ary.pack('p4')
+    end
 
-  it "consumes the whole argument string with star parameter" do
-    ary = ["abc", "def", "ghi", "jkl"]
-    ary.pack('p*').should == ary.pack('p4')
-  end
+    it "raises an ArgumentError if count is greater than array elements left" do
+      lambda { ["abc", "def"].pack("p3") }.should raise_error(ArgumentError)
+    end
 
-  it "raises an ArgumentError if count is greater than array elements left" do
-    lambda { ["abc", "def"].pack("p3") }.should raise_error(ArgumentError)
-  end
-
-  ruby_version_is '1.9' do
-    it "returns an ASCII-8BIT string" do
-      ["abcd"].pack('p').encoding.should == Encoding::ASCII_8BIT
+    ruby_version_is '1.9' do
+      it "returns an ASCII-8BIT string" do
+	["abcd"].pack('p').encoding.should == Encoding::ASCII_8BIT
+      end
     end
   end
 end
 
 describe "Array#pack with format 'P'" do
-  it "consumes a String" do
-    lambda { ["abc"].pack('P') }.should_not raise_error
-    ["abc", 0x7E].pack('PC')[-1, 1].should == "\x7E"
-  end
-
-  compliant_on :ruby do
-    it_behaves_like "Array#pack with pointer format", 'P'
-  end
-
-  # TODO: Is there an architecture whose internal representation of NULL pointer is not zero and on which Ruby can work?
-  it "returns null pointer when passed nil" do
-    [nil].pack('P').should == "\x00" * @pointer_size
-  end
-
-  it "tries to convert the pack argument to a String using #to_str" do
-    obj = mock('to_str')
-    obj.should_receive(:to_str).any_number_of_times.and_return("abc")
-    lambda{ [obj].pack('P') }.should_not raise_error
-  end
-
-  it "checks whether the pack argument responds to #to_str" do
-    obj = mock("method_missing to_str")
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).any_number_of_times.and_return("41")
-    lambda{ [obj].pack('P') }.should_not raise_error
-  end
-
-  it "raises a TypeError if corresponding array item is not String" do
-    lambda { [123].pack('P') }.should raise_error(TypeError)
-    lambda { [:data].pack('P') }.should raise_error(TypeError)
-    lambda { [mock('not string')].pack('P') }.should raise_error(TypeError)
-  end
-
-  it "consumes one array item per a format" do
-    ary = ["abc", "def", "ghi", "jkl"]
-    ary.pack('P').should == [ary[0]].pack('P')
-    ary.pack('P2').should == [ary[0]].pack('P')
-    ary.pack('P2P').should == [ary[0]].pack('P') + [ary[1]].pack('P')
-  end
-
-  ruby_bug("[ruby-dev:37289]", "1.8.7.73") do
-    it "ignores '*' parameter" do 
-      ary = ["abc", "def", "ghi", "jkl"]
-      ary.pack('P*').should == [ary[0]].pack('P')
+  not_supported_on :jruby do
+    it "consumes a String" do
+      lambda { ["abc"].pack('P') }.should_not raise_error
+      ["abc", 0x7E].pack('PC')[-1, 1].should == "\x7E"
     end
-  end
 
-  it "returns a pointer to zero-length byte sequence if count = 0 with" do
-    str = 'abcde'
-    [str].pack('P0').should == [str].pack('P')
-  end
+    compliant_on :ruby do
+      it_behaves_like "Array#pack with pointer format", 'P'
+    end
 
-  it "raises an ArgumentError if count is greater than the corresponding string in array" do
-    lambda { ["abc", "def"].pack("P3") }.should_not raise_error(ArgumentError)
-    lambda { ["ab", "def"].pack("P3") }.should raise_error(ArgumentError)
-  end
+    # TODO: Is there an architecture whose internal representation of NULL pointer is not zero and on which Ruby can work?
+    it "returns null pointer when passed nil" do
+      [nil].pack('P').should == "\x00" * @pointer_size
+    end
 
-  ruby_version_is '1.9' do
-    it "returns an ASCII-8BIT string" do
-      ["abcd"].pack('P').encoding.should == Encoding::ASCII_8BIT
+    it "tries to convert the pack argument to a String using #to_str" do
+      obj = mock('to_str')
+      obj.should_receive(:to_str).any_number_of_times.and_return("abc")
+      lambda{ [obj].pack('P') }.should_not raise_error
+    end
+
+    it "raises a TypeError if corresponding array item is not String" do
+      lambda { [123].pack('P') }.should raise_error(TypeError)
+      lambda { [:data].pack('P') }.should raise_error(TypeError)
+      lambda { [mock('not string')].pack('P') }.should raise_error(TypeError)
+    end
+
+    it "consumes one array item per a format" do
+      ary = ["abc", "def", "ghi", "jkl"]
+      ary.pack('P').should == [ary[0]].pack('P')
+      ary.pack('P2').should == [ary[0]].pack('P')
+      ary.pack('P2P').should == [ary[0]].pack('P') + [ary[1]].pack('P')
+    end
+
+    ruby_bug("[ruby-dev:37289]", "1.8.7.73") do
+      it "ignores '*' parameter" do 
+	ary = ["abc", "def", "ghi", "jkl"]
+	ary.pack('P*').should == [ary[0]].pack('P')
+      end
+    end
+
+    it "returns a pointer to zero-length byte sequence if count = 0 with" do
+      str = 'abcde'
+      [str].pack('P0').should == [str].pack('P')
+    end
+
+    it "raises an ArgumentError if count is greater than the corresponding string in array" do
+      lambda { ["abc", "def"].pack("P3") }.should_not raise_error(ArgumentError)
+      lambda { ["ab", "def"].pack("P3") }.should raise_error(ArgumentError)
+    end
+
+    ruby_version_is '1.9' do
+      it "returns an ASCII-8BIT string" do
+	["abcd"].pack('P').encoding.should == Encoding::ASCII_8BIT
+      end
     end
   end
 end

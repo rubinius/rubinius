@@ -4,8 +4,8 @@ require File.dirname(__FILE__) + '/fixtures/methods'
 describe "Time#_dump" do
   before :each do
     @t = Time.at(946812800)
-    @s = @t._dump
     @t = @t.gmtime
+    @s = @t._dump
   end
 
   ruby_bug("http://redmine.ruby-lang.org/issues/show/627", "1.8.7") do

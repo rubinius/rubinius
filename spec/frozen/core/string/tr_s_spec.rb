@@ -36,20 +36,10 @@ describe "String#tr_s" do
   
   it "tries to convert from_str and to_str to strings using to_str" do
     from_str = mock('ab')
-    def from_str.to_str() "ab" end
+    from_str.should_receive(:to_str).and_return("ab")
 
     to_str = mock('AB')
-    def to_str.to_str() "AB" end
-    
-    "bla".tr_s(from_str, to_str).should == "BlA"
-
-    from_str = mock('ab')
-    from_str.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    from_str.should_receive(:method_missing).with(:to_str).and_return("ab")
-
-    to_str = mock('AB')
-    to_str.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    to_str.should_receive(:method_missing).with(:to_str).and_return("AB")
+    to_str.should_receive(:to_str).and_return("AB")
 
     "bla".tr_s(from_str, to_str).should == "BlA"
   end

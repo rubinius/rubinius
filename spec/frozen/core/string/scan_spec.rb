@@ -48,11 +48,6 @@ describe "String#scan" do
     obj = mock('o')
     obj.should_receive(:to_str).and_return("o")
     "o_o".scan(obj).should == ["o", "o"]
-    
-    obj = mock('-')
-    obj.should_receive(:respond_to?).with(:to_str).and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("-")
-    "-_-".scan(obj).should == ["-", "-"]
   end
   
   it "raises a TypeError if pattern isn't a Regexp and can't be converted to a String" do

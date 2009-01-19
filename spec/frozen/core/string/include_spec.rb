@@ -15,13 +15,9 @@ describe "String#include? with String" do
   
   it "tries to convert other to string using to_str" do
     other = mock('lo')
-    def other.to_str() "lo" end
-    "hello".include?(other).should == true
+    other.should_receive(:to_str).and_return("lo")
 
-    obj = mock('o')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("o")
-    "hello".include?(obj).should == true
+    "hello".include?(other).should == true
   end
   
   it "raises a TypeError if other can't be converted to string" do

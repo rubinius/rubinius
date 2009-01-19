@@ -27,24 +27,16 @@ describe "String#insert with index, other" do
   
   it "converts index to an integer using to_int" do
     other = mock('-3')
-    def other.to_int() -3 end
-    "abcd".insert(other, "XYZ").should == "abXYZcd"
+    other.should_receive(:to_int).and_return(-3)
 
-    obj = mock('-3')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(-3)
-    "abcd".insert(obj, "XYZ").should == "abXYZcd"
+    "abcd".insert(other, "XYZ").should == "abXYZcd"
   end
   
   it "converts other to a string using to_str" do
     other = mock('XYZ')
-    def other.to_str() "XYZ" end
-    "abcd".insert(-3, other).should == "abXYZcd"
+    other.should_receive(:to_str).and_return("XYZ")
 
-    obj = mock('X')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("X")
-    "abcd".insert(-3, obj).should == "abXcd"
+    "abcd".insert(-3, other).should == "abXYZcd"
   end
 
   it "taints self if string to insert is tainted" do

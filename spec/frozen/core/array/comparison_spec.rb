@@ -86,13 +86,6 @@ describe "Array#<=>" do
     obj.stub!(:to_ary).and_return([1, 2, 3])
     ([4, 5] <=> obj).should == ([4, 5] <=> obj.to_ary)
   end
-  
-  it "checks whether the passed argument responds to #to_ary" do
-    obj = mock('method_missing to_ary')
-    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_ary).and_return([4, 5])
-    ([4, 5] <=> obj).should == 0
-  end  
 
   it "does not call #to_ary on Array subclasses" do
     obj = ArraySpecs::ToAryArray[5, 6, 7]

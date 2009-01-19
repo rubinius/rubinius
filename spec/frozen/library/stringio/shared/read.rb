@@ -27,14 +27,6 @@ describe :stringio_read, :shared => true do
     lambda { @io.send(@method, 7, Object.new) }.should raise_error(TypeError)
   end
 
-  it "checks whether the passed buffer Object responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return(buffer = "")
-    @io.send(@method, 7, obj)
-    buffer.should == "example"
-  end
-
   not_compliant_on :rubinius do
     it "raises an error when passed a frozen String as buffer" do
       lambda { @io.send(@method, 7, "".freeze) }.should raise_error(TypeError)
@@ -76,13 +68,6 @@ describe :stringio_read_length, :shared => true do
 
   it "raises a TypeError when the passed length is negative" do
     lambda { @io.send(@method, -2) }.should raise_error(ArgumentError)
-  end
-
-  it "checks whether the passed length Object responds to #to_int" do
-    obj = mock('method_missing to_int')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(7)
-    @io.send(@method, obj).should == "example"
   end
 end
 

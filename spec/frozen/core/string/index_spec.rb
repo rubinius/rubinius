@@ -3,26 +3,19 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#index with object" do
   it "raises a TypeError if obj isn't a String, Fixnum or Regexp" do
-    lambda { "hello".index(:sym)      }.should raise_error(TypeError)    
+    lambda { "hello".index(:sym)      }.should raise_error(TypeError)
     lambda { "hello".index(mock('x')) }.should raise_error(TypeError)
   end
 
   it "doesn't try to convert obj to an Integer via to_int" do
     obj = mock('x')
-    obj.should_not_receive(:to_int)
     lambda { "hello".index(obj) }.should raise_error(TypeError)
   end
 
   it "tries to convert obj to a string via to_str" do
     obj = mock('lo')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("lo")
+    obj.should_receive(:to_str).and_return("lo")
     "hello".index(obj).should == "hello".index("lo")
-    
-    obj = mock('o')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("o")
-    "hello".index(obj).should == "hello".index("o")
   end
 end
 
@@ -96,11 +89,6 @@ describe "String#index with Fixnum" do
   it "converts start_offset to an integer via to_int" do
     obj = mock('1')
     obj.should_receive(:to_int).and_return(1)
-    "ROAR".index(?R, obj).should == 3
-    
-    obj = mock('1')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(1)
     "ROAR".index(?R, obj).should == 3
   end
 end
@@ -217,11 +205,6 @@ describe "String#index with String" do
   it "converts start_offset to an integer via to_int" do
     obj = mock('1')
     obj.should_receive(:to_int).and_return(1)
-    "RWOARW".index("RW", obj).should == 4
-    
-    obj = mock('1')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(1)
     "RWOARW".index("RW", obj).should == 4
   end
 end
@@ -346,11 +329,6 @@ describe "String#index with Regexp" do
   it "converts start_offset to an integer via to_int" do
     obj = mock('1')
     obj.should_receive(:to_int).and_return(1)
-    "RWOARW".index(/R./, obj).should == 4
-
-    obj = mock('1')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(1)
     "RWOARW".index(/R./, obj).should == 4
   end
 end

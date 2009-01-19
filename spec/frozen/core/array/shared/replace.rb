@@ -46,13 +46,6 @@ describe :array_replace, :shared => true do
     [].send(@method, obj).should == [1, 2, 3]
   end
 
-  it "checks whether the passed argument responds to #to_ary" do
-    obj = mock('method_missing to_ary')
-    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
-    [].send(@method, obj).should == [1, 2, 3]
-  end
-
   it "does not call #to_ary on Array subclasses" do
     obj = ArraySpecs::ToAryArray[5, 6, 7]
     obj.should_not_receive(:to_ary)

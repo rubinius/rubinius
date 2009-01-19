@@ -106,18 +106,6 @@ describe "IO#readlines when passed [seperator]" do
       ".\nEst\303\241 aqui a linha cinco.\nHer",
       "e is line six.\n"]
   end
-
-  it "checks whether the passed seperator responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_str).and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("r")
-    @io.readlines(obj).should == [
-      "Voici la ligne une.\nQui \303\250 la linea due.\nAqu\303\255 est\303\241 la l\303\255nea tr",
-      "es.\nIst hier",
-      " Linie vier",
-      ".\nEst\303\241 aqui a linha cinco.\nHer",
-      "e is line six.\n"]
-  end
 end
 
 describe "IO#readlines when in write-only mode" do
@@ -172,17 +160,6 @@ describe "IO.readlines when passed [file_name]" do
       "Ist hier Linie vier.\n", "Est\303\241 aqui a linha cinco.\n",
       "Here is line six.\n"]
   end
-
-  it "checks whether the passed file_name responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_str).and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return(@file)
-    IO.readlines(obj).should == ["Voici la ligne une.\n",
-      "Qui \303\250 la linea due.\n",
-      "Aqu\303\255 est\303\241 la l\303\255nea tres.\n",
-      "Ist hier Linie vier.\n", "Est\303\241 aqui a linha cinco.\n",
-      "Here is line six.\n"]
-  end
 end
 
 describe "IO#readlines when passed [file_name, seperator]" do
@@ -213,18 +190,6 @@ describe "IO#readlines when passed [file_name, seperator]" do
   it "tries to convert the passed seperator to a String using #to_str" do
     obj = mock('to_str')
     obj.stub!(:to_str).and_return("r")
-    IO.readlines(@file, obj).should == [
-      "Voici la ligne une.\nQui \303\250 la linea due.\nAqu\303\255 est\303\241 la l\303\255nea tr",
-      "es.\nIst hier",
-      " Linie vier",
-      ".\nEst\303\241 aqui a linha cinco.\nHer",
-      "e is line six.\n"]
-  end
-
-  it "checks whether the passed seperator responds to #to_str" do
-    obj = mock('method_missing to_str')
-    obj.should_receive(:respond_to?).with(:to_str).and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("r")
     IO.readlines(@file, obj).should == [
       "Voici la ligne une.\nQui \303\250 la linea due.\nAqu\303\255 est\303\241 la l\303\255nea tr",
       "es.\nIst hier",

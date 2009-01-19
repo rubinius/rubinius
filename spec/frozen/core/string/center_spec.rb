@@ -54,18 +54,13 @@ describe "String#center with length, padding" do
     "x".center(4, "*".taint).tainted?.should == true
   end
   
-  it "tries to convert length to an integer using to_int" do
+  it "calls #to_int to convert length to an integer" do
     "_".center(3.8, "^").should == "^_^"
     
     obj = mock('3')
-    def obj.to_int() 3 end
+    obj.should_receive(:to_int).and_return(3)
       
     "_".center(obj, "o").should == "o_o"
-    
-    obj = mock('true')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(3)
-    "_".center(obj, "~").should == "~_~"
   end
   
   it "raises a TypeError when length can't be converted to an integer" do
@@ -75,21 +70,15 @@ describe "String#center with length, padding" do
     lambda { "hello".center(mock('x')) }.should raise_error(TypeError)
   end
   
-  it "tries to convert padstr to a string using to_str" do
+  it "calls #to_str to convert padstr to a String" do
     padstr = mock('123')
-    def padstr.to_str() "123" end
-    
+    padstr.should_receive(:to_str).and_return("123")
+
     "hello".center(20, padstr).should == "1231231hello12312312"
-
-    obj = mock('x')
-    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_str).and_return("k")
-
-    "hello".center(7, obj).should == "khellok"
   end
   
   it "raises a TypeError when padstr can't be converted to a string" do
-    lambda { "hello".center(20, ?o)        }.should raise_error(TypeError)
+    lambda { "hello".center(20, 100)       }.should raise_error(TypeError)
     lambda { "hello".center(20, :llo)      }.should raise_error(TypeError)
     lambda { "hello".center(20, mock('x')) }.should raise_error(TypeError)
   end

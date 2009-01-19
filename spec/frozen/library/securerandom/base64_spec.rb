@@ -46,17 +46,10 @@ ruby_version_is "1.8.7" do
         SecureRandom.base64(-1)
       }.should raise_error(ArgumentError)
     end
-    
+
     it "tries to convert the passed argument to an Integer using #to_int" do
       obj = mock("to_int")
       obj.should_receive(:to_int).and_return(5)
-      SecureRandom.base64(obj).size.should < 10
-    end
-    
-    it "checks whether the passed argument responds to #to_int" do
-      obj = mock("to_int")
-      obj.should_receive(:respond_to?).with(:to_int).and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(5)
       SecureRandom.base64(obj).size.should < 10
     end
   end
