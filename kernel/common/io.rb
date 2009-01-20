@@ -78,7 +78,7 @@ class IO
       return 0 if @write_synced or empty?
       @write_synced = true
 
-      io.prim_write(String.from_bytearray @storage, @start, size)
+      io.prim_write(String.from_bytearray(@storage, @start, size))
       reset!
 
       return size
@@ -465,7 +465,7 @@ class IO
   #  a = IO.readlines("testfile")
   #  a[0]   #=> "This is line one\n"
   def self.readlines(name, sep_string = $/)
-    name = Type.check_and_coerce_to(name, String, :to_str)
+    name = StringValue name
     io = File.open(name, 'r')
     return if io.nil?
 
@@ -1126,7 +1126,7 @@ class IO
     return if @ibuffer.exhausted?
     return read_all unless sep
 
-    sep = Type.check_and_coerce_to(sep, String, :to_str) if sep
+    sep = StringValue sep if sep
 
     if sep.empty?
       sep = "\n\n"
@@ -1187,7 +1187,7 @@ class IO
   #  f = File.new("testfile")
   #  f.readlines[0]   #=> "This is line one\n"
   def readlines(sep=$/)
-    sep = Type.check_and_coerce_to(sep, String, :to_str) if sep
+    sep = StringValue sep if sep
 
     old_line = $_
     ary = Array.new

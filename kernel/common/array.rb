@@ -318,7 +318,7 @@ class Array
   # Array that do not appear in the other Array, effectively
   # 'deducting' those items. The matching method is Hash-based.
   def -(other)
-    other = Type.check_and_coerce_to other, Array, :to_ary
+    other = Type.coerce_to other, Array, :to_ary
     out, exclude = [], {}
 
     other.each { |x| exclude[x] = true }
@@ -613,7 +613,8 @@ class Array
     if one.kind_of? Range
       raise TypeError, "Length invalid with range" if args.size > 1   # WTF, MRI, TypeError?
 
-      start, finish = Type.check_and_coerce_to(one.begin, Fixnum, :to_int), Type.check_and_coerce_to(one.end, Fixnum, :to_int)
+      start  = Type.coerce_to one.begin, Fixnum, :to_int
+      finish = Type.coerce_to one.end, Fixnum, :to_int
 
       start += @total if start < 0
       finish += @total if finish < 0
@@ -628,13 +629,13 @@ class Array
 
     else
       if one
-        start = Type.check_and_coerce_to one, Fixnum, :to_int
+        start = Type.coerce_to one, Fixnum, :to_int
 
         start += @total if start < 0
         start = 0 if start < 0            # MRI comp adjusts to 0
 
         if two
-          finish = Type.check_and_coerce_to two, Fixnum, :to_int
+          finish = Type.coerce_to two, Fixnum, :to_int
           return self if finish < 1       # Nothing to modify
           raise ArgumentError, "argument too big" if finish < 0 && start < finish.abs
 
@@ -666,7 +667,7 @@ class Array
   def first(n = Undefined)
     return at(0) if n.equal? Undefined
 
-    n = Type.check_and_coerce_to n, Fixnum, :to_int
+    n = Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
 
     Array.new(self[0...n])

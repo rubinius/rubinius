@@ -183,7 +183,7 @@ class Array::Packer
       if(item == nil)
         @result << "\x00"*POINTER_SIZE
       else
-        item = Type.check_and_coerce_to(item, String, :to_str)
+        item = StringValue item
         raise ArgumentError, "not implemented"
       end
     end
@@ -208,7 +208,7 @@ class Array::Packer
 
   def decimal(kind, t)
     item = fetch_item()
-    item = Type.check_and_coerce_to(item, Float, :to_f)
+    item = FloatValue item
 
     raise ArgumentError, "not implemented"
   end

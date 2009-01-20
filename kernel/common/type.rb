@@ -28,16 +28,6 @@ module Type
     raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{ret.class})"
   end
 
-  def self.check_and_coerce_to(obj, cls, meth)
-    return obj if self.obj_kind_of?(obj, cls)
-
-    if obj.respond_to? meth
-      self.coerce_to(obj, cls, meth)
-    else
-      raise TypeError, "Coercion error: #{obj.inspect} does not respond to #{meth}"
-    end
-  end
-
   def self.coerce_to_symbol(obj)
     if obj.kind_of? Fixnum
       raise ArgumentError, "Fixnums (#{obj}) cannot be used as symbols"
