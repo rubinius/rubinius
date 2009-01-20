@@ -172,7 +172,7 @@ class ConditionVariable
       if timeout
         !!signaled
       else
-        nil
+        self
       end
     ensure
       @lock << nil
@@ -186,7 +186,7 @@ class ConditionVariable
     @lock.receive
     @waiters.shift << true unless @waiters.empty?
     @lock << nil
-    nil
+    self
   end
 
   #
@@ -196,7 +196,7 @@ class ConditionVariable
     @lock.receive
     @waiters.shift << true until @waiters.empty?
     @lock << nil
-    nil
+    self
   end
 end
 
