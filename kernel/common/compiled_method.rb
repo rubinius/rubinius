@@ -50,22 +50,14 @@ class StaticScope
     @parent = par
   end
 
-  attr_writer :script
-
   # Source code of this scope.
-  def script
-    @script
-  end
+  attr_accessor :script
 
   # Module or class this lexical scope enclosed into.
-  def module
-    @module
-  end
+  attr_reader   :module
 
   # Static scope object this scope enclosed into.
-  def parent
-    @parent
-  end
+  attr_reader   :parent
 
   def inspect
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent.inspect} module=#{@module}>"
@@ -448,18 +440,12 @@ class CompiledMethod < Executable
     ##
     # Returns the stack operands consumed by this instruction, as well as a flag
     # indicating whether this is an exact value (true) or a minimum (false).
-
-    def stack_consumed
-      @stack_consumed
-    end
+    attr_reader :stack_consumed
 
     ##
     # Returns the stack operands produced by this instruction, as well as a flag
     # indicating whether this is an exact value (true) or a minimum (false).
-
-    def stack_produced
-      @stack_produced
-    end
+    attr_reader :stack_produced
 
     ##
     # Calculate the stack usage (pushes or pops) of this instruction.

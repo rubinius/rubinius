@@ -180,10 +180,8 @@ class Range
   #
   # Returns the first object in +rng+.
 
-  def first
-    @begin
-  end
-  alias_method :begin, :first
+  attr_reader :begin
+  alias_method :first, :begin
 
   # Generate a hash value such that two ranges with the same start and
   # end points, and the same value for the "exclude end" flag, generate
@@ -207,10 +205,8 @@ class Range
   #
   #    (1..10).end    #=> 10
   #    (1...10).end   #=> 10
-  def last
-    @end
-  end
-  alias_method :end, :last
+  attr_reader :end
+  alias_method :last, :end
 
   ##
   # :call-seq:

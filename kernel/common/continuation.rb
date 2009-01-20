@@ -43,6 +43,9 @@
 #   3:  15 16
 
 class Continuation
+  attr_writer :task
+  attr_reader :value
+
   def self.new(*args)
     raise NoMethodError.new
   end
@@ -56,14 +59,6 @@ class Continuation
   def setup(task=nil)
     @task = task
     @value = nil
-  end
-  
-  def task=(task)
-    @task = task
-  end
-  
-  def value
-    @value
   end
   
   def call(*value)

@@ -670,9 +670,7 @@ class IO
     @descriptor == -1
   end
 
-  def descriptor
-    @descriptor
-  end
+  attr_reader :descriptor
 
   def dup
     ensure_open

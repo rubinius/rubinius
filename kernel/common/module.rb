@@ -19,7 +19,7 @@ class Module
   # I (Evan) don't like either of these. I think they could easily
   # break things. We should check on that.
   def constants_table=(c) ; @constants = c    ; end
-  def method_table=(m)    ; @method_table = m ; end
+  attr_writer :method_table
 
   def self.nesting
     mod  = MethodContext.current.sender.receiver

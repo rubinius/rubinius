@@ -10,7 +10,7 @@ class Thread
 
   class Die < Exception; end # HACK
 
-  def task; @task; end
+  attr_reader :task
 
   @abort_on_exception = false
 

@@ -4,18 +4,9 @@
 # A linked-list data structure.
 
 class List
-
-  def count
-    @count
-  end
-  
-  def first
-    @first
-  end
-  
-  def last
-    @last
-  end
+  attr_reader :count
+  attr_reader :first
+  attr_reader :last
   
   def initialize
     @count = 0
@@ -62,22 +53,12 @@ class List
   end
 
   class Node
-
-    def object
-      @object
-    end
-    
-    def next
-      @next
-    end
+    attr_reader :object
+    attr_accessor :next
 
     def initialize(obj)
       @object = obj
       @next = nil
-    end
-
-    def next=(obj)
-      @next = obj
     end
   end
 end

@@ -1,9 +1,8 @@
 # depends on: class.rb string.rb
 
 class Regexp
-
-  def source   ; @source    ; end
-  def names    ; @names     ; end
+  attr_reader :source
+  attr_reader :names
 
   ValidKcode    = [?n,?e,?s,?u]
   KcodeValue    = [16,32,48,64]

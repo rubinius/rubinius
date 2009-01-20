@@ -2,17 +2,11 @@
 # The representation of a method name used for invalidating a cached SendSite.
 
 class Selector
-
-  def name
-    @name
-  end
+  attr_reader :name
+  attr_reader :send_sites
 
   def inspect
     "#<Selector name=#{@name} sites=#{@send_sites.size}>"
-  end
-
-  def send_sites
-    @send_sites
   end
 
   def receives

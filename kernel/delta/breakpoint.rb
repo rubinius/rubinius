@@ -201,9 +201,7 @@ class GlobalBreakpoint < Breakpoint
 
   # Returns the condition (if any) that the breakpoint needs to satisfy in
   # order to be triggered.
-  def condition
-    @condition
-  end
+  attr_reader :condition
 
   # Determines if the breakpoint should actually fire when hit.
   # This method evaluates any condition specified for the breakpoint. The
