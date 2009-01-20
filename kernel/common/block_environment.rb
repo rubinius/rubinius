@@ -1,34 +1,24 @@
-# TODO - Needs ivar_as_index removal cleanup
-
 ##
 # Describes the environment a block was created in.  BlockEnvironment is used
 # to create a BlockContext.
 
 class BlockEnvironment
+  attr_accessor :home
+  attr_accessor :home_block
+  attr_accessor :local_count
+  attr_accessor :method # The CompiledMethod object that we were called from
 
-  attr_reader :home
-  attr_reader :home_block
-  attr_reader :local_count
-  attr_reader :method
+  attr_accessor :initial_ip
+  attr_accessor :last_ip
+  attr_accessor :post_send
+  attr_accessor :scope
 
   attr_accessor :proc_environment
-  
+  attr_accessor :metadata_container
+  attr_writer   :constant_scope # Static scope for constant lookup
+
   def from_proc?
     @proc_environment
-  end
-
-  def home_block=(block)
-    @home_block = block
-  end
-
-  def initial_ip=(ip)
-  end
-
-  def last_ip=(ip)
-  end
-
-  def metadata_container
-    @metadata_container
   end
 
   def under_context(context, cmethod)
@@ -50,12 +40,8 @@ class BlockEnvironment
   end
 
   ##
-  # Holds a Tuple of additional metadata.
-  # First field of the tuple holds a boolean indicating if the context is from
-  # eval
-  def metadata_container=(tup)
-    @metadata_container = tup
-  end
+  # First field of the tuple in @metadata_container holds a boolean
+  # indicating if the context is from eval
 
   def from_eval?
     @metadata_container and @metadata_container[0]
@@ -66,24 +52,10 @@ class BlockEnvironment
     @metadata_container[0] = true
   end
 
-  ##
-  # The CompiledMethod object that we were called from
-
-  def method=(tup)
-    @method = tup
-  end
-
-  def home=(home)
-    @home = home
-  end
-
-  def scope=(tup)
-    @scope = tup
-  end
-
   def make_independent
     @home = @home.dup
-    @home_block = @home_block.dup
+    # TODO: enabling this appears to break Module.module_function, why?
+    # @home_block = @home_block.dup
     @method = @method.dup
   end
 
@@ -103,13 +75,20 @@ class BlockEnvironment
     method.required_args
   end
 
-  # Static scope for constant lookup
-  def constant_scope=(scope)
-    @constant_scope = scope
-  end
-
   def constant_scope
     @constant_scope ||= @method.scope
   end
-end
 
+  def disable_long_return!
+    @post_send = nil
+  end
+
+  # TODO: are file,line actually used?
+  def file
+    method.file
+  end
+
+  def line
+    method.line_from_ip(@initial_ip)
+  end
+end
