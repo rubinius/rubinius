@@ -1,1 +1,0 @@
-fails:Thread#wakeup does not result in a deadlock

@@ -1,1 +1,0 @@
-fails:The private keyword defines a new method rather than changing visibility of an existing one
