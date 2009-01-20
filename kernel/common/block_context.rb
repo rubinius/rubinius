@@ -68,12 +68,18 @@ class BlockContext < MethodContext
   # Static scope of home method context.
 
   def current_scope
-    if ss = method.scope
-      return ss.module
-    else
-      home.current_scope
-    end
+    home.current_scope
   end
+
+  # TODO: this version of current_scope was being shadowed, but causes
+  # spec failures
+  # def current_scope
+  #   if ss = method.scope
+  #     return ss.module
+  #   else
+  #     home.current_scope
+  #   end
+  # end
 
   ##
   # instance_eval needs alternate const behavior
