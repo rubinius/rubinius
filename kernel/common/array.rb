@@ -1207,16 +1207,28 @@ class Array
     out
   end
 
-  # Interleaves all given :to_ary's so that the n-th element of each
-  # Array is inserted into the n-th subarray of the returned Array.
-  # If a block is provided, then each subarray is passed to it
-  # instead. The maximum number of subarrays and therefore elements
-  # used is the size of self. Missing indices are filled in with
-  # nils and any elements past self.size in the other Arrays are
-  # ignored.
+  #  call-seq:
+  #     array.zip(arg, ...)                   -> an_array
+  #     array.zip(arg, ...) {| arr | block }  -> nil
+  #
+  #  Converts any arguments to arrays, then merges elements of
+  #  <i>self</i> with corresponding elements from each argument. This
+  #  generates a sequence of <code>self.size</code> <em>n</em>-element
+  #  arrays, where <em>n</em> is one more that the count of arguments. If
+  #  the size of any argument is less than <code>enumObj.size</code>,
+  #  <code>nil</code> values are supplied. If a block given, it is
+  #  invoked for each output array, otherwise an array of arrays is
+  #  returned.
+  #
+  #     a = [ 4, 5, 6 ]
+  #     b = [ 7, 8, 9 ]
+  #     [1,2,3].zip(a, b)      #=> [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
+  #     [1,2].zip(a,b)         #=> [[1, 4, 7], [2, 5, 8]]
+  #     a.zip([1,2],[8])       #=> [[4,1,8], [5,2,nil], [6,nil,nil]]
+  #
   def zip(*others)
     out = Array.new(size) { [] }
-    others = others.map { |ary| ary.to_a }
+    others = others.map { |ary| ary.to_ary }
 
     size.times do |i|
       slot = out.at(i)
@@ -1230,10 +1242,6 @@ class Array
     end
 
     out
-  end
-
-  def size
-    @total
   end
 
   def unshift(*values)
