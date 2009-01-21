@@ -200,7 +200,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(state, 1024);
     Tuple *young, *mature;
 
-    om.large_object_threshold = 50;
+    om.large_object_threshold = 50 * __WORDSIZE / 32;
 
     young =  (Tuple*)util_new_object(om);
     TS_ASSERT_EQUALS(young->zone, YoungObjectZone);
@@ -245,7 +245,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(state, 1024);
     Tuple *young, *mature;
 
-    om.large_object_threshold = 50;
+    om.large_object_threshold = 50 * __WORDSIZE / 32;
 
     young =  (Tuple*)util_new_object(om);
     mature = (Tuple*)util_new_object(om,20);
@@ -366,7 +366,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     Object* young;
     Object* mature;
 
-    om.large_object_threshold = 50;
+    om.large_object_threshold = 50 * __WORDSIZE / 32;
 
     young =  util_new_object(om);
     mature = util_new_object(om,20);
