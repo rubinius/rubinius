@@ -531,36 +531,35 @@ namespace rubinius {
   }
 
   /*
-   * Sets breakpoint flags on the specified opcode.
+   * Ensures the specified IP value is a valid address.
    */
-  void VMMethod::set_breakpoint_flags(STATE, size_t ip, bpflags flags) {
+  bool VMMethod::validate_ip(STATE, size_t ip) {
     /* Ensure ip is valid */
     VMMethod::Iterator iter(this);
     for(; !iter.end(); iter.inc()) {
-      if(iter.position == ip) break;
+      if(iter.position >= ip) break;
     }
-    if(ip != iter.position) {
-      Exception::argument_error(state, "Invalid instruction address");
-    }
+    return ip == iter.position;
+  }
 
-    opcodes[ip] &= 0x00ffffff;    // Clear the high byte
-    opcodes[ip] |= flags & 0xff000000;
+  /*
+   * Sets breakpoint flags on the specified opcode.
+   */
+  void VMMethod::set_breakpoint_flags(STATE, size_t ip, bpflags flags) {
+    if(validate_ip(state, ip)) {
+      opcodes[ip] &= 0x00ffffff;    // Clear the high byte
+      opcodes[ip] |= flags & 0xff000000;
+    }
   }
 
   /*
    * Gets breakpoint flags on the specified opcode.
    */
   bpflags VMMethod::get_breakpoint_flags(STATE, size_t ip) {
-    /* Ensure ip is valid */
-    VMMethod::Iterator iter(this);
-    for(; !iter.end(); iter.inc()) {
-      if(iter.position == ip) break;
+    if(validate_ip(state, ip)) {
+      return opcodes[ip] & 0xff000000;
     }
-    if(ip != iter.position) {
-      Exception::argument_error(state, "Invalid instruction address");
-    }
-
-    return opcodes[ip] & 0xff000000;
+    return 0;
   }
 
   bool Opcode::is_goto() {

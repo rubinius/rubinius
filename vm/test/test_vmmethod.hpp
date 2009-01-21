@@ -58,6 +58,24 @@ public:
     TS_ASSERT_EQUALS(vmm.opcodes[2], static_cast<unsigned int>(InstructionSequence::insn_push_nil));
   }
 
+  void test_validate_ip() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
+    cm->literals(state, tup);
+
+    InstructionSequence* iseq = InstructionSequence::create(state, 3);
+    iseq->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_ivar));
+    iseq->opcodes()->put(state, 1, Fixnum::from(0));
+    iseq->opcodes()->put(state, 2, Fixnum::from(InstructionSequence::insn_push_nil));
+
+    cm->iseq(state, iseq);
+
+    VMMethod vmm(state, cm);
+    TS_ASSERT_EQUALS(vmm.validate_ip(state, 0), true);
+    TS_ASSERT_EQUALS(vmm.validate_ip(state, 1), false);
+    TS_ASSERT_EQUALS(vmm.validate_ip(state, 2), true);
+  }
+
   void test_set_breakpoint_flags() {
     CompiledMethod* cm = CompiledMethod::create(state);
     Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
@@ -81,7 +99,8 @@ public:
     vmm.set_breakpoint_flags(state, 0, 0);
     TS_ASSERT_EQUALS(vmm.opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_push_ivar));
 
-    TS_ASSERT_THROWS(vmm.set_breakpoint_flags(state, 1, 1), const RubyException &e);
+    vmm.set_breakpoint_flags(state, 1, 1);
+    TS_ASSERT_EQUALS(vmm.opcodes[1], 0);
   }
 
   void test_get_breakpoint_flags() {
@@ -100,7 +119,6 @@ public:
 
     TS_ASSERT_EQUALS(vmm.get_breakpoint_flags(state, 0), 0U);
     TS_ASSERT_EQUALS(vmm.get_breakpoint_flags(state, 2), (4U << 24));
-
-    TS_ASSERT_THROWS(vmm.get_breakpoint_flags(state, 1), const RubyException &e);
+    TS_ASSERT_EQUALS(vmm.get_breakpoint_flags(state, 1), 0U);
   }
 };

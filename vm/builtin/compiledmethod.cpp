@@ -100,8 +100,10 @@ namespace rubinius {
   }
 
   Object* CompiledMethod::compile(STATE) {
-    backend_method_ = NULL;
-    formalize(state);
+    if(backend_method_ == NULL || backend_method_->run != VMMethod::debugger_interpreter) {
+      backend_method_ = NULL;
+      formalize(state);
+    }
     return this;
   }
 
@@ -164,27 +166,31 @@ namespace rubinius {
   }
 
   Object* CompiledMethod::set_breakpoint(STATE, Fixnum* ip) {
-    // TODO Return an exception indicating the problem
-    if(backend_method_ == 0) return Qnil;
+    int i = ip->to_native();
+    if(backend_method_ == NULL) formalize(state);
+    if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
     backend_method_->run = VMMethod::debugger_interpreter;
-    backend_method_->set_breakpoint_flags(state, ip->to_native(), cBreakpoint);
+    backend_method_->set_breakpoint_flags(state, i, cBreakpoint);
     return ip;
   }
 
   Object* CompiledMethod::clear_breakpoint(STATE, Fixnum* ip) {
-    // TODO Return an exception indicating the problem
-    if(backend_method_ == 0) return Qnil;
+    int i = ip->to_native();
+    if(backend_method_ == NULL) return ip;
+    if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
+    // TODO Should this always reset to the basic interpreter?
     backend_method_->run = VMMethod::interpreter;
-    backend_method_->set_breakpoint_flags(state, ip->to_native(),
-            backend_method_->get_breakpoint_flags(state, ip->to_native()) & ~cBreakpoint);
+    backend_method_->set_breakpoint_flags(state, i,
+            backend_method_->get_breakpoint_flags(state, i) & ~cBreakpoint);
     return ip;
   }
 
   Object* CompiledMethod::is_breakpoint(STATE, Fixnum* ip) {
-    // TODO Return an exception indicating the problem
-    if(backend_method_ == 0) return Qfalse;
-    if(backend_method_->get_breakpoint_flags(state, ip->to_native()) == cBreakpoint)
-        return Qtrue;
+    int i = ip->to_native();
+    if(backend_method_ == NULL) return Qfalse;
+    if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
+    if(backend_method_->get_breakpoint_flags(state, i) == cBreakpoint)
+      return Qtrue;
     return Qfalse;
   }
 

@@ -79,6 +79,7 @@ namespace rubinius {
 
     std::vector<Opcode*> create_opcodes();
 
+    bool validate_ip(STATE, size_t ip);
     void set_breakpoint_flags(STATE, size_t ip, bpflags flags);
     bpflags get_breakpoint_flags(STATE, size_t ip);
 
@@ -99,7 +100,7 @@ namespace rubinius {
       }
 
       opcode op() {
-        return vmm->opcodes[position];
+        return vmm->opcodes[position] & 0x00ffff;
       }
 
       int operand1() {

@@ -144,17 +144,17 @@ class CompiledMethod < Executable
 
   def set_breakpoint(ip)
     Ruby.primitive :compiledmethod_set_breakpoint
-    raise PrimitiveFailure, "Unable to set breakpoint on #{recv.inspect} at #{ip}"
+    raise ArgumentError, "Unable to set breakpoint on #{inspect} at invalid bytecode address #{ip}"
   end
 
   def clear_breakpoint(ip)
     Ruby.primitive :compiledmethod_clear_breakpoint
-    raise PrimitiveFailure, "Unable to clear breakpoint on #{recv.inspect} at #{ip}"
+    raise ArgumentError, "Unable to clear breakpoint on #{inspect} at invalid bytecode address #{ip}"
   end
 
   def breakpoint?(ip)
     Ruby.primitive :compiledmethod_is_breakpoint
-    raise PrimitiveFailure, "Unable to retrieve breakpoint status on #{recv.inspect} at #{ip}"
+    raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
   end
 
   # Accessor for a hash of filenames (as per $" / $LOADED_FEATURES) to the
