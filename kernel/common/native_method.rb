@@ -1,7 +1,11 @@
-#depends on class.rb
+#depends on class.rb executable.rb
 
-class Executable
-end
+##
+# A wrapper for a calling a function in a shared library that has been
+# attached via rb_define_method().
+#
+# The primitive slot for a NativeMethod points to the nmethod_call primitive
+# which dispatches to the underlying C function.
 
 #
 # TODO: Rework exceptions.
@@ -32,4 +36,19 @@ class NativeMethod < Executable
     Ruby.primitive :nativemethod_load_extension_entry_point
   end
 
+  def lines
+    nil
+  end
+
+  def exceptions
+    nil
+  end
+
+  def literals
+    nil
+  end
+
+  def line_from_ip(i)
+    0
+  end
 end

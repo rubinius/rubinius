@@ -8,5 +8,18 @@
 # activated (see MethodContext).
 
 class Executable
+  ##
+  # Allows instances of Executable and its subclasses
+  # to duck-type as CompiledMethod::Visibility since
+  # they can both be entries in a MethodTable.
+  def public?
+    true
+  end
+
+  def private?
+    false
+  end
+
+  alias_method :protected?, :private?
 end
 

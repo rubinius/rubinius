@@ -7,6 +7,9 @@ require 'compiler/text'
 require 'compiler/stack'
 $:.pop
 
+class Executable
+end
+
 require File.dirname(__FILE__) + '/../../kernel/delta/compiled_file'
 require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
 require File.dirname(__FILE__) + '/../../kernel/common/compiled_method'

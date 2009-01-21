@@ -1,48 +1,8 @@
-# depends on: class.rb array.rb
+# depends on: class.rb executable.rb array.rb
 
 # TODO - This file needs ivar_as_index removal cleanup
 
 # TODO - Comment!!!
-class Executable
-  ##
-  # Allows instances of Executable and its subclasses
-  # to duck-type as CompiledMethod::Visibility since
-  # they can both be entries in a MethodTable.
-  def public?
-    true
-  end
-
-  def private?
-    false
-  end
-
-  alias_method :protected?, :private?
-end
-
-##
-# A wrapper for a calling a function in a shared library that has been
-# attached via rb_define_method().
-#
-# The primitive slot for a NativeMethod points to the nmethod_call primitive
-# which dispatches to the underlying C function.
-
-class NativeMethod < Executable
-  def lines
-    nil
-  end
-
-  def exceptions
-    nil
-  end
-
-  def literals
-    nil
-  end
-
-  def line_from_ip(i)
-    0
-  end
-end
 
 ##
 # A linked list that details the static, lexical scope the method was created
