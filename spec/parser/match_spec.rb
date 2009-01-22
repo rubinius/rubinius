@@ -1,6 +1,11 @@
-def test_case
-{"RawParseTree"=>[:if, [:match, "x", 0], [:lit, 1], nil],
- "Ruby"=>"1 if /x/",
- "RubyParser"=>s(:if, s(:match, s(:lit, /x/)), s(:lit, 1), nil),
- "SydneyParser"=>s(:if, s(:match, s(:regex, "x", 0)), s(:lit, 1), nil)}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "A Match node" do
+  relates "1 if /x/" do
+    parse do
+      [:if, [:match, [:regex, "x", 0]], [:lit, 1], nil]
+    end
+
+    # match
+  end
 end

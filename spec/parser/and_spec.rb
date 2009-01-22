@@ -1,6 +1,11 @@
-def test_case
-{"RawParseTree"=>[:and, [:vcall, :a], [:vcall, :b]],
- "Ruby"=>"(a and b)",
- "RubyParser"=>
-  s(:and, s(:call, nil, :a, s(:arglist)), s(:call, nil, :b, s(:arglist)))}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "An And node" do
+  relates "(a and b)" do
+    parse do
+      [:and, [:call, nil, :a, [:arglist]], [:call, nil, :b, [:arglist]]]
+    end
+
+    # and
+  end
 end

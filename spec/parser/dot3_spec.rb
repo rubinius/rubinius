@@ -1,6 +1,11 @@
-def test_case
-{"RawParseTree"=>[:dot3, [:vcall, :a], [:vcall, :b]],
- "Ruby"=>"(a...b)",
- "RubyParser"=>
-  s(:dot3, s(:call, nil, :a, s(:arglist)), s(:call, nil, :b, s(:arglist)))}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "A Dot3 node" do
+  relates "(a...b)" do
+    parse do
+      [:dot3, [:call, nil, :a, [:arglist]], [:call, nil, :b, [:arglist]]]
+    end
+
+    # dot3
+  end
 end

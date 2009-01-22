@@ -1,6 +1,11 @@
-def test_case
-{"RawParseTree"=>[:match2, [:regex, "x", 0], [:str, "blah"]],
- "Ruby"=>"/x/ =~ \"blah\"",
- "RubyParser"=>s(:match2, s(:lit, /x/), s(:str, "blah")),
- "SydneyParser"=>s(:match2, s(:regex, "x", 0), s(:str, "blah"))}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "A Match2 node" do
+  relates '/x/ =~ "blah"' do
+    parse do
+      [:match2, [:regex, "x", 0], [:str, "blah"]]
+    end
+
+    # match2
+  end
 end

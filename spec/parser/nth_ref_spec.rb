@@ -1,3 +1,11 @@
-def test_case
-{"RawParseTree"=>[:nth_ref, 1], "Ruby"=>"$1", "RubyParser"=>s(:nth_ref, 1)}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "An Nth_ref node" do
+  relates "$1" do
+    parse do
+      [:nth_ref, 1]
+    end
+
+    # nth ref
+  end
 end

@@ -1,33 +1,49 @@
-def test_case
-{"RawParseTree"=>
-  [:lasgn,
-   :x,
-   [:if,
-    [:flip2,
-     [:call,
-      [:call, [:vcall, :i], :%, [:array, [:lit, 4]]],
-      :==,
-      [:array, [:lit, 0]]],
-     [:call,
-      [:call, [:vcall, :i], :%, [:array, [:lit, 3]]],
-      :==,
-      [:array, [:lit, 0]]]],
-    [:vcall, :i],
-    [:nil]]],
- "Ruby"=>"x = if ((i % 4) == 0)..((i % 3) == 0) then\n  i\nelse\n  nil\nend",
- "RubyParser"=>
-  s(:lasgn,
-   :x,
-   s(:if,
-    s(:flip2,
-     s(:call,
-      s(:call, s(:call, nil, :i, s(:arglist)), :%, s(:arglist, s(:lit, 4))),
-      :==,
-      s(:arglist, s(:lit, 0))),
-     s(:call,
-      s(:call, s(:call, nil, :i, s(:arglist)), :%, s(:arglist, s(:lit, 3))),
-      :==,
-      s(:arglist, s(:lit, 0)))),
-    s(:call, nil, :i, s(:arglist)),
-    s(:nil)))}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "A Flip2 node" do
+  relates <<-ruby do
+      x = if ((i % 4) == 0)..((i % 3) == 0) then
+        i
+      else
+        nil
+      end
+    ruby
+
+    parse do
+      [:lasgn,
+       :x,
+       [:if,
+        [:flip2,
+         [:call,
+          [:call, [:call, nil, :i, [:arglist]], :%, [:arglist, [:lit, 4]]],
+          :==,
+          [:arglist, [:lit, 0]]],
+         [:call,
+          [:call, [:call, nil, :i, [:arglist]], :%, [:arglist, [:lit, 3]]],
+          :==,
+          [:arglist, [:lit, 0]]]],
+        [:call, nil, :i, [:arglist]],
+        [:nil]]]
+    end
+
+    # flip2
+  end
+
+  relates <<-ruby do
+      if 1..2.a?(b) then
+        nil
+      end
+    ruby
+
+    parse do
+      [:if,
+       [:flip2,
+        [:lit, 1],
+        [:call, [:lit, 2], :a?, [:arglist, [:call, nil, :b, [:arglist]]]]],
+       [:nil],
+       nil]
+    end
+
+    # flip2 method
+  end
 end

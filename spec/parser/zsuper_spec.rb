@@ -1,5 +1,16 @@
-def test_case
-{"RawParseTree"=>[:defn, :x, [:scope, [:block, [:args], [:zsuper]]]],
- "Ruby"=>"def x\n  super\nend",
- "RubyParser"=>s(:defn, :x, s(:args), s(:scope, s(:block, s(:zsuper))))}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "A Zsuper node" do
+  relates <<-ruby do
+      def x
+        super
+      end
+    ruby
+
+    parse do
+      [:defn, :x, [:args], [:scope, [:block, [:zsuper]]]]
+    end
+
+    # zsuper
+  end
 end

@@ -1,5 +1,27 @@
-def test_case
-{"RawParseTree"=>[:cdecl, :X, [:lit, 42]],
- "Ruby"=>"X = 42",
- "RubyParser"=>s(:cdecl, :X, s(:lit, 42))}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "A Cdecl node" do
+  relates "X = 42" do
+    parse do
+      [:cdecl, :X, [:lit, 42]]
+    end
+
+    # cdecl
+  end
+
+  relates "::X = 1" do
+    parse do
+      [:cdecl, [:colon3, :X], [:lit, 1]]
+    end
+
+    # constY
+  end
+
+  relates "X::Y = 1" do
+    parse do
+      [:cdecl, [:colon2, [:const, :X], :Y], [:lit, 1]]
+    end
+
+    # constZ
+  end
 end

@@ -1,13 +1,14 @@
-def test_case
-{"RawParseTree"=>
-  [:dsym,
-   "x",
-   [:evstr, [:call, [:lit, 1], :+, [:array, [:lit, 1]]]],
-   [:str, "y"]],
- "Ruby"=>":\"x\#{(1 + 1)}y\"",
- "RubyParser"=>
-  s(:dsym,
-   "x",
-   s(:evstr, s(:call, s(:lit, 1), :+, s(:arglist, s(:lit, 1)))),
-   s(:str, "y"))}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "A Dsym node" do
+  relates ':"x#{(1 + 1)}y"' do
+    parse do
+      [:dsym,
+       "x",
+       [:evstr, [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]]],
+       [:str, "y"]]
+    end
+
+    # dsym
+  end
 end

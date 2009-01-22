@@ -1,7 +1,29 @@
-def test_case
-{"RawParseTree"=>[:class, :X, nil, [:scope, [:alias, [:lit, :y], [:lit, :x]]]],
- "Ruby"=>"class X\n  alias :y :x\nend",
- "RubyParser"=>
-  s(:class, :X, nil, s(:scope, s(:alias, s(:lit, :y), s(:lit, :x)))),
- "Ruby2Ruby"=>"class X\n  alias_method :y, :x\nend"}
+require File.dirname(__FILE__) + '/../spec_helper'
+
+describe "An Alias node" do
+  relates <<-ruby do
+      class X
+        alias :y :x
+      end
+    ruby
+
+    parse do
+      [:class, :X, nil, [:scope, [:alias, [:lit, :y], [:lit, :x]]]]
+    end
+
+    # alias
+  end
+
+  relates <<-ruby do
+      class X
+        alias y x
+      end
+    ruby
+
+    parse do
+      [:class, :X, nil, [:scope, [:alias, [:lit, :y], [:lit, :x]]]]
+    end
+
+    #alias_ugh
+  end
 end
