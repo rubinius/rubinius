@@ -999,18 +999,13 @@ class Array
   def reverse!
     return self unless @total > 1
 
-    tuple = Tuple.new @total
-    i = 0
+    i = @start
     j = @start + @total - 1
-    while(j >= @start) do
-      tuple.put i, @tuple.at(j)
+    while(i < (@start+@total/2)) do
+      @tuple.swap(i,j)
       i += 1
       j -= 1
     end
-
-    @tuple = tuple
-    @start = 0
-
     self
   end
 
