@@ -100,7 +100,7 @@ public:
     TS_ASSERT_EQUALS(vmm.opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_push_ivar));
 
     vmm.set_breakpoint_flags(state, 1, 1);
-    TS_ASSERT_EQUALS(vmm.opcodes[1], 0);
+    TS_ASSERT_EQUALS(vmm.opcodes[1], 0U);
   }
 
   void test_get_breakpoint_flags() {
