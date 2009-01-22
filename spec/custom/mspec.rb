@@ -1,0 +1,6 @@
+require 'spec/custom/utils/script'
+require 'spec/custom/matchers/parse_as'
+require 'spec/custom/matchers/compile_as'
+require 'spec/custom/helpers/generator'
+require 'spec/custom/runner/relates'
+require 'spec/custom/runner/actions/gcstats'

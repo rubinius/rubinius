@@ -1,1 +1,4 @@
-require File.dirname(__FILE__) + '/frozen/spec_helper'
+$: << File.expand_path(File.dirname(__FILE__) + '/../')
+
+require 'spec/frozen/spec_helper'
+require 'spec/custom/mspec'
