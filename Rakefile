@@ -1,6 +1,7 @@
 # NOTE! When updating this file, also update INSTALL, if necessary.
 # NOTE! Please keep your tasks grouped together.
 
+$trace ||= false
 $VERBOSE = true
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
 
