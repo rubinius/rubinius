@@ -1047,12 +1047,12 @@ class TestBignum : public CxxTest::TestSuite {
     check_float(b1->to_float(state), Float::create(state, 2147483647.0));
     check_float(b2->to_float(state), Float::create(state, 2147483646.0));
 
-    Bignum *b3 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(32)));
-    check_float(b3->to_float(state), Float::create(state, 4294967296.0));
-    Bignum *b4 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(33)));
-    check_float(b4->to_float(state), Float::create(state, 8589934592.0));
-    Bignum *b5 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(34)));
-    check_float(b5->to_float(state), Float::create(state, 17179869184.0));
+    Bignum *b3 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(64)));
+    check_float(b3->to_float(state), Float::create(state, 18446744073709551616.0));
+    Bignum *b4 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(65)));
+    check_float(b4->to_float(state), Float::create(state, 36893488147419103232.0));
+    Bignum *b5 = as<Bignum>(Fixnum::from(2)->pow(state, Fixnum::from(66)));
+    check_float(b5->to_float(state), Float::create(state, 73786976294838206464.0));
   }
 
   /* Math.frexp(Float::MAX) => [1.0 - Float::EPSILON, 1024]. In other words,
