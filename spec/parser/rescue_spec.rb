@@ -1,12 +1,38 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Rescue node" do
+  rescue_empty = lambda do |g|
+    in_rescue :StandardError do |section|
+      case section
+      when :body then
+        g.push :self
+        g.send :blah, 0, true
+      when :StandardError then
+        g.push :nil
+      end
+    end
+  end
+
   relates "blah rescue nil" do
     parse do
       [:rescue, [:call, nil, :blah, [:arglist]], [:resbody, [:array], [:nil]]]
     end
 
-    # rescue
+    compile(&rescue_empty)
+  end
+
+  relates <<-ruby do
+      begin
+        blah
+      rescue
+      end
+    ruby
+
+    parse do
+      [:rescue, [:call, nil, :blah, [:arglist]], [:resbody, [:array], nil]]
+    end
+
+    compile(&rescue_empty)
   end
 
   relates <<-ruby do
@@ -29,7 +55,24 @@ describe "A Rescue node" do
        [:resbody, [:array, [:const, :C]], [:call, nil, :d, [:arglist]]]]
     end
 
-    # rescue block body 3
+    compile do |g|
+      in_rescue :A, :B, :C do |section|
+        case section
+        when :body then
+          g.push :self
+          g.send :a, 0, true
+        when :A then
+          g.push :self
+          g.send :b, 0, true
+        when :B then
+          g.push :self
+          g.send :c, 0, true
+        when :C then
+          g.push :self
+          g.send :d, 0, true
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -49,7 +92,23 @@ describe "A Rescue node" do
         [:block, [:call, nil, :c, [:arglist]], [:call, nil, :d, [:arglist]]]]]
     end
 
-    # rescue block body ivar
+    compile do |g|
+      in_rescue :StandardError do |section|
+        case section
+        when :body then
+          g.push :self
+          g.send :a, 0, true
+        when :StandardError then
+          g.push_exception
+          g.set_ivar :@e
+          g.push :self
+          g.send :c, 0, true
+          g.pop
+          g.push :self
+          g.send :d, 0, true
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -69,29 +128,29 @@ describe "A Rescue node" do
         [:block, [:call, nil, :c, [:arglist]], [:call, nil, :d, [:arglist]]]]]
     end
 
-    # rescue block body
-  end
-
-  relates <<-ruby do
-      begin
-        blah
-      rescue
-        # do nothing
+    compile do |g|
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body then
+          g.push :self
+          g.send :a, 0, true
+        when :StandardError then
+          g.push_exception
+          g.set_local 0
+          g.push :self
+          g.send :c, 0, true
+          g.pop
+          g.push :self
+          g.send :d, 0, true
+        end
       end
-    ruby
-
-    parse do
-      [:rescue, [:call, nil, :blah, [:arglist]], [:resbody, [:array], nil]]
     end
-
-    # rescue block nada
   end
 
   relates <<-ruby do
       begin
         blah
       rescue RuntimeError => r
-        # do nothing
       end
     ruby
 
@@ -103,14 +162,25 @@ describe "A Rescue node" do
         nil]]
     end
 
-    # rescue exceptions
+    compile do |g|
+      in_rescue :RuntimeError, 1 do |section|
+        case section
+        when :body then
+          g.push :self
+          g.send :blah, 0, true
+        when :RuntimeError then
+          g.push_exception
+          g.set_local 0
+          g.push :nil
+        end
+      end
+    end
   end
 
   relates <<-ruby do
       begin
         1
       rescue => @e
-        # do nothing
       end
     ruby
 
@@ -140,7 +210,6 @@ describe "A Rescue node" do
       begin
         1
       rescue => e
-        # do nothing
       end
     ruby
 
@@ -167,5 +236,4 @@ describe "A Rescue node" do
 
     # rescue lasgn var
   end
-
 end

@@ -11,7 +11,26 @@ describe "An Sclass node" do
       [:sclass, [:self], [:scope, [:lit, 42]]]
     end
 
-    # sclass
+    compile do |g|
+      g.push :self
+      g.dup
+      g.send :__verify_metaclass__, 0 # TODO: maybe refactor...
+      g.pop
+      g.open_metaclass
+      g.dup
+
+      g.push_literal_desc do |d2|
+        d2.push_self
+        d2.add_scope
+        d2.push 42
+        d2.ret
+      end
+
+      g.swap
+      g.attach_method :__metaclass_init__
+      g.pop
+      g.send :__metaclass_init__, 0
+    end
   end
 
   relates <<-ruby do
@@ -34,6 +53,31 @@ describe "An Sclass node" do
          [:class, :B, nil, [:scope]]]]]
     end
 
-    # sclass trailing class
+    compile do |g|
+      in_class :A do |d|
+        d.push :self
+        d.dup
+        d.send :__verify_metaclass__, 0 # TODO: maybe refactor...
+        d.pop
+        d.open_metaclass
+        d.dup
+
+        d.push_literal_desc do |d2|
+          d2.push_self
+          d2.add_scope
+          d2.push :self
+          d2.send :a, 0, true
+          d2.ret
+        end
+
+        d.swap
+        d.attach_method :__metaclass_init__
+        d.pop
+        d.send :__metaclass_init__, 0
+        d.pop
+        d.push :nil
+        d.open_class :B
+      end
+    end
   end
 end

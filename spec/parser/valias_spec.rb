@@ -6,6 +6,12 @@ describe "A Valias node" do
       [:valias, :$y, :$x]
     end
 
-    # valias
+    compile do |g|
+      g.push_cpath_top
+      g.find_const :Globals
+      g.push_literal :$x
+      g.push_literal :$y
+      g.send :add_alias, 2
+    end
   end
 end

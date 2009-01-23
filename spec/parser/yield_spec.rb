@@ -6,7 +6,12 @@ describe "A Yield node" do
       [:yield, [:lit, 42], [:lit, 24]]
     end
 
-    # yield n
+    compile do |g|
+      g.push_block
+      g.push 42
+      g.push 24
+      g.meta_send_call 2
+    end
   end
 
   relates "yield([42, 24])" do
@@ -14,7 +19,13 @@ describe "A Yield node" do
       [:yield, [:array, [:lit, 42], [:lit, 24]]]
     end
 
-    # yield array n
+    compile do |g|
+      g.push_block
+      g.push 42
+      g.push 24
+      g.make_array 2
+      g.meta_send_call 1
+    end
   end
 
   relates "yield([42])" do
@@ -22,7 +33,12 @@ describe "A Yield node" do
       [:yield, [:array, [:lit, 42]]]
     end
 
-    # yield array 1
+    compile do |g|
+      g.push_block
+      g.push 42
+      g.make_array 1
+      g.meta_send_call 1
+    end
   end
 
   relates "yield([])" do
@@ -30,7 +46,11 @@ describe "A Yield node" do
       [:yield, [:array]]
     end
 
-    # yield array 0
+    compile do |g|
+      g.push_block
+      g.make_array 0
+      g.meta_send_call 1
+    end
   end
 
   relates "yield(42)" do
@@ -38,7 +58,11 @@ describe "A Yield node" do
       [:yield, [:lit, 42]]
     end
 
-    # yield 1
+    compile do |g|
+      g.push_block
+      g.push 42
+      g.meta_send_call 1
+    end
   end
 
   relates "yield" do
@@ -46,7 +70,10 @@ describe "A Yield node" do
       [:yield]
     end
 
-    # yield 0
+    compile do |g|
+      g.push_block
+      g.meta_send_call 0
+    end
   end
 
   relates "yield([*[1]])" do
@@ -54,7 +81,12 @@ describe "A Yield node" do
       [:yield, [:array, [:splat, [:array, [:lit, 1]]]]]
     end
 
-    # splat yield array
+    compile do |g|
+      g.push_block
+      g.array_of_splatted_array
+
+      g.meta_send_call 1
+    end
   end
 
   relates "yield(*[1])" do
@@ -62,6 +94,16 @@ describe "A Yield node" do
       [:yield, [:splat, [:array, [:lit, 1]]]]
     end
 
-    # splat yield
+    compile do |g|
+      g.push_block
+
+      g.push 1
+      g.make_array 1
+      g.cast_array
+
+      g.push :nil
+
+      g.send_with_splat :call, 0, false, false
+    end
   end
 end

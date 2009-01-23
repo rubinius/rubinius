@@ -6,6 +6,8 @@ describe "A True node" do
       [:true]
     end
 
-    # true
+    compile do |g|
+      g.push :true
+    end
   end
 end

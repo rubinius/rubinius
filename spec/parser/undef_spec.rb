@@ -6,7 +6,9 @@ describe "An Undef node" do
       [:undef, [:lit, :x]]
     end
 
-    # undef
+    compile do |g|
+      undef_bytecode :x
+    end
   end
 
   relates "undef :x, :y" do
@@ -14,7 +16,9 @@ describe "An Undef node" do
       [:block, [:undef, [:lit, :x]], [:undef, [:lit, :y]]]
     end
 
-    # undef 2
+    compile do |g|
+      undef_bytecode :x, :y
+    end
   end
 
   relates "undef :x, :y, :z" do
@@ -22,7 +26,9 @@ describe "An Undef node" do
       [:block, [:undef, [:lit, :x]], [:undef, [:lit, :y]], [:undef, [:lit, :z]]]
     end
 
-    # undef 3
+    compile do |g|
+      undef_bytecode :x, :y, :z
+    end
   end
 
   relates <<-ruby do
@@ -34,7 +40,13 @@ describe "An Undef node" do
       [:block, [:call, nil, :f1, [:arglist]], [:undef, [:lit, :x]]]
     end
 
-    # undef block 1
+    compile do |g|
+      g.push :self
+      g.send :f1, 0, true
+      g.pop
+
+      undef_bytecode :x
+    end
   end
 
   relates <<-ruby do
@@ -48,7 +60,13 @@ describe "An Undef node" do
        [:block, [:undef, [:lit, :x]], [:undef, [:lit, :y]]]]
     end
 
-    # undef block 2
+    compile do |g|
+      g.push :self
+      g.send :f1, 0, true
+      g.pop
+
+      undef_bytecode :x, :y
+    end
   end
 
   relates <<-ruby do
@@ -64,7 +82,13 @@ describe "An Undef node" do
        [:call, nil, :f2, [:arglist]]]
     end
 
-    # undef block 3 post
+    compile do |g|
+      undef_bytecode :x, :y, :z
+      g.pop
+
+      g.push :self
+      g.send :f2, 0, true
+    end
   end
 
   relates <<-ruby do
@@ -78,7 +102,13 @@ describe "An Undef node" do
        [:block, [:undef, [:lit, :x]], [:undef, [:lit, :y]], [:undef, [:lit, :z]]]]
     end
 
-    # undef block 3
+    compile do |g|
+      g.push :self
+      g.send :f1, 0, true
+      g.pop
+
+      undef_bytecode :x, :y, :z
+    end
   end
 
   relates <<-ruby do
@@ -94,7 +124,17 @@ describe "An Undef node" do
        [:call, nil, :f2, [:arglist]]]
     end
 
-    # undef block wtf
+    compile do |g|
+      g.push :self
+      g.send :f1, 0, true
+      g.pop
+
+      undef_bytecode :x, :y, :z
+      g.pop
+
+      g.push :self
+      g.send :f2, 0, true
+    end
   end
 
 end
