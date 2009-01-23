@@ -295,6 +295,7 @@ class Array
       out = self.class.new()
       out.tuple = nt
       out.total = new_size
+      out.taint if self.tainted? && val > 0
 
       i = 0
       while(i < new_size)
