@@ -1,1 +1,0 @@
-fails:Kernel#instance_variable_get raises a TypeError when the passed argument can't be converted to a String

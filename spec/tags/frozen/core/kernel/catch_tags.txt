@@ -1,1 +1,0 @@
-fails:Kernel.catch raises TypeError if the argument is not a symbol

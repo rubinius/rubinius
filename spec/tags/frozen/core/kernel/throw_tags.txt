@@ -1,1 +1,0 @@
-fails:Kernel.throw raises TypeError if the first argument is not a symbol
