@@ -6,7 +6,7 @@ class MSpecOptions
     # loaded in MRI and there are parts of the custom ensemble that are
     # Rubinius specific (primarily iseq, which could potentially be fixed by
     # better structuring the compiler).
-    require 'spec/custom/mspec'
+    require 'spec/custom/runner/relates'
 
     on("--compiler", "Run only the compile part of the compiler specs") do
       SpecDataRelation.enable :compiler
