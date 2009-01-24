@@ -12,7 +12,18 @@ describe "An Lasgn node" do
            [:splat, [:call, nil, :d, [:arglist]]]]]]
     end
 
-    # argscat
+    compile do |g|
+      g.push :self
+      g.send :b, 0, true
+      g.push :self
+      g.send :c, 0, true
+      g.make_array 2
+      g.push :self
+      g.send :d, 0, true
+      g.cast_array
+      g.send :+, 1
+      g.set_local 0
+    end
   end
 
   relates "a = [b, *c]" do
@@ -24,7 +35,16 @@ describe "An Lasgn node" do
           [:splat, [:call, nil, :c, [:arglist]]]]]
     end
 
-    # argscat_inside
+    compile do |g|
+      g.push :self
+      g.send :b, 0, true
+      g.make_array 1
+      g.push :self
+      g.send :c, 0, true
+      g.cast_array
+      g.send :+, 1
+      g.set_local 0
+    end
   end
 
   relates <<-ruby do
@@ -40,7 +60,15 @@ describe "An Lasgn node" do
           [:call, [:lvar, :y], :+, [:arglist, [:lit, 2]]]]]
     end
 
-    # block_lasgn
+    compile do |g|
+      g.push 1
+      g.set_local 1
+      g.pop
+      g.push_local 1
+      g.push 2
+      g.meta_send_op_plus
+      g.set_local 0
+    end
   end
 
   relates <<-ruby do
@@ -62,7 +90,14 @@ describe "An Lasgn node" do
       [:lasgn, :var, [:array, [:str, "foo"], [:str, "bar"]]]
     end
 
-    # lasgn array
+    compile do |g|
+      g.push_literal "foo"
+      g.string_dup
+      g.push_literal "bar"
+      g.string_dup
+      g.make_array 2
+      g.set_local 0
+    end
   end
 
   relates "c = (2 + 3)" do
@@ -70,7 +105,12 @@ describe "An Lasgn node" do
       [:lasgn, :c, [:call, [:lit, 2], :+, [:arglist, [:lit, 3]]]]
     end
 
-    # lasgn call
+    compile do |g|
+      g.push 2
+      g.push 3
+      g.meta_send_op_plus
+      g.set_local 0
+    end
   end
 
   relates "a = *[1]" do
@@ -78,7 +118,10 @@ describe "An Lasgn node" do
       [:lasgn, :a, [:svalue, [:splat, [:array, [:lit, 1]]]]]
     end
 
-    # lasgn splat
+    compile do |g|
+      g.splatted_array
+      g.set_local 0
+    end
   end
 
   relates "a = *b" do
@@ -86,7 +129,24 @@ describe "An Lasgn node" do
       [:lasgn, :a, [:svalue, [:splat, [:call, nil, :b, [:arglist]]]]]
     end
 
-    # svalue
+    compile do |g|
+      t = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.cast_array
+      g.dup
+
+      g.send :size, 0
+      g.push 1
+      g.send :>, 1
+      g.git t
+
+      g.push 0
+      g.send :at, 1
+      t.set!
+      g.set_local 0
+    end
   end
 
   relates <<-ruby do
@@ -111,7 +171,33 @@ describe "An Lasgn node" do
        [:lvar, :a]]
     end
 
-    # structure remove begin 2
+    compile do |g|
+      bottom = g.new_label
+      f      = g.new_label
+
+      g.push :self
+      g.send :c, 0, true
+      g.gif f
+
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body then
+          g.push :self
+          g.send :b, 0, true
+        when :StandardError then
+          g.push :nil
+        end
+      end
+      g.goto bottom
+
+      f.set!
+      g.push :nil
+
+      bottom.set!
+      g.set_local 0
+      g.pop
+      g.push_local 0
+    end
   end
 
   relates "x = [*[1]]" do
@@ -119,15 +205,10 @@ describe "An Lasgn node" do
       [:lasgn, :x, [:array, [:splat, [:array, [:lit, 1]]]]]
     end
 
-    # splat lasgn array
-  end
-
-  relates "x = *[1]" do
-    parse do
-      [:lasgn, :x, [:svalue, [:splat, [:array, [:lit, 1]]]]]
+    compile do |g|
+      g.array_of_splatted_array
+      g.set_local 0
     end
-
-    # splat lasgn
   end
 
   relates "a = []" do
@@ -135,6 +216,9 @@ describe "An Lasgn node" do
       [:lasgn, :a, [:array]]
     end
 
-    # zarray
+    compile do |g|
+      g.make_array 0
+      g.set_local 0
+    end
   end
 end

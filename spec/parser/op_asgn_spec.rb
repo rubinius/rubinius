@@ -16,7 +16,72 @@ describe "A Op_asgn1 node" do
        [:op_asgn1, [:ivar, :@b], [:arglist, [:lit, 3]], :+, [:lit, 12]]]
     end
 
-    # op asgn1 ivar
+    compile do |g|
+      l_or = g.new_label
+      l_and = g.new_label
+      l_idx = g.new_label
+      l_rhs = g.new_label
+
+      g.make_array 0
+      g.set_ivar :@b
+      g.pop
+
+      g.push_ivar :@b
+      g.dup
+      g.push 1
+      g.send :[], 1
+
+      g.dup
+      g.git l_or
+      g.pop
+
+      g.push 1
+      g.push 10
+      g.send :[]=, 2
+
+      g.goto l_and
+
+      l_or.set!
+
+      g.swap
+      g.pop
+
+      l_and.set!
+
+      g.pop
+      g.push_ivar :@b
+      g.dup
+      g.push 2
+      g.send :[], 1
+      g.dup
+      g.gif l_idx
+
+      g.pop
+      g.push 2
+      g.push 11
+      g.send :[]=, 2
+      g.goto l_rhs
+
+      l_idx.set!
+
+      g.swap
+      g.pop
+
+      l_rhs.set!
+
+      g.pop
+      g.push_ivar :@b
+      g.dup
+      g.push 3
+      g.send :[], 1
+
+      g.push 12
+      g.send :+, 1
+
+      g.push 3
+      g.swap
+      g.send :[]=, 2
+    end
   end
 
   relates <<-ruby do
@@ -34,9 +99,73 @@ describe "A Op_asgn1 node" do
        [:op_asgn1, [:lvar, :b], [:arglist, [:lit, 3]], :+, [:lit, 12]]]
     end
 
-    # op asgn1
-  end
+    compile do |g|
+      l_or = g.new_label
+      l_and = g.new_label
+      l_idx = g.new_label
+      l_rhs = g.new_label
 
+      g.make_array 0
+      g.set_local 0
+      g.pop
+
+      g.push_local 0
+      g.dup
+      g.push 1
+      g.send :[], 1
+
+      g.dup
+      g.git l_or
+      g.pop
+
+      g.push 1
+      g.push 10
+      g.send :[]=, 2
+
+      g.goto l_and
+
+      l_or.set!
+
+      g.swap
+      g.pop
+
+      l_and.set!
+
+      g.pop
+      g.push_local 0
+      g.dup
+      g.push 2
+      g.send :[], 1
+      g.dup
+      g.gif l_idx
+
+      g.pop
+      g.push 2
+      g.push 11
+      g.send :[]=, 2
+      g.goto l_rhs
+
+      l_idx.set!
+
+      g.swap
+      g.pop
+
+      l_rhs.set!
+
+      g.pop
+      g.push_local 0
+      g.dup
+      g.push 3
+      g.send :[], 1
+
+      g.push 12
+      g.send :+, 1
+
+      g.push 3
+      g.swap
+      g.send :[]=, 2
+    end
+  end
 end
 
 describe "A Op_asgn2 node" do
@@ -47,7 +176,28 @@ describe "A Op_asgn2 node" do
         :"Bag=", :"||", [:call, [:const, :Bag], :new, [:arglist]]]
     end
 
-    # op asgn2 self
+    compile do |g|
+      t = g.new_label
+      f = g.new_label
+
+      g.push :self
+      g.dup
+      g.send :Bag, 0
+      g.dup
+      g.git t
+      g.pop
+      g.push_const :Bag
+      g.send :new, 0, false
+      g.send :"Bag=", 1
+      g.goto f
+
+      t.set!
+
+      g.swap
+      g.pop
+
+      f.set!
+    end
   end
 
   relates <<-ruby do
@@ -73,7 +223,92 @@ describe "A Op_asgn2 node" do
         [:lit, 42]]]
     end
 
-    # op asgn2
+    compile do |g|
+      l_or = g.new_label
+      l_and = g.new_label
+      l_plus = g.new_label
+      l_or2 = g.new_label
+      l_rhs = g.new_label
+      bottom = g.new_label
+
+      g.push_const :Struct
+      g.push_unique_literal :var
+      g.send :new, 1, false
+      g.set_local 0
+      g.pop
+
+      g.push_local 0
+      g.push :nil
+      g.send :new, 1, false
+      g.set_local 1
+      g.pop
+
+      g.push_local 1
+      g.dup
+      g.send :var, 0
+      g.dup
+      g.git l_or
+
+      g.pop
+      g.push 20
+      g.send :var=, 1
+      g.goto l_and
+
+      l_or.set!
+
+      g.swap
+      g.pop
+
+      l_and.set!
+
+      g.pop
+      g.push_local 1
+      g.dup
+      g.send :var, 0
+      g.dup
+      g.gif l_plus
+      g.pop
+      g.push 21
+      g.send :var=, 1
+      g.goto l_or2
+
+      l_plus.set!
+
+      g.swap
+      g.pop
+
+      l_or2.set!
+
+      g.pop
+      g.push_local 1
+      g.dup
+      g.send :var, 0
+      g.push 22
+      g.send :+, 1
+      g.send :var=, 1
+      g.pop
+
+      g.push_local 1
+      g.send :d, 0, false
+      g.send :e, 0, false
+      g.dup
+      g.send :f, 0
+      g.dup
+
+      g.git l_rhs
+
+      g.pop
+      g.push 42
+      g.send :f=, 1
+      g.goto bottom
+
+      l_rhs.set!
+
+      g.swap
+      g.pop
+
+      bottom.set!
+    end
   end
 end
 
@@ -94,7 +329,27 @@ describe "A Op_asgn_and node" do
            [:arglist, [:lit, :http_proxy]]]]]]]
     end
 
-    # op asgn and ivar2
+    compile do |g|
+      t = g.new_label
+
+      g.push_ivar :@fetcher
+      g.dup
+      g.gif t
+      g.pop
+
+      g.push :self
+      g.push_const :Gem
+      g.send :configuration, 0, false
+
+      g.push_unique_literal :http_proxy
+      g.send :[], 1, false
+
+      g.send :new, 1, true
+
+      g.set_ivar :@fetcher
+
+      t.set!
+    end
   end
 
   relates <<-ruby do
@@ -108,9 +363,23 @@ describe "A Op_asgn_and node" do
        [:op_asgn_and, [:lvar, :a], [:lasgn, :a, [:lit, 2]]]]
     end
 
-    # op asgn and
-  end
+    compile do |g|
+      g.push 0
+      g.set_local 0
+      g.pop
 
+      g.push_local 0
+      g.dup
+
+      f = g.new_label
+      g.gif f
+      g.pop
+      g.push 2
+      g.set_local 0
+
+      f.set!
+    end
+  end
 end
 
 describe "A Op_asgn_or node" do
@@ -132,7 +401,29 @@ describe "A Op_asgn_or node" do
          [:resbody, [:array], [:call, nil, :c, [:arglist]]]]]]
     end
 
-    # op asgn or block
+    compile do |g|
+      t = g.new_label
+
+      g.push_local 0
+      g.dup
+      g.git t
+      g.pop
+
+      in_rescue :StandardError, 1 do |section|
+        case section
+        when :body then
+          g.push :self
+          g.send :b, 0, true
+        when :StandardError then
+          g.push :self
+          g.send :c, 0, true
+        end
+      end
+
+      g.set_local 0
+
+      t.set!
+    end
   end
 
   relates "@fetcher ||= new(Gem.configuration[:http_proxy])" do
@@ -151,7 +442,27 @@ describe "A Op_asgn_or node" do
            [:arglist, [:lit, :http_proxy]]]]]]]
     end
 
-    # op asgn or ivar2
+    compile do |g|
+      t = g.new_label
+
+      g.push_ivar :@fetcher
+      g.dup
+      g.git t
+      g.pop
+
+      g.push :self
+      g.push_const :Gem
+      g.send :configuration, 0, false
+
+      g.push_unique_literal :http_proxy
+      g.send :[], 1, false
+
+      g.send :new, 1, true
+
+      g.set_ivar :@fetcher
+
+      t.set!
+    end
   end
 
   relates "@v ||= {  }" do
@@ -159,7 +470,22 @@ describe "A Op_asgn_or node" do
       [:op_asgn_or, [:ivar, :@v], [:iasgn, :@v, [:hash]]]
     end
 
-    # op asgn or ivar
+    compile do |g|
+      t = g.new_label
+
+      g.push_ivar :@v
+      g.dup
+      g.git t
+      g.pop
+
+      g.push_cpath_top
+      g.find_const :Hash
+      g.send :[], 0
+
+      g.set_ivar :@v
+
+      t.set!
+    end
   end
 
   relates <<-ruby do
@@ -173,6 +499,22 @@ describe "A Op_asgn_or node" do
        [:op_asgn_or, [:lvar, :a], [:lasgn, :a, [:lit, 1]]]]
     end
 
-    # op asgn or
+    compile do |g|
+      t = g.new_label
+
+      g.push 0
+      g.set_local 0
+      g.pop             # FIX: lame
+      g.push_local 0
+      g.dup
+      g.git t
+      g.pop
+
+      g.push 1
+
+      g.set_local 0
+
+      t.set!
+    end
   end
 end

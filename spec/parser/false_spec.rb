@@ -6,6 +6,8 @@ describe "A False node" do
       [:false]
     end
 
-    # false
+    compile do |g|
+      g.push :false
+    end
   end
 end

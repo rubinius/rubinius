@@ -14,7 +14,16 @@ describe "A For node" do
        [:call, nil, :puts, [:arglist, [:lvar, :o]]]]
     end
 
-    # for
+    compile do |g|
+      g.push :self
+      g.send :ary, 0, true
+
+      in_block_send :each, 1.0, 0, false, 1 do |d|
+        d.push :self
+        d.push_local 0
+        d.send :puts, 1, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -27,6 +36,17 @@ describe "A For node" do
       [:for, [:dot2, [:lit, 0], [:call, nil, :max, [:arglist]]], [:lasgn, :i]]
     end
 
-    # for no body
+    compile do |g|
+      g.push_cpath_top
+      g.find_const :Range
+      g.push 0
+      g.push :self
+      g.send :max, 0, true
+      g.send :new, 2
+
+      in_block_send :each, 1.0, 0, false, 1 do |d|
+        d.push :nil
+      end
+    end
   end
 end

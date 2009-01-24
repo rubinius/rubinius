@@ -12,7 +12,17 @@ describe "An Attrasgn node" do
        [:attrasgn, [:lit, 42], :method=, [:arglist, [:lvar, :y]]]]
     end
 
-    # attrasgn
+    compile do |g|
+      g.push 0
+      g.set_local 0
+      g.pop
+      g.push 42
+      g.push_local 0
+      g.dup
+      g.move_down 2
+      g.send :method=, 1, false
+      g.pop
+    end
   end
 
   relates "a.m = *[1]" do
@@ -36,7 +46,21 @@ describe "An Attrasgn node" do
         [:call, nil, :c, [:arglist]]]]
     end
 
-    # argspush
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.push :self
+      g.send :b, 0, true
+      g.cast_array
+      g.push :self
+      g.send :c, 0, true
+      g.dup
+      g.move_down 3
+      g.swap
+      g.push :nil
+      g.send_with_splat :[]=, 1, false, true
+      g.pop
+    end
   end
 
   relates "a[42] = 24" do
@@ -47,7 +71,16 @@ describe "An Attrasgn node" do
        [:arglist, [:lit, 42], [:lit, 24]]]
     end
 
-    # attrasgn_index
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.push 42
+      g.push 24
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2, false
+      g.pop
+    end
   end
 
   relates <<-ruby do
@@ -61,6 +94,15 @@ describe "An Attrasgn node" do
        [:attrasgn, [:lvar, :a], :[]=, [:arglist, [:lit, 42], [:lit, 24]]]]
     end
 
-    # attrasgn_index_equals
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.push 42
+      g.push 24
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2, false
+      g.pop
+    end
   end
 end

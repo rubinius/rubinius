@@ -6,6 +6,10 @@ describe "A Cvar node" do
       [:cvar, :@@x]
     end
 
-    # cvar
+    compile do |g|
+      g.push_context
+      g.push_literal :@@x
+      g.send :class_variable_get, 1
+    end
   end
 end

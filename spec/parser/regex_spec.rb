@@ -9,7 +9,19 @@ describe "A Regex node" do
         [:arglist, [:regex, "", 1]]]
     end
 
-    # lit regexp i wwtt
+    compile do |g|
+      g.push :self
+      g.send :str, 0, true
+
+      g.memoize do
+        g.push_const :Regexp
+        g.push_literal ""
+        g.push 1
+        g.send :new, 2
+      end
+
+      g.send :split, 1, false
+    end
   end
 
   relates "/x/n" do
@@ -17,7 +29,14 @@ describe "A Regex node" do
       [:regex, "x", 16]
     end
 
-    # lit regexp n
+    compile do |g|
+      g.memoize do
+        g.push_const :Regexp
+        g.push_literal "x"
+        g.push 16
+        g.send :new, 2
+      end
+    end
   end
 
   relates "/x/o" do
@@ -25,7 +44,14 @@ describe "A Regex node" do
       [:regex, "x", 0]
     end
 
-    # lit regexp once
+    compile do |g|
+      g.memoize do
+        g.push_const :Regexp
+        g.push_literal "x"
+        g.push 0
+        g.send :new, 2
+      end
+    end
   end
 
   relates "/x/" do
@@ -33,7 +59,13 @@ describe "A Regex node" do
       [:regex, "x", 0]
     end
 
-    # lit regexp
+    compile do |g|
+      g.memoize do
+        g.push_const :Regexp
+        g.push_literal "x"
+        g.push 0
+        g.send :new, 2
+      end
+    end
   end
-
 end

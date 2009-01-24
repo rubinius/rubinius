@@ -6,6 +6,10 @@ describe "An Nth_ref node" do
       [:nth_ref, 1]
     end
 
-    # nth ref
+    compile do |g|
+      g.push_context
+      g.push 1
+      g.send :nth_ref, 1
+    end
   end
 end

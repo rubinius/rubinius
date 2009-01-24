@@ -12,7 +12,11 @@ describe "A Defn node" do
       [:defn, :m, [:args], [:scope, [:block, [:nil]]]]
     end
 
-    # begin_def
+    compile do |g|
+      in_method :m do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
@@ -36,7 +40,44 @@ describe "A Defn node" do
            [:block_pass, [:lvar, :block]]]]]]]
     end
 
-    # block_pass_args_and_splat
+    compile do |g|
+      in_method :blah do |d|
+        no_proc  = d.new_label
+        no_splat = d.new_label
+
+        d.push_block
+        d.dup
+        d.is_nil
+        d.git no_proc
+
+        d.push_const :Proc
+        d.swap
+        d.send :__from_block__, 1
+
+        no_proc.set!
+
+        d.set_local 1
+        d.pop
+
+        d.push :self
+        d.push 42          # only line different from block_pass_splat
+        d.push_local 0
+        d.cast_array
+        d.push_local 1
+        d.dup
+        d.is_nil
+        d.git no_splat
+
+        d.push_cpath_top
+        d.find_const :Proc
+        d.swap
+        d.send :__from_block__, 1
+
+        no_splat.set!
+
+        d.send_with_splat :other, 1, true, false # ok, and this one
+      end
+    end
   end
 
   relates <<-ruby do
@@ -59,7 +100,43 @@ describe "A Defn node" do
            [:block_pass, [:lvar, :block]]]]]]]
     end
 
-    # block pass splat
+    compile do |g|
+      g.in_method :blah do |d|
+        no_proc  = d.new_label
+        no_splat = d.new_label
+
+        d.push_block
+        d.dup
+        d.is_nil
+        d.git no_proc
+
+        d.push_const :Proc
+        d.swap
+        d.send :__from_block__, 1
+
+        no_proc.set!
+
+        d.set_local 1
+        d.pop
+
+        d.push :self
+        d.push_local 0
+        d.cast_array
+        d.push_local 1
+        d.dup
+        d.is_nil
+        d.git no_splat
+
+        d.push_cpath_top
+        d.find_const :Proc # FIX: why push_cpath/find vs push_const ?
+        d.swap
+        d.send :__from_block__, 1
+
+        no_splat.set!
+
+        d.send_with_splat :other, 0, true, false
+      end
+    end
   end
 
   relates <<-ruby do
@@ -86,7 +163,24 @@ describe "A Defn node" do
          [:call, nil, :d, [:arglist]]]]]
     end
 
-    # block stmt after
+    compile do |g|
+      in_method :f do |d|
+        d.in_rescue :StandardError do |section|
+          case section
+          when :body then
+            d.push :self
+            d.send :b, 0, true
+          when :StandardError then
+            d.push :self
+            d.send :c, 0, true
+          end
+        end
+        d.pop
+
+        d.push :self
+        d.send :d, 0, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -112,7 +206,24 @@ describe "A Defn node" do
           [:resbody, [:array], [:call, nil, :c, [:arglist]]]]]]]
     end
 
-    # block stmt before
+    compile do |g|
+      in_method :f do |d|
+        d.push :self
+        d.send :a, 0, true
+        d.pop
+
+        d.in_rescue :StandardError do |section|
+          case section
+          when :body then
+            d.push :self
+            d.send :b, 0, true
+          when :StandardError
+            d.push :self
+            d.send :c, 0, true
+          end
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -140,12 +251,32 @@ describe "A Defn node" do
          [:call, nil, :d, [:arglist]]]]]
     end
 
-    # block stmt both
+    compile do |g|
+      in_method :f do |d|
+        d.push :self
+        d.send :a, 0, true
+        d.pop
+
+        d.in_rescue :StandardError do |section|
+          case section
+          when :body then
+            d.push :self
+            d.send :b, 0, true
+          when :StandardError then
+            d.push :self
+            d.send :c, 0, true
+          end
+        end
+        d.pop
+
+        d.push :self
+        d.send :d, 0, true
+      end
+    end
   end
 
   relates <<-ruby do
       def f(&block)
-        # do nothing
       end
     ruby
 
@@ -153,12 +284,16 @@ describe "A Defn node" do
       [:defn, :f, [:args, :"&block"], [:scope, [:block, [:nil]]]]
     end
 
-    # defn args block
+    compile do |g|
+      in_method :f do |d|
+        d.block_arg 0
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(mand, opt = 42, &block)
-        # do nothing
       end
     ruby
 
@@ -169,12 +304,17 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args mand opt block
+    compile do |g|
+      in_method :f do |d|
+        d.optional_arg 1
+        d.block_arg 2
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(mand, &block)
-        # do nothing
       end
     ruby
 
@@ -182,12 +322,16 @@ describe "A Defn node" do
       [:defn, :f, [:args, :mand, :"&block"], [:scope, [:block, [:nil]]]]
     end
 
-    # defn args mand block
+    compile do |g|
+      in_method :f do |d|
+        d.block_arg 1
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(mand, opt = 42)
-        # do nothing
       end
     ruby
 
@@ -198,12 +342,16 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args mand opt
+    compile do |g|
+      in_method :f do |d|
+        d.optional_arg 1
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(mand, opt = 42, *rest, &block)
-        # do nothing
       end
     ruby
 
@@ -219,12 +367,17 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args mand opt splat block
+    compile do |g|
+      in_method :f do |d|
+        d.optional_arg 1
+        d.block_arg 3
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def x(a, b = 42, *)
-        # do nothing
       end
     ruby
 
@@ -235,12 +388,16 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args mand opt splat no name
+    compile do |g|
+      in_method :x do |d|
+        d.optional_arg 1
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(mand, opt = 42, *rest)
-        # do nothing
       end
     ruby
 
@@ -251,12 +408,16 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args mand opt splat
+    compile do |g|
+      in_method :f do |d|
+        d.optional_arg 1
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def empty
-        # do nothing
       end
     ruby
 
@@ -264,12 +425,15 @@ describe "A Defn node" do
       [:defn, :empty, [:args], [:scope, [:block, [:nil]]]]
     end
 
-    # defn args none
+    compile do |g|
+      in_method :empty do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(mand)
-        # do nothing
       end
     ruby
 
@@ -277,12 +441,15 @@ describe "A Defn node" do
       [:defn, :f, [:args, :mand], [:scope, [:block, [:nil]]]]
     end
 
-    # defn args mand
+    compile do |g|
+      in_method :f do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(mand, *rest, &block)
-        # do nothing
       end
     ruby
 
@@ -290,7 +457,12 @@ describe "A Defn node" do
       [:defn, :f, [:args, :mand, :"*rest", :"&block"], [:scope, [:block, [:nil]]]]
     end
 
-    # defn args mand splat block
+    compile do |g|
+      in_method :f do |d|
+        d.block_arg 2
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
@@ -306,12 +478,18 @@ describe "A Defn node" do
        [:scope, [:block, [:call, nil, :p, [:arglist, [:lvar, :a], [:lvar, :args]]]]]]
     end
 
-    # defn args mand splat no name
+    compile do |g|
+      in_method :x do |d|
+        d.push :self
+        d.push_local 0
+        d.push_local 1
+        d.send :p, 2, true
+      end
+    end
   end
 
   relates <<-ruby do
       def f(mand, *rest)
-        # do nothing
       end
     ruby
 
@@ -319,12 +497,15 @@ describe "A Defn node" do
       [:defn, :f, [:args, :mand, :"*rest"], [:scope, [:block, [:nil]]]]
     end
 
-    # defn args mand splat
+    compile do |g|
+      in_method :f do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(opt = 42, &block)
-        # do nothing
       end
     ruby
 
@@ -335,12 +516,17 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args opt block
+    compile do |g|
+      in_method :f do |d|
+        d.optional_arg 0
+        d.block_arg 1
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(a = 42, b = '1', c=lambda {|n| n })
-        # do nothing
       end
     ruby
 
@@ -365,7 +551,6 @@ describe "A Defn node" do
 
   relates <<-ruby do
       def f(opt = 42)
-        # do nothing
       end
     ruby
 
@@ -376,12 +561,16 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args opt
+    compile do |g|
+      in_method :f do |d|
+        d.optional_arg 0
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(opt = 42, *rest, &block)
-        # do nothing
       end
     ruby
 
@@ -392,12 +581,17 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args opt splat block
+    compile do |g|
+      in_method :f do |d|
+        d.optional_arg 0
+        d.block_arg 2
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def x(b = 42, *)
-        # do nothing
       end
     ruby
 
@@ -408,12 +602,16 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args opt splat no name
+    compile do |g|
+      in_method :x do |d|
+        d.optional_arg 0
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(opt = 42, *rest)
-        # do nothing
       end
     ruby
 
@@ -424,12 +622,16 @@ describe "A Defn node" do
        [:scope, [:block, [:nil]]]]
     end
 
-    # defn args opt splat
+    compile do |g|
+      in_method :f do |d|
+        d.optional_arg 0
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def |(o)
-        # do nothing
       end
     ruby
 
@@ -437,7 +639,11 @@ describe "A Defn node" do
       [:defn, :|, [:args, :o], [:scope, [:block, [:nil]]]]
     end
 
-    # defn or
+    compile do |g|
+      in_method :"|" do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
@@ -462,12 +668,26 @@ describe "A Defn node" do
           [:resbody, [:array], [:false]]]]]]
     end
 
-    # defn rescue mri verbose flag
+    compile do |g|
+      in_method :eql? do |d|
+        d.in_rescue :StandardError, 1 do |section|
+          case section
+          when :body then
+            d.push :self
+            d.send :uuid, 0, false
+            d.push_local 0
+            d.send :uuid, 0, false
+            d.meta_send_op_equal
+          when :StandardError then
+            d.push :false
+          end
+        end
+      end
+    end
   end
 
   relates <<-ruby do
       def something?
-        # do nothing
       end
     ruby
 
@@ -475,12 +695,15 @@ describe "A Defn node" do
       [:defn, :something?, [:args], [:scope, [:block, [:nil]]]]
     end
 
-    # defn something eh
+    compile do |g|
+      in_method :something? do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def x(*)
-        # do nothing
       end
     ruby
 
@@ -488,12 +711,15 @@ describe "A Defn node" do
       [:defn, :x, [:args, :*], [:scope, [:block, [:nil]]]]
     end
 
-    # defn args splat no name
+    compile do |g|
+      in_method :x do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def f(*rest)
-        # do nothing
       end
     ruby
 
@@ -501,7 +727,11 @@ describe "A Defn node" do
       [:defn, :f, [:args, :"*rest"], [:scope, [:block, [:nil]]]]
     end
 
-    # defn args splat
+    compile do |g|
+      in_method :f do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
@@ -517,7 +747,13 @@ describe "A Defn node" do
        [:scope, [:block, [:call, nil, :p, [:arglist, [:lvar, :a]]]]]]
     end
 
-    # defn splat no name
+    compile do |g|
+      in_method :x do |d|
+        d.push :self
+        d.push_local 0
+        d.send :p, 1, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -534,7 +770,19 @@ describe "A Defn node" do
        [:scope, [:block, [:lasgn, :a, [:array]], [:return, [:lvar, :a]]]]]
     end
 
-    # defn zarray
+    compile do |g|
+      in_method :zarray do |d|
+        d.make_array 0
+        d.set_local 0
+        d.pop
+        d.push_local 0
+        # TODO we emit a ret instruction even though the last statement
+        # is itself a return, so we get to return instructions, one
+        # after another. We could instead detect that an only output
+        # the one.
+        d.ret
+      end
+    end
   end
 
   relates <<-ruby do
@@ -568,7 +816,31 @@ describe "A Defn node" do
              [:call, nil, :puts, [:arglist, [:lvar, :b]]]]]]]]]]
     end
 
-    # lvar def boundary
+    compile do |g|
+      g.push 42
+      g.set_local 0
+      g.pop
+
+      in_method :a do |d|
+        d.push :self
+
+        d.in_block_send :c, 0 do |d2|
+          d2.in_rescue :RuntimeError do |section|
+            case section
+            when :body then
+              d2.push :self
+              d2.send :do_stuff, 0, true
+            when :RuntimeError then
+              d2.push_exception
+              d2.set_local_depth 0, 0
+              d2.push :self
+              d2.push_local_depth 0, 0
+              d2.send :puts, 1, true
+            end
+          end
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -587,7 +859,32 @@ describe "A Defn node" do
        [:scope, [:block, [:call, [:lvar, :a], :+, [:arglist, [:lvar, :b]]]]]]
     end
 
-    # parse floats as args
+    compile do |g|
+      in_method :x do |d|
+        opt_arg_1 = d.new_label
+        opt_arg_2 = d.new_label
+
+        d.passed_arg 0
+        d.git opt_arg_1
+        d.push_literal 0.0
+        d.set_local 0
+        d.pop
+
+        opt_arg_1.set!
+
+        d.passed_arg 1
+        d.git opt_arg_2
+        d.push_literal 0.0
+        d.set_local 1
+        d.pop
+
+        opt_arg_2.set!
+
+        d.push_local 0
+        d.push_local 1
+        d.meta_send_op_plus
+      end
+    end
   end
 
   relates <<-ruby do
@@ -603,6 +900,14 @@ describe "A Defn node" do
        [:scope, [:block, [:call, nil, :a, [:arglist, [:splat, [:lvar, :b]]]]]]]
     end
 
-    # splat
+    compile do |g|
+      in_method :x do |d|
+        d.push :self
+        d.push_local 0
+        d.cast_array
+        d.push :nil
+        d.send_with_splat :a, 0, true, false
+      end
+    end
   end
 end

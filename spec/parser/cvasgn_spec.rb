@@ -14,6 +14,14 @@ describe "A Cvasgn node" do
        [:scope, [:block, [:cvasgn, :@@blah, [:lit, 1]]]]]
     end
 
+    compile do |g|
+      in_method :x do |d|
+        d.push_context
+        d.push_literal :@@blah
+        d.push 1
+        d.send :class_variable_set, 2
+      end
+    end
   end
 
   relates <<-ruby do
@@ -30,6 +38,14 @@ describe "A Cvasgn node" do
        [:scope, [:block, [:cvasgn, :@@quiet_mode, [:lvar, :boolean]]]]]
     end
 
-    # cvasgn cls method
+    compile do |g|
+      g.push :self
+      in_method :quiet_mode=, :singleton do |d|
+        d.push_context
+        d.push_literal :@@quiet_mode
+        d.push_local 0
+        d.send :class_variable_set, 2
+      end
+    end
   end
 end

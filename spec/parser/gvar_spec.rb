@@ -6,7 +6,12 @@ describe "A Gvar node" do
       [:gvar, :$x]
     end
 
-    # gvar
+    compile do |g|
+      g.push_cpath_top
+      g.find_const :Globals
+      g.push_literal :"$x" # REFACTOR g.get_global("$x")
+      g.send :[], 1
+    end
   end
 
   relates "$stderr" do
@@ -14,7 +19,12 @@ describe "A Gvar node" do
       [:gvar, :$stderr]
     end
 
-    # global
+    compile do |g|
+      g.push_cpath_top
+      g.find_const :Globals
+      g.push_literal :"$stderr"
+      g.send :[], 1
+    end
   end
 
   relates "$__blah" do
@@ -22,7 +32,12 @@ describe "A Gvar node" do
       [:gvar, :$__blah]
     end
 
-    # gvar underscore blah
+    compile do |g|
+      g.push_cpath_top
+      g.find_const :Globals
+      g.push_literal :"$__blah"
+      g.send :[], 1
+    end
   end
 
   relates "$_" do
@@ -30,6 +45,11 @@ describe "A Gvar node" do
       [:gvar, :$_]
     end
 
-    # gvar underscore
+    compile do |g|
+      g.push_cpath_top
+      g.find_const :Globals
+      g.push_literal :"$_"
+      g.send :[], 1
+    end
   end
 end

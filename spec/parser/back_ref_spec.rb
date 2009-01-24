@@ -10,6 +10,24 @@ describe "An Back_ref node" do
        [:back_ref, :+]]
     end
 
-    # back_ref
+    compile do |g|
+      g.push_context
+      g.push_literal :"&"
+      g.send :back_ref, 1
+
+      g.push_context
+      g.push_literal :"`"
+      g.send :back_ref, 1
+
+      g.push_context
+      g.push_literal :"'"
+      g.send :back_ref, 1
+
+      g.push_context
+      g.push_literal :"+"
+      g.send :back_ref, 1
+
+      g.make_array 4
+    end
   end
 end

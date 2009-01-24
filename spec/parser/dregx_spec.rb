@@ -9,7 +9,27 @@ describe "A Dregx node" do
        [:str, "y"]]
     end
 
-    # dregx
+    compile do |g|
+      g.push_const :Regexp
+
+      g.push_literal "y"    # 1
+      g.string_dup
+
+      g.push 1              # 2
+      g.push 1
+      g.meta_send_op_plus
+      g.send :to_s, 0, true
+
+      g.push_literal "x"    # 3
+      g.string_dup
+
+      2.times do
+        g.string_append
+      end
+
+      g.push 0
+      g.send :new, 2
+    end
   end
 
   relates "/a\#{}b/" do
@@ -17,7 +37,25 @@ describe "A Dregx node" do
       [:dregx, "a", [:evstr], [:str, "b"]]
     end
 
-    # dregx interp empty
+    compile do |g|
+      g.push_const :Regexp
+
+      g.push_literal "b"
+      g.string_dup
+
+      g.push_literal ""
+      g.string_dup
+      g.send :to_s, 0, true
+
+      g.push_literal "a"
+      g.string_dup
+
+      g.string_append
+      g.string_append
+
+      g.push 0
+      g.send :new, 2
+    end
   end
 
   relates "/\#{@rakefile}/" do
@@ -25,7 +63,20 @@ describe "A Dregx node" do
       [:dregx, "", [:evstr, [:ivar, :@rakefile]]]
     end
 
-    # dregx interp
+    compile do |g|
+      g.push_const :Regexp
+
+      g.push_ivar :@rakefile
+      g.send :to_s, 0, true
+
+      g.push_literal ""
+      g.string_dup
+
+      g.string_append
+
+      g.push 0
+      g.send :new, 2
+    end
   end
 
   relates "/\#{1}/n" do
@@ -33,7 +84,20 @@ describe "A Dregx node" do
       [:dregx, "", [:evstr, [:lit, 1]], 16]
     end
 
-    # dregx n
+    compile do |g|
+      g.push_const :Regexp
+
+      g.push 1
+      g.send :to_s, 0, true
+
+      g.push_literal ""
+      g.string_dup
+
+      g.string_append
+
+      g.push 16
+      g.send :new, 2
+    end
   end
 
   relates "/\#{IAC}\#{SB}/no" do
@@ -41,7 +105,27 @@ describe "A Dregx node" do
       [:dregx_once, "", [:evstr, [:const, :IAC]], [:evstr, [:const, :SB]], 16]
     end
 
-    # dregx once n interp
+    compile do |g|
+      memoize do
+        g.push_const :Regexp
+
+        g.push_const :SB      # 1
+        g.send :to_s, 0, true
+
+        g.push_const :IAC     # 2
+        g.send :to_s, 0, true
+
+        g.push_literal ""     # 3
+        g.string_dup
+
+        2.times do
+          g.string_append
+        end
+
+        g.push 16
+        g.send :new, 2
+      end
+    end
   end
 
   relates "/x\#{(1 + 1)}y/o" do
@@ -52,6 +136,28 @@ describe "A Dregx node" do
        [:str, "y"]]
     end
 
-    # dregx once
+    compile do |g|
+      memoize do
+        g.push_const :Regexp
+
+        g.push_literal "y"    # 1
+        g.string_dup
+
+        g.push 1              # 2
+        g.push 1
+        g.meta_send_op_plus
+        g.send :to_s, 0, true
+
+        g.push_literal "x"    # 3
+        g.string_dup
+
+        2.times do
+          g.string_append
+        end
+
+        g.push 0
+        g.send :new, 2
+      end
+    end
   end
 end

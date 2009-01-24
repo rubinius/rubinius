@@ -27,7 +27,23 @@ describe "A Class node" do
            [:block, [:call, nil, :puts, [:arglist, [:str, "hello"]]]]]]]]]
     end
 
-    # class plain
+    compile do |g|
+      in_class :X do |d|
+        d.push :self
+        d.push 1
+        d.push 1
+        d.meta_send_op_plus
+        d.send :puts, 1, true
+        d.pop
+
+        d.in_method :blah do |d2|
+          d2.push :self
+          d2.push_literal "hello"
+          d2.string_dup
+          d2.send :puts, 1, true
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -40,7 +56,12 @@ describe "A Class node" do
       [:class, [:colon3, :Y], nil, [:scope, [:call, nil, :c, [:arglist]]]]
     end
 
-    # class scoped3
+    compile do |g|
+      in_class :Y do |d|
+        d.push :self
+        d.send :c, 0, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -56,7 +77,12 @@ describe "A Class node" do
        [:scope, [:call, nil, :c, [:arglist]]]]
     end
 
-    # class scoped
+    compile do |g|
+      in_class "X::Y" do |d|
+        d.push :self
+        d.send :c, 0, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -68,7 +94,10 @@ describe "A Class node" do
       [:class, :X, [:const, :Array], [:scope]]
     end
 
-    # class super array
+    compile do |g|
+      g.push_const :Array
+      g.open_class :X
+    end
   end
 
   relates <<-ruby do
@@ -80,7 +109,11 @@ describe "A Class node" do
       [:class, :X, [:call, nil, :expr, [:arglist]], [:scope]]
     end
 
-    # class super expr
+    compile do |g|
+      g.push :self
+      g.send :expr, 0, true
+      g.open_class :X
+    end
   end
 
   relates <<-ruby do
@@ -92,6 +125,9 @@ describe "A Class node" do
       [:class, :X, [:const, :Object], [:scope]]
     end
 
-    # class super object
+    compile do |g|
+      g.push_const :Object
+      g.open_class :X
+    end
   end
 end

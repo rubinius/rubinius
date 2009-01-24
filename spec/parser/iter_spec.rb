@@ -29,7 +29,36 @@ describe "An Iter node" do
            [:lvar, :c]]]]
     end
 
-    # block_mystery
+    compile do |g|
+      g.push :self
+      g.push :self
+      g.send :b, 0, true
+
+      in_block_send :a, 0, 1 do |d|
+        f = d.new_label
+        bottom = d.new_label
+
+        d.push :self
+        d.send :b, 0, true
+        d.gif f
+        d.push :true
+        d.goto bottom
+        f.set!
+        d.push :false
+        d.set_local_depth 0, 0
+        d.pop
+        d.push :self
+
+        d.in_block_send :d, 1, 0, true, 0, true do |d2|
+          d2.push :true
+          d2.set_local_depth 1, 0
+        end
+
+        d.pop
+        d.push_local_depth 0, 0
+        bottom.set!
+      end
+    end
   end
 
   relates "loop { break 42 if true }" do
@@ -40,7 +69,35 @@ describe "An Iter node" do
        [:if, [:true], [:break, [:lit, 42]], nil]]
     end
 
-    # break arg
+    compile do |g|
+      break_value = 42
+
+      top   = g.new_label
+      cond  = g.new_label
+      rtry  = g.new_label
+      brk   = g.new_label
+
+      g.push_modifiers
+
+      top.set!
+      g.push :true
+      g.gif cond
+
+      g.push break_value
+      g.goto brk
+      g.goto rtry # TODO: only used when there is a retry statement
+
+      cond.set!
+      g.push :nil
+
+      rtry.set!
+      g.pop
+      g.goto top
+
+      brk.set!
+
+      g.pop_modifiers
+    end
   end
 
   relates "loop { break if true }" do
@@ -51,7 +108,35 @@ describe "An Iter node" do
        [:if, [:true], [:break], nil]]
     end
 
-    # break
+    compile do |g|
+      break_value = :nil # TODO: refactor later
+
+      top   = g.new_label
+      cond  = g.new_label
+      rtry  = g.new_label
+      brk   = g.new_label
+
+      g.push_modifiers
+
+      top.set!
+      g.push :true
+      g.gif cond
+
+      g.push break_value
+      g.goto brk
+      g.goto rtry # TODO: only used when there is a retry statement
+
+      cond.set!
+      g.push :nil
+
+      rtry.set!
+      g.pop
+      g.goto top
+
+      brk.set!
+
+      g.pop_modifiers
+    end
   end
 
   relates "loop { break *[nil] }" do
@@ -90,7 +175,31 @@ describe "An Iter node" do
         nil]]
     end
 
-    # dasgn 0
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.in_block_send :each, 1, 0, false, 0, false do |d|
+        t = d.new_label
+        f = d.new_label
+
+        d.push :true
+        d.gif f
+
+        d.push :self
+        d.send :b, 0, true
+        d.in_block_send :each, 1, 0, false, 0, true do |d2|
+          d2.push_local_depth 1, 0
+          d2.push 1
+          d2.meta_send_op_plus
+          d2.set_local_depth 1, 0
+        end
+
+        d.goto t
+        f.set!
+        d.push :nil
+        t.set!
+      end
+    end
   end
 
 
@@ -108,7 +217,31 @@ describe "An Iter node" do
         nil]]
     end
 
-    # dasgn 1
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.in_block_send :each, 1, 0, false, 0, false do |d|
+        t = d.new_label
+        f = d.new_label
+
+        d.push :true
+        d.gif f
+
+        d.push :self
+        d.send :b, 0, true
+        d.in_block_send :each, 1, 0, false, 0, true do |d2|
+          d2.push_local_depth 0, 1
+          d2.push 1
+          d2.meta_send_op_plus
+          d2.set_local_depth 0, 1
+        end
+
+        d.goto t
+        f.set!
+        d.push :nil
+        t.set!
+      end
+    end
   end
 
   relates <<-ruby do
@@ -135,7 +268,35 @@ describe "An Iter node" do
         nil]]
     end
 
-    # dasgn 2
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.in_block_send :each, 1, 0, false, 0, false do |d|
+        t = d.new_label
+        f = d.new_label
+
+        d.push :true
+        d.gif f
+
+        d.push 0
+        d.set_local_depth 0, 1
+        d.pop
+
+        d.push :self
+        d.send :b, 0, true
+        d.in_block_send :each, 1, 0, false, 0, true do |d2|
+          d2.push_local_depth 1, 1
+          d2.push 1
+          d2.meta_send_op_plus
+          d2.set_local_depth 1, 1
+        end
+
+        d.goto t
+        f.set!
+        d.push :nil
+        t.set!
+      end
+    end
   end
 
   relates <<-ruby do
@@ -156,7 +317,23 @@ describe "An Iter node" do
         [:lasgn, :b, [:lasgn, :a, [:lvar, :x]]]]]
     end
 
-    # dasgn curr
+    compile do |g|
+      g.push :self
+      g.send :data, 0, true
+      g.in_block_send :each, 2, 0, false do |d|
+        d.push 1
+        d.set_local_depth 0, 2
+        d.pop
+
+        d.push_local_depth 0, 2
+        d.set_local_depth 0, 3
+        d.pop
+
+        d.push_local_depth 0, 0
+        d.set_local_depth 0, 2
+        d.set_local_depth 0, 3
+      end
+    end
   end
 
   relates <<-ruby do
@@ -191,7 +368,34 @@ describe "An Iter node" do
            [:break]]]]]]
     end
 
-    # dasgn icky
+    compile do |g|
+      g.push :self
+      g.in_block_send :a do |d|
+        d.push :nil
+        d.set_local_depth 0, 0
+        d.pop
+
+        d.push :self
+        d.push :self
+        d.send :full_message, 0, true
+
+        d.in_block_send :assert_block, 0, 1, true, 0, true do |d2|
+          d2.in_rescue :Exception, 1 do |section|
+            case section
+            when :body then
+              d2.push_block
+              d2.meta_send_call 0
+            when :Exception then
+              d2.push_exception
+              d2.set_local_depth 1, 0
+              d2.push :nil
+
+              d2.break_raise
+            end
+          end
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -208,7 +412,21 @@ describe "An Iter node" do
         [:lasgn, :t, [:call, [:lvar, :t], :+, [:arglist, [:lvar, :n]]]]]]
     end
 
-    # dasgn mixed
+    compile do |g|
+      g.push 0
+      g.set_local 0
+      g.pop
+
+      g.push :self
+      g.send :ns, 0, true
+
+      in_block_send :each, 1, 0, false, 1 do |d|
+        d.push_local 0
+        d.push_local_depth 0, 0
+        d.meta_send_op_plus
+        d.set_local 0
+      end
+    end
   end
 
   relates "a (1) {|c|d}" do
@@ -219,7 +437,14 @@ describe "An Iter node" do
        [:call, nil, :d, [:arglist]]]
     end
 
-    # iter call arglist space
+    compile do |g|
+      g.push :self
+      g.push 1
+      in_block_send :a, 1, 1 do |d|
+        d.push :self
+        d.send :d, 0, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -239,7 +464,18 @@ describe "An Iter node" do
          [:arglist, [:call, [:lvar, :a], :b, [:arglist, [:false]]]]]]]
     end
 
-    # iter dasgn curr dasgn madness
+    compile do |g|
+      g.push :self
+      g.send :as, 0, true
+      in_block_send :each, 1, 0, false do |d|
+        d.push_local_depth 0, 1
+        d.push_local_depth 0, 0
+        d.push :false
+        d.send :b, 1, false
+        d.meta_send_op_plus
+        d.set_local_depth 0, 1
+      end
+    end
   end
 
   relates "3.downto(1) { |n| puts(n.to_s) }" do
@@ -250,7 +486,16 @@ describe "An Iter node" do
        [:call, nil, :puts, [:arglist, [:call, [:lvar, :n], :to_s, [:arglist]]]]]
     end
 
-    # iter downto
+    compile do |g|
+      g.push 3
+      g.push 1
+      in_block_send :downto, 1, 1, false do |d|
+        d.push :self
+        d.push_local_depth 0, 0
+        d.send :to_s, 0, false
+        d.send :puts, 1, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -267,7 +512,22 @@ describe "An Iter node" do
         [:call, nil, :puts, [:arglist, [:call, [:lvar, :x], :to_s, [:arglist]]]]]]
     end
 
-    # iter each lvar
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.push 3
+      g.make_array 3
+      g.set_local 0
+      g.pop
+
+      g.push_local 0
+      in_block_send :each, 1, 0, false, 1 do |d|
+        d.push :self
+        d.push_local_depth 0, 0
+        d.send :to_s, 0, false
+        d.send :puts, 1, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -299,7 +559,39 @@ describe "An Iter node" do
            [:arglist, [:call, [:lvar, :y], :to_s, [:arglist]]]]]]]]
     end
 
-    # iter each nested
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.push 3
+      g.make_array 3
+      g.set_local 0
+      g.pop
+
+      g.push 4
+      g.push 5
+      g.push 6
+      g.push 7
+      g.make_array 4
+      g.set_local 1
+      g.pop
+
+      g.push_local 0
+      in_block_send :each, 1, 0, false, 2 do |d|
+        d.push_local 1
+        d.in_block_send :each, 1, 0, false, 2, true do |d2|
+          d2.push :self
+          d2.push_local_depth 1, 0
+          d2.send :to_s, 0, false
+          d2.send :puts, 1, true
+          d2.pop
+
+          d2.push :self
+          d2.push_local_depth 0, 0
+          d2.send :to_s, 0, false
+          d2.send :puts, 1, true
+        end
+      end
+    end
   end
 
   relates "loop { }" do
@@ -307,7 +599,16 @@ describe "An Iter node" do
       [:iter, [:call, nil, :loop, [:arglist]], nil]
     end
 
-    # iter loop empty
+    compile do |g|
+      top = g.new_label
+      bottom = g.new_label
+
+      g.push_modifiers
+      top.set!
+      g.goto top
+      bottom.set!
+      g.pop_modifiers
+    end
   end
 
   relates "a { |b, c| p(c) }" do
@@ -318,7 +619,14 @@ describe "An Iter node" do
        [:call, nil, :p, [:arglist, [:lvar, :c]]]]
     end
 
-    # iter masgn 2
+    compile do |g|
+      g.push :self
+      in_block_send :a, 2 do |d|
+        d.push :self
+        d.push_local_depth 0, 1
+        d.send :p, 1, true
+      end
+    end
   end
 
   relates "a { |b, c, *| p(c) }" do
@@ -329,7 +637,14 @@ describe "An Iter node" do
        [:call, nil, :p, [:arglist, [:lvar, :c]]]]
     end
 
-    # iter masgn args splat no name
+    compile do |g|
+      g.push :self
+      in_block_send :a, 2 do |d|
+        d.push :self
+        d.push_local_depth 0, 1
+        d.send :p, 1, true
+      end
+    end
   end
 
   relates "a { |b, c, *d| p(c) }" do
@@ -340,7 +655,14 @@ describe "An Iter node" do
        [:call, nil, :p, [:arglist, [:lvar, :c]]]]
     end
 
-    # iter masgn args splat
+    compile do |g|
+      g.push :self
+      in_block_send :a, [2, 2] do |d|
+        d.push :self
+        d.push_local_depth 0, 1
+        d.send :p, 1, true
+      end
+    end
   end
 
   relates "a { |*| p(c) }" do
@@ -351,7 +673,15 @@ describe "An Iter node" do
        [:call, nil, :p, [:arglist, [:call, nil, :c, [:arglist]]]]]
     end
 
-    # iter masgn splat no name
+    compile do |g|
+      g.push :self
+      in_block_send :a, -2 do |d|
+        d.push :self
+        d.push :self
+        d.send :c, 0, true
+        d.send :p, 1, true
+      end
+    end
   end
 
   relates "a { |*c| p(c) }" do
@@ -362,7 +692,14 @@ describe "An Iter node" do
        [:call, nil, :p, [:arglist, [:lvar, :c]]]]
     end
 
-    # iter masgn splat
+    compile do |g|
+      g.push :self
+      in_block_send :a, -1 do |d|
+        d.push :self
+        d.push_local_depth 0, 0
+        d.send :p, 1, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -383,7 +720,17 @@ describe "An Iter node" do
         [:call, nil, :puts, [:arglist, [:lvar, :x]]]]]
     end
 
-    # iter shadowed var
+    compile do |g|
+      g.push :self
+      g.in_block_send :a, 1 do |d|
+        d.push :self
+        d.in_block_send :b, 1, 0, true, 0, true, 1 do |d2|
+          d2.push :self
+          d2.push_local_depth 1, 0
+          d2.send :puts, 1, true
+        end
+      end
+    end
   end
 
   relates "1.upto(3) { |n| puts(n.to_s) }" do
@@ -394,7 +741,16 @@ describe "An Iter node" do
        [:call, nil, :puts, [:arglist, [:call, [:lvar, :n], :to_s, [:arglist]]]]]
     end
 
-    # iter upto
+    compile do |g|
+      g.push 1
+      g.push 3
+      in_block_send :upto, 1, 1, false do |d|
+        d.push :self
+        d.push_local_depth 0, 0
+        d.send :to_s, 0, false
+        d.send :puts, 1, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -416,7 +772,48 @@ describe "An Iter node" do
         true]]
     end
 
-    # iter while
+    compile do |g|
+      top    = g.new_label
+      f      = g.new_label
+      dunno1 = g.new_label
+      dunno2 = g.new_label
+      bottom = g.new_label
+
+      g.push 10
+      g.set_local 0
+      g.pop
+
+      g.push_modifiers
+      top.set!
+
+      g.push_local 0
+      g.push 1
+      g.send :>=, 1, false
+      g.gif f
+
+      dunno1.set!
+
+      g.push :self
+      g.push_literal "hello"
+      g.string_dup
+      g.send :puts, 1, true
+      g.pop
+
+      g.push_local 0
+      g.push 1
+      g.meta_send_op_minus
+      g.set_local 0
+      g.pop
+
+      g.goto top
+
+      f.set!
+      g.push :nil
+
+      bottom.set!
+
+      g.pop_modifiers
+    end
   end
 
   relates <<-ruby do
@@ -443,7 +840,37 @@ describe "An Iter node" do
           [:lasgn, :g, [:true]]]]]]
     end
 
-    # structure extra block for dvar scoping
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+
+      g.in_block_send :b, 2, 0, false do |d|
+        f = d.new_label
+        t = d.new_label
+
+        d.push :self
+        d.send :e, 0, true
+        d.push_local_depth 0, 0
+        d.send :f, 1, false
+        d.git f
+
+        d.push :false
+        d.set_local_depth 0, 2
+        d.pop
+
+        d.push_local_depth 0, 1
+
+        d.in_block_send :h, 2, 0, false, 0, true do |d2|
+          d2.push :true
+          d2.set_local_depth 1, 2
+        end
+
+        d.goto t
+        f.set!
+        d.push :nil
+        t.set!
+      end
+    end
   end
 
   relates "loop { next if false }" do
@@ -452,7 +879,32 @@ describe "An Iter node" do
         [:call, nil, :loop, [:arglist]], nil, [:if, [:false], [:next], nil]]
     end
 
-    # next
+    compile do |g|
+      top    = g.new_label
+      bottom = g.new_label
+      dunno1 = g.new_label
+      f      = g.new_label
+
+      g.push_modifiers
+      top.set!
+
+      g.push :false
+      g.gif f
+      g.goto top
+      g.goto dunno1
+
+      f.set!
+
+      g.push :nil
+
+      dunno1.set!
+      g.pop
+      g.goto top
+
+      bottom.set!
+
+      g.pop_modifiers
+    end
   end
 
   relates "loop { next 42 if false }" do
@@ -474,7 +926,14 @@ describe "An Iter node" do
        [:next, [:svalue, [:splat, [:array, [:lit, 1]]]]]]
     end
 
-    # splat next
+    compile do |g|
+      g.splatted_array
+
+      g.push :self
+      g.push_const :LocalJumpError
+      g.push_literal "next used in invalid context"
+      g.send :raise, 2, true
+    end
   end
 
   relates "loop { next [*[1]] }" do
@@ -485,7 +944,14 @@ describe "An Iter node" do
        [:next, [:array, [:splat, [:array, [:lit, 1]]]]]]
     end
 
-    # splat next array
+    compile do |g|
+      g.array_of_splatted_array
+
+      g.push :self
+      g.push_const :LocalJumpError
+      g.push_literal "next used in invalid context"
+      g.send :raise, 2, true
+    end
   end
 
   relates "loop { redo if false }" do
@@ -494,7 +960,34 @@ describe "An Iter node" do
         [:call, nil, :loop, [:arglist]], nil, [:if, [:false], [:redo], nil]]
     end
 
-    # redo
+    compile do |g|
+      top = g.new_label
+      f = g.new_label
+      t = g.new_label
+      bottom = g.new_label
+
+      g.push_modifiers
+
+      top.set!
+
+      g.push :false
+      g.gif f
+      g.goto top
+      g.goto t
+
+      f.set!
+
+      g.push :nil
+
+      t.set!
+
+      g.pop
+      g.goto top
+
+      bottom.set!
+
+      g.pop_modifiers
+    end
   end
 
   relates "loop { retry }" do

@@ -6,6 +6,11 @@ describe "A Postexe node" do
       [:iter, [:postexe], nil, [:lit, 1]]
     end
 
-    # postexe
+    compile do |g|
+      g.push :self
+      in_block_send :at_exit, 0 do |d|
+        d.push 1
+      end
+    end
   end
 end

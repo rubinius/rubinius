@@ -6,7 +6,13 @@ describe "An Array node" do
       [:array, [:lit, 1], [:lit, :b], [:str, "c"]]
     end
 
-    # array
+    compile do |g|
+      g.push 1
+      g.push_unique_literal :b
+      g.push_literal "c"
+      g.string_dup
+      g.make_array 3
+    end
   end
 
   relates "%w[a b c]" do
@@ -14,15 +20,74 @@ describe "An Array node" do
       [:array, [:str, "a"], [:str, "b"], [:str, "c"]]
     end
 
-    # array_pct_W
+    compile do |g|
+      g.push_literal "a"
+      g.string_dup
+      g.push_literal "b"
+      g.string_dup
+      g.push_literal "c"
+      g.string_dup
+      g.make_array 3
+    end
   end
 
-  relates "%w[a \#{@b} c]" do
+  relates '%w[a #{@b} c]' do
     parse do
       [:array, [:str, "a"], [:str, "\#{@b}"], [:str, "c"]]
     end
 
-    # array_pct_W_dstr
+    compile do |g|
+      g.push_literal "a"
+      g.string_dup
+
+      g.push_literal "\#{@b}"
+      g.string_dup
+
+      g.push_literal "c"
+      g.string_dup
+      g.make_array 3
+    end
+  end
+
+  relates "%W[a b c]" do
+    parse do
+      [:array,
+        [:str, "a"], [:str, "b"], [:str, "c"]]
+    end
+
+    compile do |g|
+      g.push_literal "a"
+      g.string_dup
+      g.push_literal "b"
+      g.string_dup
+      g.push_literal "c"
+      g.string_dup
+      g.make_array 3
+    end
+  end
+
+  relates '%W[a #{@b} c]' do
+    parse do
+      [:array,
+        [:str, "a"],
+        [:dstr, "", [:evstr, [:ivar, :@b]]],
+        [:str, "c"]]
+    end
+
+    compile do |g|
+      g.push_literal "a"
+      g.string_dup
+
+      g.push_ivar :@b
+      g.send :to_s, 0, true
+      g.push_literal ""
+      g.string_dup
+      g.string_append
+
+      g.push_literal "c"
+      g.string_dup
+      g.make_array 3
+    end
   end
 
   relates "[*[1]]" do
@@ -30,7 +95,9 @@ describe "An Array node" do
       [:array, [:splat, [:array, [:lit, 1]]]]
     end
 
-    # splat array
+    compile do |g|
+      g.array_of_splatted_array
+    end
   end
 
   relates "[*1]" do
@@ -38,7 +105,12 @@ describe "An Array node" do
       [:array, [:splat, [:lit, 1]]]
     end
 
-    # splat lit 1
+    compile do |g|
+      g.make_array 0
+      g.push 1
+      g.cast_array
+      g.send :+, 1
+    end
   end
 
   relates "[1, *2]" do
@@ -46,6 +118,14 @@ describe "An Array node" do
       [:array, [:lit, 1], [:splat, [:lit, 2]]]
     end
 
-    # splat lit n
+    compile do |g|
+      g.push 1
+      g.make_array 1
+
+      g.push 2
+      g.cast_array
+
+      g.send :+, 1
+    end
   end
 end

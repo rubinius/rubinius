@@ -41,7 +41,27 @@ describe "An If node" do
        nil]
     end
 
-    # if block condition
+    compile do |g|
+      f      = g.new_label
+      bottom = g.new_label
+
+      g.push 5
+      g.set_local 0
+      g.pop
+
+      g.push_local 0
+      g.push 1
+      g.meta_send_op_plus
+      g.gif f
+
+      g.push :nil
+      g.goto bottom
+
+      f.set!
+      g.push :nil
+
+      bottom.set!
+    end
   end
 
   relates <<-ruby do
@@ -57,7 +77,26 @@ describe "An If node" do
        nil]
     end
 
-    # if lasgn short
+    compile do |g|
+      f      = g.new_label
+      bottom = g.new_label
+
+      g.push :self
+      g.send :obj, 0, true
+      g.send :x, 0, false
+      g.set_local 0
+
+      g.gif f
+
+      g.push_local 0
+      g.send :do_it, 0, false
+      g.goto bottom
+
+      f.set!
+      g.push :nil
+
+      bottom.set!
+    end
   end
 
   relates "return if false unless true" do
@@ -65,7 +104,34 @@ describe "An If node" do
       [:if, [:true], nil, [:if, [:false], [:return], nil]]
     end
 
-    # if nested
+    compile do |g|
+      yep  = g.new_label
+      done = g.new_label
+      inner_done = g.new_label
+      nope = g.new_label
+
+      g.push :true
+      g.git  yep
+
+      g.push :false
+      g.gif  nope
+
+      g.push :nil
+      g.ret
+      g.goto inner_done
+
+      nope.set!
+      g.push :nil
+
+      inner_done.set!
+
+      g.goto done
+
+      yep.set!
+      g.push :nil
+
+      done.set!
+    end
   end
 
   relates "a if not b" do
@@ -73,7 +139,23 @@ describe "An If node" do
       [:if, [:call, nil, :b, [:arglist]], nil, [:call, nil, :a, [:arglist]]]
     end
 
-    # if post not
+    compile do |g|
+      yep  = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.git yep
+
+      g.push :self
+      g.send :a, 0, true
+      g.goto done
+
+      yep.set!
+      g.push :nil
+
+      done.set!
+    end
   end
 
   relates "a if b" do
@@ -81,7 +163,23 @@ describe "An If node" do
       [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]
     end
 
-    # if post
+    compile do |g|
+      nope = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.gif nope
+
+      g.push :self
+      g.send :a, 0, true
+      g.goto done
+
+      nope.set!
+      g.push :nil
+
+      done.set!
+    end
   end
 
   relates "if not b then a end" do
@@ -89,7 +187,23 @@ describe "An If node" do
       [:if, [:call, nil, :b, [:arglist]], nil, [:call, nil, :a, [:arglist]]]
     end
 
-    # if pre not
+    compile do |g|
+      yep  = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.git yep
+
+      g.push :self
+      g.send :a, 0, true
+      g.goto done
+
+      yep.set!
+      g.push :nil
+
+      done.set!
+    end
   end
 
   relates "if b then a end" do
@@ -97,7 +211,23 @@ describe "An If node" do
       [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]
     end
 
-    # if pre
+    compile do |g|
+      nope = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.gif nope
+
+      g.push :self
+      g.send :a, 0, true
+      g.goto done
+
+      nope.set!
+      g.push :nil
+
+      done.set!
+    end
   end
 
   relates "a unless not b" do
@@ -105,7 +235,23 @@ describe "An If node" do
       [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]
     end
 
-    # unless post not
+    compile do |g|
+      nope = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.gif nope
+
+      g.push :self
+      g.send :a, 0, true
+      g.goto done
+
+      nope.set!
+      g.push :nil
+
+      done.set!
+    end
   end
 
   relates "a unless b" do
@@ -113,7 +259,23 @@ describe "An If node" do
       [:if, [:call, nil, :b, [:arglist]], nil, [:call, nil, :a, [:arglist]]]
     end
 
-    # unless post
+    compile do |g|
+      yep  = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.git  yep
+
+      g.push :self
+      g.send :a, 0, true
+      g.goto done
+
+      yep.set!
+      g.push :nil
+
+      done.set!
+    end
   end
 
   relates "unless not b then a end" do
@@ -121,7 +283,23 @@ describe "An If node" do
       [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]
     end
 
-    # unless pre not
+    compile do |g|
+      nope = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.gif nope
+
+      g.push :self
+      g.send :a, 0, true
+      g.goto done
+
+      nope.set!
+      g.push :nil
+
+      done.set!
+    end
   end
 
   relates "unless b then a end" do
@@ -129,6 +307,22 @@ describe "An If node" do
       [:if, [:call, nil, :b, [:arglist]], nil, [:call, nil, :a, [:arglist]]]
     end
 
-    # unless pre
+    compile do |g|
+      yep  = g.new_label
+      done = g.new_label
+
+      g.push :self
+      g.send :b, 0, true
+      g.git  yep
+
+      g.push :self
+      g.send :a, 0, true
+      g.goto done
+
+      yep.set!
+      g.push :nil
+
+      done.set!
+    end
   end
 end

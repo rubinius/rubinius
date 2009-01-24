@@ -4,7 +4,6 @@ describe "A Module node" do
   relates <<-ruby do
       module X
         def y
-          # do nothing
         end
       end
     ruby
@@ -13,7 +12,13 @@ describe "A Module node" do
       [:module, :X, [:scope, [:defn, :y, [:args], [:scope, [:block, [:nil]]]]]]
     end
 
-    # module
+    compile do |g|
+      in_module :X do |d|
+        d.in_method :y do |d2|
+          d2.push :nil
+        end
+      end
+    end
   end
 
   relates <<-ruby do
@@ -26,7 +31,12 @@ describe "A Module node" do
       [:module, [:colon3, :Y], [:scope, [:call, nil, :c, [:arglist]]]]
     end
 
-    # module scoped3
+    compile do |g|
+      in_module :Y do |d|
+        d.push :self
+        d.send :c, 0, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -39,7 +49,12 @@ describe "A Module node" do
       [:module, [:colon2, [:const, :X], :Y], [:scope, [:call, nil, :c, [:arglist]]]]
     end
 
-    # module scoped
+    compile do |g|
+      in_module "X::Y" do |d|
+        d.push :self
+        d.send :c, 0, true
+      end
+    end
   end
 
   relates <<-ruby do
@@ -53,6 +68,8 @@ describe "A Module node" do
       [:module, :Graffle, [:scope]]
     end
 
-    # structure unused literal wwtt
+    compile do |g|
+      g.open_module :Graffle
+    end
   end
 end

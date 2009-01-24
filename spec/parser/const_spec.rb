@@ -6,6 +6,8 @@ describe "A Const node" do
       [:const, :X]
     end
 
-    # const
+    compile do |g|
+      g.push_const :X
+    end
   end
 end

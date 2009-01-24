@@ -6,7 +6,12 @@ describe "A Cdecl node" do
       [:cdecl, :X, [:lit, 42]]
     end
 
-    # cdecl
+    compile do |g|
+      g.push_context
+      g.push_literal :X
+      g.push 42
+      g.send :__const_set__, 2
+    end
   end
 
   relates "::X = 1" do
@@ -14,7 +19,12 @@ describe "A Cdecl node" do
       [:cdecl, [:colon3, :X], [:lit, 1]]
     end
 
-    # constY
+    compile do |g|
+      g.push_cpath_top
+      g.push_literal :X
+      g.push 1
+      g.send :__const_set__, 2
+    end
   end
 
   relates "X::Y = 1" do
@@ -22,6 +32,11 @@ describe "A Cdecl node" do
       [:cdecl, [:colon2, [:const, :X], :Y], [:lit, 1]]
     end
 
-    # constZ
+    compile do |g|
+      g.push_const :X
+      g.push_literal :Y
+      g.push 1
+      g.send :__const_set__, 2
+    end
   end
 end

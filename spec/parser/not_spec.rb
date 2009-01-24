@@ -6,6 +6,20 @@ describe "A Not node" do
       [:not, [:true]]
     end
 
-    # not
+    compile do |g|
+      f = g.new_label
+      t = g.new_label
+
+      g.push :true
+      g.git f
+
+      g.push :true
+      g.goto t
+
+      f.set!
+      g.push :false
+
+      t.set!
+    end
   end
 end

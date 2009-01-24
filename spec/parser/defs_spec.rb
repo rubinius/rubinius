@@ -15,7 +15,14 @@ describe "A Defs node" do
          [:scope, [:block, [:call, [:lvar, :y], :+, [:arglist, [:lit, 1]]]]]]
     end
 
-    # defs
+    compile do |g|
+      g.push :self
+      in_method :x, true do |d|
+        d.push_local 0
+        d.push 1
+        d.meta_send_op_plus
+      end
+    end
   end
 
   relates <<-ruby do
@@ -38,12 +45,27 @@ describe "A Defs node" do
            [:return, [:lvar, :bind]]]]]
     end
 
-    # block_attrasgn
+    compile do |g|
+      g.push :self
+      g.in_method :setup, true do |d|
+        d.push :self
+        d.send :allocate, 0, true
+        d.set_local 1
+        d.pop
+
+        d.push_local 1
+        d.push_local 0
+        d.send :context=, 1, false
+        d.pop
+
+        d.push_local 1
+        d.ret # TODO: why extra return?
+      end
+    end
   end
 
   relates <<-ruby do
       def self.empty(*)
-        # do nothing
       end
     ruby
 
@@ -51,12 +73,16 @@ describe "A Defs node" do
       [:defs, [:self], :empty, [:args, :*], [:scope, [:block]]]
     end
 
-    # defs empty args
+    compile do |g|
+      g.push :self
+      in_method :empty, true do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
       def self.empty
-        # do nothing
       end
     ruby
 
@@ -64,7 +90,12 @@ describe "A Defs node" do
       [:defs, [:self], :empty, [:args], [:scope, [:block]]]
     end
 
-    # defs empty
+    compile do |g|
+      g.push :self
+      in_method :empty, true do |d|
+        d.push :nil
+      end
+    end
   end
 
   relates <<-ruby do
@@ -81,6 +112,14 @@ describe "A Defs node" do
        [:scope, [:block]]]
     end
 
-    # defs expr wtf
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.send :b, 0, false
+
+      in_method :empty, true do |d|
+        d.push :nil
+      end
+    end
   end
 end

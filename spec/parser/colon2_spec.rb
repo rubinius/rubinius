@@ -6,5 +6,9 @@ describe "A Colon2 node" do
       [:colon2, [:const, :X], :Y]
     end
 
+    compile do |g|
+      g.push_const :X
+      g.find_const :Y
+    end
   end
 end

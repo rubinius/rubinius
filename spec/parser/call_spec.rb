@@ -6,7 +6,10 @@ describe "A Call node" do
       [:call, [:self], :method, [:arglist]]
     end
 
-    # call
+    compile do |g|
+      g.push :self
+      g.send :method, 0, false
+    end
   end
 
   relates <<-ruby do
@@ -19,7 +22,11 @@ describe "A Call node" do
       [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]]
     end
 
-    # begin
+    compile do |g|
+      g.push 1
+      g.push 1
+      g.meta_send_op_plus
+    end
   end
 
   relates "a.b(&c)" do
@@ -30,7 +37,27 @@ describe "A Call node" do
        [:arglist, [:block_pass, [:call, nil, :c, [:arglist]]]]]
     end
 
-    # block_pass_call_0
+    compile do |g|
+      t = g.new_label
+
+      g.push :self
+      g.send :a, 0, true
+      g.push :self
+      g.send :c, 0, true
+
+      g.dup
+      g.is_nil
+      g.git t
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.swap
+      g.send :__from_block__, 1
+
+      t.set!
+
+      g.send_with_block :b, 0, false
+    end
   end
 
   relates "a.b(4, &c)" do
@@ -41,7 +68,28 @@ describe "A Call node" do
        [:arglist, [:lit, 4], [:block_pass, [:call, nil, :c, [:arglist]]]]]
     end
 
-    # block_pass_call_1
+    compile do |g|
+      t = g.new_label
+
+      g.push :self
+      g.send :a, 0, true
+      g.push 4
+      g.push :self
+      g.send :c, 0, true
+
+      g.dup
+      g.is_nil
+      g.git t
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.swap
+      g.send :__from_block__, 1
+
+      t.set!
+
+      g.send_with_block :b, 1, false
+    end
   end
 
   relates "a.b(1, 2, 3, &c)" do
@@ -56,7 +104,30 @@ describe "A Call node" do
         [:block_pass, [:call, nil, :c, [:arglist]]]]]
     end
 
-    # block pass call n
+    compile do |g|
+      t = g.new_label
+
+      g.push :self
+      g.send :a, 0, true
+      g.push 1
+      g.push 2
+      g.push 3
+      g.push :self
+      g.send :c, 0, true
+
+      g.dup
+      g.is_nil
+      g.git t
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.swap
+      g.send :__from_block__, 1
+
+      t.set!
+
+      g.send_with_block :b, 3, false
+    end
   end
 
   relates "a(&b)" do
@@ -67,7 +138,26 @@ describe "A Call node" do
        [:arglist, [:block_pass, [:call, nil, :b, [:arglist]]]]]
     end
 
-    # block pass fcall 0
+    compile do |g|
+      t = g.new_label
+
+      g.push :self
+      g.push :self
+      g.send :b, 0, true
+
+      g.dup
+      g.is_nil
+      g.git t
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.swap
+      g.send :__from_block__, 1
+
+      t.set!
+
+      g.send_with_block :a, 0, true
+    end
   end
 
   relates "a(4, &b)" do
@@ -78,7 +168,27 @@ describe "A Call node" do
        [:arglist, [:lit, 4], [:block_pass, [:call, nil, :b, [:arglist]]]]]
     end
 
-    # block pass fcall 1
+    compile do |g|
+      t = g.new_label
+
+      g.push :self
+      g.push 4
+      g.push :self
+      g.send :b, 0, true
+
+      g.dup
+      g.is_nil
+      g.git t
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.swap
+      g.send :__from_block__, 1
+
+      t.set!
+
+      g.send_with_block :a, 1, true
+    end
   end
 
   relates "a(1, 2, 3, &b)" do
@@ -93,7 +203,29 @@ describe "A Call node" do
         [:block_pass, [:call, nil, :b, [:arglist]]]]]
     end
 
-    # block pass fcall n
+    compile do |g|
+      t = g.new_label
+
+      g.push :self
+      g.push 1
+      g.push 2
+      g.push 3
+      g.push :self
+      g.send :b, 0, true
+
+      g.dup
+      g.is_nil
+      g.git t
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.swap
+      g.send :__from_block__, 1
+
+      t.set!
+
+      g.send_with_block :a, 3, true
+    end
   end
 
   relates "define_attr_method(:x, :sequence_name, &Proc.new { |*args| nil })" do
@@ -111,7 +243,31 @@ describe "A Call node" do
           [:nil]]]]]
     end
 
-    # block pass omgwtf
+    compile do |g|
+      t = g.new_label
+
+      g.push :self
+      g.push_unique_literal :x
+      g.push_unique_literal :sequence_name
+      g.push_const :Proc
+
+      in_block_send :new, -1, 0, false do |d|
+        d.push :nil
+      end
+
+      g.dup
+      g.is_nil
+      g.git t
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.swap
+      g.send :__from_block__, 1
+
+      t.set!
+
+      g.send_with_block :define_attr_method, 2, true
+    end
   end
 
   relates "r.read_body(dest, &block)" do
@@ -124,7 +280,29 @@ describe "A Call node" do
         [:block_pass, [:call, nil, :block, [:arglist]]]]]
     end
 
-    # block pass thingy
+    compile do |g|
+      t = g.new_label
+
+      g.push :self
+      g.send :r, 0, true
+      g.push :self
+      g.send :dest, 0, true
+      g.push :self
+      g.send :block, 0, true
+
+      g.dup
+      g.is_nil
+      g.git t
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.swap
+      g.send :__from_block__, 1
+
+      t.set!
+
+      g.send_with_block :read_body, 1, false
+    end
   end
 
   relates "o.m(:a => 1, :b => 2)" do
@@ -135,7 +313,18 @@ describe "A Call node" do
        [:arglist, [:hash, [:lit, :a], [:lit, 1], [:lit, :b], [:lit, 2]]]]
     end
 
-    # call arglist hash
+    compile do |g|
+      g.push :self
+      g.send :o, 0, true
+      g.push_cpath_top
+      g.find_const :Hash
+      g.push_unique_literal :a
+      g.push 1
+      g.push_unique_literal :b
+      g.push 2
+      g.send :[], 4
+      g.send :m, 1, false
+    end
   end
 
   relates "o.m(42, :a => 1, :b => 2)" do
@@ -148,7 +337,19 @@ describe "A Call node" do
         [:hash, [:lit, :a], [:lit, 1], [:lit, :b], [:lit, 2]]]]
     end
 
-    # call arglist norm hash
+    compile do |g|
+      g.push :self
+      g.send :o, 0, true
+      g.push 42
+      g.push_cpath_top
+      g.find_const :Hash
+      g.push_unique_literal :a
+      g.push 1
+      g.push_unique_literal :b
+      g.push 2
+      g.send :[], 4
+      g.send :m, 2, false
+    end
   end
 
   relates "o.m(42, :a => 1, :b => 2, *c)" do
@@ -162,7 +363,24 @@ describe "A Call node" do
         [:splat, [:call, nil, :c, [:arglist]]]]]
     end
 
-    # call arglist norm hash
+    compile do |g|
+      g.push :self
+      g.send :o, 0, true
+      g.push 42
+      g.push_cpath_top
+      g.find_const :Hash
+      g.push_unique_literal :a
+      g.push 1
+      g.push_unique_literal :b
+      g.push 2
+      g.send :[], 4
+
+      g.push :self
+      g.send :c, 0, true
+      g.cast_array
+      g.push :nil
+      g.send_with_splat :m, 2, false, false
+    end
   end
 
   relates "a (1,2,3)" do
@@ -170,7 +388,13 @@ describe "A Call node" do
       [:call, nil, :a, [:arglist, [:lit, 1], [:lit, 2], [:lit, 3]]]
     end
 
-    # call arglist space
+    compile do |g|
+      g.push :self
+      g.push 1
+      g.push 2
+      g.push 3
+      g.send :a, 3, true
+    end
   end
 
   relates "o.puts(42)" do
@@ -178,7 +402,12 @@ describe "A Call node" do
       [:call, [:call, nil, :o, [:arglist]], :puts, [:arglist, [:lit, 42]]]
     end
 
-    # call arglist
+    compile do |g|
+      g.push :self
+      g.send :o, 0, true
+      g.push 42
+      g.send :puts, 1, false
+    end
   end
 
   relates "1.b(c)" do
@@ -186,7 +415,12 @@ describe "A Call node" do
       [:call, [:lit, 1], :b, [:arglist, [:call, nil, :c, [:arglist]]]]
     end
 
-    # call command
+    compile do |g|
+      g.push 1
+      g.push :self
+      g.send :c, 0, true
+      g.send :b, 1, false
+    end
   end
 
   relates "(v = (1 + 1)).zero?" do
@@ -197,7 +431,13 @@ describe "A Call node" do
        [:arglist]]
     end
 
-    # call expr
+    compile do |g|
+      g.push 1
+      g.push 1
+      g.meta_send_op_plus
+      g.set_local 0
+      g.send :zero?, 0, false
+    end
   end
 
   relates "-2**31" do
@@ -208,7 +448,12 @@ describe "A Call node" do
        [:arglist]]
     end
 
-    # call unary neg
+    compile do |g|
+      g.push 2
+      g.push 31
+      g.send :**, 1, false
+      g.send :-@, 0, false
+    end
   end
 
   relates "a[]" do
@@ -216,7 +461,11 @@ describe "A Call node" do
       [:call, [:call, nil, :a, [:arglist]], :[], [:arglist]]
     end
 
-    # call index no args
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+      g.send :[], 0, false
+    end
   end
 
   relates "m(:a => 1, :b => 2)" do
@@ -227,7 +476,20 @@ describe "A Call node" do
        [:arglist, [:hash, [:lit, :a], [:lit, 1], [:lit, :b], [:lit, 2]]]]
     end
 
-    # fcall arglist hash
+    compile do |g|
+      g.push :self
+      g.push_cpath_top
+      g.find_const :Hash
+
+      g.push_unique_literal :a
+      g.push 1
+      g.push_unique_literal :b
+      g.push 2
+
+      g.send :[], 4
+
+      g.send :m, 1, true
+    end
   end
 
   relates "m(42, :a => 1, :b => 2)" do
@@ -238,7 +500,21 @@ describe "A Call node" do
        [:arglist, [:lit, 42], [:hash, [:lit, :a], [:lit, 1], [:lit, :b], [:lit, 2]]]]
     end
 
-    # fcall arglist norm hash
+    compile do |g|
+      g.push :self
+      g.push 42
+      g.push_cpath_top
+      g.find_const :Hash
+
+      g.push_unique_literal :a
+      g.push 1
+      g.push_unique_literal :b
+      g.push 2
+
+      g.send :[], 4
+
+      g.send :m, 2, true
+    end
   end
 
   relates "m(42, :a => 1, :b => 2, *c)" do
@@ -252,7 +528,26 @@ describe "A Call node" do
         [:splat, [:call, nil, :c, [:arglist]]]]]
     end
 
-    # fcall arglist norm hash splat
+    compile do |g|
+      g.push :self
+      g.push 42
+      g.push_cpath_top
+      g.find_const :Hash
+
+      g.push_unique_literal :a
+      g.push 1
+      g.push_unique_literal :b
+      g.push 2
+
+      g.send :[], 4
+
+      g.push :self
+      g.send :c, 0, true
+      g.cast_array
+      g.push :nil
+
+      g.send_with_splat :m, 2, true, false
+    end
   end
 
   relates "m(42)" do
@@ -260,7 +555,11 @@ describe "A Call node" do
       [:call, nil, :m, [:arglist, [:lit, 42]]]
     end
 
-    # fcall arglist
+    compile do |g|
+      g.push :self
+      g.push 42
+      g.send :m, 1, true
+    end
   end
 
   relates "a(:b) { :c }" do
@@ -268,7 +567,14 @@ describe "A Call node" do
       [:iter, [:call, nil, :a, [:arglist, [:lit, :b]]], nil, [:lit, :c]]
     end
 
-    # fcall block
+    compile do |g|
+      g.push :self
+      g.push_unique_literal :b
+
+      g.in_block_send :a, 0, 1 do |d|
+        d.push_unique_literal :c
+      end
+    end
   end
 
   relates "a [42]" do
@@ -276,7 +582,12 @@ describe "A Call node" do
       [:call, nil, :a, [:arglist, [:array, [:lit, 42]]]]
     end
 
-    # fcall index space
+    compile do |g|
+      g.push :self
+      g.push 42
+      g.make_array 1
+      g.send :a, 1, true
+    end
   end
 
   relates "42 if block_given?" do
@@ -284,7 +595,18 @@ describe "A Call node" do
       [:if, [:call, nil, :block_given?, [:arglist]], [:lit, 42], nil]
     end
 
-    # fcall keyword
+    compile do |g|
+      t = g.new_label
+      f = g.new_label
+
+      g.push_block
+      g.gif f
+      g.push 42
+      g.goto t
+      f.set!
+      g.push :nil
+      t.set!
+    end
   end
 
   relates "method" do
@@ -292,7 +614,10 @@ describe "A Call node" do
       [:call, nil, :method, [:arglist]]
     end
 
-    # vcall
+    compile do |g|
+      g.push :self
+      g.send :method, 0, true
+    end
   end
 
   relates <<-ruby do
@@ -313,7 +638,23 @@ describe "A Call node" do
          [:resbody, [:array], [:call, nil, :c, [:arglist]]]]]]
     end
 
-    # structure remove begin 1
+    compile do |g|
+      g.push :self
+      g.send :a, 0, true
+
+      in_rescue :StandardError do |section|
+        case section
+        when :body then
+          g.push :self
+          g.send :b, 0, true
+        when :StandardError then
+          g.push :self
+          g.send :c, 0, true
+        end
+      end
+
+      g.send :<<, 1, false
+    end
   end
 
   relates "meth([*[1]])" do
@@ -324,7 +665,12 @@ describe "A Call node" do
         [:arglist, [:array, [:splat, [:array, [:lit, 1]]]]]]
     end
 
-    # splat fcall array
+    compile do |g|
+      g.push :self
+      g.array_of_splatted_array
+
+      g.send :meth, 1, true
+    end
   end
 
   relates "meth(*[1])" do
@@ -332,6 +678,16 @@ describe "A Call node" do
       [:call, nil, :meth, [:arglist, [:splat, [:array, [:lit, 1]]]]]
     end
 
-    # splat fcall
+    compile do |g|
+      g.push :self
+
+      g.push 1
+      g.make_array 1
+      g.cast_array
+
+      g.push :nil
+
+      g.send_with_splat :meth, 0, true, false
+    end
   end
 end

@@ -6,7 +6,9 @@ describe "A Lit node" do
       [:lit, 15]
     end
 
-    # lit binary
+    compile do |g|
+      g.push 15
+    end
   end
 
   relates "1.1" do
@@ -14,7 +16,9 @@ describe "A Lit node" do
       [:lit, 1.1]
     end
 
-    # lit float
+    compile do |g|
+      g.push_unique_literal 1.1
+    end
   end
 
   relates "0xffffffff" do
@@ -22,7 +26,9 @@ describe "A Lit node" do
       [:lit, 4294967295]
     end
 
-    # lit hex
+    compile do |g|
+      g.push_unique_literal 4294967295
+    end
   end
 
   relates "0xffff_ffff" do
@@ -30,7 +36,9 @@ describe "A Lit node" do
       [:lit, 4294967295]
     end
 
-    # lit hex underscore
+    compile do |g|
+      g.push_unique_literal 4294967295
+    end
   end
 
   relates "07654" do
@@ -38,7 +46,9 @@ describe "A Lit node" do
       [:lit, 4012]
     end
 
-    # lit octal
+    compile do |g|
+      g.push 4012
+    end
   end
 
   relates "-1" do
@@ -46,7 +56,9 @@ describe "A Lit node" do
       [:lit, -1]
     end
 
-    # lit long negative
+    compile do |g|
+      g.push(-1)
+    end
   end
 
   relates "1" do
@@ -54,7 +66,9 @@ describe "A Lit node" do
       [:lit, 1]
     end
 
-    # lit long
+    compile do |g|
+      g.push 1
+    end
   end
 
   relates "8000_0000" do
@@ -62,7 +76,9 @@ describe "A Lit node" do
       [:lit, 80000000]
     end
 
-    # lit long underscore
+    compile do |g|
+      g.push 80000000
+    end
   end
 
   relates ":x" do
@@ -70,7 +86,9 @@ describe "A Lit node" do
       [:lit, :x]
     end
 
-    # lit sym
+    compile do |g|
+      g.push_unique_literal :x
+    end
   end
 
   relates ":\"*args\"" do
@@ -78,6 +96,8 @@ describe "A Lit node" do
       [:lit, :"*args"]
     end
 
-    # lit sym splat
+    compile do |g|
+      g.push_unique_literal :"*args"
+    end
   end
 end

@@ -6,7 +6,10 @@ describe "A Iasgn node" do
       [:iasgn, :@a, [:lit, 4]]
     end
 
-    # iasgn
+    compile do |g|
+      g.push 4
+      g.set_ivar :@a
+    end
   end
 
   relates "@a = *[1]" do
