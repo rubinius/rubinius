@@ -154,6 +154,11 @@ class TestGenerator
     pop
   end
 
+  def find_cpath_top_const(name)
+    self.push_cpath_top
+    self.find_const name
+  end
+
   def return_raise
     push_cpath_top
     find_const :LongReturnException
