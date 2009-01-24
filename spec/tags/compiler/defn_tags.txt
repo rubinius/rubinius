@@ -1,0 +1,2 @@
+fails:"A Defn node is compiled from \n    b = 42\n    def a\n      c do\n        begin\n          do_stuff\n        rescue RuntimeError => b\n          puts(b)\n        end\n      end\n    end"
+fails:"A Defn node is compiled from \n    def x(a=0.0,b=0.0)\n      a+b\n    end"

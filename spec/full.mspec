@@ -7,7 +7,6 @@ class MSpecScript
     'spec/frozen/1.8/core',
     'spec/frozen/1.8/language',
     'spec/compiler',
-    '^spec/compiler/new_compiler_spec.rb',
     'spec/core',
     'spec/frozen/1.8/library',
     '^spec/frozen/1.8/library/iconv',

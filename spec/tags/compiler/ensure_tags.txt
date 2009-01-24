@@ -1,0 +1,3 @@
+fails:"An Ensure node is compiled from \n    begin\n      # do nothing\n    rescue\n      # do nothing\n    ensure\n      # do nothing\n    end"
+fails:"An Ensure node is compiled from \n    begin\n      (1 + 1)\n    rescue SyntaxError => e1\n      2\n    rescue Exception => e2\n      3\n    else\n      4\n    ensure\n      5\n    end"
+fails:"An Ensure node is compiled from \n    begin\n      a\n    rescue\n      # do nothing\n    ensure\n      # do nothing\n    end"

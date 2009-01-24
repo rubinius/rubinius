@@ -1,0 +1,2 @@
+fails:A Call node is compiled from 'define_attr_method(:x, :sequence_name, &Proc.new { |*args| nil })'
+fails:A Call node is compiled from 'a(:b) { :c }'

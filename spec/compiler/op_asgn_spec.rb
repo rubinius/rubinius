@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-describe "A Op_asgn1 node" do
+describe "An Op_asgn1 node" do
   relates <<-ruby do
       @b = []
       @b[1] ||= 10
@@ -168,7 +168,7 @@ describe "A Op_asgn1 node" do
   end
 end
 
-describe "A Op_asgn2 node" do
+describe "An Op_asgn2 node" do
   relates "self.Bag ||= Bag.new" do
     parse do
       [:op_asgn2,
@@ -312,7 +312,7 @@ describe "A Op_asgn2 node" do
   end
 end
 
-describe "A Op_asgn_and node" do
+describe "An Op_asgn_and node" do
   relates "@fetcher &&= new(Gem.configuration[:http_proxy])" do
     parse do
       [:op_asgn_and,
@@ -382,7 +382,7 @@ describe "A Op_asgn_and node" do
   end
 end
 
-describe "A Op_asgn_or node" do
+describe "An Op_asgn_or node" do
   relates <<-ruby do
       a ||= begin
               b
