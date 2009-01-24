@@ -284,7 +284,7 @@ class Module
 
     while mod and cmethod.nil? do
       mod = mod.direct_superclass
-      cmethod = mod.method_table[name]
+      cmethod = mod.method_table[name] if mod
     end
 
     # unwrap the real method from Visibility if needed
