@@ -6,12 +6,24 @@ class SpecTag
   end
 
   def parse(string)
-    m = /^([^()#:]+)(\(([^)]+)?\))?:(.*)/.match string
-    @tag, @comment, @description = m.values_at(1, 3, 4) if m
+    m = /^([^()#:]+)(\(([^)]+)?\))?:(.*)$/.match string
+    @tag, @comment, description = m.values_at(1, 3, 4) if m
+    @description = unescape description
+  end
+
+  def unescape(str)
+    return unless str
+    str = str[1..-2] if str[0] == ?" and str[-1] == ?"
+    str.gsub(/\\n/, "\n")
+  end
+
+  def escape(str)
+    str = %["#{str.gsub(/\n/, '\n')}"] if /\n/ =~ str
+    str
   end
 
   def to_s
-    "#{@tag}#{ "(#{@comment})" if @comment }:#{@description}"
+    "#{@tag}#{ "(#{@comment})" if @comment }:#{escape @description}"
   end
 
   def ==(o)

@@ -57,6 +57,13 @@ describe SpecTag, "#parse" do
     @tag.description.should == "Another#method"
   end
 
+  it "accepts 'tag(comment):\"Multi-line\\ntext\"'" do
+    @tag.parse 'tag(comment):"Multi-line\ntext"'
+    @tag.tag.should == "tag"
+    @tag.comment.should == "comment"
+    @tag.description.should == "Multi-line\ntext"
+  end
+
   it "ignores '#anything'" do
     @tag.parse "# this could be a comment"
     @tag.tag.should == nil
@@ -67,19 +74,30 @@ end
 
 describe SpecTag, "#to_s" do
   it "formats itself as 'tag(comment):description'" do
-    tag = SpecTag.new("tag(comment):description")
+    txt = "tag(comment):description"
+    tag = SpecTag.new txt
     tag.tag.should == "tag"
     tag.comment.should == "comment"
     tag.description.should == "description"
-    tag.to_s.should == "tag(comment):description"
+    tag.to_s.should == txt
   end
 
   it "formats itself as 'tag:description" do
-    tag = SpecTag.new("tag:description")
+    txt = "tag:description"
+    tag = SpecTag.new txt
     tag.tag.should == "tag"
     tag.comment.should == nil
     tag.description.should == "description"
-    tag.to_s.should == "tag:description"
+    tag.to_s.should == txt
+  end
+
+  it "formats itself as 'tag(comment):\"multi-line\\ntext\\ntag\"'" do
+    txt = 'tag(comment):"multi-line\ntext\ntag"'
+    tag = SpecTag.new txt
+    tag.tag.should == "tag"
+    tag.comment.should == "comment"
+    tag.description.should == "multi-line\ntext\ntag"
+    tag.to_s.should == txt
   end
 end
 
