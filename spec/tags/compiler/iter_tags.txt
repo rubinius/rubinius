@@ -20,3 +20,4 @@ fails:An Iter node is compiled from '1.upto(3) { |n| puts(n.to_s) }'
 fails:"An Iter node is compiled from \n    a.b do |c, d|\n      unless e.f(c) then\n        g = false\n        d.h { |x, i| g = true }\n      end\n    end"
 fails:An Iter node is compiled from 'loop { next *[1] }'
 fails:An Iter node is compiled from 'loop { next [*[1]] }'
+fails:An Iter node is compiled from 'ary.each do |a, |; end'

@@ -144,4 +144,15 @@ EOM
       g.string_dup
     end
   end
+
+  relates "%(blah)" do
+    parse do
+      [:str, "blah"]
+    end
+
+    compile do |g|
+      g.push_literal "blah"
+      g.string_dup
+    end
+  end
 end

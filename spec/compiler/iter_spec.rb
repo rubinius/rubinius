@@ -1,6 +1,30 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An Iter node" do
+  relates "ary.each do ||; end" do
+    parse do
+      [:iter,
+        [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
+        0]
+    end
+
+    # TODO
+  end
+
+  relates "ary.each do |a, |; end" do
+    parse do
+      [:iter,
+        [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
+        [:masgn, [:array, [:lasgn, :a]]]]
+    end
+
+    compile do |d|
+      d.cast_for_multi_block_arg
+      d.cast_array
+      d.lvar_at 0
+    end
+  end
+
   relates <<-ruby do
       a(b) do
         if b then
@@ -609,6 +633,44 @@ describe "An Iter node" do
       bottom.set!
       g.pop_modifiers
     end
+  end
+
+  relates "ary.each do |(a, b), c|; end" do
+    parse do
+      [:iter,
+       [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
+       [:masgn,
+        [:array, [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]]], [:lasgn, :c]]]]
+    end
+
+    # TODO
+  end
+
+  relates "ary.each do |(a, b), *c|; end" do
+    parse do
+      [:iter,
+       [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
+       [:masgn,
+        [:array,
+         [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]]],
+         [:splat, [:lasgn, :c]]]]]
+    end
+
+    # TODO
+  end
+
+  relates "ary.each do |(a, (b, c)), d|; end" do
+    parse do
+      [:iter,
+       [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
+       [:masgn,
+        [:array,
+         [:masgn,
+          [:array, [:lasgn, :a], [:masgn, [:array, [:lasgn, :b], [:lasgn, :c]]]]],
+         [:lasgn, :d]]]]
+    end
+
+    # TODO
   end
 
   relates "a { |b, c| p(c) }" do

@@ -83,6 +83,31 @@ describe "An Attrasgn node" do
     end
   end
 
+  relates "self[index, 0] = other_string" do
+    parse do
+      [:attrasgn,
+       [:self],
+       :[]=,
+       [:arglist,
+        [:call, nil, :index, [:arglist]],
+        [:lit, 0],
+        [:call, nil, :other_string, [:arglist]]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.push :self
+      g.send :index, 0, true
+      g.push 0
+      g.push :self
+      g.send :other_string, 0, true
+      g.dup
+      g.move_down 4
+      g.send :[]=, 3, false
+      g.pop
+    end
+  end
+
   relates <<-ruby do
       a = []
       a [42] = 24

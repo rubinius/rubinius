@@ -2,6 +2,24 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Dstr node" do
   relates <<-ruby do
+      "hello \#{}"
+    ruby
+
+    parse do
+      [:dstr, "hello ", [:evstr]]
+    end
+
+    compile do |g|
+      g.push_literal ""
+      g.string_dup
+      g.send :to_s, 0, true
+      g.push_literal "hello "
+      g.string_dup
+      g.string_append
+    end
+  end
+
+  relates <<-ruby do
       argl = 1
       "x\#{argl}y"
     ruby

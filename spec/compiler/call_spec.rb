@@ -12,6 +12,40 @@ describe "A Call node" do
     end
   end
 
+  relates "1.m(2)" do
+    parse do
+      [:call, [:lit, 1], :m, [:arglist, [:lit, 2]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.send :m, 1, false
+    end
+  end
+
+  relates "h(1, 2, *a)" do
+    parse do
+      [:call, nil, :h,
+       [:arglist,
+         [:lit, 1],
+         [:lit, 2],
+         [:splat, [:call, nil, :a, [:arglist]]]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.push 1
+      g.push 2
+      g.push :self
+      g.send :a, 0, true
+      g.cast_array
+
+      g.push :nil
+      g.send_with_splat :h, 2, true, false
+    end
+  end
+
   relates <<-ruby do
       begin
         (1 + 1)
@@ -26,6 +60,22 @@ describe "A Call node" do
       g.push 1
       g.push 1
       g.meta_send_op_plus
+    end
+  end
+
+  relates "blah(*a)" do
+    parse do
+      [:call, nil, :blah,
+        [:arglist, [:splat, [:call, nil, :a, [:arglist]]]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.push :self
+      g.send :a, 0, true
+      g.cast_array
+      g.push :nil
+      g.send_with_splat :blah, 0, true, false
     end
   end
 

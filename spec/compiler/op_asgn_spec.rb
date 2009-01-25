@@ -1,6 +1,227 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An Op_asgn1 node" do
+  relates "a &&= 8" do
+    parse do
+      [:op_asgn_and, [:lvar, :a], [:lasgn, :a, [:lit, 8]]]
+    end
+
+    compile do |g|
+      fin = g.new_label
+
+      g.push_local 0
+      g.dup
+      g.gif fin
+
+      g.pop
+      g.push 8
+      g.set_local 0
+
+      fin.set!
+    end
+  end
+
+  relates "hsh[:blah] ||= 8" do
+    parse do
+      [:op_asgn1,
+       [:call, nil, :hsh, [:arglist]],
+       [:arglist, [:lit, :blah]],
+       :"||",
+       [:lit, 8]]
+    end
+
+    compile do |g|
+      found = g.new_label
+      fin = g.new_label
+
+      g.push :self
+      g.send :hsh, 0, true
+      g.dup
+      g.push_unique_literal :blah
+      g.send :[], 1
+      g.dup
+      g.git found
+
+      g.pop
+      g.push_unique_literal :blah
+      g.push 8
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2
+      g.pop
+      g.goto fin
+
+      found.set!
+
+      # Remove the object from the stack
+      g.swap
+      g.pop
+
+      fin.set!
+    end
+  end
+
+  relates "hsh[:blah] &&= 8" do
+    parse do
+      [:op_asgn1,
+       [:call, nil, :hsh, [:arglist]],
+       [:arglist, [:lit, :blah]],
+       :"&&",
+       [:lit, 8]]
+    end
+
+    compile do |g|
+      found = g.new_label
+      fin = g.new_label
+
+      g.push :self
+      g.send :hsh, 0, true
+      g.dup
+      g.push_unique_literal :blah
+      g.send :[], 1
+      g.dup
+      g.gif found
+
+      g.pop
+      g.push_unique_literal :blah
+      g.push 8
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2
+      g.pop
+      g.goto fin
+
+      found.set!
+
+      # Remove the object from the stack
+      g.swap
+      g.pop
+
+      fin.set!
+    end
+
+  end
+
+  relates "hsh[:blah] ^= 8" do
+    parse do
+      [:op_asgn1,
+       [:call, nil, :hsh, [:arglist]],
+       [:arglist, [:lit, :blah]],
+       :^,
+       [:lit, 8]]
+    end
+
+    compile do |g|
+      fin = g.new_label
+
+      g.push :self
+      g.send :hsh, 0, true
+      g.dup
+      g.push_unique_literal :blah
+      g.send :[], 1
+      g.push 8
+      g.send :"^", 1
+      g.push_unique_literal :blah
+      g.swap
+      g.dup
+      g.move_down 3
+      g.send :[]=, 2
+      g.pop
+    end
+  end
+
+  relates "ary[0,1] += [4]" do
+    parse do
+      [:op_asgn1,
+       [:call, nil, :ary, [:arglist]],
+       [:arglist, [:lit, 0], [:lit, 1]],
+       :+,
+       [:array, [:lit, 4]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.send :ary, 0, true
+      g.dup
+      g.push 0
+      g.push 1
+      g.send :[], 2
+      g.push 4
+      g.make_array 1
+      g.send :"+", 1
+      g.push 0
+      g.swap
+      g.push 1
+      g.swap
+      g.dup
+      g.move_down 4
+      g.send :[]=, 3
+      g.pop
+    end
+  end
+
+  relates "x.val ||= 6" do
+    parse do
+      [:op_asgn2, [:call, nil, :x, [:arglist]], :val=, :"||", [:lit, 6]]
+    end
+
+    compile do |g|
+      fnd = g.new_label
+      fin = g.new_label
+
+      g.push :self
+      g.send :x, 0, true
+      g.dup
+      g.send :val, 0
+      g.dup
+      g.git fnd
+
+      g.pop
+      g.push 6
+      g.dup
+      g.move_down 2
+      g.send :val=, 1
+      g.pop
+      g.goto fin
+
+      fnd.set!
+      g.swap
+      g.pop
+      fin.set!
+    end
+  end
+
+  relates "x.val &&= 7" do
+    parse do
+      [:op_asgn2, [:call, nil, :x, [:arglist]], :val=, :"&&", [:lit, 7]]
+    end
+
+    compile do |g|
+      fnd = g.new_label
+      fin = g.new_label
+
+      g.push :self
+      g.send :x, 0, true
+      g.dup
+      g.send :val, 0
+      g.dup
+      g.gif fnd
+
+      g.pop
+      g.push 7
+      g.dup
+      g.move_down 2
+      g.send :val=, 1
+      g.pop
+      g.goto fin
+
+      fnd.set!
+      g.swap
+      g.pop
+      fin.set!
+    end
+  end
+
   relates <<-ruby do
       @b = []
       @b[1] ||= 10
@@ -169,6 +390,25 @@ describe "An Op_asgn1 node" do
 end
 
 describe "An Op_asgn2 node" do
+  relates "x.val ^= 8" do
+    parse do
+      [:op_asgn2, [:call, nil, :x, [:arglist]], :val=, :^, [:lit, 8]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.send :x, 0, true
+      g.dup
+      g.send :val, 0
+      g.push 8
+      g.send :"^", 1
+      g.dup
+      g.move_down 2
+      g.send :val=, 1
+      g.pop
+    end
+  end
+
   relates "self.Bag ||= Bag.new" do
     parse do
       [:op_asgn2,
@@ -383,6 +623,57 @@ describe "An Op_asgn_and node" do
 end
 
 describe "An Op_asgn_or node" do
+  relates "@@var ||= 3" do
+    parse do
+      [:op_asgn_or, [:cvar, :@@var], [:cvdecl, :@@var, [:lit, 3]]]
+    end
+
+    compile do |g|
+      done = g.new_label
+      notfound = g.new_label
+
+      g.push_context
+      g.push_literal :@@var
+      g.send :class_variable_defined?, 1
+      g.gif notfound
+
+      g.push_context
+      g.push_literal :@@var
+      g.send :class_variable_get, 1
+      g.dup
+      g.git done
+      g.pop
+
+      notfound.set!
+      g.push_context
+      g.push_literal :@@var
+      g.push 3
+      g.send :class_variable_set, 2
+
+      done.set!
+    end
+  end
+
+  relates "a ||= 8" do
+    parse do
+      [:op_asgn_or, [:lvar, :a], [:lasgn, :a, [:lit, 8]]]
+    end
+
+    compile do |g|
+      fin = g.new_label
+
+      g.push_local 0
+      g.dup
+      g.git fin
+
+      g.pop
+      g.push 8
+      g.set_local 0
+
+      fin.set!
+    end
+  end
+
   relates <<-ruby do
       a ||= begin
               b

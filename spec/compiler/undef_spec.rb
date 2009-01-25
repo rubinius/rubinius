@@ -137,4 +137,29 @@ describe "An Undef node" do
     end
   end
 
+  relates "class B; undef :blah; end" do
+    parse do
+      [:class, :B, nil, [:scope, [:undef, [:lit, :blah]]]]
+    end
+
+    compile do |g|
+      desc = description do |d|
+        d.push_self # FIX
+        d.add_scope
+        d.push :self
+        d.push_literal :blah
+        d.send :undef_method, 1
+        d.ret
+      end
+
+      g.push :nil
+      g.open_class :B
+      g.dup
+      g.push_literal desc
+      g.swap
+      g.attach_method :__class_init__
+      g.pop
+      g.send :__class_init__, 0
+    end
+  end
 end

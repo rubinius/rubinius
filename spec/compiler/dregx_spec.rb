@@ -1,6 +1,30 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Dregx node" do
+  relates <<-ruby do
+      /(\#{})/
+    ruby
+
+    parse do
+      [:dregx, "(", [:evstr], [:str, ")"]]
+    end
+
+    compile do |g|
+      g.push_const :Regexp
+      g.push_literal ")"
+      g.string_dup
+      g.push_literal ""
+      g.string_dup
+      g.send :to_s, 0, true
+      g.push_literal "("
+      g.string_dup
+      g.string_append
+      g.string_append
+      g.push 0
+      g.send :new, 2
+    end
+  end
+
   relates "/x\#{(1 + 1)}y/" do
     parse do
       [:dregx,

@@ -1,6 +1,61 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A Masgn node" do
+  relates "a, b.c = b.c, true" do
+    parse do
+      [:masgn,
+       [:array,
+        [:lasgn, :a],
+        [:attrasgn, [:call, nil, :b, [:arglist]], :c=, [:arglist]]],
+       [:array, [:call, [:call, nil, :b, [:arglist]], :c, [:arglist]], [:true]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.send :b, 0, true
+      g.send :c, 0, false
+      g.push :true
+
+      g.rotate 2
+
+      g.set_local 0
+      g.pop
+
+      g.push :self
+      g.send :b, 0, true
+      g.swap
+      g.send :c=, 1, false
+
+      g.pop
+
+      g.push :true
+    end
+  end
+
+  relates "a, b = 1, 2, 3" do
+    parse do
+      [:masgn,
+       [:array, [:lasgn, :a], [:lasgn, :b]],
+       [:array, [:lit, 1], [:lit, 2], [:lit, 3]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.push 3
+
+      g.rotate 3
+
+      g.set_local 0
+      g.pop
+      g.set_local 1
+      g.pop
+
+      g.pop # no set_local since the LHS is smaller than the RHS
+      g.push :true
+    end
+  end
+
   relates "a, b = c, d" do
     parse do
       [:masgn,
@@ -324,6 +379,179 @@ describe "A Masgn node" do
     # masgn iasgn splat lhs splat rhs
   end
 
+  relates "@a, $b = 1, 2" do
+    parse do
+      [:masgn,
+       [:array, [:iasgn, :@a], [:gasgn, :$b]],
+       [:array, [:lit, 1], [:lit, 2]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.rotate 2
+      g.set_ivar :@a
+      g.pop
+      g.push_cpath_top
+      g.find_const :Globals
+      g.swap
+      g.push_literal :$b
+      g.swap
+      g.send :[]=, 2
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, b = (@a = 1), @a" do
+    parse do
+      [:masgn,
+       [:array, [:lasgn, :a], [:lasgn, :b]],
+       [:array, [:iasgn, :@a, [:lit, 1]], [:ivar, :@a]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.set_ivar :@a
+      g.push_ivar :@a
+
+      g.rotate 2
+
+      g.set_local 0
+      g.pop
+      g.set_local 1
+      g.pop
+
+      g.push :true
+    end
+  end
+
+  relates "@@a, @@b = 1, 2" do
+    parse do
+      [:masgn,
+       [:array, [:cvdecl, :@@a], [:cvdecl, :@@b]],
+       [:array, [:lit, 1], [:lit, 2]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.rotate 2
+      g.push_context
+      g.swap
+      g.push_literal :@@a
+      g.swap
+      g.send :class_variable_set, 2
+      g.pop
+      g.push_context
+      g.swap
+      g.push_literal :@@b
+      g.swap
+      g.send :class_variable_set, 2
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, b, *c = 1, 2, 3" do
+    parse do
+      [:masgn,
+       [:array, [:lasgn, :a], [:lasgn, :b], [:splat, [:lasgn, :c]]],
+       [:array, [:lit, 1], [:lit, 2], [:lit, 3]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.push 3
+
+      g.make_array 1
+      g.set_local 2
+      g.pop
+
+      g.set_local 1
+      g.pop
+
+      g.set_local 0
+      g.pop
+
+      g.push :true
+    end
+  end
+
+  relates "a, b, c = *d" do
+    parse do
+      [:masgn,
+        [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]],
+        [:splat, [:call, nil, :d, [:arglist]]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.send :d, 0, true
+
+      g.cast_array
+
+      g.lvar_set 0
+      g.lvar_set 1
+      g.lvar_set 2
+
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, b, c = 1, *d" do
+    parse do
+      [:masgn,
+       [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]],
+       [:array, [:lit, 1], [:splat, [:call, nil, :d, [:arglist]]]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.make_array 1
+
+      g.push :self
+      g.send :d, 0, true
+      g.cast_array
+
+      g.send :+, 1
+      g.cast_array
+
+      g.lvar_set 0
+      g.lvar_set 1
+      g.lvar_set 2
+
+      g.pop
+      g.push :true
+    end
+  end
+
+  relates "a, b, *c = *d" do
+    parse do
+      [:masgn,
+       [:array, [:lasgn, :a], [:lasgn, :b], [:splat, [:lasgn, :c]]],
+       [:splat, [:call, nil, :d, [:arglist]]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.send :d, 0, true
+
+      g.cast_array
+
+      g.lvar_set 0
+      g.lvar_set 1
+
+      g.cast_array
+      g.set_local 2
+      g.pop
+
+      g.push :true
+    end
+  end
+
   relates "*a = 1, 2, 3" do
     parse do
       [:masgn,
@@ -450,6 +678,33 @@ describe "A Masgn node" do
 
       g.pop # TODO: why?
 
+      g.push :true
+    end
+  end
+
+  relates "a, b, c = m d" do
+    parse do
+      [:masgn,
+       [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]],
+       [:to_ary, [:call, nil, :m, [:arglist, [:call, nil, :d, [:arglist]]]]]]
+    end
+
+    compile do |g|
+      g.push :self
+      g.push :self
+      g.send :d, 0, true
+      g.send :m, 1, true
+      g.cast_array
+      g.shift_array
+      g.set_local 0
+      g.pop
+      g.shift_array
+      g.set_local 1
+      g.pop
+      g.shift_array
+      g.set_local 2
+      g.pop
+      g.pop
       g.push :true
     end
   end
