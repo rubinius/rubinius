@@ -328,8 +328,7 @@ class MethodContext
   # Called when 'def name' is used in userland
 
   def __add_method__(name, obj)
-    s = MethodContext.current.sender
-    scope = s.method_scope || :public
+    scope = method_scope || :public
 
     if name == :initialize or scope == :module or name == :initialize_copy
       visibility = :private
@@ -341,24 +340,31 @@ class MethodContext
     obj.serial = 1
 
     # Push the scoping down.
-    obj.scope = s.method.scope
+    obj.scope = method.scope
 
     Rubinius::VM.reset_method_cache(name)
 
     cm_vis = CompiledMethod::Visibility.new(obj, visibility)
 
-    obj.scope.module.method_table[name] = cm_vis
+    mod = obj.scope.for_method_definition
+
+    mod.method_table[name] = cm_vis
 
     if scope == :module
-      s.current_scope.module_function name
+      mod.module_function name
     end
 
-    if s.current_scope.respond_to? :method_added
-      s.current_scope.method_added(name)
+    if mod.respond_to? :method_added
+      mod.method_added name
     end
 
     # Return value here is the return value of the 'def' expression
     return obj
+  end
+
+  def __undef_method__(name)
+    mod = method.scope.for_method_definition
+    mod.undef_method name
   end
 
   attr_reader :dynamic_locals

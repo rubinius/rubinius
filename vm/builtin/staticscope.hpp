@@ -14,18 +14,28 @@ namespace rubinius {
 
   private:
     Module* module_;      // slot
+
+    // This is used like the ruby_class MRI variable. It lets
+    // manipulate this aspect of the class lexical enclosure
+    // without having to change module also.
+    Module* current_module_;   // slot
+
     StaticScope* parent_; // slot
 
   public:
     /* accessors */
 
     attr_accessor(module, Module);
+    attr_accessor(current_module, Module);
     attr_accessor(parent, StaticScope);
 
     /* interface */
 
     static void init(STATE);
     static StaticScope* create(STATE);
+
+    // The module to use when adding and removing methods
+    Module* for_method_definition();
 
     class Info : public TypeInfo {
     public:

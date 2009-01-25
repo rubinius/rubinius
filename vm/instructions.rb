@@ -117,7 +117,7 @@ class Instructions
   end
 
   # [Operation]
-  #   Set the StaticScope of the current CompiledMethod
+  #   Add a new StaticScope entry for the given Module
   # [Format]
   #   \push_scope
   # [Stack Before]
@@ -126,10 +126,11 @@ class Instructions
   # [Stack After]
   #   * ...
   # [Description]
-  #   Create a new StaticScope object and set it to the current
-  #   CompiledMethod object. The value on the top of the stack is set
-  #   to be the module within the StaticScope. This scope is chained off
-  #   the current scope of the method.
+  #   Create a new StaticScope object for the given Module on the stack.
+  #   This scope is chained off the current scope of the method.
+  #
+  #   This also sets the scope of the current CompiledMethod to the new
+  #   StaticScope
   #
 
   def add_scope

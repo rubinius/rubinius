@@ -620,11 +620,10 @@ class TestGenerator
   def undef_bytecode(*names)
     last_name = names.last
     names.each do |name|
-      self.push :self
-      self.send :metaclass, 0
-      self.push_literal name
-      self.send :undef_method, 1
-      self.pop unless name == last_name
+      push_context
+      push_literal name
+      send :__undef_method__, 1
+      pop unless name == last_name
     end
   end
 end

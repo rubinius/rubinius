@@ -2391,12 +2391,9 @@ class Compiler
 
     class Undef
       def bytecode(g)
-        g.push :self
-        unless @in_module
-          g.send :metaclass, 0
-        end
+        g.push_context
         g.push_literal @name
-        g.send :undef_method, 1
+        g.send :__undef_method__, 1
       end
     end
 

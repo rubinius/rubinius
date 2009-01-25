@@ -106,7 +106,7 @@ module Kernel
       end
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block.redirect_to self
-      env.method.scope = StaticScope.new(__metaclass__, env.method.scope)
+      env.method.scope = env.method.scope.using_current_as(__metaclass__)
       original_scope = prc.block.home.method.scope
       env.constant_scope = original_scope
       return env.call(*self)
@@ -128,7 +128,7 @@ module Kernel
         compiled_method.scope = StaticScope.new(self, compiled_method.scope)
       else
 
-      # Otherwise add our metaclass, so thats where new methods go.
+        # Otherwise add our metaclass, so thats where new methods go.
         compiled_method.scope = StaticScope.new(metaclass, compiled_method.scope)
       end
       compiled_method.compile

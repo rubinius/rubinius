@@ -59,12 +59,30 @@ class StaticScope
   # Static scope object this scope enclosed into.
   attr_reader   :parent
 
+  # Module or class representing the 'current class'. MRI manipulates
+  # this outside of the lexical scope and uses it for undef and method
+  # definition.
+  attr_accessor :current_module
+
   def inspect
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent.inspect} module=#{@module}>"
   end
 
   def to_s
     self.inspect
+  end
+
+  # Use the same info as the current StaticScope, but set current_module to
+  # +mod+. Chains off the current StaticScope.
+  def using_current_as(mod)
+    ss = StaticScope.new @module, self
+    ss.current_module = mod
+    return ss
+  end
+
+  def for_method_definition
+    return @current_module if @current_module
+    return @module
   end
 end
 

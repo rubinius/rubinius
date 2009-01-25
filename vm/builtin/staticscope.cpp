@@ -12,4 +12,12 @@ namespace rubinius {
   StaticScope* StaticScope::create(STATE) {
     return state->new_object<StaticScope>(G(staticscope));
   }
+
+  Module* StaticScope::for_method_definition() {
+    if(current_module_->nil_p()) {
+      return module_;
+    }
+
+    return current_module_;
+  }
 }

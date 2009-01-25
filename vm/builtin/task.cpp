@@ -350,10 +350,10 @@ namespace rubinius {
 
     cur = active_->cm()->scope();
     while(!cur->nil_p()) {
+      if(cur->module() == G(object)) break;
+
       result = cur->module()->get_const_association(state, name, found);
       if(*found) return result;
-
-      if(cur->module() == G(object)) break;
 
       cur = cur->parent();
     }
