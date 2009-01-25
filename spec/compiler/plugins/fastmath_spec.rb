@@ -1,0 +1,75 @@
+require File.dirname(__FILE__) + '/../../spec_helper'
+
+describe "A Call node using fastmath plugin" do
+  relates "1 + 1" do
+    parse do
+      [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]]
+    end
+
+    compile :fastmath do |g|
+      g.push 1
+      g.push 1
+      g.meta_send_op_plus
+    end
+  end
+
+  relates "1 - 1" do
+    parse do
+      [:call, [:lit, 1], :-, [:arglist, [:lit, 1]]]
+    end
+
+    compile :fastmath do |g|
+      g.push 1
+      g.push 1
+      g.meta_send_op_minus
+    end
+  end
+
+  relates "1 == 1" do
+    parse do
+      [:call, [:lit, 1], :==, [:arglist, [:lit, 1]]]
+    end
+
+    compile :fastmath do |g|
+      g.push 1
+      g.push 1
+      g.meta_send_op_equal
+    end
+  end
+
+  relates "1 === 1" do
+    parse do
+      [:call, [:lit, 1], :===, [:arglist, [:lit, 1]]]
+    end
+
+    compile :fastmath do |g|
+      g.push 1
+      g.push 1
+      g.meta_send_op_tequal
+    end
+  end
+
+  relates "1 < 1" do
+    parse do
+      [:call, [:lit, 1], :<, [:arglist, [:lit, 1]]]
+    end
+
+    compile :fastmath do |g|
+      g.push 1
+      g.push 1
+      g.meta_send_op_lt
+    end
+  end
+
+  relates "1 > 1" do
+    parse do
+      [:call, [:lit, 1], :>, [:arglist, [:lit, 1]]]
+    end
+
+    compile :fastmath do |g|
+      g.push 1
+      g.push 1
+      g.meta_send_op_gt
+    end
+  end
+end
