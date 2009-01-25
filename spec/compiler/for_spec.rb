@@ -49,4 +49,44 @@ describe "A For node" do
       end
     end
   end
+
+  relates <<-ruby do
+      for a, b in x do
+        5
+      end
+    ruby
+
+    parse do
+      [:for,
+       [:call, nil, :x, [:arglist]],
+       [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]]],
+       [:lit, 5]]
+    end
+
+    compile do |g|
+      iter = description do |d|
+        d.cast_for_multi_block_arg
+        d.cast_array
+        d.shift_array
+        d.set_local 0
+        d.pop
+        d.shift_array
+        d.set_local 1
+        d.pop
+        d.pop
+        d.push_modifiers
+        d.new_label.set!
+        d.push 5
+        d.pop_modifiers
+        d.ret
+      end
+
+      g.passed_block(2) do
+        g.push :self
+        g.send :x, 0, true
+        g.create_block iter
+        g.send_with_block :each, 0, false
+      end
+    end
+  end
 end

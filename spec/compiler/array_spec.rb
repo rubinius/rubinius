@@ -128,4 +128,26 @@ describe "An Array node" do
       g.send :+, 1
     end
   end
+
+  relates "[1, *c()]" do
+    parse do
+      [:array, [:lit, 1], [:splat, [:call, nil, :c, [:arglist]]]]
+    end
+
+    # TODO
+  end
+
+  relates <<-ruby do
+      x = [2]
+      [1, *x]
+    ruby
+
+    parse do
+      [:block,
+       [:lasgn, :x, [:array, [:lit, 2]]],
+       [:array, [:lit, 1], [:splat, [:lvar, :x]]]]
+    end
+
+    # TODO
+  end
 end

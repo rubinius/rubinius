@@ -910,4 +910,27 @@ describe "A Defn node" do
       end
     end
   end
+
+  relates <<-ruby do
+      def meth(b)
+        b
+      end
+    ruby
+
+    parse do
+      [:defn, :meth, [:args, :b], [:scope, [:block, [:lvar, :b]]]]
+    end
+
+    compile do |g|
+      meth = description do |d|
+        d.push_local 0
+        d.ret
+      end
+
+      g.push_context
+      g.push_literal :meth
+      g.push_literal meth
+      g.send :__add_method__, 2
+    end
+  end
 end

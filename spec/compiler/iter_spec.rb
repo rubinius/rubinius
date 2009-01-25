@@ -997,4 +997,171 @@ describe "An Iter node" do
 
     # retry
   end
+
+  relates "go { return 12 }" do
+    parse do
+      [:iter,
+        [:call, nil, :go, [:arglist]], nil, [:return, [:lit, 12]]]
+    end
+
+    compile do |g|
+      iter = description do |d|
+        d.pop
+        d.push_modifiers
+        d.new_label.set! # redo
+        d.push 12
+
+        d.return_raise
+
+        d.pop_modifiers
+        d.ret
+      end
+
+      g.passed_block do
+        g.push :self
+        g.create_block iter
+        g.send_with_block :go, 0, true
+      end
+    end
+  end
+
+  relates <<-ruby do
+      go do
+        name = 12
+        name
+      end
+    ruby
+
+    parse do
+      [:iter,
+       [:call, nil, :go, [:arglist]],
+       nil,
+       [:block, [:lasgn, :name, [:lit, 12]], [:lvar, :name]]]
+    end
+
+    compile do |g|
+      iter = description do |d|
+        d.pop
+        d.push_modifiers
+        d.new_label.set! # redo
+        d.push 12
+        d.set_local_depth 0, 0
+        d.pop
+        d.push_local_depth 0, 0
+        d.pop_modifiers
+        d.ret
+      end
+
+      g.passed_block do
+        g.push :self
+        g.create_block iter
+        g.send_with_block :go, 0, true
+      end
+    end
+  end
+
+  relates <<-ruby do
+      go do
+        name = 12
+        go do
+          name
+        end
+      end
+    ruby
+
+    parse do
+      [:iter,
+       [:call, nil, :go, [:arglist]],
+       nil,
+       [:block,
+        [:lasgn, :name, [:lit, 12]],
+        [:iter, [:call, nil, :go, [:arglist]], nil, [:lvar, :name]]]]
+    end
+
+    compile do |g|
+      iter = description do |d|
+        d.pop
+        d.push_modifiers
+        d.new_label.set! # redo
+        d.push 12
+        d.set_local_depth 0, 0
+        d.pop
+
+        i2 = description do |j|
+          j.pop
+          j.push_modifiers
+          j.new_label.set! # redo
+          j.push_local_depth 1, 0
+          j.pop_modifiers
+          j.ret
+        end
+
+        d.break_rescue do
+          d.push :self
+          d.create_block i2
+          d.send_with_block :go, 0, true
+        end
+        d.pop_modifiers
+        d.ret
+      end
+
+      g.passed_block do
+        g.push :self
+        g.create_block iter
+        g.send_with_block :go, 0, true
+      end
+    end
+  end
+
+  relates "break" do
+    parse do
+      [:break]
+    end
+
+    compile do |g|
+      g.push :nil
+      g.pop
+      g.push_const :Compile
+      g.send :__unexpected_break__, 0
+    end
+  end
+
+  relates "redo" do
+    parse do
+      [:redo]
+    end
+
+    compile do |g|
+      g.push :self
+      g.push_const :LocalJumpError
+      g.push_literal "redo used in invalid context"
+      g.send :raise, 2, true
+    end
+  end
+
+  relates "retry" do
+    parse do
+      [:retry]
+    end
+
+    compile do |g|
+      g.push :self
+      g.push_const :LocalJumpError
+      g.push_literal "retry used in invalid context"
+      g.send :raise, 2, true
+    end
+  end
+
+  relates "next" do
+    parse do
+      [:next]
+    end
+
+    compile do |g|
+      g.push :self
+      g.push_const :LocalJumpError
+      g.push_literal "next used in invalid context"
+      g.send :raise, 2, true
+    end
+  end
 end

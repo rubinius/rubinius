@@ -545,4 +545,70 @@ describe "A Case node" do
       bottom.set!
     end
   end
+
+  relates <<-ruby do
+      case true
+      when String, *%w(foo bar baz) then
+        12
+      end
+    ruby
+
+    parse do
+      [:case,
+       [:true],
+       [:when,
+        [:array,
+         [:const, :String],
+         [:when, [:array, [:str, "foo"], [:str, "bar"], [:str, "baz"]], nil]],
+        [:lit, 12]],
+       nil]
+    end
+
+    compile do |g|
+      body = g.new_label
+      nxt  = g.new_label
+      fin  = g.new_label
+
+      g.push :true
+
+      g.dup
+      g.push_const :String
+      g.swap
+      g.send :===, 1
+      g.git body
+
+      g.dup
+      g.push_literal "foo"
+      g.string_dup
+      g.swap
+      g.send :===, 1
+      g.git body
+
+      g.dup
+      g.push_literal "bar"
+      g.string_dup
+      g.swap
+      g.send :===, 1
+      g.git body
+
+      g.dup
+      g.push_literal "baz"
+      g.string_dup
+      g.swap
+      g.send :===, 1
+      g.git body
+
+      g.goto nxt
+
+      body.set!
+      g.pop
+      g.push 12
+      g.goto fin
+
+      nxt.set!
+      g.pop
+      g.push :nil
+      fin.set!
+    end
+  end
 end

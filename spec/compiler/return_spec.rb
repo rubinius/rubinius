@@ -62,6 +62,27 @@ describe "A Return node" do
     end
   end
 
+  relates "return 1, 2, *c" do
+    parse do
+      [:return,
+       [:array,
+         [:lit, 1], [:lit, 2], [:splat, [:call, nil, :c, [:arglist]]]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.push 2
+      g.make_array 2
+
+      g.push :self
+      g.send :c, 0, true
+      g.cast_array
+
+      g.send :+, 1
+      g.ret
+    end
+  end
+
   relates "return [*[1]]" do
     parse do
       [:return, [:array, [:splat, [:array, [:lit, 1]]]]]

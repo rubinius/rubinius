@@ -1,6 +1,31 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An If node" do
+  relates <<-ruby do
+      if true then
+        10
+      else
+        12
+      end
+    ruby
+
+    parse do
+      [:if, [:true], [:lit, 10], [:lit, 12]]
+    end
+
+    compile do |g|
+      g.push :true
+      els = g.new_label
+      fin = g.new_label
+      g.gif els
+      g.push 10
+      g.goto fin
+      els.set!
+      g.push 12
+      fin.set!
+    end
+  end
+
   relates "if b then a end" do
     parse do
       [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]

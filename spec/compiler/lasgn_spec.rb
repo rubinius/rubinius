@@ -221,4 +221,51 @@ describe "An Lasgn node" do
       g.set_local 0
     end
   end
+
+  relates <<-ruby do
+      a = 12
+      a
+    ruby
+
+    parse do
+      [:block, [:lasgn, :a, [:lit, 12]], [:lvar, :a]]
+    end
+
+    compile do |g|
+      g.push 12
+      g.set_local 0
+      g.pop
+      g.push_local 0
+    end
+  end
+
+  relates <<-ruby do
+      name
+      name = 3
+      name
+    ruby
+
+    parse do
+      [:block,
+       [:call, nil, :name, [:arglist]],
+       [:lasgn, :name, [:lit, 3]],
+       [:lvar, :name]]
+    end
+  end
+
+  relates "a=12; b=13; true" do
+    parse do
+      [:block, [:lasgn, :a, [:lit, 12]], [:lasgn, :b, [:lit, 13]], [:true]]
+    end
+
+    compile do |g|
+      g.push 12
+      g.set_local 0
+      g.pop
+      g.push 13
+      g.set_local 1
+      g.pop
+      g.push :true
+    end
+  end
 end

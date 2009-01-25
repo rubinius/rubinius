@@ -21,23 +21,23 @@ describe "A Lit node" do
     end
   end
 
-  relates "0xffffffff" do
+  relates "0xffffffffffffffff" do
     parse do
-      [:lit, 4294967295]
+      [:lit, 18446744073709551615]
     end
 
     compile do |g|
-      g.push_unique_literal 4294967295
+      g.push_unique_literal 18446744073709551615
     end
   end
 
-  relates "0xffff_ffff" do
+  relates "0xffff_ffff_ffff_ffff" do
     parse do
-      [:lit, 4294967295]
+      [:lit, 18446744073709551615]
     end
 
     compile do |g|
-      g.push_unique_literal 4294967295
+      g.push_unique_literal 18446744073709551615
     end
   end
 

@@ -133,54 +133,62 @@ describe "An Ensure node" do
 
   relates <<-ruby do
       begin
-        a
-      rescue => mes
-        # do nothing
-      end
-
-      begin
-        b
-      rescue => mes
-        # do nothing
+        14
+        return 2
+      ensure
+        13
       end
     ruby
 
     parse do
-      [:block,
-         [:rescue,
-          [:call, nil, :a, [:arglist]],
-          [:resbody, [:array, [:lasgn, :mes, [:gvar, :$!]]], nil]],
-         [:rescue,
-          [:call, nil, :b, [:arglist]],
-          [:resbody, [:array, [:lasgn, :mes, [:gvar, :$!]]], nil]]]
+      [:ensure, [:block, [:lit, 14], [:return, [:lit, 2]]], [:lit, 13]]
     end
 
-    compile do |g|
-      in_rescue :StandardError, 1 do |section|
-        case section
-        when :body then
-          g.push :self
-          g.send :a, 0, true
-        when :StandardError then
-          g.push_exception
-          g.set_local 0
-          g.push :nil
+    # TODO
+  end
+
+  relates <<-ruby do
+      begin
+        begin
+          14
+          return 2
+        ensure
+          13
+        end
+      ensure
+        15
+      end
+    ruby
+
+    parse do
+      [:ensure,
+       [:ensure, [:block, [:lit, 14], [:return, [:lit, 2]]], [:lit, 13]],
+       [:lit, 15]]
+    end
+
+    # TODO
+  end
+
+  relates <<-ruby do
+      begin
+        14
+        return 2
+      ensure
+        begin
+          15
+          return 3
+        ensure
+          16
         end
       end
+    ruby
 
-      g.pop
-
-      in_rescue :StandardError, 2 do |section|
-        case section
-        when :body then
-          g.push :self
-          g.send :b, 0, true
-        when :StandardError then
-          g.push_exception
-          g.set_local 0
-          g.push :nil
-        end
-      end
+    parse do
+      [:ensure,
+        [:block, [:lit, 14], [:return, [:lit, 2]]],
+        [:ensure, [:block, [:lit, 15], [:return, [:lit, 3]]], [:lit, 16]]]
     end
   end
+
+  # TODO
 end
