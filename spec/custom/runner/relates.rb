@@ -76,7 +76,7 @@ class SpecDataRelation
   end
 
   # Creates spec example blocks if the compile process is enabled.
-  def compile(&block)
+  def compile(*plugins, &block)
     return unless self.class.enabled? :compiler
 
     ruby = @ruby
@@ -84,7 +84,7 @@ class SpecDataRelation
       generator = TestGenerator.new
       generator.instance_eval(&block)
 
-      ruby.should compile_as(generator)
+      ruby.should compile_as(generator, *plugins)
     end
   end
 end
