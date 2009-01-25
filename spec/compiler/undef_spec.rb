@@ -144,11 +144,11 @@ describe "An Undef node" do
 
     compile do |g|
       desc = description do |d|
-        d.push_self # FIX
+        d.push_self
         d.add_scope
-        d.push :self
+        d.push_context
         d.push_literal :blah
-        d.send :undef_method, 1
+        d.send :__undef_method__, 1
         d.ret
       end
 
