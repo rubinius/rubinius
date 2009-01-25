@@ -20,7 +20,7 @@ namespace rubinius {
     int i;
     while(*str && !isalnum(*str) && *str != '/') str++;
 
-    for(i = strlen(str) - 1; str[i] && !isalnum(str[i]) && *str != '/'; i++) {
+    for(i = strlen(str); i-- && !isalnum(str[i]) && str[i] != '/';) {
       str[i] = 0;
     }
 

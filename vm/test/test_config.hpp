@@ -20,6 +20,11 @@ class TestConfig : public CxxTest::TestSuite {
     ConfigParser::Entry* e = cfg.parse_line("rbx.blah = 8");
     TS_ASSERT_EQUALS(std::string("rbx.blah"), e->variable);
     TS_ASSERT_EQUALS(std::string("8"), e->value);
+
+    // try again with trailing whitespace
+    e = cfg.parse_line("rbx.blah = 8 \t \t");
+    TS_ASSERT_EQUALS(std::string("rbx.blah"), e->variable);
+    TS_ASSERT_EQUALS(std::string("8"), e->value);
   }
 
   void test_parse_stream() {
