@@ -120,8 +120,10 @@ describe "An Attrasgn node" do
     end
 
     compile do |g|
-      g.push :self
-      g.send :a, 0, true
+      g.make_array 0
+      g.set_local 0
+      g.pop
+      g.push_local 0
       g.push 42
       g.push 24
       g.dup
