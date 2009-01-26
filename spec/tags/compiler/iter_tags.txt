@@ -21,3 +21,7 @@ fails:"An Iter node is compiled from \n    a.b do |c, d|\n      unless e.f(c) th
 fails:An Iter node is compiled from 'loop { next *[1] }'
 fails:An Iter node is compiled from 'loop { next [*[1]] }'
 fails:An Iter node is compiled from 'ary.each do |a, |; end'
+fails:An Iter node is compiled from 'proc { || (x + 1) }'
+fails:An Iter node is compiled from 'proc { (x + 1) }'
+fails:An Iter node is compiled from 'proc { |x| (x + 1) }'
+fails:An Iter node is compiled from 'proc { |x, y| (x + y) }'
