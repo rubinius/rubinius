@@ -22,8 +22,26 @@ class TestGenerator
     node.bytecode(self)
   end
 
+  def convert_to_ary(ary)
+    ary.map do |item|
+      if item.respond_to? :to_ary
+        convert_to_ary item.to_ary
+      else
+        item
+      end
+    end
+  end
+
+  def to_ary
+    convert_to_ary [:test_generator, @stream]
+  end
+
+  def pretty_inspect
+    to_ary.pretty_inspect
+  end
+
   def inspect
-    s(:test_generator, @stream).inspect
+    to_ary.inspect
   end
 
   def add(*args)

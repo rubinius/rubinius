@@ -36,8 +36,16 @@ class Compiler
       @generator.to_cmethod(self)
     end
 
+    def to_ary
+      [:method_description, @name, @required, @optional, @generator]
+    end
+
+    def pretty_inspect
+      to_ary.pretty_inspect
+    end
+
     def inspect
-      [:method_description, @name, @required, @optional, @generator].inspect
+      to_ary.inspect
     end
   end
 
