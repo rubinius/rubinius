@@ -26,9 +26,25 @@ class CompileAsMatcher
     @actual == @expected
   end
 
+  def diff(actual, expected)
+    actual = actual.pretty_inspect.to_a
+    expected = expected.pretty_inspect.to_a
+
+    line = actual.each_with_index do |item, index|
+      break index unless item == expected[index]
+    end
+
+    /^( +)/ =~ actual[line]
+    marker = "#{' ' * $1.size if $1}^ differs\n\n"
+    actual.insert line+1, marker
+    expected.insert line+1, marker
+
+    return actual.join, expected.join
+  end
+
   def failure_message
-    ["Expected:\n#{@actual.pretty_inspect}\n",
-     "to equal:\n#{@expected.pretty_inspect}"]
+    actual, expected = diff @actual, @expected
+    ["Expected:\n#{actual}\n", "to equal:\n#{expected}"]
   end
 end
 
