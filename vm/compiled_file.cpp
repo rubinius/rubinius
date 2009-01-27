@@ -18,6 +18,7 @@
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
 
+#include "exception_point.hpp"
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {
@@ -53,12 +54,22 @@ namespace rubinius {
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));
 
-    cm->execute(state, G(current_task), msg);
+    ExceptionPoint ep(task);
+
+    PLACE_EXCEPTIONPOINT(ep);
+
+    if(!ep.jumped_to()) {
+      cm->execute(state, G(current_task), msg);
+    }
+
+    /*
     try {
       state->run_and_monitor();
     } catch(Task::Halt &e) {
       return true;
     }
+    */
+    return true;
 
     // Task::execute contains the safe point, thus the above Task
     // and CompiledMethod pointers have likely been moved. DO NOT

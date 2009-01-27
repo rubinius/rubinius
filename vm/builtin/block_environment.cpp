@@ -53,6 +53,7 @@ namespace rubinius {
 
     task->make_active(ctx);
     task->push(val);
+    ctx->run(ctx->vmm, task, ctx);
   }
 
   void BlockEnvironment::call(STATE, Task* task, Message& msg) {
@@ -76,6 +77,7 @@ namespace rubinius {
 
     task->make_active(ctx);
     task->push(val);
+    ctx->run(ctx->vmm, task, ctx);
   }
 
   // TODO - Untested!!!!!!!!!!

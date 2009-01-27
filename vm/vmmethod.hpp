@@ -72,6 +72,7 @@ namespace rubinius {
     template <typename ArgumentHandler>
       static ExecuteStatus execute_specialized(STATE, Task* task, Message& msg);
 
+    static void run_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
     static void interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
     static void debugger_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
 

@@ -180,10 +180,13 @@ void VMMethod::interpreter(VMMethod* const vmm, Task* const task, MethodContext*
 #define DISPATCH_NEXT_INSN goto *insn_locations[stream[ctx->ip++]];
 
 #undef RETURN
+  /*
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { \
   if(unlikely(state->interrupts.check)) return;\
   DISPATCH_NEXT_INSN; \
 }
+*/
+#define RETURN(val) (void)val; DISPATCH_NEXT_INSN;
 
 #ruby <<CODE
 io = StringIO.new

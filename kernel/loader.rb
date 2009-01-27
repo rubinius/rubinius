@@ -14,6 +14,7 @@ rescue Object => e
   exit 2
 end
 
+=begin
 # Set up a handler for SIGINT that raises Interrupt on the main thread
 Signal.action("INT") do |_|
   thread = Thread.main
@@ -26,6 +27,7 @@ Signal.action("INT") do |_|
     exit! 1
   end
 end
+=end
 
 # This is the end of the kernel and the beginning of specified
 # code. We read out of ARGV to figure out what the user is

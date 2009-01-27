@@ -18,6 +18,8 @@
 #include "builtin/thread.hpp"
 #include "builtin/machine_method.hpp"
 
+#include "exception_point.hpp"
+
 #include "global_cache.hpp"
 
 #include "objectmemory.hpp"
@@ -224,6 +226,11 @@ namespace rubinius {
 
   void Task::raise_exception(Exception* exc) {
     exception(state, exc);
+
+    assert(current_ep);
+    current_ep->return_to(this);
+
+    abort();
 
     for(;;) {
       if(active_->has_unwinds_p()) {

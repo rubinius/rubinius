@@ -23,6 +23,7 @@ namespace rubinius {
   class Tuple;
   class LookupTable;
   class LookupTableAssociation;
+  class ExceptionPoint;
 
   class Task;
 
@@ -53,6 +54,7 @@ namespace rubinius {
     struct jit_state js;
     Message* msg;
     profiler::Profiler* profiler;
+    ExceptionPoint* current_ep;
 
     /* globals */
     int call_flags;

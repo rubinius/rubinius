@@ -22,6 +22,8 @@
 #include "timing.hpp"
 #include "config.h"
 
+#include "exception_point.hpp"
+
 #define CALLS_TIL_JIT 50
 #define JIT_MAX_METHOD_SIZE 2048
 
@@ -38,7 +40,7 @@ namespace rubinius {
 #ifdef USE_DYNAMIC_INTERPRETER
     if(!state->config.dynamic_interpreter_enabled) {
       dynamic_interpreter = NULL;
-      standard_interpreter = interpreter;
+      standard_interpreter = run_interpreter;
       return;
     }
 
@@ -56,7 +58,7 @@ namespace rubinius {
     standard_interpreter = dynamic_interpreter;
 #else
     dynamic_interpreter = NULL;
-    standard_interpreter = interpreter;
+    standard_interpreter = run_interpreter;
 #endif
   }
 
@@ -382,6 +384,8 @@ namespace rubinius {
 
     if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
+    ctx->run(vmm, task, ctx);
+
     return cExecuteRestart;
   }
 
@@ -466,6 +470,8 @@ namespace rubinius {
     task->make_active(ctx);
 
     if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
+
+    ctx->run(vmm, task, ctx);
 
     return cExecuteRestart;
   }
@@ -611,5 +617,29 @@ namespace rubinius {
 
     return false;
 
+  }
+
+  void VMMethod::run_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx) {
+    ExceptionPoint ep(task);
+
+    PLACE_EXCEPTIONPOINT(ep);
+
+    if(ep.jumped_to()) {
+      task->active(task->state, ctx);
+
+      if(ctx->has_unwinds_p()) {
+        MethodContext::UnwindInfo& info = ctx->pop_unwind();
+        ctx->position_stack(info.stack_depth);
+        ctx->set_ip(info.target_ip);
+        ep.reset();
+      } else {
+        ctx->recycle(task->state);
+        ep.unwind_to_previous(task);
+        // NOT REACHED
+      }
+    }
+
+    interpreter(vmm, task, ctx);
+    ep.pop(task);
   }
 }

@@ -175,18 +175,18 @@ class Instructions
       end
 
       if flow
-        if [:return, :raise].include?(impl.name.flow)
+        if [:return].include?(impl.name.flow)
           io.puts "  return;"
         end
       end
 
-      if [:push_const, :find_const].include?(impl.name.opcode)
-        io.puts "  return;"
-      end
+      #if [:push_const, :find_const].include?(impl.name.opcode)
+      #  io.puts "  return;"
+      #end
 
-      if impl.name.check_interrupts?
-        io.puts "    if(unlikely(state->interrupts.check)) return;"
-      end
+      #if impl.name.check_interrupts?
+      #  io.puts "    if(unlikely(state->interrupts.check)) return;"
+      #end
 
       io.puts "  DISPATCH_NEXT_INSN;"
       io.puts "  }"

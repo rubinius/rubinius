@@ -183,6 +183,7 @@ namespace rubinius {
       return js.stack - stk;
     }
 
+    void set_ip(int new_ip);
 
     // Ruby.primitive :context_stack_depth
     Fixnum* stack_depth() {

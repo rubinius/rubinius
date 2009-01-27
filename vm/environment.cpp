@@ -129,6 +129,8 @@ namespace rubinius {
         msg << exc->message()->c_str();
       }
       msg << " (" << exc->klass()->name()->c_str(state) << ")";
+      std::cout << msg.str() << "\n";
+      state->print_backtrace();
       Assertion::raise(msg.str().c_str());
     }
 

@@ -12,6 +12,7 @@
 
 #include "builtin/contexts.hpp"
 #include "builtin/nativemethodcontext.hpp"
+#include "builtin/machine_method.hpp"
 
 #include <iostream>
 
@@ -23,6 +24,16 @@ namespace rubinius {
 
     GO(blokctx).set(state->new_class("BlockContext", G(methctx)));
     G(blokctx)->set_object_type(state, BlockContextType);
+  }
+
+  void MethodContext::set_ip(int new_ip) {
+    this->ip = new_ip;
+    if(native_ip != NULL) {
+      MachineMethod* mm = vmm->machine_method();
+      assert(mm);
+      native_ip = mm->resolve_virtual_ip(ip);
+      assert(native_ip);
+    }
   }
 
   /* Initialize +ctx+'s fields */
