@@ -197,13 +197,35 @@ class Array::Packer
     item = "" if item.nil?
 
     size = parse_tail(t, kind, item.length)
-    str = item.scan(/..?/).first(size)
+    str = item[0, size].scan(/..?/)
 
-    @result << if kind == "h" then
-                 str.map { |b| b.reverse.hex.chr }.join
-               else
-                 str.map { |b| b.        hex.chr }.join
-               end
+    numbers = if kind == "h" then
+                str.map { |b| b.reverse.hex }
+              else
+                str.map { |b| b.        hex }
+              end
+
+    if kind == 'H' && !numbers.empty? && numbers.last < 16
+      numbers[-1] *= 16
+    end
+
+    diff = size - item.length
+
+    if diff > 0
+      # we couldn't read as much data as was requested,
+      # so we'll make up for that with a couple of zeroes.
+      if (item.length % 2) == 0
+        left = (diff / 2.0 + 0.5).to_i
+      else
+        left = diff / 2
+      end
+
+      left.times do
+        numbers << 0
+      end
+    end
+
+    @result << numbers.map { |n| n.chr }.join
   end
 
   def decimal(kind, t)
