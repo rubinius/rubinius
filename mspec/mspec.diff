@@ -1,23 +1,66 @@
-diff --git a/lib/mspec/helpers/ruby_exe.rb b/lib/mspec/helpers/ruby_exe.rb
-index c803ddc..8e9ef94 100644
---- a/lib/mspec/helpers/ruby_exe.rb
-+++ b/lib/mspec/helpers/ruby_exe.rb
-@@ -91,14 +91,14 @@ class Object
+diff --git a/mspec/lib/mspec/runner/mspec.rb b/mspec/lib/mspec/runner/mspec.rb
+index f094da0..c48e568 100644
+--- a/mspec/lib/mspec/runner/mspec.rb
++++ b/mspec/lib/mspec/runner/mspec.rb
+@@ -293,7 +293,7 @@ module MSpec
+   # file if it is empty.
+   def self.delete_tag(tag)
+     deleted = false
+-    pattern = /#{tag.tag}.*#{Regexp.escape tag.description}/
++    pattern = /#{tag.tag}.*#{Regexp.escape(tag.escape(tag.description))}/
+     file = tags_file
+     if File.exist? file
+       lines = IO.readlines(file)
+diff --git a/mspec/spec/runner/mspec_spec.rb b/mspec/spec/runner/mspec_spec.rb
+index a7ff4fd..b562d75 100644
+--- a/mspec/spec/runner/mspec_spec.rb
++++ b/mspec/spec/runner/mspec_spec.rb
+@@ -415,6 +415,7 @@ describe MSpec, ".write_tags" do
+     IO.read(tmp("tags.txt")).should == %[fail(broken):Some#method? works
+ incomplete(20%):The#best method ever
+ benchmark(0.01825):The#fastest method today
++extended():\"Multi-line\\ntext\\ntag\"
+ ]
+     MSpec.write_tags [@tag1, @tag2]
+     IO.read(tmp("tags.txt")).should == %[check(broken):Tag#rewrite works
+@@ -461,6 +462,15 @@ describe MSpec, ".delete_tag" do
+     MSpec.delete_tag(@tag).should == true
+     IO.read(tmp("tags.txt")).should == %[incomplete(20%):The#best method ever
+ benchmark(0.01825):The#fastest method today
++extended():\"Multi-line\\ntext\\ntag\"
++]
++  end
++
++  it "deletes a tag with escaped newlines" do
++    MSpec.delete_tag(SpecTag.new('extended:"Multi-line\ntext\ntag"')).should == true
++    IO.read(tmp("tags.txt")).should == %[fail(broken):Some#method? works
++incomplete(20%):The#best method ever
++benchmark(0.01825):The#fastest method today
+ ]
+   end
  
-   def resolve_ruby_exe
-     [:env, :engine, :name, :install_name].each do |option|
--      exe = ruby_exe_options option
-+      return unless cmd = ruby_exe_options(option)
-+      exe = cmd.split.first
+@@ -470,6 +480,7 @@ benchmark(0.01825):The#fastest method today
+     IO.read(tmp("tags.txt")).should == %[fail(broken):Some#method? works
+ incomplete(20%):The#best method ever
+ benchmark(0.01825):The#fastest method today
++extended():\"Multi-line\\ntext\\ntag\"
+ ]
+   end
  
-       # It has been reported that File.executable is not reliable
-       # on Windows platforms (see commit 56bc555c). So, we check the
-       # platform. 
--      if exe and File.exists?(exe) and
--          (SpecGuard.windows? || File.executable?(exe))
--        return exe
-+      if File.exists?(exe) and (SpecGuard.windows? || File.executable?(exe))
-+        return cmd
-       end
-     end
-     nil
+@@ -477,6 +488,7 @@ benchmark(0.01825):The#fastest method today
+     MSpec.delete_tag(@tag).should == true
+     MSpec.delete_tag(SpecTag.new("incomplete:The#best method ever")).should == true
+     MSpec.delete_tag(SpecTag.new("benchmark:The#fastest method today")).should == true
++    MSpec.delete_tag(SpecTag.new("extended:\"Multi-line\ntext\ntag\"")).should == true
+     File.exist?(tmp("tags.txt")).should == false
+   end
+ end
+diff --git a/mspec/spec/runner/tags.txt b/mspec/spec/runner/tags.txt
+index 5e39ee5..f4eb6ad 100644
+--- a/mspec/spec/runner/tags.txt
++++ b/mspec/spec/runner/tags.txt
+@@ -1,3 +1,4 @@
+ fail(broken):Some#method? works
+ incomplete(20%):The#best method ever
+ benchmark(0.01825):The#fastest method today
++extended():"Multi-line\ntext\ntag"

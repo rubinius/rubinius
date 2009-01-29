@@ -98,13 +98,13 @@ H2
 
       g.push :self
       g.send :b, 0, true
-      g.meta_send_op_plus
+      g.send :+, 1, false
 
       g.push_literal "  second\n"
       g.string_dup
 
-      g.meta_send_op_plus
-      g.meta_send_op_plus
+      g.send :+, 1, false
+      g.send :+, 1, false
 
       g.set_local 0
     end

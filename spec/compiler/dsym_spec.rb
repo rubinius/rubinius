@@ -15,7 +15,7 @@ describe "A Dsym node" do
 
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.send :to_s, 0, true
 
       g.push_literal "x"

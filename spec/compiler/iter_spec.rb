@@ -214,7 +214,7 @@ describe "An Iter node" do
         d.in_block_send :each, 1, 0, false, 0, true do |d2|
           d2.push_local_depth 1, 0
           d2.push 1
-          d2.meta_send_op_plus
+          d2.send :+, 1, false
           d2.set_local_depth 1, 0
         end
 
@@ -256,7 +256,7 @@ describe "An Iter node" do
         d.in_block_send :each, 1, 0, false, 0, true do |d2|
           d2.push_local_depth 0, 1
           d2.push 1
-          d2.meta_send_op_plus
+          d2.send :+, 1, false
           d2.set_local_depth 0, 1
         end
 
@@ -311,7 +311,7 @@ describe "An Iter node" do
         d.in_block_send :each, 1, 0, false, 0, true do |d2|
           d2.push_local_depth 1, 1
           d2.push 1
-          d2.meta_send_op_plus
+          d2.send :+, 1, false
           d2.set_local_depth 1, 1
         end
 
@@ -447,7 +447,7 @@ describe "An Iter node" do
       in_block_send :each, 1, 0, false, 1 do |d|
         d.push_local 0
         d.push_local_depth 0, 0
-        d.meta_send_op_plus
+        d.send :+, 1, false
         d.set_local 0
       end
     end
@@ -496,7 +496,7 @@ describe "An Iter node" do
         d.push_local_depth 0, 0
         d.push :false
         d.send :b, 1, false
-        d.meta_send_op_plus
+        d.send :+, 1, false
         d.set_local_depth 0, 1
       end
     end
@@ -863,7 +863,7 @@ describe "An Iter node" do
 
       g.push_local 0
       g.push 1
-      g.meta_send_op_minus
+      g.send :-, 1, false
       g.set_local 0
       g.pop
 
@@ -1233,7 +1233,7 @@ describe "An Iter node" do
       d.push :self
       d.send :x, 0, true
       d.push 1
-      d.meta_send_op_plus
+      d.send :+, 1, false
     end
   end
 
@@ -1272,7 +1272,7 @@ describe "An Iter node" do
       in_block_send :proc, 1 do |d|
         d.push_local_depth 0, 0
         d.push 1
-        d.meta_send_op_plus
+        d.send :+, 1, false
       end
     end
   end
@@ -1290,7 +1290,7 @@ describe "An Iter node" do
       in_block_send :proc, 2 do |d|
         d.push_local_depth 0, 0
         d.push_local_depth 0, 1
-        d.meta_send_op_plus
+        d.send :+, 1, false
       end
     end
   end

@@ -258,7 +258,10 @@ describe "An Op_asgn1 node" do
 
       g.push 1
       g.push 10
+      g.dup
+      g.move_down 3
       g.send :[]=, 2
+      g.pop
 
       g.goto l_and
 
@@ -280,7 +283,10 @@ describe "An Op_asgn1 node" do
       g.pop
       g.push 2
       g.push 11
+      g.dup
+      g.move_down 3
       g.send :[]=, 2
+      g.pop
       g.goto l_rhs
 
       l_idx.set!
@@ -301,7 +307,10 @@ describe "An Op_asgn1 node" do
 
       g.push 3
       g.swap
+      g.dup
+      g.move_down 3
       g.send :[]=, 2
+      g.pop
     end
   end
 
@@ -341,7 +350,10 @@ describe "An Op_asgn1 node" do
 
       g.push 1
       g.push 10
+      g.dup
+      g.move_down 3
       g.send :[]=, 2
+      g.pop
 
       g.goto l_and
 
@@ -363,7 +375,10 @@ describe "An Op_asgn1 node" do
       g.pop
       g.push 2
       g.push 11
+      g.dup
+      g.move_down 3
       g.send :[]=, 2
+      g.pop
       g.goto l_rhs
 
       l_idx.set!
@@ -384,7 +399,10 @@ describe "An Op_asgn1 node" do
 
       g.push 3
       g.swap
+      g.dup
+      g.move_down 3
       g.send :[]=, 2
+      g.pop
     end
   end
 end
@@ -428,7 +446,10 @@ describe "An Op_asgn2 node" do
       g.pop
       g.push_const :Bag
       g.send :new, 0, false
+      g.dup
+      g.move_down 2
       g.send :"Bag=", 1
+      g.pop
       g.goto f
 
       t.set!
@@ -491,7 +512,10 @@ describe "An Op_asgn2 node" do
 
       g.pop
       g.push 20
+      g.dup
+      g.move_down 2
       g.send :var=, 1
+      g.pop
       g.goto l_and
 
       l_or.set!
@@ -509,7 +533,10 @@ describe "An Op_asgn2 node" do
       g.gif l_plus
       g.pop
       g.push 21
+      g.dup
+      g.move_down 2
       g.send :var=, 1
+      g.pop
       g.goto l_or2
 
       l_plus.set!
@@ -525,7 +552,10 @@ describe "An Op_asgn2 node" do
       g.send :var, 0
       g.push 22
       g.send :+, 1
+      g.dup
+      g.move_down 2
       g.send :var=, 1
+      g.pop
       g.pop
 
       g.push_local 1
@@ -539,7 +569,10 @@ describe "An Op_asgn2 node" do
 
       g.pop
       g.push 42
+      g.dup
+      g.move_down 2
       g.send :f=, 1
+      g.pop
       g.goto bottom
 
       l_rhs.set!

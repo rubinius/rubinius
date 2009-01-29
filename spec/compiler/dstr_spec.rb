@@ -249,7 +249,7 @@ EOM
 
       g.push 1                  # 2
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.send :to_s, 0, true
 
       g.push_literal "  blah\n" # 3
