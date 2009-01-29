@@ -59,7 +59,7 @@ describe "A Call node" do
     compile do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
     end
   end
 
@@ -484,7 +484,7 @@ describe "A Call node" do
     compile do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.set_local 0
       g.send :zero?, 0, false
     end
@@ -649,7 +649,8 @@ describe "A Call node" do
       t = g.new_label
       f = g.new_label
 
-      g.push_block
+      g.push :self
+      g.send :block_given?, 0, true
       g.gif f
       g.push 42
       g.goto t

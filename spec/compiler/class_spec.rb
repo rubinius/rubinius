@@ -32,7 +32,7 @@ describe "A Class node" do
         d.push :self
         d.push 1
         d.push 1
-        d.meta_send_op_plus
+        d.send :+, 1, false
         d.send :puts, 1, true
         d.pop
 

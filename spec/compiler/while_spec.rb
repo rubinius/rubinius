@@ -16,7 +16,7 @@ describe "A While node" do
     dunno1.set!
     g.push 1
     g.push 1
-    g.meta_send_op_plus
+    g.send :+, 1, false
     g.pop
 
     g.goto top
@@ -65,7 +65,7 @@ describe "A While node" do
     dunno1.set!
     g.push 1
     g.push 1
-    g.meta_send_op_plus
+    g.send :+, 1, false
     g.pop
 
     g.goto top
@@ -121,7 +121,7 @@ describe "A While node" do
 
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.pop
 
       dunno1.set!
@@ -203,12 +203,12 @@ describe "A While node" do
       top.set!
       g.push 1
       g.push 2
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.pop
 
       g.push 3
       g.push 4
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.pop
 
       dunno1.set!
@@ -247,7 +247,7 @@ describe "A While node" do
       top.set!
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.pop
 
       dunno1.set!

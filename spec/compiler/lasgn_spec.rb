@@ -66,7 +66,7 @@ describe "An Lasgn node" do
       g.pop
       g.push_local 1
       g.push 2
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.set_local 0
     end
   end
@@ -108,7 +108,7 @@ describe "An Lasgn node" do
     compile do |g|
       g.push 2
       g.push 3
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.set_local 0
     end
   end

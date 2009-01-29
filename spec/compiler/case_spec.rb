@@ -467,7 +467,7 @@ describe "A Case node" do
       g.push :self
       g.send :a, 0, true
       g.push 1
-      g.meta_send_op_equal
+      g.send :==, 1, false
       g.gif c2
       g.push_unique_literal :a
       g.goto bottom
@@ -477,7 +477,7 @@ describe "A Case node" do
       g.push :self
       g.send :a, 0, true
       g.push 2
-      g.meta_send_op_equal
+      g.send :==, 1, false
       g.gif c3
       g.push_unique_literal :b
       g.goto bottom

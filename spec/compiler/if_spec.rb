@@ -76,7 +76,7 @@ describe "An If node" do
 
       g.push_local 0
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.gif f
 
       g.push :nil

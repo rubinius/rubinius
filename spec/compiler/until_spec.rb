@@ -23,7 +23,7 @@ describe "An Until node" do
 
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.pop
 
       nxt.set!
@@ -57,7 +57,7 @@ describe "An Until node" do
     dunno1.set!
     g.push 1
     g.push 1
-    g.meta_send_op_plus
+    g.send :+, 1, false
     g.pop
 
     g.goto top
@@ -106,7 +106,7 @@ describe "An Until node" do
     dunno1.set!
     g.push 1
     g.push 1
-    g.meta_send_op_plus
+    g.send :+, 1, false
     g.pop
 
     g.goto top
@@ -161,7 +161,7 @@ describe "An Until node" do
       top.set!
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.pop
 
       dunno1.set!

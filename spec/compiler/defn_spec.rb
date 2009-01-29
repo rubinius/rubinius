@@ -677,7 +677,7 @@ describe "A Defn node" do
             d.send :uuid, 0, false
             d.push_local 0
             d.send :uuid, 0, false
-            d.meta_send_op_equal
+            d.send :==, 1, false
           when :StandardError then
             d.push :false
           end
@@ -882,7 +882,7 @@ describe "A Defn node" do
 
         d.push_local 0
         d.push_local 1
-        d.meta_send_op_plus
+        d.send :+, 1, false
       end
     end
   end
