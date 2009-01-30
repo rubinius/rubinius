@@ -17,28 +17,16 @@ describe "A Call node using InlineAssembly plugin" do
        [:call, nil, :push_context, [:arglist]]]
     end
 
-    # TODO: refactor after fixing Iter specs
     compile do |g|
-      iter = description do |d|
-        d.cast_for_single_block_arg
-        d.set_local_depth 0, 0
-        d.pop
-        d.push_modifiers
-        d.new_label.set!
-        d.push :self
-        d.send :push_context, 0, true
-        d.pop_modifiers
-        d.ret
-      end
-      iter.name = :__block__
-      iter.required = 1
-
       g.passed_block do
         g.push_const :Rubinius
         g.push :self
         g.send :a, 0, true
-        g.create_block iter
-        g.send_with_block :asm, 1, false
+
+        g.in_block_send :asm, :single, nil, 1, false do |d|
+          d.push :self
+          d.send :push_context, 0, true
+        end
       end
     end
 

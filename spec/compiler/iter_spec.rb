@@ -1,1143 +1,341 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An Iter node" do
-  relates "ary.each do ||; end" do
-    parse do
-      [:iter,
-        [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
-        0]
-    end
+  empty_block = lambda do |g|
+    g.passed_block do
+      g.push :self
 
-    # TODO
-  end
-
-  relates "ary.each do |a, |; end" do
-    parse do
-      [:iter,
-        [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
-        [:masgn, [:array, [:lasgn, :a]]]]
-    end
-
-    compile do |d|
-      d.cast_for_multi_block_arg
-      d.cast_array
-      d.lvar_at 0
-    end
-  end
-
-  relates <<-ruby do
-      a(b) do
-        if b then
-          true
-        else
-          c = false
-          d { |x| c = true }
-          c
-        end
+      g.in_block_send :m, :none do |d|
+        d.push :nil
       end
-    ruby
+    end
+  end
 
+  relates "m { }" do
+    parse do
+      [:iter, [:call, nil, :m, [:arglist]], nil]
+    end
+
+    compile(&empty_block)
+  end
+
+  relates "m do end" do
+    parse do
+      [:iter, [:call, nil, :m, [:arglist]], nil]
+    end
+
+    compile(&empty_block)
+  end
+
+  relates "m { x }" do
     parse do
       [:iter,
-         [:call, nil, :a, [:arglist, [:call, nil, :b, [:arglist]]]],
-         nil,
-         [:if,
-          [:call, nil, :b, [:arglist]],
-          [:true],
-          [:block,
-           [:lasgn, :c, [:false]],
-           [:iter,
-            [:call, nil, :d, [:arglist]],
-            [:lasgn, :x],
-            [:lasgn, :c, [:true]]],
-           [:lvar, :c]]]]
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:call, nil, :x, [:arglist]]]
     end
 
     compile do |g|
-      g.push :self
-      g.push :self
-      g.send :b, 0, true
+      g.passed_block do
+        g.push :self
 
-      in_block_send :a, 0, 1 do |d|
-        f = d.new_label
-        bottom = d.new_label
-
-        d.push :self
-        d.send :b, 0, true
-        d.gif f
-        d.push :true
-        d.goto bottom
-        f.set!
-        d.push :false
-        d.set_local_depth 0, 0
-        d.pop
-        d.push :self
-
-        d.in_block_send :d, 1, 0, true, 0, true do |d2|
-          d2.push :true
-          d2.set_local_depth 1, 0
+        g.in_block_send :m, :none do |d|
+          d.push :self
+          d.send :x, 0, true
         end
+      end
+    end
+  end
 
-        d.pop
+  relates "m { || x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       0,
+       [:call, nil, :x, [:arglist]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :empty do |d|
+          d.push :self
+          d.send :x, 0, true
+        end
+      end
+    end
+  end
+
+  single_arg_block = lambda do |g|
+    g.passed_block do
+      g.push :self
+
+      g.in_block_send :m, :single do |d|
         d.push_local_depth 0, 0
-        bottom.set!
-      end
-    end
-  end
-
-  relates "loop { break 42 if true }" do
-    parse do
-      [:iter,
-       [:call, nil, :loop, [:arglist]],
-       nil,
-       [:if, [:true], [:break, [:lit, 42]], nil]]
-    end
-
-    compile do |g|
-      break_value = 42
-
-      top   = g.new_label
-      cond  = g.new_label
-      rtry  = g.new_label
-      brk   = g.new_label
-
-      g.push_modifiers
-
-      top.set!
-      g.push :true
-      g.gif cond
-
-      g.push break_value
-      g.goto brk
-      g.goto rtry # TODO: only used when there is a retry statement
-
-      cond.set!
-      g.push :nil
-
-      rtry.set!
-      g.pop
-      g.goto top
-
-      brk.set!
-
-      g.pop_modifiers
-    end
-  end
-
-  relates "loop { break if true }" do
-    parse do
-      [:iter,
-       [:call, nil, :loop, [:arglist]],
-       nil,
-       [:if, [:true], [:break], nil]]
-    end
-
-    compile do |g|
-      break_value = :nil # TODO: refactor later
-
-      top   = g.new_label
-      cond  = g.new_label
-      rtry  = g.new_label
-      brk   = g.new_label
-
-      g.push_modifiers
-
-      top.set!
-      g.push :true
-      g.gif cond
-
-      g.push break_value
-      g.goto brk
-      g.goto rtry # TODO: only used when there is a retry statement
-
-      cond.set!
-      g.push :nil
-
-      rtry.set!
-      g.pop
-      g.goto top
-
-      brk.set!
-
-      g.pop_modifiers
-    end
-  end
-
-  relates "loop { break *[nil] }" do
-    parse do
-      [:iter,
-       [:call, nil, :loop, [:arglist]],
-       nil,
-       [:break, [:svalue, [:splat, [:array, [:nil]]]]]]
-    end
-
-    # break splat
-  end
-
-  relates "loop { break [*[1]] }" do
-    parse do
-      [:iter,
-       [:call, nil, :loop, [:arglist]],
-       nil,
-       [:break, [:array, [:splat, [:array, [:lit, 1]]]]]]
-    end
-
-    # splat break array
-  end
-
-  relates "a.each { |x| b.each { |y| x = (x + 1) } if true }" do
-    parse do
-      [:iter,
-       [:call, [:call, nil, :a, [:arglist]], :each, [:arglist]],
-       [:lasgn, :x],
-       [:if,
-        [:true],
-        [:iter,
-         [:call, [:call, nil, :b, [:arglist]], :each, [:arglist]],
-         [:lasgn, :y],
-         [:lasgn, :x, [:call, [:lvar, :x], :+, [:arglist, [:lit, 1]]]]],
-        nil]]
-    end
-
-    compile do |g|
-      g.push :self
-      g.send :a, 0, true
-      g.in_block_send :each, 1, 0, false, 0, false do |d|
-        t = d.new_label
-        f = d.new_label
-
-        d.push :true
-        d.gif f
-
         d.push :self
-        d.send :b, 0, true
-        d.in_block_send :each, 1, 0, false, 0, true do |d2|
-          d2.push_local_depth 1, 0
-          d2.push 1
-          d2.send :+, 1, false
-          d2.set_local_depth 1, 0
-        end
-
-        d.goto t
-        f.set!
-        d.push :nil
-        t.set!
-      end
-    end
-  end
-
-
-  relates "a.each { |x| b.each { |y| c = (c + 1) } if true }" do
-    parse do
-      [:iter,
-       [:call, [:call, nil, :a, [:arglist]], :each, [:arglist]],
-       [:lasgn, :x],
-       [:if,
-        [:true],
-        [:iter,
-         [:call, [:call, nil, :b, [:arglist]], :each, [:arglist]],
-         [:lasgn, :y],
-         [:lasgn, :c, [:call, [:lvar, :c], :+, [:arglist, [:lit, 1]]]]],
-        nil]]
-    end
-
-    compile do |g|
-      g.push :self
-      g.send :a, 0, true
-      g.in_block_send :each, 1, 0, false, 0, false do |d|
-        t = d.new_label
-        f = d.new_label
-
-        d.push :true
-        d.gif f
-
-        d.push :self
-        d.send :b, 0, true
-        d.in_block_send :each, 1, 0, false, 0, true do |d2|
-          d2.push_local_depth 0, 1
-          d2.push 1
-          d2.send :+, 1, false
-          d2.set_local_depth 0, 1
-        end
-
-        d.goto t
-        f.set!
-        d.push :nil
-        t.set!
-      end
-    end
-  end
-
-  relates <<-ruby do
-      a.each do |x|
-        if true then
-          c = 0
-          b.each { |y| c = (c + 1) }
-        end
-      end
-    ruby
-
-    parse do
-      [:iter,
-       [:call, [:call, nil, :a, [:arglist]], :each, [:arglist]],
-       [:lasgn, :x],
-       [:if,
-        [:true],
-        [:block,
-         [:lasgn, :c, [:lit, 0]],
-         [:iter,
-          [:call, [:call, nil, :b, [:arglist]], :each, [:arglist]],
-          [:lasgn, :y],
-          [:lasgn, :c, [:call, [:lvar, :c], :+, [:arglist, [:lit, 1]]]]]],
-        nil]]
-    end
-
-    compile do |g|
-      g.push :self
-      g.send :a, 0, true
-      g.in_block_send :each, 1, 0, false, 0, false do |d|
-        t = d.new_label
-        f = d.new_label
-
-        d.push :true
-        d.gif f
-
-        d.push 0
-        d.set_local_depth 0, 1
-        d.pop
-
-        d.push :self
-        d.send :b, 0, true
-        d.in_block_send :each, 1, 0, false, 0, true do |d2|
-          d2.push_local_depth 1, 1
-          d2.push 1
-          d2.send :+, 1, false
-          d2.set_local_depth 1, 1
-        end
-
-        d.goto t
-        f.set!
-        d.push :nil
-        t.set!
-      end
-    end
-  end
-
-  relates <<-ruby do
-      data.each do |x, y|
-        a = 1
-        b = a
-        b = a = x
-      end
-    ruby
-
-    parse do
-      [:iter,
-       [:call, [:call, nil, :data, [:arglist]], :each, [:arglist]],
-       [:masgn, [:array, [:lasgn, :x], [:lasgn, :y]]],
-       [:block,
-        [:lasgn, :a, [:lit, 1]],
-        [:lasgn, :b, [:lvar, :a]],
-        [:lasgn, :b, [:lasgn, :a, [:lvar, :x]]]]]
-    end
-
-    compile do |g|
-      g.push :self
-      g.send :data, 0, true
-      g.in_block_send :each, 2, 0, false do |d|
-        d.push 1
-        d.set_local_depth 0, 2
-        d.pop
-
-        d.push_local_depth 0, 2
-        d.set_local_depth 0, 3
-        d.pop
-
-        d.push_local_depth 0, 0
-        d.set_local_depth 0, 2
-        d.set_local_depth 0, 3
-      end
-    end
-  end
-
-  relates <<-ruby do
-      a do
-        v = nil
-        assert_block(full_message) do
-          begin
-            yield
-          rescue Exception => v
-            break
-          end
-        end
-      end
-    ruby
-
-    parse do
-      [:iter,
-       [:call, nil, :a, [:arglist]],
-       nil,
-       [:block,
-        [:lasgn, :v, [:nil]],
-        [:iter,
-         [:call,
-          nil,
-          :assert_block,
-          [:arglist, [:call, nil, :full_message, [:arglist]]]],
-         nil,
-         [:rescue,
-          [:yield],
-          [:resbody,
-           [:array, [:const, :Exception], [:lasgn, :v, [:gvar, :$!]]],
-           [:break]]]]]]
-    end
-
-    compile do |g|
-      g.push :self
-      g.in_block_send :a do |d|
-        d.push :nil
-        d.set_local_depth 0, 0
-        d.pop
-
-        d.push :self
-        d.push :self
-        d.send :full_message, 0, true
-
-        d.in_block_send :assert_block, 0, 1, true, 0, true do |d2|
-          d2.in_rescue :Exception, 1 do |section|
-            case section
-            when :body then
-              d2.push_block
-              d2.meta_send_call 0
-            when :Exception then
-              d2.push_exception
-              d2.set_local_depth 1, 0
-              d2.push :nil
-
-              d2.break_raise
-            end
-          end
-        end
-      end
-    end
-  end
-
-  relates <<-ruby do
-      t = 0
-      ns.each { |n| t += n }
-    ruby
-
-    parse do
-      [:block,
-       [:lasgn, :t, [:lit, 0]],
-       [:iter,
-        [:call, [:call, nil, :ns, [:arglist]], :each, [:arglist]],
-        [:lasgn, :n],
-        [:lasgn, :t, [:call, [:lvar, :t], :+, [:arglist, [:lvar, :n]]]]]]
-    end
-
-    compile do |g|
-      g.push 0
-      g.set_local 0
-      g.pop
-
-      g.push :self
-      g.send :ns, 0, true
-
-      in_block_send :each, 1, 0, false, 1 do |d|
-        d.push_local 0
-        d.push_local_depth 0, 0
+        d.send :x, 0, true
         d.send :+, 1, false
-        d.set_local 0
       end
     end
   end
 
-  relates "a (1) {|c|d}" do
+  relates "m { |a| a + x }" do
     parse do
       [:iter,
-       [:call, nil, :a, [:arglist, [:lit, 1]]],
-       [:lasgn, :c],
-       [:call, nil, :d, [:arglist]]]
-    end
-
-    compile do |g|
-      g.push :self
-      g.push 1
-      in_block_send :a, 1, 1 do |d|
-        d.push :self
-        d.send :d, 0, true
-      end
-    end
-  end
-
-  relates <<-ruby do
-      as.each { |a|
-        b += a.b(false) }
-    ruby
-
-    parse do
-      [:iter,
-       [:call, [:call, nil, :as, [:arglist]], :each, [:arglist]],
+       [:call, nil, :m, [:arglist]],
        [:lasgn, :a],
-       [:lasgn,
-        :b,
-        [:call,
-         [:lvar, :b],
-         :+,
-         [:arglist, [:call, [:lvar, :a], :b, [:arglist, [:false]]]]]]]
+       [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]]]
     end
 
-    compile do |g|
-      g.push :self
-      g.send :as, 0, true
-      in_block_send :each, 1, 0, false do |d|
-        d.push_local_depth 0, 1
-        d.push_local_depth 0, 0
-        d.push :false
-        d.send :b, 1, false
-        d.send :+, 1, false
-        d.set_local_depth 0, 1
-      end
-    end
+    compile(&single_arg_block)
   end
 
-  relates "3.downto(1) { |n| puts(n.to_s) }" do
+  relates "m { |*| x }" do
     parse do
       [:iter,
-       [:call, [:lit, 3], :downto, [:arglist, [:lit, 1]]],
-       [:lasgn, :n],
-       [:call, nil, :puts, [:arglist, [:call, [:lvar, :n], :to_s, [:arglist]]]]]
-    end
-
-    compile do |g|
-      g.push 3
-      g.push 1
-      in_block_send :downto, 1, 1, false do |d|
-        d.push :self
-        d.push_local_depth 0, 0
-        d.send :to_s, 0, false
-        d.send :puts, 1, true
-      end
-    end
-  end
-
-  relates <<-ruby do
-      array = [1, 2, 3]
-      array.each { |x| puts(x.to_s) }
-    ruby
-
-    parse do
-      [:block,
-       [:lasgn, :array, [:array, [:lit, 1], [:lit, 2], [:lit, 3]]],
-       [:iter,
-        [:call, [:lvar, :array], :each, [:arglist]],
-        [:lasgn, :x],
-        [:call, nil, :puts, [:arglist, [:call, [:lvar, :x], :to_s, [:arglist]]]]]]
-    end
-
-    compile do |g|
-      g.push 1
-      g.push 2
-      g.push 3
-      g.make_array 3
-      g.set_local 0
-      g.pop
-
-      g.push_local 0
-      in_block_send :each, 1, 0, false, 1 do |d|
-        d.push :self
-        d.push_local_depth 0, 0
-        d.send :to_s, 0, false
-        d.send :puts, 1, true
-      end
-    end
-  end
-
-  relates <<-ruby do
-      array1 = [1, 2, 3]
-      array2 = [4, 5, 6, 7]
-      array1.each do |x|
-        array2.each do |y|
-          puts(x.to_s)
-          puts(y.to_s)
-        end
-      end
-    ruby
-
-    parse do
-      [:block,
-       [:lasgn, :array1, [:array, [:lit, 1], [:lit, 2], [:lit, 3]]],
-       [:lasgn, :array2, [:array, [:lit, 4], [:lit, 5], [:lit, 6], [:lit, 7]]],
-       [:iter,
-        [:call, [:lvar, :array1], :each, [:arglist]],
-        [:lasgn, :x],
-        [:iter,
-         [:call, [:lvar, :array2], :each, [:arglist]],
-         [:lasgn, :y],
-         [:block,
-          [:call, nil, :puts, [:arglist, [:call, [:lvar, :x], :to_s, [:arglist]]]],
-          [:call,
-           nil,
-           :puts,
-           [:arglist, [:call, [:lvar, :y], :to_s, [:arglist]]]]]]]]
-    end
-
-    compile do |g|
-      g.push 1
-      g.push 2
-      g.push 3
-      g.make_array 3
-      g.set_local 0
-      g.pop
-
-      g.push 4
-      g.push 5
-      g.push 6
-      g.push 7
-      g.make_array 4
-      g.set_local 1
-      g.pop
-
-      g.push_local 0
-      in_block_send :each, 1, 0, false, 2 do |d|
-        d.push_local 1
-        d.in_block_send :each, 1, 0, false, 2, true do |d2|
-          d2.push :self
-          d2.push_local_depth 1, 0
-          d2.send :to_s, 0, false
-          d2.send :puts, 1, true
-          d2.pop
-
-          d2.push :self
-          d2.push_local_depth 0, 0
-          d2.send :to_s, 0, false
-          d2.send :puts, 1, true
-        end
-      end
-    end
-  end
-
-  relates "loop { }" do
-    parse do
-      [:iter, [:call, nil, :loop, [:arglist]], nil]
-    end
-
-    compile do |g|
-      top = g.new_label
-      bottom = g.new_label
-
-      g.push_modifiers
-      top.set!
-      g.goto top
-      bottom.set!
-      g.pop_modifiers
-    end
-  end
-
-  relates "ary.each do |(a, b), c|; end" do
-    parse do
-      [:iter,
-       [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
-       [:masgn,
-        [:array, [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]]], [:lasgn, :c]]]]
-    end
-
-    # TODO
-  end
-
-  relates "ary.each do |(a, b), *c|; end" do
-    parse do
-      [:iter,
-       [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
-       [:masgn,
-        [:array,
-         [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]]],
-         [:splat, [:lasgn, :c]]]]]
-    end
-
-    # TODO
-  end
-
-  relates "ary.each do |(a, (b, c)), d|; end" do
-    parse do
-      [:iter,
-       [:call, [:call, nil, :ary, [:arglist]], :each, [:arglist]],
-       [:masgn,
-        [:array,
-         [:masgn,
-          [:array, [:lasgn, :a], [:masgn, [:array, [:lasgn, :b], [:lasgn, :c]]]]],
-         [:lasgn, :d]]]]
-    end
-
-    # TODO
-  end
-
-  relates "a { |b, c| p(c) }" do
-    parse do
-      [:iter,
-       [:call, nil, :a, [:arglist]],
-       [:masgn, [:array, [:lasgn, :b], [:lasgn, :c]]],
-       [:call, nil, :p, [:arglist, [:lvar, :c]]]]
-    end
-
-    compile do |g|
-      g.push :self
-      in_block_send :a, 2 do |d|
-        d.push :self
-        d.push_local_depth 0, 1
-        d.send :p, 1, true
-      end
-    end
-  end
-
-  relates "a { |b, c, *| p(c) }" do
-    parse do
-      [:iter,
-       [:call, nil, :a, [:arglist]],
-       [:masgn, [:array, [:lasgn, :b], [:lasgn, :c], [:splat]]],
-       [:call, nil, :p, [:arglist, [:lvar, :c]]]]
-    end
-
-    compile do |g|
-      g.push :self
-      in_block_send :a, 2 do |d|
-        d.push :self
-        d.push_local_depth 0, 1
-        d.send :p, 1, true
-      end
-    end
-  end
-
-  relates "a { |b, c, *d| p(c) }" do
-    parse do
-      [:iter,
-       [:call, nil, :a, [:arglist]],
-       [:masgn, [:array, [:lasgn, :b], [:lasgn, :c], [:splat, [:lasgn, :d]]]],
-       [:call, nil, :p, [:arglist, [:lvar, :c]]]]
-    end
-
-    compile do |g|
-      g.push :self
-      in_block_send :a, [2, 2] do |d|
-        d.push :self
-        d.push_local_depth 0, 1
-        d.send :p, 1, true
-      end
-    end
-  end
-
-  relates "a { |*| p(c) }" do
-    parse do
-      [:iter,
-       [:call, nil, :a, [:arglist]],
+       [:call, nil, :m, [:arglist]],
        [:masgn, [:array, [:splat]]],
-       [:call, nil, :p, [:arglist, [:call, nil, :c, [:arglist]]]]]
+       [:call, nil, :x, [:arglist]]]
     end
 
     compile do |g|
-      g.push :self
-      in_block_send :a, -2 do |d|
-        d.push :self
-        d.push :self
-        d.send :c, 0, true
-        d.send :p, 1, true
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :blank do |d|
+          d.push :self
+          d.send :x, 0, true
+        end
       end
     end
   end
 
-  relates "a { |*c| p(c) }" do
+  relates "m { |*c| x; c }" do
     parse do
       [:iter,
-       [:call, nil, :a, [:arglist]],
+       [:call, nil, :m, [:arglist]],
        [:masgn, [:array, [:splat, [:lasgn, :c]]]],
-       [:call, nil, :p, [:arglist, [:lvar, :c]]]]
+       [:block, [:call, nil, :x, [:arglist]], [:lvar, :c]]]
     end
 
     compile do |g|
-      g.push :self
-      in_block_send :a, -1 do |d|
-        d.push :self
-        d.push_local_depth 0, 0
-        d.send :p, 1, true
-      end
-    end
-  end
+      g.passed_block do
+        g.push :self
 
-  relates <<-ruby do
-      a do |x|
-        b do |x|
-          puts x
-        end
-      end
-    ruby
-
-    parse do
-      [:iter,
-       [:call, nil, :a, [:arglist]],
-       [:lasgn, :x],
-       [:iter,
-        [:call, nil, :b, [:arglist]],
-        [:lasgn, :x],
-        [:call, nil, :puts, [:arglist, [:lvar, :x]]]]]
-    end
-
-    compile do |g|
-      g.push :self
-      g.in_block_send :a, 1 do |d|
-        d.push :self
-        d.in_block_send :b, 1, 0, true, 0, true, 1 do |d2|
-          d2.push :self
-          d2.push_local_depth 1, 0
-          d2.send :puts, 1, true
+        g.in_block_send :m, :splat do |d|
+          d.push :self
+          d.send :x, 0, true
+          d.pop
+          d.push_local_depth 0, 0
         end
       end
     end
   end
 
-  relates "1.upto(3) { |n| puts(n.to_s) }" do
+  masgn_single_arg_block = lambda do |g|
+    g.passed_block do
+      g.push :self
+
+      g.in_block_send :m, :multi, 1 do |d|
+        d.push_local_depth 0, 0
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
+      end
+    end
+  end
+
+  relates "m { |a, | a + x }" do
     parse do
       [:iter,
-       [:call, [:lit, 1], :upto, [:arglist, [:lit, 3]]],
-       [:lasgn, :n],
-       [:call, nil, :puts, [:arglist, [:call, [:lvar, :n], :to_s, [:arglist]]]]]
+       [:call, nil, :m, [:arglist]],
+       [:masgn, [:array, [:lasgn, :a]]],
+       [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]]]
     end
 
-    compile do |g|
-      g.push 1
-      g.push 3
-      in_block_send :upto, 1, 1, false do |d|
-        d.push :self
-        d.push_local_depth 0, 0
-        d.send :to_s, 0, false
-        d.send :puts, 1, true
-      end
-    end
+    compile(&masgn_single_arg_block)
   end
 
-  relates <<-ruby do
-      argl = 10
-      while (argl >= 1) do
-        puts("hello")
-        argl = (argl - 1)
-      end
-    ruby
-
+  relates "m { |a, *| a + x }" do
     parse do
-      [:block,
-       [:lasgn, :argl, [:lit, 10]],
-       [:while,
-        [:call, [:lvar, :argl], :>=, [:arglist, [:lit, 1]]],
-        [:block,
-         [:call, nil, :puts, [:arglist, [:str, "hello"]]],
-         [:lasgn, :argl, [:call, [:lvar, :argl], :-, [:arglist, [:lit, 1]]]]],
-        true]]
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       [:masgn, [:array, [:lasgn, :a], [:splat]]],
+       [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]]]
+    end
+
+    compile(&masgn_single_arg_block)
+  end
+
+  relates "m { |a, *c| a + x; c }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       [:masgn, [:array, [:lasgn, :a], [:splat, [:lasgn, :c]]]],
+       [:block,
+        [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]],
+        [:lvar, :c]]]
     end
 
     compile do |g|
-      top    = g.new_label
-      f      = g.new_label
-      dunno1 = g.new_label
-      dunno2 = g.new_label
-      bottom = g.new_label
+      g.passed_block do
+        g.push :self
 
-      g.push 10
-      g.set_local 0
-      g.pop
-
-      g.push_modifiers
-      top.set!
-
-      g.push_local 0
-      g.push 1
-      g.send :>=, 1, false
-      g.gif f
-
-      dunno1.set!
-
-      g.push :self
-      g.push_literal "hello"
-      g.string_dup
-      g.send :puts, 1, true
-      g.pop
-
-      g.push_local 0
-      g.push 1
-      g.send :-, 1, false
-      g.set_local 0
-      g.pop
-
-      g.goto top
-
-      f.set!
-      g.push :nil
-
-      bottom.set!
-
-      g.pop_modifiers
-    end
-  end
-
-  relates <<-ruby do
-      a.b do |c, d|
-        unless e.f(c) then
-          g = false
-          d.h { |x, i| g = true }
+        g.in_block_send :m, :rest, -2 do |d|
+          d.push_local_depth 0, 0
+          d.push :self
+          d.send :x, 0, true
+          d.send :+, 1, false
+          d.pop
+          d.push_local_depth 0, 1
         end
       end
-    ruby
+    end
+  end
 
+  relates "m { |a, b| a + x; b }" do
     parse do
       [:iter,
-       [:call, [:call, nil, :a, [:arglist]], :b, [:arglist]],
-       [:masgn, [:array, [:lasgn, :c], [:lasgn, :d]]],
-       [:if,
-        [:call, [:call, nil, :e, [:arglist]], :f, [:arglist, [:lvar, :c]]],
-        nil,
-        [:block,
-         [:lasgn, :g, [:false]],
-         [:iter,
-          [:call, [:lvar, :d], :h, [:arglist]],
-          [:masgn, [:array, [:lasgn, :x], [:lasgn, :i]]],
-          [:lasgn, :g, [:true]]]]]]
+       [:call, nil, :m, [:arglist]],
+       [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]]],
+       [:block,
+        [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]],
+        [:lvar, :b]]]
     end
 
     compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :multi, 2 do |d|
+          d.push_local_depth 0, 0
+          d.push :self
+          d.send :x, 0, true
+          d.send :+, 1, false
+          d.pop
+          d.push_local_depth 0, 1
+        end
+      end
+    end
+  end
+
+  masgn_multi_arg_block = lambda do |g|
+    g.passed_block do
       g.push :self
-      g.send :a, 0, true
 
-      g.in_block_send :b, 2, 0, false do |d|
-        f = d.new_label
-        t = d.new_label
-
-        d.push :self
-        d.send :e, 0, true
+      g.in_block_send :m, :multi, -2 do |d|
         d.push_local_depth 0, 0
-        d.send :f, 1, false
-        d.git f
-
-        d.push :false
-        d.set_local_depth 0, 2
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
         d.pop
-
         d.push_local_depth 0, 1
-
-        d.in_block_send :h, 2, 0, false, 0, true do |d2|
-          d2.push :true
-          d2.set_local_depth 1, 2
-        end
-
-        d.goto t
-        f.set!
-        d.push :nil
-        t.set!
       end
     end
   end
 
-  relates "loop { next if false }" do
+  relates "m { |a, b, | a + x; b }" do
     parse do
       [:iter,
-        [:call, nil, :loop, [:arglist]], nil, [:if, [:false], [:next], nil]]
+       [:call, nil, :m, [:arglist]],
+       [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]]],
+       [:block,
+        [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]],
+        [:lvar, :b]]]
     end
 
-    compile do |g|
-      top    = g.new_label
-      bottom = g.new_label
-      dunno1 = g.new_label
-      f      = g.new_label
-
-      g.push_modifiers
-      top.set!
-
-      g.push :false
-      g.gif f
-      g.goto top
-      g.goto dunno1
-
-      f.set!
-
-      g.push :nil
-
-      dunno1.set!
-      g.pop
-      g.goto top
-
-      bottom.set!
-
-      g.pop_modifiers
-    end
+    compile(&masgn_multi_arg_block)
   end
 
-  relates "loop { next 42 if false }" do
+  relates "m { |a, b, *| a + x; b }" do
     parse do
       [:iter,
-       [:call, nil, :loop, [:arglist]],
-       nil,
-       [:if, [:false], [:next, [:lit, 42]], nil]]
+       [:call, nil, :m, [:arglist]],
+       [:masgn, [:array, [:lasgn, :a], [:lasgn, :b], [:splat]]],
+       [:block,
+        [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]],
+        [:lvar, :b]]]
     end
 
-    # next arg
+    compile(&masgn_multi_arg_block)
   end
 
-  relates "loop { next *[1] }" do
-    parse do
-      [:iter,
-       [:call, nil, :loop, [:arglist]],
-       nil,
-       [:next, [:svalue, [:splat, [:array, [:lit, 1]]]]]]
-    end
-
-    compile do |g|
-      g.splatted_array
-
+  masgn_rest_arg_block = lambda do |g|
+    g.passed_block do
       g.push :self
-      g.push_const :LocalJumpError
-      g.push_literal "next used in invalid context"
-      g.send :raise, 2, true
-    end
-  end
 
-  relates "loop { next [*[1]] }" do
-    parse do
-      [:iter,
-       [:call, nil, :loop, [:arglist]],
-       nil,
-       [:next, [:array, [:splat, [:array, [:lit, 1]]]]]]
-    end
-
-    compile do |g|
-      g.array_of_splatted_array
-
-      g.push :self
-      g.push_const :LocalJumpError
-      g.push_literal "next used in invalid context"
-      g.send :raise, 2, true
-    end
-  end
-
-  relates "loop { redo if false }" do
-    parse do
-      [:iter,
-        [:call, nil, :loop, [:arglist]], nil, [:if, [:false], [:redo], nil]]
-    end
-
-    compile do |g|
-      top = g.new_label
-      f = g.new_label
-      t = g.new_label
-      bottom = g.new_label
-
-      g.push_modifiers
-
-      top.set!
-
-      g.push :false
-      g.gif f
-      g.goto top
-      g.goto t
-
-      f.set!
-
-      g.push :nil
-
-      t.set!
-
-      g.pop
-      g.goto top
-
-      bottom.set!
-
-      g.pop_modifiers
-    end
-  end
-
-  relates "loop { retry }" do
-    parse do
-      [:iter, [:call, nil, :loop, [:arglist]], nil, [:retry]]
-    end
-
-    # retry
-  end
-
-  relates "go { return 12 }" do
-    parse do
-      [:iter,
-        [:call, nil, :go, [:arglist]], nil, [:return, [:lit, 12]]]
-    end
-
-    compile do |g|
-      iter = description do |d|
-        d.pop
-        d.push_modifiers
-        d.new_label.set! # redo
-        d.push 12
-
-        d.return_raise
-
-        d.pop_modifiers
-        d.ret
-      end
-
-      g.passed_block do
-        g.push :self
-        g.create_block iter
-        g.send_with_block :go, 0, true
-      end
-    end
-  end
-
-  relates <<-ruby do
-      go do
-        name = 12
-        name
-      end
-    ruby
-
-    parse do
-      [:iter,
-       [:call, nil, :go, [:arglist]],
-       nil,
-       [:block, [:lasgn, :name, [:lit, 12]], [:lvar, :name]]]
-    end
-
-    compile do |g|
-      iter = description do |d|
-        d.pop
-        d.push_modifiers
-        d.new_label.set! # redo
-        d.push 12
-        d.set_local_depth 0, 0
-        d.pop
+      g.in_block_send :m, :rest, -3 do |d|
         d.push_local_depth 0, 0
-        d.pop_modifiers
-        d.ret
-      end
-
-      g.passed_block do
-        g.push :self
-        g.create_block iter
-        g.send_with_block :go, 0, true
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
+        d.pop
+        d.push_local_depth 0, 1
+        d.pop
+        d.push_local_depth 0, 2
       end
     end
   end
 
-  relates <<-ruby do
-      go do
-        name = 12
-        go do
-          name
-        end
-      end
-    ruby
-
+  relates "m { |a, b, *c| a + x; b; c }" do
     parse do
       [:iter,
-       [:call, nil, :go, [:arglist]],
+       [:call, nil, :m, [:arglist]],
+       [:masgn, [:array, [:lasgn, :a], [:lasgn, :b], [:splat, [:lasgn, :c]]]],
+       [:block,
+        [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]],
+        [:lvar, :b],
+        [:lvar, :c]]]
+    end
+
+    compile(&masgn_rest_arg_block)
+  end
+
+  relates "m do |a, b, *c| a + x; b; c end" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       [:masgn, [:array, [:lasgn, :a], [:lasgn, :b], [:splat, [:lasgn, :c]]]],
+       [:block,
+        [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]],
+        [:lvar, :b],
+        [:lvar, :c]]]
+    end
+
+    compile(&masgn_rest_arg_block)
+  end
+
+  relates "m { n = 1; n }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:block, [:lasgn, :n, [:lit, 1]], [:lvar, :n]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.set_local_depth 0, 0
+          d.pop
+          d.push_local_depth 0, 0
+        end
+      end
+    end
+  end
+
+  relates "m { n = 1; m { n } }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
        nil,
        [:block,
-        [:lasgn, :name, [:lit, 12]],
-        [:iter, [:call, nil, :go, [:arglist]], nil, [:lvar, :name]]]]
+        [:lasgn, :n, [:lit, 1]],
+        [:iter, [:call, nil, :m, [:arglist]], nil, [:lvar, :n]]]]
     end
 
     compile do |g|
@@ -1145,7 +343,7 @@ describe "An Iter node" do
         d.pop
         d.push_modifiers
         d.new_label.set! # redo
-        d.push 12
+        d.push 1
         d.set_local_depth 0, 0
         d.pop
 
@@ -1161,8 +359,9 @@ describe "An Iter node" do
         d.break_rescue do
           d.push :self
           d.create_block i2
-          d.send_with_block :go, 0, true
+          d.send_with_block :m, 0, true
         end
+
         d.pop_modifiers
         d.ret
       end
@@ -1170,9 +369,865 @@ describe "An Iter node" do
       g.passed_block do
         g.push :self
         g.create_block iter
-        g.send_with_block :go, 0, true
+        g.send_with_block :m, 0, true
       end
     end
+  end
+
+  relates "n = 1; m { n = 2 }; n" do
+    parse do
+      [:block,
+        [:lasgn, :n, [:lit, 1]],
+        [:iter, [:call, nil, :m, [:arglist]], nil, [:lasgn, :n, [:lit, 2]]],
+        [:lvar, :n]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.set_local 0
+      g.pop
+
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 2
+          d.set_local 0
+        end
+      end
+
+      g.pop
+      g.push_local 0
+    end
+  end
+
+  relates "m(a) { |b| a + x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist, [:call, nil, :a, [:arglist]]]],
+       [:lasgn, :b],
+       [:call,
+        [:call, nil, :a, [:arglist]],
+        :+,
+        [:arglist, [:call, nil, :x, [:arglist]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+        g.push :self
+        g.send :a, 0, true
+
+        g.in_block_send :m, :single, nil, 1 do |d|
+          d.push :self
+          d.send :a, 0, true
+          d.push :self
+          d.send :x, 0, true
+          d.send :+, 1, false
+        end
+      end
+    end
+  end
+
+  relates <<-ruby do
+      m { |a|
+        a + x
+      }
+    ruby
+
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       [:lasgn, :a],
+       [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]]]
+    end
+
+    compile(&single_arg_block)
+  end
+
+  relates <<-ruby do
+      m do |a|
+        a + x
+      end
+    ruby
+
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       [:lasgn, :a],
+       [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]]]
+    end
+
+    compile(&single_arg_block)
+  end
+
+  relates "obj.m { |a| a + x }" do
+    parse do
+      [:iter,
+       [:call, [:call, nil, :obj, [:arglist]], :m, [:arglist]],
+       [:lasgn, :a],
+       [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+        g.send :obj, 0, true
+
+        g.in_block_send :m, :single, nil, 0, false do |d|
+          d.push_local_depth 0, 0
+          d.push :self
+          d.send :x, 0, true
+          d.send :+, 1, false
+        end
+      end
+    end
+  end
+
+  relates "obj.m(x) { |a| a + x }" do
+    parse do
+      [:iter,
+       [:call,
+        [:call, nil, :obj, [:arglist]],
+        :m,
+        [:arglist, [:call, nil, :x, [:arglist]]]],
+       [:lasgn, :a],
+       [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+        g.send :obj, 0, true
+        g.push :self
+        g.send :x, 0, true
+
+        g.in_block_send :m, :single, nil, 1, false do |d|
+          d.push_local_depth 0, 0
+          d.push :self
+          d.send :x, 0, true
+          d.send :+, 1, false
+        end
+      end
+    end
+  end
+
+  relates "obj.m(a) { |a| a + x }" do
+    parse do
+      [:iter,
+       [:call,
+        [:call, nil, :obj, [:arglist]],
+        :m,
+        [:arglist, [:call, nil, :a, [:arglist]]]],
+       [:lasgn, :a],
+       [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+        g.send :obj, 0, true
+        g.push :self
+        g.send :a, 0, true
+
+        g.in_block_send :m, :single, nil, 1, false do |d|
+          d.push_local_depth 0, 0
+          d.push :self
+          d.send :x, 0, true
+          d.send :+, 1, false
+        end
+      end
+    end
+  end
+
+  relates "a = 1; m { |a| a + x }" do
+    parse do
+      [:block,
+       [:lasgn, :a, [:lit, 1]],
+       [:iter,
+        [:call, nil, :m, [:arglist]],
+        [:lasgn, :a],
+        [:call, [:lvar, :a], :+, [:arglist, [:call, nil, :x, [:arglist]]]]]]
+    end
+
+    compile do |g|
+      g.push 1
+      g.set_local 0
+      g.pop
+
+      g.passed_block do
+        g.push :self
+
+        iter = g.block_description do |d|
+          d.cast_for_single_block_arg
+          d.set_local 0
+
+          d.pop
+          d.push_modifiers
+          d.new_label.set!
+
+          d.push_local 0
+          d.push :self
+          d.send :x, 0, true
+          d.send :+, 1, false
+
+          d.pop_modifiers
+          d.ret
+        end
+        iter.required = 1
+
+        g.send_with_block :m, 0, true
+      end
+    end
+  end
+
+  relates <<-ruby do
+      x = nil
+      m do |a|
+        begin
+          x
+        rescue Exception => x
+          break
+        ensure
+          x = a
+        end
+      end
+    ruby
+
+    parse do
+      [:block,
+       [:lasgn, :x, [:nil]],
+       [:iter,
+        [:call, nil, :m, [:arglist]],
+        [:lasgn, :a],
+        [:ensure,
+         [:rescue,
+          [:lvar, :x],
+          [:resbody,
+           [:array, [:const, :Exception], [:lasgn, :x, [:gvar, :$!]]],
+           [:break]]],
+         [:lasgn, :x, [:lvar, :a]]]]]
+    end
+
+    # TODO
+  end
+
+  relates "m { next }" do
+    parse do
+      [:iter, [:call, nil, :m, [:arglist]], nil, [:next]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push :nil
+          d.ret
+        end
+      end
+    end
+  end
+
+  relates "m { next if x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:if, [:call, nil, :x, [:arglist]], [:next], nil]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          f = d.new_label
+          done = d.new_label
+
+          d.push :self
+          d.send :x, 0, true
+          d.gif f
+
+          d.push :nil
+          d.ret
+          d.goto done
+
+          f.set!
+          d.push :nil
+
+          done.set!
+        end
+      end
+    end
+  end
+
+  relates "m { next x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:next, [:call, nil, :x, [:arglist]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push :self
+          d.send :x, 0, true
+          d.ret
+        end
+      end
+    end
+  end
+
+  relates "m { next [1] }" do
+    parse do
+      [:iter, [:call, nil, :m, [:arglist]], nil, [:next, [:array, [:lit, 1]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.make_array 1
+          d.ret
+        end
+      end
+    end
+  end
+
+  relates "m { next *[1] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:next, [:svalue, [:splat, [:array, [:lit, 1]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array
+          d.ret
+        end
+      end
+    end
+  end
+
+  relates "m { next [*[1]] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:next, [:array, [:splat, [:array, [:lit, 1]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.array_of_splatted_array
+          d.ret
+        end
+      end
+    end
+  end
+
+  relates "m { next *[1, 2] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:next, [:svalue, [:splat, [:array, [:lit, 1], [:lit, 2]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array 2 do
+            d.push 1
+            d.push 2
+          end
+          d.ret
+        end
+      end
+    end
+  end
+
+  relates "m { next [*[1, 2]] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:next, [:array, [:splat, [:array, [:lit, 1], [:lit, 2]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.array_of_splatted_array 2 do
+            d.push 1
+            d.push 2
+          end
+          d.ret
+        end
+      end
+    end
+  end
+
+  relates "m { break }" do
+    parse do
+      [:iter, [:call, nil, :m, [:arglist]], nil, [:break]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push :nil
+          d.break_raise
+        end
+      end
+    end
+  end
+
+  relates "m { break if x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:if, [:call, nil, :x, [:arglist]], [:break], nil]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          f = d.new_label
+          done = d.new_label
+
+          d.push :self
+          d.send :x, 0, true
+          d.gif f
+
+          d.push :nil
+          d.break_raise
+          d.goto done
+
+          f.set!
+          d.push :nil
+
+          done.set!
+        end
+      end
+    end
+  end
+
+  relates "m { break x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:break, [:call, nil, :x, [:arglist]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push :self
+          d.send :x, 0, true
+          d.break_raise
+        end
+      end
+    end
+  end
+
+  relates "m { break [1] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:break, [:array, [:lit, 1]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.make_array 1
+          d.break_raise
+        end
+      end
+    end
+  end
+
+  relates "m { break *[1] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:break, [:svalue, [:splat, [:array, [:lit, 1]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array
+          d.break_raise
+        end
+      end
+    end
+  end
+
+  relates "m { break [*[1]] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:break, [:array, [:splat, [:array, [:lit, 1]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.array_of_splatted_array
+          d.break_raise
+        end
+      end
+    end
+  end
+
+  relates "m { break *[1, 2] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:break, [:svalue, [:splat, [:array, [:lit, 1], [:lit, 2]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array 2 do
+            d.push 1
+            d.push 2
+          end
+          d.break_raise
+        end
+      end
+    end
+  end
+
+  relates "m { break [*[1, 2]] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:break, [:array, [:splat, [:array, [:lit, 1], [:lit, 2]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.array_of_splatted_array 2 do
+            d.push 1
+            d.push 2
+          end
+          d.break_raise
+        end
+      end
+    end
+  end
+
+  relates "m { return }" do
+    parse do
+      [:iter, [:call, nil, :m, [:arglist]], nil, [:return]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push :nil
+          d.return_raise
+        end
+      end
+    end
+  end
+
+  relates "m { return if x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:if, [:call, nil, :x, [:arglist]], [:return], nil]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          f = d.new_label
+          done = d.new_label
+
+          d.push :self
+          d.send :x, 0, true
+          d.gif f
+
+          d.push :nil
+          d.return_raise
+          d.goto done
+
+          f.set!
+          d.push :nil
+
+          done.set!
+        end
+      end
+    end
+  end
+
+  relates "m { return x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:return, [:call, nil, :x, [:arglist]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push :self
+          d.send :x, 0, true
+          d.return_raise
+        end
+      end
+    end
+  end
+
+  relates "m { return [1] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:return, [:array, [:lit, 1]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.push 1
+          d.make_array 1
+          d.return_raise
+        end
+      end
+    end
+  end
+
+  relates "m { return *[1] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:return, [:svalue, [:splat, [:array, [:lit, 1]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array
+          d.return_raise
+        end
+      end
+    end
+  end
+
+  relates "m { return [*[1]] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:return, [:array, [:splat, [:array, [:lit, 1]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.array_of_splatted_array
+          d.return_raise
+        end
+      end
+    end
+  end
+
+  relates "m { return *[1, 2] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:return, [:svalue, [:splat, [:array, [:lit, 1], [:lit, 2]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.splatted_array 2 do
+            d.push 1
+            d.push 2
+          end
+          d.return_raise
+        end
+      end
+    end
+  end
+
+  relates "m { return [*[1, 2]] }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:return, [:array, [:splat, [:array, [:lit, 1], [:lit, 2]]]]]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.in_block_send :m, :none do |d|
+          d.array_of_splatted_array 2 do
+            d.push 1
+            d.push 2
+          end
+          d.return_raise
+        end
+      end
+    end
+  end
+
+  relates "m { redo }" do
+    parse do
+      [:iter, [:call, nil, :m, [:arglist]], nil, [:redo]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.block_description do |d|
+          d.pop
+          redo_lbl = d.new_label
+          d.push_modifiers
+          redo_lbl.set!
+          d.goto redo_lbl
+          d.pop_modifiers
+          d.ret
+        end
+
+        g.send_with_block :m, 0, true
+      end
+    end
+  end
+
+  relates "m { redo if x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist]],
+       nil,
+       [:if, [:call, nil, :x, [:arglist]], [:redo], nil]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :self
+
+        g.block_description do |d|
+          redo_lbl = d.new_label
+          f = d.new_label
+          done = d.new_label
+
+          d.pop
+          d.push_modifiers
+          redo_lbl.set!
+
+          d.push :self
+          d.send :x, 0, true
+          d.gif f
+
+          d.goto redo_lbl
+          d.goto done
+
+          f.set!
+          d.push :nil
+
+          done.set!
+          d.pop_modifiers
+          d.ret
+        end
+
+        g.send_with_block :m, 0, true
+      end
+    end
+  end
+
+  relates "m(a) { retry }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist, [:call, nil, :a, [:arglist]]]],
+       nil,
+       [:retry]]
+    end
+
+    # TODO
+  end
+
+  relates "m(a) { retry if x }" do
+    parse do
+      [:iter,
+       [:call, nil, :m, [:arglist, [:call, nil, :a, [:arglist]]]],
+       nil,
+       [:if, [:call, nil, :x, [:arglist]], [:retry], nil]]
+    end
+
+    # TODO
   end
 
   relates "break" do
@@ -1194,10 +1249,7 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.push :self
-      g.push_const :LocalJumpError
-      g.push_literal "redo used in invalid context"
-      g.send :raise, 2, true
+      g.invalid_context :redo
     end
   end
 
@@ -1207,10 +1259,7 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.push :self
-      g.push_const :LocalJumpError
-      g.push_literal "retry used in invalid context"
-      g.send :raise, 2, true
+      g.invalid_context :retry
     end
   end
 
@@ -1220,78 +1269,7 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.push :self
-      g.push_const :LocalJumpError
-      g.push_literal "next used in invalid context"
-      g.send :raise, 2, true
-    end
-  end
-
-  proc_no_args = lambda do |g|
-    g.push :self
-    in_block_send :proc, 0 do |d|
-      d.push :self
-      d.send :x, 0, true
-      d.push 1
-      d.send :+, 1, false
-    end
-  end
-
-  relates "proc { || (x + 1) }" do
-    parse do
-      [:iter,
-       [:call, nil, :proc, [:arglist]],
-       0,
-       [:call, [:call, nil, :x, [:arglist]], :+, [:arglist, [:lit, 1]]]]
-    end
-
-    compile(&proc_no_args)
-  end
-
-  relates "proc { (x + 1) }" do
-    parse do
-      [:iter,
-       [:call, nil, :proc, [:arglist]],
-       nil,
-       [:call, [:call, nil, :x, [:arglist]], :+, [:arglist, [:lit, 1]]]]
-    end
-
-    compile(&proc_no_args)
-  end
-
-  relates "proc { |x| (x + 1) }" do
-    parse do
-      [:iter,
-       [:call, nil, :proc, [:arglist]],
-       [:lasgn, :x],
-       [:call, [:lvar, :x], :+, [:arglist, [:lit, 1]]]]
-    end
-
-    compile do |g|
-      g.push :self
-      in_block_send :proc, 1 do |d|
-        d.push_local_depth 0, 0
-        d.push 1
-        d.send :+, 1, false
-      end
-    end
-  end
-
-  relates "proc { |x, y| (x + y) }" do
-    parse do
-      [:iter,
-       [:call, nil, :proc, [:arglist]],
-       [:masgn, [:array, [:lasgn, :x], [:lasgn, :y]]],
-       [:call, [:lvar, :x], :+, [:arglist, [:lvar, :y]]]]
-    end
-
-    compile do |g|
-      g.push :self
-      in_block_send :proc, 2 do |d|
-        d.push_local_depth 0, 0
-        d.push_local_depth 0, 1
-        d.send :+, 1, false
-      end
+      g.invalid_context :next
     end
   end
 end

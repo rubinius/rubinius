@@ -338,33 +338,47 @@ class TestGenerator
   def description name = nil
     desc = Compiler::MethodDescription.new TestGenerator, 0
     desc.name = name if name
+
     yield desc.generator
-    return desc
+
+    desc
   end
 
-  def create_block_desc
-    desc = description do |d|
+  def block_description
+    iter = description :__block__ do |d|
       yield d
     end
+    iter.required = -1
 
-    g.create_block desc
+    g.create_block iter
+
+    iter
   end
 
-  def array_of_splatted_array
+  def array_of_splatted_array(n=1)
     g.make_array 0
 
-    g.push 1
-    g.make_array 1
+    if block_given?
+      yield
+    else
+      g.push 1
+    end
+    g.make_array n
     g.cast_array
 
     g.send :+, 1
   end
 
-  def splatted_array
+  def splatted_array(n=1)
     bottom = g.new_label
 
-    g.push 1
-    g.make_array 1
+    if block_given?
+      yield
+    else
+      g.push 1
+    end
+    g.make_array n
+
     g.cast_array
     g.dup
     g.send :size, 0
@@ -389,75 +403,61 @@ class TestGenerator
     g.pop_exception
   end
 
-  def in_block_send(msg,
-                    block_count    = 0,
-                    call_count     = 0,
-                    block_send_vis = true,
-                    shift          = 0,
-                    nested         = false,
-                    lvl            = 0)
+  def in_block_send(name, type, required=nil, call_count=0, vis=true)
+    iter = block_description do |d|
+      count = nil
 
-    g.create_block_desc do |d|
-      inner_top = d.new_label
-
-      case block_count
-      when Float then # yes... I'm a dick
+      case type
+      when :none
+        required = -1
+      when :empty
+        required = 0
+      when :blank
+        required = -1
+        count = 0
+      when :single
+        required = 1
         d.cast_for_single_block_arg
-        d.set_local 0
-      when Array then # I do, am a dick.
-        d.cast_for_multi_block_arg
+        d.set_local_depth 0, 0
+      when :splat
+        required = -1
         d.cast_array
-        (0...block_count[0]).each do |n|
-          d.shift_array
-          d.set_local_depth lvl, n
-          d.pop
-        end
+        d.cast_array
+        d.set_local_depth 0, 0
+      when :rest
+        count = required.abs - 1
+      when :multi
+        count = required.abs
+      end
 
-        d.cast_array
-        d.set_local_depth lvl, block_count[1]
-      when -2 then
+      if count
         d.cast_for_multi_block_arg
         d.cast_array
-      when -1 then
-        d.cast_array
-        d.cast_array
-        d.set_local_depth lvl, 0
-      when 0 then
-      when 1 then
-        d.cast_for_single_block_arg
-        d.set_local_depth lvl, 0
-      else
-        d.cast_for_multi_block_arg
-        d.cast_array
-        (0...block_count).each do |n|
+
+        (0...count).each do |n|
           d.shift_array
-          d.set_local_depth lvl, n
+          d.set_local_depth 0, n
           d.pop
         end
       end
 
-      d.pop
+      if type == :rest
+        d.cast_array
+        d.set_local_depth 0, count
+      end
 
+      d.pop
       d.push_modifiers
-      inner_top.set!
+      d.new_label.set!
 
       yield d
 
       d.pop_modifiers
       d.ret
     end
+    iter.required = required
 
-    if nested
-      g.break_rescue do
-        g.send_with_block msg, call_count, block_send_vis
-      end
-    else
-      g.return_rescue do
-        g.break_rescue do
-          g.send_with_block msg, call_count, block_send_vis
-        end
-      end
-    end
+    g.send_with_block name, call_count, vis
   end
 
   def in_class name
@@ -664,5 +664,12 @@ class TestGenerator
       g.send :__undef_method__, 1
       g.pop unless name == last_name
     end
+  end
+
+  def invalid_context(name)
+    g.push :self
+    g.push_const :LocalJumpError
+    g.push_literal "#{name} used in invalid context"
+    g.send :raise, 2, true
   end
 end
