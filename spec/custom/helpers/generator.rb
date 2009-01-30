@@ -185,6 +185,10 @@ class TestGenerator
     g.pop
   end
 
+  def as_primitive(name)
+    @primitive = name
+  end
+
   def find_cpath_top_const(name)
     g.push_cpath_top
     g.find_const name

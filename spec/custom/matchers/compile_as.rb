@@ -21,7 +21,7 @@ class CompileAsMatcher
     # enabling plugins. All compiler specs should be written
     # without plugins enabled, and each plugin should have
     # specs for bytecode with and without the plugin enabled.
-    compiler.instance_variable_set :@plugins, Hash.new { |h,k| h[k] = [] }
+    compiler.instance_variable_get(:@plugins).clear
     @plugins.each { |plugin| compiler.activate plugin }
 
     node = compiler.convert_sexp s(:snippit, sexp)
