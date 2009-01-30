@@ -259,7 +259,7 @@ class Compiler
 
     class ConstantExpressions < Plugin
 
-      plugin :const_epxr
+      plugin :const_expr
 
       MathOps = [:+, :-, :*, :/, :**]
 
@@ -269,7 +269,8 @@ class Compiler
 
         obj = call.object
         arg = call.arguments.first
-        if call.object.kind_of? Node::NumberLiteral and call.arguments.first.kind_of? Node::NumberLiteral
+        if call.object.kind_of? Node::NumberLiteral and
+            call.arguments.first.kind_of? Node::NumberLiteral
           res = obj.value.__send__(op, arg.value)
           if res.kind_of? Fixnum
             g.push_int res
