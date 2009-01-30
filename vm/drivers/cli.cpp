@@ -13,6 +13,15 @@
 using namespace std;
 using namespace rubinius;
 
+/* Loads the runtime kernel files. They're stored in /kernel.
+ * These files consist of classes needed to bootstrap the kernel
+ * and just get things started in general.
+ *
+ * @param root [String] The file root for /kernel. This expects to find
+ *                      alpha.rbc (will compile if not there).
+ * @param env  [Environment&] The environment for Rubinius. It is the uber
+ *                      manager for multiple VMs and process-Ruby interaction. 
+ */
 static void load_runtime_kernel(Environment& env, std::string root) {
   std::string dirs = root + "/index";
   std::ifstream stream(dirs.c_str());
@@ -20,7 +29,9 @@ static void load_runtime_kernel(Environment& env, std::string root) {
     std::cout << "It appears that " << root << "/index is missing.\n";
     exit(1);
   }
-
+  
+  // Load the ruby file to prepare for bootstrapping Ruby!
+  // The bootstrapping for the VM is already done by the time we're here.
   env.run_file(root + "/alpha.rbc");
 
   while(!stream.eof()) {
@@ -36,6 +47,19 @@ static void load_runtime_kernel(Environment& env, std::string root) {
   }
 }
 
+/* The main function here handles the CL arguments passed to it.
+ * It then boots the VM, runs the appropriate file (`loader`),
+ * and returns 0. If there is an Assertion raised or an Exception,
+ * it prints the backtrace supplied. This function is the wrapper for
+ * the entire VM, as it deals with anything that could possibly happen
+ * to the VM. It's like the person playing whack-a-mole, in that if
+ * something tries to come out of the VM that's evil (such as a failed
+ * assertion or exception), it catches it and skins it and shows it to
+ * the user.
+ *
+ * Note: Although Rubinius is gathering support for multiple VMs, this
+ *       function does not deal with that subject.
+ */
 int main(int argc, char** argv) {
   Environment env;
   env.load_config_argv(argc, argv);
@@ -80,6 +104,15 @@ int main(int argc, char** argv) {
     // Prints Ruby backtrace, and VM backtrace if captured
     e.show(env.state);
   } catch(TypeError &e) {
+
+    /* TypeError's here are dealt with specially so that they can deliver
+     * more information, such as _why_ there was a type error issue.
+     *
+     * This has the same name as the RubyException TypeError (run `5 + "string"`
+     * as an example), but these are NOT the same - this exception is raised
+     * internally when Qnil gets passed to an array method, for instance, when
+     * an array was expected.
+     */
     std::cout << "Type Error detected:" << std::endl;
     TypeInfo* wanted = env.state->find_type(e.type);
 
