@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "A Call node NOT using fastnew plugin" do
+describe "A Call node NOT using FastNew plugin" do
   relates "new" do
     compile do |g|
       g.push :self
@@ -34,7 +34,7 @@ describe "A Call node NOT using fastnew plugin" do
   end
 end
 
-describe "A Call node using fastnew plugin" do
+describe "A Call node using FastNew plugin" do
   relates "new" do
     compile :fastnew do |g|
       slow = g.new_label
