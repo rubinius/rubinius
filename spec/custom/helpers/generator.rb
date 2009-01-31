@@ -492,7 +492,7 @@ class TestGenerator
     g.send :__class_init__, 0
   end
 
-  def in_method name, singleton=false
+  def in_method(name, singleton=false)
     if singleton
       g.send :metaclass, 0
     else
