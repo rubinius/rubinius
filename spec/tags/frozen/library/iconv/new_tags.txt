@@ -1,0 +1,1 @@
+fails:Iconv.new raises an Iconv::InvalidEncoding exception when an encoding cannot be found

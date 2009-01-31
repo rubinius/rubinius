@@ -1,0 +1,1 @@
+fails:Iconv.open raises an Iconv::InvalidEncoding exception when an encoding cannot be found

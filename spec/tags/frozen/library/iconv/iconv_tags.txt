@@ -1,0 +1,3 @@
+fails:Iconv#iconv when given a positive length
+fails:Iconv#iconv when given a negative length
+fails:Iconv.iconv raises an Iconv::InvalidEncoding exception when an encoding cannot be found

@@ -1,0 +1,4 @@
+fails:UNIXSocket#pair returns a pair of connected sockets
+fails:UNIXSocket#pair returns sockets with no name
+fails:UNIXSocket#pair returns sockets with no address
+fails:UNIXSocket#pair returns sockets with no peeraddr
