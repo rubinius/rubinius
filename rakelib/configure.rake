@@ -2,7 +2,7 @@
 
 require 'rakelib/configuration'
 
-file 'lib/rbconfig.rb' do
+file 'lib/rbconfig.rb' => 'rakelib/configure.rake' do
   write_rbconfig
 end
 
@@ -89,11 +89,7 @@ def write_rbconfig
 
     f.puts '  CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::RBX_VERSION}"'
     f.puts '  CONFIG["sitedir"]            = "$(install_prefix)/lib/rubinius"'
-    f.puts '  if File.directory?(File.join(prefix, "shotgun"))'
-    f.puts '    CONFIG["rubyhdrdir"]         = "$(prefix)/shotgun/lib/subtend"'
-    f.puts '  else'
-    f.puts '    CONFIG["rubyhdrdir"]         = "#{Rubinius::CODE_PATH}/$(host)"'
-    f.puts '  end'
+    f.puts '  CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"'
 
     # TODO: we should compose sitelibdir from existing CONFIG keys
     f.puts "  CONFIG[\"sitelibdir\"]         = \"$(sitedir)/#{RBX_LIBVER}\""
@@ -242,6 +238,7 @@ module Rubinius
   RBA_PATH        = #{RBX_RBA_PATH.inspect}
   BIN_PATH        = #{RBX_BIN_PATH.inspect}
   LIB_PATH        = #{RBX_LIB_PATH.inspect}
+  HDR_PATH        = #{RBX_HDR_PATH.inspect}
   RBX_VERSION     = #{RBX_VERSION.inspect}
 end
 
