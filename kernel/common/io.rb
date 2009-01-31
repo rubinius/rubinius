@@ -565,6 +565,8 @@ class IO
     setup Type.coerce_to(fd, Integer, :to_int), mode
   end
 
+  private :initialize
+
   #
   # @internal
   #

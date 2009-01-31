@@ -66,6 +66,8 @@ class File < IO
     end
   end
 
+  private :initialize
+
   attr_reader :path
 
   ##
