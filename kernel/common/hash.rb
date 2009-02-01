@@ -104,12 +104,6 @@ class Hash
     self
   end
 
-  def clone
-    hash = dup
-    hash.freeze if frozen?
-    hash
-  end
-
   def default(key = Undefined)
     # current MRI documentation comment is wrong.  Actual behavior is:
     # Hash.new { 1 }.default # => nil
