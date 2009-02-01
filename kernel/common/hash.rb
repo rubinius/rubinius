@@ -87,8 +87,9 @@ class Hash
   end
 
   def []=(key, value)
-    key = key.dup if key.kind_of? String
-    # TODO: freeze if String
+    if key.kind_of? String
+      key = key.dup.freeze unless key.frozen?
+    end
 
     hsh = key.hash
     entry = self.entry key, hsh
