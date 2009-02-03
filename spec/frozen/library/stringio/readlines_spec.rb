@@ -1,12 +1,12 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "StringIO#readlines when passed [seperator]" do
+describe "StringIO#readlines when passed [separator]" do
   before(:each) do
     @io = StringIO.new("this>is>an>example")
   end
 
-  it "returns an Array containing lines based on the passed seperator" do
+  it "returns an Array containing lines based on the passed separator" do
     @io.readlines(">").should == ["this>", "is>", "an>", "example"]
   end
 
@@ -26,7 +26,7 @@ describe "StringIO#readlines when passed [seperator]" do
     $_.should == "test"
   end
 
-  it "returns an Array containing all paragraphs when the passed seperator is an empty String" do
+  it "returns an Array containing all paragraphs when the passed separator is an empty String" do
     io = StringIO.new("this is\n\nan example")
     io.readlines("").should == ["this is\n", "an example"]
   end
@@ -37,7 +37,7 @@ describe "StringIO#readlines when passed [seperator]" do
     io.readlines(nil).should == ["is\n\nan example"]
   end
 
-  it "tries to convert the passed seperator to a String using #to_str" do
+  it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('to_str')
     obj.stub!(:to_str).and_return(">")
     @io.readlines(obj).should == ["this>", "is>", "an>", "example"]

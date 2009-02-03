@@ -12,14 +12,18 @@ describe "Mutex#try_lock" do
     m2 = Mutex.new
 
     m2.lock
-    t1 = Thread.new do
+    th = Thread.new do
       m1.lock
       m2.lock
     end
 
+    Thread.pass until th.status == "sleep"
+
+    # th owns m1 so try_lock should return false
     m1.try_lock.should be_false
     m2.unlock
-    t1.join
+    th.join
+    # once th is finished m1 should be released
     m1.try_lock.should be_true
   end
 end

@@ -26,7 +26,7 @@ describe :net_ftp_puttextfile, :shared => true do
     @ftp.last_response.should == "200 OK, Data received. (STOR text)\n"
   end
   
-  it "sends the contents of the passed local_file, using \\r\\n as the newline seperator" do
+  it "sends the contents of the passed local_file, using \\r\\n as the newline separator" do
     @ftp.send(@method, @local_fixture_file, "text")
     
     remote_lines = File.readlines(@remote_tmp_file)

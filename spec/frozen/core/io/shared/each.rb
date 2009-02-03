@@ -35,7 +35,7 @@ describe :io_each, :shared => true do
     $_.should == "test"
   end
 
-  it "uses $/ as the default line seperator" do
+  it "uses $/ as the default line separator" do
     seen = []
     begin
       old_rs, $/ = $/, " "
@@ -94,7 +94,7 @@ describe :io_each_separator, :shared => true do
     @io.close
   end
 
-  it "uses the passed argument as the line seperator" do
+  it "uses the passed argument as the line separator" do
     seen = []
     @io.send(@method, " ") {|s| seen << s}
     seen.should == ["Voici ", "la ", "ligne ", "une.\nQui ", "\303\250 ", "la ",
@@ -113,7 +113,7 @@ describe :io_each_separator, :shared => true do
     @io.send(@method) {|l| l }.should equal(@io)
   end
 
-  it "tries to convert the passed seperator to a String using #to_str" do
+  it "tries to convert the passed separator to a String using #to_str" do
     obj = mock("to_str")
     obj.stub!(:to_str).and_return(" ")
     
@@ -125,14 +125,14 @@ describe :io_each_separator, :shared => true do
       "linha ", "cinco.\nHere ", "is ", "line ", "six.\n"]
   end
 
-  it "yields self's content starting from the current position when the passed seperator is nil" do
+  it "yields self's content starting from the current position when the passed separator is nil" do
     seen = []
     @io.pos = 100
     @io.send(@method, nil) {|s| seen << s}
     seen.should == ["qui a linha cinco.\nHere is line six.\n"]
   end
   
-  it "yields each paragraph when passed an empty String as seperator" do
+  it "yields each paragraph when passed an empty String as separator" do
     seen = []
     para_file = File.dirname(__FILE__) + '/../fixtures/paragraphs.txt'
     File.open(para_file) do |io|

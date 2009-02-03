@@ -90,7 +90,7 @@ describe "String#chomp with separator" do
   end
 end
 
-describe "String#chomp! with seperator" do
+describe "String#chomp! with separator" do
   it "modifies self in place and returns self" do
     s = "one\n"
     s.chomp!.should equal(s)

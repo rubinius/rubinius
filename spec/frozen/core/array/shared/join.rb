@@ -26,7 +26,7 @@ describe :array_join, :shared => true do
     [1, [2, ArraySpecs::MyArray[3, 4], 5], 6].send(@method, ":").should == "1:2:3:4:5:6"
   end
 
-  it "tries to convert the passed seperator to a String using #to_str" do
+  it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('::')
     obj.should_receive(:to_str).and_return("::")
     [1, 2, 3, 4].send(@method, obj).should == '1::2::3::4'

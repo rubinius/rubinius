@@ -44,4 +44,14 @@ describe "Module#attr_accessor" do
     (o = mock('123')).should_receive(:to_str).and_return(123)
     lambda { Class.new { attr_accessor o } }.should raise_error(TypeError)
   end
+
+  it "applies current visibility to methods created" do
+    c = Class.new do
+      protected
+      attr_accessor :foo
+    end
+
+    lambda { c.new.foo }.should raise_error(NoMethodError)
+    lambda { c.new.foo=1 }.should raise_error(NoMethodError)
+  end
 end

@@ -64,17 +64,17 @@ describe "CSV.parse_line" do
     result.should == [[nil],[nil],['bar']]
   end
 
-  it "parses 'foo' into [['foo']] with a seperator of ;" do
+  it "parses 'foo' into [['foo']] with a separator of ;" do
     result = CSV::parse "foo", ?;
     result.should == [['foo']]
   end
 
-  it "parses 'foo;bar' into [['foo','bar']] with a seperator of ;" do
+  it "parses 'foo;bar' into [['foo','bar']] with a separator of ;" do
     result = CSV::parse "foo;bar", ?;
     result.should == [['foo','bar']]
   end
 
-  it "parses 'foo;bar\nbaz;quz' into [['foo','bar'],['baz','quz']] with a seperator of ;" do
+  it "parses 'foo;bar\nbaz;quz' into [['foo','bar'],['baz','quz']] with a separator of ;" do
     result = CSV::parse "foo;bar\nbaz;quz", ?;
     result.should == [['foo','bar'],['baz','quz']]
   end

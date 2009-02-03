@@ -12,7 +12,10 @@ describe "ConditionVariable#wait" do
       end
     end
 
-    cv.signal
+    # ensures that th grabs m before current thread
+    Thread.pass until th.status == "sleep"
+
+    m.synchronize { cv.signal }
     th.join
   end
 end

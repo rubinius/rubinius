@@ -25,6 +25,12 @@ describe "The '&&' statement" do
     x.should == 2
   end
 
+  it "treats empty expressions as nil" do
+    (() && true).should be_nil
+    (true && ()).should be_nil
+    (() && ()).should be_nil
+  end
+
 end
 
 describe "The 'and' statement" do
@@ -49,6 +55,12 @@ describe "The 'and' statement" do
     x = 1 and y = 2
     # evaluates (x=1) and (y=2)
     x.should == 1
+  end
+
+  it "treats empty expressions as nil" do
+    (() and true).should be_nil
+    (true and ()).should be_nil
+    (() and ()).should be_nil
   end
 
 end

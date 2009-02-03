@@ -44,7 +44,7 @@ describe "IO#readlines when passed no arguments" do
   end
 end
 
-describe "IO#readlines when passed [seperator]" do
+describe "IO#readlines when passed [separator]" do
   before(:each) do
     @io = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt')
   end
@@ -53,7 +53,7 @@ describe "IO#readlines when passed [seperator]" do
     @io.close
   end
   
-  it "returns an Array containing lines based on the passed seperator" do
+  it "returns an Array containing lines based on the passed separator" do
     @io.readlines('r').should == [
       "Voici la ligne une.\nQui \303\250 la linea due.\nAqu\303\255 est\303\241 la l\303\255nea tr",
       "es.\nIst hier",
@@ -83,7 +83,7 @@ describe "IO#readlines when passed [seperator]" do
     $_.should == "test"
   end
 
-  it "returns an Array containing all paragraphs when the passed seperator is an empty String" do
+  it "returns an Array containing all paragraphs when the passed separator is an empty String" do
     File.open(File.dirname(__FILE__) + '/fixtures/paragraphs.txt') do |io|
       io.readlines("").should == ["This is\n\n", "an example\n\n", "of paragraphs."]
     end
@@ -96,7 +96,7 @@ describe "IO#readlines when passed [seperator]" do
       "Ist hier Linie vier.\nEst\303\241 aqui a linha cinco.\nHere is line six.\n"]
   end
   
-  it "tries to convert the passed seperator to a String using #to_str" do
+  it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('to_str')
     obj.stub!(:to_str).and_return("r")
     @io.readlines(obj).should == [
@@ -162,12 +162,12 @@ describe "IO.readlines when passed [file_name]" do
   end
 end
 
-describe "IO#readlines when passed [file_name, seperator]" do
+describe "IO#readlines when passed [file_name, separator]" do
   before(:each) do
     @file = File.dirname(__FILE__) + '/fixtures/readlines.txt'
   end
   
-  it "returns an Array containing lines of file_name based on the passed seperator" do
+  it "returns an Array containing lines of file_name based on the passed separator" do
     IO.readlines(@file, 'r').should == [
       "Voici la ligne une.\nQui \303\250 la linea due.\nAqu\303\255 est\303\241 la l\303\255nea tr",
       "es.\nIst hier",
@@ -182,12 +182,12 @@ describe "IO#readlines when passed [file_name, seperator]" do
     $_.should == "test"
   end
 
-  it "returns an Array containing all paragraphs when the passed seperator is an empty String" do
+  it "returns an Array containing all paragraphs when the passed separator is an empty String" do
     para_file = File.dirname(__FILE__) + '/fixtures/paragraphs.txt'
     IO.readlines(para_file, "").should == ["This is\n\n", "an example\n\n", "of paragraphs."]
   end
   
-  it "tries to convert the passed seperator to a String using #to_str" do
+  it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('to_str')
     obj.stub!(:to_str).and_return("r")
     IO.readlines(@file, obj).should == [

@@ -5,7 +5,7 @@ describe "Tempfile#initialize" do
   before(:each) do
     @tempfile = Tempfile.allocate
   end
-  
+
   after(:each) do
     @tempfile.close
   end
@@ -15,5 +15,10 @@ describe "Tempfile#initialize" do
     File.exist?(@tempfile.path).should be_true
     @tempfile.path.should =~ /^#{tmp("")}/
     @tempfile.path.should include("basename")
+  end
+
+  it "sets the permisssions on the tempfile to 0600" do
+    @tempfile.send(:initialize, "basename", tmp(""))
+    File.stat(@tempfile.path).mode.should == 0100600
   end
 end
