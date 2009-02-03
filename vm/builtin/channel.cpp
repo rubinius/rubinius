@@ -53,39 +53,30 @@ namespace rubinius {
    * @todo   The list management is iffy. Should probably just
    *          always assume it is a list. --rue
    */
-  ExecuteStatus Channel::receive_prim(STATE, Executable* exec, Task* task, Message& msg) {
+  Object* Channel::receive_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg) {
     Thread* current = state->globals.current_thread.get();
 
-    task->active()->clear_stack(msg.stack);
-
+top:
     // @todo  check arity
     if(!value_->nil_p()) {
       List* list = as<List>(value_);
 
-      task->push(list->shift(state));
+      Object* ret = list->shift(state);
 
       if(list->size() == 0) {
         value(state, Qnil);
       }
 
-      return cExecuteContinue;
+      return ret;
     }
-
-    /* Saves space plus if thread woken forcibly, it gets the Qfalse. */
-    task->push(Qfalse);
 
     current->sleep_for(state, this);
     waiting_->append(state, current);
 
+    // Blocks?
     state->check_events();
 
-    /* This sets the Task to continue from the next
-     * opcode when it eventually reactivates. Its
-     * stack will then have either the real received
-     * value or the default Qfalse if the thread
-     * was forced to stop waiting for us.
-     */
-    return cExecuteRestart;
+    goto top;
   }
 
   Object* Channel::receive(STATE) {

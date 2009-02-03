@@ -52,8 +52,8 @@ namespace rubinius {
     msg.name = meth->name() ? meth->name() : state->symbol("__weird_unnamed_method__");
     msg.module = recv->class_object(state);
     msg.method = meth;
-    msg.set_caller(task->active());
-    meth->execute(state, task, msg);
+    // msg.set_caller(task->active());
+    // meth->execute(state, task, msg);
 
     return task;
   }
@@ -90,15 +90,15 @@ namespace rubinius {
     return state->globals.current_task.get();
   }
 
-  ExecuteStatus Task::set_current(STATE, Executable* exec, Task* task_, Message& msg) {
-
+  Object* Task::set_current(STATE, Executable* exec, Task* task_, Message& msg) {
+    abort();
     Task* tsk = try_as<Task>(msg.get_argument(0));
 
     Thread::current(state)->task(state, tsk);
     state->globals.current_task.set(tsk);
 
     state->interrupts.check = true; // HACK, forcing jump out of Task::execute() loop
-    return cExecuteRestart;
+    return Qnil;
   }
 
   MethodContext* Task::current_context(STATE) {
@@ -136,15 +136,15 @@ namespace rubinius {
 
   /* For details in msg, locate the proper method and begin execution
    * of it. */
-  ExecuteStatus Task::send_message(Message& msg) {
+  Object* Task::send_message(CallFrame* call_frame, Message& msg) {
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return msg.method->execute(state, this, msg);
+    return msg.method->execute(state, call_frame, this, msg);
   }
 
-  ExecuteStatus Task::send_message_slowly(Message& msg) {
+  Object* Task::send_message_slowly(CallFrame* call_frame, Message& msg) {
     Symbol* original_name = msg.name;
     if(!GlobalCacheResolver::resolve(state, msg)) {
       msg.method_missing = true;
@@ -161,14 +161,16 @@ namespace rubinius {
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return msg.method->execute(state, this, msg);
+    return msg.method->execute(state, call_frame, this, msg);
   }
 
   bool Task::passed_arg_p(size_t pos) {
+    abort();
     return active_->args >= pos;
   }
 
   Object* Task::call_object(STATE, Object* recv, Symbol* meth, Array* args) {
+    abort();
     recv->send_on_task(state, this, meth, args);
 
     // HACK by calling directly into another Task, the context cache gets
@@ -180,6 +182,7 @@ namespace rubinius {
   }
 
   void Task::restore_sender() {
+    abort();
     MethodContext *target = active_->sender();
 
     if(unlikely(profiler)) profiler->leave_method();
@@ -192,6 +195,7 @@ namespace rubinius {
   /* @todo Mirrors restore_sender too much, unify. */
   void Task::native_return(Object* return_value)
   {
+    assert(0);
     if (profiler) {
       profiler->leave_method();
     }
@@ -214,7 +218,7 @@ namespace rubinius {
 
   /* Called after a primitive has executed and wants to return a value. */
   void Task::primitive_return(Object* value, Message& msg) {
-    active_->clear_stack(msg.stack);
+    assert(0);
     push(value);
   }
 
@@ -229,22 +233,6 @@ namespace rubinius {
 
     assert(current_ep);
     current_ep->return_to(this);
-
-    abort();
-
-    for(;;) {
-      if(active_->has_unwinds_p()) {
-        MethodContext::UnwindInfo& info = active_->pop_unwind();
-        active_->position_stack(info.stack_depth);
-        set_ip(info.target_ip);
-        return;
-      }
-
-      if(active_->sender()->nil_p()) break;
-      if(profiler) profiler->leave_method();
-
-      restore_sender();
-    }
   }
 
   Tuple* Task::locate_method_on(Object* recv, Symbol* sel, Object* priv_p) {
@@ -254,7 +242,7 @@ namespace rubinius {
     msg.lookup_from = recv->lookup_begin(state);
     msg.name = sel;
     msg.priv = (priv_p == Qtrue);
-    msg.set_caller(active_);
+    msg.set_caller(NULL); // HACK
 
     if(!GlobalCacheResolver::resolve(state, msg)) {
       return (Tuple*)Qnil;
@@ -270,7 +258,7 @@ namespace rubinius {
     return Tuple::from(state, 2, msg.method, msg.module);
   }
 
-  void Task::attach_method(Object* recv, Symbol* name, CompiledMethod* method) {
+  void Task::attach_method(CallFrame* call_frame, Object* recv, Symbol* name, CompiledMethod* method) {
     if(kind_of<Module>(recv)) {
       StaticScope* ss = StaticScope::create(state);
       ss->module(state, (Module*)recv);
@@ -278,14 +266,14 @@ namespace rubinius {
       method->scope(state, ss);
     } else {
       /* Push the current scope down. */
-      method->scope(state, active_->cm()->scope());
+      method->scope(state, call_frame->cm->scope());
     }
 
-    add_method(recv->metaclass(state), name, method);
+    add_method(call_frame, recv->metaclass(state), name, method);
   }
 
-  void Task::add_method(Module* mod, Symbol* name, CompiledMethod* method) {
-    method->scope(state, active_->cm()->scope());
+  void Task::add_method(CallFrame* call_frame, Module* mod, Symbol* name, CompiledMethod* method) {
+    method->scope(state, call_frame->cm->scope());
     method->serial(state, Fixnum::from(0));
     mod->method_table()->store(state, name, method);
     state->global_cache->clear(mod, name);
@@ -349,13 +337,14 @@ namespace rubinius {
    *
    * Returns the LookupTableAssociation object used to store the constant
    */
-  LookupTableAssociation* Task::const_get_association(Symbol* name, bool* found) {
+  LookupTableAssociation* Task::const_get_association(CallFrame* call_frame,
+                                Symbol* name, bool* found) {
     StaticScope *cur;
     LookupTableAssociation* result;
 
     *found = false;
 
-    cur = active_->cm()->scope();
+    cur = call_frame->cm->scope();
     while(!cur->nil_p()) {
       if(cur->module() == G(object)) break;
 
@@ -365,7 +354,7 @@ namespace rubinius {
       cur = cur->parent();
     }
 
-    Module* mod = active_->cm()->scope()->module();
+    Module* mod = call_frame->cm->scope()->module();
     while(!mod->nil_p()) {
       result = mod->get_const_association(state, name, found);
       if(*found) return result;
@@ -380,8 +369,8 @@ namespace rubinius {
     return reinterpret_cast<LookupTableAssociation*>(Qnil);
   }
 
-  Object* Task::const_get(Symbol* name, bool* found) {
-    LookupTableAssociation* assoc = const_get_association(name, found);
+  Object* Task::const_get(CallFrame* call_frame, Symbol* name, bool* found) {
+    LookupTableAssociation* assoc = const_get_association(call_frame, name, found);
     if(*found) {
       return assoc->value();
     } else {
@@ -393,8 +382,8 @@ namespace rubinius {
     mod->set_const(state, name, val);
   }
 
-  void Task::const_set(Symbol* name, Object* val) {
-    active_->cm()->scope()->module()->set_const(state, name, val);
+  void Task::const_set(CallFrame* call_frame, Symbol* name, Object* val) {
+    call_frame->cm->scope()->module()->set_const(state, name, val);
   }
 
   void Task::yield_debugger() {
@@ -414,7 +403,7 @@ namespace rubinius {
 
     //sassert(chan->has_readers_p());
 
-    active_->reference(state);
+    // active_->reference(state);
 
     Thread* thr = G(current_thread);
     thr->frozen_stack(state, Qtrue);
@@ -455,13 +444,13 @@ namespace rubinius {
     return cls;
   }
 
-  Class* Task::open_class(Object* super, Symbol* name, bool* created) {
+  Class* Task::open_class(CallFrame* call_frame, Object* super, Symbol* name, bool* created) {
     Module* under;
 
-    if(active_->cm()->scope()->nil_p()) {
+    if(call_frame->cm->scope()->nil_p()) {
       under = G(object);
     } else {
-      under = active_->cm()->scope()->module();
+      under = call_frame->cm->scope()->module();
     }
 
     return open_class(under, super, name, created);
@@ -479,11 +468,11 @@ namespace rubinius {
     return add_class(state, under, super, name);
   }
 
-  Module* Task::open_module(Symbol* name) {
+  Module* Task::open_module(CallFrame* call_frame, Symbol* name) {
     Module* under = state->globals.object.get();
 
-    if(!active_->cm()->scope()->nil_p()) {
-      under = active_->cm()->scope()->module();
+    if(!call_frame->cm->scope()->nil_p()) {
+      under = call_frame->cm->scope()->module();
     }
 
     return open_module(under, name);
@@ -511,42 +500,51 @@ namespace rubinius {
   /* Used only in debugging and testing. Direct access to the stack
    * can be dangerous. */
   Object** Task::current_stack() {
+    abort();
     return active_->stk;
   }
 
   void Task::push(Object* val) {
+    abort();
     active_->push(val);
   }
 
   Object* Task::pop() {
+    abort();
     return active_->pop();
   }
 
   Object* Task::stack_top() {
+    abort();
     return active_->top();
   }
 
   /* Retrieve the object at position +pos+ in the current context */
   Object* Task::stack_at(size_t pos) {
+    abort();
     return active_->stack_at(pos);
   }
 
   int Task::calculate_sp() {
+    abort();
     return active_->calculate_sp();
   }
 
   /* Set the local variable at +pos+ to +val+ in the current context. */
   void Task::set_local(int pos, Object* val) {
+    abort();
     active_->set_local(pos, val);
   }
 
   /* Get local variable at +pos+ in the current context. */
   Object* Task::get_local(int pos) {
+    abort();
     return active_->get_local(pos);
   }
 
   /* Move the active context to executing instruction +ip+. */
   void Task::set_ip(int ip) {
+    abort();
     active_->ip = ip;
     if(active_->native_ip != NULL) {
       MachineMethod* mm = active_->vmm->machine_method();
@@ -558,6 +556,7 @@ namespace rubinius {
 
   /* Returns the current instruction the active context is on. */
   int Task::current_ip() {
+    abort();
     return active_->ip;
   }
 
@@ -579,6 +578,8 @@ namespace rubinius {
 
   /* This should only ever run for CompiledMethods currently. */
   void Task::execute() {
+    abort();
+    /*
     try {
       for(;;) {
         VMMethod* const vmm = active_->vmm;
@@ -600,6 +601,7 @@ namespace rubinius {
       Exception* e = Exception::make_type_error(state, exc.type, exc.object, exc.reason);
       raise_exception(e);
     }
+    */
   }
 
   /** @todo Refactor the hell out of this with streams. */
@@ -688,7 +690,7 @@ namespace rubinius {
     close_body(level);
   }
 
-  ExecuteStatus Task::task_dup(STATE, Executable* exec, Task* task_, Message& msg) {
+  Object* Task::task_dup(STATE, Executable* exec, CallFrame* call_frame, Task* task_, Message& msg) {
 
     Task* recv = try_as<Task>(msg.recv);
 
@@ -705,13 +707,9 @@ namespace rubinius {
 
     ret->active(state, recv->active()->dup_chain(state));
 
-    ret->active()->clear_stack(msg.stack);
     ret->active()->push((Object*)Qnil);
 
-    msg.caller()->clear_stack(msg.stack);
-    msg.caller()->push(ret);
-
-    return cExecuteContinue;
+    return ret;
   }
 }
 

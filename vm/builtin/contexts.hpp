@@ -6,6 +6,7 @@
 #include "type_info.hpp"
 #include "vmmethod.hpp"
 #include "jit_state.h"
+#include "unwind_info.hpp"
 
 namespace rubinius {
   class BlockContext;
@@ -16,18 +17,9 @@ namespace rubinius {
   class Tuple;
   class Module;
 
-  // TODO figure out if this is a good number
-  const int kMaxUnwindInfos = 20;
-
   class MethodContext : public Object {
   public:
     const static object_type type = MethodContextType;
-
-  public: // Types
-    struct UnwindInfo {
-      uint32_t target_ip;
-      uint32_t stack_depth;
-    };
 
   private:
     MethodContext* sender_; // slot

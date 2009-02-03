@@ -22,6 +22,8 @@
 #include "builtin/block_wrapper.hpp"
 #include "builtin/thread.hpp"
 
+#include "call_frame.hpp"
+
 #include "objectmemory.hpp"
 #include "message.hpp"
 #include "instructions.hpp"
@@ -29,31 +31,29 @@
 
 using namespace rubinius;
 
-// #define OP(name, args...) void name(Task* task, struct jit_state* const js, ## args)
-#define OP2(type, name, args...) type name(Task* task, MethodContext* const ctx, ## args)
-
 // HACK: sassert is stack protection
 #ifdef RBX_DEBUG
 
-#define stack_push(val) ({ Object* _v = (val); sassert(_v && (int)_v != 0x10 && ctx->js.stack < ctx->js.stack_top); *++ctx->js.stack = _v; })
-#define stack_pop() ({ assert(ctx->js.stack >= ctx->stk); *ctx->js.stack--; })
-#define stack_set_top(val) ({ Object* _v = (val); assert((int)(_v) != 0x10); *ctx->js.stack = _v; })
+#define stack_push(val) ({ Object* _v = (val); sassert(_v && (int)_v != 0x10 && call_frame->js.stack < call_frame->js.stack_top); *++call_frame->js.stack = _v; })
+#define stack_pop() ({ assert(call_frame->js.stack >= call_frame->stk); *call_frame->js.stack--; })
+#define stack_set_top(val) ({ Object* _v = (val); assert((int)(_v) != 0x10); *call_frame->js.stack = _v; })
 
 #else
 
 /** We have to use the local here we need to evaluate val before we alter
  * the stack. The reason is evaluating val might throw an exception. The
  * old code used an undefined behavior, this forces the order. */
-#define stack_push(val) ({ Object* __stack_v = (val); *++ctx->js.stack = __stack_v; })
-#define stack_pop() *ctx->js.stack--
-#define stack_set_top(val) *ctx->js.stack = (val)
+#define stack_push(val) ({ Object* __stack_v = (val); *++call_frame->js.stack = __stack_v; })
+#define stack_pop() *call_frame->js.stack--
+#define stack_set_top(val) *call_frame->js.stack = (val)
 
 #define USE_JUMP_TABLE
 
 #endif
 
-#define stack_top() *ctx->js.stack
-#define stack_back(count) *(ctx->js.stack - count)
+#define stack_top() *call_frame->js.stack
+#define stack_back(count) *(call_frame->js.stack - count)
+#define stack_clear(count) call_frame->clear_stack(count)
 
 #define SHOW(obj) (((NormalObject*)(obj))->show(state))
 
@@ -64,7 +64,7 @@ using namespace rubinius;
 #define cache_ip()
 
 extern "C" {
-  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, Symbol* name, size_t args);
+  Object* send_slowly(VMMethod* vmm, Task* task, CallFrame* const call_frame, Symbol* name, size_t args);
 
 #define RETURN(val) return val
 
@@ -78,55 +78,7 @@ si.generate_functions impl, io
 puts io.string
 CODE
 
-/*
-  OP2(bool, fixed_args_prelude, size_t required) {
-    Message* const msg = task->msg;
-
-    if(msg->args != required) {
-      return false;
-    }
-
-    MethodContext* ctx = MethodContext::create(state, msg->recv, original.get());
-    task->make_active(ctx);
-
-    for(size_t i = 0; i < required; i++) {
-      ctx->stack->put(task->state, i, msg->get_argument(i));
-    }
-
-    return true;
-  }
-
-  OP2(bool, zero_args_prelude) {
-    Message* const msg = task->msg;
-    if(task->msg.args != 0) return false;
-
-    MethodContext* ctx = MethodContext::create(state, msg->recv, original.get());
-    task->make_active(ctx);
-    return true;
-  }
-
-  OP2(bool, full_prelude) {
-    task->import_arguments(task->ctx, *task->msg);
-  }
-
-  */
-
-  OP2(bool, jit_goto_if_false) {
-    Object* val = stack_pop();
-    return !RTEST(val);
-  }
-  
-  OP2(bool, jit_goto_if_true) {
-    Object* val = stack_pop();
-    return RTEST(val);
-  }
-
-  OP2(bool, jit_goto_if_defined) {
-    Object* val = stack_pop();
-    return val != Qundef;
-  }
-
-  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, Symbol* name, size_t args) {
+  Object* send_slowly(VMMethod* vmm, Task* task, CallFrame* const call_frame, Symbol* name, size_t args) {
     Message& msg = *task->msg;
     msg.recv = stack_back(args);
     msg.use_from_task(task, args);
@@ -135,7 +87,7 @@ CODE
     msg.block = Qnil;
     msg.stack = args + 1;
 
-    return task->send_message_slowly(msg);
+    return task->send_message_slowly(call_frame, msg);
   }
 }
 
@@ -149,11 +101,10 @@ CODE
 #undef RETURN
 #define RETURN(val) (void)val; return;
 
-void rubinius::Task::execute_stream(opcode* stream) {
+Object* rubinius::Task::execute_stream(CallFrame* call_frame, opcode* stream) {
   opcode op;
   Task* task = this;
-  MethodContext* ctx = active_;
-  VMMethod* const vmm = ctx->vmm;
+  VMMethod* const vmm = call_frame->vmm;
 
   op = next_op();
 
@@ -163,21 +114,22 @@ si.generate_decoder_switch impl, io
 puts io.string
 CODE
 
+  return Qnil;
 }
 
 /* Use a simplier next_int */
 #undef next_int
-#define next_int ((opcode)(stream[ctx->ip++]))
+#define next_int ((opcode)(stream[call_frame->ip++]))
 
 #undef RETURN
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
 
-void VMMethod::interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx) {
-  opcode* stream = ctx->vmm->opcodes;
+Object* VMMethod::interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame) {
+  opcode* stream = call_frame->vmm->opcodes;
 #ifdef USE_JUMP_TABLE
 
 #undef DISPATCH_NEXT_INSN
-#define DISPATCH_NEXT_INSN goto *insn_locations[stream[ctx->ip++]];
+#define DISPATCH_NEXT_INSN goto *insn_locations[stream[call_frame->ip++]];
 
 #undef RETURN
   /*
@@ -200,11 +152,11 @@ CODE
 #undef RETURN
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
   for(;;) {
-    op = stream[ctx->ip++];
+    op = stream[call_frame->ip++];
 
 #if FLAG_FIRE_PROBE_INSTRUCTION
     if(!task->probe()->nil_p()) {
-      task->probe()->execute_instruction(task, ctx, op);
+      task->probe()->execute_instruction(task, call_frame, op);
     }
 #endif
 
@@ -223,18 +175,17 @@ CODE
  * each opcode for the breakpoint flag. It is installed on the VMMethod when
  * a breakpoint is set on compiled method.
  */
-void VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx) {
-  opcode* stream = ctx->vmm->opcodes;
+Object* VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame) {
+  opcode* stream = call_frame->vmm->opcodes;
   opcode op;
 #ifdef USE_JUMP_TABLE
 
 #undef DISPATCH_NEXT_INSN
-#define DISPATCH_NEXT_INSN op = stream[ctx->ip++]; \
+#define DISPATCH_NEXT_INSN op = stream[call_frame->ip++]; \
   if(unlikely(op & cBreakpoint)) { \
     if(G(current_thread)->frozen_stack() == Qfalse) { \
-      ctx->ip--; \
+      call_frame->ip--; \
       task->yield_debugger(); \
-      return; \
     } else { \
       G(current_thread)->frozen_stack(state, Qfalse); \
     } \
@@ -244,7 +195,6 @@ void VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, Metho
 
 #undef RETURN
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { \
-  if(unlikely(state->interrupts.check)) return;\
   DISPATCH_NEXT_INSN; \
 }
 
@@ -259,11 +209,11 @@ CODE
 #undef RETURN
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
   for(;;) {
-    op = stream[ctx->ip++];
+    op = stream[call_frame->ip++];
 
 #if FLAG_FIRE_PROBE_INSTRUCTION
     if(!task->probe()->nil_p()) {
-      task->probe()->execute_instruction(task, ctx, op);
+      task->probe()->execute_instruction(task, call_frame, op);
     }
 #endif
 

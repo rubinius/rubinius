@@ -55,7 +55,8 @@ namespace rubinius {
        *  So, we return from here which then allows the CM to really
        *  execute.
        */
-      return context->task()->send_message_slowly(context->message_from_c());
+      context->task()->send_message_slowly(NULL, context->message_from_c());
+      return cExecuteRestart;
 
     case NativeMethodContext::RETURNED_BACK_TO_C:
       jump_to_execution_point_in(context->inside_c_method_point());
@@ -76,13 +77,15 @@ namespace rubinius {
     return cExecuteRestart;
   }
 
-  ExecuteStatus NativeMethod::executor_implementation(STATE, Task* task, Message& message) {
+  Object* NativeMethod::executor_implementation(STATE, CallFrame* call_frame, Task* task, Message& message) {
+    abort();
+    return Qnil;
+    /*
     NativeMethodContext* context = NativeMethodContext::create(state,
         &message, task, as<NativeMethod>(message.method));
 
-    task->active(state, context);
-
     return activate_from(context);
+    */
   }
 
   NativeMethod* NativeMethod::load_extension_entry_point(STATE, String* path, String* name) {

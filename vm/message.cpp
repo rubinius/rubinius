@@ -147,7 +147,6 @@ namespace rubinius {
   }
 
   void Message::use_from_task(Task* task, size_t args) {
-    set_caller(task->active());
     set_args(args);
     stack_args_ = caller_->stack_back_position(args - 1);
     arguments_ = stack_args_;

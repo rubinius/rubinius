@@ -87,11 +87,11 @@ namespace rubinius {
   }
 
   void MachineMethod::run_code(VMMethod* const vmm, Task* const task,
-      MethodContext* const ctx) {
+      CallFrame* const call_frame) {
 #ifdef IS_X86
     MachineMethod* mm = vmm->machine_method();
     void* func = mm->function();
-    ((Runner)func)(vmm, task, ctx);
+    ((Runner)func)(vmm, task, call_frame);
 #else
     Assertion::raise("Only supported on x86");
 #endif

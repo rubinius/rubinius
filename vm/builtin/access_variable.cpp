@@ -27,7 +27,7 @@ namespace rubinius {
 
   /* Run when an AccessVariable is executed. Uses the details in msg.method
    * to access instance variables of msg.recv */
-  ExecuteStatus AccessVariable::access_execute(STATE, Task* task, Message& msg) {
+  Object* AccessVariable::access_execute(STATE, CallFrame* call_frame, Task* task, Message& msg) {
     AccessVariable* access = as<AccessVariable>(msg.method);
 
     /* The writer case. */
@@ -38,17 +38,15 @@ namespace rubinius {
 
       /* Fall through, handle it as a normal ivar. */
       msg.recv->set_ivar(state, access->name(), msg.get_argument(0));
-      task->primitive_return(msg.get_argument(0), msg);
-      return cExecuteContinue;
+      return msg.get_argument(0);
     }
 
     /* The read case. */
     if(msg.args() != 0) {
       Exception::argument_error(state, 0, msg.args());
+      return Qnil;
     } else {
-      task->primitive_return(msg.recv->get_ivar(state, access->name()), msg);
+      return msg.recv->get_ivar(state, access->name());
     }
-
-    return cExecuteContinue;
   }
 }

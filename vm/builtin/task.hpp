@@ -81,7 +81,7 @@ namespace rubinius {
     static Task* current(STATE);
 
     // Ruby.primitive? :task_set_current
-    static ExecuteStatus set_current(STATE, Executable* exec, Task* task_, Message& msg);
+    static Object* set_current(STATE, Executable* exec, Task* task_, Message& msg);
 
     // Ruby.primitive :task_control_channel
     Channel* get_control_channel(STATE);
@@ -96,7 +96,7 @@ namespace rubinius {
     Object* call_object(STATE, Object* recv, Symbol* meth, Array* args);
 
     // Ruby.primitive? :task_dup
-    ExecuteStatus task_dup(STATE, Executable* exec, Task* task_, Message& msg);
+    Object* task_dup(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
 
     void execute();
     void execute_interp();
@@ -106,19 +106,19 @@ namespace rubinius {
     void set_ip(int ip);
     int  current_ip();
 
-    LookupTableAssociation* const_get_association(Symbol* name, bool* found);
+    LookupTableAssociation* const_get_association(CallFrame* call_frame, Symbol* name, bool* found);
     Object* const_get(Module* under, Symbol* name, bool* found);
-    Object* const_get(Symbol* name, bool* found);
+    Object* const_get(CallFrame* call_frame, Symbol* name, bool* found);
     void   const_set(Module* under, Symbol* sym, Object* val);
-    void   const_set(Symbol* sym, Object* val);
+    void   const_set(CallFrame* call_frame, Symbol* sym, Object* val);
 
-    void attach_method(Object* obj, Symbol* name, CompiledMethod* meth);
-    void add_method(Module* obj, Symbol* name, CompiledMethod* meth);
-    Class* open_class(Object* super, Symbol* name, bool* created);
+    void attach_method(CallFrame* call_frame, Object* obj, Symbol* name, CompiledMethod* meth);
+    void add_method(CallFrame* call_frame, Module* obj, Symbol* name, CompiledMethod* meth);
+    Class* open_class(CallFrame* call_frame, Object* super, Symbol* name, bool* created);
     Class* open_class(Module* under, Object* super, Symbol* name, bool* created);
 
     /** Reopen existing or create new Module by name in the current lexical scope. */
-    Module* open_module(Symbol* name);
+    Module* open_module(CallFrame* call_frame, Symbol* name);
     /** Reopen existing or create new Module by name under the given enclosing Module. */
     Module* open_module(Module* under, Symbol* name);
 
@@ -126,8 +126,8 @@ namespace rubinius {
     Task* raise(STATE, Exception *exc);
 
     void raise_exception(Exception *exc);
-    ExecuteStatus send_message(Message& msg);
-    ExecuteStatus send_message_slowly(Message& msg);
+    Object* send_message(CallFrame*, Message& msg);
+    Object* send_message_slowly(CallFrame*, Message& msg);
     Module* current_module();
 
     Tuple* locate_method_on(Object* obj, Symbol* sel, Object* priv);
@@ -139,7 +139,7 @@ namespace rubinius {
     void yield_debugger();
     bool check_serial(Object* obj, Symbol* sel, int ser);
 
-    void execute_stream(opcode* stream);
+    Object* execute_stream(CallFrame* call_frame, opcode* stream);
     void push(Object* val);
     Object* pop();
     Object* stack_top();

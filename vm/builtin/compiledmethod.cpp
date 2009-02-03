@@ -107,10 +107,10 @@ namespace rubinius {
     return this;
   }
 
-  ExecuteStatus CompiledMethod::default_executor(STATE, Task* task, Message& msg) {
+  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Task* task, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
     cm->formalize(state, false);
-    return cm->execute(state, task, msg);
+    return cm->execute(state, call_frame, task, msg);
   }
 
   void CompiledMethod::post_marshal(STATE) {
@@ -121,7 +121,7 @@ namespace rubinius {
     return local_count_->to_native();
   }
 
-  ExecuteStatus CompiledMethod::activate(STATE, Executable* exec, Task* task, Message& msg) {
+  Object* CompiledMethod::activate(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg) {
     CompiledMethod* meth = as<CompiledMethod>(msg.recv);
     Object* recv = msg.get_argument(0);
     Module* mod  = as<Module>(msg.get_argument(1));
@@ -140,7 +140,7 @@ namespace rubinius {
     // push the name given, because there really isn't one. So if
     // this is used to call a method_missing, you have to supply all
     // the args.
-    return meth->execute(state, task, msg);
+    return meth->execute(state, call_frame, task, msg);
   }
 
   MachineMethod* CompiledMethod::make_machine_method(STATE) {

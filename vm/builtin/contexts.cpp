@@ -241,6 +241,7 @@ namespace rubinius {
       }
     }
 
+    /*
     for(MethodContext* ctx = ret; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
       if(ctx->obj_type == BlockContextType) {
         BlockEnvironment* old_env = as<BlockContext>(ctx)->env();
@@ -251,6 +252,7 @@ namespace rubinius {
         ctx->block(state, new_env);
       }
     }
+    */
 
     for(MethodContext* ctx = this; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
       if(ctx->obj_type == MethodContextType) {

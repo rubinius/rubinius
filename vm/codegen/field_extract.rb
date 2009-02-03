@@ -4,7 +4,7 @@ class BasicPrimitive
   attr_accessor :raw
 
   def output_header(str)
-    str << "ExecuteStatus Primitives::#{@name}(STATE, Task* task, Message& msg) {\n"
+    str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Task* task, Message& msg) {\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  Object* ret;\n"
@@ -32,8 +32,7 @@ class BasicPrimitive
   end
 
   def prim_return(str, indent=2)
-    str << "#{' ' * indent}msg.caller()->clear_stack(msg.stack);\n"
-    str << "#{' ' * indent}msg.caller()->push(ret);\n"
+    str << "#{' ' * indent}return ret;\n"
   end
 
   def output_call(str, call, args)
@@ -44,15 +43,14 @@ class BasicPrimitive
     str << "    if(unlikely(task->profiler)) task->profiler->leave_method();\n"
     str << "  } catch(const RubyException& exc) {\n"
     str << "    task->raise_exception(exc.exception);\n"
-    str << "    return cExecuteRestart;\n"
+    str << "    return Qnil;\n"
     str << "  }\n"
     str << "\n"
     str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
     str << "    goto fail;\n\n"
     prim_return(str);
-    str << "  return cExecuteContinue;\n\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, task, msg);\n"
+    str << "  return VMMethod::execute(state, call_frame, task, msg);\n"
     str << "}\n\n"
   end
 
@@ -80,13 +78,12 @@ class CPPPrimitive < BasicPrimitive
     str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
     str << "  if(unlikely(recv == NULL)) goto fail;\n"
 
-    # Raw primitives must return ExecuteStatus, not Object*
     if @raw
       str << "\n"
-      str << "  return recv->#{@cpp_name}(state, msg.method, task, msg);\n"
+      str << "  return recv->#{@cpp_name}(state, msg.method, call_frame, task, msg);\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return VMMethod::execute(state, task, msg);\n"
+      str << "  return VMMethod::execute(state, call_frame, task, msg);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -156,11 +153,10 @@ class CPPOverloadedPrimitive < BasicPrimitive
       str << "        if(unlikely(task->profiler)) task->profiler->leave_method();\n"
       str << "      } catch(const RubyException& exc) {\n"
       str << "        task->raise_exception(exc.exception);\n"
-      str << "        return cExecuteRestart;\n"
+      str << "        return Qnil;\n"
       str << "      }\n"
       str << "      if(likely(ret != reinterpret_cast<Object*>(kPrimitiveFailed))) {\n"
       prim_return(str, 8);
-      str << "        return cExecuteContinue;\n"
       str << "      }\n"
       str << "    }\n"
       str << "\n"
@@ -168,7 +164,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  }\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, task, msg);\n"
+    str << "  return VMMethod::execute(state, call_frame, task, msg);\n"
     str << "}\n\n"
     return str
   end
@@ -632,7 +628,7 @@ end
 write_if_new "vm/gen/primitives_declare.hpp" do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
-      f.puts "static ExecuteStatus #{pn}(STATE, Task* task, Message& msg);"
+      f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Task* task, Message& msg);"
     end
   end
 end

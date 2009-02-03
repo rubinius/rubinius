@@ -157,6 +157,8 @@ namespace rubinius {
 
   // Argument handler implementations
 
+#ifdef USE_SPECIALIZED_EXECUTE
+
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
@@ -227,17 +229,18 @@ namespace rubinius {
       return true;
     }
   };
+#endif
 
   // The fallback, can handle all cases
   class GenericArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       const bool has_splat = (vmm->splat_position >= 0);
 
       // expecting 0, got 0.
       if(vmm->total_args == 0 and msg.args() == 0) {
         if(has_splat) {
-          ctx->set_local(vmm->splat_position, Array::create(state, 0));
+          scope->set_local(vmm->splat_position, Array::create(state, 0));
         }
 
         return true;
@@ -258,7 +261,7 @@ namespace rubinius {
 
       // Copy in the normal, fixed position arguments
       for(native_int i = 0; i < fixed_args; i++) {
-        ctx->set_local(i, msg.get_argument(i));
+        scope->set_local(i, msg.get_argument(i));
       }
 
       if(has_splat) {
@@ -283,7 +286,7 @@ namespace rubinius {
           ary = Array::create(state, 0);
         }
 
-        ctx->set_local(vmm->splat_position, ary);
+        scope->set_local(vmm->splat_position, ary);
       }
 
       return true;
@@ -327,6 +330,7 @@ namespace rubinius {
     }
   }
 
+#ifdef USE_SPECIALIZED_EXECUTE
   template <typename ArgumentHandler>
   ExecuteStatus VMMethod::execute_specialized(STATE, Task* task, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
@@ -388,8 +392,10 @@ namespace rubinius {
 
     return cExecuteRestart;
   }
+#endif
 
   void VMMethod::setup_argument_handler(CompiledMethod* meth) {
+#ifdef USE_SPECIALIZED_EXECUTE
     // If there are no optionals, only a fixed number of positional arguments.
     if(total_args == required_args) {
       // if no arguments are expected
@@ -425,6 +431,7 @@ namespace rubinius {
 
     // Lastly, use the generic case that handles all cases
     meth->set_executor(execute_specialized<GenericArguments>);
+#endif
   }
 
   /* This is the execute implementation used by normal Ruby code,
@@ -433,47 +440,39 @@ namespace rubinius {
    * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
    * CompiledMethod.
    */
-  ExecuteStatus VMMethod::execute(STATE, Task* task, Message& msg) {
+  Object* VMMethod::execute(STATE, CallFrame* previous, Task* task, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
-
-    MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
-
     VMMethod* vmm = cm->backend_method_;
 
-    // Copy in things we all need.
-    ctx->module(state, msg.module);
-    ctx->name(state, msg.name);
+    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
+                               (vmm->number_of_locals * sizeof(Object*)));
 
-    ctx->block(state, msg.block);
-    ctx->args = msg.args();
+    scope->setup(msg.recv, msg.module, msg.block, vmm->number_of_locals);
+
+    CallFrame* cf = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    cf->setup(vmm->stack_size);
+
+    cf->previous = previous;
+    cf->name =     msg.name;
+    cf->cm =       cm;
+    cf->args =     msg.args();
+    cf->scope =    cf->top_scope = scope;
+    cf->run =      vmm->run;
+    cf->vmm =      vmm;
 
     // If argument handling fails..
     GenericArguments args;
-    if(args.call(state, vmm, ctx, msg) == false) {
-      // Clear the values from the caller
-      task->active()->clear_stack(msg.stack);
-
+    if(args.call(state, vmm, scope, msg) == false) {
       task->raise_exception(
           Exception::make_argument_error(state, vmm->required_args, msg.args()));
-      return cExecuteRestart;
+
+      // NOT REACHED
+      abort();
     }
-
-#if 0
-    if(!probe_->nil_p()) {
-      probe_->start_method(this, msg);
-    }
-#endif
-
-    // Clear the values from the caller
-    task->active()->clear_stack(msg.stack);
-
-    task->make_active(ctx);
 
     if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
-    ctx->run(vmm, task, ctx);
-
-    return cExecuteRestart;
+    return cf->run(vmm, task, cf);
   }
 
   /* This is a noop for this class. */
@@ -619,27 +618,25 @@ namespace rubinius {
 
   }
 
-  void VMMethod::run_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx) {
+  Object* VMMethod::run_interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame) {
     ExceptionPoint ep(task);
 
     PLACE_EXCEPTIONPOINT(ep);
 
     if(ep.jumped_to()) {
-      task->active(task->state, ctx);
-
-      if(ctx->has_unwinds_p()) {
-        MethodContext::UnwindInfo& info = ctx->pop_unwind();
-        ctx->position_stack(info.stack_depth);
-        ctx->set_ip(info.target_ip);
+      if(call_frame->has_unwinds_p()) {
+        UnwindInfo& info = call_frame->pop_unwind();
+        call_frame->position_stack(info.stack_depth);
+        call_frame->set_ip(info.target_ip);
         ep.reset();
       } else {
-        ctx->recycle(task->state);
         ep.unwind_to_previous(task);
         // NOT REACHED
       }
     }
 
-    interpreter(vmm, task, ctx);
+    Object* return_value = interpreter(vmm, task, call_frame);
     ep.pop(task);
+    return return_value;
   }
 }

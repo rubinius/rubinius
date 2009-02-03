@@ -5,13 +5,15 @@ namespace rubinius {
   class VM;
   class Task;
   class Message;
+  class CallFrame;
+  class Object;
 
   enum ExecuteStatus {
     cExecuteContinue = 0,
     cExecuteRestart
   };
 
-  typedef ExecuteStatus (*executor)(VM*, Task*, Message& msg);
+  typedef Object* (*executor)(VM*, CallFrame*, Task*, Message& msg);
 }
 
 #endif

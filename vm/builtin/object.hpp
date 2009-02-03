@@ -194,11 +194,9 @@ namespace rubinius {
      *  Perform a send from Ruby.
      *
      *  Uses Task::send_message_slowly().
-     *
-     *  @todo Add more information, when is this used? --rue
      */
     // Ruby.primitive? :object_send
-    ExecuteStatus send_prim(STATE, Executable* exec, Task* task, Message& msg);
+    Object* send_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
 
 
   public:   /* Ruby interface */

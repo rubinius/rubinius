@@ -42,8 +42,12 @@ namespace rubinius {
     Task* task = state->new_task();
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
+    CallFrame cf;
+    cf.previous = NULL;
+    cf.cm = NULL;
+
     Message msg(state);
-    msg.setup(NULL, G(main), task->active(), 0, 0);
+    msg.setup(NULL, G(main), &cf, 0, 0);
     msg.name = cm->name();
     msg.module = G(object);
     msg.method = cm.get();
@@ -59,7 +63,7 @@ namespace rubinius {
     PLACE_EXCEPTIONPOINT(ep);
 
     if(!ep.jumped_to()) {
-      cm->execute(state, G(current_task), msg);
+      cm->execute(state, &cf, G(current_task), msg);
     }
 
     /*

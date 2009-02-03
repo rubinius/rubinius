@@ -120,6 +120,7 @@ field_extract_headers = %w[
   vm/builtin/autoload.hpp
   vm/builtin/machine_method.hpp
   vm/builtin/block_wrapper.hpp
+  vm/builtin/variable_scope.hpp
 ]
 
 BC          = "vm/instructions.bc"

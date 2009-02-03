@@ -6,7 +6,8 @@
 
 namespace rubinius {
   class CompiledMethod;
-  class MethodContext;
+  class VariableScope;
+  class CallFrame;
   class BlockContext;
   class Message;
   class VMMethod;
@@ -18,8 +19,8 @@ namespace rubinius {
     const static object_type type = BlockEnvironmentType;
 
   private:
-    MethodContext* home_;       // slot
-    MethodContext* home_block_; // slot
+    VariableScope* scope_;      // slot
+    VariableScope* top_scope_;  // slot
     Object* local_count_;       // slot
     CompiledMethod* method_;    // slot
 
@@ -29,8 +30,8 @@ namespace rubinius {
 
   public:
     /* accessors */
-    attr_accessor(home, MethodContext);
-    attr_accessor(home_block, MethodContext);
+    attr_accessor(scope, VariableScope);
+    attr_accessor(top_scope, VariableScope);
     attr_accessor(local_count, Object);
     attr_accessor(method, CompiledMethod);
 
@@ -41,15 +42,15 @@ namespace rubinius {
     // Ruby.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);
 
-    static BlockEnvironment* under_context(STATE, CompiledMethod* cm,
-        MethodContext* parent, MethodContext* active, size_t index);
+    static BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
+      CallFrame* call_frame, size_t index);
 
-    void call(STATE, Task* task, size_t args);
-    void call(STATE, Task* task, Message& msg);
+    Object* call(STATE, Task* task, CallFrame* call_frame, size_t args);
+    Object* call(STATE, Task* task, CallFrame* call_frame, Message& msg);
     BlockContext* create_context(STATE, MethodContext* sender);
 
     // Ruby.primitive? :block_call
-    ExecuteStatus call_prim(STATE, Executable* exec, Task* task, Message& msg);
+    Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
 
     BlockEnvironment* dup(STATE);
 

@@ -25,7 +25,7 @@ namespace rubinius {
   class Task;
   class MachineMethod;
 
-  typedef void (*Runner)(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
+  typedef Object* (*Runner)(VMMethod* const vmm, Task* const task, CallFrame* const call_frame);
 
   class VMMethod {
   private:
@@ -67,14 +67,16 @@ namespace rubinius {
 
     void specialize(STATE, TypeInfo* ti);
     void compile(STATE);
-    static ExecuteStatus execute(STATE, Task* task, Message& msg);
+    static Object* execute(STATE, CallFrame* call_frame, Task* task, Message& msg);
 
+#ifdef USE_SPECIALIZED_EXECUTE
     template <typename ArgumentHandler>
-      static ExecuteStatus execute_specialized(STATE, Task* task, Message& msg);
+      static Object* execute_specialized(STATE, Task* task, Message& msg);
+#endif
 
-    static void run_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
-    static void interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
-    static void debugger_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
+    static Object* run_interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame);
+    static Object* interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame);
+    static Object* debugger_interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame);
 
     void setup_argument_handler(CompiledMethod* meth);
 

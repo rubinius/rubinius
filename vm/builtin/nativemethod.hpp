@@ -156,7 +156,7 @@ namespace rubinius {
     /**
      *  Enter a new NativeMethod the first time.
      */
-    static ExecuteStatus executor_implementation(VM* state, Task* task, Message& message);
+    static Object* executor_implementation(STATE, CallFrame* call_frame, Task* task, Message& message);
 
     /**
      *  Attempt to load a C extension library and its main function.

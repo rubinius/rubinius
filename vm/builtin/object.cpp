@@ -314,19 +314,20 @@ namespace rubinius {
   }
 
   bool Object::send_on_task(STATE, Task* task, Symbol* name, Array* args) {
+    abort();
     Message msg(state);
     msg.name = name;
     msg.recv = this;
     msg.lookup_from = this->lookup_begin(state);
     msg.stack = 0;
-    msg.set_caller(task->active());
+    // msg.set_caller(task->active());
 
     msg.set_arguments(state, args);
 
-    return task->send_message_slowly(msg);
+    return task->send_message_slowly(NULL, msg);
   }
 
-  ExecuteStatus Object::send_prim(STATE, Executable* exec, Task* task, Message& msg) {
+  Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg) {
     Object* meth = msg.shift_argument(state);
     Symbol* sym = try_as<Symbol>(meth);
 
@@ -336,7 +337,7 @@ namespace rubinius {
 
     msg.name = sym;
     msg.priv = true;
-    return task->send_message_slowly(msg);
+    return task->send_message_slowly(call_frame, msg);
   }
 
   void Object::set_field(STATE, size_t index, Object* val) {

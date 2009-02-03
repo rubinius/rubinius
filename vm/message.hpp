@@ -3,7 +3,7 @@
 
 #include "prelude.hpp"
 #include "builtin/array.hpp"
-#include "builtin/contexts.hpp"
+#include "call_frame.hpp"
 #include "builtin/tuple.hpp"
 
 namespace rubinius {
@@ -24,12 +24,12 @@ namespace rubinius {
    *  Message includes the SendSite, the receiver, the arguments as well
    *  as the Task. In the method lookup process, the located Executable
    *  object and the Module in which it was found are added. Eventually,
-   *  a MethodContext object is constructed using the information in the
+   *  a CallFrame object is constructed using the information in the
    *  Message. See instance variable documentation for all of the info
    *  gathered in a Message.
    *
    *  @see  SendSite
-   *  @see  MethodContext
+   *  @see  CallFrame
    */
   class Message {
   public:
@@ -92,27 +92,27 @@ namespace rubinius {
     /*
      * Sets the caller context
      */
-    void set_caller(MethodContext* ctx) {
-      caller_ = ctx;
+    void set_caller(CallFrame* call_frame) {
+      caller_ = call_frame;
     }
 
-    MethodContext* caller() {
+    CallFrame* caller() {
       return caller_;
     }
 
     /*
      * Setup the Message with the basic information
      */
-    void setup(SendSite* ss, Object* obj, MethodContext* ctx, size_t arg_count,
+    void setup(SendSite* ss, Object* obj, CallFrame* call_frame, size_t arg_count,
         size_t stack_size) {
       method_missing = false;
       arguments_array = NULL;
       send_site = ss;
       recv   = obj;
-      caller_ = ctx;
+      caller_ = call_frame;
       total_args   = arg_count;
       stack  = stack_size;
-      stack_args_ = ctx->stack_back_position(arg_count - 1);
+      stack_args_ = call_frame->stack_back_position(arg_count - 1);
       arguments_ = stack_args_;
     }
 
@@ -188,8 +188,8 @@ namespace rubinius {
     bool        method_missing;
 
   private:
-    /** The caller's MethodContext, where to get arguments from*/
-    MethodContext* caller_;
+    /** The caller's CallFrame, where to get arguments from*/
+    CallFrame* caller_;
 
   };
 }

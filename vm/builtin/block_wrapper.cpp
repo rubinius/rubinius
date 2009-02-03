@@ -25,12 +25,11 @@ namespace rubinius {
     return wrapper;
   }
 
-  void BlockWrapper::call(STATE, Task* task, size_t args) {
-    block_->call(state, task, args);
+  Object* BlockWrapper::call(STATE, Task* task, CallFrame* call_frame, size_t args) {
+    return block_->call(state, task, call_frame, args);
   }
 
-  ExecuteStatus BlockWrapper::call_prim(STATE, Executable* exec, Task* task, Message& msg) {
-    block_->call(state, task, msg);
-    return cExecuteRestart;
+  Object* BlockWrapper::call_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg) {
+    return block_->call(state, task, call_frame, msg);
   }
 }

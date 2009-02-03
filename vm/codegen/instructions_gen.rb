@@ -65,7 +65,7 @@ class Instructions
     def signature
       av = args.map { |name| "int #{name}" }.join(", ")
       av = ", #{av}" unless av.empty?
-      "bool op_#{name.opcode}(rubinius::VMMethod* vmm, rubinius::Task* task, rubinius::MethodContext* const ctx #{av})"
+      "bool op_#{name.opcode}(rubinius::VMMethod* vmm, rubinius::Task* task, rubinius::CallFrame* const call_frame #{av})"
     end
   end
 
@@ -130,16 +130,6 @@ class Instructions
         io.puts "  #{impl.body}"
       end
 
-      if flow
-        if [:return, :raise].include?(impl.name.flow)
-          io.puts "  return;"
-        end
-      end
-
-      if [:push_const, :find_const].include?(impl.name.opcode)
-        io.puts "  return;"
-      end
-
       io.puts "  break;"
       io.puts "  }"
     end
@@ -173,16 +163,6 @@ class Instructions
       when 0
         io.puts "  #{impl.body}"
       end
-
-      if flow
-        if [:return].include?(impl.name.flow)
-          io.puts "  return;"
-        end
-      end
-
-      #if [:push_const, :find_const].include?(impl.name.opcode)
-      #  io.puts "  return;"
-      #end
 
       #if impl.name.check_interrupts?
       #  io.puts "    if(unlikely(state->interrupts.check)) return;"

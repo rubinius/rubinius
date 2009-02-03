@@ -71,7 +71,7 @@ class Instructions
 
   def add_method(index)
     <<-CODE
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
     Object* recv = stack_pop();
     Module* mod = try_as<Module>(recv);
     /* If the receiver is not a module, use the receiver's class_object instead */
@@ -80,7 +80,7 @@ class Instructions
     }
     CompiledMethod* meth = as<CompiledMethod>(stack_pop());
 
-    task->add_method(mod, sym, meth);
+    task->add_method(call_frame, mod, sym, meth);
     stack_push(meth);
     CODE
   end
@@ -89,8 +89,8 @@ class Instructions
     <<-CODE
     Symbol* name1 = state->symbol("true_method");
     Symbol* name2 = state->symbol("kernel_method");
-    task->literals()->put(state, 0, name1);
-    task->literals()->put(state, 1, name2);
+    call_frame->cm->literals()->put(state, 0, name1);
+    call_frame->cm->literals()->put(state, 1, name2);
 
     task->push(cm);
     task->push(G(true_class));
@@ -139,8 +139,8 @@ class Instructions
     Module* mod = as<Module>(obj);
     StaticScope* scope = StaticScope::create(state);
     scope->module(state, mod);
-    scope->parent(state, task->active()->cm()->scope());
-    task->active()->cm()->scope(state, scope);
+    scope->parent(state, call_frame->cm->scope());
+    call_frame->cm->scope(state, scope);
     CODE
   end
 
@@ -180,12 +180,12 @@ class Instructions
 
   def attach_method(index)
     <<-CODE
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
     Object* obj = stack_pop();
     Object* obj2 = stack_pop();
     CompiledMethod* meth = as<CompiledMethod>(obj2);
 
-    task->attach_method(obj, sym, meth);
+    task->attach_method(call_frame, obj, sym, meth);
     stack_push(meth);
     CODE
   end
@@ -193,7 +193,7 @@ class Instructions
   def test_attach_method
     <<-CODE
     Symbol* name = state->symbol("blah");
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
 
     task->push(cm);
     task->push(G(true_class));
@@ -431,9 +431,9 @@ class Instructions
   def check_serial(index, serial)
     <<-CODE
     Object* recv = stack_pop();
-    SendSite* ss = as<SendSite>(task->literals()->at(state, index));
+    SendSite* ss = as<SendSite>(call_frame->cm->literals()->at(state, index));
 
-    if(ss->check_serial(state, ctx, recv, serial)) {
+    if(ss->check_serial(state, call_frame, recv, serial)) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -446,7 +446,7 @@ class Instructions
       Fixnum* s = Fixnum::from(100);
       Symbol* sym = String::create(state, "to_s")->to_sym(state);
       SendSite* ss = SendSite::create(state, sym);
-      task->literals()->put(state, 0, ss);
+      call_frame->cm->literals()->put(state, 0, ss);
 
       TS_ASSERT_EQUALS(Qnil, cm->serial());
       task->add_method(G(fixnum_class), sym, cm);
@@ -540,23 +540,17 @@ class Instructions
 
   def create_block(index)
     <<-CODE
-    Object* _lit = task->literals()->at(state, index);
+    Object* _lit = call_frame->cm->literals()->at(state, index);
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
-    MethodContext* parent;
-    if(kind_of<BlockContext>(task->active())) {
-      parent = as<BlockContext>(task->active())->env()->home();
-    } else {
-      parent = task->active();
-    }
+    call_frame->promote_scope(state);
 
-    parent->reference(state);
-    task->active()->reference(state);
+    // TODO: We don't need to be doing this everytime.
+    cm->scope(state, call_frame->cm->scope());
 
-    cm->scope(state, task->active()->cm()->scope());
+    Object* be = BlockEnvironment::under_call_frame(state, cm, call_frame, index);
 
-    Object* t2 = BlockEnvironment::under_context(state, cm, parent, task->active(), index);
-    stack_push(t2);
+    stack_push(be);
     CODE
   end
 
@@ -669,7 +663,7 @@ class Instructions
     <<-CODE
     bool found;
     Module* under = as<Module>(stack_pop());
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
     Object* res = task->const_get(under, sym, &found);
     if(!found) {
       Message& msg = *task->msg;
@@ -682,8 +676,7 @@ class Instructions
       args->set(state, 0, sym);
       msg.set_arguments(state, args);
 
-      bool res = task->send_message_slowly(msg);
-      RETURN(res);
+      res = task->send_message_slowly(call_frame, msg);
     } else if(kind_of<Autoload>(res)) {
       Message& msg = *task->msg;
       msg.recv = res;
@@ -692,12 +685,10 @@ class Instructions
       msg.lookup_from = res->lookup_begin(state);
       msg.set_args(0);
 
-      bool res = task->send_message_slowly(msg);
-      RETURN(res);
+      res = task->send_message_slowly(call_frame, msg);
     }
 
     stack_push(res);
-    RETURN(false);
     CODE
   end
 
@@ -706,7 +697,7 @@ class Instructions
     Symbol* name = state->symbol("Number");
     G(true_class)->set_const(state, name, Fixnum::from(3));
 
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     task->push(G(true_class));
@@ -735,7 +726,7 @@ class Instructions
 
   def goto(location)
     <<-CODE
-    task->set_ip(location);
+    call_frame->set_ip(location);
     cache_ip();
     CODE
   end
@@ -771,7 +762,7 @@ class Instructions
     <<-CODE
     Object* t1 = stack_pop();
     if(t1 != Qundef) {
-      task->set_ip(location);
+      call_frame->set_ip(location);
     }
     CODE
   end
@@ -813,7 +804,7 @@ class Instructions
     <<-CODE
     Object* t1 = stack_pop();
     if(!RTEST(t1)) {
-      task->set_ip(location);
+      call_frame->set_ip(location);
       cache_ip();
     }
     CODE
@@ -856,7 +847,7 @@ class Instructions
     <<-CODE
     Object* t1 = stack_pop();
     if(RTEST(t1)) {
-      task->set_ip(location);
+      call_frame->set_ip(location);
       cache_ip();
     }
     CODE
@@ -1356,16 +1347,17 @@ class Instructions
   def meta_send_call(count)
     <<-CODE
     Object* t1 = stack_back(count);
-
+    Object* ret;
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      env->call(state, task, count);
-      RETURN(true);
+      ret = env->call(state, task, call_frame, count);
     } else if(BlockWrapper* wrapper = try_as<BlockWrapper>(t1)) {
-      wrapper->call(state, task, count);
-      RETURN(true);
+      ret = wrapper->call(state, task, call_frame, count);
+    } else {
+      ret = send_slowly(vmm, task, call_frame, G(sym_call), count);
     }
 
-    RETURN(send_slowly(vmm, task, ctx, G(sym_call), count));
+    stack_clear(count);
+    stack_set_top(ret);
     CODE
   end
 
@@ -1380,7 +1372,7 @@ class Instructions
     block_method->stack_size(state, Fixnum::from(10));
     block_method->formalize(state);
 
-    task->literals()->put(state, 0, block_method);
+    call_frame->cm->literals()->put(state, 0, block_method);
 
     /* Run the create_block instruction, since that is how BlockEnvs are created */
     stream[0] = InstructionSequence::insn_create_block;
@@ -1433,10 +1425,11 @@ class Instructions
     if(!t1->reference_p() && !t2->reference_p()) {
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
-      RETURN(false);
+    } else {
+      Object* ret = send_slowly(vmm, task, call_frame, G(sym_equal), 1);
+      stack_pop();
+      stack_set_top(ret);
     }
-
-    RETURN(send_slowly(vmm, task, ctx, G(sym_equal), 1));
     CODE
   end
 
@@ -1481,10 +1474,11 @@ class Instructions
       native_int k = as<Integer>(t2)->to_native();
       stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
-      RETURN(false);
+    } else {
+      Object* ret = send_slowly(vmm, task, call_frame, G(sym_gt), 1);
+      stack_clear(1);
+      stack_set_top(ret);
     }
-
-    RETURN(send_slowly(vmm, task, ctx, G(sym_gt), 1));
     CODE
   end
 
@@ -1529,10 +1523,11 @@ class Instructions
       native_int k = as<Integer>(t2)->to_native();
       stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
-      RETURN(false);
+    } else {
+      Object* ret = send_slowly(vmm, task, call_frame, G(sym_lt), 1);
+      stack_clear(1);
+      stack_set_top(ret);
     }
-
-    RETURN(send_slowly(vmm, task, ctx, G(sym_lt), 1));
     CODE
   end
 
@@ -1575,13 +1570,12 @@ class Instructions
 
     if(both_fixnum_p(left, right)) {
       stack_pop();
-      stack_pop();
-      Object* res = ((Fixnum*)(left))->sub(state, (Fixnum*)(right));
-      stack_push(res);
-      RETURN(false);
+      stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
+    } else {
+      Object* ret = send_slowly(vmm, task, call_frame, G(sym_minus), 1);
+      stack_clear(1);
+      stack_set_top(ret);
     }
-
-    RETURN(send_slowly(vmm, task, ctx, G(sym_minus), 1));
     CODE
   end
 
@@ -1628,10 +1622,11 @@ class Instructions
     if(!t1->reference_p() && !t2->reference_p()) {
       stack_pop();
       stack_set_top((t1 == t2) ? Qfalse : Qtrue);
-      RETURN(false);
+    } else {
+      Object* ret = send_slowly(vmm, task, call_frame, G(sym_nequal), 1);
+      stack_clear(1);
+      stack_set_top(ret);
     }
-
-    RETURN(send_slowly(vmm, task, ctx, G(sym_nequal), 1));
     CODE
   end
 
@@ -1677,10 +1672,11 @@ class Instructions
       stack_pop();
       Object* res = ((Fixnum*)(left))->add(state, (Fixnum*)(right));
       stack_push(res);
-      RETURN(false);
+    } else {
+      Object* ret = send_slowly(vmm, task, call_frame, G(sym_plus), 1);
+      stack_clear(1);
+      stack_set_top(ret);
     }
-
-    RETURN(send_slowly(vmm, task, ctx, G(sym_plus), 1));
     CODE
   end
 
@@ -1726,10 +1722,11 @@ class Instructions
     if((t1->fixnum_p() && t2->fixnum_p()) || (t1->symbol_p() && t2->symbol_p())) {
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
-      RETURN(false);
+    } else {
+      Object* ret = send_slowly(vmm, task, call_frame, G(sym_tequal), 1);
+      stack_clear(1);
+      stack_set_top(ret);
     }
-
-    RETURN(send_slowly(vmm, task, ctx, G(sym_tequal), 1));
     CODE
   end
 
@@ -1814,9 +1811,9 @@ class Instructions
     <<-CODE
     bool created;
     Object* super = stack_pop();
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    Class* cls = task->open_class(super, sym, &created);
+    Class* cls = task->open_class(call_frame, super, sym, &created);
 
     stack_push(cls);
     CODE
@@ -1833,7 +1830,7 @@ class Instructions
 
     task->push(G(true_class));
 
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -1881,7 +1878,7 @@ class Instructions
     bool created;
     Object* super = stack_pop();
     Module* under = as<Module>(stack_pop());
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
     Class* cls = task->open_class(under, super, sym, &created);
     // TODO use created? it's only for running the opened_class hook, which
@@ -1897,7 +1894,7 @@ class Instructions
     task->push(G(true_class));
     task->push(Qnil);
 
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -1967,9 +1964,9 @@ class Instructions
 
   def open_module(index)
     <<-CODE
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    stack_push(task->open_module(sym));
+    stack_push(task->open_module(call_frame, sym));
     CODE
   end
 
@@ -1982,7 +1979,7 @@ class Instructions
     ps->parent(state, (StaticScope*)Qnil);
     cm->scope(state, ps);
 
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -2014,7 +2011,7 @@ class Instructions
   def open_module_under(index)
     <<-CODE
     Module* mod = as<Module>(stack_pop());
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
     stack_push(task->open_module(mod, sym));
     CODE
@@ -2025,7 +2022,7 @@ class Instructions
     Symbol* name = state->symbol("C");
     task->push(G(true_class));
 
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -2050,7 +2047,7 @@ class Instructions
 
   def passed_arg(index)
     <<-CODE
-    if((unsigned long int)index < task->active()->args) {
+    if(index < call_frame->args) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -2204,8 +2201,7 @@ class Instructions
 
   def push_block
     <<-CODE
-    // HACK test this for yield in block to outer block
-    stack_push(task->home()->block());
+    stack_push(call_frame->top_scope->block());
     CODE
   end
 
@@ -2242,11 +2238,11 @@ class Instructions
   def push_const(index)
     <<-CODE
     bool found;
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
-    Object* res = task->const_get(sym, &found);
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+    Object* res = task->const_get(call_frame, sym, &found);
     if(!found) {
       Message& msg = *task->msg;
-      StaticScope* scope = task->active()->cm()->scope();
+      StaticScope* scope = call_frame->cm->scope();
       if(scope->nil_p()) {
         msg.recv = G(object);
       } else {
@@ -2260,8 +2256,7 @@ class Instructions
       args->set(state, 0, sym);
       msg.set_arguments(state, args);
 
-      bool res = task->send_message_slowly(msg);
-      RETURN(res);
+      res = task->send_message_slowly(call_frame, msg);
     } else if(kind_of<Autoload>(res)) {
       Message& msg = *task->msg;
       msg.recv = res;
@@ -2270,12 +2265,10 @@ class Instructions
       msg.lookup_from = res->lookup_begin(state);
       msg.set_args(0);
 
-      bool res = task->send_message_slowly(msg);
-      RETURN(res);
+      res = task->send_message_slowly(call_frame, msg);
     }
 
     stack_push(res);
-    RETURN(false);
     CODE
   end
 
@@ -2297,7 +2290,7 @@ class Instructions
     Symbol* name = state->symbol("Number");
     parent->set_const(state, name, Fixnum::from(3));
 
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -2336,18 +2329,18 @@ class Instructions
     bool found;
     Object* res;
 
-    Object* assoc = task->literals()->at(state, association_index);
+    Object* assoc = call_frame->cm->literals()->at(state, association_index);
     // The association has been set, return the value from it directly.
     if(assoc->nil_p()) {
 slow_path:
-      Symbol* sym = as<Symbol>(task->literals()->at(state, symbol_index));
-      LookupTableAssociation* assoc = task->const_get_association(sym, &found);
+      Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, symbol_index));
+      LookupTableAssociation* assoc = task->const_get_association(call_frame, sym, &found);
       if(found) {
-        task->literals()->put(state, association_index, assoc);
+        call_frame->cm->literals()->put(state, association_index, assoc);
         res = assoc->value();
       } else {
         Message& msg = *task->msg;
-        StaticScope* scope = task->active()->cm()->scope();
+        StaticScope* scope = call_frame->cm->scope();
         if(scope->nil_p()) {
           msg.recv = G(object);
         } else {
@@ -2361,8 +2354,7 @@ slow_path:
         args->set(state, 0, sym);
         msg.set_arguments(state, args);
 
-        bool res = task->send_message_slowly(msg);
-        RETURN(res);
+        res = task->send_message_slowly(call_frame, msg);
       }
     } else {
       LookupTableAssociation* real_assoc = as<LookupTableAssociation>(assoc);
@@ -2378,12 +2370,10 @@ slow_path:
       msg.lookup_from = res->lookup_begin(state);
       msg.set_args(0);
 
-      bool res = task->send_message_slowly(msg);
-      RETURN(res);
+      res = task->send_message_slowly(call_frame, msg);
     }
 
     stack_push(res);
-    RETURN(false);
     CODE
   end
 
@@ -2405,14 +2395,14 @@ slow_path:
     Symbol* name = state->symbol("Number");
     parent->set_const(state, name, Fixnum::from(3));
 
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
 
     run();
 
     TS_ASSERT_EQUALS(task->stack_top(), Fixnum::from(3));
-    Object* obj = task->literals()->at(state, 1);
+    Object* obj = call_frame->cm->literals()->at(state, 1);
     TS_ASSERT(!obj->nil_p());
     TS_ASSERT(kind_of<LookupTableAssociation>(obj));
     LookupTableAssociation* assoc = as<LookupTableAssociation>(obj);
@@ -2433,7 +2423,7 @@ slow_path:
   # [Stack Before]
   #   * ...
   # [Stack After]
-  #   * methodctxt
+  #   * #<MethodContext>
   #   * ...
   # [Description]
   #   Creates a reference to the current method execution context, and pushes
@@ -2441,8 +2431,7 @@ slow_path:
 
   def push_context
     <<-CODE
-    ctx->reference(state);
-    stack_push(ctx);
+    stack_push(call_frame->create_context(state));
     CODE
   end
 
@@ -2600,17 +2589,17 @@ slow_path:
 
   def push_ivar(index)
     <<-CODE
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
-    stack_push(task->self()->get_ivar(state, sym));
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+    stack_push(call_frame->self()->get_ivar(state, sym));
     CODE
   end
 
   def test_push_ivar
     <<-CODE
     Symbol* name = state->symbol("@blah");
-    task->self(state, Qtrue);
-    task->self()->set_ivar(state, name, Qtrue);
-    task->literals()->put(state, 0, name);
+    call_frame->self(state, Qtrue);
+    call_frame->self()->set_ivar(state, name, Qtrue);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
@@ -2638,14 +2627,14 @@ slow_path:
 
   def push_literal(val)
     <<-CODE
-    Object* t2 = task->literals()->at(state, val);
+    Object* t2 = call_frame->cm->literals()->at(state, val);
     stack_push(t2);
     CODE
   end
 
   def test_push_literal
     <<-CODE
-    task->literals(state, Tuple::from(state, 1, Qtrue));
+    call_frame->cm->literals(state, Tuple::from(state, 1, Qtrue));
     stream[1] = (opcode)0;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
@@ -2668,7 +2657,7 @@ slow_path:
 
   def push_local(index)
     <<-CODE
-    stack_push(task->home()->get_local(index)); // HACK test vs. ->home-less
+    stack_push(call_frame->top_scope->get_local(index));
     CODE
   end
 
@@ -2705,15 +2694,13 @@ slow_path:
 
   def push_local_depth(depth, index)
     <<-CODE
-    BlockContext* bc = as<BlockContext>(task->active());
-    BlockEnvironment* env;
+    VariableScope* scope = call_frame->scope;
 
     for(int j = 0; j < depth; j++) {
-      env = bc->env();
-      bc = as<BlockContext>(env->home_block());
+      scope = scope->parent();
     }
 
-    stack_push(bc->get_local(index));
+    stack_push(scope->get_local(index));
     CODE
   end
 
@@ -2758,7 +2745,7 @@ slow_path:
 
   def push_my_field(index)
     <<-CODE
-    stack_push(task->self()->get_field(state, index));
+    stack_push(call_frame->self()->get_field(state, index));
     CODE
   end
 
@@ -2767,7 +2754,7 @@ slow_path:
     Tuple* tup = Tuple::create(state, 3);
     tup->put(state, 0, Qtrue);
 
-    task->self(state, tup);
+    call_frame->self(state, tup);
 
     stream[1] = (opcode)0;
 
@@ -2775,7 +2762,7 @@ slow_path:
 
     Class* cls = state->new_class("Blah");
 
-    task->self(state, cls);
+    call_frame->self(state, cls);
 
     stream[1] = (opcode)1;
 
@@ -2828,14 +2815,14 @@ slow_path:
 
   def push_scope
     <<-CODE
-    stack_push(task->active()->cm()->scope());
+    stack_push(call_frame->cm->scope());
     CODE
   end
 
   def test_push_scope
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->active()->cm()->scope(), task->stack_top());
+    TS_ASSERT_EQUALS(task->active()->cm->scope(), task->stack_top());
     CODE
   end
 
@@ -2853,13 +2840,13 @@ slow_path:
 
   def push_self
     <<-CODE
-    stack_push(task->self());
+    stack_push(call_frame->self());
     CODE
   end
 
   def test_push_self
     <<-CODE
-    task->self(state, Qtrue);
+    call_frame->self(state, Qtrue);
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
@@ -2942,38 +2929,7 @@ slow_path:
 
   def ret
     <<-CODE
-    Object* value = stack_top();
-    MethodContext* active_context = ctx;
-    MethodContext* dest = active_context->sender();
-
-    NativeMethodContext* nmc = try_as<NativeMethodContext>(dest);
-
-    if(unlikely(nmc)) {
-      task->active(state, nmc);
-
-      nmc->value_returned_to_c(value);
-      nmc->action(NativeMethodContext::RETURNED_BACK_TO_C);
-
-      NativeMethod::activate_from(nmc);
-    }
-    else {
-      // restore_sender();
-      // === manual inline ===
-      // == restore_sender ==
-
-      if(unlikely(task->profiler)) task->profiler->leave_method();
-
-      /* Try to recycle this context to be used again. */
-      if(active_context->young_object_p()) {
-        state->om->deallocate_context(active_context);
-      }
-
-      // == restore_context ==
-      task->active(state, dest);
-
-      // === end manual inline ===
-      dest->push(value);
-    }
+    return stack_top();
     CODE
   end
 
@@ -3012,9 +2968,9 @@ slow_path:
 
     for(i = 0; i < diff; i++) {
       int offset = count - i - 1;
-      tmp = ctx->js.stack[-offset];
-      ctx->js.stack[-offset] = ctx->js.stack[-i];
-      ctx->js.stack[-i] = tmp;
+      tmp = call_frame->js.stack[-offset];
+      call_frame->js.stack[-offset] = call_frame->js.stack[-i];
+      call_frame->js.stack[-i] = tmp;
     }
 
     CODE
@@ -3063,7 +3019,7 @@ slow_path:
     msg.setup(
       vmm->sendsites[index].get(),
       stack_top(),
-      ctx,
+      call_frame,
       0,
       1);
 
@@ -3076,7 +3032,7 @@ slow_path:
 
     task->call_flags = 0;
 
-    RETURN(msg.send_site->performer(state, task, msg));
+    stack_set_top(msg.send_site->performer(state, call_frame, task, msg));
     CODE
   end
 
@@ -3094,9 +3050,9 @@ slow_path:
     SendSite* ss = SendSite::create(state, name);
 
     TypedRoot<SendSite*> tr_ss(state, ss);
-    ctx->vmm->sendsites = &tr_ss;
+    call_frame->vmm->sendsites = &tr_ss;
 
-    task->literals()->put(state, 0, ss);
+    call_frame->cm->literals()->put(state, 0, ss);
     task->push(Qtrue);
 
     stream[1] = (opcode)0;
@@ -3107,7 +3063,7 @@ slow_path:
 
     TS_ASSERT_EQUALS(task->active()->cm(), target);
     TS_ASSERT_EQUALS(task->active()->args, 0U);
-    TS_ASSERT_EQUALS(task->self(), Qtrue);
+    TS_ASSERT_EQUALS(call_frame->self(), Qtrue);
     CODE
   end
 
@@ -3145,7 +3101,7 @@ slow_path:
     msg.setup(
       vmm->sendsites[index].get(),
       stack_back(count),
-      ctx,
+      call_frame,
       count,
       count + 1);
 
@@ -3158,7 +3114,9 @@ slow_path:
 
     task->call_flags = 0;
 
-    RETURN(msg.send_site->performer(state, task, msg));
+    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    call_frame->clear_stack(count);
+    stack_set_top(ret);
     CODE
   end
 
@@ -3176,10 +3134,10 @@ slow_path:
     SendSite* ss = SendSite::create(state, name);
 
     TypedRoot<SendSite*> tr_ss(state, ss);
-    ctx->vmm->sendsites = &tr_ss;
+    call_frame->vmm->sendsites = &tr_ss;
 
 
-    task->literals()->put(state, 0, ss);
+    call_frame->cm->literals()->put(state, 0, ss);
     task->push(Qtrue);
     task->push(Fixnum::from(3));
 
@@ -3193,7 +3151,7 @@ slow_path:
     TS_ASSERT_EQUALS(task->active()->cm(), target);
     TS_ASSERT_EQUALS(task->active()->args, 1U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->self(), Qtrue);
+    TS_ASSERT_EQUALS(call_frame->self(), Qtrue);
     CODE
   end
 
@@ -3233,7 +3191,7 @@ slow_path:
     msg.setup(
       vmm->sendsites[index].get(),
       stack_back(count),
-      ctx,
+      call_frame,
       count,
       count + 1);
 
@@ -3245,7 +3203,9 @@ slow_path:
 
     task->call_flags = 0;
 
-    RETURN(msg.send_site->performer(state, task, msg));
+    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    call_frame->clear_stack(count);
+    stack_set_top(ret);
     CODE
   end
 
@@ -3262,9 +3222,9 @@ slow_path:
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
     TypedRoot<SendSite*> tr_ss(state, ss);
-    ctx->vmm->sendsites = &tr_ss;
+    call_frame->vmm->sendsites = &tr_ss;
 
-    task->literals()->put(state, 0, ss);
+    call_frame->cm->literals()->put(state, 0, ss);
     task->push(Qtrue);
     task->push(Fixnum::from(3));
 
@@ -3282,7 +3242,7 @@ slow_path:
     TS_ASSERT_EQUALS(task->active()->args, 1U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->active()->block(), be);
-    TS_ASSERT_EQUALS(task->self(), Qtrue);
+    TS_ASSERT_EQUALS(call_frame->self(), Qtrue);
     CODE
   end
 
@@ -3328,7 +3288,7 @@ slow_path:
     msg.setup(
       vmm->sendsites[index].get(),
       stack_back(count), /* receiver */
-      ctx,
+      call_frame,
       count,
       count + 1);
 
@@ -3348,7 +3308,9 @@ slow_path:
 
     task->call_flags = 0;
 
-    RETURN(msg.send_site->performer(state, task, msg));
+    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    call_frame->clear_stack(count);
+    stack_set_top(ret);
     CODE
   end
 
@@ -3365,9 +3327,9 @@ slow_path:
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
     TypedRoot<SendSite*> tr_ss(state, ss);
-    ctx->vmm->sendsites = &tr_ss;
+    call_frame->vmm->sendsites = &tr_ss;
 
-    task->literals()->put(state, 0, ss);
+    call_frame->cm->literals()->put(state, 0, ss);
     task->push(Qtrue);
     task->push(Fixnum::from(3));
 
@@ -3390,7 +3352,7 @@ slow_path:
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(47));
     TS_ASSERT_EQUALS(task->active()->block(), be);
-    TS_ASSERT_EQUALS(task->self(), Qtrue);
+    TS_ASSERT_EQUALS(call_frame->self(), Qtrue);
     CODE
   end
 
@@ -3425,8 +3387,8 @@ slow_path:
 
     msg.setup(
       vmm->sendsites[index].get(),
-      task->self(),
-      ctx,
+      call_frame->self(),
+      call_frame,
       count,
       count);
 
@@ -3438,7 +3400,9 @@ slow_path:
 
     task->call_flags = 0;
 
-    RETURN(msg.send_site->performer(state, task, msg));
+    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    call_frame->clear_stack(count - 1);
+    stack_set_top(ret);
     CODE
   end
 
@@ -3458,10 +3422,10 @@ slow_path:
     parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
     TypedRoot<SendSite*> tr_ss(state, ss);
-    ctx->vmm->sendsites = &tr_ss;
+    call_frame->vmm->sendsites = &tr_ss;
 
     Object* obj = state->new_object<Object>(child);
-    task->self(state, obj);
+    call_frame->self(state, obj);
 
     StaticScope *sc = StaticScope::create(state);
     sc->module(state, child);
@@ -3470,9 +3434,9 @@ slow_path:
 
     task->active()->module(state, child);
     task->active()->name(state, blah);
-    task->active()->self(state, task->self());
+    task->active()->self(state, call_frame->self());
 
-    task->literals()->put(state, 0, ss);
+    call_frame->cm->literals()->put(state, 0, ss);
     task->push(Qnil); // sentinal value, to make sure its not used
     task->push(Fixnum::from(3));
 
@@ -3490,7 +3454,7 @@ slow_path:
     TS_ASSERT_EQUALS(task->active()->args, 1U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->active()->block(), be);
-    TS_ASSERT_EQUALS(task->self(), obj);
+    TS_ASSERT_EQUALS(call_frame->self(), obj);
 
 
     // Now test that send finds a private method
@@ -3507,12 +3471,12 @@ slow_path:
 
     parent->method_table()->store(state, blah, vis);
 
-    task->self(state, obj);
+    call_frame->self(state, obj);
     task->active()->module(state, child);
     task->active()->name(state, blah);
-    task->active()->self(state, task->self());
+    task->active()->self(state, call_frame->self());
 
-    task->literals()->put(state, 0, ss);
+    call_frame->cm->literals()->put(state, 0, ss);
     task->push(Qnil);
     task->push(Fixnum::from(3));
 
@@ -3525,7 +3489,7 @@ slow_path:
     TS_ASSERT_EQUALS(task->active()->args, 1U);
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->active()->block(), be);
-    TS_ASSERT_EQUALS(task->self(), obj);
+    TS_ASSERT_EQUALS(call_frame->self(), obj);
     CODE
   end
 
@@ -3563,8 +3527,8 @@ slow_path:
 
     msg.setup(
       vmm->sendsites[index].get(),
-      task->self(),
-      ctx,
+      call_frame->self(),
+      call_frame,
       count,
       count);
 
@@ -3584,7 +3548,9 @@ slow_path:
 
     task->call_flags = 0;
 
-    RETURN(msg.send_site->performer(state, task, msg));
+    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    call_frame->clear_stack(count - 1);
+    stack_set_top(ret);
     CODE
   end
 
@@ -3604,10 +3570,10 @@ slow_path:
     parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
     TypedRoot<SendSite*> tr_ss(state, ss);
-    ctx->vmm->sendsites = &tr_ss;
+    call_frame->vmm->sendsites = &tr_ss;
 
     Object* obj = state->new_object<Object>(child);
-    task->self(state, obj);
+    call_frame->self(state, obj);
 
     StaticScope *sc = StaticScope::create(state);
     sc->module(state, child);
@@ -3616,9 +3582,9 @@ slow_path:
 
     task->active()->module(state, child);
     task->active()->name(state, blah);
-    task->active()->self(state, task->self());
+    task->active()->self(state, call_frame->self());
 
-    task->literals()->put(state, 0, ss);
+    call_frame->cm->literals()->put(state, 0, ss);
     task->push(obj);
     task->push(Fixnum::from(3));
 
@@ -3641,7 +3607,7 @@ slow_path:
     TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(47));
     TS_ASSERT_EQUALS(task->active()->block(), be);
-    TS_ASSERT_EQUALS(task->self(), obj);
+    TS_ASSERT_EQUALS(call_frame->self(), obj);
     CODE
   end
 
@@ -3693,8 +3659,8 @@ slow_path:
 
   def set_const(index)
     <<-CODE
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
-    task->const_set(sym, stack_top());
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+    task->const_set(call_frame, sym, stack_top());
     CODE
   end
 
@@ -3709,7 +3675,7 @@ slow_path:
     cm->scope(state, ps);
     Symbol* name = state->symbol("Age");
 
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     task->push(Fixnum::from(3));
@@ -3736,7 +3702,7 @@ slow_path:
 
   def set_const_at(index)
     <<-CODE
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
     Object* val = stack_pop();
     Module* under = as<Module>(stack_pop());
 
@@ -3748,7 +3714,7 @@ slow_path:
   def test_set_const_at
     <<-CODE
     Symbol* name = state->symbol("Age");
-    task->literals()->put(state, 0, name);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     task->push(G(true_class));
@@ -3777,16 +3743,16 @@ slow_path:
 
   def set_ivar(index)
     <<-CODE
-    Symbol* sym = as<Symbol>(task->literals()->at(state, index));
-    task->self()->set_ivar(state, sym, stack_top());
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+    call_frame->self()->set_ivar(state, sym, stack_top());
     CODE
   end
 
   def test_set_ivar
     <<-CODE
     Symbol* name = state->symbol("@blah");
-    task->self(state, Qtrue);
-    task->literals()->put(state, 0, name);
+    call_frame->self(state, Qtrue);
+    call_frame->cm->literals()->put(state, 0, name);
     stream[1] = (opcode)0;
 
     task->push(Qfalse);
@@ -3821,19 +3787,19 @@ slow_path:
 
   def set_literal(val)
     <<-CODE
-    task->literals()->put(state, val, stack_top());
+    call_frame->cm->literals()->put(state, val, stack_top());
     CODE
   end
 
   def test_set_literal
     <<-CODE
-    task->literals(state, Tuple::from(state, 1, Qtrue));
+    call_frame->cm->literals(state, Tuple::from(state, 1, Qtrue));
     stream[1] = (opcode)0;
     task->push(Qtrue);
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
-    TS_ASSERT_EQUALS(task->literals()->at(state, 0), Qtrue);
+    TS_ASSERT_EQUALS(call_frame->cm->literals()->at(state, 0), Qtrue);
     CODE
   end
 
@@ -3853,7 +3819,7 @@ slow_path:
 
   def set_local(index)
     <<-CODE
-    task->home()->set_local(index, stack_top()); // HACK test vs. ->home-less
+    call_frame->top_scope->set_local(state, index, stack_top());
     CODE
   end
 
@@ -3895,17 +3861,15 @@ slow_path:
 
   def set_local_depth(depth, index)
     <<-CODE
-    BlockContext* bc = as<BlockContext>(task->active());
-    BlockEnvironment* env;
+    VariableScope* scope = call_frame->scope;
 
     for(int j = 0; j < depth; j++) {
-      env = bc->env();
-      bc = as<BlockContext>(env->home_block());
+      scope = scope->parent();
     }
 
-    Object* t3 = stack_pop();
-    bc->set_local(index, t3);
-    stack_push(t3);
+    Object* val = stack_pop();
+    scope->set_local(state, index, val);
+    stack_push(val);
     CODE
   end
 
@@ -4013,7 +3977,7 @@ slow_path:
 
   def store_my_field(index)
     <<-CODE
-    task->self()->set_field(state, index, stack_top());
+    call_frame->self()->set_field(state, index, stack_top());
     CODE
   end
 
@@ -4021,7 +3985,7 @@ slow_path:
     <<-CODE
     Class* cls = state->new_class("Blah");
 
-    task->self(state, cls);
+    call_frame->self(state, cls);
 
     Symbol* name = state->symbol("Foo");
     task->push(name);
@@ -4155,26 +4119,26 @@ slow_path:
     for(int i = 0; i < positions; i++) {
       int target = -i;
       int current = target - 1;
-      ctx->js.stack[target] = ctx->js.stack[current];
+      call_frame->js.stack[target] = call_frame->js.stack[current];
     }
-    ctx->js.stack[-positions] = val;
+    call_frame->js.stack[-positions] = val;
     CODE
   end
 
   def test_move_down
     <<-CODE
-    ctx->push(Fixnum::from(0));
-    ctx->push(Fixnum::from(1));
-    ctx->push(Fixnum::from(2));
-    ctx->push(Fixnum::from(3));
+    call_frame->push(Fixnum::from(0));
+    call_frame->push(Fixnum::from(1));
+    call_frame->push(Fixnum::from(2));
+    call_frame->push(Fixnum::from(3));
 
     stream[1] = (opcode)3;
     run();
 
-    TS_ASSERT_EQUALS(ctx->pop(), Fixnum::from(2));
-    TS_ASSERT_EQUALS(ctx->pop(), Fixnum::from(1));
-    TS_ASSERT_EQUALS(ctx->pop(), Fixnum::from(0));
-    TS_ASSERT_EQUALS(ctx->pop(), Fixnum::from(3));
+    TS_ASSERT_EQUALS(call_frame->pop(), Fixnum::from(2));
+    TS_ASSERT_EQUALS(call_frame->pop(), Fixnum::from(1));
+    TS_ASSERT_EQUALS(call_frame->pop(), Fixnum::from(0));
+    TS_ASSERT_EQUALS(call_frame->pop(), Fixnum::from(3));
     CODE
   end
 
@@ -4236,37 +4200,37 @@ slow_path:
 
   def setup_unwind(ip)
     <<-CODE
-    ctx->push_unwind(ip);
+    call_frame->push_unwind(ip);
     CODE
   end
 
   def test_setup_unwind
     <<-CODE
-    ctx->push(Fixnum::from(0));
-    ctx->push(Fixnum::from(0));
+    call_frame->push(Fixnum::from(0));
+    call_frame->push(Fixnum::from(0));
 
     stream[1] = (opcode)15;
     run();
 
-    TS_ASSERT_EQUALS(ctx->current_unwind, 1);
-    TS_ASSERT_EQUALS(ctx->unwinds[0].target_ip, 15U);
-    TS_ASSERT_EQUALS(ctx->unwinds[0].stack_depth, 1U);
+    TS_ASSERT_EQUALS(call_frame->current_unwind, 1);
+    TS_ASSERT_EQUALS(call_frame->unwinds[0].target_ip, 15U);
+    TS_ASSERT_EQUALS(call_frame->unwinds[0].stack_depth, 1U);
     CODE
   end
 
   def pop_unwind
     <<-CODE
-    ctx->pop_unwind();
+    call_frame->pop_unwind();
     CODE
   end
 
   def test_pop_unwind
     <<-CODE
-    ctx->push_unwind(0);
+    call_frame->push_unwind(0);
 
     run();
 
-    TS_ASSERT_EQUALS(ctx->current_unwind, 0);
+    TS_ASSERT_EQUALS(call_frame->current_unwind, 0);
     CODE
   end
 

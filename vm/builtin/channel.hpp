@@ -42,7 +42,7 @@ namespace rubinius {
     Object* send(STATE, Object*);
 
     // Ruby.primitive? :channel_receive
-    ExecuteStatus receive_prim(STATE, Executable* exec, Task* task, Message& msg);
+    Object* receive_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
 
     Object* receive(STATE);
     bool has_readers_p();
