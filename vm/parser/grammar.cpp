@@ -6085,7 +6085,7 @@ yyreduce:
 #line 1527 "vm/parser/grammar.y"
     {
                         if (!(yyvsp[(2) - (3)].node)) (yyval.node) = NEW_NIL();
-                        (yyval.node) = (yyvsp[(2) - (3)].node);
+                        else (yyval.node) = (yyvsp[(2) - (3)].node);
                     ;}
     break;
 

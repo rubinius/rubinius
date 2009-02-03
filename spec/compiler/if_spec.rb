@@ -255,6 +255,57 @@ describe "An If node" do
     end
   end
 
+  nil_condition_sexp = [:if, [:nil], [:call, nil, :a, [:arglist]], nil]
+
+  nil_condition = lambda do |g|
+    f = g.new_label
+    done = g.new_label
+
+    g.push :nil
+    g.gif f
+
+    g.push :self
+    g.send :a, 0, true
+    g.goto done
+
+    f.set!
+    g.push :nil
+
+    done.set!
+  end
+
+  relates "a if ()" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
+  end
+
+  relates "if () then a end" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
+  end
+
+  relates "a unless not ()" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
+  end
+
+  relates "unless not () then a end" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
+  end
+
   relates "a unless not b" do
     parse do
       [:if, [:call, nil, :b, [:arglist]], [:call, nil, :a, [:arglist]], nil]

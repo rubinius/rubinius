@@ -72,4 +72,38 @@ describe "An Or node" do
 
     compile(&or_complex)
   end
+
+  relates "() or a" do
+    parse do
+      [:or, [:nil], [:call, nil, :a, [:arglist]]]
+    end
+
+    compile do |g|
+      t = g.new_label
+      g.push :nil
+      g.dup
+      g.git t
+      g.pop
+      g.push :self
+      g.send :a, 0, true
+      t.set!
+    end
+  end
+
+  relates "a or ()" do
+    parse do
+      [:or, [:call, nil, :a, [:arglist]], [:nil]]
+    end
+
+    compile do |g|
+      t = g.new_label
+      g.push :self
+      g.send :a, 0, true
+      g.dup
+      g.git t
+      g.pop
+      g.push :nil
+      t.set!
+    end
+  end
 end

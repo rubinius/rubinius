@@ -21,4 +21,38 @@ describe "An And node" do
       lhs_true.set!
     end
   end
+
+  relates "() and a" do
+    parse do
+      [:and, [:nil], [:call, nil, :a, [:arglist]]]
+    end
+
+    compile do |g|
+      f = g.new_label
+      g.push :nil
+      g.dup
+      g.gif f
+      g.pop
+      g.push :self
+      g.send :a, 0, true
+      f.set!
+    end
+  end
+
+  relates "a and ()" do
+    parse do
+      [:and, [:call, nil, :a, [:arglist]], [:nil]]
+    end
+
+    compile do |g|
+      f = g.new_label
+      g.push :self
+      g.send :a, 0, true
+      g.dup
+      g.gif f
+      g.pop
+      g.push :nil
+      f.set!
+    end
+  end
 end

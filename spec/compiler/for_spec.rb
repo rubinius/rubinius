@@ -117,4 +117,37 @@ describe "A For node" do
       end
     end
   end
+
+  relates <<-ruby do
+      for i in ()
+        i
+      end
+    ruby
+
+    parse do
+      [:for, [:nil], [:lasgn, :i], [:lvar, :i]]
+    end
+
+    compile do |g|
+      g.passed_block do
+        g.push :nil
+
+        block_description do |d|
+          d.cast_for_single_block_arg
+          d.set_local 0
+
+          d.pop
+          d.push_modifiers
+          d.new_label.set!
+
+          d.push_local 0
+
+          d.pop_modifiers
+          d.ret
+        end
+
+        g.send_with_block :each, 0, false
+      end
+    end
+  end
 end

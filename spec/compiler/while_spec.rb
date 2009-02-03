@@ -1,20 +1,29 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A While node" do
-  while_false = lambda do |g|
+  pre_while_sexp = [
+    :while,
+     [:call, nil, :a, [:arglist]],
+     [:call, [:call, nil, :b, [:arglist]], :+, [:arglist, [:lit, 1]]],
+     true
+  ]
+
+  pre_while = lambda do |g|
     top    = g.new_label
-    dunno1 = g.new_label
-    dunno2 = g.new_label
+    rdo    = g.new_label
+    brk    = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
 
     top.set!
-    g.push :false
+    g.push :self
+    g.send :a, 0, true
     g.gif bottom
 
-    dunno1.set!
-    g.push 1
+    rdo.set!
+    g.push :self
+    g.send :b, 0, true
     g.push 1
     g.send :+, 1, false
     g.pop
@@ -24,48 +33,133 @@ describe "A While node" do
     bottom.set!
     g.push :nil
 
-    dunno2.set!
-
+    brk.set!
     g.pop_modifiers
   end
 
   relates <<-ruby do
-      while false do
-        (1 + 1)
+      while a
+        b + 1
       end
     ruby
 
     parse do
-      [:while, [:false], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], true]
+      pre_while_sexp
     end
 
-    compile(&while_false)
+    compile(&pre_while)
   end
 
-  relates "(1 + 1) while false" do
+  relates "b + 1 while a" do
     parse do
-      [:while, [:false], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], true]
+      pre_while_sexp
     end
 
-    compile(&while_false)
+    compile(&pre_while)
   end
 
-  while_true = lambda do |g|
+  relates <<-ruby do
+      until not a
+        b + 1
+      end
+    ruby
+
+    parse do
+      pre_while_sexp
+    end
+
+    compile(&pre_while)
+  end
+
+  relates "b + 1 until not a" do
+    parse do
+      pre_while_sexp
+    end
+
+    compile(&pre_while)
+  end
+
+  post_while_sexp = [
+    :while,
+     [:call, nil, :a, [:arglist]],
+     [:call, [:call, nil, :b, [:arglist]], :+, [:arglist, [:lit, 1]]],
+     false
+  ]
+
+  post_while = lambda do |g|
     top    = g.new_label
-    dunno1 = g.new_label
-    dunno2 = g.new_label
+    rdo    = g.new_label
+    brk    = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
 
     top.set!
-    g.push :true
-    g.gif bottom
 
-    dunno1.set!
-    g.push 1
+    g.push :self
+    g.send :b, 0, true
     g.push 1
     g.send :+, 1, false
+    g.pop
+
+    rdo.set!
+
+    g.push :self
+    g.send :a, 0, true
+    g.gif bottom
+
+    g.goto top
+
+    bottom.set!
+    g.push :nil
+
+    brk.set!
+    g.pop_modifiers
+  end
+
+  relates <<-ruby do
+      begin
+        b + 1
+      end while a
+    ruby
+
+    parse do
+      post_while_sexp
+    end
+
+    compile(&post_while)
+  end
+
+  relates <<-ruby do
+      begin
+        b + 1
+      end until not a
+    ruby
+
+    parse do
+      post_while_sexp
+    end
+
+    compile(&post_while)
+  end
+
+  nil_condition_sexp = [:while, [:nil], [:call, nil, :a, [:arglist]], true]
+
+  nil_condition = lambda do |g|
+    top    = g.new_label
+    rdo    = g.new_label
+    brk    = g.new_label
+    bottom = g.new_label
+
+    g.push_modifiers
+
+    top.set!
+    g.push :nil
+    g.gif bottom
+
+    rdo.set!
+    g.push :self
+    g.send :a, 0, true
     g.pop
 
     g.goto top
@@ -73,195 +167,50 @@ describe "A While node" do
     bottom.set!
     g.push :nil
 
-    dunno2.set!
-
+    brk.set!
     g.pop_modifiers
   end
 
+  relates "a while ()" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
+  end
+
   relates <<-ruby do
-      until not true do
-        (1 + 1)
+      while ()
+        a
       end
     ruby
 
     parse do
-      [:while, [:true], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], true]
+      nil_condition_sexp
     end
 
-    compile(&while_true)
+    compile(&nil_condition)
   end
 
-  relates "(1 + 1) until not true" do
+  relates "a until not ()" do
+
     parse do
-      [:while, [:true], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], true]
+      nil_condition_sexp
     end
 
-    compile(&while_true)
+    compile(&nil_condition)
   end
 
   relates <<-ruby do
-      begin
-        (1 + 1)
-      end until not true
-    ruby
-
-    parse do
-      [:while, [:true], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], false]
-    end
-
-    compile do |g|
-      top    = g.new_label
-      dunno1 = g.new_label
-      dunno2 = g.new_label
-      bottom = g.new_label
-
-      g.push_modifiers
-
-      top.set!
-
-      g.push 1
-      g.push 1
-      g.send :+, 1, false
-      g.pop
-
-      dunno1.set!
-
-      g.push :true
-      g.gif bottom
-
-      g.goto top
-
-      bottom.set!
-      g.push :nil
-
-      dunno2.set!
-
-      g.pop_modifiers
-    end
-  end
-
-  relates <<-ruby do
-      while false do
+      until not ()
+        a
       end
     ruby
 
     parse do
-      [:while, [:false], nil, true]
+      nil_condition_sexp
     end
 
-    compile do |g|
-      top    = g.new_label
-      dunno1 = g.new_label
-      dunno2 = g.new_label
-      bottom = g.new_label
-
-      g.push_modifiers
-
-      top.set!
-      g.push :false
-      g.gif bottom
-
-      dunno1.set!
-      g.push :nil
-      g.pop
-
-      g.goto top
-
-      bottom.set!
-      g.push :nil
-
-      dunno2.set!
-
-      g.pop_modifiers
-    end
-  end
-
-  relates <<-ruby do
-      begin
-        (1 + 2)
-        (3 + 4)
-      end while false
-    ruby
-
-    parse do
-      [:while,
-       [:false],
-       [:block,
-        [:call, [:lit, 1], :+, [:arglist, [:lit, 2]]],
-        [:call, [:lit, 3], :+, [:arglist, [:lit, 4]]]],
-       false]
-    end
-
-    compile do |g|
-      top    = g.new_label
-      dunno1 = g.new_label
-      dunno2 = g.new_label
-      bottom = g.new_label
-
-      g.push_modifiers
-
-      top.set!
-      g.push 1
-      g.push 2
-      g.send :+, 1, false
-      g.pop
-
-      g.push 3
-      g.push 4
-      g.send :+, 1, false
-      g.pop
-
-      dunno1.set!
-      g.push :false
-      g.gif bottom
-
-      g.goto top
-
-      bottom.set!
-      g.push :nil
-
-      dunno2.set!
-
-      g.pop_modifiers
-    end
-  end
-
-  relates <<-ruby do
-      begin
-        (1 + 1)
-      end while false
-    ruby
-
-    parse do
-      [:while, [:false], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], false]
-    end
-
-    compile do |g|
-      top    = g.new_label
-      dunno1 = g.new_label
-      dunno2 = g.new_label
-      bottom = g.new_label
-
-      g.push_modifiers
-
-      top.set!
-      g.push 1
-      g.push 1
-      g.send :+, 1, false
-      g.pop
-
-      dunno1.set!
-      g.push :false
-      g.gif bottom
-
-      g.goto top
-
-      bottom.set!
-      g.push :nil
-
-      dunno2.set!
-
-      g.pop_modifiers
-    end
+    compile(&nil_condition)
   end
 end
