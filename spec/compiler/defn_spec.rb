@@ -924,15 +924,9 @@ describe "A Defn node" do
     end
 
     compile do |g|
-      meth = description do |d|
+      in_method :meth do |d|
         d.push_local 0
-        d.ret
       end
-
-      g.push_context
-      g.push_literal :meth
-      g.push_literal meth
-      g.send :__add_method__, 2
     end
   end
 end

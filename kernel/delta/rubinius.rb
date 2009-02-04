@@ -7,7 +7,7 @@ module Rubinius
     executable.serial = 1
     executable.scope = static_scope if executable.respond_to? :scope=
 
-    mod = static_scope.module
+    mod = static_scope.for_method_definition
 
     add_method name, executable, mod, vis
   end

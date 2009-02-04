@@ -806,10 +806,13 @@ class Compiler
           g.push :self
           g.add_method @name
         else
-          g.push_context
+          g.push_const :Rubinius
           g.push_literal @name
           g.push_literal compile_body(g)
-          g.send :__add_method__, 2
+          g.push_scope
+          g.push_context
+          g.send :method_visibility, 0
+          g.send :add_defn_method, 4
         end
       end
     end

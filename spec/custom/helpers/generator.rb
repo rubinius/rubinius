@@ -496,7 +496,7 @@ class TestGenerator
     if singleton
       g.send :metaclass, 0
     else
-      g.push_context
+      g.push_const :Rubinius
     end
 
     g.push_literal name
@@ -508,7 +508,10 @@ class TestGenerator
     if singleton then
       g.send :attach_method, 2
     else
-      g.send :__add_method__, 2
+      g.push_scope
+      g.push_context
+      g.send :method_visibility, 0
+      g.send :add_defn_method, 4
     end
   end
 
