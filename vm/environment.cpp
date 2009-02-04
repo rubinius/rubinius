@@ -16,6 +16,8 @@
 #include "builtin/task.hpp"
 #include "builtin/taskprobe.hpp"
 
+#include "object_utils.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -113,15 +115,13 @@ namespace rubinius {
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
 
+    state->thread_state()->clear_exception();
+
     // TODO check version number
     cf->execute(state);
 
-    if(!G(current_task)->exception()->nil_p()) {
-      // Reset the context so we can show the backtrace
-      // HACK need to use write barrier aware stuff?
-      Exception* exc = G(current_task)->exception();
-      G(current_task)->active(state, exc->context());
-
+    if(state->thread_state()->raise_reason() == cException) {
+      Exception* exc = as<Exception>(state->thread_state()->raise_value());
       std::ostringstream msg;
 
       msg << "exception detected at toplevel: ";
@@ -130,7 +130,7 @@ namespace rubinius {
       }
       msg << " (" << exc->klass()->name()->c_str(state) << ")";
       std::cout << msg.str() << "\n";
-      state->print_backtrace();
+      exc->print_locations(state);
       Assertion::raise(msg.str().c_str());
     }
 

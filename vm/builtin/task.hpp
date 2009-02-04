@@ -81,7 +81,7 @@ namespace rubinius {
     static Task* current(STATE);
 
     // Ruby.primitive? :task_set_current
-    static Object* set_current(STATE, Executable* exec, Task* task_, Message& msg);
+    static Object* set_current(STATE, Executable* exec, CallFrame* call_frame, Task* task_, Message& msg);
 
     // Ruby.primitive :task_control_channel
     Channel* get_control_channel(STATE);

@@ -512,7 +512,7 @@ class Instructions
 
   def clear_exception
     <<-CODE
-    task->exception(state, (Exception*)Qnil);
+    state->thread_state()->clear_exception();
     CODE
   end
 
@@ -687,6 +687,8 @@ class Instructions
 
       res = task->send_message_slowly(call_frame, msg);
     }
+
+    HANDLE_EXCEPTION(res);
 
     stack_push(res);
     CODE
@@ -1356,8 +1358,10 @@ class Instructions
       ret = send_slowly(vmm, task, call_frame, G(sym_call), count);
     }
 
-    stack_clear(count);
-    stack_set_top(ret);
+    stack_clear(count + 1);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
     CODE
   end
 
@@ -1427,8 +1431,10 @@ class Instructions
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
       Object* ret = send_slowly(vmm, task, call_frame, G(sym_equal), 1);
-      stack_pop();
-      stack_set_top(ret);
+      stack_clear(2);
+
+      HANDLE_EXCEPTION(ret);
+      stack_push(ret);
     }
     CODE
   end
@@ -1476,8 +1482,10 @@ class Instructions
       stack_set_top((j > k) ? Qtrue : Qfalse);
     } else {
       Object* ret = send_slowly(vmm, task, call_frame, G(sym_gt), 1);
-      stack_clear(1);
-      stack_set_top(ret);
+      stack_clear(2);
+
+      HANDLE_EXCEPTION(ret);
+      stack_push(ret);
     }
     CODE
   end
@@ -1525,7 +1533,8 @@ class Instructions
       stack_set_top((j < k) ? Qtrue : Qfalse);
     } else {
       Object* ret = send_slowly(vmm, task, call_frame, G(sym_lt), 1);
-      stack_clear(1);
+      stack_clear(2);
+      HANDLE_EXCEPTION(ret);
       stack_set_top(ret);
     }
     CODE
@@ -1573,8 +1582,9 @@ class Instructions
       stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
     } else {
       Object* ret = send_slowly(vmm, task, call_frame, G(sym_minus), 1);
-      stack_clear(1);
-      stack_set_top(ret);
+      stack_clear(2);
+      HANDLE_EXCEPTION(ret);
+      stack_push(ret);
     }
     CODE
   end
@@ -1624,8 +1634,9 @@ class Instructions
       stack_set_top((t1 == t2) ? Qfalse : Qtrue);
     } else {
       Object* ret = send_slowly(vmm, task, call_frame, G(sym_nequal), 1);
-      stack_clear(1);
-      stack_set_top(ret);
+      stack_clear(2);
+      HANDLE_EXCEPTION(ret);
+      stack_push(ret);
     }
     CODE
   end
@@ -1674,8 +1685,9 @@ class Instructions
       stack_push(res);
     } else {
       Object* ret = send_slowly(vmm, task, call_frame, G(sym_plus), 1);
-      stack_clear(1);
-      stack_set_top(ret);
+      stack_clear(2);
+      HANDLE_EXCEPTION(ret);
+      stack_push(ret);
     }
     CODE
   end
@@ -1724,8 +1736,9 @@ class Instructions
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
       Object* ret = send_slowly(vmm, task, call_frame, G(sym_tequal), 1);
-      stack_clear(1);
-      stack_set_top(ret);
+      stack_clear(2);
+      HANDLE_EXCEPTION(ret);
+      stack_push(ret);
     }
     CODE
   end
@@ -1815,6 +1828,7 @@ class Instructions
 
     Class* cls = task->open_class(call_frame, super, sym, &created);
 
+    HANDLE_EXCEPTION(cls);
     stack_push(cls);
     CODE
   end
@@ -1881,6 +1895,7 @@ class Instructions
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
     Class* cls = task->open_class(under, super, sym, &created);
+    HANDLE_EXCEPTION(cls);
     // TODO use created? it's only for running the opened_class hook, which
     // we're eliminating anyway.
 
@@ -1966,7 +1981,9 @@ class Instructions
     <<-CODE
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    stack_push(task->open_module(call_frame, sym));
+    Module* mod = task->open_module(call_frame, sym);
+    HANDLE_EXCEPTION(mod);
+    stack_push(mod);
     CODE
   end
 
@@ -2013,7 +2030,10 @@ class Instructions
     Module* mod = as<Module>(stack_pop());
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    stack_push(task->open_module(mod, sym));
+    Module* ret = task->open_module(mod, sym);
+    HANDLE_EXCEPTION(ret);
+
+    stack_push(ret);
     CODE
   end
 
@@ -2161,9 +2181,9 @@ class Instructions
     <<-CODE
       Object* top = stack_pop();
       if(top->nil_p()) {
-        task->exception(state, (Exception*)Qnil);
+        state->thread_state()->clear_exception();
       } else {
-        task->exception(state, as<Exception>(top));
+        state->thread_state()->set_exception(top);
       }
     CODE
   end
@@ -2267,6 +2287,8 @@ class Instructions
 
       res = task->send_message_slowly(call_frame, msg);
     }
+
+    HANDLE_EXCEPTION(res);
 
     stack_push(res);
     CODE
@@ -2372,6 +2394,8 @@ slow_path:
 
       res = task->send_message_slowly(call_frame, msg);
     }
+
+    HANDLE_EXCEPTION(res);
 
     stack_push(res);
     CODE
@@ -2499,7 +2523,11 @@ slow_path:
 
   def push_exception
     <<-CODE
-    stack_push(task->exception());
+    if(state->thread_state()->raise_reason() == cNone) {
+      stack_push(Qnil);
+    } else {
+      stack_push(state->thread_state()->raise_value());
+    }
     CODE
   end
 
@@ -2590,7 +2618,10 @@ slow_path:
   def push_ivar(index)
     <<-CODE
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
-    stack_push(call_frame->self()->get_ivar(state, sym));
+    Object* ret = call_frame->self()->get_ivar(state, sym);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
     CODE
   end
 
@@ -2895,7 +2926,8 @@ slow_path:
   def raise_exc
     <<-CODE
     Object* t1 = stack_pop();
-    task->raise_exception(as<Exception>(t1));
+    state->thread_state()->raise_exception(as<Exception>(t1));
+    RUN_EXCEPTION();
     CODE
   end
 
@@ -3032,7 +3064,12 @@ slow_path:
 
     task->call_flags = 0;
 
-    stack_set_top(msg.send_site->performer(state, call_frame, task, msg));
+    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    stack_pop();
+
+    HANDLE_EXCEPTION(ret);
+
+    stack_push(ret);
     CODE
   end
 
@@ -3115,8 +3152,9 @@ slow_path:
     task->call_flags = 0;
 
     Object* ret = msg.send_site->performer(state, call_frame, task, msg);
-    call_frame->clear_stack(count);
-    stack_set_top(ret);
+    call_frame->clear_stack(count + 1);
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
     CODE
   end
 
@@ -3204,8 +3242,9 @@ slow_path:
     task->call_flags = 0;
 
     Object* ret = msg.send_site->performer(state, call_frame, task, msg);
-    call_frame->clear_stack(count);
-    stack_set_top(ret);
+    call_frame->clear_stack(count + 1);
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
     CODE
   end
 
@@ -3309,8 +3348,9 @@ slow_path:
     task->call_flags = 0;
 
     Object* ret = msg.send_site->performer(state, call_frame, task, msg);
-    call_frame->clear_stack(count);
-    stack_set_top(ret);
+    call_frame->clear_stack(count + 1);
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
     CODE
   end
 
@@ -3395,14 +3435,15 @@ slow_path:
     msg.splat = Qnil;
 
     msg.priv = TRUE;
-    msg.lookup_from = task->current_module()->superclass();
+    msg.lookup_from = call_frame->module()->superclass();
     msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
     Object* ret = msg.send_site->performer(state, call_frame, task, msg);
-    call_frame->clear_stack(count - 1);
-    stack_set_top(ret);
+    call_frame->clear_stack(count);
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
     CODE
   end
 
@@ -3543,14 +3584,15 @@ slow_path:
     }
 
     msg.priv = TRUE;  // TODO: how do we test this?
-    msg.lookup_from = task->current_module()->superclass();
+    msg.lookup_from = call_frame->module()->superclass();
     msg.name = msg.send_site->name();
 
     task->call_flags = 0;
 
     Object* ret = msg.send_site->performer(state, call_frame, task, msg);
-    call_frame->clear_stack(count - 1);
-    stack_set_top(ret);
+    call_frame->clear_stack(count);
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
     CODE
   end
 
@@ -4198,9 +4240,9 @@ slow_path:
   end
 
 
-  def setup_unwind(ip)
+  def setup_unwind(ip, type)
     <<-CODE
-    call_frame->push_unwind(ip);
+    call_frame->push_unwind(ip, (UnwindType)(type));
     CODE
   end
 
@@ -4231,6 +4273,33 @@ slow_path:
     run();
 
     TS_ASSERT_EQUALS(call_frame->current_unwind, 0);
+    CODE
+  end
+
+  def reraise
+    <<-CODE
+    RUN_EXCEPTION();
+    CODE
+  end
+
+  def raise_return
+    <<-CODE
+    state->thread_state()->raise_return(stack_top(), call_frame->top_scope);
+    RUN_EXCEPTION();
+    CODE
+  end
+
+  def raise_break
+    <<-CODE
+    state->thread_state()->raise_break(stack_top(), call_frame->top_scope);
+    RUN_EXCEPTION();
+    CODE
+  end
+
+  def push_variables
+    <<-CODE
+    call_frame->promote_scope(state);
+    stack_push(call_frame->scope);
     CODE
   end
 

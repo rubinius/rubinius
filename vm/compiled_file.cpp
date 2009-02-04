@@ -58,13 +58,7 @@ namespace rubinius {
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));
 
-    ExceptionPoint ep(task);
-
-    PLACE_EXCEPTIONPOINT(ep);
-
-    if(!ep.jumped_to()) {
-      cm->execute(state, &cf, G(current_task), msg);
-    }
+    cm->execute(state, &cf, G(current_task), msg);
 
     /*
     try {

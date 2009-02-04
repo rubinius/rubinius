@@ -66,6 +66,9 @@ using namespace rubinius;
 extern "C" {
   Object* send_slowly(VMMethod* vmm, Task* task, CallFrame* const call_frame, Symbol* name, size_t args);
 
+#define HANDLE_EXCEPTION(val) if(val == NULL) return NULL
+#define RUN_EXCEPTION() return NULL
+
 #define RETURN(val) return val
 
 #ruby <<CODE
@@ -80,12 +83,10 @@ CODE
 
   Object* send_slowly(VMMethod* vmm, Task* task, CallFrame* const call_frame, Symbol* name, size_t args) {
     Message& msg = *task->msg;
-    msg.recv = stack_back(args);
-    msg.use_from_task(task, args);
+    msg.setup(static_cast<SendSite*>(Qnil), stack_back(args), call_frame, args, args + 1);
     msg.name = name;
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.block = Qnil;
-    msg.stack = args + 1;
 
     return task->send_message_slowly(call_frame, msg);
   }

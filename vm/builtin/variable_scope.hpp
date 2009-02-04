@@ -25,6 +25,8 @@ namespace rubinius {
     attr_accessor(module, Module);
     attr_accessor(block, Object);
 
+    static void init(STATE);
+
     void setup(Object* self, Module* mod, Object* block, int num) {
       obj_type = InvalidType;
       parent_ = (VariableScope*)Qnil;
@@ -66,6 +68,9 @@ namespace rubinius {
     }
 
     VariableScope* promote(STATE);
+
+    // Ruby.primitive? :variable_scope_of_sender
+    static VariableScope* of_sender(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
 
   public: // Rubinius Type stuff
     class Info : public TypeInfo {

@@ -14,6 +14,12 @@
 #include "exception.hpp"
 #include "type_info.hpp"
 
+#include "builtin/location.hpp"
+#include "builtin/array.hpp"
+
+#include "call_frame.hpp"
+
+#include <iostream>
 
 namespace rubinius {
   void Exception::init(STATE) {
@@ -25,13 +31,30 @@ namespace rubinius {
     return state->new_object<Exception>(G(exception));
   }
 
+  Array* Exception::fill_locations(STATE, CallFrame *calling_environment) {
+    CallFrame* call_frame = calling_environment;
+    Array* bt = Array::create(state, 5);
+
+    while(call_frame) {
+      // Ignore synthetic frames
+      if(call_frame->cm) {
+        bt->append(state, Location::create(state, call_frame));
+      }
+
+      call_frame = call_frame->previous;
+    }
+
+    locations(state, bt);
+    return bt;
+  }
+
+  void Exception::print_locations(STATE) {
+    std::cout << "FIXME: implement print_locations\n";
+  }
+
   Exception* Exception::make_exception(STATE, Class* exc_class, const char* message) {
     Exception* exc = state->new_object<Exception>(exc_class);
 
-    MethodContext* ctx = G(current_task)->active();
-    ctx->reference(state);
-
-    exc->context(state, ctx);
     exc->message(state, String::create(state, message));
 
     return exc;
@@ -39,9 +62,6 @@ namespace rubinius {
 
   Exception* Exception::make_argument_error(STATE, int expected, int given) {
     Exception* exc = state->new_object<Exception>(G(exc_arg));
-    MethodContext* ctx = G(current_task)->active();
-    ctx->reference(state);
-    exc->context(state, ctx);
     exc->set_ivar(state, state->symbol("@given"), Fixnum::from(given));
     exc->set_ivar(state, state->symbol("@expected"), Fixnum::from(expected));
     return exc;
@@ -133,11 +153,6 @@ namespace rubinius {
 
   Exception* Exception::make_errno_exception(STATE, Class* exc_class, Object* reason) {
     Exception* exc = state->new_object<Exception>(exc_class);
-
-    MethodContext* ctx = G(current_task)->active();
-    ctx->reference(state);
-
-    exc->context(state, ctx);
 
     String* message = (String*)reason;
     if(String* str = try_as<String>(exc_class->get_const(state, "Strerror"))) {
@@ -273,7 +288,7 @@ namespace rubinius {
 
     class_header(state, self);
     indent_attribute(++level, "message"); exc->message()->show(state, level);
-    indent_attribute(level, "context"); exc->context()->show_simple(state, level);
+    indent_attribute(level, "locations"); exc->locations()->show_simple(state, level);
     close_body(level);
   }
 }

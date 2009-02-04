@@ -112,20 +112,13 @@ class Regexp
   end
 
   def self.last_match(field = nil)
-    match = MethodContext.current.sender.last_match
+    match = VariableScope.of_sender.last_match
     if match
       return match if field.nil?
       return match[field]
     else
       return nil
     end
-  end
-
-  def self.last_match=(match)
-    # Set an ivar in the sender of our sender
-    parent = MethodContext.current.sender
-    ctx = parent.sender
-    ctx.last_match = match
   end
 
   ##

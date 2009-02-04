@@ -108,6 +108,7 @@ namespace rubinius {
     TypedRoot<Class*> machine_method; /**< MachineMethod class */
     TypedRoot<Class*> block_wrapper; /**< BlockWrapper class */
     TypedRoot<Class*> variable_scope;
+    TypedRoot<Class*> location;
 
     /* Add new globals above this line. */
 
@@ -216,7 +217,8 @@ namespace rubinius {
       autoload(&roots),
       machine_method(&roots),
       block_wrapper(&roots),
-      variable_scope(&roots)
+      variable_scope(&roots),
+      location(&roots)
 
       /* Add initialize of globals above this line. */
     { }

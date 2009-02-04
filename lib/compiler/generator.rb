@@ -307,14 +307,21 @@ class Compiler
     # Used to generate the exception table for a begin.
 
     class ExceptionBlock
-      def initialize(gen)
+
+      Types = {
+        :rescue => 0,
+        :ensure => 1
+      }
+
+      def initialize(gen, type=:rescue)
         @generator = gen
+        @type = Types[type]
       end
 
       def start!
         @handler = @generator.new_label
         @start = @generator.ip
-        @generator.setup_unwind @handler
+        @generator.setup_unwind @handler, @type
       end
 
       def handle!
@@ -371,8 +378,8 @@ class Compiler
       end
     end
 
-    def exceptions
-      ex = ExceptionBlock.new(self)
+    def exceptions(type=:rescue)
+      ex = ExceptionBlock.new(self, type)
       ex.start!
       @exceptions << ex
       yield ex

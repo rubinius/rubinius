@@ -8,26 +8,31 @@
 
 namespace rubinius {
   class Class;
-  class MethodContext;
+  class Array;
 
   class Exception : public Object {
   public:
     const static object_type type = ExceptionType;
 
   private:
-    String* message_;        // slot
-    MethodContext* context_; // slot
+    String* message_;  // slot
+    Array* locations_; // slot
 
   public:
     /* accessors */
 
     attr_accessor(message, String);
-    attr_accessor(context, MethodContext);
+    attr_accessor(locations, Array);
 
     /* interface */
 
     static void init(STATE);
     static Exception* create(STATE);
+
+    // Ruby.primitive :exception_fill_locations
+    Array* fill_locations(STATE, CallFrame *calling_environment);
+
+    void print_locations(STATE);
 
     static Exception* make_exception(STATE, Class* exc_class, const char* message);
     static Exception* make_type_error(STATE, object_type type, Object* object,

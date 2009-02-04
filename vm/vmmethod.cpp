@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include "exception_point.hpp"
+#include "raise_reason.hpp"
 
 #define CALLS_TIL_JIT 50
 #define JIT_MAX_METHOD_SIZE 2048
@@ -466,8 +467,7 @@ namespace rubinius {
       task->raise_exception(
           Exception::make_argument_error(state, vmm->required_args, msg.args()));
 
-      // NOT REACHED
-      abort();
+      return NULL;
     }
 
     if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
@@ -619,24 +619,65 @@ namespace rubinius {
   }
 
   Object* VMMethod::run_interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame) {
-    ExceptionPoint ep(task);
+    Object* return_value;
+    for(;;) {
+    continue_to_run:
+      return_value = interpreter(vmm, task, call_frame);
+      if(return_value) return return_value;
 
-    PLACE_EXCEPTIONPOINT(ep);
+      ThreadState* th = task->state->thread_state();
+      // if return_value is NULL, then there is an exception outstanding
+      //
+      switch(th->raise_reason()) {
+      case cException:
+        if(call_frame->has_unwinds_p()) {
+          UnwindInfo& info = call_frame->pop_unwind();
+          call_frame->position_stack(info.stack_depth);
+          call_frame->set_ip(info.target_ip);
+        } else {
+          return NULL;
+        }
+        break;
 
-    if(ep.jumped_to()) {
-      if(call_frame->has_unwinds_p()) {
-        UnwindInfo& info = call_frame->pop_unwind();
-        call_frame->position_stack(info.stack_depth);
-        call_frame->set_ip(info.target_ip);
-        ep.reset();
-      } else {
-        ep.unwind_to_previous(task);
-        // NOT REACHED
-      }
-    }
+      case cReturn:
+      case cBreak:
+        // Otherwise, we're doing a long return/break unwind through
+        // here. We need to run ensure blocks.
+        while(call_frame->has_unwinds_p()) {
+          UnwindInfo& info = call_frame->pop_unwind();
+          if(info.for_ensure()) {
+            call_frame->position_stack(info.stack_depth);
+            call_frame->set_ip(info.target_ip);
 
-    Object* return_value = interpreter(vmm, task, call_frame);
-    ep.pop(task);
-    return return_value;
+            // Don't reset ep here, we're still handling the return/break.
+            goto continue_to_run;
+          }
+        }
+
+        // Ok, no ensures to run.
+        if(th->raise_reason() == cReturn) {
+          // If we're trying to return to here, we're done!
+          if(th->destination_scope() == call_frame->scope) {
+            return th->raise_value();
+          } else {
+            // Give control of this exception to the caller.
+            return NULL;
+          }
+
+        } else { // It's cBreak
+          // If we're trying to break to here, we're done!
+          if(th->destination_scope() == call_frame->scope) {
+            call_frame->push(th->raise_value());
+          } else {
+            // Give control of this exception to the caller.
+            return NULL;
+          }
+        }
+        break;
+      default:
+        std::cout << "bug!\n";
+        abort();
+      } // switch
+    } // for(;;)
   }
 }

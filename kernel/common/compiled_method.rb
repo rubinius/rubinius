@@ -84,6 +84,14 @@ class StaticScope
     return @current_module if @current_module
     return @module
   end
+
+  def __const_set__(name, value)
+    @module.__const_set__(name, value)
+  end
+
+  def alias_method(name, original)
+    @module.alias_method name, original
+  end
 end
 
 class CompiledMethod < Executable

@@ -4,6 +4,7 @@
 #include "globals.hpp"
 #include "symboltable.hpp"
 #include "gc_object_mark.hpp"
+#include "thread_state.hpp"
 
 #include <pthread.h>
 #include <setjmp.h>
@@ -91,6 +92,8 @@ namespace rubinius {
     SymbolTable symbols;
     ConfigParser *user_config;
 
+    ThreadState thread_state_;
+
     Stats stats;
 
     // Temporary holder for rb_gc_mark() in subtend
@@ -123,6 +126,11 @@ namespace rubinius {
     static const size_t default_bytes = 1048576 * 3;
 
     /* Inline methods */
+
+    ThreadState* thread_state() {
+      return &thread_state_;
+    }
+
     /* Prototypes */
     VM(size_t bytes = default_bytes, bool boot_now = true);
     ~VM();

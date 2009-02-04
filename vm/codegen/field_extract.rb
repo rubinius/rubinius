@@ -1,6 +1,7 @@
 class BasicPrimitive
   attr_accessor :pass_state
   attr_accessor :pass_self
+  attr_accessor :pass_call_frame
   attr_accessor :raw
 
   def output_header(str)
@@ -27,6 +28,8 @@ class BasicPrimitive
     end
     args.unshift "self" if @pass_self
     args.unshift "state" if @pass_state
+
+    args.push "call_frame" if @pass_call_frame
 
     return args
   end
@@ -103,7 +106,7 @@ class CPPStaticPrimitive < CPPPrimitive
 
     if @raw
       str << "\n"
-      str << "  return #{@type}::#{@cpp_name}(state, msg.method, task, msg);\n"
+      str << "  return #{@type}::#{@cpp_name}(state, msg.method, call_frame, task, msg);\n"
       str << "\n"
       str << "}\n\n"
     else
@@ -503,6 +506,7 @@ class CPPParser
           prototype = f.gets
           pass_state = false
           pass_self = false
+          pass_call_frame = false
 
           m = prototype_pattern.match(prototype)
           unless m
@@ -517,6 +521,11 @@ class CPPParser
             if args.first == "Object* self"
               args.shift and pass_self = true
             end
+          end
+
+          if args.last == "CallFrame *calling_environment"
+            pass_call_frame = true
+            args.pop
           end
 
           if raw then
@@ -537,6 +546,7 @@ class CPPParser
           obj.raw = raw
           obj.pass_state = pass_state
           obj.pass_self = pass_self
+          obj.pass_call_frame = pass_call_frame
         end
       end
 

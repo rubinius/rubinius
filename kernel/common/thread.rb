@@ -159,8 +159,8 @@ class Thread
     self.raise Die
   end
 
-  alias exit kill
-  alias terminate kill
+  alias_method :exit, :kill
+  alias_method :terminate, :kill
 
   def sleeping?
     @lock.receive
@@ -303,5 +303,5 @@ class Thread
 
   private :raise_prim
 
-  alias :run :wakeup
+  alias_method :run, :wakeup
 end

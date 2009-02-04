@@ -3,11 +3,11 @@
 class Exception
 
   attr_writer :message
-  attr_accessor :context
+  attr_accessor :locations
 
   def initialize(message = nil)
     @message = message
-    @context = nil
+    @locations = nil
     @backtrace = nil
   end
 
@@ -20,13 +20,13 @@ class Exception
       return @backtrace.to_mri
     end
 
-    return nil unless @context
+    return nil unless @locations
     awesome_backtrace.to_mri
   end
 
   def awesome_backtrace
-    return nil unless @context
-    @backtrace = Backtrace.backtrace(@context)
+    return nil unless @locations
+    @backtrace = Backtrace.backtrace(@locations)
   end
 
   def set_backtrace(bt)

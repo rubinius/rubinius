@@ -27,13 +27,15 @@ module Kernel
   module_function :local_variables
 
   def binding
-    ctx = MethodContext.current.sender
+    return Binding.setup(VariableScope.of_sender)
+
     # If we are here because of eval, fetch the context of
     # the thing that invoked eval
     if ctx.from_eval?
+      ctx = MethodContext.current.sender
       Binding.setup ctx.sender.sender
     else
-      Binding.setup ctx
+      Binding.setup VariableScope.of_sender
     end
   end
   module_function :binding

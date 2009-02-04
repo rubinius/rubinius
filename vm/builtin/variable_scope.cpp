@@ -1,5 +1,6 @@
 #include "builtin/object.hpp"
 #include "builtin/variable_scope.hpp"
+#include "builtin/class.hpp"
 
 #include "object_utils.hpp"
 #include "vm.hpp"
@@ -8,17 +9,9 @@
 #include "call_frame.hpp"
 
 namespace rubinius {
-  void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
-    auto_mark(obj, mark);
-
-    Object* tmp;
-    VariableScope* vs = as<VariableScope>(obj);
-
-    size_t locals = vs->number_of_locals();
-    for(size_t i = 0; i < locals; i++) {
-      tmp = mark.call(vs->get_local(i));
-      if(tmp) vs->set_local(mark.gc->object_memory->state, i, tmp);
-    }
+  void VariableScope::init(STATE) {
+    GO(variable_scope).set(state->new_class("VariableScope"));
+    G(variable_scope)->set_object_type(state, VariableScopeType);
   }
 
   VariableScope* VariableScope::promote(STATE) {
@@ -50,4 +43,24 @@ namespace rubinius {
       locals_[i] = Qnil;
     }
   }
+
+  VariableScope* VariableScope::of_sender(STATE, Executable* exec,
+                 CallFrame* call_frame, Task* task, Message& msg) {
+    call_frame->promote_scope(state);
+    return call_frame->scope;
+  }
+
+  void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
+
+    Object* tmp;
+    VariableScope* vs = as<VariableScope>(obj);
+
+    size_t locals = vs->number_of_locals();
+    for(size_t i = 0; i < locals; i++) {
+      tmp = mark.call(vs->get_local(i));
+      if(tmp) vs->set_local(mark.gc->object_memory->state, i, tmp);
+    }
+  }
+
 }

@@ -39,6 +39,8 @@
 #include "builtin/autoload.hpp"
 #include "builtin/machine_method.hpp"
 #include "builtin/block_wrapper.hpp"
+#include "builtin/variable_scope.hpp"
+#include "builtin/location.hpp"
 
 #include "config.h"
 
@@ -221,6 +223,8 @@ namespace rubinius {
     Autoload::init(this);
     MachineMethod::init(this);
     BlockWrapper::init(this);
+    VariableScope::init(this);
+    Location::init(this);
 
     NativeMethod::register_class_with(this);
     NativeMethodContext::register_class_with(this);

@@ -97,7 +97,7 @@ show_selectors = false
 show_sendsites = false
 
 # Setup the proper staticscope
-MethodContext.current.method.scope = StaticScope.new(Object)
+# MethodContext.current.method.scope = StaticScope.new(Object)
 
 TOPLEVEL_BINDING = binding()
 
@@ -274,7 +274,7 @@ begin
 rescue SystemExit => e
   code = e.status
 rescue Object => e
-  original_context = e.context
+  original_context = nil
 
   begin
     if e.kind_of? Exception or e.kind_of? ThrownValue

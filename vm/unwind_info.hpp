@@ -5,9 +5,23 @@ namespace rubinius {
   // TODO figure out if this is a good number
   const int kMaxUnwindInfos = 20;
 
+  enum UnwindType {
+    cRescue = 0,
+    cEnsure = 1
+  };
+
   struct UnwindInfo {
     uint32_t target_ip;
     uint32_t stack_depth;
+    UnwindType type;
+
+    bool for_ensure() {
+      return type == cEnsure;
+    }
+
+    bool for_rescue() {
+      return type == cRescue;
+    }
   };
 }
 

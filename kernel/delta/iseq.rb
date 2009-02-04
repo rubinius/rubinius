@@ -177,9 +177,13 @@ class InstructionSet
 
     {:opcode => :push_const_fast, :args => [:literal, :literal],
      :stack => [0, 1]},
-    {:opcode => :setup_unwind, :args => [:ip], :stack => [0, 0]},
+    {:opcode => :setup_unwind, :args => [:ip, :type], :stack => [0, 0]},
     {:opcode => :pop_unwind, :args => [], :stack => [0, 0]},
-    {:opcode => :move_down, :args => [:int], :stack => [0, 0]}
+    {:opcode => :move_down, :args => [:int], :stack => [0, 0]},
+    {:opcode => :reraise, :args => [], :stack => [0,0]},
+    {:opcode => :raise_return, :args => [], :stack => [0,0]},
+    {:opcode => :raise_break, :args => [], :stack => [0,0]},
+    {:opcode => :push_variables, :args => [], :stack => [0,1]},
   ]
 
 

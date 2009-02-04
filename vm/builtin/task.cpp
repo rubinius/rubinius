@@ -90,7 +90,7 @@ namespace rubinius {
     return state->globals.current_task.get();
   }
 
-  Object* Task::set_current(STATE, Executable* exec, Task* task_, Message& msg) {
+  Object* Task::set_current(STATE, Executable* exec, CallFrame* call_frame, Task* task_, Message& msg) {
     abort();
     Task* tsk = try_as<Task>(msg.get_argument(0));
 
@@ -224,15 +224,13 @@ namespace rubinius {
 
   // Used as a primitive.
   Task* Task::raise(STATE, Exception* exc) {
+    abort();
     raise_exception(exc);
     return this;
   }
 
   void Task::raise_exception(Exception* exc) {
     exception(state, exc);
-
-    assert(current_ep);
-    current_ep->return_to(this);
   }
 
   Tuple* Task::locate_method_on(Object* recv, Symbol* sel, Object* priv_p) {

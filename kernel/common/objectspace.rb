@@ -91,7 +91,6 @@ module ObjectSpace
 
   end
   
-  protected
 
   def self.recursive_loop(start, each_block, skip = [], &grepper)
     list = yield start
@@ -105,9 +104,6 @@ module ObjectSpace
       count
     end
   end
-
-  public
-
 
 
   # Finalizer support. Uses WeakRef to detect object death.

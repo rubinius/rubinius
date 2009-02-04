@@ -2,6 +2,14 @@
 # Abstract class for implementing flow control in Rubinius.  Never seen by
 # ruby code.
 
+
+class Exception
+  def fill_locations
+    Ruby.primitive :exception_fill_locations
+    raise PrimitiveFailure, "Unable to fill locations"
+  end
+end
+
 class FlowControlException < Exception
 end
 

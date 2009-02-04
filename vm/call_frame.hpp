@@ -130,11 +130,12 @@ namespace rubinius {
     }
 
     // Manage the dynamic Unwind stack for this context
-    void push_unwind(int target_ip) {
+    void push_unwind(int target_ip, UnwindType type) {
       assert(current_unwind < kMaxUnwindInfos);
       UnwindInfo& info = unwinds[current_unwind++];
       info.target_ip = target_ip;
       info.stack_depth = calculate_sp();
+      info.type = type;
     }
 
     UnwindInfo& pop_unwind() {

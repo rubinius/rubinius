@@ -120,10 +120,6 @@ namespace rubinius {
   Object* Thread::raise(STATE, Exception* error) {
     wakeup(state);
 
-    MethodContext* ctx = task_->active();
-    ctx->reference(state);
-    error->context(state, ctx);
-
     return task_->raise(state, error);
   }
 

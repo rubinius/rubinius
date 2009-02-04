@@ -71,7 +71,7 @@ class Compiler
 
     class Alias
       def bytecode(g)
-        g.push_context
+        g.push_scope
         g.push_literal @current
         g.push_literal @new
         g.send :alias_method, 2, true
@@ -217,7 +217,7 @@ class Compiler
 
     class BackRef
       def bytecode(g)
-        g.push_context
+        g.push_variables
         g.push_literal @kind
         g.send :back_ref, 1
       end
@@ -300,16 +300,7 @@ class Compiler
         if g.break
           g.goto g.break
         elsif @in_block
-          g.find_cpath_top_const :BlockBreakException
-          g.swap
-
-          g.push_context
-          g.swap
-
-          g.send :directed_to, 2
-
-          # Now raise it.
-          g.raise_exc
+          g.raise_break
         else
           g.pop
           g.push_const :Compile
@@ -424,30 +415,24 @@ class Compiler
         # LongReturnException detection code for that.
         if @block and @block.is? Iter
           if @in_block
-            break_rescue(g) do
-              receiver_bytecode(g)
-              emit_args(g)
-              @block.bytecode(g)
+            receiver_bytecode(g)
+            emit_args(g)
+            @block.bytecode(g)
 
-              if @dynamic
-                g.send_with_splat @method, @argcount, allow_private?, false
-              else
-                g.send_with_block @method, @argcount, allow_private?
-              end
+            if @dynamic
+              g.send_with_splat @method, @argcount, allow_private?, false
+            else
+              g.send_with_block @method, @argcount, allow_private?
             end
           else
-            return_rescue(g) do
-              break_rescue(g) do
-                receiver_bytecode(g)
-                emit_args(g)
-                @block.bytecode(g)
+            receiver_bytecode(g)
+            emit_args(g)
+            @block.bytecode(g)
 
-                if @dynamic
-                  g.send_with_splat @method, @argcount, allow_private?, false
-                else
-                  g.send_with_block @method, @argcount, allow_private?
-                end
-              end
+            if @dynamic
+              g.send_with_splat @method, @argcount, allow_private?, false
+            else
+              g.send_with_block @method, @argcount, allow_private?
             end
           end
         else
@@ -469,89 +454,6 @@ class Compiler
             g.send @method, @argcount, allow_private?
           end
         end
-      end
-
-      def break_rescue(g)
-        ok = g.new_label
-        g.exceptions do |ex|
-          yield
-          ex.escape ok
-
-          ex.handle!
-
-          g.push_exception
-          g.dup
-          g.find_cpath_top_const :BlockBreakException
-          g.swap
-          g.kind_of
-
-          reraise = g.new_label
-          g.gif reraise
-
-          # Test if this LRE is for us
-          g.dup
-          g.send :destination, 0
-          g.push_context
-          g.equal
-
-          g.gif reraise
-
-          # Ok, this is for us!
-          g.clear_exception
-
-          # We leave the value on the stack as the return value
-          g.send :value, 0
-
-          done = g.new_label
-          g.goto done
-
-          reraise.set!
-
-          g.raise_exc
-
-          done.set!
-        end
-
-        ok.set!
-      end
-
-      def return_rescue(g)
-        ok = g.new_label
-        g.exceptions do |ex|
-          yield
-          ex.escape ok
-
-          ex.handle!
-
-          g.push_exception
-          g.dup
-          g.find_cpath_top_const :LongReturnException
-          g.swap
-          g.kind_of
-
-          reraise = g.new_label
-          g.gif reraise
-
-          # Test if this LRE is for us
-          g.dup
-          g.send :destination, 0
-          g.push_context
-          g.equal
-
-          g.gif reraise
-
-          # Ok, this is for us!
-          g.clear_exception
-
-          g.send :value, 0
-          g.ret
-
-          reraise.set!
-
-          g.raise_exc
-        end
-
-        ok.set!
       end
     end
 
@@ -733,7 +635,7 @@ class Compiler
             elsif @from_top
               g.push_cpath_top
             else
-              g.push_context
+              g.push_scope
             end
             g.push_literal @name
             @value.bytecode(g)
@@ -746,7 +648,7 @@ class Compiler
             elsif @from_top
               g.push_cpath_top
             else
-              g.push_context
+              g.push_scope
             end
             g.swap
             g.push_literal @name
@@ -1094,7 +996,7 @@ class Compiler
         end
 
         ok = g.new_label
-        g.exceptions do |ex|
+        g.exceptions :ensure do |ex|
           @body.bytecode(g)
           ex.escape ok
 
@@ -1103,29 +1005,7 @@ class Compiler
           @ensure.bytecode(g)
           g.pop
           # Re-raise the exception
-          g.push_exception
-          if @did_return and !@outer_ensure
-            g.dup
-            g.push_const :ReturnException
-            g.swap
-            g.kind_of
-
-            after = g.new_label
-            g.gif after
-            g.send :return_value, 0
-            g.clear_exception
-
-            # Emit the special code for doing a return in a block.
-            if @in_block
-              Return.emit_lre(g, @check_var)
-            else
-              g.ret
-            end
-
-            after.set!
-          end
-
-          g.raise_exc
+          g.reraise
         end
 
         ok.set!
@@ -1191,7 +1071,7 @@ class Compiler
         if @name == :$!
           g.push_exception
         elsif @name == :$~
-          g.find_cpath_top_const :Regexp
+          g.push_variables
           g.send :last_match, 0
         else
           g.find_cpath_top_const :Globals
@@ -1756,7 +1636,7 @@ class Compiler
 
     class NthRef
       def bytecode(g)
-        g.push_context
+        g.push_variables
         g.push @which
         g.send :nth_ref, 1
       end
@@ -2146,15 +2026,12 @@ class Compiler
         end
 
         if !force and @in_ensure
-          g.find_cpath_top_const :ReturnException
-          g.swap
-          g.send :new, 1
-          g.raise_exc
+          g.raise_return
           return
         end
 
         if @in_block
-          Return.emit_lre(g, @check_var)
+          g.raise_return
         else
           g.ret
         end

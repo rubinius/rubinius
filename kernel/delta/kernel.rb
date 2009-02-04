@@ -30,8 +30,8 @@ module Kernel
       STDERR.puts "Exception: `#{exc.class}' #{sender.location} - #{exc.message}"
     end
 
-    if !skip and !exc.context
-      exc.context = MethodContext.current.sender
+    if !skip and !exc.locations
+      exc.fill_locations
     end
 
     Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
