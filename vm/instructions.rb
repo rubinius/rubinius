@@ -119,7 +119,7 @@ class Instructions
   # [Operation]
   #   Add a new StaticScope entry for the given Module
   # [Format]
-  #   \push_scope
+  #   \add_scope
   # [Stack Before]
   #   * #<Module>
   #   * ...

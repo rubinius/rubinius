@@ -1,3 +1,5 @@
+# depends on: rubinius.rb
+
 class Module
   #--
   # HACK: This should work after after the bootstrap is loaded,
@@ -105,29 +107,37 @@ class Module
   end
 
   def attr_reader(*names)
-    names.each do |name|
-      normalized = Type.coerce_to_symbol(name)
-      method_table[normalized] = AccessVariable.get_ivar normalized
-    end
+    vis = MethodContext.current.sender.method_scope # fixme name
+
+    names.each { |name| Rubinius.add_reader name, self, vis }
 
     return nil
   end
 
   def attr_writer(*names)
-    names.each do |name|
-      normalized = Type.coerce_to_symbol(name)
-      writer_name = "#{normalized}=".to_sym
-      method_table[writer_name] = AccessVariable.set_ivar normalized
-    end
+    vis = MethodContext.current.sender.method_scope # fixme name
+
+    names.each { |name| Rubinius::add_writer name, self, vis }
 
     return nil
   end
 
   def attr_accessor(*names)
+    vis = MethodContext.current.sender.method_scope # fixme name
+
     names.each do |name|
-      attr_reader name
-      attr_writer name
+      Rubinius.add_reader name, self, vis
+      Rubinius.add_writer name, self, vis
     end
+
+    return nil
+  end
+
+  def attr(name,writeable=false)
+    vis = MethodContext.current.sender.method_scope # fixme name
+
+    Rubinius.add_reader name, self, vis
+    Rubinius.add_writer name, self, vis if writeable
 
     return nil
   end

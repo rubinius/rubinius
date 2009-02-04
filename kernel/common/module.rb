@@ -595,12 +595,6 @@ class Module
     raise NameError, "Missing or uninitialized constant: #{name}"
   end
 
-  def attr(name,writeable=false)
-    attr_reader(name)
-    attr_writer(name) if writeable
-    return nil
-  end
-
   def <(other)
     unless other.kind_of? Module
       raise TypeError, "compared with non class/module"
