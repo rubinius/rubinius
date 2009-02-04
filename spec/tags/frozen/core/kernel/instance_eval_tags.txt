@@ -1,1 +1,2 @@
 fails:Kernel#instance_eval raises a TypeError when defining methods on numerics
+fails:Kernel#instance_eval shares a scope across sibling evals
