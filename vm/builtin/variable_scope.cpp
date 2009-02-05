@@ -46,8 +46,9 @@ namespace rubinius {
 
   VariableScope* VariableScope::of_sender(STATE, Executable* exec,
                  CallFrame* call_frame, Task* task, Message& msg) {
-    call_frame->promote_scope(state);
-    return call_frame->scope;
+    CallFrame* dest = call_frame->previous;
+    dest->promote_scope(state);
+    return dest->scope;
   }
 
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {

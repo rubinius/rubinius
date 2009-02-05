@@ -79,7 +79,7 @@ class Module
 
   def private(*args)
     if args.empty?
-      MethodContext.current.sender.method_visibility = :private
+      VariableScope.of_sender.method_visibility = :private
       return
     end
 
@@ -107,7 +107,7 @@ class Module
   end
 
   def attr_reader(*names)
-    vis = MethodContext.current.sender.method_visibility
+    vis = VariableScope.of_sender.method_visibility
 
     names.each { |name| Rubinius.add_reader name, self, vis }
 
@@ -115,7 +115,7 @@ class Module
   end
 
   def attr_writer(*names)
-    vis = MethodContext.current.sender.method_visibility
+    vis = VariableScope.of_sender.method_visibility
 
     names.each { |name| Rubinius::add_writer name, self, vis }
 
@@ -123,7 +123,7 @@ class Module
   end
 
   def attr_accessor(*names)
-    vis = MethodContext.current.sender.method_visibility
+    vis = VariableScope.of_sender.method_visibility
 
     names.each do |name|
       Rubinius.add_reader name, self, vis
@@ -134,7 +134,7 @@ class Module
   end
 
   def attr(name,writeable=false)
-    vis = MethodContext.current.sender.method_visibility
+    vis = VariableScope.of_sender.method_visibility
 
     Rubinius.add_reader name, self, vis
     Rubinius.add_writer name, self, vis if writeable

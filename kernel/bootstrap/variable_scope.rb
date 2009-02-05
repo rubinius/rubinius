@@ -5,6 +5,11 @@ class VariableScope
     raise PrimitiveFailure, "Unable to get VariableScope of sender"
   end
 
+  # To handle Module#private, protected
+  attr_accessor :method_visibility
+
+  # To handle $~, $1, etc
+
   attr_accessor :last_match
   ##
   # The Nth group of the last regexp match.

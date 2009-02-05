@@ -412,7 +412,7 @@ class Module
 
   def protected(*args)
     if args.empty?
-      MethodContext.current.sender.method_visibility = :protected
+      VariableScope.of_sender.method_visibility = :protected
       return
     end
 
@@ -421,7 +421,7 @@ class Module
 
   def public(*args)
     if args.empty?
-      MethodContext.current.sender.method_visibility = nil
+      VariableScope.of_sender.method_visibility = nil
       return
     end
 
