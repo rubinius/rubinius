@@ -42,17 +42,10 @@ module Kernel
   module_function :fail
 
   def method_missing(meth, *args)
-    # Exclude method_missing from the backtrace since it only confuses
-    # people.
-    myself = MethodContext.current
-    ctx = myself.sender
-
-    if myself.send_private?
-      Kernel.raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
-    elsif self.__kind_of__ Class or self.__kind_of__ Module
-      Kernel.raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.__class__})", ctx, args)
+    if self.__kind_of__ Class or self.__kind_of__ Module
+      Kernel.raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.__class__})", meth, args)
     else
-      Kernel.raise NoMethodError.new("No method '#{meth}' on an instance of #{self.__class__}.", ctx, args)
+      Kernel.raise NoMethodError.new("No method '#{meth}' on an instance of #{self.__class__}.", meth, args)
     end
   end
 

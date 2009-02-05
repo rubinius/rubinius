@@ -126,6 +126,10 @@ namespace rubinius {
 
     // Ruby.primitive :iobuffer_unshift
     Object* unshift(STATE, String* str, Fixnum* start_pos);
+
+    // Ruby.primitive :iobuffer_fill
+    Object* fill(STATE, IO* io);
+
     void reset(STATE);
     String* drain(STATE);
     char* byte_address();

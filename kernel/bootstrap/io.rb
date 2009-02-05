@@ -14,6 +14,16 @@ class IO
       Ruby.primitive :iobuffer_unshift
       raise PrimitiveFailure, "IO::Buffer#unshift primitive failed"
     end
+
+    def fill(io)
+      Ruby.primitive :iobuffer_fill
+
+      unless io.kind_of? IO
+        return fill(io.to_io)
+      end
+
+      raise PrimitiveFailure, "IOBuffer#fill primitive failed"
+    end
   end
 
   def self.allocate

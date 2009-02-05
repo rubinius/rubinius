@@ -57,7 +57,7 @@ namespace rubinius {
 
     cf->is_block = true;
     cf->previous = call_frame;
-    cf->name =     (Symbol*)Qnil;
+    cf->name =     name_;
     cf->cm =       method_;
     cf->args =     args;
     cf->scope =    scope;
@@ -94,7 +94,7 @@ namespace rubinius {
 
     cf->is_block = true;
     cf->previous = call_frame;
-    cf->name =     (Symbol*)Qnil;
+    cf->name =     name_;
     cf->cm =       method_;
     cf->args =     msg.args();
     cf->scope =    scope;
@@ -130,6 +130,7 @@ namespace rubinius {
     be->top_scope(state, call_frame->top_scope);
     be->method(state, cm);
     be->local_count(state, cm->local_count());
+    be->name(state, call_frame->name);
     be->vmm = vmm;
 
     return be;
@@ -142,6 +143,7 @@ namespace rubinius {
     be->top_scope(state, top_scope_);
     be->method(state, method_);
     be->local_count(state, local_count_);
+    be->name(state, name_);
     be->vmm = this->vmm;
 
     return be;

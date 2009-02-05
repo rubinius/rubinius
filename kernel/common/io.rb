@@ -58,11 +58,8 @@ class IO
       return size unless empty?
 
       reset!
-      Scheduler.send_on_readable @channel, io, self, unused
 
-      # FIX: what is obj and what should it be?
-      obj = @channel.receive
-      if obj.kind_of? Class
+      if fill(io) < 0
         raise IOError, "error occured while filling buffer (#{obj})"
       end
 

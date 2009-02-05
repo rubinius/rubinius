@@ -251,7 +251,6 @@ namespace rubinius {
     }
   }
 
-
 /* IOBuffer methods */
 
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
@@ -284,6 +283,20 @@ namespace rubinius {
     used(state, Fixnum::from(used_native + total_sz));
 
     return Fixnum::from(total_sz);
+  }
+
+  Object* IOBuffer::fill(STATE, IO* io) {
+    ssize_t bytes_read;
+
+    bytes_read = read(io->descriptor()->to_native(),
+                      at_unused(),
+                      left());
+
+    if(bytes_read > 0) {
+      read_bytes(state, bytes_read);
+    }
+
+    return Fixnum::from(bytes_read);
   }
 
   void IOBuffer::reset(STATE) {

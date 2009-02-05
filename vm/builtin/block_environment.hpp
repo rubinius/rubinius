@@ -22,6 +22,7 @@ namespace rubinius {
     VariableScope* top_scope_;  // slot
     Object* local_count_;       // slot
     CompiledMethod* method_;    // slot
+    Symbol* name_;              // slot
 
   public:
     // @todo fix up data members that aren't slots
@@ -33,6 +34,7 @@ namespace rubinius {
     attr_accessor(top_scope, VariableScope);
     attr_accessor(local_count, Object);
     attr_accessor(method, CompiledMethod);
+    attr_accessor(name, Symbol);
 
     /* interface */
 

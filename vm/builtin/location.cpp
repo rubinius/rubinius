@@ -18,7 +18,7 @@ namespace rubinius {
     loc->name(state, call_frame->name);
     loc->method(state, call_frame->cm);
     loc->is_block(state, call_frame->is_block ? Qtrue : Qfalse);
-    loc->ip(state, Fixnum::from(call_frame->ip));
+    loc->ip(state, Fixnum::from(call_frame->ip - 1));
 
     return loc;
   }
