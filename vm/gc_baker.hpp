@@ -14,6 +14,7 @@
 namespace rubinius {
 
   class ObjectMemory;
+  class CallFrame;
 
   class BakerGC : public GarbageCollector {
     public:
@@ -61,7 +62,7 @@ namespace rubinius {
     virtual Object* saw_object(Object* obj);
     void    copy_unscanned();
     bool    fully_scanned_p();
-    void    collect(Roots &roots);
+    void    collect(Roots &roots, CallFrame* call_frame);
     void    clear_marks();
     Object*  next_object(Object* obj);
     void    find_lost_souls();

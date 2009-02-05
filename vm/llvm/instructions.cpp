@@ -29,6 +29,8 @@
 #include "instructions.hpp"
 #include "profiler.hpp"
 
+#include "helpers.hpp"
+
 using namespace rubinius;
 
 // HACK: sassert is stack protection
@@ -57,19 +59,20 @@ using namespace rubinius;
 
 #define SHOW(obj) (((NormalObject*)(obj))->show(state))
 
-#define state task->state
-
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
 #define cache_ip()
 
 extern "C" {
-  Object* send_slowly(VMMethod* vmm, Task* task, CallFrame* const call_frame, Symbol* name, size_t args);
+  Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t args);
 
 #define HANDLE_EXCEPTION(val) if(val == NULL) return NULL
 #define RUN_EXCEPTION() return NULL
 
 #define RETURN(val) return val
+
+#define SET_CALL_FLAGS(val)
+#define CALL_FLAGS() 0
 
 #ruby <<CODE
 require 'stringio'
@@ -81,14 +84,14 @@ si.generate_functions impl, io
 puts io.string
 CODE
 
-  Object* send_slowly(VMMethod* vmm, Task* task, CallFrame* const call_frame, Symbol* name, size_t args) {
-    Message& msg = *task->msg;
+  Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t args) {
+    Message msg;
     msg.setup(static_cast<SendSite*>(Qnil), stack_back(args), call_frame, args, args + 1);
     msg.name = name;
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.block = Qnil;
 
-    return task->send_message_slowly(call_frame, msg);
+    return msg.send(state, call_frame);
   }
 }
 
@@ -102,9 +105,15 @@ CODE
 #undef RETURN
 #define RETURN(val) (void)val; return;
 
+#undef SET_CALL_FLAGS
+#undef CALL_FLAGS
+
+#define SET_CALL_FLAGS(val) call_flags = (val)
+#define CALL_FLAGS() call_flags
+
 Object* rubinius::Task::execute_stream(CallFrame* call_frame, opcode* stream) {
   opcode op;
-  Task* task = this;
+  int call_flags = 0;
   VMMethod* const vmm = call_frame->vmm;
 
   op = next_op();
@@ -125,8 +134,9 @@ CODE
 #undef RETURN
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
 
-Object* VMMethod::interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame) {
+Object* VMMethod::interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
   opcode* stream = call_frame->vmm->opcodes;
+  int call_flags = 0;
 #ifdef USE_JUMP_TABLE
 
 #undef DISPATCH_NEXT_INSN
@@ -176,8 +186,9 @@ CODE
  * each opcode for the breakpoint flag. It is installed on the VMMethod when
  * a breakpoint is set on compiled method.
  */
-Object* VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame) {
+Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
   opcode* stream = call_frame->vmm->opcodes;
+  int call_flags = 0;
   opcode op;
 #ifdef USE_JUMP_TABLE
 
@@ -186,7 +197,7 @@ Object* VMMethod::debugger_interpreter(VMMethod* const vmm, Task* const task, Ca
   if(unlikely(op & cBreakpoint)) { \
     if(G(current_thread)->frozen_stack() == Qfalse) { \
       call_frame->ip--; \
-      task->yield_debugger(); \
+      Helpers::yield_debugger(state, call_frame); \
     } else { \
       G(current_thread)->frozen_stack(state, Qfalse); \
     } \

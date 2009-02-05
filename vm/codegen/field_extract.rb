@@ -5,7 +5,7 @@ class BasicPrimitive
   attr_accessor :raw
 
   def output_header(str)
-    str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Task* task, Message& msg) {\n"
+    str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Message& msg) {\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  Object* ret;\n"
@@ -41,11 +41,11 @@ class BasicPrimitive
   def output_call(str, call, args)
     str << "\n"
     str << "  try {\n"
-    str << "    if(unlikely(task->profiler)) task->profiler->enter_primitive(state, msg);\n"
+    #str << "    if(unlikely(task->profiler)) task->profiler->enter_primitive(state, msg);\n"
     str << "    ret = #{call}(#{args.join(', ')});\n"
-    str << "    if(unlikely(task->profiler)) task->profiler->leave_method();\n"
+    #str << "    if(unlikely(task->profiler)) task->profiler->leave_method();\n"
     str << "  } catch(const RubyException& exc) {\n"
-    str << "    task->raise_exception(exc.exception);\n"
+    str << "    state->thread_state()->raise_exception(exc.exception);\n"
     str << "    return Qnil;\n"
     str << "  }\n"
     str << "\n"
@@ -53,7 +53,7 @@ class BasicPrimitive
     str << "    goto fail;\n\n"
     prim_return(str);
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, call_frame, task, msg);\n"
+    str << "  return VMMethod::execute(state, call_frame, msg);\n"
     str << "}\n\n"
   end
 
@@ -83,10 +83,10 @@ class CPPPrimitive < BasicPrimitive
 
     if @raw
       str << "\n"
-      str << "  return recv->#{@cpp_name}(state, msg.method, call_frame, task, msg);\n"
+      str << "  return recv->#{@cpp_name}(state, msg.method, call_frame, msg);\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return VMMethod::execute(state, call_frame, task, msg);\n"
+      str << "  return VMMethod::execute(state, call_frame, msg);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -106,7 +106,7 @@ class CPPStaticPrimitive < CPPPrimitive
 
     if @raw
       str << "\n"
-      str << "  return #{@type}::#{@cpp_name}(state, msg.method, call_frame, task, msg);\n"
+      str << "  return #{@type}::#{@cpp_name}(state, msg.method, call_frame, msg);\n"
       str << "\n"
       str << "}\n\n"
     else
@@ -146,16 +146,16 @@ class CPPOverloadedPrimitive < BasicPrimitive
       type = prim.arg_types.first
       str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
       str << "      try {\n"
-      str << "        if(unlikely(task->profiler))\n"
-      str << "          task->profiler->enter_primitive(state, msg);\n"
+      #str << "        if(unlikely(task->profiler))\n"
+      #str << "          task->profiler->enter_primitive(state, msg);\n"
       if @pass_state
         str << "      ret = recv->#{@cpp_name}(state, arg);\n"
       else
         str << "      ret = recv->#{@cpp_name}(arg);\n"
       end
-      str << "        if(unlikely(task->profiler)) task->profiler->leave_method();\n"
+      #str << "        if(unlikely(task->profiler)) task->profiler->leave_method();\n"
       str << "      } catch(const RubyException& exc) {\n"
-      str << "        task->raise_exception(exc.exception);\n"
+      str << "        state->thread_state()->raise_exception(exc.exception);\n"
       str << "        return Qnil;\n"
       str << "      }\n"
       str << "      if(likely(ret != reinterpret_cast<Object*>(kPrimitiveFailed))) {\n"
@@ -167,7 +167,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  }\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, call_frame, task, msg);\n"
+    str << "  return VMMethod::execute(state, call_frame, msg);\n"
     str << "}\n\n"
     return str
   end
@@ -638,7 +638,7 @@ end
 write_if_new "vm/gen/primitives_declare.hpp" do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
-      f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Task* task, Message& msg);"
+      f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Message& msg);"
     end
   end
 end

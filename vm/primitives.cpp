@@ -9,7 +9,7 @@
 #include <iostream>
 
 namespace rubinius {
-  Object* Primitives::unknown_primitive(STATE, CallFrame* call_frame, Task* task, Message& msg) {
+  Object* Primitives::unknown_primitive(STATE, CallFrame* call_frame, Message& msg) {
     std::string message = std::string("Called unbound or invalid primitive from: ");
     message += msg.name->to_str(state)->c_str();
 

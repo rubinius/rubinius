@@ -27,7 +27,7 @@ namespace rubinius {
 
   /* Run when an AccessVariable is executed. Uses the details in msg.method
    * to access instance variables of msg.recv */
-  Object* AccessVariable::access_execute(STATE, CallFrame* call_frame, Task* task, Message& msg) {
+  Object* AccessVariable::access_execute(STATE, CallFrame* call_frame, Message& msg) {
     AccessVariable* access = as<AccessVariable>(msg.method);
 
     /* The writer case. */

@@ -72,7 +72,7 @@ namespace rubinius {
     VMMethod* formalize(STATE, bool ondemand=true);
     void specialize(STATE, TypeInfo* ti);
 
-    static Object* default_executor(STATE, CallFrame*, Task*, Message&);
+    static Object* default_executor(STATE, CallFrame*, Message&);
 
     // Ruby.primitive :compiledmethod_compile
     Object* compile(STATE);
@@ -81,7 +81,7 @@ namespace rubinius {
     MachineMethod* make_machine_method(STATE);
 
     // Ruby.primitive? :compiledmethod_activate
-    Object* activate(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
+    Object* activate(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
     bool is_rescue_target(STATE, int ip);
 

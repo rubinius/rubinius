@@ -13,7 +13,7 @@ namespace rubinius {
     cExecuteRestart
   };
 
-  typedef Object* (*executor)(VM*, CallFrame*, Task*, Message& msg);
+  typedef Object* (*executor)(VM*, CallFrame*, Message& msg);
 }
 
 #endif

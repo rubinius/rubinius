@@ -43,7 +43,7 @@ namespace rubinius {
 
   /* Run when a NativeFunction is executed.  Executes the related C function.
    */
-  Object* NativeFunction::execute(STATE, CallFrame* call_frame, Task* task, Message& msg) {
+  Object* NativeFunction::execute(STATE, CallFrame* call_frame, Message& msg) {
     NativeFunction* nfunc = as<NativeFunction>(msg.method);
 
     Object* obj = nfunc->call(state, &msg);

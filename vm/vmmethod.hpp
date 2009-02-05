@@ -22,10 +22,9 @@ namespace rubinius {
   class Opcode;
   class SendSite;
   class VMMethod;
-  class Task;
   class MachineMethod;
 
-  typedef Object* (*Runner)(VMMethod* const vmm, Task* const task, CallFrame* const call_frame);
+  typedef Object* (*Runner)(STATE, VMMethod* const vmm, CallFrame* const call_frame);
 
   class VMMethod {
   private:
@@ -67,16 +66,16 @@ namespace rubinius {
 
     void specialize(STATE, TypeInfo* ti);
     void compile(STATE);
-    static Object* execute(STATE, CallFrame* call_frame, Task* task, Message& msg);
+    static Object* execute(STATE, CallFrame* call_frame, Message& msg);
 
 #ifdef USE_SPECIALIZED_EXECUTE
     template <typename ArgumentHandler>
-      static Object* execute_specialized(STATE, Task* task, Message& msg);
+      static Object* execute_specialized(STATE, CallFrame* call_frame, Message& msg);
 #endif
 
-    static Object* run_interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame);
-    static Object* interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame);
-    static Object* debugger_interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame);
+    static Object* run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+    static Object* interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+    static Object* debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
 
     void setup_argument_handler(CompiledMethod* meth);
 

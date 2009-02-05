@@ -86,12 +86,12 @@ namespace rubinius {
     return Qnil;
   }
 
-  void MachineMethod::run_code(VMMethod* const vmm, Task* const task,
+  void MachineMethod::run_code(STATE, VMMethod* const vmm,
       CallFrame* const call_frame) {
 #ifdef IS_X86
     MachineMethod* mm = vmm->machine_method();
     void* func = mm->function();
-    ((Runner)func)(vmm, task, call_frame);
+    ((Runner)func)(state, vmm, call_frame);
 #else
     Assertion::raise("Only supported on x86");
 #endif

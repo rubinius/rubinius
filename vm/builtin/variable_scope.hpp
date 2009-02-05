@@ -40,6 +40,16 @@ namespace rubinius {
       }
     }
 
+    void update(Object* self, Object* mod, Object* block) {
+      self_ = self;
+      module_ = (Module*)mod; // safe? unsafe?
+      block_ = block;
+    }
+
+    void update_parent(VariableScope* vs) {
+      parent_ = vs;
+    }
+
     void setup_as_block(VariableScope* top, VariableScope* parent, int num);
 
     bool stack_allocated_p() {
@@ -48,7 +58,10 @@ namespace rubinius {
 
     void set_local(STATE, int pos, Object* val) {
       locals_[pos] = val;
-      write_barrier(state, val);
+
+      if(!stack_allocated_p()) {
+        write_barrier(state, val);
+      }
     }
 
     void set_local(int pos, Object* val) {
@@ -70,7 +83,7 @@ namespace rubinius {
     VariableScope* promote(STATE);
 
     // Ruby.primitive? :variable_scope_of_sender
-    static VariableScope* of_sender(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
+    static VariableScope* of_sender(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
   public: // Rubinius Type stuff
     class Info : public TypeInfo {

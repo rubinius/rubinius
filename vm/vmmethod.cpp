@@ -441,7 +441,7 @@ namespace rubinius {
    * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
    * CompiledMethod.
    */
-  Object* VMMethod::execute(STATE, CallFrame* previous, Task* task, Message& msg) {
+  Object* VMMethod::execute(STATE, CallFrame* previous, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
     VMMethod* vmm = cm->backend_method_;
 
@@ -464,15 +464,15 @@ namespace rubinius {
     // If argument handling fails..
     GenericArguments args;
     if(args.call(state, vmm, scope, msg) == false) {
-      task->raise_exception(
+      state->thread_state()->raise_exception(
           Exception::make_argument_error(state, vmm->required_args, msg.args()));
 
       return NULL;
     }
 
-    if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
+    // if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
-    return cf->run(vmm, task, cf);
+    return cf->run(state, vmm, cf);
   }
 
   /* This is a noop for this class. */
@@ -618,14 +618,18 @@ namespace rubinius {
 
   }
 
-  Object* VMMethod::run_interpreter(VMMethod* const vmm, Task* const task, CallFrame* const call_frame) {
+  Object* VMMethod::run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
     Object* return_value;
     for(;;) {
     continue_to_run:
-      return_value = interpreter(vmm, task, call_frame);
+      if(state->interrupts.check) {
+        state->collect_maybe(call_frame);
+      }
+
+      return_value = interpreter(state, vmm, call_frame);
       if(return_value) return return_value;
 
-      ThreadState* th = task->state->thread_state();
+      ThreadState* th = state->thread_state();
       // if return_value is NULL, then there is an exception outstanding
       //
       switch(th->raise_reason()) {

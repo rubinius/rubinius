@@ -80,7 +80,7 @@ class Instructions
     }
     CompiledMethod* meth = as<CompiledMethod>(stack_pop());
 
-    task->add_method(call_frame, mod, sym, meth);
+    Helpers::add_method(state, call_frame, mod, sym, meth);
     stack_push(meth);
     CODE
   end
@@ -185,7 +185,7 @@ class Instructions
     Object* obj2 = stack_pop();
     CompiledMethod* meth = as<CompiledMethod>(obj2);
 
-    task->attach_method(call_frame, obj, sym, meth);
+    Helpers::attach_method(state, call_frame, obj, sym, meth);
     stack_push(meth);
     CODE
   end
@@ -664,9 +664,9 @@ class Instructions
     bool found;
     Module* under = as<Module>(stack_pop());
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
-    Object* res = task->const_get(under, sym, &found);
+    Object* res = Helpers::const_get(state, under, sym, &found);
     if(!found) {
-      Message& msg = *task->msg;
+      Message msg;
       msg.recv = under;
       msg.name = state->symbol("const_missing");
       msg.block = Qnil;
@@ -676,16 +676,16 @@ class Instructions
       args->set(state, 0, sym);
       msg.set_arguments(state, args);
 
-      res = task->send_message_slowly(call_frame, msg);
+      res = msg.send(state, call_frame);
     } else if(kind_of<Autoload>(res)) {
-      Message& msg = *task->msg;
+      Message msg;
       msg.recv = res;
       msg.name = G(sym_call);
       msg.stack = 0;
       msg.lookup_from = res->lookup_begin(state);
       msg.set_args(0);
 
-      res = task->send_message_slowly(call_frame, msg);
+      res = msg.send(state, call_frame);
     }
 
     HANDLE_EXCEPTION(res);
@@ -1145,7 +1145,7 @@ class Instructions
     Object* t1 = stack_pop(); // include_private
     Symbol* name = as<Symbol>(stack_pop()); // meth
     Object* t3 = stack_pop(); // self
-    stack_push(task->locate_method_on(t3, name, t1));
+    stack_push(Helpers::locate_method_on(state, t3, name, t1));
     CODE
   end
 
@@ -1351,11 +1351,11 @@ class Instructions
     Object* t1 = stack_back(count);
     Object* ret;
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      ret = env->call(state, task, call_frame, count);
+      ret = env->call(state, call_frame, count);
     } else if(BlockWrapper* wrapper = try_as<BlockWrapper>(t1)) {
-      ret = wrapper->call(state, task, call_frame, count);
+      ret = wrapper->call(state, call_frame, count);
     } else {
-      ret = send_slowly(vmm, task, call_frame, G(sym_call), count);
+      ret = send_slowly(state, vmm, call_frame, G(sym_call), count);
     }
 
     stack_clear(count + 1);
@@ -1430,7 +1430,7 @@ class Instructions
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
-      Object* ret = send_slowly(vmm, task, call_frame, G(sym_equal), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_equal), 1);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1481,7 +1481,7 @@ class Instructions
       stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
     } else {
-      Object* ret = send_slowly(vmm, task, call_frame, G(sym_gt), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_gt), 1);
       stack_clear(2);
 
       HANDLE_EXCEPTION(ret);
@@ -1532,7 +1532,7 @@ class Instructions
       stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
     } else {
-      Object* ret = send_slowly(vmm, task, call_frame, G(sym_lt), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_lt), 1);
       stack_clear(2);
       HANDLE_EXCEPTION(ret);
       stack_set_top(ret);
@@ -1581,7 +1581,7 @@ class Instructions
       stack_pop();
       stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
     } else {
-      Object* ret = send_slowly(vmm, task, call_frame, G(sym_minus), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_minus), 1);
       stack_clear(2);
       HANDLE_EXCEPTION(ret);
       stack_push(ret);
@@ -1633,7 +1633,7 @@ class Instructions
       stack_pop();
       stack_set_top((t1 == t2) ? Qfalse : Qtrue);
     } else {
-      Object* ret = send_slowly(vmm, task, call_frame, G(sym_nequal), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_nequal), 1);
       stack_clear(2);
       HANDLE_EXCEPTION(ret);
       stack_push(ret);
@@ -1684,7 +1684,7 @@ class Instructions
       Object* res = ((Fixnum*)(left))->add(state, (Fixnum*)(right));
       stack_push(res);
     } else {
-      Object* ret = send_slowly(vmm, task, call_frame, G(sym_plus), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_plus), 1);
       stack_clear(2);
       HANDLE_EXCEPTION(ret);
       stack_push(ret);
@@ -1735,7 +1735,7 @@ class Instructions
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
-      Object* ret = send_slowly(vmm, task, call_frame, G(sym_tequal), 1);
+      Object* ret = send_slowly(state, vmm, call_frame, G(sym_tequal), 1);
       stack_clear(2);
       HANDLE_EXCEPTION(ret);
       stack_push(ret);
@@ -1826,7 +1826,7 @@ class Instructions
     Object* super = stack_pop();
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    Class* cls = task->open_class(call_frame, super, sym, &created);
+    Class* cls = Helpers::open_class(state, call_frame, super, sym, &created);
 
     HANDLE_EXCEPTION(cls);
     stack_push(cls);
@@ -1894,7 +1894,7 @@ class Instructions
     Module* under = as<Module>(stack_pop());
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    Class* cls = task->open_class(under, super, sym, &created);
+    Class* cls = Helpers::open_class(state, under, super, sym, &created);
     HANDLE_EXCEPTION(cls);
     // TODO use created? it's only for running the opened_class hook, which
     // we're eliminating anyway.
@@ -1981,7 +1981,7 @@ class Instructions
     <<-CODE
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    Module* mod = task->open_module(call_frame, sym);
+    Module* mod = Helpers::open_module(state, call_frame, sym);
     HANDLE_EXCEPTION(mod);
     stack_push(mod);
     CODE
@@ -2030,7 +2030,7 @@ class Instructions
     Module* mod = as<Module>(stack_pop());
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    Module* ret = task->open_module(mod, sym);
+    Module* ret = Helpers::open_module(state, mod, sym);
     HANDLE_EXCEPTION(ret);
 
     stack_push(ret);
@@ -2108,7 +2108,7 @@ class Instructions
 
   def passed_blockarg(count)
     <<-CODE
-    if((unsigned int)count == task->blockargs) {
+    if(count == call_frame->args) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -2259,9 +2259,9 @@ class Instructions
     <<-CODE
     bool found;
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
-    Object* res = task->const_get(call_frame, sym, &found);
+    Object* res = Helpers::const_get(state, call_frame, sym, &found);
     if(!found) {
-      Message& msg = *task->msg;
+      Message msg;
       StaticScope* scope = call_frame->cm->scope();
       if(scope->nil_p()) {
         msg.recv = G(object);
@@ -2276,16 +2276,16 @@ class Instructions
       args->set(state, 0, sym);
       msg.set_arguments(state, args);
 
-      res = task->send_message_slowly(call_frame, msg);
+      res = msg.send(state, call_frame);
     } else if(kind_of<Autoload>(res)) {
-      Message& msg = *task->msg;
+      Message msg;
       msg.recv = res;
       msg.name = G(sym_call);
       msg.stack = 0;
       msg.lookup_from = res->lookup_begin(state);
       msg.set_args(0);
 
-      res = task->send_message_slowly(call_frame, msg);
+      res = msg.send(state, call_frame);
     }
 
     HANDLE_EXCEPTION(res);
@@ -2356,12 +2356,12 @@ class Instructions
     if(assoc->nil_p()) {
 slow_path:
       Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, symbol_index));
-      LookupTableAssociation* assoc = task->const_get_association(call_frame, sym, &found);
+      LookupTableAssociation* assoc = Helpers::const_get_association(state, call_frame, sym, &found);
       if(found) {
         call_frame->cm->literals()->put(state, association_index, assoc);
         res = assoc->value();
       } else {
-        Message& msg = *task->msg;
+        Message msg;
         StaticScope* scope = call_frame->cm->scope();
         if(scope->nil_p()) {
           msg.recv = G(object);
@@ -2376,7 +2376,7 @@ slow_path:
         args->set(state, 0, sym);
         msg.set_arguments(state, args);
 
-        res = task->send_message_slowly(call_frame, msg);
+        res = msg.send(state, call_frame);
       }
     } else {
       LookupTableAssociation* real_assoc = as<LookupTableAssociation>(assoc);
@@ -2385,14 +2385,14 @@ slow_path:
     }
 
     if(kind_of<Autoload>(res)) {
-      Message& msg = *task->msg;
+      Message msg;
       msg.recv = res;
       msg.name = G(sym_call);
       msg.stack = 0;
       msg.lookup_from = res->lookup_begin(state);
       msg.set_args(0);
 
-      res = task->send_message_slowly(call_frame, msg);
+      res = msg.send(state, call_frame);
     }
 
     HANDLE_EXCEPTION(res);
@@ -3046,7 +3046,7 @@ slow_path:
 
   def send_method(index)
     <<-CODE
-    Message& msg = *task->msg;
+    Message msg;
 
     msg.setup(
       vmm->sendsites[index].get(),
@@ -3058,13 +3058,13 @@ slow_path:
     msg.block = Qnil;
     msg.splat = Qnil;
 
-    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
+    msg.priv = CALL_FLAGS() & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
-    task->call_flags = 0;
+    SET_CALL_FLAGS(0);
 
-    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    Object* ret = msg.send_site->performer(state, call_frame, msg);
     stack_pop();
 
     HANDLE_EXCEPTION(ret);
@@ -3133,7 +3133,7 @@ slow_path:
 
   def send_stack(index, count)
     <<-CODE
-    Message& msg = *task->msg;
+    Message msg;
 
     msg.setup(
       vmm->sendsites[index].get(),
@@ -3145,13 +3145,13 @@ slow_path:
     msg.block = Qnil;
     msg.splat = Qnil;
 
-    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
+    msg.priv = CALL_FLAGS() & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
-    task->call_flags = 0;
+    SET_CALL_FLAGS(0);
 
-    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count + 1);
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -3222,7 +3222,7 @@ slow_path:
 
   def send_stack_with_block(index, count)
     <<-CODE
-    Message& msg = *task->msg;
+    Message msg;
 
     msg.block = stack_pop();
 
@@ -3235,13 +3235,13 @@ slow_path:
 
     msg.splat = Qnil;
 
-    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
+    msg.priv = CALL_FLAGS() & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
-    task->call_flags = 0;
+    SET_CALL_FLAGS(0);
 
-    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count + 1);
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -3319,7 +3319,7 @@ slow_path:
 
   def send_stack_with_splat(index, count)
     <<-CODE
-    Message& msg = *task->msg;
+    Message msg;
 
     msg.block = stack_pop();
     Object* ary = stack_pop();
@@ -3334,20 +3334,20 @@ slow_path:
     msg.splat = Qnil;
 
     if(!ary->nil_p()) {
-      if(task->call_flags & #{CALL_FLAG_CONCAT}) {
+      if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
         msg.append_arguments(state, as<Array>(ary));
       } else {
         msg.append_splat(state, as<Array>(ary));
       }
     }
 
-    msg.priv = task->call_flags & #{CALL_FLAG_PRIVATE};
+    msg.priv = CALL_FLAGS() & #{CALL_FLAG_PRIVATE};
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
-    task->call_flags = 0;
+    SET_CALL_FLAGS(0);
 
-    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count + 1);
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -3421,7 +3421,7 @@ slow_path:
 
   def send_super_stack_with_block(index, count)
     <<-CODE
-    Message& msg = *task->msg;
+    Message msg;
 
     msg.block = stack_pop();
 
@@ -3438,9 +3438,9 @@ slow_path:
     msg.lookup_from = call_frame->module()->superclass();
     msg.name = msg.send_site->name();
 
-    task->call_flags = 0;
+    SET_CALL_FLAGS(0);
 
-    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count);
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -3561,7 +3561,7 @@ slow_path:
 
   def send_super_stack_with_splat(index, count)
     <<-CODE
-    Message& msg = *task->msg;
+    Message msg;
 
     msg.block = stack_pop();
     Object* ary = stack_pop();
@@ -3576,7 +3576,7 @@ slow_path:
     msg.splat = Qnil;
 
     if(!ary->nil_p()) {
-      if(task->call_flags & #{CALL_FLAG_CONCAT}) {
+      if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
         msg.append_arguments(state, as<Array>(ary));
       } else {
         msg.append_splat(state, as<Array>(ary));
@@ -3587,9 +3587,9 @@ slow_path:
     msg.lookup_from = call_frame->module()->superclass();
     msg.name = msg.send_site->name();
 
-    task->call_flags = 0;
+    SET_CALL_FLAGS(0);
 
-    Object* ret = msg.send_site->performer(state, call_frame, task, msg);
+    Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count);
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
@@ -3671,7 +3671,7 @@ slow_path:
 
   def set_call_flags(flags)
     <<-CODE
-    task->call_flags = flags;
+    SET_CALL_FLAGS(flags);
     CODE
   end
 
@@ -3702,7 +3702,7 @@ slow_path:
   def set_const(index)
     <<-CODE
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
-    task->const_set(call_frame, sym, stack_top());
+    call_frame->cm->scope()->module()->set_const(state, sym, stack_top());
     CODE
   end
 
@@ -3748,7 +3748,7 @@ slow_path:
     Object* val = stack_pop();
     Module* under = as<Module>(stack_pop());
 
-    task->const_set(under, sym, val);
+    under->set_const(state, sym, val);
     stack_push(val);
     CODE
   end
@@ -4235,7 +4235,7 @@ slow_path:
 
   def yield_debugger
     <<-CODE
-    task->yield_debugger();
+    Helpers::yield_debugger(state, call_frame);
     CODE
   end
 

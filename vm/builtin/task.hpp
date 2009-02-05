@@ -81,7 +81,7 @@ namespace rubinius {
     static Task* current(STATE);
 
     // Ruby.primitive? :task_set_current
-    static Object* set_current(STATE, Executable* exec, CallFrame* call_frame, Task* task_, Message& msg);
+    static Object* set_current(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
     // Ruby.primitive :task_control_channel
     Channel* get_control_channel(STATE);
@@ -96,7 +96,7 @@ namespace rubinius {
     Object* call_object(STATE, Object* recv, Symbol* meth, Array* args);
 
     // Ruby.primitive? :task_dup
-    Object* task_dup(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
+    Object* task_dup(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
     void execute();
     void execute_interp();

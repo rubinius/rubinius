@@ -18,8 +18,6 @@ namespace rubinius {
 
   /* Forwards */
   class Message;
-  class Task;
-
 
   /**
    *  The various special method arities from a
@@ -156,7 +154,7 @@ namespace rubinius {
     /**
      *  Enter a new NativeMethod the first time.
      */
-    static Object* executor_implementation(STATE, CallFrame* call_frame, Task* task, Message& message);
+    static Object* executor_implementation(STATE, CallFrame* call_frame, Message& message);
 
     /**
      *  Attempt to load a C extension library and its main function.

@@ -11,7 +11,6 @@ namespace rubinius {
   class BlockContext;
   class Message;
   class VMMethod;
-  class Task;
   class VMExecutable;
 
   class BlockEnvironment : public Object {
@@ -45,12 +44,12 @@ namespace rubinius {
     static BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
       CallFrame* call_frame, size_t index);
 
-    Object* call(STATE, Task* task, CallFrame* call_frame, size_t args);
-    Object* call(STATE, Task* task, CallFrame* call_frame, Message& msg);
+    Object* call(STATE, CallFrame* call_frame, size_t args);
+    Object* call(STATE, CallFrame* call_frame, Message& msg);
     BlockContext* create_context(STATE, MethodContext* sender);
 
     // Ruby.primitive? :block_call
-    Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
+    Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
     BlockEnvironment* dup(STATE);
 

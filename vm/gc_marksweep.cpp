@@ -117,7 +117,7 @@ namespace rubinius {
     return NULL;
   }
 
-  void MarkSweepGC::collect(Roots &roots) {
+  void MarkSweepGC::collect(Roots &roots, CallFrame* top_call_frame) {
     Object* tmp;
 
     Root* root = static_cast<Root*>(roots.head());
@@ -129,6 +129,8 @@ namespace rubinius {
 
       root = static_cast<Root*>(root->next());
     }
+
+    walk_call_frame(top_call_frame);
 
     // Cleanup all weakrefs seen
     clean_weakrefs();

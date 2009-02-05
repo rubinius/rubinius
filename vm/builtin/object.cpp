@@ -327,7 +327,7 @@ namespace rubinius {
     return task->send_message_slowly(NULL, msg);
   }
 
-  Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg) {
+  Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     Object* meth = msg.shift_argument(state);
     Symbol* sym = try_as<Symbol>(meth);
 
@@ -337,7 +337,7 @@ namespace rubinius {
 
     msg.name = sym;
     msg.priv = true;
-    return task->send_message_slowly(call_frame, msg);
+    return msg.send(state, call_frame);
   }
 
   void Object::set_field(STATE, size_t index, Object* val) {

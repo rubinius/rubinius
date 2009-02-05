@@ -6,6 +6,11 @@
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
+#include "builtin/sendsite.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/module.hpp"
+
+#include <sstream>
 
 namespace rubinius {
 
@@ -28,6 +33,22 @@ namespace rubinius {
 
   Message::Message(STATE):
     state(state),
+    arguments_array(NULL),
+    total_args(0),
+    send_site(NULL),
+    name(NULL),
+    recv(Qnil),
+    block(Qnil),
+    stack(0),
+    priv(false),
+    lookup_from(NULL),
+    method(NULL),
+    module(NULL),
+    method_missing(false),
+    caller_(NULL) { }
+
+  Message::Message():
+    state(NULL),
     arguments_array(NULL),
     total_args(0),
     send_site(NULL),
@@ -152,4 +173,32 @@ namespace rubinius {
     arguments_ = stack_args_;
   }
 
+  /* Only called if send_message can't locate anything to run, which pretty
+   * much never happens, since it means even method_missing wasn't available. */
+  static void tragic_failure(STATE, Message& msg) {
+    std::stringstream ss;
+    ss << "unable to locate any method '" << msg.send_site->name()->c_str(state) <<
+      "' from '" << msg.lookup_from->name()->c_str(state) << "'";
+
+    Exception::assertion_error(state, ss.str().c_str());
+  }
+
+  Object* Message::send(STATE, CallFrame* call_frame) {
+    Symbol* original_name = name;
+    if(!GlobalCacheResolver::resolve(state, *this)) {
+      method_missing = true;
+      name = G(sym_method_missing);
+      priv = true; // lets us look for method_missing anywhere
+      if(!GlobalCacheResolver::resolve(state, *this)) {
+        tragic_failure(state, *this);
+        return NULL;
+      }
+    }
+
+    if(method_missing) {
+      unshift_argument(state, original_name);
+    }
+
+    return method->execute(state, call_frame, *this);
+  }
 }

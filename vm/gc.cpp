@@ -5,6 +5,11 @@
 
 #include "builtin/class.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/module.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "call_frame.hpp"
+#include "builtin/variable_scope.hpp"
 
 namespace rubinius {
 
@@ -82,5 +87,63 @@ namespace rubinius {
     if(obj->Remember) {
       object_memory->unremember_object(obj);
     }
+  }
+
+  void GarbageCollector::saw_variable_scope(VariableScope* scope) {
+    scope->update(saw_object(scope->self()),
+                  saw_object(scope->module()),
+                  saw_object(scope->block()));
+
+    for(int i = 0; i < scope->number_of_locals(); i++) {
+      scope->set_local(i, saw_object(scope->get_local(i)));
+    }
+
+    VariableScope* parent = scope->parent();
+    if(parent && parent->reference_p()) {
+      if(parent->stack_allocated_p()) {
+        saw_variable_scope(parent);
+      } else {
+        scope->update_parent((VariableScope*)saw_object(parent));
+      }
+    }
+  }
+
+  void GarbageCollector::walk_call_frame(CallFrame* top_call_frame) {
+    CallFrame* call_frame = top_call_frame;
+    while(call_frame) {
+      if(call_frame->name && call_frame->name->reference_p()) {
+        call_frame->name = (Symbol*)saw_object(call_frame->name);
+      }
+
+      if(call_frame->cm && call_frame->cm->reference_p()) {
+        call_frame->cm = (CompiledMethod*)saw_object(call_frame->cm);
+      }
+
+      for(int i = 0; i < call_frame->stack_size; i++) {
+        Object* obj = call_frame->stk[i];
+        if(obj && obj->reference_p()) {
+          call_frame->stk[i] = saw_object(obj);
+        }
+      }
+
+      if(call_frame->top_scope) {
+        if(call_frame->top_scope->stack_allocated_p()) {
+          saw_variable_scope(call_frame->top_scope);
+        } else {
+          call_frame->top_scope = (VariableScope*)saw_object(call_frame->top_scope);
+        }
+      }
+
+      if(call_frame->scope) {
+        if(call_frame->scope->stack_allocated_p()) {
+          saw_variable_scope(call_frame->scope);
+        } else {
+          call_frame->scope = (VariableScope*)saw_object(call_frame->scope);
+        }
+      }
+
+      call_frame = call_frame->previous;
+    }
+
   }
 }

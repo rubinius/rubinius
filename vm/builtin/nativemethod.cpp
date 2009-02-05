@@ -17,8 +17,6 @@
 
 namespace rubinius {
 
-  class Task;
-
 /* Class methods */
 
 
@@ -77,7 +75,7 @@ namespace rubinius {
     return cExecuteRestart;
   }
 
-  Object* NativeMethod::executor_implementation(STATE, CallFrame* call_frame, Task* task, Message& message) {
+  Object* NativeMethod::executor_implementation(STATE, CallFrame* call_frame, Message& message) {
     abort();
     return Qnil;
     /*

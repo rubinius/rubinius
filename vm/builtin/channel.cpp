@@ -53,7 +53,7 @@ namespace rubinius {
    * @todo   The list management is iffy. Should probably just
    *          always assume it is a list. --rue
    */
-  Object* Channel::receive_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg) {
+  Object* Channel::receive_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     Thread* current = state->globals.current_thread.get();
 
 top:

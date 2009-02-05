@@ -16,7 +16,6 @@
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 
 #include <iostream>
@@ -34,7 +33,7 @@ namespace rubinius {
     return env;
   }
 
-  Object* BlockEnvironment::call(STATE, Task* task, CallFrame* call_frame, size_t args) {
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, size_t args) {
     Object* val;
     if(args > 0) {
       Tuple* tup = Tuple::create(state, args);
@@ -69,10 +68,10 @@ namespace rubinius {
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
     cf->push(val);
-    return cf->run(vmm, task, cf);
+    return cf->run(state, vmm, cf);
   }
 
-  Object* BlockEnvironment::call(STATE, Task* task, CallFrame* call_frame, Message& msg) {
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Message& msg) {
     Object* val;
     if(msg.args() > 0) {
       Tuple* tup = Tuple::create(state, msg.args());
@@ -106,11 +105,11 @@ namespace rubinius {
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
     cf->push(val);
-    return cf->run(vmm, task, cf);
+    return cf->run(state, vmm, cf);
   }
 
-  Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg) {
-    return call(state, task, call_frame, msg);
+  Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
+    return call(state, call_frame, msg);
   }
 
   BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,

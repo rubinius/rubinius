@@ -33,6 +33,7 @@ namespace rubinius {
   class ConfigParser;
   class TypeError;
   class Assertion;
+  class CallFrame;
 
   struct Configuration {
     bool compile_up_front;
@@ -201,10 +202,10 @@ namespace rubinius {
     void init_native_libraries();
 
     Thread* current_thread();
-    void collect();
+    void collect(CallFrame* call_frame);
 
     // Check the flags in ObjectMemory and collect if we need to.
-    void collect_maybe();
+    void collect_maybe(CallFrame* call_frame);
 
     void return_value(Object* val);
 

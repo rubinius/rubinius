@@ -8,6 +8,8 @@
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
 
+#include "call_frame.hpp"
+
 namespace rubinius {
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes) :
     GarbageCollector(om),
@@ -24,6 +26,8 @@ namespace rubinius {
 
   Object* BakerGC::saw_object(Object* obj) {
     Object* copy;
+
+    if(!obj->reference_p()) return obj;
 
     if(obj->zone != YoungObjectZone) return obj;
 
@@ -69,7 +73,7 @@ namespace rubinius {
   }
 
   /* Perform garbage collection on the young objects. */
-  void BakerGC::collect(Roots &roots) {
+  void BakerGC::collect(Roots &roots, CallFrame* top_call_frame) {
     Object* tmp;
     ObjectArray *current_rs = object_memory->remember_set;
 
@@ -107,6 +111,9 @@ namespace rubinius {
 
       root = static_cast<Root*>(root->next());
     }
+
+    // Now handle objects chained off the CallFrame;
+    walk_call_frame(top_call_frame);
 
     /* Ok, now handle all promoted objects. This is setup a little weird
      * so I should explain.

@@ -12,7 +12,6 @@ namespace rubinius {
   class List;
   class IO;
   class IOBuffer;
-  class Task;
   class Message;
   class Executable;
 
@@ -42,7 +41,7 @@ namespace rubinius {
     Object* send(STATE, Object*);
 
     // Ruby.primitive? :channel_receive
-    Object* receive_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
+    Object* receive_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
     Object* receive(STATE);
     bool has_readers_p();

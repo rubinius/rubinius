@@ -201,21 +201,21 @@ namespace rubinius {
     interrupts.check = true;
   }
 
-  void VM::collect() {
+  void VM::collect(CallFrame* call_frame) {
     uint64_t start = get_current_time();
 
-    om->collect_young(globals.roots);
-    om->collect_mature(globals.roots);
+    om->collect_young(globals.roots, call_frame);
+    om->collect_mature(globals.roots, call_frame);
 
     stats.time_in_gc += (get_current_time() - start);
   }
 
-  void VM::collect_maybe() {
+  void VM::collect_maybe(CallFrame* call_frame) {
     if(om->collect_young_now) {
       om->collect_young_now = false;
 
       uint64_t start = get_current_time();
-      om->collect_young(globals.roots);
+      om->collect_young(globals.roots, call_frame);
       stats.time_in_gc += (get_current_time() - start);
 
       global_cache->clear();
@@ -225,21 +225,10 @@ namespace rubinius {
       om->collect_mature_now = false;
 
       uint64_t start = get_current_time();
-      om->collect_mature(globals.roots);
+      om->collect_mature(globals.roots, call_frame);
       stats.time_in_gc += (get_current_time() - start);
 
       global_cache->clear();
-    }
-
-    /* Stack Management procedures. Make sure that we don't
-     * miss object stored into the stack of a context */
-    if(G(current_task)->active()->zone == MatureObjectZone) {
-      om->remember_object(G(current_task)->active());
-    }
-
-    if(G(current_task)->home()->zone == MatureObjectZone &&
-        !G(current_task)->home()->Remember) {
-      om->remember_object(G(current_task)->home());
     }
   }
 
@@ -451,7 +440,7 @@ namespace rubinius {
         interrupts.enable_preempt = interrupts.use_preempt;
       }
 
-      collect_maybe();
+      // collect_maybe();
       G(current_task)->execute();
     }
   }

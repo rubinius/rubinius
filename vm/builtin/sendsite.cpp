@@ -15,7 +15,7 @@ namespace rubinius {
      * method missing, so it must not be installed if method missing
      * was used.
      */
-    Object* mono_performer(STATE, CallFrame* call_frame, Task* task, Message& msg) {
+    Object* mono_performer(STATE, CallFrame* call_frame, Message& msg) {
       if(likely(msg.lookup_from == msg.send_site->recv_class())) {
         msg.module = msg.send_site->module();
         msg.method = msg.send_site->method();
@@ -23,17 +23,17 @@ namespace rubinius {
         msg.send_site->hits++;
       } else {
         msg.send_site->misses++;
-        return basic_performer(state, call_frame, task, msg);
+        return basic_performer(state, call_frame, msg);
       }
 
-      return msg.method->execute(state, call_frame, task, msg);
+      return msg.method->execute(state, call_frame, msg);
     }
 
     /**
      * A simple monomorphic cache for when the destination method is
      * a method_missing style dispatch.
      */
-    Object* mono_mm_performer(STATE, CallFrame* call_frame, Task* task, Message& msg) {
+    Object* mono_mm_performer(STATE, CallFrame* call_frame, Message& msg) {
       if(likely(msg.lookup_from == msg.send_site->recv_class())) {
         msg.module = msg.send_site->module();
         msg.method = msg.send_site->method();
@@ -41,16 +41,16 @@ namespace rubinius {
         msg.send_site->hits++;
       } else {
         msg.send_site->misses++;
-        return basic_performer(state, call_frame, task, msg);
+        return basic_performer(state, call_frame, msg);
       }
 
       msg.unshift_argument(state, msg.name);
 
-      return msg.method->execute(state, call_frame, task, msg);
+      return msg.method->execute(state, call_frame, msg);
 
     }
 
-    Object* basic_performer(STATE, CallFrame* call_frame, Task* task, Message& msg) {
+    Object* basic_performer(STATE, CallFrame* call_frame, Message& msg) {
       Symbol* original_name = msg.name;
 
       if(!GlobalCacheResolver::resolve(state, msg)) {
@@ -79,7 +79,7 @@ namespace rubinius {
         msg.send_site->performer = mono_performer;
       }
 
-      return msg.method->execute(state, call_frame, task, msg);
+      return msg.method->execute(state, call_frame, msg);
     }
   }
 

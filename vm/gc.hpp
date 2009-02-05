@@ -8,6 +8,8 @@
 namespace rubinius {
 
   class ObjectMemory;
+  class CallFrame;
+  class VariableScope;
 
   typedef std::vector<Object*> ObjectArray;
 
@@ -23,6 +25,8 @@ namespace rubinius {
     GarbageCollector(ObjectMemory *om);
     void scan_object(Object* obj);
     void delete_object(Object* obj);
+    void walk_call_frame(CallFrame* top_call_frame);
+    void saw_variable_scope(VariableScope* scope);
   };
 
 }

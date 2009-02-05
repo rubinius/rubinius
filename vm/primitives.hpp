@@ -34,7 +34,7 @@ namespace rubinius {
      * Ruby code.
      */
     static executor resolve_primitive(STATE, Symbol* name);
-    static Object* unknown_primitive(STATE, CallFrame* call_frame, Task* task, Message& msg);
+    static Object* unknown_primitive(STATE, CallFrame* call_frame, Message& msg);
 
 #include "gen/primitives_declare.hpp"
 

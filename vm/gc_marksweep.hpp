@@ -14,7 +14,7 @@ namespace rubinius {
   /* Forwards */
   class Object;
   class ObjectMemory;
-
+  class CallFrame;
 
   class MarkSweepGC : public GarbageCollector {
   public:
@@ -84,7 +84,7 @@ namespace rubinius {
     void   clean_weakrefs();
     void   free_object(Entry *entry, bool fast = false);
     virtual Object* saw_object(Object* obj);
-    void   collect(Roots &roots);
+    void   collect(Roots &roots, CallFrame* call_frame);
 
     ObjectPosition validate_object(Object* obj);
   };

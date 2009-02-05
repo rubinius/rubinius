@@ -90,7 +90,7 @@ namespace rubinius {
     return state->globals.current_task.get();
   }
 
-  Object* Task::set_current(STATE, Executable* exec, CallFrame* call_frame, Task* task_, Message& msg) {
+  Object* Task::set_current(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     abort();
     Task* tsk = try_as<Task>(msg.get_argument(0));
 
@@ -141,7 +141,7 @@ namespace rubinius {
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return msg.method->execute(state, call_frame, this, msg);
+    return msg.method->execute(state, call_frame, msg);
   }
 
   Object* Task::send_message_slowly(CallFrame* call_frame, Message& msg) {
@@ -161,7 +161,7 @@ namespace rubinius {
 
     if(!probe_->nil_p()) probe_->execute_method(state, this, msg);
 
-    return msg.method->execute(state, call_frame, this, msg);
+    return msg.method->execute(state, call_frame, msg);
   }
 
   bool Task::passed_arg_p(size_t pos) {
@@ -688,7 +688,7 @@ namespace rubinius {
     close_body(level);
   }
 
-  Object* Task::task_dup(STATE, Executable* exec, CallFrame* call_frame, Task* task_, Message& msg) {
+  Object* Task::task_dup(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
 
     Task* recv = try_as<Task>(msg.recv);
 

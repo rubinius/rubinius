@@ -17,7 +17,7 @@ namespace rubinius {
   public:
     static const object_type type = SendSiteType;
 
-    typedef Object* (*Performer)(STATE, CallFrame* call_frame, Task* task, Message& msg);
+    typedef Object* (*Performer)(STATE, CallFrame* call_frame, Message& msg);
 
   private:
     Symbol* name_;            // slot
@@ -76,9 +76,9 @@ namespace rubinius {
   };
 
   namespace performer {
-    Object* basic_performer(STATE, CallFrame*, Task* task, Message& msg);
-    Object* mono_performer(STATE, CallFrame*, Task* task, Message& msg);
-    Object* mono_mm_performer(STATE, CallFrame*, Task* task, Message& msg);
+    Object* basic_performer(STATE, CallFrame*, Message& msg);
+    Object* mono_performer(STATE, CallFrame*, Message& msg);
+    Object* mono_mm_performer(STATE, CallFrame*, Message& msg);
   }
 
   /**

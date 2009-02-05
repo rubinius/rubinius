@@ -34,6 +34,7 @@ namespace rubinius {
   class Message {
   public:
 
+    Message();
     Message(STATE);
     Message(STATE, Array* ary);
 
@@ -159,6 +160,8 @@ namespace rubinius {
      * Deprecated: Use the details to setup the Message
      */
     void use_from_task(Task* task, size_t args);
+
+    Object* send(STATE, CallFrame* call_frame);
 
   private:
     STATE       /* state */;       /**< Access to the VM state. */

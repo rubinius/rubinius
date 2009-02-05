@@ -196,7 +196,7 @@ namespace rubinius {
      *  Uses Task::send_message_slowly().
      */
     // Ruby.primitive? :object_send
-    Object* send_prim(STATE, Executable* exec, CallFrame* call_frame, Task* task, Message& msg);
+    Object* send_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
 
   public:   /* Ruby interface */

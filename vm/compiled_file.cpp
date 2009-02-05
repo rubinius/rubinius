@@ -44,7 +44,10 @@ namespace rubinius {
 
     CallFrame cf;
     cf.previous = NULL;
+    cf.name = NULL;
     cf.cm = NULL;
+    cf.top_scope = NULL;
+    cf.scope = NULL;
 
     Message msg(state);
     msg.setup(NULL, G(main), &cf, 0, 0);
@@ -58,7 +61,7 @@ namespace rubinius {
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));
 
-    cm->execute(state, &cf, G(current_task), msg);
+    cm->execute(state, &cf, msg);
 
     /*
     try {
