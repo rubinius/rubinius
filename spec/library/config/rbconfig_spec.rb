@@ -99,7 +99,7 @@ describe "Config::MAKEFILE_CONFIG" do
     "archdir"            => "$(rubylibdir)/$(arch)",
     "sitearchdir"        => "$(sitelibdir)/$(sitearch)",
     "sitedir"            => "$(install_prefix)/lib/rubinius",
-    "rubyhdrdir"         => "/usr/local/lib/rubinius/0.10/$(host)"
+    "rubyhdrdir"         => "#{Rubinius::HDR_PATH}"
   }
 
   it_has_entries 'Config::MAKEFILE_CONFIG', entries

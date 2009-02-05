@@ -76,7 +76,7 @@ describe "An If node" do
 
       g.push_local 0
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.gif f
 
       g.push :nil
@@ -253,6 +253,57 @@ describe "An If node" do
 
       done.set!
     end
+  end
+
+  nil_condition_sexp = [:if, [:nil], [:call, nil, :a, [:arglist]], nil]
+
+  nil_condition = lambda do |g|
+    f = g.new_label
+    done = g.new_label
+
+    g.push :nil
+    g.gif f
+
+    g.push :self
+    g.send :a, 0, true
+    g.goto done
+
+    f.set!
+    g.push :nil
+
+    done.set!
+  end
+
+  relates "a if ()" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
+  end
+
+  relates "if () then a end" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
+  end
+
+  relates "a unless not ()" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
+  end
+
+  relates "unless not () then a end" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
   end
 
   relates "a unless not b" do

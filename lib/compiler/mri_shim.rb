@@ -8,6 +8,8 @@ require 'compiler/stack'
 $:.pop
 
 class Executable
+  attr_accessor :serial
+  attr_accessor :primitive
 end
 
 require File.dirname(__FILE__) + '/../../kernel/delta/compiled_file'

@@ -412,7 +412,7 @@ class Module
 
   def protected(*args)
     if args.empty?
-      MethodContext.current.sender.method_scope = :protected
+      MethodContext.current.sender.method_visibility = :protected
       return
     end
 
@@ -421,7 +421,7 @@ class Module
 
   def public(*args)
     if args.empty?
-      MethodContext.current.sender.method_scope = nil
+      MethodContext.current.sender.method_visibility = nil
       return
     end
 
@@ -593,12 +593,6 @@ class Module
 
   def const_missing(name)
     raise NameError, "Missing or uninitialized constant: #{name}"
-  end
-
-  def attr(name,writeable=false)
-    attr_reader(name)
-    attr_writer(name) if writeable
-    return nil
   end
 
   def <(other)

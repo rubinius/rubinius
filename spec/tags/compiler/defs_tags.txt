@@ -1,1 +1,0 @@
-fails:"A Defs node is compiled from \n    def self.setup(ctx)\n      bind = allocate\n      bind.context = ctx\n      return bind\n    end"

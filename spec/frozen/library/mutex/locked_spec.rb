@@ -16,16 +16,19 @@ describe "Mutex#locked?" do
   it "should return the status of the lock" do
     m1 = Mutex.new
     m2 = Mutex.new
-    m2.lock
 
-    t1 = Thread.new do
+    m2.lock # hold th with only m1 locked
+
+    th = Thread.new do
       m1.lock
       m2.lock
     end
 
+    Thread.pass until th.status == "sleep"
+
     m1.locked?.should be_true
-    m2.unlock
-    t1.join
+    m2.unlock # release th
+    th.join
     m1.locked?.should be_false
   end
 end

@@ -311,7 +311,7 @@ class MethodContext
   ##
   # Used to set the module body toggles
 
-  attr_accessor :method_scope
+  attr_accessor :method_visibility
 
   def alias_method(name, original)
     scope = MethodContext.current.sender.current_scope
@@ -328,7 +328,7 @@ class MethodContext
   # Called when 'def name' is used in userland
 
   def __add_method__(name, obj)
-    scope = method_scope || :public
+    scope = method_visibility || :public
 
     if name == :initialize or scope == :module or name == :initialize_copy
       visibility = :private

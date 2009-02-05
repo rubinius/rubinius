@@ -17,6 +17,14 @@ describe "The if expression" do
     a.should == []
   end
 
+  it "does not evaluate body if expression is empty" do
+    a = []
+    if ()
+      a << 123
+    end
+    a.should == []
+  end
+
   it "does not evaluate else-body if expression is true" do
     a = []
     if true

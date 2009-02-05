@@ -32,7 +32,7 @@ describe "CSV.generate" do
     end
   end
 
-  it "creates a BasicWriter with ; as the seperator inside the block" do
+  it "creates a BasicWriter with ; as the separator inside the block" do
     CSV::generate(@outfile_name, ?;) do |writer|
       writer.should be_kind_of(CSV::BasicWriter)
     end

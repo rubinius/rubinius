@@ -1,29 +1,119 @@
 # TODO: document TestGenerator
 class TestGenerator
+  class Label
+    attr_reader :ip
+
+    def initialize(gen)
+      @generator = gen
+      @ip = nil
+    end
+
+    def inspect
+      self.to_sym.inspect
+    end
+
+    def to_sym
+      raise "Unset label!" unless @ip
+      :"label_#{@ip}"
+    end
+
+    def set!
+      @ip = @generator.new_label_id
+      @generator.set_label self.to_sym
+    end
+
+    def ==(lbl)
+      raise "Unset label!" unless @ip
+      return self.to_sym == lbl if Symbol === lbl
+      @ip == lbl.ip
+    end
+  end
+
+  class ExceptionBlock
+    attr_accessor :start, :fin, :handler
+
+    def initialize(g)
+      @generator = g
+      @start = g.new_label
+      @handler = g.new_label
+      g.setup_unwind @handler
+    end
+
+    def handle!
+      @handler.set!
+    end
+
+    def escape(label)
+      @generator.pop_unwind
+      @generator.goto label
+    end
+  end
+
+  # TestGenerator methods
+
+  opcodes  = InstructionSet::OpCodes.map { |desc| desc.opcode }
+  opcodes += [:add_literal,
+              :gif,
+              :git,
+              :pop_modifiers,
+              :push,
+              :push_literal_at,
+              :push_modifiers,
+              :push_unique_literal,
+              :send,
+              :send_super,
+              :send_with_block,
+              :send_with_splat,
+              :swap]
+  opcodes -= [:class,
+              :goto,
+              :set_label]
+
+  opcodes.each do |name|
+    class_eval <<-CODE
+      def #{name}(*args)
+        add :#{name}, *args
+      end
+    CODE
+  end
+
+  # The :g accessor is provided to make the code in the
+  # utility methods below clearer
+  attr_accessor :stream, :ip, :redo, :break, :next, :retry
+  attr_reader :g, :file, :line
+
   def initialize
     @stream = []
-    @ip = 0
-    @lbl = 0
-    @slot = 0
+    @ip     = 0
+    @lbl    = 0
+    @slot   = 0
+    @g      = self
   end
-
-  def new_slot
-    @ip
-  end
-
-  def new_label_id
-    @lbl += 1
-    @lbl
-  end
-
-  attr_accessor :stream, :ip
 
   def run(node)
     node.bytecode(self)
   end
 
+  def convert_to_ary(ary)
+    ary.map do |item|
+      if item.respond_to? :to_ary
+        convert_to_ary item.to_ary
+      else
+        item
+      end
+    end
+  end
+
+  def to_ary
+    convert_to_ary [:test_generator, @stream]
+  end
+
+  def pretty_inspect
+    to_ary.pretty_inspect
+  end
+
   def inspect
-    s(:test_generator, @stream).inspect
+    to_ary.inspect
   end
 
   def add(*args)
@@ -31,8 +121,27 @@ class TestGenerator
     @ip += 1
   end
 
+  def new_slot
+    @ip
+  end
+
+  def new_label
+    Label.new self
+  end
+
+  def new_label_id
+    @lbl += 1
+    @lbl
+  end
+
+  def exceptions
+    eb = ExceptionBlock.new self
+    eb.start.set!
+    yield eb
+  end
+
   def dup
-    add(:dup)
+    add :dup
   end
 
   def set_line(line, file)
@@ -40,13 +149,8 @@ class TestGenerator
   end
 
   def set_label(lbl)
-#     raise "Bad set_label: #{lbl.inspect} on #{caller.first}" unless
-#       Label === lbl
     @stream << [:set_label, lbl.to_sym]
   end
-
-  attr_accessor :redo, :break, :next, :retry
-  attr_reader :file, :line
 
   def close
   end
@@ -64,124 +168,53 @@ class TestGenerator
     equal? other
   end
 
-  opcodes = InstructionSet::OpCodes.map { |desc| desc.opcode }
-  stupids = [:add_literal, :gif, :git, :pop_modifiers, :push,
-             :push_literal_at, :push_modifiers, :push_unique_literal, :send,
-             :send_super, :send_with_block, :send_with_splat, :swap,]
-
-  (opcodes + stupids - [:class, :goto, :set_label]).each do |name|
-    class_eval <<-CODE
-      def #{name}(*args)
-        add :#{name}, *args
-      end
-    CODE
-  end
-
   def goto x
     raise "Bad goto: #{x.inspect} on #{caller.first}" unless Label === x
     add :goto, x
   end
 
-  class Label
-    def initialize(gen)
-      @generator = gen
-      @ip = nil
-    end
-
-    def inspect
-      self.to_sym.inspect
-    end
-
-    def to_sym
-      raise "Unset label!" unless @ip
-      :"label_#{@ip}"
-    end
-
-    attr_reader :ip
-
-    def set!
-      @ip = @generator.new_label_id
-      @generator.set_label self.to_sym
-    end
-
-    def ==(lbl)
-      raise "Unset label!" unless @ip
-      return self.to_sym == lbl if Symbol === lbl
-      @ip == lbl.ip
-    end
-  end
-
-  def new_label
-    lbl = Label.new(self)
-    return lbl
-  end
-
-  class ExceptionBlock
-    def initialize(g)
-      @generator = g
-      @start = g.new_label
-      @handler = g.new_label
-      g.setup_unwind @handler
-    end
-
-    attr_accessor :start, :fin, :handler
-
-    def handle!
-      @handler.set!
-    end
-
-    def escape(label)
-      @generator.pop_unwind
-      @generator.goto label
-    end
-  end
-
-  def exceptions
-    eb = ExceptionBlock.new(self)
-    eb.start.set!
-    yield eb
-  end
-
   def lvar_set slot
-    shift_array
-    set_local slot
-    pop
+    g.shift_array
+    g.set_local slot
+    g.pop
   end
 
   def lvar_at slot
-    shift_array
-    set_local_depth 0, slot
-    pop
+    g.shift_array
+    g.set_local_depth 0, slot
+    g.pop
+  end
+
+  def as_primitive(name)
+    @primitive = name
   end
 
   def find_cpath_top_const(name)
-    self.push_cpath_top
-    self.find_const name
+    g.push_cpath_top
+    g.find_const name
   end
 
   def return_raise
-    push_cpath_top
-    find_const :LongReturnException
-    swap
-    push_context
-    swap
-    send :directed_to, 2
-    raise_exc
+    g.push_cpath_top
+    g.find_const :LongReturnException
+    g.swap
+    g.push_context
+    g.swap
+    g.send :directed_to, 2
+    g.raise_exc
   end
 
   def break_raise
-    push_cpath_top
-    find_const :BlockBreakException
-    swap
-    push_context
-    swap
-    send :directed_to, 2
-    raise_exc
-
+    g.push_cpath_top
+    g.find_const :BlockBreakException
+    g.swap
+    g.push_context
+    g.swap
+    g.send :directed_to, 2
+    g.raise_exc
   end
 
   def return_rescue
-    g = self
     ok = g.new_label
     g.exceptions do |ex|
       yield
@@ -222,7 +255,6 @@ class TestGenerator
   end
 
   def break_rescue
-    g = self
     ok = g.new_label
     g.exceptions do |ex|
       yield
@@ -265,182 +297,188 @@ class TestGenerator
     end
 
     ok.set!
-
   end
 
   def passed_block(local=0, in_block=false)
     if in_block
-      break_rescue do
+      g.break_rescue do
         yield
       end
     else
-      return_rescue do
-        break_rescue do
+      g.return_rescue do
+        g.break_rescue do
           yield
         end
       end
     end
   end
 
-  def push_literal_desc
-    desc = description do |d|
+  def push_literal_desc(name = nil)
+    desc = description name do |d|
       yield d
     end
 
-    self.push_literal desc
+    g.push_literal desc
   end
 
-    def open_class(name)
-      add :open_class, name
-      dup
-      send :opened_class, 0
-      pop
-    end
+  def open_class(name)
+    g.add :open_class, name
+    g.dup
+    g.send :opened_class, 0
+    g.pop
+  end
 
-    def open_class_under(name)
-      add :open_class_under, name
-      dup
-      send :opened_class, 0
-      pop
-    end
+  def open_class_under(name)
+    g.add :open_class_under, name
+    g.dup
+    g.send :opened_class, 0
+    g.pop
+  end
 
-  def create_block_desc
-    desc = description do |d|
+  def description name = nil
+    desc = Compiler::MethodDescription.new TestGenerator, 0
+    desc.name = name if name
+
+    yield desc.generator
+
+    desc
+  end
+
+  def block_description
+    iter = description :__block__ do |d|
       yield d
     end
+    iter.required = -1
 
-    self.create_block desc
+    g.create_block iter
+
+    iter
   end
 
-  def array_of_splatted_array
-    self.make_array 0
+  def array_of_splatted_array(n=1)
+    g.make_array 0
 
-    self.push 1
-    self.make_array 1
-    self.cast_array
+    if block_given?
+      yield
+    else
+      g.push 1
+    end
+    g.make_array n
+    g.cast_array
 
-    self.send :+, 1
+    g.send :+, 1
   end
 
-  def splatted_array
-    bottom = self.new_label
+  def splatted_array(n=1)
+    bottom = g.new_label
 
-    self.push 1
-    self.make_array 1
-    self.cast_array
-    self.dup
-    self.send :size, 0
-    self.push 1
-    self.send :>, 1
-    self.git bottom
+    if block_given?
+      yield
+    else
+      g.push 1
+    end
+    g.make_array n
 
-    self.push 0
-    self.send :at, 1
+    g.cast_array
+    g.dup
+    g.send :size, 0
+    g.push 1
+    g.send :>, 1
+    g.git bottom
+
+    g.push 0
+    g.send :at, 1
 
     bottom.set!
   end
 
   def save_exception(index = 0)
-    self.push_exception
-    self.set_local index
-    self.pop
+    g.push_exception
+    g.set_local index
+    g.pop
   end
 
   def restore_exception(index = 0)
-    self.push_local index
-    self.pop_exception
+    g.push_local index
+    g.pop_exception
   end
 
-  def in_block_send(msg,
-                    block_count    = 0,
-                    call_count     = 0,
-                    block_send_vis = true,
-                    shift          = 0,
-                    nested         = false,
-                    lvl            = 0)
+  def in_block_send(name, type, required=nil, call_count=0, vis=true)
+    iter = block_description do |d|
+      count = nil
 
-    self.create_block_desc do |d|
-      inner_top = d.new_label
-
-      case block_count
-      when Float then # yes... I'm a dick
+      case type
+      when :none
+        required = -1
+      when :empty
+        required = 0
+      when :blank
+        required = -1
+        count = 0
+      when :single
+        required = 1
         d.cast_for_single_block_arg
-        d.set_local 0
-      when Array then # I do, am a dick.
-        d.cast_for_multi_block_arg
+        d.set_local_depth 0, 0
+      when :splat
+        required = -1
         d.cast_array
-        (0...block_count[0]).each do |n|
-          d.shift_array
-          d.set_local_depth lvl, n
-          d.pop
-        end
+        d.cast_array
+        d.set_local_depth 0, 0
+      when :rest
+        count = required.abs - 1
+      when :multi
+        count = required.abs
+      end
 
-        d.cast_array
-        d.set_local_depth lvl, block_count[1]
-      when -2 then
+      if count
         d.cast_for_multi_block_arg
         d.cast_array
-      when -1 then
-        d.cast_array
-        d.cast_array
-        d.set_local_depth lvl, 0
-      when 0 then
-      when 1 then
-        d.cast_for_single_block_arg
-        d.set_local_depth lvl, 0
-      else
-        d.cast_for_multi_block_arg
-        d.cast_array
-        (0...block_count).each do |n|
+
+        (0...count).each do |n|
           d.shift_array
-          d.set_local_depth lvl, n
+          d.set_local_depth 0, n
           d.pop
         end
       end
 
-      d.pop
+      if type == :rest
+        d.cast_array
+        d.set_local_depth 0, count
+      end
 
+      d.pop
       d.push_modifiers
-      inner_top.set!
+      d.new_label.set!
 
       yield d
 
       d.pop_modifiers
       d.ret
     end
+    iter.required = required
 
-    if nested
-      break_rescue do
-        send_with_block msg, call_count, block_send_vis
-      end
-    else
-      return_rescue do
-        break_rescue do
-          send_with_block msg, call_count, block_send_vis
-        end
-      end
-    end
+    g.send_with_block name, call_count, vis
   end
 
   def in_class name
     case name
     when Symbol then
-      self.push :nil
-      self.open_class name
+      g.push :nil
+      g.open_class name
     when String then
       levels = name.split(/::/).map { |s| s.to_sym }
       klass = levels.pop
 
       levels.each do |level|
-        self.push_const level
+        g.push_const level
       end
 
-      self.push :nil
-      self.open_class_under klass
+      g.push :nil
+      g.open_class_under klass
     end
 
-    self.dup
-    self.push_literal_desc do |d|
+    g.dup
+    g.push_literal_desc do |d|
       d.push_self # FIX
       d.add_scope
 
@@ -448,48 +486,52 @@ class TestGenerator
 
       d.ret
     end
-    self.swap
-    self.attach_method :__class_init__
-    self.pop
-    self.send :__class_init__, 0
+    g.swap
+    g.attach_method :__class_init__
+    g.pop
+    g.send :__class_init__, 0
   end
 
-  def in_method name, singleton=false
+  def in_method(name, singleton=false)
     if singleton
-      self.send :metaclass, 0
+      g.send :metaclass, 0
     else
-      self.push_context
+      g.push_const :Rubinius
     end
 
-    self.push_literal name
-    self.push_literal_desc do |d|
+    g.push_literal name
+    g.push_literal_desc name do |d|
       yield d
       d.ret
     end
+
     if singleton then
-      self.send :attach_method, 2
+      g.send :attach_method, 2
     else
-      self.send :__add_method__, 2
+      g.push_scope
+      g.push_context
+      g.send :method_visibility, 0
+      g.send :add_defn_method, 4
     end
   end
 
   def in_module name
     case name
     when Symbol then
-      self.open_module name
+      g.open_module name
     when String then
       levels = name.split(/::/).map { |s| s.to_sym }
       klass = levels.pop
 
       levels.each do |level|
-        self.push_const level
+        g.push_const level
       end
 
-      self.open_module_under klass
+      g.open_module_under klass
     end
 
-    self.dup
-    self.push_literal_desc do |d|
+    g.dup
+    g.push_literal_desc do |d|
       d.push_self # FIX
       d.add_scope
 
@@ -497,18 +539,18 @@ class TestGenerator
 
       d.ret
     end
-    self.swap
-    self.attach_method :__module_init__
-    self.pop
-    self.send :__module_init__, 0
+    g.swap
+    g.attach_method :__module_init__
+    g.pop
+    g.send :__module_init__, 0
   end
 
   def in_rescue(*klasses)
-    self.push_modifiers
+    g.push_modifiers
 
-    jump_retry   = self.new_label
-    jump_else    = self.new_label
-    jump_last    = self.new_label
+    jump_retry   = g.new_label
+    jump_else    = g.new_label
+    jump_last    = g.new_label
 
     has_ensure = klasses.delete :ensure
     saved_exception_index = klasses.detect { |a| a.instance_of?(Fixnum) }
@@ -518,7 +560,7 @@ class TestGenerator
       saved_exception_index = 0
     end
 
-    self.save_exception saved_exception_index
+    g.save_exception saved_exception_index
 
     jump_retry.set!
     exceptions do |ex|
@@ -550,8 +592,8 @@ class TestGenerator
         jump_next.set!
       end
 
-      self.push_exception
-      self.raise_exc
+      g.push_exception
+      g.raise_exc
     end
 
     jump_else.set!
@@ -559,18 +601,18 @@ class TestGenerator
     yield :else
 
     jump_last.set!
-    self.restore_exception saved_exception_index
-    self.pop_modifiers
+    g.restore_exception saved_exception_index
+    g.pop_modifiers
 
     if has_ensure then
-      ensure_good = self.new_label
-      ensure_bad = self.new_label # TODO: magic jump!
+      ensure_good = g.new_label
+      ensure_bad = g.new_label # TODO: magic jump!
 
-      self.goto ensure_good
+      g.goto ensure_good
       ensure_bad.set!
       yield :ensure
-      self.push_exception
-      self.raise_exc
+      g.push_exception
+      g.raise_exc
 
       ensure_good.set!
       yield :ensure
@@ -578,104 +620,59 @@ class TestGenerator
   end
 
   def optional_arg slot
-    if_set = self.new_label
-    self.passed_arg slot
-    self.git if_set
-    self.push 42
-    self.set_local slot
-    self.pop
+    if_set = g.new_label
+    g.passed_arg slot
+    g.git if_set
+    g.push 42
+    g.set_local slot
+    g.pop
     if_set.set!
   end
 
   def block_arg slot
-    is_nil = self.new_label
-    self.push_block
-    self.dup
-    self.is_nil
-    self.git is_nil
-    self.push_const :Proc
-    self.swap
-    self.send :__from_block__, 1
+    is_nil = g.new_label
+    g.push_block
+    g.dup
+    g.is_nil
+    g.git is_nil
+    g.push_const :Proc
+    g.swap
+    g.send :__from_block__, 1
     is_nil.set!
-    self.set_local slot
-    self.pop
+    g.set_local slot
+    g.pop
   end
 
   def memoize
-    memo = self.new_label
-    self.add_literal nil
+    memo = g.new_label
+    g.add_literal nil
     slot = new_slot
-    self.push_literal_at slot
-    self.dup
-    self.is_nil
-    self.gif memo
-    self.pop
+    g.push_literal_at slot
+    g.dup
+    g.is_nil
+    g.gif memo
+    g.pop
 
-    yield self
+    yield g
 
-    self.set_literal slot
+    g.set_literal slot
     memo.set!
   end
 
   def undef_bytecode(*names)
     last_name = names.last
     names.each do |name|
-      push_context
-      push_literal name
-      send :__undef_method__, 1
-      pop unless name == last_name
+      g.push_context
+      g.push_literal name
+      g.send :__undef_method__, 1
+      g.pop unless name == last_name
     end
   end
-end
 
-def gen(sexp, plugins=[])
-  @comp = Compiler.new TestGenerator
-  plugins.each { |n| @comp.activate n }
-  expected = TestGenerator.new
-
-  yield expected
-
-  sexp = Sexp.from_array sexp
-  @node = @comp.convert_sexp s(:snippit, sexp)
-  actual = TestGenerator.new
-  @node.bytecode actual
-  actual.should == expected
-
-  body = @node.body
-  if body.kind_of? Compiler::Node::Define
-    @required, @optional, @splat = body.argument_info
-  else
-    @args = nil
+  def invalid_context(name)
+    g.push :self
+    g.push_const :LocalJumpError
+    g.push_literal "#{name} used in invalid context"
+    g.send :raise, 2, true
   end
-
-  @comp
-end
-
-def gen_iter x # TODO: fold this up into TestGenerator instead
-  gen x do |g|
-    g.passed_block do
-      g.push :self
-      g.send :ary, 0, true
-
-      g.create_block_desc do |d|
-        yield d
-
-        d.pop
-        d.push_modifiers
-        d.new_label.set!
-        d.push :nil
-        d.pop_modifiers
-        d.ret
-      end
-
-      g.send_with_block :each, 0, false
-    end
-  end
-end
-
-def description name = nil
-  desc = Compiler::MethodDescription.new TestGenerator, 0
-  desc.name = name if name
-  yield desc.generator
-  return desc
 end

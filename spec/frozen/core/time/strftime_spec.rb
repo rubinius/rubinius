@@ -63,4 +63,11 @@ describe "Time#strftime" do
     hhmmss = now.strftime('%H:%M:%S')
     now.strftime('%T').should == hhmmss
   end
+
+  it "supports timezone formatting with %z" do
+    with_timezone("UTC", 0) do
+      time = Time.utc(2005, 2, 21, 17, 44, 30)
+      time.strftime("%z").should == "+0000"
+    end
+  end
 end

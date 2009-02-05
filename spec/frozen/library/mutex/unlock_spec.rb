@@ -9,11 +9,20 @@ describe "Mutex#unlock" do
 
   it "should raise ThreadError unless thread owns Mutex" do
     mutex = Mutex.new
-    t1 = Thread.new do
+    wait = Mutex.new
+    wait.lock
+    th = Thread.new do
       mutex.lock
+      wait.lock
     end
-    t1.join
+
+    # avoid race on mutex.lock
+    Thread.pass until th.status == "sleep"
+
     lambda { mutex.unlock }.should raise_error(ThreadError)
+
+    wait.unlock
+    th.join
   end
 
   it "should return nil if successful" do

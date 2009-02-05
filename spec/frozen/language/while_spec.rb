@@ -62,6 +62,14 @@ describe "The while expression" do
     end.should == nil
   end
 
+  it "does not evaluate the body if expression is empty" do
+    a = []
+    while ()
+      a << :body_evaluated
+    end
+    a.should == []
+  end
+
   it "stops running body if interrupted by break" do
     i = 0
     while i < 10
@@ -123,6 +131,12 @@ describe "The while modifier" do
   it "does not run preceding statement if the condition is false" do
     i = 0
     i += 1 while false
+    i.should == 0
+  end
+
+  it "does not run preceding statement if the condition is empty" do
+    i = 0
+    i += 1 while ()
     i.should == 0
   end
 

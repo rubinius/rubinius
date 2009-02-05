@@ -97,7 +97,7 @@ namespace rubinius {
     Array* locals(STATE);
 
     // Ruby.primitive :context_dup
-    MethodContext* dup(STATE);
+    MethodContext* dup_self(STATE);
 
     // Ruby.primitive :context_dup_chain
     MethodContext* dup_chain(STATE);

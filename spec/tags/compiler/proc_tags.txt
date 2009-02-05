@@ -1,4 +1,0 @@
-fails:A Proc node is compiled from 'proc { || (x + 1) }'
-fails:A Proc node is compiled from 'proc { |x| (x + 1) }'
-fails:A Proc node is compiled from 'proc { |x, y| (x + y) }'
-fails:A Proc node is compiled from 'proc { (x + 1) }'

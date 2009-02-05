@@ -7,7 +7,7 @@ describe "Mutex#synchronize" do
     m2 = Mutex.new
     m2.lock
 
-    t1 = Thread.new do
+    th = Thread.new do
       lambda do
         m1.synchronize do
           m2.lock
@@ -16,9 +16,11 @@ describe "Mutex#synchronize" do
       end.should raise_error(Exception)
     end
 
+    Thread.pass until th.status == "sleep"
+
     m1.locked?.should be_true
     m2.unlock
-    t1.join
+    th.join
     m1.locked?.should be_false
   end
 end

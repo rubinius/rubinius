@@ -29,8 +29,8 @@ class BlockContext < MethodContext
     home.back_ref(idx)
   end
 
-  def method_scope
-    @method_scope || env.home_block.method_scope
+  def method_visibility
+    @method_visibility || env.home_block.method_visibility
   end
 
   ##

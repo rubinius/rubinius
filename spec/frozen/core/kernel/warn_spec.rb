@@ -39,7 +39,7 @@ describe "Kernel.warn" do
     }.should output(nil, "")
   end
 
-  it "writes the default record seperator (\\n) and NOT $/ to $stderr after the warning message" do
+  it "writes the default record separator (\\n) and NOT $/ to $stderr after the warning message" do
     lambda {
       v = $VERBOSE
       rs = $/

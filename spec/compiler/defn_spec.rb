@@ -677,7 +677,7 @@ describe "A Defn node" do
             d.send :uuid, 0, false
             d.push_local 0
             d.send :uuid, 0, false
-            d.meta_send_op_equal
+            d.send :==, 1, false
           when :StandardError then
             d.push :false
           end
@@ -821,21 +821,23 @@ describe "A Defn node" do
       g.set_local 0
       g.pop
 
-      in_method :a do |d|
-        d.push :self
+      g.in_method :a do |d|
+        d.passed_block do
+          d.push :self
 
-        d.in_block_send :c, 0 do |d2|
-          d2.in_rescue :RuntimeError do |section|
-            case section
-            when :body then
-              d2.push :self
-              d2.send :do_stuff, 0, true
-            when :RuntimeError then
-              d2.push_exception
-              d2.set_local_depth 0, 0
-              d2.push :self
-              d2.push_local_depth 0, 0
-              d2.send :puts, 1, true
+          d.in_block_send :c, 0 do |d2|
+            d2.in_rescue :RuntimeError do |section|
+              case section
+              when :body then
+                d2.push :self
+                d2.send :do_stuff, 0, true
+              when :RuntimeError then
+                d2.push_exception
+                d2.set_local_depth 0, 0
+                d2.push :self
+                d2.push_local_depth 0, 0
+                d2.send :puts, 1, true
+              end
             end
           end
         end
@@ -866,7 +868,7 @@ describe "A Defn node" do
 
         d.passed_arg 0
         d.git opt_arg_1
-        d.push_literal 0.0
+        d.push_unique_literal 0.0
         d.set_local 0
         d.pop
 
@@ -874,7 +876,7 @@ describe "A Defn node" do
 
         d.passed_arg 1
         d.git opt_arg_2
-        d.push_literal 0.0
+        d.push_unique_literal 0.0
         d.set_local 1
         d.pop
 
@@ -882,7 +884,7 @@ describe "A Defn node" do
 
         d.push_local 0
         d.push_local 1
-        d.meta_send_op_plus
+        d.send :+, 1, false
       end
     end
   end
@@ -922,15 +924,9 @@ describe "A Defn node" do
     end
 
     compile do |g|
-      meth = description do |d|
+      in_method :meth do |d|
         d.push_local 0
-        d.ret
       end
-
-      g.push_context
-      g.push_literal :meth
-      g.push_literal meth
-      g.send :__add_method__, 2
     end
   end
 end

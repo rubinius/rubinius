@@ -293,7 +293,7 @@ module MSpec
   # file if it is empty.
   def self.delete_tag(tag)
     deleted = false
-    pattern = /#{tag.tag}.*#{Regexp.escape tag.description}/
+    pattern = /#{tag.tag}.*#{Regexp.escape(tag.escape(tag.description))}/
     file = tags_file
     if File.exist? file
       lines = IO.readlines(file)

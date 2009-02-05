@@ -1,0 +1,2 @@
+fails:Iconv.conv raises an Iconv::InvalidEncoding exception when an encoding cannot be found
+fails:Iconv.conv acts exactly as if opening a converter and invoking #iconv once

@@ -75,7 +75,7 @@ class TestContexts : public CxxTest::TestSuite {
     TS_ASSERT(ctx != ctx2);
   }
 
-  void test_dup() {
+  void test_dup_self() {
     // Create a realistic MethodContext
     // Is there a better way to do this?
     Task* task = Task::create(state);
@@ -109,7 +109,7 @@ class TestContexts : public CxxTest::TestSuite {
     task->push(Qtrue);
 
     // Dup right before we run so we can compare later
-    MethodContext* dup = ctx->dup(state);
+    MethodContext* dup = ctx->dup_self(state);
 
     // Compare the dup'd with the original
     TS_ASSERT_EQUALS(ctx->sender(), dup->sender());

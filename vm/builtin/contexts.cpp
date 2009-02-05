@@ -75,6 +75,13 @@ namespace rubinius {
         // context, so we need to be sure all stack contexts stick around!
         state->om->clamp_contexts();
         ctx = state->new_struct<T>(cls, stack_size * sizeof(Object*));
+        /* Stack Management procedures. Make sure that we don't
+        * miss object stored into the stack of a context
+        */
+        if(ctx->zone == MatureObjectZone) {
+          state->om->remember_object(ctx);
+        }
+
       }
 
       init_context(state, ctx, stack_size);
@@ -153,6 +160,12 @@ namespace rubinius {
       // context, so we need to be sure all stack contexts stick around!
       state->om->clamp_contexts();
       ctx = state->new_struct<MethodContext>(G(methctx), stack_size * sizeof(Object*));
+      /* Stack Management procedures. Make sure that we don't
+       * miss object stored into the stack of a context
+       */
+      if(ctx->zone == MatureObjectZone) {
+        state->om->remember_object(ctx);
+      }
 
       ctx->self(state, recv);
       ctx->cm(state, meth);
@@ -174,7 +187,7 @@ namespace rubinius {
 
   /* Called as the context_dup primitive
    */
-  MethodContext* MethodContext::dup(STATE) {
+  MethodContext* MethodContext::dup_self(STATE) {
     MethodContext* ctx = create(state, this->stack_size);
 
     /* This ctx is escaping into Ruby-land */
@@ -231,11 +244,11 @@ namespace rubinius {
 
     LookupTable* map = LookupTable::create(state);
 
-    MethodContext* ret = this->dup(state);
+    MethodContext* ret = this->dup_self(state);
 
     for(MethodContext* ctx = ret; !ctx->sender()->nil_p(); ctx = ctx->sender()) {
       MethodContext* old_sender = ctx->sender();
-      ctx->sender(state, old_sender->dup(state));
+      ctx->sender(state, old_sender->dup_self(state));
       if(old_sender->obj_type == MethodContextType) {
         map->store(state, old_sender, ctx->sender());
       }

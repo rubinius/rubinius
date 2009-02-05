@@ -1,6 +1,0 @@
-fails:"An Op_asgn1 node is compiled from \n    @b = []\n    @b[1] ||= 10\n    @b[2] &&= 11\n    @b[3] += 12"
-fails:"An Op_asgn1 node is compiled from \n    b = []\n    b[1] ||= 10\n    b[2] &&= 11\n    b[3] += 12"
-fails:An Op_asgn2 node is compiled from 'self.Bag ||= Bag.new'
-fails:"An Op_asgn2 node is compiled from \n    s = Struct.new(:var)\n    c = s.new(nil)\n    c.var ||= 20\n    c.var &&= 21\n    c.var += 22\n    c.d.e.f ||= 42"
-fails:An Op_asgn_and node is compiled from '@fetcher &&= new(Gem.configuration[:http_proxy])'
-fails:An Op_asgn_or node is compiled from '@fetcher ||= new(Gem.configuration[:http_proxy])'

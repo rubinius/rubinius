@@ -3,7 +3,7 @@ describe :stringio_each_separator, :shared => true do
     @io = StringIO.new("a b c d e\n1 2 3 4 5")
   end
 
-  it "uses the passed argument as the line seperator" do
+  it "uses the passed argument as the line separator" do
     seen = []
     @io.send(@method, " ") {|s| seen << s}
     seen.should == ["a ", "b ", "c ", "d ", "e\n1 ", "2 ", "3 ", "4 ", "5"]
@@ -19,7 +19,7 @@ describe :stringio_each_separator, :shared => true do
     @io.send(@method) {|l| l }.should equal(@io)
   end
 
-  it "tries to convert the passed seperator to a String using #to_str" do
+  it "tries to convert the passed separator to a String using #to_str" do
     obj = mock("to_str")
     obj.stub!(:to_str).and_return(" ")
 
@@ -28,7 +28,7 @@ describe :stringio_each_separator, :shared => true do
     seen.should == ["a ", "b ", "c ", "d ", "e\n1 ", "2 ", "3 ", "4 ", "5"]
   end
 
-  it "yields self's content starting from the current position when the passed seperator is nil" do
+  it "yields self's content starting from the current position when the passed separator is nil" do
     seen = []
     io = StringIO.new("1 2 1 2 1 2")
     io.pos = 2
@@ -36,7 +36,7 @@ describe :stringio_each_separator, :shared => true do
     seen.should == ["2 1 2 1 2"]
   end
 
-  it "yields each paragraph when passed an empty String as seperator" do
+  it "yields each paragraph when passed an empty String as separator" do
     seen = []
     io = StringIO.new("para1\n\npara2\n\n\npara3")
     io.send(@method, "") {|s| seen << s}
@@ -68,7 +68,7 @@ describe :stringio_each_no_arguments, :shared => true do
     $_.should == "test"
   end
 
-  it "uses $/ as the default line seperator" do
+  it "uses $/ as the default line separator" do
     seen = []
     begin
       old_rs, $/ = $/, " "

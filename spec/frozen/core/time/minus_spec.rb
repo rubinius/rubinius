@@ -21,4 +21,12 @@ describe "Time#-" do
   it "raises TypeError on nil argument" do
     lambda { Time.now - nil }.should raise_error(TypeError)
   end
+
+  it "tracks microseconds" do
+    time = Time.at(0.777777)
+    time -= 0.654321
+    time.usec.should == 123456
+    time -= 0.123456
+    time.usec.should == 0
+  end
 end

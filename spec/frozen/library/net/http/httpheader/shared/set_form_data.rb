@@ -15,8 +15,8 @@ describe :net_httpheader_set_form_data, :shared => true do
     end
   end
 
-  describe "when passed params, seperator" do
-    it "sets self's body based on the passed form parameters and the passed seperator" do
+  describe "when passed params, separator" do
+    it "sets self's body based on the passed form parameters and the passed separator" do
       @headers.send(@method, {"cmd" => "search", "q" => "ruby", "max" => "50"}, "&")
       @headers.body.split("&").should == ["max=50", "cmd=search", "q=ruby"]
 

@@ -1,181 +1,214 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An Until node" do
-  relates <<-ruby do
-      begin
-        (1 + 1)
-      end until false
-    ruby
+  pre_until_sexp = [
+    :until,
+     [:call, nil, :a, [:arglist]],
+     [:call, [:call, nil, :b, [:arglist]], :+, [:arglist, [:lit, 1]]],
+     true
+  ]
 
-    parse do
-      [:until, [:false], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], false]
-    end
-
-    compile do |g|
-      top    = g.new_label
-      nxt    = g.new_label
-      brek   = g.new_label
-      bottom = g.new_label
-
-      g.push_modifiers
-
-      top.set!
-
-      g.push 1
-      g.push 1
-      g.meta_send_op_plus
-      g.pop
-
-      nxt.set!
-
-      g.push :false
-      g.git bottom
-
-      g.goto top
-
-      bottom.set!
-      g.push :nil
-
-      brek.set!
-
-      g.pop_modifiers
-    end
-  end
-
-  until_false = lambda do |g|
+  pre_until = lambda do |g|
     top    = g.new_label
-    dunno1 = g.new_label
-    dunno2 = g.new_label
+    rdo    = g.new_label
+    brk    = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
 
     top.set!
-    g.push :false
+    g.push :self
+    g.send :a, 0, true
     g.git bottom
 
-    dunno1.set!
+    rdo.set!
+    g.push :self
+    g.send :b, 0, true
     g.push 1
-    g.push 1
-    g.meta_send_op_plus
+    g.send :+, 1, false
     g.pop
+    g.goto top
+
+    bottom.set!
+    g.push :nil
+
+    brk.set!
+    g.pop_modifiers
+  end
+
+  relates <<-ruby do
+      while not a
+        b + 1
+      end
+    ruby
+
+    parse do
+      pre_until_sexp
+    end
+
+    compile(&pre_until)
+  end
+
+  relates "b + 1 while not a" do
+    parse do
+      pre_until_sexp
+    end
+
+    compile(&pre_until)
+  end
+
+  relates <<-ruby do
+      until a
+        b + 1
+      end
+    ruby
+
+    parse do
+      pre_until_sexp
+    end
+
+    compile(&pre_until)
+  end
+
+  relates "b + 1 until a" do
+    parse do
+      pre_until_sexp
+    end
+
+    compile(&pre_until)
+  end
+
+  post_until_sexp = [
+    :until,
+     [:call, nil, :a, [:arglist]],
+     [:call, [:call, nil, :b, [:arglist]], :+, [:arglist, [:lit, 1]]],
+     false
+  ]
+
+  post_until = lambda do |g|
+    top    = g.new_label
+    rdo    = g.new_label
+    brk    = g.new_label
+    bottom = g.new_label
+
+    g.push_modifiers
+
+    top.set!
+
+    g.push :self
+    g.send :b, 0, true
+    g.push 1
+    g.send :+, 1, false
+    g.pop
+
+    rdo.set!
+
+    g.push :self
+    g.send :a, 0, true
+    g.git bottom
 
     g.goto top
 
     bottom.set!
     g.push :nil
 
-    dunno2.set!
+    brk.set!
 
     g.pop_modifiers
   end
 
-  relates "(1 + 1) until false" do
-    parse do
-      [:until, [:false], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], true]
-    end
-
-    compile(&until_false)
-  end
-
   relates <<-ruby do
-      until false do
-        (1 + 1)
-      end
+      begin
+        b + 1
+      end while not a
     ruby
 
     parse do
-      [:until, [:false], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], true]
+      post_until_sexp
     end
 
-    compile(&until_false)
+    compile(&post_until)
   end
 
-  until_true = lambda do |g|
+  relates <<-ruby do
+      begin
+        b + 1
+      end until a
+    ruby
+
+    parse do
+      post_until_sexp
+    end
+
+    compile(&post_until)
+  end
+
+  nil_condition_sexp = [:until, [:nil], [:call, nil, :a, [:arglist]], true]
+
+  nil_condition = lambda do |g|
     top    = g.new_label
-    dunno1 = g.new_label
-    dunno2 = g.new_label
+    rdo    = g.new_label
+    brk    = g.new_label
     bottom = g.new_label
 
     g.push_modifiers
-
     top.set!
-    g.push :true
+
+    g.push :nil
     g.git bottom
 
-    dunno1.set!
-    g.push 1
-    g.push 1
-    g.meta_send_op_plus
+    rdo.set!
+    g.push :self
+    g.send :a, 0, true
     g.pop
-
     g.goto top
 
     bottom.set!
     g.push :nil
 
-    dunno2.set!
-
+    brk.set!
     g.pop_modifiers
   end
 
+  relates "a until ()" do
+    parse do
+      nil_condition_sexp
+    end
+
+    compile(&nil_condition)
+  end
+
   relates <<-ruby do
-      while not true do
-        (1 + 1)
+      until ()
+        a
       end
     ruby
 
     parse do
-      [:until, [:true], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], true]
+      nil_condition_sexp
     end
 
-    compile(&until_true)
+    compile(&nil_condition)
   end
 
-  relates "(1 + 1) while not true" do
+  relates "a while not ()" do
     parse do
-      [:until, [:true], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], true]
+      nil_condition_sexp
     end
 
-    compile(&until_true)
+    compile(&nil_condition)
   end
 
   relates <<-ruby do
-      begin
-        (1 + 1)
-      end while not true
+      while not ()
+        a
+      end
     ruby
 
     parse do
-      [:until, [:true], [:call, [:lit, 1], :+, [:arglist, [:lit, 1]]], false]
+      nil_condition_sexp
     end
 
-    compile do |g|
-      top    = g.new_label
-      dunno1 = g.new_label
-      dunno2 = g.new_label
-      bottom = g.new_label
-
-      g.push_modifiers
-
-      top.set!
-      g.push 1
-      g.push 1
-      g.meta_send_op_plus
-      g.pop
-
-      dunno1.set!
-      g.push :true
-      g.git bottom
-
-      g.goto top
-
-      bottom.set!
-      g.push :nil
-
-      dunno2.set!
-
-      g.pop_modifiers
-    end
+    compile(&nil_condition)
   end
 end

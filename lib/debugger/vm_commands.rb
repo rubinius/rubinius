@@ -208,27 +208,26 @@ class Debugger
     end
 
     def output(source, send_sites)
-      i = 1
       output = Output.info("SendSites for #{'selector ' if source.kind_of? Selector}#{source.name}:")
-      output.set_columns(['%-3d.', ['Sender file', '%-*s'], ['Sender method', '%-*s'],
+      if source.kind_of? Selector
+        output.set_columns(['%-3d.', ['Sender file', '%-*s'], ['Sender method', '%-*s'],
                           ['Message', '%-s'], ['Receiver class', '%-*s'], ['Method', '%-*s'],
                           ['Module', '%-*s'], ['Hits', '%d'], ['Misses', '%d']])
-      send_sites.each do |ss|
-        runnable_name = nil
-        case runnable = ss.data(2)
-        when CompiledMethod
-          runnable_name = runnable.name
-        when RuntimePrimitive
-          runnable_name = runnable.at RuntimePrimitive::PrimitiveIndex
-          runnable_name = Rubinius::Primitives[runnable_name] if runnable_name.kind_of? Fixnum
-        when NilClass
-          # Do nothing - SendSite data2 not set
+      else
+        output = Output.info("SendSites for #{'selector ' if source.kind_of? Selector}#{source.name}:")
+        output.set_columns(['%-3d.', ['Message', '%-s'], ['Receiver class', '%-*s'],
+                           ['Method', '%-*s'], ['Module', '%-*s'], ['Hits', '%d'],
+                           ['Misses', '%d']])
+      end
+      send_sites.each_with_index do |ss,i|
+        if source.kind_of? Selector
+          sender_file = ss.sender.file if ss.sender
+          sender_name = ss.sender.name if ss.sender
+          output << [i+1, sender_file, sender_name, ss.name,
+                     ss.recv_class, ss.method, ss.module, ss.hits, ss.misses]
         else
-          STDERR.puts "Unrecognized runnable type: #{runnable.class}"
+          output << [i+1, ss.name, ss.recv_class, ss.method, ss.module, ss.hits, ss.misses]
         end
-        output << [i, ss.sender.file, ss.sender.name, ss.name, ss.data(1), 
-                   runnable_name, ss.data(3), ss.hits, ss.misses]
-        i += 1
       end
       output
     end

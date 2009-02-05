@@ -82,6 +82,7 @@ module Kernel
   def clone
     copy = primitive_clone
     copy.send :initialize_copy, self
+    copy.freeze if frozen?
     copy
   end
 

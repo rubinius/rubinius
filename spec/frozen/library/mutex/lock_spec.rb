@@ -14,14 +14,16 @@ describe "Mutex#lock" do
     m.lock
     v = 0
 
-    t1 = Thread.new do
+    th = Thread.new do
       m.lock
       v = 1
     end
 
+    Thread.pass until th.status == "sleep"
+
     v.should == 0
     m.unlock
-    t1.join
+    th.join
     v.should == 1
   end
 end

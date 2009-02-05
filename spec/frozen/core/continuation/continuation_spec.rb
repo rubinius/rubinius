@@ -13,7 +13,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 
 describe "Creating a Continuation object" do
-  not_supported_on :jruby,:ir do
+  not_supported_on :ir do
     it "must be done through Kernel.callcc, no .new" do
       lambda { Continuation.new }.should raise_error(NoMethodError)
 
@@ -26,7 +26,7 @@ end
 
 
 describe "Executing a Continuation" do
-  not_supported_on :jruby,:ir do
+  not_supported_on :ir do
     it "using #call transfers execution to right after the Kernel.callcc block" do
       array = [:reached, :not_reached]
 
@@ -53,8 +53,9 @@ describe "Executing a Continuation" do
     end
 
     it "closes over lexical environments" do
-      def f; a = 1; Kernel.callcc {|c| a = 2; c.call }; a; end
-      f().should == 2
+      o = Object.new
+      def o.f; a = 1; Kernel.callcc {|c| a = 2; c.call }; a; end
+      o.f().should == 2
     end
 
     it "escapes an inner ensure block" do

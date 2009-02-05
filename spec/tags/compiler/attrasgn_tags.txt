@@ -1,1 +1,0 @@
-fails:"An Attrasgn node is compiled from \n    a = []\n    a [42] = 24"

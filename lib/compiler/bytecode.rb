@@ -36,8 +36,16 @@ class Compiler
       @generator.to_cmethod(self)
     end
 
+    def to_ary
+      [:method_description, @name, @required, @optional, @generator]
+    end
+
+    def pretty_inspect
+      to_ary.pretty_inspect
+    end
+
     def inspect
-      [:method_description, @name, @required, @optional, @generator].inspect
+      to_ary.inspect
     end
   end
 
@@ -700,10 +708,13 @@ class Compiler
           g.push :self
           g.add_method @name
         else
-          g.push_context
+          g.push_const :Rubinius
           g.push_literal @name
           g.push_literal compile_body(g)
-          g.send :__add_method__, 2
+          g.push_scope
+          g.push_context
+          g.send :method_visibility, 0
+          g.send :add_defn_method, 4
         end
       end
     end

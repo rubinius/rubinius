@@ -20,7 +20,7 @@ describe "A Defs node" do
       in_method :x, true do |d|
         d.push_local 0
         d.push 1
-        d.meta_send_op_plus
+        d.send :+, 1, false
       end
     end
   end
@@ -55,7 +55,10 @@ describe "A Defs node" do
 
         d.push_local 1
         d.push_local 0
+        d.dup
+        d.move_down 2
         d.send :context=, 1, false
+        d.pop
         d.pop
 
         d.push_local 1

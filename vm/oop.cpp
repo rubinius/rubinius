@@ -21,7 +21,11 @@ namespace rubinius {
     IsBlockContext = other->IsBlockContext;
     IsMeta       = other->IsMeta;
     IsTainted    = other->IsTainted;
-    IsFrozen     = other->IsFrozen;
+
+    // We deliberately don't copy the value of IsFrozen here;
+    // it's the callers responsibility to do that if necessary.
+    IsFrozen     = FALSE;
+
     RefsAreWeak  = other->RefsAreWeak;
   }
 

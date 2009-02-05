@@ -108,7 +108,6 @@ class CompiledMethod < Executable
 
   attr_accessor :hints
   attr_accessor :__ivars__
-  attr_accessor :primitive
   attr_accessor :name
   attr_accessor :iseq
   attr_accessor :stack_size
@@ -122,7 +121,6 @@ class CompiledMethod < Executable
   attr_accessor :file
   attr_accessor :local_names
   attr_accessor :scope
-  attr_accessor :serial
 
   def ==(other)
     return false unless other.kind_of?(CompiledMethod)

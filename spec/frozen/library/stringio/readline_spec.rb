@@ -2,12 +2,12 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 
-describe "StringIO#readline when passed [seperator]" do
+describe "StringIO#readline when passed [separator]" do
   before(:each) do
     @io = StringIO.new("this>is>an>example")
   end
 
-  it "returns the data read till the next occurence of the passed seperator" do
+  it "returns the data read till the next occurence of the passed separator" do
     @io.readline(">").should == "this>"
     @io.readline(">").should == "is>"
     @io.readline(">").should == "an>"
@@ -38,7 +38,7 @@ describe "StringIO#readline when passed [seperator]" do
     @io.lineno.should eql(3)
   end
   
-  it "returns the next paragraph when the passed seperator is an empty String" do
+  it "returns the next paragraph when the passed separator is an empty String" do
     io = StringIO.new("this is\n\nan example")
     io.readline("").should == "this is\n"
     io.readline("").should == "an example"
@@ -50,7 +50,7 @@ describe "StringIO#readline when passed [seperator]" do
     io.readline(nil).should == "is\n\nan example"
   end
 
-  it "tries to convert the passed seperator to a String using #to_str" do
+  it "tries to convert the passed separator to a String using #to_str" do
     obj = mock('to_str')
     obj.should_receive(:to_str).and_return(">")
     @io.readline(obj).should == "this>"

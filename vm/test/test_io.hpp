@@ -12,16 +12,12 @@ class TestIO : public CxxTest::TestSuite {
 
   VM *state;
   IO* io;
-  char *fname;
   int fd;
 
   void setUp() {
     state = new VM();
     fd = make_io();
     io = IO::create(state, fd);
-
-    /** @todo   Fix this. --rue */
-    fname = NULL;
   }
 
   void tearDown() {
@@ -30,20 +26,20 @@ class TestIO : public CxxTest::TestSuite {
   }
 
   int make_io() {
-    char* templ = strdup("/tmp/rubinius_TestIO.XXXXXX");
+    char templ[] = "/tmp/rubinius_TestIO.XXXXXX";
     int fd = mkstemp(templ);
 
     if(fd == -1) {
       throw std::runtime_error(strerror(errno));
     }
 
-    free(templ);
+    unlink(templ);
+
     return fd;
   }
 
   void remove_io(int fd) {
     close(fd);
-    unlink(fname);
   }
 
   void test_create() {

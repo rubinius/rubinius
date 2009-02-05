@@ -59,7 +59,7 @@ describe "A Call node" do
     compile do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
     end
   end
 
@@ -299,10 +299,13 @@ describe "A Call node" do
       g.push :self
       g.push_unique_literal :x
       g.push_unique_literal :sequence_name
-      g.push_const :Proc
 
-      in_block_send :new, -1, 0, false do |d|
-        d.push :nil
+      g.passed_block do
+        g.push_const :Proc
+
+        in_block_send :new, :splat, nil, 0, false do |d|
+          d.push :nil
+        end
       end
 
       g.dup
@@ -484,7 +487,7 @@ describe "A Call node" do
     compile do |g|
       g.push 1
       g.push 1
-      g.meta_send_op_plus
+      g.send :+, 1, false
       g.set_local 0
       g.send :zero?, 0, false
     end
@@ -618,11 +621,13 @@ describe "A Call node" do
     end
 
     compile do |g|
-      g.push :self
-      g.push_unique_literal :b
+      g.passed_block do
+        g.push :self
+        g.push_unique_literal :b
 
-      g.in_block_send :a, 0, 1 do |d|
-        d.push_unique_literal :c
+        g.in_block_send :a, :none, nil, 1 do |d|
+          d.push_unique_literal :c
+        end
       end
     end
   end
@@ -649,7 +654,8 @@ describe "A Call node" do
       t = g.new_label
       f = g.new_label
 
-      g.push_block
+      g.push :self
+      g.send :block_given?, 0, true
       g.gif f
       g.push 42
       g.goto t

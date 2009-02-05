@@ -1,0 +1,1 @@
+fails:OpenSSL::Random#random_bytes generates different binary strings with subsequent invocations

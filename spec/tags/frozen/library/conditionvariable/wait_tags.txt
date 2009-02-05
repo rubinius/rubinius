@@ -1,0 +1,1 @@
+fails(hangs in poll_poll ev_poll.c 92):ConditionVariable#wait should return self
