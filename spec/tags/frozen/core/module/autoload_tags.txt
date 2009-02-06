@@ -1,1 +1,3 @@
 fails:Module#autoload doesn't call 'require' nor 'load' dynamically
+fails:Module#autoload uses dup copies for autoloaded constants
+fails:Module#autoload autoloaded constants are removed on the first access

@@ -1,0 +1,2 @@
+fails:Thread#critical returns the current critical state
+fails:Thread#critical= sets the current critical state
