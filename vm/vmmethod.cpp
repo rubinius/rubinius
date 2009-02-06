@@ -676,6 +676,8 @@ namespace rubinius {
           }
         }
         break;
+      case cExit:
+        return NULL;
       default:
         std::cout << "bug!\n";
         abort();

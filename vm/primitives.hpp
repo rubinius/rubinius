@@ -16,7 +16,9 @@ namespace rubinius {
 
 
   enum PrimitiveRuntimeCode {
-    kPrimitiveFailed = 0
+    // A weird value, but works well. It looks like a reference to the highest
+    // address in memory.
+    kPrimitiveFailed = ((unsigned int)-1) & ~TAG_REF_MASK
   };
 
 

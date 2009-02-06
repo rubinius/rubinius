@@ -30,10 +30,35 @@
 #define GO(whatever) globals.whatever
 
 namespace rubinius {
-  VM::VM(size_t bytes, bool boot)
-    : current_mark(NULL)
+
+  SharedState::~SharedState() {
+    if(!initialized_) return;
+
+    delete om;
+    delete global_cache;
+    delete user_config;
+
+#ifdef ENABLE_LLVM
+    if(!reuse_llvm) llvm_cleanup();
+#endif
+  }
+
+  VM::VM(SharedState& shared, int id)
+    : id_(id)
+    , shared(shared)
+    , globals(shared.globals)
+    , om(shared.om)
+    , global_cache(shared.global_cache)
+    , config(shared.config)
+    , interrupts(shared.interrupts)
+    , symbols(shared.symbols)
+    , user_config(shared.user_config)
+    , current_mark(NULL)
     , reuse_llvm(true)
     , use_safe_position(false)
+  {}
+
+  void VM::initialize(size_t bytes)
   {
     config.compile_up_front = false;
     config.jit_enabled = false;
@@ -42,21 +67,19 @@ namespace rubinius {
     VM::register_state(this);
 
     user_config = new ConfigParser();
+    shared.user_config = user_config;
 
     om = new ObjectMemory(this, bytes);
+    shared.om = om;
+
     probe.set(Qnil, &globals.roots);
 
-    if(boot) this->boot();
-  }
+    global_cache = new GlobalCache;
+    shared.global_cache = global_cache;
 
-  VM::~VM() {
-    delete user_config;
-    delete om;
-    delete signal_events;
-    delete global_cache;
-#ifdef ENABLE_LLVM
-    if(!reuse_llvm) llvm_cleanup();
-#endif
+    this->boot();
+
+    shared.set_initialized();
   }
 
   void VM::boot() {
@@ -85,8 +108,6 @@ namespace rubinius {
     events = signal_events;
 
     signal_events->start(new event::Child::Event(this));
-
-    global_cache = new GlobalCache;
 
     VMMethod::init(this);
 

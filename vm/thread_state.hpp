@@ -47,6 +47,7 @@ namespace rubinius {
     void raise_exception(Exception* exc);
     void raise_return(Object* value, VariableScope* dest);
     void raise_break(Object* value, VariableScope* dest);
+    void raise_exit(Object* code);
   };
 };
 

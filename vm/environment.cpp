@@ -26,13 +26,16 @@
 namespace rubinius {
 
   Environment::Environment() {
-    state = new VM(VM::default_bytes, false);
+    shared = manager.create_shared_state();
+    state =  manager.create_vm(shared);
+    state->initialize(VM::default_bytes);
+
     TaskProbe* probe = TaskProbe::create(state);
     state->probe.set(probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil);
   }
 
   Environment::~Environment() {
-    delete state;
+    manager.destroy_vm(state);
   }
 
   void Environment::enable_preemption() {
@@ -135,6 +138,18 @@ namespace rubinius {
     }
 
     delete cf;
+  }
+
+  int Environment::exit_code() {
+    if(state->thread_state()->raise_reason() == cExit) {
+      if(Fixnum* fix = try_as<Fixnum>(state->thread_state()->raise_value())) {
+        return fix->to_native();
+      } else {
+        return -1;
+      }
+    }
+
+    return 0;
   }
 
 }

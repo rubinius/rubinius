@@ -19,4 +19,10 @@ namespace rubinius {
     raise_value_ = value;
     destination_scope_ = dest;
   }
+
+  void ThreadState::raise_exit(Object* code) {
+    raise_reason_ = cExit;
+    raise_value_ = code;
+    destination_scope_ = 0;
+  }
 }

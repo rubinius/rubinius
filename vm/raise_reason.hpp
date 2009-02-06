@@ -6,7 +6,8 @@ namespace rubinius {
     cNone,
     cException,
     cReturn,
-    cBreak
+    cBreak,
+    cExit
   };
 }
 

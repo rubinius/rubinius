@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
 
     env.enable_preemption();
     env.run_file(loader);
-    return 0;
+    return env.exit_code();
 
   } catch(Assertion *e) {
     std::cout << "VM Assertion:" << std::endl;

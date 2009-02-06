@@ -6,6 +6,8 @@
 #include "gc_object_mark.hpp"
 #include "thread_state.hpp"
 
+#include "refcount.hpp"
+
 #include <pthread.h>
 #include <setjmp.h>
 
@@ -78,19 +80,56 @@ namespace rubinius {
     {}
   };
 
+  class SharedState : public RefCount {
+  private:
+    bool initialized_;
+    int id_;
+
+  public:
+    Globals globals;
+    ObjectMemory* om;
+    GlobalCache* global_cache;
+    Configuration config;
+    Interrupts interrupts;
+    SymbolTable symbols;
+    ConfigParser *user_config;
+
+  public:
+    SharedState(int id)
+      : initialized_(false)
+      , id_(id)
+      , om(0)
+      , global_cache(0)
+      , user_config(0)
+    {}
+
+    ~SharedState();
+
+    int id() {
+      return id_;
+    }
+
+    void set_initialized() {
+      initialized_ = true;
+    }
+  };
+
   class VM {
+  private:
+    int id_;
+
   public:
     /* Data members */
-    Globals globals;
+    SharedState& shared;
+    Globals& globals;
     ObjectMemory* om;
     event::Loop* events;
     event::Loop* signal_events;
     GlobalCache* global_cache;
     TypedRoot<TaskProbe*> probe;
-    Primitives* primitives;
-    Configuration config;
-    Interrupts interrupts;
-    SymbolTable symbols;
+    Configuration& config;
+    Interrupts& interrupts;
+    SymbolTable& symbols;
     ConfigParser *user_config;
 
     ThreadState thread_state_;
@@ -126,15 +165,20 @@ namespace rubinius {
 
     static const size_t default_bytes = 1048576 * 3;
 
-    /* Inline methods */
+  public: /* Inline methods */
+
+    int id() {
+      return id_;
+    }
 
     ThreadState* thread_state() {
       return &thread_state_;
     }
 
     /* Prototypes */
-    VM(size_t bytes = default_bytes, bool boot_now = true);
-    ~VM();
+    VM(SharedState& shared, int id);
+
+    void initialize(size_t bytes = default_bytes);
 
     // Initialize the basic objects and the execution machinery
     void boot();
