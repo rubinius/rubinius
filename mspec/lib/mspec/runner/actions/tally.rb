@@ -25,14 +25,31 @@ class Tally
     @errors += add
   end
 
-  def format
-    [ [@files, 'file'],
-      [@examples, 'example'],
-      [@expectations, 'expectation'],
-      [@failures, 'failure'],
-      [@errors, 'error']
-    ].map { |count, word| pluralize count, word }.join(", ")
+  def file
+    pluralize files, "file"
   end
+
+  def example
+    pluralize examples, "example"
+  end
+
+  def expectation
+    pluralize expectations, "expectation"
+  end
+
+  def failure
+    pluralize failures, "failure"
+  end
+
+  def error
+    pluralize errors, "error"
+  end
+
+  def format
+    [ file, example, expectation, failure, error ].join(", ")
+  end
+
+  alias_method :to_s, :format
 
   def pluralize(count, singular)
     "#{count} #{singular}#{'s' unless count == 1}"

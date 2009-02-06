@@ -1,6 +1,3 @@
-require 'mspec/runner/mspec'
-require 'mspec/runner/example'
-
 # Holds the state of the +describe+ block that is being
 # evaluated. Every example (i.e. +it+ block) is evaluated
 # in a context, which may include state set up in <tt>before
