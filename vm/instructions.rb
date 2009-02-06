@@ -548,7 +548,7 @@ class Instructions
     // TODO: We don't need to be doing this everytime.
     cm->scope(state, call_frame->cm->scope());
 
-    Object* be = BlockEnvironment::under_call_frame(state, cm, call_frame, index);
+    Object* be = BlockEnvironment::under_call_frame(state, cm, vmm, call_frame, index);
 
     stack_push(be);
     CODE
@@ -3087,7 +3087,7 @@ slow_path:
     SendSite* ss = SendSite::create(state, name);
 
     TypedRoot<SendSite*> tr_ss(state, ss);
-    call_frame->vmm->sendsites = &tr_ss;
+    vmm->sendsites = &tr_ss;
 
     call_frame->cm->literals()->put(state, 0, ss);
     task->push(Qtrue);
@@ -3172,7 +3172,7 @@ slow_path:
     SendSite* ss = SendSite::create(state, name);
 
     TypedRoot<SendSite*> tr_ss(state, ss);
-    call_frame->vmm->sendsites = &tr_ss;
+    vmm->sendsites = &tr_ss;
 
 
     call_frame->cm->literals()->put(state, 0, ss);
@@ -3261,7 +3261,7 @@ slow_path:
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
     TypedRoot<SendSite*> tr_ss(state, ss);
-    call_frame->vmm->sendsites = &tr_ss;
+    vmm->sendsites = &tr_ss;
 
     call_frame->cm->literals()->put(state, 0, ss);
     task->push(Qtrue);
@@ -3367,7 +3367,7 @@ slow_path:
     G(true_class)->method_table()->store(state, name, target);
     SendSite* ss = SendSite::create(state, name);
     TypedRoot<SendSite*> tr_ss(state, ss);
-    call_frame->vmm->sendsites = &tr_ss;
+    vmm->sendsites = &tr_ss;
 
     call_frame->cm->literals()->put(state, 0, ss);
     task->push(Qtrue);
@@ -3463,7 +3463,7 @@ slow_path:
     parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
     TypedRoot<SendSite*> tr_ss(state, ss);
-    call_frame->vmm->sendsites = &tr_ss;
+    vmm->sendsites = &tr_ss;
 
     Object* obj = state->new_object<Object>(child);
     call_frame->self(state, obj);
@@ -3612,7 +3612,7 @@ slow_path:
     parent->method_table()->store(state, blah, target);
     SendSite* ss = SendSite::create(state, blah);
     TypedRoot<SendSite*> tr_ss(state, ss);
-    call_frame->vmm->sendsites = &tr_ss;
+    vmm->sendsites = &tr_ss;
 
     Object* obj = state->new_object<Object>(child);
     call_frame->self(state, obj);

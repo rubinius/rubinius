@@ -111,6 +111,8 @@ CODE
 #define SET_CALL_FLAGS(val) call_flags = (val)
 #define CALL_FLAGS() call_flags
 
+#if 0
+
 Object* rubinius::Task::execute_stream(CallFrame* call_frame, opcode* stream) {
   opcode op;
   int call_flags = 0;
@@ -127,6 +129,8 @@ CODE
   return Qnil;
 }
 
+#endif
+
 /* Use a simplier next_int */
 #undef next_int
 #define next_int ((opcode)(stream[call_frame->ip++]))
@@ -135,7 +139,7 @@ CODE
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
 
 Object* VMMethod::interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
-  opcode* stream = call_frame->vmm->opcodes;
+  opcode* stream = vmm->opcodes;
   int call_flags = 0;
 #ifdef USE_JUMP_TABLE
 
@@ -187,7 +191,7 @@ CODE
  * a breakpoint is set on compiled method.
  */
 Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
-  opcode* stream = call_frame->vmm->opcodes;
+  opcode* stream = vmm->opcodes;
   int call_flags = 0;
   opcode op;
 #ifdef USE_JUMP_TABLE

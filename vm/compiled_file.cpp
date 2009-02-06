@@ -48,6 +48,9 @@ namespace rubinius {
     cf.cm = NULL;
     cf.top_scope = NULL;
     cf.scope = NULL;
+    cf.stack_size = 0;
+    cf.current_unwind = 0;
+    cf.ip = 0;
 
     Message msg(state);
     msg.setup(NULL, G(main), &cf, 0, 0);

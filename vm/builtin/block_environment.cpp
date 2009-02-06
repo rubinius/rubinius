@@ -62,13 +62,11 @@ namespace rubinius {
     cf->args =     args;
     cf->scope =    scope;
     cf->top_scope = top_scope_;
-    cf->run =      vmm->run;
-    cf->vmm =      vmm;
 
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
     cf->push(val);
-    return cf->run(state, vmm, cf);
+    return vmm->run(state, vmm, cf);
   }
 
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Message& msg) {
@@ -99,13 +97,11 @@ namespace rubinius {
     cf->args =     msg.args();
     cf->scope =    scope;
     cf->top_scope = top_scope_;
-    cf->run =      vmm->run;
-    cf->vmm =      vmm;
 
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
     cf->push(val);
-    return cf->run(state, vmm, cf);
+    return vmm->run(state, vmm, cf);
   }
 
   Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
@@ -113,17 +109,17 @@ namespace rubinius {
   }
 
   BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
-      CallFrame* call_frame, size_t index) {
+      VMMethod* caller, CallFrame* call_frame, size_t index) {
 
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
 
     VMMethod* vmm;
-    if((vmm = call_frame->vmm->blocks[index]) == NULL) {
+    if((vmm = caller->blocks[index]) == NULL) {
       vmm = new VMMethod(state, cm);
-      if(call_frame->vmm->type) {
-        vmm->specialize(state, call_frame->vmm->type);
+      if(caller->type) {
+        vmm->specialize(state, caller->type);
       }
-      call_frame->vmm->blocks[index] = vmm;
+      caller->blocks[index] = vmm;
     }
 
     be->scope(state, call_frame->scope);

@@ -44,7 +44,7 @@ namespace rubinius {
     static BlockEnvironment* allocate(STATE);
 
     static BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
-      CallFrame* call_frame, size_t index);
+      VMMethod* caller, CallFrame* call_frame, size_t index);
 
     Object* call(STATE, CallFrame* call_frame, size_t args);
     Object* call(STATE, CallFrame* call_frame, Message& msg);

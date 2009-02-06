@@ -21,7 +21,6 @@ namespace rubinius {
     bool is_block;
     Symbol* name;
     CompiledMethod* cm;
-    VMMethod* vmm;
 
     int args;
     int ip;
@@ -31,8 +30,6 @@ namespace rubinius {
 
     VariableScope* top_scope;
     VariableScope* scope;
-
-    Runner run;
 
     int current_unwind;
     UnwindInfo unwinds[kMaxUnwindInfos];

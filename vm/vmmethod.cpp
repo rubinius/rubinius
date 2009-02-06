@@ -458,8 +458,6 @@ namespace rubinius {
     cf->cm =       cm;
     cf->args =     msg.args();
     cf->scope =    cf->top_scope = scope;
-    cf->run =      vmm->run;
-    cf->vmm =      vmm;
 
     // If argument handling fails..
     GenericArguments args;
@@ -472,7 +470,7 @@ namespace rubinius {
 
     // if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
-    return cf->run(state, vmm, cf);
+    return vmm->run(state, vmm, cf);
   }
 
   /* This is a noop for this class. */
