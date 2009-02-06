@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#sleep" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("sleep")
+    Kernel.should have_private_instance_method(:sleep)
   end
   
   it "pauses execution for approximately the duration requested" do

@@ -63,9 +63,9 @@ describe "Module#module_function with specific method names" do
 
     (o = mock('x')).extend(m)
     o.respond_to?(:test).should == false
-    m.private_instance_methods.map {|m| m.to_s }.include?('test').should == true
-    o.private_methods.map {|m| m.to_s }.include?('test').should == true
+    m.should have_private_instance_method(:test)
     o.send(:test).should == "hello"
+    lambda { o.test }.should raise_error(NoMethodError)
   end
 
   it "makes the new Module methods public" do

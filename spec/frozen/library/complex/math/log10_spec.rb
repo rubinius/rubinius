@@ -5,7 +5,7 @@ describe "Math#log10" do
   it_behaves_like :complex_math_log10, :_, IncludesMath.new
 
   it "should be private" do
-    IncludesMath.private_instance_methods.should include("log10")
+    IncludesMath.should have_private_instance_method(:log10)
   end
 end
 
@@ -13,7 +13,7 @@ describe "Math#log10!" do
   it_behaves_like :complex_math_log10_bang, :_, IncludesMath.new
 
   it "should be private" do
-    IncludesMath.private_instance_methods.should include("log10!")
+    IncludesMath.should have_private_instance_method(:log10!)
   end
 end
 

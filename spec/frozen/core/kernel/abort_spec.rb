@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#abort" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("abort")
+    Kernel.should have_private_instance_method(:abort)
   end
 end
 

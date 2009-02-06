@@ -28,7 +28,7 @@ require 'rbconfig'
 # addition, contain another global timestamp assignment.
 describe "Kernel#load" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("load")
+    Kernel.should have_private_instance_method(:load)
   end
 
   # Avoid storing .rbc in repo

@@ -8,7 +8,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # P - Pre Required Args
 # O - Optional Arg
 # R - Rest Arg
-# Q - Post Required Args
+# Q - Post Required Args (1.9)
 
 describe "Calling a method" do
   it "with no arguments is ok" do
@@ -75,6 +75,11 @@ describe "Calling a method" do
     fooP1O1R(1,2,3).should == [1, 2, [3]]
   end
 
+  it "with an empty expression is like calling with nil argument" do
+    def foo(a); a end
+    foo(()).should be_nil
+  end
+
   it "with block as block argument is ok" do
     def foo(a,&b); [a,yield(b)] end
 
@@ -127,31 +132,42 @@ describe "Calling a method" do
   end
 
   it "with splat operator * and literal array unpacks params" do
-    def foo(a,b,c); [a,b,c] end
+    def fooP3(a,b,c); [a,b,c] end
 
-    foo(*[1,2,3]).should == [1,2,3]
+    fooP3(*[1,2,3]).should == [1,2,3]
   end
 
   it "with splat operator * and referenced array unpacks params" do
-    def foo(a,b,c); [a,b,c] end
+    def fooP3(a,b,c); [a,b,c] end
 
     a = [1,2,3]
-    foo(*a).should == [1,2,3]
+    fooP3(*a).should == [1,2,3]
   end
 
   it "without parentheses works" do
-    def foo(a,b,c); [a,b,c] end
+    def fooP3(a,b,c); [a,b,c] end
 
-    (foo 1,2,3).should == [1,2,3]
+    (fooP3 1,2,3).should == [1,2,3]
+  end
+
+  it "with a space separating method name and parenthesis treats expression in parenthesis as first argument" do
+    def myfoo(x); x * 2 end
+    def mybar
+      # means myfoo((5).to_s)
+      # NOT   (myfoo(5)).to_s
+      myfoo (5).to_s
+    end
+
+    mybar().should == "55"
   end
 
   it "with invalid argument count raises an ArgumentError" do
-    def foo(a,b,c); end
+    def fooP3(a,b,c); end
 
-    lambda { foo }.should raise_error(ArgumentError)
-    lambda { foo(1,2) }.should raise_error(ArgumentError)
-    lambda { foo(1,2,3,4) }.should raise_error(ArgumentError)
-    lambda { foo((), (), (), ()) }.should raise_error(ArgumentError)
+    lambda { fooP3 }.should raise_error(ArgumentError)
+    lambda { fooP3(1,2) }.should raise_error(ArgumentError)
+    lambda { fooP3(1,2,3,4) }.should raise_error(ArgumentError)
+    lambda { fooP3((), (), (), ()) }.should raise_error(ArgumentError)
   end
 
   # "Allows infinite arguments" is kinda hard to spec

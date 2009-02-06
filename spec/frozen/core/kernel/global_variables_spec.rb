@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.global_variables" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("global_variables")
+    Kernel.should have_private_instance_method(:global_variables)
   end
   
   it "finds subset starting with std" do

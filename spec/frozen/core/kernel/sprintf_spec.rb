@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#sprintf" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("sprintf")
+    Kernel.should have_private_instance_method(:sprintf)
   end
   
   it "treats nil arguments as zero-width strings in %s slots" do

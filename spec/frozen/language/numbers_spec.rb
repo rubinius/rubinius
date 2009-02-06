@@ -36,19 +36,21 @@ describe "Ruby numbers in various ways" do
     0377.should == 255
   end
 
-  it "character to numeric shortcut" do
-    ?z.should == 122
-  end
+  ruby_version_is '' ... '1.9' do
+    it "character to numeric shortcut" do
+      ?z.should == 122
+    end
 
-  it "character with control character to numeric shortcut" do
-    # Control-Z
-    ?\C-z.should == 26
+    it "character with control character to numeric shortcut" do
+      # Control-Z
+      ?\C-z.should == 26
 
-    # Meta-Z
-    ?\M-z.should == 250
+      # Meta-Z
+      ?\M-z.should == 250
 
-    # Meta-Control-Z
-    ?\M-\C-z.should == 154
+      # Meta-Control-Z
+      ?\M-\C-z.should == 154
+    end
   end
 
 end

@@ -5,7 +5,7 @@ describe "Math#rsqrt" do
   it_behaves_like :mathn_math_rsqrt, :_, IncludesMath.new
 
   it "should be private" do
-    IncludesMath.private_instance_methods.should include("rsqrt")
+    IncludesMath.should have_private_instance_method(:rsqrt)
   end
 end
 

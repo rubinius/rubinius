@@ -3,13 +3,13 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#chomp" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("chomp")
+    Kernel.should have_private_instance_method(:chomp)
   end
 end
 
 describe "Kernel#chomp!" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("chomp!")
+    Kernel.should have_private_instance_method(:chomp!)
   end
 end
 

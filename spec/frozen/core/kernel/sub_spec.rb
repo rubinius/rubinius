@@ -3,13 +3,13 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#sub" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("sub")
+    Kernel.should have_private_instance_method(:sub)
   end
 end
 
 describe "Kernel#sub!" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("sub!")
+    Kernel.should have_private_instance_method(:sub!)
   end
 end
 

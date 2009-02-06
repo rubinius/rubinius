@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.at_exit" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("at_exit")
+    Kernel.should have_private_instance_method(:at_exit)
   end
 
   it "runs after all other code" do

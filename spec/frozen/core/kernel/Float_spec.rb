@@ -12,7 +12,7 @@ end
 
 describe "Kernel.Float" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("Float")
+    Kernel.should have_private_instance_method(:Float)
   end
   
   it "converts the given argument to a Float by calling #to_f" do

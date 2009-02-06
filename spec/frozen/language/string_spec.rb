@@ -143,4 +143,21 @@ HERE
     s.should == '    foo bar#{@ip}' + "\n"
   end
 
+
+  ruby_version_is '1.9' do
+    it "are produced from character shortcuts" do
+      ?z.should == 'z'
+    end
+
+    it "are produced from control character shortcuts" do
+      # Control-Z
+      ?\C-z.should == "\x1A"
+
+      # Meta-Z
+      ?\M-z.should == "\xFA"
+
+      # Meta-Control-Z
+      ?\M-\C-z.should == "\x9A"
+    end
+  end
 end

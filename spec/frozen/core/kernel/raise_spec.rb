@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/../../shared/kernel/raise'
 
 describe "Kernel#raise" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("raise")
+    Kernel.should have_private_instance_method(:raise)
   end
 end
 

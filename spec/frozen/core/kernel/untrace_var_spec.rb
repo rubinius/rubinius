@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#untrace_var" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("untrace_var")
+    Kernel.should have_private_instance_method(:untrace_var)
   end
 end
 

@@ -3,6 +3,6 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#singleton_method_undefined" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("singleton_method_undefined")
+    Kernel.should have_private_instance_method(:singleton_method_undefined)
   end
 end

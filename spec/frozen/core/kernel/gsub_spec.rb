@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#gsub" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("gsub")
+    Kernel.should have_private_instance_method(:gsub)
   end
 
   it "raises a TypeError if $_ is not a String" do
@@ -82,7 +82,7 @@ end
 
 describe "Kernel#gsub!" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("gsub!")
+    Kernel.should have_private_instance_method(:gsub!)
   end
 end
 

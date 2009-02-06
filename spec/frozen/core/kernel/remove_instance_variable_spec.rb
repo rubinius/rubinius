@@ -3,6 +3,6 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#remove_instance_variable" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("remove_instance_variable")
+    Kernel.should have_private_instance_method(:remove_instance_variable)
   end
 end

@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#method_missing" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("method_missing")
+    Kernel.should have_private_instance_method(:method_missing)
   end
   
   it "is not called when a defined method is called" do

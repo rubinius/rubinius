@@ -201,12 +201,12 @@ describe "Redefining a singleton method" do
 
     class << o; private; def foo; end; end;
 
-    class << o; private_instance_methods.include?("foo").should == true; end
+    class << o; should have_private_instance_method(:foo); end
 
     class << o; def foo; end; end;
 
-    class << o; private_instance_methods.include?("foo").should == false; end
-    class << o; instance_methods.include?("foo").should == true ; end
+    class << o; should_not have_private_instance_method(:foo); end
+    class << o; should have_instance_method(:foo); end
 
   end
 end
@@ -217,12 +217,12 @@ describe "Redefining a singleton method" do
 
     class << o; private; def foo; end; end;
 
-    class << o; private_instance_methods.include?("foo").should == true; end
+    class << o; should have_private_instance_method(:foo); end
 
     class << o; def foo; end; end;
 
-    class << o; private_instance_methods.include?("foo").should == false; end
-    class << o; instance_methods.include?("foo").should == true ; end
+    class << o; should_not have_private_instance_method(:foo); end
+    class << o; should have_instance_method(:foo); end
 
   end
 end

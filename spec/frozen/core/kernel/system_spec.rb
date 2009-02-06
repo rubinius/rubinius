@@ -39,7 +39,7 @@ describe "Kernel#system" do
   end
 
   it "is a private method" do
-    Kernel.private_instance_methods.should include("system")
+    Kernel.should have_private_instance_method(:system)
   end
 
   before :each do

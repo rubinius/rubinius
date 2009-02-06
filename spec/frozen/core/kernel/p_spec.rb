@@ -11,7 +11,7 @@ describe "Kernel#p" do
   end
 
   it "is a private method" do
-    Kernel.private_instance_methods.should include("p")
+    Kernel.should have_private_instance_method(:p)
   end
   
   it "flushes output if receiver is a File" do
@@ -35,7 +35,7 @@ describe "Kernel#p" do
     end
   end
 
-  it "prints obj.inspect followed by system record separator (usually \\n) for each argument given" do
+  it "prints obj.inspect followed by system record separator for each argument given" do
     o = mock("Inspector Gadget")
     o.should_receive(:inspect).any_number_of_times.and_return "Next time, Gadget, NEXT TIME!"
 

@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.srand" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("srand")
+    Kernel.should have_private_instance_method(:srand)
   end
   
   it "srand should return the previous seed value" do

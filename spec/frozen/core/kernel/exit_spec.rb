@@ -3,13 +3,13 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#exit" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("exit")
+    Kernel.should have_private_instance_method(:exit)
   end
 end
 
 describe "Kernel#exit!" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("exit!")
+    Kernel.should have_private_instance_method(:exit!)
   end
 end
 

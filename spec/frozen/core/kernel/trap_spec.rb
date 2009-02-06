@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#trap" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("trap")
+    Kernel.should have_private_instance_method(:trap)
   end
 end
 
