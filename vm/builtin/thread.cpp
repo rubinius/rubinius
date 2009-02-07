@@ -147,16 +147,10 @@ namespace rubinius {
       return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
 
-    sleep(state, Qfalse);
-
-    /** @todo   This is possibly unnecessary except for raise() and exited(). --rue */
-    if(!channel()->nil_p()) {
-      channel()->cancel_waiter(state, this);
+    {
+      thread::Mutex::LockGuard x(vm->local_lock());
+      if(!vm->wakeup()) return (Thread*)Qnil;
     }
-
-    channel(state, (Channel*)Qnil);
-
-    state->queue_thread(this);
 
     return this;
   }
