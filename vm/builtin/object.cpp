@@ -318,6 +318,7 @@ namespace rubinius {
     Message msg(state);
     msg.name = name;
     msg.recv = this;
+    msg.block = Qnil;
     msg.lookup_from = this->lookup_begin(state);
     msg.stack = 0;
     // msg.set_caller(task->active());
@@ -325,6 +326,19 @@ namespace rubinius {
     msg.set_arguments(state, args);
 
     return task->send_message_slowly(NULL, msg);
+  }
+
+  Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* args, Object* block) {
+    Message msg(state);
+    msg.name = name;
+    msg.recv = this;
+    msg.lookup_from = this->lookup_begin(state);
+    msg.block = block;
+    msg.set_caller(caller);
+
+    msg.set_arguments(state, args);
+
+    return msg.send(state, caller);
   }
 
   Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {

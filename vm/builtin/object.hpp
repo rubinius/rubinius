@@ -190,6 +190,8 @@ namespace rubinius {
      */
     bool      send_on_task(STATE, Task* task, Symbol* name, Array* args);
 
+    Object*   send(STATE, CallFrame* caller, Symbol* name, Array* args, Object* block);
+
     /**
      *  Perform a send from Ruby.
      *

@@ -49,7 +49,21 @@ namespace rubinius {
   }
 
   void Exception::print_locations(STATE) {
-    std::cout << "FIXME: implement print_locations\n";
+    for(size_t i = 0; i < locations_->size(); i++) {
+      if(Location* loc = try_as<Location>(locations_->get(state, i))) {
+        if(CompiledMethod* meth = try_as<CompiledMethod>(loc->method())) {
+          if(Symbol* file_sym = try_as<Symbol>(meth->file())) {
+            std::cout << file_sym->c_str(state) << ":"
+                      << meth->line(state, loc->ip()->to_native())
+                      << "\n";
+            continue;
+          }
+        }
+        std::cout << "<unknown>";
+      } else {
+        std::cout << "Bad locations entry detected.\n";
+      }
+    }
   }
 
   Exception* Exception::make_exception(STATE, Class* exc_class, const char* message) {

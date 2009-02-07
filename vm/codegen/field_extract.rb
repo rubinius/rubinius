@@ -2,6 +2,7 @@ class BasicPrimitive
   attr_accessor :pass_state
   attr_accessor :pass_self
   attr_accessor :pass_call_frame
+  attr_accessor :pass_message
   attr_accessor :raw
 
   def output_header(str)
@@ -29,6 +30,7 @@ class BasicPrimitive
     args.unshift "self" if @pass_self
     args.unshift "state" if @pass_state
 
+    args.push "msg" if @pass_message
     args.push "call_frame" if @pass_call_frame
 
     return args
@@ -507,6 +509,7 @@ class CPPParser
           pass_state = false
           pass_self = false
           pass_call_frame = false
+          pass_message = false
 
           m = prototype_pattern.match(prototype)
           unless m
@@ -525,6 +528,11 @@ class CPPParser
 
           if args.last == "CallFrame *calling_environment"
             pass_call_frame = true
+            args.pop
+          end
+
+          if args.last == "Message& msg"
+            pass_message = true
             args.pop
           end
 
@@ -547,6 +555,7 @@ class CPPParser
           obj.pass_state = pass_state
           obj.pass_self = pass_self
           obj.pass_call_frame = pass_call_frame
+          obj.pass_message = pass_message
         end
       end
 

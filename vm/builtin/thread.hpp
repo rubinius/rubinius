@@ -1,5 +1,5 @@
-#ifndef RBX_THREAD_HPP
-#define RBX_THREAD_HPP
+#ifndef RBX_BUILTIN_THREAD_HPP
+#define RBX_BUILTIN_THREAD_HPP
 
 #include "vm/exception.hpp"
 #include "vm/type_info.hpp"
@@ -12,7 +12,7 @@ namespace rubinius {
   class Channel;
   class Exception;
   class Task;
-
+  class NativeThread;
 
   /**
    *  Ruby's green Thread backend.
@@ -44,14 +44,16 @@ namespace rubinius {
     /** Setting priority may need to enlarge ScheduledThreads. */
     void priority(STATE, Fixnum* new_priority);
 
+    NativeThread* native_thread() {
+      return native_thread_;
+    }
 
   public:   /* Primitives */
 
-    /**
-     *  Creates a new, sleeping and non-queued Thread.
-     */
-    // Ruby.primitive :thread_allocate
-    static Thread* create(STATE);
+    // Ruby.primitive :thread_new
+    static Thread* s_new(STATE, Message& msg);
+
+    static Thread* create(STATE, VM* target);
 
     /**
      *  Returns the currently executing Thread.
@@ -82,7 +84,10 @@ namespace rubinius {
      *  is over.
      */
     // Ruby.primitive :thread_pass
-    Object* pass(STATE);
+    static Object* pass(STATE);
+
+    // Ruby.primitive :thread_sleep
+    static Object* sleep_now(STATE, Object* duration);
 
     /**
      *  Raise exception in this Thread.
@@ -126,6 +131,10 @@ namespace rubinius {
     Object*   sleep_;        // slot
     Object*   queued_;       // slot
     Object*   frozen_stack_; // slot
+
+    // The VM class that represents this running thread
+    VM*       vm;
+    NativeThread* native_thread_;
 
 
   public:   /* TypeInfo */

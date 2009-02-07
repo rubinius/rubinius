@@ -39,7 +39,6 @@ namespace rubinius {
   }
 
   bool CompiledFile::execute(STATE) {
-    Task* task = state->new_task();
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
     CallFrame cf;
@@ -57,9 +56,6 @@ namespace rubinius {
     msg.name = cm->name();
     msg.module = G(object);
     msg.method = cm.get();
-
-    G(current_thread)->task(state, task);
-    state->activate_task(task);
 
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));

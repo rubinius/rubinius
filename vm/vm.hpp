@@ -8,6 +8,8 @@
 
 #include "refcount.hpp"
 
+#include "global_lock.hpp"
+
 #include <pthread.h>
 #include <setjmp.h>
 
@@ -80,10 +82,15 @@ namespace rubinius {
     {}
   };
 
+  class VMManager;
+  class Waiter;
+
   class SharedState : public RefCount {
   private:
+    VMManager& manager_;
     bool initialized_;
     int id_;
+    GlobalLock lock_;
 
   public:
     Globals globals;
@@ -95,8 +102,9 @@ namespace rubinius {
     ConfigParser *user_config;
 
   public:
-    SharedState(int id)
-      : initialized_(false)
+    SharedState(VMManager& manager, int id)
+      : manager_(manager)
+      , initialized_(false)
       , id_(id)
       , om(0)
       , global_cache(0)
@@ -112,6 +120,12 @@ namespace rubinius {
     void set_initialized() {
       initialized_ = true;
     }
+
+    GlobalLock& global_lock() {
+      return lock_;
+    }
+
+    VM* new_vm();
   };
 
   class VM {
@@ -121,6 +135,9 @@ namespace rubinius {
   public:
     /* Data members */
     SharedState& shared;
+    thread::Mutex local_lock_;
+    Waiter* waiter_;
+
     Globals& globals;
     ObjectMemory* om;
     event::Loop* events;
@@ -133,6 +150,9 @@ namespace rubinius {
     ConfigParser *user_config;
 
     ThreadState thread_state_;
+
+    // The Thread object for this VM state
+    TypedRoot<Thread*> thread;
 
     Stats stats;
 
@@ -173,6 +193,14 @@ namespace rubinius {
 
     ThreadState* thread_state() {
       return &thread_state_;
+    }
+
+    GlobalLock& global_lock() {
+      return shared.global_lock();
+    }
+
+    thread::Mutex& local_lock() {
+      return local_lock_;
     }
 
     /* Prototypes */
@@ -293,6 +321,9 @@ namespace rubinius {
 
     // Run the garbage collectors as soon as you can
     void run_gc_soon();
+
+    void install_waiter(Waiter& waiter);
+    bool wakeup();
   };
 };
 

@@ -64,6 +64,23 @@ namespace rubinius {
     return as<Fixnum>(top->at(state, 2))->to_native();
   }
 
+  int CompiledMethod::line(STATE, int ip) {
+    if(lines()->nil_p()) return -3;
+
+    for(size_t i = 0; i < lines()->num_fields(); i++) {
+      Tuple* entry = as<Tuple>(lines()->at(state, i));
+
+      Fixnum* start_ip = as<Fixnum>(entry->at(state, 0));
+      Fixnum* end_ip   = as<Fixnum>(entry->at(state, 1));
+      Fixnum* line     = as<Fixnum>(entry->at(state, 2));
+
+      if(start_ip->to_native() <= ip && end_ip->to_native() >= ip)
+        return line->to_native();
+    }
+
+    return -1;
+  }
+
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
     if(!backend_method_) {
       VMMethod* vmm = NULL;

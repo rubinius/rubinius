@@ -78,19 +78,6 @@ namespace rubinius {
 
   int CallFrame::line(STATE) {
     if(!cm) return -2;        // trampoline context
-    if(cm->lines()->nil_p()) return -3;
-
-    for(size_t i = 0; i < cm->lines()->num_fields(); i++) {
-      Tuple* entry = as<Tuple>(cm->lines()->at(state, i));
-
-      Fixnum* start_ip = as<Fixnum>(entry->at(state, 0));
-      Fixnum* end_ip   = as<Fixnum>(entry->at(state, 1));
-      Fixnum* line     = as<Fixnum>(entry->at(state, 2));
-
-      if(start_ip->to_native() <= ip && end_ip->to_native() >= ip)
-        return line->to_native();
-    }
-
-    return -1;
+    return cm->line(state, ip);
   }
 }

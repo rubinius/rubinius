@@ -61,6 +61,7 @@ namespace rubinius {
     static CompiledMethod* create(STATE);
 
     int start_line(STATE);
+    int line(STATE, int ip);
 
     // Use a stack of 1 so that the return value of the executed method
     // has a place to go

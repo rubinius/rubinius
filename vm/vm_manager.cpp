@@ -3,7 +3,7 @@
 
 namespace rubinius {
   SharedState* VMManager::create_shared_state() {
-    SharedState* shared = new SharedState(share_id_++);
+    SharedState* shared = new SharedState(*this, share_id_++);
     shares_[shared->id()] = shared;
     return shared;
   }

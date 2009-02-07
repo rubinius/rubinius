@@ -7,12 +7,17 @@
 #include "builtin/task.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/channel.hpp"
+#include "builtin/float.hpp"
 
 #include "objectmemory.hpp"
 #include "message.hpp"
 
 #include "vm/object_utils.hpp"
 #include "vm.hpp"
+
+#include "native_thread.hpp"
+
+#include <sys/time.h>
 
 namespace rubinius {
 
@@ -64,10 +69,7 @@ namespace rubinius {
     priority_ = new_priority;
   }
 
-
-/* Primitives */
-
-  Thread* Thread::create(STATE) {
+  Thread* Thread::create(STATE, VM* target) {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->alive(state, Qtrue);
@@ -79,14 +81,33 @@ namespace rubinius {
 
     thr->boot_task(state);
 
-    state->interrupts.use_preempt = true;
-    state->interrupts.enable_preempt = true;
+    target->thread.set(thr);
+    thr->vm = target;
+    thr->native_thread_ = new NativeThread(target);
 
     return thr;
   }
 
+  Thread* Thread::s_new(STATE, Message& msg) {
+    VM* vm = state->shared.new_vm();
+    Thread* thread = Thread::create(state, vm);
+
+    NativeThread* nt = thread->native_thread();
+    nt->set_startup(msg.block, msg.as_array(state));
+    // Let it run.
+
+    {
+      GlobalLock::UnlockGuard x(state->global_lock());
+      nt->run();
+    }
+
+    return thread;
+  }
+
+  /* Primitives */
+
   Thread* Thread::current(STATE) {
-    return state->globals.current_thread.get();
+    return state->thread.get();
   }
 
   /** @todo   Add voluntary/involuntary? --rue */
@@ -106,14 +127,12 @@ namespace rubinius {
   }
 
   Object* Thread::pass(STATE) {
-    /* Stash the Task in case it has changed. @todo Overcautious? --rue */
-    this->task(state, state->globals.current_task.get());
-
-    /* Delay queuing until another one is found to allow lower priority. */
-    if(state->find_and_activate_thread()) {
-      state->queue_thread(this);
+    {
+      GlobalLock::UnlockGuard x(state->global_lock());
+      sched_yield();
     }
 
+    std::cout << "unpassed!\n";
     return Qnil;
   }
 
@@ -140,6 +159,43 @@ namespace rubinius {
     state->queue_thread(this);
 
     return this;
+  }
+
+#define NANOSECONDS 1000000000
+  Object* Thread::sleep_now(STATE, Object* duration) {
+    struct timespec ts;
+    struct timeval tv;
+
+    gettimeofday(&tv, 0);
+    ts.tv_sec =  tv.tv_sec;
+    ts.tv_nsec = tv.tv_usec * 1000;
+
+    if(Fixnum* fix = try_as<Fixnum>(duration)) {
+      ts.tv_sec += fix->to_native();
+    } else if(Float* flt = try_as<Float>(duration)) {
+      uint64_t nano = (uint64_t)(flt->val * NANOSECONDS);
+      ts.tv_sec +=  (time_t)(nano / NANOSECONDS);
+      ts.tv_nsec +=   (long)(nano % NANOSECONDS);
+    } else if(duration->nil_p()) {
+      ts.tv_sec = 0;
+      ts.tv_nsec = 0;
+    } else {
+      return Primitives::failure();
+    }
+
+    thread::Condition cond;
+    WaitingOnCondition waiter(cond);
+
+    thread::Mutex& mutex = state->local_lock();
+    mutex.lock();
+    state->install_waiter(waiter);
+    {
+      GlobalLock::UnlockGuard x(state->global_lock());
+      cond.wait_until(mutex, &ts);
+    }
+    mutex.unlock();
+
+    return Qnil;
   }
 
 

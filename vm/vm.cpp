@@ -19,6 +19,9 @@
 #include "config_parser.hpp"
 #include "config.h"
 #include "timing.hpp"
+#include "vm_manager.hpp"
+
+#include "native_thread.hpp"
 
 #include <iostream>
 #include <signal.h>
@@ -43,6 +46,10 @@ namespace rubinius {
 #endif
   }
 
+  VM* SharedState::new_vm() {
+    return manager_.create_vm(this);
+  }
+
   VM::VM(SharedState& shared, int id)
     : id_(id)
     , shared(shared)
@@ -53,6 +60,7 @@ namespace rubinius {
     , interrupts(shared.interrupts)
     , symbols(shared.symbols)
     , user_config(shared.user_config)
+    , thread(this, (Thread*)Qnil)
     , current_mark(NULL)
     , reuse_llvm(true)
     , use_safe_position(false)
@@ -134,10 +142,9 @@ namespace rubinius {
   }
 
   void VM::boot_threads() {
-    Thread* thread = Thread::create(this);
+    thread.set(Thread::create(this, this), &globals.roots);
 
     thread->sleep(this, Qfalse);
-    globals.current_thread.set(thread);
     globals.current_task.set(thread->task());
   }
 
@@ -502,6 +509,19 @@ namespace rubinius {
         interrupts.check_events = true;
       }
     }
+  }
+
+  void VM::install_waiter(Waiter& waiter) {
+    waiter_ = &waiter;
+  }
+
+  bool VM::wakeup() {
+    if(waiter_) {
+      waiter_->wakeup();
+      return true;
+    }
+
+    return false;
   }
 
   /* For debugging. */

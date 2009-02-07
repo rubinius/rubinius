@@ -3,8 +3,6 @@
 # to create a BlockContext.
 
 class BlockEnvironment
-  attr_accessor :home
-  attr_accessor :home_block
   attr_accessor :local_count
   attr_accessor :method # The CompiledMethod object that we were called from
 
@@ -89,6 +87,6 @@ class BlockEnvironment
   end
 
   def line
-    method.line_from_ip(@initial_ip)
+    method.line_from_ip(0)
   end
 end
