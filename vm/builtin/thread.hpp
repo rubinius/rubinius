@@ -35,14 +35,10 @@ namespace rubinius {
 
     attr_accessor(alive, Object);
     attr_accessor(channel, Channel);
-    attr_reader(priority, Fixnum);      /* Yes, reader only. See below. */
     attr_accessor(queued, Object);
     attr_accessor(sleep, Object);
     attr_accessor(task, Task);
     attr_accessor(frozen_stack, Object);
-
-    /** Setting priority may need to enlarge ScheduledThreads. */
-    void priority(STATE, Fixnum* new_priority);
 
     NativeThread* native_thread() {
       return native_thread_;
@@ -60,21 +56,6 @@ namespace rubinius {
      */
     // Ruby.primitive :thread_current
     static Thread* current(STATE);
-
-    /**
-     *  Mark the Thread dead and start removing it.
-     *
-     *  The Thread will stay around for a little bit, so
-     *  other logic still needs to ensure that they reject
-     *  any dead threads wherever necessary.
-     *
-     *  @todo   Investigate the possibility of truly removing
-     *          the Thread immediately. This is far more involved
-     *          and possibly too complicated to be worthwhile.
-     *          --rue
-     */
-    // Ruby.primitive :thread_exited
-    Object* exited(STATE);
 
     /**
      *  Attempt to schedule some other Thread.
@@ -109,6 +90,12 @@ namespace rubinius {
     // Ruby.primitive :thread_wakeup
     Thread* wakeup(STATE);
 
+    // Ruby.primitive :thread_priority
+    Object* priority(STATE);
+
+    // Ruby.primitive :thread_set_priority
+    Object* set_priority(STATE, Fixnum* priority);
+
 
   public:   /* Interface */
 
@@ -126,7 +113,6 @@ namespace rubinius {
 
     Task*     task_;         // slot
     Channel*  channel_;      // slot
-    Fixnum*   priority_;     // slot
     Object*   alive_;        // slot
     Object*   sleep_;        // slot
     Object*   queued_;       // slot

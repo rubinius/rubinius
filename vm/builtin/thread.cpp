@@ -36,37 +36,13 @@ namespace rubinius {
   }
 
 
-/* Accessor implementation */
+  Object* Thread::set_priority(STATE, Fixnum* new_priority) {
+    native_thread_->set_priority(new_priority->to_native());
+    return new_priority;
+  }
 
-  /** @todo   Should we queue thread? Probably unnecessary. --rue */
-  void Thread::priority(STATE, Fixnum* new_priority) {
-    /* This gets somewhat ugly to avoid existing lists. */
-    if(new_priority->to_native() < 0) {
-      Exception::argument_error(state, "Thread priority must be non-negative!");
-    }
-
-    Tuple* scheduled = state->globals.scheduled_threads.get();
-
-    std::size_t desired = new_priority->to_ulong();
-    std::size_t existing = scheduled->num_fields();
-
-    if(desired >= existing) {
-      Tuple* replacement = Tuple::create(state, (desired + 1));
-      replacement->copy_from(state, scheduled, Fixnum::from(0),
-			     Fixnum::from(scheduled->num_fields()),
-			     Fixnum::from(0));
-
-      for(std::size_t i = existing - 1; i <= desired; ++i) {
-        if(replacement->at(state, i)->nil_p()) {
-          replacement->put(state, i, List::create(state));
-        }
-      }
-
-      state->globals.scheduled_threads.set(replacement);
-      scheduled = replacement;
-    }
-
-    priority_ = new_priority;
+  Object* Thread::priority(STATE) {
+    return Fixnum::from(native_thread_->priority());
   }
 
   Thread* Thread::create(STATE, VM* target) {
@@ -74,7 +50,6 @@ namespace rubinius {
 
     thr->alive(state, Qtrue);
     thr->channel(state, reinterpret_cast<Channel*>(Qnil));
-    thr->priority(state, Fixnum::from(2));
     thr->queued(state, Qfalse);
     thr->sleep(state, Qtrue);
     thr->frozen_stack(state, Qfalse);
@@ -110,29 +85,10 @@ namespace rubinius {
     return state->thread.get();
   }
 
-  /** @todo   Add voluntary/involuntary? --rue */
-  Object* Thread::exited(STATE) {
-    alive(state, Qfalse);
-
-    if(!channel()->nil_p()) {
-      channel()->cancel_waiter(state, this);
-    }
-
-    channel(state, (Channel*)Qnil);
-
-    state->dequeue_thread(this);
-    state->find_and_activate_thread();
-
-    return this;
-  }
-
   Object* Thread::pass(STATE) {
-    {
-      GlobalLock::UnlockGuard x(state->global_lock());
-      sched_yield();
-    }
+    GlobalLock::UnlockGuard x(state->global_lock());
+    sched_yield();
 
-    std::cout << "unpassed!\n";
     return Qnil;
   }
 

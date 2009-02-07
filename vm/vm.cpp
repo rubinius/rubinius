@@ -316,27 +316,11 @@ namespace rubinius {
   }
 
   void VM::queue_thread(Thread* thread) {
-    if(thread->queued() == Qtrue) {
-      return;
-    }
-
-    List* lst = as<List>(globals.scheduled_threads->at(this,
-                         thread->priority()->to_native()));
-    lst->append(this, thread);
-
-    thread->queued(this, Qtrue);
+    abort();
   }
 
   void VM::dequeue_thread(Thread* thread) {
-    thread->queued(this, Qfalse);
-
-    Tuple* scheduled = globals.scheduled_threads.get();
-
-    /** @todo  Could it be in more than one somehow? --rue */
-    List* list = try_as<List>(scheduled->at(this, thread->priority()->to_native()));
-    (void) list->remove(this, thread);
-
-    check_events();
+    abort();
   }
 
   void VM::activate_thread(Thread* thread) {

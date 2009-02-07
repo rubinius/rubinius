@@ -10,11 +10,6 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread.new primitive failed"
   end
 
-  def exited
-    Ruby.primitive :thread_exited
-    Kernel.raise PrimitiveFailure, "Thread#exited primitive failed"
-  end
-
   def self.pass
     Ruby.primitive :thread_pass
     Kernel.raise PrimitiveFailure, "Thread#pass primitive failed"
@@ -42,6 +37,16 @@ class Thread
   def wakeup
     Ruby.primitive :thread_wakeup
     Kernel.raise ThreadError, "Thread#wakeup primitive failed, thread may be dead"
+  end
+
+  def priority
+    Ruby.primitive :thread_priority
+    Kernel.raise ThreadError, "Unable to get Thread priority"
+  end
+
+  def priority=(val)
+    Ruby.primitive :thread_set_priority
+    Kernel.raise ThreadError, "Unable to set Thread priority"
   end
 
 end

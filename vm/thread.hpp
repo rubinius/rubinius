@@ -135,6 +135,38 @@ namespace thread {
     void kill(int sig) {
       assert(pthread_kill(native_, sig) == 0);
     }
+
+    int priority() {
+      int _policy;
+      struct sched_param params;
+
+      assert(pthread_getschedparam(native_, &_policy, &params) == 0);
+
+      return params.sched_priority;
+    }
+
+    bool set_priority(int priority) {
+      int _policy;
+      struct sched_param params;
+
+      assert(pthread_getschedparam(native_, &_policy, &params) == 0);
+      int max = sched_get_priority_max(_policy);
+      int min = sched_get_priority_min(_policy);
+
+      if(min > priority) {
+        priority = min;
+      }
+      else if(max < priority) {
+        priority = max;
+      }
+
+      params.sched_priority = priority;
+
+      int err = pthread_setschedparam(native_, _policy, &params);
+      if(err == ENOTSUP) return false;
+
+      return true;
+    }
   };
 
   /*
