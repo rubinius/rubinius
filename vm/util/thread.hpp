@@ -324,22 +324,8 @@ namespace thread {
       assert(pthread_cond_broadcast(&native_) == 0);
     }
 
-    void wait() {
-      assert(pthread_cond_wait(&native_, NULL) == 0);
-    }
-
     void wait(Mutex& mutex) {
       assert(pthread_cond_wait(&native_, mutex.native()) == 0);
-    }
-
-    Code wait_until(const struct timespec* ts) {
-      int err = pthread_cond_timedwait(&native_, NULL, ts);
-      if(err != 0) {
-        if(err == ETIMEDOUT) return cTimedOut;
-        assert(0);
-      }
-
-      return cReady;
     }
 
     Code wait_until(Mutex& mutex, const struct timespec* ts) {
