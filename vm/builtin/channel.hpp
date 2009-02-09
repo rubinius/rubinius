@@ -7,6 +7,8 @@
 #include "virtual.hpp" // ObjectCallback
 #include "gc_root.hpp" // TypedRoot
 
+#include "thread.hpp"
+
 namespace rubinius {
   class Float;
   class List;
@@ -22,6 +24,9 @@ namespace rubinius {
   private:
     Object* value_;  // slot
     List* waiting_; // slot
+
+    thread::Condition* condition_;
+    int waiters_;
 
   public:
     /* accessors */
@@ -40,9 +45,7 @@ namespace rubinius {
     // Ruby.primitive :channel_send
     Object* send(STATE, Object*);
 
-    // Ruby.primitive? :channel_receive
-    Object* receive_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
-
+    // Ruby.primitive :channel_receive
     Object* receive(STATE);
     bool has_readers_p();
 

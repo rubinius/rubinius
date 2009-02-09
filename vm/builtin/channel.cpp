@@ -16,10 +16,14 @@
 #include "message.hpp"
 #include "event.hpp"
 
+#include "thread.hpp"
+
 namespace rubinius {
   Channel* Channel::create(STATE) {
     Channel* chan = state->new_object<Channel>(G(channel));
     chan->waiting(state, List::create(state));
+    chan->waiters_ = 0;
+    chan->condition_ = new thread::Condition;
 
     return chan;
   }
@@ -30,13 +34,6 @@ namespace rubinius {
   }
 
   Object* Channel::send(STATE, Object* val) {
-    if(!waiting_->empty_p()) {
-      Thread* thr = as<Thread>(waiting_->shift(state));
-      if(thr->frozen_stack() == Qfalse) thr->set_top(state, val);
-      thr->wakeup(state);
-      return Qnil;
-    }
-
     if(List* lst = try_as<List>(value_)) {
       lst->append(state, val);
     } else {
@@ -46,18 +43,15 @@ namespace rubinius {
       value(state, lst);
     }
 
+    if(waiters_ > 0) {
+      waiters_--;
+      condition_->signal();
+    }
+
     return Qnil;
   }
 
-  /**
-   * @todo   The list management is iffy. Should probably just
-   *          always assume it is a list. --rue
-   */
-  Object* Channel::receive_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
-    Thread* current = state->globals.current_thread.get();
-
-top:
-    // @todo  check arity
+  Object* Channel::receive(STATE) {
     if(!value_->nil_p()) {
       List* list = as<List>(value_);
 
@@ -70,46 +64,26 @@ top:
       return ret;
     }
 
-    current->sleep_for(state, this);
-    waiting_->append(state, current);
+    // Passing control away means that the GC might run. So we need
+    // to stash this into a root, and read it back out again after
+    // control is returned.
+    //
+    // DO NOT USE this AFTER wait().
+    TypedRoot<Channel*> chan(state, this);
 
-    // Blocks?
-    state->check_events();
+    GlobalLock& lock = state->global_lock();
+    waiters_++;
+    condition_->wait(lock);
 
-    goto top;
-  }
-
-  Object* Channel::receive(STATE) {
-    Thread* thr = G(current_thread);
-    if(!value_->nil_p()) {
-      List* list = as<List>(value_);
-
-      if(thr->frozen_stack() == Qfalse) {
-        state->return_value(list->shift(state));
-      }
-
-      if(list->size() == 0) {
-        value(state, Qnil);
-      }
-
-      return Qnil;
+    if(List* list = try_as<List>(chan->value())) {
+      return list->shift(state);
     }
-
-    if(thr->frozen_stack() == Qfalse) {
-      /* We push nil on the stack to reserve a place to put the result. */
-      state->return_value(Qfalse);
-    }
-
-    thr->sleep_for(state, this);
-    waiting_->append(state, thr);
-
-    state->run_best_thread();
 
     return Qnil;
   }
 
   bool Channel::has_readers_p() {
-    return !waiting_->empty_p();
+    return waiters_ > 0;
   }
 
   class SendToChannel : public ObjectCallback {

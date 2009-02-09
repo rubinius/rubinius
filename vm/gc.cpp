@@ -90,12 +90,15 @@ namespace rubinius {
   }
 
   void GarbageCollector::saw_variable_scope(VariableScope* scope) {
-    scope->update(saw_object(scope->self()),
-                  saw_object(scope->module()),
-                  saw_object(scope->block()));
+    scope->update(mark_object(scope->self()),
+                  mark_object(scope->module()),
+                  mark_object(scope->block()));
 
     for(int i = 0; i < scope->number_of_locals(); i++) {
-      scope->set_local(i, saw_object(scope->get_local(i)));
+      Object* local = scope->get_local(i);
+      if(local->reference_p()) {
+        scope->set_local(i, mark_object(local));
+      }
     }
 
     VariableScope* parent = scope->parent();
@@ -103,7 +106,7 @@ namespace rubinius {
       if(parent->stack_allocated_p()) {
         saw_variable_scope(parent);
       } else {
-        scope->update_parent((VariableScope*)saw_object(parent));
+        scope->update_parent((VariableScope*)mark_object(parent));
       }
     }
   }
@@ -112,17 +115,17 @@ namespace rubinius {
     CallFrame* call_frame = top_call_frame;
     while(call_frame) {
       if(call_frame->name && call_frame->name->reference_p()) {
-        call_frame->name = (Symbol*)saw_object(call_frame->name);
+        call_frame->name = (Symbol*)mark_object(call_frame->name);
       }
 
       if(call_frame->cm && call_frame->cm->reference_p()) {
-        call_frame->cm = (CompiledMethod*)saw_object(call_frame->cm);
+        call_frame->cm = (CompiledMethod*)mark_object(call_frame->cm);
       }
 
       for(int i = 0; i < call_frame->stack_size; i++) {
         Object* obj = call_frame->stk[i];
         if(obj && obj->reference_p()) {
-          call_frame->stk[i] = saw_object(obj);
+          call_frame->stk[i] = mark_object(obj);
         }
       }
 
@@ -130,7 +133,7 @@ namespace rubinius {
         if(call_frame->top_scope->stack_allocated_p()) {
           saw_variable_scope(call_frame->top_scope);
         } else {
-          call_frame->top_scope = (VariableScope*)saw_object(call_frame->top_scope);
+          call_frame->top_scope = (VariableScope*)mark_object(call_frame->top_scope);
         }
       }
 
@@ -138,7 +141,7 @@ namespace rubinius {
         if(call_frame->scope->stack_allocated_p()) {
           saw_variable_scope(call_frame->scope);
         } else {
-          call_frame->scope = (VariableScope*)saw_object(call_frame->scope);
+          call_frame->scope = (VariableScope*)mark_object(call_frame->scope);
         }
       }
 

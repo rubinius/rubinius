@@ -22,17 +22,8 @@
 namespace rubinius {
 
   void Thread::init(STATE) {
-    Tuple* tup = Tuple::from(state, 3,
-                             List::create(state),
-                             List::create(state),
-                             List::create(state) );
-
-    GO(scheduled_threads).set(tup);
-
     GO(thread).set(state->new_class("Thread", G(object)));
     G(thread)->set_object_type(state, Thread::type);
-
-    G(thread)->set_const(state, "ScheduledThreads", tup);
   }
 
 
@@ -71,10 +62,7 @@ namespace rubinius {
     nt->set_startup(msg.block, msg.as_array(state));
     // Let it run.
 
-    {
-      GlobalLock::UnlockGuard x(state->global_lock());
-      nt->run();
-    }
+    nt->run();
 
     return thread;
   }

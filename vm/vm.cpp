@@ -47,11 +47,33 @@ namespace rubinius {
   }
 
   VM* SharedState::new_vm() {
-    return manager_.create_vm(this);
+    VM* vm = manager_.create_vm(this);
+    vms_[vm->id()] = vm;
+    return vm;
+  }
+
+  void SharedState::remove_vm(VM* vm) {
+    VMMap::iterator i = vms_.find(vm->id());
+    if(i != vms_.end()) {
+      vms_.erase(i);
+    }
+  }
+
+  void SharedState::add_call_frames(CallFrameList& call_frames, VM* current) {
+    for(VMMap::const_iterator i = vms_.begin();
+        i != vms_.end();
+        i++) {
+      VM* vm = i->second;
+      if(vm != current) {
+        CallFrame* frame = vm->saved_call_frame();
+        if(frame) call_frames.push_back(frame);
+      }
+    }
   }
 
   VM::VM(SharedState& shared, int id)
     : id_(id)
+    , saved_call_frame_(0)
     , shared(shared)
     , globals(shared.globals)
     , om(shared.om)
@@ -232,18 +254,26 @@ namespace rubinius {
   void VM::collect(CallFrame* call_frame) {
     uint64_t start = get_current_time();
 
-    om->collect_young(globals.roots, call_frame);
-    om->collect_mature(globals.roots, call_frame);
+    CallFrameList frames;
+    frames.push_back(call_frame);
+    shared.add_call_frames(frames, this);
+
+    om->collect_young(globals.roots, frames);
+    om->collect_mature(globals.roots, frames);
 
     stats.time_in_gc += (get_current_time() - start);
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
+    CallFrameList frames;
+    frames.push_back(call_frame);
+    shared.add_call_frames(frames, this);
+
     if(om->collect_young_now) {
       om->collect_young_now = false;
 
       uint64_t start = get_current_time();
-      om->collect_young(globals.roots, call_frame);
+      om->collect_young(globals.roots, frames);
       stats.time_in_gc += (get_current_time() - start);
 
       global_cache->clear();
@@ -253,112 +283,11 @@ namespace rubinius {
       om->collect_mature_now = false;
 
       uint64_t start = get_current_time();
-      om->collect_mature(globals.roots, call_frame);
+      om->collect_mature(globals.roots, frames);
       stats.time_in_gc += (get_current_time() - start);
 
       global_cache->clear();
     }
-  }
-
-  bool VM::find_and_activate_thread() {
-    Tuple* scheduled = globals.scheduled_threads.get();
-
-    for(std::size_t i = scheduled->num_fields() - 1; i > 0; i--) {
-      List* list = as<List>(scheduled->at(this, i));
-
-      Thread* thread = try_as<Thread>(list->shift(this));
-
-      while(thread) {
-        thread->queued(this, Qfalse);
-
-        /** @todo   Should probably try to prevent dead threads here.. */
-        if(thread->alive() == Qfalse) {
-          thread = try_as<Thread>(list->shift(this));
-          continue;
-        }
-
-        if(thread->sleep() == Qtrue) {
-          thread = try_as<Thread>(list->shift(this));
-          continue;
-        }
-
-        activate_thread(thread);
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  void VM::check_events() {
-    interrupts.check = true;
-    interrupts.check_events = true;
-  }
-
-  bool VM::run_best_thread() {
-    events->poll();
-
-    if(!find_and_activate_thread()) {
-      // It's 1 because the event that looks for SIGCHLD is
-      // always registered.
-      if(events->num_of_events() == 1) {
-        throw DeadLock("no runnable threads, present or future.");
-      }
-
-      interrupts.check_events = true;
-      return false;
-    }
-    return true;
-  }
-
-  void VM::return_value(Object* val) {
-    globals.current_task->push(val);
-  }
-
-  void VM::queue_thread(Thread* thread) {
-    abort();
-  }
-
-  void VM::dequeue_thread(Thread* thread) {
-    abort();
-  }
-
-  void VM::activate_thread(Thread* thread) {
-    if(thread == globals.current_thread.get()) {
-      thread->task(this, globals.current_task.get());
-      return;
-    }
-
-    /* May have been using Tasks directly. */
-    globals.current_thread->task(this, globals.current_task.get());
-    queue_thread(globals.current_thread.get());
-
-    thread->sleep(this, Qfalse);
-    globals.current_thread.set(thread);
-
-    if(globals.current_task.get() != thread->task()) {
-      activate_task(thread->task());
-    }
-  }
-
-  void VM::activate_task(Task* task) {
-    // Don't try and reclaim any contexts, they belong to someone else.
-    om->clamp_contexts();
-
-    globals.current_task.set(task);
-    interrupts.check = true;
-  }
-
-  Object* VM::current_block() {
-    return globals.current_task->active()->block();
-  }
-
-  void VM::raise_from_errno(const char* msg) {
-    // @todo implement me
-  }
-
-  void VM::raise_exception(Exception* exc) {
-    // @todo implement me
   }
 
   void VM::set_const(const char* name, Object* val) {
@@ -370,13 +299,7 @@ namespace rubinius {
   }
 
   void VM::print_backtrace() {
-    globals.current_task.get()->print_backtrace();
-  }
-
-  Task* VM::new_task() {
-    Task* task = Task::create(this);
-    activate_task(task);
-    return task;
+    abort();
   }
 
   void VM::raise_exception_safely(Exception* exc) {
@@ -395,66 +318,6 @@ namespace rubinius {
     safe_position_data.assertion = err;
     siglongjmp(safe_position, cReasonAssertion);
     // Never reached.
-  }
-
-  void VM::run_and_monitor() {
-    int reason;
-
-    use_safe_position = true;
-    reason = sigsetjmp(safe_position, 0);
-    // If reason is not 0, then we're here because of a longjmp.
-    if(reason) {
-      switch(reason) {
-      case cReasonException:
-        G(current_task)->raise_exception(safe_position_data.exc);
-        break;
-      case cReasonTypeError: {
-        TypeError* exc = safe_position_data.type_error;
-        Exception* e = Exception::make_type_error(this, exc->type, exc->object, exc->reason);
-        G(current_task)->raise_exception(e);
-        delete exc;
-        safe_position_data.type_error = NULL;
-        break;
-      }
-      case cReasonAssertion:
-        throw safe_position_data.assertion;
-
-      default:
-        break;
-        // We're not sure what this is. Oh well, hopefully the longjmp
-        // user knew what they were doing.
-      }
-    }
-
-    for(;;) {
-      if(interrupts.check_events) {
-        interrupts.check_events = false;
-        interrupts.enable_preempt = false;
-
-        Thread* current = G(current_thread);
-        // The current thread isn't asleep, so we're being preemptive
-        if(current->alive() == Qtrue && current->sleep() != Qtrue) {
-          // Order is important here. We poll so any threads
-          // might get woken up if they need to be.
-          events->poll();
-
-          // Only then do we reschedule the current thread if
-          // we need to. queue_thread() puts the thread at the end
-          // of the list for it's priority, so we shouldn't starve
-          // anything this way.
-          queue_thread(G(current_thread));
-        }
-
-        while(!find_and_activate_thread()) {
-          events->run_and_wait();
-        }
-
-        interrupts.enable_preempt = interrupts.use_preempt;
-      }
-
-      // collect_maybe();
-      G(current_task)->execute();
-    }
   }
 
   // Trampoline to call scheduler_loop()

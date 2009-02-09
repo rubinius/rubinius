@@ -74,7 +74,6 @@ namespace rubinius {
     TypedRoot<Class*> exc_primitive_failure;
 
     TypedRoot<LookupTable*> external_ivars;
-    TypedRoot<Tuple*> scheduled_threads;
     TypedRoot<LookupTable*> errno_mapping;
     TypedRoot<LookupTable*> selectors;
     TypedRoot<Object*> config;
@@ -182,7 +181,6 @@ namespace rubinius {
       exc_stack_explosion(&roots),
       exc_primitive_failure(&roots),
       external_ivars(&roots),
-      scheduled_threads(&roots),
       errno_mapping(&roots),
       selectors(&roots),
       config(&roots),

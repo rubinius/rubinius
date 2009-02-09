@@ -7,6 +7,8 @@
 
 #include <list>
 
+#include "call_frame_list.hpp"
+
 #define MS_COLLECTION_BYTES 10485760
 
 namespace rubinius {
@@ -18,11 +20,13 @@ namespace rubinius {
 
   class MarkSweepGC : public GarbageCollector {
   public:
+    typedef std::list<Object*> MarkStack;
 
     /* Utility classes */
     class Header;
 
     class Entry {
+
     public:
       /* Data members */
       int bytes;
@@ -65,6 +69,10 @@ namespace rubinius {
       }
     };
 
+  private:
+      MarkStack mark_stack_;
+
+  public:
     /* Data members */
     std::list<Entry*> entries;
     size_t allocated_bytes;
@@ -84,7 +92,7 @@ namespace rubinius {
     void   clean_weakrefs();
     void   free_object(Entry *entry, bool fast = false);
     virtual Object* saw_object(Object* obj);
-    void   collect(Roots &roots, CallFrame* call_frame);
+    void   collect(Roots &roots, CallFrameList& call_frame);
 
     ObjectPosition validate_object(Object* obj);
   };

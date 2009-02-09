@@ -112,12 +112,12 @@ namespace rubinius {
       entry->mark();
     }
 
-    /* Recurse down, scanning each object as we see it. */
-    scan_object(obj);
+    // Add the object to the mark stack, to be scanned later.
+    mark_stack_.push_back(obj);
     return NULL;
   }
 
-  void MarkSweepGC::collect(Roots &roots, CallFrame* top_call_frame) {
+  void MarkSweepGC::collect(Roots &roots, CallFrameList& call_frames) {
     Object* tmp;
 
     Root* root = static_cast<Root*>(roots.head());
@@ -130,7 +130,18 @@ namespace rubinius {
       root = static_cast<Root*>(root->next());
     }
 
-    walk_call_frame(top_call_frame);
+    // Walk all the call frames
+    for(CallFrameList::const_iterator i = call_frames.begin();
+        i != call_frames.end();
+        i++) {
+      walk_call_frame(*i);
+    }
+
+    while(!mark_stack_.empty()) {
+      tmp = mark_stack_.back();
+      mark_stack_.pop_back();
+      scan_object(tmp);
+    }
 
     // Cleanup all weakrefs seen
     clean_weakrefs();

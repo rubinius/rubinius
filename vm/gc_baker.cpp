@@ -73,7 +73,7 @@ namespace rubinius {
   }
 
   /* Perform garbage collection on the young objects. */
-  void BakerGC::collect(Roots &roots, CallFrame* top_call_frame) {
+  void BakerGC::collect(Roots &roots, CallFrameList &call_frames) {
     Object* tmp;
     ObjectArray *current_rs = object_memory->remember_set;
 
@@ -112,8 +112,12 @@ namespace rubinius {
       root = static_cast<Root*>(root->next());
     }
 
-    // Now handle objects chained off the CallFrame;
-    walk_call_frame(top_call_frame);
+    // Walk all the call frames
+    for(CallFrameList::const_iterator i = call_frames.begin();
+        i != call_frames.end();
+        i++) {
+      walk_call_frame(*i);
+    }
 
     /* Ok, now handle all promoted objects. This is setup a little weird
      * so I should explain.

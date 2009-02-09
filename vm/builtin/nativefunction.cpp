@@ -471,86 +471,103 @@ namespace rubinius {
       msg->clear_caller();
     }
 
+    GlobalLock& lock = state->global_lock();
+    lock.unlock();
+
     switch(stub->ret_type) {
     case RBX_FFI_TYPE_CHAR: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UCHAR: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_USHORT: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_INT: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Integer::from(state, (native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UINT: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Integer::from(state, (unsigned int)result);
       break;
     }
     case RBX_FFI_TYPE_LONG: {
       long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG: {
       unsigned long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_FLOAT: {
       float result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Float::create(state, (double)result); 
       break;
     }
     case RBX_FFI_TYPE_DOUBLE: {
       double result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Float::create(state, result);
       break;
     }
     case RBX_FFI_TYPE_LONG_LONG: {
       long long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG_LONG: {
       unsigned long long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_OBJECT: {
       ffi_call(&stub->cif, FFI_FN(stub->ep), &ret, values);
+      lock.lock();
       break;
     }
     case RBX_FFI_TYPE_PTR: {
       void *result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       if(result == NULL) {
         ret = Qnil;
       } else {
@@ -561,6 +578,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_STRING: {
       char* result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       if(result == NULL) {
         ret = Qnil;
       } else {
@@ -574,6 +592,7 @@ namespace rubinius {
       Object* p;
 
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
 
       if(result == NULL) {
         s = p = Qnil;
@@ -592,6 +611,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_VOID: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
+      lock.lock();
       ret = Qnil;
       break;
     }

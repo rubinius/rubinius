@@ -9,6 +9,9 @@
 #include "refcount.hpp"
 
 #include "global_lock.hpp"
+#include "maps.hpp"
+
+#include "call_frame_list.hpp"
 
 #include <pthread.h>
 #include <setjmp.h>
@@ -91,6 +94,7 @@ namespace rubinius {
     bool initialized_;
     int id_;
     GlobalLock lock_;
+    VMMap vms_;
 
   public:
     Globals globals;
@@ -126,11 +130,15 @@ namespace rubinius {
     }
 
     VM* new_vm();
+    void remove_vm(VM*);
+
+    void add_call_frames(CallFrameList& frames, VM* current);
   };
 
   class VM {
   private:
     int id_;
+    CallFrame* saved_call_frame_;
 
   public:
     /* Data members */
@@ -201,6 +209,14 @@ namespace rubinius {
 
     thread::Mutex& local_lock() {
       return local_lock_;
+    }
+
+    void set_call_frame(CallFrame* frame) {
+      saved_call_frame_ = frame;
+    }
+
+    CallFrame* saved_call_frame() {
+      return saved_call_frame_;
     }
 
     /* Prototypes */
@@ -279,22 +295,6 @@ namespace rubinius {
     // Check the flags in ObjectMemory and collect if we need to.
     void collect_maybe(CallFrame* call_frame);
 
-    void return_value(Object* val);
-
-    void check_events();
-
-    bool find_and_activate_thread();
-
-    bool run_best_thread();
-
-    void queue_thread(Thread* thread);
-    void dequeue_thread(Thread* thread);
-
-    void activate_thread(Thread* thread);
-    void activate_task(Task* task);
-
-
-
     void raise_from_errno(const char* reason);
     void raise_exception(Exception* exc);
     Exception* new_exception(Class* cls, const char* msg);
@@ -309,9 +309,6 @@ namespace rubinius {
 #endif
 
     void print_backtrace();
-
-    // In an infinite loop, run the current task.
-    void run_and_monitor();
 
     void setup_preemption();
 

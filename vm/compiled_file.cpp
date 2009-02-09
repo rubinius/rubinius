@@ -51,6 +51,8 @@ namespace rubinius {
     cf.current_unwind = 0;
     cf.ip = 0;
 
+    GlobalLock::LockGuard lock(state->global_lock());
+
     Message msg(state);
     msg.setup(NULL, G(main), &cf, 0, 0);
     msg.name = cm->name();
@@ -62,19 +64,6 @@ namespace rubinius {
 
     cm->execute(state, &cf, msg);
 
-    /*
-    try {
-      state->run_and_monitor();
-    } catch(Task::Halt &e) {
-      return true;
-    }
-    */
     return true;
-
-    // Task::execute contains the safe point, thus the above Task
-    // and CompiledMethod pointers have likely been moved. DO NOT
-    // USE THEM.
-
-    return false;
   }
 }

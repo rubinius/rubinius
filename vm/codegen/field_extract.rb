@@ -7,6 +7,7 @@ class BasicPrimitive
 
   def output_header(str)
     str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Message& msg) {\n"
+    str << "  state->set_call_frame(call_frame);\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  Object* ret;\n"

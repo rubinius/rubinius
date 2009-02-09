@@ -18,6 +18,13 @@ namespace rubinius {
   {}
 
   void NativeThread::perform() {
+    // Block all signals by default.
+    sigset_t set;
+    sigfillset(&set);
+    pthread_sigmask(SIG_BLOCK, &set, NULL);
+
+    // Grab the GIL
+    // (automatically unlocked at the end of this function)
     GlobalLock::LockGuard x(lock_);
 
     CallFrame cf;

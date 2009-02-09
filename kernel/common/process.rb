@@ -253,27 +253,26 @@ module Process
   #
   # TODO: Support other options such as WUNTRACED? --rue
   #
-  def self.wait(pid_to_wait_for = -1, flags = 0)
-    waiter = Channel.new
-
-    Scheduler.send_on_stopped(waiter, pid_to_wait_for, flags)
-
-    pid, status = waiter.receive
-
-    case pid
-    when false
-      if pid == -1
-        raise Errno::ECHILD, "There are no child processes!"
-      else
-        raise Errno::ECHILD, "No child process #{pid_to_wait_for}!"
-      end
-
-    when nil
-      return nil
-
+  def self.wait(input_pid=-1, flags=nil)
+    if flags && flags | WNOHANG
+      value = wait_pid_prim input_pid, true
+      return if value.nil?
     else
-      $? = Process::Status.new pid, status
+      value = wait_pid_prim input_pid, false
     end
+
+    if value == false
+      raise Errno::ECHILD, "No child process: #{input_pid}"
+    end
+
+    if value.kind_of? Tuple
+      status, pid = value
+    else
+      status = value
+      pid = input_pid
+    end
+
+    $? = Process::Status.new pid, status
 
     pid
   end

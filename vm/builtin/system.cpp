@@ -94,6 +94,46 @@ namespace rubinius {
     return Qnil;
   }
 
+  Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang) {
+    pid_t input_pid = pid_obj->to_native();
+    int options = 0;
+    int status;
+    pid_t pid;
+
+    if(no_hang == Qtrue) {
+      options |= WNOHANG;
+    }
+
+    {
+      GlobalLock::UnlockGuard lock(state->global_lock());
+      pid = waitpid(input_pid, &status, options);
+    }
+
+    if(pid == -1) {
+      if(errno == ECHILD) return Qfalse;
+
+      // TODO handle other errnos?
+      return Qfalse;
+    }
+
+    if(no_hang == Qtrue && pid == 0) {
+      return Qnil;
+    }
+
+    Object* output;
+    if(WIFEXITED(status)) {
+      output = Fixnum::from(WEXITSTATUS(status));
+    } else {
+      output = Qnil;
+    }
+
+    if(input_pid > 0) {
+      return output;
+    }
+
+    return Tuple::from(state, 2, output, Fixnum::from(pid));
+  }
+
   Object* System::vm_exit(STATE, Fixnum* code) {
     state->thread_state()->raise_exit(code);
     return NULL;

@@ -18,6 +18,8 @@ namespace rubinius {
 
   void VMManager::destroy_vm(VM* vm) {
     SharedState* shared = &vm->shared;
+    shared->remove_vm(vm);
+
     VMMap::iterator i = vms_.find(vm->id());
     assert(i != vms_.end());
 

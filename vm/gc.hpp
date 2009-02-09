@@ -1,9 +1,9 @@
 #ifndef RBX_VM_GC_HPP
 #define RBX_VM_GC_HPP
 
+#include "oop.hpp"
 #include "builtin/object.hpp"
 #include "vm/gc_object_mark.hpp"
-
 
 namespace rubinius {
 
@@ -27,6 +27,13 @@ namespace rubinius {
     void delete_object(Object* obj);
     void walk_call_frame(CallFrame* top_call_frame);
     void saw_variable_scope(VariableScope* scope);
+
+    Object* mark_object(Object* obj) {
+      if(!obj || !obj->reference_p()) return obj;
+      Object* tmp = saw_object(obj);
+      if(tmp) return tmp;
+      return obj;
+    }
   };
 
 }

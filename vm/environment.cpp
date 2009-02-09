@@ -27,7 +27,7 @@ namespace rubinius {
 
   Environment::Environment() {
     shared = manager.create_shared_state();
-    state =  manager.create_vm(shared);
+    state =  shared->new_vm();
     state->initialize(VM::default_bytes);
 
     TaskProbe* probe = TaskProbe::create(state);

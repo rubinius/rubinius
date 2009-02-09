@@ -33,6 +33,7 @@ namespace rubinius {
    */
 
   class CallFrame;
+  typedef std::list<CallFrame*> CallFrameList;
 
   class ObjectMemory {
   public:
@@ -86,8 +87,8 @@ namespace rubinius {
 
     TypeInfo* find_type_info(Object* obj);
     void set_young_lifetime(size_t age);
-    void collect_young(Roots &roots, CallFrame* call_frame);
-    void collect_mature(Roots &roots, CallFrame* call_frame);
+    void collect_young(Roots &roots, CallFrameList& call_frames);
+    void collect_mature(Roots &roots, CallFrameList& call_frames);
     Object* promote_object(Object* obj);
     bool valid_object_p(Object* obj);
     void debug_marksweep(bool val);
