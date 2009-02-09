@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <signal.h>
+#include <assert.h>
 
 #include <sstream>
 #include <iostream>

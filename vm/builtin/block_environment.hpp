@@ -43,7 +43,7 @@ namespace rubinius {
     // Ruby.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);
 
-    static BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
+    static BlockEnvironment* under_call_frame(STATE, CompiledMethod* cm,
       VMMethod* caller, CallFrame* call_frame, size_t index);
 
     Object* call(STATE, CallFrame* call_frame, size_t args);
