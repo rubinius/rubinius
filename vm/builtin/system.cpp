@@ -7,6 +7,7 @@
 #include <cstring>
 #include <sstream>
 
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "vm/object_utils.hpp"
