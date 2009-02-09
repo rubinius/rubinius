@@ -46,6 +46,8 @@ namespace rubinius {
   Object* NativeFunction::execute(STATE, CallFrame* call_frame, Message& msg) {
     NativeFunction* nfunc = as<NativeFunction>(msg.method);
 
+    state->set_call_frame(call_frame);
+
     Object* obj = nfunc->call(state, &msg);
 
     return obj;
