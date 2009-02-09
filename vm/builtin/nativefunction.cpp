@@ -286,22 +286,17 @@ namespace rubinius {
     return func;
   }
 
-  struct string_pointer {
-    char* pointer;
-    char body[];
-  };
-
-  void **NativeFunction::marshal_arguments(STATE, Message* msg) {
-    void **values;
+  Object* NativeFunction::call(STATE, Message* msg) {
+    Object* ret;
     Object* obj;
-    struct ffi_stub *stub = (struct ffi_stub*)data_->pointer;
 
-    values = ALLOC_N(void*, stub->arg_count);
+    struct ffi_stub *stub = (struct ffi_stub*)data_->pointer;
+    void **values = ALLOCA_N(void*, stub->arg_count);
 
     for(size_t i = 0; i < stub->arg_count; i++) {
       switch(stub->arg_types[i]) {
       case RBX_FFI_TYPE_CHAR: {
-        char *tmp = (char*)malloc(sizeof(char));
+        char *tmp = ALLOCA(char);
         obj = msg->get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (char)as<Fixnum>(obj)->to_native();
@@ -309,7 +304,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_UCHAR: {
-        unsigned char *tmp = (unsigned char*)malloc(sizeof(char));
+        unsigned char *tmp = ALLOCA(unsigned char);
         obj = msg->get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (unsigned char)as<Fixnum>(obj)->to_native();
@@ -317,7 +312,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_SHORT: {
-        short *tmp = (short*)malloc(sizeof(short));
+        short *tmp = ALLOCA(short);
         obj = msg->get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (short)as<Fixnum>(obj)->to_native();
@@ -325,7 +320,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_USHORT: {
-        unsigned short *tmp = (unsigned short*)malloc(sizeof(short));
+        unsigned short *tmp = ALLOCA(unsigned short);
         obj = msg->get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (unsigned short)as<Fixnum>(obj)->to_native();
@@ -333,7 +328,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_INT: {
-        int *tmp = (int*)malloc(sizeof(int));
+        int *tmp = ALLOCA(int);
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_int();
@@ -345,7 +340,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_UINT: {
-        unsigned int *tmp = (unsigned int*)malloc(sizeof(unsigned int));
+        unsigned int *tmp = ALLOCA(unsigned int);
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_uint();
@@ -357,7 +352,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_LONG: {
-        long *tmp = (long*)malloc(sizeof(long));
+        long *tmp = ALLOCA(long);
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_long();
@@ -369,7 +364,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_ULONG: {
-        unsigned long *tmp = (unsigned long*)malloc(sizeof(long));
+        unsigned long *tmp = ALLOCA(unsigned long);
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_ulong();
@@ -381,7 +376,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_FLOAT: {
-        float *tmp = (float*)malloc(sizeof(float));
+        float *tmp = ALLOCA(float);
         obj = msg->get_argument(i);
         type_assert(state, obj, FloatType, "converting to float");
         *tmp = (float)as<Float>(obj)->to_double(state);
@@ -389,7 +384,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_DOUBLE: {
-        double *tmp = (double*)malloc(sizeof(double));
+        double *tmp = ALLOCA(double);
         obj = msg->get_argument(i);
         type_assert(state, obj, FloatType, "converting to double");
         *tmp = as<Float>(obj)->to_double(state);
@@ -397,7 +392,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_LONG_LONG: {
-        long long *tmp = (long long*)malloc(sizeof(long long));
+        long long *tmp = ALLOCA(long long);
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_long_long();
@@ -409,7 +404,7 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_ULONG_LONG: {
-        unsigned long long *tmp = (unsigned long long*)malloc(sizeof(long long));
+        unsigned long long *tmp = ALLOCA(unsigned long long);
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_ulong_long();
@@ -421,20 +416,20 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_STATE: {
-        VM **tmp = (VM**)malloc(sizeof(VM*));
+        VM **tmp = ALLOCA(VM*);
         *tmp = state;
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_OBJECT: {
-        Object* *tmp = (Object**)malloc(sizeof(Object*));
+        Object* *tmp = ALLOCA(Object*);
         obj = msg->get_argument(i);
         *tmp = obj;
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_PTR: {
-        void **tmp = (void**)malloc(sizeof(void*));
+        void **tmp = ALLOCA(void*);
         obj = msg->get_argument(i);
         if(NIL_P(obj)) {
           *tmp = NULL;
@@ -447,12 +442,11 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_STRING: {
+        char **tmp = ALLOCA(char*);
         obj = msg->get_argument(i);
 
         if(NIL_P(obj)) {
-          char **tmp = (char**)malloc(sizeof(char*));
           *tmp = NULL;
-          values[i] = tmp;
         } else {
           int size;
           String* so;
@@ -460,32 +454,15 @@ namespace rubinius {
           so = as<String>(obj);
           size = so->size();
 
-          struct string_pointer* sp = (struct string_pointer*)malloc(
-              sizeof(struct string_pointer) + (sizeof(char) * size));
-
-          memcpy(sp->body, so->c_str(), size);
-          sp->pointer = sp->body;
-          values[i] = sp;
+          char* data = ALLOCA_N(char, size + 1);
+          memcpy(data, so->c_str(), size);
+          data[size] = 0;
+          *tmp = data;
         }
+        values[i] = tmp;
         break;
       }
       }
-    }
-
-    return values;
-  }
-
-  Object* NativeFunction::call(STATE, Message* msg) {
-    Object* ret;
-
-    struct ffi_stub *stub = (struct ffi_stub*)data_->pointer;
-
-    void **values = marshal_arguments(state, msg);
-
-    // @todo Remove this condition once the tests are cleaned
-    // up to setup Message properly.
-    if(msg->caller()) {
-      msg->clear_caller();
     }
 
     GlobalLock& lock = state->global_lock();
@@ -633,15 +610,6 @@ namespace rubinius {
       break;
     }
     }
-
-    /* @todo fix marshal_argumets to not malloc memory for every arg.
-     * use a single block. */
-    /* Free the memory used to store the args */
-    for(size_t i = 0; i < stub->arg_count; i++) {
-      free(values[i]);
-    }
-
-    free(values);
 
     return ret;
   }

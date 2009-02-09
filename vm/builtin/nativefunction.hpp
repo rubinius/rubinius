@@ -40,7 +40,6 @@ namespace rubinius {
     static NativeFunction* bind(STATE, Object* library, String* name, Array* args, Object* ret);
 
     void bind(STATE, int arg_count, int *arg_types, int ret_type, void* func);
-    void **marshal_arguments(STATE, Message *msg);
     Object* call(STATE, Message* msg);
 
     struct ffi_stub {

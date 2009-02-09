@@ -167,9 +167,12 @@ namespace rubinius {
   };
 
 #define FREE(obj) free(obj)
-#define ALLOC_N(type, size) ((type*)calloc(size, sizeof(type)))
+#define ALLOC_N(type, size) ((type*)calloc((size), sizeof(type)))
 #define ALLOC(t) (t*)XMALLOC(sizeof(t))
 #define REALLOC_N(v,t,n) (v)=(t*)realloc((void*)(v), sizeof(t)*n)
+
+#define ALLOCA_N(type, size) ((type*)alloca(sizeof(type) * (size)))
+#define ALLOCA(type) ((type*)alloca(sizeof(type)))
 
 };
 
