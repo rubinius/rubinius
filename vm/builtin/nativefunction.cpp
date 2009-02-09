@@ -235,7 +235,7 @@ namespace rubinius {
 
     data(state, MemoryPointer::create(state, (void*)stub));
   }
-  
+
   /* The main interface function, handles looking up the pointer in the library,
    * generating the stub, wrapping it up and attaching it to the module.
    */
@@ -285,6 +285,11 @@ namespace rubinius {
 
     return func;
   }
+
+  struct string_pointer {
+    char* pointer;
+    char body[];
+  };
 
   void **NativeFunction::marshal_arguments(STATE, Message* msg) {
     void **values;
@@ -442,16 +447,26 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_STRING: {
-        /** @todo String should be copied? --rue */
-        char** tmp = (char**)malloc(sizeof(char*));
         obj = msg->get_argument(i);
+
         if(NIL_P(obj)) {
+          char **tmp = (char**)malloc(sizeof(char*));
           *tmp = NULL;
+          values[i] = tmp;
         } else {
-          String* so = as<String>(obj);
-          *tmp = const_cast<char*>(so->c_str());
+          int size;
+          String* so;
+
+          so = as<String>(obj);
+          size = so->size();
+
+          struct string_pointer* sp = (struct string_pointer*)malloc(
+              sizeof(struct string_pointer) + (sizeof(char) * size));
+
+          memcpy(sp->body, so->c_str(), size);
+          sp->pointer = sp->body;
+          values[i] = sp;
         }
-        values[i] = tmp;
         break;
       }
       }
@@ -537,7 +552,7 @@ namespace rubinius {
       float result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
       lock.lock();
-      ret = Float::create(state, (double)result); 
+      ret = Float::create(state, (double)result);
       break;
     }
     case RBX_FFI_TYPE_DOUBLE: {
