@@ -19,22 +19,17 @@ class BlockEnvironment
     @proc_environment
   end
 
-  def under_context(context, cmethod)
-    if context.__kind_of__ BlockContext
-      home = context.home
-    else
-      home = context
-    end
-
-    @home = home
-    @home_block = context
+  def under_context(scope, cmethod)
+    @top_scope = scope
+    @scope = scope
     @method = cmethod
     @local_count = cmethod.local_count
 
-    @initial_ip = 0
-    @last_ip = 0x10000000 # 2**28
-    @post_send = 0
     return self
+  end
+
+  def receiver=(obj)
+    @scope.self = obj
   end
 
   ##
@@ -51,16 +46,14 @@ class BlockEnvironment
   end
 
   def make_independent
-    @home = @home.dup
-    # TODO: enabling this appears to break Module.module_function, why?
-    # @home_block = @home_block.dup
-    @method = @method.dup
+    @top_scope = @top_scope.dup
+    @scope = @scope.dup
   end
 
   def redirect_to(obj)
     env = dup
     env.make_independent
-    env.home.receiver = obj
+    env.receiver = obj
     return env
   end
 

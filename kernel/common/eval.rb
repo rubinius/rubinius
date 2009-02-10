@@ -109,7 +109,7 @@ module Kernel
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block.redirect_to self
       env.method.scope = env.method.scope.using_current_as(__metaclass__)
-      original_scope = prc.block.home.method.scope
+      original_scope = prc.block.method.scope
       env.constant_scope = original_scope
       return env.call(*self)
     elsif string
@@ -174,14 +174,17 @@ class Module
       raise ArgumentError, 'block not supplied'
     end
 
-    context = MethodContext.current.sender
+    variables = VariableScope.of_sender
+    method = CompiledMethod.of_sender
+
+    context = Compiler::Context.new variables, method
 
     string = StringValue(string)
 
     compiled_method = Compile.compile_string string, context, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
-    ss = StaticScope.new(self, context.method.scope)
+    ss = StaticScope.new(self, method.scope)
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
@@ -195,12 +198,11 @@ class Module
     # but the caller's binding to implement the proper constant behavior
     be = BlockEnvironment.new
     be.from_eval!
-    be.under_context context, compiled_method
+    be.under_context variables, compiled_method
     be.make_independent
-    be.home.receiver = self
-    be.home.make_independent
+    be.receiver = self
     # open_module and friends in the VM use this field to determine scope
-    be.home.method.scope = ss
+    # be.method.scope = ss
     be.call
   end
   alias_method :class_eval, :module_eval

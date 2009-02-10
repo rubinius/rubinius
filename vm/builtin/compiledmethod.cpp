@@ -218,6 +218,17 @@ namespace rubinius {
     return Qfalse;
   }
 
+  CompiledMethod* CompiledMethod::of_sender(STATE, CallFrame* calling_environment) {
+    CallFrame* caller = calling_environment->previous;
+    if(caller) {
+      if(caller->cm) {
+        return caller->cm;
+      }
+    }
+
+    return (CompiledMethod*)Qnil;
+  }
+
   void CompiledMethod::Info::show(STATE, Object* self, int level) {
     CompiledMethod* cm = as<CompiledMethod>(self);
 

@@ -39,7 +39,7 @@ namespace rubinius {
                                       const char* reason = NULL);
     static Exception* make_errno_exception(STATE, Class* exc_class, Object* reason);
 
-    static Exception* make_argument_error(STATE, int expected, int given);
+    static Exception* make_argument_error(STATE, int expected, int given, Symbol* name=0);
     static void argument_error(STATE, int expected, int given);
     static void argument_error(STATE, const char* reason);
     static void regexp_error(STATE, const char* reason);

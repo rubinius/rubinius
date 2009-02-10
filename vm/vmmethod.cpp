@@ -462,8 +462,10 @@ namespace rubinius {
     // If argument handling fails..
     GenericArguments args;
     if(args.call(state, vmm, scope, msg) == false) {
-      state->thread_state()->raise_exception(
-          Exception::make_argument_error(state, vmm->required_args, msg.args()));
+      Exception* exc =
+        Exception::make_argument_error(state, vmm->required_args, msg.args(), msg.name);
+      exc->fill_locations(state, cf);
+      state->thread_state()->raise_exception(exc);
 
       return NULL;
     }

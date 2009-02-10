@@ -12,6 +12,24 @@ class Compiler
   class Error < RuntimeError
   end
 
+  class Context
+    def initialize(variables, method)
+      @variables = variables
+      @method = method
+    end
+
+    attr_accessor :variables
+    attr_accessor :method
+
+    def dynamic_locals
+      @variables.dynamic_locals
+    end
+
+    def set_eval_local(name, val)
+      dynamic_locals[name] = val
+    end
+  end
+
   def self.process_flags(flags)
     flags.each { |f| Config[f] = true } if flags
   end

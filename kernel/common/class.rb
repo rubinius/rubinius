@@ -97,13 +97,13 @@ class MetaClass
   # object when the singleton method definition occurs
   # in normal user code.
   #
-  def attach_method(name, executable)
+  def attach_method(name, executable, scope)
     # All userland added methods start out with a serial of 1.
     executable.serial = 1
 
     method_table[name] = CompiledMethod::Visibility.new executable, :public
 
-    executable.inherit_scope MethodContext.current.sender.method
+    executable.scope = scope
     Rubinius::VM.reset_method_cache(name)
 
     # Call singleton_method_added on the executable in question. There is

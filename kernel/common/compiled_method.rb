@@ -90,8 +90,54 @@ class StaticScope
   end
 
   def alias_method(name, original)
-    @module.alias_method name, original
+    @module.__send__ :alias_method, name, original
   end
+
+  def active_path
+    scope = self
+    while scope and !scope.script
+      scope = scope.parent
+    end
+
+    if script = scope.script
+      if path = script.path
+        return path.dup
+      end
+    end
+
+    return "__unknown__.rb"
+  end
+
+  def const_defined?(name)
+    scope = self
+    while scope and scope.module != Object
+      return true if scope.module.const_defined?(name)
+      scope = scope.parent
+    end
+
+    return Object.const_defined?(name)
+  end
+
+  def const_path_defined?(path)
+    if path.prefix? "::"
+      return Object.const_path_defined?(path[2..-1])
+    end
+
+    parts = path.split("::")
+    top = parts.shift
+
+    scope = self
+
+    while scope
+      mod = top.to_s !~ /self/ ? scope.module.__send__(:recursive_const_get, top, false) : scope.module
+      return mod.const_path_defined?(parts.join("::")) if mod
+
+      scope = scope.parent
+    end
+
+    return Object.const_path_defined?(parts.join("::"))
+  end
+
 end
 
 class CompiledMethod < Executable

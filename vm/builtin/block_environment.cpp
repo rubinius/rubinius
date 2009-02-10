@@ -47,6 +47,11 @@ namespace rubinius {
       val = Qnil;
     }
 
+    if(!vmm) {
+      method_->formalize(state, false);
+      vmm = method_->backend_method_;
+    }
+
     VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
                                (vmm->number_of_locals * sizeof(Object*)));
 

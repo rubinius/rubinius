@@ -215,36 +215,6 @@ class MethodContext
     return str
   end
 
-  def const_defined?(name)
-    scope = method.scope
-    while scope and scope.module != Object
-      return true if scope.module.const_defined?(name)
-      scope = scope.parent
-    end
-
-    return Object.const_defined?(name)
-  end
-
-  def const_path_defined?(path)
-    if path.prefix? "::"
-      return Object.const_path_defined?(path[2..-1])
-    end
-
-    parts = path.split("::")
-    top = parts.shift
-
-    scope = method.scope
-
-    while scope
-      mod = top.to_s !~ /self/ ? scope.module.__send__(:recursive_const_get, top, false) : scope.module
-      return mod.const_path_defined?(parts.join("::")) if mod
-
-      scope = scope.parent
-    end
-
-    return Object.const_path_defined?(parts.join("::"))
-  end
-
   def class_variable_get(name)
     return current_scope.class_variable_get(name)
   end

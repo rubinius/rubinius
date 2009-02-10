@@ -74,10 +74,13 @@ namespace rubinius {
     return exc;
   }
 
-  Exception* Exception::make_argument_error(STATE, int expected, int given) {
+  Exception* Exception::make_argument_error(STATE, int expected, int given, Symbol* meth) {
     Exception* exc = state->new_object<Exception>(G(exc_arg));
     exc->set_ivar(state, state->symbol("@given"), Fixnum::from(given));
     exc->set_ivar(state, state->symbol("@expected"), Fixnum::from(expected));
+    if(meth) {
+      exc->set_ivar(state, state->symbol("@method_name"), meth);
+    }
     return exc;
   }
 

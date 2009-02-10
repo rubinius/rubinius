@@ -730,7 +730,8 @@ class Compiler
           g.send :metaclass, 0
           g.push_literal @name
           g.push_literal compile_body(g)
-          g.send :attach_method, 2
+          g.push_scope
+          g.send :attach_method, 3
         end
       end
     end
@@ -797,7 +798,7 @@ class Compiler
           if receiver && receiver.is?(ConstFind) then
             no_const = g.new_label
             done = g.new_label
-            g.push_context
+            g.push_scope
             g.push_literal receiver.name
             g.send :const_defined?, 1
             g.gif no_const
@@ -845,7 +846,7 @@ class Compiler
         when :yield
           g.push_block
         when :const
-          g.push_context
+          g.push_scope
           g.push_literal expr.shift
           g.send :const_defined?, 1
         when :colon2
@@ -854,7 +855,7 @@ class Compiler
             # Convert the constant parse tree into a string like ::Object::SomeClass
             str = const_to_string(expr, str)
           end
-          g.push_context
+          g.push_scope
           g.push_literal str
           g.send :const_path_defined?, 1
         when :colon3
@@ -1066,7 +1067,7 @@ class Compiler
 
     class File
       def bytecode(g)
-        g.push_context
+        g.push_scope
         g.send :active_path, 0
       end
     end

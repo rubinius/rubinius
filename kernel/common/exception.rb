@@ -85,7 +85,11 @@ end
 class ArgumentError < StandardError
   def message
     return @message if @message
-    "given #{@given}, expected #{@expected}"
+    if @method_name
+      "method '#{@method_name}': given #{@given}, expected #{@expected}"
+    else
+      "given #{@given}, expected #{@expected}"
+    end
   end
 end
 
