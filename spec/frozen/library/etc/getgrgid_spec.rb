@@ -60,14 +60,6 @@ platform_is_not :windows do
       end
     end
 
-    platform_is_not :darwin, :freebsd do
-      it "ignores its argument" do
-        lambda { Etc.getgrgid("foo") }.should raise_error(TypeError)
-        Etc.getgrgid(42)
-        Etc.getgrgid(9876)
-      end
-    end
-
     it "returns the Group for a given gid if it exists" do
       grp = Etc.getgrgid(@gid)
       grp.should be_kind_of(Struct::Group)
@@ -79,11 +71,9 @@ platform_is_not :windows do
       lambda { Etc.getgrgid(9876)}.should raise_error(ArgumentError)
     end
 
-    it "only accepts integers as argument" do
-      lambda {
-        Etc.getgrgid("foo")
-        Etc.getgrgid(nil)
-      }.should raise_error(TypeError)
+    it "raises a TypeError if not passed an Integer" do
+      lambda { Etc.getgrgid("foo") }.should raise_error(TypeError)
+      lambda { Etc.getgrgid(nil)   }.should raise_error(TypeError)
     end
   end
 end
