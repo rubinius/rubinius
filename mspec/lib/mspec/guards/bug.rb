@@ -7,7 +7,7 @@ class BugGuard < VersionGuard
   end
 
   def match?
-    implementation?(:ruby, :ruby18, :ruby19) && ruby_version <= @version
+    standard? && ruby_version <= @version
   end
 end
 

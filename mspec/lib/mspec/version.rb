@@ -1,5 +1,5 @@
 require 'mspec/utils/version'
 
 module MSpec
-  VERSION = SpecVersion.new "1.5.7"
+  VERSION = SpecVersion.new "1.5.8"
 end

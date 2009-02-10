@@ -2,35 +2,42 @@ require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/guards/extensions'
 
 describe Object, "#extended_on" do
+  before :all do
+    @verbose = $VERBOSE
+    $VERBOSE = nil
+    @ruby_name = Object.const_get :RUBY_NAME if Object.const_defined? :RUBY_NAME
+  end
+
+  after :all do
+    $VERBOSE = @verbose
+    if @ruby_name
+      Object.const_set :RUBY_NAME, @ruby_name
+    else
+      Object.send :remove_const, :RUBY_NAME
+    end
+  end
+
   before :each do
-    @guard = ExtensionsGuard.new
-    ExtensionsGuard.stub!(:new).and_return(@guard)
     ScratchPad.clear
   end
 
-  it "does not yield when #implementation? and #platform? return false" do
-    @guard.stub!(:implementation?).and_return(false)
-    @guard.stub!(:platform?).and_return(false)
-    extended_on(:rbx) { ScratchPad.record :yield }
+  it "raises an Exception when #standard? returns true" do
+    Object.const_set :RUBY_NAME, "ruby"
+    lambda {
+      extended_on(:ruby) { ScratchPad.record :yield }
+    }.should raise_error(Exception)
     ScratchPad.recorded.should_not == :yield
   end
 
-  it "yields when #implementation? or #platform? return true" do
-    @guard.stub!(:implementation?).and_return(true)
-    @guard.stub!(:platform?).and_return(false)
-    extended_on(:rbx) { ScratchPad.record :yield }
-    ScratchPad.recorded.should == :yield
-
-    @guard.stub!(:implementation?).and_return(false)
-    @guard.stub!(:platform?).and_return(true)
-    extended_on(:rbx) { ScratchPad.record :yield }
-    ScratchPad.recorded.should == :yield
+  it "does not yield when #implementation? returns false" do
+    Object.const_set :RUBY_NAME, "jruby"
+    extended_on(:rubinius) { ScratchPad.record :yield }
+    ScratchPad.recorded.should_not == :yield
   end
 
-  it "yields when #implementation? and #platform? return true" do
-    @guard.stub!(:implementation?).and_return(true)
-    @guard.stub!(:platform?).and_return(true)
-    extended_on(:rbx) { ScratchPad.record :yield }
+  it "yields when #implementation? returns true" do
+    Object.const_set :RUBY_NAME, "rbx"
+    extended_on(:rubinius) { ScratchPad.record :yield }
     ScratchPad.recorded.should == :yield
   end
 end
