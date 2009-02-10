@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/shared/reopen'
 require 'syslog'
 
 describe "Syslog.open" do
-  not_supported_on :windows do
+  platform_is_not :windows do
 
     before :each do
       Syslog.opened?.should be_false
@@ -19,7 +19,7 @@ describe "Syslog.open" do
       Syslog.open("Test", 5, 9).should == Syslog
       Syslog.close
     end
-    
+
     it "receives an identity as first argument" do
       Syslog.open("rubyspec")
       Syslog.ident.should == "rubyspec"

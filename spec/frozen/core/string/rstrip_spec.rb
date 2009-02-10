@@ -9,7 +9,7 @@ describe "String#rstrip" do
    "hello".rstrip.should == "hello"
    "hello\x00".rstrip.should == "hello"
   end
-  
+
   it "taints the result when self is tainted" do
     "".taint.rstrip.tainted?.should == true
     "ok".taint.rstrip.tainted?.should == true
@@ -23,19 +23,17 @@ describe "String#rstrip!" do
     a.rstrip!.should equal(a)
     a.should == "  hello"
   end
-  
+
   it "returns nil if no modifications were made" do
     a = "hello"
     a.rstrip!.should == nil
     a.should == "hello"
   end
-  
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if self is frozen" do
-      "hello".freeze.rstrip! # ok, nothing changed
-      "".freeze.rstrip! # ok, nothing changed
 
-      lambda { "  hello  ".freeze.rstrip! }.should raise_error(TypeError)
-    end
+  it "raises a TypeError if self is frozen" do
+    "hello".freeze.rstrip! # ok, nothing changed
+    "".freeze.rstrip! # ok, nothing changed
+
+    lambda { "  hello  ".freeze.rstrip! }.should raise_error(TypeError)
   end
 end

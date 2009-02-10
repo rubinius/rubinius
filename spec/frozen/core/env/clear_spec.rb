@@ -5,7 +5,7 @@ describe "ENV.clear" do
     orig = ENV.to_hash
     begin
       ENV.clear
-      ENV.should == {}
+      env.should == {}
     ensure
       ENV.replace orig
     end

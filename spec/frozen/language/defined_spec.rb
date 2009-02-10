@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe "The defined? keyword" do
   class LanguageDefinedSpecs
     SomeConst = 5
-    
+
     attr_accessor :ivar
 
     def no_args
@@ -15,13 +15,13 @@ describe "The defined? keyword" do
       x = 1
       defined?(x)
     end
-    
+
     def ivar_definition
       defined? @ivar
     end
-    
+
   end
-  
+
   class LanguageDefinedSubclass < LanguageDefinedSpecs
     def no_args
       defined?(super)
@@ -34,7 +34,7 @@ describe "The defined? keyword" do
   module AAA
     self::FOO = 'x' unless defined? self::FOO rescue nil
   end
-  
+
   it "returns 'method' when defined?(exit) is sent" do
     ret = defined?(exit)
     ret.should == 'method'
@@ -153,7 +153,7 @@ describe "The defined? keyword" do
     ret.should == "expression"
   end
 
-  compliant_on :rubinius do
+  deviates_on :rubinius do
     # Rubinius does not care about dynamic vars
     it "returns 'local-variable' when defined? is called on a block var" do
       block = Proc.new { |x| defined?(x) }
@@ -162,9 +162,9 @@ describe "The defined? keyword" do
     end
   end
 
-  # I (Evan) am not certain we'll support defined?(super) ever.
-  # for now, i'm marking these as compliant.
-  compliant_on :ruby do
+  not_compliant_on :rubinius do
+    # I (Evan) am not certain we'll support defined?(super) ever.
+    # for now, i'm marking these as compliant.
     it "returns 'super' when Subclass#no_args uses defined?" do
       ret = (LanguageDefinedSpecs::LanguageDefinedSubclass.new.no_args)
       ret.should == "super"
@@ -181,25 +181,25 @@ describe "The defined? keyword" do
       ret.should == 'local-variable(in-block)'
     end
   end
-  
+
   it "returns nil for an instance variable not yet accessed" do
     instance = LanguageDefinedSpecs.new
     ret = instance.ivar_definition
-    ret.should == nil    
+    ret.should == nil
   end
-  
+
   it "returns nil for an instance variable read but not yet assigned" do
     instance = LanguageDefinedSpecs.new
     read_value = instance.ivar
     ret = instance.ivar_definition
-    ret.should == nil    
+    ret.should == nil
   end
-  
+
   it "returns 'instance-variable' for an instance variable defined in an instance" do
     instance = LanguageDefinedSpecs.new
     instance.ivar = 2
     ret = instance.ivar_definition
-    ret.should == 'instance-variable'    
+    ret.should == 'instance-variable'
   end
 end
 

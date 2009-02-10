@@ -45,5 +45,24 @@ describe "The redo statement" do
       redo if x == 3
     end
     list.should == [1,2,3,3,3,3]
-  end  
+  end
+
+  # The #count method is on 1.9, but this causes SyntaxError,
+  # Invalid redo in 1.9
+  quarantine! do
+    it "triggers ensure block when re-executing a block" do
+      list = []
+      [1,2,3].each do |x|
+        list << x
+        begin
+          list << 10*x
+          # causes SyntaxError in 1.9
+          # redo if list.count(1) == 1
+        ensure
+          list << 100*x
+        end
+      end
+      list.should == [1,10,100,1,10,100,2,20,200,3,30,300]
+    end
+  end
 end

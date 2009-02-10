@@ -48,17 +48,15 @@ describe "Hash#delete" do
     Hash.new(:default).delete(:d) { 5 }.should == 5
     Hash.new() { :defualt }.delete(:d) { 5 }.should == 5
   end
-  
+
   it "returns nil if the key is not found when no block is given" do
     {:a => 1, :b => 10, :c => 100 }.delete(:d).should == nil
     Hash.new(:default).delete(:d).should == nil
     Hash.new() { :defualt }.delete(:d).should == nil
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if called on a frozen instance" do
-      lambda { HashSpecs.frozen_hash.delete("foo")  }.should raise_error(TypeError)
-      lambda { HashSpecs.empty_frozen_hash.delete("foo") }.should raise_error(TypeError)
-    end
+  it "raises a TypeError if called on a frozen instance" do
+    lambda { HashSpecs.frozen_hash.delete("foo")  }.should raise_error(TypeError)
+    lambda { HashSpecs.empty_frozen_hash.delete("foo") }.should raise_error(TypeError)
   end
 end

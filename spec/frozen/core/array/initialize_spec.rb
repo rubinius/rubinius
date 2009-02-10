@@ -40,27 +40,25 @@ describe "Array#initialize" do
     end.should raise_error(ArgumentError)
   end
 
-  not_compliant_on :rubinius do
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on frozen arrays even if the array would not be modified" do
-        lambda do
-          ArraySpecs.frozen_array.send :initialize
-        end.should raise_error(TypeError)
-        lambda do
-          ArraySpecs.frozen_array.send :initialize, ArraySpecs.frozen_array
-        end.should raise_error(TypeError)
-      end
+  ruby_version_is '' ... '1.9' do
+    it "raises a TypeError on frozen arrays even if the array would not be modified" do
+      lambda do
+        ArraySpecs.frozen_array.send :initialize
+      end.should raise_error(TypeError)
+      lambda do
+        ArraySpecs.frozen_array.send :initialize, ArraySpecs.frozen_array
+      end.should raise_error(TypeError)
     end
+  end
 
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on frozen arrays even if the array would not be modified" do
-        lambda do
-          ArraySpecs.frozen_array.send :initialize
-        end.should raise_error(RuntimeError)
-        lambda do
-          ArraySpecs.frozen_array.send :initialize, ArraySpecs.frozen_array
-        end.should raise_error(RuntimeError)
-      end
+  ruby_version_is '1.9' do
+    it "raises a RuntimeError on frozen arrays even if the array would not be modified" do
+      lambda do
+        ArraySpecs.frozen_array.send :initialize
+      end.should raise_error(RuntimeError)
+      lambda do
+        ArraySpecs.frozen_array.send :initialize, ArraySpecs.frozen_array
+      end.should raise_error(RuntimeError)
     end
   end
 end

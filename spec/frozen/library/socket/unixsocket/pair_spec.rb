@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "UNIXSocket#pair" do
-  not_supported_on :windows do
+  platform_is_not :windows do
 
     before :each do
       @s1, @s2 = UNIXSocket.pair

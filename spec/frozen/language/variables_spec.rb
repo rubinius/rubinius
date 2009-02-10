@@ -1,6 +1,8 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/variables'
 
+# TODO: partition these specs into distinct cases based on the
+# real parsed forms, not the superficial code forms.
 describe "Basic assignment" do
   it "allows the rhs to be assigned to the lhs" do
     a = nil;       a.should == nil
@@ -49,7 +51,7 @@ describe "Basic assignment" do
     *a = [*[1]];   a.should == [[1]]
     *a = [*[1,2]]; a.should == [[1,2]]
   end
-  
+
   it "allows the assignment of rhs to the lhs using the lhs and rhs splat operators simultaneously" do
     *a = *nil;      a.should == [nil]
     *a = *1;        a.should == [1]
@@ -74,7 +76,7 @@ describe "Basic assignment" do
     a,b,*c = [*[]];     [a,b,c].should == [nil, nil, []]
     a,b,*c = [*[1]];    [a,b,c].should == [1, nil, []]
     a,b,*c = [*[1,2]];  [a,b,c].should == [1, 2, []]
-    
+
     a,b,*c = *nil;      [a,b,c].should == [nil, nil, []]
     a,b,*c = *1;        [a,b,c].should == [1, nil, []]
     a,b,*c = *[];       [a,b,c].should == [nil, nil, []]
@@ -86,18 +88,18 @@ describe "Basic assignment" do
     a,b,*c = *[*[1]];   [a,b,c].should == [1, nil, []]
     a,b,*c = *[*[1,2]]; [a,b,c].should == [1, 2, []]
   end
-  
+
   it "supports the {|r,| } form of block assignment" do
     f = lambda {|r,| r.should == []}
-    f.call([], *[])   
-    
+    f.call([], *[])
+
     f = lambda{|x,| x}
     f.call(42).should == 42
     f.call([42]).should == [42]
     f.call([[42]]).should == [[42]]
-    f.call([42,55]).should == [42,55]     
+    f.call([42,55]).should == [42,55]
   end
-  
+
   it "allows assignment through lambda" do
     f = lambda {|r,*l| r.should == []; l.should == [1]}
     f.call([], *[1])
@@ -115,7 +117,7 @@ describe "Basic assignment" do
     f.call([42,55]).should == [[42,55]]
     f.call(42,55).should == [42,55]
   end
-  
+
   it "allows chained assignment" do
     (a = 1 + b = 2 + c = 4 + d = 8).should == 15
     d.should == 8
@@ -141,7 +143,7 @@ describe "Assigning multiple values" do
     a, = 1,2
     a.should == 1
   end
-  
+
   it "allows safe parallel swapping" do
     a, b = 1, 2
     a, b = b, a
@@ -166,7 +168,7 @@ describe "Assigning multiple values" do
     c = VariablesSpecs::ParAsgn.new
     c.x,a.x = a.x,b
     c.x.should == 1
-    a.x.should == 2 
+    a.x.should == 2
   end
 
   it "supports parallel assignment to lhs args using []=" do
@@ -180,16 +182,16 @@ describe "Assigning multiple values" do
     a, *b = 1, 2, 3
     a.should == 1
     b.should == [2, 3]
-    
+
     *a = 1, 2, 3
     a.should == [1, 2, 3]
-    
+
     *a = 4
     a.should == [4]
-    
+
     *a = nil
     a.should == [nil]
-    
+
     a,=*[1]
     a.should == 1
     a,=*[[1]]
@@ -253,14 +255,14 @@ describe "Assigning multiple values" do
     d.should == 3
     e.should == []
   end
-    
+
   it "allows complex parallel assignment" do
     a, (b, c), d = 1, [2, 3], 4
     a.should == 1
     b.should == 2
     c.should == 3
     d.should == 4
-    
+
     x, (y, z) = 1, 2, 3
     [x,y,z].should == [1,2,nil]
     x, (y, z) = 1, [2,3]
@@ -412,13 +414,13 @@ describe "Operator assignment 'var op= expr'" do
     (x &&= false).should == false
     x.should == false
   end
-  
+
   it "uses short-circuit arg evaluation for operators ||= and &&=" do
     x = 8
     y = VariablesSpecs::OpAsgn.new
     (x ||= y.do_side_effect).should == 8
     y.side_effect.should == nil
-    
+
     x = nil
     (x &&= y.do_side_effect).should == nil
     y.side_effect.should == nil
@@ -502,13 +504,13 @@ describe "Operator assignment 'obj.meth op= expr'" do
     (@x.a &&= false).should == false
     @x.a.should == false
   end
-  
+
   it "uses short-circuit arg evaluation for operators ||= and &&=" do
     x = 8
     y = VariablesSpecs::OpAsgn.new
     (x ||= y.do_side_effect).should == 8
     y.side_effect.should == nil
-    
+
     x = nil
     (x &&= y.do_side_effect).should == nil
     y.side_effect.should == nil
@@ -524,7 +526,7 @@ describe "Operator assignment 'obj.meth op= expr'" do
     (x.do_more_side_effects.a += 5).should == 15
     x.a.should == 15
 
-    x.a = 5 
+    x.a = 5
     (x.do_more_side_effects.a -= 4).should == 6
     x.a.should == 6
 
@@ -585,7 +587,7 @@ describe "Operator assignment 'obj.meth op= expr'" do
     x.a.should == true
     x.b.should == 1
     (x.do_bool_side_effects.a &&= false).should == false
-    x.a.should == false  
+    x.a.should == false
     x.b.should == 2
   end
 end
@@ -650,7 +652,7 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     x.should == [1,17,12]
     (x[1] ||= 2).should == 17
     x.should == [1,17,12]
-  
+
     x = [true, false, false]
     (x[1] &&= true).should == false
     x.should == [true, false, false]
@@ -667,7 +669,7 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     y = VariablesSpecs::OpAsgn.new
     (x ||= y.do_side_effect).should == 8
     y.side_effect.should == nil
-    
+
     x = nil
     (x &&= y.do_side_effect).should == nil
     y.side_effect.should == nil
@@ -683,15 +685,15 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     x.should == [1,2,5,3,4]
     (x[0,2] += [3,4]).should == [1,2,3,4]
     x.should == [1,2,3,4,5,3,4]
-    
+
     (x[2..3] += [8]).should == [3,4,8]
     x.should == [1,2,3,4,8,5,3,4]
-    
+
     y = VariablesSpecs::OpAsgn.new
     y.a = 1
     (x[y.do_side_effect] *= 2).should == 4
     x.should == [1,4,3,4,8,5,3,4]
-    
+
     h = {'key1' => 23, 'key2' => 'val'}
     (h['key1'] %= 5).should == 3
     (h['key2'] += 'ue').should == 'value'
@@ -757,7 +759,7 @@ describe "Multiple assignment without grouping or splatting" do
     b.should == 2
     c.should == 3
     d.should == 4
-  end 
+  end
 
   it "If rhs has too few arguments, the missing ones on lhs are assigned nil" do
     a, b, c = 1, 2
@@ -782,11 +784,8 @@ describe "Multiple assignment without grouping or splatting" do
 end
 
 describe "Multiple assignments with splats" do
-  # TODO make this normal once rubinius eval works
-  compliant_on :ruby do
-    it "* on the lhs has to be applied to the last parameter" do
-      lambda { eval 'a, *b, c = 1, 2, 3' }.should raise_error(SyntaxError)
-    end
+  it "* on the lhs has to be applied to the last parameter" do
+    lambda { eval 'a, *b, c = 1, 2, 3' }.should raise_error(SyntaxError)
   end
 
   it "* on the lhs collects all parameters from its position onwards as an Array or an empty Array" do
@@ -852,36 +851,37 @@ describe "Multiple assignments with grouping" do
     d.should == 4
   end
 
-  compliant_on :ruby do
-    it "rhs cannot use parameter grouping, it is a syntax error" do
-      lambda { eval '(a, b) = (1, 2)' }.should raise_error(SyntaxError)
+  it "rhs cannot use parameter grouping, it is a syntax error" do
+    lambda { eval '(a, b) = (1, 2)' }.should raise_error(SyntaxError)
+  end
+end
+
+# TODO: merge the following two describe blocks and partition the specs
+# into distinct cases.
+describe "Multiple assignment" do
+  not_compliant_on :rubinius do
+    it "has the proper return value" do
+      (a,b,*c = *[5,6,7,8,9,10]).should == [5,6,7,8,9,10]
+      (d,e = VariablesSpecs.reverse_foo(4,3)).should == [3,4]
+      (f,g,h = VariablesSpecs.reverse_foo(6,7)).should == [7,6]
+      (i,*j = *[5,6,7]).should == [5,6,7]
+      (k,*l = [5,6,7]).should == [5,6,7]
+      a.should == 5
+      b.should == 6
+      c.should == [7,8,9,10]
+      d.should == 3
+      e.should == 4
+      f.should == 7
+      g.should == 6
+      h.should == nil
+      i.should == 5
+      j.should == [6,7]
+      k.should == 5
+      l.should == [6,7]
     end
   end
-end
 
-compliant_on :ruby do
-
-describe "Multiple assignment" do
-  it "has the proper return value" do
-    (a,b,*c = *[5,6,7,8,9,10]).should == [5,6,7,8,9,10]
-    (d,e = VariablesSpecs.reverse_foo(4,3)).should == [3,4]
-    (f,g,h = VariablesSpecs.reverse_foo(6,7)).should == [7,6]
-    (i,*j = *[5,6,7]).should == [5,6,7]
-    (k,*l = [5,6,7]).should == [5,6,7]
-    a.should == 5
-    b.should == 6
-    c.should == [7,8,9,10]
-    d.should == 3
-    e.should == 4
-    f.should == 7
-    g.should == 6
-    h.should == nil
-    i.should == 5
-    j.should == [6,7]
-    k.should == 5
-    l.should == [6,7]
-  end
-end
+  # TODO: write Rubinius versions
 end
 
 # For now, masgn is deliberately non-compliant with MRI wrt the return val from an masgn.
@@ -889,7 +889,7 @@ end
 # containing all the elements on the rhs. As this result is never used, the cost
 # of creating and then discarding this array is avoided
 describe "Multiple assignment, array-style" do
-  compliant_on :ruby do
+  not_compliant_on :rubinius do
     it "returns an array of all rhs values" do
       (a,b = 5,6,7).should == [5,6,7]
       a.should == 5
@@ -928,7 +928,7 @@ end
 
 describe "Scope of variables" do
   it "instance variables not overwritten by local variable in each block" do
-    
+
     class ScopeVariables
       attr_accessor :v
 
@@ -940,12 +940,12 @@ describe "Scope of variables" do
         v.should == ['a', 'b', 'c']
         self.v.should == ['a', 'b', 'c']
       end
-      
+
       def check_local_variable
         v = nil
         self.v.should == ['a', 'b', 'c']
       end
-      
+
       def check_each_block
         self.v.each { |v|
           # Don't actually do anything
@@ -955,7 +955,7 @@ describe "Scope of variables" do
         self.v.object_id.should == v.object_id
       end
     end # Class ScopeVariables
-    
+
     instance = ScopeVariables.new()
     instance.check_access
     instance.check_local_variable

@@ -91,6 +91,7 @@ describe :array_collect_b, :shared => true do
       lambda { a.send(@method) }.should raise_error(LocalJumpError)
     end
   end
+
   ruby_version_is '1.8.7' ... '1.9' do
     it "returns an Enumerable::Enumerator when no block given, and the enumerator can modify the original array" do
       a = [1, 2, 3]
@@ -100,6 +101,7 @@ describe :array_collect_b, :shared => true do
       a.should == ["1!", "2!", "3!"]
     end
   end
+
   ruby_version_is '1.9' do
     it "returns an Enumerator when no block given, and the enumeratoe can modify the original array" do
       a = [1, 2, 3]
@@ -127,16 +129,15 @@ describe :array_collect_b, :shared => true do
     end
   end
 
-  compliant_on :ruby, :jruby, :ir do
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.send(@method) {} }.should raise_error(TypeError)
-      end
+  ruby_version_is '' ... '1.9' do
+    it "raises a TypeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.send(@method) {} }.should raise_error(TypeError)
     end
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.send(@method) {} }.should raise_error(RuntimeError)
-      end
+  end
+
+  ruby_version_is '1.9' do
+    it "raises a RuntimeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.send(@method) {} }.should raise_error(RuntimeError)
     end
   end
 end

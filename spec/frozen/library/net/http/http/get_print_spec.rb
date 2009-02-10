@@ -13,17 +13,17 @@ describe "Net::HTTP.get_print" do
 
   describe "when passed URI" do
     it "it prints the body of the specified uri to $stdout" do
-      $stdout.should_receive(:print).with("")
-      $stdout.should_receive(:print).with("This is the index page.")
-      Net::HTTP.get_print URI.parse('http://localhost:3333/')
+      lambda do
+        Net::HTTP.get_print URI.parse('http://localhost:3333/')
+      end.should output(/This is the index page\./)
     end
   end
 
   describe "when passed host, path, port" do
     it "it prints the body of the specified uri to $stdout" do
-      $stdout.should_receive(:print).with("")
-      $stdout.should_receive(:print).with("This is the index page.")
-      Net::HTTP.get_print 'localhost', "/", 3333
+      lambda do
+        Net::HTTP.get_print 'localhost', "/", 3333
+      end.should output(/This is the index page\./)
     end
   end
 end

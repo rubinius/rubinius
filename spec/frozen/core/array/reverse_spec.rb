@@ -36,9 +36,7 @@ describe "Array#reverse!" do
     array.reverse!.should == [array, array, array, array, array, 3.0, 'two', 1]
   end
 
-  compliant_on :ruby, :jruby, :ir do
-    it "raises a TypeError on a frozen array" do
-      lambda { ArraySpecs.frozen_array.reverse! }.should raise_error(TypeError)
-    end
+  it "raises a TypeError on a frozen array" do
+    lambda { ArraySpecs.frozen_array.reverse! }.should raise_error(TypeError)
   end
 end

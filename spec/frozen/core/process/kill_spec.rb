@@ -20,7 +20,7 @@ describe "Process.kill" do
     lambda { Process.kill("HUP ", 0) }.should raise_error(ArgumentError)
   end
 
-  not_supported_on :windows do
+  platform_is_not :windows do
     it "tests for the existence of a process without sending a signal" do
       Process.kill(0, 0).should == 1
       pid = Process.fork {
@@ -46,7 +46,7 @@ describe "Process.kill" do
 end
 
 describe "Process.kill" do
-  not_supported_on :windows do
+  platform_is_not :windows do
     before :all do
       @saved_trap = Signal.trap("HUP") {}
     end
@@ -92,7 +92,7 @@ describe "Process.kill" do
 end
 
 describe "Process.kill" do
-  not_supported_on :windows do
+  platform_is_not :windows do
     before :each do
       @read, @write = IO.pipe
       @pid = Process.fork {

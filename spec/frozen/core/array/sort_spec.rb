@@ -201,27 +201,23 @@ describe "Array#sort!" do
     a.sort!{ -1 }.class.should == Array
   end
 
-  compliant_on :ruby, :jruby, :ir do
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.sort! }.should raise_error(TypeError)
-      end
-    end
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.sort! }.should raise_error(RuntimeError)
-      end
-    end
-  end
-
   ruby_version_is '' ... '1.9' do
+    it "raises a TypeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.sort! }.should raise_error(TypeError)
+    end
+
     it "temporarily freezes self and recovers after sorted" do
       a = [1, 2, 3]
       a.sort! { |x,y| a.frozen?.should == true; x <=> y }
       a.frozen?.should == false
     end
   end
+
   ruby_version_is '1.9' do
+    it "raises a RuntimeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.sort! }.should raise_error(RuntimeError)
+    end
+
     it "ignores any changes of self which would take place during sort!ing" do
       a = [3, 2, 1]
       a.sort! {|x,y| a << 4; a.should include(4); x <=> y }

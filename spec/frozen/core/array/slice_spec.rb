@@ -128,9 +128,15 @@ describe "Array#slice!" do
     end
   end
 
-  compliant_on :ruby, :jruby, :ir do
+  ruby_version_is "" ... "1.9" do
     it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.slice!(0, 0) }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.slice!(0, 0) }.should raise_error(RuntimeError)
     end
   end
 end

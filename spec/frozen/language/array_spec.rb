@@ -19,6 +19,10 @@ describe "Array literals" do
     array[3].should == nil
     array[4].should == 4
   end
+
+  it "[] accepts a literal hash without curly braces as its only parameter" do
+    ["foo" => :bar, :baz => 42].should == [{"foo" => :bar, :baz => 42}]
+  end
 end
 
 describe "Bareword array literal" do

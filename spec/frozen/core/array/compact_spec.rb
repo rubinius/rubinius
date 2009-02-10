@@ -49,12 +49,12 @@ describe "Array#compact!" do
     a.compact!.should equal(a)
     a.should == ["a", "b", false, "c"]
   end
-  
+
   it "returns self if some nil elements are removed" do
     a = ['a', nil, 'b', false, 'c']
     a.compact!.object_id.should == a.object_id
   end
-  
+
   it "returns nil if there are no nil elements to remove" do
     [1, 2, false, 3].compact!.should == nil
   end
@@ -75,16 +75,15 @@ describe "Array#compact!" do
     end
   end
 
-  compliant_on :ruby, :jruby, :ir do
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.compact! }.should raise_error(TypeError)
-      end
+  ruby_version_is '' ... '1.9' do
+    it "raises a TypeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.compact! }.should raise_error(TypeError)
     end
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.compact! }.should raise_error(RuntimeError)
-      end
+  end
+
+  ruby_version_is '1.9' do
+    it "raises a RuntimeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.compact! }.should raise_error(RuntimeError)
     end
   end
 end

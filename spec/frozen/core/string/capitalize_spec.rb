@@ -21,7 +21,7 @@ describe "String#capitalize" do
     "ärger".capitalize.should == "ärger"
     "BÄR".capitalize.should == "BÄr"
   end
-  
+
   it "returns subclass instances when called on a subclass" do
     StringSpecs::MyString.new("hello").capitalize.class.should == StringSpecs::MyString
     StringSpecs::MyString.new("Hello").capitalize.class.should == StringSpecs::MyString
@@ -34,22 +34,20 @@ describe "String#capitalize!" do
     a.capitalize!.should equal(a)
     a.should == "Hello"
   end
-  
+
   it "returns nil when no changes are made" do
     a = "Hello"
     a.capitalize!.should == nil
     a.should == "Hello"
-    
+
     "".capitalize!.should == nil
     "H".capitalize!.should == nil
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError when self is frozen" do
-      ["", "Hello", "hello"].each do |a|
-        a.freeze
-        lambda { a.capitalize! }.should raise_error(TypeError)
-      end
+  it "raises a TypeError when self is frozen" do
+    ["", "Hello", "hello"].each do |a|
+      a.freeze
+      lambda { a.capitalize! }.should raise_error(TypeError)
     end
   end
 end

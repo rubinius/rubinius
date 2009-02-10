@@ -2,31 +2,31 @@ describe :string_succ, :shared => true do
   it "returns an empty string for empty strings" do
     "".send(@method).should == ""
   end
-  
+
   it "returns the successor by increasing the rightmost alphanumeric (digit => digit, letter => letter with same case)" do
     "abcd".send(@method).should == "abce"
     "THX1138".send(@method).should == "THX1139"
-    
+
     "<<koala>>".send(@method).should == "<<koalb>>"
     "==A??".send(@method).should == "==B??"
   end
-  
+
   it "increases non-alphanumerics (via ascii rules) if there are no alphanumerics" do
     "***".send(@method).should == "**+"
     "**`".send(@method).should == "**a"
   end
-  
+
   it "increases the next best alphanumeric (jumping over non-alphanumerics) if there is a carry" do
     "dz".send(@method).should == "ea"
     "HZ".send(@method).should == "IA"
     "49".send(@method).should == "50"
-    
+
     "izz".send(@method).should == "jaa"
     "IZZ".send(@method).should == "JAA"
     "699".send(@method).should == "700"
-    
+
     "6Z99z99Z".send(@method).should == "7A00a00A"
-    
+
     "1999zzz".send(@method).should == "2000aaa"
     "NZ/[]ZZZ9999".send(@method).should == "OA/[]AAA0000"
   end
@@ -41,7 +41,7 @@ describe :string_succ, :shared => true do
     "z".send(@method).should == "aa"
     "Z".send(@method).should == "AA"
     "9".send(@method).should == "10"
-    
+
     "zz".send(@method).should == "aaa"
     "ZZ".send(@method).should == "AAA"
     "99".send(@method).should == "100"
@@ -51,7 +51,7 @@ describe :string_succ, :shared => true do
     "ZZZ9999".send(@method).should == "AAAA0000"
     "/[]ZZZ9999".send(@method).should == "/[]AAAA0000"
     "Z/[]ZZZ9999".send(@method).should == "AA/[]AAA0000"
-    
+
     # non-alphanumeric cases
     "\xFF".send(@method).should == "\x01\x00"
     "\xFF\xFF".send(@method).should == "\x01\x00\x00"
@@ -62,7 +62,7 @@ describe :string_succ, :shared => true do
     StringSpecs::MyString.new("a").send(@method).class.should == StringSpecs::MyString
     StringSpecs::MyString.new("z").send(@method).class.should == StringSpecs::MyString
   end
-  
+
   it "taints the result if self is tainted" do
     ["", "a", "z", "Z", "9", "\xFF", "\xFF\xFF"].each do |s|
       s.taint.send(@method).tainted?.should == true
@@ -78,11 +78,9 @@ describe :string_succ_bang, :shared => true do
       s.should == r
     end
   end
-  
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if self is frozen" do
-      lambda { "".freeze.send(@method)     }.should raise_error(TypeError)
-      lambda { "abcd".freeze.send(@method) }.should raise_error(TypeError)
-    end
+
+  it "raises a TypeError if self is frozen" do
+    lambda { "".freeze.send(@method)     }.should raise_error(TypeError)
+    lambda { "abcd".freeze.send(@method) }.should raise_error(TypeError)
   end
 end

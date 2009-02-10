@@ -27,10 +27,8 @@ describe :stringio_read, :shared => true do
     lambda { @io.send(@method, 7, Object.new) }.should raise_error(TypeError)
   end
 
-  not_compliant_on :rubinius do
-    it "raises an error when passed a frozen String as buffer" do
-      lambda { @io.send(@method, 7, "".freeze) }.should raise_error(TypeError)
-    end
+  it "raises an error when passed a frozen String as buffer" do
+    lambda { @io.send(@method, 7, "".freeze) }.should raise_error(TypeError)
   end
 end
 

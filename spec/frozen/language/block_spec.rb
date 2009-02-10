@@ -25,7 +25,7 @@ describe "Block parameters" do
   end
 
   it "captures variables from the outer scope" do
-    a = [1,2,3]    
+    a = [1,2,3]
     sum = 0
     var = nil
     a.each {|var| sum += var}
@@ -54,29 +54,24 @@ describe "A block whose arguments are splatted" do
   end
 end
 
-not_compliant_on :rubinius do
-  # This functionality is being removed from MRI and has never
-  # been used in 1.8, therefore rubinius doesn't support
-  # it already.
-  describe "Block parameters (to be removed from MRI)" do
-    it "assigns to a global variable" do
-      $global_for_block_assignment = 0
-      a = [1,2,3]
-      a.each {|$global_for_block_assignment| ;}
-      $global_for_block_assignment.should == 3
-    end
+describe "Block parameters (to be removed from MRI)" do
+  it "assigns to a global variable" do
+    $global_for_block_assignment = 0
+    a = [1,2,3]
+    a.each {|$global_for_block_assignment| ;}
+    $global_for_block_assignment.should == 3
+  end
 
-    it "calls method=" do
-      class T
-        def n; return @n; end
-        def n=(val); @n = val + 1; end
-        def initialize; @n = 0; end
-      end
-      t = T.new
-      t.n.should == 0
-      a = [1,2,3]    
-      a.each {|t.n| }
-      t.n.should == 4    
+  it "calls method=" do
+    class T
+      def n; return @n; end
+      def n=(val); @n = val + 1; end
+      def initialize; @n = 0; end
     end
+    t = T.new
+    t.n.should == 0
+    a = [1,2,3]
+    a.each {|t.n| }
+    t.n.should == 4
   end
 end

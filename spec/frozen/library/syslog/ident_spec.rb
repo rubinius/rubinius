@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'syslog'
 
 describe "Syslog.ident" do
-  not_supported_on :windows do
+  platform_is_not :windows do
 
     before :each do
       Syslog.opened?.should be_false
@@ -17,7 +17,7 @@ describe "Syslog.ident" do
       Syslog.ident.should == "rubyspec"
       Syslog.close
     end
-    
+
     it "returns nil if the log is closed" do
       Syslog.opened?.should == false
       Syslog.ident.should == nil

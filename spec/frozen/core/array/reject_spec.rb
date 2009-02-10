@@ -21,16 +21,14 @@ describe "Array#reject" do
     array.reject { false }.should == [1, 'two', 3.0, array, array, array, array, array]
     array.reject { true }.should == []
   end
-  
-  # Returns ArraySpecs::MyArray on MRI 1.8 which is inconsistent with select.
-  # It has been changed on 1.9 however.
-  compliant_on :ruby, :jruby do
+
+  not_compliant_on :rubinius, :ironruby do
     it "returns subclass instance on Array subclasses" do
       ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == ArraySpecs::MyArray
     end
   end
-  
-  deviates_on(:r19, :rubinius, :ir) do
+
+  deviates_on :rubinius, :ironruby do
     it "does not return subclass instance on Array subclasses" do
       ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == Array
     end
@@ -76,16 +74,22 @@ describe "Array#reject!" do
 
   it "returns nil if no changes are made" do
     a = [1, 2, 3]
-    
+
     a.reject! { |i| i < 0 }.should == nil
-    
+
     a.reject! { true }
     a.reject! { true }.should == nil
   end
 
-  compliant_on :ruby, :jruby, :ir do
+  ruby_version_is "" ... "1.9" do
     it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.reject! {} }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.reject! {} }.should raise_error(RuntimeError)
     end
   end
 end

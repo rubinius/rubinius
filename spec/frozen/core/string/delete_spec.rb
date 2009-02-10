@@ -6,12 +6,12 @@ describe "String#delete" do
     s = "hello"
     s.delete("lo").should == "he"
     s.should == "hello"
-    
+
     "hello".delete("l", "lo").should == "heo"
-    
+
     "hell yeah".delete("").should == "hell yeah"
   end
-  
+
   it "raises an ArgumentError when given no arguments" do
     lambda { "hell yeah".delete }.should raise_error(ArgumentError)
   end
@@ -43,13 +43,13 @@ describe "String#delete" do
     "abcdefgh".delete("a-ce-fh").should == "dg"
     "abcdefgh".delete("he-fa-c").should == "dg"
     "abcdefgh".delete("e-fha-c").should == "dg"
-    
+
     "abcde".delete("ac-e").should == "b"
     "abcde".delete("^ac-e").should == "acde"
-    
+
     "ABCabc[]".delete("A-a").should == "bc"
   end
-  
+
   it "taints result when self is tainted" do
     "hello".taint.delete("e").tainted?.should == true
     "hello".taint.delete("a-z").tainted?.should == true
@@ -66,13 +66,13 @@ describe "String#delete" do
 
     "hello world".delete(other_string, other_string2).should == "hell wrld"
   end
-  
+
   it "raises a TypeError when one set arg can't be converted to a string" do
     lambda { "hello world".delete(100)       }.should raise_error(TypeError)
     lambda { "hello world".delete(:o)        }.should raise_error(TypeError)
     lambda { "hello world".delete(mock('x')) }.should raise_error(TypeError)
   end
-  
+
   it "returns subclass instances when called on a subclass" do
     StringSpecs::MyString.new("oh no!!!").delete("!").class.should == StringSpecs::MyString
   end
@@ -84,20 +84,18 @@ describe "String#delete!" do
     a.delete!("aeiou", "^e").should equal(a)
     a.should == "hell"
   end
-  
+
   it "returns nil if no modifications were made" do
     a = "hello"
     a.delete!("z").should == nil
     a.should == "hello"
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError when self is frozen" do
-      a = "hello"
-      a.freeze
+  it "raises a TypeError when self is frozen" do
+    a = "hello"
+    a.freeze
 
-      lambda { a.delete!("")            }.should raise_error(TypeError)
-      lambda { a.delete!("aeiou", "^e") }.should raise_error(TypeError)
-    end
+    lambda { a.delete!("")            }.should raise_error(TypeError)
+    lambda { a.delete!("aeiou", "^e") }.should raise_error(TypeError)
   end
 end

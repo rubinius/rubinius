@@ -1,3 +1,10 @@
+describe "Array literals" do
+  it "[] accepts a literal hash without curly braces as its last parameter" do
+    ["foo", "bar" => :baz].should == ["foo", {"bar" => :baz}]
+    [1, 2, 3 => 6, 4 => 24].should == [1, 2, {3 => 6, 4 => 24}]
+  end
+end
+
 describe "The unpacking splat operator (*)" do
   it "when applied to a non-Array value attempts to coerce it to Array if the object respond_to?(:to_a)" do
     obj = mock("pseudo-array")

@@ -1,5 +1,5 @@
 describe :syslog_reopen, :shared => true do
-  not_supported_on :windows do
+  platform_is_not :windows do
     before :each do
       Syslog.opened?.should be_false
     end

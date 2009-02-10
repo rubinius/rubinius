@@ -15,7 +15,7 @@ describe "String#lstrip" do
      "\x00hello".lstrip.should == "\x00hello"
     end
   end
-  
+
   it "taints the result when self is tainted" do
     "".taint.lstrip.tainted?.should == true
     "ok".taint.lstrip.tainted?.should == true
@@ -29,19 +29,17 @@ describe "String#lstrip!" do
     a.lstrip!.should equal(a)
     a.should == "hello  "
   end
-  
+
   it "returns nil if no modifications were made" do
     a = "hello"
     a.lstrip!.should == nil
     a.should == "hello"
   end
-  
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if self is frozen" do
-      "hello".freeze.lstrip! # ok, nothing changed
-      "".freeze.lstrip! # ok, nothing changed
 
-      lambda { "  hello  ".freeze.lstrip! }.should raise_error(TypeError)
-    end
+  it "raises a TypeError if self is frozen" do
+    "hello".freeze.lstrip! # ok, nothing changed
+    "".freeze.lstrip! # ok, nothing changed
+
+    lambda { "  hello  ".freeze.lstrip! }.should raise_error(TypeError)
   end
 end

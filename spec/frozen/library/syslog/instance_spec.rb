@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'syslog'
 
 describe "Syslog.instance" do
-  not_supported_on :windows do
+  platform_is_not :windows do
     it "returns the module" do
       Syslog.instance.should == Syslog
     end

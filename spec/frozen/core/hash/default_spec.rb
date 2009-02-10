@@ -15,7 +15,7 @@ describe "Hash#default" do
     h.default(nil).should == [h, nil]
     h.default(5).should == [h, 5]
   end
-  
+
   it "calls default proc with nil arg if passed a default proc but no arg" do
     h = Hash.new { |*args| args }
     h.default.should == nil
@@ -39,10 +39,8 @@ describe "Hash#default=" do
     end
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if called on a frozen instance" do
-      lambda { HashSpecs.frozen_hash.default = nil }.should raise_error(TypeError)
-      lambda { HashSpecs.empty_frozen_hash.default = nil }.should raise_error(TypeError)
-    end
+  it "raises a TypeError if called on a frozen instance" do
+    lambda { HashSpecs.frozen_hash.default = nil }.should raise_error(TypeError)
+    lambda { HashSpecs.empty_frozen_hash.default = nil }.should raise_error(TypeError)
   end
 end

@@ -46,7 +46,7 @@ describe "StringIO#initialize when passed [Object, mode]" do
     io.send(:initialize, "example", "w+")
     io.closed_read?.should be_false
     io.closed_write?.should be_false
-    
+
     io = StringIO.allocate
     io.send(:initialize, "example", "wb+")
     io.closed_read?.should be_false
@@ -66,13 +66,13 @@ describe "StringIO#initialize when passed [Object, mode]" do
     io.send(:initialize, "example", "a+")
     io.closed_read?.should be_false
     io.closed_write?.should be_false
-    
+
     io = StringIO.allocate
     io.send(:initialize, "example", "ab+")
     io.closed_read?.should be_false
     io.closed_write?.should be_false
   end
-  
+
   it "allows passing the mode as an Integer" do
     io = StringIO.allocate
     io.send(:initialize, "example", IO::RDONLY)
@@ -110,13 +110,11 @@ describe "StringIO#initialize when passed [Object, mode]" do
     io.closed_write?.should be_false
   end
 
-  not_compliant_on :rubinius do
-    it "raises a TypeError when passed a frozen String in truncate mode as StringIO backend" do
-      io = StringIO.allocate
-      lambda { io.send(:initialize, "example".freeze, IO::TRUNC) }.should raise_error(TypeError)
-    end
+  it "raises a TypeError when passed a frozen String in truncate mode as StringIO backend" do
+    io = StringIO.allocate
+    lambda { io.send(:initialize, "example".freeze, IO::TRUNC) }.should raise_error(TypeError)
   end
-  
+
   it "tries to convert the passed mode to a String using #to_str" do
     obj = mock('to_str')
     obj.should_receive(:to_str).and_return("r")
@@ -126,13 +124,11 @@ describe "StringIO#initialize when passed [Object, mode]" do
     @io.closed_write?.should be_true
   end
 
-  not_compliant_on :rubinius do
-    it "raises an Errno::EACCES error when passed a frozen string with a write-mode" do
-      (str = "example").freeze
-      lambda { @io.send(:initialize, str, "r+") }.should raise_error(Errno::EACCES)
-      lambda { @io.send(:initialize, str, "w") }.should raise_error(Errno::EACCES)
-      lambda { @io.send(:initialize, str, "a") }.should raise_error(Errno::EACCES)
-    end
+  it "raises an Errno::EACCES error when passed a frozen string with a write-mode" do
+    (str = "example").freeze
+    lambda { @io.send(:initialize, str, "r+") }.should raise_error(Errno::EACCES)
+    lambda { @io.send(:initialize, str, "w") }.should raise_error(Errno::EACCES)
+    lambda { @io.send(:initialize, str, "a") }.should raise_error(Errno::EACCES)
   end
 end
 
@@ -140,18 +136,18 @@ describe "StringIO#initialize when passed [Object]" do
   before(:each) do
     @io = StringIO.allocate
   end
-  
+
   it "uses the passed Object as the StringIO backend" do
     @io.send(:initialize, str = "example")
     @io.string.should equal(str)
   end
-  
+
   it "sets the mode to read-write" do
     @io.send(:initialize, "example")
     @io.closed_read?.should be_false
     @io.closed_write?.should be_false
   end
-  
+
   it "tries to convert the passed Object to a String using #to_str" do
     obj = mock('to_str')
     obj.should_receive(:to_str).and_return("example")
@@ -159,13 +155,11 @@ describe "StringIO#initialize when passed [Object]" do
     @io.string.should == "example"
   end
 
-  not_compliant_on :rubinius do
-    it "automatically sets the mode to read-only when passed a frozen string" do
-      (str = "example").freeze
-      @io.send(:initialize, str)
-      @io.closed_read?.should be_false
-      @io.closed_write?.should be_true
-    end
+  it "automatically sets the mode to read-only when passed a frozen string" do
+    (str = "example").freeze
+    @io.send(:initialize, str)
+    @io.closed_read?.should be_false
+    @io.closed_write?.should be_true
   end
 end
 
@@ -173,7 +167,7 @@ describe "StringIO#initialize when passed no arguments" do
   before(:each) do
     @io = StringIO.allocate
   end
-  
+
   it "is private" do
     @io.private_methods.should include("initialize")
   end

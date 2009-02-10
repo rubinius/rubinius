@@ -29,7 +29,7 @@ describe "Array#[]=" do
     a[-1] = nil
     a.should == ["A", [], "C", "d", "E", nil]
   end
-  
+
   it "sets the section defined by [start,length] to other" do
     a = [1, 2, 3, 4, 5, 6]
     a[0, 1] = 2
@@ -61,7 +61,7 @@ describe "Array#[]=" do
     (a[1, 3] = nil).should == nil
     (a[1..3] = nil).should == nil
   end
-  
+
   it "sets the section defined by range to other" do
     a = [6, 5, 4, 3, 2, 1]
     a[1...2] = 9
@@ -94,11 +94,11 @@ describe "Array#[]=" do
       a.should == [nil, 3, 4, 5]
     end
   end
-  
+
   it "calls to_int on its start and length arguments" do
     obj = mock('to_int')
     obj.stub!(:to_int).and_return(2)
-      
+
     a = [1, 2, 3, 4]
     a[obj, 0] = [9]
     a.should == [1, 2, 9, 3, 4]
@@ -119,7 +119,7 @@ describe "Array#[]=" do
           ary2 = ary.dup
           ary2[a, 1 + b-a] = c
           ary1.should == ary2
-          
+
           ary1 = ary.dup
           ary1[a ... b] = c
           ary2 = ary.dup
@@ -210,9 +210,9 @@ describe "Array#[]=" do
 
     def from.to_int() 1 end
     def to.to_int() -2 end
-      
+
     a = [1, 2, 3, 4]
-      
+
     a[from .. to] = ["a", "b", "c"]
     a.should == [1, "a", "b", "c", 4]
 
@@ -230,19 +230,19 @@ describe "Array#[]=" do
     lambda { a[-5, 1] = ""   }.should raise_error(IndexError)
     lambda { a[-5, 2] = ""   }.should raise_error(IndexError)
     lambda { a[-5, 10] = ""  }.should raise_error(IndexError)
-    
+
     lambda { a[-5..-5] = ""  }.should raise_error(RangeError)
     lambda { a[-5...-5] = "" }.should raise_error(RangeError)
     lambda { a[-5..-4] = ""  }.should raise_error(RangeError)
     lambda { a[-5...-4] = "" }.should raise_error(RangeError)
     lambda { a[-5..10] = ""  }.should raise_error(RangeError)
     lambda { a[-5...10] = "" }.should raise_error(RangeError)
-    
+
     # ok
     a[0..-9] = [1]
     a.should == [1, 1, 2, 3, 4]
   end
-  
+
   it "calls to_ary on its rhs argument for multi-element sets" do
     obj = mock('to_ary')
     def obj.to_ary() [1, 2, 3] end
@@ -252,23 +252,22 @@ describe "Array#[]=" do
     ary[1, 10] = obj
     ary.should == [1, 1, 2, 3]
   end
-  
+
   it "does not call to_ary on rhs array subclasses for multi-element sets" do
     ary = []
     ary[0, 0] = ArraySpecs::ToAryArray[5, 6, 7]
     ary.should == [5, 6, 7]
   end
 
-  compliant_on :ruby, :jruby, :ir do
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(TypeError)
-      end  
+  ruby_version_is '' ... '1.9' do
+    it "raises a TypeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(TypeError)
     end
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(RuntimeError)
-      end  
+  end
+
+  ruby_version_is '1.9' do
+    it "raises a RuntimeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(RuntimeError)
     end
   end
 end
@@ -278,12 +277,12 @@ describe "Array#[]= with [index]" do
     a = [1, 2, 3, 4, 5]
     (a[3] = 6).should == 6
   end
-  
+
   it "returns value assigned if idx is right beyond right array boundary" do
     a = [1, 2, 3, 4, 5]
     (a[5] = 6).should == 6
   end
-  
+
   it "returns value assigned if idx far beyond right array boundary" do
     a = [1, 2, 3, 4, 5]
     (a[10] = 6).should == 6
@@ -302,7 +301,7 @@ describe "Array#[]= with [index]" do
     a[4] = 8
     a.should == [1, 2, 3, 4, 8]
   end
-    
+
 end
 
 describe "Array#[]= with [index, count]" do
@@ -330,7 +329,7 @@ describe "Array#[]= with [index, count]" do
       a.should == ["a", nil, "e"]
     end
   end
-    
+
   ruby_version_is '' ... '1.9' do
     it "removes the section when set to nil if negative index within bounds and cnt > 0" do
       a = ['a', 'b', 'c', 'd', 'e']
@@ -338,6 +337,7 @@ describe "Array#[]= with [index, count]" do
       a.should == ["a", "b", "e"]
     end
   end
+
   ruby_version_is '1.9' do
     it "just sets the section defined by [start,length] to nil if negative index within bounds, cnt > 0 and the rhs is nil" do
       a = ['a', 'b', 'c', 'd', 'e']
@@ -345,13 +345,13 @@ describe "Array#[]= with [index, count]" do
       a.should == ["a", "b", nil, "e"]
     end
   end
-  
+
   it "replaces the section defined by [start,length] to other" do
-      a = [1, 2, 3, 4, 5, 6]
-      a[0, 1] = 2
-      a[3, 2] = ['a', 'b', 'c', 'd']
-      a.should == [2, 2, 3, "a", "b", "c", "d", 6]
-    end
+    a = [1, 2, 3, 4, 5, 6]
+    a[0, 1] = 2
+    a[3, 2] = ['a', 'b', 'c', 'd']
+    a.should == [2, 2, 3, "a", "b", "c", "d", 6]
+  end
 
   it "replaces the section to other if idx < 0 and cnt > 0" do
     a = [1, 2, 3, 4, 5, 6]
@@ -384,7 +384,7 @@ describe "Array#[]= with [index, count]" do
     b[1, 0] = b
     b.should == [1, 1, 2, 3, 4, 5, 2, 3, 4, 5]
   end
-  
+
   it "raises an IndexError when passed start and negative length" do
     a = [1, 2, 3, 4]
     lambda { a[-2, -1] = "" }.should raise_error(IndexError)
@@ -401,12 +401,12 @@ describe "Array#[]= with [m..n]" do
     a = [1, 2, 3, 4, 5]
     (a[2..4] = 10).should == 10
   end
-  
+
   it "returns array if array assigned" do
     a = [1, 2, 3, 4, 5]
     (a[2..4] = [7, 8]).should == [7, 8]
   end
-  
+
   ruby_version_is '' ... '1.9' do
     it "removes the section defined by range when set to nil" do
       a = [1, 2, 3, 4, 5]
@@ -419,6 +419,7 @@ describe "Array#[]= with [m..n]" do
       a.should == [1, 2, 5]
     end
   end
+
   ruby_version_is '1.9' do
     it "just sets the section defined by range to nil even if the rhs is nil" do
       a = [1, 2, 3, 4, 5]
@@ -456,7 +457,7 @@ describe "Array#[]= with [m..n]" do
     a[3..1] = [8]
     a.should == [1, 2, 3, 8, 4, 5]
   end
-  
+
   it "accepts Range subclasses" do
     a = [1, 2, 3, 4]
     range_incl = ArraySpecs::MyRange.new(1, 2)

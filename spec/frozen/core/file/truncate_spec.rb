@@ -167,11 +167,9 @@ describe "File#truncate" do
     lambda { @file.truncate(42) }.should raise_error(IOError)
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises an IOError if file is not opened for writing" do
-      file = File.new(@name, 'r')
-      lambda { file.truncate(42) }.should raise_error(IOError)
-    end
+  it "raises an IOError if file is not opened for writing" do
+    file = File.new(@name, 'r')
+    lambda { file.truncate(42) }.should raise_error(IOError)
   end
 
   it "raises a TypeError if not passed an Integer type for the for the argument" do

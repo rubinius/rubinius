@@ -8,7 +8,7 @@ describe "String#strip" do
     "\tgoodbye\r\v\n".strip.should == "goodbye"
     "  goodbye \000".strip.should == "goodbye"
   end
-  
+
   it "taints the result when self is tainted" do
     "".taint.strip.tainted?.should == true
     "ok".taint.strip.tainted?.should == true
@@ -22,19 +22,17 @@ describe "String#strip!" do
     a.strip!.should equal(a)
     a.should == "hello"
   end
-  
+
   it "returns nil if no modifications where made" do
     a = "hello"
     a.strip!.should == nil
     a.should == "hello"
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if self is frozen" do
-      "hello".freeze.strip! # ok, nothing changed
-      "".freeze.strip! # ok, nothing changed
+  it "raises a TypeError if self is frozen" do
+    "hello".freeze.strip! # ok, nothing changed
+    "".freeze.strip! # ok, nothing changed
 
-      lambda { "  hello  ".freeze.strip! }.should raise_error(TypeError)
-    end
+    lambda { "  hello  ".freeze.strip! }.should raise_error(TypeError)
   end
 end

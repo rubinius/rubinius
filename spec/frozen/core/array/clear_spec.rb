@@ -6,7 +6,7 @@ describe "Array#clear" do
     a = [1, 2, 3, 4]
     a.clear.should equal(a)
     a.should == []
-  end  
+  end
 
   it "returns self" do
     a = [1]
@@ -39,20 +39,19 @@ describe "Array#clear" do
     end
   end
 
-  compliant_on :ruby, :jruby, :ir do
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on a frozen array" do
-        a = [1]
-        a.freeze
-        lambda { a.clear }.should raise_error(TypeError)
-      end
+  ruby_version_is '' ... '1.9' do
+    it "raises a TypeError on a frozen array" do
+      a = [1]
+      a.freeze
+      lambda { a.clear }.should raise_error(TypeError)
     end
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on a frozen array" do
-        a = [1]
-        a.freeze
-        lambda { a.clear }.should raise_error(RuntimeError)
-      end
+  end
+
+  ruby_version_is '1.9' do
+    it "raises a RuntimeError on a frozen array" do
+      a = [1]
+      a.freeze
+      lambda { a.clear }.should raise_error(RuntimeError)
     end
   end
 end

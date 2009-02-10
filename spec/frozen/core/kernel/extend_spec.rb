@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+
 module KernelSpecs::M
   def self.extend_object(o)
     ScratchPad << "extend_object"
@@ -36,13 +37,11 @@ describe "Kernel#extend" do
     (C.kind_of? KernelSpecs::M).should == true
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if self is frozen" do
-      module KernelSpecs::Mod; end
-      o = mock('o')
-      o.freeze
-      lambda { o.extend KernelSpecs::Mod }.should raise_error(TypeError)
-    end
+  it "raises a TypeError if self is frozen" do
+    module KernelSpecs::Mod; end
+    o = mock('o')
+    o.freeze
+    lambda { o.extend KernelSpecs::Mod }.should raise_error(TypeError)
   end
 end
 

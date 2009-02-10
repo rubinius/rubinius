@@ -69,11 +69,12 @@ module NetHTTPSpecs
       @server.mount("/request/header", RequestHeaderServlet)
       
       @server.start
+      Thread.pass until @server.status == :Running
     end
     
     def stop_server
       @server.shutdown
-      sleep 0.1 until @server.status == :Stop
+      Thread.pass until @server.status == :Stop
     end
   end
 end
