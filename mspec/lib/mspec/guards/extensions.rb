@@ -2,9 +2,10 @@ require 'mspec/guards/guard'
 
 class ExtensionsGuard < SpecGuard
   def match?
-    match = implementation?(*@args)
-    raise Exception, "improper use of extended_on guard" if match and standard?
-    match
+    if @args.include? :ruby
+      raise Exception, "improper use of extended_on guard"
+    end
+    !standard? and implementation?(*@args)
   end
 end
 

@@ -21,8 +21,8 @@ describe Object, "#not_supported_on" do
     ScratchPad.clear
   end
 
-  it "raises an Exception when when #standard? returns true" do
-    Object.const_set :RUBY_NAME, "ruby"
+  it "raises an Exception when passed :ruby" do
+    Object.const_set :RUBY_NAME, "jruby"
     lambda {
       not_supported_on(:ruby) { ScratchPad.record :yield }
     }.should raise_error(Exception)
@@ -35,8 +35,14 @@ describe Object, "#not_supported_on" do
     ScratchPad.recorded.should_not == :yield
   end
 
-  it "yields when #implementation? returns false" do
+  it "yields when #standard? returns true" do
     Object.const_set :RUBY_NAME, "ruby"
+    not_supported_on(:rubinius) { ScratchPad.record :yield }
+    ScratchPad.recorded.should == :yield
+  end
+
+  it "yields when #implementation? returns false" do
+    Object.const_set :RUBY_NAME, "jruby"
     not_supported_on(:rubinius) { ScratchPad.record :yield }
     ScratchPad.recorded.should == :yield
   end

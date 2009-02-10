@@ -21,11 +21,17 @@ describe Object, "#deviates_on" do
     ScratchPad.clear
   end
 
-  it "raises an Exception when when #standard? returns true" do
-    Object.const_set :RUBY_NAME, "ruby"
+  it "raises an Exception when passed :ruby" do
+    Object.const_set :RUBY_NAME, "jruby"
     lambda {
       deviates_on(:ruby) { ScratchPad.record :yield }
     }.should raise_error(Exception)
+    ScratchPad.recorded.should_not == :yield
+  end
+
+  it "does not yield when #standard? returns true" do
+    Object.const_set :RUBY_NAME, "ruby"
+    deviates_on(:rubinius) { ScratchPad.record :yield }
     ScratchPad.recorded.should_not == :yield
   end
 
