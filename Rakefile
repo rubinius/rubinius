@@ -135,7 +135,7 @@ namespace :install do
     core_files = Rake::FileList.new('runtime/index',
                                     'runtime/platform.conf',
                                     'runtime/**/*.rb{a,c}',
-                                    'runtime/**/.load_order.txt')
+                                    'runtime/**/load_order.txt')
     install_files core_files, RBX_RBA_PATH
 
     lib_files = Rake::FileList.new 'lib/**/*'
