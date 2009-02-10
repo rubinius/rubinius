@@ -146,6 +146,8 @@ namespace rubinius {
     // Ruby.primitive :vm_gc_info
     static Object*  vm_gc_info(STATE);
 
+    // Ruby.primitive :vm_watch_signal
+    static Object*  vm_watch_signal(STATE, Fixnum* sig);
 
   public:   /* Type info */
 

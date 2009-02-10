@@ -527,7 +527,7 @@ class CPPParser
             end
           end
 
-          if args.last == "CallFrame *calling_environment"
+          if args.last == "CallFrame* calling_environment"
             pass_call_frame = true
             args.pop
           end

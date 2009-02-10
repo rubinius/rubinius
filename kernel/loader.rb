@@ -14,20 +14,10 @@ rescue Object => e
   exit 2
 end
 
-=begin
 # Set up a handler for SIGINT that raises Interrupt on the main thread
-Signal.action("INT") do |_|
-  thread = Thread.main
-
-  if thread.alive?
-    thread.raise Interrupt, "Thread has been interrupted"
-  else # somehow..?
-    puts "Signal received, but the main thread is dead."
-    puts "Unable to continue."
-    exit! 1
-  end
+Signal.trap("INT") do |sig|
+  raise Interrupt, "Thread has been interrupted"
 end
-=end
 
 # This is the end of the kernel and the beginning of specified
 # code. We read out of ARGV to figure out what the user is

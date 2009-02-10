@@ -11,4 +11,9 @@ module Rubinius
     nil
   end
   module_function :warn
+
+
+  def self.received_signal(sig)
+    Signal.run_handler(sig)
+  end
 end

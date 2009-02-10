@@ -34,7 +34,7 @@
 #include "builtin/float.hpp"
 
 #include "builtin/system.hpp"
-
+#include "signal.hpp"
 
 namespace rubinius {
 
@@ -237,6 +237,16 @@ namespace rubinius {
 
   Object*  System::vm_gc_info(STATE) {
     return Integer::from(state, state->stats.time_in_gc);
+  }
+
+  Object*  System::vm_watch_signal(STATE, Fixnum* sig) {
+    SignalThread* thr = state->shared.signal_thread();
+    if(thr) {
+      thr->add_signal(sig->to_native());
+      return Qtrue;
+    } else {
+      return Qfalse;
+    }
   }
 
 }

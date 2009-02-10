@@ -16,7 +16,10 @@
 #include "builtin/task.hpp"
 #include "builtin/taskprobe.hpp"
 
+#include "signal.hpp"
 #include "object_utils.hpp"
+
+#include "native_thread.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -40,6 +43,15 @@ namespace rubinius {
 
   void Environment::enable_preemption() {
     state->setup_preemption();
+  }
+
+  void Environment::start_signal_thread() {
+    NativeThread::block_all_signals();
+
+    SignalThread* st = new SignalThread(state);
+    st->run();
+
+    shared->set_signal_thread(st);
   }
 
   void Environment::load_config_argv(int argc, char** argv) {

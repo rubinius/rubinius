@@ -100,7 +100,7 @@ namespace rubinius {
   }
 
 #define NANOSECONDS 1000000000
-  Object* Thread::sleep_now(STATE, Object* duration) {
+  Object* Thread::sleep_now(STATE, Object* duration, CallFrame* call_frame) {
     struct timespec ts;
     struct timeval tv;
 
@@ -124,6 +124,8 @@ namespace rubinius {
     thread::Condition cond;
     WaitingOnCondition waiter(cond);
 
+    time_t before = time(0);
+
     thread::Mutex& mutex = state->local_lock();
     mutex.lock();
     state->install_waiter(waiter);
@@ -133,7 +135,9 @@ namespace rubinius {
     }
     mutex.unlock();
 
-    return Qnil;
+    if(!state->check_async(call_frame)) return NULL;
+
+    return Integer::from(state, time(0) - before);
   }
 
 

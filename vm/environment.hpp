@@ -26,6 +26,7 @@ namespace rubinius {
     void enable_preemption();
     void boot_vm();
     int exit_code();
+    void start_signal_thread();
   };
 
 }

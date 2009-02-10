@@ -82,6 +82,7 @@ namespace rubinius {
     , interrupts(shared.interrupts)
     , symbols(shared.symbols)
     , user_config(shared.user_config)
+    , check_local_interrupts(false)
     , thread(this, (Thread*)Qnil)
     , current_mark(NULL)
     , reuse_llvm(true)
@@ -369,6 +370,36 @@ namespace rubinius {
     }
 
     return false;
+  }
+
+  void VM::send_async_signal(int sig) {
+    mailbox_.add(ASyncMessage(ASyncMessage::cSignal, sig));
+    check_local_interrupts = true;
+
+    // TODO I'm worried there might be a race calling
+    // wakeup without the lock held...
+    wakeup();
+  }
+
+  bool VM::process_async(CallFrame* call_frame) {
+    while(!mailbox_.empty_p()) {
+      ASyncMessage msg = mailbox_.pop();
+      switch(msg.type()) {
+      case ASyncMessage::cSignal: {
+        Array* args = Array::create(this, 1);
+        args->set(this, 0, Fixnum::from(msg.data()));
+
+        Object* ret = G(rubinius)->send(this, call_frame,
+            symbol("received_signal"), args, Qnil);
+
+        if(!ret) return false;
+      }
+      }
+    }
+
+    check_local_interrupts = false;
+
+    return true;
   }
 
   /* For debugging. */

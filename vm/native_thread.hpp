@@ -25,6 +25,13 @@ namespace rubinius {
       args_.set(args);
     }
 
+    static void block_all_signals() {
+      sigset_t set;
+      sigfillset(&set);
+
+      pthread_sigmask(SIG_BLOCK, &set, NULL);
+    }
+
   };
 
   class Waiter {

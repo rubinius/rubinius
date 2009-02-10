@@ -30,7 +30,7 @@ namespace rubinius {
     static Exception* create(STATE);
 
     // Ruby.primitive :exception_fill_locations
-    Array* fill_locations(STATE, CallFrame *calling_environment);
+    Array* fill_locations(STATE, CallFrame* calling_environment);
 
     void print_locations(STATE);
 

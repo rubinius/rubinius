@@ -624,6 +624,10 @@ namespace rubinius {
         state->collect_maybe(call_frame);
       }
 
+      if(state->check_local_interrupts) {
+        if(!state->process_async(call_frame)) return NULL;
+      }
+
       return_value = interpreter(state, vmm, call_frame);
       if(return_value) return return_value;
 

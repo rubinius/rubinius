@@ -284,11 +284,7 @@ module Kernel
       raise TypeError, 'time interval must be a numeric value'
     end
 
-    start = Time.now
-
     Thread.sleep duration
-
-    return (Time.now - start).round
   end
   module_function :sleep
 

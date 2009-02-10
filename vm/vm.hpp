@@ -13,6 +13,8 @@
 
 #include "call_frame_list.hpp"
 
+#include "async_message.hpp"
+
 #include <pthread.h>
 #include <setjmp.h>
 
@@ -87,6 +89,7 @@ namespace rubinius {
 
   class VMManager;
   class Waiter;
+  class SignalThread;
 
   class SharedState : public RefCount {
   private:
@@ -95,6 +98,7 @@ namespace rubinius {
     int id_;
     GlobalLock lock_;
     VMMap vms_;
+    SignalThread* signal_thread_;
 
   public:
     Globals globals;
@@ -129,6 +133,14 @@ namespace rubinius {
       return lock_;
     }
 
+    SignalThread* signal_thread() {
+      return signal_thread_;
+    }
+
+    void set_signal_thread(SignalThread* thr) {
+      signal_thread_ = thr;
+    }
+
     VM* new_vm();
     void remove_vm(VM*);
 
@@ -139,6 +151,7 @@ namespace rubinius {
   private:
     int id_;
     CallFrame* saved_call_frame_;
+    ASyncMessageMailbox mailbox_;
 
   public:
     /* Data members */
@@ -156,6 +169,8 @@ namespace rubinius {
     Interrupts& interrupts;
     SymbolTable& symbols;
     ConfigParser *user_config;
+
+    bool check_local_interrupts;
 
     ThreadState thread_state_;
 
@@ -321,6 +336,18 @@ namespace rubinius {
 
     void install_waiter(Waiter& waiter);
     bool wakeup();
+
+    // Called when a thread should be delivered to this thread
+    void send_async_signal(int sig);
+
+    bool process_async(CallFrame* call_frame);
+
+    bool check_async(CallFrame* call_frame) {
+      if(check_local_interrupts) {
+        return process_async(call_frame);
+      }
+      return true;
+    }
   };
 };
 
