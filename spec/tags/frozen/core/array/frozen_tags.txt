@@ -1,0 +1,1 @@
+fails:Array#frozen? returns true if array is temporarily frozen while being sort!ed

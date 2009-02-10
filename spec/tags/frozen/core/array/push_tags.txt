@@ -1,0 +1,2 @@
+fails:Array#push raises a TypeError on a frozen array if modification takes place
+fails:Array#push does not raise on a frozen array if no modification is made

@@ -79,7 +79,6 @@ fails:Array#pack with format 'L_' processes count number of array elements if co
 fails:Array#pack with format 'L_' with star parameter processes all remaining array items
 fails:Array#pack with format 'f' consumes as many Floats as specified
 fails:Array#pack with format 'f' tries to convert the pack argument to a Float using #to_f
-fails:Array#pack with format 'f' calls #to_f to convert a String into a Float
 fails:Array#pack with format 'f' does not raise an error even if passed a integer which is too large to cast into float value
 fails:Array#pack with format 'f' raises a TypeError if corresponding array item is not Float
 fails:Array#pack with format 'f' returns a string with length 4
@@ -92,7 +91,6 @@ fails:Array#pack with format 'f' accepts the negative infinity
 fails:Array#pack with format 'f' accepts a NaN
 fails:Array#pack with format 'd' consumes as many Floats as specified
 fails:Array#pack with format 'd' tries to convert the pack argument to a Float using #to_f
-fails:Array#pack with format 'd' calls #to_f to convert a String into a Float
 fails:Array#pack with format 'd' does not raise an error even if passed a integer which is too large to cast into float value
 fails:Array#pack with format 'd' raises a TypeError if corresponding array item is not Float
 fails:Array#pack with format 'd' returns a string with length 8
@@ -105,7 +103,6 @@ fails:Array#pack with format 'd' accepts the negative infinity
 fails:Array#pack with format 'd' accepts a NaN
 fails:Array#pack with format 'e' consumes as many Floats as specified
 fails:Array#pack with format 'e' tries to convert the pack argument to a Float using #to_f
-fails:Array#pack with format 'e' calls #to_f to convert a String into a Float
 fails:Array#pack with format 'e' does not raise an error even if passed a integer which is too large to cast into float value
 fails:Array#pack with format 'e' raises a TypeError if corresponding array item is not Float
 fails:Array#pack with format 'e' returns a string with length 4
@@ -118,7 +115,6 @@ fails:Array#pack with format 'e' accepts the negative infinity
 fails:Array#pack with format 'e' accepts a NaN
 fails:Array#pack with format 'E' consumes as many Floats as specified
 fails:Array#pack with format 'E' tries to convert the pack argument to a Float using #to_f
-fails:Array#pack with format 'E' calls #to_f to convert a String into a Float
 fails:Array#pack with format 'E' does not raise an error even if passed a integer which is too large to cast into float value
 fails:Array#pack with format 'E' raises a TypeError if corresponding array item is not Float
 fails:Array#pack with format 'E' returns a string with length 8
@@ -131,7 +127,6 @@ fails:Array#pack with format 'E' accepts the negative infinity
 fails:Array#pack with format 'E' accepts a NaN
 fails:Array#pack with format 'g' consumes as many Floats as specified
 fails:Array#pack with format 'g' tries to convert the pack argument to a Float using #to_f
-fails:Array#pack with format 'g' calls #to_f to convert a String into a Float
 fails:Array#pack with format 'g' does not raise an error even if passed a integer which is too large to cast into float value
 fails:Array#pack with format 'g' raises a TypeError if corresponding array item is not Float
 fails:Array#pack with format 'g' returns a string with length 4
@@ -146,7 +141,6 @@ fails:Array#pack with format 'g' keeps order of nonnegative real numbers
 fails:Array#pack with format 'g' reverses order of nonpositive real numbers
 fails:Array#pack with format 'G' consumes as many Floats as specified
 fails:Array#pack with format 'G' tries to convert the pack argument to a Float using #to_f
-fails:Array#pack with format 'G' calls #to_f to convert a String into a Float
 fails:Array#pack with format 'G' does not raise an error even if passed a integer which is too large to cast into float value
 fails:Array#pack with format 'G' raises a TypeError if corresponding array item is not Float
 fails:Array#pack with format 'G' returns a string with length 8
@@ -189,3 +183,14 @@ fails(on 64bit):Array#pack with format 'l!' returns a string containing 8 bytes 
 fails(on 64bit):Array#pack with format 'l_' returns a string containing 8 bytes for an integer
 fails(on 64bit):Array#pack with format 'L!' returns a string containing 8 bytes for an integer
 fails(on 64bit):Array#pack with format 'L_' returns a string containing 8 bytes for an integer
+fails:Array#pack with format 'p' returns a pointer to internal byte sequence
+fails:Array#pack with format 'p' returns a pointer which is able to dereferenced into NUL terminated byte sequence
+fails:Array#pack with format 'p' returns a pointer which is able to dereferenced into a right value
+fails:Array#pack with format 'p' returns null pointer when passed nil
+fails:Array#pack with format 'p' raises a TypeError if corresponding array item is not String
+fails:Array#pack with format 'p' returns empty string if count = 0 with
+fails:Array#pack with format 'p' raises an ArgumentError if count is greater than array elements left
+fails:Array#pack with format 'P' returns a pointer to internal byte sequence
+fails:Array#pack with format 'P' returns a pointer which is able to dereferenced into NUL terminated byte sequence
+fails:Array#pack with format 'P' returns a pointer which is able to dereferenced into a right value
+fails:Array#pack with format 'P' raises a TypeError if corresponding array item is not String

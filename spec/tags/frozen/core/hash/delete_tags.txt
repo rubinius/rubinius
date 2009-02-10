@@ -1,0 +1,1 @@
+fails:Hash#delete raises a TypeError if called on a frozen instance

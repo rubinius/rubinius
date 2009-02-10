@@ -1,0 +1,1 @@
+fails:Array#<< raises a TypeError on a frozen array

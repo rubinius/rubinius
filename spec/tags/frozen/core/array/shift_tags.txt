@@ -1,0 +1,1 @@
+fails:Array#shift raises a TypeError on a frozen array
