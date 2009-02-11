@@ -47,6 +47,7 @@ namespace rubinius {
     method_missing(false),
     caller_(NULL) { }
 
+  /*
   Message::Message():
     state(NULL),
     arguments_array(NULL),
@@ -62,7 +63,7 @@ namespace rubinius {
     module(NULL),
     method_missing(false),
     caller_(NULL) { }
-
+    */
   void Message::set_arguments(STATE, Array* args) {
     use_array(args);
   }

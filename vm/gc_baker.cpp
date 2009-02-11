@@ -113,8 +113,8 @@ namespace rubinius {
     }
 
     // Walk all the call frames
-    for(CallFrameList::const_iterator i = call_frames.begin();
-        i != call_frames.end();
+    for(CallFrameList::iterator i = call_frames.begin();
+        i.more_p();
         i++) {
       walk_call_frame(*i);
     }

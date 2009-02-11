@@ -34,7 +34,7 @@ namespace rubinius {
   class Message {
   public:
 
-    Message();
+    Message() { }
     Message(STATE);
     Message(STATE, Array* ary);
 

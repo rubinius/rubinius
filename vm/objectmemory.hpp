@@ -9,6 +9,7 @@
 #include "object_position.hpp"
 
 #include "builtin/contexts.hpp"
+#include "call_frame_list.hpp"
 
 namespace rubinius {
 
@@ -33,7 +34,6 @@ namespace rubinius {
    */
 
   class CallFrame;
-  typedef std::list<CallFrame*> CallFrameList;
 
   class ObjectMemory {
   public:

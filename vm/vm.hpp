@@ -99,6 +99,7 @@ namespace rubinius {
     GlobalLock lock_;
     VMMap vms_;
     SignalThread* signal_thread_;
+    CallFrameList call_frame_list_;
 
   public:
     Globals globals;
@@ -143,6 +144,11 @@ namespace rubinius {
 
     VM* new_vm();
     void remove_vm(VM*);
+
+    CallFrameList& get_call_frame_list() {
+      call_frame_list_.clear();
+      return call_frame_list_;
+    }
 
     void add_call_frames(CallFrameList& frames, VM* current);
   };

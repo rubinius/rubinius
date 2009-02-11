@@ -269,7 +269,7 @@ namespace rubinius {
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
-    CallFrameList frames;
+    CallFrameList& frames = shared.get_call_frame_list();
     frames.push_back(call_frame);
     shared.add_call_frames(frames, this);
 
