@@ -128,7 +128,7 @@ namespace rubinius {
     Object* unshift(STATE, String* str, Fixnum* start_pos);
 
     // Ruby.primitive :iobuffer_fill
-    Object* fill(STATE, IO* io);
+    Object* fill(STATE, IO* io, CallFrame* calling_environment);
 
     void reset(STATE);
     String* drain(STATE);

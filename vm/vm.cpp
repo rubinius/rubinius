@@ -135,10 +135,13 @@ namespace rubinius {
      * @todo This needs to be handled through the environment.
      * (disabled epoll backend as it frequently caused hangs on epoll_wait)
      */
-    signal_events = new event::Loop(EVFLAG_FORKCHECK | EVBACKEND_SELECT | EVBACKEND_POLL);
-    events = signal_events;
+    // signal_events = new event::Loop(EVFLAG_FORKCHECK | EVBACKEND_SELECT | EVBACKEND_POLL);
+    // events = signal_events;
 
-    signal_events->start(new event::Child::Event(this));
+    // signal_events->start(new event::Child::Event(this));
+
+    events = 0;
+    signal_events = 0;
 
     VMMethod::init(this);
 
@@ -340,7 +343,7 @@ namespace rubinius {
     // First off, we don't want this thread ever receiving a signal.
     sigset_t mask;
     sigfillset(&mask);
-    if(pthread_sigmask(SIG_BLOCK, &mask, NULL) != 0) {
+    if(pthread_sigmask(SIG_SETMASK, &mask, NULL) != 0) {
       abort();
     }
 
@@ -366,10 +369,15 @@ namespace rubinius {
   bool VM::wakeup() {
     if(waiter_) {
       waiter_->wakeup();
+      waiter_ = NULL;
       return true;
     }
 
     return false;
+  }
+
+  void VM::clear_waiter() {
+    waiter_ = NULL;
   }
 
   void VM::send_async_signal(int sig) {

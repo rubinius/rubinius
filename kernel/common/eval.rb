@@ -27,7 +27,7 @@ module Kernel
   module_function :local_variables
 
   def binding
-    return Binding.setup(VariableScope.of_sender)
+    return Binding.setup(VariableScope.of_sender, CompiledMethod.of_sender)
 
     # If we are here because of eval, fetch the context of
     # the thing that invoked eval
@@ -42,15 +42,17 @@ module Kernel
 
   def eval(string, binding=nil, filename='(eval)', lineno=1)
     if !binding
-      binding = Binding.setup MethodContext.current.sender
+      binding = Binding.setup VariableScope.of_sender, CompiledMethod.of_sender
     elsif binding.__kind_of__ Proc
       binding = binding.binding
     elsif !binding.__kind_of__ Binding
       raise ArgumentError, "unknown type of binding"
     end
 
-    compiled_method = Compile.compile_string string, binding.context, filename, lineno
-    compiled_method.scope = binding.context.method.scope.dup
+    context = Compiler::Context.new binding.variables, binding.code
+
+    compiled_method = Compile.compile_string string, context, filename, lineno
+    compiled_method.scope = binding.code.scope.dup
 
     yield compiled_method if block_given?
 
@@ -63,7 +65,7 @@ module Kernel
     compiled_method.compile
 
     be = BlockEnvironment.new
-    be.under_context binding.context, compiled_method
+    be.under_context binding.variables, compiled_method
 
     # Pass the BlockEnvironment this binding was created from
     # down into the new BlockEnvironment we just created.

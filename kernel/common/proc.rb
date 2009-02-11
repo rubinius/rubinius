@@ -22,12 +22,12 @@ class Proc
     if compiled_method
       return Proc::CompiledMethod.new(compiled_method)
     elsif block_given?
-      env = MethodContext.current.block
+      env = block_given?
     else
       # Support for ancient pre-block-pass style:
       # def something; Proc.new; end
       # something { a_block } => Proc instance
-      env = MethodContext.current.sender.block
+      env = VariableScope.of_sender.block
     end
 
     if env

@@ -13,11 +13,89 @@
 
 #include "builtin/nativemethodcontext.hpp"
 
+#include "util/thread.hpp"
+#include "gc_root.hpp"
 
 namespace rubinius {
 
   /* Forwards */
   class Message;
+  class NativeMethodFraming;
+  class NativeMethodFrame;
+
+  typedef std::vector<TypedRoot<Object*>*> Handles;
+
+  class NativeMethodFraming {
+    VM* state_;
+    CallFrame* current_call_frame_;
+    NativeMethodFrame* current_nmc_frame_;
+    Handles global_handles_;
+
+  public:
+
+    VM* state() {
+      return state_;
+    }
+
+    void set_state(VM* vm) {
+      state_ = vm;
+    }
+
+    CallFrame* current_call_frame() {
+      return current_call_frame_;
+    }
+
+    void set_current_call_frame(CallFrame* frame) {
+      current_call_frame_ = frame;
+    }
+
+    NativeMethodFrame* current_nmc_frame() {
+      return current_nmc_frame_;
+    }
+
+    void set_current_nmc_frame(NativeMethodFrame* frame) {
+      current_nmc_frame_ = frame;
+    }
+
+    static NativeMethodFraming* get();
+
+    Handle get_handle(Object* obj);
+    Handle get_handle_global(Object* obj);
+    Object* get_object(Handle hndl);
+    Object* get_object_global(Handle hndl);
+    void delete_global(Handle hndl);
+    Handles& handles();
+
+    void mark_handles(ObjectMark& mark);
+
+    Object* block();
+  };
+
+  class NativeMethodFrame {
+    NativeMethodFrame* previous_;
+    Handles handles_;
+
+  public:
+    NativeMethodFrame(NativeMethodFrame* prev)
+      : previous_(prev)
+    {}
+
+    Handles& handles() {
+      return handles_;
+    }
+
+    NativeMethodFrame* previous() {
+      return previous_;
+    }
+
+    Handle get_handle(VM*, Object* obj);
+    Object* get_object(Handle hndl);
+
+    NativeMethodFrame* current() {
+      return NativeMethodFraming::get()->current_nmc_frame();
+    }
+  };
+
 
   /**
    *  The various special method arities from a
@@ -188,6 +266,8 @@ namespace rubinius {
      *  a different stack from the dispatcher.)
      */
     static void perform_call();
+
+    Object* call(STATE, NativeMethodFrame* frame, Message& msg);
 
     /** Return the functor cast into the specified type. */
     template <typename FunctorType>

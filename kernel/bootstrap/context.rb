@@ -4,8 +4,7 @@ class MethodContext
   end
 
   def self.current
-    cur = Rubinius.asm { push_context }
-    return cur.sender
+    raise "busted"
   end
 
   def activate(val)

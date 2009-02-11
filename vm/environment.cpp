@@ -42,14 +42,20 @@ namespace rubinius {
   }
 
   void Environment::enable_preemption() {
-    state->setup_preemption();
+    // state->setup_preemption();
   }
 
-  void Environment::start_signal_thread() {
-    NativeThread::block_all_signals();
+  static void null_func(int sig) {}
 
+  void Environment::start_signal_thread() {
     SignalThread* st = new SignalThread(state);
     st->run();
+
+    struct sigaction action;
+    action.sa_handler = null_func;
+    action.sa_flags = 0;
+    sigfillset(&action.sa_mask);
+    sigaction(7, &action, NULL);
 
     shared->set_signal_thread(st);
   }

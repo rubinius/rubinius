@@ -22,6 +22,8 @@
 
 #include "vm/object_utils.hpp"
 
+#include "native_thread.hpp"
+
 namespace rubinius {
   void IO::init(STATE) {
     GO(io).set(state->new_class("IO", G(object)));
@@ -128,7 +130,7 @@ namespace rubinius {
       break;
 
     case 0:
-      state->events->clear_by_fd(desc);
+      // state->events->clear_by_fd(desc);
       descriptor(state, Fixnum::from(-1));
       break;
 
@@ -285,12 +287,26 @@ namespace rubinius {
     return Fixnum::from(total_sz);
   }
 
-  Object* IOBuffer::fill(STATE, IO* io) {
+  Object* IOBuffer::fill(STATE, IO* io, CallFrame* calling_environment) {
     ssize_t bytes_read;
 
-    bytes_read = read(io->descriptor()->to_native(),
-                      at_unused(),
-                      left());
+  retry:
+    WaitingForSignal waiter;
+    state->install_waiter(waiter);
+
+    {
+      GlobalLock::UnlockGuard lock(state->global_lock());
+      bytes_read = read(io->descriptor()->to_native(),
+                        at_unused(),
+                        left());
+    }
+
+    if(bytes_read == -1 && errno == EINTR) {
+      if(!state->check_async(calling_environment)) return NULL;
+      goto retry;
+    }
+
+    state->clear_waiter();
 
     if(bytes_read > 0) {
       read_bytes(state, bytes_read);

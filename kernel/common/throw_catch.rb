@@ -80,7 +80,7 @@ module Kernel
       raise NameError.new("uncaught throw `#{sym}'", symbol)
     end
 
-    exc = ThrownValue.new(symbol, value, MethodContext.current.sender)
+    exc = ThrownValue.new(symbol, value, VariableScope.of_sender)
     Rubinius.asm(exc) do |v|
       v.bytecode(self)
       raise_exc

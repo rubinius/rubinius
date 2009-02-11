@@ -335,6 +335,7 @@ namespace rubinius {
     void run_gc_soon();
 
     void install_waiter(Waiter& waiter);
+    void clear_waiter();
     bool wakeup();
 
     // Called when a thread should be delivered to this thread

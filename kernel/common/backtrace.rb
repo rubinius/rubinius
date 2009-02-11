@@ -77,7 +77,7 @@ class Backtrace
   end
 
   def each
-    @locations.each { |f| yield f.last }
+    @locations.each { |f| yield f }
     self
   end
 

@@ -29,6 +29,8 @@
 #include "vm/quantum_stack_leap.hpp"
 #include "vm/vm.hpp"
 
+#include "vm/helpers.hpp"
+
 #include "subtend/ruby.h"
 
 
@@ -57,7 +59,7 @@ using rubinius::as;
 using rubinius::kind_of;
 using rubinius::native_int;
 using rubinius::try_as;
-
+using rubinius::NativeMethodFraming;
 
 namespace {
 
@@ -74,61 +76,30 @@ namespace {
                                       std::size_t arg_count,
                                       VALUE* arg_array)
   {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
+    Array* args = Array::create(framing->state(), arg_count);
 
-    // Create Message.. bit more involved than usual because we bypass some conveniences
-    Message& msg = context->message_from_c();
-
-    msg.send_site   = static_cast<SendSite*>(RBX_Qnil);
-    msg.name        = reinterpret_cast<Symbol*>(method_name);
-    msg.recv        = context->object_from(receiver);
-    msg.block       = RBX_Qnil;
-    msg.splat       = RBX_Qnil;
-    msg.stack       = 0;
-    msg.priv        = true;           /* @todo Double-check this */
-
-    msg.lookup_from = (msg.recv->lookup_begin(context->state()));
-
-    Array* args = Array::create(context->state(), arg_count);
-
-    for (std::size_t i = 0; i < arg_count; ++i) {
-      args->set(context->state(), i, context->object_from(arg_array[i]));
+    for(size_t i = 0; i < arg_count; i++) {
+      args->set(framing->state(), i, framing->get_object(arg_array[i]));
     }
 
-    msg.set_arguments(context->state(), args);
+    Object* recv = framing->get_object(receiver);
+    Object* ret = recv->send(framing->state(), framing->current_call_frame(),
+        reinterpret_cast<Symbol*>(method_name), args, RBX_Qnil);
 
-    /* Set temporary location info. NOTE: not reset, so off until next call. */
-    context->current_location(file, line);
-
-    context->action(NativeMethodContext::CALL_FROM_C);
-    store_current_execution_point_in(context->inside_c_method_point());
-    /* Execution resumes here when returning */
-
-    context = NativeMethodContext::current();
-
-    if (context->action() != NativeMethodContext::RETURNED_BACK_TO_C) {
-      jump_to_execution_point_in(context->dispatch_point());
-    }
-
-    context->action(NativeMethodContext::ORIGINAL_CALL);
-
-    VALUE ret = context->value_returned_to_c();
-
-    context->value_returned_to_c(RBX_Qnil);
-
-    return ret;
+    return framing->get_handle(ret);
   }
 
   /** Converts a native type (int, uint, long) to a suitable Integer. */
   template<typename NativeType>
     VALUE hidden_native2num(NativeType number) {
-      NativeMethodContext* context = NativeMethodContext::current();
-      return context->handle_for(Integer::from(context->state(), number));
+      NativeMethodFraming* framing = NativeMethodFraming::get();
+      return framing->get_handle(Integer::from(framing->state(), number));
     }
 
   /** Make sure the name has the given prefix. */
   static Symbol* prefixed_by(std::string prefix, std::string name) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     if(name.compare(0UL, prefix.size(), prefix) != 0) {
       std::ostringstream str;
@@ -137,14 +108,14 @@ namespace {
     }
 
     /* @todo Need to strdup here to not point to junk but can it leak? */
-    return context->state()->symbol(strdup(name.c_str()));
+    return framing->state()->symbol(strdup(name.c_str()));
   }
 
   /** Make sure the name has the given prefix. */
   static Symbol* prefixed_by(std::string prefix, ID name) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    return prefixed_by(prefix, reinterpret_cast<Symbol*>(name)->c_str(context->state()));
+    return prefixed_by(prefix, reinterpret_cast<Symbol*>(name)->c_str(framing->state()));
   }
 
 }
@@ -262,97 +233,97 @@ extern "C" {
    *  this side.
    */
   VALUE rbx_subtend_hidden_global(RbxSubtendHiddenGlobal type) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     /* @todo Move these to static */
     switch (type) {
     case RbxArray:
-      return context->handle_for_global(context->state()->globals.array.get());
+      return framing->get_handle_global(framing->state()->globals.array.get());
     case RbxBignum:
-      return context->handle_for_global(context->state()->globals.bignum.get());
+      return framing->get_handle_global(framing->state()->globals.bignum.get());
     case RbxClass:
-      return context->handle_for_global(context->state()->globals.klass.get());
+      return framing->get_handle_global(framing->state()->globals.klass.get());
     case RbxData:
-      return context->handle_for_global(context->state()->globals.data.get());
+      return framing->get_handle_global(framing->state()->globals.data.get());
     case RbxFalse:
-      return context->handle_for_global(context->state()->globals.false_class.get());
+      return framing->get_handle_global(framing->state()->globals.false_class.get());
     case RbxFixnum:
-      return context->handle_for_global(context->state()->globals.fixnum_class.get());
+      return framing->get_handle_global(framing->state()->globals.fixnum_class.get());
     case RbxFloat:
-      return context->handle_for_global(context->state()->globals.floatpoint.get());
+      return framing->get_handle_global(framing->state()->globals.floatpoint.get());
     /* Hash is not builtin, @see ruby.h */
     case RbxInteger:
-      return context->handle_for_global(context->state()->globals.integer.get());
+      return framing->get_handle_global(framing->state()->globals.integer.get());
     case RbxIO:
-      return context->handle_for_global(context->state()->globals.io.get());
+      return framing->get_handle_global(framing->state()->globals.io.get());
     case RbxModule:
-      return context->handle_for_global(context->state()->globals.module.get());
+      return framing->get_handle_global(framing->state()->globals.module.get());
     case RbxNil:
-      return context->handle_for_global(context->state()->globals.nil_class.get());
+      return framing->get_handle_global(framing->state()->globals.nil_class.get());
     case RbxObject:
-      return context->handle_for_global(context->state()->globals.object.get());
+      return framing->get_handle_global(framing->state()->globals.object.get());
     case RbxRegexp:
-      return context->handle_for_global(context->state()->globals.regexp.get());
+      return framing->get_handle_global(framing->state()->globals.regexp.get());
     case RbxString:
-      return context->handle_for_global(context->state()->globals.string.get());
+      return framing->get_handle_global(framing->state()->globals.string.get());
     case RbxSymbol:
-      return context->handle_for_global(context->state()->globals.symbol.get());
+      return framing->get_handle_global(framing->state()->globals.symbol.get());
     case RbxThread:
-      return context->handle_for_global(context->state()->globals.thread.get());
+      return framing->get_handle_global(framing->state()->globals.thread.get());
     case RbxTrue:
-      return context->handle_for_global(context->state()->globals.true_class.get());
+      return framing->get_handle_global(framing->state()->globals.true_class.get());
     default:
       return Qnil;
     }
   }
 
   VALUE rbx_subtend_hidden_id2sym(ID id) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    return context->handle_for(reinterpret_cast<Symbol*>(id));
+    return framing->get_handle(reinterpret_cast<Symbol*>(id));
   }
 
   void rbx_subtend_hidden_infect(VALUE obj1, VALUE obj2) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* object1 = context->object_from(obj1);
-    Object* object2 = context->object_from(obj2);
+    Object* object1 = framing->get_object(obj1);
+    Object* object2 = framing->get_object(obj2);
 
     object1->infect(object2);
   }
 
   int rbx_subtend_hidden_nil_p(VALUE expression_result) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    return RBX_NIL_P(context->object_from(expression_result));
+    return RBX_NIL_P(framing->get_object(expression_result));
   }
 
   long rbx_subtend_hidden_rstring_len(VALUE string_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    String* string = as<String>(context->object_from(string_handle));
+    String* string = as<String>(framing->get_object(string_handle));
 
     return string->size();
   }
 
   char* rbx_subtend_hidden_rstring_ptr(VALUE string_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    String* string = as<String>(context->object_from(string_handle));
+    String* string = as<String>(framing->get_object(string_handle));
 
     return string->byte_address();
   }
 
   int rbx_subtend_hidden_rtest(VALUE expression_result) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    return RBX_RTEST(context->object_from(expression_result));
+    return RBX_RTEST(framing->get_object(expression_result));
   }
 
   ID rbx_subtend_hidden_sym2id(VALUE symbol_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    return reinterpret_cast<ID>(context->object_from(symbol_handle));
+    return reinterpret_cast<ID>(framing->get_object(symbol_handle));
   }
 
   void rbx_subtend_hidden_define_method(const char* file,
@@ -362,18 +333,18 @@ extern "C" {
                                         int arity,
                                         RbxMethodKind kind)
   {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    VM* state = context->state();
+    VM* state = framing->state();
     Symbol* method_name = state->symbol(name);
 
     Module* module = NULL;
 
     if (kind == RbxSingletonMethod) {
-      module = as<Module>(context->object_from(target)->metaclass(context->state()));
+      module = as<Module>(framing->get_object(target)->metaclass(framing->state()));
     }
     else {
-      module = as<Module>(context->object_from(target));
+      module = as<Module>(framing->get_object(target));
     }
 
     NativeMethod* method = NULL;
@@ -412,9 +383,9 @@ extern "C" {
 
   /** Shares impl. with the other NUM2*, change all if modifying. */
   int NUM2INT(VALUE num_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* number = context->object_from(num_handle);
+    Object* number = framing->get_object(num_handle);
 
     if(Fixnum* fix = try_as<Fixnum>(number)) {
       return fix->to_int();
@@ -432,9 +403,9 @@ extern "C" {
 
   /** Shares impl. with the other NUM2*, change all if modifying. */
   long int NUM2LONG(VALUE num_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* number = context->object_from(num_handle);
+    Object* number = framing->get_object(num_handle);
 
     if(Fixnum* fix = try_as<Fixnum>(number)) {
       return fix->to_long();
@@ -452,9 +423,9 @@ extern "C" {
 
   /** Shares impl. with the other NUM2*, change all if modifying. */
   unsigned int NUM2UINT(VALUE num_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* number = context->object_from(num_handle);
+    Object* number = framing->get_object(num_handle);
 
     if(Fixnum* fix = try_as<Fixnum>(number)) {
       return fix->to_uint();
@@ -483,18 +454,18 @@ extern "C" {
   }
 
   VALUE rb_Array(VALUE obj_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* obj = context->object_from(obj_handle);
+    Object* obj = framing->get_object(obj_handle);
 
     if (kind_of<Array>(obj)) {
       return obj_handle;
     }
 
-    Array* array = Array::create(context->state(), 1);
-    array->set(context->state(), 0, obj);
+    Array* array = Array::create(framing->state(), 1);
+    array->set(framing->state(), 0, obj);
 
-    return context->handle_for(array);
+    return framing->get_handle(array);
   }
 
   VALUE rb_ary_clear(VALUE self_handle) {
@@ -507,10 +478,10 @@ extern "C" {
 
   /* @todo Check 64-bit? */
   VALUE rb_ary_entry(VALUE self_handle, int index) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* self = as<Array>(context->object_from(self_handle));
-    return context->handle_for(self->get(context->state(), index));
+    Array* self = as<Array>(framing->get_object(self_handle));
+    return framing->get_handle(self->get(framing->state(), index));
   }
 
   VALUE rb_ary_join(VALUE self_handle, VALUE separator_handle) {
@@ -521,55 +492,55 @@ extern "C" {
   static const unsigned long RbxArrayDefaultCapacity = 16;
 
   VALUE rb_ary_new() {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* array = Array::create(context->state(), RbxArrayDefaultCapacity);
-    return context->handle_for(array);
+    Array* array = Array::create(framing->state(), RbxArrayDefaultCapacity);
+    return framing->get_handle(array);
   }
 
   /* Shares implementation with rb_ary_new4! Change both if needed. */
   VALUE rb_ary_new2(unsigned long length) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* array = Array::create(context->state(), (length * 2));
-    array->start(context->state(), Fixnum::from(0));
-    array->total(context->state(), Fixnum::from(length));
+    Array* array = Array::create(framing->state(), (length * 2));
+    array->start(framing->state(), Fixnum::from(0));
+    array->total(framing->state(), Fixnum::from(length));
     /* OK, so we are probably screwed anyway if a Fixnum is too small. :) */
 
-    return context->handle_for(array);
+    return framing->get_handle(array);
   }
 
   /* Shares implementation with rb_ary_new2! Change both if needed. */
   VALUE rb_ary_new4(unsigned long length, const VALUE* object_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* array = Array::create(context->state(), (length * 2));
-    array->start(context->state(), Fixnum::from(0));
-    array->total(context->state(), Fixnum::from(length));
+    Array* array = Array::create(framing->state(), (length * 2));
+    array->start(framing->state(), Fixnum::from(0));
+    array->total(framing->state(), Fixnum::from(length));
 
     if (object_handle) {
-      Object* object = context->object_from(*object_handle);
+      Object* object = framing->get_object(*object_handle);
 
       for(std::size_t i = 0; i < length; ++i) {
-        array->set(context->state(), i, object);
+        array->set(framing->state(), i, object);
       }
     }
 
-    return context->handle_for(array);
+    return framing->get_handle(array);
   }
 
   VALUE rb_ary_pop(VALUE self_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* self = as<Array>(context->object_from(self_handle));
-    return context->handle_for(self->pop(context->state()));
+    Array* self = as<Array>(framing->get_object(self_handle));
+    return framing->get_handle(self->pop(framing->state()));
   }
 
   VALUE rb_ary_push(VALUE self_handle, VALUE object_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* self = as<Array>(context->object_from(self_handle));
-    self->append(context->state(), context->object_from(object_handle));
+    Array* self = as<Array>(framing->get_object(self_handle));
+    self->append(framing->state(), framing->get_object(object_handle));
 
     return self_handle;
   }
@@ -579,24 +550,24 @@ extern "C" {
   }
 
   VALUE rb_ary_shift(VALUE self_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* self = as<Array>(context->object_from(self_handle));
-    return context->handle_for(self->shift(context->state()));
+    Array* self = as<Array>(framing->get_object(self_handle));
+    return framing->get_handle(self->shift(framing->state()));
   }
 
   size_t rb_ary_size(VALUE self_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* self = as<Array>(context->object_from(self_handle));
+    Array* self = as<Array>(framing->get_object(self_handle));
 
     return self->size();
   }
 
   void rb_ary_store(VALUE self_handle, long int index, VALUE object_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* self = as<Array>(context->object_from(self_handle));
+    Array* self = as<Array>(framing->get_object(self_handle));
     size_t total = self->size();
 
     if(index < 0) {
@@ -609,14 +580,14 @@ extern "C" {
       rb_raise(rb_eIndexError, error.str().c_str());
     }
 
-    self->set(context->state(), index, context->object_from(object_handle));
+    self->set(framing->state(), index, framing->get_object(object_handle));
   }
 
   VALUE rb_ary_unshift(VALUE self_handle, VALUE object_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Array* self = as<Array>(context->object_from(self_handle));
-    self->unshift(context->state(), context->object_from(object_handle));
+    Array* self = as<Array>(framing->get_object(self_handle));
+    self->unshift(framing->state(), framing->get_object(object_handle));
 
     return self_handle;
   }
@@ -626,8 +597,8 @@ extern "C" {
   }
 
   int rb_block_given_p() {
-    NativeMethodContext* context = NativeMethodContext::current();
-    return RBX_RTEST(context->block());
+    NativeMethodFraming* framing = NativeMethodFraming::get();
+    return RBX_RTEST(framing->block());
   }
 
   VALUE rb_check_array_type(VALUE object_handle) {
@@ -641,8 +612,8 @@ extern "C" {
   VALUE rb_check_convert_type(VALUE object_handle, int /*type*/,
                               const char* type_name, const char* method_name)
   {
-    NativeMethodContext* context = NativeMethodContext::current();
-    VALUE name = context->handle_for(String::create(context->state(), method_name));
+    NativeMethodFraming* framing = NativeMethodFraming::get();
+    VALUE name = framing->get_handle(String::create(framing->state(), method_name));
 
     if(RTEST(rb_funcall(object_handle, rb_intern("respond_to?"), 1, name)) ) {
       return rb_funcall2(object_handle, rb_intern(method_name), 0, NULL);
@@ -652,9 +623,9 @@ extern "C" {
   }
 
   VALUE rb_class_name(VALUE class_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
-    Class* class_object = as<Class>(context->object_from(class_handle));
-    return context->handle_for(class_object->name()->to_str(context->state()));
+    NativeMethodFraming* framing = NativeMethodFraming::get();
+    Class* class_object = as<Class>(framing->get_object(class_handle));
+    return framing->get_handle(class_object->name()->to_str(framing->state()));
   }
 
   VALUE rb_class_new_instance(int arg_count, VALUE* args, VALUE class_handle) {
@@ -662,16 +633,16 @@ extern "C" {
   }
 
   VALUE rb_class_of(VALUE object_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
-    Class* class_object = context->object_from(object_handle)->class_object(context->state());
-    return context->handle_for_global(class_object);
+    NativeMethodFraming* framing = NativeMethodFraming::get();
+    Class* class_object = framing->get_object(object_handle)->class_object(framing->state());
+    return framing->get_handle_global(class_object);
   }
 
   char* rb_class2name(VALUE class_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
-    Class* class_object = as<Class>(context->object_from(class_handle));
+    NativeMethodFraming* framing = NativeMethodFraming::get();
+    Class* class_object = as<Class>(framing->get_object(class_handle));
 
-    return ::strdup(class_object->name()->c_str(context->state()));
+    return ::strdup(class_object->name()->c_str(framing->state()));
   }
 
   /** @todo   This is horrible. Refactor. --rue */
@@ -701,18 +672,18 @@ extern "C" {
   }
 
   int rb_const_defined(VALUE module_handle, ID const_id) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     VALUE result = rb_funcall(module_handle, rb_intern("const_defined?"), 1, ID2SYM(const_id));
-    return RBX_RTEST(context->object_from(result));
+    return RBX_RTEST(framing->get_object(result));
   }
 
   VALUE rb_const_get(VALUE module_handle, ID name) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Module* module = as<Module>(context->object_from(module_handle));
+    Module* module = as<Module>(framing->get_object(module_handle));
 
-    return context->handle_for(module->get_const(context->state(),
+    return framing->get_handle(module->get_const(framing->state(),
                                                  reinterpret_cast<Symbol*>(name)));
   }
 
@@ -729,41 +700,41 @@ extern "C" {
   }
 
   VALUE rb_cvar_defined(VALUE module_handle, ID name) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     return rb_funcall(module_handle, rb_intern("class_variable_defined?"),
                       1,
-                      context->handle_for(prefixed_by("@@", name)));
+                      framing->get_handle(prefixed_by("@@", name)));
   }
 
   VALUE rb_cvar_get(VALUE module_handle, ID name) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     return rb_funcall(module_handle, rb_intern("class_variable_set"),
                       1,
-                      context->handle_for(prefixed_by("@@", name)));
+                      framing->get_handle(prefixed_by("@@", name)));
   }
 
   VALUE rb_cvar_set(VALUE module_handle, ID name, VALUE value) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     return rb_funcall(module_handle, rb_intern("class_variable_set"),
                       2,
-                      context->handle_for(prefixed_by("@@", name)),
+                      framing->get_handle(prefixed_by("@@", name)),
                       value);
   }
 
   VALUE rb_data_object_alloc(VALUE klass, RUBY_DATA_FUNC mark,
                              RUBY_DATA_FUNC free, void* ptr) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Class* data_klass = as<Class>(context->object_from(klass));
+    Class* data_klass = as<Class>(framing->get_object(klass));
 
-    Data* data = Data::create(context->state(), ptr, mark, free);
+    Data* data = Data::create(framing->state(), ptr, mark, free);
 
-    data->klass(context->state(), data_klass);
+    data->klass(framing->state(), data_klass);
 
-    return context->handle_for(data);
+    return framing->get_handle(data);
   }
 
   void rb_define_alias(VALUE module_handle, const char* new_name, const char* old_name) {
@@ -793,25 +764,25 @@ extern "C" {
 
   /** @note   Shares code with rb_define_module_under, change there too. --rue */
   VALUE rb_define_class_under(VALUE parent_handle, const char* name, VALUE superclass_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Module* parent = as<Module>(context->object_from(parent_handle));
-    Class* superclass = as<Class>(context->object_from(superclass_handle));
-    Symbol* constant = context->state()->symbol(name);
+    Module* parent = as<Module>(framing->get_object(parent_handle));
+    Class* superclass = as<Class>(framing->get_object(superclass_handle));
+    Symbol* constant = framing->state()->symbol(name);
 
     bool created = false;
-    Class* cls = context->task()->open_class(parent, superclass, constant, &created);
+    Class* cls = rubinius::Helpers::open_class(framing->state(), parent, superclass, constant, &created);
 
-    return context->handle_for_global(cls);
+    return framing->get_handle_global(cls);
   }
 
   void rb_define_const(VALUE module_handle, const char* name, VALUE obj_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Module* module = as<Module>(context->object_from(module_handle));
-    Object* object = context->object_from(obj_handle);
+    Module* module = as<Module>(framing->get_object(module_handle));
+    Object* object = framing->get_object(obj_handle);
 
-    module->set_const(context->state(), name,  object);
+    module->set_const(framing->state(), name,  object);
   }
 
   VALUE rb_define_module(const char* name) {
@@ -825,69 +796,69 @@ extern "C" {
 
   /** @note   Shares code with rb_define_class_under, change there too. --rue */
   VALUE rb_define_module_under(VALUE parent_handle, const char* name) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Module* parent = as<Module>(context->object_from(parent_handle));
-    Symbol* constant = context->state()->symbol(name);
+    Module* parent = as<Module>(framing->get_object(parent_handle));
+    Symbol* constant = framing->state()->symbol(name);
 
-    Module* module = context->task()->open_module(parent, constant);
+    Module* module = rubinius::Helpers::open_module(framing->state(), parent, constant);
 
-    return context->handle_for_global(module);
+    return framing->get_handle_global(module);
   }
 
   void rb_free_global(VALUE global_handle) {
     /* Failing silently is OK by MRI. */
     if(global_handle < 0) {
-      NativeMethodContext* context = NativeMethodContext::current();
-      context->delete_global(global_handle);
+      NativeMethodFraming* framing = NativeMethodFraming::get();
+      framing->delete_global(global_handle);
     }
   }
 
   void rb_gc_mark(VALUE ptr) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* object = context->object_from(ptr);
+    Object* object = framing->get_object(ptr);
 
     if(object->reference_p()) {
       Object* res = VM::current_state()->current_mark.call(object);
 
       if(res) {
-        context->handles()[ptr] = res;
+        framing->handles()[ptr]->set(res);
       }
     }
   }
 
   /** @todo   Check logic. This alters the VALUE to be a global handler. --rue */
   void rb_global_variable(VALUE* address) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* object = context->object_from(*address);
+    Object* object = framing->get_object(*address);
 
     if(REFERENCE_P(object)) {
-      *address = context->handle_for_global(object);
+      *address = framing->get_handle_global(object);
     }
   }
 
   VALUE rb_gv_get(const char* name) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     VALUE Globals = rb_const_get(rb_cObject, rb_intern("Globals"));
 
     return rb_funcall(Globals,
                       rb_intern("[]"),
                       1,
-                      context->handle_for(prefixed_by("$", name)));
+                      framing->get_handle(prefixed_by("$", name)));
   }
 
   VALUE rb_gv_set(const char* name, VALUE value) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     VALUE Globals = rb_const_get(rb_cObject, rb_intern("Globals"));
 
     return rb_funcall(Globals,
                       rb_intern("[]="),
                       2,
-                      context->handle_for(prefixed_by("$", name)),
+                      framing->get_handle(prefixed_by("$", name)),
                       value);
   }
 
@@ -896,24 +867,24 @@ extern "C" {
   }
 
   ID rb_intern(const char* string) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    return reinterpret_cast<ID>(context->state()->symbol(string));
+    return reinterpret_cast<ID>(framing->state()->symbol(string));
   }
 
   VALUE rb_obj_alloc(VALUE class_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     // TODO using Object as the template param means this can't allocate builtin
     // types properly!
-    Object* object = context->state()->new_object<Object>(as<Class>(context->object_from(class_handle)));
-    return context->handle_for(object);
+    Object* object = framing->state()->new_object<Object>(as<Class>(framing->get_object(class_handle)));
+    return framing->get_handle(object);
   }
 
   VALUE rb_obj_as_string(VALUE obj_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* object = context->object_from(obj_handle);
+    Object* object = framing->get_object(obj_handle);
 
     if (kind_of<String>(object)) {
       return obj_handle;
@@ -947,22 +918,22 @@ extern "C" {
   }
 
   VALUE rb_ivar_get(VALUE self_handle, ID ivar_name) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* object = context->object_from(self_handle);
+    Object* object = framing->get_object(self_handle);
 
-    return context->handle_for(object->get_ivar(context->state(),
+    return framing->get_handle(object->get_ivar(framing->state(),
                                prefixed_by("@", ivar_name)));
   }
 
   VALUE rb_ivar_set(VALUE self_handle, ID ivar_name, VALUE value) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* receiver = context->object_from(self_handle);
+    Object* receiver = framing->get_object(self_handle);
 
-    receiver->set_ivar(context->state(),
+    receiver->set_ivar(framing->state(),
                        prefixed_by("@", ivar_name),
-                       context->object_from(value));
+                       framing->get_object(value));
 
     return value;
   }
@@ -976,14 +947,14 @@ extern "C" {
   }
 
   int rb_respond_to(VALUE obj_handle, ID method_name) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     VALUE result = rb_funcall(obj_handle,
                               rb_intern("respond_to?"),
                               1,
                               ID2SYM(method_name)) ;
 
-    return RBX_RTEST(context->object_from(result));
+    return RBX_RTEST(framing->get_object(result));
   }
 
   int rb_safe_level() {
@@ -991,7 +962,7 @@ extern "C" {
   }
 
   int rb_scan_args(int argc, const VALUE* argv, const char* spec, ...) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     int n, i = 0;
     const char *p = spec;
@@ -1045,7 +1016,7 @@ extern "C" {
 
     if (*p == '&') {
       var = va_arg(vargs, VALUE*);
-      *var = context->handle_for(context->block());
+      *var = framing->get_handle(framing->block());
       p++;
     }
     va_end(vargs);
@@ -1090,10 +1061,10 @@ extern "C" {
 
   /** @todo   Should this be a global handle? Surely not.. --rue */
   VALUE rb_singleton_class(VALUE object_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Class* metaclass = context->object_from(object_handle)->metaclass(context->state());
-    return context->handle_for(metaclass);
+    Class* metaclass = framing->get_object(object_handle)->metaclass(framing->state());
+    return framing->get_handle(metaclass);
   }
 
   VALUE rb_String(VALUE object_handle) {
@@ -1101,10 +1072,10 @@ extern "C" {
   }
 
   VALUE rb_str_append(VALUE self_handle, VALUE other_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    String* self = as<String>(context->object_from(self_handle));
-    self->append(context->state(), as<String>(context->object_from(other_handle)));
+    String* self = as<String>(framing->get_object(self_handle));
+    self->append(framing->state(), as<String>(framing->get_object(other_handle)));
 
     return self_handle;
   }
@@ -1114,10 +1085,10 @@ extern "C" {
   }
 
   VALUE rb_str_buf_cat(VALUE string_handle, const char* other, size_t size) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    String* string = as<String>(context->object_from(string_handle));
-    string->append(context->state(), other, size);
+    String* string = as<String>(framing->get_object(string_handle));
+    string->append(framing->state(), other, size);
 
     return string_handle;
   }
@@ -1127,12 +1098,12 @@ extern "C" {
   }
 
   VALUE rb_str_cat(VALUE self_handle, const char* other, size_t length) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    String* self = as<String>(context->object_from(self_handle));
-    String* combo = self->string_dup(context->state());
+    String* self = as<String>(framing->get_object(self_handle));
+    String* combo = self->string_dup(framing->state());
 
-    return context->handle_for(combo->append(context->state(), other, length));
+    return framing->get_handle(combo->append(framing->state(), other, length));
   }
 
   VALUE rb_str_cat2(VALUE string_handle, const char* other) {
@@ -1144,9 +1115,9 @@ extern "C" {
   }
 
   VALUE rb_str_concat(VALUE self_handle, VALUE other_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    Object* other = context->object_from(other_handle);
+    Object* other = framing->get_object(other_handle);
 
     /* Could be a character code. Only up to 256 supported. */
     if(Fixnum* character = try_as<Fixnum>(other)) {
@@ -1159,35 +1130,35 @@ extern "C" {
   }
 
   VALUE rb_str_dup(VALUE self_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    String* self = as<String>(context->object_from(self_handle));
-    return context->handle_for(self->string_dup(context->state()));
+    String* self = as<String>(framing->get_object(self_handle));
+    return framing->get_handle(self->string_dup(framing->state()));
   }
 
   /** @todo Refactor into a String::replace(). --rue */
   void rb_str_flush_char_ptr(VALUE string_handle, char* c_string, size_t length) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    ByteArray* data = ByteArray::create(context->state(), (length + 1));
+    ByteArray* data = ByteArray::create(framing->state(), (length + 1));
     std::memcpy(data->bytes, c_string, length);
     data->bytes[length] = '\0';
 
-    Integer* bytes = Integer::from(context->state(), length);
+    Integer* bytes = Integer::from(framing->state(), length);
 
-    String* string = as<String>(context->object_from(string_handle));
-    string->num_bytes(context->state(), bytes);
-    string->characters(context->state(), bytes);
-    string->hash_value(context->state(), reinterpret_cast<Integer*>(Qnil));
+    String* string = as<String>(framing->get_object(string_handle));
+    string->num_bytes(framing->state(), bytes);
+    string->characters(framing->state(), bytes);
+    string->hash_value(framing->state(), reinterpret_cast<Integer*>(Qnil));
     /* Assume the encoding stays the same. */
 
-    string->data(context->state(), data);
+    string->data(framing->state(), data);
   }
 
   char rb_str_get_char(VALUE self_handle, int offset) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    String* self = as<String>(context->object_from(self_handle));
+    String* self = as<String>(framing->get_object(self_handle));
 
     /* @todo What kind of OOB checking is required? */
     size_t offset_as_size = offset;
@@ -1200,16 +1171,16 @@ extern "C" {
   }
 
   size_t rb_str_get_char_len(VALUE self_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     /* @todo Is this correct? Is assuming no wide characters valid? */
-    return as<String>(context->object_from(self_handle))->size();
+    return as<String>(framing->get_object(self_handle))->size();
   }
 
   char* rb_str_get_char_ptr(VALUE str_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    String* string = as<String>(context->object_from(str_handle));
+    String* string = as<String>(framing->get_object(str_handle));
     size_t length = string->size();
 
     char* buffer = ALLOC_N(char, (length + 1));
@@ -1220,9 +1191,9 @@ extern "C" {
   }
 
   VALUE rb_str_new(const char* string, size_t length) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    return context->handle_for(String::create(context->state(), string, length));
+    return framing->get_handle(String::create(framing->state(), string, length));
   }
 
   VALUE rb_str_new2(const char* string) {
@@ -1272,10 +1243,10 @@ extern "C" {
       rb_raise(rb_eArgError, "NULL pointer given");
     }
 
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
-    return context->handle_for(
-      String::create(context->state(), string, std::strlen(string))->taint()
+    return framing->get_handle(
+      String::create(framing->state(), string, std::strlen(string))->taint()
     );
   }
 
@@ -1331,13 +1302,13 @@ extern "C" {
   }
 
   VALUE rb_yield(VALUE argument_handle) {
-    NativeMethodContext* context = NativeMethodContext::current();
+    NativeMethodFraming* framing = NativeMethodFraming::get();
 
     if (!rb_block_given_p()) {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
-    VALUE block_handle = context->handle_for(context->block());
+    VALUE block_handle = framing->get_handle(framing->block());
 
     return rb_funcall(block_handle, rb_intern("call"), 1, argument_handle);
   }

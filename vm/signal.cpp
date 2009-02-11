@@ -46,6 +46,8 @@ namespace rubinius {
   }
 
   void SignalThread::add_signal(int sig) {
+    if(!sigismember(&signal_set_, sig)) return;
+
     lock_.lock();
     sigdelset(&signal_set_, sig);
 
@@ -56,7 +58,12 @@ namespace rubinius {
     //
     // When the signal arrives, the handler will be run on the signal
     // thread, since everyone else has signals blocked.
-    ::signal(sig, handle_signal);
+    struct sigaction action;
+    action.sa_handler = handle_signal;
+    action.sa_flags = SA_RESTART;
+    sigfillset(&action.sa_mask);
+
+    assert(sigaction(sig, &action, NULL) == 0);
     lock_.unlock();
 
     wake_loop();

@@ -135,6 +135,7 @@ namespace rubinius {
     }
     mutex.unlock();
 
+    state->clear_waiter();
     if(!state->check_async(call_frame)) return NULL;
 
     return Integer::from(state, time(0) - before);

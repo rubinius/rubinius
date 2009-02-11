@@ -29,7 +29,7 @@ class BlockEnvironment
   end
 
   def receiver=(obj)
-    @scope.self = obj
+    @top_scope.self = obj
   end
 
   ##

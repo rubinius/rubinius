@@ -322,7 +322,7 @@ class Compiler
         if @in_module
           g.push :self
         else
-          g.push_context
+          g.push_scope
         end
         g.push_literal @name
         g.send :class_variable_get, 1
@@ -332,7 +332,7 @@ class Compiler
         if @in_module
           g.push :self
         else
-          g.push_context
+          g.push_scope
         end
 
         done =     g.new_label
@@ -360,7 +360,7 @@ class Compiler
         if @in_module
           g.push :self
         else
-          g.push_context
+          g.push_scope
         end
 
         #the value is on the stack if @value is nil
@@ -1269,7 +1269,7 @@ class Compiler
           g.push_self
           g.send @name, 0
         elsif @variable.kind_of? EvalExpression::DynamicLocal
-          g.push_context
+          g.push_variables
           g.push_literal @variable.name
           g.send :get_eval_local, 1, false
         elsif @variable.on_stack?
@@ -1302,7 +1302,7 @@ class Compiler
         # stack (ie, an masgn)
 
         if @variable.kind_of? EvalExpression::DynamicLocal
-          g.push_context
+          g.push_variables
           g.swap
           g.push_literal @variable.name
           g.swap
@@ -2049,17 +2049,6 @@ class Compiler
         end
       end
 
-      def self.emit_lre(g, var)
-        g.find_cpath_top_const :LongReturnException
-        g.swap
-
-        g.push_context
-        g.swap
-        g.send :directed_to, 2
-
-        # Now raise it.
-        g.raise_exc
-      end
     end
 
     class SClass
@@ -2280,7 +2269,7 @@ class Compiler
 
     class Undef
       def bytecode(g)
-        g.push_context
+        g.push_scope
         g.push_literal @name
         g.send :__undef_method__, 1
       end

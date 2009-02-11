@@ -29,7 +29,7 @@ namespace rubinius {
       sigset_t set;
       sigfillset(&set);
 
-      pthread_sigmask(SIG_BLOCK, &set, NULL);
+      pthread_sigmask(SIG_SETMASK, &set, NULL);
     }
 
   };
@@ -50,6 +50,19 @@ namespace rubinius {
 
     void wakeup() {
       cond_.signal();
+    }
+  };
+
+  class WaitingForSignal : public Waiter {
+    pthread_t target_;
+
+  public:
+    WaitingForSignal()
+      : target_(pthread_self())
+    {}
+
+    void wakeup() {
+      pthread_kill(target_, 7);
     }
   };
 }
