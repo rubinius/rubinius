@@ -583,17 +583,16 @@ file dep_file => srcs + hdrs + vm_srcs + generated do |t|
 
   flags = FLAGS.join ' '
   flags << " -D__STDC_LIMIT_MACROS"
+  flags.slice!(/-Wno-deprecated/)
 
-  cmd = "makedepend -f- #{includes} -- #{flags} -- #{t.prerequisites.join(' ')}"
+  cmd = "gcc -MM #{includes} #{flags} #{t.prerequisites.join(' ')}"
   cmd << ' 2>/dev/null' unless $verbose
-  warn "makedepend ..."
+  warn "`#{cmd}`" if $verbose
+
+  warn "makedepend ... (`gcc -MM`)"
 
   dep = `#{cmd}`
-  if $?.exitstatus != 0
-    fail "error executing `makedepend`; is it in your $PATH\?"
-  end
-  dep.gsub!(%r% /usr/include\S+%, '') # speeds up rake a lot
-  dep.gsub!(%r%^\S+:[^ ]%, '')
+  fail "`gcc -MM` failed!" unless $?.exitstatus == 0
 
   File.open t.name, 'w' do |f|
     f.puts dep
