@@ -4270,14 +4270,14 @@ slow_path:
 
   def raise_return
     <<-CODE
-    state->thread_state()->raise_return(stack_top(), call_frame->top_scope);
+    state->thread_state()->raise_return(stack_top(), call_frame->scope->parent());
     RUN_EXCEPTION();
     CODE
   end
 
   def raise_break
     <<-CODE
-    state->thread_state()->raise_break(stack_top(), call_frame->top_scope);
+    state->thread_state()->raise_break(stack_top(), call_frame->scope->parent());
     RUN_EXCEPTION();
     CODE
   end
