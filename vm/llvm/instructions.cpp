@@ -71,8 +71,12 @@ extern "C" {
 
 #define RETURN(val) return val
 
-#define SET_CALL_FLAGS(val)
-#define CALL_FLAGS() 0
+#define SET_CALL_FLAGS(val) is.call_flags = (val)
+#define CALL_FLAGS() is.call_flags
+
+#define SET_ALLOW_PRIVATE(val) is.allow_private = (val)
+#define ALLOW_PRIVATE() is.allow_private
+
 
 #ruby <<CODE
 require 'stringio'
@@ -105,12 +109,6 @@ CODE
 #undef RETURN
 #define RETURN(val) (void)val; return;
 
-#undef SET_CALL_FLAGS
-#undef CALL_FLAGS
-
-#define SET_CALL_FLAGS(val) call_flags = (val)
-#define CALL_FLAGS() call_flags
-
 #if 0
 
 Object* rubinius::Task::execute_stream(CallFrame* call_frame, opcode* stream) {
@@ -140,7 +138,7 @@ CODE
 
 Object* VMMethod::interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
   opcode* stream = vmm->opcodes;
-  int call_flags = 0;
+  InterpreterState is;
 #ifdef USE_JUMP_TABLE
 
 #undef DISPATCH_NEXT_INSN
@@ -192,7 +190,8 @@ CODE
  */
 Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
   opcode* stream = vmm->opcodes;
-  int call_flags = 0;
+  InterpreterState is;
+
   opcode op;
 #ifdef USE_JUMP_TABLE
 

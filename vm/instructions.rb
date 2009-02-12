@@ -154,6 +154,12 @@ class Instructions
     CODE
   end
 
+  def allow_private
+    <<-CODE
+    SET_ALLOW_PRIVATE(true);
+    CODE
+  end
+
   # [Operation]
   #   Attaches a method definition to an object's singleton \class
   # [Format]
@@ -3058,11 +3064,11 @@ slow_path:
     msg.block = Qnil;
     msg.splat = Qnil;
 
-    msg.priv = CALL_FLAGS() & #{CALL_FLAG_PRIVATE};
+    msg.priv = ALLOW_PRIVATE();
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
-    SET_CALL_FLAGS(0);
+    SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     stack_pop();
@@ -3145,11 +3151,11 @@ slow_path:
     msg.block = Qnil;
     msg.splat = Qnil;
 
-    msg.priv = CALL_FLAGS() & #{CALL_FLAG_PRIVATE};
+    msg.priv = ALLOW_PRIVATE();
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
-    SET_CALL_FLAGS(0);
+    SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count + 1);
@@ -3235,11 +3241,11 @@ slow_path:
 
     msg.splat = Qnil;
 
-    msg.priv = CALL_FLAGS() & #{CALL_FLAG_PRIVATE};
+    msg.priv = ALLOW_PRIVATE();
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
-    SET_CALL_FLAGS(0);
+    SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count + 1);
@@ -3341,11 +3347,12 @@ slow_path:
       }
     }
 
-    msg.priv = CALL_FLAGS() & #{CALL_FLAG_PRIVATE};
+    msg.priv = ALLOW_PRIVATE();
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name();
 
     SET_CALL_FLAGS(0);
+    SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count + 1);
@@ -3438,7 +3445,7 @@ slow_path:
     msg.lookup_from = call_frame->module()->superclass();
     msg.name = msg.send_site->name();
 
-    SET_CALL_FLAGS(0);
+    SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count);
@@ -3588,6 +3595,7 @@ slow_path:
     msg.name = msg.send_site->name();
 
     SET_CALL_FLAGS(0);
+    SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count);

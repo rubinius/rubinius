@@ -597,7 +597,7 @@ class Compiler
     end
 
     def send(meth, count, priv=false)
-      add :set_call_flags, 1 if priv
+      add :allow_private if priv
 
       unless count.kind_of? Fixnum
         raise Error, "count must be a number"
@@ -614,7 +614,7 @@ class Compiler
     end
 
     def send_with_block(meth, count, priv=false)
-      add :set_call_flags, 1 if priv
+      add :allow_private if priv
 
       unless count.kind_of? Fixnum
         raise Error, "count must be a number"
@@ -628,9 +628,10 @@ class Compiler
 
     def send_with_splat(meth, args, priv=false, concat=false)
       val = 0
-      val |= CALL_FLAG_PRIVATE if priv
       val |= CALL_FLAG_CONCAT  if concat
       add :set_call_flags, val unless val == 0
+
+      add :allow_private if priv
 
       ss = SendSite.new meth
       idx = add_literal(ss)

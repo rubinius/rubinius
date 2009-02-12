@@ -69,6 +69,16 @@ namespace rubinius {
     template <typename ArgumentHandler>
       static Object* execute_specialized(STATE, CallFrame* call_frame, Message& msg);
 
+    struct InterpreterState {
+      bool allow_private;
+      int call_flags;
+
+      InterpreterState()
+        : allow_private(false)
+        , call_flags(0)
+      {}
+    };
+
     static Object* run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
     static Object* interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
     static Object* debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
