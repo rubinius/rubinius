@@ -78,7 +78,7 @@ namespace rubinius {
     return copy;
   }
 
-  void ObjectMemory::collect_young(Roots &roots, CallFrameList& call_frames) {
+  void ObjectMemory::collect_young(Roots &roots, CallFrameLocationList& call_frames) {
     static int collect_times = 0;
     young.collect(roots, call_frames);
     collect_times++;
@@ -86,7 +86,7 @@ namespace rubinius {
     contexts.reset();
   }
 
-  void ObjectMemory::collect_mature(Roots &roots, CallFrameList& call_frames) {
+  void ObjectMemory::collect_mature(Roots &roots, CallFrameLocationList& call_frames) {
     mature.collect(roots, call_frames);
     young.clear_marks();
     clear_context_marks();

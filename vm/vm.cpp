@@ -49,26 +49,16 @@ namespace rubinius {
   VM* SharedState::new_vm() {
     VM* vm = manager_.create_vm(this);
     vms_[vm->id()] = vm;
+    cf_locations_.push_back(vm->call_frame_location());
     return vm;
   }
 
   void SharedState::remove_vm(VM* vm) {
     VMMap::iterator i = vms_.find(vm->id());
-    if(i != vms_.end()) {
-      vms_.erase(i);
-    }
-  }
+    assert(i != vms_.end());
+    vms_.erase(i);
 
-  void SharedState::add_call_frames(CallFrameList& call_frames, VM* current) {
-    for(VMMap::const_iterator i = vms_.begin();
-        i != vms_.end();
-        i++) {
-      VM* vm = i->second;
-      if(vm != current) {
-        CallFrame* frame = vm->saved_call_frame();
-        if(frame) call_frames.push_back(frame);
-      }
-    }
+    cf_locations_.remove(vm->call_frame_location());
   }
 
   VM::VM(SharedState& shared, int id)
@@ -258,9 +248,8 @@ namespace rubinius {
   void VM::collect(CallFrame* call_frame) {
     uint64_t start = get_current_time();
 
-    CallFrameList frames;
-    frames.push_back(call_frame);
-    shared.add_call_frames(frames, this);
+    this->set_call_frame(call_frame);
+    CallFrameLocationList& frames = shared.call_frame_locations();
 
     om->collect_young(globals.roots, frames);
     om->collect_mature(globals.roots, frames);
@@ -269,9 +258,8 @@ namespace rubinius {
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
-    CallFrameList& frames = shared.get_call_frame_list();
-    frames.push_back(call_frame);
-    shared.add_call_frames(frames, this);
+    this->set_call_frame(call_frame);
+    CallFrameLocationList& frames = shared.call_frame_locations();
 
     if(om->collect_young_now) {
       om->collect_young_now = false;

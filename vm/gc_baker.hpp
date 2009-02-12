@@ -63,7 +63,7 @@ namespace rubinius {
     virtual Object* saw_object(Object* obj);
     void    copy_unscanned();
     bool    fully_scanned_p();
-    void    collect(Roots &roots, CallFrameList& call_frames);
+    void    collect(Roots &roots, CallFrameLocationList& call_frames);
     void    clear_marks();
     Object*  next_object(Object* obj);
     void    find_lost_souls();

@@ -99,7 +99,7 @@ namespace rubinius {
     GlobalLock lock_;
     VMMap vms_;
     SignalThread* signal_thread_;
-    CallFrameList call_frame_list_;
+    CallFrameLocationList cf_locations_;
 
   public:
     Globals globals;
@@ -145,12 +145,9 @@ namespace rubinius {
     VM* new_vm();
     void remove_vm(VM*);
 
-    CallFrameList& get_call_frame_list() {
-      call_frame_list_.clear();
-      return call_frame_list_;
+    CallFrameLocationList& call_frame_locations() {
+      return cf_locations_;
     }
-
-    void add_call_frames(CallFrameList& frames, VM* current);
   };
 
   class VM {
@@ -230,6 +227,10 @@ namespace rubinius {
 
     thread::Mutex& local_lock() {
       return local_lock_;
+    }
+
+    CallFrame** call_frame_location() {
+      return &saved_call_frame_;
     }
 
     void set_call_frame(CallFrame* frame) {
