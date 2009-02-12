@@ -322,15 +322,13 @@ describe "String#gsub! with pattern and replacement" do
     a.should == "hello"
   end
   
-  compliant_on :ruby, :jruby, :ironruby do
-    it "raises a TypeError when self is frozen" do
-      s = "hello"
-      s.freeze
-    
-      s.gsub!(/ROAR/, "x") # ok
-      lambda { s.gsub!(/e/, "e")       }.should raise_error(TypeError)
-      lambda { s.gsub!(/[aeiou]/, '*') }.should raise_error(TypeError)
-    end
+  it "raises a TypeError when self is frozen" do
+    s = "hello"
+    s.freeze
+  
+    s.gsub!(/ROAR/, "x") # ok
+    lambda { s.gsub!(/e/, "e")       }.should raise_error(TypeError)
+    lambda { s.gsub!(/[aeiou]/, '*') }.should raise_error(TypeError)
   end
 end
 
@@ -354,14 +352,12 @@ describe "String#gsub! with pattern and block" do
     a.should == "hello"
   end
   
-  compliant_on :ruby, :jruby, :ironruby do
-    it "raises a RuntimeError when self is frozen" do
-      s = "hello"
-      s.freeze
-  
-      s.gsub!(/ROAR/) { "x" } # ok
-      lambda { s.gsub!(/e/) { "e" }       }.should raise_error(RuntimeError)
-      lambda { s.gsub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
-    end
+  it "raises a RuntimeError when self is frozen" do
+    s = "hello"
+    s.freeze
+
+    s.gsub!(/ROAR/) { "x" } # ok
+    lambda { s.gsub!(/e/) { "e" }       }.should raise_error(RuntimeError)
+    lambda { s.gsub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
   end
 end

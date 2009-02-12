@@ -1,3 +1,4 @@
+require 'mspec/runner/formatters/describe'
 require 'mspec/runner/formatters/dotted'
 require 'mspec/runner/formatters/file'
 require 'mspec/runner/formatters/specdoc'

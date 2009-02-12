@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'syslog'
 
 describe "Syslog.opened?" do
-  not_supported_on :windows do
+  platform_is_not :windows do
 
     before :each do
       Syslog.opened?.should be_false
@@ -17,7 +17,7 @@ describe "Syslog.opened?" do
       Syslog.opened?.should be_true
       Syslog.close
     end
-    
+
     it "returns false otherwise" do
       Syslog.opened?.should be_false
       Syslog.open

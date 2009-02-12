@@ -1,0 +1,1 @@
+fails:Array#delete_if raises a TypeError on a frozen array

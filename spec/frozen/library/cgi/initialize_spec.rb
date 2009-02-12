@@ -3,7 +3,7 @@ require 'cgi'
 
 describe "CGI#initialize" do
   it "is private" do
-    CGI.private_instance_methods.should include("initialize")
+    CGI.should have_private_instance_method(:initialize)
   end
 end
 

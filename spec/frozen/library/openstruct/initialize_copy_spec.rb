@@ -3,7 +3,7 @@ require "ostruct"
 
 describe "OpenStruct#initialize_copy" do
   it "is private" do
-    OpenStruct.private_instance_methods.should include("initialize_copy")
+    OpenStruct.should have_private_instance_method(:initialize_copy)
   end
   
   it "creates an independent method/value table for self" do

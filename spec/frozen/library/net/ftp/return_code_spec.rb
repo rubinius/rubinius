@@ -6,7 +6,7 @@ describe "Net::FTP#return_code" do
     @ftp = Net::FTP.new
   end
   
-  it "outputs a warning and returns \\n" do
+  it "outputs a warning and returns a newline" do
     lambda do
       @ftp.return_code.should == "\n"
     end.should complain("warning: Net::FTP#return_code is obsolete and do nothing\n")

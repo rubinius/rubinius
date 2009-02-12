@@ -1,0 +1,1 @@
+fails:Array#slice! raises a TypeError on a frozen array

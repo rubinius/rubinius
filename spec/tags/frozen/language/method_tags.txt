@@ -1,4 +1,4 @@
-fails:Calling a method with range in () should give higher priority to range
 fails:Calling a private setter method permits self as a receiver
 fails:Calling a method with an empty expression is like calling with nil argument
 fails:Calling a method with block argument converts the block to proc
+fails:Calling a method with splat operator * and non-Array value attempts to coerce it to Array if the object respond_to?(:to_ary)

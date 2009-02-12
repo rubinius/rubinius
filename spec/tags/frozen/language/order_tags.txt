@@ -1,2 +1,0 @@
-fails:A method call evaluates block pass before arguments
-fails:A method call evaluates block pass before receiver

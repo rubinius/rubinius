@@ -210,7 +210,7 @@ class MSpecOptions
       when 'r', 'ruby'
         config[:target] = 'ruby'
       when 'r19', 'ruby19'
-        config[:target] = 'ruby19'
+        config[:target] = 'ruby1.9'
       when 'x', 'rubinius'
         config[:target] = './bin/rbx'
       when 'X', 'rbx'
@@ -225,12 +225,12 @@ class MSpecOptions
     end
 
     doc ""
-    doc "     r or ruby     invokes ruby in PATH"
-    doc "     r19 or ruby19 invokes ruby19 in PATH"
-    doc "     x or rubinius invokes ./bin/rbx"
-    doc "     X or rbx      invokes rbx in PATH"
-    doc "     j or jruby    invokes jruby in PATH"
-    doc "     i or ironruby invokes ir in PATH\n"
+    doc "     r or ruby              invokes ruby in PATH"
+    doc "     r19, ruby19 or ruby1.9 invokes ruby1.9 in PATH"
+    doc "     x or rubinius          invokes ./bin/rbx"
+    doc "     X or rbx               invokes rbx in PATH"
+    doc "     j or jruby             invokes jruby in PATH"
+    doc "     i or ironruby          invokes ir in PATH\n"
 
     on("-T", "--target-opt", "OPT",
        "Pass OPT as a flag to the target implementation") do |t|
@@ -256,6 +256,8 @@ class MSpecOptions
         config[:formatter] = HtmlFormatter
       when 'd', 'dot', 'dotted'
         config[:formatter] = DottedFormatter
+      when 'b', 'describe'
+        config[:formatter] = DescribeFormatter
       when 'f', 'file'
         config[:formatter] = FileFormatter
       when 'u', 'unit', 'unitdiff'

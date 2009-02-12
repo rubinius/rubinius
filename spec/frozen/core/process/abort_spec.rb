@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 # TODO: share with Kernel.abort, abort.
 describe "Process.abort" do
-  not_supported_on :windows do
+  platform_is_not :windows do
     it "terminates execution immediately" do
       @file = '/tmp/i_exist'
       File.delete(@file) if File.exist?(@file)

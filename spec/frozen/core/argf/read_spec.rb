@@ -96,7 +96,7 @@ describe "ARGF.read" do
     end
   end
 
-  not_supported_on :windows do
+  platform_is_not :windows do
     it "reads the contents of a special device file" do
       argv ['/dev/zero'] do
         ARGF.read(100).should == "\000" * 100

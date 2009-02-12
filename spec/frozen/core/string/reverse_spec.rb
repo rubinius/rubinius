@@ -7,7 +7,7 @@ describe "String#reverse" do
     "m".reverse.should == "m"
     "".reverse.should == ""
   end
-  
+
   it "taints the result if self is tainted" do
     "".taint.reverse.tainted?.should == true
     "m".taint.reverse.tainted?.should == true
@@ -19,15 +19,13 @@ describe "String#reverse!" do
     a = "stressed"
     a.reverse!.should equal(a)
     a.should == "desserts"
-    
+
     "".reverse!.should == ""
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if self is frozen" do
-      "".freeze.reverse! # ok, no change
-      lambda { "anna".freeze.reverse!  }.should raise_error(TypeError)
-      lambda { "hello".freeze.reverse! }.should raise_error(TypeError)
-    end
+  it "raises a TypeError if self is frozen" do
+    "".freeze.reverse! # ok, no change
+    lambda { "anna".freeze.reverse!  }.should raise_error(TypeError)
+    lambda { "hello".freeze.reverse! }.should raise_error(TypeError)
   end
 end

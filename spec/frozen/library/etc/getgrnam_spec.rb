@@ -13,15 +13,17 @@ end
 
 platform_is_not :windows do
   describe "Etc.getgrnam" do
-    it "returns a Group struct instance for the given group" do
-      gr = Etc.getgrnam("daemon")
-
-      deviates_on :rubinius do
-        gr.is_a?(Etc::Group).should == true
-      end
-
-      compliant_on(:ruby, :jruby) do
+    ruby_version_is "" ... "1.9" do
+      it "returns a Struct::Group struct instance for the given group" do
+        gr = Etc.getgrnam("daemon")
         gr.is_a?(Struct::Group).should == true
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns a Etc::Group struct instance for the given group" do
+        gr = Etc.getgrnam("daemon")
+        gr.is_a?(Etc::Group).should == true
       end
     end
 

@@ -1,0 +1,1 @@
+fails:String#capitalize! raises a TypeError when self is frozen

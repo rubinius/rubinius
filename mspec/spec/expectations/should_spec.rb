@@ -110,7 +110,7 @@ describe Object, "#should_not" do
   end
 
   it "returns a NegativeOperatorMatcher instance when not passed a matcher" do
-    matcher = should_not
+    matcher = should_not nil
     class Object; alias_method :should, :rspec_should; end
     matcher.should be_instance_of(NegativeOperatorMatcher)
   end

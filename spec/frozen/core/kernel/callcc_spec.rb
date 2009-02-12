@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#callcc" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("callcc")
+    Kernel.should have_private_instance_method(:callcc)
   end
 
   it "is possible to exit a loop like a break" do

@@ -7,7 +7,7 @@ describe "String#swapcase" do
    "cYbEr_PuNk11".swapcase.should == "CyBeR_pUnK11"
    "+++---111222???".swapcase.should == "+++---111222???"
   end
-  
+
   it "taints resulting string when self is tainted" do
     "".taint.swapcase.tainted?.should == true
     "hello".taint.swapcase.tainted?.should == true
@@ -18,7 +18,7 @@ describe "String#swapcase" do
     "ärger".swapcase.should == "äRGER"
     "BÄR".swapcase.should == "bÄr"
   end
-  
+
   it "returns subclass instances when called on a subclass" do
     StringSpecs::MyString.new("").swapcase.class.should == StringSpecs::MyString
     StringSpecs::MyString.new("hello").swapcase.class.should == StringSpecs::MyString
@@ -31,21 +31,19 @@ describe "String#swapcase!" do
     a.swapcase!.should equal(a)
     a.should == "CyBeR_pUnK11"
   end
-  
+
   it "returns nil if no modifications were made" do
     a = "+++---111222???"
     a.swapcase!.should == nil
     a.should == "+++---111222???"
-    
+
     "".swapcase!.should == nil
   end
-  
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError when self is frozen" do
-      ["", "hello"].each do |a|
-        a.freeze
-        lambda { a.swapcase! }.should raise_error(TypeError)
-      end
+
+  it "raises a TypeError when self is frozen" do
+    ["", "hello"].each do |a|
+      a.freeze
+      lambda { a.swapcase! }.should raise_error(TypeError)
     end
   end
 end

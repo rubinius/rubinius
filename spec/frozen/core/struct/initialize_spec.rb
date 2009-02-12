@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Struct#initialize" do
   
   it "is private" do
-    Struct::Car.private_instance_methods.map { |m| m.to_s }.include?("initialize").should == true
+    Struct::Car.should have_private_instance_method(:initialize)
   end
   
   it "does nothing when passed a set of fields equal to self" do

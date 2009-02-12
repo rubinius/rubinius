@@ -8,7 +8,7 @@ describe "Kernel#test" do
   end
   
   it "is a private method" do
-    Kernel.private_instance_methods.should include("test")
+    Kernel.should have_private_instance_method(:test)
   end
   
   it "returns true when passed ?f if the argument is a regular file" do

@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#block_given?" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("block_given?")
+    Kernel.should have_private_instance_method(:block_given?)
   end
   
   it "returns true if and only if a block is supplied" do

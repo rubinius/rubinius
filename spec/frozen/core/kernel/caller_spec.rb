@@ -16,7 +16,7 @@ describe "Kernel#caller" do
   end
   
   it "is a private method" do
-    Kernel.private_instance_methods.should include("caller")
+    Kernel.should have_private_instance_method(:caller)
   end
   
   it "returns the current call stack" do

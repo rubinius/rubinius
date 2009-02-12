@@ -26,7 +26,7 @@ describe "Kernel#require" do
     # rubygems redefines #require without setting its
     # visibility back to module_function or private
     it "is a private method" do
-      Kernel.private_instance_methods.should include("require")
+      Kernel.should have_private_instance_method(:require)
     end
   end
 

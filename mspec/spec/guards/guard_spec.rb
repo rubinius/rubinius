@@ -57,6 +57,11 @@ describe SpecGuard, ".ruby_version" do
     SpecGuard.ruby_version(:full).should == "8.2.3.71"
   end
 
+  it "returns 0 for negative RUBY_PATCHLEVEL values" do
+    Object.const_set :RUBY_PATCHLEVEL, -1
+    SpecGuard.ruby_version(:full).should == "8.2.3.0"
+  end
+
   it "returns major.minor.tiny for :tiny" do
     SpecGuard.ruby_version(:tiny).should == "8.2.3"
   end
@@ -182,11 +187,6 @@ describe SpecGuard, "#implementation?" do
     @guard.implementation?(:ruby).should == true
   end
 
-  it "returns true if passed :rbx and RUBY_NAME == 'rbx'" do
-    Object.const_set :RUBY_NAME, 'rbx'
-    @guard.implementation?(:rbx).should == true
-  end
-
   it "returns true if passed :rubinius and RUBY_NAME == 'rbx'" do
     Object.const_set :RUBY_NAME, 'rbx'
     @guard.implementation?(:rubinius).should == true
@@ -197,9 +197,41 @@ describe SpecGuard, "#implementation?" do
     @guard.implementation?(:jruby).should == true
   end
 
+  it "returns true if passed :ironruby and RUBY_NAME == 'ironruby'" do
+    Object.const_set :RUBY_NAME, 'ironruby'
+    @guard.implementation?(:ironruby).should == true
+  end
+
+  it "returns true if passed :ruby and RUBY_NAME matches /^ruby/" do
+    Object.const_set :RUBY_NAME, 'ruby'
+    @guard.implementation?(:ruby).should == true
+
+    Object.const_set :RUBY_NAME, 'ruby1.8'
+    @guard.implementation?(:ruby).should == true
+
+    Object.const_set :RUBY_NAME, 'ruby1.9'
+    @guard.implementation?(:ruby).should == true
+  end
+
   it "returns false when passed an unrecognized name" do
     Object.const_set :RUBY_NAME, 'ruby'
     @guard.implementation?(:python).should == false
+  end
+end
+
+describe SpecGuard, "#standard?" do
+  before :each do
+    @guard = SpecGuard.new
+  end
+
+  it "returns true if #implementation? returns true" do
+    @guard.should_receive(:implementation?).with(:ruby).and_return(true)
+    @guard.standard?.should be_true
+  end
+
+  it "returns false if #implementation? returns false" do
+    @guard.should_receive(:implementation?).with(:ruby).and_return(false)
+    @guard.standard?.should be_false
   end
 end
 

@@ -26,18 +26,24 @@ describe "Module#class_variable_set" do
     end
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError when self is frozen" do
-      lambda { Class.new.freeze.send(:class_variable_set, :@@test, "test")   }.should raise_error(TypeError)
-      lambda {  Module.new.freeze.send(:class_variable_set, :@@test, "test") }.should raise_error(TypeError)
-    end
+  it "raises a TypeError when self is frozen" do
+    lambda {
+      Class.new.freeze.send(:class_variable_set, :@@test, "test")
+    }.should raise_error(TypeError)
+    lambda {
+      Module.new.freeze.send(:class_variable_set, :@@test, "test")
+    }.should raise_error(TypeError)
   end
 
   it "raises a NameError when the given name is not allowed" do
     c = Class.new
 
-    lambda { c.send(:class_variable_set, :invalid_name, "test")    }.should raise_error(NameError)
-    lambda {  c.send(:class_variable_set, "@invalid_name", "test") }.should raise_error(NameError)
+    lambda {
+      c.send(:class_variable_set, :invalid_name, "test")
+    }.should raise_error(NameError)
+    lambda {
+      c.send(:class_variable_set, "@invalid_name", "test")
+    }.should raise_error(NameError)
   end
 
   it "converts a non string/symbol/fixnum name to string using to_str" do

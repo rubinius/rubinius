@@ -62,12 +62,12 @@ describe "Kernel#=== for a class with default #== and #equal?" do
   end
 
   it "returns true if other object has same object id" do
-    @o1.object_id.should == @o1.object_id 
+    @o1.object_id.should == @o1.object_id
     (@o1 === @o1).should == true
   end
 
   it "returns false if other object does not have same object id" do
-    @o1.object_id.should_not == @o2.object_id 
+    @o1.object_id.should_not == @o2.object_id
     (@o1 === @o2).should == false
   end
 end

@@ -3,6 +3,6 @@ require 'ostruct'
 
 describe "OpenStruct#initialize" do
   it "is private" do
-    OpenStruct.private_instance_methods.should include("initialize")
+    OpenStruct.should have_private_instance_method(:initialize)
   end
 end

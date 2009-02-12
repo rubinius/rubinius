@@ -27,19 +27,17 @@ describe :hash_store, :shared => true do
     h.size.should == 2
   end
 
-  compliant_on :ruby, :jruby, :ir do
-    it "duplicates and freezes string keys" do
-      key = "foo"
-      h = {}
-      h.send(@method, key, 0)
-      key << "bar"
+  it "duplicates and freezes string keys" do
+    key = "foo"
+    h = {}
+    h.send(@method, key, 0)
+    key << "bar"
 
-      h.should == { "foo" => 0 }
-      h.keys[0].frozen?.should == true
-    end
-    
-    it "raises a TypeError if called on a frozen instance" do
-      lambda { HashSpecs.frozen_hash.send(@method, 1, 2) }.should raise_error(TypeError)
-    end
+    h.should == { "foo" => 0 }
+    h.keys[0].frozen?.should == true
+  end
+
+  it "raises a TypeError if called on a frozen instance" do
+    lambda { HashSpecs.frozen_hash.send(@method, 1, 2) }.should raise_error(TypeError)
   end
 end

@@ -13,7 +13,7 @@ describe "Array#insert" do
     ary.insert(0, 3).should == [3]
     ary.insert(0, 1, 2).should == [1, 2, 3]
     ary.insert(0).should == [1, 2, 3]
-    
+
     # Let's just assume insert() always modifies the array from now on.
     ary.insert(1, 'a').should == [1, 'a', 2, 3]
     ary.insert(0, 'b').should == ['b', 1, 'a', 2, 3]
@@ -43,8 +43,8 @@ describe "Array#insert" do
 
   it "can insert before the first element with a negative index" do
     [1, 2, 3].insert(-4, -3).should == [-3, 1, 2, 3]
-  end  
-  
+  end
+
   it "raises an IndexError if the negative index is out of bounds" do
     lambda { [].insert(-2, 1)  }.should raise_error(IndexError)
     lambda { [1].insert(-3, 2) }.should raise_error(IndexError)
@@ -66,21 +66,20 @@ describe "Array#insert" do
   it 'raises an ArgumentError if no argument passed' do
     lambda { [].insert() }.should raise_error(ArgumentError)
   end
-  
-  compliant_on :ruby, :jruby, :ir do
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on frozen arrays if modification takes place" do
-        lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(TypeError)
-      end
-    end
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on frozen arrays if modification takes place" do
-        lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(RuntimeError)
-      end
-    end
 
-    it "does not raise on frozen arrays if no modification takes place" do
-      ArraySpecs.frozen_array.insert(0).should == [1, 2, 3]
+  ruby_version_is '' ... '1.9' do
+    it "raises a TypeError on frozen arrays if modification takes place" do
+      lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(TypeError)
     end
+  end
+
+  ruby_version_is '1.9' do
+    it "raises a RuntimeError on frozen arrays if modification takes place" do
+      lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(RuntimeError)
+    end
+  end
+
+  it "does not raise on frozen arrays if no modification takes place" do
+    ArraySpecs.frozen_array.insert(0).should == [1, 2, 3]
   end
 end

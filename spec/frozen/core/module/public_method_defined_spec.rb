@@ -4,10 +4,10 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Module#public_method_defined?" do
   it "returns true if the named public method is defined by module or its ancestors" do
     ModuleSpecs::CountsMixin.public_method_defined?("public_3").should == true
-    
+
     ModuleSpecs::CountsParent.public_method_defined?("public_3").should == true
     ModuleSpecs::CountsParent.public_method_defined?("public_2").should == true
-    
+
     ModuleSpecs::CountsChild.public_method_defined?("public_3").should == true
     ModuleSpecs::CountsChild.public_method_defined?("public_2").should == true
     ModuleSpecs::CountsChild.public_method_defined?("public_1").should == true
@@ -31,30 +31,40 @@ describe "Module#public_method_defined?" do
     ModuleSpecs::CountsMixin.public_method_defined?(:public_3).should == true
   end
 
-  compliant_on :ruby, :jruby do
+  not_compliant_on :rubinius do
     it "raises an ArgumentError if called with a Fixnum" do
-      lambda { ModuleSpecs::CountsMixin.public_method_defined?(1)     }.should raise_error(ArgumentError)
+      lambda {
+        ModuleSpecs::CountsMixin.public_method_defined?(1)
+      }.should raise_error(ArgumentError)
     end
-    
+
     it "raises a TypeError if not passed a Symbol" do
-      lambda { ModuleSpecs::CountsMixin.public_method_defined?(nil)   }.should raise_error(TypeError)
-      lambda { ModuleSpecs::CountsMixin.public_method_defined?(false) }.should raise_error(TypeError)
+      lambda {
+        ModuleSpecs::CountsMixin.public_method_defined?(nil)
+      }.should raise_error(TypeError)
+      lambda {
+        ModuleSpecs::CountsMixin.public_method_defined?(false)
+      }.should raise_error(TypeError)
 
       sym = mock('symbol')
       def sym.to_sym() :public_3 end
-      lambda { ModuleSpecs::CountsMixin.public_method_defined?(sym) }.should raise_error(TypeError)
+      lambda {
+        ModuleSpecs::CountsMixin.public_method_defined?(sym)
+      }.should raise_error(TypeError)
     end
   end
-  
+
   it "accepts any object that is a String type" do
     str = mock('public_3')
     def str.to_str() 'public_3' end
     ModuleSpecs::CountsMixin.public_method_defined?(str).should == true
   end
-  
+
   deviates_on :rubinius do
     it "raises a TypeError if not passed a String type" do
-      lambda { ModuleSpecs::CountsMixin.public_method_defined?(mock('x')) }.should raise_error(TypeError)
+      lambda {
+        ModuleSpecs::CountsMixin.public_method_defined?(mock('x'))
+      }.should raise_error(TypeError)
     end
   end
 end

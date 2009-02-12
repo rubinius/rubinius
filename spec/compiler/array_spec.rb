@@ -113,6 +113,20 @@ describe "An Array node" do
     end
   end
 
+  relates "[[*1]]" do
+    parse do
+      [:array, [:array, [:splat, [:lit, 1]]]]
+    end
+
+    compile do |g|
+      g.make_array 0
+      g.push 1
+      g.cast_array
+      g.send :+, 1
+      g.make_array 1
+    end
+  end
+
   relates "[1, *2]" do
     parse do
       [:array, [:lit, 1], [:splat, [:lit, 2]]]

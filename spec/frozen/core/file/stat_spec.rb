@@ -6,7 +6,7 @@ describe "File.stat" do
 end
 
 describe "File.stat" do
-  
+
   before :each do
     @file = tmp('i_exist')
     @link = tmp('i_am_a_symlink')
@@ -19,10 +19,10 @@ describe "File.stat" do
     File.delete(@file) if File.exist?(@file)
   end
 
-  not_supported_on :windows do  
+  platform_is_not :windows do
     it "returns a File::Stat object with file properties for a symlink" do
       st = File.stat(@link)
-  
+
       st.file?.should == true
       st.symlink?.should == false
     end

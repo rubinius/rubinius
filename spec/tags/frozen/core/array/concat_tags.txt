@@ -1,0 +1,2 @@
+fails:Array#concat raises a TypeError when Array is frozen and modification occurs
+fails:Array#concat does not raise a TypeError when Array is frozen but no modification occurs

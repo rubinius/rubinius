@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'syslog'
 
 describe "Syslog.close" do
-  not_supported_on :windows do
+  platform_is_not :windows do
 
     before :each do
       Syslog.opened?.should be_false
@@ -11,7 +11,7 @@ describe "Syslog.close" do
     after :each do
       Syslog.opened?.should be_false
     end
-    
+
     it "closes the log" do
       Syslog.opened?.should be_false
       Syslog.open
@@ -23,9 +23,9 @@ describe "Syslog.close" do
     it "raises a RuntimeError if the log's already closed" do
       lambda { Syslog.close }.should raise_error(RuntimeError)
     end
-    
+
     it "it does not work inside blocks" do
-      lambda { 
+      lambda {
         Syslog.open { |s| s.close }
       }.should raise_error(RuntimeError)
       Syslog.opened?.should == false

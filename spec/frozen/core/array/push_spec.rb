@@ -25,13 +25,11 @@ describe "Array#push" do
     array.push(:last).should == [1, 'two', 3.0, array, array, array, array, array, :last]
   end
 
-  compliant_on :ruby, :jruby, :ir do
-    it "raises a TypeError on a frozen array if modification takes place" do
-      lambda { ArraySpecs.frozen_array.push(1) }.should raise_error(TypeError)
-    end
+  it "raises a TypeError on a frozen array if modification takes place" do
+    lambda { ArraySpecs.frozen_array.push(1) }.should raise_error(TypeError)
+  end
 
-    it "does not raise on a frozen array if no modification is made" do
-      ArraySpecs.frozen_array.push.should == [1, 2, 3]
-    end
+  it "does not raise on a frozen array if no modification is made" do
+    ArraySpecs.frozen_array.push.should == [1, 2, 3]
   end
 end

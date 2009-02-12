@@ -59,22 +59,12 @@ describe "Struct.new" do
     lambda { Struct.new(:animal, { :name => 'chris' }) }.should raise_error(TypeError)
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if object is not a Symbol" do
-      obj = mock(':ruby')
-      def obj.to_sym() :ruby end
-      lambda { Struct.new(:animal, obj) }.should raise_error(TypeError)
-    end
+  it "raises a TypeError if object is not a Symbol" do
+    obj = mock(':ruby')
+    def obj.to_sym() :ruby end
+    lambda { Struct.new(:animal, obj) }.should raise_error(TypeError)
   end
-  
-  compliant_on :rbx do
-    it "calls to_sym if object responds to to_sym" do
-      obj = mock(':ruby')
-      def obj.to_sym() :ruby end
-      Struct.new(:animal, obj).new(nil, "bar").ruby.should == "bar"
-    end
-  end
-  
+
   not_compliant_on :rubinius do
     it "accepts Fixnums as Symbols unless fixnum.to_sym.nil?" do
       num = :foo.to_i
@@ -103,13 +93,13 @@ describe "Struct.new" do
   end
 
   it "creates reader methods" do
-    Struct::Ruby.new.methods.should include 'version'
-    Struct::Ruby.new.methods.should include 'platform'
+    Struct::Ruby.new.should have_method(:version)
+    Struct::Ruby.new.should have_method(:platform)
   end
 
   it "creates writer methods" do
-    Struct::Ruby.new.methods.should include 'version='
-    Struct::Ruby.new.methods.should include 'platform='
+    Struct::Ruby.new.should have_method(:version=)
+    Struct::Ruby.new.should have_method(:platform=)
   end
 
   it "fails with too many arguments" do

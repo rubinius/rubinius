@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#method_added" do
   it "is a private instance method" do
-    Module.private_instance_methods.should include("method_added")
+    Module.should have_private_instance_method(:method_added)
   end
   
   it "returns nil in the default implementation" do

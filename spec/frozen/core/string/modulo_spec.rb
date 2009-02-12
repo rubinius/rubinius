@@ -316,7 +316,7 @@ describe "String#%" do
     ("%*e" % [10, 9]).should == "9.000000e+00"
   end
 
-  compliant_on :ruby do
+  not_compliant_on :rubinius, :jruby do
     it "supports float formats using %e, and downcases -Inf, Inf, and NaN" do
       ("%e" % 1e1020).should == "inf"
       ("%e" % -1e1020).should == "-inf"
@@ -360,7 +360,7 @@ describe "String#%" do
     ("%*E" % [10, 9]).should == "9.000000E+00"
   end
 
-  compliant_on :ruby do
+  not_compliant_on :rubinius, :jruby do
     it "supports float formats using %E, and upcases Inf, -Inf, and NaN" do
       ("%E" % 1e1020).should == "INF"
       ("%E" % -1e1020).should == "-INF"
@@ -520,27 +520,33 @@ describe "String#%" do
     ("%-7u" % 10).should == "10     "
     ("%04u" % 10).should == "0010"
     ("%*u" % [10, 4]).should == "         4"
-
-  platform_is :wordsize => 64 do
-    ("%u" % -5).should == "..#{2**64 - 5}"
-    ("%0u" % -5).should == (2**64 - 5).to_s
-    ("%.1u" % -5).should == (2**64 - 5).to_s
-    ("%.7u" % -5).should == (2**64 - 5).to_s
-    ("%.10u" % -5).should == (2**64 - 5).to_s
   end
 
-  platform_is_not :wordsize => 64 do
-    ("%u" % -5).should == "..#{2**32 - 5}"
-    ("%0u" % -5).should == (2**32 - 5).to_s
-    ("%.1u" % -5).should == (2**32 - 5).to_s
-    ("%.7u" % -5).should == (2**32 - 5).to_s
-    ("%.10u" % -5).should == (2**32 - 5).to_s
-  end
-
-    deviates_on :ruby do
-      ("% u" % -26).should == "-26"
-      ("%+u" % -26).should == "-26"
+  ruby_version_is "" ... "1.9" do
+    platform_is :wordsize => 64 do
+      it "supports unsigned formats using %u on 64-bit" do
+        ("%u" % -5).should == "..#{2**64 - 5}"
+        ("%0u" % -5).should == (2**64 - 5).to_s
+        ("%.1u" % -5).should == (2**64 - 5).to_s
+        ("%.7u" % -5).should == (2**64 - 5).to_s
+        ("%.10u" % -5).should == (2**64 - 5).to_s
+      end
     end
+
+    platform_is :wordsize => 32 do
+      it "supports unsigned formats using %u on 32-bit" do
+        ("%u" % -5).should == "..#{2**32 - 5}"
+        ("%0u" % -5).should == (2**32 - 5).to_s
+        ("%.1u" % -5).should == (2**32 - 5).to_s
+        ("%.7u" % -5).should == (2**32 - 5).to_s
+        ("%.10u" % -5).should == (2**32 - 5).to_s
+      end
+    end
+  end
+
+  it "formats negative values with a leading sign using %u" do
+    ("% u" % -26).should == "-26"
+    ("%+u" % -26).should == "-26"
   end
 
   not_compliant_on :rubinius do

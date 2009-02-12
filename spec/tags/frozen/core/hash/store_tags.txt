@@ -1,0 +1,1 @@
+fails:Hash#store raises a TypeError if called on a frozen instance

@@ -1,0 +1,1 @@
+fails:Module#freeze prevents further modifications to self

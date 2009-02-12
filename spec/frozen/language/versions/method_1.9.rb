@@ -29,11 +29,6 @@ describe "Calling a method" do
     fooP1O1RQ0B(1, 2, 3, 4) { |z| z }.should == [1, 2, [3, 4], 5]
   end
 
-  it "with an empty expression is like calling with nil argument" do
-    def foo(a); a end
-    foo(()).should be_nil
-  end
-  
 #   it "with lambda as block argument is ok" do
 #     def foo(a,&b); [a,yield(b)] end
 
@@ -56,16 +51,6 @@ describe "Calling a method" do
 #       [:abc, { 'rbx' => 'cool', 'specs' => 'fail sometimes'}, 500]
 #   end
 
-  it "with range in () should give higher priority to range" do
-    def myfoo(x); end
-
-    def mybar(n)
-      myfoo (0..n).map { }
-    end
-
-    mybar(10).should == nil
-  end
-  
 #  it "with ambiguous missing parens, arguments go with innermost call" do
 #    def f(*a); a.length; end
     
@@ -82,5 +67,45 @@ describe "Calling a method" do
 #    a.should == 2
 #    b.should == nil
 #  end
-  
+
+  it "with splat operator * and non-Array value attempts to coerce it to Array if the object respond_to?(:to_a)" do
+    def fooP3(a,b,c); a+b+c end
+    def fooP4(a,b,c,d); a+b+c+d end
+
+    obj = "pseudo-array"
+    class << obj
+      def to_a; [2,3,4] end
+    end
+    fooP3(*obj).should == 9
+    fooP4(1,*obj).should == 10
+  end
+
+  it "with splat operator * and non-Array value uses value unchanged if it does not respond_to?(:to_a)" do
+    def fooP0R(*args); args.length end
+
+    obj = Object.new
+    obj.should_not respond_to(:to_a)
+    fooP0R(*obj).should == 1
+    fooP0R(1,2,*obj,3).should == 4
+  end
+
+  it "accepts additional arguments after splat expansion" do
+    def fooP4(a,b,c,d); a+b+c+d end
+
+    a = [1,2]
+    fooP4(*a,3,4).should == 10
+    fooP4(0,*a,3).should == 6
+  end
+
+  it "accepts multiple splat expansions in the same argument list" do
+    def fooP0R(*args); args.length end
+
+    a = [1,2,3]
+    b = 7
+    c = "pseudo-array"
+    def c.to_a; [0,0] end
+    fooP0R(*a,*[4,5],6,*b).should == 7
+    fooP0R(*a,*a,*a).should == 9
+    fooP0R(0,*a,4,*5,6,7,*c,-1).should == 11
+  end
 end

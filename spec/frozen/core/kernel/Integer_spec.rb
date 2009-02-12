@@ -24,7 +24,7 @@ end
 
 describe "Kernel.Integer" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("Integer")
+    Kernel.should have_private_instance_method(:Integer)
   end
   
   it "calls #to_int if the given object responds to it" do

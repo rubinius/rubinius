@@ -5,7 +5,7 @@ describe "Math#cosh" do
   it_behaves_like :complex_math_cosh, :_, IncludesMath.new
 
   it "should be private" do
-    IncludesMath.private_instance_methods.should include("cosh")
+    IncludesMath.should have_private_instance_method(:cosh)
   end
 end
 
@@ -13,7 +13,7 @@ describe "Math#cosh!" do
   it_behaves_like :complex_math_cosh_bang, :_, IncludesMath.new
 
   it "should be private" do
-    IncludesMath.private_instance_methods.should include("cosh!")
+    IncludesMath.should have_private_instance_method(:cosh!)
   end
 end
 

@@ -4,35 +4,33 @@ describe :string_concat, :shared => true do
     str.send(@method, 'world').should equal(str)
     str.should == "hello world"
   end
-  
+
   it "converts the given argument to a String using to_str" do
     obj = mock('world!')
     obj.should_receive(:to_str).and_return("world!")
     a = 'hello '.send(@method, obj)
     a.should == 'hello world!'
   end
-  
+
   it "raises a TypeError if the given argument can't be converted to a String" do
     lambda { a = 'hello '.send(@method, :world)    }.should raise_error(TypeError)
     lambda { a = 'hello '.send(@method, mock('x')) }.should raise_error(TypeError)
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError when self is frozen" do
-      a = "hello"
-      a.freeze
+  it "raises a TypeError when self is frozen" do
+    a = "hello"
+    a.freeze
 
-      lambda { a.send(@method, "")     }.should raise_error(TypeError)
-      lambda { a.send(@method, "test") }.should raise_error(TypeError)
-    end
+    lambda { a.send(@method, "")     }.should raise_error(TypeError)
+    lambda { a.send(@method, "test") }.should raise_error(TypeError)
   end
-  
+
   it "works when given a subclass instance" do
     a = "hello"
     a << StringSpecs::MyString.new(" world")
     a.should == "hello world"
   end
-  
+
   it "taints self if other is tainted" do
     x = "x"
     x.send(@method, "".taint).tainted?.should == true
@@ -59,17 +57,15 @@ describe :string_concat_fixnum, :shared => true do
   it "doesn't call to_int on its argument" do
     x = mock('x')
     x.should_not_receive(:to_int)
-    
+
     lambda { "".send(@method, x) }.should raise_error(TypeError)
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError when self is frozen" do
-      a = "hello"
-      a.freeze
+  it "raises a TypeError when self is frozen" do
+    a = "hello"
+    a.freeze
 
-      lambda { a.send(@method, 0)  }.should raise_error(TypeError)
-      lambda { a.send(@method, 33) }.should raise_error(TypeError)
-    end
+    lambda { a.send(@method, 0)  }.should raise_error(TypeError)
+    lambda { a.send(@method, 33) }.should raise_error(TypeError)
   end
 end

@@ -39,7 +39,9 @@ class SpecGuard
       n = 4
     end
 
-    version = "#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}"
+    patch = RUBY_PATCHLEVEL.to_i
+    patch = 0 if patch < 0
+    version = "#{RUBY_VERSION}.#{patch}"
     version.split('.')[0,n].join('.')
   end
 
@@ -87,22 +89,24 @@ class SpecGuard
   def implementation?(*args)
     args.any? do |name|
       !!case name
-      when :rbx, :rubinius
+      when :rubinius
         RUBY_NAME =~ /^rbx/
       when :ruby
         RUBY_NAME =~ /^ruby/
-      when :ruby18
-        RUBY_NAME =~ /^ruby(1.8)?/ and RUBY_VERSION =~ /^1.8/
-      when :ruby19
-        RUBY_NAME =~ /^ruby(1.9)?/ and RUBY_VERSION =~ /^1.9/
       when :jruby
         RUBY_NAME =~ /^jruby/
-      when :ironruby, :ir
+      when :ironruby
         RUBY_NAME =~ /^ironruby/
+      when :macruby
+        RUBY_NAME =~ /^macruby/
       else
         false
       end
     end
+  end
+
+  def standard?
+    implementation? :ruby
   end
 
   def windows?(sym, key)

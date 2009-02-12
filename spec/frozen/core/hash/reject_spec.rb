@@ -6,25 +6,25 @@ describe "Hash#reject" do
   it "is equivalent to hsh.dup.delete_if" do
     h = { :a => 'a', :b => 'b', :c => 'd' }
     h.reject { |k,v| k == 'd' }.should == (h.dup.delete_if { |k, v| k == 'd' })
-    
+
     all_args_reject = []
     all_args_delete_if = []
     h = {1 => 2, 3 => 4}
     h.reject { |*args| all_args_reject << args }
     h.delete_if { |*args| all_args_delete_if << args }
     all_args_reject.should == all_args_delete_if
-    
+
     h = { 1 => 2 }
     # dup doesn't copy singleton methods
     def h.to_a() end
     h.reject { false }.to_a.should == [[1, 2]]
   end
-  
+
   it "returns subclass instance for subclasses" do
     MyHash[1 => 2, 3 => 4].reject { false }.class.should == MyHash
     MyHash[1 => 2, 3 => 4].reject { true }.class.should == MyHash
   end
-  
+
   it "processes entries with the same order as reject!" do
     h = {:a => 1, :b => 2, :c => 3, :d => 4}
 
@@ -55,11 +55,11 @@ describe "Hash#reject!" do
     h.dup.delete_if { |*args| all_args_delete_if << args }
     all_args_reject.should == all_args_delete_if
   end
-  
+
   it "returns nil if no changes were made" do
     { :a => 1 }.reject! { |k,v| v > 1 }.should == nil
   end
-  
+
   it "processes entries with the same order as delete_if" do
     h = {:a => 1, :b => 2, :c => 3, :d => 4}
 
@@ -69,13 +69,11 @@ describe "Hash#reject!" do
     h.dup.delete_if { |*pair| delete_if_pairs << pair }
 
     reject_bang_pairs.should == delete_if_pairs
-  end  
+  end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if called on a frozen instance" do
-      lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(TypeError)
-      lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(TypeError)
-    end
+  it "raises a TypeError if called on a frozen instance" do
+    lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(TypeError)
+    lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(TypeError)
   end
 
   ruby_version_is "" ... "1.8.7" do

@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#puts" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("puts")
+    Kernel.should have_private_instance_method(:puts)
   end
 
   before(:each) do

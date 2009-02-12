@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.loop" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("loop")
+    Kernel.should have_private_instance_method(:loop)
   end
   
   it "calls block until it is terminated by a break" do

@@ -39,4 +39,23 @@ describe "A Hash node" do
       g.send :[], 2
     end
   end
+
+  relates "{ 1 => [*1] }" do
+    parse do
+      [:hash, [:lit, 1], [:array, [:splat, [:lit, 1]]]]
+    end
+
+    compile do |g|
+      g.push_cpath_top
+      g.find_const :Hash
+      g.push 1
+
+      g.make_array 0
+      g.push 1
+      g.cast_array
+      g.send :+, 1
+
+      g.send :[], 2
+    end
+  end
 end

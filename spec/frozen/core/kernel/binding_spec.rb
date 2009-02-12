@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#binding" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("binding")
+    Kernel.should have_private_instance_method(:binding)
   end
   
   before(:each) do

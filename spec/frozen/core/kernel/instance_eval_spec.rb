@@ -58,12 +58,23 @@ describe "Kernel#instance_eval" do
     KernelSpecs::IVars.new.instance_eval { @secret }.should == 99
     KernelSpecs::IVars.new.instance_eval("@secret").should == 99
   end
-  
+
   it "treats block-local variables as local to the block" do
-    prc = instance_eval "proc { |x, prc| if x; n = 2; else; n = 1; prc.call(true, prc); n; end }"
+    prc = instance_eval <<-CODE
+      proc do |x, prc|
+        if x
+          n = 2
+        else
+          n = 1
+          prc.call(true, prc)
+          n
+        end
+      end
+    CODE
+
     prc.call(false, prc).should == 1
   end
-  
+
   it "sets class variables in the receiver" do
     KernelSpecs::IncludesInstEval.class_variables.should include("@@count")
     KernelSpecs::IncludesInstEval.send(:class_variable_get, :@@count).should == 2

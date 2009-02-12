@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/shared/lambda'
 
 describe "Kernel.proc" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("proc")
+    Kernel.should have_private_instance_method(:proc)
   end
   
   it_behaves_like(:kernel_lambda, :proc)

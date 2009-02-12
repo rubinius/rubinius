@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/helpers/tmp'
 require 'mspec/matchers/base'
 require 'mspec/runner/mspec'
+require 'mspec/runner/example'
 
 describe MSpec, ".register_files" do
   it "records which spec files to run" do

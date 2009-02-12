@@ -602,7 +602,7 @@ describe "Array#pack with integer format (8bit)", :shared => true do
 
   not_compliant_on :rubinius do
     ruby_version_is '' ... '1.9' do
-      it "accepts a Symbol as a pack argument because it respond to #to_int" do
+      it "accepts a Symbol as a pack argument because it responds to #to_int" do
         [:hello].pack(format).should == [:hello.to_i].pack('C')
       end
     end
@@ -1556,13 +1556,6 @@ describe "Array#pack with float format", :shared => true do
     lambda{ [obj].pack(format) }.should_not raise_error
   end
 
-  not_compliant_on :ruby do
-    it "calls #to_f to convert a String into a Float" do
-      str = "1.0"
-      str.should_receive(:to_f).and_return(1.0)
-      [str].pack(format)
-    end
-  end
   it "accepts a string representation of real number as the pack argument" do
     lambda{ ["1.3333"].pack(format) }.should_not raise_error(TypeError)
     lambda{ ["-1.3333"].pack(format) }.should_not raise_error(TypeError)
@@ -1577,11 +1570,9 @@ describe "Array#pack with float format", :shared => true do
     lambda{ [2**1024].pack(format) }.should_not raise_error
   end
 
-  compliant_on :ruby do
-    ruby_version_is '' ... '1.8' do
-      it "may complain overflow when the passed integer is too large" do
-        lambda{ [2**1024].pack(format) }.should complain(/range/)
-      end
+  ruby_version_is '' ... '1.8' do
+    it "may complain overflow when the passed integer is too large" do
+      lambda{ [2**1024].pack(format) }.should complain(/range/)
     end
   end
 
@@ -2092,12 +2083,10 @@ describe "Array#pack with format 'U'" do
     lambda { [2**32].pack('U') }.should raise_error(RangeError)
   end
 
-  compliant_on :ruby, :jruby, :ir, :rbx do
-    it "may accept a pack argument > max of Unicode codepoint" do
-      lambda { [0x00110000].pack('U') }.should_not raise_error(RangeError) # 22bit
-      lambda { [0x04000000].pack('U') }.should_not raise_error(RangeError) # 27bit
-      lambda { [0x7FFFFFFF].pack('U') }.should_not raise_error(RangeError) # 31bit
-    end
+  it "may accept a pack argument > max of Unicode codepoint" do
+    lambda { [0x00110000].pack('U') }.should_not raise_error(RangeError) # 22bit
+    lambda { [0x04000000].pack('U') }.should_not raise_error(RangeError) # 27bit
+    lambda { [0x7FFFFFFF].pack('U') }.should_not raise_error(RangeError) # 31bit
   end
 
   it "only takes as many elements as specified after ('U')" do
@@ -2441,9 +2430,7 @@ describe "Array#pack with format 'p'" do
       ["abc", 0x7E].pack('pC')[-1, 1].should == "\x7E"
     end
 
-    compliant_on :ruby do
-      it_behaves_like "Array#pack with pointer format", 'p'
-    end
+    it_behaves_like "Array#pack with pointer format", 'p'
 
     it "tries to convert the pack argument to a String using #to_str" do
       obj = mock('to_str')
@@ -2492,9 +2479,7 @@ describe "Array#pack with format 'P'" do
       ["abc", 0x7E].pack('PC')[-1, 1].should == "\x7E"
     end
 
-    compliant_on :ruby do
-      it_behaves_like "Array#pack with pointer format", 'P'
-    end
+    it_behaves_like "Array#pack with pointer format", 'P'
 
     # TODO: Is there an architecture whose internal representation of NULL pointer is not zero and on which Ruby can work?
     it "returns null pointer when passed nil" do

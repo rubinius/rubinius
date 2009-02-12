@@ -6,7 +6,7 @@ describe "Process.initgroups" do
     lambda { Process.initgroups("root") }.should raise_error(ArgumentError)
   end
 
-  not_supported_on :windows do
+  platform_is_not :windows do
     it "initializes the supplemental group access list" do
       name = `id -un`.strip
       groups = Process.groups

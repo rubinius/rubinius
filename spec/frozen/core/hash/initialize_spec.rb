@@ -19,19 +19,17 @@ describe "Hash#initialize" do
     NewHash.new(:one, :two)[1].should == :two
   end
 
-  compliant_on :ruby, :jruby do
-    it "raises a TypeError if called on a frozen instance" do
-      block = lambda { HashSpecs.frozen_hash.instance_eval { initialize() }}
-      block.should raise_error(TypeError)
+  it "raises a TypeError if called on a frozen instance" do
+    block = lambda { HashSpecs.frozen_hash.instance_eval { initialize() }}
+    block.should raise_error(TypeError)
 
-      block = lambda { HashSpecs.frozen_hash.instance_eval { initialize(nil) }  }
-      block.should raise_error(TypeError)
+    block = lambda { HashSpecs.frozen_hash.instance_eval { initialize(nil) }  }
+    block.should raise_error(TypeError)
 
-      block = lambda { HashSpecs.frozen_hash.instance_eval { initialize(5) }    }
-      block.should raise_error(TypeError)
+    block = lambda { HashSpecs.frozen_hash.instance_eval { initialize(5) }    }
+    block.should raise_error(TypeError)
 
-      block = lambda { HashSpecs.frozen_hash.instance_eval { initialize { 5 } } }
-      block.should raise_error(TypeError)
-    end
+    block = lambda { HashSpecs.frozen_hash.instance_eval { initialize { 5 } } }
+    block.should raise_error(TypeError)
   end
 end

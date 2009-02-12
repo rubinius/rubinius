@@ -4,6 +4,7 @@ require 'mspec/matchers/base'
 require 'mspec/runner/mspec'
 require 'mspec/mocks/mock'
 require 'mspec/runner/context'
+require 'mspec/runner/example'
 
 describe ContextState, "#describe" do
   before :each do

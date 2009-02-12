@@ -1,5 +1,5 @@
 describe :syslog_log, :shared => true do
-  not_supported_on :windows do
+  platform_is_not :windows do
     before :each do
       Syslog.opened?.should be_false
     end
@@ -9,15 +9,15 @@ describe :syslog_log, :shared => true do
     end
 
     it "logs a message" do
-      lambda { 
+      lambda {
         Syslog.open("rubyspec", Syslog::LOG_PERROR) do
           Syslog.send(@method, "Hello")
         end
       }.should output_to_fd("rubyspec: Hello\n", $stderr)
     end
-    
+
     it "accepts sprintf arguments" do
-      lambda { 
+      lambda {
         Syslog.open("rubyspec", Syslog::LOG_PERROR) do
           Syslog.send(@method, "Hello %s", "world")
           Syslog.send(@method, "%d dogs", 2)
@@ -28,7 +28,7 @@ describe :syslog_log, :shared => true do
     it "works as an alias for Syslog.log" do
       level = Syslog.const_get "LOG_#{@method.to_s.upcase}"
       response = "rubyspec: Hello\n"
-      lambda { 
+      lambda {
         Syslog.open("rubyspec", Syslog::LOG_PERROR) do
           Syslog.send(@method, "Hello")
           Syslog.log(level, "Hello")

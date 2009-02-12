@@ -366,13 +366,14 @@ class Rubinius::SydneyRewriter
 
   def rewrite_splat(exp)
     case context.last
-    when nil, :fcall, :break, :lasgn, :next, :return
-      return s(:array, exp)
+    when :svalue, :resbody, :super, :argspush, :masgn
+      return exp
     when :array
-      return s(:array, exp) if context[-2] == :fcall
+      grandparent = context[-2]
+      return exp if grandparent == :masgn or grandparent == :super
     end
 
-    exp
+    s(:array, exp)
   end
 
   def rewrite_super(exp)

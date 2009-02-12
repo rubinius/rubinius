@@ -1,0 +1,1 @@
+fails:Hash#[]= raises a TypeError if called on a frozen instance

@@ -15,7 +15,7 @@ describe "Array#shift" do
     a.shift.should == 4
     a.should == []
   end
-  
+
   it "returns nil when the array is empty" do
     [].shift.should == nil
   end
@@ -30,9 +30,15 @@ describe "Array#shift" do
     array[0..2].should == ['two', 3.0, array]
   end
 
-  compliant_on :ruby, :jruby, :ir do
+  ruby_version_is "" ... "1.9" do
     it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.shift }.should raise_error(TypeError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.shift }.should raise_error(RuntimeError)
     end
   end
 end

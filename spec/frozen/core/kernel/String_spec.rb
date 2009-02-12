@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.String" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("String")
+    Kernel.should have_private_instance_method(:String)
   end
   
   it "converts the given argument to a String by calling #to_s" do

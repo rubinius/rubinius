@@ -15,7 +15,7 @@ describe "Array#delete_at" do
     a.delete_at(2).should == 3
     a.delete_at(-1).should == 4
   end
-  
+
   it "returns nil and makes no modification if the index is out of range" do
     a = [1, 2]
     a.delete_at(3).should == nil
@@ -35,16 +35,15 @@ describe "Array#delete_at" do
     a.delete_at(-2).should == 1
   end
 
-  compliant_on :ruby, :jruby,:ir do
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on a frozen array" do
-        lambda { [1,2,3].freeze.delete_at(0) }.should raise_error(TypeError)
-      end
+  ruby_version_is '' ... '1.9' do
+    it "raises a TypeError on a frozen array" do
+      lambda { [1,2,3].freeze.delete_at(0) }.should raise_error(TypeError)
     end
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on a frozen array" do
-        lambda { [1,2,3].freeze.delete_at(0) }.should raise_error(RuntimeError)
-      end
+  end
+
+  ruby_version_is '1.9' do
+    it "raises a RuntimeError on a frozen array" do
+      lambda { [1,2,3].freeze.delete_at(0) }.should raise_error(RuntimeError)
     end
   end
 

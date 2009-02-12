@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.warn" do
   it "is a private method" do
-    Kernel.private_instance_methods.should include("warn")
+    Kernel.should have_private_instance_method(:warn)
   end
   
   it "calls #write on $stderr if $VERBOSE is true" do
@@ -39,7 +39,7 @@ describe "Kernel.warn" do
     }.should output(nil, "")
   end
 
-  it "writes the default record separator (\\n) and NOT $/ to $stderr after the warning message" do
+  it "writes the default record separator and NOT $/ to $stderr after the warning message" do
     lambda {
       v = $VERBOSE
       rs = $/

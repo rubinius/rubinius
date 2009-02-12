@@ -1,0 +1,3 @@
+fails:Etc.getgrgid returns a Struct::Group struct instance for the given user
+fails:Etc.getgrgid returns the Struct::Group for a given gid if it exists
+fails:Etc.getgrgid returns the Group for a given gid if it exists

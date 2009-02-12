@@ -3,7 +3,9 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#fill" do
   before(:all) do
-    @never_passed = proc{|i| raise ExpectationNotMetError, "the control path should not pass here" }
+    @never_passed = lambda do |i|
+      raise ExpectationNotMetError, "the control path should not pass here"
+    end
   end
 
   it "returns self" do
@@ -41,16 +43,15 @@ describe "Array#fill" do
     [nil, nil, nil, nil].fill { |i| i * 2 }.should == [0, 2, 4, 6]
   end
 
-  compliant_on :ruby, :jruby, :ir do
-    ruby_version_is '' ... '1.9' do
-      it "raises a TypeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(TypeError)
-      end
+  ruby_version_is '' ... '1.9' do
+    it "raises a TypeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(TypeError)
     end
-    ruby_version_is '1.9' do
-      it "raises a RuntimeError on a frozen array" do
-        lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(RuntimeError)
-      end
+  end
+
+  ruby_version_is '1.9' do
+    it "raises a RuntimeError on a frozen array" do
+      lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(RuntimeError)
     end
   end
 
