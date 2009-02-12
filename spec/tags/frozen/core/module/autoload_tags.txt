@@ -10,3 +10,4 @@ fails:Module#autoload loads the registered constant into a dynamically created m
 fails:Module#autoload removes the constant from the constant table if load fails
 fails:Module#autoload loads the registered constant when it is inherited from
 fails:Module#autoload allows multiple autoload constants for a single file
+fails:Module#autoload shares the autoload request across dup'ed copies of modules
