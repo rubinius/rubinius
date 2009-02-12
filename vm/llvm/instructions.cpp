@@ -90,7 +90,7 @@ CODE
 
   Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t args) {
     Message msg;
-    msg.setup(static_cast<SendSite*>(Qnil), stack_back(args), call_frame, args, args + 1);
+    msg.setup(static_cast<SendSite*>(Qnil), stack_back(args), call_frame, args);
     msg.name = name;
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.block = Qnil;

@@ -104,15 +104,13 @@ namespace rubinius {
     /*
      * Setup the Message with the basic information
      */
-    void setup(SendSite* ss, Object* obj, CallFrame* call_frame, size_t arg_count,
-        size_t stack_size) {
+    void setup(SendSite* ss, Object* obj, CallFrame* call_frame, size_t arg_count) {
       method_missing = false;
       arguments_array = NULL;
       send_site = ss;
       recv   = obj;
       caller_ = call_frame;
       total_args   = arg_count;
-      stack  = stack_size;
       stack_args_ = call_frame->stack_back_position(arg_count - 1);
       arguments_ = stack_args_;
     }
@@ -150,13 +148,6 @@ namespace rubinius {
     }
 
     /*
-     * Clear the caller's stack
-     */
-    void clear_caller() {
-      caller_->clear_stack(stack);
-    }
-
-    /*
      * Deprecated: Use the details to setup the Message
      */
     void use_from_task(Task* task, size_t args);
@@ -176,8 +167,6 @@ namespace rubinius {
     Symbol*     name;           /**< Name of the method being called (comes from SendSite) */
     Object*     recv;           /**< Receiver in the call, i.e. obj in `obj.foo()` */
     Object*     block;          /**< Block object or nil if no block. */
-    Object*     splat;          /**< NOT USED. The splat argument to the call. */
-    size_t      stack;          /**< Number of arguments on the stack when call occurs + 1 for return value. */
     bool        priv;           /**< Indicates that this call can access private methods. */
 
     Module*     lookup_from;    /**< The Module in which is the first method table to look from. Usually MetaClass or Class. */

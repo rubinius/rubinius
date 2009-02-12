@@ -54,7 +54,7 @@ namespace rubinius {
     GlobalLock::LockGuard lock(state->global_lock());
 
     Message msg(state);
-    msg.setup(NULL, G(main), &cf, 0, 0);
+    msg.setup(NULL, G(main), &cf, 0);
     msg.name = cm->name();
     msg.module = G(object);
     msg.method = cm.get();

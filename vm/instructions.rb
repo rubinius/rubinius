@@ -676,7 +676,6 @@ class Instructions
       msg.recv = under;
       msg.name = state->symbol("const_missing");
       msg.block = Qnil;
-      msg.stack = 0;
       msg.lookup_from = msg.recv->lookup_begin(state);
       Array* args = Array::create(state, 1);
       args->set(state, 0, sym);
@@ -687,7 +686,6 @@ class Instructions
       Message msg;
       msg.recv = res;
       msg.name = G(sym_call);
-      msg.stack = 0;
       msg.lookup_from = res->lookup_begin(state);
       msg.set_args(0);
 
@@ -2276,7 +2274,6 @@ class Instructions
       }
       msg.name = state->symbol("const_missing");
       msg.block = Qnil;
-      msg.stack = 0;
       msg.lookup_from = msg.recv->lookup_begin(state);
       Array* args = Array::create(state, 1);
       args->set(state, 0, sym);
@@ -2287,7 +2284,6 @@ class Instructions
       Message msg;
       msg.recv = res;
       msg.name = G(sym_call);
-      msg.stack = 0;
       msg.lookup_from = res->lookup_begin(state);
       msg.set_args(0);
 
@@ -2376,7 +2372,6 @@ slow_path:
         }
         msg.name = state->symbol("const_missing");
         msg.block = Qnil;
-        msg.stack = 0;
         msg.lookup_from = msg.recv->lookup_begin(state);
         Array* args = Array::create(state, 1);
         args->set(state, 0, sym);
@@ -2394,7 +2389,6 @@ slow_path:
       Message msg;
       msg.recv = res;
       msg.name = G(sym_call);
-      msg.stack = 0;
       msg.lookup_from = res->lookup_begin(state);
       msg.set_args(0);
 
@@ -3058,11 +3052,9 @@ slow_path:
       vmm->sendsites[index].get(),
       stack_top(),
       call_frame,
-      0,
-      1);
+      0);
 
     msg.block = Qnil;
-    msg.splat = Qnil;
 
     msg.priv = ALLOW_PRIVATE();
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -3145,11 +3137,9 @@ slow_path:
       vmm->sendsites[index].get(),
       stack_back(count),
       call_frame,
-      count,
-      count + 1);
+      count);
 
     msg.block = Qnil;
-    msg.splat = Qnil;
 
     msg.priv = ALLOW_PRIVATE();
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -3236,10 +3226,7 @@ slow_path:
       vmm->sendsites[index].get(),
       stack_back(count),
       call_frame,
-      count,
-      count + 1);
-
-    msg.splat = Qnil;
+      count);
 
     msg.priv = ALLOW_PRIVATE();
     msg.lookup_from = msg.recv->lookup_begin(state);
@@ -3334,10 +3321,7 @@ slow_path:
       vmm->sendsites[index].get(),
       stack_back(count), /* receiver */
       call_frame,
-      count,
-      count + 1);
-
-    msg.splat = Qnil;
+      count);
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
@@ -3436,10 +3420,7 @@ slow_path:
       vmm->sendsites[index].get(),
       call_frame->self(),
       call_frame,
-      count,
       count);
-
-    msg.splat = Qnil;
 
     msg.priv = TRUE;
     msg.lookup_from = call_frame->module()->superclass();
@@ -3577,10 +3558,7 @@ slow_path:
       vmm->sendsites[index].get(),
       call_frame->self(),
       call_frame,
-      count,
       count);
-
-    msg.splat = Qnil;
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
