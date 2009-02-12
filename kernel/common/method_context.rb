@@ -332,11 +332,6 @@ class MethodContext
     return obj
   end
 
-  def __undef_method__(name)
-    mod = method.scope.for_method_definition
-    mod.undef_method name
-  end
-
   attr_reader :dynamic_locals
 
   ##

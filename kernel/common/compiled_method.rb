@@ -93,6 +93,11 @@ class StaticScope
     @module.__send__ :alias_method, name, original
   end
 
+  def __undef_method__(name)
+    mod = for_method_definition()
+    mod.undef_method name
+  end
+
   def active_path
     scope = self
     while scope and !scope.script
