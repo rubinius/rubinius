@@ -1,0 +1,3 @@
+fails:IO#close makes the stream unavailable for any further data operations
+fails:IO#close raises an IOError on subsequent invocations
+fails:IO#close raises when a file descriptor is closed twice

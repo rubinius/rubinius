@@ -1,0 +1,1 @@
+fails:An Op_asgn_or node is compiled from '@@var ||= 3'

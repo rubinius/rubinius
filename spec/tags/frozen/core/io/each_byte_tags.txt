@@ -1,0 +1,2 @@
+critical:IO#each_byte yields each byte
+fails:IO#each_byte raises IOError on closed stream

@@ -1,0 +1,9 @@
+fails:An Undef node is compiled from 'undef :x'
+fails:An Undef node is compiled from 'undef :x, :y'
+fails:An Undef node is compiled from 'undef :x, :y, :z'
+fails:"An Undef node is compiled from \n    f1\n    undef :x"
+fails:"An Undef node is compiled from \n    f1\n    undef :x, :y"
+fails:"An Undef node is compiled from \n    undef :x, :y, :z\n    f2"
+fails:"An Undef node is compiled from \n    f1\n    undef :x, :y, :z"
+fails:"An Undef node is compiled from \n    f1\n    undef :x, :y, :z\n    f2"
+fails:An Undef node is compiled from 'class B; undef :blah; end'

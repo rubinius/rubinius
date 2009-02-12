@@ -1,2 +1,3 @@
 fails:Operators ! ~ + have a higher precedence than **
 fails:Operators <=> == === != =~ !~ have higher precedence than &&
+critical:Operators <= < > >= are left-associative

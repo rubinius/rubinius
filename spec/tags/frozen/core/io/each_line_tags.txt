@@ -1,0 +1,1 @@
+fails:IO#each_line raises an IOError when self is not readable

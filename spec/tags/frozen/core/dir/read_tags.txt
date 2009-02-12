@@ -1,0 +1,1 @@
+fails:Dir#read raises an IOError when called on a closed Dir instance

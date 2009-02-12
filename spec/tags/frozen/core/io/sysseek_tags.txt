@@ -1,1 +1,4 @@
 fails:IO#sysseek on a file can handle any numerical argument without breaking and can seek past EOF
+critical:IO#sysseek on a file moves the read position relative to the end with SEEK_END
+fails:IO#sysseek on a file warns if called immediately after a buffered IO#write
+fails:IO#sysseek on a file raises IOError on closed stream

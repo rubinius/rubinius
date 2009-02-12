@@ -1,0 +1,1 @@
+fails:"A Class node is compiled from \n    class X\n      puts((1 + 1))\n      def blah\n        puts("hello")\n      end\n    end"

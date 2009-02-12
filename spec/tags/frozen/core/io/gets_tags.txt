@@ -1,0 +1,1 @@
+fails:IO#gets raises IOError on closed stream

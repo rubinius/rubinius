@@ -6,3 +6,5 @@ fails:IO#readpartial reads after ungetc without data in the buffer
 fails:IO#readpartial discards the existing buffer content upon successful read
 fails:IO#readpartial discards the existing buffer content upon error
 fails:IO#readpartial raises IOError if the stream is closed
+critical:IO#readpartial raises IOError on closed stream
+critical:IO#readpartial raises EOFError on EOF

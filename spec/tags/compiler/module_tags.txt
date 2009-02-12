@@ -1,0 +1,1 @@
+fails:"A Module node is compiled from \n    module X\n      def y\n      end\n    end"

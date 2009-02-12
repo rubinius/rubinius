@@ -1,0 +1,4 @@
+fails:"A Super node is compiled from \n    def x\n      super()\n    end"
+fails:"A Super node is compiled from \n    def x\n      super([24, 42])\n    end"
+fails:"A Super node is compiled from \n    def x\n      super(4)\n    end"
+fails:"A Super node is compiled from \n    def x\n      super(24, 42)\n    end"

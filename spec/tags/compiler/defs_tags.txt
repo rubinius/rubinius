@@ -1,0 +1,5 @@
+fails:"A Defs node is compiled from \n    def self.x(y)\n      (y + 1)\n    end"
+fails:"A Defs node is compiled from \n    def self.setup(ctx)\n      bind = allocate\n      bind.context = ctx\n      return bind\n    end"
+fails:"A Defs node is compiled from \n    def self.empty(*)\n    end"
+fails:"A Defs node is compiled from \n    def self.empty\n    end"
+fails:"A Defs node is compiled from \n    def (a.b).empty(*)\n      # do nothing\n    end"

@@ -1,0 +1,3 @@
+critical:A constant on an eigenclass is not defined in the eigenclass opener's scope
+critical:A constant on an eigenclass cannot be accessed via object::CONST
+critical:A constant on an eigenclass is not preserved when the object is duped

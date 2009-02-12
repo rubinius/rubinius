@@ -1,0 +1,1 @@
+fails:A Cdecl node is compiled from 'X = 42'

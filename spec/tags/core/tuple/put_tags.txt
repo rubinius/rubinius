@@ -1,0 +1,2 @@
+fails:Tuple#put raises an Rubinius::ObjectBoundsExceededError when index is greater than or equal to size
+fails:Tuple#put raises an Rubinius::ObjectBoundsExceededError when index is less than zero

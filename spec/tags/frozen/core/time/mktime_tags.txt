@@ -1,0 +1,2 @@
+fails:Time.mktime throws ArgumentError for out of range values
+fails:Time.mktime throws ArgumentError for invalid number of arguments

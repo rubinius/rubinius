@@ -8,3 +8,6 @@ fails:Module#autoload loads the file when opening a module that is the autoloade
 fails:Module#autoload raises a NameError when the autoload file did not define the constant and a module is opened with the same name
 fails:Module#autoload loads the registered constant into a dynamically created module
 fails:Module#autoload removes the constant from the constant table if load fails
+fails:Module#autoload loads the registered constant when it is inherited from
+fails:Module#autoload allows multiple autoload constants for a single file
+fails:Module#autoload shares the autoload request across dup'ed copies of modules

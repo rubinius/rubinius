@@ -7,7 +7,29 @@ class MSpecScript
     'spec/frozen/core',
     'spec/frozen/language',
     'spec/core',
-    'spec/compiler'
+    'spec/compiler',
+
+    '^spec/frozen/core/array/union_spec.rb',
+    '^spec/frozen/core/array/uniq_spec.rb',
+    '^spec/frozen/core/array/unshift_spec.rb',
+    '^spec/frozen/core/array/values_at_spec.rb',
+    '^spec/frozen/core/continuation',
+    '^spec/frozen/core/kernel',
+    '^spec/frozen/core/module',
+    '^spec/frozen/core/process',
+    '^spec/frozen/core/thread',
+    '^spec/frozen/core/threadgroup',
+
+    '^spec/frozen/language/hash_spec.rb',
+    '^spec/frozen/language/numbers_spec.rb',
+
+    '^spec/core/bignum/coerce_spec.rb',
+    '^spec/core/compiledmethod',
+    '^spec/core/module',
+
+    '^spec/compiler/defn_spec.rb',
+    '^spec/compiler/dstr_spec.rb',
+    '^spec/compiler/lit_spec.rb',
 
     # These additional directories will be enabled as the
     # specs in them are updated for the C++ VM.

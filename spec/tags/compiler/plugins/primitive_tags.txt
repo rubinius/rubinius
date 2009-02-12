@@ -1,0 +1,2 @@
+fails:"A Call node using PrimitiveDeclaration plugin is compiled from \n    def m\n      Ruby.primitive :prim\n      raise PrimitiveFailure, "failed"\n    end"
+fails:"A Call node using PrimitiveDeclaration plugin is compiled from \n    def m\n      Ruby.primitive :prim\n      raise PrimitiveFailure, "failed"\n    end"

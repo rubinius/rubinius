@@ -1,0 +1,2 @@
+fails:Time.gm throws ArgumentError for out of range values
+fails:Time.gm throws ArgumentError for invalid number of arguments

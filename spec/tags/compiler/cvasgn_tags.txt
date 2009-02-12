@@ -1,0 +1,2 @@
+fails:"A Cvasgn node is compiled from \n    def x\n      @@blah = 1\n    end"
+fails:"A Cvasgn node is compiled from \n    def self.quiet_mode=(boolean)\n      @@quiet_mode = boolean\n    end"

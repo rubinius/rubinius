@@ -1,3 +1,9 @@
 fails:The return keyword when passed a splat calls 'to_a' on the splatted value first
 fails:The return keyword when passed a splat calls 'to_ary' on the splatted value first
 fails:The return keyword within a block raises a LocalJumpError if there is no lexicaly enclosing method
+critical:The return keyword within a begin executes ensure before returning from function
+critical:The return keyword within a begin executes ensures in stack order before returning from function
+fails:The return keyword in a Thread raises a ThreadError if used to exit a thread
+fails:The return keyword within a block causes lambda to return nil if invoked without any arguments
+fails:The return keyword within a block causes lambda to return nil if invoked with an empty expression
+fails:The return keyword within a block causes lambda to return the value passed to return

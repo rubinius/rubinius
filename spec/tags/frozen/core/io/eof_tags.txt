@@ -1,0 +1,3 @@
+critical:IO#eof? returns true after reading with sysread
+fails:IO#eof? raises IOError on closed stream
+fails:IO#eof? raises IOError on stream closed for reading by close_read

@@ -1,1 +1,3 @@
 fails:IO#seek can handle any numerical argument without breaking
+fails:IO#seek moves the read position relative to the current position with SEEK_CUR
+fails:IO#seek raises IOError on closed stream

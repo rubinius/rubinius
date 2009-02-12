@@ -1,0 +1,2 @@
+fails:Time.local throws ArgumentError for out of range values
+fails:Time.local throws ArgumentError for invalid number of arguments
