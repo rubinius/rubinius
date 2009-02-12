@@ -33,7 +33,7 @@ namespace rubinius {
   }
 
   void SignalThread::wake_loop() {
-    write(write_fd_, "!", 1);
+    assert(write(write_fd_, "!", 1) == 1);
   }
 
   void SignalThread::handle_signal(int sig) {
@@ -83,7 +83,7 @@ namespace rubinius {
       ::select(read_fd_ + 1, &fds, NULL, NULL, NULL);
       lock_.lock();
       char dummy;
-      read(read_fd_, &dummy, 1);
+      assert(read(read_fd_, &dummy, 1) == 1);
       // Hey! there must be data!
       //
       // Inhibit signals while we handle the current set.
