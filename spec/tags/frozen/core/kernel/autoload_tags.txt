@@ -1,2 +1,4 @@
 incomplete:Kernel.autoload needs to be reviewed for spec completeness
 incomplete:Kernel.autoload? needs to be reviewed for spec completeness
+fails:Kernel#autoload loads the file when the constant is accessed
+fails:Kernel#autoload does not call Kernel.require or Kernel.load to load the file
