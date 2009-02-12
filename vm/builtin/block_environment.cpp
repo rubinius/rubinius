@@ -71,7 +71,7 @@ namespace rubinius {
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
     cf->push(val);
-    return vmm->run(state, vmm, cf);
+    return VMMethod::run_interpreter(state, vmm, cf);
   }
 
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Message& msg) {
@@ -106,7 +106,7 @@ namespace rubinius {
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
     cf->push(val);
-    return vmm->run(state, vmm, cf);
+    return VMMethod::run_interpreter(state, vmm, cf);
   }
 
   Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {

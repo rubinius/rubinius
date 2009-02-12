@@ -28,6 +28,8 @@
 #define CALLS_TIL_JIT 50
 #define JIT_MAX_METHOD_SIZE 2048
 
+#define USE_SPECIALIZED_EXECUTE
+
 /*
  * An internalization of a CompiledMethod which holds the instructions for the
  * method.
@@ -41,7 +43,7 @@ namespace rubinius {
 #ifdef USE_DYNAMIC_INTERPRETER
     if(!state->config.dynamic_interpreter_enabled) {
       dynamic_interpreter = NULL;
-      standard_interpreter = run_interpreter;
+      standard_interpreter = interpreter;
       return;
     }
 
@@ -59,7 +61,7 @@ namespace rubinius {
     standard_interpreter = dynamic_interpreter;
 #else
     dynamic_interpreter = NULL;
-    standard_interpreter = run_interpreter;
+    standard_interpreter = interpreter;
 #endif
   }
 
@@ -163,7 +165,7 @@ namespace rubinius {
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       return msg.args() == 0;
     }
   };
@@ -171,9 +173,9 @@ namespace rubinius {
   // For when the method expects 1 and only 1 argument
   class OneArgument {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       if(msg.args() != 1) return false;
-      ctx->set_local(0, msg.get_argument(0));
+      scope->set_local(0, msg.get_argument(0));
       return true;
     }
   };
@@ -181,10 +183,10 @@ namespace rubinius {
   // For when the method expects 2 and only 2 arguments
   class TwoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       if(msg.args() != 2) return false;
-      ctx->set_local(0, msg.get_argument(0));
-      ctx->set_local(1, msg.get_argument(1));
+      scope->set_local(0, msg.get_argument(0));
+      scope->set_local(1, msg.get_argument(1));
       return true;
     }
   };
@@ -192,11 +194,11 @@ namespace rubinius {
   // For when the method expects 3 and only 3 arguments
   class ThreeArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       if(msg.args() != 3) return false;
-      ctx->set_local(0, msg.get_argument(0));
-      ctx->set_local(1, msg.get_argument(1));
-      ctx->set_local(2, msg.get_argument(2));
+      scope->set_local(0, msg.get_argument(0));
+      scope->set_local(1, msg.get_argument(1));
+      scope->set_local(2, msg.get_argument(2));
       return true;
     }
   };
@@ -204,11 +206,11 @@ namespace rubinius {
   // For when the method expects a fixed number of arguments (no splat)
   class FixedArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       if((native_int)msg.args() != vmm->total_args) return false;
 
       for(native_int i = 0; i < vmm->total_args; i++) {
-        ctx->set_local(i, msg.get_argument(i));
+        scope->set_local(i, msg.get_argument(i));
       }
 
       return true;
@@ -218,7 +220,7 @@ namespace rubinius {
   // For when a method takes all arguments as a splat
   class SplatOnlyArgument {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       const size_t total = msg.args();
       Array* ary = Array::create(state, total);
 
@@ -226,7 +228,7 @@ namespace rubinius {
         ary->set(state, i, msg.get_argument(i));
       }
 
-      ctx->set_local(vmm->splat_position, ary);
+      scope->set_local(vmm->splat_position, ary);
       return true;
     }
   };
@@ -331,7 +333,7 @@ namespace rubinius {
     }
   }
 
-#ifdef USE_SPECIALIZED_EXECUTE
+#if 0
   template <typename ArgumentHandler>
   ExecuteStatus VMMethod::execute_specialized(STATE, Task* task, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
@@ -441,7 +443,8 @@ namespace rubinius {
    * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
    * CompiledMethod.
    */
-  Object* VMMethod::execute(STATE, CallFrame* previous, Message& msg) {
+  template <typename ArgumentHandler>
+  Object* VMMethod::execute_specialized(STATE, CallFrame* previous, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
     VMMethod* vmm = cm->backend_method_;
 
@@ -460,7 +463,7 @@ namespace rubinius {
     cf->scope =    cf->top_scope = scope;
 
     // If argument handling fails..
-    GenericArguments args;
+    ArgumentHandler args;
     if(args.call(state, vmm, scope, msg) == false) {
       Exception* exc =
         Exception::make_argument_error(state, vmm->required_args, msg.args(), msg.name);
@@ -472,7 +475,11 @@ namespace rubinius {
 
     // if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
-    return vmm->run(state, vmm, cf);
+    return run_interpreter(state, vmm, cf);
+  }
+
+  Object* VMMethod::execute(STATE, CallFrame* previous, Message& msg) {
+    return execute_specialized<GenericArguments>(state, previous, msg);
   }
 
   /* This is a noop for this class. */
@@ -630,7 +637,7 @@ namespace rubinius {
         if(!state->process_async(call_frame)) return NULL;
       }
 
-      return_value = interpreter(state, vmm, call_frame);
+      return_value = vmm->run(state, vmm, call_frame);
       if(return_value) return return_value;
 
       ThreadState* th = state->thread_state();

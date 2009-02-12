@@ -32,8 +32,6 @@ namespace rubinius {
 
   public:
     static instlocation* instructions;
-
-    // To run this method, we execute this function pointer
     Runner run;
 
     opcode* opcodes;
@@ -68,10 +66,8 @@ namespace rubinius {
     void compile(STATE);
     static Object* execute(STATE, CallFrame* call_frame, Message& msg);
 
-#ifdef USE_SPECIALIZED_EXECUTE
     template <typename ArgumentHandler>
       static Object* execute_specialized(STATE, CallFrame* call_frame, Message& msg);
-#endif
 
     static Object* run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
     static Object* interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
