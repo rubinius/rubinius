@@ -59,18 +59,18 @@ describe "Kernel#load" do
     File.exist?("#{$load_fixture_dir}/load_spec_2.rbc").should == true
   end
 
-  it "generates a .<name>.compiled.rbc but no .rb file if using a file with no extension" do
+  it "generates a <name>.compiled.rbc but no .rb file if using a file with no extension" do
     `rm -f #{$load_fixture_dir}/load_spec.rbc`
 
     load('load_spec').should == true
-    File.exist?("#{$load_fixture_dir}/.load_spec.compiled.rbc").should == true
+    File.exist?("#{$load_fixture_dir}/load_spec.compiled.rbc").should == true
   end
 
-  it "generates a .<name>.compiled.rbc file if using a file with some arbitrary extension" do
+  it "generates a <name>.compiled.rbc file if using a file with some arbitrary extension" do
     `rm -f #{$load_fixture_dir}/load_spec.rooby.rbc`
 
     load('load_spec.rooby').should == true
-    File.exist?("#{$load_fixture_dir}/.load_spec.rooby.compiled.rbc").should == true
+    File.exist?("#{$load_fixture_dir}/load_spec.rooby.compiled.rbc").should == true
   end
 
   it "loads the .rbc if the .rb does not exist" do
