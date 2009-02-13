@@ -25,7 +25,6 @@
 #include "vm/message.hpp"
 #include "vm/object_utils.hpp"
 #include "vm/objectmemory.hpp"
-#include "vm/quantum_stack_leap.hpp"
 #include "vm/vm.hpp"
 
 #include "vm/helpers.hpp"
