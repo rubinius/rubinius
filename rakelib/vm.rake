@@ -115,7 +115,6 @@ field_extract_headers = %w[
   vm/builtin/methodvisibility.hpp
   vm/builtin/taskprobe.hpp
   vm/builtin/nativemethod.hpp
-  vm/builtin/nativemethodcontext.hpp
   vm/builtin/system.hpp
   vm/builtin/autoload.hpp
   vm/builtin/machine_method.hpp

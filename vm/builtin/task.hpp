@@ -132,9 +132,6 @@ namespace rubinius {
 
     Tuple* locate_method_on(Object* obj, Symbol* sel, Object* priv);
 
-    /** Returning from a NativeMethod and restoring sender. */
-    void native_return(Object* return_value);
-
     void primitive_return(Object* val, Message& msg);
     void yield_debugger();
     bool check_serial(Object* obj, Symbol* sel, int ser);

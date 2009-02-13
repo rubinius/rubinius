@@ -5,7 +5,6 @@
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/nativemethod.hpp"
-#include "builtin/nativemethodcontext.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookuptable.hpp"
@@ -190,30 +189,6 @@ namespace rubinius {
     active_->recycle(state);
 
     restore_context(target);
-  }
-
-  /* @todo Mirrors restore_sender too much, unify. */
-  void Task::native_return(Object* return_value)
-  {
-    assert(0);
-    if (profiler) {
-      profiler->leave_method();
-    }
-
-    NativeMethodContext* nmc = try_as<NativeMethodContext>(active_->sender());
-
-    if (nmc) {
-      active(state, nmc);
-
-      nmc->value_returned_to_c(return_value);
-      nmc->action(NativeMethodContext::RETURNED_BACK_TO_C);
-
-      NativeMethod::activate_from(nmc);
-    }
-    else {
-      restore_context(active_->sender());
-      active_->push(return_value);
-    }
   }
 
   /* Called after a primitive has executed and wants to return a value. */
@@ -628,13 +603,6 @@ namespace rubinius {
             mod_name = ctx->module()->name()->c_str(state);
           }
           std::cout << mod_name << "#";
-        }
-
-        if(kind_of<NativeMethodContext>(ctx)) {
-          /* Muhahaa. */
-          std::cout << as<NativeMethodContext>(ctx) << std::endl;
-          ctx = ctx->sender();
-          continue;
         }
 
         Symbol* name = try_as<Symbol>(ctx->name());

@@ -11,10 +11,11 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
-#include "builtin/nativemethodcontext.hpp"
-
 #include "util/thread.hpp"
 #include "gc_root.hpp"
+
+#include "vm/object_utils.hpp"
+
 
 namespace rubinius {
 
@@ -24,6 +25,12 @@ namespace rubinius {
   class NativeMethodFrame;
 
   typedef std::vector<TypedRoot<Object*>*> Handles;
+
+  /** Theoretically this could be changed to some other storage.. */
+  typedef std::vector<Object*> HandleStorage;
+
+  /** More prosaic name for Handles. */
+  typedef intptr_t Handle;
 
   class NativeMethodFraming {
     VM* state_;
@@ -210,28 +217,9 @@ namespace rubinius {
     attr_accessor(functor, MemoryPointer);
 
 
-  public:   /* Interface */
+  public:   /* Class Interface */
 
-    /**
-     *  Handle C method call including its callstack.
-     *
-     *  In addition to setting up the NativeMethodContext for the call
-     *  and the call itself (arguments, return value and all), we also
-     *  handle setting up further calls from the method to other Ruby
-     *  or C methods.
-     *
-     *  This method may be invoked by executor_implementation() or as
-     *  a part of a return from a child context.
-     *
-     *  Sets the given context as the current.
-     *
-     *  @note   Shamelessly tramples over the standard VMExecutable@execute.
-     */
-    static ExecuteStatus activate_from(NativeMethodContext* context);
-
-    /**
-     *  Enter a new NativeMethod the first time.
-     */
+    /** Set up and call native method. */
     static Object* executor_implementation(STATE, CallFrame* call_frame, Message& message);
 
     /**
@@ -254,20 +242,12 @@ namespace rubinius {
     // Ruby.primitive :nativemethod_load_extension_entry_point
     static NativeMethod* load_extension_entry_point(STATE, String* path, String* name);
 
-    /**
-     *  Call the C function.
-     *
-     *  We grab the information needed from the active context, convert
-     *  everything necessary to handles, and then directly call the C
-     *  function with those parameters. Eventually the return value is
-     *  saved in the context and we jump back to the dispatch point.
-     *
-     *  (It is not possible to simply return since this method is in
-     *  a different stack from the dispatcher.)
-     */
-    static void perform_call();
 
+  public:   /* Instance methods */
+
+    /** Call the C function. */
     Object* call(STATE, NativeMethodFrame* frame, Message& msg);
+
 
     /** Return the functor cast into the specified type. */
     template <typename FunctorType>
@@ -303,41 +283,43 @@ namespace rubinius {
 
 }
 
-/**
- *  Define stream inserter for NMC frame info.
- *
- *  The only info coming from the context is really the name, file + line.
- */
-template<typename CharType, typename Traits>
-  std::basic_ostream<CharType, Traits>& operator<<(std::basic_ostream<CharType, Traits>& stream,
-                                                   const rubinius::NativeMethodContext* nmc) {
-  /* No futzing with broken streams. */
-  if (!stream.good()) {
-    return stream;
-  }
 
-  /* Ugh, sentries. */
-  typename std::basic_ostream<CharType, Traits>::sentry guard(stream);
-
-  if (guard) {
-    /* Using another stream here automates manipulators, yay. */
-    std::ostringstream out;
-
-    rubinius::Object* name = const_cast<rubinius::NativeMethodContext*>(nmc)->name();
-
-    out << rubinius::as<rubinius::Symbol>(name)->c_str(nmc->state())
-        << " in "
-        << nmc->current_file()
-        << ":"
-        << nmc->current_line()
-        << " (last known information.)";
-
-    /* Yes, we want the C string. */
-    stream << out.str().c_str();
-  }
-
-  return stream;
-}
+// Left here as an example of the stream interface. --rue
+///**
+// *  Define stream inserter for NMC frame info.
+// *
+// *  The only info coming from the context is really the name, file + line.
+// */
+//template<typename CharType, typename Traits>
+//  std::basic_ostream<CharType, Traits>& operator<<(std::basic_ostream<CharType, Traits>& stream,
+//                                                   const rubinius::NativeMethodContext* nmc) {
+//  /* No futzing with broken streams. */
+//  if (!stream.good()) {
+//    return stream;
+//  }
+//
+//  /* Ugh, sentries. */
+//  typename std::basic_ostream<CharType, Traits>::sentry guard(stream);
+//
+//  if (guard) {
+//    /* Using another stream here automates manipulators, yay. */
+//    std::ostringstream out;
+//
+//    rubinius::Object* name = const_cast<rubinius::NativeMethodContext*>(nmc)->name();
+//
+//    out << rubinius::as<rubinius::Symbol>(name)->c_str(nmc->state())
+//        << " in "
+//        << nmc->current_file()
+//        << ":"
+//        << nmc->current_line()
+//        << " (last known information.)";
+//
+//    /* Yes, we want the C string. */
+//    stream << out.str().c_str();
+//  }
+//
+//  return stream;
+//}
 
 #endif  /* NATIVEMETHOD_HPP */
 

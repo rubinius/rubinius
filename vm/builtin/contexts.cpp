@@ -11,7 +11,6 @@
 #include "vm/object_utils.hpp"
 
 #include "builtin/contexts.hpp"
-#include "builtin/nativemethodcontext.hpp"
 #include "builtin/machine_method.hpp"
 
 #include <iostream>
@@ -297,8 +296,6 @@ namespace rubinius {
       break;
     case BlockContext::type:
       this->klass(state, G(blokctx));
-      break;
-    case NativeMethodContext::type:
       break;
     default:
       abort();

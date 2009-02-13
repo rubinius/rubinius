@@ -206,10 +206,8 @@ extern "C" {
 }
 #endif
 
-/* The immediates.
- *
- * Hardcoded in NativeMethodContext::register_class_with(),
- * so change both files if absolutely necessary.
+/*
+ * The immediates.
  */
 
 /** The false object. */

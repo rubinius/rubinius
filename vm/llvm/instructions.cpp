@@ -15,7 +15,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/staticscope.hpp"
-#include "builtin/nativemethodcontext.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/lookuptable.hpp"

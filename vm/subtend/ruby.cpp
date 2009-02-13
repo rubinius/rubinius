@@ -16,7 +16,6 @@
 #include "builtin/module.hpp"
 #include "builtin/methodvisibility.hpp"
 #include "builtin/nativemethod.hpp"
-#include "builtin/nativemethodcontext.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -48,7 +47,7 @@ using rubinius::MethodVisibility;
 using rubinius::Module;
 using rubinius::ModuleType;
 using rubinius::NativeMethod;
-using rubinius::NativeMethodContext;
+using rubinius::NativeMethodFraming;
 using rubinius::Object;
 using rubinius::SendSite;
 using rubinius::String;
@@ -59,7 +58,6 @@ using rubinius::as;
 using rubinius::kind_of;
 using rubinius::native_int;
 using rubinius::try_as;
-using rubinius::NativeMethodFraming;
 
 namespace {
 

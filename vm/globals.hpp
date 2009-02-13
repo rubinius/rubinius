@@ -99,7 +99,6 @@ namespace rubinius {
     TypedRoot<Class*> taskprobe;
 
     TypedRoot<Class*> nmethod;        /**< NativeMethod */
-    TypedRoot<Class*> nativectx;      /**< NativeMethodContext */
 
     TypedRoot<Class*> data;
 
@@ -210,7 +209,6 @@ namespace rubinius {
       taskprobe(&roots),
 
       nmethod(&roots),
-      nativectx(&roots),     /**< NativeMethodContext */
       data(&roots),
       autoload(&roots),
       machine_method(&roots),

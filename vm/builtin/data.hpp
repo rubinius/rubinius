@@ -2,7 +2,6 @@
 #define RBX_BUILTIN_DATA_HPP
 
 #include "builtin/object.hpp"
-#include "builtin/nativemethodcontext.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
@@ -32,7 +31,8 @@ namespace rubinius {
 
   private:  /* Instance variables */
 
-    NativeMethodContext*  mark_context; // slot
+/** @todo Disabled, no more NMC. Replace with current if possible/need. --rue */
+//    NativeMethodContext*  mark_context; // slot
 
     FreeFunctor           free_;
     MarkFunctor           mark_;
