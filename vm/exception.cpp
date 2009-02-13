@@ -19,6 +19,7 @@ namespace rubinius {
 
   void TypeError::raise(object_type type, Object* obj, const char* reason) {
     VM* state = VM::current_state();
+    abort();
     if(!state || !state->use_safe_position) {
       throw TypeError(type, obj, reason);
     }
@@ -29,6 +30,7 @@ namespace rubinius {
 
   void Assertion::raise(const char* reason) {
     VM* state = VM::current_state();
+    abort();
     if(!state || !state->use_safe_position) {
       throw Assertion(reason);
     }
@@ -41,12 +43,7 @@ namespace rubinius {
   }
 
   void RubyException::raise(Exception* exception, bool make_backtrace) {
-    VM* state = VM::current_state();
-    if(!state || !state->use_safe_position) {
-      throw RubyException(exception, make_backtrace);
-    }
-
-    state->raise_exception_safely(exception);
+    throw RubyException(exception, make_backtrace);
     // Not reached.
   }
 

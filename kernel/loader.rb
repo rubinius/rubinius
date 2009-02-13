@@ -253,6 +253,7 @@ begin
         require prog
       rescue LoadError => e
         STDERR.puts "Unable to find repr named '#{repr}' to load."
+        puts e.awesome_backtrace.show
         exit 1
       end
     else

@@ -73,6 +73,7 @@ namespace rubinius {
     , symbols(shared.symbols)
     , user_config(shared.user_config)
     , check_local_interrupts(false)
+    , thread_state_(this)
     , thread(this, (Thread*)Qnil)
     , current_mark(NULL)
     , reuse_llvm(true)
@@ -295,18 +296,21 @@ namespace rubinius {
   }
 
   void VM::raise_exception_safely(Exception* exc) {
+    abort();
     safe_position_data.exc = exc;
     siglongjmp(safe_position, cReasonException);
     // Never reached.
   }
 
   void VM::raise_typeerror_safely(TypeError* err) {
+    abort();
     safe_position_data.type_error = err;
     siglongjmp(safe_position, cReasonTypeError);
     // Never reached.
   }
 
   void VM::raise_assertion_safely(Assertion* err) {
+    abort();
     safe_position_data.assertion = err;
     siglongjmp(safe_position, cReasonAssertion);
     // Never reached.

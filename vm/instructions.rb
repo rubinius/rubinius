@@ -1538,8 +1538,9 @@ class Instructions
     } else {
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_lt), 1);
       stack_clear(2);
+
       HANDLE_EXCEPTION(ret);
-      stack_set_top(ret);
+      stack_push(ret);
     }
     CODE
   end
@@ -1587,6 +1588,7 @@ class Instructions
     } else {
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_minus), 1);
       stack_clear(2);
+
       HANDLE_EXCEPTION(ret);
       stack_push(ret);
     }
@@ -1639,6 +1641,7 @@ class Instructions
     } else {
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_nequal), 1);
       stack_clear(2);
+
       HANDLE_EXCEPTION(ret);
       stack_push(ret);
     }
@@ -1690,6 +1693,7 @@ class Instructions
     } else {
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_plus), 1);
       stack_clear(2);
+
       HANDLE_EXCEPTION(ret);
       stack_push(ret);
     }
@@ -1741,6 +1745,7 @@ class Instructions
     } else {
       Object* ret = send_slowly(state, vmm, call_frame, G(sym_tequal), 1);
       stack_clear(2);
+
       HANDLE_EXCEPTION(ret);
       stack_push(ret);
     }
@@ -4271,6 +4276,13 @@ slow_path:
   def raise_return
     <<-CODE
     state->thread_state()->raise_return(stack_top(), call_frame->scope->parent());
+    RUN_EXCEPTION();
+    CODE
+  end
+
+  def ensure_return
+    <<-CODE
+    state->thread_state()->raise_return(stack_top(), call_frame->scope);
     RUN_EXCEPTION();
     CODE
   end

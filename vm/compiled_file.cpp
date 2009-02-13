@@ -41,6 +41,8 @@ namespace rubinius {
   bool CompiledFile::execute(STATE) {
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
+    state->thread_state()->clear_exception();
+
     CallFrame cf;
     cf.previous = NULL;
     cf.name = NULL;

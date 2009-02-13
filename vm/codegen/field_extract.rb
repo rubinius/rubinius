@@ -49,7 +49,7 @@ class BasicPrimitive
     #str << "    if(unlikely(task->profiler)) task->profiler->leave_method();\n"
     str << "  } catch(const RubyException& exc) {\n"
     str << "    state->thread_state()->raise_exception(exc.exception);\n"
-    str << "    return Qnil;\n"
+    str << "    return NULL;\n"
     str << "  }\n"
     str << "\n"
     str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
@@ -86,7 +86,12 @@ class CPPPrimitive < BasicPrimitive
 
     if @raw
       str << "\n"
-      str << "  return recv->#{@cpp_name}(state, msg.method, call_frame, msg);\n"
+      str << "  try {\n"
+      str << "    return recv->#{@cpp_name}(state, msg.method, call_frame, msg);\n"
+      str << "  } catch(const RubyException& exc) {\n"
+      str << "    state->thread_state()->raise_exception(exc.exception);\n"
+      str << "    return NULL;\n"
+      str << "  }\n"
       str << "\n"
       str << "fail:\n"
       str << "  return VMMethod::execute(state, call_frame, msg);\n"
@@ -109,7 +114,12 @@ class CPPStaticPrimitive < CPPPrimitive
 
     if @raw
       str << "\n"
-      str << "  return #{@type}::#{@cpp_name}(state, msg.method, call_frame, msg);\n"
+      str << "  try {\n"
+      str << "    return #{@type}::#{@cpp_name}(state, msg.method, call_frame, msg);\n"
+      str << "  } catch(const RubyException& exc) {\n"
+      str << "    state->thread_state()->raise_exception(exc.exception);\n"
+      str << "    return NULL;\n"
+      str << "  }\n"
       str << "\n"
       str << "}\n\n"
     else
@@ -159,7 +169,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
       #str << "        if(unlikely(task->profiler)) task->profiler->leave_method();\n"
       str << "      } catch(const RubyException& exc) {\n"
       str << "        state->thread_state()->raise_exception(exc.exception);\n"
-      str << "        return Qnil;\n"
+      str << "        return NULL;\n"
       str << "      }\n"
       str << "      if(likely(ret != reinterpret_cast<Object*>(kPrimitiveFailed))) {\n"
       prim_return(str, 8);

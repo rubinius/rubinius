@@ -2037,13 +2037,10 @@ class Compiler
           g.push :nil
         end
 
-        if !force and @in_ensure
-          g.raise_return
-          return
-        end
-
         if @in_block
           g.raise_return
+        elsif !force and @in_ensure
+          g.ensure_return
         else
           g.ret
         end

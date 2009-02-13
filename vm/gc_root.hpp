@@ -212,7 +212,7 @@ namespace rubinius {
 
   template<typename ObjType>
     inline TypedRoot<ObjType>::TypedRoot(STATE, ObjType obj):
-      Root(state, obj)
+      Root(state, (Object*)obj)
     { }
 
   /** @todo Use as<ObjType>() when using base type instead of pointer. --rue */

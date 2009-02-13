@@ -169,7 +169,11 @@ module Compile
       rb_path = "#{dir}#{rb}"
 
       if File.file? rb_path
-        rbc_path = "#{dir}#{rbc}"
+        if rbc
+          rbc_path = "#{dir}#{rbc}"
+        else
+          rbc_path = nil
+        end
 
         cm = nil
 
@@ -178,7 +182,7 @@ module Compile
         # hard if it doesn't.
         if @load_rbc_directly
 
-          if File.file?(rbc_path)
+          if rbc_path and File.file?(rbc_path)
             compile_feature(rb, requiring) do
               cm = load_from_rbc(rbc_path, version_number)
               raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
@@ -188,9 +192,15 @@ module Compile
           end
 
         # Prefer compiled whenever possible
-        elsif !File.file?(rbc_path) or File.mtime(rb_path) > File.mtime(rbc_path) or options[:recompile]
+        elsif !rbc_path or
+              !File.file?(rbc_path) or
+               File.mtime(rb_path) > File.mtime(rbc_path) or
+               options[:recompile]
+
           if $DEBUG_LOADING
-            if !File.file?(rbc_path)
+            if !rbc_path
+              STDERR.puts "[Compiling #{rb_path}: .rbc file disable]"
+            elsif !File.file?(rbc_path)
               STDERR.puts "[Compiling #{rb_path}: Missing compiled version]"
             else
               STDERR.puts "[Compiling #{rb_path}: Newer source file]"
@@ -203,7 +213,7 @@ module Compile
           end
 
           # Store it for the future
-          Rubinius::CompiledFile.dump cm, rbc_path
+          Rubinius::CompiledFile.dump cm, rbc_path if rbc_path
         else
           if $DEBUG_LOADING
             STDERR.puts "[Loading #{rbc_path}]"
@@ -312,8 +322,14 @@ module Compile
       rb, rbc, ext = nil, nil, path
     else
       dir, name = File.split(path)
-      name = ".#{name}" unless name[0] == ?.
-      rb, rbc, ext = path, "#{dir}/#{name}.compiled.rbc", nil
+      rb = path
+      ext = nil
+
+      if name[0] == ?.
+        rbc = nil
+      else
+        rbc = "#{dir}/#{name}.compiled.rbc"
+      end
     end
 
     Compile.single_load '', rb, rbc, ext, false, {}
@@ -379,7 +395,7 @@ module Kernel
     path = StringValue(path)
     # Remap all library extensions behind the scenes, just like MRI
     path.gsub!(/\.(so|bundle|dll|dylib)$/, "#{Rubinius::LIBSUFFIX}")
-    
+
     opts = {:wrap => !!opts, :recompile => false} unless Hash === opts
 
     if path.suffix? '.rbc'
@@ -390,8 +406,14 @@ module Kernel
       rb, rbc, ext = nil, nil, path
     else
       dir, name = File.split(path)
-      name = ".#{name}" unless name[0] == ?.
-      rb, rbc, ext = path, "#{dir}/#{name}.compiled.rbc", nil
+      rb = path
+      ext = nil
+
+      if name[0] == ?.
+        rbc = nil
+      else
+        rbc = "#{dir}/#{name}.compiled.rbc"
+      end
     end
 
     Compile.unified_load path, rb, rbc, ext, nil, opts
@@ -460,7 +482,14 @@ module Kernel
     elsif path.suffix? "#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
     else
-      rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}#{Rubinius::LIBSUFFIX}"
+      rb =  "#{path}.rb"
+      ext = "#{path}#{Rubinius::LIBSUFFIX}"
+
+      if name[0] == ?.
+        rbc = nil
+      else
+        rbc = "#{path}.rbc"
+      end
     end
     return rb,rbc,ext
   end

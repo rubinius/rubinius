@@ -61,6 +61,19 @@ namespace rubinius {
     Float* get_float();
     InstructionSequence* get_iseq();
     CompiledMethod* get_cmethod();
+
+    class Error {
+      const char* message_;
+
+    public:
+      Error(const char* msg)
+        : message_(msg)
+      {}
+
+      const char* message() {
+        return message_;
+      }
+    };
   };
 }
 

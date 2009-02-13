@@ -673,7 +673,9 @@ namespace rubinius {
         if(th->raise_reason() == cReturn) {
           // If we're trying to return to here, we're done!
           if(th->destination_scope() == call_frame->scope) {
-            return th->raise_value();
+            Object* val = th->raise_value();
+            th->clear_exception();
+            return val;
           } else {
             // Give control of this exception to the caller.
             return NULL;
@@ -683,6 +685,7 @@ namespace rubinius {
           // If we're trying to break to here, we're done!
           if(th->destination_scope() == call_frame->scope) {
             call_frame->push(th->raise_value());
+            th->clear_exception();
           } else {
             // Give control of this exception to the caller.
             return NULL;
