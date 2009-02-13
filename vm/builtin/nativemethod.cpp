@@ -18,9 +18,12 @@ namespace rubinius {
 
   typedef TypedRoot<Object*> RootHandle;
 
+  /** Thread-local framing instance. */
+  thread::ThreadData<NativeMethodFraming*> native_method_framing;
+
+
 /* Class methods */
 
-  thread::ThreadData<NativeMethodFraming*> native_method_framing;
   NativeMethodFraming* NativeMethodFraming::get() {
     return native_method_framing.get();
   }
@@ -36,7 +39,7 @@ namespace rubinius {
   }
 
   Handle NativeMethodFraming::get_handle(Object* obj) {
-    return current_nmc_frame_->get_handle(state_, obj);
+    return current_native_frame_->get_handle(state_, obj);
   }
 
   Handle NativeMethodFraming::get_handle_global(Object* obj) {
@@ -49,7 +52,7 @@ namespace rubinius {
     if(hndl < 0) {
       return global_handles_[-1 - hndl]->get();
     } else {
-      return current_nmc_frame_->get_object(hndl);
+      return current_native_frame_->get_object(hndl);
     }
   }
 
@@ -64,7 +67,7 @@ namespace rubinius {
   }
 
   Handles& NativeMethodFraming::handles() {
-    return current_nmc_frame_->handles();
+    return current_native_frame_->handles();
   }
 
   void NativeMethod::register_class_with(STATE) {
@@ -81,16 +84,16 @@ namespace rubinius {
 
   Object* NativeMethod::executor_implementation(STATE, CallFrame* call_frame, Message& msg) {
     NativeMethodFraming* framing = native_method_framing.get();
-    NativeMethodFrame nmf(framing->current_nmc_frame());
+    NativeMethodFrame nmf(framing->current_native_frame());
 
     framing->set_current_call_frame(call_frame);
-    framing->set_current_nmc_frame(&nmf);
+    framing->set_current_native_frame(&nmf);
     framing->set_state(state);
 
     NativeMethod* nm = as<NativeMethod>(msg.method);
     Object* ret = nm->call(state, &nmf, msg);
 
-    framing->set_current_nmc_frame(nmf.previous());
+    framing->set_current_native_frame(nmf.previous());
 
     return ret;
   }

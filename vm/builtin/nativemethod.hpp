@@ -21,31 +21,57 @@ namespace rubinius {
 
   /* Forwards */
   class Message;
-  class NativeMethodFraming;
   class NativeMethodFrame;
 
+  /** A set of Handles. */
   typedef std::vector<TypedRoot<Object*>*> Handles;
-
-  /** Theoretically this could be changed to some other storage.. */
-  typedef std::vector<Object*> HandleStorage;
 
   /** More prosaic name for Handles. */
   typedef intptr_t Handle;
 
+
+  /**
+   *  Thread-local info about native method calls.
+   */
   class NativeMethodFraming {
-    VM* state_;
-    CallFrame* current_call_frame_;
-    NativeMethodFrame* current_nmc_frame_;
-    Handles global_handles_;
 
-  public:
+  public:   /* Class Interface */
 
-    VM* state() {
-      return state_;
-    }
+    /** Obtain the Framing for this thread. */
+    static NativeMethodFraming* get();
+
+
+  public:   /* Interface methods */
+
+    /** Create or retrieve Handle for obj. */
+    Handle get_handle(Object* obj);
+
+    /** Create or retrieve Handle for a global object. */
+    Handle get_handle_global(Object* obj);
+
+    /** Obtain the Object the Handle represents. */
+    Object* get_object(Handle hndl);
+
+    /** Obtain the global Object the Handle represents*/
+    Object* get_object_global(Handle hndl);
+
+    /** Delete a global Object and its Handle. */
+    void delete_global(Handle hndl);
+
+    /** GC marking for Objects behind Handles. */
+    void mark_handles(ObjectMark& mark);
+
+
+  public:   /* Accessors */
+
+    Object* block();
 
     void set_state(VM* vm) {
       state_ = vm;
+    }
+
+    VM* state() {
+      return state_;
     }
 
     CallFrame* current_call_frame() {
@@ -56,51 +82,78 @@ namespace rubinius {
       current_call_frame_ = frame;
     }
 
-    NativeMethodFrame* current_nmc_frame() {
-      return current_nmc_frame_;
+    NativeMethodFrame* current_native_frame() {
+      return current_native_frame_;
     }
 
-    void set_current_nmc_frame(NativeMethodFrame* frame) {
-      current_nmc_frame_ = frame;
+    void set_current_native_frame(NativeMethodFrame* frame) {
+      current_native_frame_ = frame;
     }
 
-    static NativeMethodFraming* get();
-
-    Handle get_handle(Object* obj);
-    Handle get_handle_global(Object* obj);
-    Object* get_object(Handle hndl);
-    Object* get_object_global(Handle hndl);
-    void delete_global(Handle hndl);
+    /** Set of Handles available in current Frame (convenience.) */
     Handles& handles();
 
-    void mark_handles(ObjectMark& mark);
 
-    Object* block();
+  private:   /* Instance variables */
+
+    /** VM in which executing. */
+    VM*                 state_;
+    /** Current callframe in Ruby-land. */
+    CallFrame*          current_call_frame_;
+    /** Current native callframe. */
+    NativeMethodFrame*  current_native_frame_;
+    /** Global object handles. */
+    Handles             global_handles_;
   };
 
+
+  /**
+   *  Call frame for a native method.
+   *
+   *  @see NativeMethodFraming.
+   */
   class NativeMethodFrame {
-    NativeMethodFrame* previous_;
-    Handles handles_;
 
   public:
     NativeMethodFrame(NativeMethodFrame* prev)
       : previous_(prev)
     {}
 
+
+  public:     /* Interface methods */
+
+    /** Currently active/used Frame in this Framing i.e. thread. */
+    NativeMethodFrame* current() {
+      return NativeMethodFraming::get()->current_native_frame();
+    }
+
+    /** Create or retrieve a Handle for the Object. */
+    Handle get_handle(VM*, Object* obj);
+
+    /** Obtain the Object the Handle represents. */
+    Object* get_object(Handle hndl);
+
+
+  public:     /* Accessors */
+
+    /** Handles to Objects used in this Frame. */
     Handles& handles() {
       return handles_;
     }
 
+    /** Native Frame active before this call. */
     NativeMethodFrame* previous() {
       return previous_;
     }
 
-    Handle get_handle(VM*, Object* obj);
-    Object* get_object(Handle hndl);
 
-    NativeMethodFrame* current() {
-      return NativeMethodFraming::get()->current_nmc_frame();
-    }
+  private:    /* Instance variables */
+
+    /** Native Frame active before this call. @note This may NOT be the sender. --rue */
+    NativeMethodFrame* previous_;
+
+    /** Handles to Objects used in this Frame. */
+    Handles handles_;
   };
 
 
