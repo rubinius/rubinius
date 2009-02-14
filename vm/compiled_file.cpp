@@ -13,6 +13,7 @@
 #include "object_utils.hpp"
 
 #include "builtin/task.hpp"
+#include "builtin/sendsite.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/class.hpp"
@@ -55,9 +56,15 @@ namespace rubinius {
 
     GlobalLock::LockGuard lock(state->global_lock());
 
-    Message msg(state);
-    msg.setup(NULL, G(main), &cf, 0);
-    msg.name = cm->name();
+    Message msg(state,
+                static_cast<SendSite*>(Qnil),
+                cm->name(),
+                G(main),
+                &cf,
+                0,
+                Qnil,
+                false,
+                static_cast<Module*>(Qnil));
     msg.module = G(object);
     msg.method = cm.get();
 
