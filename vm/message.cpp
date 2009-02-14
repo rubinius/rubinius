@@ -14,6 +14,66 @@
 
 namespace rubinius {
 
+  Message::Message():
+    state(NULL),
+    arguments_array(NULL),
+    total_args(0),
+    stack_args_(NULL),
+    arguments_(NULL),
+    send_site(NULL),
+    name(static_cast<Symbol*>(Qnil)),
+    recv(Qnil),
+    block(Qnil),
+    priv(false),
+    lookup_from(static_cast<Module*>(Qnil)),
+    method(static_cast<Executable*>(Qnil)),
+    module(static_cast<Module*>(Qnil)),
+    method_missing(false),
+    caller_(NULL) { }
+
+  Message::Message(STATE, SendSite* ss, Symbol* name, Object* recv, CallFrame* call_frame,
+                   size_t arg_count, Object* block, bool priv, Module* lookup_from) :
+    state(state),
+    arguments_array(NULL),
+    total_args(arg_count),
+    send_site(ss),
+    name(name),
+    recv(recv),
+    block(block),
+    priv(priv),
+    lookup_from(lookup_from),
+    method(static_cast<Executable*>(Qnil)),
+    module(static_cast<Module*>(Qnil)),
+    method_missing(false),
+    caller_(call_frame)
+  {
+    if(total_args > 0) {
+      stack_args_ = call_frame->stack_back_position(total_args - 1);
+      arguments_ = stack_args_;
+    } else {
+      arguments_ = stack_args_ = NULL;
+    }
+  }
+
+  Message::Message(STATE, Symbol* name, Object* recv, size_t arg_count,
+                   Object* block, Module* lookup_from) :
+    state(state),
+    arguments_array(NULL),
+    total_args(arg_count),
+    stack_args_(NULL),
+    arguments_(NULL),
+    send_site(NULL),
+    name(name),
+    recv(recv),
+    block(block),
+    priv(false),
+    lookup_from(lookup_from),
+    method(static_cast<Executable*>(Qnil)),
+    module(static_cast<Module*>(Qnil)),
+    method_missing(false),
+    caller_(NULL) { }
+
+  /* @todo: is this used anywhere but test_nativefunction? */
   Message::Message(STATE, Array* ary):
     state(state),
     total_args(0),
@@ -45,23 +105,6 @@ namespace rubinius {
     method_missing(false),
     caller_(NULL) { }
 
-  /*
-  Message::Message():
-    state(NULL),
-    arguments_array(NULL),
-    total_args(0),
-    send_site(NULL),
-    name(NULL),
-    recv(Qnil),
-    block(Qnil),
-    stack(0),
-    priv(false),
-    lookup_from(NULL),
-    method(NULL),
-    module(NULL),
-    method_missing(false),
-    caller_(NULL) { }
-    */
   void Message::set_arguments(STATE, Array* args) {
     use_array(args);
   }

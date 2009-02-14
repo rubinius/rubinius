@@ -672,16 +672,7 @@ class Instructions
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
     Object* res = Helpers::const_get(state, under, sym, &found);
     if(!found) {
-      Message msg;
-      msg.recv = under;
-      msg.name = state->symbol("const_missing");
-      msg.block = Qnil;
-      msg.lookup_from = msg.recv->lookup_begin(state);
-      Array* args = Array::create(state, 1);
-      args->set(state, 0, sym);
-      msg.set_arguments(state, args);
-
-      res = msg.send(state, call_frame);
+      res = Helpers::const_missing(state, under, sym, call_frame);
     } else if(kind_of<Autoload>(res)) {
       Message msg;
       msg.recv = res;
@@ -2270,21 +2261,14 @@ class Instructions
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
     Object* res = Helpers::const_get(state, call_frame, sym, &found);
     if(!found) {
-      Message msg;
+      Module* under;
       StaticScope* scope = call_frame->cm->scope();
       if(scope->nil_p()) {
-        msg.recv = G(object);
+        under = G(object);
       } else {
-        msg.recv = scope->module();
+        under = scope->module();
       }
-      msg.name = state->symbol("const_missing");
-      msg.block = Qnil;
-      msg.lookup_from = msg.recv->lookup_begin(state);
-      Array* args = Array::create(state, 1);
-      args->set(state, 0, sym);
-      msg.set_arguments(state, args);
-
-      res = msg.send(state, call_frame);
+      res = Helpers::const_missing(state, under, sym, call_frame);
     } else if(kind_of<Autoload>(res)) {
       Message msg;
       msg.recv = res;
@@ -2368,21 +2352,14 @@ slow_path:
         call_frame->cm->literals()->put(state, association_index, assoc);
         res = assoc->value();
       } else {
-        Message msg;
+        Module* under;
         StaticScope* scope = call_frame->cm->scope();
         if(scope->nil_p()) {
-          msg.recv = G(object);
+          under = G(object);
         } else {
-          msg.recv = scope->module();
+          under = scope->module();
         }
-        msg.name = state->symbol("const_missing");
-        msg.block = Qnil;
-        msg.lookup_from = msg.recv->lookup_begin(state);
-        Array* args = Array::create(state, 1);
-        args->set(state, 0, sym);
-        msg.set_arguments(state, args);
-
-        res = msg.send(state, call_frame);
+        res = Helpers::const_missing(state, under, sym, call_frame);
       }
     } else {
       LookupTableAssociation* real_assoc = as<LookupTableAssociation>(assoc);
@@ -3051,19 +3028,17 @@ slow_path:
 
   def send_method(index)
     <<-CODE
-    Message msg;
-
-    msg.setup(
-      vmm->sendsites[index].get(),
-      stack_top(),
-      call_frame,
-      0);
-
-    msg.block = Qnil;
-
-    msg.priv = ALLOW_PRIVATE();
-    msg.lookup_from = msg.recv->lookup_begin(state);
-    msg.name = msg.send_site->name();
+    Object* recv = stack_top();
+    SendSite* ss = vmm->sendsites[index].get();
+    Message msg(state,
+                ss,
+                ss->name(),
+                recv,
+                call_frame,
+                0,
+                Qnil,
+                ALLOW_PRIVATE(),
+                recv->lookup_begin(state));
 
     SET_ALLOW_PRIVATE(false);
 
@@ -3071,7 +3046,6 @@ slow_path:
     stack_pop();
 
     HANDLE_EXCEPTION(ret);
-
     stack_push(ret);
     CODE
   end
@@ -3136,24 +3110,23 @@ slow_path:
 
   def send_stack(index, count)
     <<-CODE
-    Message msg;
-
-    msg.setup(
-      vmm->sendsites[index].get(),
-      stack_back(count),
-      call_frame,
-      count);
-
-    msg.block = Qnil;
-
-    msg.priv = ALLOW_PRIVATE();
-    msg.lookup_from = msg.recv->lookup_begin(state);
-    msg.name = msg.send_site->name();
+    Object* recv = stack_back(count);
+    SendSite* ss = vmm->sendsites[index].get();
+    Message msg(state,
+                ss,
+                ss->name(),
+                recv,
+                call_frame,
+                count,
+                Qnil,
+                ALLOW_PRIVATE(),
+                recv->lookup_begin(state));
 
     SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count + 1);
+
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
     CODE
@@ -3223,24 +3196,24 @@ slow_path:
 
   def send_stack_with_block(index, count)
     <<-CODE
-    Message msg;
-
-    msg.block = stack_pop();
-
-    msg.setup(
-      vmm->sendsites[index].get(),
-      stack_back(count),
-      call_frame,
-      count);
-
-    msg.priv = ALLOW_PRIVATE();
-    msg.lookup_from = msg.recv->lookup_begin(state);
-    msg.name = msg.send_site->name();
+    Object* block = stack_pop();
+    Object* recv  = stack_back(count);
+    SendSite* ss  = vmm->sendsites[index].get();
+    Message msg(state,
+                ss,
+                ss->name(),
+                recv,
+                call_frame,
+                count,
+                block,
+                ALLOW_PRIVATE(),
+                recv->lookup_begin(state));
 
     SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count + 1);
+
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
     CODE
@@ -3317,16 +3290,19 @@ slow_path:
 
   def send_stack_with_splat(index, count)
     <<-CODE
-    Message msg;
-
-    msg.block = stack_pop();
-    Object* ary = stack_pop();
-
-    msg.setup(
-      vmm->sendsites[index].get(),
-      stack_back(count), /* receiver */
-      call_frame,
-      count);
+    Object* block = stack_pop();
+    Object* ary   = stack_pop();
+    Object* recv  = stack_back(count);
+    SendSite* ss  = vmm->sendsites[index].get();
+    Message msg(state,
+                ss,
+                ss->name(),
+                recv,
+                call_frame,
+                count,
+                block,
+                ALLOW_PRIVATE(),
+                recv->lookup_begin(state));
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
@@ -3336,15 +3312,12 @@ slow_path:
       }
     }
 
-    msg.priv = ALLOW_PRIVATE();
-    msg.lookup_from = msg.recv->lookup_begin(state);
-    msg.name = msg.send_site->name();
-
     SET_CALL_FLAGS(0);
     SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count + 1);
+
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
     CODE
@@ -3417,24 +3390,23 @@ slow_path:
 
   def send_super_stack_with_block(index, count)
     <<-CODE
-    Message msg;
-
-    msg.block = stack_pop();
-
-    msg.setup(
-      vmm->sendsites[index].get(),
-      call_frame->self(),
-      call_frame,
-      count);
-
-    msg.priv = TRUE;
-    msg.lookup_from = call_frame->module()->superclass();
-    msg.name = msg.send_site->name();
+    Object* block = stack_pop();
+    SendSite* ss  = vmm->sendsites[index].get();
+    Message msg(state,
+                ss,
+                ss->name(),
+                call_frame->self(),
+                call_frame,
+                count,
+                block,
+                true,
+                call_frame->module()->superclass());
 
     SET_ALLOW_PRIVATE(false);
 
     Object* ret = msg.send_site->performer(state, call_frame, msg);
     call_frame->clear_stack(count);
+
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
     CODE
@@ -3554,16 +3526,18 @@ slow_path:
 
   def send_super_stack_with_splat(index, count)
     <<-CODE
-    Message msg;
-
-    msg.block = stack_pop();
-    Object* ary = stack_pop();
-
-    msg.setup(
-      vmm->sendsites[index].get(),
-      call_frame->self(),
-      call_frame,
-      count);
+    Object* block = stack_pop();
+    Object* ary   = stack_pop();
+    SendSite* ss  = vmm->sendsites[index].get();
+    Message msg(state,
+                ss,
+                ss->name(),
+                call_frame->self(),
+                call_frame,
+                count,
+                block,
+                true,
+                call_frame->module()->superclass());
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
@@ -3572,10 +3546,6 @@ slow_path:
         msg.append_splat(state, as<Array>(ary));
       }
     }
-
-    msg.priv = TRUE;  // TODO: how do we test this?
-    msg.lookup_from = call_frame->module()->superclass();
-    msg.name = msg.send_site->name();
 
     SET_CALL_FLAGS(0);
     SET_ALLOW_PRIVATE(false);

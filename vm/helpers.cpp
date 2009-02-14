@@ -106,6 +106,21 @@ namespace rubinius {
       return reinterpret_cast<LookupTableAssociation*>(Qnil);
     }
 
+    Object* const_missing(STATE, Module* under, Symbol* sym, CallFrame* call_frame) {
+      Message msg(state,
+                  G(sym_const_missing),
+                  under,
+                  1,
+                  Qnil,
+                  under->lookup_begin(state));
+
+      Array* args = Array::create(state, 1);
+      args->set(state, 0, sym);
+      msg.set_arguments(state, args);
+
+      return msg.send(state, call_frame);
+    }
+
     Object* locate_method_on(STATE, Object* recv, Symbol* name, Object* priv) {
       Message msg(state);
 
