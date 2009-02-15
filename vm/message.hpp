@@ -36,7 +36,7 @@ namespace rubinius {
     /* Default constructor that initializes everything for safety.
      * You probably want one of the specialized constructors below.
      */
-    Message::Message();
+    Message();
 
     /* Constructer used by all send_* instructions */
     Message(STATE, SendSite* ss, Symbol* name, Object* recv, CallFrame* call_frame,
