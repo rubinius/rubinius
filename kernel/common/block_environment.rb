@@ -10,6 +10,7 @@ class BlockEnvironment
   attr_accessor :last_ip
   attr_accessor :post_send
   attr_accessor :scope
+  attr_accessor :top_scope
 
   attr_accessor :proc_environment
   attr_accessor :metadata_container

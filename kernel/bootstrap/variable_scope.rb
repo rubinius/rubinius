@@ -10,12 +10,37 @@ class VariableScope
 
   # To handle $~, $1, etc
 
-  attr_accessor :last_match
+  def last_match=(match)
+    if parent
+      scope = self
+      while scope.parent
+        scope = scope.parent
+      end
+      scope.last_match = match
+    else
+      @last_match = match
+    end
+
+    match
+  end
+
+  def last_match
+    if parent
+      scope = self
+      while scope.parent
+        scope = scope.parent
+      end
+
+      scope.last_match
+    else
+      @last_match
+    end
+  end
   ##
   # The Nth group of the last regexp match.
 
   def nth_ref(n)
-    if lm = @last_match
+    if lm = last_match()
       return lm[n]
     end
 
@@ -26,7 +51,7 @@ class VariableScope
   # One of the special globals $&, $`, $' or $+.
 
   def back_ref(kind)
-    if lm = @last_match
+    if lm = last_match()
       res = case kind
       when :&
         lm[0]

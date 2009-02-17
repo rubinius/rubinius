@@ -815,7 +815,7 @@ class String
       else
         # We do this so that we always manipulate $~ in the context
         # of the passed block.
-        prc.block.scope.last_match = match
+        prc.block.top_scope.last_match = match
 
         val = yield(match[0].dup)
         tainted ||= val.tainted?
@@ -1518,7 +1518,7 @@ class String
       else
         # We do this so that we always manipulate $~ in the context
         # of the passed block.
-        prc.block.home.last_match = match
+        prc.block.top_scope.last_match = match
 
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
