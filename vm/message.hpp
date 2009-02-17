@@ -34,7 +34,11 @@ namespace rubinius {
   class Message {
   public:
 
-    Message() { }
+    Message()
+      : arguments_array(0)
+      , method_missing(false)
+    {}
+
     Message(STATE);
     Message(STATE, Array* ary);
 

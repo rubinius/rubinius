@@ -11,6 +11,7 @@ class Object # for vm debugging
   def __show__; end
 end
 
+require 'yaml'
 require "#{File.dirname(__FILE__)}/../../kernel/delta/iseq"
 require 'rubygems'
 require 'parse_tree'
@@ -25,11 +26,18 @@ class Instructions
 
   class Implementation
 
+    attr_accessor :super_insn
+
+    def super_insn?
+      defined? @super_insn and @super_insn
+    end
+
     # Return a list of symbols, containing the names of the arguments
     # this code takes. The list is extracted from the ruby method signature.
     #
     def args
       return @args if defined? @args
+      return [] unless sexp
 
       args = sexp[2][1][1]
       args.shift
@@ -41,6 +49,8 @@ class Instructions
 
       @args = ret
     end
+
+    attr_writer :args
 
     # Look at the implementation code and figure out if the implementation
     # code returns void or bool.
@@ -69,13 +79,50 @@ class Instructions
     end
   end
 
+  def initialize
+    @superinsns = YAML.load File.read("#{File.dirname __FILE__}/super-instructions.yml")
+  end
+
+  def get_code(impl,which)
+    meth = method(impl.name.opcode) rescue nil
+    if meth
+      # Be sure to call it with the right number of args, to get the code
+      # out.
+      args = [nil] * meth.arity
+      body = meth.call(*args)
+      args = impl.args
+      case args.size
+      when 2
+        names = [args[0], args[1]]
+      when 1
+        names = [args[0]]
+      else
+        names = []
+      end
+
+      code = "  { // #{impl.name.opcode}\n"
+      names.each do |name|
+        code << "    int #{name}_s#{which} = next_int;\n"
+        code << "    #define #{name} #{name}_s#{which}\n"
+      end
+      code << "#{body}\n"
+      names.each do |name|
+        code << "    #undef #{name}\n"
+      end
+      code << "    }\n"
+      return code
+    end
+
+    return nil
+  end
+
   # Using InstructionSet::OpCodes as a key, gather up all the implementation
   # code into Implementation objects from instructions.rb and return it.
   #
   def decode_methods
     pt = ParseTree.new(true)
-    
-    InstructionSet::OpCodes.map do |ins|
+
+    basic = InstructionSet::OpCodes.map do |ins|
       meth = method(ins.opcode) rescue nil
       if meth
         # Be sure to call it with the right number of args, to get the code
@@ -91,6 +138,56 @@ class Instructions
         nil
       end
     end
+
+    return basic
+  end
+
+  def inject_superops(impls)
+    start = impls.size
+
+    @superinsns.each_with_index do |combo, superop|
+      args = []
+      combo.each do |op|
+        args << :opcode
+        args += InstructionSet[op].args
+      end
+
+      args.shift
+
+      stack = [0,0]
+      combo.each do |op|
+        insn_stack = InstructionSet[op].stack
+        stack[0] += insn_stack[0]
+        stack[1] += insn_stack[1]
+      end
+
+      info = {
+        :opcode => "superop_#{superop}".to_sym,
+        :bytecode => start + superop,
+        :args => args,
+        :stack => stack
+      }
+
+      ins = InstructionSet::OpCode.new info
+      composite = combo.map { |op| impls[InstructionSet[op].bytecode] }
+      code = construct_code(composite)
+
+      impl = Implementation.new(ins, nil, 0, code)
+      impl.args = args
+      impl.super_insn = true
+      impls << impl
+    end
+  end
+
+  def construct_code(combo)
+    code = ""
+    first = true
+    combo.each do |insn|
+      code << "    next_int; // eat next instruction\n" unless first
+      code << get_code(insn , 1)
+      first = false
+    end
+    return code
   end
 
   # Using an array of Implementation objects, +methods+, print one function
@@ -145,30 +242,34 @@ class Instructions
   # goto to jump between instructions.
   #
   def generate_jump_implementations(methods, io, flow=false)
-    io.puts generate_jump_table()
-    io.puts "DISPATCH_NEXT_INSN;"
+    io.puts generate_jump_table(methods)
+    io.puts "DISPATCH;"
 
     methods.each do |impl|
       io.puts "  op_impl_#{impl.name.opcode}: {"
 
-      args = impl.args
-      case args.size
-      when 2
-        io.puts "  int #{args[0]} = next_int;"
-        io.puts "  int #{args[1]} = next_int;"
+      if impl.super_insn?
         io.puts "  #{impl.body}"
-      when 1
-        io.puts "  int #{args[0]} = next_int;"
-        io.puts "  #{impl.body}"
-      when 0
-        io.puts "  #{impl.body}"
+      else
+        args = impl.args
+        case args.size
+        when 2
+          io.puts "  int #{args[0]} = next_int;"
+          io.puts "  int #{args[1]} = next_int;"
+          io.puts "  #{impl.body}"
+        when 1
+          io.puts "  int #{args[0]} = next_int;"
+          io.puts "  #{impl.body}"
+        when 0
+          io.puts "  #{impl.body}"
+        end
       end
 
       #if impl.name.check_interrupts?
       #  io.puts "    if(unlikely(state->interrupts.check)) return;"
       #end
 
-      io.puts "  DISPATCH_NEXT_INSN;"
+      io.puts "  DISPATCH;"
       io.puts "  }"
     end
 
@@ -259,21 +360,12 @@ void #{meth}() {
   # Generate a switch statement which, given +op+, sets +width+ to
   # how many operands +op+ takes.
   #
-  def generate_size
+  def generate_size(methods)
     code = "size_t width = 1; switch(op) {\n"
-    InstructionSet::OpCodes.each do |ins|
-      if ins.arg_count == 2
-        code << "  case #{ins.bytecode}:\n"
-      end
+    methods.each do |impl|
+      code << "  case #{impl.name.bytecode}:\n"
+      code << "    width = #{impl.args.size + 1}; break; \n"
     end
-    code << "    width = 3; break;\n"
-
-    InstructionSet::OpCodes.each do |ins|
-      if ins.arg_count == 1
-        code << "  case #{ins.bytecode}:\n"
-      end
-    end
-    code << "   width = 2; break;\n"
 
     code << "}\n"
   end
@@ -281,19 +373,19 @@ void #{meth}() {
   # Generate a function (get_instruction_name) which, given +op+, returns
   # a char* that is the name of the function that implements the instruction.
   #
-  def generate_names
+  def generate_names(methods)
     str =  "const char *rubinius::InstructionSequence::get_instruction_name(int op) {\n"
     str << "static const char instruction_names[] = {\n"
-    InstructionSet::OpCodes.each do |ins|
-      str << "  \"op_#{ins.opcode.to_s}\\0\"\n"
+    methods.each do |impl|
+      str << "  \"op_#{impl.name.opcode.to_s}\\0\"\n"
     end
     str << "};\n\n"
     offset = 0
     str << "static const unsigned int instruction_name_offsets[] = {\n"
-    InstructionSet::OpCodes.each_with_index do |ins, index|
+    methods.each_with_index do |impl, index|
       str << ",\n" if index > 0
       str << "  #{offset}"
-      offset += ins.opcode.to_s.length + 4
+      offset += impl.name.opcode.to_s.length + 4
     end
     str << "\n};\n\n"
     str << <<CODE
@@ -302,17 +394,97 @@ void #{meth}() {
 CODE
   end
 
-  def generate_jump_table
+  def generate_jump_table(methods)
     str = "static const void* insn_locations[] = {\n"
-    InstructionSet::OpCodes.each do |ins|
-      str << "  &&op_impl_#{ins.opcode.to_s},\n"
+    methods.each do |impl|
+      str << "  &&op_impl_#{impl.name.opcode},\n"
     end
     str << "  NULL\n};\n"
 
     return str
   end
 
-  def generate_ops_prototypes
+  def output_node(indent, code, node, distance)
+    regular = InstructionSet::OpCodes.size
+
+    if node.size == 1 and node.key?(:__superop__)
+      code << "#{' ' * indent}return #{node[:__superop__] + regular};\n"
+      return
+    end
+
+    term = false
+    code << "#{' ' * indent}switch(stream[#{distance}]) {\n"
+    node.each do |name, sub|
+      if name == :__superop__
+        term = true
+        code << "#{' ' * indent}default: return #{sub + regular};\n"
+      else
+        inst = InstructionSet[name]
+        code << "#{' ' * indent}case #{inst.bytecode}: // #{name}\n"
+        output_node(indent + 2, code, sub, distance + inst.width)
+      end
+    end
+
+    unless term
+      code << "#{' ' * indent}default: return -1;\n"
+    end
+
+    code << "#{' ' * indent}}\n"
+
+    return code
+  end
+
+  def generate_superinst_finder
+    create = proc { |h,k| h[k] = Hash.new(&create) }
+    tree = Hash.new(&create)
+
+    @superinsns.each_with_index do |combo, superop|
+      node = tree[combo.first]
+      1.upto(combo.size - 1) do |idx|
+        node = node[combo[idx]]
+      end
+
+      node[:__superop__] = superop
+    end
+
+    code = ""
+    code << "int find_superop(opcode* stream) {\n"
+    code << "  switch(stream[0]) {\n"
+    tree.each do |name, node|
+      insn = InstructionSet[name]
+      code << "  case #{insn.bytecode}: // #{name}\n"
+      output_node 4, code, node, insn.width
+    end
+    code << "  }\n"
+    code << "  return -1;\n"
+    code << "}\n"
+
+=begin
+    code << "int find_superop(opcode* stream) {\n"
+    code << "  opcode one = stream[0];\n"
+    code << "  opcode two = 0;\n"
+    code << "  switch(one) {\n"
+    tree.each do |name, node|
+      inst = InstructionSet[name]
+      code << "  case #{inst.bytecode}: // #{insn}\n"
+      code << "    two = stream[#{inst.width}];\n"
+      code << "    switch(two) {\n"
+      v.each do |sub, op|
+        inst2 = InstructionSet[sub].bytecode
+        code << "    case #{inst2}: // #{sub}\n"
+        code << "      return #{op + InstructionSet::OpCodes.size};\n"
+      end
+      code << "    default: return -1;\n"
+      code << "    }\n"
+    end
+    code << "  default: return -1;\n"
+    code << "  }\n"
+    code << "}\n"
+=end
+    return code
+  end
+
+  def generate_ops_prototypes(methods)
     str = ""
     str << "namespace rubinius {\n"
     str << "  class VMMethod;\n"
@@ -321,7 +493,6 @@ CODE
     str << "}\n"
 
     str = "extern \"C\" {\n"
-    methods = decode_methods()
     methods.each do |impl|
       str << impl.signature << ";\n"
     end
@@ -356,22 +527,25 @@ CODE
     str << " Unchanged };\n"
     str << "if(op >= #{size}) return Unchanged;\n"
     str << "return check_status[op]; }"
+    str << "\n"
+    str << generate_superinst_finder()
     str
   end
 
   # Generate header information for instruction functions and other
   # info.
   #
-  def generate_names_header
+  def generate_names_header(methods)
     str = "static const char *get_instruction_name(int op);\n"
 
     str << "typedef enum {\n"
-    InstructionSet::OpCodes.each do |ins|
+    methods.each do |impl|
+      ins = impl.name
       str << "insn_#{ins.opcode.to_s} = #{ins.bytecode},\n"
     end
     str << "} instruction_names;\n"
 
-    str << "const static unsigned int cTotal = #{InstructionSet::OpCodes.size};\n"
+    str << "const static unsigned int cTotal = #{methods.size};\n"
 
     str
   end

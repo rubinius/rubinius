@@ -76,6 +76,7 @@ extern "C" {
 #define SET_ALLOW_PRIVATE(val) is.allow_private = (val)
 #define ALLOW_PRIVATE() is.allow_private
 
+#define DISPATCH return cExecuteRestart
 
 #ruby <<CODE
 require 'stringio'
@@ -140,21 +141,23 @@ Object* VMMethod::interpreter(STATE, VMMethod* const vmm, CallFrame* const call_
   InterpreterState is;
 #ifdef USE_JUMP_TABLE
 
-#undef DISPATCH_NEXT_INSN
-#define DISPATCH_NEXT_INSN goto *insn_locations[stream[call_frame->ip++]];
+#undef DISPATCH
+#define DISPATCH goto *insn_locations[stream[call_frame->ip++]];
 
 #undef RETURN
   /*
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { \
   if(unlikely(state->interrupts.check)) return;\
-  DISPATCH_NEXT_INSN; \
+  DISPATCH; \
 }
 */
-#define RETURN(val) (void)val; DISPATCH_NEXT_INSN;
+#define RETURN(val) (void)val; DISPATCH;
 
 #ruby <<CODE
 io = StringIO.new
-si.generate_jump_implementations impl, io, true
+impl2 = si.decode_methods
+si.inject_superops impl2
+si.generate_jump_implementations impl2, io, true
 puts io.string
 CODE
 
@@ -194,8 +197,8 @@ Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* co
   opcode op;
 #ifdef USE_JUMP_TABLE
 
-#undef DISPATCH_NEXT_INSN
-#define DISPATCH_NEXT_INSN op = stream[call_frame->ip++]; \
+#undef DISPATCH
+#define DISPATCH op = stream[call_frame->ip++]; \
   if(unlikely(op & cBreakpoint)) { \
     if(G(current_thread)->frozen_stack() == Qfalse) { \
       call_frame->ip--; \
@@ -209,12 +212,14 @@ Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* co
 
 #undef RETURN
 #define RETURN(val) if((val) == cExecuteRestart) { return; } else { \
-  DISPATCH_NEXT_INSN; \
+  DISPATCH; \
 }
 
 #ruby <<CODE
 io = StringIO.new
-si.generate_jump_implementations impl, io, true
+impl2 = si.decode_methods
+si.inject_superops impl2
+si.generate_jump_implementations impl2, io, true
 puts io.string
 CODE
 

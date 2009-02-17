@@ -224,6 +224,10 @@ class InstructionSet
       (@opcode_info[:args].size + 1)
     end
 
+    def stack
+      @opcode_info[:stack]
+    end
+
     ##
     # Returns the number of items consumed off of the stack by this opcode.
     #

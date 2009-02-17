@@ -733,7 +733,7 @@ class Instructions
   def goto(location)
     <<-CODE
     call_frame->set_ip(location);
-    cache_ip();
+    DISPATCH;
     CODE
   end
 
@@ -811,7 +811,7 @@ class Instructions
     Object* t1 = stack_pop();
     if(!RTEST(t1)) {
       call_frame->set_ip(location);
-      cache_ip();
+      DISPATCH;
     }
     CODE
   end
@@ -854,7 +854,7 @@ class Instructions
     Object* t1 = stack_pop();
     if(RTEST(t1)) {
       call_frame->set_ip(location);
-      cache_ip();
+      DISPATCH;
     }
     CODE
   end
@@ -2356,12 +2356,18 @@ class Instructions
   def push_const_fast(symbol_index, association_index)
     <<-CODE
     bool found;
-    Object* res;
+    Object* res = 0;
 
     Object* assoc = call_frame->cm->literals()->at(state, association_index);
     // The association has been set, return the value from it directly.
-    if(assoc->nil_p()) {
-slow_path:
+    if(!assoc->nil_p()) {
+      LookupTableAssociation* real_assoc = as<LookupTableAssociation>(assoc);
+      if(real_assoc->active() != Qfalse) {
+        res = real_assoc->value();
+      }
+    }
+
+    if(!res) {
       Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, symbol_index));
       LookupTableAssociation* assoc = Helpers::const_get_association(state, call_frame, sym, &found);
       if(found) {
@@ -2384,10 +2390,6 @@ slow_path:
 
         res = msg.send(state, call_frame);
       }
-    } else {
-      LookupTableAssociation* real_assoc = as<LookupTableAssociation>(assoc);
-      if(real_assoc->active() == Qfalse) goto slow_path;
-      res = real_assoc->value();
     }
 
     if(kind_of<Autoload>(res)) {
@@ -4312,21 +4314,23 @@ require File.dirname(__FILE__) + "/codegen/instructions_gen.rb"
 
 if $0 == __FILE__
   si = Instructions.new
+  methods = si.decode_methods
+  si.inject_superops(methods)
 
   File.open("vm/gen/iseq_instruction_names.cpp","w") do |f|
-    f.puts si.generate_names
+    f.puts si.generate_names(methods)
   end
 
   File.open("vm/gen/iseq_instruction_names.hpp","w") do |f|
-    f.puts si.generate_names_header
+    f.puts si.generate_names_header(methods)
   end
 
   File.open("vm/gen/implementation_prototype.hpp","w") do |f|
-    f.puts si.generate_ops_prototypes
+    f.puts si.generate_ops_prototypes(methods)
   end
 
   File.open("vm/gen/iseq_instruction_size.gen", "w") do |f|
-    f.puts si.generate_size
+    f.puts si.generate_size(methods)
   end
 
   File.open("vm/test/test_instructions.hpp", "w") do |f|

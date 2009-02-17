@@ -91,6 +91,9 @@ namespace rubinius {
     void set_breakpoint_flags(STATE, size_t ip, bpflags flags);
     bpflags get_breakpoint_flags(STATE, size_t ip);
 
+    void fill_opcodes(STATE);
+    void find_super_instructions();
+
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a
      * VMMethod to an LLVM method.

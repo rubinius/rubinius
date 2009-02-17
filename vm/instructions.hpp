@@ -17,6 +17,7 @@ namespace rubinius {
     };
 
     Status check_status(int op);
+    int find_superop(opcode* stream);
   }
 }
 

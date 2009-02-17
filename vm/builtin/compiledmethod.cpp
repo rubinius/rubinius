@@ -128,6 +128,8 @@ namespace rubinius {
   Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
     cm->formalize(state, false);
+    // Refactor
+    cm->backend_method_->find_super_instructions();
     return cm->execute(state, call_frame, msg);
   }
 
