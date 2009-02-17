@@ -1,1 +1,3 @@
 incomplete:Kernel#at_exit needs to be reviewed for spec completeness
+fails:Kernel.at_exit runs after all other code
+fails:Kernel.at_exit runs in reverse order of registration

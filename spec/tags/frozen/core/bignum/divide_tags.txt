@@ -1,1 +1,0 @@
-fails:Bignum#/ raises a ZeroDivisionError if other is zero and not a Float

@@ -1,1 +1,2 @@
 incomplete:Kernel.open needs to be reviewed for spec completeness
+fails:Kernel#open opens an io when called with a block

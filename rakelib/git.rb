@@ -4,7 +4,7 @@
 MINIMUM_GIT_VERSION = [1, 5, 3]
 
 def is_git_project(dir, project)
-  system "cd #{dir}; git config --get remote.origin.url '#{project}'"
+  system "cd #{dir}; git config --get remote.origin.url '#{project}' >/dev/null"
   $?.exitstatus == 0
 end
 

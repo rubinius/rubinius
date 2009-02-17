@@ -14,8 +14,6 @@ class MSpecScript
     '^spec/frozen/core/array/unshift_spec.rb',
     '^spec/frozen/core/array/values_at_spec.rb',
     '^spec/frozen/core/continuation',
-    '^spec/frozen/core/kernel',
-    '^spec/frozen/core/module',
     '^spec/frozen/core/process',
     '^spec/frozen/core/thread',
     '^spec/frozen/core/threadgroup',

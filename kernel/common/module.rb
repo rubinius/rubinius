@@ -22,14 +22,14 @@ class Module
   attr_writer :method_table
 
   def self.nesting
-    mod  = MethodContext.current.sender.receiver
-    unless mod.kind_of? Module
-      mod = MethodContext.current.sender.method_module
-    end
+    # TODO: this is not totally correct but better specs need to
+    # be written. Until then, this gets the specs running without
+    # choking on MethodContext
+    scope = CompiledMethod.of_sender.scope
     nesting = []
-    while mod != Object && mod.kind_of?(Module)
-      nesting << mod
-      mod = mod.encloser
+    while scope and scope.module != Object
+      nesting << scope.module
+      scope = scope.parent
     end
     nesting
   end

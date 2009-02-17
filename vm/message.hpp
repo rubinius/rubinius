@@ -33,11 +33,18 @@ namespace rubinius {
    */
   class Message {
   public:
-
     Message()
       : arguments_array(0)
       , method_missing(false)
     {}
+
+    /* Constructer used by all send_* instructions */
+    Message(STATE, SendSite* ss, Symbol* name, Object* recv, CallFrame* call_frame,
+            size_t arg_count, Object* block, bool priv, Module* lookup_from);
+
+    /* Constructor used by e.g. Helper::const_missing */
+    Message(STATE, Symbol* name, Object* recv, size_t arg_count,
+            Object* block, Module* lookup_from);
 
     Message(STATE);
     Message(STATE, Array* ary);
@@ -103,20 +110,6 @@ namespace rubinius {
 
     CallFrame* caller() {
       return caller_;
-    }
-
-    /*
-     * Setup the Message with the basic information
-     */
-    void setup(SendSite* ss, Object* obj, CallFrame* call_frame, size_t arg_count) {
-      method_missing = false;
-      arguments_array = NULL;
-      send_site = ss;
-      recv   = obj;
-      caller_ = call_frame;
-      total_args   = arg_count;
-      stack_args_ = call_frame->stack_back_position(arg_count - 1);
-      arguments_ = stack_args_;
     }
 
     /*
