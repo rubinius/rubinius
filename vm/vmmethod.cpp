@@ -645,12 +645,16 @@ namespace rubinius {
 
   Object* VMMethod::run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
     Object* return_value;
-    void* stack_end = alloca(0);
+    static int tick = 0;
 
     for(;;) {
     continue_to_run:
-      if(!state->check_stack(stack_end)) {
-        return NULL;
+      if(tick++ > 0xff) {
+        void* stack_end = alloca(0);
+        if(!state->check_stack(stack_end)) {
+          return NULL;
+        }
+        tick = 0;
       }
 
       if(state->interrupts.check) {
