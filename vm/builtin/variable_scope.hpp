@@ -27,7 +27,10 @@ namespace rubinius {
 
     static void init(STATE);
 
-    void setup(Object* self, Module* mod, Object* block, int num) {
+    /**
+     *  Initialize and default scope.
+     */
+    void prepare(Object* self, Module* mod, Object* block, int num) {
       obj_type = InvalidType;
       parent_ = (VariableScope*)Qnil;
       self_ = self;

@@ -37,7 +37,10 @@ namespace rubinius {
     // MUST BE AT THE END!
     Object* stk[];
 
-    void setup(int stack) {
+    /**
+     *  Initialize frame for the given stack size.
+     */
+    void prepare(int stack) {
       is_block = false;
       ip = 0;
       current_unwind = 0;

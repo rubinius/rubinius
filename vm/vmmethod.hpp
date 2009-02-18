@@ -79,8 +79,18 @@ namespace rubinius {
       {}
     };
 
+    /**
+     *  Dispatch method on the defined interpreter.
+     */
     static Object* run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+
+    /**
+     *  Interpreting implementation.
+     *
+     *  @see  vm/llvm/instructions.cpp for the code.
+     */
     static Object* interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+
     static Object* debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
 
     void setup_argument_handler(CompiledMethod* meth);

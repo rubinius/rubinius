@@ -136,6 +136,7 @@ namespace rubinius {
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
 
+    /** @todo Redundant? CompiledFile::execute() does this. --rue */
     state->thread_state()->clear_exception();
 
     // TODO check version number

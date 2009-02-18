@@ -33,6 +33,7 @@ namespace rubinius {
     return env;
   }
 
+  /** @todo Duplicates VMMethod functionality. Refactor. --rue */
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame, size_t args) {
     Object* val;
     if(args > 0) {
@@ -57,23 +58,24 @@ namespace rubinius {
 
     scope->setup_as_block(top_scope_, scope_, vmm->number_of_locals);
 
-    CallFrame* cf = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
-    cf->setup(vmm->stack_size);
+    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    frame->prepare(vmm->stack_size);
 
-    cf->is_block = true;
-    cf->previous = call_frame;
-    cf->name =     name_;
-    cf->cm =       method_;
-    cf->args =     args;
-    cf->scope =    scope;
-    cf->top_scope = top_scope_;
+    frame->is_block = true;
+    frame->previous = call_frame;
+    frame->name =     name_;
+    frame->cm =       method_;
+    frame->args =     args;
+    frame->scope =    scope;
+    frame->top_scope = top_scope_;
 
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
-    cf->push(val);
-    return VMMethod::run_interpreter(state, vmm, cf);
+    frame->push(val);
+    return VMMethod::run_interpreter(state, vmm, frame);
   }
 
+  /** @todo See above. --rue */
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Message& msg) {
     Object* val;
     if(msg.args() > 0) {
@@ -92,21 +94,21 @@ namespace rubinius {
 
     scope->setup_as_block(top_scope_, scope_, vmm->number_of_locals);
 
-    CallFrame* cf = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
-    cf->setup(vmm->stack_size);
+    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    frame->prepare(vmm->stack_size);
 
-    cf->is_block = true;
-    cf->previous = call_frame;
-    cf->name =     name_;
-    cf->cm =       method_;
-    cf->args =     msg.args();
-    cf->scope =    scope;
-    cf->top_scope = top_scope_;
+    frame->is_block = true;
+    frame->previous = call_frame;
+    frame->name =     name_;
+    frame->cm =       method_;
+    frame->args =     msg.args();
+    frame->scope =    scope;
+    frame->top_scope = top_scope_;
 
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
-    cf->push(val);
-    return VMMethod::run_interpreter(state, vmm, cf);
+    frame->push(val);
+    return VMMethod::run_interpreter(state, vmm, frame);
   }
 
   Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
