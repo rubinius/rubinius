@@ -480,6 +480,10 @@ namespace rubinius {
     new_class("AssertionError", vme, G(rubinius));
     new_class("ObjectBoundsExceededError", vme, G(rubinius));
 
+    // Create the stack error object now, since we probably wont be
+    // able to later.
+    GO(stack_error).set(new_object<Exception>(stk));
+
     GO(exc_type).set(type);
     GO(exc_arg).set(arg);
     GO(exc_loe).set(loe);

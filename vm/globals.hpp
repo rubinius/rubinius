@@ -39,7 +39,7 @@ namespace rubinius {
   class Task;
   class Class;
   class Symbol;
-
+  class Exception;
 
   struct Globals {
 
@@ -107,6 +107,7 @@ namespace rubinius {
     TypedRoot<Class*> block_wrapper; /**< BlockWrapper class */
     TypedRoot<Class*> variable_scope;
     TypedRoot<Class*> location;
+    TypedRoot<Exception*> stack_error;
 
     /* Add new globals above this line. */
 
@@ -214,7 +215,8 @@ namespace rubinius {
       machine_method(&roots),
       block_wrapper(&roots),
       variable_scope(&roots),
-      location(&roots)
+      location(&roots),
+      stack_error(&roots)
 
       /* Add initialize of globals above this line. */
     { }

@@ -34,6 +34,8 @@
 
 namespace rubinius {
 
+  int VM::cStackDepthMax = 655300;
+
   SharedState::~SharedState() {
     if(!initialized_) return;
 
@@ -229,6 +231,20 @@ namespace rubinius {
     if((obj->reference_p() && obj->obj_type != type)
         || (type == FixnumType && !obj->fixnum_p())) {
       Exception::type_error(state, type, obj, reason);
+    }
+  }
+
+  void VM::raise_stack_error() {
+    thread_state()->raise_exception(G(stack_error));
+  }
+
+  void VM::init_stack_size() {
+    struct rlimit rlim;
+    if (getrlimit(RLIMIT_STACK, &rlim) == 0) {
+      unsigned int space = rlim.rlim_cur/5;
+
+      if (space > 1024*1024) space = 1024*1024;
+      cStackDepthMax = (rlim.rlim_cur - space);
     }
   }
 

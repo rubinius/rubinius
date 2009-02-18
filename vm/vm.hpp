@@ -43,6 +43,7 @@ namespace rubinius {
   class TypeError;
   class Assertion;
   class CallFrame;
+  class Object;
 
   struct Configuration {
     bool compile_up_front;
@@ -155,6 +156,7 @@ namespace rubinius {
     int id_;
     CallFrame* saved_call_frame_;
     ASyncMessageMailbox mailbox_;
+    void* stack_start_;
 
   public:
     /* Data members */
@@ -211,6 +213,8 @@ namespace rubinius {
 
     static const size_t default_bytes = 1048576 * 3;
 
+    static int cStackDepthMax;
+
   public: /* Inline methods */
 
     int id() {
@@ -241,6 +245,25 @@ namespace rubinius {
       return saved_call_frame_;
     }
 
+    void* stack_start() {
+      return stack_start_;
+    }
+
+    void set_stack_start(void* s) {
+      stack_start_ = s;
+    }
+
+    bool check_stack(void* end) {
+      // @TODO assumes stack growth direction
+      if(reinterpret_cast<intptr_t>(stack_start_) -
+          reinterpret_cast<intptr_t>(end) > cStackDepthMax) {
+        raise_stack_error();
+        return false;
+      }
+
+      return true;
+    }
+
     /* Prototypes */
     VM(SharedState& shared, int id);
 
@@ -267,6 +290,9 @@ namespace rubinius {
     void raise_exception_safely(Exception* exc);
     void raise_typeerror_safely(TypeError* exc);
     void raise_assertion_safely(Assertion* exc);
+
+    void raise_stack_error();
+    void init_stack_size();
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_from_type(Class* cls, TypeInfo* ti);

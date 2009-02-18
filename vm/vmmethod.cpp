@@ -645,8 +645,14 @@ namespace rubinius {
 
   Object* VMMethod::run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
     Object* return_value;
+    void* stack_end = alloca(0);
+
     for(;;) {
     continue_to_run:
+      if(!state->check_stack(stack_end)) {
+        return NULL;
+      }
+
       if(state->interrupts.check) {
         state->collect_maybe(call_frame);
       }

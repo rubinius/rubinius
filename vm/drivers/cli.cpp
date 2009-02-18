@@ -29,7 +29,7 @@ static void load_runtime_kernel(Environment& env, std::string root) {
     std::cout << "It appears that " << root << "/index is missing.\n";
     exit(1);
   }
-  
+
   // Load the ruby file to prepare for bootstrapping Ruby!
   // The bootstrapping for the VM is already done by the time we're here.
   env.run_file(root + "/alpha.rbc");
@@ -63,6 +63,8 @@ static void load_runtime_kernel(Environment& env, std::string root) {
 int main(int argc, char** argv) {
   Environment env;
   env.load_config_argv(argc, argv);
+  env.state->init_stack_size();
+  env.state->set_stack_start(&env);
 
   try {
     const char* runtime = getenv("RBX_RUNTIME");
