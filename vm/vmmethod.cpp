@@ -36,14 +36,18 @@
  */
 namespace rubinius {
 
+  /** @todo Thread-local? --rue */
   static Runner standard_interpreter = 0;
+
+  /** @todo Thread-local? --rue */
   static Runner dynamic_interpreter = 0;
+
 
   void VMMethod::init(STATE) {
 #ifdef USE_DYNAMIC_INTERPRETER
     if(!state->config.dynamic_interpreter_enabled) {
       dynamic_interpreter = NULL;
-      standard_interpreter = interpreter;
+      standard_interpreter = &VMMethod::interpreter;
       return;
     }
 
@@ -61,7 +65,7 @@ namespace rubinius {
     standard_interpreter = dynamic_interpreter;
 #else
     dynamic_interpreter = NULL;
-    standard_interpreter = interpreter;
+    standard_interpreter = &VMMethod::interpreter;
 #endif
   }
 
@@ -74,7 +78,7 @@ namespace rubinius {
     , original(state, meth)
     , type(NULL)
   {
-    meth->set_executor(VMMethod::execute);
+    meth->set_executor(&VMMethod::execute);
 
     total = meth->iseq()->opcodes()->num_fields();
     if(Tuple* tup = try_as<Tuple>(meth->literals())) {
@@ -423,11 +427,11 @@ namespace rubinius {
       if(total_args == 0) {
         // and there is no splat, use the fastest case.
         if(splat_position == -1) {
-          meth->set_executor(execute_specialized<NoArguments>);
+          meth->set_executor(&VMMethod::execute_specialized<NoArguments>);
 
         // otherwise use the splat only case.
         } else {
-          meth->set_executor(execute_specialized<SplatOnlyArgument>);
+          meth->set_executor(&VMMethod::execute_specialized<SplatOnlyArgument>);
         }
         return;
 
@@ -435,23 +439,23 @@ namespace rubinius {
       } else if(splat_position == -1) {
         switch(total_args) {
         case 1:
-          meth->set_executor(execute_specialized<OneArgument>);
+          meth->set_executor(&VMMethod::execute_specialized<OneArgument>);
           return;
         case 2:
-          meth->set_executor(execute_specialized<TwoArguments>);
+          meth->set_executor(&VMMethod::execute_specialized<TwoArguments>);
           return;
         case 3:
-          meth->set_executor(execute_specialized<ThreeArguments>);
+          meth->set_executor(&VMMethod::execute_specialized<ThreeArguments>);
           return;
         default:
-          meth->set_executor(execute_specialized<FixedArguments>);
+          meth->set_executor(&VMMethod::execute_specialized<FixedArguments>);
           return;
         }
       }
     }
 
     // Lastly, use the generic case that handles all cases
-    meth->set_executor(execute_specialized<GenericArguments>);
+    meth->set_executor(&VMMethod::execute_specialized<GenericArguments>);
 #endif
   }
 
@@ -460,6 +464,9 @@ namespace rubinius {
    * It prepares a Ruby method for execution.
    * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
    * CompiledMethod.
+   *
+   * @todo  This really should be in the .hpp. It only works
+   *        but for the grace of Leibniz. --rue
    */
   template <typename ArgumentHandler>
   Object* VMMethod::execute_specialized(STATE, CallFrame* previous, Message& msg) {
@@ -667,7 +674,7 @@ namespace rubinius {
       }
 
       try {
-        return_value = vmm->run(state, vmm, call_frame);
+        return_value = (*vmm->run)(state, vmm, call_frame);
       } catch(TypeError& e) {
         state->thread_state()->raise_exception(
             Exception::make_type_error(state, e.type, e.object, e.reason));
@@ -722,6 +729,7 @@ namespace rubinius {
           if(th->destination_scope() == call_frame->scope) {
             call_frame->push(th->raise_value());
             th->clear_exception();
+            /** @todo Not returning here--is this right? --rue */
           } else {
             // Give control of this exception to the caller.
             return NULL;
