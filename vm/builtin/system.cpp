@@ -105,6 +105,8 @@ namespace rubinius {
       options |= WNOHANG;
     }
 
+  retry:
+
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
       pid = waitpid(input_pid, &status, options);
@@ -112,6 +114,7 @@ namespace rubinius {
 
     if(pid == -1) {
       if(errno == ECHILD) return Qfalse;
+      if(errno == EINTR)  goto retry;
 
       // TODO handle other errnos?
       return Qfalse;
