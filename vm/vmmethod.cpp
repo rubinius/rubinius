@@ -655,7 +655,14 @@ namespace rubinius {
         if(!state->process_async(call_frame)) return NULL;
       }
 
-      return_value = vmm->run(state, vmm, call_frame);
+      try {
+        return_value = vmm->run(state, vmm, call_frame);
+      } catch(TypeError& e) {
+        state->thread_state()->raise_exception(
+            Exception::make_type_error(state, e.type, e.object, e.reason));
+        return_value = 0;
+      }
+
       if(return_value) return return_value;
 
       ThreadState* th = state->thread_state();

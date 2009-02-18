@@ -18,13 +18,7 @@
 namespace rubinius {
 
   void TypeError::raise(object_type type, Object* obj, const char* reason) {
-    VM* state = VM::current_state();
-    abort();
-    if(!state || !state->use_safe_position) {
-      throw TypeError(type, obj, reason);
-    }
-
-    state->raise_typeerror_safely(new TypeError(type, obj, reason));
+    throw TypeError(type, obj, reason);
     // Not reached.
   }
 
