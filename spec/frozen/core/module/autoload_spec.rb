@@ -263,4 +263,12 @@ describe "Module#autoload" do
       end
     end.should raise_error(TypeError)
   end
+
+  it "raises a TypeError if not passed a String for the filename" do
+    name = mock("autoload_name.rb")
+    name.stub!(:to_s).and_return("autoload_name.rb")
+    name.stub!(:to_str).and_return("autoload_name.rb")
+
+    lambda { ModuleSpecs::Autoload.autoload :Str, name }.should raise_error(TypeError)
+  end
 end
