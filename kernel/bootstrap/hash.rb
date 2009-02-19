@@ -16,11 +16,16 @@ class Hash
       @next     = nxt
     end
 
+    # Common test for checking equality of Hash keys
+    def match?(key, key_hash)
+      key.equal?(self.key) or (self.key_hash == key_hash and key.eql? self.key)
+    end
+
     # Searches this chain of buckets for one matching both +key+
     # and +key_hash+. Returns +nil+ if there is no match. Calls
     # <code>#eql?</code> on +key+.
     def find(key, key_hash)
-      return self if self.key_hash == key_hash and key.eql? self.key
+      return self if match? key, key_hash
       return unless nxt = self.next
       nxt.find key, key_hash
     end
@@ -30,7 +35,7 @@ class Hash
     # to the chain. Returns +true+ if a new bucket was added, otherwise
     # returns +false+.
     def set(key, value, key_hash)
-      if self.key_hash == key_hash and key.eql? self.key
+      if match? key, key_hash
         self.value = value
         return false
       elsif nxt = self.next
@@ -42,21 +47,23 @@ class Hash
       end
     end
 
-    # Returns +false+ if the bucket was found and deleted and the head
-    # of the chain is unchanged. Returns +nil+ if the head of the
-    # chain should be replaced with <code>head.next</code>. Returns
-    # +true+ if the bucket was not found.
-    # FIX: cryptic. return a symbol for all 3 cases
-    def delete(k, k_hash, parent = nil)
-      # identity wins. see rb_any_cmp in hash.c in mri for clues.
-      if k.equal?(self.key) or (self.key_hash == k_hash and k.eql? self.key)
-        return nil unless parent
+    # There are three possible outcomes here:
+    #
+    #   1. +key+ is not found in this chain
+    #   2. +key+ is the head of the chain
+    #   3. +key+ is in the tail
+    #
+    # Returns <tt>[nil, true]</tt> in case 1. Returns <tt>[entry, nil]</tt>
+    # in case 2. Returns <tt>[entry, false]</tt> in case 3.
+    def delete(key, key_hash, parent = nil)
+      if match? key, key_hash
+        return self, nil unless parent
         parent.next = self.next
-        return false
+        return self, false
       elsif nxt = self.next
-        return nxt.delete(k, k_hash, self)
+        return nxt.delete(key, key_hash, self)
       else
-        return true
+        return nil, true
       end
     end
   end

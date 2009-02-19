@@ -13,20 +13,20 @@ describe "Hash::Bucket#delete" do
   end
 
   it "returns false and removes the bucket from the end of the chain" do
-    @a.delete(4, 6).should be_false
-    @a.next.should == @c
-  end
-
-  it "returns false and removes the bucket from the middle of the chain" do
-    @a.delete(7, 9).should be_false
+    @a.delete(7, 9).should == [@c, false]
     @b.next.should be_nil
   end
 
+  it "returns false and removes the bucket from the middle of the chain" do
+    @a.delete(4, 6).should == [@b, false]
+    @a.next.should == @c
+  end
+
   it "returns nil if the entire chain should be removed" do
-    @d.delete(0, 2).should be_nil
+    @d.delete(0, 2).should == [@d, nil]
   end
 
   it "returns true if no bucket matches key and key_hash" do
-    @a.delete(0, 2).should be_true
+    @a.delete(0, 2).should == [nil, true]
   end
 end
