@@ -48,6 +48,7 @@ namespace rubinius {
 #endif
   }
 
+  /** @see VMManager::create_vm */
   VM* SharedState::new_vm() {
     VM* vm = manager_.create_vm(this);
     vms_[vm->id()] = vm;
@@ -55,6 +56,7 @@ namespace rubinius {
     return vm;
   }
 
+  /** @see VMManager::destroy_vm. */
   void SharedState::remove_vm(VM* vm) {
     VMMap::iterator i = vms_.find(vm->id());
     assert(i != vms_.end());
@@ -101,7 +103,9 @@ namespace rubinius {
     global_cache = new GlobalCache;
     shared.global_cache = global_cache;
 
-    this->boot();
+    /** @todo Done by Environment::boot_vm(), and Thread::s_new()
+     *        does not boot at all. Should this be removed? --rue */
+//    this->boot();
 
     shared.set_initialized();
   }
@@ -119,7 +123,7 @@ namespace rubinius {
     }
 #endif
 
-    MethodContext::initialize_cache(this);
+//    MethodContext::initialize_cache(this);
     TypeInfo::auto_learn_fields(this);
 
     bootstrap_ontology();
@@ -141,6 +145,8 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     VMLLVMMethod::init("vm/instructions.bc");
 #endif
+
+    /** @todo Should a thread be starting a VM or is it the other way around? */
     boot_threads();
 
     // Force these back to false because creating the default Thread

@@ -8,6 +8,7 @@ namespace rubinius {
     return shared;
   }
 
+  /** @see SharedState::new_vm. */
   VM* VMManager::create_vm(SharedState* shared) {
     VM* vm = new VM(*shared, vm_id_++);
     vms_[vm->id()] = vm;
@@ -16,6 +17,13 @@ namespace rubinius {
     return vm;
   }
 
+  /**
+   *  @todo This and remove_vm() do not act together in the
+   *        same way that create_vm() and new_vm() do. Clean
+   *        it up. --rue
+   *
+   *  @see  SharedState::remove_vm
+   */
   void VMManager::destroy_vm(VM* vm) {
     SharedState* shared = &vm->shared;
     shared->remove_vm(vm);

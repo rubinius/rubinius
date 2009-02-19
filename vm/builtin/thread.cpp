@@ -49,6 +49,12 @@ namespace rubinius {
     return thr;
   }
 
+  /**
+   *  @todo Causes a problem with call frames. This does not seem to
+   *        be performing a full setup on the VM (Environment does
+   *        VM::initialize and eventually VM::boot.) It is not defined
+   *        whether VM owns Threads or the other way around.
+   */
   Thread* Thread::s_new(STATE, Message& msg) {
     VM* vm = state->shared.new_vm();
     Thread* thread = Thread::create(state, vm);
