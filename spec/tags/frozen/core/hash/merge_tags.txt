@@ -1,1 +1,2 @@
 fails:Hash#merge! raises a TypeError if called on a non-empty, frozen instance
+frozen:Hash#merge! raises a TypeError if called on a non-empty, frozen instance

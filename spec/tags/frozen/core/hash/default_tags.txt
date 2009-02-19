@@ -1,1 +1,2 @@
 fails:Hash#default= raises a TypeError if called on a frozen instance
+frozen:Hash#default= raises a TypeError if called on a frozen instance
