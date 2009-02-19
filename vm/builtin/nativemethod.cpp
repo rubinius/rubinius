@@ -9,7 +9,6 @@
 #include "builtin/exception.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/string.hpp"
-#include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 
 #include "message.hpp"

@@ -13,7 +13,6 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
-#include "builtin/task.hpp"
 #include "builtin/taskprobe.hpp"
 
 #include "signal.hpp"

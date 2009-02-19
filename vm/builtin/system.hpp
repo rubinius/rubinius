@@ -113,20 +113,23 @@ namespace rubinius {
     /**
      *  Writes backtrace to standard output.
      */
-    // Ruby.primitive :vm_show_backtrace
-    static Object*  vm_show_backtrace(STATE, Object* ctx);
+/** @todo Fix, Task is gone. --rue */
+//    // Ruby.primitive :vm_show_backtrace
+//    static Object*  vm_show_backtrace(STATE, Object* ctx);
 
     /**
      *  Starts the instrumenting profiler.
      */
-    // Ruby.primitive :vm_profiler_instrumenter_start
-    static Object*  vm_profiler_instrumenter_start(STATE);
+/** @todo Fix, Task is gone. --rue */
+//    // Ruby.primitive :vm_profiler_instrumenter_start
+//    static Object*  vm_profiler_instrumenter_start(STATE);
 
     /**
      *  Stops the instrumenting profiler.
      */
-    // Ruby.primitive :vm_profiler_instrumenter_stop
-    static LookupTable*  vm_profiler_instrumenter_stop(STATE);
+/** @todo Fix, Task is gone. --rue */
+//    // Ruby.primitive :vm_profiler_instrumenter_stop
+//    static LookupTable*  vm_profiler_instrumenter_stop(STATE);
 
     /**
      *  Writes String to standard error stream.

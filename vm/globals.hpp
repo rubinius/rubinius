@@ -18,10 +18,7 @@
  * class/module. Again, this is typically only because the VM
  * itself needs to create an instance of that class.
  *
- * There are a few non-class roots in here, such as the current
- * thread, current task, and a list of all scheduled threads.
- * These exist so that we walk all the runtime data, such as
- * MethodContexts.
+ * There are a few non-class roots in here for runtime data.
  */
 
 
@@ -36,7 +33,6 @@ namespace rubinius {
   class Tuple;
   class Module;
   class Thread;
-  class Task;
   class Class;
   class Symbol;
   class Exception;
@@ -84,7 +80,6 @@ namespace rubinius {
 
     TypedRoot<Module*> vm;
     TypedRoot<Thread*> current_thread;
-    TypedRoot<Task*> current_task;
     TypedRoot<Object*> main;
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
@@ -142,7 +137,6 @@ namespace rubinius {
       floatpoint(&roots),
       fastctx(&roots),
       nmc(&roots),
-      task(&roots),
       list(&roots),
       list_node(&roots),
       channel(&roots),
@@ -195,7 +189,6 @@ namespace rubinius {
       on_gc_channel(&roots),
       vm(&roots),
       current_thread(&roots),
-      current_task(&roots),
       main(&roots),
       dir(&roots),
       compactlookuptable(&roots),

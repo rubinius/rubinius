@@ -35,7 +35,6 @@ namespace rubinius {
   class Primitives;
   class ObjectMemory;
   class TypeInfo;
-  class Task;
   class MethodContext;
   class String;
   class Symbol;
@@ -152,6 +151,7 @@ namespace rubinius {
   };
 
   class VM {
+
   private:
     int id_;
     CallFrame* saved_call_frame_;
@@ -326,7 +326,6 @@ namespace rubinius {
     Class* new_class_under(const char* name, Module* under);
 
     Module* new_module(const char* name, Module* under = NULL);
-    Task* new_task();
 
     Symbol* symbol(const char* str);
     Symbol* symbol(String* str);

@@ -3,7 +3,7 @@
 #include "message.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/task.hpp"
+#include "builtin/executable.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/sendsite.hpp"
@@ -190,12 +190,6 @@ namespace rubinius {
 
   Object* Message::current_self() {
     return caller_->self();
-  }
-
-  void Message::use_from_task(Task* task, size_t args) {
-    set_args(args);
-    stack_args_ = caller_->stack_back_position(args - 1);
-    arguments_ = stack_args_;
   }
 
   /* Only called if send_message can't locate anything to run, which pretty

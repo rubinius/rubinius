@@ -41,6 +41,7 @@ class BasicPrimitive
     str << "#{' ' * indent}return ret;\n"
   end
 
+  # @todo Add profiler stuff back in. --rue
   def output_call(str, call, args)
     str << "\n"
     str << "  try {\n"
@@ -147,6 +148,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
     @kinds << prim
   end
 
+  # @todo Add profiler stuff back in. --rue
   def generate_glue
     str = ""
     output_header str
@@ -709,9 +711,9 @@ write_if_new "vm/gen/primitives_glue.gen.cpp" do |f|
   end
 
   f.puts <<-EOF
-  if(!G(current_task)->probe()->nil_p()) {
-    G(current_task)->probe()->missing_primitive(state, name->c_str(state));
-  }
+//  if(!state->probe()->nil_p()) {
+//    state->probe()->missing_primitive(state, name->c_str(state));
+//  }
 return &Primitives::unknown_primitive;
 // commented out while we have soft primitive failures
 // throw std::runtime_error(msg.c_str());

@@ -10,7 +10,6 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/class.hpp"
@@ -22,7 +21,6 @@
 #include "timing.hpp"
 #include "config.h"
 
-#include "exception_point.hpp"
 #include "raise_reason.hpp"
 
 #define CALLS_TIL_JIT 50

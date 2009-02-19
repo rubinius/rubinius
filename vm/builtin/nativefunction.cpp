@@ -20,7 +20,6 @@
 #include "builtin/nativefunction.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
 #include "builtin/contexts.hpp"
 
 #include "ffi_util.hpp"

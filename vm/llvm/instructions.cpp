@@ -11,7 +11,6 @@
 #include "builtin/sendsite.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/iseq.hpp"
@@ -176,9 +175,10 @@ CODE
     op = stream[call_frame->ip++];
 
 #if FLAG_FIRE_PROBE_INSTRUCTION
-    if(!task->probe()->nil_p()) {
-      task->probe()->execute_instruction(task, call_frame, op);
-    }
+/** @todo Probe is in VM now, fix. --rue */
+//    if(!task->probe()->nil_p()) {
+//      task->probe()->execute_instruction(task, call_frame, op);
+//    }
 #endif
 
 #ruby <<CODE
@@ -237,9 +237,10 @@ CODE
     op = stream[call_frame->ip++];
 
 #if FLAG_FIRE_PROBE_INSTRUCTION
-    if(!task->probe()->nil_p()) {
-      task->probe()->execute_instruction(task, call_frame, op);
-    }
+/** @todo Probe is in VM now, fix. --rue */
+//    if(!task->probe()->nil_p()) {
+//      task->probe()->execute_instruction(task, call_frame, op);
+//    }
 #endif
 
 #ruby <<CODE

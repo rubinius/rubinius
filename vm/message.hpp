@@ -144,12 +144,19 @@ namespace rubinius {
       return arguments_[index];
     }
 
-    /*
-     * Deprecated: Use the details to setup the Message
+    /**
+     *  Send this message directly.
+     *
+     *  This is separate from the SendSite performers, because
+     *  there is no send site to use.
+     *
+     *  @todo See whether there is any point to having "virtual"
+     *        send sites (which also addresses this.) --rue
+     *
+     *  @see  SendSite
      */
-    void use_from_task(Task* task, size_t args);
-
     Object* send(STATE, CallFrame* call_frame);
+
 
   private:
     STATE       /* state */;       /**< Access to the VM state. */

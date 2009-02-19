@@ -37,26 +37,6 @@ namespace rubinius {
     return cm;
   }
 
-  CompiledMethod* CompiledMethod::generate_tramp(STATE, size_t stack_size) {
-    CompiledMethod* cm = CompiledMethod::create(state);
-
-    cm->stack_size(state, Fixnum::from(stack_size));
-    cm->required_args(state, Fixnum::from(0));
-    cm->total_args(state, cm->required_args());
-    cm->name(state, state->symbol("__halt__"));
-
-    cm->iseq(state, InstructionSequence::create(state, 1));
-    cm->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_halt));
-
-    StaticScope* ss = StaticScope::create(state);
-    ss->module(state, G(object));
-    cm->scope(state, ss);
-
-    cm->formalize(state, false);
-
-    return cm;
-  }
-
   int CompiledMethod::start_line(STATE) {
     if(lines_->nil_p()) return -1;
     if(lines_->num_fields() < 1) return -1;

@@ -28,6 +28,7 @@ namespace rubinius {
       clear();
     }
 
+    /** @todo This does NOT handle null? --rue */
     struct cache_entry* lookup(Module* cls, Symbol* name) {
       struct cache_entry* entry;
 

@@ -2,6 +2,8 @@
 #define RBX_TASKPROBE_HPP
 
 #include "builtin/object.hpp"
+
+#include "vm/vmmethod.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {

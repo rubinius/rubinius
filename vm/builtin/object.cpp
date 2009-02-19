@@ -14,7 +14,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
 #include "builtin/selector.hpp"
-#include "builtin/task.hpp"
 #include "builtin/float.hpp"
 #include "objectmemory.hpp"
 #include "message.hpp"
@@ -296,35 +295,6 @@ namespace rubinius {
     }
 
     return class_object(state);
-  }
-
-  bool Object::send(STATE, Symbol* name, size_t count_args, ...) {
-    va_list va;
-    Array* args = Array::create(state, count_args);
-
-    // Use the va_* macros to iterate over the variable number of
-    // arguments passed in.
-    va_start(va, count_args);
-    for(size_t i = 0; i < count_args; i++) {
-      args->set(state, i, va_arg(va, Object*));
-    }
-    va_end(va);
-
-    return send_on_task(state, G(current_task), name, args);
-  }
-
-  bool Object::send_on_task(STATE, Task* task, Symbol* name, Array* args) {
-    abort();
-    Message msg(state);
-    msg.name = name;
-    msg.recv = this;
-    msg.block = Qnil;
-    msg.lookup_from = this->lookup_begin(state);
-    // msg.set_caller(task->active());
-
-    msg.set_arguments(state, args);
-
-    return task->send_message_slowly(NULL, msg);
   }
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* args, Object* block) {

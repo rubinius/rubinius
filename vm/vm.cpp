@@ -162,9 +162,7 @@ namespace rubinius {
 
   void VM::boot_threads() {
     thread.set(Thread::create(this, this), &globals.roots);
-
     thread->sleep(this, Qfalse);
-    globals.current_task.set(thread->task());
   }
 
   Object* VM::new_object_typed(Class* cls, size_t bytes, object_type type) {

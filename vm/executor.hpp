@@ -3,7 +3,6 @@
 
 namespace rubinius {
   class VM;
-  class Task;
   class Message;
   class CallFrame;
   class Object;

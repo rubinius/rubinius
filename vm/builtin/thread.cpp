@@ -4,9 +4,7 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
 #include "builtin/contexts.hpp"
-#include "builtin/channel.hpp"
 #include "builtin/float.hpp"
 
 #include "objectmemory.hpp"
@@ -40,12 +38,9 @@ namespace rubinius {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->alive(state, Qtrue);
-    thr->channel(state, reinterpret_cast<Channel*>(Qnil));
     thr->queued(state, Qfalse);
     thr->sleep(state, Qtrue);
     thr->frozen_stack(state, Qfalse);
-
-    thr->boot_task(state);
 
     target->thread.set(thr);
     thr->vm = target;
@@ -78,12 +73,6 @@ namespace rubinius {
     sched_yield();
 
     return Qnil;
-  }
-
-  Object* Thread::raise(STATE, Exception* error) {
-    wakeup(state);
-
-    return task_->raise(state, error);
   }
 
   Thread* Thread::wakeup(STATE) {
@@ -139,23 +128,6 @@ namespace rubinius {
     if(!state->check_async(call_frame)) return NULL;
 
     return Integer::from(state, time(0) - before);
-  }
-
-
-/* Interface */
-
-  void Thread::boot_task(STATE) {
-    Task* task = Task::create(state);
-    this->task(state, task);
-  }
-
-  void Thread::set_top(STATE, Object* val) {
-    task_->active()->set_top(val);
-  }
-
-  void Thread::sleep_for(STATE, Channel* chan) {
-    channel(state, chan);
-    sleep(state, Qtrue);
   }
 
 }

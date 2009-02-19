@@ -3,7 +3,6 @@
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
-#include "builtin/task.hpp"
 #include "builtin/symbol.hpp"
 
 #include "message.hpp"

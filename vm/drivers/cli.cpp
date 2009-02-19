@@ -8,7 +8,6 @@
 #include "vm/type_info.hpp"
 #include "vm/exception.hpp"
 
-#include "builtin/task.hpp"
 
 using namespace std;
 using namespace rubinius;

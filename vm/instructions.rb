@@ -859,6 +859,7 @@ class Instructions
     CODE
   end
 
+  # @todo Use this or drop it. The halt tramp is not generated. --rue */
   # [Operation]
   #   Halts the current task
   # [Format]
@@ -871,10 +872,10 @@ class Instructions
   #   Causes the current Task to halt. No further execution will be performed
   #   on the current Task. This instruction is only used inside the trampoline
   #   method used as the first MethodContext of a Task.
-
+  #
   def halt
     <<-CODE
-    throw Task::Halt("Task halted");
+//    throw Task::Halt("Task halted");
     CODE
   end
 

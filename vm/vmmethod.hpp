@@ -8,6 +8,8 @@
 #include "primitives.hpp"
 #include "type_info.hpp"
 
+#include "vm/builtin/compiledmethod.hpp"
+
 namespace rubinius {
   typedef void* instlocation;
   typedef uint32_t opcode;

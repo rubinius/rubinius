@@ -5,7 +5,6 @@
 #include "oop.hpp"
 #include "jit_state.h"
 #include "builtin/contexts.hpp"
-#include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 
 namespace operations {
@@ -323,16 +322,18 @@ namespace operations {
       s.assembler().shift_right(val, 1);
     }
 
+    /** @todo Fix to use InterpreterState's call flags, Task is gone --rue */
     void store_call_flags(int val) {
-      AssemblerX86 &a = s.assembler();
-      a.load_arg(eax, 1);
-      a.mov(a.address(eax, FIELD_OFFSET(rubinius::Task, call_flags)), val);
+//      AssemblerX86 &a = s.assembler();
+//      a.load_arg(eax, 1);
+//      a.mov(a.address(eax, FIELD_OFFSET(rubinius::Task, call_flags)), val);
     }
 
+    /** @todo Fix to use InterpreterState's call flags, Task is gone --rue */
     void store_call_flags(Register& val) {
-      AssemblerX86 &a = s.assembler();
-      a.load_arg(eax, 1);
-      a.mov(a.address(eax, FIELD_OFFSET(rubinius::Task, call_flags)), val);
+//      AssemblerX86 &a = s.assembler();
+//      a.load_arg(eax, 1);
+//      a.mov(a.address(eax, FIELD_OFFSET(rubinius::Task, call_flags)), val);
     }
 
     // If the value in +reg+ is what ruby calls true (not false or nil),

@@ -111,7 +111,6 @@ field_extract_headers = %w[
   vm/builtin/staticscope.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp
-  vm/builtin/task.hpp
   vm/builtin/thread.hpp
   vm/builtin/tuple.hpp
   vm/builtin/compactlookuptable.hpp

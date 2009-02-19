@@ -27,8 +27,9 @@ class Rubinius::VM
   end
 
   def self.show_backtrace(ctx)
-    Ruby.primitive :vm_show_backtrace
     raise PrimitiveFailure, "Rubinius::VM.show_backtrace primitive failed"
+#    Ruby.primitive :vm_show_backtrace
+#    raise PrimitiveFailure, "Rubinius::VM.show_backtrace primitive failed"
   end
 
   def self.reset_method_cache(sym)

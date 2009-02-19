@@ -31,7 +31,6 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/time.hpp"
 #include "builtin/tuple.hpp"
@@ -212,7 +211,6 @@ namespace rubinius {
     Selector::init(this);
     init_ffi();
     init_native_libraries();
-    Task::init(this);
     Thread::init(this);
     AccessVariable::init(this);
     MemoryPointer::init(this);

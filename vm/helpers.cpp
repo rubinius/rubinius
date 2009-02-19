@@ -242,7 +242,31 @@ namespace rubinius {
       return module;
     }
 
+    /** @todo Fix this, Task is gone. --rue */
     void yield_debugger(STATE, CallFrame* call_frame) {
+//
+//    Channel* chan;
+//    if(debug_channel_->nil_p()) {
+//      chan = try_as<Channel>(G(vm)->get_ivar(state,
+//            state->symbol("@debug_channel")));
+//
+//      if(!chan) return;
+//    } else {
+//      chan = debug_channel_;
+//    }
+//
+//    if(control_channel_->nil_p()) {
+//      control_channel(state, Channel::create(state));
+//    }
+//
+//    //sassert(chan->has_readers_p());
+//
+//    // active_->reference(state);
+//
+//    Thread* thr = G(current_thread);
+//    thr->frozen_stack(state, Qtrue);
+//    chan->send(state, thr);
+//    control_channel_->receive(state);
       abort();
     }
 

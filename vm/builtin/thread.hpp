@@ -11,7 +11,6 @@ namespace rubinius {
 
   class Channel;
   class Exception;
-  class Task;
   class NativeThread;
 
   /**
@@ -34,10 +33,8 @@ namespace rubinius {
   public:   /* Accessors */
 
     attr_accessor(alive, Object);
-    attr_accessor(channel, Channel);
     attr_accessor(queued, Object);
     attr_accessor(sleep, Object);
-    attr_accessor(task, Task);
     attr_accessor(frozen_stack, Object);
 
     NativeThread* native_thread() {
@@ -71,16 +68,6 @@ namespace rubinius {
     static Object* sleep_now(STATE, Object* duration, CallFrame* calling_environment);
 
     /**
-     *  Raise exception in this Thread.
-     *
-     *  The Thread is woken first, then the given exception
-     *  is raised so that the Thread will proceed with exception
-     *  handling when it is scheduled (which may not be immediately.)
-     */
-    // Ruby.primitive :thread_raise
-    Object* raise(STATE, Exception* exc);
-
-    /**
      *  Schedule Thread to be run.
      *
      *  This wakes up a sleeping Thread, although it can also
@@ -97,22 +84,8 @@ namespace rubinius {
     Object* set_priority(STATE, Fixnum* priority);
 
 
-  public:   /* Interface */
-
-    /** Create a Task and associate it with this Thread. */
-    void boot_task(STATE);
-
-    /** Set object as the top of the active stack. */
-    void set_top(STATE, Object* val);
-
-    /** Have this Thread wait to receive from the Channel. */
-    void sleep_for(STATE, Channel* chan);
-
-
   private:  /* Instance vars */
 
-    Task*     task_;         // slot
-    Channel*  channel_;      // slot
     Object*   alive_;        // slot
     Object*   sleep_;        // slot
     Object*   queued_;       // slot

@@ -19,7 +19,6 @@
 #include "builtin/sendsite.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
 
 #include "vm/global_cache.hpp"
 #include "vm/message.hpp"

@@ -29,7 +29,6 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/selector.hpp"
-#include "builtin/task.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
 
@@ -202,24 +201,27 @@ namespace rubinius {
     return name;
   }
 
-  Object* System::vm_show_backtrace(STATE, Object* ctx) {
-    if(ctx == Qnil) {
-      G(current_task)->print_backtrace(NULL);
-    } else {
-      G(current_task)->print_backtrace(as<MethodContext>(ctx));
-    }
+/** @todo Fix, Task is gone. --rue */
+//  Object* System::vm_show_backtrace(STATE, Object* ctx) {
+//    if(ctx == Qnil) {
+//      G(current_task)->print_backtrace(NULL);
+//    } else {
+//      G(current_task)->print_backtrace(as<MethodContext>(ctx));
+//    }
+//
+//    return Qnil;
+//  }
 
-    return Qnil;
-  }
+/** @todo Fix, Task is gone. --rue */
+//  Object* System::vm_profiler_instrumenter_start(STATE) {
+//    G(current_task)->enable_profiler();
+//    return Qtrue;
+//  }
 
-  Object* System::vm_profiler_instrumenter_start(STATE) {
-    G(current_task)->enable_profiler();
-    return Qtrue;
-  }
-
-  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
-    return G(current_task)->disable_profiler();
-  }
+/** @todo Fix, Task is gone. --rue */
+//  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
+//    return G(current_task)->disable_profiler();
+//  }
 
   Object* System::vm_write_error(STATE, String* str) {
     std::cerr << str->c_str() << std::endl;

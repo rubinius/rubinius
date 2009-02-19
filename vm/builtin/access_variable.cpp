@@ -3,7 +3,6 @@
 
 #include "builtin/access_variable.hpp"
 #include "builtin/class.hpp"
-#include "builtin/task.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/exception.hpp"

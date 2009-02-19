@@ -11,15 +11,11 @@
 #include "message.hpp"
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
-
-#include "builtin/task.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
-
-#include "exception_point.hpp"
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {

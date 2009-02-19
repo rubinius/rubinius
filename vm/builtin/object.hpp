@@ -49,7 +49,6 @@ namespace rubinius {
   class String;
   class Module;
   class Executable;
-  class Task;
   class Array;
   class Message;
   class TypeInfo;
@@ -175,21 +174,7 @@ namespace rubinius {
      *
      *  Sets up the current task to send the given method name to this
      *  Object, passing the given number of arguments through varargs.
-     *
-     *  Uses Task::send_message_slowly().
      */
-    bool      send(STATE, Symbol* meth, size_t args, ...);
-
-    /**
-     *  Directly send a method on this Object.
-     *
-     *  Sets up the current task to send the given method name on this
-     *  Object, passing arguments in a Ruby Array.
-     *
-     *  Uses Task::send_message_slowly().
-     */
-    bool      send_on_task(STATE, Task* task, Symbol* name, Array* args);
-
     Object*   send(STATE, CallFrame* caller, Symbol* name, Array* args, Object* block);
 
     /**

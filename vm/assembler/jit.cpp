@@ -19,9 +19,6 @@ using namespace assembler_x86;
 using namespace operations;
 using namespace rubinius;
 
-extern "C" {
-  ExecuteStatus send_slowly(VMMethod* vmm, Task* task, MethodContext* const ctx, Symbol* name, size_t args);
-}
 
 namespace rubinius {
   JITCompiler::JITCompiler()
@@ -59,41 +56,42 @@ namespace rubinius {
     ops.save_stack_pointer();
   }
 
-  ExecuteStatus JITCompiler::check_interrupts(VMMethod* const vmm, Task* const task,
-      MethodContext* const ctx) {
-    task->state->events->poll();
-    return task->state->interrupts.check_events ? cExecuteRestart : cExecuteContinue;
-  }
-
-  ExecuteStatus JITCompiler::slow_plus_path(VMMethod* const vmm, Task* const task,
-      MethodContext* const ctx) {
-    return send_slowly(vmm, task, ctx, task->state->globals.sym_plus.get(), 1);
-  }
-
-  ExecuteStatus JITCompiler::slow_minus_path(VMMethod* const vmm, Task* const task,
-      MethodContext* const ctx) {
-    return send_slowly(vmm, task, ctx, task->state->globals.sym_minus.get(), 1);
-  }
-
-  ExecuteStatus JITCompiler::slow_equal_path(VMMethod* const vmm, Task* const task,
-      MethodContext* const ctx) {
-    return send_slowly(vmm, task, ctx, task->state->globals.sym_equal.get(), 1);
-  }
-
-  ExecuteStatus JITCompiler::slow_nequal_path(VMMethod* const vmm, Task* const task,
-      MethodContext* const ctx) {
-    return send_slowly(vmm, task, ctx, task->state->globals.sym_nequal.get(), 1);
-  }
-
-  ExecuteStatus JITCompiler::slow_lt_path(VMMethod* const vmm, Task* const task,
-      MethodContext* const ctx) {
-    return send_slowly(vmm, task, ctx, task->state->globals.sym_lt.get(), 1);
-  }
-
-  ExecuteStatus JITCompiler::slow_gt_path(VMMethod* const vmm, Task* const task,
-      MethodContext* const ctx) {
-    return send_slowly(vmm, task, ctx, task->state->globals.sym_gt.get(), 1);
-  }
+/** @todo Fix JIT. Task is gone. --rue */
+//  ExecuteStatus JITCompiler::check_interrupts(VMMethod* const vmm, Task* const task,
+//      MethodContext* const ctx) {
+//    task->state->events->poll();
+//    return task->state->interrupts.check_events ? cExecuteRestart : cExecuteContinue;
+//  }
+//
+//  ExecuteStatus JITCompiler::slow_plus_path(VMMethod* const vmm, Task* const task,
+//      MethodContext* const ctx) {
+//    return send_slowly(vmm, task, ctx, task->state->globals.sym_plus.get(), 1);
+//  }
+//
+//  ExecuteStatus JITCompiler::slow_minus_path(VMMethod* const vmm, Task* const task,
+//      MethodContext* const ctx) {
+//    return send_slowly(vmm, task, ctx, task->state->globals.sym_minus.get(), 1);
+//  }
+//
+//  ExecuteStatus JITCompiler::slow_equal_path(VMMethod* const vmm, Task* const task,
+//      MethodContext* const ctx) {
+//    return send_slowly(vmm, task, ctx, task->state->globals.sym_equal.get(), 1);
+//  }
+//
+//  ExecuteStatus JITCompiler::slow_nequal_path(VMMethod* const vmm, Task* const task,
+//      MethodContext* const ctx) {
+//    return send_slowly(vmm, task, ctx, task->state->globals.sym_nequal.get(), 1);
+//  }
+//
+//  ExecuteStatus JITCompiler::slow_lt_path(VMMethod* const vmm, Task* const task,
+//      MethodContext* const ctx) {
+//    return send_slowly(vmm, task, ctx, task->state->globals.sym_lt.get(), 1);
+//  }
+//
+//  ExecuteStatus JITCompiler::slow_gt_path(VMMethod* const vmm, Task* const task,
+//      MethodContext* const ctx) {
+//    return send_slowly(vmm, task, ctx, task->state->globals.sym_gt.get(), 1);
+//  }
 
   void JITCompiler::maybe_return(int i, uintptr_t **last_imm, AssemblerX86::NearJumpLocation &fin) {
 
@@ -170,9 +168,13 @@ namespace rubinius {
     a.set_label(slow_path);
     uncache_stack();
     if(add) {
-      ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
+      /** @todo Fix through Message::send, Task is gone. --rue */
+      abort();
+//      ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
     } else {
-      ops.call_via_symbol((void*)JITCompiler::slow_minus_path);
+      /** @todo Fix through Message::send, Task is gone. --rue */
+      abort();
+//      ops.call_via_symbol((void*)JITCompiler::slow_minus_path);
     }
     cache_stack();
   }
@@ -225,9 +227,13 @@ namespace rubinius {
     uncache_stack();
 
     if(equal) {
-      ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
+      /** @todo Fix through Message::send, Task is gone. --rue */
+      abort();
+//      ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
     } else {
-      ops.call_via_symbol((void*)JITCompiler::slow_nequal_path);
+      /** @todo Fix through Message::send, Task is gone. --rue */
+      abort();
+//      ops.call_via_symbol((void*)JITCompiler::slow_nequal_path);
     }
 
     cache_stack();
@@ -279,9 +285,13 @@ namespace rubinius {
     uncache_stack();
 
     if(less) {
-      ops.call_via_symbol((void*)JITCompiler::slow_lt_path);
+      /** @todo Fix through Message::send, Task is gone. --rue */
+      abort();
+//      ops.call_via_symbol((void*)JITCompiler::slow_lt_path);
     } else {
-      ops.call_via_symbol((void*)JITCompiler::slow_gt_path);
+      /** @todo Fix through Message::send, Task is gone. --rue */
+      abort();
+//      ops.call_via_symbol((void*)JITCompiler::slow_gt_path);
     }
 
     cache_stack();

@@ -75,15 +75,6 @@ class Thread
     @joins = []
   end
 
-  def setup_task
-    block = block_given?
-    @task.associate block
-  end
-
-  def current_context
-    @task.current_context
-  end
-
   def alive?
     @lock.receive
     @alive
