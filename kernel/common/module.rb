@@ -659,6 +659,7 @@ class Module
   # See kernel/common/autoload.rb
   def autoload(name, path)
     name = normalize_const_name(name)
+    raise TypeError, "autoload filename must be a String" unless path.kind_of? String
     raise ArgumentError, "empty file name" if path.empty?
     trigger = Autoload.new(name, self, path)
     constants_table[name] = LookupTable::Association.new(name, trigger)
