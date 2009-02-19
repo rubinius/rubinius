@@ -19,6 +19,10 @@ namespace rubinius {
 
   class Channel : public Object {
   public:
+
+    /** Register class. */
+    static void  Channel::init(STATE);
+
     const static object_type type = ChannelType;
 
   private:

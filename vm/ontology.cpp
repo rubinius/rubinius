@@ -11,6 +11,7 @@
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/contexts.hpp"
+#include "builtin/channel.hpp"
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
 #include "builtin/executable.hpp"
@@ -224,6 +225,8 @@ namespace rubinius {
     BlockWrapper::init(this);
     VariableScope::init(this);
     Location::init(this);
+
+    Channel::init(this);
 
     NativeMethod::register_class_with(this);
   }

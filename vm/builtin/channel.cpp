@@ -19,6 +19,13 @@
 #include "thread.hpp"
 
 namespace rubinius {
+
+  void Channel::init(STATE) {
+    GO(channel).set(state->new_class("Channel", G(object)));
+    G(channel)->set_object_type(state, Channel::type);
+  }
+
+
   Channel* Channel::create(STATE) {
     Channel* chan = state->new_object<Channel>(G(channel));
     chan->waiting(state, List::create(state));
