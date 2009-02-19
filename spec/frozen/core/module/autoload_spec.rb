@@ -82,7 +82,7 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::Gsub.new.loaded.should == :autoload_g
   end
 
-  it "loads the registered constand when it is included" do
+  it "loads the registered constant when it is included" do
     ModuleSpecs::Autoload.autoload :H, fixture(__FILE__, "autoload_h.rb")
     class ModuleSpecs::Autoload::HClass
       include ModuleSpecs::Autoload::H
@@ -251,5 +251,16 @@ describe "Module#autoload" do
       mod1::T.should == :autoload_t
       lambda { mod2::T }.should raise_error(NameError)
     end
+  end
+
+  it "raises a TypeError if opening a class with a different superclass than the class defined in the autoload file" do
+    ModuleSpecs::Autoload.autoload :Z, fixture(__FILE__, "autoload_z.rb")
+    class ModuleSpecs::Autoload::ZZ
+    end
+
+    lambda do
+      class ModuleSpecs::Autoload::Z < ModuleSpecs::Autoload::ZZ
+      end
+    end.should raise_error(TypeError)
   end
 end
