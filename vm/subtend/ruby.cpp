@@ -768,7 +768,8 @@ extern "C" {
     Symbol* constant = framing->state()->symbol(name);
 
     bool created = false;
-    Class* cls = rubinius::Helpers::open_class(framing->state(), parent, superclass, constant, &created);
+    Class* cls = rubinius::Helpers::open_class(framing->state(),
+        framing->current_call_frame(), parent, superclass, constant, &created);
 
     return framing->get_handle_global(cls);
   }
@@ -798,7 +799,8 @@ extern "C" {
     Module* parent = as<Module>(framing->get_object(parent_handle));
     Symbol* constant = framing->state()->symbol(name);
 
-    Module* module = rubinius::Helpers::open_module(framing->state(), parent, constant);
+    Module* module = rubinius::Helpers::open_module(framing->state(),
+        framing->current_call_frame(), parent, constant);
 
     return framing->get_handle_global(module);
   }

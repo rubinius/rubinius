@@ -2,6 +2,7 @@
 
 #include "builtin/object.hpp"
 #include "builtin/array.hpp"
+#include "builtin/autoload.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"

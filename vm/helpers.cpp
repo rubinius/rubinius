@@ -1,6 +1,7 @@
 #include "helpers.hpp"
 #include "builtin/object.hpp"
 #include "call_frame.hpp"
+#include "builtin/autoload.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/compiledmethod.hpp"
@@ -153,7 +154,7 @@ namespace rubinius {
         under = call_frame->cm->scope()->module();
       }
 
-      return open_class(state, under, super, name, created);
+      return open_class(state, call_frame, under, super, name, created);
     }
 
     static Class* add_class(STATE, Module* under, Object* super, Symbol* name) {
@@ -186,13 +187,24 @@ namespace rubinius {
       return cls;
     }
 
-    Class* open_class(STATE, Module* under, Object* super, Symbol* name, bool* created) {
+    Class* open_class(STATE, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created) {
       bool found;
 
       *created = false;
 
       Object* obj = under->get_const(state, name, &found);
-      if(found) return check_superclass(state, as<Class>(obj), super);
+      if(found) {
+        TypedRoot<Object*> sup(state, super);
+
+        if(Autoload* autoload = try_as<Autoload>(obj)) {
+          obj = autoload->resolve(state, call_frame);
+
+          // Check if an exception occurred
+          if(!obj) return NULL;
+        }
+
+        return check_superclass(state, as<Class>(obj), sup.get());
+      }
 
       *created = true;
       return add_class(state, under, super, name);
@@ -205,16 +217,20 @@ namespace rubinius {
         under = call_frame->cm->scope()->module();
       }
 
-      return open_module(state, under, name);
+      return open_module(state, call_frame, under, name);
     }
 
-    Module* open_module(STATE, Module* under, Symbol* name) {
+    Module* open_module(STATE, CallFrame* call_frame, Module* under, Symbol* name) {
       Module* module;
       bool found;
 
       Object* obj = const_get(state, under, name, &found);
 
       if(found) {
+        if(Autoload* autoload = try_as<Autoload>(obj)) {
+          obj = autoload->resolve(state, call_frame);
+        }
+
         return as<Module>(obj);
       }
 

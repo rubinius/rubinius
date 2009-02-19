@@ -5,6 +5,7 @@
 #include "type_info.hpp"
 
 namespace rubinius {
+  class CallFrame;
 
   class Autoload : public Object {
   public:
@@ -15,6 +16,8 @@ namespace rubinius {
 
     // Ruby.primitive :autoload_allocate
     static Autoload* create(STATE);
+
+    Object* resolve(STATE, CallFrame* call_frame);
 
   public:   /* TypeInfo */
 

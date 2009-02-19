@@ -673,14 +673,8 @@ class Instructions
     Object* res = Helpers::const_get(state, under, sym, &found);
     if(!found) {
       res = Helpers::const_missing(state, under, sym, call_frame);
-    } else if(kind_of<Autoload>(res)) {
-      Message msg;
-      msg.recv = res;
-      msg.name = G(sym_call);
-      msg.lookup_from = res->lookup_begin(state);
-      msg.set_args(0);
-
-      res = msg.send(state, call_frame);
+    } else if(Autoload* autoload = try_as<Autoload>(res)) {
+      res = autoload->resolve(state, call_frame);
     }
 
     HANDLE_EXCEPTION(res);
@@ -1894,7 +1888,7 @@ class Instructions
     Module* under = as<Module>(stack_pop());
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    Class* cls = Helpers::open_class(state, under, super, sym, &created);
+    Class* cls = Helpers::open_class(state, call_frame, under, super, sym, &created);
     HANDLE_EXCEPTION(cls);
     // TODO use created? it's only for running the opened_class hook, which
     // we're eliminating anyway.
@@ -2030,7 +2024,7 @@ class Instructions
     Module* mod = as<Module>(stack_pop());
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
 
-    Module* ret = Helpers::open_module(state, mod, sym);
+    Module* ret = Helpers::open_module(state, call_frame, mod, sym);
     HANDLE_EXCEPTION(ret);
 
     stack_push(ret);
@@ -2269,14 +2263,8 @@ class Instructions
         under = scope->module();
       }
       res = Helpers::const_missing(state, under, sym, call_frame);
-    } else if(kind_of<Autoload>(res)) {
-      Message msg;
-      msg.recv = res;
-      msg.name = G(sym_call);
-      msg.lookup_from = res->lookup_begin(state);
-      msg.set_args(0);
-
-      res = msg.send(state, call_frame);
+    } else if(Autoload* autoload = try_as<Autoload>(res)) {
+      res = autoload->resolve(state, call_frame);
     }
 
     HANDLE_EXCEPTION(res);
@@ -2369,14 +2357,8 @@ class Instructions
       }
     }
 
-    if(kind_of<Autoload>(res)) {
-      Message msg;
-      msg.recv = res;
-      msg.name = G(sym_call);
-      msg.lookup_from = res->lookup_begin(state);
-      msg.set_args(0);
-
-      res = msg.send(state, call_frame);
+    if(Autoload* autoload = try_as<Autoload>(res)) {
+      res = autoload->resolve(state, call_frame);
     }
 
     HANDLE_EXCEPTION(res);
