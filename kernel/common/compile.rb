@@ -33,6 +33,7 @@ module Compile
         # load rbc files if they exist without checking mtime's and such.
         @load_rbc_directly = true
         require "compiler/init"
+        require "compiler/sydney_rewriter"
       ensure
         @load_rbc_directly = false
       end

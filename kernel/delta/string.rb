@@ -13,8 +13,6 @@ class String
   end
 
   def to_sexp_sydney_parser(name="(eval)", line=1, lit_rewriter=true)
-    require 'compiler/sydney_rewriter'
-
     sexp = parse name, line
     if sexp.kind_of? Tuple
       exc = SyntaxError.new sexp.at(0)
