@@ -38,6 +38,54 @@ namespace :bench do
   task :results => :setup do
   end
 
+  desc "Generate a CSV file of results"
+  task :to_csv => :setup do
+    require 'yaml'
+
+    field = ENV['FIELD'] || "min"
+    unless ["max", "min", "median", "mean"].include?(field)
+      raise "FIELD must be one of max, min, median, mean"
+    end
+
+    dir = ENV['RESULTS'] || RBS_RESULTS_DIR
+
+    header = ["Benchmark file", "input"]
+    data   = Hash.new { |h,k| h[k] = {} }
+    status = Hash.new { |h,k| h[k] = {} }
+
+    Dir[dir + "/**/*.yaml"].sort.each do |name|
+      system = File.basename name, ".yaml"
+      header << system
+
+      File.open name, "r" do |file|
+        YAML.load_documents file do |doc|
+          bench_name = doc["name"][(BASEDIR.size+1)..-1]
+          status[bench_name][system] ||= doc["status"]
+
+          next unless doc.key? field
+
+          bench = [bench_name, doc["parameter"]]
+          data[bench]["input"] = doc["parameter"]
+          data[bench][system] = doc[field]
+        end
+      end
+    end
+
+    csv_report = "#{dir}/RBS-#{Time.now.strftime "%d-%m-%Y-%H%M"}.csv"
+    File.open csv_report, "w" do |file|
+      file.puts(header.map { |h| h.inspect }.join(","))
+      header.shift
+
+      data.keys.sort.each do |key|
+        file.print key.first.inspect, ","
+        line = header.map do |h|
+          (data[key][h] || status[key.first][h]).inspect
+        end
+        file.puts line.join(",")
+      end
+    end
+  end
+
   # Not public. Creates directories for results, etc.
   task :setup do
     mkdir_p RBS_RESULTS_DIR, :verbose => $verbose

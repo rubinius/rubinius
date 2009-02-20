@@ -83,3 +83,18 @@ inside out.
         ITERATIONS - The number of times Bench.run invokes the block for each
         item in the inputs array.
 
+    There is also a task for converting several YAML results files into a
+    convenient CVS file. The YAML files are processed for the desired field in
+    each benchmark result. The field defaults to the "min" time.
+
+    To convert all the .yaml files in benchmark/results/rbs:
+
+        rake bench:to_csv
+
+    The task can be customized by setting the following environment variables:
+
+      RESULTS - The directory to search for the .yaml files and in which to
+      place the .csv file.
+
+      FIELD   - The item to extract for each benchmark in each results file.
+      This defaults to "min".
