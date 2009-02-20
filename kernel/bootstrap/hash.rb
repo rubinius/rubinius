@@ -106,6 +106,9 @@ class Hash
   # Allocate more storage when this full
   MAX_DENSITY = 0.75
 
+  # Resize down when this full
+  MIN_DENSITY = 0.3
+
   # Creates a fully-formed instance of Hash.
   #--
   # @count is the number of pairs, equivalent to <code>hsh.count</code>.
@@ -177,16 +180,23 @@ class Hash
     key_hash & (@records - 1)
   end
 
-  # Grows the hash storage and redistributes the entries among
-  # the new bins if the entry density is above a threshold. Any
-  # Iterator instance will be invalid after a call to redistribute.
-  # If +rehash+ is true, recalculate the key_hash for each key.
+  # Grows or shrinks the hash storage and redistributes the entries
+  # among the new bins if the entry density is outside the max/min
+  # thresholds. Any Iterator instance will be invalid after a call
+  # to redistribute. If +rehash+ is true, recalculate the key_hash
+  # for each key.
   def redistribute(rehash = true)
-    resize = @count >= MAX_DENSITY * @records
-    return unless rehash or resize
+    if @count >= MAX_DENSITY * @records
+      new_size = @records * 2
+    elsif @count < MIN_DENSITY * @records and @records > MIN_SIZE
+      new_size = @records / 2
+    else
+      return unless rehash
+      new_size = @records
+    end
 
     i = to_iter
-    @records *= 2 if resize
+    @records = new_size
     @bins = Tuple.new @records
 
     while entry = i.next
