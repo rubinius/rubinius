@@ -2357,6 +2357,8 @@ class Instructions
       }
     }
 
+    HANDLE_EXCEPTION(res);
+
     if(Autoload* autoload = try_as<Autoload>(res)) {
       res = autoload->resolve(state, call_frame);
     }
