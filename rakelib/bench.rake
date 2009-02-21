@@ -20,14 +20,18 @@ TIMEOUT         = (ENV['TIMEOUT'] || 300).to_i
 VM              = ENV['VM'] || "#{BASEDIR}/bin/rbx"
 
 def command(name)
-  "ruby #{MONITOR} #{TIMEOUT} #{VM} #{RUNNER} #{name} #{ITERATIONS} #{report}"
+  "ruby #{MONITOR} #{TIMEOUT} '#{VM}' #{RUNNER} #{name} #{ITERATIONS} #{report}"
 end
 
 # Cache the name so it is only generated once during an invocation.
 # Eliminates having to save the name and pass it around.
 def report
-  vm = File.basename VM
+  vm = File.basename VM.split.first
   @report ||= "#{RBS_RESULTS_DIR}/RBS-#{vm}-#{Time.now.strftime "%d-%m-%Y-%H%M"}.yaml"
+end
+
+def report_name
+  report[(BASEDIR.size+1)..-1]
 end
 
 desc "Run the RBS benchmarks"
@@ -93,7 +97,6 @@ namespace :bench do
   end
 
   task :run => :setup do
-    report_name = report[(BASEDIR.size+1)..-1]
     puts "Running Ruby Benchmark Suite"
     puts "  Writing report to #{report_name}"
 
@@ -111,12 +114,12 @@ namespace :bench do
   task :dir => :setup do
     dir = ENV['DIR'] || raise("bench:dir needs DIR to be a directory")
 
-    report_name = report[(BASEDIR.size+1)..-1]
     puts "Running all benchmarks in #{dir}"
     puts "  Writing report to #{report_name}"
 
     Dir[dir + "/**/bm_*.rb"].sort.each do |name|
       Dir.chdir File.dirname(name) do
+        puts "  Running #{File.basename name}"
         system "#{command name}"
       end
     end
@@ -130,5 +133,6 @@ namespace :bench do
     Dir.chdir File.dirname(name) do
       system "#{command name}"
     end
+    puts "Writing report to #{report_name}"
   end
 end
