@@ -1238,7 +1238,8 @@ describe "An Iter node" do
     compile do |g|
       g.push :nil
       g.pop
-      g.push_const :Compile
+      g.push_const :Compiler
+      g.find_const :Utils
       g.send :__unexpected_break__, 0
     end
   end

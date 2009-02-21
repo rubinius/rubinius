@@ -65,7 +65,7 @@ def compile(name, output=nil, check_mtime=false)
     end
   end
 
-  inc = "-Iruntime/stable/compiler.rba -rcompiler/init"
+  inc = "-Iruntime/stable/compiler.rba -rcompiler/compiler"
   flags = "-frbx-safe-math -frbx-kernel"
 
   if ENV['SYSTEM']

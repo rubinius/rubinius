@@ -311,7 +311,8 @@ class Compiler
           g.raise_break
         else
           g.pop
-          g.push_const :Compile
+          g.push_const :Compiler
+          g.find_const :Utils
           g.send :__unexpected_break__, 0
         end
       end

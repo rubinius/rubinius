@@ -16,18 +16,6 @@ require File.dirname(__FILE__) + '/../../kernel/delta/compiled_file'
 require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
 require File.dirname(__FILE__) + '/../../kernel/common/compiled_method'
 
-module Compile
-  def self.compiler=(compiler)
-    @compiler = compiler
-  end
-
-  def self.compiler
-    @compiler
-  end
-end
-
-Compile.compiler = Compiler
-
 class SendSite
   def initialize(name)
     @name = name

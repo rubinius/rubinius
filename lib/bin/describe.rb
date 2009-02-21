@@ -1,7 +1,7 @@
 require 'pp'
 
 if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
-  Object.const_set(:Compiler, Compile.compiler)
+  Object.const_set(:Compiler, Compiler)
   require 'compiler/text'
 else
   $: << 'lib'

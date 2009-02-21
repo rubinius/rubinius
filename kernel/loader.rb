@@ -97,6 +97,9 @@ script = nil
 
 begin
 
+  # TODO: Temporary until compiler is refactored
+  Compiler::Utils.load_compiler
+
   script_debug_requested = false
   until ARGV.empty?
     arg = ARGV.shift
@@ -196,7 +199,7 @@ begin
         $-i = arg[2..-1]
       elsif arg == "-"
         $0 = "-"
-        Compile.execute STDIN.read
+        Compiler::Utils.execute STDIN.read
       elsif arg.prefix? "-"
         puts "Invalid switch '#{arg}'"
         puts RBS_USAGE
@@ -223,8 +226,8 @@ begin
   elsif script
     if File.exist?(script)
       $0 = script
-      Compile.debug_script! if script_debug_requested
-      Compile.load_from_extension arg
+      Compiler::Utils.debug_script! if script_debug_requested
+      Compiler::Utils.load_from_extension arg
     else
       if script.suffix?(".rb")
         puts "Unable to find '#{script}'"
@@ -258,7 +261,7 @@ begin
       end
     else
       $0 = "(eval)"
-      Compile.execute "p #{STDIN.read}"
+      Compiler::Utils.execute "p #{STDIN.read}"
     end
   end
 

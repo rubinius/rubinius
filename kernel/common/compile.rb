@@ -15,18 +15,20 @@ end
 # Main entrace point to the Rubinius compiler.  Handles loading and compiling
 # ruby code.
 
-module Compile
+class Compiler
+  # TODO: This is temporary until the compiler is refactored
+  def self.version_number
+    42 # ?
+  end
+
+  # TODO: This is temporary until the compiler is refactored
+  module Utils
 
   @load_rbc_directly = false
 
-  def self.compiler=(obj)
-    if $DEBUG
-      $stderr.puts "[Registered #{obj} as system compiler]"
-    end
-    @compiler = obj
-  end
-
   def self.compiler
+    return ::Compiler
+
     unless defined? @compiler then
       @compiler = nil
       begin
@@ -42,6 +44,18 @@ module Compile
     end
 
     return @compiler
+  end
+
+  # TODO: Temporary until the compiler is refactored
+  def self.load_compiler
+    begin
+      # load rbc files if they exist without checking mtime's and such.
+      @load_rbc_directly = true
+      require "compiler/compiler"
+      require "compiler/sydney_rewriter"
+    ensure
+      @load_rbc_directly = false
+    end
   end
 
   def self.version_number
@@ -98,10 +112,10 @@ module Compile
         rb.slice! '~/' if rb
         rbc.slice! '~/' if rbc
         ext.slice! '~/' if ext
-        res = Compile.single_load "#{ENV['HOME']}/", rb, rbc, ext, requiring, options
+        res = Compiler::Utils.single_load "#{ENV['HOME']}/", rb, rbc, ext, requiring, options
 
       else
-        res = Compile.single_load '', rb, rbc, ext, requiring, options
+        res = Compiler::Utils.single_load '', rb, rbc, ext, requiring, options
       end
 
       return res unless res.nil?      # false is valid
@@ -143,7 +157,7 @@ module Compile
           # Fall through
         end
 
-        res = Compile.single_load "#{dir}/", rb, rbc, ext, requiring, options
+        res = Compiler::Utils.single_load "#{dir}/", rb, rbc, ext, requiring, options
         return res unless res.nil?      # false is valid
       end
     end
@@ -209,7 +223,7 @@ module Compile
           end
 
           compile_feature(rb, requiring) do
-            cm = Compile.compile_file(rb_path)
+            cm = Compiler::Utils.compile_file(rb_path)
             raise LoadError, "Unable to compile: #{rb_path}" unless cm
           end
 
@@ -229,7 +243,7 @@ module Compile
               end
 
               compile_feature(rb, requiring) do
-                cm = Compile.compile_file(rb_path)
+                cm = Compiler::Utils.compile_file(rb_path)
                 raise LoadError, "Unable to compile: #{rb_path}" unless cm
               end
 
@@ -333,15 +347,39 @@ module Compile
       end
     end
 
-    Compile.single_load '', rb, rbc, ext, false, {}
+    Compiler::Utils.single_load '', rb, rbc, ext, false, {}
   end
 
-end       # Compile
+  def self.split_path(path)
+    # Remap all library extensions behind the scenes, just like MRI
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, "#{Rubinius::LIBSUFFIX}")
+
+    if path.suffix? '.rbc'
+      rb, rbc, ext = nil, path, nil
+    elsif path.suffix? '.rb'
+      rb, rbc, ext = path, "#{path}c", nil
+    elsif path.suffix? "#{Rubinius::LIBSUFFIX}"
+      rb, rbc, ext = nil, nil, path
+    else
+      rb =  "#{path}.rb"
+      ext = "#{path}#{Rubinius::LIBSUFFIX}"
+
+      if name[0] == ?.
+        rbc = nil
+      else
+        rbc = "#{path}.rbc"
+      end
+    end
+    return rb,rbc,ext
+  end
+
+  end   # module Utils
+end   # class Compiler
 
 module Kernel
   def compile(path, out=nil, flags=nil)
     out = "#{path}c" unless out
-    cm = Compile.compile_file(path, flags)
+    cm = Compiler::Utils.compile_file(path, flags)
     raise LoadError, "Unable to compile '#{path}'" unless cm
     Rubinius::CompiledFile.dump cm, out
     return out
@@ -417,11 +455,11 @@ module Kernel
       end
     end
 
-    Compile.unified_load path, rb, rbc, ext, nil, opts
+    Compiler::Utils.unified_load path, rb, rbc, ext, nil, opts
   end
   module_function :load
 
-  
+
   # Attempt to load the given file, returning true if successful.
   # If the file has already been successfully loaded and exists
   # in $LOADED_FEATURES, it will not be re-evaluated and false
@@ -466,33 +504,10 @@ module Kernel
   #
   def require(path)
     path = StringValue(path)
-    rb, rbc, ext = Compile.split_path path
+    rb, rbc, ext = Compiler::Utils.split_path path
     Autoload.remove(rb)
-    Compile.unified_load path, rb, rbc, ext, true
+    Compiler::Utils.unified_load path, rb, rbc, ext, true
   end
   module_function :require
-
-  def Compile.split_path(path)
-    # Remap all library extensions behind the scenes, just like MRI
-    path.gsub!(/\.(so|bundle|dll|dylib)$/, "#{Rubinius::LIBSUFFIX}")
-
-    if path.suffix? '.rbc'
-      rb, rbc, ext = nil, path, nil
-    elsif path.suffix? '.rb'
-      rb, rbc, ext = path, "#{path}c", nil
-    elsif path.suffix? "#{Rubinius::LIBSUFFIX}"
-      rb, rbc, ext = nil, nil, path
-    else
-      rb =  "#{path}.rb"
-      ext = "#{path}#{Rubinius::LIBSUFFIX}"
-
-      if name[0] == ?.
-        rbc = nil
-      else
-        rbc = "#{path}.rbc"
-      end
-    end
-    return rb,rbc,ext
-  end
 end
 

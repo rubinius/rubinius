@@ -51,7 +51,7 @@ module Kernel
 
     context = Compiler::Context.new binding.variables, binding.code
 
-    compiled_method = Compile.compile_string string, context, filename, lineno
+    compiled_method = Compiler::Utils.compile_string string, context, filename, lineno
     compiled_method.scope = binding.code.scope.dup
 
     yield compiled_method if block_given?
@@ -123,7 +123,7 @@ module Kernel
         context = MethodContext.current.sender
       end
 
-      compiled_method = Compile.compile_string string, context, filename, line
+      compiled_method = Compiler::Utils.compile_string string, context, filename, line
       compiled_method.inherit_scope context.method
 
       # If this is a module_eval style evaluation, add self to the top of the
@@ -183,7 +183,7 @@ class Module
 
     string = StringValue(string)
 
-    compiled_method = Compile.compile_string string, context, filename, line
+    compiled_method = Compiler::Utils.compile_string string, context, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
     ss = StaticScope.new(self, method.scope)
