@@ -3,8 +3,6 @@ require 'rubygems'
 
 $:.push "lib"
 require 'ruby_parser'
-require 'compiler/text'
-require 'compiler/stack'
 $:.pop
 
 class Executable
@@ -12,9 +10,24 @@ class Executable
   attr_accessor :primitive
 end
 
-require File.dirname(__FILE__) + '/../../kernel/delta/compiled_file'
-require File.dirname(__FILE__) + '/../../kernel/delta/iseq'
-require File.dirname(__FILE__) + '/../../kernel/common/compiled_method'
+$: << File.expand_path(File.dirname(__FILE__) + '/../../kernel')
+require 'compiler/blocks'
+require 'compiler/blocks_graph'
+require 'compiler/compiler'
+require 'compiler/node'
+require 'compiler/nodes'
+require 'compiler/iseq'
+require 'compiler/generator'
+require 'compiler/bytecode'
+require 'compiler/compiled_file'
+require 'compiler/execute'
+require 'compiler/text'
+require 'compiler/graph'
+require 'compiler/local'
+require 'compiler/plugins'
+require 'compiler/stack'
+require 'common/compiled_method'
+$:.pop
 
 class SendSite
   def initialize(name)

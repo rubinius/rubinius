@@ -1,5 +1,3 @@
-# depends on: iseq.rb
-
 ##
 # Breakpoint objects represent debugging breakpoints in the bytecode of
 # CompiledMethod objects.
@@ -18,11 +16,9 @@ class Breakpoint
   self.private_class_method :new
 
   # Define a single encoder instance to be used for all breakpoints
-  @encoder = InstructionSequence::Encoder.new
-
   # Returns the shared class InstructionSequence::Encoder instance.
   def Breakpoint.encoder
-    @encoder
+    @encoder ||= InstructionSequence::Encoder.new
   end
 
   # Initializes the breakpoint

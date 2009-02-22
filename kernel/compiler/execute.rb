@@ -1,4 +1,3 @@
-
 ##
 # Used for the Rubinius::asm Compiler hook.
 

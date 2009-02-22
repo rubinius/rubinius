@@ -1,4 +1,4 @@
-require 'compiler/compiler'
+# depends on: compiler.rb
 
 class Compiler
 

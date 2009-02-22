@@ -1,3 +1,5 @@
+# depends on: compiler.rb
+
 class Compiler
 
   ##

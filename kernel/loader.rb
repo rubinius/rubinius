@@ -97,9 +97,6 @@ script = nil
 
 begin
 
-  # TODO: Temporary until compiler is refactored
-  Compiler::Utils.load_compiler
-
   script_debug_requested = false
   until ARGV.empty?
     arg = ARGV.shift

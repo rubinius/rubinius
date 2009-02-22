@@ -1,4 +1,7 @@
-require 'compiler/lit_rewriter'
+# depends on: sexp.rb
+#
+# TODO: This is temporary. Sexp generation will be completely
+# removed in the near future.
 
 class Sexp
   def file

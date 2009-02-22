@@ -1,8 +1,4 @@
-require 'compiler/compiler'
-require 'compiler/generator'
-require 'compiler/bytecode'
-require 'compiler/text'
-
+# depends on: compiler.rb generator.rb bytecode.rb text.rb
 
 class Compiler::Node
 

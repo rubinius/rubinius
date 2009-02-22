@@ -12,7 +12,7 @@ class Object # for vm debugging
 end
 
 require 'yaml'
-require "#{File.dirname(__FILE__)}/../../kernel/delta/iseq"
+require "#{File.dirname(__FILE__)}/../../kernel/compiler/iseq"
 require 'rubygems'
 require 'parse_tree'
 

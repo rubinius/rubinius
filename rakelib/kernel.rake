@@ -89,108 +89,106 @@ def compile_ruby(src, rbc, check_mtime = false, kernel = false)
 end
 
 # drake does not allow invoke to be called inside tasks
-
 def kernel_clean
-  rm_rf %w[runtime/bootstrap runtime/platform runtime/common runtime/delta],
-        :verbose => $verbose
-
-  files_to_delete = []
-  files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"] + Dir["**/.*.rbc"]
-  files_to_delete += Dir["**/load_order.txt"]
-  files_to_delete += ["runtime/platform.conf"]
-
-  rm_f files_to_delete, :verbose => $verbose
+  rm_f Dir["**/*.rbc",
+           "**/.*.rbc",
+           "runtime/**/load_order.txt",
+           "runtime/platform.conf"],
+    :verbose => $verbose
 end
 
-loose =  []
-modules = Hash.new { |h,k| h[k] = [] }
-
-Dir["kernel/**/*.rb"].each do |path|
-  _, mod, file = path.split("/")
-
-  if file
-    modules[mod] << path
-  else
-    loose << mod
-  end
-end
-
-all_kernel = []
-all_kernel << 'kernel/bootstrap/rubinius_config.rb'
-all_kernel << 'kernel/bootstrap/ruby_config.rb'
-
-modules['bootstrap'] << 'kernel/bootstrap/rubinius_config.rb'
-modules['bootstrap'] << 'kernel/bootstrap/ruby_config.rb'
-modules.each do |name, files|
-  files.each do |rb|
-    rbc = "runtime/#{name}/#{File.basename(rb)}c"
-    all_kernel << rbc
-
-    file rbc => rb do
-      compile_ruby rb, rbc, false, true
-    end
-  end
-end
-
-all_kernel << 'runtime/alpha.rbc'
-all_kernel << 'runtime/loader.rbc'
-
-file 'runtime/alpha.rbc' => 'kernel/alpha.rb' do |t|
+# The default rule for compiling all kernel files use the
+# rbx-kernel compiler flag. Other files are exception cases.
+rule ".rbc" do |t|
   rbc = t.name
   src = t.prerequisites.first
 
   compile_ruby src, rbc, false, true
 end
 
-file 'runtime/loader.rbc' => 'kernel/loader.rb'
-
-rule ".rbc" do |t|
-  rbc = t.name
-  src = t.prerequisites.first
-
-  compile_ruby src, rbc
+# Create file dependencies for all kernel files
+unless File.exists? "runtime/index"
+  raise "unable to build kernel, runtime/index is missing"
+else
+  subdirs = IO.readlines("runtime/index").map { |line| line.chomp }
 end
 
-COMPILER_SOURCES = Dir["lib/compiler/*.rb"] +
-  %w(strscan stringio racc/parser ruby_lexer ruby_parser
-     ruby_parser_extras sexp sexp_processor).map { |f| "lib/#{f}.rb" }
-COMPILER_SOURCES << "kernel/delta/compiled_file.rb"
-COMPILER_MTIME = COMPILER_SOURCES.map { |f| File::Stat.new(f).mtime }.max
-compiler = []
+kernel = ["runtime/platform.conf"]
 
-COMPILER_SOURCES.each do |rb|
-  compiler << "#{rb}c"
-  file "#{rb}c" => rb do
-    compile_ruby rb, "#{rb}c", false, true
+subdirs.each do |subdir|
+  Dir["kernel/#{subdir}/*.rb"].each do |rb|
+    rbc = "runtime/#{subdir}/#{File.basename(rb)}c"
+    kernel << rbc
+    file rbc => rb
   end
 end
 
+rb  = "kernel/bootstrap/rubinius_config.rb"
+rbc = "runtime/bootstrap/rubinius_config.rbc"
+file rbc => rb
+kernel << rb << rbc
+
+rb  = "kernel/bootstrap/ruby_config.rb"
+rbc = "runtime/bootstrap/ruby_config.rbc"
+file rbc => rb
+kernel << rb << rbc
+
+file "runtime/alpha.rbc" => "kernel/alpha.rb"
+kernel << "runtime/alpha.rbc"
+
+file "runtime/loader.rbc" => "kernel/loader.rb" do |t|
+  rbc = t.name
+  src = t.prerequisites.first
+
+  compile_ruby src, rbc, false, true
+end
+kernel << "runtime/loader.rbc"
+
+# TODO: extra_compiler is temporary until sexp processing is removed
+# from the compiler.
+extra_compiler = ["lib/strscan.rb",
+                  "lib/stringio.rb",
+                  "lib/racc/parser.rb",
+                  "lib/ruby_lexer.rb",
+                  "lib/ruby_parser.rb",
+                  "lib/ruby_parser_extras.rb",
+                  "lib/sexp_processor.rb"]
+extra_compiler.each do |rb|
+  rbc = "#{rb}c"
+  kernel << rbc
+
+  file rbc => rb do |t|
+    src = t.prerequisites.first
+    dst = t.name
+
+    compile_ruby src, dst
+  end
+end
+
+desc "Build all kernel files"
 task :kernel => 'kernel:build'
 
 namespace :kernel do
   task :check_compiler do
-    kernel_mtime = all_kernel.select do |f|
-      f =~ /rbc$/ and File.exist? f
-    end.map do |f|
-      File::Stat.new(f).mtime
-    end.min
+    unless ENV['NOCLEAN']
+      existing = kernel.select { |name| name =~ /rbc$/ and File.exists? name }
+      kernel_mtime = existing.map { |name| File.stat(name).mtime }.min
 
-    kernel_clean if !kernel_mtime or COMPILER_MTIME > kernel_mtime unless ENV['NOCLEAN']
-  end
+      compiler = (Dir["kernel/compiler/*.rb"] + extra_compiler)
+      compiler_mtime = compiler.map { |name| File.stat(name).mtime }.max
 
-  task :show do
-    p modules
-    p loose
-  end
-
-  task :build => ['kernel:check_compiler', all_kernel, compiler,
-                  'runtime/platform.conf'].flatten do
-    modules.each do |name, files|
-      create_load_order files, "runtime/#{name}/load_order.txt"
+      kernel_clean if !kernel_mtime or compiler_mtime > kernel_mtime
     end
   end
 
-  desc "clean up rbc files"
+  task :build => ['kernel:check_compiler'] + kernel + extra_compiler do
+    subdirs.each do |subdir|
+      files = Dir["kernel/#{subdir}/*.rb"]
+      create_load_order files, "runtime/#{subdir}/load_order.txt"
+    end
+  end
+
+  desc "Delete all .rbc files"
   task :clean do
     kernel_clean
   end
@@ -228,4 +226,3 @@ namespace :kernel do
   end
 
 end
-
