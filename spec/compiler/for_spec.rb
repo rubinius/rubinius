@@ -15,28 +15,26 @@ describe "A For node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
-        g.send :ary, 0, true
+      g.push :self
+      g.send :ary, 0, true
 
-        block_description do |d|
-          d.cast_for_single_block_arg
-          d.set_local 0
+      block_description do |d|
+        d.cast_for_single_block_arg
+        d.set_local 0
 
-          d.pop
-          d.push_modifiers
-          d.new_label.set!
+        d.pop
+        d.push_modifiers
+        d.new_label.set!
 
-          d.push :self
-          d.push_local 0
-          d.send :puts, 1, true
+        d.push :self
+        d.push_local 0
+        d.send :puts, 1, true
 
-          d.pop_modifiers
-          d.ret
-        end
-
-        g.send_with_block :each, 0, false
+        d.pop_modifiers
+        d.ret
       end
+
+      g.send_with_block :each, 0, false
     end
   end
 
@@ -51,30 +49,28 @@ describe "A For node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push_cpath_top
-        g.find_const :Range
-        g.push 0
-        g.push :self
-        g.send :max, 0, true
-        g.send :new, 2
+      g.push_cpath_top
+      g.find_const :Range
+      g.push 0
+      g.push :self
+      g.send :max, 0, true
+      g.send :new, 2
 
-        block_description do |d|
-          d.cast_for_single_block_arg
-          d.set_local 0
+      block_description do |d|
+        d.cast_for_single_block_arg
+        d.set_local 0
 
-          d.pop
-          d.push_modifiers
-          d.new_label.set!
+        d.pop
+        d.push_modifiers
+        d.new_label.set!
 
-          d.push :nil
+        d.push :nil
 
-          d.pop_modifiers
-          d.ret
-        end
-
-        g.send_with_block :each, 0, false
+        d.pop_modifiers
+        d.ret
       end
+
+      g.send_with_block :each, 0, false
     end
   end
 
@@ -109,12 +105,10 @@ describe "A For node" do
         d.ret
       end
 
-      g.passed_block(2) do
-        g.push :self
-        g.send :x, 0, true
-        g.create_block iter
-        g.send_with_block :each, 0, false
-      end
+      g.push :self
+      g.send :x, 0, true
+      g.create_block iter
+      g.send_with_block :each, 0, false
     end
   end
 
@@ -129,25 +123,23 @@ describe "A For node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :nil
+      g.push :nil
 
-        block_description do |d|
-          d.cast_for_single_block_arg
-          d.set_local 0
+      block_description do |d|
+        d.cast_for_single_block_arg
+        d.set_local 0
 
-          d.pop
-          d.push_modifiers
-          d.new_label.set!
+        d.pop
+        d.push_modifiers
+        d.new_label.set!
 
-          d.push_local 0
+        d.push_local 0
 
-          d.pop_modifiers
-          d.ret
-        end
-
-        g.send_with_block :each, 0, false
+        d.pop_modifiers
+        d.ret
       end
+
+      g.send_with_block :each, 0, false
     end
   end
 end

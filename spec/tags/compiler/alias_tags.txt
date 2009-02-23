@@ -1,2 +1,0 @@
-fails:"An Alias node is compiled from \n    class X\n      alias :y :x\n    end"
-fails:"An Alias node is compiled from \n    class X\n      alias y x\n    end"

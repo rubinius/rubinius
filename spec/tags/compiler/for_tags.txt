@@ -1,4 +1,0 @@
-fails:"A For node is compiled from \n    for o in ary do\n      puts(o)\n    end"
-fails:"A For node is compiled from \n    for i in (0..max) do\n      # do nothing\n    end"
-fails:"A For node is compiled from \n    for a, b in x do\n      5\n    end"
-fails:"A For node is compiled from \n    for i in ()\n      i\n    end"

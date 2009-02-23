@@ -1,1 +1,0 @@
-fails:"A Call node using InlineAssembly plugin is compiled from \n    Rubinius.asm(a) do |m|\n      push_context\n    end"

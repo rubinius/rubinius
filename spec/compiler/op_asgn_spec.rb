@@ -665,12 +665,12 @@ describe "An Op_asgn_or node" do
       done = g.new_label
       notfound = g.new_label
 
-      g.push_context
+      g.push_scope
       g.push_literal :@@var
       g.send :class_variable_defined?, 1
       g.gif notfound
 
-      g.push_context
+      g.push_scope
       g.push_literal :@@var
       g.send :class_variable_get, 1
       g.dup
@@ -678,7 +678,7 @@ describe "An Op_asgn_or node" do
       g.pop
 
       notfound.set!
-      g.push_context
+      g.push_scope
       g.push_literal :@@var
       g.push 3
       g.send :class_variable_set, 2

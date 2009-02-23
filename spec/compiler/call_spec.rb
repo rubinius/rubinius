@@ -300,12 +300,9 @@ describe "A Call node" do
       g.push_unique_literal :x
       g.push_unique_literal :sequence_name
 
-      g.passed_block do
-        g.push_const :Proc
-
-        in_block_send :new, :splat, nil, 0, false do |d|
-          d.push :nil
-        end
+      g.push_const :Proc
+      in_block_send :new, :splat, nil, 0, false do |d|
+        d.push :nil
       end
 
       g.dup
@@ -621,13 +618,11 @@ describe "A Call node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
-        g.push_unique_literal :b
+      g.push :self
+      g.push_unique_literal :b
 
-        g.in_block_send :a, :none, nil, 1 do |d|
-          d.push_unique_literal :c
-        end
+      g.in_block_send :a, :none, nil, 1 do |d|
+        d.push_unique_literal :c
       end
     end
   end

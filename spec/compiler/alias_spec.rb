@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe "An Alias node" do
   alias_both = lambda do |g|
     in_class :X do |d|
-      d.push_context
+      d.push_scope
       d.push_literal :y
       d.push_literal :x
       d.send :alias_method, 2, true

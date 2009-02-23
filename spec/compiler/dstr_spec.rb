@@ -200,7 +200,7 @@ describe "A Dstr node" do
       g.push_literal " d"           # 1
       g.string_dup
 
-      g.push_context                # 2
+      g.push_scope                  # 2
       g.push_literal :@@cvar
       g.send :class_variable_get, 1
       g.send :to_s, 0, true

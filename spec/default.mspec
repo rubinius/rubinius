@@ -25,10 +25,6 @@ class MSpecScript
     '^spec/core/compiledmethod',
     '^spec/core/module',
 
-    '^spec/compiler/defn_spec.rb',
-    '^spec/compiler/dstr_spec.rb',
-    '^spec/compiler/lit_spec.rb',
-
     # These additional directories will be enabled as the
     # specs in them are updated for the C++ VM.
     # 'spec/compiler',

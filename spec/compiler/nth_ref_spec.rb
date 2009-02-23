@@ -7,7 +7,7 @@ describe "An Nth_ref node" do
     end
 
     compile do |g|
-      g.push_context
+      g.push_variables
       g.push 1
       g.send :nth_ref, 1
     end

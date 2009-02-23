@@ -822,22 +822,20 @@ describe "A Defn node" do
       g.pop
 
       g.in_method :a do |d|
-        d.passed_block do
-          d.push :self
+        d.push :self
 
-          d.in_block_send :c, 0 do |d2|
-            d2.in_rescue :RuntimeError do |section|
-              case section
-              when :body then
-                d2.push :self
-                d2.send :do_stuff, 0, true
-              when :RuntimeError then
-                d2.push_exception
-                d2.set_local_depth 0, 0
-                d2.push :self
-                d2.push_local_depth 0, 0
-                d2.send :puts, 1, true
-              end
+        d.in_block_send :c, 0 do |d2|
+          d2.in_rescue :RuntimeError do |section|
+            case section
+            when :body then
+              d2.push :self
+              d2.send :do_stuff, 0, true
+            when :RuntimeError then
+              d2.push_exception
+              d2.set_local_depth 0, 0
+              d2.push :self
+              d2.push_local_depth 0, 0
+              d2.send :puts, 1, true
             end
           end
         end

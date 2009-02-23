@@ -1,2 +1,0 @@
-fails:A Masgn node is compiled from 'A, B, C = 1, 2, 3'
-fails:A Masgn node is compiled from '@@a, @@b = 1, 2'

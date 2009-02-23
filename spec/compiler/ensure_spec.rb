@@ -20,11 +20,14 @@ describe "An Ensure node" do
       dunno  = g.new_label
       bottom = g.new_label
 
+      g.setup_unwind dunno
+
       top.set!
 
       g.push_modifiers
       g.push :nil
       g.pop_modifiers
+      g.pop_unwind
       g.goto bottom
 
       dunno.set!
@@ -32,8 +35,7 @@ describe "An Ensure node" do
       g.push :nil
       g.pop
 
-      g.push_exception
-      g.raise_exc
+      g.reraise
 
       bottom.set!
 
@@ -71,15 +73,12 @@ describe "An Ensure node" do
     end
 
     compile do |g|
-      jump_top = g.new_label
-      jump_top.set!
-
       in_rescue :SyntaxError, :Exception, :ensure, 2 do |section|
         case section
         when :body then
           g.push 1
           g.push 1
-          g.meta_send_op_plus
+          g.send :+, 1, false
         when :SyntaxError then
           g.push_exception
           g.set_local 0

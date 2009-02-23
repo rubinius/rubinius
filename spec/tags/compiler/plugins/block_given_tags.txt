@@ -1,4 +1,0 @@
-fails:"A Call node using BlockGiven plugin is compiled from \n    def m\n      1 if block_given?\n    end"
-fails:"A Call node using BlockGiven plugin is compiled from \n    def m\n      1 if block_given?\n    end"
-fails:"A Call node using BlockGiven plugin is compiled from \n    def m\n      1 if iterator?\n    end"
-fails:"A Call node using BlockGiven plugin is compiled from \n    def m\n      1 if iterator?\n    end"
