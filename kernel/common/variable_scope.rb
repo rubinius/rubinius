@@ -1,5 +1,6 @@
 class VariableScope
   attr_reader :parent
+  attr_reader :block
 
   def self=(obj)
     @self = obj
