@@ -60,6 +60,13 @@ module Kernel
     !cm.nil?
   end
 
+  # Rather than attr = !!value or attr = value && true or attr = (value
+  # and true) littering code, we provide attr = value.to_bool for when
+  # an attribute must be true or false.
+  def to_bool
+    !!self
+  end
+
   def taint
     Ruby.primitive :object_taint
     raise PrimitiveFailure, "Kernel#taint primitive failed"
