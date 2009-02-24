@@ -217,7 +217,7 @@ class Compiler
         # slow path
         slow.set!
         call.emit_args(g)
-        g.add :set_call_flags, 1
+        g.add :allow_private
         count = call.argcount
         if count == 0
           g.add :send_method, idx
