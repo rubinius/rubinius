@@ -229,11 +229,3 @@ end
 
 class Rubinius::ObjectBoundsExceededError < Rubinius::VMException
 end
-
-##
-# Raised when you try to return from a block when not allowed.  Never seen by
-# ruby code.
-
-class IllegalLongReturn < LocalJumpError
-  attr_reader :return_value
-end

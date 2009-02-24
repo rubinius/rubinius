@@ -443,7 +443,6 @@ namespace rubinius {
 
   void VM::bootstrap_exceptions() {
     Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vme;
-    Class* fce;
     Class* rng;
 
 #define dexc(name, sup) new_class(#name, sup)
@@ -463,13 +462,7 @@ namespace rubinius {
     sce = dexc(SystemCallError, std);
     stk = dexc(StackError, exc);
     sxp = dexc(StackExploded, stk);
-
     lje = dexc(LocalJumpError, std);
-    dexc(IllegalLongReturn, lje);
-
-    fce = dexc(FlowControlException, exc);
-    dexc(ReturnException, fce);
-
     rng = dexc(RangeError, std);
     dexc(FloatDomainError, rng);
     dexc(ZeroDivisionError, std);

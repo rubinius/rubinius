@@ -86,11 +86,7 @@ class Proc
         raise ArgumentError, "wrong number of arguments (#{args.size} for #{arity})"
       end
 
-      begin
-        @block.call(*args)
-      rescue IllegalLongReturn, LongReturnException => e
-        return e.value
-      end
+      @block.call(*args)
     end
 
     alias_method :[], :call

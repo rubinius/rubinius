@@ -1,15 +1,9 @@
 require 'pp'
 
-if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
-  Object.const_set(:Compiler, Compiler)
-  require 'compiler/text'
-else
+unless defined?(RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
   $: << 'lib'
   require File.join(File.dirname(__FILE__), '..', 'compiler', 'mri_shim')
 end
-
-require 'compiler/blocks'
-require 'compiler/blocks_graph'
 
 file = ARGV.shift
 flags = []
