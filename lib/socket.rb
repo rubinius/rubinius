@@ -460,7 +460,7 @@ class Socket < BasicSocket
       Errno.handle 'accept(2)' if fd < 0
 
       socket = self.class.superclass.allocate
-      socket.__send__ :setup, fd
+      IO.setup socket, fd, nil, true
       socket
     end
 
@@ -485,7 +485,7 @@ class Socket < BasicSocket
 
       # TCPServer -> TCPSocket etc. *sigh*
       socket = self.class.superclass.allocate
-      socket.__send__ :setup, fd
+      IO.setup socket, fd, nil, true
       socket
     end
 
@@ -658,7 +658,7 @@ class Socket < BasicSocket
 
     Errno.handle 'socket(2)' if descriptor < 0
 
-    setup descriptor
+    IO.setup self, descriptor, nil, true
   end
 
   class << self
@@ -672,7 +672,7 @@ class Socket < BasicSocket
   end
 
   def from_descriptor(fixnum)
-    setup(fixnum)
+    IO.setup self, fixnum, nil, true
     return self
   end
 
@@ -726,8 +726,7 @@ class UNIXSocket < BasicSocket
     phase = 'socket(2)'
     sock = Socket::Foreign.socket Socket::Constants::AF_UNIX, Socket::Constants::SOCK_STREAM, 0
 
-    # @todo - Do we need to sync = true here?
-    setup sock, 'r+'
+    IO.setup self, sock, 'r+', true
 
     Errno.handle phase if descriptor < 0
 
@@ -769,7 +768,7 @@ class UNIXSocket < BasicSocket
   end
 
   def from_descriptor(descriptor)
-    setup descriptor
+    IO.setup self, descriptor, nil, true
 
     self
   end
@@ -862,7 +861,7 @@ class UDPSocket < IPSocket
                                     Socket::IPPROTO_UDP
     Errno.handle 'socket(2)' if status < 0
 
-    setup status
+    IO.setup self, status, nil, true
   end
 
   def bind(host, port)
@@ -987,7 +986,7 @@ class TCPSocket < IPSocket
 
       status = Socket::Foreign.socket family, socket_type, protocol
       syscall = 'socket(2)'
-      setup status
+      IO.setup self, status, nil, true
 
       next if descriptor < 0
 
@@ -1027,12 +1026,12 @@ class TCPSocket < IPSocket
       Errno.handle syscall unless err == 0
     end
 
-    setup descriptor
+    IO.setup self, descriptor, nil, true
   end
   private :tcp_setup
 
   def from_descriptor(descriptor)
-    setup descriptor
+    IO.setup self, descriptor, nil, true
 
     self
   end

@@ -201,6 +201,9 @@ class IO
 
   include Constants
 
+  attr_accessor :descriptor
+  attr_accessor :mode
+
   def self.for_fd(fd, mode = nil)
     new fd, mode
   end
@@ -553,26 +556,14 @@ class IO
   end
 
   #
-  # Create a new IO associated with the given fd.
+  # Internally associate +io+ with the given descriptor.
   #
-  def initialize(fd, mode = nil)
-    if block_given?
-      Rubinius.warn 'IO::new() does not take block; use IO::open() instead'
-    end
-    setup Type.coerce_to(fd, Integer, :to_int), mode
-  end
-
-  private :initialize
-
-  #
-  # @internal
-  #
-  # Internally associate this object with the given descriptor.
-  #
-  # The mode will be checked and set as the current mode if
+  # The +mode+ will be checked and set as the current mode if
   # the underlying descriptor allows it.
   #
-  def setup(fd, mode = nil)
+  # The +sync+ attribute will also be set.
+  #
+  def self.setup(io, fd, mode = nil, sync = false)
     cur_mode = Platform::POSIX.fcntl(fd, F_GETFL, 0)
     Errno.handle if cur_mode < 0
     cur_mode &= ACCMODE
@@ -586,12 +577,22 @@ class IO
       end
     end
 
-    @descriptor = fd
-    @mode = mode || cur_mode
-    @sync = [STDOUT.fileno, STDERR.fileno].include? fd
+    io.descriptor = fd
+    io.mode       = mode || cur_mode
+    io.sync       = sync.to_bool || [STDOUT.fileno, STDERR.fileno].include?(fd)
   end
 
-  private :setup
+  #
+  # Create a new IO associated with the given fd.
+  #
+  def initialize(fd, mode = nil)
+    if block_given?
+      Rubinius.warn 'IO::new() does not take block; use IO::open() instead'
+    end
+    IO.setup self, Type.coerce_to(fd, Integer, :to_int), mode
+  end
+
+  private :initialize
 
   ##
   # Obtains a new duplicate descriptor for the current one.
@@ -668,8 +669,6 @@ class IO
   def closed?
     @descriptor == -1
   end
-
-  attr_reader :descriptor
 
   def dup
     ensure_open
