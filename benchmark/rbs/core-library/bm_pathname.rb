@@ -2,6 +2,8 @@
 # recursion and the Pathname class.
 # Submitted by Lukas Domagala
 
+require 'pathname'
+
 def recursive_dir(path)
   current_path = Pathname.new(path)
   current_files = []
