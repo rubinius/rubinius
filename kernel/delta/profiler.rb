@@ -21,7 +21,6 @@ module Rubinius::Profiler
     ^InstructionSequence
     ^InstructionSet
     ^LookupTable
-    ^LongReturnException
     ^MethodContext
     ^MethodTable
     ^RecursionGuard
