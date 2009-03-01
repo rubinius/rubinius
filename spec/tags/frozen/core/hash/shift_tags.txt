@@ -1,0 +1,2 @@
+frozen:Hash#shift raises a TypeError if called on a frozen instance
+fails:Hash#shift raises a TypeError if called on a frozen instance
