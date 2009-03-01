@@ -503,13 +503,23 @@ module Enumerable
   #   [ nil, true, 99 ].one?                             #=> true
 
   def one?(&prc)
-    times = 0
+    found_one = false
     if block_given?
-      each { |o| times += 1 if yield(o) }
+      each do |o|
+        if yield(o)
+          return false if found_one
+          found_one = true
+        end
+      end
     else
-      each { |o| times += 1 if o }
+      each do |o|
+        if o
+          return false if found_one
+          found_one = true
+        end
+      end
     end
-    times == 1
+    found_one
   end
 
   ##
