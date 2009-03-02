@@ -11,6 +11,7 @@ class VersionGuard < SpecGuard
       b = SpecVersion.new version.last
       @version = version.exclude_end? ? a...b : a..b
     end
+    self.parameters = [version]
   end
 
   def ruby_version
@@ -29,7 +30,9 @@ end
 class Object
   def ruby_version_is(*args)
     g = VersionGuard.new(*args)
+    g.name = :ruby_version_is
     yield if g.yield?
+  ensure
     g.unregister
   end
 end

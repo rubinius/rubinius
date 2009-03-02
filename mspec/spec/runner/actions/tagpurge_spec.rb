@@ -81,6 +81,7 @@ describe TagPurgeAction, "#unload" do
 
   it "does not rewrite any tags if there were no tags for the specs" do
     MSpec.should_receive(:read_tags).and_return([])
+    MSpec.should_receive(:delete_tags)
     MSpec.should_not_receive(:write_tags)
 
     @action.load

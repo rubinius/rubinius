@@ -12,7 +12,9 @@ end
 class Object
   def with_tty
     g = TTYGuard.new
+    g.name = :with_tty
     yield if g.yield?
+  ensure
     g.unregister
   end
 end

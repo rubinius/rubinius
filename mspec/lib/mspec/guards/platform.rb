@@ -7,6 +7,7 @@ class PlatformGuard < SpecGuard
     else
       @options, @platforms = {}, args
     end
+    self.parameters = args
   end
 
   def match?
@@ -26,13 +27,17 @@ end
 class Object
   def platform_is(*args)
     g = PlatformGuard.new(*args)
+    g.name = :platform_is
     yield if g.yield?
+  ensure
     g.unregister
   end
 
   def platform_is_not(*args)
     g = PlatformGuard.new(*args)
+    g.name = :platform_is_not
     yield if g.yield? true
+  ensure
     g.unregister
   end
 end

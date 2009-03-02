@@ -28,13 +28,17 @@ end
 class Object
   def big_endian
     g = BigEndianGuard.new
+    g.name = :big_endian
     yield if g.yield?
+  ensure
     g.unregister
   end
 
   def little_endian
     g = LittleEndianGuard.new
+    g.name = :little_endian
     yield if g.yield?
+  ensure
     g.unregister
   end
 end

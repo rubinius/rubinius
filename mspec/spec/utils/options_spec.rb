@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/utils/options'
 require 'mspec/version'
+require 'mspec/guards/guard'
 require 'mspec/runner/mspec'
 require 'mspec/runner/formatters'
 
@@ -1014,6 +1015,7 @@ describe "The --unguarded option" do
   end
 
   it "is enabled with #unguarded" do
+    @options.stub!(:on)
     @options.should_receive(:on).with("--unguarded", an_instance_of(String))
     @options.unguarded
   end
@@ -1021,6 +1023,24 @@ describe "The --unguarded option" do
   it "registers the MSpec unguarded mode" do
     MSpec.should_receive(:register_mode).with(:unguarded)
     @options.parse "--unguarded"
+  end
+end
+
+describe "The --no-ruby_guard option" do
+  before :each do
+    @options, @config = new_option
+    @options.unguarded
+  end
+
+  it "is enabled with #unguarded" do
+    @options.stub!(:on)
+    @options.should_receive(:on).with("--no-ruby_bug", an_instance_of(String))
+    @options.unguarded
+  end
+
+  it "registers the MSpec no_ruby_bug mode" do
+    MSpec.should_receive(:register_mode).with(:no_ruby_bug)
+    @options.parse "--no-ruby_bug"
   end
 end
 
@@ -1140,6 +1160,45 @@ describe "The -O, --report option" do
     ["-O", "--report"].each do |m|
       @options.parse m
     end
+  end
+end
+
+describe "The --report-on GUARD option" do
+  before :all do
+    MSpec.stub!(:register_mode)
+  end
+
+  before :each do
+    @options, @config = new_option
+    @options.verify
+
+    SpecGuard.clear_guards
+  end
+
+  after :each do
+    SpecGuard.clear_guards
+  end
+
+  it "is enabled with #interrupt" do
+    @options.stub!(:on)
+    @options.should_receive(:on).with("--report-on", "GUARD", an_instance_of(String))
+    @options.verify
+  end
+
+  it "sets the MSpec mode to :report_on" do
+    MSpec.should_receive(:register_mode).with(:report_on)
+    @options.parse ["--report-on", "ruby_bug"]
+  end
+
+  it "converts the guard name to a symbol" do
+    name = mock("ruby_bug")
+    name.should_receive(:to_sym)
+    @options.parse ["--report-on", name]
+  end
+
+  it "saves the name of the guard" do
+    @options.parse ["--report-on", "ruby_bug"]
+    SpecGuard.guards.should == [:ruby_bug]
   end
 end
 

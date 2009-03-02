@@ -12,7 +12,9 @@ end
 class Object
   def deviates_on(*args)
     g = NonComplianceGuard.new(*args)
+    g.name = :deviates_on
     yield if g.yield?
+  ensure
     g.unregister
   end
 end

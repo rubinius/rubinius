@@ -18,7 +18,7 @@ spec = Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors                   = ["Brian Ford"]
-  s.date                      = %q{2009-2-10}
+  s.date                      = %q{2009-3-1}
   s.email                     = %q{bford@engineyard.com}
   s.has_rdoc                  = true
   s.extra_rdoc_files          = %w[ README LICENSE ]

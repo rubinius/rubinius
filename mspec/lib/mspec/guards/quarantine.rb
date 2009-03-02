@@ -9,7 +9,9 @@ end
 class Object
   def quarantine!
     g = QuarantineGuard.new
+    g.name = :quarantine!
     yield if g.yield?
+  ensure
     g.unregister
   end
 end

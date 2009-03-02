@@ -13,7 +13,9 @@ end
 class Object
   def process_is_foreground
     g = BackgroundGuard.new
+    g.name = :process_is_foreground
     yield if g.yield? true
+  ensure
     g.unregister
   end
 end

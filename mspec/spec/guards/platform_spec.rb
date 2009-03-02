@@ -19,6 +19,19 @@ describe Object, "#platform_is" do
     platform_is(:solarce) { ScratchPad.record :yield }
     ScratchPad.recorded.should == :yield
   end
+
+  it "sets the name of the guard to :platform_is" do
+    platform_is(:solarce) { }
+    @guard.name.should == :platform_is
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:match?).and_return(true)
+    @guard.should_receive(:unregister)
+    lambda do
+      platform_is(:solarce) { raise Exception }
+    end.should raise_error(Exception)
+  end
 end
 
 describe Object, "#platform_is_not" do
@@ -38,6 +51,19 @@ describe Object, "#platform_is_not" do
     @guard.stub!(:platform?).and_return(false)
     platform_is_not(:solarce) { ScratchPad.record :yield }
     ScratchPad.recorded.should == :yield
+  end
+
+  it "sets the name of the guard to :platform_is_not" do
+    platform_is_not(:solarce) { }
+    @guard.name.should == :platform_is_not
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:match?).and_return(false)
+    @guard.should_receive(:unregister)
+    lambda do
+      platform_is_not(:solarce) { raise Exception }
+    end.should raise_error(Exception)
   end
 end
 
