@@ -287,7 +287,6 @@ class Instructions
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/list.hpp"
-#include "builtin/task.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/exception.hpp"
