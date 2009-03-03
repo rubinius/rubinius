@@ -11,10 +11,10 @@ class VariableScope
   end
 
   def set_eval_local(name, val)
-    dynamic_locals[name] = val
+    @parent.dynamic_locals[name] = val
   end
 
   def get_eval_local(name)
-    dynamic_locals[name]
+    @parent.dynamic_locals[name]
   end
 end
