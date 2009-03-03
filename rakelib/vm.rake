@@ -7,11 +7,19 @@ require 'lib/ffi/generator_task.rb'
 
 config = OpenStruct.new
 config.use_jit = true
+config.compile_with_llvm = false
+
+CONFIG = config
+
 
 task :vm => 'vm/vm'
 
 ############################################################
 # Files, Flags, & Constants
+
+if CONFIG.compile_with_llvm
+  ENV['CC'] = "llvm-gcc"
+end
 
 if ENV['LLVM_DEBUG']
   LLVM_STYLE = "Debug"
@@ -31,7 +39,7 @@ tests      << 'vm/test/test_instructions.hpp'
 tests.uniq!
 
 srcs        = FileList["vm/*.{cpp,c}"] + FileList["vm/builtin/*.{cpp,c}"]
-srcs       += FileList["vm/subtend/*.{cpp,c,S}"]
+srcs       += FileList["vm/subtend/*.{cpp,c}"]
 srcs       += FileList["vm/parser/*.{cpp,c}"]
 srcs       += FileList["vm/util/*.{cpp,c}"]
 #srcs       += FileList["vm/assembler/*.{cpp,c}"]
@@ -183,6 +191,10 @@ CC          = ENV['CC'] || "gcc"
 def compile_c(obj, src)
   flags = INCLUDES + FLAGS
 
+  if CONFIG.compile_with_llvm
+    flags << "-emit-llvm"
+  end
+
   if LLVM_ENABLE and !defined? $llvm_c then
     $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
     $llvm_c.delete_if { |e| e.index("-O") == 0 }
@@ -221,7 +233,24 @@ def ld t
   $link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
 
   ld = ENV['LD'] || 'g++'
-  o  = t.prerequisites.find_all { |f| f =~ /[oa]$/ }.join(' ')
+
+  if CONFIG.compile_with_llvm
+    objs = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
+
+    sh "llvm-link -f -o vm/tmp.bc #{objs}"
+    sh "opt -O3 -f -o vm/objs.bc vm/tmp.bc"
+    sh "rm vm/tmp.bc"
+    sh "llc -filetype=asm -f -o vm/objs.s vm/objs.bc"
+    sh "rm vm/objs.bc"
+    flags = INCLUDES + FLAGS
+    sh "gcc #{flags} -c -o vm/objs.o vm/objs.s"
+    sh "rm vm/objs.s"
+
+    o = (["vm/objs.o"] + t.prerequisites.find_all { |f| f =~ /a$/ }).join(' ')
+  else
+    o = t.prerequisites.find_all { |f| f =~ /[oa]$/ }.join(' ')
+  end
+
   l  = ex_libs.join(' ')
 
   if $verbose
