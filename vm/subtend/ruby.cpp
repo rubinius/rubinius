@@ -210,7 +210,7 @@ extern "C" {
 
     VALUE ret = hidden_funcall_backend(file, line, receiver, method_name, arg_count, args);
 
-    delete args;
+    delete[] args;
     return ret;
   }
 

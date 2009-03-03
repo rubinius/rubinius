@@ -153,7 +153,7 @@ namespace rubinius {
 
       Handle ret_handle = functor_as<ArgcFunctor>()(msg.args(), args, receiver);
 
-      delete args;
+      delete[] args;
 
       return frame->get_object(ret_handle);
     }
