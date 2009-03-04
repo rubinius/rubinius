@@ -6,3 +6,4 @@ fails:Kernel#callcc preserves changes to block-local scope
 fails:Kernel#callcc preserves changes to method-local scope
 fails:Kernel#callcc raises a LocalJumpError if callcc is not given a block
 critical:Kernel#callcc returns the results of continuation once called
+fails:Kernel#callcc returns the results of a block if continuation is not called
