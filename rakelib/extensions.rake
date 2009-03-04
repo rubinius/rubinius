@@ -37,7 +37,8 @@ namespace :extension do
 
   file "lib/ext/readline/readline.#{$dlext}" => FileList[
        "lib/ext/readline/build.rb",
-       "lib/ext/readline/readline.c"
+       "lib/ext/readline/readline.c",
+       "vm/subtend/ruby.h"
   ] do
     compile_extension 'lib/ext/readline'
   end
@@ -55,7 +56,9 @@ namespace :extension do
         FileList["lib/ext/digest/#{name}/build.rb",
                  "lib/ext/digest/#{name}/{#{name},#{name}init}.c",
                  "lib/ext/digest/#{name}/#{name}.h",
-                 "lib/ext/digest/defs.h"] do
+                 "lib/ext/digest/defs.h",
+                 "vm/subtend/ruby.h"
+      ] do
         compile_extension "lib/ext/digest/#{name}"
       end
     end
