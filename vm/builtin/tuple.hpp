@@ -46,6 +46,7 @@ namespace rubinius {
     Object* at(STATE, size_t index) {
       if(num_fields() <= index) {
         Exception::object_bounds_exceeded_error(state, this, index);
+        return NULL;
       }
       return field[index];
     }
