@@ -45,7 +45,7 @@ using rubinius::MethodVisibility;
 using rubinius::Module;
 using rubinius::ModuleType;
 using rubinius::NativeMethod;
-using rubinius::NativeMethodFraming;
+using rubinius::NativeMethodEnvironment;
 using rubinius::Object;
 using rubinius::SendSite;
 using rubinius::String;
@@ -72,30 +72,30 @@ namespace {
                                       std::size_t arg_count,
                                       VALUE* arg_array)
   {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
-    Array* args = Array::create(framing->state(), arg_count);
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Array* args = Array::create(env->state(), arg_count);
 
     for(size_t i = 0; i < arg_count; i++) {
-      args->set(framing->state(), i, framing->get_object(arg_array[i]));
+      args->set(env->state(), i, env->get_object(arg_array[i]));
     }
 
-    Object* recv = framing->get_object(receiver);
-    Object* ret = recv->send(framing->state(), framing->current_call_frame(),
+    Object* recv = env->get_object(receiver);
+    Object* ret = recv->send(env->state(), env->current_call_frame(),
         reinterpret_cast<Symbol*>(method_name), args, RBX_Qnil);
 
-    return framing->get_handle(ret);
+    return env->get_handle(ret);
   }
 
   /** Converts a native type (int, uint, long) to a suitable Integer. */
   template<typename NativeType>
     VALUE hidden_native2num(NativeType number) {
-      NativeMethodFraming* framing = NativeMethodFraming::get();
-      return framing->get_handle(Integer::from(framing->state(), number));
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      return env->get_handle(Integer::from(env->state(), number));
     }
 
   /** Make sure the name has the given prefix. */
   static Symbol* prefixed_by(std::string prefix, std::string name) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     if(name.compare(0UL, prefix.size(), prefix) != 0) {
       std::ostringstream str;
@@ -104,14 +104,14 @@ namespace {
     }
 
     /* @todo Need to strdup here to not point to junk but can it leak? */
-    return framing->state()->symbol(strdup(name.c_str()));
+    return env->state()->symbol(strdup(name.c_str()));
   }
 
   /** Make sure the name has the given prefix. */
   static Symbol* prefixed_by(std::string prefix, ID name) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return prefixed_by(prefix, reinterpret_cast<Symbol*>(name)->c_str(framing->state()));
+    return prefixed_by(prefix, reinterpret_cast<Symbol*>(name)->c_str(env->state()));
   }
 
 }
@@ -229,97 +229,97 @@ extern "C" {
    *  this side.
    */
   VALUE rbx_subtend_hidden_global(RbxSubtendHiddenGlobal type) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     /* @todo Move these to static */
     switch (type) {
     case RbxArray:
-      return framing->get_handle_global(framing->state()->globals.array.get());
+      return env->get_handle_global(env->state()->globals.array.get());
     case RbxBignum:
-      return framing->get_handle_global(framing->state()->globals.bignum.get());
+      return env->get_handle_global(env->state()->globals.bignum.get());
     case RbxClass:
-      return framing->get_handle_global(framing->state()->globals.klass.get());
+      return env->get_handle_global(env->state()->globals.klass.get());
     case RbxData:
-      return framing->get_handle_global(framing->state()->globals.data.get());
+      return env->get_handle_global(env->state()->globals.data.get());
     case RbxFalse:
-      return framing->get_handle_global(framing->state()->globals.false_class.get());
+      return env->get_handle_global(env->state()->globals.false_class.get());
     case RbxFixnum:
-      return framing->get_handle_global(framing->state()->globals.fixnum_class.get());
+      return env->get_handle_global(env->state()->globals.fixnum_class.get());
     case RbxFloat:
-      return framing->get_handle_global(framing->state()->globals.floatpoint.get());
+      return env->get_handle_global(env->state()->globals.floatpoint.get());
     /* Hash is not builtin, @see ruby.h */
     case RbxInteger:
-      return framing->get_handle_global(framing->state()->globals.integer.get());
+      return env->get_handle_global(env->state()->globals.integer.get());
     case RbxIO:
-      return framing->get_handle_global(framing->state()->globals.io.get());
+      return env->get_handle_global(env->state()->globals.io.get());
     case RbxModule:
-      return framing->get_handle_global(framing->state()->globals.module.get());
+      return env->get_handle_global(env->state()->globals.module.get());
     case RbxNil:
-      return framing->get_handle_global(framing->state()->globals.nil_class.get());
+      return env->get_handle_global(env->state()->globals.nil_class.get());
     case RbxObject:
-      return framing->get_handle_global(framing->state()->globals.object.get());
+      return env->get_handle_global(env->state()->globals.object.get());
     case RbxRegexp:
-      return framing->get_handle_global(framing->state()->globals.regexp.get());
+      return env->get_handle_global(env->state()->globals.regexp.get());
     case RbxString:
-      return framing->get_handle_global(framing->state()->globals.string.get());
+      return env->get_handle_global(env->state()->globals.string.get());
     case RbxSymbol:
-      return framing->get_handle_global(framing->state()->globals.symbol.get());
+      return env->get_handle_global(env->state()->globals.symbol.get());
     case RbxThread:
-      return framing->get_handle_global(framing->state()->globals.thread.get());
+      return env->get_handle_global(env->state()->globals.thread.get());
     case RbxTrue:
-      return framing->get_handle_global(framing->state()->globals.true_class.get());
+      return env->get_handle_global(env->state()->globals.true_class.get());
     default:
       return Qnil;
     }
   }
 
   VALUE rbx_subtend_hidden_id2sym(ID id) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return framing->get_handle(reinterpret_cast<Symbol*>(id));
+    return env->get_handle(reinterpret_cast<Symbol*>(id));
   }
 
   void rbx_subtend_hidden_infect(VALUE obj1, VALUE obj2) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object1 = framing->get_object(obj1);
-    Object* object2 = framing->get_object(obj2);
+    Object* object1 = env->get_object(obj1);
+    Object* object2 = env->get_object(obj2);
 
     object1->infect(object2);
   }
 
   int rbx_subtend_hidden_nil_p(VALUE expression_result) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return RBX_NIL_P(framing->get_object(expression_result));
+    return RBX_NIL_P(env->get_object(expression_result));
   }
 
   long rbx_subtend_hidden_rstring_len(VALUE string_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = as<String>(framing->get_object(string_handle));
+    String* string = as<String>(env->get_object(string_handle));
 
     return string->size();
   }
 
   char* rbx_subtend_hidden_rstring_ptr(VALUE string_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = as<String>(framing->get_object(string_handle));
+    String* string = as<String>(env->get_object(string_handle));
 
     return string->byte_address();
   }
 
   int rbx_subtend_hidden_rtest(VALUE expression_result) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return RBX_RTEST(framing->get_object(expression_result));
+    return RBX_RTEST(env->get_object(expression_result));
   }
 
   ID rbx_subtend_hidden_sym2id(VALUE symbol_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return reinterpret_cast<ID>(framing->get_object(symbol_handle));
+    return reinterpret_cast<ID>(env->get_object(symbol_handle));
   }
 
   void rbx_subtend_hidden_define_method(const char* file,
@@ -329,18 +329,18 @@ extern "C" {
                                         int arity,
                                         RbxMethodKind kind)
   {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    VM* state = framing->state();
+    VM* state = env->state();
     Symbol* method_name = state->symbol(name);
 
     Module* module = NULL;
 
     if (kind == RbxSingletonMethod) {
-      module = as<Module>(framing->get_object(target)->metaclass(framing->state()));
+      module = as<Module>(env->get_object(target)->metaclass(env->state()));
     }
     else {
-      module = as<Module>(framing->get_object(target));
+      module = as<Module>(env->get_object(target));
     }
 
     NativeMethod* method = NULL;
@@ -379,9 +379,9 @@ extern "C" {
 
   /** Shares impl. with the other NUM2*, change all if modifying. */
   int NUM2INT(VALUE num_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* number = framing->get_object(num_handle);
+    Object* number = env->get_object(num_handle);
 
     if(Fixnum* fix = try_as<Fixnum>(number)) {
       return fix->to_int();
@@ -399,9 +399,9 @@ extern "C" {
 
   /** Shares impl. with the other NUM2*, change all if modifying. */
   long int NUM2LONG(VALUE num_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* number = framing->get_object(num_handle);
+    Object* number = env->get_object(num_handle);
 
     if(Fixnum* fix = try_as<Fixnum>(number)) {
       return fix->to_long();
@@ -419,9 +419,9 @@ extern "C" {
 
   /** Shares impl. with the other NUM2*, change all if modifying. */
   unsigned int NUM2UINT(VALUE num_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* number = framing->get_object(num_handle);
+    Object* number = env->get_object(num_handle);
 
     if(Fixnum* fix = try_as<Fixnum>(number)) {
       return fix->to_uint();
@@ -450,18 +450,18 @@ extern "C" {
   }
 
   VALUE rb_Array(VALUE obj_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* obj = framing->get_object(obj_handle);
+    Object* obj = env->get_object(obj_handle);
 
     if (kind_of<Array>(obj)) {
       return obj_handle;
     }
 
-    Array* array = Array::create(framing->state(), 1);
-    array->set(framing->state(), 0, obj);
+    Array* array = Array::create(env->state(), 1);
+    array->set(env->state(), 0, obj);
 
-    return framing->get_handle(array);
+    return env->get_handle(array);
   }
 
   VALUE rb_ary_clear(VALUE self_handle) {
@@ -474,10 +474,10 @@ extern "C" {
 
   /* @todo Check 64-bit? */
   VALUE rb_ary_entry(VALUE self_handle, int index) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(framing->get_object(self_handle));
-    return framing->get_handle(self->get(framing->state(), index));
+    Array* self = as<Array>(env->get_object(self_handle));
+    return env->get_handle(self->get(env->state(), index));
   }
 
   VALUE rb_ary_join(VALUE self_handle, VALUE separator_handle) {
@@ -488,55 +488,55 @@ extern "C" {
   static const unsigned long RbxArrayDefaultCapacity = 16;
 
   VALUE rb_ary_new() {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* array = Array::create(framing->state(), RbxArrayDefaultCapacity);
-    return framing->get_handle(array);
+    Array* array = Array::create(env->state(), RbxArrayDefaultCapacity);
+    return env->get_handle(array);
   }
 
   /* Shares implementation with rb_ary_new4! Change both if needed. */
   VALUE rb_ary_new2(unsigned long length) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* array = Array::create(framing->state(), (length * 2));
-    array->start(framing->state(), Fixnum::from(0));
-    array->total(framing->state(), Fixnum::from(length));
+    Array* array = Array::create(env->state(), (length * 2));
+    array->start(env->state(), Fixnum::from(0));
+    array->total(env->state(), Fixnum::from(length));
     /* OK, so we are probably screwed anyway if a Fixnum is too small. :) */
 
-    return framing->get_handle(array);
+    return env->get_handle(array);
   }
 
   /* Shares implementation with rb_ary_new2! Change both if needed. */
   VALUE rb_ary_new4(unsigned long length, const VALUE* object_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* array = Array::create(framing->state(), (length * 2));
-    array->start(framing->state(), Fixnum::from(0));
-    array->total(framing->state(), Fixnum::from(length));
+    Array* array = Array::create(env->state(), (length * 2));
+    array->start(env->state(), Fixnum::from(0));
+    array->total(env->state(), Fixnum::from(length));
 
     if (object_handle) {
-      Object* object = framing->get_object(*object_handle);
+      Object* object = env->get_object(*object_handle);
 
       for(std::size_t i = 0; i < length; ++i) {
-        array->set(framing->state(), i, object);
+        array->set(env->state(), i, object);
       }
     }
 
-    return framing->get_handle(array);
+    return env->get_handle(array);
   }
 
   VALUE rb_ary_pop(VALUE self_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(framing->get_object(self_handle));
-    return framing->get_handle(self->pop(framing->state()));
+    Array* self = as<Array>(env->get_object(self_handle));
+    return env->get_handle(self->pop(env->state()));
   }
 
   VALUE rb_ary_push(VALUE self_handle, VALUE object_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(framing->get_object(self_handle));
-    self->append(framing->state(), framing->get_object(object_handle));
+    Array* self = as<Array>(env->get_object(self_handle));
+    self->append(env->state(), env->get_object(object_handle));
 
     return self_handle;
   }
@@ -546,24 +546,24 @@ extern "C" {
   }
 
   VALUE rb_ary_shift(VALUE self_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(framing->get_object(self_handle));
-    return framing->get_handle(self->shift(framing->state()));
+    Array* self = as<Array>(env->get_object(self_handle));
+    return env->get_handle(self->shift(env->state()));
   }
 
   size_t rb_ary_size(VALUE self_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(framing->get_object(self_handle));
+    Array* self = as<Array>(env->get_object(self_handle));
 
     return self->size();
   }
 
   void rb_ary_store(VALUE self_handle, long int index, VALUE object_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(framing->get_object(self_handle));
+    Array* self = as<Array>(env->get_object(self_handle));
     size_t total = self->size();
 
     if(index < 0) {
@@ -576,14 +576,14 @@ extern "C" {
       rb_raise(rb_eIndexError, error.str().c_str());
     }
 
-    self->set(framing->state(), index, framing->get_object(object_handle));
+    self->set(env->state(), index, env->get_object(object_handle));
   }
 
   VALUE rb_ary_unshift(VALUE self_handle, VALUE object_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(framing->get_object(self_handle));
-    self->unshift(framing->state(), framing->get_object(object_handle));
+    Array* self = as<Array>(env->get_object(self_handle));
+    self->unshift(env->state(), env->get_object(object_handle));
 
     return self_handle;
   }
@@ -593,8 +593,8 @@ extern "C" {
   }
 
   int rb_block_given_p() {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
-    return RBX_RTEST(framing->block());
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return RBX_RTEST(env->block());
   }
 
   VALUE rb_check_array_type(VALUE object_handle) {
@@ -608,8 +608,8 @@ extern "C" {
   VALUE rb_check_convert_type(VALUE object_handle, int /*type*/,
                               const char* type_name, const char* method_name)
   {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
-    VALUE name = framing->get_handle(String::create(framing->state(), method_name));
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    VALUE name = env->get_handle(String::create(env->state(), method_name));
 
     if(RTEST(rb_funcall(object_handle, rb_intern("respond_to?"), 1, name)) ) {
       return rb_funcall2(object_handle, rb_intern(method_name), 0, NULL);
@@ -619,9 +619,9 @@ extern "C" {
   }
 
   VALUE rb_class_name(VALUE class_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
-    Class* class_object = as<Class>(framing->get_object(class_handle));
-    return framing->get_handle(class_object->name()->to_str(framing->state()));
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Class* class_object = as<Class>(env->get_object(class_handle));
+    return env->get_handle(class_object->name()->to_str(env->state()));
   }
 
   VALUE rb_class_new_instance(int arg_count, VALUE* args, VALUE class_handle) {
@@ -629,16 +629,16 @@ extern "C" {
   }
 
   VALUE rb_class_of(VALUE object_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
-    Class* class_object = framing->get_object(object_handle)->class_object(framing->state());
-    return framing->get_handle_global(class_object);
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Class* class_object = env->get_object(object_handle)->class_object(env->state());
+    return env->get_handle_global(class_object);
   }
 
   char* rb_class2name(VALUE class_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
-    Class* class_object = as<Class>(framing->get_object(class_handle));
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Class* class_object = as<Class>(env->get_object(class_handle));
 
-    return ::strdup(class_object->name()->c_str(framing->state()));
+    return ::strdup(class_object->name()->c_str(env->state()));
   }
 
   /** @todo   This is horrible. Refactor. --rue */
@@ -668,18 +668,18 @@ extern "C" {
   }
 
   int rb_const_defined(VALUE module_handle, ID const_id) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     VALUE result = rb_funcall(module_handle, rb_intern("const_defined?"), 1, ID2SYM(const_id));
-    return RBX_RTEST(framing->get_object(result));
+    return RBX_RTEST(env->get_object(result));
   }
 
   VALUE rb_const_get(VALUE module_handle, ID name) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* module = as<Module>(framing->get_object(module_handle));
+    Module* module = as<Module>(env->get_object(module_handle));
 
-    return framing->get_handle(module->get_const(framing->state(),
+    return env->get_handle(module->get_const(env->state(),
                                                  reinterpret_cast<Symbol*>(name)));
   }
 
@@ -696,41 +696,41 @@ extern "C" {
   }
 
   VALUE rb_cvar_defined(VALUE module_handle, ID name) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return rb_funcall(module_handle, rb_intern("class_variable_defined?"),
                       1,
-                      framing->get_handle(prefixed_by("@@", name)));
+                      env->get_handle(prefixed_by("@@", name)));
   }
 
   VALUE rb_cvar_get(VALUE module_handle, ID name) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return rb_funcall(module_handle, rb_intern("class_variable_set"),
                       1,
-                      framing->get_handle(prefixed_by("@@", name)));
+                      env->get_handle(prefixed_by("@@", name)));
   }
 
   VALUE rb_cvar_set(VALUE module_handle, ID name, VALUE value) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return rb_funcall(module_handle, rb_intern("class_variable_set"),
                       2,
-                      framing->get_handle(prefixed_by("@@", name)),
+                      env->get_handle(prefixed_by("@@", name)),
                       value);
   }
 
   VALUE rb_data_object_alloc(VALUE klass, RUBY_DATA_FUNC mark,
                              RUBY_DATA_FUNC free, void* ptr) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Class* data_klass = as<Class>(framing->get_object(klass));
+    Class* data_klass = as<Class>(env->get_object(klass));
 
-    Data* data = Data::create(framing->state(), ptr, mark, free);
+    Data* data = Data::create(env->state(), ptr, mark, free);
 
-    data->klass(framing->state(), data_klass);
+    data->klass(env->state(), data_klass);
 
-    return framing->get_handle(data);
+    return env->get_handle(data);
   }
 
   void rb_define_alias(VALUE module_handle, const char* new_name, const char* old_name) {
@@ -760,26 +760,26 @@ extern "C" {
 
   /** @note   Shares code with rb_define_module_under, change there too. --rue */
   VALUE rb_define_class_under(VALUE parent_handle, const char* name, VALUE superclass_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* parent = as<Module>(framing->get_object(parent_handle));
-    Class* superclass = as<Class>(framing->get_object(superclass_handle));
-    Symbol* constant = framing->state()->symbol(name);
+    Module* parent = as<Module>(env->get_object(parent_handle));
+    Class* superclass = as<Class>(env->get_object(superclass_handle));
+    Symbol* constant = env->state()->symbol(name);
 
     bool created = false;
-    Class* cls = rubinius::Helpers::open_class(framing->state(),
-        framing->current_call_frame(), parent, superclass, constant, &created);
+    Class* cls = rubinius::Helpers::open_class(env->state(),
+        env->current_call_frame(), parent, superclass, constant, &created);
 
-    return framing->get_handle_global(cls);
+    return env->get_handle_global(cls);
   }
 
   void rb_define_const(VALUE module_handle, const char* name, VALUE obj_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* module = as<Module>(framing->get_object(module_handle));
-    Object* object = framing->get_object(obj_handle);
+    Module* module = as<Module>(env->get_object(module_handle));
+    Object* object = env->get_object(obj_handle);
 
-    module->set_const(framing->state(), name,  object);
+    module->set_const(env->state(), name,  object);
   }
 
   VALUE rb_define_module(const char* name) {
@@ -793,70 +793,70 @@ extern "C" {
 
   /** @note   Shares code with rb_define_class_under, change there too. --rue */
   VALUE rb_define_module_under(VALUE parent_handle, const char* name) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* parent = as<Module>(framing->get_object(parent_handle));
-    Symbol* constant = framing->state()->symbol(name);
+    Module* parent = as<Module>(env->get_object(parent_handle));
+    Symbol* constant = env->state()->symbol(name);
 
-    Module* module = rubinius::Helpers::open_module(framing->state(),
-        framing->current_call_frame(), parent, constant);
+    Module* module = rubinius::Helpers::open_module(env->state(),
+        env->current_call_frame(), parent, constant);
 
-    return framing->get_handle_global(module);
+    return env->get_handle_global(module);
   }
 
   void rb_free_global(VALUE global_handle) {
     /* Failing silently is OK by MRI. */
     if(global_handle < 0) {
-      NativeMethodFraming* framing = NativeMethodFraming::get();
-      framing->delete_global(global_handle);
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      env->delete_global(global_handle);
     }
   }
 
   void rb_gc_mark(VALUE ptr) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object = framing->get_object(ptr);
+    Object* object = env->get_object(ptr);
 
     if(object->reference_p()) {
       Object* res = VM::current_state()->current_mark.call(object);
 
       if(res) {
-        framing->handles()[ptr]->set(res);
+        env->handles()[ptr]->set(res);
       }
     }
   }
 
   /** @todo   Check logic. This alters the VALUE to be a global handler. --rue */
   void rb_global_variable(VALUE* address) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object = framing->get_object(*address);
+    Object* object = env->get_object(*address);
 
     if(REFERENCE_P(object)) {
-      *address = framing->get_handle_global(object);
+      *address = env->get_handle_global(object);
     }
   }
 
   VALUE rb_gv_get(const char* name) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     VALUE Globals = rb_const_get(rb_cObject, rb_intern("Globals"));
 
     return rb_funcall(Globals,
                       rb_intern("[]"),
                       1,
-                      framing->get_handle(prefixed_by("$", name)));
+                      env->get_handle(prefixed_by("$", name)));
   }
 
   VALUE rb_gv_set(const char* name, VALUE value) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     VALUE Globals = rb_const_get(rb_cObject, rb_intern("Globals"));
 
     return rb_funcall(Globals,
                       rb_intern("[]="),
                       2,
-                      framing->get_handle(prefixed_by("$", name)),
+                      env->get_handle(prefixed_by("$", name)),
                       value);
   }
 
@@ -865,24 +865,24 @@ extern "C" {
   }
 
   ID rb_intern(const char* string) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return reinterpret_cast<ID>(framing->state()->symbol(string));
+    return reinterpret_cast<ID>(env->state()->symbol(string));
   }
 
   VALUE rb_obj_alloc(VALUE class_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     // TODO using Object as the template param means this can't allocate builtin
     // types properly!
-    Object* object = framing->state()->new_object<Object>(as<Class>(framing->get_object(class_handle)));
-    return framing->get_handle(object);
+    Object* object = env->state()->new_object<Object>(as<Class>(env->get_object(class_handle)));
+    return env->get_handle(object);
   }
 
   VALUE rb_obj_as_string(VALUE obj_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object = framing->get_object(obj_handle);
+    Object* object = env->get_object(obj_handle);
 
     if (kind_of<String>(object)) {
       return obj_handle;
@@ -916,22 +916,22 @@ extern "C" {
   }
 
   VALUE rb_ivar_get(VALUE self_handle, ID ivar_name) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* object = framing->get_object(self_handle);
+    Object* object = env->get_object(self_handle);
 
-    return framing->get_handle(object->get_ivar(framing->state(),
+    return env->get_handle(object->get_ivar(env->state(),
                                prefixed_by("@", ivar_name)));
   }
 
   VALUE rb_ivar_set(VALUE self_handle, ID ivar_name, VALUE value) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* receiver = framing->get_object(self_handle);
+    Object* receiver = env->get_object(self_handle);
 
-    receiver->set_ivar(framing->state(),
+    receiver->set_ivar(env->state(),
                        prefixed_by("@", ivar_name),
-                       framing->get_object(value));
+                       env->get_object(value));
 
     return value;
   }
@@ -945,14 +945,14 @@ extern "C" {
   }
 
   int rb_respond_to(VALUE obj_handle, ID method_name) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     VALUE result = rb_funcall(obj_handle,
                               rb_intern("respond_to?"),
                               1,
                               ID2SYM(method_name)) ;
 
-    return RBX_RTEST(framing->get_object(result));
+    return RBX_RTEST(env->get_object(result));
   }
 
   int rb_safe_level() {
@@ -960,7 +960,7 @@ extern "C" {
   }
 
   int rb_scan_args(int argc, const VALUE* argv, const char* spec, ...) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     int n, i = 0;
     const char *p = spec;
@@ -1014,7 +1014,7 @@ extern "C" {
 
     if (*p == '&') {
       var = va_arg(vargs, VALUE*);
-      *var = framing->get_handle(framing->block());
+      *var = env->get_handle(env->block());
       p++;
     }
     va_end(vargs);
@@ -1059,10 +1059,10 @@ extern "C" {
 
   /** @todo   Should this be a global handle? Surely not.. --rue */
   VALUE rb_singleton_class(VALUE object_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Class* metaclass = framing->get_object(object_handle)->metaclass(framing->state());
-    return framing->get_handle(metaclass);
+    Class* metaclass = env->get_object(object_handle)->metaclass(env->state());
+    return env->get_handle(metaclass);
   }
 
   VALUE rb_String(VALUE object_handle) {
@@ -1070,10 +1070,10 @@ extern "C" {
   }
 
   VALUE rb_str_append(VALUE self_handle, VALUE other_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = as<String>(framing->get_object(self_handle));
-    self->append(framing->state(), as<String>(framing->get_object(other_handle)));
+    String* self = as<String>(env->get_object(self_handle));
+    self->append(env->state(), as<String>(env->get_object(other_handle)));
 
     return self_handle;
   }
@@ -1083,10 +1083,10 @@ extern "C" {
   }
 
   VALUE rb_str_buf_cat(VALUE string_handle, const char* other, size_t size) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = as<String>(framing->get_object(string_handle));
-    string->append(framing->state(), other, size);
+    String* string = as<String>(env->get_object(string_handle));
+    string->append(env->state(), other, size);
 
     return string_handle;
   }
@@ -1096,12 +1096,12 @@ extern "C" {
   }
 
   VALUE rb_str_cat(VALUE self_handle, const char* other, size_t length) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = as<String>(framing->get_object(self_handle));
-    String* combo = self->string_dup(framing->state());
+    String* self = as<String>(env->get_object(self_handle));
+    String* combo = self->string_dup(env->state());
 
-    return framing->get_handle(combo->append(framing->state(), other, length));
+    return env->get_handle(combo->append(env->state(), other, length));
   }
 
   VALUE rb_str_cat2(VALUE string_handle, const char* other) {
@@ -1113,9 +1113,9 @@ extern "C" {
   }
 
   VALUE rb_str_concat(VALUE self_handle, VALUE other_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* other = framing->get_object(other_handle);
+    Object* other = env->get_object(other_handle);
 
     /* Could be a character code. Only up to 256 supported. */
     if(Fixnum* character = try_as<Fixnum>(other)) {
@@ -1128,35 +1128,35 @@ extern "C" {
   }
 
   VALUE rb_str_dup(VALUE self_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = as<String>(framing->get_object(self_handle));
-    return framing->get_handle(self->string_dup(framing->state()));
+    String* self = as<String>(env->get_object(self_handle));
+    return env->get_handle(self->string_dup(env->state()));
   }
 
   /** @todo Refactor into a String::replace(). --rue */
   void rb_str_flush_char_ptr(VALUE string_handle, char* c_string, size_t length) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    ByteArray* data = ByteArray::create(framing->state(), (length + 1));
+    ByteArray* data = ByteArray::create(env->state(), (length + 1));
     std::memcpy(data->bytes, c_string, length);
     data->bytes[length] = '\0';
 
-    Integer* bytes = Integer::from(framing->state(), length);
+    Integer* bytes = Integer::from(env->state(), length);
 
-    String* string = as<String>(framing->get_object(string_handle));
-    string->num_bytes(framing->state(), bytes);
-    string->characters(framing->state(), bytes);
-    string->hash_value(framing->state(), reinterpret_cast<Integer*>(Qnil));
+    String* string = as<String>(env->get_object(string_handle));
+    string->num_bytes(env->state(), bytes);
+    string->characters(env->state(), bytes);
+    string->hash_value(env->state(), reinterpret_cast<Integer*>(Qnil));
     /* Assume the encoding stays the same. */
 
-    string->data(framing->state(), data);
+    string->data(env->state(), data);
   }
 
   char rb_str_get_char(VALUE self_handle, int offset) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = as<String>(framing->get_object(self_handle));
+    String* self = as<String>(env->get_object(self_handle));
 
     /* @todo What kind of OOB checking is required? */
     size_t offset_as_size = offset;
@@ -1169,16 +1169,16 @@ extern "C" {
   }
 
   size_t rb_str_get_char_len(VALUE self_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     /* @todo Is this correct? Is assuming no wide characters valid? */
-    return as<String>(framing->get_object(self_handle))->size();
+    return as<String>(env->get_object(self_handle))->size();
   }
 
   char* rb_str_get_char_ptr(VALUE str_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = as<String>(framing->get_object(str_handle));
+    String* string = as<String>(env->get_object(str_handle));
     size_t length = string->size();
 
     char* buffer = ALLOC_N(char, (length + 1));
@@ -1189,9 +1189,9 @@ extern "C" {
   }
 
   VALUE rb_str_new(const char* string, size_t length) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return framing->get_handle(String::create(framing->state(), string, length));
+    return env->get_handle(String::create(env->state(), string, length));
   }
 
   VALUE rb_str_new2(const char* string) {
@@ -1241,10 +1241,10 @@ extern "C" {
       rb_raise(rb_eArgError, "NULL pointer given");
     }
 
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return framing->get_handle(
-      String::create(framing->state(), string, std::strlen(string))->taint()
+    return env->get_handle(
+      String::create(env->state(), string, std::strlen(string))->taint()
     );
   }
 
@@ -1300,13 +1300,13 @@ extern "C" {
   }
 
   VALUE rb_yield(VALUE argument_handle) {
-    NativeMethodFraming* framing = NativeMethodFraming::get();
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     if (!rb_block_given_p()) {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
 
-    VALUE block_handle = framing->get_handle(framing->block());
+    VALUE block_handle = env->get_handle(env->block());
 
     return rb_funcall(block_handle, rb_intern("call"), 1, argument_handle);
   }

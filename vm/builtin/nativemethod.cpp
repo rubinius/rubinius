@@ -17,14 +17,13 @@ namespace rubinius {
 
   typedef TypedRoot<Object*> RootHandle;
 
-  /** Thread-local framing instance. */
-  thread::ThreadData<NativeMethodFraming*> native_method_framing;
-
+  /** Thread-local NativeMethodEnvironment instance. */
+  thread::ThreadData<NativeMethodEnvironment*> native_method_environment;
 
 /* Class methods */
 
-  NativeMethodFraming* NativeMethodFraming::get() {
-    return native_method_framing.get();
+  NativeMethodEnvironment* NativeMethodEnvironment::get() {
+    return native_method_environment.get();
   }
 
   Handle NativeMethodFrame::get_handle(STATE, Object* obj) {
@@ -37,43 +36,55 @@ namespace rubinius {
     return handles_[hndl]->get();
   }
 
-  Handle NativeMethodFraming::get_handle(Object* obj) {
+  Handle NativeMethodEnvironment::get_handle(Object* obj) {
     return current_native_frame_->get_handle(state_, obj);
   }
 
-  Handle NativeMethodFraming::get_handle_global(Object* obj) {
-    Handle hndl = -1 - global_handles_.size();
+  Handle NativeMethodEnvironment::get_handle_global(Object* obj) {
+    Handle handle = cGlobalHandleStart - global_handles_.size();
     global_handles_.push_back(new RootHandle(state_, obj));
-    return hndl;
+    return handle;
   }
 
-  Object* NativeMethodFraming::get_object(Handle hndl) {
-    if(hndl < 0) {
-      return global_handles_[-1 - hndl]->get();
+  Object* NativeMethodEnvironment::get_object(Handle handle) {
+    if(handle < 0) {
+      switch(handle) {
+      case cSubtendQfalse:
+        return Qfalse;
+      case cSubtendQtrue:
+        return Qtrue;
+      case cSubtendQnil:
+        return Qnil;
+      case cSubtendQundef:
+        return Qundef;
+      default:
+        // @todo: throw if this handle pulls 0 out
+        return global_handles_[cGlobalHandleStart - handle]->get();
+      }
     } else {
-      return current_native_frame_->get_object(hndl);
+      return current_native_frame_->get_object(handle);
     }
   }
 
-  void NativeMethodFraming::delete_global(Handle hndl) {
-    RootHandle* root = global_handles_[-1 - hndl];
+  void NativeMethodEnvironment::delete_global(Handle handle) {
+    RootHandle* root = global_handles_[cGlobalHandleStart - handle];
     delete root;
-    global_handles_[-1 - hndl] = 0;
+    global_handles_[cGlobalHandleStart - handle] = 0;
   }
 
-  Object* NativeMethodFraming::block() {
+  Object* NativeMethodEnvironment::block() {
     return current_call_frame_->top_scope->block();
   }
 
-  Handles& NativeMethodFraming::handles() {
+  Handles& NativeMethodEnvironment::handles() {
     return current_native_frame_->handles();
   }
 
-  void NativeMethod::register_class_with(STATE) {
+  void NativeMethod::init(STATE) {
     state->globals.nmethod.set(state->new_class("NativeMethod", G(executable)));
     state->globals.nmethod.get()->set_object_type(state, NativeMethodType);
 
-    native_method_framing.set(new NativeMethodFraming);
+    native_method_environment.set(new NativeMethodEnvironment);
   }
 
   NativeMethod* NativeMethod::allocate(STATE) {
@@ -82,17 +93,17 @@ namespace rubinius {
 
 
   Object* NativeMethod::executor_implementation(STATE, CallFrame* call_frame, Message& msg) {
-    NativeMethodFraming* framing = native_method_framing.get();
-    NativeMethodFrame nmf(framing->current_native_frame());
+    NativeMethodEnvironment* env = native_method_environment.get();
+    NativeMethodFrame nmf(env->current_native_frame());
 
-    framing->set_current_call_frame(call_frame);
-    framing->set_current_native_frame(&nmf);
-    framing->set_state(state);
+    env->set_current_call_frame(call_frame);
+    env->set_current_native_frame(&nmf);
+    env->set_state(state);
 
     NativeMethod* nm = as<NativeMethod>(msg.method);
-    Object* ret = nm->call(state, &nmf, msg);
+    Object* ret = nm->call(state, env, msg);
 
-    framing->set_current_native_frame(nmf.previous());
+    env->set_current_native_frame(nmf.previous());
 
     return ret;
   }
@@ -124,38 +135,38 @@ namespace rubinius {
    *
    *  @todo   Check for inefficiencies.
    */
-  Object* NativeMethod::call(STATE, NativeMethodFrame* frame, Message& msg) {
-    Handle receiver = frame->get_handle(state, msg.recv);
+  Object* NativeMethod::call(STATE, NativeMethodEnvironment* env, Message& msg) {
+    Handle receiver = env->get_handle(msg.recv);
 
     switch(arity()->to_int()) {
     case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
-      Handle args = frame->get_handle(state, msg.as_array(state));
+      Handle args = env->get_handle(msg.as_array(state));
 
       Handle ret_handle = functor_as<OneArgFunctor>()(args);
 
-      return frame->get_object(ret_handle);
+      return env->get_object(ret_handle);
     }
 
     case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
-      Handle args = frame->get_handle(state, msg.as_array(state));
+      Handle args = env->get_handle(msg.as_array(state));
 
       Handle ret_handle = functor_as<TwoArgFunctor>()(receiver, args);
 
-      return frame->get_object(ret_handle);
+      return env->get_object(ret_handle);
     }
 
     case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
       Handle* args = new Handle[msg.args()];
 
       for (std::size_t i = 0; i < msg.args(); ++i) {
-        args[i] = frame->get_handle(state, msg.get_argument(i));
+        args[i] = env->get_handle(msg.get_argument(i));
       }
 
       Handle ret_handle = functor_as<ArgcFunctor>()(msg.args(), args, receiver);
 
       delete[] args;
 
-      return frame->get_object(ret_handle);
+      return env->get_object(ret_handle);
     }
 
       /*
@@ -170,64 +181,64 @@ namespace rubinius {
 
       Handle ret_handle = functor(receiver);
 
-      return frame->get_object(ret_handle);
+      return env->get_object(ret_handle);
     }
 
     case 1: {
       TwoArgFunctor functor = functor_as<TwoArgFunctor>();
 
-      Handle a1 = frame->get_handle(state, msg.get_argument(0));
+      Handle a1 = env->get_handle(msg.get_argument(0));
 
       Handle ret_handle = functor(receiver, a1);
 
-      return frame->get_object(ret_handle);
+      return env->get_object(ret_handle);
     }
 
     case 2: {
       ThreeArgFunctor functor = functor_as<ThreeArgFunctor>();
 
-      Handle a1 = frame->get_handle(state, msg.get_argument(0));
-      Handle a2 = frame->get_handle(state, msg.get_argument(1));
+      Handle a1 = env->get_handle(msg.get_argument(0));
+      Handle a2 = env->get_handle(msg.get_argument(1));
 
       Handle ret_handle = functor(receiver, a1, a2);
 
-      return frame->get_object(ret_handle);
+      return env->get_object(ret_handle);
     }
 
     case 3: {
       FourArgFunctor functor = functor_as<FourArgFunctor>();
-      Handle a1 = frame->get_handle(state, msg.get_argument(0));
-      Handle a2 = frame->get_handle(state, msg.get_argument(1));
-      Handle a3 = frame->get_handle(state, msg.get_argument(2));
+      Handle a1 = env->get_handle(msg.get_argument(0));
+      Handle a2 = env->get_handle(msg.get_argument(1));
+      Handle a3 = env->get_handle(msg.get_argument(2));
 
       Handle ret_handle = functor(receiver, a1, a2, a3);
 
-      return frame->get_object(ret_handle);
+      return env->get_object(ret_handle);
     }
 
     case 4: {
       FiveArgFunctor functor = functor_as<FiveArgFunctor>();
-      Handle a1 = frame->get_handle(state, msg.get_argument(0));
-      Handle a2 = frame->get_handle(state, msg.get_argument(1));
-      Handle a3 = frame->get_handle(state, msg.get_argument(2));
-      Handle a4 = frame->get_handle(state, msg.get_argument(3));
+      Handle a1 = env->get_handle(msg.get_argument(0));
+      Handle a2 = env->get_handle(msg.get_argument(1));
+      Handle a3 = env->get_handle(msg.get_argument(2));
+      Handle a4 = env->get_handle(msg.get_argument(3));
 
       Handle ret_handle = functor(receiver, a1, a2, a3, a4);
 
-      return frame->get_object(ret_handle);
+      return env->get_object(ret_handle);
     }
 
     case 5: {
       SixArgFunctor functor = functor_as<SixArgFunctor>();
-      Handle a1 = frame->get_handle(state, msg.get_argument(0));
-      Handle a2 = frame->get_handle(state, msg.get_argument(1));
-      Handle a3 = frame->get_handle(state, msg.get_argument(2));
-      Handle a4 = frame->get_handle(state, msg.get_argument(3));
-      Handle a5 = frame->get_handle(state, msg.get_argument(4));
+      Handle a1 = env->get_handle(msg.get_argument(0));
+      Handle a2 = env->get_handle(msg.get_argument(1));
+      Handle a3 = env->get_handle(msg.get_argument(2));
+      Handle a4 = env->get_handle(msg.get_argument(3));
+      Handle a5 = env->get_handle(msg.get_argument(4));
 
       Handle ret_handle = functor(receiver, a1, a2, a3, a4, a5);
 
-      return frame->get_object(ret_handle);
+      return env->get_object(ret_handle);
     }
 
       /* Extension entry point, should never occur for user code. */

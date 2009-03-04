@@ -33,13 +33,22 @@ namespace rubinius {
   /**
    *  Thread-local info about native method calls.
    */
-  class NativeMethodFraming {
+  class NativeMethodEnvironment {
 
   public:   /* Class Interface */
 
-    /** Obtain the Framing for this thread. */
-    static NativeMethodFraming* get();
+    /** Obtain the NativeMethodEnvironment for this thread. */
+    static NativeMethodEnvironment* get();
 
+/**
+ * These values must be the same as the values given
+ * to Qfalse, etc in vm/subtend/ruby.h
+ */
+#define cSubtendQfalse      (-1)
+#define cSubtendQtrue       (-2)
+#define cSubtendQnil        (-3)
+#define cSubtendQundef      (-4)
+#define cGlobalHandleStart  (-5)
 
   public:   /* Interface methods */
 
@@ -50,13 +59,13 @@ namespace rubinius {
     Handle get_handle_global(Object* obj);
 
     /** Obtain the Object the Handle represents. */
-    Object* get_object(Handle hndl);
+    Object* get_object(Handle handle);
 
     /** Obtain the global Object the Handle represents*/
-    Object* get_object_global(Handle hndl);
+    Object* get_object_global(Handle handle);
 
     /** Delete a global Object and its Handle. */
-    void delete_global(Handle hndl);
+    void delete_global(Handle handle);
 
     /** GC marking for Objects behind Handles. */
     void mark_handles(ObjectMark& mark);
@@ -110,7 +119,7 @@ namespace rubinius {
   /**
    *  Call frame for a native method.
    *
-   *  @see NativeMethodFraming.
+   *  @see NativeMethodEnvironment.
    */
   class NativeMethodFrame {
 
@@ -122,9 +131,9 @@ namespace rubinius {
 
   public:     /* Interface methods */
 
-    /** Currently active/used Frame in this Framing i.e. thread. */
+    /** Currently active/used Frame in this Environment i.e. thread. */
     NativeMethodFrame* current() {
-      return NativeMethodFraming::get()->current_native_frame();
+      return NativeMethodEnvironment::get()->current_native_frame();
     }
 
     /** Create or retrieve a Handle for the Object. */
@@ -212,7 +221,7 @@ namespace rubinius {
     const static object_type type = NativeMethodType;
 
     /** Set class up in the VM. @see vm/ontology.cpp. */
-    static void register_class_with(VM* state);
+    static void init(VM* state);
 
 
   public:   /* Ctors */
@@ -299,7 +308,7 @@ namespace rubinius {
   public:   /* Instance methods */
 
     /** Call the C function. */
-    Object* call(STATE, NativeMethodFrame* frame, Message& msg);
+    Object* call(STATE, NativeMethodEnvironment* env, Message& msg);
 
 
     /** Return the functor cast into the specified type. */

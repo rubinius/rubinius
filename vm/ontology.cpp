@@ -226,7 +226,7 @@ namespace rubinius {
 
     Channel::init(this);
 
-    NativeMethod::register_class_with(this);
+    NativeMethod::init(this);
   }
 
   // @todo document all the sections of bootstrap_ontology
