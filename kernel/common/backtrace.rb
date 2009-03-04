@@ -63,7 +63,7 @@ class Backtrace
 
   def color_from_loc(loc, first)
     return @first_color if first
-    if loc =~ /kernel/
+    if loc =~ /^kernel/
       @kernel_color
     elsif loc =~ /\(eval\)/
       @eval_color
