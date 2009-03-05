@@ -333,6 +333,14 @@ namespace thread {
       int err = pthread_cond_timedwait(&native_, mutex.native(), ts);
       if(err != 0) {
         if(err == ETIMEDOUT) return cTimedOut;
+        switch(err) {
+        case EINVAL:
+          std::cout << "Invalid cond_t or mutex_t passed to pthread_cond_timedwait!\n";
+          break;
+        default:
+          std::cout << "Unknown failure from pthread_cond_timedwait!\n";
+        }
+
         assert(0);
       }
 
