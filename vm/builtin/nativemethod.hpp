@@ -20,6 +20,7 @@
 namespace rubinius {
 
   /* Forwards */
+  class ExceptionPoint;
   class Message;
   class NativeMethodFrame;
 
@@ -99,6 +100,14 @@ namespace rubinius {
       current_native_frame_ = frame;
     }
 
+    ExceptionPoint* current_ep() {
+      return current_ep_;
+    }
+
+    void set_current_ep(ExceptionPoint* ep) {
+      current_ep_ = ep;
+    }
+
     /** Set of Handles available in current Frame (convenience.) */
     Handles& handles();
 
@@ -113,6 +122,7 @@ namespace rubinius {
     NativeMethodFrame*  current_native_frame_;
     /** Global object handles. */
     Handles             global_handles_;
+    ExceptionPoint*     current_ep_;
   };
 
 

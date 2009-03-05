@@ -20,6 +20,8 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
+#include "vm/exception.hpp"
+#include "vm/exception_point.hpp"
 #include "vm/global_cache.hpp"
 #include "vm/message.hpp"
 #include "vm/object_utils.hpp"
@@ -38,6 +40,7 @@ using rubinius::ByteArray;
 using rubinius::Class;
 using rubinius::ClassType;
 using rubinius::Data;
+using rubinius::Exception;
 using rubinius::Fixnum;
 using rubinius::Integer;
 using rubinius::Message;
@@ -936,8 +939,22 @@ extern "C" {
     return value;
   }
 
+#define RB_RAISE_BUFSIZE   256
+
   void rb_raise(VALUE error_handle, const char* format_string, ...) {
-    throw std::runtime_error(std::string("rb_raise: ") + format_string); /* Yeah, not 'exactly' correct. */
+    va_list args;
+    char reason[RB_RAISE_BUFSIZE];
+
+    va_start(args, format_string);
+    vsnprintf(reason, RB_RAISE_BUFSIZE, format_string, args);
+    va_end(args);
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Exception* exc = Exception::make_exception(
+          env->state(), as<Class>(env->get_object(error_handle)), reason);
+    env->state()->thread_state()->raise_exception(exc);
+
+    env->current_ep()->return_to(env);
   }
 
   VALUE rb_require(const char* name) {

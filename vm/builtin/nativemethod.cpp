@@ -2,6 +2,9 @@
 
 #include "vm.hpp"
 
+#include "exception.hpp"
+#include "exception_point.hpp"
+#include "message.hpp"
 #include "native_libraries.hpp"
 #include "primitives.hpp"
 
@@ -10,8 +13,6 @@
 #include "builtin/nativemethod.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
-
-#include "message.hpp"
 
 namespace rubinius {
 
@@ -91,7 +92,6 @@ namespace rubinius {
     return create<GenericFunctor>(state);
   }
 
-
   Object* NativeMethod::executor_implementation(STATE, CallFrame* call_frame, Message& msg) {
     NativeMethodEnvironment* env = native_method_environment.get();
     NativeMethodFrame nmf(env->current_native_frame());
@@ -101,9 +101,20 @@ namespace rubinius {
     env->set_state(state);
 
     NativeMethod* nm = as<NativeMethod>(msg.method);
-    Object* ret = nm->call(state, env, msg);
+
+    Object* ret;
+    ExceptionPoint ep(env);
+
+    PLACE_EXCEPTION_POINT(ep);
+
+    if(unlikely(ep.jumped_to())) {
+      ret = NULL;
+    } else {
+      ret = nm->call(state, env, msg);
+    }
 
     env->set_current_native_frame(nmf.previous());
+    ep.pop(env);
 
     return ret;
   }
@@ -255,7 +266,5 @@ namespace rubinius {
       return Qnil;
     }
   }
-
-
 
 }

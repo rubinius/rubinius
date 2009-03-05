@@ -3,6 +3,8 @@
 #include <setjmp.h>
 
 namespace rubinius {
+  class NativeMethodEnvironment;
+
   class ExceptionPoint {
     bool jumped_to_;
     ExceptionPoint* previous_;
@@ -11,12 +13,7 @@ namespace rubinius {
     jmp_buf __jump_buffer;
 
   public:
-    ExceptionPoint(Task* task)
-      : jumped_to_(false)
-      , previous_(task->current_ep)
-    {
-      task->current_ep = this;
-    }
+    ExceptionPoint(NativeMethodEnvironment* env);
 
     bool jumped_to() {
       return jumped_to_;
@@ -26,23 +23,16 @@ namespace rubinius {
       jumped_to_ = false;
     }
 
-    void return_to(Task* task) {
-      jumped_to_ = true;
-      task->current_ep = this;
-      _longjmp(__jump_buffer, 1);
-      abort(); // HUH!
+    void return_to(NativeMethodEnvironment* env);
+
+    void unwind_to_previous(NativeMethodEnvironment* env) {
+      previous_->return_to(env);
     }
 
-    void unwind_to_previous(Task* task) {
-      previous_->return_to(task);
-    }
-
-    void pop(Task* task) {
-      task->current_ep = previous_;
-    }
-
+    void pop(NativeMethodEnvironment* env);
   };
 }
-#define PLACE_EXCEPTIONPOINT(ep) _setjmp(ep.__jump_buffer)
+
+#define PLACE_EXCEPTION_POINT(ep) _setjmp(ep.__jump_buffer)
 
 #endif
