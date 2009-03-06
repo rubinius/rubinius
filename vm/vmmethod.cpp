@@ -18,7 +18,7 @@
 #include "instructions.hpp"
 #include "profiler.hpp"
 
-#include "timing.hpp"
+#include "instruments/timing.hpp"
 #include "config.h"
 
 #include "raise_reason.hpp"

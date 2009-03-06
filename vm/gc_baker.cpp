@@ -8,6 +8,8 @@
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
 
+#include "instruments/stats.hpp"
+
 #include "call_frame.hpp"
 
 namespace rubinius {
@@ -76,6 +78,10 @@ namespace rubinius {
   void BakerGC::collect(Roots &roots, CallFrameLocationList &call_frames) {
     Object* tmp;
     ObjectArray *current_rs = object_memory->remember_set;
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->collect_young.start();
+#endif
 
     object_memory->remember_set = new ObjectArray(0);
     total_objects = 0;
@@ -177,6 +183,10 @@ namespace rubinius {
     next = current;
     current = x;
     next->reset();
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->collect_young.stop();
+#endif
   }
 
   Object* BakerGC::next_object(Object* obj) {

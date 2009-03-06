@@ -9,11 +9,6 @@ class Rubinius::VM
     raise PrimitiveFailure, "Rubinius::VM.jit_info primitive failed"
   end
 
-  def self.gc_info
-    Ruby.primitive :vm_gc_info
-    raise PrimitiveFailure, "Rubinius::VM.gc_info primitive failed"
-  end
-
   def self.load_library(path, name)
     Ruby.primitive :load_library
     raise PrimitiveFailure, "Rubinius::VM.load_library primitive failed"

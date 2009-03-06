@@ -6,7 +6,6 @@
 
 #include "builtin/object.hpp"
 
-
 namespace rubinius {
 
   class Array;
@@ -146,8 +145,11 @@ namespace rubinius {
     /**
      *  Returns information about the GC.
      */
-    // Ruby.primitive :vm_gc_info
-    static Object*  vm_gc_info(STATE);
+    // Ruby.primitive :vm_stats_gc_clear
+    static Object* vm_stats_gc_clear(STATE);
+
+    // Ruby.primitive :vm_stats_gc_info
+    static Object* vm_stats_gc_info(STATE);
 
     // Ruby.primitive :vm_watch_signal
     static Object*  vm_watch_signal(STATE, Fixnum* sig);

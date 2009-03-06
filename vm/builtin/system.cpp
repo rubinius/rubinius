@@ -35,6 +35,8 @@
 #include "builtin/system.hpp"
 #include "signal.hpp"
 
+#include "instruments/stats.hpp"
+
 namespace rubinius {
 
 
@@ -240,8 +242,96 @@ namespace rubinius {
     return ary;
   }
 
-  Object*  System::vm_gc_info(STATE) {
-    return Integer::from(state, state->stats.time_in_gc);
+  Object* System::vm_stats_gc_clear(STATE) {
+#ifdef RBX_GC_STATS
+    stats::GCStats::clear();
+#endif
+    return Qnil;
+  }
+
+  Object* System::vm_stats_gc_info(STATE) {
+#ifdef RBX_GC_STATS
+    Symbol* total   = state->symbol("total");
+    Symbol* timings = state->symbol("timings");
+    Symbol* max     = state->symbol("max");
+    Symbol* min     = state->symbol("min");
+    Symbol* average = state->symbol("average");
+    Symbol* bytes_allocated = state->symbol("bytes_allocated");
+
+    stats::GCStats* stats = stats::GCStats::get();
+
+    LookupTable* collect_young_tbl = LookupTable::create(state);
+    stats::Timer& collect_young = stats->collect_young;
+    collect_young_tbl->store(state, total,
+        Integer::from(state, collect_young.total()));
+    collect_young_tbl->store(state, timings,
+        Integer::from(state, collect_young.timings()));
+    collect_young_tbl->store(state, max,
+        Integer::from(state, collect_young.max()));
+    collect_young_tbl->store(state, min,
+        Integer::from(state, collect_young.min()));
+    collect_young_tbl->store(state, average,
+        Float::create(state, collect_young.moving_average()));
+    collect_young_tbl->store(state, state->symbol("objects_copied"),
+        Integer::from(state, stats->objects_copied()));
+    collect_young_tbl->store(state, state->symbol("bytes_copied"),
+        Integer::from(state, stats->bytes_copied()));
+
+    LookupTable* alloc_young_tbl = LookupTable::create(state);
+    stats::Timer& alloc_young = stats->allocate_young;
+    alloc_young_tbl->store(state, total,
+        Integer::from(state, alloc_young.total()));
+    alloc_young_tbl->store(state, timings,
+        Integer::from(state, alloc_young.timings()));
+    alloc_young_tbl->store(state, max,
+        Integer::from(state, alloc_young.max()));
+    alloc_young_tbl->store(state, min,
+        Integer::from(state, alloc_young.min()));
+    alloc_young_tbl->store(state, average,
+        Float::create(state, alloc_young.moving_average()));
+    alloc_young_tbl->store(state, bytes_allocated,
+        Integer::from(state, stats->young_bytes_allocated()));
+
+    LookupTable* collect_mature_tbl = LookupTable::create(state);
+    stats::Timer& collect_mature = stats->collect_mature;
+    collect_mature_tbl->store(state, total,
+        Integer::from(state, collect_mature.total()));
+    collect_mature_tbl->store(state, timings,
+        Integer::from(state, collect_mature.timings()));
+    collect_mature_tbl->store(state, max,
+        Integer::from(state, collect_mature.max()));
+    collect_mature_tbl->store(state, min,
+        Integer::from(state, collect_mature.min()));
+    collect_mature_tbl->store(state, average,
+        Float::create(state, collect_mature.moving_average()));
+
+    LookupTable* alloc_mature_tbl = LookupTable::create(state);
+    stats::Timer& alloc_mature = stats->allocate_mature;
+    alloc_mature_tbl->store(state, total,
+        Integer::from(state, alloc_mature.total()));
+    alloc_mature_tbl->store(state, timings,
+        Integer::from(state, alloc_mature.timings()));
+    alloc_mature_tbl->store(state, max,
+        Integer::from(state, alloc_mature.max()));
+    alloc_mature_tbl->store(state, min,
+        Integer::from(state, alloc_mature.min()));
+    alloc_mature_tbl->store(state, average,
+        Float::create(state, alloc_mature.moving_average()));
+    alloc_mature_tbl->store(state, bytes_allocated,
+        Integer::from(state, stats->mature_bytes_allocated()));
+
+    LookupTable* tbl = LookupTable::create(state);
+    tbl->store(state, state->symbol("collect_young"), collect_young_tbl);
+    tbl->store(state, state->symbol("allocate_young"), alloc_young_tbl);
+    tbl->store(state, state->symbol("collect_mature"), collect_mature_tbl);
+    tbl->store(state, state->symbol("allocate_mature"), alloc_mature_tbl);
+    tbl->store(state, state->symbol("clock"),
+        Integer::from(state, stats->clock.elapsed()));
+
+    return tbl;
+#else
+    return Qnil;
+#endif
   }
 
   Object*  System::vm_watch_signal(STATE, Fixnum* sig) {

@@ -364,8 +364,7 @@ if Rubinius::RUBY_CONFIG['rbx.jit_stats']
 end
 
 if Rubinius::RUBY_CONFIG['rbx.gc_stats']
-  timing = Rubinius::VM.gc_info
-  puts "Time spent in GC: #{timing / 1000000}ms"
+  Rubinius::Stats::GC.new.show
 end
 
 Process.exit(code || 0)

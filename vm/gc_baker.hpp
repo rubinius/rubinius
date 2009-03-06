@@ -11,6 +11,8 @@
 
 #include "builtin/object.hpp"
 
+#include "instruments/stats.hpp"
+
 #include "call_frame_list.hpp"
 
 namespace rubinius {
@@ -32,6 +34,11 @@ namespace rubinius {
     Object* allocate(size_t bytes, bool *collect_now) {
       Object* obj;
 
+#ifdef RBX_GC_STATS
+      stats::GCStats::get()->young_bytes_allocated += bytes;
+      stats::GCStats::get()->allocate_young.start();
+#endif
+
       if(!current->enough_space_p(bytes)) {
 #if 0
         if(!next->enough_space_p(bytes)) {
@@ -42,6 +49,11 @@ namespace rubinius {
         }
 #endif
         *collect_now = true;
+
+#ifdef RBX_GC_STATS
+      stats::GCStats::get()->allocate_young.stop();
+#endif
+
         return NULL;
       } else {
         total_objects++;
@@ -49,6 +61,11 @@ namespace rubinius {
       }
 
       obj->init_header(YoungObjectZone, bytes);
+
+#ifdef RBX_GC_STATS
+      stats::GCStats::get()->allocate_young.stop();
+#endif
+
       return obj;
     }
 

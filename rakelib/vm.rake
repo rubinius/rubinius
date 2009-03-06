@@ -42,6 +42,7 @@ srcs        = FileList["vm/*.{cpp,c}"] + FileList["vm/builtin/*.{cpp,c}"]
 srcs       += FileList["vm/subtend/*.{cpp,c}"]
 srcs       += FileList["vm/parser/*.{cpp,c}"]
 srcs       += FileList["vm/util/*.{cpp,c}"]
+srcs       += FileList["vm/instruments/*.{cpp,c}"]
 #srcs       += FileList["vm/assembler/*.{cpp,c}"]
 srcs       << 'vm/parser/grammar.cpp'
 
@@ -49,6 +50,7 @@ hdrs        = FileList["vm/*.{hpp,h}"] + FileList["vm/builtin/*.{hpp,h}"]
 hdrs       += FileList["vm/subtend/*.{hpp,h}"]
 hdrs       += FileList["vm/parser/*.{hpp,h}"]
 hdrs       += FileList["vm/util/*.{hpp,h}"]
+hdrs       += FileList["vm/instruments/*.{hpp,h}"]
 hdrs       += FileList["vm/assembler/*.{hpp,h}"]
 
 objs        = srcs.map { |f| f.sub(/((c(pp)?)|S)$/, 'o') }

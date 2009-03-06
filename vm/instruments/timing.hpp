@@ -6,6 +6,8 @@
 	defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) && \
     __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1050
 
+// @todo: http://developer.apple.com/qa/qa2004/qa1398.html
+
 #include <mach/mach_time.h>
 #define get_current_time() mach_absolute_time()
 #define TIMING_METHOD "mach_absolute_time"

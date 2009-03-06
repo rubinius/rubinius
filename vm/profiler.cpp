@@ -14,7 +14,7 @@
 #include "detection.hpp"
 #include "message.hpp"
 
-#include "timing.hpp"
+#include "instruments/timing.hpp"
 
 #include <time.h>
 

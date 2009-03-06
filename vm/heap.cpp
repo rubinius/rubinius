@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include "vm/heap.hpp"
+#include "instruments/stats.hpp"
 
 namespace rubinius {
   /* Heap methods */
@@ -37,6 +38,11 @@ namespace rubinius {
 
     tmp->initialize_copy(orig, orig->age);
     tmp->copy_body(orig);
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->objects_copied++;
+    stats::GCStats::get()->bytes_copied += orig->size_in_bytes();
+#endif
 
     return tmp;
   }

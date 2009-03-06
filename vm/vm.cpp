@@ -18,7 +18,6 @@
 
 #include "config_parser.hpp"
 #include "config.h"
-#include "timing.hpp"
 #include "vm_manager.hpp"
 
 #include "native_thread.hpp"
@@ -267,15 +266,11 @@ namespace rubinius {
   }
 
   void VM::collect(CallFrame* call_frame) {
-    uint64_t start = get_current_time();
-
     this->set_call_frame(call_frame);
     CallFrameLocationList& frames = shared.call_frame_locations();
 
     om->collect_young(globals.roots, frames);
     om->collect_mature(globals.roots, frames);
-
-    stats.time_in_gc += (get_current_time() - start);
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
@@ -285,9 +280,7 @@ namespace rubinius {
     if(om->collect_young_now) {
       om->collect_young_now = false;
 
-      uint64_t start = get_current_time();
       om->collect_young(globals.roots, frames);
-      stats.time_in_gc += (get_current_time() - start);
 
       global_cache->clear();
     }
@@ -295,9 +288,7 @@ namespace rubinius {
     if(om->collect_mature_now) {
       om->collect_mature_now = false;
 
-      uint64_t start = get_current_time();
       om->collect_mature(globals.roots, frames);
-      stats.time_in_gc += (get_current_time() - start);
 
       global_cache->clear();
     }
