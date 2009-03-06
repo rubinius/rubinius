@@ -282,7 +282,9 @@ namespace :build do
   task :inline      => %w[ build:inline_flags build:build ]
 
   desc "Build debug image for GDB. No optimizations, more warnings."
-  task :debug       => %w[ build:debug_flags build:build ]
+  task :debug       => %w[ build:debug_flags build:stats_flags build:build ]
+
+  task :stats       => %w[ build:normal_flags build:stats_flags build:build ]
 
   desc "Build to check for possible problems in the code. See build:help."
   task :strict      => %w[ build:strict_flags build:build ]
@@ -313,6 +315,10 @@ namespace :build do
   task :debug_flags => "build:normal_flags" do
     FLAGS.delete "-O2"
     FLAGS.concat %w[ -O0 -fno-inline ]
+  end
+
+  task :stats_flags do
+    FLAGS.concat %w[ -DRBX_GC_STATS ]
   end
 
   task :strict_flags => "build:debug_flags" do
@@ -350,7 +356,11 @@ namespace :build do
   build:debug       Use when you need to debug in GDB. Builds an
                     image with debugging symbols, optimizations
                     are disabled and more warnings emitted by the
-                    compiler.
+                    compiler. Also adds defines to turn on stats.
+
+  build:stats       Use when you want to enable various VM stats,
+                    like garbage collector or JIT stats. The build
+                    is optimized but adds defines to turn on stats.
 
   build:strict      Use to check for and fix potential problems
                     in the codebase. Shows many more warnings.
