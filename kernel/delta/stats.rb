@@ -54,7 +54,7 @@ module Rubinius
           whole = msec whole
         end
 
-        part * 100.0 / whole
+        "%.1f%%" % (part * 100.0 / whole)
       end
 
       def auto_bytes(bytes)
@@ -96,6 +96,8 @@ module Rubinius
         header  = "\n%-#{col1}s%#{col2}s%#{col3}s\n"
         format = "%-#{col1}s%#{col2}s%#{col3}s\n"
 
+        total = ay[:total] + cy[:total] + am[:total] + cm[:total]
+
         puts "\nGarbage collector stats:"
 
         printf header, "Stats \\ Generation", "Young", "Mature"
@@ -107,6 +109,8 @@ module Rubinius
         printf format, "average",         auto_time(cy[:average]), auto_time(cm[:average])
         printf format, "objects copied",  comma(cy[:objects_copied]), "n/a"
         printf format, "bytes copied",    auto_bytes(cy[:bytes_copied]), "n/a"
+        printf format, "% of GC time",
+               percentage(cy[:total], total), percentage(cm[:total], total)
         puts   "---"
         printf format, "allocations",     comma(ay[:timings]), comma(am[:timings])
         printf format, "total",           auto_time(ay[:total]), auto_time(am[:total])
@@ -115,9 +119,10 @@ module Rubinius
         printf format, "average",         auto_time(ay[:average]), auto_time(am[:average])
         printf format, "bytes allocated",
                auto_bytes(ay[:bytes_allocated]), auto_bytes(am[:bytes_allocated])
+        printf format, "% of GC time",
+               percentage(ay[:total], total), percentage(am[:total], total)
 
-        total = ay[:total] + cy[:total] + am[:total] + cm[:total]
-        printf "\nTotal time spent in GC: %s (%.1f%%)\n\n",
+        printf "\nTotal time spent in GC: %s (%s)\n\n",
                auto_time(total), percentage(total, stats[:clock])
       end
     end
