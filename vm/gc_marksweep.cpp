@@ -6,6 +6,8 @@
 
 #include "builtin/tuple.hpp"
 
+#include "instruments/stats.hpp"
+
 #include <iostream>
 
 namespace rubinius {
@@ -45,6 +47,12 @@ namespace rubinius {
     size_t bytes;
     Object* obj;
 
+#ifdef RBX_GC_STATS
+    // duplicating the calulation so it is included in the time below
+    stats::GCStats::get()->mature_bytes_allocated += sizeof(Header) + obj_bytes;
+    stats::GCStats::get()->allocate_mature.start();
+#endif
+
     bytes = sizeof(Header) + obj_bytes;
 
     // std::cout << "ms: " << bytes << ", fields: " << fields << "\n";
@@ -67,6 +75,10 @@ namespace rubinius {
     obj = header->to_object();
 
     obj->init_header(MatureObjectZone, obj_bytes);
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->allocate_mature.stop();
+#endif
 
     return obj;
   }
@@ -120,6 +132,10 @@ namespace rubinius {
   void MarkSweepGC::collect(Roots &roots, CallFrameLocationList& call_frames) {
     Object* tmp;
 
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->collect_mature.start();
+#endif
+
     Root* root = static_cast<Root*>(roots.head());
     while(root) {
       tmp = root->get();
@@ -149,6 +165,10 @@ namespace rubinius {
 
     // Sweep up the garbage
     sweep_objects();
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->collect_mature.stop();
+#endif
   }
 
   void MarkSweepGC::sweep_objects() {
