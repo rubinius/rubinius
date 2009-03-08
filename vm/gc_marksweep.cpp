@@ -113,6 +113,11 @@ namespace rubinius {
   }
 
   Object* MarkSweepGC::saw_object(Object* obj) {
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->objects_seen++;
+#endif
+
     if(obj->young_object_p()) {
       if(obj->marked_p()) return NULL;
 
@@ -133,6 +138,7 @@ namespace rubinius {
     Object* tmp;
 
 #ifdef RBX_GC_STATS
+    stats::GCStats::get()->objects_seen.start();
     stats::GCStats::get()->collect_mature.start();
 #endif
 
@@ -168,6 +174,7 @@ namespace rubinius {
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_mature.stop();
+    stats::GCStats::get()->objects_seen.stop();
 #endif
   }
 
