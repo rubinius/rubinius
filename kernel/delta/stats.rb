@@ -97,13 +97,15 @@ module Rubinius
         cy = stats[:collect_young]
         ay = stats[:allocate_young]
         oc = stats[:objects_copied]
+        op = stats[:objects_promoted]
 
         cm = stats[:collect_mature]
         am = stats[:allocate_mature]
         os = stats[:objects_seen]
 
-        header  = "\n%-#{col1}s%#{col2}s%#{col3}s\n"
-        format  = "%-#{col1}s%#{col2}s%#{col3}s\n"
+        header = "\n%-#{col1}s%#{col2}s%#{col3}s\n"
+        format = "%-#{col1}s%#{col2}s%#{col3}s\n"
+        n_a    = "n/a"
 
         total = ay[:total] + cy[:total] + am[:total] + cm[:total]
 
@@ -117,11 +119,16 @@ module Rubinius
         printf format, " min",              auto_time(cy[:min]), auto_time(cm[:min])
         printf format, " average",          auto_time(cy[:average]), auto_time(cm[:average])
         puts   "--"
-        printf format, "objects copied/seen", comma(oc[:copied]), comma(os[:seen])
+        printf format, "objects copied/seen", comma(oc[:total]), comma(os[:total])
         printf format, " max",              comma(oc[:max]), comma(os[:max])
         printf format, " min",              comma(oc[:min]), comma(os[:min])
         printf format, " average",          comma(oc[:average].to_i), comma(os[:average].to_i)
-        printf format, "bytes copied",      auto_bytes(cy[:bytes_copied]), "n/a"
+        printf format, "bytes copied",      auto_bytes(cy[:bytes_copied]), n_a
+        puts   "--"
+        printf format, "objects promoted",  comma(op[:total]), n_a
+        printf format, " max",              comma(op[:max]), n_a
+        printf format, " min",              comma(op[:min]), n_a
+        printf format, " average",          comma(op[:average].to_i), n_a
         printf format, "% of GC time",
                "(#{percentage(cy[:total], total)})", "(#{percentage(cm[:total], total)})"
         puts   "---"

@@ -276,7 +276,7 @@ namespace rubinius {
         Integer::from(state, stats->bytes_copied()));
 
     LookupTable* objects_copied_tbl = LookupTable::create(state);
-    objects_copied_tbl->store(state, state->symbol("copied"),
+    objects_copied_tbl->store(state, total,
         Integer::from(state, stats->objects_copied()));
     objects_copied_tbl->store(state, max,
         Integer::from(state, stats->objects_copied.max()));
@@ -284,6 +284,16 @@ namespace rubinius {
         Integer::from(state, stats->objects_copied.min()));
     objects_copied_tbl->store(state, average,
         Float::create(state, stats->objects_copied.moving_average()));
+
+    LookupTable* objects_promoted_tbl = LookupTable::create(state);
+    objects_promoted_tbl->store(state, total,
+        Integer::from(state, stats->objects_promoted()));
+    objects_promoted_tbl->store(state, max,
+        Integer::from(state, stats->objects_promoted.max()));
+    objects_promoted_tbl->store(state, min,
+        Integer::from(state, stats->objects_promoted.min()));
+    objects_promoted_tbl->store(state, average,
+        Float::create(state, stats->objects_promoted.moving_average()));
 
     LookupTable* alloc_young_tbl = LookupTable::create(state);
     stats::Timer& alloc_young = stats->allocate_young;
@@ -314,7 +324,7 @@ namespace rubinius {
         Float::create(state, collect_mature.moving_average()));
 
     LookupTable* objects_seen_tbl = LookupTable::create(state);
-    objects_seen_tbl->store(state, state->symbol("seen"),
+    objects_seen_tbl->store(state, total,
         Integer::from(state, stats->objects_seen()));
     objects_seen_tbl->store(state, max,
         Integer::from(state, stats->objects_seen.max()));
@@ -342,6 +352,7 @@ namespace rubinius {
     tbl->store(state, state->symbol("collect_young"), collect_young_tbl);
     tbl->store(state, state->symbol("allocate_young"), alloc_young_tbl);
     tbl->store(state, state->symbol("objects_copied"), objects_copied_tbl);
+    tbl->store(state, state->symbol("objects_promoted"), objects_promoted_tbl);
 
     tbl->store(state, state->symbol("collect_mature"), collect_mature_tbl);
     tbl->store(state, state->symbol("allocate_mature"), alloc_mature_tbl);

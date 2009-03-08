@@ -200,8 +200,17 @@ namespace stats {
       return total_;
     }
 
+    /* Allowing this to increment total directly if not recording a set
+     * enables gathering stats for all events while focusing the set
+     * statistics on only a part of the updates. To force the set stats to be
+     * correlated with the total, just ensure this is called after start().
+     */
     uint64_t operator++(int) {
-      return set_ += 1;
+      if(started_) {
+        return set_ += 1;
+      } else {
+        return total_ += 1;
+      }
     }
 
     uint64_t max() {
@@ -234,6 +243,7 @@ namespace stats {
     Counter young_bytes_allocated;
     Counter bytes_copied;
     SetCounter objects_copied;
+    SetCounter objects_promoted;
 
     // Mature generation stats
     Timer allocate_mature;

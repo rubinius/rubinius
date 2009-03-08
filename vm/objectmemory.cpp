@@ -73,6 +73,10 @@ namespace rubinius {
   /* Garbage collection */
 
   Object* ObjectMemory::promote_object(Object* obj) {
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->objects_promoted++;
+#endif
+
     Object* copy = mature.copy_object(obj);
     copy->zone = MatureObjectZone;
     return copy;
