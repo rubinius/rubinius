@@ -272,10 +272,18 @@ namespace rubinius {
         Integer::from(state, collect_young.min()));
     collect_young_tbl->store(state, average,
         Float::create(state, collect_young.moving_average()));
-    collect_young_tbl->store(state, state->symbol("objects_copied"),
-        Integer::from(state, stats->objects_copied()));
     collect_young_tbl->store(state, state->symbol("bytes_copied"),
         Integer::from(state, stats->bytes_copied()));
+
+    LookupTable* objects_copied_tbl = LookupTable::create(state);
+    objects_copied_tbl->store(state, state->symbol("copied"),
+        Integer::from(state, stats->objects_copied()));
+    objects_copied_tbl->store(state, max,
+        Integer::from(state, stats->objects_copied.max()));
+    objects_copied_tbl->store(state, min,
+        Integer::from(state, stats->objects_copied.min()));
+    objects_copied_tbl->store(state, average,
+        Float::create(state, stats->objects_copied.moving_average()));
 
     LookupTable* alloc_young_tbl = LookupTable::create(state);
     stats::Timer& alloc_young = stats->allocate_young;
@@ -305,6 +313,16 @@ namespace rubinius {
     collect_mature_tbl->store(state, average,
         Float::create(state, collect_mature.moving_average()));
 
+    LookupTable* objects_seen_tbl = LookupTable::create(state);
+    objects_seen_tbl->store(state, state->symbol("seen"),
+        Integer::from(state, stats->objects_seen()));
+    objects_seen_tbl->store(state, max,
+        Integer::from(state, stats->objects_seen.max()));
+    objects_seen_tbl->store(state, min,
+        Integer::from(state, stats->objects_seen.min()));
+    objects_seen_tbl->store(state, average,
+        Float::create(state, stats->objects_seen.moving_average()));
+
     LookupTable* alloc_mature_tbl = LookupTable::create(state);
     stats::Timer& alloc_mature = stats->allocate_mature;
     alloc_mature_tbl->store(state, total,
@@ -323,8 +341,11 @@ namespace rubinius {
     LookupTable* tbl = LookupTable::create(state);
     tbl->store(state, state->symbol("collect_young"), collect_young_tbl);
     tbl->store(state, state->symbol("allocate_young"), alloc_young_tbl);
+    tbl->store(state, state->symbol("objects_copied"), objects_copied_tbl);
+
     tbl->store(state, state->symbol("collect_mature"), collect_mature_tbl);
     tbl->store(state, state->symbol("allocate_mature"), alloc_mature_tbl);
+    tbl->store(state, state->symbol("objects_seen"), objects_seen_tbl);
     tbl->store(state, state->symbol("clock"),
         Integer::from(state, stats->clock.elapsed()));
 

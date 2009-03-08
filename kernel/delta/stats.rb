@@ -40,8 +40,14 @@ module Rubinius
       end
 
       # Thanks Ruby Quiz #113
-      def comma(number)
-        number.to_s.reverse.scan(/(?:\d*\.)?\d{1,3}-?/).join(',').reverse
+      def comma(number, digits=2)
+        if number.is_a? Float
+          str = "%.#{digits}f" % number
+        else
+          str = number.to_s
+        end
+
+        str.reverse.scan(/(?:\d*\.)?\d{1,3}-?/).join(',').reverse
       end
 
       def percentage(part, whole, units=:sec)
@@ -90,11 +96,14 @@ module Rubinius
 
         cy = stats[:collect_young]
         ay = stats[:allocate_young]
+        oc = stats[:objects_copied]
+
         cm = stats[:collect_mature]
         am = stats[:allocate_mature]
+        os = stats[:objects_seen]
 
         header  = "\n%-#{col1}s%#{col2}s%#{col3}s\n"
-        format = "%-#{col1}s%#{col2}s%#{col3}s\n"
+        format  = "%-#{col1}s%#{col2}s%#{col3}s\n"
 
         total = ay[:total] + cy[:total] + am[:total] + cm[:total]
 
@@ -102,25 +111,29 @@ module Rubinius
 
         printf header, "Stats \\ Generation", "Young", "Mature"
         puts   "-" * (col1 + col2 + col3)
-        printf format, "collections",     comma(cy[:timings]), comma(cm[:timings])
-        printf format, "total",           auto_time(cy[:total]), auto_time(cm[:total])
-        printf format, "max",             auto_time(cy[:max]), auto_time(cm[:max])
-        printf format, "min",             auto_time(cy[:min]), auto_time(cm[:min])
-        printf format, "average",         auto_time(cy[:average]), auto_time(cm[:average])
-        printf format, "objects copied",  comma(cy[:objects_copied]), "n/a"
-        printf format, "bytes copied",    auto_bytes(cy[:bytes_copied]), "n/a"
+        printf format, "Collections",       comma(cy[:timings]), comma(cm[:timings])
+        printf format, "total time",        auto_time(cy[:total]), auto_time(cm[:total])
+        printf format, " max",              auto_time(cy[:max]), auto_time(cm[:max])
+        printf format, " min",              auto_time(cy[:min]), auto_time(cm[:min])
+        printf format, " average",          auto_time(cy[:average]), auto_time(cm[:average])
+        puts   "--"
+        printf format, "objects copied/seen", comma(oc[:copied]), comma(os[:seen])
+        printf format, " max",              comma(oc[:max]), comma(os[:max])
+        printf format, " min",              comma(oc[:min]), comma(os[:min])
+        printf format, " average",          comma(oc[:average].to_i), comma(os[:average].to_i)
+        printf format, "bytes copied",      auto_bytes(cy[:bytes_copied]), "n/a"
         printf format, "% of GC time",
-               percentage(cy[:total], total), percentage(cm[:total], total)
+               "(#{percentage(cy[:total], total)})", "(#{percentage(cm[:total], total)})"
         puts   "---"
-        printf format, "allocations",     comma(ay[:timings]), comma(am[:timings])
-        printf format, "total",           auto_time(ay[:total]), auto_time(am[:total])
-        printf format, "max",             auto_time(ay[:max]), auto_time(am[:max])
-        printf format, "min",             auto_time(ay[:min]), auto_time(am[:min])
-        printf format, "average",         auto_time(ay[:average]), auto_time(am[:average])
+        printf format, "Allocations",       comma(ay[:timings]), comma(am[:timings])
+        printf format, "total time",        auto_time(ay[:total]), auto_time(am[:total])
+        printf format, " max",              auto_time(ay[:max]), auto_time(am[:max])
+        printf format, " min",              auto_time(ay[:min]), auto_time(am[:min])
+        printf format, " average",          auto_time(ay[:average]), auto_time(am[:average])
         printf format, "bytes allocated",
                auto_bytes(ay[:bytes_allocated]), auto_bytes(am[:bytes_allocated])
         printf format, "% of GC time",
-               percentage(ay[:total], total), percentage(am[:total], total)
+               "(#{percentage(ay[:total], total)})", "(#{percentage(am[:total], total)})"
 
         printf "\nTotal time spent in GC: %s (%s)\n\n",
                auto_time(total), percentage(total, stats[:clock])

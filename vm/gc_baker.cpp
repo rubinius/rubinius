@@ -80,6 +80,7 @@ namespace rubinius {
     ObjectArray *current_rs = object_memory->remember_set;
 
 #ifdef RBX_GC_STATS
+    stats::GCStats::get()->objects_copied.start();
     stats::GCStats::get()->collect_young.start();
 #endif
 
@@ -186,6 +187,7 @@ namespace rubinius {
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_young.stop();
+    stats::GCStats::get()->objects_copied.stop();
 #endif
   }
 

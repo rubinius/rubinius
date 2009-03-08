@@ -151,6 +151,72 @@ namespace stats {
     }
   };
 
+  /* Monotonically increasing count where counts are taken in sets. Records
+   * the max, min, and moving average of sets of counts, as well as total
+   * counts.
+   */
+  class SetCounter {
+    uint64_t total_;
+    uint64_t sets_;
+    uint64_t set_;
+    uint64_t max_;
+    uint64_t min_;
+    double   moving_average_;
+    bool     started_;
+
+  public:
+
+    SetCounter()
+      : total_(0),
+        sets_(0),
+        set_(0),
+        max_(0),
+        min_(0),
+        moving_average_(0.0),
+        started_(false)
+    { }
+
+    void start() {
+      if(started_) return;
+
+      started_ = true;
+      set_ = 0;
+    }
+
+    void stop() {
+      if(!started_) return;
+
+      started_ = false;
+
+      total_ += set_;
+
+      if(min_ == 0 || min_ > set_) min_ = set_;
+      if(max_ == 0 || max_ < set_) max_ = set_;
+
+      moving_average_ = (set_ + sets_ * moving_average_) / ++sets_;
+    }
+
+    uint64_t operator()() {
+      return total_;
+    }
+
+    uint64_t operator++(int) {
+      return set_ += 1;
+    }
+
+    uint64_t max() {
+      return max_;
+    }
+
+    uint64_t min() {
+      return min_;
+    }
+
+    double moving_average() {
+      return moving_average_;
+    }
+  };
+
   /* Provides various counters and timers for tracking the operation of the
    * generational garbage collector.
    */
@@ -165,15 +231,16 @@ namespace stats {
     Timer allocate_young;
     Timer collect_young;
 
-    Counter objects_copied;
-    Counter bytes_copied;
     Counter young_bytes_allocated;
+    Counter bytes_copied;
+    SetCounter objects_copied;
 
     // Mature generation stats
     Timer allocate_mature;
     Timer collect_mature;
 
     Counter mature_bytes_allocated;
+    SetCounter objects_seen;
 
   public:
 
