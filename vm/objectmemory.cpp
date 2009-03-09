@@ -10,12 +10,22 @@
 
 namespace rubinius {
 
+  Object* object_watch = 0;
+
   /* ObjectMemory methods */
-  ObjectMemory::ObjectMemory(STATE, size_t young_bytes):
-      state(state),
-      young(this, young_bytes),
-      mature(this),
-      contexts(cContextHeapSize) {
+  ObjectMemory::ObjectMemory(STATE, size_t young_bytes)
+    : state(state)
+    , young(this, young_bytes)
+    , mature(this)
+    , immix_(this)
+    , contexts(cContextHeapSize)
+  {
+
+    // TODO Not sure where this code should be...
+    if(char* num = getenv("WATCH")) {
+      object_watch = (Object*)strtol(num, NULL, 10);
+      std::cout << "Watching for " << object_watch << "\n";
+    }
 
     remember_set = new ObjectArray(0);
 
@@ -40,6 +50,8 @@ namespace rubinius {
 
     young.free_objects();
     mature.free_objects();
+
+    // TODO free immix data
 
     delete remember_set;
 
@@ -77,8 +89,16 @@ namespace rubinius {
     stats::GCStats::get()->objects_promoted++;
 #endif
 
-    Object* copy = mature.copy_object(obj);
+    Object* copy = immix_.allocate(obj->size_in_bytes());
+    copy->initialize_copy(obj, 0);
+    copy->copy_body(obj);
+
     copy->zone = MatureObjectZone;
+
+    if(watched_p(obj)) {
+      std::cout << "detected object " << obj << " during promotion.\n";
+    }
+
     return copy;
   }
 
@@ -91,7 +111,10 @@ namespace rubinius {
   }
 
   void ObjectMemory::collect_mature(Roots &roots, CallFrameLocationList& call_frames) {
+    immix_.collect(roots, call_frames);
     mature.collect(roots, call_frames);
+
+    immix_.unmark_all(roots, call_frames);
     young.clear_marks();
     clear_context_marks();
   }
@@ -145,8 +168,16 @@ namespace rubinius {
       if(obj == NULL) {
         collect_young_now = true;
         state->interrupts.check = true;
-        obj = mature.allocate(bytes, &collect_mature_now);
+
+        obj = immix_.allocate(bytes);
+        if(collect_mature_now) {
+          state->interrupts.check = true;
+        }
       }
+    }
+
+    if(watched_p(obj)) {
+      std::cout << "detected " << obj << " during allocation\n";
     }
 
     obj->clear_fields();

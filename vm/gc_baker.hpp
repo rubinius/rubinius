@@ -15,12 +15,14 @@
 
 #include "call_frame_list.hpp"
 
+#include "object_watch.hpp"
+
 namespace rubinius {
 
   class ObjectMemory;
 
   class BakerGC : public GarbageCollector {
-    public:
+  public:
 
     /* Fields */
     Heap heap_a;
@@ -58,6 +60,10 @@ namespace rubinius {
       } else {
         total_objects++;
         obj = (Object*)current->allocate(bytes);
+      }
+
+      if(watched_p(obj)) {
+        std::cout << "detected " << obj << " during baker allocation.\n";
       }
 
       obj->init_header(YoungObjectZone, bytes);

@@ -3,6 +3,8 @@
 
 #include "gc_marksweep.hpp"
 #include "gc_baker.hpp"
+#include "gc_immix.hpp"
+
 #include "prelude.hpp"
 #include "type_info.hpp"
 
@@ -47,6 +49,9 @@ namespace rubinius {
     ObjectArray *remember_set;
     BakerGC young;
     MarkSweepGC mature;
+
+    ImmixGC immix_;
+
     Heap contexts;
     size_t last_object_id;
     TypeInfo* type_info[(int)LastObjectType];
@@ -159,7 +164,7 @@ namespace rubinius {
     void write_barrier(Object* target, Object* val) {
       if(target->Remember) return;
       if(!REFERENCE_P(val)) return;
-      if(target->zone != MatureObjectZone) return;
+      if(target->zone == YoungObjectZone) return;
       if(val->zone != YoungObjectZone) return;
 
       remember_object(target);

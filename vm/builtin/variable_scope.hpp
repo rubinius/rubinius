@@ -96,6 +96,7 @@ namespace rubinius {
       virtual void set_field(STATE, Object*, size_t, Object*);
       virtual Object* get_field(STATE, Object*, size_t);
       virtual void auto_mark(Object*, ObjectMark&);
+      virtual void auto_visit(Object*, ObjectVisitor&);
     };
   };
 }

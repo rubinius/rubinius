@@ -29,6 +29,10 @@ namespace rubinius {
   Object* BakerGC::saw_object(Object* obj) {
     Object* copy;
 
+    if(watched_p(obj)) {
+      std::cout << "detected " << obj << " during baker collection\n";
+    }
+
     if(!obj->reference_p()) return obj;
 
     if(obj->zone != YoungObjectZone) return obj;
@@ -54,6 +58,10 @@ namespace rubinius {
 
     if(MethodContext* ctx = try_as<MethodContext>(copy)) {
       ctx->post_copy(as<MethodContext>(obj));
+    }
+
+    if(watched_p(copy)) {
+      std::cout << "detected " << copy << " during baker collection (2)\n";
     }
 
     obj->set_forward(object_memory->state, copy);
@@ -102,7 +110,7 @@ namespace rubinius {
         assert(tmp->zone == MatureObjectZone);
         assert(!tmp->forwarded_p());
 
-        /* Remove the Remember bit, since we're clearing the set. */
+        // Remove the Remember bit, since we're clearing the set.
         tmp->Remember = 0;
         scan_object(tmp);
       }
@@ -153,6 +161,9 @@ namespace rubinius {
           tmp = *oi;
           assert(tmp->zone == MatureObjectZone);
           scan_object(tmp);
+          if(watched_p(tmp)) {
+            std::cout << "detected " << tmp << " during scan of promoted objects.\n";
+          }
         }
 
         delete cur;

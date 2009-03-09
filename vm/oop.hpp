@@ -110,9 +110,9 @@ const int cUndef = 0x22L;
   typedef enum
   {
     UnspecifiedZone  = 0,
-    MatureObjectZone = 1,
-    YoungObjectZone  = 2,
-    LargeObjectZone  = 3,
+    LargeObjectZone  = 1,
+    MatureObjectZone = 2,
+    YoungObjectZone  = 3,
   } gc_zone;
 
   /* the sizeof(class ObjectHeader) must an increment of the platform 
@@ -151,6 +151,8 @@ const int cUndef = 0x22L;
         unsigned int IsTainted              : 1;
         unsigned int IsFrozen               : 1;
         unsigned int RefsAreWeak            : 1;
+
+        unsigned int InImmix                : 1;
       };
       uint32_t all_flags;
     };

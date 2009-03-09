@@ -90,6 +90,17 @@ namespace rubinius {
     }
   }
 
+  /* By default, just call auto_mark(). This exists so that
+   * other types can overload this to perform work before or
+   * after auto_marking is done. */
+  void TypeInfo::visit(Object* obj, ObjectVisitor& visit) {
+    auto_visit(obj, visit);
+  }
+
+  void TypeInfo::auto_visit(Object* obj, ObjectVisitor& visit) {
+    // Must be implemented in subclasses!
+  }
+
   void TypeInfo::class_info(STATE, const Object* self, bool newline) {
     std::cout << const_cast<Object*>(self)->to_s(state, true)->c_str();
     if(newline) std::cout << std::endl;

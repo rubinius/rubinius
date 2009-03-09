@@ -359,6 +359,21 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
     return str
   end
 
+  def generate_visits(cpp)
+    str = ''
+
+    str << generate_visits(cpp.super) if cpp.super
+
+    cpp.fields.each do |name, type, idx|
+      str << <<-EOF
+    visit.call(target->#{name}());
+      EOF
+    end
+
+    return str
+
+  end
+
   def generate_mark
     marks = generate_marks(self).rstrip
 
@@ -366,6 +381,23 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
 
     str << <<-EOF unless marks.empty?
 void #{@name}::Info::auto_mark(Object* _t, ObjectMark& mark) {
+  #{@name}* target = as<#{@name}>(_t);
+
+#{marks}
+}
+
+    EOF
+
+    str
+  end
+
+  def generate_visit
+    marks = generate_visits(self).rstrip
+
+    str = ''
+
+    str << <<-EOF unless marks.empty?
+void #{@name}::Info::auto_visit(Object* _t, ObjectVisitor& visit) {
   #{@name}* target = as<#{@name}>(_t);
 
 #{marks}
@@ -654,6 +686,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
   parser.classes.each do |n, cpp|
     f.puts cpp.generate_typechecks
     f.puts cpp.generate_mark
+    f.puts cpp.generate_visit
   end
 end
 

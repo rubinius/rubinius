@@ -113,12 +113,11 @@ namespace rubinius {
   }
 
   Object* MarkSweepGC::saw_object(Object* obj) {
-
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_seen++;
 #endif
 
-    if(obj->young_object_p()) {
+    if(obj->young_object_p() || obj->InImmix) {
       if(obj->marked_p()) return NULL;
 
       obj->mark();
@@ -182,12 +181,13 @@ namespace rubinius {
     std::list<Entry*>::iterator i;
 
     for(i = entries.begin(); i != entries.end();) {
-      if((*i)->unmarked_p()) {
+      Entry* ent = *i;
+      if(ent->unmarked_p() && !ent->header->to_object()->marked_p()) {
         free_object(*i);
         if(free_entries) delete *i;
         i = entries.erase(i);
       } else {
-        (*i)->clear();
+        ent->clear();
         i++;
       }
     }
