@@ -2,7 +2,7 @@
 #define RBX_TIMING_HPP
 
 #include <stdint.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 // HACK figure out a better way to detect if we should use
 // mach_absolute_time

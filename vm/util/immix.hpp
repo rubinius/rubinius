@@ -1,12 +1,12 @@
 #ifndef RBX_UTIL_IMMIX
 #define RBX_UTIL_IMMIX
 
-#include <list>
 #include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <list>
 #include <vector>
 
 #include <sys/mman.h>
