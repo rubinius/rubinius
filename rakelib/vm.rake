@@ -294,9 +294,16 @@ namespace :build do
   desc "Build to enforce coding practices. See build:help for info."
   task :ridiculous  => %w[ build:ridiculous_flags build:build ]
 
+  desc "Generate dependency file"
+  task :depends     => dep_file do
+    import dep_file
+  end
+
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => BUILD_PRETASKS +
-                 %w[ vm
+                 %w[
+                     build:depends
+                     vm
                      kernel:build
                      lib/rbconfig.rb
                      build:ffi:preprocessor
@@ -514,9 +521,19 @@ file 'vm/compile' => EXTERNALS + objs + %w[vm/drivers/compile.o] do |t|
   ld t
 end
 
-rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
-  compile_c 'vm/instructions.o', path
+
+file "vm/instructions.o" => "vm/gen/instructions.cpp" do
+  compile_c "vm/instructions.o", "vm/gen/instructions.cpp"
 end
+
+file "vm/gen/instructions.cpp" => %w[vm/llvm/instructions.cpp vm/instructions.rb] + hdrs do
+  ruby "vm/codegen/rubypp.rb", "vm/llvm/instructions.cpp", "vm/gen/instructions.cpp"
+end
+
+#
+#rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
+#  compile_c 'vm/instructions.o', path
+#end
 
 rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp', *hdrs do |path|
   sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc #{path}"
@@ -621,7 +638,7 @@ require 'rake/loaders/makefile'
 
 generated = (TYPE_GEN + INSN_GEN).select { |f| f =~ /pp$/ }
 
-file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated do |t|
+file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instructions.cpp] do |t|
   includes = INCLUDES.join ' '
 
   flags = FLAGS.join ' '
@@ -641,8 +658,6 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated do |t|
     f.puts dep
   end
 end
-
-import dep_file
 
 def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then
