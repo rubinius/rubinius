@@ -169,6 +169,7 @@ namespace rubinius {
     thread::Mutex local_lock_;
     Waiter* waiter_;
 
+    ConfigParser *user_config;
     Globals& globals;
     ObjectMemory* om;
     event::Loop* events;
@@ -178,7 +179,6 @@ namespace rubinius {
     Configuration& config;
     Interrupts& interrupts;
     SymbolTable& symbols;
-    ConfigParser *user_config;
 
     bool check_local_interrupts;
 

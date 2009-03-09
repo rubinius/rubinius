@@ -27,9 +27,14 @@
 
 namespace rubinius {
 
-  Environment::Environment() {
+  Environment::Environment(int argc, char** argv) {
+    ConfigParser* config = new ConfigParser();
+    config->process_argv(argc, argv);
+
     shared = manager.create_shared_state();
-    state =  shared->new_vm();
+    shared->user_config = config;
+
+    state = shared->new_vm();
     state->initialize(VM::default_bytes);
 
     TaskProbe* probe = TaskProbe::create(state);
@@ -57,18 +62,6 @@ namespace rubinius {
     sigaction(7, &action, NULL);
 
     shared->set_signal_thread(st);
-  }
-
-  void Environment::load_config_argv(int argc, char** argv) {
-    for(int i=1; i < argc; i++) {
-      char* arg = argv[i];
-      if(strncmp(arg, "-X", 2) == 0) {
-        state->user_config->import_line(arg + 2);
-        continue;
-      }
-
-      if(arg[0] != '-' || strcmp(arg, "--") == 0) return;
-    }
   }
 
   void Environment::load_argv(int argc, char** argv) {

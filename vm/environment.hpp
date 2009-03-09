@@ -15,7 +15,7 @@ namespace rubinius {
     SharedState* shared;
     VM* state;
 
-    Environment();
+    Environment(int argc, char** argv);
     ~Environment();
 
     void load_config_argv(int argc, char** argv);

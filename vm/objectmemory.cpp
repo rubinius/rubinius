@@ -4,6 +4,8 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "gc_marksweep.hpp"
+#include "config_parser.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
@@ -30,9 +32,20 @@ namespace rubinius {
 
     collect_young_now = false;
     collect_mature_now = false;
-    large_object_threshold = 2700;
-    young.lifetime = 6;
     last_object_id = 0;
+
+    ConfigParser::Entry* entry;
+    if((entry = state->user_config->find("rbx.gc.large_object"))) {
+      large_object_threshold = entry->to_i();
+    } else {
+      large_object_threshold = 2700;
+    }
+
+    if((entry = state->user_config->find("rbx.gc.lifetime"))) {
+      young.lifetime = entry->to_i();
+    } else {
+      young.lifetime = 6;
+    }
 
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;

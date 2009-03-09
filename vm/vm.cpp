@@ -68,13 +68,13 @@ namespace rubinius {
     , saved_call_frame_(0)
     , alive_(true)
     , shared(shared)
+    , user_config(shared.user_config)
     , globals(shared.globals)
     , om(shared.om)
     , global_cache(shared.global_cache)
     , config(shared.config)
     , interrupts(shared.interrupts)
     , symbols(shared.symbols)
-    , user_config(shared.user_config)
     , check_local_interrupts(false)
     , thread_state_(this)
     , thread(this, (Thread*)Qnil)
@@ -96,9 +96,9 @@ namespace rubinius {
 
     VM::register_state(this);
 
-    user_config = new ConfigParser();
-    shared.user_config = user_config;
-
+    if(ConfigParser::Entry* entry = user_config->find("rbx.gc.young_space")) {
+      bytes = entry->to_i();
+    }
     om = new ObjectMemory(this, bytes);
     shared.om = om;
 

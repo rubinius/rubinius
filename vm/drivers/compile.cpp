@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
   string input(argv[1]);
   string output(argv[2]);
 
-  Environment env;
+  Environment env(argc, argv);
 
   ifstream stream(input.c_str());
 

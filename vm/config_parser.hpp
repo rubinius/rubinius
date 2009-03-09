@@ -14,6 +14,7 @@ namespace rubinius {
       bool is_number();
       bool is_true();
       bool in_section(std::string prefix);
+      long to_i();
     };
 
     typedef std::map<std::string, Entry*> ConfigMap;
@@ -23,6 +24,7 @@ namespace rubinius {
 
     virtual ~ConfigParser();
 
+    void   process_argv(int argc, char** argv);
     Entry* parse_line(const char* line);
     void   import_line(const char* line);
     void   import_stream(std::istream&);
