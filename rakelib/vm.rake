@@ -295,14 +295,13 @@ namespace :build do
   task :ridiculous  => %w[ build:ridiculous_flags build:build ]
 
   desc "Generate dependency file"
-  task :depends     => dep_file do
-    import dep_file
-  end
+  task :depends     => dep_file
+
+  import dep_file
 
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => BUILD_PRETASKS +
                  %w[
-                     build:depends
                      vm
                      kernel:build
                      lib/rbconfig.rb
@@ -600,7 +599,8 @@ namespace :vm do
       'vm/test/runner',
       'vm/test/runner.cpp',
       'vm/test/test_instructions.cpp',
-      'vm/vm'
+      'vm/vm',
+      'vm/.deps'
     ].flatten
 
     files.each do |filename|
@@ -645,17 +645,34 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instr
   flags << " -D__STDC_LIMIT_MACROS"
   flags.slice!(/-Wno-deprecated/)
 
-  cmd = "gcc -MM #{includes} #{flags} #{t.prerequisites.join(' ')}"
-  cmd << ' 2>/dev/null' unless $verbose
-  warn "`#{cmd}`" if $verbose
+  Dir.mkdir "vm/.deps" unless File.directory? "vm/.deps"
 
-  warn "makedepend ... (`gcc -MM`)"
+  warn "Updating dependencies..."
+  File.open t.name, "w" do |f|
+    t.prerequisites.each do |file|
+      file_deps = File.join "vm", ".deps", file.gsub("/", "--")
+      if File.exists?(file_deps) and File.mtime(file_deps) > File.mtime(file)
+        f.puts File.read(file_deps)
+      else
+        cmd = "gcc -MM #{includes} #{flags} #{file} 2>/dev/null"
+        data = `#{cmd}`
+        if $?.exitstatus == 0
+          data.strip!
 
-  dep = `#{cmd}`
-  fail "`gcc -MM` failed!" unless $?.exitstatus == 0
+          unless data.empty?
+            data = "vm/#{data.gsub(/\\\n/, '')}"
+          end
 
-  File.open t.name, 'w' do |f|
-    f.puts dep
+          File.open file_deps, "w" do |fd|
+            fd << data
+          end
+
+          unless data.strip.empty?
+            f.puts data
+          end
+        end
+      end
+    end
   end
 end
 

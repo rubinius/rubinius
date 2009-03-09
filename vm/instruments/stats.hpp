@@ -229,6 +229,7 @@ namespace stats {
   /* Provides various counters and timers for tracking the operation of the
    * generational garbage collector.
    */
+
   class GCStats {
     static GCStats* stats_;
 

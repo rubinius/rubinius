@@ -1,8 +1,9 @@
-#ifndef RBX_TIMING_HPP
-#define RBX_TIMING_HPP
+#ifndef RBX_INSTRUMENTS_TIMING_HPP
+#define RBX_INSTRUMENTS_TIMING_HPP
 
 #include <stdint.h>
 #include <cstdlib>
+#include "detection.hpp"
 
 // HACK figure out a better way to detect if we should use
 // mach_absolute_time
