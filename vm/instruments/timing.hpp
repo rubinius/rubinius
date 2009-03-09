@@ -1,4 +1,5 @@
 #ifndef RBX_TIMING_HPP
+#define RBX_TIMING_HPP
 
 // HACK figure out a better way to detect if we should use
 // mach_absolute_time
