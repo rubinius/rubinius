@@ -1,6 +1,9 @@
 #ifndef RBX_TIMING_HPP
 #define RBX_TIMING_HPP
 
+#include <stdint.h>
+#include <stdlib.h>
+
 // HACK figure out a better way to detect if we should use
 // mach_absolute_time
 #if defined(OS_X_ANCIENT) || \

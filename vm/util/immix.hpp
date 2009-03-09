@@ -3,6 +3,10 @@
 
 #include <list>
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
 #include <vector>
 
 #include <sys/mman.h>
