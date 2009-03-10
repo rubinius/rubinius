@@ -1,3 +1,2 @@
 fails:SystemCallError.new accepts single Fixnum argument as errno
 fails:SystemCallError#errno returns the errno given as optional argument to new
-fails:SystemCallError#message should return default message when no message given

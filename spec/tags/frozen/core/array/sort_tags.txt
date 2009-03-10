@@ -1,4 +1,2 @@
 fails:Array#sort! temporarily freezes self and recovers after sorted
 fails:Array#sort! raises a TypeError on a frozen array
-fails:Array#sort uses #<=> of elements in order to sort
-fails:Array#sort! uses #<=> of elements in order to sort

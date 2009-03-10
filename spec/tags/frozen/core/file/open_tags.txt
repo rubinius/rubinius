@@ -1,13 +1,3 @@
 fails:File.open with a block swallows StandardErrors produced by close
-fails:File.open can read in a block when call open with RDONLY mode
-fails:File.open can read in a block when call open with 'r' mode
-fails:File.open can read and write in a block when call open with RDWR mode
-fails:File.open can read in a block when call open with File::EXCL mode
-fails:File.open can read and write in a block when call open with File::RDWR|File::EXCL mode
-fails:File.open opens a file when use File::WRONLY|File::APPEND mode
-fails:File.open truncates the file when passed File::TRUNC mode
-fails:File.open can't read in a block when call open with File::TRUNC mode
-fails:File.open opens a file for read-write and truncate the file
-fails:File.open opens a file for binary read-write and truncate the file
 fails:File.open raises an Errno::EINVAL when read in a block opened with File::RDONLY|File::APPEND mode
 fails:File.open raises an Errno::EEXIST if the file exists when open with File::RDONLY|File::APPEND

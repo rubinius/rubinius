@@ -187,19 +187,3 @@ fails:Array#pack with format 'P' returns a pointer to internal byte sequence
 fails:Array#pack with format 'P' returns a pointer which is able to dereferenced into NUL terminated byte sequence
 fails:Array#pack with format 'P' returns a pointer which is able to dereferenced into a right value
 fails:Array#pack with format 'P' raises a TypeError if corresponding array item is not String
-fails:Array#pack with format 'V' returns a string containing 4 bytes for an integer
-fails:Array#pack with format 'V' regards negative values as 2's complement in order to converts it to positive
-fails:Array#pack with format 'l' returns a string containing 4 bytes for an integer
-fails:Array#pack with format 'l' regards negative values as 2's complement in order to converts it to positive
-fails:Array#pack with format 'L' returns a string containing 4 bytes for an integer
-fails:Array#pack with format 'L' regards negative values as 2's complement in order to converts it to positive
-fails:Array#pack with format 'i' returns a string containing 4 bytes for an integer
-fails:Array#pack with format 'i' regards negative values as 2's complement in order to converts it to positive
-fails:Array#pack with format 'I' returns a string containing 4 bytes for an integer
-fails:Array#pack with format 'I' regards negative values as 2's complement in order to converts it to positive
-fails:Array#pack with format 'm' fills chars with non-significant bits with '=' sign
-fails:Array#pack with format 'm' appends newline at the end of result string
-fails:Array#pack with format 'm' encodes 6-bit char less than 26 with capital letters
-fails:Array#pack with format 'm' encodes 6-bit char from 26 to 51 with lowercase letters
-fails:Array#pack with format 'm' encodes 6-bit char 62 with '+'
-fails:Array#pack with format 'm' encodes 6-bit char 63 with '/'

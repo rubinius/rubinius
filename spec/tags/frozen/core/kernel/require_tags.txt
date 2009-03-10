@@ -1,4 +1,1 @@
 incomplete:Kernel.require needs to be reviewed for spec completeness
-fails:Kernel#require prefers to use .rb over .<ext> if given non-extensioned file and both exist
-fails:Kernel#require will not load file.<ext> when given 'file' if file.rb already loaded
-fails:Kernel#require produces __FILE__ as the given filename and __LINE__ as the source line number

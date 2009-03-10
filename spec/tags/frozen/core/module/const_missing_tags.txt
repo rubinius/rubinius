@@ -1,2 +1,0 @@
-fails:Module#const_missing is called when an undefined constant is referenced via literal form
-fails:Module#const_missing is called when an undefined constant is referenced via #const_get

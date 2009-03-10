@@ -1,1 +1,0 @@
-fails:Dir.entries raises a SystemCallError if called with a nonexistent diretory

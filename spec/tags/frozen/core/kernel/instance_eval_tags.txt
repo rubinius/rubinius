@@ -4,4 +4,3 @@ fails:Kernel#instance_eval binds self to the receiver
 fails:Kernel#instance_eval executes in the context of the receiver
 fails:Kernel#instance_eval has access to receiver's instance variables
 fails:Kernel#instance_eval treats block-local variables as local to the block
-fails:Kernel#instance_eval sets class variables in the receiver
