@@ -7,7 +7,6 @@
 #include "vm/object_utils.hpp"
 
 #include "builtin/class.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/list.hpp"
 #include "builtin/symbol.hpp"

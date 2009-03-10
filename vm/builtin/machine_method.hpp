@@ -1,11 +1,13 @@
 #ifndef RBX_BUILTIN_MACHINE_METHOD
 #define RBX_BUILTIN_MACHINE_METHOD
 
-#include "assembler/jit.hpp"
 #include "assembler/code_map.hpp"
 #include "assembler/relocation.hpp"
 
 namespace rubinius {
+  class JITCompiler;
+  class VMMethod;
+
   class MachineMethod : public Object {
   public:
     const static object_type type = MachineMethodType;
@@ -40,7 +42,7 @@ namespace rubinius {
     // Ruby.primitive :machine_method_activate
     Object* activate();
 
-    void* resolve_virtual_ip(opcode ip);
+    void* resolve_virtual_ip(int ip);
   };
 }
 

@@ -44,7 +44,6 @@ namespace rubinius {
   void RubyException::show(STATE) {
     std::cout << exception->message();
     print_backtrace();
-    state->print_backtrace();
   }
 
   static VMException::Backtrace get_trace(size_t skip) {

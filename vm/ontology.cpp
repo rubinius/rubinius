@@ -10,7 +10,6 @@
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/compiledmethod.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
@@ -204,7 +203,6 @@ namespace rubinius {
     Regexp::init(this);
     Bignum::init(this);
     Float::init(this);
-    MethodContext::init(this);
     InstructionSequence::init(this);
     List::init(this);
     SendSite::init(this);

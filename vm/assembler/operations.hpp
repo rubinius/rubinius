@@ -4,7 +4,6 @@
 #include "assembler_x86.hpp"
 #include "oop.hpp"
 #include "jit_state.h"
-#include "builtin/contexts.hpp"
 #include "builtin/tuple.hpp"
 
 namespace operations {
@@ -73,6 +72,10 @@ namespace operations {
     Arg2,
     Arg3
   };
+
+  // HACK to eliminate using MethodContext quickly
+#undef FIELD_OFFSET
+#define FIELD_OFFSET(a,b) 0
 
   class ObjectOperations {
     StackOperations &s;

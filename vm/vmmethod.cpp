@@ -11,7 +11,6 @@
 #include "builtin/iseq.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/class.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/machine_method.hpp"
@@ -49,6 +48,7 @@ namespace rubinius {
       return;
     }
 
+    /*
     if(dynamic_interpreter == NULL) {
       uint8_t* buffer = new uint8_t[1024 * 1024 * 1024];
       JITCompiler jit(buffer);
@@ -59,6 +59,7 @@ namespace rubinius {
 
       dynamic_interpreter = reinterpret_cast<Runner>(buffer);
     }
+    */
 
     standard_interpreter = dynamic_interpreter;
 #else

@@ -5,7 +5,6 @@
 #include "builtin/array.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"

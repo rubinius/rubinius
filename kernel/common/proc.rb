@@ -1,4 +1,4 @@
-# depends on: class.rb block_context.rb binding.rb
+# depends on: class.rb binding.rb
 
 class Proc
 

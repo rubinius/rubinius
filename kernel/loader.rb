@@ -86,9 +86,6 @@ code = 0
 show_selectors = false
 show_sendsites = false
 
-# Setup the proper staticscope
-# MethodContext.current.method.scope = StaticScope.new(Object)
-
 TOPLEVEL_BINDING = binding()
 
 show_eval = false

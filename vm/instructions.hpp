@@ -1,6 +1,8 @@
 #ifndef RBX_INSTR
 #define RBX_INSTR
 
+#include "vm/vmmethod.hpp"
+
 namespace rubinius {
   namespace instructions {
     struct Implementation {

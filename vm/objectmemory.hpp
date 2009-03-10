@@ -10,7 +10,6 @@
 
 #include "object_position.hpp"
 
-#include "builtin/contexts.hpp"
 #include "call_frame_list.hpp"
 
 namespace rubinius {
@@ -40,8 +39,6 @@ namespace rubinius {
   class ObjectMemory {
   public:
 
-    static const int cContextHeapSize = 1024 * 1024;
-
     bool collect_young_now;
     bool collect_mature_now;
 
@@ -52,7 +49,6 @@ namespace rubinius {
 
     ImmixGC immix_;
 
-    Heap contexts;
     size_t last_object_id;
     TypeInfo* type_info[(int)LastObjectType];
 
@@ -100,66 +96,6 @@ namespace rubinius {
     void add_type_info(TypeInfo* ti);
 
     ObjectPosition validate_object(Object* obj);
-
-    void clear_context_marks();
-
-    // Indicate whether +ctx+ is located on the context stack
-    bool context_on_stack_p(MethodContext* ctx) {
-      return (Object*)ctx->klass() == Qnil;
-    }
-
-    // Indicates if +ctx+ is a referenced context
-    bool context_referenced_p(MethodContext* ctx) {
-      return contexts.contains_p(ctx) && ctx < contexts.scan;
-    }
-
-    // Allocate a MethodContext object containing +stack_slots+
-    // stack positions.
-    MethodContext* allocate_context(size_t stack_slots) {
-      size_t full_size = sizeof(MethodContext) + (stack_slots * sizeof(Object*));
-
-      // Off the end
-      if(!contexts.enough_space_p(full_size)) return NULL;
-
-      MethodContext* ctx = static_cast<MethodContext*>(
-          contexts.allocate(full_size));
-
-      // Masquerade as being in the Young zone so the write barrier
-      // stays happy.
-      ctx->init_header(YoungObjectZone, full_size);
-
-      ctx->full_size = full_size;
-      return ctx;
-    }
-
-    // Return the number of bytes used by +ctx+ to the context
-    // storage area.
-    bool deallocate_context(MethodContext* ctx) {
-      // If ctx is less than the scan, we ignore deallocating it.
-      if(ctx < contexts.start || ctx > contexts.last || ctx < contexts.scan) return false;
-      contexts.put_back(ctx->full_size);
-      assert(contexts.current >= contexts.start);
-      return true;
-    }
-
-    // Mark that +ctx+ has been referenced and should not be
-    // deallocated as normal.
-    void reference_context(MethodContext* ctx) {
-      if(!context_on_stack_p(ctx)) return;
-
-      address barrier = ((address)(((uintptr_t)ctx) + ctx->full_size));
-
-      if(contexts.scan < barrier) {
-        contexts.set_scan(barrier);
-      }
-    }
-
-    // Make sure that all existing contexts are not automatically
-    // deallocated
-    void clamp_contexts() {
-      void* barrier = reinterpret_cast<void*>((uintptr_t)contexts.current + 1);
-      contexts.set_scan(barrier);
-    }
 
     void write_barrier(Object* target, Object* val) {
       if(target->Remember) return;

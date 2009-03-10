@@ -125,7 +125,7 @@ class Compiler
 
   def create_scopes
     ctx = @context
-    if ctx.kind_of? BlockContext
+    if false # ctx.kind_of? BlockContext
       all_scopes = []
       block_scopes = []
 

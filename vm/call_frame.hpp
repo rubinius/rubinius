@@ -12,11 +12,10 @@ namespace rubinius {
   class Module;
   class VMMethod;
   class VariableScope;
-  class MethodContext;
 
   struct CallFrame {
     CallFrame* previous;
-    MethodContext* saved_proxy;
+    Object* saved_proxy;
 
     bool is_block;
     Symbol* name;
@@ -149,7 +148,6 @@ namespace rubinius {
 
     void promote_scope(STATE);
 
-    MethodContext* create_context(STATE);
     void print_backtrace(STATE);
     int line(STATE);
   };

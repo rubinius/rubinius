@@ -18,11 +18,6 @@ namespace rubinius {
     scope = new_scope;
   }
 
-  MethodContext* CallFrame::create_context(STATE) {
-    abort();
-    return NULL;
-  }
-
   void CallFrame::print_backtrace(STATE) {
     CallFrame* cf = this;
 

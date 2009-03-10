@@ -11,7 +11,6 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/io.hpp"
-#include "builtin/contexts.hpp"
 
 #include "message.hpp"
 #include "event.hpp"

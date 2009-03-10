@@ -25,13 +25,12 @@ module Kernel
       raise ::TypeError, 'exception class/object expected'
     end
 
-    if $DEBUG and $VERBOSE != nil
-      sender = MethodContext.current.sender
-      STDERR.puts "Exception: `#{exc.class}' #{sender.location} - #{exc.message}"
-    end
-
     if !skip and !exc.locations
       exc.fill_locations
+    end
+
+    if $DEBUG and $VERBOSE != nil
+      STDERR.puts "Exception: `#{exc.class}' #{exc.locations[1].position} - #{exc.message}"
     end
 
     Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }

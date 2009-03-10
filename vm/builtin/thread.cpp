@@ -4,7 +4,6 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/float.hpp"
 
 #include "objectmemory.hpp"

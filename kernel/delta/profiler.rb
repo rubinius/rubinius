@@ -6,7 +6,6 @@ module Rubinius::Profiler
   KERNEL_CLASSES = Regexp.new %w[
     ^AccessVariable
     ^BlockBreakException
-    ^BlockContext
     ^BlockEnvironment
     ^Buffer
     ^ByteArray
@@ -21,7 +20,6 @@ module Rubinius::Profiler
     ^InstructionSequence
     ^InstructionSet
     ^LookupTable
-    ^MethodContext
     ^MethodTable
     ^RecursionGuard
     ^Rubinius

@@ -6,7 +6,7 @@ module Rubinius
 
   def warn(warning)
     unless $VERBOSE.nil? then
-      $stderr.write "#{MethodContext.current.sender.location}: warning: #{warning}\n"
+      $stderr.write "warning: #{warning}\n"
     end
     nil
   end

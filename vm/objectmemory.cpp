@@ -18,7 +18,6 @@ namespace rubinius {
     , young(this, young_bytes)
     , mark_sweep_(this)
     , immix_(this)
-    , contexts(cContextHeapSize)
   {
 
     // TODO Not sure where this code should be...
@@ -38,10 +37,6 @@ namespace rubinius {
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;
     }
-
-    // Push the scan pointer off the bottom so nothing is seend
-    // as scaned
-    contexts.set_scan((address)(((uintptr_t)contexts.current) - 1));
 
     TypeInfo::init(this);
   }
@@ -106,8 +101,6 @@ namespace rubinius {
     static int collect_times = 0;
     young.collect(roots, call_frames);
     collect_times++;
-
-    contexts.reset();
   }
 
   void ObjectMemory::collect_mature(Roots &roots, CallFrameLocationList& call_frames) {
@@ -214,22 +207,11 @@ namespace rubinius {
   ObjectPosition ObjectMemory::validate_object(Object* obj) {
     ObjectPosition pos;
 
-    if(contexts.contains_p((address)obj)) return cContextStack;
-
     pos = young.validate_object(obj);
     if(pos != cUnknown) return pos;
 
     return mark_sweep_.validate_object(obj);
   }
-
-  void ObjectMemory::clear_context_marks() {
-    Object* obj = contexts.first_object();
-    while(obj < contexts.current) {
-      obj->clear_mark();
-      obj = (Object*)((uintptr_t)obj + obj->size_in_bytes());
-    }
-  }
-
 };
 
 #define DEFAULT_MALLOC_THRESHOLD 10000000

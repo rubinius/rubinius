@@ -185,7 +185,6 @@ namespace std {
 namespace rubinius {
     class CompiledMethod;
     class Message;
-    class MethodContext;
 
   namespace profiler {
 
@@ -205,7 +204,7 @@ namespace rubinius {
       Symbol* module_name(Module* module);
       void enter_method(STATE, Message&, CompiledMethod*);
       void enter_primitive(STATE, Message&);
-      void enter_block(STATE, MethodContext*, CompiledMethod*);
+      // void enter_block(STATE, MethodContext*, CompiledMethod*);
       Method* record_method(STATE, CompiledMethod*, Symbol*, Object*, Kind kind = kNormal);
       void leave_method();
 

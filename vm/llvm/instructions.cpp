@@ -16,7 +16,6 @@
 #include "builtin/iseq.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/nativemethod.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/block_wrapper.hpp"
 #include "builtin/thread.hpp"

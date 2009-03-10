@@ -14,7 +14,6 @@
 
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 

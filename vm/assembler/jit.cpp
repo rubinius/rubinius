@@ -6,7 +6,6 @@
 #include "vmmethod.hpp"
 
 #include "builtin/iseq.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookuptable.hpp"
 

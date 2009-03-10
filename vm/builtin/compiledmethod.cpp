@@ -154,9 +154,13 @@ namespace rubinius {
       formalize(state, false);
     }
 
+    /*
     JITCompiler jit;
     jit.compile(state, backend_method_);
     return MachineMethod::create(state, backend_method_, jit);
+    */
+
+    return NULL;
   }
 
   bool CompiledMethod::is_rescue_target(STATE, int ip) {

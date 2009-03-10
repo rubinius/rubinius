@@ -1,5 +1,4 @@
 #include "builtin/class.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/sendsite.hpp"

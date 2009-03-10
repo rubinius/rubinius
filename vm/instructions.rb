@@ -2424,7 +2424,7 @@ class Instructions
 
   def push_context
     <<-CODE
-    stack_push(call_frame->create_context(state));
+    stack_push(Qnil);
     CODE
   end
 

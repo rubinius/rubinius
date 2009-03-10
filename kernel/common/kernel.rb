@@ -233,11 +233,7 @@ module Kernel
   module_function :endian?
 
   def block_given?
-    if MethodContext.current.sender.block
-      return true
-    end
-
-    return false
+    return VariableScope.of_sender.block != nil
   end
   module_function :block_given?
 

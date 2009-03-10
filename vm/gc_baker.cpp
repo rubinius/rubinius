@@ -6,7 +6,6 @@
 #include "vm/object_utils.hpp"
 
 #include "builtin/tuple.hpp"
-#include "builtin/contexts.hpp"
 
 #include "instruments/stats.hpp"
 
@@ -54,10 +53,6 @@ namespace rubinius {
     } else {
       copy = object_memory->promote_object(obj);
       promoted_->push_back(copy);
-    }
-
-    if(MethodContext* ctx = try_as<MethodContext>(copy)) {
-      ctx->post_copy(as<MethodContext>(obj));
     }
 
     if(watched_p(copy)) {

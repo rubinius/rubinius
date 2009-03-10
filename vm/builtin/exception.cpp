@@ -3,7 +3,6 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/lookuptable.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"

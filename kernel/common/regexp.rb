@@ -121,16 +121,6 @@ class Regexp
     end
   end
 
-  ##
-  # Different than last_match= because it sets the current last match, while
-  # last_match= sets the senders last match.
-
-  def self.my_last_match=(match)
-    # Set an ivar in the sender
-    ctx = MethodContext.current.sender
-    ctx.last_match = match
-  end
-
   def self.union(*patterns)
     if patterns.nil? || patterns.length == 0
       return /(?!)/
