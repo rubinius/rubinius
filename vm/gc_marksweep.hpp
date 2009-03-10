@@ -8,6 +8,7 @@
 #include <list>
 
 #include "call_frame_list.hpp"
+#include "util/dlmalloc_cpp.hpp"
 
 #define MS_COLLECTION_BYTES 10485760
 
@@ -26,34 +27,13 @@ namespace rubinius {
     class Header;
 
     class Entry {
-
     public:
       /* Data members */
       int bytes;
-      int fields;
-      bool marked;
       Header *header;
 
-      /* Inline methods */
-      void mark() {
-        marked = true;
-      }
-
-      void clear() {
-        marked = false;
-      }
-
-      bool marked_p() {
-        return marked;
-      }
-
-      bool unmarked_p() {
-        return !marked;
-      }
-
       /* Prototypes */
-
-      Entry(Header*, size_t bytes, size_t fields);
+      Entry(Header*, size_t bytes);
     };
 
     class Header {
@@ -71,6 +51,7 @@ namespace rubinius {
 
   private:
       MarkStack mark_stack_;
+      DLMalloc malloc_;
 
   public:
     /* Data members */
@@ -85,7 +66,7 @@ namespace rubinius {
     MarkSweepGC(ObjectMemory *om);
     virtual ~MarkSweepGC();
     void   free_objects();
-    Object* allocate(size_t fields, bool *collect_now);
+    Object* allocate(size_t bytes, bool *collect_now);
     Object* copy_object(Object* obj);
     Entry *find_entry(Object* obj);
     void   sweep_objects();

@@ -12,10 +12,8 @@
 
 namespace rubinius {
 
-  MarkSweepGC::Entry::Entry(Header* h, size_t b, size_t f) {
+  MarkSweepGC::Entry::Entry(Header* h, size_t b) {
     bytes = b;
-    fields = f;
-    marked = false;
     header = h;
   }
 
@@ -55,10 +53,8 @@ namespace rubinius {
 
     bytes = sizeof(Header) + obj_bytes;
 
-    // std::cout << "ms: " << bytes << ", fields: " << fields << "\n";
-
-    Header *header = (Header*)malloc(bytes);
-    Entry *entry = new Entry(header, bytes, obj_bytes);
+    Header *header = (Header*)malloc_.allocate(bytes);
+    Entry *entry = new Entry(header, bytes);
     header->entry = entry;
 
     entries.push_back(entry);
@@ -94,7 +90,7 @@ namespace rubinius {
     // A debugging tag to see if we try to use a free'd object
     entry->header->to_object()->IsMeta = 1;
 
-    free(entry->header);
+    malloc_.release(entry->header);
   }
 
   Object* MarkSweepGC::copy_object(Object* orig) {
@@ -116,17 +112,8 @@ namespace rubinius {
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_seen++;
 #endif
-
-    if(obj->young_object_p() || obj->InImmix) {
-      if(obj->marked_p()) return NULL;
-
-      obj->mark();
-    } else {
-      Entry *entry = find_entry(obj);
-      if(entry->marked_p()) return NULL;
-
-      entry->mark();
-    }
+    if(obj->marked_p()) return NULL;
+    obj->mark();
 
     // Add the object to the mark stack, to be scanned later.
     mark_stack_.push_back(obj);
@@ -172,13 +159,13 @@ namespace rubinius {
 
     for(i = entries.begin(); i != entries.end();) {
       Entry* ent = *i;
-      if(ent->unmarked_p() && !ent->header->to_object()->marked_p()) {
-        free_object(*i);
-        if(free_entries) delete *i;
-        i = entries.erase(i);
-      } else {
-        ent->clear();
+      Object* obj = ent->header->to_object();
+      if(obj->marked_p()) {
         i++;
+      } else {
+        free_object(ent);
+        if(free_entries) delete ent;
+        i = entries.erase(i);
       }
     }
   }
@@ -210,15 +197,8 @@ namespace rubinius {
 
         if(!obj->reference_p()) continue;
 
-        if(obj->young_object_p()) {
-          if(!obj->marked_p()) {
-            tup->field[ti] = Qnil;
-          }
-        } else {
-          Entry *entry = find_entry(obj);
-          if(!entry->marked_p()) {
-            tup->field[ti] = Qnil;
-          }
+        if(!obj->marked_p()) {
+          tup->field[ti] = Qnil;
         }
       }
     }
