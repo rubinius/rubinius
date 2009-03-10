@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "util/dlmalloc.h"
 
 /*------------------------------ internal #includes ---------------------- */
