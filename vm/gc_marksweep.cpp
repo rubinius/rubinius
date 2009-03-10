@@ -12,11 +12,6 @@
 
 namespace rubinius {
 
-  MarkSweepGC::Entry::Entry(Header* h, size_t b) {
-    bytes = b;
-    header = h;
-  }
-
   MarkSweepGC::MarkSweepGC(ObjectMemory *om)
               :GarbageCollector(om) {
     allocated_objects = 0;
@@ -25,39 +20,28 @@ namespace rubinius {
     free_entries = true;
   }
 
-  MarkSweepGC::~MarkSweepGC() {
-    std::list<Entry*>::iterator i;
-
-    for(i = entries.begin(); i != entries.end(); i++) {
-      delete *i;
-    }
-  }
+  MarkSweepGC::~MarkSweepGC() { }
 
   void MarkSweepGC::free_objects() {
-    std::list<Entry*>::iterator i;
+    std::list<Object*>::iterator i;
 
     for(i = entries.begin(); i != entries.end(); i++) {
       free_object(*i, true);
     }
   }
 
-  Object* MarkSweepGC::allocate(size_t obj_bytes, bool *collect_now) {
-    size_t bytes;
+  Object* MarkSweepGC::allocate(size_t bytes, bool *collect_now) {
     Object* obj;
 
 #ifdef RBX_GC_STATS
     // duplicating the calulation so it is included in the time below
-    stats::GCStats::get()->mature_bytes_allocated += sizeof(Header) + obj_bytes;
+    stats::GCStats::get()->mature_bytes_allocated += bytes;
     stats::GCStats::get()->allocate_mature.start();
 #endif
 
-    bytes = sizeof(Header) + obj_bytes;
+    obj = reinterpret_cast<Object*>(malloc_.allocate(bytes));
 
-    Header *header = (Header*)malloc_.allocate(bytes);
-    Entry *entry = new Entry(header, bytes);
-    header->entry = entry;
-
-    entries.push_back(entry);
+    entries.push_back(obj);
 
     allocated_objects++;
     allocated_bytes += bytes;
@@ -68,9 +52,7 @@ namespace rubinius {
       next_collection_bytes = MS_COLLECTION_BYTES;
     }
 
-    obj = header->to_object();
-
-    obj->init_header(MatureObjectZone, obj_bytes);
+    obj->init_header(MatureObjectZone, bytes);
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->allocate_mature.stop();
@@ -79,18 +61,18 @@ namespace rubinius {
     return obj;
   }
 
-  void MarkSweepGC::free_object(Entry *entry, bool fast) {
+  void MarkSweepGC::free_object(Object* obj, bool fast) {
     if(!fast) {
-      delete_object(entry->header->to_object());
+      delete_object(obj);
     }
 
     allocated_objects--;
-    allocated_bytes -= entry->bytes;
+    allocated_bytes -= obj->size_in_bytes();
 
     // A debugging tag to see if we try to use a free'd object
-    entry->header->to_object()->IsMeta = 1;
+    obj->IsMeta = 1;
 
-    malloc_.release(entry->header);
+    malloc_.release(reinterpret_cast<void*>(obj));
   }
 
   Object* MarkSweepGC::copy_object(Object* orig) {
@@ -101,11 +83,6 @@ namespace rubinius {
     obj->copy_body(orig);
 
     return obj;
-  }
-
-  MarkSweepGC::Entry *MarkSweepGC::find_entry(Object* obj) {
-    Header *header = (Header*)((uintptr_t)obj - sizeof(Header));
-    return header->entry;
   }
 
   Object* MarkSweepGC::saw_object(Object* obj) {
@@ -155,29 +132,24 @@ namespace rubinius {
   }
 
   void MarkSweepGC::sweep_objects() {
-    std::list<Entry*>::iterator i;
+    std::list<Object*>::iterator i;
 
     for(i = entries.begin(); i != entries.end();) {
-      Entry* ent = *i;
-      Object* obj = ent->header->to_object();
+      Object* obj = *i;
       if(obj->marked_p()) {
         i++;
       } else {
-        free_object(ent);
-        if(free_entries) delete ent;
+        free_object(obj);
         i = entries.erase(i);
       }
     }
   }
 
   ObjectPosition MarkSweepGC::validate_object(Object* obj) {
-    std::list<Entry*>::iterator i;
+    std::list<Object*>::iterator i;
 
     for(i = entries.begin(); i != entries.end(); i++) {
-      Entry* entry = *i;
-      if(entry->header->to_object() == obj) {
-        return cMatureObject;
-      }
+      if(*i == obj) return cMatureObject;
     }
 
     return cUnknown;
