@@ -43,7 +43,6 @@ namespace rubinius {
     Object* allocate(size_t bytes, bool *collect_now);
     Object* copy_object(Object* obj);
     void   sweep_objects();
-    void   clean_weakrefs();
     void   free_object(Object* obj, bool fast = false);
     virtual Object* saw_object(Object* obj);
     void   collect(Roots &roots, CallFrameLocationList& call_frame);

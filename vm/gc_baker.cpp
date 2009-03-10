@@ -189,7 +189,7 @@ namespace rubinius {
     find_lost_souls();
 
     /* Check any weakrefs and replace dead objects with nil*/
-    clean_weakrefs();
+    clean_weakrefs(true);
 
     /* Swap the 2 halves */
     Heap *x = next;
@@ -243,37 +243,6 @@ namespace rubinius {
       if(!obj->forwarded_p()) delete_object(obj);
       obj = next_object(obj);
     }
-  }
-
-  // HACK todo test this!
-  void BakerGC::clean_weakrefs() {
-    if(!weak_refs) return;
-
-    for(ObjectArray::iterator i = weak_refs->begin();
-        i != weak_refs->end();
-        i++) {
-      // ATM, only a Tuple can be marked weak.
-      Tuple* tup = as<Tuple>(*i);
-      for(size_t ti = 0; ti < tup->num_fields(); ti++) {
-        Object* obj = tup->at(object_memory->state, ti);
-
-        if(!obj->reference_p()) continue;
-
-        if(obj->young_object_p()) {
-          if(!obj->forwarded_p()) {
-            // HACK you shouldn't really set these directly, but since
-            // we know that the write barrier has already run for this
-            // it should be fine.
-            tup->field[ti] = Qnil;
-          } else {
-            tup->field[ti] = obj->forward();
-          }
-        }
-      }
-    }
-
-    delete weak_refs;
-    weak_refs = NULL;
   }
 
   ObjectPosition BakerGC::validate_object(Object* obj) {

@@ -46,6 +46,7 @@ namespace rubinius {
     void visit_roots(Roots& roots, ObjectVisitor& visit);
     void visit_call_frames_list(CallFrameLocationList& call_frames, ObjectVisitor& visit);
     void unmark_all(Roots &roots, CallFrameLocationList& call_frames);
+    void clean_weakrefs(bool check_forwards=false);
   };
 
 }

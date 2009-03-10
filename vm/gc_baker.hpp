@@ -90,7 +90,6 @@ namespace rubinius {
     void    clear_marks();
     Object*  next_object(Object* obj);
     void    find_lost_souls();
-    void    clean_weakrefs();
 
     ObjectPosition validate_object(Object* obj);
   };

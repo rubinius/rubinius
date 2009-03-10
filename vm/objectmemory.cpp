@@ -120,6 +120,7 @@ namespace rubinius {
 
     mark_sweep_.after_marked();
 
+    immix_.clean_weakrefs();
     immix_.unmark_all(roots, call_frames);
 
 #ifdef RBX_GC_STATS

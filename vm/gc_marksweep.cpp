@@ -158,28 +158,4 @@ namespace rubinius {
 
     return cUnknown;
   }
-
-  // HACK todo test this!
-  void MarkSweepGC::clean_weakrefs() {
-    if(!weak_refs) return;
-
-    for(ObjectArray::iterator i = weak_refs->begin();
-        i != weak_refs->end();
-        i++) {
-      // ATM, only a Tuple can be marked weak.
-      Tuple* tup = as<Tuple>(*i);
-      for(size_t ti = 0; ti < tup->num_fields(); ti++) {
-        Object* obj = tup->at(object_memory->state, ti);
-
-        if(!obj->reference_p()) continue;
-
-        if(!obj->marked_p()) {
-          tup->field[ti] = Qnil;
-        }
-      }
-    }
-
-    delete weak_refs;
-    weak_refs = NULL;
-  }
 }
