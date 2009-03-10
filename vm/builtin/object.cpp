@@ -129,7 +129,7 @@ namespace rubinius {
 
   Object* Object::freeze() {
     if(reference_p()) {
-      this->IsFrozen = TRUE;
+      this->IsFrozen = true;
     }
     return this;
   }
@@ -432,7 +432,7 @@ namespace rubinius {
 
   Object* Object::taint() {
     if(reference_p()) {
-      this->IsTainted = TRUE;
+      this->IsTainted = true;
     }
     return this;
   }
@@ -451,7 +451,7 @@ namespace rubinius {
 
   Object* Object::untaint() {
     if(reference_p()) {
-      this->IsTainted = FALSE;
+      this->IsTainted = false;
     }
     return this;
   }

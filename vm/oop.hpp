@@ -270,7 +270,7 @@ const int cUndef = 0x22L;
 
 #define CLEAR_FLAGS(obj)     (obj)->all_flags = 0
 #define stack_context_p(obj) ((obj)->gc_zone == UnspecifiedZone)
-#define SET_FORWARDED(obj)   (obj)->Forwarded = TRUE
+#define SET_FORWARDED(obj)   (obj)->Forwarded = true
 #define FORWARDED_P(obj)     ((obj)->Forwarded)
 
 #define AGE(obj)           (obj->copy_count)

@@ -24,7 +24,7 @@ namespace rubinius {
 
     // We deliberately don't copy the value of IsFrozen here;
     // it's the callers responsibility to do that if necessary.
-    IsFrozen     = FALSE;
+    IsFrozen     = false;
 
     RefsAreWeak  = other->RefsAreWeak;
   }
