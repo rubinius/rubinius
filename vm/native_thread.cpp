@@ -39,11 +39,20 @@ namespace rubinius {
 
     Object* ret = vm_->thread.get()->send(vm_, &cf, vm_->symbol("initialize"),
                                           args_.get(), block_.get());
+
+    vm_->set_call_frame(0);
+
     if(!ret) {
       if(Exception* exc = try_as<Exception>(vm_->thread_state()->raise_value())) {
         std::cout << "Exception at thread toplevel:\n";
-        std::cout << exc->message()->c_str() << " ("
-                  << exc->class_object(vm_)->name()->c_str(vm_) << ")\n\n";
+        String* message = exc->message();
+        if(message->nil_p()) {
+          std::cout << "<no message> (";
+        } else {
+          std::cout << exc->message()->c_str() << " (";
+        }
+
+        std::cout << exc->class_object(vm_)->name()->c_str(vm_) << ")\n\n";
         exc->print_locations(vm_);
       }
     }
