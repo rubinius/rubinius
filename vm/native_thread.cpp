@@ -40,8 +40,6 @@ namespace rubinius {
     Object* ret = vm_->thread.get()->send(vm_, &cf, vm_->symbol("initialize"),
                                           args_.get(), block_.get());
 
-    vm_->set_call_frame(0);
-
     if(!ret) {
       if(Exception* exc = try_as<Exception>(vm_->thread_state()->raise_value())) {
         std::cout << "Exception at thread toplevel:\n";
@@ -57,5 +55,6 @@ namespace rubinius {
       }
     }
 
+    vm_->discard();
   }
 }

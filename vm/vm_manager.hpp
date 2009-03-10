@@ -22,5 +22,6 @@ namespace rubinius {
     VM* create_vm(SharedState*);
 
     void destroy_vm(VM*);
+    void prune();
   };
 }

@@ -126,6 +126,10 @@ namespace rubinius {
       return id_;
     }
 
+    VMManager& manager() {
+      return manager_;
+    }
+
     void set_initialized() {
       initialized_ = true;
     }
@@ -157,6 +161,7 @@ namespace rubinius {
     CallFrame* saved_call_frame_;
     ASyncMessageMailbox mailbox_;
     void* stack_start_;
+    bool alive_;
 
   public:
     /* Data members */
@@ -221,6 +226,10 @@ namespace rubinius {
       return id_;
     }
 
+    bool alive_p() {
+      return alive_;
+    }
+
     ThreadState* thread_state() {
       return &thread_state_;
     }
@@ -277,6 +286,8 @@ namespace rubinius {
 
     // Registers a VM* object as the current state.
     static void register_state(VM*);
+
+    void discard();
 
     void bootstrap_class();
     void bootstrap_ontology();

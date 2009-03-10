@@ -66,6 +66,7 @@ namespace rubinius {
   VM::VM(SharedState& shared, int id)
     : id_(id)
     , saved_call_frame_(0)
+    , alive_(true)
     , shared(shared)
     , globals(shared.globals)
     , om(shared.om)
@@ -81,6 +82,11 @@ namespace rubinius {
     , reuse_llvm(true)
     , use_safe_position(false)
   {}
+
+  void VM::discard() {
+    alive_ = false;
+    saved_call_frame_ = 0;
+  }
 
   void VM::initialize(size_t bytes)
   {
@@ -290,6 +296,8 @@ namespace rubinius {
       om->collect_mature(globals.roots, frames);
 
       global_cache->clear();
+
+      shared.manager().prune();
     }
   }
 

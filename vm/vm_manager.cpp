@@ -40,4 +40,25 @@ namespace rubinius {
       delete shared;
     }
   }
+
+  void VMManager::prune() {
+    VMMap::iterator i = vms_.begin();
+    while(i != vms_.end()) {
+      VM* vm = i->second;
+      if(!vm->alive_p()) {
+        SharedState* shared = &vm->shared;
+        shared->remove_vm(vm);
+
+        vms_.erase(i);
+        delete vm;
+        if(shared->deref()) {
+          ShareMap::iterator si = shares_.find(shared->id());
+          assert(si != shares_.end());
+          shares_.erase(si);
+          delete shared;
+        }
+      }
+      i++;
+    }
+  }
 }
