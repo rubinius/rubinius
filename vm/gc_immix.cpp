@@ -9,6 +9,10 @@ namespace rubinius {
     std::cout << "Added a chunk: " << count << "\n";
 #endif
 
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->chunks_added++;
+#endif
+
     if(object_memory_) {
       object_memory_->collect_mature_now = true;
     }
@@ -31,7 +35,6 @@ namespace rubinius {
 
   Object* ImmixGC::allocate(int bytes) {
 #ifdef RBX_GC_STATS
-    // duplicating the calulation so it is included in the time below
     stats::GCStats::get()->mature_bytes_allocated += bytes;
     stats::GCStats::get()->allocate_mature.start();
 #endif

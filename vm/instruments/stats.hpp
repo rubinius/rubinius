@@ -270,6 +270,7 @@ namespace stats {
 
     Counter mature_bytes_allocated;
     Counter large_objects;
+    Counter chunks_added;
     SetCounter objects_seen;
 
   public:

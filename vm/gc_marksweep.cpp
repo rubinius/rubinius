@@ -34,7 +34,6 @@ namespace rubinius {
     Object* obj;
 
 #ifdef RBX_GC_STATS
-    // duplicating the calulation so it is included in the time below
     stats::GCStats::get()->mature_bytes_allocated += bytes;
     stats::GCStats::get()->allocate_mature.start();
 #endif

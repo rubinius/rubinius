@@ -145,6 +145,7 @@ module Rubinius
         printf format, " average",          auto_time(ay[:average]), auto_time(am[:average])
         printf format, "bytes allocated",
                auto_bytes(ay[:bytes_allocated]), auto_bytes(am[:bytes_allocated])
+        printf format, "chunks added",      n_a, comma(am[:chunks_added])
 
         puts   "--"
         printf format, "large objects",     n_a, comma(stats[:large_objects])
