@@ -94,14 +94,14 @@ module Rubinius
 
         col1, col2, col3 = 22, 15, 15
 
-        cy = stats[:collect_young]
         ay = stats[:allocate_young]
-        oc = stats[:objects_copied]
-        op = stats[:objects_promoted]
+        cy = stats[:collect_young]
+        oc = cy[:objects_copied]
+        op = cy[:objects_promoted]
 
-        cm = stats[:collect_mature]
         am = stats[:allocate_mature]
-        os = stats[:objects_seen]
+        cm = stats[:collect_mature]
+        os = cm[:objects_seen]
 
         header = "\n%-#{col1}s%#{col2}s%#{col3}s\n"
         format = "%-#{col1}s%#{col2}s%#{col3}s\n"

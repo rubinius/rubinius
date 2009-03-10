@@ -4,6 +4,12 @@
 #include "optimize.hpp"
 #include "instruments/timing.hpp"
 
+namespace rubinius {
+  class Integer;
+  class LookupTable;
+  class VM;
+}
+
 namespace stats {
   /* A linear clock. A "normal" clock could be considered a linear clock that
    * reports elapsed time modulo 12 or 24 hours. This clock reports elapsed
@@ -49,6 +55,9 @@ namespace stats {
 
       return elapsed_;
     }
+
+    /* Creates a Ruby object representation of the data. */
+    rubinius::Integer* to_ruby(rubinius::VM* state);
   };
 
   /* An accumulating increment timer. Keeps track of the maximum and minimum
@@ -128,6 +137,9 @@ namespace stats {
 
       moving_average_ = (last_ + timings_ * moving_average_) / ++timings_;
     }
+
+    /* Creates a Ruby object representation of the data. */
+    rubinius::LookupTable* to_ruby(rubinius::VM* state);
   };
 
   /* A monotonically increasing count. */
@@ -149,6 +161,9 @@ namespace stats {
     uint64_t operator++(int) {
       return count_ += 1;
     }
+
+    /* Creates a Ruby object representation of the data. */
+    rubinius::Integer* to_ruby(rubinius::VM* state);
   };
 
   /* Monotonically increasing count where counts are taken in sets. Records
@@ -224,6 +239,9 @@ namespace stats {
     double moving_average() {
       return moving_average_;
     }
+
+    /* Creates a Ruby object representation of the data. */
+    rubinius::LookupTable* to_ruby(rubinius::VM* state);
   };
 
   /* Provides various counters and timers for tracking the operation of the
@@ -269,6 +287,9 @@ namespace stats {
       if(stats_) delete stats_;
       stats_ = new GCStats;
     }
+
+    /* Creates a Ruby object representation of the data. */
+    rubinius::LookupTable* to_ruby(rubinius::VM* state);
   };
 };
 

@@ -31,8 +31,6 @@ namespace rubinius {
   typedef native_int hashval;
 
 
-  #define FALSE false
-  #define TRUE true
   #define STATE rubinius::VM* state
   #define G(whatever) state->globals.whatever.get()
   #define GO(whatever) state->globals.whatever
