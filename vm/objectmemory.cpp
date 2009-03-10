@@ -111,12 +111,22 @@ namespace rubinius {
   }
 
   void ObjectMemory::collect_mature(Roots &roots, CallFrameLocationList& call_frames) {
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->objects_seen.start();
+    stats::GCStats::get()->collect_mature.start();
+#endif
+
     immix_.collect(roots, call_frames);
     mature.collect(roots, call_frames);
 
     immix_.unmark_all(roots, call_frames);
     young.clear_marks();
     clear_context_marks();
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->collect_mature.stop();
+    stats::GCStats::get()->objects_seen.stop();
+#endif
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {

@@ -136,11 +136,6 @@ namespace rubinius {
   void MarkSweepGC::collect(Roots &roots, CallFrameLocationList& call_frames) {
     Object* tmp;
 
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->objects_seen.start();
-    stats::GCStats::get()->collect_mature.start();
-#endif
-
     Root* root = static_cast<Root*>(roots.head());
     while(root) {
       tmp = root->get();
@@ -170,11 +165,6 @@ namespace rubinius {
 
     // Sweep up the garbage
     sweep_objects();
-
-#ifdef RBX_GC_STATS
-    stats::GCStats::get()->collect_mature.stop();
-    stats::GCStats::get()->objects_seen.stop();
-#endif
   }
 
   void MarkSweepGC::sweep_objects() {

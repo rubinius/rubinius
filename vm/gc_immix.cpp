@@ -1,6 +1,8 @@
 #include "gc_immix.hpp"
 #include "objectmemory.hpp"
 
+#include "instruments/stats.hpp"
+
 namespace rubinius {
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
 #ifdef IMMIX_DEBUG
@@ -28,9 +30,20 @@ namespace rubinius {
   }
 
   Object* ImmixGC::allocate(int bytes) {
+#ifdef RBX_GC_STATS
+    // duplicating the calulation so it is included in the time below
+    stats::GCStats::get()->mature_bytes_allocated += bytes;
+    stats::GCStats::get()->allocate_mature.start();
+#endif
+
     Object* obj = allocator_.allocate(bytes).as<Object>();
     obj->init_header(MatureObjectZone, bytes);
     obj->InImmix = 1;
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->allocate_mature.stop();
+#endif
+
     return obj;
   }
 
@@ -100,6 +113,7 @@ namespace rubinius {
 #ifdef IMMIX_DEBUG
     std::cout << "Immix: RS size cleared: " << cleared << "\n";
 #endif
+
   }
 
 }
