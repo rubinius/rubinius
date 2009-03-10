@@ -124,6 +124,10 @@ namespace rubinius {
       scan_object(tmp);
     }
 
+    after_marked();
+  }
+
+  void MarkSweepGC::after_marked() {
     // Cleanup all weakrefs seen
     clean_weakrefs();
 

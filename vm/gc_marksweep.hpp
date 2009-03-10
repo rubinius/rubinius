@@ -47,6 +47,7 @@ namespace rubinius {
     void   free_object(Object* obj, bool fast = false);
     virtual Object* saw_object(Object* obj);
     void   collect(Roots &roots, CallFrameLocationList& call_frame);
+    void after_marked();
 
     ObjectPosition validate_object(Object* obj);
   };

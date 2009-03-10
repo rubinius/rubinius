@@ -16,7 +16,7 @@ namespace rubinius {
   ObjectMemory::ObjectMemory(STATE, size_t young_bytes)
     : state(state)
     , young(this, young_bytes)
-    , mature(this)
+    , mark_sweep_(this)
     , immix_(this)
     , contexts(cContextHeapSize)
   {
@@ -49,7 +49,7 @@ namespace rubinius {
   ObjectMemory::~ObjectMemory() {
 
     young.free_objects();
-    mature.free_objects();
+    mark_sweep_.free_objects();
 
     // TODO free immix data
 
@@ -66,9 +66,9 @@ namespace rubinius {
 
   void ObjectMemory::debug_marksweep(bool val) {
     if(val) {
-      mature.free_entries = false;
+      mark_sweep_.free_entries = false;
     } else {
-      mature.free_entries = true;
+      mark_sweep_.free_entries = true;
     }
   }
 
@@ -117,11 +117,10 @@ namespace rubinius {
 #endif
 
     immix_.collect(roots, call_frames);
-    mature.collect(roots, call_frames);
+
+    mark_sweep_.after_marked();
 
     immix_.unmark_all(roots, call_frames);
-    young.clear_marks();
-    clear_context_marks();
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_mature.stop();
@@ -169,7 +168,7 @@ namespace rubinius {
     Object* obj;
 
     if(bytes > large_object_threshold) {
-      obj = mature.allocate(bytes, &collect_mature_now);
+      obj = mark_sweep_.allocate(bytes, &collect_mature_now);
       if(collect_mature_now) {
         state->interrupts.check = true;
       }
@@ -219,7 +218,7 @@ namespace rubinius {
     pos = young.validate_object(obj);
     if(pos != cUnknown) return pos;
 
-    return mature.validate_object(obj);
+    return mark_sweep_.validate_object(obj);
   }
 
   void ObjectMemory::clear_context_marks() {

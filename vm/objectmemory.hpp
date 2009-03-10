@@ -48,7 +48,7 @@ namespace rubinius {
     STATE;
     ObjectArray *remember_set;
     BakerGC young;
-    MarkSweepGC mature;
+    MarkSweepGC mark_sweep_;
 
     ImmixGC immix_;
 
