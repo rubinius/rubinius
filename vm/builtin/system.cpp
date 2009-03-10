@@ -357,6 +357,8 @@ namespace rubinius {
     tbl->store(state, state->symbol("collect_mature"), collect_mature_tbl);
     tbl->store(state, state->symbol("allocate_mature"), alloc_mature_tbl);
     tbl->store(state, state->symbol("objects_seen"), objects_seen_tbl);
+    tbl->store(state, state->symbol("large_objects"),
+        Integer::from(state, stats->large_objects()));
     tbl->store(state, state->symbol("clock"),
         Integer::from(state, stats->clock.elapsed()));
 

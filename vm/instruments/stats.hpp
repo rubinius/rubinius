@@ -251,6 +251,7 @@ namespace stats {
     Timer collect_mature;
 
     Counter mature_bytes_allocated;
+    Counter large_objects;
     SetCounter objects_seen;
 
   public:

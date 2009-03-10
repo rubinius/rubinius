@@ -145,6 +145,9 @@ module Rubinius
         printf format, " average",          auto_time(ay[:average]), auto_time(am[:average])
         printf format, "bytes allocated",
                auto_bytes(ay[:bytes_allocated]), auto_bytes(am[:bytes_allocated])
+
+        puts   "--"
+        printf format, "large objects",     n_a, comma(stats[:large_objects])
         printf format, "% of GC time",
                "(#{percentage(ay[:total], total)})", "(#{percentage(am[:total], total)})"
 

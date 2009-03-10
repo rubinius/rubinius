@@ -179,6 +179,11 @@ namespace rubinius {
       if(collect_mature_now) {
         state->interrupts.check = true;
       }
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->large_objects++;
+#endif
+
     } else {
       obj = young.allocate(bytes, &collect_young_now);
       if(obj == NULL) {
