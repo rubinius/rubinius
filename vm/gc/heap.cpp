@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include "vm/heap.hpp"
+#include "gc/heap.hpp"
 #include "instruments/stats.hpp"
 
 namespace rubinius {

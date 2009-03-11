@@ -12,7 +12,7 @@
 #include "builtin/symbol.hpp"
 
 #include "util/thread.hpp"
-#include "gc_root.hpp"
+#include "gc/root.hpp"
 
 #include "vm/object_utils.hpp"
 

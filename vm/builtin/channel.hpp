@@ -5,7 +5,7 @@
 #include "type_info.hpp"
 
 #include "virtual.hpp" // ObjectCallback
-#include "gc_root.hpp" // TypedRoot
+#include "gc/root.hpp" // TypedRoot
 
 #include "thread.hpp"
 

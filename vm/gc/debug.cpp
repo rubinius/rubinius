@@ -1,6 +1,6 @@
 #include "prelude.hpp"
-#include "gc.hpp"
-#include "gc_debug.hpp"
+#include "gc/gc.hpp"
+#include "gc/debug.hpp"
 #include "objectmemory.hpp"
 
 #include <iostream>

@@ -2,7 +2,7 @@
 #define RBX_THREAD_STATE_HPP
 
 #include "raise_reason.hpp"
-#include "gc_root.hpp"
+#include "gc/root.hpp"
 
 namespace rubinius {
   class Object;

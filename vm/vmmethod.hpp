@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "executor.hpp"
-#include "gc_root.hpp"
+#include "gc/root.hpp"
 #include "primitives.hpp"
 #include "type_info.hpp"
 

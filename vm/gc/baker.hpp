@@ -4,10 +4,10 @@
 #include <iostream>
 #include <cstring>
 
-#include "vm/heap.hpp"
-#include "vm/gc.hpp"
-#include "vm/gc_root.hpp"
-#include "vm/object_position.hpp"
+#include "heap.hpp"
+#include "gc/gc.hpp"
+#include "gc/root.hpp"
+#include "object_position.hpp"
 
 #include "builtin/object.hpp"
 

@@ -25,7 +25,7 @@
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
 
-#include "gc_root.hpp"
+#include "gc/root.hpp"
 
 namespace rubinius {
 

@@ -1,9 +1,9 @@
 #ifndef RBX_OBJECTMEMORY_H
 #define RBX_OBJECTMEMORY_H
 
-#include "gc_marksweep.hpp"
-#include "gc_baker.hpp"
-#include "gc_immix.hpp"
+#include "gc/marksweep.hpp"
+#include "gc/baker.hpp"
+#include "gc/immix.hpp"
 
 #include "prelude.hpp"
 #include "type_info.hpp"

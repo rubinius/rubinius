@@ -1,9 +1,9 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "gc_baker.hpp"
+#include "gc/baker.hpp"
 #include "objectmemory.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 
 #include "builtin/tuple.hpp"
 

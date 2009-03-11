@@ -3,7 +3,7 @@
 
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "gc_marksweep.hpp"
+#include "gc/marksweep.hpp"
 #include "config_parser.hpp"
 
 #include "builtin/class.hpp"

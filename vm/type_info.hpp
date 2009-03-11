@@ -4,7 +4,7 @@
 #include <map>
 #include <stdexcept>
 
-#include "vm/gc_object_mark.hpp"
+#include "vm/gc/object_mark.hpp"
 #include "vm/object_types.hpp"
 #include "vm/prelude.hpp"
 

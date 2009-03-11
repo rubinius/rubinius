@@ -1,4 +1,4 @@
-#include "gc_immix.hpp"
+#include "gc/immix.hpp"
 #include "objectmemory.hpp"
 
 #include "instruments/stats.hpp"

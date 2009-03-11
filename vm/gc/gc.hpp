@@ -3,7 +3,7 @@
 
 #include "oop.hpp"
 #include "builtin/object.hpp"
-#include "vm/gc_object_mark.hpp"
+#include "gc/object_mark.hpp"
 
 namespace rubinius {
 

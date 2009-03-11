@@ -3,7 +3,7 @@
 
 #include "globals.hpp"
 #include "symboltable.hpp"
-#include "gc_object_mark.hpp"
+#include "gc/object_mark.hpp"
 #include "thread_state.hpp"
 
 #include "refcount.hpp"

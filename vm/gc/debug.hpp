@@ -1,5 +1,5 @@
-#include "gc.hpp"
-#include "gc_root.hpp"
+#include "gc/gc.hpp"
+#include "gc/root.hpp"
 
 #include <map>
 

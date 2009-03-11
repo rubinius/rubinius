@@ -1,8 +1,8 @@
-#include "gc.hpp"
-#include "gc_marksweep.hpp"
+#include "gc/gc.hpp"
+#include "gc/marksweep.hpp"
 #include "objectmemory.hpp"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 
 #include "builtin/tuple.hpp"
 

@@ -1,4 +1,4 @@
-#include "gc_root.hpp"
+#include "gc/root.hpp"
 #include "vm.hpp"
 
 namespace rubinius {
