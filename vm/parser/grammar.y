@@ -37,8 +37,18 @@ namespace rubinius {
 #define isnumber isdigit
 #endif
 
-#define TRUE true
+/* Defined at least in mach/boolean.h on OS X. */
+#ifdef  TRUE
+  #undef  TRUE
+#endif
+
+#ifdef  FALSE
+  #undef FALSE
+#endif
+
+#define TRUE  true
 #define FALSE false
+
 
 #define ISALPHA isalpha
 #define ISSPACE isspace
