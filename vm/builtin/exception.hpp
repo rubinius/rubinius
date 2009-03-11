@@ -29,9 +29,6 @@ namespace rubinius {
     static void init(STATE);
     static Exception* create(STATE);
 
-    // Ruby.primitive :exception_fill_locations
-    Array* fill_locations(STATE, CallFrame* calling_environment);
-
     void print_locations(STATE);
 
     static Exception* make_exception(STATE, Class* exc_class, const char* message);

@@ -10,6 +10,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "vm/call_frame.hpp"
+
 #include "vm/object_utils.hpp"
 #include "vm/vm.hpp"
 
@@ -25,6 +27,7 @@
 #include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
+#include "builtin/location.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
@@ -203,16 +206,27 @@ namespace rubinius {
     return name;
   }
 
-/** @todo Fix, Task is gone. --rue */
-//  Object* System::vm_show_backtrace(STATE, Object* ctx) {
-//    if(ctx == Qnil) {
-//      G(current_task)->print_backtrace(NULL);
-//    } else {
-//      G(current_task)->print_backtrace(as<MethodContext>(ctx));
-//    }
-//
-//    return Qnil;
-//  }
+  /** @todo Double-check it is OK to drop the first frame, which
+   *        /should/ be the #raise. --rue
+   *
+   *  @todo Could possibly capture the system backtrace at this
+   *        point. --rue
+   */
+  Array* System::vm_backtrace(STATE, CallFrame* calling_environment) {
+    CallFrame* call_frame = calling_environment->previous;  /* Skip the #raise or #caller frame */
+    Array* bt = Array::create(state, 5);
+
+    while(call_frame) {
+      // Ignore synthetic frames
+      if(call_frame->cm) {
+        bt->append(state, Location::create(state, call_frame));
+      }
+
+      call_frame = call_frame->previous;
+    }
+
+    return bt;
+  }
 
 /** @todo Fix, Task is gone. --rue */
 //  Object* System::vm_profiler_instrumenter_start(STATE) {

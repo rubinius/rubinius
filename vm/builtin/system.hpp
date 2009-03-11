@@ -12,6 +12,7 @@ namespace rubinius {
   class Fixnum;
   class String;
 
+  class CallFrame;
 
   /**
    *  VM primitives etc.
@@ -110,11 +111,10 @@ namespace rubinius {
     static Object*  vm_reset_method_cache(STATE, Symbol* name);
 
     /**
-     *  Writes backtrace to standard output.
+     *  Backtrace as an Array.
      */
-/** @todo Fix, Task is gone. --rue */
-//    // Ruby.primitive :vm_show_backtrace
-//    static Object*  vm_show_backtrace(STATE, Object* ctx);
+    // Ruby.primitive :vm_backtrace
+    static Array*   vm_backtrace(STATE, CallFrame* calling_environment);
 
     /**
      *  Starts the instrumenting profiler.

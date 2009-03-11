@@ -1,4 +1,9 @@
 class Rubinius::VM
+  def self.backtrace()
+    Ruby.primitive :vm_backtrace
+    raise PrimitiveFailure, "Unable to create backtrace!"
+  end
+
   def self.stats
     Ruby.primitive :vm_stats
     raise PrimitiveFailure, "Rubinius::VM.stats primitive failed"

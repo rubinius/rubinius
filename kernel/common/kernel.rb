@@ -252,9 +252,9 @@ module Kernel
   module_function :lambda
   module_function :proc
 
-  def caller(start=1)
-    frame = MethodContext.current.sender
-    frame.stack_trace_starting_at(start)
+  # @todo This is not exactly MRI's. --rue
+  def caller(start = 1)
+    Rubinius::VM.backtrace[start..-1].map {|l| "#{l.position} in #{l.describe}" }
   end
   module_function :caller
 

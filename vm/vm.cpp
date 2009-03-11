@@ -419,11 +419,4 @@ namespace rubinius {
 
     return true;
   }
-
-  /* For debugging. */
-  extern "C" {
-    void __printbt__() {
-      VM::current_state()->print_backtrace();
-    }
-  }
 };

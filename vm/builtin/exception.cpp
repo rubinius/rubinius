@@ -29,23 +29,6 @@ namespace rubinius {
     return state->new_object<Exception>(G(exception));
   }
 
-  Array* Exception::fill_locations(STATE, CallFrame *calling_environment) {
-    CallFrame* call_frame = calling_environment;
-    Array* bt = Array::create(state, 5);
-
-    while(call_frame) {
-      // Ignore synthetic frames
-      if(call_frame->cm) {
-        bt->append(state, Location::create(state, call_frame));
-      }
-
-      call_frame = call_frame->previous;
-    }
-
-    locations(state, bt);
-    return bt;
-  }
-
   void Exception::print_locations(STATE) {
     for(size_t i = 0; i < locations_->size(); i++) {
       if(Location* loc = try_as<Location>(locations_->get(state, i))) {

@@ -13,6 +13,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
 #include "builtin/sendsite.hpp"
+#include "builtin/system.hpp"
 #include "builtin/machine_method.hpp"
 #include "instructions.hpp"
 #include "profiler.hpp"
@@ -491,7 +492,7 @@ namespace rubinius {
     if(args.call(state, vmm, scope, msg) == false) {
       Exception* exc =
         Exception::make_argument_error(state, vmm->required_args, msg.args(), msg.name);
-      exc->fill_locations(state, frame);
+      exc->locations(state, System::vm_backtrace(state, frame));
       state->thread_state()->raise_exception(exc);
 
       return NULL;

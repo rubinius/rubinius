@@ -75,4 +75,11 @@ namespace rubinius {
     if(!cm) return -2;        // trampoline context
     return cm->line(state, ip);
   }
+
+  /* For debugging. */
+  extern "C" {
+    void __printbt__(CallFrame* call_frame) {
+      call_frame->print_backtrace(VM::current_state());
+    }
+  }
 }

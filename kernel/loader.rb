@@ -261,47 +261,42 @@ begin
 
 rescue SystemExit => e
   code = e.status
-rescue Object => e
-  original_context = nil
 
+
+rescue SyntaxError => e
+  puts "A syntax error has occured:"
+  puts "    #{e.message}"
+  puts "    near line #{e.file}:#{e.line}, column #{e.column}"
+  puts "\nCode:\n#{e.code}"
+  if e.column
+    puts((" " * (e.column - 1)) + "^")
+  end
+
+  puts "\nBacktrace:"
+  puts e.awesome_backtrace.show
+  code = 1
+
+rescue Object => e
   begin
-    if e.kind_of? Exception or e.kind_of? ThrownValue
+    if e.kind_of? Exception # or e.kind_of? ThrownValue
       msg = e.message
     else
       msg = "strange object detected as exception: #{e.inspect}"
     end
-    if e.kind_of? SyntaxError
-      puts "A syntax error has occured:"
-      puts "    #{msg}"
-      puts "    near line #{e.file}:#{e.line}, column #{e.column}"
-      puts "\nCode:\n#{e.code}"
-      if e.column
-        puts((" " * (e.column - 1)) + "^")
-      end
-    else
-      puts "An exception has occurred:"
-      puts "    #{msg} (#{e.class})"
-    end
+
+    puts "An exception has occurred:"
+    puts "    #{e.message} (#{e.class})"
+
     puts "\nBacktrace:"
     puts e.awesome_backtrace.show
     code = 1
+
   rescue Object => e2
     puts "\n====================================="
-    puts "Unable to build proper backtrace due to errors!"
+    puts "Exception occurred during top-level exception output! (THIS IS BAD)"
     puts
     puts "Original Exception: #{e.inspect} (#{e.class})"
-    if original_context
-      puts "Lowlevel backtrace:"
-      Rubinius::VM.show_backtrace(original_context)
-      puts
-    end
-
     puts "New Exception: #{e2.inspect} (#{e.class})"
-    new_context = e2.context
-    if new_context
-      puts "Lowlevel backtrace:"
-      Rubinius::VM.show_backtrace(new_context)
-    end
     code = 128
   end
 end

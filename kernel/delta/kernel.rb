@@ -6,7 +6,7 @@ module Kernel
   # raising forever blows)
   #++
 
-  def raise(exc=Undefined, msg=nil, trace=nil)
+  def raise(exc = Undefined, msg = nil, trace = nil)
     skip = false
     if exc.equal? Undefined
       exc = $!
@@ -26,7 +26,7 @@ module Kernel
     end
 
     if !skip and !exc.locations
-      exc.fill_locations
+      exc.locations = Rubinius::VM.backtrace
     end
 
     if $DEBUG and $VERBOSE != nil
