@@ -23,9 +23,6 @@
 #include "ffi_util.hpp"
 #include "message.hpp"
 
-#include "strlcpy.hpp"
-#include "strlcat.hpp"
-
 namespace rubinius {
 
   void MemoryPointer::init(STATE) {

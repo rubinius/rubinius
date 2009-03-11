@@ -24,10 +24,6 @@
 #include "ffi_util.hpp"
 #include "message.hpp"
 
-#include "strlcpy.hpp"
-#include "strlcat.hpp"
-
-
 #include "vm/builtin/nativefunction.hpp"
 
 #include "native_libraries.hpp"
