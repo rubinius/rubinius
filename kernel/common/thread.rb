@@ -131,7 +131,7 @@ class Thread
   def self.stop
     # I don't understand at all what this does.
     Thread.critical = false
-    sleep nil
+    sleep
     nil
   end
 

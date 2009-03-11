@@ -11,8 +11,6 @@ class MSpecScript
 
     '^spec/frozen/core/continuation',
     '^spec/frozen/core/process',
-    '^spec/frozen/core/thread',
-    '^spec/frozen/core/threadgroup',
 
     '^spec/core/compiledmethod',
     '^spec/core/module',

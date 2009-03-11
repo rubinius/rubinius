@@ -282,7 +282,11 @@ module Kernel
       raise TypeError, 'time interval must be a numeric value'
     end
 
-    Thread.sleep duration
+    start = Process.time
+    chan = Channel.new
+    chan.receive_timeout duration
+
+    return Process.time - start
   end
   module_function :sleep
 

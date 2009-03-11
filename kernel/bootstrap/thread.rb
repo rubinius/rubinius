@@ -20,21 +20,6 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread#fork primitive failed"
   end
 
-
-  #
-  # Sleep current thread for defined number of seconds or indefinitely.
-  #
-  # The sleep can be interrupted by an explicit #run call on the Thread
-  # in question.
-  #
-  # It is only possible to sleep the current thread, because doing so
-  # for any other Thread is dangerous and complicated.
-  #
-  def self.sleep(arg)
-    Ruby.primitive :thread_sleep
-    sleep(arg.to_i)
-  end
-
   def raise_prim(exc)
     Ruby.primitive :thread_raise
     Kernel.raise PrimitiveFailure, "Thread#raise primitive failed"

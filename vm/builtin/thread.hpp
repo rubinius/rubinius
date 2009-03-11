@@ -67,9 +67,6 @@ namespace rubinius {
     // Ruby.primitive :thread_pass
     static Object* pass(STATE);
 
-    // Ruby.primitive :thread_sleep
-    static Object* sleep_now(STATE, Object* duration, CallFrame* calling_environment);
-
     // Ruby.primitive :thread_raise
     Object* raise(STATE, Exception* exc);
 

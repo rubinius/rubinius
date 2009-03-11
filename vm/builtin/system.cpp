@@ -249,7 +249,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object*  System::vm_jit_info(STATE) {
+  Object* System::vm_jit_info(STATE) {
     if(!state->config.jit_enabled) {
       return Qnil;
     }
@@ -276,7 +276,7 @@ namespace rubinius {
 #endif
   }
 
-  Object*  System::vm_watch_signal(STATE, Fixnum* sig) {
+  Object* System::vm_watch_signal(STATE, Fixnum* sig) {
     SignalThread* thr = state->shared.signal_thread();
     if(thr) {
       thr->add_signal(sig->to_native());
@@ -284,6 +284,10 @@ namespace rubinius {
     } else {
       return Qfalse;
     }
+  }
+
+  Object* System::vm_time(STATE) {
+    return Integer::from(state, time(0));
   }
 
 }

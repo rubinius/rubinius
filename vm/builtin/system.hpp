@@ -154,6 +154,9 @@ namespace rubinius {
     // Ruby.primitive :vm_watch_signal
     static Object*  vm_watch_signal(STATE, Fixnum* sig);
 
+    // Ruby.primitive :vm_time
+    static Object*  vm_time(STATE);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

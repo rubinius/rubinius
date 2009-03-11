@@ -95,57 +95,6 @@ namespace rubinius {
     return this;
   }
 
-#define NANOSECONDS 1000000000
-  Object* Thread::sleep_now(STATE, Object* duration, CallFrame* call_frame) {
-    struct timespec ts;
-    struct timeval tv;
-    bool use_timed_wait = true;
-
-    gettimeofday(&tv, 0);
-    ts.tv_sec =  tv.tv_sec;
-    ts.tv_nsec = tv.tv_usec * 1000;
-
-    if(Fixnum* fix = try_as<Fixnum>(duration)) {
-      ts.tv_sec += fix->to_native();
-    } else if(Float* flt = try_as<Float>(duration)) {
-      uint64_t nano = (uint64_t)(flt->val * NANOSECONDS);
-      ts.tv_sec +=  (time_t)(nano / NANOSECONDS);
-      ts.tv_nsec +=   (long)(nano % NANOSECONDS);
-    } else if(duration->nil_p()) {
-      ts.tv_sec = 0;
-      ts.tv_nsec = 0;
-      use_timed_wait = false;
-    } else {
-      return Primitives::failure();
-    }
-
-    thread::Condition cond;
-    WaitingOnCondition waiter(cond);
-
-    time_t before = time(0);
-
-    thread::Mutex& mutex = state->local_lock();
-    mutex.lock();
-    state->install_waiter(waiter);
-    state->thread->sleep(state, Qtrue);
-
-    {
-      GlobalLock::UnlockGuard x(state->global_lock());
-      if(use_timed_wait) {
-        cond.wait_until(mutex, &ts);
-      } else {
-        cond.wait(mutex);
-      }
-    }
-    mutex.unlock();
-
-    state->clear_waiter();
-    if(!state->check_async(call_frame)) return NULL;
-
-    state->thread->sleep(state, Qfalse);
-    return Integer::from(state, time(0) - before);
-  }
-
   Object* Thread::raise(STATE, Exception* exc) {
     thread::Mutex::LockGuard x(vm->local_lock());
     vm->register_raise(exc);
