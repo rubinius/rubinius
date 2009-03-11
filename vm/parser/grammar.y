@@ -37,6 +37,9 @@ namespace rubinius {
 #define isnumber isdigit
 #endif
 
+#define TRUE true
+#define FALSE false
+
 #define ISALPHA isalpha
 #define ISSPACE isspace
 #define ISALNUM(x) (isalpha(x) || isnumber(x))
