@@ -1,5 +1,5 @@
 class Rubinius::VM
-  def self.backtrace()
+  def self.backtrace(frames_to_skip)
     Ruby.primitive :vm_backtrace
     raise PrimitiveFailure, "Unable to create backtrace!"
   end

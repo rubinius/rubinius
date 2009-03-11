@@ -492,7 +492,7 @@ namespace rubinius {
     if(args.call(state, vmm, scope, msg) == false) {
       Exception* exc =
         Exception::make_argument_error(state, vmm->required_args, msg.args(), msg.name);
-      exc->locations(state, System::vm_backtrace(state, frame));
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), frame));
       state->thread_state()->raise_exception(exc);
 
       return NULL;

@@ -212,8 +212,13 @@ namespace rubinius {
    *  @todo Could possibly capture the system backtrace at this
    *        point. --rue
    */
-  Array* System::vm_backtrace(STATE, CallFrame* calling_environment) {
-    CallFrame* call_frame = calling_environment->previous;  /* Skip the #raise or #caller frame */
+  Array* System::vm_backtrace(VM* state, Fixnum* skip, CallFrame* calling_environment) {
+    CallFrame* call_frame = calling_environment;
+
+    for(native_int i = skip->to_native(); call_frame && i > 0; --i) {
+      call_frame = call_frame->previous;
+    }
+
     Array* bt = Array::create(state, 5);
 
     while(call_frame) {

@@ -254,7 +254,7 @@ module Kernel
 
   # @todo This is not exactly MRI's. --rue
   def caller(start = 1)
-    Rubinius::VM.backtrace[start..-1].map {|l| "#{l.position} in #{l.describe}" }
+    Rubinius::VM.backtrace(1)[start..-1].map {|l| "#{l.position} in #{l.describe}" }
   end
   module_function :caller
 

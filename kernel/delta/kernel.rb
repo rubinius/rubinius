@@ -26,7 +26,7 @@ module Kernel
     end
 
     if !skip and !exc.locations
-      exc.locations = Rubinius::VM.backtrace
+      exc.locations = Rubinius::VM.backtrace 1
     end
 
     if $DEBUG and $VERBOSE != nil
