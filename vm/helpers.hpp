@@ -22,11 +22,13 @@ namespace rubinius {
     void const_set(VM*, CallFrame* call_frame, Symbol* name, Object* val);
     void const_set(VM*, Module* mod, Symbol* name, Object* val);
 
-    Object* locate_method_on(VM*, Object* recv, Symbol* name, Object* priv);
-    Class* open_class(VM*, CallFrame* call_frame, Object* super, Symbol* name, bool* created);
-    Class* open_class(VM*, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created);
-    Module* open_module(VM*, CallFrame* call_frame, Symbol* name);
-    Module* open_module(VM*, CallFrame* call_frame, Module* under, Symbol* name);
+    /** Locate method just as if sending. */
+    Object*   locate_method_on(VM*, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv);
+
+    Class*    open_class(VM*, CallFrame* call_frame, Object* super, Symbol* name, bool* created);
+    Class*    open_class(VM*, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created);
+    Module*   open_module(VM*, CallFrame* call_frame, Symbol* name);
+    Module*   open_module(VM*, CallFrame* call_frame, Module* under, Symbol* name);
 
     void yield_debugger(VM*, CallFrame* call_frame);
   };

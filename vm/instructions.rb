@@ -1129,13 +1129,15 @@ class Instructions
   #   method name, and the object to search from off the stack. If a matching
   #   method is located, the module it was found in and the method is pushed
   #   onto the stack; otherwise, nil is pushed onto the stack.
+  #
+  # @todo Need to remove redundancy here and send_*. --rue
 
   def locate_method
     <<-CODE
     Object* t1 = stack_pop(); // include_private
     Symbol* name = as<Symbol>(stack_pop()); // meth
     Object* t3 = stack_pop(); // self
-    stack_push(Helpers::locate_method_on(state, t3, name, t1));
+    stack_push(Helpers::locate_method_on(state, call_frame, t3, name, t1));
     CODE
   end
 

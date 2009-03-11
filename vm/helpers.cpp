@@ -122,22 +122,22 @@ namespace rubinius {
       return msg.send(state, call_frame);
     }
 
-    Object* locate_method_on(STATE, Object* recv, Symbol* name, Object* priv) {
+    /** @todo Remove redundancy between this and sends. --rue */
+    Object* locate_method_on(STATE, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv) {
       Message msg(state);
 
       msg.recv = recv;
       msg.lookup_from = recv->lookup_begin(state);
       msg.name = name;
       msg.priv = (priv == Qtrue);
-      msg.set_caller(NULL); // HACK
+      msg.set_caller(call_frame);
 
       if(!GlobalCacheResolver::resolve(state, msg)) {
         return (Tuple*)Qnil;
       }
 
-      MethodVisibility *vis;
+      MethodVisibility* vis = try_as<MethodVisibility>(msg.method);
 
-      vis = try_as<MethodVisibility>(msg.method);
       if(vis) {
         return Tuple::from(state, 2, vis->method(), msg.module);
       }
