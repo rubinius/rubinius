@@ -1,7 +1,7 @@
 #ifndef RBX_INSTRUMENTS_STATS_HPP
 #define RBX_INSTRUMENTS_STATS_HPP
 
-#include "optimize.hpp"
+#include "util/optimize.hpp"
 #include "instruments/timing.hpp"
 
 namespace rubinius {

@@ -6,7 +6,7 @@
 #include "gc/object_mark.hpp"
 #include "thread_state.hpp"
 
-#include "refcount.hpp"
+#include "util/refcount.hpp"
 
 #include "global_lock.hpp"
 #include "maps.hpp"

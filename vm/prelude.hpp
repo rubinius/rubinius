@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-#include "optimize.hpp"
+#include "util/optimize.hpp"
 #include "flags.hpp"
 
 namespace rubinius {
