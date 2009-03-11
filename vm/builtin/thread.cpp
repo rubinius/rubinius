@@ -38,7 +38,7 @@ namespace rubinius {
 
     thr->alive(state, Qtrue);
     thr->queued(state, Qfalse);
-    thr->sleep(state, Qtrue);
+    thr->sleep(state, Qfalse);
     thr->frozen_stack(state, Qfalse);
 
     target->thread.set(thr);
@@ -54,20 +54,22 @@ namespace rubinius {
    *        VM::initialize and eventually VM::boot.) It is not defined
    *        whether VM owns Threads or the other way around.
    */
-  Thread* Thread::s_new(STATE, Message& msg) {
+  Thread* Thread::allocate(STATE) {
     VM* vm = state->shared.new_vm();
     Thread* thread = Thread::create(state, vm);
-
-    NativeThread* nt = thread->native_thread();
-    nt->set_startup(msg.block, msg.as_array(state));
-    // Let it run.
-
-    nt->run();
 
     return thread;
   }
 
   /* Primitives */
+
+  Object* Thread::fork(STATE) {
+    NativeThread* nt = native_thread();
+
+    // Let it run.
+    nt->run();
+    return Qnil;
+  }
 
   Thread* Thread::current(STATE) {
     return state->thread.get();
@@ -87,7 +89,7 @@ namespace rubinius {
 
     {
       thread::Mutex::LockGuard x(vm->local_lock());
-      if(!vm->wakeup()) return (Thread*)Qnil;
+      vm->wakeup();
     }
 
     return this;
@@ -97,6 +99,7 @@ namespace rubinius {
   Object* Thread::sleep_now(STATE, Object* duration, CallFrame* call_frame) {
     struct timespec ts;
     struct timeval tv;
+    bool use_timed_wait = true;
 
     gettimeofday(&tv, 0);
     ts.tv_sec =  tv.tv_sec;
@@ -111,6 +114,7 @@ namespace rubinius {
     } else if(duration->nil_p()) {
       ts.tv_sec = 0;
       ts.tv_nsec = 0;
+      use_timed_wait = false;
     } else {
       return Primitives::failure();
     }
@@ -123,16 +127,30 @@ namespace rubinius {
     thread::Mutex& mutex = state->local_lock();
     mutex.lock();
     state->install_waiter(waiter);
+    state->thread->sleep(state, Qtrue);
+
     {
       GlobalLock::UnlockGuard x(state->global_lock());
-      cond.wait_until(mutex, &ts);
+      if(use_timed_wait) {
+        cond.wait_until(mutex, &ts);
+      } else {
+        cond.wait(mutex);
+      }
     }
     mutex.unlock();
 
     state->clear_waiter();
     if(!state->check_async(call_frame)) return NULL;
 
+    state->thread->sleep(state, Qfalse);
     return Integer::from(state, time(0) - before);
+  }
+
+  Object* Thread::raise(STATE, Exception* exc) {
+    thread::Mutex::LockGuard x(vm->local_lock());
+    vm->register_raise(exc);
+    vm->wakeup();
+    return exc;
   }
 
 }

@@ -12,9 +12,6 @@
 namespace rubinius {
   NativeThread::NativeThread(VM* vm)
     : vm_(vm)
-    , lock_(vm->global_lock())
-    , block_(vm, Qnil)
-    , args_(vm, (Array*)Qnil)
   {}
 
   void NativeThread::perform() {
@@ -25,7 +22,7 @@ namespace rubinius {
 
     // Grab the GIL
     // (automatically unlocked at the end of this function)
-    GlobalLock::LockGuard x(lock_);
+    GlobalLock::LockGuard x(vm_->global_lock());
 
     CallFrame cf;
     cf.previous = NULL;
@@ -37,8 +34,9 @@ namespace rubinius {
     cf.current_unwind = 0;
     cf.ip = 0;
 
-    Object* ret = vm_->thread.get()->send(vm_, &cf, vm_->symbol("initialize"),
-                                          args_.get(), block_.get());
+    vm_->set_stack_start(&cf);
+
+    Object* ret = vm_->thread.get()->send(vm_, &cf, vm_->symbol("__run__"));
 
     if(!ret) {
       if(Exception* exc = try_as<Exception>(vm_->thread_state()->raise_value())) {

@@ -5,8 +5,8 @@ class Thread
     Kernel.raise PrimitiveFailure, "Threadcurrent primitive failed"
   end
 
-  def self.new
-    Ruby.primitive :thread_new
+  def self.allocate
+    Ruby.primitive :thread_allocate
     Kernel.raise PrimitiveFailure, "Thread.new primitive failed"
   end
 
@@ -14,6 +14,12 @@ class Thread
     Ruby.primitive :thread_pass
     Kernel.raise PrimitiveFailure, "Thread#pass primitive failed"
   end
+
+  def fork
+    Ruby.primitive :thread_fork
+    Kernel.raise PrimitiveFailure, "Thread#fork primitive failed"
+  end
+
 
   #
   # Sleep current thread for defined number of seconds or indefinitely.

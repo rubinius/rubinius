@@ -27,16 +27,32 @@ class Thread
     "#<#{self.class}:0x#{object_id.to_s(16)} #{stat}>"
   end
 
+  def self.new(*args, &block)
+    thr = allocate()
+    thr.initialize *args, &block
+    thr.fork
+
+    return thr
+  end
+
   def self.start(*args, &block)
     new(*args, &block) # HACK
   end
 
   def initialize(*args, &block)
     setup(false)
+    @args = args
+    @block = block
+
+    Thread.current.group.add self
+  end
+
+  # Called by Thread#fork in the new thread
+  def __run__
     begin
       begin
         @lock.send nil
-        @result = block.call(*args)
+        @result = @block.call(*@args)
       ensure
         @lock.receive
         @joins.each {|join| join.send self }
@@ -46,19 +62,15 @@ class Thread
     rescue Exception => e
       @exception = e
     ensure
+      @alive = false
       @lock.send nil
     end
 
-    begin
-      if @exception
-        puts "#{@exception.message} (#{@exception.class})"
-        puts @exception.awesome_backtrace.show
-
-        if Thread.abort_on_exception
-          Thread.main.raise @exception
-        elsif $DEBUG
-          STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
-        end
+    if @exception
+      if Thread.abort_on_exception
+        Thread.main.raise @exception
+      elsif $DEBUG
+        STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
       end
     end
   end
@@ -101,14 +113,14 @@ class Thread
   end
 
   def status
-    if alive?
+    if @alive
       if @sleep
         "sleep"
       else
         "run"
       end
     else
-      if(@exception)
+      if @exception
         nil
       else
         false
@@ -116,9 +128,10 @@ class Thread
     end
   end
 
-  def self.stop()
+  def self.stop
+    # I don't understand at all what this does.
     Thread.critical = false
-    sleep
+    sleep nil
     nil
   end
 
@@ -155,10 +168,11 @@ class Thread
         @joins << jc
         @lock.send nil
         begin
-          unless timeout.equal?(Undefined)
-            Scheduler.send_in_seconds(jc, timeout.to_f, nil)
+          if timeout.equal? Undefined
+            jc.receive
+          else
+            jc.receive_timeout timeout.to_f
           end
-          jc.receive
         ensure
           @lock.receive
         end

@@ -417,6 +417,16 @@ namespace rubinius {
 
     check_local_interrupts = false;
 
+    if(thread_state_.raise_reason() != cNone) {
+      return false;
+    }
+
     return true;
   }
+
+  void VM::register_raise(Exception* exc) {
+    thread_state_.raise_exception(exc);
+    check_local_interrupts = true;
+  }
+
 };

@@ -176,6 +176,7 @@ namespace rubinius {
      *  Object, passing the given number of arguments through varargs.
      */
     Object*   send(STATE, CallFrame* caller, Symbol* name, Array* args, Object* block);
+    Object*   send(STATE, CallFrame* caller, Symbol* name);
 
     /**
      *  Perform a send from Ruby.

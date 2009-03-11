@@ -16,6 +16,9 @@
 #include "event.hpp"
 
 #include "thread.hpp"
+#include "native_thread.hpp"
+
+#include <sys/time.h>
 
 namespace rubinius {
 
@@ -24,50 +27,52 @@ namespace rubinius {
     G(channel)->set_object_type(state, Channel::type);
   }
 
-
   Channel* Channel::create(STATE) {
     Channel* chan = state->new_object<Channel>(G(channel));
-    chan->waiting(state, List::create(state));
     chan->waiters_ = 0;
     chan->condition_ = new thread::Condition;
+    chan->value(state, List::create(state));
 
     return chan;
   }
 
   /** @todo Remove the event too? Should not affect code, but no need for it either. --rue */
   void Channel::cancel_waiter(STATE, const Thread* waiter) {
-    waiting_->remove(state, waiter);
+    // waiting_->remove(state, waiter);
   }
 
   Object* Channel::send(STATE, Object* val) {
-    if(List* lst = try_as<List>(value_)) {
-      lst->append(state, val);
-    } else {
-      List* lst = List::create(state);
-      lst->append(state, val);
-
-      value(state, lst);
-    }
+    value_->append(state, val);
 
     if(waiters_ > 0) {
-      waiters_--;
       condition_->signal();
     }
 
     return Qnil;
   }
 
-  Object* Channel::receive(STATE) {
-    if(!value_->nil_p()) {
-      List* list = as<List>(value_);
+  Object* Channel::receive(STATE, CallFrame* call_frame) {
+    return receive_timeout(state, Qnil, call_frame);
+  }
 
-      Object* ret = list->shift(state);
+#define NANOSECONDS 1000000000
+  Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
+    if(!value_->empty_p()) return value_->shift(state);
 
-      if(list->size() == 0) {
-        value(state, Qnil);
-      }
+    // Otherwise, we need to wait for a value.
+    struct timespec ts = {0,0};
+    bool use_timed_wait = true;
 
-      return ret;
+    if(Fixnum* fix = try_as<Fixnum>(duration)) {
+      ts.tv_sec = fix->to_native();
+    } else if(Float* flt = try_as<Float>(duration)) {
+      uint64_t nano = (uint64_t)(flt->val * NANOSECONDS);
+      ts.tv_sec  =  (time_t)(nano / NANOSECONDS);
+      ts.tv_nsec =    (long)(nano % NANOSECONDS);
+    } else if(duration->nil_p()) {
+      use_timed_wait = false;
+    } else {
+      return Primitives::failure();
     }
 
     // Passing control away means that the GC might run. So we need
@@ -77,15 +82,35 @@ namespace rubinius {
     // DO NOT USE this AFTER wait().
     TypedRoot<Channel*> chan(state, this);
 
-    GlobalLock& lock = state->global_lock();
-    waiters_++;
-    condition_->wait(lock);
+    WaitingOnCondition waiter(*condition_);
 
-    if(List* list = try_as<List>(chan->value())) {
-      return list->shift(state);
+    state->install_waiter(waiter);
+    waiters_++;
+    state->thread->sleep(state, Qtrue);
+
+    if(use_timed_wait) {
+      struct timeval tv;
+      gettimeofday(&tv, 0);
+      ts.tv_sec  += tv.tv_sec;
+      ts.tv_nsec += (tv.tv_usec * 1000);
+
+      condition_->wait_until(state->global_lock(), &ts);
+    } else {
+      condition_->wait(state->global_lock());
     }
 
-    return Qnil;
+    waiters_--;
+
+    state->clear_waiter();
+    state->thread->sleep(state, Qfalse);
+    if(!state->check_async(call_frame)) return NULL;
+
+    // We were awoken, but there is no value to use. Return nil.
+    if(chan->value()->empty_p()) {
+      return Qnil;
+    }
+
+    return chan->value()->shift(state);
   }
 
   bool Channel::has_readers_p() {

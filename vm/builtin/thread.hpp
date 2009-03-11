@@ -43,10 +43,13 @@ namespace rubinius {
 
   public:   /* Primitives */
 
-    // Ruby.primitive :thread_new
-    static Thread* s_new(STATE, Message& msg);
+    // Ruby.primitive :thread_allocate
+    static Thread* allocate(STATE);
 
     static Thread* create(STATE, VM* target);
+
+    // Ruby.primitive :thread_fork
+    Object* fork(STATE);
 
     /**
      *  Returns the currently executing Thread.
@@ -66,6 +69,9 @@ namespace rubinius {
 
     // Ruby.primitive :thread_sleep
     static Object* sleep_now(STATE, Object* duration, CallFrame* calling_environment);
+
+    // Ruby.primitive :thread_raise
+    Object* raise(STATE, Exception* exc);
 
     /**
      *  Schedule Thread to be run.

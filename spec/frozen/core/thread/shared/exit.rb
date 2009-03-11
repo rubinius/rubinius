@@ -6,7 +6,7 @@ describe :thread_exit, :shared => true do
   # probability that the deadlock will occur. It was sufficient to reliably
   # reproduce the deadlock in JRuby.
   it "does not deadlock when called from within the thread while being joined from without" do
-    100.times do
+    100.times do |i|
       t = Thread.new { Thread.stop; Thread.current.send(@method) }
       Thread.pass until t.status == "sleep"
       t.wakeup.should == t

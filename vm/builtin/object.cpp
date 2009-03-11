@@ -310,6 +310,13 @@ namespace rubinius {
     return msg.send(state, caller);
   }
 
+  Object* Object::send(STATE, CallFrame* caller, Symbol* name) {
+    Message msg(state, name, this, 0, Qnil, lookup_begin(state));
+    msg.set_caller(caller);
+
+    return msg.send(state, caller);
+  }
+
   Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     Object* meth = msg.shift_argument(state);
     Symbol* sym = try_as<Symbol>(meth);

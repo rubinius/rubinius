@@ -11,19 +11,10 @@ namespace rubinius {
 
   class NativeThread : public thread::Thread {
     VM* vm_;
-    GlobalLock& lock_;
-
-    TypedRoot<Object*> block_;
-    TypedRoot<Array*> args_;
 
   public:
     NativeThread(VM*);
     void perform();
-
-    void set_startup(Object* block, Array* args) {
-      block_.set(block);
-      args_.set(args);
-    }
 
     static void block_all_signals() {
       sigset_t set;

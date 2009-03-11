@@ -381,6 +381,8 @@ namespace rubinius {
     void clear_waiter();
     bool wakeup();
 
+    void register_raise(Exception* exc);
+
     // Called when a thread should be delivered to this thread
     void send_async_signal(int sig);
 

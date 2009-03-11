@@ -193,19 +193,19 @@ namespace thread {
     void lock() {
       if(locked_) return;
       if(cDebugLockGuard) {
-        std::cout << "[[   Locking " << lock_.describe() << " ]]\n";
+        std::cout << "[[ " << pthread_self() << "   Locking " << lock_.describe() << " ]]\n";
       }
       lock_.lock();
       locked_ = true;
       if(cDebugLockGuard) {
-        std::cout << "[[    Locked " << lock_.describe() << " ]]\n";
+        std::cout << "[[ " << pthread_self() << "   Locked " << lock_.describe() << " ]]\n";
       }
     }
 
     void unlock() {
       if(!locked_) return;
       if(cDebugLockGuard) {
-        std::cout << "[[ Unlocking " << lock_.describe() << " ]]\n";
+        std::cout << "[[ " << pthread_self() << " Unlocking " << lock_.describe() << " ]]\n";
       }
       lock_.unlock();
       locked_ = false;
@@ -268,12 +268,18 @@ namespace thread {
 
     void lock() {
       int err;
+      if(cDebugLockGuard) {
+        std::cout << "[[ " << pthread_self() << "   MLocking " << describe() << " ]]\n";
+      }
       if((err = pthread_mutex_lock(&native_)) != 0) {
         if(err == EDEADLK) {
           std::cout << "Thread deadlock!\n";
         }
 
         assert(0);
+      }
+      if(cDebugLockGuard) {
+        std::cout << "[[ " << pthread_self() << "    MLocked " << describe() << " ]]\n";
       }
     }
 
@@ -288,6 +294,9 @@ namespace thread {
     }
 
     Code unlock() {
+      if(cDebugLockGuard) {
+        std::cout << "[[ " << pthread_self() << "   MUnlocking " << describe() << " ]]\n";
+      }
       int err = pthread_mutex_unlock(&native_);
       if(err != 0) {
         if(err == EPERM) return cNotYours;
@@ -326,17 +335,34 @@ namespace thread {
     }
 
     void wait(Mutex& mutex) {
+      if(cDebugLockGuard) {
+        std::cout << "[[ " << pthread_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
+      }
       assert(pthread_cond_wait(&native_, mutex.native()) == 0);
+      if(cDebugLockGuard) {
+        std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
+      }
     }
 
     Code wait_until(Mutex& mutex, const struct timespec* ts) {
+      if(cDebugLockGuard) {
+        std::cout << "[[ " << pthread_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
+      }
       int err = pthread_cond_timedwait(&native_, mutex.native(), ts);
+      if(cDebugLockGuard) {
+        std::cout << "[[ " << pthread_self() << "   CLocked " << mutex.describe() << " ]]\n";
+      }
       if(err != 0) {
         if(err == ETIMEDOUT) return cTimedOut;
         switch(err) {
         case EINVAL:
-          std::cout << "Invalid cond_t or mutex_t passed to pthread_cond_timedwait!\n";
-          break;
+          // This is not really correct, but it works for us:
+          // We treat this error as ONLY ts being invalid, ie, it's for
+          // a time in the past. Thus we can just say everything is ready.
+          //
+          // EINVAL can mean that both native_ and mutex.native() are invalid
+          // too, but we've got no recourse if that is true.
+          return cReady;
         default:
           std::cout << "Unknown failure from pthread_cond_timedwait!\n";
         }

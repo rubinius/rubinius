@@ -26,8 +26,7 @@ namespace rubinius {
     const static object_type type = ChannelType;
 
   private:
-    Object* value_;  // slot
-    List* waiting_; // slot
+    List* value_;  // slot
 
     thread::Condition* condition_;
     int waiters_;
@@ -35,8 +34,7 @@ namespace rubinius {
   public:
     /* accessors */
 
-    attr_accessor(value, Object);
-    attr_accessor(waiting, List);
+    attr_accessor(value, List);
 
     /* interface */
 
@@ -50,7 +48,11 @@ namespace rubinius {
     Object* send(STATE, Object*);
 
     // Ruby.primitive :channel_receive
-    Object* receive(STATE);
+    Object* receive(STATE, CallFrame* calling_environment);
+
+    // Ruby.primitive :channel_receive_timeout
+    Object* receive_timeout(STATE, Object* duration, CallFrame* calling_environment);
+
     bool has_readers_p();
 
     // Ruby.primitive :scheduler_send_on_signal
