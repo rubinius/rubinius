@@ -78,6 +78,7 @@ namespace stats {
     tbl->store(state, state->symbol("objects_copied"), objects_copied.to_ruby(state));
     tbl->store(state, state->symbol("bytes_copied"), bytes_copied.to_ruby(state));
     tbl->store(state, state->symbol("objects_promoted"), objects_promoted.to_ruby(state));
+    tbl->store(state, state->symbol("lifetimes"), lifetimes.to_ruby(state));
     gc_tbl->store(state, state->symbol("collect_young"), tbl);
 
     tbl = allocate_young.to_ruby(state);

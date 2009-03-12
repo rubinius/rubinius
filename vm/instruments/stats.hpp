@@ -2,6 +2,9 @@
 #define RBX_INSTRUMENTS_STATS_HPP
 
 #include "util/optimize.hpp"
+
+#include "builtin/tuple.hpp"
+
 #include "instruments/timing.hpp"
 
 namespace rubinius {
@@ -244,6 +247,51 @@ namespace stats {
     rubinius::LookupTable* to_ruby(rubinius::VM* state);
   };
 
+  /* A template class for working with collections of counters or timers. The
+   * emphasis is on simple indexed access like the following:
+   *
+   *   stats::GCStats::get()->lifetimes[obj->age]++
+   *
+   * where the code does not need to know beforehand how old the objects may
+   * live. Instances of Counter (in the example above) are added as needed
+   * when accessed.
+   */
+  template<class T>
+    class Multi {
+      std::vector<T> multi_;
+
+    public:
+
+      T& operator[](int index);
+
+      rubinius::Tuple* to_ruby(rubinius::VM* state);
+    };
+
+  /* We could require size_t for index, but that just complicates code at the
+   * callsite. Instead, ensure we don't have a negative value and cast.
+   */
+  template<class T>
+    T& Multi<T>::operator[](int index) {
+      if(index < 0) index = -index;
+
+      if(static_cast<size_t>(index) >= multi_.size()) {
+        multi_.resize(index + 1);
+      }
+
+      return multi_[index];
+    }
+
+  template<class T>
+    rubinius::Tuple* Multi<T>::to_ruby(rubinius::VM* state) {
+      rubinius::Tuple* tuple = rubinius::Tuple::create(state, multi_.size());
+
+      for(size_t i = 0; i < multi_.size(); i++) {
+        tuple->put(state, i, multi_[i].to_ruby(state));
+      }
+
+      return tuple;
+    }
+
   /* Provides various counters and timers for tracking the operation of the
    * generational garbage collector.
    */
@@ -263,6 +311,8 @@ namespace stats {
     Counter bytes_copied;
     SetCounter objects_copied;
     SetCounter objects_promoted;
+
+    Multi<Counter> lifetimes;
 
     // Mature generation stats
     Timer allocate_mature;

@@ -247,7 +247,13 @@ namespace rubinius {
   void BakerGC::find_lost_souls() {
     Object* obj = current->first_object();
     while(obj < current->current) {
-      if(!obj->forwarded_p()) delete_object(obj);
+      if(!obj->forwarded_p()) {
+        delete_object(obj);
+
+#ifdef RBX_GC_STATS
+        stats::GCStats::get()->lifetimes[obj->age]++;
+#endif
+      }
       obj = next_object(obj);
     }
   }

@@ -134,6 +134,12 @@ module Rubinius
         printf format, " max",              comma(op[:max]), n_a
         printf format, " min",              comma(op[:min]), n_a
         printf format, " average",          comma(op[:average].to_i), n_a
+
+        puts   "--"
+        puts   "Lifetimes"
+        cy[:lifetimes].each_with_index do |lifetime, index|
+          printf format, " #{index}", comma(lifetime), n_a
+        end
         printf format, "% of GC time",
                "(#{percentage(cy[:total], total)})", "(#{percentage(cm[:total], total)})"
 
