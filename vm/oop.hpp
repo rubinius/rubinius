@@ -137,7 +137,7 @@ const int cUndef = 0x22L;
       struct {
         object_type     obj_type    : 8;
         gc_zone         zone        : 2;
-        unsigned int    age         : 3;
+        unsigned int    age         : 5;
 
         unsigned int Forwarded              : 1;
         unsigned int Remember               : 1;
