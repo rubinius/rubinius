@@ -1,3 +1,0 @@
-fails:Thread#[] gives access to thread local values
-fails:Thread#[] is not shared across threads
-fails:Thread#[] is accessable using strings or symbols

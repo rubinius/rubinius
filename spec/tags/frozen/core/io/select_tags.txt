@@ -1,5 +1,3 @@
-fails:IO.select raises TypeError if the first three arguments are not Arrays
-fails:IO.select returns supplied objects correctly even when monitoring the same object in different arrays
 critical:IO.select blocks for duration of timeout if there are no objects ready for I/O
 critical:IO.select returns immediately all objects that are ready for I/O when timeout is 0
 critical:IO.select returns nil after timeout if there are no objects ready for I/O
