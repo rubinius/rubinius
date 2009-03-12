@@ -1,2 +1,0 @@
-fails:IO#getc returns nil on empty stream
-fails:IO#getc raises IOError on closed stream

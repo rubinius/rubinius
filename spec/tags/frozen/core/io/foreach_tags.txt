@@ -1,4 +1,1 @@
-fails:IO::foreach updates $. with each yield
-fails:IO::foreach yields a sequence of Strings that were separated by $/
 fails:IO::foreach can handle non-ASCII data as separator
-fails:IO::foreach converts first parameter to string and uses as file name

@@ -1,3 +1,0 @@
-fails:IO.open associates new IO with the old descriptor so each IO directly affects the other
-fails:IO.open raises IOError on closed stream
-fails:IO.open emits a warning if given a block
