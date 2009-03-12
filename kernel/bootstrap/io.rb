@@ -46,6 +46,11 @@ class IO
     raise PrimitiveFailure, "IO#ensure_open primitive failed"
   end
 
+  def read_primitive(number_of_bytes)
+    Ruby.primitive :io_sysread
+    raise PrimitiveFailure, "IO::sysread primitive failed!"
+  end
+
   def write(str)
     Ruby.primitive :io_write
     raise PrimitiveFailure, "IO#write failed. Might not have passed a string."

@@ -1368,21 +1368,19 @@ class IO
   #
   #  f = File.new("testfile")
   #  f.sysread(16)   #=> "This is line one"
-  def sysread(size, buffer = nil)
+  #
+  #  @todo  Improve reading into provided buffer.
+  #
+  def sysread(number_of_bytes, buffer = Undefined)
     flush
     raise IOError unless @ibuffer.empty?
-    raise ArgumentError, 'negative string size' unless size >= 0
 
-    buffer = StringValue buffer if buffer
-
-    chan = Channel.new
-    Scheduler.send_on_readable chan, self, nil, size
-    # waits until stream is ready for reading
-    chan.receive
-    str = blocking_read size
+    str = read_primitive number_of_bytes
     raise EOFError if str.nil?
 
-    buffer.replace str if buffer
+    unless buffer.equal? Undefined
+      buffer.to_str.replace str
+    end
 
     str
   end

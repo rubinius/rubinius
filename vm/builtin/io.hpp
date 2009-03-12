@@ -44,29 +44,43 @@ namespace rubinius {
     void force_read_only(STATE);
     void force_write_only(STATE);
 
+
+  /* Class primitives */
+
     // Ruby.primitive :io_allocate
     static IO* allocate(STATE, Object* self);
-
-    // Ruby.primitive :io_ensure_open
-    Object* ensure_open(STATE);
 
     // Ruby.primitive :io_connect_pipe
     static Object* connect_pipe(STATE, IO* lhs, IO* rhs);
 
-    // Ruby.primitive :io_seek
-    Integer* seek(STATE, Integer* amount, Fixnum* whence);
-
-    // Ruby.primitive :io_write
-    Object* write(STATE, String* buf);
-
     // Ruby.primitive :io_open
     static Fixnum* open(STATE, String* path, Fixnum* mode, Fixnum* perm);
 
+
+  /* Instance primitives */
+
+    // Ruby.primitive :io_ensure_open
+    Object* ensure_open(STATE);
+
+    /**
+     *  Directly read up to number of bytes from descriptor.
+     *
+     *  Returns Qnil at EOF.
+     */
+    // Ruby.primitive :io_sysread
+    Object*   sysread(STATE, Fixnum* number_of_bytes);
+
+    // Ruby.primitive :io_seek
+    Integer*  seek(STATE, Integer* amount, Fixnum* whence);
+
+    // Ruby.primitive :io_write
+    Object*   write(STATE, String* buf);
+
     // Ruby.primitive :io_reopen
-    Object* reopen(STATE, IO* other);
+    Object*   reopen(STATE, IO* other);
 
     // Ruby.primitive :io_close
-    Object* close(STATE);
+    Object*   close(STATE);
 
     /**
      *  Shutdown a full-duplex descriptor's read and/or write stream.

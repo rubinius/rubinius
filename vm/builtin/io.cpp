@@ -214,6 +214,43 @@ namespace rubinius {
     mode(state, Fixnum::from((m & ~O_ACCMODE) | O_WRONLY));
   }
 
+
+  Object* IO::sysread(STATE, Fixnum* number_of_bytes) {
+    std::size_t count = number_of_bytes->to_ulong();
+    String* buffer = String::create(state, number_of_bytes);
+
+    ssize_t bytes_read;
+
+  retry:
+    WaitingForSignal waiter;
+    state->install_waiter(waiter);
+
+    {
+      GlobalLock::UnlockGuard lock(state->global_lock());
+      bytes_read = ::read(descriptor()->to_native(),
+                          buffer->data()->bytes,
+                          count);
+    }
+
+    state->clear_waiter();
+
+    if(bytes_read == -1) {
+      if(errno == EAGAIN || errno == EINTR) {
+        goto retry;
+      }
+
+      return NULL;
+    }
+
+    if(bytes_read == 0) {
+      return Qnil;
+    }
+
+    buffer->num_bytes(state, Fixnum::from(bytes_read));
+    return buffer;
+  }
+
+
   Object* IO::write(STATE, String* buf) {
     ssize_t cnt = ::write(this->to_fd(), buf->data()->bytes, buf->size());
 
@@ -301,12 +338,12 @@ namespace rubinius {
                         left());
     }
 
+    state->clear_waiter();
+
     if(bytes_read == -1 && errno == EINTR) {
       if(!state->check_async(calling_environment)) return NULL;
       goto retry;
     }
-
-    state->clear_waiter();
 
     if(bytes_read > 0) {
       read_bytes(state, bytes_read);
