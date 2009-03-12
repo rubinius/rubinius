@@ -651,14 +651,11 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instr
       if File.exists?(file_deps) and File.mtime(file_deps) > File.mtime(file)
         f.puts File.read(file_deps)
       else
-        cmd = "gcc -MM #{includes} #{flags} #{file} 2>/dev/null"
+        object_file = file.sub(/((c(pp)?)|S)$/, 'o')
+        cmd = "gcc -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>/dev/null"
         data = `#{cmd}`
         if $?.exitstatus == 0
           data.strip!
-
-          unless data.empty?
-            data = "vm/#{data.gsub(/\\\n/, '')}"
-          end
 
           File.open file_deps, "w" do |fd|
             fd << data
