@@ -27,8 +27,19 @@ namespace rubinius {
     static Integer* from(STATE, long long i);
     static Integer* from(STATE, unsigned long long i);
 
-    native_int to_native();
-    long long to_long_long();
+    native_int          to_native();
+    long long           to_long_long();
+    unsigned long long  to_ulong_long();
+
+
+//    template< typename To >
+//      To to() {
+//        if(fixnum_p()) {
+//          return (reinterpret_cast<Fixnum*>(this))->to<To>();
+//        }
+//
+//        return as<Bignum>(this)->to<To>();
+//    }
 
     class Info : public TypeInfo {
     public:

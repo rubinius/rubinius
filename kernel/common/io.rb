@@ -476,72 +476,58 @@ class IO
     end
   end
 
-  ##
-  # Select() examines the I/O descriptor sets who are passed in
-  # +read_array+, +write_array+, and +error_array+ to see if some of their descriptors are
-  # ready for reading, are ready for writing, or have an exceptions pending.
   #
-  # If +timeout+ is not nil, it specifies a maximum interval to wait
-  # for the selection to complete. If timeout is nil, the select
-  # blocks indefinitely.
+  # +select+ examines the IO object Arrays that are passed in
+  # as +readables+, +writables+, and +errorables+ to see if any
+  # of their descriptors are ready for reading, are ready for
+  # writing, or have an exceptions pending respectively. An IO
+  # may appear in more than one of the sets. Any of the three
+  # sets may be +nil+ if you are not interested in those events.
   #
-  # +write_array+, +error_array+, and +timeout+ may be left as nil if they are
-  # unimportant
-  def self.select(read_array, write_array = nil, error_array = nil,
-                  timeout = nil)
-    # TODO libev doesn't seem to support exception fd set.
-    raise NotImplementedError, "error_array is not supported" if error_array
-
+  # If +timeout+ is not nil, it specifies the number of seconds
+  # to wait for events (maximum.) The number may be fractional,
+  # conceptually up to a microsecond resolution.
+  #
+  # A +timeout+ of 0 indicates that each descriptor should be
+  # checked once only, effectively polling the sets.
+  #
+  # Leaving the +timeout+ to +nil+ causes +select+ to block
+  # infinitely until an event transpires.
+  #
+  # If the timeout expires without events, +nil+ is returned.
+  # Otherwise, an [readable, writable, errors] Array of Arrays
+  # is returned, only, with the IO objects that have events.
+  #
+  # @compatibility  MRI 1.8 and 1.9 require the +readables+ Array,
+  #                 Rubinius does not.
+  #
+  def self.select(readables = nil, writables = nil, errorables = nil, timeout = nil)
     if timeout
-      raise TypeError, "timeout must be numeric" unless Type.obj_kind_of?(timeout, Numeric)
+      raise TypeError, "Timeout must be numeric" unless Type.obj_kind_of?(timeout, Numeric)
       raise ArgumentError, 'timeout must be positive' if timeout < 0
+
+      timeout = Integer(timeout * 1_000_000)      # Microseconds, rounded down
     end
 
-    chan = Channel.new
-
-    fd_map = {}
-    [read_array, write_array, error_array].each_with_index do |io_array, pos|
-      next unless io_array
-      raise TypeError, "wrong argument type #{io_array.class} (expected Array)" unless Type.obj_kind_of?(io_array, Array)
-
-      io_array.each do |io|
-        io_obj = Type.coerce_to(io, IO, :to_io)
-        fd_map[io_obj.fileno] = [pos, io]
-
-        case pos
-        when 0 # read_array
-          Scheduler.send_on_readable chan, io_obj, nil, -1
-        when 1 # write_array
-          Scheduler.send_on_writable chan, io_obj
-        end
-      end
+    if readables
+      readables = Type.coerce_to(readables, Array, :to_ary).map {|obj|
+                    Type.coerce_to obj, IO, :to_io
+                  }
     end
 
-    Scheduler.send_in_microseconds chan, (timeout * 1_000_000).to_i, nil if timeout
-
-    # blocks until a fd is ready, or timeout
-    value = chan.receive
-    other_values = chan.value
-
-    if other_values
-      # we have more objects ready to be received, let's count them.
-      available_count = other_values.count
-    else
-      return nil if value.nil? # tired of waiting, timed out
-      available_count = 0
+    if writables
+      writables = Type.coerce_to(writables, Array, :to_ary).map {|obj|
+                      Type.coerce_to obj, IO, :to_io
+                    }
     end
 
-    ret = [[], [], []]
-    while true
-      if value
-        fd_info = fd_map[value]
-        ret[fd_info[0]] << fd_info[1]
-      end
-      break if (available_count -= 1) < 0
-      value = chan.receive
+    if errorables
+      errorables = Type.coerce_to(errorables, Array, :to_ary).map {|obj|
+                      Type.coerce_to obj, IO, :to_io
+                    }
     end
 
-    ret
+    IO.select_primitive(readables, writables, errorables, timeout)
   end
 
   ##
@@ -549,10 +535,10 @@ class IO
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = "r", perm = 0666)
     unless mode.kind_of? Integer
-      mode = parse_mode(StringValue(mode))
+      mode = parse_mode StringValue(mode)
     end
 
-    open_with_mode(path, mode, perm)
+    open_with_mode path, mode, perm
   end
 
   #

@@ -61,6 +61,131 @@ namespace rubinius {
     return Fixnum::from(fd);
   }
 
+
+  namespace {
+    /** Utility function used by IO::select, returns highest descriptor. */
+    static inline native_int hidden_fd_set_from_array(VM* state, Object* maybe_descriptors, fd_set* set) {
+      if(NULL == set) {
+        return 0;
+      }
+
+      Array* descriptors = as<Array>(maybe_descriptors);
+
+      FD_ZERO(set);
+      native_int highest = 0;
+
+      for(std::size_t i = 0; i < descriptors->size(); ++i) {
+        native_int descriptor = as<IO>(descriptors->get(state, i))->to_fd();
+        highest = descriptor > highest ? descriptor : highest;
+
+        FD_SET(descriptor, set);
+      }
+
+      return highest;
+    }
+
+    /** Utility function used by IO::select, returns Array of IOs that were set. */
+    static inline Array* hidden_reject_unset_fds(VM* state, Object* maybe_originals, fd_set* set) {
+      if(NULL == set) {
+        return Array::create(state, 0);
+      }
+
+      Array* originals = as<Array>(maybe_originals);
+      Array* selected = Array::create(state, originals->size());
+
+      for(std::size_t i = 0; i < originals->size(); ++i) {
+        IO* io = as<IO>(originals->get(state, i));
+
+        if(FD_ISSET(io->to_fd(), set)) {
+          selected->set(state, i, io);
+        }
+      }
+
+      return selected;
+    }
+  }
+
+  /**
+   *  Ergh. select/FD_* is not exactly user-oriented design.
+   *
+   *  @todo This is highly unoptimised since we always rebuild the FD_SETs. --rue
+   */
+  Object* IO::select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout) {
+    struct timeval limit;
+    struct timeval* maybe_limit = NULL;
+
+    if(!timeout->nil_p()) {
+      unsigned long long microseconds = as<Integer>(timeout)->to_ulong_long();
+      limit.tv_sec = microseconds / 1000000;
+      limit.tv_usec = microseconds % 1000000;
+      maybe_limit = &limit;
+    }
+
+    fd_set read_set;
+    fd_set* maybe_read_set = readables->nil_p() ? NULL : &read_set;
+
+    fd_set write_set;
+    fd_set* maybe_write_set = writables->nil_p() ? NULL : &write_set;
+
+    fd_set error_set;
+    fd_set* maybe_error_set = errorables->nil_p() ? NULL : &error_set;
+
+    native_int highest = 0;
+    native_int candidate = 0;
+
+    /* Build the sets, track the highest descriptor number. These handle NULLs */
+    highest = hidden_fd_set_from_array(state, readables, maybe_read_set);
+
+    candidate = hidden_fd_set_from_array(state, writables, maybe_write_set);
+    highest = candidate > highest ? candidate : highest;
+
+    candidate = hidden_fd_set_from_array(state, errorables, maybe_error_set);
+    highest = candidate > highest ? candidate : highest;
+
+    /* And the main event, pun intended */
+    WaitingForSignal waiter;
+    state->install_waiter(waiter);
+
+    {
+    GlobalLock::UnlockGuard lock(state->global_lock());
+
+    retry:
+      native_int events = ::select((highest + 1), maybe_read_set,
+                                                  maybe_write_set,
+                                                  maybe_error_set,
+                                                  maybe_limit);
+
+      if(events == -1) {
+        if(errno == EAGAIN || errno == EINTR) {
+          goto retry;
+        }
+
+        Exception::errno_error(state, "::select() failed!");
+      }
+
+      /* Timeout expired */
+      if(events == 0) {
+        return Qnil;
+      }
+
+    }
+
+    state->clear_waiter();
+
+    /* Build the results. */
+    Array* events = Array::create(state, 3);
+
+    /* These handle NULL sets. */
+    events->set(state, 0, hidden_reject_unset_fds(state, readables, maybe_read_set));
+    events->set(state, 1, hidden_reject_unset_fds(state, writables, maybe_write_set));
+    events->set(state, 2, hidden_reject_unset_fds(state, errorables, maybe_error_set));
+
+    return events;
+  }
+
+
+/* Instance methods */
+
   Object* IO::reopen(STATE, IO* other) {
     native_int cur_fd   = to_fd();
     native_int other_fd = other->to_fd();

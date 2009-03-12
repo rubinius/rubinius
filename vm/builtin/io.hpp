@@ -48,13 +48,21 @@ namespace rubinius {
   /* Class primitives */
 
     // Ruby.primitive :io_allocate
-    static IO* allocate(STATE, Object* self);
+    static IO*      allocate(STATE, Object* self);
 
     // Ruby.primitive :io_connect_pipe
-    static Object* connect_pipe(STATE, IO* lhs, IO* rhs);
+    static Object*  connect_pipe(STATE, IO* lhs, IO* rhs);
 
     // Ruby.primitive :io_open
-    static Fixnum* open(STATE, String* path, Fixnum* mode, Fixnum* perm);
+    static Fixnum*  open(STATE, String* path, Fixnum* mode, Fixnum* perm);
+
+    /**
+     *  Perform select() on descriptors.
+     *
+     *  @todo Replace with an evented version when redoing events. --rue
+     */
+    // Ruby.primitive :io_select
+    static Object*  select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout);
 
 
   /* Instance primitives */

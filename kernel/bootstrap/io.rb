@@ -41,6 +41,13 @@ class IO
     raise PrimitiveFailure, "IO.connect_pipe primitive failed"
   end
 
+  def self.select_primitive(readables, writables, errorables, timeout)
+    Ruby.primitive :io_select
+  end
+
+
+  # Instance primitive bindings
+
   def ensure_open
     Ruby.primitive :io_ensure_open
     raise PrimitiveFailure, "IO#ensure_open primitive failed"
