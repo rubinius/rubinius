@@ -121,16 +121,45 @@ namespace rubinius {
     immix::AllBlockIterator iter(chunks);
 
     int blocks_seen = 0;
+    int total_objects = 0;
+    int total_object_bytes = 0;
+
     while(immix::Block* block = iter.next()) {
       blocks_seen++;
       std::cout << "block " << block << ", holes=" << block->holes() << " "
-                << "used=" << block->lines_used() << " "
-                << block->status_string()
+                << "objects=" << block->objects() << " "
+                << "object_bytes=" << block->object_bytes() << " "
+                << "frag=" << block->fragmentation_ratio()
                 << "\n";
+
+      total_objects += block->objects();
+      total_object_bytes += block->object_bytes();
     }
 
     std::cout << blocks_seen << " blocks\n";
     std::cout << gc_.bytes_allocated() << " bytes allocated\n";
+    std::cout << total_object_bytes << " object bytes / " << total_objects << " objects\n";
+
+    int* holes = new int[10];
+    for(int i = 0; i < 10; i++) {
+      holes[i] = 0;
+    }
+
+    immix::AllBlockIterator iter2(chunks);
+
+    while(immix::Block* block = iter2.next()) {
+      int h = block->holes();
+      if(h > 9) h = 9;
+
+      holes[h]++;
+    }
+
+    std::cout << "== hole stats ==\n";
+    for(int i = 0; i < 10; i++) {
+      if(holes[i] > 0) {
+        std::cout << i << ": " << holes[i] << "\n";
+      }
+    }
 #endif
   }
 

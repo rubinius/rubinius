@@ -68,10 +68,10 @@ namespace immix {
 
   const int cBlockSize = 32768;
   const int cBlockMask = cBlockSize - 1;
-  const int cLineSize  = 128;
+  const int cLineBits  = 7;
+  const int cLineSize  = 1 << cLineBits;
   const int cLineMask  = cLineSize - 1;
   const int cLineTableSize = cBlockSize / cLineSize;
-  const int cLineBits  = 7;
   const int cChunkSize = 1024 * 1024;
   const int cBlocksPerChunk = cChunkSize / cBlockSize;
   const int cMediumObjectLimit = cLineSize * 4; // TODO calculate this
@@ -96,6 +96,8 @@ namespace immix {
     BlockStatus status_;
     int holes_;
     int lines_used_;
+    int objects_;
+    int object_bytes_;
     LineEntry lines_[cLineTableSize];
 
   public:
@@ -104,11 +106,15 @@ namespace immix {
       , status_(cFree)
       , holes_(1)
       , lines_used_(0)
+      , objects_(0)
+      , object_bytes_(0)
     {
       clear_lines();
     }
 
     void clear_lines() {
+      objects_ = 0;
+      object_bytes_ = 0;
       memset(lines_, 0, sizeof(lines_));
     }
 
@@ -142,6 +148,14 @@ namespace immix {
 
     int lines_used() const {
       return lines_used_;
+    }
+
+    int objects() const {
+      return objects_;
+    }
+
+    int object_bytes() const {
+      return object_bytes_;
     }
 
     void mark_line(int line) {
@@ -188,6 +202,13 @@ namespace immix {
       for(int i = 1; i <= additional_lines; i++) {
         mark_line(line + i);
       }
+
+      // Also, track how many times this was called, ie, how many objects this
+      // block contains.
+      objects_++;
+
+      // Also track how much exact space these objects take up
+      object_bytes_ += size;
     }
 
     void update_stats() {
@@ -230,6 +251,13 @@ namespace immix {
       }
 
       return "unknown";
+    }
+
+    double fragmentation_ratio() {
+      // We subtract the size of a pointer because thats not data available to
+      // use for objects, so we shouldn't count it. 4 bytes in the grand scheme
+      // doesn't probably matter for this, but we should be fair.
+      return ((double)object_bytes_) / ((double)(cBlockSize - sizeof(BlockHeader*)));
     }
   };
 
