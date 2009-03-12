@@ -64,4 +64,15 @@ namespace rubinius {
     }
   }
 
+  void VariableScope::Info::visit(Object* obj, ObjectVisitor& visit) {
+    auto_visit(obj, visit);
+
+    VariableScope* vs = as<VariableScope>(obj);
+
+    size_t locals = vs->number_of_locals();
+    for(size_t i = 0; i < locals; i++) {
+      visit.call(vs->get_local(i));
+    }
+  }
+
 }

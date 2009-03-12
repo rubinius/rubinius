@@ -102,9 +102,13 @@ namespace immix {
     Block()
       : address_(0)
       , status_(cFree)
-      , holes_(0)
+      , holes_(1)
       , lines_used_(0)
     {
+      clear_lines();
+    }
+
+    void clear_lines() {
       memset(lines_, 0, sizeof(lines_));
     }
 
@@ -212,6 +216,21 @@ namespace immix {
     bool usable() {
       return status_ == cFree || status_ == cRecyclable;
     }
+
+    const char* status_string() {
+      switch(status_) {
+      case cFree:
+        return "free";
+      case cRecyclable:
+        return "recyclable";
+      case cUnavailable:
+        return "unavailable";
+      case cEvacuate:
+        return "evacuate";
+      }
+
+      return "unknown";
+    }
   };
 
   typedef std::vector<Block*> Blocks;
@@ -264,8 +283,8 @@ namespace immix {
       return base_;
     }
 
-    static int size() {
-      return cChunkSize;
+    int size() {
+      return system_size_;
     }
 
     void add_blocks() {
@@ -294,6 +313,31 @@ namespace immix {
   };
 
   typedef std::vector<Chunk*> Chunks;
+
+  class AllBlockIterator {
+    Chunks& chunks_;
+    size_t current_chunk_;
+    size_t current_block_;
+
+  public:
+    AllBlockIterator(Chunks& chunks)
+      : chunks_(chunks)
+      , current_chunk_(0)
+      , current_block_(0)
+    {}
+
+    Block* next() {
+      if(current_chunk_ >= chunks_.size()) return NULL;
+
+      Block* block = &chunks_[current_chunk_]->get_block(current_block_++);
+      if(current_block_ >= (size_t)cBlocksPerChunk) {
+        current_chunk_++;
+        current_block_ = 0;
+      }
+
+      return block;
+    }
+  };
 
   class Triggers {
   public:
@@ -649,6 +693,26 @@ namespace immix {
 
     void added_chunk(int count) {
       desc.added_chunk(count);
+    }
+
+    void clear_lines() {
+      AllBlockIterator iter(block_allocator_.chunks());
+
+      while(Block* block = iter.next()) {
+        block->clear_lines();
+      }
+    }
+
+    int bytes_allocated() {
+      int bytes = 0;
+      Chunks& chunks = block_allocator_.chunks();
+      for(Chunks::iterator i = chunks.begin();
+          i != chunks.end();
+          i++) {
+        bytes += (*i)->size();
+      }
+
+      return bytes;
     }
   };
 }

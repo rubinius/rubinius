@@ -62,6 +62,8 @@ namespace rubinius {
   void ImmixGC::collect(Roots &roots, CallFrameLocationList& call_frames) {
     Object* tmp;
 
+    gc_.clear_lines();
+
     Root* root = static_cast<Root*>(roots.head());
     while(root) {
       tmp = root->get();
@@ -81,9 +83,6 @@ namespace rubinius {
     }
 
     gc_.process_mark_stack(allocator_);
-
-    // Cleanup all weakrefs seen
-    // TODO support weakrefs!
 
     // Sweep up the garbage
     gc_.sweep_blocks();
@@ -115,8 +114,24 @@ namespace rubinius {
 
 #ifdef IMMIX_DEBUG
     std::cout << "Immix: RS size cleared: " << cleared << "\n";
-#endif
 
+    immix::Chunks& chunks = gc_.block_allocator().chunks();
+    std::cout << "chunks=" << chunks.size() << "\n";
+
+    immix::AllBlockIterator iter(chunks);
+
+    int blocks_seen = 0;
+    while(immix::Block* block = iter.next()) {
+      blocks_seen++;
+      std::cout << "block " << block << ", holes=" << block->holes() << " "
+                << "used=" << block->lines_used() << " "
+                << block->status_string()
+                << "\n";
+    }
+
+    std::cout << blocks_seen << " blocks\n";
+    std::cout << gc_.bytes_allocated() << " bytes allocated\n";
+#endif
   }
 
 }
