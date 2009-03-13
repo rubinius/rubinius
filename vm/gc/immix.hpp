@@ -35,6 +35,10 @@ namespace rubinius {
         return immix::Address::null();
       }
 
+      bool pinned(immix::Address addr) {
+        return addr.as<Object>()->pinned_p();
+      }
+
       immix::Address copy(immix::Address original, immix::Allocator& alloc) {
         Object* orig = original.as<Object>();
 

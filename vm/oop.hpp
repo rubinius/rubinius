@@ -153,6 +153,7 @@ const int cUndef = 0x22L;
         unsigned int RefsAreWeak            : 1;
 
         unsigned int InImmix                : 1;
+        unsigned int Pinned                 : 1;
       };
       uint32_t all_flags;
     };
@@ -241,6 +242,22 @@ const int cUndef = 0x22L;
 
     void clear_mark() {
       Marked = 0;
+    }
+
+    bool pinned_p() {
+      return Pinned == 1;
+    }
+
+    bool pin() {
+      // Can't pin young objects!
+      if(young_object_p()) return false;
+
+      Pinned = 1;
+      return true;
+    }
+
+    void unpin() {
+      Pinned = 0;
     }
 
     bool nil_p() const {

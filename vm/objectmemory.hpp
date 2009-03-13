@@ -65,8 +65,10 @@ namespace rubinius {
     void store_object(Object* target, size_t index, Object* val);
     void set_class(Object* target, Object* obj);
     Object* allocate_object(size_t bytes);
+    Object* allocate_object_mature(size_t bytes);
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
 
     template <class T>
       T* new_object_bytes(Class* cls, size_t bytes) {
@@ -76,6 +78,20 @@ namespace rubinius {
         // round up
         bytes = (sizeof(T) + bytes + rounding_value) & ~rounding_value;
         T* obj = reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+
+        obj->init_bytes();
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_object_bytes_mature(Class* cls, size_t bytes) {
+        // Only works because sizeof(Object*) will alwasy be a power of 2
+        const int rounding_value = sizeof(Object*) - 1;
+
+        // round up
+        bytes = (sizeof(T) + bytes + rounding_value) & ~rounding_value;
+        T* obj = reinterpret_cast<T*>(new_object_typed_mature(cls, bytes, T::type));
 
         obj->init_bytes();
 

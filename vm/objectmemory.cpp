@@ -202,19 +202,62 @@ namespace rubinius {
       }
     }
 
+#ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during allocation\n";
     }
+#endif
 
     obj->clear_fields();
     return obj;
   }
 
+  Object* ObjectMemory::allocate_object_mature(size_t bytes) {
+    Object* obj;
+
+    if(bytes > large_object_threshold) {
+      obj = mark_sweep_.allocate(bytes, &collect_mature_now);
+      if(collect_mature_now) {
+        state->interrupts.check = true;
+      }
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->large_objects++;
+#endif
+
+    } else {
+      obj = immix_.allocate(bytes);
+      if(collect_mature_now) {
+        state->interrupts.check = true;
+      }
+    }
+
+#ifdef ENABLE_OBJECT_WATCH
+    if(watched_p(obj)) {
+      std::cout << "detected " << obj << " during mature allocation\n";
+    }
+#endif
+
+    obj->clear_fields();
+    return obj;
+  }
 
   Object* ObjectMemory::new_object_typed(Class* cls, size_t bytes, object_type type) {
     Object* obj;
 
     obj = allocate_object(bytes);
+    set_class(obj, cls);
+
+    obj->obj_type = type;
+    obj->RequiresCleanup = type_info[type]->instances_need_cleanup;
+
+    return obj;
+  }
+
+  Object* ObjectMemory::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
+    Object* obj;
+
+    obj = allocate_object_mature(bytes);
     set_class(obj, cls);
 
     obj->obj_type = type;

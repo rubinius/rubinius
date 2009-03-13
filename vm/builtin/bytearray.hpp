@@ -17,6 +17,7 @@ namespace rubinius {
 
     static void init(STATE);
     static ByteArray* create(STATE, size_t bytes);
+    static ByteArray* create_pinned(STATE, size_t bytes);
 
     // Ruby.primitive :bytearray_allocate
     static ByteArray* allocate(STATE, Integer* bytes);

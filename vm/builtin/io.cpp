@@ -343,7 +343,7 @@ namespace rubinius {
 
   Object* IO::sysread(STATE, Fixnum* number_of_bytes) {
     std::size_t count = number_of_bytes->to_ulong();
-    String* buffer = String::create(state, number_of_bytes);
+    String* buffer = String::create_pinned(state, number_of_bytes);
 
     ssize_t bytes_read;
 
@@ -361,6 +361,8 @@ namespace rubinius {
     }
 
     state->clear_waiter();
+
+    buffer->unpin();
 
     if(bytes_read == -1) {
       if(errno == EAGAIN || errno == EINTR) {

@@ -695,7 +695,7 @@ namespace immix {
       }
 
       Block* block = Block::from_address(addr);
-      if(block->status() == cEvacuate) {
+      if(block->status() == cEvacuate && !desc.pinned(addr)) {
         fwd = desc.copy(addr, alloc);
         desc.set_forwarding_pointer(addr, fwd);
 

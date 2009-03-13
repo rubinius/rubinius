@@ -62,6 +62,32 @@ namespace rubinius {
     return so;
   }
 
+  /*
+   * Creates a String instance with +num_bytes+ bytes of storage.
+   * It also pins the ByteArray used for storage, so it can be passed
+   * to an external function (like ::read)
+   */
+  String* String::create_pinned(STATE, Fixnum* size) {
+    String *so;
+
+    so = state->new_object<String>(G(string));
+
+    so->num_bytes(state, size);
+    so->characters(state, size);
+    so->encoding(state, Qnil);
+    so->hash_value(state, (Integer*)Qnil);
+    so->shared(state, Qfalse);
+
+    size_t bytes = size->to_native() + 1;
+    ByteArray* ba = ByteArray::create_pinned(state, bytes);
+    ba->bytes[bytes-1] = 0;
+
+    so->data(state, ba);
+
+    return so;
+  }
+
+
   /* +bytes+ should NOT attempt to take the trailing null into account
    * +bytes+ is the number of 'real' characters in the string
    */
