@@ -82,6 +82,7 @@ namespace rubinius {
   /* Perform garbage collection on the young objects. */
   void BakerGC::collect(GCData& data) {
 #ifdef RBX_GC_STATS
+    stats::GCStats::get()->bytes_copied.start();
     stats::GCStats::get()->objects_copied.start();
     stats::GCStats::get()->objects_promoted.start();
     stats::GCStats::get()->collect_young.start();
@@ -208,6 +209,7 @@ namespace rubinius {
     stats::GCStats::get()->collect_young.stop();
     stats::GCStats::get()->objects_copied.stop();
     stats::GCStats::get()->objects_promoted.stop();
+    stats::GCStats::get()->bytes_copied.stop();
 #endif
   }
 

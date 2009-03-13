@@ -73,8 +73,50 @@ module Rubinius
       end
     end
 
+    module Printer
+      def columns(*columns)
+        @width = columns.inject(0) { |sum, x| sum + x }
+
+        text_column = "%%-%ds" % columns.shift
+        @value_format = "#{text_column}%#{columns[1]}s\n"
+
+        format = columns.map { |c| "%%%ds" % c }.join
+        @stats_format = "#{text_column}#{format}\n"
+
+        @header_format = "\n" << @stats_format
+      end
+
+      def headings(*headings)
+        @headings = headings
+      end
+
+      def heading(leader)
+        printf @header_format, leader, *@headings
+        separator
+      end
+
+      def separator(limit=nil)
+        width = limit || @width
+        puts "-" * width
+      end
+
+      def string(metric, string)
+        printf @value_format, metric, string
+      end
+
+      def value(metric, value, meth=:comma)
+        printf @value_format, metric, send(meth, value)
+      end
+
+      def statistics(metric, data, meth=:comma)
+        values = [data[:total], data[:max], data[:min], data[:average]]
+        printf @stats_format, metric, *values.map { |d| send meth, d }
+      end
+    end
+
     class GC
       include Units
+      include Printer
 
       def clear
         Ruby.primitive :vm_stats_gc_clear
@@ -87,79 +129,61 @@ module Rubinius
       end
 
       def show
-        unless stats = info
+        unless data = info
           puts "\nNo GC stats information available. Build with 'rake build:stats'"
           return
         end
 
-        col1, col2, col3 = 22, 15, 15
+        columns 20, 14, 14, 14, 14
+        headings "total", "max", "min", "average"
 
-        ay = stats[:allocate_young]
-        cy = stats[:collect_young]
-        oc = cy[:objects_copied]
-        op = cy[:objects_promoted]
+        collect_young  = data[:collect_young]
+        allocate_young = data[:allocate_young]
 
-        am = stats[:allocate_mature]
-        cm = stats[:collect_mature]
-        os = cm[:objects_seen]
+        collect_mature  = data[:collect_mature]
+        allocate_mature = data[:allocate_mature]
 
-        header = "\n%-#{col1}s%#{col2}s%#{col3}s\n"
-        format = "%-#{col1}s%#{col2}s%#{col3}s\n"
-        n_a    = "n/a"
-
-
-        total = ay[:total] + cy[:total] + am[:total] + cm[:total]
+        total = allocate_young[:total] + collect_young[:total] +
+                allocate_mature[:total] + collect_mature[:total]
 
         puts "\nGarbage collector stats:"
 
         young = "Young (%d)" % (Rubinius::RUBY_CONFIG["rbx.gc.lifetime"] || 6)
-        printf header, "Stats \\ Generation", young, "Mature"
+        heading young
 
-        puts   "-" * (col1 + col2 + col3)
-        printf format, "Collections",       comma(cy[:timings]), comma(cm[:timings])
-        printf format, "total time",        auto_time(cy[:total]), auto_time(cm[:total])
-        printf format, " max",              auto_time(cy[:max]), auto_time(cm[:max])
-        printf format, " min",              auto_time(cy[:min]), auto_time(cm[:min])
-        printf format, " average",          auto_time(cy[:average]), auto_time(cm[:average])
+        value      "Collections",       collect_young[:timings]
+        statistics " times",            collect_young, :auto_time
+        statistics " objects promoted", collect_young[:objects_promoted]
+        statistics " objects copied",   collect_young[:objects_copied]
+        statistics " bytes copied",     collect_young[:bytes_copied], :auto_bytes
 
-        puts   "--"
-        printf format, "objects copied/seen", comma(oc[:total]), comma(os[:total])
-        printf format, " max",              comma(oc[:max]), comma(os[:max])
-        printf format, " min",              comma(oc[:min]), comma(os[:min])
-        printf format, " average",          comma(oc[:average].to_i), comma(os[:average].to_i)
-        printf format, "bytes copied",      auto_bytes(cy[:bytes_copied]), n_a
-
-        puts   "--"
-        printf format, "objects promoted",  comma(op[:total]), n_a
-        printf format, " max",              comma(op[:max]), n_a
-        printf format, " min",              comma(op[:min]), n_a
-        printf format, " average",          comma(op[:average].to_i), n_a
-
-        puts   "--"
-        puts   "Lifetimes"
-        cy[:lifetimes].each_with_index do |lifetime, index|
-          printf format, " #{index}", comma(lifetime), n_a
+        puts       "Lifetimes"
+        collect_young[:lifetimes].each_with_index do |lifetime, index|
+          value " #{index}", lifetime
         end
-        printf format, "% of GC time",
-               "(#{percentage(cy[:total], total)})", "(#{percentage(cm[:total], total)})"
+        string     "% of GC time",      "(#{percentage(collect_young[:total], total)})"
 
-        puts   "---"
-        printf format, "Allocations",       comma(ay[:timings]), comma(am[:timings])
-        printf format, "total time",        auto_time(ay[:total]), auto_time(am[:total])
-        printf format, " max",              auto_time(ay[:max]), auto_time(am[:max])
-        printf format, " min",              auto_time(ay[:min]), auto_time(am[:min])
-        printf format, " average",          auto_time(ay[:average]), auto_time(am[:average])
-        printf format, "bytes allocated",
-               auto_bytes(ay[:bytes_allocated]), auto_bytes(am[:bytes_allocated])
-        printf format, "chunks added",      n_a, comma(am[:chunks_added])
+        separator  2
+        value      "Allocations",       allocate_young[:timings]
+        statistics " times",            allocate_young, :auto_time
+        value      " bytes allocated",  allocate_young[:bytes_allocated], :auto_bytes
+        string     "% of GC time",      "(#{percentage(allocate_young[:total], total)})"
 
-        puts   "--"
-        printf format, "large objects",     n_a, comma(stats[:large_objects])
-        printf format, "% of GC time",
-               "(#{percentage(ay[:total], total)})", "(#{percentage(am[:total], total)})"
+
+        heading    "Mature"
+        value      "Collections",       collect_mature[:timings]
+        statistics " times",            collect_mature, :auto_time
+        string     "% of GC time",      "(#{percentage(collect_mature[:total], total)})"
+
+        separator  2
+        value      "Allocations",       allocate_mature[:timings]
+        statistics " times",            allocate_mature, :auto_time
+        value      " chunks added",     allocate_mature[:chunks_added]
+        value      " large objects",    allocate_mature[:large_objects]
+        string     "% of GC time",      "(#{percentage(allocate_mature[:total], total)})"
 
         printf "\nTotal time spent in GC: %s (%s)\n\n",
-               auto_time(total), percentage(total, stats[:clock])
+               auto_time(total), percentage(total, data[:clock])
       end
     end
   end

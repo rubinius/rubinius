@@ -224,10 +224,14 @@ namespace stats {
      * correlated with the total, just ensure this is called after start().
      */
     uint64_t operator++(int) {
+      return *this += 1;
+    }
+
+    uint64_t operator+=(unsigned int num) {
       if(started_) {
-        return set_ += 1;
+        return set_ += num;
       } else {
-        return total_ += 1;
+        return total_ += num;
       }
     }
 
@@ -308,7 +312,7 @@ namespace stats {
     Timer collect_young;
 
     Counter young_bytes_allocated;
-    Counter bytes_copied;
+    SetCounter bytes_copied;
     SetCounter objects_copied;
     SetCounter objects_promoted;
 
