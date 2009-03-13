@@ -1,26 +1,24 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/dir.hpp"
 #include "builtin/memorypointer.hpp"
 #include "builtin/string.hpp"
 
 #include <cstdio>
 #include <sys/stat.h>
-#include <cxxtest/TestSuite.h>
 
-using namespace rubinius;
+class TestDir : public CxxTest::TestSuite, public VMTest {
+public:
 
-class TestDir : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
   Dir *d;
   void setUp() {
-    state = new VM(1024);
+    create();
     d = Dir::create(state);
   }
 
   void tearDown() {
     if(!d->closed_p(state)->true_p()) d->close(state);
-    delete state;
+    destroy();
   }
 
   char* make_directory() {

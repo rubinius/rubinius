@@ -79,10 +79,12 @@ namespace thread {
 
   class Thread {
     pthread_t native_;
+    bool delete_on_exit_;
 
     static void* trampoline(void* arg) {
       Thread* self = reinterpret_cast<Thread*>(arg);
       self->perform();
+      if(self->delete_on_exit()) delete self;
       return NULL;
     }
 
@@ -90,6 +92,7 @@ namespace thread {
     Thread() {}
     Thread(pthread_t tid)
       : native_(tid)
+      , delete_on_exit_(false)
     {}
 
     virtual ~Thread() { }
@@ -166,6 +169,14 @@ namespace thread {
       if(err == ENOTSUP) return false;
 
       return true;
+    }
+
+    bool delete_on_exit() {
+      return delete_on_exit_;
+    }
+
+    void set_delete_on_exit() {
+      delete_on_exit_ = true;
     }
   };
 

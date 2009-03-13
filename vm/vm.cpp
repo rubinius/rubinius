@@ -96,9 +96,12 @@ namespace rubinius {
 
     VM::register_state(this);
 
-    if(ConfigParser::Entry* entry = user_config->find("rbx.gc.young_space")) {
-      bytes = entry->to_i();
+    if(user_config) {
+      if(ConfigParser::Entry* entry = user_config->find("rbx.gc.young_space")) {
+        bytes = entry->to_i();
+      }
     }
+
     om = new ObjectMemory(this, bytes);
     shared.om = om;
 

@@ -1,20 +1,16 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/module.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestModule : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
+class TestModule : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_create() {

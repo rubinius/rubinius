@@ -1,21 +1,16 @@
-#include "vm.hpp"
-#include "objectmemory.hpp"
+#include "vm/test/test.hpp"
 
-#include <cxxtest/TestSuite.h>
+#include "builtin/symbol.hpp"
 
-using namespace rubinius;
-
-class TestSymbol : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
+class TestSymbol : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM(1024);
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_index() {

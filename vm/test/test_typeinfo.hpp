@@ -1,15 +1,11 @@
-#include "objectmemory.hpp"
+#include "vm/test/test.hpp"
+
 #include "object_types.hpp"
 #include "type_info.hpp"
-#include "vm.hpp"
 
 #include "builtin/object.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestTypeInfo : public CxxTest::TestSuite {
+class TestTypeInfo : public CxxTest::TestSuite, public VMTest {
 
   class BaseNoCleanup : public TypeInfo {
   public:
@@ -57,14 +53,12 @@ class TestTypeInfo : public CxxTest::TestSuite {
 
   public:
 
-  VM *state;
-
   void setUp() {
-    state = new VM(1024);
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_inherits_cleanup()

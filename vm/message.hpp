@@ -77,6 +77,12 @@ namespace rubinius {
     void set_arguments(STATE, Array* args);
 
     /**
+     *  Set the Message's argument to come from the first +count+ Objects
+     *  in +args+
+     */
+    void set_stack_args(int count, Object** args);
+
+    /**
      *  Remove and return the currently first remaining argument.
      */
     Object* shift_argument(STATE);

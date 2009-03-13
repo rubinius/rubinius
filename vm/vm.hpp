@@ -146,6 +146,7 @@ namespace rubinius {
       signal_thread_ = thr;
     }
 
+    static SharedState* standalone(VM*);
     VM* new_vm();
     void remove_vm(VM*);
 

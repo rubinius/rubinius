@@ -1,3 +1,6 @@
+#ifndef RBX_CONFIG_PARSER
+#define RBX_CONFIG_PARSER
+
 #include <iostream>
 #include <sstream>
 #include <map>
@@ -32,3 +35,5 @@ namespace rubinius {
     EntryList* get_section(std::string prefix);
   };
 }
+
+#endif

@@ -4290,8 +4290,8 @@ if $0 == __FILE__
     f.puts si.generate_size(methods)
   end
 
-  File.open("vm/test/test_instructions.hpp", "w") do |f|
-    si.generate_tests(f)
-  end
+  #File.open("vm/test/test_instructions.hpp", "w") do |f|
+  #  si.generate_tests(f)
+  #end
 
 end

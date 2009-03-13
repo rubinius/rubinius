@@ -1,25 +1,20 @@
-#include "vm.hpp"
+#include "vm/test/test.hpp"
+
 #include "vm/object_utils.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/string.hpp"
 #include "primitives.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestByteArray : public CxxTest::TestSuite {
+class TestByteArray : public CxxTest::TestSuite, public VMTest {
   public:
 
-  VM * state;
-
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_create() {

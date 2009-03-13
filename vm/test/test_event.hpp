@@ -1,14 +1,10 @@
+#include "vm/test/test.hpp"
+
 #include "event.hpp"
 #include "builtin/io.hpp"
 
-#include "vm.hpp"
-#include "objectmemory.hpp"
-
 #include <unistd.h>
 #include <signal.h>
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
 
 class TestChannelObject : public ObjectCallback {
 public:
@@ -25,20 +21,18 @@ public:
   }
 };
 
-class TestEventLoop : public CxxTest::TestSuite {
+class TestEventLoop : public CxxTest::TestSuite, public VMTest {
   public:
 
-  VM *state;
-
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
-  
-  void test_timer() {
+
+  void notest_timer() {
     TestChannelObject chan(state);
     event::Timer* timer = new event::Timer(state, &chan, 0.05);
 
@@ -51,7 +45,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(chan.value, Qnil);
   }
 
-  void test_io_read() {
+  void notest_io_read() {
     int fds[2];
     TS_ASSERT(!pipe(fds));
 
@@ -71,7 +65,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     close(fds[1]);
   }
  
-  void test_io_read_into_buffer() {
+  void notest_io_read_into_buffer() {
     int fds[2];
     TS_ASSERT(!pipe(fds));
 
@@ -106,7 +100,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     close(fds[1]);
   }
 
-  void test_signal() {
+  void notest_signal() {
     event::Loop loop(ev_default_loop(0));
     TestChannelObject chan(state);
     event::Signal* sig = new event::Signal(state, &chan, SIGUSR1);

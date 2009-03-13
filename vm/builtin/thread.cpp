@@ -25,11 +25,13 @@ namespace rubinius {
 
 
   Object* Thread::set_priority(STATE, Fixnum* new_priority) {
+    if(!native_thread_) return Qnil;
     native_thread_->set_priority(new_priority->to_native());
     return new_priority;
   }
 
   Object* Thread::priority(STATE) {
+    if(!native_thread_) return Qnil;
     return Fixnum::from(native_thread_->priority());
   }
 
@@ -43,17 +45,11 @@ namespace rubinius {
 
     target->thread.set(thr);
     thr->vm = target;
-    thr->native_thread_ = new NativeThread(target);
+    thr->native_thread_ = NULL;
 
     return thr;
   }
 
-  /**
-   *  @todo Causes a problem with call frames. This does not seem to
-   *        be performing a full setup on the VM (Environment does
-   *        VM::initialize and eventually VM::boot.) It is not defined
-   *        whether VM owns Threads or the other way around.
-   */
   Thread* Thread::allocate(STATE) {
     VM* vm = state->shared.new_vm();
     Thread* thread = Thread::create(state, vm);
@@ -64,10 +60,10 @@ namespace rubinius {
   /* Primitives */
 
   Object* Thread::fork(STATE) {
-    NativeThread* nt = native_thread();
+    native_thread_ = new NativeThread(vm);
 
     // Let it run.
-    nt->run();
+    native_thread_->run();
     return Qnil;
   }
 

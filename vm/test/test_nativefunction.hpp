@@ -1,26 +1,19 @@
+#include "vm/test/test.hpp"
 #include "prelude.hpp"
 #include "builtin/nativefunction.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 #include "ffi.hpp"
-
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
 
 VM *global_state;
 
-class TestNativeFunction : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
+class TestNativeFunction : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_type_size() {
@@ -546,48 +539,52 @@ class TestNativeFunction : public CxxTest::TestSuite {
   }
 
   void test_bind_with_string_and_ptr() {
-    String* name = String::create(state, "dummy_string");
-
-    Array* args = Array::create(state, 1);
-    args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_STRING));
+    Array* args = Array::create(state, 0);
 
     Object* ret = Fixnum::from(RBX_FFI_TYPE_STRPTR);
+
+    String* name = String::create(state, "static_string");
 
     NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
 
     TS_ASSERT(!func->nil_p());
     TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
-    Array* input = Array::create(state, 1);
-    input->set(state, 0, String::create(state, "whatever"));
+    Message msg(state);
 
-    Message* msg = new Message(state, input);
-
-    Object* out = func->call(state, msg);
+    Array* out = try_as<Array>(func->call(state, &msg));
 
     TS_ASSERT(kind_of<Array>(out));
 
-    Object* o1 = as<Array>(out)->get(state, 0);
-    Object* o2 = as<Array>(out)->get(state, 1);
+    String* o1 = try_as<String>(out->get(state, 0));
+    MemoryPointer* o2 = try_as<MemoryPointer>(out->get(state, 1));
     TS_ASSERT(kind_of<String>(o1));
     TS_ASSERT(kind_of<MemoryPointer>(o2));
 
-    TS_ASSERT_EQUALS(as<String>(o1)->byte_address(), std::string("whatever"));
-    TS_ASSERT(strcmp((char*)(as<MemoryPointer>(o2)->pointer), "whatever") == 0);
+    TS_ASSERT_EQUALS(o1->byte_address(), std::string("static strings are fun"));
+    TS_ASSERT(strcmp((char*)(o2->pointer), "static strings are fun") == 0);
+  }
 
-    input = Array::create(state, 1);
-    input->set(state, 0, Qnil);
+  void test_bind_with_string_and_ptr_for_null() {
+    Array* args = Array::create(state, 0);
 
-    msg = new Message(state, input);
+    Object* ret = Fixnum::from(RBX_FFI_TYPE_STRPTR);
 
-    out = func->call(state, msg);
+    String* name = String::create(state, "null_string");
+
+    NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
+
+    TS_ASSERT(!func->nil_p());
+    TS_ASSERT(func->data()->check_type(MemoryPointerType));
+
+    Message msg(state);
+
+    Array* out = try_as<Array>(func->call(state, &msg));
 
     TS_ASSERT(kind_of<Array>(out));
 
-    o1 = as<Array>(out)->get(state, 0);
-    o2 = as<Array>(out)->get(state, 1);
-    TS_ASSERT_EQUALS(o1, Qnil);
-    TS_ASSERT_EQUALS(o2, Qnil);
+    TS_ASSERT_EQUALS(out->get(state, 0), Qnil);
+    TS_ASSERT_EQUALS(out->get(state, 1), Qnil);
   }
 
   void test_bind_with_object() {
@@ -645,36 +642,6 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT(as<Fixnum>(out)->to_native());
-  }
-
-  void test_call_clears_caller_stack() {
-    String* name = String::create(state, "dummy_long");
-
-    Array* args = Array::create(state, 1);
-    args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_LONG));
-
-    Object* ret = Fixnum::from(RBX_FFI_TYPE_LONG);
-
-    NativeFunction *func = NativeFunction::bind(state, Qnil, name, args, ret);
-
-    TS_ASSERT(!func->nil_p());
-    TS_ASSERT(func->data()->check_type(MemoryPointerType));
-
-    Task* task = Task::create(state, 2);
-    task->push(Fixnum::from(13));
-
-    Message msg(state);
-    msg.use_from_task(task, 1);
-    msg.stack = 1;
-
-    TS_ASSERT_EQUALS(task->active()->calculate_sp(), 0);
-
-    Object* out = func->call(state, &msg);
-
-    TS_ASSERT_EQUALS(task->active()->calculate_sp(), -1);
-
-    TS_ASSERT(kind_of<Integer>(out));
-    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
   }
 
 };
@@ -739,6 +706,15 @@ extern "C" {
 
   char* dummy_string(char* c) {
     return c;
+  }
+
+  static char* ss = "static strings are fun";
+  char* static_string() {
+    return ss;
+  }
+
+  char* null_string() {
+    return NULL;
   }
 
   int dummy_state(STATE) {

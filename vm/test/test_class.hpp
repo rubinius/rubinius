@@ -1,23 +1,19 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/class.hpp"
 #include "vm/object_utils.hpp"
 #include "builtin/lookuptable.hpp"
 #include "object_types.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestClass : public CxxTest::TestSuite {
+class TestClass : public CxxTest::TestSuite, public VMTest {
   public:
 
-  VM *state;
-
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_create() {

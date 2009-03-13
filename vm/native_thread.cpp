@@ -24,6 +24,10 @@ namespace rubinius {
     // (automatically unlocked at the end of this function)
     GlobalLock::LockGuard x(vm_->global_lock());
 
+    // Register that when the perform returns and the thread is exitting, to
+    // run delete on this object to free up the memory.
+    set_delete_on_exit();
+
     CallFrame cf;
     cf.previous = NULL;
     cf.name = NULL;
@@ -53,6 +57,7 @@ namespace rubinius {
       }
     }
 
+    vm_->thread.get()->detach_native_thread();
     vm_->discard();
   }
 }

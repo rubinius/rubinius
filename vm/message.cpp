@@ -91,6 +91,11 @@ namespace rubinius {
     use_array(args);
   }
 
+  void Message::set_stack_args(int count, Object** args) {
+    stack_args_ = arguments_ = args;
+    total_args = count;
+  }
+
   void Message::append_arguments(STATE, Array* splat) {
     Array* args = Array::create(state, splat->size() + total_args);
 

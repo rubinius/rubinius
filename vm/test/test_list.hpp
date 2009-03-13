@@ -1,27 +1,22 @@
-#include "vm.hpp"
+#include "vm/test/test.hpp"
+
 #include "builtin/list.hpp"
 #include "builtin/fixnum.hpp"
-#include "objectmemory.hpp"
 
-#include <cxxtest/TestSuite.h>
+class TestList : public CxxTest::TestSuite, public VMTest {
+public:
 
-using namespace rubinius;
-
-class TestList : public CxxTest::TestSuite {
-  public:
-
-  VM* state;
   Object* one;
   Object* two;
 
   void setUp() {
-    state = new VM(1024);
+    create();
     one = Fixnum::from(1);
     two = Fixnum::from(2);
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_classes() {

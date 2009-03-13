@@ -32,10 +32,15 @@ LLVM_ENABLE = false
 
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
-tests       = FileList["vm/test/test_*.hpp"]
+
+if ENV['TESTS_ONLY']
+  tests = FileList[ENV['TESTS_ONLY']]
+else
+  tests = FileList["vm/test/test_*.hpp"]
+end
 
 # vm/test/test_instructions.hpp may not have been generated yet
-tests      << 'vm/test/test_instructions.hpp'
+# tests      << 'vm/test/test_instructions.hpp'
 tests.uniq!
 
 subdirs = %w!builtin subtend parser util instruments gc!
@@ -73,7 +78,7 @@ EX_INC      = %w[ libtommath libgdtoa onig libffi/include
 INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
                   vm/gen/iseq_instruction_names.hpp
                   vm/gen/iseq_instruction_size.gen
-                  vm/test/test_instructions.hpp ]
+                ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/kind_of.hpp
                   vm/gen/object_types.hpp
@@ -460,7 +465,7 @@ file 'vm/primitives.o'                => TYPE_GEN
 file 'vm/codegen/instructions_gen.rb' => 'kernel/compiler/iseq.rb'
 file 'vm/instructions.rb'             => 'vm/gen'
 file 'vm/instructions.rb'             => 'vm/codegen/instructions_gen.rb'
-file 'vm/test/test_instructions.hpp'  => 'vm/codegen/instructions_gen.rb'
+# file 'vm/test/test_instructions.hpp'  => 'vm/codegen/instructions_gen.rb'
 file 'vm/codegen/field_extract.rb'    => 'vm/gen'
 
 files INSN_GEN, %w[vm/instructions.rb] do |t|

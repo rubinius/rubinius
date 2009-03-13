@@ -1,31 +1,19 @@
-#include "vm.hpp"
-#include "objectmemory.hpp"
+#include "vm/test/test.hpp"
+
 #include "builtin/iseq.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestCompiledMethod : public CxxTest::TestSuite {
-  public:
-
-  VM* state;
+class TestCompiledMethod : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM(1024);
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
-  void test_startup_tramp() {
-    CompiledMethod* cm = CompiledMethod::generate_tramp(state);
-    VMMethod* vmm = cm->formalize(state);
+  void test_write_me() {
 
-    TS_ASSERT_EQUALS(vmm->opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_halt));
-    TS_ASSERT(!cm->scope()->nil_p());
-    TS_ASSERT_EQUALS(cm->scope()->module(), G(object));
   }
-
 };

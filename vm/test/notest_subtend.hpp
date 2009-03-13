@@ -1,7 +1,4 @@
-#include <cxxtest/TestSuite.h>
-
-/* System */
-#include "subtend/PortableUContext.h"
+#include "vm/test/test.hpp"
 
 /* Project */
 #include "vm.hpp"
@@ -11,11 +8,9 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
 
 /* Testee */
 #include "builtin/nativemethod.hpp"
-#include "builtin/nativemethodcontext.hpp"
 
 #include "subtend/ruby.h"
 

@@ -1,21 +1,18 @@
-#include "vm.hpp"
+#include "vm/test/test.hpp"
 
-#include <cxxtest/TestSuite.h>
+#include "builtin/string.hpp"
 
-using namespace rubinius;
+class TestString : public CxxTest::TestSuite, public VMTest {
+public:
 
-class TestString : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
   String *str;
 
   void setUp() {
-    state = new VM(1024);
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_create_with_size() {

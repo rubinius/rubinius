@@ -1,22 +1,18 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/time.hpp"
 #include "object_types.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestTime : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
+class TestTime : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_create() {

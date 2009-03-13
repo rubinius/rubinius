@@ -34,16 +34,21 @@ namespace rubinius {
     collect_mature_now = false;
     last_object_id = 0;
 
-    ConfigParser::Entry* entry;
-    if((entry = state->user_config->find("rbx.gc.large_object"))) {
-      large_object_threshold = entry->to_i();
+    if(state->user_config) {
+      ConfigParser::Entry* entry;
+      if((entry = state->user_config->find("rbx.gc.large_object"))) {
+        large_object_threshold = entry->to_i();
+      } else {
+        large_object_threshold = 2700;
+      }
+
+      if((entry = state->user_config->find("rbx.gc.lifetime"))) {
+        young.lifetime = entry->to_i();
+      } else {
+        young.lifetime = 6;
+      }
     } else {
       large_object_threshold = 2700;
-    }
-
-    if((entry = state->user_config->find("rbx.gc.lifetime"))) {
-      young.lifetime = entry->to_i();
-    } else {
       young.lifetime = 6;
     }
 

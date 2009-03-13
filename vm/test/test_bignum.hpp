@@ -1,26 +1,20 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/bignum.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
-#include "vm.hpp"
-#include "vm/object_utils.hpp"
-#include "objectmemory.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestBignum : public CxxTest::TestSuite {
+class TestBignum : public CxxTest::TestSuite, public VMTest {
   public:
 
-  VM* state;
   Bignum* b1;
   Bignum* b2;
   Fixnum* two;
   double TOLERANCE;
 
   void setUp() {
-    state = new VM(1024);
+    create();
     b1 = Bignum::from(state, (native_int)2147483647);
     b2 = Bignum::from(state, (native_int)2147483646);
     two = Fixnum::from(2);
@@ -28,7 +22,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_from_int() {

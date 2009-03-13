@@ -1,26 +1,22 @@
+#include "vm/test/test.hpp"
+
 #include <cstdlib>
 
 #include "native_libraries.hpp"
 #include "builtin/exception.hpp"
 
-#include <cxxtest/TestSuite.h>
+class TestNativeLibrary : public CxxTest::TestSuite, public VMTest {
+public:
 
-using namespace rubinius;
-
-
-class TestNativeLibrary : public CxxTest::TestSuite {
-  public:
-
-  VM* state;
   const char* lib_name;
 
   void setUp() {
-    state = new VM();
+    create();
     lib_name = ::getenv("LIBRUBY");
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_find_symbol_in_this_process() {

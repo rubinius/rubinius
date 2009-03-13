@@ -23,12 +23,7 @@ namespace rubinius {
   }
 
   void Assertion::raise(const char* reason) {
-    VM* state = VM::current_state();
-    abort();
-    if(!state || !state->use_safe_position) {
-      throw Assertion(reason);
-    }
-    state->raise_assertion_safely(new Assertion(reason));
+    throw Assertion(reason);
     // Not reached.
   }
 

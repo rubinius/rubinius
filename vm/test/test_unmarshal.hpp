@@ -1,13 +1,10 @@
-#include "marshal.hpp"
+#include "vm/test/test.hpp"
 
-#include <cxxtest/TestSuite.h>
+#include "marshal.hpp"
 
 #include <iostream>
 #include <sstream>
 #include <cmath>
-
-
-using namespace rubinius;
 
 class StringUnMarshaller : public UnMarshaller {
 public:
@@ -16,18 +13,17 @@ public:
   StringUnMarshaller(STATE) : UnMarshaller(state, sstream) { }
 };
 
-class TestUnMarshal : public CxxTest::TestSuite {
+class TestUnMarshal : public CxxTest::TestSuite, public VMTest {
 public:
-  VM* state;
   StringUnMarshaller* mar;
 
   void setUp() {
-    state = new VM();
+    create();
     mar = new StringUnMarshaller(state);
   }
 
   void tearDown() {
-    delete state;
+    destroy();
     delete mar;
   }
 

@@ -1,26 +1,20 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/exception.hpp"
 #include "builtin/list.hpp"
-#include "vm.hpp"
-#include "vm/object_utils.hpp"
-#include "objectmemory.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestFixnum : public CxxTest::TestSuite {
+class TestFixnum : public CxxTest::TestSuite, public VMTest {
   public:
 
-  VM* state;
   double TOLERANCE;
 
   void setUp() {
-    state = new VM();
+    create();
     TOLERANCE = 0.00003;
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_init() {

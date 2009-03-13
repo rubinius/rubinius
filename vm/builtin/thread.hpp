@@ -41,6 +41,10 @@ namespace rubinius {
       return native_thread_;
     }
 
+    void detach_native_thread() {
+      native_thread_ = NULL;
+    }
+
   public:   /* Primitives */
 
     // Ruby.primitive :thread_allocate
@@ -96,8 +100,10 @@ namespace rubinius {
 
     // The VM class that represents this running thread
     VM*       vm;
-    NativeThread* native_thread_;
 
+    // Once the thread is actually forked, this is set assigned to
+    // and removed once the thread ends.
+    NativeThread* native_thread_;
 
   public:   /* TypeInfo */
 

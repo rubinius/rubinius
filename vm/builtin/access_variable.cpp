@@ -43,7 +43,7 @@ namespace rubinius {
     /* The read case. */
     if(msg.args() != 0) {
       Exception::argument_error(state, 0, msg.args());
-      return Qnil;
+      return NULL;
     } else {
       return msg.recv->get_ivar(state, access->name());
     }

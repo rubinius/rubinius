@@ -1,22 +1,18 @@
+#include "vm/test/test.hpp"
+
+#include "global_cache.hpp"
+
 #include "builtin/list.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestSendSite : public CxxTest::TestSuite {
-  public:
-
-  VM* state;
+class TestSendSite : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM(1024);
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_init() {
