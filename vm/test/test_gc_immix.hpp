@@ -328,7 +328,7 @@ public:
     TS_ASSERT_EQUALS(fwd, dest.first_address());
     TS_ASSERT_EQUALS(fwd, redirect);
 
-    TS_ASSERT_EQUALS(fwd.as<SimpleObject>()->magic, 0xdecafbad);
+    TS_ASSERT_EQUALS((unsigned)fwd.as<SimpleObject>()->magic, 0xdecafbad);
   }
 
   void test_mark_address_calls_describer() {
@@ -345,7 +345,7 @@ public:
     gc->mark_address(addr, alloc);
 
     TS_ASSERT_EQUALS(obj->marked, true);
-    TS_ASSERT_EQUALS(gc->mark_stack().size(), 1);
+    TS_ASSERT_EQUALS(gc->mark_stack().size(), 1U);
     TS_ASSERT_EQUALS(gc->mark_stack()[0], addr);
   }
 

@@ -390,7 +390,7 @@ public:
   void test_untaint() {
     Object* obj = util_new_object();
 
-    obj->IsTainted = TRUE;
+    obj->IsTainted = true;
     TS_ASSERT(obj->IsTainted);
     obj->untaint();
     TS_ASSERT(!obj->IsTainted);
@@ -400,7 +400,7 @@ public:
     Object* obj = util_new_object();
 
     TS_ASSERT_EQUALS(obj->frozen_p(), Qfalse);
-    obj->IsFrozen = TRUE;
+    obj->IsFrozen = true;
     TS_ASSERT_EQUALS(obj->frozen_p(), Qtrue);
   }
 

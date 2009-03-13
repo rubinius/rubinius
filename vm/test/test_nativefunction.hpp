@@ -708,7 +708,7 @@ extern "C" {
     return c;
   }
 
-  static char* ss = "static strings are fun";
+  static char* ss = const_cast<char *>("static strings are fun");
   char* static_string() {
     return ss;
   }
