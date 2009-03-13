@@ -26,6 +26,8 @@ public:
     state = shared->new_vm();
     state->initialize(VM::default_bytes);
     state->boot();
+
+    state->global_lock().lock();
   }
 
   void destroy() {
