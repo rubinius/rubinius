@@ -60,6 +60,42 @@ public:
   size_t size();
   void   add(Node*);
   void   remove(Node*);
+
+  // Utility templates
+  template <typename Roots, typename Root>
+  class Iterator {
+    Roots& roots_;
+    Root* current_;
+
+  public:
+    Iterator(Roots& roots)
+      : roots_(roots)
+      , current_(roots.front())
+    {}
+
+    bool more() {
+      return current_ != 0;
+    }
+
+    void advance() {
+      current_ = static_cast<Root*>(current_->next());
+    }
+
+    Root* operator->() {
+      return current_;
+    }
+
+    Root* next() {
+      Root* ret = current_;
+      if(current_) {
+        current_ = static_cast<Root*>(current_->next());
+      }
+
+      return ret;
+    }
+  };
+
+
 };
 
 #endif

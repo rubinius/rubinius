@@ -28,6 +28,8 @@ namespace rubinius {
   public:   /* Interface */
 
     Root* front();
+
+    typedef LinkedList::Iterator<Roots, Root> Iterator;
   };
 
 
@@ -91,7 +93,6 @@ namespace rubinius {
     /** The Roots structure this Root belongs to. */
     Roots*  roots;
   };
-
 
   /**
    *  TypedRoot is a Root that knows the type of its Object.

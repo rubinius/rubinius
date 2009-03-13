@@ -13,6 +13,8 @@ namespace rubinius {
     VariableRootBuffer* front() {
       return (VariableRootBuffer*)head();
     }
+
+    typedef LinkedList::Iterator<VariableRootBuffers, VariableRootBuffer> Iterator;
   };
 
   class VariableRootBuffer : public LinkedList::Node {

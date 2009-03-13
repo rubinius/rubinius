@@ -64,29 +64,24 @@ namespace rubinius {
 
     gc_.clear_lines();
 
-    Root* root = static_cast<Root*>(data.roots().head());
-    while(root) {
-      tmp = root->get();
+    for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
+      tmp = i->get();
       if(tmp->reference_p()) {
         saw_object(tmp);
       }
-
-      root = static_cast<Root*>(root->next());
     }
 
-    VariableRootBuffer* varbuf = data.variable_buffers().front();
-    while(varbuf) {
-      Object*** buffer = varbuf->buffer();
-      for(int i = 0; i < varbuf->size(); i++) {
-        Object** var = buffer[i];
+    for(VariableRootBuffers::Iterator i(data.variable_buffers());
+        i.more(); i.advance()) {
+      Object*** buffer = i->buffer();
+      for(int idx = 0; idx < i->size(); idx++) {
+        Object** var = buffer[idx];
         Object* tmp = *var;
 
         if(tmp->reference_p() && tmp->young_object_p()) {
           saw_object(tmp);
         }
       }
-
-      varbuf = static_cast<VariableRootBuffer*>(varbuf->next());
     }
 
     // Walk all the call frames
