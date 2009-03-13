@@ -21,6 +21,7 @@
 #include "objectmemory.hpp"
 
 #include "vm/object_utils.hpp"
+#include "vm/on_stack.hpp"
 
 #include "native_thread.hpp"
 
@@ -345,6 +346,8 @@ namespace rubinius {
     String* buffer = String::create(state, number_of_bytes);
 
     ssize_t bytes_read;
+
+    OnStack<1> variables(state, buffer);
 
   retry:
     WaitingForSignal waiter;
