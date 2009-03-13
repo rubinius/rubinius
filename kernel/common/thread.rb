@@ -187,21 +187,27 @@ class Thread
   private :join_inner
 
   def raise(exc=$!, msg=nil, trace=nil)
-    if exc.respond_to? :exception
-      exc = exc.exception msg
-      Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
-      exc.set_backtrace trace if trace
-    elsif exc.kind_of? String or !exc
-      exc = RuntimeError.exception exc
-    else
-      Kernel.raise TypeError, 'exception class/object expected'
-    end
+    @lock.receive
 
-    if $DEBUG
-      STDERR.puts "Exception: #{exc.message} (#{exc.class})"
-    end
+    begin
+      if exc.respond_to? :exception
+        exc = exc.exception msg
+        Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
+        exc.set_backtrace trace if trace
+      elsif exc.kind_of? String or !exc
+        exc = RuntimeError.exception exc
+      else
+        Kernel.raise TypeError, 'exception class/object expected'
+      end
 
-    Kernel.raise exc if self == Thread.current
+      if $DEBUG
+        STDERR.puts "Exception: #{exc.message} (#{exc.class})"
+      end
+
+      Kernel.raise exc if self == Thread.current
+    ensure
+      @lock.send nil
+    end
 
     raise_prim exc
   end

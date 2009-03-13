@@ -53,7 +53,8 @@ namespace rubinius {
         }
 
         std::cout << exc->class_object(vm_)->name()->c_str(vm_) << ")\n\n";
-        exc->print_locations(vm_);
+        // This can blow up. Don't do it.
+        // exc->print_locations(vm_);
       }
     }
 
