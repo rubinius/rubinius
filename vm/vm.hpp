@@ -14,6 +14,7 @@
 #include "call_frame_list.hpp"
 
 #include "async_message.hpp"
+#include "gc/variable_buffer.hpp"
 
 #include <pthread.h>
 #include <setjmp.h>
@@ -100,6 +101,7 @@ namespace rubinius {
     VMMap vms_;
     SignalThread* signal_thread_;
     CallFrameLocationList cf_locations_;
+    VariableRootBuffers root_buffers_;
 
   public:
     Globals globals;
@@ -152,6 +154,10 @@ namespace rubinius {
 
     CallFrameLocationList& call_frame_locations() {
       return cf_locations_;
+    }
+
+    VariableRootBuffers* variable_buffers() {
+      return &root_buffers_;
     }
   };
 
@@ -253,6 +259,12 @@ namespace rubinius {
 
     CallFrame* saved_call_frame() {
       return saved_call_frame_;
+    }
+
+    // NOTE this will need to be VM local, ie Thread local, once the GIL
+    // is removed.
+    VariableRootBuffers* variable_buffers() {
+      return shared.variable_buffers();
     }
 
     void* stack_start() {

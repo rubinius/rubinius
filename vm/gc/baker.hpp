@@ -20,6 +20,7 @@
 namespace rubinius {
 
   class ObjectMemory;
+  class GCData;
 
   class BakerGC : public GarbageCollector {
   public:
@@ -86,7 +87,7 @@ namespace rubinius {
     virtual Object* saw_object(Object* obj);
     void    copy_unscanned();
     bool    fully_scanned_p();
-    void    collect(Roots &roots, CallFrameLocationList& call_frames);
+    void    collect(GCData& data);
     void    clear_marks();
     Object*  next_object(Object* obj);
     void    find_lost_souls();

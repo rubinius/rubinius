@@ -71,8 +71,8 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
     //std::cout << "young: " << index << " (" <<
     //  state->om->young.total_objects << ")" << std::endl;
 
-    CallFrameLocationList frames;
-    state->om->collect_young(state->globals.roots, frames);
+    GCData gc_data(state);
+    state->om->collect_young(gc_data);
 
     index = 0;
     root = static_cast<Root*>(state->globals.roots.head());

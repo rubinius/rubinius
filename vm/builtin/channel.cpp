@@ -5,6 +5,7 @@
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 
+#include "builtin/object.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/list.hpp"
@@ -17,6 +18,8 @@
 
 #include "thread.hpp"
 #include "native_thread.hpp"
+
+#include "on_stack.hpp"
 
 #include <sys/time.h>
 
@@ -80,7 +83,11 @@ namespace rubinius {
     // control is returned.
     //
     // DO NOT USE this AFTER wait().
-    TypedRoot<Channel*> chan(state, this);
+
+    // We have to do this because we can't pass this to OnStack, since C++
+    // won't let us reassign it.
+    Channel* self = this;
+    OnStack<1> sv(state, self);
 
     WaitingOnCondition waiter(*condition_);
 
@@ -106,11 +113,11 @@ namespace rubinius {
     if(!state->check_async(call_frame)) return NULL;
 
     // We were awoken, but there is no value to use. Return nil.
-    if(chan->value()->empty_p()) {
+    if(self->value()->empty_p()) {
       return Qnil;
     }
 
-    return chan->value()->shift(state);
+    return self->value()->shift(state);
   }
 
   bool Channel::has_readers_p() {

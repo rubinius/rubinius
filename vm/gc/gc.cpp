@@ -13,6 +13,12 @@
 
 namespace rubinius {
 
+  GCData::GCData(STATE)
+    : roots_(state->globals.roots)
+    , call_frames_(state->shared.call_frame_locations())
+    , variable_buffers_(*state->variable_buffers())
+  {}
+
   GarbageCollector::GarbageCollector(ObjectMemory *om)
                    :object_memory(om), weak_refs(NULL) { }
 
@@ -263,11 +269,11 @@ namespace rubinius {
     }
   };
 
-  void GarbageCollector::unmark_all(Roots &roots, CallFrameLocationList& call_frames) {
+  void GarbageCollector::unmark_all(GCData& data) {
     UnmarkVisitor visit(object_memory);
 
-    visit_roots(roots, visit);
-    visit_call_frames_list(call_frames, visit);
+    visit_roots(data.roots(), visit);
+    visit_call_frames_list(data.call_frames(), visit);
 
     visit.drain_stack();
   }

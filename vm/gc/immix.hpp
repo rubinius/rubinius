@@ -85,7 +85,7 @@ namespace rubinius {
     Object* allocate(int bytes);
 
     virtual Object* saw_object(Object*);
-    void collect(Roots &roots, CallFrameLocationList& call_frame);
+    void collect(GCData& data);
   };
 }
 

@@ -59,12 +59,12 @@ namespace rubinius {
     return fwd.as<Object>();
   }
 
-  void ImmixGC::collect(Roots &roots, CallFrameLocationList& call_frames) {
+  void ImmixGC::collect(GCData& data) {
     Object* tmp;
 
     gc_.clear_lines();
 
-    Root* root = static_cast<Root*>(roots.head());
+    Root* root = static_cast<Root*>(data.roots().head());
     while(root) {
       tmp = root->get();
       if(tmp->reference_p()) {
@@ -74,9 +74,24 @@ namespace rubinius {
       root = static_cast<Root*>(root->next());
     }
 
+    VariableRootBuffer* varbuf = data.variable_buffers().front();
+    while(varbuf) {
+      Object*** buffer = varbuf->buffer();
+      for(int i = 0; i < varbuf->size(); i++) {
+        Object** var = buffer[i];
+        Object* tmp = *var;
+
+        if(tmp->reference_p() && tmp->young_object_p()) {
+          saw_object(tmp);
+        }
+      }
+
+      varbuf = static_cast<VariableRootBuffer*>(varbuf->next());
+    }
+
     // Walk all the call frames
-    for(CallFrameLocationList::const_iterator i = call_frames.begin();
-        i != call_frames.end();
+    for(CallFrameLocationList::const_iterator i = data.call_frames().begin();
+        i != data.call_frames().end();
         i++) {
       CallFrame** loc = *i;
       walk_call_frame(*loc);

@@ -19,6 +19,32 @@ namespace rubinius {
     virtual Object* call(Object*) = 0;
   };
 
+  class GCData {
+    Roots& roots_;
+    CallFrameLocationList& call_frames_;
+    VariableRootBuffers& variable_buffers_;
+
+  public:
+    GCData(STATE);
+    GCData(Roots& r, CallFrameLocationList& l, VariableRootBuffers& b)
+      : roots_(r)
+      , call_frames_(l)
+      , variable_buffers_(b)
+    {}
+
+    Roots& roots() {
+      return roots_;
+    }
+
+    CallFrameLocationList& call_frames() {
+      return call_frames_;
+    }
+
+    VariableRootBuffers& variable_buffers() {
+      return variable_buffers_;
+    }
+  };
+
   class GarbageCollector {
   public:
 
@@ -45,9 +71,10 @@ namespace rubinius {
 
     void visit_roots(Roots& roots, ObjectVisitor& visit);
     void visit_call_frames_list(CallFrameLocationList& call_frames, ObjectVisitor& visit);
-    void unmark_all(Roots &roots, CallFrameLocationList& call_frames);
+    void unmark_all(GCData& data);
     void clean_weakrefs(bool check_forwards=false);
   };
+
 
 }
 

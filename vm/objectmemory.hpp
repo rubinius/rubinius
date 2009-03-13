@@ -35,6 +35,7 @@ namespace rubinius {
    */
 
   class CallFrame;
+  class GCData;
 
   class ObjectMemory {
   public:
@@ -88,8 +89,8 @@ namespace rubinius {
 
     TypeInfo* find_type_info(Object* obj);
     void set_young_lifetime(size_t age);
-    void collect_young(Roots &roots, CallFrameLocationList& call_frames);
-    void collect_mature(Roots &roots, CallFrameLocationList& call_frames);
+    void collect_young(GCData& data);
+    void collect_mature(GCData& data);
     Object* promote_object(Object* obj);
     bool valid_object_p(Object* obj);
     void debug_marksweep(bool val);

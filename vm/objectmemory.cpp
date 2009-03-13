@@ -115,24 +115,24 @@ namespace rubinius {
     return copy;
   }
 
-  void ObjectMemory::collect_young(Roots &roots, CallFrameLocationList& call_frames) {
+  void ObjectMemory::collect_young(GCData& data) {
     static int collect_times = 0;
-    young.collect(roots, call_frames);
+    young.collect(data);
     collect_times++;
   }
 
-  void ObjectMemory::collect_mature(Roots &roots, CallFrameLocationList& call_frames) {
+  void ObjectMemory::collect_mature(GCData& data) {
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_seen.start();
     stats::GCStats::get()->collect_mature.start();
 #endif
 
-    immix_.collect(roots, call_frames);
+    immix_.collect(data);
 
     mark_sweep_.after_marked();
 
     immix_.clean_weakrefs();
-    immix_.unmark_all(roots, call_frames);
+    immix_.unmark_all(data);
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_mature.stop();

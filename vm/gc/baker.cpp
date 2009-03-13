@@ -11,6 +11,8 @@
 
 #include "call_frame.hpp"
 
+#include "gc/gc.hpp"
+
 namespace rubinius {
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes) :
     GarbageCollector(om),
@@ -78,7 +80,7 @@ namespace rubinius {
   }
 
   /* Perform garbage collection on the young objects. */
-  void BakerGC::collect(Roots &roots, CallFrameLocationList &call_frames) {
+  void BakerGC::collect(GCData& data) {
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_copied.start();
     stats::GCStats::get()->objects_promoted.start();
@@ -113,7 +115,7 @@ namespace rubinius {
 
     delete current_rs;
 
-    Root* root = static_cast<Root*>(roots.head());
+    Root* root = static_cast<Root*>(data.roots().head());
     while(root) {
       tmp = root->get();
       if(tmp->reference_p() && tmp->young_object_p()) {
@@ -123,9 +125,24 @@ namespace rubinius {
       root = static_cast<Root*>(root->next());
     }
 
+    VariableRootBuffer* varbuf = data.variable_buffers().front();
+    while(varbuf) {
+      Object*** buffer = varbuf->buffer();
+      for(int i = 0; i < varbuf->size(); i++) {
+        Object** var = buffer[i];
+        Object* tmp = *var;
+
+        if(tmp->reference_p() && tmp->young_object_p()) {
+          *var = saw_object(tmp);
+        }
+      }
+
+      varbuf = static_cast<VariableRootBuffer*>(varbuf->next());
+    }
+
     // Walk all the call frames
-    for(CallFrameLocationList::iterator i = call_frames.begin();
-        i != call_frames.end();
+    for(CallFrameLocationList::iterator i = data.call_frames().begin();
+        i != data.call_frames().end();
         i++) {
       CallFrame** loc = *i;
       walk_call_frame(*loc);

@@ -275,20 +275,22 @@ namespace rubinius {
 
   void VM::collect(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
-    CallFrameLocationList& frames = shared.call_frame_locations();
 
-    om->collect_young(globals.roots, frames);
-    om->collect_mature(globals.roots, frames);
+    GCData gc_data(this);
+
+    om->collect_young(gc_data);
+    om->collect_mature(gc_data);
+    global_cache->clear();
   }
 
   void VM::collect_maybe(CallFrame* call_frame) {
     this->set_call_frame(call_frame);
-    CallFrameLocationList& frames = shared.call_frame_locations();
+    GCData gc_data(this);
 
     if(om->collect_young_now) {
       om->collect_young_now = false;
 
-      om->collect_young(globals.roots, frames);
+      om->collect_young(gc_data);
 
       global_cache->clear();
     }
@@ -296,7 +298,7 @@ namespace rubinius {
     if(om->collect_mature_now) {
       om->collect_mature_now = false;
 
-      om->collect_mature(globals.roots, frames);
+      om->collect_mature(gc_data);
 
       global_cache->clear();
 

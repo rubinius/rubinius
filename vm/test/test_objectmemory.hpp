@@ -15,13 +15,20 @@ using namespace rubinius;
 class TestObjectMemory : public CxxTest::TestSuite, public VMTest {
 public:
 
+  GCData* gc_data;
+  Roots* roots;
   CallFrameLocationList call_frames;
+  VariableRootBuffers variable_buffers;
 
   void setUp() {
     create();
+    roots = new Roots;
+    gc_data = new GCData(*roots, call_frames, variable_buffers);
   }
 
   void tearDown() {
+    delete gc_data;
+    delete roots;
     destroy();
   }
 
@@ -98,18 +105,17 @@ public:
     Heap *cur = om.young.next;
     TS_ASSERT_EQUALS(om.young.current->used(), obj->size_in_bytes() * 5);
 
-    Roots roots;
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
     TS_ASSERT_EQUALS(om.young.current->used(), 0U);
     TS_ASSERT_EQUALS((void*)cur, (void*)om.young.current);
 
     obj = util_new_object(om);
     TS_ASSERT_EQUALS(obj->age, 0U);
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots, call_frames);
-    obj = roots.front()->get();
+    om.collect_young(*gc_data);
+    obj = roots->front()->get();
     TS_ASSERT_EQUALS(om.young.current->used(), obj->size_in_bytes());
   }
 
@@ -125,15 +131,14 @@ public:
 
     om.write_barrier(obj, obj2);
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
     TS_ASSERT_EQUALS(om.young.current->used(),
                      obj->size_in_bytes() + obj2->size_in_bytes());
 
-    Object* new_obj = roots.front()->get();
+    Object* new_obj = roots->front()->get();
     TS_ASSERT(obj != new_obj);
     obj = (Tuple*)new_obj;
 
@@ -158,12 +163,11 @@ public:
     //Tuple* tup = reinterpret_cast<Tuple*>(obj);
     //tup->field[0] = obj2;
 
-    Roots roots;
     //Root r(&roots, obj);
 
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
-    //tup = reinterpret_cast<Tuple*>(roots.front()->get());
+    //tup = reinterpret_cast<Tuple*>(roots->front()->get());
     //TS_ASSERT_EQUALS(tup->field[0], obj2);
   }
 
@@ -188,12 +192,11 @@ public:
 
     obj = util_new_object(om,20);
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
-    TS_ASSERT_EQUALS(obj, roots.front()->get());
+    TS_ASSERT_EQUALS(obj, roots->front()->get());
   }
 
   void test_collect_young_uses_remember_set() {
@@ -213,8 +216,7 @@ public:
     om.write_barrier(mature, young);
     TS_ASSERT_EQUALS(mature->Remember, 1U);
 
-    Roots roots;
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
     TS_ASSERT(mature->field[0] != young);
     TS_ASSERT_EQUALS(((Tuple*)mature->field[0])->field[0], Qtrue);
@@ -226,19 +228,18 @@ public:
 
     young = util_new_object(om);
 
-    Roots roots;
-    Root r(&roots, young);
+    Root r(roots, young);
 
     om.set_young_lifetime(1);
 
     TS_ASSERT_EQUALS(young->age, 0U);
-    om.collect_young(roots, call_frames);
-    TS_ASSERT_EQUALS(roots.front()->get()->age, 1U);
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
+    TS_ASSERT_EQUALS(roots->front()->get()->age, 1U);
+    om.collect_young(*gc_data);
 
-    TS_ASSERT_EQUALS(roots.front()->get()->age, 0U);
+    TS_ASSERT_EQUALS(roots->front()->get()->age, 0U);
 
-    TS_ASSERT(roots.front()->get()->mature_object_p());
+    TS_ASSERT(roots->front()->get()->mature_object_p());
   }
 
   void test_collect_young_resets_remember_set() {
@@ -256,17 +257,15 @@ public:
     mature->field[0] = young;
     om.write_barrier(mature, young);
 
-    Roots roots;
-
     om.set_young_lifetime(1);
 
     TS_ASSERT_EQUALS(mature->Remember, 1U);
     TS_ASSERT_EQUALS(om.remember_set->size(), 1U);
 
     TS_ASSERT_EQUALS(young->age, 0U);
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
     TS_ASSERT_EQUALS(mature->field[0]->age, 1U);
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
     TS_ASSERT_EQUALS(om.remember_set->size(), 0U);
   }
@@ -284,12 +283,11 @@ public:
 
     om.write_barrier(obj, obj2);
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
-    obj = (Tuple*)roots.front()->get();
+    obj = (Tuple*)roots->front()->get();
 
     obj2 = (Tuple*)obj->field[0];
     TS_ASSERT_EQUALS(obj2, obj->field[1]);
@@ -304,12 +302,11 @@ public:
     obj = om.new_object_bytes<ByteArray>(G(object), 3);
     obj->bytes[0] = 47;
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
-    obj = (ByteArray*)roots.front()->get();
+    obj = (ByteArray*)roots->front()->get();
     TS_ASSERT_EQUALS(obj->bytes[0], static_cast<char>(47));
   }
 
@@ -322,12 +319,11 @@ public:
     obj = util_new_object(om);
     obj->klass(state, (Class*)cls);
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
-    obj = roots.front()->get();
+    obj = roots->front()->get();
 
     TS_ASSERT(om.valid_object_p(obj->klass()));
   }
@@ -349,8 +345,7 @@ public:
 
     TS_ASSERT(!mature->marked_p());
 
-    Roots roots;
-    om.collect_mature(roots, call_frames);
+    om.collect_mature(*gc_data);
 
     TS_ASSERT_EQUALS(om.mark_sweep_.allocated_objects, 0U);
     TS_ASSERT(!mature->marked_p());
@@ -372,10 +367,9 @@ public:
 
     om.store_object(young, 0, mature);
 
-    Roots roots;
-    Root r(&roots, young);
+    Root r(roots, young);
 
-    om.collect_mature(roots, call_frames);
+    om.collect_mature(*gc_data);
     TS_ASSERT_EQUALS(young->Marked, 0U);
 
     TS_ASSERT_EQUALS(om.mark_sweep_.allocated_objects, 1U);
@@ -401,12 +395,11 @@ public:
     om.write_barrier(young, mature);
     om.write_barrier(mature, young);
 
-    Roots roots;
-    Root r(&roots, young);
+    Root r(roots, young);
 
-    om.collect_mature(roots, call_frames);
+    om.collect_mature(*gc_data);
 
-    young = (Tuple*)roots.front()->get();
+    young = (Tuple*)roots->front()->get();
     mature = (Tuple*)young->field[0];
 
     TS_ASSERT_EQUALS(mature->field[0], young);
@@ -430,12 +423,11 @@ public:
     om.write_barrier(obj, obj2);
     om.write_barrier(obj2, obj);
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots, call_frames);
+    om.collect_young(*gc_data);
 
-    obj = (Tuple*)roots.front()->get();
+    obj = (Tuple*)roots->front()->get();
     obj2 = (Tuple*)obj->field[0];
 
     TS_ASSERT_EQUALS(obj2->field[0], obj);
