@@ -23,6 +23,10 @@ public:
     return obj->fwd;
   }
 
+  bool pinned(immix::Address addr) {
+    return false;
+  }
+
   immix::Address copy(immix::Address original, immix::Allocator& alloc) {
     immix::Address copy_addr = alloc.allocate(sizeof(SimpleObject));
     SimpleObject* copy = copy_addr.as<SimpleObject>();
