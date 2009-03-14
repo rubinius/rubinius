@@ -48,11 +48,12 @@ class Thread
   end
 
   # Called by Thread#fork in the new thread
-  def __run__
+  #
+  def __run__()
     begin
       begin
         @lock.send nil
-        @result = @block.call(*@args)
+        @result = @block.call *@args
       ensure
         @lock.receive
         @joins.each {|join| join.send self }
@@ -189,6 +190,11 @@ class Thread
   def raise(exc=$!, msg=nil, trace=nil)
     @lock.receive
 
+    if not @alive
+      @lock.send nil
+      return self
+    end
+
     begin
       if exc.respond_to? :exception
         exc = exc.exception msg
@@ -211,6 +217,7 @@ class Thread
 
     raise_prim exc
   end
+  private :raise_prim
 
   def [](key)
     @locals[Type.coerce_to_symbol(key)]
@@ -252,7 +259,6 @@ class Thread
     Thread.current.group.list
   end
 
-  private :raise_prim
 
   alias_method :run, :wakeup
 end
