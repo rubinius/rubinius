@@ -1,0 +1,3 @@
+fails:Assignment via yield assigns objects to block variables that include the splat operator inside the block
+fails:Assignment via yield assigns objects to splatted block variables that include the splat operator inside the block
+fails:Assignment via yield assigns splatted objects to multiple block variables

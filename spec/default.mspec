@@ -9,9 +9,6 @@ class MSpecScript
     'spec/core',
     'spec/compiler',
 
-    '^spec/frozen/core/continuation',
-    '^spec/frozen/core/process',
-
     '^spec/core/compiledmethod',
     '^spec/core/module',
 
