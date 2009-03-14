@@ -676,6 +676,7 @@ class Module
   end
 
   def remove_const(name)
+    name = StringValue name unless name.kind_of? Symbol
     sym = name.to_sym
     unless constants_table.has_key?(sym)
       return const_missing(name)

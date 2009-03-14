@@ -1,3 +1,0 @@
-fails:Module#remove_const raises a NameError if the name starts with a non-alphabetic character
-fails:Module#remove_const calls #to_str to convert the given name to a String
-fails:Module#remove_const raises a TypeError if conversion to a String by calling #to_str fails
