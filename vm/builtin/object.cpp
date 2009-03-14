@@ -80,6 +80,12 @@ namespace rubinius {
   Object* Object::dup(STATE) {
     Object* other = state->om->allocate_object(this->total_size());
 
+#ifdef RBX_GC_STATS
+    // This counter is only valid if the line above allocates in the
+    // young object space.
+    stats::GCStats::get()->young_object_types[this->obj_type]++;
+#endif
+
     other->initialize_copy(this, age);
     other->copy_body(this);
 

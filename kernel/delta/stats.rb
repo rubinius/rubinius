@@ -134,7 +134,7 @@ module Rubinius
           return
         end
 
-        columns 20, 14, 14, 14, 14
+        columns 25, 14, 14, 14, 14
         headings "total", "max", "min", "average"
 
         collect_young  = data[:collect_young]
@@ -148,6 +148,7 @@ module Rubinius
 
         puts "\nGarbage collector stats:"
 
+        # TODO: make all configured values, even defaults, visible in config
         young = "Young (%d)" % (Rubinius::RUBY_CONFIG["rbx.gc.lifetime"] || 6)
         heading young
 
@@ -159,7 +160,7 @@ module Rubinius
 
         puts       "Lifetimes"
         collect_young[:lifetimes].each_with_index do |lifetime, index|
-          value " #{index}", lifetime
+          value    " #{index}", lifetime
         end
         string     "% of GC time",      "(#{percentage(collect_young[:total], total)})"
 
@@ -167,6 +168,7 @@ module Rubinius
         value      "Allocations",       allocate_young[:timings]
         statistics " times",            allocate_young, :auto_time
         value      " bytes allocated",  allocate_young[:bytes_allocated], :auto_bytes
+        object_types allocate_young[:object_types]
         string     "% of GC time",      "(#{percentage(allocate_young[:total], total)})"
 
 
@@ -180,11 +182,42 @@ module Rubinius
         statistics " times",            allocate_mature, :auto_time
         value      " chunks added",     allocate_mature[:chunks_added]
         value      " large objects",    allocate_mature[:large_objects]
+        object_types allocate_mature[:object_types]
         string     "% of GC time",      "(#{percentage(allocate_mature[:total], total)})"
 
         printf "\nTotal time spent in GC: %s (%s)\n\n",
                auto_time(total), percentage(total, data[:clock])
       end
+
+      def object_types(data)
+        return if data.empty? || !Rubinius::RUBY_CONFIG["rbx.gc_stats.object_types"]
+
+        total = 0
+        puts "Object types"
+        data.each_with_index do |count, type|
+          next if count == 0
+          value " #{object_type type}", count
+          total += count
+        end
+        value " Total types", total
+      end
+      private :object_types
+
+      def object_type(type)
+        unless @types
+          # TODO: make an interface to these available, potentially as part of
+          # making the compiler aware of these types.
+          object_types = File.dirname(__FILE__) + '/../../vm/gen/object_types.hpp'
+          if File.exists? object_types
+            @types = IO.read(object_types).scan(/\b(\w*)Type/).flatten
+          else
+            @types = []
+          end
+        end
+
+        @types[type]
+      end
+      private :object_type
     end
   end
 end

@@ -83,6 +83,7 @@ namespace stats {
 
     tbl = allocate_young.to_ruby(state);
     tbl->store(state, bytes_allocated(state), young_bytes_allocated.to_ruby(state));
+    tbl->store(state, state->symbol("object_types"), young_object_types.to_ruby(state));
     gc_tbl->store(state, state->symbol("allocate_young"), tbl);
 
     tbl = collect_mature.to_ruby(state);
@@ -93,6 +94,7 @@ namespace stats {
     tbl->store(state, bytes_allocated(state), mature_bytes_allocated.to_ruby(state));
     tbl->store(state, state->symbol("chunks_added"), chunks_added.to_ruby(state));
     tbl->store(state, state->symbol("large_objects"), large_objects.to_ruby(state));
+    tbl->store(state, state->symbol("object_types"), mature_object_types.to_ruby(state));
     gc_tbl->store(state, state->symbol("allocate_mature"), tbl);
 
     gc_tbl->store(state, state->symbol("clock"), clock.to_ruby(state));

@@ -316,6 +316,7 @@ namespace stats {
     SetCounter objects_copied;
     SetCounter objects_promoted;
 
+    Multi<Counter> young_object_types;
     Multi<Counter> lifetimes;
 
     // Mature generation stats
@@ -326,6 +327,8 @@ namespace stats {
     Counter large_objects;
     Counter chunks_added;
     SetCounter objects_seen;
+
+    Multi<Counter> mature_object_types;
 
   public:
 
