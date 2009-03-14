@@ -18,28 +18,18 @@
 
 namespace rubinius {
 
+
+/* Class methods */
+
   void Thread::init(STATE) {
     GO(thread).set(state->new_class("Thread", G(object)));
     G(thread)->set_object_type(state, Thread::type);
-  }
-
-
-  Object* Thread::set_priority(STATE, Fixnum* new_priority) {
-    if(!native_thread_) return Qnil;
-    native_thread_->set_priority(new_priority->to_native());
-    return new_priority;
-  }
-
-  Object* Thread::priority(STATE) {
-    if(!native_thread_) return Qnil;
-    return Fixnum::from(native_thread_->priority());
   }
 
   Thread* Thread::create(STATE, VM* target) {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->alive(state, Qtrue);
-    thr->queued(state, Qfalse);
     thr->sleep(state, Qfalse);
     thr->frozen_stack(state, Qfalse);
 
@@ -50,6 +40,9 @@ namespace rubinius {
     return thr;
   }
 
+
+/* Class primitives */
+
   Thread* Thread::allocate(STATE) {
     VM* vm = state->shared.new_vm();
     Thread* thread = Thread::create(state, vm);
@@ -57,7 +50,12 @@ namespace rubinius {
     return thread;
   }
 
-  /* Primitives */
+  Thread* Thread::current(STATE) {
+    return state->thread.get();
+  }
+
+
+/* Instance primitives */
 
   Object* Thread::fork(STATE) {
     state->interrupts.enable_preempt = true;
@@ -69,15 +67,29 @@ namespace rubinius {
     return Qnil;
   }
 
-  Thread* Thread::current(STATE) {
-    return state->thread.get();
-  }
-
   Object* Thread::pass(STATE) {
     GlobalLock::UnlockGuard x(state->global_lock());
     sched_yield();
 
     return Qnil;
+  }
+
+  Object* Thread::priority(STATE) {
+    if(!native_thread_) return Qnil;
+    return Fixnum::from(native_thread_->priority());
+  }
+
+  Object* Thread::raise(STATE, Exception* exc) {
+    thread::Mutex::LockGuard x(vm->local_lock());
+    vm->register_raise(exc);
+    vm->wakeup();
+    return exc;
+  }
+
+  Object* Thread::set_priority(STATE, Fixnum* new_priority) {
+    if(!native_thread_) return Qnil;
+    native_thread_->set_priority(new_priority->to_native());
+    return new_priority;
   }
 
   Thread* Thread::wakeup(STATE) {
@@ -91,13 +103,6 @@ namespace rubinius {
     }
 
     return this;
-  }
-
-  Object* Thread::raise(STATE, Exception* exc) {
-    thread::Mutex::LockGuard x(vm->local_lock());
-    vm->register_raise(exc);
-    vm->wakeup();
-    return exc;
   }
 
 }
