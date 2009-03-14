@@ -17,13 +17,13 @@ describe "IO#pid" do
   end
 
   it "returns the ID of a process associated with stream" do
-    IO.popen(RUBY_NAME, "r+") { |io|
+    IO.popen(RUBY_EXE, "r+") { |io|
       io.pid.should_not == nil
     }
   end
 
   it "raises IOError on closed stream" do
-    process_io = IO.popen(RUBY_NAME, "r+") { |io| io }
+    process_io = IO.popen(RUBY_EXE, "r+") { |io| io }
     lambda { process_io.pid }.should raise_error(IOError)
   end
 end
