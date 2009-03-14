@@ -373,6 +373,7 @@ namespace rubinius {
       if(interrupts.enable_preempt) {
         interrupts.reschedule = true;
         interrupts.check_events = true;
+        interrupts.timer = true;
       }
     }
   }

@@ -28,6 +28,7 @@ describe "A While node" do
     g.send :+, 1, false
     g.pop
 
+    g.check_interrupts
     g.goto top
 
     bottom.set!
@@ -108,6 +109,7 @@ describe "A While node" do
     g.send :a, 0, true
     g.gif bottom
 
+    g.check_interrupts
     g.goto top
 
     bottom.set!
@@ -162,6 +164,7 @@ describe "A While node" do
     g.send :a, 0, true
     g.pop
 
+    g.check_interrupts
     g.goto top
 
     bottom.set!

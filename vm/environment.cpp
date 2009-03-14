@@ -46,7 +46,7 @@ namespace rubinius {
   }
 
   void Environment::enable_preemption() {
-    // state->setup_preemption();
+    state->setup_preemption();
   }
 
   static void null_func(int sig) {}

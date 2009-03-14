@@ -1335,6 +1335,7 @@ class Compiler
           g.pop
         end
 
+        g.check_interrupts
         g.goto top
 
         g.break.set!
@@ -2392,6 +2393,7 @@ class Compiler
           end
         end
 
+        g.check_interrupts
         g.goto top
 
         bot.set!

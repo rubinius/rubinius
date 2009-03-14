@@ -59,6 +59,7 @@ namespace rubinius {
     bool reschedule;
     bool use_preempt;
     bool enable_preempt;
+    bool timer;
 
     Interrupts() :
       check(false),
@@ -67,7 +68,8 @@ namespace rubinius {
       check_events(false),
       reschedule(false),
       use_preempt(false),
-      enable_preempt(false)
+      enable_preempt(false),
+      timer(false)
     { }
   };
 

@@ -4260,6 +4260,19 @@ class Instructions
     CODE
   end
 
+  def check_interrupts
+    <<-CODE
+    if(state->interrupts.timer) {
+      {
+        // unlock..
+        GlobalLock::UnlockGuard lock(state->global_lock());
+        // and relock automatically!
+      }
+    }
+    if(!state->check_async(call_frame)) return NULL;
+    CODE
+  end
+
 end
 
 # == Manipulation ==

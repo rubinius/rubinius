@@ -663,6 +663,13 @@ namespace rubinius {
           return NULL;
         }
         tick = 0;
+
+        // Give someone else a chance to run, this will relock
+        // at the close of the scope, which is the right...
+        //
+        GlobalLock::UnlockGuard unlock(state->global_lock());
+        //
+        // ... now!
       }
 
       if(state->interrupts.check) {
