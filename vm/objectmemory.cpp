@@ -245,6 +245,10 @@ namespace rubinius {
   Object* ObjectMemory::new_object_typed(Class* cls, size_t bytes, object_type type) {
     Object* obj;
 
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->young_object_types[type]++;
+#endif
+
     obj = allocate_object(bytes);
     set_class(obj, cls);
 
@@ -256,6 +260,10 @@ namespace rubinius {
 
   Object* ObjectMemory::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
     Object* obj;
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->mature_object_types[type]++;
+#endif
 
     obj = allocate_object_mature(bytes);
     set_class(obj, cls);
