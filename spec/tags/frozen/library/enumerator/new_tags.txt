@@ -1,1 +1,0 @@
-fails:Enumerator.new creates a new custom enumerator that runs correctly

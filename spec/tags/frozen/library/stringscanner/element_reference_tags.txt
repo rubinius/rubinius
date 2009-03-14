@@ -1,1 +1,0 @@
-fails:StringScanner#[] raises a TypeError when a Range is as argument

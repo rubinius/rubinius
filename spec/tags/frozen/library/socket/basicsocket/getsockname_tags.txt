@@ -1,2 +1,0 @@
-fails:Socket::BasicSocket#getsockname returns the sockaddr associacted with the socket
-fails:Socket::BasicSocket#getsockname returns empty sockaddr for unbinded sockets

@@ -1,1 +1,0 @@
-fails:REXML::Element#add_attribute returns the attribute added

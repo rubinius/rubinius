@@ -1,1 +1,0 @@
-fails:Timeout.timeout raises Timeout::Error when it times out

@@ -1,3 +1,0 @@
-fails:StringScanner#empty? Returns true if the scan pointer is at the end of the string
-fails:StringScanner#empty? Returns false if the scan pointer is not at the end of the string
-fails:StringScanner#empty? warns in verbose mode that the method is obsolete

@@ -1,3 +1,0 @@
-fails:StringScanner#restsize Returns the length of the rest of the string
-fails:StringScanner#restsize is equivalent to rest.size
-fails:StringScanner#restsize warns in verbose mode that the method is obsolete

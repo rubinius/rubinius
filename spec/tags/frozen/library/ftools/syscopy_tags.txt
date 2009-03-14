@@ -1,1 +1,0 @@
-fails:File.syscopy copies the file at 1st arg to the file at 2nd arg
