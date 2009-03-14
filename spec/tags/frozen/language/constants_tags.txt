@@ -9,4 +9,3 @@ critical:Constant resolution within methods with statically assigned constants d
 critical:Constant resolution within methods with statically assigned constants does not search the lexical scope of qualifying modules
 critical:Constant resolution within methods with dynamically assigned constants does not search the lexical scope of the caller
 critical:Constant resolution within methods with dynamically assigned constants does not search the lexical scope of qualifying modules
-fails:Literal (A::X) constant resolution sends #const_missing to the original class or module scope

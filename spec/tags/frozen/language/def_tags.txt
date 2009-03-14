@@ -1,2 +1,0 @@
-fails:A method defined with extreme default arguments may use an fcall as a default
-fails:A singleton method defined with extreme default arguments may use an fcall as a default
