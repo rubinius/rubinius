@@ -182,6 +182,10 @@ namespace rubinius {
     return om->new_object_typed(cls, bytes, type);
   }
 
+  Object* VM::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
+    return om->new_object_typed_mature(cls, bytes, type);
+  }
+
   Object* VM::new_object_from_type(Class* cls, TypeInfo* ti) {
     return om->new_object_typed(cls, ti->instance_size, ti->type);
   }

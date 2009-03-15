@@ -31,9 +31,11 @@ namespace rubinius {
   }
 
   Channel* Channel::create(STATE) {
-    Channel* chan = state->new_object<Channel>(G(channel));
+    Channel* chan = state->new_object_mature<Channel>(G(channel));
     chan->waiters_ = 0;
-    chan->condition_ = new thread::Condition;
+
+    // Using placement new to call the constructor of condition_
+    new(&chan->condition_) thread::Condition();
     chan->value(state, List::create(state));
 
     return chan;
@@ -48,7 +50,7 @@ namespace rubinius {
     value_->append(state, val);
 
     if(waiters_ > 0) {
-      condition_->signal();
+      condition_.signal();
     }
 
     return Qnil;
@@ -89,7 +91,11 @@ namespace rubinius {
     Channel* self = this;
     OnStack<1> sv(state, self);
 
-    WaitingOnCondition waiter(*condition_);
+    // We pin this so we can pass condition_ out without worrying about
+    // us moving it.
+    this->pin();
+
+    WaitingOnCondition waiter(condition_);
 
     state->install_waiter(waiter);
     waiters_++;
@@ -101,12 +107,14 @@ namespace rubinius {
       ts.tv_sec  += tv.tv_sec;
       ts.tv_nsec += (tv.tv_usec * 1000);
 
-      condition_->wait_until(state->global_lock(), &ts);
+      condition_.wait_until(state->global_lock(), &ts);
     } else {
-      condition_->wait(state->global_lock());
+      condition_.wait(state->global_lock());
     }
 
-    waiters_--;
+    condition_.reset();
+    self->unpin();
+    self->waiters_--;
 
     state->clear_waiter();
     state->thread->sleep(state, Qfalse);

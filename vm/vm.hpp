@@ -321,6 +321,7 @@ namespace rubinius {
     void init_stack_size();
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
     Object* new_object_from_type(Class* cls, TypeInfo* ti);
 
     template <class T>
@@ -333,6 +334,11 @@ namespace rubinius {
         T* obj = reinterpret_cast<T*>(new_object_typed(cls, sizeof(T) + bytes, T::type));
         obj->init_bytes();
         return obj;
+      }
+
+    template <class T>
+      T* new_object_mature(Class *cls) {
+        return reinterpret_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
       }
 
     // Create an uninitialized Class object
