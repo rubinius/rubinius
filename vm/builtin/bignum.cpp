@@ -296,6 +296,17 @@ namespace rubinius {
     return ret;
   }
 
+  Integer* Bignum::from(STATE, mp_int *num) {
+    if((size_t)mp_count_bits(num) <= FIXNUM_WIDTH) {
+      unsigned long val = mp_get_long(num);
+      return num->sign == MP_NEG ? Fixnum::from(-val) : Fixnum::from(val);
+    } else {
+      Bignum* n_obj = Bignum::create(state);
+      mp_copy(num, n_obj->mp_val());
+      return n_obj;
+    }
+  }
+
   Bignum* Bignum::create(STATE, Fixnum* val) {
     return Bignum::from(state, val->to_native());
   }
@@ -924,14 +935,7 @@ namespace rubinius {
       n.sign = MP_NEG;
     }
 
-    if((size_t)mp_count_bits(&n) <= FIXNUM_WIDTH) {
-      unsigned long val = mp_get_long(&n);
-      return n.sign == MP_NEG ? Fixnum::from(-val) : Fixnum::from(val);
-    } else {
-      Bignum* n_obj = Bignum::create(state);
-      mp_copy(&n, n_obj->mp_val());
-      return n_obj;
-    }
+    return Bignum::from(state, &n);
   }
 
   Integer* Bignum::from_string(STATE, const char *str, size_t radix) {
@@ -939,14 +943,7 @@ namespace rubinius {
     mp_init(&n);
     mp_read_radix(&n, str, radix);
 
-    if((size_t)mp_count_bits(&n) <= FIXNUM_WIDTH) {
-      unsigned long val = mp_get_long(&n);
-      return n.sign == MP_NEG ? Fixnum::from(-val) : Fixnum::from(val);
-    } else {
-      Bignum* n_obj = Bignum::create(state);
-      mp_copy(&n, n_obj->mp_val());
-      return n_obj;
-    }
+    return Bignum::from(state, &n);
   }
 
   void Bignum::into_string(STATE, size_t radix, char *buf, size_t sz) {

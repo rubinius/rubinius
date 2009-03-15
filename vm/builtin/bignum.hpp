@@ -24,6 +24,7 @@ namespace rubinius {
     static Bignum* from(STATE, unsigned long);
     static Bignum* from(STATE, long long val);
     static Bignum* from(STATE, unsigned long long val);
+    static Integer* from(STATE, mp_int *num);
 
     mp_int* mp_val() {
       return &mp_val_;

@@ -73,6 +73,24 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(18446744073709551615LLU, obj->to_ulong_long());
   }
 
+  void test_from_mp_int() {
+    Bignum* max = Bignum::from(state, FIXNUM_MAX);
+    Integer* num = Bignum::from(state, max->mp_val());
+    TS_ASSERT(kind_of<Fixnum>(num));
+
+    Bignum* min = Bignum::from(state, FIXNUM_MIN);
+    num = Bignum::from(state, min->mp_val());
+    TS_ASSERT(kind_of<Fixnum>(num));
+
+    Bignum* max_plus_one = Bignum::from(state, FIXNUM_MAX + 1);
+    num = Bignum::from(state, max_plus_one->mp_val());
+    TS_ASSERT(kind_of<Bignum>(num));
+
+    Bignum* min_minus_one = Bignum::from(state, FIXNUM_MIN - 1);
+    num = Bignum::from(state, min_minus_one->mp_val());
+    TS_ASSERT(kind_of<Bignum>(num));
+  }
+
   void test_create() {
     Bignum* obj = Bignum::create(state);
     TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
