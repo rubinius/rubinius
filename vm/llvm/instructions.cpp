@@ -19,6 +19,7 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/block_wrapper.hpp"
 #include "builtin/thread.hpp"
+#include "builtin/system.hpp"
 
 #include "call_frame.hpp"
 

@@ -240,13 +240,10 @@ module Kernel
   alias_method :iterator?, :block_given?
   module_function :iterator?
 
-  def lambda
-    block = block_given?
-    raise ArgumentError, "block required" if block.nil?
-
-    block.disable_long_return!
-
-    return Proc::Function.__setup__(block)
+  def lambda(&prc)
+    raise ArgumentError, "block required" unless prc
+    prc.lambda_style!
+    return prc
   end
   alias_method :proc, :lambda
   module_function :lambda

@@ -23,6 +23,7 @@ namespace rubinius {
     scope->module(state, module_);
     scope->block(state, block_);
     scope->number_of_locals_ = number_of_locals_;
+    scope->exitted_ = exitted_;
 
     for(int i = 0; i < number_of_locals_; i++) {
       scope->set_local(state, i, locals_[i]);
@@ -38,6 +39,7 @@ namespace rubinius {
     module_ = top->module();
     block_ =  top->block();
     number_of_locals_ = num;
+    exitted_ = Qnil;
 
     for(int i = 0; i < num; i++) {
       locals_[i] = Qnil;
@@ -49,6 +51,12 @@ namespace rubinius {
     CallFrame* dest = call_frame->previous;
     dest->promote_scope(state);
     return dest->scope;
+  }
+
+  VariableScope* VariableScope::current(STATE, Executable* exec,
+                 CallFrame* call_frame, Message& msg) {
+    call_frame->promote_scope(state);
+    return call_frame->scope;
   }
 
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {

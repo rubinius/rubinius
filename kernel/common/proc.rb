@@ -6,9 +6,7 @@ class Proc
     Ruby.primitive :block_wrapper_from_env
 
     if env.__kind_of__(BlockEnvironment)
-      obj = FromBlock.allocate
-      obj.block = env
-      return obj
+      raise PrimitiveFailure, "Unable to create Proc from BlockEnvironment"
     else
       begin
         env.to_proc
@@ -49,7 +47,6 @@ class Proc
     @block.home_block.stack_trace_starting_at(start)
   end
 
-
   def inspect
     "#<Proc:0x#{self.object_id.to_s(16)} @ #{@block.file}:#{@block.line}>"
   end
@@ -69,28 +66,7 @@ class Proc
     self
   end
 
-  class FromBlock
-    alias_method :[], :call
-  end
-
-  class Function < Proc
-    def self.__setup__(block)
-      obj = allocate()
-      obj.block = block
-      return obj
-    end
-
-    def call(*args)
-      a = arity()
-      unless a < 0 or a == 1 or args.size == a
-        raise ArgumentError, "wrong number of arguments (#{args.size} for #{arity})"
-      end
-
-      @block.call(*args)
-    end
-
-    alias_method :[], :call
-  end
+  alias_method :[], :call
 
   class CompiledMethod < Proc
     def compiled_method; @compiled_method; end

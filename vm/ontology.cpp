@@ -467,6 +467,8 @@ namespace rubinius {
     dexc(ZeroDivisionError, std);
     dexc(IOError, std);
 
+    GO(jump_error).set(lje);
+
     // Some special exceptions scoped under the Rubinius module
     vme = new_class("VMException", exc, G(rubinius));
     new_class("AssertionError", vme, G(rubinius));

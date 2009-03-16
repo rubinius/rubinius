@@ -16,6 +16,10 @@ namespace rubinius {
     Module* module_; // slot
     Object* block_;  // slot
 
+    // Indicates if this scope is for a scope that has
+    // already exitted
+    Object* exitted_; // slot
+
     int number_of_locals_;
     Object* locals_[];
 
@@ -24,6 +28,7 @@ namespace rubinius {
     attr_accessor(self, Object);
     attr_accessor(module, Module);
     attr_accessor(block, Object);
+    attr_accessor(exitted, Object);
 
     static void init(STATE);
 
@@ -37,10 +42,19 @@ namespace rubinius {
       module_ = mod;
       block_ = block;
       number_of_locals_ = num;
+      exitted_ = Qnil;
 
       for(int i = 0; i < num; i++) {
         locals_[i] = Qnil;
       }
+    }
+
+    void exit() {
+      exitted_ = Qtrue;
+    }
+
+    bool exitted_p() {
+      return exitted_ == Qtrue;
     }
 
     void update(Object* self, Object* mod, Object* block) {
@@ -87,6 +101,9 @@ namespace rubinius {
 
     // Ruby.primitive? :variable_scope_of_sender
     static VariableScope* of_sender(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
+
+    // Ruby.primitive? :variable_scope_current
+    static VariableScope* current(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
   public: // Rubinius Type stuff
     class Info : public TypeInfo {

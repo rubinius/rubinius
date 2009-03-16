@@ -71,7 +71,11 @@ namespace rubinius {
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
     frame->push(val);
-    return VMMethod::run_interpreter(state, vmm, frame);
+    Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+
+    frame->scope->exit();
+
+    return ret;
   }
 
   /** @todo See above. --rue */

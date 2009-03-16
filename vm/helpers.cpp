@@ -12,6 +12,7 @@
 #include "objectmemory.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/sendsite.hpp"
+#include "builtin/system.hpp"
 
 #include "vm.hpp"
 #include "object_utils.hpp"
@@ -172,7 +173,7 @@ namespace rubinius {
       return cls;
     }
 
-    static Class* check_superclass(STATE, Class* cls, Object* super) {
+    static Class* check_superclass(STATE, CallFrame* call_frame, Class* cls, Object* super) {
       if(super->nil_p()) return cls;
       if(cls->direct_superclass(state) != super) {
         std::ostringstream message;
@@ -180,7 +181,10 @@ namespace rubinius {
                 << as<Module>(super)->name()->c_str(state)
                 << " but previously set to "
                 << cls->direct_superclass(state)->name()->c_str(state);
-        Exception::type_error(state, Class::type, super, message.str().c_str());
+        Exception* exc =
+          Exception::make_type_error(state, Class::type, super, message.str().c_str());
+        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+        state->thread_state()->raise_exception(exc);
         return NULL;
       }
 
@@ -203,7 +207,7 @@ namespace rubinius {
           if(!obj) return NULL;
         }
 
-        return check_superclass(state, as<Class>(obj), sup.get());
+        return check_superclass(state, call_frame, as<Class>(obj), sup.get());
       }
 
       *created = true;

@@ -4234,7 +4234,13 @@ class Instructions
 
   def raise_return
     <<-CODE
-    state->thread_state()->raise_return(stack_top(), call_frame->scope->parent());
+    if(call_frame->scope->parent()->exitted_p()) {
+      Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+    } else {
+      state->thread_state()->raise_return(stack_top(), call_frame->scope->parent());
+    }
     RUN_EXCEPTION();
     CODE
   end

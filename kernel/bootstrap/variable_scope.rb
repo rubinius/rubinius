@@ -5,6 +5,12 @@ class VariableScope
     raise PrimitiveFailure, "Unable to get VariableScope of sender"
   end
 
+  def self.current
+    Ruby.primitive :variable_scope_current
+
+    raise PrimitiveFailure, "Unable to get current VariableScope"
+  end
+
   # To handle Module#private, protected
   attr_accessor :method_visibility
 

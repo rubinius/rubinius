@@ -13,9 +13,11 @@ namespace rubinius {
 
   private:
     BlockEnvironment* block_; // slot
+    Object* lambda_; // slot
 
   public:
     attr_accessor(block, BlockEnvironment);
+    attr_accessor(lambda, Object);
 
     static void init(STATE);
 

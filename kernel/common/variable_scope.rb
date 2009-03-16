@@ -17,4 +17,8 @@ class VariableScope
   def get_eval_local(name)
     @parent.dynamic_locals[name]
   end
+
+  def exitted?
+    @exitted
+  end
 end

@@ -500,7 +500,11 @@ namespace rubinius {
 
     // if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
-    return run_interpreter(state, vmm, frame);
+    Object* ret = run_interpreter(state, vmm, frame);
+
+    frame->scope->exit();
+
+    return ret;
   }
 
   /** @todo Is this redundant after having gone through set_argument_handler? --rue */
