@@ -29,6 +29,9 @@ namespace rubinius {
     // Ruby.primitive? :block_wrapper_call
     Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
+    // Ruby.primitive? :block_wrapper_call_on_object
+    Object* call_on_object(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
+
     // Ruby.primitive :block_wrapper_from_env
     static BlockWrapper* from_env(STATE, BlockEnvironment* env);
 

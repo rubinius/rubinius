@@ -14,6 +14,10 @@ namespace rubinius {
   class VariableScope;
 
   struct CallFrame {
+    enum Flags {
+      cIsLambda = 1
+    };
+
     CallFrame* previous;
     Object* saved_proxy;
 
@@ -21,6 +25,7 @@ namespace rubinius {
     Symbol* name;
     CompiledMethod* cm;
 
+    int flags;
     int args;
     int ip;
 
@@ -54,7 +59,7 @@ namespace rubinius {
     }
 
     Object* self() {
-      return top_scope->self();
+      return scope->self();
     }
 
     Module* module() {
@@ -150,6 +155,8 @@ namespace rubinius {
 
     void print_backtrace(STATE);
     int line(STATE);
+
+    bool scope_still_valid(VariableScope* scope);
   };
 };
 

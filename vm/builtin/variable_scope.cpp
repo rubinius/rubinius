@@ -32,10 +32,14 @@ namespace rubinius {
     return scope;
   }
 
-  void VariableScope::setup_as_block(VariableScope* top, VariableScope* parent, int num) {
+  void VariableScope::setup_as_block(VariableScope* top, VariableScope* parent, int num, Object* self) {
     obj_type = InvalidType;
     parent_ = parent;
-    self_ =   top->self();
+    if(self) {
+      self_ = self;
+    } else {
+      self_ =   top->self();
+    }
     module_ = top->module();
     block_ =  top->block();
     number_of_locals_ = num;

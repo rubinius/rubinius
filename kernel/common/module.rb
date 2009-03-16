@@ -340,12 +340,14 @@ class Module
   def define_method(name, meth = nil, &prc)
     meth ||= prc
 
-    if meth.kind_of?(Proc)
-      block_env = meth.block
-      cm = DelegatedMethod.new(:call_on_instance, block_env, true)
-    elsif meth.kind_of?(Method)
+    case meth
+    when Proc
+      prc = meth.dup
+      prc.lambda_style!
+      cm = DelegatedMethod.new(:call_on_object, prc, true)
+    when Method
       cm = DelegatedMethod.new(:call, meth, false)
-    elsif meth.kind_of?(UnboundMethod)
+    when UnboundMethod
       cm = DelegatedMethod.new(:call_on_instance, meth, true)
     else
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"

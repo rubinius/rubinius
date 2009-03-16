@@ -30,9 +30,11 @@ namespace rubinius {
 
   Object* BlockWrapper::call(STATE, CallFrame* call_frame, size_t args) {
     bool lambda_style = !lambda_->nil_p();
+    int flags = 0;
 
     // Check the arity in lambda mode
     if(lambda_style) {
+      flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
       if(required >= 0 && (size_t)required != args) {
@@ -44,7 +46,7 @@ namespace rubinius {
       }
     }
 
-    Object* ret = block_->call(state, call_frame, args);
+    Object* ret = block_->call(state, call_frame, args, flags);
 
     if(lambda_style && !ret) {
       RaiseReason reason = state->thread_state()->raise_reason();
@@ -61,9 +63,11 @@ namespace rubinius {
 
   Object* BlockWrapper::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     bool lambda_style = !lambda_->nil_p();
+    int flags = 0;
 
     // Check the arity in lambda mode
     if(lambda_style) {
+      flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
       if(required >= 0 && (size_t)required != msg.args()) {
@@ -75,7 +79,40 @@ namespace rubinius {
       }
     }
 
-    Object* ret = block_->call(state, call_frame, msg);
+    Object* ret = block_->call(state, call_frame, msg, flags);
+
+    if(lambda_style && !ret) {
+      RaiseReason reason = state->thread_state()->raise_reason();
+      if(reason == cReturn || reason == cBreak) {
+        // TODO investigate if we should check the destination_scope here.
+        // It doesn't appear that MRI checks anything similar.
+        ret = state->thread_state()->raise_value();
+        state->thread_state()->clear_exception();
+      }
+    }
+
+    return ret;
+  }
+
+  Object* BlockWrapper::call_on_object(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
+    bool lambda_style = !lambda_->nil_p();
+    int flags = 0;
+
+    // Check the arity in lambda mode
+    if(lambda_style) {
+      flags = CallFrame::cIsLambda;
+      int required = block_->method()->required_args()->to_native();
+
+      if(required >= 0 && (size_t)required != msg.args()) {
+        Exception* exc =
+          Exception::make_argument_error(state, required, msg.args(), state->symbol("__block__"));
+        exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+        state->thread_state()->raise_exception(exc);
+        return NULL;
+      }
+    }
+
+    Object* ret = block_->call_on_object(state, call_frame, msg, flags);
 
     if(lambda_style && !ret) {
       RaiseReason reason = state->thread_state()->raise_reason();

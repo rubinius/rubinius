@@ -46,12 +46,14 @@ namespace rubinius {
     static BlockEnvironment* under_call_frame(STATE, CompiledMethod* cm,
       VMMethod* caller, CallFrame* call_frame, size_t index);
 
-    Object* call(STATE, CallFrame* call_frame, size_t args);
-    Object* call(STATE, CallFrame* call_frame, Message& msg);
+    Object* call(STATE, CallFrame* call_frame, size_t args, int flags=0);
+    Object* call(STATE, CallFrame* call_frame, Message& msg, int flags=0);
     BlockContext* create_context(STATE, MethodContext* sender);
 
     // Ruby.primitive? :block_call
     Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
+
+    Object* call_on_object(STATE, CallFrame* call_frame, Message& msg, int flags=0);
 
     BlockEnvironment* dup(STATE);
 

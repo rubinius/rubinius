@@ -16,6 +16,7 @@
 #include "builtin/compiledmethod.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/system.hpp"
 
 #include <iostream>
 
@@ -33,7 +34,7 @@ namespace rubinius {
   }
 
   /** @todo Duplicates VMMethod functionality. Refactor. --rue */
-  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, size_t args) {
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, size_t args, int flags) {
     Object* val;
     if(args > 0) {
       Tuple* tup = Tuple::create(state, args);
@@ -67,6 +68,7 @@ namespace rubinius {
     frame->args =     args;
     frame->scope =    scope;
     frame->top_scope = top_scope_;
+    frame->flags =    flags;
 
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
@@ -79,7 +81,7 @@ namespace rubinius {
   }
 
   /** @todo See above. --rue */
-  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Message& msg) {
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Message& msg, int flags) {
     Object* val;
     if(msg.args() > 0) {
       Tuple* tup = Tuple::create(state, msg.args());
@@ -107,6 +109,7 @@ namespace rubinius {
     frame->args =     msg.args();
     frame->scope =    scope;
     frame->top_scope = top_scope_;
+    frame->flags =    flags;
 
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
@@ -117,6 +120,55 @@ namespace rubinius {
   Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     return call(state, call_frame, msg);
   }
+
+  /** @todo See above. --emp */
+  Object* BlockEnvironment::call_on_object(STATE, CallFrame* call_frame, Message& msg, int flags) {
+    Object* val;
+
+    if(msg.args() < 1) {
+      Exception* exc =
+        Exception::make_argument_error(state, 1, msg.args(), state->symbol("__block__"));
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    }
+
+    Object* recv = msg.get_argument(0);
+
+    if(msg.args() > 1) {
+      Tuple* tup = Tuple::create(state, msg.args());
+      for(int i = msg.args() - 2; i >= 0; i--) {
+        tup->put(state, i, msg.get_argument(i));
+      }
+
+      val = tup;
+    } else {
+      val = Qnil;
+    }
+
+    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
+                               (vmm->number_of_locals * sizeof(Object*)));
+
+    scope->setup_as_block(top_scope_, scope_, vmm->number_of_locals, recv);
+
+    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    frame->prepare(vmm->stack_size);
+
+    frame->is_block = true;
+    frame->previous = call_frame;
+    frame->name =     name_;
+    frame->cm =       method_;
+    frame->args =     msg.args();
+    frame->scope =    scope;
+    frame->top_scope = top_scope_;
+    frame->flags =    flags;
+
+    // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
+
+    frame->push(val);
+    return VMMethod::run_interpreter(state, vmm, frame);
+  }
+
 
   BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
       VMMethod* caller, CallFrame* call_frame, size_t index) {

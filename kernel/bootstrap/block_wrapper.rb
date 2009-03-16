@@ -9,6 +9,11 @@ class Proc
     raise PrimitiveFailure, "BlockWrapper#call failed"
   end
 
+  def call_on_object(*args)
+    Ruby.primitive :block_wrapper_call_on_object
+    raise PrimitiveFailure, "BlockWrapper#call_on_object failed"
+  end
+
   def lambda_style!
     @lambda = true
   end

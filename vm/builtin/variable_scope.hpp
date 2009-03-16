@@ -67,7 +67,7 @@ namespace rubinius {
       parent_ = vs;
     }
 
-    void setup_as_block(VariableScope* top, VariableScope* parent, int num);
+    void setup_as_block(VariableScope* top, VariableScope* parent, int num, Object* self=0);
 
     bool stack_allocated_p() {
       return obj_type == 0;

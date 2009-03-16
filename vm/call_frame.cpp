@@ -76,6 +76,17 @@ namespace rubinius {
     return cm->line(state, ip);
   }
 
+  // Walks the CallFrame list to see if +scope+ is still running
+  bool CallFrame::scope_still_valid(VariableScope* scope) {
+    CallFrame* cur = this;
+    while(cur) {
+      if(cur->scope == scope) return true;
+      cur = cur->previous;
+    }
+
+    return false;
+  }
+
   /* For debugging. */
   extern "C" {
     void __printbt__(CallFrame* call_frame) {
