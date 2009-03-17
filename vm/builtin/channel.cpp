@@ -104,9 +104,9 @@ namespace rubinius {
     if(use_timed_wait) {
       struct timeval tv;
       gettimeofday(&tv, 0);
-      ts.tv_sec  += tv.tv_sec;
-      ts.tv_nsec += (tv.tv_usec * 1000);
-
+      uint64_t nano = ts.tv_nsec + tv.tv_usec * 1000;
+      ts.tv_sec  += tv.tv_sec + nano / NANOSECONDS;
+      ts.tv_nsec  = nano % NANOSECONDS;
       condition_.wait_until(state->global_lock(), &ts);
     } else {
       condition_.wait(state->global_lock());
