@@ -1,2 +1,1 @@
 incomplete:Kernel#proc needs to be reviewed for spec completeness
-fails:Kernel.proc returns from block into caller block
