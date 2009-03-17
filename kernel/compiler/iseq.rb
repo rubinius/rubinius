@@ -186,7 +186,11 @@ class InstructionSet
     {:opcode => :raise_break, :args => [], :stack => [0,0]},
     {:opcode => :push_variables, :args => [], :stack => [0,1]},
     {:opcode => :allow_private, :args => [], :stack => [0,0]},
-    {:opcode => :check_interrupts, :args => [], :stack => [0,0]}
+    {:opcode => :check_interrupts, :args => [], :stack => [0,0]},
+    {:opcode => :yield_stack, :args => [:int],
+      :stack => [-10,1], :flow => :send, :variable_stack => [0,1]},
+    {:opcode => :yield_splat, :args => [:int],
+      :stack => [-11,1], :flow => :send, :variable_stack => [1,1]}
   ]
 
 
@@ -263,6 +267,7 @@ class InstructionSet
         consumed = -consumed
         arg =   consumed / 10
         const = consumed % 10
+
         consumed = inst[arg] + const
       end
       produced = stack_produced()

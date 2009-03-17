@@ -25,6 +25,8 @@ namespace rubinius {
     static BlockWrapper* create(STATE, Object* self);
 
     Object* call(STATE, CallFrame* call_frame, size_t args);
+    Object* yield(STATE, CallFrame* call_frame, size_t args);
+    Object* yield(STATE, CallFrame* call_frame, Message& msg);
 
     // Ruby.primitive? :block_wrapper_call
     Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);

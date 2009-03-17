@@ -37,6 +37,29 @@ namespace rubinius {
     }
   }
 
+  Message::Message(STATE, CallFrame* call_frame, size_t arg_count):
+    state(state),
+    arguments_array(NULL),
+    total_args(arg_count),
+    send_site(NULL),
+    name(NULL),
+    recv(NULL),
+    block(NULL),
+    priv(false),
+    lookup_from(NULL),
+    method(NULL),
+    module(NULL),
+    method_missing(false),
+    caller_(call_frame)
+  {
+    if(total_args > 0) {
+      stack_args_ = call_frame->stack_back_position(total_args - 1);
+      arguments_ = stack_args_;
+    } else {
+      arguments_ = stack_args_ = NULL;
+    }
+  }
+
   Message::Message(STATE, Symbol* name, Object* recv, size_t arg_count,
                    Object* block, Module* lookup_from) :
     state(state),

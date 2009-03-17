@@ -48,6 +48,7 @@ namespace rubinius {
 
     Message(STATE);
     Message(STATE, Array* ary);
+    Message(STATE, CallFrame* call_frame, size_t arg_count);
 
   public:   /* Interface */
 

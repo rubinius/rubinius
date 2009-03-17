@@ -389,13 +389,6 @@ raise "no"
     class Call < MethodCall
       kind :call
 
-      def inspect
-        name = self.class.name.split(/::/).last
-        args = Array(@body).map { |o| o.inspect }.join(", ")
-
-        "#{name}[#{@method.inspect}, #{args}]"
-      end
-
       # Args could be an array, splat or argscat
       def collapse_args
         # HACK handle eval wanting to inject locals
@@ -2458,10 +2451,6 @@ raise "no"
 
       attr_accessor :child
 
-      def inspect
-        name = self.class.name.split(/::/).last
-        "#{name}[#{@child.inspect}]"
-      end
     end
 
     # StringLiteral is a nondynamic string literal.

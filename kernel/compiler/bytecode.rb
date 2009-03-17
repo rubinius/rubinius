@@ -221,6 +221,7 @@ class Compiler
         end
 
       end
+
     end
 
     class BackRef
@@ -407,6 +408,10 @@ class Compiler
         end
 
         @argcount = @arguments.size - (@dynamic ? 1 : 0)
+      end
+
+      def dynamic_args?
+        !@arguments.grep(Splat).empty?
       end
 
       def bytecode(g)
@@ -2408,14 +2413,11 @@ class Compiler
       def bytecode(g)
         g.set_line @line, @file
 
-        g.push_block
         emit_args(g)
-
         if @dynamic
-          g.push :nil
-          g.send_with_splat :call, @argcount, false, false
+          g.yield_splat @argcount
         else
-          g.meta_send_call @argcount
+          g.yield_stack @argcount
         end
       end
     end

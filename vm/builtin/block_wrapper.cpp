@@ -61,6 +61,16 @@ namespace rubinius {
     return ret;
   }
 
+  Object* BlockWrapper::yield(STATE, CallFrame* call_frame, size_t args) {
+    // NOTE! To match MRI semantics, this explicitely ignores lambda_.
+    return block_->call(state, call_frame, args, 0);
+  }
+
+  Object* BlockWrapper::yield(STATE, CallFrame* call_frame, Message& msg) {
+    // NOTE! To match MRI semantics, this explicitely ignores lambda_.
+    return block_->call(state, call_frame, msg, 0);
+  }
+
   Object* BlockWrapper::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;

@@ -7,10 +7,9 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
       g.push 42
       g.push 24
-      g.meta_send_call 2
+      g.yield_stack 2
     end
   end
 
@@ -20,11 +19,10 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
       g.push 42
       g.push 24
       g.make_array 2
-      g.meta_send_call 1
+      g.yield_stack 1
     end
   end
 
@@ -34,10 +32,9 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
       g.push 42
       g.make_array 1
-      g.meta_send_call 1
+      g.yield_stack 1
     end
   end
 
@@ -47,9 +44,8 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
       g.make_array 0
-      g.meta_send_call 1
+      g.yield_stack 1
     end
   end
 
@@ -59,9 +55,8 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
       g.push 42
-      g.meta_send_call 1
+      g.yield_stack 1
     end
   end
 
@@ -71,8 +66,7 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
-      g.meta_send_call 0
+      g.yield_stack 0
     end
   end
 
@@ -82,10 +76,9 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
       g.array_of_splatted_array
 
-      g.meta_send_call 1
+      g.yield_stack 1
     end
   end
 
@@ -95,13 +88,12 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
       g.array_of_splatted_array 2 do
         g.push 1
         g.push 2
       end
 
-      g.meta_send_call 1
+      g.yield_stack 1
     end
   end
 
@@ -111,15 +103,11 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
-
       g.push 1
       g.make_array 1
       g.cast_array
 
-      g.push :nil
-
-      g.send_with_splat :call, 0, false, false
+      g.yield_splat 0
     end
   end
 
@@ -129,16 +117,13 @@ describe "A Yield node" do
     end
 
     compile do |g|
-      g.push_block
 
       g.push 1
       g.push 2
       g.make_array 2
       g.cast_array
 
-      g.push :nil
-
-      g.send_with_splat :call, 0, false, false
+      g.yield_splat 0
     end
   end
 end

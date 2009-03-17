@@ -1357,6 +1357,66 @@ class Instructions
     CODE
   end
 
+  def yield_stack(count)
+    <<-CODE
+    Object* t1 = call_frame->top_scope->block();
+    Object* ret;
+    if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+      ret = env->call(state, call_frame, count);
+    } else if(BlockWrapper* wrapper = try_as<BlockWrapper>(t1)) {
+      ret = wrapper->yield(state, call_frame, count);
+    } else {
+      Message msg(NULL,
+                static_cast<SendSite*>(Qnil),
+                G(sym_call),
+                t1,
+                call_frame,
+                count,
+                Qnil,
+                false,
+                t1->lookup_begin(state));
+
+      ret = msg.send(state, call_frame);
+    }
+
+    stack_clear(count);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
+    CODE
+  end
+
+  def yield_splat(count)
+    <<-CODE
+    Object* ary = stack_pop();
+
+    Message msg(state, call_frame, count);
+    if(!ary->nil_p()) {
+      msg.append_splat(state, as<Array>(ary));
+    }
+
+    Object* t1 = call_frame->top_scope->block();
+    Object* ret;
+    if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+      ret = env->call(state, call_frame, msg);
+    } else if(BlockWrapper* wrapper = try_as<BlockWrapper>(t1)) {
+      ret = wrapper->yield(state, call_frame, msg);
+    } else {
+      msg.recv = t1;
+      msg.name = G(sym_call);
+      msg.lookup_from = t1->lookup_begin(state);
+
+      ret = msg.send(state, call_frame);
+    }
+
+    stack_clear(count);
+
+    HANDLE_EXCEPTION(ret);
+    stack_push(ret);
+    CODE
+  end
+
+
   def test_meta_send_call
     <<-CODE
     CompiledMethod* block_method = CompiledMethod::create(state);
