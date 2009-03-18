@@ -68,6 +68,7 @@ namespace rubinius {
     , saved_call_frame_(0)
     , alive_(true)
     , shared(shared)
+    , waiter_(NULL)
     , user_config(shared.user_config)
     , globals(shared.globals)
     , om(shared.om)
