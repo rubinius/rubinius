@@ -105,6 +105,9 @@ namespace rubinius {
     // Ruby.primitive? :variable_scope_current
     static VariableScope* current(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
+    // Ruby.primitive :variable_scope_locals
+    Tuple* locals(STATE);
+
   public: // Rubinius Type stuff
     class Info : public TypeInfo {
     public:

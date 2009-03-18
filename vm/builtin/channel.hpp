@@ -50,6 +50,9 @@ namespace rubinius {
     // Ruby.primitive :channel_receive
     Object* receive(STATE, CallFrame* calling_environment);
 
+    // Ruby.primitive :channel_try_receive
+    Object* try_receive(STATE);
+
     // Ruby.primitive :channel_receive_timeout
     Object* receive_timeout(STATE, Object* duration, CallFrame* calling_environment);
 

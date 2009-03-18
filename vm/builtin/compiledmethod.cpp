@@ -39,26 +39,26 @@ namespace rubinius {
 
   int CompiledMethod::start_line(STATE) {
     if(lines_->nil_p()) return -1;
-    if(lines_->num_fields() < 1) return -1;
-    Tuple* top = as<Tuple>(lines_->at(state, 0));
-    return as<Fixnum>(top->at(state, 2))->to_native();
+    if(lines_->num_fields() < 2) return -1;
+    // This is fixed as one because entry 0 is always ip = 0 and
+    // 1 is the first line
+    return as<Fixnum>(lines_->at(state, 1))->to_native();
   }
 
   int CompiledMethod::line(STATE, int ip) {
-    if(lines()->nil_p()) return -3;
+    if(lines_->nil_p()) return -3;
 
-    for(size_t i = 0; i < lines()->num_fields(); i++) {
-      Tuple* entry = as<Tuple>(lines()->at(state, i));
+    size_t fin = lines_->num_fields() - 2;
+    for(size_t i = 0; i < fin; i += 2) {
+      Fixnum* start_ip = as<Fixnum>(lines_->at(state, i));
+      Fixnum* end_ip   = as<Fixnum>(lines_->at(state, i+2));
 
-      Fixnum* start_ip = as<Fixnum>(entry->at(state, 0));
-      Fixnum* end_ip   = as<Fixnum>(entry->at(state, 1));
-      Fixnum* line     = as<Fixnum>(entry->at(state, 2));
-
-      if(start_ip->to_native() <= ip && end_ip->to_native() >= ip)
-        return line->to_native();
+      if(start_ip->to_native() <= ip && end_ip->to_native() > ip) {
+        return as<Fixnum>(lines_->at(state, i+1))->to_native();
+      }
     }
 
-    return -1;
+    return as<Fixnum>(lines_->at(state, fin+1))->to_native();
   }
 
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {

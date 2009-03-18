@@ -146,18 +146,24 @@ class CompiledMethod < Executable
     MAIN.__script__
   end
 
-  def line_from_ip(i)
+  def line_from_ip(ip)
     return -1 unless @lines
+    return 0 if @lines.size < 2
 
-    @lines.each do |t|
-      start = t.at(0)
-      nd = t.at(1)
-      op = t.at(2)
-      if i >= start and i <= nd
-        return op
+    i = 1
+    total = @lines.size - 2
+    while i < total
+      start = @lines.at(i-1)
+      fin =   @lines.at(i+1)
+
+      if ip >= start and ip < fin
+        return @lines.at(i)
       end
+
+      i += 2
     end
-    return 0
+
+    return @lines.at(total)
   end
 
   # Returns the address (IP) of the first instruction in this CompiledMethod
@@ -169,10 +175,15 @@ class CompiledMethod < Executable
   # CompiledMethods.
 
   def first_ip_on_line(line)
-    @lines.each do |t|
-      if t.at(2) >= line
-        return t.at(0)
+    i = 1
+    total = @lines.size
+    while i < total
+      cur_line = @lines.at(i)
+      if cur_line >= line
+        return @lines.at(i-1)
       end
+
+      i += 2
     end
 
     return -1

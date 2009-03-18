@@ -197,20 +197,12 @@ Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* co
 #undef DISPATCH
 #define DISPATCH op = stream[call_frame->ip++]; \
   if(unlikely(op & cBreakpoint)) { \
-    if(G(current_thread)->frozen_stack() == Qfalse) { \
-      call_frame->ip--; \
-      Helpers::yield_debugger(state, call_frame); \
-    } else { \
-      G(current_thread)->frozen_stack(state, Qfalse); \
-    } \
+    call_frame->ip--; \
+    Helpers::yield_debugger(state, call_frame); \
+    call_frame->ip++; \
+    op &= 0x00ffffff; \
   } \
-  op &= 0x00ffffff; \
   goto *insn_locations[op];
-
-#undef RETURN
-#define RETURN(val) if((val) == cExecuteRestart) { return; } else { \
-  DISPATCH; \
-}
 
 #ruby <<CODE
 io = StringIO.new
@@ -221,9 +213,8 @@ puts io.string
 CODE
 
 #else
+#error "not supported"
 
-#undef RETURN
-#define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
   for(;;) {
     op = stream[call_frame->ip++];
 

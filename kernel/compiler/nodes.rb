@@ -424,6 +424,7 @@ raise "no"
           if var
             @local_rewrite = LocalAccess.new(@compiler)
             @local_rewrite.from_variable(var, dep)
+            @local_rewrite.set_position self
           end
         end
       end
@@ -1732,13 +1733,6 @@ raise "huh"
         end
       end
 
-      def consume(sexp)
-        @line = sexp.line
-        @file = sexp.file
-
-        super
-      end
-
       def block=(obj)
         if obj.kind_of? Iter
           @check_var, _ = get(:scope).find_local :@lre
@@ -2224,6 +2218,7 @@ raise "no"
               !cond.body.first.kind_of?(ConstAccess))) then
           cf = ConstFind.new(@compiler)
           cf.args :StandardError
+          cf.set_position self
           cond.body.unshift cf
         end
 

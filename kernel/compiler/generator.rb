@@ -122,7 +122,7 @@ class Compiler
       tup = Tuple.new(@lines.size)
       i = 0
       @lines.each do |ent|
-        tup[i] = Tuple[ent[0], ent[1], ent[2]]
+        tup[i] = ent
         i += 1
       end
 
@@ -273,15 +273,17 @@ class Compiler
     end
 
     def set_line(line, file)
-      if line != @last_line
-        # Update the last entry to complete it
-        if @last_line
-          @lines.last[1] = @ip - 1
+      if line and line > 0 and line != @last_line
+        # Fold redundent line changes on the same ip into the same
+        # entry
+        if @lines[-2] == @ip
+          @lines[-1] = line
+        else
+          @lines << @ip
+          @lines << line
         end
-        @last_line = line
-
-        @lines << [@ip, nil, line]
         @file = file
+        @last_line = line
       end
     end
 
@@ -292,9 +294,12 @@ class Compiler
     attr_reader :file
 
     def close
-      if @lines and !@lines.empty? and @lines.last[1].nil?
-        @lines.last[1] = @ip
+      if @lines.empty?
+        @lines << @ip
+        @lines << @last_line
       end
+
+      @lines << @ip
     end
 
     def as_primitive(name)

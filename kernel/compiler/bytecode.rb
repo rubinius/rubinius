@@ -55,6 +55,10 @@ class Compiler
 
   class Node
 
+    def pos(g)
+      g.set_line @line, @file
+    end
+
     def show_errors(gen, &block)
       @compiler.show_errors(gen, &block)
     end
@@ -504,6 +508,8 @@ class Compiler
       end
 
       def bytecode(g)
+        pos(g)
+
         if @parent
           @parent.bytecode(g)
           superclass_bytecode(g)
@@ -608,6 +614,8 @@ class Compiler
 
     class ConstAccess
       def bytecode(g)
+        pos(g)
+
         @parent.bytecode(g)
         g.find_const @name
       end
@@ -615,6 +623,8 @@ class Compiler
 
     class ConstAtTop
       def bytecode(g)
+        pos(g)
+
         g.push_cpath_top
         g.find_const @name
       end
@@ -622,12 +632,15 @@ class Compiler
 
     class ConstFind
       def bytecode(g)
+        pos(g)
         g.push_const @name
       end
     end
 
     class ConstSet
       def bytecode(g)
+        pos(g)
+
         if @compiler.kernel?
           if @parent
             @parent.bytecode(g)
@@ -709,6 +722,8 @@ class Compiler
       end
 
       def bytecode(g)
+        pos(g)
+
         if @compiler.kernel?
           g.push_literal compile_body(g)
           g.push :self
@@ -727,6 +742,8 @@ class Compiler
 
     class DefineSingleton
       def bytecode(g)
+        pos(g)
+
         if @compiler.kernel?
           g.push_literal compile_body(g)
           @object.bytecode(g)
@@ -771,6 +788,8 @@ class Compiler
       }
 
       def bytecode(g)
+        pos(g)
+
         # Imported directly from compiler1 and reworked to use g.
 
         expr = @expression.dup
@@ -931,6 +950,8 @@ class Compiler
 
     class DynamicExecuteString
       def bytecode(g)
+        pos(g)
+
         g.push :self
         super(g)
         g.send :`, 1, true #`
@@ -939,6 +960,8 @@ class Compiler
 
     class DynamicOnceRegex
       def bytecode(g)
+        pos(g)
+
         idx = g.add_literal(nil)
         g.push_literal_at idx
         g.dup
@@ -957,6 +980,8 @@ class Compiler
 
     class DynamicRegex
       def bytecode(g)
+        pos(g)
+
         g.push_const :Regexp
         super(g)
         g.push @options
@@ -966,6 +991,8 @@ class Compiler
 
     class DynamicString
       def bytecode(g)
+        pos(g)
+
         @body.reverse_each do |x|
           x.bytecode(g)
         end
@@ -980,6 +1007,8 @@ class Compiler
 
     class DynamicSymbol
       def bytecode(g)
+        pos(g)
+
         super
         g.send :to_sym, 0, true
       end
@@ -987,12 +1016,16 @@ class Compiler
 
     class EmptyArray
       def bytecode(g)
+        pos(g)
+
         g.make_array 0
       end
     end
 
     class Ensure
       def bytecode(g)
+        pos(g)
+
         if @body.nil?
           # So dumb. Oh well.
 
@@ -1049,6 +1082,8 @@ class Compiler
 
     class ExecuteString
       def bytecode(g)
+        pos(g)
+
         g.push :self
         super(g)
         g.send :`, 1, true # ` (silly vim/emacs)
@@ -1073,6 +1108,8 @@ class Compiler
 
     class File
       def bytecode(g)
+        pos(g)
+
         g.push_scope
         g.send :active_path, 0
       end
@@ -1086,6 +1123,8 @@ class Compiler
 
     class GVar
       def bytecode(g)
+        pos(g)
+
         if @name == :$!
           g.push_exception
         elsif @name == :$~
@@ -1101,6 +1140,8 @@ class Compiler
 
     class GVarAssign
       def bytecode(g)
+        pos(g)
+
         # @value can to be present if this is coming via an masgn, which means
         # the value is already on the stack.
         if @name == :$!
@@ -1135,6 +1176,8 @@ class Compiler
 
     class HashLiteral
       def bytecode(g)
+        pos(g)
+
         count = @body.size
         i = 0
 
@@ -1155,12 +1198,16 @@ class Compiler
 
     class IVar
       def bytecode(g)
+        pos(g)
+
         g.push_ivar @name
       end
     end
 
     class IVarAssign
       def bytecode(g)
+        pos(g)
+
         @value.bytecode(g) if @value
         g.set_ivar @name
       end
@@ -1168,6 +1215,8 @@ class Compiler
 
     class If
       def bytecode(g)
+        pos(g)
+
         ed = g.new_label
         el = g.new_label
 
@@ -1208,6 +1257,8 @@ class Compiler
       end
 
       def bytecode(g)
+        pos(g)
+
         desc = MethodDescription.new @compiler.generator_class, @locals
         desc.name = :__block__
         desc.for_block = true
@@ -1264,12 +1315,16 @@ class Compiler
 
     class Literal
       def bytecode(g)
+        pos(g)
+
         g.push_unique_literal @value
       end
     end
 
     class LocalAccess
       def bytecode(g)
+        pos(g)
+
         # No variable? Ok, send a method instead.
         if !@variable
           g.push_self
@@ -1294,6 +1349,8 @@ class Compiler
 
     class LocalAssignment
       def bytecode(g)
+        pos(g)
+
         if @value
           @value.bytecode(g)
         end
@@ -1551,6 +1608,8 @@ class Compiler
 
     class Match
       def bytecode(g)
+        pos(g)
+
         g.push_literal :$_
         g.find_cpath_top_const :Globals
         g.send :[], 1
@@ -1563,6 +1622,8 @@ class Compiler
 
     class Match2
       def bytecode(g)
+        pos(g)
+
         @pattern.bytecode(g)
         @target.bytecode(g)
         g.send :=~, 1
@@ -1571,6 +1632,8 @@ class Compiler
 
     class Match3
       def bytecode(g)
+        pos(g)
+
         @target.bytecode(g)
         @pattern.bytecode(g)
         g.send :=~, 1
@@ -1579,6 +1642,8 @@ class Compiler
 
     class Module
       def bytecode(g)
+        pos(g)
+
         if @parent
           @parent.bytecode(g)
           g.open_module_under @name
@@ -1592,6 +1657,8 @@ class Compiler
 
     class Negate
       def bytecode(g)
+        pos(g)
+
         if @child.is? NumberLiteral
           g.push(-@child.value)
         else
@@ -1615,6 +1682,8 @@ class Compiler
 
     class Next
       def bytecode(g)
+        pos(g)
+
         g.pop_unwind if @pop_unwind
 
         if g.next
@@ -1655,6 +1724,8 @@ class Compiler
 
     class NthRef
       def bytecode(g)
+        pos(g)
+
         g.push_variables
         g.push @which
         g.send :nth_ref, 1
@@ -1669,6 +1740,8 @@ class Compiler
 
     class OpAssign1
       def bytecode(g)
+        pos(g)
+
         # X: Snippet used for explanation: h[:a] += 3
         # X: given h = { :a => 2 }
         # X: Pull h onto the stack
@@ -1764,6 +1837,8 @@ class Compiler
 
     class OpAssign2
       def bytecode(g)
+        pos(g)
+
         # X: h[:a] += 3, given h.a == 2
         @object.bytecode(g)
         # X: TOS = h
@@ -1824,6 +1899,8 @@ class Compiler
 
     class OpAssignAnd
       def bytecode(g)
+        pos(g)
+
         @left.bytecode(g)
         lbl = g.new_label
         g.dup
@@ -1836,6 +1913,8 @@ class Compiler
 
     class OpAssignOr
       def bytecode(g)
+        pos(g)
+
         @left.bytecode_for_or(g) do
           @right.bytecode(g)
         end
@@ -1874,6 +1953,8 @@ class Compiler
 
     class Range
       def bytecode(g)
+        pos(g)
+
         g.find_cpath_top_const :Range
         @start.bytecode(g)
         @finish.bytecode(g)
@@ -1883,6 +1964,8 @@ class Compiler
 
     class RangeExclude
       def bytecode(g)
+        pos(g)
+
         g.find_cpath_top_const :Range
         @start.bytecode(g)
         @finish.bytecode(g)
@@ -1906,6 +1989,8 @@ class Compiler
 
     class RegexLiteral
       def bytecode(g)
+        pos(g)
+
         # A regex literal should only be converted to a Regexp the first time it
         # is encountered. We push a literal nil here, and then overwrite the
         # literal value with the created Regexp if it is nil, i.e. the first time
@@ -1929,6 +2014,8 @@ class Compiler
 
     class Rescue
       def bytecode(g)
+        pos(g)
+
         g.push_modifiers
         if @body.nil?
           if @else.nil?
@@ -2018,6 +2105,8 @@ class Compiler
 
     class Retry
       def bytecode(g)
+        pos(g)
+
         if g.retry
           g.goto g.retry
         else
@@ -2028,6 +2117,8 @@ class Compiler
 
     class Return
       def bytecode(g, force=false)
+        pos(g)
+
         if @in_rescue
           g.clear_exception
         end
@@ -2057,6 +2148,8 @@ class Compiler
 
     class SClass
       def bytecode(g)
+        pos(g)
+
         @object.bytecode(g)
         g.dup
         g.send :__verify_metaclass__, 0
@@ -2069,6 +2162,8 @@ class Compiler
 
     class SValue
       def bytecode(g)
+        pos(g)
+
         if @literal and @splat
           # Both a literal list of args and a splat
           # Create two arrays and combine them.
@@ -2118,6 +2213,8 @@ class Compiler
 
     class Script
       def bytecode(g)
+        pos(g)
+
         set(:scope, self) do
           prelude(nil, g)
           @body.bytecode(g)
@@ -2136,6 +2233,8 @@ class Compiler
 
     class SetSlot
       def bytecode(g)
+        pos(g)
+
         @value.bytecode(g)
         g.store_my_field @index
       end
@@ -2226,6 +2325,8 @@ class Compiler
 
     class StringLiteral
       def bytecode(g)
+        pos(g)
+
         g.push_literal @string
         g.string_dup
       end
@@ -2233,7 +2334,7 @@ class Compiler
 
     class Super < Call
       def bytecode(g)
-        g.set_line @line, @file
+        pos(g)
 
         emit_args(g)
 
@@ -2253,6 +2354,8 @@ class Compiler
 
     class ToArray
       def bytecode(g)
+        pos(g)
+
         @child.bytecode(g)
         g.cast_array
       end
@@ -2260,6 +2363,8 @@ class Compiler
 
     class ToString
       def bytecode(g)
+        pos(g)
+
         @child.bytecode(g)
         g.send :to_s, 0, true
       end
@@ -2273,6 +2378,8 @@ class Compiler
 
     class Undef
       def bytecode(g)
+        pos(g)
+
         g.push_scope
         g.push_literal @name
         g.send :__undef_method__, 1
@@ -2287,6 +2394,8 @@ class Compiler
 
     class VAlias
       def bytecode(g)
+        pos(g)
+
         g.find_cpath_top_const :Globals
         g.push_literal @new
         g.push_literal @current
@@ -2357,6 +2466,8 @@ class Compiler
 
     class While
       def bytecode(g, use_gif=true)
+        pos(g)
+
         g.push_modifiers
 
         top = g.new_label
@@ -2411,7 +2522,7 @@ class Compiler
 
     class Yield < Call
       def bytecode(g)
-        g.set_line @line, @file
+        pos(g)
 
         emit_args(g)
         if @dynamic
@@ -2424,23 +2535,29 @@ class Compiler
 
     class ZSuper
       def bytecode(g)
+        pos(g)
         args = []
 
         @method.arguments.required.each do |var|
           la = LocalAccess.new @compiler
           la.from_variable var
+          la.set_position self
           args << la
         end
 
         @method.arguments.optional.each do |var|
           la = LocalAccess.new @compiler
           la.from_variable var
+          la.set_position self
           args << la
         end
 
         if @method.arguments.splat
           cc = Splat.new @compiler
+          cc.set_position self
+
           la = LocalAccess.new @compiler
+          la.set_position self
           la.from_variable @method.arguments.splat
 
           cc.args la

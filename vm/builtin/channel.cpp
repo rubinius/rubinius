@@ -56,6 +56,11 @@ namespace rubinius {
     return Qnil;
   }
 
+  Object* Channel::try_receive(STATE) {
+    if(value_->empty_p()) return Qnil;
+    return value_->shift(state);
+  }
+
   Object* Channel::receive(STATE, CallFrame* call_frame) {
     return receive_timeout(state, Qnil, call_frame);
   }

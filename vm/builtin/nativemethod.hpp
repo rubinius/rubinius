@@ -233,6 +233,10 @@ namespace rubinius {
     /** Set class up in the VM. @see vm/ontology.cpp. */
     static void init(VM* state);
 
+    // Called when starting a new native thread, initializes any thread
+    // local data.
+    static void init_thread(VM* state);
+
 
   public:   /* Ctors */
 

@@ -13,6 +13,8 @@
 #include "builtin/tuple.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/system.hpp"
+#include "builtin/thread.hpp"
+#include "builtin/channel.hpp"
 
 #include "vm.hpp"
 #include "object_utils.hpp"
@@ -246,33 +248,27 @@ namespace rubinius {
       return module;
     }
 
-    /** @todo Fix this, Task is gone. --rue */
     void yield_debugger(STATE, CallFrame* call_frame) {
-//
-//    Channel* chan;
-//    if(debug_channel_->nil_p()) {
-//      chan = try_as<Channel>(G(vm)->get_ivar(state,
-//            state->symbol("@debug_channel")));
-//
-//      if(!chan) return;
-//    } else {
-//      chan = debug_channel_;
-//    }
-//
-//    if(control_channel_->nil_p()) {
-//      control_channel(state, Channel::create(state));
-//    }
-//
-//    //sassert(chan->has_readers_p());
-//
-//    // active_->reference(state);
-//
-//    Thread* thr = G(current_thread);
-//    thr->frozen_stack(state, Qtrue);
-//    chan->send(state, thr);
-//    control_channel_->receive(state);
-      abort();
-    }
+      Channel* chan;
 
+      state->set_call_frame(call_frame);
+
+      chan = try_as<Channel>(G(vm)->get_ivar(state,
+            state->symbol("@debug_channel")));
+
+      if(!chan) return;
+
+      Channel* control = state->thread->control_channel();
+
+      if(control->nil_p()) {
+        control = Channel::create(state);
+        state->thread->control_channel(state, control);
+      }
+
+      sassert(chan->has_readers_p());
+
+      chan->send(state, state->thread.get());
+      control->receive(state, call_frame);
+    }
   }
 }

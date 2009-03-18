@@ -80,11 +80,13 @@ class Compiler
       sexp.shift
 
       node = new(compiler)
+      node.set_position sexp
       args = node.consume(sexp)
       msg = node.respond_to?(:normalize) ? :normalize : :args
       begin
         if node.respond_to? :normalize
           node = node.normalize(*args)
+          node.set_position sexp
         else
           node.args(*args)
         end
@@ -102,6 +104,13 @@ class Compiler
       @compiler = compiler
       @body = nil
     end
+
+    def set_position(sexp)
+      @line = sexp.line
+      @file = sexp.file
+    end
+
+    attr_reader :line, :file
 
     def convert(x)
       @compiler.convert_sexp(x)

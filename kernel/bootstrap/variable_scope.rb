@@ -11,6 +11,11 @@ class VariableScope
     raise PrimitiveFailure, "Unable to get current VariableScope"
   end
 
+  def locals
+    Ruby.primitive :variable_scope_locals
+    raise PrimitiveFailure, "Unable to get VariableScope locals"
+  end
+
   # To handle Module#private, protected
   attr_accessor :method_visibility
 

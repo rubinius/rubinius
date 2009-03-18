@@ -13,7 +13,6 @@ namespace rubinius {
   class Exception;
   class NativeThread;
 
-
   /**
    *  Error class for deadlocks.
    */
@@ -45,10 +44,11 @@ namespace rubinius {
 
     /** Thread created, valid and not yet done? */
     attr_accessor(alive, Object);
-    /** Stack use disallowed by the debugger. */
-    attr_accessor(frozen_stack, Object);
+
     /** Thread alive but not currently running? */
     attr_accessor(sleep, Object);
+
+    attr_accessor(control_channel, Channel);
 
     /** OS thread associated with this Thread, if any. */
     NativeThread* native_thread();
@@ -149,6 +149,9 @@ namespace rubinius {
     // Ruby.primitive :thread_wakeup
     Thread* wakeup(STATE);
 
+    // Ruby.primitive :thread_context
+    Tuple* context(STATE);
+
 
   public:   /* Class methods */
 
@@ -175,23 +178,18 @@ namespace rubinius {
      *  @see  Thread::fork()
      *  @see  NativeThread::perform()
      */
-    void          detach_native_thread();
+    void detach_native_thread();
 
 
   private:  /* Instance vars */
 
     /** Thread is created and valid and not yet done? */
-    Object*       alive_;        // slot
-    /** Thread is currently sleeping and not running? */
-    Object*       sleep_;        // slot
+    Object* alive_;        // slot
 
-    /**
-     *  Indicator to not have Channels use the stack, used
-     *  only by the debugger.
-     *
-     *  @todo Is this still needed? May be stackful stuff --rue
-     */
-    Object*       frozen_stack_; // slot
+    /** Thread is currently sleeping and not running? */
+    Object* sleep_;        // slot
+
+    Channel* control_channel_; // slot
 
     /**
      *  Actual OS backend thread associated with this Thread.

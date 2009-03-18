@@ -41,6 +41,7 @@ def describe_compiled_method(cm, dis=false)
   puts "total args: #{cm.total_args} required: #{cm.required_args}"
   print " (splatted)" if cm.splat
   puts "stack size: #{cm.stack_size}, local count: #{cm.local_count}"
+  puts "lines: #{cm.lines.inspect}"
   puts ""
   puts cm.decode
   puts "-" * 38

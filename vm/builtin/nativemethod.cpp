@@ -85,6 +85,10 @@ namespace rubinius {
     state->globals.nmethod.set(state->new_class("NativeMethod", G(executable)));
     state->globals.nmethod.get()->set_object_type(state, NativeMethodType);
 
+    init_thread(state);
+  }
+
+  void NativeMethod::init_thread(STATE) {
     native_method_environment.set(new NativeMethodEnvironment);
   }
 

@@ -236,16 +236,14 @@ class Thread
   end
 
   def set_debugging(dc, cc)
-    @task.set_debugging(dc, cc)
+    raise "very unlikely to run"
   end
 
   def debug_channel
-    @task.debug_channel
+    raise "nope!"
   end
 
-  def control_channel
-    @task.control_channel
-  end
+  attr_reader :control_channel
 
   def self.main
     @main_thread
@@ -259,6 +257,35 @@ class Thread
     Thread.current.group.list
   end
 
-
   alias_method :run, :wakeup
+
+  class Context
+    attr_reader :ip
+    attr_reader :method
+    attr_reader :variables
+
+    def initialize(ip, method, variables)
+      @ip = ip
+      @method = method
+      @variables = variables
+    end
+
+    def file
+      @method.file
+    end
+
+    def line
+      @method.line_from_ip @ip
+    end
+
+    def locals
+      @variables.locals
+    end
+  end
+
+  def context
+    Context.new *__context__
+  end
+
+  alias_method :current_context, :context
 end

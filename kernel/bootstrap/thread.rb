@@ -40,4 +40,9 @@ class Thread
     Kernel.raise ThreadError, "Unable to set Thread priority"
   end
 
+  def __context__
+    Ruby.primitive :thread_context
+    Kernel.raise PrimitiveFailure, "Thread#__context__ failed"
+  end
+
 end

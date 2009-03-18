@@ -36,7 +36,15 @@ namespace rubinius {
     assert(write(write_fd_, "!", 1) == 1);
   }
 
+  static int sigint_hit = 0;
+
   void SignalThread::handle_signal(int sig) {
+    std::cout << "signal: " << sig << "\n";
+    if(sig == SIGINT && ++sigint_hit == 5) {
+      std::cout << "aborting hung process.\n";
+      exit(8);
+    }
+
     thread->inform_processing(sig);
   }
 

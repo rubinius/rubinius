@@ -63,6 +63,15 @@ namespace rubinius {
     return call_frame->scope;
   }
 
+  Tuple* VariableScope::locals(STATE) {
+    Tuple* tup = Tuple::create(state, number_of_locals_);
+    for(int i = 0; i < number_of_locals_; i++) {
+      tup->put(state, i, locals_[i]);
+    }
+
+    return tup;
+  }
+
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 
@@ -86,5 +95,6 @@ namespace rubinius {
       visit.call(vs->get_local(i));
     }
   }
+
 
 }

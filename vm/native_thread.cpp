@@ -8,6 +8,7 @@
 #include "builtin/class.hpp"
 #include "builtin/symbol.hpp"
 #include "object_utils.hpp"
+#include "builtin/nativemethod.hpp"
 
 namespace rubinius {
   NativeThread::NativeThread(VM* vm)
@@ -15,10 +16,7 @@ namespace rubinius {
   {}
 
   void NativeThread::perform() {
-    // Block all signals by default.
-    sigset_t set;
-    sigfillset(&set);
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
+    NativeMethod::init_thread(vm_);
 
     // Grab the GIL
     // (automatically unlocked at the end of this function)

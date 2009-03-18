@@ -5,6 +5,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/float.hpp"
+#include "builtin/channel.hpp"
 
 #include "objectmemory.hpp"
 #include "message.hpp"
@@ -31,7 +32,7 @@ namespace rubinius {
 
     thr->alive(state, Qtrue);
     thr->sleep(state, Qfalse);
-    thr->frozen_stack(state, Qfalse);
+    thr->control_channel(state, (Channel*)Qnil);
 
     target->thread.set(thr);
     thr->vm = target;
@@ -103,6 +104,14 @@ namespace rubinius {
     }
 
     return this;
+  }
+
+  Tuple* Thread::context(STATE) {
+    CallFrame* cf = vm->saved_call_frame();
+
+    cf->promote_scope(state);
+
+    return Tuple::from(state, 3, Fixnum::from(cf->ip), cf->cm, cf->scope);
   }
 
 }

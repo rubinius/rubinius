@@ -215,7 +215,7 @@ class Debugger
     command :step_next,
       :regexp => /^n(?:ext)?(?:\s+(?:(to)\s+)?(\d+))?$/,
       :syntax => "n[ext] [to] [n]",
-      :description => "Step to the next, (or nth next, or specified) line, without stepping into called methods."      
+      :description => "Step to the next, (or nth next, or specified) line, without stepping into called methods."
 
     def execute(dbg, interface, md)
       step_type = md[1]
