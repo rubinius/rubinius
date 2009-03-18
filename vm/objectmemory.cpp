@@ -23,7 +23,7 @@ namespace rubinius {
   {
 
     // TODO Not sure where this code should be...
-    if(char* num = getenv("WATCH")) {
+    if(char* num = getenv("RBX_WATCH")) {
       object_watch = (Object*)strtol(num, NULL, 10);
       std::cout << "Watching for " << object_watch << "\n";
     }
