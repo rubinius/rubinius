@@ -113,7 +113,7 @@ namespace rubinius {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
-      if(required >= 0 && (size_t)required != msg.args()) {
+      if(msg.args() < 1 || (required >= 0 && (size_t)required != msg.args() - 1)) {
         Exception* exc =
           Exception::make_argument_error(state, required, msg.args(), state->symbol("__block__"));
         exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));

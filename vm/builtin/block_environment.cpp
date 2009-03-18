@@ -136,9 +136,9 @@ namespace rubinius {
     Object* recv = msg.get_argument(0);
 
     if(msg.args() > 1) {
-      Tuple* tup = Tuple::create(state, msg.args());
-      for(int i = msg.args() - 2; i >= 0; i--) {
-        tup->put(state, i, msg.get_argument(i));
+      Tuple* tup = Tuple::create(state, msg.args() - 1);
+      for(size_t i = 0, j = 1; j < msg.args(); i++, j++) {
+        tup->put(state, i, msg.get_argument(j));
       }
 
       val = tup;
