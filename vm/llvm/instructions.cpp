@@ -76,7 +76,7 @@ extern "C" {
 #define SET_ALLOW_PRIVATE(val) is.allow_private = (val)
 #define ALLOW_PRIVATE() is.allow_private
 
-#define DISPATCH return cExecuteRestart
+#define DISPATCH return NULL
 
 #ruby <<CODE
 require 'stringio'
@@ -139,7 +139,7 @@ CODE
 #define next_int ((opcode)(stream[call_frame->ip++]))
 
 #undef RETURN
-#define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
+#define RETURN(val) (void)val; DISPATCH;
 
 Object* VMMethod::interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
   opcode* stream = vmm->opcodes;
@@ -148,15 +148,6 @@ Object* VMMethod::interpreter(STATE, VMMethod* const vmm, CallFrame* const call_
 
 #undef DISPATCH
 #define DISPATCH goto *insn_locations[stream[call_frame->ip++]];
-
-#undef RETURN
-  /*
-#define RETURN(val) if((val) == cExecuteRestart) { return; } else { \
-  if(unlikely(state->interrupts.check)) return;\
-  DISPATCH; \
-}
-*/
-#define RETURN(val) (void)val; DISPATCH;
 
 #ruby <<CODE
 io = StringIO.new
@@ -169,8 +160,8 @@ CODE
 #else
   opcode op;
 
-#undef RETURN
-#define RETURN(val) if((val) == cExecuteRestart) { return; } else { continue; }
+#undef DISPATCH
+#define DISPATCH continue;
   for(;;) {
     op = stream[call_frame->ip++];
 

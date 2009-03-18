@@ -75,7 +75,7 @@ class Instructions
     def signature
       av = args.map { |name| "int #{name}" }.join(", ")
       av = ", #{av}" unless av.empty?
-      "bool op_#{name.opcode}(rubinius::VM* state, rubinius::VMMethod* vmm, rubinius::CallFrame* const call_frame, rubinius::VMMethod::InterpreterState& is #{av})"
+      "Object* op_#{name.opcode}(rubinius::VM* state, rubinius::VMMethod* vmm, rubinius::CallFrame* const call_frame, rubinius::VMMethod::InterpreterState& is #{av})"
     end
   end
 
@@ -198,7 +198,7 @@ class Instructions
       io.puts "#{impl.signature} {"
       io.puts impl.body
       unless impl.custom_continue?
-        io.puts "return cExecuteContinue;"
+        io.puts "return NULL;"
       end
       io.puts "}"
     end
