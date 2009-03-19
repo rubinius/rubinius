@@ -4331,6 +4331,7 @@ class Instructions
     <<-CODE
     if(state->interrupts.timer) {
       {
+        state->set_call_frame(call_frame);
         // unlock..
         GlobalLock::UnlockGuard lock(state->global_lock());
         // and relock automatically!
