@@ -1,4 +1,7 @@
 $: << File.expand_path(File.dirname(__FILE__) + '/../')
 
 require 'spec/frozen/spec_helper'
-require 'spec/custom/mspec'
+
+if Object.const_defined?(:RUBY_ENGINE) and Object.const_get(:RUBY_ENGINE) == 'rbx'
+  require 'spec/custom/mspec'
+end
