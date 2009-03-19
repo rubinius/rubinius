@@ -63,6 +63,44 @@
 #define ANYARGS
 #endif
 
+#ifdef __STDC__
+# include <limits.h>
+#else
+# ifndef LONG_MAX
+#  ifdef HAVE_LIMITS_H
+#   include <limits.h>
+#  else
+    /* assuming 32bit(2's compliment) long */
+#   define LONG_MAX 2147483647
+#  endif
+# endif
+# ifndef LONG_MIN
+#  define LONG_MIN (-LONG_MAX-1)
+# endif
+# ifndef CHAR_BIT
+#  define CHAR_BIT 8
+# endif
+#endif
+
+#ifndef RUBY_EXTERN
+#define RUBY_EXTERN extern
+#endif
+
+void* XMALLOC(size_t bytes);
+void  XFREE(void* ptr);
+void* XREALLOC(void* ptr, size_t bytes);
+void* XCALLOC(size_t items, size_t bytes);
+
+#define xmalloc   XMALLOC
+#define xcalloc   XCALLOC
+#define xrealloc  XREALLOC
+#define xfree     XFREE
+
+#define ruby_xmalloc   xmalloc
+#define ruby_xcalloc   xcalloc
+#define ruby_xrealloc  xrealloc
+#define ruby_xfree     xfree
+
 /**
  *  In MRI, VALUE represents an object.
  *
@@ -392,8 +430,8 @@ extern "C" {
 
 /* Secret extra stuff */
 
-  typedef VALUE (*SubtendAllocFunction)(void);
-  typedef void (*SubtendGenericFunction)(void);
+  typedef VALUE (*SubtendAllocFunction)();
+  typedef VALUE (*SubtendGenericFunction)();
 
 
   /**
@@ -447,6 +485,8 @@ extern "C" {
   /** ID from a Symbol Handle. @internal. */
   ID      rbx_subtend_hidden_sym2id(VALUE symbol_handle);
 
+  /** Return the data pointer in a Data object. */
+  void**  rbx_subtend_data_ptr_get_address(VALUE obj_handle);
 
 
 /* Real API */
@@ -480,6 +520,13 @@ extern "C" {
 #define   Data_Wrap_Struct(klass, mark, free, sval) \
             rb_data_object_alloc(klass, (void*)sval, (RUBY_DATA_FUNC)mark, \
                                  (RUBY_DATA_FUNC)free)
+
+#define   DATA_PTR(obj_handle)   (*rbx_subtend_data_ptr_get_address(obj_handle))
+
+#define   Data_Get_Struct(obj,type,sval) do {\
+            Check_Type(obj, T_DATA); \
+            sval = (type*)DATA_PTR(obj);\
+} while (0)
 
   /** Return obj if it is an Array, or return wrapped (i.e. [obj]) */
   VALUE   rb_Array(VALUE obj_handle);
@@ -537,6 +584,14 @@ extern "C" {
 
   /** If object responds to #to_str, returns the result of that call, otherwise nil. */
   VALUE   rb_check_string_type(VALUE object_handle);
+
+  /** Raises an exception if obj_handle is frozen. */
+  void    rb_check_frozen(VALUE obj_handle);
+
+  /** Raises an exception if obj_handle is not the same type as 'type'. */
+  void    rb_check_type(VALUE obj_handle, RbxSubtendMRIType type);
+
+#define Check_Type(v,t) rb_check_type((VALUE)(v),t)
 
   /**
    *  Safe type conversion.
@@ -661,11 +716,14 @@ extern "C" {
    *        Pretty much all C++ compilers support this too.  It can be
    *        done by introducing an intermediary function to grab the
    *        debug info, but it is far uglier. --rue
+   *
+   *  See http://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
+   *  regarding use of ##__VA_ARGS__.
    */
   #define rb_funcall(receiver, method_name, arg_count, ...) \
           rbx_subtend_hidden_rb_funcall(__FILE__, __LINE__, \
                                         (receiver), (method_name), \
-                                        (arg_count), __VA_ARGS__)
+                                        (arg_count) , ##__VA_ARGS__)
 
   /** Call the method with args provided in a C array. */
   #define rb_funcall2(receiver, method_name, arg_count, args) \
@@ -690,9 +748,6 @@ extern "C" {
 
   /** Convert string to an ID */
   ID      rb_intern(const char* string);
-
-  /** Allocate and return new, uninitialised object of given class. */
-  VALUE   rb_obj_alloc(VALUE class_handle);
 
   /** Call #initialize on the object with given arguments. */
   void    rb_obj_call_init(VALUE object_handle, int arg_count, VALUE* args);
@@ -727,6 +782,12 @@ extern "C" {
 
   /** Call #to_s on object. */
   VALUE   rb_obj_as_string(VALUE obj_handle);
+
+  /** Return a clone of the object. */
+  VALUE rb_obj_clone(VALUE obj_handle);
+
+  /** Call #inspect on an object. */
+  VALUE rb_inspect(VALUE obj_handle);
 
   /**
    *  Raise error of given class using formatted message.
@@ -903,10 +964,6 @@ extern "C" {
 
   /** Call block with given argument or raise error if no block given. */
   VALUE   rb_yield(VALUE argument_handle);
-
-  /** Frees x */
-  void    ruby_xfree(void* x);
-
 
 #ifdef __cplusplus
 }

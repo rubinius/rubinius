@@ -600,6 +600,14 @@ extern "C" {
     return RBX_RTEST(env->block());
   }
 
+  void rb_check_frozen(VALUE obj_handle) {
+    /* @todo  implement when rbx supports frozen objects. */
+  }
+
+  void rb_check_type(VALUE obj_handle, RbxSubtendMRIType type) {
+    /* @todo  implement; checks if obj_handle's type is 'type' */
+  }
+
   VALUE rb_check_array_type(VALUE object_handle) {
     return rb_check_convert_type(object_handle, 0, "Array", "to_ary");
   }
@@ -738,6 +746,14 @@ extern "C" {
     data->klass(env->state(), data_klass);
 
     return env->get_handle(data);
+  }
+
+  void** rbx_subtend_data_ptr_get_address(VALUE data_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Data* data = as<Data>(env->get_object(data_handle));
+
+    return data->data_address();
   }
 
   void rb_define_alias(VALUE module_handle, const char* new_name, const char* old_name) {
@@ -896,6 +912,14 @@ extern "C" {
     }
 
     return rb_funcall2(obj_handle, rb_intern("to_s"), 0, NULL);
+  }
+
+  VALUE rb_obj_clone(VALUE obj_handle) {
+    return rb_obj_as_string(rb_funcall(obj_handle, rb_intern("clone"), 0));
+  }
+
+  VALUE rb_inspect(VALUE obj_handle) {
+    return rb_obj_as_string(rb_funcall(obj_handle, rb_intern("inspect"), 0, NULL));
   }
 
   void rb_obj_call_init(VALUE object_handle, int arg_count, VALUE* args) {
@@ -1331,9 +1355,4 @@ extern "C" {
 
     return rb_funcall(block_handle, rb_intern("call"), 1, argument_handle);
   }
-
-  void ruby_xfree(void* x) {
-    if(x) free(x);
-  }
-
 }

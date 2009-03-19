@@ -28,6 +28,13 @@ namespace rubinius {
     /** New Data instance. */
     static Data*  create(STATE, void* data, MarkFunctor mark, FreeFunctor free);
 
+    void* data() {
+      return data_;
+    }
+
+    void** data_address() {
+      return &data_;
+    }
 
   private:  /* Instance variables */
 
