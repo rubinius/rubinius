@@ -13,14 +13,21 @@ task :extensions => %w[
 #
 # Ask the VM to build an extension from source.
 #
-def compile_extension(path, flags = "-d -p -I#{Dir.pwd}/vm/subtend")
+def compile_extension(path, flags = "-p -I#{Dir.pwd}/vm/subtend")
   cflags = Object.const_get(:FLAGS).reject {|f| f =~ /-Wno-deprecated|-Weffc\+\+/ }
 
   cflags.each {|flag| flags << " -C,#{flag}" }
 
-  command = "./bin/rbx compile #{flags} #{path}"
+  verbose = $verbose ? "-d" : ""
 
-  sh command
+  command = "./bin/rbx compile #{verbose} #{flags} #{path}"
+
+  if $verbose
+    sh command
+  else
+    puts "Building extension #{path}"
+    sh command, :verbose => false
+  end
 end
 
 namespace :extension do
@@ -44,9 +51,12 @@ namespace :extension do
   end
 
   desc "Build the Digest extensions"
-  task :digest => %w[extension:digest:md5 extension:digest:rmd160
-                     extension:digest:sha1 extension:digest:sha2]
-
+  task :digest => %w[extension:digest:digest
+                     extension:digest:md5
+                     extension:digest:rmd160
+                     extension:digest:sha1
+                     extension:digest:sha2
+                     extension:digest:bubblebabble]
 
   namespace :digest do
     def digest_task name
@@ -63,10 +73,23 @@ namespace :extension do
       end
     end
 
+    desc "Build Digest extension."
+    task :digest => %W[kernel:build lib/ext/digest/digest.#{$dlext}]
+    file "lib/ext/digest/digest.#{$dlext}" =>
+      FileList["lib/ext/digest/build.rb",
+               "lib/ext/digest/digest.c",
+               "lib/ext/digest/digest.h",
+               "lib/ext/digest/defs.h",
+               "vm/subtend/ruby.h"
+    ] do
+      compile_extension "lib/ext/digest"
+    end
+
     digest_task "md5"
     digest_task "rmd160"
     digest_task "sha1"
     digest_task "sha2"
+    digest_task "bubblebabble"
   end
 
 
