@@ -16,11 +16,6 @@ namespace rubinius {
 
     Forwarded    = 0;
     RequiresCleanup = other->RequiresCleanup;
-    IsTainted    = other->IsTainted;
-
-    // We deliberately don't copy the value of IsFrozen here;
-    // it's the callers responsibility to do that if necessary.
-    IsFrozen     = 0;
 
     RefsAreWeak  = other->RefsAreWeak;
   }

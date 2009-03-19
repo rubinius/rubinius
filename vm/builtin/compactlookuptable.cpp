@@ -30,6 +30,20 @@ namespace rubinius {
     return Qnil;
   }
 
+  Object* CompactLookupTable::remove(STATE, Object* key) {
+    for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
+      if(at(state, i) == key) {
+        Object* val = at(state, i + 1);
+
+        put(state, i, Qnil);
+        put(state, i + 1, Qnil);
+        return val;
+      }
+    }
+
+    return Qnil;
+  }
+
   Object* CompactLookupTable::store(STATE, Object* key, Object* val) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
       Object* tmp = at(state, i);

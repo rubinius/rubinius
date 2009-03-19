@@ -432,14 +432,15 @@ namespace rubinius {
   String* String::pattern(STATE, Object* self, Fixnum* size, Object* pattern) {
     String* s = String::create(state, size);
     s->klass(state, (Class*)self);
-    s->IsTainted = self->IsTainted;
+
+    self->infect(state, s);
 
     native_int cnt = size->to_native();
 
     if(Fixnum* chr = try_as<Fixnum>(pattern)) {
       std::memset(s->data()->bytes, (int)chr->to_native(), cnt);
     } else if(String* pat = try_as<String>(pattern)) {
-      s->IsTainted |= pat->IsTainted;
+      pat->infect(state, s);
 
       native_int psz = pat->size();
       if(psz == 1) {

@@ -23,6 +23,9 @@ namespace rubinius {
     // Ruby.primitive :compactlookuptable_fetch
     Object* fetch(STATE, Object* key);
 
+    // Ruby.primitive :compactlookuptable_remove
+    Object* remove(STATE, Object* key);
+
     // Ruby.primitive :compactlookuptable_store
     Object* store(STATE, Object* key, Object* val);
 

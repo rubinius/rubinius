@@ -334,80 +334,80 @@ public:
     Object* obj1 = util_new_object();
     Object* obj2 = util_new_object();
 
-    TS_ASSERT_EQUALS(obj1->tainted_p(), Qfalse);
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj1->tainted_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
 
-    obj1->infect(obj2);
+    obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
 
-    obj1->taint();
-    obj1->infect(obj2);
+    obj1->taint(state);
+    obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qtrue);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qtrue);
   }
 
   void test_infect_non_reference() {
     Object* obj1 = util_new_object();
     Object* obj2 = Integer::from(state, 5);
 
-    obj1->infect(obj2);
+    obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
 
-    obj1->taint();
-    obj1->infect(obj2);
+    obj1->taint(state);
+    obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
   }
 
   void test_tainted_p() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
-    obj->taint();
-    TS_ASSERT_EQUALS(obj->tainted_p(), Qtrue);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), Qfalse);
+    obj->taint(state);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), Qtrue);
   }
 
   void test_tainted_p_non_reference() {
     Object* obj = Integer::from(state, 5);
 
-    TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
-    obj->taint();
-    TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), Qfalse);
+    obj->taint(state);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), Qfalse);
   }
 
   void test_taint() {
     Object* obj = util_new_object();
 
-    TS_ASSERT(!obj->IsTainted);
-    obj->taint();
-    TS_ASSERT(obj->IsTainted);
+    TS_ASSERT(obj->tainted_p(state) == Qfalse);
+    obj->taint(state);
+    TS_ASSERT(obj->tainted_p(state) == Qtrue);
   }
 
   void test_untaint() {
     Object* obj = util_new_object();
 
-    obj->IsTainted = true;
-    TS_ASSERT(obj->IsTainted);
-    obj->untaint();
-    TS_ASSERT(!obj->IsTainted);
+    obj->taint(state);
+    TS_ASSERT(obj->tainted_p(state) == Qtrue);
+    obj->untaint(state);
+    TS_ASSERT(obj->tainted_p(state) == Qfalse);
   }
 
   void test_frozen_p() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->frozen_p(), Qfalse);
-    obj->IsFrozen = true;
-    TS_ASSERT_EQUALS(obj->frozen_p(), Qtrue);
+    TS_ASSERT_EQUALS(obj->frozen_p(state), Qfalse);
+    obj->freeze(state);
+    TS_ASSERT_EQUALS(obj->frozen_p(state), Qtrue);
   }
 
   void test_freeze() {
     Object* obj = util_new_object();
 
-    TS_ASSERT(!obj->IsFrozen);
-    obj->freeze();
-    TS_ASSERT(obj->IsFrozen);
+    TS_ASSERT(obj->frozen_p(state) == Qfalse);
+    obj->freeze(state);
+    TS_ASSERT(obj->frozen_p(state));
   }
 
   void test_nil_class() {

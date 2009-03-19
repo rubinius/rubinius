@@ -233,11 +233,11 @@ namespace rubinius {
 
     /** Sets the frozen flag. Rubinius does NOT currently support freezing. */
     // Ruby.primitive :object_freeze
-    Object*   freeze();
+    Object*   freeze(STATE);
 
     /** Returns true if this Object's frozen flag set, false otherwise. */
     // Ruby.primitive :object_frozen_p
-    Object*   frozen_p();
+    Object*   frozen_p(STATE);
 
     /**
      *  Ruby #instance_variable_get.
@@ -247,6 +247,8 @@ namespace rubinius {
      */
     // Ruby.primitive :object_get_ivar
     Object*   get_ivar(STATE, Symbol* sym);
+
+    Object*   del_ivar(STATE, Symbol* sym);
 
     /** Returns the structure containing this object's instance variables. */
     // Ruby.primitive :object_get_ivars
@@ -266,7 +268,7 @@ namespace rubinius {
     /**
      * Taints other if this is tainted.
      */
-    void infect(Object* other);
+    void infect(STATE, Object* other);
 
     /**
      *  Ruby #kind_of?
@@ -305,7 +307,7 @@ namespace rubinius {
      *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_taint
-    Object*   taint();
+    Object*   taint(STATE);
 
     /**
      *  Returns true if this object's tainted flag is set.
@@ -313,7 +315,7 @@ namespace rubinius {
      *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_tainted_p
-    Object*   tainted_p();
+    Object*   tainted_p(STATE);
 
     /**
      *  Clears the tainted flag on this object.
@@ -321,7 +323,7 @@ namespace rubinius {
      *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_untaint
-    Object*   untaint();
+    Object*   untaint(STATE);
 
     /**
      *  Returns an #inspect-like representation of an Object for

@@ -107,19 +107,21 @@ namespace rubinius {
       // and call, the wrong one will be called.
       if(LookupTable* lt = try_as<LookupTable>(ivars_)) {
         other->ivars_ = lt->dup(state);
+        LookupTable* ld = as<LookupTable>(other->ivars_);
 
         // We store the object_id in the ivar table, so nuke it.
-        lt->remove(state, G(sym_object_id));
+        ld->remove(state, G(sym_object_id));
+        ld->remove(state, state->symbol("frozen"));
       } else {
         // Use as<> so that we throw a TypeError if there is something else
         // here.
         CompactLookupTable* clt = as<CompactLookupTable>(ivars_);
         other->ivars_ = clt->dup(state);
+        CompactLookupTable* ld = as<CompactLookupTable>(other->ivars_);
 
         // We store the object_id in the ivar table, so nuke it.
-        if(clt->has_key(state, G(sym_object_id))) {
-          clt->store(state, G(sym_object_id), Qnil);
-        }
+        ld->remove(state, G(sym_object_id));
+        ld->remove(state, state->symbol("frozen"));
       };
     }
 
@@ -130,15 +132,16 @@ namespace rubinius {
     return this == other ? Qtrue : Qfalse;
   }
 
-  Object* Object::freeze() {
+  Object* Object::freeze(STATE) {
     if(reference_p()) {
-      this->IsFrozen = true;
+      set_ivar(state, state->symbol("frozen"), Qtrue);
     }
     return this;
   }
 
-  Object* Object::frozen_p() {
-    if(reference_p() && this->IsFrozen) {
+  Object* Object::frozen_p(STATE) {
+    if(reference_p()) {
+      if(get_ivar(state, state->symbol("frozen"))->nil_p()) return Qfalse;
       return Qtrue;
     } else {
       return Qfalse;
@@ -250,9 +253,9 @@ namespace rubinius {
     }
   }
 
-  void Object::infect(Object* other) {
-    if(this->tainted_p() == Qtrue) {
-      other->taint();
+  void Object::infect(STATE, Object* other) {
+    if(this->tainted_p(state) == Qtrue) {
+      other->taint(state);
     }
   }
 
@@ -394,6 +397,37 @@ namespace rubinius {
     return val;
   }
 
+  Object* Object::del_ivar(STATE, Symbol* sym) {
+    LookupTable* tbl;
+
+    /* Implements the external ivars table for objects that don't
+       have their own space for ivars. */
+    if(!reference_p()) {
+      tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+
+      if(tbl) tbl->remove(state, sym);
+      return this;
+    }
+
+    /* We might be trying to access a field, so check there first. */
+    TypeInfo* ti = state->om->find_type_info(this);
+    if(ti) {
+      TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
+      // Can't remove a slot, so just bail.
+      if(it != ti->slots.end()) return this;
+    }
+
+    /* No ivars, we're done! */
+    if(ivars_->nil_p()) return this;
+
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+      tbl->remove(state, sym);
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+      tbl->remove(state, sym);
+    }
+    return this;
+  }
+
   String* Object::to_s(STATE, bool address) {
     std::stringstream name;
 
@@ -442,15 +476,17 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* Object::taint() {
+  Object* Object::taint(STATE) {
     if(reference_p()) {
-      this->IsTainted = true;
+      set_ivar(state, state->symbol("tainted"), Qtrue);
     }
     return this;
   }
 
-  Object* Object::tainted_p() {
-    if(reference_p() && this->IsTainted) {
+  Object* Object::tainted_p(STATE) {
+    if(reference_p()) {
+      Object* b = get_ivar(state, state->symbol("tainted"));
+      if(b->nil_p()) return Qfalse;
       return Qtrue;
     } else {
       return Qfalse;
@@ -461,9 +497,9 @@ namespace rubinius {
     return state->om->type_info[get_type()];
   }
 
-  Object* Object::untaint() {
+  Object* Object::untaint(STATE) {
     if(reference_p()) {
-      this->IsTainted = false;
+      del_ivar(state, state->symbol("tainted"));
     }
     return this;
   }

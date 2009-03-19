@@ -78,7 +78,7 @@ namespace rubinius {
       }
 
       if(!process_xflags || strncmp(arg, "-X", 2) != 0) {
-        ary->set(state, which_arg++, String::create(state, arg)->taint());
+        ary->set(state, which_arg++, String::create(state, arg)->taint(state));
       }
     }
 

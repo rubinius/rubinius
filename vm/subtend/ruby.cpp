@@ -283,7 +283,7 @@ extern "C" {
     Object* object1 = env->get_object(obj1);
     Object* object2 = env->get_object(obj2);
 
-    object1->infect(object2);
+    object1->infect(env->state(), object2);
   }
 
   int rbx_subtend_nil_p(VALUE expression_result) {
@@ -1321,9 +1321,10 @@ extern "C" {
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    return env->get_handle(
-      String::create(env->state(), string, std::strlen(string))->taint()
-    );
+    String* str = String::create(env->state(), string, std::strlen(string));
+    str->taint(env->state());
+
+    return env->get_handle(str);
   }
 
   void rb_thread_schedule() {
