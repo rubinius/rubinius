@@ -68,4 +68,13 @@ module Kernel
 
   get = proc { Process.pid }
   Globals.set_hook(:$$, get, nil)
+
+  # Implements rb_path2name. Based on code from wycats
+  def const_lookup(name)
+    names = name.split '::'
+    names.shift if names.first.empty?
+    names.inject(Object) do |m, n|
+      m.const_defined?(n) ? m.const_get(n) : m.const_missing(n)
+    end
+  end
 end

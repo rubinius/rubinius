@@ -560,6 +560,9 @@ extern "C" {
   /** C string representation of the class' name. You must free this string. */
   char*   rb_class2name(VALUE class_handle);
 
+  /** Return the module referred to by qualified path (e.g. A::B::C) */
+  VALUE rb_path2class(const char*);
+
   /** Returns object returned by invoking method on object if right type, or raises error. */
   VALUE   rb_convert_type(VALUE object_handle, int type, const char* type_name, const char* method_name);
 

@@ -644,6 +644,10 @@ extern "C" {
     return ::strdup(class_object->name()->c_str(env->state()));
   }
 
+  VALUE rb_path2class(const char* name) {
+    return rb_funcall(rb_mKernel, rb_intern("const_lookup"), 1, rb_str_new2(name));
+  }
+
   /** @todo   This is horrible. Refactor. --rue */
   VALUE rb_convert_type(VALUE object_handle, int type,
                         const char* type_name, const char* method_name)
