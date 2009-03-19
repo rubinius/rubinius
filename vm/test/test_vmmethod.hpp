@@ -43,7 +43,7 @@ public:
 
     VMMethod vmm(state, cm);
 
-    TypeInfo ti(ObjectType);
+    Object::Info ti(ObjectType);
     ti.slots[state->symbol("@blah")->index()] = 5;
     vmm.specialize(state, &ti);
 

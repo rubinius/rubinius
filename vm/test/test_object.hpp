@@ -159,13 +159,11 @@ public:
 
   void test_dup_bytes() {
     ByteArray* obj = state->om->new_object_bytes<ByteArray>(G(object), 1);
-    obj->StoresBytes = 1;
 
     obj->bytes[0] = 8;
 
     ByteArray* obj2 = (ByteArray*)obj->dup(state);
 
-    TS_ASSERT(obj2->stores_bytes_p());
     TS_ASSERT_EQUALS(obj2->bytes[0], 8);
   }
 

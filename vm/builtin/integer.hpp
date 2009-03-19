@@ -13,6 +13,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 
@@ -44,6 +45,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 }

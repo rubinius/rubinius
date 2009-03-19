@@ -225,6 +225,7 @@ namespace rubinius {
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 

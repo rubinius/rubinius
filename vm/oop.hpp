@@ -92,10 +92,6 @@ const int cUndef = 0x22L;
 #define UNDEF_P(v) ((Object*)(v) == Qundef)
 #define RTEST(v)   (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)Qfalse)
 
-
-#define INDEXED(obj) (REFERENCE_P(obj) && !obj->StoresBytes)
-#define STORE_BYTES(obj) (REFERENCE_P(obj) && obj->StoresBytes)
-
 #define SIZE_OF_OBJECT ((size_t)(sizeof(ObjectHeader*)))
 
 #define NUM_FIELDS(obj)                 ((obj)->num_fields())
@@ -142,11 +138,7 @@ const int cUndef = 0x22L;
         unsigned int Forwarded              : 1;
         unsigned int Remember               : 1;
         unsigned int Marked                 : 1;
-        unsigned int ForeverYoung           : 1;
-        unsigned int StoresBytes            : 1;
         unsigned int RequiresCleanup        : 1;
-        unsigned int IsBlockContext         : 1;
-        unsigned int IsMeta                 : 1;
 
         unsigned int IsTainted              : 1;
         unsigned int IsFrozen               : 1;
@@ -206,14 +198,6 @@ const int cUndef = 0x22L;
 
     bool reference_p() const {
       return REFERENCE_P(this);
-    }
-
-    bool stores_bytes_p() const {
-      return StoresBytes;
-    }
-
-    bool stores_references_p() const {
-      return !StoresBytes;
     }
 
     bool young_object_p() const {

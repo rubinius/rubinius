@@ -68,9 +68,6 @@ namespace rubinius {
     allocated_objects--;
     allocated_bytes -= obj->size_in_bytes();
 
-    // A debugging tag to see if we try to use a free'd object
-    obj->IsMeta = 1;
-
     malloc_.release(reinterpret_cast<void*>(obj));
   }
 

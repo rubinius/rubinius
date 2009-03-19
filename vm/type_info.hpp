@@ -50,7 +50,7 @@ namespace rubinius {
     static void init(ObjectMemory* om);
     static void auto_init(ObjectMemory* om);
     static void auto_learn_fields(STATE);
-    virtual void auto_mark(Object* obj, ObjectMark& mark);
+    virtual void auto_mark(Object* obj, ObjectMark& mark) = 0;
     virtual void auto_visit(Object* obj, ObjectVisitor& visit);
 
   public:   /* Ctors */

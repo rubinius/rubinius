@@ -53,7 +53,6 @@ namespace rubinius {
 
     meta = state->new_object<MetaClass>(G(metaclass));
     if(!sup) { sup = obj->klass(); }
-    meta->IsMeta = true;
     meta->attached_instance(state, obj);
     meta->setup(state);
     meta->superclass(state, (Module*)sup);

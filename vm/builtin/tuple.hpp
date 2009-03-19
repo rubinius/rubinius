@@ -59,6 +59,8 @@ namespace rubinius {
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
       virtual void visit(Object*, ObjectVisitor& visit);
+
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 };

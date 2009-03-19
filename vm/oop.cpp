@@ -15,16 +15,12 @@ namespace rubinius {
     ivars_       = other->ivars_;
 
     Forwarded    = 0;
-    ForeverYoung = other->ForeverYoung;
-    StoresBytes  = other->StoresBytes;
     RequiresCleanup = other->RequiresCleanup;
-    IsBlockContext = other->IsBlockContext;
-    IsMeta       = other->IsMeta;
     IsTainted    = other->IsTainted;
 
     // We deliberately don't copy the value of IsFrozen here;
     // it's the callers responsibility to do that if necessary.
-    IsFrozen     = false;
+    IsFrozen     = 0;
 
     RefsAreWeak  = other->RefsAreWeak;
   }

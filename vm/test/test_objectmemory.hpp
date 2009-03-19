@@ -521,15 +521,16 @@ public:
 
   /* TODO: Move this to test_gc when such exists. */
 
-    /* eep */
-    class Cleanupper : public TypeInfo {
-    public:
-      Object* squeaky;
+  /* eep */
+  class Cleanupper : public TypeInfo {
+  public:
+    Object* squeaky;
 
-      Cleanupper() : TypeInfo(ObjectType, true), squeaky(NULL) {}
+    Cleanupper() : TypeInfo(ObjectType, true), squeaky(NULL) {}
 
-      virtual void cleanup(Object* obj) { squeaky = obj; }
-    };
+    virtual void cleanup(Object* obj) { squeaky = obj; }
+    virtual void auto_mark(Object* obj, ObjectMark& mark) {}
+  };
 
   void test_gc_calls_cleanup_function_if_object_requires_cleanup()
   {

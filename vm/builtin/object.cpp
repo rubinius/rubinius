@@ -58,10 +58,7 @@ namespace rubinius {
 
   void Object::copy_flags(STATE, Object* source) {
     this->obj_type_       = source->obj_type_;
-    this->StoresBytes     = source->StoresBytes;
     this->RequiresCleanup = source->RequiresCleanup;
-    this->IsBlockContext  = source->IsBlockContext;
-    this->IsMeta          = source->IsMeta;
   }
 
   void Object::copy_internal_state_from(STATE, Object* original) {
@@ -262,7 +259,6 @@ namespace rubinius {
   /* Initialize the object as storing bytes, by setting the flag then clearing the
    * body of the object, by setting the entire body as bytes to 0 */
   void Object::init_bytes() {
-    this->StoresBytes = 1;
     clear_body_to_null();
   }
 
