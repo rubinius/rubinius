@@ -33,7 +33,7 @@ namespace rubinius {
   }
 
   void VariableScope::setup_as_block(VariableScope* top, VariableScope* parent, int num, Object* self) {
-    obj_type = InvalidType;
+    obj_type_ = InvalidType;
     parent_ = parent;
     if(self) {
       self_ = self;

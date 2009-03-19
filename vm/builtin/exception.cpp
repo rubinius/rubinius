@@ -89,7 +89,7 @@ namespace rubinius {
     if(!object->reference_p()) {
       msg << "  Tried to use non-reference value " << object;
     } else {
-      TypeInfo* was = state->find_type(object->obj_type);
+      TypeInfo* was = state->find_type(object->type_id());
       msg << "  Tried to use object of type " <<
         was->type_name << " (" << was->type << ")";
     }
@@ -133,7 +133,7 @@ namespace rubinius {
   }
 
   void Exception::object_bounds_exceeded_error(STATE, Object* obj, size_t index) {
-    TypeInfo* info = state->find_type(obj->obj_type); // HACK use object
+    TypeInfo* info = state->find_type(obj->type_id()); // HACK use object
     std::ostringstream msg;
 
     msg << "Bounds of object exceeded:" << std::endl;

@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     if(!e.object->reference_p()) {
       std::cout << "  Tried to use non-reference value " << e.object;
     } else {
-      TypeInfo* was = env.state->find_type(e.object->obj_type);
+      TypeInfo* was = env.state->find_type(e.object->type_id());
       std::cout << "  Tried to use object of type " <<
         was->type_name << " (" << was->type << ")";
     }

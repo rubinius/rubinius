@@ -53,7 +53,7 @@ namespace rubinius {
       return;
     }
 
-    TypeInfo* ti = object_memory->type_info[obj->obj_type];
+    TypeInfo* ti = object_memory->type_info[obj->type_id()];
     assert(ti);
 
     ObjectMark mark(this);
@@ -249,7 +249,7 @@ namespace rubinius {
         call(obj->ivars());
       }
 
-      TypeInfo* ti = object_memory_->type_info[obj->obj_type];
+      TypeInfo* ti = object_memory_->type_info[obj->type_id()];
       assert(ti);
 
       ti->visit(obj, *this);

@@ -18,8 +18,8 @@ namespace rubinius {
     Class* cls = state->new_object<Class>(G(klass));
 
     cls->name(state, (Symbol*)Qnil);
-    cls->instance_fields(state, super->instance_fields());
     cls->instance_type(state, super->instance_type());
+    cls->set_type_info(super->type_info());
     cls->superclass(state, super);
 
     cls->setup(state);
@@ -35,11 +35,7 @@ namespace rubinius {
 
   Object* Class::allocate(STATE) {
     TypeInfo* ti = state->find_type(instance_type_->to_native());
-    if(ti) {
-      return state->new_object_from_type(this, ti);
-    } else {
-      return state->new_object<Object>(this);
-    }
+    return state->new_object_from_type(this, ti);
   }
 
   Class* Class::direct_superclass(STATE) {
@@ -61,12 +57,12 @@ namespace rubinius {
     meta->attached_instance(state, obj);
     meta->setup(state);
     meta->superclass(state, (Module*)sup);
+    meta->set_type_info(obj->klass()->type_info());
     obj->klass(state, meta);
 
     meta->name(state, state->symbol("<metaclass>"));
 
     /** @todo   These fields from Class are not set. Need to? --rue
-    Fixnum* instance_fields_; // slot
     Fixnum* instance_type_;   // slot
     */
 

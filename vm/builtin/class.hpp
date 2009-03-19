@@ -14,14 +14,22 @@ namespace rubinius {
     const static object_type type = ClassType;
 
   private:
-    Fixnum* instance_fields_; // slot
     Fixnum* instance_type_;   // slot
+
+    TypeInfo* type_info_;
 
   public:
     /* accessors */
 
-    attr_accessor(instance_fields, Fixnum);
     attr_accessor(instance_type, Fixnum);
+
+    TypeInfo* type_info() {
+      return type_info_;
+    }
+
+    void set_type_info(TypeInfo* ti) {
+      type_info_ = ti;
+    }
 
     /* interface */
 

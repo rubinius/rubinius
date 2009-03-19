@@ -195,8 +195,10 @@ namespace rubinius {
     Class *cls = new_object<Class>(G(klass));
     if(sup->nil_p()) {
       cls->instance_type(this, Fixnum::from(ObjectType));
+      cls->set_type_info(find_type(ObjectType));
     } else {
       cls->instance_type(this, sup->instance_type()); // HACK test that this is always true
+      cls->set_type_info(sup->type_info());
     }
     cls->superclass(this, sup);
 
@@ -244,7 +246,7 @@ namespace rubinius {
   }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
-    if((obj->reference_p() && obj->obj_type != type)
+    if((obj->reference_p() && obj->type_id() != type)
         || (type == FixnumType && !obj->fixnum_p())) {
       Exception::type_error(state, type, obj, reason);
     }

@@ -11,7 +11,7 @@
 
 namespace rubinius {
   void CallFrame::promote_scope(STATE) {
-    if(scope->obj_type != InvalidType) return;
+    if(scope->obj_type_ != InvalidType) return;
     VariableScope* new_scope = scope->promote(state);
 
     if(scope == top_scope) top_scope = new_scope;

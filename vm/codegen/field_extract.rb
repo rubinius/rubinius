@@ -421,7 +421,7 @@ void #{@name}::Info::auto_visit(Object* _t, ObjectVisitor& visit) {
     when "NilClass"
       return "#{what} == Qnil"
     else
-      return "(REFERENCE_P(#{what}) && #{what}->obj_type == #{@name}Type)"
+      return "(REFERENCE_P(#{what}) && #{what}->type_id() == #{@name}Type)"
     end
   end
 

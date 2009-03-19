@@ -8,7 +8,7 @@ namespace rubinius {
     /* Even though we dup it, we have to be careful to maintain
      * the zone. */
 
-    obj_type     = other->obj_type;
+    obj_type_    = other->obj_type_;
     age          = new_age;
     bytes_       = other->bytes_;
     klass_       = other->klass_;

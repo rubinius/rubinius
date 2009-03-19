@@ -36,7 +36,7 @@ namespace rubinius {
      *  Initialize and default scope.
      */
     void prepare(Object* self, Module* mod, Object* block, int num) {
-      obj_type = InvalidType;
+      obj_type_ = InvalidType;
       parent_ = (VariableScope*)Qnil;
       self_ = self;
       module_ = mod;
@@ -70,7 +70,7 @@ namespace rubinius {
     void setup_as_block(VariableScope* top, VariableScope* parent, int num, Object* self=0);
 
     bool stack_allocated_p() {
-      return obj_type == 0;
+      return obj_type_ == 0;
     }
 
     void set_local(STATE, int pos, Object* val) {

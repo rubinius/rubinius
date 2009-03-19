@@ -252,7 +252,7 @@ namespace rubinius {
     obj = allocate_object(bytes);
     set_class(obj, cls);
 
-    obj->obj_type = type;
+    obj->obj_type_ = type;
     obj->RequiresCleanup = type_info[type]->instances_need_cleanup;
 
     return obj;
@@ -268,14 +268,14 @@ namespace rubinius {
     obj = allocate_object_mature(bytes);
     set_class(obj, cls);
 
-    obj->obj_type = type;
+    obj->obj_type_ = type;
     obj->RequiresCleanup = type_info[type]->instances_need_cleanup;
 
     return obj;
   }
 
   TypeInfo* ObjectMemory::find_type_info(Object* obj) {
-    return type_info[obj->obj_type];
+    return type_info[obj->type_id()];
   }
 
   ObjectPosition ObjectMemory::validate_object(Object* obj) {

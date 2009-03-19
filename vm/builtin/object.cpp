@@ -57,7 +57,7 @@ namespace rubinius {
   }
 
   void Object::copy_flags(STATE, Object* source) {
-    this->obj_type        = source->obj_type;
+    this->obj_type_       = source->obj_type_;
     this->StoresBytes     = source->StoresBytes;
     this->RequiresCleanup = source->RequiresCleanup;
     this->IsBlockContext  = source->IsBlockContext;
@@ -83,7 +83,7 @@ namespace rubinius {
 #ifdef RBX_GC_STATS
     // This counter is only valid if the line above allocates in the
     // young object space.
-    stats::GCStats::get()->young_object_types[this->obj_type]++;
+    stats::GCStats::get()->young_object_types[this->type_id()]++;
 #endif
 
     other->initialize_copy(this, age);
@@ -199,7 +199,7 @@ namespace rubinius {
   }
 
   object_type Object::get_type() const {
-    if(reference_p()) return obj_type;
+    if(reference_p()) return type_id();
     if(fixnum_p()) return FixnumType;
     if(symbol_p()) return SymbolType;
     if(nil_p()) return NilType;

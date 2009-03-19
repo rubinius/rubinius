@@ -115,7 +115,7 @@ const int cUndef = 0x22L;
     YoungObjectZone  = 3,
   } gc_zone;
 
-  /* the sizeof(class ObjectHeader) must an increment of the platform 
+  /* the sizeof(class ObjectHeader) must an increment of the platform
      pointer size, so that the bytes located directly after a
      struct rubinius_object can hold a pointer which can be
      dereferenced. (an 32 bit platforms, pointers must be aligned
@@ -135,7 +135,7 @@ const int cUndef = 0x22L;
   public:
     union {
       struct {
-        object_type     obj_type    : 8;
+        object_type     obj_type_   : 8;
         gc_zone         zone        : 2;
         unsigned int    age         : 5;
 
@@ -276,24 +276,15 @@ const int cUndef = 0x22L;
       return this == reinterpret_cast<ObjectHeader*>(Qfalse);
     }
 
+    object_type type_id() const {
+      return obj_type_;
+    }
+
     bool check_type(object_type type) const {
-      return reference_p() && obj_type == type;
+      return reference_p() && obj_type_ == type;
     }
 
   };
-
-  /* Object access, lowest level. These read and set fields of an Object*
-   * directly. They're built on to integrate with the GC properly. */
-
-#define CLEAR_FLAGS(obj)     (obj)->all_flags = 0
-#define stack_context_p(obj) ((obj)->gc_zone == UnspecifiedZone)
-#define SET_FORWARDED(obj)   (obj)->Forwarded = true
-#define FORWARDED_P(obj)     ((obj)->Forwarded)
-
-#define AGE(obj)           (obj->copy_count)
-#define CLEAR_AGE(obj)     (obj->copy_count = 0)
-#define INCREMENT_AGE(obj) (obj->copy_count++)
-
 }
 
 
