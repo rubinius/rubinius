@@ -59,9 +59,7 @@ class Class
       raise TypeError, "superclass must be a Class (#{sclass.class} given)"
     end
 
-    @instance_fields = sclass.instance_fields
-    @instance_type = sclass.instance_type
-    @superclass = sclass
+    set_superclass sclass
 
     mc = self.metaclass
     mc.set_superclass sclass.metaclass
@@ -112,10 +110,6 @@ class MetaClass
     attached_instance.__send__ :singleton_method_added, name
 
     executable
-  end
-
-  def set_superclass(obj)
-    @superclass = obj
   end
 
   def inspect

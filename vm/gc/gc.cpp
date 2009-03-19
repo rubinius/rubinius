@@ -44,7 +44,7 @@ namespace rubinius {
 
     // If this object's refs are weak, then add it to the weak_refs
     // vector and don't look at it otherwise.
-    if(obj->RefsAreWeak) {
+    if(obj->refs_are_weak_p()) {
       if(!weak_refs) {
         weak_refs = new ObjectArray(0);
       }
@@ -61,11 +61,11 @@ namespace rubinius {
   }
 
   void GarbageCollector::delete_object(Object* obj) {
-    if (obj->RequiresCleanup) {
+    if(obj->requires_cleanup_p()) {
       object_memory->find_type_info(obj)->cleanup(obj);
     }
 
-    if(obj->Remember) {
+    if(obj->remembered_p()) {
       object_memory->unremember_object(obj);
     }
   }

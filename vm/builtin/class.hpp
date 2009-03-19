@@ -36,9 +36,7 @@ namespace rubinius {
     /** Returns actual superclass, skipping over IncludedModules */
     Class* direct_superclass(STATE);
 
-    void set_object_type(STATE, size_t type) {
-      instance_type(state, Fixnum::from(type));
-    }
+    void set_object_type(STATE, size_t type);
 
     static Class* create(STATE, Class* super);
 
@@ -47,6 +45,9 @@ namespace rubinius {
 
     // Ruby.primitive :class_allocate
     Object* allocate(STATE);
+
+    // Ruby.primitive :class_set_superclass
+    Object* set_superclass(STATE, Class* sup);
 
     class Info : public Module::Info {
     public:

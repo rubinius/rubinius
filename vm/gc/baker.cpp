@@ -61,7 +61,7 @@ namespace rubinius {
       std::cout << "detected " << copy << " during baker collection (2)\n";
     }
 
-    obj->set_forward(object_memory->state, copy);
+    obj->set_forward(copy);
     return copy;
   }
 
@@ -109,7 +109,7 @@ namespace rubinius {
         assert(!tmp->forwarded_p());
 
         // Remove the Remember bit, since we're clearing the set.
-        tmp->Remember = 0;
+        tmp->clear_remember();
         scan_object(tmp);
       }
     }

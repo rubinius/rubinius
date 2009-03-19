@@ -157,8 +157,6 @@ namespace rubinius {
   }
 
   const char* String::c_str() {
-    sassert(size() < data_->size());
-
     char* c_string = (char*)data_->bytes;
     if(c_string[size()] != 0) {
       c_string[size()] = 0;

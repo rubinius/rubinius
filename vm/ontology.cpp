@@ -80,6 +80,8 @@ namespace rubinius {
     Class *object = new_basic_class((Class*)Qnil);
     GO(object).set(object);
 
+    object->set_object_type(state, ObjectType);
+
     /* Now Module */
     GO(module).set(new_basic_class(object));
     G(module)->set_object_type(state, ModuleType);

@@ -71,12 +71,8 @@ namespace rubinius {
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
 
     template <class T>
-      T* new_object_bytes(Class* cls, size_t bytes) {
-        // Only works because sizeof(Object*) will alwasy be a power of 2
-        const int rounding_value = sizeof(Object*) - 1;
-
-        // round up
-        bytes = (sizeof(T) + bytes + rounding_value) & ~rounding_value;
+      T* new_object_bytes(Class* cls, size_t& bytes) {
+        bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
 
         obj->init_bytes();
@@ -85,12 +81,8 @@ namespace rubinius {
       }
 
     template <class T>
-      T* new_object_bytes_mature(Class* cls, size_t bytes) {
-        // Only works because sizeof(Object*) will alwasy be a power of 2
-        const int rounding_value = sizeof(Object*) - 1;
-
-        // round up
-        bytes = (sizeof(T) + bytes + rounding_value) & ~rounding_value;
+      T* new_object_bytes_mature(Class* cls, size_t& bytes) {
+        bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = reinterpret_cast<T*>(new_object_typed_mature(cls, bytes, T::type));
 
         obj->init_bytes();
@@ -115,7 +107,7 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
 
     void write_barrier(Object* target, Object* val) {
-      if(target->Remember) return;
+      if(target->remembered_p()) return;
       if(!REFERENCE_P(val)) return;
       if(target->zone == YoungObjectZone) return;
       if(val->zone != YoungObjectZone) return;

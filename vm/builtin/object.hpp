@@ -105,20 +105,6 @@ namespace rubinius {
      */
     void        init_bytes();
 
-    /**
-     *  Mark this Object forwarded by the GC.
-     *
-     *  Sets the forwarded flag and stores the given Object* in
-     *  the klass_ field where it can be reached. This object is
-     *  no longer valid and should be accessed through the new
-     *  Object* (but code outside of the GC framework should not
-     *  really run into this much if at all.)
-     *
-     *  @todo Clarify the scenarios where an Object may exist
-     *        forwarded in user code if at all. --rue
-     */
-    void        set_forward(STATE, Object* fwd);
-
     /** Provides access to the GC write barrier from any object. */
     void        write_barrier(STATE, void* obj);
     /** Special-case write_barrier() for Fixnums. */

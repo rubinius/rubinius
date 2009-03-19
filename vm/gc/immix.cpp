@@ -19,7 +19,7 @@ namespace rubinius {
   }
 
   void ImmixGC::ObjectDescriber::set_forwarding_pointer(immix::Address from, immix::Address to) {
-    from.as<Object>()->set_forward(object_memory_->state, to.as<Object>());
+    from.as<Object>()->set_forward(to.as<Object>());
   }
 
   ImmixGC::ImmixGC(ObjectMemory* om)
@@ -41,7 +41,7 @@ namespace rubinius {
 
     Object* obj = allocator_.allocate(bytes).as<Object>();
     obj->init_header(MatureObjectZone, bytes);
-    obj->InImmix = 1;
+    obj->set_in_immix();
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->allocate_mature.stop();
@@ -115,7 +115,7 @@ namespace rubinius {
         assert(tmp->zone == MatureObjectZone);
         assert(!tmp->forwarded_p());
 
-        if(!tmp->Marked) {
+        if(!tmp->marked_p()) {
           cleared++;
           *oi = NULL;
         }

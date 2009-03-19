@@ -149,8 +149,8 @@ namespace rubinius {
   void ObjectMemory::remember_object(Object* target) {
     assert(target->zone == MatureObjectZone);
     /* If it's already remembered, ignore this request */
-    if(target->Remember) return;
-    target->Remember = 1;
+    if(target->remembered_p()) return;
+    target->set_remember();
     remember_set->push_back(target);
   }
 
@@ -160,7 +160,7 @@ namespace rubinius {
         oi++) {
       if(*oi == target) {
         *oi = NULL;
-        target->Remember = 0;
+        target->clear_remember();
       }
     }
   }
@@ -208,7 +208,7 @@ namespace rubinius {
     }
 #endif
 
-    obj->clear_fields();
+    obj->clear_fields(bytes);
     return obj;
   }
 
@@ -238,7 +238,7 @@ namespace rubinius {
     }
 #endif
 
-    obj->clear_fields();
+    obj->clear_fields(bytes);
     return obj;
   }
 
@@ -253,7 +253,7 @@ namespace rubinius {
     set_class(obj, cls);
 
     obj->obj_type_ = type;
-    obj->RequiresCleanup = type_info[type]->instances_need_cleanup;
+    obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
 
     return obj;
   }
@@ -269,7 +269,7 @@ namespace rubinius {
     set_class(obj, cls);
 
     obj->obj_type_ = type;
-    obj->RequiresCleanup = type_info[type]->instances_need_cleanup;
+    obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
 
     return obj;
   }

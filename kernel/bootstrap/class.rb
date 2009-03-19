@@ -1,8 +1,17 @@
 class Class
-  attr_accessor :instance_fields
   attr_accessor :instance_type
 
   attr_reader :instance_flags
+
+  def self.allocate
+    Ruby.primitive :class_s_allocate
+    raise PrimitiveFailure, "Unable to create a new Class"
+  end
+
+  def set_superclass(sup)
+    Ruby.primitive :class_set_superclass
+    raise PrimitiveFailure, "Unable to set the superclass"
+  end
 end
 
 # TODO: is this obsolete?

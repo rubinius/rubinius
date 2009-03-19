@@ -12,6 +12,8 @@ namespace rubinius {
   public:
     const static object_type type = ByteArrayType;
 
+    native_int full_size_;
+
     // Body access
     uint8_t bytes[];
 
@@ -26,8 +28,8 @@ namespace rubinius {
     Integer* size(STATE);
 
     // Return the number of bytes this ByteArray contains
-    size_t size() {
-      return SIZE_OF_BODY(this);
+    native_int size() {
+      return full_size_ - sizeof(ByteArray);
     }
 
     // Ruby.primitive :bytearray_get_byte
@@ -64,7 +66,10 @@ namespace rubinius {
       Info(object_type type, bool cleanup = false): TypeInfo(type, cleanup) { }
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
+      virtual size_t object_size(Object* obj);
     };
+
+    friend class Info;
   };
 };
 

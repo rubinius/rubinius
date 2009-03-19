@@ -30,7 +30,9 @@ namespace rubinius {
   }
 
   Class* Class::s_allocate(STATE) {
-    return as<Class>(state->new_object<Class>(G(klass)));
+    Class* cls = as<Class>(state->new_object<Class>(G(klass)));
+    cls->set_type_info(state->om->type_info[ObjectType]);
+    return cls;
   }
 
   Object* Class::allocate(STATE) {
@@ -46,6 +48,19 @@ namespace rubinius {
     }
 
     return as<Class>(super);
+  }
+
+  Object* Class::set_superclass(STATE, Class* sup) {
+    superclass(state, sup);
+    instance_type(state, sup->instance_type());
+    set_type_info(sup->type_info());
+
+    return Qnil;
+  }
+
+  void Class::set_object_type(STATE, size_t type) {
+    instance_type(state, Fixnum::from(type));
+    type_info_ = state->om->type_info[type];
   }
 
   MetaClass* MetaClass::attach(STATE, Object* obj, Object* sup) {

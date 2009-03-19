@@ -36,9 +36,6 @@ namespace rubinius {
 
     state = shared->new_vm();
     state->initialize(VM::default_bytes);
-
-    TaskProbe* probe = TaskProbe::create(state);
-    state->probe.set(probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil);
   }
 
   Environment::~Environment() {
@@ -117,6 +114,9 @@ namespace rubinius {
 
   void Environment::boot_vm() {
     state->boot();
+
+    TaskProbe* probe = TaskProbe::create(state);
+    state->probe.set(probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil);
   }
 
   void Environment::run_file(std::string file) {

@@ -56,11 +56,6 @@ namespace rubinius {
     return other;
   }
 
-  void Object::copy_flags(STATE, Object* source) {
-    this->obj_type_       = source->obj_type_;
-    this->RequiresCleanup = source->RequiresCleanup;
-  }
-
   void Object::copy_internal_state_from(STATE, Object* original) {
     if(MetaClass* mc = try_as<MetaClass>(original->klass())) {
       LookupTable* source_methods = mc->method_table()->dup(state);
@@ -262,7 +257,7 @@ namespace rubinius {
   /* Initialize the object as storing bytes, by setting the flag then clearing the
    * body of the object, by setting the entire body as bytes to 0 */
   void Object::init_bytes() {
-    clear_body_to_null();
+    clear_body_to_null(size_in_bytes());
   }
 
   bool Object::kind_of_p(STATE, Object* module) {
@@ -340,14 +335,6 @@ namespace rubinius {
 
   void Object::set_field(STATE, size_t index, Object* val) {
     type_info(state)->set_field(state, this, index, val);
-  }
-
-  void Object::set_forward(STATE, Object* fwd) {
-    assert(zone == YoungObjectZone);
-    Forwarded = 1;
-    // DO NOT USE klass() because we need to get around the
-    // write barrier!
-    klass_ = (Class*)fwd;
   }
 
   Object* Object::set_ivar(STATE, Symbol* sym, Object* val) {

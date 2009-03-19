@@ -49,7 +49,7 @@ namespace rubinius {
         copy->copy_body(orig);
 
         copy->zone = MatureObjectZone;
-        copy->InImmix = 1;
+        copy->set_in_immix();
 
         return copy_addr;
       }
@@ -72,7 +72,7 @@ namespace rubinius {
 
         // If this is a young object, let the GC know not to try and mark
         // the block it's in.
-        if(obj->young_object_p() || !obj->InImmix) {
+        if(obj->young_object_p() || !obj->in_immix_p()) {
           return false;
         }
         return true;

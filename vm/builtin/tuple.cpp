@@ -164,7 +164,7 @@ namespace rubinius {
 
   Tuple* Tuple::create_weakref(STATE, Object* obj) {
     Tuple* tup = Tuple::from(state, 1, obj);
-    tup->RefsAreWeak = 1;
+    tup->set_refs_are_weak();
     return tup;
   }
 

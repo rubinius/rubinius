@@ -137,8 +137,8 @@ namespace rubinius {
     std::ostringstream msg;
 
     msg << "Bounds of object exceeded:" << std::endl;
-    msg << "      type: " << info->type_name << ", fields: " <<
-           obj->num_fields() << ", accessed: " << index << std::endl;
+    msg << "      type: " << info->type_name << ", bytes: " <<
+           obj->body_in_bytes() << ", accessed: " << index << std::endl;
 
     RubyException::raise(make_exception(state, get_object_bounds_exceeded_error(state),
                                         msg.str().c_str()));

@@ -32,19 +32,18 @@ namespace rubinius {
   }
 
   Object* Heap::copy_object(Object* orig) {
-    assert(orig->size_in_bytes() % 4 == 0);
-    Object* tmp = (Object*)allocate(orig->size_in_bytes());
-    tmp->init_header(YoungObjectZone, orig->num_fields());
+    size_t bytes = orig->size_in_bytes();
+    Object* tmp = (Object*)allocate(bytes);
+    tmp->init_header(YoungObjectZone, bytes);
 
     tmp->initialize_copy(orig, orig->age);
     tmp->copy_body(orig);
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->objects_copied++;
-    stats::GCStats::get()->bytes_copied += orig->size_in_bytes();
+    stats::GCStats::get()->bytes_copied += bytes;
 #endif
 
     return tmp;
   }
-
 }

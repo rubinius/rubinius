@@ -159,16 +159,28 @@ const int cUndef = 0x22L;
     void* __body__[];
 
   public:
+
+    static size_t align(size_t bytes) {
+      return bytes + (sizeof(Object*) - 1) & ~(sizeof(Object*) - 1);
+    }
+
+    static size_t bytes_to_fields(size_t bytes) {
+      return (bytes - sizeof(ObjectHeader)) / sizeof(Object*);
+    }
+
     void initialize_copy(Object* other, unsigned int age);
 
     /* Copies the body of +other+ into +this+ */
     void copy_body(Object* other);
 
+    /* Copies the flags of +this+ into +other+ */
+    void copy_flags(Object* other);
+
     /* Clear the body of the object, by setting each field to Qnil */
-    void clear_fields();
+    void clear_fields(size_t bytes);
 
     /* Clear the body of the object, setting it to all 0s */
-    void clear_body_to_null();
+    void clear_body_to_null(size_t bytes);
 
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
@@ -178,20 +190,14 @@ const int cUndef = 0x22L;
       bytes_ = bytes;
     }
 
-    uint32_t num_fields() const {
-      return (bytes_ - sizeof(ObjectHeader)) / sizeof(Object*);
-    }
-
-    size_t size_in_bytes() const {
-      return bytes_;
-    }
+    size_t size_in_bytes() const;
 
     size_t body_in_bytes() {
-      return bytes_ - sizeof(ObjectHeader); // HUH => num_fields() * sizeof(ObjectHeader);
+      return size_in_bytes() - sizeof(ObjectHeader);
     }
 
     size_t total_size() const {
-      return bytes_;
+      return size_in_bytes();
     }
 
     bool reference_p() const {
@@ -210,8 +216,31 @@ const int cUndef = 0x22L;
       return Forwarded == 1;
     }
 
+    void clear_forwarded() {
+      Forwarded = 0;
+    }
+
     Object* forward() {
-      return (Object*)klass_;
+      return ivars_;
+    }
+
+    /**
+     *  Mark this Object forwarded by the GC.
+     *
+     *  Sets the forwarded flag and stores the given Object* in
+     *  the klass_ field where it can be reached. This object is
+     *  no longer valid and should be accessed through the new
+     *  Object* (but code outside of the GC framework should not
+     *  really run into this much if at all.)
+     *
+     *  A forwarded object should never exist while the GC is running.
+     */
+
+    void set_forward(Object* fwd) {
+      Forwarded = 1;
+      // DO NOT USE klass() because we need to get around the
+      // write barrier!
+      ivars_ = fwd;
     }
 
     bool marked_p() const {
@@ -242,6 +271,42 @@ const int cUndef = 0x22L;
       Pinned = 0;
     }
 
+    bool in_immix_p() {
+      return InImmix == 1;
+    }
+
+    void set_in_immix() {
+      InImmix = 1;
+    }
+
+    bool remembered_p() {
+      return Remember == 1;
+    }
+
+    void set_remember() {
+      Remember = 1;
+    }
+
+    void clear_remember() {
+      Remember = 0;
+    }
+
+    void set_requires_cleanup(int val) {
+      RequiresCleanup = val;
+    }
+
+    bool requires_cleanup_p() {
+      return RequiresCleanup == 1;
+    }
+
+    void set_refs_are_weak() {
+      RefsAreWeak = 1;
+    }
+
+    bool refs_are_weak_p() {
+      return RefsAreWeak == 1;
+    }
+
     bool nil_p() const {
       return this == reinterpret_cast<ObjectHeader*>(Qnil);
     }
@@ -266,6 +331,7 @@ const int cUndef = 0x22L;
       return reference_p() && obj_type_ == type;
     }
 
+    friend class TypeInfo;
   };
 }
 

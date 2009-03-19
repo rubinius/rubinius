@@ -61,15 +61,15 @@ public:
 
     obj  = util_new_object(om);
     obj2 = util_new_object(om);
-    TS_ASSERT_EQUALS(obj->Remember, 0U);
-    TS_ASSERT_EQUALS(obj2->Remember, 0U);
+    TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
+    TS_ASSERT_EQUALS(obj2->remembered_p(), 0U);
     TS_ASSERT_EQUALS(om.remember_set->size(), 0U);
 
     obj->zone = MatureObjectZone;
     om.store_object(obj, 0, obj2);
 
     TS_ASSERT_EQUALS(om.remember_set->size(), 1U);
-    TS_ASSERT_EQUALS(obj->Remember, 1U);
+    TS_ASSERT_EQUALS(obj->remembered_p(), 1U);
     TS_ASSERT_EQUALS(om.remember_set->operator[](0), obj);
 
     om.store_object(obj, 0, obj2);
@@ -88,7 +88,7 @@ public:
     obj2 = Qnil;
 
     om.store_object(obj, 0, obj2);
-    TS_ASSERT_EQUALS(obj->Remember, 0U);
+    TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
   }
 
   void test_collect_young() {
@@ -214,7 +214,7 @@ public:
     mature->field[0] = young;
 
     om.write_barrier(mature, young);
-    TS_ASSERT_EQUALS(mature->Remember, 1U);
+    TS_ASSERT_EQUALS(mature->remembered_p(), 1U);
 
     om.collect_young(*gc_data);
 
@@ -259,7 +259,7 @@ public:
 
     om.set_young_lifetime(1);
 
-    TS_ASSERT_EQUALS(mature->Remember, 1U);
+    TS_ASSERT_EQUALS(mature->remembered_p(), 1U);
     TS_ASSERT_EQUALS(om.remember_set->size(), 1U);
 
     TS_ASSERT_EQUALS(young->age, 0U);
@@ -370,7 +370,7 @@ public:
     Root r(roots, young);
 
     om.collect_mature(*gc_data);
-    TS_ASSERT_EQUALS(young->Marked, 0U);
+    TS_ASSERT_EQUALS(young->marked_p(), 0U);
 
     TS_ASSERT_EQUALS(om.mark_sweep_.allocated_objects, 1U);
   }
@@ -471,7 +471,7 @@ public:
     Object* obj;
     int left = 128;
 
-    om.mark_sweep_.next_collection_bytes = left;
+    om.mark_sweep_.next_collection_bytes = left - 1;
     om.large_object_threshold = 3;
 
     TS_ASSERT_EQUALS(om.collect_mature_now, false);
@@ -507,14 +507,14 @@ public:
 
     Object* obj = state->new_object<Object>(G(object));
 
-    TS_ASSERT_EQUALS(obj->RequiresCleanup, false);
+    TS_ASSERT_EQUALS(obj->requires_cleanup_p(), false);
 
     ti->instances_need_cleanup = true;
 
     Object* obj2 = state->new_object<Object>(G(object));
 
-    TS_ASSERT_EQUALS(obj2->RequiresCleanup, true);
-    TS_ASSERT_EQUALS(obj->RequiresCleanup, false);
+    TS_ASSERT_EQUALS(obj2->requires_cleanup_p(), true);
+    TS_ASSERT_EQUALS(obj->requires_cleanup_p(), false);
 
     ti->instances_need_cleanup = false;
   }
@@ -542,7 +542,7 @@ public:
 
     Object* obj = state->new_object<Object>(G(object));
 
-    TS_ASSERT_EQUALS(obj->RequiresCleanup, true);
+    TS_ASSERT_EQUALS(obj->requires_cleanup_p(), true);
 
     state->om->mark_sweep_.delete_object(obj);
 

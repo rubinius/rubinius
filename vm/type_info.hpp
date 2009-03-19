@@ -15,6 +15,7 @@ namespace rubinius {
   class ObjectMark;
   class ObjectVisitor;
   class ObjectMemory;
+  class ObjectHeader;
 
   /**
    *  Static type information for the VM.
@@ -98,6 +99,8 @@ namespace rubinius {
 
     virtual void set_field(STATE, Object* target, size_t index, Object* val);
     virtual Object* get_field(STATE, Object* target, size_t index);
+
+    virtual size_t object_size(const ObjectHeader* object);
 
     /**
      * Currently prints the same output as show_simple. Is specialized by

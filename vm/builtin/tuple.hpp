@@ -13,6 +13,11 @@ namespace rubinius {
     /* Body access */
     Object* field[];
 
+  public:
+    uint32_t num_fields() const {
+      return ObjectHeader::bytes_to_fields(size_in_bytes());
+    }
+
     static Tuple* create(STATE, size_t fields);
     static Tuple* from(STATE, size_t fields, ...);
 
