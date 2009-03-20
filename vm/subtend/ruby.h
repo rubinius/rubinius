@@ -6,14 +6,12 @@
  *
  *  Notes:
  *
- *    - The function prefix rbx_subtend_hidden_* is used for those
- *      functions that must be available for user code but should
- *      not be used directly.
+ *    - The function prefix rbx_subtend_* is used for functions
+ *      that implement the Ruby C-API (Subtend in Rubinius) but
+ *      should NEVER be used in an extension's code.
  *
- *    - The prefix hidden_* is used inside ruby.cpp only, and each
- *      of the functions is defined there as static in an anonymous
- *      namespace. These functions do not need to be usable by user
- *      code.
+ *      Just in case, that means NEVER, like NOT EVER. If you do,
+ *      we'll call your mother.
  *
  *  @todo Blocks/iteration. rb_iterate normally uses fptrs, could
  *        maybe do that or then support 'function objects' --rue
@@ -296,24 +294,24 @@ extern "C" {
 
 /* Global Class objects */
 
-#define rb_cArray             (rbx_subtend_hidden_global(RbxArray))
-#define rb_cBignum            (rbx_subtend_hidden_global(RbxBignum))
-#define rb_cClass             (rbx_subtend_hidden_global(RbxClass))
-#define rb_cData              (rbx_subtend_hidden_global(RbxData))
-#define rb_cFalseClass        (rbx_subtend_hidden_global(RbxFalse))
-#define rb_cFixnum            (rbx_subtend_hidden_global(RbxFixnum))
-#define rb_cFloat             (rbx_subtend_hidden_global(RbxFloat))
+#define rb_cArray             (rbx_subtend_global(RbxArray))
+#define rb_cBignum            (rbx_subtend_global(RbxBignum))
+#define rb_cClass             (rbx_subtend_global(RbxClass))
+#define rb_cData              (rbx_subtend_global(RbxData))
+#define rb_cFalseClass        (rbx_subtend_global(RbxFalse))
+#define rb_cFixnum            (rbx_subtend_global(RbxFixnum))
+#define rb_cFloat             (rbx_subtend_global(RbxFloat))
 #define rb_cHash              (rb_const_get(rb_cObject, rb_intern("Hash")))
-#define rb_cInteger           (rbx_subtend_hidden_global(RbxInteger))
-#define rb_cIO                (rbx_subtend_hidden_global(RbxIO))
-#define rb_cModule            (rbx_subtend_hidden_global(RbxModule))
-#define rb_cNilClass          (rbx_subtend_hidden_global(RbxNil))
-#define rb_cObject            (rbx_subtend_hidden_global(RbxObject))
-#define rb_cRegexp            (rbx_subtend_hidden_global(RbxRegexp))
-#define rb_cString            (rbx_subtend_hidden_global(RbxString))
-#define rb_cSymbol            (rbx_subtend_hidden_global(RbxSymbol))
-#define rb_cThread            (rbx_subtend_hidden_global(RbxThread))
-#define rb_cTrueClass         (rbx_subtend_hidden_global(RbxTrue))
+#define rb_cInteger           (rbx_subtend_global(RbxInteger))
+#define rb_cIO                (rbx_subtend_global(RbxIO))
+#define rb_cModule            (rbx_subtend_global(RbxModule))
+#define rb_cNilClass          (rbx_subtend_global(RbxNil))
+#define rb_cObject            (rbx_subtend_global(RbxObject))
+#define rb_cRegexp            (rbx_subtend_global(RbxRegexp))
+#define rb_cString            (rbx_subtend_global(RbxString))
+#define rb_cSymbol            (rbx_subtend_global(RbxSymbol))
+#define rb_cThread            (rbx_subtend_global(RbxThread))
+#define rb_cTrueClass         (rbx_subtend_global(RbxTrue))
 
 
 /* Global Module objects. */
@@ -325,35 +323,35 @@ extern "C" {
 
 /* Exception classes. */
 
-#define rb_eArgError          (rbx_subtend_hidden_error(RbxArgumentError))
-#define rb_eEOFError          (rbx_subtend_hidden_error(RbxEOFError))
-#define rb_mErrno             (rbx_subtend_hidden_error(RbxErrno))    /* NOTE: This is a module. */
-#define rb_eException         (rbx_subtend_hidden_error(RbxException))
-#define rb_eFatal             (rbx_subtend_hidden_error(RbxFatal))
-#define rb_eFloatDomainError  (rbx_subtend_hidden_error(RbxFloatDomainError))
-#define rb_eIndexError        (rbx_subtend_hidden_error(RbxIndexError))
-#define rb_eInterrupt         (rbx_subtend_hidden_error(RbxInterrupt))
-#define rb_eIOError           (rbx_subtend_hidden_error(RbxIOError))
-#define rb_eLoadError         (rbx_subtend_hidden_error(RbxLoadError))
-#define rb_eLocalJumpError    (rbx_subtend_hidden_error(RbxLocalJumpError))
-#define rb_eNameError         (rbx_subtend_hidden_error(RbxNameError))
-#define rb_eNoMemError        (rbx_subtend_hidden_error(RbxNoMemoryError))
-#define rb_eNoMethodError     (rbx_subtend_hidden_error(RbxNoMethodError))
-#define rb_eNotImpError       (rbx_subtend_hidden_error(RbxNotImplementedError))
-#define rb_eRangeError        (rbx_subtend_hidden_error(RbxRangeError))
-#define rb_eRegexpError       (rbx_subtend_hidden_error(RbxRegexpError))
-#define rb_eRuntimeError      (rbx_subtend_hidden_error(RbxRuntimeError))
-#define rb_eScriptError       (rbx_subtend_hidden_error(RbxScriptError))
-#define rb_eSecurityError     (rbx_subtend_hidden_error(RbxSecurityError))
-#define rb_eSignal            (rbx_subtend_hidden_error(RbxSignalException))
-#define rb_eStandardError     (rbx_subtend_hidden_error(RbxStandardError))
-#define rb_eSyntaxError       (rbx_subtend_hidden_error(RbxSyntaxError))
-#define rb_eSystemCallError   (rbx_subtend_hidden_error(RbxSystemCallError))
-#define rb_eSystemExit        (rbx_subtend_hidden_error(RbxSystemExit))
-#define rb_eSysStackError     (rbx_subtend_hidden_error(RbxSystemStackError))
-#define rb_eTypeError         (rbx_subtend_hidden_error(RbxTypeError))
-#define rb_eThreadError       (rbx_subtend_hidden_error(RbxThreadError))
-#define rb_eZeroDivError      (rbx_subtend_hidden_error(RbxZeroDivisionError))
+#define rb_eArgError          (rbx_subtend_error(RbxArgumentError))
+#define rb_eEOFError          (rbx_subtend_error(RbxEOFError))
+#define rb_mErrno             (rbx_subtend_error(RbxErrno))    /* NOTE: This is a module. */
+#define rb_eException         (rbx_subtend_error(RbxException))
+#define rb_eFatal             (rbx_subtend_error(RbxFatal))
+#define rb_eFloatDomainError  (rbx_subtend_error(RbxFloatDomainError))
+#define rb_eIndexError        (rbx_subtend_error(RbxIndexError))
+#define rb_eInterrupt         (rbx_subtend_error(RbxInterrupt))
+#define rb_eIOError           (rbx_subtend_error(RbxIOError))
+#define rb_eLoadError         (rbx_subtend_error(RbxLoadError))
+#define rb_eLocalJumpError    (rbx_subtend_error(RbxLocalJumpError))
+#define rb_eNameError         (rbx_subtend_error(RbxNameError))
+#define rb_eNoMemError        (rbx_subtend_error(RbxNoMemoryError))
+#define rb_eNoMethodError     (rbx_subtend_error(RbxNoMethodError))
+#define rb_eNotImpError       (rbx_subtend_error(RbxNotImplementedError))
+#define rb_eRangeError        (rbx_subtend_error(RbxRangeError))
+#define rb_eRegexpError       (rbx_subtend_error(RbxRegexpError))
+#define rb_eRuntimeError      (rbx_subtend_error(RbxRuntimeError))
+#define rb_eScriptError       (rbx_subtend_error(RbxScriptError))
+#define rb_eSecurityError     (rbx_subtend_error(RbxSecurityError))
+#define rb_eSignal            (rbx_subtend_error(RbxSignalException))
+#define rb_eStandardError     (rbx_subtend_error(RbxStandardError))
+#define rb_eSyntaxError       (rbx_subtend_error(RbxSyntaxError))
+#define rb_eSystemCallError   (rbx_subtend_error(RbxSystemCallError))
+#define rb_eSystemExit        (rbx_subtend_error(RbxSystemExit))
+#define rb_eSysStackError     (rbx_subtend_error(RbxSystemStackError))
+#define rb_eTypeError         (rbx_subtend_error(RbxTypeError))
+#define rb_eThreadError       (rbx_subtend_error(RbxThreadError))
+#define rb_eZeroDivError      (rbx_subtend_error(RbxZeroDivisionError))
 
 
 /* Interface macros */
@@ -380,10 +378,10 @@ extern "C" {
 #define FIX2UINT(i)       NUM2UINT((i))
 
 /** Get a handle for the Symbol object represented by ID. */
-#define ID2SYM(id)        rbx_subtend_hidden_id2sym((id))
+#define ID2SYM(id)        rbx_subtend_id2sym((id))
 
 /** Infect o2 if o1 is tainted */
-#define OBJ_INFECT(o1, o2) rbx_subtend_hidden_infect((o1), (o2))
+#define OBJ_INFECT(o1, o2) rbx_subtend_infect((o1), (o2))
 
 /** Convert int to a Ruby Integer. */
 #define INT2FIX(i)        INT2NUM((i))
@@ -395,16 +393,16 @@ extern "C" {
 #define MEMZERO(p,type,n) memset((p), 0, (sizeof(type) * (n)))
 
 /** Whether object is nil. */
-#define NIL_P(v)          rbx_subtend_hidden_nil_p((v))
+#define NIL_P(v)          rbx_subtend_nil_p((v))
 
 /** The length of string str. */
-#define RSTRING_LEN(str)  rbx_subtend_hidden_rstring_len((str))
+#define RSTRING_LEN(str)  rbx_subtend_rstring_len((str))
 
 /** The pointer to the string str's data. */
-#define RSTRING_PTR(str)  rbx_subtend_hidden_rstring_ptr((str))
+#define RSTRING_PTR(str)  rbx_subtend_rstring_ptr((str))
 
 /** False if expression evaluates to nil or false, true otherwise. */
-#define RTEST(v)          rbx_subtend_hidden_rtest((v))
+#define RTEST(v)          rbx_subtend_rtest((v))
 
 /** Return the super class of the object */
 #define RCLASS_SUPER(klass)   rbx_subtend_class_superclass((klass))
@@ -418,7 +416,7 @@ extern "C" {
 #define StringValueCStr(str) rb_string_value_cstr(&(str))
 
 /** Retrieve the ID given a Symbol handle. */
-#define SYM2ID(sym)       rbx_subtend_hidden_sym2id((sym))
+#define SYM2ID(sym)       rbx_subtend_sym2id((sym))
 
 /** Return an integer type id for the object. @see rb_type() */
 #define TYPE(handle)      rb_type(handle)
@@ -451,7 +449,7 @@ extern "C" {
    *
    *  @see  rb_define_*_method.
    */
-  void    rbx_subtend_hidden_define_method(const char* file,
+  void    rbx_subtend_define_method(const char* file,
                                            VALUE target,
                                            const char* name,
                                            SubtendGenericFunction fptr,
@@ -459,41 +457,41 @@ extern "C" {
                                            RbxMethodKind kind);
 
   /** Retrieve a Handle to an error class. @internal. */
-  VALUE   rbx_subtend_hidden_error(RbxSubtendHiddenError type);
+  VALUE   rbx_subtend_error(RbxSubtendHiddenError type);
 
   /** Call method on receiver, args as varargs. */
-  VALUE   rbx_subtend_hidden_rb_funcall(const char* file, int line,
+  VALUE   rbx_subtend_rb_funcall(const char* file, int line,
                                         VALUE receiver, ID method_name,
                                         int arg_count, ...);
 
   /** Call the method with args provided in a C array. */
-  VALUE   rbx_subtend_hidden_rb_funcall2(const char* file, int line,
+  VALUE   rbx_subtend_rb_funcall2(const char* file, int line,
                                          VALUE receiver, ID method_name,
                                          int arg_count, VALUE* args);
 
   /** Retrieve a Handle to a globally available object. @internal. */
-  VALUE   rbx_subtend_hidden_global(RbxSubtendHiddenGlobal type);
+  VALUE   rbx_subtend_global(RbxSubtendHiddenGlobal type);
 
   /** Symbol Handle for an ID. @internal. */
-  VALUE   rbx_subtend_hidden_id2sym(ID id);
+  VALUE   rbx_subtend_id2sym(ID id);
 
   /** Infect obj2 if obj1 is tainted. @internal.*/
-  void    rbx_subtend_hidden_infect(VALUE obj1, VALUE obj2);
+  void    rbx_subtend_infect(VALUE obj1, VALUE obj2);
 
   /** False if expression evaluates to nil, true otherwise. @internal. */
-  int     rbx_subtend_hidden_nil_p(VALUE expression_result);
+  int     rbx_subtend_nil_p(VALUE expression_result);
 
   /** Length of string string_handle. @internal. */
-  long    rbx_subtend_hidden_rstring_len(VALUE string_handle);
+  long    rbx_subtend_rstring_len(VALUE string_handle);
 
   /** Pointer to string data in string_handle. @internal. */
-  char*   rbx_subtend_hidden_rstring_ptr(VALUE string_handle);
+  char*   rbx_subtend_rstring_ptr(VALUE string_handle);
 
   /** False if expression evaluates to Qnil or Qfalse, true otherwise. @internal. */
-  int     rbx_subtend_hidden_rtest(VALUE expression_result);
+  int     rbx_subtend_rtest(VALUE expression_result);
 
   /** ID from a Symbol Handle. @internal. */
-  ID      rbx_subtend_hidden_sym2id(VALUE symbol_handle);
+  ID      rbx_subtend_sym2id(VALUE symbol_handle);
 
   /** Return the data pointer in a Data object. */
   void**  rbx_subtend_data_ptr_get_address(VALUE obj_handle);
@@ -685,7 +683,7 @@ extern "C" {
 
   /** Generate a NativeMethod to represent a method defined as a C function. Records file. */
   #define rb_define_method(mod, name, fptr, arity) \
-          rbx_subtend_hidden_define_method(__FILE__, mod, name, \
+          rbx_subtend_define_method(__FILE__, mod, name, \
                                            (SubtendGenericFunction)fptr, arity, \
                                            RbxPublicMethod)
 
@@ -700,19 +698,19 @@ extern "C" {
 
   /** Generate a NativeMethod to represent a private method defined in the C function. */
   #define rb_define_private_method(mod, name, fptr, arity) \
-          rbx_subtend_hidden_define_method(__FILE__, mod, name, \
+          rbx_subtend_define_method(__FILE__, mod, name, \
                                            (SubtendGenericFunction)fptr, arity, \
                                            RbxPrivateMethod)
 
   /** Generate a NativeMethod to represent a protected method defined in the C function. */
   #define rb_define_protected_method(mod, name, fptr, arity) \
-          rbx_subtend_hidden_define_method(__FILE__, mod, name, \
+          rbx_subtend_define_method(__FILE__, mod, name, \
                                            (SubtendGenericFunction)fptr, arity, \
                                            RbxProtectedMethod)
 
-  /** Generate a NativeMethod to represent a singleton method. @see rbx_subtend_hidden_define_method. */
+  /** Generate a NativeMethod to represent a singleton method. @see rbx_subtend_define_method. */
   #define rb_define_singleton_method(mod, name, fptr, arity) \
-          rbx_subtend_hidden_define_method(__FILE__, mod, name, \
+          rbx_subtend_define_method(__FILE__, mod, name, \
                                            (SubtendGenericFunction)fptr, arity, \
                                            RbxSingletonMethod)
 
@@ -739,13 +737,13 @@ extern "C" {
    *  regarding use of ##__VA_ARGS__.
    */
   #define rb_funcall(receiver, method_name, arg_count, ...) \
-          rbx_subtend_hidden_rb_funcall(__FILE__, __LINE__, \
+          rbx_subtend_rb_funcall(__FILE__, __LINE__, \
                                         (receiver), (method_name), \
                                         (arg_count) , ##__VA_ARGS__)
 
   /** Call the method with args provided in a C array. */
   #define rb_funcall2(receiver, method_name, arg_count, args) \
-          rbx_subtend_hidden_rb_funcall2(__FILE__, __LINE__, \
+          rbx_subtend_rb_funcall2(__FILE__, __LINE__, \
                                          (receiver), (method_name), \
                                          (arg_count), (args) )
 

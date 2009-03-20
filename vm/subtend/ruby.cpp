@@ -71,13 +71,8 @@ namespace {
    *  @todo   Set up permanent SendSites through macroing?
    *  @todo   Stricter action check?
    */
-  static VALUE hidden_funcall_backend(const char* file,
-                                      int line,
-                                      VALUE receiver,
-                                      ID method_name,
-                                      std::size_t arg_count,
-                                      VALUE* arg_array)
-  {
+  static VALUE rbx_subtend_funcall_backend(const char* file, int line,
+      VALUE receiver, ID method_name, std::size_t arg_count, VALUE* arg_array) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Array* args = Array::create(env->state(), arg_count);
 
@@ -94,7 +89,7 @@ namespace {
 
   /** Converts a native type (int, uint, long) to a suitable Integer. */
   template<typename NativeType>
-    VALUE hidden_native2num(NativeType number) {
+    VALUE rbx_subtend_native2num(NativeType number) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
       return env->get_handle(Integer::from(env->state(), number));
     }
@@ -133,7 +128,7 @@ extern "C" {
    *
    *  @todo Vectorise this or something.
    */
-  VALUE rbx_subtend_hidden_error(RbxSubtendHiddenError type) {
+  VALUE rbx_subtend_error(RbxSubtendHiddenError type) {
     switch (type) {
     case RbxArgumentError:
       return rb_const_get(rb_cObject, rb_intern("ArgumentError"));
@@ -194,15 +189,13 @@ extern "C" {
     case RbxZeroDivisionError:
       return rb_const_get(rb_cObject, rb_intern("ZeroDivisionError"));
     default:
-      std::runtime_error("rbx_subtend_hidden_error(): Invalid type given!");
+      std::runtime_error("rbx_subtend_error(): Invalid type given!");
       return Qnil;
     }
   }
 
-  VALUE rbx_subtend_hidden_rb_funcall(const char* file, int line,
-                                      VALUE receiver, ID method_name,
-                                      int arg_count, ...)
-  {
+  VALUE rbx_subtend_rb_funcall(const char* file, int line,
+      VALUE receiver, ID method_name, int arg_count, ...) {
     va_list varargs;
     va_start(varargs, arg_count);
 
@@ -214,17 +207,16 @@ extern "C" {
 
     va_end(varargs);
 
-    VALUE ret = hidden_funcall_backend(file, line, receiver, method_name, arg_count, args);
+    VALUE ret = rbx_subtend_funcall_backend(file, line, receiver,
+        method_name, arg_count, args);
 
     delete[] args;
     return ret;
   }
 
-  VALUE rbx_subtend_hidden_rb_funcall2(const char* file, int line,
-                                       VALUE receiver, ID method_name,
-                                       int arg_count, VALUE* args)
-  {
-    return hidden_funcall_backend(file, line, receiver, method_name, arg_count, args);
+  VALUE rbx_subtend_rb_funcall2(const char* file, int line,
+      VALUE receiver, ID method_name, int arg_count, VALUE* args) {
+    return rbx_subtend_funcall_backend(file, line, receiver, method_name, arg_count, args);
   }
 
 
@@ -234,7 +226,7 @@ extern "C" {
    *  avoid the hassle of tracking the objects on
    *  this side.
    */
-  VALUE rbx_subtend_hidden_global(RbxSubtendHiddenGlobal type) {
+  VALUE rbx_subtend_global(RbxSubtendHiddenGlobal type) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     /* @todo Move these to static */
@@ -279,13 +271,13 @@ extern "C" {
     }
   }
 
-  VALUE rbx_subtend_hidden_id2sym(ID id) {
+  VALUE rbx_subtend_id2sym(ID id) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return env->get_handle(reinterpret_cast<Symbol*>(id));
   }
 
-  void rbx_subtend_hidden_infect(VALUE obj1, VALUE obj2) {
+  void rbx_subtend_infect(VALUE obj1, VALUE obj2) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Object* object1 = env->get_object(obj1);
@@ -294,13 +286,13 @@ extern "C" {
     object1->infect(object2);
   }
 
-  int rbx_subtend_hidden_nil_p(VALUE expression_result) {
+  int rbx_subtend_nil_p(VALUE expression_result) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return RBX_NIL_P(env->get_object(expression_result));
   }
 
-  long rbx_subtend_hidden_rstring_len(VALUE string_handle) {
+  long rbx_subtend_rstring_len(VALUE string_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     String* string = as<String>(env->get_object(string_handle));
@@ -308,7 +300,7 @@ extern "C" {
     return string->size();
   }
 
-  char* rbx_subtend_hidden_rstring_ptr(VALUE string_handle) {
+  char* rbx_subtend_rstring_ptr(VALUE string_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     String* string = as<String>(env->get_object(string_handle));
@@ -316,25 +308,20 @@ extern "C" {
     return string->byte_address();
   }
 
-  int rbx_subtend_hidden_rtest(VALUE expression_result) {
+  int rbx_subtend_rtest(VALUE expression_result) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return RBX_RTEST(env->get_object(expression_result));
   }
 
-  ID rbx_subtend_hidden_sym2id(VALUE symbol_handle) {
+  ID rbx_subtend_sym2id(VALUE symbol_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return reinterpret_cast<ID>(env->get_object(symbol_handle));
   }
 
-  void rbx_subtend_hidden_define_method(const char* file,
-                                        VALUE target,
-                                        const char* name,
-                                        SubtendGenericFunction fptr,
-                                        int arity,
-                                        RbxMethodKind kind)
-  {
+  void rbx_subtend_define_method(const char* file, VALUE target,
+      const char* name, SubtendGenericFunction fptr, int arity, RbxMethodKind kind) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     VM* state = env->state();
@@ -464,15 +451,15 @@ extern "C" {
   }
 
   VALUE INT2NUM(int number) {
-    return hidden_native2num<int>(number);
+    return rbx_subtend_native2num<int>(number);
   }
 
   VALUE LONG2NUM(long int number) {
-    return hidden_native2num<long int>(number);
+    return rbx_subtend_native2num<long int>(number);
   }
 
   VALUE UINT2NUM(unsigned int number) {
-    return hidden_native2num<unsigned int>(number);
+    return rbx_subtend_native2num<unsigned int>(number);
   }
 
   VALUE rb_Array(VALUE obj_handle) {
