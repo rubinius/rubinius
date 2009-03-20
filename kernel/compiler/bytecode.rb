@@ -1294,7 +1294,11 @@ class Compiler
       def bytecode(g)
         case @child
         when MAsgn
-          g.cast_for_multi_block_arg unless @child.splat_only?
+          if @child.splat_only?
+            g.cast_for_splat_block_arg
+          else
+            g.cast_for_multi_block_arg
+          end
           @child.in_block = true
           @child.bytecode(g)
         when LocalAssignment, IVarAssign, GVarAssign

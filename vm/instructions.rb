@@ -274,6 +274,77 @@ class Instructions
   end
 
   # [Operation]
+  #   Evil twin for cast_array. The difference is how it handles nil.
+  #   Cast_for_splat_block_arg converts nil to [], cast_array
+  #   converts nil to [nil]
+  # [Format]
+  #   \cast_for_splat_block_arg
+  # [Stack Before]
+  #   * value
+  #   * ...
+  # [Stack After]
+  #   * array
+  #   * ...
+  # [Description]
+  #   Removes the object on the top of the stack, and:
+  #
+  #   If the input is nil, a new empty array object is created.
+  #
+  #   If the input is a tuple, a new array object is created based on the
+  #   tuple data.
+  #
+  #   If the input is an array, it is unmodified.
+  #
+  #   If the input is any other type, that type is wrapped within a new array
+  #   of length one.
+  #
+  #   The resulting array is then pushed back onto the stack.
+
+  def cast_for_splat_block_arg
+    <<-CODE
+    Object* t1 = stack_pop();
+    if(t1->nil_p()){
+      t1 = Array::create(state, 0);
+    } else if(kind_of<Tuple>(t1)) {
+      t1 = Array::from_tuple(state, as<Tuple>(t1));
+    } else if(!kind_of<Array>(t1)) {
+      Array* ary = Array::create(state, 1);
+      ary->set(state, 0, t1);
+      t1 = ary;
+    }
+    stack_push(t1);
+    CODE
+  end
+
+  def test_cast_for_splat_block_arg
+    <<-CODE
+    task->push(Qnil);
+    run();
+
+    Array* ary = as<Array>(task->pop());
+    TS_ASSERT_EQUALS(ary->num_fields(), 0);
+
+    task->push(Qtrue);
+    run();
+
+    Array* ary = as<Array>(task->pop());
+    TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
+
+    task->push(Qfalse);
+    run();
+
+    ary = as<Array>(task->pop());
+    TS_ASSERT_EQUALS(ary->get(state, 0), Qfalse);
+
+    Array* custom = Array::create(state, 1);
+    task->push(custom);
+    run();
+
+    TS_ASSERT_EQUALS(task->stack_top(), custom);
+    CODE
+  end
+
+  # [Operation]
   #   Converts a block argument single-valued tuple into multiple arguments if
   #   the arg is an array
   # [Format]

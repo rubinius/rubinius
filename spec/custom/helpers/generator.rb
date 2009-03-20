@@ -302,6 +302,7 @@ class TestGenerator
         d.set_local_depth 0, 0
       when :splat
         required = -1
+        d.cast_for_splat_block_arg
         d.cast_array
         d.cast_array
         d.set_local_depth 0, 0

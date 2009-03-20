@@ -190,7 +190,9 @@ class InstructionSet
     {:opcode => :yield_stack, :args => [:int],
       :stack => [-10,1], :flow => :send, :variable_stack => [0,1]},
     {:opcode => :yield_splat, :args => [:int],
-      :stack => [-11,1], :flow => :send, :variable_stack => [1,1]}
+      :stack => [-11,1], :flow => :send, :variable_stack => [1,1]},
+    {:opcode => :cast_for_splat_block_arg, :args => [],
+      :stack => [1,1], :vm_flags => []}
   ]
 
 
