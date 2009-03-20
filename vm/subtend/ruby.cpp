@@ -1388,4 +1388,15 @@ extern "C" {
 
     return rb_funcall(block_handle, rb_intern("call"), 1, argument_handle);
   }
+
+  /* For debugging. */
+  void __show_subtend__(VALUE obj_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* object = env->get_object(obj_handle);
+    if(!object) {
+      std::cout << "the object is NULL, check if an exception was raised." << std::endl;
+    }
+    object->show(env->state());
+  }
 }
