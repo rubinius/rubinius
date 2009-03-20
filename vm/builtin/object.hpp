@@ -175,8 +175,9 @@ namespace rubinius {
      *  Sets up the current task to send the given method name to this
      *  Object, passing the given number of arguments through varargs.
      */
-    Object*   send(STATE, CallFrame* caller, Symbol* name, Array* args, Object* block);
-    Object*   send(STATE, CallFrame* caller, Symbol* name);
+    Object* send(STATE, CallFrame* caller, Symbol* name, Array* args,
+        Object* block, bool allow_private = true);
+    Object* send(STATE, CallFrame* caller, Symbol* name, bool allow_private = true);
 
     /**
      *  Perform a send from Ruby.

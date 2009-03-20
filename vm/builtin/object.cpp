@@ -303,22 +303,25 @@ namespace rubinius {
     return class_object(state);
   }
 
-  Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* args, Object* block) {
+  Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* args,
+      Object* block, bool allow_private) {
     Message msg(state);
     msg.name = name;
     msg.recv = this;
     msg.lookup_from = this->lookup_begin(state);
     msg.block = block;
     msg.set_caller(caller);
+    msg.priv = allow_private;
 
     msg.set_arguments(state, args);
 
     return msg.send(state, caller);
   }
 
-  Object* Object::send(STATE, CallFrame* caller, Symbol* name) {
+  Object* Object::send(STATE, CallFrame* caller, Symbol* name, bool allow_private) {
     Message msg(state, name, this, 0, Qnil, lookup_begin(state));
     msg.set_caller(caller);
+    msg.priv = allow_private;
 
     return msg.send(state, caller);
   }

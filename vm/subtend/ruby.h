@@ -726,7 +726,7 @@ extern "C" {
           (object_handle)
 
   /**
-   *  Call method on receiver, args as varargs.
+   *  Call method on receiver, args as varargs. Calls private methods.
    *
    *  @todo Requires C99, change later for production code if needed.
    *        Pretty much all C++ compilers support this too.  It can be
@@ -741,11 +741,15 @@ extern "C" {
                                         (receiver), (method_name), \
                                         (arg_count) , ##__VA_ARGS__)
 
-  /** Call the method with args provided in a C array. */
+  /** Call the method with args provided in a C array. Calls private methods. */
   #define rb_funcall2(receiver, method_name, arg_count, args) \
           rbx_subtend_rb_funcall2(__FILE__, __LINE__, \
                                          (receiver), (method_name), \
                                          (arg_count), (args) )
+
+  /** @todo define rb_funcall3, which is the same as rb_funcall2 but
+   * will not call private methods.
+   */
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
