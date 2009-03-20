@@ -534,8 +534,8 @@ extern "C" {
           )
 
 #define   Data_Wrap_Struct(klass, mark, free, sval) \
-            rb_data_object_alloc(klass, (void*)sval, (RUBY_DATA_FUNC)mark, \
-                                 (RUBY_DATA_FUNC)free)
+            rb_data_object_alloc(klass, (RUBY_DATA_FUNC)mark, \
+                                 (RUBY_DATA_FUNC)free, (void*)sval)
 
 #define   DATA_PTR(obj_handle)   (*rbx_subtend_data_ptr_get_address(obj_handle))
 
@@ -802,7 +802,10 @@ extern "C" {
   /** Call #to_s on object. */
   VALUE   rb_obj_as_string(VALUE obj_handle);
 
-  /** Return a clone of the object. */
+  /** Return a clone of the object by calling the method bound
+   * to Kernel#clone (i.e. does NOT call specialized #clone method
+   * on obj_handle if one exists).
+   */
   VALUE rb_obj_clone(VALUE obj_handle);
 
   /** Call #inspect on an object. */
