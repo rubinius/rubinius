@@ -91,8 +91,9 @@ namespace rubinius {
       }
 
     template <class T>
-      T* new_object_variable(Class* cls, size_t fields) {
-        return reinterpret_cast<T*>(new_object_typed(cls, sizeof(T) + (fields * sizeof(Object*)), T::type));
+      T* new_object_variable(Class* cls, size_t fields, size_t& bytes) {
+        bytes = sizeof(T) + (fields * sizeof(Object*));
+        return reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
       }
 
     TypeInfo* find_type_info(Object* obj);

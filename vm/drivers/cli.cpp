@@ -102,6 +102,7 @@ int main(int argc, char** argv) {
     env.state->print_backtrace();
     delete e;
   } catch(RubyException &e) {
+    std::cout << "Ruby Exception hit toplevel:\n";
     // Prints Ruby backtrace, and VM backtrace if captured
     e.show(env.state);
   } catch(TypeError &e) {

@@ -72,6 +72,12 @@ namespace rubinius {
     return tup;
   }
 
+  size_t VariableScope::Info::object_size(const ObjectHeader* obj) {
+    const VariableScope* scope = reinterpret_cast<const VariableScope*>(obj);
+
+    return sizeof(VariableScope) + (scope->number_of_locals_ * sizeof(Object*));
+  }
+
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 

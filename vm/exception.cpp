@@ -5,6 +5,10 @@
 #include "exception.hpp"
 #include "detection.hpp"
 
+#include "builtin/string.hpp"
+#include "builtin/class.hpp"
+#include "builtin/symbol.hpp"
+
 #include <cctype>
 #include <vector>
 #include <iostream>
@@ -37,7 +41,8 @@ namespace rubinius {
   }
 
   void RubyException::show(STATE) {
-    std::cout << exception->message();
+    std::cout << exception->message()->c_str()
+              << " (" << exception->class_object(state)->name()->c_str(state) << ") \n";
     print_backtrace();
   }
 

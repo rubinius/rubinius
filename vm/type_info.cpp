@@ -28,8 +28,7 @@ namespace rubinius {
     , slots()
     , type(type)
     , type_name()
-  {
-  }
+  {}
 
   TypeInfo::~TypeInfo() { }
 
@@ -77,7 +76,7 @@ namespace rubinius {
   }
 
   size_t TypeInfo::object_size(const ObjectHeader* obj) {
-    return obj->bytes_;
+    return instance_size; // obj->bytes_;
   }
 
   void TypeInfo::class_info(STATE, const Object* self, bool newline) {

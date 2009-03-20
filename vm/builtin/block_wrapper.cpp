@@ -15,7 +15,7 @@ namespace rubinius {
   void BlockWrapper::init(STATE) {
     GO(block_wrapper).set(
         state->new_class("Proc", G(object)));
-    G(block_wrapper)->set_object_type(state, BlockEnvironmentType);
+    G(block_wrapper)->set_object_type(state, BlockWrapperType);
   }
 
   BlockWrapper* BlockWrapper::create(STATE, Object* self) {

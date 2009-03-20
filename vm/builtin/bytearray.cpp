@@ -32,8 +32,8 @@ namespace rubinius {
     return ba;
   }
 
-  size_t ByteArray::Info::object_size(Object* obj) {
-    ByteArray *ba = try_as<ByteArray>(obj);
+  size_t ByteArray::Info::object_size(const ObjectHeader* obj) {
+    const ByteArray *ba = reinterpret_cast<const ByteArray*>(obj);
     assert(ba);
 
     return ba->full_size_;

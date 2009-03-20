@@ -128,7 +128,6 @@ const int cUndef = 0x22L;
   class Object;
 
   class ObjectHeader {
-  public:
     union {
       struct {
         object_type     obj_type_   : 8;
@@ -147,13 +146,12 @@ const int cUndef = 0x22L;
       };
       uint32_t all_flags;
     };
+
+  protected:
     Class* klass_;
     Object* ivars_;
 
   private:
-    // The number of bytes this object uses.
-    uint32_t bytes_;
-
     // Defined so ObjectHeader can easily access the data just beyond
     // it.
     void* __body__[];
@@ -187,7 +185,6 @@ const int cUndef = 0x22L;
     void init_header(gc_zone loc, size_t bytes) {
       all_flags = 0;
       zone = loc;
-      bytes_ = bytes;
     }
 
     size_t size_in_bytes() const;

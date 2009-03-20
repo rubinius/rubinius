@@ -10,12 +10,14 @@ namespace rubinius {
   public:
     const static object_type type = TupleType;
 
+    native_int full_size_;
+
     /* Body access */
     Object* field[];
 
   public:
     uint32_t num_fields() const {
-      return ObjectHeader::bytes_to_fields(size_in_bytes());
+      return (full_size_ - sizeof(Tuple)) / sizeof(Object*);
     }
 
     static Tuple* create(STATE, size_t fields);
@@ -66,6 +68,7 @@ namespace rubinius {
       virtual void visit(Object*, ObjectVisitor& visit);
 
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
+      virtual size_t object_size(const ObjectHeader* object);
     };
   };
 };

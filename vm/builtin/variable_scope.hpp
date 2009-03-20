@@ -118,6 +118,7 @@ namespace rubinius {
       virtual Object* get_field(STATE, Object*, size_t);
       virtual void auto_mark(Object*, ObjectMark&);
       virtual void auto_visit(Object*, ObjectVisitor&);
+      virtual size_t object_size(const ObjectHeader* object);
     };
   };
 }

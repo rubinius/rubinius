@@ -35,7 +35,10 @@ namespace rubinius {
   }
 
   Tuple* Tuple::create(STATE, size_t fields) {
-    return state->om->new_object_variable<Tuple>(G(tuple), fields);
+    size_t bytes;
+    Tuple* tup = state->om->new_object_variable<Tuple>(G(tuple), fields, bytes);
+    tup->full_size_ = bytes;
+    return tup;
   }
 
   Tuple* Tuple::allocate(STATE, Fixnum* fields) {
@@ -167,6 +170,14 @@ namespace rubinius {
     tup->set_refs_are_weak();
     return tup;
   }
+
+  size_t Tuple::Info::object_size(const ObjectHeader* obj) {
+    const Tuple *tup = reinterpret_cast<const Tuple*>(obj);
+    assert(tup);
+
+    return tup->full_size_;
+  }
+
 
   void Tuple::Info::mark(Object* obj, ObjectMark& mark) {
     Object* tmp;

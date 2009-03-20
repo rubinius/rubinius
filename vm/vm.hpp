@@ -332,7 +332,6 @@ namespace rubinius {
     template <class T>
       T* new_struct(Class* cls, size_t bytes = 0) {
         T* obj = reinterpret_cast<T*>(new_object_typed(cls, sizeof(T) + bytes, T::type));
-        obj->init_bytes();
         return obj;
       }
 

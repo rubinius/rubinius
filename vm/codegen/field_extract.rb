@@ -661,7 +661,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
     f.puts "    ti->type_name = std::string(\"#{n}\");"
-    f.puts "    ti->instance_size = sizeof(#{n});"
+    f.puts "    ti->instance_size = ObjectHeader::align(sizeof(#{n}));"
     f.puts "    om->type_info[#{n}::type] = ti;"
     f.puts "  }"
     f.puts

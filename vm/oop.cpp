@@ -15,7 +15,6 @@ namespace rubinius {
 
     obj_type_    = other->obj_type_;
     age          = new_age;
-    bytes_       = other->bytes_;
     klass_       = other->klass_;
     ivars_       = other->ivars_;
 
@@ -30,12 +29,10 @@ namespace rubinius {
   }
 
   void ObjectHeader::copy_body(Object* other) {
-    assert(this->bytes_ == other->bytes_);
+    void* src = other->__body__;
+    void* dst = this->__body__;
 
-    void** src = other->__body__;
-    void** dst = this->__body__;
-
-    memcpy(dst, src, body_in_bytes());
+    memcpy(dst, src, other->body_in_bytes());
   }
 
   /* Clear the body of the object, by setting each field to Qnil */
