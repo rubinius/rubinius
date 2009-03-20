@@ -600,7 +600,8 @@ namespace :vm do
       'vm/gen',
       'vm/test/runner',
       'vm/test/runner.cpp',
-      'vm/test/test_instructions.cpp',
+      'vm/test/runner.o',
+      'vm/test/test_instructions.hpp',
       'vm/vm',
       'vm/.deps'
     ].flatten
