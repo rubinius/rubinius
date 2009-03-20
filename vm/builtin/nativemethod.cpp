@@ -28,13 +28,13 @@ namespace rubinius {
   }
 
   Handle NativeMethodFrame::get_handle(STATE, Object* obj) {
-    Handle hndl = handles_.size();
+    Handle hndl = handles_.size() + cHandleOffset;
     handles_.push_back(new RootHandle(state, obj));
     return hndl;
   }
 
   Object* NativeMethodFrame::get_object(Handle hndl) {
-    return handles_[hndl]->get();
+    return handles_[hndl - cHandleOffset]->get();
   }
 
   Handle NativeMethodEnvironment::get_handle(Object* obj) {
@@ -42,13 +42,13 @@ namespace rubinius {
   }
 
   Handle NativeMethodEnvironment::get_handle_global(Object* obj) {
-    Handle handle = cGlobalHandleStart - global_handles_.size();
+    Handle handle = cGlobalHandleStart - global_handles_.size() - cHandleOffset;
     global_handles_.push_back(new RootHandle(state_, obj));
     return handle;
   }
 
   Object* NativeMethodEnvironment::get_object(Handle handle) {
-    if(handle < 0) {
+    if(handle <= 0) {
       switch(handle) {
       case cSubtendQfalse:
         return Qfalse;
@@ -60,7 +60,7 @@ namespace rubinius {
         return Qundef;
       default:
         // @todo: throw if this handle pulls 0 out
-        return global_handles_[cGlobalHandleStart - handle]->get();
+        return global_handles_[cGlobalHandleStart - handle - cHandleOffset]->get();
       }
     } else {
       return current_native_frame_->get_object(handle);

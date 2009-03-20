@@ -41,15 +41,21 @@ namespace rubinius {
     /** Obtain the NativeMethodEnvironment for this thread. */
     static NativeMethodEnvironment* get();
 
-/**
- * These values must be the same as the values given
- * to Qfalse, etc in vm/subtend/ruby.h
- */
-#define cSubtendQfalse      (-1)
-#define cSubtendQtrue       (-2)
-#define cSubtendQnil        (-3)
-#define cSubtendQundef      (-4)
-#define cGlobalHandleStart  (-5)
+  /**
+   * These values must be the same as the values given
+   * to Qfalse, etc in vm/subtend/ruby.h
+   */
+#define cSubtendQfalse      ( 0)
+#define cSubtendQtrue       (-1)
+#define cSubtendQnil        (-2)
+#define cSubtendQundef      (-3)
+
+  /**
+   * Constants for navigating around the fixed values
+   * of the immediates like Qfalse above.
+   */
+#define cHandleOffset       ( 1)
+#define cGlobalHandleStart  (-4)
 
   public:   /* Interface methods */
 
@@ -61,9 +67,6 @@ namespace rubinius {
 
     /** Obtain the Object the Handle represents. */
     Object* get_object(Handle handle);
-
-    /** Obtain the global Object the Handle represents*/
-    Object* get_object_global(Handle handle);
 
     /** Delete a global Object and its Handle. */
     void delete_global(Handle handle);

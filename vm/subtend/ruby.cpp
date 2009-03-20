@@ -8,6 +8,7 @@
 #include "builtin/array.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/bytearray.hpp"
+#include "builtin/compactlookuptable.hpp"
 #include "builtin/data.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
@@ -39,10 +40,12 @@ using rubinius::Bignum;
 using rubinius::ByteArray;
 using rubinius::Class;
 using rubinius::ClassType;
+using rubinius::CompactLookupTable;
 using rubinius::Data;
 using rubinius::Exception;
 using rubinius::Fixnum;
 using rubinius::Integer;
+using rubinius::LookupTable;
 using rubinius::Message;
 using rubinius::MethodVisibility;
 using rubinius::Module;
@@ -375,6 +378,26 @@ extern "C" {
     state->global_cache->clear(module, method_name);
   }
 
+  void** rbx_subtend_data_ptr_get_address(VALUE data_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Data* data = as<Data>(env->get_object(data_handle));
+
+    return data->data_address();
+  }
+
+  VALUE rbx_subtend_class_superclass(VALUE class_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Module* module = as<Module>(env->get_object(class_handle));
+    Module* super = module->superclass();
+
+    if(super->nil_p()) {
+      return NULL;
+    } else {
+      return env->get_handle(super);
+    }
+  }
 
 
 /* Real interface */
@@ -748,14 +771,6 @@ extern "C" {
     return env->get_handle(data);
   }
 
-  void** rbx_subtend_data_ptr_get_address(VALUE data_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Data* data = as<Data>(env->get_object(data_handle));
-
-    return data->data_address();
-  }
-
   void rb_define_alias(VALUE module_handle, const char* new_name, const char* old_name) {
     ID id_new = rb_intern(new_name);
     ID id_old = rb_intern(old_name);
@@ -967,6 +982,25 @@ extern "C" {
     return value;
   }
 
+  VALUE rb_ivar_defined(VALUE obj_handle, ID ivar_name) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Symbol* ivar = prefixed_by("@", ivar_name);
+    Object* obj = env->get_object(obj_handle);
+    Object* ivars = obj->get_ivars(env->state());
+
+    Object* ret;
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars)) {
+      ret = tbl->has_key(env->state(), ivar);
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars)) {
+      ret = tbl->has_key(env->state(), ivar);
+    } else {
+      ret = Qfalse;
+    }
+
+    return env->get_handle(ret);
+  }
+
 #define RB_RAISE_BUFSIZE   256
 
   void rb_raise(VALUE error_handle, const char* format_string, ...) {
@@ -1121,6 +1155,14 @@ extern "C" {
     self->append(env->state(), as<String>(env->get_object(other_handle)));
 
     return self_handle;
+  }
+
+  VALUE rb_str_buf_new(long capacity) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* str = String::create(env->state(), Fixnum::from(capacity));
+
+    return env->get_handle(str);
   }
 
   VALUE rb_str_buf_append(VALUE self_handle, VALUE other_handle) {

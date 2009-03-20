@@ -277,14 +277,21 @@ extern "C" {
  * The immediates.
  */
 
-/** The false object. */
-#define Qfalse ((VALUE)-1)
+/** The false object.
+ *
+ * NOTE: This is defined to be 0 because it is 0 in MRI and
+ * extensions written for MRI have (absolutely wrongly,
+ * infuriatingly, but-what-can-you-do-now) relied on that
+ * assumption in boolean contexts. Rather than fighting a
+ * myriad subtle bugs, we just go along with it.
+ */
+#define Qfalse ((VALUE)0)
 /** The true object. */
-#define Qtrue  ((VALUE)-2)
+#define Qtrue  ((VALUE)-1)
 /** The nil object. */
-#define Qnil   ((VALUE)-3)
+#define Qnil   ((VALUE)-2)
 /** The undef object. NEVER EXPOSE THIS TO USER CODE. EVER. */
-#define Qundef ((VALUE)-4)
+#define Qundef ((VALUE)-3)
 
 
 /* Global Class objects */
@@ -399,6 +406,9 @@ extern "C" {
 /** False if expression evaluates to nil or false, true otherwise. */
 #define RTEST(v)          rbx_subtend_hidden_rtest((v))
 
+/** Return the super class of the object */
+#define RCLASS_SUPER(klass)   rbx_subtend_class_superclass((klass))
+
 /** Rubinius' SafeStringValue is the same as StringValue. */
 #define SafeStringValue   StringValue
 
@@ -487,6 +497,14 @@ extern "C" {
 
   /** Return the data pointer in a Data object. */
   void**  rbx_subtend_data_ptr_get_address(VALUE obj_handle);
+
+  /** Returns the superclass of klass or NULL. This is not the same as
+   * rb_class_superclass. See MRI's rb_class_s_alloc which returns a
+   * class created with rb_class_boot(0), i.e. having a NULL superclass.
+   * RCLASS_SUPER(klass) is used in a boolean context to exit a loop in
+   * the Digest extension. It's likely other extensions do the same thing.
+   */
+  VALUE   rbx_subtend_class_superclass(VALUE class_handle);
 
 
 /* Real API */
@@ -776,6 +794,9 @@ extern "C" {
 
   /** Set object's instance variable to given value. */
   VALUE   rb_ivar_set(VALUE obj_handle, ID ivar_name, VALUE value);
+
+  /** Checks if obj_handle has an ivar named ivar_name. */
+  VALUE   rb_ivar_defined(VALUE obj_handle, ID ivar_name);
 
   /** Allocate uninitialised instance of given class. */
   VALUE   rb_obj_alloc(VALUE klass);
