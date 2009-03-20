@@ -1396,6 +1396,7 @@ extern "C" {
     Object* object = env->get_object(obj_handle);
     if(!object) {
       std::cout << "the object is NULL, check if an exception was raised." << std::endl;
+      return;
     }
     object->show(env->state());
   }
