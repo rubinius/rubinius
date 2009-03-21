@@ -180,7 +180,11 @@ namespace rubinius {
 
     // Ruby.primitive :bignum_to_s
     String* to_s(STATE, Integer* radix);
+
+    // Format the bignum using +radix+ and store the result
+    // in +buf+ of size +sz+. This will always NUL-terminate +buf+.
     void   into_string(STATE, size_t radix, char* buf, size_t sz);
+
     double to_double(STATE);
 
     // Ruby.primitive :bignum_size

@@ -31,8 +31,7 @@ namespace rubinius {
   void Marshaller::set_bignum(Bignum* big) {
     char buf[1024];
 
-    std::memset(buf, 0, 1024);
-    big->into_string(state, 10, buf, 1023);
+    big->into_string(state, 10, buf, sizeof(buf));
 
     stream << "I" << endl << buf << endl;
   }
