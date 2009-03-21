@@ -661,7 +661,7 @@ namespace rubinius {
 
     for(;;) {
     continue_to_run:
-      if(tick++ > 0xff) {
+      if(unlikely(++tick > 0xff)) {
         void* stack_end = alloca(0);
         if(!state->check_stack(stack_end)) {
           return NULL;
@@ -669,11 +669,12 @@ namespace rubinius {
         tick = 0;
       }
 
-      if(state->interrupts.check) {
+      if(unlikely(state->interrupts.check)) {
+        state->interrupts.check = false;
         state->collect_maybe(call_frame);
       }
 
-      if(state->check_local_interrupts) {
+      if(unlikely(state->check_local_interrupts)) {
         if(!state->process_async(call_frame)) return NULL;
       }
 

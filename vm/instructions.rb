@@ -4400,8 +4400,9 @@ class Instructions
 
   def check_interrupts
     <<-CODE
-    if(state->interrupts.timer) {
+    if(unlikely(state->interrupts.timer)) {
       {
+        state->interrupts.timer = false;
         state->set_call_frame(call_frame);
         // unlock..
         GlobalLock::UnlockGuard lock(state->global_lock());
