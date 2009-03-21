@@ -38,9 +38,9 @@ namespace rubinius {
 
   Object* UnMarshaller::get_int() {
     char data[1024];
-    std::memset(data, 0, 1024);
 
     stream >> data;
+    data[sizeof(data) - 1] = '\0';
 
     return Bignum::from_string(state, data, 10);
   }
