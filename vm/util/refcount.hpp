@@ -4,6 +4,9 @@ namespace rubinius {
     int ref_count_;
 
   public:
+
+    RefCount() : ref_count_(0) {}
+
     void ref() {
       ref_count_++;
     }
