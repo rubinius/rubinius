@@ -761,7 +761,7 @@ namespace rubinius {
 
       int r = mp_cmp_d(&n, -bi);
 
-      mp_clear (&n);
+      mp_clear(&n);
 
       if(r == MP_LT) {
         return Qtrue;
@@ -971,7 +971,7 @@ namespace rubinius {
     long l;
 
     errno = 0;
-    l = strtol (str, &endptr, radix);
+    l = strtol(str, &endptr, radix);
 
     if(endptr != str && errno == 0 &&
        l >= FIXNUM_MIN && l <= FIXNUM_MAX) {
