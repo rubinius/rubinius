@@ -164,7 +164,7 @@ const int cUndef = 0x22L;
   public:
 
     static size_t align(size_t bytes) {
-      return bytes + (sizeof(Object*) - 1) & ~(sizeof(Object*) - 1);
+      return (bytes + (sizeof(Object*) - 1)) & ~(sizeof(Object*) - 1);
     }
 
     static size_t bytes_to_fields(size_t bytes) {
