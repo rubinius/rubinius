@@ -70,7 +70,6 @@ namespace rubinius {
 
   Object* Thread::pass(STATE) {
     GlobalLock::UnlockGuard x(state->global_lock());
-    sched_yield();
 
     return Qnil;
   }
