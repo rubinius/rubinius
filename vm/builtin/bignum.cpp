@@ -967,6 +967,16 @@ namespace rubinius {
   }
 
   Integer* Bignum::from_string(STATE, const char *str, size_t radix) {
+    char *endptr = NULL;
+    long l;
+
+    l = strtol (str, &endptr, radix);
+
+    if(endptr != str && errno == 0 &&
+       l >= FIXNUM_MIN && l <= FIXNUM_MAX) {
+      return Fixnum::from(l);
+    }
+
     mp_int n;
     mp_init(&n);
     mp_read_radix(&n, str, radix);
