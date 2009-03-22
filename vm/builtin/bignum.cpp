@@ -670,10 +670,10 @@ namespace rubinius {
     native_int bi = b->to_native();
     mp_int* a = mp_val();
     bool clear_a = false;
+    mp_int n;
 
     if(bi < 0) {
       bi = -bi;
-      mp_int n;
       mp_init(&n);
       mp_copy(a, &n);
       mp_neg(&n, &n);
