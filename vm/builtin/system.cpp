@@ -195,6 +195,8 @@ namespace rubinius {
       ary->set(state, i, Tuple::from(state, 2, var, val));
     }
 
+    delete list;
+
     return ary;
   }
 
