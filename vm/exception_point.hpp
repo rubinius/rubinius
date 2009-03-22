@@ -1,4 +1,5 @@
-#ifndef RBX_EXCEPTION_POINT
+#ifndef RBX_EXCEPTION_POINT_HPP
+#define RBX_EXCEPTION_POINT_HPP
 
 #include <setjmp.h>
 

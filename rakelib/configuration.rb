@@ -29,7 +29,7 @@ else
   RBX_BINPATH         = "#{RBX_BASE_PATH}/bin"
   RBX_LIBPATH         = "#{RBX_BASE_PATH}/vm"
   RBX_EXT_PATH        = "#{RBX_BASE_PATH}/#{RBX_LIBVER}/#{RBX_HOST}"
-  RBX_HDR_PATH        = "#{RBX_BASE_PATH}/vm/subtend"
+  RBX_HDR_PATH        = "#{RBX_BASE_PATH}/vm/capi"
 end
 
 # RubyGems is already using Rubinius::CODE_PATH so we will

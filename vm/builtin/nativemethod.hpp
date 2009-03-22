@@ -43,12 +43,12 @@ namespace rubinius {
 
   /**
    * These values must be the same as the values given
-   * to Qfalse, etc in vm/subtend/ruby.h
+   * to Qfalse, etc in vm/capi/ruby.h
    */
-#define cSubtendQfalse      ( 0)
-#define cSubtendQtrue       (-1)
-#define cSubtendQnil        (-2)
-#define cSubtendQundef      (-3)
+#define cCApiHandleQfalse      ( 0)
+#define cCApiHandleQtrue       (-1)
+#define cCApiHandleQnil        (-2)
+#define cCApiHandleQundef      (-3)
 
   /**
    * Constants for navigating around the fixed values

@@ -6,12 +6,11 @@
  *
  *  Notes:
  *
- *    - The function prefix rbx_subtend_* is used for functions
- *      that implement the Ruby C-API (Subtend in Rubinius) but
- *      should NEVER be used in an extension's code.
+ *    - The function prefix capi_* is used for functions that implement
+ *      the Ruby C-API but should NEVER be used in a C extension's code.
  *
- *      Just in case, that means NEVER, like NOT EVER. If you do,
- *      we'll call your mother.
+ *      Just in case, that means NEVER, like NOT EVER. If you do, we'll
+ *      call your mother.
  *
  *  @todo Blocks/iteration. rb_iterate normally uses fptrs, could
  *        maybe do that or then support 'function objects' --rue
@@ -22,9 +21,6 @@
  *
  *  @todo Add some type of checking for too-long C strings etc? --rue
  *
- *  @todo Move the context to a hidden last parameter defaulting to
- *        current() so that we can pass around the context whenever
- *        possible? --rue
  */
 
 #include <stddef.h>
@@ -157,30 +153,62 @@ extern "C" {
    *  @internal.
    */
   typedef enum {
-    RbxArray,
-    RbxBignum,
-    RbxClass,
-    RbxData,
-    RbxFalse,
-    RbxFixnum,
-    RbxFloat,
-    RbxHash,
-    RbxInteger,
-    RbxIO,
-    RbxModule,
-    RbxNil,
-    RbxObject,
-    RbxRegexp,
-    RbxString,
-    RbxSymbol,
-    RbxThread,
-    RbxTrue,
+    cCApiArray = 0,
+    cCApiBignum,
+    cCApiClass,
+    cCApiComparable,
+    cCApiData,
+    cCApiEnumerable,
+    cCApiFalse,
+    cCApiFixnum,
+    cCApiFloat,
+    cCApiHash,
+    cCApiInteger,
+    cCApiIO,
+    cCApiKernel,
+    cCApiModule,
+    cCApiNil,
+    cCApiObject,
+    cCApiRegexp,
+    cCApiString,
+    cCApiSymbol,
+    cCApiThread,
+    cCApiTrue,
 
-    RbxComparable,
-    RbxEnumerable,
-    RbxKernel
+    cCApiArgumentError,
+    cCApiEOFError,
+    cCApiErrno,
+    cCApiException,
+    cCApiFatal,
+    cCApiFloatDomainError,
+    cCApiIndexError,
+    cCApiInterrupt,
+    cCApiIOError,
+    cCApiLoadError,
+    cCApiLocalJumpError,
+    cCApiNameError,
+    cCApiNoMemoryError,
+    cCApiNoMethodError,
+    cCApiNotImplementedError,
+    cCApiRangeError,
+    cCApiRegexpError,
+    cCApiRuntimeError,
+    cCApiScriptError,
+    cCApiSecurityError,
+    cCApiSignalException,
+    cCApiStandardError,
+    cCApiSyntaxError,
+    cCApiSystemCallError,
+    cCApiSystemExit,
+    cCApiSystemStackError,
+    cCApiTypeError,
+    cCApiThreadError,
+    cCApiZeroDivisionError,
 
-  } RbxSubtendHiddenGlobal;
+    // MUST be last
+    cCApiMaxConstant
+  } CApiConstant;
+
 
   /**
    *  Integral type map for MRI's types.
@@ -216,56 +244,18 @@ extern "C" {
     T_SCOPE,
     T_NODE
 
-  } RbxSubtendMRIType;
-
-  /**
-   *  Error class abstraction.
-   *
-   *  @internal.
-   */
-  typedef enum {
-    RbxArgumentError,
-    RbxEOFError,
-    RbxErrno,
-    RbxException,
-    RbxFatal,
-    RbxFloatDomainError,
-    RbxIndexError,
-    RbxInterrupt,
-    RbxIOError,
-    RbxLoadError,
-    RbxLocalJumpError,
-    RbxNameError,
-    RbxNoMemoryError,
-    RbxNoMethodError,
-    RbxNotImplementedError,
-    RbxRangeError,
-    RbxRegexpError,
-    RbxRuntimeError,
-    RbxScriptError,
-    RbxSecurityError,
-    RbxSignalException,
-    RbxStandardError,
-    RbxSyntaxError,
-    RbxSystemCallError,
-    RbxSystemExit,
-    RbxSystemStackError,
-    RbxTypeError,
-    RbxThreadError,
-    RbxZeroDivisionError
-
-  } RbxSubtendHiddenError;
+  } CApiType;
 
   /**
    *  Method variants that can be defined.
    */
   typedef enum {
-    RbxPublicMethod,
-    RbxProtectedMethod,
-    RbxPrivateMethod,
-    RbxSingletonMethod
+    cCApiPublicMethod,
+    cCApiProtectedMethod,
+    cCApiPrivateMethod,
+    cCApiSingletonMethod
 
-  } RbxMethodKind;
+  } CApiMethodKind;
 
 #ifdef __cplusplus
 }
@@ -275,6 +265,11 @@ extern "C" {
  * The immediates.
  */
 
+#define cCApiQfalse     (0)
+#define cCApiQtrue      (-1)
+#define cCApiQnil       (-2)
+#define cCApiQundef     (-3)
+
 /** The false object.
  *
  * NOTE: This is defined to be 0 because it is 0 in MRI and
@@ -283,75 +278,75 @@ extern "C" {
  * assumption in boolean contexts. Rather than fighting a
  * myriad subtle bugs, we just go along with it.
  */
-#define Qfalse ((VALUE)0)
+#define Qfalse ((VALUE)cCApiQfalse)
 /** The true object. */
-#define Qtrue  ((VALUE)-1)
+#define Qtrue  ((VALUE)cCApiQtrue)
 /** The nil object. */
-#define Qnil   ((VALUE)-2)
+#define Qnil   ((VALUE)cCApiQnil)
 /** The undef object. NEVER EXPOSE THIS TO USER CODE. EVER. */
-#define Qundef ((VALUE)-3)
+#define Qundef ((VALUE)cCApiQundef)
 
 
 /* Global Class objects */
 
-#define rb_cArray             (rbx_subtend_global(RbxArray))
-#define rb_cBignum            (rbx_subtend_global(RbxBignum))
-#define rb_cClass             (rbx_subtend_global(RbxClass))
-#define rb_cData              (rbx_subtend_global(RbxData))
-#define rb_cFalseClass        (rbx_subtend_global(RbxFalse))
-#define rb_cFixnum            (rbx_subtend_global(RbxFixnum))
-#define rb_cFloat             (rbx_subtend_global(RbxFloat))
-#define rb_cHash              (rb_const_get(rb_cObject, rb_intern("Hash")))
-#define rb_cInteger           (rbx_subtend_global(RbxInteger))
-#define rb_cIO                (rbx_subtend_global(RbxIO))
-#define rb_cModule            (rbx_subtend_global(RbxModule))
-#define rb_cNilClass          (rbx_subtend_global(RbxNil))
-#define rb_cObject            (rbx_subtend_global(RbxObject))
-#define rb_cRegexp            (rbx_subtend_global(RbxRegexp))
-#define rb_cString            (rbx_subtend_global(RbxString))
-#define rb_cSymbol            (rbx_subtend_global(RbxSymbol))
-#define rb_cThread            (rbx_subtend_global(RbxThread))
-#define rb_cTrueClass         (rbx_subtend_global(RbxTrue))
+#define rb_cArray             (capi_get_constant(cCApiArray))
+#define rb_cBignum            (capi_get_constant(cCApiBignum))
+#define rb_cClass             (capi_get_constant(cCApiClass))
+#define rb_cData              (capi_get_constant(cCApiData))
+#define rb_cFalseClass        (capi_get_constant(cCApiFalse))
+#define rb_cFixnum            (capi_get_constant(cCApiFixnum))
+#define rb_cFloat             (capi_get_constant(cCApiFloat))
+#define rb_cHash              (capi_get_constant(cCApiHash))
+#define rb_cInteger           (capi_get_constant(cCApiInteger))
+#define rb_cIO                (capi_get_constant(cCApiIO))
+#define rb_cModule            (capi_get_constant(cCApiModule))
+#define rb_cNilClass          (capi_get_constant(cCApiNil))
+#define rb_cObject            (capi_get_constant(cCApiObject))
+#define rb_cRegexp            (capi_get_constant(cCApiRegexp))
+#define rb_cString            (capi_get_constant(cCApiString))
+#define rb_cSymbol            (capi_get_constant(cCApiSymbol))
+#define rb_cThread            (capi_get_constant(cCApiThread))
+#define rb_cTrueClass         (capi_get_constant(cCApiTrue))
 
 
 /* Global Module objects. */
 
-#define rb_mComparable        (rb_const_get(rb_cObject, rb_intern("Comparable")))
-#define rb_mEnumerable        (rb_const_get(rb_cObject, rb_intern("Enumerable")))
-#define rb_mKernel            (rb_const_get(rb_cObject, rb_intern("Kernel")))
+#define rb_mComparable        (capi_get_constant(cCApiComparable))
+#define rb_mEnumerable        (capi_get_constant(cCApiEnumerable))
+#define rb_mKernel            (capi_get_constant(cCApiKernel))
 
 
 /* Exception classes. */
 
-#define rb_eArgError          (rbx_subtend_error(RbxArgumentError))
-#define rb_eEOFError          (rbx_subtend_error(RbxEOFError))
-#define rb_mErrno             (rbx_subtend_error(RbxErrno))    /* NOTE: This is a module. */
-#define rb_eException         (rbx_subtend_error(RbxException))
-#define rb_eFatal             (rbx_subtend_error(RbxFatal))
-#define rb_eFloatDomainError  (rbx_subtend_error(RbxFloatDomainError))
-#define rb_eIndexError        (rbx_subtend_error(RbxIndexError))
-#define rb_eInterrupt         (rbx_subtend_error(RbxInterrupt))
-#define rb_eIOError           (rbx_subtend_error(RbxIOError))
-#define rb_eLoadError         (rbx_subtend_error(RbxLoadError))
-#define rb_eLocalJumpError    (rbx_subtend_error(RbxLocalJumpError))
-#define rb_eNameError         (rbx_subtend_error(RbxNameError))
-#define rb_eNoMemError        (rbx_subtend_error(RbxNoMemoryError))
-#define rb_eNoMethodError     (rbx_subtend_error(RbxNoMethodError))
-#define rb_eNotImpError       (rbx_subtend_error(RbxNotImplementedError))
-#define rb_eRangeError        (rbx_subtend_error(RbxRangeError))
-#define rb_eRegexpError       (rbx_subtend_error(RbxRegexpError))
-#define rb_eRuntimeError      (rbx_subtend_error(RbxRuntimeError))
-#define rb_eScriptError       (rbx_subtend_error(RbxScriptError))
-#define rb_eSecurityError     (rbx_subtend_error(RbxSecurityError))
-#define rb_eSignal            (rbx_subtend_error(RbxSignalException))
-#define rb_eStandardError     (rbx_subtend_error(RbxStandardError))
-#define rb_eSyntaxError       (rbx_subtend_error(RbxSyntaxError))
-#define rb_eSystemCallError   (rbx_subtend_error(RbxSystemCallError))
-#define rb_eSystemExit        (rbx_subtend_error(RbxSystemExit))
-#define rb_eSysStackError     (rbx_subtend_error(RbxSystemStackError))
-#define rb_eTypeError         (rbx_subtend_error(RbxTypeError))
-#define rb_eThreadError       (rbx_subtend_error(RbxThreadError))
-#define rb_eZeroDivError      (rbx_subtend_error(RbxZeroDivisionError))
+#define rb_eArgError          (capi_get_constant(cCApiArgumentError))
+#define rb_eEOFError          (capi_get_constant(cCApiEOFError))
+#define rb_mErrno             (capi_get_constant(cCApiErrno))
+#define rb_eException         (capi_get_constant(cCApiException))
+#define rb_eFatal             (capi_get_constant(cCApiFatal))
+#define rb_eFloatDomainError  (capi_get_constant(cCApiFloatDomainError))
+#define rb_eIndexError        (capi_get_constant(cCApiIndexError))
+#define rb_eInterrupt         (capi_get_constant(cCApiInterrupt))
+#define rb_eIOError           (capi_get_constant(cCApiIOError))
+#define rb_eLoadError         (capi_get_constant(cCApiLoadError))
+#define rb_eLocalJumpError    (capi_get_constant(cCApiLocalJumpError))
+#define rb_eNameError         (capi_get_constant(cCApiNameError))
+#define rb_eNoMemError        (capi_get_constant(cCApiNoMemoryError))
+#define rb_eNoMethodError     (capi_get_constant(cCApiNoMethodError))
+#define rb_eNotImpError       (capi_get_constant(cCApiNotImplementedError))
+#define rb_eRangeError        (capi_get_constant(cCApiRangeError))
+#define rb_eRegexpError       (capi_get_constant(cCApiRegexpError))
+#define rb_eRuntimeError      (capi_get_constant(cCApiRuntimeError))
+#define rb_eScriptError       (capi_get_constant(cCApiScriptError))
+#define rb_eSecurityError     (capi_get_constant(cCApiSecurityError))
+#define rb_eSignal            (capi_get_constant(cCApiSignalException))
+#define rb_eStandardError     (capi_get_constant(cCApiStandardError))
+#define rb_eSyntaxError       (capi_get_constant(cCApiSyntaxError))
+#define rb_eSystemCallError   (capi_get_constant(cCApiSystemCallError))
+#define rb_eSystemExit        (capi_get_constant(cCApiSystemExit))
+#define rb_eSysStackError     (capi_get_constant(cCApiSystemStackError))
+#define rb_eTypeError         (capi_get_constant(cCApiTypeError))
+#define rb_eThreadError       (capi_get_constant(cCApiThreadError))
+#define rb_eZeroDivError      (capi_get_constant(cCApiZeroDivisionError))
 
 
 /* Interface macros */
@@ -378,10 +373,10 @@ extern "C" {
 #define FIX2UINT(i)       NUM2UINT((i))
 
 /** Get a handle for the Symbol object represented by ID. */
-#define ID2SYM(id)        rbx_subtend_id2sym((id))
+#define ID2SYM(id)        capi_id2sym((id))
 
 /** Infect o2 if o1 is tainted */
-#define OBJ_INFECT(o1, o2) rbx_subtend_infect((o1), (o2))
+#define OBJ_INFECT(o1, o2) capi_infect((o1), (o2))
 
 /** Convert int to a Ruby Integer. */
 #define INT2FIX(i)        INT2NUM((i))
@@ -393,19 +388,19 @@ extern "C" {
 #define MEMZERO(p,type,n) memset((p), 0, (sizeof(type) * (n)))
 
 /** Whether object is nil. */
-#define NIL_P(v)          rbx_subtend_nil_p((v))
+#define NIL_P(v)          capi_nil_p((v))
 
 /** The length of string str. */
-#define RSTRING_LEN(str)  rbx_subtend_rstring_len((str))
+#define RSTRING_LEN(str)  capi_rstring_len((str))
 
 /** The pointer to the string str's data. */
-#define RSTRING_PTR(str)  rbx_subtend_rstring_ptr((str))
+#define RSTRING_PTR(str)  capi_rstring_ptr((str))
 
 /** False if expression evaluates to nil or false, true otherwise. */
-#define RTEST(v)          rbx_subtend_rtest((v))
+#define RTEST(v)          capi_rtest((v))
 
 /** Return the super class of the object */
-#define RCLASS_SUPER(klass)   rbx_subtend_class_superclass((klass))
+#define RCLASS_SUPER(klass)   capi_class_superclass((klass))
 
 /** Rubinius' SafeStringValue is the same as StringValue. */
 #define SafeStringValue   StringValue
@@ -416,7 +411,7 @@ extern "C" {
 #define StringValueCStr(str) rb_string_value_cstr(&(str))
 
 /** Retrieve the ID given a Symbol handle. */
-#define SYM2ID(sym)       rbx_subtend_sym2id((sym))
+#define SYM2ID(sym)       capi_sym2id((sym))
 
 /** Return an integer type id for the object. @see rb_type() */
 #define TYPE(handle)      rb_type(handle)
@@ -438,8 +433,8 @@ extern "C" {
 
 /* Secret extra stuff */
 
-  typedef VALUE (*SubtendAllocFunction)();
-  typedef VALUE (*SubtendGenericFunction)();
+  typedef VALUE (*CApiAllocFunction)();
+  typedef VALUE (*CApiGenericFunction)();
 
 
   /**
@@ -449,52 +444,49 @@ extern "C" {
    *
    *  @see  rb_define_*_method.
    */
-  void    rbx_subtend_define_method(const char* file,
+  void    capi_define_method(const char* file,
                                            VALUE target,
                                            const char* name,
-                                           SubtendGenericFunction fptr,
+                                           CApiGenericFunction fptr,
                                            int arity,
-                                           RbxMethodKind kind);
-
-  /** Retrieve a Handle to an error class. @internal. */
-  VALUE   rbx_subtend_error(RbxSubtendHiddenError type);
+                                           CApiMethodKind kind);
 
   /** Call method on receiver, args as varargs. */
-  VALUE   rbx_subtend_rb_funcall(const char* file, int line,
+  VALUE   capi_rb_funcall(const char* file, int line,
                                         VALUE receiver, ID method_name,
                                         int arg_count, ...);
 
   /** Call the method with args provided in a C array. */
-  VALUE   rbx_subtend_rb_funcall2(const char* file, int line,
+  VALUE   capi_rb_funcall2(const char* file, int line,
                                          VALUE receiver, ID method_name,
                                          int arg_count, VALUE* args);
 
   /** Retrieve a Handle to a globally available object. @internal. */
-  VALUE   rbx_subtend_global(RbxSubtendHiddenGlobal type);
+  VALUE   capi_get_constant(CApiConstant type);
 
   /** Symbol Handle for an ID. @internal. */
-  VALUE   rbx_subtend_id2sym(ID id);
+  VALUE   capi_id2sym(ID id);
 
   /** Infect obj2 if obj1 is tainted. @internal.*/
-  void    rbx_subtend_infect(VALUE obj1, VALUE obj2);
+  void    capi_infect(VALUE obj1, VALUE obj2);
 
   /** False if expression evaluates to nil, true otherwise. @internal. */
-  int     rbx_subtend_nil_p(VALUE expression_result);
+  int     capi_nil_p(VALUE expression_result);
 
   /** Length of string string_handle. @internal. */
-  long    rbx_subtend_rstring_len(VALUE string_handle);
+  long    capi_rstring_len(VALUE string_handle);
 
   /** Pointer to string data in string_handle. @internal. */
-  char*   rbx_subtend_rstring_ptr(VALUE string_handle);
+  char*   capi_rstring_ptr(VALUE string_handle);
 
   /** False if expression evaluates to Qnil or Qfalse, true otherwise. @internal. */
-  int     rbx_subtend_rtest(VALUE expression_result);
+  int     capi_rtest(VALUE expression_result);
 
   /** ID from a Symbol Handle. @internal. */
-  ID      rbx_subtend_sym2id(VALUE symbol_handle);
+  ID      capi_sym2id(VALUE symbol_handle);
 
   /** Return the data pointer in a Data object. */
-  void**  rbx_subtend_data_ptr_get_address(VALUE obj_handle);
+  void**  capi_data_ptr_get_address(VALUE obj_handle);
 
   /** Returns the superclass of klass or NULL. This is not the same as
    * rb_class_superclass. See MRI's rb_class_s_alloc which returns a
@@ -502,7 +494,7 @@ extern "C" {
    * RCLASS_SUPER(klass) is used in a boolean context to exit a loop in
    * the Digest extension. It's likely other extensions do the same thing.
    */
-  VALUE   rbx_subtend_class_superclass(VALUE class_handle);
+  VALUE   capi_class_superclass(VALUE class_handle);
 
 
 /* Real API */
@@ -537,7 +529,7 @@ extern "C" {
             rb_data_object_alloc(klass, (RUBY_DATA_FUNC)mark, \
                                  (RUBY_DATA_FUNC)free, (void*)sval)
 
-#define   DATA_PTR(obj_handle)   (*rbx_subtend_data_ptr_get_address(obj_handle))
+#define   DATA_PTR(obj_handle)   (*capi_data_ptr_get_address(obj_handle))
 
 #define   Data_Get_Struct(obj,type,sval) do {\
             Check_Type(obj, T_DATA); \
@@ -605,7 +597,7 @@ extern "C" {
   void    rb_check_frozen(VALUE obj_handle);
 
   /** Raises an exception if obj_handle is not the same type as 'type'. */
-  void    rb_check_type(VALUE obj_handle, RbxSubtendMRIType type);
+  void    rb_check_type(VALUE obj_handle, CApiType type);
 
 #define Check_Type(v,t) rb_check_type((VALUE)(v),t)
 
@@ -667,7 +659,7 @@ extern "C" {
   void    rb_define_alias(VALUE module_handle, const char *new_name, const char *old_name);
 
   /** Define an .allocate for the given class. Should take no args and return a VALUE. */
-  void    rb_define_alloc_func(VALUE class_handle, SubtendAllocFunction allocator);
+  void    rb_define_alloc_func(VALUE class_handle, CApiAllocFunction allocator);
 
   /** Ruby's attr_* for given name. Nonzeros to toggle read/write. */
   void    rb_define_attr(VALUE module_handle, const char* attr_name, int readable, int writable);
@@ -683,36 +675,36 @@ extern "C" {
 
   /** Generate a NativeMethod to represent a method defined as a C function. Records file. */
   #define rb_define_method(mod, name, fptr, arity) \
-          rbx_subtend_define_method(__FILE__, mod, name, \
-                                           (SubtendGenericFunction)fptr, arity, \
-                                           RbxPublicMethod)
+          capi_define_method(__FILE__, mod, name, \
+                                           (CApiGenericFunction)fptr, arity, \
+                                           cCApiPublicMethod)
 
   /** Reopen or create new top-level Module. */
   VALUE   rb_define_module(const char* name);
 
   /** Defines the given method as a private instance method and a singleton method of module. */
-  void    rb_define_module_function(VALUE module_handle, const char* name, SubtendGenericFunction func, int args);
+  void    rb_define_module_function(VALUE module_handle, const char* name, CApiGenericFunction func, int args);
 
   /** Reopen or create a new Module inside given parent Module. */
   VALUE   rb_define_module_under(VALUE parent_handle, const char* name);
 
   /** Generate a NativeMethod to represent a private method defined in the C function. */
   #define rb_define_private_method(mod, name, fptr, arity) \
-          rbx_subtend_define_method(__FILE__, mod, name, \
-                                           (SubtendGenericFunction)fptr, arity, \
-                                           RbxPrivateMethod)
+          capi_define_method(__FILE__, mod, name, \
+                                           (CApiGenericFunction)fptr, arity, \
+                                           cCApiPrivateMethod)
 
   /** Generate a NativeMethod to represent a protected method defined in the C function. */
   #define rb_define_protected_method(mod, name, fptr, arity) \
-          rbx_subtend_define_method(__FILE__, mod, name, \
-                                           (SubtendGenericFunction)fptr, arity, \
-                                           RbxProtectedMethod)
+          capi_define_method(__FILE__, mod, name, \
+                                           (CApiGenericFunction)fptr, arity, \
+                                           cCApiProtectedMethod)
 
-  /** Generate a NativeMethod to represent a singleton method. @see rbx_subtend_define_method. */
+  /** Generate a NativeMethod to represent a singleton method. @see capi_define_method. */
   #define rb_define_singleton_method(mod, name, fptr, arity) \
-          rbx_subtend_define_method(__FILE__, mod, name, \
-                                           (SubtendGenericFunction)fptr, arity, \
-                                           RbxSingletonMethod)
+          capi_define_method(__FILE__, mod, name, \
+                                           (CApiGenericFunction)fptr, arity, \
+                                           cCApiSingletonMethod)
 
   /** Remove a previously declared global variable. */
   void    rb_free_global(VALUE global_handle);
@@ -737,13 +729,13 @@ extern "C" {
    *  regarding use of ##__VA_ARGS__.
    */
   #define rb_funcall(receiver, method_name, arg_count, ...) \
-          rbx_subtend_rb_funcall(__FILE__, __LINE__, \
+          capi_rb_funcall(__FILE__, __LINE__, \
                                         (receiver), (method_name), \
                                         (arg_count) , ##__VA_ARGS__)
 
   /** Call the method with args provided in a C array. Calls private methods. */
   #define rb_funcall2(receiver, method_name, arg_count, args) \
-          rbx_subtend_rb_funcall2(__FILE__, __LINE__, \
+          capi_rb_funcall2(__FILE__, __LINE__, \
                                          (receiver), (method_name), \
                                          (arg_count), (args) )
 
@@ -996,4 +988,3 @@ extern "C" {
 #endif
 
 #endif
-

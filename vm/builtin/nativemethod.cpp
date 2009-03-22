@@ -50,13 +50,13 @@ namespace rubinius {
   Object* NativeMethodEnvironment::get_object(Handle handle) {
     if(handle <= 0) {
       switch(handle) {
-      case cSubtendQfalse:
+      case cCApiHandleQfalse:
         return Qfalse;
-      case cSubtendQtrue:
+      case cCApiHandleQtrue:
         return Qtrue;
-      case cSubtendQnil:
+      case cCApiHandleQnil:
         return Qnil;
-      case cSubtendQundef:
+      case cCApiHandleQundef:
         return Qundef;
       default:
         // @todo: throw if this handle pulls 0 out

@@ -43,7 +43,7 @@ end
 # tests      << 'vm/test/test_instructions.hpp'
 tests.uniq!
 
-subdirs = %w!builtin subtend parser util instruments gc!
+subdirs = %w!builtin capi parser util instruments gc!
 
 srcs        = FileList["vm/*.{cpp,c}"]
 subdirs.each do |dir|

@@ -18,10 +18,10 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_immediate_handles() {
-    TS_ASSERT_EQUALS(0, cSubtendQfalse);
-    TS_ASSERT_EQUALS(-1, cSubtendQtrue);
-    TS_ASSERT_EQUALS(-2, cSubtendQnil);
-    TS_ASSERT_EQUALS(-3, cSubtendQundef);
+    TS_ASSERT_EQUALS(0, cCApiQfalse);
+    TS_ASSERT_EQUALS(-1, cCApiQtrue);
+    TS_ASSERT_EQUALS(-2, cCApiQnil);
+    TS_ASSERT_EQUALS(-3, cCApiQundef);
   }
 
   void test_handle_constants() {
