@@ -97,6 +97,8 @@ describe "A Class node" do
     compile do |g|
       g.push_const :Array
       g.open_class :X
+      g.pop
+      g.push :nil
     end
   end
 
@@ -113,6 +115,8 @@ describe "A Class node" do
       g.push :self
       g.send :expr, 0, true
       g.open_class :X
+      g.pop
+      g.push :nil
     end
   end
 
@@ -128,6 +132,8 @@ describe "A Class node" do
     compile do |g|
       g.push_const :Object
       g.open_class :X
+      g.pop
+      g.push :nil
     end
   end
 end

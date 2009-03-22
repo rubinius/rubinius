@@ -70,6 +70,8 @@ describe "A Module node" do
 
     compile do |g|
       g.open_module :Graffle
+      g.pop
+      g.push :nil
     end
   end
 end

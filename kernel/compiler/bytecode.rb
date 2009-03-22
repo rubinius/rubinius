@@ -545,8 +545,11 @@ class Compiler
       end
 
       def attach_and_call(g, name, scoped=false)
-        # If the body is empty, then don't bother with it.
-        return if @body.empty?
+        if @body.empty?
+          g.pop
+          g.push :nil
+          return
+        end
 
         desc = new_description()
         meth = desc.generator

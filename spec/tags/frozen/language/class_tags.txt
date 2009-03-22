@@ -1,5 +1,1 @@
-fails:A class definition returns the value of the last statement in the body
 fails:class provides hooks calls inherited when a class is created
-critical:A class definition raises TypeError if the constant qualifying the class is nil
-critical:A class definition allows using self as the superclass iff self is a class
-critical:Reopening a class raises a TypeError when superclasses mismatch
