@@ -1307,7 +1307,7 @@ class Compiler
           g.pop
         when AttrAssign
           g.cast_for_single_block_arg
-          @child.bytecode(g, true)
+          @child.bytecode(g, :swap)
           g.pop
         when Fixnum, nil
           g.pop
