@@ -1924,6 +1924,7 @@ class Instructions
   #   * ...
   # [Stack After]
   #   * class
+  #   * created?
   #   * ...
   # [Description]
   #   Creates or re-opens a \class, taking the superclass (or nil) from the
@@ -1945,7 +1946,7 @@ class Instructions
   #       end
   #     end
   #     # Stack transition:
-  #     # [...,A] => [...,B]
+  #     # [...,A] => [...,true,B]
   #   </code>
 
   def open_class(index)
@@ -1957,6 +1958,7 @@ class Instructions
     Class* cls = Helpers::open_class(state, call_frame, super, sym, &created);
 
     HANDLE_EXCEPTION(cls);
+    stack_push(created ? Qtrue : Qfalse);
     stack_push(cls);
     CODE
   end
@@ -1994,6 +1996,7 @@ class Instructions
   #   * ...
   # [Stack After]
   #   * class
+  #   * created?
   #   * ...
   # [Description]
   #   Creates or re-opens a \class, popping the superclass (or nil) and the
@@ -2012,7 +2015,7 @@ class Instructions
   #     class A::B < C
   #     end
   #     # Stack transition:
-  #     # [...,A,C] => [...,B]
+  #     # [...,A,C] => [...,true,B]
   #   </code>
 
   def open_class_under(index)
@@ -2027,6 +2030,7 @@ class Instructions
     // TODO use created? it's only for running the opened_class hook, which
     // we're eliminating anyway.
 
+    stack_push(created ? Qtrue : Qfalse);
     stack_push(cls);
     CODE
   end

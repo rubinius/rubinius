@@ -1,1 +1,0 @@
-fails:class provides hooks calls inherited when a class is created

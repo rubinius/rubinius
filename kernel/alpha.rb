@@ -17,7 +17,7 @@
 # These forms should be used in the rest of the kernel. In delta,
 # more complete forms of these methods are provided
 
-def opened_class
+def opened_class(created)
 end
 
 class Rubinius::VM
