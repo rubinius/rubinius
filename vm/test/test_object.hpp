@@ -158,7 +158,7 @@ public:
   }
 
   void test_dup_bytes() {
-    ByteArray* obj = state->om->new_object_bytes<ByteArray>(G(object), 1);
+    ByteArray* obj = ByteArray::create(state, 1);
 
     obj->bytes[0] = 8;
 
@@ -448,11 +448,6 @@ public:
     mod->superclass(state, m);
 
     TS_ASSERT_EQUALS(cls, obj->class_object(state));
-
-    obj->klass(state, (Class*)Qnil);
-
-    TS_ASSERT_THROWS_ASSERT(obj->class_object(state), const RubyException &e,
-                            TS_ASSERT(Exception::assertion_error_p(state, e.exception)));
   }
 
   void test_symbol_class() {

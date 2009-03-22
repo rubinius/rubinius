@@ -147,7 +147,12 @@ const int cUndef = 0x22L;
       uint32_t all_flags;
     };
 
+#ifdef RBX_TEST
+  public:
+#else
   protected:
+#endif
+
     Class* klass_;
     Object* ivars_;
 

@@ -1236,14 +1236,11 @@ extern "C" {
 
     String* self = as<String>(env->get_object(self_handle));
 
-    /* @todo What kind of OOB checking is required? */
-    size_t offset_as_size = offset;
-
-    if (offset < 0 || offset_as_size >= self->size()) {
+    if (offset < 0 || offset >= self->size()) {
       return '\0';
     }
 
-    return self->c_str()[offset_as_size];
+    return self->c_str()[offset];
   }
 
   size_t rb_str_get_char_len(VALUE self_handle) {

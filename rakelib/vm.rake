@@ -494,7 +494,9 @@ file 'vm/test/runner.cpp' => tests + objs do
   puts "GEN vm/test/runner.cpp" unless $verbose
   tests << { :verbose => $verbose }
   sh("vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
-     "--abort-on-fail", "-include=string.h", "-include=stdlib.h", "-o", "vm/test/runner.cpp", *tests)
+     "--abort-on-fail", "-include=string.h", "-include=stdlib.h",
+     "-include=vm/test/test_setup.h",
+     "-o", "vm/test/runner.cpp", *tests)
 end
 
 file 'vm/parser/grammar.cpp' => 'vm/parser/grammar.y' do

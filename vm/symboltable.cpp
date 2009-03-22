@@ -86,7 +86,7 @@ namespace rubinius {
 
     const char* bytes = str->c_str();
 
-    for(std::size_t i = 0; i < str->size(); i++) {
+    for(native_int i = 0; i < str->size(); i++) {
       if(bytes[i] == 0) {
         Exception::argument_error(state,
             "cannot create a symbol from a string containing `\\0'");

@@ -66,7 +66,7 @@ namespace rubinius {
     Object* equal(STATE, String* other);
 
     // Returns the number of bytes this String contains
-    size_t size();
+    native_int size();
 
     // Access the String as a char* directly. WARNING: doesn't necessarily
     // return a null terminated char*, so be sure to use size() with it.
