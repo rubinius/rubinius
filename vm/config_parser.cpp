@@ -41,7 +41,7 @@ namespace rubinius {
 
   ConfigParser::Entry* ConfigParser::parse_line(const char* line) {
     char* var = strdup(line);
-    char* equals = strstr(var, "=");
+    char* equals = strchr(var, '=');
 
     Entry* entry = new ConfigParser::Entry();
 
