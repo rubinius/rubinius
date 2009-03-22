@@ -56,7 +56,7 @@ namespace rubinius {
     VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
                                (vmm->number_of_locals * sizeof(Object*)));
 
-    scope->setup_as_block(top_scope_, scope_, vmm->number_of_locals);
+    scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals);
 
     CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
     frame->prepare(vmm->stack_size);
@@ -97,7 +97,7 @@ namespace rubinius {
     VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
                                (vmm->number_of_locals * sizeof(Object*)));
 
-    scope->setup_as_block(top_scope_, scope_, vmm->number_of_locals);
+    scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals);
 
     CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
     frame->prepare(vmm->stack_size);
@@ -149,7 +149,7 @@ namespace rubinius {
     VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
                                (vmm->number_of_locals * sizeof(Object*)));
 
-    scope->setup_as_block(top_scope_, scope_, vmm->number_of_locals, recv);
+    scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals, recv);
 
     CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
     frame->prepare(vmm->stack_size);

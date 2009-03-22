@@ -143,7 +143,7 @@ readline_attempted_completion_function(text, start, end)
     case_fold = RTEST(rb_attr_get(mReadline, completion_case_fold));
     ary = rb_funcall(proc, rb_intern("call"), 1, rb_tainted_str_new2(text));
     ary = rb_Array(ary);
-    
+
     matches = rb_ary_size(ary);
     if (matches == 0) return NULL;
     result = ALLOC_N(char *, matches + 2);

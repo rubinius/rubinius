@@ -2,6 +2,10 @@ class VariableScope
   attr_reader :parent
   attr_reader :block
 
+  # CompiledMethod this scope is for.
+  #
+  attr_reader :method
+
   def self=(obj)
     @self = obj
   end

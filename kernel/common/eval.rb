@@ -3,44 +3,42 @@
 
 module Kernel
 
-  def local_variables
-    ary = []
-    ctx = MethodContext.current.sender
+  # Names of local variables at point of call (including evaled)
+  #
+  def local_variables()
+    locals = []
 
-    while ctx.kind_of? BlockContext
-      if names = ctx.method.local_names
-        names.each { |n| ary << n.to_s }
+    scope = VariableScope.of_sender
+
+    # Ascend up through all applicable blocks to get all vars.
+    while scope
+      if scope.method.local_names
+        scope.method.local_names.each {|name|
+          name = name.to_s
+          locals << name unless name =~ /\A(@{1,2}|\$)/   # @todo Weed out "constants"? --rue
+        }
       end
-      ctx = ctx.home
+
+      # Should not have any special cases here
+      scope.dynamic_locals.keys.each {|name| locals << name.to_s } if scope.dynamic_locals
+
+      scope = scope.parent
     end
 
-    if names = ctx.method.local_names
-      names.each { |n| ary << n.to_s }
-    end
-
-    if dynamic = ctx.dynamic_locals
-      dynamic.keys.each { |n| ary << n.to_s }
-    end
-
-    return ary
+    locals
   end
   module_function :local_variables
 
-  def binding
+  # Obtain binding here for future evaluation/execution context.
+  #
+  def binding()
     return Binding.setup(VariableScope.of_sender, CompiledMethod.of_sender)
-
-    # If we are here because of eval, fetch the context of
-    # the thing that invoked eval
-    if ctx.from_eval?
-      ctx = MethodContext.current.sender
-      Binding.setup ctx.sender.sender
-    else
-      Binding.setup VariableScope.of_sender
-    end
   end
   module_function :binding
 
-  def eval(string, binding=nil, filename='(eval)', lineno=1)
+  # Evaluate and execute code given in the String.
+  #
+  def eval(string, binding = nil, filename = "(eval)", lineno = 1)
     if !binding
       binding = Binding.setup VariableScope.of_sender, CompiledMethod.of_sender
     elsif binding.__kind_of__ Proc

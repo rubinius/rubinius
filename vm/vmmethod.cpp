@@ -469,43 +469,43 @@ namespace rubinius {
    *        but for the grace of Leibniz. --rue
    */
   template <typename ArgumentHandler>
-  Object* VMMethod::execute_specialized(STATE, CallFrame* previous, Message& msg) {
-    CompiledMethod* cm = as<CompiledMethod>(msg.method);
-    VMMethod* vmm = cm->backend_method_;
+    Object* VMMethod::execute_specialized(STATE, CallFrame* previous, Message& msg) {
+      CompiledMethod* cm = as<CompiledMethod>(msg.method);
+      VMMethod* vmm = cm->backend_method_;
 
-    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
-                               (vmm->number_of_locals * sizeof(Object*)));
+      VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
+                                 (vmm->number_of_locals * sizeof(Object*)));
 
-    scope->prepare(msg.recv, msg.module, msg.block, vmm->number_of_locals);
+      scope->prepare(msg.recv, msg.module, msg.block, cm, vmm->number_of_locals);
 
-    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
-    frame->prepare(vmm->stack_size);
+      CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+      frame->prepare(vmm->stack_size);
 
-    frame->previous = previous;
-    frame->name =     msg.name;
-    frame->cm =       cm;
-    frame->args =     msg.args();
-    frame->scope =    frame->top_scope = scope;
+      frame->previous = previous;
+      frame->name =     msg.name;
+      frame->cm =       cm;
+      frame->args =     msg.args();
+      frame->scope =    frame->top_scope = scope;
 
-    // If argument handling fails..
-    ArgumentHandler args;
-    if(args.call(state, vmm, scope, msg) == false) {
-      Exception* exc =
-        Exception::make_argument_error(state, vmm->required_args, msg.args(), msg.name);
-      exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), frame));
-      state->thread_state()->raise_exception(exc);
+      // If argument handling fails..
+      ArgumentHandler args;
+      if(args.call(state, vmm, scope, msg) == false) {
+        Exception* exc =
+          Exception::make_argument_error(state, vmm->required_args, msg.args(), msg.name);
+        exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), frame));
+        state->thread_state()->raise_exception(exc);
 
-      return NULL;
+        return NULL;
+      }
+
+      // if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
+
+      Object* ret = run_interpreter(state, vmm, frame);
+
+      frame->scope->exit();
+
+      return ret;
     }
-
-    // if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
-
-    Object* ret = run_interpreter(state, vmm, frame);
-
-    frame->scope->exit();
-
-    return ret;
-  }
 
   /** @todo Is this redundant after having gone through set_argument_handler? --rue */
   Object* VMMethod::execute(STATE, CallFrame* previous, Message& msg) {

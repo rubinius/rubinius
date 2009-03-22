@@ -72,6 +72,7 @@ namespace rubinius {
 
   void GarbageCollector::saw_variable_scope(VariableScope* scope) {
     scope->update(mark_object(scope->self()),
+                  mark_object(scope->method()),
                   mark_object(scope->module()),
                   mark_object(scope->block()));
 
@@ -132,6 +133,7 @@ namespace rubinius {
 
   void GarbageCollector::visit_variable_scope(VariableScope* scope, ObjectVisitor& visit) {
     scope->update(visit.call(scope->self()),
+                  visit.call(scope->method()),
                   visit.call(scope->module()),
                   visit.call(scope->block()));
 

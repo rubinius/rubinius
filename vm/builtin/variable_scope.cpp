@@ -1,12 +1,10 @@
+#include "vm.hpp"
+#include "objectmemory.hpp"
+#include "call_frame.hpp"
+
 #include "builtin/object.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/class.hpp"
-
-#include "object_utils.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
-
-#include "call_frame.hpp"
 
 namespace rubinius {
   void VariableScope::init(STATE) {
@@ -18,12 +16,14 @@ namespace rubinius {
     VariableScope* scope = state->new_struct<VariableScope>(
         G(variable_scope), number_of_locals_ * sizeof(Object*));
 
+    scope->block(state, block_);
+    scope->exitted_ = exitted_;
+    scope->method(state, method_);
+    scope->module(state, module_);
     scope->parent(state, parent_);
     scope->self(state, self_);
-    scope->module(state, module_);
-    scope->block(state, block_);
+
     scope->number_of_locals_ = number_of_locals_;
-    scope->exitted_ = exitted_;
 
     for(int i = 0; i < number_of_locals_; i++) {
       scope->set_local(state, i, locals_[i]);
@@ -32,7 +32,7 @@ namespace rubinius {
     return scope;
   }
 
-  void VariableScope::setup_as_block(VariableScope* top, VariableScope* parent, int num, Object* self) {
+  void VariableScope::setup_as_block(VariableScope* top, VariableScope* parent, CompiledMethod* cm, int num, Object* self) {
     obj_type_ = InvalidType;
     parent_ = parent;
     if(self) {
@@ -40,6 +40,8 @@ namespace rubinius {
     } else {
       self_ =   top->self();
     }
+
+    method_ = cm;
     module_ = top->module();
     block_ =  top->block();
     number_of_locals_ = num;
