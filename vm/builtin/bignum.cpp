@@ -970,6 +970,7 @@ namespace rubinius {
     char *endptr = NULL;
     long l;
 
+    errno = 0;
     l = strtol (str, &endptr, radix);
 
     if(endptr != str && errno == 0 &&
