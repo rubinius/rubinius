@@ -669,6 +669,8 @@ namespace rubinius {
   Object* Bignum::equal(STATE, Fixnum* b) {
     native_int bi = b->to_native();
     mp_int* a = mp_val();
+    bool clear_a = false;
+
     if(bi < 0) {
       bi = -bi;
       mp_int n;
@@ -676,8 +678,16 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
       a = &n;
+      clear_a = true;
     }
-    if(mp_cmp_d(a, bi) == MP_EQ) {
+
+    int r = mp_cmp_d(a, bi);
+
+    if(clear_a) {
+      mp_clear(a);
+    }
+
+    if(r == MP_EQ) {
       return Qtrue;
     }
     return Qfalse;
@@ -703,7 +713,11 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
 
-      switch(mp_cmp_d(&n, -bi)) {
+      int r = mp_cmp_d(&n, -bi);
+
+      mp_clear(&n);
+
+      switch(r) {
         case MP_LT:
           return Fixnum::from(1);
         case MP_GT:
@@ -745,7 +759,11 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
 
-      if(mp_cmp_d(&n, -bi) == MP_LT) {
+      int r = mp_cmp_d(&n, -bi);
+
+      mp_clear (&n);
+
+      if(r == MP_LT) {
         return Qtrue;
       }
       return Qfalse;
@@ -778,6 +796,7 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
       int r = mp_cmp_d(&n, -bi);
+      mp_clear(&n);
       if(r == MP_EQ || r == MP_LT) {
         return Qtrue;
       }
@@ -813,7 +832,11 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
 
-      if(mp_cmp_d(&n, -bi) == MP_GT) {
+      int r = mp_cmp_d(&n, -bi);
+
+      mp_clear(&n);
+
+      if(r == MP_GT) {
         return Qtrue;
       }
       return Qfalse;
@@ -846,6 +869,7 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
       int r = mp_cmp_d(&n, -bi);
+      mp_clear(&n);
       if(r == MP_EQ || r == MP_GT) {
         return Qtrue;
       }
@@ -935,7 +959,11 @@ namespace rubinius {
       n.sign = MP_NEG;
     }
 
-    return Bignum::from(state, &n);
+    Integer* res = Bignum::from(state, &n);
+
+    mp_clear(&n);
+
+    return res;
   }
 
   Integer* Bignum::from_string(STATE, const char *str, size_t radix) {
@@ -943,7 +971,11 @@ namespace rubinius {
     mp_init(&n);
     mp_read_radix(&n, str, radix);
 
-    return Bignum::from(state, &n);
+    Integer* res = Bignum::from(state, &n);
+
+    mp_clear(&n);
+
+    return res;
   }
 
   void Bignum::into_string(STATE, size_t radix, char *buf, size_t sz) {
