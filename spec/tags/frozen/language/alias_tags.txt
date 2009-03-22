@@ -1,2 +1,0 @@
-fails:The alias keyword operates on the object's metaclass when used in instance_eval
-fails:The alias keyword operates on methods defined via attr, attr_reader, and attr_accessor

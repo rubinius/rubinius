@@ -54,7 +54,7 @@ class StaticScope
   end
 
   def alias_method(name, original)
-    @module.__send__ :alias_method, name, original
+    for_method_definition.__send__ :alias_method, name, original
   end
 
   def __undef_method__(name)
