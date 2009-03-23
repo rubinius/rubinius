@@ -62,6 +62,7 @@ namespace rubinius {
         res = mod->get_const(state, name, found);
         if(*found) return res;
 
+        if(mod == G(object)) break;
         mod = mod->superclass();
       }
 
@@ -79,20 +80,19 @@ namespace rubinius {
 
     LookupTableAssociation* const_get_association(STATE, CallFrame* call_frame,
         Symbol* name, bool* found) {
-      StaticScope *cur, *parent;
+      StaticScope *cur;
       LookupTableAssociation* result;
 
       *found = false;
 
       cur = call_frame->cm->scope();
       while(!cur->nil_p()) {
-        parent = cur->parent();
-        if(parent->nil_p()) break;
+        if(cur->module() == G(object)) break;
 
         result = cur->module()->get_const_association(state, name, found);
         if(*found) return result;
 
-        cur = parent;
+        cur = cur->parent();
       }
 
       Module* mod = call_frame->cm->scope()->module();
