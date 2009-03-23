@@ -102,9 +102,9 @@ namespace rubinius {
     stats::GCStats::get()->objects_promoted++;
 #endif
 
-    Object* copy = immix_.allocate(obj->size_in_bytes());
+    Object* copy = immix_.allocate(obj->size_in_bytes(state));
     copy->initialize_copy(obj, 0);
-    copy->copy_body(obj);
+    copy->copy_body(state, obj);
 
     copy->zone = MatureObjectZone;
 

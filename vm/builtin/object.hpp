@@ -103,7 +103,7 @@ namespace rubinius {
      *
      *  Sets flag and overwrites body with NULLs.
      */
-    void        init_bytes();
+    void        init_bytes(STATE);
 
     /** Provides access to the GC write barrier from any object. */
     void        write_barrier(STATE, void* obj);

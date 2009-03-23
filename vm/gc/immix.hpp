@@ -39,28 +39,13 @@ namespace rubinius {
         return addr.as<Object>()->pinned_p();
       }
 
-      immix::Address copy(immix::Address original, immix::Allocator& alloc) {
-        Object* orig = original.as<Object>();
-
-        immix::Address copy_addr = alloc.allocate(orig->size_in_bytes());
-        Object* copy = copy_addr.as<Object>();
-
-        copy->initialize_copy(orig, 0);
-        copy->copy_body(orig);
-
-        copy->zone = MatureObjectZone;
-        copy->set_in_immix();
-
-        return copy_addr;
-      }
+      immix::Address copy(immix::Address original, immix::Allocator& alloc);
 
       void walk_pointers(immix::Address addr, immix::Marker<ObjectDescriber>& mark) {
         gc_->scan_object(addr.as<Object>());
       }
 
-      int size(immix::Address addr) {
-        return addr.as<Object>()->size_in_bytes();
-      }
+      int size(immix::Address addr);
 
       bool mark_address(immix::Address addr, immix::MarkStack& ms) {
         Object* obj = addr.as<Object>();

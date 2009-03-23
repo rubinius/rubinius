@@ -70,7 +70,7 @@ namespace rubinius {
   }
 
   Object* Object::dup(STATE) {
-    Object* other = state->om->allocate_object(this->total_size());
+    Object* other = state->om->allocate_object(this->total_size(state));
 
 #ifdef RBX_GC_STATS
     // This counter is only valid if the line above allocates in the
@@ -79,7 +79,7 @@ namespace rubinius {
 #endif
 
     other->initialize_copy(this, age);
-    other->copy_body(this);
+    other->copy_body(state, this);
 
     // Set the dup's class this's class
     other->klass(state, class_object(state));
@@ -256,8 +256,8 @@ namespace rubinius {
 
   /* Initialize the object as storing bytes, by setting the flag then clearing the
    * body of the object, by setting the entire body as bytes to 0 */
-  void Object::init_bytes() {
-    clear_body_to_null(size_in_bytes());
+  void Object::init_bytes(STATE) {
+    clear_body_to_null(size_in_bytes(state));
   }
 
   bool Object::kind_of_p(STATE, Object* module) {

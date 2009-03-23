@@ -5,6 +5,7 @@
 namespace rubinius {
   typedef void *address;
   class Object;
+  class VM;
 
   class Heap {
     /* Fields */
@@ -46,12 +47,12 @@ namespace rubinius {
       return scan == current;
     }
 
-    Object* next_unscanned() {
+    Object* next_unscanned(VM* state) {
       Object* obj;
       if(fully_scanned_p()) return NULL;
 
       obj = (Object*)scan;
-      scan = (address)((uintptr_t)scan + obj->size_in_bytes());
+      scan = (address)((uintptr_t)scan + obj->size_in_bytes(state));
       return obj;
     }
 
@@ -70,7 +71,7 @@ namespace rubinius {
     void reset();
     size_t remaining();
     size_t used();
-    Object* copy_object(Object*);
+    Object* copy_object(VM* state, Object*);
   };
 
 }

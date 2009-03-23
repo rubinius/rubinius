@@ -47,8 +47,8 @@ public:
     TS_ASSERT_EQUALS(obj->num_fields(), 3U);
     TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
 
-    TS_ASSERT(om.young.current->used() == start + obj->size_in_bytes());
-    TS_ASSERT(om.young.heap_a.used()  == start + obj->size_in_bytes());
+    TS_ASSERT(om.young.current->used() == start + obj->size_in_bytes(state));
+    TS_ASSERT(om.young.heap_a.used()  == start + obj->size_in_bytes(state));
   }
 
   void test_write_barrier() {
@@ -99,7 +99,7 @@ public:
     obj = util_new_object(om);
 
     Heap *cur = om.young.next;
-    TS_ASSERT_EQUALS(om.young.current->used(), start + obj->size_in_bytes() * 5);
+    TS_ASSERT_EQUALS(om.young.current->used(), start + obj->size_in_bytes(state) * 5);
 
     om.collect_young(*gc_data);
 

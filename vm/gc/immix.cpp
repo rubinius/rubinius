@@ -29,6 +29,28 @@ namespace rubinius {
     gc_.describer().set_object_memory(om, this);
   }
 
+  immix::Address ImmixGC::ObjectDescriber::copy(immix::Address original,
+      immix::Allocator& alloc) {
+    Object* orig = original.as<Object>();
+
+    immix::Address copy_addr = alloc.allocate(
+        orig->size_in_bytes(object_memory_->state));
+
+    Object* copy = copy_addr.as<Object>();
+
+    copy->initialize_copy(orig, 0);
+    copy->copy_body(object_memory_->state, orig);
+
+    copy->zone = MatureObjectZone;
+    copy->set_in_immix();
+
+    return copy_addr;
+  }
+
+  int ImmixGC::ObjectDescriber::size(immix::Address addr) {
+    return addr.as<Object>()->size_in_bytes(object_memory_->state);
+  }
+
   ImmixGC::~ImmixGC() {
     // TODO free data
   }

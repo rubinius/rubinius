@@ -2,11 +2,13 @@
 #include "builtin/object.hpp"
 #include "builtin/class.hpp"
 
+#include "objectmemory.hpp"
+
 #include <cassert>
 
 namespace rubinius {
-  size_t ObjectHeader::size_in_bytes() const {
-    return klass_->type_info()->object_size(this);
+  size_t ObjectHeader::size_in_bytes(STATE) const {
+    return state->om->type_info[type_id()]->object_size(this);
   }
 
   void ObjectHeader::initialize_copy(Object* other, unsigned int new_age) {
@@ -28,11 +30,11 @@ namespace rubinius {
     this->RequiresCleanup = source->RequiresCleanup;
   }
 
-  void ObjectHeader::copy_body(Object* other) {
+  void ObjectHeader::copy_body(STATE, Object* other) {
     void* src = other->__body__;
     void* dst = this->__body__;
 
-    memcpy(dst, src, other->body_in_bytes());
+    memcpy(dst, src, other->body_in_bytes(state));
   }
 
   /* Clear the body of the object, by setting each field to Qnil */

@@ -126,6 +126,7 @@ const int cUndef = 0x22L;
 
   class Class;
   class Object;
+  class VM;
 
   class ObjectHeader {
     union {
@@ -174,7 +175,7 @@ const int cUndef = 0x22L;
     void initialize_copy(Object* other, unsigned int age);
 
     /* Copies the body of +other+ into +this+ */
-    void copy_body(Object* other);
+    void copy_body(VM* state, Object* other);
 
     /* Copies the flags of +this+ into +other+ */
     void copy_flags(Object* other);
@@ -192,14 +193,14 @@ const int cUndef = 0x22L;
       zone = loc;
     }
 
-    size_t size_in_bytes() const;
+    size_t size_in_bytes(VM*) const;
 
-    size_t body_in_bytes() {
-      return size_in_bytes() - sizeof(ObjectHeader);
+    size_t body_in_bytes(VM* state) {
+      return size_in_bytes(state) - sizeof(ObjectHeader);
     }
 
-    size_t total_size() const {
-      return size_in_bytes();
+    size_t total_size(VM* state) const {
+      return size_in_bytes(state);
     }
 
     bool reference_p() const {

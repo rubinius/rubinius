@@ -75,8 +75,6 @@ namespace rubinius {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
 
-        obj->init_bytes();
-
         return obj;
       }
 
@@ -84,8 +82,6 @@ namespace rubinius {
       T* new_object_bytes_mature(Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = reinterpret_cast<T*>(new_object_typed_mature(cls, bytes, T::type));
-
-        obj->init_bytes();
 
         return obj;
       }
