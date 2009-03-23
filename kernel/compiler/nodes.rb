@@ -743,7 +743,7 @@ raise "no"
       attr_accessor :name
 
       def parent # allows use like a colon2
-        :top
+        nil
       end
     end
 
