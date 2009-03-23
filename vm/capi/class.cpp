@@ -21,13 +21,13 @@ extern "C" {
 
   VALUE rb_class_name(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Class* class_object = as<Class>(env->get_object(class_handle));
+    Class* class_object = c_as<Class>(env->get_object(class_handle));
     return env->get_handle(class_object->name()->to_str(env->state()));
   }
 
   char* rb_class2name(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Class* class_object = as<Class>(env->get_object(class_handle));
+    Class* class_object = c_as<Class>(env->get_object(class_handle));
 
     return ::strdup(class_object->name()->c_str(env->state()));
   }
@@ -77,8 +77,8 @@ extern "C" {
   VALUE rb_define_class_under(VALUE parent_handle, const char* name, VALUE superclass_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* parent = as<Module>(env->get_object(parent_handle));
-    Class* superclass = as<Class>(env->get_object(superclass_handle));
+    Module* parent = c_as<Module>(env->get_object(parent_handle));
+    Class* superclass = c_as<Class>(env->get_object(superclass_handle));
     Symbol* constant = env->state()->symbol(name);
 
     bool created = false;

@@ -6,6 +6,8 @@
 
 #include "capi/capi.hpp"
 
+using namespace capi;
+
 extern "C" {
   int rb_const_defined(VALUE module_handle, ID const_id) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
@@ -17,7 +19,7 @@ extern "C" {
   VALUE rb_const_get(VALUE module_handle, ID name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* module = as<Module>(env->get_object(module_handle));
+    Module* module = c_as<Module>(env->get_object(module_handle));
 
     return env->get_handle(module->get_const(env->state(),
                                                  reinterpret_cast<Symbol*>(name)));
@@ -47,7 +49,7 @@ extern "C" {
   void rb_define_const(VALUE module_handle, const char* name, VALUE obj_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* module = as<Module>(env->get_object(module_handle));
+    Module* module = c_as<Module>(env->get_object(module_handle));
     Object* object = env->get_object(obj_handle);
 
     module->set_const(env->state(), name,  object);
@@ -67,7 +69,7 @@ extern "C" {
   VALUE rb_define_module_under(VALUE parent_handle, const char* name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* parent = as<Module>(env->get_object(parent_handle));
+    Module* parent = c_as<Module>(env->get_object(parent_handle));
     Symbol* constant = env->state()->symbol(name);
 
     Module* module = rubinius::Helpers::open_module(env->state(),

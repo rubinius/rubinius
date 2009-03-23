@@ -6,6 +6,8 @@
 
 #include "capi/capi.hpp"
 
+using namespace capi;
+
 extern "C" {
   VALUE rb_Array(VALUE obj_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
@@ -34,7 +36,7 @@ extern "C" {
   VALUE rb_ary_entry(VALUE self_handle, int index) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(env->get_object(self_handle));
+    Array* self = c_as<Array>(env->get_object(self_handle));
     return env->get_handle(self->get(env->state(), index));
   }
 
@@ -86,14 +88,14 @@ extern "C" {
   VALUE rb_ary_pop(VALUE self_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(env->get_object(self_handle));
+    Array* self = c_as<Array>(env->get_object(self_handle));
     return env->get_handle(self->pop(env->state()));
   }
 
   VALUE rb_ary_push(VALUE self_handle, VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(env->get_object(self_handle));
+    Array* self = c_as<Array>(env->get_object(self_handle));
     self->append(env->state(), env->get_object(object_handle));
 
     return self_handle;
@@ -106,14 +108,14 @@ extern "C" {
   VALUE rb_ary_shift(VALUE self_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(env->get_object(self_handle));
+    Array* self = c_as<Array>(env->get_object(self_handle));
     return env->get_handle(self->shift(env->state()));
   }
 
   size_t rb_ary_size(VALUE self_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(env->get_object(self_handle));
+    Array* self = c_as<Array>(env->get_object(self_handle));
 
     return self->size();
   }
@@ -121,7 +123,7 @@ extern "C" {
   void rb_ary_store(VALUE self_handle, long int index, VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(env->get_object(self_handle));
+    Array* self = c_as<Array>(env->get_object(self_handle));
     size_t total = self->size();
 
     if(index < 0) {
@@ -140,7 +142,7 @@ extern "C" {
   VALUE rb_ary_unshift(VALUE self_handle, VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Array* self = as<Array>(env->get_object(self_handle));
+    Array* self = c_as<Array>(env->get_object(self_handle));
     self->unshift(env->state(), env->get_object(object_handle));
 
     return self_handle;

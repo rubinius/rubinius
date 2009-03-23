@@ -82,6 +82,8 @@ namespace capi {
       map[cCApiZeroDivisionError]   = "ZeroDivisionError";
     }
 
+    // @todo ensure type < cCApiMaxConstant
+
     return map[type];
   }
 
@@ -160,79 +162,6 @@ extern "C" {
     }
   }
 
-  /**
-   *  All of the default error class VALUEs are macroed
-   *  to an invocation of this function to avoid tracking
-   *  the classes on this side.
-   *
-   *  @todo Vectorise this or something.
-   */
-  //VALUE capi_exception_constant(CApiError type) {
-  //  switch (type) {
-  //  case RbxArgumentError:
-  //    return rb_const_get(rb_cObject, rb_intern("ArgumentError"));
-  //  case RbxEOFError:
-  //    return rb_const_get(rb_cObject, rb_intern("EOFError"));
-  //  case RbxErrno:
-  //    return rb_const_get(rb_cObject, rb_intern("Errno"));
-  //  case RbxException:
-  //    return rb_const_get(rb_cObject, rb_intern("Exception"));
-  //  case RbxFatal:
-  //    return rb_const_get(rb_cObject, rb_intern("Fatal"));
-  //  case RbxFloatDomainError:
-  //    return rb_const_get(rb_cObject, rb_intern("FloatDomainError"));
-  //  case RbxIndexError:
-  //    return rb_const_get(rb_cObject, rb_intern("IndexError"));
-  //  case RbxInterrupt:
-  //    return rb_const_get(rb_cObject, rb_intern("Interrupt"));
-  //  case RbxIOError:
-  //    return rb_const_get(rb_cObject, rb_intern("IOError"));
-  //  case RbxLoadError:
-  //    return rb_const_get(rb_cObject, rb_intern("LoadError"));
-  //  case RbxLocalJumpError:
-  //    return rb_const_get(rb_cObject, rb_intern("LocalJumpError"));
-  //  case RbxNameError:
-  //    return rb_const_get(rb_cObject, rb_intern("NameError"));
-  //  case RbxNoMemoryError:
-  //    return rb_const_get(rb_cObject, rb_intern("NoMemoryError"));
-  //  case RbxNoMethodError:
-  //    return rb_const_get(rb_cObject, rb_intern("NoMethodError"));
-  //  case RbxNotImplementedError:
-  //    return rb_const_get(rb_cObject, rb_intern("NotImplementedError"));
-  //  case RbxRangeError:
-  //    return rb_const_get(rb_cObject, rb_intern("RangeError"));
-  //  case RbxRegexpError:
-  //    return rb_const_get(rb_cObject, rb_intern("RegexpError"));
-  //  case RbxRuntimeError:
-  //    return rb_const_get(rb_cObject, rb_intern("RuntimeError"));
-  //  case RbxScriptError:
-  //    return rb_const_get(rb_cObject, rb_intern("ScriptError"));
-  //  case RbxSecurityError:
-  //    return rb_const_get(rb_cObject, rb_intern("SecurityError"));
-  //  case RbxSignalException:
-  //    return rb_const_get(rb_cObject, rb_intern("SignalException"));
-  //  case RbxStandardError:
-  //    return rb_const_get(rb_cObject, rb_intern("StandardError"));
-  //  case RbxSyntaxError:
-  //    return rb_const_get(rb_cObject, rb_intern("SyntaxError"));
-  //  case RbxSystemCallError:
-  //    return rb_const_get(rb_cObject, rb_intern("SystemCallError"));
-  //  case RbxSystemExit:
-  //    return rb_const_get(rb_cObject, rb_intern("SystemExit"));
-  //  case RbxSystemStackError:
-  //    return rb_const_get(rb_cObject, rb_intern("SystemStackError"));
-  //  case RbxTypeError:
-  //    return rb_const_get(rb_cObject, rb_intern("TypeError"));
-  //  case RbxThreadError:
-  //    return rb_const_get(rb_cObject, rb_intern("ThreadError"));
-  //  case RbxZeroDivisionError:
-  //    return rb_const_get(rb_cObject, rb_intern("ZeroDivisionError"));
-  //  default:
-  //    std::runtime_error("capi_core_constant(): Invalid type given!");
-  //    return Qnil;
-  //  }
-  //}
-
   VALUE capi_rb_funcall(const char* file, int line,
       VALUE receiver, ID method_name, int arg_count, ...) {
     va_list varargs;
@@ -282,7 +211,7 @@ extern "C" {
   long capi_rstring_len(VALUE string_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = as<String>(env->get_object(string_handle));
+    String* string = c_as<String>(env->get_object(string_handle));
 
     return string->size();
   }
@@ -290,7 +219,7 @@ extern "C" {
   char* capi_rstring_ptr(VALUE string_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = as<String>(env->get_object(string_handle));
+    String* string = c_as<String>(env->get_object(string_handle));
 
     return string->byte_address();
   }
@@ -317,10 +246,10 @@ extern "C" {
     Module* module = NULL;
 
     if (kind == cCApiSingletonMethod) {
-      module = as<Module>(env->get_object(target)->metaclass(env->state()));
+      module = c_as<Module>(env->get_object(target)->metaclass(env->state()));
     }
     else {
-      module = as<Module>(env->get_object(target));
+      module = c_as<Module>(env->get_object(target));
     }
 
     NativeMethod* method = NULL;
@@ -352,18 +281,10 @@ extern "C" {
     state->global_cache->clear(module, method_name);
   }
 
-  void** capi_data_ptr_get_address(VALUE data_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Data* data = as<Data>(env->get_object(data_handle));
-
-    return data->data_address();
-  }
-
   VALUE capi_class_superclass(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* module = as<Module>(env->get_object(class_handle));
+    Module* module = c_as<Module>(env->get_object(class_handle));
     Module* super = module->superclass();
 
     if(super->nil_p()) {

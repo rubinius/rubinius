@@ -114,7 +114,8 @@ extern "C" {
 
     // TODO using Object as the template param means this can't allocate builtin
     // types properly!
-    Object* object = env->state()->new_object<Object>(as<Class>(env->get_object(class_handle)));
+    Class* klass = c_as<Class>(env->get_object(class_handle));
+    Object* object = env->state()->new_object<Object>(klass);
     return env->get_handle(object);
   }
 

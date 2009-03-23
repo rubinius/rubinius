@@ -6,6 +6,8 @@
 
 #include "capi/capi.hpp"
 
+using namespace capi;
+
 extern "C" {
   VALUE rb_String(VALUE object_handle) {
     return rb_convert_type(object_handle, 0, "String", "to_s");
@@ -14,8 +16,8 @@ extern "C" {
   VALUE rb_str_append(VALUE self_handle, VALUE other_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = as<String>(env->get_object(self_handle));
-    self->append(env->state(), as<String>(env->get_object(other_handle)));
+    String* self = c_as<String>(env->get_object(self_handle));
+    self->append(env->state(), c_as<String>(env->get_object(other_handle)));
 
     return self_handle;
   }
@@ -35,7 +37,7 @@ extern "C" {
   VALUE rb_str_buf_cat(VALUE string_handle, const char* other, size_t size) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = as<String>(env->get_object(string_handle));
+    String* string = c_as<String>(env->get_object(string_handle));
     string->append(env->state(), other, size);
 
     return string_handle;
@@ -48,7 +50,7 @@ extern "C" {
   VALUE rb_str_cat(VALUE self_handle, const char* other, size_t length) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = as<String>(env->get_object(self_handle));
+    String* self = c_as<String>(env->get_object(self_handle));
     String* combo = self->string_dup(env->state());
 
     return env->get_handle(combo->append(env->state(), other, length));
@@ -80,7 +82,7 @@ extern "C" {
   VALUE rb_str_dup(VALUE self_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = as<String>(env->get_object(self_handle));
+    String* self = c_as<String>(env->get_object(self_handle));
     return env->get_handle(self->string_dup(env->state()));
   }
 
@@ -94,7 +96,7 @@ extern "C" {
 
     Integer* bytes = Integer::from(env->state(), length);
 
-    String* string = as<String>(env->get_object(string_handle));
+    String* string = c_as<String>(env->get_object(string_handle));
     string->num_bytes(env->state(), bytes);
     string->characters(env->state(), bytes);
     string->hash_value(env->state(), reinterpret_cast<Integer*>(Qnil));
@@ -106,7 +108,7 @@ extern "C" {
   char rb_str_get_char(VALUE self_handle, int offset) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = as<String>(env->get_object(self_handle));
+    String* self = c_as<String>(env->get_object(self_handle));
 
     if (offset < 0 || (unsigned)offset >= self->size()) {
       return '\0';
@@ -119,13 +121,13 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     /* @todo Is this correct? Is assuming no wide characters valid? */
-    return as<String>(env->get_object(self_handle))->size();
+    return c_as<String>(env->get_object(self_handle))->size();
   }
 
   char* rb_str_get_char_ptr(VALUE str_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = as<String>(env->get_object(str_handle));
+    String* string = c_as<String>(env->get_object(str_handle));
     size_t length = string->size();
 
     char* buffer = ALLOC_N(char, (length + 1));
