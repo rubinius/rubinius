@@ -5,7 +5,8 @@
 
 using namespace capi;
 
-namespace capi {
+extern "C" {
+  // Used in a macro, has to be visible in C
   void** capi_data_ptr_get_address(VALUE data_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -13,9 +14,7 @@ namespace capi {
 
     return data->data_address();
   }
-}
 
-extern "C" {
   VALUE rb_data_object_alloc(VALUE klass, RUBY_DATA_FUNC mark,
                              RUBY_DATA_FUNC free, void* ptr) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();

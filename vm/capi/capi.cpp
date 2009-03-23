@@ -8,6 +8,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
+#include "exception_point.hpp"
 #include "global_cache.hpp"
 #include "message.hpp"
 
@@ -105,6 +106,9 @@ namespace capi {
     Object* recv = env->get_object(receiver);
     Object* ret = recv->send(env->state(), env->current_call_frame(),
         reinterpret_cast<Symbol*>(method_name), args, RBX_Qnil);
+
+    // An exception occurred
+    if(!ret) env->current_ep()->return_to(env);
 
     return env->get_handle(ret);
   }
