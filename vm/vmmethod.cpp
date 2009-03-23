@@ -34,10 +34,10 @@
  */
 namespace rubinius {
 
-  /** @todo Thread-local? --rue */
+  /** System-wide standard interpreter method pointer. */
   static Runner standard_interpreter = 0;
 
-  /** @todo Thread-local? --rue */
+  /** System-wide dynamic interpreter method pointer. */
   static Runner dynamic_interpreter = 0;
 
 
