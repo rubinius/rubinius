@@ -1,0 +1,1 @@
+fails:Module#extend_object extends the given object with constants and methods of self
