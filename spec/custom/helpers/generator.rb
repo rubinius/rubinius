@@ -348,6 +348,10 @@ class TestGenerator
       g.push :nil
       g.open_class name
     when String then
+      if name[0,2] == "::"
+        g.push_cpath_top
+        name = name[2..-1]
+      end
       levels = name.split(/::/).map { |s| s.to_sym }
       klass = levels.pop
 

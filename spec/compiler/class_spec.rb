@@ -57,7 +57,7 @@ describe "A Class node" do
     end
 
     compile do |g|
-      in_class :Y do |d|
+      in_class "::Y" do |d|
         d.push :self
         d.send :c, 0, true
       end

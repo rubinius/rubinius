@@ -511,7 +511,11 @@ class Compiler
         pos(g)
 
         if @parent
-          @parent.bytecode(g)
+          if @parent == :top
+            g.push_cpath_top
+          else
+            @parent.bytecode(g)
+          end
           superclass_bytecode(g)
           g.open_class_under @name
         else
