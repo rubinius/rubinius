@@ -8,15 +8,15 @@ module Rubinius
       raise TypeError, "'#{mod.inspect}' is not a class/module"
     end
 
-    obj = mod.constants_table[name]
-    if obj.nil?
+    tbl = mod.constants_table
+    if !tbl.key?(name)
       # Create the class
       sup = Object unless sup
       obj = Class.new sup
       obj.set_name_if_necessary name, mod
       mod.const_set name, obj
     else
-      obj = obj.value
+      obj = tbl[name].value
       if obj.kind_of? Autoload
         obj = obj.call
       end
