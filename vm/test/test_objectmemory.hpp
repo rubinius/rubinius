@@ -60,7 +60,7 @@ public:
     obj2 = util_new_object(om);
     TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
     TS_ASSERT_EQUALS(obj2->remembered_p(), 0U);
-    int start = om.remember_set->size();
+    size_t start = om.remember_set->size();
 
     obj->zone = MatureObjectZone;
     om.store_object(obj, 0, obj2);
@@ -172,7 +172,7 @@ public:
 
     om.large_object_threshold = 10;
 
-    int start = om.young.current->used();
+    size_t start = om.young.current->used();
 
     obj = util_new_object(om,20);
     TS_ASSERT_EQUALS(obj->num_fields(), 20U);

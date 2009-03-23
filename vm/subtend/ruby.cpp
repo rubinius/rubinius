@@ -1236,7 +1236,7 @@ extern "C" {
 
     String* self = as<String>(env->get_object(self_handle));
 
-    if (offset < 0 || offset >= self->size()) {
+    if (offset < 0 || (unsigned)offset >= self->size()) {
       return '\0';
     }
 

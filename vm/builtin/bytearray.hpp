@@ -28,7 +28,7 @@ namespace rubinius {
     Integer* size(STATE);
 
     // Return the number of bytes this ByteArray contains
-    native_int size() {
+    size_t size() {
       return full_size_ - sizeof(ByteArray);
     }
 

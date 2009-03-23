@@ -35,7 +35,7 @@ namespace rubinius {
    *
    * String::create(state, "foo")->size() is 3.
    */
-  native_int String::size() {
+  size_t String::size() {
     return num_bytes_->to_native();
   }
 
