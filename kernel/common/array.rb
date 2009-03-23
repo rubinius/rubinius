@@ -1019,6 +1019,7 @@ class Array
     i = @total - 1
     while i >= 0 do
       yield(at(i))
+      i = @total if @total < i      
       i -= 1
     end
     self
