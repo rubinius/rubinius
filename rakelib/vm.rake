@@ -36,7 +36,7 @@ LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
 if ENV['TESTS_ONLY']
   tests = FileList[ENV['TESTS_ONLY']]
 else
-  tests = FileList["vm/test/test_*.hpp"]
+  tests = FileList["vm/test/**/test_*.hpp"]
 end
 
 # vm/test/test_instructions.hpp may not have been generated yet
