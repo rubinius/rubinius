@@ -13,14 +13,21 @@ task :extensions => %w[
 #
 # Ask the VM to build an extension from source.
 #
-def compile_extension(path, flags = "-d -p -I#{Dir.pwd}/vm/subtend")
+def compile_extension(path, flags = "-p -I#{Dir.pwd}/vm/capi")
   cflags = Object.const_get(:FLAGS).reject {|f| f =~ /-Wno-deprecated|-Weffc\+\+/ }
 
   cflags.each {|flag| flags << " -C,#{flag}" }
 
-  command = "./bin/rbx compile #{flags} #{path}"
+  verbose = $verbose ? "-d" : ""
 
-  sh command
+  command = "./bin/rbx compile #{verbose} #{flags} #{path}"
+
+  if $verbose
+    sh command
+  else
+    puts "Building extension #{path}"
+    sh command, :verbose => false
+  end
 end
 
 namespace :extension do
@@ -37,15 +44,19 @@ namespace :extension do
 
   file "lib/ext/readline/readline.#{$dlext}" => FileList[
        "lib/ext/readline/build.rb",
-       "lib/ext/readline/readline.c"
+       "lib/ext/readline/readline.c",
+       "vm/capi/ruby.h"
   ] do
     compile_extension 'lib/ext/readline'
   end
 
   desc "Build the Digest extensions"
-  task :digest => %w[extension:digest:md5 extension:digest:rmd160
-                     extension:digest:sha1 extension:digest:sha2]
-
+  task :digest => %w[extension:digest:digest
+                     extension:digest:md5
+                     extension:digest:rmd160
+                     extension:digest:sha1
+                     extension:digest:sha2
+                     extension:digest:bubblebabble]
 
   namespace :digest do
     def digest_task name
@@ -55,22 +66,37 @@ namespace :extension do
         FileList["lib/ext/digest/#{name}/build.rb",
                  "lib/ext/digest/#{name}/{#{name},#{name}init}.c",
                  "lib/ext/digest/#{name}/#{name}.h",
-                 "lib/ext/digest/defs.h"] do
+                 "lib/ext/digest/defs.h",
+                 "vm/capi/ruby.h"
+      ] do
         compile_extension "lib/ext/digest/#{name}"
       end
+    end
+
+    desc "Build Digest extension."
+    task :digest => %W[kernel:build lib/ext/digest/digest.#{$dlext}]
+    file "lib/ext/digest/digest.#{$dlext}" =>
+      FileList["lib/ext/digest/build.rb",
+               "lib/ext/digest/digest.c",
+               "lib/ext/digest/digest.h",
+               "lib/ext/digest/defs.h",
+               "vm/capi/ruby.h"
+    ] do
+      compile_extension "lib/ext/digest"
     end
 
     digest_task "md5"
     digest_task "rmd160"
     digest_task "sha1"
     digest_task "sha2"
+    digest_task "bubblebabble"
   end
 
 
-  # Undocumented, used by spec/subtend/subtend_helper to build the spec exts.
+  # Undocumented, used by spec/capi/capi_helper to build the spec exts.
   namespace :specs do
 
-    FileList["spec/subtend/ext/*.c"].each do |source|
+    FileList["spec/capi/ext/*.c"].each do |source|
       name = File.basename source, ".c"
       library = source.sub(/\.c/, ".#{$dlext}")
 
@@ -88,7 +114,7 @@ namespace :extension do
   task :mongrel => %W[kernel:build lib/ext/mongrel/http11.#{$dlext}]
 
   file "lib/ext/mongrel/http11.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/*',
+    'shotgun/lib/capi/*',
     'lib/ext/mongrel/build.rb',
     'lib/ext/mongrel/*.c',
     'lib/ext/mongrel/*.h'

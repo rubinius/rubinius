@@ -3,7 +3,6 @@
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
-#include "builtin/task.hpp"
 #include "builtin/symbol.hpp"
 
 #include "message.hpp"
@@ -30,11 +29,11 @@ namespace rubinius {
     return executable;
   }
 
-  ExecuteStatus Executable::default_executor(STATE, Task* task, Message& msg) {
+  Object* Executable::default_executor(STATE, CallFrame* call_frame, Message& msg) {
     msg.unshift_argument2(state, msg.recv, msg.name);
     msg.name = state->symbol("call");
     msg.recv = msg.method;
     msg.lookup_from = msg.recv->lookup_begin(state);
-    return task->send_message_slowly(msg);
+    return msg.send(state, call_frame);
   }
 }

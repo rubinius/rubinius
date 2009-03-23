@@ -10,8 +10,6 @@ class Thread
 
   class Die < Exception; end # HACK
 
-  attr_reader :task
-
   @abort_on_exception = false
 
   def self.abort_on_exception
@@ -29,98 +27,53 @@ class Thread
     "#<#{self.class}:0x#{object_id.to_s(16)} #{stat}>"
   end
 
-  def self.new(*args)
-    block = block_given?
-    thread = allocate()
-    thread.__send__ :initialize, *args, &block
+  def self.new(*args, &block)
+    thr = allocate()
+    thr.initialize *args, &block
+    thr.fork
 
-    thread.wakeup
-    thread
+    return thr
   end
 
   def self.start(*args, &block)
     new(*args, &block) # HACK
   end
 
-  #
-  # Ask the scheduler to try to find another thread to run.
-  #
-  # The other thread, if found, will be scheduled to run as
-  # soon as possible, although probably not before this call
-  # has returned.
-  #
-  def self.pass
-    current.pass
-  end
-
-  #
-  # Sleep current thread for defined number of seconds or indefinitely.
-  #
-  # The sleep can be interrupted by an explicit #run call on the Thread
-  # in question.
-  #
-  # It is only possible to sleep the current thread, because doing so
-  # for any other Thread is dangerous and complicated.
-  #
-  def self.sleep(duration = Undefined)
-    return 0 unless current.alive?
-
-    chan = Channel.new
-
-    # Without a duration, sleeps until explicitly woken by #run or similar.
-    Scheduler.send_in_seconds chan, duration.to_f, nil unless duration.equal?(Undefined)
-
-    chan.receive
-  end
-
-
-  def initialize(*args)
-    unless block_given?
-      Kernel.raise ThreadError, "must be called with a block"
-    end
-
-    block = block_given?
-    block = block.block if block.kind_of? Proc
-    block.disable_long_return!
-
+  def initialize(*args, &block)
     setup(false)
-    setup_task do
-      begin
-        begin
-          @lock.send nil
-          begin
-            @result = block.call(*args)
-          rescue IllegalLongReturn, LongReturnException => e2
-            Kernel.raise ThreadError,
-              "return is not allowed across threads", e2.context
-          end
-        ensure
-          @lock.receive
-          @joins.each {|join| join.send self }
-        end
-      rescue Die
-        @exception = nil
-      rescue Exception => e
-        @exception = e
-      ensure
-        @lock.send nil
-      end
-
-      begin
-        if @exception
-          if Thread.abort_on_exception
-            Thread.main.raise @exception
-          elsif $DEBUG
-            STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
-          end
-        end
-      ensure
-        exited
-      end
-    end
+    @args = args
+    @block = block
 
     Thread.current.group.add self
-    self
+  end
+
+  # Called by Thread#fork in the new thread
+  #
+  def __run__()
+    begin
+      begin
+        @lock.send nil
+        @result = @block.call *@args
+      ensure
+        @lock.receive
+        @joins.each {|join| join.send self }
+      end
+    rescue Die
+      @exception = nil
+    rescue Exception => e
+      @exception = e
+    ensure
+      @alive = false
+      @lock.send nil
+    end
+
+    if @exception
+      if Thread.abort_on_exception
+        Thread.main.raise @exception
+      elsif $DEBUG
+        STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
+      end
+    end
   end
 
   def setup(prime_lock)
@@ -133,15 +86,6 @@ class Thread
     @lock = Channel.new
     @lock.send nil if prime_lock
     @joins = []
-  end
-
-  def setup_task
-    block = block_given?
-    @task.associate block
-  end
-
-  def current_context
-    @task.current_context
   end
 
   def alive?
@@ -159,8 +103,8 @@ class Thread
     self.raise Die
   end
 
-  alias exit kill
-  alias terminate kill
+  alias_method :exit, :kill
+  alias_method :terminate, :kill
 
   def sleeping?
     @lock.receive
@@ -170,14 +114,14 @@ class Thread
   end
 
   def status
-    if alive?
+    if @alive
       if @sleep
         "sleep"
       else
         "run"
       end
     else
-      if(@exception)
+      if @exception
         nil
       else
         false
@@ -185,7 +129,8 @@ class Thread
     end
   end
 
-  def self.stop()
+  def self.stop
+    # I don't understand at all what this does.
     Thread.critical = false
     sleep
     nil
@@ -224,10 +169,11 @@ class Thread
         @joins << jc
         @lock.send nil
         begin
-          unless timeout.equal?(Undefined)
-            Scheduler.send_in_seconds(jc, timeout.to_f, nil)
+          if timeout.equal? Undefined
+            jc.receive
+          else
+            jc.receive_timeout timeout.to_f
           end
-          jc.receive
         ensure
           @lock.receive
         end
@@ -242,24 +188,36 @@ class Thread
   private :join_inner
 
   def raise(exc=$!, msg=nil, trace=nil)
-    if exc.respond_to? :exception
-      exc = exc.exception msg
-      Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
-      exc.set_backtrace trace if trace
-    elsif exc.kind_of? String or !exc
-      exc = RuntimeError.exception exc
-    else
-      Kernel.raise TypeError, 'exception class/object expected'
+    @lock.receive
+
+    if not @alive
+      @lock.send nil
+      return self
     end
 
-    if $DEBUG
-      STDERR.puts "Exception: #{exc.message} (#{exc.class})"
-    end
+    begin
+      if exc.respond_to? :exception
+        exc = exc.exception msg
+        Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
+        exc.set_backtrace trace if trace
+      elsif exc.kind_of? String or !exc
+        exc = RuntimeError.exception exc
+      else
+        Kernel.raise TypeError, 'exception class/object expected'
+      end
 
-    Kernel.raise exc if self == Thread.current
+      if $DEBUG
+        STDERR.puts "Exception: #{exc.message} (#{exc.class})"
+      end
+
+      Kernel.raise exc if self == Thread.current
+    ensure
+      @lock.send nil
+    end
 
     raise_prim exc
   end
+  private :raise_prim
 
   def [](key)
     @locals[Type.coerce_to_symbol(key)]
@@ -278,16 +236,14 @@ class Thread
   end
 
   def set_debugging(dc, cc)
-    @task.set_debugging(dc, cc)
+    raise "very unlikely to run"
   end
 
   def debug_channel
-    @task.debug_channel
+    raise "nope!"
   end
 
-  def control_channel
-    @task.control_channel
-  end
+  attr_reader :control_channel
 
   def self.main
     @main_thread
@@ -301,7 +257,35 @@ class Thread
     Thread.current.group.list
   end
 
-  private :raise_prim
+  alias_method :run, :wakeup
 
-  alias :run :wakeup
+  class Context
+    attr_reader :ip
+    attr_reader :method
+    attr_reader :variables
+
+    def initialize(ip, method, variables)
+      @ip = ip
+      @method = method
+      @variables = variables
+    end
+
+    def file
+      @method.file
+    end
+
+    def line
+      @method.line_from_ip @ip
+    end
+
+    def locals
+      @variables.locals
+    end
+  end
+
+  def context
+    Context.new *__context__
+  end
+
+  alias_method :current_context, :context
 end

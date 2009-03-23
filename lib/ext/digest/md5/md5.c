@@ -47,18 +47,12 @@
   - Akinori MUSHA <knu@idaemons.org>
  */
 
-/*
- * This code has some modifications for use in Rubinius.
- */
-
 /*$OrigId: md5c.c,v 1.2 2001/03/26 08:57:14 matz Exp $ */
 /*$RoughId: md5.c,v 1.2 2001/07/13 19:48:41 knu Exp $ */
-/*$Id: md5.c 11708 2007-02-12 23:01:19Z shyouhei $ */
+/*$Id: md5.c 18459 2008-08-09 23:15:08Z nobu $ */
 
 #include "md5.h"
 #include <string.h>
-
-
 
 #ifdef TEST
 /*
@@ -66,7 +60,8 @@
  * The test program should print out the same values as given in section
  * A.5 of RFC 1321, reproduced below.
  */
-int main()
+int
+main()
 {
     static const char *const test[7*2] = {
 	"", "d41d8cd98f00b204e9800998ecf8427e",
@@ -88,7 +83,7 @@ int main()
 
 	MD5_Init(&state);
 	MD5_Update(&state, (const uint8_t *)test[i], strlen(test[i]));
-	MD5_Finish(&state, digest);
+	MD5_Final(digest, &state);
 	printf("MD5 (\"%s\") = ", test[i]);
 	for (di = 0; di < 16; ++di)
 	    sprintf(hex_output + di * 2, "%02x", digest[di]);
@@ -96,8 +91,7 @@ int main()
 	if (strcmp(hex_output, test[i + 1]))
 	    printf("**** ERROR, should be: %s\n", test[i + 1]);
     }
-
-  return 0;
+    return 0;
 }
 #endif /* TEST */
 
@@ -107,6 +101,7 @@ int main()
  */
 #ifdef COMPUTE_T_VALUES
 #include <math.h>
+int
 main()
 {
     int i;

@@ -17,7 +17,7 @@
 # These forms should be used in the rest of the kernel. In delta,
 # more complete forms of these methods are provided
 
-def opened_class
+def opened_class(created)
 end
 
 class Rubinius::VM
@@ -27,8 +27,9 @@ class Rubinius::VM
   end
 
   def self.show_backtrace(ctx)
-    Ruby.primitive :vm_show_backtrace
     raise PrimitiveFailure, "Rubinius::VM.show_backtrace primitive failed"
+#    Ruby.primitive :vm_show_backtrace
+#    raise PrimitiveFailure, "Rubinius::VM.show_backtrace primitive failed"
   end
 
   def self.reset_method_cache(sym)
@@ -44,11 +45,6 @@ class Object
 end
 
 class Class
-  def self.allocate
-    Ruby.primitive :class_s_allocate
-    raise PrimitiveFailure, "Unable to create a new Class"
-  end
-
   def allocate
     Ruby.primitive :class_allocate
     raise RuntimeError, "Class#allocate primitive failed on #{self.inspect}"

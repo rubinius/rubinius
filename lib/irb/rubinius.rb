@@ -16,10 +16,10 @@ module IRB
             bt = e.awesome_backtrace
 
             continue = true
-            bt.frames.each do |frame|
+            bt.each do |frame|
               next unless continue
               recv = frame.describe
-              loc = frame.location
+              loc = frame.position
               if %r!kernel/common/eval.rb!.match(loc)
                 continue = false
                 next

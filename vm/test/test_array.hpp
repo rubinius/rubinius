@@ -1,27 +1,20 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 
-#include "vm.hpp"
-#include "vm/object_utils.hpp"
-#include "objectmemory.hpp"
 #include "ffi_util.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestArray : public CxxTest::TestSuite {
+class TestArray : public CxxTest::TestSuite, public VMTest {
   public:
 
-  VM *state;
-
   void setUp() {
-    state = new VM(1024);
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_allocate() {

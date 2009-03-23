@@ -1,21 +1,16 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/regexp.hpp"
-#include "vm.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestRegexp : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
+class TestRegexp : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM(1024);
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_version() {

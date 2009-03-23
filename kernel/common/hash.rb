@@ -60,20 +60,6 @@ class Hash
     true
   end
 
-  def fetch(key, default = Undefined)
-    hsh = key.hash
-    bin = entry_bin hsh
-
-    if entry = bins[bin]
-      result = entry.find key, hsh
-      return result.value if result
-    end
-
-    return yield(key) if block_given?
-    return default unless default.equal?(Undefined)
-    raise IndexError, 'key not found'
-  end
-
   def [](key)
     hsh = key.hash
     bin = entry_bin hsh
@@ -131,7 +117,7 @@ class Hash
     bin = entry_bin hsh
 
     if entry = bins[bin]
-      result = entry.delete key, hsh
+      entry, result = entry.delete key, hsh
 
       bins[bin] = entry.next if result.nil?
       unless result
@@ -197,6 +183,20 @@ class Hash
   # idea of size will be consistent with emptiness.
   def empty?
     size == 0
+  end
+
+  def fetch(key, default = Undefined)
+    hsh = key.hash
+    bin = entry_bin hsh
+
+    if entry = bins[bin]
+      result = entry.find key, hsh
+      return result.value if result
+    end
+
+    return yield(key) if block_given?
+    return default unless default.equal?(Undefined)
+    raise IndexError, 'key not found'
   end
 
   def index(value)

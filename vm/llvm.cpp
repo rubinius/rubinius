@@ -7,9 +7,7 @@
 #include "vm/object_utils.hpp"
 
 #include "builtin/compiledmethod.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"

@@ -1,7 +1,6 @@
+#include "vm/test/test.hpp"
+
 #include "compiled_file.hpp"
-#include "vm/object_utils.hpp"
-#include "objectmemory.hpp"
-#include "builtin/task.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/lookuptable.hpp"
@@ -16,17 +15,15 @@
 
 using namespace rubinius;
 
-class TestCompiledFile : public CxxTest::TestSuite {
+class TestCompiledFile : public CxxTest::TestSuite, public VMTest {
 public:
 
-  VM* state;
-
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_load() {
@@ -55,31 +52,7 @@ public:
     CompiledFile* cf = CompiledFile::load(stream);
     TS_ASSERT_EQUALS(cf->magic, "!RBIX");
 
-    CompiledMethod* cm = as<CompiledMethod>(cf->body(state));
-    TS_ASSERT(cm);
-
-    Task* task = state->new_task();
-
-    Message msg(state);
-    msg.set_args(0);
-    msg.recv = G(main);
-    msg.module = G(object);
-    msg.name = state->symbol("moob");
-    msg.method = cm;
-    msg.set_caller(task->active());
-
-    cm->scope(state, StaticScope::create(state));
-    cm->scope()->module(state, G(object));
-
-    cm->execute(state, task, msg);
-
-    TS_ASSERT_THROWS(state->run_and_monitor(), Task::Halt);
-
-    Class* cls = try_as<Class>(G(object)->get_const(state, "Blah"));
-    TS_ASSERT(cls);
-
-    cm = try_as<CompiledMethod>(cls->method_table()->fetch(state, state->symbol("sweet")));
-
+    CompiledMethod* cm = try_as<CompiledMethod>(cf->body(state));
     TS_ASSERT(cm);
   }
 };

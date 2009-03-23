@@ -3,8 +3,6 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/lookuptable.hpp"
-#include "builtin/task.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
@@ -14,6 +12,12 @@
 #include "exception.hpp"
 #include "type_info.hpp"
 
+#include "builtin/location.hpp"
+#include "builtin/array.hpp"
+
+#include "call_frame.hpp"
+
+#include <iostream>
 
 namespace rubinius {
   void Exception::init(STATE) {
@@ -25,25 +29,39 @@ namespace rubinius {
     return state->new_object<Exception>(G(exception));
   }
 
+  void Exception::print_locations(STATE) {
+    for(size_t i = 0; i < locations_->size(); i++) {
+      if(Location* loc = try_as<Location>(locations_->get(state, i))) {
+        if(CompiledMethod* meth = try_as<CompiledMethod>(loc->method())) {
+          if(Symbol* file_sym = try_as<Symbol>(meth->file())) {
+            std::cout << file_sym->c_str(state) << ":"
+                      << meth->line(state, loc->ip()->to_native())
+                      << "\n";
+            continue;
+          }
+        }
+        std::cout << "<unknown>";
+      } else {
+        std::cout << "Bad locations entry detected.\n";
+      }
+    }
+  }
+
   Exception* Exception::make_exception(STATE, Class* exc_class, const char* message) {
     Exception* exc = state->new_object<Exception>(exc_class);
 
-    MethodContext* ctx = G(current_task)->active();
-    ctx->reference(state);
-
-    exc->context(state, ctx);
     exc->message(state, String::create(state, message));
 
     return exc;
   }
 
-  Exception* Exception::make_argument_error(STATE, int expected, int given) {
+  Exception* Exception::make_argument_error(STATE, int expected, int given, Symbol* meth) {
     Exception* exc = state->new_object<Exception>(G(exc_arg));
-    MethodContext* ctx = G(current_task)->active();
-    ctx->reference(state);
-    exc->context(state, ctx);
     exc->set_ivar(state, state->symbol("@given"), Fixnum::from(given));
     exc->set_ivar(state, state->symbol("@expected"), Fixnum::from(expected));
+    if(meth) {
+      exc->set_ivar(state, state->symbol("@method_name"), meth);
+    }
     return exc;
   }
 
@@ -71,7 +89,7 @@ namespace rubinius {
     if(!object->reference_p()) {
       msg << "  Tried to use non-reference value " << object;
     } else {
-      TypeInfo* was = state->find_type(object->obj_type);
+      TypeInfo* was = state->find_type(object->type_id());
       msg << "  Tried to use object of type " <<
         was->type_name << " (" << was->type << ")";
     }
@@ -115,12 +133,12 @@ namespace rubinius {
   }
 
   void Exception::object_bounds_exceeded_error(STATE, Object* obj, size_t index) {
-    TypeInfo* info = state->find_type(obj->obj_type); // HACK use object
+    TypeInfo* info = state->find_type(obj->type_id()); // HACK use object
     std::ostringstream msg;
 
     msg << "Bounds of object exceeded:" << std::endl;
-    msg << "      type: " << info->type_name << ", fields: " <<
-           obj->num_fields() << ", accessed: " << index << std::endl;
+    msg << "      type: " << info->type_name << ", bytes: " <<
+           obj->body_in_bytes(state) << ", accessed: " << index << std::endl;
 
     RubyException::raise(make_exception(state, get_object_bounds_exceeded_error(state),
                                         msg.str().c_str()));
@@ -133,11 +151,6 @@ namespace rubinius {
 
   Exception* Exception::make_errno_exception(STATE, Class* exc_class, Object* reason) {
     Exception* exc = state->new_object<Exception>(exc_class);
-
-    MethodContext* ctx = G(current_task)->active();
-    ctx->reference(state);
-
-    exc->context(state, ctx);
 
     String* message = (String*)reason;
     if(String* str = try_as<String>(exc_class->get_const(state, "Strerror"))) {
@@ -273,7 +286,7 @@ namespace rubinius {
 
     class_header(state, self);
     indent_attribute(++level, "message"); exc->message()->show(state, level);
-    indent_attribute(level, "context"); exc->context()->show_simple(state, level);
+    indent_attribute(level, "locations"); exc->locations()->show_simple(state, level);
     close_body(level);
   }
 }

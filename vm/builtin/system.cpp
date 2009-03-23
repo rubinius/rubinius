@@ -7,7 +7,10 @@
 #include <cstring>
 #include <sstream>
 
+#include <sys/wait.h>
 #include <unistd.h>
+
+#include "vm/call_frame.hpp"
 
 #include "vm/object_utils.hpp"
 #include "vm/vm.hpp"
@@ -24,16 +27,18 @@
 #include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
+#include "builtin/location.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/selector.hpp"
-#include "builtin/task.hpp"
 #include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
 
 #include "builtin/system.hpp"
+#include "signal.hpp"
 
+#include "instruments/stats.hpp"
 
 namespace rubinius {
 
@@ -94,9 +99,52 @@ namespace rubinius {
     return Qnil;
   }
 
+  Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang) {
+    pid_t input_pid = pid_obj->to_native();
+    int options = 0;
+    int status;
+    pid_t pid;
+
+    if(no_hang == Qtrue) {
+      options |= WNOHANG;
+    }
+
+  retry:
+
+    {
+      GlobalLock::UnlockGuard lock(state->global_lock());
+      pid = waitpid(input_pid, &status, options);
+    }
+
+    if(pid == -1) {
+      if(errno == ECHILD) return Qfalse;
+      if(errno == EINTR)  goto retry;
+
+      // TODO handle other errnos?
+      return Qfalse;
+    }
+
+    if(no_hang == Qtrue && pid == 0) {
+      return Qnil;
+    }
+
+    Object* output;
+    if(WIFEXITED(status)) {
+      output = Fixnum::from(WEXITSTATUS(status));
+    } else {
+      output = Qnil;
+    }
+
+    if(input_pid > 0) {
+      return output;
+    }
+
+    return Tuple::from(state, 2, output, Fixnum::from(pid));
+  }
+
   Object* System::vm_exit(STATE, Fixnum* code) {
-    ::exit(code->to_native());
-    return code;
+    state->thread_state()->raise_exit(code);
+    return NULL;
   }
 
   Fixnum* System::vm_fork(VM* state)
@@ -147,6 +195,8 @@ namespace rubinius {
       ary->set(state, i, Tuple::from(state, 2, var, val));
     }
 
+    delete list;
+
     return ary;
   }
 
@@ -158,31 +208,50 @@ namespace rubinius {
     return name;
   }
 
-  Object* System::vm_show_backtrace(STATE, Object* ctx) {
-    if(ctx == Qnil) {
-      G(current_task)->print_backtrace(NULL);
-    } else {
-      G(current_task)->print_backtrace(as<MethodContext>(ctx));
+  /** @todo Double-check it is OK to drop the first frame, which
+   *        /should/ be the #raise. --rue
+   *
+   *  @todo Could possibly capture the system backtrace at this
+   *        point. --rue
+   */
+  Array* System::vm_backtrace(VM* state, Fixnum* skip, CallFrame* calling_environment) {
+    CallFrame* call_frame = calling_environment;
+
+    for(native_int i = skip->to_native(); call_frame && i > 0; --i) {
+      call_frame = call_frame->previous;
     }
 
-    return Qnil;
+    Array* bt = Array::create(state, 5);
+
+    while(call_frame) {
+      // Ignore synthetic frames
+      if(call_frame->cm) {
+        bt->append(state, Location::create(state, call_frame));
+      }
+
+      call_frame = call_frame->previous;
+    }
+
+    return bt;
   }
 
-  Object* System::vm_profiler_instrumenter_start(STATE) {
-    G(current_task)->enable_profiler();
-    return Qtrue;
-  }
+/** @todo Fix, Task is gone. --rue */
+//  Object* System::vm_profiler_instrumenter_start(STATE) {
+//    G(current_task)->enable_profiler();
+//    return Qtrue;
+//  }
 
-  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
-    return G(current_task)->disable_profiler();
-  }
+/** @todo Fix, Task is gone. --rue */
+//  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
+//    return G(current_task)->disable_profiler();
+//  }
 
   Object* System::vm_write_error(STATE, String* str) {
     std::cerr << str->c_str() << std::endl;
     return Qnil;
   }
 
-  Object*  System::vm_jit_info(STATE) {
+  Object* System::vm_jit_info(STATE) {
     if(!state->config.jit_enabled) {
       return Qnil;
     }
@@ -194,8 +263,33 @@ namespace rubinius {
     return ary;
   }
 
-  Object*  System::vm_gc_info(STATE) {
-    return Integer::from(state, state->stats.time_in_gc);
+  Object* System::vm_stats_gc_clear(STATE) {
+#ifdef RBX_GC_STATS
+    stats::GCStats::clear();
+#endif
+    return Qnil;
+  }
+
+  Object* System::vm_stats_gc_info(STATE) {
+#ifdef RBX_GC_STATS
+    return stats::GCStats::get()->to_ruby(state);
+#else
+    return Qnil;
+#endif
+  }
+
+  Object* System::vm_watch_signal(STATE, Fixnum* sig) {
+    SignalThread* thr = state->shared.signal_thread();
+    if(thr) {
+      thr->add_signal(sig->to_native());
+      return Qtrue;
+    } else {
+      return Qfalse;
+    }
+  }
+
+  Object* System::vm_time(STATE) {
+    return Integer::from(state, time(0));
   }
 
 }

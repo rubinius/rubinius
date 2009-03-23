@@ -32,7 +32,7 @@ class TestGenerator
   class ExceptionBlock
     attr_accessor :start, :fin, :handler
 
-    def initialize(g)
+    def initialize(g, type=:rescue)
       @generator = g
       @start = g.new_label
       @handler = g.new_label
@@ -134,8 +134,8 @@ class TestGenerator
     @lbl
   end
 
-  def exceptions
-    eb = ExceptionBlock.new self
+  def exceptions(type=:rescue)
+    eb = ExceptionBlock.new self, type
     eb.start.set!
     yield eb
   end
@@ -192,125 +192,6 @@ class TestGenerator
   def find_cpath_top_const(name)
     g.push_cpath_top
     g.find_const name
-  end
-
-  def return_raise
-    g.push_cpath_top
-    g.find_const :LongReturnException
-    g.swap
-    g.push_context
-    g.swap
-    g.send :directed_to, 2
-    g.raise_exc
-  end
-
-  def break_raise
-    g.push_cpath_top
-    g.find_const :BlockBreakException
-    g.swap
-    g.push_context
-    g.swap
-    g.send :directed_to, 2
-    g.raise_exc
-  end
-
-  def return_rescue
-    ok = g.new_label
-    g.exceptions do |ex|
-      yield
-      ex.escape ok
-
-      ex.handle!
-
-      g.push_exception
-      g.dup
-      g.push_cpath_top
-      g.find_const :LongReturnException
-      g.swap
-      g.kind_of
-
-      reraise = g.new_label
-      g.gif reraise
-
-      # Test if this LRE is for us
-      g.dup
-      g.send :destination, 0
-      g.push_context
-      g.equal
-
-      g.gif reraise
-
-      # Ok, this is for us!
-      g.clear_exception
-
-      g.send :value, 0
-      g.ret
-
-      reraise.set!
-
-      g.raise_exc
-    end
-
-    ok.set!
-  end
-
-  def break_rescue
-    ok = g.new_label
-    g.exceptions do |ex|
-      yield
-      ex.escape ok
-
-      ex.handle!
-
-      g.push_exception
-      g.dup
-      g.push_cpath_top
-      g.find_const :BlockBreakException
-      g.swap
-      g.kind_of
-
-      reraise = g.new_label
-      g.gif reraise
-
-      # Test if this LRE is for us
-      g.dup
-      g.send :destination, 0
-      g.push_context
-      g.equal
-
-      g.gif reraise
-
-      # Ok, this is for us!
-      g.clear_exception
-
-      # We leave the value on the stack as the return value
-      g.send :value, 0
-
-      done = g.new_label
-      g.goto done
-
-      reraise.set!
-
-      g.raise_exc
-
-      done.set!
-    end
-
-    ok.set!
-  end
-
-  def passed_block(local=0, in_block=false)
-    if in_block
-      g.break_rescue do
-        yield
-      end
-    else
-      g.return_rescue do
-        g.break_rescue do
-          yield
-        end
-      end
-    end
   end
 
   def push_literal_desc(name = nil)
@@ -421,6 +302,7 @@ class TestGenerator
         d.set_local_depth 0, 0
       when :splat
         required = -1
+        d.cast_for_splat_block_arg
         d.cast_array
         d.cast_array
         d.set_local_depth 0, 0
@@ -505,11 +387,12 @@ class TestGenerator
       d.ret
     end
 
+    g.push_scope
+
     if singleton then
-      g.send :attach_method, 2
+      g.send :attach_method, 3
     else
-      g.push_scope
-      g.push_context
+      g.push_variables
       g.send :method_visibility, 0
       g.send :add_defn_method, 4
     end
@@ -546,8 +429,6 @@ class TestGenerator
   end
 
   def in_rescue(*klasses)
-    g.push_modifiers
-
     jump_retry   = g.new_label
     jump_else    = g.new_label
     jump_last    = g.new_label
@@ -560,6 +441,17 @@ class TestGenerator
       saved_exception_index = 0
     end
 
+    if has_ensure
+      ensure_good = g.new_label
+      ensure_bad = g.new_label
+
+      g.setup_unwind ensure_bad
+
+      jump_top = g.new_label
+      jump_top.set!
+    end
+
+    g.push_modifiers
     g.save_exception saved_exception_index
 
     jump_retry.set!
@@ -605,14 +497,11 @@ class TestGenerator
     g.pop_modifiers
 
     if has_ensure then
-      ensure_good = g.new_label
-      ensure_bad = g.new_label # TODO: magic jump!
-
+      g.pop_unwind
       g.goto ensure_good
       ensure_bad.set!
       yield :ensure
-      g.push_exception
-      g.raise_exc
+      g.reraise
 
       ensure_good.set!
       yield :ensure
@@ -662,7 +551,7 @@ class TestGenerator
   def undef_bytecode(*names)
     last_name = names.last
     names.each do |name|
-      g.push_context
+      g.push_scope
       g.push_literal name
       g.send :__undef_method__, 1
       g.pop unless name == last_name

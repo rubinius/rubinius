@@ -22,6 +22,14 @@ namespace rubinius {
     return as<Bignum>(this)->to_long_long();
   }
 
+  unsigned long long Integer::to_ulong_long() {
+    if(fixnum_p()) {
+      return ((Fixnum*)this)->to_ulong_long();
+    }
+
+    return as<Bignum>(this)->to_ulong_long();
+  }
+
   Integer* Integer::from(STATE, int num) {
 #if (__WORDSIZE != 64)
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {

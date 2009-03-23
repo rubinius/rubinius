@@ -1,4 +1,4 @@
-# depends on: class.rb block_context.rb binding.rb
+# depends on: class.rb binding.rb
 
 class Proc
 
@@ -6,9 +6,7 @@ class Proc
     Ruby.primitive :block_wrapper_from_env
 
     if env.__kind_of__(BlockEnvironment)
-      obj = FromBlock.allocate
-      obj.block = env
-      return obj
+      raise PrimitiveFailure, "Unable to create Proc from BlockEnvironment"
     else
       begin
         env.to_proc
@@ -22,12 +20,12 @@ class Proc
     if compiled_method
       return Proc::CompiledMethod.new(compiled_method)
     elsif block_given?
-      env = MethodContext.current.block
+      env = block_given?
     else
       # Support for ancient pre-block-pass style:
       # def something; Proc.new; end
       # something { a_block } => Proc instance
-      env = MethodContext.current.sender.block
+      env = VariableScope.of_sender.block
     end
 
     if env
@@ -49,9 +47,8 @@ class Proc
     @block.home_block.stack_trace_starting_at(start)
   end
 
-
   def inspect
-    "#<Proc:0x#{self.object_id.to_s(16)} @ #{@block.home_block.file}:#{@block.home_block.line}>"
+    "#<Proc:0x#{self.object_id.to_s(16)} @ #{@block.file}:#{@block.line}>"
   end
 
   alias_method :to_s, :inspect
@@ -69,32 +66,7 @@ class Proc
     self
   end
 
-  class FromBlock
-    alias_method :[], :call
-  end
-
-  class Function < Proc
-    def self.__setup__(block)
-      obj = allocate()
-      obj.block = block
-      return obj
-    end
-
-    def call(*args)
-      a = arity()
-      unless a < 0 or a == 1 or args.size == a
-        raise ArgumentError, "wrong number of arguments (#{args.size} for #{arity})"
-      end
-
-      begin
-        @block.call(*args)
-      rescue IllegalLongReturn, LongReturnException => e
-        return e.value
-      end
-    end
-
-    alias_method :[], :call
-  end
+  alias_method :[], :call
 
   class CompiledMethod < Proc
     def compiled_method; @compiled_method; end

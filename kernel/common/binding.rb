@@ -30,17 +30,19 @@
 # Binding objects have no class-specific methods.
 
 class Binding
-  attr_accessor :context
+  attr_accessor :variables
+  attr_accessor :code
   attr_accessor :proc_environment
 
   def from_proc?
     @proc_environment
   end
 
-  def self.setup(ctx)
+  def self.setup(variables, code)
     bind = allocate()
-    
-    bind.context = ctx
+
+    bind.variables = variables
+    bind.code = code
     return bind
   end
 end

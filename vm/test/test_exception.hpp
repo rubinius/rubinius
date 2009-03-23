@@ -1,24 +1,20 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/exception.hpp"
 #include "object_types.hpp"
 #include "exception.hpp"
 
 #include <errno.h>
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestException : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
+class TestException : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_type_error_raise() {

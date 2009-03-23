@@ -47,3 +47,23 @@ describe Object, "#extended_on" do
     ScratchPad.recorded.should == :yield
   end
 end
+
+describe Object, "#extended_on" do
+  before :each do
+    @guard = ExtensionsGuard.new
+    ExtensionsGuard.stub!(:new).and_return(@guard)
+  end
+
+  it "sets the name of the guard to :extended_on" do
+    extended_on(:rubinius) { }
+    @guard.name.should == :extended_on
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:match?).and_return(true)
+    @guard.should_receive(:unregister)
+    lambda do
+      extended_on(:rubinius) { raise Exception }
+    end.should raise_error(Exception)
+  end
+end

@@ -7,12 +7,10 @@ describe "A Postexe node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        in_block_send :at_exit, :none do |d|
-          d.push 1
-        end
+      in_block_send :at_exit, :none do |d|
+        d.push 1
       end
     end
   end

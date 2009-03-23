@@ -23,6 +23,9 @@ namespace rubinius {
     // Ruby.primitive :compactlookuptable_fetch
     Object* fetch(STATE, Object* key);
 
+    // Ruby.primitive :compactlookuptable_remove
+    Object* remove(STATE, Object* key);
+
     // Ruby.primitive :compactlookuptable_store
     Object* store(STATE, Object* key, Object* val);
 
@@ -39,7 +42,10 @@ namespace rubinius {
 
     class Info : public Tuple::Info {
     public:
-      Info(object_type type, bool cleanup = false) : Tuple::Info(type, cleanup) { }
+      Info(object_type type, bool cleanup = false)
+        : Tuple::Info(type, cleanup)
+      {}
+
       virtual void show(STATE, Object* self, int level);
     };
   };

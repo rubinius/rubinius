@@ -11,13 +11,11 @@
 #include "message.hpp"
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
-
-#include "builtin/task.hpp"
+#include "builtin/sendsite.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
-
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {
@@ -38,32 +36,39 @@ namespace rubinius {
   }
 
   bool CompiledFile::execute(STATE) {
-    Task* task = state->new_task();
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
-    Message msg(state);
-    msg.setup(NULL, G(main), task->active(), 0, 0);
-    msg.name = cm->name();
+    state->thread_state()->clear_exception();
+
+    CallFrame cf;
+    cf.previous = NULL;
+    cf.name = NULL;
+    cf.cm = NULL;
+    cf.top_scope = NULL;
+    cf.scope = NULL;
+    cf.stack_size = 0;
+    cf.current_unwind = 0;
+    cf.ip = 0;
+
+    GlobalLock::LockGuard lock(state->global_lock());
+
+    Message msg(state,
+                static_cast<SendSite*>(Qnil),
+                cm->name(),
+                G(main),
+                &cf,
+                0,
+                Qnil,
+                false,
+                static_cast<Module*>(Qnil));
     msg.module = G(object);
     msg.method = cm.get();
-
-    G(current_thread)->task(state, task);
-    state->activate_task(task);
 
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));
 
-    cm->execute(state, G(current_task), msg);
-    try {
-      state->run_and_monitor();
-    } catch(Task::Halt &e) {
-      return true;
-    }
+    cm->execute(state, &cf, msg);
 
-    // Task::execute contains the safe point, thus the above Task
-    // and CompiledMethod pointers have likely been moved. DO NOT
-    // USE THEM.
-
-    return false;
+    return true;
   }
 }

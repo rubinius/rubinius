@@ -2,6 +2,8 @@
 #define RBX_TASKPROBE_HPP
 
 #include "builtin/object.hpp"
+
+#include "vm/vmmethod.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
@@ -148,6 +150,7 @@ namespace rubinius {
     public:
       Info(object_type type, bool cleanup = false): TypeInfo(type, cleanup) { }
       virtual void mark(Object* t, ObjectMark& mark);
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 }

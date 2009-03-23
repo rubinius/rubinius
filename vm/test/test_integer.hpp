@@ -1,22 +1,16 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/list.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestInteger : public CxxTest::TestSuite {
-  public:
-
-  VM* state;
+class TestInteger : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_kind_of_numeric() {

@@ -1,29 +1,25 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/taskprobe.hpp"
 
-#include "builtin/contexts.hpp"
 #include "builtin/exception.hpp"
 
-#include "vm.hpp"
-#include "objectmemory.hpp"
 #include "global_cache.hpp"
-
-#include <cxxtest/TestSuite.h>
 
 using namespace rubinius;
 
-class TestTaskProbe : public CxxTest::TestSuite {
-  public:
+class TestTaskProbe : public CxxTest::TestSuite, public VMTest {
+public:
 
-  VM* state;
   TaskProbe* p;
 
   void setUp() {
-    state = new VM();
+    create();
     p = TaskProbe::create(state);
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_parse_env() {

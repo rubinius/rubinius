@@ -7,14 +7,15 @@ class MSpecScript
     'spec/frozen/core',
     'spec/frozen/language',
     'spec/core',
-    'spec/compiler'
+    'spec/compiler',
+
+    '^spec/core/compiledmethod',
+    '^spec/core/module',
 
     # These additional directories will be enabled as the
     # specs in them are updated for the C++ VM.
-    # 'spec/compiler',
     # 'spec/debugger',
     # 'spec/subtend',
-    # 'spec/parser',
   ]
 
   # The set of substitutions to transform a spec filename

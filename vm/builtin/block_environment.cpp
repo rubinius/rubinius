@@ -14,10 +14,9 @@
 
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/system.hpp"
 
 #include <iostream>
 
@@ -34,28 +33,55 @@ namespace rubinius {
     return env;
   }
 
-  void BlockEnvironment::call(STATE, Task* task, size_t args) {
+  /** @todo Duplicates VMMethod functionality. Refactor. --rue */
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, size_t args, int flags) {
     Object* val;
     if(args > 0) {
       Tuple* tup = Tuple::create(state, args);
+      int sp = 0;
       for(int i = args - 1; i >= 0; i--) {
-        tup->put(state, i, task->pop());
+        tup->put(state, i, call_frame->stack_back(sp++));
       }
 
       val = tup;
     } else {
       val = Qnil;
     }
-    task->pop(); // Remove this from the stack.
-    BlockContext* ctx = create_context(state, task->active());
 
-    if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
+    if(!vmm) {
+      method_->formalize(state, false);
+      vmm = method_->backend_method_;
+    }
 
-    task->make_active(ctx);
-    task->push(val);
+    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
+                               (vmm->number_of_locals * sizeof(Object*)));
+
+    scope->setup_as_block(top_scope_, scope_, vmm->number_of_locals);
+
+    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    frame->prepare(vmm->stack_size);
+
+    frame->is_block = true;
+    frame->previous = call_frame;
+    frame->name =     name_;
+    frame->cm =       method_;
+    frame->args =     args;
+    frame->scope =    scope;
+    frame->top_scope = top_scope_;
+    frame->flags =    flags;
+
+    // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
+
+    frame->push(val);
+    Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+
+    frame->scope->exit();
+
+    return ret;
   }
 
-  void BlockEnvironment::call(STATE, Task* task, Message& msg) {
+  /** @todo See above. --rue */
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Message& msg, int flags) {
     Object* val;
     if(msg.args() > 0) {
       Tuple* tup = Tuple::create(state, msg.args());
@@ -67,63 +93,102 @@ namespace rubinius {
     } else {
       val = Qnil;
     }
-    BlockContext* ctx = create_context(state, task->active());
 
-    if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
+    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
+                               (vmm->number_of_locals * sizeof(Object*)));
 
-    // HACK: manually clear the stack used as args.
-    task->active()->clear_stack(msg.stack);
+    scope->setup_as_block(top_scope_, scope_, vmm->number_of_locals);
 
-    task->make_active(ctx);
-    task->push(val);
+    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    frame->prepare(vmm->stack_size);
+
+    frame->is_block = true;
+    frame->previous = call_frame;
+    frame->name =     name_;
+    frame->cm =       method_;
+    frame->args =     msg.args();
+    frame->scope =    scope;
+    frame->top_scope = top_scope_;
+    frame->flags =    flags;
+
+    // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
+
+    frame->push(val);
+    return VMMethod::run_interpreter(state, vmm, frame);
   }
 
-  // TODO - Untested!!!!!!!!!!
-  ExecuteStatus BlockEnvironment::call_prim(STATE, Executable* exec, Task* task, Message& msg) {
-    call(state, task, msg);
-    return cExecuteRestart;
+  Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
+    return call(state, call_frame, msg);
   }
 
-  /*
-   * Allocates a context, adjusting the initial stack pointer by the number of
-   * locals the method requires.
-   */
-  BlockContext* BlockEnvironment::create_context(STATE, MethodContext* sender) {
-    BlockContext* ctx = BlockContext::create(state, method_->stack_size()->to_native());
-    ctx->sender(state, sender);
-    ctx->block(state, this);
-    ctx->cm(state, method_);
-    ctx->home(state, home_);
+  /** @todo See above. --emp */
+  Object* BlockEnvironment::call_on_object(STATE, CallFrame* call_frame, Message& msg, int flags) {
+    Object* val;
 
-    ctx->vmm = vmm ? vmm : method_->backend_method_;
-    ctx->run = ctx->vmm->run;
+    if(msg.args() < 1) {
+      Exception* exc =
+        Exception::make_argument_error(state, 1, msg.args(), state->symbol("__block__"));
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    }
 
-    ctx->ip = 0;
-    // HACK dup'd from MethodContext
-    ctx->position_stack(method_->number_of_locals() - 1);
+    Object* recv = msg.get_argument(0);
 
-    return ctx;
+    if(msg.args() > 1) {
+      Tuple* tup = Tuple::create(state, msg.args() - 1);
+      for(size_t i = 0, j = 1; j < msg.args(); i++, j++) {
+        tup->put(state, i, msg.get_argument(j));
+      }
+
+      val = tup;
+    } else {
+      val = Qnil;
+    }
+
+    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
+                               (vmm->number_of_locals * sizeof(Object*)));
+
+    scope->setup_as_block(top_scope_, scope_, vmm->number_of_locals, recv);
+
+    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    frame->prepare(vmm->stack_size);
+
+    frame->is_block = true;
+    frame->previous = call_frame;
+    frame->name =     name_;
+    frame->cm =       method_;
+    frame->args =     msg.args();
+    frame->scope =    scope;
+    frame->top_scope = top_scope_;
+    frame->flags =    flags;
+
+    // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
+
+    frame->push(val);
+    return VMMethod::run_interpreter(state, vmm, frame);
   }
 
-  BlockEnvironment* BlockEnvironment::under_context(STATE, CompiledMethod* cm,
-      MethodContext* parent, MethodContext* active, size_t index) {
+
+  BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
+      VMMethod* caller, CallFrame* call_frame, size_t index) {
 
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
 
-
     VMMethod* vmm;
-    if((vmm = active->vmm->blocks[index]) == NULL) {
+    if((vmm = caller->blocks[index]) == NULL) {
       vmm = new VMMethod(state, cm);
-      if(active->vmm->type) {
-        vmm->specialize(state, active->vmm->type);
+      if(caller->type) {
+        vmm->specialize(state, caller->type);
       }
-      active->vmm->blocks[index] = vmm;
+      caller->blocks[index] = vmm;
     }
 
-    be->home(state, parent);
-    be->home_block(state, active);
+    be->scope(state, call_frame->scope);
+    be->top_scope(state, call_frame->top_scope);
     be->method(state, cm);
     be->local_count(state, cm->local_count());
+    be->name(state, call_frame->name);
     be->vmm = vmm;
 
     return be;
@@ -132,10 +197,11 @@ namespace rubinius {
   BlockEnvironment* BlockEnvironment::dup(STATE) {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
 
-    be->home(state, home_);
-    be->home_block(state, home_block_);
+    be->scope(state, scope_);
+    be->top_scope(state, top_scope_);
     be->method(state, method_);
     be->local_count(state, local_count_);
+    be->name(state, name_);
     be->vmm = this->vmm;
 
     return be;
@@ -146,8 +212,8 @@ namespace rubinius {
     BlockEnvironment* be = as<BlockEnvironment>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "home"); be->home()->show(state, level);
-    indent_attribute(level, "home_block"); be->home_block()->show(state, level);
+    //indent_attribute(++level, "scope"); be->scope()->show(state, level);
+    // indent_attribute(level, "top_scope"); be->top_scope()->show(state, level);
     indent_attribute(level, "local_count"); be->local_count()->show(state, level);
     indent_attribute(level, "method"); be->method()->show(state, level);
     close_body(level);

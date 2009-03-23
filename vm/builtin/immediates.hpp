@@ -15,6 +15,7 @@ namespace rubinius {
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 
@@ -27,6 +28,7 @@ namespace rubinius {
       Info(object_type type) : TypeInfo(type, false) { }
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void show(STATE, Object* self, int level);
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 
@@ -39,6 +41,7 @@ namespace rubinius {
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void show(STATE, Object* self, int level);
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 }

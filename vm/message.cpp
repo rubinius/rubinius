@@ -3,12 +3,82 @@
 #include "message.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/task.hpp"
+#include "builtin/executable.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/contexts.hpp"
+#include "builtin/sendsite.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/module.hpp"
+
+#include <sstream>
 
 namespace rubinius {
 
+  Message::Message(STATE, SendSite* ss, Symbol* name, Object* recv, CallFrame* call_frame,
+                   size_t arg_count, Object* block, bool priv, Module* lookup_from) :
+    state(state),
+    arguments_array(NULL),
+    total_args(arg_count),
+    send_site(ss),
+    name(name),
+    recv(recv),
+    block(block),
+    priv(priv),
+    lookup_from(lookup_from),
+    method(static_cast<Executable*>(Qnil)),
+    module(static_cast<Module*>(Qnil)),
+    method_missing(false),
+    caller_(call_frame)
+  {
+    if(total_args > 0) {
+      stack_args_ = call_frame->stack_back_position(total_args - 1);
+      arguments_ = stack_args_;
+    } else {
+      arguments_ = stack_args_ = NULL;
+    }
+  }
+
+  Message::Message(STATE, CallFrame* call_frame, size_t arg_count):
+    state(state),
+    arguments_array(NULL),
+    total_args(arg_count),
+    send_site(NULL),
+    name(NULL),
+    recv(NULL),
+    block(NULL),
+    priv(false),
+    lookup_from(NULL),
+    method(NULL),
+    module(NULL),
+    method_missing(false),
+    caller_(call_frame)
+  {
+    if(total_args > 0) {
+      stack_args_ = call_frame->stack_back_position(total_args - 1);
+      arguments_ = stack_args_;
+    } else {
+      arguments_ = stack_args_ = NULL;
+    }
+  }
+
+  Message::Message(STATE, Symbol* name, Object* recv, size_t arg_count,
+                   Object* block, Module* lookup_from) :
+    state(state),
+    arguments_array(NULL),
+    total_args(arg_count),
+    stack_args_(NULL),
+    arguments_(NULL),
+    send_site(NULL),
+    name(name),
+    recv(recv),
+    block(block),
+    priv(false),
+    lookup_from(lookup_from),
+    method(static_cast<Executable*>(Qnil)),
+    module(static_cast<Module*>(Qnil)),
+    method_missing(false),
+    caller_(NULL) { }
+
+  /* @todo: is this used anywhere but test_nativefunction? */
   Message::Message(STATE, Array* ary):
     state(state),
     total_args(0),
@@ -16,7 +86,6 @@ namespace rubinius {
     name(NULL),
     recv(Qnil),
     block(Qnil),
-    stack(0),
     priv(false),
     lookup_from(NULL),
     method(NULL),
@@ -34,7 +103,6 @@ namespace rubinius {
     name(NULL),
     recv(Qnil),
     block(Qnil),
-    stack(0),
     priv(false),
     lookup_from(NULL),
     method(NULL),
@@ -44,6 +112,11 @@ namespace rubinius {
 
   void Message::set_arguments(STATE, Array* args) {
     use_array(args);
+  }
+
+  void Message::set_stack_args(int count, Object** args) {
+    stack_args_ = arguments_ = args;
+    total_args = count;
   }
 
   void Message::append_arguments(STATE, Array* splat) {
@@ -146,11 +219,32 @@ namespace rubinius {
     return caller_->self();
   }
 
-  void Message::use_from_task(Task* task, size_t args) {
-    set_caller(task->active());
-    set_args(args);
-    stack_args_ = caller_->stack_back_position(args - 1);
-    arguments_ = stack_args_;
+  /* Only called if send_message can't locate anything to run, which pretty
+   * much never happens, since it means even method_missing wasn't available. */
+  static void tragic_failure(STATE, Message& msg) {
+    std::stringstream ss;
+    ss << "unable to locate any method '" << msg.send_site->name()->c_str(state) <<
+      "' from '" << msg.lookup_from->name()->c_str(state) << "'";
+
+    Exception::assertion_error(state, ss.str().c_str());
   }
 
+  Object* Message::send(STATE, CallFrame* call_frame) {
+    Symbol* original_name = name;
+    if(!GlobalCacheResolver::resolve(state, *this)) {
+      method_missing = true;
+      name = G(sym_method_missing);
+      priv = true; // lets us look for method_missing anywhere
+      if(!GlobalCacheResolver::resolve(state, *this)) {
+        tragic_failure(state, *this);
+        return NULL;
+      }
+    }
+
+    if(method_missing) {
+      unshift_argument(state, original_name);
+    }
+
+    return method->execute(state, call_frame, *this);
+  }
 }

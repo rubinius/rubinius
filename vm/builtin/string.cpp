@@ -62,6 +62,32 @@ namespace rubinius {
     return so;
   }
 
+  /*
+   * Creates a String instance with +num_bytes+ bytes of storage.
+   * It also pins the ByteArray used for storage, so it can be passed
+   * to an external function (like ::read)
+   */
+  String* String::create_pinned(STATE, Fixnum* size) {
+    String *so;
+
+    so = state->new_object<String>(G(string));
+
+    so->num_bytes(state, size);
+    so->characters(state, size);
+    so->encoding(state, Qnil);
+    so->hash_value(state, (Integer*)Qnil);
+    so->shared(state, Qfalse);
+
+    size_t bytes = size->to_native() + 1;
+    ByteArray* ba = ByteArray::create_pinned(state, bytes);
+    ba->bytes[bytes-1] = 0;
+
+    so->data(state, ba);
+
+    return so;
+  }
+
+
   /* +bytes+ should NOT attempt to take the trailing null into account
    * +bytes+ is the number of 'real' characters in the string
    */
@@ -131,8 +157,6 @@ namespace rubinius {
   }
 
   const char* String::c_str() {
-    sassert(size() < data_->size());
-
     char* c_string = (char*)data_->bytes;
     if(c_string[size()] != 0) {
       c_string[size()] = 0;
@@ -406,14 +430,15 @@ namespace rubinius {
   String* String::pattern(STATE, Object* self, Fixnum* size, Object* pattern) {
     String* s = String::create(state, size);
     s->klass(state, (Class*)self);
-    s->IsTainted = self->IsTainted;
+
+    self->infect(state, s);
 
     native_int cnt = size->to_native();
 
     if(Fixnum* chr = try_as<Fixnum>(pattern)) {
       std::memset(s->data()->bytes, (int)chr->to_native(), cnt);
     } else if(String* pat = try_as<String>(pattern)) {
-      s->IsTainted |= pat->IsTainted;
+      pat->infect(state, s);
 
       native_int psz = pat->size();
       if(psz == 1) {

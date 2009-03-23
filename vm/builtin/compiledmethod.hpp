@@ -61,18 +61,14 @@ namespace rubinius {
     static CompiledMethod* create(STATE);
 
     int start_line(STATE);
-
-    // Use a stack of 1 so that the return value of the executed method
-    // has a place to go
-    const static size_t tramp_stack_size = 1;
-    static CompiledMethod* generate_tramp(STATE, size_t stack_size = tramp_stack_size);
+    int line(STATE, int ip);
 
     void post_marshal(STATE);
     size_t number_of_locals();
     VMMethod* formalize(STATE, bool ondemand=true);
     void specialize(STATE, TypeInfo* ti);
 
-    static ExecuteStatus default_executor(STATE, Task*, Message&);
+    static Object* default_executor(STATE, CallFrame*, Message&);
 
     // Ruby.primitive :compiledmethod_compile
     Object* compile(STATE);
@@ -81,7 +77,7 @@ namespace rubinius {
     MachineMethod* make_machine_method(STATE);
 
     // Ruby.primitive? :compiledmethod_activate
-    ExecuteStatus activate(STATE, Executable* exec, Task* task, Message& msg);
+    Object* activate(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
     bool is_rescue_target(STATE, int ip);
 
@@ -93,6 +89,9 @@ namespace rubinius {
 
     // Ruby.primitive :compiledmethod_is_breakpoint
     Object* is_breakpoint(STATE, Fixnum* ip);
+
+    // Ruby.primitive :compiledmethod_of_sender
+    static CompiledMethod* of_sender(STATE, CallFrame* calling_environment);
 
     class Info : public TypeInfo {
     public:

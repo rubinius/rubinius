@@ -20,6 +20,11 @@ class CompiledMethod < Executable
     raise PrimitiveFailure, "CompiledMethod#activate failed"
   end
 
+  def self.of_sender
+    Ruby.primitive :compiledmethod_of_sender
+    raise PrimitiveFailure, "CompiledMethod.of_sender failed"
+  end
+
   ##
   # An instance of Visibility is stored in a class's or module's
   # method table and records a method's visibility. The Visibility

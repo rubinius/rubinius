@@ -90,7 +90,6 @@ namespace rubinius {
         res = (res << DIGIT_BIT) | DIGIT(a,i);
       }
 
-      /* force result to 32-bits always so it is consistent on non 32-bit platforms */
       return res;
   }
 
@@ -295,6 +294,17 @@ namespace rubinius {
     }
 
     return ret;
+  }
+
+  Integer* Bignum::from(STATE, mp_int *num) {
+    if((size_t)mp_count_bits(num) <= FIXNUM_WIDTH) {
+      unsigned long val = mp_get_long(num);
+      return num->sign == MP_NEG ? Fixnum::from(-val) : Fixnum::from(val);
+    } else {
+      Bignum* n_obj = Bignum::create(state);
+      mp_copy(num, n_obj->mp_val());
+      return n_obj;
+    }
   }
 
   Bignum* Bignum::create(STATE, Fixnum* val) {
@@ -659,15 +669,25 @@ namespace rubinius {
   Object* Bignum::equal(STATE, Fixnum* b) {
     native_int bi = b->to_native();
     mp_int* a = mp_val();
+    bool clear_a = false;
+    mp_int n;
+
     if(bi < 0) {
       bi = -bi;
-      mp_int n;
       mp_init(&n);
       mp_copy(a, &n);
       mp_neg(&n, &n);
       a = &n;
+      clear_a = true;
     }
-    if(mp_cmp_d(a, bi) == MP_EQ) {
+
+    int r = mp_cmp_d(a, bi);
+
+    if(clear_a) {
+      mp_clear(a);
+    }
+
+    if(r == MP_EQ) {
       return Qtrue;
     }
     return Qfalse;
@@ -693,7 +713,11 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
 
-      switch(mp_cmp_d(&n, -bi)) {
+      int r = mp_cmp_d(&n, -bi);
+
+      mp_clear(&n);
+
+      switch(r) {
         case MP_LT:
           return Fixnum::from(1);
         case MP_GT:
@@ -735,7 +759,11 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
 
-      if(mp_cmp_d(&n, -bi) == MP_LT) {
+      int r = mp_cmp_d(&n, -bi);
+
+      mp_clear(&n);
+
+      if(r == MP_LT) {
         return Qtrue;
       }
       return Qfalse;
@@ -768,6 +796,7 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
       int r = mp_cmp_d(&n, -bi);
+      mp_clear(&n);
       if(r == MP_EQ || r == MP_LT) {
         return Qtrue;
       }
@@ -803,7 +832,11 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
 
-      if(mp_cmp_d(&n, -bi) == MP_GT) {
+      int r = mp_cmp_d(&n, -bi);
+
+      mp_clear(&n);
+
+      if(r == MP_GT) {
         return Qtrue;
       }
       return Qfalse;
@@ -836,6 +869,7 @@ namespace rubinius {
       mp_copy(a, &n);
       mp_neg(&n, &n);
       int r = mp_cmp_d(&n, -bi);
+      mp_clear(&n);
       if(r == MP_EQ || r == MP_GT) {
         return Qtrue;
       }
@@ -888,7 +922,9 @@ namespace rubinius {
     const char *s;
     int radix;
     int sign;
-    NMP;
+    mp_int n;
+    mp_init(&n);
+
     s = str;
     sign = 1;
     while(isspace(*s)) { s++; }
@@ -917,19 +953,40 @@ namespace rubinius {
           radix = 8; s += 1;
       }
     }
-    mp_read_radix(n, s, radix);
+    mp_read_radix(&n, s, radix);
 
     if(!sign) {
-      n->sign = MP_NEG;
+      n.sign = MP_NEG;
     }
 
-    return Bignum::normalize(state, n_obj);
+    Integer* res = Bignum::from(state, &n);
+
+    mp_clear(&n);
+
+    return res;
   }
 
   Integer* Bignum::from_string(STATE, const char *str, size_t radix) {
-    NMP;
-    mp_read_radix(n, str, radix);
-    return Bignum::normalize(state, n_obj);
+    char *endptr = NULL;
+    long l;
+
+    errno = 0;
+    l = strtol(str, &endptr, radix);
+
+    if(endptr != str && errno == 0 &&
+       l >= FIXNUM_MIN && l <= FIXNUM_MAX) {
+      return Fixnum::from(l);
+    }
+
+    mp_int n;
+    mp_init(&n);
+    mp_read_radix(&n, str, radix);
+
+    Integer* res = Bignum::from(state, &n);
+
+    mp_clear(&n);
+
+    return res;
   }
 
   void Bignum::into_string(STATE, size_t radix, char *buf, size_t sz) {

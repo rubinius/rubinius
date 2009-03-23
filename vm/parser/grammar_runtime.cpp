@@ -83,7 +83,7 @@ namespace rubinius {
         #undef cur_mid
         #undef tokidx
         #undef toksiz
-        parse_state->command_start = TRUE;
+        parse_state->command_start = true;
         parse_state->class_nest = 0;
         parse_state->in_single = 0;
         parse_state->in_def = 0;

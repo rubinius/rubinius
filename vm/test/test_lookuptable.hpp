@@ -1,21 +1,17 @@
-#include "vm.hpp"
+#include "vm/test/test.hpp"
 
-#include <cxxtest/TestSuite.h>
+class TestLookupTable : public CxxTest::TestSuite, public VMTest {
+public:
 
-using namespace rubinius;
-
-class TestLookupTable : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
   LookupTable *tbl;
+
   void setUp() {
-    state = new VM(1024);
+    create();
     tbl = LookupTable::create(state);
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_create() {

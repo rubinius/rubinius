@@ -30,6 +30,43 @@ class Debugger
     end
   end
 
+  def handle_breakpoints
+    until @quit do
+      begin
+        @debug_thread = @breakpoint_tracker.wait_for_breakpoint
+      rescue Exception => e
+        # An exception has occurred in the breakpoint or debugger code
+        STDERR.puts "An exception occured while processing a breakpoint:"
+        STDERR.puts e.to_s
+        STDERR.puts e.awesome_backtrace
+      end
+      @breakpoint_tracker.wake_target(@debug_thread) unless @quit  # defer wake until we cleanup
+    end
+
+    begin
+      # Release singleton, since our loop thread is exiting
+      Debugger.__clear_instance
+
+      # Remove all remaining breakpoints
+      @breakpoint_tracker.clear_breakpoints
+
+      # De-register debugger on the global debug channel
+      Rubinius::VM.debug_channel = nil
+
+      if @debug_thread
+        # @debug_thread will be nil if debugger was quit from other than this thread
+        @breakpoint_tracker.wake_target(@debug_thread)
+      end
+      @breakpoint_tracker.release_waiting_threads
+    rescue Exception => e
+      # An exception has occurred in the breakpoint or debugger code
+      STDERR.puts "An exception occured while exiting the debugger:"
+      STDERR.puts e.to_s
+      STDERR.puts e.awesome_backtrace
+    end
+
+  end
+
   # Initializes a new +Debugger+ instance
   def initialize
     @breakpoint_tracker = BreakpointTracker.new do |thread, ctxt, bp|
@@ -40,41 +77,7 @@ class Debugger
     Rubinius::VM.debug_channel = @breakpoint_tracker.debug_channel
 
     @quit = false
-    @breakpoint_listener = Thread.new do
-      until @quit do
-        begin
-          @debug_thread = @breakpoint_tracker.wait_for_breakpoint
-        rescue Exception => e
-          # An exception has occurred in the breakpoint or debugger code
-          STDERR.puts "An exception occured while processing a breakpoint:"
-          STDERR.puts e.to_s
-          STDERR.puts e.awesome_backtrace
-        end
-        @breakpoint_tracker.wake_target(@debug_thread) unless @quit  # defer wake until we cleanup
-      end
-
-      begin
-        # Release singleton, since our loop thread is exiting
-        Debugger.__clear_instance
-
-        # Remove all remaining breakpoints
-        @breakpoint_tracker.clear_breakpoints
-
-        # De-register debugger on the global debug channel
-        Rubinius::VM.debug_channel = nil
-
-        if @debug_thread
-          # @debug_thread will be nil if debugger was quit from other than this thread
-          @breakpoint_tracker.wake_target(@debug_thread)
-        end
-        @breakpoint_tracker.release_waiting_threads
-      rescue Exception => e
-        # An exception has occurred in the breakpoint or debugger code
-        STDERR.puts "An exception occured while exiting the debugger:"
-        STDERR.puts e.to_s
-        STDERR.puts e.awesome_backtrace
-      end
-    end
+    @breakpoint_listener = Thread.new { handle_breakpoints }
     Thread.pass until waiting_for_breakpoint?
   end
 

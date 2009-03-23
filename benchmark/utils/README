@@ -1,0 +1,100 @@
+The benchmark/rbs benchmarks are imported and refactored from the Ruby
+Benchmark Suite project at:
+
+  http://github.com/acangiano/ruby-benchmark-suite/tree/master
+
+The benchmarks are organized into layers. These are described below from the
+inside out.
+
+*   The benchmark file itself is very simple. It sets up the code needed to
+    run the benchmark and the calls Bench.run with an array of inputs and a
+    block to do the work.
+
+        def worker(n)
+          # do something with n
+        end
+
+        Bench.run [5, 10, 15] do |n|
+          worker n
+        end
+
+    This keeps the benchmark file focused on the benchmark code itself and not
+    all the extraneous driver, timing, and reporting code.
+
+*   The Bench runner class provides the time recording, statistical
+    calculations and reporting. The runner can be invoked directly using the
+    Ruby implementation of choice. It outputs details about the run to YAML
+    files, which can be post processed in many ways. Each run records an array
+    of times kept in the order they were run, the inputs passed to Bench.run,
+    the max, min, median, mean, and standard deviation for each set of
+    iterations. The Bench class is defined in benchmark/utils/bench.rb.
+
+    The benchmark file (above) and this Bench runner class are the most
+    complex code that will be run by the implementation being benchmarked.
+    This is an important aspect of the layered approach. An implementation
+    should not need more than classes, methods, instance variables, and a
+    couple system functions like Time.now and File.basename (this could be
+    removed) to run the benchmarks.
+
+*   Above the Bench runner, there is a monitor that invoke the runner and
+    aborts it if the run time exceeds a limit. This layer is entirely optional
+    and likely platform specific (especially on Windows). The current monitor
+    is in benchmark/utils/monitor.rb and relies on a shell script to abort a
+    process that runs longer than a certain number of seconds.
+
+    On Windows, there are several options including (possibly) running under
+    a cygwin Bash shell, writing a small C/C++ multithreaded program to system
+    and abort a process (this could be a portable program and used an all
+    platforms), using Windows scripting utilities (possibly).
+
+    Like the Bench runner, the monitor can be invoked directly.
+
+*   At the top are several Rake tasks that simplify running a whole directory
+    of benchmarks, the whole RBS suite, or just one benchmark file. These
+    tasks are illustrated below:
+
+        rake bench  # Runs all the RBS benchmarks
+
+        rake bench:file FILE=benchmark/rbs/core-features/bm_app_fib.rb
+
+        rake bench:dir DIR=benchmark/rbs/micro-benchmarks
+
+    The rake tasks format the reporting filename with date and time. The files
+    are currently stored in benchmark/results/rbs as the rbs/**/bm_*.rb files
+    are the only ones using this system. However, the reporting can be
+    generalized to the other benchmark directories when/if those benchmarks
+    are converted.
+
+    The rake tasks can customized by setting the following environment
+    variables:
+
+        VM         - The Ruby implementation to execute the Bench runner.
+
+        MONITOR    - The monitor program that will abort the Bench runner
+        process if it runs for longer than TIMEOUT seconds
+
+        RUNNER     - The Bench runner script
+
+        TIMEOUT    - The number of seconds before the Bench runner process
+        will be aborted. This should be limit of the expected time for
+        Bench.run to invoke the block ITERATIONS times for each item in the
+        inputs array.
+
+        ITERATIONS - The number of times Bench.run invokes the block for each
+        item in the inputs array.
+
+    There is also a task for converting several YAML results files into a
+    convenient CVS file. The YAML files are processed for the desired field in
+    each benchmark result. The field defaults to the "min" time.
+
+    To convert all the .yaml files in benchmark/results/rbs:
+
+        rake bench:to_csv
+
+    The task can be customized by setting the following environment variables:
+
+      RESULTS - The directory to search for the .yaml files and in which to
+      place the .csv file.
+
+      FIELD   - The item to extract for each benchmark in each results file.
+      This defaults to "min".

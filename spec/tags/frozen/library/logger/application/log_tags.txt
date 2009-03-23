@@ -1,2 +1,0 @@
-fails:Logger::Application#log logs a message
-fails:Logger::Application#log uses app name for Application Name

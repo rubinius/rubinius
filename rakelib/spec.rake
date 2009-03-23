@@ -15,8 +15,8 @@ task :spec => 'spec:ci'
 namespace :spec do
   namespace :setup do
     # Setup for 'Subtend' specs. No need to call this yourself.
-    task :subtend do
-      Dir["spec/subtend/**/Rakefile"].each do |rakefile|
+    task :capi do
+      Dir["spec/capi/**/Rakefile"].each do |rakefile|
         sh "rake -f #{rakefile}"
       end
     end
@@ -78,9 +78,9 @@ namespace :spec do
   end
 
 
-  desc "Run subtend (Rubinius C API) examples"
-  task :subtend => "spec:setup:subtend" do
-    sh "bin/mspec spec/rubinius/subtend"
+  desc "Run capi (Rubinius C API) examples"
+  task :capi => "spec:setup:capi" do
+    sh "bin/mspec spec/capi"
   end
 
   # Specdiffs to make it easier to see what your changes have affected :)

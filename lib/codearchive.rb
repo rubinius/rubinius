@@ -66,7 +66,7 @@ class CodeArchive
   def refresh_file(file)
     return false unless out_of_date?(file)
     
-    meth = Compile.compile_file(file)
+    meth = Compiler::Utils.compile_file(file)
     add_file(file, meth)
   end
   
@@ -74,7 +74,7 @@ class CodeArchive
     added = find_out_of_date(dir)
     added.each do |file|
       yield file if block_given?
-      meth = Compile.compile_file(file)
+      meth = Compiler::Utils.compile_file(file)
       add_file(file, meth)
     end
     

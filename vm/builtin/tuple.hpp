@@ -10,8 +10,15 @@ namespace rubinius {
   public:
     const static object_type type = TupleType;
 
+    native_int full_size_;
+
     /* Body access */
     Object* field[];
+
+  public:
+    uint32_t num_fields() const {
+      return (full_size_ - sizeof(Tuple)) / sizeof(Object*);
+    }
 
     static Tuple* create(STATE, size_t fields);
     static Tuple* from(STATE, size_t fields, ...);
@@ -46,6 +53,7 @@ namespace rubinius {
     Object* at(STATE, size_t index) {
       if(num_fields() <= index) {
         Exception::object_bounds_exceeded_error(state, this, index);
+        return NULL;
       }
       return field[index];
     }
@@ -57,6 +65,10 @@ namespace rubinius {
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
+      virtual void visit(Object*, ObjectVisitor& visit);
+
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
+      virtual size_t object_size(const ObjectHeader* object);
     };
   };
 };

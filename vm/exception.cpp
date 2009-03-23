@@ -5,6 +5,10 @@
 #include "exception.hpp"
 #include "detection.hpp"
 
+#include "builtin/string.hpp"
+#include "builtin/class.hpp"
+#include "builtin/symbol.hpp"
+
 #include <cctype>
 #include <vector>
 #include <iostream>
@@ -18,21 +22,12 @@
 namespace rubinius {
 
   void TypeError::raise(object_type type, Object* obj, const char* reason) {
-    VM* state = VM::current_state();
-    if(!state || !state->use_safe_position) {
-      throw TypeError(type, obj, reason);
-    }
-
-    state->raise_typeerror_safely(new TypeError(type, obj, reason));
+    throw TypeError(type, obj, reason);
     // Not reached.
   }
 
   void Assertion::raise(const char* reason) {
-    VM* state = VM::current_state();
-    if(!state || !state->use_safe_position) {
-      throw Assertion(reason);
-    }
-    state->raise_assertion_safely(new Assertion(reason));
+    throw Assertion(reason);
     // Not reached.
   }
 
@@ -41,19 +36,14 @@ namespace rubinius {
   }
 
   void RubyException::raise(Exception* exception, bool make_backtrace) {
-    VM* state = VM::current_state();
-    if(!state || !state->use_safe_position) {
-      throw RubyException(exception, make_backtrace);
-    }
-
-    state->raise_exception_safely(exception);
+    throw RubyException(exception, make_backtrace);
     // Not reached.
   }
 
   void RubyException::show(STATE) {
-    std::cout << exception->message();
+    std::cout << exception->message()->c_str()
+              << " (" << exception->class_object(state)->name()->c_str(state) << ") \n";
     print_backtrace();
-    state->print_backtrace();
   }
 
   static VMException::Backtrace get_trace(size_t skip) {

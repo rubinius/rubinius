@@ -8,33 +8,35 @@
 
 namespace rubinius {
   class Class;
-  class MethodContext;
+  class Array;
 
   class Exception : public Object {
   public:
     const static object_type type = ExceptionType;
 
   private:
-    String* message_;        // slot
-    MethodContext* context_; // slot
+    String* message_;  // slot
+    Array* locations_; // slot
 
   public:
     /* accessors */
 
     attr_accessor(message, String);
-    attr_accessor(context, MethodContext);
+    attr_accessor(locations, Array);
 
     /* interface */
 
     static void init(STATE);
     static Exception* create(STATE);
 
+    void print_locations(STATE);
+
     static Exception* make_exception(STATE, Class* exc_class, const char* message);
     static Exception* make_type_error(STATE, object_type type, Object* object,
                                       const char* reason = NULL);
     static Exception* make_errno_exception(STATE, Class* exc_class, Object* reason);
 
-    static Exception* make_argument_error(STATE, int expected, int given);
+    static Exception* make_argument_error(STATE, int expected, int given, Symbol* name=0);
     static void argument_error(STATE, int expected, int given);
     static void argument_error(STATE, const char* reason);
     static void regexp_error(STATE, const char* reason);

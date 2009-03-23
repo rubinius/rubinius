@@ -3,42 +3,6 @@ require 'mspec/utils/ruby_name'
 require 'mspec/guards/guard'
 require 'rbconfig'
 
-describe SpecGuard, ".register" do
-  before :each do
-    @tally = mock("tally")
-    @tally.stub!(:register)
-    TallyAction.stub!(:new).and_return(@tally)
-    SpecGuard.instance_variable_set(:@registered, nil)
-  end
-
-  it "creates a new TallyAction if one does not exist" do
-    TallyAction.should_receive(:new).and_return(@tally)
-    @tally.should_receive(:register)
-    SpecGuard.register
-    SpecGuard.register
-  end
-
-  it "registers itself with MSpec :finish actions" do
-    MSpec.should_receive(:register).with(:finish, SpecGuard)
-    SpecGuard.register
-  end
-end
-
-describe SpecGuard, ".unregister" do
-  before :each do
-    @tally = mock("tally")
-    @tally.stub!(:register)
-    TallyAction.stub!(:new).and_return(@tally)
-    SpecGuard.instance_variable_set(:@registered, nil)
-  end
-
-  it "unregisters its tally action" do
-    @tally.should_receive(:unregister)
-    SpecGuard.register
-    SpecGuard.unregister
-  end
-end
-
 describe SpecGuard, ".ruby_version" do
   before :all do
     @ruby_version = Object.const_get :RUBY_VERSION
@@ -116,6 +80,12 @@ describe SpecGuard, "#yield?" do
     @guard = SpecGuard.new
   end
 
+  after :each do
+    MSpec.unregister :add, @guard
+    MSpec.clear_modes
+    SpecGuard.clear_guards
+  end
+
   it "returns true if MSpec.mode?(:unguarded) is true" do
     MSpec.register_mode :unguarded
     @guard.yield?.should == true
@@ -139,6 +109,14 @@ describe SpecGuard, "#yield?" do
   it "returns true if MSpec.mode?(:report) is true regardless of invert being true" do
     MSpec.register_mode :report
     @guard.yield?(true).should == true
+  end
+
+  it "returns true if MSpec.mode?(:report_on) is true and SpecGuards.guards contains the named guard" do
+    MSpec.register_mode :report_on
+    SpecGuard.guards << :guard_name
+    @guard.yield?.should == false
+    @guard.name = :guard_name
+    @guard.yield?.should == true
   end
 
   it "returns #match? if neither report nor verify mode are true" do
@@ -430,30 +408,69 @@ end
 
 describe SpecGuard, "#unregister" do
   before :each do
-    @tally = mock("tally")
-    @tally.stub!(:register)
-    TallyAction.stub!(:new).and_return(@tally)
     MSpec.stub!(:unregister)
     @guard = SpecGuard.new
-
-    SpecGuard.instance_variable_set(:@registered, nil)
-    SpecGuard.register
   end
 
-  it "unregisters from MSpec :exclude actions" do
-    MSpec.should_receive(:unregister).with(:exclude, @guard)
-    @tally.should_receive(:unregister)
+  it "unregisters from MSpec :add actions" do
+    MSpec.should_receive(:unregister).with(:add, @guard)
     @guard.unregister
   end
+end
 
-  it "unregisters from MSpec :after actions" do
-    MSpec.should_receive(:unregister).with(:after, @guard)
-    @tally.should_receive(:unregister)
-    @guard.unregister
+describe SpecGuard, "#record" do
+  after :each do
+    SpecGuard.clear
   end
 
-  it "invokes the class's unregister method" do
-    SpecGuard.should_receive(:unregister)
-    @guard.unregister
+  it "saves the name of the guarded spec under the name of the guard" do
+    guard = SpecGuard.new "a", "1.8"..."1.9"
+    guard.name = :named_guard
+    guard.record "SomeClass#action returns true"
+    SpecGuard.report.should == {
+      'named_guard a, 1.8...1.9' => ["SomeClass#action returns true"]
+    }
+  end
+end
+
+describe SpecGuard, ".guards" do
+  it "returns an Array" do
+    SpecGuard.guards.should be_kind_of(Array)
+  end
+end
+
+describe SpecGuard, ".clear_guards" do
+  it "resets the array to empty" do
+    SpecGuard.guards << :guard
+    SpecGuard.guards.should == [:guard]
+    SpecGuard.clear_guards
+    SpecGuard.guards.should == []
+  end
+end
+
+describe SpecGuard, ".finish" do
+  before :each do
+    $stdout = @out = IOStub.new
+  end
+
+  after :each do
+    $stdout = STDOUT
+    SpecGuard.clear
+  end
+
+  it "prints the descriptions of the guarded specs" do
+    guard = SpecGuard.new "a", "1.8"..."1.9"
+    guard.name = :named_guard
+    guard.record "SomeClass#action returns true"
+    guard.record "SomeClass#reverse returns false"
+    SpecGuard.finish
+    $stdout.should == %[
+
+2 specs omitted by guard: named_guard a, 1.8...1.9:
+
+SomeClass#action returns true
+SomeClass#reverse returns false
+
+]
   end
 end

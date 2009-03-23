@@ -1,1 +1,0 @@
-fails:Array#dup does not copy frozen status from the original

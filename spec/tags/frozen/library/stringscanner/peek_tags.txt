@@ -1,2 +1,1 @@
-fails:StringScanner#peek raises a ArgumentError when the passed argument is negative
 fails:StringScanner#peek raises a RangeError when the passed argument is a Bignum

@@ -4,9 +4,11 @@
 #include <vector>
 
 #include "executor.hpp"
-#include "gc_root.hpp"
+#include "gc/root.hpp"
 #include "primitives.hpp"
 #include "type_info.hpp"
+
+#include "vm/builtin/compiledmethod.hpp"
 
 namespace rubinius {
   typedef void* instlocation;
@@ -22,10 +24,9 @@ namespace rubinius {
   class Opcode;
   class SendSite;
   class VMMethod;
-  class Task;
   class MachineMethod;
 
-  typedef void (*Runner)(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
+  typedef Object* (*Runner)(STATE, VMMethod* const vmm, CallFrame* const call_frame);
 
   class VMMethod {
   private:
@@ -33,8 +34,6 @@ namespace rubinius {
 
   public:
     static instlocation* instructions;
-
-    // To run this method, we execute this function pointer
     Runner run;
 
     opcode* opcodes;
@@ -67,13 +66,34 @@ namespace rubinius {
 
     void specialize(STATE, TypeInfo* ti);
     void compile(STATE);
-    static ExecuteStatus execute(STATE, Task* task, Message& msg);
+    static Object* execute(STATE, CallFrame* call_frame, Message& msg);
 
     template <typename ArgumentHandler>
-      static ExecuteStatus execute_specialized(STATE, Task* task, Message& msg);
+      static Object* execute_specialized(STATE, CallFrame* call_frame, Message& msg);
 
-    static void interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
-    static void debugger_interpreter(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
+    struct InterpreterState {
+      bool allow_private;
+      int call_flags;
+
+      InterpreterState()
+        : allow_private(false)
+        , call_flags(0)
+      {}
+    };
+
+    /**
+     *  Dispatch method on the defined interpreter.
+     */
+    static Object* run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+
+    /**
+     *  Interpreting implementation.
+     *
+     *  @see  vm/llvm/instructions.cpp for the code.
+     */
+    static Object* interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+
+    static Object* debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
 
     void setup_argument_handler(CompiledMethod* meth);
 
@@ -82,6 +102,9 @@ namespace rubinius {
     bool validate_ip(STATE, size_t ip);
     void set_breakpoint_flags(STATE, size_t ip, bpflags flags);
     bpflags get_breakpoint_flags(STATE, size_t ip);
+
+    void fill_opcodes(STATE);
+    void find_super_instructions();
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a

@@ -14,7 +14,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
 #include "builtin/selector.hpp"
-#include "builtin/task.hpp"
 #include "builtin/float.hpp"
 #include "objectmemory.hpp"
 #include "message.hpp"
@@ -57,14 +56,6 @@ namespace rubinius {
     return other;
   }
 
-  void Object::copy_flags(STATE, Object* source) {
-    this->obj_type        = source->obj_type;
-    this->StoresBytes     = source->StoresBytes;
-    this->RequiresCleanup = source->RequiresCleanup;
-    this->IsBlockContext  = source->IsBlockContext;
-    this->IsMeta          = source->IsMeta;
-  }
-
   void Object::copy_internal_state_from(STATE, Object* original) {
     if(MetaClass* mc = try_as<MetaClass>(original->klass())) {
       LookupTable* source_methods = mc->method_table()->dup(state);
@@ -79,10 +70,16 @@ namespace rubinius {
   }
 
   Object* Object::dup(STATE) {
-    Object* other = state->om->allocate_object(this->total_size());
+    Object* other = state->om->allocate_object(this->total_size(state));
+
+#ifdef RBX_GC_STATS
+    // This counter is only valid if the line above allocates in the
+    // young object space.
+    stats::GCStats::get()->young_object_types[this->type_id()]++;
+#endif
 
     other->initialize_copy(this, age);
-    other->copy_body(this);
+    other->copy_body(state, this);
 
     // Set the dup's class this's class
     other->klass(state, class_object(state));
@@ -105,19 +102,21 @@ namespace rubinius {
       // and call, the wrong one will be called.
       if(LookupTable* lt = try_as<LookupTable>(ivars_)) {
         other->ivars_ = lt->dup(state);
+        LookupTable* ld = as<LookupTable>(other->ivars_);
 
         // We store the object_id in the ivar table, so nuke it.
-        lt->remove(state, G(sym_object_id));
+        ld->remove(state, G(sym_object_id));
+        ld->remove(state, state->symbol("frozen"));
       } else {
         // Use as<> so that we throw a TypeError if there is something else
         // here.
         CompactLookupTable* clt = as<CompactLookupTable>(ivars_);
         other->ivars_ = clt->dup(state);
+        CompactLookupTable* ld = as<CompactLookupTable>(other->ivars_);
 
         // We store the object_id in the ivar table, so nuke it.
-        if(clt->has_key(state, G(sym_object_id))) {
-          clt->store(state, G(sym_object_id), Qnil);
-        }
+        ld->remove(state, G(sym_object_id));
+        ld->remove(state, state->symbol("frozen"));
       };
     }
 
@@ -128,15 +127,16 @@ namespace rubinius {
     return this == other ? Qtrue : Qfalse;
   }
 
-  Object* Object::freeze() {
+  Object* Object::freeze(STATE) {
     if(reference_p()) {
-      this->IsFrozen = TRUE;
+      set_ivar(state, state->symbol("frozen"), Qtrue);
     }
     return this;
   }
 
-  Object* Object::frozen_p() {
-    if(reference_p() && this->IsFrozen) {
+  Object* Object::frozen_p(STATE) {
+    if(reference_p()) {
+      if(get_ivar(state, state->symbol("frozen"))->nil_p()) return Qfalse;
       return Qtrue;
     } else {
       return Qfalse;
@@ -194,7 +194,7 @@ namespace rubinius {
   }
 
   object_type Object::get_type() const {
-    if(reference_p()) return obj_type;
+    if(reference_p()) return type_id();
     if(fixnum_p()) return FixnumType;
     if(symbol_p()) return SymbolType;
     if(nil_p()) return NilType;
@@ -248,17 +248,16 @@ namespace rubinius {
     }
   }
 
-  void Object::infect(Object* other) {
-    if(this->tainted_p() == Qtrue) {
-      other->taint();
+  void Object::infect(STATE, Object* other) {
+    if(this->tainted_p(state) == Qtrue) {
+      other->taint(state);
     }
   }
 
   /* Initialize the object as storing bytes, by setting the flag then clearing the
    * body of the object, by setting the entire body as bytes to 0 */
-  void Object::init_bytes() {
-    this->StoresBytes = 1;
-    clear_body_to_null();
+  void Object::init_bytes(STATE) {
+    clear_body_to_null(size_in_bytes(state));
   }
 
   bool Object::kind_of_p(STATE, Object* module) {
@@ -298,35 +297,30 @@ namespace rubinius {
     return class_object(state);
   }
 
-  bool Object::send(STATE, Symbol* name, size_t count_args, ...) {
-    va_list va;
-    Array* args = Array::create(state, count_args);
-
-    // Use the va_* macros to iterate over the variable number of
-    // arguments passed in.
-    va_start(va, count_args);
-    for(size_t i = 0; i < count_args; i++) {
-      args->set(state, i, va_arg(va, Object*));
-    }
-    va_end(va);
-
-    return send_on_task(state, G(current_task), name, args);
-  }
-
-  bool Object::send_on_task(STATE, Task* task, Symbol* name, Array* args) {
+  Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* args,
+      Object* block, bool allow_private) {
     Message msg(state);
     msg.name = name;
     msg.recv = this;
     msg.lookup_from = this->lookup_begin(state);
-    msg.stack = 0;
-    msg.set_caller(task->active());
+    msg.block = block;
+    msg.set_caller(caller);
+    msg.priv = allow_private;
 
     msg.set_arguments(state, args);
 
-    return task->send_message_slowly(msg);
+    return msg.send(state, caller);
   }
 
-  ExecuteStatus Object::send_prim(STATE, Executable* exec, Task* task, Message& msg) {
+  Object* Object::send(STATE, CallFrame* caller, Symbol* name, bool allow_private) {
+    Message msg(state, name, this, 0, Qnil, lookup_begin(state));
+    msg.set_caller(caller);
+    msg.priv = allow_private;
+
+    return msg.send(state, caller);
+  }
+
+  Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     Object* meth = msg.shift_argument(state);
     Symbol* sym = try_as<Symbol>(meth);
 
@@ -336,19 +330,11 @@ namespace rubinius {
 
     msg.name = sym;
     msg.priv = true;
-    return task->send_message_slowly(msg);
+    return msg.send(state, call_frame);
   }
 
   void Object::set_field(STATE, size_t index, Object* val) {
     type_info(state)->set_field(state, this, index, val);
-  }
-
-  void Object::set_forward(STATE, Object* fwd) {
-    assert(zone == YoungObjectZone);
-    Forwarded = 1;
-    // DO NOT USE klass() because we need to get around the
-    // write barrier!
-    klass_ = (Class*)fwd;
   }
 
   Object* Object::set_ivar(STATE, Symbol* sym, Object* val) {
@@ -396,6 +382,37 @@ namespace rubinius {
 
     try_as<LookupTable>(ivars_)->store(state, sym, val);
     return val;
+  }
+
+  Object* Object::del_ivar(STATE, Symbol* sym) {
+    LookupTable* tbl;
+
+    /* Implements the external ivars table for objects that don't
+       have their own space for ivars. */
+    if(!reference_p()) {
+      tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+
+      if(tbl) tbl->remove(state, sym);
+      return this;
+    }
+
+    /* We might be trying to access a field, so check there first. */
+    TypeInfo* ti = state->om->find_type_info(this);
+    if(ti) {
+      TypeInfo::Slots::iterator it = ti->slots.find(sym->index());
+      // Can't remove a slot, so just bail.
+      if(it != ti->slots.end()) return this;
+    }
+
+    /* No ivars, we're done! */
+    if(ivars_->nil_p()) return this;
+
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+      tbl->remove(state, sym);
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+      tbl->remove(state, sym);
+    }
+    return this;
   }
 
   String* Object::to_s(STATE, bool address) {
@@ -446,15 +463,17 @@ namespace rubinius {
     return Qnil;
   }
 
-  Object* Object::taint() {
+  Object* Object::taint(STATE) {
     if(reference_p()) {
-      this->IsTainted = TRUE;
+      set_ivar(state, state->symbol("tainted"), Qtrue);
     }
     return this;
   }
 
-  Object* Object::tainted_p() {
-    if(reference_p() && this->IsTainted) {
+  Object* Object::tainted_p(STATE) {
+    if(reference_p()) {
+      Object* b = get_ivar(state, state->symbol("tainted"));
+      if(b->nil_p()) return Qfalse;
       return Qtrue;
     } else {
       return Qfalse;
@@ -465,9 +484,9 @@ namespace rubinius {
     return state->om->type_info[get_type()];
   }
 
-  Object* Object::untaint() {
+  Object* Object::untaint(STATE) {
     if(reference_p()) {
-      this->IsTainted = FALSE;
+      del_ivar(state, state->symbol("tainted"));
     }
     return this;
   }

@@ -1,23 +1,17 @@
-#include "vm.hpp"
-#include "objectmemory.hpp"
+#include "vm/test/test.hpp"
+
 #include "builtin/object.hpp"
 #include "builtin/compactlookuptable.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestObject : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
+class TestObject : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM(1024);
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_change_class_to() {
@@ -164,14 +158,12 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_dup_bytes() {
-    ByteArray* obj = state->om->new_object_bytes<ByteArray>(G(object), 1);
-    obj->StoresBytes = 1;
+    ByteArray* obj = ByteArray::create(state, 1);
 
     obj->bytes[0] = 8;
 
     ByteArray* obj2 = (ByteArray*)obj->dup(state);
 
-    TS_ASSERT(obj2->stores_bytes_p());
     TS_ASSERT_EQUALS(obj2->bytes[0], 8);
   }
 
@@ -342,80 +334,80 @@ class TestObject : public CxxTest::TestSuite {
     Object* obj1 = util_new_object();
     Object* obj2 = util_new_object();
 
-    TS_ASSERT_EQUALS(obj1->tainted_p(), Qfalse);
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj1->tainted_p(state), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
 
-    obj1->infect(obj2);
+    obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
 
-    obj1->taint();
-    obj1->infect(obj2);
+    obj1->taint(state);
+    obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qtrue);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qtrue);
   }
 
   void test_infect_non_reference() {
     Object* obj1 = util_new_object();
     Object* obj2 = Integer::from(state, 5);
 
-    obj1->infect(obj2);
+    obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
 
-    obj1->taint();
-    obj1->infect(obj2);
+    obj1->taint(state);
+    obj1->infect(state, obj2);
 
-    TS_ASSERT_EQUALS(obj2->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj2->tainted_p(state), Qfalse);
   }
 
   void test_tainted_p() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
-    obj->taint();
-    TS_ASSERT_EQUALS(obj->tainted_p(), Qtrue);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), Qfalse);
+    obj->taint(state);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), Qtrue);
   }
 
   void test_tainted_p_non_reference() {
     Object* obj = Integer::from(state, 5);
 
-    TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
-    obj->taint();
-    TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), Qfalse);
+    obj->taint(state);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), Qfalse);
   }
 
   void test_taint() {
     Object* obj = util_new_object();
 
-    TS_ASSERT(!obj->IsTainted);
-    obj->taint();
-    TS_ASSERT(obj->IsTainted);
+    TS_ASSERT(obj->tainted_p(state) == Qfalse);
+    obj->taint(state);
+    TS_ASSERT(obj->tainted_p(state) == Qtrue);
   }
 
   void test_untaint() {
     Object* obj = util_new_object();
 
-    obj->IsTainted = TRUE;
-    TS_ASSERT(obj->IsTainted);
-    obj->untaint();
-    TS_ASSERT(!obj->IsTainted);
+    obj->taint(state);
+    TS_ASSERT(obj->tainted_p(state) == Qtrue);
+    obj->untaint(state);
+    TS_ASSERT(obj->tainted_p(state) == Qfalse);
   }
 
   void test_frozen_p() {
     Object* obj = util_new_object();
 
-    TS_ASSERT_EQUALS(obj->frozen_p(), Qfalse);
-    obj->IsFrozen = TRUE;
-    TS_ASSERT_EQUALS(obj->frozen_p(), Qtrue);
+    TS_ASSERT_EQUALS(obj->frozen_p(state), Qfalse);
+    obj->freeze(state);
+    TS_ASSERT_EQUALS(obj->frozen_p(state), Qtrue);
   }
 
   void test_freeze() {
     Object* obj = util_new_object();
 
-    TS_ASSERT(!obj->IsFrozen);
-    obj->freeze();
-    TS_ASSERT(obj->IsFrozen);
+    TS_ASSERT(obj->frozen_p(state) == Qfalse);
+    obj->freeze(state);
+    TS_ASSERT(obj->frozen_p(state));
   }
 
   void test_nil_class() {
@@ -456,11 +448,6 @@ class TestObject : public CxxTest::TestSuite {
     mod->superclass(state, m);
 
     TS_ASSERT_EQUALS(cls, obj->class_object(state));
-
-    obj->klass(state, (Class*)Qnil);
-
-    TS_ASSERT_THROWS_ASSERT(obj->class_object(state), const RubyException &e,
-                            TS_ASSERT(Exception::assertion_error_p(state, e.exception)));
   }
 
   void test_symbol_class() {
@@ -478,145 +465,6 @@ class TestObject : public CxxTest::TestSuite {
     // cm->formalize(state);
 
     return cm;
-  }
-
-  void test_send_prim() {
-    CompiledMethod* cm = create_cm();
-    cm->required_args(state, Fixnum::from(2));
-    cm->total_args(state, cm->required_args());
-    cm->local_count(state, cm->required_args());
-    cm->stack_size(state, cm->required_args());
-    cm->splat(state, Qnil);
-
-    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
-
-    Task* task = Task::create(state, 3);
-
-    task->push(state->symbol("blah"));
-    task->push(Fixnum::from(3));
-    task->push(Fixnum::from(4));
-
-    MethodContext* input_context = task->active();
-
-    Message msg(state);
-    msg.block = Qnil;
-    msg.recv = Qtrue;
-    msg.lookup_from = G(true_class);
-    msg.name = state->symbol("__send__");
-    msg.send_site = SendSite::create(state, state->symbol("__send__"));
-    msg.use_from_task(task, 3);
-
-    Qtrue->send_prim(state, NULL, task, msg);
-
-    TS_ASSERT(task->active() != input_context);
-    TS_ASSERT_EQUALS(task->active()->args, 2U);
-    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
-    TS_ASSERT_EQUALS(task->active()->cm(), cm);
-    TS_ASSERT_EQUALS(task->active()->name(), state->symbol("blah"));
-  }
-
-  void test_send_prim_with_string() {
-    CompiledMethod* cm = create_cm();
-    cm->required_args(state, Fixnum::from(2));
-    cm->total_args(state, cm->required_args());
-    cm->local_count(state, cm->required_args());
-    cm->stack_size(state, cm->required_args());
-    cm->splat(state, Qnil);
-
-    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
-
-    Task* task = Task::create(state, 3);
-
-    task->push(String::create(state, "blah", 4));
-    task->push(Fixnum::from(3));
-    task->push(Fixnum::from(4));
-
-    MethodContext* input_context = task->active();
-
-    Message msg(state);
-    msg.block = Qnil;
-    msg.recv = Qtrue;
-    msg.lookup_from = G(true_class);
-    msg.name = state->symbol("__send__");
-    msg.send_site = SendSite::create(state, state->symbol("__send__"));
-    msg.use_from_task(task, 3);
-
-    Qtrue->send_prim(state, NULL, task, msg);
-
-    TS_ASSERT(task->active() != input_context);
-    TS_ASSERT_EQUALS(task->active()->args, 2U);
-    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
-    TS_ASSERT_EQUALS(task->active()->cm(), cm);
-    TS_ASSERT_EQUALS(task->active()->name(), state->symbol("blah"));
-  }
-
-  void test_send_prim_private() {
-    CompiledMethod* cm = create_cm();
-    cm->required_args(state, Fixnum::from(2));
-    cm->total_args(state, cm->required_args());
-    cm->local_count(state, cm->required_args());
-    cm->stack_size(state, cm->required_args());
-    cm->splat(state, Qnil);
-
-    MethodVisibility* vis = MethodVisibility::create(state);
-    vis->method(state, cm);
-    vis->visibility(state, G(sym_private));
-
-    G(true_class)->method_table()->store(state, state->symbol("blah"), vis);
-
-    Task* task = Task::create(state, 3);
-
-    task->push(state->symbol("blah"));
-    task->push(Fixnum::from(3));
-    task->push(Fixnum::from(4));
-
-    MethodContext* input_context = task->active();
-
-    Message msg(state);
-    msg.recv = Qtrue;
-    msg.lookup_from = G(true_class);
-    msg.name = state->symbol("__send__");
-    msg.send_site = SendSite::create(state, state->symbol("__send__"));
-    msg.use_from_task(task, 3);
-
-    Qtrue->send_prim(state, NULL, task, msg);
-
-    TS_ASSERT(task->active() != input_context);
-    TS_ASSERT_EQUALS(task->active()->args, 2U);
-    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
-    TS_ASSERT_EQUALS(task->active()->cm(), cm);
-    TS_ASSERT_EQUALS(task->active()->name(), state->symbol("blah"));
-  }
-
-  void test_send() {
-    CompiledMethod* cm = create_cm();
-    cm->required_args(state, Fixnum::from(2));
-    cm->total_args(state, cm->required_args());
-    cm->local_count(state, cm->required_args());
-    cm->stack_size(state, cm->required_args());
-    cm->splat(state, Qnil);
-
-    G(true_class)->method_table()->store(state, state->symbol("blah"), cm);
-
-    Task* task = Task::create(state, 2);
-
-    state->globals.current_task.set(task);
-
-    MethodContext* input_context = task->active();
-
-    Qtrue->send(state, state->symbol("blah"), 2, Fixnum::from(3),
-          Fixnum::from(4));
-
-    TS_ASSERT(task->active() != input_context);
-    TS_ASSERT_EQUALS(task->active()->args, 2U);
-    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(4));
-    TS_ASSERT_EQUALS(task->active()->cm(), cm);
-    TS_ASSERT_EQUALS(task->active()->name(), state->symbol("blah"));
-
   }
 
   void test_nil_p() {

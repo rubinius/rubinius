@@ -1,1 +1,0 @@
-fails:IO#fsync raises IOError on closed stream

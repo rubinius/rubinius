@@ -47,3 +47,23 @@ describe Object, "#deviates_on" do
     ScratchPad.recorded.should == :yield
   end
 end
+
+describe Object, "#deviates_on" do
+  before :each do
+    @guard = NonComplianceGuard.new
+    NonComplianceGuard.stub!(:new).and_return(@guard)
+  end
+
+  it "sets the name of the guard to :deviates_on" do
+    deviates_on(:jruby) { }
+    @guard.name.should == :deviates_on
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:match?).and_return(true)
+    @guard.should_receive(:unregister)
+    lambda do
+      deviates_on(:rubinius) { raise Exception }
+    end.should raise_error(Exception)
+  end
+end

@@ -1,1 +1,3 @@
 incomplete:Kernel#local_variables needs to be reviewed for spec completeness
+fails:Kernel.local_variables contains locals as they are added
+fails:Kernel.local_variables is accessable from bindings

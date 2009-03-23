@@ -1,20 +1,16 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/tuple.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestTuple : public CxxTest::TestSuite {
+class TestTuple : public CxxTest::TestSuite, public VMTest {
 public:
 
-  VM* state;
-
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   Tuple* new_tuple() {

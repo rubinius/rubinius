@@ -10,7 +10,9 @@ end
 class Object
   def conflicts_with(*modules)
     g = ConflictsGuard.new(*modules)
+    g.name = :conflicts_with
     yield if g.yield? true
+  ensure
     g.unregister
   end
 end

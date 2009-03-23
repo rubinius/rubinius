@@ -1,4 +1,0 @@
-fails:Module#instance_method returns an UnboundMethod corresponding to the given name
-fails:Module#instance_method returns an UnboundMethod corresponding to the given name from a superclass
-fails:Module#instance_method returns an UnboundMethod corresponding to the given name from an included Module
-fails:Module#instance_method gives UnboundMethod method name, Module defined in and Module extracted from

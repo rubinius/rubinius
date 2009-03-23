@@ -11,14 +11,172 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
-#include "builtin/nativemethodcontext.hpp"
+#include "util/thread.hpp"
+#include "gc/root.hpp"
+
+#include "vm/object_utils.hpp"
 
 
 namespace rubinius {
 
   /* Forwards */
+  class ExceptionPoint;
   class Message;
-  class Task;
+  class NativeMethodFrame;
+
+  /** A set of Handles. */
+  typedef std::vector<TypedRoot<Object*>*> Handles;
+
+  /** More prosaic name for Handles. */
+  typedef intptr_t Handle;
+
+
+  /**
+   *  Thread-local info about native method calls.
+   */
+  class NativeMethodEnvironment {
+
+  public:   /* Class Interface */
+
+    /** Obtain the NativeMethodEnvironment for this thread. */
+    static NativeMethodEnvironment* get();
+
+  /**
+   * These values must be the same as the values given
+   * to Qfalse, etc in vm/capi/ruby.h
+   */
+#define cCApiHandleQfalse      ( 0)
+#define cCApiHandleQtrue       (-1)
+#define cCApiHandleQnil        (-2)
+#define cCApiHandleQundef      (-3)
+
+  /**
+   * Constants for navigating around the fixed values
+   * of the immediates like Qfalse above.
+   */
+#define cHandleOffset       ( 1)
+#define cGlobalHandleStart  (-4)
+
+  public:   /* Interface methods */
+
+    /** Create or retrieve Handle for obj. */
+    Handle get_handle(Object* obj);
+
+    /** Create or retrieve Handle for a global object. */
+    Handle get_handle_global(Object* obj);
+
+    /** Obtain the Object the Handle represents. */
+    Object* get_object(Handle handle);
+
+    /** Delete a global Object and its Handle. */
+    void delete_global(Handle handle);
+
+    /** GC marking for Objects behind Handles. */
+    void mark_handles(ObjectMark& mark);
+
+
+  public:   /* Accessors */
+
+    Object* block();
+
+    void set_state(VM* vm) {
+      state_ = vm;
+    }
+
+    VM* state() {
+      return state_;
+    }
+
+    CallFrame* current_call_frame() {
+      return current_call_frame_;
+    }
+
+    void set_current_call_frame(CallFrame* frame) {
+      current_call_frame_ = frame;
+    }
+
+    NativeMethodFrame* current_native_frame() {
+      return current_native_frame_;
+    }
+
+    void set_current_native_frame(NativeMethodFrame* frame) {
+      current_native_frame_ = frame;
+    }
+
+    ExceptionPoint* current_ep() {
+      return current_ep_;
+    }
+
+    void set_current_ep(ExceptionPoint* ep) {
+      current_ep_ = ep;
+    }
+
+    /** Set of Handles available in current Frame (convenience.) */
+    Handles& handles();
+
+
+  private:   /* Instance variables */
+
+    /** VM in which executing. */
+    VM*                 state_;
+    /** Current callframe in Ruby-land. */
+    CallFrame*          current_call_frame_;
+    /** Current native callframe. */
+    NativeMethodFrame*  current_native_frame_;
+    /** Global object handles. */
+    Handles             global_handles_;
+    ExceptionPoint*     current_ep_;
+  };
+
+
+  /**
+   *  Call frame for a native method.
+   *
+   *  @see NativeMethodEnvironment.
+   */
+  class NativeMethodFrame {
+
+  public:
+    NativeMethodFrame(NativeMethodFrame* prev)
+      : previous_(prev)
+    {}
+
+
+  public:     /* Interface methods */
+
+    /** Currently active/used Frame in this Environment i.e. thread. */
+    NativeMethodFrame* current() {
+      return NativeMethodEnvironment::get()->current_native_frame();
+    }
+
+    /** Create or retrieve a Handle for the Object. */
+    Handle get_handle(VM*, Object* obj);
+
+    /** Obtain the Object the Handle represents. */
+    Object* get_object(Handle hndl);
+
+
+  public:     /* Accessors */
+
+    /** Handles to Objects used in this Frame. */
+    Handles& handles() {
+      return handles_;
+    }
+
+    /** Native Frame active before this call. */
+    NativeMethodFrame* previous() {
+      return previous_;
+    }
+
+
+  private:    /* Instance variables */
+
+    /** Native Frame active before this call. @note This may NOT be the sender. --rue */
+    NativeMethodFrame* previous_;
+
+    /** Handles to Objects used in this Frame. */
+    Handles handles_;
+  };
 
 
   /**
@@ -76,7 +234,11 @@ namespace rubinius {
     const static object_type type = NativeMethodType;
 
     /** Set class up in the VM. @see vm/ontology.cpp. */
-    static void register_class_with(VM* state);
+    static void init(VM* state);
+
+    // Called when starting a new native thread, initializes any thread
+    // local data.
+    static void init_thread(VM* state);
 
 
   public:   /* Ctors */
@@ -134,29 +296,10 @@ namespace rubinius {
     attr_accessor(functor, MemoryPointer);
 
 
-  public:   /* Interface */
+  public:   /* Class Interface */
 
-    /**
-     *  Handle C method call including its callstack.
-     *
-     *  In addition to setting up the NativeMethodContext for the call
-     *  and the call itself (arguments, return value and all), we also
-     *  handle setting up further calls from the method to other Ruby
-     *  or C methods.
-     *
-     *  This method may be invoked by executor_implementation() or as
-     *  a part of a return from a child context.
-     *
-     *  Sets the given context as the current.
-     *
-     *  @note   Shamelessly tramples over the standard VMExecutable@execute.
-     */
-    static ExecuteStatus activate_from(NativeMethodContext* context);
-
-    /**
-     *  Enter a new NativeMethod the first time.
-     */
-    static ExecuteStatus executor_implementation(VM* state, Task* task, Message& message);
+    /** Set up and call native method. */
+    static Object* executor_implementation(STATE, CallFrame* call_frame, Message& message);
 
     /**
      *  Attempt to load a C extension library and its main function.
@@ -178,18 +321,12 @@ namespace rubinius {
     // Ruby.primitive :nativemethod_load_extension_entry_point
     static NativeMethod* load_extension_entry_point(STATE, String* path, String* name);
 
-    /**
-     *  Call the C function.
-     *
-     *  We grab the information needed from the active context, convert
-     *  everything necessary to handles, and then directly call the C
-     *  function with those parameters. Eventually the return value is
-     *  saved in the context and we jump back to the dispatch point.
-     *
-     *  (It is not possible to simply return since this method is in
-     *  a different stack from the dispatcher.)
-     */
-    static void perform_call();
+
+  public:   /* Instance methods */
+
+    /** Call the C function. */
+    Object* call(STATE, NativeMethodEnvironment* env, Message& msg);
+
 
     /** Return the functor cast into the specified type. */
     template <typename FunctorType>
@@ -225,41 +362,43 @@ namespace rubinius {
 
 }
 
-/**
- *  Define stream inserter for NMC frame info.
- *
- *  The only info coming from the context is really the name, file + line.
- */
-template<typename CharType, typename Traits>
-  std::basic_ostream<CharType, Traits>& operator<<(std::basic_ostream<CharType, Traits>& stream,
-                                                   const rubinius::NativeMethodContext* nmc) {
-  /* No futzing with broken streams. */
-  if (!stream.good()) {
-    return stream;
-  }
 
-  /* Ugh, sentries. */
-  typename std::basic_ostream<CharType, Traits>::sentry guard(stream);
-
-  if (guard) {
-    /* Using another stream here automates manipulators, yay. */
-    std::ostringstream out;
-
-    rubinius::Object* name = const_cast<rubinius::NativeMethodContext*>(nmc)->name();
-
-    out << rubinius::as<rubinius::Symbol>(name)->c_str(nmc->state())
-        << " in "
-        << nmc->current_file()
-        << ":"
-        << nmc->current_line()
-        << " (last known information.)";
-
-    /* Yes, we want the C string. */
-    stream << out.str().c_str();
-  }
-
-  return stream;
-}
+// Left here as an example of the stream interface. --rue
+///**
+// *  Define stream inserter for NMC frame info.
+// *
+// *  The only info coming from the context is really the name, file + line.
+// */
+//template<typename CharType, typename Traits>
+//  std::basic_ostream<CharType, Traits>& operator<<(std::basic_ostream<CharType, Traits>& stream,
+//                                                   const rubinius::NativeMethodContext* nmc) {
+//  /* No futzing with broken streams. */
+//  if (!stream.good()) {
+//    return stream;
+//  }
+//
+//  /* Ugh, sentries. */
+//  typename std::basic_ostream<CharType, Traits>::sentry guard(stream);
+//
+//  if (guard) {
+//    /* Using another stream here automates manipulators, yay. */
+//    std::ostringstream out;
+//
+//    rubinius::Object* name = const_cast<rubinius::NativeMethodContext*>(nmc)->name();
+//
+//    out << rubinius::as<rubinius::Symbol>(name)->c_str(nmc->state())
+//        << " in "
+//        << nmc->current_file()
+//        << ":"
+//        << nmc->current_line()
+//        << " (last known information.)";
+//
+//    /* Yes, we want the C string. */
+//    stream << out.str().c_str();
+//  }
+//
+//  return stream;
+//}
 
 #endif  /* NATIVEMETHOD_HPP */
 

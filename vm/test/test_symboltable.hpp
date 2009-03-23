@@ -1,28 +1,23 @@
-#include "vm.hpp"
-#include "objectmemory.hpp"
+#include "vm/test/test.hpp"
+
 #include "symboltable.hpp"
 #include "builtin/array.hpp"
 
 #include <algorithm>
 #include <vector>
 
-#include <cxxtest/TestSuite.h>
+class TestSymbolTable : public CxxTest::TestSuite, public VMTest {
+public:
 
-using namespace rubinius;
-
-class TestSymbolTable : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
   SymbolTable* symbols;
 
   void setUp() {
-    state = new VM(1024);
+    create();
     symbols = new SymbolTable();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_lookup_with_c_str() {

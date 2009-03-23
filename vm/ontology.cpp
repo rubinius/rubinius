@@ -10,7 +10,7 @@
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/compiledmethod.hpp"
-#include "builtin/contexts.hpp"
+#include "builtin/channel.hpp"
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
 #include "builtin/executable.hpp"
@@ -24,14 +24,12 @@
 #include "builtin/memorypointer.hpp"
 #include "builtin/nativefunction.hpp"
 #include "builtin/nativemethod.hpp"
-#include "builtin/nativemethodcontext.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/selector.hpp"
 #include "builtin/sendsite.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/time.hpp"
 #include "builtin/tuple.hpp"
@@ -39,6 +37,8 @@
 #include "builtin/autoload.hpp"
 #include "builtin/machine_method.hpp"
 #include "builtin/block_wrapper.hpp"
+#include "builtin/variable_scope.hpp"
+#include "builtin/location.hpp"
 
 #include "config.h"
 
@@ -69,7 +69,7 @@ namespace rubinius {
     /* Class's klass is Class */
     cls->klass(state, cls);
     cls->ivars(state, Qnil);
-    cls->obj_type = ClassType;
+    cls->obj_type_ = ClassType;
 
     cls->set_object_type(state, ClassType);
 
@@ -79,6 +79,8 @@ namespace rubinius {
     /* Now do Object */
     Class *object = new_basic_class((Class*)Qnil);
     GO(object).set(object);
+
+    object->set_object_type(state, ObjectType);
 
     /* Now Module */
     GO(module).set(new_basic_class(object));
@@ -203,14 +205,12 @@ namespace rubinius {
     Regexp::init(this);
     Bignum::init(this);
     Float::init(this);
-    MethodContext::init(this);
     InstructionSequence::init(this);
     List::init(this);
     SendSite::init(this);
     Selector::init(this);
     init_ffi();
     init_native_libraries();
-    Task::init(this);
     Thread::init(this);
     AccessVariable::init(this);
     MemoryPointer::init(this);
@@ -221,9 +221,12 @@ namespace rubinius {
     Autoload::init(this);
     MachineMethod::init(this);
     BlockWrapper::init(this);
+    VariableScope::init(this);
+    Location::init(this);
 
-    NativeMethod::register_class_with(this);
-    NativeMethodContext::register_class_with(this);
+    Channel::init(this);
+
+    NativeMethod::init(this);
   }
 
   // @todo document all the sections of bootstrap_ontology
@@ -441,7 +444,6 @@ namespace rubinius {
 
   void VM::bootstrap_exceptions() {
     Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vme;
-    Class* fce;
     Class* rng;
 
 #define dexc(name, sup) new_class(#name, sup)
@@ -461,22 +463,22 @@ namespace rubinius {
     sce = dexc(SystemCallError, std);
     stk = dexc(StackError, exc);
     sxp = dexc(StackExploded, stk);
-
     lje = dexc(LocalJumpError, std);
-    dexc(IllegalLongReturn, lje);
-
-    fce = dexc(FlowControlException, exc);
-    dexc(ReturnException, fce);
-
     rng = dexc(RangeError, std);
     dexc(FloatDomainError, rng);
     dexc(ZeroDivisionError, std);
     dexc(IOError, std);
 
+    GO(jump_error).set(lje);
+
     // Some special exceptions scoped under the Rubinius module
     vme = new_class("VMException", exc, G(rubinius));
     new_class("AssertionError", vme, G(rubinius));
     new_class("ObjectBoundsExceededError", vme, G(rubinius));
+
+    // Create the stack error object now, since we probably wont be
+    // able to later.
+    GO(stack_error).set(new_object<Exception>(stk));
 
     GO(exc_type).set(type);
     GO(exc_arg).set(arg);

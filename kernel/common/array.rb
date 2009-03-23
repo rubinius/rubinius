@@ -142,7 +142,7 @@ class Array
 
   alias_method :slice, :[]
 
-  def []=(index, ent, *args)
+  def set_index(index, ent, *args)
     Ruby.primitive :array_aset
 
     ins_length = nil
@@ -231,10 +231,14 @@ class Array
     end
   end
 
+  alias_method :[]=, :set_index
+
+  private :set_index
+
   # Appends the object to the end of the Array.
   # Returns self so several appends can be chained.
   def <<(obj)
-    self[@total] = obj
+    set_index(@total, obj)
     self
   end
 

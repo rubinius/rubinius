@@ -58,11 +58,8 @@ class IO
       return size unless empty?
 
       reset!
-      Scheduler.send_on_readable @channel, io, self, unused
 
-      # FIX: what is obj and what should it be?
-      obj = @channel.receive
-      if obj.kind_of? Class
+      if fill(io) < 0
         raise IOError, "error occured while filling buffer (#{obj})"
       end
 
@@ -203,6 +200,9 @@ class IO
   end
 
   include Constants
+
+  attr_accessor :descriptor
+  attr_accessor :mode
 
   def self.for_fd(fd, mode = nil)
     new fd, mode
@@ -476,72 +476,58 @@ class IO
     end
   end
 
-  ##
-  # Select() examines the I/O descriptor sets who are passed in
-  # +read_array+, +write_array+, and +error_array+ to see if some of their descriptors are
-  # ready for reading, are ready for writing, or have an exceptions pending.
   #
-  # If +timeout+ is not nil, it specifies a maximum interval to wait
-  # for the selection to complete. If timeout is nil, the select
-  # blocks indefinitely.
+  # +select+ examines the IO object Arrays that are passed in
+  # as +readables+, +writables+, and +errorables+ to see if any
+  # of their descriptors are ready for reading, are ready for
+  # writing, or have an exceptions pending respectively. An IO
+  # may appear in more than one of the sets. Any of the three
+  # sets may be +nil+ if you are not interested in those events.
   #
-  # +write_array+, +error_array+, and +timeout+ may be left as nil if they are
-  # unimportant
-  def self.select(read_array, write_array = nil, error_array = nil,
-                  timeout = nil)
-    # TODO libev doesn't seem to support exception fd set.
-    raise NotImplementedError, "error_array is not supported" if error_array
-
+  # If +timeout+ is not nil, it specifies the number of seconds
+  # to wait for events (maximum.) The number may be fractional,
+  # conceptually up to a microsecond resolution.
+  #
+  # A +timeout+ of 0 indicates that each descriptor should be
+  # checked once only, effectively polling the sets.
+  #
+  # Leaving the +timeout+ to +nil+ causes +select+ to block
+  # infinitely until an event transpires.
+  #
+  # If the timeout expires without events, +nil+ is returned.
+  # Otherwise, an [readable, writable, errors] Array of Arrays
+  # is returned, only, with the IO objects that have events.
+  #
+  # @compatibility  MRI 1.8 and 1.9 require the +readables+ Array,
+  #                 Rubinius does not.
+  #
+  def self.select(readables = nil, writables = nil, errorables = nil, timeout = nil)
     if timeout
-      raise TypeError, "timeout must be numeric" unless Type.obj_kind_of?(timeout, Numeric)
+      raise TypeError, "Timeout must be numeric" unless Type.obj_kind_of?(timeout, Numeric)
       raise ArgumentError, 'timeout must be positive' if timeout < 0
+
+      timeout = Integer(timeout * 1_000_000)      # Microseconds, rounded down
     end
 
-    chan = Channel.new
-
-    fd_map = {}
-    [read_array, write_array, error_array].each_with_index do |io_array, pos|
-      next unless io_array
-      raise TypeError, "wrong argument type #{io_array.class} (expected Array)" unless Type.obj_kind_of?(io_array, Array)
-
-      io_array.each do |io|
-        io_obj = Type.coerce_to(io, IO, :to_io)
-        fd_map[io_obj.fileno] = [pos, io]
-
-        case pos
-        when 0 # read_array
-          Scheduler.send_on_readable chan, io_obj, nil, -1
-        when 1 # write_array
-          Scheduler.send_on_writable chan, io_obj
-        end
-      end
+    if readables
+      readables = Type.coerce_to(readables, Array, :to_ary).map {|obj|
+                    Type.coerce_to obj, IO, :to_io
+                  }
     end
 
-    Scheduler.send_in_microseconds chan, (timeout * 1_000_000).to_i, nil if timeout
-
-    # blocks until a fd is ready, or timeout
-    value = chan.receive
-    other_values = chan.value
-
-    if other_values
-      # we have more objects ready to be received, let's count them.
-      available_count = other_values.count
-    else
-      return nil if value.nil? # tired of waiting, timed out
-      available_count = 0
+    if writables
+      writables = Type.coerce_to(writables, Array, :to_ary).map {|obj|
+                      Type.coerce_to obj, IO, :to_io
+                    }
     end
 
-    ret = [[], [], []]
-    while true
-      if value
-        fd_info = fd_map[value]
-        ret[fd_info[0]] << fd_info[1]
-      end
-      break if (available_count -= 1) < 0
-      value = chan.receive
+    if errorables
+      errorables = Type.coerce_to(errorables, Array, :to_ary).map {|obj|
+                      Type.coerce_to obj, IO, :to_io
+                    }
     end
 
-    ret
+    IO.select_primitive(readables, writables, errorables, timeout)
   end
 
   ##
@@ -549,33 +535,21 @@ class IO
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = "r", perm = 0666)
     unless mode.kind_of? Integer
-      mode = parse_mode(StringValue(mode))
+      mode = parse_mode StringValue(mode)
     end
 
-    open_with_mode(path, mode, perm)
+    open_with_mode path, mode, perm
   end
 
   #
-  # Create a new IO associated with the given fd.
+  # Internally associate +io+ with the given descriptor.
   #
-  def initialize(fd, mode = nil)
-    if block_given?
-      Rubinius.warn 'IO::new() does not take block; use IO::open() instead'
-    end
-    setup Type.coerce_to(fd, Integer, :to_int), mode
-  end
-
-  private :initialize
-
-  #
-  # @internal
-  #
-  # Internally associate this object with the given descriptor.
-  #
-  # The mode will be checked and set as the current mode if
+  # The +mode+ will be checked and set as the current mode if
   # the underlying descriptor allows it.
   #
-  def setup(fd, mode = nil)
+  # The +sync+ attribute will also be set.
+  #
+  def self.setup(io, fd, mode = nil, sync = false)
     cur_mode = Platform::POSIX.fcntl(fd, F_GETFL, 0)
     Errno.handle if cur_mode < 0
     cur_mode &= ACCMODE
@@ -589,12 +563,22 @@ class IO
       end
     end
 
-    @descriptor = fd
-    @mode = mode || cur_mode
-    @sync = [STDOUT.fileno, STDERR.fileno].include? fd
+    io.descriptor = fd
+    io.mode       = mode || cur_mode
+    io.sync       = sync.to_bool || [STDOUT.fileno, STDERR.fileno].include?(fd)
   end
 
-  private :setup
+  #
+  # Create a new IO associated with the given fd.
+  #
+  def initialize(fd, mode = nil)
+    if block_given?
+      Rubinius.warn 'IO::new() does not take block; use IO::open() instead'
+    end
+    IO.setup self, Type.coerce_to(fd, Integer, :to_int), mode
+  end
+
+  private :initialize
 
   ##
   # Obtains a new duplicate descriptor for the current one.
@@ -671,8 +655,6 @@ class IO
   def closed?
     @descriptor == -1
   end
-
-  attr_reader :descriptor
 
   def dup
     ensure_open
@@ -1361,7 +1343,7 @@ class IO
   # See also IO#fsync.
   def sync=(v)
     ensure_open
-    @sync = (v and true)
+    @sync = v.to_bool
   end
 
   ##
@@ -1372,21 +1354,19 @@ class IO
   #
   #  f = File.new("testfile")
   #  f.sysread(16)   #=> "This is line one"
-  def sysread(size, buffer = nil)
+  #
+  #  @todo  Improve reading into provided buffer.
+  #
+  def sysread(number_of_bytes, buffer = Undefined)
     flush
     raise IOError unless @ibuffer.empty?
-    raise ArgumentError, 'negative string size' unless size >= 0
 
-    buffer = StringValue buffer if buffer
-
-    chan = Channel.new
-    Scheduler.send_on_readable chan, self, nil, size
-    # waits until stream is ready for reading
-    chan.receive
-    str = blocking_read size
+    str = read_primitive number_of_bytes
     raise EOFError if str.nil?
 
-    buffer.replace str if buffer
+    unless buffer.equal? Undefined
+      buffer.to_str.replace str
+    end
 
     str
   end

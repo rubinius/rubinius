@@ -16,7 +16,9 @@ namespace rubinius {
 
 
   enum PrimitiveRuntimeCode {
-    kPrimitiveFailed = 0
+    // A weird value, but works well. It looks like a reference to the highest
+    // address in memory.
+    kPrimitiveFailed = ((unsigned int)-1) & ~TAG_REF_MASK
   };
 
 
@@ -34,7 +36,7 @@ namespace rubinius {
      * Ruby code.
      */
     static executor resolve_primitive(STATE, Symbol* name);
-    static ExecuteStatus unknown_primitive(STATE, Task* task, Message& msg);
+    static Object* unknown_primitive(STATE, CallFrame* call_frame, Message& msg);
 
 #include "gen/primitives_declare.hpp"
 

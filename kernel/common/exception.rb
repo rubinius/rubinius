@@ -3,11 +3,11 @@
 class Exception
 
   attr_writer :message
-  attr_accessor :context
+  attr_accessor :locations
 
   def initialize(message = nil)
     @message = message
-    @context = nil
+    @locations = nil
     @backtrace = nil
   end
 
@@ -20,13 +20,13 @@ class Exception
       return @backtrace.to_mri
     end
 
-    return nil unless @context
+    return nil unless @locations
     awesome_backtrace.to_mri
   end
 
   def awesome_backtrace
-    return nil unless @context
-    @backtrace = Backtrace.backtrace(@context)
+    return nil unless @locations
+    @backtrace = Backtrace.backtrace(@locations)
   end
 
   def set_backtrace(bt)
@@ -85,7 +85,11 @@ end
 class ArgumentError < StandardError
   def message
     return @message if @message
-    "given #{@given}, expected #{@expected}"
+    if @method_name
+      "method '#{@method_name}': given #{@given}, expected #{@expected}"
+    else
+      "given #{@given}, expected #{@expected}"
+    end
   end
 end
 
@@ -224,12 +228,4 @@ end
 # the bounds of an object.
 
 class Rubinius::ObjectBoundsExceededError < Rubinius::VMException
-end
-
-##
-# Raised when you try to return from a block when not allowed.  Never seen by
-# ruby code.
-
-class IllegalLongReturn < LocalJumpError
-  attr_reader :return_value
 end

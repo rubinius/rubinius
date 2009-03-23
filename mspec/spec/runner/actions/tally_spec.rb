@@ -69,6 +69,19 @@ describe Tally, "#errors!" do
   end
 end
 
+describe Tally, "#guards!" do
+  before :each do
+    @tally = Tally.new
+  end
+
+  it "increments the count returned by #guards" do
+    @tally.guards!
+    @tally.guards.should == 1
+    @tally.guards! 2
+    @tally.guards.should == 3
+  end
+end
+
 describe Tally, "#file" do
   before :each do
     @tally = Tally.new
@@ -139,9 +152,27 @@ describe Tally, "#error" do
   end
 end
 
+describe Tally, "#guard" do
+  before :each do
+    @tally = Tally.new
+  end
+
+  it "returns a formatted string of the number of #guards" do
+    @tally.guard.should == "0 guards"
+    @tally.guards!
+    @tally.guard.should == "1 guard"
+    @tally.guards!
+    @tally.guard.should == "2 guards"
+  end
+end
+
 describe Tally, "#format" do
   before :each do
     @tally = Tally.new
+  end
+
+  after :each do
+    MSpec.clear_modes
   end
 
   it "returns a formatted string of counts" do
@@ -150,6 +181,39 @@ describe Tally, "#format" do
     @tally.expectations! 4
     @tally.errors!
     @tally.format.should == "1 file, 2 examples, 4 expectations, 0 failures, 1 error"
+  end
+
+  it "includes guards if MSpec is in verify mode" do
+    MSpec.register_mode :verify
+    @tally.files!
+    @tally.examples! 2
+    @tally.expectations! 4
+    @tally.errors!
+    @tally.guards!
+    @tally.format.should ==
+      "1 file, 2 examples, 4 expectations, 0 failures, 1 error, 1 guard"
+  end
+
+  it "includes guards if MSpec is in report mode" do
+    MSpec.register_mode :report
+    @tally.files!
+    @tally.examples! 2
+    @tally.expectations! 4
+    @tally.errors!
+    @tally.guards! 2
+    @tally.format.should ==
+      "1 file, 2 examples, 4 expectations, 0 failures, 1 error, 2 guards"
+  end
+
+  it "includes guards if MSpec is in report_on mode" do
+    MSpec.register_mode :report_on
+    @tally.files!
+    @tally.examples! 2
+    @tally.expectations! 4
+    @tally.errors!
+    @tally.guards! 2
+    @tally.format.should ==
+      "1 file, 2 examples, 4 expectations, 0 failures, 1 error, 2 guards"
   end
 end
 

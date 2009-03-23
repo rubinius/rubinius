@@ -7,11 +7,19 @@ require 'lib/ffi/generator_task.rb'
 
 config = OpenStruct.new
 config.use_jit = true
+config.compile_with_llvm = false
+
+CONFIG = config
+
 
 task :vm => 'vm/vm'
 
 ############################################################
 # Files, Flags, & Constants
+
+if CONFIG.compile_with_llvm
+  ENV['CC'] = "llvm-gcc"
+end
 
 if ENV['LLVM_DEBUG']
   LLVM_STYLE = "Debug"
@@ -24,20 +32,29 @@ LLVM_ENABLE = false
 
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
-tests       = FileList["vm/test/test_*.hpp"]
+
+if ENV['TESTS_ONLY']
+  tests = FileList[ENV['TESTS_ONLY']]
+else
+  tests = FileList["vm/test/**/test_*.hpp"]
+end
 
 # vm/test/test_instructions.hpp may not have been generated yet
-tests      << 'vm/test/test_instructions.hpp'
+# tests      << 'vm/test/test_instructions.hpp'
 tests.uniq!
 
-srcs        = FileList["vm/*.{cpp,c}"] + FileList["vm/builtin/*.{cpp,c}"]
-srcs       += FileList["vm/subtend/*.{cpp,c,S}"]
-srcs       += FileList["vm/parser/*.{cpp,c}"]
+subdirs = %w!builtin capi parser util instruments gc!
+
+srcs        = FileList["vm/*.{cpp,c}"]
+subdirs.each do |dir|
+  srcs += FileList["vm/#{dir}/*.{cpp,c}"]
+end
 srcs       << 'vm/parser/grammar.cpp'
 
-hdrs        = FileList["vm/*.{hpp,h}"] + FileList["vm/builtin/*.{hpp,h}"]
-hdrs       += FileList["vm/subtend/*.{hpp,h}"]
-hdrs       += FileList["vm/parser/*.{hpp,h}"]
+hdrs        = FileList["vm/*.{hpp,h}"]
+subdirs.each do |dir|
+  hdrs += FileList["vm/#{dir}/*.{cpp,c}"]
+end
 
 objs        = srcs.map { |f| f.sub(/((c(pp)?)|S)$/, 'o') }
 
@@ -61,7 +78,7 @@ EX_INC      = %w[ libtommath libgdtoa onig libffi/include
 INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
                   vm/gen/iseq_instruction_names.hpp
                   vm/gen/iseq_instruction_size.gen
-                  vm/test/test_instructions.hpp ]
+                ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/kind_of.hpp
                   vm/gen/object_types.hpp
@@ -89,7 +106,6 @@ field_extract_headers = %w[
   vm/builtin/module.hpp
   vm/builtin/class.hpp
   vm/builtin/compiledmethod.hpp
-  vm/builtin/contexts.hpp
   vm/builtin/data.hpp
   vm/builtin/dir.hpp
   vm/builtin/exception.hpp
@@ -107,7 +123,6 @@ field_extract_headers = %w[
   vm/builtin/staticscope.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp
-  vm/builtin/task.hpp
   vm/builtin/thread.hpp
   vm/builtin/tuple.hpp
   vm/builtin/compactlookuptable.hpp
@@ -115,11 +130,12 @@ field_extract_headers = %w[
   vm/builtin/methodvisibility.hpp
   vm/builtin/taskprobe.hpp
   vm/builtin/nativemethod.hpp
-  vm/builtin/nativemethodcontext.hpp
   vm/builtin/system.hpp
   vm/builtin/autoload.hpp
   vm/builtin/machine_method.hpp
   vm/builtin/block_wrapper.hpp
+  vm/builtin/variable_scope.hpp
+  vm/builtin/location.hpp
 ]
 
 BC          = "vm/instructions.bc"
@@ -179,6 +195,10 @@ CC          = ENV['CC'] || "gcc"
 def compile_c(obj, src)
   flags = INCLUDES + FLAGS
 
+  if CONFIG.compile_with_llvm
+    flags << "-emit-llvm"
+  end
+
   if LLVM_ENABLE and !defined? $llvm_c then
     $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
     $llvm_c.delete_if { |e| e.index("-O") == 0 }
@@ -217,7 +237,24 @@ def ld t
   $link_opts += ' -rdynamic'            if RUBY_PLATFORM =~ /bsd/
 
   ld = ENV['LD'] || 'g++'
-  o  = t.prerequisites.find_all { |f| f =~ /[oa]$/ }.join(' ')
+
+  if CONFIG.compile_with_llvm
+    objs = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
+
+    sh "llvm-link -f -o vm/tmp.bc #{objs}"
+    sh "opt -O3 -f -o vm/objs.bc vm/tmp.bc"
+    sh "rm vm/tmp.bc"
+    sh "llc -filetype=asm -f -o vm/objs.s vm/objs.bc"
+    sh "rm vm/objs.bc"
+    flags = INCLUDES + FLAGS
+    sh "gcc #{flags} -c -o vm/objs.o vm/objs.s"
+    sh "rm vm/objs.s"
+
+    o = (["vm/objs.o"] + t.prerequisites.find_all { |f| f =~ /a$/ }).join(' ')
+  else
+    o = t.prerequisites.find_all { |f| f =~ /[oa]$/ }.join(' ')
+  end
+
   l  = ex_libs.join(' ')
 
   if $verbose
@@ -249,7 +286,9 @@ namespace :build do
   task :inline      => %w[ build:inline_flags build:build ]
 
   desc "Build debug image for GDB. No optimizations, more warnings."
-  task :debug       => %w[ build:debug_flags build:build ]
+  task :debug       => %w[ build:debug_flags build:stats_flags build:build ]
+
+  task :stats       => %w[ build:normal_flags build:stats_flags build:build ]
 
   desc "Build to check for possible problems in the code. See build:help."
   task :strict      => %w[ build:strict_flags build:build ]
@@ -257,9 +296,15 @@ namespace :build do
   desc "Build to enforce coding practices. See build:help for info."
   task :ridiculous  => %w[ build:ridiculous_flags build:build ]
 
+  desc "Generate dependency file"
+  task :depends     => dep_file
+
+  import dep_file
+
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => BUILD_PRETASKS +
-                 %w[ vm
+                 %w[
+                     vm
                      kernel:build
                      lib/rbconfig.rb
                      build:ffi:preprocessor
@@ -280,6 +325,10 @@ namespace :build do
   task :debug_flags => "build:normal_flags" do
     FLAGS.delete "-O2"
     FLAGS.concat %w[ -O0 -fno-inline ]
+  end
+
+  task :stats_flags do
+    FLAGS.concat %w[ -DRBX_GC_STATS ]
   end
 
   task :strict_flags => "build:debug_flags" do
@@ -317,7 +366,11 @@ namespace :build do
   build:debug       Use when you need to debug in GDB. Builds an
                     image with debugging symbols, optimizations
                     are disabled and more warnings emitted by the
-                    compiler.
+                    compiler. Also adds defines to turn on stats.
+
+  build:stats       Use when you want to enable various VM stats,
+                    like garbage collector or JIT stats. The build
+                    is optimized but adds defines to turn on stats.
 
   build:strict      Use to check for and fix potential problems
                     in the codebase. Shows many more warnings.
@@ -409,10 +462,10 @@ end
 
 file 'vm/primitives.o'                => 'vm/codegen/field_extract.rb'
 file 'vm/primitives.o'                => TYPE_GEN
-file 'vm/codegen/instructions_gen.rb' => 'kernel/delta/iseq.rb'
+file 'vm/codegen/instructions_gen.rb' => 'kernel/compiler/iseq.rb'
 file 'vm/instructions.rb'             => 'vm/gen'
 file 'vm/instructions.rb'             => 'vm/codegen/instructions_gen.rb'
-file 'vm/test/test_instructions.hpp'  => 'vm/codegen/instructions_gen.rb'
+# file 'vm/test/test_instructions.hpp'  => 'vm/codegen/instructions_gen.rb'
 file 'vm/codegen/field_extract.rb'    => 'vm/gen'
 
 files INSN_GEN, %w[vm/instructions.rb] do |t|
@@ -441,7 +494,9 @@ file 'vm/test/runner.cpp' => tests + objs do
   puts "GEN vm/test/runner.cpp" unless $verbose
   tests << { :verbose => $verbose }
   sh("vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
-     "--abort-on-fail", "-include=string.h", "-include=stdlib.h", "-o", "vm/test/runner.cpp", *tests)
+     "--abort-on-fail", "-include=string.h", "-include=stdlib.h",
+     "-include=vm/test/test_setup.h",
+     "-o", "vm/test/runner.cpp", *tests)
 end
 
 file 'vm/parser/grammar.cpp' => 'vm/parser/grammar.y' do
@@ -469,9 +524,19 @@ file 'vm/compile' => EXTERNALS + objs + %w[vm/drivers/compile.o] do |t|
   ld t
 end
 
-rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
-  compile_c 'vm/instructions.o', path
+
+file "vm/instructions.o" => "vm/gen/instructions.cpp" do
+  compile_c "vm/instructions.o", "vm/gen/instructions.cpp"
 end
+
+file "vm/gen/instructions.cpp" => %w[vm/llvm/instructions.cpp vm/instructions.rb] + hdrs do
+  ruby "vm/codegen/rubypp.rb", "vm/llvm/instructions.cpp", "vm/gen/instructions.cpp"
+end
+
+#
+#rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
+#  compile_c 'vm/instructions.o', path
+#end
 
 rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp', *hdrs do |path|
   sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc #{path}"
@@ -537,8 +602,10 @@ namespace :vm do
       'vm/gen',
       'vm/test/runner',
       'vm/test/runner.cpp',
-      'vm/test/test_instructions.cpp',
-      'vm/vm'
+      'vm/test/runner.o',
+      'vm/test/test_instructions.hpp',
+      'vm/vm',
+      'vm/.deps'
     ].flatten
 
     files.each do |filename|
@@ -576,29 +643,40 @@ require 'rake/loaders/makefile'
 
 generated = (TYPE_GEN + INSN_GEN).select { |f| f =~ /pp$/ }
 
-file dep_file => srcs + hdrs + vm_srcs + generated do |t|
+file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instructions.cpp] do |t|
   includes = INCLUDES.join ' '
 
   flags = FLAGS.join ' '
   flags << " -D__STDC_LIMIT_MACROS"
+  flags.slice!(/-Wno-deprecated/)
 
-  cmd = "makedepend -f- #{includes} -- #{flags} -- #{t.prerequisites.join(' ')}"
-  cmd << ' 2>/dev/null' unless $verbose
-  warn "makedepend ..."
+  Dir.mkdir "vm/.deps" unless File.directory? "vm/.deps"
 
-  dep = `#{cmd}`
-  if $?.exitstatus != 0
-    fail "error executing `makedepend`; is it in your $PATH\?"
-  end
-  dep.gsub!(%r% /usr/include\S+%, '') # speeds up rake a lot
-  dep.gsub!(%r%^\S+:[^ ]%, '')
+  warn "Updating dependencies..."
+  File.open t.name, "w" do |f|
+    t.prerequisites.each do |file|
+      file_deps = File.join "vm", ".deps", file.gsub("/", "--")
+      if File.exists?(file_deps) and File.mtime(file_deps) > File.mtime(file)
+        f.puts File.read(file_deps)
+      else
+        object_file = file.sub(/((c(pp)?)|S)$/, 'o')
+        cmd = "gcc -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>/dev/null"
+        data = `#{cmd}`
+        if $?.exitstatus == 0
+          data.strip!
 
-  File.open t.name, 'w' do |f|
-    f.puts dep
+          File.open file_deps, "w" do |fd|
+            fd << data
+          end
+
+          unless data.strip.empty?
+            f.puts data
+          end
+        end
+      end
+    end
   end
 end
-
-import dep_file
 
 def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then

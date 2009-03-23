@@ -1,6 +1,8 @@
 #ifndef RBX_INSTR
 #define RBX_INSTR
 
+#include "vm/vmmethod.hpp"
+
 namespace rubinius {
   namespace instructions {
     struct Implementation {
@@ -17,6 +19,7 @@ namespace rubinius {
     };
 
     Status check_status(int op);
+    int find_superop(opcode* stream);
   }
 }
 

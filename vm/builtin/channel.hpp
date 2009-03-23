@@ -5,30 +5,36 @@
 #include "type_info.hpp"
 
 #include "virtual.hpp" // ObjectCallback
-#include "gc_root.hpp" // TypedRoot
+#include "gc/root.hpp" // TypedRoot
+
+#include "thread.hpp"
 
 namespace rubinius {
   class Float;
   class List;
   class IO;
   class IOBuffer;
-  class Task;
   class Message;
   class Executable;
 
   class Channel : public Object {
   public:
+
+    /** Register class. */
+    static void  init(STATE);
+
     const static object_type type = ChannelType;
 
   private:
-    Object* value_;  // slot
-    List* waiting_; // slot
+    List* value_;  // slot
+
+    thread::Condition condition_;
+    int waiters_;
 
   public:
     /* accessors */
 
-    attr_accessor(value, Object);
-    attr_accessor(waiting, List);
+    attr_accessor(value, List);
 
     /* interface */
 
@@ -41,10 +47,15 @@ namespace rubinius {
     // Ruby.primitive :channel_send
     Object* send(STATE, Object*);
 
-    // Ruby.primitive? :channel_receive
-    ExecuteStatus receive_prim(STATE, Executable* exec, Task* task, Message& msg);
+    // Ruby.primitive :channel_receive
+    Object* receive(STATE, CallFrame* calling_environment);
 
-    Object* receive(STATE);
+    // Ruby.primitive :channel_try_receive
+    Object* try_receive(STATE);
+
+    // Ruby.primitive :channel_receive_timeout
+    Object* receive_timeout(STATE, Object* duration, CallFrame* calling_environment);
+
     bool has_readers_p();
 
     // Ruby.primitive :scheduler_send_on_signal

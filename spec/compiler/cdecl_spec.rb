@@ -7,7 +7,7 @@ describe "A Cdecl node" do
     end
 
     compile do |g|
-      g.push_context
+      g.push_scope
       g.push_literal :X
       g.push 42
       g.send :__const_set__, 2

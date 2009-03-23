@@ -1,4 +1,0 @@
-fails:StringScanner#getbyte scans one byte and returns it
-fails:StringScanner#getbyte is not multi-byte character sensitive
-fails:StringScanner#getbyte returns nil at the end of the string
-fails:StringScanner#getbyte warns in verbose mode that the method is obsolete

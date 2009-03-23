@@ -1,10 +1,13 @@
 class BasicPrimitive
   attr_accessor :pass_state
   attr_accessor :pass_self
+  attr_accessor :pass_call_frame
+  attr_accessor :pass_message
   attr_accessor :raw
 
   def output_header(str)
-    str << "ExecuteStatus Primitives::#{@name}(STATE, Task* task, Message& msg) {\n"
+    str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Message& msg) {\n"
+    str << "  state->set_call_frame(call_frame);\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
     str << "  Object* ret;\n"
@@ -28,31 +31,33 @@ class BasicPrimitive
     args.unshift "self" if @pass_self
     args.unshift "state" if @pass_state
 
+    args.push "msg" if @pass_message
+    args.push "call_frame" if @pass_call_frame
+
     return args
   end
 
   def prim_return(str, indent=2)
-    str << "#{' ' * indent}msg.caller()->clear_stack(msg.stack);\n"
-    str << "#{' ' * indent}msg.caller()->push(ret);\n"
+    str << "#{' ' * indent}return ret;\n"
   end
 
+  # @todo Add profiler stuff back in. --rue
   def output_call(str, call, args)
     str << "\n"
     str << "  try {\n"
-    str << "    if(unlikely(task->profiler)) task->profiler->enter_primitive(state, msg);\n"
+    #str << "    if(unlikely(task->profiler)) task->profiler->enter_primitive(state, msg);\n"
     str << "    ret = #{call}(#{args.join(', ')});\n"
-    str << "    if(unlikely(task->profiler)) task->profiler->leave_method();\n"
+    #str << "    if(unlikely(task->profiler)) task->profiler->leave_method();\n"
     str << "  } catch(const RubyException& exc) {\n"
-    str << "    task->raise_exception(exc.exception);\n"
-    str << "    return cExecuteRestart;\n"
+    str << "    state->thread_state()->raise_exception(exc.exception);\n"
+    str << "    return NULL;\n"
     str << "  }\n"
     str << "\n"
     str << "  if(unlikely(ret == reinterpret_cast<Object*>(kPrimitiveFailed)))\n"
     str << "    goto fail;\n\n"
     prim_return(str);
-    str << "  return cExecuteContinue;\n\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, task, msg);\n"
+    str << "  return VMMethod::execute(state, call_frame, msg);\n"
     str << "}\n\n"
   end
 
@@ -80,13 +85,17 @@ class CPPPrimitive < BasicPrimitive
     str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
     str << "  if(unlikely(recv == NULL)) goto fail;\n"
 
-    # Raw primitives must return ExecuteStatus, not Object*
     if @raw
       str << "\n"
-      str << "  return recv->#{@cpp_name}(state, msg.method, task, msg);\n"
+      str << "  try {\n"
+      str << "    return recv->#{@cpp_name}(state, msg.method, call_frame, msg);\n"
+      str << "  } catch(const RubyException& exc) {\n"
+      str << "    state->thread_state()->raise_exception(exc.exception);\n"
+      str << "    return NULL;\n"
+      str << "  }\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return VMMethod::execute(state, task, msg);\n"
+      str << "  return VMMethod::execute(state, call_frame, msg);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -106,7 +115,12 @@ class CPPStaticPrimitive < CPPPrimitive
 
     if @raw
       str << "\n"
-      str << "  return #{@type}::#{@cpp_name}(state, msg.method, task, msg);\n"
+      str << "  try {\n"
+      str << "    return #{@type}::#{@cpp_name}(state, msg.method, call_frame, msg);\n"
+      str << "  } catch(const RubyException& exc) {\n"
+      str << "    state->thread_state()->raise_exception(exc.exception);\n"
+      str << "    return NULL;\n"
+      str << "  }\n"
       str << "\n"
       str << "}\n\n"
     else
@@ -134,6 +148,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
     @kinds << prim
   end
 
+  # @todo Add profiler stuff back in. --rue
   def generate_glue
     str = ""
     output_header str
@@ -146,21 +161,20 @@ class CPPOverloadedPrimitive < BasicPrimitive
       type = prim.arg_types.first
       str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
       str << "      try {\n"
-      str << "        if(unlikely(task->profiler))\n"
-      str << "          task->profiler->enter_primitive(state, msg);\n"
+      #str << "        if(unlikely(task->profiler))\n"
+      #str << "          task->profiler->enter_primitive(state, msg);\n"
       if @pass_state
         str << "      ret = recv->#{@cpp_name}(state, arg);\n"
       else
         str << "      ret = recv->#{@cpp_name}(arg);\n"
       end
-      str << "        if(unlikely(task->profiler)) task->profiler->leave_method();\n"
+      #str << "        if(unlikely(task->profiler)) task->profiler->leave_method();\n"
       str << "      } catch(const RubyException& exc) {\n"
-      str << "        task->raise_exception(exc.exception);\n"
-      str << "        return cExecuteRestart;\n"
+      str << "        state->thread_state()->raise_exception(exc.exception);\n"
+      str << "        return NULL;\n"
       str << "      }\n"
       str << "      if(likely(ret != reinterpret_cast<Object*>(kPrimitiveFailed))) {\n"
       prim_return(str, 8);
-      str << "        return cExecuteContinue;\n"
       str << "      }\n"
       str << "    }\n"
       str << "\n"
@@ -168,7 +182,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  }\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, task, msg);\n"
+    str << "  return VMMethod::execute(state, call_frame, msg);\n"
     str << "}\n\n"
     return str
   end
@@ -345,6 +359,21 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
     return str
   end
 
+  def generate_visits(cpp)
+    str = ''
+
+    str << generate_visits(cpp.super) if cpp.super
+
+    cpp.fields.each do |name, type, idx|
+      str << <<-EOF
+    visit.call(target->#{name}());
+      EOF
+    end
+
+    return str
+
+  end
+
   def generate_mark
     marks = generate_marks(self).rstrip
 
@@ -352,6 +381,23 @@ Object* #{@name}::Info::get_field(STATE, Object* _t, size_t index) {
 
     str << <<-EOF unless marks.empty?
 void #{@name}::Info::auto_mark(Object* _t, ObjectMark& mark) {
+  #{@name}* target = as<#{@name}>(_t);
+
+#{marks}
+}
+
+    EOF
+
+    str
+  end
+
+  def generate_visit
+    marks = generate_visits(self).rstrip
+
+    str = ''
+
+    str << <<-EOF unless marks.empty?
+void #{@name}::Info::auto_visit(Object* _t, ObjectVisitor& visit) {
   #{@name}* target = as<#{@name}>(_t);
 
 #{marks}
@@ -375,7 +421,7 @@ void #{@name}::Info::auto_mark(Object* _t, ObjectMark& mark) {
     when "NilClass"
       return "#{what} == Qnil"
     else
-      return "(REFERENCE_P(#{what}) && #{what}->obj_type == #{@name}Type)"
+      return "(REFERENCE_P(#{what}) && #{what}->type_id() == #{@name}Type)"
     end
   end
 
@@ -507,6 +553,8 @@ class CPPParser
           prototype = f.gets
           pass_state = false
           pass_self = false
+          pass_call_frame = false
+          pass_message = false
 
           m = prototype_pattern.match(prototype)
           unless m
@@ -521,6 +569,16 @@ class CPPParser
             if args.first == "Object* self"
               args.shift and pass_self = true
             end
+          end
+
+          if args.last == "CallFrame* calling_environment"
+            pass_call_frame = true
+            args.pop
+          end
+
+          if args.last == "Message& msg"
+            pass_message = true
+            args.pop
           end
 
           if raw then
@@ -541,6 +599,8 @@ class CPPParser
           obj.raw = raw
           obj.pass_state = pass_state
           obj.pass_self = pass_self
+          obj.pass_call_frame = pass_call_frame
+          obj.pass_message = pass_message
         end
       end
 
@@ -601,7 +661,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
     f.puts "    ti->type_name = std::string(\"#{n}\");"
-    f.puts "    ti->instance_size = sizeof(#{n});"
+    f.puts "    ti->instance_size = ObjectHeader::align(sizeof(#{n}));"
     f.puts "    om->type_info[#{n}::type] = ti;"
     f.puts "  }"
     f.puts
@@ -626,13 +686,14 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
   parser.classes.each do |n, cpp|
     f.puts cpp.generate_typechecks
     f.puts cpp.generate_mark
+    f.puts cpp.generate_visit
   end
 end
 
 write_if_new "vm/gen/primitives_declare.hpp" do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
-      f.puts "static ExecuteStatus #{pn}(STATE, Task* task, Message& msg);"
+      f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Message& msg);"
     end
   end
 end
@@ -683,9 +744,9 @@ write_if_new "vm/gen/primitives_glue.gen.cpp" do |f|
   end
 
   f.puts <<-EOF
-  if(!G(current_task)->probe()->nil_p()) {
-    G(current_task)->probe()->missing_primitive(state, name->c_str(state));
-  }
+//  if(!state->probe()->nil_p()) {
+//    state->probe()->missing_primitive(state, name->c_str(state));
+//  }
 return &Primitives::unknown_primitive;
 // commented out while we have soft primitive failures
 // throw std::runtime_error(msg.c_str());

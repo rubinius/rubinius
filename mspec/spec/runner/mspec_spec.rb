@@ -228,6 +228,37 @@ describe MSpec, ".clear_modes" do
   end
 end
 
+describe MSpec, ".guarded?" do
+  before :each do
+    MSpec.instance_variable_set :@guarded, []
+  end
+
+  it "returns false if no guard has run" do
+    MSpec.guarded?.should == false
+  end
+
+  it "returns true if a single guard has run" do
+    MSpec.guard
+    MSpec.guarded?.should == true
+  end
+
+  it "returns true if more than one guard has run" do
+    MSpec.guard
+    MSpec.guard
+    MSpec.guarded?.should == true
+  end
+
+  it "returns true until all guards have finished" do
+    MSpec.guard
+    MSpec.guard
+    MSpec.guarded?.should == true
+    MSpec.unguard
+    MSpec.guarded?.should == true
+    MSpec.unguard
+    MSpec.guarded?.should == false
+  end
+end
+
 describe MSpec, ".describe" do
   before :each do
     MSpec.clear_current

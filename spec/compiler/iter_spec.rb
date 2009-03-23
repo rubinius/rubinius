@@ -2,12 +2,10 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "An Iter node" do
   empty_block = lambda do |g|
-    g.passed_block do
-      g.push :self
+    g.push :self
 
-      g.in_block_send :m, :none do |d|
-        d.push :nil
-      end
+    g.in_block_send :m, :none do |d|
+      d.push :nil
     end
   end
 
@@ -36,13 +34,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push :self
-          d.send :x, 0, true
-        end
+      g.in_block_send :m, :none do |d|
+        d.push :self
+        d.send :x, 0, true
       end
     end
   end
@@ -56,27 +52,23 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :empty do |d|
-          d.push :self
-          d.send :x, 0, true
-        end
+      g.in_block_send :m, :empty do |d|
+        d.push :self
+        d.send :x, 0, true
       end
     end
   end
 
   single_arg_block = lambda do |g|
-    g.passed_block do
-      g.push :self
+    g.push :self
 
-      g.in_block_send :m, :single do |d|
-        d.push_local_depth 0, 0
-        d.push :self
-        d.send :x, 0, true
-        d.send :+, 1, false
-      end
+    g.in_block_send :m, :single do |d|
+      d.push_local_depth 0, 0
+      d.push :self
+      d.send :x, 0, true
+      d.send :+, 1, false
     end
   end
 
@@ -100,13 +92,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :blank do |d|
-          d.push :self
-          d.send :x, 0, true
-        end
+      g.in_block_send :m, :blank do |d|
+        d.push :self
+        d.send :x, 0, true
       end
     end
   end
@@ -120,29 +110,25 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :splat do |d|
-          d.push :self
-          d.send :x, 0, true
-          d.pop
-          d.push_local_depth 0, 0
-        end
+      g.in_block_send :m, :splat do |d|
+        d.push :self
+        d.send :x, 0, true
+        d.pop
+        d.push_local_depth 0, 0
       end
     end
   end
 
   masgn_single_arg_block = lambda do |g|
-    g.passed_block do
-      g.push :self
+    g.push :self
 
-      g.in_block_send :m, :multi, 1 do |d|
-        d.push_local_depth 0, 0
-        d.push :self
-        d.send :x, 0, true
-        d.send :+, 1, false
-      end
+    g.in_block_send :m, :multi, 1 do |d|
+      d.push_local_depth 0, 0
+      d.push :self
+      d.send :x, 0, true
+      d.send :+, 1, false
     end
   end
 
@@ -179,17 +165,15 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :rest, -2 do |d|
-          d.push_local_depth 0, 0
-          d.push :self
-          d.send :x, 0, true
-          d.send :+, 1, false
-          d.pop
-          d.push_local_depth 0, 1
-        end
+      g.in_block_send :m, :rest, -2 do |d|
+        d.push_local_depth 0, 0
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
+        d.pop
+        d.push_local_depth 0, 1
       end
     end
   end
@@ -205,26 +189,9 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
-
-        g.in_block_send :m, :multi, 2 do |d|
-          d.push_local_depth 0, 0
-          d.push :self
-          d.send :x, 0, true
-          d.send :+, 1, false
-          d.pop
-          d.push_local_depth 0, 1
-        end
-      end
-    end
-  end
-
-  masgn_multi_arg_block = lambda do |g|
-    g.passed_block do
       g.push :self
 
-      g.in_block_send :m, :multi, -2 do |d|
+      g.in_block_send :m, :multi, 2 do |d|
         d.push_local_depth 0, 0
         d.push :self
         d.send :x, 0, true
@@ -232,6 +199,19 @@ describe "An Iter node" do
         d.pop
         d.push_local_depth 0, 1
       end
+    end
+  end
+
+  masgn_multi_arg_block = lambda do |g|
+    g.push :self
+
+    g.in_block_send :m, :multi, -2 do |d|
+      d.push_local_depth 0, 0
+      d.push :self
+      d.send :x, 0, true
+      d.send :+, 1, false
+      d.pop
+      d.push_local_depth 0, 1
     end
   end
 
@@ -262,19 +242,17 @@ describe "An Iter node" do
   end
 
   masgn_rest_arg_block = lambda do |g|
-    g.passed_block do
-      g.push :self
+    g.push :self
 
-      g.in_block_send :m, :rest, -3 do |d|
-        d.push_local_depth 0, 0
-        d.push :self
-        d.send :x, 0, true
-        d.send :+, 1, false
-        d.pop
-        d.push_local_depth 0, 1
-        d.pop
-        d.push_local_depth 0, 2
-      end
+    g.in_block_send :m, :rest, -3 do |d|
+      d.push_local_depth 0, 0
+      d.push :self
+      d.send :x, 0, true
+      d.send :+, 1, false
+      d.pop
+      d.push_local_depth 0, 1
+      d.pop
+      d.push_local_depth 0, 2
     end
   end
 
@@ -315,15 +293,13 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push 1
-          d.set_local_depth 0, 0
-          d.pop
-          d.push_local_depth 0, 0
-        end
+      g.in_block_send :m, :none do |d|
+        d.push 1
+        d.set_local_depth 0, 0
+        d.pop
+        d.push_local_depth 0, 0
       end
     end
   end
@@ -356,21 +332,17 @@ describe "An Iter node" do
           j.ret
         end
 
-        d.break_rescue do
-          d.push :self
-          d.create_block i2
-          d.send_with_block :m, 0, true
-        end
+        d.push :self
+        d.create_block i2
+        d.send_with_block :m, 0, true
 
         d.pop_modifiers
         d.ret
       end
 
-      g.passed_block do
-        g.push :self
-        g.create_block iter
-        g.send_with_block :m, 0, true
-      end
+      g.push :self
+      g.create_block iter
+      g.send_with_block :m, 0, true
     end
   end
 
@@ -387,13 +359,11 @@ describe "An Iter node" do
       g.set_local 0
       g.pop
 
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push 2
-          d.set_local 0
-        end
+      g.in_block_send :m, :none do |d|
+        d.push 2
+        d.set_local 0
       end
 
       g.pop
@@ -413,18 +383,16 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
-        g.push :self
-        g.send :a, 0, true
+      g.push :self
+      g.push :self
+      g.send :a, 0, true
 
-        g.in_block_send :m, :single, nil, 1 do |d|
-          d.push :self
-          d.send :a, 0, true
-          d.push :self
-          d.send :x, 0, true
-          d.send :+, 1, false
-        end
+      g.in_block_send :m, :single, nil, 1 do |d|
+        d.push :self
+        d.send :a, 0, true
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
       end
     end
   end
@@ -470,16 +438,14 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
-        g.send :obj, 0, true
+      g.push :self
+      g.send :obj, 0, true
 
-        g.in_block_send :m, :single, nil, 0, false do |d|
-          d.push_local_depth 0, 0
-          d.push :self
-          d.send :x, 0, true
-          d.send :+, 1, false
-        end
+      g.in_block_send :m, :single, nil, 0, false do |d|
+        d.push_local_depth 0, 0
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
       end
     end
   end
@@ -496,18 +462,16 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
-        g.send :obj, 0, true
-        g.push :self
-        g.send :x, 0, true
+      g.push :self
+      g.send :obj, 0, true
+      g.push :self
+      g.send :x, 0, true
 
-        g.in_block_send :m, :single, nil, 1, false do |d|
-          d.push_local_depth 0, 0
-          d.push :self
-          d.send :x, 0, true
-          d.send :+, 1, false
-        end
+      g.in_block_send :m, :single, nil, 1, false do |d|
+        d.push_local_depth 0, 0
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
       end
     end
   end
@@ -524,18 +488,16 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
-        g.send :obj, 0, true
-        g.push :self
-        g.send :a, 0, true
+      g.push :self
+      g.send :obj, 0, true
+      g.push :self
+      g.send :a, 0, true
 
-        g.in_block_send :m, :single, nil, 1, false do |d|
-          d.push_local_depth 0, 0
-          d.push :self
-          d.send :x, 0, true
-          d.send :+, 1, false
-        end
+      g.in_block_send :m, :single, nil, 1, false do |d|
+        d.push_local_depth 0, 0
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
       end
     end
   end
@@ -555,29 +517,27 @@ describe "An Iter node" do
       g.set_local 0
       g.pop
 
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        iter = g.block_description do |d|
-          d.cast_for_single_block_arg
-          d.set_local 0
+      iter = g.block_description do |d|
+        d.cast_for_single_block_arg
+        d.set_local 0
 
-          d.pop
-          d.push_modifiers
-          d.new_label.set!
+        d.pop
+        d.push_modifiers
+        d.new_label.set!
 
-          d.push_local 0
-          d.push :self
-          d.send :x, 0, true
-          d.send :+, 1, false
+        d.push_local 0
+        d.push :self
+        d.send :x, 0, true
+        d.send :+, 1, false
 
-          d.pop_modifiers
-          d.ret
-        end
-        iter.required = 1
-
-        g.send_with_block :m, 0, true
+        d.pop_modifiers
+        d.ret
       end
+      iter.required = 1
+
+      g.send_with_block :m, 0, true
     end
   end
 
@@ -618,13 +578,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push :nil
-          d.ret
-        end
+      g.in_block_send :m, :none do |d|
+        d.push :nil
+        d.ret
       end
     end
   end
@@ -638,26 +596,24 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          f = d.new_label
-          done = d.new_label
+      g.in_block_send :m, :none do |d|
+        f = d.new_label
+        done = d.new_label
 
-          d.push :self
-          d.send :x, 0, true
-          d.gif f
+        d.push :self
+        d.send :x, 0, true
+        d.gif f
 
-          d.push :nil
-          d.ret
-          d.goto done
+        d.push :nil
+        d.ret
+        d.goto done
 
-          f.set!
-          d.push :nil
+        f.set!
+        d.push :nil
 
-          done.set!
-        end
+        done.set!
       end
     end
   end
@@ -671,14 +627,12 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push :self
-          d.send :x, 0, true
-          d.ret
-        end
+      g.in_block_send :m, :none do |d|
+        d.push :self
+        d.send :x, 0, true
+        d.ret
       end
     end
   end
@@ -689,14 +643,12 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push 1
-          d.make_array 1
-          d.ret
-        end
+      g.in_block_send :m, :none do |d|
+        d.push 1
+        d.make_array 1
+        d.ret
       end
     end
   end
@@ -710,13 +662,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.splatted_array
-          d.ret
-        end
+      g.in_block_send :m, :none do |d|
+        d.splatted_array
+        d.ret
       end
     end
   end
@@ -730,13 +680,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.array_of_splatted_array
-          d.ret
-        end
+      g.in_block_send :m, :none do |d|
+        d.array_of_splatted_array
+        d.ret
       end
     end
   end
@@ -750,16 +698,14 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.splatted_array 2 do
-            d.push 1
-            d.push 2
-          end
-          d.ret
+      g.in_block_send :m, :none do |d|
+        d.splatted_array 2 do
+          d.push 1
+          d.push 2
         end
+        d.ret
       end
     end
   end
@@ -773,16 +719,14 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.array_of_splatted_array 2 do
-            d.push 1
-            d.push 2
-          end
-          d.ret
+      g.in_block_send :m, :none do |d|
+        d.array_of_splatted_array 2 do
+          d.push 1
+          d.push 2
         end
+        d.ret
       end
     end
   end
@@ -793,13 +737,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push :nil
-          d.break_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.push :nil
+        d.raise_break
       end
     end
   end
@@ -813,26 +755,24 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          f = d.new_label
-          done = d.new_label
+      g.in_block_send :m, :none do |d|
+        f = d.new_label
+        done = d.new_label
 
-          d.push :self
-          d.send :x, 0, true
-          d.gif f
+        d.push :self
+        d.send :x, 0, true
+        d.gif f
 
-          d.push :nil
-          d.break_raise
-          d.goto done
+        d.push :nil
+        d.raise_break
+        d.goto done
 
-          f.set!
-          d.push :nil
+        f.set!
+        d.push :nil
 
-          done.set!
-        end
+        done.set!
       end
     end
   end
@@ -846,14 +786,12 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push :self
-          d.send :x, 0, true
-          d.break_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.push :self
+        d.send :x, 0, true
+        d.raise_break
       end
     end
   end
@@ -867,14 +805,12 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push 1
-          d.make_array 1
-          d.break_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.push 1
+        d.make_array 1
+        d.raise_break
       end
     end
   end
@@ -888,13 +824,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.splatted_array
-          d.break_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.splatted_array
+        d.raise_break
       end
     end
   end
@@ -908,13 +842,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.array_of_splatted_array
-          d.break_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.array_of_splatted_array
+        d.raise_break
       end
     end
   end
@@ -928,16 +860,14 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.splatted_array 2 do
-            d.push 1
-            d.push 2
-          end
-          d.break_raise
+      g.in_block_send :m, :none do |d|
+        d.splatted_array 2 do
+          d.push 1
+          d.push 2
         end
+        d.raise_break
       end
     end
   end
@@ -951,16 +881,14 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.array_of_splatted_array 2 do
-            d.push 1
-            d.push 2
-          end
-          d.break_raise
+      g.in_block_send :m, :none do |d|
+        d.array_of_splatted_array 2 do
+          d.push 1
+          d.push 2
         end
+        d.raise_break
       end
     end
   end
@@ -971,13 +899,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push :nil
-          d.return_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.push :nil
+        d.raise_return
       end
     end
   end
@@ -991,26 +917,24 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          f = d.new_label
-          done = d.new_label
+      g.in_block_send :m, :none do |d|
+        f = d.new_label
+        done = d.new_label
 
-          d.push :self
-          d.send :x, 0, true
-          d.gif f
+        d.push :self
+        d.send :x, 0, true
+        d.gif f
 
-          d.push :nil
-          d.return_raise
-          d.goto done
+        d.push :nil
+        d.raise_return
+        d.goto done
 
-          f.set!
-          d.push :nil
+        f.set!
+        d.push :nil
 
-          done.set!
-        end
+        done.set!
       end
     end
   end
@@ -1024,14 +948,12 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push :self
-          d.send :x, 0, true
-          d.return_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.push :self
+        d.send :x, 0, true
+        d.raise_return
       end
     end
   end
@@ -1045,14 +967,12 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.push 1
-          d.make_array 1
-          d.return_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.push 1
+        d.make_array 1
+        d.raise_return
       end
     end
   end
@@ -1066,13 +986,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.splatted_array
-          d.return_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.splatted_array
+        d.raise_return
       end
     end
   end
@@ -1086,13 +1004,11 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.array_of_splatted_array
-          d.return_raise
-        end
+      g.in_block_send :m, :none do |d|
+        d.array_of_splatted_array
+        d.raise_return
       end
     end
   end
@@ -1106,16 +1022,14 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.splatted_array 2 do
-            d.push 1
-            d.push 2
-          end
-          d.return_raise
+      g.in_block_send :m, :none do |d|
+        d.splatted_array 2 do
+          d.push 1
+          d.push 2
         end
+        d.raise_return
       end
     end
   end
@@ -1129,16 +1043,14 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.in_block_send :m, :none do |d|
-          d.array_of_splatted_array 2 do
-            d.push 1
-            d.push 2
-          end
-          d.return_raise
+      g.in_block_send :m, :none do |d|
+        d.array_of_splatted_array 2 do
+          d.push 1
+          d.push 2
         end
+        d.raise_return
       end
     end
   end
@@ -1149,21 +1061,19 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.block_description do |d|
-          d.pop
-          redo_lbl = d.new_label
-          d.push_modifiers
-          redo_lbl.set!
-          d.goto redo_lbl
-          d.pop_modifiers
-          d.ret
-        end
-
-        g.send_with_block :m, 0, true
+      g.block_description do |d|
+        d.pop
+        redo_lbl = d.new_label
+        d.push_modifiers
+        redo_lbl.set!
+        d.goto redo_lbl
+        d.pop_modifiers
+        d.ret
       end
+
+      g.send_with_block :m, 0, true
     end
   end
 
@@ -1176,35 +1086,33 @@ describe "An Iter node" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push :self
+      g.push :self
 
-        g.block_description do |d|
-          redo_lbl = d.new_label
-          f = d.new_label
-          done = d.new_label
+      g.block_description do |d|
+        redo_lbl = d.new_label
+        f = d.new_label
+        done = d.new_label
 
-          d.pop
-          d.push_modifiers
-          redo_lbl.set!
+        d.pop
+        d.push_modifiers
+        redo_lbl.set!
 
-          d.push :self
-          d.send :x, 0, true
-          d.gif f
+        d.push :self
+        d.send :x, 0, true
+        d.gif f
 
-          d.goto redo_lbl
-          d.goto done
+        d.goto redo_lbl
+        d.goto done
 
-          f.set!
-          d.push :nil
+        f.set!
+        d.push :nil
 
-          done.set!
-          d.pop_modifiers
-          d.ret
-        end
-
-        g.send_with_block :m, 0, true
+        done.set!
+        d.pop_modifiers
+        d.ret
       end
+
+      g.send_with_block :m, 0, true
     end
   end
 
@@ -1238,7 +1146,8 @@ describe "An Iter node" do
     compile do |g|
       g.push :nil
       g.pop
-      g.push_const :Compile
+      g.push_const :Compiler
+      g.find_const :Utils
       g.send :__unexpected_break__, 0
     end
   end

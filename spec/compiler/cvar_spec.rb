@@ -7,7 +7,7 @@ describe "A Cvar node" do
     end
 
     compile do |g|
-      g.push_context
+      g.push_scope
       g.push_literal :@@x
       g.send :class_variable_get, 1
     end

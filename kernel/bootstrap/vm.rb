@@ -1,4 +1,9 @@
 class Rubinius::VM
+  def self.backtrace(frames_to_skip)
+    Ruby.primitive :vm_backtrace
+    raise PrimitiveFailure, "Unable to create backtrace!"
+  end
+
   def self.stats
     Ruby.primitive :vm_stats
     raise PrimitiveFailure, "Rubinius::VM.stats primitive failed"
@@ -7,11 +12,6 @@ class Rubinius::VM
   def self.jit_info
     Ruby.primitive :vm_jit_info
     raise PrimitiveFailure, "Rubinius::VM.jit_info primitive failed"
-  end
-
-  def self.gc_info
-    Ruby.primitive :vm_gc_info
-    raise PrimitiveFailure, "Rubinius::VM.gc_info primitive failed"
   end
 
   def self.load_library(path, name)

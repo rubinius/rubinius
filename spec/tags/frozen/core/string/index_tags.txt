@@ -1,0 +1,1 @@
+fails:String#index with String doesn't set $~

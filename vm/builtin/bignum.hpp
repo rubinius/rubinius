@@ -24,6 +24,7 @@ namespace rubinius {
     static Bignum* from(STATE, unsigned long);
     static Bignum* from(STATE, long long val);
     static Bignum* from(STATE, unsigned long long val);
+    static Integer* from(STATE, mp_int *num);
 
     mp_int* mp_val() {
       return &mp_val_;
@@ -179,7 +180,11 @@ namespace rubinius {
 
     // Ruby.primitive :bignum_to_s
     String* to_s(STATE, Integer* radix);
+
+    // Format the bignum using +radix+ and store the result
+    // in +buf+ of size +sz+. This will always NUL-terminate +buf+.
     void   into_string(STATE, size_t radix, char* buf, size_t sz);
+
     double to_double(STATE);
 
     // Ruby.primitive :bignum_size
@@ -193,6 +198,7 @@ namespace rubinius {
       virtual void cleanup(Object* obj);
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 

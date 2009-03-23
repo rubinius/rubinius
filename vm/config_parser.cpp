@@ -27,9 +27,21 @@ namespace rubinius {
     return str;
   }
 
+  void ConfigParser::process_argv(int argc, char** argv) {
+    for(int i=1; i < argc; i++) {
+      char* arg = argv[i];
+      if(strncmp(arg, "-X", 2) == 0) {
+        import_line(arg + 2);
+        continue;
+      }
+
+      if(arg[0] != '-' || strcmp(arg, "--") == 0) return;
+    }
+  }
+
   ConfigParser::Entry* ConfigParser::parse_line(const char* line) {
     char* var = strdup(line);
-    char* equals = strstr(var, "=");
+    char* equals = strchr(var, '=');
 
     Entry* entry = new ConfigParser::Entry();
 
@@ -92,6 +104,10 @@ namespace rubinius {
 
   bool ConfigParser::Entry::is_true() {
     return value == "true";
+  }
+
+  long ConfigParser::Entry::to_i() {
+    return strtol(value.c_str(), NULL, 10);
   }
 
   bool ConfigParser::Entry::in_section(std::string prefix) {

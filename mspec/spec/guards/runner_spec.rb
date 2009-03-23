@@ -52,6 +52,19 @@ describe Object, "#runner_is" do
     runner_is(:mspec) { ScratchPad.record :yield }
     ScratchPad.recorded.should_not == :yield
   end
+
+  it "sets the name of the guard to :runner_is" do
+    runner_is(:mspec) { }
+    @guard.name.should == :runner_is
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:match?).and_return(true)
+    @guard.should_receive(:unregister)
+    lambda do
+      runner_is(:mspec) { raise Exception }
+    end.should raise_error(Exception)
+  end
 end
 
 describe Object, "#runner_is_not" do
@@ -71,5 +84,18 @@ describe Object, "#runner_is_not" do
     @guard.stub!(:match?).and_return(false)
     runner_is_not(:mspec) { ScratchPad.record :yield }
     ScratchPad.recorded.should == :yield
+  end
+
+  it "sets the name of the guard to :runner_is_not" do
+    runner_is_not(:mspec) { }
+    @guard.name.should == :runner_is_not
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:match?).and_return(false)
+    @guard.should_receive(:unregister)
+    lambda do
+      runner_is_not(:mspec) { raise Exception }
+    end.should raise_error(Exception)
   end
 end

@@ -4,6 +4,7 @@
 #include <string>
 #include <stdint.h>
 #include <map>
+#include <dlfcn.h>
 
 namespace assembler {
 

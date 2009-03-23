@@ -38,7 +38,7 @@ namespace rubinius {
   template <class T>
     static inline bool kind_of(const Object* obj) {
       if(REFERENCE_P(obj)) {
-        return obj->obj_type == T::type;
+        return obj->type_id() == T::type;
       }
       return false;
     }
@@ -61,7 +61,7 @@ namespace rubinius {
   template <class T>
     static inline bool instance_of(const Object* obj) {
       if(REFERENCE_P(obj)) {
-        return obj->obj_type == T::type;
+        return obj->type_id() == T::type;
       }
       return false;
     }
@@ -71,7 +71,7 @@ namespace rubinius {
    */
   template <>
     SPECIALIZATION_STORAGE bool instance_of<Object>(const Object* obj) {
-      return obj->reference_p() && (obj->get_type() == ObjectType);
+      return obj->reference_p() && (obj->type_id() == ObjectType);
     }
 
   /*

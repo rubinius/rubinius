@@ -1,26 +1,24 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/dir.hpp"
 #include "builtin/memorypointer.hpp"
 #include "builtin/string.hpp"
 
 #include <cstdio>
 #include <sys/stat.h>
-#include <cxxtest/TestSuite.h>
 
-using namespace rubinius;
+class TestDir : public CxxTest::TestSuite, public VMTest {
+public:
 
-class TestDir : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
   Dir *d;
   void setUp() {
-    state = new VM(1024);
+    create();
     d = Dir::create(state);
   }
 
   void tearDown() {
     if(!d->closed_p(state)->true_p()) d->close(state);
-    delete state;
+    destroy();
   }
 
   char* make_directory() {
@@ -95,18 +93,6 @@ class TestDir : public CxxTest::TestSuite {
     // TODO: TS_ASSERT_RAISES(d->read(state), {Ruby IOError});
   }
   */
-
-  /** @todo Is it a valid assumption that the position always increases? */
-  void test_control_tells_current_position() {
-    char *dir = make_directory();
-    String* path = String::create(state, dir);
-    d->open(state, path);
-    Fixnum* pos = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
-    d->read(state);
-    Fixnum* pos2 = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
-    TS_ASSERT_LESS_THAN(pos->to_native(), pos2->to_native());
-    remove_directory(dir);
-  }
 
   void test_control_rewinds_read_location() {
     char *dir = make_directory();

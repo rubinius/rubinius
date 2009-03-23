@@ -48,18 +48,11 @@
 
 #include "defs.h"
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
 /*
  * This code has some adaptations for the Ghostscript environment, but it
  * will compile and run correctly in any environment with 8-bit chars and
  * 32-bit ints.  Specifically, it assumes that if the following are
  * defined, they have the same meaning as in Ghostscript: P1, P2, P3.
- */
-
-/*
- * This code has some modifications for use in Rubinius.
  */
 
 /* Define the state of the MD5 Algorithm. */
@@ -71,14 +64,14 @@ typedef struct md5_state_s {
 
 #ifdef RUBY
 /* avoid name clash */
-#define MD5_Init	rbx_Digest_MD5_Init
-#define MD5_Update	rbx_Digest_MD5_Update
-#define MD5_Finish	rbx_Digest_MD5_Finish
+#define MD5_Init	rb_Digest_MD5_Init
+#define MD5_Update	rb_Digest_MD5_Update
+#define MD5_Finish	rb_Digest_MD5_Finish
 #endif
 
-void	MD5_Init(MD5_CTX *pms);
-void	MD5_Update(MD5_CTX *pms, const uint8_t *data, size_t nbytes);
-void	MD5_Finish(MD5_CTX *pms, uint8_t *digest);
+void	MD5_Init _((MD5_CTX *pms));
+void	MD5_Update _((MD5_CTX *pms, const uint8_t *data, size_t nbytes));
+void	MD5_Finish _((MD5_CTX *pms, uint8_t *digest));
 
 #define MD5_BLOCK_LENGTH		64
 #define MD5_DIGEST_LENGTH		16

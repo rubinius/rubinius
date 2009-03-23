@@ -27,28 +27,32 @@ module Kernel
   module_function :local_variables
 
   def binding
-    ctx = MethodContext.current.sender
+    return Binding.setup(VariableScope.of_sender, CompiledMethod.of_sender)
+
     # If we are here because of eval, fetch the context of
     # the thing that invoked eval
     if ctx.from_eval?
+      ctx = MethodContext.current.sender
       Binding.setup ctx.sender.sender
     else
-      Binding.setup ctx
+      Binding.setup VariableScope.of_sender
     end
   end
   module_function :binding
 
   def eval(string, binding=nil, filename='(eval)', lineno=1)
     if !binding
-      binding = Binding.setup MethodContext.current.sender
+      binding = Binding.setup VariableScope.of_sender, CompiledMethod.of_sender
     elsif binding.__kind_of__ Proc
       binding = binding.binding
     elsif !binding.__kind_of__ Binding
       raise ArgumentError, "unknown type of binding"
     end
 
-    compiled_method = Compile.compile_string string, binding.context, filename, lineno
-    compiled_method.scope = binding.context.method.scope.dup
+    context = Compiler::Context.new binding.variables, binding.code
+
+    compiled_method = Compiler::Utils.compile_string string, context, filename, lineno
+    compiled_method.scope = binding.code.scope.dup
 
     yield compiled_method if block_given?
 
@@ -61,7 +65,7 @@ module Kernel
     compiled_method.compile
 
     be = BlockEnvironment.new
-    be.under_context binding.context, compiled_method
+    be.under_context binding.variables, compiled_method
 
     # Pass the BlockEnvironment this binding was created from
     # down into the new BlockEnvironment we just created.
@@ -107,7 +111,7 @@ module Kernel
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block.redirect_to self
       env.method.scope = env.method.scope.using_current_as(__metaclass__)
-      original_scope = prc.block.home.method.scope
+      original_scope = prc.block.method.scope
       env.constant_scope = original_scope
       return env.call(*self)
     elsif string
@@ -119,7 +123,7 @@ module Kernel
         context = MethodContext.current.sender
       end
 
-      compiled_method = Compile.compile_string string, context, filename, line
+      compiled_method = Compiler::Utils.compile_string string, context, filename, line
       compiled_method.inherit_scope context.method
 
       # If this is a module_eval style evaluation, add self to the top of the
@@ -172,14 +176,17 @@ class Module
       raise ArgumentError, 'block not supplied'
     end
 
-    context = MethodContext.current.sender
+    variables = VariableScope.of_sender
+    method = CompiledMethod.of_sender
+
+    context = Compiler::Context.new variables, method
 
     string = StringValue(string)
 
-    compiled_method = Compile.compile_string string, context, filename, line
+    compiled_method = Compiler::Utils.compile_string string, context, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
-    ss = StaticScope.new(self, context.method.scope)
+    ss = StaticScope.new(self, method.scope)
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
@@ -193,12 +200,11 @@ class Module
     # but the caller's binding to implement the proper constant behavior
     be = BlockEnvironment.new
     be.from_eval!
-    be.under_context context, compiled_method
+    be.under_context variables, compiled_method
     be.make_independent
-    be.home.receiver = self
-    be.home.make_independent
+    be.receiver = self
     # open_module and friends in the VM use this field to determine scope
-    be.home.method.scope = ss
+    # be.method.scope = ss
     be.call
   end
   alias_method :class_eval, :module_eval

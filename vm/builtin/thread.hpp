@@ -1,5 +1,5 @@
-#ifndef RBX_THREAD_HPP
-#define RBX_THREAD_HPP
+#ifndef RBX_BUILTIN_THREAD_HPP
+#define RBX_BUILTIN_THREAD_HPP
 
 #include "vm/exception.hpp"
 #include "vm/type_info.hpp"
@@ -11,68 +11,79 @@ namespace rubinius {
 
   class Channel;
   class Exception;
-  class Task;
+  class NativeThread;
+
+  /**
+   *  Error class for deadlocks.
+   */
+  class DeadLock : public Assertion {
+  public:
+    DeadLock(const char* msg) : Assertion(msg) { }
+  };
 
 
   /**
-   *  Ruby's green Thread backend.
+   *  Ruby-side Thread implementation.
    *
-   *  Thread is the basic unit of concurrency for Ruby
-   *  code. The threads are not truly parallel and run
-   *  co-operatively at the system level. Pre-emption
-   *  is enabled by default but the switching logic is
-   *  the same as for an explicit schedule.
+   *  Each Thread is backed by a native thread. This class
+   *  provides the interface Ruby expects to see to manipulate
+   *  Thread execution.
+   *
+   *  @see  vm/native_thread.hpp
+   *  @see  vm/util/thread.hpp
    */
   class Thread : public Object {
   public:
     const static object_type type = ThreadType;
 
     /** Register class with the VM. */
-    static void init(STATE);
+    static void   init(VM* state);
 
 
   public:   /* Accessors */
 
+    /** Thread created, valid and not yet done? */
     attr_accessor(alive, Object);
-    attr_accessor(channel, Channel);
-    attr_reader(priority, Fixnum);      /* Yes, reader only. See below. */
-    attr_accessor(queued, Object);
+
+    /** Thread alive but not currently running? */
     attr_accessor(sleep, Object);
-    attr_accessor(task, Task);
-    attr_accessor(frozen_stack, Object);
 
-    /** Setting priority may need to enlarge ScheduledThreads. */
-    void priority(STATE, Fixnum* new_priority);
+    attr_accessor(control_channel, Channel);
+
+    /** OS thread associated with this Thread, if any. */
+    NativeThread* native_thread();
 
 
-  public:   /* Primitives */
+  public:   /* Class primitives */
 
     /**
-     *  Creates a new, sleeping and non-queued Thread.
+     *  Allocate a Thread object.
+     *
+     *  Object is in a valid but not running state.
+     *  It still assumes that #initialize will be
+     *  called to fully set it up. The object is
+     *  not yet associated with an actual native
+     *  thread.
+     *
+     *  This method also creates a new VM object
+     *  to represent its state.
+     *
+     *  @see  Thread::fork()
+     *  @see  Thread::create()
+     *
+     *  @see  vm/vm.hpp
+     *  @see  kernel/common/thread.rb
      */
     // Ruby.primitive :thread_allocate
-    static Thread* create(STATE);
+    static Thread* allocate(STATE);
 
     /**
-     *  Returns the currently executing Thread.
+     *  Returns the Thread object for the state.
+     *
+     *  This is theoretically the currently executing Thread.
      */
     // Ruby.primitive :thread_current
     static Thread* current(STATE);
-
-    /**
-     *  Mark the Thread dead and start removing it.
-     *
-     *  The Thread will stay around for a little bit, so
-     *  other logic still needs to ensure that they reject
-     *  any dead threads wherever necessary.
-     *
-     *  @todo   Investigate the possibility of truly removing
-     *          the Thread immediately. This is far more involved
-     *          and possibly too complicated to be worthwhile.
-     *          --rue
-     */
-    // Ruby.primitive :thread_exited
-    Object* exited(STATE);
 
     /**
      *  Attempt to schedule some other Thread.
@@ -82,17 +93,51 @@ namespace rubinius {
      *  is over.
      */
     // Ruby.primitive :thread_pass
-    Object* pass(STATE);
+    static Object* pass(STATE);
+
+
+  public:   /* Instance primitives */
 
     /**
-     *  Raise exception in this Thread.
+     *  Execute the Thread.
      *
-     *  The Thread is woken first, then the given exception
-     *  is raised so that the Thread will proceed with exception
-     *  handling when it is scheduled (which may not be immediately.)
+     *  Actually creates the native thread and starts it.
+     *  The native thread will start executing this Thread's
+     *  #__run__ method.
+     *
+     *  @see  Thread::allocate()
+     *
+     *  @see  kernel/common/thread.rb
+     *  @see  vm/native_thread.hpp
+     */
+    // Ruby.primitive :thread_fork
+    Object* fork(STATE);
+
+    /**
+     *  Retrieve the priority set for this Thread.
+     *
+     *  The value is numeric, higher being more important
+     *  but otherwise *potentially* platform-specific for
+     *  any other connotations.
+     */
+    // Ruby.primitive :thread_priority
+    Object* priority(STATE);
+
+    /**
+     *  Process an exception raised for this Thread.
      */
     // Ruby.primitive :thread_raise
     Object* raise(STATE, Exception* exc);
+
+    /**
+     *  Set the priority for this Thread.
+     *
+     *  The value is numeric, higher being more important
+     *  but otherwise *potentially* platform-specific for
+     *  any other connotations.
+     */
+    // Ruby.primitive :thread_set_priority
+    Object* set_priority(STATE, Fixnum* priority);
 
     /**
      *  Schedule Thread to be run.
@@ -104,28 +149,57 @@ namespace rubinius {
     // Ruby.primitive :thread_wakeup
     Thread* wakeup(STATE);
 
+    // Ruby.primitive :thread_context
+    Tuple* context(STATE);
 
-  public:   /* Interface */
 
-    /** Create a Task and associate it with this Thread. */
-    void boot_task(STATE);
+  public:   /* Class methods */
 
-    /** Set object as the top of the active stack. */
-    void set_top(STATE, Object* val);
+    /**
+     *  Create a Thread object.
+     *
+     *  Used by the Thread::allocate() primitive, creates
+     *  the Thread object and associates it with the provided
+     *  VM state object. The Thread is not yet associated
+     *  with a native thread.
+     *
+     *  @see  Thread::allocate().
+     */
+    static Thread* create(STATE, VM* target);
 
-    /** Have this Thread wait to receive from the Channel. */
-    void sleep_for(STATE, Channel* chan);
+
+  public:   /* Instance methods */
+
+    /**
+     *  Disassociate the OS thread from this Thread.
+     *
+     *  Only done once the native thread has completed.
+     *
+     *  @see  Thread::fork()
+     *  @see  NativeThread::perform()
+     */
+    void detach_native_thread();
 
 
   private:  /* Instance vars */
 
-    Task*     task_;         // slot
-    Channel*  channel_;      // slot
-    Fixnum*   priority_;     // slot
-    Object*   alive_;        // slot
-    Object*   sleep_;        // slot
-    Object*   queued_;       // slot
-    Object*   frozen_stack_; // slot
+    /** Thread is created and valid and not yet done? */
+    Object* alive_;        // slot
+
+    /** Thread is currently sleeping and not running? */
+    Object* sleep_;        // slot
+
+    Channel* control_channel_; // slot
+
+    /**
+     *  Actual OS backend thread associated with this Thread.
+     *
+     *  @see Thread::fork()
+     */
+    NativeThread* native_thread_;
+
+    /** The VM object for this thread's state. */
+    VM*           vm;
 
 
   public:   /* TypeInfo */
@@ -136,11 +210,18 @@ namespace rubinius {
     };
   };
 
-  class DeadLock : public Assertion {
-  public:
-    DeadLock(const char* msg) : Assertion(msg) { }
-  };
+
+/* Inlines */
+
+  inline NativeThread* Thread::native_thread() {
+    return native_thread_;
+  }
+
+  inline void Thread::detach_native_thread() {
+    native_thread_ = NULL;
+  }
 
 }
+
 
 #endif

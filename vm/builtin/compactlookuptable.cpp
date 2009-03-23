@@ -18,13 +18,30 @@ namespace rubinius {
   }
 
   CompactLookupTable* CompactLookupTable::create(STATE) {
-    return state->om->new_object_variable<CompactLookupTable>
-      (G(compactlookuptable), COMPACTLOOKUPTABLE_SIZE);
+    size_t bytes;
+    CompactLookupTable* tbl = state->om->new_object_variable<CompactLookupTable>
+      (G(compactlookuptable), COMPACTLOOKUPTABLE_SIZE, bytes);
+    tbl->full_size_ = bytes;
+    return tbl;
   }
 
   Object* CompactLookupTable::fetch(STATE, Object* key) {
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
       if(at(state, i) == key) return at(state, i + 1);
+    }
+
+    return Qnil;
+  }
+
+  Object* CompactLookupTable::remove(STATE, Object* key) {
+    for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
+      if(at(state, i) == key) {
+        Object* val = at(state, i + 1);
+
+        put(state, i, Qnil);
+        put(state, i + 1, Qnil);
+        return val;
+      }
     }
 
     return Qnil;

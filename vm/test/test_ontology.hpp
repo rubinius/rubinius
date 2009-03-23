@@ -1,22 +1,16 @@
-#include "vm.hpp"
+#include "vm/test/test.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestObjects : public CxxTest::TestSuite {
-  public:
+class TestObjects : public CxxTest::TestSuite, public VMTest {
+public:
 
 #define check_const(obj, name) TS_ASSERT_EQUALS(G(object)->get_const(state,name), G(obj))
 
-  VM *state;
-
   void setUp() {
-    state = new VM(1024);
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_object() {

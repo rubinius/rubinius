@@ -22,14 +22,14 @@ class Module
   attr_writer :method_table
 
   def self.nesting
-    mod  = MethodContext.current.sender.receiver
-    unless mod.kind_of? Module
-      mod = MethodContext.current.sender.method_module
-    end
+    # TODO: this is not totally correct but better specs need to
+    # be written. Until then, this gets the specs running without
+    # choking on MethodContext
+    scope = CompiledMethod.of_sender.scope
     nesting = []
-    while mod != Object && mod.kind_of?(Module)
-      nesting << mod
-      mod = mod.encloser
+    while scope and scope.module != Object
+      nesting << scope.module
+      scope = scope.parent
     end
     nesting
   end
@@ -340,12 +340,14 @@ class Module
   def define_method(name, meth = nil, &prc)
     meth ||= prc
 
-    if meth.kind_of?(Proc)
-      block_env = meth.block
-      cm = DelegatedMethod.new(:call_on_instance, block_env, true)
-    elsif meth.kind_of?(Method)
+    case meth
+    when Proc
+      prc = meth.dup
+      prc.lambda_style!
+      cm = DelegatedMethod.new(:call_on_object, prc, true)
+    when Method
       cm = DelegatedMethod.new(:call, meth, false)
-    elsif meth.kind_of?(UnboundMethod)
+    when UnboundMethod
       cm = DelegatedMethod.new(:call_on_instance, meth, true)
     else
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
@@ -412,7 +414,7 @@ class Module
 
   def protected(*args)
     if args.empty?
-      MethodContext.current.sender.method_visibility = :protected
+      VariableScope.of_sender.method_visibility = :protected
       return
     end
 
@@ -421,7 +423,7 @@ class Module
 
   def public(*args)
     if args.empty?
-      MethodContext.current.sender.method_visibility = nil
+      VariableScope.of_sender.method_visibility = nil
       return
     end
 
@@ -659,6 +661,7 @@ class Module
   # See kernel/common/autoload.rb
   def autoload(name, path)
     name = normalize_const_name(name)
+    raise TypeError, "autoload filename must be a String" unless path.kind_of? String
     raise ArgumentError, "empty file name" if path.empty?
     trigger = Autoload.new(name, self, path)
     constants_table[name] = LookupTable::Association.new(name, trigger)
@@ -675,6 +678,7 @@ class Module
   end
 
   def remove_const(name)
+    name = StringValue name unless name.kind_of? Symbol
     sym = name.to_sym
     unless constants_table.has_key?(sym)
       return const_missing(name)

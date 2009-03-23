@@ -3,35 +3,58 @@
 
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "gc_marksweep.hpp"
+#include "gc/marksweep.hpp"
+#include "config_parser.hpp"
+
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 
 namespace rubinius {
 
+  Object* object_watch = 0;
+
   /* ObjectMemory methods */
-  ObjectMemory::ObjectMemory(STATE, size_t young_bytes):
-      state(state),
-      young(this, young_bytes),
-      mature(this),
-      contexts(cContextHeapSize) {
+  ObjectMemory::ObjectMemory(STATE, size_t young_bytes)
+    : state(state)
+    , young(this, young_bytes)
+    , mark_sweep_(this)
+    , immix_(this)
+  {
+
+    // TODO Not sure where this code should be...
+    if(char* num = getenv("RBX_WATCH")) {
+      object_watch = (Object*)strtol(num, NULL, 10);
+      std::cout << "Watching for " << object_watch << "\n";
+    }
 
     remember_set = new ObjectArray(0);
 
     collect_young_now = false;
     collect_mature_now = false;
-    large_object_threshold = 2700;
-    young.lifetime = 6;
     last_object_id = 0;
+
+    if(state->user_config) {
+      ConfigParser::Entry* entry;
+      if((entry = state->user_config->find("rbx.gc.large_object"))) {
+        large_object_threshold = entry->to_i();
+      } else {
+        large_object_threshold = 2700;
+      }
+
+      if((entry = state->user_config->find("rbx.gc.lifetime"))) {
+        young.lifetime = entry->to_i();
+      } else {
+        young.lifetime = 6;
+      }
+    } else {
+      large_object_threshold = 2700;
+      young.lifetime = 6;
+    }
 
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;
     }
-
-    // Push the scan pointer off the bottom so nothing is seend
-    // as scaned
-    contexts.set_scan((address)(((uintptr_t)contexts.current) - 1));
 
     TypeInfo::init(this);
   }
@@ -39,7 +62,9 @@ namespace rubinius {
   ObjectMemory::~ObjectMemory() {
 
     young.free_objects();
-    mature.free_objects();
+    mark_sweep_.free_objects();
+
+    // TODO free immix data
 
     delete remember_set;
 
@@ -54,9 +79,9 @@ namespace rubinius {
 
   void ObjectMemory::debug_marksweep(bool val) {
     if(val) {
-      mature.free_entries = false;
+      mark_sweep_.free_entries = false;
     } else {
-      mature.free_entries = true;
+      mark_sweep_.free_entries = true;
     }
   }
 
@@ -73,23 +98,46 @@ namespace rubinius {
   /* Garbage collection */
 
   Object* ObjectMemory::promote_object(Object* obj) {
-    Object* copy = mature.copy_object(obj);
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->objects_promoted++;
+#endif
+
+    Object* copy = immix_.allocate(obj->size_in_bytes(state));
+    copy->initialize_copy(obj, 0);
+    copy->copy_body(state, obj);
+
     copy->zone = MatureObjectZone;
+
+    if(watched_p(obj)) {
+      std::cout << "detected object " << obj << " during promotion.\n";
+    }
+
     return copy;
   }
 
-  void ObjectMemory::collect_young(Roots &roots) {
+  void ObjectMemory::collect_young(GCData& data) {
     static int collect_times = 0;
-    young.collect(roots);
+    young.collect(data);
     collect_times++;
-
-    contexts.reset();
   }
 
-  void ObjectMemory::collect_mature(Roots &roots) {
-    mature.collect(roots);
-    young.clear_marks();
-    clear_context_marks();
+  void ObjectMemory::collect_mature(GCData& data) {
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->objects_seen.start();
+    stats::GCStats::get()->collect_mature.start();
+#endif
+
+    immix_.collect(data);
+
+    mark_sweep_.after_marked();
+
+    immix_.clean_weakrefs();
+    immix_.unmark_all(data);
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->collect_mature.stop();
+    stats::GCStats::get()->objects_seen.stop();
+#endif
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {
@@ -101,8 +149,8 @@ namespace rubinius {
   void ObjectMemory::remember_object(Object* target) {
     assert(target->zone == MatureObjectZone);
     /* If it's already remembered, ignore this request */
-    if(target->Remember) return;
-    target->Remember = 1;
+    if(target->remembered_p()) return;
+    target->set_remember();
     remember_set->push_back(target);
   }
 
@@ -112,7 +160,7 @@ namespace rubinius {
         oi++) {
       if(*oi == target) {
         *oi = NULL;
-        target->Remember = 0;
+        target->clear_remember();
       }
     }
   }
@@ -132,59 +180,112 @@ namespace rubinius {
     Object* obj;
 
     if(bytes > large_object_threshold) {
-      obj = mature.allocate(bytes, &collect_mature_now);
+      obj = mark_sweep_.allocate(bytes, &collect_mature_now);
       if(collect_mature_now) {
         state->interrupts.check = true;
       }
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->large_objects++;
+#endif
+
     } else {
       obj = young.allocate(bytes, &collect_young_now);
       if(obj == NULL) {
         collect_young_now = true;
         state->interrupts.check = true;
-        obj = mature.allocate(bytes, &collect_mature_now);
+
+        obj = immix_.allocate(bytes);
+        if(collect_mature_now) {
+          state->interrupts.check = true;
+        }
       }
     }
 
-    obj->clear_fields();
+#ifdef ENABLE_OBJECT_WATCH
+    if(watched_p(obj)) {
+      std::cout << "detected " << obj << " during allocation\n";
+    }
+#endif
+
+    obj->clear_fields(bytes);
     return obj;
   }
 
+  Object* ObjectMemory::allocate_object_mature(size_t bytes) {
+    Object* obj;
+
+    if(bytes > large_object_threshold) {
+      obj = mark_sweep_.allocate(bytes, &collect_mature_now);
+      if(collect_mature_now) {
+        state->interrupts.check = true;
+      }
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->large_objects++;
+#endif
+
+    } else {
+      obj = immix_.allocate(bytes);
+      if(collect_mature_now) {
+        state->interrupts.check = true;
+      }
+    }
+
+#ifdef ENABLE_OBJECT_WATCH
+    if(watched_p(obj)) {
+      std::cout << "detected " << obj << " during mature allocation\n";
+    }
+#endif
+
+    obj->clear_fields(bytes);
+    return obj;
+  }
 
   Object* ObjectMemory::new_object_typed(Class* cls, size_t bytes, object_type type) {
     Object* obj;
 
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->young_object_types[type]++;
+#endif
+
     obj = allocate_object(bytes);
     set_class(obj, cls);
 
-    obj->obj_type = type;
-    obj->RequiresCleanup = type_info[type]->instances_need_cleanup;
+    obj->obj_type_ = type;
+    obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
+
+    return obj;
+  }
+
+  Object* ObjectMemory::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
+    Object* obj;
+
+#ifdef RBX_GC_STATS
+    stats::GCStats::get()->mature_object_types[type]++;
+#endif
+
+    obj = allocate_object_mature(bytes);
+    set_class(obj, cls);
+
+    obj->obj_type_ = type;
+    obj->set_requires_cleanup(type_info[type]->instances_need_cleanup);
 
     return obj;
   }
 
   TypeInfo* ObjectMemory::find_type_info(Object* obj) {
-    return type_info[obj->obj_type];
+    return type_info[obj->type_id()];
   }
 
   ObjectPosition ObjectMemory::validate_object(Object* obj) {
     ObjectPosition pos;
 
-    if(contexts.contains_p((address)obj)) return cContextStack;
-
     pos = young.validate_object(obj);
     if(pos != cUnknown) return pos;
 
-    return mature.validate_object(obj);
+    return mark_sweep_.validate_object(obj);
   }
-
-  void ObjectMemory::clear_context_marks() {
-    Object* obj = contexts.first_object();
-    while(obj < contexts.current) {
-      obj->clear_mark();
-      obj = (Object*)((uintptr_t)obj + obj->size_in_bytes());
-    }
-  }
-
 };
 
 #define DEFAULT_MALLOC_THRESHOLD 10000000

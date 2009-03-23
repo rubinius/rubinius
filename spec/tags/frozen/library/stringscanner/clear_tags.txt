@@ -1,2 +1,0 @@
-fails:StringScanner#clear set the scan pointer to the end of the string and clear matching data.
-fails:StringScanner#clear warns in verbose mode that the method is obsolete

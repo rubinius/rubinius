@@ -7,17 +7,17 @@ class Thread
 
   def self.allocate
     Ruby.primitive :thread_allocate
-    Kernel.raise PrimitiveFailure, "Thread.allocate primitive failed"
+    Kernel.raise PrimitiveFailure, "Thread.new primitive failed"
   end
 
-  def exited
-    Ruby.primitive :thread_exited
-    Kernel.raise PrimitiveFailure, "Thread#exited primitive failed"
-  end
-
-  def pass
+  def self.pass
     Ruby.primitive :thread_pass
     Kernel.raise PrimitiveFailure, "Thread#pass primitive failed"
+  end
+
+  def fork
+    Ruby.primitive :thread_fork
+    Kernel.raise PrimitiveFailure, "Thread#fork primitive failed"
   end
 
   def raise_prim(exc)
@@ -28,6 +28,21 @@ class Thread
   def wakeup
     Ruby.primitive :thread_wakeup
     Kernel.raise ThreadError, "Thread#wakeup primitive failed, thread may be dead"
+  end
+
+  def priority
+    Ruby.primitive :thread_priority
+    Kernel.raise ThreadError, "Unable to get Thread priority"
+  end
+
+  def priority=(val)
+    Ruby.primitive :thread_set_priority
+    Kernel.raise ThreadError, "Unable to set Thread priority"
+  end
+
+  def __context__
+    Ruby.primitive :thread_context
+    Kernel.raise PrimitiveFailure, "Thread#__context__ failed"
   end
 
 end

@@ -49,7 +49,6 @@ namespace rubinius {
   class String;
   class Module;
   class Executable;
-  class Task;
   class Array;
   class Message;
   class TypeInfo;
@@ -104,21 +103,7 @@ namespace rubinius {
      *
      *  Sets flag and overwrites body with NULLs.
      */
-    void        init_bytes();
-
-    /**
-     *  Mark this Object forwarded by the GC.
-     *
-     *  Sets the forwarded flag and stores the given Object* in
-     *  the klass_ field where it can be reached. This object is
-     *  no longer valid and should be accessed through the new
-     *  Object* (but code outside of the GC framework should not
-     *  really run into this much if at all.)
-     *
-     *  @todo Clarify the scenarios where an Object may exist
-     *        forwarded in user code if at all. --rue
-     */
-    void        set_forward(STATE, Object* fwd);
+    void        init_bytes(STATE);
 
     /** Provides access to the GC write barrier from any object. */
     void        write_barrier(STATE, void* obj);
@@ -175,30 +160,18 @@ namespace rubinius {
      *
      *  Sets up the current task to send the given method name to this
      *  Object, passing the given number of arguments through varargs.
-     *
-     *  Uses Task::send_message_slowly().
      */
-    bool      send(STATE, Symbol* meth, size_t args, ...);
-
-    /**
-     *  Directly send a method on this Object.
-     *
-     *  Sets up the current task to send the given method name on this
-     *  Object, passing arguments in a Ruby Array.
-     *
-     *  Uses Task::send_message_slowly().
-     */
-    bool      send_on_task(STATE, Task* task, Symbol* name, Array* args);
+    Object* send(STATE, CallFrame* caller, Symbol* name, Array* args,
+        Object* block, bool allow_private = true);
+    Object* send(STATE, CallFrame* caller, Symbol* name, bool allow_private = true);
 
     /**
      *  Perform a send from Ruby.
      *
      *  Uses Task::send_message_slowly().
-     *
-     *  @todo Add more information, when is this used? --rue
      */
     // Ruby.primitive? :object_send
-    ExecuteStatus send_prim(STATE, Executable* exec, Task* task, Message& msg);
+    Object* send_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
 
   public:   /* Ruby interface */
@@ -246,11 +219,11 @@ namespace rubinius {
 
     /** Sets the frozen flag. Rubinius does NOT currently support freezing. */
     // Ruby.primitive :object_freeze
-    Object*   freeze();
+    Object*   freeze(STATE);
 
     /** Returns true if this Object's frozen flag set, false otherwise. */
     // Ruby.primitive :object_frozen_p
-    Object*   frozen_p();
+    Object*   frozen_p(STATE);
 
     /**
      *  Ruby #instance_variable_get.
@@ -260,6 +233,8 @@ namespace rubinius {
      */
     // Ruby.primitive :object_get_ivar
     Object*   get_ivar(STATE, Symbol* sym);
+
+    Object*   del_ivar(STATE, Symbol* sym);
 
     /** Returns the structure containing this object's instance variables. */
     // Ruby.primitive :object_get_ivars
@@ -279,7 +254,7 @@ namespace rubinius {
     /**
      * Taints other if this is tainted.
      */
-    void infect(Object* other);
+    void infect(STATE, Object* other);
 
     /**
      *  Ruby #kind_of?
@@ -318,7 +293,7 @@ namespace rubinius {
      *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_taint
-    Object*   taint();
+    Object*   taint(STATE);
 
     /**
      *  Returns true if this object's tainted flag is set.
@@ -326,7 +301,7 @@ namespace rubinius {
      *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_tainted_p
-    Object*   tainted_p();
+    Object*   tainted_p(STATE);
 
     /**
      *  Clears the tainted flag on this object.
@@ -334,7 +309,7 @@ namespace rubinius {
      *  Rubinius DOES NOT currently support tainting.
      */
     // Ruby.primitive :object_untaint
-    Object*   untaint();
+    Object*   untaint(STATE);
 
     /**
      *  Returns an #inspect-like representation of an Object for
@@ -362,8 +337,11 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       virtual ~Info() {}
+      Info(object_type type, bool cleanup = false)
+        : TypeInfo(type, cleanup)
+      {}
 
-      Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
 
   };

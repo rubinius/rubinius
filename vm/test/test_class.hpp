@@ -1,23 +1,19 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/class.hpp"
 #include "vm/object_utils.hpp"
 #include "builtin/lookuptable.hpp"
 #include "object_types.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestClass : public CxxTest::TestSuite {
+class TestClass : public CxxTest::TestSuite, public VMTest {
   public:
 
-  VM *state;
-
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_create() {
@@ -26,7 +22,6 @@ class TestClass : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(c->name(), Qnil);
     TS_ASSERT_EQUALS(c->superclass(), G(object));
     TS_ASSERT_EQUALS(c->instance_type(), G(object)->instance_type());
-    TS_ASSERT_EQUALS(c->instance_fields(), G(object)->instance_fields());
     TS_ASSERT(kind_of<LookupTable>(c->constants()));
     TS_ASSERT(kind_of<LookupTable>(c->method_table()));
   }

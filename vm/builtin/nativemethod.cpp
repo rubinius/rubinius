@@ -2,87 +2,125 @@
 
 #include "vm.hpp"
 
+#include "exception.hpp"
+#include "exception_point.hpp"
+#include "message.hpp"
 #include "native_libraries.hpp"
 #include "primitives.hpp"
-#include "quantum_stack_leap.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/string.hpp"
-#include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
-
-#include "message.hpp"
 
 namespace rubinius {
 
-  class Task;
+  typedef TypedRoot<Object*> RootHandle;
+
+  /** Thread-local NativeMethodEnvironment instance. */
+  thread::ThreadData<NativeMethodEnvironment*> native_method_environment;
 
 /* Class methods */
 
+  NativeMethodEnvironment* NativeMethodEnvironment::get() {
+    return native_method_environment.get();
+  }
 
-  void NativeMethod::register_class_with(STATE) {
+  Handle NativeMethodFrame::get_handle(STATE, Object* obj) {
+    Handle hndl = handles_.size() + cHandleOffset;
+    handles_.push_back(new RootHandle(state, obj));
+    return hndl;
+  }
+
+  Object* NativeMethodFrame::get_object(Handle hndl) {
+    return handles_[hndl - cHandleOffset]->get();
+  }
+
+  Handle NativeMethodEnvironment::get_handle(Object* obj) {
+    return current_native_frame_->get_handle(state_, obj);
+  }
+
+  Handle NativeMethodEnvironment::get_handle_global(Object* obj) {
+    Handle handle = cGlobalHandleStart - global_handles_.size() - cHandleOffset;
+    global_handles_.push_back(new RootHandle(state_, obj));
+    return handle;
+  }
+
+  Object* NativeMethodEnvironment::get_object(Handle handle) {
+    if(handle <= 0) {
+      switch(handle) {
+      case cCApiHandleQfalse:
+        return Qfalse;
+      case cCApiHandleQtrue:
+        return Qtrue;
+      case cCApiHandleQnil:
+        return Qnil;
+      case cCApiHandleQundef:
+        return Qundef;
+      default:
+        // @todo: throw if this handle pulls 0 out
+        return global_handles_[cGlobalHandleStart - handle - cHandleOffset]->get();
+      }
+    } else {
+      return current_native_frame_->get_object(handle);
+    }
+  }
+
+  void NativeMethodEnvironment::delete_global(Handle handle) {
+    RootHandle* root = global_handles_[cGlobalHandleStart - handle];
+    delete root;
+    global_handles_[cGlobalHandleStart - handle] = 0;
+  }
+
+  Object* NativeMethodEnvironment::block() {
+    return current_call_frame_->top_scope->block();
+  }
+
+  Handles& NativeMethodEnvironment::handles() {
+    return current_native_frame_->handles();
+  }
+
+  void NativeMethod::init(STATE) {
     state->globals.nmethod.set(state->new_class("NativeMethod", G(executable)));
     state->globals.nmethod.get()->set_object_type(state, NativeMethodType);
+
+    init_thread(state);
+  }
+
+  void NativeMethod::init_thread(STATE) {
+    native_method_environment.set(new NativeMethodEnvironment);
   }
 
   NativeMethod* NativeMethod::allocate(STATE) {
     return create<GenericFunctor>(state);
   }
 
-  /** @todo Set up a SIGSEGV/SIGBUS handler. */
-  ExecuteStatus NativeMethod::activate_from(NativeMethodContext* context) {
-    NativeMethodContext::current_context_is(context);
+  Object* NativeMethod::executor_implementation(STATE, CallFrame* call_frame, Message& msg) {
+    NativeMethodEnvironment* env = native_method_environment.get();
+    NativeMethodFrame nmf(env->current_native_frame());
 
-    store_current_execution_point_in(context->dispatch_point());
+    env->set_current_call_frame(call_frame);
+    env->set_current_native_frame(&nmf);
+    env->set_state(state);
 
-    /* This is where control returns from jumps. Regrab context. */
-    context = NativeMethodContext::current();
+    NativeMethod* nm = as<NativeMethod>(msg.method);
 
-    if(NativeMethodContext::ORIGINAL_CALL == context->action()) {
-      /* Actual dispatch must run in the new stack */
-      create_execution_point_with_stack(context->c_call_point(), context->stack(), context->stacksize());
-      set_function_to_run_in(context->c_call_point(), NativeMethod::perform_call);
+    Object* ret;
+    ExceptionPoint ep(env);
 
-      jump_to_execution_point_in(context->c_call_point());
+    PLACE_EXCEPTION_POINT(ep);
+
+    if(unlikely(ep.jumped_to())) {
+      ret = NULL;
+    } else {
+      ret = nm->call(state, env, msg);
     }
 
-    switch(context->action()) {
-    case NativeMethodContext::CALL_FROM_C:
+    env->set_current_native_frame(nmf.previous());
+    ep.pop(env);
 
-      /*  CompiledMethods are only loaded, not executed, so a
-       *  So, we return from here which then allows the CM to really
-       *  execute.
-       */
-      return context->task()->send_message_slowly(context->message_from_c());
-
-    case NativeMethodContext::RETURNED_BACK_TO_C:
-      jump_to_execution_point_in(context->inside_c_method_point());
-      break;  /* Never reached */
-
-    case NativeMethodContext::RETURN_FROM_C:
-      context->task()->native_return(context->return_value());
-      NativeMethodContext::current_context_is(NULL);
-      break;
-
-    case NativeMethodContext::SEGFAULT_DETECTED:
-      break;
-
-    default:
-      break;
-    }
-
-    return cExecuteRestart;
-  }
-
-  ExecuteStatus NativeMethod::executor_implementation(STATE, Task* task, Message& message) {
-    NativeMethodContext* context = NativeMethodContext::create(state,
-        &message, task, as<NativeMethod>(message.method));
-
-    task->active(state, context);
-
-    return activate_from(context);
+    return ret;
   }
 
   NativeMethod* NativeMethod::load_extension_entry_point(STATE, String* path, String* name) {
@@ -99,8 +137,6 @@ namespace rubinius {
   }
 
   /**
-   *  This method always executes on the separate stack created for the context.
-   *
    *    Arity -3:   VALUE func(VALUE argument_array);
    *    Arity -2:   VALUE func(VALUE receiver, VALUE argument_array);
    *    Arity -1:   VALUE func(int argument_count, VALUE*, VALUE receiver);
@@ -114,52 +150,39 @@ namespace rubinius {
    *
    *  @todo   Check for inefficiencies.
    */
-  void NativeMethod::perform_call() {
-    NativeMethodContext* context = NativeMethodContext::current();
+  Object* NativeMethod::call(STATE, NativeMethodEnvironment* env, Message& msg) {
+    Handle receiver = env->get_handle(msg.recv);
 
-    Message* message = context->message();
+    switch(arity()->to_int()) {
+    case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
+      Handle args = env->get_handle(msg.as_array(state));
 
-    Handle receiver = context->handle_for(message->recv);
+      Handle ret_handle = functor_as<OneArgFunctor>()(args);
 
-    try {
+      return env->get_object(ret_handle);
+    }
 
-      switch (context->method()->arity()->to_int()) {
-      case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
-        Handle args = context->handle_for(message->as_array(context->state()));
-        message->clear_caller();
+    case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
+      Handle args = env->get_handle(msg.as_array(state));
 
-        Handle ret_handle = context->method()->functor_as<OneArgFunctor>()(args);
+      Handle ret_handle = functor_as<TwoArgFunctor>()(receiver, args);
 
-        context->return_value(context->object_from(ret_handle));
-        break;
+      return env->get_object(ret_handle);
+    }
+
+    case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
+      Handle* args = new Handle[msg.args()];
+
+      for (std::size_t i = 0; i < msg.args(); ++i) {
+        args[i] = env->get_handle(msg.get_argument(i));
       }
 
-      case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
-        Handle args = context->handle_for(message->as_array(context->state()));
-        message->clear_caller();
+      Handle ret_handle = functor_as<ArgcFunctor>()(msg.args(), args, receiver);
 
-        Handle ret_handle = context->method()->functor_as<TwoArgFunctor>()(receiver, args);
+      delete[] args;
 
-        context = NativeMethodContext::current();
-        context->return_value(context->object_from(ret_handle));
-        break;
-      }
-
-      case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
-
-        Handle* args = new Handle[message->args()];
-
-        for (std::size_t i = 0; i < message->args(); ++i) {
-          args[i] = context->handle_for(message->get_argument(i));
-        }
-        message->clear_caller();
-
-        Handle ret_handle = context->method()->functor_as<ArgcFunctor>()(message->args(), args, receiver);
-
-        context = NativeMethodContext::current();
-        context->return_value(context->object_from(ret_handle));
-        break;
-      }
+      return env->get_object(ret_handle);
+    }
 
       /*
        *  Normal arg counts
@@ -168,123 +191,84 @@ namespace rubinius {
        *  to get rid of the concept of a separate Handle and Object.
        */
 
-      case 0: {
-        OneArgFunctor functor = context->method()->functor_as<OneArgFunctor>();
-        message->clear_caller();
+    case 0: {
+      OneArgFunctor functor = functor_as<OneArgFunctor>();
 
-        Handle ret_handle = functor(receiver);
+      Handle ret_handle = functor(receiver);
 
-        context = NativeMethodContext::current();
-        context->return_value(context->object_from(ret_handle));
-        break;
-      }
+      return env->get_object(ret_handle);
+    }
 
-      case 1: {
-        TwoArgFunctor functor = context->method()->functor_as<TwoArgFunctor>();
+    case 1: {
+      TwoArgFunctor functor = functor_as<TwoArgFunctor>();
 
-        Handle a1 = context->handle_for(message->get_argument(0));
-        message->clear_caller();
+      Handle a1 = env->get_handle(msg.get_argument(0));
 
-        Handle ret_handle = functor(receiver, a1);
+      Handle ret_handle = functor(receiver, a1);
 
-        context = NativeMethodContext::current();
-        context->return_value(context->object_from(ret_handle));
-        break;
-      }
+      return env->get_object(ret_handle);
+    }
 
-      case 2: {
-        ThreeArgFunctor functor = context->method()->functor_as<ThreeArgFunctor>();
+    case 2: {
+      ThreeArgFunctor functor = functor_as<ThreeArgFunctor>();
 
-        Handle a1 = context->handle_for(message->get_argument(0));
-        Handle a2 = context->handle_for(message->get_argument(1));
-        message->clear_caller();
+      Handle a1 = env->get_handle(msg.get_argument(0));
+      Handle a2 = env->get_handle(msg.get_argument(1));
 
-        Handle ret_handle = functor(receiver, a1, a2);
+      Handle ret_handle = functor(receiver, a1, a2);
 
-        context = NativeMethodContext::current();
-        context->return_value(context->object_from(ret_handle));
-        break;
-      }
+      return env->get_object(ret_handle);
+    }
 
-      case 3: {
-        FourArgFunctor functor = context->method()->functor_as<FourArgFunctor>();
-        Handle a1 = context->handle_for(message->get_argument(0));
-        Handle a2 = context->handle_for(message->get_argument(1));
-        Handle a3 = context->handle_for(message->get_argument(2));
-        message->clear_caller();
+    case 3: {
+      FourArgFunctor functor = functor_as<FourArgFunctor>();
+      Handle a1 = env->get_handle(msg.get_argument(0));
+      Handle a2 = env->get_handle(msg.get_argument(1));
+      Handle a3 = env->get_handle(msg.get_argument(2));
 
-        Handle ret_handle = functor(receiver, a1, a2, a3);
+      Handle ret_handle = functor(receiver, a1, a2, a3);
 
-        context = NativeMethodContext::current();
-        context->return_value(context->object_from(ret_handle));
-        break;
-      }
+      return env->get_object(ret_handle);
+    }
 
-      case 4: {
-        FiveArgFunctor functor = context->method()->functor_as<FiveArgFunctor>();
-        Handle a1 = context->handle_for(message->get_argument(0));
-        Handle a2 = context->handle_for(message->get_argument(1));
-        Handle a3 = context->handle_for(message->get_argument(2));
-        Handle a4 = context->handle_for(message->get_argument(3));
-        message->clear_caller();
+    case 4: {
+      FiveArgFunctor functor = functor_as<FiveArgFunctor>();
+      Handle a1 = env->get_handle(msg.get_argument(0));
+      Handle a2 = env->get_handle(msg.get_argument(1));
+      Handle a3 = env->get_handle(msg.get_argument(2));
+      Handle a4 = env->get_handle(msg.get_argument(3));
 
-        Handle ret_handle = functor(receiver, a1, a2, a3, a4);
+      Handle ret_handle = functor(receiver, a1, a2, a3, a4);
 
-        context = NativeMethodContext::current();
-        context->return_value(context->object_from(ret_handle));
-        break;
-      }
+      return env->get_object(ret_handle);
+    }
 
-      case 5: {
-        SixArgFunctor functor = context->method()->functor_as<SixArgFunctor>();
-        Handle a1 = context->handle_for(message->get_argument(0));
-        Handle a2 = context->handle_for(message->get_argument(1));
-        Handle a3 = context->handle_for(message->get_argument(2));
-        Handle a4 = context->handle_for(message->get_argument(3));
-        Handle a5 = context->handle_for(message->get_argument(4));
-        message->clear_caller();
+    case 5: {
+      SixArgFunctor functor = functor_as<SixArgFunctor>();
+      Handle a1 = env->get_handle(msg.get_argument(0));
+      Handle a2 = env->get_handle(msg.get_argument(1));
+      Handle a3 = env->get_handle(msg.get_argument(2));
+      Handle a4 = env->get_handle(msg.get_argument(3));
+      Handle a5 = env->get_handle(msg.get_argument(4));
 
-        Handle ret_handle = functor(receiver, a1, a2, a3, a4, a5);
+      Handle ret_handle = functor(receiver, a1, a2, a3, a4, a5);
 
-        context = NativeMethodContext::current();
-        context->return_value(context->object_from(ret_handle));
-        break;
-      }
+      return env->get_object(ret_handle);
+    }
 
       /* Extension entry point, should never occur for user code. */
-      case INIT_FUNCTION: {
-        InitFunctor functor = context->method()->functor_as<InitFunctor>();
-        message->clear_caller();
+    case INIT_FUNCTION: {
+      InitFunctor functor = functor_as<InitFunctor>();
 
-        functor();
+      functor();
 
-        context = NativeMethodContext::current();
-        context->return_value(Qnil);
-        break;
-      }
-
-      default:
-        sassert(false && "Not a valid arity");
-      }
-
-    }
-    catch(const std::exception& ex) {
-      std::cerr << "Error in perform_call(): " << ex.what() << std::endl;
-      context->action(NativeMethodContext::ERROR_RAISED);
-      goto leave;
-    }
-    catch(...) {
-      std::cerr << "UNKNOWN error in perform_call()!" << std::endl;
-      context->action(NativeMethodContext::ERROR_RAISED);
-      goto leave;
+      return Qnil;
     }
 
-    context->action(NativeMethodContext::RETURN_FROM_C);
-
-  leave:
-
-    jump_to_execution_point_in(context->dispatch_point());
-    /* Never actually returns, control never reaches here. */
+    default:
+      assert(false && "Not a valid arity");
+      return Qnil;
+    }
   }
 
 }

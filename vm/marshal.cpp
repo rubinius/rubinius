@@ -31,17 +31,16 @@ namespace rubinius {
   void Marshaller::set_bignum(Bignum* big) {
     char buf[1024];
 
-    std::memset(buf, 0, 1024);
-    big->into_string(state, 10, buf, 1023);
+    big->into_string(state, 10, buf, sizeof(buf));
 
     stream << "I" << endl << buf << endl;
   }
 
   Object* UnMarshaller::get_int() {
     char data[1024];
-    std::memset(data, 0, 1024);
 
     stream >> data;
+    data[sizeof(data) - 1] = '\0';
 
     return Bignum::from_string(state, data, 10);
   }

@@ -17,7 +17,7 @@ namespace rubinius {
   public:
     static const object_type type = SendSiteType;
 
-    typedef ExecuteStatus (*Performer)(STATE, Task* task, Message& msg);
+    typedef Object* (*Performer)(STATE, CallFrame* call_frame, Message& msg);
 
   private:
     Symbol* name_;            // slot
@@ -66,7 +66,7 @@ namespace rubinius {
 
     // Check and see if the method referenced has the given serial
     // Sideffect: populates the sendsite if empty
-    bool check_serial(STATE, MethodContext* current, Object* reciever, int serial);
+    bool check_serial(STATE, CallFrame* call_frame, Object* reciever, int serial);
 
     class Info : public TypeInfo {
     public:
@@ -76,9 +76,9 @@ namespace rubinius {
   };
 
   namespace performer {
-    ExecuteStatus basic_performer(STATE, Task* task, Message& msg);
-    ExecuteStatus mono_performer(STATE, Task* task, Message& msg);
-    ExecuteStatus mono_mm_performer(STATE, Task* task, Message& msg);
+    Object* basic_performer(STATE, CallFrame*, Message& msg);
+    Object* mono_performer(STATE, CallFrame*, Message& msg);
+    Object* mono_mm_performer(STATE, CallFrame*, Message& msg);
   }
 
   /**

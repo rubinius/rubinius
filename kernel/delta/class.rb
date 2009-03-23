@@ -1,5 +1,7 @@
 class Class
-  def opened_class
+  def opened_class(created)
+    return self unless created
+
     cls = superclass || Object
     cls.add_subclass self
 

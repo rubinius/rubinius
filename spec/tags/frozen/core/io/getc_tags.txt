@@ -1,1 +1,0 @@
-fails:IO#getc returns nil on empty stream

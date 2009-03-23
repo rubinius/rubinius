@@ -5,7 +5,6 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/module.hpp"
@@ -14,7 +13,7 @@
 #include "detection.hpp"
 #include "message.hpp"
 
-#include "timing.hpp"
+#include "instruments/timing.hpp"
 
 #include <time.h>
 
@@ -143,10 +142,12 @@ namespace rubinius {
       }
     }
 
+    /*
     void Profiler::enter_block(STATE, MethodContext* ctx, CompiledMethod* cm) {
       record_method(state, cm, as<Symbol>(ctx->name()),
           module_name(ctx->module()), kBlock);
     }
+    */
 
     void Profiler::enter_primitive(STATE, Message& msg) {
       enter_method(state, msg, (CompiledMethod*)Qnil);

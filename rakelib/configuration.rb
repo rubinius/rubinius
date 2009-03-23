@@ -5,8 +5,8 @@ RBX_RUBY_ENGINE     = 'rbx'
 RBX_RUBY_VERSION    = '1.8.6'
 RBX_RUBY_PATCHLEVEL = 322
 RBX_RUBY_RELDATE    = '12/31/2009'
-RBX_LIBVER          = '0.10'
-RBX_VERSION         = "#{RBX_LIBVER}.0"
+RBX_LIBVER          = '0.11'
+RBX_VERSION         = "#{RBX_LIBVER}.0-dev"
 RBX_HOST            = `./rakelib/config.guess`.chomp
 RBX_BUILDREV        = `git rev-list --all | head -n1`.chomp
 RBX_CC              = ENV['CC'] || 'gcc'
@@ -29,7 +29,7 @@ else
   RBX_BINPATH         = "#{RBX_BASE_PATH}/bin"
   RBX_LIBPATH         = "#{RBX_BASE_PATH}/vm"
   RBX_EXT_PATH        = "#{RBX_BASE_PATH}/#{RBX_LIBVER}/#{RBX_HOST}"
-  RBX_HDR_PATH        = "#{RBX_BASE_PATH}/vm/subtend"
+  RBX_HDR_PATH        = "#{RBX_BASE_PATH}/vm/capi"
 end
 
 # RubyGems is already using Rubinius::CODE_PATH so we will

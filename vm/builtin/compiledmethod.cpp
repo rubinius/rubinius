@@ -37,31 +37,28 @@ namespace rubinius {
     return cm;
   }
 
-  CompiledMethod* CompiledMethod::generate_tramp(STATE, size_t stack_size) {
-    CompiledMethod* cm = CompiledMethod::create(state);
-
-    cm->stack_size(state, Fixnum::from(stack_size));
-    cm->required_args(state, Fixnum::from(0));
-    cm->total_args(state, cm->required_args());
-    cm->name(state, state->symbol("__halt__"));
-
-    cm->iseq(state, InstructionSequence::create(state, 1));
-    cm->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_halt));
-
-    StaticScope* ss = StaticScope::create(state);
-    ss->module(state, G(object));
-    cm->scope(state, ss);
-
-    cm->formalize(state, false);
-
-    return cm;
-  }
-
   int CompiledMethod::start_line(STATE) {
     if(lines_->nil_p()) return -1;
-    if(lines_->num_fields() < 1) return -1;
-    Tuple* top = as<Tuple>(lines_->at(state, 0));
-    return as<Fixnum>(top->at(state, 2))->to_native();
+    if(lines_->num_fields() < 2) return -1;
+    // This is fixed as one because entry 0 is always ip = 0 and
+    // 1 is the first line
+    return as<Fixnum>(lines_->at(state, 1))->to_native();
+  }
+
+  int CompiledMethod::line(STATE, int ip) {
+    if(lines_->nil_p()) return -3;
+
+    size_t fin = lines_->num_fields() - 2;
+    for(size_t i = 0; i < fin; i += 2) {
+      Fixnum* start_ip = as<Fixnum>(lines_->at(state, i));
+      Fixnum* end_ip   = as<Fixnum>(lines_->at(state, i+2));
+
+      if(start_ip->to_native() <= ip && end_ip->to_native() > ip) {
+        return as<Fixnum>(lines_->at(state, i+1))->to_native();
+      }
+    }
+
+    return as<Fixnum>(lines_->at(state, fin+1))->to_native();
   }
 
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
@@ -108,10 +105,12 @@ namespace rubinius {
     return this;
   }
 
-  ExecuteStatus CompiledMethod::default_executor(STATE, Task* task, Message& msg) {
+  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
     cm->formalize(state, false);
-    return cm->execute(state, task, msg);
+    // Refactor
+    cm->backend_method_->find_super_instructions();
+    return cm->execute(state, call_frame, msg);
   }
 
   void CompiledMethod::post_marshal(STATE) {
@@ -128,7 +127,7 @@ namespace rubinius {
     return local_count_->to_native();
   }
 
-  ExecuteStatus CompiledMethod::activate(STATE, Executable* exec, Task* task, Message& msg) {
+  Object* CompiledMethod::activate(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     CompiledMethod* meth = as<CompiledMethod>(msg.recv);
     Object* recv = msg.get_argument(0);
     Module* mod  = as<Module>(msg.get_argument(1));
@@ -147,7 +146,7 @@ namespace rubinius {
     // push the name given, because there really isn't one. So if
     // this is used to call a method_missing, you have to supply all
     // the args.
-    return meth->execute(state, task, msg);
+    return meth->execute(state, call_frame, msg);
   }
 
   MachineMethod* CompiledMethod::make_machine_method(STATE) {
@@ -155,9 +154,13 @@ namespace rubinius {
       formalize(state, false);
     }
 
+    /*
     JITCompiler jit;
     jit.compile(state, backend_method_);
     return MachineMethod::create(state, backend_method_, jit);
+    */
+
+    return NULL;
   }
 
   bool CompiledMethod::is_rescue_target(STATE, int ip) {
@@ -199,6 +202,17 @@ namespace rubinius {
     if(backend_method_->get_breakpoint_flags(state, i) == cBreakpoint)
       return Qtrue;
     return Qfalse;
+  }
+
+  CompiledMethod* CompiledMethod::of_sender(STATE, CallFrame* calling_environment) {
+    CallFrame* caller = calling_environment->previous;
+    if(caller) {
+      if(caller->cm) {
+        return caller->cm;
+      }
+    }
+
+    return (CompiledMethod*)Qnil;
   }
 
   void CompiledMethod::Info::show(STATE, Object* self, int level) {

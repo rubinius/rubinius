@@ -114,4 +114,17 @@ describe Object, "#ruby_version_is" do
     ruby_version_is('x.x.x.x') { ScratchPad.record :yield }
     ScratchPad.recorded.should_not == :yield
   end
+
+  it "sets the name of the guard to :ruby_version_is" do
+    ruby_version_is("") { }
+    @guard.name.should == :ruby_version_is
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:match?).and_return(true)
+    @guard.should_receive(:unregister)
+    lambda do
+      ruby_version_is("") { raise Exception }
+    end.should raise_error(Exception)
+  end
 end

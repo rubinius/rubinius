@@ -8,7 +8,7 @@ describe "Hash#update" do
 
   it_behaves_like(:hash_iteration_method, :update)
 
-  compliant_on :ruby, :rubinius do
+  compliant_on :rubinius do
     it_behaves_like(:hash_iteration_modifying, :update)
   end
 end

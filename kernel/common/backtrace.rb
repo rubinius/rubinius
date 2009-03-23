@@ -4,43 +4,53 @@
 class Backtrace
   include Enumerable
 
-  attr_accessor :frames
-  attr_accessor :top_context
+  MAX_WIDTH = 40
+
   attr_accessor :first_color
   attr_accessor :kernel_color
   attr_accessor :eval_color
 
-  def initialize
-    @frames = []
-    @top_context = nil
+  def initialize(locations)
+    color_config = Rubinius::RUBY_CONFIG["rbx.colorize_backtraces"]
+    if ENV['RBX_NOCOLOR'] or color_config == "no" or color_config == "NO"
+      @colorize = false
+    else
+      @colorize = true
+    end
+
+    @locations = locations
     @first_color = "\033[0;31m"
     @kernel_color = "\033[0;34m"
     @eval_color = "\033[0;33m"
   end
 
   def [](index)
-    @frames[index]
+    @locations[index]
   end
 
-  def show(sep="\n", colorize = ENV["RBX_COLOR"])
+  def show(sep="\n")
     first = true
-    color_config = Rubinius::RUBY_CONFIG["rbx.colorize_backtraces"]
-    if !colorize or color_config == "no" or color_config == "NO"
-      colorize = false
-      color = ""
-      clear = ""
-    else
+    if @colorize
       clear = "\033[0m"
+    else
+      clear = ""
     end
 
-    formatted = @frames.map do |ctx|
-      recv = ctx.describe
-      loc = ctx.location
-      color = color_from_loc(loc, first) if colorize
+    max = 0
+    lines = @locations.map do |loc|
+      str = loc.describe
+      max = str.size if str.size > max
+      [str, loc]
+    end
+    max = MAX_WIDTH if max > MAX_WIDTH
+
+    formatted = lines.map do |recv, location|
+      pos  = location.position
+      color = color_from_loc(pos, first) if @colorize
       first = false # special handling for first line
-      times = @max - recv.size
+      times = max - recv.size
       times = 0 if times < 0
-      "#{color}    #{' ' * times}#{recv} at #{loc}#{clear}"
+      "#{color}    #{' ' * times}#{recv} at #{pos}#{clear}"
     end
     return formatted.join(sep)
   end
@@ -53,7 +63,7 @@ class Backtrace
 
   def color_from_loc(loc, first)
     return @first_color if first
-    if loc =~ /kernel/
+    if loc =~ /^kernel/
       @kernel_color
     elsif loc =~ /\(eval\)/
       @eval_color
@@ -62,44 +72,17 @@ class Backtrace
     end
   end
 
-  MAX_WIDTH = 40
-
-  def fill_backtrace
-    @max = 0
-    @backtrace = []
-    # Skip the first frame if we are raising an exception from
-    # an eval's BlockContext
-    if @frames.at(0).from_eval?
-      frames = @frames[1, @frames.length - 1]
-    else
-      frames = @frames
-    end
-
-    frames.each_with_index do |ctx, i|
-      str = ctx.describe
-      @max = str.size if str.size > @max
-      @backtrace << [str, ctx.location]
-    end
-    @max = MAX_WIDTH if @max > MAX_WIDTH
-  end
-
-  def self.backtrace(ctx=nil)
-    ctx ||= MethodContext.current.sender
-    obj = new()
-    obj.top_context = ctx
-    obj.frames = ctx.context_stack
-
-    # TODO - Consider not doing this step if we know we want MRI output
-    obj.fill_backtrace
-    return obj
+  def self.backtrace(locations)
+    return new(locations)
   end
 
   def each
-    @backtrace.each { |f| yield f.last }
+    @locations.each { |f| yield f }
     self
   end
 
   def to_mri
-    return @top_context.stack_trace_starting_at(0)
+    return []
+    # return @top_context.stack_trace_starting_at(0)
   end
 end

@@ -12,23 +12,11 @@
 require 'digest'
 require 'ext/digest/sha2/sha2'
 
-Digest.create :SHA256, 'rbx_Digest_SHA256_Init', 'rbx_Digest_SHA256_Update',
-              'rbx_Digest_SHA256_Finish', (4 * 8 + 8 + 64), 64, 32
-
-Digest.create :SHA384, 'rbx_Digest_SHA384_Init', 'rbx_Digest_SHA384_Update',
-              'rbx_Digest_SHA384_Finish', (8 * 8 + 8 * 2 + 128), 128, 48
-
-Digest.create :SHA512, 'rbx_Digest_SHA512_Init', 'rbx_Digest_SHA512_Update',
-              'rbx_Digest_SHA512_Finish', (8 * 8 + 8 * 2 + 128), 128, 64
-
 module Digest
   #
   # A meta digest provider class for SHA256, SHA384 and SHA512.
   #
-  class SHA2
-
-    include Digest::Class
-
+  class SHA2 < Digest::Class
     # call-seq:
     #     Digest::SHA2.new(bitlen = 256) -> digest_obj
     #
@@ -84,4 +72,3 @@ module Digest
     end
   end
 end
-

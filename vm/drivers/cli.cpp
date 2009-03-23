@@ -8,7 +8,6 @@
 #include "vm/type_info.hpp"
 #include "vm/exception.hpp"
 
-#include "builtin/task.hpp"
 
 using namespace std;
 using namespace rubinius;
@@ -29,7 +28,7 @@ static void load_runtime_kernel(Environment& env, std::string root) {
     std::cout << "It appears that " << root << "/index is missing.\n";
     exit(1);
   }
-  
+
   // Load the ruby file to prepare for bootstrapping Ruby!
   // The bootstrapping for the VM is already done by the time we're here.
   env.run_file(root + "/alpha.rbc");
@@ -61,8 +60,9 @@ static void load_runtime_kernel(Environment& env, std::string root) {
  *       function does not deal with that subject.
  */
 int main(int argc, char** argv) {
-  Environment env;
-  env.load_config_argv(argc, argv);
+  Environment env(argc, argv);
+  env.state->init_stack_size();
+  env.state->set_stack_start(&env);
 
   try {
     const char* runtime = getenv("RBX_RUNTIME");
@@ -89,8 +89,9 @@ int main(int argc, char** argv) {
     std::string loader = root + "/loader.rbc";
 
     env.enable_preemption();
+    env.start_signal_thread();
     env.run_file(loader);
-    return 0;
+    return env.exit_code();
 
   } catch(Assertion *e) {
     std::cout << "VM Assertion:" << std::endl;
@@ -101,6 +102,7 @@ int main(int argc, char** argv) {
     env.state->print_backtrace();
     delete e;
   } catch(RubyException &e) {
+    std::cout << "Ruby Exception hit toplevel:\n";
     // Prints Ruby backtrace, and VM backtrace if captured
     e.show(env.state);
   } catch(TypeError &e) {
@@ -119,7 +121,7 @@ int main(int argc, char** argv) {
     if(!e.object->reference_p()) {
       std::cout << "  Tried to use non-reference value " << e.object;
     } else {
-      TypeInfo* was = env.state->find_type(e.object->obj_type);
+      TypeInfo* was = env.state->find_type(e.object->type_id());
       std::cout << "  Tried to use object of type " <<
         was->type_name << " (" << was->type << ")";
     }

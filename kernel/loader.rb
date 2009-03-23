@@ -15,16 +15,8 @@ rescue Object => e
 end
 
 # Set up a handler for SIGINT that raises Interrupt on the main thread
-Signal.action("INT") do |_|
-  thread = Thread.main
-
-  if thread.alive?
-    thread.raise Interrupt, "Thread has been interrupted"
-  else # somehow..?
-    puts "Signal received, but the main thread is dead."
-    puts "Unable to continue."
-    exit! 1
-  end
+Signal.trap("INT") do |sig|
+  raise Interrupt, "Thread has been interrupted"
 end
 
 # This is the end of the kernel and the beginning of specified
@@ -93,9 +85,6 @@ code = 0
 
 show_selectors = false
 show_sendsites = false
-
-# Setup the proper staticscope
-MethodContext.current.method.scope = StaticScope.new(Object)
 
 TOPLEVEL_BINDING = binding()
 
@@ -204,7 +193,7 @@ begin
         $-i = arg[2..-1]
       elsif arg == "-"
         $0 = "-"
-        Compile.execute STDIN.read
+        Compiler::Utils.execute STDIN.read
       elsif arg.prefix? "-"
         puts "Invalid switch '#{arg}'"
         puts RBS_USAGE
@@ -231,8 +220,8 @@ begin
   elsif script
     if File.exist?(script)
       $0 = script
-      Compile.debug_script! if script_debug_requested
-      Compile.load_from_extension arg
+      Compiler::Utils.debug_script! if script_debug_requested
+      Compiler::Utils.load_from_extension arg
     else
       if script.suffix?(".rb")
         puts "Unable to find '#{script}'"
@@ -261,57 +250,53 @@ begin
         require prog
       rescue LoadError => e
         STDERR.puts "Unable to find repr named '#{repr}' to load."
+        puts e.awesome_backtrace.show
         exit 1
       end
     else
       $0 = "(eval)"
-      Compile.execute "p #{STDIN.read}"
+      Compiler::Utils.execute "p #{STDIN.read}"
     end
   end
 
 rescue SystemExit => e
   code = e.status
-rescue Object => e
-  original_context = e.context
 
+
+rescue SyntaxError => e
+  puts "A syntax error has occured:"
+  puts "    #{e.message}"
+  puts "    near line #{e.file}:#{e.line}, column #{e.column}"
+  puts "\nCode:\n#{e.code}"
+  if e.column
+    puts((" " * (e.column - 1)) + "^")
+  end
+
+  puts "\nBacktrace:"
+  puts e.awesome_backtrace.show
+  code = 1
+
+rescue Object => e
   begin
-    if e.kind_of? Exception or e.kind_of? ThrownValue
+    if e.kind_of? Exception # or e.kind_of? ThrownValue
       msg = e.message
     else
       msg = "strange object detected as exception: #{e.inspect}"
     end
-    if e.kind_of? SyntaxError
-      puts "A syntax error has occured:"
-      puts "    #{msg}"
-      puts "    near line #{e.file}:#{e.line}, column #{e.column}"
-      puts "\nCode:\n#{e.code}"
-      if e.column
-        puts((" " * (e.column - 1)) + "^")
-      end
-    else
-      puts "An exception has occurred:"
-      puts "    #{msg} (#{e.class})"
-    end
+
+    puts "An exception has occurred:"
+    puts "    #{e.message} (#{e.class})"
+
     puts "\nBacktrace:"
     puts e.awesome_backtrace.show
     code = 1
+
   rescue Object => e2
     puts "\n====================================="
-    puts "Unable to build proper backtrace due to errors!"
+    puts "Exception occurred during top-level exception output! (THIS IS BAD)"
     puts
     puts "Original Exception: #{e.inspect} (#{e.class})"
-    if original_context
-      puts "Lowlevel backtrace:"
-      Rubinius::VM.show_backtrace(original_context)
-      puts
-    end
-
     puts "New Exception: #{e2.inspect} (#{e.class})"
-    new_context = e2.context
-    if new_context
-      puts "Lowlevel backtrace:"
-      Rubinius::VM.show_backtrace(new_context)
-    end
     code = 128
   end
 end
@@ -371,8 +356,7 @@ if Rubinius::RUBY_CONFIG['rbx.jit_stats']
 end
 
 if Rubinius::RUBY_CONFIG['rbx.gc_stats']
-  timing = Rubinius::VM.gc_info
-  puts "Time spent in GC: #{timing / 1000000}ms"
+  Rubinius::Stats::GC.new.show
 end
 
 Process.exit(code || 0)

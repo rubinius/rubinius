@@ -1,6 +1,8 @@
 #include "prelude.hpp"
 #include "builtin/class.hpp"
 #include "builtin/machine_method.hpp"
+#include "vmmethod.hpp"
+
 #include "vm/exception.hpp"
 
 #include "detection.hpp"
@@ -13,6 +15,7 @@ namespace rubinius {
     GO(machine_method).set(state->new_class_under("MachineMethod", G(rubinius)));
   }
 
+  /*
   static void* adjust(void* old_base, void* new_base, void* address) {
     uintptr_t diff = reinterpret_cast<uintptr_t>(new_base) -
                      reinterpret_cast<uintptr_t>(old_base);
@@ -20,8 +23,11 @@ namespace rubinius {
     return reinterpret_cast<void*>(
         reinterpret_cast<uintptr_t>(address) + diff);
   }
+  */
 
   MachineMethod* MachineMethod::create(STATE, VMMethod* vmm, JITCompiler& jit) {
+    return NULL;
+    /*
     size_t code_size = jit.assembler().used_bytes();
     MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
 
@@ -65,15 +71,17 @@ namespace rubinius {
     }
 
     return mm;
+    */
   }
 
-  void* MachineMethod::resolve_virtual_ip(opcode ip) {
+  void* MachineMethod::resolve_virtual_ip(int ip) {
     CodeMap::iterator i = virtual2native_->find(ip);
     if(i == virtual2native_->end()) return NULL;
     return i->second;
   }
 
   Object* MachineMethod::show() {
+    /*
     std::cout << "== stats ==\n";
     std::cout << "number of bytecodes: " << vmmethod_->total << "\n";
     std::cout << " bytes of assembley: " << code_size_ << "\n";
@@ -83,15 +91,16 @@ namespace rubinius {
     std::cout << "       memory ratio: " << ratio << "\n";
     std::cout << "\n== x86 assembly ==\n";
     assembler_x86::AssemblerX86::show_buffer(function(), code_size_, false, comments_);
+    */
     return Qnil;
   }
 
-  void MachineMethod::run_code(VMMethod* const vmm, Task* const task,
-      MethodContext* const ctx) {
+  void MachineMethod::run_code(STATE, VMMethod* const vmm,
+      CallFrame* const call_frame) {
 #ifdef IS_X86
     MachineMethod* mm = vmm->machine_method();
     void* func = mm->function();
-    ((Runner)func)(vmm, task, ctx);
+    ((Runner)func)(state, vmm, call_frame);
 #else
     Assertion::raise("Only supported on x86");
 #endif

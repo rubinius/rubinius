@@ -1,9 +1,10 @@
+#include "vm/test/test.hpp"
+
 #include <iostream>
 
-#include "vm/gc.hpp"
-#include "vm/gc_root.hpp"
-#include "vm/object_utils.hpp"
-#include "objectmemory.hpp"
+#include "gc/gc.hpp"
+#include "gc/root.hpp"
+#include "object_utils.hpp"
 
 #include "builtin/array.hpp"
 
@@ -11,67 +12,69 @@
 
 using namespace rubinius;
 
-class TestObjectMemory : public CxxTest::TestSuite {
-  public:
+class TestObjectMemory : public CxxTest::TestSuite, public VMTest {
+public:
 
-  VM *state;
+  GCData* gc_data;
+  Roots* roots;
+  CallFrameLocationList call_frames;
+  VariableRootBuffers variable_buffers;
 
   void setUp() {
-    state = new VM(1024);
-
+    create();
+    roots = &state->globals.roots;
+    gc_data = new GCData(*roots, call_frames, variable_buffers);
   }
 
   void tearDown() {
-    delete state;
+    delete gc_data;
+    destroy();
   }
 
-  Object* util_new_object(ObjectMemory &om, int count = 3) {
-    return om.new_object_variable<Tuple>((Class*)Qnil, count);
+  Tuple* util_new_object(ObjectMemory &om, size_t count = 3) {
+    return Tuple::create(state, count);
   }
 
   void test_new_object() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
 
-    Object* obj;
+    Tuple* obj;
 
-    TS_ASSERT_EQUALS(om.young.current->used(), 0U);
+    int start = om.young.current->used();
 
     obj = util_new_object(om);
 
     TS_ASSERT_EQUALS(obj->num_fields(), 3U);
     TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
 
-    TS_ASSERT(om.young.current->used() == obj->size_in_bytes());
-    TS_ASSERT(om.young.heap_a.used()  == obj->size_in_bytes());
-    TS_ASSERT_EQUALS(om.young.current->remaining(),
-         static_cast<unsigned int>(1024 - obj->size_in_bytes() - 1));
+    TS_ASSERT(om.young.current->used() == start + obj->size_in_bytes(state));
+    TS_ASSERT(om.young.heap_a.used()  == start + obj->size_in_bytes(state));
   }
 
   void test_write_barrier() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Object* obj;
     Object* obj2;
 
     obj  = util_new_object(om);
     obj2 = util_new_object(om);
-    TS_ASSERT_EQUALS(obj->Remember, 0U);
-    TS_ASSERT_EQUALS(obj2->Remember, 0U);
-    TS_ASSERT_EQUALS(om.remember_set->size(), 0U);
+    TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
+    TS_ASSERT_EQUALS(obj2->remembered_p(), 0U);
+    size_t start = om.remember_set->size();
 
     obj->zone = MatureObjectZone;
     om.store_object(obj, 0, obj2);
 
-    TS_ASSERT_EQUALS(om.remember_set->size(), 1U);
-    TS_ASSERT_EQUALS(obj->Remember, 1U);
-    TS_ASSERT_EQUALS(om.remember_set->operator[](0), obj);
+    TS_ASSERT_EQUALS(om.remember_set->size(), start + 1);
+    TS_ASSERT_EQUALS(obj->remembered_p(), 1U);
 
     om.store_object(obj, 0, obj2);
-    TS_ASSERT_EQUALS(om.remember_set->size(), 1U);
+    TS_ASSERT_EQUALS(om.remember_set->size(), start + 1);
   }
 
   /* Causes a segfault when fails. */
   void test_write_barrier_not_called_for_immediates() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Object* obj;
     Object* obj2;
 
@@ -81,13 +84,13 @@ class TestObjectMemory : public CxxTest::TestSuite {
     obj2 = Qnil;
 
     om.store_object(obj, 0, obj2);
-    TS_ASSERT_EQUALS(obj->Remember, 0U);
+    TS_ASSERT_EQUALS(obj->remembered_p(), 0U);
   }
 
   void test_collect_young() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Object* obj;
-    TS_ASSERT_EQUALS(om.young.current->used(), 0U);
+    size_t start = om.young.current->used();
 
     util_new_object(om);
     util_new_object(om);
@@ -96,25 +99,23 @@ class TestObjectMemory : public CxxTest::TestSuite {
     obj = util_new_object(om);
 
     Heap *cur = om.young.next;
-    TS_ASSERT_EQUALS(om.young.current->used(), obj->size_in_bytes() * 5);
+    TS_ASSERT_EQUALS(om.young.current->used(), start + obj->size_in_bytes(state) * 5);
 
-    Roots roots;
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
 
-    TS_ASSERT_EQUALS(om.young.current->used(), 0U);
+    TS_ASSERT(om.young.current->used() <= start);
     TS_ASSERT_EQUALS((void*)cur, (void*)om.young.current);
 
     obj = util_new_object(om);
     TS_ASSERT_EQUALS(obj->age, 0U);
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots);
-    obj = roots.front()->get();
-    TS_ASSERT_EQUALS(om.young.current->used(), obj->size_in_bytes());
+    om.collect_young(*gc_data);
+    TS_ASSERT(obj->forwarded_p());
   }
 
   void test_collect_young_through_references() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Tuple *obj, *obj2, *obj3;
 
     obj =  (Tuple*)util_new_object(om);
@@ -125,15 +126,14 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.write_barrier(obj, obj2);
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
 
-    TS_ASSERT_EQUALS(om.young.current->used(),
-                     obj->size_in_bytes() + obj2->size_in_bytes());
+    TS_ASSERT(obj->forwarded_p());
+    TS_ASSERT(obj2->forwarded_p());
 
-    Object* new_obj = roots.front()->get();
+    Object* new_obj = roots->front()->get();
     TS_ASSERT(obj != new_obj);
     obj = (Tuple*)new_obj;
 
@@ -158,46 +158,46 @@ class TestObjectMemory : public CxxTest::TestSuite {
     //Tuple* tup = reinterpret_cast<Tuple*>(obj);
     //tup->field[0] = obj2;
 
-    Roots roots;
     //Root r(&roots, obj);
 
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
 
-    //tup = reinterpret_cast<Tuple*>(roots.front()->get());
+    //tup = reinterpret_cast<Tuple*>(roots->front()->get());
     //TS_ASSERT_EQUALS(tup->field[0], obj2);
   }
 
   void test_new_large_object() {
-    ObjectMemory om(state, 1024);
-    Object* obj;
+    ObjectMemory& om = *state->om;
+    Tuple* obj;
 
     om.large_object_threshold = 10;
+
+    size_t start = om.young.current->used();
 
     obj = util_new_object(om,20);
     TS_ASSERT_EQUALS(obj->num_fields(), 20U);
     TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
 
-    TS_ASSERT_EQUALS(om.young.current->used(), 0U);
+    TS_ASSERT_EQUALS(om.young.current->used(), start);
   }
 
   void test_collect_young_doesnt_move_mature_objects() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Object* obj;
 
     om.large_object_threshold = 10;
 
     obj = util_new_object(om,20);
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
 
-    TS_ASSERT_EQUALS(obj, roots.front()->get());
+    TS_ASSERT_EQUALS(obj, roots->front()->get());
   }
 
   void test_collect_young_uses_remember_set() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Tuple *young, *mature;
 
     om.large_object_threshold = 50 * __WORDSIZE / 32;
@@ -211,38 +211,36 @@ class TestObjectMemory : public CxxTest::TestSuite {
     mature->field[0] = young;
 
     om.write_barrier(mature, young);
-    TS_ASSERT_EQUALS(mature->Remember, 1U);
+    TS_ASSERT_EQUALS(mature->remembered_p(), 1U);
 
-    Roots roots;
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
 
     TS_ASSERT(mature->field[0] != young);
     TS_ASSERT_EQUALS(((Tuple*)mature->field[0])->field[0], Qtrue);
   }
 
   void test_collect_young_promotes_objects() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Object* young;
 
     young = util_new_object(om);
 
-    Roots roots;
-    Root r(&roots, young);
+    Root r(roots, young);
 
     om.set_young_lifetime(1);
 
     TS_ASSERT_EQUALS(young->age, 0U);
-    om.collect_young(roots);
-    TS_ASSERT_EQUALS(roots.front()->get()->age, 1U);
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
+    TS_ASSERT_EQUALS(roots->front()->get()->age, 1U);
+    om.collect_young(*gc_data);
 
-    TS_ASSERT_EQUALS(roots.front()->get()->age, 0U);
+    TS_ASSERT_EQUALS(roots->front()->get()->age, 0U);
 
-    TS_ASSERT(roots.front()->get()->mature_object_p());
+    TS_ASSERT(roots->front()->get()->mature_object_p());
   }
 
   void test_collect_young_resets_remember_set() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Tuple *young, *mature;
 
     om.large_object_threshold = 50 * __WORDSIZE / 32;
@@ -256,23 +254,18 @@ class TestObjectMemory : public CxxTest::TestSuite {
     mature->field[0] = young;
     om.write_barrier(mature, young);
 
-    Roots roots;
-
     om.set_young_lifetime(1);
 
-    TS_ASSERT_EQUALS(mature->Remember, 1U);
-    TS_ASSERT_EQUALS(om.remember_set->size(), 1U);
+    TS_ASSERT_EQUALS(mature->remembered_p(), 1U);
 
     TS_ASSERT_EQUALS(young->age, 0U);
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
     TS_ASSERT_EQUALS(mature->field[0]->age, 1U);
-    om.collect_young(roots);
-
-    TS_ASSERT_EQUALS(om.remember_set->size(), 0U);
+    om.collect_young(*gc_data);
   }
 
   void test_collect_young_uses_forwarding_pointers() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Tuple *obj, *obj2;
 
     obj =  (Tuple*)util_new_object(om);
@@ -284,12 +277,11 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.write_barrier(obj, obj2);
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
 
-    obj = (Tuple*)roots.front()->get();
+    obj = (Tuple*)roots->front()->get();
 
     obj2 = (Tuple*)obj->field[0];
     TS_ASSERT_EQUALS(obj2, obj->field[1]);
@@ -301,39 +293,19 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     ByteArray* obj;
 
-    obj = om.new_object_bytes<ByteArray>(G(object), 3);
+    obj = ByteArray::create(state, 3);
     obj->bytes[0] = 47;
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
 
-    obj = (ByteArray*)roots.front()->get();
+    obj = (ByteArray*)roots->front()->get();
     TS_ASSERT_EQUALS(obj->bytes[0], static_cast<char>(47));
   }
 
-  void test_collect_young_class_considered() {
-    ObjectMemory om(state, 1024);
-    Object* obj;
-    Object* cls;
-
-    cls = util_new_object(om);
-    obj = util_new_object(om);
-    obj->klass(state, (Class*)cls);
-
-    Roots roots;
-    Root r(&roots, obj);
-
-    om.collect_young(roots);
-
-    obj = roots.front()->get();
-
-    TS_ASSERT(om.valid_object_p(obj->klass()));
-  }
-
   void test_collect_mature() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Object* mature;
 
     om.debug_marksweep(true);
@@ -342,27 +314,17 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     mature = util_new_object(om,20);
 
-    /* allocate_object leaves the objs uninitialised */
-    mature->klass_ = reinterpret_cast<Class*>(Qnil);
     TS_ASSERT(mature->mature_object_p());
-    TS_ASSERT_EQUALS(om.mature.allocated_objects, 1U);
 
-    MarkSweepGC::Entry *entry = om.mature.find_entry(mature);
-    TS_ASSERT(entry->unmarked_p());
+    TS_ASSERT(!mature->marked_p());
 
-    Roots roots;
-    om.collect_mature(roots);
+    om.collect_mature(*gc_data);
 
-    TS_ASSERT_EQUALS(om.mature.allocated_objects, 0U);
-    TS_ASSERT(entry->unmarked_p());
-
-    /* debug_marksweep() causes it to not free any Entry's, so
-     * we have to do it now. */
-    delete entry;
+    TS_ASSERT(!mature->marked_p());
   }
 
   void test_collect_mature_marks_young_objects() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Object* young;
     Object* mature;
 
@@ -371,24 +333,17 @@ class TestObjectMemory : public CxxTest::TestSuite {
     young =  util_new_object(om);
     mature = util_new_object(om,20);
 
-    /* allocate_object leaves the objs uninitialised */
-    young->klass_ = reinterpret_cast<Class*>(Qnil);
-    mature->klass_ = reinterpret_cast<Class*>(Qnil);
-
     om.store_object(young, 0, mature);
 
-    Roots roots;
-    Root r(&roots, young);
+    Root r(roots, young);
 
-    om.collect_mature(roots);
-    TS_ASSERT_EQUALS(young->Marked, 0U);
-
-    TS_ASSERT_EQUALS(om.mature.allocated_objects, 1U);
+    om.collect_mature(*gc_data);
+    TS_ASSERT_EQUALS(young->marked_p(), 0U);
   }
 
   /* Could segfault on failure due to infinite loop. */
   void test_collect_mature_stops_at_already_marked_objects() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Tuple *young, *mature;
 
     om.large_object_threshold = 50;
@@ -399,34 +354,25 @@ class TestObjectMemory : public CxxTest::TestSuite {
     young->field[0] = mature;
     mature->field[0] = young;
 
-    /* allocate_object leaves the objs uninitialised */
-    young->klass_ = reinterpret_cast<Class*>(Qnil);
-    mature->klass_ = reinterpret_cast<Class*>(Qnil);
-
     om.write_barrier(young, mature);
     om.write_barrier(mature, young);
 
-    Roots roots;
-    Root r(&roots, young);
+    Root r(roots, young);
 
-    om.collect_mature(roots);
+    om.collect_mature(*gc_data);
 
-    young = (Tuple*)roots.front()->get();
+    young = (Tuple*)roots->front()->get();
     mature = (Tuple*)young->field[0];
 
     TS_ASSERT_EQUALS(mature->field[0], young);
   }
 
   void test_collect_young_stops_at_already_marked_objects() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Tuple *obj, *obj2;
 
     obj =  (Tuple*)util_new_object(om);
     obj2 = (Tuple*)util_new_object(om);
-
-    /* allocate_object leaves the objs uninitialised */
-    obj->klass_ = reinterpret_cast<Class*>(Qnil);
-    obj2->klass_ = reinterpret_cast<Class*>(Qnil);
 
     obj2->field[1] = Qtrue;
     obj->field[0] = obj2;
@@ -435,72 +381,19 @@ class TestObjectMemory : public CxxTest::TestSuite {
     om.write_barrier(obj, obj2);
     om.write_barrier(obj2, obj);
 
-    Roots roots;
-    Root r(&roots, obj);
+    Root r(roots, obj);
 
-    om.collect_young(roots);
+    om.collect_young(*gc_data);
 
-    obj = (Tuple*)roots.front()->get();
+    obj = (Tuple*)roots->front()->get();
     obj2 = (Tuple*)obj->field[0];
 
     TS_ASSERT_EQUALS(obj2->field[0], obj);
     TS_ASSERT_EQUALS(obj2->field[1], Qtrue);
   }
 
-  void test_collect_young_tells_objectmemory_about_collection() {
-    ObjectMemory om(state, 128);
-    Object* obj;
-    int left = 128;
-
-    TS_ASSERT_EQUALS(om.collect_young_now, false);
-
-    while(left > 0) {
-      obj = util_new_object(om);
-      /* allocate_object leaves the objs uninitialised */
-      obj->klass_ = reinterpret_cast<Class*>(Qnil);
-      left -= obj->size_in_bytes();
-    }
-
-    TS_ASSERT_EQUALS(om.collect_young_now, true);
-  }
-
-  void test_new_young_spills_to_mature() {
-    ObjectMemory om(state, 128);
-    Object* obj;
-    int left = 128 * 2;
-
-    while(left > 0) {
-      obj = util_new_object(om);
-      /* allocate_object leaves the objs uninitialised */
-      obj->klass_ = reinterpret_cast<Class*>(Qnil);
-      left -= obj->size_in_bytes();
-    }
-
-    TS_ASSERT(obj->mature_object_p());
-  }
-
-  void test_collect_mature_tells_objectmemory_about_collection() {
-    ObjectMemory om(state, 1024);
-    Object* obj;
-    int left = 128;
-
-    om.mature.next_collection_bytes = left;
-    om.large_object_threshold = 3;
-
-    TS_ASSERT_EQUALS(om.collect_mature_now, false);
-
-    while(left > 0) {
-      obj = util_new_object(om);
-      /* allocate_object leaves the objs uninitialised */
-      obj->klass_ = reinterpret_cast<Class*>(Qnil);
-      left -= obj->size_in_bytes();
-    }
-
-    TS_ASSERT_EQUALS(om.collect_mature_now, true);
-  }
-
   void test_valid_object_p() {
-    ObjectMemory om(state, 1024);
+    ObjectMemory& om = *state->om;
     Object* obj;
 
     obj = util_new_object(om);
@@ -520,29 +413,30 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     Object* obj = state->new_object<Object>(G(object));
 
-    TS_ASSERT_EQUALS(obj->RequiresCleanup, false);
+    TS_ASSERT_EQUALS(obj->requires_cleanup_p(), false);
 
     ti->instances_need_cleanup = true;
 
     Object* obj2 = state->new_object<Object>(G(object));
 
-    TS_ASSERT_EQUALS(obj2->RequiresCleanup, true);
-    TS_ASSERT_EQUALS(obj->RequiresCleanup, false);
+    TS_ASSERT_EQUALS(obj2->requires_cleanup_p(), true);
+    TS_ASSERT_EQUALS(obj->requires_cleanup_p(), false);
 
     ti->instances_need_cleanup = false;
   }
 
   /* TODO: Move this to test_gc when such exists. */
 
-    /* eep */
-    class Cleanupper : public TypeInfo {
-    public:
-      Object* squeaky;
+  /* eep */
+  class Cleanupper : public TypeInfo {
+  public:
+    Object* squeaky;
 
-      Cleanupper() : TypeInfo(ObjectType, true), squeaky(NULL) {}
+    Cleanupper() : TypeInfo(ObjectType, true), squeaky(NULL) {}
 
-      virtual void cleanup(Object* obj) { squeaky = obj; }
-    };
+    virtual void cleanup(Object* obj) { squeaky = obj; }
+    virtual void auto_mark(Object* obj, ObjectMark& mark) {}
+  };
 
   void test_gc_calls_cleanup_function_if_object_requires_cleanup()
   {
@@ -554,17 +448,13 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     Object* obj = state->new_object<Object>(G(object));
 
-    TS_ASSERT_EQUALS(obj->RequiresCleanup, true);
+    TS_ASSERT_EQUALS(obj->requires_cleanup_p(), true);
 
-    state->om->mature.delete_object(obj);
+    state->om->mark_sweep_.delete_object(obj);
 
     TS_ASSERT_EQUALS(c->squeaky, obj);
 
     state->om->type_info[ObjectType] = ti;
-  }
-
-  void test_contexts_initialized() {
-    TS_ASSERT(state->om->contexts.scan <= state->om->contexts.current);
   }
 
   void test_xmalloc_causes_gc() {

@@ -27,6 +27,8 @@ describe "An Until node" do
     g.push 1
     g.send :+, 1, false
     g.pop
+
+    g.check_interrupts
     g.goto top
 
     bottom.set!
@@ -107,6 +109,7 @@ describe "An Until node" do
     g.send :a, 0, true
     g.git bottom
 
+    g.check_interrupts
     g.goto top
 
     bottom.set!
@@ -161,6 +164,8 @@ describe "An Until node" do
     g.push :self
     g.send :a, 0, true
     g.pop
+
+    g.check_interrupts
     g.goto top
 
     bottom.set!

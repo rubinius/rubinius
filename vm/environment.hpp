@@ -5,14 +5,17 @@
 #include <stdexcept>
 
 #include "vm.hpp"
+#include "vm_manager.hpp"
 
 namespace rubinius {
 
   class Environment {
   public:
+    VMManager manager;
+    SharedState* shared;
     VM* state;
 
-    Environment();
+    Environment(int argc, char** argv);
     ~Environment();
 
     void load_config_argv(int argc, char** argv);
@@ -22,6 +25,8 @@ namespace rubinius {
     void run_file(std::string path);
     void enable_preemption();
     void boot_vm();
+    int exit_code();
+    void start_signal_thread();
   };
 
 }

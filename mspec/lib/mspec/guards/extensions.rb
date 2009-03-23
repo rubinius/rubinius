@@ -12,7 +12,9 @@ end
 class Object
   def extended_on(*args)
     g = ExtensionsGuard.new(*args)
+    g.name = :extended_on
     yield if g.yield?
+  ensure
     g.unregister
   end
 end

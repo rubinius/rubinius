@@ -18,13 +18,17 @@ end
 class Object
   def runner_is(*args)
     g = RunnerGuard.new(*args)
+    g.name = :runner_is
     yield if g.yield?
+  ensure
     g.unregister
   end
 
   def runner_is_not(*args)
     g = RunnerGuard.new(*args)
+    g.name = :runner_is_not
     yield if g.yield? true
+  ensure
     g.unregister
   end
 end

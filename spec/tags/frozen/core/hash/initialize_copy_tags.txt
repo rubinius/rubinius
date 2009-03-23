@@ -1,1 +1,2 @@
 fails:Hash#initialize_copy raises a TypeError if called on a frozen instance
+frozen:Hash#initialize_copy raises a TypeError if called on a frozen instance

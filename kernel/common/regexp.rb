@@ -112,30 +112,13 @@ class Regexp
   end
 
   def self.last_match(field = nil)
-    match = MethodContext.current.sender.last_match
+    match = VariableScope.of_sender.last_match
     if match
       return match if field.nil?
       return match[field]
     else
       return nil
     end
-  end
-
-  def self.last_match=(match)
-    # Set an ivar in the sender of our sender
-    parent = MethodContext.current.sender
-    ctx = parent.sender
-    ctx.last_match = match
-  end
-
-  ##
-  # Different than last_match= because it sets the current last match, while
-  # last_match= sets the senders last match.
-
-  def self.my_last_match=(match)
-    # Set an ivar in the sender
-    ctx = MethodContext.current.sender
-    ctx.last_match = match
   end
 
   def self.union(*patterns)
@@ -156,7 +139,7 @@ class Regexp
   def ~
     line = $_
     if !line.is_a?(String)
-      Regexp.last_match = nil
+      VariableScope.of_sender.last_match = nil
       return nil
     end
     res = self.match(line)
@@ -172,10 +155,10 @@ class Regexp
 
     match = match_from(str, 0)
     if match
-      Regexp.last_match = match
+      VariableScope.of_sender.last_match = match
       return match.begin(0)
     else
-      Regexp.last_match = nil
+      VariableScope.of_sender.last_match = nil
       return nil
     end
   end
@@ -197,15 +180,15 @@ class Regexp
   def ===(other)
     if !other.is_a?(String)
       if !other.respond_to?(:to_str)
-        Regexp.last_match = nil
+        VariableScope.of_sender.last_match = nil
         return false
       end
     end
     if match = self.match_from(other.to_str, 0)
-      Regexp.last_match = match
+      VariableScope.of_sender.last_match = match
       return true
     else
-      Regexp.last_match = nil
+      VariableScope.of_sender.last_match = nil
       return false
     end
   end
@@ -253,7 +236,7 @@ class Regexp
   # Performs normal match and returns MatchData object from $~ or nil.
   def match(str)
     return nil if str.nil?
-    Regexp.last_match = search_region(str, 0, str.size, true)
+    VariableScope.of_sender.last_match = search_region(str, 0, str.size, true)
   end
 
   def match_from(str, count)

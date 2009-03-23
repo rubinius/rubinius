@@ -46,6 +46,12 @@ describe BugGuard, "#match? when #implementation? is 'ruby'" do
     BugGuard.new("#1", "1.8").match?.should == true
     BugGuard.new("#1", "1.8.6").match?.should == true
   end
+
+  it "returns false when MSpec.mode?(:no_ruby_bug) is true" do
+    MSpec.should_receive(:mode?).with(:no_ruby_bug).twice.and_return(:true)
+    BugGuard.new("#1", "1.8.5").match?.should == false
+    BugGuard.new("#1", "1.8").match?.should == false
+  end
 end
 
 describe BugGuard, "#match? when #implementation? is not 'ruby'" do
@@ -87,6 +93,13 @@ describe BugGuard, "#match? when #implementation? is not 'ruby'" do
     BugGuard.new("#1", "1.8.7").match?.should == false
     BugGuard.new("#1", "1.8.6.115").match?.should == false
   end
+
+  it "returns false when MSpec.mode?(:no_ruby_bug) is true" do
+    MSpec.should_receive(:mode?).with(:no_ruby_bug).any_number_of_times.and_return(:true)
+    BugGuard.new("#1", "1.8.6").match?.should == false
+    BugGuard.new("#1", "1.8.6.114").match?.should == false
+    BugGuard.new("#1", "1.8.6.115").match?.should == false
+  end
 end
 
 describe Object, "#ruby_bug" do
@@ -98,25 +111,30 @@ describe Object, "#ruby_bug" do
 
   it "yields when #match? returns false" do
     @guard.stub!(:match?).and_return(false)
-    ruby_bug { ScratchPad.record :yield }
+    ruby_bug("#1234", "1.8.6") { ScratchPad.record :yield }
     ScratchPad.recorded.should == :yield
   end
 
   it "does not yield when #match? returns true" do
     @guard.stub!(:match?).and_return(true)
-    ruby_bug { ScratchPad.record :yield }
+    ruby_bug("#1234", "1.8.6") { ScratchPad.record :yield }
     ScratchPad.recorded.should_not == :yield
   end
 
-  it "accepts an optional String identifying the bug tracker number" do
-    @guard.stub!(:match?).and_return(false)
-    ruby_bug("#1234") { ScratchPad.record :yield }
-    ScratchPad.recorded.should == :yield
+  it "requires a bug tracker number and a version number" do
+    lambda { ruby_bug { }          }.should raise_error(ArgumentError)
+    lambda { ruby_bug("#1234") { } }.should raise_error(ArgumentError)
   end
 
-  it "accepts an optional String identifying the version number" do
-    @guard.stub!(:match?).and_return(false)
-    ruby_bug("#1234", "1.8.6") { ScratchPad.record :yield }
-    ScratchPad.recorded.should == :yield
+  it "sets the name of the guard to :ruby_bug" do
+    ruby_bug("#1234", "1.8.6") { }
+    @guard.name.should == :ruby_bug
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:unregister)
+    lambda do
+      ruby_bug("", "") { raise Exception }
+    end.should raise_error(Exception)
   end
 end

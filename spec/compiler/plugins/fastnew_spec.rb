@@ -27,7 +27,7 @@ describe "A Call node using FastNew plugin" do
       g.goto done
 
       slow.set!
-      g.set_call_flags 1
+      g.allow_private
       g.send_method idx
 
       done.set!
@@ -66,7 +66,7 @@ describe "A Call node using FastNew plugin" do
       slow.set!
       g.push :self
       g.send :a, 0, true
-      g.set_call_flags 1
+      g.allow_private
       g.send_stack idx, 1
 
       done.set!
@@ -99,7 +99,7 @@ describe "A Call node using FastNew plugin" do
       g.goto done
 
       slow.set!
-      g.set_call_flags 1
+      g.allow_private
       g.send_method idx
 
       done.set!
@@ -138,7 +138,7 @@ describe "A Call node using FastNew plugin" do
       slow.set!
       g.push :self
       g.send :a, 0, true
-      g.set_call_flags 1
+      g.allow_private
       g.send_stack idx, 1
 
       done.set!

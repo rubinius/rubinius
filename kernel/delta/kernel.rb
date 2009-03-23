@@ -6,7 +6,7 @@ module Kernel
   # raising forever blows)
   #++
 
-  def raise(exc=Undefined, msg=nil, trace=nil)
+  def raise(exc = Undefined, msg = nil, trace = nil)
     skip = false
     if exc.equal? Undefined
       exc = $!
@@ -25,13 +25,12 @@ module Kernel
       raise ::TypeError, 'exception class/object expected'
     end
 
-    if $DEBUG and $VERBOSE != nil
-      sender = MethodContext.current.sender
-      STDERR.puts "Exception: `#{exc.class}' #{sender.location} - #{exc.message}"
+    if !skip and !exc.locations
+      exc.locations = Rubinius::VM.backtrace 1
     end
 
-    if !skip and !exc.context
-      exc.context = MethodContext.current.sender
+    if $DEBUG and $VERBOSE != nil
+      STDERR.puts "Exception: `#{exc.class}' #{exc.locations[1].position} - #{exc.message}"
     end
 
     Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
@@ -42,17 +41,10 @@ module Kernel
   module_function :fail
 
   def method_missing(meth, *args)
-    # Exclude method_missing from the backtrace since it only confuses
-    # people.
-    myself = MethodContext.current
-    ctx = myself.sender
-
-    if myself.send_private?
-      Kernel.raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
-    elsif self.__kind_of__ Class or self.__kind_of__ Module
-      Kernel.raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.__class__})", ctx, args)
+    if self.__kind_of__ Class or self.__kind_of__ Module
+      Kernel.raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.__class__})", meth, args)
     else
-      Kernel.raise NoMethodError.new("No method '#{meth}' on an instance of #{self.__class__}.", ctx, args)
+      Kernel.raise NoMethodError.new("No method '#{meth}' on an instance of #{self.__class__}.", meth, args)
     end
   end
 
@@ -76,4 +68,13 @@ module Kernel
 
   get = proc { Process.pid }
   Globals.set_hook(:$$, get, nil)
+
+  # Implements rb_path2name. Based on code from wycats
+  def const_lookup(name)
+    names = name.split '::'
+    names.shift if names.first.empty?
+    names.inject(Object) do |m, n|
+      m.const_defined?(n) ? m.const_get(n) : m.const_missing(n)
+    end
+  end
 end

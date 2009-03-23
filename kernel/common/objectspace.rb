@@ -91,7 +91,6 @@ module ObjectSpace
 
   end
   
-  protected
 
   def self.recursive_loop(start, each_block, skip = [], &grepper)
     list = yield start
@@ -99,15 +98,12 @@ module ObjectSpace
     list.inject(0) do |count, element|
       unless skip.include? element
         each_block.call(element)
-        skip.append element
+        skip << element
         count += 1 + recursive_loop(element, each_block, skip, &grepper)
       end
       count
     end
   end
-
-  public
-
 
 
   # Finalizer support. Uses WeakRef to detect object death.

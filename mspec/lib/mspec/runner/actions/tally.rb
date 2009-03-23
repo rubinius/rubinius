@@ -1,8 +1,8 @@
 class Tally
-  attr_accessor :files, :examples, :expectations, :failures, :errors
+  attr_accessor :files, :examples, :expectations, :failures, :errors, :guards
 
   def initialize
-    @files = @examples = @expectations = @failures = @errors = 0
+    @files = @examples = @expectations = @failures = @errors = @guards = 0
   end
 
   def files!(add=1)
@@ -25,6 +25,10 @@ class Tally
     @errors += add
   end
 
+  def guards!(add=1)
+    @guards += add
+  end
+
   def file
     pluralize files, "file"
   end
@@ -45,8 +49,14 @@ class Tally
     pluralize errors, "error"
   end
 
+  def guard
+    pluralize guards, "guard"
+  end
+
   def format
-    [ file, example, expectation, failure, error ].join(", ")
+    results = [ file, example, expectation, failure, error ]
+    results << guard if [:report, :report_on, :verify].any? { |m| MSpec.mode? m }
+    results.join(", ")
   end
 
   alias_method :to_s, :format

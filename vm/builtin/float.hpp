@@ -21,10 +21,6 @@ namespace rubinius {
   public:
     const static object_type type = FloatType;
 
-    static bool is_a(Object* obj) {
-      return obj->obj_type == FloatType;
-    }
-
     double val;
 
     static void init(STATE);
@@ -139,6 +135,7 @@ namespace rubinius {
       virtual void mark(Object* t, ObjectMark& mark);
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
   };
 }

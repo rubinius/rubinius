@@ -3,7 +3,18 @@
 
 #include "globals.hpp"
 #include "symboltable.hpp"
-#include "gc_object_mark.hpp"
+#include "gc/object_mark.hpp"
+#include "thread_state.hpp"
+
+#include "util/refcount.hpp"
+
+#include "global_lock.hpp"
+#include "maps.hpp"
+
+#include "call_frame_list.hpp"
+
+#include "async_message.hpp"
+#include "gc/variable_buffer.hpp"
 
 #include <pthread.h>
 #include <setjmp.h>
@@ -25,13 +36,14 @@ namespace rubinius {
   class Primitives;
   class ObjectMemory;
   class TypeInfo;
-  class Task;
   class MethodContext;
   class String;
   class Symbol;
   class ConfigParser;
   class TypeError;
   class Assertion;
+  class CallFrame;
+  class Object;
 
   struct Configuration {
     bool compile_up_front;
@@ -47,6 +59,7 @@ namespace rubinius {
     bool reschedule;
     bool use_preempt;
     bool enable_preempt;
+    bool timer;
 
     Interrupts() :
       check(false),
@@ -55,7 +68,8 @@ namespace rubinius {
       check_events(false),
       reschedule(false),
       use_preempt(false),
-      enable_preempt(false)
+      enable_preempt(false),
+      timer(false)
     { }
   };
 
@@ -76,20 +90,111 @@ namespace rubinius {
     {}
   };
 
+  class VMManager;
+  class Waiter;
+  class SignalThread;
+
+  class SharedState : public RefCount {
+  private:
+    VMManager& manager_;
+    bool initialized_;
+    int id_;
+    GlobalLock lock_;
+    VMMap vms_;
+    SignalThread* signal_thread_;
+    CallFrameLocationList cf_locations_;
+    VariableRootBuffers root_buffers_;
+
+  public:
+    Globals globals;
+    ObjectMemory* om;
+    GlobalCache* global_cache;
+    Configuration config;
+    Interrupts interrupts;
+    SymbolTable symbols;
+    ConfigParser *user_config;
+
+  public:
+    SharedState(VMManager& manager, int id)
+      : manager_(manager)
+      , initialized_(false)
+      , id_(id)
+      , om(0)
+      , global_cache(0)
+      , user_config(0)
+    {}
+
+    ~SharedState();
+
+    int id() {
+      return id_;
+    }
+
+    VMManager& manager() {
+      return manager_;
+    }
+
+    void set_initialized() {
+      initialized_ = true;
+    }
+
+    GlobalLock& global_lock() {
+      return lock_;
+    }
+
+    SignalThread* signal_thread() {
+      return signal_thread_;
+    }
+
+    void set_signal_thread(SignalThread* thr) {
+      signal_thread_ = thr;
+    }
+
+    static SharedState* standalone(VM*);
+    VM* new_vm();
+    void remove_vm(VM*);
+
+    CallFrameLocationList& call_frame_locations() {
+      return cf_locations_;
+    }
+
+    VariableRootBuffers* variable_buffers() {
+      return &root_buffers_;
+    }
+  };
+
   class VM {
+
+  private:
+    int id_;
+    CallFrame* saved_call_frame_;
+    ASyncMessageMailbox mailbox_;
+    void* stack_start_;
+    bool alive_;
+
   public:
     /* Data members */
-    Globals globals;
+    SharedState& shared;
+    thread::Mutex local_lock_;
+    Waiter* waiter_;
+
+    ConfigParser *user_config;
+    Globals& globals;
     ObjectMemory* om;
     event::Loop* events;
     event::Loop* signal_events;
     GlobalCache* global_cache;
     TypedRoot<TaskProbe*> probe;
-    Primitives* primitives;
-    Configuration config;
-    Interrupts interrupts;
-    SymbolTable symbols;
-    ConfigParser *user_config;
+    Configuration& config;
+    Interrupts& interrupts;
+    SymbolTable& symbols;
+
+    bool check_local_interrupts;
+
+    ThreadState thread_state_;
+
+    // The Thread object for this VM state
+    TypedRoot<Thread*> thread;
 
     Stats stats;
 
@@ -122,10 +227,71 @@ namespace rubinius {
 
     static const size_t default_bytes = 1048576 * 3;
 
-    /* Inline methods */
+    static int cStackDepthMax;
+
+  public: /* Inline methods */
+
+    int id() {
+      return id_;
+    }
+
+    bool alive_p() {
+      return alive_;
+    }
+
+    ThreadState* thread_state() {
+      return &thread_state_;
+    }
+
+    GlobalLock& global_lock() {
+      return shared.global_lock();
+    }
+
+    thread::Mutex& local_lock() {
+      return local_lock_;
+    }
+
+    CallFrame** call_frame_location() {
+      return &saved_call_frame_;
+    }
+
+    void set_call_frame(CallFrame* frame) {
+      saved_call_frame_ = frame;
+    }
+
+    CallFrame* saved_call_frame() {
+      return saved_call_frame_;
+    }
+
+    // NOTE this will need to be VM local, ie Thread local, once the GIL
+    // is removed.
+    VariableRootBuffers* variable_buffers() {
+      return shared.variable_buffers();
+    }
+
+    void* stack_start() {
+      return stack_start_;
+    }
+
+    void set_stack_start(void* s) {
+      stack_start_ = s;
+    }
+
+    bool check_stack(void* end) {
+      // @TODO assumes stack growth direction
+      if(reinterpret_cast<intptr_t>(stack_start_) -
+          reinterpret_cast<intptr_t>(end) > cStackDepthMax) {
+        raise_stack_error();
+        return false;
+      }
+
+      return true;
+    }
+
     /* Prototypes */
-    VM(size_t bytes = default_bytes, bool boot_now = true);
-    ~VM();
+    VM(SharedState& shared, int id);
+
+    void initialize(size_t bytes = default_bytes);
 
     // Initialize the basic objects and the execution machinery
     void boot();
@@ -135,6 +301,8 @@ namespace rubinius {
 
     // Registers a VM* object as the current state.
     static void register_state(VM*);
+
+    void discard();
 
     void bootstrap_class();
     void bootstrap_ontology();
@@ -149,7 +317,11 @@ namespace rubinius {
     void raise_typeerror_safely(TypeError* exc);
     void raise_assertion_safely(Assertion* exc);
 
+    void raise_stack_error();
+    void init_stack_size();
+
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
+    Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
     Object* new_object_from_type(Class* cls, TypeInfo* ti);
 
     template <class T>
@@ -160,8 +332,12 @@ namespace rubinius {
     template <class T>
       T* new_struct(Class* cls, size_t bytes = 0) {
         T* obj = reinterpret_cast<T*>(new_object_typed(cls, sizeof(T) + bytes, T::type));
-        obj->init_bytes();
         return obj;
+      }
+
+    template <class T>
+      T* new_object_mature(Class *cls) {
+        return reinterpret_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
       }
 
     // Create an uninitialized Class object
@@ -181,7 +357,6 @@ namespace rubinius {
     Class* new_class_under(const char* name, Module* under);
 
     Module* new_module(const char* name, Module* under = NULL);
-    Task* new_task();
 
     Symbol* symbol(const char* str);
     Symbol* symbol(String* str);
@@ -193,26 +368,10 @@ namespace rubinius {
     void init_native_libraries();
 
     Thread* current_thread();
-    void collect();
+    void collect(CallFrame* call_frame);
 
     // Check the flags in ObjectMemory and collect if we need to.
-    void collect_maybe();
-
-    void return_value(Object* val);
-
-    void check_events();
-
-    bool find_and_activate_thread();
-
-    bool run_best_thread();
-
-    void queue_thread(Thread* thread);
-    void dequeue_thread(Thread* thread);
-
-    void activate_thread(Thread* thread);
-    void activate_task(Task* task);
-
-
+    void collect_maybe(CallFrame* call_frame);
 
     void raise_from_errno(const char* reason);
     void raise_exception(Exception* exc);
@@ -229,9 +388,6 @@ namespace rubinius {
 
     void print_backtrace();
 
-    // In an infinite loop, run the current task.
-    void run_and_monitor();
-
     void setup_preemption();
 
     // Run in a seperate thread to provide preemptive thread
@@ -240,6 +396,24 @@ namespace rubinius {
 
     // Run the garbage collectors as soon as you can
     void run_gc_soon();
+
+    void install_waiter(Waiter& waiter);
+    void clear_waiter();
+    bool wakeup();
+
+    void register_raise(Exception* exc);
+
+    // Called when a thread should be delivered to this thread
+    void send_async_signal(int sig);
+
+    bool process_async(CallFrame* call_frame);
+
+    bool check_async(CallFrame* call_frame) {
+      if(check_local_interrupts) {
+        return process_async(call_frame);
+      }
+      return true;
+    }
   };
 };
 

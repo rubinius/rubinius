@@ -37,6 +37,19 @@ namespace rubinius {
 #define isnumber isdigit
 #endif
 
+/* Defined at least in mach/boolean.h on OS X. */
+#ifdef  TRUE
+  #undef  TRUE
+#endif
+
+#ifdef  FALSE
+  #undef FALSE
+#endif
+
+#define TRUE  true
+#define FALSE false
+
+
 #define ISALPHA isalpha
 #define ISSPACE isspace
 #define ISALNUM(x) (isalpha(x) || isnumber(x))
@@ -4786,8 +4799,12 @@ literal_concat(rb_parse_state *parse_state, NODE *head, NODE *tail)
     switch (nd_type(tail)) {
       case NODE_STR:
         if (htype == NODE_STR) {
-            bconcat(head->nd_str, tail->nd_str);
-            bdestroy(tail->nd_str);
+            if(head->nd_str) {
+                bconcat(head->nd_str, tail->nd_str);
+                bdestroy(tail->nd_str);
+            } else {
+                head = tail;
+            }
         }
         else {
             list_append(parse_state, head, tail);

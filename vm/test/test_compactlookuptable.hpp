@@ -1,25 +1,20 @@
-#include "vm.hpp"
-#include "vm/object_utils.hpp"
+#include "vm/test/test.hpp"
+
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/lookuptable.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestCompactLookupTable : public CxxTest::TestSuite {
+class TestCompactLookupTable : public CxxTest::TestSuite, public VMTest {
 public:
 
-  VM *state;
   CompactLookupTable *tbl;
 
   void setUp() {
-    state = new VM(1024);
+    create();
     tbl = CompactLookupTable::create(state);
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_create() {

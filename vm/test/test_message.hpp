@@ -1,47 +1,45 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/tuple.hpp"
 #include "builtin/list.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/array.hpp"
-#include "builtin/task.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/symbol.hpp"
 
 #include "message.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 
-#include <cxxtest/TestSuite.h>
+class TestMessage : public CxxTest::TestSuite, public VMTest {
+public:
 
-using namespace rubinius;
-
-class TestMessage : public CxxTest::TestSuite {
-  public:
-
-  VM* state;
+  Object** args;
+  Fixnum* three;
+  Fixnum* four;
 
   void setUp() {
-    state = new VM();
+    create();
+
+    three = Fixnum::from(3);
+    four = Fixnum::from(4);
+
+    args = new Object*[2];
+    args[0] = three;
+    args[1] = four;
   }
 
   void tearDown() {
-    delete state;
+    delete args;
+    destroy();
   }
 
   void test_append_arguments() {
-    CompiledMethod* cm = create_cm();
-    Task* task = Task::create(state, Qnil, cm);
-
-    task->push(Fixnum::from(3));
-    task->push(Fixnum::from(4));
+    Message msg(state);
+    msg.set_stack_args(2, args);
 
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, state->symbol("blah"));
     ary->set(state, 1, state->symbol("foo"));
-
-    Message msg(state);
-    msg.name = state->symbol("testes");
-    msg.use_from_task(task, 2);
     msg.append_arguments(state, ary);
 
     TS_ASSERT_EQUALS(state->symbol("blah"), msg.get_argument(0));
@@ -53,19 +51,12 @@ class TestMessage : public CxxTest::TestSuite {
   }
 
   void test_append_splat() {
-    CompiledMethod* cm = create_cm();
-    Task* task = Task::create(state, Qnil, cm);
-
-    task->push(Fixnum::from(3));
-    task->push(Fixnum::from(4));
+    Message msg(state);
+    msg.set_stack_args(2, args);
 
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, state->symbol("blah"));
     ary->set(state, 1, state->symbol("foo"));
-
-    Message msg(state);
-    msg.name = state->symbol("testes");
-    msg.use_from_task(task, 2);
     msg.append_splat(state, ary);
 
     TS_ASSERT_EQUALS(Fixnum::from(3),       msg.get_argument(0));
@@ -102,11 +93,7 @@ class TestMessage : public CxxTest::TestSuite {
 
   void test_unshift_argument() {
     Message msg(state);
-    msg.name = state->symbol("testes");
-
-    Task* task = Task::create(state, 10);
-    task->push(Fixnum::from(3));
-    msg.use_from_task(task, 1);
+    msg.set_stack_args(1, args);
 
     TS_ASSERT_EQUALS(1U, msg.args());
     msg.unshift_argument(state, Fixnum::from(47));
@@ -133,9 +120,7 @@ class TestMessage : public CxxTest::TestSuite {
 
   void test_unshit_argument_multiple_times() {
     Message msg(state);
-    Task* task = Task::create(state, 10);
-    task->push(Fixnum::from(3));
-    msg.use_from_task(task, 1);
+    msg.set_stack_args(1, args);
 
     TS_ASSERT_EQUALS(1U, msg.args());
     msg.unshift_argument(state, Fixnum::from(47));
@@ -150,10 +135,7 @@ class TestMessage : public CxxTest::TestSuite {
 
   void test_shift_argument() {
     Message msg(state);
-    Task* task = Task::create(state, 10);
-    task->push(Fixnum::from(3));
-    task->push(Fixnum::from(47));
-    msg.use_from_task(task, 2);
+    msg.set_stack_args(2, args);
 
     TS_ASSERT_EQUALS(2U, msg.args());
 
@@ -161,35 +143,29 @@ class TestMessage : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
     TS_ASSERT_EQUALS(msg.args(), 1U);
 
-    TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(47));
+    TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(4));
   }
 
   void test_shift_argument_then_unshift() {
     Message msg(state);
-    Task* task = Task::create(state, 10);
-    task->push(Fixnum::from(3));
-    task->push(Fixnum::from(47));
-    msg.use_from_task(task, 2);
+    msg.set_stack_args(2, args);
 
     Fixnum* shifted = as<Fixnum>(msg.shift_argument(state));
     TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
-    TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(47));
+    TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(4));
 
     msg.unshift_argument(state, Fixnum::from(13));
 
     TS_ASSERT_EQUALS(msg.get_argument(0), Fixnum::from(13));
-    TS_ASSERT_EQUALS(msg.get_argument(1), Fixnum::from(47));
+    TS_ASSERT_EQUALS(msg.get_argument(1), Fixnum::from(4));
   }
 
   void test_shift_argument_one_then_unshift_one() {
     Message msg(state);
-    Task* task = Task::create(state, 10);
-    task->push(Fixnum::from(3));
-    task->push(state->symbol("to_int"));
-    msg.use_from_task(task, 1);
+    msg.set_stack_args(1, args);
 
-    Symbol* shifted = as<Symbol>(msg.shift_argument(state));
-    TS_ASSERT_EQUALS(shifted, state->symbol("to_int"));
+    Fixnum* shifted = as<Fixnum>(msg.shift_argument(state));
+    TS_ASSERT_EQUALS(shifted, Fixnum::from(3));
     TS_ASSERT_EQUALS(0U, msg.args());
 
     msg.unshift_argument(state, shifted);
@@ -201,9 +177,7 @@ class TestMessage : public CxxTest::TestSuite {
 
   void test_shift_argument_in_array() {
     Message msg(state);
-    Task* task = Task::create(state, 10);
-    task->push(state->symbol("to_int"));
-    msg.use_from_task(task, 1);
+    msg.set_stack_args(1, args);
 
     Array* ary = Array::create(state, 1);
     ary->set(state, 0, state->symbol("number_two"));
@@ -211,8 +185,8 @@ class TestMessage : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(2U, msg.args());
 
-    Symbol* shifted = as<Symbol>(msg.shift_argument(state));
-    TS_ASSERT_EQUALS(shifted, state->symbol("to_int"));
+    Fixnum* shifted = as<Fixnum>(msg.shift_argument(state));
+    TS_ASSERT_EQUALS(shifted, three);
     TS_ASSERT_EQUALS(1U, msg.args());
 
     TS_ASSERT_EQUALS(msg.get_argument(0), state->symbol("number_two"));
@@ -220,13 +194,10 @@ class TestMessage : public CxxTest::TestSuite {
 
   void test_shift_argument_one_then_unshift_two() {
     Message msg(state);
-    Task* task = Task::create(state, 10);
-    task->push(Fixnum::from(3));
-    task->push(state->symbol("to_int"));
-    msg.use_from_task(task, 1);
+    msg.set_stack_args(1, args);
 
-    Symbol* shifted = as<Symbol>(msg.shift_argument(state));
-    TS_ASSERT_EQUALS(shifted, state->symbol("to_int"));
+    Fixnum* shifted = as<Fixnum>(msg.shift_argument(state));
+    TS_ASSERT_EQUALS(shifted, three);
     TS_ASSERT_EQUALS(0U, msg.args());
 
     msg.unshift_argument2(state, shifted, Fixnum::from(47));
@@ -239,27 +210,24 @@ class TestMessage : public CxxTest::TestSuite {
 
   void test_as_array() {
     Message msg(state);
-    Task* task = Task::create(state, 10);
-    Symbol* sym = state->symbol("to_int");
-    task->push(sym);
-    msg.use_from_task(task, 1);
+    msg.set_stack_args(1, args);
 
     Array* ary = msg.as_array(state);
     TS_ASSERT_EQUALS(ary->size(), 1U);
-    TS_ASSERT_EQUALS(ary->get(state, 0), sym);
+    TS_ASSERT_EQUALS(ary->get(state, 0), three);
 
-    msg.unshift_argument(state, Fixnum::from(3));
+    msg.unshift_argument(state, four);
 
     ary = msg.as_array(state);
     TS_ASSERT_EQUALS(ary->size(), 2U);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(3));
-    TS_ASSERT_EQUALS(ary->get(state, 1), sym);
+    TS_ASSERT_EQUALS(ary->get(state, 0), four);
+    TS_ASSERT_EQUALS(ary->get(state, 1), three);
 
     msg.shift_argument(state);
 
     ary = msg.as_array(state);
     TS_ASSERT_EQUALS(ary->size(), 1U);
-    TS_ASSERT_EQUALS(ary->get(state, 0), sym);
+    TS_ASSERT_EQUALS(ary->get(state, 0), three);
 
   }
 };

@@ -4,8 +4,7 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
-#include "builtin/contexts.hpp"
+#include "builtin/float.hpp"
 #include "builtin/channel.hpp"
 
 #include "objectmemory.hpp"
@@ -14,117 +13,83 @@
 #include "vm/object_utils.hpp"
 #include "vm.hpp"
 
+#include "native_thread.hpp"
+
+#include <sys/time.h>
+
 namespace rubinius {
 
+
+/* Class methods */
+
   void Thread::init(STATE) {
-    Tuple* tup = Tuple::from(state, 3,
-                             List::create(state),
-                             List::create(state),
-                             List::create(state) );
-
-    GO(scheduled_threads).set(tup);
-
     GO(thread).set(state->new_class("Thread", G(object)));
     G(thread)->set_object_type(state, Thread::type);
-
-    G(thread)->set_const(state, "ScheduledThreads", tup);
   }
 
-
-/* Accessor implementation */
-
-  /** @todo   Should we queue thread? Probably unnecessary. --rue */
-  void Thread::priority(STATE, Fixnum* new_priority) {
-    /* This gets somewhat ugly to avoid existing lists. */
-    if(new_priority->to_native() < 0) {
-      Exception::argument_error(state, "Thread priority must be non-negative!");
-    }
-
-    Tuple* scheduled = state->globals.scheduled_threads.get();
-
-    std::size_t desired = new_priority->to_ulong();
-    std::size_t existing = scheduled->num_fields();
-
-    if(desired >= existing) {
-      Tuple* replacement = Tuple::create(state, (desired + 1));
-      replacement->copy_from(state, scheduled, Fixnum::from(0),
-			     Fixnum::from(scheduled->num_fields()),
-			     Fixnum::from(0));
-
-      for(std::size_t i = existing - 1; i <= desired; ++i) {
-        if(replacement->at(state, i)->nil_p()) {
-          replacement->put(state, i, List::create(state));
-        }
-      }
-
-      state->globals.scheduled_threads.set(replacement);
-      scheduled = replacement;
-    }
-
-    priority_ = new_priority;
-  }
-
-
-/* Primitives */
-
-  Thread* Thread::create(STATE) {
+  Thread* Thread::create(STATE, VM* target) {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->alive(state, Qtrue);
-    thr->channel(state, reinterpret_cast<Channel*>(Qnil));
-    thr->priority(state, Fixnum::from(2));
-    thr->queued(state, Qfalse);
-    thr->sleep(state, Qtrue);
-    thr->frozen_stack(state, Qfalse);
+    thr->sleep(state, Qfalse);
+    thr->control_channel(state, (Channel*)Qnil);
 
-    thr->boot_task(state);
-
-    state->interrupts.use_preempt = true;
-    state->interrupts.enable_preempt = true;
+    target->thread.set(thr);
+    thr->vm = target;
+    thr->native_thread_ = NULL;
 
     return thr;
   }
 
-  Thread* Thread::current(STATE) {
-    return state->globals.current_thread.get();
+
+/* Class primitives */
+
+  Thread* Thread::allocate(STATE) {
+    VM* vm = state->shared.new_vm();
+    Thread* thread = Thread::create(state, vm);
+
+    return thread;
   }
 
-  /** @todo   Add voluntary/involuntary? --rue */
-  Object* Thread::exited(STATE) {
-    alive(state, Qfalse);
+  Thread* Thread::current(STATE) {
+    return state->thread.get();
+  }
 
-    if(!channel()->nil_p()) {
-      channel()->cancel_waiter(state, this);
-    }
 
-    channel(state, (Channel*)Qnil);
+/* Instance primitives */
 
-    state->dequeue_thread(this);
-    state->find_and_activate_thread();
+  Object* Thread::fork(STATE) {
+    state->interrupts.enable_preempt = true;
 
-    return this;
+    native_thread_ = new NativeThread(vm);
+
+    // Let it run.
+    native_thread_->run();
+    return Qnil;
   }
 
   Object* Thread::pass(STATE) {
-    /* Stash the Task in case it has changed. @todo Overcautious? --rue */
-    this->task(state, state->globals.current_task.get());
-
-    /* Delay queuing until another one is found to allow lower priority. */
-    if(state->find_and_activate_thread()) {
-      state->queue_thread(this);
-    }
+    GlobalLock::UnlockGuard x(state->global_lock());
 
     return Qnil;
   }
 
-  Object* Thread::raise(STATE, Exception* error) {
-    wakeup(state);
+  Object* Thread::priority(STATE) {
+    if(!native_thread_) return Qnil;
+    return Fixnum::from(native_thread_->priority());
+  }
 
-    MethodContext* ctx = task_->active();
-    ctx->reference(state);
-    error->context(state, ctx);
+  Object* Thread::raise(STATE, Exception* exc) {
+    thread::Mutex::LockGuard x(vm->local_lock());
+    vm->register_raise(exc);
+    vm->wakeup();
+    return exc;
+  }
 
-    return task_->raise(state, error);
+  Object* Thread::set_priority(STATE, Fixnum* new_priority) {
+    if(!native_thread_) return Qnil;
+    native_thread_->set_priority(new_priority->to_native());
+    return new_priority;
   }
 
   Thread* Thread::wakeup(STATE) {
@@ -132,35 +97,20 @@ namespace rubinius {
       return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
 
-    sleep(state, Qfalse);
-
-    /** @todo   This is possibly unnecessary except for raise() and exited(). --rue */
-    if(!channel()->nil_p()) {
-      channel()->cancel_waiter(state, this);
+    {
+      thread::Mutex::LockGuard x(vm->local_lock());
+      vm->wakeup();
     }
-
-    channel(state, (Channel*)Qnil);
-
-    state->queue_thread(this);
 
     return this;
   }
 
+  Tuple* Thread::context(STATE) {
+    CallFrame* cf = vm->saved_call_frame();
 
-/* Interface */
+    cf->promote_scope(state);
 
-  void Thread::boot_task(STATE) {
-    Task* task = Task::create(state);
-    this->task(state, task);
-  }
-
-  void Thread::set_top(STATE, Object* val) {
-    task_->active()->set_top(val);
-  }
-
-  void Thread::sleep_for(STATE, Channel* chan) {
-    channel(state, chan);
-    sleep(state, Qtrue);
+    return Tuple::from(state, 3, Fixnum::from(cf->ip), cf->cm, cf->scope);
   }
 
 }

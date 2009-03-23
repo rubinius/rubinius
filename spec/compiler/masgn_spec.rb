@@ -282,21 +282,21 @@ describe "A Masgn node" do
 
       g.rotate 3
 
-      g.push_context
+      g.push_scope
       g.swap
       g.push_literal :A
       g.swap
       g.send :__const_set__, 2
       g.pop
 
-      g.push_context
+      g.push_scope
       g.swap
       g.push_literal :B
       g.swap
       g.send :__const_set__, 2
       g.pop
 
-      g.push_context
+      g.push_scope
       g.swap
       g.push_literal :C
       g.swap
@@ -437,13 +437,13 @@ describe "A Masgn node" do
       g.push 1
       g.push 2
       g.rotate 2
-      g.push_context
+      g.push_scope
       g.swap
       g.push_literal :@@a
       g.swap
       g.send :class_variable_set, 2
       g.pop
-      g.push_context
+      g.push_scope
       g.swap
       g.push_literal :@@b
       g.swap

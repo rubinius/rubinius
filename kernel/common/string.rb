@@ -169,10 +169,10 @@ class String
     case pattern
     when Regexp
       if m = pattern.match_from(self, 0)
-        Regexp.last_match = m
+        VariableScope.of_sender.last_match = m
         return m.begin(0)
       end
-      Regexp.last_match = nil
+      VariableScope.of_sender.last_match = nil
       return nil
     when String
       raise TypeError, "type mismatch: String given"
@@ -231,7 +231,7 @@ class String
 
       if index.kind_of? Regexp
         match, str = subpattern(index, length)
-        Regexp.last_match = match
+        VariableScope.of_sender.last_match = match
         return str
       else
         start  = Type.coerce_to(index, Fixnum, :to_int)
@@ -242,7 +242,7 @@ class String
     case index
     when Regexp
       match, str = subpattern(index, 0)
-      Regexp.last_match = match
+      VariableScope.of_sender.last_match = match
       return str
     when String
       return include?(index) ? index.dup : nil
@@ -815,7 +815,7 @@ class String
       else
         # We do this so that we always manipulate $~ in the context
         # of the passed block.
-        prc.block.home.last_match = match
+        prc.block.top_scope.last_match = match
 
         val = yield(match[0].dup)
         tainted ||= val.tainted?
@@ -837,7 +837,7 @@ class String
       offset = match.begin 0
     end
 
-    Regexp.last_match = last_match
+    VariableScope.of_sender.last_match = last_match
 
     str = substring(last_end, @num_bytes-last_end+1)
     ret << str if str
@@ -851,12 +851,12 @@ class String
   def gsub!(pattern, replacement = nil, &block)
     str = gsub(pattern, replacement, &block)
 
-    if lm = Regexp.last_match
-      Regexp.last_match = Regexp.last_match
+    if lm = $~
+      VariableScope.of_sender.last_match = lm
       replace(str)
       return self
     else
-      Regexp.last_match = nil
+      VariableScope.of_sender.last_match = nil
       return nil
     end
   end
@@ -927,10 +927,10 @@ class String
       end
     when Regexp
       if match = needle.match_from(self[offset..-1], 0)
-        Regexp.last_match = match
+        VariableScope.of_sender.last_match = match
         return (offset + match.begin(0))
       else
-        Regexp.last_match = nil
+        VariableScope.of_sender.last_match = nil
       end
     else
       raise TypeError, "type mismatch: #{needle.class} given"
@@ -1060,7 +1060,7 @@ class String
   #   'hello'.match('xx')         #=> nil
   def match(pattern)
     obj = get_pattern(pattern).match_from(self, 0)
-    Regexp.last_match = obj
+    VariableScope.of_sender.last_match = obj
     return obj
   end
 
@@ -1154,7 +1154,7 @@ class String
     end
 
     ret = arg.search_region(self, 0, finish, false)
-    Regexp.last_match = ret if original_klass == Regexp
+    VariableScope.of_sender.last_match = ret if original_klass == Regexp
     ret && ret.begin(0)
   end
 
@@ -1250,14 +1250,14 @@ class String
       val.taint if taint
 
       if block_given?
-        Regexp.last_match = match
+        VariableScope.of_sender.last_match = match
         yield(val)
       else
         ret << val
       end
     end
 
-    Regexp.last_match = last_match
+    VariableScope.of_sender.last_match = last_match
     return ret
 =begin
 
@@ -1270,7 +1270,7 @@ class String
         ret << match
       end
 
-      Regexp.last_match = last_match
+      VariableScope.of_sender.last_match = last_match
       return ret
     else
       while (index, match = scan_once(pattern, index)) && match
@@ -1279,13 +1279,13 @@ class String
         match.taint if taint
 
         block.call(match)
-        Regexp.last_match = old_md
+        VariableScope.of_sender.last_match = old_md
       end
 
       ret = self
     end
 
-    Regexp.last_match = last_match
+    VariableScope.of_sender.last_match = last_match
     return ret
 =end
   end
@@ -1306,7 +1306,7 @@ class String
     result = slice(*args)
     lm = Regexp.last_match
     self[*args] = '' unless result.nil?
-    Regexp.last_match = lm
+    VariableScope.of_sender.last_match = lm
     result
   end
 
@@ -1510,7 +1510,7 @@ class String
     if match = get_pattern(pattern, true).match_from(self, 0)
       out = match.pre_match
 
-      Regexp.last_match = match
+      VariableScope.of_sender.last_match = match
 
       if replacement
         out.taint if replacement.tainted?
@@ -1518,20 +1518,20 @@ class String
       else
         # We do this so that we always manipulate $~ in the context
         # of the passed block.
-        prc.block.home.last_match = match
+        prc.block.top_scope.last_match = match
 
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
       end
 
       # We have to reset it again to match the specs
-      Regexp.last_match = match
+      VariableScope.of_sender.last_match = match
 
       out << replacement << match.post_match
       out.taint if self.tainted?
     else
       out = self
-      Regexp.last_match = nil
+      VariableScope.of_sender.last_match = nil
     end
 
     # MRI behavior emulation. Sub'ing String subclasses doen't return the
@@ -1555,11 +1555,11 @@ class String
     end
 
     if lm = Regexp.last_match
-      Regexp.last_match = lm
+      VariableScope.of_sender.last_match = lm
       replace(str)
       return self
     else
-      Regexp.last_match = nil
+      VariableScope.of_sender.last_match = nil
       return nil
     end
   end

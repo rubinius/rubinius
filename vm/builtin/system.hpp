@@ -6,13 +6,13 @@
 
 #include "builtin/object.hpp"
 
-
 namespace rubinius {
 
   class Array;
   class Fixnum;
   class String;
 
+  class CallFrame;
 
   /**
    *  VM primitives etc.
@@ -53,6 +53,9 @@ namespace rubinius {
      */
     // Ruby.primitive :vm_exec
     static Object*  vm_exec(STATE, String* path, Array* args);
+
+    // Ruby.primitive :vm_wait_pid
+    static Object*  vm_wait_pid(STATE, Fixnum* pid, Object* no_hang);
 
     // Ruby.primitive :vm_exit
     static Object*  vm_exit(STATE, Fixnum* code);
@@ -108,22 +111,24 @@ namespace rubinius {
     static Object*  vm_reset_method_cache(STATE, Symbol* name);
 
     /**
-     *  Writes backtrace to standard output.
+     *  Backtrace as an Array.
      */
-    // Ruby.primitive :vm_show_backtrace
-    static Object*  vm_show_backtrace(STATE, Object* ctx);
+    // Ruby.primitive :vm_backtrace
+    static Array* vm_backtrace(STATE, Fixnum* skip, CallFrame* calling_environment);
 
     /**
      *  Starts the instrumenting profiler.
      */
-    // Ruby.primitive :vm_profiler_instrumenter_start
-    static Object*  vm_profiler_instrumenter_start(STATE);
+/** @todo Fix, Task is gone. --rue */
+//    // Ruby.primitive :vm_profiler_instrumenter_start
+//    static Object*  vm_profiler_instrumenter_start(STATE);
 
     /**
      *  Stops the instrumenting profiler.
      */
-    // Ruby.primitive :vm_profiler_instrumenter_stop
-    static LookupTable*  vm_profiler_instrumenter_stop(STATE);
+/** @todo Fix, Task is gone. --rue */
+//    // Ruby.primitive :vm_profiler_instrumenter_stop
+//    static LookupTable*  vm_profiler_instrumenter_stop(STATE);
 
     /**
      *  Writes String to standard error stream.
@@ -140,9 +145,17 @@ namespace rubinius {
     /**
      *  Returns information about the GC.
      */
-    // Ruby.primitive :vm_gc_info
-    static Object*  vm_gc_info(STATE);
+    // Ruby.primitive :vm_stats_gc_clear
+    static Object* vm_stats_gc_clear(STATE);
 
+    // Ruby.primitive :vm_stats_gc_info
+    static Object* vm_stats_gc_info(STATE);
+
+    // Ruby.primitive :vm_watch_signal
+    static Object*  vm_watch_signal(STATE, Fixnum* sig);
+
+    // Ruby.primitive :vm_time
+    static Object*  vm_time(STATE);
 
   public:   /* Type info */
 
@@ -150,6 +163,7 @@ namespace rubinius {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) {}
       virtual ~Info() {}
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
 
 

@@ -71,7 +71,7 @@ module IRB
     trap("SIGINT") do
       irb.signal_handle
     end
-    
+
     catch(:IRB_EXIT) do
       irb.eval_input
     end

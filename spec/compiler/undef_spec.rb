@@ -146,7 +146,7 @@ describe "An Undef node" do
       desc = description do |d|
         d.push_self
         d.add_scope
-        d.push_context
+        d.push_scope
         d.push_literal :blah
         d.send :__undef_method__, 1
         d.ret

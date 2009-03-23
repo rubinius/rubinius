@@ -14,6 +14,16 @@ class IO
       Ruby.primitive :iobuffer_unshift
       raise PrimitiveFailure, "IO::Buffer#unshift primitive failed"
     end
+
+    def fill(io)
+      Ruby.primitive :iobuffer_fill
+
+      unless io.kind_of? IO
+        return fill(io.to_io)
+      end
+
+      raise PrimitiveFailure, "IOBuffer#fill primitive failed"
+    end
   end
 
   def self.allocate
@@ -31,9 +41,21 @@ class IO
     raise PrimitiveFailure, "IO.connect_pipe primitive failed"
   end
 
+  def self.select_primitive(readables, writables, errorables, timeout)
+    Ruby.primitive :io_select
+  end
+
+
+  # Instance primitive bindings
+
   def ensure_open
     Ruby.primitive :io_ensure_open
     raise PrimitiveFailure, "IO#ensure_open primitive failed"
+  end
+
+  def read_primitive(number_of_bytes)
+    Ruby.primitive :io_sysread
+    raise PrimitiveFailure, "IO::sysread primitive failed!"
   end
 
   def write(str)

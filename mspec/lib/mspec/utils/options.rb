@@ -360,6 +360,9 @@ class MSpecOptions
     on("--unguarded", "Turn off all guards") do
       MSpec.register_mode :unguarded
     end
+    on("--no-ruby_bug", "Turn off the ruby_bug guard") do
+      MSpec.register_mode :no_ruby_bug
+    end
   end
 
   def randomize
@@ -401,12 +404,16 @@ class MSpecOptions
   end
 
   def verify
-    on("-Y", "--verify",
-       "Verify that guarded specs pass and fail as expected") do
-      MSpec.register_mode :verify
+    on("--report-on", "GUARD", "Report specs guarded by GUARD") do |g|
+      MSpec.register_mode :report_on
+      SpecGuard.guards << g.to_sym
     end
     on("-O", "--report", "Report guarded specs") do
       MSpec.register_mode :report
+    end
+    on("-Y", "--verify",
+       "Verify that guarded specs pass and fail as expected") do
+      MSpec.register_mode :verify
     end
   end
 

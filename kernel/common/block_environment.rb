@@ -3,8 +3,6 @@
 # to create a BlockContext.
 
 class BlockEnvironment
-  attr_accessor :home
-  attr_accessor :home_block
   attr_accessor :local_count
   attr_accessor :method # The CompiledMethod object that we were called from
 
@@ -12,6 +10,7 @@ class BlockEnvironment
   attr_accessor :last_ip
   attr_accessor :post_send
   attr_accessor :scope
+  attr_accessor :top_scope
 
   attr_accessor :proc_environment
   attr_accessor :metadata_container
@@ -21,22 +20,17 @@ class BlockEnvironment
     @proc_environment
   end
 
-  def under_context(context, cmethod)
-    if context.__kind_of__ BlockContext
-      home = context.home
-    else
-      home = context
-    end
-
-    @home = home
-    @home_block = context
+  def under_context(scope, cmethod)
+    @top_scope = scope
+    @scope = scope
     @method = cmethod
     @local_count = cmethod.local_count
 
-    @initial_ip = 0
-    @last_ip = 0x10000000 # 2**28
-    @post_send = 0
     return self
+  end
+
+  def receiver=(obj)
+    @top_scope.self = obj
   end
 
   ##
@@ -53,16 +47,14 @@ class BlockEnvironment
   end
 
   def make_independent
-    @home = @home.dup
-    # TODO: enabling this appears to break Module.module_function, why?
-    # @home_block = @home_block.dup
-    @method = @method.dup
+    @top_scope = @top_scope.dup
+    @scope = @scope.dup
   end
 
   def redirect_to(obj)
     env = dup
     env.make_independent
-    env.home.receiver = obj
+    env.receiver = obj
     return env
   end
 
@@ -89,6 +81,6 @@ class BlockEnvironment
   end
 
   def line
-    method.line_from_ip(@initial_ip)
+    method.line_from_ip(0)
   end
 end

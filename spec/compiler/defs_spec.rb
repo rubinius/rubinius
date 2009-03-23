@@ -103,7 +103,6 @@ describe "A Defs node" do
 
   relates <<-ruby do
       def (a.b).empty(*)
-        # do nothing
       end
     ruby
 

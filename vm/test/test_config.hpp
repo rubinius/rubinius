@@ -73,6 +73,7 @@ class TestConfig : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(l->at(0)->variable, "rbx.test.blah");
     TS_ASSERT_EQUALS(l->at(1)->variable, "rbx.test.foo");
 
+    delete l;
   }
 
 };

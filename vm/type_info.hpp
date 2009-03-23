@@ -4,7 +4,7 @@
 #include <map>
 #include <stdexcept>
 
-#include "vm/gc_object_mark.hpp"
+#include "vm/gc/object_mark.hpp"
 #include "vm/object_types.hpp"
 #include "vm/prelude.hpp"
 
@@ -13,7 +13,9 @@ namespace rubinius {
   class Class;
   class Object;
   class ObjectMark;
+  class ObjectVisitor;
   class ObjectMemory;
+  class ObjectHeader;
 
   /**
    *  Static type information for the VM.
@@ -49,7 +51,8 @@ namespace rubinius {
     static void init(ObjectMemory* om);
     static void auto_init(ObjectMemory* om);
     static void auto_learn_fields(STATE);
-    virtual void auto_mark(Object* obj, ObjectMark& mark);
+    virtual void auto_mark(Object* obj, ObjectMark& mark) = 0;
+    virtual void auto_visit(Object* obj, ObjectVisitor& visit);
 
   public:   /* Ctors */
 
@@ -92,8 +95,12 @@ namespace rubinius {
     virtual void cleanup(Object* obj);
 
     virtual void mark(Object* obj, ObjectMark& mark);
+    virtual void visit(Object* obj, ObjectVisitor& visit);
+
     virtual void set_field(STATE, Object* target, size_t index, Object* val);
     virtual Object* get_field(STATE, Object* target, size_t index);
+
+    virtual size_t object_size(const ObjectHeader* object);
 
     /**
      * Currently prints the same output as show_simple. Is specialized by
@@ -157,6 +164,7 @@ namespace rubinius {
 #define BASIC_TYPEINFO(super) \
   Info(object_type type, bool cleanup = false) : super(type, cleanup) { } \
   virtual void auto_mark(Object* obj, ObjectMark& mark); \
+  virtual void auto_visit(Object* obj, ObjectVisitor& visit); \
   virtual void set_field(STATE, Object* target, size_t index, Object* val); \
   virtual Object* get_field(STATE, Object* target, size_t index);
 
@@ -172,6 +180,7 @@ namespace rubinius {
 #define BASIC_TYPEINFO_WITH_CLEANUP(super) \
   Info(object_type type, bool cleanup = true) : super(type, true) { } \
   virtual void auto_mark(Object* obj, ObjectMark& mark); \
+  virtual void auto_visit(Object* obj, ObjectVisitor& visit); \
   virtual void cleanup(Object* obj); \
   virtual void set_field(STATE, Object* target, size_t index, Object* val); \
   virtual Object* get_field(STATE, Object* target, size_t index);

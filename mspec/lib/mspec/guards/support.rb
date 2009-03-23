@@ -12,7 +12,9 @@ end
 class Object
   def not_supported_on(*args)
     g = SupportedGuard.new(*args)
+    g.name = :not_supported_on
     yield if g.yield?
+  ensure
     g.unregister
   end
 end

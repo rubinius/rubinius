@@ -13,8 +13,12 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
-#include "builtin/task.hpp"
 #include "builtin/taskprobe.hpp"
+
+#include "signal.hpp"
+#include "object_utils.hpp"
+
+#include "native_thread.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -23,30 +27,38 @@
 
 namespace rubinius {
 
-  Environment::Environment() {
-    state = new VM(VM::default_bytes, false);
-    TaskProbe* probe = TaskProbe::create(state);
-    state->probe.set(probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil);
+  Environment::Environment(int argc, char** argv) {
+    ConfigParser* config = new ConfigParser();
+    config->process_argv(argc, argv);
+
+    shared = manager.create_shared_state();
+    shared->user_config = config;
+
+    state = shared->new_vm();
+    state->initialize(VM::default_bytes);
   }
 
   Environment::~Environment() {
-    delete state;
+    manager.destroy_vm(state);
   }
 
   void Environment::enable_preemption() {
     state->setup_preemption();
   }
 
-  void Environment::load_config_argv(int argc, char** argv) {
-    for(int i=1; i < argc; i++) {
-      char* arg = argv[i];
-      if(strncmp(arg, "-X", 2) == 0) {
-        state->user_config->import_line(arg + 2);
-        continue;
-      }
+  static void null_func(int sig) {}
 
-      if(arg[0] != '-' || strcmp(arg, "--") == 0) return;
-    }
+  void Environment::start_signal_thread() {
+    SignalThread* st = new SignalThread(state);
+    st->run();
+
+    struct sigaction action;
+    action.sa_handler = null_func;
+    action.sa_flags = 0;
+    sigfillset(&action.sa_mask);
+    sigaction(7, &action, NULL);
+
+    shared->set_signal_thread(st);
   }
 
   void Environment::load_argv(int argc, char** argv) {
@@ -63,7 +75,7 @@ namespace rubinius {
       }
 
       if(!process_xflags || strncmp(arg, "-X", 2) != 0) {
-        ary->set(state, which_arg++, String::create(state, arg)->taint());
+        ary->set(state, which_arg++, String::create(state, arg)->taint(state));
       }
     }
 
@@ -102,6 +114,9 @@ namespace rubinius {
 
   void Environment::boot_vm() {
     state->boot();
+
+    TaskProbe* probe = TaskProbe::create(state);
+    state->probe.set(probe->parse_env(NULL) ? probe : (TaskProbe*)Qnil);
   }
 
   void Environment::run_file(std::string file) {
@@ -113,15 +128,14 @@ namespace rubinius {
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
 
+    /** @todo Redundant? CompiledFile::execute() does this. --rue */
+    state->thread_state()->clear_exception();
+
     // TODO check version number
     cf->execute(state);
 
-    if(!G(current_task)->exception()->nil_p()) {
-      // Reset the context so we can show the backtrace
-      // HACK need to use write barrier aware stuff?
-      Exception* exc = G(current_task)->exception();
-      G(current_task)->active(state, exc->context());
-
+    if(state->thread_state()->raise_reason() == cException) {
+      Exception* exc = as<Exception>(state->thread_state()->raise_value());
       std::ostringstream msg;
 
       msg << "exception detected at toplevel: ";
@@ -129,10 +143,24 @@ namespace rubinius {
         msg << exc->message()->c_str();
       }
       msg << " (" << exc->klass()->name()->c_str(state) << ")";
+      std::cout << msg.str() << "\n";
+      exc->print_locations(state);
       Assertion::raise(msg.str().c_str());
     }
 
     delete cf;
+  }
+
+  int Environment::exit_code() {
+    if(state->thread_state()->raise_reason() == cExit) {
+      if(Fixnum* fix = try_as<Fixnum>(state->thread_state()->raise_value())) {
+        return fix->to_native();
+      } else {
+        return -1;
+      }
+    }
+
+    return 0;
   }
 
 }

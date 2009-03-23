@@ -1,23 +1,17 @@
+#include "vm/test/test.hpp"
+
 #include "prelude.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 #include "ffi_util.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestMemoryPointer : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
+class TestMemoryPointer : public CxxTest::TestSuite, public VMTest {
+public:
 
   void setUp() {
-    state = new VM();
+    create();
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_create() {

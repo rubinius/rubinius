@@ -1,1 +1,0 @@
-fails:Logger#add writes a new message to the logger

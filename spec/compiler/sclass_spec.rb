@@ -77,6 +77,8 @@ describe "An Sclass node" do
         d.pop
         d.push :nil
         d.open_class :B
+        d.pop
+        d.push :nil
       end
     end
   end

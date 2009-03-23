@@ -1,90 +1,6 @@
-# depends on: class.rb executable.rb array.rb
-
-# TODO - This file needs ivar_as_index removal cleanup
+# depends on: class.rb executable.rb array.rb static_scope.rb
 
 # TODO - Comment!!!
-
-##
-# A linked list that details the static, lexical scope the method was created
-# in.
-#
-# You can access it this way:
-#
-#   MethodContext.current.method.scope
-#
-# Here is a simple example:
-#
-#   module Fruits
-#     class Pineapple
-#       attr_reader :initialize_scope
-#
-#       def initialize(weight)
-#         @initialize_scope = MethodContext.current.method.scope
-#         @weight = weight
-#       end
-#     end
-#   end
-#
-# Static scope members are shown below:
-#
-#   irb(main):> pineapple.initialize_scope.script
-#   => nil
-#   irb(main):> pineapple.initialize_scope.parent
-#   => #<StaticScope:0x1c9>
-#   irb(main):> pineapple.initialize_scope.module
-#   => Fruits::Pineapple
-#   irb(main):> pineapple.initialize_scope.parent.module
-#   => Fruits
-#   irb(main):> pineapple.initialize_scope.parent.parent.module
-#   => Object
-#   irb(main):> pineapple.initialize_scope.parent.parent.parent
-#   => nil
-#
-class StaticScope
-
-  #
-  # @todo  Verify the recursion here does not cause problems. --rue
-  #
-  def initialize(mod, par = nil)
-    @module = mod
-    @parent = par
-  end
-
-  # Source code of this scope.
-  attr_accessor :script
-
-  # Module or class this lexical scope enclosed into.
-  attr_reader   :module
-
-  # Static scope object this scope enclosed into.
-  attr_reader   :parent
-
-  # Module or class representing the 'current class'. MRI manipulates
-  # this outside of the lexical scope and uses it for undef and method
-  # definition.
-  attr_accessor :current_module
-
-  def inspect
-    "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent.inspect} module=#{@module}>"
-  end
-
-  def to_s
-    self.inspect
-  end
-
-  # Use the same info as the current StaticScope, but set current_module to
-  # +mod+. Chains off the current StaticScope.
-  def using_current_as(mod)
-    ss = StaticScope.new @module, self
-    ss.current_module = mod
-    return ss
-  end
-
-  def for_method_definition
-    return @current_module if @current_module
-    return @module
-  end
-end
 
 class CompiledMethod < Executable
   # Any CompiledMethod with this value in it's serial slot
@@ -230,18 +146,24 @@ class CompiledMethod < Executable
     MAIN.__script__
   end
 
-  def line_from_ip(i)
+  def line_from_ip(ip)
     return -1 unless @lines
+    return 0 if @lines.size < 2
 
-    @lines.each do |t|
-      start = t.at(0)
-      nd = t.at(1)
-      op = t.at(2)
-      if i >= start and i <= nd
-        return op
+    i = 1
+    total = @lines.size - 2
+    while i < total
+      start = @lines.at(i-1)
+      fin =   @lines.at(i+1)
+
+      if ip >= start and ip < fin
+        return @lines.at(i)
       end
+
+      i += 2
     end
-    return 0
+
+    return @lines.at(total)
   end
 
   # Returns the address (IP) of the first instruction in this CompiledMethod
@@ -253,10 +175,15 @@ class CompiledMethod < Executable
   # CompiledMethods.
 
   def first_ip_on_line(line)
-    @lines.each do |t|
-      if t.at(2) >= line
-        return t.at(0)
+    i = 1
+    total = @lines.size
+    while i < total
+      cur_line = @lines.at(i)
+      if cur_line >= line
+        return @lines.at(i-1)
       end
+
+      i += 2
     end
 
     return -1

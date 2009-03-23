@@ -20,9 +20,10 @@ class MSpecRun < MSpecScript
     options.doc " Ask yourself:"
     options.doc "  1. What specs to run?"
     options.doc "  2. How to modify the execution?"
-    options.doc "  3. How to display the output?"
-    options.doc "  4. What action to perform?"
-    options.doc "  5. When to perform it?"
+    options.doc "  3. How to modify the guard behavior?"
+    options.doc "  4. How to display the output?"
+    options.doc "  5. What action to perform?"
+    options.doc "  6. When to perform it?"
 
     options.doc "\n What specs to run"
     options.filters
@@ -35,8 +36,11 @@ class MSpecRun < MSpecScript
     options.randomize
     options.pretend
     options.background
-    options.unguarded
     options.interrupt
+
+    options.doc "\n How to modify the guard behavior"
+    options.unguarded
+    options.verify
 
     options.doc "\n How to display their output"
     options.formatters
@@ -44,7 +48,6 @@ class MSpecRun < MSpecScript
 
     options.doc "\n What action to perform"
     options.actions
-    options.verify
 
     options.doc "\n When to perform it"
     options.action_filters

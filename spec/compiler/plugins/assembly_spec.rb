@@ -18,15 +18,13 @@ describe "A Call node using InlineAssembly plugin" do
     end
 
     compile do |g|
-      g.passed_block do
-        g.push_const :Rubinius
-        g.push :self
-        g.send :a, 0, true
+      g.push_const :Rubinius
+      g.push :self
+      g.send :a, 0, true
 
-        g.in_block_send :asm, :single, nil, 1, false do |d|
-          d.push :self
-          d.send :push_context, 0, true
-        end
+      g.in_block_send :asm, :single, nil, 1, false do |d|
+        d.push :self
+        d.send :push_context, 0, true
       end
     end
 

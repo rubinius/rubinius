@@ -5,120 +5,136 @@
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 
+#include "builtin/object.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/list.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/io.hpp"
-#include "builtin/contexts.hpp"
 
 #include "message.hpp"
 #include "event.hpp"
 
+#include "thread.hpp"
+#include "native_thread.hpp"
+
+#include "on_stack.hpp"
+
+#include <sys/time.h>
+
 namespace rubinius {
+
+  void Channel::init(STATE) {
+    GO(channel).set(state->new_class("Channel", G(object)));
+    G(channel)->set_object_type(state, Channel::type);
+  }
+
   Channel* Channel::create(STATE) {
-    Channel* chan = state->new_object<Channel>(G(channel));
-    chan->waiting(state, List::create(state));
+    Channel* chan = state->new_object_mature<Channel>(G(channel));
+    chan->waiters_ = 0;
+
+    // Using placement new to call the constructor of condition_
+    new(&chan->condition_) thread::Condition();
+    chan->value(state, List::create(state));
 
     return chan;
   }
 
   /** @todo Remove the event too? Should not affect code, but no need for it either. --rue */
   void Channel::cancel_waiter(STATE, const Thread* waiter) {
-    waiting_->remove(state, waiter);
+    // waiting_->remove(state, waiter);
   }
 
   Object* Channel::send(STATE, Object* val) {
-    if(!waiting_->empty_p()) {
-      Thread* thr = as<Thread>(waiting_->shift(state));
-      if(thr->frozen_stack() == Qfalse) thr->set_top(state, val);
-      thr->wakeup(state);
-      return Qnil;
+    value_->append(state, val);
+
+    if(waiters_ > 0) {
+      condition_.signal();
     }
 
-    if(List* lst = try_as<List>(value_)) {
-      lst->append(state, val);
+    return Qnil;
+  }
+
+  Object* Channel::try_receive(STATE) {
+    if(value_->empty_p()) return Qnil;
+    return value_->shift(state);
+  }
+
+  Object* Channel::receive(STATE, CallFrame* call_frame) {
+    return receive_timeout(state, Qnil, call_frame);
+  }
+
+#define NANOSECONDS 1000000000
+  Object* Channel::receive_timeout(STATE, Object* duration, CallFrame* call_frame) {
+    if(!value_->empty_p()) return value_->shift(state);
+
+    // Otherwise, we need to wait for a value.
+    struct timespec ts = {0,0};
+    bool use_timed_wait = true;
+
+    if(Fixnum* fix = try_as<Fixnum>(duration)) {
+      ts.tv_sec = fix->to_native();
+    } else if(Float* flt = try_as<Float>(duration)) {
+      uint64_t nano = (uint64_t)(flt->val * NANOSECONDS);
+      ts.tv_sec  =  (time_t)(nano / NANOSECONDS);
+      ts.tv_nsec =    (long)(nano % NANOSECONDS);
+    } else if(duration->nil_p()) {
+      use_timed_wait = false;
     } else {
-      List* lst = List::create(state);
-      lst->append(state, val);
-
-      value(state, lst);
+      return Primitives::failure();
     }
 
-    return Qnil;
-  }
+    // Passing control away means that the GC might run. So we need
+    // to stash this into a root, and read it back out again after
+    // control is returned.
+    //
+    // DO NOT USE this AFTER wait().
 
-  /**
-   * @todo   The list management is iffy. Should probably just
-   *          always assume it is a list. --rue
-   */
-  ExecuteStatus Channel::receive_prim(STATE, Executable* exec, Task* task, Message& msg) {
-    Thread* current = state->globals.current_thread.get();
+    // We have to do this because we can't pass this to OnStack, since C++
+    // won't let us reassign it.
+    Channel* self = this;
+    OnStack<1> sv(state, self);
 
-    task->active()->clear_stack(msg.stack);
+    // We pin this so we can pass condition_ out without worrying about
+    // us moving it.
+    this->pin();
 
-    // @todo  check arity
-    if(!value_->nil_p()) {
-      List* list = as<List>(value_);
+    WaitingOnCondition waiter(condition_);
 
-      task->push(list->shift(state));
+    state->install_waiter(waiter);
+    waiters_++;
+    state->thread->sleep(state, Qtrue);
 
-      if(list->size() == 0) {
-        value(state, Qnil);
-      }
-
-      return cExecuteContinue;
+    if(use_timed_wait) {
+      struct timeval tv;
+      gettimeofday(&tv, 0);
+      uint64_t nano = ts.tv_nsec + tv.tv_usec * 1000;
+      ts.tv_sec  += tv.tv_sec + nano / NANOSECONDS;
+      ts.tv_nsec  = nano % NANOSECONDS;
+      condition_.wait_until(state->global_lock(), &ts);
+    } else {
+      condition_.wait(state->global_lock());
     }
 
-    /* Saves space plus if thread woken forcibly, it gets the Qfalse. */
-    task->push(Qfalse);
+    condition_.reset();
+    self->unpin();
+    self->waiters_--;
 
-    current->sleep_for(state, this);
-    waiting_->append(state, current);
+    state->clear_waiter();
+    state->thread->sleep(state, Qfalse);
+    if(!state->check_async(call_frame)) return NULL;
 
-    state->check_events();
-
-    /* This sets the Task to continue from the next
-     * opcode when it eventually reactivates. Its
-     * stack will then have either the real received
-     * value or the default Qfalse if the thread
-     * was forced to stop waiting for us.
-     */
-    return cExecuteRestart;
-  }
-
-  Object* Channel::receive(STATE) {
-    Thread* thr = G(current_thread);
-    if(!value_->nil_p()) {
-      List* list = as<List>(value_);
-
-      if(thr->frozen_stack() == Qfalse) {
-        state->return_value(list->shift(state));
-      }
-
-      if(list->size() == 0) {
-        value(state, Qnil);
-      }
-
+    // We were awoken, but there is no value to use. Return nil.
+    if(self->value()->empty_p()) {
       return Qnil;
     }
 
-    if(thr->frozen_stack() == Qfalse) {
-      /* We push nil on the stack to reserve a place to put the result. */
-      state->return_value(Qfalse);
-    }
-
-    thr->sleep_for(state, this);
-    waiting_->append(state, thr);
-
-    state->run_best_thread();
-
-    return Qnil;
+    return self->value()->shift(state);
   }
 
   bool Channel::has_readers_p() {
-    return !waiting_->empty_p();
+    return waiters_ > 0;
   }
 
   class SendToChannel : public ObjectCallback {

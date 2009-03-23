@@ -1,12 +1,10 @@
+#include "vm/test/test.hpp"
+
 #include "marshal.hpp"
 #include "builtin/sendsite.hpp"
 
-#include <cxxtest/TestSuite.h>
-
 #include <iostream>
 #include <sstream>
-
-using namespace rubinius;
 
 class StringMarshaller : public Marshaller {
 public:
@@ -15,19 +13,18 @@ public:
   StringMarshaller(STATE) : Marshaller(state, sstream) { }
 };
 
-class TestMarshal : public CxxTest::TestSuite {
+class TestMarshal : public CxxTest::TestSuite, public VMTest {
 public:
-  VM* state;
   StringMarshaller* mar;
 
   void setUp() {
-    state = new VM();
+    create();
     mar = new StringMarshaller(state);
   }
 
   void tearDown() {
-    delete state;
     delete mar;
+    destroy();
   }
 
   void test_nil() {

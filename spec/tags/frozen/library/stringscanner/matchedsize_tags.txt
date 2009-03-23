@@ -1,1 +1,0 @@
-fails:StringScanner#matchedsize warns in verbose mode that the method is obsolete

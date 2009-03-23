@@ -34,13 +34,12 @@ namespace rubinius {
     static void init(STATE);
 
     static NativeFunction* create(STATE, Object* name, int args);
-    static ExecuteStatus execute(STATE, Task* task, Message& msg);
+    static Object* execute(STATE, CallFrame* call_frame, Message& msg);
 
     // Ruby.primitive :nativefunction_bind
     static NativeFunction* bind(STATE, Object* library, String* name, Array* args, Object* ret);
 
     void bind(STATE, int arg_count, int *arg_types, int ret_type, void* func);
-    void **marshal_arguments(STATE, Message *msg);
     Object* call(STATE, Message* msg);
 
     struct ffi_stub {

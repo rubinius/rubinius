@@ -15,7 +15,7 @@ namespace rubinius {
     auto_init(om);
 
     // Give Object a TypeInfo entry
-    TypeInfo* object_type_info = new TypeInfo(ObjectType);
+    TypeInfo* object_type_info = new Object::Info(ObjectType);
     object_type_info->type_name = std::string("Object");
     om->type_info[ObjectType] = object_type_info;
   }
@@ -28,8 +28,7 @@ namespace rubinius {
     , slots()
     , type(type)
     , type_name()
-  {
-  }
+  {}
 
   TypeInfo::~TypeInfo() { }
 
@@ -65,29 +64,19 @@ namespace rubinius {
     auto_mark(obj, mark);
   }
 
-  /* For each type, there is an automatically generated version
-   * of this function (called via virtual dispatch) that marks
-   * all slots. */
-  void TypeInfo::auto_mark(Object* obj, ObjectMark& mark) {
-    // HACK: should not inspect an object that stores bytes
-    // for references. Evan said auto_mark is slated for
-    // destruction also.
-    if(obj->stores_bytes_p()) return;
+  /* By default, just call auto_mark(). This exists so that
+   * other types can overload this to perform work before or
+   * after auto_marking is done. */
+  void TypeInfo::visit(Object* obj, ObjectVisitor& visit) {
+    auto_visit(obj, visit);
+  }
 
-    // HACK copied from Tuple;
-    Object* tmp;
-    Tuple* tup = static_cast<Tuple*>(obj);
+  void TypeInfo::auto_visit(Object* obj, ObjectVisitor& visit) {
+    // Must be implemented in subclasses!
+  }
 
-    for(size_t i = 0; i < tup->num_fields(); i++) {
-      tmp = tup->field[i];
-      if(tmp->reference_p()) {
-        tmp = mark.call(tmp);
-        if(tmp) {
-          tup->field[i] = tmp;
-          mark.just_set(obj, tmp);
-        }
-      }
-    }
+  size_t TypeInfo::object_size(const ObjectHeader* obj) {
+    return instance_size; // obj->bytes_;
   }
 
   void TypeInfo::class_info(STATE, const Object* self, bool newline) {

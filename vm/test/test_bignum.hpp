@@ -1,26 +1,20 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/bignum.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
-#include "vm.hpp"
-#include "vm/object_utils.hpp"
-#include "objectmemory.hpp"
 
-#include <cxxtest/TestSuite.h>
-
-using namespace rubinius;
-
-class TestBignum : public CxxTest::TestSuite {
+class TestBignum : public CxxTest::TestSuite, public VMTest {
   public:
 
-  VM* state;
   Bignum* b1;
   Bignum* b2;
   Fixnum* two;
   double TOLERANCE;
 
   void setUp() {
-    state = new VM(1024);
+    create();
     b1 = Bignum::from(state, (native_int)2147483647);
     b2 = Bignum::from(state, (native_int)2147483646);
     two = Fixnum::from(2);
@@ -28,7 +22,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void test_from_int() {
@@ -77,6 +71,24 @@ class TestBignum : public CxxTest::TestSuite {
   void test_from_unsigned_long_long() {
     Bignum* obj = Bignum::from(state, 18446744073709551615LLU);
     TS_ASSERT_EQUALS(18446744073709551615LLU, obj->to_ulong_long());
+  }
+
+  void test_from_mp_int() {
+    Bignum* max = Bignum::from(state, FIXNUM_MAX);
+    Integer* num = Bignum::from(state, max->mp_val());
+    TS_ASSERT(kind_of<Fixnum>(num));
+
+    Bignum* min = Bignum::from(state, FIXNUM_MIN);
+    num = Bignum::from(state, min->mp_val());
+    TS_ASSERT(kind_of<Fixnum>(num));
+
+    Bignum* max_plus_one = Bignum::from(state, FIXNUM_MAX + 1);
+    num = Bignum::from(state, max_plus_one->mp_val());
+    TS_ASSERT(kind_of<Bignum>(num));
+
+    Bignum* min_minus_one = Bignum::from(state, FIXNUM_MIN - 1);
+    num = Bignum::from(state, min_minus_one->mp_val());
+    TS_ASSERT(kind_of<Bignum>(num));
   }
 
   void test_create() {

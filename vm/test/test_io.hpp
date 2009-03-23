@@ -1,28 +1,26 @@
+#include "vm/test/test.hpp"
+
 #include "builtin/io.hpp"
 #include "builtin/string.hpp"
 
 #include <cstdio>
 #include <sys/stat.h>
-#include <cxxtest/TestSuite.h>
 
-using namespace rubinius;
+class TestIO : public CxxTest::TestSuite, public VMTest {
+public:
 
-class TestIO : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
   IO* io;
   int fd;
 
   void setUp() {
-    state = new VM();
+    create();
     fd = make_io();
     io = IO::create(state, fd);
   }
 
   void tearDown() {
     remove_io(fd);
-    delete state;
+    destroy();
   }
 
   int make_io() {

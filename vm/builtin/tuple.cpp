@@ -35,7 +35,10 @@ namespace rubinius {
   }
 
   Tuple* Tuple::create(STATE, size_t fields) {
-    return state->om->new_object_variable<Tuple>(G(tuple), fields);
+    size_t bytes;
+    Tuple* tup = state->om->new_object_variable<Tuple>(G(tuple), fields, bytes);
+    tup->full_size_ = bytes;
+    return tup;
   }
 
   Tuple* Tuple::allocate(STATE, Fixnum* fields) {
@@ -164,9 +167,17 @@ namespace rubinius {
 
   Tuple* Tuple::create_weakref(STATE, Object* obj) {
     Tuple* tup = Tuple::from(state, 1, obj);
-    tup->RefsAreWeak = 1;
+    tup->set_refs_are_weak();
     return tup;
   }
+
+  size_t Tuple::Info::object_size(const ObjectHeader* obj) {
+    const Tuple *tup = reinterpret_cast<const Tuple*>(obj);
+    assert(tup);
+
+    return tup->full_size_;
+  }
+
 
   void Tuple::Info::mark(Object* obj, ObjectMark& mark) {
     Object* tmp;
@@ -175,6 +186,14 @@ namespace rubinius {
     for(size_t i = 0; i < tup->num_fields(); i++) {
       tmp = mark.call(tup->field[i]);
       if(tmp) mark.set(obj, &tup->field[i], tmp);
+    }
+  }
+
+  void Tuple::Info::visit(Object* obj, ObjectVisitor& visit) {
+    Tuple* tup = as<Tuple>(obj);
+
+    for(size_t i = 0; i < tup->num_fields(); i++) {
+      visit.call(tup->field[i]);
     }
   }
 

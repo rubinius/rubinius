@@ -3,7 +3,7 @@
 
 #include "prelude.hpp"
 #include "builtin/array.hpp"
-#include "builtin/contexts.hpp"
+#include "call_frame.hpp"
 #include "builtin/tuple.hpp"
 
 namespace rubinius {
@@ -24,18 +24,31 @@ namespace rubinius {
    *  Message includes the SendSite, the receiver, the arguments as well
    *  as the Task. In the method lookup process, the located Executable
    *  object and the Module in which it was found are added. Eventually,
-   *  a MethodContext object is constructed using the information in the
+   *  a CallFrame object is constructed using the information in the
    *  Message. See instance variable documentation for all of the info
    *  gathered in a Message.
    *
    *  @see  SendSite
-   *  @see  MethodContext
+   *  @see  CallFrame
    */
   class Message {
   public:
+    Message()
+      : arguments_array(0)
+      , method_missing(false)
+    {}
+
+    /* Constructer used by all send_* instructions */
+    Message(STATE, SendSite* ss, Symbol* name, Object* recv, CallFrame* call_frame,
+            size_t arg_count, Object* block, bool priv, Module* lookup_from);
+
+    /* Constructor used by e.g. Helper::const_missing */
+    Message(STATE, Symbol* name, Object* recv, size_t arg_count,
+            Object* block, Module* lookup_from);
 
     Message(STATE);
     Message(STATE, Array* ary);
+    Message(STATE, CallFrame* call_frame, size_t arg_count);
 
   public:   /* Interface */
 
@@ -65,6 +78,12 @@ namespace rubinius {
     void set_arguments(STATE, Array* args);
 
     /**
+     *  Set the Message's argument to come from the first +count+ Objects
+     *  in +args+
+     */
+    void set_stack_args(int count, Object** args);
+
+    /**
      *  Remove and return the currently first remaining argument.
      */
     Object* shift_argument(STATE);
@@ -92,28 +111,12 @@ namespace rubinius {
     /*
      * Sets the caller context
      */
-    void set_caller(MethodContext* ctx) {
-      caller_ = ctx;
+    void set_caller(CallFrame* call_frame) {
+      caller_ = call_frame;
     }
 
-    MethodContext* caller() {
+    CallFrame* caller() {
       return caller_;
-    }
-
-    /*
-     * Setup the Message with the basic information
-     */
-    void setup(SendSite* ss, Object* obj, MethodContext* ctx, size_t arg_count,
-        size_t stack_size) {
-      method_missing = false;
-      arguments_array = NULL;
-      send_site = ss;
-      recv   = obj;
-      caller_ = ctx;
-      total_args   = arg_count;
-      stack  = stack_size;
-      stack_args_ = ctx->stack_back_position(arg_count - 1);
-      arguments_ = stack_args_;
     }
 
     /*
@@ -148,17 +151,19 @@ namespace rubinius {
       return arguments_[index];
     }
 
-    /*
-     * Clear the caller's stack
+    /**
+     *  Send this message directly.
+     *
+     *  This is separate from the SendSite performers, because
+     *  there is no send site to use.
+     *
+     *  @todo See whether there is any point to having "virtual"
+     *        send sites (which also addresses this.) --rue
+     *
+     *  @see  SendSite
      */
-    void clear_caller() {
-      caller_->clear_stack(stack);
-    }
+    Object* send(STATE, CallFrame* call_frame);
 
-    /*
-     * Deprecated: Use the details to setup the Message
-     */
-    void use_from_task(Task* task, size_t args);
 
   private:
     STATE       /* state */;       /**< Access to the VM state. */
@@ -173,8 +178,6 @@ namespace rubinius {
     Symbol*     name;           /**< Name of the method being called (comes from SendSite) */
     Object*     recv;           /**< Receiver in the call, i.e. obj in `obj.foo()` */
     Object*     block;          /**< Block object or nil if no block. */
-    Object*     splat;          /**< NOT USED. The splat argument to the call. */
-    size_t      stack;          /**< Number of arguments on the stack when call occurs + 1 for return value. */
     bool        priv;           /**< Indicates that this call can access private methods. */
 
     Module*     lookup_from;    /**< The Module in which is the first method table to look from. Usually MetaClass or Class. */
@@ -188,8 +191,8 @@ namespace rubinius {
     bool        method_missing;
 
   private:
-    /** The caller's MethodContext, where to get arguments from*/
-    MethodContext* caller_;
+    /** The caller's CallFrame, where to get arguments from*/
+    CallFrame* caller_;
 
   };
 }

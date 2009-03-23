@@ -480,8 +480,6 @@ class Time
     return year, mon, day, hour, min, sec
   end
 
-  public
-
   class << self
     alias_method :now,    :new
     alias_method :mktime, :local

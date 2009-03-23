@@ -2,3 +2,10 @@ fails:Literal (A::X) constant resolution with statically assigned constants sear
 fails:Literal (A::X) constant resolution with statically assigned constants searches Object if a toplevel qualifier (::X) is given
 fails:Literal (A::X) constant resolution with dynamically assigned constants searches the superclass chain
 fails:Constant resolution within methods with dynamically assigned constants searches Object as a lexical scope only if Object is explicitly opened
+critical:Literal (A::X) constant resolution raises a TypeError if a non-class or non-module qualifier is given
+critical:Constant resolution within methods raises a NameError if no constant is defined in the search path
+critical:Constant resolution within methods sends #const_missing to the original class or module scope
+critical:Constant resolution within methods with statically assigned constants does not search the lexical scope of the caller
+critical:Constant resolution within methods with statically assigned constants does not search the lexical scope of qualifying modules
+critical:Constant resolution within methods with dynamically assigned constants does not search the lexical scope of the caller
+critical:Constant resolution within methods with dynamically assigned constants does not search the lexical scope of qualifying modules

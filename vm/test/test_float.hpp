@@ -1,23 +1,19 @@
-#include "vm.hpp"
-#include "vm/object_utils.hpp"
-#include "objectmemory.hpp"
+#include "vm/test/test.hpp"
 
-#include <cxxtest/TestSuite.h>
+#include "builtin/float.hpp"
 
-using namespace rubinius;
+class TestFloat : public CxxTest::TestSuite, public VMTest {
+public:
 
-class TestFloat : public CxxTest::TestSuite {
-  public:
-
-  VM *state;
   double TOLERANCE;
+
   void setUp() {
-    state = new VM(1024);
+    create();
     TOLERANCE = 0.00003;
   }
 
   void tearDown() {
-    delete state;
+    destroy();
   }
 
   void check_float(Float* f, Float* g) {

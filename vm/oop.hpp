@@ -68,7 +68,7 @@ namespace rubinius {
  * to be a simple test for that bit pattern.
  */
 
-/* NOTE if these change, be sure to update subtend/ruby.h, it contains
+/* NOTE if these change, be sure to update vm/capi/ruby.h, it contains
  * a private copy of these constants */
 
 /* NOTE ALSO! the special clases array uses this bit pattern, so
@@ -92,10 +92,6 @@ const int cUndef = 0x22L;
 #define UNDEF_P(v) ((Object*)(v) == Qundef)
 #define RTEST(v)   (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)Qfalse)
 
-
-#define INDEXED(obj) (REFERENCE_P(obj) && !obj->StoresBytes)
-#define STORE_BYTES(obj) (REFERENCE_P(obj) && obj->StoresBytes)
-
 #define SIZE_OF_OBJECT ((size_t)(sizeof(ObjectHeader*)))
 
 #define NUM_FIELDS(obj)                 ((obj)->num_fields())
@@ -110,12 +106,12 @@ const int cUndef = 0x22L;
   typedef enum
   {
     UnspecifiedZone  = 0,
-    MatureObjectZone = 1,
-    YoungObjectZone  = 2,
-    LargeObjectZone  = 3,
+    LargeObjectZone  = 1,
+    MatureObjectZone = 2,
+    YoungObjectZone  = 3,
   } gc_zone;
 
-  /* the sizeof(class ObjectHeader) must an increment of the platform 
+  /* the sizeof(class ObjectHeader) must an increment of the platform
      pointer size, so that the bytes located directly after a
      struct rubinius_object can hold a pointer which can be
      dereferenced. (an 32 bit platforms, pointers must be aligned
@@ -130,87 +126,85 @@ const int cUndef = 0x22L;
 
   class Class;
   class Object;
+  class VM;
 
   class ObjectHeader {
-  public:
     union {
       struct {
-        object_type     obj_type    : 8;
+        object_type     obj_type_   : 8;
         gc_zone         zone        : 2;
-        unsigned int    age         : 3;
+        unsigned int    age         : 4;
 
         unsigned int Forwarded              : 1;
         unsigned int Remember               : 1;
         unsigned int Marked                 : 1;
-        unsigned int ForeverYoung           : 1;
-        unsigned int StoresBytes            : 1;
         unsigned int RequiresCleanup        : 1;
-        unsigned int IsBlockContext         : 1;
-        unsigned int IsMeta                 : 1;
 
-        unsigned int IsTainted              : 1;
-        unsigned int IsFrozen               : 1;
         unsigned int RefsAreWeak            : 1;
+
+        unsigned int InImmix                : 1;
+        unsigned int Pinned                 : 1;
       };
       uint32_t all_flags;
     };
+
+#ifdef RBX_TEST
+  public:
+#else
+  protected:
+#endif
+
     Class* klass_;
     Object* ivars_;
 
   private:
-    // The number of bytes this object uses.
-    uint32_t bytes_;
-
     // Defined so ObjectHeader can easily access the data just beyond
     // it.
     void* __body__[];
 
   public:
+
+    static size_t align(size_t bytes) {
+      return (bytes + (sizeof(Object*) - 1)) & ~(sizeof(Object*) - 1);
+    }
+
+    static size_t bytes_to_fields(size_t bytes) {
+      return (bytes - sizeof(ObjectHeader)) / sizeof(Object*);
+    }
+
     void initialize_copy(Object* other, unsigned int age);
 
     /* Copies the body of +other+ into +this+ */
-    void copy_body(Object* other);
+    void copy_body(VM* state, Object* other);
+
+    /* Copies the flags of +this+ into +other+ */
+    void copy_flags(Object* other);
 
     /* Clear the body of the object, by setting each field to Qnil */
-    void clear_fields();
+    void clear_fields(size_t bytes);
 
     /* Clear the body of the object, setting it to all 0s */
-    void clear_body_to_null();
+    void clear_body_to_null(size_t bytes);
 
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
     void init_header(gc_zone loc, size_t bytes) {
       all_flags = 0;
       zone = loc;
-      bytes_ = bytes;
     }
 
-    uint32_t num_fields() const {
-      return (bytes_ - sizeof(ObjectHeader)) / sizeof(Object*);
+    size_t size_in_bytes(VM*) const;
+
+    size_t body_in_bytes(VM* state) {
+      return size_in_bytes(state) - sizeof(ObjectHeader);
     }
 
-    size_t size_in_bytes() const {
-      return bytes_;
-    }
-
-    size_t body_in_bytes() {
-      return bytes_ - sizeof(ObjectHeader); // HUH => num_fields() * sizeof(ObjectHeader);
-    }
-
-    size_t total_size() const {
-      return bytes_;
+    size_t total_size(VM* state) const {
+      return size_in_bytes(state);
     }
 
     bool reference_p() const {
       return REFERENCE_P(this);
-    }
-
-    bool stores_bytes_p() const {
-      return StoresBytes;
-    }
-
-    bool stores_references_p() const {
-      return !StoresBytes;
     }
 
     bool young_object_p() const {
@@ -225,8 +219,31 @@ const int cUndef = 0x22L;
       return Forwarded == 1;
     }
 
+    void clear_forwarded() {
+      Forwarded = 0;
+    }
+
     Object* forward() {
-      return (Object*)klass_;
+      return ivars_;
+    }
+
+    /**
+     *  Mark this Object forwarded by the GC.
+     *
+     *  Sets the forwarded flag and stores the given Object* in
+     *  the klass_ field where it can be reached. This object is
+     *  no longer valid and should be accessed through the new
+     *  Object* (but code outside of the GC framework should not
+     *  really run into this much if at all.)
+     *
+     *  A forwarded object should never exist while the GC is running.
+     */
+
+    void set_forward(Object* fwd) {
+      Forwarded = 1;
+      // DO NOT USE klass() because we need to get around the
+      // write barrier!
+      ivars_ = fwd;
     }
 
     bool marked_p() const {
@@ -239,6 +256,58 @@ const int cUndef = 0x22L;
 
     void clear_mark() {
       Marked = 0;
+    }
+
+    bool pinned_p() {
+      return Pinned == 1;
+    }
+
+    bool pin() {
+      // Can't pin young objects!
+      if(young_object_p()) return false;
+
+      Pinned = 1;
+      return true;
+    }
+
+    void unpin() {
+      Pinned = 0;
+    }
+
+    bool in_immix_p() {
+      return InImmix == 1;
+    }
+
+    void set_in_immix() {
+      InImmix = 1;
+    }
+
+    bool remembered_p() {
+      return Remember == 1;
+    }
+
+    void set_remember() {
+      Remember = 1;
+    }
+
+    void clear_remember() {
+      Remember = 0;
+    }
+
+    void set_requires_cleanup(int val) {
+      RequiresCleanup = val;
+    }
+
+    bool requires_cleanup_p() {
+      return RequiresCleanup == 1;
+    }
+
+    void set_refs_are_weak() {
+      RefsAreWeak = 1;
+    }
+
+    bool refs_are_weak_p() {
+      return RefsAreWeak == 1;
     }
 
     bool nil_p() const {
@@ -257,24 +326,16 @@ const int cUndef = 0x22L;
       return this == reinterpret_cast<ObjectHeader*>(Qfalse);
     }
 
-    bool check_type(object_type type) const {
-      return reference_p() && obj_type == type;
+    object_type type_id() const {
+      return obj_type_;
     }
 
+    bool check_type(object_type type) const {
+      return reference_p() && obj_type_ == type;
+    }
+
+    friend class TypeInfo;
   };
-
-  /* Object access, lowest level. These read and set fields of an Object*
-   * directly. They're built on to integrate with the GC properly. */
-
-#define CLEAR_FLAGS(obj)     (obj)->all_flags = 0
-#define stack_context_p(obj) ((obj)->gc_zone == UnspecifiedZone)
-#define SET_FORWARDED(obj)   (obj)->Forwarded = TRUE
-#define FORWARDED_P(obj)     ((obj)->Forwarded)
-
-#define AGE(obj)           (obj->copy_count)
-#define CLEAR_AGE(obj)     (obj->copy_count = 0)
-#define INCREMENT_AGE(obj) (obj->copy_count++)
-
 }
 
 

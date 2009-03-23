@@ -1,11 +1,13 @@
 #ifndef RBX_BUILTIN_MACHINE_METHOD
 #define RBX_BUILTIN_MACHINE_METHOD
 
-#include "assembler/jit.hpp"
 #include "assembler/code_map.hpp"
 #include "assembler/relocation.hpp"
 
 namespace rubinius {
+  class JITCompiler;
+  class VMMethod;
+
   class MachineMethod : public Object {
   public:
     const static object_type type = MachineMethodType;
@@ -32,7 +34,7 @@ namespace rubinius {
     }
 
     // Used for debugging. Gives us a place to break on before entering jit'd code
-    static void run_code(VMMethod* const vmm, Task* const task, MethodContext* const ctx);
+    static void run_code(STATE, VMMethod* const vmm, CallFrame* const call_frame);
 
     // Ruby.primitive :machine_method_show
     Object* show();
@@ -40,7 +42,7 @@ namespace rubinius {
     // Ruby.primitive :machine_method_activate
     Object* activate();
 
-    void* resolve_virtual_ip(opcode ip);
+    void* resolve_virtual_ip(int ip);
   };
 }
 

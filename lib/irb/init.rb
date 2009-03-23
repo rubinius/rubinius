@@ -206,12 +206,9 @@ module IRB
       begin
 	load rc_file
       rescue LoadError, Errno::ENOENT
-      rescue
+      rescue => e
 	print "load error: #{rc_file}\n"
-	print $!.class, ": ", $!, "\n"
-	for err in $@[0, $@.size - 2]
-	  print "\t", err, "\n"
-	end
+        raise e
       end
     end
   end

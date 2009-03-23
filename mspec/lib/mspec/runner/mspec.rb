@@ -20,6 +20,7 @@ module MSpec
   @current = nil
   @modes   = []
   @shared  = {}
+  @guarded = []
   @exception    = nil
   @randomize    = nil
   @expectation  = nil
@@ -72,6 +73,20 @@ module MSpec
       actions :exception, ExceptionState.new(current && current.state, location, exc)
       return false
     end
+  end
+
+  # Guards can be nested, so a stack is necessary to know when we have
+  # exited the toplevel guard.
+  def self.guard
+    @guarded << true
+  end
+
+  def self.unguard
+    @guarded.pop
+  end
+
+  def self.guarded?
+    not @guarded.empty?
   end
 
   # Sets the toplevel ContextState to +state+.
@@ -161,6 +176,7 @@ module MSpec
   #   :load         before a spec file is loaded
   #   :enter        before a describe block is run
   #   :before       before a single spec is run
+  #   :add          while a describe block is adding examples to run later
   #   :expectation  before a 'should', 'should_receive', etc.
   #   :example      after an example block is run, passed the block
   #   :exception    after an exception is rescued

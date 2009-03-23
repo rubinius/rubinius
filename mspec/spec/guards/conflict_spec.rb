@@ -18,3 +18,22 @@ describe Object, "#conflicts_with" do
     ScratchPad.recorded.should == :yield
   end
 end
+
+describe Object, "#conflicts_with" do
+  before :each do
+    @guard = ConflictsGuard.new
+    ConflictsGuard.stub!(:new).and_return(@guard)
+  end
+
+  it "sets the name of the guard to :conflicts_with" do
+    conflicts_with(:AClass, :BClass) { }
+    @guard.name.should == :conflicts_with
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:unregister)
+    lambda do
+      conflicts_with(:AClass, :BClass) { raise Exception }
+    end.should raise_error(Exception)
+  end
+end

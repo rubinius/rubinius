@@ -7,7 +7,6 @@
 #include "vm/object_utils.hpp"
 
 #include "builtin/class.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/list.hpp"
 #include "builtin/symbol.hpp"
@@ -18,7 +17,9 @@
 
 #include "config_parser.hpp"
 #include "config.h"
-#include "timing.hpp"
+#include "vm_manager.hpp"
+
+#include "native_thread.hpp"
 
 #include <iostream>
 #include <signal.h>
@@ -30,10 +31,65 @@
 #define GO(whatever) globals.whatever
 
 namespace rubinius {
-  VM::VM(size_t bytes, bool boot)
-    : current_mark(NULL)
+
+  int VM::cStackDepthMax = 655300;
+
+  SharedState::~SharedState() {
+    if(!initialized_) return;
+
+    delete om;
+    delete global_cache;
+    delete user_config;
+
+#ifdef ENABLE_LLVM
+    if(!reuse_llvm) llvm_cleanup();
+#endif
+  }
+
+  /** @see VMManager::create_vm */
+  VM* SharedState::new_vm() {
+    VM* vm = manager_.create_vm(this);
+    vms_[vm->id()] = vm;
+    cf_locations_.push_back(vm->call_frame_location());
+    return vm;
+  }
+
+  /** @see VMManager::destroy_vm. */
+  void SharedState::remove_vm(VM* vm) {
+    VMMap::iterator i = vms_.find(vm->id());
+    assert(i != vms_.end());
+    vms_.erase(i);
+
+    cf_locations_.remove(vm->call_frame_location());
+  }
+
+  VM::VM(SharedState& shared, int id)
+    : id_(id)
+    , saved_call_frame_(0)
+    , alive_(true)
+    , shared(shared)
+    , waiter_(NULL)
+    , user_config(shared.user_config)
+    , globals(shared.globals)
+    , om(shared.om)
+    , global_cache(shared.global_cache)
+    , config(shared.config)
+    , interrupts(shared.interrupts)
+    , symbols(shared.symbols)
+    , check_local_interrupts(false)
+    , thread_state_(this)
+    , thread(this, (Thread*)Qnil)
+    , current_mark(NULL)
     , reuse_llvm(true)
     , use_safe_position(false)
+  {}
+
+  void VM::discard() {
+    alive_ = false;
+    saved_call_frame_ = 0;
+  }
+
+  void VM::initialize(size_t bytes)
   {
     config.compile_up_front = false;
     config.jit_enabled = false;
@@ -41,22 +97,25 @@ namespace rubinius {
 
     VM::register_state(this);
 
-    user_config = new ConfigParser();
+    if(user_config) {
+      if(ConfigParser::Entry* entry = user_config->find("rbx.gc.young_space")) {
+        bytes = entry->to_i();
+      }
+    }
 
     om = new ObjectMemory(this, bytes);
+    shared.om = om;
+
     probe.set(Qnil, &globals.roots);
 
-    if(boot) this->boot();
-  }
+    global_cache = new GlobalCache;
+    shared.global_cache = global_cache;
 
-  VM::~VM() {
-    delete user_config;
-    delete om;
-    delete signal_events;
-    delete global_cache;
-#ifdef ENABLE_LLVM
-    if(!reuse_llvm) llvm_cleanup();
-#endif
+    /** @todo Done by Environment::boot_vm(), and Thread::s_new()
+     *        does not boot at all. Should this be removed? --rue */
+//    this->boot();
+
+    shared.set_initialized();
   }
 
   void VM::boot() {
@@ -72,7 +131,7 @@ namespace rubinius {
     }
 #endif
 
-    MethodContext::initialize_cache(this);
+//    MethodContext::initialize_cache(this);
     TypeInfo::auto_learn_fields(this);
 
     bootstrap_ontology();
@@ -81,18 +140,21 @@ namespace rubinius {
      * @todo This needs to be handled through the environment.
      * (disabled epoll backend as it frequently caused hangs on epoll_wait)
      */
-    signal_events = new event::Loop(EVFLAG_FORKCHECK | EVBACKEND_SELECT | EVBACKEND_POLL);
-    events = signal_events;
+    // signal_events = new event::Loop(EVFLAG_FORKCHECK | EVBACKEND_SELECT | EVBACKEND_POLL);
+    // events = signal_events;
 
-    signal_events->start(new event::Child::Event(this));
+    // signal_events->start(new event::Child::Event(this));
 
-    global_cache = new GlobalCache;
+    events = 0;
+    signal_events = 0;
 
     VMMethod::init(this);
 
 #ifdef ENABLE_LLVM
     VMLLVMMethod::init("vm/instructions.bc");
 #endif
+
+    /** @todo Should a thread be starting a VM or is it the other way around? */
     boot_threads();
 
     // Force these back to false because creating the default Thread
@@ -113,15 +175,16 @@ namespace rubinius {
   }
 
   void VM::boot_threads() {
-    Thread* thread = Thread::create(this);
-
+    thread.set(Thread::create(this, this), &globals.roots);
     thread->sleep(this, Qfalse);
-    globals.current_thread.set(thread);
-    globals.current_task.set(thread->task());
   }
 
   Object* VM::new_object_typed(Class* cls, size_t bytes, object_type type) {
     return om->new_object_typed(cls, bytes, type);
+  }
+
+  Object* VM::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
+    return om->new_object_typed_mature(cls, bytes, type);
   }
 
   Object* VM::new_object_from_type(Class* cls, TypeInfo* ti) {
@@ -132,8 +195,10 @@ namespace rubinius {
     Class *cls = new_object<Class>(G(klass));
     if(sup->nil_p()) {
       cls->instance_type(this, Fixnum::from(ObjectType));
+      cls->set_type_info(find_type(ObjectType));
     } else {
       cls->instance_type(this, sup->instance_type()); // HACK test that this is always true
+      cls->set_type_info(sup->type_info());
     }
     cls->superclass(this, sup);
 
@@ -181,9 +246,23 @@ namespace rubinius {
   }
 
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
-    if((obj->reference_p() && obj->obj_type != type)
+    if((obj->reference_p() && obj->type_id() != type)
         || (type == FixnumType && !obj->fixnum_p())) {
       Exception::type_error(state, type, obj, reason);
+    }
+  }
+
+  void VM::raise_stack_error() {
+    thread_state()->raise_exception(G(stack_error));
+  }
+
+  void VM::init_stack_size() {
+    struct rlimit rlim;
+    if (getrlimit(RLIMIT_STACK, &rlim) == 0) {
+      unsigned int space = rlim.rlim_cur/5;
+
+      if (space > 1024*1024) space = 1024*1024;
+      cStackDepthMax = (rlim.rlim_cur - space);
     }
   }
 
@@ -201,22 +280,24 @@ namespace rubinius {
     interrupts.check = true;
   }
 
-  void VM::collect() {
-    uint64_t start = get_current_time();
+  void VM::collect(CallFrame* call_frame) {
+    this->set_call_frame(call_frame);
 
-    om->collect_young(globals.roots);
-    om->collect_mature(globals.roots);
+    GCData gc_data(this);
 
-    stats.time_in_gc += (get_current_time() - start);
+    om->collect_young(gc_data);
+    om->collect_mature(gc_data);
+    global_cache->clear();
   }
 
-  void VM::collect_maybe() {
+  void VM::collect_maybe(CallFrame* call_frame) {
+    this->set_call_frame(call_frame);
+    GCData gc_data(this);
+
     if(om->collect_young_now) {
       om->collect_young_now = false;
 
-      uint64_t start = get_current_time();
-      om->collect_young(globals.roots);
-      stats.time_in_gc += (get_current_time() - start);
+      om->collect_young(gc_data);
 
       global_cache->clear();
     }
@@ -224,140 +305,12 @@ namespace rubinius {
     if(om->collect_mature_now) {
       om->collect_mature_now = false;
 
-      uint64_t start = get_current_time();
-      om->collect_mature(globals.roots);
-      stats.time_in_gc += (get_current_time() - start);
+      om->collect_mature(gc_data);
 
       global_cache->clear();
+
+      shared.manager().prune();
     }
-
-    /* Stack Management procedures. Make sure that we don't
-     * miss object stored into the stack of a context */
-    if(G(current_task)->active()->zone == MatureObjectZone) {
-      om->remember_object(G(current_task)->active());
-    }
-
-    if(G(current_task)->home()->zone == MatureObjectZone &&
-        !G(current_task)->home()->Remember) {
-      om->remember_object(G(current_task)->home());
-    }
-  }
-
-  bool VM::find_and_activate_thread() {
-    Tuple* scheduled = globals.scheduled_threads.get();
-
-    for(std::size_t i = scheduled->num_fields() - 1; i > 0; i--) {
-      List* list = as<List>(scheduled->at(this, i));
-
-      Thread* thread = try_as<Thread>(list->shift(this));
-
-      while(thread) {
-        thread->queued(this, Qfalse);
-
-        /** @todo   Should probably try to prevent dead threads here.. */
-        if(thread->alive() == Qfalse) {
-          thread = try_as<Thread>(list->shift(this));
-          continue;
-        }
-
-        if(thread->sleep() == Qtrue) {
-          thread = try_as<Thread>(list->shift(this));
-          continue;
-        }
-
-        activate_thread(thread);
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  void VM::check_events() {
-    interrupts.check = true;
-    interrupts.check_events = true;
-  }
-
-  bool VM::run_best_thread() {
-    events->poll();
-
-    if(!find_and_activate_thread()) {
-      // It's 1 because the event that looks for SIGCHLD is
-      // always registered.
-      if(events->num_of_events() == 1) {
-        throw DeadLock("no runnable threads, present or future.");
-      }
-
-      interrupts.check_events = true;
-      return false;
-    }
-    return true;
-  }
-
-  void VM::return_value(Object* val) {
-    globals.current_task->push(val);
-  }
-
-  void VM::queue_thread(Thread* thread) {
-    if(thread->queued() == Qtrue) {
-      return;
-    }
-
-    List* lst = as<List>(globals.scheduled_threads->at(this,
-                         thread->priority()->to_native()));
-    lst->append(this, thread);
-
-    thread->queued(this, Qtrue);
-  }
-
-  void VM::dequeue_thread(Thread* thread) {
-    thread->queued(this, Qfalse);
-
-    Tuple* scheduled = globals.scheduled_threads.get();
-
-    /** @todo  Could it be in more than one somehow? --rue */
-    List* list = try_as<List>(scheduled->at(this, thread->priority()->to_native()));
-    (void) list->remove(this, thread);
-
-    check_events();
-  }
-
-  void VM::activate_thread(Thread* thread) {
-    if(thread == globals.current_thread.get()) {
-      thread->task(this, globals.current_task.get());
-      return;
-    }
-
-    /* May have been using Tasks directly. */
-    globals.current_thread->task(this, globals.current_task.get());
-    queue_thread(globals.current_thread.get());
-
-    thread->sleep(this, Qfalse);
-    globals.current_thread.set(thread);
-
-    if(globals.current_task.get() != thread->task()) {
-      activate_task(thread->task());
-    }
-  }
-
-  void VM::activate_task(Task* task) {
-    // Don't try and reclaim any contexts, they belong to someone else.
-    om->clamp_contexts();
-
-    globals.current_task.set(task);
-    interrupts.check = true;
-  }
-
-  Object* VM::current_block() {
-    return globals.current_task->active()->block();
-  }
-
-  void VM::raise_from_errno(const char* msg) {
-    // @todo implement me
-  }
-
-  void VM::raise_exception(Exception* exc) {
-    // @todo implement me
   }
 
   void VM::set_const(const char* name, Object* val) {
@@ -369,91 +322,28 @@ namespace rubinius {
   }
 
   void VM::print_backtrace() {
-    globals.current_task.get()->print_backtrace();
-  }
-
-  Task* VM::new_task() {
-    Task* task = Task::create(this);
-    activate_task(task);
-    return task;
+    abort();
   }
 
   void VM::raise_exception_safely(Exception* exc) {
+    abort();
     safe_position_data.exc = exc;
     siglongjmp(safe_position, cReasonException);
     // Never reached.
   }
 
   void VM::raise_typeerror_safely(TypeError* err) {
+    abort();
     safe_position_data.type_error = err;
     siglongjmp(safe_position, cReasonTypeError);
     // Never reached.
   }
 
   void VM::raise_assertion_safely(Assertion* err) {
+    abort();
     safe_position_data.assertion = err;
     siglongjmp(safe_position, cReasonAssertion);
     // Never reached.
-  }
-
-  void VM::run_and_monitor() {
-    int reason;
-
-    use_safe_position = true;
-    reason = sigsetjmp(safe_position, 0);
-    // If reason is not 0, then we're here because of a longjmp.
-    if(reason) {
-      switch(reason) {
-      case cReasonException:
-        G(current_task)->raise_exception(safe_position_data.exc);
-        break;
-      case cReasonTypeError: {
-        TypeError* exc = safe_position_data.type_error;
-        Exception* e = Exception::make_type_error(this, exc->type, exc->object, exc->reason);
-        G(current_task)->raise_exception(e);
-        delete exc;
-        safe_position_data.type_error = NULL;
-        break;
-      }
-      case cReasonAssertion:
-        throw safe_position_data.assertion;
-
-      default:
-        break;
-        // We're not sure what this is. Oh well, hopefully the longjmp
-        // user knew what they were doing.
-      }
-    }
-
-    for(;;) {
-      if(interrupts.check_events) {
-        interrupts.check_events = false;
-        interrupts.enable_preempt = false;
-
-        Thread* current = G(current_thread);
-        // The current thread isn't asleep, so we're being preemptive
-        if(current->alive() == Qtrue && current->sleep() != Qtrue) {
-          // Order is important here. We poll so any threads
-          // might get woken up if they need to be.
-          events->poll();
-
-          // Only then do we reschedule the current thread if
-          // we need to. queue_thread() puts the thread at the end
-          // of the list for it's priority, so we shouldn't starve
-          // anything this way.
-          queue_thread(G(current_thread));
-        }
-
-        while(!find_and_activate_thread()) {
-          events->run_and_wait();
-        }
-
-        interrupts.enable_preempt = interrupts.use_preempt;
-      }
-
-      collect_maybe();
-      G(current_task)->execute();
-    }
   }
 
   // Trampoline to call scheduler_loop()
@@ -475,7 +365,7 @@ namespace rubinius {
     // First off, we don't want this thread ever receiving a signal.
     sigset_t mask;
     sigfillset(&mask);
-    if(pthread_sigmask(SIG_BLOCK, &mask, NULL) != 0) {
+    if(pthread_sigmask(SIG_SETMASK, &mask, NULL) != 0) {
       abort();
     }
 
@@ -490,14 +380,66 @@ namespace rubinius {
       if(interrupts.enable_preempt) {
         interrupts.reschedule = true;
         interrupts.check_events = true;
+        interrupts.timer = true;
       }
     }
   }
 
-  /* For debugging. */
-  extern "C" {
-    void __printbt__() {
-      VM::current_state()->print_backtrace();
-    }
+  void VM::install_waiter(Waiter& waiter) {
+    waiter_ = &waiter;
   }
+
+  bool VM::wakeup() {
+    if(waiter_) {
+      waiter_->wakeup();
+      waiter_ = NULL;
+      return true;
+    }
+
+    return false;
+  }
+
+  void VM::clear_waiter() {
+    waiter_ = NULL;
+  }
+
+  void VM::send_async_signal(int sig) {
+    mailbox_.add(ASyncMessage(ASyncMessage::cSignal, sig));
+    check_local_interrupts = true;
+
+    // TODO I'm worried there might be a race calling
+    // wakeup without the lock held...
+    wakeup();
+  }
+
+  bool VM::process_async(CallFrame* call_frame) {
+    while(!mailbox_.empty_p()) {
+      ASyncMessage msg = mailbox_.pop();
+      switch(msg.type()) {
+      case ASyncMessage::cSignal: {
+        Array* args = Array::create(this, 1);
+        args->set(this, 0, Fixnum::from(msg.data()));
+
+        Object* ret = G(rubinius)->send(this, call_frame,
+            symbol("received_signal"), args, Qnil);
+
+        if(!ret) return false;
+      }
+      }
+    }
+
+    check_local_interrupts = false;
+
+    if(thread_state_.raise_reason() != cNone) {
+      return false;
+    }
+
+    return true;
+  }
+
+  void VM::register_raise(Exception* exc) {
+    thread_state_.raise_exception(exc);
+    check_local_interrupts = true;
+  }
+
 };

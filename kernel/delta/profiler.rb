@@ -6,7 +6,6 @@ module Rubinius::Profiler
   KERNEL_CLASSES = Regexp.new %w[
     ^AccessVariable
     ^BlockBreakException
-    ^BlockContext
     ^BlockEnvironment
     ^Buffer
     ^ByteArray
@@ -21,8 +20,6 @@ module Rubinius::Profiler
     ^InstructionSequence
     ^InstructionSet
     ^LookupTable
-    ^LongReturnException
-    ^MethodContext
     ^MethodTable
     ^RecursionGuard
     ^Rubinius
@@ -60,14 +57,18 @@ module Rubinius::Profiler
       @filter = filter
     end
 
+    # @todo Fix, see vm/builtin/system.hpp
     def activate
-      Ruby.primitive :vm_profiler_instrumenter_start
-      raise PrimitiveFailure, "Profiler::Instrumenter#activate failed"
+      raise "Instrumenting profiler is disabled: FIX IT"
+#      Ruby.primitive :vm_profiler_instrumenter_start
+#      raise PrimitiveFailure, "Profiler::Instrumenter#activate failed"
     end
 
+    # @todo Fix, see vm/builtin/system.hpp
     def terminate
-      Ruby.primitive :vm_profiler_instrumenter_stop
-      raise PrimitiveFailure, "Profiler::Instrumenter#terminate failed"
+      raise "Instrumenting profiler is disabled: FIX IT"
+#      Ruby.primitive :vm_profiler_instrumenter_stop
+#      raise PrimitiveFailure, "Profiler::Instrumenter#terminate failed"
     end
 
     def start

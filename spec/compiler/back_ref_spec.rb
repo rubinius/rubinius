@@ -11,19 +11,19 @@ describe "An Back_ref node" do
     end
 
     compile do |g|
-      g.push_context
+      g.push_variables
       g.push_literal :"&"
       g.send :back_ref, 1
 
-      g.push_context
+      g.push_variables
       g.push_literal :"`"
       g.send :back_ref, 1
 
-      g.push_context
+      g.push_variables
       g.push_literal :"'"
       g.send :back_ref, 1
 
-      g.push_context
+      g.push_variables
       g.push_literal :"+"
       g.send :back_ref, 1
 

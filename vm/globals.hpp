@@ -18,17 +18,14 @@
  * class/module. Again, this is typically only because the VM
  * itself needs to create an instance of that class.
  *
- * There are a few non-class roots in here, such as the current
- * thread, current task, and a list of all scheduled threads.
- * These exist so that we walk all the runtime data, such as
- * MethodContexts.
+ * There are a few non-class roots in here for runtime data.
  */
 
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
 
-#include "gc_root.hpp"
+#include "gc/root.hpp"
 
 namespace rubinius {
 
@@ -36,10 +33,9 @@ namespace rubinius {
   class Tuple;
   class Module;
   class Thread;
-  class Task;
   class Class;
   class Symbol;
-
+  class Exception;
 
   struct Globals {
 
@@ -74,7 +70,6 @@ namespace rubinius {
     TypedRoot<Class*> exc_primitive_failure;
 
     TypedRoot<LookupTable*> external_ivars;
-    TypedRoot<Tuple*> scheduled_threads;
     TypedRoot<LookupTable*> errno_mapping;
     TypedRoot<LookupTable*> selectors;
     TypedRoot<Object*> config;
@@ -85,7 +80,6 @@ namespace rubinius {
 
     TypedRoot<Module*> vm;
     TypedRoot<Thread*> current_thread;
-    TypedRoot<Task*> current_task;
     TypedRoot<Object*> main;
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
@@ -100,13 +94,16 @@ namespace rubinius {
     TypedRoot<Class*> taskprobe;
 
     TypedRoot<Class*> nmethod;        /**< NativeMethod */
-    TypedRoot<Class*> nativectx;      /**< NativeMethodContext */
 
     TypedRoot<Class*> data;
 
     TypedRoot<Class*> autoload; /**< Autoload class */
     TypedRoot<Class*> machine_method; /**< MachineMethod class */
     TypedRoot<Class*> block_wrapper; /**< BlockWrapper class */
+    TypedRoot<Class*> variable_scope;
+    TypedRoot<Class*> location;
+    TypedRoot<Exception*> stack_error;
+    TypedRoot<Class*> jump_error;
 
     /* Add new globals above this line. */
 
@@ -141,7 +138,6 @@ namespace rubinius {
       floatpoint(&roots),
       fastctx(&roots),
       nmc(&roots),
-      task(&roots),
       list(&roots),
       list_node(&roots),
       channel(&roots),
@@ -180,7 +176,6 @@ namespace rubinius {
       exc_stack_explosion(&roots),
       exc_primitive_failure(&roots),
       external_ivars(&roots),
-      scheduled_threads(&roots),
       errno_mapping(&roots),
       selectors(&roots),
       config(&roots),
@@ -195,7 +190,6 @@ namespace rubinius {
       on_gc_channel(&roots),
       vm(&roots),
       current_thread(&roots),
-      current_task(&roots),
       main(&roots),
       dir(&roots),
       compactlookuptable(&roots),
@@ -210,11 +204,14 @@ namespace rubinius {
       taskprobe(&roots),
 
       nmethod(&roots),
-      nativectx(&roots),     /**< NativeMethodContext */
       data(&roots),
       autoload(&roots),
       machine_method(&roots),
-      block_wrapper(&roots)
+      block_wrapper(&roots),
+      variable_scope(&roots),
+      location(&roots),
+      stack_error(&roots),
+      jump_error(&roots)
 
       /* Add initialize of globals above this line. */
     { }

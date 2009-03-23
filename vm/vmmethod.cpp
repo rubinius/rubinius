@@ -10,20 +10,23 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/contexts.hpp"
 #include "builtin/class.hpp"
 #include "builtin/sendsite.hpp"
+#include "builtin/system.hpp"
 #include "builtin/machine_method.hpp"
-
+#include "instructions.hpp"
 #include "profiler.hpp"
 
-#include "timing.hpp"
+#include "instruments/timing.hpp"
 #include "config.h"
+
+#include "raise_reason.hpp"
 
 #define CALLS_TIL_JIT 50
 #define JIT_MAX_METHOD_SIZE 2048
+
+#define USE_SPECIALIZED_EXECUTE
 
 /*
  * An internalization of a CompiledMethod which holds the instructions for the
@@ -31,17 +34,22 @@
  */
 namespace rubinius {
 
+  /** @todo Thread-local? --rue */
   static Runner standard_interpreter = 0;
+
+  /** @todo Thread-local? --rue */
   static Runner dynamic_interpreter = 0;
+
 
   void VMMethod::init(STATE) {
 #ifdef USE_DYNAMIC_INTERPRETER
     if(!state->config.dynamic_interpreter_enabled) {
       dynamic_interpreter = NULL;
-      standard_interpreter = interpreter;
+      standard_interpreter = &VMMethod::interpreter;
       return;
     }
 
+    /*
     if(dynamic_interpreter == NULL) {
       uint8_t* buffer = new uint8_t[1024 * 1024 * 1024];
       JITCompiler jit(buffer);
@@ -52,11 +60,12 @@ namespace rubinius {
 
       dynamic_interpreter = reinterpret_cast<Runner>(buffer);
     }
+    */
 
     standard_interpreter = dynamic_interpreter;
 #else
     dynamic_interpreter = NULL;
-    standard_interpreter = interpreter;
+    standard_interpreter = &VMMethod::interpreter;
 #endif
   }
 
@@ -69,7 +78,7 @@ namespace rubinius {
     , original(state, meth)
     , type(NULL)
   {
-    meth->set_executor(VMMethod::execute);
+    meth->set_executor(&VMMethod::execute);
 
     total = meth->iseq()->opcodes()->num_fields();
     if(Tuple* tup = try_as<Tuple>(meth->literals())) {
@@ -84,41 +93,7 @@ namespace rubinius {
       sendsites = new TypedRoot<SendSite*>[literals->num_fields()];
     }
 
-    Tuple* ops = meth->iseq()->opcodes();
-    Object* val;
-    for(size_t index = 0; index < total;) {
-      val = ops->at(state, index);
-      if(val->nil_p()) {
-        opcodes[index++] = 0;
-      } else {
-        opcodes[index] = as<Fixnum>(val)->to_native();
-        size_t width = InstructionSequence::instruction_width(opcodes[index]);
-
-        switch(width) {
-        case 2:
-          opcodes[index + 1] = as<Fixnum>(ops->at(state, index + 1))->to_native();
-          break;
-        case 3:
-          opcodes[index + 1] = as<Fixnum>(ops->at(state, index + 1))->to_native();
-          opcodes[index + 2] = as<Fixnum>(ops->at(state, index + 2))->to_native();
-          break;
-        }
-
-        switch(opcodes[index]) {
-        case InstructionSequence::insn_send_method:
-        case InstructionSequence::insn_send_stack:
-        case InstructionSequence::insn_send_stack_with_block:
-        case InstructionSequence::insn_send_stack_with_splat:
-        case InstructionSequence::insn_send_super_stack_with_block:
-        case InstructionSequence::insn_send_super_stack_with_splat:
-          native_int which = opcodes[index + 1];
-          sendsites[which].set(as<SendSite>(literals->at(state, which)), &state->globals.roots);
-        }
-
-        index += width;
-      }
-    }
-
+    fill_opcodes(state);
     stack_size =    meth->stack_size()->to_native();
     number_of_locals = meth->number_of_locals();
 
@@ -149,16 +124,57 @@ namespace rubinius {
     delete[] sendsites;
   }
 
+  void VMMethod::fill_opcodes(STATE) {
+    Tuple* ops = original->iseq()->opcodes();
+    Object* val;
+    for(size_t index = 0; index < total;) {
+      val = ops->at(state, index);
+      if(val->nil_p()) {
+        opcodes[index++] = 0;
+      } else {
+        opcodes[index] = as<Fixnum>(val)->to_native();
+        size_t width = InstructionSequence::instruction_width(opcodes[index]);
+
+        switch(width) {
+        case 2:
+          opcodes[index + 1] = as<Fixnum>(ops->at(state, index + 1))->to_native();
+          break;
+        case 3:
+          opcodes[index + 1] = as<Fixnum>(ops->at(state, index + 1))->to_native();
+          opcodes[index + 2] = as<Fixnum>(ops->at(state, index + 2))->to_native();
+          break;
+        }
+
+        switch(opcodes[index]) {
+        case InstructionSequence::insn_send_method:
+        case InstructionSequence::insn_send_stack:
+        case InstructionSequence::insn_send_stack_with_block:
+        case InstructionSequence::insn_send_stack_with_splat:
+        case InstructionSequence::insn_send_super_stack_with_block:
+        case InstructionSequence::insn_send_super_stack_with_splat:
+          native_int which = opcodes[index + 1];
+          sendsites[which].set(
+              as<SendSite>(original->literals()->at(state, which)),
+              &state->globals.roots);
+        }
+
+        index += width;
+      }
+    }
+  }
+
   void VMMethod::set_machine_method(MachineMethod* mm) {
     machine_method_.set(mm);
   }
 
   // Argument handler implementations
 
+#ifdef USE_SPECIALIZED_EXECUTE
+
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       return msg.args() == 0;
     }
   };
@@ -166,9 +182,9 @@ namespace rubinius {
   // For when the method expects 1 and only 1 argument
   class OneArgument {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       if(msg.args() != 1) return false;
-      ctx->set_local(0, msg.get_argument(0));
+      scope->set_local(0, msg.get_argument(0));
       return true;
     }
   };
@@ -176,10 +192,10 @@ namespace rubinius {
   // For when the method expects 2 and only 2 arguments
   class TwoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       if(msg.args() != 2) return false;
-      ctx->set_local(0, msg.get_argument(0));
-      ctx->set_local(1, msg.get_argument(1));
+      scope->set_local(0, msg.get_argument(0));
+      scope->set_local(1, msg.get_argument(1));
       return true;
     }
   };
@@ -187,11 +203,11 @@ namespace rubinius {
   // For when the method expects 3 and only 3 arguments
   class ThreeArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       if(msg.args() != 3) return false;
-      ctx->set_local(0, msg.get_argument(0));
-      ctx->set_local(1, msg.get_argument(1));
-      ctx->set_local(2, msg.get_argument(2));
+      scope->set_local(0, msg.get_argument(0));
+      scope->set_local(1, msg.get_argument(1));
+      scope->set_local(2, msg.get_argument(2));
       return true;
     }
   };
@@ -199,11 +215,11 @@ namespace rubinius {
   // For when the method expects a fixed number of arguments (no splat)
   class FixedArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       if((native_int)msg.args() != vmm->total_args) return false;
 
       for(native_int i = 0; i < vmm->total_args; i++) {
-        ctx->set_local(i, msg.get_argument(i));
+        scope->set_local(i, msg.get_argument(i));
       }
 
       return true;
@@ -213,7 +229,7 @@ namespace rubinius {
   // For when a method takes all arguments as a splat
   class SplatOnlyArgument {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       const size_t total = msg.args();
       Array* ary = Array::create(state, total);
 
@@ -221,21 +237,22 @@ namespace rubinius {
         ary->set(state, i, msg.get_argument(i));
       }
 
-      ctx->set_local(vmm->splat_position, ary);
+      scope->set_local(vmm->splat_position, ary);
       return true;
     }
   };
+#endif
 
   // The fallback, can handle all cases
   class GenericArguments {
   public:
-    bool call(STATE, VMMethod* vmm, MethodContext* ctx, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
       const bool has_splat = (vmm->splat_position >= 0);
 
       // expecting 0, got 0.
       if(vmm->total_args == 0 and msg.args() == 0) {
         if(has_splat) {
-          ctx->set_local(vmm->splat_position, Array::create(state, 0));
+          scope->set_local(vmm->splat_position, Array::create(state, 0));
         }
 
         return true;
@@ -256,7 +273,7 @@ namespace rubinius {
 
       // Copy in the normal, fixed position arguments
       for(native_int i = 0; i < fixed_args; i++) {
-        ctx->set_local(i, msg.get_argument(i));
+        scope->set_local(i, msg.get_argument(i));
       }
 
       if(has_splat) {
@@ -281,7 +298,7 @@ namespace rubinius {
           ary = Array::create(state, 0);
         }
 
-        ctx->set_local(vmm->splat_position, ary);
+        scope->set_local(vmm->splat_position, ary);
       }
 
       return true;
@@ -323,8 +340,22 @@ namespace rubinius {
 
       i += InstructionSequence::instruction_width(op);
     }
+
+    find_super_instructions();
   }
 
+  void VMMethod::find_super_instructions() {
+    for(size_t index = 0; index < total;) {
+      size_t width = InstructionSequence::instruction_width(opcodes[index]);
+      int super = instructions::find_superop(&opcodes[index]);
+      if(super > 0) {
+        opcodes[index] = (opcode)super;
+      }
+      index += width;
+    }
+  }
+
+#if 0
   template <typename ArgumentHandler>
   ExecuteStatus VMMethod::execute_specialized(STATE, Task* task, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
@@ -382,21 +413,25 @@ namespace rubinius {
 
     if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
+    ctx->run(vmm, task, ctx);
+
     return cExecuteRestart;
   }
+#endif
 
   void VMMethod::setup_argument_handler(CompiledMethod* meth) {
+#ifdef USE_SPECIALIZED_EXECUTE
     // If there are no optionals, only a fixed number of positional arguments.
     if(total_args == required_args) {
       // if no arguments are expected
       if(total_args == 0) {
         // and there is no splat, use the fastest case.
         if(splat_position == -1) {
-          meth->set_executor(execute_specialized<NoArguments>);
+          meth->set_executor(&VMMethod::execute_specialized<NoArguments>);
 
         // otherwise use the splat only case.
         } else {
-          meth->set_executor(execute_specialized<SplatOnlyArgument>);
+          meth->set_executor(&VMMethod::execute_specialized<SplatOnlyArgument>);
         }
         return;
 
@@ -404,23 +439,24 @@ namespace rubinius {
       } else if(splat_position == -1) {
         switch(total_args) {
         case 1:
-          meth->set_executor(execute_specialized<OneArgument>);
+          meth->set_executor(&VMMethod::execute_specialized<OneArgument>);
           return;
         case 2:
-          meth->set_executor(execute_specialized<TwoArguments>);
+          meth->set_executor(&VMMethod::execute_specialized<TwoArguments>);
           return;
         case 3:
-          meth->set_executor(execute_specialized<ThreeArguments>);
+          meth->set_executor(&VMMethod::execute_specialized<ThreeArguments>);
           return;
         default:
-          meth->set_executor(execute_specialized<FixedArguments>);
+          meth->set_executor(&VMMethod::execute_specialized<FixedArguments>);
           return;
         }
       }
     }
 
     // Lastly, use the generic case that handles all cases
-    meth->set_executor(execute_specialized<GenericArguments>);
+    meth->set_executor(&VMMethod::execute_specialized<GenericArguments>);
+#endif
   }
 
   /* This is the execute implementation used by normal Ruby code,
@@ -428,46 +464,52 @@ namespace rubinius {
    * It prepares a Ruby method for execution.
    * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
    * CompiledMethod.
+   *
+   * @todo  This really should be in the .hpp. It only works
+   *        but for the grace of Leibniz. --rue
    */
-  ExecuteStatus VMMethod::execute(STATE, Task* task, Message& msg) {
+  template <typename ArgumentHandler>
+  Object* VMMethod::execute_specialized(STATE, CallFrame* previous, Message& msg) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
-
-    MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
-
     VMMethod* vmm = cm->backend_method_;
 
-    // Copy in things we all need.
-    ctx->module(state, msg.module);
-    ctx->name(state, msg.name);
+    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
+                               (vmm->number_of_locals * sizeof(Object*)));
 
-    ctx->block(state, msg.block);
-    ctx->args = msg.args();
+    scope->prepare(msg.recv, msg.module, msg.block, vmm->number_of_locals);
+
+    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    frame->prepare(vmm->stack_size);
+
+    frame->previous = previous;
+    frame->name =     msg.name;
+    frame->cm =       cm;
+    frame->args =     msg.args();
+    frame->scope =    frame->top_scope = scope;
 
     // If argument handling fails..
-    GenericArguments args;
-    if(args.call(state, vmm, ctx, msg) == false) {
-      // Clear the values from the caller
-      task->active()->clear_stack(msg.stack);
+    ArgumentHandler args;
+    if(args.call(state, vmm, scope, msg) == false) {
+      Exception* exc =
+        Exception::make_argument_error(state, vmm->required_args, msg.args(), msg.name);
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), frame));
+      state->thread_state()->raise_exception(exc);
 
-      task->raise_exception(
-          Exception::make_argument_error(state, vmm->required_args, msg.args()));
-      return cExecuteRestart;
+      return NULL;
     }
 
-#if 0
-    if(!probe_->nil_p()) {
-      probe_->start_method(this, msg);
-    }
-#endif
+    // if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
 
-    // Clear the values from the caller
-    task->active()->clear_stack(msg.stack);
+    Object* ret = run_interpreter(state, vmm, frame);
 
-    task->make_active(ctx);
+    frame->scope->exit();
 
-    if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
+    return ret;
+  }
 
-    return cExecuteRestart;
+  /** @todo Is this redundant after having gone through set_argument_handler? --rue */
+  Object* VMMethod::execute(STATE, CallFrame* previous, Message& msg) {
+    return execute_specialized<GenericArguments>(state, previous, msg);
   }
 
   /* This is a noop for this class. */
@@ -611,5 +653,100 @@ namespace rubinius {
 
     return false;
 
+  }
+
+  Object* VMMethod::run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+    Object* return_value;
+    static int tick = 0;
+
+    for(;;) {
+    continue_to_run:
+      if(unlikely(++tick > 0xff)) {
+        void* stack_end = alloca(0);
+        if(!state->check_stack(stack_end)) {
+          return NULL;
+        }
+        tick = 0;
+      }
+
+      if(unlikely(state->interrupts.check)) {
+        state->interrupts.check = false;
+        state->collect_maybe(call_frame);
+      }
+
+      if(unlikely(state->check_local_interrupts)) {
+        if(!state->process_async(call_frame)) return NULL;
+      }
+
+      try {
+        return_value = (*vmm->run)(state, vmm, call_frame);
+      } catch(TypeError& e) {
+        state->thread_state()->raise_exception(
+            Exception::make_type_error(state, e.type, e.object, e.reason));
+        return_value = 0;
+      }
+
+      if(return_value) return return_value;
+
+      ThreadState* th = state->thread_state();
+      // if return_value is NULL, then there is an exception outstanding
+      //
+      switch(th->raise_reason()) {
+      case cException:
+        if(call_frame->has_unwinds_p()) {
+          UnwindInfo& info = call_frame->pop_unwind();
+          call_frame->position_stack(info.stack_depth);
+          call_frame->set_ip(info.target_ip);
+        } else {
+          return NULL;
+        }
+        break;
+
+      case cReturn:
+      case cBreak:
+        // Otherwise, we're doing a long return/break unwind through
+        // here. We need to run ensure blocks.
+        while(call_frame->has_unwinds_p()) {
+          UnwindInfo& info = call_frame->pop_unwind();
+          if(info.for_ensure()) {
+            call_frame->position_stack(info.stack_depth);
+            call_frame->set_ip(info.target_ip);
+
+            // Don't reset ep here, we're still handling the return/break.
+            goto continue_to_run;
+          }
+        }
+
+        // Ok, no ensures to run.
+        if(th->raise_reason() == cReturn) {
+          // If we're trying to return to here, we're done!
+          if(th->destination_scope() == call_frame->scope) {
+            Object* val = th->raise_value();
+            th->clear_exception();
+            return val;
+          } else {
+            // Give control of this exception to the caller.
+            return NULL;
+          }
+
+        } else { // It's cBreak
+          // If we're trying to break to here, we're done!
+          if(th->destination_scope() == call_frame->scope) {
+            call_frame->push(th->raise_value());
+            th->clear_exception();
+            /** @todo Not returning here--is this right? --rue */
+          } else {
+            // Give control of this exception to the caller.
+            return NULL;
+          }
+        }
+        break;
+      case cExit:
+        return NULL;
+      default:
+        std::cout << "bug!\n";
+        abort();
+      } // switch
+    } // for(;;)
   }
 }

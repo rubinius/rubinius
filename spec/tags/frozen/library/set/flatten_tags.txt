@@ -1,2 +1,0 @@
-fails:Set#flatten raises an ArgumentError when self is recursive
-fails:Set#flatten! raises an ArgumentError when self is recursive

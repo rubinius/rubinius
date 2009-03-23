@@ -54,6 +54,16 @@ class Channel
     raise PrimitiveFailure, "Channel#receive primitive failed"
   end
 
+  def receive_timeout(duration)
+    Ruby.primitive :channel_receive_timeout
+    raise PrimitiveFailure, "Channel#receive_timeout primitive failed"
+  end
+
+  def try_receive
+    Ruby.primitive :channel_try_receive
+    raise PrimitiveFailure, "Channel#try_receive primitive failed"
+  end
+
   ##
   # Converts +obj+ into a Channel using #to_channel.
 

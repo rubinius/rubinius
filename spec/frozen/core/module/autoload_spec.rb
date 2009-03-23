@@ -82,7 +82,7 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::Gsub.new.loaded.should == :autoload_g
   end
 
-  it "loads the registered constand when it is included" do
+  it "loads the registered constant when it is included" do
     ModuleSpecs::Autoload.autoload :H, fixture(__FILE__, "autoload_h.rb")
     class ModuleSpecs::Autoload::HClass
       include ModuleSpecs::Autoload::H
@@ -120,14 +120,6 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload.autoload :M, filename
     ModuleSpecs::Autoload::L.should == :autoload_l
     ModuleSpecs::Autoload::M.should == :autoload_m
-  end
-
-  it "does not call Kernel#require or Kernel#load dynamically" do
-    Kernel.should_not_receive(:require)
-    Kernel.should_not_receive(:load)
-
-    ModuleSpecs::Autoload.autoload :N, fixture(__FILE__, "autoload_n.rb")
-    ModuleSpecs::Autoload::N.should == :autoload_n
   end
 
   ruby_version_is "" ... "1.9" do
@@ -251,5 +243,57 @@ describe "Module#autoload" do
       mod1::T.should == :autoload_t
       lambda { mod2::T }.should raise_error(NameError)
     end
+  end
+
+  it "raises a TypeError if opening a class with a different superclass than the class defined in the autoload file" do
+    ModuleSpecs::Autoload.autoload :Z, fixture(__FILE__, "autoload_z.rb")
+    class ModuleSpecs::Autoload::ZZ
+    end
+
+    lambda do
+      class ModuleSpecs::Autoload::Z < ModuleSpecs::Autoload::ZZ
+      end
+    end.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if not passed a String for the filename" do
+    name = mock("autoload_name.rb")
+    name.stub!(:to_s).and_return("autoload_name.rb")
+    name.stub!(:to_str).and_return("autoload_name.rb")
+
+    lambda { ModuleSpecs::Autoload.autoload :Str, name }.should raise_error(TypeError)
+  end
+end
+
+describe "Module#autoload" do
+  # It would be nice to check this with a simple obj.should_not_receive,
+  # but getting at that obj is implementation specific. This method is the
+  # least implementation specific because it inserts the method that raises
+  # an exception into the dynamic lookup chain.
+  before :all do
+    module Kernel
+      alias_method :original_require, :require
+      alias_method :original_load,    :load
+
+      def require(name)
+        raise Exception, "Kernel#require called"
+      end
+
+      def load(name)
+        raise Exception, "Kernel#load called"
+      end
+    end
+  end
+
+  after :all do
+    module Kernel
+      alias_method :require, :original_require
+      alias_method :load,    :original_load
+    end
+  end
+
+  it "does not call Kernel#require or Kernel#load dynamically" do
+    ModuleSpecs::Autoload.autoload :N, fixture(__FILE__, "autoload_n.rb")
+    ModuleSpecs::Autoload::N.should == :autoload_n
   end
 end

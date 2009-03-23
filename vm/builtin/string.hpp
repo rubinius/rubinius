@@ -58,6 +58,8 @@ namespace rubinius {
     // Ruby.primitive :string_from_bytearray
     static String* from_bytearray(STATE, ByteArray* ba, Integer* start, Integer* count);
     static String* create(STATE, const char* str, size_t bytes = 0);
+    static String* create_pinned(STATE, Fixnum* size);
+
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
     static bool string_equal_p(STATE, Object* self, Object* other);
     // Ruby.primitive :string_equal

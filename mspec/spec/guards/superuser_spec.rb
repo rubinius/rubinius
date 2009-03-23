@@ -19,4 +19,17 @@ describe Object, "#as_superuser" do
     as_superuser { ScratchPad.record :yield }
     ScratchPad.recorded.should == :yield
   end
+
+  it "sets the name of the guard to :as_superuser" do
+    as_superuser { }
+    @guard.name.should == :as_superuser
+  end
+
+  it "calls #unregister even when an exception is raised in the guard block" do
+    @guard.should_receive(:match?).and_return(true)
+    @guard.should_receive(:unregister)
+    lambda do
+      as_superuser { raise Exception }
+    end.should raise_error(Exception)
+  end
 end
