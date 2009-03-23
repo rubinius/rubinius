@@ -264,6 +264,8 @@ namespace rubinius {
 
     GO(vm).set(new_class_under("VM", G(rubinius)));
 
+    Class::bootstrap_methods(this);
+
     /*
      * Setup the table we use to store ivars for immediates
      */

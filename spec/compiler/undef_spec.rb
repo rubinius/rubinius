@@ -143,23 +143,11 @@ describe "An Undef node" do
     end
 
     compile do |g|
-      desc = description do |d|
-        d.push_self
-        d.add_scope
+      g.in_class :B do |d|
         d.push_scope
         d.push_literal :blah
         d.send :__undef_method__, 1
-        d.ret
       end
-
-      g.push :nil
-      g.open_class :B
-      g.dup
-      g.push_literal desc
-      g.swap
-      g.attach_method :__class_init__
-      g.pop
-      g.send :__class_init__, 0
     end
   end
 end

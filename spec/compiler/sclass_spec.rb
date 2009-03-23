@@ -75,8 +75,7 @@ describe "An Sclass node" do
         d.pop
         d.send :__metaclass_init__, 0
         d.pop
-        d.push :nil
-        d.open_class :B
+        d.in_class :B
         d.pop
         d.push :nil
       end

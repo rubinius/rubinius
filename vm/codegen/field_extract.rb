@@ -57,7 +57,7 @@ class BasicPrimitive
     str << "    goto fail;\n\n"
     prim_return(str);
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, call_frame, msg);\n"
+    str << "  return CompiledMethod::primitive_failed(state, call_frame, msg);\n"
     str << "}\n\n"
   end
 
@@ -95,7 +95,7 @@ class CPPPrimitive < BasicPrimitive
       str << "  }\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return VMMethod::execute(state, call_frame, msg);\n"
+      str << "  return CompiledMethod::primitive_failed(state, call_frame, msg);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -182,7 +182,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  }\n"
     str << "fail:\n"
-    str << "  return VMMethod::execute(state, call_frame, msg);\n"
+    str << "  return CompiledMethod::primitive_failed(state, call_frame, msg);\n"
     str << "}\n\n"
     return str
   end

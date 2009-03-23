@@ -31,6 +31,9 @@ namespace rubinius {
       type_info_ = ti;
     }
 
+    /* static */
+    static void bootstrap_methods(STATE);
+
     /* interface */
 
     /** Returns actual superclass, skipping over IncludedModules */

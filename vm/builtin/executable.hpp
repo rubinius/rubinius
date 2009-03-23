@@ -32,6 +32,8 @@ namespace rubinius {
     static void init(STATE);
     static Object* default_executor(STATE, CallFrame* call_frame, Message& msg);
 
+    bool resolve_primitive(STATE);
+
     // Ruby.primitive :executable_allocate
     static Executable* allocate(STATE, Object* self);
 

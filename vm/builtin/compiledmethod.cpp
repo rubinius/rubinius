@@ -82,15 +82,20 @@ namespace rubinius {
 #endif
       backend_method_ = vmm;
 
-      if(!primitive()->nil_p()) {
-        if(Symbol* name = try_as<Symbol>(primitive())) {
-          set_executor(Primitives::resolve_primitive(state, name));
-        }
-      }
+      resolve_primitive(state);
       return vmm;
     }
 
     return backend_method_;
+  }
+
+  Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame, Message& msg) {
+    if(try_as<CompiledMethod>(msg.method)) {
+      return VMMethod::execute(state, call_frame, msg);
+    }
+
+    // TODO fix me to raise an exception
+    assert(0);
   }
 
   void CompiledMethod::specialize(STATE, TypeInfo* ti) {

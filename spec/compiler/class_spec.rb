@@ -95,8 +95,11 @@ describe "A Class node" do
     end
 
     compile do |g|
+      g.push_const :Rubinius
+      g.push_literal :X
       g.push_const :Array
-      g.open_class :X
+      g.push_scope
+      g.send :open_class, 3
       g.pop
       g.push :nil
     end
@@ -112,9 +115,13 @@ describe "A Class node" do
     end
 
     compile do |g|
+      g.push_const :Rubinius
+      g.push_literal :X
       g.push :self
       g.send :expr, 0, true
-      g.open_class :X
+      g.push_scope
+      g.send :open_class, 3
+
       g.pop
       g.push :nil
     end
@@ -130,8 +137,11 @@ describe "A Class node" do
     end
 
     compile do |g|
+      g.push_const :Rubinius
+      g.push_literal :X
       g.push_const :Object
-      g.open_class :X
+      g.push_scope
+      g.send :open_class, 3
       g.pop
       g.push :nil
     end

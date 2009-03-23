@@ -216,7 +216,7 @@ class TestGenerator
     g.pop
   end
 
-  def description name = nil
+  def description(name=nil)
     desc = Compiler::MethodDescription.new TestGenerator, 0
     desc.name = name if name
 
@@ -342,25 +342,35 @@ class TestGenerator
     g.send_with_block name, call_count, vis
   end
 
-  def in_class name
+  def in_class(name)
     case name
     when Symbol then
+      g.push_const :Rubinius
+      g.push_literal name
       g.push :nil
-      g.open_class name
+
+      g.push_scope
+      g.send :open_class, 3
     when String then
+      g.push_const :Rubinius
+
       levels = name.split(/::/).map { |s| s.to_sym }
       klass = levels.pop
+
+      g.push_literal klass
+      g.push :nil
 
       levels.each do |level|
         g.push_const level
       end
 
-      g.push :nil
-      g.open_class_under klass
+      g.send :open_class_under, 3
     end
 
+    return unless block_given?
+
     g.dup
-    g.push_literal_desc do |d|
+    g.push_literal_desc name do |d|
       d.push_self # FIX
       d.add_scope
 

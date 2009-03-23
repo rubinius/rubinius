@@ -10,9 +10,26 @@
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 
+#include "builtin/executable.hpp"
+
 #include <iostream>
 
 namespace rubinius {
+
+  void Class::bootstrap_methods(STATE) {
+    Executable* oc = Executable::allocate(state, Qnil);
+    oc->primitive(state, state->symbol("vm_open_class"));
+    assert(oc->resolve_primitive(state));
+
+    LookupTable* tbl = G(rubinius)->metaclass(state)->method_table();
+    tbl->store(state, state->symbol("open_class"), oc);
+
+    Executable* ocu = Executable::allocate(state, Qnil);
+    ocu->primitive(state, state->symbol("vm_open_class_under"));
+    assert(ocu->resolve_primitive(state));
+
+    tbl->store(state, state->symbol("open_class_under"), ocu);
+  }
 
   Class* Class::create(STATE, Class* super) {
     Class* cls = state->new_object<Class>(G(klass));

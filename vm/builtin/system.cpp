@@ -35,6 +35,8 @@
 #include "builtin/taskprobe.hpp"
 #include "builtin/float.hpp"
 
+#include "builtin/staticscope.hpp"
+
 #include "builtin/system.hpp"
 #include "signal.hpp"
 
@@ -292,4 +294,54 @@ namespace rubinius {
     return Integer::from(state, time(0));
   }
 
+  Class* System::vm_open_class(STATE, Symbol* name, Object* sup, StaticScope* scope) {
+    Module* under;
+
+    if(scope->nil_p()) {
+      under = G(object);
+    } else {
+      under = scope->module();
+    }
+
+    return vm_open_class_under(state, name, sup, under);
+  }
+
+  Class* System::vm_open_class_under(STATE, Symbol* name, Object* super, Module* under) {
+    bool found = false;
+
+    Object* obj = under->get_const(state, name, &found);
+    if(found) {
+      Class* cls = as<Class>(obj);
+      if(super->nil_p()) return cls;
+
+      if(cls->direct_superclass(state) != super) {
+        std::ostringstream message;
+        message << "Superclass mismatch: given "
+                                         << as<Module>(super)->name()->c_str(state)
+                                         << " but previously set to "
+                                         << cls->direct_superclass(state)->name()->c_str(state);
+        Exception* exc =
+          Exception::make_type_error(state, Class::type, super, message.str().c_str());
+        // exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+        state->thread_state()->raise_exception(exc);
+        return NULL;
+      }
+
+      return cls;
+    }
+
+    // Create the class.
+    if(super->nil_p()) super = G(object);
+    Class* cls = Class::create(state, as<Class>(super));
+
+    if(under == G(object)) {
+      cls->name(state, name);
+    } else {
+      cls->set_name(state, under, name);
+    }
+
+    under->set_const(state, name, cls);
+
+    return cls;
+  }
 }

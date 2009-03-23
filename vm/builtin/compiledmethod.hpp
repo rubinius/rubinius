@@ -60,6 +60,8 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_allocate
     static CompiledMethod* create(STATE);
 
+    static Object* primitive_failed(STATE, CallFrame* call_frame, Message& msg);
+
     int start_line(STATE);
     int line(STATE, int ip);
 

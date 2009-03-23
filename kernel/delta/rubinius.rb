@@ -3,6 +3,45 @@
 module Rubinius
   Terminal = STDIN.tty?
 
+  def self.open_class_under(name, sup, mod)
+    unless mod.kind_of? Module
+      raise TypeError, "'#{mod.inspect}' is not a class/module"
+    end
+
+    obj = mod.constants_table[name]
+    if obj.nil?
+      # Create the class
+      sup = Object unless sup
+      obj = Class.new sup
+      obj.set_name_if_necessary name, mod
+      mod.const_set name, obj
+    else
+      obj = obj.value
+      if obj.kind_of? Autoload
+        obj = obj.call
+      end
+
+      if obj.kind_of? Class
+        if sup and obj.superclass != sup
+          raise TypeError, "Superclass mismatch: #{obj.superclass} != #{sup}"
+        end
+      else
+        raise TypeError, "#{name} is not a class"
+      end
+    end
+    return obj
+  end
+
+  def self.open_class(name, sup, scope)
+    if scope
+      under = scope.module
+    else
+      under = Object
+    end
+
+    open_class_under name, sup, under
+  end
+
   def self.add_defn_method(name, executable, static_scope, vis)
     executable.serial = 1
     executable.scope = static_scope if executable.respond_to? :scope=

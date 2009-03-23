@@ -29,6 +29,18 @@ namespace rubinius {
     return executable;
   }
 
+  bool Executable::resolve_primitive(STATE) {
+    if(!primitive_->nil_p()) {
+      if(Symbol* name = try_as<Symbol>(primitive_)) {
+        set_executor(Primitives::resolve_primitive(state, name));
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
   Object* Executable::default_executor(STATE, CallFrame* call_frame, Message& msg) {
     msg.unshift_argument2(state, msg.recv, msg.name);
     msg.name = state->symbol("call");

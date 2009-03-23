@@ -157,6 +157,12 @@ namespace rubinius {
     // Ruby.primitive :vm_time
     static Object*  vm_time(STATE);
 
+    // Ruby.primitive :vm_open_class
+    static Class* vm_open_class(STATE, Symbol* name, Object* super, StaticScope* scope);
+
+    // Ruby.primitive :vm_open_class_under
+    static Class* vm_open_class_under(STATE, Symbol* name, Object* super, Module* under);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

@@ -37,7 +37,7 @@ class Compiler
     end
 
     def to_ary
-      [:method_description, @name, @required, @optional, @generator]
+      [:method_description, @generator]
     end
 
     def pretty_inspect
@@ -510,16 +510,21 @@ class Compiler
       def bytecode(g)
         pos(g)
 
+        g.push_const :Rubinius
+        g.push_literal @name
+
         if @parent
-          @parent.bytecode(g)
           superclass_bytecode(g)
-          g.open_class_under @name
+          @parent.bytecode(g)
+          g.send :open_class_under, 3
         else
           superclass_bytecode(g)
-          g.open_class @name
+          g.push_scope
+          g.send :open_class, 3
         end
 
-        attach_and_call g, :__class_init__, true
+        desc = attach_and_call g, :__class_init__, true
+        desc.name = @name if desc
       end
     end
 
@@ -576,6 +581,8 @@ class Compiler
         g.attach_method name
         g.pop
         g.send name, 0
+
+        return desc
       end
 
       def prelude(orig, g)
