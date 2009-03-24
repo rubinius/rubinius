@@ -12,8 +12,23 @@ def compile_extension(path, ext, ext_source)
   # TODO use Tap; write a common ext build task
   if RUBY_NAME == 'rbx'
     `./bin/rbx compile -I#{Rubinius::HDR_PATH} #{ext_source}`
+  elsif RUBY_NAME == 'ruby'
+    cc        = Config::CONFIG["CC"]
+    hdrdir    = Config::CONFIG["archdir"]
+    cflags    = Config::CONFIG["CFLAGS"]
+    incflags  = "-I#{path} -I#{hdrdir}"
+
+    `#{cc} #{incflags} #{cflags} -c #{ext_source}`
+
+    ldshared  = Config::CONFIG["LDSHARED"]
+    libpath   = "-L#{path}"
+    libs      = Config::CONFIG["LIBS"]
+    dldflags  = Config::CONFIG["DLDFLAGS"]
+    obj       = File.basename(ext_source, ".c") + ".o"
+
+    `#{ldshared} -o #{ext} #{libpath} #{dldflags} #{libs} #{obj}`
   else
-    # TODO add compile commands for MRI
+    raise "Don't know how to build C extensions with #{RUBY_NAME}"
   end
 
   File.open(signature, "w") { |f| f.puts RUBY_NAME }
