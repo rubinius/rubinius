@@ -1,8 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('hash')
-require File.dirname(__FILE__) + '/ext/hash'
+load_extension("hash")
 
 describe "CApiHashSpecs" do
   before :each do

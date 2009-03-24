@@ -1,12 +1,10 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('struct_define')
-require File.dirname(__FILE__) + '/ext/struct_define'
+load_extension("struct")
 
-describe "CApiStructDefine" do
+describe "CApiStruct" do
   before :each do
-    @s = CApiStructDefineSpecs.new
+    @s = CApiStructSpecs.new
   end
 
   it "rb_struct_define defines a structure" do

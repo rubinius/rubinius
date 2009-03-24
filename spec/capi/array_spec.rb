@@ -1,8 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('array')
-require File.dirname(__FILE__) + '/ext/array_spec'
+load_extension("array")
 
 describe "CApiArraySpecs" do
   before :each do

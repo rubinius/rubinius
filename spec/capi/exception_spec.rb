@@ -1,10 +1,8 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('exception')
-require File.dirname(__FILE__) + '/ext/exception'
+load_extension("exception")
 
-describe "SubtendRaiser" do
+describe "CApiExceptionSpecs" do
   before :each do
     @s = SubtendRaiser.new
   end

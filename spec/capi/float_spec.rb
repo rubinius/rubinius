@@ -1,8 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('float')
-require File.dirname(__FILE__) + '/ext/float'
+load_extension("float")
 
 describe "CApiFloatSpecs" do
   before :each do

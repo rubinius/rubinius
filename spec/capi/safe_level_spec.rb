@@ -1,14 +1,12 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('safe_level')
-require File.dirname(__FILE__) + '/ext/safe_level'
+load_extension("safe_level")
 
 describe "CApiSafeLevel" do
   before :each do
     @f = CApiSafeLevelSpecs.new
   end
-  
+
   it "has a default safe level of 0" do
     @f.sb_safe_level.should == 0
   end

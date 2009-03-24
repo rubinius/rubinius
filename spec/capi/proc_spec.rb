@@ -1,14 +1,12 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('proc')
-require File.dirname(__FILE__) + '/ext/proc'
+load_extension("proc")
 
 describe "CApiProc" do
   before :each do
     @p = CApiProcSpecs.new
   end
-  
+
   it "rb_proc_new should return a new valid Proc" do
     my_proc = @p.underline_concat_proc()
     my_proc.kind_of?(Proc).should == true

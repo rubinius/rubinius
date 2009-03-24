@@ -1,8 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('class')
-require File.dirname(__FILE__) + '/ext/class'
+load_extension("class")
 
 module SubtendModuleTest
   def im_included

@@ -1,8 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('global')
-require File.dirname(__FILE__) + '/ext/global'
+load_extension("globals")
 
 describe "CApiGlobalSpecs" do
   before :each do

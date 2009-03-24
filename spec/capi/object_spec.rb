@@ -1,66 +1,64 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('object')
-require File.dirname(__FILE__) + '/ext/object'
+load_extension("object")
 
 describe "CApiObject" do
-  
+
   before do
     @o = CApiObjectSpecs.new
   end
-  
+
   class ObjectTest
     def initialize
       @foo = 7
     end
-    
+
     def foo
     end
   end
-  
+
   class AryChild < Array
   end
-  
+
   class StrChild < String
   end
-  
+
   class DescObjectTest < ObjectTest
   end
-  
+
   it "rb_is_instance_of should return true if an object is an instance" do
     @o.rb_obj_is_instance_of(ObjectTest.new, ObjectTest).should == true
     @o.rb_obj_is_instance_of(DescObjectTest.new, ObjectTest).should == false
-  end 
+  end
 
   it "rb_is_kind_of should return true if an object is an instance or descendent" do
     @o.rb_obj_is_kind_of(ObjectTest.new, ObjectTest).should == true
     @o.rb_obj_is_kind_of(DescObjectTest.new, ObjectTest).should == true
     @o.rb_obj_is_kind_of(Object.new, ObjectTest).should == false
-  end 
-  
+  end
+
   it "rb_respond_to should return 1 if respond_to? is true and 0 if respond_to? is false" do
     @o.rb_respond_to(ObjectTest.new, :foo).should == true
     @o.rb_respond_to(ObjectTest.new, :bar).should == false
   end
-  
+
   it "rb_to_id should return a symbol representation of the object" do
     @o.rb_to_id("foo").should == :foo
     @o.rb_to_id(:foo).should == :foo
   end
-  
+
   it "rb_require should require a ruby file" do
     $foo.should == nil
     $:.unshift File.dirname(__FILE__)
     @o.rb_require()
     $foo.should == 7
   end
-  
+
   it "rb_attr_get should get an instance variable" do
     o = ObjectTest.new
     @o.rb_attr_get(o, :@foo).should == 7
   end
-  
+
   it "rb_check_array_type should try to coerce to array, otherwise return nil" do
     ac = AryChild.new
     ao = Array.new
@@ -69,8 +67,8 @@ describe "CApiObject" do
     @o.rb_check_array_type(ao).should == []
     @o.rb_check_array_type(h).should == nil
   end
-  
-  it "rb_check_convert_type should try to coerce to a type, otherwise return nil" do    
+
+  it "rb_check_convert_type should try to coerce to a type, otherwise return nil" do
     ac = AryChild.new
     ao = Array.new
     h = Hash.new
@@ -79,7 +77,7 @@ describe "CApiObject" do
     @o.rb_check_convert_type(ao).should == []
     @o.rb_check_convert_type(h).should == nil
   end
-  
+
   it "rb_check_string_type should try to coerce to a string, otherwise return nil" do
     sc = "Hello"
     so = StrChild.new("Hello")

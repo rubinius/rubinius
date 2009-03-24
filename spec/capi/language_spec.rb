@@ -1,8 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('language')
-require File.dirname(__FILE__) + '/ext/language'
+load_extension('language')
 
 describe "CApiBlockSpecs" do
   before :each do

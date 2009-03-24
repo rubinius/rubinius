@@ -1,4 +1,4 @@
-# Compiles the extension used in the subtend specs
+require File.dirname(__FILE__) + '/../spec_helper'
 
 require 'rbconfig'
 
@@ -11,4 +11,7 @@ def compile_extension(name)
   if !File.exists?(ext) or File.mtime(ext) < File.mtime(ext_source)
     system "rake build:debug_flags extension:specs:#{name}"
   end
+end
+
+def load_extension(name)
 end

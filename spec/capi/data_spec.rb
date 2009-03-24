@@ -1,8 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('data')
-require File.dirname(__FILE__) + '/ext/data'
+load_extension("data")
 
 describe "CApiAllocSpecs (a class with an alloc func defined)" do
   it "calls the alloc func" do

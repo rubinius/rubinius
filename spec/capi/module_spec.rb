@@ -1,8 +1,6 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/subtend_helper'
+require File.dirname(__FILE__) + '/spec_helper'
 
-compile_extension('module')
-require File.dirname(__FILE__) + '/ext/module'
+load_extension('module')
 
 describe "CApiModule" do
 
