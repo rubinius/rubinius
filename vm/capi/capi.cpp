@@ -296,7 +296,10 @@ extern "C" {
     Module* super = module->superclass();
 
     if(super->nil_p()) {
-      return NULL;
+      /* In MRI, the superclass chain terminates with a NULL pointer.
+       * Since VALUE is an intptr_t in Rubinius, we use 0 instead.
+       */
+      return 0;
     } else {
       return env->get_handle(super);
     }
