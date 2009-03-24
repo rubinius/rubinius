@@ -37,7 +37,7 @@ static VALUE sb_define_hooked_variable(VALUE self, VALUE var_name) {
   return Qnil;
 }
 
-void Init_global_spec() {
+void Init_globals_spec() {
   VALUE cls;
   cls = rb_define_class("CApiGlobalSpecs", rb_cObject);
 
