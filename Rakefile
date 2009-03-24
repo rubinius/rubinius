@@ -12,7 +12,9 @@ RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
 
 $: << "lib"
 
-task :default => %w[build vm:test spec:sydney]
+task :default => %w[build vm:test] do
+  system "bin/mspec ci"
+end
 
 desc "Compile the given ruby file into a .rbc file"
 task :compile_ruby, :file do |task, args|
@@ -178,4 +180,59 @@ namespace :clean do
 
     rm_f files, :verbose => $verbose unless files.empty?
   end
+end
+
+desc "Documents why no spec tasks exist"
+task :spec do
+  puts <<-EOM
+
+  The spec and spec:xxx commands are deprecated (and removed).
+  Use bin/mspec directly. MSpec provides 'psuedo-directories',
+  which are labels that refer to sets of specs to run. Refer
+  to spec/default.mspec, spec/full.mspec and the MSpec docs
+  for full details.
+
+  The following are likely scenarios for running the specs.
+  Unless -t <target> is passed to mspec, bin/rbx is run.
+
+  Run the CI specs that are run with the default 'rake' command
+
+    bin/mspec ci
+
+  Run _all_ the CI spec:
+
+    bin/mspec ci -B full
+
+  Run all the frozen specs:
+
+    bin/mspec
+
+  Run all the frozen Array specs:
+
+    bin/mspec core/array
+      OR
+    bin/mspec spec/frozen/core/array
+
+  Run spec/frozen/core/array/append_spec.rb:
+
+    bin/mspec core/array/append
+      OR
+    bin/mspec spec/frozen/core/array/append_spec.rb
+
+  Run all the compiler specs:
+
+    bin/mspec :compiler
+
+  Run all the [language, core, library, capi] specs:
+
+    bin/mspec :language
+    bin/mspec :core
+    ...
+
+  Run all the spec/ruby specs using the MRI on your path
+  (assuming you have run 'rake rubyspec:update'):
+
+    bin/mspec -tr :ruby
+
+  EOM
 end
