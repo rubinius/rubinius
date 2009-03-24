@@ -83,7 +83,11 @@ namespace capi {
       map[cCApiZeroDivisionError]   = "ZeroDivisionError";
     }
 
-    // @todo ensure type < cCApiMaxConstant
+    if(type < 0 || type >= cCApiMaxConstant) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      rb_raise(env->get_handle_global(env->state()->globals.exception.get()),
+            "C-API: invalid constant index");
+    }
 
     return map[type];
   }

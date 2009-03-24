@@ -32,6 +32,11 @@ namespace capi {
   Symbol* prefixed_by(std::string prefix, std::string name);
   Symbol* prefixed_by(std::string prefix, ID name);
 
+  /** Returns the string name of a Ruby constant given its C-API constant
+   * index (e.g. cCApiObject => "Object").
+   */
+  std::string& capi_get_constant_name(CApiConstant type);
+
   /** Raise a TypeError (convenience method). */
   void capi_raise_type_error(object_type type, Object* object);
 
