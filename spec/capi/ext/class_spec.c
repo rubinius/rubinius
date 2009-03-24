@@ -51,11 +51,15 @@ static VALUE sc_rbclass2name(VALUE self, VALUE klass) {
 }
 
 static VALUE sa_cv_set(VALUE self, VALUE klass, VALUE name, VALUE val) {
-	return rb_cv_set(klass, StringValuePtr(name), val);
+	rb_cv_set(klass, StringValuePtr(name), val);
+
+  return Qnil;
 }
 
 static VALUE sa_cvar_set(VALUE self, VALUE klass, VALUE name, VALUE val) {
-	return rb_cvar_set(klass, rb_intern(StringValuePtr(name)), val);
+	rb_cvar_set(klass, rb_intern(StringValuePtr(name)), val, 0);
+
+  return Qnil;
 }
 
 static VALUE sa_cv_get(VALUE self, VALUE klass, VALUE name) {

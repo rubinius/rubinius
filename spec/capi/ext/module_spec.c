@@ -11,7 +11,7 @@ VALUE sm_const_defined(VALUE self, VALUE klass, VALUE id) {
 
 static VALUE sa_define_alias(VALUE self, VALUE obj,
   VALUE new_name, VALUE old_name) {
-    
+
   rb_define_alias(obj, StringValuePtr(new_name), StringValuePtr(old_name));
   return Qnil;
 }
@@ -26,10 +26,11 @@ VALUE smv_undef_method(VALUE self, VALUE klass, VALUE name) {
 }
 
 void Init_module_spec() {
-  VALUE cls;
+  VALUE cls, mod;
+
   cls = rb_define_class("CApiModuleSpecs", rb_cObject);
   rb_define_method(cls, "rb_define_const", sm_define_const, 2);
-  rb_define_method(cls, "rb_const_defined", sm_const_defined, 2);  
+  rb_define_method(cls, "rb_const_defined", sm_const_defined, 2);
 
   cls = rb_define_class("CApiDefineAliasSpecs", rb_cObject);
   rb_define_method(cls, "rb_define_alias", sa_define_alias, 3);
