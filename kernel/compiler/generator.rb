@@ -507,14 +507,6 @@ class Compiler
       end
     end
 
-    def open_module(name)
-      add :open_module, find_literal(name)
-    end
-
-    def open_module_under(name)
-      add :open_module_under, find_literal(name)
-    end
-
     def dup
       add :dup_top
     end

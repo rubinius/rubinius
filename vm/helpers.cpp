@@ -85,9 +85,40 @@ namespace rubinius {
 
       *found = false;
 
+      // Ok, this has to be explained or it will be considered black magic.
+      // The scope chain always ends with an entry at the top that contains
+      // a parent of nil, and a module of Object. This entry is put in
+      // regardless of lexical scoping, it's the default scope.
+      //
+      // When looking up a constant, we don't want to consider the default
+      // scope (ie, Object) initially because we need to lookup up
+      // the superclass chain first, because falling back on the default.
+      //
+      // The rub comes from the fact that if a user explicitely opens up
+      // Object in their code, we DO consider it. Like:
+      //
+      // class Idiot
+      //   A = 2
+      // end
+      //
+      // class ::Object
+      //   A = 1
+      //   class Stupid < Idiot
+      //     def foo
+      //       p A
+      //     end
+      //   end
+      // end
+      //
+      // In this code, when A is looked up, Object must be considering during
+      // the scope walk, NOT during the superclass walk.
+      //
+      // So, in this case, foo would print "1", not "2".
+      //
       cur = call_frame->cm->scope();
       while(!cur->nil_p()) {
-        if(cur->module() == G(object)) break;
+        // Detect the toplevel scope (the default) and get outta dodge.
+        if(cur->top_level_p(state)) break;
 
         result = cur->module()->get_const_association(state, name, found);
         if(*found) return result;
@@ -95,6 +126,7 @@ namespace rubinius {
         cur = cur->parent();
       }
 
+      // Now look up the superclass chain.
       Module* mod = call_frame->cm->scope()->module();
       while(!mod->nil_p()) {
         result = mod->get_const_association(state, name, found);
@@ -103,7 +135,7 @@ namespace rubinius {
         mod = mod->superclass();
       }
 
-      /* Lastly, check Object specificly */
+      // Lastly, check Object specificly
       result = G(object)->get_const_association(state, name, found);
       if(*found) return result;
 

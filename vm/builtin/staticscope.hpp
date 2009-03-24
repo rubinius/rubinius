@@ -37,6 +37,10 @@ namespace rubinius {
     // The module to use when adding and removing methods
     Module* for_method_definition();
 
+    bool top_level_p(STATE) {
+      return parent_->nil_p();
+    }
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

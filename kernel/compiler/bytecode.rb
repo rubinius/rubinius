@@ -638,6 +638,12 @@ class Compiler
         g.push_cpath_top
         g.find_const @name
       end
+
+      class Toplevel
+        def bytecode(g)
+          g.push_cpath_top
+        end
+      end
     end
 
     class ConstFind
@@ -1658,11 +1664,15 @@ class Compiler
       def bytecode(g)
         pos(g)
 
+        g.push_const :Rubinius
+        g.push_literal @name
+
         if @parent
           @parent.bytecode(g)
-          g.open_module_under @name
+          g.send :open_module_under, 2
         else
-          g.open_module @name
+          g.push_scope
+          g.send :open_module, 2
         end
 
         attach_and_call g, :__module_init__, true

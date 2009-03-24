@@ -81,10 +81,6 @@ class InstructionSet
       :vm_flags => [:check_interrupts]},
     {:opcode => :add_method, :args => [:literal], :stack => [2,1],
       :vm_flags => [:check_interrupts]},
-    {:opcode => :open_module, :args => [:literal], :stack => [0,1],
-      :vm_flags => [:check_interrupts]},
-    {:opcode => :open_module_under, :args => [:literal], :stack => [1,1],
-      :vm_flags => [:check_interrupts]},
 
     # send opcodes
     {:opcode => :send_method, :args => [:literal], :stack => [1,1],

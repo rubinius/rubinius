@@ -742,8 +742,11 @@ raise "no"
       end
       attr_accessor :name
 
-      def parent # allows use like a colon2
-        nil
+      class Toplevel
+      end
+
+      def parent
+        Toplevel.new
       end
     end
 

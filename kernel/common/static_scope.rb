@@ -36,10 +36,20 @@ class StaticScope
     self.inspect
   end
 
+  # Indicates if this is a toplevel/default scope
+  def top_level?
+    !@parent
+  end
+
   # Use the same info as the current StaticScope, but set current_module to
   # +mod+. Chains off the current StaticScope.
   def using_current_as(mod)
-    ss = StaticScope.new @module, self
+    if top_level?
+      # Don't chain up if this is a toplevel, create a new one.
+      ss = dup
+    else
+      ss = StaticScope.new @module, self
+    end
     ss.current_module = mod
     return ss
   end
@@ -68,7 +78,7 @@ class StaticScope
       scope = scope.parent
     end
 
-    if script = scope.script
+    if scope and script = scope.script
       if path = script.path
         return path.dup
       end

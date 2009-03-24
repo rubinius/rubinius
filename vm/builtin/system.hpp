@@ -163,6 +163,12 @@ namespace rubinius {
     // Ruby.primitive :vm_open_class_under
     static Class* vm_open_class_under(STATE, Symbol* name, Object* super, Module* under);
 
+    // Ruby.primitive :vm_open_module
+    static Module* vm_open_module(STATE, Symbol* name, StaticScope* scope);
+
+    // Ruby.primitive :vm_open_module_under
+    static Module* vm_open_module_under(STATE, Symbol* name, Module* under);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

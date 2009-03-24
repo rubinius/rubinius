@@ -168,39 +168,6 @@ class IO
     end
   end
 
-  module Constants
-    F_GETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_GETFL']
-    F_SETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_SETFL']
-
-    # O_ACCMODE is /undocumented/ for fcntl() on some platforms
-    ACCMODE  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.O_ACCMODE']
-
-    SEEK_SET = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_SET']
-    SEEK_CUR = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_CUR']
-    SEEK_END = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_END']
-
-    RDONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDONLY']
-    WRONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_WRONLY']
-    RDWR     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDWR']
-
-    CREAT    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_CREAT']
-    EXCL     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_EXCL']
-    NOCTTY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NOCTTY']
-    TRUNC    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_TRUNC']
-    APPEND   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_APPEND']
-    NONBLOCK = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NONBLOCK']
-    SYNC     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_SYNC']
-
-    # TODO: these flags should probably be imported from Platform
-    LOCK_SH  = 0x01
-    LOCK_EX  = 0x02
-    LOCK_NB  = 0x04
-    LOCK_UN  = 0x08
-    BINARY   = 0x04
-  end
-
-  include Constants
-
   attr_accessor :descriptor
   attr_accessor :mode
 

@@ -408,20 +408,28 @@ class TestGenerator
     end
   end
 
-  def in_module name
+  def in_module(name)
     case name
     when Symbol then
-      g.open_module name
+      g.push_const :Rubinius
+      g.push_literal name
+      g.push_scope
+      g.send :open_module, 2
     when String then
       levels = name.split(/::/).map { |s| s.to_sym }
       klass = levels.pop
+
+      g.push_const :Rubinius
+      g.push_literal klass
 
       levels.each do |level|
         g.push_const level
       end
 
-      g.open_module_under klass
+      g.send :open_module_under, 2
     end
+
+    return unless block_given?
 
     g.dup
     g.push_literal_desc do |d|

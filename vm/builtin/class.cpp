@@ -16,19 +16,32 @@
 
 namespace rubinius {
 
-  void Class::bootstrap_methods(STATE) {
+  static void hookup_prim(STATE, Symbol* meth, Symbol* prim) {
+    LookupTable* tbl = G(rubinius)->metaclass(state)->method_table();
+
     Executable* oc = Executable::allocate(state, Qnil);
-    oc->primitive(state, state->symbol("vm_open_class"));
+    oc->primitive(state, prim);
     assert(oc->resolve_primitive(state));
 
-    LookupTable* tbl = G(rubinius)->metaclass(state)->method_table();
-    tbl->store(state, state->symbol("open_class"), oc);
+    tbl->store(state, meth, oc);
+  }
 
-    Executable* ocu = Executable::allocate(state, Qnil);
-    ocu->primitive(state, state->symbol("vm_open_class_under"));
-    assert(ocu->resolve_primitive(state));
+  void Class::bootstrap_methods(STATE) {
+    hookup_prim(state,
+                state->symbol("open_class"),
+                state->symbol("vm_open_class"));
 
-    tbl->store(state, state->symbol("open_class_under"), ocu);
+    hookup_prim(state,
+                state->symbol("open_class_under"),
+                state->symbol("vm_open_class_under"));
+
+    hookup_prim(state,
+                state->symbol("open_module"),
+                state->symbol("vm_open_module"));
+
+    hookup_prim(state,
+                state->symbol("open_module_under"),
+                state->symbol("vm_open_module_under"));
   }
 
   Class* Class::create(STATE, Class* super) {

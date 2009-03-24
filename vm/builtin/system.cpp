@@ -344,4 +344,29 @@ namespace rubinius {
 
     return cls;
   }
+
+  Module* System::vm_open_module(STATE, Symbol* name, StaticScope* scope) {
+    Module* under = G(object);
+
+    if(!scope->nil_p()) {
+      under = scope->module();
+    }
+
+    return vm_open_module_under(state, name, under);
+  }
+
+  Module* System::vm_open_module_under(STATE, Symbol* name, Module* under) {
+    bool found;
+
+    Object* obj = under->get_const(state, name, &found);
+
+    if(found) return as<Module>(obj);
+
+    Module* module = Module::create(state);
+
+    module->set_name(state, under, name);
+    under->set_const(state, name, module);
+
+    return module;
+  }
 }

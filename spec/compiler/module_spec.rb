@@ -69,7 +69,7 @@ describe "A Module node" do
     end
 
     compile do |g|
-      g.open_module :Graffle
+      g.in_module :Graffle
       g.pop
       g.push :nil
     end

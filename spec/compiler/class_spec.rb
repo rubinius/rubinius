@@ -57,10 +57,24 @@ describe "A Class node" do
     end
 
     compile do |g|
-      in_class :Y do |d|
+      g.push_const :Rubinius
+      g.push_literal :Y
+      g.push :nil
+      g.push_cpath_top
+      g.send :open_class_under, 3
+      g.dup
+      g.push_literal_desc :Y do |d|
+        d.push_self
+        d.add_scope
         d.push :self
         d.send :c, 0, true
+        d.ret
       end
+
+      g.swap
+      g.attach_method :__class_init__
+      g.pop
+      g.send :__class_init__, 0
     end
   end
 
