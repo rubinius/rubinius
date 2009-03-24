@@ -3,7 +3,7 @@
 class Proc
 
   def self.__from_block__(env)
-    Ruby.primitive :block_wrapper_from_env
+    Ruby.primitive :proc_from_env
 
     if env.__kind_of__(BlockEnvironment)
       raise PrimitiveFailure, "Unable to create Proc from BlockEnvironment"
@@ -16,9 +16,9 @@ class Proc
     end
   end
 
-  def self.new(compiled_method = nil)
-    if compiled_method
-      return Proc::CompiledMethod.new(compiled_method)
+  def self.new(method = nil)
+    if method
+      return Proc::Method.new(method)
     elsif block_given?
       env = block_given?
     else
@@ -68,40 +68,39 @@ class Proc
 
   alias_method :[], :call
 
-  class CompiledMethod < Proc
-    def compiled_method; @compiled_method; end
-
-    def compiled_method=(other)
-      @compiled_method = other
+  class Method < Proc
+    def bound_method
+      @bound_method
     end
 
-    def self.__from_compiled_method__(cm)
-      obj = allocate()
-      obj.compiled_method = cm
+    def bound_method=(other)
+      @bound_method = other
+    end
 
-      # This bears explaining.
-      # We have a CompiledMethod object, so what we do is just make it
-      # our call method. We do this by putting it the method into our
-      # metaclass's MethodTable.
-      #
-      # This way, when someone sends us call or [], the method is automatically
-      # called.
-      obj.metaclass.method_table[:call] = cm
-      obj.metaclass.method_table[:[]]   = cm
+    def self.__from_method__(meth)
+      obj = allocate()
+      obj.bound_method = meth
+
       return obj
     end
 
-    def self.new(cm)
-      if cm.kind_of? ::CompiledMethod
-        return __from_compiled_method__(cm)
+    def call(*args, &block)
+      @bound_method.call(*args, &block)
+    end
+    alias_method :[], :call
+
+    def self.new(meth)
+      if meth.kind_of? ::Method
+        return __from_method__(meth)
       else
-        raise ArgumentError, "tried to create a CompiledMethodProc object without a CompiledMethod"
+        raise ArgumentError, "tried to create a Proc::Method object without a Method"
       end
     end
 
     def inspect
-      line = @compiled_method.first_line if @compiled_method.lines
-      file = @compiled_method.file
+      compiled_method = @bound_method.compiled_method
+      line = compiled_method.first_line if compiled_method.lines
+      file = compiled_method.file
       "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{file}:#{line}>"
     end
 
@@ -109,13 +108,11 @@ class Proc
 
     def ==(other)
       return false unless other.kind_of? self.class
-      @compiled_method == other.compiled_method
+      @bound_method == other.bound_method
     end
 
     def arity
-      return -1 if @compiled_method.kind_of? NativeMethod
-      c = @compiled_method.args.inject(0) { |s, v| s += (v.length rescue 0) }
-      return (@compiled_method.args[2].nil?) ? c : -(c + 1)
+      @bound_method.arity
     end
   end
 end

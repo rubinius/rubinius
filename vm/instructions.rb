@@ -1414,8 +1414,8 @@ class Instructions
     Object* ret;
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       ret = env->call(state, call_frame, count);
-    } else if(BlockWrapper* wrapper = try_as<BlockWrapper>(t1)) {
-      ret = wrapper->call(state, call_frame, count);
+    } else if(Proc* proc = try_as<Proc>(t1)) {
+      ret = proc->call(state, call_frame, count);
     } else {
       ret = send_slowly(state, vmm, call_frame, G(sym_call), count);
     }
@@ -1433,8 +1433,8 @@ class Instructions
     Object* ret;
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       ret = env->call(state, call_frame, count);
-    } else if(BlockWrapper* wrapper = try_as<BlockWrapper>(t1)) {
-      ret = wrapper->yield(state, call_frame, count);
+    } else if(Proc* proc = try_as<Proc>(t1)) {
+      ret = proc->yield(state, call_frame, count);
     } else {
       Message msg(NULL,
                 static_cast<SendSite*>(Qnil),
@@ -1469,8 +1469,8 @@ class Instructions
     Object* ret;
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
       ret = env->call(state, call_frame, msg);
-    } else if(BlockWrapper* wrapper = try_as<BlockWrapper>(t1)) {
-      ret = wrapper->yield(state, call_frame, msg);
+    } else if(Proc* proc = try_as<Proc>(t1)) {
+      ret = proc->yield(state, call_frame, msg);
     } else {
       msg.recv = t1;
       msg.name = G(sym_call);

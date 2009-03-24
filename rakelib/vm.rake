@@ -133,7 +133,7 @@ field_extract_headers = %w[
   vm/builtin/system.hpp
   vm/builtin/autoload.hpp
   vm/builtin/machine_method.hpp
-  vm/builtin/block_wrapper.hpp
+  vm/builtin/proc.hpp
   vm/builtin/variable_scope.hpp
   vm/builtin/location.hpp
 ]

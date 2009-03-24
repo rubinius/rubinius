@@ -341,6 +341,8 @@ class Module
     meth ||= prc
 
     case meth
+    when Proc::Method
+      cm = DelegatedMethod.new(:call, meth, false)
     when Proc
       prc = meth.dup
       prc.lambda_style!

@@ -100,7 +100,7 @@ class Method
   # Returns a Proc object corresponding to this Method.
 
   def to_proc()
-    Proc::CompiledMethod.new @compiled_method
+    Proc::Method.new self
   end
 
   ##

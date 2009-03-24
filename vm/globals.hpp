@@ -99,7 +99,7 @@ namespace rubinius {
 
     TypedRoot<Class*> autoload; /**< Autoload class */
     TypedRoot<Class*> machine_method; /**< MachineMethod class */
-    TypedRoot<Class*> block_wrapper; /**< BlockWrapper class */
+    TypedRoot<Class*> proc; /**< Proc class */
     TypedRoot<Class*> variable_scope;
     TypedRoot<Class*> location;
     TypedRoot<Exception*> stack_error;
@@ -207,7 +207,7 @@ namespace rubinius {
       data(&roots),
       autoload(&roots),
       machine_method(&roots),
-      block_wrapper(&roots),
+      proc(&roots),
       variable_scope(&roots),
       location(&roots),
       stack_error(&roots),

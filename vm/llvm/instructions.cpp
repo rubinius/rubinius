@@ -17,7 +17,7 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/lookuptable.hpp"
-#include "builtin/block_wrapper.hpp"
+#include "builtin/proc.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/system.hpp"
 

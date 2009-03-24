@@ -1,5 +1,5 @@
 #include "prelude.hpp"
-#include "builtin/block_wrapper.hpp"
+#include "builtin/proc.hpp"
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 #include "builtin/class.hpp"
@@ -12,28 +12,28 @@
 
 namespace rubinius {
 
-  void BlockWrapper::init(STATE) {
-    GO(block_wrapper).set(
+  void Proc::init(STATE) {
+    GO(proc).set(
         state->new_class("Proc", G(object)));
-    G(block_wrapper)->set_object_type(state, BlockWrapperType);
+    G(proc)->set_object_type(state, ProcType);
   }
 
-  BlockWrapper* BlockWrapper::create(STATE, Object* self) {
-    return state->new_object<BlockWrapper>(as<Class>(self));
+  Proc* Proc::create(STATE, Object* self) {
+    return state->new_object<Proc>(as<Class>(self));
   }
 
-  BlockWrapper* BlockWrapper::from_env(STATE, BlockEnvironment* env) {
-    BlockWrapper* wrapper = BlockWrapper::create(state, G(block_wrapper));
-    wrapper->block(state, env);
-    return wrapper;
+  Proc* Proc::from_env(STATE, BlockEnvironment* env) {
+    Proc* proc = Proc::create(state, G(proc));
+    proc->block(state, env);
+    return proc;
   }
 
-  Object* BlockWrapper::call(STATE, CallFrame* call_frame, size_t args) {
+  Object* Proc::call(STATE, CallFrame* call_frame, size_t args) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 
     // Check the arity in lambda mode
-    if(lambda_style) {
+    if(bound_method_->nil_p() && lambda_style) {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
@@ -46,7 +46,22 @@ namespace rubinius {
       }
     }
 
-    Object* ret = block_->call(state, call_frame, args, flags);
+    Object* ret;
+    if(bound_method_->nil_p()) {
+      ret= block_->call(state, call_frame, args, flags);
+    } else {
+      Message msg(NULL,
+                reinterpret_cast<SendSite*>(Qnil),
+                G(sym_call),
+                this,
+                call_frame,
+                args,
+                Qnil,
+                false,
+                this->lookup_begin(state));
+
+      ret = msg.send(state, call_frame);
+    }
 
     if(lambda_style && !ret) {
       RaiseReason reason = state->thread_state()->raise_reason();
@@ -61,22 +76,30 @@ namespace rubinius {
     return ret;
   }
 
-  Object* BlockWrapper::yield(STATE, CallFrame* call_frame, size_t args) {
-    // NOTE! To match MRI semantics, this explicitely ignores lambda_.
-    return block_->call(state, call_frame, args, 0);
+  Object* Proc::yield(STATE, CallFrame* call_frame, size_t args) {
+    if(bound_method_->nil_p()) {
+      // NOTE! To match MRI semantics, this explicitely ignores lambda_.
+      return block_->call(state, call_frame, args, 0);
+    } else {
+      return this->call(state, call_frame, args);
+    }
   }
 
-  Object* BlockWrapper::yield(STATE, CallFrame* call_frame, Message& msg) {
-    // NOTE! To match MRI semantics, this explicitely ignores lambda_.
-    return block_->call(state, call_frame, msg, 0);
+  Object* Proc::yield(STATE, CallFrame* call_frame, Message& msg) {
+    if(bound_method_->nil_p()) {
+      // NOTE! To match MRI semantics, this explicitely ignores lambda_.
+      return block_->call(state, call_frame, msg, 0);
+    } else {
+      return this->call_prim(state, NULL, call_frame, msg);
+    }
   }
 
-  Object* BlockWrapper::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
+  Object* Proc::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 
     // Check the arity in lambda mode
-    if(lambda_style) {
+    if(bound_method_->nil_p() && lambda_style) {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
@@ -89,7 +112,12 @@ namespace rubinius {
       }
     }
 
-    Object* ret = block_->call(state, call_frame, msg, flags);
+    Object* ret;
+    if(bound_method_->nil_p()) {
+      ret = block_->call(state, call_frame, msg, flags);
+    } else {
+      ret = msg.send(state, call_frame);
+    }
 
     if(lambda_style && !ret) {
       RaiseReason reason = state->thread_state()->raise_reason();
@@ -104,7 +132,7 @@ namespace rubinius {
     return ret;
   }
 
-  Object* BlockWrapper::call_on_object(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
+  Object* Proc::call_on_object(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 

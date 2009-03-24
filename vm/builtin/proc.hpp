@@ -7,35 +7,37 @@
 namespace rubinius {
   class BlockEnvironment;
 
-  class BlockWrapper : public Object {
+  class Proc : public Object {
   public:
-    const static object_type type = BlockWrapperType;
+    const static object_type type = ProcType;
 
   private:
     BlockEnvironment* block_; // slot
     Object* lambda_; // slot
+    Object* bound_method_; // slot
 
   public:
     attr_accessor(block, BlockEnvironment);
     attr_accessor(lambda, Object);
+    attr_accessor(bound_method, Object);
 
     static void init(STATE);
 
-    // Ruby.primitive :block_wrapper_allocate
-    static BlockWrapper* create(STATE, Object* self);
+    // Ruby.primitive :proc_allocate
+    static Proc* create(STATE, Object* self);
 
     Object* call(STATE, CallFrame* call_frame, size_t args);
     Object* yield(STATE, CallFrame* call_frame, size_t args);
     Object* yield(STATE, CallFrame* call_frame, Message& msg);
 
-    // Ruby.primitive? :block_wrapper_call
+    // Ruby.primitive? :proc_call
     Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
-    // Ruby.primitive? :block_wrapper_call_on_object
+    // Ruby.primitive? :proc_call_on_object
     Object* call_on_object(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
 
-    // Ruby.primitive :block_wrapper_from_env
-    static BlockWrapper* from_env(STATE, BlockEnvironment* env);
+    // Ruby.primitive :proc_from_env
+    static Proc* from_env(STATE, BlockEnvironment* env);
 
     class Info : public TypeInfo {
     public:

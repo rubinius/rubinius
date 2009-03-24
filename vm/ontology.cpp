@@ -36,7 +36,7 @@
 #include "builtin/taskprobe.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/machine_method.hpp"
-#include "builtin/block_wrapper.hpp"
+#include "builtin/proc.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/location.hpp"
 
@@ -220,7 +220,7 @@ namespace rubinius {
     Data::init(this);
     Autoload::init(this);
     MachineMethod::init(this);
-    BlockWrapper::init(this);
+    Proc::init(this);
     VariableScope::init(this);
     Location::init(this);
 
