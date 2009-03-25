@@ -96,7 +96,12 @@ class Numeric
 
   def ==(other)
     return true if other.equal?(self)
-    !!(other == self)
+    if other.kind_of? Numeric
+      b, a = other.coerce self
+      a == b
+    else
+      !!(other == self)
+    end
   end
 
   def <=>(other)
