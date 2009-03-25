@@ -7,9 +7,9 @@ describe "A Match node" do
     end
 
     compile do |g|
-      g.push_literal :$_ # REFACTOR - we use this block a lot
       g.push_cpath_top
       g.find_const :Globals # FIX: find the other Globals, order flipped
+      g.push_literal :$_ # REFACTOR - we use this block a lot
       g.send :[], 1
 
       g.memoize do

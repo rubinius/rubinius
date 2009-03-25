@@ -1630,8 +1630,8 @@ class Compiler
       def bytecode(g)
         pos(g)
 
-        g.push_literal :$_
         g.find_cpath_top_const :Globals
+        g.push_literal :$_
         g.send :[], 1
 
         @pattern.bytecode(g)
