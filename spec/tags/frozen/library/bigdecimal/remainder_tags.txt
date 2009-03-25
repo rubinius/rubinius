@@ -1,4 +1,2 @@
-fails:BigDecimal#remainder returns zero if used on zero
 fails:BigDecimal#remainder it equals modulo, if both values are of same sign
-fails:BigDecimal#remainder it is the modulus minus the value divided by, if values have opposite sign
 fails:BigDecimal#remainder coerces arguments to BigDecimal if possible

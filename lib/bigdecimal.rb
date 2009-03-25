@@ -235,7 +235,6 @@ class BigDecimal < Numeric
   end
 
   def coerce(other)
-    Ruby.primitive :numeric_coerce
     if other.kind_of?(BigDecimal)
       [other, self]
     else
@@ -364,6 +363,11 @@ class BigDecimal < Numeric
     self.div(other, 0)
   end
   alias / quo
+
+  def divide(other)
+    b, a = coerce other
+    a / b
+  end
   
   def div(other, precs = nil)
     if !other.kind_of?(BigDecimal)

@@ -1,2 +1,0 @@
-fails:BigDecimal#/ returns a / b
-fails:BigDecimal#/ returns 0 if divided by Infinity

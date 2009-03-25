@@ -14,12 +14,13 @@ class Float < Numeric
   end
 
   def coerce(other)
-    return [other, self] if other.__kind_of__ Float
+    return [other, self] if other.kind_of? Float
     [Float(other), self]
   end
 
   def -@
     Ruby.primitive :float_neg
+    raise PrimitiveFailure, "Float#-@ primitive failed"
   end
 
   def +(other)
@@ -112,14 +113,17 @@ class Float < Numeric
 
   def eql?(other)
     Ruby.primitive :float_eql
+    raise PrimitiveFailure, "Float#eql? primitive failed"
   end
 
   def nan?
     Ruby.primitive :float_isnan
+    raise PrimitiveFailure, "Float#nan? primitive failed"
   end
 
   def infinite?
     Ruby.primitive :float_isinf
+    raise PrimitiveFailure, "Float#infinite? primitive failed"
   end
 
   def finite?
@@ -132,6 +136,7 @@ class Float < Numeric
 
   def to_i
     Ruby.primitive :float_to_i
+    raise PrimitiveFailure, "Float#to_i primitive failed"
   end
   alias_method :to_int, :to_i
   alias_method :truncate, :to_i

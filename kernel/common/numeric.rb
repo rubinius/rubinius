@@ -33,7 +33,7 @@ class Numeric
   end
 
   #--
-  # see README-DEVELOPERS regarding safe math compiler plugin
+  # see doc/compiler/plugins.txt regarding safe math compiler plugin
   #++
 
   def divide(other)
