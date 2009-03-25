@@ -532,7 +532,9 @@ class IO
 
     io.descriptor = fd
     io.mode       = mode || cur_mode
-    io.sync       = sync.to_bool || [STDOUT.fileno, STDERR.fileno].include?(fd)
+    io.sync       = sync.to_bool
+    io.sync     ||= STDOUT.fileno == fd if STDOUT.respond_to?(:fileno)
+    io.sync     ||= STDERR.fileno == fd if STDERR.respond_to?(:fileno)
   end
 
   #

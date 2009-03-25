@@ -121,6 +121,13 @@ class Regexp
     end
   end
 
+  def self.last_match=(match)
+    unless match.nil? || match.kind_of?(MatchData)
+      raise ::TypeError, "wrong argument type #{match.class} (expected MatchData)"
+    end
+    VariableScope.of_sender.last_match = match
+  end
+
   def self.union(*patterns)
     if patterns.nil? || patterns.length == 0
       return /(?!)/

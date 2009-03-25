@@ -1167,11 +1167,11 @@ class Compiler
           if @value
             g.find_cpath_top_const :Regexp
             @value.bytecode(g)
-            g.send :my_last_match=, 1
+            g.send :last_match=, 1
           else
             g.find_cpath_top_const :Regexp
             g.swap
-            g.send :my_last_match=, 1
+            g.send :last_match=, 1
           end
         else
           if @value

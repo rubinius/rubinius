@@ -1,8 +1,2 @@
 fails:The predefined global constants includes DATA when main script contains __END__
-fails:Predefined global $~ raises an error if assigned an object not nil or instanceof MatchData
-fails:Predefined global $stdout is the same as $defout
-fails:Predefined global $stdout is the same as $DEFAULT_OUTPUT from 'English' library
-fails:Predefined global $stdout raises TypeError error if assigned to nil
-fails:Predefined global $stdout raises TypeError error if assigned to object that doesn't respond to #write
 fails:Execution variable $: does not include on the taint check level > 1
-fails:Execution variable $: is the same object as $LOAD_PATH and $-I

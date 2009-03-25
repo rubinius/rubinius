@@ -69,6 +69,30 @@ module Kernel
   get = proc { Process.pid }
   Globals.set_hook(:$$, get, nil)
 
+  get = proc { ::STDOUT }
+  set = proc do |io, key|
+    unless io.respond_to? :write
+      raise ::TypeError, "#{key} must have write method, #{io.class} given"
+    end
+    ::STDOUT = io
+  end
+  Globals.set_hook(:$>, get, set)
+  Globals.set_hook(:$stdout, get, set)
+  Globals.set_hook(:$defout, get, set)
+
+  get = proc { ::STDIN }
+  set = proc { |io| ::STDIN = io }
+  Globals.set_hook(:$stdin, get, set)
+
+  get = proc { ::STDERR }
+  set = proc do |io, key|
+    unless io.respond_to? :write
+      raise ::TypeError, "#{key} must have write method, #{io.class} given"
+    end
+    ::STDERR = io
+  end
+  Globals.set_hook(:$stderr, get, set)
+
   # Implements rb_path2name. Based on code from wycats
   def const_lookup(name)
     names = name.split '::'

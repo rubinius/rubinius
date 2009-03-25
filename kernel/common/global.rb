@@ -15,6 +15,7 @@ class GlobalVariables
     @internal[:$>] = STDOUT
     @internal[:$<] = ARGF
     @internal[:$:] = load_path
+    @internal[:$-I] = load_path
     @internal[:$"] = loaded_features
     @internal[:$,] = ''               # Output field separator
     @internal[:$.] = 0                # TODO: Last line number of IO read.
