@@ -4,7 +4,7 @@ load_extension("exception")
 
 describe "CApiExceptionSpecs" do
   before :each do
-    @s = SubtendRaiser.new
+    @s = CApiExceptionSpecs.new
   end
 
   it "rb_raise should raise an exception" do

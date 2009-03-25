@@ -92,6 +92,7 @@ end
 def kernel_clean
   rm_f Dir["**/*.rbc",
            "**/.*.rbc",
+           "spec/capi/ext/*.{o,sig,#{$dlext}}",
            "runtime/**/load_order.txt",
            "runtime/platform.conf"],
     :verbose => $verbose

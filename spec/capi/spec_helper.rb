@@ -7,7 +7,7 @@ def compile_extension(path, name)
   source    = "#{ext}.c"
   obj       = "#{ext}.o"
   lib       = "#{ext}.#{Config::CONFIG['DLEXT']}"
-  signature = "#{path}#{name}.sig"
+  signature = "#{ext}.sig"
 
   return lib if File.exists?(signature) and
                 IO.read(signature).chomp == RUBY_NAME and

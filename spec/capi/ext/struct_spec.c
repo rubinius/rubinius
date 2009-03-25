@@ -17,6 +17,6 @@ static VALUE sa_struct_define(VALUE self, VALUE name,
 
 void Init_struct_spec() {
   VALUE cls;
-  cls = rb_define_class("CApiStructDefineSpecs", rb_cObject);
+  cls = rb_define_class("CApiStructSpecs", rb_cObject);
   rb_define_method(cls, "rb_struct_define", sa_struct_define, 4);
 }

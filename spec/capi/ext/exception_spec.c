@@ -30,7 +30,7 @@ VALUE se_exc_new3(VALUE self, VALUE str) {
 
 void Init_exception_spec() {
   VALUE cls;
-  cls = rb_define_class("CApiRaiserSpecs", rb_cObject);
+  cls = rb_define_class("CApiExceptionSpecs", rb_cObject);
   rb_define_method(cls, "raise!", se_raise, 0);
   rb_define_method(cls, "raise_early", se_raise_early, 1);
   rb_define_method(cls, "rb_exc_new", se_exc_new, 1);
