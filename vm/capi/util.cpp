@@ -1,6 +1,8 @@
 #include "capi/capi.hpp"
+#include "capi/ruby.h"
 
-using namespace capi;
+using namespace rubinius;
+using namespace rubinius::capi;
 
 extern "C" {
   int rb_scan_args(int argc, const VALUE* argv, const char* spec, ...) {

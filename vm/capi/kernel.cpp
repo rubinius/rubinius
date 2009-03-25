@@ -5,6 +5,9 @@
 #include "exception_point.hpp"
 
 #include "capi/capi.hpp"
+#include "capi/ruby.h"
+
+using namespace rubinius;
 
 extern "C" {
   VALUE rb_yield(VALUE argument_handle) {

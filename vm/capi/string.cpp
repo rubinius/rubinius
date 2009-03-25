@@ -5,8 +5,10 @@
 #include "builtin/string.hpp"
 
 #include "capi/capi.hpp"
+#include "capi/ruby.h"
 
-using namespace capi;
+using namespace rubinius;
+using namespace rubinius::capi;
 
 extern "C" {
   VALUE rb_String(VALUE object_handle) {

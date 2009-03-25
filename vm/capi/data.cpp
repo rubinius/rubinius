@@ -2,8 +2,10 @@
 #include "builtin/data.hpp"
 
 #include "capi/capi.hpp"
+#include "capi/ruby.h"
 
-using namespace capi;
+using namespace rubinius;
+using namespace rubinius::capi;
 
 extern "C" {
   // Used in a macro, has to be visible in C

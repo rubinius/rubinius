@@ -1,4 +1,5 @@
 #include "capi/capi.hpp"
+#include "capi/ruby.h"
 
 extern "C" {
   void rb_thread_schedule() {

@@ -5,8 +5,10 @@
 #include "builtin/symbol.hpp"
 
 #include "capi/capi.hpp"
+#include "capi/ruby.h"
 
-using namespace capi;
+using namespace rubinius;
+using namespace rubinius::capi;
 
 extern "C" {
   void rb_check_frozen(VALUE obj_handle) {

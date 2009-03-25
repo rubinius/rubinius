@@ -5,8 +5,10 @@
 #include "helpers.hpp"
 
 #include "capi/capi.hpp"
+#include "capi/ruby.h"
 
-using namespace capi;
+using namespace rubinius;
+using namespace rubinius::capi;
 
 extern "C" {
   VALUE rb_class_new_instance(int arg_count, VALUE* args, VALUE class_handle) {

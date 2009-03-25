@@ -3,8 +3,10 @@
 #include "builtin/object.hpp"
 
 #include "capi/capi.hpp"
+#include "capi/ruby.h"
 
-using namespace capi;
+using namespace rubinius;
+using namespace rubinius::capi;
 
 extern "C" {
   /** Shares impl. with the other NUM2*, change all if modifying. */

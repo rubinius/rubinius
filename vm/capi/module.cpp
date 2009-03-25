@@ -5,8 +5,10 @@
 #include "helpers.hpp"
 
 #include "capi/capi.hpp"
+#include "capi/ruby.h"
 
-using namespace capi;
+using namespace rubinius;
+using namespace rubinius::capi;
 
 extern "C" {
   int rb_const_defined(VALUE module_handle, ID const_id) {

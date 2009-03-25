@@ -19,137 +19,140 @@
 #include <vector>
 #include <tr1/unordered_map>
 
-namespace capi {
+namespace rubinius {
+  namespace capi {
 
-  typedef std::vector<std::string> CApiConstantNameMap;
-  typedef std::tr1::unordered_map<int, Handle> CApiConstantHandleMap;
+    typedef std::vector<std::string> CApiConstantNameMap;
+    typedef std::tr1::unordered_map<int, Handle> CApiConstantHandleMap;
 
-  std::string& capi_get_constant_name(CApiConstant type) {
-    static CApiConstantNameMap map;
+    std::string& capi_get_constant_name(CApiConstant type) {
+      static CApiConstantNameMap map;
 
-    if(map.empty()) {
-      map.resize(cCApiMaxConstant + 1);
+      if(map.empty()) {
+        map.resize(cCApiMaxConstant + 1);
 
-      map[cCApiArray]      = "Array";
-      map[cCApiBignum]     = "Bignum";
-      map[cCApiClass]      = "Class";
-      map[cCApiComparable] = "Comparable";
-      map[cCApiData]       = "Data";
-      map[cCApiEnumerable] = "Enumerable";
-      map[cCApiFalse]      = "FalseClass";
-      map[cCApiFixnum]     = "Fixnum";
-      map[cCApiFloat]      = "Float";
-      map[cCApiHash]       = "Hash";
-      map[cCApiInteger]    = "Integer";
-      map[cCApiIO]         = "IO";
-      map[cCApiKernel]     = "Kernel";
-      map[cCApiModule]     = "Module";
-      map[cCApiNil]        = "NilClass";
-      map[cCApiObject]     = "Object";
-      map[cCApiRegexp]     = "Regexp";
-      map[cCApiString]     = "String";
-      map[cCApiSymbol]     = "Symbol";
-      map[cCApiThread]     = "Thread";
-      map[cCApiTrue]       = "TrueClass";
+        map[cCApiArray]      = "Array";
+        map[cCApiBignum]     = "Bignum";
+        map[cCApiClass]      = "Class";
+        map[cCApiComparable] = "Comparable";
+        map[cCApiData]       = "Data";
+        map[cCApiEnumerable] = "Enumerable";
+        map[cCApiFalse]      = "FalseClass";
+        map[cCApiFixnum]     = "Fixnum";
+        map[cCApiFloat]      = "Float";
+        map[cCApiHash]       = "Hash";
+        map[cCApiInteger]    = "Integer";
+        map[cCApiIO]         = "IO";
+        map[cCApiKernel]     = "Kernel";
+        map[cCApiModule]     = "Module";
+        map[cCApiNil]        = "NilClass";
+        map[cCApiObject]     = "Object";
+        map[cCApiRegexp]     = "Regexp";
+        map[cCApiString]     = "String";
+        map[cCApiSymbol]     = "Symbol";
+        map[cCApiThread]     = "Thread";
+        map[cCApiTrue]       = "TrueClass";
 
-      map[cCApiArgumentError]       = "ArgumentError";
-      map[cCApiEOFError]            = "EOFError";
-      map[cCApiErrno]               = "Errno";
-      map[cCApiException]           = "Exception";
-      map[cCApiFatal]               = "Fatal";
-      map[cCApiFloatDomainError]    = "FloatDomainError";
-      map[cCApiIndexError]          = "IndexError";
-      map[cCApiInterrupt]           = "Interrupt";
-      map[cCApiIOError]             = "IOError";
-      map[cCApiLoadError]           = "LoadError";
-      map[cCApiLocalJumpError]      = "LocalJumpError";
-      map[cCApiNameError]           = "NameError";
-      map[cCApiNoMemoryError]       = "NoMemoryError";
-      map[cCApiNoMethodError]       = "NoMethodError";
-      map[cCApiNotImplementedError] = "NotImplementedError";
-      map[cCApiRangeError]          = "RangeError";
-      map[cCApiRegexpError]         = "RegexpError";
-      map[cCApiRuntimeError]        = "RuntimeError";
-      map[cCApiScriptError]         = "ScriptError";
-      map[cCApiSecurityError]       = "SecurityError";
-      map[cCApiSignalException]     = "SignalException";
-      map[cCApiStandardError]       = "StandardError";
-      map[cCApiSyntaxError]         = "SyntaxError";
-      map[cCApiSystemCallError]     = "SystemCallError";
-      map[cCApiSystemExit]          = "SystemExit";
-      map[cCApiSystemStackError]    = "SystemStackError";
-      map[cCApiTypeError]           = "TypeError";
-      map[cCApiThreadError]         = "ThreadError";
-      map[cCApiZeroDivisionError]   = "ZeroDivisionError";
+        map[cCApiArgumentError]       = "ArgumentError";
+        map[cCApiEOFError]            = "EOFError";
+        map[cCApiErrno]               = "Errno";
+        map[cCApiException]           = "Exception";
+        map[cCApiFatal]               = "Fatal";
+        map[cCApiFloatDomainError]    = "FloatDomainError";
+        map[cCApiIndexError]          = "IndexError";
+        map[cCApiInterrupt]           = "Interrupt";
+        map[cCApiIOError]             = "IOError";
+        map[cCApiLoadError]           = "LoadError";
+        map[cCApiLocalJumpError]      = "LocalJumpError";
+        map[cCApiNameError]           = "NameError";
+        map[cCApiNoMemoryError]       = "NoMemoryError";
+        map[cCApiNoMethodError]       = "NoMethodError";
+        map[cCApiNotImplementedError] = "NotImplementedError";
+        map[cCApiRangeError]          = "RangeError";
+        map[cCApiRegexpError]         = "RegexpError";
+        map[cCApiRuntimeError]        = "RuntimeError";
+        map[cCApiScriptError]         = "ScriptError";
+        map[cCApiSecurityError]       = "SecurityError";
+        map[cCApiSignalException]     = "SignalException";
+        map[cCApiStandardError]       = "StandardError";
+        map[cCApiSyntaxError]         = "SyntaxError";
+        map[cCApiSystemCallError]     = "SystemCallError";
+        map[cCApiSystemExit]          = "SystemExit";
+        map[cCApiSystemStackError]    = "SystemStackError";
+        map[cCApiTypeError]           = "TypeError";
+        map[cCApiThreadError]         = "ThreadError";
+        map[cCApiZeroDivisionError]   = "ZeroDivisionError";
+      }
+
+      if(type < 0 || type >= cCApiMaxConstant) {
+        NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+        rb_raise(env->get_handle_global(env->state()->globals.exception.get()),
+              "C-API: invalid constant index");
+      }
+
+      return map[type];
     }
 
-    if(type < 0 || type >= cCApiMaxConstant) {
+    /**
+     *  Common implementation for rb_funcall*
+     *
+     *  @todo   Set up permanent SendSites through macroing?
+     *  @todo   Stricter action check?
+     */
+    VALUE capi_funcall_backend(const char* file, int line,
+        VALUE receiver, ID method_name, std::size_t arg_count, VALUE* arg_array) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      rb_raise(env->get_handle_global(env->state()->globals.exception.get()),
-            "C-API: invalid constant index");
+      Array* args = Array::create(env->state(), arg_count);
+
+      for(size_t i = 0; i < arg_count; i++) {
+        args->set(env->state(), i, env->get_object(arg_array[i]));
+      }
+
+      Object* recv = env->get_object(receiver);
+      Object* ret = recv->send(env->state(), env->current_call_frame(),
+          reinterpret_cast<Symbol*>(method_name), args, RBX_Qnil);
+
+      // An exception occurred
+      if(!ret) env->current_ep()->return_to(env);
+
+      return env->get_handle(ret);
     }
 
-    return map[type];
-  }
+    /** Make sure the name has the given prefix. */
+    Symbol* prefixed_by(std::string prefix, std::string name) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-  /**
-   *  Common implementation for rb_funcall*
-   *
-   *  @todo   Set up permanent SendSites through macroing?
-   *  @todo   Stricter action check?
-   */
-  VALUE capi_funcall_backend(const char* file, int line,
-      VALUE receiver, ID method_name, std::size_t arg_count, VALUE* arg_array) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Array* args = Array::create(env->state(), arg_count);
+      if(name.compare(0UL, prefix.size(), prefix) != 0) {
+        std::ostringstream str;
+        str << prefix << name;
+        name.assign(str.str());
+      }
 
-    for(size_t i = 0; i < arg_count; i++) {
-      args->set(env->state(), i, env->get_object(arg_array[i]));
+      /* @todo Need to strdup here to not point to junk but can it leak? */
+      return env->state()->symbol(strdup(name.c_str()));
     }
 
-    Object* recv = env->get_object(receiver);
-    Object* ret = recv->send(env->state(), env->current_call_frame(),
-        reinterpret_cast<Symbol*>(method_name), args, RBX_Qnil);
+    /** Make sure the name has the given prefix. */
+    Symbol* prefixed_by(std::string prefix, ID name) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    // An exception occurred
-    if(!ret) env->current_ep()->return_to(env);
-
-    return env->get_handle(ret);
-  }
-
-  /** Make sure the name has the given prefix. */
-  Symbol* prefixed_by(std::string prefix, std::string name) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    if(name.compare(0UL, prefix.size(), prefix) != 0) {
-      std::ostringstream str;
-      str << prefix << name;
-      name.assign(str.str());
+      return prefixed_by(prefix, reinterpret_cast<Symbol*>(name)->c_str(env->state()));
     }
 
-    /* @todo Need to strdup here to not point to junk but can it leak? */
-    return env->state()->symbol(strdup(name.c_str()));
-  }
+    void capi_raise_type_error(object_type type, Object* object) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-  /** Make sure the name has the given prefix. */
-  Symbol* prefixed_by(std::string prefix, ID name) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      TypeInfo* expected = env->state()->find_type(type);
+      TypeInfo* actual = env->state()->find_type(object->type_id());
 
-    return prefixed_by(prefix, reinterpret_cast<Symbol*>(name)->c_str(env->state()));
-  }
-
-  void capi_raise_type_error(object_type type, Object* object) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    TypeInfo* expected = env->state()->find_type(type);
-    TypeInfo* actual = env->state()->find_type(object->type_id());
-
-    rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
-        actual->type_name.c_str(), expected->type_name.c_str());
+      rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
+          actual->type_name.c_str(), expected->type_name.c_str());
+    }
   }
 }
 
-using namespace capi;
+using namespace rubinius;
+using namespace rubinius::capi;
 
 extern "C" {
 
