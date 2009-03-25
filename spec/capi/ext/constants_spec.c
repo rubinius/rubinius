@@ -1,157 +1,254 @@
-#include <ruby.h>
+#include "ruby.h"
 
-VALUE sc_get_object (VALUE self) { 
+static VALUE constants_spec_rb_cArray(VALUE self) {
+  return rb_cArray;
+}
+
+static VALUE constants_spec_rb_cBignum(VALUE self) {
+  return rb_cBignum;
+}
+
+static VALUE constants_spec_rb_cClass(VALUE self) {
+  return rb_cClass;
+}
+
+static VALUE constants_spec_rb_cData(VALUE self) {
+  return rb_cData;
+}
+
+static VALUE constants_spec_rb_cFalseClass(VALUE self) {
+  return rb_cFalseClass;
+}
+
+static VALUE constants_spec_rb_cFixnum(VALUE self) {
+  return rb_cFixnum;
+}
+
+static VALUE constants_spec_rb_cFloat(VALUE self) {
+  return rb_cFloat;
+}
+
+static VALUE constants_spec_rb_cHash(VALUE self) {
+  return rb_cHash;
+}
+
+static VALUE constants_spec_rb_cInteger(VALUE self) {
+  return rb_cInteger;
+}
+
+static VALUE constants_spec_rb_cIO(VALUE self) {
+  return rb_cIO;
+}
+
+static VALUE constants_spec_rb_cModule(VALUE self) {
+  return rb_cModule;
+}
+
+static VALUE constants_spec_rb_cNilClass(VALUE self) {
+  return rb_cNilClass;
+}
+
+static VALUE constants_spec_rb_cObject(VALUE self) {
   return rb_cObject;
 }
 
-VALUE sc_get_kernel (VALUE self) { 
-  return rb_mKernel; 
+static VALUE constants_spec_rb_cRegexp(VALUE self) {
+  return rb_cRegexp;
 }
 
-VALUE sc_get_exception (VALUE self) {
-  return rb_eException;
+static VALUE constants_spec_rb_cString(VALUE self) {
+  return rb_cString;
 }
 
-VALUE sc_get_system_exit (VALUE self) {
-  return rb_eSystemExit;
+static VALUE constants_spec_rb_cSymbol(VALUE self) {
+  return rb_cSymbol;
 }
 
-VALUE sc_get_interrupt (VALUE self) {
-  return rb_eInterrupt;
+static VALUE constants_spec_rb_cThread(VALUE self) {
+  return rb_cThread;
 }
 
-VALUE sc_get_signal (VALUE self) {
-  return rb_eSignal;
+static VALUE constants_spec_rb_cTrueClass(VALUE self) {
+  return rb_cTrueClass;
 }
 
-VALUE sc_get_standard_error (VALUE self) {
-  return rb_eStandardError;
+static VALUE constants_spec_rb_mComparable(VALUE self) {
+  return rb_mComparable;
 }
 
-VALUE sc_get_runtime_error (VALUE self) {
-  return rb_eRuntimeError;
+static VALUE constants_spec_rb_mEnumerable(VALUE self) {
+  return rb_mEnumerable;
 }
 
-VALUE sc_get_type_error (VALUE self) {
-  return rb_eTypeError;
+static VALUE constants_spec_rb_mKernel(VALUE self) {
+  return rb_mKernel;
 }
 
-VALUE sc_get_arg_error (VALUE self) {
+static VALUE constants_spec_rb_eArgError(VALUE self) {
   return rb_eArgError;
 }
 
-VALUE sc_get_index_error (VALUE self) {
-  return rb_eIndexError;
-}
-
-VALUE sc_get_range_error (VALUE self) {
-  return rb_eRangeError;
-}
-
-VALUE sc_get_name_error (VALUE self) {
-  return rb_eNameError;
-}
-
-VALUE sc_get_no_method_error (VALUE self) {
-  return rb_eNoMethodError;
-}
-
-VALUE sc_get_security_error (VALUE self) {
-  return rb_eSecurityError;
-}
-
-VALUE sc_get_not_imp_error (VALUE self) {
-  return rb_eNotImpError;
-}
-
-VALUE sc_get_no_mem_error (VALUE self) {
-  return rb_eNoMemError;
-}
-
-VALUE sc_get_script_error (VALUE self) {
-  return rb_eScriptError;
-}
-
-VALUE sc_get_syntax_error (VALUE self) {
-  return rb_eSyntaxError;
-}
-
-VALUE sc_get_load_error (VALUE self) {
-  return rb_eLoadError;
-}
-
-VALUE sc_get_system_call_error (VALUE self) {
-  return rb_eSystemCallError;
-}
-
-VALUE sc_get_errno (VALUE self) {
-  return rb_mErrno;
-}
-
-VALUE sc_get_io_error (VALUE self) {
-  return rb_eIOError;
-}
-
-VALUE sc_get_local_jump_error (VALUE self) {
-  return rb_eLocalJumpError;
-}
-
-VALUE sc_get_eof_error (VALUE self) {
+static VALUE constants_spec_rb_eEOFError(VALUE self) {
   return rb_eEOFError;
 }
 
-VALUE sc_get_thread_error (VALUE self) {
-  return rb_eThreadError;
+static VALUE constants_spec_rb_mErrno(VALUE self) {
+  return rb_mErrno;
 }
 
-VALUE sc_get_zero_division_error (VALUE self) {
-  return rb_eZeroDivError;
+static VALUE constants_spec_rb_eException(VALUE self) {
+  return rb_eException;
 }
 
-VALUE sc_get_float_domain_error (VALUE self) {
+static VALUE constants_spec_rb_eFloatDomainError(VALUE self) {
   return rb_eFloatDomainError;
 }
 
-VALUE sc_get_sys_stack_error (VALUE self) {
+static VALUE constants_spec_rb_eIndexError(VALUE self) {
+  return rb_eIndexError;
+}
+
+static VALUE constants_spec_rb_eInterrupt(VALUE self) {
+  return rb_eInterrupt;
+}
+
+static VALUE constants_spec_rb_eIOError(VALUE self) {
+  return rb_eIOError;
+}
+
+static VALUE constants_spec_rb_eLoadError(VALUE self) {
+  return rb_eLoadError;
+}
+
+static VALUE constants_spec_rb_eLocalJumpError(VALUE self) {
+  return rb_eLocalJumpError;
+}
+
+static VALUE constants_spec_rb_eNameError(VALUE self) {
+  return rb_eNameError;
+}
+
+static VALUE constants_spec_rb_eNoMemError(VALUE self) {
+  return rb_eNoMemError;
+}
+
+static VALUE constants_spec_rb_eNoMethodError(VALUE self) {
+  return rb_eNoMethodError;
+}
+
+static VALUE constants_spec_rb_eNotImpError(VALUE self) {
+  return rb_eNotImpError;
+}
+
+static VALUE constants_spec_rb_eRangeError(VALUE self) {
+  return rb_eRangeError;
+}
+
+static VALUE constants_spec_rb_eRegexpError(VALUE self) {
+  return rb_eRegexpError;
+}
+
+static VALUE constants_spec_rb_eRuntimeError(VALUE self) {
+  return rb_eRuntimeError;
+}
+
+static VALUE constants_spec_rb_eScriptError(VALUE self) {
+  return rb_eScriptError;
+}
+
+static VALUE constants_spec_rb_eSecurityError(VALUE self) {
+  return rb_eSecurityError;
+}
+
+static VALUE constants_spec_rb_eSignal(VALUE self) {
+  return rb_eSignal;
+}
+
+static VALUE constants_spec_rb_eStandardError(VALUE self) {
+  return rb_eStandardError;
+}
+
+static VALUE constants_spec_rb_eSyntaxError(VALUE self) {
+  return rb_eSyntaxError;
+}
+
+static VALUE constants_spec_rb_eSystemCallError(VALUE self) {
+  return rb_eSystemCallError;
+}
+
+static VALUE constants_spec_rb_eSystemExit(VALUE self) {
+  return rb_eSystemExit;
+}
+
+static VALUE constants_spec_rb_eSysStackError(VALUE self) {
   return rb_eSysStackError;
 }
 
-VALUE sc_get_regexp_error (VALUE self) {
-  return rb_eRegexpError;
+static VALUE constants_spec_rb_eTypeError(VALUE self) {
+  return rb_eTypeError;
+}
+
+static VALUE constants_spec_rb_eThreadError(VALUE self) {
+  return rb_eThreadError;
+}
+
+static VALUE constants_spec_rb_eZeroDivError(VALUE self) {
+  return rb_eZeroDivError;
 }
 
 void Init_constants_spec() {
   VALUE cls;
   cls = rb_define_class("CApiConstantsSpecs", rb_cObject);
-  rb_define_method(cls, "rb_object", sc_get_object, 0);
-  rb_define_method(cls, "rb_kernel", sc_get_kernel, 0);
-  rb_define_method(cls, "rb_exception", sc_get_exception, 0);
-  rb_define_method(cls, "rb_system_exit", sc_get_system_exit, 0);
-  rb_define_method(cls, "rb_interrupt", sc_get_interrupt, 0);
-  rb_define_method(cls, "rb_signal", sc_get_signal, 0);
-  rb_define_method(cls, "rb_standard_error", sc_get_standard_error, 0);
-  rb_define_method(cls, "rb_runtime_error", sc_get_runtime_error, 0);
-  rb_define_method(cls, "rb_type_error", sc_get_type_error, 0);
-  rb_define_method(cls, "rb_arg_error", sc_get_arg_error, 0);
-  rb_define_method(cls, "rb_index_error", sc_get_index_error, 0);
-  rb_define_method(cls, "rb_range_error", sc_get_range_error, 0);
-  rb_define_method(cls, "rb_name_error", sc_get_name_error, 0);
-  rb_define_method(cls, "rb_no_method_error", sc_get_no_method_error, 0);
-  rb_define_method(cls, "rb_security_error", sc_get_security_error, 0);
-  rb_define_method(cls, "rb_not_imp_error", sc_get_not_imp_error, 0);
-  rb_define_method(cls, "rb_no_mem_error", sc_get_no_mem_error, 0);
-  rb_define_method(cls, "rb_script_error", sc_get_script_error, 0);
-  rb_define_method(cls, "rb_syntax_error", sc_get_syntax_error, 0);
-  rb_define_method(cls, "rb_load_error", sc_get_load_error, 0);
-  rb_define_method(cls, "rb_system_call_error", sc_get_system_call_error, 0);
-  rb_define_method(cls, "rb_errno", sc_get_errno, 0);
-  rb_define_method(cls, "rb_io_error", sc_get_io_error, 0);
-  rb_define_method(cls, "rb_local_jump_error", sc_get_local_jump_error, 0);
-  rb_define_method(cls, "rb_eof_error", sc_get_eof_error, 0);
-  rb_define_method(cls, "rb_thread_error", sc_get_thread_error, 0);
-  rb_define_method(cls, "rb_zero_division_error", sc_get_zero_division_error, 0);
-  rb_define_method(cls, "rb_float_domain_error", sc_get_float_domain_error, 0);
-  rb_define_method(cls, "rb_sys_stack_error", sc_get_sys_stack_error, 0);
-  rb_define_method(cls, "rb_regexp_error", sc_get_regexp_error, 0);
-}
 
+  rb_define_method(cls, "rb_cArray", constants_spec_rb_cArray, 0);
+  rb_define_method(cls, "rb_cBignum", constants_spec_rb_cBignum, 0);
+  rb_define_method(cls, "rb_cClass", constants_spec_rb_cClass, 0);
+  rb_define_method(cls, "rb_cData", constants_spec_rb_cData, 0);
+  rb_define_method(cls, "rb_cFalseClass", constants_spec_rb_cFalseClass, 0);
+  rb_define_method(cls, "rb_cFixnum", constants_spec_rb_cFixnum, 0);
+  rb_define_method(cls, "rb_cFloat", constants_spec_rb_cFloat, 0);
+  rb_define_method(cls, "rb_cHash", constants_spec_rb_cHash, 0);
+  rb_define_method(cls, "rb_cInteger", constants_spec_rb_cInteger, 0);
+  rb_define_method(cls, "rb_cIO", constants_spec_rb_cIO, 0);
+  rb_define_method(cls, "rb_cModule", constants_spec_rb_cModule, 0);
+  rb_define_method(cls, "rb_cNilClass", constants_spec_rb_cNilClass, 0);
+  rb_define_method(cls, "rb_cObject", constants_spec_rb_cObject, 0);
+  rb_define_method(cls, "rb_cRegexp", constants_spec_rb_cRegexp, 0);
+  rb_define_method(cls, "rb_cString", constants_spec_rb_cString, 0);
+  rb_define_method(cls, "rb_cSymbol", constants_spec_rb_cSymbol, 0);
+  rb_define_method(cls, "rb_cThread", constants_spec_rb_cThread, 0);
+  rb_define_method(cls, "rb_cTrueClass", constants_spec_rb_cTrueClass, 0);
+
+  rb_define_method(cls, "rb_mComparable", constants_spec_rb_mComparable, 0);
+  rb_define_method(cls, "rb_mEnumerable", constants_spec_rb_mEnumerable, 0);
+  rb_define_method(cls, "rb_mKernel", constants_spec_rb_mKernel, 0);
+
+  rb_define_method(cls, "rb_eArgError", constants_spec_rb_eArgError, 0);
+  rb_define_method(cls, "rb_eEOFError", constants_spec_rb_eEOFError, 0);
+  rb_define_method(cls, "rb_mErrno", constants_spec_rb_mErrno, 0);
+  rb_define_method(cls, "rb_eException", constants_spec_rb_eException, 0);
+  rb_define_method(cls, "rb_eFloatDomainError", constants_spec_rb_eFloatDomainError, 0);
+  rb_define_method(cls, "rb_eIndexError", constants_spec_rb_eIndexError, 0);
+  rb_define_method(cls, "rb_eInterrupt", constants_spec_rb_eInterrupt, 0);
+  rb_define_method(cls, "rb_eIOError", constants_spec_rb_eIOError, 0);
+  rb_define_method(cls, "rb_eLoadError", constants_spec_rb_eLoadError, 0);
+  rb_define_method(cls, "rb_eLocalJumpError", constants_spec_rb_eLocalJumpError, 0);
+  rb_define_method(cls, "rb_eNameError", constants_spec_rb_eNameError, 0);
+  rb_define_method(cls, "rb_eNoMemError", constants_spec_rb_eNoMemError, 0);
+  rb_define_method(cls, "rb_eNoMethodError", constants_spec_rb_eNoMethodError, 0);
+  rb_define_method(cls, "rb_eNotImpError", constants_spec_rb_eNotImpError, 0);
+  rb_define_method(cls, "rb_eRangeError", constants_spec_rb_eRangeError, 0);
+  rb_define_method(cls, "rb_eRegexpError", constants_spec_rb_eRegexpError, 0);
+  rb_define_method(cls, "rb_eRuntimeError", constants_spec_rb_eRuntimeError, 0);
+  rb_define_method(cls, "rb_eScriptError", constants_spec_rb_eScriptError, 0);
+  rb_define_method(cls, "rb_eSecurityError", constants_spec_rb_eSecurityError, 0);
+  rb_define_method(cls, "rb_eSignal", constants_spec_rb_eSignal, 0);
+  rb_define_method(cls, "rb_eStandardError", constants_spec_rb_eStandardError, 0);
+  rb_define_method(cls, "rb_eSyntaxError", constants_spec_rb_eSyntaxError, 0);
+  rb_define_method(cls, "rb_eSystemCallError", constants_spec_rb_eSystemCallError, 0);
+  rb_define_method(cls, "rb_eSystemExit", constants_spec_rb_eSystemExit, 0);
+  rb_define_method(cls, "rb_eSysStackError", constants_spec_rb_eSysStackError, 0);
+  rb_define_method(cls, "rb_eTypeError", constants_spec_rb_eTypeError, 0);
+  rb_define_method(cls, "rb_eThreadError", constants_spec_rb_eThreadError, 0);
+  rb_define_method(cls, "rb_eZeroDivError", constants_spec_rb_eZeroDivError, 0);
+}
