@@ -43,7 +43,7 @@ extern "C" {
   }
 
   VALUE rb_cv_set(VALUE module_handle, const char* name, VALUE value) {
-    return rb_cvar_set(module_handle, rb_intern(name), value);
+    return rb_cvar_set(module_handle, rb_intern(name), value, 0);
   }
 
   VALUE rb_cvar_defined(VALUE module_handle, ID name) {
@@ -62,7 +62,7 @@ extern "C" {
                       env->get_handle(prefixed_by("@@", name)));
   }
 
-  VALUE rb_cvar_set(VALUE module_handle, ID name, VALUE value) {
+  VALUE rb_cvar_set(VALUE module_handle, ID name, VALUE value, int unused) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return rb_funcall(module_handle, rb_intern("class_variable_set"),

@@ -406,9 +406,9 @@ extern "C" {
 #define SafeStringValue   StringValue
 
 /** Modifies the VALUE object in place by calling rb_obj_as_string(). */
-#define StringValue(v)    rb_string_value(&(v))
-
-#define StringValueCStr(str) rb_string_value_cstr(&(str))
+#define StringValue(v)        rb_string_value(&(v))
+#define StringValuePtr(v)     rb_string_value_ptr(&(v))
+#define StringValueCStr(str)  rb_string_value_cstr(&(str))
 
 /** Retrieve the ID given a Symbol handle. */
 #define SYM2ID(sym)       capi_sym2id((sym))
@@ -467,6 +467,9 @@ extern "C" {
   /** Symbol Handle for an ID. @internal. */
   VALUE   capi_id2sym(ID id);
 
+  /** Returns the string associated with a symbol. */
+  const char *rb_id2name(ID sym);
+
   /** Infect obj2 if obj1 is tainted. @internal.*/
   void    capi_infect(VALUE obj1, VALUE obj2);
 
@@ -516,8 +519,6 @@ extern "C" {
 
   /** Convert unsigned int into a Numeric. */
   VALUE   UINT2NUM(unsigned int number);
-
-  char*   StringValuePtr(VALUE str);
 
 #define   Data_Make_Struct(klass, type, mark, free, sval) (\
             sval = ALLOC(type), \
@@ -653,7 +654,7 @@ extern "C" {
   VALUE   rb_cvar_get(VALUE module_handle, ID name);
 
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
-  VALUE   rb_cvar_set(VALUE module_handle, ID name, VALUE value);
+  VALUE   rb_cvar_set(VALUE module_handle, ID name, VALUE value, int unused);
 
   VALUE   rb_data_object_alloc(VALUE klass, void* sval,
       RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free);
@@ -665,7 +666,8 @@ extern "C" {
   void    rb_define_alloc_func(VALUE class_handle, CApiAllocFunction allocator);
 
   /** Ruby's attr_* for given name. Nonzeros to toggle read/write. */
-  void    rb_define_attr(VALUE module_handle, const char* attr_name, int readable, int writable);
+  void    rb_define_attr(VALUE module_handle, const char* attr_name,
+      int readable, int writable);
 
   /** Reopen or create new top-level class with given superclass and name. Returns the Class object. */
   VALUE   rb_define_class(const char* name, VALUE superclass_handle);
@@ -961,6 +963,7 @@ extern "C" {
   /** Call #to_s on object pointed to and _replace_ it with the String. */
   VALUE   rb_string_value(VALUE* object_variable);
 
+  char*   rb_string_value_ptr(VALUE* object_variable);
   /**
    *  As rb_string_value but also returns a C string of the new String.
    *

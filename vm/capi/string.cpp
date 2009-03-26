@@ -183,6 +183,15 @@ extern "C" {
     return *object_variable;
   }
 
+  char* rb_string_value_ptr(VALUE* object_variable) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    VALUE str = rb_string_value(object_variable);
+    String* string = c_as<String>(env->get_object(str));
+
+    return const_cast<char*>(string->c_str());
+  }
+
   char* rb_string_value_cstr(VALUE* object_variable) {
     return rb_str_get_char_ptr(rb_string_value(object_variable));
   }
