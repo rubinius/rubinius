@@ -16,6 +16,7 @@
 #include "async_message.hpp"
 #include "gc/variable_buffer.hpp"
 
+#include <vector>
 #include <pthread.h>
 #include <setjmp.h>
 
@@ -94,6 +95,11 @@ namespace rubinius {
   class Waiter;
   class SignalThread;
 
+  /* Indirect object handles for references to Ruby objects in
+   * native code extensions.
+   */
+  typedef std::vector<TypedRoot<Object*>*> Handles;
+
   class SharedState : public RefCount {
   private:
     VMManager& manager_;
@@ -104,6 +110,7 @@ namespace rubinius {
     SignalThread* signal_thread_;
     CallFrameLocationList cf_locations_;
     VariableRootBuffers root_buffers_;
+    Handles global_handles_;
 
   public:
     Globals globals;
@@ -160,6 +167,10 @@ namespace rubinius {
 
     VariableRootBuffers* variable_buffers() {
       return &root_buffers_;
+    }
+
+    Handles& global_handles() {
+      return global_handles_;
     }
   };
 

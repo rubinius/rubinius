@@ -10,7 +10,7 @@
 #include "capi_reset.h"
 
 using namespace rubinius;
-using namespace capi;
+using namespace rubinius::capi;
 
 class TestCApiConstants : public CxxTest::TestSuite, public VMTest {
   public:

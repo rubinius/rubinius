@@ -29,6 +29,12 @@ namespace rubinius {
     Symbol* prefixed_by(std::string prefix, std::string name);
     Symbol* prefixed_by(std::string prefix, ID name);
 
+    /** Return constant name mapping to 'type' */
+    std::string& capi_get_constant_name(int type);
+
+    /** Raise a RuntimeError error */
+    void capi_raise_runtime_error(const char* reason);
+
     /** Raise a TypeError (convenience method). */
     void capi_raise_type_error(object_type type, Object* object);
 

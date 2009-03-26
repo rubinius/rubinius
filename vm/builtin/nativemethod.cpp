@@ -14,7 +14,11 @@
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
 
+#include "capi/capi.hpp"
+
 namespace rubinius {
+
+  using namespace capi;
 
   typedef TypedRoot<Object*> RootHandle;
 
@@ -34,7 +38,11 @@ namespace rubinius {
   }
 
   Object* NativeMethodFrame::get_object(Handle hndl) {
-    return handles_[hndl - cHandleOffset]->get();
+    Object* obj = handles_[hndl - cHandleOffset]->get();
+    if(!obj) {
+      capi_raise_runtime_error("NativeMethod handle refers to NULL object");
+    }
+    return obj;
   }
 
   Handle NativeMethodEnvironment::get_handle(Object* obj) {
@@ -42,8 +50,9 @@ namespace rubinius {
   }
 
   Handle NativeMethodEnvironment::get_handle_global(Object* obj) {
-    Handle handle = cGlobalHandleStart - global_handles_.size() - cHandleOffset;
-    global_handles_.push_back(new RootHandle(state_, obj));
+    Handles& global_handles = state_->shared.global_handles();
+    Handle handle = cGlobalHandleStart - global_handles.size() - cHandleOffset;
+    global_handles.push_back(new RootHandle(state_, obj));
     return handle;
   }
 
@@ -59,8 +68,22 @@ namespace rubinius {
       case cCApiHandleQundef:
         return Qundef;
       default:
-        // @todo: throw if this handle pulls 0 out
-        return global_handles_[cGlobalHandleStart - handle - cHandleOffset]->get();
+        Handles& global_handles = state_->shared.global_handles();
+        RootHandle* root = global_handles[cGlobalHandleStart - handle - cHandleOffset];
+        if(!root) {
+          capi_raise_runtime_error("Attempted to use deleted NativeMethod global handle");
+        }
+
+        /* No Ruby object should ever be NULL, so if it is, likely an
+         * exception occurred that was not caught correctly. Rather
+         * than letting it propogate to mysterious corners of the code,
+         * we raise an exception here. @see NativeMethodFrame::get_object()
+         */
+        Object* obj = root->get();
+        if(!obj) {
+          capi_raise_runtime_error("NativeMethod global handle refers to NULL object");
+        }
+        return obj;
       }
     } else {
       return current_native_frame_->get_object(handle);
@@ -68,9 +91,10 @@ namespace rubinius {
   }
 
   void NativeMethodEnvironment::delete_global(Handle handle) {
-    RootHandle* root = global_handles_[cGlobalHandleStart - handle];
+    Handles& global_handles = state_->shared.global_handles();
+    RootHandle* root = global_handles[cGlobalHandleStart - handle];
     delete root;
-    global_handles_[cGlobalHandleStart - handle] = 0;
+    global_handles[cGlobalHandleStart - handle] = 0;
   }
 
   Object* NativeMethodEnvironment::block() {
@@ -89,7 +113,9 @@ namespace rubinius {
   }
 
   void NativeMethod::init_thread(STATE) {
-    native_method_environment.set(new NativeMethodEnvironment);
+    NativeMethodEnvironment* env = new NativeMethodEnvironment;
+    env->set_state(state);
+    native_method_environment.set(env);
   }
 
   NativeMethod* NativeMethod::allocate(STATE) {
@@ -102,7 +128,6 @@ namespace rubinius {
 
     env->set_current_call_frame(call_frame);
     env->set_current_native_frame(&nmf);
-    env->set_state(state);
 
     NativeMethod* nm = as<NativeMethod>(msg.method);
 

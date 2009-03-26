@@ -24,12 +24,8 @@ namespace rubinius {
   class Message;
   class NativeMethodFrame;
 
-  /** A set of Handles. */
-  typedef std::vector<TypedRoot<Object*>*> Handles;
-
   /** More prosaic name for Handles. */
   typedef intptr_t Handle;
-
 
   /**
    *  Thread-local info about native method calls.
@@ -123,8 +119,6 @@ namespace rubinius {
     CallFrame*          current_call_frame_;
     /** Current native callframe. */
     NativeMethodFrame*  current_native_frame_;
-    /** Global object handles. */
-    Handles             global_handles_;
     ExceptionPoint*     current_ep_;
   };
 
@@ -362,43 +356,4 @@ namespace rubinius {
 
 }
 
-
-// Left here as an example of the stream interface. --rue
-///**
-// *  Define stream inserter for NMC frame info.
-// *
-// *  The only info coming from the context is really the name, file + line.
-// */
-//template<typename CharType, typename Traits>
-//  std::basic_ostream<CharType, Traits>& operator<<(std::basic_ostream<CharType, Traits>& stream,
-//                                                   const rubinius::NativeMethodContext* nmc) {
-//  /* No futzing with broken streams. */
-//  if (!stream.good()) {
-//    return stream;
-//  }
-//
-//  /* Ugh, sentries. */
-//  typename std::basic_ostream<CharType, Traits>::sentry guard(stream);
-//
-//  if (guard) {
-//    /* Using another stream here automates manipulators, yay. */
-//    std::ostringstream out;
-//
-//    rubinius::Object* name = const_cast<rubinius::NativeMethodContext*>(nmc)->name();
-//
-//    out << rubinius::as<rubinius::Symbol>(name)->c_str(nmc->state())
-//        << " in "
-//        << nmc->current_file()
-//        << ":"
-//        << nmc->current_line()
-//        << " (last known information.)";
-//
-//    /* Yes, we want the C string. */
-//    stream << out.str().c_str();
-//  }
-//
-//  return stream;
-//}
-
 #endif  /* NATIVEMETHOD_HPP */
-

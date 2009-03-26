@@ -25,7 +25,13 @@ namespace rubinius {
     typedef std::vector<std::string> CApiConstantNameMap;
     typedef std::tr1::unordered_map<int, Handle> CApiConstantHandleMap;
 
-    std::string& capi_get_constant_name(CApiConstant type) {
+    /**
+     * This looks like a complicated scheme but there is a reason for
+     * doing it this way. In MRI, rb_cObject, etc. are all global data.
+     * We need to avoid global data to better support embedding and
+     * other features like MVM. @see capi_get_constant().
+     */
+    std::string& capi_get_constant_name(int type) {
       static CApiConstantNameMap map;
 
       if(map.empty()) {
@@ -137,6 +143,10 @@ namespace rubinius {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
       return prefixed_by(prefix, reinterpret_cast<Symbol*>(name)->c_str(env->state()));
+    }
+
+    void capi_raise_runtime_error(const char* reason) {
+      rb_raise(rb_eRuntimeError, reason);
     }
 
     void capi_raise_type_error(object_type type, Object* object) {
