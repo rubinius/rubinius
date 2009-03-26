@@ -526,8 +526,8 @@ extern "C" {
           )
 
 #define   Data_Wrap_Struct(klass, mark, free, sval) \
-            rb_data_object_alloc(klass, (RUBY_DATA_FUNC)mark, \
-                                 (RUBY_DATA_FUNC)free, (void*)sval)
+            rb_data_object_alloc(klass, (void*)sval, (RUBY_DATA_FUNC)mark, \
+                                 (RUBY_DATA_FUNC)free)
 
 #define   DATA_PTR(obj_handle)   (*capi_data_ptr_get_address(obj_handle))
 
@@ -609,7 +609,8 @@ extern "C" {
    *
    *  @see rb_check_array_type() and rb_check_string_type().
    */
-  VALUE   rb_check_convert_type(VALUE object_handle, int type, const char* type_name, const char* method_name);
+  VALUE   rb_check_convert_type(VALUE object_handle, int type,
+      const char* type_name, const char* method_name);
 
   /** Returns String representation of the class' name. */
   VALUE   rb_class_name(VALUE class_handle);
@@ -624,10 +625,11 @@ extern "C" {
   char*   rb_class2name(VALUE class_handle);
 
   /** Return the module referred to by qualified path (e.g. A::B::C) */
-  VALUE rb_path2class(const char*);
+  VALUE   rb_path2class(const char*);
 
   /** Returns object returned by invoking method on object if right type, or raises error. */
-  VALUE   rb_convert_type(VALUE object_handle, int type, const char* type_name, const char* method_name);
+  VALUE   rb_convert_type(VALUE object_handle, int type,
+      const char* type_name, const char* method_name);
 
   /** Nonzero if constant corresponding to Symbol exists in the Module. */
   int     rb_const_defined(VALUE module_handle, ID const_id);
@@ -653,8 +655,9 @@ extern "C" {
   /** Set module's named class variable to given value. Returns the value. @@ is optional. */
   VALUE   rb_cvar_set(VALUE module_handle, ID name, VALUE value);
 
-  VALUE   rb_data_object_alloc(VALUE klass, RUBY_DATA_FUNC mark,
-                               RUBY_DATA_FUNC free, void* sval);
+  VALUE   rb_data_object_alloc(VALUE klass, void* sval,
+      RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free);
+
   /** Alias method by old name as new name. Methods are independent of eachother. */
   void    rb_define_alias(VALUE module_handle, const char *new_name, const char *old_name);
 

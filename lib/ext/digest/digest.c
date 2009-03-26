@@ -472,7 +472,7 @@ rb_digest_base_alloc(VALUE klass)
     void *pctx;
 
     if (klass == rb_cDigest_Base) {
-	rb_raise(rb_eNotImpError, "Digest::Base is an abstract class");
+        rb_raise(rb_eNotImpError, "Digest::Base is an abstract class");
     }
 
     algo = get_digest_base_metadata(klass);

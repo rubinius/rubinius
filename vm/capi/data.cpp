@@ -17,8 +17,8 @@ extern "C" {
     return data->data_address();
   }
 
-  VALUE rb_data_object_alloc(VALUE klass, RUBY_DATA_FUNC mark,
-                             RUBY_DATA_FUNC free, void* ptr) {
+  VALUE rb_data_object_alloc(VALUE klass, void* ptr,
+      RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Class* data_klass = c_as<Class>(env->get_object(klass));

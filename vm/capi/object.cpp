@@ -112,13 +112,7 @@ extern "C" {
   }
 
   VALUE rb_obj_alloc(VALUE class_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    // TODO using Object as the template param means this can't allocate builtin
-    // types properly!
-    Class* klass = c_as<Class>(env->get_object(class_handle));
-    Object* object = env->state()->new_object<Object>(klass);
-    return env->get_handle(object);
+    return rb_funcall(class_handle, rb_intern("allocate"), 0);
   }
 
   VALUE rb_obj_as_string(VALUE obj_handle) {
