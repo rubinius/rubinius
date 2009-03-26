@@ -1,5 +1,23 @@
 #include <ruby.h>
 
+static VALUE so_rb_obj_alloc(VALUE self, VALUE klass) {
+  return rb_obj_alloc(klass);
+}
+
+static VALUE so_rb_obj_call_init(VALUE self, VALUE object,
+                                 VALUE nargs, VALUE args) {
+  int c_nargs = FIX2INT(nargs);
+  VALUE c_args[c_nargs];
+  int i;
+
+  for (i = 0; i < c_nargs; i++)
+    c_args[i] = rb_ary_entry(args, i);
+
+  rb_obj_call_init(object, c_nargs, c_args);
+
+  return Qnil;
+}
+
 VALUE so_instance_of(VALUE self, VALUE obj, VALUE klass) {
   return rb_obj_is_instance_of(obj, klass);
 }
@@ -91,6 +109,9 @@ VALUE so_is_type_class(VALUE self, VALUE obj) {
 void Init_object_spec() {
   VALUE cls;
   cls = rb_define_class("CApiObjectSpecs", rb_cObject);
+
+  rb_define_method(cls, "rb_obj_alloc", so_rb_obj_alloc, 1);
+  rb_define_method(cls, "rb_obj_call_init", so_rb_obj_call_init, 3);
   rb_define_method(cls, "rb_obj_is_instance_of", so_instance_of, 2);  
   rb_define_method(cls, "rb_obj_is_kind_of", so_kind_of, 2);  
   rb_define_method(cls, "rb_respond_to", so_respond_to, 2);    

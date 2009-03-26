@@ -2,6 +2,17 @@ require File.dirname(__FILE__) + '/spec_helper'
 
 load_extension("object")
 
+class CApiObjectSpecs
+  class Alloc
+    attr_reader :initialized, :arguments
+
+    def initialize(*args)
+      @initialized = true
+      @arguments   = args
+    end
+  end
+end
+
 describe "CApiObject" do
 
   before do
@@ -24,6 +35,21 @@ describe "CApiObject" do
   end
 
   class DescObjectTest < ObjectTest
+  end
+
+  it "rb_obj_alloc should allocate a new uninitialized object" do
+    o = @o.rb_obj_alloc(CApiObjectSpecs::Alloc)
+    o.class.should == CApiObjectSpecs::Alloc
+    o.initialized.should be_nil
+  end
+
+  it "rb_obj_call_init should send #initialize" do
+    o = @o.rb_obj_alloc(CApiObjectSpecs::Alloc)
+    o.initialized.should be_nil
+
+    @o.rb_obj_call_init(o, 2, [:one, :two])
+    o.initialized.should be_true
+    o.arguments.should == [:one, :two]
   end
 
   it "rb_is_instance_of should return true if an object is an instance" do

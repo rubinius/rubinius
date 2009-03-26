@@ -13,6 +13,9 @@ def compile_extension(path, name)
                 IO.read(signature).chomp == RUBY_NAME and
                 File.exists?(lib) and File.mtime(lib) > File.mtime(source)
 
+  # avoid problems where compilation failed but previous shlib exists
+  File.delete lib if File.exists? lib
+
   # TODO use Tap; write a common ext build task
   if RUBY_NAME == 'rbx'
     `./bin/rbx compile -I#{Rubinius::HDR_PATH} #{source}`
