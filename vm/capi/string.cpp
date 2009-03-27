@@ -28,6 +28,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     String* str = String::create(env->state(), Fixnum::from(capacity));
+    str->num_bytes(env->state(), Fixnum::from(0));
 
     return env->get_handle(str);
   }

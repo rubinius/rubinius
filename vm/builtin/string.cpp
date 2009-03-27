@@ -214,7 +214,8 @@ namespace rubinius {
     if(capacity < (new_size + 1)) {
       // capacity needs one extra byte of room for the trailing null
       do {
-	capacity *= 2;
+        // @todo growth should be more intelligent than doubling
+        capacity *= 2;
       } while(capacity < (new_size + 1));
 
       // No need to call unshare and duplicate a ByteArray
