@@ -2,29 +2,37 @@ require File.dirname(__FILE__) + '/spec_helper'
 
 load_extension("hash")
 
-describe "CApiHashSpecs" do
+describe "C-API Hash function" do
   before :each do
     @s = CApiHashSpecs.new
   end
-  
-  it "rb_hash_new should return a new hash" do
-    @s.new_hash.should == {}
+
+  describe "rb_hash_new" do
+    it "returns a new hash" do
+      @s.rb_hash_new.should == {}
+    end
   end
 
-  it "rb_hash_aref should return the value at the key" do
-    hsh = {:chunky => 'bacon'}
-    @s.access(hsh, :chunky).should == 'bacon'
+  describe "rb_hash_aref" do
+    it "returns the value associated with the key" do
+      hsh = {:chunky => 'bacon'}
+      @s.rb_hash_aref(hsh, :chunky).should == 'bacon'
+    end
   end
 
-  it "rb_hash_aset should add the key/set pair and return the value" do
-    hsh = {}
-    @s.insert(hsh, :chunky, 'bacon').should == 'bacon'
-    hsh.should == {:chunky => 'bacon'}
+  describe "rb_hash_aset" do
+    it "adds the key/value pair and returns the value" do
+      hsh = {}
+      @s.rb_hash_aset(hsh, :chunky, 'bacon').should == 'bacon'
+      hsh.should == {:chunky => 'bacon'}
+    end
   end
 
-  it "rb_hash_delete should remove the key and return the value" do
-    hsh = {:chunky => 'bacon'}
-    @s.remove(hsh, :chunky).should == 'bacon'
-    hsh.should == {}
+  describe "rb_hash_delete" do
+    it "removes the key and returns the value" do
+      hsh = {:chunky => 'bacon'}
+      @s.rb_hash_delete(hsh, :chunky).should == 'bacon'
+      hsh.should == {}
+    end
   end
 end
