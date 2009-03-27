@@ -176,7 +176,7 @@ extern "C" {
   }
 
   VALUE rb_str_to_str(VALUE object_handle) {
-    return rb_String(object_handle);
+    return rb_convert_type(object_handle, 0, "String", "to_str");
   }
 
   VALUE rb_string_value(VALUE* object_variable) {
