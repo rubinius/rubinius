@@ -21,14 +21,12 @@ if install || ENV['RBX_PREFIX']
   RBX_BINPATH         = "#{RBX_PREFIX}/bin"
   RBX_LIBPATH         = "#{RBX_PREFIX}/lib"
   RBX_BASE_PATH       = "#{RBX_PREFIX}/lib/rubinius/#{RBX_LIBVER}"
-  RBX_EXT_PATH        = "#{RBX_BASE_PATH}/#{RBX_HOST}"
   RBX_HDR_PATH        = "#{RBX_BASE_PATH}/#{RBX_HOST}"
 else
   RBX_PREFIX          = Dir.pwd
   RBX_BASE_PATH       = RBX_PREFIX
   RBX_BINPATH         = "#{RBX_BASE_PATH}/bin"
   RBX_LIBPATH         = "#{RBX_BASE_PATH}/vm"
-  RBX_EXT_PATH        = "#{RBX_BASE_PATH}/#{RBX_LIBVER}/#{RBX_HOST}"
   RBX_HDR_PATH        = "#{RBX_BASE_PATH}/vm/capi"
 end
 
@@ -39,6 +37,7 @@ RBX_CODE_PATH       = RBX_BASE_PATH
 RBX_RBA_PATH        = "#{RBX_BASE_PATH}/runtime"
 RBX_BIN_PATH        = "#{RBX_BASE_PATH}/bin"
 RBX_LIB_PATH        = "#{RBX_BASE_PATH}/lib"
+RBX_EXT_PATH        = "#{RBX_BASE_PATH}/lib/ext"
 
 case RBX_HOST
 when /darwin9/
