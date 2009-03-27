@@ -123,21 +123,47 @@ describe "C-API Array function" do
     end
   end
 
+  describe "RARRAY" do
+    it "returns a struct with a pointer to a C array of the array's elements" do
+      a = [1, 2, 3]
+      b = []
+      @s.RARRAY_ptr_iterate(a) do |e|
+        b << e
+      end
+      a.should == b
+    end
+
+    it "allows assigning to the elements of the C array" do
+      a = [1, 2, 3]
+      @s.RARRAY_PTR_assign(a, :nasty)
+      a.should == [:nasty, :nasty, :nasty]
+    end
+
+    it "returns a struct with the length of the array" do
+      @s.RARRAY_len([1, 2, 3]).should == 3
+    end
+  end
+
   describe "RARRAY_PTR" do
     it "returns a pointer to a C array of the array's elements" do
       a = [1, 2, 3]
       b = []
-      @s.rb_ary_iterate(a) do |e|
+      @s.RARRAY_PTR_iterate(a) do |e|
         b << e
       end
       a.should == b
+    end
+
+    it "allows assigning to the elements of the C array" do
+      a = [1, 2, 3]
+      @s.RARRAY_PTR_assign(a, :set)
+      a.should == [:set, :set, :set]
     end
   end
 
   describe "RARRAY_LEN" do
     it "returns the size of the array" do
-      a = [1, 2, 3]
-      @s.RARRAY_LEN(a).should == 3
+      @s.RARRAY_LEN([1, 2, 3]).should == 3
     end
   end
 end

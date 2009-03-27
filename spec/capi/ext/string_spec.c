@@ -66,13 +66,64 @@ VALUE string_spec_rb_str_to_str(VALUE self, VALUE arg) {
   return rb_str_to_str(arg);
 }
 
-/* NOTE: RSTRING will not be supported in Rubinius, only
- * RSTRING_PTR(s) and RSTRING_LEN(s) will be provided.
- * This means that the normal rb_str_xxx functions will
- * need to be used to modify the storage for a string,
- * but the string contents within the allocated bounds
- * can be directly written to.
- */
+VALUE string_spec_RSTRING_PTR_iterate(VALUE self, VALUE str) {
+  int i;
+  char* ptr;
+
+  ptr = RSTRING_PTR(str);
+  for(i = 0; i < RSTRING_LEN(str); i++) {
+    rb_yield(INT2FIX(ptr[i]));
+  }
+  return Qnil;
+}
+
+VALUE string_spec_RSTRING_PTR_assign(VALUE self, VALUE str, VALUE chr) {
+  int i;
+  char c;
+  char* ptr;
+
+  ptr = RSTRING_PTR(str);
+  c = FIX2INT(chr);
+
+  for(i = 0; i < RSTRING_LEN(str); i++) {
+    ptr[i] = c;
+  }
+  return Qnil;
+}
+
+VALUE string_spec_RSTRING_LEN(VALUE self, VALUE str) {
+  return INT2FIX(RSTRING_LEN(str));
+}
+
+VALUE string_spec_RSTRING_len(VALUE self, VALUE str) {
+  return INT2FIX(RSTRING(str)->len);
+}
+
+VALUE string_spec_RSTRING_ptr_iterate(VALUE self, VALUE str) {
+  int i;
+  char* ptr;
+
+  ptr = RSTRING(str)->ptr;
+  for(i = 0; i < RSTRING_LEN(str); i++) {
+    rb_yield(INT2FIX(ptr[i]));
+  }
+  return Qnil;
+}
+
+VALUE string_spec_RSTRING_ptr_assign(VALUE self, VALUE str, VALUE chr) {
+  int i;
+  char c;
+  char* ptr;
+
+  ptr = RSTRING(str)->ptr;
+  c = FIX2INT(chr);
+
+  for(i = 0; i < RSTRING_LEN(str); i++) {
+    ptr[i] = c;
+  }
+  return Qnil;
+}
+
 void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
@@ -92,4 +143,10 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_cstr2inum", string_spec_rb_cstr2inum, 2);
   rb_define_method(cls, "rb_str_substr", string_spec_rb_str_substr, 3);
   rb_define_method(cls, "rb_str_to_str", string_spec_rb_str_to_str, 1);
+  rb_define_method(cls, "RSTRING_PTR_iterate", string_spec_RSTRING_PTR_iterate, 1);
+  rb_define_method(cls, "RSTRING_PTR_assign", string_spec_RSTRING_PTR_assign, 2);
+  rb_define_method(cls, "RSTRING_LEN", string_spec_RSTRING_LEN, 1);
+  rb_define_method(cls, "RSTRING_ptr_iterate", string_spec_RSTRING_ptr_iterate, 1);
+  rb_define_method(cls, "RSTRING_ptr_assign", string_spec_RSTRING_ptr_assign, 2);
+  rb_define_method(cls, "RSTRING_len", string_spec_RSTRING_len, 1);
 }

@@ -137,4 +137,48 @@ describe "C-API String function" do
       lambda { @s.rb_str_to_str(InvalidTostrTest.new) }.should raise_error(TypeError)
     end
   end
+
+  describe "RSTRING" do
+    it "returns struct with a pointer to the string's contents" do
+      str = "xyz"
+      chars = []
+      @s.RSTRING_ptr_iterate(str) do |c|
+        chars << c
+      end
+      chars.should == [120, 121, 122]
+    end
+
+    it "allows changing the characters in the string" do
+      str = "abc"
+      @s.RSTRING_ptr_assign(str, 70)
+      str.should == "FFF"
+    end
+
+    it "returns a struct with the string's length" do
+      @s.RSTRING_len("dewdrops").should == 8
+    end
+  end
+
+  describe "RSTRING_PTR" do
+    it "returns a pointer to the string's contents" do
+      str = "abc"
+      chars = []
+      @s.RSTRING_PTR_iterate(str) do |c|
+        chars << c
+      end
+      chars.should == [97, 98, 99]
+    end
+
+    it "allows changing the characters in the string" do
+      str = "abc"
+      @s.RSTRING_PTR_assign(str, 65)
+      str.should == "AAA"
+    end
+  end
+
+  describe "RSTRING_LEN" do
+    it "returns the size of the string" do
+      @s.RSTRING_LEN("gumdrops").should == 8
+    end
+  end
 end

@@ -54,10 +54,24 @@ static VALUE array_spec_rb_ary_store(VALUE self, VALUE array, VALUE offset, VALU
   return Qnil;
 }
 
-static VALUE array_spec_iterate(VALUE self, VALUE array) {
+static VALUE array_spec_RARRAY_PTR_iterate(VALUE self, VALUE array) {
   int i;
+  VALUE* ptr;
+
+  ptr = RARRAY_PTR(array);
   for(i = 0; i < RARRAY_LEN(array); i++) {
-    rb_yield(RARRAY_PTR(array)[i]);
+    rb_yield(ptr[i]);
+  }
+  return Qnil;
+}
+
+static VALUE array_spec_RARRAY_PTR_assign(VALUE self, VALUE array, VALUE value) {
+  int i;
+  VALUE* ptr;
+
+  ptr = RARRAY_PTR(array);
+  for(i = 0; i < RARRAY_LEN(array); i++) {
+    ptr[i] = value;
   }
   return Qnil;
 }
@@ -66,9 +80,31 @@ static VALUE array_spec_RARRAY_LEN(VALUE self, VALUE array) {
   return INT2FIX(RARRAY_LEN(array));
 }
 
-/* NOTE: RARRAY will not be supported in Rubinius, only
- * RARRAY_PTR and RARRAY_LEN will be provided.
- */
+static VALUE array_spec_RARRAY_ptr_iterate(VALUE self, VALUE array) {
+  int i;
+  VALUE* ptr;
+
+  ptr = RARRAY(array)->ptr;
+  for(i = 0; i < RARRAY_LEN(array); i++) {
+    rb_yield(ptr[i]);
+  }
+  return Qnil;
+}
+
+static VALUE array_spec_RARRAY_ptr_assign(VALUE self, VALUE array, VALUE value) {
+  int i;
+  VALUE* ptr;
+
+  ptr = RARRAY(array)->ptr;
+  for(i = 0; i < RARRAY_LEN(array); i++) {
+    ptr[i] = value;
+  }
+  return Qnil;
+}
+static VALUE array_spec_RARRAY_len(VALUE self, VALUE array) {
+  return INT2FIX(RARRAY(array)->len);
+}
+
 void Init_array_spec() {
   VALUE cls;
   cls = rb_define_class("CApiArraySpecs", rb_cObject);
@@ -83,8 +119,12 @@ void Init_array_spec() {
   rb_define_method(cls, "rb_ary_shift", array_spec_rb_ary_shift, 1);
   rb_define_method(cls, "rb_ary_store", array_spec_rb_ary_store, 3);
   rb_define_method(cls, "rb_ary_pop", array_spec_rb_ary_pop, 1);
-  rb_define_method(cls, "rb_ary_iterate", array_spec_iterate, 1);
+  rb_define_method(cls, "RARRAY_PTR_iterate", array_spec_RARRAY_PTR_iterate, 1);
+  rb_define_method(cls, "RARRAY_PTR_assign", array_spec_RARRAY_PTR_assign, 2);
   rb_define_method(cls, "RARRAY_LEN", array_spec_RARRAY_LEN, 1);
+  rb_define_method(cls, "RARRAY_ptr_iterate", array_spec_RARRAY_ptr_iterate, 1);
+  rb_define_method(cls, "RARRAY_ptr_assign", array_spec_RARRAY_ptr_assign, 2);
+  rb_define_method(cls, "RARRAY_len", array_spec_RARRAY_len, 1);
 }
 
 #ifdef __cplusplus
