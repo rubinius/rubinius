@@ -748,6 +748,18 @@ extern "C" {
    * will not call private methods.
    */
 
+  /** Create a new Hash object */
+  VALUE   rb_hash_new();
+
+  /** Return the value associated with the key. */
+  VALUE   rb_hash_aref(VALUE self, VALUE key);
+
+  /** Set the value associated with the key. */
+  VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);
+
+  /** Remove the key and return the associated value. */
+  VALUE   rb_hash_delete(VALUE self, VALUE key);
+
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
 
