@@ -1,5 +1,6 @@
 # configure.rake - handles all configuration and generate needed build files
 
+require 'rbconfig'
 require 'rakelib/configuration'
 
 file 'lib/rbconfig.rb' => 'rakelib/configure.rake' do
@@ -119,6 +120,7 @@ def write_rbconfig
     f.puts '  CONFIG["OBJDUMP"]            = ""'
     f.puts '  CONFIG["LN_S"]               = "ln -s"'
     f.puts '  CONFIG["NM"]                 = ""'
+    f.puts '  CONFIG["INSTALL"]            = "/usr/bin/install -c"'
     f.puts '  CONFIG["INSTALL_PROGRAM"]    = "$(INSTALL)"'
     f.puts '  CONFIG["INSTALL_SCRIPT"]     = "$(INSTALL)"'
     f.puts '  CONFIG["INSTALL_DATA"]       = "$(INSTALL) -m 644"'
@@ -166,7 +168,11 @@ def write_rbconfig
     f.puts '  CONFIG["LIBRUBYARG_SHARED"]  = "-l$(RUBY_SO_NAME)"'
     f.puts '  CONFIG["configure_args"]     = ""'
     f.puts '  CONFIG["ALLOCA"]             = ""'
-    f.puts '  CONFIG["DLEXT"]              = "bundle"'
+    if Config::CONFIG["build_os"] =~ /darwin/
+      f.puts '  CONFIG["DLEXT"]              = "bundle"'
+    else
+      f.puts '  CONFIG["DLEXT"]              = "so"'
+    end
     f.puts '  CONFIG["LIBEXT"]             = "a"'
     f.puts '  CONFIG["LINK_SO"]            = ""'
     f.puts '  CONFIG["LIBPATHFLAG"]        = " -L%s"'
@@ -182,9 +188,13 @@ def write_rbconfig
     f.puts '  CONFIG["PACKAGE_STRING"]     = ""'
     f.puts '  CONFIG["PACKAGE_BUGREPORT"]  = ""'
 
-    # HACK: we need something equivalent, but I'm cheating for now - zenspider
-    f.puts '  CONFIG["LDSHARED"]          = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
-    f.puts '  CONFIG["LIBRUBY_LDSHARED"]  = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
+    if Config::CONFIG["build_os"] =~ /darwin/
+      f.puts '  CONFIG["LDSHARED"]          = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
+      f.puts '  CONFIG["LIBRUBY_LDSHARED"]  = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
+    else
+      f.puts '  CONFIG["LDSHARED"]          = "cc -shared"'
+      f.puts '  CONFIG["LIBRUBY_LDSHARED"]  = "cc -shared"'
+    end
     f.puts
     f.puts <<-EOC
   # Adapted from MRI's' rbconfig.rb
