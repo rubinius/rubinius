@@ -38,7 +38,11 @@ namespace rubinius {
     stats::GCStats::get()->allocate_mature.start();
 #endif
 
+#ifdef USE_DLMALLOC
     obj = reinterpret_cast<Object*>(malloc_.allocate(bytes));
+#else
+    obj = reinterpret_cast<Object*>(malloc(bytes));
+#endif
 
     entries.push_back(obj);
 
@@ -68,7 +72,11 @@ namespace rubinius {
     allocated_objects--;
     allocated_bytes -= obj->size_in_bytes(object_memory->state);
 
+#ifdef USE_DLMALLOC
     malloc_.release(reinterpret_cast<void*>(obj));
+#else
+    free(reinterpret_cast<void*>(obj));
+#endif
   }
 
   Object* MarkSweepGC::copy_object(Object* orig) {

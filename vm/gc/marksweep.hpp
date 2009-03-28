@@ -8,7 +8,11 @@
 #include <list>
 
 #include "call_frame_list.hpp"
+
+#ifdef USE_DLMALLOC
 #include "util/dlmalloc_cpp.hpp"
+#endif
+
 
 #define MS_COLLECTION_BYTES 10485760
 
@@ -25,7 +29,10 @@ namespace rubinius {
 
   private:
       MarkStack mark_stack_;
+
+#ifdef USE_DLMALLOC
       DLMalloc malloc_;
+#endif
 
   public:
     /* Data members */
