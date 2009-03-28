@@ -1229,6 +1229,7 @@ class CGI
   # Provides methods for code generation for tags following
   # the various DTD element types.
   module TagMaker # :nodoc:
+    extend self
 
     # Generate code for an element with required start and end tags.
     #
@@ -2116,9 +2117,12 @@ class CGI
       %|<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">|
     end
 
-    # Initialise the HTML generation methods for this version.
     def element_init
-      extend TagMaker
+      # did this is the module body
+    end
+
+    # Initialise the HTML generation methods for this version.
+    def self.element_init_methods
       methods = ""
       # - -
       for element in %w[ TT I B BIG SMALL EM STRONG DFN CODE SAMP KBD
@@ -2126,7 +2130,7 @@ class CGI
         H1 H2 H3 H4 H5 H6 PRE Q INS DEL DL OL UL LABEL SELECT OPTGROUP
         FIELDSET LEGEND BUTTON TABLE TITLE STYLE SCRIPT NOSCRIPT
         TEXTAREA FORM A BLOCKQUOTE CAPTION ]
-        methods += <<-BEGIN + nn_element_def(element) + <<-END
+        methods += <<-BEGIN + TagMaker.nn_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -2135,7 +2139,7 @@ class CGI
 
       # - O EMPTY
       for element in %w[ IMG BASE BR AREA LINK PARAM HR INPUT COL META ]
-        methods += <<-BEGIN + nOE_element_def(element) + <<-END
+        methods += <<-BEGIN + TagMaker.nOE_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -2145,7 +2149,7 @@ class CGI
       # O O or - O
       for element in %w[ HTML BODY P DT DD LI OPTION THEAD TFOOT TBODY
           COLGROUP TR TH TD HEAD]
-        methods += <<-BEGIN + nO_element_def(element) + <<-END
+        methods += <<-BEGIN + TagMaker.nO_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -2153,6 +2157,8 @@ class CGI
       end
       eval(methods)
     end
+
+    element_init_methods()
 
   end # Html4
 
