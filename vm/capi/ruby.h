@@ -261,6 +261,30 @@ extern "C" {
 }
 #endif
 
+struct RString {
+  size_t len;
+  char *ptr;
+  char *dmwmb;
+  union {
+    size_t capa;
+    VALUE shared;
+  } aux;
+};
+
+#define RSTRING(str)    capi_rstring_struct(str)
+
+struct RArray {
+  size_t len;
+  union {
+    size_t capa;
+    VALUE shared;
+  } aux;
+  VALUE *ptr;
+  VALUE *dmwmb;
+};
+
+#define RARRAY(ary)     capi_rarray_struct(ary)
+
 /*
  * The immediates.
  */
@@ -390,11 +414,17 @@ extern "C" {
 /** Whether object is nil. */
 #define NIL_P(v)          capi_nil_p((v))
 
+/** The length of the array. */
+#define RARRAY_LEN(ary)   (RARRAY(ary)->len)
+
+/** The pointer to the array's data. */
+#define RARRAY_PTR(ary)   (RARRAY(ary)->ptr)
+
 /** The length of string str. */
-#define RSTRING_LEN(str)  capi_rstring_len((str))
+#define RSTRING_LEN(str)  (RSTRING(str)->len)
 
 /** The pointer to the string str's data. */
-#define RSTRING_PTR(str)  capi_rstring_ptr((str))
+#define RSTRING_PTR(str)  (RSTRING(str)->ptr)
 
 /** False if expression evaluates to nil or false, true otherwise. */
 #define RTEST(v)          capi_rtest((v))
@@ -499,6 +529,9 @@ extern "C" {
    */
   VALUE   capi_class_superclass(VALUE class_handle);
 
+  struct RString* capi_rstring_struct(VALUE str_handle);
+
+  struct RArray* capi_rarray_struct(VALUE ary_handle);
 
 /* Real API */
 

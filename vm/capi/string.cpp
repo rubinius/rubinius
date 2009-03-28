@@ -1,6 +1,7 @@
 #include "builtin/bytearray.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/integer.hpp"
+#include "builtin/nativemethod.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 
@@ -10,7 +11,64 @@
 using namespace rubinius;
 using namespace rubinius::capi;
 
+namespace rubinius {
+  namespace capi {
+    void capi_rstring_flush() {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+      String* string;
+      struct RString* str = 0;
+      CApiStructs& strings = env->strings();
+
+      for(CApiStructs::iterator iter = strings.begin();
+          iter != strings.end();
+          iter++) {
+        string = c_as<String>(env->get_object(iter->first));
+        str = (struct RString*)iter->second;
+
+        if(string->size() != str->len) {
+          ByteArray* ba = ByteArray::create(env->state(), str->len+1);
+          string->data(env->state(), ba);
+          string->num_bytes(env->state(), Fixnum::from(str->len));
+        }
+        std::memcpy(string->byte_address(), str->ptr, str->len);
+        string->byte_address()[str->len] = 0;
+
+        delete[] str->dmwmb;
+        delete str;
+      }
+    }
+  }
+}
+
 extern "C" {
+  struct RString* capi_rstring_struct(VALUE str_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    CApiStructs& strings = env->strings();
+    CApiStructs::iterator iter = strings.find(str_handle);
+    if(iter != strings.end()) {
+      return (struct RString*)iter->second;
+    }
+
+    String* string = c_as<String>(env->get_object(str_handle));
+    string->unshare(env->state());
+    size_t size = string->size();
+
+    struct RString* str = new struct RString;
+    char* ptr = new char[size+1];
+    std::memcpy(ptr, string->byte_address(), size);
+    ptr[size] = 0;
+
+    str->dmwmb = str->ptr = ptr;
+    str->aux.capa = str->len = size;
+    str->aux.shared = Qfalse;
+
+    strings[str_handle] = str;
+
+    return str;
+  }
+
   VALUE rb_String(VALUE object_handle) {
     return rb_convert_type(object_handle, 0, "String", "to_s");
   }

@@ -10,7 +10,67 @@
 using namespace rubinius;
 using namespace rubinius::capi;
 
+namespace rubinius {
+  namespace capi {
+    void capi_rarray_flush() {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+      Array* array;
+      struct RArray* ary = 0;
+      CApiStructs& arrays = env->arrays();
+
+      for(CApiStructs::iterator iter = arrays.begin();
+          iter != arrays.end();
+          iter++) {
+        array = c_as<Array>(env->get_object(iter->first));
+        ary = (struct RArray*)iter->second;
+
+        if(array->size() != ary->len) {
+          Tuple* tuple = Tuple::create(env->state(), ary->len);
+          array->tuple(env->state(), tuple);
+          array->start(env->state(), Fixnum::from(0));
+          array->total(env->state(), Fixnum::from(ary->len));
+        }
+
+        for(size_t i = 0; i < array->size(); i++) {
+          array->set(env->state(), i, env->get_object(ary->ptr[i]));
+        }
+      }
+
+      delete[] ary->dmwmb;
+      delete ary;
+    }
+  }
+}
+
 extern "C" {
+  struct RArray* capi_rarray_struct(VALUE ary_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    CApiStructs& arrays = env->arrays();
+    CApiStructs::iterator iter = arrays.find(ary_handle);
+    if(iter != arrays.end()) {
+      return (struct RArray*)iter->second;
+    }
+
+    Array* array = c_as<Array>(env->get_object(ary_handle));
+    size_t size = array->size();
+
+    struct RArray* ary = new struct RArray;
+    VALUE* ptr = new VALUE[size];
+    for(size_t i = 0; i < size; i++) {
+      ptr[i] = env->get_handle(array->get(env->state(), i));
+    }
+
+    ary->dmwmb = ary->ptr = ptr;
+    ary->aux.capa = ary->len = size;
+    ary->aux.shared = Qfalse;
+
+    arrays[ary_handle] = ary;
+
+    return ary;
+  }
+
   VALUE rb_Array(VALUE obj_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -39,7 +99,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Array* self = c_as<Array>(env->get_object(self_handle));
-    return env->get_handle(self->get(env->state(), index));
+    return env->get_handle(self->aref(env->state(), Fixnum::from(index)));
   }
 
   VALUE rb_ary_join(VALUE self_handle, VALUE separator_handle) {

@@ -18,8 +18,6 @@
 
 
 namespace rubinius {
-
-  /* Forwards */
   class ExceptionPoint;
   class Message;
   class NativeMethodFrame;
@@ -27,10 +25,20 @@ namespace rubinius {
   /** More prosaic name for Handles. */
   typedef intptr_t Handle;
 
+  /** Tracks RARRAY and RSTRING structs */
+  typedef std::tr1::unordered_map<Handle, void*> CApiStructs;
+
   /**
-   *  Thread-local info about native method calls.
+   * Thread-local info about native method calls. @see NativeMethodFrame.
    */
   class NativeMethodEnvironment {
+    /** VM in which executing. */
+    VM*                 state_;
+    /** Current callframe in Ruby-land. */
+    CallFrame*          current_call_frame_;
+    /** Current native callframe. */
+    NativeMethodFrame*  current_native_frame_;
+    ExceptionPoint*     current_ep_;
 
   public:   /* Class Interface */
 
@@ -110,29 +118,32 @@ namespace rubinius {
     /** Set of Handles available in current Frame (convenience.) */
     Handles& handles();
 
+    /** Returns the map of RSTRING structs in the current NativeMethodFrame. */
+    CApiStructs& strings();
 
-  private:   /* Instance variables */
-
-    /** VM in which executing. */
-    VM*                 state_;
-    /** Current callframe in Ruby-land. */
-    CallFrame*          current_call_frame_;
-    /** Current native callframe. */
-    NativeMethodFrame*  current_native_frame_;
-    ExceptionPoint*     current_ep_;
+    /** Return the map or RARRAY structs in the current NativeMethodFrame. */
+    CApiStructs& arrays();
   };
 
 
   /**
-   *  Call frame for a native method.
-   *
-   *  @see NativeMethodEnvironment.
+   *  Call frame for a native method. @see NativeMethodEnvironment.
    */
   class NativeMethodFrame {
+    /** Native Frame active before this call. @note This may NOT be the sender. --rue */
+    NativeMethodFrame* previous_;
+    /** Handles to Objects used in this Frame. */
+    Handles handles_;
+    /** RARRAY structs allocated during this call. */
+    CApiStructs* arrays_;
+    /** RSTRING structs allocated during this call. */
+    CApiStructs* strings_;
 
   public:
     NativeMethodFrame(NativeMethodFrame* prev)
-      : previous_(prev)
+      : previous_(prev),
+        arrays_(NULL),
+        strings_(NULL)
     {}
 
 
@@ -149,6 +160,8 @@ namespace rubinius {
     /** Obtain the Object the Handle represents. */
     Object* get_object(Handle hndl);
 
+    /** Wrap up any use of RARRAY, RSTRING, etc. */
+    void cleanup();
 
   public:     /* Accessors */
 
@@ -162,22 +175,18 @@ namespace rubinius {
       return previous_;
     }
 
+    /** Returns the map of RSTRING structs in this frame. */
+    CApiStructs& strings();
 
-  private:    /* Instance variables */
-
-    /** Native Frame active before this call. @note This may NOT be the sender. --rue */
-    NativeMethodFrame* previous_;
-
-    /** Handles to Objects used in this Frame. */
-    Handles handles_;
+    /** Return the map or RARRAY structs in this frame. */
+    CApiStructs& arrays();
   };
 
 
   /**
-   *  The various special method arities from a
-   *  C method. If not one of these, then the
-   *  number denotes the exact number of args
-   *  in addition to the receiver instead.
+   *  The various special method arities from a C method. If not one of these,
+   *  then the number denotes the exact number of args in addition to the
+   *  receiver instead.
    */
   enum Arity {
     INIT_FUNCTION = -99,
@@ -222,6 +231,17 @@ namespace rubinius {
    *          Currently only in Subtend tests.
    */
   class NativeMethod : public Executable {
+    /** Arity of the method. @see Arity. */
+    Fixnum* arity_;                                   // slot
+    /** C file in which rb_define_method called. */
+    String* file_name_;                               // slot
+    /** Name given at creation time. */
+    Symbol* method_name_;                             // slot
+    /** Module on which created. */
+    Module* module_;                                  // slot
+    /** Function object that implements this method. */
+    MemoryPointer* functor_;                          // slot
+
   public:   /* Ruby bookkeeping */
 
     /** Statically held object type. */
@@ -328,21 +348,6 @@ namespace rubinius {
       {
         return reinterpret_cast<FunctorType>(functor_->pointer);
       }
-
-
-  private:  /* Slots */
-
-    /** Arity of the method. @see Arity. */
-    Fixnum* arity_;                                   // slot
-    /** C file in which rb_define_method called. */
-    String* file_name_;                               // slot
-    /** Name given at creation time. */
-    Symbol* method_name_;                             // slot
-    /** Module on which created. */
-    Module* module_;                                  // slot
-    /** Function object that implements this method. */
-    MemoryPointer* functor_;                          // slot
-
 
   public:   /* Type information */
 

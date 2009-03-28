@@ -45,6 +45,27 @@ namespace rubinius {
     return obj;
   }
 
+  CApiStructs& NativeMethodFrame::strings() {
+    if(!strings_) strings_ = new CApiStructs;
+    return *strings_;
+  }
+
+  CApiStructs& NativeMethodFrame::arrays() {
+    if(!arrays_) arrays_ = new CApiStructs;
+    return *arrays_;
+  }
+
+  void NativeMethodFrame::cleanup() {
+    if(arrays_) {
+      capi_rarray_flush();
+      delete arrays_;
+    }
+    if(strings_) {
+      capi_rstring_flush();
+      delete strings_;
+    }
+  }
+
   Handle NativeMethodEnvironment::get_handle(Object* obj) {
     return current_native_frame_->get_handle(state_, obj);
   }
@@ -105,6 +126,14 @@ namespace rubinius {
     return current_native_frame_->handles();
   }
 
+  CApiStructs& NativeMethodEnvironment::strings() {
+    return current_native_frame_->strings();
+  }
+
+  CApiStructs& NativeMethodEnvironment::arrays() {
+    return current_native_frame_->arrays();
+  }
+
   void NativeMethod::init(STATE) {
     state->globals.nmethod.set(state->new_class("NativeMethod", G(executable)));
     state->globals.nmethod.get()->set_object_type(state, NativeMethodType);
@@ -142,6 +171,7 @@ namespace rubinius {
       ret = nm->call(state, env, msg);
     }
 
+    env->current_native_frame()->cleanup();
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 

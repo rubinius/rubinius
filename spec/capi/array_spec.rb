@@ -47,7 +47,7 @@ describe "C-API Array function" do
       @s.rb_ary_entry([], 0).should == nil
     end
 
-    it "returns elemends from the end when passed a negative index" do
+    it "returns elements from the end when passed a negative index" do
       @s.rb_ary_entry([1, 2, 3], -1).should == 3
       @s.rb_ary_entry([1, 2, 3], -2).should == 2
     end

@@ -38,6 +38,12 @@ namespace rubinius {
     /** Raise a TypeError (convenience method). */
     void capi_raise_type_error(object_type type, Object* object);
 
+    /** Update contents of Array objects for which RARRAY was called. */
+    void capi_rarray_flush();
+
+    /** Update contents of String objects for which RSTRING was called. */
+    void capi_rstring_flush();
+
     /** Converts a native type (int, uint, long) to a suitable Integer. */
     template<typename NativeType>
       VALUE capi_native2num(NativeType number) {
