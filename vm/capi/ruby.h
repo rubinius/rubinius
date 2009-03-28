@@ -26,6 +26,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <sys/select.h>
 
 #define RUBY
 
@@ -1022,6 +1023,10 @@ extern "C" {
 
   /** Issue a thread.pass. */
   void    rb_thread_schedule();
+
+  /** Request status of file descriptors */
+  int     rb_thread_select(int max, fd_set* read, fd_set* write, fd_set* except,
+                           struct timeval *timeval);
 
   /** Returns an integer value representing the object's type. */
   int     rb_type(VALUE object_handle);

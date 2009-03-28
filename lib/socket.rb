@@ -108,9 +108,6 @@ class BasicSocket < IO
     bytes_to_read = Type.coerce_to bytes_to_read, Fixnum, :to_int
     buffer = FFI::MemoryPointer.new :char, bytes_to_read + 1
 
-    # Wait until we have something to read, so we don't block other threads
-    IO.select([self])
-
     bytes_read = Socket::Foreign.recv(descriptor, buffer, bytes_to_read, flags)
 
     Errno.handle 'recv(2)' if bytes_read < 0
