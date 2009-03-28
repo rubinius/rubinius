@@ -128,16 +128,12 @@ module Net # :nodoc:
 
     private
 
+    # Fill the internal buffer.
     #
-    # @todo   Change when IO#sysread works.
+    # TODO: Could try different block sizes, 8k is typical. --rue
     #
     def rbuf_fill
-      timeout(@read_timeout) {
-        r = @io.read(1024)
-        raise EOFError, "Socket closed." unless r
-
-        @rbuf << r
-      }
+      timeout(@read_timeout) { @rbuf << @io.sysread(1024) }
     end
 
     def rbuf_consume(len)
