@@ -1,7 +1,7 @@
 # depends on: array.rb string.rb hash.rb range.rb
 
 class Array::Packer
-  BASE_64_B2A = {}
+  BASE_64_B2A = Array.new 64
   (00..25).each {|x| BASE_64_B2A[x] = (?A + x - 00).chr}
   (26..51).each {|x| BASE_64_B2A[x] = (?a + x - 26).chr}
   (52..61).each {|x| BASE_64_B2A[x] = (?0 + x - 52).chr}
