@@ -954,16 +954,13 @@ class Array
   # elem == obj. Returns the first matching Array, nil
   # on failure. See also Array#assoc.
   def rassoc(obj)
-    # FIX: Use break when it works
-    found, res = nil, nil
-
-    each { |elem|
-      if found.nil? and elem.kind_of? Array and elem.at(1) == obj
-        res, found = elem, true
+    each do |elem|
+      if elem.kind_of? Array and elem.at(1) == obj
+        return elem
       end
-    }
+    end
 
-    res
+    nil
   end
 
   # Returns a new Array by removing items from self for
