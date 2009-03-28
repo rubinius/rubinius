@@ -108,18 +108,4 @@ namespace :extension do
     end
 
   end
-
-  # The ones below are not used currently.
-
-  task :mongrel => %W[kernel:build lib/ext/mongrel/http11.#{$dlext}]
-
-  file "lib/ext/mongrel/http11.#{$dlext}" => FileList[
-    'shotgun/lib/capi/*',
-    'lib/ext/mongrel/build.rb',
-    'lib/ext/mongrel/*.c',
-    'lib/ext/mongrel/*.h'
-  ] do
-    compile_ruby "lib/ext/mongrel"
-  end
 end
-

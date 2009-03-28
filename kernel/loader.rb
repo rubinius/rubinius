@@ -182,6 +182,9 @@ begin
           end
         end
       elsif arg.prefix? "-r"
+        # TODO: parse all the args before requiring any files
+        # because $0 needs to be set before files are required
+        # e.g. 'rbx -r mkmf extconf.rb', mkmf expects to use $0
         more = arg[2..-1]
         if more.empty?
           require ARGV.shift

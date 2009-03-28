@@ -446,7 +446,6 @@ class Socket < BasicSocket
 
     def accept
       return if closed?
-      wait_til_readable
 
       fd = nil
       sockaddr = nil

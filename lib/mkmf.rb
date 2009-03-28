@@ -131,8 +131,7 @@ def map_dir(dir, map = nil)
 end
 
 # ---------------------- Changed for Rubinius --------------------------------
-$extmk      = Rubinius::EXT_PATH
-$topdir     = Rubinius::BASE_PATH
+$topdir     = Rubinius::HDR_PATH
 $top_srcdir = $topdir
 $hdrdir     = Rubinius::HDR_PATH
 
