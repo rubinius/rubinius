@@ -67,7 +67,17 @@ namespace rubinius {
   }
 
   Handle NativeMethodEnvironment::get_handle(Object* obj) {
-    return current_native_frame_->get_handle(state_, obj);
+    if(obj->nil_p()) {
+      return cCApiHandleQnil;
+    } else if(obj->false_p()) {
+      return cCApiHandleQfalse;
+    } else if(obj->true_p()) {
+      return cCApiHandleQtrue;
+    } else if(obj->undef_p()) {
+      return cCApiHandleQundef;
+    } else {
+      return current_native_frame_->get_handle(state_, obj);
+    }
   }
 
   Handle NativeMethodEnvironment::get_handle_global(Object* obj) {

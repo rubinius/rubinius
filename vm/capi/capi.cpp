@@ -153,7 +153,7 @@ namespace rubinius {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
       TypeInfo* expected = env->state()->find_type(type);
-      TypeInfo* actual = env->state()->find_type(object->type_id());
+      TypeInfo* actual = env->state()->find_type(object->get_type());
 
       rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
           actual->type_name.c_str(), expected->type_name.c_str());

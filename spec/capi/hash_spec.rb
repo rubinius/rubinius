@@ -18,6 +18,12 @@ describe "C-API Hash function" do
       hsh = {:chunky => 'bacon'}
       @s.rb_hash_aref(hsh, :chunky).should == 'bacon'
     end
+
+    it "returns nil if the key does not exist" do
+      hsh = { }
+      @s.rb_hash_aref(hsh, :chunky).should be_nil
+      @s.rb_hash_aref_nil(hsh, :chunky).should be_true
+    end
   end
 
   describe "rb_hash_aset" do
