@@ -254,12 +254,6 @@ namespace rubinius {
     }
   }
 
-  /* Initialize the object as storing bytes, by setting the flag then clearing the
-   * body of the object, by setting the entire body as bytes to 0 */
-  void Object::init_bytes(STATE) {
-    clear_body_to_null(size_in_bytes(state));
-  }
-
   bool Object::kind_of_p(STATE, Object* module) {
     Module* found = NULL;
 

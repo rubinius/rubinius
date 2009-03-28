@@ -137,7 +137,7 @@ const int cUndef = 0x22L;
 
         unsigned int Forwarded              : 1;
         unsigned int Remember               : 1;
-        unsigned int Marked                 : 1;
+        unsigned int Marked                 : 2;
         unsigned int RequiresCleanup        : 1;
 
         unsigned int RefsAreWeak            : 1;
@@ -247,11 +247,19 @@ const int cUndef = 0x22L;
     }
 
     bool marked_p() const {
-      return Marked == 1;
+      return Marked != 0;
     }
 
-    void mark() {
-      Marked = 1;
+    bool marked_p(unsigned int which) const {
+      return Marked == which;
+    }
+
+    void mark(unsigned int which=1) {
+      Marked = which;
+    }
+
+    int which_mark() {
+      return Marked;
     }
 
     void clear_mark() {

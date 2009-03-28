@@ -105,7 +105,7 @@ namespace immix {
       : address_(0)
       , status_(cFree)
       , holes_(1)
-      , lines_used_(0)
+      , lines_used_(1)
       , objects_(0)
       , object_bytes_(0)
     {
@@ -116,6 +116,7 @@ namespace immix {
       objects_ = 0;
       object_bytes_ = 0;
       memset(lines_, 0, sizeof(lines_));
+      lines_[0] = 1; // always exclude the first line, it's got metadata
     }
 
     void set_address(Address addr) {
@@ -135,7 +136,7 @@ namespace immix {
     }
 
     Address first_address() {
-      return address_ + sizeof(BlockHeader);
+      return address_ + cLineSize; // skip line 0
     }
 
     BlockStatus status() const {
@@ -225,9 +226,10 @@ namespace immix {
         }
       }
 
-      if(lines_used_ == 0) {
+      // 1 is always used for metadata
+      if(lines_used_ == 1) {
         status_ = cFree;
-      } else if(holes_ > 0) {
+      } else if(holes_ > 1) {
         status_ = cRecyclable;
       } else {
         status_ = cUnavailable;
@@ -315,6 +317,10 @@ namespace immix {
       return system_size_;
     }
 
+    Address last_address() {
+      return system_base_ + system_size_;
+    }
+
     void add_blocks() {
       assert(base_ == Block::align(base_));
 
@@ -337,6 +343,10 @@ namespace immix {
       for(int i = 0; i < cBlocksPerChunk; i++) {
         blocks_[i].update_stats();
       }
+    }
+
+    bool contains_address(Address addr) {
+      return addr > base_ && addr <= last_address();
     }
   };
 
@@ -523,9 +533,11 @@ namespace immix {
           cursor_ = block_->address_of_line(hole_start_line_);
 
           // Compensate for the header
+          /*
           if(hole_start_line_ == 0) {
             cursor_ = block_->first_address();
           }
+          */
 
           while(hole_start_line_ < cLineTableSize &&
                 block_->is_line_free(hole_start_line_)) {
@@ -741,6 +753,17 @@ namespace immix {
       }
 
       return bytes;
+    }
+
+    bool allocated_address(Address addr) {
+      Chunks& chunks = block_allocator_.chunks();
+      for(Chunks::iterator i = chunks.begin();
+          i != chunks.end();
+          i++) {
+        if((*i)->contains_address(addr)) return true;
+      }
+
+      return false;
     }
   };
 }

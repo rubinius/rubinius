@@ -4,6 +4,8 @@
 #include "util/immix.hpp"
 #include "gc.hpp"
 
+#include "object_position.hpp"
+
 namespace rubinius {
   class ObjectMemory;
   class ImmixGC;
@@ -50,8 +52,11 @@ namespace rubinius {
       bool mark_address(immix::Address addr, immix::MarkStack& ms) {
         Object* obj = addr.as<Object>();
 
-        if(obj->marked_p()) return false;
-        obj->mark();
+        if(obj->marked_p()) {
+          if(obj->marked_p(gc_->which_mark())) return false;
+          assert(0 && "invalid mark detectet!\n");
+        }
+        obj->mark(gc_->which_mark());
 
         ms.push_back(addr);
 
@@ -66,6 +71,7 @@ namespace rubinius {
 
     immix::GC<ObjectDescriber> gc_;
     immix::ExpandingAllocator allocator_;
+    int which_mark_;
 
   public:
     ImmixGC(ObjectMemory* om);
@@ -75,6 +81,13 @@ namespace rubinius {
 
     virtual Object* saw_object(Object*);
     void collect(GCData& data);
+
+    ObjectPosition validate_object(Object*);
+
+  public: // Inline
+    int which_mark() {
+      return which_mark_;
+    }
   };
 }
 

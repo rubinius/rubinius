@@ -25,6 +25,7 @@ namespace rubinius {
   ImmixGC::ImmixGC(ObjectMemory* om)
     : GarbageCollector(om)
     , allocator_(gc_.block_allocator())
+    , which_mark_(1)
   {
     gc_.describer().set_object_memory(om, this);
   }
@@ -79,6 +80,18 @@ namespace rubinius {
 
     immix::Address fwd = gc_.mark_address(immix::Address(obj), allocator_);
     return fwd.as<Object>();
+  }
+
+  ObjectPosition ImmixGC::validate_object(Object* obj) {
+    if(gc_.allocated_address(immix::Address(obj))) {
+      if(obj->in_immix_p()) {
+        return cInImmix;
+      } else {
+        return cInImmixCorruptHeader;
+      }
+    }
+
+    return cUnknown;
   }
 
   void ImmixGC::collect(GCData& data) {
@@ -143,6 +156,9 @@ namespace rubinius {
         }
       }
     }
+
+    // Switch the which_mark_ for next time.
+    which_mark_ = (which_mark_ == 1 ? 2 : 1);
 
 #ifdef IMMIX_DEBUG
     std::cout << "Immix: RS size cleared: " << cleared << "\n";

@@ -87,14 +87,14 @@ public:
     TS_ASSERT_EQUALS(block.size(), immix::cBlockSize);
     TS_ASSERT(block.address() != 0);
     TS_ASSERT_EQUALS(block.status(), immix::cFree);
-    TS_ASSERT_EQUALS(block.lines_used(), 0);
+    TS_ASSERT_EQUALS(block.lines_used(), 1);
   }
 
   void test_Block_is_line_free() {
     immix::Block& block = gc->get_block();
-    TS_ASSERT(block.is_line_free(0));
-    block.mark_line(0);
-    TS_ASSERT(!block.is_line_free(0));
+    TS_ASSERT(block.is_line_free(1));
+    block.mark_line(1);
+    TS_ASSERT(!block.is_line_free(1));
   }
 
   void test_Block_address_of_line() {
@@ -117,9 +117,9 @@ public:
 
   void test_SingleBlockAllocator_allocate_checks_mark_on_spill() {
     immix::Block& block = gc->get_block();
-    immix::Address top  = block.address();
+    immix::Address top  = block.first_address();
 
-    block.mark_line(1);
+    block.mark_line(2);
     immix::SingleBlockAllocator alloc(block);
     alloc.allocate(96);
 
@@ -245,7 +245,7 @@ public:
     block.update_stats();
     TS_ASSERT_EQUALS(block.status(), immix::cFree);
     TS_ASSERT_EQUALS(block.holes(), 1);
-    TS_ASSERT_EQUALS(block.lines_used(), 0);
+    TS_ASSERT_EQUALS(block.lines_used(), 1);
   }
 
   void test_Block_update_stats_finds_unavailable_blocks() {
@@ -277,9 +277,9 @@ public:
     immix::SingleBlockAllocator alloc(block);
     immix::Address addr = alloc.allocate(24);
 
-    TS_ASSERT(block.is_line_free(0));
+    TS_ASSERT(block.is_line_free(1));
     gc->mark_address(addr, alloc);
-    TS_ASSERT(!block.is_line_free(0));
+    TS_ASSERT(!block.is_line_free(1));
   }
 
   void test_mark_address_ignores_already_marked_objects() {
@@ -289,9 +289,9 @@ public:
 
     addr.as<SimpleObject>()->marked = true;
 
-    TS_ASSERT(block.is_line_free(0));
+    TS_ASSERT(block.is_line_free(1));
     gc->mark_address(addr, alloc);
-    TS_ASSERT(block.is_line_free(0));
+    TS_ASSERT(block.is_line_free(1));
   }
 
   void test_mark_address_returns_forwarding_pointer() {
@@ -408,11 +408,11 @@ public:
     block.mark_line(1);
     block.mark_line(3);
 
-    TS_ASSERT_EQUALS(block.lines_used(), 0);
+    TS_ASSERT_EQUALS(block.lines_used(), 1);
     immix::BlockAllocator& ba = gc->block_allocator();
     ba.reset();
 
-    TS_ASSERT_EQUALS(block.lines_used(), 2);
+    TS_ASSERT_EQUALS(block.lines_used(), 3);
   }
 
   void test_BlockAllocator_get_free_block() {

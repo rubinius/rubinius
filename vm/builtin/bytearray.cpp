@@ -19,16 +19,18 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::create(STATE, size_t bytes) {
-    ByteArray* ba = state->om->new_object_bytes<ByteArray>(G(bytearray), bytes);
-    ba->init_bytes(state);
-    ba->full_size_ = bytes;
+    size_t body = bytes;
+    ByteArray* ba = state->om->new_object_bytes<ByteArray>(G(bytearray), body);
+    ba->full_size_ = body;
+    memset(ba->bytes, 0, bytes);
     return ba;
   }
 
   ByteArray* ByteArray::create_pinned(STATE, size_t bytes) {
-    ByteArray* ba = state->om->new_object_bytes_mature<ByteArray>(G(bytearray), bytes);
-    ba->init_bytes(state);
-    ba->full_size_ = bytes;
+    size_t body = bytes;
+    ByteArray* ba = state->om->new_object_bytes_mature<ByteArray>(G(bytearray), body);
+    ba->full_size_ = body;
+    memset(ba->bytes, 0, bytes);
     assert(ba->pin());
 
     return ba;

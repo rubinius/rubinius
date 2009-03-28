@@ -98,13 +98,6 @@ namespace rubinius {
     /** Calls cleanup() on the TypeInfo for this object's type. */
     void        cleanup(STATE);
 
-    /**
-     *  Initialize the object to store bytes.
-     *
-     *  Sets flag and overwrites body with NULLs.
-     */
-    void        init_bytes(STATE);
-
     /** Provides access to the GC write barrier from any object. */
     void        write_barrier(STATE, void* obj);
     /** Special-case write_barrier() for Fixnums. */

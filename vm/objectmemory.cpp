@@ -284,6 +284,9 @@ namespace rubinius {
     pos = young.validate_object(obj);
     if(pos != cUnknown) return pos;
 
+    pos = immix_.validate_object(obj);
+    if(pos != cUnknown) return pos;
+
     return mark_sweep_.validate_object(obj);
   }
 };

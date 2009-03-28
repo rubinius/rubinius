@@ -7,7 +7,9 @@ namespace rubinius {
     cValid,
     cInWrongYoungHalf,
     cMatureObject,
-    cContextStack
+    cContextStack,
+    cInImmix,
+    cInImmixCorruptHeader
   };
 }
 
