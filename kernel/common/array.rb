@@ -933,9 +933,11 @@ class Array
   def pop()
     return nil if empty?
 
-    elem = at(@total-1)
     @total -= 1
-    @tuple.put(@start+@total,nil)
+    index = @start + @total
+
+    elem = @tuple.at(index)
+    @tuple.put(index,nil)
 
     reallocate_shrink()
 
