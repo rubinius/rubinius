@@ -1176,7 +1176,9 @@ raise "no"
              sexp[1] = convert(s(:iter_args, sexp[1])) # local var assignment
             end
 
-            sexp[2] = convert(sexp[2]) # body
+            set(:pop_unwind, false) do
+              sexp[2] = convert(sexp[2]) # body
+            end
           end
         end
 
@@ -1320,7 +1322,9 @@ raise "no"
               sexp[1] = convert(s(:iter_args, sexp[1]))
             end
 
-            sexp[2] = convert(sexp[2])
+            set(:pop_unwind, false) do
+              sexp[2] = convert(sexp[2])
+            end
           end
         end
 
