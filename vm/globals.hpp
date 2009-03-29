@@ -62,6 +62,7 @@ namespace rubinius {
     TypedRoot<Symbol*> sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
     TypedRoot<Symbol*> sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
     TypedRoot<Symbol*> sym_initialize;
+    TypedRoot<Symbol*> sym_coerce_into_array;
 
     TypedRoot<Class*> exception;
     TypedRoot<Class*> exc_arg, exc_segfault;
@@ -167,6 +168,7 @@ namespace rubinius {
       sym_lt(&roots),
       sym_gt(&roots),
       sym_initialize(&roots),
+      sym_coerce_into_array(&roots),
       exception(&roots),
       exc_arg(&roots),
       exc_segfault(&roots),

@@ -85,4 +85,9 @@ class Array
     end
     false
   end
+
+  def self.coerce_into_array(obj)
+    return obj.to_ary if obj.respond_to?(:to_ary)
+    [obj]
+  end
 end

@@ -2307,6 +2307,8 @@ class Compiler
         should_wrap = false if rhs.nil? || rhs.is?(Splat)
         if should_wrap
           wrap_array(g)
+        elsif rhs.nil?
+          cast_array(g)
         else
           g.cast_array
         end
@@ -2342,6 +2344,20 @@ class Compiler
         g.goto done
 
         wrap.set!
+        g.make_array 1
+        done.set!
+      end
+
+      # If the top of the stack is already an Array, return it.
+      # If it is anything else, use make_array
+      def cast_array(g)
+        g.dup
+        g.find_cpath_top_const :Array
+        g.swap
+        g.kind_of
+
+        done = g.new_label
+        g.git done
         g.make_array 1
         done.set!
       end

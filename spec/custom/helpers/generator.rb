@@ -104,19 +104,20 @@ class TestGenerator
     end
   end
 
-  def to_ary
+  def to_a
     convert_to_ary [:test_generator, @stream]
   end
 
   def pretty_inspect
-    to_ary.pretty_inspect
+    to_a.pretty_inspect
   end
 
   def inspect
-    to_ary.inspect
+    to_a.inspect
   end
 
   def add(*args)
+    @last = args
     @stream << args
     @ip += 1
   end
@@ -581,5 +582,11 @@ class TestGenerator
     g.push_const :LocalJumpError
     g.push_literal "#{name} used in invalid context"
     g.send :raise, 2, true
+  end
+
+  def cast_array
+    unless @last and [:cast_array, :make_array].include? @last.first
+      add :cast_array
+    end
   end
 end

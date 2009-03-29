@@ -432,6 +432,7 @@ namespace rubinius {
     add_sym(const_missing);
     add_sym(object_id);
     add_sym(call);
+    add_sym(coerce_into_array);
 #undef add_sym
     GO(sym_s_method_added).set(symbol("singleton_method_added"));
     GO(sym_init_copy).set(symbol("initialize_copy"));

@@ -242,9 +242,11 @@ class Instructions
     if(kind_of<Tuple>(t1)) {
       t1 = Array::from_tuple(state, as<Tuple>(t1));
     } else if(!kind_of<Array>(t1)) {
-      Array* ary = Array::create(state, 1);
-      ary->set(state, 0, t1);
-      t1 = ary;
+      Object* recv = G(array);
+      Arguments args(recv, 1, &t1);
+      Dispatch dis(G(sym_coerce_into_array));
+
+      t1 = dis.send(state, call_frame, args);
     }
     stack_push(t1);
     CODE
