@@ -45,22 +45,6 @@ namespace rubinius {
     /** Obtain the NativeMethodEnvironment for this thread. */
     static NativeMethodEnvironment* get();
 
-  /**
-   * These values must be the same as the values given
-   * to Qfalse, etc in vm/capi/ruby.h
-   */
-#define cCApiHandleQfalse      ( 0)
-#define cCApiHandleQtrue       (-1)
-#define cCApiHandleQnil        (-2)
-#define cCApiHandleQundef      (-3)
-
-  /**
-   * Constants for navigating around the fixed values
-   * of the immediates like Qfalse above.
-   */
-#define cHandleOffset       ( 1)
-#define cGlobalHandleStart  (-4)
-
   public:   /* Interface methods */
 
     /** Create or retrieve Handle for obj. */

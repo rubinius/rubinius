@@ -32,13 +32,13 @@ namespace rubinius {
   }
 
   Handle NativeMethodFrame::get_handle(STATE, Object* obj) {
-    Handle hndl = handles_.size() + cHandleOffset;
+    Handle handle = CAPI_APPLY_LOCAL_TAG(handles_.size());
     handles_.push_back(new RootHandle(state, obj));
-    return hndl;
+    return handle;
   }
 
-  Object* NativeMethodFrame::get_object(Handle hndl) {
-    Object* obj = handles_[hndl - cHandleOffset]->get();
+  Object* NativeMethodFrame::get_object(Handle handle) {
+    Object* obj = handles_[CAPI_STRIP_LOCAL_TAG(handle)]->get();
     if(!obj) {
       capi_raise_runtime_error("NativeMethod handle refers to NULL object");
     }
@@ -67,7 +67,13 @@ namespace rubinius {
   }
 
   Handle NativeMethodEnvironment::get_handle(Object* obj) {
-    if(obj->nil_p()) {
+    if(obj->reference_p()) {
+      return current_native_frame_->get_handle(state_, obj);
+    } else if(obj->fixnum_p()) {
+      return reinterpret_cast<VALUE>(obj);
+    } else if(obj->symbol_p()) {
+      return reinterpret_cast<ID>(obj);
+    } else if(obj->nil_p()) {
       return cCApiHandleQnil;
     } else if(obj->false_p()) {
       return cCApiHandleQfalse;
@@ -75,32 +81,24 @@ namespace rubinius {
       return cCApiHandleQtrue;
     } else if(obj->undef_p()) {
       return cCApiHandleQundef;
-    } else {
-      return current_native_frame_->get_handle(state_, obj);
     }
+
+    capi_raise_runtime_error("NativeMethod handle requested for unknown object type");
+    return 0; // keep compiler happy
   }
 
   Handle NativeMethodEnvironment::get_handle_global(Object* obj) {
     Handles& global_handles = state_->shared.global_handles();
-    Handle handle = cGlobalHandleStart - global_handles.size() - cHandleOffset;
+    Handle handle = CAPI_APPLY_GLOBAL_TAG(global_handles.size());
     global_handles.push_back(new RootHandle(state_, obj));
     return handle;
   }
 
   Object* NativeMethodEnvironment::get_object(Handle handle) {
-    if(handle <= 0) {
-      switch(handle) {
-      case cCApiHandleQfalse:
-        return Qfalse;
-      case cCApiHandleQtrue:
-        return Qtrue;
-      case cCApiHandleQnil:
-        return Qnil;
-      case cCApiHandleQundef:
-        return Qundef;
-      default:
+    if(CAPI_REFERENCE_P(handle)) {
+      if(CAPI_GLOBAL_HANDLE_P(handle)) {
         Handles& global_handles = state_->shared.global_handles();
-        RootHandle* root = global_handles[cGlobalHandleStart - handle - cHandleOffset];
+        RootHandle* root = global_handles[CAPI_STRIP_GLOBAL_TAG(handle)];
         if(!root) {
           capi_raise_runtime_error("Attempted to use deleted NativeMethod global handle");
         }
@@ -115,17 +113,33 @@ namespace rubinius {
           capi_raise_runtime_error("NativeMethod global handle refers to NULL object");
         }
         return obj;
+      } else {
+        return current_native_frame_->get_object(handle);
       }
-    } else {
-      return current_native_frame_->get_object(handle);
+    } else if(FIXNUM_P(handle)) {
+      return reinterpret_cast<Fixnum*>(handle);
+    } else if(SYMBOL_P(handle)) {
+      return reinterpret_cast<Symbol*>(handle);
+    } else if(CAPI_FALSE_P(handle)) {
+      return Qfalse;
+    } else if(CAPI_TRUE_P(handle)) {
+      return Qtrue;
+    } else if(CAPI_NIL_P(handle)) {
+      return Qnil;
+    } else if(CAPI_UNDEF_P(handle)) {
+      return Qundef;
     }
+
+    capi_raise_runtime_error("requested Object for unknown NativeMethod handle type");
+    return Qnil; // keep compiler happy
   }
 
   void NativeMethodEnvironment::delete_global(Handle handle) {
     Handles& global_handles = state_->shared.global_handles();
-    RootHandle* root = global_handles[cGlobalHandleStart - handle];
+    handle = CAPI_STRIP_GLOBAL_TAG(handle);
+    RootHandle* root = global_handles[handle];
     delete root;
-    global_handles[cGlobalHandleStart - handle] = 0;
+    global_handles[handle] = 0;
   }
 
   Object* NativeMethodEnvironment::block() {

@@ -296,10 +296,10 @@ struct RArray {
  * The immediates.
  */
 
-#define cCApiQfalse     (0)
-#define cCApiQtrue      (-1)
-#define cCApiQnil       (-2)
-#define cCApiQundef     (-3)
+#define cCApiQfalse     (0x00)
+#define cCApiQtrue      (0x22)
+#define cCApiQnil       (0x42)
+#define cCApiQundef     (0x62)
 
 /** The false object.
  *
