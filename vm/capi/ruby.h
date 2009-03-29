@@ -28,6 +28,10 @@
 #include <stdint.h>
 #include <sys/select.h>
 
+// A number of extensions expect these to be already included
+#include <sys/time.h>
+#include <stdio.h>
+
 #define RUBY
 
 #ifdef __cplusplus
@@ -175,6 +179,7 @@ extern "C" {
     cCApiString,
     cCApiSymbol,
     cCApiThread,
+    cCApiTime,
     cCApiTrue,
 
     cCApiArgumentError,
@@ -332,8 +337,8 @@ struct RArray {
 #define rb_cString            (capi_get_constant(cCApiString))
 #define rb_cSymbol            (capi_get_constant(cCApiSymbol))
 #define rb_cThread            (capi_get_constant(cCApiThread))
+#define rb_cTime              (capi_get_constant(cCApiTime))
 #define rb_cTrueClass         (capi_get_constant(cCApiTrue))
-
 
 /* Global Module objects. */
 
@@ -462,6 +467,11 @@ struct RArray {
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define LL2NUM(val) rb_ll2inum(val)
+
+  VALUE rb_ll2inum(long long val);
+  VALUE rb_ull2inum(unsigned long long val);
+
 
 /* Secret extra stuff */
 
@@ -1018,8 +1028,11 @@ extern "C" {
    */
   char*   rb_string_value_cstr(VALUE* object_variable);
 
-  /** Create a String from the C string. Rubinius does not implement tainting. */
+  /** Create a String from the C string. */
   VALUE   rb_tainted_str_new2(const char* string);
+
+  /** Create a String from the C string. */
+  VALUE   rb_tainted_str_new(const char* string, long size);
 
   /** Issue a thread.pass. */
   void    rb_thread_schedule();
@@ -1039,6 +1052,10 @@ extern "C" {
 
   /** Call block with given argument or raise error if no block given. */
   VALUE   rb_yield(VALUE argument_handle);
+
+  VALUE   rb_marshal_load(VALUE string);
+
+  VALUE   rb_float_new(double val);
 
 #ifdef __cplusplus
 }

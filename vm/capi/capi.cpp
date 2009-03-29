@@ -57,6 +57,7 @@ namespace rubinius {
         map[cCApiString]     = "String";
         map[cCApiSymbol]     = "Symbol";
         map[cCApiThread]     = "Thread";
+        map[cCApiTime]       = "Time";
         map[cCApiTrue]       = "TrueClass";
 
         map[cCApiArgumentError]       = "ArgumentError";

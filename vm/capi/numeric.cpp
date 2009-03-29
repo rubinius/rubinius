@@ -84,4 +84,14 @@ extern "C" {
   VALUE rb_cstr2inum(const char* string, int base) {
     return rb_str2inum(rb_str_new2(string), base);
   }
+
+  VALUE rb_ll2inum(long long val) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return env->get_handle(Bignum::from(env->state(), val));
+  }
+
+  VALUE rb_ull2inum(unsigned long long val) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return env->get_handle(Bignum::from(env->state(), val));
+  }
 }

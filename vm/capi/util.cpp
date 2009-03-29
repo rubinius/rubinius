@@ -1,6 +1,8 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
+#include "builtin/float.hpp"
+
 using namespace rubinius;
 using namespace rubinius::capi;
 
@@ -111,5 +113,14 @@ extern "C" {
     {
       rb_raise(rb_eSecurityError, "Insecure operation at level %d", rb_safe_level());
     }
+  }
+
+  VALUE rb_marshal_load(VALUE string) {
+    return rb_funcall(rb_path2class("Marshal"), rb_intern("load"), 1, string);
+  }
+
+  VALUE rb_float_new(double val) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return env->get_handle(Float::create(env->state(), val));
   }
 }

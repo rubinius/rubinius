@@ -260,12 +260,19 @@ extern "C" {
       rb_raise(rb_eArgError, "NULL pointer given");
     }
 
+    return rb_tainted_str_new(string, std::strlen(string));
+  }
+
+  VALUE rb_tainted_str_new(const char* string, long size) {
+    if(string == NULL) {
+      rb_raise(rb_eArgError, "NULL pointer given");
+    }
+
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* str = String::create(env->state(), string, std::strlen(string));
+    String* str = String::create(env->state(), string, size);
     str->taint(env->state());
 
     return env->get_handle(str);
-
   }
 }
