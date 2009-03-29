@@ -134,9 +134,8 @@ extern "C" {
     array->total(env->state(), Fixnum::from(length));
 
     if (object_handle) {
-      Object* object = env->get_object(*object_handle);
-
       for(std::size_t i = 0; i < length; ++i) {
+        Object* object = env->get_object(object_handle[i]);
         array->set(env->state(), i, object);
       }
     }
