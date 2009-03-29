@@ -42,6 +42,40 @@ module Rubinius
     open_class_under name, sup, under
   end
 
+  def self.open_module_under(name, mod)
+    unless mod.kind_of? Module
+      raise TypeError, "'#{mod.inspect}' is not a class/module"
+    end
+
+    tbl = mod.constants_table
+    if !tbl.key?(name)
+      # Create the module
+      obj = Module.new
+      obj.set_name_if_necessary name, mod
+      mod.const_set name, obj
+    else
+      obj = tbl[name].value
+      if obj.kind_of? Autoload
+        obj = obj.call
+      end
+
+      unless obj.kind_of? Module
+        raise TypeError, "#{name} is not a class"
+      end
+    end
+    return obj
+  end
+
+  def self.open_module(name, scope)
+    if scope
+      under = scope.module
+    else
+      under = Object
+    end
+
+    open_module_under name, under
+  end
+
   def self.add_defn_method(name, executable, static_scope, vis)
     executable.serial = 1
     executable.scope = static_scope if executable.respond_to? :scope=
