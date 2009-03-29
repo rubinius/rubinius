@@ -11,6 +11,10 @@ static VALUE array_spec_rb_ary_new(VALUE self) {
   return ret;
 }
 
+static VALUE array_spec_rb_ary_new2(VALUE self, VALUE length) {
+  return rb_ary_new2(NUM2LONG(length));
+}
+
 static VALUE array_spec_rb_ary_push(VALUE self, VALUE array, VALUE item) {
   rb_ary_push(array, item);
   return array;
@@ -109,6 +113,7 @@ void Init_array_spec() {
   VALUE cls;
   cls = rb_define_class("CApiArraySpecs", rb_cObject);
   rb_define_method(cls, "rb_ary_new", array_spec_rb_ary_new, 0);
+  rb_define_method(cls, "rb_ary_new2", array_spec_rb_ary_new2, 1);
   rb_define_method(cls, "rb_ary_push", array_spec_rb_ary_push, 2);
   rb_define_method(cls, "rb_ary_entry", array_spec_rb_ary_entry, 2);
   rb_define_method(cls, "rb_ary_clear", array_spec_rb_ary_clear, 1);

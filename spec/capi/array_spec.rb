@@ -13,6 +13,12 @@ describe "C-API Array function" do
     end
   end
 
+  describe "rb_ary_new2" do
+    it "returns an empty array" do
+      @s.rb_ary_new2(5).should == []
+    end
+  end
+
   describe "rb_ary_push" do
     it "adds an element to the array" do
       @s.rb_ary_push([], 4).should == [4]

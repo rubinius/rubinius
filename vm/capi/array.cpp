@@ -121,9 +121,6 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Array* array = Array::create(env->state(), (length * 2));
-    array->start(env->state(), Fixnum::from(0));
-    array->total(env->state(), Fixnum::from(length));
-    /* OK, so we are probably screwed anyway if a Fixnum is too small. :) */
 
     return env->get_handle(array);
   }
