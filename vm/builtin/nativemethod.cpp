@@ -247,7 +247,7 @@ namespace rubinius {
 
     switch(arity()->to_int()) {
     case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
-      Handle args = env->get_handle(msg.as_array(state));
+      Handle args = env->get_handle(msg.arguments().as_array(state));
 
       Handle ret_handle = functor_as<OneArgFunctor>()(args);
 
@@ -255,7 +255,7 @@ namespace rubinius {
     }
 
     case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
-      Handle args = env->get_handle(msg.as_array(state));
+      Handle args = env->get_handle(msg.arguments().as_array(state));
 
       Handle ret_handle = functor_as<TwoArgFunctor>()(receiver, args);
 

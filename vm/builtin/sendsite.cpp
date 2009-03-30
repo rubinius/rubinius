@@ -44,7 +44,7 @@ namespace rubinius {
         return basic_performer(state, call_frame, msg);
       }
 
-      msg.unshift_argument(state, msg.name);
+      msg.arguments().unshift(state, msg.name);
 
       return msg.method->execute(state, call_frame, msg);
 
@@ -73,7 +73,7 @@ namespace rubinius {
       msg.send_site->method_missing = msg.method_missing;
 
       if(unlikely(msg.method_missing)) {
-        msg.unshift_argument(state, original_name);
+        msg.arguments().unshift(state, original_name);
         msg.send_site->performer = mono_mm_performer;
       } else {
         msg.send_site->performer = mono_performer;
@@ -141,7 +141,7 @@ namespace rubinius {
     }
 
     if(msg.method_missing) {
-      msg.unshift_argument(state, original_name);
+      msg.arguments().unshift(state, original_name);
     }
 
     return true;

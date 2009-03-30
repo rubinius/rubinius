@@ -42,7 +42,7 @@ namespace rubinius {
 
 
   Object* Executable::default_executor(STATE, CallFrame* call_frame, Message& msg) {
-    msg.unshift_argument2(state, msg.recv, msg.name);
+    msg.arguments().unshift2(state, msg.recv, msg.name);
     msg.name = state->symbol("call");
     msg.recv = msg.method;
     msg.lookup_from = msg.recv->lookup_begin(state);

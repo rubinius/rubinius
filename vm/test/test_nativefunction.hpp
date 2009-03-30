@@ -58,9 +58,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, name);
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(out->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 6);
@@ -84,9 +84,9 @@ public:
     input->set(state, 0, Qnil);
     input->set(state, 1, Fixnum::from(0));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<String>(out));
   }
@@ -107,9 +107,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(as<Fixnum>(out)->to_native(), 13);
@@ -131,9 +131,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(as<Fixnum>(out)->to_native(), 13);
@@ -155,9 +155,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(as<Fixnum>(out)->to_native(), 13);
@@ -179,18 +179,18 @@ public:
     Array* input = Array::create(state, 2);
     input->set(state, 0, Fixnum::from(0));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
 
     input = Array::create(state, 2);
     input->set(state, 0, out);
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT_EQUALS(out, Fixnum::from(0));
@@ -212,9 +212,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -222,9 +222,9 @@ public:
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, (int)2147483647));
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
@@ -246,9 +246,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -256,9 +256,9 @@ public:
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, (unsigned int)2147483647));
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
@@ -280,9 +280,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -290,9 +290,9 @@ public:
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, (long)2147483647));
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
@@ -314,9 +314,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -324,9 +324,9 @@ public:
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, (unsigned long)2147483647));
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)2147483647);
@@ -348,9 +348,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -358,9 +358,9 @@ public:
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, 9223372036854775807LL));
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT(kind_of<Bignum>(out));
     TS_ASSERT_EQUALS(as<Bignum>(out)->to_long_long(), 9223372036854775807LL);
@@ -382,9 +382,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Fixnum::from(13));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Integer>(out));
     TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), (native_int)13);
@@ -392,9 +392,9 @@ public:
     input = Array::create(state, 1);
     input->set(state, 0, Integer::from(state, 9223372036854775808ULL));
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT(kind_of<Bignum>(out));
     TS_ASSERT_EQUALS(as<Bignum>(out)->to_ulong_long(), 9223372036854775808ULL);
@@ -412,9 +412,9 @@ public:
     TS_ASSERT(!func->nil_p());
     TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
-    Message* msg = new Message(state);
+    Message msg;
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT_EQUALS(out, Qnil);
   }
@@ -439,9 +439,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, ptr);
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<MemoryPointer>(out));
     TS_ASSERT_EQUALS(as<MemoryPointer>(out)->pointer, ptr->pointer);
@@ -449,9 +449,9 @@ public:
     input = Array::create(state, 1);
     input->set(state, 0, Qnil);
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT_EQUALS(out, Qnil);
   }
@@ -472,9 +472,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Float::create(state, 13.2));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Float>(out));
     TS_ASSERT(as<Float>(out)->val > 13.19);
@@ -497,9 +497,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, Float::create(state, 13.2));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Float>(out));
     TS_ASSERT_EQUALS(as<Float>(out)->val, 13.2);
@@ -521,9 +521,9 @@ public:
     Array* input = Array::create(state, 1);
     input->set(state, 0, String::create(state, "whatever"));
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<String>(out));
     TS_ASSERT_EQUALS(as<String>(out)->byte_address(), std::string("whatever"));
@@ -531,9 +531,9 @@ public:
     input = Array::create(state, 1);
     input->set(state, 0, Qnil);
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT_EQUALS(out, Qnil);
   }
@@ -604,9 +604,9 @@ public:
     Object* obj = state->new_object<Object>(G(object));
     input->set(state, 0, obj);
 
-    Message* msg = new Message(state, input);
+    Message msg(input);
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Object>(out));
     TS_ASSERT_EQUALS(out, obj);
@@ -614,9 +614,9 @@ public:
     input = Array::create(state, 1);
     input->set(state, 0, Qnil);
 
-    msg = new Message(state, input);
+    Message msg2(input);
 
-    out = func->call(state, msg);
+    out = func->call(state, &msg2);
 
     TS_ASSERT_EQUALS(out, Qnil);
   }
@@ -636,9 +636,9 @@ public:
     TS_ASSERT(!func->nil_p());
     TS_ASSERT(func->data()->check_type(MemoryPointerType));
 
-    Message* msg = new Message(state);
+    Message msg;
 
-    Object* out = func->call(state, msg);
+    Object* out = func->call(state, &msg);
 
     TS_ASSERT(kind_of<Fixnum>(out));
     TS_ASSERT(as<Fixnum>(out)->to_native());

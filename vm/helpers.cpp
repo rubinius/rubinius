@@ -143,8 +143,7 @@ namespace rubinius {
     }
 
     Object* const_missing(STATE, Module* under, Symbol* sym, CallFrame* call_frame) {
-      Message msg(state,
-                  G(sym_const_missing),
+      Message msg(G(sym_const_missing),
                   under,
                   1,
                   Qnil,

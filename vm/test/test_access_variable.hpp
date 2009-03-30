@@ -52,7 +52,7 @@ public:
 
     Symbol* val = state->symbol("Blah");
 
-    msg.unshift_argument(state, val);
+    msg.arguments().unshift(state, val);
 
     Object* ret = av->access_execute(state, &cf, msg);
     TS_ASSERT_EQUALS(ret, val);
@@ -91,7 +91,7 @@ public:
 
     Symbol* val = state->symbol("Blah");
 
-    msg.unshift_argument(state, val);
+    msg.arguments().unshift(state, val);
 
     Object* ret = av->execute(state, &cf, msg);
     TS_ASSERT_EQUALS(ret, val);

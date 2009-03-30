@@ -6,6 +6,8 @@
 #include "call_frame.hpp"
 #include "builtin/tuple.hpp"
 
+#include "arguments.hpp"
+
 namespace rubinius {
 
   class Array;
@@ -32,145 +34,10 @@ namespace rubinius {
    *  @see  CallFrame
    */
   class Message {
-  public:
-    Message()
-      : arguments_array(0)
-      , method_missing(false)
-    {}
+    Arguments args_;
 
-    /* Constructer used by all send_* instructions */
-    Message(STATE, SendSite* ss, Symbol* name, Object* recv, CallFrame* call_frame,
-            size_t arg_count, Object* block, bool priv, Module* lookup_from);
-
-    /* Constructor used by e.g. Helper::const_missing */
-    Message(STATE, Symbol* name, Object* recv, size_t arg_count,
-            Object* block, Module* lookup_from);
-
-    Message(STATE);
-    Message(STATE, Array* ary);
-    Message(STATE, CallFrame* call_frame, size_t arg_count);
-
-  public:   /* Interface */
-
-    /**
-     *  The number of arguments available
-     */
-    size_t args() { return total_args; }
-
-    /**
-     *  Appends the task's arguments to the splat array.
-     */
-    void append_arguments(STATE, Array* splat);
-
-    /**
-     *  Appends splat arguments to the task's arguments array.
-     */
-    void append_splat(STATE, Array* splat);
-
-    /**
-     *  Explicitly set total number of arguments.
-     */
-    void set_args(size_t count) { total_args = count; }
-
-    /**
-     *  Explicitly set argument Array to the one given.
-     */
-    void set_arguments(STATE, Array* args);
-
-    /**
-     *  Set the Message's argument to come from the first +count+ Objects
-     *  in +args+
-     */
-    void set_stack_args(int count, Object** args);
-
-    /**
-     *  Remove and return the currently first remaining argument.
-     */
-    Object* shift_argument(STATE);
-
-    /**
-     *  Insert argument to the front of arguments and bump others back by one.
-     */
-    void unshift_argument(STATE, Object* val);
-
-    /**
-     *  Insert 2 arguments to the front of arguments and bump others back.
-     */
-    void unshift_argument2(STATE, Object* one, Object* two);
-
-    /*
-     * Package up the arguments and return them as an Array
-     */
-    Array* as_array(STATE);
-
-    /*
-     * Returns the object that is currently self
-     */
-    Object* current_self();
-
-    /*
-     * Sets the caller context
-     */
-    void set_caller(CallFrame* call_frame) {
-      caller_ = call_frame;
-    }
-
-    CallFrame* caller() {
-      return caller_;
-    }
-
-    /*
-     * Retrieve an argument from the stack
-     */
-    Object* get_stack_arg(int which) {
-      return stack_args_[which];
-    }
-
-    /*
-     * Shift the start of the arguments forward, discarding the top
-     * argument. */
-    Object* shift_stack_args() {
-      Object* obj = *stack_args_++;
-      arguments_ = stack_args_;
-      return obj;
-    }
-
-    /*
-     * Sets the Message to pull it's arguments from Array*
-     */
-    void use_array(Array* ary) {
-      total_args = ary->size();
-      arguments_array = ary;
-      arguments_ = ary->tuple()->field + ary->start()->to_native();
-    }
-
-    /*
-     * Retrieve the requested argument
-     */
-    Object* get_argument(size_t index) {
-      return arguments_[index];
-    }
-
-    /**
-     *  Send this message directly.
-     *
-     *  This is separate from the SendSite performers, because
-     *  there is no send site to use.
-     *
-     *  @todo See whether there is any point to having "virtual"
-     *        send sites (which also addresses this.) --rue
-     *
-     *  @see  SendSite
-     */
-    Object* send(STATE, CallFrame* call_frame);
-
-
-  private:
-    STATE       /* state */;       /**< Access to the VM state. */
-    Array*      arguments_array;      /**< Arguments from the call. */
-    size_t      total_args;     /**< Total number of arguments given, including unsplatted. */
-    Object**    stack_args_;
-    Object**    arguments_;
+    /** The caller's CallFrame, where to get arguments from*/
+    CallFrame* caller_;
 
   public:   /* Instance variables */
 
@@ -190,9 +57,75 @@ namespace rubinius {
      * was called as. */
     bool        method_missing;
 
-  private:
-    /** The caller's CallFrame, where to get arguments from*/
-    CallFrame* caller_;
+  public:
+    Message()
+      : method_missing(false)
+    {}
+
+    /* Constructer used by all send_* instructions */
+    Message(SendSite* ss, Symbol* name, Object* recv, CallFrame* call_frame,
+            size_t arg_count, Object* block, bool priv, Module* lookup_from);
+
+    /* Constructor used by e.g. Helper::const_missing */
+    Message(Symbol* name, Object* recv, size_t arg_count,
+            Object* block, Module* lookup_from);
+
+    Message(STATE);
+    Message(Array* ary);
+    Message(CallFrame* call_frame, size_t arg_count);
+
+  public:   /* Interface */
+
+    Arguments& arguments() {
+      return args_;
+    }
+
+    /**
+     *  The number of arguments available
+     */
+    size_t args() { return args_.total(); }
+
+    /*
+     * Retrieve the requested argument
+     */
+    Object* get_argument(size_t index) {
+      return args_.get_argument(index);
+    }
+
+    /**
+     *  Explicitly set argument Array to the one given.
+     */
+    void set_arguments(STATE, Array* args);
+
+    /*
+     * Returns the object that is currently self
+     */
+    Object* current_self();
+
+    /*
+     * Sets the caller context
+     */
+    void set_caller(CallFrame* call_frame) {
+      caller_ = call_frame;
+    }
+
+    CallFrame* caller() {
+      return caller_;
+    }
+
+    /**
+     *  Send this message directly.
+     *
+     *  This is separate from the SendSite performers, because
+     *  there is no send site to use.
+     *
+     *  @todo See whether there is any point to having "virtual"
+     *        send sites (which also addresses this.) --rue
+     *
+     *  @see  SendSite
+     */
+    Object* send(STATE, CallFrame* call_frame);
+
 
   };
 }

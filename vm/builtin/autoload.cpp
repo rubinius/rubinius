@@ -15,8 +15,7 @@ namespace rubinius {
   }
 
   Object* Autoload::resolve(STATE, CallFrame* call_frame) {
-    Message msg(state,
-                G(sym_call),
+    Message msg(G(sym_call),
                 this,
                 0,
                 Qnil,

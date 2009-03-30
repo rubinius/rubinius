@@ -52,8 +52,7 @@ namespace rubinius {
 
     GlobalLock::LockGuard lock(state->global_lock());
 
-    Message msg(state,
-                static_cast<SendSite*>(Qnil),
+    Message msg(static_cast<SendSite*>(Qnil),
                 cm->name(),
                 G(main),
                 &cf,

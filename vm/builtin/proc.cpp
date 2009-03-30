@@ -50,15 +50,14 @@ namespace rubinius {
     if(bound_method_->nil_p()) {
       ret= block_->call(state, call_frame, args, flags);
     } else {
-      Message msg(NULL,
-                reinterpret_cast<SendSite*>(Qnil),
-                G(sym_call),
-                this,
-                call_frame,
-                args,
-                Qnil,
-                false,
-                this->lookup_begin(state));
+      Message msg(reinterpret_cast<SendSite*>(Qnil),
+                  G(sym_call),
+                  this,
+                  call_frame,
+                  args,
+                  Qnil,
+                  false,
+                  this->lookup_begin(state));
 
       ret = msg.send(state, call_frame);
     }

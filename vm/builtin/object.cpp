@@ -307,7 +307,7 @@ namespace rubinius {
   }
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, bool allow_private) {
-    Message msg(state, name, this, 0, Qnil, lookup_begin(state));
+    Message msg(name, this, 0, Qnil, lookup_begin(state));
     msg.set_caller(caller);
     msg.priv = allow_private;
 
@@ -315,7 +315,7 @@ namespace rubinius {
   }
 
   Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
-    Object* meth = msg.shift_argument(state);
+    Object* meth = msg.arguments().shift(state);
     Symbol* sym = try_as<Symbol>(meth);
 
     if(!sym) {

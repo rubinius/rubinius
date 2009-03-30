@@ -1436,8 +1436,7 @@ class Instructions
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->yield(state, call_frame, count);
     } else {
-      Message msg(NULL,
-                static_cast<SendSite*>(Qnil),
+      Message msg(static_cast<SendSite*>(Qnil),
                 G(sym_call),
                 t1,
                 call_frame,
@@ -1460,9 +1459,9 @@ class Instructions
     <<-CODE
     Object* ary = stack_pop();
 
-    Message msg(state, call_frame, count);
+    Message msg(call_frame, count);
     if(!ary->nil_p()) {
-      msg.append_splat(state, as<Array>(ary));
+      msg.arguments().append(state, as<Array>(ary));
     }
 
     Object* t1 = call_frame->top_scope->block();
@@ -2925,8 +2924,7 @@ class Instructions
     <<-CODE
     Object* recv = stack_top();
     SendSite* ss = vmm->sendsites[index].get();
-    Message msg(state,
-                ss,
+    Message msg(ss,
                 ss->name(),
                 recv,
                 call_frame,
@@ -3007,8 +3005,7 @@ class Instructions
     <<-CODE
     Object* recv = stack_back(count);
     SendSite* ss = vmm->sendsites[index].get();
-    Message msg(state,
-                ss,
+    Message msg(ss,
                 ss->name(),
                 recv,
                 call_frame,
@@ -3094,8 +3091,7 @@ class Instructions
     Object* block = stack_pop();
     Object* recv  = stack_back(count);
     SendSite* ss  = vmm->sendsites[index].get();
-    Message msg(state,
-                ss,
+    Message msg(ss,
                 ss->name(),
                 recv,
                 call_frame,
@@ -3189,8 +3185,7 @@ class Instructions
     Object* ary   = stack_pop();
     Object* recv  = stack_back(count);
     SendSite* ss  = vmm->sendsites[index].get();
-    Message msg(state,
-                ss,
+    Message msg(ss,
                 ss->name(),
                 recv,
                 call_frame,
@@ -3201,9 +3196,9 @@ class Instructions
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
-        msg.append_arguments(state, as<Array>(ary));
+        msg.arguments().prepend(state, as<Array>(ary));
       } else {
-        msg.append_splat(state, as<Array>(ary));
+        msg.arguments().append(state, as<Array>(ary));
       }
     }
 
@@ -3287,8 +3282,7 @@ class Instructions
     <<-CODE
     Object* block = stack_pop();
     SendSite* ss  = vmm->sendsites[index].get();
-    Message msg(state,
-                ss,
+    Message msg(ss,
                 ss->name(),
                 call_frame->self(),
                 call_frame,
@@ -3424,8 +3418,7 @@ class Instructions
     Object* block = stack_pop();
     Object* ary   = stack_pop();
     SendSite* ss  = vmm->sendsites[index].get();
-    Message msg(state,
-                ss,
+    Message msg(ss,
                 ss->name(),
                 call_frame->self(),
                 call_frame,
@@ -3436,9 +3429,9 @@ class Instructions
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
-        msg.append_arguments(state, as<Array>(ary));
+        msg.arguments().prepend(state, as<Array>(ary));
       } else {
-        msg.append_splat(state, as<Array>(ary));
+        msg.arguments().append(state, as<Array>(ary));
       }
     }
 

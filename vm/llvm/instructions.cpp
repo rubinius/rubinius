@@ -90,8 +90,7 @@ CODE
 
   Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t args) {
     Object* recv = stack_back(args);
-    Message msg(NULL,
-                static_cast<SendSite*>(Qnil),
+    Message msg(static_cast<SendSite*>(Qnil),
                 name,
                 recv,
                 call_frame,
