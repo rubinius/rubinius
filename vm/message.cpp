@@ -8,6 +8,7 @@
 #include "builtin/sendsite.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
+#include "builtin/class.hpp"
 
 #include <sstream>
 
@@ -17,12 +18,12 @@ namespace rubinius {
                    size_t arg_count, Object* block, bool priv, Module* lookup_from)
     : args_(arg_count, call_frame->stack_back_position(arg_count - 1))
     , caller_(call_frame)
+    , lookup_from_(lookup_from)
     , send_site(ss)
     , name(name)
     , recv(recv)
     , block(block)
     , priv(priv)
-    , lookup_from(lookup_from)
     , method(static_cast<Executable*>(Qnil))
     , module(static_cast<Module*>(Qnil))
     , method_missing(false)
@@ -31,12 +32,12 @@ namespace rubinius {
   Message::Message(CallFrame* call_frame, size_t arg_count)
     : args_(arg_count, call_frame->stack_back_position(arg_count - 1))
     , caller_(call_frame)
+    , lookup_from_(NULL)
     , send_site(NULL)
     , name(NULL)
     , recv(NULL)
     , block(NULL)
     , priv(false)
-    , lookup_from(NULL)
     , method(NULL)
     , module(NULL)
     , method_missing(false)
@@ -46,12 +47,12 @@ namespace rubinius {
                    Object* block, Module* lookup_from)
     : args_(arg_count, NULL)
     , caller_(NULL)
+    , lookup_from_(lookup_from)
     , send_site(NULL)
     , name(name)
     , recv(recv)
     , block(block)
     , priv(false)
-    , lookup_from(lookup_from)
     , method(static_cast<Executable*>(Qnil))
     , module(static_cast<Module*>(Qnil))
     , method_missing(false)
@@ -61,12 +62,12 @@ namespace rubinius {
   Message::Message(Array* ary)
     : args_(ary)
     , caller_(NULL)
+    , lookup_from_(NULL)
     , send_site(NULL)
     , name(NULL)
     , recv(Qnil)
     , block(Qnil)
     , priv(false)
-    , lookup_from(NULL)
     , method(NULL)
     , module(NULL)
     , method_missing(false)
@@ -74,12 +75,12 @@ namespace rubinius {
 
   Message::Message(STATE)
     : caller_(NULL)
+    , lookup_from_(NULL)
     , send_site(NULL)
     , name(NULL)
     , recv(Qnil)
     , block(Qnil)
     , priv(false)
-    , lookup_from(NULL)
     , method(NULL)
     , module(NULL)
     , method_missing(false)
@@ -98,7 +99,7 @@ namespace rubinius {
   static void tragic_failure(STATE, Message& msg) {
     std::stringstream ss;
     ss << "unable to locate any method '" << msg.send_site->name()->c_str(state) <<
-      "' from '" << msg.lookup_from->name()->c_str(state) << "'";
+      "' from '" << msg.lookup_from(state)->name()->c_str(state) << "'";
 
     Exception::assertion_error(state, ss.str().c_str());
   }
@@ -120,5 +121,17 @@ namespace rubinius {
     }
 
     return method->execute(state, call_frame, *this);
+  }
+
+  Module* Message::lookup_from(STATE) {
+    if(!lookup_from_) {
+      lookup_from_ = recv->lookup_begin(state);
+    }
+
+    return lookup_from_;
+  }
+
+  void Message::flush_lookup() {
+    lookup_from_ = 0;
   }
 }

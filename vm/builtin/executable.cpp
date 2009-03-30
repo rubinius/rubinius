@@ -45,7 +45,7 @@ namespace rubinius {
     msg.arguments().unshift2(state, msg.recv, msg.name);
     msg.name = state->symbol("call");
     msg.recv = msg.method;
-    msg.lookup_from = msg.recv->lookup_begin(state);
+    msg.flush_lookup();
     return msg.send(state, call_frame);
   }
 }

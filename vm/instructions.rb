@@ -1442,8 +1442,7 @@ class Instructions
                 call_frame,
                 count,
                 Qnil,
-                false,
-                t1->lookup_begin(state));
+                false);
 
       ret = msg.send(state, call_frame);
     }
@@ -1473,7 +1472,6 @@ class Instructions
     } else {
       msg.recv = t1;
       msg.name = G(sym_call);
-      msg.lookup_from = t1->lookup_begin(state);
 
       ret = msg.send(state, call_frame);
     }
@@ -2930,8 +2928,7 @@ class Instructions
                 call_frame,
                 0,
                 Qnil,
-                ALLOW_PRIVATE(),
-                recv->lookup_begin(state));
+                ALLOW_PRIVATE());
 
     SET_ALLOW_PRIVATE(false);
 
@@ -3011,8 +3008,7 @@ class Instructions
                 call_frame,
                 count,
                 Qnil,
-                ALLOW_PRIVATE(),
-                recv->lookup_begin(state));
+                ALLOW_PRIVATE());
 
     SET_ALLOW_PRIVATE(false);
 
@@ -3097,8 +3093,7 @@ class Instructions
                 call_frame,
                 count,
                 block,
-                ALLOW_PRIVATE(),
-                recv->lookup_begin(state));
+                ALLOW_PRIVATE());
 
     SET_ALLOW_PRIVATE(false);
 
@@ -3191,8 +3186,7 @@ class Instructions
                 call_frame,
                 count,
                 block,
-                ALLOW_PRIVATE(),
-                recv->lookup_begin(state));
+                ALLOW_PRIVATE());
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {

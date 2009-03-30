@@ -161,7 +161,6 @@ namespace rubinius {
       Message msg(state);
 
       msg.recv = recv;
-      msg.lookup_from = recv->lookup_begin(state);
       msg.name = name;
       msg.priv = (priv == Qtrue);
       msg.set_caller(call_frame);

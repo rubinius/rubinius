@@ -56,8 +56,7 @@ namespace rubinius {
                   call_frame,
                   args,
                   Qnil,
-                  false,
-                  this->lookup_begin(state));
+                  false);
 
       ret = msg.send(state, call_frame);
     }

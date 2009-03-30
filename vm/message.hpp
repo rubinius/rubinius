@@ -39,6 +39,11 @@ namespace rubinius {
     /** The caller's CallFrame, where to get arguments from*/
     CallFrame* caller_;
 
+    /**< The Module in which is the first method table to look from.
+     * Usually MetaClass or Class. If NULL, then when requested, calculated
+     * from recv */
+    Module* lookup_from_;
+
   public:   /* Instance variables */
 
     SendSite*   send_site;      /**< SendSite in which this call originates. */
@@ -47,7 +52,6 @@ namespace rubinius {
     Object*     block;          /**< Block object or nil if no block. */
     bool        priv;           /**< Indicates that this call can access private methods. */
 
-    Module*     lookup_from;    /**< The Module in which is the first method table to look from. Usually MetaClass or Class. */
     Executable* method;         /**< Executable, i.e. method object, that will be run. Added in method lookup. */
     Module*     module;         /**< Module in which the method object was found. Added in method lookup. */
 
@@ -64,11 +68,11 @@ namespace rubinius {
 
     /* Constructer used by all send_* instructions */
     Message(SendSite* ss, Symbol* name, Object* recv, CallFrame* call_frame,
-            size_t arg_count, Object* block, bool priv, Module* lookup_from);
+            size_t arg_count, Object* block, bool priv, Module* lookup_from = 0);
 
     /* Constructor used by e.g. Helper::const_missing */
     Message(Symbol* name, Object* recv, size_t arg_count,
-            Object* block, Module* lookup_from);
+            Object* block, Module* lookup_from = 0);
 
     Message(STATE);
     Message(Array* ary);
@@ -126,6 +130,16 @@ namespace rubinius {
      */
     Object* send(STATE, CallFrame* call_frame);
 
+    Module* lookup_from(STATE);
+
+    void set_lookup_from(Module* mod) {
+      lookup_from_ = mod;
+    }
+
+    /**
+     * Reset the Message to it's pre-lookup state
+     */
+    void flush_lookup();
 
   };
 }

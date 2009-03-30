@@ -16,7 +16,7 @@ namespace rubinius {
      * was used.
      */
     Object* mono_performer(STATE, CallFrame* call_frame, Message& msg) {
-      if(likely(msg.lookup_from == msg.send_site->recv_class())) {
+      if(likely(msg.lookup_from(state) == msg.send_site->recv_class())) {
         msg.module = msg.send_site->module();
         msg.method = msg.send_site->method();
 
@@ -34,7 +34,7 @@ namespace rubinius {
      * a method_missing style dispatch.
      */
     Object* mono_mm_performer(STATE, CallFrame* call_frame, Message& msg) {
-      if(likely(msg.lookup_from == msg.send_site->recv_class())) {
+      if(likely(msg.lookup_from(state) == msg.send_site->recv_class())) {
         msg.module = msg.send_site->module();
         msg.method = msg.send_site->method();
 
@@ -69,7 +69,7 @@ namespace rubinius {
       // Populate for mono!
       msg.send_site->module(state, msg.module);
       msg.send_site->method(state, msg.method);
-      msg.send_site->recv_class(state, msg.lookup_from);
+      msg.send_site->recv_class(state, msg.lookup_from(state));
       msg.send_site->method_missing = msg.method_missing;
 
       if(unlikely(msg.method_missing)) {
@@ -152,7 +152,6 @@ namespace rubinius {
     if(method_ == Qnil) {
       Message msg(state);
       msg.recv = recv;
-      msg.lookup_from = recv->lookup_begin(state);
       msg.name = name_;
       msg.priv = false;
       msg.set_caller(call_frame);
@@ -164,7 +163,7 @@ namespace rubinius {
 
       module(state, msg.module);
       method(state, msg.method);
-      recv_class(state, msg.lookup_from);
+      recv_class(state, msg.lookup_from(state));
       method_missing = msg.method_missing;
 
       if(unlikely(method_missing)) {
@@ -182,7 +181,7 @@ namespace rubinius {
    * and +msg+ is now filled in. */
 
   bool HierarchyResolver::resolve(STATE, Message& msg) {
-    Module* module = msg.lookup_from;
+    Module* module = msg.lookup_from(state);
     Object* entry;
     MethodVisibility* vis;
 
@@ -249,7 +248,7 @@ keep_looking:
   bool GlobalCacheResolver::resolve(STATE, Message& msg) {
     struct GlobalCache::cache_entry* entry;
 
-    entry = state->global_cache->lookup(msg.lookup_from, msg.name);
+    entry = state->global_cache->lookup(msg.lookup_from(state), msg.name);
     if(entry) {
       if(msg.priv || entry->is_public) {
         msg.method = entry->method;
@@ -261,7 +260,7 @@ keep_looking:
     }
 
     if(HierarchyResolver::resolve(state, msg)) {
-      state->global_cache->retain(state, msg.lookup_from, msg.name,
+      state->global_cache->retain(state, msg.lookup_from(state), msg.name,
           msg.module, msg.method, msg.method_missing);
       return true;
     }
@@ -270,7 +269,7 @@ keep_looking:
   }
 
   bool MonomorphicInlineCacheResolver::resolve(STATE, Message& msg) {
-    if(msg.lookup_from == msg.send_site->recv_class()) {
+    if(msg.lookup_from(state) == msg.send_site->recv_class()) {
       msg.module = msg.send_site->module();
       msg.method = msg.send_site->method();
       msg.method_missing = msg.send_site->method_missing;
@@ -283,7 +282,7 @@ keep_looking:
     if(GlobalCacheResolver::resolve(state, msg)) {
       msg.send_site->module(state, msg.module);
       msg.send_site->method(state, msg.method);
-      msg.send_site->recv_class(state, msg.lookup_from);
+      msg.send_site->recv_class(state, msg.lookup_from(state));
       msg.send_site->method_missing = msg.method_missing;
 
       return true;

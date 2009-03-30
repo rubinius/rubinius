@@ -75,7 +75,7 @@ public:
     TS_ASSERT_EQUALS(MonomorphicInlineCacheResolver::resolve, ss->resolver);
 
     msg.name = sym;
-    msg.lookup_from = meta;
+    msg.set_lookup_from(meta);
     msg.recv = G(object);
     msg.send_site = ss;
     msg.module = (Module*)Qnil;
@@ -106,7 +106,7 @@ public:
     ss->hits = 1U;
 
     msg.name = sym;
-    msg.lookup_from = meta;
+    msg.set_lookup_from(meta);
     msg.recv = G(object);
     msg.send_site = ss;
     msg.module = meta;
@@ -138,7 +138,7 @@ public:
     ss->method_missing = true;
 
     msg.name = sym;
-    msg.lookup_from = meta;
+    msg.set_lookup_from(meta);
     msg.recv = G(object);
     msg.send_site = ss;
     msg.module = meta;

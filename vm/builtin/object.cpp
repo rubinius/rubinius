@@ -296,7 +296,6 @@ namespace rubinius {
     Message msg(state);
     msg.name = name;
     msg.recv = this;
-    msg.lookup_from = this->lookup_begin(state);
     msg.block = block;
     msg.set_caller(caller);
     msg.priv = allow_private;
