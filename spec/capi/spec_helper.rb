@@ -37,6 +37,9 @@ def compile_extension(path, name)
     raise "Don't know how to build C extensions with #{RUBY_NAME}"
   end
 
+  # we don't need to leave the object file around
+  File.delete obj if File.exists? obj
+
   File.open(signature, "w") { |f| f.puts RUBY_NAME }
 
   lib

@@ -14,7 +14,7 @@ VALUE sdaf_alloc_func(VALUE klass) {
 VALUE sdaf_get_struct(VALUE self) {
     struct sample_wrapped_struct* bar;
     Data_Get_Struct(self, struct sample_wrapped_struct, bar);
-    
+
     return INT2FIX((*bar).foo);
 }
 
@@ -27,7 +27,7 @@ VALUE sws_wrap_struct(VALUE self, VALUE val) {
 VALUE sws_get_struct(VALUE self, VALUE obj) {
     struct sample_wrapped_struct* bar;
     Data_Get_Struct(obj, struct sample_wrapped_struct, bar);
-    
+
     return INT2FIX((*bar).foo);
 }
 

@@ -21,7 +21,7 @@ static VALUE smv_test(VALUE self) {
 }
 
 VALUE smv_undef_method(VALUE self, VALUE klass, VALUE name) {
-  rb_undef_method(klass, STR2CSTR(name));
+  rb_undef_method(klass, StringValuePtr(name));
   return Qnil;
 }
 

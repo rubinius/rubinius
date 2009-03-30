@@ -6,7 +6,7 @@ VALUE concat_func(VALUE args) {
   char buffer[500] = {0};
   for(i = 0; i < RARRAY(args)->len; ++i) {
     VALUE v = RARRAY(args)->ptr[i];
-    strcat(buffer, STR2CSTR(v));
+    strcat(buffer, StringValuePtr(v));
     strcat(buffer, "_");
   }
   buffer[strlen(buffer) - 1] = 0;
