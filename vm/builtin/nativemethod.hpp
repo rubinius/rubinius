@@ -105,7 +105,10 @@ namespace rubinius {
     /** Returns the map of RSTRING structs in the current NativeMethodFrame. */
     CApiStructs& strings();
 
-    /** Return the map or RARRAY structs in the current NativeMethodFrame. */
+    /** Return the map of RDATA structs in  the current NativeMethodFrame. */
+    CApiStructs& data();
+
+    /** Return the map of RARRAY structs in the current NativeMethodFrame. */
     CApiStructs& arrays();
   };
 
@@ -120,6 +123,8 @@ namespace rubinius {
     Handles handles_;
     /** RARRAY structs allocated during this call. */
     CApiStructs* arrays_;
+    /** RDATA structs allocated during this call. */
+    CApiStructs* data_;
     /** RSTRING structs allocated during this call. */
     CApiStructs* strings_;
 
@@ -127,6 +132,7 @@ namespace rubinius {
     NativeMethodFrame(NativeMethodFrame* prev)
       : previous_(prev),
         arrays_(NULL),
+        data_(NULL),
         strings_(NULL)
     {}
 
@@ -162,8 +168,11 @@ namespace rubinius {
     /** Returns the map of RSTRING structs in this frame. */
     CApiStructs& strings();
 
-    /** Return the map or RARRAY structs in this frame. */
+    /** Return the map of RARRAY structs in this frame. */
     CApiStructs& arrays();
+
+    /** Return the map of RDATA structs in this frame. */
+    CApiStructs& data();
   };
 
 

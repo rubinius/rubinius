@@ -55,6 +55,11 @@ namespace rubinius {
     return *arrays_;
   }
 
+  CApiStructs& NativeMethodFrame::data() {
+    if(!data_) data_ = new CApiStructs;
+    return *data_;
+  }
+
   void NativeMethodFrame::cleanup() {
     if(arrays_) {
       capi_rarray_flush();
@@ -63,6 +68,10 @@ namespace rubinius {
     if(strings_) {
       capi_rstring_flush();
       delete strings_;
+    }
+    if(data_) {
+      capi_rdata_flush();
+      delete data_;
     }
   }
 
@@ -156,6 +165,10 @@ namespace rubinius {
 
   CApiStructs& NativeMethodEnvironment::arrays() {
     return current_native_frame_->arrays();
+  }
+
+  CApiStructs& NativeMethodEnvironment::data() {
+    return current_native_frame_->data();
   }
 
   void NativeMethod::init(STATE) {

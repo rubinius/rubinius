@@ -115,6 +115,9 @@ namespace rubinius {
     /** Update contents of Array objects for which RARRAY was called. */
     void capi_rarray_flush();
 
+    /** Update contents of Data objects for which RDATA was called. */
+    void capi_rdata_flush();
+
     /** Update contents of String objects for which RSTRING was called. */
     void capi_rstring_flush();
 

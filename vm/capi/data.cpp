@@ -7,14 +7,51 @@
 using namespace rubinius;
 using namespace rubinius::capi;
 
+namespace rubinius {
+  namespace capi {
+    void capi_rdata_flush() {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+      Data* data;
+      struct RData* d = 0;
+      CApiStructs& data_str = env->data();
+
+      for(CApiStructs::iterator iter = data_str.begin();
+          iter != data_str.end();
+          iter++) {
+        data = c_as<Data>(env->get_object(iter->first));
+        d = (struct RData*)iter->second;
+
+        data->mark(env->state(), d->dmark);
+        data->free(env->state(), d->dfree);
+        data->data(env->state(), d->data);
+
+        delete d;
+      }
+    }
+  }
+}
+
 extern "C" {
-  // Used in a macro, has to be visible in C
-  void** capi_data_ptr_get_address(VALUE data_handle) {
+  struct RData* capi_rdata_struct(VALUE data_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    CApiStructs& data_str = env->data();
+    CApiStructs::iterator iter = data_str.find(data_handle);
+    if(iter != data_str.end()) {
+      return (struct RData*)iter->second;
+    }
 
     Data* data = c_as<Data>(env->get_object(data_handle));
 
-    return data->data_address();
+    struct RData* d = new struct RData;
+    d->dmark = data->mark();
+    d->dfree = data->free();
+    d->data = data->data();
+
+    data_str[data_handle] = d;
+
+    return d;
   }
 
   VALUE rb_data_object_alloc(VALUE klass, void* ptr,

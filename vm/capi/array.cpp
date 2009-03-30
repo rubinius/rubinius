@@ -35,10 +35,10 @@ namespace rubinius {
         for(size_t i = 0; i < array->size(); i++) {
           array->set(env->state(), i, env->get_object(ary->ptr[i]));
         }
-      }
 
-      delete[] ary->dmwmb;
-      delete ary;
+        delete[] ary->dmwmb;
+        delete ary;
+      }
     }
   }
 }

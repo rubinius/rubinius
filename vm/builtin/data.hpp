@@ -10,10 +10,6 @@ namespace rubinius {
   public:
     const static object_type type = DataType;
 
-    /**  Register class with the VM. */
-    static void   init(STATE);
-
-
   public:   /* Types */
 
     /** The signature for the mark function. */
@@ -22,8 +18,15 @@ namespace rubinius {
     /** The signature for the free function. */
     typedef   void (*FreeFunctor)(void*);
 
+  private:
+    FreeFunctor free_;
+    MarkFunctor mark_;
+    void*       data_;
 
   public:   /* Interface */
+
+    /**  Register class with the VM. */
+    static void   init(STATE);
 
     /** New Data instance. */
     static Data*  create(STATE, void* data, MarkFunctor mark, FreeFunctor free);
@@ -32,19 +35,29 @@ namespace rubinius {
       return data_;
     }
 
+    FreeFunctor free() {
+      return free_;
+    }
+
+    MarkFunctor mark() {
+      return mark_;
+    }
+
     void** data_address() {
       return &data_;
     }
 
-  private:  /* Instance variables */
+    void data(STATE, void* data) {
+      data_ = data;
+    }
 
-/** @todo Disabled, no more NMC. Replace with current if possible/need. --rue */
-//    NativeMethodContext*  mark_context; // slot
+    void free(STATE, FreeFunctor free) {
+      free_ = free;
+    }
 
-    FreeFunctor           free_;
-    MarkFunctor           mark_;
-    void*                 data_;
-
+    void mark(STATE, MarkFunctor mark) {
+      mark_ = mark;
+    }
 
   public:   /* TypeInfo */
 

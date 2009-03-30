@@ -264,10 +264,6 @@ extern "C" {
 
   } CApiMethodKind;
 
-#ifdef __cplusplus
-}
-#endif
-
 struct RString {
   size_t len;
   char *ptr;
@@ -291,6 +287,14 @@ struct RArray {
 };
 
 #define RARRAY(ary)     capi_rarray_struct(ary)
+
+struct RData {
+  void (*dmark)(void*);
+  void (*dfree)(void*);
+  void *data;
+};
+
+#define RDATA(d)        capi_rdata_struct(d)
 
 /*
  * The immediates.
@@ -433,6 +437,9 @@ struct RArray {
 /** The pointer to the string str's data. */
 #define RSTRING_PTR(str)  (RSTRING(str)->ptr)
 
+/** The pointer to the data. */
+#define DATA_PTR(d)       (RDATA(d)->data)
+
 /** False if expression evaluates to nil or false, true otherwise. */
 #define RTEST(v)          capi_rtest((v))
 
@@ -446,6 +453,7 @@ struct RArray {
 #define StringValue(v)        rb_string_value(&(v))
 #define StringValuePtr(v)     rb_string_value_ptr(&(v))
 #define StringValueCStr(str)  rb_string_value_cstr(&(str))
+#define STR2CSTR(str)         rb_string_value_cstr(&(str))
 
 /** Retrieve the ID given a Symbol handle. */
 #define SYM2ID(sym)       capi_sym2id((sym))
@@ -456,17 +464,6 @@ struct RArray {
 /** Convert unsigned int to a Ruby Integer. @todo Should we warn if overflowing? --rue */
 #define UINT2FIX(i)       UINT2NUM((i))
 
-
-
-/**
- *
- *  @todo   The Handle management is ludicrously naive. --rue
- *
- */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 #define LL2NUM(val) rb_ll2inum(val)
 
   VALUE rb_ll2inum(long long val);
@@ -530,9 +527,6 @@ extern "C" {
   /** ID from a Symbol Handle. @internal. */
   ID      capi_sym2id(VALUE symbol_handle);
 
-  /** Return the data pointer in a Data object. */
-  void**  capi_data_ptr_get_address(VALUE obj_handle);
-
   /** Returns the superclass of klass or NULL. This is not the same as
    * rb_class_superclass. See MRI's rb_class_s_alloc which returns a
    * class created with rb_class_boot(0), i.e. having a NULL superclass.
@@ -541,9 +535,9 @@ extern "C" {
    */
   VALUE   capi_class_superclass(VALUE class_handle);
 
-  struct RString* capi_rstring_struct(VALUE str_handle);
-
   struct RArray* capi_rarray_struct(VALUE ary_handle);
+  struct RData* capi_rdata_struct(VALUE data_handle);
+  struct RString* capi_rstring_struct(VALUE str_handle);
 
 /* Real API */
 
@@ -574,8 +568,6 @@ extern "C" {
 #define   Data_Wrap_Struct(klass, mark, free, sval) \
             rb_data_object_alloc(klass, (void*)sval, (RUBY_DATA_FUNC)mark, \
                                  (RUBY_DATA_FUNC)free)
-
-#define   DATA_PTR(obj_handle)   (*capi_data_ptr_get_address(obj_handle))
 
 #define   Data_Get_Struct(obj,type,sval) do {\
             Check_Type(obj, T_DATA); \
@@ -755,6 +747,15 @@ extern "C" {
           capi_define_method(__FILE__, mod, name, \
                                            (CApiGenericFunction)fptr, arity, \
                                            cCApiSingletonMethod)
+
+  /** Create an Exception from a class, C string and length. */
+  VALUE   rb_exc_new(VALUE etype, const char *ptr, long len);
+
+  /** Create an Exception from a class and C string. */
+  VALUE   rb_exc_new2(VALUE etype, const char *s);
+
+  /** Create an Exception from a class and Ruby string. */
+  VALUE   rb_exc_new3(VALUE etype, VALUE str);
 
   /** Remove a previously declared global variable. */
   void    rb_free_global(VALUE global_handle);
