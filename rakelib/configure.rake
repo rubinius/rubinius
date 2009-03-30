@@ -23,8 +23,8 @@ def write_rbconfig
     f.puts '  CONFIG = {}'
     f.puts
     f.puts '  CONFIG["prefix"]             = prefix'
-    f.puts %Q!  CONFIG["install_prefix"]     = "#{RBX_PREFIX}"!
-    f.puts '  CONFIG["DLEXT"]              = Rubinius::LIBSUFFIX.dup'
+    f.puts "  CONFIG[\"install_prefix\"]     = '#{RBX_PREFIX}'"
+    f.puts '  CONFIG["DLEXT"]              = Rubinius::LIBSUFFIX[1..-1]'
     f.puts '  CONFIG["EXEEXT"]             = ""'
     f.puts '  CONFIG["ruby_install_name"]  = RUBY_ENGINE.dup'
     f.puts '  CONFIG["RUBY_INSTALL_NAME"]  = RUBY_ENGINE.dup'
@@ -168,11 +168,6 @@ def write_rbconfig
     f.puts '  CONFIG["LIBRUBYARG_SHARED"]  = "-l$(RUBY_SO_NAME)"'
     f.puts '  CONFIG["configure_args"]     = ""'
     f.puts '  CONFIG["ALLOCA"]             = ""'
-    if Config::CONFIG["build_os"] =~ /darwin/
-      f.puts '  CONFIG["DLEXT"]              = "bundle"'
-    else
-      f.puts '  CONFIG["DLEXT"]              = "so"'
-    end
     f.puts '  CONFIG["LIBEXT"]             = "a"'
     f.puts '  CONFIG["LINK_SO"]            = ""'
     f.puts '  CONFIG["LIBPATHFLAG"]        = " -L%s"'
@@ -188,6 +183,8 @@ def write_rbconfig
     f.puts '  CONFIG["PACKAGE_STRING"]     = ""'
     f.puts '  CONFIG["PACKAGE_BUGREPORT"]  = ""'
 
+    # @todo create a config step that sets the values used to compile
+    # Rubinius; read those values for these types of config variables
     if Config::CONFIG["build_os"] =~ /darwin/
       f.puts '  CONFIG["LDSHARED"]          = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
       f.puts '  CONFIG["LIBRUBY_LDSHARED"]  = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
