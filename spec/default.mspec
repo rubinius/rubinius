@@ -68,14 +68,19 @@ class MSpecScript
     'spec/frozen/language',
     'spec/core',
     'spec/compiler',
+    'spec/capi/',
 
     '^spec/core/compiledmethod',
     '^spec/core/module',
+    '^spec/capi/globals',
+    '^spec/capi/language',
+    '^spec/capi/module',
+    '^spec/capi/proc',
+    '^spec/capi/struct',
 
     # These additional directories will be enabled as the
     # specs in them are updated for the C++ VM.
     # 'spec/debugger',
-    # 'spec/capi',
   ]
 
   # The set of substitutions to transform a spec filename
