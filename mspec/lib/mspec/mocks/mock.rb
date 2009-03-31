@@ -77,7 +77,7 @@ module Mock
           false
         end
         unless pass
-          Expectation.fail_with(
+          SpecExpectation.fail_with(
             "Mock '#{name_or_inspect obj}' expected to receive '#{sym}' " \
             "#{qualifier.to_s.sub('_', ' ')} #{count} times",
             "but received it #{proxy.calls} times")
@@ -110,14 +110,14 @@ module Mock
             if block.arity == -1 || block.arity == args_to_yield.size
               block.call(*args_to_yield)
             else
-              Expectation.fail_with(
+              SpecExpectation.fail_with(
                 "Mock '#{name_or_inspect obj}' asked to yield " \
                 "|#{proxy.yielding.join(', ')}| on #{sym}\n",
                 "but a block with arity #{block.arity} was passed")
             end
           end
         else
-          Expectation.fail_with(
+          SpecExpectation.fail_with(
             "Mock '#{name_or_inspect obj}' asked to yield " \
             "|[#{proxy.yielding.join('], [')}]| on #{sym}\n",
             "but no block was passed")
@@ -133,7 +133,7 @@ module Mock
     if sym.to_sym == :respond_to?
       return obj.__send__(replaced_name(obj, sym), compare)
     else
-      Expectation.fail_with("Mock '#{name_or_inspect obj}': method #{sym}\n",
+      SpecExpectation.fail_with("Mock '#{name_or_inspect obj}': method #{sym}\n",
                             "called with unexpected arguments (#{Array(compare).join(' ')})")
     end
   end
@@ -143,7 +143,7 @@ module Mock
     symbols.uniq.each do |replaced, obj, sym|
       meta = class << obj; self; end
 
-      if meta.instance_methods.include?(replaced.to_s)
+      if meta.instance_methods.map { |x| x.to_sym }.include?(replaced.to_sym)
         meta.__send__ :alias_method, sym.to_sym, replaced
         meta.__send__ :remove_method, replaced
       else

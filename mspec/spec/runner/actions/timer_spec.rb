@@ -19,17 +19,17 @@ describe TimerAction do
   end
 
   it "responds to #elapsed by returning the difference between stop and start" do
-    Time.stub!(:now).and_return(Time.parse('10/18/2007 5:43:18'))
+    Time.stub!(:now).and_return(Time.parse('Mon Mar 30 14:05:19 -0700 2009'))
     @timer.start
-    Time.stub!(:now).and_return(Time.parse('10/18/2007 5:43:51'))
+    Time.stub!(:now).and_return(Time.parse('Mon Mar 30 14:05:52 -0700 2009'))
     @timer.finish
     @timer.elapsed.should == 33
   end
 
   it "responds to #format by returning a readable string of elapsed time" do
-    Time.stub!(:now).and_return(Time.parse('10/18/2007 5:43:18'))
+    Time.stub!(:now).and_return(Time.parse('Mon Mar 30 14:05:19 -0700 2009'))
     @timer.start
-    Time.stub!(:now).and_return(Time.parse('10/18/2007 5:43:51'))
+    Time.stub!(:now).and_return(Time.parse('Mon Mar 30 14:05:52 -0700 2009'))
     @timer.finish
     @timer.format.should == "Finished in 33.000000 seconds"
   end

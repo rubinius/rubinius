@@ -65,8 +65,8 @@ class DottedFormatter
   # Callback for the MSpec :after event. Prints an indicator
   # for the result of evaluating this example as follows:
   #   . = No failure or error
-  #   F = An ExpectationNotMetError was raised
-  #   E = Any exception other than ExpectationNotMetError
+  #   F = An SpecExpectationNotMetError was raised
+  #   E = Any exception other than SpecExpectationNotMetError
   def after(state = nil)
     unless exception?
       print "."

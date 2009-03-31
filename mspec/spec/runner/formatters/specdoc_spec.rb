@@ -47,7 +47,7 @@ describe SpecdocFormatter, "#before" do
   end
 
   it "resets the #exception? flag" do
-    exc = ExceptionState.new @state, nil, ExpectationNotMetError.new("disappointing")
+    exc = ExceptionState.new @state, nil, SpecExpectationNotMetError.new("disappointing")
     @formatter.exception exc
     @formatter.exception?.should be_true
     @formatter.before @state
@@ -67,20 +67,20 @@ describe SpecdocFormatter, "#exception" do
     $stdout = STDOUT
   end
 
-  it "prints 'ERROR' if an exception is not an ExpectationNotMetError" do
+  it "prints 'ERROR' if an exception is not an SpecExpectationNotMetError" do
     exc = ExceptionState.new @state, nil, MSpecExampleError.new("painful")
     @formatter.exception exc
     @out.should == " (ERROR - 1)"
   end
 
-  it "prints 'FAILED' if an exception is an ExpectationNotMetError" do
-    exc = ExceptionState.new @state, nil, ExpectationNotMetError.new("disappointing")
+  it "prints 'FAILED' if an exception is an SpecExpectationNotMetError" do
+    exc = ExceptionState.new @state, nil, SpecExpectationNotMetError.new("disappointing")
     @formatter.exception exc
     @out.should == " (FAILED - 1)"
   end
 
   it "prints the #it string if an exception has already been raised" do
-    exc = ExceptionState.new @state, nil, ExpectationNotMetError.new("disappointing")
+    exc = ExceptionState.new @state, nil, SpecExpectationNotMetError.new("disappointing")
     @formatter.exception exc
     exc = ExceptionState.new @state, nil, MSpecExampleError.new("painful")
     @formatter.exception exc

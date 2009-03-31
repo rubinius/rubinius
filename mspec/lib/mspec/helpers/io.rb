@@ -1,10 +1,10 @@
 class IOStub < String
   def write(*str)
-    self << str.to_s
+    self << str.join
   end
 
   def print(*str)
-    write(str.to_s + $\.to_s)
+    write(str.join + $\.to_s)
   end
 
   def puts(*str)

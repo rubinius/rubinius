@@ -9,13 +9,13 @@ describe Object, "#big_endian" do
   end
 
   it "yields on big-endian platforms" do
-    @guard.stub!(:pattern).and_return([1])
+    @guard.stub!(:pattern).and_return([?\001])
     big_endian { ScratchPad.record :yield }
     ScratchPad.recorded.should == :yield
   end
 
   it "does not yield on little-endian platforms" do
-    @guard.stub!(:pattern).and_return([0])
+    @guard.stub!(:pattern).and_return([?\000])
     big_endian { ScratchPad.record :yield }
     ScratchPad.recorded.should_not == :yield
   end
@@ -26,7 +26,7 @@ describe Object, "#big_endian" do
   end
 
   it "calls #unregister even when an exception is raised in the guard block" do
-    @guard.stub!(:pattern).and_return([1])
+    @guard.stub!(:pattern).and_return([?\001])
     @guard.should_receive(:unregister)
     lambda do
       big_endian { raise Exception }
@@ -42,13 +42,13 @@ describe Object, "#little_endian" do
   end
 
   it "yields on little-endian platforms" do
-    @guard.stub!(:pattern).and_return([0])
+    @guard.stub!(:pattern).and_return([?\000])
     little_endian { ScratchPad.record :yield }
     ScratchPad.recorded.should == :yield
   end
 
   it "does not yield on big-endian platforms" do
-    @guard.stub!(:pattern).and_return([1])
+    @guard.stub!(:pattern).and_return([?\001])
     little_endian { ScratchPad.record :yield }
     ScratchPad.recorded.should_not == :yield
   end
@@ -59,7 +59,7 @@ describe Object, "#little_endian" do
   end
 
   it "calls #unregister even when an exception is raised in the guard block" do
-    @guard.stub!(:pattern).and_return([0])
+    @guard.stub!(:pattern).and_return([?\000])
     @guard.should_receive(:unregister)
     lambda do
       little_endian { raise Exception }

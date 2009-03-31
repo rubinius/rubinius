@@ -116,7 +116,7 @@ EOS
       methods.each { |method| create_file dir, name, method, mod + method }
     end
   end
-  
+
   ##
   # Determine and return the path of the ruby executable.
 

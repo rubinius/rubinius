@@ -16,7 +16,7 @@ describe SummaryFormatter, "#after" do
   end
 
   it "does not print anything" do
-    exc = ExceptionState.new @state, nil, ExpectationNotMetError.new("disappointing")
+    exc = ExceptionState.new @state, nil, SpecExpectationNotMetError.new("disappointing")
     @formatter.exception exc
     exc = ExceptionState.new @state, nil, MSpecExampleError.new("painful")
     @formatter.exception exc

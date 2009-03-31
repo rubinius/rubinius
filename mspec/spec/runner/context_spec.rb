@@ -506,7 +506,7 @@ describe ContextState, "#process" do
 
     action = mock("action")
     def action.exception(exc)
-      ScratchPad.record :exception if exc.exception.is_a? ExpectationNotFoundError
+      ScratchPad.record :exception if exc.exception.is_a? SpecExpectationNotFoundError
     end
     MSpec.register :exception, action
 
@@ -518,19 +518,19 @@ describe ContextState, "#process" do
     MSpec.store :exception, nil
   end
 
-  it "raises an ExpectationNotFoundError if an #it block does not contain an expectation" do
+  it "raises an SpecExpectationNotFoundError if an #it block does not contain an expectation" do
     @state.it("it") { }
     @state.process
     ScratchPad.recorded.should == :exception
   end
 
-  it "does not raise an ExpectationNotFoundError if an #it block does contain an expectation" do
+  it "does not raise an SpecExpectationNotFoundError if an #it block does contain an expectation" do
     @state.it("it") { MSpec.expectation }
     @state.process
     ScratchPad.recorded.should be_nil
   end
 
-  it "does not raise an ExpectationNotFoundError if the #it block causes a failure" do
+  it "does not raise an SpecExpectationNotFoundError if the #it block causes a failure" do
     @state.it("it") { raise Exception, "Failed!" }
     @state.process
     ScratchPad.recorded.should be_nil

@@ -4,10 +4,10 @@ class Object
     MSpec.actions :expectation, MSpec.current.state
     if matcher
       unless matcher.matches?(self)
-        Expectation.fail_with(*matcher.failure_message)
+        SpecExpectation.fail_with(*matcher.failure_message)
       end
     else
-      PositiveOperatorMatcher.new(self)
+      SpecPositiveOperatorMatcher.new(self)
     end
   end
 
@@ -16,10 +16,10 @@ class Object
     MSpec.actions :expectation, MSpec.current.state
     if matcher
       if matcher.matches?(self)
-        Expectation.fail_with(*matcher.negative_failure_message)
+        SpecExpectation.fail_with(*matcher.negative_failure_message)
       end
     else
-      NegativeOperatorMatcher.new(self)
+      SpecNegativeOperatorMatcher.new(self)
     end
   end
 end

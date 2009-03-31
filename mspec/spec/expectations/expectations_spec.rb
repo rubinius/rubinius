@@ -1,29 +1,29 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/expectations/expectations'
 
-describe ExpectationNotMetError do
+describe SpecExpectationNotMetError do
   it "is a subclass of StandardError" do
-    ExpectationNotMetError.ancestors.should include(StandardError)
+    SpecExpectationNotMetError.ancestors.should include(StandardError)
   end
 end
 
-describe ExpectationNotFoundError do
+describe SpecExpectationNotFoundError do
   it "is a subclass of StandardError" do
-    ExpectationNotFoundError.ancestors.should include(StandardError)
+    SpecExpectationNotFoundError.ancestors.should include(StandardError)
   end
 end
 
-describe ExpectationNotFoundError, "#message" do
+describe SpecExpectationNotFoundError, "#message" do
   it "returns 'No behavior expectation was found in the example'" do
-    m = ExpectationNotFoundError.new.message
+    m = SpecExpectationNotFoundError.new.message
     m.should == "No behavior expectation was found in the example"
   end
 end
 
-describe Expectation, "#fail_with" do
-  it "raises an ExpectationNotMetError" do
+describe SpecExpectation, "#fail_with" do
+  it "raises an SpecExpectationNotMetError" do
     lambda {
-      Expectation.fail_with "expected this", "to equal that"
-    }.should raise_error(ExpectationNotMetError, "expected this to equal that")
+      SpecExpectation.fail_with "expected this", "to equal that"
+    }.should raise_error(SpecExpectationNotMetError, "expected this to equal that")
   end
 end

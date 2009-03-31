@@ -274,7 +274,7 @@ describe TallyAction, "#exception" do
   end
 
   it "increments counts returned by Tally#failures" do
-    exc = ExceptionState.new nil, nil, ExpectationNotMetError.new("Failed!")
+    exc = ExceptionState.new nil, nil, SpecExpectationNotMetError.new("Failed!")
     @tally.exception exc
     @tally.counter.examples.should == 0
     @tally.counter.expectations.should == 0
@@ -310,7 +310,7 @@ describe TallyAction, "#format" do
     @tally.example @state, nil
     @tally.expectation @state
     @tally.expectation @state
-    exc = ExceptionState.new nil, nil, ExpectationNotMetError.new("Failed!")
+    exc = ExceptionState.new nil, nil, SpecExpectationNotMetError.new("Failed!")
     @tally.exception exc
     @tally.format.should == "1 file, 1 example, 2 expectations, 1 failure, 0 errors"
   end

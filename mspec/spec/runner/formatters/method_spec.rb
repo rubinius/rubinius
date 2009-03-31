@@ -118,7 +118,7 @@ describe MethodFormatter, "#after" do
     state = ExampleState.new ContextState.new("Some#method"), "it"
     @formatter.before state
 
-    exc = ExpectationNotMetError.new "failed"
+    exc = SpecExpectationNotMetError.new "failed"
     @formatter.exception ExceptionState.new(@state, nil, exc)
     @formatter.exception ExceptionState.new(@state, nil, exc)
 
@@ -152,7 +152,7 @@ describe MethodFormatter, "#after" do
     @formatter.tally.counter.failures = 2
     @formatter.tally.counter.errors = 1
 
-    exc = ExpectationNotMetError.new "failed"
+    exc = SpecExpectationNotMetError.new "failed"
     @formatter.exception ExceptionState.new(@state, nil, exc)
     @formatter.exception ExceptionState.new(@state, nil, exc)
 

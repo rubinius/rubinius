@@ -106,9 +106,12 @@ class Object
 
   def ruby_exe(code, opts = {})
     body = code
-    body = "-e #{code.inspect}" if code and not File.exists?(code)
-    cmd = [RUBY_EXE, ENV['RUBY_FLAGS'], opts[:options], body, opts[:args]]
-    `#{cmd.compact.join(' ')}`
+    working_dir = opts[:dir] || "."
+    Dir.chdir(working_dir) do
+      body = "-e #{code.inspect}" if code and not File.exists?(code)
+      cmd = [RUBY_EXE, ENV['RUBY_FLAGS'], opts[:options], body, opts[:args]]
+      `#{cmd.compact.join(' ')}`
+    end
   end
 
   unless Object.const_defined?(:RUBY_EXE) and RUBY_EXE

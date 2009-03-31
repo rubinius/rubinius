@@ -20,12 +20,14 @@ describe RespondToMatcher do
   it "provides a useful failure message" do
     matcher = RespondToMatcher.new(:non_existent_method)
     matcher.matches?('string')
-    matcher.failure_message.should == ["Expected \"string\" (String)", "to respond to non_existent_method"]
+    matcher.failure_message.should == [
+      "Expected \"string\" (String)", "to respond to non_existent_method"]
   end
 
   it "provides a useful negative failure message" do
     matcher = RespondToMatcher.new(:to_i)
-    matcher.matches?(4.2)
-    matcher.negative_failure_message.should == ["Expected 4.2 (Float)", "not to respond to to_i"]
+    matcher.matches?(4.0)
+    matcher.negative_failure_message.should == [
+      "Expected 4.0 (Float)", "not to respond to to_i"]
   end
 end

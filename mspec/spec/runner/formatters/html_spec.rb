@@ -104,11 +104,11 @@ describe HtmlFormatter, "#exception" do
   end
 
   it "prints the #it string once for each exception raised" do
-    exc = ExceptionState.new @state, nil, ExpectationNotMetError.new("disappointing")
+    exc = ExceptionState.new @state, nil, SpecExpectationNotMetError.new("disappointing")
     @formatter.exception exc
     exc = ExceptionState.new @state, nil, MSpecExampleError.new("painful")
     @formatter.exception exc
-    @out.should == 
+    @out.should ==
 %[<li class="fail">- it (<a href="#details-1">FAILED - 1</a>)</li>
 <li class="fail">- it (<a href="#details-2">ERROR - 2</a>)</li>
 ]
@@ -133,7 +133,7 @@ describe HtmlFormatter, "#after" do
   end
 
   it "does not print any output if an exception is raised" do
-    exc = ExceptionState.new @state, nil, ExpectationNotMetError.new("disappointing")
+    exc = ExceptionState.new @state, nil, SpecExpectationNotMetError.new("disappointing")
     @formatter.exception exc
     out = @out.dup
     @formatter.after @state

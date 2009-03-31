@@ -34,7 +34,7 @@ class ContextState
 
     @mock_verify         = lambda { Mock.verify_count }
     @mock_cleanup        = lambda { Mock.cleanup }
-    @expectation_missing = lambda { raise ExpectationNotFoundError }
+    @expectation_missing = lambda { raise SpecExpectationNotFoundError }
   end
 
   # Returns true if this is a shared +ContextState+. Essentially, when

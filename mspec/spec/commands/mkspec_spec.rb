@@ -297,7 +297,8 @@ describe MkSpec, "#run" do
   end
 
   it "calls #create_file for each method on each class/module in the map" do
-    @map.should_receive(:map).with({}, @script.config[:constants]).and_return({"MkSpec#" => "run"})
+    @map.should_receive(:map).with({}, @script.config[:constants]
+                                  ).and_return({"MkSpec#" => ["run"]})
     @script.should_receive(:create_file).with("spec/mkspec", "MkSpec", "run", "MkSpec#run")
     @script.run
   end

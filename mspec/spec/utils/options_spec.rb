@@ -236,48 +236,49 @@ end
 describe MSpecOptions, "#parse" do
   before :each do
     @opt = MSpecOptions.new
-    @prc = lambda { |o| ScratchPad.record [:parsed, o] }
+    @prc = lambda { ScratchPad.record :parsed }
+    @arg_prc = lambda { |o| ScratchPad.record [:parsed, o] }
     ScratchPad.clear
   end
 
   it "parses a short option" do
     @opt.on "-a", "desc", &@prc
     @opt.parse ["-a"]
-    ScratchPad.recorded.should == [:parsed, nil]
+    ScratchPad.recorded.should == :parsed
   end
 
   it "parse a long option" do
     @opt.on "--abdc", "desc", &@prc
     @opt.parse ["--abdc"]
-    ScratchPad.recorded.should == [:parsed, nil]
+    ScratchPad.recorded.should == :parsed
   end
 
   it "parses a short option group" do
-    @opt.on "-a", "ARG", "desc", &@prc
+    @opt.on "-a", "ARG", "desc", &@arg_prc
     @opt.parse ["-a", "ARG"]
     ScratchPad.recorded.should == [:parsed, "ARG"]
   end
 
   it "parses a short option with an argument" do
-    @opt.on "-a", "ARG", "desc", &@prc
+    @opt.on "-a", "ARG", "desc", &@arg_prc
     @opt.parse ["-a", "ARG"]
     ScratchPad.recorded.should == [:parsed, "ARG"]
   end
 
   it "parses a short option with connected argument" do
-    @opt.on "-a", "ARG", "desc", &@prc
+    @opt.on "-a", "ARG", "desc", &@arg_prc
     @opt.parse ["-aARG"]
     ScratchPad.recorded.should == [:parsed, "ARG"]
   end
 
   it "parses a long option with an argument" do
-    @opt.on "--abdc", "ARG", "desc", &@prc
+    @opt.on "--abdc", "ARG", "desc", &@arg_prc
     @opt.parse ["--abdc", "ARG"]
     ScratchPad.recorded.should == [:parsed, "ARG"]
   end
 
   it "parses a long option with an '=' argument" do
-    @opt.on "--abdc", "ARG", "desc", &@prc
+    @opt.on "--abdc", "ARG", "desc", &@arg_prc
     @opt.parse ["--abdc=ARG"]
     ScratchPad.recorded.should == [:parsed, "ARG"]
   end
@@ -300,7 +301,7 @@ describe MSpecOptions, "#parse" do
   end
 
   it "returns the unprocessed entries" do
-    @opt.on "-a", "ARG", "desc", &@prc
+    @opt.on "-a", "ARG", "desc", &@arg_prc
     @opt.parse(["abdc", "-a", "ilny"]).should == ["abdc"]
   end
 

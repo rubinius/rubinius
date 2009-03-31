@@ -88,7 +88,7 @@ describe Mock, ".install_method for mocks" do
     Mock.install_method(@mock, :method_call).with(:c).and_return(2)
     @mock.method_call(:a, :b)
     @mock.method_call(:c)
-    lambda { @mock.method_call(:d) }.should raise_error(ExpectationNotMetError)
+    lambda { @mock.method_call(:d) }.should raise_error(SpecExpectationNotMetError)
   end
 
   # This illustrates RSpec's behavior. This spec fails in mock call count verification
@@ -110,7 +110,7 @@ describe Mock, ".install_method for mocks" do
     @mock.method_call(:a).should == true
     Mock.install_method(@mock, :method_call).with(:a).and_return(false)
     @mock.method_call(:a).should == true
-    lambda { Mock.verify_count }.should raise_error(ExpectationNotMetError)
+    lambda { Mock.verify_count }.should raise_error(SpecExpectationNotMetError)
   end
 
   it "properly sends #respond_to? calls to the aliased respond_to? method when not matching mock expectations" do
@@ -226,25 +226,25 @@ describe Mock, ".verify_call" do
     Mock.verify_call @mock, :method_call, 1, 'two', :three
   end
 
-  it "raises an ExpectationNotMetError when the mock method does not receive the expected arguments" do
+  it "raises an SpecExpectationNotMetError when the mock method does not receive the expected arguments" do
     @proxy.with(4, 2)
     lambda {
       Mock.verify_call @mock, :method_call, 42
-    }.should raise_error(ExpectationNotMetError)
+    }.should raise_error(SpecExpectationNotMetError)
   end
 
-  it "raises an ExpectationNotMetError when the mock method is called with arguments but expects none" do
+  it "raises an SpecExpectationNotMetError when the mock method is called with arguments but expects none" do
     lambda {
       @proxy.with(:no_args)
       Mock.verify_call @mock, :method_call, "hello"
-    }.should raise_error(ExpectationNotMetError)
+    }.should raise_error(SpecExpectationNotMetError)
   end
 
-  it "raises an ExpectationNotMetError when the mock method is called with no arguments but expects some" do
+  it "raises an SpecExpectationNotMetError when the mock method is called with no arguments but expects some" do
     @proxy.with("hello", "beautiful", "world")
     lambda {
       Mock.verify_call @mock, :method_call
-    }.should raise_error(ExpectationNotMetError)
+    }.should raise_error(SpecExpectationNotMetError)
   end
 
   it "does not raise an exception when the mock method is called with arguments and is expecting :any_args" do
@@ -288,21 +288,21 @@ describe Mock, ".verify_call" do
     @proxy.and_yield(1, 2, 3)
     lambda {
       Mock.verify_call(@mock, :method_call)
-    }.should raise_error(ExpectationNotMetError)
+    }.should raise_error(SpecExpectationNotMetError)
   end
 
   it "raises an expection when it is expected to yield more arguments than the block can take" do
     @proxy.and_yield(1, 2, 3)
     lambda {
       Mock.verify_call(@mock, :method_call) {|a, b|}
-    }.should raise_error(ExpectationNotMetError)
+    }.should raise_error(SpecExpectationNotMetError)
   end
 
   it "does not raise an expection when it is expected to yield to a block that can take any number of arguments" do
     @proxy.and_yield(1, 2, 3)
     lambda {
       Mock.verify_call(@mock, :method_call) {|*a|}
-    }.should_not raise_error(ExpectationNotMetError)
+    }.should_not raise_error(SpecExpectationNotMetError)
   end
 end
 
@@ -326,10 +326,10 @@ describe Mock, ".verify_count" do
     Mock.verify_count
   end
 
-  it "raises an ExpectationNotMetError when the mock receives less than at least the expected number of calls" do
+  it "raises an SpecExpectationNotMetError when the mock receives less than at least the expected number of calls" do
     @proxy.at_least(2)
     @mock.method_call
-    lambda { Mock.verify_count }.should raise_error(ExpectationNotMetError)
+    lambda { Mock.verify_count }.should raise_error(SpecExpectationNotMetError)
   end
 
   it "does not raise an exception when the mock receives at most the expected number of calls" do
@@ -339,12 +339,12 @@ describe Mock, ".verify_count" do
     Mock.verify_count
   end
 
-  it "raises an ExpectationNotMetError when the mock receives more than at most the expected number of calls" do
+  it "raises an SpecExpectationNotMetError when the mock receives more than at most the expected number of calls" do
     @proxy.at_most(2)
     @mock.method_call
     @mock.method_call
     @mock.method_call
-    lambda { Mock.verify_count }.should raise_error(ExpectationNotMetError)
+    lambda { Mock.verify_count }.should raise_error(SpecExpectationNotMetError)
   end
 
   it "does not raise an exception when the mock receives exactly the expected number of calls" do
@@ -354,18 +354,18 @@ describe Mock, ".verify_count" do
     Mock.verify_count
   end
 
-  it "raises an ExpectationNotMetError when the mock receives less than exactly the expected number of calls" do
+  it "raises an SpecExpectationNotMetError when the mock receives less than exactly the expected number of calls" do
     @proxy.exactly(2)
     @mock.method_call
-    lambda { Mock.verify_count }.should raise_error(ExpectationNotMetError)
+    lambda { Mock.verify_count }.should raise_error(SpecExpectationNotMetError)
   end
 
-  it "raises an ExpectationNotMetError when the mock receives more than exactly the expected number of calls" do
+  it "raises an SpecExpectationNotMetError when the mock receives more than exactly the expected number of calls" do
     @proxy.exactly(2)
     @mock.method_call
     @mock.method_call
     @mock.method_call
-    lambda { Mock.verify_count }.should raise_error(ExpectationNotMetError)
+    lambda { Mock.verify_count }.should raise_error(SpecExpectationNotMetError)
   end
 end
 
@@ -425,11 +425,12 @@ describe Mock, ".cleanup" do
   it "removes the replaced method if the mock method overrides an existing method" do
     def @mock.already_here() :hey end
     @mock.should respond_to(:already_here)
+    replaced_name = Mock.replaced_name(@mock, :already_here)
     Mock.install_method @mock, :already_here
-    @mock.should respond_to(Mock.replaced_name(@mock, :already_here))
+    @mock.should respond_to(replaced_name)
 
     Mock.cleanup
-    @mock.should_not respond_to(Mock.replaced_name(@mock, :already_here))
+    @mock.should_not respond_to(replaced_name)
     @mock.should respond_to(:already_here)
     @mock.already_here.should == :hey
   end

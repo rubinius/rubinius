@@ -3,6 +3,12 @@ require 'mspec/expectations/expectations'
 require 'mspec/matchers/equal_utf16'
 
 describe EqualUtf16Matcher do
+  before :all do
+    # this is a neutral way to covert a NULL character to a
+    # string representation on 1.8 (\000) and 1.9 (\x00)
+    @null = "\0".inspect[1..-2]
+  end
+
   it "when given strings, matches when actual == expected" do
     EqualUtf16Matcher.new("abcd").matches?("abcd").should == true
   end
@@ -36,12 +42,16 @@ describe EqualUtf16Matcher do
   it "provides a useful failure message" do
     matcher = EqualUtf16Matcher.new("a\0b\0")
     matcher.matches?("a\0b\0c\0")
-    matcher.failure_message.should == ["Expected \"a\\000b\\000c\\000\"\n", "to equal \"a\\000b\\000\"\n or \"\\000a\\000b\"\n"]
+    matcher.failure_message.should == [
+      "Expected \"a#{@null}b#{@null}c#{@null}\"\n",
+      "to equal \"a#{@null}b#{@null}\"\n or \"#{@null}a#{@null}b\"\n"]
   end
 
   it "provides a useful negative failure message" do
     matcher = EqualUtf16Matcher.new("a\0b\0")
     matcher.matches?("\0a\0b")
-    matcher.negative_failure_message.should == ["Expected \"\\000a\\000b\"\n", "not to equal \"a\\000b\\000\"\n nor \"\\000a\\000b\"\n"]
+    matcher.negative_failure_message.should == [
+      "Expected \"#{@null}a#{@null}b\"\n",
+      "not to equal \"a#{@null}b#{@null}\"\n nor \"#{@null}a#{@null}b\"\n"]
   end
 end

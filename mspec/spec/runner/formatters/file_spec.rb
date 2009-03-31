@@ -27,7 +27,7 @@ describe FileFormatter, "#load" do
   before :each do
     @state = ExampleState.new ContextState.new("describe"), "it"
     @formatter = FileFormatter.new
-    @formatter.exception ExceptionState.new(nil, nil, ExpectationNotMetError.new("Failed!"))
+    @formatter.exception ExceptionState.new(nil, nil, SpecExpectationNotMetError.new("Failed!"))
   end
 
   it "resets the #failure? flag to false" do
@@ -60,7 +60,7 @@ describe FileFormatter, "#unload" do
   end
 
   it "prints an 'F' if there was an expectation failure" do
-    exc = ExpectationNotMetError.new "failed"
+    exc = SpecExpectationNotMetError.new "failed"
     @formatter.exception ExceptionState.new(@state, nil, exc)
     @formatter.unload(@state)
     @out.should == "F"
@@ -74,7 +74,7 @@ describe FileFormatter, "#unload" do
   end
 
   it "prints an 'E' if there are mixed exceptions and exepctation failures" do
-    exc = ExpectationNotMetError.new "failed"
+    exc = SpecExpectationNotMetError.new "failed"
     @formatter.exception ExceptionState.new(@state, nil, exc)
     exc = MSpecExampleError.new("boom!")
     @formatter.exception ExceptionState.new(@state, nil, exc)

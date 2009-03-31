@@ -16,7 +16,7 @@ class SpecGuard
       size = desc.size
       spec = size == 1 ? "spec" : "specs"
       print "\n\n#{size} #{spec} omitted by guard: #{key}:\n"
-      desc.each { |desc| print "\n", desc }
+      desc.each { |description| print "\n", description; }
     end
 
     print "\n\n"
