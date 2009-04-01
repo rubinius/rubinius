@@ -93,8 +93,13 @@ namespace rubinius {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 
+    // This method ignores the presense of bound_method_ because it expects
+    // that if you're using bound_method_, you're using a Proc subclass and
+    // thus have your own #call method. Since you're overriding this method
+    // with your own #call method, we don't need to care about bound_method_.
+
     // Check the arity in lambda mode
-    if(bound_method_->nil_p() && lambda_style) {
+    if(lambda_style) {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
@@ -107,15 +112,7 @@ namespace rubinius {
       }
     }
 
-    Object* ret;
-    if(bound_method_->nil_p()) {
-      ret = block_->call(state, call_frame, args, flags);
-    } else {
-      Dispatch dis(G(sym_call));
-      Arguments new_args;
-      new_args.set_recv(this);
-      ret = dis.send(state, call_frame, new_args);
-    }
+    Object* ret = block_->call(state, call_frame, args, flags);
 
     if(lambda_style && !ret) {
       RaiseReason reason = state->thread_state()->raise_reason();
