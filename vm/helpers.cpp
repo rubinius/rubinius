@@ -18,7 +18,8 @@
 
 #include "vm.hpp"
 #include "object_utils.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "call_frame.hpp"
 #include "lookup_data.hpp"
 
 namespace rubinius {

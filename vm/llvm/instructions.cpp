@@ -24,7 +24,8 @@
 #include "call_frame.hpp"
 
 #include "objectmemory.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
 #include "instructions.hpp"
 #include "profiler.hpp"
 

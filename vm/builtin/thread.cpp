@@ -8,7 +8,9 @@
 #include "builtin/channel.hpp"
 
 #include "objectmemory.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
+#include "call_frame.hpp"
 
 #include "vm/object_utils.hpp"
 #include "vm.hpp"

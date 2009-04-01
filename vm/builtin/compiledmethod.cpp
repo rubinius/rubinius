@@ -15,8 +15,10 @@
 #include "primitives.hpp"
 #include "llvm.hpp"
 #include "objectmemory.hpp"
-#include "message.hpp"
-#include "vm/object_utils.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
+#include "call_frame.hpp"
+#include "object_utils.hpp"
 
 namespace rubinius {
 

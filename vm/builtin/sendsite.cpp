@@ -6,7 +6,10 @@
 #include "builtin/module.hpp"
 #include "builtin/executable.hpp"
 
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
+#include "call_frame.hpp"
+
 #include "global_cache.hpp"
 #include "objectmemory.hpp"
 

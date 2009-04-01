@@ -16,7 +16,8 @@
 #include "builtin/selector.hpp"
 #include "builtin/float.hpp"
 #include "objectmemory.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
 #include "lookup_data.hpp"
 
 #include "vm/object_utils.hpp"

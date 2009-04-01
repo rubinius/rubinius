@@ -1,7 +1,8 @@
 #include "native_thread.hpp"
 
 #include "call_frame.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "exception.hpp"
 
 #include "builtin/thread.hpp"
 #include "builtin/string.hpp"

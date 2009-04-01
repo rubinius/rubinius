@@ -4,7 +4,9 @@
 #include "builtin/symbol.hpp"
 #include "builtin/class.hpp"
 #include "builtin/string.hpp"
-#include "message.hpp"
+#include "call_frame.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
 
 #include <cxxtest/TestSuite.h>
 

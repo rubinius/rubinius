@@ -2,7 +2,8 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/object.hpp"
 
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

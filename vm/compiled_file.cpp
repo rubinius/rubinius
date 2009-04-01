@@ -8,7 +8,8 @@
 
 #include "compiled_file.hpp"
 #include "marshal.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "call_frame.hpp"
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
 #include "builtin/sendsite.hpp"

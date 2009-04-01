@@ -10,8 +10,9 @@
 
 #include "exception_point.hpp"
 #include "global_cache.hpp"
-#include "message.hpp"
 
+#include "arguments.hpp"
+#include "dispatch.hpp"
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 

@@ -22,7 +22,8 @@
 #include "builtin/symbol.hpp"
 
 #include "ffi_util.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
 
 #include "vm/builtin/nativefunction.hpp"
 

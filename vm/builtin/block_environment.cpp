@@ -10,8 +10,9 @@
 #include "vm/object_utils.hpp"
 
 #include "profiler.hpp"
-#include "message.hpp"
-
+#include "arguments.hpp"
+#include "dispatch.hpp"
+#include "call_frame.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/fixnum.hpp"

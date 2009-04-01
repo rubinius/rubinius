@@ -1,6 +1,5 @@
 #include "prelude.hpp"
 #include "call_frame.hpp"
-#include "message.hpp"
 #include "builtin/class.hpp"
 #include "builtin/autoload.hpp"
 

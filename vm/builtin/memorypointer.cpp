@@ -21,7 +21,8 @@
 #include "builtin/symbol.hpp"
 
 #include "ffi_util.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
 
 namespace rubinius {
 

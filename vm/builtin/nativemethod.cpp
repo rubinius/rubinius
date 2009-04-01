@@ -4,9 +4,11 @@
 
 #include "exception.hpp"
 #include "exception_point.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
 #include "native_libraries.hpp"
 #include "primitives.hpp"
+#include "call_frame.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"

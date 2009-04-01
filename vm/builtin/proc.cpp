@@ -8,7 +8,9 @@
 #include "builtin/system.hpp"
 
 #include "vmmethod.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
+#include "call_frame.hpp"
 
 namespace rubinius {
 

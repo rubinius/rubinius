@@ -1,4 +1,6 @@
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
+#include "call_frame.hpp"
 #include "objectmemory.hpp"
 #include "prelude.hpp"
 #include "vmmethod.hpp"

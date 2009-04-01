@@ -11,7 +11,8 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "detection.hpp"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
 
 #include "instruments/timing.hpp"
 

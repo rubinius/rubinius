@@ -8,7 +8,8 @@
 #include "builtin/exception.hpp"
 
 #include "objectmemory.hpp"
-#include "message.hpp"
+#include "dispatch.hpp"
+#include "arguments.hpp"
 
 namespace rubinius {
 

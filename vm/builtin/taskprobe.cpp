@@ -10,7 +10,8 @@
 #include "objectmemory.hpp"
 #include "vm.hpp"
 #include "jit_state.h"
-#include "message.hpp"
+#include "arguments.hpp"
+#include "dispatch.hpp"
 
 #include <iostream>
 #include <iomanip>
