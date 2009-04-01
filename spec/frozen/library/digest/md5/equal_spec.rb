@@ -16,7 +16,8 @@ describe "Digest::MD5#==" do
   it 'should be equal to appropriate object that responds to to_str' do
     # blank digest
     cur_digest = Digest::MD5.new
-    (obj = mock(MD5Constants::BlankHexdigest)).should_receive(:to_str).and_return(MD5Constants::BlankHexdigest)
+    obj = mock(MD5Constants::BlankHexdigest)
+    obj.should_receive(:to_str).and_return(MD5Constants::BlankHexdigest)
     cur_digest.should == obj
 
     # non-blank digest
