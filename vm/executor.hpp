@@ -3,7 +3,8 @@
 
 namespace rubinius {
   class VM;
-  class Message;
+  class Dispatch;
+  class Arguments;
   class CallFrame;
   class Object;
 
@@ -12,7 +13,7 @@ namespace rubinius {
     cExecuteRestart
   };
 
-  typedef Object* (*executor)(VM*, CallFrame*, Message& msg);
+  typedef Object* (*executor)(VM*, CallFrame*, Dispatch& msg, Arguments& args);
 }
 
 #endif

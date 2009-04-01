@@ -151,11 +151,15 @@ namespace rubinius {
         case InstructionSequence::insn_send_stack_with_block:
         case InstructionSequence::insn_send_stack_with_splat:
         case InstructionSequence::insn_send_super_stack_with_block:
-        case InstructionSequence::insn_send_super_stack_with_splat:
+        case InstructionSequence::insn_send_super_stack_with_splat: {
           native_int which = opcodes[index + 1];
-          sendsites[which].set(
-              as<SendSite>(original->literals()->at(state, which)),
-              &state->globals.roots);
+          SendSite::Internal* cache = new SendSite::Internal(which);
+          SendSite* ss = as<SendSite>(original->literals()->at(state, which));
+          ss->inner_cache_ = cache;
+          cache->name = ss->name();
+          opcodes[index + 1] = reinterpret_cast<intptr_t>(cache);
+          break;
+        }
         }
 
         index += width;
@@ -174,17 +178,17 @@ namespace rubinius {
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
-      return msg.args() == 0;
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+      return args.total() == 0;
     }
   };
 
   // For when the method expects 1 and only 1 argument
   class OneArgument {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
-      if(msg.args() != 1) return false;
-      scope->set_local(0, msg.get_argument(0));
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+      if(args.total() != 1) return false;
+      scope->set_local(0, args.get_argument(0));
       return true;
     }
   };
@@ -192,10 +196,10 @@ namespace rubinius {
   // For when the method expects 2 and only 2 arguments
   class TwoArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
-      if(msg.args() != 2) return false;
-      scope->set_local(0, msg.get_argument(0));
-      scope->set_local(1, msg.get_argument(1));
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+      if(args.total() != 2) return false;
+      scope->set_local(0, args.get_argument(0));
+      scope->set_local(1, args.get_argument(1));
       return true;
     }
   };
@@ -203,11 +207,11 @@ namespace rubinius {
   // For when the method expects 3 and only 3 arguments
   class ThreeArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
-      if(msg.args() != 3) return false;
-      scope->set_local(0, msg.get_argument(0));
-      scope->set_local(1, msg.get_argument(1));
-      scope->set_local(2, msg.get_argument(2));
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+      if(args.total() != 3) return false;
+      scope->set_local(0, args.get_argument(0));
+      scope->set_local(1, args.get_argument(1));
+      scope->set_local(2, args.get_argument(2));
       return true;
     }
   };
@@ -215,11 +219,11 @@ namespace rubinius {
   // For when the method expects a fixed number of arguments (no splat)
   class FixedArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
-      if((native_int)msg.args() != vmm->total_args) return false;
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+      if((native_int)args.total() != vmm->total_args) return false;
 
       for(native_int i = 0; i < vmm->total_args; i++) {
-        scope->set_local(i, msg.get_argument(i));
+        scope->set_local(i, args.get_argument(i));
       }
 
       return true;
@@ -229,12 +233,12 @@ namespace rubinius {
   // For when a method takes all arguments as a splat
   class SplatOnlyArgument {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
-      const size_t total = msg.args();
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
+      const size_t total = args.total();
       Array* ary = Array::create(state, total);
 
       for(size_t i = 0; i < total; i++) {
-        ary->set(state, i, msg.get_argument(i));
+        ary->set(state, i, args.get_argument(i));
       }
 
       scope->set_local(vmm->splat_position, ary);
@@ -246,11 +250,11 @@ namespace rubinius {
   // The fallback, can handle all cases
   class GenericArguments {
   public:
-    bool call(STATE, VMMethod* vmm, VariableScope* scope, Message& msg) {
+    bool call(STATE, VMMethod* vmm, VariableScope* scope, Arguments& args) {
       const bool has_splat = (vmm->splat_position >= 0);
 
       // expecting 0, got 0.
-      if(vmm->total_args == 0 and msg.args() == 0) {
+      if(vmm->total_args == 0 and args.total() == 0) {
         if(has_splat) {
           scope->set_local(vmm->splat_position, Array::create(state, 0));
         }
@@ -259,21 +263,21 @@ namespace rubinius {
       }
 
       // Too few args!
-      if((native_int)msg.args() < vmm->required_args) return false;
+      if((native_int)args.total() < vmm->required_args) return false;
 
       // Too many args (no splat!)
-      if(!has_splat && (native_int)msg.args() > vmm->total_args) return false;
+      if(!has_splat && (native_int)args.total() > vmm->total_args) return false;
 
       // Umm... something too do with figuring out how to handle
       // splat and optionals.
       native_int fixed_args = vmm->total_args;
-      if((native_int)msg.args() < vmm->total_args) {
-        fixed_args = (native_int)msg.args();
+      if((native_int)args.total() < vmm->total_args) {
+        fixed_args = (native_int)args.total();
       }
 
       // Copy in the normal, fixed position arguments
       for(native_int i = 0; i < fixed_args; i++) {
-        scope->set_local(i, msg.get_argument(i));
+        scope->set_local(i, args.get_argument(i));
       }
 
       if(has_splat) {
@@ -285,14 +289,14 @@ namespace rubinius {
          * Otherwise, generate an empty Array.
          *
          * NOTE: remember that total includes the number of fixed arguments,
-         * even if they're optional, so we can get msg.args() == 0, and
+         * even if they're optional, so we can get args.total() == 0, and
          * total == 1 */
-        if((native_int)msg.args() > vmm->total_args) {
-          size_t splat_size = msg.args() - vmm->total_args;
+        if((native_int)args.total() > vmm->total_args) {
+          size_t splat_size = args.total() - vmm->total_args;
           ary = Array::create(state, splat_size);
 
           for(size_t i = 0, n = vmm->total_args; i < splat_size; i++, n++) {
-            ary->set(state, i, msg.get_argument(n));
+            ary->set(state, i, args.get_argument(n));
           }
         } else {
           ary = Array::create(state, 0);
@@ -345,6 +349,8 @@ namespace rubinius {
   }
 
   void VMMethod::find_super_instructions() {
+    return;
+
     for(size_t index = 0; index < total;) {
       size_t width = InstructionSequence::instruction_width(opcodes[index]);
       int super = instructions::find_superop(&opcodes[index]);
@@ -465,18 +471,20 @@ namespace rubinius {
    * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
    * CompiledMethod.
    *
-   * @todo  This really should be in the .hpp. It only works
-   *        but for the grace of Leibniz. --rue
+   * This method works as a template even though it's here because it's never
+   * called from outside of this file. Thus all the template expansions are done.
    */
   template <typename ArgumentHandler>
-    Object* VMMethod::execute_specialized(STATE, CallFrame* previous, Message& msg) {
+    Object* VMMethod::execute_specialized(STATE, CallFrame* previous,
+                                          Dispatch& msg, Arguments& args) {
+
       CompiledMethod* cm = as<CompiledMethod>(msg.method);
       VMMethod* vmm = cm->backend_method_;
 
       VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
                                  (vmm->number_of_locals * sizeof(Object*)));
 
-      scope->prepare(msg.recv, msg.module, msg.block, cm, vmm->number_of_locals);
+      scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
 
       CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
       frame->prepare(vmm->stack_size);
@@ -484,14 +492,14 @@ namespace rubinius {
       frame->previous = previous;
       frame->name =     msg.name;
       frame->cm =       cm;
-      frame->args =     msg.args();
+      frame->args =     args.total();
       frame->scope =    frame->top_scope = scope;
 
       // If argument handling fails..
-      ArgumentHandler args;
-      if(args.call(state, vmm, scope, msg) == false) {
+      ArgumentHandler arghandler;
+      if(arghandler.call(state, vmm, scope, args) == false) {
         Exception* exc =
-          Exception::make_argument_error(state, vmm->required_args, msg.args(), msg.name);
+          Exception::make_argument_error(state, vmm->required_args, args.total(), msg.name);
         exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), frame));
         state->thread_state()->raise_exception(exc);
 
@@ -508,8 +516,8 @@ namespace rubinius {
     }
 
   /** @todo Is this redundant after having gone through set_argument_handler? --rue */
-  Object* VMMethod::execute(STATE, CallFrame* previous, Message& msg) {
-    return execute_specialized<GenericArguments>(state, previous, msg);
+  Object* VMMethod::execute(STATE, CallFrame* previous, Dispatch& msg, Arguments& args) {
+    return execute_specialized<GenericArguments>(state, previous, msg, args);
   }
 
   /* This is a noop for this class. */

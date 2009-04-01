@@ -93,20 +93,19 @@ public:
 
     profiler::Profiler prof;
 
-    Message msg(state);
-    msg.module = G(object);
-    msg.name = meth;
+    Dispatch dis(meth, G(object), cm);
+    Arguments args;
 
-    prof.enter_method(state, msg, cm);
+    prof.enter_method(state, dis, args, cm);
     TS_ASSERT_EQUALS(prof.depth(), 1U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
 
     profiler::Key key(meth, klass, profiler::kNormal);
     TS_ASSERT(prof.find_key(key));
 
-    msg.module = G(object)->metaclass(state);
+    dis.module = G(object)->metaclass(state);
 
-    prof.enter_method(state, msg, cm);
+    prof.enter_method(state, dis, args, cm);
     TS_ASSERT_EQUALS(prof.depth(), 2U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 2U);
 
@@ -123,20 +122,19 @@ public:
 
     profiler::Profiler prof;
 
-    Message msg(state);
-    msg.module = G(object);
-    msg.name = meth;
+    Dispatch dis(meth, G(object), cm);
+    Arguments args;
 
-    prof.enter_primitive(state, msg);
+    prof.enter_primitive(state, dis, args);
     TS_ASSERT_EQUALS(prof.depth(), 1U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
 
     profiler::Key key(meth, klass, profiler::kNormal);
     TS_ASSERT(prof.find_key(key));
 
-    msg.module = G(object)->metaclass(state);
+    dis.module = G(object)->metaclass(state);
 
-    prof.enter_primitive(state, msg);
+    prof.enter_primitive(state, dis, args);
     TS_ASSERT_EQUALS(prof.depth(), 2U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 2U);
 

@@ -89,9 +89,10 @@ namespace rubinius {
     return backend_method_;
   }
 
-  Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame, Message& msg) {
+  Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame, Dispatch& msg,
+                                           Arguments& args) {
     if(try_as<CompiledMethod>(msg.method)) {
-      return VMMethod::execute(state, call_frame, msg);
+      return VMMethod::execute(state, call_frame, msg, args);
     }
 
     // TODO fix me to raise an exception
@@ -110,12 +111,13 @@ namespace rubinius {
     return this;
   }
 
-  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Message& msg) {
+  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame, Dispatch& msg,
+                                           Arguments& args) {
     CompiledMethod* cm = as<CompiledMethod>(msg.method);
     cm->formalize(state, false);
     // Refactor
     cm->backend_method_->find_super_instructions();
-    return cm->execute(state, call_frame, msg);
+    return cm->execute(state, call_frame, msg, args);
   }
 
   void CompiledMethod::post_marshal(STATE) {
@@ -132,26 +134,23 @@ namespace rubinius {
     return local_count_->to_native();
   }
 
-  Object* CompiledMethod::activate(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
-    CompiledMethod* meth = as<CompiledMethod>(msg.recv);
-    Object* recv = msg.get_argument(0);
-    Module* mod  = as<Module>(msg.get_argument(1));
-    Array*  args = as<Array>(msg.get_argument(2));
+  Object* CompiledMethod::activate(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
+                                   Arguments& args) {
+    CompiledMethod* meth = as<CompiledMethod>(args.recv());
+    Object* recv = args.get_argument(0);
+    Module* mod  = as<Module>(args.get_argument(1));
+    Array*  ary = as<Array>(args.get_argument(2));
     // Leave msg.block set and pass it through.
 
-    msg.recv = recv;
-    msg.method = meth;
-    msg.module = mod;
-    msg.set_arguments(state, args);
-    msg.name = meth->name();
-    msg.priv = true;
-    msg.method_missing = false;
+    Dispatch disp(meth->name(), mod, meth);
+    Arguments new_args(recv, 0, 0);
+    new_args.use_array(ary);
 
     // NOTE even when we're activating a method_missing, we don't
     // push the name given, because there really isn't one. So if
     // this is used to call a method_missing, you have to supply all
     // the args.
-    return meth->execute(state, call_frame, msg);
+    return meth->execute(state, call_frame, disp, new_args);
   }
 
   MachineMethod* CompiledMethod::make_machine_method(STATE) {

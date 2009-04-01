@@ -25,27 +25,28 @@ namespace rubinius {
   }
 
   /* Run when an AccessVariable is executed. Uses the details in msg.method
-   * to access instance variables of msg.recv */
-  Object* AccessVariable::access_execute(STATE, CallFrame* call_frame, Message& msg) {
+   * to access instance variables of args.recv() */
+  Object* AccessVariable::access_execute(STATE, CallFrame* call_frame, Dispatch& msg,
+                                         Arguments& args) {
     AccessVariable* access = as<AccessVariable>(msg.method);
 
     /* The writer case. */
     if(access->write()->true_p()) {
-      if(msg.args() != 1) {
-        Exception::argument_error(state, 1, msg.args());
+      if(args.total() != 1) {
+        Exception::argument_error(state, 1, args.total());
       }
 
       /* Fall through, handle it as a normal ivar. */
-      msg.recv->set_ivar(state, access->name(), msg.get_argument(0));
-      return msg.get_argument(0);
+      args.recv()->set_ivar(state, access->name(), args.get_argument(0));
+      return args.get_argument(0);
     }
 
     /* The read case. */
-    if(msg.args() != 0) {
-      Exception::argument_error(state, 0, msg.args());
+    if(args.total() != 0) {
+      Exception::argument_error(state, 0, args.total());
       return NULL;
     } else {
-      return msg.recv->get_ivar(state, access->name());
+      return args.recv()->get_ivar(state, access->name());
     }
   }
 }

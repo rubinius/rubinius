@@ -3,6 +3,7 @@
 
 #include "builtin/object.hpp"
 #include "type_info.hpp"
+#include "dispatch.hpp"
 
 namespace rubinius {
   class CompiledMethod;
@@ -10,6 +11,7 @@ namespace rubinius {
   class Message;
   class SendSite;
   class MethodContext;
+  class LookupData;
 
   typedef bool (*MethodResolver)(STATE, Message& msg);
 
@@ -17,10 +19,27 @@ namespace rubinius {
   public:
     static const object_type type = SendSiteType;
 
-    typedef Object* (*Performer)(STATE, CallFrame* call_frame, Message& msg);
+    typedef Object* (*Performer)(STATE, SendSite* ss, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+
+    // A class thats C heap allocated and stores a bunch of SendSite data,
+    // to improve the speed of method dispatch.
+    struct Internal : public Dispatch {
+      size_t literal;
+      Module* recv_class;
+      executor execute;
+
+      Internal(size_t lit)
+        : literal(lit)
+        , recv_class(0)
+        , execute(0)
+      {}
+    };
+
+    static bool fill(STATE, Module* klass, CallFrame* call_frame, Internal* cache, bool priv,
+                     Module* lookup = 0);
 
   private:
-    Symbol* name_;            // slot
+    Symbol* name_;           // slot
     CompiledMethod* sender_; // slot
     Selector* selector_;     // slot
     Executable* method_;     // slot
@@ -28,11 +47,12 @@ namespace rubinius {
     Module* recv_class_;     // slot
 
   public:
+    Internal* inner_cache_;
+
     // @todo fix up data members that aren't slots
     bool   method_missing;
     size_t hits;
     size_t misses;
-    MethodResolver resolver;
     Performer performer;
 
   public:
@@ -62,7 +82,6 @@ namespace rubinius {
     Object* misses_prim(STATE);
 
     void initialize(STATE);
-    bool locate(STATE, Message& msg);
 
     // Check and see if the method referenced has the given serial
     // Sideffect: populates the sendsite if empty
@@ -71,14 +90,16 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
+      virtual void mark(Object* t, ObjectMark& mark);
+      virtual void visit(Object*, ObjectVisitor& visit);
       virtual void show(STATE, Object* self, int level);
     };
   };
 
   namespace performer {
-    Object* basic_performer(STATE, CallFrame*, Message& msg);
-    Object* mono_performer(STATE, CallFrame*, Message& msg);
-    Object* mono_mm_performer(STATE, CallFrame*, Message& msg);
+    Object* basic_performer(STATE, SendSite* ss, CallFrame*, Dispatch& msg, Arguments& args);
+    Object* mono_performer(STATE, SendSite* ss, CallFrame*, Dispatch& msg, Arguments& args);
+    Object* mono_mm_performer(STATE, SendSite* ss, CallFrame*, Dispatch& msg, Arguments& args);
   }
 
   /**
@@ -97,7 +118,7 @@ namespace rubinius {
    */
   class HierarchyResolver {
   public:
-    static bool resolve(STATE, Message& msg);
+    static bool resolve(STATE, Dispatch& msg, LookupData& lookup);
   };
 
   /**
@@ -120,22 +141,7 @@ namespace rubinius {
    */
   class GlobalCacheResolver {
   public:
-    static bool resolve(STATE, Message& msg);
-  };
-
-  /**
-   *  Monomorphic inline method lookup.
-   *
-   *  First checks if the cached receiver class matchs msg.lookup_from.
-   *  If so, set the +msg+ method and module to the cached ones. If not,
-   *  invoke the GlobalCacheResolver::resolve method. If the method is
-   *  found, cache it in +ss+.
-   *
-   *  @returns true if the method was found, false otherwise.
-   */
-  class MonomorphicInlineCacheResolver {
-  public:
-    static bool resolve(STATE, Message& msg);
+    static bool resolve(STATE, Dispatch& msg, LookupData& lookup);
   };
 };
 

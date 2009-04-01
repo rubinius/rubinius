@@ -52,15 +52,13 @@ namespace rubinius {
     }
   }
 
-  VariableScope* VariableScope::of_sender(STATE, Executable* exec,
-                 CallFrame* call_frame, Message& msg) {
+  VariableScope* VariableScope::of_sender(STATE, CallFrame* call_frame) {
     CallFrame* dest = call_frame->previous;
     dest->promote_scope(state);
     return dest->scope;
   }
 
-  VariableScope* VariableScope::current(STATE, Executable* exec,
-                 CallFrame* call_frame, Message& msg) {
+  VariableScope* VariableScope::current(STATE, CallFrame* call_frame) {
     call_frame->promote_scope(state);
     return call_frame->scope;
   }

@@ -7,6 +7,7 @@
 #include "builtin/tuple.hpp"
 
 #include "arguments.hpp"
+#include "dispatch.hpp"
 
 namespace rubinius {
 
@@ -33,7 +34,7 @@ namespace rubinius {
    *  @see  SendSite
    *  @see  CallFrame
    */
-  class Message {
+  class Message : public Dispatch {
     Arguments args_;
 
     /** The caller's CallFrame, where to get arguments from*/
@@ -47,13 +48,7 @@ namespace rubinius {
   public:   /* Instance variables */
 
     SendSite*   send_site;      /**< SendSite in which this call originates. */
-    Symbol*     name;           /**< Name of the method being called (comes from SendSite) */
-    Object*     recv;           /**< Receiver in the call, i.e. obj in `obj.foo()` */
-    Object*     block;          /**< Block object or nil if no block. */
     bool        priv;           /**< Indicates that this call can access private methods. */
-
-    Executable* method;         /**< Executable, i.e. method object, that will be run. Added in method lookup. */
-    Module*     module;         /**< Module in which the method object was found. Added in method lookup. */
 
     /**
      * Indicates if we're calling a method setup as method_missing.

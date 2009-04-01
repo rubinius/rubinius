@@ -306,7 +306,8 @@ namespace rubinius {
   public:   /* Class Interface */
 
     /** Set up and call native method. */
-    static Object* executor_implementation(STATE, CallFrame* call_frame, Message& message);
+    static Object* executor_implementation(STATE, CallFrame* call_frame, Dispatch& msg,
+                                           Arguments& message);
 
     /**
      *  Attempt to load a C extension library and its main function.
@@ -332,7 +333,7 @@ namespace rubinius {
   public:   /* Instance methods */
 
     /** Call the C function. */
-    Object* call(STATE, NativeMethodEnvironment* env, Message& msg);
+    Object* call(STATE, NativeMethodEnvironment* env, Arguments& msg);
 
 
     /** Return the functor cast into the specified type. */

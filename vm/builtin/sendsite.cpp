@@ -3,62 +3,167 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/selector.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/module.hpp"
+#include "builtin/executable.hpp"
 
 #include "message.hpp"
 #include "global_cache.hpp"
 #include "objectmemory.hpp"
 
+#include "lookup_data.hpp"
+
 namespace rubinius {
+  static bool find_method(STATE, Module* module, Symbol* name, bool priv, Object* self,
+                          Executable** found_method, Module** found_module) {
+    Object* entry;
+    MethodVisibility* vis;
+
+    do {
+      entry = module->method_table()->fetch(state, name);
+
+      /* Nothing, there? Ok, keep looking. */
+      if(entry->nil_p()) goto keep_looking;
+
+      /* A 'false' method means to terminate method lookup.
+       * (eg. undef_method) */
+      if(entry == Qfalse) return false;
+
+      vis = try_as<MethodVisibility>(entry);
+
+      /* If this was a private send, then we can handle use
+       * any method seen. */
+      if(priv) {
+        /* nil means that the actual method object is 'up' from here */
+        if(vis && vis->method()->nil_p()) goto keep_looking;
+
+        *found_method = as<Executable>(vis ? vis->method() : entry);
+        *found_module = module;
+        break;
+      } else if(vis) {
+        /* The method is private, but this wasn't a private send. */
+        if(vis->private_p(state)) {
+          return false;
+        } else if(vis->protected_p(state)) {
+          /* The method is protected, but it's not being called from
+           * the same module */
+          if(!self->kind_of_p(state, module)) {
+            return false;
+          }
+        }
+
+        /* The method was callable, but we need to keep looking
+         * for the implementation, so make the invocation bypass all further
+         * visibility checks */
+        if(vis->method()->nil_p()) {
+          priv = true;
+          goto keep_looking;
+        }
+
+        *found_method = as<Executable>(vis->method());
+        *found_module = module;
+        break;
+      } else {
+        *found_method = as<Executable>(entry);
+        *found_module = module;
+        break;
+      }
+
+keep_looking:
+      module = module->superclass();
+
+      /* No more places to look, we couldn't find it. */
+      if(module->nil_p()) return false;
+    } while(1);
+
+    return true;
+  }
+
+  bool SendSite::fill(STATE, Module* klass, CallFrame* call_frame,
+                                  SendSite::Internal* cache, bool priv,
+                                  Module* lookup) {
+    SendSite* ss = as<SendSite>(call_frame->cm->literals()->at(state, cache->literal));
+
+    if(!lookup) lookup = klass;
+
+    bool method_missing = false;
+
+    if(find_method(state, lookup, ss->name(), priv, call_frame->self(),
+                   &cache->method, &cache->module)) {
+      cache->recv_class = klass;
+      ss->write_barrier(state, cache->recv_class);
+    } else {
+      assert(find_method(state, lookup, G(sym_method_missing), true, call_frame->self(),
+                         &cache->method, &cache->module));
+      method_missing = true;
+      cache->recv_class = 0; // Don't cache using method_missing
+    }
+
+    ss->write_barrier(state, cache->method);
+    ss->write_barrier(state, cache->module);
+
+    cache->execute = cache->method->execute;
+    return method_missing;
+  }
+
   namespace performer {
     /*
      * A simple monomorphic cache resolver. Does not support
      * method missing, so it must not be installed if method missing
      * was used.
      */
-    Object* mono_performer(STATE, CallFrame* call_frame, Message& msg) {
-      if(likely(msg.lookup_from(state) == msg.send_site->recv_class())) {
-        msg.module = msg.send_site->module();
-        msg.method = msg.send_site->method();
+    Object* mono_performer(STATE, SendSite* ss, CallFrame* call_frame,
+                           Dispatch& msg, Arguments& args) {
+      if(likely(args.recv()->lookup_begin(state) == ss->recv_class())) {
+        msg.module = ss->module();
+        msg.method = ss->method();
 
-        msg.send_site->hits++;
+        ss->hits++;
       } else {
-        msg.send_site->misses++;
-        return basic_performer(state, call_frame, msg);
+        ss->misses++;
+        return basic_performer(state, ss, call_frame, msg, args);
       }
 
-      return msg.method->execute(state, call_frame, msg);
+      return msg.method->execute(state, call_frame, msg, args);
     }
 
     /**
      * A simple monomorphic cache for when the destination method is
      * a method_missing style dispatch.
      */
-    Object* mono_mm_performer(STATE, CallFrame* call_frame, Message& msg) {
-      if(likely(msg.lookup_from(state) == msg.send_site->recv_class())) {
-        msg.module = msg.send_site->module();
-        msg.method = msg.send_site->method();
+    Object* mono_mm_performer(STATE, SendSite* ss, CallFrame* call_frame,
+                              Dispatch& msg, Arguments& args) {
+      if(likely(args.recv()->lookup_begin(state) == ss->recv_class())) {
+        msg.module = ss->module();
+        msg.method = ss->method();
 
-        msg.send_site->hits++;
+        ss->hits++;
       } else {
-        msg.send_site->misses++;
-        return basic_performer(state, call_frame, msg);
+        ss->misses++;
+        return basic_performer(state, ss, call_frame, msg, args);
       }
 
-      msg.arguments().unshift(state, msg.name);
+      args.unshift(state, msg.name);
 
-      return msg.method->execute(state, call_frame, msg);
-
+      return msg.method->execute(state, call_frame, msg, args);
     }
 
-    Object* basic_performer(STATE, CallFrame* call_frame, Message& msg) {
+    Object* basic_performer(STATE, SendSite* ss, CallFrame* call_frame,
+                            Dispatch& msg, Arguments& args) {
       Symbol* original_name = msg.name;
 
-      if(!GlobalCacheResolver::resolve(state, msg)) {
-        msg.method_missing = true;
-        msg.name = G(sym_method_missing);
-        msg.priv = true; // lets us look for method_missing anywhere
+      // priv?
+      LookupData lookup(args.recv(), args.recv()->lookup_begin(state));
+      bool method_missing = false;
 
-        if(!GlobalCacheResolver::resolve(state, msg)) {
+      if(!GlobalCacheResolver::resolve(state, msg, lookup)) {
+        Dispatch dis(G(sym_method_missing));
+        method_missing = true;
+        lookup.priv = true; // lets us look for method_missing anywhere
+
+        if(GlobalCacheResolver::resolve(state, dis, lookup)) {
+          msg.method = dis.method;
+          msg.module = dis.module;
+        } else {
           std::stringstream ss;
           ss << "could not find method \"" << original_name->c_str(state);
           ss << "\"";
@@ -67,19 +172,19 @@ namespace rubinius {
       }
 
       // Populate for mono!
-      msg.send_site->module(state, msg.module);
-      msg.send_site->method(state, msg.method);
-      msg.send_site->recv_class(state, msg.lookup_from(state));
-      msg.send_site->method_missing = msg.method_missing;
+      ss->module(state, msg.module);
+      ss->method(state, msg.method);
+      ss->recv_class(state, lookup.from);
+      ss->method_missing = method_missing;
 
-      if(unlikely(msg.method_missing)) {
-        msg.arguments().unshift(state, original_name);
-        msg.send_site->performer = mono_mm_performer;
+      if(unlikely(method_missing)) {
+        args.unshift(state, original_name);
+        ss->performer = mono_mm_performer;
       } else {
-        msg.send_site->performer = mono_performer;
+        ss->performer = mono_performer;
       }
 
-      return msg.method->execute(state, call_frame, msg);
+      return msg.method->execute(state, call_frame, msg, args);
     }
   }
 
@@ -94,15 +199,16 @@ namespace rubinius {
     ss->sender(state, (CompiledMethod*)Qnil);
     ss->selector(state, Selector::lookup(state, name));
 
-    ss->initialize(state);
     ss->selector()->associate(state, ss);
+    ss->inner_cache_ = 0;
+
+    ss->initialize(state);
 
     return ss;
   }
 
 
   void SendSite::initialize(STATE) {
-    resolver = MonomorphicInlineCacheResolver::resolve;
     performer = performer::basic_performer;
 
     method(state, (Executable*)Qnil);
@@ -110,6 +216,10 @@ namespace rubinius {
     recv_class(state, (Module*)Qnil);
     method_missing = false;
     hits = misses = 0;
+
+    if(inner_cache_) {
+      inner_cache_->recv_class = 0;
+    }
   }
 
   Object* SendSite::set_sender(STATE, CompiledMethod* cm) {
@@ -125,30 +235,10 @@ namespace rubinius {
     return Integer::from(state, misses);
   }
 
-  /* Use the information within +this+ to populate +msg+. Returns
-   * true if +msg+ was populated. */
-
-  bool SendSite::locate(STATE, Message& msg) {
-    Symbol* original_name = msg.name;
-
-    if(!resolver(state, msg)) {
-      msg.method_missing = true;
-      msg.name = G(sym_method_missing);
-      msg.priv = true; // lets us look for method_missing anywhere
-      if(!resolver(state, msg)) {
-        return false;
-      }
-    }
-
-    if(msg.method_missing) {
-      msg.arguments().unshift(state, original_name);
-    }
-
-    return true;
-  }
-
   bool SendSite::check_serial(STATE, CallFrame* call_frame, Object* recv, int serial) {
     // If empty, fill.
+    return false;
+    /*
     if(method_ == Qnil) {
       Message msg(state);
       msg.recv = recv;
@@ -174,14 +264,15 @@ namespace rubinius {
     }
 
     return method_->serial()->to_native() == serial;
+    */
   }
 
   /* Fill in details about +msg+ by looking up the class heirarchy
    * and in method tables. Returns true if lookup was successful
    * and +msg+ is now filled in. */
 
-  bool HierarchyResolver::resolve(STATE, Message& msg) {
-    Module* module = msg.lookup_from(state);
+  bool HierarchyResolver::resolve(STATE, Dispatch& msg, LookupData& lookup) {
+    Module* module = lookup.from;
     Object* entry;
     MethodVisibility* vis;
 
@@ -199,7 +290,7 @@ namespace rubinius {
 
       /* If this was a private send, then we can handle use
        * any method seen. */
-      if(msg.priv) {
+      if(lookup.priv) {
         /* nil means that the actual method object is 'up' from here */
         if(vis && vis->method()->nil_p()) goto keep_looking;
 
@@ -213,7 +304,7 @@ namespace rubinius {
         } else if(vis->protected_p(state)) {
           /* The method is protected, but it's not being called from
            * the same module */
-          if(!msg.current_self()->kind_of_p(state, module)) {
+          if(!lookup.recv->kind_of_p(state, module)) {
             return false;
           }
         }
@@ -222,7 +313,7 @@ namespace rubinius {
          * for the implementation, so make the invocation bypass all further
          * visibility checks */
         if(vis->method()->nil_p()) {
-          msg.priv = true;
+          lookup.priv = true;
           goto keep_looking;
         }
 
@@ -245,12 +336,14 @@ keep_looking:
     return true;
   }
 
-  bool GlobalCacheResolver::resolve(STATE, Message& msg) {
+  bool GlobalCacheResolver::resolve(STATE, Dispatch& msg, LookupData& lookup) {
     struct GlobalCache::cache_entry* entry;
 
-    entry = state->global_cache->lookup(msg.lookup_from(state), msg.name);
+    Module* klass = lookup.from;
+
+    entry = state->global_cache->lookup(klass, msg.name);
     if(entry) {
-      if(msg.priv || entry->is_public) {
+      if(lookup.priv || entry->is_public) {
         msg.method = entry->method;
         msg.module = entry->module;
         msg.method_missing = entry->method_missing;
@@ -259,8 +352,8 @@ keep_looking:
       }
     }
 
-    if(HierarchyResolver::resolve(state, msg)) {
-      state->global_cache->retain(state, msg.lookup_from(state), msg.name,
+    if(HierarchyResolver::resolve(state, msg, lookup)) {
+      state->global_cache->retain(state, lookup.from, msg.name,
           msg.module, msg.method, msg.method_missing);
       return true;
     }
@@ -268,27 +361,57 @@ keep_looking:
     return false;
   }
 
-  bool MonomorphicInlineCacheResolver::resolve(STATE, Message& msg) {
-    if(msg.lookup_from(state) == msg.send_site->recv_class()) {
-      msg.module = msg.send_site->module();
-      msg.method = msg.send_site->method();
-      msg.method_missing = msg.send_site->method_missing;
+  void SendSite::Info::mark(Object* obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
 
-      msg.send_site->hits++;
-      return true;
+    SendSite* ss = as<SendSite>(obj);
+    if(ss->inner_cache_) {
+      Object* tmp;
+      SendSite::Internal* cache = ss->inner_cache_;
+      if(cache->module) {
+        tmp = mark.call(cache->module);
+        if(tmp) {
+          cache->module = (Module*)tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
+
+      if(cache->method) {
+        tmp = mark.call(cache->method);
+        if(tmp) {
+          cache->method = (Executable*)tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
+
+      if(cache->recv_class) {
+        tmp = mark.call(cache->recv_class);
+        if(tmp) {
+          cache->recv_class = (Module*)tmp;
+          mark.just_set(obj, tmp);
+        }
+      }
     }
+  }
 
-    msg.send_site->misses++;
-    if(GlobalCacheResolver::resolve(state, msg)) {
-      msg.send_site->module(state, msg.module);
-      msg.send_site->method(state, msg.method);
-      msg.send_site->recv_class(state, msg.lookup_from(state));
-      msg.send_site->method_missing = msg.method_missing;
+  void SendSite::Info::visit(Object* obj, ObjectVisitor& visit) {
+    auto_visit(obj, visit);
 
-      return true;
+    SendSite* ss = as<SendSite>(obj);
+    if(ss->inner_cache_) {
+      SendSite::Internal* cache = ss->inner_cache_;
+      if(cache->module) {
+        visit.call(cache->module);
+      }
+
+      if(cache->method) {
+        visit.call(cache->method);
+      }
+
+      if(cache->recv_class) {
+        visit.call(cache->recv_class);
+      }
     }
-
-    return false;
   }
 
   void SendSite::Info::show(STATE, Object* self, int level) {

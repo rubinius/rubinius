@@ -37,12 +37,13 @@ namespace rubinius {
 
   /* Run when a NativeFunction is executed.  Executes the related C function.
    */
-  Object* NativeFunction::execute(STATE, CallFrame* call_frame, Message& msg) {
+  Object* NativeFunction::execute(STATE, CallFrame* call_frame, Dispatch& msg,
+                                  Arguments& args) {
     NativeFunction* nfunc = as<NativeFunction>(msg.method);
 
     state->set_call_frame(call_frame);
 
-    Object* obj = nfunc->call(state, &msg);
+    Object* obj = nfunc->call(state, args);
 
     return obj;
   }
@@ -280,7 +281,7 @@ namespace rubinius {
     return func;
   }
 
-  Object* NativeFunction::call(STATE, Message* msg) {
+  Object* NativeFunction::call(STATE, Arguments& args) {
     Object* ret;
     Object* obj;
 
@@ -291,7 +292,7 @@ namespace rubinius {
       switch(stub->arg_types[i]) {
       case RBX_FFI_TYPE_CHAR: {
         char *tmp = ALLOCA(char);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (char)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
@@ -299,7 +300,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_UCHAR: {
         unsigned char *tmp = ALLOCA(unsigned char);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (unsigned char)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
@@ -307,7 +308,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_SHORT: {
         short *tmp = ALLOCA(short);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (short)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
@@ -315,7 +316,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_USHORT: {
         unsigned short *tmp = ALLOCA(unsigned short);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (unsigned short)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
@@ -323,7 +324,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_INT: {
         int *tmp = ALLOCA(int);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_int();
         } else {
@@ -335,7 +336,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_UINT: {
         unsigned int *tmp = ALLOCA(unsigned int);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_uint();
         } else {
@@ -347,7 +348,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_LONG: {
         long *tmp = ALLOCA(long);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_long();
         } else {
@@ -359,7 +360,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_ULONG: {
         unsigned long *tmp = ALLOCA(unsigned long);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_ulong();
         } else {
@@ -371,7 +372,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_FLOAT: {
         float *tmp = ALLOCA(float);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         type_assert(state, obj, FloatType, "converting to float");
         *tmp = (float)as<Float>(obj)->to_double(state);
         values[i] = tmp;
@@ -379,7 +380,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_DOUBLE: {
         double *tmp = ALLOCA(double);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         type_assert(state, obj, FloatType, "converting to double");
         *tmp = as<Float>(obj)->to_double(state);
         values[i] = tmp;
@@ -387,7 +388,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_LONG_LONG: {
         long long *tmp = ALLOCA(long long);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_long_long();
         } else {
@@ -399,7 +400,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_ULONG_LONG: {
         unsigned long long *tmp = ALLOCA(unsigned long long);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         if(FIXNUM_P(obj)) {
           *tmp = as<Fixnum>(obj)->to_ulong_long();
         } else {
@@ -417,14 +418,14 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_OBJECT: {
         Object* *tmp = ALLOCA(Object*);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         *tmp = obj;
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_PTR: {
         void **tmp = ALLOCA(void*);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
         if(NIL_P(obj)) {
           *tmp = NULL;
         } else {
@@ -437,7 +438,7 @@ namespace rubinius {
       }
       case RBX_FFI_TYPE_STRING: {
         char **tmp = ALLOCA(char*);
-        obj = msg->get_argument(i);
+        obj = args.get_argument(i);
 
         if(NIL_P(obj)) {
           *tmp = NULL;

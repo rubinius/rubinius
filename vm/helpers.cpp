@@ -19,6 +19,7 @@
 #include "vm.hpp"
 #include "object_utils.hpp"
 #include "message.hpp"
+#include "lookup_data.hpp"
 
 namespace rubinius {
   namespace Helpers {
@@ -143,39 +144,29 @@ namespace rubinius {
     }
 
     Object* const_missing(STATE, Module* under, Symbol* sym, CallFrame* call_frame) {
-      Message msg(G(sym_const_missing),
-                  under,
-                  1,
-                  Qnil,
-                  under->lookup_begin(state));
-
       Array* args = Array::create(state, 1);
       args->set(state, 0, sym);
-      msg.set_arguments(state, args);
-
-      return msg.send(state, call_frame);
+      return under->send(state, call_frame, G(sym_const_missing), args);
     }
 
     /** @todo Remove redundancy between this and sends. --rue */
     Object* locate_method_on(STATE, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv) {
-      Message msg(state);
+      LookupData lookup(recv, recv->lookup_begin(state));
+      lookup.priv = (priv == Qtrue);
 
-      msg.recv = recv;
-      msg.name = name;
-      msg.priv = (priv == Qtrue);
-      msg.set_caller(call_frame);
+      Dispatch dis(name);
 
-      if(!GlobalCacheResolver::resolve(state, msg)) {
+      if(!GlobalCacheResolver::resolve(state, dis, lookup)) {
         return (Tuple*)Qnil;
       }
 
-      MethodVisibility* vis = try_as<MethodVisibility>(msg.method);
+      MethodVisibility* vis = try_as<MethodVisibility>(dis.method);
 
       if(vis) {
-        return Tuple::from(state, 2, vis->method(), msg.module);
+        return Tuple::from(state, 2, vis->method(), dis.module);
       }
 
-      return Tuple::from(state, 2, msg.method, msg.module);
+      return Tuple::from(state, 2, dis.method, dis.module);
     }
 
     Class* open_class(STATE, CallFrame* call_frame, Object* super, Symbol* name, bool* created) {

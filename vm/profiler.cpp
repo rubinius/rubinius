@@ -149,18 +149,18 @@ namespace rubinius {
     }
     */
 
-    void Profiler::enter_primitive(STATE, Message& msg) {
-      enter_method(state, msg, (CompiledMethod*)Qnil);
+    void Profiler::enter_primitive(STATE, Dispatch& msg, Arguments& args) {
+      enter_method(state, msg, args, (CompiledMethod*)Qnil);
     }
 
-    void Profiler::enter_method(STATE, Message &msg, CompiledMethod* cm) {
+    void Profiler::enter_method(STATE, Dispatch &msg, Arguments& args, CompiledMethod* cm) {
       if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
         Object* attached = mc->attached_instance();
 
         if(Module* mod = try_as<Module>(attached)) {
           record_method(state, cm, msg.name, mod->name(), kSingleton);
         } else {
-          Symbol* name = msg.recv->to_s(state)->to_sym(state);
+          Symbol* name = args.recv()->to_s(state)->to_sym(state);
           record_method(state, cm, msg.name, name, kSingleton);
         }
       } else {

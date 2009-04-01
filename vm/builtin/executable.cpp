@@ -41,11 +41,12 @@ namespace rubinius {
   }
 
 
-  Object* Executable::default_executor(STATE, CallFrame* call_frame, Message& msg) {
-    msg.arguments().unshift2(state, msg.recv, msg.name);
-    msg.name = state->symbol("call");
-    msg.recv = msg.method;
-    msg.flush_lookup();
-    return msg.send(state, call_frame);
+  Object* Executable::default_executor(STATE, CallFrame* call_frame, Dispatch& msg,
+                                       Arguments& args) {
+    args.unshift2(state, args.recv(), msg.name);
+    args.set_recv(msg.method);
+
+    Dispatch dis(state->symbol("call"));
+    return dis.send(state, call_frame, args);
   }
 }

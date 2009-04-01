@@ -102,11 +102,11 @@ namespace rubinius {
 
     VariableScope* promote(STATE);
 
-    // Ruby.primitive? :variable_scope_of_sender
-    static VariableScope* of_sender(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
+    // Ruby.primitive :variable_scope_of_sender
+    static VariableScope* of_sender(STATE, CallFrame* calling_environment);
 
-    // Ruby.primitive? :variable_scope_current
-    static VariableScope* current(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
+    // Ruby.primitive :variable_scope_current
+    static VariableScope* current(STATE, CallFrame* calling_environment);
 
     // Ruby.primitive :variable_scope_locals
     Tuple* locals(STATE);

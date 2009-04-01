@@ -50,15 +50,10 @@ namespace rubinius {
     if(bound_method_->nil_p()) {
       ret= block_->call(state, call_frame, args, flags);
     } else {
-      Message msg(reinterpret_cast<SendSite*>(Qnil),
-                  G(sym_call),
-                  this,
-                  call_frame,
-                  args,
-                  Qnil,
-                  false);
-
-      ret = msg.send(state, call_frame);
+      Dispatch dis(G(sym_call));
+      Arguments new_args(args, call_frame->stack_back_position(args - 1));
+      new_args.set_recv(this);
+      ret = dis.send(state, call_frame, new_args);
     }
 
     if(lambda_style && !ret) {
@@ -79,20 +74,22 @@ namespace rubinius {
       // NOTE! To match MRI semantics, this explicitely ignores lambda_.
       return block_->call(state, call_frame, args, 0);
     } else {
-      return this->call(state, call_frame, args);
+      return call(state, call_frame, args);
     }
   }
 
-  Object* Proc::yield(STATE, CallFrame* call_frame, Message& msg) {
+  Object* Proc::yield(STATE, CallFrame* call_frame, Arguments& args) {
     if(bound_method_->nil_p()) {
       // NOTE! To match MRI semantics, this explicitely ignores lambda_.
-      return block_->call(state, call_frame, msg, 0);
+      return block_->call(state, call_frame, args, 0);
     } else {
-      return this->call_prim(state, NULL, call_frame, msg);
+      Dispatch dis;
+      return call_prim(state, NULL, call_frame, dis, args);
     }
   }
 
-  Object* Proc::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
+  Object* Proc::call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
+                          Arguments& args) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 
@@ -101,9 +98,9 @@ namespace rubinius {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
-      if(required >= 0 && (size_t)required != msg.args()) {
+      if(required >= 0 && (size_t)required != args.total()) {
         Exception* exc =
-          Exception::make_argument_error(state, required, msg.args(), state->symbol("__block__"));
+          Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
         exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
@@ -112,9 +109,12 @@ namespace rubinius {
 
     Object* ret;
     if(bound_method_->nil_p()) {
-      ret = block_->call(state, call_frame, msg, flags);
+      ret = block_->call(state, call_frame, args, flags);
     } else {
-      ret = msg.send(state, call_frame);
+      Dispatch dis(G(sym_call));
+      Arguments new_args;
+      new_args.set_recv(this);
+      ret = dis.send(state, call_frame, new_args);
     }
 
     if(lambda_style && !ret) {
@@ -130,7 +130,8 @@ namespace rubinius {
     return ret;
   }
 
-  Object* Proc::call_on_object(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
+  Object* Proc::call_on_object(STATE, Executable* exec, CallFrame* call_frame,
+                               Dispatch& msg, Arguments& args) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 
@@ -139,16 +140,16 @@ namespace rubinius {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
-      if(msg.args() < 1 || (required >= 0 && (size_t)required != msg.args() - 1)) {
+      if(args.total() < 1 || (required >= 0 && (size_t)required != args.total() - 1)) {
         Exception* exc =
-          Exception::make_argument_error(state, required, msg.args(), state->symbol("__block__"));
+          Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
         exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
       }
     }
 
-    Object* ret = block_->call_on_object(state, call_frame, msg, flags);
+    Object* ret = block_->call_on_object(state, call_frame, args, flags);
 
     if(lambda_style && !ret) {
       RaiseReason reason = state->thread_state()->raise_reason();

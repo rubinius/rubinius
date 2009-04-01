@@ -155,7 +155,7 @@ namespace rubinius {
      *  Object, passing the given number of arguments through varargs.
      */
     Object* send(STATE, CallFrame* caller, Symbol* name, Array* args,
-        Object* block, bool allow_private = true);
+        Object* block = Qnil, bool allow_private = true);
     Object* send(STATE, CallFrame* caller, Symbol* name, bool allow_private = true);
 
     /**
@@ -164,7 +164,7 @@ namespace rubinius {
      *  Uses Task::send_message_slowly().
      */
     // Ruby.primitive? :object_send
-    Object* send_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
+    Object* send_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
 
   public:   /* Ruby interface */

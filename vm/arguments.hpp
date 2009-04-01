@@ -9,14 +9,34 @@ namespace rubinius {
   class Array;
 
   class Arguments {
+    Object* recv_;
+    Object* block_;
+
     size_t total_;
     Object** arguments_;
     Array* array_;
 
   public:
+    Arguments(Object* recv, Object* block, size_t total, Object** buffer)
+      : recv_(recv)
+      , block_(block)
+      , total_(total)
+      , arguments_(buffer)
+      , array_(0)
+    {}
+
+    Arguments(Object* recv, size_t total, Object** buffer)
+      : recv_(recv)
+      , block_(Qnil)
+      , total_(total)
+      , arguments_(buffer)
+      , array_(0)
+    {}
 
     Arguments(size_t total, Object** buffer)
-      : total_(total)
+      : recv_(0)
+      , block_(Qnil)
+      , total_(total)
       , arguments_(buffer)
       , array_(0)
     {}
@@ -29,6 +49,22 @@ namespace rubinius {
 
     Arguments(Array* ary) {
       use_array(ary);
+    }
+
+    Object* recv() {
+      return recv_;
+    }
+
+    void set_recv(Object* val) {
+      recv_ = val;
+    }
+
+    Object* block() {
+      return block_;
+    }
+
+    void set_block(Object* val) {
+      block_ = val;
     }
 
     Object* get_argument(size_t which) {

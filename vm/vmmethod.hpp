@@ -12,7 +12,7 @@
 
 namespace rubinius {
   typedef void* instlocation;
-  typedef uint32_t opcode;
+  typedef uintptr_t opcode;
   typedef uint32_t bpflags;
 
   // Breakpoint flags are set in the high byte of an opcode
@@ -66,10 +66,10 @@ namespace rubinius {
 
     void specialize(STATE, TypeInfo* ti);
     void compile(STATE);
-    static Object* execute(STATE, CallFrame* call_frame, Message& msg);
+    static Object* execute(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     template <typename ArgumentHandler>
-      static Object* execute_specialized(STATE, CallFrame* call_frame, Message& msg);
+      static Object* execute_specialized(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     struct InterpreterState {
       bool allow_private;

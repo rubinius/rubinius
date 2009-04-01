@@ -1436,15 +1436,10 @@ class Instructions
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->yield(state, call_frame, count);
     } else {
-      Message msg(static_cast<SendSite*>(Qnil),
-                G(sym_call),
-                t1,
-                call_frame,
-                count,
-                Qnil,
-                false);
+      Arguments args(t1, count, call_frame->stack_back_position(count));
+      Dispatch dis(G(sym_call));
 
-      ret = msg.send(state, call_frame);
+      ret = dis.send(state, call_frame, args);
     }
 
     stack_clear(count);
@@ -1457,23 +1452,22 @@ class Instructions
   def yield_splat(count)
     <<-CODE
     Object* ary = stack_pop();
+    Object* t1 = call_frame->top_scope->block();
 
-    Message msg(call_frame, count);
+    Arguments args(t1, count, call_frame->stack_back_position(count));
+
     if(!ary->nil_p()) {
-      msg.arguments().append(state, as<Array>(ary));
+      args.append(state, as<Array>(ary));
     }
 
-    Object* t1 = call_frame->top_scope->block();
     Object* ret;
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      ret = env->call(state, call_frame, msg);
+      ret = env->call(state, call_frame, args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      ret = proc->yield(state, call_frame, msg);
+      ret = proc->yield(state, call_frame, args);
     } else {
-      msg.recv = t1;
-      msg.name = G(sym_call);
-
-      ret = msg.send(state, call_frame);
+      Dispatch dis(G(sym_call));
+      ret = dis.send(state, call_frame, args);
     }
 
     stack_clear(count);
@@ -2921,18 +2915,20 @@ class Instructions
   def send_method(index)
     <<-CODE
     Object* recv = stack_top();
-    SendSite* ss = vmm->sendsites[index].get();
-    Message msg(ss,
-                ss->name(),
-                recv,
-                call_frame,
-                0,
-                Qnil,
-                ALLOW_PRIVATE());
+    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
+    Class* const klass = recv->lookup_begin(state);
+
+    Arguments args(recv, Qnil, 0, 0);
+
+    if(unlikely(cache->recv_class != klass)) {
+      if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
+        args.unshift(state, cache->name);
+      }
+    }
+
+    Object* ret = cache->execute(state, call_frame, *cache, args);
 
     SET_ALLOW_PRIVATE(false);
-
-    Object* ret = msg.send_site->performer(state, call_frame, msg);
     stack_pop();
 
     HANDLE_EXCEPTION(ret);
@@ -3001,18 +2997,22 @@ class Instructions
   def send_stack(index, count)
     <<-CODE
     Object* recv = stack_back(count);
-    SendSite* ss = vmm->sendsites[index].get();
-    Message msg(ss,
-                ss->name(),
-                recv,
-                call_frame,
-                count,
-                Qnil,
-                ALLOW_PRIVATE());
+    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
+    Class* const klass = recv->lookup_begin(state);
+
+    Arguments args(recv, Qnil, count,
+                   call_frame->stack_back_position(count - 1));
+
+    if(unlikely(cache->recv_class != klass)) {
+      if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
+        args.unshift(state, cache->name);
+      }
+    }
 
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = msg.send_site->performer(state, call_frame, msg);
+    Object* ret = cache->execute(state, call_frame, *cache, args);
+
     call_frame->clear_stack(count + 1);
 
     HANDLE_EXCEPTION(ret);
@@ -3085,19 +3085,23 @@ class Instructions
   def send_stack_with_block(index, count)
     <<-CODE
     Object* block = stack_pop();
-    Object* recv  = stack_back(count);
-    SendSite* ss  = vmm->sendsites[index].get();
-    Message msg(ss,
-                ss->name(),
-                recv,
-                call_frame,
-                count,
-                block,
-                ALLOW_PRIVATE());
+    Object* recv = stack_back(count);
+    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
+    Class* const klass = recv->lookup_begin(state);
+
+    Arguments args(recv, block, count,
+                   call_frame->stack_back_position(count - 1));
+
+    if(unlikely(cache->recv_class != klass)) {
+      if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
+        args.unshift(state, cache->name);
+      }
+    }
 
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = msg.send_site->performer(state, call_frame, msg);
+    Object* ret = cache->execute(state, call_frame, *cache, args);
+
     call_frame->clear_stack(count + 1);
 
     HANDLE_EXCEPTION(ret);
@@ -3178,28 +3182,32 @@ class Instructions
     <<-CODE
     Object* block = stack_pop();
     Object* ary   = stack_pop();
-    Object* recv  = stack_back(count);
-    SendSite* ss  = vmm->sendsites[index].get();
-    Message msg(ss,
-                ss->name(),
-                recv,
-                call_frame,
-                count,
-                block,
-                ALLOW_PRIVATE());
+    Object* recv =  stack_back(count);
+    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
+    Class* const klass = recv->lookup_begin(state);
+
+    Arguments args(recv, block, count,
+                   call_frame->stack_back_position(count - 1));
+
+    if(unlikely(cache->recv_class != klass)) {
+      if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
+        args.unshift(state, cache->name);
+      }
+    }
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
-        msg.arguments().prepend(state, as<Array>(ary));
+        args.prepend(state, as<Array>(ary));
       } else {
-        msg.arguments().append(state, as<Array>(ary));
+        args.append(state, as<Array>(ary));
       }
     }
 
     SET_CALL_FLAGS(0);
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = msg.send_site->performer(state, call_frame, msg);
+    Object* ret = cache->execute(state, call_frame, *cache, args);
+
     call_frame->clear_stack(count + 1);
 
     HANDLE_EXCEPTION(ret);
@@ -3275,19 +3283,24 @@ class Instructions
   def send_super_stack_with_block(index, count)
     <<-CODE
     Object* block = stack_pop();
-    SendSite* ss  = vmm->sendsites[index].get();
-    Message msg(ss,
-                ss->name(),
-                call_frame->self(),
-                call_frame,
-                count,
-                block,
-                true,
-                call_frame->module()->superclass());
+    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
+    Object* const recv = call_frame->self();
+    Class* const klass = recv->lookup_begin(state);
+
+    Arguments args(recv, block, count,
+                   call_frame->stack_back_position(count - 1));
+
+    if(unlikely(cache->recv_class != klass)) {
+      if(SendSite::fill(state, klass, call_frame, cache, true,
+                     call_frame->module()->superclass())) {
+        args.unshift(state, cache->name);
+      }
+    }
 
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = msg.send_site->performer(state, call_frame, msg);
+    Object* ret = cache->execute(state, call_frame, *cache, args);
+
     call_frame->clear_stack(count);
 
     HANDLE_EXCEPTION(ret);
@@ -3411,31 +3424,38 @@ class Instructions
     <<-CODE
     Object* block = stack_pop();
     Object* ary   = stack_pop();
-    SendSite* ss  = vmm->sendsites[index].get();
-    Message msg(ss,
-                ss->name(),
-                call_frame->self(),
-                call_frame,
-                count,
-                block,
-                true,
-                call_frame->module()->superclass());
+    Object* const recv = call_frame->self();
+    SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(index);
+    Class* const klass = recv->lookup_begin(state);
+
+    Arguments args(recv, block, count,
+                   call_frame->stack_back_position(count - 1));
+
+    if(unlikely(cache->recv_class != klass)) {
+      if(SendSite::fill(state, klass, call_frame, cache, true,
+                        call_frame->module()->superclass())) {
+        args.unshift(state, cache->name);
+      }
+    }
 
     if(!ary->nil_p()) {
       if(CALL_FLAGS() & #{CALL_FLAG_CONCAT}) {
-        msg.arguments().prepend(state, as<Array>(ary));
+        args.prepend(state, as<Array>(ary));
       } else {
-        msg.arguments().append(state, as<Array>(ary));
+        args.append(state, as<Array>(ary));
       }
     }
 
     SET_CALL_FLAGS(0);
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = msg.send_site->performer(state, call_frame, msg);
+    Object* ret = cache->execute(state, call_frame, *cache, args);
+
     call_frame->clear_stack(count);
+
     HANDLE_EXCEPTION(ret);
     stack_push(ret);
+
     CODE
   end
 

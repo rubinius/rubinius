@@ -6,7 +6,7 @@ class BasicPrimitive
   attr_accessor :raw
 
   def output_header(str)
-    str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Message& msg) {\n"
+    str << "Object* Primitives::#{@name}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args) {\n"
     str << "  state->set_call_frame(call_frame);\n"
     # str << " std::cout << \"[Primitive #{@name}]\\n\";\n"
     return str if @raw
@@ -15,7 +15,7 @@ class BasicPrimitive
   end
 
   def output_args(str, arg_types)
-    str << "  if(unlikely(msg.args() != #{arg_types.size}))\n"
+    str << "  if(unlikely(args.total() != #{arg_types.size}))\n"
     str << "    goto fail;\n\n"
 
     args = []
@@ -23,7 +23,7 @@ class BasicPrimitive
     arg_types.each do |t|
       i += 1
       str << "  #{t}* a#{i};\n"
-      str << "  a#{i} = try_as<#{t}>(msg.get_argument(#{i}));\n"
+      str << "  a#{i} = try_as<#{t}>(args.get_argument(#{i}));\n"
       str << "  if(unlikely(a#{i} == NULL))\n"
       str << "    goto fail;\n\n"
       args << "a#{i}"
@@ -57,7 +57,7 @@ class BasicPrimitive
     str << "    goto fail;\n\n"
     prim_return(str);
     str << "fail:\n"
-    str << "  return CompiledMethod::primitive_failed(state, call_frame, msg);\n"
+    str << "  return CompiledMethod::primitive_failed(state, call_frame, msg, args);\n"
     str << "}\n\n"
   end
 
@@ -82,20 +82,20 @@ class CPPPrimitive < BasicPrimitive
 
     output_header str
 
-    str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
+    str << "  #{@type}* recv = try_as<#{@type}>(args.recv());\n"
     str << "  if(unlikely(recv == NULL)) goto fail;\n"
 
     if @raw
       str << "\n"
       str << "  try {\n"
-      str << "    return recv->#{@cpp_name}(state, msg.method, call_frame, msg);\n"
+      str << "    return recv->#{@cpp_name}(state, msg.method, call_frame, msg, args);\n"
       str << "  } catch(const RubyException& exc) {\n"
       str << "    state->thread_state()->raise_exception(exc.exception);\n"
       str << "    return NULL;\n"
       str << "  }\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return CompiledMethod::primitive_failed(state, call_frame, msg);\n"
+      str << "  return CompiledMethod::primitive_failed(state, call_frame, msg, args);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -125,7 +125,7 @@ class CPPStaticPrimitive < CPPPrimitive
       str << "}\n\n"
     else
       args = output_args str, arg_types
-      str << "    self = msg.recv;\n" if @pass_self
+      str << "    self = args.recv();\n" if @pass_self
 
       output_call str, "#{@type}::#{@cpp_name}", args
     end
@@ -153,13 +153,13 @@ class CPPOverloadedPrimitive < BasicPrimitive
     str = ""
     output_header str
 
-    str << "  #{@type}* recv = try_as<#{@type}>(msg.recv);\n"
+    str << "  #{@type}* recv = try_as<#{@type}>(args.recv());\n"
     str << "  if(likely(recv)) {\n"
-    str << "    if(msg.args() != 1) goto fail;\n"
+    str << "    if(args.total() != 1) goto fail;\n"
 
     @kinds.each do |prim|
       type = prim.arg_types.first
-      str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
+      str << "    if(#{type}* arg = try_as<#{type}>(args.get_argument(0))) {\n"
       str << "      try {\n"
       #str << "        if(unlikely(task->profiler))\n"
       #str << "          task->profiler->enter_primitive(state, msg);\n"
@@ -182,7 +182,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  }\n"
     str << "fail:\n"
-    str << "  return CompiledMethod::primitive_failed(state, call_frame, msg);\n"
+    str << "  return CompiledMethod::primitive_failed(state, call_frame, msg, args);\n"
     str << "}\n\n"
     return str
   end
@@ -693,7 +693,7 @@ end
 write_if_new "vm/gen/primitives_declare.hpp" do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
-      f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Message& msg);"
+      f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);"
     end
   end
 end

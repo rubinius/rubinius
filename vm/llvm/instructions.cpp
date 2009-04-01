@@ -88,18 +88,12 @@ si.generate_functions impl, io
 puts io.string
 CODE
 
-  Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t args) {
-    Object* recv = stack_back(args);
-    Message msg(static_cast<SendSite*>(Qnil),
-                name,
-                recv,
-                call_frame,
-                args,
-                Qnil,
-                false,
-                recv->lookup_begin(state));
+  Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t count) {
+    Object* recv = stack_back(count);
+    Arguments args(recv, count, call_frame->stack_back_position(count - 1));
+    Dispatch dis(name);
 
-    return msg.send(state, call_frame);
+    return dis.send(state, call_frame, args);
   }
 }
 

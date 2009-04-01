@@ -81,12 +81,12 @@ namespace rubinius {
   }
 
   /** @todo See above. --rue */
-  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Message& msg, int flags) {
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Arguments& args, int flags) {
     Object* val;
-    if(msg.args() > 0) {
-      Tuple* tup = Tuple::create(state, msg.args());
-      for(int i = msg.args() - 1; i >= 0; i--) {
-        tup->put(state, i, msg.get_argument(i));
+    if(args.total() > 0) {
+      Tuple* tup = Tuple::create(state, args.total());
+      for(int i = args.total() - 1; i >= 0; i--) {
+        tup->put(state, i, args.get_argument(i));
       }
 
       val = tup;
@@ -106,7 +106,7 @@ namespace rubinius {
     frame->previous = call_frame;
     frame->name =     name_;
     frame->cm =       method_;
-    frame->args =     msg.args();
+    frame->args =     args.total();
     frame->scope =    scope;
     frame->top_scope = top_scope_;
     frame->flags =    flags;
@@ -117,28 +117,30 @@ namespace rubinius {
     return VMMethod::run_interpreter(state, vmm, frame);
   }
 
-  Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
-    return call(state, call_frame, msg);
+  Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
+                                      Arguments& args) {
+    return call(state, call_frame, args);
   }
 
   /** @todo See above. --emp */
-  Object* BlockEnvironment::call_on_object(STATE, CallFrame* call_frame, Message& msg, int flags) {
+  Object* BlockEnvironment::call_on_object(STATE, CallFrame* call_frame,
+                                           Arguments& args, int flags) {
     Object* val;
 
-    if(msg.args() < 1) {
+    if(args.total() < 1) {
       Exception* exc =
-        Exception::make_argument_error(state, 1, msg.args(), state->symbol("__block__"));
+        Exception::make_argument_error(state, 1, args.total(), state->symbol("__block__"));
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
       state->thread_state()->raise_exception(exc);
       return NULL;
     }
 
-    Object* recv = msg.get_argument(0);
+    Object* recv = args.get_argument(0);
 
-    if(msg.args() > 1) {
-      Tuple* tup = Tuple::create(state, msg.args() - 1);
-      for(size_t i = 0, j = 1; j < msg.args(); i++, j++) {
-        tup->put(state, i, msg.get_argument(j));
+    if(args.total() > 1) {
+      Tuple* tup = Tuple::create(state, args.total() - 1);
+      for(size_t i = 0, j = 1; j < args.total(); i++, j++) {
+        tup->put(state, i, args.get_argument(j));
       }
 
       val = tup;
@@ -158,7 +160,7 @@ namespace rubinius {
     frame->previous = call_frame;
     frame->name =     name_;
     frame->cm =       method_;
-    frame->args =     msg.args();
+    frame->args =     args.total();
     frame->scope =    scope;
     frame->top_scope = top_scope_;
     frame->flags =    flags;

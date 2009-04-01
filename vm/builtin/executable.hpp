@@ -9,6 +9,8 @@
 
 namespace rubinius {
   class MemoryPointer;
+  class Dispatch;
+  class Arguments;
 
   class Executable : public Object {
   public:
@@ -30,7 +32,7 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-    static Object* default_executor(STATE, CallFrame* call_frame, Message& msg);
+    static Object* default_executor(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     bool resolve_primitive(STATE);
 

@@ -28,13 +28,13 @@ namespace rubinius {
 
     Object* call(STATE, CallFrame* call_frame, size_t args);
     Object* yield(STATE, CallFrame* call_frame, size_t args);
-    Object* yield(STATE, CallFrame* call_frame, Message& msg);
+    Object* yield(STATE, CallFrame* call_frame, Arguments& args);
 
     // Ruby.primitive? :proc_call
-    Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
+    Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     // Ruby.primitive? :proc_call_on_object
-    Object* call_on_object(STATE, Executable* exec, CallFrame* call_frame, Message& msg);
+    Object* call_on_object(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     // Ruby.primitive :proc_from_env
     static Proc* from_env(STATE, BlockEnvironment* env);

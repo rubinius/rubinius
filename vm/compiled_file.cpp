@@ -52,21 +52,13 @@ namespace rubinius {
 
     GlobalLock::LockGuard lock(state->global_lock());
 
-    Message msg(static_cast<SendSite*>(Qnil),
-                cm->name(),
-                G(main),
-                &cf,
-                0,
-                Qnil,
-                false,
-                static_cast<Module*>(Qnil));
-    msg.module = G(object);
-    msg.method = cm.get();
+    Dispatch msg(cm->name(), G(object), cm.get());
+    Arguments args(G(main), 0, 0);
 
     cm.get()->scope(state, StaticScope::create(state));
     cm.get()->scope()->module(state, G(object));
 
-    cm->execute(state, &cf, msg);
+    cm->execute(state, &cf, msg, args);
 
     return true;
   }

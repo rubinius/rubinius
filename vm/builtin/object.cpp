@@ -17,6 +17,7 @@
 #include "builtin/float.hpp"
 #include "objectmemory.hpp"
 #include "message.hpp"
+#include "lookup_data.hpp"
 
 #include "vm/object_utils.hpp"
 
@@ -291,39 +292,42 @@ namespace rubinius {
     return class_object(state);
   }
 
-  Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* args,
+  Object* Object::send(STATE, CallFrame* caller, Symbol* name, Array* ary,
       Object* block, bool allow_private) {
-    Message msg(state);
-    msg.name = name;
-    msg.recv = this;
-    msg.block = block;
-    msg.set_caller(caller);
-    msg.priv = allow_private;
+    LookupData lookup(this, this->lookup_begin(state), allow_private);
+    Dispatch dis(name);
 
-    msg.set_arguments(state, args);
+    Arguments args(ary);
+    args.set_block(block);
+    args.set_recv(this);
 
-    return msg.send(state, caller);
+    return dis.send(state, caller, lookup, args);
   }
 
   Object* Object::send(STATE, CallFrame* caller, Symbol* name, bool allow_private) {
-    Message msg(name, this, 0, Qnil, lookup_begin(state));
-    msg.set_caller(caller);
-    msg.priv = allow_private;
+    LookupData lookup(this, this->lookup_begin(state), allow_private);
+    Dispatch dis(name);
 
-    return msg.send(state, caller);
+    Arguments args;
+    args.set_block(Qnil);
+    args.set_recv(this);
+
+    return dis.send(state, caller, lookup, args);
   }
 
-  Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Message& msg) {
-    Object* meth = msg.arguments().shift(state);
+  Object* Object::send_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
+                            Arguments& args) {
+    Object* meth = args.shift(state);
     Symbol* sym = try_as<Symbol>(meth);
 
     if(!sym) {
       sym = as<String>(meth)->to_sym(state);
     }
 
-    msg.name = sym;
-    msg.priv = true;
-    return msg.send(state, call_frame);
+    Dispatch dis(sym);
+    LookupData lookup(this, this->lookup_begin(state), true);
+
+    return dis.send(state, call_frame, lookup, args);
   }
 
   void Object::set_field(STATE, size_t index, Object* val) {
