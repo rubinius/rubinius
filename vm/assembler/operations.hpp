@@ -5,6 +5,7 @@
 #include "oop.hpp"
 #include "jit_state.h"
 #include "builtin/tuple.hpp"
+#include "call_frame.hpp"
 
 namespace operations {
 
@@ -73,10 +74,6 @@ namespace operations {
     Arg3
   };
 
-  // HACK to eliminate using MethodContext quickly
-#undef FIELD_OFFSET
-#define FIELD_OFFSET(a,b) 0
-
   class ObjectOperations {
     StackOperations &s;
     RegisterUsage esi_usage;
@@ -112,7 +109,7 @@ namespace operations {
 
       // Pull jit_state.stack into the stack pointer
       s.assembler().mov(s.stack_pointer(), s.assembler().address(esi,
-        FIELD_OFFSET(rubinius::MethodContext, js.stack)));
+        FIELD_OFFSET(rubinius::CallFrame, js.stack)));
     }
 
     void save_stack_pointer() {
@@ -121,7 +118,7 @@ namespace operations {
       // Mov the stack pointer into  jit_state.stack
       s.assembler().mov(
           s.assembler().address(esi,
-            FIELD_OFFSET(rubinius::MethodContext, js.stack)),
+            FIELD_OFFSET(rubinius::CallFrame, js.stack)),
           s.stack_pointer());
     }
 
@@ -131,14 +128,19 @@ namespace operations {
       // Do the normal prologue
       a.prologue(0);
 
+      // Interpreter state
+      a.push(0);
+      a.push(0);
+      a.mov(eax, esp);
       // seed the stack with the operation arguments so we don't have
       // to push them over and over again
       //
-      // First, add some space for 5 extra args
+      // First, add some space for 2 extra args
       // This seems like a lot, but we need space for at least 2 AND
       // we have to keep the stack aligned properly.
-      a.sub(esp, 0x14);
+      a.sub(esp, 0x08);
 
+      a.push(eax);
       // Now push the incoming arguments on
       a.push_arg(2);
       a.push_arg(1);
@@ -146,6 +148,7 @@ namespace operations {
     }
 
     void epilogue() {
+      AssemblerX86::NearJumpLocation fail;
       // Remove the spots for 8 args we setup in prologue
       s.assembler().add(esp, 0x20);
 
@@ -155,16 +158,18 @@ namespace operations {
 
     // Attempts to call +func+ as a symbol.
     void call_via_symbol(void* func) {
-      Dl_info info;
-      if(!dladdr(func, &info)) {
-        throw std::runtime_error("Unable to find symbol");
-      }
+      // Who cares about func name?
+      // Dl_info info;
+      // if(!dladdr(func, &info)) {
+      //   throw std::runtime_error("Unable to find symbol");
+      // }
+      //
+      // if(!info.dli_sname || info.dli_saddr != func) {
+      //   throw std::runtime_error("Unable to resolve symbol properly");
+      // }
 
-      if(!info.dli_sname || info.dli_saddr != func) {
-        throw std::runtime_error("Unable to resolve symbol properly");
-      }
-
-      s.assembler().call(func, info.dli_sname);
+      // s.assembler().call(func, info.dli_sname);
+      s.assembler().call(func);
     }
 
     void call_operation(void* func, const char* name) {
@@ -173,27 +178,27 @@ namespace operations {
 
     void call_operation(void* func, const char* name, int arg) {
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esp, 12), arg);
+      a.mov(a.address(esp, 16), arg);
       a.call(func, name);
     }
 
     void call_operation(void* func, const char* name, Register& arg) {
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esp, 12), arg);
+      a.mov(a.address(esp, 16), arg);
       a.call(func, name);
     }
 
     void call_operation(void* func, const char* name, int arg, int arg2) {
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esp, 12), arg);
-      a.mov(a.address(esp, 16), arg2);
+      a.mov(a.address(esp, 16), arg);
+      a.mov(a.address(esp, 20), arg2);
       a.call(func, name);
     }
 
     void call_operation(void* func, const char* name, Register& arg, Register& arg2) {
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esp, 12), arg);
-      a.mov(a.address(esp, 16), arg2);
+      a.mov(a.address(esp, 16), arg);
+      a.mov(a.address(esp, 20), arg2);
       a.call(func, name);
     }
 
@@ -210,29 +215,29 @@ namespace operations {
     }
 
     void store_virtual_ip(Register& reg) {
-      store_mc_field(reg, FIELD_OFFSET(rubinius::MethodContext, ip));
+      store_mc_field(reg, FIELD_OFFSET(rubinius::CallFrame, ip));
     }
 
     void store_native_ip(Register& reg) {
-      store_mc_field(reg, FIELD_OFFSET(rubinius::MethodContext, native_ip));
+      store_mc_field(reg, FIELD_OFFSET(rubinius::CallFrame, native_ip));
     }
 
     void load_native_ip(Register& reg) {
-      load_mc_field(reg, FIELD_OFFSET(rubinius::MethodContext, native_ip));
+      load_mc_field(reg, FIELD_OFFSET(rubinius::CallFrame, native_ip));
     }
 
     void store_ip(Register& virtual_ip, Register& native_ip) {
       load_mc();
       AssemblerX86 &a = s.assembler();
-      a.mov(a.address(esi, FIELD_OFFSET(rubinius::MethodContext, ip)), virtual_ip);
-      a.mov(a.address(esi, FIELD_OFFSET(rubinius::MethodContext, native_ip)), native_ip);
+      a.mov(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip)), virtual_ip);
+      a.mov(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, native_ip)), native_ip);
     }
 
     void load_and_increment_ip(Register& reg) {
       load_mc();
       AssemblerX86 &a = s.assembler();
-      a.mov(reg, a.address(esi, FIELD_OFFSET(rubinius::MethodContext, ip)));
-      a.add(a.address(esi, FIELD_OFFSET(rubinius::MethodContext, ip)), 1);
+      a.mov(reg, a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip)));
+      a.add(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip)), 1);
     }
 
     void load_opcodes(Register& reg) {
@@ -253,48 +258,54 @@ namespace operations {
     }
 
     void load_self(Register& reg) {
-      load_home(reg);
       AssemblerX86 &a = s.assembler();
-      a.mov(reg, a.address(reg, FIELD_OFFSET(rubinius::MethodContext, self_)));
+      load_call_frame(reg);
+      a.mov(reg, a.address(reg, FIELD_OFFSET(rubinius::CallFrame, scope)));
+      a.mov(reg, a.address(reg, FIELD_OFFSET(rubinius::VariableScope, self_)));
     }
 
-    void load_home(Register& reg) {
-      load_mc_field(reg, FIELD_OFFSET(rubinius::MethodContext, home_));
+    void load_call_frame(Register& reg) {
+      s.assembler().load_arg(reg, 2);
     }
 
     void load_literals(Register& reg) {
-      load_mc_field(reg, FIELD_OFFSET(rubinius::MethodContext, cm_));
       AssemblerX86 &a = s.assembler();
+      load_call_frame(reg);
+      a.mov(reg, a.address(reg, FIELD_OFFSET(rubinius::CallFrame, cm)));
       a.mov(reg, a.address(reg, FIELD_OFFSET(rubinius::CompiledMethod, literals_)));
     }
 
     void set_local(Register& val, int which) {
-      load_home(eax);
+      load_call_frame(eax);
       AssemblerX86 &a = s.assembler();
-      int base =   FIELD_OFFSET(rubinius::MethodContext, stk);
+      int base =   FIELD_OFFSET(rubinius::VariableScope, locals_);
       int offset = which * sizeof(void*);
+      a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
       a.mov(a.address(eax, base + offset), val);
     }
 
     void set_local(Register& val, Register& which) {
-      load_home(eax);
+      load_call_frame(eax);
       AssemblerX86 &a = s.assembler();
-      int base =   FIELD_OFFSET(rubinius::MethodContext, stk);
+      int base =   FIELD_OFFSET(rubinius::VariableScope, locals_);
+      a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
       a.mov_to_table(eax, which, sizeof(void*), base, val);
     }
 
     void get_local(Register& val, int which) {
-      load_home(eax);
+      load_call_frame(eax);
       AssemblerX86 &a = s.assembler();
-      int base =   FIELD_OFFSET(rubinius::MethodContext, stk);
+      int base =   FIELD_OFFSET(rubinius::VariableScope, locals_);
       int offset = which * sizeof(void*);
+      a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
       a.mov(val, a.address(eax, base + offset));
     }
 
     void get_local(Register& val, Register& which) {
-      load_home(eax);
+      load_call_frame(eax);
       AssemblerX86 &a = s.assembler();
-      int base =   FIELD_OFFSET(rubinius::MethodContext, stk);
+      int base =   FIELD_OFFSET(rubinius::VariableScope, locals_);
+      a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::CallFrame, top_scope)));
       a.mov_from_table(val, eax, which, sizeof(void*), base);
     }
 

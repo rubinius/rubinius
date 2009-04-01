@@ -18,12 +18,17 @@ using namespace assembler_x86;
 using namespace operations;
 using namespace rubinius;
 
+extern "C" Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t args);
+
+// It's not thread safe. Although it's okay for now (because we use GIL),
+//  at some point in the future you might want to get rid of it
+static uint8_t * global_buffer = new uint8_t[1024*1024];
 
 namespace rubinius {
   JITCompiler::JITCompiler()
     : stack_cached_(false)
     , own_buffer_(true)
-    , buffer_(new uint8_t[1024*1024])
+    , buffer_(global_buffer)
     , a(buffer_)
     , s(a, ebx)
     , ops(s) { }
@@ -35,13 +40,6 @@ namespace rubinius {
     , a(buffer_)
     , s(a, ebx)
     , ops(s) { }
-
-  JITCompiler::~JITCompiler() {
-    if(own_buffer_) {
-      memset(buffer_, 0, 1024*1024);
-      delete[] buffer_;
-    }
-  }
 
   void JITCompiler::cache_stack(bool force) {
     if(!force && stack_cached_) return;
@@ -55,42 +53,29 @@ namespace rubinius {
     ops.save_stack_pointer();
   }
 
-/** @todo Fix JIT. Task is gone. --rue */
-//  ExecuteStatus JITCompiler::check_interrupts(VMMethod* const vmm, Task* const task,
-//      MethodContext* const ctx) {
-//    task->state->events->poll();
-//    return task->state->interrupts.check_events ? cExecuteRestart : cExecuteContinue;
-//  }
-//
-//  ExecuteStatus JITCompiler::slow_plus_path(VMMethod* const vmm, Task* const task,
-//      MethodContext* const ctx) {
-//    return send_slowly(vmm, task, ctx, task->state->globals.sym_plus.get(), 1);
-//  }
-//
-//  ExecuteStatus JITCompiler::slow_minus_path(VMMethod* const vmm, Task* const task,
-//      MethodContext* const ctx) {
-//    return send_slowly(vmm, task, ctx, task->state->globals.sym_minus.get(), 1);
-//  }
-//
-//  ExecuteStatus JITCompiler::slow_equal_path(VMMethod* const vmm, Task* const task,
-//      MethodContext* const ctx) {
-//    return send_slowly(vmm, task, ctx, task->state->globals.sym_equal.get(), 1);
-//  }
-//
-//  ExecuteStatus JITCompiler::slow_nequal_path(VMMethod* const vmm, Task* const task,
-//      MethodContext* const ctx) {
-//    return send_slowly(vmm, task, ctx, task->state->globals.sym_nequal.get(), 1);
-//  }
-//
-//  ExecuteStatus JITCompiler::slow_lt_path(VMMethod* const vmm, Task* const task,
-//      MethodContext* const ctx) {
-//    return send_slowly(vmm, task, ctx, task->state->globals.sym_lt.get(), 1);
-//  }
-//
-//  ExecuteStatus JITCompiler::slow_gt_path(VMMethod* const vmm, Task* const task,
-//      MethodContext* const ctx) {
-//    return send_slowly(vmm, task, ctx, task->state->globals.sym_gt.get(), 1);
-//  }
+ Object * JITCompiler::slow_plus_path(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+   return send_slowly(state, vmm, call_frame, G(sym_plus), 1);
+ }
+
+ Object * JITCompiler::slow_minus_path(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+   return send_slowly(state, vmm, call_frame, G(sym_minus), 1);
+ }
+
+ Object * JITCompiler::slow_equal_path(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+   return send_slowly(state, vmm, call_frame, G(sym_equal), 1);
+ }
+
+ Object * JITCompiler::slow_nequal_path(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+   return send_slowly(state, vmm, call_frame, G(sym_nequal), 1);
+ }
+
+ Object * JITCompiler::slow_lt_path(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+   return send_slowly(state, vmm, call_frame, G(sym_lt), 1);
+ }
+
+ Object * JITCompiler::slow_gt_path(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+   return send_slowly(state, vmm, call_frame, G(sym_gt), 1);
+ }
 
   void JITCompiler::maybe_return(int i, uintptr_t **last_imm, AssemblerX86::NearJumpLocation &fin) {
 
@@ -98,19 +83,19 @@ namespace rubinius {
     cache_stack();
 
     // EDX will contain the native ip, to be stored
-    // back into the MethodContext in the epilogue.
+    // back into the CallStack in the epilogue.
     a.mov_delayed(edx, last_imm);
 
     // ECX will contain the virtual ip, which is stored
-    // back into the MethodContext in the epilogue
+    // back into the CallStack in the epilogue
     // The + 1 is to match the interpreter, where the ip points
     // to the next instruction rather than the current one
-    a.mov(ecx, i + 1);
+    a.mov(ecx, i);
 
     // If the return value of the operation (located in eax),
-    // is cExecuteRestart, then jump to the epilogue, which
+    // is NULL, then jump to the epilogue, which
     // stores ecx as the virtual ip and returns.
-    a.cmp(eax, cExecuteRestart);
+    a.cmp(eax, 0);
     a.jump_if_equal(fin);
   }
 
@@ -156,24 +141,14 @@ namespace rubinius {
       a.add(eax, 1);
     }
 
-    // Remove one from the stack
-    s.pop();
-
-    // Put the result on the stack
-    s.set_top(eax);
-
     a.jump(done);
 
     a.set_label(slow_path);
     uncache_stack();
     if(add) {
-      /** @todo Fix through Message::send, Task is gone. --rue */
-      abort();
-//      ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
+      ops.call_via_symbol((void*)JITCompiler::slow_plus_path);
     } else {
-      /** @todo Fix through Message::send, Task is gone. --rue */
-      abort();
-//      ops.call_via_symbol((void*)JITCompiler::slow_minus_path);
+      ops.call_via_symbol((void*)JITCompiler::slow_minus_path);
     }
     cache_stack();
   }
@@ -205,20 +180,20 @@ namespace rubinius {
     a.jump_if_equal(equal_path);
 
     if(equal) {
-      s.set_top(cFalse);
+      a.mov(eax, cFalse);
       a.jump(done);
 
       a.set_label(equal_path);
 
-      s.set_top(cTrue);
+      a.mov(eax, cTrue);
       a.jump(done);
     } else {
-      s.set_top(cTrue);
+      a.mov(eax, cTrue);
       a.jump(done);
 
       a.set_label(equal_path);
 
-      s.set_top(cFalse);
+      a.mov(eax, cFalse);
       a.jump(done);
     }
 
@@ -226,16 +201,13 @@ namespace rubinius {
     uncache_stack();
 
     if(equal) {
-      /** @todo Fix through Message::send, Task is gone. --rue */
-      abort();
-//      ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
+     ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
     } else {
-      /** @todo Fix through Message::send, Task is gone. --rue */
-      abort();
-//      ops.call_via_symbol((void*)JITCompiler::slow_nequal_path);
+     ops.call_via_symbol((void*)JITCompiler::slow_nequal_path);
     }
 
     cache_stack();
+    s.pop();
   }
 
   void JITCompiler::emit_fast_compare(AssemblerX86::NearJumpLocation& done, bool less) {
@@ -262,21 +234,21 @@ namespace rubinius {
       AssemblerX86::NearJumpLocation less_path;
 
       a.jump_if_less(less_path);
-      s.set_top(cFalse);
+      a.mov(eax, cFalse);
       a.jump(done);
 
       a.set_label(less_path);
-      s.set_top(cTrue);
+      a.mov(eax, cTrue);
       a.jump(done);
     } else {
       AssemblerX86::NearJumpLocation greater_path;
 
       a.jump_if_greater(greater_path);
-      s.set_top(cFalse);
+      a.mov(eax, cFalse);
       a.jump(done);
 
       a.set_label(greater_path);
-      s.set_top(cTrue);
+      a.mov(eax, cTrue);
       a.jump(done);
     }
 
@@ -284,16 +256,12 @@ namespace rubinius {
     uncache_stack();
 
     if(less) {
-      /** @todo Fix through Message::send, Task is gone. --rue */
-      abort();
-//      ops.call_via_symbol((void*)JITCompiler::slow_lt_path);
+     ops.call_via_symbol((void*)JITCompiler::slow_lt_path);
     } else {
-      /** @todo Fix through Message::send, Task is gone. --rue */
-      abort();
-//      ops.call_via_symbol((void*)JITCompiler::slow_gt_path);
+     ops.call_via_symbol((void*)JITCompiler::slow_gt_path);
     }
-
     cache_stack();
+    s.pop();
   }
 
   void JITCompiler::compile(STATE, VMMethod* vmm) {
@@ -304,7 +272,7 @@ namespace rubinius {
     std::vector<AssemblerX86::NearJumpLocation> labels(vmm->total);
 
     // The location of the instructions that save ip into the current
-    // MethodContext then clear the stack and return
+    // CallStack then clear the stack and return
     AssemblerX86::NearJumpLocation fin;
 
     // The location of just the instructions that clear the stack and return
@@ -336,6 +304,7 @@ namespace rubinius {
 
     for(size_t i = 0; i < vmm->total;) {
       opcode op = vmm->opcodes[i];
+      op = instructions::reverse_superop(op);
       size_t width = InstructionSequence::instruction_width(op);
 
       // Set the label location
@@ -441,9 +410,12 @@ namespace rubinius {
         ops.load_self(eax);
         s.push(eax);
         break;
-
+      case InstructionSequence::insn_ret:
+        s.load_nth(eax, 0);
+        a.jump(real_fin);
+        break;
       // Now, for a bit more complicated ones...
-      //
+
       case InstructionSequence::insn_push_local:
         ops.get_local(eax, vmm->opcodes[i + 1]);
         s.push(eax);
@@ -463,13 +435,17 @@ namespace rubinius {
       case InstructionSequence::insn_meta_send_op_plus: {
         AssemblerX86::NearJumpLocation done;
         emit_fast_math(done, op == InstructionSequence::insn_meta_send_op_plus);
-        maybe_return(i, &last_imm, fin);
+        maybe_return(i+width, &last_imm, fin);
 
         // This is a phi point, where the fast path and slow path merge.
         // We have to be sure that the stack cache settings are in sync
         // for both paths taken at this point. To be sure of that, we
         // always run cache_stack() after calling slow_path_plus.
         a.set_label(done);
+        // Remove one from the stack
+        s.pop();
+        // Put the result on the stack
+        s.set_top(eax);
         break;
       }
 
@@ -477,9 +453,13 @@ namespace rubinius {
       case InstructionSequence::insn_meta_send_op_nequal: {
         AssemblerX86::NearJumpLocation done;
         emit_fast_equal(done, op == InstructionSequence::insn_meta_send_op_equal);
-        maybe_return(i, &last_imm, fin);
+        maybe_return(i+width, &last_imm, fin);
 
         a.set_label(done);
+
+        // Put the result on the stack
+        s.set_top(eax);
+
         break;
       }
 
@@ -487,9 +467,11 @@ namespace rubinius {
       case InstructionSequence::insn_meta_send_op_gt: {
         AssemblerX86::NearJumpLocation done;
         emit_fast_compare(done, op == InstructionSequence::insn_meta_send_op_lt);
-        maybe_return(i, &last_imm, fin);
+        maybe_return(i+width, &last_imm, fin);
 
         a.set_label(done);
+        // Put the result on the stack
+        s.set_top(eax);
         break;
       }
 
@@ -517,11 +499,6 @@ namespace rubinius {
         a.set_label(done);
         break;
       }
-
-      case InstructionSequence::insn_set_call_flags:
-        ops.store_call_flags(vmm->opcodes[i + 1]);
-        break;
-
         // for any instruction we don't handle with a special code sequence,
         // just call the regular function for it.
       default: {
@@ -546,15 +523,13 @@ call_op:
             op << "'\n";
           abort();
         }
+        cache_stack();
 
         instructions::Status status = instructions::check_status(op);
         if(status == instructions::MightReturn) {
-          maybe_return(i, &last_imm, fin);
+          maybe_return(i + width, &last_imm, fin);
         } else if(status == instructions::Terminate) {
           a.jump(real_fin);
-          cache_stack();
-        } else {
-          cache_stack();
         }
         break;
       }

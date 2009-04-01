@@ -19,6 +19,8 @@
 #include "dispatch.hpp"
 #include "call_frame.hpp"
 #include "object_utils.hpp"
+#include "vm/object_utils.hpp"
+#include "assembler/jit.hpp"
 
 namespace rubinius {
 
@@ -156,17 +158,13 @@ namespace rubinius {
   }
 
   MachineMethod* CompiledMethod::make_machine_method(STATE) {
-    if(backend_method_ == 0) {
+    if(backend_method_ == NULL) {
       formalize(state, false);
     }
 
-    /*
     JITCompiler jit;
     jit.compile(state, backend_method_);
     return MachineMethod::create(state, backend_method_, jit);
-    */
-
-    return NULL;
   }
 
   bool CompiledMethod::is_rescue_target(STATE, int ip) {

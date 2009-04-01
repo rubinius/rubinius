@@ -20,6 +20,7 @@ namespace rubinius {
 
     Status check_status(int op);
     int find_superop(opcode* stream);
+    int reverse_superop(opcode superop);
   }
 }
 

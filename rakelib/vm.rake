@@ -479,8 +479,12 @@ end
 files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
 end
 
-file 'vm/jit-test' => EXTERNALS + objs + jit_objs + ["vm/assembler/libudis86.a"] do |t|
+file 'vm/jit-test' => EXTERNALS + objs + jit_objs + ["vm/drivers/jit-test.o", "vm/assembler/libudis86.a"] do |t|
   ld t
+end
+
+file "vm/drivers/jit-test.o" => "vm/drivers/jit-test.cpp" do
+  compile_c "vm/drivers/jit-test.o", "vm/drivers/jit-test.cpp"
 end
 
 file 'vm/vm' => EXTERNALS + objs + vm_objs do |t|

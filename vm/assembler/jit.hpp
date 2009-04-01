@@ -31,7 +31,6 @@ namespace rubinius {
 
     JITCompiler();
     JITCompiler(uint8_t* buffer);
-    ~JITCompiler();
 
     assembler_x86::AssemblerX86& assembler() {
       return a;
@@ -55,24 +54,17 @@ namespace rubinius {
     void emit_fast_compare(assembler_x86::AssemblerX86::NearJumpLocation& done, bool less);
     void emit_opcode(opcode op, assembler_x86::AssemblerX86::NearJumpLocation& fin);
 
-/** @todo Fix JIT. Task is gone. --rue */
-//    static ExecuteStatus slow_plus_path(VMMethod* const vmm, Task* const task,
-//        MethodContext* const ctx);
-//
-//    static ExecuteStatus slow_minus_path(VMMethod* const vmm, Task* const task,
-//        MethodContext* const ctx);
-//
-//    static ExecuteStatus slow_equal_path(VMMethod* const vmm, Task* const task,
-//        MethodContext* const ctx);
-//
-//    static ExecuteStatus slow_nequal_path(VMMethod* const vmm, Task* const task,
-//        MethodContext* const ctx);
-//
-//    static ExecuteStatus slow_lt_path(VMMethod* const vmm, Task* const task,
-//        MethodContext* const ctx);
-//
-//    static ExecuteStatus slow_gt_path(VMMethod* const vmm, Task* const task,
-//        MethodContext* const ctx);
+   static Object * slow_plus_path(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+
+   static Object * slow_minus_path(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+
+   static Object * slow_equal_path(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+
+   static Object * slow_nequal_path(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+
+   static Object * slow_lt_path(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+
+   static Object * slow_gt_path(STATE, VMMethod* const vmm, CallFrame* const call_frame);
 //
 //    static ExecuteStatus check_interrupts(VMMethod* const vmm, Task* const task,
 //      MethodContext* const ctx);

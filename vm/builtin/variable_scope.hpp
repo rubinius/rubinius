@@ -122,6 +122,8 @@ namespace rubinius {
     CompiledMethod* method_;  // slot
     Module*         module_;  // slot
     VariableScope*  parent_;  // slot
+
+  public:
     Object*         self_;    // slot
 
     int             number_of_locals_;

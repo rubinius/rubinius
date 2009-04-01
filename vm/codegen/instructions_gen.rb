@@ -66,7 +66,7 @@ class Instructions
     # Indicates if this opcode dynamicly defines whether
     # execution should continue
     def custom_continue?
-      /RETURN\(/.match(body)
+      /RETURN\(/.match(body) || /HANDLE_EXCEPTION\(/.match(body) || /RUN_EXCEPTION\(/.match(body)
     end
 
     # Generate a C signature for the implementation code, to be used as a
@@ -197,9 +197,7 @@ class Instructions
     methods.each do |impl|
       io.puts "#{impl.signature} {"
       io.puts impl.body
-      unless impl.custom_continue?
-        io.puts "return NULL;"
-      end
+      io.puts "return stack_top();"
       io.puts "}"
     end
   end
@@ -458,6 +456,17 @@ CODE
     code << "  return -1;\n"
     code << "}\n"
 
+    regular = InstructionSet::OpCodes.size
+    code << "int reverse_superop(opcode superop) {\n"
+    code << "  static int superops[] = {"
+    @superinsns.each_with_index do |combo, superop|
+      insn = InstructionSet[combo.first]
+      code << " #{insn.bytecode},"
+    end
+    code << "};\n"
+    code << "  if(superop < #{regular}) return superop;\n"
+    code << "  return superops[superop - #{regular}];\n"
+    code << "}\n"
 =begin
     code << "int find_superop(opcode* stream) {\n"
     code << "  opcode one = stream[0];\n"
@@ -515,10 +524,10 @@ CODE
     str << "static Status check_status[] = {\n"
     methods = decode_methods()
     methods.each do |impl|
-      if impl.custom_continue?
-        str << "MightReturn,\n"
-      elsif [:return, :raise].include?(impl.name.flow)
+      if [:return, :raise].include?(impl.name.flow)
         str << "Terminate,\n"
+      elsif impl.custom_continue?
+        str << "MightReturn,\n"
       else
         str << "Unchanged,\n"
       end
