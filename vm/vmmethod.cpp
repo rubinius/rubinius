@@ -86,12 +86,6 @@ namespace rubinius {
     }
 
     opcodes = new opcode[total];
-    Tuple* literals = meth->literals();
-    if(literals->nil_p()) {
-      sendsites = NULL;
-    } else {
-      sendsites = new TypedRoot<SendSite*>[literals->num_fields()];
-    }
 
     fill_opcodes(state);
     stack_size =    meth->stack_size()->to_native();
@@ -121,7 +115,6 @@ namespace rubinius {
 
   VMMethod::~VMMethod() {
     delete[] opcodes;
-    delete[] sendsites;
   }
 
   void VMMethod::fill_opcodes(STATE) {
