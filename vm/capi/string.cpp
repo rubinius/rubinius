@@ -238,7 +238,12 @@ extern "C" {
   }
 
   VALUE rb_string_value(VALUE* object_variable) {
-    *object_variable = rb_obj_as_string(*object_variable);
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    if(!kind_of<String>(env->get_object(*object_variable))) {
+      *object_variable = rb_str_to_str(*object_variable);
+    }
+
     return *object_variable;
   }
 

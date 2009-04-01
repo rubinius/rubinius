@@ -181,4 +181,30 @@ describe "C-API String function" do
       @s.RSTRING_LEN("gumdrops").should == 8
     end
   end
+
+  describe "StringValue" do
+    it "does not call #to_str on a String" do
+      str = "genuine"
+      str.should_not_receive(:to_str)
+      @s.StringValue(str)
+    end
+
+    it "does not call #to_s on a String" do
+      str = "genuine"
+      str.should_not_receive(:to_str)
+      @s.StringValue(str)
+    end
+
+    it "calls #to_str on non-String objects" do
+      str = mock("fake")
+      str.should_receive(:to_str).and_return("wannabe")
+      @s.StringValue(str)
+    end
+
+    it "does not call #to_s on non-String objects" do
+      str = mock("fake")
+      str.should_not_receive(:to_s)
+      lambda { @s.StringValue(str) }.should raise_error(TypeError)
+    end
+  end
 end

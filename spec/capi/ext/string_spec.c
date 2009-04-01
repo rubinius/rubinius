@@ -124,6 +124,10 @@ VALUE string_spec_RSTRING_ptr_assign(VALUE self, VALUE str, VALUE chr) {
   return Qnil;
 }
 
+VALUE string_spec_StringValue(VALUE self, VALUE str) {
+  return StringValue(str);
+}
+
 void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
@@ -149,4 +153,5 @@ void Init_string_spec() {
   rb_define_method(cls, "RSTRING_ptr_iterate", string_spec_RSTRING_ptr_iterate, 1);
   rb_define_method(cls, "RSTRING_ptr_assign", string_spec_RSTRING_ptr_assign, 2);
   rb_define_method(cls, "RSTRING_len", string_spec_RSTRING_len, 1);
+  rb_define_method(cls, "StringValue", string_spec_StringValue, 1);
 }
