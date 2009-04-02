@@ -394,7 +394,7 @@ struct RData {
 #define ALLOC_N(type, n)  (type*)malloc(sizeof(type) * (n))
 
 /** Reallocate memory allocated with ALLOC or ALLOC_N. */
-#define REALLOC_N(ptr, type, n) (type*)realloc(ptr, sizeof(type) * (n));
+#define REALLOC_N(ptr, type, n) (ptr)=(type*)realloc(ptr, sizeof(type) * (n));
 
 /** Interrupt checking (no-op). */
 #define CHECK_INTS        /* No-op */
