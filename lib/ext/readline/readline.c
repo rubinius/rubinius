@@ -50,7 +50,7 @@ readline_readline(VALUE self, VALUE tmp, VALUE add_hist)
     rb_secure(4);
     SafeStringValue(tmp);
     // TODO: Free
-    prompt = rb_str_get_char_ptr(tmp);
+    prompt = RSTRING_PTR(tmp);
 
     if (!isatty(0) && errno == EBADF) rb_raise(rb_eIOError, "stdin closed");
 
@@ -149,7 +149,7 @@ readline_attempted_completion_function(text, start, end)
     result = ALLOC_N(char *, matches + 2);
     for (i = 0; i < matches; i++) {
       temp = rb_obj_as_string(rb_ary_entry(ary, i)); 
-      result[i + 1] = rb_str_get_char_ptr(temp);
+      result[i + 1] = RSTRING_PTR(temp);
     }
     result[matches + 1] = NULL;
 
@@ -198,10 +198,10 @@ readline_s_set_completion_append_character(self, str)
     }
     else {
         SafeStringValue(str);
-        if (rb_str_get_char_len(str) == 0) {
+        if (RSTRING_LEN(str) == 0) {
             rl_completion_append_character = '\0';
         } else {
-            rl_completion_append_character = rb_str_get_char(str, 0);
+            rl_completion_append_character = RSTRING_PTR(str)[0];
         }
     }
     return self;
@@ -226,12 +226,21 @@ static VALUE
 readline_s_set_basic_word_break_characters(self, str)
     VALUE self, str;
 {
+    static char *basic_word_break_characters = NULL;
 
     rb_secure(4);
     SafeStringValue(str);
-    
-    rl_basic_word_break_characters = rb_str_get_char_ptr(str);
-    
+    if (basic_word_break_characters == NULL) {
+        basic_word_break_characters =
+        ALLOC_N(char, RSTRING_LEN(str) + 1);
+    }
+    else {
+        REALLOC_N(basic_word_break_characters, char, RSTRING_LEN(str) + 1);
+    }
+    strncpy(basic_word_break_characters,
+	    RSTRING_PTR(str), RSTRING_LEN(str));
+    basic_word_break_characters[RSTRING_LEN(str)] = '\0';
+    rl_basic_word_break_characters = basic_word_break_characters;
     return self;
 }
 
@@ -249,11 +258,21 @@ static VALUE
 readline_s_set_completer_word_break_characters(self, str)
     VALUE self, str;
 {
+    static char *completer_word_break_characters = NULL;
+
     rb_secure(4);
     SafeStringValue(str);
-    
-    rl_completer_word_break_characters = rb_str_get_char_ptr(str);
-    
+    if (completer_word_break_characters == NULL) {
+        completer_word_break_characters =
+	      ALLOC_N(char, RSTRING_LEN(str) + 1);
+    }
+    else {
+        REALLOC_N(completer_word_break_characters, char, RSTRING_LEN(str) + 1);
+    }
+    strncpy(completer_word_break_characters,
+	    RSTRING_PTR(str), RSTRING_LEN(str));
+    completer_word_break_characters[RSTRING_LEN(str)] = '\0';
+    rl_completer_word_break_characters = completer_word_break_characters;
     return self;
 }
 
@@ -271,14 +290,21 @@ static VALUE
 readline_s_set_completer_quote_characters(self, str)
     VALUE self, str;
 {
-    /* Unused. --rue
     static char *completer_quote_characters = NULL;
-    */
 
     rb_secure(4);
     SafeStringValue(str);
-    
-    rl_completer_quote_characters = rb_str_get_char_ptr(str);
+    if (completer_quote_characters == NULL) {
+        completer_quote_characters =
+	      ALLOC_N(char, RSTRING_LEN(str) + 1);
+    }
+    else {
+        REALLOC_N(completer_quote_characters, char, RSTRING_LEN(str) + 1);
+    }
+    strncpy(completer_quote_characters,
+	    RSTRING_PTR(str), RSTRING_LEN(str));
+    completer_quote_characters[RSTRING_LEN(str)] = '\0';
+    rl_completer_quote_characters = completer_quote_characters;
 
     return self;
 }
@@ -328,7 +354,6 @@ hist_set(self, index, str)
 {
     HIST_ENTRY *entry;
     int i;
-    char *data;
 
     rb_secure(4);
     i = NUM2INT(index);
@@ -336,11 +361,9 @@ hist_set(self, index, str)
     if (i < 0) {
         i += history_length;
     }
-    data = rb_str_get_char_ptr(str);
-    entry = replace_history_entry(i, data, NULL);
-    free(data);
+    entry = replace_history_entry(i, RSTRING_PTR(str), NULL);
     if (entry == NULL) {
-        rb_raise(rb_eIndexError, "invalid index");
+      rb_raise(rb_eIndexError, "invalid index");
     }
     return str;
 }
@@ -350,13 +373,10 @@ hist_push(self, str)
     VALUE self;
     VALUE str;
 {
-  char *data;
-  rb_secure(4);
-  SafeStringValue(str);
-  data = rb_str_get_char_ptr(str);
-  add_history(data);
-  free(data);
-  return self;
+    rb_secure(4);
+    SafeStringValue(str);
+    add_history(RSTRING_PTR(str));
+    return self;
 }
 
 static VALUE
@@ -366,15 +386,12 @@ hist_push_method(argc, argv, self)
     VALUE self;
 {
     VALUE str;
-    char *data;
-    
+
     rb_secure(4);
     while (argc--) {
         str = *argv++;
         SafeStringValue(str);
-        data = rb_str_get_char_ptr(str);
-        add_history(data);
-        free(data);
+        add_history(RSTRING_PTR(str));
     }
     return self;
 }
