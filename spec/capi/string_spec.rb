@@ -154,6 +154,18 @@ describe "C-API String function" do
       str.should == "FFF"
     end
 
+    it "allows changing the string and calling a rb_str_xxx function" do
+      str = "abc"
+      @s.RSTRING_ptr_assign_call(str)
+      str.should == "axcd"
+    end
+
+    it "allows changing the string and calling a method via rb_funcall" do
+      str = "abc"
+      @s.RSTRING_ptr_assign_funcall(str)
+      str.should == "axce"
+    end
+
     it "returns a struct with the string's length" do
       @s.RSTRING_len("dewdrops").should == 8
     end

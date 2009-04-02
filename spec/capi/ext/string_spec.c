@@ -124,6 +124,22 @@ VALUE string_spec_RSTRING_ptr_assign(VALUE self, VALUE str, VALUE chr) {
   return Qnil;
 }
 
+VALUE string_spec_RSTRING_ptr_assign_call(VALUE self, VALUE str) {
+  char *ptr = RSTRING(str)->ptr;
+
+  ptr[1] = 'x';
+  rb_str_concat(str, rb_str_new2("d"));
+  return str;
+}
+
+VALUE string_spec_RSTRING_ptr_assign_funcall(VALUE self, VALUE str) {
+  char *ptr = RSTRING(str)->ptr;
+
+  ptr[1] = 'x';
+  rb_funcall(str, rb_intern("<<"), 1, rb_str_new2("e"));
+  return str;
+}
+
 VALUE string_spec_StringValue(VALUE self, VALUE str) {
   return StringValue(str);
 }
@@ -152,6 +168,9 @@ void Init_string_spec() {
   rb_define_method(cls, "RSTRING_LEN", string_spec_RSTRING_LEN, 1);
   rb_define_method(cls, "RSTRING_ptr_iterate", string_spec_RSTRING_ptr_iterate, 1);
   rb_define_method(cls, "RSTRING_ptr_assign", string_spec_RSTRING_ptr_assign, 2);
+  rb_define_method(cls, "RSTRING_ptr_assign_call", string_spec_RSTRING_ptr_assign_call, 1);
+  rb_define_method(cls, "RSTRING_ptr_assign_funcall",
+      string_spec_RSTRING_ptr_assign_funcall, 1);
   rb_define_method(cls, "RSTRING_len", string_spec_RSTRING_len, 1);
   rb_define_method(cls, "StringValue", string_spec_StringValue, 1);
 }
