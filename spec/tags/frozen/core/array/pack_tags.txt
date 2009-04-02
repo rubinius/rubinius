@@ -187,3 +187,20 @@ fails:Array#pack with format 'P' returns a pointer to internal byte sequence
 fails:Array#pack with format 'P' returns a pointer which is able to dereferenced into NUL terminated byte sequence
 fails:Array#pack with format 'P' returns a pointer which is able to dereferenced into a right value
 fails:Array#pack with format 'P' raises a TypeError if corresponding array item is not String
+unstable(fix these for big-endian):Array#pack with format 's' regards negative values as 2's complement in order to converts it to positive
+unstable(fix these for big-endian):Array#pack with format 'S' regards negative values as 2's complement in order to converts it to positive
+unstable(fix these for big-endian):Array#pack with format 'l' regards negative values as 2's complement in order to converts it to positive
+unstable(fix these for big-endian):Array#pack with format 'L' regards negative values as 2's complement in order to converts it to positive
+unstable(fix these for big-endian):Array#pack with format 's!' drops higher bytes when a pack argument is >= 2**32
+unstable(fix these for big-endian):Array#pack with format 's!' drops higher bytes when a pack argument is < -2**32
+unstable(fix these for big-endian):Array#pack with format 's_' drops higher bytes when a pack argument is >= 2**32
+unstable(fix these for big-endian):Array#pack with format 's_' drops higher bytes when a pack argument is < -2**32
+unstable(fix these for big-endian):Array#pack with format 'S!' regards negative values as 2's complement in order to converts it to positive
+unstable(fix these for big-endian):Array#pack with format 'S_' drops higher bytes when a pack argument is >= 2**32
+unstable(fix these for big-endian):Array#pack with format 'S_' drops higher bytes when a pack argument is < -2**32
+unstable(fix these for big-endian):Array#pack with format 'i' regards negative values as 2's complement in order to converts it to positive
+unstable(fix these for big-endian):Array#pack with format 'I' regards negative values as 2's complement in order to converts it to positive
+unstable(fix these for big-endian):Array#pack with format 'f' keeps order of nonnegative real numbers
+unstable(fix these for big-endian):Array#pack with format 'f' reverses order of nonpositive real numbers
+unstable(fix these for big-endian):Array#pack with format 'd' keeps order of nonnegative real numbers
+unstable(fix these for big-endian):Array#pack with format 'd' reverses order of nonpositive real numbers
