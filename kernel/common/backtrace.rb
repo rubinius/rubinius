@@ -81,8 +81,19 @@ class Backtrace
     self
   end
 
-  def to_mri
-    return []
-    # return @top_context.stack_trace_starting_at(0)
+  # HACK: This should be MRI compliant-ish. --rue
+  #
+  def to_mri()
+    @locations.map do |loc|
+      meth =  if loc.is_block
+                "#{loc.name} {}"
+              elsif loc.name == loc.method.name
+                "#{loc.name}"
+              else
+                "#{loc.name} (#{loc.method.name})"
+              end
+
+      "#{loc.position}:in `#{meth}'"
+    end
   end
 end

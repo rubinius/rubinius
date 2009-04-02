@@ -1,4 +1,9 @@
 class Location
+
+  attr_accessor :is_block
+  attr_accessor :method
+  attr_accessor :name
+
   def describe
     if @method_module.equal?(Kernel)
       str = "Kernel."
