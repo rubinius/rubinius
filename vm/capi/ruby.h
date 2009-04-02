@@ -143,6 +143,7 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 
 #undef ALLOC
 #undef ALLOC_N
+#undef REALLOC_N
 #undef NIL_P
 #undef RTEST
 
@@ -387,10 +388,13 @@ struct RData {
 /* Interface macros */
 
 /** Allocate memory for type. Must NOT be used to allocate Ruby objects. */
-#define ALLOC(type)       (type*) malloc(sizeof(type))
+#define ALLOC(type)       (type*)malloc(sizeof(type))
 
 /** Allocate memory for N of type. Must NOT be used to allocate Ruby objects. */
-#define ALLOC_N(type, n)  (type*) malloc(sizeof(type) * (n))
+#define ALLOC_N(type, n)  (type*)malloc(sizeof(type) * (n))
+
+/** Reallocate memory allocated with ALLOC or ALLOC_N. */
+#define REALLOC_N(ptr, type, n) (type*)realloc(ptr, sizeof(type) * (n));
 
 /** Interrupt checking (no-op). */
 #define CHECK_INTS        /* No-op */
@@ -970,22 +974,6 @@ struct RData {
 
   /** As Ruby's String#dup, returns copy of self as a new String. */
   VALUE   rb_str_dup(VALUE self_handle);
-
-  /** Replace contents of string with the C string. */
-  void    rb_str_flush_char_ptr(VALUE string_handle, char* c_string, size_t length);
-
-  /** Return character at offset in String. Out-of-bounds returns '\0'. */
-  char    rb_str_get_char(VALUE self_handle, int offset);
-
-  /** Return number of bytes in String. @todo MRI returns int, problem? */
-  size_t  rb_str_get_char_len(VALUE self_handle);
-
-  /**
-   *  Returns a _copy_ of the C string contained in given String.
-   *
-   *  You must free the string.
-   */
-  char*   rb_str_get_char_ptr(VALUE str_handle);
 
   /** Create a String using the designated length of given C string. */
   VALUE   rb_str_new(const char* string, size_t length);

@@ -110,6 +110,12 @@ namespace rubinius {
 
     /** Return the map of RARRAY structs in the current NativeMethodFrame. */
     CApiStructs& arrays();
+
+    /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
+    void flush_cached_data(bool release_memory);
+
+    /** Updates cached data with changes to the Ruby objects. */
+    void update_cached_data();
   };
 
 
@@ -150,8 +156,11 @@ namespace rubinius {
     /** Obtain the Object the Handle represents. */
     Object* get_object(Handle hndl);
 
-    /** Wrap up any use of RARRAY, RSTRING, etc. */
-    void cleanup();
+    /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
+    void flush_cached_data(bool release_memory);
+
+    /** Updates cached data with changes to the Ruby objects. */
+    void update_cached_data();
 
   public:     /* Accessors */
 

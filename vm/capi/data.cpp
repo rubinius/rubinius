@@ -9,15 +9,13 @@ using namespace rubinius::capi;
 
 namespace rubinius {
   namespace capi {
-    void capi_rdata_flush() {
-      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
+    void capi_rdata_flush(NativeMethodEnvironment* env,
+        CApiStructs& data_structs, bool release_memory) {
       Data* data;
       struct RData* d = 0;
-      CApiStructs& data_str = env->data();
 
-      for(CApiStructs::iterator iter = data_str.begin();
-          iter != data_str.end();
+      for(CApiStructs::iterator iter = data_structs.begin();
+          iter != data_structs.end();
           iter++) {
         data = c_as<Data>(env->get_object(iter->first));
         d = (struct RData*)iter->second;
@@ -26,7 +24,7 @@ namespace rubinius {
         data->free(env->state(), d->dfree);
         data->data(env->state(), d->data);
 
-        delete d;
+        if(release_memory) delete d;
       }
     }
   }
@@ -36,9 +34,9 @@ extern "C" {
   struct RData* capi_rdata_struct(VALUE data_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    CApiStructs& data_str = env->data();
-    CApiStructs::iterator iter = data_str.find(data_handle);
-    if(iter != data_str.end()) {
+    CApiStructs& data_structs = env->data();
+    CApiStructs::iterator iter = data_structs.find(data_handle);
+    if(iter != data_structs.end()) {
       return (struct RData*)iter->second;
     }
 
@@ -49,7 +47,7 @@ extern "C" {
     d->dfree = data->free();
     d->data = data->data();
 
-    data_str[data_handle] = d;
+    data_structs[data_handle] = d;
 
     return d;
   }

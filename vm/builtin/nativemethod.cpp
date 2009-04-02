@@ -62,19 +62,28 @@ namespace rubinius {
     return *data_;
   }
 
-  void NativeMethodFrame::cleanup() {
+  void NativeMethodFrame::flush_cached_data(bool release_memory) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
     if(arrays_) {
-      capi_rarray_flush();
-      delete arrays_;
+      capi_rarray_flush(env, *arrays_, release_memory);
+      if(release_memory) delete arrays_;
     }
     if(strings_) {
-      capi_rstring_flush();
-      delete strings_;
+      capi_rstring_flush(env, *strings_, release_memory);
+      if(release_memory) delete strings_;
     }
     if(data_) {
-      capi_rdata_flush();
-      delete data_;
+      capi_rdata_flush(env, *data_, release_memory);
+      if(release_memory) delete data_;
     }
+  }
+
+  void NativeMethodFrame::update_cached_data() {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    if(arrays_) capi_rarray_update(env, *arrays_);
+    if(strings_) capi_rstring_update(env, *strings_);
   }
 
   Handle NativeMethodEnvironment::get_handle(Object* obj) {
@@ -173,6 +182,14 @@ namespace rubinius {
     return current_native_frame_->data();
   }
 
+  void NativeMethodEnvironment::flush_cached_data(bool release_memory) {
+    current_native_frame_->flush_cached_data(release_memory);
+  }
+
+  void NativeMethodEnvironment::update_cached_data() {
+    current_native_frame_->update_cached_data();
+  }
+
   void NativeMethod::init(STATE) {
     state->globals.nmethod.set(state->new_class("NativeMethod", G(executable)));
     state->globals.nmethod.get()->set_object_type(state, NativeMethodType);
@@ -211,7 +228,7 @@ namespace rubinius {
       ret = nm->call(state, env, args);
     }
 
-    env->current_native_frame()->cleanup();
+    env->current_native_frame()->flush_cached_data(true);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 

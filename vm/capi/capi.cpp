@@ -110,8 +110,9 @@ namespace rubinius {
     VALUE capi_funcall_backend(const char* file, int line,
         VALUE receiver, ID method_name, std::size_t arg_count, VALUE* arg_array) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      Array* args = Array::create(env->state(), arg_count);
+      env->flush_cached_data(false);
 
+      Array* args = Array::create(env->state(), arg_count);
       for(size_t i = 0; i < arg_count; i++) {
         args->set(env->state(), i, env->get_object(arg_array[i]));
       }
@@ -119,6 +120,7 @@ namespace rubinius {
       Object* recv = env->get_object(receiver);
       Object* ret = recv->send(env->state(), env->current_call_frame(),
           reinterpret_cast<Symbol*>(method_name), args, RBX_Qnil);
+      env->update_cached_data();
 
       // An exception occurred
       if(!ret) env->current_ep()->return_to(env);

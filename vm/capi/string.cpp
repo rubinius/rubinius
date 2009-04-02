@@ -13,12 +13,37 @@ using namespace rubinius::capi;
 
 namespace rubinius {
   namespace capi {
-    void capi_rstring_flush() {
-      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    // internal helper method
+    static void flush_string(STATE, String* string, struct RString* str) {
+      if(string->size() != str->len) {
+        ByteArray* ba = ByteArray::create(state, str->len+1);
+        string->data(state, ba);
+        string->num_bytes(state, Fixnum::from(str->len));
+        string->characters(state, Fixnum::from(str->len));
+        string->hash_value(state, reinterpret_cast<Integer*>(RBX_Qnil));
+      }
+      std::memcpy(string->byte_address(), str->ptr, str->len);
+      string->byte_address()[str->len] = 0;
+    }
 
+    String* capi_get_string(NativeMethodEnvironment* env, VALUE str_handle) {
+      if(!env) env = NativeMethodEnvironment::get();
+
+      String* string = c_as<String>(env->get_object(str_handle));
+
+      CApiStructs& strings = env->strings();
+      CApiStructs::iterator iter = strings.find(str_handle);
+      if(iter != strings.end()) {
+        flush_string(env->state(), string, (struct RString*)iter->second);
+      }
+
+      return string;
+    }
+
+    void capi_rstring_flush(NativeMethodEnvironment* env,
+        CApiStructs& strings, bool release_memory) {
       String* string;
       struct RString* str = 0;
-      CApiStructs& strings = env->strings();
 
       for(CApiStructs::iterator iter = strings.begin();
           iter != strings.end();
@@ -26,16 +51,46 @@ namespace rubinius {
         string = c_as<String>(env->get_object(iter->first));
         str = (struct RString*)iter->second;
 
-        if(string->size() != str->len) {
-          ByteArray* ba = ByteArray::create(env->state(), str->len+1);
-          string->data(env->state(), ba);
-          string->num_bytes(env->state(), Fixnum::from(str->len));
-        }
-        std::memcpy(string->byte_address(), str->ptr, str->len);
-        string->byte_address()[str->len] = 0;
+        flush_string(env->state(), string, str);
 
+        if(release_memory) {
+          delete[] str->dmwmb;
+          delete str;
+        }
+      }
+    }
+
+    // internal helper method
+    static void update_string(STATE, String* string, struct RString* str) {
+      size_t size = string->size();
+
+      if(str->len != size) {
         delete[] str->dmwmb;
-        delete str;
+        str->dmwmb = str->ptr = new char[size+1];
+        str->aux.capa = str->len = size;
+      }
+
+      std::memcpy(str->ptr, string->byte_address(), size);
+      str->ptr[size] = 0;
+    }
+
+    void capi_update_string(NativeMethodEnvironment* env, VALUE str_handle) {
+      if(!env) env = NativeMethodEnvironment::get();
+
+      CApiStructs& strings = env->strings();
+      CApiStructs::iterator iter = strings.find(str_handle);
+      if(iter != strings.end()) {
+        String* string = c_as<String>(env->get_object(str_handle));
+        update_string(env->state(), string, (struct RString*)iter->second);
+      }
+    }
+
+    void capi_rstring_update(NativeMethodEnvironment* env, CApiStructs& strings) {
+      for(CApiStructs::iterator iter = strings.begin();
+          iter != strings.end();
+          iter++) {
+        String* string = c_as<String>(env->get_object(iter->first));
+        update_string(env->state(), string, (struct RString*)iter->second);
       }
     }
   }
@@ -76,8 +131,9 @@ extern "C" {
   VALUE rb_str_append(VALUE self_handle, VALUE other_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = c_as<String>(env->get_object(self_handle));
-    self->append(env->state(), c_as<String>(env->get_object(other_handle)));
+    String* self = capi_get_string(env, self_handle);
+    self->append(env->state(), capi_get_string(env, other_handle));
+    capi_update_string(env, self_handle);
 
     return self_handle;
   }
@@ -95,34 +151,36 @@ extern "C" {
     return rb_str_append(self_handle, other_handle);
   }
 
-  VALUE rb_str_buf_cat(VALUE string_handle, const char* other, size_t size) {
+  VALUE rb_str_buf_cat(VALUE self_handle, const char* other, size_t size) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* string = c_as<String>(env->get_object(string_handle));
+    String* string = capi_get_string(env, self_handle);
     string->append(env->state(), other, size);
+    capi_update_string(env, self_handle);
 
-    return string_handle;
+    return self_handle;
   }
 
-  VALUE rb_str_buf_cat2(VALUE string_handle, const char* other) {
-    return rb_str_buf_cat(string_handle, other, std::strlen(other));
+  VALUE rb_str_buf_cat2(VALUE self_handle, const char* other) {
+    return rb_str_buf_cat(self_handle, other, std::strlen(other));
   }
 
   VALUE rb_str_cat(VALUE self_handle, const char* other, size_t length) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = c_as<String>(env->get_object(self_handle));
-    String* combo = self->string_dup(env->state());
+    String* self = capi_get_string(env, self_handle);
+    self->append(env->state(), other, length);
+    capi_update_string(env, self_handle);
 
-    return env->get_handle(combo->append(env->state(), other, length));
+    return self_handle;
   }
 
-  VALUE rb_str_cat2(VALUE string_handle, const char* other) {
-    return rb_str_cat(string_handle, other, std::strlen(other));
+  VALUE rb_str_cat2(VALUE self_handle, const char* other) {
+    return rb_str_cat(self_handle, other, std::strlen(other));
   }
 
-  int rb_str_cmp(VALUE first_handle, VALUE second_handle) {
-    return NUM2INT(rb_funcall(first_handle, rb_intern("<=>"), 1, second_handle));
+  int rb_str_cmp(VALUE self_handle, VALUE other_handle) {
+    return NUM2INT(rb_funcall(self_handle, rb_intern("<=>"), 1, other_handle));
   }
 
   VALUE rb_str_concat(VALUE self_handle, VALUE other_handle) {
@@ -143,59 +201,8 @@ extern "C" {
   VALUE rb_str_dup(VALUE self_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    String* self = c_as<String>(env->get_object(self_handle));
+    String* self = capi_get_string(env, self_handle);
     return env->get_handle(self->string_dup(env->state()));
-  }
-
-  /** @todo Refactor into a String::replace(). --rue */
-  void rb_str_flush_char_ptr(VALUE string_handle, char* c_string, size_t length) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    ByteArray* data = ByteArray::create(env->state(), (length + 1));
-    std::memcpy(data->bytes, c_string, length);
-    data->bytes[length] = '\0';
-
-    Integer* bytes = Integer::from(env->state(), length);
-
-    String* string = c_as<String>(env->get_object(string_handle));
-    string->num_bytes(env->state(), bytes);
-    string->characters(env->state(), bytes);
-    string->hash_value(env->state(), reinterpret_cast<Integer*>(Qnil));
-    /* Assume the encoding stays the same. */
-
-    string->data(env->state(), data);
-  }
-
-  char rb_str_get_char(VALUE self_handle, int offset) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    String* self = c_as<String>(env->get_object(self_handle));
-
-    if (offset < 0 || (unsigned)offset >= self->size()) {
-      return '\0';
-    }
-
-    return self->c_str()[offset];
-  }
-
-  size_t rb_str_get_char_len(VALUE self_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    /* @todo Is this correct? Is assuming no wide characters valid? */
-    return c_as<String>(env->get_object(self_handle))->size();
-  }
-
-  char* rb_str_get_char_ptr(VALUE str_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    String* string = c_as<String>(env->get_object(str_handle));
-    size_t length = string->size();
-
-    char* buffer = ALLOC_N(char, (length + 1));
-    std::memcpy(buffer, string->c_str(), length);
-    buffer[length] = '\0';
-
-    return buffer;
   }
 
   VALUE rb_str_new(const char* string, size_t length) {
@@ -257,7 +264,16 @@ extern "C" {
   }
 
   char* rb_string_value_cstr(VALUE* object_variable) {
-    return rb_str_get_char_ptr(rb_string_value(object_variable));
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    VALUE str = rb_string_value(object_variable);
+    String* string = capi_get_string(env, str);
+
+    if(string->size() != strlen(string->c_str())) {
+      rb_raise(rb_eArgError, "string contains NULL byte");
+    }
+
+    return const_cast<char*>(string->c_str());
   }
 
   VALUE rb_tainted_str_new2(const char* string) {
