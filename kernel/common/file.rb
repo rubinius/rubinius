@@ -681,9 +681,17 @@ class File < IO
   ##
   # Returns nil if file_name doesn‘t exist or has zero size,
   # the size of the file otherwise.
-  def self.size?(path)
-    st = Stat.stat? path
-    st && st.size > 0 ? st.size : nil
+  def self.size?(path_or_file)
+    s = 0
+
+    if path_or_file.is_a? File
+      s = Stat.from_fd(path_or_file.fileno).size
+    else
+      st = Stat.stat? path_or_file
+      s = st.size if st
+    end
+
+    s > 0 ? s : nil
   end
 
   ##
