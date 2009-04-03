@@ -6,6 +6,10 @@ class File
   CASEFOLD_FILESYSTEM = DOSISH
   FNM_SYSCASE = CASEFOLD_FILESYSTEM ? FNM_CASEFOLD : 0
 
+  module Constants
+    FNM_SYSCASE = File::FNM_SYSCASE
+  end
+
   ##
   # Return the equivalent S-Expression of the file given.
   # Raises +SyntaxError+ if there is a syntax issue in the
