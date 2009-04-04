@@ -119,10 +119,10 @@ const int cUndef = 0x22L;
      on 32bit (word) boundaries. on 64 bit platforms, pointers probably
      have to be aligned on 64bit (double word) boundaries) */
 
-  /* On a 32 bit platform, I expect rubinius_object to take up
-     4 + 4 + 4 + 4 = 16 bytes.
+  /* On a 32 bit platform, I expect ObjectHeader to take up
+     4 + 4 + 4 = 12 bytes.
      on 64 bit platform,
-     4 + 4 + 8 + 8 = 24 bytes.
+     8 + 8 + 8 = 24 bytes.
      */
 
   class Class;
@@ -146,7 +146,7 @@ const int cUndef = 0x22L;
         unsigned int InImmix                : 1;
         unsigned int Pinned                 : 1;
       };
-      uint32_t all_flags;
+      uintptr_t all_flags; // forces the width to pointer aligned
     };
 
 #ifdef RBX_TEST
