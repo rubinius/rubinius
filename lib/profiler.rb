@@ -10,7 +10,7 @@ module Profiler__
 
   def print_profile(f)
     stop_profile
-    @p.display(f)
+    @p.show(f)
   end
 
   module_function :start_profile, :stop_profile, :print_profile

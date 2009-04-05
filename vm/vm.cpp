@@ -9,11 +9,14 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/list.hpp"
+#include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 #include "builtin/taskprobe.hpp"
+
+#include "instruments/profiler.hpp"
 
 #include "config_parser.hpp"
 #include "config.h"
@@ -63,10 +66,27 @@ namespace rubinius {
     cf_locations_.remove(vm->call_frame_location());
   }
 
+  void SharedState::enable_profiling(STATE) {
+    profiler_collection = new profiler::ProfilerCollection(state);
+    profiling_ = true;
+  }
+
+  LookupTable* SharedState::disable_profiling(STATE) {
+    if(profiler_collection) {
+      LookupTable* profile = profiler_collection->results(state);
+      delete profiler_collection;
+      profiling_ = false;
+      return profile;
+    } else {
+      return reinterpret_cast<LookupTable*>(Qnil);
+    }
+  }
+
   VM::VM(SharedState& shared, int id)
     : id_(id)
     , saved_call_frame_(0)
     , alive_(true)
+    , profiler_(NULL)
     , shared(shared)
     , waiter_(NULL)
     , user_config(shared.user_config)
@@ -87,6 +107,9 @@ namespace rubinius {
   void VM::discard() {
     alive_ = false;
     saved_call_frame_ = 0;
+    if(profiler_) {
+      shared.profiler_collection->remove_profiler(this, profiler_);
+    }
   }
 
   void VM::initialize(size_t bytes)
@@ -442,4 +465,8 @@ namespace rubinius {
     check_local_interrupts = true;
   }
 
+  profiler::Profiler* VM::set_profiler(profiler::Profiler* profiler) {
+    shared.profiler_collection->add_profiler(this, profiler);
+    return profiler_ = profiler;
+  }
 };

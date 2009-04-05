@@ -18,8 +18,8 @@
 #include "builtin/system.hpp"
 #include "builtin/machine_method.hpp"
 #include "instructions.hpp"
-#include "profiler.hpp"
 
+#include "instruments/profiler.hpp"
 #include "instruments/timing.hpp"
 #include "config.h"
 
@@ -521,7 +521,10 @@ namespace rubinius {
         return NULL;
       }
 
-      // if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
+#ifdef RBX_PROFILER
+      if(unlikely(state->shared.profiling()))
+        profiler::Profiler::get(state)->enter_method(msg, args, cm);
+#endif
 
       Object* ret = run_interpreter(state, vmm, frame);
 

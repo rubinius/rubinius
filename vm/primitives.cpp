@@ -5,7 +5,8 @@
 #include "gen/includes.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
-#include "profiler.hpp"
+
+#include "instruments/profiler.hpp"
 
 #include <iostream>
 

@@ -237,16 +237,14 @@ namespace rubinius {
     return bt;
   }
 
-/** @todo Fix, Task is gone. --rue */
-//  Object* System::vm_profiler_instrumenter_start(STATE) {
-//    G(current_task)->enable_profiler();
-//    return Qtrue;
-//  }
+  Object* System::vm_profiler_instrumenter_start(STATE) {
+    state->shared.enable_profiling(state);
+    return Qtrue;
+  }
 
-/** @todo Fix, Task is gone. --rue */
-//  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
-//    return G(current_task)->disable_profiler();
-//  }
+  LookupTable* System::vm_profiler_instrumenter_stop(STATE) {
+    return state->shared.disable_profiling(state);
+  }
 
   Object* System::vm_write_error(STATE, String* str) {
     std::cerr << str->c_str() << std::endl;

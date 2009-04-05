@@ -1,6 +1,6 @@
 #include "vm/test/test.hpp"
 
-#include "profiler.hpp"
+#include "instruments/profiler.hpp"
 
 #include "builtin/symbol.hpp"
 
@@ -54,7 +54,7 @@ public:
     IncludedModule* im = IncludedModule::create(state);
     im->module(state, mod);
 
-    profiler::Profiler prof;
+    profiler::Profiler prof(state);
 
     TS_ASSERT_EQUALS(name, prof.module_name(im));
     TS_ASSERT_EQUALS(name, prof.module_name(mod));
@@ -91,12 +91,12 @@ public:
     CompiledMethod* cm = CompiledMethod::create(state);
     cm->name(state, meth);
 
-    profiler::Profiler prof;
+    profiler::Profiler prof(state);
 
     Dispatch dis(meth, G(object), cm);
     Arguments args;
 
-    prof.enter_method(state, dis, args, cm);
+    prof.enter_method(dis, args, cm);
     TS_ASSERT_EQUALS(prof.depth(), 1U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
 
@@ -105,7 +105,7 @@ public:
 
     dis.module = G(object)->metaclass(state);
 
-    prof.enter_method(state, dis, args, cm);
+    prof.enter_method(dis, args, cm);
     TS_ASSERT_EQUALS(prof.depth(), 2U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 2U);
 
@@ -120,12 +120,12 @@ public:
     CompiledMethod* cm = CompiledMethod::create(state);
     cm->name(state, meth);
 
-    profiler::Profiler prof;
+    profiler::Profiler prof(state);
 
     Dispatch dis(meth, G(object), cm);
     Arguments args;
 
-    prof.enter_primitive(state, dis, args);
+    prof.enter_primitive(dis, args);
     TS_ASSERT_EQUALS(prof.depth(), 1U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
 
@@ -134,7 +134,7 @@ public:
 
     dis.module = G(object)->metaclass(state);
 
-    prof.enter_primitive(state, dis, args);
+    prof.enter_primitive(dis, args);
     TS_ASSERT_EQUALS(prof.depth(), 2U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 2U);
 
@@ -148,9 +148,9 @@ public:
 
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    profiler::Profiler prof;
+    profiler::Profiler prof(state);
 
-    prof.record_method(state, cm, meth, klass);
+    prof.record_method(cm, meth, klass);
     TS_ASSERT_EQUALS(prof.depth(), 1U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
 
@@ -162,12 +162,12 @@ public:
     TS_ASSERT_EQUALS(mo->method(), meth);
     TS_ASSERT_EQUALS(mo->total_time(), 0ULL);
 
-    prof.record_method(state, cm, meth, klass);
+    prof.record_method(cm, meth, klass);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
     TS_ASSERT_EQUALS(prof.depth(), 2U);
 
     Symbol* meth2 = state->symbol("woo");
-    prof.record_method(state, cm, meth2, klass);
+    prof.record_method(cm, meth2, klass);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 2U);
 
     TS_ASSERT_EQUALS(prof.depth(), 3U);
@@ -179,9 +179,9 @@ public:
 
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    profiler::Profiler prof;
+    profiler::Profiler prof(state);
 
-    prof.record_method(state, cm, meth, klass);
+    prof.record_method(cm, meth, klass);
     profiler::Key key(meth, klass);
     profiler::Method* mo = prof.find_key(key);
     TS_ASSERT_EQUALS(mo->total_time(), 0ULL);
@@ -199,14 +199,14 @@ public:
 
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    profiler::Profiler prof;
+    profiler::Profiler prof(state);
 
-    profiler::Method* outer = prof.record_method(state, cm, meth, klass);
+    profiler::Method* outer = prof.record_method(cm, meth, klass);
     TS_ASSERT_EQUALS(prof.current_method(), outer);
 
     Symbol* meth2 = state->symbol("fun");
 
-    profiler::Method* inner = prof.record_method(state, cm, meth2, klass);
+    profiler::Method* inner = prof.record_method(cm, meth2, klass);
     TS_ASSERT_EQUALS(prof.current_method(), inner);
 
     prof.leave_method();
@@ -234,47 +234,59 @@ public:
     Symbol* meth2 = state->symbol("foo");
     Symbol* meth3 = state->symbol("done");
     Symbol* klass = state->symbol("Sweet");
+    Symbol* called = state->symbol("called");
+    Symbol* name = state->symbol("name");
 
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    profiler::Profiler prof;
+    profiler::ProfilerCollection collection(state);
 
-    profiler::Method* top = prof.record_method(state, cm, meth, klass);
-    prof.record_method(state, cm, meth2, klass);
-    prof.leave_method();
+    profiler::Profiler* prof = new profiler::Profiler(state);
+    collection.add_profiler(state, prof);
 
-    TS_ASSERT_EQUALS(prof.current_method(), top);
-    prof.record_method(state, cm, meth3, klass);
-    prof.leave_method();
+    profiler::Method* top = prof->record_method(cm, meth, klass);
+    prof->record_method(cm, meth2, klass);
+    prof->leave_method();
 
-    TS_ASSERT_EQUALS(prof.current_method(), top);
+    TS_ASSERT_EQUALS(prof->current_method(), top);
+    prof->record_method(cm, meth3, klass);
+    prof->leave_method();
 
-    prof.record_method(state, cm, meth2, klass);
-    prof.record_method(state, cm, meth3, klass);
-    prof.leave_method();
-    prof.leave_method();
+    TS_ASSERT_EQUALS(prof->current_method(), top);
 
-    prof.leave_method();
+    prof->record_method(cm, meth2, klass);
+    prof->record_method(cm, meth3, klass);
+    prof->leave_method();
+    prof->leave_method();
 
-    LookupTable* results = prof.results(state);
+    prof->leave_method();
+
+    LookupTable* results = collection.results(state);
 
     TS_ASSERT(!results->nil_p());
     TS_ASSERT(!results->fetch(state, state->symbol("method"))->nil_p());
-    TS_ASSERT_EQUALS(Fixnum::from(3),
-        results->fetch(state, state->symbol("num_methods")));
 
     LookupTable* methods = as<LookupTable>(
         results->fetch(state, state->symbol("methods")));
     TS_ASSERT_EQUALS(Integer::from(state, 3), methods->entries());
 
-    LookupTable* method = as<LookupTable>(
-        methods->fetch(state, Fixnum::from(1)));
+    LookupTable* method = as<LookupTable>(methods->fetch(state, Fixnum::from(1)));
     TS_ASSERT_EQUALS(Integer::from(state, 6), method->entries());
-    TS_ASSERT_EQUALS(Fixnum::from(1),
-        method->fetch(state, state->symbol("called")));
+    TS_ASSERT_EQUALS(Fixnum::from(1), method->fetch(state, called));
     TS_ASSERT_SAME_DATA("Sweet#blah", as<String>(method->fetch(state,
-          state->symbol("name")))->byte_address(), 9);
+          name))->byte_address(), 10);
     TS_ASSERT(kind_of<Array>(method->fetch(state, state->symbol("leaves"))));
+
+    method = as<LookupTable>(methods->fetch(state, Fixnum::from(2)));
+    TS_ASSERT_EQUALS(Fixnum::from(2), method->fetch(state, called));
+    TS_ASSERT_SAME_DATA("Sweet#foo", as<String>(method->fetch(state,
+          name))->byte_address(), 9);
+
+    method = as<LookupTable>(methods->fetch(state, Fixnum::from(3)));
+    TS_ASSERT_EQUALS(Fixnum::from(2), method->fetch(state, called));
+    TS_ASSERT_SAME_DATA("Sweet#done", as<String>(method->fetch(state,
+          name))->byte_address(), 10);
+
     TS_ASSERT(method->has_key(state, state->symbol("total"))->true_p());
     TS_ASSERT(method->has_key(state, state->symbol("file"))->true_p());
     TS_ASSERT(method->has_key(state, state->symbol("line"))->true_p());

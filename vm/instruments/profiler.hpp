@@ -196,29 +196,50 @@ namespace rubinius {
     private:
       MethodMap methods_;
       std::stack<Invocation> running_;
+      VM* state_;
       Method* top_;
       Method* current_;
 
     public:
-      Profiler();
+      Profiler(STATE);
       ~Profiler();
 
+      static Profiler* get(STATE);
+      static LookupTable* results(STATE);
+
       Symbol* module_name(Module* module);
-      void enter_method(STATE, Dispatch&, Arguments& args, CompiledMethod*);
-      void enter_primitive(STATE, Dispatch&, Arguments& args);
-      // void enter_block(STATE, MethodContext*, CompiledMethod*);
-      Method* record_method(STATE, CompiledMethod*, Symbol*, Object*, Kind kind = kNormal);
+      void enter_method(Dispatch&, Arguments& args, CompiledMethod*);
+      void enter_primitive(Dispatch&, Arguments& args);
+      void enter_block(Dispatch& msg, CompiledMethod* cm);
+      Method* record_method(CompiledMethod*, Symbol*, Object*, Kind kind = kNormal);
       void leave_method();
 
       size_t number_of_entries();
       Method* find_key(Key& key);
       size_t depth();
 
-      LookupTable* results(STATE);
+      void results(LookupTable* profile);
 
       Method* current_method() {
         return current_;
       }
+    };
+
+    class ProfilerCollection {
+      typedef std::tr1::unordered_map<VM*, Profiler*> ProfilerMap;
+
+    private:
+      ProfilerMap profilers_;
+      TypedRoot<LookupTable*> profile_;
+
+    public:
+      ProfilerCollection(STATE);
+      ~ProfilerCollection();
+
+      void add_profiler(VM* vm, Profiler* profiler);
+      void remove_profiler(VM* vm, Profiler* profiler);
+
+      LookupTable* results(STATE);
     };
   }
 }

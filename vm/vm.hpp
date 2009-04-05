@@ -32,6 +32,11 @@ namespace rubinius {
     class Loop;
   }
 
+  namespace profiler {
+    class Profiler;
+    class ProfilerCollection;
+  }
+
   class GlobalCache;
   class TaskProbe;
   class Primitives;
@@ -94,6 +99,7 @@ namespace rubinius {
   class VMManager;
   class Waiter;
   class SignalThread;
+  class LookupTable;
 
   /* Indirect object handles for references to Ruby objects in
    * native code extensions.
@@ -111,6 +117,7 @@ namespace rubinius {
     CallFrameLocationList cf_locations_;
     VariableRootBuffers root_buffers_;
     Handles global_handles_;
+    bool profiling_;
 
   public:
     Globals globals;
@@ -120,15 +127,18 @@ namespace rubinius {
     Interrupts interrupts;
     SymbolTable symbols;
     ConfigParser *user_config;
+    profiler::ProfilerCollection* profiler_collection;
 
   public:
     SharedState(VMManager& manager, int id)
       : manager_(manager)
       , initialized_(false)
       , id_(id)
+      , profiling_(false)
       , om(0)
       , global_cache(0)
       , user_config(0)
+      , profiler_collection(NULL)
     {}
 
     ~SharedState();
@@ -172,6 +182,14 @@ namespace rubinius {
     Handles& global_handles() {
       return global_handles_;
     }
+
+    bool profiling() {
+      return profiling_;
+    }
+
+    void enable_profiling(STATE);
+
+    LookupTable* disable_profiling(STATE);
   };
 
   class VM {
@@ -182,6 +200,7 @@ namespace rubinius {
     ASyncMessageMailbox mailbox_;
     void* stack_start_;
     bool alive_;
+    profiler::Profiler* profiler_;
 
   public:
     /* Data members */
@@ -297,6 +316,10 @@ namespace rubinius {
       }
 
       return true;
+    }
+
+    profiler::Profiler* profiler() {
+      return profiler_;
     }
 
     /* Prototypes */
@@ -425,6 +448,8 @@ namespace rubinius {
       }
       return true;
     }
+
+    profiler::Profiler* set_profiler(profiler::Profiler* profiler);
   };
 };
 

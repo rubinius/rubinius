@@ -280,15 +280,17 @@ end
 namespace :build do
 
   # The top-level build task uses this, so undocumented.
-  task :normal      => %w[ build:normal_flags build:build ]
+  task :normal      => %w[ build:normal_flags build:profiler_flags build:build ]
 
   desc "Show methods that are not inlined in the optimized build"
-  task :inline      => %w[ build:inline_flags build:build ]
+  task :inline      => %w[ build:inline_flags build_profiler_flags build:build ]
 
   desc "Build debug image for GDB. No optimizations, more warnings."
-  task :debug       => %w[ build:debug_flags build:stats_flags build:build ]
+  task :debug       => %w[ build:debug_flags build:stats_flags
+                           build:profiler_flags build:build ]
 
-  task :stats       => %w[ build:normal_flags build:stats_flags build:build ]
+  task :stats       => %w[ build:normal_flags build:stats_flags
+                           build_profiler_flags build:build ]
 
   desc "Build to check for possible problems in the code. See build:help."
   task :strict      => %w[ build:strict_flags build:build ]
@@ -329,6 +331,10 @@ namespace :build do
 
   task :stats_flags do
     FLAGS.concat %w[ -DRBX_GC_STATS ]
+  end
+
+  task :profiler_flags do
+    FLAGS.concat %w[ -DRBX_PROFILER ] unless ENV['RBX_NO_PROFILER']
   end
 
   task :strict_flags => "build:debug_flags" do

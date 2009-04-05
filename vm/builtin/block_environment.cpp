@@ -4,12 +4,11 @@
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 
-#include "block_environment.hpp"
+#include "builtin/block_environment.hpp"
 #include "objectmemory.hpp"
 
 #include "vm/object_utils.hpp"
 
-#include "profiler.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"
@@ -19,6 +18,8 @@
 #include "builtin/tuple.hpp"
 #include "builtin/system.hpp"
 #include "builtin/staticscope.hpp"
+
+#include "instruments/profiler.hpp"
 
 #include <iostream>
 
@@ -74,8 +75,6 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    flags;
 
-    // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
-
     frame->push(val);
     Object* ret = VMMethod::run_interpreter(state, vmm, frame);
 
@@ -117,14 +116,12 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    flags;
 
-    // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
-
     frame->push(val);
     return VMMethod::run_interpreter(state, vmm, frame);
   }
 
-  Object* BlockEnvironment::call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg,
-                                      Arguments& args) {
+  Object* BlockEnvironment::call_prim(STATE, Executable* exec,
+      CallFrame* call_frame, Dispatch& msg, Arguments& args) {
     return call(state, call_frame, args);
   }
 
@@ -172,8 +169,6 @@ namespace rubinius {
     frame->scope =    scope;
     frame->top_scope = top_scope_;
     frame->flags =    flags;
-
-    // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
     frame->push(val);
     return VMMethod::run_interpreter(state, vmm, frame);

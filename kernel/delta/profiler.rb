@@ -5,7 +5,6 @@ module Rubinius::Profiler
   # noise for user code (i.e. people using Rubinius but not developing it).
   KERNEL_CLASSES = Regexp.new %w[
     ^AccessVariable
-    ^BlockBreakException
     ^BlockEnvironment
     ^Buffer
     ^ByteArray
@@ -29,6 +28,7 @@ module Rubinius::Profiler
     ^Sprintf
     ^StaticScope
     ^Tuple
+    ^VariableScope
     ^Visibility
     .__class_init__
     .__module_init__
@@ -57,41 +57,38 @@ module Rubinius::Profiler
       @filter = filter
     end
 
-    # @todo Fix, see vm/builtin/system.hpp
-    def activate
-      raise "Instrumenting profiler is disabled: FIX IT"
-#      Ruby.primitive :vm_profiler_instrumenter_start
-#      raise PrimitiveFailure, "Profiler::Instrumenter#activate failed"
-    end
-
-    # @todo Fix, see vm/builtin/system.hpp
-    def terminate
-      raise "Instrumenting profiler is disabled: FIX IT"
-#      Ruby.primitive :vm_profiler_instrumenter_stop
-#      raise PrimitiveFailure, "Profiler::Instrumenter#terminate failed"
-    end
-
     def start
-      activate
+      Ruby.primitive :vm_profiler_instrumenter_start
+      raise PrimitiveFailure, "Profiler::Instrumenter#start failed"
+    end
+
+    def __stop__
+      Ruby.primitive :vm_profiler_instrumenter_stop
+      raise PrimitiveFailure, "Profiler::Instrumenter#stop failed"
     end
 
     def stop
-      @profile = terminate
+      @profile = __stop__
+    end
+
+    def info
+      @profile
     end
 
     # Convenience method to profile snippets of code in a larger script or
     # program. Enables the profiler and yields to the given block.
     #
     #   pr = Rubinius::Profiler::Instrumenter.new
-    #   pr.show { # do some work here }
-    def show
+    #   pr.profile { # do some work here }
+    def profile(display = true)
       start
       yield if block_given?
       stop
-      display
+      show if display
+      @profile
     end
 
-    def display(out=STDOUT)
+    def show(out=STDOUT)
       unless @profile
         out.puts "No profiling data was available"
         return
