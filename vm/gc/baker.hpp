@@ -78,6 +78,20 @@ namespace rubinius {
 
   private:
     ObjectArray* promoted_;
+    ObjectArray::iterator promoted_insert, promoted_current;
+
+    // Assume ObjectArray is a vector!
+    void promoted_push(Object* obj) {
+      if(promoted_insert == promoted_current) {
+        size_t i = promoted_insert - promoted_->begin(),
+               j = promoted_current - promoted_->begin();
+        promoted_->push_back(obj);
+        promoted_current = promoted_->begin() + j;
+        promoted_insert = promoted_->begin() + i;
+      } else {
+        *promoted_insert++ = obj;
+      }
+    }
 
   public:
     /* Prototypes */
@@ -89,10 +103,13 @@ namespace rubinius {
     bool    fully_scanned_p();
     void    collect(GCData& data);
     void    clear_marks();
-    Object*  next_object(Object* obj);
     void    find_lost_souls();
 
     ObjectPosition validate_object(Object* obj);
+
+  private:
+    /* Private for inlining */
+    Object*  next_object(Object* obj);
   };
 };
 

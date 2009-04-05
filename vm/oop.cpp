@@ -7,7 +7,7 @@
 #include <cassert>
 
 namespace rubinius {
-  size_t ObjectHeader::size_in_bytes(STATE) const {
+  size_t ObjectHeader::slow_size_in_bytes(STATE) const {
     return state->om->type_info[type_id()]->object_size(this);
   }
 
@@ -47,7 +47,7 @@ namespace rubinius {
     void** dst = this->__body__;
     size_t field_count = bytes_to_fields(bytes);
 
-    for(size_t counter = 0; counter < field_count; counter++) {
+    for(register size_t counter = 0; counter < field_count; ++counter) {
       dst[counter] = Qnil;
     }
   }

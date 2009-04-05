@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "object_types.hpp"
+#include "type_info.hpp"
 
 namespace rubinius {
 
@@ -193,7 +194,19 @@ const int cUndef = 0x22L;
       zone = loc;
     }
 
-    size_t size_in_bytes(VM*) const;
+    /* It's the slow case, should be called only if there's no cached
+     * instance size. */
+    size_t slow_size_in_bytes(VM * state) const;
+
+    /* The whole point of this is inlining */
+    size_t size_in_bytes(VM* state) const {
+      register size_t size = TypeInfo::instance_sizes[type_id()];
+      if(size != 0) {
+        return size;
+      } else {
+        return slow_size_in_bytes(state);
+      }
+    }
 
     size_t body_in_bytes(VM* state) {
       return size_in_bytes(state) - sizeof(ObjectHeader);

@@ -76,7 +76,9 @@ namespace rubinius {
   }
 
   size_t TypeInfo::object_size(const ObjectHeader* obj) {
-    return instance_size; // obj->bytes_;
+    abort();
+    // Must be implemented, if goes here
+    return 0;
   }
 
   void TypeInfo::class_info(STATE, const Object* self, bool newline) {

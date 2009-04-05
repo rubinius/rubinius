@@ -45,16 +45,16 @@ namespace rubinius {
     // TODO test this!
     if(next->contains_p(obj)) return obj;
 
-    if(obj->age++ >= lifetime) {
+    if(unlikely(obj->age++ >= lifetime)) {
       copy = object_memory->promote_object(obj);
 
-      promoted_->push_back(copy);
-    } else if(next->enough_space_p(obj->size_in_bytes(object_memory->state))) {
+      promoted_push(copy);
+    } else if(likely(next->enough_space_p(obj->size_in_bytes(object_memory->state)))) {
       copy = next->copy_object(object_memory->state, obj);
       total_objects++;
     } else {
       copy = object_memory->promote_object(obj);
-      promoted_->push_back(copy);
+      promoted_push(copy);
     }
 
     if(watched_p(copy)) {
@@ -98,9 +98,11 @@ namespace rubinius {
     // we can scan them at the end.
     promoted_ = new ObjectArray(0);
 
+    promoted_current = promoted_insert = promoted_->begin();
+
     for(ObjectArray::iterator oi = current_rs->begin();
         oi != current_rs->end();
-        oi++) {
+        ++oi) {
       tmp = *oi;
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
@@ -157,16 +159,13 @@ namespace rubinius {
      * ObjectArray will be empty.
      * */
 
+    promoted_current = promoted_insert = promoted_->begin();
+
     while(promoted_->size() > 0 || !fully_scanned_p()) {
-      ObjectArray* cur = promoted_;
-
       if(promoted_->size() > 0) {
-        promoted_ = new ObjectArray(0);
-
-        for(ObjectArray::iterator oi = cur->begin();
-            oi != cur->end();
-            oi++) {
-          tmp = *oi;
+        for(;promoted_current != promoted_->end();
+            ++promoted_current) {
+          tmp = *promoted_current;
           assert(tmp->zone == MatureObjectZone);
           scan_object(tmp);
           if(watched_p(tmp)) {
@@ -174,7 +173,8 @@ namespace rubinius {
           }
         }
 
-        delete cur;
+        promoted_->resize(promoted_insert - promoted_->begin());
+        promoted_current = promoted_insert = promoted_->begin();
 
       }
 
@@ -213,8 +213,9 @@ namespace rubinius {
 #endif
   }
 
-  Object* BakerGC::next_object(Object* obj) {
-    return (Object*)((uintptr_t)obj + obj->size_in_bytes(object_memory->state));
+  inline Object * BakerGC::next_object(Object * obj) {
+    return reinterpret_cast<Object*>(reinterpret_cast<uintptr_t>(obj) +
+      obj->size_in_bytes(object_memory->state));
   }
 
   void BakerGC::clear_marks() {

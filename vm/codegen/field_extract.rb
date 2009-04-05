@@ -443,6 +443,14 @@ SPECIALIZATION_STORAGE bool kind_of<#{@name}>(const Object* obj) {
 
     CPP
   end
+
+  def class_has_object_size
+    @flags[:object_size] = true
+  end
+
+  def class_has_object_size?
+    @flags[:object_size]
+  end
 end
 
 class CPPParser
@@ -497,6 +505,7 @@ class CPPParser
     slot_pattern = %r!^\s*(\w+)\*?\s+\*?(\w+)_\s*;\s*//\s*slot(.*)!
     primitive_pattern = %r%^\s*//\s+Ruby.primitive([?!])?\s+:(.*)\s*$%
     prototype_pattern = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!
+    object_size_pattern = %r|size_t\s+object_size\s*\(const\s+ObjectHeader\s*|
 
     while l = f.gets
       next unless m = class_pattern.match(l)
@@ -601,10 +610,27 @@ class CPPParser
           obj.pass_self = pass_self
           obj.pass_call_frame = pass_call_frame
           obj.pass_message = pass_message
+        elsif object_size_pattern.match(l)
+          cpp.class_has_object_size
         end
       end
 
+      # If ::Info class has object_size method, we cannot simply return
+      # sizeof of it.
+      if l =~ /TypeInfo/
+        while l = f.gets
+          break if /^\s*class/.match(l)
+          cpp.class_has_object_size if object_size_pattern.match(l)
+        end
+      elsif l && m = l.match(/public\s+(\S+)::Info/)
+        # A class definition subclasses another Info class. Probably, should check
+        # here for object_size either if subclass doesn't have one.
+        superclass = @classes[m[1]]
+        cpp.class_has_object_size if superclass && superclass.class_has_object_size?
+      end
+
       cpp.num_fields = idx + 1
+      redo if l
     end
   end
 end
@@ -656,11 +682,17 @@ write_if_new 'vm/gen/includes.hpp' do |f|
 end
 
 write_if_new "vm/gen/typechecks.gen.cpp" do |f|
+  f.puts "size_t TypeInfo::instance_sizes[(int)LastObjectType] = {ObjectHeader::align(sizeof(Object))};"
   f.puts "void TypeInfo::auto_init(ObjectMemory* om) {"
   parser.classes.each do |n, cpp|
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
     f.puts "    ti->type_name = std::string(\"#{n}\");"
+    if cpp.class_has_object_size?
+      f.puts "    TypeInfo::instance_sizes[#{n}::type] = 0;"
+    else
+      f.puts "    TypeInfo::instance_sizes[#{n}::type] = ObjectHeader::align(sizeof(#{n}));"
+    end
     f.puts "    ti->instance_size = ObjectHeader::align(sizeof(#{n}));"
     f.puts "    om->type_info[#{n}::type] = ti;"
     f.puts "  }"

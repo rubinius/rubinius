@@ -4,7 +4,7 @@
 #include <map>
 #include <stdexcept>
 
-#include "vm/gc/object_mark.hpp"
+// #include "vm/gc/object_mark.hpp"
 #include "vm/object_types.hpp"
 #include "vm/prelude.hpp"
 
@@ -42,6 +42,7 @@ namespace rubinius {
 
     bool        instances_need_cleanup;
     size_t      instance_size;
+    static size_t instance_sizes[(int)LastObjectType];
     Slots       slots;
     object_type type;
     std::string type_name;
@@ -100,7 +101,10 @@ namespace rubinius {
     virtual void set_field(STATE, Object* target, size_t index, Object* val);
     virtual Object* get_field(STATE, Object* target, size_t index);
 
-    virtual size_t object_size(const ObjectHeader* object);
+    /**
+     * Slow case, should be called only if instance_size is zero
+     */
+    virtual size_t object_size(const ObjectHeader * obj);
 
     /**
      * Currently prints the same output as show_simple. Is specialized by

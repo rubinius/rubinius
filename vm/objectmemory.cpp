@@ -179,7 +179,7 @@ namespace rubinius {
   Object* ObjectMemory::allocate_object(size_t bytes) {
     Object* obj;
 
-    if(bytes > large_object_threshold) {
+    if(unlikely(bytes > large_object_threshold)) {
       obj = mark_sweep_.allocate(bytes, &collect_mature_now);
       if(collect_mature_now) {
         state->interrupts.check = true;
@@ -191,7 +191,7 @@ namespace rubinius {
 
     } else {
       obj = young.allocate(bytes, &collect_young_now);
-      if(obj == NULL) {
+      if(unlikely(obj == NULL)) {
         collect_young_now = true;
         state->interrupts.check = true;
 
