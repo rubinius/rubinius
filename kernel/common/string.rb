@@ -2044,6 +2044,7 @@ class String
 
   # Unshares shared strings.
   def modify!
+    raise TypeError.new("can't modify frozen string") if frozen?
     if @shared
       @data = @data.dup
       @shared = nil
