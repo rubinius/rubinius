@@ -523,7 +523,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling()))
-        profiler::Profiler::get(state)->enter_method(msg, args, cm);
+        state->profiler()->enter_method(msg, args, cm);
 #endif
 
       Object* ret = run_interpreter(state, vmm, frame);

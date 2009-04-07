@@ -137,17 +137,6 @@ namespace rubinius {
       delete top_;
     }
 
-    Profiler* Profiler::get(STATE) {
-      Profiler* profiler = state->profiler();
-
-      if(unlikely(!profiler)) {
-        profiler = new Profiler(state);
-        state->set_profiler(profiler);
-      }
-
-      return profiler;
-    }
-
     Symbol* Profiler::module_name(Module* module) {
       if(IncludedModule* im = try_as<IncludedModule>(module)) {
         return im->module()->name();
@@ -328,6 +317,7 @@ namespace rubinius {
       for(ProfilerMap::iterator iter = profilers_.begin();
           iter != profilers_.end();
           iter++) {
+        iter->first->remove_profiler();
         delete iter->second;
       }
     }
@@ -341,6 +331,8 @@ namespace rubinius {
       if(iter != profilers_.end()) {
         Profiler* profiler = iter->second;
         profiler->results(profile_.get());
+
+        iter->first->remove_profiler();
 
         delete iter->second;
         profilers_.erase(iter);

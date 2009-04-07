@@ -66,19 +66,32 @@ namespace rubinius {
     cf_locations_.remove(vm->call_frame_location());
   }
 
-  void SharedState::enable_profiling(STATE) {
-    profiler_collection = new profiler::ProfilerCollection(state);
+  void SharedState::enable_profiling(VM* vm) {
+    profiler_collection_ = new profiler::ProfilerCollection(vm);
     profiling_ = true;
   }
 
-  LookupTable* SharedState::disable_profiling(STATE) {
-    if(profiler_collection) {
-      LookupTable* profile = profiler_collection->results(state);
-      delete profiler_collection;
+  LookupTable* SharedState::disable_profiling(VM* vm) {
+    if(profiler_collection_) {
+      LookupTable* profile = profiler_collection_->results(vm);
+      delete profiler_collection_;
+      profiler_collection_ = 0;
       profiling_ = false;
       return profile;
     } else {
       return reinterpret_cast<LookupTable*>(Qnil);
+    }
+  }
+
+  void SharedState::add_profiler(VM* vm, profiler::Profiler* profiler) {
+    if(profiler_collection_) {
+      profiler_collection_->add_profiler(vm, profiler);
+    }
+  }
+
+  void SharedState::remove_profiler(VM* vm, profiler::Profiler* profiler) {
+    if(profiler_collection_) {
+      profiler_collection_->remove_profiler(vm, profiler);
     }
   }
 
@@ -108,7 +121,7 @@ namespace rubinius {
     alive_ = false;
     saved_call_frame_ = 0;
     if(profiler_) {
-      shared.profiler_collection->remove_profiler(this, profiler_);
+      shared.remove_profiler(this, profiler_);
     }
   }
 
@@ -465,8 +478,16 @@ namespace rubinius {
     check_local_interrupts = true;
   }
 
-  profiler::Profiler* VM::set_profiler(profiler::Profiler* profiler) {
-    shared.profiler_collection->add_profiler(this, profiler);
-    return profiler_ = profiler;
+  profiler::Profiler* VM::profiler() {
+    if(unlikely(!profiler_)) {
+      profiler_ = new profiler::Profiler(this);
+      shared.add_profiler(this, profiler_);
+    }
+
+    return profiler_;
+  }
+
+  void VM::remove_profiler() {
+    profiler_ = 0;
   }
 };

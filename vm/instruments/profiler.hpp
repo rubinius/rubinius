@@ -204,9 +204,6 @@ namespace rubinius {
       Profiler(STATE);
       ~Profiler();
 
-      static Profiler* get(STATE);
-      static LookupTable* results(STATE);
-
       Symbol* module_name(Module* module);
       void enter_method(Dispatch&, Arguments& args, CompiledMethod*);
       void enter_primitive(Dispatch&, Arguments& args);

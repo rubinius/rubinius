@@ -118,6 +118,7 @@ namespace rubinius {
     VariableRootBuffers root_buffers_;
     Handles global_handles_;
     bool profiling_;
+    profiler::ProfilerCollection* profiler_collection_;
 
   public:
     Globals globals;
@@ -127,7 +128,6 @@ namespace rubinius {
     Interrupts interrupts;
     SymbolTable symbols;
     ConfigParser *user_config;
-    profiler::ProfilerCollection* profiler_collection;
 
   public:
     SharedState(VMManager& manager, int id)
@@ -135,10 +135,10 @@ namespace rubinius {
       , initialized_(false)
       , id_(id)
       , profiling_(false)
+      , profiler_collection_(0)
       , om(0)
       , global_cache(0)
       , user_config(0)
-      , profiler_collection(NULL)
     {}
 
     ~SharedState();
@@ -187,9 +187,13 @@ namespace rubinius {
       return profiling_;
     }
 
-    void enable_profiling(STATE);
+    void enable_profiling(VM* vm);
 
-    LookupTable* disable_profiling(STATE);
+    LookupTable* disable_profiling(VM* vm);
+
+    void add_profiler(VM* vm, profiler::Profiler* profiler);
+
+    void remove_profiler(VM* vm, profiler::Profiler* profiler);
   };
 
   class VM {
@@ -316,10 +320,6 @@ namespace rubinius {
       }
 
       return true;
-    }
-
-    profiler::Profiler* profiler() {
-      return profiler_;
     }
 
     /* Prototypes */
@@ -449,7 +449,9 @@ namespace rubinius {
       return true;
     }
 
-    profiler::Profiler* set_profiler(profiler::Profiler* profiler);
+    profiler::Profiler* profiler();
+
+    void remove_profiler();
   };
 };
 

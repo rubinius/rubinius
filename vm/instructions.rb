@@ -2834,7 +2834,7 @@ class Instructions
     <<-CODE
     #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling()))
-      profiler::Profiler::get(state)->leave_method();
+      state->profiler()->leave_method();
     #endif
     return stack_top();
     CODE
