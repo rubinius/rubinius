@@ -58,7 +58,8 @@ class Class
       run args
       push_block
       send_with_splat :initialize, 0, true
-      pop
+      # no pop here, as .asm blocks imply a pop as they're not
+      # allowed to leak a stack value
     end
 
     return obj
