@@ -166,6 +166,11 @@ class Compiler
     end
 
     class AttrAssign < Call
+      # Calling a private setter method permits self as a receiver
+      def allow_private?
+        super || @object.kind_of?(Self)
+      end
+
       def bytecode(g, in_masgn = false)
         if in_masgn
           @in_masgn = true

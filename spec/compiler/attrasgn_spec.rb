@@ -103,7 +103,7 @@ describe "An Attrasgn node" do
       g.send :other_string, 0, true
       g.dup
       g.move_down 4
-      g.send :[]=, 3, false
+      g.send :[]=, 3, true
       g.pop
     end
   end
