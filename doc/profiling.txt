@@ -1,0 +1,76 @@
+# Profiling
+
+Rubinius has both an instrumenting profiler and a sampling profiler. (TODO:
+The sampling profiler has Ruby code left over from shotgun but no VM support
+code yet in the C++ VM.) An instrumenting profiler inserts or uses code around
+every call. Calls can be to regular Ruby methods, Procs, blocks, FFI
+functions, and native C-API functions. A sampling profiler takes a snapshot of
+what method is executing at regular intervals.
+
+## VM Profiler
+
+The cast of characters involved in creating and maintaining the profiler
+include VM, SharedState, ProfilerCollection, and Profiler. The VM class is a
+thread local data structure. Each VM instance gets a separate Profiler
+instance. The SharedState instance has a ProfilerCollection instance that maps
+VMs to Profilers and generates the composite results of all the Profilers.
+
+The Profiler lives and dies in its own world. The profiler is passed a VM
+instance when it is created because the profiler needs access to it while it
+is gathering info. The STATE argument could be passed into all the profiler
+methods, but it's simple enough to pass it in when the profiler is created.
+The profiler never manipulates the VM instance. It is important to maintain
+this separation.
+
+The VM instance lazily creates its Profiler instance when needed. The VM
+registers the profiler with the SharedState.
+
+The SharedState maintains the ProfilerCollection instance and forwards calls
+to register or remove profilers.
+
+The ProfilerCollection instance requests that the VM instance mapped to a
+profiler removes the profiler when the profiler will be deleted.
+
+## Ruby Profiler
+
+In Ruby land, the Rubinius::Profiler::Instrumenter instance exposes nothing
+about the multi-threaded reality in the VM. The individual C++ Profiler
+instances are not exposed to Ruby. In Ruby, a profiler instance is created.
+That instance can simply start and stop the VM profiler. When the profiler is
+stopped, info about the profiling is returned in a LookupTable. The Ruby
+profiler code can display that info using the #show method.
+
+Rubinius provides a compatible standard library profile.rb and profiler.rb.
+Refer to MRI documentation on how to use those.
+
+Looking at lib/profiler.rb, you can see the basic steps for using the profiler
+from Ruby code.
+
+  # create a profiler instance
+  profiler = Rubinius::Profiler::Instrumenter.new
+
+  # start the profiler
+  profiler.start
+
+  # stop the profiler
+  profiler.stop
+
+  # get the profile data
+  data = profiler.info
+
+  # or print out the profiler info
+  profiler.show  # takes on IO object, defaults to STDOUT
+
+You can also use a convenience method to profile work in a block.
+
+  # create a profiler instance
+  profiler = Rubinius::Profiler::Instrumenter.new
+
+  # profile some work
+  profiler.profile do
+    # some work
+  end
+
+The #profile method starts the profiler, yields, stops the profiler and prints
+the profile data by default. Pass 'false' to #profile to not print the data.
+Either way, the profile data itself is returned by #profile.
