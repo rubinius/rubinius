@@ -28,7 +28,7 @@ namespace rubinius {
     int flags;
     int args;
     int ip;
-    int native_ip;
+    intptr_t native_ip;
 
     int stack_size;
     struct jit_state js;
@@ -136,7 +136,7 @@ namespace rubinius {
     }
 
     void set_native_ip(void * new_ip) {
-      native_ip = (int)new_ip;
+      native_ip = reinterpret_cast<intptr_t>(new_ip);
     }
 
     // Manage the dynamic Unwind stack for this context
