@@ -144,11 +144,12 @@ namespace rubinius {
     Object* recv = args.get_argument(0);
     Module* mod  = as<Module>(args.get_argument(1));
     Array*  ary = as<Array>(args.get_argument(2));
-    // Leave msg.block set and pass it through.
 
     Dispatch disp(meth->name(), mod, meth);
     Arguments new_args(recv, 0, 0);
+
     new_args.use_array(ary);
+    new_args.set_block(args.block());
 
     // NOTE even when we're activating a method_missing, we don't
     // push the name given, because there really isn't one. So if

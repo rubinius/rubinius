@@ -69,7 +69,12 @@ class CompiledMethod < Executable
     @scope = other.scope
   end
 
-  def activate(recv, mod, args, locals=nil, &prc)
+  # Invoke method directly.
+  #
+  # @note The explicit block argument is unnecessary, but
+  #       present for completeness.
+  #
+  def activate(recv, mod, args, locals = nil, &prc)
     Ruby.primitive :compiledmethod_activate
     raise PrimitiveFailure, "Unable to call #{@name} on #{recv.inspect}"
   end
