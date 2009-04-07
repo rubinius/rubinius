@@ -1,43 +1,5 @@
 module Rubinius::Profiler
 
-  # This is the set of Rubinius implementation classes/methods to filter.
-  # It is not a complete list. Filtering is provided merely to reduce the
-  # noise for user code (i.e. people using Rubinius but not developing it).
-  KERNEL_CLASSES = Regexp.new %w[
-    ^AccessVariable
-    ^BlockEnvironment
-    ^Buffer
-    ^ByteArray
-    ^CompactLookupTable
-    ^CompiledMethod
-    ^Compiler
-    ^ContextState
-    ^Executable
-    ^FFI
-    ^GlobalVariables
-    ^IncludedModule
-    ^InstructionSequence
-    ^InstructionSet
-    ^LookupTable
-    ^MethodTable
-    ^RecursionGuard
-    ^Rubinius
-    ^Scheduler
-    ^Sexp
-    ^SendSite
-    ^Sprintf
-    ^StaticScope
-    ^Tuple
-    ^VariableScope
-    ^Visibility
-    .__class_init__
-    .__module_init__
-    #__metaclass_init__
-    #__verify_metaclass__
-    .__metaclass__
-    #set_class_visibility
-  ].join("|")
-
   ##
   # Interface to VM's instrumenting profiler.
 
@@ -46,16 +8,6 @@ module Rubinius::Profiler
 
     SEC_PER_NS = 1.0e-9
     MS_PER_NS  = 1.0e-6
-
-    # If +filter+ is true, omit Rubinius implementation classes from the
-    # profile. The core library classes are still shown. If +filter+ is
-    # false, show all called methods.
-    #
-    # The filtering is on by default (e.g. when running with -rprofile),
-    # as a convenience for user code.
-    def initialize(filter = true)
-      @filter = filter
-    end
 
     def start
       Ruby.primitive :vm_profiler_instrumenter_start
