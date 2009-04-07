@@ -28,7 +28,7 @@ namespace rubinius {
     if(roots == r) {
 
       // We don't add the root until it's got an object.
-      if(!object) roots->add(this);
+      if(!object && obj) roots->add(this);
       object = obj;
 
     // Moving to a new set. Remove ourselves from
