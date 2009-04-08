@@ -149,8 +149,8 @@ namespace rubinius {
       record_method(cm, msg.name, module_name(msg.module), kBlock);
     }
 
-    void Profiler::enter_primitive(Dispatch& msg, Arguments& args) {
-      enter_method(msg, args, (CompiledMethod*)Qnil);
+    void Profiler::enter_method(Dispatch& msg, Arguments& args) {
+      enter_method(msg, args, reinterpret_cast<CompiledMethod*>(Qnil));
     }
 
     void Profiler::enter_method(Dispatch &msg, Arguments& args, CompiledMethod* cm) {

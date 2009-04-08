@@ -113,7 +113,7 @@ public:
     TS_ASSERT(prof.find_key(key1));
   }
 
-  void test_enter_primitive() {
+  void test_enter_method_with_no_compiledmethod() {
     Symbol* meth = state->symbol("meth");
     Symbol* klass = state->symbol("Object");
 
@@ -125,7 +125,7 @@ public:
     Dispatch dis(meth, G(object), cm);
     Arguments args;
 
-    prof.enter_primitive(dis, args);
+    prof.enter_method(dis, args);
     TS_ASSERT_EQUALS(prof.depth(), 1U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 1U);
 
@@ -134,7 +134,7 @@ public:
 
     dis.module = G(object)->metaclass(state);
 
-    prof.enter_primitive(dis, args);
+    prof.enter_method(dis, args);
     TS_ASSERT_EQUALS(prof.depth(), 2U);
     TS_ASSERT_EQUALS(prof.number_of_entries(), 2U);
 

@@ -25,7 +25,9 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 
-#include "vm/builtin/nativefunction.hpp"
+#include "builtin/nativefunction.hpp"
+
+#include "instruments/profiler.hpp"
 
 #include "native_libraries.hpp"
 
@@ -44,7 +46,17 @@ namespace rubinius {
 
     state->set_call_frame(call_frame);
 
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->enter_method(msg, args);
+#endif
+
     Object* obj = nfunc->call(state, args);
+
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->leave_method();
+#endif
 
     return obj;
   }

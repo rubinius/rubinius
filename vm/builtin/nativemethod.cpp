@@ -16,6 +16,8 @@
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
 
+#include "instruments/profiler.hpp"
+
 #include "capi/capi.hpp"
 
 namespace rubinius {
@@ -217,6 +219,11 @@ namespace rubinius {
 
     NativeMethod* nm = as<NativeMethod>(msg.method);
 
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->enter_method(msg, args);
+#endif
+
     Object* ret;
     ExceptionPoint ep(env);
 
@@ -227,6 +234,11 @@ namespace rubinius {
     } else {
       ret = nm->call(state, env, args);
     }
+
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->leave_method();
+#endif
 
     env->current_native_frame()->flush_cached_data(true);
     env->set_current_native_frame(nmf.previous());
