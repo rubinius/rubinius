@@ -32,6 +32,11 @@ describe IOStub do
     @out.should == "hello\n1\n2\n3\n"
   end
 
+  it "provides a printf method" do
+    @out.printf "%-10s, %03d, %2.1f", "test", 42, 4.2
+    @out.should == "test      , 042, 4.2"
+  end
+
   it "provides a flush method that does nothing and returns self" do
     @out.flush.should == @out
   end

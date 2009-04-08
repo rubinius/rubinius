@@ -11,6 +11,10 @@ class IOStub < String
     write(str.collect { |s| s.to_s.chomp }.concat([nil]).join("\n"))
   end
 
+  def printf(format, *args)
+    self << sprintf(format, *args)
+  end
+
   def flush
     self
   end
