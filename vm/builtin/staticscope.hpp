@@ -34,6 +34,9 @@ namespace rubinius {
     static void init(STATE);
     static StaticScope* create(STATE);
 
+    // Ruby.primitive :static_scope_of_sender
+    static StaticScope* of_sender(STATE, CallFrame* calling_environment);
+
     // The module to use when adding and removing methods
     Module* for_method_definition();
 

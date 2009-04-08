@@ -38,7 +38,7 @@ class Module
     @method_table = MethodTable.new
     @constants = LookupTable.new
 
-    _eval_under(self, &block) if block
+    module_eval(&block) if block
   end
 
   def verify_class_variable_name(name)

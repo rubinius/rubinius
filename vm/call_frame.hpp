@@ -19,7 +19,7 @@ namespace rubinius {
     };
 
     CallFrame* previous;
-    Object* saved_proxy;
+    StaticScope* static_scope;
 
     bool is_block;
     Symbol* name;
@@ -165,5 +165,7 @@ namespace rubinius {
     bool scope_still_valid(VariableScope* scope);
   };
 };
+
+#define ALLOCA_CALLFRAME(vmm) ((CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*))))
 
 #endif

@@ -38,7 +38,7 @@ namespace rubinius {
     if(self) {
       self_ = self;
     } else {
-      self_ =   top->self();
+      self_ = parent->self();
     }
 
     method_ = cm;

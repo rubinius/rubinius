@@ -32,15 +32,22 @@ module Kernel
   # Obtain binding here for future evaluation/execution context.
   #
   def binding()
-    return Binding.setup(VariableScope.of_sender, CompiledMethod.of_sender)
+    return Binding.setup(
+      VariableScope.of_sender,
+      CompiledMethod.of_sender,
+      StaticScope.of_sender)
+
   end
   module_function :binding
 
   # Evaluate and execute code given in the String.
   #
-  def eval(string, binding = nil, filename = "(eval)", lineno = 1)
+  def eval(string, binding=nil, filename="(eval)", lineno=1)
     if !binding
-      binding = Binding.setup VariableScope.of_sender, CompiledMethod.of_sender
+      binding = Binding.setup(VariableScope.of_sender,
+                              CompiledMethod.of_sender,
+                              StaticScope.of_sender)
+
     elsif binding.__kind_of__ Proc
       binding = binding.binding
     elsif !binding.__kind_of__ Binding
@@ -50,7 +57,8 @@ module Kernel
     context = Compiler::Context.new binding.variables, binding.code
 
     compiled_method = Compiler::Utils.compile_string string, context, filename, lineno
-    compiled_method.scope = binding.code.scope.dup
+    compiled_method.scope = binding.static_scope
+    compiled_method.name = :__eval__
 
     yield compiled_method if block_given?
 
@@ -101,17 +109,15 @@ module Kernel
   #   k = Klass.new
   #   k.instance_eval { @secret }   #=> 99
 
-  def instance_eval(string = nil, filename = "(eval)", line = 1, modeval = false, binding = nil, &prc)
+  def instance_eval(string=nil, filename="(eval)", line=1, binding=nil, &prc)
     if prc
       if string
         raise ArgumentError, 'cannot pass both a block and a string to evaluate'
       end
       # Return a copy of the BlockEnvironment with the receiver set to self
-      env = prc.block.redirect_to self
-      env.method.scope = env.method.scope.using_current_as(__metaclass__)
-      original_scope = prc.block.method.scope
-      env.constant_scope = original_scope
-      return env.call(*self)
+      env = prc.block
+      static_scope = env.method.scope.using_current_as(__metaclass__)
+      return env.call_under(self, static_scope, self)
     elsif string
       string = StringValue(string)
 
@@ -122,17 +128,7 @@ module Kernel
       end
 
       compiled_method = Compiler::Utils.compile_string string, context, filename, line
-      compiled_method.inherit_scope context.method
-
-      # If this is a module_eval style evaluation, add self to the top of the
-      # staticscope chain, so that methods and such are added directly to it.
-      if modeval
-        compiled_method.scope = StaticScope.new(self, compiled_method.scope)
-      else
-
-        # Otherwise add our metaclass, so thats where new methods go.
-        compiled_method.scope = StaticScope.new(metaclass, compiled_method.scope)
-      end
+      compiled_method.scope = StaticScope.of_sender.using_current_as(metaclass)
       compiled_method.compile
 
       # This has to be setup so __FILE__ works in eval.
@@ -149,6 +145,45 @@ module Kernel
     end
   end
 
+  ##
+  # :call-seq:
+  #   obj.instance_exec(arg, ...) { |var,...| block }  => obj
+  #
+  # Executes the given block within the context of the receiver +obj+. In
+  # order to set the context, the variable +self+ is set to +obj+ while the
+  # code is executing, giving the code access to +obj+'s instance variables.
+  #
+  # Arguments are passed as block parameters.
+  #
+  #   class Klass
+  #     def initialize
+  #       @secret = 99
+  #     end
+  #   end
+  #
+  #   k = Klass.new
+  #   k.instance_exec(5) {|x| @secret+x }   #=> 104
+
+  def instance_exec(*args, &prc)
+    raise ArgumentError, "Missing block" unless block_given?
+    env = prc.block
+    static_scope = StaticScope.of_sender.using_current_as(__metaclass__)
+    return env.call_under(self, static_scope, self)
+  end
+
+  def __scope_info__
+    variables = VariableScope.of_sender
+    method = CompiledMethod.of_sender
+
+    puts "CM / Scope / CM for defn"
+    p method
+    scope = StaticScope.of_sender
+    p scope
+    p scope.for_method_definition
+
+    p method.scope
+    p method.scope.for_method_definition
+  end
 end
 
 class Module
@@ -159,7 +194,7 @@ class Module
   # intermediate binding.
   #++
 
-  def module_eval(string = Undefined, filename = "(eval)", line = 1, &prc)
+  def module_eval(string=Undefined, filename="(eval)", line=1, &prc)
     # we have a custom version with the prc, rather than using instance_exec
     # so that we can setup the StaticScope properly.
     if prc
@@ -167,9 +202,10 @@ class Module
         raise ArgumentError, "cannot pass both string and proc"
       end
 
-      env = prc.block.redirect_to self
-      env.method.scope = StaticScope.new(self, env.method.scope)
-      return env.call()
+      # Return a copy of the BlockEnvironment with the receiver set to self
+      env = prc.block
+      static_scope = env.method.scope.using_current_as(self)
+      return env.call_under(self, static_scope, self)
     elsif string.equal?(Undefined)
       raise ArgumentError, 'block not supplied'
     end
@@ -184,7 +220,7 @@ class Module
     compiled_method = Compiler::Utils.compile_string string, context, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
-    ss = StaticScope.new(self, method.scope)
+    ss = StaticScope.new self, StaticScope.of_sender
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
@@ -199,21 +235,7 @@ class Module
     be = BlockEnvironment.new
     be.from_eval!
     be.under_context variables, compiled_method
-    be.make_independent
-    be.receiver = self
-    # open_module and friends in the VM use this field to determine scope
-    # be.method.scope = ss
-    be.call
+    be.call_under self, ss, self
   end
   alias_method :class_eval, :module_eval
-
-  def _eval_under(*args, &block)
-    raise "not yet" unless block
-
-    env = block.block.redirect_to self
-    env.method.scope = StaticScope.new(self, env.method.scope)
-
-    return env.call(*args)
-  end
-  private :_eval_under
 end

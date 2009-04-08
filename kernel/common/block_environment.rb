@@ -14,7 +14,6 @@ class BlockEnvironment
 
   attr_accessor :proc_environment
   attr_accessor :metadata_container
-  attr_writer   :constant_scope # Static scope for constant lookup
 
   def from_proc?
     @proc_environment
@@ -51,24 +50,12 @@ class BlockEnvironment
     @scope = @scope.dup
   end
 
-  def redirect_to(obj)
-    env = dup
-    env.make_independent
-    env.receiver = obj
-    return env
-  end
-
   def call_on_instance(obj, *args)
-    obj = redirect_to(obj)
-    obj.call(*args)
+    call_under obj, method.scope, *args
   end
 
   def arity
     method.required_args
-  end
-
-  def constant_scope
-    @constant_scope ||= @method.scope
   end
 
   def disable_long_return!

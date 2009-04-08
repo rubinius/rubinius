@@ -55,6 +55,9 @@ namespace rubinius {
 
     Object* call_on_object(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
 
+    // Ruby.primitive? :block_call_under
+    Object* call_under(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
+
     BlockEnvironment* dup(STATE);
 
     class Info : public TypeInfo {

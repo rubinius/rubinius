@@ -32,17 +32,19 @@
 class Binding
   attr_accessor :variables
   attr_accessor :code
+  attr_accessor :static_scope
   attr_accessor :proc_environment
 
   def from_proc?
     @proc_environment
   end
 
-  def self.setup(variables, code)
+  def self.setup(variables, code, static_scope)
     bind = allocate()
 
     bind.variables = variables
     bind.code = code
+    bind.static_scope = static_scope
     return bind
   end
 end

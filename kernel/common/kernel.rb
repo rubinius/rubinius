@@ -443,32 +443,6 @@ module Kernel
   end
 
   ##
-  # :call-seq:
-  #   obj.instance_exec(arg, ...) { |var,...| block }  => obj
-  #
-  # Executes the given block within the context of the receiver +obj+. In
-  # order to set the context, the variable +self+ is set to +obj+ while the
-  # code is executing, giving the code access to +obj+'s instance variables.
-  #
-  # Arguments are passed as block parameters.
-  #
-  #   class Klass
-  #     def initialize
-  #       @secret = 99
-  #     end
-  #   end
-  #
-  #   k = Klass.new
-  #   k.instance_exec(5) {|x| @secret+x }   #=> 104
-
-  def instance_exec(*args, &prc)
-    raise ArgumentError, "Missing block" unless block_given?
-    env = prc.block.redirect_to self
-    env.method.scope = StaticScope.new(metaclass, env.method.scope)
-    env.call(*args)
-  end
-
-  ##
   # Returns true if this object is an instance of the given class, otherwise
   # false. Raises a TypeError if a non-Class object given.
   #

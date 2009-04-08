@@ -13,6 +13,7 @@
 #include "builtin/compiledmethod.hpp"
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
+#include "builtin/staticscope.hpp"
 
 namespace rubinius {
 
@@ -99,6 +100,11 @@ namespace rubinius {
   void GarbageCollector::walk_call_frame(CallFrame* top_call_frame) {
     CallFrame* call_frame = top_call_frame;
     while(call_frame) {
+      if(call_frame->static_scope && call_frame->static_scope->reference_p()) {
+        call_frame->static_scope =
+          (StaticScope*)mark_object(call_frame->static_scope);
+      }
+
       if(call_frame->name && call_frame->name->reference_p()) {
         call_frame->name = (Symbol*)mark_object(call_frame->name);
       }
@@ -160,6 +166,11 @@ namespace rubinius {
   void GarbageCollector::visit_call_frame(CallFrame* top_call_frame, ObjectVisitor& visit) {
     CallFrame* call_frame = top_call_frame;
     while(call_frame) {
+      if(call_frame->static_scope && call_frame->static_scope->reference_p()) {
+        call_frame->static_scope =
+          (StaticScope*)visit.call(call_frame->static_scope);
+      }
+
       if(call_frame->name && call_frame->name->reference_p()) {
         call_frame->name = (Symbol*)visit.call(call_frame->name);
       }

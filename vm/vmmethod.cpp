@@ -500,10 +500,11 @@ namespace rubinius {
 
       scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
 
-      CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+      CallFrame* frame = ALLOCA_CALLFRAME(vmm);
       frame->prepare(vmm->stack_size);
 
       frame->previous = previous;
+      frame->static_scope = cm->scope();
       frame->name =     msg.name;
       frame->cm =       cm;
       frame->args =     args.total();

@@ -2,6 +2,7 @@
 #include "prelude.hpp"
 #include "builtin/class.hpp"
 #include "builtin/staticscope.hpp"
+#include "call_frame.hpp"
 
 namespace rubinius {
   void StaticScope::init(STATE) {
@@ -19,5 +20,13 @@ namespace rubinius {
     }
 
     return current_module_;
+  }
+
+  StaticScope* StaticScope::of_sender(STATE, CallFrame* calling_environment) {
+    if(calling_environment->previous) {
+      return calling_environment->previous->static_scope;
+    }
+
+    return (StaticScope*)Qnil;
   }
 }

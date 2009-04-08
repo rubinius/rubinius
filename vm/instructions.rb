@@ -138,8 +138,9 @@ class Instructions
     Module* mod = as<Module>(obj);
     StaticScope* scope = StaticScope::create(state);
     scope->module(state, mod);
-    scope->parent(state, call_frame->cm->scope());
+    scope->parent(state, call_frame->static_scope);
     call_frame->cm->scope(state, scope);
+    call_frame->static_scope = scope;
     CODE
   end
 
@@ -624,7 +625,7 @@ class Instructions
     call_frame->promote_scope(state);
 
     // TODO: We don't need to be doing this everytime.
-    cm->scope(state, call_frame->cm->scope());
+    cm->scope(state, call_frame->static_scope);
 
     Object* be = BlockEnvironment::under_call_frame(state, cm, vmm, call_frame, index);
 
@@ -2158,7 +2159,7 @@ class Instructions
     Object* res = Helpers::const_get(state, call_frame, sym, &found);
     if(!found) {
       Module* under;
-      StaticScope* scope = call_frame->cm->scope();
+      StaticScope* scope = call_frame->static_scope;
       if(scope->nil_p()) {
         under = G(object);
       } else {
@@ -2249,7 +2250,7 @@ class Instructions
         res = assoc->value();
       } else {
         Module* under;
-        StaticScope* scope = call_frame->cm->scope();
+        StaticScope* scope = call_frame->static_scope;
         if(scope->nil_p()) {
           under = G(object);
         } else {
@@ -2716,7 +2717,7 @@ class Instructions
 
   def push_scope
     <<-CODE
-    stack_push(call_frame->cm->scope());
+    stack_push(call_frame->static_scope);
     CODE
   end
 
@@ -3567,7 +3568,7 @@ class Instructions
   def set_const(index)
     <<-CODE
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
-    call_frame->cm->scope()->module()->set_const(state, sym, stack_top());
+    call_frame->static_scope->module()->set_const(state, sym, stack_top());
     CODE
   end
 

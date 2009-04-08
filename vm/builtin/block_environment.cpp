@@ -18,6 +18,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/system.hpp"
+#include "builtin/staticscope.hpp"
 
 #include <iostream>
 
@@ -59,11 +60,13 @@ namespace rubinius {
 
     scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals);
 
-    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    CallFrame* frame = ALLOCA_CALLFRAME(vmm);
     frame->prepare(vmm->stack_size);
 
     frame->is_block = true;
     frame->previous = call_frame;
+    frame->static_scope = method_->scope();
+
     frame->name =     name_;
     frame->cm =       method_;
     frame->args =     args;
@@ -100,11 +103,13 @@ namespace rubinius {
 
     scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals);
 
-    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    CallFrame* frame = ALLOCA_CALLFRAME(vmm);
     frame->prepare(vmm->stack_size);
 
     frame->is_block = true;
     frame->previous = call_frame;
+    frame->static_scope = method_->scope();
+
     frame->name =     name_;
     frame->cm =       method_;
     frame->args =     args.total();
@@ -154,17 +159,77 @@ namespace rubinius {
 
     scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals, recv);
 
-    CallFrame* frame = (CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*)));
+    CallFrame* frame = ALLOCA_CALLFRAME(vmm);
     frame->prepare(vmm->stack_size);
 
     frame->is_block = true;
     frame->previous = call_frame;
+    frame->static_scope = method_->scope();
+
     frame->name =     name_;
     frame->cm =       method_;
     frame->args =     args.total();
     frame->scope =    scope;
     frame->top_scope = top_scope_;
     frame->flags =    flags;
+
+    // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
+
+    frame->push(val);
+    return VMMethod::run_interpreter(state, vmm, frame);
+  }
+
+  /** @todo See above. --emp */
+  Object* BlockEnvironment::call_under(STATE, Executable* exec,
+      CallFrame* call_frame, Dispatch& msg, Arguments& args) {
+
+    Object* val;
+
+    if(args.total() < 2) {
+      Exception* exc =
+        Exception::make_argument_error(state, 2, args.total(), state->symbol("__block__"));
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    }
+
+    Object* recv = args.get_argument(0);
+    StaticScope* static_scope = as<StaticScope>(args.get_argument(1));
+
+    if(args.total() > 2) {
+      Tuple* tup = Tuple::create(state, args.total() - 2);
+      for(size_t i = 0, j = 2; j < args.total(); i++, j++) {
+        tup->put(state, i, args.get_argument(j));
+      }
+
+      val = tup;
+    } else {
+      val = Qnil;
+    }
+
+    if(!vmm) {
+      method_->formalize(state, false);
+      vmm = method_->backend_method_;
+    }
+
+    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
+                               (vmm->number_of_locals * sizeof(Object*)));
+
+    scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals, recv);
+
+    CallFrame* frame = ALLOCA_CALLFRAME(vmm);
+    frame->prepare(vmm->stack_size);
+
+    frame->is_block = true;
+    frame->previous = call_frame;
+    frame->static_scope = static_scope;
+
+    frame->name =     name_;
+    frame->cm =       method_;
+    frame->args =     args.total();
+    frame->scope =    scope;
+    frame->top_scope = top_scope_;
+    frame->flags =    0;
 
     // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
 
