@@ -160,17 +160,42 @@ class Compiler
 
       return [scope, block_scopes, all_scopes, @context]
     else
+      all_scopes = []
+      block_scopes = []
+      dynamic = []
+
+      vars = ctx.variables
+      while vars.parent
+        scope = LocalScope.new(nil)
+        scope.from_eval = true
+        block_scopes.unshift scope
+        all_scopes << scope
+
+        # TODO should check for from_eval here?
+        if names = vars.method.local_names
+          i = 0
+          names.each do |name|
+            scope[name].created_in_block! i
+            i += 1
+          end
+        end
+
+        vars = vars.parent
+      end
+
       scope = LocalScope.new(nil)
       scope.from_eval = true
+      all_scopes << scope
+
       i = 0
-      if names = ctx.method.local_names
+      if names = vars.method.local_names
         names.each do |name|
           scope[name].slot = i
           i += 1
         end
       end
 
-      return [scope, [], [scope], @context]
+      return [all_scopes.first, block_scopes, all_scopes, @context]
     end
   end
 

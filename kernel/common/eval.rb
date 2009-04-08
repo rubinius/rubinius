@@ -109,7 +109,7 @@ module Kernel
   #   k = Klass.new
   #   k.instance_eval { @secret }   #=> 99
 
-  def instance_eval(string=nil, filename="(eval)", line=1, binding=nil, &prc)
+  def instance_eval(string=nil, filename="(eval)", line=1, &prc)
     if prc
       if string
         raise ArgumentError, 'cannot pass both a block and a string to evaluate'
@@ -121,15 +121,23 @@ module Kernel
     elsif string
       string = StringValue(string)
 
-      if binding
-        context = binding.context
-      else
-        context = MethodContext.current.sender
-      end
+      binding = Binding.setup(VariableScope.of_sender,
+                              CompiledMethod.of_sender,
+                              StaticScope.of_sender)
+
+      # p string
+      # p binding.code.local_names
+      # p binding.variables
+      # p binding.variables.parent
+
+      context = Compiler::Context.new binding.variables, binding.code
 
       compiled_method = Compiler::Utils.compile_string string, context, filename, line
-      compiled_method.scope = StaticScope.of_sender.using_current_as(metaclass)
+      compiled_method.scope = binding.static_scope.using_current_as(metaclass)
+      compiled_method.name = :__instance_eval__
       compiled_method.compile
+
+      # puts compiled_method.decode
 
       # This has to be setup so __FILE__ works in eval.
       script = CompiledMethod::Script.new
@@ -138,7 +146,7 @@ module Kernel
 
       be = BlockEnvironment.new
       be.from_eval!
-      be.under_context context, compiled_method
+      be.under_context binding.variables, compiled_method
       be.call_on_instance(self)
     else
       raise ArgumentError, 'block not supplied'

@@ -88,7 +88,7 @@ class Compiler
     attr_reader :name
 
     def inspect
-      "#<#{self.class} #{@name} @on_stack = #{@on_stack.inspect}, @slot = #{@slot.inspect}, @stack_position = #{@stack_position.inspect}, @position = #{@position.inspect}, @on_block = #{@on_block.inspect}>"
+      "#<#{self.class} #{@name} @slot=#{@slot.inspect}, @on_block=#{@on_block.inspect}>"
     end
 
     attr_reader :name

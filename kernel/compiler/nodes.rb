@@ -1059,8 +1059,6 @@ raise "no"
           return normal
         end
 
-        return super(name, in_block, allocate) if allocate and in_block
-
         existing = false
 
         unless allocate
