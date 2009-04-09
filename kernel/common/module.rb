@@ -242,22 +242,25 @@ class Module
   def public_method_defined?(sym)
     sym = StringValue(sym) unless sym.is_a? Symbol
     m = find_method_in_hierarchy sym
-    m &&= Tuple[:public, m] unless m.is_a? Tuple
-    m ? m.first == :public : false
+    m ? m.public? : false
+    #m &&= Tuple[:public, m] unless m.is_a? Tuple
+    #m ? m.first == :public : false
   end
 
   def private_method_defined?(sym)
     sym = StringValue(sym) unless sym.is_a? Symbol
     m = find_method_in_hierarchy sym
-    m &&= Tuple[:public, m] unless m.is_a? Tuple
-    m ? m.first == :private : false
+    m ? m.private? : false
+    #m &&= Tuple[:public, m] unless m.is_a? Tuple
+    #m ? m.first == :private : false
   end
 
   def protected_method_defined?(sym)
     sym = StringValue(sym) unless sym.is_a? Symbol
     m = find_method_in_hierarchy sym
-    m &&= Tuple[:public, m] unless m.is_a? Tuple
-    m ? m.first == :protected : false
+    m ? m.protected? : false
+    #m &&= Tuple[:public, m] unless m.is_a? Tuple
+    #m ? m.first == :protected : false
   end
 
   def method_defined?(sym)
@@ -595,6 +598,10 @@ class Module
     mod
   end
 
+  def illegal_const(name)
+    raise NameError, "constant names must begin with a capital letter: #{name}"
+  end
+
   def const_missing(name)
     raise NameError, "Missing or uninitialized constant: #{name}"
   end
@@ -680,7 +687,11 @@ class Module
   end
 
   def remove_const(name)
-    name = StringValue name unless name.kind_of? Symbol
+    unless name.kind_of? Symbol
+      name = StringValue name
+      illegal_const(name) unless name[0].isupper
+    end
+    
     sym = name.to_sym
     unless constants_table.has_key?(sym)
       return const_missing(name)
