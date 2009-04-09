@@ -12,6 +12,9 @@
 #
 class NativeMethod < Executable
 
+  attr_reader :file
+  attr_reader :name
+
   #
   # Returns true if library loads successfully.
   #

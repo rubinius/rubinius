@@ -236,13 +236,27 @@ namespace rubinius {
     /** Arity of the method. @see Arity. */
     Fixnum* arity_;                                   // slot
     /** C file in which rb_define_method called. */
-    String* file_name_;                               // slot
+    String* file_;                                    // slot
     /** Name given at creation time. */
-    Symbol* method_name_;                             // slot
+    Symbol* name_;                                    // slot
     /** Module on which created. */
     Module* module_;                                  // slot
     /** Function object that implements this method. */
     MemoryPointer* functor_;                          // slot
+
+  public:   /* Accessors */
+
+    /** Arity of the method within. @see Arity. */
+    attr_accessor(arity, Fixnum);
+    /** C file in which rb_define_method called. */
+    attr_accessor(file, String);
+    /** Name given at creation time. */
+    attr_accessor(name, Symbol);
+    /** Module on which created. */
+    attr_accessor(module, Module);
+    /** Function object that implements this method. */
+    attr_accessor(functor, MemoryPointer);
+
 
   public:   /* Ruby bookkeeping */
 
@@ -280,8 +294,8 @@ namespace rubinius {
         NativeMethod* nmethod = state->new_object<NativeMethod>(G(nmethod));
 
         nmethod->arity(state, arity);
-        nmethod->file_name(state, file_name);
-        nmethod->method_name(state, method_name);
+        nmethod->file(state, file_name);
+        nmethod->name(state, method_name);
         nmethod->module(state, module);
 
         nmethod->functor(state, MemoryPointer::create(state, reinterpret_cast<void*>(functor)));
@@ -296,20 +310,6 @@ namespace rubinius {
 
     /** Allocate a functional but empty NativeMethod. */
     static NativeMethod* allocate(VM* state);
-
-
-  public:   /* Accessors */
-
-    /** Arity of the method within. @see Arity. */
-    attr_accessor(arity, Fixnum);
-    /** C file in which rb_define_method called. */
-    attr_accessor(file_name, String);
-    /** Name given at creation time. */
-    attr_accessor(method_name, Symbol);
-    /** Module on which created. */
-    attr_accessor(module, Module);
-    /** Function object that implements this method. */
-    attr_accessor(functor, MemoryPointer);
 
 
   public:   /* Class Interface */
