@@ -320,6 +320,15 @@ class CompiledMethod < Executable
     file
   end
 
+  def arity()
+    if @required_args == @total_args and
+       @splat.nil?
+      @required_args
+    else
+      -(@required_args + 1)
+    end
+  end
+
   # Represents virtual machine's CPU instruction.
   # Instructions are organized into instruction
   # sequences known as iSeq, forming body
