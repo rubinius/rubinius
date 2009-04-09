@@ -119,7 +119,7 @@ module ObjectSpace
     end
 
     @finalizers[obj.object_id] = [WeakRef.new(obj), prc]
-    return nil
+    [0, prc]
   end
 
   def self.undefine_finalizer(obj)
