@@ -8,7 +8,6 @@ namespace rubinius {
   class CompiledMethod;
   class VariableScope;
   class CallFrame;
-  class BlockContext;
   class Message;
   class VMMethod;
   class VMExecutable;
@@ -48,7 +47,6 @@ namespace rubinius {
 
     Object* call(STATE, CallFrame* call_frame, size_t args, int flags=0);
     Object* call(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
-    BlockContext* create_context(STATE, MethodContext* sender);
 
     // Ruby.primitive? :block_call
     Object* call_prim(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);

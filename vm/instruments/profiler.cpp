@@ -145,8 +145,8 @@ namespace rubinius {
       }
     }
 
-    void Profiler::enter_block(Dispatch& msg, CompiledMethod* cm) {
-      record_method(cm, msg.name, module_name(msg.module), kBlock);
+    void Profiler::enter_block(Symbol* name, Module* module, CompiledMethod* cm) {
+      record_method(cm, name, module_name(module), kBlock);
     }
 
     void Profiler::enter_method(Dispatch& msg, Arguments& args) {
@@ -195,7 +195,7 @@ namespace rubinius {
       return method;
     }
 
-    void Profiler::leave_method() {
+    void Profiler::leave() {
       // Depending on when we started profiling, there could be calls
       // above the first time we entered a method, so ignore these.
       if(running_.empty()) return;

@@ -55,7 +55,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling()))
-      state->profiler()->leave_method();
+      state->profiler()->leave();
 #endif
 
     return obj;

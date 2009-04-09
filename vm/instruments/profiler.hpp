@@ -207,9 +207,9 @@ namespace rubinius {
       Symbol* module_name(Module* module);
       void enter_method(Dispatch&, Arguments& args, CompiledMethod*);
       void enter_method(Dispatch&, Arguments& args);
-      void enter_block(Dispatch& msg, CompiledMethod* cm);
+      void enter_block(Symbol* name, Module* module, CompiledMethod* cm);
       Method* record_method(CompiledMethod*, Symbol*, Object*, Kind kind = kNormal);
-      void leave_method();
+      void leave();
 
       size_t number_of_entries();
       Method* find_key(Key& key);

@@ -173,7 +173,7 @@ public:
     TS_ASSERT_EQUALS(prof.depth(), 3U);
   }
 
-  void test_leave_method() {
+  void test_leave() {
     Symbol* meth = state->symbol("blah");
     Symbol* klass = state->symbol("Sweet");
 
@@ -187,13 +187,13 @@ public:
     TS_ASSERT_EQUALS(mo->total_time(), 0ULL);
 
     usleep(10000);
-    prof.leave_method();
+    prof.leave();
 
     TS_ASSERT_EQUALS(prof.depth(), 0U);
     TS_ASSERT(mo->total_time() > 100);
   }
 
-  void test_leave_method_adds_leaves() {
+  void test_leave_adds_leaves() {
     Symbol* meth = state->symbol("blah");
     Symbol* klass = state->symbol("Sweet");
 
@@ -209,9 +209,9 @@ public:
     profiler::Method* inner = prof.record_method(cm, meth2, klass);
     TS_ASSERT_EQUALS(prof.current_method(), inner);
 
-    prof.leave_method();
+    prof.leave();
 
-    prof.leave_method();
+    prof.leave();
 
     profiler::Key key(meth, klass);
     profiler::Method* mo = prof.find_key(key);
@@ -246,20 +246,20 @@ public:
 
     profiler::Method* top = prof->record_method(cm, meth, klass);
     prof->record_method(cm, meth2, klass);
-    prof->leave_method();
+    prof->leave();
 
     TS_ASSERT_EQUALS(prof->current_method(), top);
     prof->record_method(cm, meth3, klass);
-    prof->leave_method();
+    prof->leave();
 
     TS_ASSERT_EQUALS(prof->current_method(), top);
 
     prof->record_method(cm, meth2, klass);
     prof->record_method(cm, meth3, klass);
-    prof->leave_method();
-    prof->leave_method();
+    prof->leave();
+    prof->leave();
 
-    prof->leave_method();
+    prof->leave();
 
     LookupTable* results = collection.results(state);
 

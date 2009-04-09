@@ -237,7 +237,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling()))
-      state->profiler()->leave_method();
+      state->profiler()->leave();
 #endif
 
     env->current_native_frame()->flush_cached_data(true);

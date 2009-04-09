@@ -75,8 +75,18 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    flags;
 
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->enter_block(name_, scope->module(), method_);
+#endif
+
     frame->push(val);
     Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->leave();
+#endif
 
     frame->scope->exit();
 
@@ -116,8 +126,20 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    flags;
 
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->enter_block(name_, scope->module(), method_);
+#endif
+
     frame->push(val);
-    return VMMethod::run_interpreter(state, vmm, frame);
+    Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->leave();
+#endif
+
+    return ret;
   }
 
   Object* BlockEnvironment::call_prim(STATE, Executable* exec,
@@ -170,8 +192,20 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    flags;
 
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->enter_block(name_, scope->module(), method_);
+#endif
+
     frame->push(val);
-    return VMMethod::run_interpreter(state, vmm, frame);
+    Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->leave();
+#endif
+
+    return ret;
   }
 
   /** @todo See above. --emp */
@@ -226,10 +260,20 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    0;
 
-    // if(unlikely(task->profiler)) task->profiler->enter_block(state, home_, method_);
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->enter_block(name_, scope->module(), method_);
+#endif
 
     frame->push(val);
-    return VMMethod::run_interpreter(state, vmm, frame);
+    Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+
+#ifdef RBX_PROFILER
+    if(unlikely(state->shared.profiling()))
+      state->profiler()->leave();
+#endif
+
+    return ret;
   }
 
 
