@@ -2,6 +2,8 @@
 
 module ObjectSpace
 
+  # @todo rewrite each_object
+
   # Tryes to handle as much as it can.
   def self.each_object(what = nil, &block)
 
@@ -75,6 +77,7 @@ module ObjectSpace
     # if ever.
     begin
       count = 0
+      return count unless what.superclass
       each_object(what.superclass) do |obj|
         if obj.is_a? what
           count += 1
