@@ -227,7 +227,9 @@ class Dir
 
           length = new_pattern.length
 
-          new_pattern.concat pattern[copied, pattern.size-copied]
+          # @todo determine why pat would be nil
+          pat = pattern[copied, pattern.size-copied]
+          new_pattern.concat pat if pat
 
           glob_helper(buf, true, :yes, new_isdir, new_pattern, 0, length,
                       flags, matches)
