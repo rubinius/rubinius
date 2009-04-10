@@ -42,6 +42,10 @@ namespace rubinius {
     hookup_prim(state,
                 state->symbol("open_module_under"),
                 state->symbol("vm_open_module_under"));
+
+    hookup_prim(state,
+                state->symbol("open_metaclass"),
+                state->symbol("vm_open_metaclass"));
   }
 
   Class* Class::create(STATE, Class* super) {

@@ -200,7 +200,6 @@ class InstructionSet
       :vm_flags => [:check_interrupts]},
     {:opcode => :add_method, :args => [:literal], :stack => [2,1],
       :vm_flags => [:check_interrupts]},
-    {:opcode => :open_metaclass, :args => [], :stack => [1,1]},
 
   ]
 

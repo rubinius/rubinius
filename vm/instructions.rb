@@ -1909,46 +1909,6 @@ class Instructions
   end
 
   # [Operation]
-  #   Returns the metaclass for an object
-  # [Format]
-  #   \open_metaclass
-  # [Stack Before]
-  #   * obj
-  #   * ...
-  # [Stack After]
-  #   * metaclass
-  #   * ...
-  # [Description]
-  #   Pops an object off the stack, obtains it's metaclass (creating it if
-  #   necessary), and pushes it onto the stack.
-  # [Notes]
-  #   An object metaclass is it's singleton class, i.e. the class that is used
-  #   to hold object specific methods. In Rubinius, any object can call the
-  #   +metaclass+ method to obtain its metaclass.
-  # [Example]
-  #   <code>
-  #     o.metclass   # returns o's metaclass
-  #   </code>
-
-  def open_metaclass
-    <<-CODE
-    Object* t1 = stack_pop();
-    stack_push(t1->metaclass(state));
-    CODE
-  end
-
-  def test_open_metaclass
-    <<-CODE
-    Tuple* tup = Tuple::create(state, 1);
-    task->push(tup);
-
-    run();
-
-    TS_ASSERT_EQUALS(task->stack_top(), tup->metaclass(state));
-    CODE
-  end
-
-  # [Operation]
   #   Test to determine whether an argument was passed
   # [Format]
   #   \passed_arg index

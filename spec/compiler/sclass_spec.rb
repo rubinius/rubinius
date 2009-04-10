@@ -16,7 +16,9 @@ describe "An Sclass node" do
       g.dup
       g.send :__verify_metaclass__, 0 # TODO: maybe refactor...
       g.pop
-      g.open_metaclass
+      g.push_const :Rubinius
+      g.swap
+      g.send :open_metaclass, 1
       g.dup
 
       g.push_literal_desc do |d2|
@@ -59,7 +61,9 @@ describe "An Sclass node" do
         d.dup
         d.send :__verify_metaclass__, 0 # TODO: maybe refactor...
         d.pop
-        d.open_metaclass
+        d.push_const :Rubinius
+        d.swap
+        d.send :open_metaclass, 1
         d.dup
 
         d.push_literal_desc do |d2|

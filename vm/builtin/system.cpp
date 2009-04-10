@@ -370,6 +370,11 @@ namespace rubinius {
     return module;
   }
 
+  Class* System::vm_open_metaclass(STATE, Object* recv) {
+    // TODO check that recv's metaclass is openable
+    return recv->metaclass(state);
+  }
+
   Tuple* System::vm_find_method(STATE, Object* recv, Symbol* name) {
     LookupData lookup(recv, recv->lookup_begin(state));
     lookup.priv = true;
