@@ -313,6 +313,13 @@ namespace rubinius {
      */
     String* to_s(STATE, bool address = false);
 
+    /**
+     *
+     * Returns Qtrue if this responds to method +meth+
+     */
+    // Ruby.primitive :object_respond_to
+    Object* respond_to(STATE, Symbol* name, Object* priv);
+
   public:   /* accessors */
 
     /* klass_ from ObjectHeader. */

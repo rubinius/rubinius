@@ -50,15 +50,15 @@ module Kernel
   end
 
   def respond_to?(meth,include_private=false)
-    meth = meth.to_sym
-    cm = Rubinius.asm(meth, include_private) do |m,i|
-      push :self
-      run m
-      run i
-      locate_method
-    end
-    !cm.nil?
+    return prim_respond_to?(meth.to_sym, include_private)
   end
+
+  def prim_respond_to?(meth, include)
+    Ruby.primitive :object_respond_to
+    raise PrimitiveFailure, "Kernel#prim_respond_to? failed"
+  end
+
+  private :prim_respond_to?
 
   # Rather than attr = !!value or attr = value && true or attr = (value
   # and true) littering code, we provide attr = value.to_bool for when

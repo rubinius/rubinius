@@ -9,10 +9,10 @@ class Location
       str = "Kernel."
     elsif @method_module.kind_of?(MetaClass)
       str = "#{@receiver}."
-    elsif @method_module and @method_module != @receiver.__class__
-      str = "#{@method_module}(#{@receiver.__class__})#"
+    elsif @method_module and @method_module != @receiver.class
+      str = "#{@method_module}(#{@receiver.class})#"
     else
-      str = "#{@receiver.__class__}#"
+      str = "#{@receiver.class}#"
     end
 
     if @is_block

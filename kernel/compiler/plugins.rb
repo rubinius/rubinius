@@ -413,10 +413,6 @@ class Compiler
         :__instance_of__ =>  :instance_of,
         :__nil__ =>          :is_nil,
         :__equal__ =>        :equal,
-        :__class__ =>        :class,
-        :__fixnum__ =>       :is_fixnum,
-        :__symbol__ =>       :is_symbol,
-        :__nil__ =>          :is_nil
       }
 
       # How many arguments each method takes.
@@ -425,10 +421,6 @@ class Compiler
         :__instance_of__ => 1,
         :__nil__         => 0,
         :__equal__       => 1,
-        :__class__       => 0,
-        :__fixnum__      => 0,
-        :__symbol__      => 0,
-        :__nil__         => 0
       }
 
       def handle(g, call)

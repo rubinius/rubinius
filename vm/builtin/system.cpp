@@ -39,6 +39,8 @@
 
 #include "builtin/system.hpp"
 #include "signal.hpp"
+#include "lookup_data.hpp"
+#include "builtin/sendsite.hpp"
 
 #include "instruments/stats.hpp"
 
@@ -366,5 +368,24 @@ namespace rubinius {
     under->set_const(state, name, module);
 
     return module;
+  }
+
+  Tuple* System::vm_find_method(STATE, Object* recv, Symbol* name) {
+    LookupData lookup(recv, recv->lookup_begin(state));
+    lookup.priv = true;
+
+    Dispatch dis(name);
+
+    if(!GlobalCacheResolver::resolve(state, dis, lookup)) {
+      return (Tuple*)Qnil;
+    }
+
+    MethodVisibility* vis = try_as<MethodVisibility>(dis.method);
+
+    if(vis) {
+      return Tuple::from(state, 2, vis->method(), dis.module);
+    }
+
+    return Tuple::from(state, 2, dis.method, dis.module);
   }
 }

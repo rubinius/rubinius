@@ -172,6 +172,7 @@ class Compiler
       collapse_labels
 
       iseq = @encoder.encode_stream @stream
+
       cm = CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
 
       sdc = Compiler::StackDepthCalculator.new(iseq)

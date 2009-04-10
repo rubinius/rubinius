@@ -517,7 +517,7 @@ module Kernel
   alias_method :is_a?, :kind_of?
 
   def method(name)
-    cm = __find_method__(name)
+    cm = Rubinius.find_method(self, name.to_sym)
 
     if cm
       return Method.new(self, cm[1], cm[0])
@@ -582,7 +582,7 @@ module Kernel
   end
 
   def to_s
-    "#<#{self.__class__}:0x#{self.__id__.to_s(16)}>"
+    "#<#{self.class}:0x#{self.__id__.to_s(16)}>"
   end
 
   def compile(path, out=nil, flags=nil)

@@ -14,6 +14,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
 #include "builtin/selector.hpp"
+#include "builtin/sendsite.hpp"
 #include "builtin/float.hpp"
 #include "objectmemory.hpp"
 #include "arguments.hpp"
@@ -487,6 +488,19 @@ namespace rubinius {
       del_ivar(state, state->symbol("tainted"));
     }
     return this;
+  }
+
+  Object* Object::respond_to(STATE, Symbol* name, Object* priv) {
+    LookupData lookup(this, lookup_begin(state));
+    lookup.priv = RTEST(priv);
+
+    Dispatch dis(name);
+
+    if(!GlobalCacheResolver::resolve(state, dis, lookup)) {
+      return Qfalse;
+    }
+
+    return Qtrue;
   }
 
   /**

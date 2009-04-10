@@ -20,7 +20,7 @@ class Method
 
   def initialize(receiver, defined_in, compiled_method)
     @receiver         = receiver
-    @pulled_from      = receiver.__class__
+    @pulled_from      = receiver.class
     @defined_in       = defined_in
     @compiled_method  = compiled_method
   end

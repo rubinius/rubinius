@@ -377,11 +377,6 @@ namespace rubinius {
         a.mov(s.position(1), eax);
         s.set_top(ecx);
         break;
-      case InstructionSequence::insn_halt:
-        a.mov(edx, static_cast<uint32_t>(-1));
-        a.mov(ecx, static_cast<uint32_t>(-1));
-        a.jump(fin);
-        break;
       case InstructionSequence::insn_push_true:
         s.push((uintptr_t)Qtrue);
         break;
@@ -643,11 +638,6 @@ call_op:
       s.load_nth(ecx, 1);
       a.mov(s.position(1), eax);
       s.set_top(ecx);
-      break;
-    case InstructionSequence::insn_halt:
-      a.mov(ecx, static_cast<uint32_t>(-1));
-      ops.store_virtual_ip(ecx);
-      a.jump(fin);
       break;
     case InstructionSequence::insn_push_true:
       s.push((uintptr_t)Qtrue);

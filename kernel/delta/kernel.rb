@@ -41,10 +41,10 @@ module Kernel
   module_function :fail
 
   def method_missing(meth, *args)
-    if self.__kind_of__ Class or self.__kind_of__ Module
-      Kernel.raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.__class__})", meth, args)
+    if __kind_of__(Module)
+      Kernel.raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.class})", meth, args)
     else
-      Kernel.raise NoMethodError.new("No method '#{meth}' on an instance of #{self.__class__}.", meth, args)
+      Kernel.raise NoMethodError.new("No method '#{meth}' on an instance of #{self.class}.", meth, args)
     end
   end
 

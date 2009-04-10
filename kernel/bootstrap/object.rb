@@ -1,17 +1,4 @@
 class Object
-
-  def __find_method__(meth)
-    meth = meth.to_sym
-    tup = Rubinius.asm(meth) do |m|
-      push :self
-      run m
-      push :true
-      locate_method
-    end
-
-    return tup
-  end
-
   def metaclass
     class << self;self;end
   end

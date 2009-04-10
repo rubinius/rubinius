@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 describe "A Call node using InlineAssembly plugin" do
   relates <<-ruby do
       Rubinius.asm(a) do |m|
-        push_context
+        push 1
       end
     ruby
 
@@ -14,7 +14,7 @@ describe "A Call node using InlineAssembly plugin" do
         :asm,
         [:arglist, [:call, nil, :a, [:arglist]]]],
        [:lasgn, :m],
-       [:call, nil, :push_context, [:arglist]]]
+       [:call, nil, :push, [:arglist, [:lit, 1]]]]
     end
 
     compile do |g|
@@ -24,12 +24,13 @@ describe "A Call node using InlineAssembly plugin" do
 
       g.in_block_send :asm, :single, nil, 1, false do |d|
         d.push :self
-        d.send :push_context, 0, true
+        d.push 1
+        d.send :push, 1, true
       end
     end
 
     compile :assembly do |g|
-      g.push_context
+      g.push 1
     end
   end
 end

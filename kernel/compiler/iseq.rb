@@ -38,15 +38,19 @@ class InstructionSet
 
   OpCodes = [
     {:opcode => :noop, :args => [], :stack => [0,0]},
+
+    # pushs
     {:opcode => :push_nil, :args => [], :stack => [0,1]},
     {:opcode => :push_true, :args => [], :stack => [0,1]},
     {:opcode => :push_false, :args => [], :stack => [0,1]},
     {:opcode => :push_int, :args => [:int], :stack => [0,1]},
-    {:opcode => :push_context, :args => [], :stack => [0,1]},
-    {:opcode => :push_literal, :args => [:literal], :stack => [0,1]},
     {:opcode => :push_self, :args => [], :stack => [0,1]},
 
-    # Flow control opcodes
+    # literals
+    {:opcode => :set_literal, :args => [:literal], :stack => [0,0]},
+    {:opcode => :push_literal, :args => [:literal], :stack => [0,1]},
+
+    # flow control
 
     {:opcode => :goto, :args => [:ip], :stack => [0,0], :flow => :goto},
     {:opcode => :goto_if_false, :args => [:ip], :stack => [1,0], :flow => :goto},
@@ -55,34 +59,62 @@ class InstructionSet
       :flow => :goto},
     {:opcode => :ret, :args => [], :stack => [0,0], :flow => :return,
       :vm_flags => [:terminator]},
-    {:opcode => :halt, :args=> [], :stack => [0,0], :flow => :return,
-      :vm_flags => [:terminator]},
 
     # stack maintainence
-
     {:opcode => :swap_stack, :args => [], :stack => [1,1]},
     {:opcode => :dup_top, :args => [], :stack => [0,1]},
     {:opcode => :pop, :args => [], :stack => [1,0]},
+    {:opcode => :rotate, :args => [:int], :stack => [0,0]},
+    {:opcode => :move_down, :args => [:int], :stack => [0, 0]},
+
+    # locals
     {:opcode => :set_local, :args => [:local], :stack => [1,1]},
     {:opcode => :push_local, :args => [:local], :stack => [0,1]},
+    {:opcode => :push_local_depth, :args => [:depth, :block_local],
+      :stack => [0,1]},
+    {:opcode => :set_local_depth, :args => [:depth, :block_local],
+      :stack => [1,1], :vm_flags => []},
+    {:opcode => :passed_arg, :args => [:int], :stack => [0,1]},
+
+    # exceptions
     {:opcode => :push_exception, :args => [], :stack => [0,1]},
+    {:opcode => :clear_exception, :args => [], :stack => [0,0]},
+    {:opcode => :pop_exception, :args => [], :stack => [1, 0]},
+    {:opcode => :raise_exc, :args => [], :stack => [0,0], :flow => :raise,
+      :vm_flags => [:terminator]},
+    {:opcode => :setup_unwind, :args => [:ip, :type], :stack => [0, 0]},
+    {:opcode => :pop_unwind, :args => [], :stack => [0, 0]},
+    {:opcode => :raise_return, :args => [], :stack => [0,0]},
+    {:opcode => :ensure_return, :args => [], :stack => [0,0]},
+    {:opcode => :raise_break, :args => [], :stack => [0,0]},
+    {:opcode => :reraise, :args => [], :stack => [0,0]},
+
+    # array
     {:opcode => :make_array, :args => [:int], :stack => [-10,1],
       :vm_flags => [], :variable_stack => [0,1]},
+    {:opcode => :cast_array, :args => [], :stack => [1,1],
+      :vm_flags => []},
+    {:opcode => :shift_array, :args => [], :stack => [1,2]},
+
+    # ivars
     {:opcode => :set_ivar, :args => [:literal], :stack => [1,1],
       :vm_flags => []},
     {:opcode => :push_ivar, :args => [:literal], :stack => [0,1]},
+
+    # constants
     {:opcode => :push_const, :args => [:literal], :stack => [0,1]},
     {:opcode => :set_const, :args => [:literal], :stack => [1,1],
       :vm_flags => []},
     {:opcode => :set_const_at, :args => [:literal], :stack => [2,0],
       :vm_flags => []},
     {:opcode => :find_const, :args => [:literal], :stack => [1,1]},
-    {:opcode => :attach_method, :args => [:literal], :stack => [2,1],
-      :vm_flags => [:check_interrupts]},
-    {:opcode => :add_method, :args => [:literal], :stack => [2,1],
-      :vm_flags => [:check_interrupts]},
+    {:opcode => :push_cpath_top, :args => [], :stack => [0,1]},
+    {:opcode => :push_const_fast, :args => [:literal, :literal],
+     :stack => [0, 1]},
 
-    # send opcodes
+    # send
+    {:opcode => :set_call_flags, :args => [:int], :stack => [0,0]},
+    {:opcode => :allow_private, :args => [], :stack => [0,0]},
     {:opcode => :send_method, :args => [:literal], :stack => [1,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :send_stack, :args => [:literal, :int],
@@ -101,44 +133,45 @@ class InstructionSet
       :stack => [-22,1], :flow => :send,
       :variable_stack => [2,2]},
 
+    # blocks
     {:opcode => :push_block, :args => [], :stack => [0,1]},
-    {:opcode => :clear_exception, :args => [], :stack => [0,0]},
-    {:opcode => :cast_array, :args => [], :stack => [1,1],
-      :vm_flags => []},
-    {:opcode => :shift_array, :args => [], :stack => [1,2]},
-    {:opcode => :raise_exc, :args => [], :stack => [0,0], :flow => :raise,
-      :vm_flags => [:terminator]},
-    {:opcode => :push_cpath_top, :args => [], :stack => [0,1]},
-    {:opcode => :passed_arg, :args => [:int], :stack => [0,1]},
-    {:opcode => :string_append, :args => [], :stack => [2,1],
-     :vm_flags => []},
-    {:opcode => :string_dup, :args => [], :stack => [1,1],
-      :vm_flags => []},
-    {:opcode => :push_my_field, :args => [:field], :stack => [0,1]},
-    {:opcode => :store_my_field, :args => [:field], :stack => [1,1]},
-    {:opcode => :open_metaclass, :args => [], :stack => [1,1]},
-    {:opcode => :push_local_depth, :args => [:depth, :block_local],
-      :stack => [0,1]},
-    {:opcode => :set_local_depth, :args => [:depth, :block_local],
-      :stack => [1,1], :vm_flags => []},
-    {:opcode => :locate_method, :args => [], :stack => [3,1]},
-    {:opcode => :kind_of, :args => [], :stack => [2,1]},
-    {:opcode => :instance_of, :args => [], :stack => [2,1]},
-    {:opcode => :set_call_flags, :args => [:int], :stack => [0,0]},
-    {:opcode => :yield_debugger, :args => [], :stack => [0,0],
-      :vm_flags => [:check_interrupts]},
-    {:opcode => :is_fixnum, :args => [], :stack => [1,1]},
-    {:opcode => :is_symbol, :args => [], :stack => [1,1]},
-    {:opcode => :is_nil, :args => [], :stack => [1,1]},
-    {:opcode => :class, :args => [], :stack => [1,1]},
-    {:opcode => :equal, :args => [], :stack => [2,1]},
-    {:opcode => :set_literal, :args => [:literal], :stack => [0,0]},
     {:opcode => :passed_blockarg, :args => [:int], :stack => [0,1]},
     {:opcode => :create_block, :args => [:literal], :stack => [0,1],
       :vm_flags => []},
     {:opcode => :cast_for_single_block_arg, :args => [], :stack => [1,1]},
     {:opcode => :cast_for_multi_block_arg, :args => [], :stack => [1,1]},
+    {:opcode => :cast_for_splat_block_arg, :args => [],
+      :stack => [1,1], :vm_flags => []},
+    {:opcode => :yield_stack, :args => [:int],
+      :stack => [-10,1], :flow => :send, :variable_stack => [0,1]},
+    {:opcode => :yield_splat, :args => [:int],
+      :stack => [-11,1], :flow => :send, :variable_stack => [1,1]},
+
+    # strings
+    {:opcode => :string_append, :args => [], :stack => [2,1],
+     :vm_flags => []},
+    {:opcode => :string_dup, :args => [], :stack => [1,1],
+      :vm_flags => []},
+
+    # scope
+    {:opcode => :push_scope, :args => [], :stack => [0, 1]},
+    {:opcode => :add_scope,  :args => [], :stack => [1, 0]},
+
+    # misc
+    {:opcode => :push_variables, :args => [], :stack => [0,1]},
+    {:opcode => :check_interrupts, :args => [], :stack => [0,0]},
+    {:opcode => :yield_debugger, :args => [], :stack => [0,0],
+      :vm_flags => [:check_interrupts]},
+    {:opcode => :is_nil, :args => [], :stack => [1,1]},
     {:opcode => :check_serial, :args => [:literal, :int], :stack => [1,1]},
+
+    # field access
+    {:opcode => :push_my_field, :args => [:field], :stack => [0,1]},
+    {:opcode => :store_my_field, :args => [:field], :stack => [1,1]},
+
+    # type checks
+    {:opcode => :kind_of, :args => [], :stack => [2,1]},
+    {:opcode => :instance_of, :args => [], :stack => [2,1]},
 
     # meta opcodes, used for optimization only.
     {:opcode => :meta_push_neg_1, :args => [], :stack => [0,1]},
@@ -162,29 +195,13 @@ class InstructionSet
     {:opcode => :meta_send_call, :args => [:int], :stack => [-11,1],
       :flow => :send, :variable_stack => [1,1]},
 
-    {:opcode => :push_scope, :args => [], :stack => [0, 1]},
-    {:opcode => :add_scope,  :args => [], :stack => [1, 0]},
-    {:opcode => :rotate, :args => [:int], :stack => [0,0]},
-    {:opcode => :pop_exception, :args => [], :stack => [1, 0]},
+    # to remove
+    {:opcode => :attach_method, :args => [:literal], :stack => [2,1],
+      :vm_flags => [:check_interrupts]},
+    {:opcode => :add_method, :args => [:literal], :stack => [2,1],
+      :vm_flags => [:check_interrupts]},
+    {:opcode => :open_metaclass, :args => [], :stack => [1,1]},
 
-    {:opcode => :push_const_fast, :args => [:literal, :literal],
-     :stack => [0, 1]},
-    {:opcode => :setup_unwind, :args => [:ip, :type], :stack => [0, 0]},
-    {:opcode => :pop_unwind, :args => [], :stack => [0, 0]},
-    {:opcode => :move_down, :args => [:int], :stack => [0, 0]},
-    {:opcode => :reraise, :args => [], :stack => [0,0]},
-    {:opcode => :raise_return, :args => [], :stack => [0,0]},
-    {:opcode => :ensure_return, :args => [], :stack => [0,0]},
-    {:opcode => :raise_break, :args => [], :stack => [0,0]},
-    {:opcode => :push_variables, :args => [], :stack => [0,1]},
-    {:opcode => :allow_private, :args => [], :stack => [0,0]},
-    {:opcode => :check_interrupts, :args => [], :stack => [0,0]},
-    {:opcode => :yield_stack, :args => [:int],
-      :stack => [-10,1], :flow => :send, :variable_stack => [0,1]},
-    {:opcode => :yield_splat, :args => [:int],
-      :stack => [-11,1], :flow => :send, :variable_stack => [1,1]},
-    {:opcode => :cast_for_splat_block_arg, :args => [],
-      :stack => [1,1], :vm_flags => []}
   ]
 
 
