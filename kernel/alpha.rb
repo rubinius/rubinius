@@ -101,6 +101,34 @@ module Kernel
   def method_missing(meth, *args)
     raise NoMethodError, "Unable to send '#{meth}' on '#{self}' (#{self.class})"
   end
+
+  # reimplemented in kernel/common/kernel.rb
+  def initialize_copy(other)
+  end
+
+  def copy_object(other)
+    Ruby.primitive :object_copy_object
+    raise PrimitiveFailure, "Kernel#copy_object primitive failed"
+  end
+
+  def copy_metaclass(other)
+    Ruby.primitive :object_copy_metaclass
+    raise PrimitiveFailure, "Kernel#copy_metaclass primitive failed"
+  end
+
+  def dup
+    copy = self.class.allocate
+    copy.copy_object self
+    copy.send :initialize_copy, self
+    copy
+  end
+
+  def clone
+    copy = dup
+    copy.copy_metaclass self
+    copy.freeze if frozen?
+    copy
+  end
 end
 
 class CompiledMethod < Executable
@@ -306,6 +334,13 @@ class Module
       meta.method_table[name] = cm
       private name
     end
+  end
+
+  def dup
+    copy = Class.allocate
+    copy.copy_object self
+    copy.send :initialize_copy, self
+    copy
   end
 end
 

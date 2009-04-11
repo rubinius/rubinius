@@ -96,8 +96,8 @@ namespace rubinius {
 
     Object* fetch(STATE, Object* key, bool* found);
 
-    // Ruby.primitive :lookuptable_dup
-    LookupTable* dup(STATE);
+    // Ruby.primitive :lookuptable_duplicate
+    LookupTable* duplicate(STATE);
     void   redistribute(STATE, size_t size);
     LookupTableBucket* find_entry(STATE, Object* key);
     Object* find(STATE, Object* key);

@@ -76,12 +76,16 @@ class LookupTable
     end
   end
 
-  def dup
-    Ruby.primitive :lookuptable_dup
-    raise PrimitiveFailure, "LookupTable#dup primitive failed"
+  def duplicate
+    Ruby.primitive :lookuptable_duplicate
+    raise PrimitiveFailure, "LookupTable#duplicate primitive failed"
   end
 
-  alias_method :clone, :dup
+  def dup
+    copy = duplicate
+    copy.send :initialize_copy, self
+    copy
+  end
 
   def fetch(key, return_on_failure)
     Ruby.primitive :lookuptable_fetch

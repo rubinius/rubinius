@@ -771,14 +771,14 @@ class Module
   private :valid_const_name?
 
   def initialize_copy(other)
-    @method_table = @method_table.dup
+    @method_table = other.method_table.dup
+    metaclass.method_table = other.metaclass.method_table.dup
 
-    old_constants = @constants
-    new_constants = LookupTable.new
+    @constants = LookupTable.new
 
-    old_constants.each do |name, assoc|
+    other.constants.each do |name, assoc|
       new_assoc = assoc.dup
-      new_constants[name] = new_assoc
+      @constants[name] = new_assoc
 
       val = new_assoc.value
       if val.kind_of? Autoload
@@ -786,7 +786,8 @@ class Module
       end
     end
 
-    @constants = new_constants
+    self
   end
 
+  private :initialize_copy
 end

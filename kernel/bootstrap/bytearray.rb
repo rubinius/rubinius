@@ -1,11 +1,15 @@
 class ByteArray
-  def self.allocate(cnt)
+  def self.allocate
+    raise TypeError, "ByteArray cannot be created via allocate()"
+  end
+
+  def self.allocate_sized(cnt)
     Ruby.primitive :bytearray_allocate
     raise PrimitiveFailure, "ByteArray#allocate primitive failed"
   end
 
   def self.new(cnt)
-    obj = allocate(cnt)
+    obj = allocate_sized cnt
     Rubinius.asm(obj) do |obj|
       push_block
       run obj
@@ -45,15 +49,11 @@ class ByteArray
     raise PrimitiveFailure, "ByteArray#size primitive failed"
   end
 
-  def dup_into(other)
-    Ruby.primitive :bytearray_dup_into
-    raise PrimitiveFailure, "ByteArray#dup_into primitive failed"
-  end
-
   def dup(cls=nil)
     cls ||= self.class
     obj = cls.new(self.size)
-    dup_into obj
+    obj.copy_object self
+    obj.send :initialize_copy, self
     return obj
   end
 

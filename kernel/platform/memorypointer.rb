@@ -82,25 +82,18 @@ module FFI
       end
     end
 
-    def clone
-      other = Platform::POSIX.malloc total
-      other.total = total
-      other.type_size = type_size
-      Platform::POSIX.memcpy other, self, total
-      other
-    end
-
     def dup
       other = Platform::POSIX.malloc total
       other.total = total
       other.type_size = type_size
       Platform::POSIX.memcpy other, self, total
+      other.send :initialize_copy, self
       other
     end
 
-    def address= thingy
+    def address=(address)
       Ruby.primitive :memorypointer_set_address
-      raise PrimitiveFailure, "Unable to fuck over your address well enough"
+      raise PrimitiveFailure, "MemoryPointer#address= primitive failed"
     end
 
     # Indicates how many bytes the chunk of memory that is pointed to takes up.

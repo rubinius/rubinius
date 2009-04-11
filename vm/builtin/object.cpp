@@ -51,41 +51,41 @@ namespace rubinius {
     type_info(state)->cleanup(this);
   }
 
-  Object* Object::clone(STATE) {
-    Object* other = dup(state);
-
-    other->copy_internal_state_from(state, this);
-
-    return other;
-  }
-
-  void Object::copy_internal_state_from(STATE, Object* original) {
-    if(MetaClass* mc = try_as<MetaClass>(original->klass())) {
-      LookupTable* source_methods = mc->method_table()->dup(state);
-      LookupTable* source_constants = mc->constants()->dup(state);
-
-      this->metaclass(state)->method_table(state, source_methods);
-      this->metaclass(state)->constants(state, source_constants);
-
-      // This allows us to preserve included modules
-      this->metaclass(state)->superclass(state, mc->superclass());
-    }
-  }
-
-  Object* Object::dup(STATE) {
+  Object* Object::duplicate(STATE) {
     Object* other = state->om->allocate_object(this->total_size(state));
 
-#ifdef RBX_GC_STATS
-    // This counter is only valid if the line above allocates in the
-    // young object space.
-    stats::GCStats::get()->young_object_types[this->type_id()]++;
-#endif
+    return other->copy_object(state, this);
+  }
 
-    other->initialize_copy(this, age);
-    other->copy_body(state, this);
+  Object* Object::copy_metaclass(STATE, Object* other) {
+    if(MetaClass* mc = try_as<MetaClass>(other->klass())) {
+      LookupTable* source_methods = mc->method_table()->duplicate(state);
+      LookupTable* source_constants = mc->constants()->duplicate(state);
 
-    // Set the dup's class this's class
-    other->klass(state, class_object(state));
+      metaclass(state)->method_table(state, source_methods);
+      metaclass(state)->constants(state, source_constants);
+
+      // This allows us to preserve included modules
+      metaclass(state)->superclass(state, mc->superclass());
+    }
+
+    return this;
+  }
+
+  Object* Object::copy_object(STATE, Object* other) {
+    initialize_copy(other, age);
+
+    /* C extensions use Data objects for various purposes. The object
+     * usually is made an instance of some extension class. So, we
+     * have to check the object type to ensure we don't clobber the
+     * data caried in the new instance.
+     */
+    if(type_id() != DataType) {
+      copy_body(state, other);
+    }
+
+    // Ensure that the metaclass is not shared
+    klass(state, other->class_object(state));
 
     // HACK: If other is mature, remember it.
     // We could inspect inspect the references we just copied to see
@@ -93,19 +93,19 @@ namespace rubinius {
     // then remember other. The up side to just remembering it like
     // this is that other is rarely mature, and the remember_set is
     // flushed on each collection anyway.
-    if(other->zone == MatureObjectZone) {
-      state->om->remember_object(other);
+    if(zone == MatureObjectZone) {
+      state->om->remember_object(this);
     }
 
     // Copy ivars.
-    if(ivars_->reference_p()) {
+    if(other->ivars_->reference_p()) {
       // NOTE Don't combine these 2 branches even though they both just call
-      // ::dup. There is a special LookupTable::dup that can only be seen
+      // ::copy. There is a special LookupTable::copy that can only be seen
       // when the receiver is of LookupTable* type. Without the explicit cast
       // and call, the wrong one will be called.
-      if(LookupTable* lt = try_as<LookupTable>(ivars_)) {
-        other->ivars_ = lt->dup(state);
-        LookupTable* ld = as<LookupTable>(other->ivars_);
+      if(LookupTable* lt = try_as<LookupTable>(other->ivars_)) {
+        ivars_ = lt->duplicate(state);
+        LookupTable* ld = as<LookupTable>(ivars_);
 
         // We store the object_id in the ivar table, so nuke it.
         ld->remove(state, G(sym_object_id));
@@ -113,9 +113,9 @@ namespace rubinius {
       } else {
         // Use as<> so that we throw a TypeError if there is something else
         // here.
-        CompactLookupTable* clt = as<CompactLookupTable>(ivars_);
-        other->ivars_ = clt->dup(state);
-        CompactLookupTable* ld = as<CompactLookupTable>(other->ivars_);
+        CompactLookupTable* clt = as<CompactLookupTable>(other->ivars_);
+        ivars_ = clt->duplicate(state);
+        CompactLookupTable* ld = as<CompactLookupTable>(ivars_);
 
         // We store the object_id in the ivar table, so nuke it.
         ld->remove(state, G(sym_object_id));
@@ -123,7 +123,7 @@ namespace rubinius {
       };
     }
 
-    return other;
+    return this;
   }
 
   Object* Object::equal(STATE, Object* other) {

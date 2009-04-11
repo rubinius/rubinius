@@ -77,8 +77,8 @@ module FFI
       @pointer.free
     end
 
-    def initialize_copy ptr
-      @pointer = @pointer.dup
+    def initialize_copy(ptr)
+      @pointer = ptr.pointer.dup
     end
 
     def [](field)

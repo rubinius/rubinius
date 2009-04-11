@@ -47,9 +47,6 @@ namespace rubinius {
     // Ruby.primitive :bytearray_compare_bytes
     Fixnum* compare_bytes(STATE, ByteArray* other, Integer* a, Integer* b);
 
-    // Ruby.primitive :bytearray_dup_into
-    ByteArray* dup_into(STATE, ByteArray* other);
-
     /* ::locate searches for +pattern+ in the ByteArray. Returns the
      * number of characters from the front of the ByteArray to the end
      * of the pattern if a match is found. Returns Qnil if a match is

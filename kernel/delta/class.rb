@@ -42,8 +42,6 @@ class Class
     @subclasses.each {|cls| all << cls; cls.subclasses_descend(all)}
     all
   end
-
-  alias_method :dup, :clone
 end
 
 cm = Class.method_table[:new]

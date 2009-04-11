@@ -1,15 +1,5 @@
 module Kernel
 
-  def clone
-    Ruby.primitive :object_clone
-    raise TypeError, "Kernel#clone primitive failed"
-  end
-
-  def dup
-    Ruby.primitive :object_dup
-    raise TypeError, "Kernel#dup primitive failed"
-  end
-
   def equal?(other)
     Ruby.primitive :object_equal
     raise PrimitiveFailure, "Kernel#equal? primitive failed"

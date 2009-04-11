@@ -163,14 +163,6 @@ namespace rubinius {
     }
   }
 
-  ByteArray* ByteArray::dup_into(STATE, ByteArray* other) {
-    size_t osize = other->size();
-
-    std::memcpy(other->bytes, this->bytes, size() < osize ? size() : osize);
-
-    return other;
-  }
-
   Object* ByteArray::locate(STATE, String* pattern, Integer* start) {
     const char *pat = pattern->byte_address();
     size_t len = pattern->size();

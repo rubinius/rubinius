@@ -49,7 +49,7 @@ namespace rubinius {
     return tbl;
   }
 
-  LookupTable* LookupTable::dup(STATE) {
+  LookupTable* LookupTable::duplicate(STATE) {
     size_t size, i;
     LookupTable *dup;
 

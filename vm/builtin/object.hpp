@@ -108,17 +108,31 @@ namespace rubinius {
 
   public:   /* Type information, field access, copy support &c. */
 
-    /** Sets the other Object's flags the same as this. @see vm/oop.hpp. */
-    void        copy_flags(STATE, Object* other);
-    /** Copies metaclass from original to this one. @see clone(). */
-    void        copy_internal_state_from(STATE, Object* original);
-    /** NOT IMPLEMENTED. Copies instance variables to the other Object. */
-    void        copy_ivars(STATE, Object* other);
-    /** NOT IMPLEMENTED. Copies this Object's MetaClass to the other Object. */
-    void        copy_metaclass(STATE, Object* other);
+    /**
+     * Returns a copy of this object. This is NOT the same as Ruby
+     * Kernel#dup. Code that needs Kernel#dup semantics MUST call
+     * #dup from Ruby. This method is used in the VM to duplicate
+     * data structures. It will not call the Ruby allocate() or
+     * initialize_copy() methods.
+     */
+    Object* duplicate(STATE);
+
+    /**
+     *  Copies the object including any instance variables. Called by
+     *  Kernel#dup.
+     */
+    // Ruby.primitive :object_copy_object
+    Object* copy_object(STATE, Object* other);
+
+    /**
+     * Copies this Object's MetaClass to the other Object. Called
+     * by Kernel#clone.
+     */
+    // Ruby.primitive :object_copy_metaclass
+    Object* copy_metaclass(STATE, Object* other);
 
     /** True if this Object* is actually a Fixnum, false otherwise. */
-    bool        fixnum_p() const;
+    bool fixnum_p() const;
 
     /**
      *  Retrieve the Object stored in given field index of this Object.
@@ -175,31 +189,9 @@ namespace rubinius {
     // Ruby.primitive :object_change_class_to
     Object*   change_class_to(STATE, Class* other_klass);
 
-    /**
-     *  Ruby #clone.
-     *
-     *  Creates and returns a new Object that is a copy of this one
-     *  including internal state.
-     *
-     *  @see  dup()
-     */
-    // Ruby.primitive :object_clone
-    Object*   clone(STATE);
-
     /** Returns the Class object of which this Object is an instance. */
     // Ruby.primitive :object_class
     Class*    class_object(STATE) const;
-
-    /**
-     *  Ruby #dup.
-     *
-     *  Creates and returns a new Object that is a copy of this one
-     *  except for internal state.
-     *
-     *  @see  clone()
-     */
-    // Ruby.primitive :object_dup
-    Object*   dup(STATE);
 
     /**
      *  Ruby #equal?.

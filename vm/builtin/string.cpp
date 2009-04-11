@@ -185,7 +185,7 @@ namespace rubinius {
   String* String::string_dup(STATE) {
     String* ns;
 
-    ns = as<String>(dup(state));
+    ns = as<String>(duplicate(state));
     ns->shared(state, Qtrue);
     shared(state, Qtrue);
 
@@ -195,7 +195,7 @@ namespace rubinius {
   }
 
   void String::unshare(STATE) {
-    data(state, as<ByteArray>(data_->dup(state)));
+    data(state, as<ByteArray>(data_->duplicate(state)));
     shared(state, Qfalse);
   }
 

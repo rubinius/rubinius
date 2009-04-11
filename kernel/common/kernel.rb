@@ -77,23 +77,6 @@ module Kernel
   end
   private :FloatValue
 
-  alias_method :primitive_clone, :clone
-
-  def clone
-    copy = primitive_clone
-    copy.send :initialize_copy, self
-    copy.freeze if frozen?
-    copy
-  end
-
-  alias_method :primitive_dup, :dup
-
-  def dup
-    copy = primitive_dup
-    copy.send :initialize_copy, self
-    copy
-  end
-
   def initialize_copy(source)
     unless source.class == self.class then
       raise TypeError, "initialize_copy should take same class object"
