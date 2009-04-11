@@ -63,6 +63,10 @@ describe "A Class node" do
       g.push_cpath_top
       g.send :open_class_under, 3
       g.dup
+      g.push_const :Rubinius
+      g.swap
+      g.push_literal :__class_init__
+      g.swap
       g.push_literal_desc :Y do |d|
         d.push_self
         d.add_scope
@@ -72,7 +76,9 @@ describe "A Class node" do
       end
 
       g.swap
-      g.attach_method :__class_init__
+      g.push_scope
+      g.swap
+      g.send :attach_method, 4
       g.pop
       g.send :__class_init__, 0
     end

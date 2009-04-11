@@ -371,6 +371,10 @@ class TestGenerator
     return unless block_given?
 
     g.dup
+    g.push_const :Rubinius
+    g.swap
+    g.push_literal :__class_init__
+    g.swap
     g.push_literal_desc name do |d|
       d.push_self # FIX
       d.add_scope
@@ -380,7 +384,9 @@ class TestGenerator
       d.ret
     end
     g.swap
-    g.attach_method :__class_init__
+    g.push_scope
+    g.swap
+    g.send :attach_method, 4
     g.pop
     g.send :__class_init__, 0
   end
@@ -433,6 +439,10 @@ class TestGenerator
     return unless block_given?
 
     g.dup
+    g.push_const :Rubinius
+    g.swap
+    g.push_literal :__module_init__
+    g.swap
     g.push_literal_desc do |d|
       d.push_self # FIX
       d.add_scope
@@ -442,7 +452,9 @@ class TestGenerator
       d.ret
     end
     g.swap
-    g.attach_method :__module_init__
+    g.push_scope
+    g.swap
+    g.send :attach_method, 4
     g.pop
     g.send :__module_init__, 0
   end

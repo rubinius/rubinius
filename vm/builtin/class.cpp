@@ -46,6 +46,14 @@ namespace rubinius {
     hookup_prim(state,
                 state->symbol("open_metaclass"),
                 state->symbol("vm_open_metaclass"));
+
+    hookup_prim(state,
+                state->symbol("add_defn_method"),
+                state->symbol("vm_add_method"));
+
+    hookup_prim(state,
+                state->symbol("attach_method"),
+                state->symbol("vm_attach_method"));
   }
 
   Class* Class::create(STATE, Class* super) {

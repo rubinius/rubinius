@@ -581,9 +581,15 @@ class Compiler
         meth.close
 
         g.dup
+        g.push_const :Rubinius
+        g.swap
+        g.push_literal name
+        g.swap
         g.push_literal desc
         g.swap
-        g.attach_method name
+        g.push_scope
+        g.swap
+        g.send :attach_method, 4
         g.pop
         g.send name, 0
 
@@ -745,19 +751,19 @@ class Compiler
       def bytecode(g)
         pos(g)
 
+        g.push_const :Rubinius
+        g.push_literal @name
+        g.push_literal compile_body(g)
+        g.push_scope
+
         if @compiler.kernel?
-          g.push_literal compile_body(g)
-          g.push :self
-          g.add_method @name
+          g.push :nil
         else
-          g.push_const :Rubinius
-          g.push_literal @name
-          g.push_literal compile_body(g)
-          g.push_scope
           g.push_variables
           g.send :method_visibility, 0
-          g.send :add_defn_method, 4
         end
+
+        g.send :add_defn_method, 4
       end
     end
 
@@ -766,9 +772,12 @@ class Compiler
         pos(g)
 
         if @compiler.kernel?
+          g.push_const :Rubinius
+          g.push_literal @name
           g.push_literal compile_body(g)
+          g.push_scope
           @object.bytecode(g)
-          g.attach_method @name
+          g.send :attach_method, 4
         else
           @object.bytecode(g)
           g.send :metaclass, 0

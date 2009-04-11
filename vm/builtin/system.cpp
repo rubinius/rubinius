@@ -393,4 +393,38 @@ namespace rubinius {
 
     return Tuple::from(state, 2, dis.method, dis.module);
   }
+
+  Object* System::vm_add_method(STATE, Symbol* name, CompiledMethod* method,
+                                StaticScope* scope, Object* vis) {
+    Module* mod = scope->for_method_definition();
+
+    method->scope(state, scope);
+    method->serial(state, Fixnum::from(0));
+    mod->method_table()->store(state, name, method);
+    state->global_cache->clear(mod, name);
+
+    if(Class* cls = try_as<Class>(mod)) {
+      method->formalize(state, false);
+
+      object_type type = (object_type)cls->instance_type()->to_native();
+      TypeInfo* ti = state->om->type_info[type];
+      if(ti) {
+        method->specialize(state, ti);
+      }
+    }
+
+    return method;
+  }
+
+  Object* System::vm_attach_method(STATE, Symbol* name, CompiledMethod* method,
+                                   StaticScope* scope, Object* recv) {
+    Module* mod = recv->metaclass(state);
+
+    method->scope(state, scope);
+    method->serial(state, Fixnum::from(0));
+    mod->method_table()->store(state, name, method);
+    state->global_cache->clear(mod, name);
+
+    return method;
+  }
 }

@@ -169,6 +169,12 @@ namespace rubinius {
     // Ruby.primitive :vm_find_method
     static Tuple* vm_find_method(STATE, Object* recv, Symbol* name);
 
+    // Ruby.primitive :vm_add_method
+    static Object* vm_add_method(STATE, Symbol* name, CompiledMethod* meth, StaticScope* scope, Object* vis);
+
+    // Ruby.primitive :vm_attach_method
+    static Object* vm_attach_method(STATE, Symbol* name, CompiledMethod* meth, StaticScope* scope, Object* recv);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

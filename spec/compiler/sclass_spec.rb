@@ -21,15 +21,21 @@ describe "An Sclass node" do
       g.send :open_metaclass, 1
       g.dup
 
+      g.push_const :Rubinius
+      g.swap
+      g.push_literal :__metaclass_init__
+      g.swap
       g.push_literal_desc do |d2|
         d2.push_self
         d2.add_scope
         d2.push 42
         d2.ret
       end
-
       g.swap
-      g.attach_method :__metaclass_init__
+      g.push_scope
+      g.swap
+      g.send :attach_method, 4
+
       g.pop
       g.send :__metaclass_init__, 0
     end
@@ -66,6 +72,11 @@ describe "An Sclass node" do
         d.send :open_metaclass, 1
         d.dup
 
+        d.push_const :Rubinius
+        d.swap
+        d.push_literal :__metaclass_init__
+        d.swap
+
         d.push_literal_desc do |d2|
           d2.push_self
           d2.add_scope
@@ -73,9 +84,11 @@ describe "An Sclass node" do
           d2.send :a, 0, true
           d2.ret
         end
-
         d.swap
-        d.attach_method :__metaclass_init__
+        d.push_scope
+        d.swap
+        d.send :attach_method, 4
+
         d.pop
         d.send :__metaclass_init__, 0
         d.pop
