@@ -68,7 +68,8 @@ class MSpecScript
     'spec/frozen/language',
     'spec/core',
     'spec/compiler',
-    'spec/capi/',
+    'spec/capi',
+    'spec/frozen/library/digest',
 
     '^spec/core/compiledmethod',
     '^spec/core/module',
