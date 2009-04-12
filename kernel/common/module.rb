@@ -776,7 +776,7 @@ class Module
 
     @constants = LookupTable.new
 
-    other.constants.each do |name, assoc|
+    other.constants_table.each do |name, assoc|
       new_assoc = assoc.dup
       @constants[name] = new_assoc
 

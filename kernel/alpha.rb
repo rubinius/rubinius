@@ -335,13 +335,6 @@ class Module
       private name
     end
   end
-
-  def dup
-    copy = Class.allocate
-    copy.copy_object self
-    copy.send :initialize_copy, self
-    copy
-  end
 end
 
 class IncludedModule < Module
