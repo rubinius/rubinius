@@ -104,13 +104,13 @@ public:
     TS_ASSERT_EQUALS(try_as<String>(fix), static_cast<String*>(NULL));
   }
 
-  void test_dup() {
+  void test_duplicate() {
     Tuple* tup = Tuple::create(state, 1);
     tup->put(state, 0, Qtrue);
 
     tup->set_ivar(state, state->symbol("@name"), state->symbol("foo"));
 
-    Tuple* tup2 = as<Tuple>(tup->dup(state));
+    Tuple* tup2 = as<Tuple>(tup->duplicate(state));
 
     TS_ASSERT_EQUALS(tup2->at(state, 0), Qtrue);
     TS_ASSERT_DIFFERS(tup->id(state), tup2->id(state));
@@ -121,7 +121,7 @@ public:
         state->symbol("foo"));
 
     tup->ivars_ = as<CompactLookupTable>(tup->ivars_)->to_lookuptable(state);
-    Tuple* tup3 = as<Tuple>(tup->dup(state));
+    Tuple* tup3 = as<Tuple>(tup->duplicate(state));
 
     TS_ASSERT(tup->ivars_ != tup2->ivars_);
     TS_ASSERT_EQUALS(tup3->get_ivar(state, state->symbol("@name")),
@@ -135,26 +135,11 @@ public:
     // Force it to exist.
     tup->metaclass(state);
 
-    Tuple* tup2 = as<Tuple>(tup->dup(state));
+    Tuple* tup2 = as<Tuple>(tup->duplicate(state));
 
     TS_ASSERT(!try_as<MetaClass>(tup2->klass_));
 
     TS_ASSERT_DIFFERS(tup->metaclass(state), tup2->metaclass(state));
-  }
-
-  void test_clone() {
-    Tuple* tup = Tuple::create(state, 1);
-    tup->put(state, 0, Qtrue);
-
-    Tuple* tup2 = (Tuple*)tup->clone(state);
-
-    TS_ASSERT_EQUALS(tup2->at(state, 0), Qtrue);
-
-    TS_ASSERT_DIFFERS(tup2->id(state), tup->id(state));
-
-    TS_ASSERT_DIFFERS(tup2->metaclass(state), tup->metaclass(state));
-    TS_ASSERT_DIFFERS(tup2->metaclass(state)->method_table(), tup->metaclass(state)->method_table());
-    TS_ASSERT_DIFFERS(tup2->metaclass(state)->constants(), tup->metaclass(state)->constants());
   }
 
   void test_dup_bytes() {
@@ -162,7 +147,7 @@ public:
 
     obj->bytes[0] = 8;
 
-    ByteArray* obj2 = (ByteArray*)obj->dup(state);
+    ByteArray* obj2 = (ByteArray*)obj->duplicate(state);
 
     TS_ASSERT_EQUALS(obj2->bytes[0], 8);
   }

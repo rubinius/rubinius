@@ -202,7 +202,7 @@ public:
 
     tbl->store(state, k1, Qtrue);
 
-    LookupTable* tbl2 = tbl->dup(state);
+    LookupTable* tbl2 = tbl->duplicate(state);
 
     TS_ASSERT_EQUALS(tbl2->aref(state, k1), Qtrue);
   }
