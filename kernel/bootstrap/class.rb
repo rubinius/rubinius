@@ -13,13 +13,3 @@ class Class
     raise PrimitiveFailure, "Unable to set the superclass"
   end
 end
-
-# TODO: is this obsolete?
-class RuntimePrimitive < Executable
-  attr_writer :variable
-
-  def initialize(prim_name)
-    @primitive = prim_name
-    @serial = 0
-  end
-end
