@@ -98,6 +98,7 @@ namespace rubinius {
     return ((Runner)func)(state, vmm, call_frame);
 #else
     Assertion::raise("Only supported on x86");
+    return Qnil; // keep compiler happy
 #endif
   }
 
