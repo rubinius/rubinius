@@ -167,18 +167,18 @@ namespace rubinius {
     struct tm tm;
     char str[MAX_STRFTIME_OUTPUT];
 
-    tm.tm_sec = ((Fixnum*)ary->get(state, 0))->to_native();
-    tm.tm_min = ((Fixnum*)ary->get(state, 1))->to_native();
-    tm.tm_hour = ((Fixnum*)ary->get(state, 2))->to_native();
-    tm.tm_mday = ((Fixnum*)ary->get(state, 3))->to_native();
-    tm.tm_mon = ((Fixnum*)ary->get(state, 4))->to_native();
-    tm.tm_year = ((Fixnum*)ary->get(state, 5))->to_native();
-    tm.tm_wday = ((Fixnum*)ary->get(state, 6))->to_native();
-    tm.tm_yday = ((Fixnum*)ary->get(state, 7))->to_native();
-    tm.tm_isdst = ((Fixnum*)ary->get(state, 8))->to_native();
+    tm.tm_sec = as<Fixnum>(ary->get(state, 0))->to_native();
+    tm.tm_min = as<Fixnum>(ary->get(state, 1))->to_native();
+    tm.tm_hour = as<Fixnum>(ary->get(state, 2))->to_native();
+    tm.tm_mday = as<Fixnum>(ary->get(state, 3))->to_native();
+    tm.tm_mon = as<Fixnum>(ary->get(state, 4))->to_native();
+    tm.tm_year = as<Fixnum>(ary->get(state, 5))->to_native();
+    tm.tm_wday = as<Fixnum>(ary->get(state, 6))->to_native();
+    tm.tm_yday = as<Fixnum>(ary->get(state, 7))->to_native();
+    tm.tm_isdst = as<Fixnum>(ary->get(state, 8))->to_native();
 
 #ifdef HAVE_STRUCT_TM_TM_GMTOFF
-    tm.tm_gmtoff = ((Fixnum*)ary->get(state, 9))->to_native();
+    tm.tm_gmtoff = as<Fixnum>(ary->get(state, 9))->to_native();
 #endif
 
 #ifdef HAVE_STRUCT_TM_TM_ZONE
