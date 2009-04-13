@@ -18,21 +18,17 @@ public:
   void test_create() {
     Time* tm = Time::create(state);
 
-    TS_ASSERT(kind_of<Array>(tm->timeval()));
+    TS_ASSERT(kind_of<Integer>(tm->sec()));
+    TS_ASSERT(kind_of<Integer>(tm->usec()));
     TS_ASSERT_EQUALS(tm->is_gmt(), Qfalse);
-
-    TS_ASSERT_EQUALS(tm->timeval()->size(), 2U);
   }
 
   void test_gettimeofday() {
     Time* tm = Time::create(state);
 
-    tm->timeval(state, Array::create(state, 0));
-    TS_ASSERT_EQUALS(tm->timeval()->size(), 0U);
-
     tm->gettimeofday(state);
-    TS_ASSERT(kind_of<Array>(tm->timeval()));
-    TS_ASSERT_EQUALS(tm->timeval()->size(), 2U);
+
+    TS_ASSERT(tm->sec()->to_native() > 0);
   }
 
   void test_time_switch() {
@@ -64,17 +60,17 @@ public:
     Fixnum* usec = Fixnum::from(10);
     Integer* tm = Integer::from(state, 119819408);
 
-    Array* ary = Time::mktime(state, sec, min, hour, day, mon, year, usec, isdst, Qfalse);
+    Tuple* tup = Time::mktime(state, sec, min, hour, day, mon, year, usec, isdst, Qfalse);
 
-    TS_ASSERT_EQUALS((unsigned)2, ary->size());
-    TS_ASSERT(tm->equal(state, (Integer*)ary->get(state, 0)));
-    TS_ASSERT_EQUALS(usec, (Fixnum*)ary->get(state, 1));
+    TS_ASSERT_EQUALS((unsigned)2, tup->num_fields());
+    TS_ASSERT(tm->equal(state, (Integer*)tup->at(state, 0)));
+    TS_ASSERT_EQUALS(usec, (Fixnum*)tup->at(state, 1));
 
-    ary = Time::mktime(state, sec, min, hour, day, mon, year, usec, isdst, Qtrue);
+    tup = Time::mktime(state, sec, min, hour, day, mon, year, usec, isdst, Qtrue);
 
-    TS_ASSERT_EQUALS((unsigned)2, ary->size());
-    TS_ASSERT(tm->equal(state, (Integer*)ary->get(state, 0)));
-    TS_ASSERT_EQUALS(usec, (Fixnum*)ary->get(state, 1));
+    TS_ASSERT_EQUALS((unsigned)2, tup->num_fields());
+    TS_ASSERT(tm->equal(state, (Integer*)tup->at(state, 0)));
+    TS_ASSERT_EQUALS(usec, (Fixnum*)tup->at(state, 1));
   }
 
   void test_time_strftime() {

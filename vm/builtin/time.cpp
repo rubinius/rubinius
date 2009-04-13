@@ -22,12 +22,9 @@ namespace rubinius {
   Time* Time::create(STATE) {
     Time* tm = state->new_object<Time>(G(time_class));
 
-    /* update Time::TIMEVAL_FIELDS when changing order of fields */
-    Array* ary = Array::create(state, 2);
-    ary->set(state, 0, Fixnum::from(0));
-    ary->set(state, 1, Fixnum::from(0));
+    tm->sec(state, Fixnum::from(0));
+    tm->usec(state, Fixnum::from(0));
 
-    tm->timeval(state, ary);
     tm->tm_ = (Array*)Qnil;
     tm->is_gmt(state, Qfalse);
 
@@ -35,7 +32,8 @@ namespace rubinius {
   }
 
   Time* Time::initialize_copy(STATE, Time* other) {
-    this->timeval(state, other->timeval_);
+    this->sec(state, other->sec_);
+    this->usec(state, other->usec_);
     this->tm(state, other->tm_);
     this->is_gmt(state, other->is_gmt_);
     return this;
@@ -49,18 +47,13 @@ namespace rubinius {
      */
     ::gettimeofday(&tv, NULL);
 
-    /* update Time::TIMEVAL_FIELDS when changing order of fields */
-    Array* ary = Array::create(state, 2);
-    ary->set(state, 0, Integer::from(state, tv.tv_sec));
-    ary->set(state, 1, Integer::from(state, tv.tv_usec));
-
-    this->timeval(state, ary);
-
+    sec( state, Integer::from(state, tv.tv_sec));
+    usec(state, Integer::from(state, tv.tv_usec));
     return this;
   }
 
   Time* Time::time_switch(STATE, Object* gmt) {
-    time_t seconds = ((Integer*)timeval_->get(state, 0))->to_native();
+    time_t seconds = sec_->to_native();
     struct tm *tm;
 
     if(gmt->true_p()) {
@@ -99,7 +92,7 @@ namespace rubinius {
     return this;
   }
 
-  Array* Time::mktime(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour,
+  Tuple* Time::mktime(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour,
                      Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec,
                      Fixnum* isdst, Object* from_gmt) {
     struct tm tm;
@@ -165,11 +158,7 @@ namespace rubinius {
       }
     }
 
-    Array* ary = Array::create(state, 2);
-    ary->set(state, 0, Integer::from(state, seconds));
-    ary->set(state, 1, usec);
-
-    return ary;
+    return Tuple::from(state, 2, Integer::from(state, seconds), usec);
   }
 
 #define MAX_STRFTIME_OUTPUT 128

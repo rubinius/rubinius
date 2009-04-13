@@ -120,7 +120,7 @@ class Time
             @tm[TM_FIELDS[:hour]]         # 5 bits
     minor = @tm[TM_FIELDS[:min]]  << 26 | # 6 bits
             @tm[TM_FIELDS[:sec]]  << 20 | # 6 bits
-            @timeval[TIMEVAL_FIELDS[:usec]] # 20 bits
+            @usec # 20 bits
 
     [major, minor].pack 'VV'
   ensure
@@ -213,7 +213,7 @@ class Time
   end
 
   def seconds
-    @timeval.first
+    @sec
   end
 
   def +(other)
@@ -318,7 +318,7 @@ class Time
   end
 
   def usec
-    @timeval.last
+    @usec
   end
 
   def to_i
@@ -418,10 +418,10 @@ class Time
       end
     end
 
-    @timeval = time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
+    @sec, @usec = time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
     @is_gmt = from_gmt
 
-    raise ArgumentError, "time out of range" if @timeval.first == -1
+    raise ArgumentError, "time out of range" if @sec == -1
 
     self
   end
@@ -444,7 +444,8 @@ class Time
     sec  = sec + (usec / 1000000)
     usec = usec % 1000000
 
-    @timeval = [sec, usec]
+    @sec = sec
+    @usec = usec
     @is_gmt = want_gmt
     @tm = nil
 
@@ -452,7 +453,7 @@ class Time
   end
 
   ##
-  # Ensures @tm reflects the values in @timeval and @is_gmt
+  # Ensures @tm reflects the values in @sec/@usec and @is_gmt
   def build_tm
     if @tm.nil?
       time_switch @is_gmt

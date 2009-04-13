@@ -18,14 +18,16 @@ namespace rubinius {
     const static object_type type = TimeType;
 
   private:
-    Array* timeval_; // slot
+    Integer* sec_; // slot
+    Integer* usec_; // slot
     Array* tm_;      // slot
     Object* is_gmt_;  // slot
 
   public:
     /* accessors */
 
-    attr_accessor(timeval, Array);
+    attr_accessor(sec, Integer);
+    attr_accessor(usec, Integer);
     attr_accessor(tm, Array);
     attr_accessor(is_gmt, Object);
 
@@ -45,7 +47,7 @@ namespace rubinius {
     Time* time_switch(STATE, Object* gmt);
 
     // Ruby.primitive :time_mktime
-    static Array* mktime(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);
+    static Tuple* mktime(STATE, Fixnum* sec, Fixnum* min, Fixnum* hour, Fixnum* mday, Fixnum* mon, Fixnum* year, Fixnum* usec, Fixnum* isdst, Object* from_gmt);
 
     // Ruby.primitive :time_strftime
     String* strftime(STATE, Array* ary, String* format);
