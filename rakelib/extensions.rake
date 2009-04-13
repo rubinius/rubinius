@@ -2,6 +2,7 @@ desc "Build extensions from lib/ext"
 task :extensions => %w[
   extension:readline
   extension:digest
+  extension:bigdecimal
 ]
 
 #  lib/etc.rb
@@ -37,6 +38,17 @@ namespace :extension do
     Dir["lib/ext/**/*.{o,#{$dlext}}"].each do |f|
       rm_f f, :verbose => $verbose
     end
+  end
+
+  desc "Build the bigdecimal extension"
+  task :bigdecimal => %W[kernel:build lib/ext/bigdecimal/bigdecimal.#{$dlext}]
+  file "lib/ext/bigdecimal/bigdecimal.#{$dlext}" => FileList[
+    "lib/ext/bigdecimal/build.rb",
+    "lib/ext/bigdecimal/bigdecimal.c",
+    "lib/ext/bigdecimal/bigdecimal.h",
+    "vm/capi/ruby.h"
+  ] do
+    compile_extension 'lib/ext/bigdecimal'
   end
 
   desc "Build the readline extension"
@@ -90,22 +102,5 @@ namespace :extension do
     digest_task "sha1"
     digest_task "sha2"
     digest_task "bubblebabble"
-  end
-
-
-  # Undocumented, used by spec/capi/capi_helper to build the spec exts.
-  namespace :specs do
-
-    FileList["spec/capi/ext/*.c"].each do |source|
-      name = File.basename source, ".c"
-      library = source.sub(/\.c/, ".#{$dlext}")
-
-      task name => library
-
-      file library => source do
-        compile_extension source
-      end
-    end
-
   end
 end
