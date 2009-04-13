@@ -1641,7 +1641,8 @@ BigDecimal_inspect(VALUE self)
     psz1   = ALLOCA_N(char,nc);
     pszAll = ALLOCA_N(char,nc+256);
     VpToString(vp, psz1, 10, 0);
-    sprintf(pszAll,"#<BigDecimal:%lx,'%s',%lu(%lu)>",self,psz1,VpPrec(vp)*VpBaseFig(),VpMaxPrec(vp)*VpBaseFig());
+    sprintf(pszAll,"#<BigDecimal:%lx,'%s',%lu(%lu)>",
+        (long unsigned int)self,psz1,VpPrec(vp)*VpBaseFig(),VpMaxPrec(vp)*VpBaseFig());
     obj = rb_str_new2(pszAll);
     return obj;
 }
