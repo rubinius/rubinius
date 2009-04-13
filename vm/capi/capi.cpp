@@ -45,17 +45,21 @@ namespace rubinius {
         map[cCApiData]       = "Data";
         map[cCApiEnumerable] = "Enumerable";
         map[cCApiFalse]      = "FalseClass";
+        map[cCApiFile]       = "File";
         map[cCApiFixnum]     = "Fixnum";
         map[cCApiFloat]      = "Float";
         map[cCApiHash]       = "Hash";
         map[cCApiInteger]    = "Integer";
         map[cCApiIO]         = "IO";
         map[cCApiKernel]     = "Kernel";
+        map[cCApiMatch]      = "MatchData";
         map[cCApiModule]     = "Module";
         map[cCApiNil]        = "NilClass";
+        map[cCApiNumeric]    = "Numeric";
         map[cCApiObject]     = "Object";
         map[cCApiRegexp]     = "Regexp";
         map[cCApiString]     = "String";
+        map[cCApiStruct]     = "Struct";
         map[cCApiSymbol]     = "Symbol";
         map[cCApiThread]     = "Thread";
         map[cCApiTime]       = "Time";
@@ -212,12 +216,6 @@ extern "C" {
     return capi_funcall_backend(file, line, receiver, method_name, arg_count, args);
   }
 
-  VALUE capi_id2sym(ID id) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    return env->get_handle(reinterpret_cast<Symbol*>(id));
-  }
-
   void capi_infect(VALUE obj1, VALUE obj2) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -247,18 +245,6 @@ extern "C" {
     String* string = c_as<String>(env->get_object(string_handle));
 
     return string->byte_address();
-  }
-
-  int capi_rtest(VALUE expression_result) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    return RBX_RTEST(env->get_object(expression_result));
-  }
-
-  ID capi_sym2id(VALUE symbol_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    return reinterpret_cast<ID>(env->get_object(symbol_handle));
   }
 
   void capi_define_method(const char* file, VALUE target,

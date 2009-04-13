@@ -273,7 +273,7 @@ extern "C" {
     return self_handle;
   }
 
-  VALUE rb_attr_get(VALUE obj_handle, ID attr_name) {
-    return rb_ivar_get(obj_handle, attr_name);
+  VALUE rb_assoc_new(VALUE first, VALUE second) {
+    return rb_funcall(rb_cArray, rb_intern("[]"), 2, first, second);
   }
 }

@@ -94,4 +94,12 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return env->get_handle(Bignum::from(env->state(), val));
   }
+
+  VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {
+    return rb_funcall(rb_cNumeric, rb_intern("num_coerce_bin"), 3, x, y, func);
+  }
+
+  VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func) {
+    return rb_funcall(rb_cNumeric, rb_intern("num_coerce_cmp"), 3, x, y, func);
+  }
 }

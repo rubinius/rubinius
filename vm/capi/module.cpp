@@ -12,10 +12,8 @@ using namespace rubinius::capi;
 
 extern "C" {
   int rb_const_defined(VALUE module_handle, ID const_id) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    VALUE result = rb_funcall(module_handle, rb_intern("const_defined?"), 1, ID2SYM(const_id));
-    return RBX_RTEST(env->get_object(result));
+    return RTEST(rb_funcall(module_handle, rb_intern("const_defined?"),
+          1, ID2SYM(const_id)));
   }
 
   VALUE rb_const_get(VALUE module_handle, ID name) {
@@ -55,6 +53,10 @@ extern "C" {
     Object* object = env->get_object(obj_handle);
 
     module->set_const(env->state(), name,  object);
+  }
+
+  void rb_define_global_function(const char* name, CApiGenericFunction func, int argc) {
+    rb_define_module_function(rb_mKernel, name, func, argc);
   }
 
   VALUE rb_define_module(const char* name) {

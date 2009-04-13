@@ -123,4 +123,17 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return env->get_handle(Float::create(env->state(), val));
   }
+
+  void rb_bug(const char *fmt, ...) {
+  }
+
+  void rb_fatal(const char *fmt, ...) {
+  }
+
+  void rb_warn(const char *fmt, ...) {
+  }
+
+  int rb_special_const_p(VALUE obj) {
+    return SPECIAL_CONST_P(obj) ? Qtrue : Qfalse;
+  }
 }

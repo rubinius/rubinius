@@ -223,6 +223,28 @@ extern "C" {
     return rb_str_append(rb_str_dup(self_handle), other_handle);
   }
 
+  VALUE rb_str_resize(VALUE self_handle, size_t len) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* string = capi_get_string(env, self_handle);
+
+    size_t size = string->size();
+    if(size != len) {
+      if(size < len) {
+        ByteArray* ba = ByteArray::create(env->state(), len+1);
+        std::memcpy(ba->bytes, string->byte_address(), size);
+        string->data(env->state(), ba);
+      }
+
+      string->byte_address()[len] = 0;
+      string->num_bytes(env->state(), Fixnum::from(len));
+      string->characters(env->state(), Fixnum::from(len));
+      string->hash_value(env->state(), reinterpret_cast<Integer*>(RBX_Qnil));
+    }
+
+    return self_handle;
+  }
+
   VALUE rb_str_split(VALUE self_handle, const char* separator) {
     return rb_funcall(self_handle, rb_intern("split"), 1, rb_str_new2(separator));
   }

@@ -155,4 +155,52 @@ describe "CApiObject" do
     @o.rb_is_type_module(ObjectTest).should == false
     @o.rb_is_type_class(ObjectTest).should == true
   end
+
+  describe "RTEST" do
+    it "returns C false if passed Qfalse" do
+      @o.RTEST(false).should be_false
+    end
+
+    it "returns C false if passed Qnil" do
+      @o.RTEST(nil).should be_false
+    end
+
+    it "returns C true if passed Qtrue" do
+      @o.RTEST(true).should be_true
+    end
+
+    it "returns C true if passed a Symbol" do
+      @o.RTEST(:test).should be_true
+    end
+
+    it "returns C true if passed an Object" do
+      @o.RTEST(Object.new).should be_true
+    end
+  end
+
+  describe "rb_special_const_p" do
+    it "returns true if passed Qfalse" do
+      @o.rb_special_const_p(false).should be_true
+    end
+
+    it "returns true if passed Qtrue" do
+      @o.rb_special_const_p(true).should be_true
+    end
+
+    it "returns true if passed Qnil" do
+      @o.rb_special_const_p(nil).should be_true
+    end
+
+    it "returns true if passed a Symbol" do
+      @o.rb_special_const_p(:test).should be_true
+    end
+
+    it "returns true if passed a Fixnum" do
+      @o.rb_special_const_p(10).should be_true
+    end
+
+    it "returns false if passed an Object" do
+      @o.rb_special_const_p(Object.new).should be_false
+    end
+  end
 end

@@ -20,6 +20,10 @@ static VALUE constants_spec_rb_cFalseClass(VALUE self) {
   return rb_cFalseClass;
 }
 
+static VALUE constants_spec_rb_cFile(VALUE self) {
+  return rb_cFile;
+}
+
 static VALUE constants_spec_rb_cFixnum(VALUE self) {
   return rb_cFixnum;
 }
@@ -44,8 +48,16 @@ static VALUE constants_spec_rb_cModule(VALUE self) {
   return rb_cModule;
 }
 
+static VALUE constants_spec_rb_cMatch(VALUE self) {
+  return rb_cMatch;
+}
+
 static VALUE constants_spec_rb_cNilClass(VALUE self) {
   return rb_cNilClass;
+}
+
+static VALUE constants_spec_rb_cNumeric(VALUE self) {
+  return rb_cNumeric;
 }
 
 static VALUE constants_spec_rb_cObject(VALUE self) {
@@ -58,6 +70,10 @@ static VALUE constants_spec_rb_cRegexp(VALUE self) {
 
 static VALUE constants_spec_rb_cString(VALUE self) {
   return rb_cString;
+}
+
+static VALUE constants_spec_rb_cStruct(VALUE self) {
+  return rb_cStruct;
 }
 
 static VALUE constants_spec_rb_cSymbol(VALUE self) {
@@ -205,16 +221,20 @@ void Init_constants_spec() {
   rb_define_method(cls, "rb_cClass", constants_spec_rb_cClass, 0);
   rb_define_method(cls, "rb_cData", constants_spec_rb_cData, 0);
   rb_define_method(cls, "rb_cFalseClass", constants_spec_rb_cFalseClass, 0);
+  rb_define_method(cls, "rb_cFile", constants_spec_rb_cFile, 0);
   rb_define_method(cls, "rb_cFixnum", constants_spec_rb_cFixnum, 0);
   rb_define_method(cls, "rb_cFloat", constants_spec_rb_cFloat, 0);
   rb_define_method(cls, "rb_cHash", constants_spec_rb_cHash, 0);
   rb_define_method(cls, "rb_cInteger", constants_spec_rb_cInteger, 0);
   rb_define_method(cls, "rb_cIO", constants_spec_rb_cIO, 0);
+  rb_define_method(cls, "rb_cMatch", constants_spec_rb_cMatch, 0);
   rb_define_method(cls, "rb_cModule", constants_spec_rb_cModule, 0);
   rb_define_method(cls, "rb_cNilClass", constants_spec_rb_cNilClass, 0);
+  rb_define_method(cls, "rb_cNumeric", constants_spec_rb_cNumeric, 0);
   rb_define_method(cls, "rb_cObject", constants_spec_rb_cObject, 0);
   rb_define_method(cls, "rb_cRegexp", constants_spec_rb_cRegexp, 0);
   rb_define_method(cls, "rb_cString", constants_spec_rb_cString, 0);
+  rb_define_method(cls, "rb_cStruct", constants_spec_rb_cStruct, 0);
   rb_define_method(cls, "rb_cSymbol", constants_spec_rb_cSymbol, 0);
   rb_define_method(cls, "rb_cThread", constants_spec_rb_cThread, 0);
   rb_define_method(cls, "rb_cTrueClass", constants_spec_rb_cTrueClass, 0);

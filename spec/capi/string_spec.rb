@@ -219,4 +219,18 @@ describe "C-API String function" do
       lambda { @s.StringValue(str) }.should raise_error(TypeError)
     end
   end
+
+  describe "rb_str_resize" do
+    it "reduces the size of the string" do
+      str = @s.rb_str_resize("test", 2)
+      str.size.should == 2
+      str.should == "te"
+    end
+
+    it "increases the size of the string" do
+      str = @s.rb_str_resize("test", 12)
+      str.size.should == 12
+      str[0, 5].should == "test\x00"
+    end
+  end
 end

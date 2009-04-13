@@ -27,7 +27,7 @@ VALUE so_kind_of(VALUE self, VALUE obj, VALUE klass) {
 }
 
 VALUE so_respond_to(VALUE self, VALUE obj, VALUE sym) {
-  return (VALUE)rb_respond_to(obj, SYM2ID(sym));
+  return rb_respond_to(obj, SYM2ID(sym)) ? Qtrue : Qfalse;
 }
 
 VALUE so_to_id(VALUE self, VALUE obj) {
@@ -106,21 +106,29 @@ VALUE so_is_type_class(VALUE self, VALUE obj) {
   return Qfalse;
 }
 
+VALUE object_spec_RTEST(VALUE self, VALUE value) {
+  return RTEST(value) ? Qtrue : Qfalse;
+}
+
+VALUE object_spec_rb_special_const_p(VALUE self, VALUE value) {
+  return rb_special_const_p(value);
+}
+
 void Init_object_spec() {
   VALUE cls;
   cls = rb_define_class("CApiObjectSpecs", rb_cObject);
 
   rb_define_method(cls, "rb_obj_alloc", so_rb_obj_alloc, 1);
   rb_define_method(cls, "rb_obj_call_init", so_rb_obj_call_init, 3);
-  rb_define_method(cls, "rb_obj_is_instance_of", so_instance_of, 2);  
-  rb_define_method(cls, "rb_obj_is_kind_of", so_kind_of, 2);  
-  rb_define_method(cls, "rb_respond_to", so_respond_to, 2);    
+  rb_define_method(cls, "rb_obj_is_instance_of", so_instance_of, 2);
+  rb_define_method(cls, "rb_obj_is_kind_of", so_kind_of, 2);
+  rb_define_method(cls, "rb_respond_to", so_respond_to, 2);
   rb_define_method(cls, "rb_to_id", so_to_id, 1);
   rb_define_method(cls, "rb_require", so_require, 0);
   rb_define_method(cls, "rb_attr_get", so_attr_get, 2);
   rb_define_method(cls, "rb_check_array_type", so_check_array_type, 1);
   rb_define_method(cls, "rb_check_string_type", so_check_string_type, 1);
-  rb_define_method(cls, "rb_check_convert_type", so_check_convert_type, 1);  
+  rb_define_method(cls, "rb_check_convert_type", so_check_convert_type, 1);
   rb_define_method(cls, "rb_convert_type", so_convert_type, 1);
   rb_define_method(cls, "rb_inspect", so_inspect, 1);
   rb_define_method(cls, "rb_obj_classname", so_rbobjclassname, 1);
@@ -130,4 +138,6 @@ void Init_object_spec() {
   rb_define_method(cls, "rb_is_type_array", so_is_type_array, 1);
   rb_define_method(cls, "rb_is_type_module", so_is_type_module, 1);
   rb_define_method(cls, "rb_is_type_class", so_is_type_class, 1);
+  rb_define_method(cls, "RTEST", object_spec_RTEST, 1);
+  rb_define_method(cls, "rb_special_const_p", object_spec_rb_special_const_p, 1);
 }

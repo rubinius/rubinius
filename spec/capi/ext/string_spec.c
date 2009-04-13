@@ -144,6 +144,10 @@ VALUE string_spec_StringValue(VALUE self, VALUE str) {
   return StringValue(str);
 }
 
+VALUE string_spec_rb_str_resize(VALUE self, VALUE str, VALUE size) {
+  return rb_str_resize(str, FIX2INT(size));
+}
+
 void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
@@ -163,6 +167,7 @@ void Init_string_spec() {
   rb_define_method(cls, "rb_cstr2inum", string_spec_rb_cstr2inum, 2);
   rb_define_method(cls, "rb_str_substr", string_spec_rb_str_substr, 3);
   rb_define_method(cls, "rb_str_to_str", string_spec_rb_str_to_str, 1);
+  rb_define_method(cls, "rb_str_resize", string_spec_rb_str_resize, 2);
   rb_define_method(cls, "RSTRING_PTR_iterate", string_spec_RSTRING_PTR_iterate, 1);
   rb_define_method(cls, "RSTRING_PTR_assign", string_spec_RSTRING_PTR_assign, 2);
   rb_define_method(cls, "RSTRING_LEN", string_spec_RSTRING_LEN, 1);

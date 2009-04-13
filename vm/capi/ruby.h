@@ -101,6 +101,20 @@ void* XCALLOC(size_t items, size_t bytes);
 #define ruby_xrealloc  xrealloc
 #define ruby_xfree     xfree
 
+/* need to include <ctype.h> to use these macros */
+#ifndef ISPRINT
+#define ISASCII(c) isascii((int)(unsigned char)(c))
+#undef ISPRINT
+#define ISPRINT(c) (ISASCII(c) && isprint((int)(unsigned char)(c)))
+#define ISSPACE(c) (ISASCII(c) && isspace((int)(unsigned char)(c)))
+#define ISUPPER(c) (ISASCII(c) && isupper((int)(unsigned char)(c)))
+#define ISLOWER(c) (ISASCII(c) && islower((int)(unsigned char)(c)))
+#define ISALNUM(c) (ISASCII(c) && isalnum((int)(unsigned char)(c)))
+#define ISALPHA(c) (ISASCII(c) && isalpha((int)(unsigned char)(c)))
+#define ISDIGIT(c) (ISASCII(c) && isdigit((int)(unsigned char)(c)))
+#define ISXDIGIT(c) (ISASCII(c) && isxdigit((int)(unsigned char)(c)))
+#endif
+
 /**
  *  In MRI, VALUE represents an object.
  *
@@ -143,7 +157,9 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 
 #undef ALLOC
 #undef ALLOC_N
+#undef ALLOCA_N
 #undef REALLOC_N
+#undef REFERENCE_P
 #undef NIL_P
 #undef RTEST
 
@@ -167,17 +183,21 @@ extern "C" {
     cCApiData,
     cCApiEnumerable,
     cCApiFalse,
+    cCApiFile,
     cCApiFixnum,
     cCApiFloat,
     cCApiHash,
     cCApiInteger,
     cCApiIO,
     cCApiKernel,
+    cCApiMatch,
     cCApiModule,
     cCApiNil,
+    cCApiNumeric,
     cCApiObject,
     cCApiRegexp,
     cCApiString,
+    cCApiStruct,
     cCApiSymbol,
     cCApiThread,
     cCApiTime,
@@ -330,16 +350,20 @@ struct RData {
 #define rb_cClass             (capi_get_constant(cCApiClass))
 #define rb_cData              (capi_get_constant(cCApiData))
 #define rb_cFalseClass        (capi_get_constant(cCApiFalse))
+#define rb_cFile              (capi_get_constant(cCApiFile))
 #define rb_cFixnum            (capi_get_constant(cCApiFixnum))
 #define rb_cFloat             (capi_get_constant(cCApiFloat))
 #define rb_cHash              (capi_get_constant(cCApiHash))
 #define rb_cInteger           (capi_get_constant(cCApiInteger))
 #define rb_cIO                (capi_get_constant(cCApiIO))
+#define rb_cMatch             (capi_get_constant(cCApiMatch))
 #define rb_cModule            (capi_get_constant(cCApiModule))
 #define rb_cNilClass          (capi_get_constant(cCApiNil))
+#define rb_cNumeric           (capi_get_constant(cCApiNumeric))
 #define rb_cObject            (capi_get_constant(cCApiObject))
 #define rb_cRegexp            (capi_get_constant(cCApiRegexp))
 #define rb_cString            (capi_get_constant(cCApiString))
+#define rb_cStruct            (capi_get_constant(cCApiStruct))
 #define rb_cSymbol            (capi_get_constant(cCApiSymbol))
 #define rb_cThread            (capi_get_constant(cCApiThread))
 #define rb_cTime              (capi_get_constant(cCApiTime))
@@ -393,6 +417,9 @@ struct RData {
 /** Allocate memory for N of type. Must NOT be used to allocate Ruby objects. */
 #define ALLOC_N(type, n)  (type*)malloc(sizeof(type) * (n))
 
+/** Allocate memory for N of type in the stack frame of the caller. */
+#define ALLOCA_N(type,n)  (type*)alloca(sizeof(type)*(n))
+
 /** Reallocate memory allocated with ALLOC or ALLOC_N. */
 #define REALLOC_N(ptr, type, n) (ptr)=(type*)realloc(ptr, sizeof(type) * (n));
 
@@ -412,7 +439,7 @@ struct RData {
 #define FIX2UINT(i)       NUM2UINT((i))
 
 /** Get a handle for the Symbol object represented by ID. */
-#define ID2SYM(id)        capi_id2sym((id))
+#define ID2SYM(id)        (id)
 
 /** Infect o2 if o1 is tainted */
 #define OBJ_INFECT(o1, o2) capi_infect((o1), (o2))
@@ -444,14 +471,22 @@ struct RData {
 /** The pointer to the data. */
 #define DATA_PTR(d)       (RDATA(d)->data)
 
-/** False if expression evaluates to nil or false, true otherwise. */
-#define RTEST(v)          capi_rtest((v))
+/** Return true if expression is not Qfalse or Qnil. */
+#define RTEST(v)          (((VALUE)(v) & ~Qnil) != 0)
 
 /** Return the super class of the object */
 #define RCLASS_SUPER(klass)   capi_class_superclass((klass))
 
 /** Rubinius' SafeStringValue is the same as StringValue. */
 #define SafeStringValue   StringValue
+
+#define REFERENCE_TAG         0xa
+#define REFERENCE_MASK        0xf
+#define REFERENCE_P(x)        (((VALUE)(x) & REFERENCE_MASK) == REFERENCE_TAG)
+#define IMMEDIATE_P(x)        (!REFERENCE_P(x))
+
+/** Return true if expression is an immediate, Qfalse or Qnil. */
+#define SPECIAL_CONST_P(x)    (IMMEDIATE_P(x) || !RTEST(x))
 
 /** Modifies the VALUE object in place by calling rb_obj_as_string(). */
 #define StringValue(v)        rb_string_value(&(v))
@@ -460,7 +495,7 @@ struct RData {
 #define STR2CSTR(str)         rb_string_value_cstr(&(str))
 
 /** Retrieve the ID given a Symbol handle. */
-#define SYM2ID(sym)       capi_sym2id((sym))
+#define SYM2ID(sym)       (sym)
 
 /** Return an integer type id for the object. @see rb_type() */
 #define TYPE(handle)      rb_type(handle)
@@ -507,9 +542,6 @@ struct RData {
   /** Retrieve a Handle to a globally available object. @internal. */
   VALUE   capi_get_constant(CApiConstant type);
 
-  /** Symbol Handle for an ID. @internal. */
-  VALUE   capi_id2sym(ID id);
-
   /** Returns the string associated with a symbol. */
   const char *rb_id2name(ID sym);
 
@@ -524,12 +556,6 @@ struct RData {
 
   /** Pointer to string data in string_handle. @internal. */
   char*   capi_rstring_ptr(VALUE string_handle);
-
-  /** False if expression evaluates to Qnil or Qfalse, true otherwise. @internal. */
-  int     capi_rtest(VALUE expression_result);
-
-  /** ID from a Symbol Handle. @internal. */
-  ID      capi_sym2id(VALUE symbol_handle);
 
   /** Returns the superclass of klass or NULL. This is not the same as
    * rb_class_superclass. See MRI's rb_class_s_alloc which returns a
@@ -578,6 +604,9 @@ struct RData {
             sval = (type*)DATA_PTR(obj);\
 } while (0)
 
+  /** Return Qtrue if obj is an immediate, Qfalse or Qnil. */
+  int     rb_special_const_p(VALUE obj);
+
   /** Return obj if it is an Array, or return wrapped (i.e. [obj]) */
   VALUE   rb_Array(VALUE obj_handle);
 
@@ -623,11 +652,16 @@ struct RData {
   /** Add object to the front of Array. Changes old indexes +1. Returns object. */
   VALUE   rb_ary_unshift(VALUE self_handle, VALUE object_handle);
 
+  /** Return new Array with elements first and second. */
+  VALUE   rb_assoc_new(VALUE first, VALUE second);
+
   /** @see rb_ivar_get */
   VALUE   rb_attr_get(VALUE obj_handle, ID attr_name);
 
   /** Return 1 if this send has a block, 0 otherwise. */
   int     rb_block_given_p();
+
+  VALUE   rb_big2str(VALUE self, int base);
 
   /** If object responds to #to_ary, returns the result of that call, otherwise nil. */
   VALUE   rb_check_array_type(VALUE object_handle);
@@ -725,11 +759,15 @@ struct RData {
                                            (CApiGenericFunction)fptr, arity, \
                                            cCApiPublicMethod)
 
+  /** Defines the method on Kernel. */
+  void    rb_define_global_function(const char* name, CApiGenericFunction func, int argc);
+
   /** Reopen or create new top-level Module. */
   VALUE   rb_define_module(const char* name);
 
-  /** Defines the given method as a private instance method and a singleton method of module. */
-  void    rb_define_module_function(VALUE module_handle, const char* name, CApiGenericFunction func, int args);
+  /** Defines the method as a private instance method and a singleton method of module. */
+  void    rb_define_module_function(VALUE module_handle,
+      const char* name, CApiGenericFunction func, int args);
 
   /** Reopen or create a new Module inside given parent Module. */
   VALUE   rb_define_module_under(VALUE parent_handle, const char* name);
@@ -827,6 +865,12 @@ struct RData {
 
   /** Convert string to an ID */
   ID      rb_intern(const char* string);
+
+  /** Coerce x and y and perform 'x func y' */
+  VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func);
+
+  /** Coerce x and y; perform 'x func y' if coerce succeeds, else return Qnil. */
+  VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func);
 
   /** Call #initialize on the object with given arguments. */
   void    rb_obj_call_init(VALUE object_handle, int arg_count, VALUE* args);
@@ -984,6 +1028,9 @@ struct RData {
   /** Returns a new String created from concatenating self with other. */
   VALUE   rb_str_plus(VALUE self_handle, VALUE other_handle);
 
+  /** Makes str at least len characters. */
+  VALUE   rb_str_resize(VALUE self_handle, size_t len);
+
   /** Splits self using the separator string. Returns Array of substrings. */
   VALUE   rb_str_split(VALUE self_handle, const char* separator);
 
@@ -1045,6 +1092,12 @@ struct RData {
   VALUE   rb_marshal_load(VALUE string);
 
   VALUE   rb_float_new(double val);
+
+  void    rb_bug(const char *fmt, ...);
+
+  void    rb_fatal(const char *fmt, ...);
+
+  void    rb_warn(const char *fmt, ...);
 
 #ifdef __cplusplus
 }

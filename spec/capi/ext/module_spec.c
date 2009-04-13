@@ -6,7 +6,7 @@ VALUE sm_define_const(VALUE self, VALUE klass, VALUE val) {
 }
 
 VALUE sm_const_defined(VALUE self, VALUE klass, VALUE id) {
-  return (VALUE)rb_const_defined(klass, SYM2ID(id));
+  return rb_const_defined(klass, SYM2ID(id)) ? Qtrue : Qfalse;
 }
 
 static VALUE sa_define_alias(VALUE self, VALUE obj,

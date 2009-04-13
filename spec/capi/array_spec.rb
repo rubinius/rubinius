@@ -184,4 +184,11 @@ describe "C-API Array function" do
       @s.RARRAY_LEN([1, 2, 3]).should == 3
     end
   end
+
+  describe "rb_assoc_new" do
+    it "returns an array containing the two elements" do
+      @s.rb_assoc_new(1, 2).should == [1, 2]
+      @s.rb_assoc_new(:h, [:a, :b]).should == [:h, [:a, :b]]
+    end
+  end
 end

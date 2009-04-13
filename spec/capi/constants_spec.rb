@@ -35,6 +35,10 @@ describe "C-API constant" do
     @s.rb_cFalseClass.should == FalseClass
   end
 
+  specify "rb_cFile references the File class" do
+    @s.rb_cFile.should == File
+  end
+
   specify "rb_cFixnum references the Fixnum class" do
     @s.rb_cFixnum.should == Fixnum
   end
@@ -59,12 +63,20 @@ describe "C-API constant" do
     @s.rb_mKernel.should == Kernel
   end
 
+  specify "rb_cMatch references the MatchData class" do
+    @s.rb_cMatch.should == MatchData
+  end
+
   specify "rb_cModule references the Module class" do
     @s.rb_cModule.should == Module
   end
 
   specify "rb_cNilClass references the NilClass class" do
     @s.rb_cNilClass.should == NilClass
+  end
+
+  specify "rb_cNumeric references the Numeric class" do
+    @s.rb_cNumeric.should == Numeric
   end
 
   specify "rb_cObject references the Object class" do
@@ -77,6 +89,10 @@ describe "C-API constant" do
 
   specify "rb_cString references the String class" do
     @s.rb_cString.should == String
+  end
+
+  specify "rb_cStruct references the Struct class" do
+    @s.rb_cStruct.should == Struct
   end
 
   specify "rb_cSymbol references the Symbol class" do

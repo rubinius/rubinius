@@ -68,40 +68,40 @@ extern "C" {
     return return_handle;
   }
 
-  /** @todo This is horrible. Refactor. --rue */
-  int rb_type(VALUE object_handle) {
-    struct type_map {
-      int type;
-      const char *name;
-    } tmap[] = {
-      {T_NIL,     "NilClass"},
-      {T_SYMBOL,  "Symbol"},
-      {T_CLASS,   "Class"},
-      {T_MODULE,  "Module"},
-      {T_FLOAT,   "Float"},
-      {T_STRING,  "String"},
-      {T_REGEXP,  "Regexp"},
-      {T_ARRAY,   "Array"},
-      {T_FIXNUM,  "Fixnum"},
-      {T_HASH,    "Hash"},
-      {T_STRUCT,  "Struct"},
-      {T_BIGNUM,  "Bignum"},
-      {T_FILE,    "File"},
-      {T_TRUE,    "TrueClass"},
-      {T_FALSE,   "FalseClass"},
-      {T_MATCH,   "MatchData"},
-      {T_OBJECT,  "Object"},
-      {0,         0}
-    };
+  int rb_type(VALUE obj) {
+    if (FIXNUM_P(obj)) return T_FIXNUM;
+    if (obj == Qnil) return T_NIL;
+    if (obj == Qfalse) return T_FALSE;
+    if (obj == Qtrue) return T_TRUE;
+    if (obj == Qundef) return T_UNDEF;
+    if (SYMBOL_P(obj)) return T_SYMBOL;
 
-    int i;
-
-    for(i = 0; tmap[i].name != 0; ++i) {
-      VALUE class_handle = rb_const_get(rb_cObject, rb_intern(tmap[i].name));
-
-      if(rb_obj_is_kind_of(object_handle, class_handle) == Qtrue) {
-        return tmap[i].type;
-      }
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Object* object = env->get_object(obj);
+    switch(object->type_id()) {
+    case ArrayType:
+      return T_ARRAY;
+    case BignumType:
+      return T_BIGNUM;
+    case ClassType:
+      return T_CLASS;
+    case DataType:
+      return T_DATA;
+    case FloatType:
+      return T_FLOAT;
+    case ModuleType:
+      return T_MODULE;
+    case RegexpType:
+      return T_REGEXP;
+    case StringType:
+      return T_STRING;
+    default:
+      // This is in the default branch to avoid compiler warnings
+      // about other enum values for type_id() not being present.
+      if(rb_obj_is_kind_of(obj, rb_cHash)) return T_HASH;
+      if(rb_obj_is_kind_of(obj, rb_cStruct)) return T_STRUCT;
+      if(rb_obj_is_kind_of(obj, rb_cFile)) return T_FILE;
+      if(rb_obj_is_kind_of(obj, rb_cMatch)) return T_MATCH;
     }
 
     return T_OBJECT;
@@ -208,14 +208,12 @@ extern "C" {
     return env->get_handle(ret);
   }
 
+  VALUE rb_attr_get(VALUE obj_handle, ID attr_name) {
+    return rb_ivar_get(obj_handle, attr_name);
+  }
+
   int rb_respond_to(VALUE obj_handle, ID method_name) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    VALUE result = rb_funcall(obj_handle,
-                              rb_intern("respond_to?"),
-                              1,
-                              ID2SYM(method_name)) ;
-
-    return RBX_RTEST(env->get_object(result));
+    return RTEST(rb_funcall(obj_handle, rb_intern("respond_to?"),
+          1, ID2SYM(method_name)));
   }
 }
