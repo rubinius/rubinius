@@ -36,6 +36,7 @@ namespace rubinius {
 
     typedef std::map<native_int, long> Slots;
     typedef std::vector<executor> AccessorPrimitives;
+    typedef std::vector<uintptr_t> SlotLocations;
 
   private: /* Instance vars */
     VM*         state_;
@@ -47,6 +48,7 @@ namespace rubinius {
     static size_t instance_sizes[(int)LastObjectType];
     Slots       slots;
     AccessorPrimitives slot_accessors;
+    SlotLocations slot_locations;
     object_type type;
     std::string type_name;
 
@@ -103,6 +105,8 @@ namespace rubinius {
 
     virtual void set_field(STATE, Object* target, size_t index, Object* val);
     virtual Object* get_field(STATE, Object* target, size_t index);
+
+    virtual void populate_slot_locations() { }
 
     /**
      * Slow case, should be called only if instance_size is zero
@@ -173,7 +177,8 @@ namespace rubinius {
   virtual void auto_mark(Object* obj, ObjectMark& mark); \
   virtual void auto_visit(Object* obj, ObjectVisitor& visit); \
   virtual void set_field(STATE, Object* target, size_t index, Object* val); \
-  virtual Object* get_field(STATE, Object* target, size_t index);
+  virtual Object* get_field(STATE, Object* target, size_t index); \
+  virtual void populate_slot_locations();
 
 /**
  *  Generate TypeInfo declaration contents.
@@ -190,6 +195,7 @@ namespace rubinius {
   virtual void auto_visit(Object* obj, ObjectVisitor& visit); \
   virtual void cleanup(Object* obj); \
   virtual void set_field(STATE, Object* target, size_t index, Object* val); \
-  virtual Object* get_field(STATE, Object* target, size_t index);
+  virtual Object* get_field(STATE, Object* target, size_t index); \
+  virtual void populate_slot_locations();
 
 #endif

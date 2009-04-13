@@ -91,6 +91,8 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
       virtual void show(STATE, Object* self, int level);
     };
+
+    friend class Info;
   };
 };
 

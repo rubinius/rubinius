@@ -229,6 +229,11 @@ class CPPClass
     @fields << [name, type, idx]
   end
 
+  def field_index_offset
+    return @super.all_fields if @super
+    return 0
+  end
+
   def all_fields
     if @super
       ary = @super.all_fields
@@ -773,11 +778,30 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
       f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
       f.puts "    ti->slot_accessors[#{idx}] = Primitives::resolve_primitive(state, state->symbol(\"access_#{n}_#{name}\"));"
     end
+    f.puts "  ti->populate_slot_locations();"
     f.puts "  }"
     f.puts
   end
-
   f.puts "}"
+
+  parser.classes.each do |n, cpp|
+    next if cpp.all_fields.size == 0
+
+    f.puts "void #{n}::Info::populate_slot_locations() {"
+    f.puts "  slot_locations.resize(#{cpp.all_fields.size});\n"
+
+    if cpp.super
+      f.puts "  this->#{cpp.super.name}::Info::populate_slot_locations();\n"
+      offset = cpp.super.all_fields.size
+    else
+      offset = 0
+    end
+
+    cpp.fields.each do |name, type, idx|
+      f.puts "  slot_locations[#{offset + idx}] = FIELD_OFFSET(#{n}, #{name}_);\n"
+    end
+    f.puts "}"
+  end
 
   parser.classes.each do |n, cpp|
     f.puts cpp.generate_typechecks

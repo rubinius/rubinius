@@ -193,7 +193,9 @@ class InstructionSet
     {:opcode => :meta_send_op_nequal, :args => [], :stack => [2,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :meta_send_call, :args => [:int], :stack => [-11,1],
-      :flow => :send, :variable_stack => [1,1]}
+      :flow => :send, :variable_stack => [1,1]},
+
+    {:opcode => :push_my_offset, :args => [:field], :stack => [0,1]}
   ]
 
 

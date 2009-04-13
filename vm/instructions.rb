@@ -2611,6 +2611,14 @@ class Instructions
     CODE
   end
 
+  def push_my_offset(index)
+    <<-CODE
+    Object* val = *reinterpret_cast<Object**>(
+        reinterpret_cast<uintptr_t>(call_frame->self()) + index);
+    stack_push(val);
+    CODE
+  end
+
   def test_push_my_field
     <<-CODE
     Tuple* tup = Tuple::create(state, 3);

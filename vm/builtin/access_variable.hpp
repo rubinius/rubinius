@@ -34,9 +34,9 @@ namespace rubinius {
     static Object* access_read_table_ivar(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
     static Object* access_write_table_ivar(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
-    class Info : public TypeInfo {
+    class Info : public Executable::Info {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO(Executable::Info)
     };
   };
 }

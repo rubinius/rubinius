@@ -27,6 +27,8 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
     };
 
+    friend class Info;
+
   };
 
   class List : public Object {
@@ -60,6 +62,8 @@ namespace rubinius {
     public:
       BASIC_TYPEINFO(TypeInfo)
     };
+
+    friend class Info;
 
   };
 

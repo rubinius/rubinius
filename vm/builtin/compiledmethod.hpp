@@ -95,11 +95,13 @@ namespace rubinius {
     // Ruby.primitive :compiledmethod_of_sender
     static CompiledMethod* of_sender(STATE, CallFrame* calling_environment);
 
-    class Info : public TypeInfo {
+    class Info : public Executable::Info {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO(Executable::Info)
       virtual void show(STATE, Object* self, int level);
     };
+
+    friend class Info;
   };
 
 };

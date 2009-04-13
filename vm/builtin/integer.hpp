@@ -32,16 +32,6 @@ namespace rubinius {
     long long           to_long_long();
     unsigned long long  to_ulong_long();
 
-
-//    template< typename To >
-//      To to() {
-//        if(fixnum_p()) {
-//          return (reinterpret_cast<Fixnum*>(this))->to<To>();
-//        }
-//
-//        return as<Bignum>(this)->to<To>();
-//    }
-
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }

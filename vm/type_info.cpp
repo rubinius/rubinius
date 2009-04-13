@@ -4,6 +4,7 @@
 #include "gen/includes.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
+#include "field_offset.hpp"
 
 #include <iostream>
 #include <iomanip>

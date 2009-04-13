@@ -47,6 +47,8 @@ namespace rubinius {
     public:
       BASIC_TYPEINFO(TypeInfo)
     };
+
+    friend class Info;
   };
 
 }

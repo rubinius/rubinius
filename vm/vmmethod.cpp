@@ -325,8 +325,8 @@ namespace rubinius {
 
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
-          opcodes[i] = InstructionSequence::insn_push_my_field;
-          opcodes[i + 1] = it->second;
+          opcodes[i] = InstructionSequence::insn_push_my_offset;
+          opcodes[i + 1] = ti->slot_locations[it->second];
         }
       } else if(op == InstructionSequence::insn_set_ivar) {
         native_int idx = opcodes[i + 1];

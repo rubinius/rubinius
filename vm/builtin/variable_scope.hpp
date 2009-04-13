@@ -141,6 +141,7 @@ namespace rubinius {
       virtual void auto_mark(Object*, ObjectMark&);
       virtual void auto_visit(Object*, ObjectVisitor&);
       virtual size_t object_size(const ObjectHeader* object);
+      virtual void populate_slot_locations();
     };
   };
 }

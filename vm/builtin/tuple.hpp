@@ -62,12 +62,11 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type, bool cleanup = false) : TypeInfo(type, cleanup) { }
-      virtual void mark(Object* t, ObjectMark& mark);
+      virtual void mark(Object* obj, ObjectMark& mark);
+      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
+      virtual void visit(Object* obj, ObjectVisitor& visit);
       virtual void show(STATE, Object* self, int level);
       virtual void show_simple(STATE, Object* self, int level);
-      virtual void visit(Object*, ObjectVisitor& visit);
-
-      virtual void auto_mark(Object* obj, ObjectMark& mark) {}
       virtual size_t object_size(const ObjectHeader* object);
     };
   };

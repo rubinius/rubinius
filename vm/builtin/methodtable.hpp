@@ -13,9 +13,9 @@ namespace rubinius {
     // Ruby.primitive :methodtable_allocate
     static MethodTable* allocate(STATE);
 
-    class Info : public TypeInfo {
+    class Info : public LookupTable::Info {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO(LookupTable::Info)
     };
   };
 }

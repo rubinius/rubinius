@@ -50,9 +50,9 @@ namespace rubinius {
       void *ep;
     };
 
-    class Info : public TypeInfo {
+    class Info : public Executable::Info {
     public:
-      BASIC_TYPEINFO(TypeInfo)
+      BASIC_TYPEINFO(Executable::Info)
     };
 
   };
