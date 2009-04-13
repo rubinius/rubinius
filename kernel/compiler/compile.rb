@@ -152,12 +152,15 @@ class Compiler
       return false if requiring and $LOADED_FEATURES.include? rb
 
       rb_path = "#{dir}#{rb}"
+      rb_stat = File.stat(rb_path) rescue nil
 
-      if File.file? rb_path
+      if rb_stat and rb_stat.file?
         if rbc
           rbc_path = "#{dir}#{rbc}"
+          rbc_stat = File.stat(rbc_path) rescue nil
         else
           rbc_path = nil
+          rbc_stat = nil
         end
 
         cm = nil
@@ -167,7 +170,7 @@ class Compiler
         # hard if it doesn't.
         if @load_rbc_directly
 
-          if rbc_path and File.file?(rbc_path)
+          if rbc_stat and rbc_stat.file?
             compile_feature(rb, requiring) do
               cm = load_from_rbc(rbc_path, version_number)
               raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
@@ -177,9 +180,9 @@ class Compiler
           end
 
         # Prefer compiled whenever possible
-        elsif !rbc_path or
-              !File.file?(rbc_path) or
-               File.mtime(rb_path) > File.mtime(rbc_path) or
+        elsif !rbc_stat or
+              !rbc_stat.file? or
+               rb_stat.mtime > rbc_stat.mtime or
                options[:recompile]
 
           if $DEBUG_LOADING
