@@ -2893,7 +2893,7 @@ class Instructions
       }
     }
 
-    Object* ret = cache->execute(state, call_frame, *cache, args);
+    Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
     SET_ALLOW_PRIVATE(false);
     stack_pop();
@@ -2978,7 +2978,7 @@ class Instructions
 
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = cache->execute(state, call_frame, *cache, args);
+    Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
     call_frame->clear_stack(count + 1);
 
@@ -3067,7 +3067,7 @@ class Instructions
 
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = cache->execute(state, call_frame, *cache, args);
+    Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
     call_frame->clear_stack(count + 1);
 
@@ -3173,7 +3173,7 @@ class Instructions
     SET_CALL_FLAGS(0);
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = cache->execute(state, call_frame, *cache, args);
+    Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
     call_frame->clear_stack(count + 1);
 
@@ -3266,7 +3266,7 @@ class Instructions
 
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = cache->execute(state, call_frame, *cache, args);
+    Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
     call_frame->clear_stack(count);
 
@@ -3416,7 +3416,7 @@ class Instructions
     SET_CALL_FLAGS(0);
     SET_ALLOW_PRIVATE(false);
 
-    Object* ret = cache->execute(state, call_frame, *cache, args);
+    Object* ret = cache->method->execute(state, call_frame, *cache, args);
 
     call_frame->clear_stack(count);
 

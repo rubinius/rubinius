@@ -219,6 +219,9 @@ namespace rubinius {
     // Ruby.primitive :object_get_ivar
     Object*   get_ivar(STATE, Symbol* sym);
 
+    // A version that only attempts to find +sym+ in the ivars slot
+    Object*   get_table_ivar(STATE, Symbol* sym);
+
     Object*   del_ivar(STATE, Symbol* sym);
 
     /** Returns the structure containing this object's instance variables. */
@@ -261,6 +264,9 @@ namespace rubinius {
      */
     // Ruby.primitive :object_set_ivar
     Object*   set_ivar(STATE, Symbol* sym, Object* val);
+
+    // Specialized version that only checks ivars_
+    Object*   set_table_ivar(STATE, Symbol* sym, Object* val);
 
     /** String describing this object (through TypeInfo.) */
     // Ruby.primitive :object_show

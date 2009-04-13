@@ -150,6 +150,16 @@ namespace rubinius {
     return type_info(state)->get_field(state, this, index);
   }
 
+  Object* Object::get_table_ivar(STATE, Symbol* sym) {
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+      return tbl->fetch(state, sym);
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+      return tbl->fetch(state, sym);
+    }
+
+    return Qnil;
+  }
+
   Object* Object::get_ivar(STATE, Symbol* sym) {
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
@@ -170,13 +180,7 @@ namespace rubinius {
       }
     }
 
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
-      return tbl->fetch(state, sym);
-    } else if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
-      return tbl->fetch(state, sym);
-    }
-
-    return Qnil;
+    return get_table_ivar(state, sym);
   }
 
   /*
@@ -336,6 +340,32 @@ namespace rubinius {
     type_info(state)->set_field(state, this, index, val);
   }
 
+  Object* Object::set_table_ivar(STATE, Symbol* sym, Object* val) {
+    /* Lazy creation of a lookuptable to store instance variables. */
+    if(ivars_->nil_p()) {
+      CompactLookupTable* tbl = CompactLookupTable::create(state);
+      ivars(state, tbl);
+      tbl->store(state, sym, val);
+      return val;
+    }
+
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
+      if(tbl->store(state, sym, val) == Qtrue) {
+        return val;
+      }
+
+      /* No more room in the CompactLookupTable. */
+      ivars(state, tbl->to_lookuptable(state));
+    }
+
+    if(LookupTable* tbl = try_as<LookupTable>(ivars_)) {
+      tbl->store(state, sym, val);
+    }
+    /* else.. what? */
+
+    return val;
+  }
+
   Object* Object::set_ivar(STATE, Symbol* sym, Object* val) {
     LookupTable* tbl;
 
@@ -362,25 +392,7 @@ namespace rubinius {
       }
     }
 
-    /* Lazy creation of a lookuptable to store instance variables. */
-    if(ivars_->nil_p()) {
-      CompactLookupTable* tbl = CompactLookupTable::create(state);
-      ivars(state, tbl);
-      tbl->store(state, sym, val);
-      return val;
-    }
-
-    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars_)) {
-      if(tbl->store(state, sym, val) == Qtrue) {
-        return val;
-      }
-
-      /* No more room in the CompactLookupTable. */
-      ivars(state, tbl->to_lookuptable(state));
-    }
-
-    try_as<LookupTable>(ivars_)->store(state, sym, val);
-    return val;
+    return set_table_ivar(state, sym, val);
   }
 
   Object* Object::del_ivar(STATE, Symbol* sym) {
