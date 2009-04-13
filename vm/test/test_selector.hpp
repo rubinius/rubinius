@@ -2,6 +2,7 @@
 
 #include "builtin/selector.hpp"
 #include "builtin/list.hpp"
+#include "builtin/sendsite.hpp"
 
 class TestSelector : public CxxTest::TestSuite, public VMTest {
 public:

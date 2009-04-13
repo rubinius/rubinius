@@ -20,27 +20,6 @@ namespace rubinius {
   class Symbol;
   class Tuple;
 
-  class Marshaller {
-  public:
-    STATE;
-    std::ostream& stream;
-
-    Marshaller(STATE, std::ostream& stream) : state(state), stream(stream) { }
-
-    void marshal(Object* obj);
-
-    void set_int(Object* o);
-    void set_string(String* o);
-    void set_symbol(Symbol* o);
-    void set_sendsite(SendSite* o);
-    void set_array(Array* o);
-    void set_tuple(Tuple* o);
-    void set_bignum(Bignum* o);
-    void set_float(Float* o);
-    void set_iseq(InstructionSequence* o);
-    void set_cmethod(CompiledMethod* o);
-  };
-
   class UnMarshaller {
   public:
     STATE;

@@ -24,18 +24,6 @@ namespace rubinius {
 
   using std::endl;
 
-  void Marshaller::set_int(Object* obj) {
-    stream << "I" << endl << as<Integer>(obj)->to_native() << endl;
-  }
-
-  void Marshaller::set_bignum(Bignum* big) {
-    char buf[1024];
-
-    big->into_string(state, 10, buf, sizeof(buf));
-
-    stream << "I" << endl << buf << endl;
-  }
-
   Object* UnMarshaller::get_int() {
     char data[1024];
 
@@ -43,11 +31,6 @@ namespace rubinius {
     data[sizeof(data) - 1] = '\0';
 
     return Bignum::from_string(state, data, 10);
-  }
-
-  void Marshaller::set_string(String* str) {
-    stream << "s" << endl << str->size() << endl;
-    stream.write(str->byte_address(), str->size()) << endl;
   }
 
   String* UnMarshaller::get_string() {
@@ -64,12 +47,6 @@ namespace rubinius {
     return str;
   }
 
-  void Marshaller::set_symbol(Symbol* sym) {
-    String* str = sym->to_str(state);
-    stream << "x" << endl << str->size() << endl;
-    stream.write(str->byte_address(), str->size()) << endl;
-  }
-
   Symbol* UnMarshaller::get_symbol() {
     char data[1024];
     size_t count;
@@ -80,12 +57,6 @@ namespace rubinius {
     data[count] = 0; // clamp
 
     return state->symbol(data);
-  }
-
-  void Marshaller::set_sendsite(SendSite* ss) {
-    String* str = ss->name()->to_str(state);
-    stream << "S" << endl << str->size() << endl;
-    stream.write(str->c_str(), str->size()) << endl;
   }
 
   SendSite* UnMarshaller::get_sendsite() {
@@ -102,16 +73,6 @@ namespace rubinius {
     return SendSite::create(state, sym);
   }
 
-  void Marshaller::set_array(Array* ary) {
-    size_t count = ary->size();
-
-    stream << "A" << endl << count << endl;
-
-    for(size_t i = 0; i < count; i++) {
-      marshal(ary->get(state, i));
-    }
-  }
-
   Array* UnMarshaller::get_array() {
     size_t count;
     stream >> count;
@@ -123,14 +84,6 @@ namespace rubinius {
     }
 
     return ary;
-  }
-
-  void Marshaller::set_tuple(Tuple* tup) {
-    stream << "p" << endl << tup->num_fields() << endl;
-
-    for(size_t i = 0; i < tup->num_fields(); i++) {
-      marshal(tup->at(state, i));
-    }
   }
 
   Tuple* UnMarshaller::get_tuple() {
@@ -147,30 +100,6 @@ namespace rubinius {
   }
 
 #define FLOAT_EXP_OFFSET    58
-#define FLOAT_MAX_BUFFER    65
-
-  void Marshaller::set_float(Float* flt) {
-    double val = flt->val;
-
-    stream << "d" << endl;
-
-    if(std::isinf(val)) {
-      if(val < 0.0) stream << "-";
-      stream << "Infinity";
-    } else if(std::isnan(val)) {
-      stream << "NaN";
-    } else {
-      char   data[FLOAT_MAX_BUFFER];
-      double x;
-      int    e;
-
-      x = ::frexp(val, &e);
-      snprintf(data, FLOAT_MAX_BUFFER, " %+.54f %5d", x, e);
-      stream << data;
-    }
-
-    stream << endl;
-  }
 
   Float* UnMarshaller::get_float() {
     char data[1024];
@@ -216,14 +145,6 @@ namespace rubinius {
     }
   }
 
-  void Marshaller::set_iseq(InstructionSequence* iseq) {
-    Tuple* ops = iseq->opcodes();
-    stream << "i" << endl << ops->num_fields() << endl;
-    for(size_t i = 0; i < ops->num_fields(); i++) {
-      stream << as<Fixnum>(ops->at(state, i))->to_native() << endl;
-    }
-  }
-
   InstructionSequence* UnMarshaller::get_iseq() {
     size_t count;
     long op;
@@ -240,10 +161,6 @@ namespace rubinius {
     iseq->post_marshal(state);
 
     return iseq;
-  }
-
-  void Marshaller::set_cmethod(CompiledMethod* cm) {
-    assert(0);
   }
 
   CompiledMethod* UnMarshaller::get_cmethod() {
@@ -309,38 +226,4 @@ namespace rubinius {
       return Qnil;    // make compiler happy
     }
   }
-
-  void Marshaller::marshal(Object* obj) {
-    if(obj == Qnil) {
-      stream << "n" << endl;
-    } else if(obj == Qtrue) {
-      stream << "t" << endl;
-    } else if(obj == Qfalse) {
-      stream << "f" << endl;
-    } else if(obj->fixnum_p()) {
-      set_int(obj);
-    } else if(obj->symbol_p()) {
-      set_symbol((Symbol*)obj);
-    } else if(kind_of<Bignum>(obj)) {
-      set_bignum(as<Bignum>(obj));
-    } else if(kind_of<String>(obj)) {
-      set_string(as<String>(obj));
-    } else if(kind_of<SendSite>(obj)) {
-      set_sendsite(as<SendSite>(obj));
-    } else if(kind_of<Array>(obj)) {
-      set_array(as<Array>(obj));
-    } else if(kind_of<Tuple>(obj)) {
-      set_tuple(as<Tuple>(obj));
-    } else if(kind_of<Float>(obj)) {
-      set_float(as<Float>(obj));
-    } else if(kind_of<InstructionSequence>(obj)) {
-      set_iseq(as<InstructionSequence>(obj));
-    } else if(kind_of<CompiledMethod>(obj)) {
-      set_cmethod(as<CompiledMethod>(obj));
-    } else {
-      Exception::type_error(state, "unknown object");
-    }
-  }
-
-
 }
