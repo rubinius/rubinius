@@ -14,6 +14,7 @@
 #include "builtin/exception.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/string.hpp"
+#include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
 
 #include "instruments/profiler.hpp"
@@ -42,8 +43,14 @@ namespace rubinius {
   }
 
   Object* NativeMethodFrame::get_object(Handle handle) {
-    Object* obj = handles_[CAPI_STRIP_LOCAL_TAG(handle)]->get();
-    if(!obj) {
+    size_t index = CAPI_STRIP_LOCAL_TAG(handle);
+    if(unlikely(index >= handles_.size())) {
+      capi_raise_runtime_error("requested Object for invalid NativeMethod handle");
+    }
+
+    Object* obj = handles_[index]->get();
+
+    if(unlikely(!obj)) {
       capi_raise_runtime_error("NativeMethod handle refers to NULL object");
     }
     return obj;
@@ -120,8 +127,14 @@ namespace rubinius {
     if(CAPI_REFERENCE_P(handle)) {
       if(CAPI_GLOBAL_HANDLE_P(handle)) {
         Handles& global_handles = state_->shared.global_handles();
-        RootHandle* root = global_handles[CAPI_STRIP_GLOBAL_TAG(handle)];
-        if(!root) {
+        size_t index = CAPI_STRIP_GLOBAL_TAG(handle);
+        if(unlikely(index >= global_handles.size())) {
+          capi_raise_runtime_error("requested Object for invalid NativeMethod global handle");
+        }
+
+        RootHandle* root = global_handles[index];
+
+        if(unlikely(!root)) {
           capi_raise_runtime_error("Attempted to use deleted NativeMethod global handle");
         }
 
@@ -131,7 +144,7 @@ namespace rubinius {
          * we raise an exception here. @see NativeMethodFrame::get_object()
          */
         Object* obj = root->get();
-        if(!obj) {
+        if(unlikely(!obj)) {
           capi_raise_runtime_error("NativeMethod global handle refers to NULL object");
         }
         return obj;
@@ -209,15 +222,26 @@ namespace rubinius {
     return create<GenericFunctor>(state);
   }
 
-  Object* NativeMethod::executor_implementation(STATE, CallFrame* call_frame, Dispatch& msg,
-                                                Arguments& args) {
+  Object* NativeMethod::executor_implementation(STATE,
+      CallFrame* call_frame, Dispatch& msg, Arguments& args) {
+    NativeMethod* nm = as<NativeMethod>(msg.method);
+
+    int arity = nm->arity()->to_int();
+    if(arity >= 0 && (size_t)arity != args.total()) {
+      Exception* exc = Exception::make_argument_error(
+          state, arity, args.total(), msg.name);
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), call_frame));
+      state->thread_state()->raise_exception(exc);
+
+      return NULL;
+    }
+
     NativeMethodEnvironment* env = native_method_environment.get();
     NativeMethodFrame nmf(env->current_native_frame());
 
     env->set_current_call_frame(call_frame);
     env->set_current_native_frame(&nmf);
 
-    NativeMethod* nm = as<NativeMethod>(msg.method);
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling()))
@@ -390,7 +414,7 @@ namespace rubinius {
     }
 
     default:
-      assert(false && "Not a valid arity");
+      capi_raise_runtime_error("unrecognized arity for NativeMethod call");
       return Qnil;
     }
   }
