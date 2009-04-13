@@ -54,6 +54,10 @@ class Time
     :usec => 1,
   }
 
+  def initialize
+    gettimeofday
+  end
+
   #--
   # TODO: doesn't load nsec or ivars
   #++
@@ -91,10 +95,15 @@ class Time
   #++
 
   def _dump(limit = nil)
+    build_tm
+
     tm = @tm
     is_gmt = @is_gmt
 
-    time_switch true
+    unless is_gmt
+      time_switch true
+    end
+
     year = @tm[TM_FIELDS[:year]]
 
     if (year & 0xffff) != year then
@@ -148,7 +157,7 @@ class Time
 
     t = Time.allocate
     t.mktime(second, minute, hour, day, month, year, usec, isdst, false)
-    t.force_localtime
+    t
   end
 
   def self.gm(first, *args)
@@ -178,7 +187,7 @@ class Time
 
     t = Time.allocate
     t.mktime(second, minute, hour, day, month, year, usec, -1, true)
-    t.force_gmtime
+    t
   end
 
   def self.at(secs_or_time, msecs = nil)
@@ -190,6 +199,8 @@ class Time
   end
 
   def strftime(format)
+    build_tm
+
     __strftime__(@tm, format.to_str)
   end
 
@@ -251,30 +262,44 @@ class Time
   end
 
   def hour
+    build_tm
+
     @tm[2]
   end
 
   def min
+    build_tm
+
     @tm[1]
   end
 
   def sec
+    build_tm
+
     @tm[0]
   end
 
   def day
+    build_tm
+
     @tm[3]
   end
 
   def year
+    build_tm
+
     @tm[5] + 1900
   end
 
   def yday
+    build_tm
+
     @tm[7] + 1
   end
 
   def wday
+    build_tm
+
     @tm[6]
   end
 
@@ -283,6 +308,8 @@ class Time
   end
 
   def mon
+    build_tm
+
     @tm[4] + 1
   end
 
@@ -336,18 +363,26 @@ class Time
   end
 
   def localtime
-    force_localtime if @is_gmt
+    if @is_gmt
+      @is_gmt = false
+      @tm = nil
+    end
 
     self
   end
 
   def gmtime
-    force_gmtime unless @is_gmt
+    unless @is_gmt
+      @is_gmt = true
+      @tm = nil
+    end
 
     self
   end
 
   def dst?
+    build_tm
+
     !@tm[8].zero?
   end
 
@@ -361,20 +396,6 @@ class Time
 
   def hash
     seconds ^ usec
-  end
-
-  def force_localtime
-    time_switch false
-    @is_gmt = false
-
-    self
-  end
-
-  def force_gmtime
-    time_switch true
-    @is_gmt = true
-
-    self
   end
 
   def mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
@@ -398,6 +419,8 @@ class Time
     end
 
     @timeval = time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
+    @is_gmt = from_gmt
+
     raise ArgumentError, "time out of range" if @timeval.first == -1
 
     self
@@ -422,13 +445,21 @@ class Time
     usec = usec % 1000000
 
     @timeval = [sec, usec]
+    @is_gmt = want_gmt
+    @tm = nil
 
-    if want_gmt
-      force_gmtime
-    else
-      force_localtime
+    self
+  end
+
+  ##
+  # Ensures @tm reflects the values in @timeval and @is_gmt
+  def build_tm
+    if @tm.nil?
+      time_switch @is_gmt
     end
   end
+
+  private :build_tm
 
   def self.month_days(y, m)
     if ((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0)

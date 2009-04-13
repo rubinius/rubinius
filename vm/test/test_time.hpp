@@ -19,11 +19,9 @@ public:
     Time* tm = Time::create(state);
 
     TS_ASSERT(kind_of<Array>(tm->timeval()));
-    TS_ASSERT(kind_of<Array>(tm->tm()));
     TS_ASSERT_EQUALS(tm->is_gmt(), Qfalse);
 
     TS_ASSERT_EQUALS(tm->timeval()->size(), 2U);
-    TS_ASSERT_EQUALS(tm->tm()->size(), 11U);
   }
 
   void test_gettimeofday() {

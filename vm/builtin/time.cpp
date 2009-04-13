@@ -22,8 +22,14 @@ namespace rubinius {
   Time* Time::create(STATE) {
     Time* tm = state->new_object<Time>(G(time_class));
 
-    tm->gettimeofday(state);
-    tm->time_switch(state, Qfalse);
+    /* update Time::TIMEVAL_FIELDS when changing order of fields */
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, Fixnum::from(0));
+    ary->set(state, 1, Fixnum::from(0));
+
+    tm->timeval(state, ary);
+    tm->tm_ = (Array*)Qnil;
+    tm->is_gmt(state, Qfalse);
 
     return tm;
   }
