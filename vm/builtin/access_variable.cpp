@@ -30,15 +30,28 @@ namespace rubinius {
   Object* AccessVariable::access_execute(STATE, CallFrame* call_frame, Dispatch& msg,
                                          Arguments& args) {
     AccessVariable* access = as<AccessVariable>(msg.method);
+    Object* const self = args.recv();
 
     /* The writer case. */
     if(access->write()->true_p()) {
       if(args.total() != 1) {
         Exception::argument_error(state, 1, args.total());
+        return NULL;
+      }
+
+      // Promote this to use a direct accessor
+      if(TypeInfo* ti = state->om->find_type_info(self)) {
+        TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
+        if(it != ti->slots.end()) {
+          // Found one!
+          access->set_executor(ti->slot_accessors[it->second]);
+          ti->set_field(state, self, it->second, args.get_argument(0));
+          return args.get_argument(0);
+        }
       }
 
       /* Fall through, handle it as a normal ivar. */
-      args.recv()->set_ivar(state, access->name(), args.get_argument(0));
+      self->set_ivar(state, access->name(), args.get_argument(0));
       return args.get_argument(0);
     }
 
@@ -46,8 +59,24 @@ namespace rubinius {
     if(args.total() != 0) {
       Exception::argument_error(state, 0, args.total());
       return NULL;
-    } else {
-      return args.recv()->get_ivar(state, access->name());
     }
+
+    // Shortcut normal, user classes.
+    if(self->type_id() == ObjectType) {
+      return self->get_ivar(state, access->name());
+
+    }
+
+    // Promote this to use a direct accessor
+    if(TypeInfo* ti = state->om->find_type_info(self)) {
+      TypeInfo::Slots::iterator it = ti->slots.find(access->name()->index());
+      if(it != ti->slots.end()) {
+        // Found one!
+        access->set_executor(ti->slot_accessors[it->second]);
+        return ti->get_field(state, self, it->second);
+      }
+    }
+
+    return self->get_ivar(state, access->name());
   }
-}
+} // rubinius

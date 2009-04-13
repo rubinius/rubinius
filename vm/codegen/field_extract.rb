@@ -249,6 +249,12 @@ class CPPClass
     return ary
   end
 
+  def access_primitives
+    all_fields.map do |name, type, offset, flags|
+      "access_#{@name}_#{name}"
+    end
+  end
+
   def readonly?(name)
     @flags[name] == "readonly"
   end
@@ -327,6 +333,41 @@ class CPPClass
     end
 
     return str
+  end
+
+  def generate_accessors
+    str = ""
+    all_fields.each do |name, type, idx, flags|
+      str << "Object* Primitives::access_#{@name}_#{name}(STATE, CallFrame* call_frame, Dispatch& msg, 
+                   Arguments& args) {\n"
+      str << "  AccessVariable* access = as<AccessVariable>(msg.method);\n"
+      str << "  if(access->write()->true_p()) {\n"
+      str << <<-ARGS
+        if(args.total() != 1) {
+          Exception::argument_error(state, 1, args.total());
+          return NULL;
+        }
+      ARGS
+      str << "    Object* val = args.get_argument(0);\n"
+      str << "    if(val->nil_p()) {\n"
+      str << "      as<#{@name}>(args.recv())->#{name}(state, (#{type}*)Qnil);\n"
+      str << "    } else {\n"
+      str << "      as<#{@name}>(args.recv())->#{name}(state, as<#{type}>(val));\n"
+      str << "    }\n"
+      str << "    return args.get_argument(0);\n"
+      str << "  }\n"
+      str << <<-ARGS
+        if(args.total() != 0) {
+          Exception::argument_error(state, 0, args.total());
+          return NULL;
+        }
+      ARGS
+      str << "  return as<#@name>(args.recv())->#{name}();\n"
+      str << "}\n\n"
+    end
+
+    return str
+
   end
 
   def generate_typechecks
@@ -725,8 +766,12 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
     f.puts "  {"
     f.puts "    TypeInfo* ti = state->find_type(#{n}::type);"
     f.puts "    ti->set_state(state);"
-    cpp.all_fields.each do |name, type, idx|
+
+    fields = cpp.all_fields
+    f.puts "    ti->slot_accessors.resize(#{fields.size});\n"
+    fields.each do |name, type, idx|
       f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
+      f.puts "    ti->slot_accessors[#{idx}] = Primitives::resolve_primitive(state, state->symbol(\"access_#{n}_#{name}\"));"
     end
     f.puts "  }"
     f.puts
@@ -745,6 +790,10 @@ write_if_new "vm/gen/primitives_declare.hpp" do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
       f.puts "static Object* #{pn}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);"
+    end
+
+    cpp.access_primitives.each do |name|
+      f.puts "static Object* #{name}(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);"
     end
   end
 end
@@ -781,6 +830,9 @@ write_if_new "vm/gen/primitives_glue.gen.cpp" do |f|
 
       f << prim.generate_glue
     end
+
+    f << cpp.generate_accessors
+    names += cpp.access_primitives
   end
 
   f.puts "executor Primitives::resolve_primitive(STATE, Symbol* name) {"

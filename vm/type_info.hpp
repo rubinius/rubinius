@@ -3,10 +3,11 @@
 
 #include <map>
 #include <stdexcept>
+#include <vector>
 
-// #include "vm/gc/object_mark.hpp"
-#include "vm/object_types.hpp"
-#include "vm/prelude.hpp"
+#include "object_types.hpp"
+#include "prelude.hpp"
+#include "executor.hpp"
 
 namespace rubinius {
 
@@ -34,6 +35,7 @@ namespace rubinius {
   public: // Types
 
     typedef std::map<native_int, long> Slots;
+    typedef std::vector<executor> AccessorPrimitives;
 
   private: /* Instance vars */
     VM*         state_;
@@ -44,6 +46,7 @@ namespace rubinius {
     size_t      instance_size;
     static size_t instance_sizes[(int)LastObjectType];
     Slots       slots;
+    AccessorPrimitives slot_accessors;
     object_type type;
     std::string type_name;
 
