@@ -347,7 +347,6 @@ namespace rubinius {
 
   void VMMethod::find_super_instructions() {
     return;
-
     for(size_t index = 0; index < total;) {
       size_t width = InstructionSequence::instruction_width(opcodes[index]);
       int super = instructions::find_superop(&opcodes[index]);
@@ -357,70 +356,6 @@ namespace rubinius {
       index += width;
     }
   }
-
-#if 0
-  template <typename ArgumentHandler>
-  ExecuteStatus VMMethod::execute_specialized(STATE, Task* task, Message& msg) {
-    CompiledMethod* cm = as<CompiledMethod>(msg.method);
-
-    VMMethod* vmm = cm->backend_method_;
-
-#ifdef USE_USAGE_JIT
-    // A negative call_count means we've disabled usage based JIT
-    // for this method.
-    if(vmm->call_count >= 0) {
-      if(vmm->call_count >= CALLS_TIL_JIT) {
-        state->stats.jitted_methods++;
-        uint64_t start = get_current_time();
-        MachineMethod* mm = cm->make_machine_method(state);
-        mm->activate();
-        vmm->call_count = -1;
-        state->stats.jit_timing += (get_current_time() - start);
-      } else {
-        vmm->call_count++;
-      }
-    }
-#endif
-
-    MethodContext* ctx = MethodContext::create(state, msg.recv, cm);
-
-    // Copy in things we all need.
-    ctx->module(state, msg.module);
-    ctx->name(state, msg.name);
-
-    ctx->block(state, msg.block);
-    ctx->args = msg.args();
-
-    // If argument handling fails..
-    ArgumentHandler args;
-    if(args.call(state, vmm, ctx, msg) == false) {
-      // Clear the values from the caller
-      msg.clear_caller();
-
-      task->raise_exception(
-          Exception::make_argument_error(state, vmm->required_args, msg.args()));
-      return cExecuteRestart;
-      // never reached!
-    }
-
-#if 0
-    if(!probe_->nil_p()) {
-      probe_->start_method(this, msg);
-    }
-#endif
-
-    // Clear the values from the caller
-    msg.clear_caller();
-
-    task->make_active(ctx);
-
-    if(unlikely(task->profiler)) task->profiler->enter_method(state, msg, cm);
-
-    ctx->run(vmm, task, ctx);
-
-    return cExecuteRestart;
-  }
-#endif
 
   void VMMethod::setup_argument_handler(CompiledMethod* meth) {
 #ifdef USE_SPECIALIZED_EXECUTE

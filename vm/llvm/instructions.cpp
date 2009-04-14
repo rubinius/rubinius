@@ -108,26 +108,6 @@ CODE
 #undef RETURN
 #define RETURN(val) (void)val; return;
 
-#if 0
-
-Object* rubinius::Task::execute_stream(CallFrame* call_frame, opcode* stream) {
-  opcode op;
-  int call_flags = 0;
-  VMMethod* const vmm = call_frame->vmm;
-
-  op = next_op();
-
-#ruby <<CODE
-io = StringIO.new
-si.generate_decoder_switch impl, io
-puts io.string
-CODE
-
-  return Qnil;
-}
-
-#endif
-
 /* Use a simplier next_int */
 #undef next_int
 #define next_int ((opcode)(stream[call_frame->ip++]))
