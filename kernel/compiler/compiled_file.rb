@@ -170,23 +170,6 @@ module Rubinius
             i += 1
           end
           return seq
-        when ?l
-          count = next_string.to_i
-          lt = LookupTable.new
-          i = 0
-          while i < count
-            size = next_string.to_i
-
-            key = next_bytes size
-            discard # remove the \n
-
-            val = unmarshal_data
-            lt[key.to_sym] = val
-
-            i += 1
-          end
-
-          return lt
         when ?M
           version = next_string.to_i
           if version != 1
@@ -309,12 +292,6 @@ module Rubinius
           str << "i\n#{val.size}\n"
           val.opcodes.each do |op|
             str << op.to_s << "\n"
-          end
-        when LookupTable
-          str << "l\n#{val.size}\n"
-          val.each do |k,v|
-            str << "#{k.to_s.size}\n#{k}\n"
-            str << marshal(v)
           end
         when CompiledMethod
           str << "M\n1\n"
