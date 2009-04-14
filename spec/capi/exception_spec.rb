@@ -7,18 +7,6 @@ describe "C-API Exception function" do
     @s = CApiExceptionSpecs.new
   end
 
-  describe "rb_raise" do
-    it "raises an exception" do
-      lambda { @s.rb_raise({}) }.should raise_error(TypeError)
-    end
-
-    it "terminates the function at the point it was called" do
-      h = {}
-      lambda { @s.rb_raise(h) }.should raise_error(TypeError)
-      h[:stage].should == :before
-    end
-  end
-
   describe "rb_exc_new" do
     it "creates an exception from a C string and length" do
       @s.rb_exc_new('foo').to_s.should == 'foo'

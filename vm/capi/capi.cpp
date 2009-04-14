@@ -69,7 +69,7 @@ namespace rubinius {
         map[cCApiEOFError]            = "EOFError";
         map[cCApiErrno]               = "Errno";
         map[cCApiException]           = "Exception";
-        map[cCApiFatal]               = "Fatal";
+        map[cCApiFatal]               = "FatalError";
         map[cCApiFloatDomainError]    = "FloatDomainError";
         map[cCApiIndexError]          = "IndexError";
         map[cCApiInterrupt]           = "Interrupt";
