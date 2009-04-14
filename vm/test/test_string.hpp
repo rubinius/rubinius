@@ -323,6 +323,20 @@ public:
 
   }
 
+  void test_apply_and() {
+    String* expected = String::create(state, "\001\000\000");
+
+    String* str1 = String::create(state, "\001\000\001");
+    String* str2 = String::create(state, "\001\001\000");
+    str1->apply_and(state, str2);
+    TS_ASSERT(expected->equal(state, str1));
+
+    String* str3 = String::create(state, "\001\001\001");
+    String* str4 = String::create(state, "\008\000\000\000\000");
+    str3->apply_and(state, str4);
+    TS_ASSERT(expected->equal(state, str3));
+  }
+
   void test_tr_expand() {
     String* s = String::create(state, "a-g");
     TS_ASSERT_EQUALS(s->tr_expand(state, Qnil), Fixnum::from(7));

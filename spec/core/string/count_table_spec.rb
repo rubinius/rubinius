@@ -4,44 +4,38 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 # strings recognized by the String#count algorithm. See also
 # the String#count specs.
 describe "String#count_table" do
-  it "returns an all true bitmap if passed nothing" do
-    table = "".count_table
-    table.size.should == 256
-    table.each { |value| value.should == true }
+  it "returns a String of 256 1's if not passed a string" do
+    t = "".count_table
+    t.size.should == 256
+    t.each_byte { |b| b.should == 1 }
   end
 
-  it "returns an all false bitmap if passed an empty string" do
-    table = "".count_table ""
-    table.each { |value| value.should == false }
+  it "returns a String of 256 0's if passed an empty string" do
+    t = "".count_table ""
+    t.each_byte { |b| b.should == 0 }
   end
 
-  it "returns a bitmap with matched characters set to true" do
-    table = "".count_table "-\\|*\030 abcde"
-    table.each_with_index do |value, i|
-      value.should == "-|*\030 abcde".include?(i.chr)
-    end
+  it "returns a String with entries corresponding to characters set to 1" do
+    t = "".count_table "-\\|*\030 abcde"
+    256.times { |i| t[i].should == ("-|*\030 abcde".include?(i.chr) ? 1 : 0) }
   end
 
-  it "returns a bitmap with matched character ranges set to true" do
-    table = "".count_table "-ab-g\\d-abhi--A\\"
-    table.each_with_index do |value, i|
-      value.should == "-abcdefgbhA\\".include?(i.chr)
-    end
+  it "returns a String with entries corresponding to sequences set to 1" do
+    t = "".count_table "-ab-g\\d-abhi--A\\"
+    256.times { |i|
+      t[i].should == ("-abcdefgbhA\\".include?(i.chr) ? 1 : 0)
+    }
   end
 
-  it "returns a bitmap with excluded characters set to false" do
-    table = "".count_table "ab", "^bc"
-
-    table.each_with_index do |value, i|
-      value.should == 'a'.include?(i.chr)
-    end
+  it "returns a String with entries corresponding included and excluded characters" do
+    t = "".count_table "ab", "^bc"
+    256.times { |i| t[i].should == (i == ?a ? 1 : 0) }
   end
 
-  it "returns a bitmap with excluded character ranges set to false" do
-    table = "".count_table "^ab-g\\d-abhi--A\\"
-
-    table.each_with_index do |value, i|
-      value.should_not == "abcdefgbhA\\".include?(i.chr)
-    end
+  it "returns a String with entries set to false for '^abc-e' inverse match strings" do
+    t = "".count_table "^ab-g\\d-abhi--A\\"
+    256.times { |i|
+      t[i].should == ("abcdefgbhA\\".include?(i.chr) ? 0 : 1)
+    }
   end
 end

@@ -556,11 +556,11 @@ class String
     raise ArgumentError, "wrong number of Arguments" if strings.empty?
     return 0 if @num_bytes == 0
 
-    table = count_table(*strings)
+    table = count_table(*strings).data
 
     count = i = 0
     while i < @num_bytes
-      count += 1 if table[@data[i]]
+      count += 1 if table[@data[i]] == 1
       i += 1
     end
 
@@ -598,12 +598,14 @@ class String
     raise ArgumentError, "wrong number of arguments" if strings.empty?
     self.modify!
 
-    table = count_table(*strings)
+    table = count_table(*strings).data
 
     i, j = 0, -1
     while i < @num_bytes
       c = @data[i]
-      @data[j+=1] = c unless table[c]
+      unless table[c] == 1
+        @data[j+=1] = c
+      end
       i += 1
     end
 
@@ -1447,12 +1449,14 @@ class String
     return if @num_bytes == 0
     self.modify!
 
-    table = count_table(*strings)
+    table = count_table(*strings).data
 
     i, j, last = 1, 0, @data[0]
     while i < @num_bytes
       c = @data[i]
-      @data[j+=1] = last = c unless c == last && table[c]
+      unless c == last and table[c] == 1
+        @data[j+=1] = last = c
+      end
       i += 1
     end
 
@@ -1991,6 +1995,11 @@ class String
     return negative ? -result : result
   end
 
+  def apply_and!(other)
+    Ruby.primitive :string_apply_and
+    raise PrimitiveFailure, "String#apply_and! primitive failed"
+  end
+
   def compare_substring(other, start, size)
     Ruby.primitive :string_compare_substring
     if start > @num_bytes || start + @num_bytes < 0
@@ -1999,34 +2008,26 @@ class String
     raise PrimitiveFailure, "String#compare_substring primitive failed"
   end
 
-  def count_table(*patterns)
-    table = Array.new 256, true
+  def count_table(*strings)
+    table = String.pattern 256, 1
 
-    i = 0
-    size = patterns.size
+    i, size = 0, strings.size
     while i < size
-      pattern = StringValue(patterns[i]).dup
-      count_char = !(pattern.size > 1 && pattern[0] == ?^)
-
-      set = Array.new 256, !count_char
-      pattern.tr_expand! nil
-
-      j = 0
-      chars = pattern.size
-      while j < chars do
-        set[pattern[j]] = count_char
-        j += 1
+      str = StringValue(strings[i]).dup
+      if str.size > 1 && str[0] == ?^
+        pos, neg = 0, 1
+      else
+        pos, neg = 1, 0
       end
 
-      j = 0
-      while j < 256 do
-        table[j] &&= set[j]
-        j += 1
-      end
+      set = String.pattern 256, neg
+      str.tr_expand! nil
+      j, chars = -1, str.size
+      set[str[j]] = pos while (j += 1) < chars
 
+      table.apply_and! set
       i += 1
     end
-
     table
   end
 
