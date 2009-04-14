@@ -1,0 +1,4 @@
+fails:BigDecimal#% returns self modulo other
+fails:BigDecimal#% returns a [Float value] when the argument is Float
+fails:BigDecimal#modulo returns self modulo other
+fails:BigDecimal#modulo returns a [Float value] when the argument is Float

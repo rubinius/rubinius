@@ -1,4 +1,2 @@
-fails:BigDecimal#sqrt returns sqrt of self with at least the given precision
 fails:BigDecimal#sqrt requires a single fixnum argument
-fails:BigDecimal#sqrt raises FloatDomainError on negative values
-fails:BigDecimal#sqrt properly handles special values
+fails:BigDecimal#sqrt requires a single fixnum argument
