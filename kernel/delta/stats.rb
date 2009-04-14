@@ -50,17 +50,8 @@ module Rubinius
         str.reverse.scan(/(?:\d*\.)?\d{1,3}-?/).join(',').reverse
       end
 
-      def percentage(part, whole, units=:sec)
-        case units
-        when :sec
-          part  = sec part
-          whole = sec whole
-        when :msec
-          part  = msec part
-          whole = msec whole
-        end
-
-        "%.1f%%" % (part * 100.0 / whole)
+      def percentage(part, whole, digits=1, percent='%%')
+        "%.#{digits}f#{percent}" % (part * 100.0 / whole)
       end
 
       def auto_bytes(bytes)

@@ -1,13 +1,36 @@
+# depends on: stats.rb
+
 module Rubinius::Profiler
 
   ##
   # Interface to VM's instrumenting profiler.
 
   class Instrumenter
-    attr_reader :profile
+    include Rubinius::Stats::Units
 
-    SEC_PER_NS = 1.0e-9
-    MS_PER_NS  = 1.0e-6
+    attr_reader :info, :options
+
+    def initialize(options = {})
+      self.options = options
+    end
+
+    # Set options for profiler output. Presently, the only option
+    # is :sort. It takes a single symbol or an array of symbols to
+    # specify the column(s) to sort by. The recognized symbols are:
+    #
+    #   Symbol            Profiler heading
+    #   :percent          % time
+    #   :total_seconds    cumulative seconds
+    #   :self_seconds     self seconds
+    #   :calls            calls
+    #   :self_ms          self ms/call
+    #   :total_ms         total ms/call
+    #   :name             name
+    #
+    # @todo Add options for GC allocation counts
+    def options=(options)
+      @options = { :sort => :percent }.merge(options)
+    end
 
     def start
       Ruby.primitive :vm_profiler_instrumenter_start
@@ -20,11 +43,7 @@ module Rubinius::Profiler
     end
 
     def stop
-      @profile = __stop__
-    end
-
-    def info
-      @profile
+      @info = __stop__
     end
 
     # Convenience method to profile snippets of code in a larger script or
@@ -37,50 +56,76 @@ module Rubinius::Profiler
       yield if block_given?
       stop
       show if display
-      @profile
+      @info
     end
 
     def show(out=STDOUT)
-      unless @profile
+      unless @info
         out.puts "No profiling data was available"
         return
       end
 
       total = 0.0
-      data = @profile[:methods].values.map do |m|
+      data = @info[:methods].values.map do |m|
         method_total = m[:total]
         callee_total = m[:leaves].inject(0) { |sum, leaf| sum + leaf.last }
-        total += method_total
+        self_total   = method_total - callee_total
+        called       = m[:called]
+        total       += method_total
 
         name = m[:name]
         name = "#toplevel" if name == "<metaclass>#__script__ {}"
-        [method_total, method_total - callee_total, m[:called], name]
+        [ method_total,
+          sec(method_total),
+          sec(self_total),
+          called,
+          msec(self_total) / called,
+          msec(method_total) / called,
+          name ]
       end
 
-      data.sort! { |a, b| b.first <=> a.first }
+      columns = sort_order
+      data.sort! do |a, b|
+        columns.each do |c|
+          cmp = b[c] <=> a[c]
+          return cmp if cmp != 0
+        end
+        0
+      end
 
       out.puts "  %   cumulative   self              self     total"
       out.puts " time   seconds   seconds    calls  ms/call  ms/call  name"
       out.puts "----------------------------------------------------------"
 
       data.each do |d|
-        next if @filter and KERNEL_CLASSES =~ d[3]
-
-        out.printf "%6.2f "  % (d[0] / total * 100.0)
-        out.printf "%8.2f  " % (d[0] * SEC_PER_NS)
-        out.printf "%8.2f "  % (d[1] * SEC_PER_NS)
-        out.printf "%8d "    % d[2]
-        out.printf "%8.2f "  % (d[1] * MS_PER_NS / d[2])
-        out.printf "%8.2f  " % (d[0] * MS_PER_NS / d[2])
-        out.printf "%s\n"    % d[3]
+        out.printf "%6s ", percentage(d.first, total, 2, nil)
+        out.printf "%8.2f  %8.2f %8d %8.2f %8.2f  %s\n", *d.last(6)
       end
 
       nil
+    end
+
+    HEADER_INDEX = {
+      :percent       => 0,
+      :total_seconds => 1,
+      :self_seconds  => 2,
+      :calls         => 3,
+      :self_ms       => 4,
+      :total_ms      => 5,
+      :name          => 6
+
+    }
+
+    def sort_order
+      # call to_i so if unrecognized symbol is passed, column will be percent
+      Array(@options[:sort]).map { |header| HEADER_INDEX[header].to_i }
     end
   end
 
   ##
   # Interface to VM's sampling profiler.
+  #
+  # @todo needs to be implemented in the VM.
 
   class Sampler
     def initialize(freq=nil)
