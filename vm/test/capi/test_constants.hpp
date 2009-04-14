@@ -128,7 +128,7 @@ class TestCApiConstants : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_get_Fatal_name() {
-    get_and_compare_constant_name(cCApiFatal, "Fatal");
+    get_and_compare_constant_name(cCApiFatal, "FatalError");
   }
 
   void test_get_FloatDomainError_name() {
