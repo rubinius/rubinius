@@ -1,5 +1,8 @@
 #include "builtin/class.hpp"
+#include "builtin/compiledmethod.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/staticscope.hpp"
+#include "builtin/system.hpp"
 
 #include "exception.hpp"
 #include "exception_point.hpp"
@@ -40,6 +43,8 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Exception* exc = Exception::make_exception(
           env->state(), as<Class>(env->get_object(error_handle)), reason);
+    exc->locations(env->state(), System::vm_backtrace(env->state(),
+          Fixnum::from(0), env->current_call_frame()));
     env->state()->thread_state()->raise_exception(exc);
 
     env->current_ep()->return_to(env);
