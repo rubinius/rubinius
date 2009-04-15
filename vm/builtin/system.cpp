@@ -239,6 +239,18 @@ namespace rubinius {
     return bt;
   }
 
+  Object* System::vm_profiler_instrumenter_available_p(STATE) {
+#ifdef RBX_PROFILER
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
+  }
+
+  Object* System::vm_profiler_instrumenter_active_p(STATE) {
+    return state->shared.profiling() ? Qtrue : Qfalse;
+  }
+
   Object* System::vm_profiler_instrumenter_start(STATE) {
     state->shared.enable_profiling(state);
     return Qtrue;

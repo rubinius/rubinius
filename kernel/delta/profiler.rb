@@ -10,6 +10,16 @@ module Rubinius::Profiler
 
     attr_reader :info, :options
 
+    def self.available?
+      Ruby.primitive :vm_profiler_instrumenter_available_p
+      raise PrimitiveFailure, "Profiler::Instrumenter.available? failed"
+    end
+
+    def self.active?
+      Ruby.primitive :vm_profiler_instrumenter_active_p
+      raise PrimitiveFailure, "Profiler::Instrumenter.active? failed"
+    end
+
     def initialize(options = {})
       self.options = options
     end
