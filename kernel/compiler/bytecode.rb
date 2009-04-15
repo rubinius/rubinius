@@ -25,7 +25,7 @@ class Compiler
     def run(container, body)
       @generator.run(body)
       @required, @optional, @splat = container.argument_info
-      @name = container.name
+      @name = container.name if container.name
     end
 
     def ==(desc)
@@ -562,6 +562,7 @@ class Compiler
         end
 
         desc = new_description()
+        desc.name = name
         meth = desc.generator
 
         prelude(g, meth)
