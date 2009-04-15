@@ -68,7 +68,7 @@ namespace rubinius {
     frame->previous = call_frame;
     frame->static_scope = method_->scope();
 
-    frame->name =     name_;
+    frame->name =     reinterpret_cast<Symbol*>(Qnil);
     frame->cm =       method_;
     frame->args =     args;
     frame->scope =    scope;
@@ -119,7 +119,7 @@ namespace rubinius {
     frame->previous = call_frame;
     frame->static_scope = method_->scope();
 
-    frame->name =     name_;
+    frame->name =     reinterpret_cast<Symbol*>(Qnil);
     frame->cm =       method_;
     frame->args =     args.total();
     frame->scope =    scope;
@@ -185,7 +185,7 @@ namespace rubinius {
     frame->previous = call_frame;
     frame->static_scope = method_->scope();
 
-    frame->name =     name_;
+    frame->name =     reinterpret_cast<Symbol*>(Qnil);
     frame->cm =       method_;
     frame->args =     args.total();
     frame->scope =    scope;
@@ -253,7 +253,7 @@ namespace rubinius {
     frame->previous = call_frame;
     frame->static_scope = static_scope;
 
-    frame->name =     name_;
+    frame->name =     reinterpret_cast<Symbol*>(Qnil);
     frame->cm =       method_;
     frame->args =     args.total();
     frame->scope =    scope;
@@ -295,7 +295,6 @@ namespace rubinius {
     be->top_scope(state, call_frame->top_scope);
     be->method(state, cm);
     be->local_count(state, cm->local_count());
-    be->name(state, call_frame->name);
     be->vmm = vmm;
 
     return be;
@@ -308,7 +307,6 @@ namespace rubinius {
     be->top_scope(state, top_scope_);
     be->method(state, method_);
     be->local_count(state, local_count_);
-    be->name(state, name_);
     be->vmm = this->vmm;
 
     return be;
