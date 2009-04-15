@@ -77,7 +77,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_block(name_, scope->module(), method_);
+      state->profiler()->enter_block(top_scope_->method()->name(), scope->module(), method_);
 #endif
 
     frame->push(val);
@@ -128,7 +128,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_block(name_, scope->module(), method_);
+      state->profiler()->enter_block(top_scope_->method()->name(), scope->module(), method_);
 #endif
 
     frame->push(val);
@@ -194,7 +194,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_block(name_, scope->module(), method_);
+      state->profiler()->enter_block(top_scope_->method()->name(), scope->module(), method_);
 #endif
 
     frame->push(val);
@@ -262,7 +262,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_block(name_, scope->module(), method_);
+      state->profiler()->enter_block(top_scope_->method()->name(), scope->module(), method_);
 #endif
 
     frame->push(val);
