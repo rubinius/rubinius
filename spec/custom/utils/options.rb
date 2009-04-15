@@ -22,4 +22,10 @@ class MSpecOptions
       config[:gc_stats] = true
     end
   end
+
+  def profiler
+    on("--profile", "Show profiler data at the end") do
+      config[:profiler] = true
+    end
+  end
 end
