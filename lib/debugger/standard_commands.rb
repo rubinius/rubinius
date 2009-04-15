@@ -291,7 +291,7 @@ class Debugger
       if mthd
         cm = get_method(mod, mthd_type, mthd).compiled_method
         ip = 0
-        last = cm.lines.last.last + 1 unless last
+        last = cm.lines[cm.lines.size-2] + 1 unless last
       else
         # Decode current method
         cm = interface.eval_context.method
@@ -308,8 +308,7 @@ class Debugger
       last = last.to_i if last
       line = cm.line_from_ip(ip)
       unless first
-        first = line
-        first -= 10 unless mthd
+        first = line - (mthd ? 1 : 10)
       end
       last = first + 20 unless last
       first, last = last, first if first > last
@@ -453,7 +452,7 @@ class Debugger
       cm = interface.eval_context.method
 
       # Output ivars on the specified class current self
-      bind = Binding.setup(interface.eval_context)
+      bind = Binding.setup(interface.eval_context.variables, cm, cm.scope)
       klass = eval(md[1] || "self", bind)
       cvars = klass.class_variables
       
@@ -529,7 +528,8 @@ class Debugger
       @expr += md.kind_of?(MatchData) ? md.string : md
       @expr += "\n"
       begin
-        bind = Binding.setup(interface.eval_context)
+        ctxt = interface.eval_context
+        bind = Binding.setup(ctxt.variables, ctxt.method, ctxt.method.scope)
         result = eval(@expr, bind)
         output = Output.new
         output.set_line_marker

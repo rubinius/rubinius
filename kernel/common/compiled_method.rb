@@ -234,6 +234,7 @@ class CompiledMethod < Executable
   # It returns both the matching CompiledMethod and the IP of the first
   # instruction on the requested line, or nil if no match for the specified line
   # is found.
+  # TODO: Update this to work with new lines representation
 
   def locate_line(line, cm=self)
     cm.lines.each do |t|
