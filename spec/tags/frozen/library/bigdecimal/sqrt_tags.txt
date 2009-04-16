@@ -1,2 +1,0 @@
-fails:BigDecimal#sqrt requires a single fixnum argument
-fails:BigDecimal#sqrt requires a single fixnum argument

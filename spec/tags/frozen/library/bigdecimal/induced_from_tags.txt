@@ -1,1 +1,0 @@
-fails:BigDecimal.induced_from returns the passed argument when passed a BigDecimal

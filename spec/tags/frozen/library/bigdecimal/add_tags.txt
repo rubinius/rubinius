@@ -1,3 +1,0 @@
-fails:BigDecimal#add raises TypeError when precision parameter is nil
-fails:BigDecimal#add returns NaN if NaN is involved
-fails:BigDecimal#add raises TypeError when precision parameter is nil
