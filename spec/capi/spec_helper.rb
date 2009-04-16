@@ -8,10 +8,12 @@ def compile_extension(path, name)
   obj       = "#{ext}.o"
   lib       = "#{ext}.#{Config::CONFIG['DLEXT']}"
   signature = "#{ext}.sig"
+  header    = "#{Config::CONFIG['rubyhdrdir']}/ruby.h"
 
   return lib if File.exists?(signature) and
                 IO.read(signature).chomp == RUBY_NAME and
-                File.exists?(lib) and File.mtime(lib) > File.mtime(source)
+                File.exists?(lib) and File.mtime(lib) > File.mtime(source) and
+                File.mtime(lib) > File.mtime(header)
 
   # avoid problems where compilation failed but previous shlib exists
   File.delete lib if File.exists? lib
