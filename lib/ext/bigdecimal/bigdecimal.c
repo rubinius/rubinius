@@ -30,9 +30,9 @@ VALUE rb_cBigDecimal;
 #include "bigdecimal.h"
 
 /* MACRO's to guard objects from GC by keeping them in stack */
-#define ENTER(n) volatile VALUE vStack[n];int iStack=0
-#define PUSH(x)  vStack[iStack++] = (unsigned long)(x);
-#define SAVE(p)  PUSH(p->obj);
+#define ENTER(n) // volatile VALUE vStack[n];int iStack=0
+#define PUSH(x)  // vStack[iStack++] = (unsigned long)(x);
+#define SAVE(p)  // PUSH(p->obj);
 #define GUARD_OBJ(p,y) {p=y;SAVE(p);}
 
 /*
@@ -211,6 +211,7 @@ GetVpValue(VALUE v, int must)
     case T_DATA:
         if(RDATA(v)->dfree ==(void *) BigDecimal_delete) {
             Data_Get_Struct(v, Real, pv);
+            pv->obj = v;
             return pv;
         } else {
             goto SomeOneMayDoIt;
