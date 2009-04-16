@@ -948,7 +948,7 @@ BigDecimal_div(VALUE self, VALUE r)
  * div = (a.to_f/b).floor
  */
 static VALUE
-BigDecimal_DoDivmod(VALUE self, VALUE r, Real **div, Real **mod)
+BigDecimal_DoDivmod(VALUE self, VALUE r, Real **div, Real **mod, ID op)
 {
     ENTER(8);
     Real *c=NULL, *d=NULL, *res=NULL;
@@ -957,7 +957,7 @@ BigDecimal_DoDivmod(VALUE self, VALUE r, Real **div, Real **mod)
 
     GUARD_OBJ(a,GetVpValue(self,1));
     b = GetVpValue(r,0);
-    if(!b) return DoSomeOne(self,r,rb_intern("divmod"));
+    if(!b) return DoSomeOne(self,r,op);
     SAVE(b);
 
     if(VpIsNaN(a) || VpIsNaN(b)) goto NaN;
@@ -1014,7 +1014,7 @@ BigDecimal_mod(VALUE self, VALUE r) /* %: a%b = a - (a.to_f/b).floor * b */
     VALUE obj;
     Real *div=NULL, *mod=NULL;
 
-    obj = BigDecimal_DoDivmod(self,r,&div,&mod);
+    obj = BigDecimal_DoDivmod(self,r,&div,&mod,rb_intern("%"));
     if(obj!=(VALUE)0) return obj;
     SAVE(div);SAVE(mod);
     return ToValue(mod);
@@ -1100,7 +1100,7 @@ BigDecimal_divmod(VALUE self, VALUE r)
     VALUE obj;
     Real *div=NULL, *mod=NULL;
 
-    obj = BigDecimal_DoDivmod(self,r,&div,&mod);
+    obj = BigDecimal_DoDivmod(self,r,&div,&mod,rb_intern("divmod"));
     if(obj!=(VALUE)0) return obj;
     SAVE(div);SAVE(mod);
     obj = rb_assoc_new(ToValue(div), ToValue(mod));
@@ -1117,7 +1117,7 @@ BigDecimal_div2(int argc, VALUE *argv, VALUE self)
        VALUE obj;
        Real *div=NULL;
        Real *mod;
-       obj = BigDecimal_DoDivmod(self,b,&div,&mod);
+       obj = BigDecimal_DoDivmod(self,b,&div,&mod,rb_intern("div"));
        if(obj!=(VALUE)0) return obj;
        return ToValue(div);
     } else {    /* div in BigDecimal sense */
