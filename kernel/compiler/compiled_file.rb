@@ -101,7 +101,9 @@ module Rubinius
         when ?n
           return nil
         when ?I
-          return next_string.to_i
+          return read_varint
+        when ?J
+          return -read_varint
         when ?d
           str = next_string.chop
 
@@ -129,22 +131,19 @@ module Rubinius
             end
           end
         when ?s
-          count = next_string.to_i
+          count = read_varint
           str = next_bytes count
-          discard # remove the \n
           return str
         when ?x
-          count = next_string.to_i
+          count = read_varint
           str = next_bytes count
-          discard # remove the \n
           return str.to_sym
         when ?S
-          count = next_string.to_i
+          count = read_varint
           str = next_bytes count
-          discard # remove the \n
           return SendSite.new(str.to_sym)
         when ?A
-          count = next_string.to_i
+          count = read_varint
           obj = Array.new(count)
           i = 0
           while i < count
@@ -153,7 +152,7 @@ module Rubinius
           end
           return obj
         when ?p
-          count = next_string.to_i
+          count = read_varint
           obj = Tuple.new(count)
           i = 0
           while i < count
@@ -162,16 +161,16 @@ module Rubinius
           end
           return obj
         when ?i
-          count = next_string.to_i
+          count = read_varint
           seq = InstructionSequence.new(count)
           i = 0
           while i < count
-            seq[i] = next_string.to_i
+            seq[i] = read_varint
             i += 1
           end
           return seq
         when ?M
-          version = next_string.to_i
+          version = read_varint
           if version != 1
             raise "Unknown CompiledMethod version #{version}"
           end
@@ -207,7 +206,7 @@ module Rubinius
       #++
       def next_type
         chr = @data[@start]
-        @start += 2
+        @start += 1
         chr
       end
 
@@ -237,6 +236,16 @@ module Rubinius
       private :next_bytes
 
       ##
+      # Returns the next byte in _@data_.
+      def next_byte
+        byte = @data[@start]
+        @start += 1
+        byte
+      end
+
+      private :next_byte
+
+      ##
       # Moves the next read pointer ahead by one character.
       def discard
         @start += 1
@@ -252,33 +261,37 @@ module Rubinius
 
         case val
         when TrueClass
-          str << "t\n"
+          str << "t"
         when FalseClass
-          str << "f\n"
+          str << "f"
         when NilClass
-          str << "n\n"
+          str << "n"
         when Fixnum, Bignum
-          str << "I\n#{val}\n"
+          if val < 0
+            str << 'J' << to_varint(-val)
+          else
+            str << 'I' << to_varint(val)
+          end
         when String
-          str << "s\n#{val.size}\n#{val}\n"
+          str << "s#{to_varint(val.size)}#{val}"
         when Symbol
           s = val.to_s
-          str << "x\n#{s.size}\n#{s}\n"
+          str << "x#{to_varint(s.size)}#{s}"
         when SendSite
           s = val.name.to_s
-          str << "S\n#{s.size}\n#{s}\n"
+          str << "S#{to_varint(s.size)}#{s}"
         when Tuple
-          str << "p\n#{val.size}\n"
+          str << "p#{to_varint(val.size)}"
           val.each do |ele|
             str << marshal(ele)
           end
         when Array
-          str << "A\n#{val.size}\n"
+          str << "A#{to_varint(val.size)}"
           val.each do |ele|
             str << marshal(ele)
           end
         when Float
-          str << "d\n"
+          str << "d"
           if val.infinite?
             str << "-" if val < 0.0
             str << "Infinity"
@@ -289,12 +302,12 @@ module Rubinius
           end
           str << "\n"
         when InstructionSequence
-          str << "i\n#{val.size}\n"
+          str << "i#{to_varint(val.size)}"
           val.opcodes.each do |op|
-            str << op.to_s << "\n"
+            str << to_varint(op)
           end
         when CompiledMethod
-          str << "M\n1\n"
+          str << "M#{to_varint(1)}"
           str << marshal(val.__ivars__)
           str << marshal(val.primitive)
           str << marshal(val.name)
@@ -315,6 +328,50 @@ module Rubinius
 
         return str
       end
+
+      ##
+      # Encodes a positive integer as an unsigned varint.
+      def to_varint(val)
+        return "\0" if val == 0
+
+        buf = ''
+
+        while val > 0
+          x = val & 127
+
+          if val > 127
+            x |= 128
+          end
+
+          val >>= 7
+
+          buf << x
+        end
+
+        buf
+      end
+
+      private :to_varint
+
+      ##
+      # Decodes an unsigned varint to a positive integer.
+      def read_varint
+        val = 0
+        shift = 0
+
+        loop do
+          byte = next_byte
+
+          val += (byte & ~128) << shift
+          break if byte < 128
+
+          shift += 7
+        end
+
+        val
+      end
+
+      private :read_varint
     end
   end
 end

@@ -30,7 +30,10 @@ namespace rubinius {
 
     Object* unmarshal();
 
-    Object* get_int();
+    unsigned long get_varint(bool* done);
+    unsigned long get_varint();
+    Object* get_positive_varint();
+    Object* get_negative_varint();
     String* get_string();
     Symbol* get_symbol();
     SendSite* get_sendsite();
