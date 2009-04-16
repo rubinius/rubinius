@@ -1,5 +1,6 @@
 #include "builtin/bignum.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
 #include "builtin/object.hpp"
 
 #include "capi/capi.hpp"
@@ -9,64 +10,35 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
-  /** Shares impl. with the other NUM2*, change all if modifying. */
-  int NUM2INT(VALUE num_handle) {
+  long rb_num2long(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* number = env->get_object(num_handle);
+    Object* object = env->get_object(obj);
 
-    if(Fixnum* fix = try_as<Fixnum>(number)) {
-      return fix->to_int();
-    }
-    else if(Bignum* big = try_as<Bignum>(number)) {
-      return big->to_int();
-    }
-    else {
-      rb_raise(rb_eArgError, "Argument must be an Integer!");
-    }
-
-    /* Compiler Appreciation Project */
-    return -1;
-  }
-
-  /** Shares impl. with the other NUM2*, change all if modifying. */
-  long int NUM2LONG(VALUE num_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* number = env->get_object(num_handle);
-
-    if(Fixnum* fix = try_as<Fixnum>(number)) {
+    if(object->nil_p()) {
+      rb_raise(rb_eTypeError, "no implicit conversion from nil to Integer");
+    } else if(Fixnum* fix = try_as<Fixnum>(object)) {
       return fix->to_long();
-    }
-    else if(Bignum* big = try_as<Bignum>(number)) {
+    } else if(Bignum* big = try_as<Bignum>(object)) {
       return big->to_long();
-    }
-    else {
-      rb_raise(rb_eArgError, "Argument must be an Integer!");
+    } else if(Float* flt = try_as<Float>(object)) {
+      return (long)flt->val;
     }
 
-    /* Compiler Appreciation Project */
-    return -1;
+    obj = rb_funcall(obj, rb_intern("to_int"), 0);
+    return rb_num2long(obj);
   }
 
-  /** Shares impl. with the other NUM2*, change all if modifying. */
-  unsigned int NUM2UINT(VALUE num_handle) {
+  unsigned long rb_num2ulong(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Object* number = env->get_object(num_handle);
+    Object* object = env->get_object(obj);
 
-    if(Fixnum* fix = try_as<Fixnum>(number)) {
-      return fix->to_uint();
-    }
-    else if(Bignum* big = try_as<Bignum>(number)) {
-      return big->to_uint();
-    }
-    else {
-      rb_raise(rb_eArgError, "Argument must be an Integer!");
+    if(Bignum* big = try_as<Bignum>(object)) {
+      return big->to_ulong();
     }
 
-    /* Compiler Appreciation Project */
-    return -1;
+    return (unsigned long)rb_num2long(obj);
   }
 
   VALUE INT2NUM(int number) {
@@ -79,6 +51,10 @@ extern "C" {
 
   VALUE UINT2NUM(unsigned int number) {
     return capi_native2num<unsigned int>(number);
+  }
+
+  VALUE ULONG2NUM(unsigned long number) {
+    return capi_native2num<unsigned long>(number);
   }
 
   VALUE rb_cstr2inum(const char* string, int base) {

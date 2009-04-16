@@ -159,6 +159,7 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 #undef ALLOC_N
 #undef ALLOCA_N
 #undef REALLOC_N
+#undef FIXNUM_P
 #undef REFERENCE_P
 #undef NIL_P
 #undef RTEST
@@ -429,14 +430,34 @@ struct RData {
 /** Get the Class object is an instance of. */
 #define CLASS_OF          rb_class_of
 
-/** Convert a Fixnum into an int. */
-#define FIX2INT(i)        NUM2INT((i))
+#define FIXNUM_FLAG       0x1
 
-/** Convert a Fixnum into a long. */
-#define FIX2LONG(i)       NUM2LONG((i))
+/** True if the value is a Fixnum. */
+#define FIXNUM_P(f)       (((long)(f))&FIXNUM_FLAG)
+
+/** Convert a Fixnum to a long int. */
+#define FIX2LONG(x)       (((long)(x)) >> 1)
+
+/** Convert a Fixnum to an unsigned long int. */
+#define FIX2ULONG(x)      (((unsigned long)(x))>>1)
+
+/** Convert a VALUE into a long int. */
+#define NUM2LONG(x)       (FIXNUM_P(x)?FIX2LONG(x):rb_num2long((VALUE)x))
+
+/** Convert a VALUE into a long int. */
+#define NUM2ULONG(x)      rb_num2ulong((VALUE)x)
+
+/** Convert a VALUE into an int. */
+#define NUM2INT(x)        ((int)NUM2LONG(x))
+
+/** Convert a VALUE into a long int. */
+#define NUM2UINT(x)       ((unsigned int)NUM2ULONG(x))
+
+/** Convert a Fixnum into an int. */
+#define FIX2INT(x)        ((int)FIX2LONG(x))
 
 /** Convert a Fixnum into an unsigned int. */
-#define FIX2UINT(i)       NUM2UINT((i))
+#define FIX2UINT(x)       ((unsigned int)FIX2ULONG(x))
 
 /** Get a handle for the Symbol object represented by ID. */
 #define ID2SYM(id)        (id)
@@ -571,20 +592,20 @@ struct RData {
 
 /* Real API */
 
-  /** Convert an Integer into an int. */
-  int     NUM2INT(VALUE num_handle);
+  /** Convert a VALUE into a long int. */
+  long    rb_num2long(VALUE obj);
 
-  /** Convert an Integer into a long int. */
-  long    NUM2LONG(VALUE num_handle);
-
-  /** Convert an Integer into an unsigned int. */
-  unsigned int NUM2UINT(VALUE num_handle);
+  /** Convert a VALUE to an unsigned long int. */
+  unsigned long rb_num2ulong(VALUE obj);
 
   /** Convert an int into an Integer. */
   VALUE   INT2NUM(int number);
 
   /** Convert a long int into an Integer. */
   VALUE   LONG2NUM(long int number);
+
+  /** Convert an unsigned long to an Integer. */
+  VALUE   ULONG2NUM(unsigned long);
 
   /** Convert unsigned int into a Numeric. */
   VALUE   UINT2NUM(unsigned int number);

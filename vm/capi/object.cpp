@@ -15,10 +15,70 @@ extern "C" {
     /* @todo  implement when rbx supports frozen objects. */
   }
 
-  void rb_check_type(VALUE obj_handle, CApiType type) {
-    /* @todo  implement; checks if obj_handle's type is 'type',
-     * raises an exception if it is not.
-     */
+  // Copied from MRI
+  static struct types {
+    int type;
+    const char *name;
+  } builtin_types[] = {
+    {T_NIL,	    "nil"},
+    {T_OBJECT,	"Object"},
+    {T_CLASS,	  "Class"},
+    {T_ICLASS,  "iClass"},	/* internal use: mixed-in module holder */
+    {T_MODULE,  "Module"},
+    {T_FLOAT,   "Float"},
+    {T_STRING,  "String"},
+    {T_REGEXP,  "Regexp"},
+    {T_ARRAY,   "Array"},
+    {T_FIXNUM,  "Fixnum"},
+    {T_HASH,    "Hash"},
+    {T_STRUCT,  "Struct"},
+    {T_BIGNUM,  "Bignum"},
+    {T_FILE,    "File"},
+    {T_TRUE,    "true"},
+    {T_FALSE,   "false"},
+    {T_SYMBOL,  "Symbol"},	/* :symbol */
+    {T_DATA,    "Data"},	/* internal use: wrapped C pointers */
+    {T_MATCH,   "MatchData"},	/* data of $~ */
+    {T_VARMAP,  "Varmap"},	/* internal use: dynamic variables */
+    {T_SCOPE,   "Scope"},	/* internal use: variable scope */
+    {T_NODE,    "Node"},	/* internal use: syntax tree node */
+    {T_UNDEF,   "undef"},	/* internal use: #undef; should not happen */
+    {-1,  0}
+  };
+
+  // Copied from MRI
+  void rb_check_type(VALUE x, CApiType t) {
+    struct types *type = builtin_types;
+
+    if (x == Qundef) {
+      rb_bug("undef leaked to the Ruby space");
+    }
+
+    if (TYPE(x) != t) {
+      while (type->type >= 0) {
+        if (type->type == t) {
+          const char *etype;
+
+          if (NIL_P(x)) {
+            etype = "nil";
+          } else if (FIXNUM_P(x)) {
+            etype = "Fixnum";
+          } else if (SYMBOL_P(x)) {
+            etype = "Symbol";
+          } else if (rb_special_const_p(x)) {
+            etype = RSTRING_PTR(rb_obj_as_string(x));
+          } else {
+            etype = rb_obj_classname(x);
+          }
+
+          rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
+              etype, type->name);
+        }
+        type++;
+      }
+
+      rb_raise(rb_eRuntimeError, "unknown type 0x%x", t);
+    }
   }
 
   VALUE rb_check_array_type(VALUE object_handle) {
