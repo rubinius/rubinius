@@ -68,6 +68,8 @@ class Class
 
     # add class to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses
+    sclass.__send__ :add_subclass, self
+
     sclass.__send__ :inherited, self
   end
 
@@ -84,8 +86,19 @@ class Class
     return cls
   end
 
+  def add_subclass(cls)
+    @subclasses ||= []
+    @subclasses << cls
+  end
+  private :add_subclass
+
+  def __subclasses__
+    @subclasses || []
+  end
+
   def inherited(name)
   end
+  private :inherited
 end
 
 class MetaClass

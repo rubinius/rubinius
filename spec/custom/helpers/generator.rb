@@ -203,20 +203,6 @@ class TestGenerator
     g.push_literal desc
   end
 
-  def open_class(name)
-    g.add :open_class, name
-    g.dup
-    g.send :opened_class, 0
-    g.pop
-  end
-
-  def open_class_under(name)
-    g.add :open_class_under, name
-    g.dup
-    g.send :opened_class, 0
-    g.pop
-  end
-
   def description(name=nil)
     desc = Compiler::MethodDescription.new TestGenerator, 0
     desc.name = name if name
