@@ -57,6 +57,7 @@ namespace rubinius {
         map[cCApiNil]        = "NilClass";
         map[cCApiNumeric]    = "Numeric";
         map[cCApiObject]     = "Object";
+        map[cCApiRange]      = "Range";
         map[cCApiRegexp]     = "Regexp";
         map[cCApiString]     = "String";
         map[cCApiStruct]     = "Struct";

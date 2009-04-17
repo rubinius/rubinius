@@ -31,6 +31,7 @@
 // A number of extensions expect these to be already included
 #include <sys/time.h>
 #include <stdio.h>
+#include <string.h>
 
 #define RUBY
 
@@ -196,6 +197,7 @@ extern "C" {
     cCApiNil,
     cCApiNumeric,
     cCApiObject,
+    cCApiRange,
     cCApiRegexp,
     cCApiString,
     cCApiStruct,
@@ -362,6 +364,7 @@ struct RData {
 #define rb_cNilClass          (capi_get_constant(cCApiNil))
 #define rb_cNumeric           (capi_get_constant(cCApiNumeric))
 #define rb_cObject            (capi_get_constant(cCApiObject))
+#define rb_cRange             (capi_get_constant(cCApiRange))
 #define rb_cRegexp            (capi_get_constant(cCApiRegexp))
 #define rb_cString            (capi_get_constant(cCApiString))
 #define rb_cStruct            (capi_get_constant(cCApiStruct))
@@ -466,13 +469,24 @@ struct RData {
 #define OBJ_INFECT(o1, o2) capi_infect((o1), (o2))
 
 /** Convert int to a Ruby Integer. */
-#define INT2FIX(i)        INT2NUM((i))
+#define INT2FIX(i)        ((VALUE)(((long)(i))<<1 | FIXNUM_FLAG))
 
 /** Convert long to a Ruby Integer. @todo Should we warn if overflowing? --rue */
-#define LONG2FIX(i)       LONG2NUM((i))
+#define LONG2FIX(i)       INT2FIX(i)
 
 /** Zero out N elements of type starting at given pointer. */
 #define MEMZERO(p,type,n) memset((p), 0, (sizeof(type) * (n)))
+
+/** Copies n objects of type from p2 to p1. Behavior is undefined if objects
+ * overlap.
+ */
+#define MEMCPY(p1,p2,type,n) memcpy((p1), (p2), sizeof(type)*(n))
+
+/** Copies n objects of type from p2 to p1. Objects may overlap. */
+#define MEMMOVE(p1,p2,type,n) memmove((p1), (p2), sizeof(type)*(n))
+
+/** Compares n objects of type. */
+#define MEMCMP(p1,p2,type,n) memcmp((p1), (p2), sizeof(type)*(n))
 
 /** Whether object is nil. */
 #define NIL_P(v)          capi_nil_p((v))

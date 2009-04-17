@@ -83,6 +83,10 @@ describe "C-API constant" do
     @s.rb_cObject.should == Object
   end
 
+  specify "rb_cRange references the Range class" do
+    @s.rb_cRange.should == Range
+  end
+
   specify "rb_cRegexp references the Regexp class" do
     @s.rb_cRegexp.should == Regexp
   end

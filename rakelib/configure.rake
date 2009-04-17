@@ -53,17 +53,22 @@ def write_rbconfig
     f.puts '  CONFIG["libdir"]             = "$(exec_prefix)/lib"'
     f.puts '  CONFIG["localedir"]          = "$(datarootdir)/locale"'
     f.puts '  CONFIG["mandir"]             = "$(datarootdir)/man"'
-    f.puts '  CONFIG["sitedir"]            = "$(libdir)/ruby/site_ruby"'
 
     f.puts '  major, minor, teeny = RUBY_VERSION.split(".")'
     f.puts '  CONFIG["MAJOR"]              = "#{major}"'
     f.puts '  CONFIG["MINOR"]              = "#{minor}"'
     f.puts '  CONFIG["TEENY"]              = "#{teeny}"'
 
+    f.puts '  CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::RBX_VERSION}"'
+    f.puts '  CONFIG["sitedir"]            = "$(install_prefix)/lib/rubinius"'
+    f.puts '  CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"'
+
+    # TODO: we should compose sitelibdir from existing CONFIG keys
+    f.puts "  CONFIG[\"sitelibdir\"]         = \"$(sitedir)/#{RBX_LIBVER}\""
+
     f.puts '  CONFIG["ruby_version"]       = "$(MAJOR).$(MINOR)"'
-    f.puts '  CONFIG["rubylibdir"]         = "$(libdir)/ruby/$(ruby_version)"'
+    f.puts '  CONFIG["rubylibdir"]         = "$(sitelibdir)"'
     f.puts '  CONFIG["archdir"]            = "$(rubylibdir)/$(arch)"'
-    f.puts '  CONFIG["sitelibdir"]         = "$(sitedir)/$(ruby_version)"'
     f.puts '  CONFIG["sitearchdir"]        = "$(sitelibdir)/$(sitearch)"'
     f.puts '  CONFIG["topdir"]             = File.dirname(__FILE__)'
 
@@ -87,13 +92,6 @@ def write_rbconfig
     f.puts '  CONFIG["build_alias"]        = ""'
     f.puts '  CONFIG["host_alias"]         = ""'
     f.puts '  CONFIG["target_alias"]       = ""'
-
-    f.puts '  CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::RBX_VERSION}"'
-    f.puts '  CONFIG["sitedir"]            = "$(install_prefix)/lib/rubinius"'
-    f.puts '  CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"'
-
-    # TODO: we should compose sitelibdir from existing CONFIG keys
-    f.puts "  CONFIG[\"sitelibdir\"]         = \"$(sitedir)/#{RBX_LIBVER}\""
 
     # TODO: we need to be able to discover these, but for now, UNIXy defaults
     f.puts '  # command line utilities'

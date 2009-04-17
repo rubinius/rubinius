@@ -64,6 +64,10 @@ static VALUE constants_spec_rb_cObject(VALUE self) {
   return rb_cObject;
 }
 
+static VALUE constants_spec_rb_cRange(VALUE self) {
+  return rb_cRange;
+}
+
 static VALUE constants_spec_rb_cRegexp(VALUE self) {
   return rb_cRegexp;
 }
@@ -232,6 +236,7 @@ void Init_constants_spec() {
   rb_define_method(cls, "rb_cNilClass", constants_spec_rb_cNilClass, 0);
   rb_define_method(cls, "rb_cNumeric", constants_spec_rb_cNumeric, 0);
   rb_define_method(cls, "rb_cObject", constants_spec_rb_cObject, 0);
+  rb_define_method(cls, "rb_cRange", constants_spec_rb_cRange, 0);
   rb_define_method(cls, "rb_cRegexp", constants_spec_rb_cRegexp, 0);
   rb_define_method(cls, "rb_cString", constants_spec_rb_cString, 0);
   rb_define_method(cls, "rb_cStruct", constants_spec_rb_cStruct, 0);
