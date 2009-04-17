@@ -246,14 +246,6 @@ module Rubinius
       private :next_byte
 
       ##
-      # Moves the next read pointer ahead by one character.
-      def discard
-        @start += 1
-      end
-
-      private :discard
-
-      ##
       # For object +val+, return a String represetation.
 
       def marshal(val)
