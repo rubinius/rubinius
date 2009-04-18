@@ -8,10 +8,14 @@ module Profiler__
     @p.stop
   end
 
+  def options(opts)
+    @p.options = opts
+  end
+
   def print_profile(f)
     stop_profile
     @p.show(f)
   end
 
-  module_function :start_profile, :stop_profile, :print_profile
+  module_function :start_profile, :stop_profile, :print_profile, :options
 end

@@ -75,6 +75,7 @@ Options:
   -Idir1[:dir2]  Add directories to $LOAD_PATH.
   -S script      Run script using PATH environment variable to find it.
   -P             Run the profiler.
+  -Pcolumn       Run the profiler and sort output by column.
   -Ps            Run the Selector profiler.
   -Pss           Run the SendSite profiler.
   -rlibrary      Require library before execution.
@@ -148,6 +149,9 @@ begin
       script_debug_requested = true
     when '-P'
       require 'profile'
+    when /P\w/
+      require 'profile'
+      Profiler__.options :sort => arg[2..-1].to_sym
     when '-Ps'
       count = (ARGV.first =~ /^\d+$/) ? ARGV.shift : '30'
       show_selectors = count.to_i
