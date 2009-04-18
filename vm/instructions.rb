@@ -1439,7 +1439,7 @@ class Instructions
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->yield(state, call_frame, count);
     } else {
-      Arguments args(t1, count, call_frame->stack_back_position(count));
+      Arguments args(t1, count, call_frame->stack_back_position(count - 1));
       Dispatch dis(G(sym_call));
 
       ret = dis.send(state, call_frame, args);

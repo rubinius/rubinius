@@ -98,6 +98,10 @@ namespace rubinius {
       return *pos;
     }
 
+    /**
+     * Returns a pointer to the last 'position' + 1 objects
+     * on the stack.
+     */
     Object** stack_back_position(size_t position) {
       return js.stack - position;
     }
