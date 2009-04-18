@@ -26,20 +26,24 @@ end
 # Setup $LOAD_PATH.
 
 # Add a fallback directory if Rubinius::LIB_PATH doesn't exist
-lib_path = File.expand_path(Rubinius::LIB_PATH)
-lib_path = File.join(Dir.pwd, 'lib') unless File.exists?(lib_path)
+main_lib = File.expand_path(Rubinius::LIB_PATH)
+main_lib = File.join(Dir.pwd, 'lib') unless File.exists?(main_lib)
 
+# This conforms more closely to MRI. It is necessary to support
+# paths that mkmf adds when compiling and installing native exts.
 additions = []
-additions << lib_path
+additions << Rubinius::SITELIBDIR
+additions << Rubinius::SITEARCHDIR
+additions << Rubinius::SITEDIR
+additions << Rubinius::RUBYLIBDIR
+additions << main_lib
+additions.uniq!
 
 # The main stdlib location
 # HACK todo remove this comment when we're setting this constant in the VM
 # additions << Rubinius::CODE_PATH
 
 $LOAD_PATH.unshift(*additions)
-
-# Pull it out now so that later unshifts don't obsure it.
-main_lib = $LOAD_PATH.first
 
 if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
   rubylib_paths = ENV['RUBYLIB'].split(':')

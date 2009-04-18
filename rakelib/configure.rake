@@ -58,23 +58,23 @@ def write_rbconfig
     f.puts '  CONFIG["MAJOR"]              = "#{major}"'
     f.puts '  CONFIG["MINOR"]              = "#{minor}"'
     f.puts '  CONFIG["TEENY"]              = "#{teeny}"'
-
-    f.puts '  CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::RBX_VERSION}"'
-    f.puts '  CONFIG["sitedir"]            = "$(install_prefix)/lib/rubinius"'
-    f.puts '  CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"'
-
-    # TODO: we should compose sitelibdir from existing CONFIG keys
-    f.puts "  CONFIG[\"sitelibdir\"]         = \"$(sitedir)/#{RBX_LIBVER}\""
-
     f.puts '  CONFIG["ruby_version"]       = "$(MAJOR).$(MINOR)"'
-    f.puts '  CONFIG["rubylibdir"]         = "$(sitelibdir)"'
-    f.puts '  CONFIG["archdir"]            = "$(rubylibdir)/$(arch)"'
-    f.puts '  CONFIG["sitearchdir"]        = "$(sitelibdir)/$(sitearch)"'
+    f.puts '  CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::RBX_VERSION}"'
+
+    f.puts '  CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"'
+    f.puts '  CONFIG["sitedir"]            = "#{Rubinius::SITEDIR}"'
+    f.puts '  CONFIG["sitelibdir"]         = "#{Rubinius::SITELIBDIR}"'
+    f.puts '  CONFIG["arch"]               = "#{Rubinius::ARCH}"'
+    f.puts '  CONFIG["sitearch"]           = "#{Rubinius::SITEARCH}"'
+    f.puts '  CONFIG["rubylibdir"]         = "#{Rubinius::RUBYLIBDIR}"'
+    f.puts '  CONFIG["archdir"]            = "#{Rubinius::ARCHDIR}"'
+    f.puts '  CONFIG["sitearchdir"]        = "#{Rubinius::SITEARCHDIR}"'
     f.puts '  CONFIG["topdir"]             = File.dirname(__FILE__)'
 
     f.puts '  # some of these only relevant to cross-compiling'
-    f.puts '  /([^-]+)-([^-]+)-(.*)/ =~ RUBY_PLATFORM'
-    f.puts '  cpu, vendor, os = $1, $2, $3'
+    f.puts '  cpu                          = Rubinius::CONFIG_CPU'
+    f.puts '  vendor                       = Rubinius::CONFIG_VENDOR'
+    f.puts '  os                           = Rubinius::CONFIG_OS'
     f.puts '  CONFIG["build"]              = "#{cpu}-#{vendor}-#{os}"'
     f.puts '  CONFIG["build_cpu"]          = "#{cpu}"'
     f.puts '  CONFIG["build_vendor"]       = "#{vendor}"'
@@ -87,8 +87,6 @@ def write_rbconfig
     f.puts '  CONFIG["target_cpu"]         = "#{cpu}"'
     f.puts '  CONFIG["target_vendor"]      = "#{vendor}"'
     f.puts '  CONFIG["target_os"]          = "#{os}"'
-    f.puts '  CONFIG["arch"]               = "#{cpu}-#{os}"'
-    f.puts '  CONFIG["sitearch"]           = "#{cpu}-#{os}"'
     f.puts '  CONFIG["build_alias"]        = ""'
     f.puts '  CONFIG["host_alias"]         = ""'
     f.puts '  CONFIG["target_alias"]       = ""'
@@ -245,6 +243,16 @@ module Rubinius
   LIB_PATH        = #{RBX_LIB_PATH.inspect}
   HDR_PATH        = #{RBX_HDR_PATH.inspect}
   RBX_VERSION     = #{RBX_VERSION.inspect}
+  CONFIG_CPU      = #{RBX_CPU.inspect}
+  CONFIG_VENDOR   = #{RBX_VENDOR.inspect}
+  CONFIG_OS       = #{RBX_OS.inspect}
+  SITEDIR         = #{RBX_SITEDIR.inspect}
+  SITELIBDIR      = #{RBX_SITELIBDIR.inspect}
+  ARCH            = #{RBX_ARCH.inspect}
+  SITEARCH        = #{RBX_SITEARCH.inspect}
+  RUBYLIBDIR      = #{RBX_RUBYLIBDIR.inspect}
+  ARCHDIR         = #{RBX_ARCHDIR.inspect}
+  SITEARCHDIR     = #{RBX_SITEARCHDIR.inspect}
 end
 
     EOF

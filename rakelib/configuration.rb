@@ -39,6 +39,17 @@ RBX_BIN_PATH        = "#{RBX_BASE_PATH}/bin"
 RBX_LIB_PATH        = "#{RBX_BASE_PATH}/lib"
 RBX_EXT_PATH        = "#{RBX_BASE_PATH}/lib/ext"
 
+/([^-]+)-([^-]+)-(.*)/ =~ RBX_HOST
+RBX_CPU, RBX_VENDOR, RBX_OS = $1, $2, $3
+
+RBX_SITEDIR         = "#{RBX_PREFIX}/lib/rubinius"
+RBX_SITELIBDIR      = "#{RBX_SITEDIR}/#{RBX_LIBVER}"
+RBX_RUBYLIBDIR      = RBX_SITELIBDIR
+RBX_ARCH            = "#{RBX_CPU}-#{RBX_OS}"
+RBX_SITEARCH        = RBX_ARCH
+RBX_ARCHDIR         = "#{RBX_RUBYLIBDIR}/#{RBX_ARCH}"
+RBX_SITEARCHDIR     = "#{RBX_SITELIBDIR}/#{RBX_SITEARCH}"
+
 case RBX_HOST
 when /darwin9/
   RBX_DARWIN         = 1
