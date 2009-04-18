@@ -10,6 +10,12 @@ class Backtrace
   attr_accessor :kernel_color
   attr_accessor :eval_color
 
+  # If passed nil, we assume someone forgot to create a backtrace
+  # in the VM.
+  def self.backtrace(locations)
+    locations ? new(locations) : new([Location::Missing.new])
+  end
+
   def initialize(locations)
     color_config = Rubinius::RUBY_CONFIG["rbx.colorize_backtraces"]
     if ENV['RBX_NOCOLOR'] or color_config == "no" or color_config == "NO"
@@ -70,10 +76,6 @@ class Backtrace
     else
       ""
     end
-  end
-
-  def self.backtrace(locations)
-    return new(locations)
   end
 
   def each

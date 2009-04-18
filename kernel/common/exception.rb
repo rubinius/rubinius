@@ -20,12 +20,10 @@ class Exception
       return @backtrace.to_mri
     end
 
-    return nil unless @locations
     awesome_backtrace.to_mri
   end
 
   def awesome_backtrace
-    return nil unless @locations
     @backtrace = Backtrace.backtrace(@locations)
   end
 

@@ -48,4 +48,18 @@ class Location
     end
   end
 
+  # See Backtrace.backtrace
+  class Missing
+    def describe
+      "*** Missing backtrace! Did the VM not create one? ***"
+    end
+
+    def line
+      "<no line>"
+    end
+
+    def position
+      "<no file>"
+    end
+  end
 end
