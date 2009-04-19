@@ -142,15 +142,6 @@ module Rubinius
           count = read_varint
           str = next_bytes count
           return SendSite.new(str.to_sym)
-        when ?A
-          count = read_varint
-          obj = Array.new(count)
-          i = 0
-          while i < count
-            obj[i] = unmarshal_data
-            i += 1
-          end
-          return obj
         when ?p
           count = read_varint
           obj = Tuple.new(count)
@@ -274,11 +265,6 @@ module Rubinius
           str << "S#{to_varint(s.size)}#{s}"
         when Tuple
           str << "p#{to_varint(val.size)}"
-          val.each do |ele|
-            str << marshal(ele)
-          end
-        when Array
-          str << "A#{to_varint(val.size)}"
           val.each do |ele|
             str << marshal(ele)
           end

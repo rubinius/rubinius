@@ -98,21 +98,6 @@ public:
     TS_ASSERT_EQUALS(as<SendSite>(obj)->name(), state->symbol("blah"));
   }
 
-  void test_array() {
-    mar->sstream.str(std::string("A\3I\1x\3foos\4blah"));
-    Object* obj = mar->unmarshal();
-
-    TS_ASSERT(kind_of<Array>(obj));
-
-    Array* ary = as<Array>(obj);
-
-    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(1));
-    TS_ASSERT_EQUALS(ary->get(state, 1), state->symbol("foo"));
-
-    String* str = as<String>(ary->get(state, 2));
-    TS_ASSERT_EQUALS(std::string("blah"), str->byte_address());
-  }
-
   void test_tuple() {
     mar->sstream.str(std::string("p\2I\2I\x2f"));
 

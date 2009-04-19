@@ -56,9 +56,6 @@ following table specifies the values and formats for each tag:
 [SendSite (S)]
   * the sendsite's name's size in bytes stored as a variable length integer.
   * the characters (single bytes) that make up the name of the sendsite.
-[Array (A)]
-  * the number of elements in the array stored as a variable length integer.
-  * the marshaled objects that represent each value in the array.
 [Tuple (p)]
   * the number of elements in the tuple stored as a variable length integer.
   * the marshaled objects that represent each value in the tuple.

@@ -37,7 +37,6 @@ namespace rubinius {
     String* get_string();
     Symbol* get_symbol();
     SendSite* get_sendsite();
-    Array* get_array();
     Tuple* get_tuple();
 
     Float* get_float();

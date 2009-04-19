@@ -149,18 +149,6 @@ namespace rubinius {
     return SendSite::create(state, sym);
   }
 
-  Array* UnMarshaller::get_array() {
-    size_t count = get_varint();
-
-    Array* ary = Array::create(state, count);
-
-    for(size_t i = 0; i < count; i++) {
-      ary->set(state, i, unmarshal());
-    }
-
-    return ary;
-  }
-
   Tuple* UnMarshaller::get_tuple() {
     size_t count = get_varint();
 
@@ -278,8 +266,6 @@ namespace rubinius {
       return get_symbol();
     case 'S':
       return get_sendsite();
-    case 'A':
-      return get_array();
     case 'p':
       return get_tuple();
     case 'd':
