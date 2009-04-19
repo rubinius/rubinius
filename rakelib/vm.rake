@@ -284,14 +284,14 @@ namespace :build do
   task :normal      => %w[ build:normal_flags build:profiler_flags build:build ]
 
   desc "Show methods that are not inlined in the optimized build"
-  task :inline      => %w[ build:inline_flags build_profiler_flags build:build ]
+  task :inline      => %w[ build:inline_flags build:profiler_flags build:build ]
 
   desc "Build debug image for GDB. No optimizations, more warnings."
   task :debug       => %w[ build:debug_flags build:stats_flags
                            build:profiler_flags build:build ]
 
   task :stats       => %w[ build:normal_flags build:stats_flags
-                           build_profiler_flags build:build ]
+                           build:profiler_flags build:build ]
 
   desc "Build to check for possible problems in the code. See build:help."
   task :strict      => %w[ build:strict_flags build:build ]
