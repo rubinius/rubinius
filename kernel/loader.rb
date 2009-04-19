@@ -158,6 +158,9 @@ begin
     when '-Pss'
       count = (ARGV.first =~ /^\d+$/) ? ARGV.shift : '30'
       show_sendsites = count.to_i
+    when '-gc'
+      stats = Rubinius::Stats::GC.new
+      at_exit { stats.show }
     when '-S'
       script = ARGV.shift
       sep    = File::PATH_SEPARATOR
