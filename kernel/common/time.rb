@@ -58,6 +58,8 @@ class Time
     gettimeofday
   end
 
+  private :initialize
+
   #--
   # TODO: doesn't load nsec or ivars
   #++
