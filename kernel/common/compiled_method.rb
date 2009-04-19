@@ -155,20 +155,26 @@ class CompiledMethod < Executable
     return -1 unless @lines
     return 0 if @lines.size < 2
 
-    i = 1
-    total = @lines.size - 2
-    while i < total
-      start = @lines.at(i-1)
-      fin =   @lines.at(i+1)
+    low = 0
+    high = @lines.size / 2 - 1
 
-      if ip >= start and ip < fin
-        return @lines.at(i)
+    while low <= high
+      # the chance that we're going from a fixnum to a bignum
+      # here is low, but we still try to prevent that.
+      mid = low + ((high - low) / 2)
+
+      line_index = mid * 2 + 1
+
+      if ip < @lines.at(line_index - 1)
+        high = mid - 1
+      elsif ip >= @lines.at(line_index + 1)
+        low = mid + 1
+      else
+        return @lines.at(line_index)
       end
-
-      i += 2
     end
 
-    return @lines.at(total)
+    @lines.at(@lines.size - 2)
   end
 
   # Returns the address (IP) of the first instruction in this CompiledMethod
