@@ -114,7 +114,7 @@ namespace rubinius {
     : id_(id)
     , saved_call_frame_(0)
     , alive_(true)
-    , profiler_(NULL)
+    , profiler_(0)
     , shared(shared)
     , waiter_(NULL)
     , user_config(shared.user_config)

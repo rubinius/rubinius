@@ -1,7 +1,9 @@
 #ifndef RBX_PROFILER_HPP
 #define RBX_PROFILER_HPP
 
-#include "vm/vm.hpp"
+#include "vm.hpp"
+#include "instruments/stats.hpp"
+#include "testable.hpp"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -12,11 +14,35 @@
 #include <iostream>
 
 namespace rubinius {
+  namespace profiler {
+    typedef uint64_t method_id;
+  }
+}
+
+namespace std {
+  namespace tr1 {
+    template <>
+      struct hash<rubinius::profiler::method_id> {
+        size_t operator()(const rubinius::profiler::method_id id) const {
+          return id;
+        }
+      };
+  }
+}
+
+class TestProfiler;
+
+namespace rubinius {
   class VM;
   class Symbol;
   class Object;
   class LookupTable;
+  class Fixnum;
   class String;
+  class CompiledMethod;
+  class Dispatch;
+  class Arguments;
+  class Message;
 
   namespace profiler {
 
@@ -26,95 +52,73 @@ namespace rubinius {
       kBlock
     };
 
-    class Key {
-    private:
-      Symbol* meth_;
-      Object* container_;
-      Kind    kind_;
-
-    public:
-      Key(Symbol* meth, Object* container, Kind kind = kNormal) :
-        meth_(meth), container_(container), kind_(kind) { }
-
-      bool operator==(const Key& other) const;
-      size_t hash() const;
-    };
-
     class Method;
-    class Leaf {
-    private:
+    typedef std::tr1::unordered_map<method_id, Fixnum*> KeyMap;
+
+    class Edge {
       Method* method_;
-      uint64_t total_time_;
+      uint64_t  total_;
 
     public:
-      Leaf(Method* meth) : method_(meth), total_time_(0) { }
+      Edge(Method* method) : method_(method), total_(0) { }
 
-      Method* method() {
-        return method_;
+      method_id id();
+
+      uint64_t total() {
+        return total_;
       }
 
-      void add_total_time(uint64_t diff);
-
-      uint64_t total_time() {
-        return total_time_;
+      void accumulate(uint64_t time) {
+        total_ += time;
       }
 
-      uint64_t total_time_in_ns();
+      Fixnum* find_key(KeyMap& keys);
     };
 
-    typedef std::map<Method*, Leaf*> Leaves;
+    typedef std::tr1::unordered_map<method_id, Edge*> Edges;
 
     class Method {
     private:
-      uint64_t id_;
-      Symbol*  meth_;
-      Object*  container_;
-      Kind     kind_;
-      uint64_t total_time_;
-      Leaves   leaves_;
-      uint64_t called_times_;
-      Symbol*  file_;
-      int      line_;
+      method_id id_;
+      Symbol*   name_;
+      Symbol*   container_;
+      Kind      kind_;
+      Symbol*   file_;
+      int       line_;
+      Edges     edges_;
+      uint64_t  total_;
+      uint64_t  called_;
 
     public:
-      Method(uint64_t id, Symbol* meth, Object* container, Kind kind = kNormal):
-        id_(id),
-        meth_(meth),
-        container_(container),
-        kind_(kind),
-        total_time_(0),
-        called_times_(0),
-        file_(0),
-        line_(0)
+      Method(method_id id, Symbol* name, Symbol* container, Kind kind = kNormal)
+        : id_(id)
+        , name_(name)
+        , container_(container)
+        , kind_(kind)
+        , file_(0)
+        , line_(0)
+        , total_(0)
+        , called_(0)
       { }
-
       ~Method();
 
-      uint64_t id() {
+      method_id id() {
         return id_;
       }
 
-      uint64_t called_times() {
-        return called_times_;
-      }
-
-      void called() {
-        called_times_++;
-      }
-
-      Object* container() {
+      Symbol* container() {
         return container_;
       }
 
-      Symbol* method() {
-        return meth_;
+      Symbol* name() {
+        return name_;
       }
 
       Kind kind() {
         return kind_;
       }
 
-      String* name(STATE);
+      String* to_s(STATE);
 
       Symbol* file() {
         return file_;
@@ -129,103 +133,93 @@ namespace rubinius {
         line_ = line;
       }
 
-      uint64_t total_time() {
-        return total_time_;
+      uint64_t total() {
+        return total_;
       }
 
-      uint64_t total_time_in_ns();
-
-      void add_total_time(uint64_t diff) {
-        total_time_ += diff;
+      uint64_t called() {
+        return called_;
       }
 
-      Leaf* find_leaf(Method* meth);
-
-      size_t number_of_leaves() {
-        return leaves_.size();
+      void accumulate(uint64_t time, uint64_t calls) {
+        total_ += time;
+        called_ += calls;
       }
 
-      Leaves::iterator leaves_begin() {
-        return leaves_.begin();
-      }
+      Edge* find_edge(Method* method);
 
-      Leaves::iterator leaves_end() {
-        return leaves_.end();
-      }
+      Fixnum* find_key(KeyMap& keys);
+      Array* edges(STATE, KeyMap& keys);
+      void merge_edges(STATE, KeyMap& keys, Array* edges);
     };
 
-    class Invocation {
-    private:
-      uint64_t start_time_;
-      Leaf*    leaf_;
+    class Profiler;
+
+    /** Created when a method is being called. Contains a timer that tracks
+     * how much time is spent in the method. When the MethodEntry instance
+     * goes out of scope, the destructor records the elapsed time and updates
+     * the Method and Edge objects.
+     */
+    class MethodEntry {
+      VM*           state_;
+      Edge*         edge_;
+      Method*       method_;
+      Method*       previous_;
+      stats::Timer  timer_;
 
     public:
-      Invocation(Leaf* meth) : leaf_(meth) { }
+      MethodEntry(STATE, Dispatch& msg, Arguments& args);
+      MethodEntry(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm);
+      MethodEntry(STATE, Symbol* name, Module* module, CompiledMethod* cm);
+      ~MethodEntry();
+
       void start();
-      void stop();
 
-      Leaf* leaf() {
-        return leaf_;
-      }
+      TEST_CLASS(TestProfiler);
     };
-  }
-}
-
-namespace std {
-  namespace tr1 {
-    template <>
-      struct hash<rubinius::profiler::Key> {
-        size_t operator()(const rubinius::profiler::Key& key) const {
-          return key.hash();
-        }
-      };
-  }
-}
-
-namespace rubinius {
-  class CompiledMethod;
-  class Dispatch;
-  class Arguments;
-  class Message;
-
-  namespace profiler {
 
     class Profiler {
-      typedef std::tr1::unordered_map<Key, Method*> MethodMap;
+      typedef std::tr1::unordered_map<method_id, Method*> MethodMap;
 
     private:
       MethodMap methods_;
-      std::stack<Invocation> running_;
-      VM* state_;
-      Method* top_;
-      Method* current_;
+      Method*   current_;
+      VM*       state_;
 
     public:
-      Profiler(STATE);
+      Profiler::Profiler(STATE)
+        : current_(0)
+        , state_(state)
+      { }
       ~Profiler();
 
-      Symbol* module_name(Module* module);
-      void enter_method(Dispatch&, Arguments& args, CompiledMethod*);
-      void enter_method(Dispatch&, Arguments& args);
-      void enter_block(Symbol* name, Module* module, CompiledMethod* cm);
-      Method* record_method(CompiledMethod*, Symbol*, Object*, Kind kind = kNormal);
-      void leave();
-
-      size_t number_of_entries();
-      Method* find_key(Key& key);
-      size_t depth();
-
-      void results(LookupTable* profile);
-
-      Method* current_method() {
+      Method* current() {
         return current_;
       }
+
+      void set_current(Method* method) {
+        current_ = method;
+      }
+
+      method_id create_id(Symbol* container, Symbol* name, Kind kind);
+      Method* find_method(Symbol* container, Symbol* name, Kind kind);
+
+      Symbol* module_name(Module* module);
+      Method* enter_method(Dispatch&, Arguments& args, CompiledMethod*);
+      Method* enter_block(Symbol* name, Module* module, CompiledMethod* cm);
+      Method* get_method(CompiledMethod* cm, Symbol* name,
+          Symbol* container, Kind kind);
+
+      void results(LookupTable* profile, KeyMap& keys);
+
+      TEST_CLASS(TestProfiler);
     };
 
     class ProfilerCollection {
       typedef std::tr1::unordered_map<VM*, Profiler*> ProfilerMap;
 
     private:
+      KeyMap keys_;
       ProfilerMap profilers_;
       TypedRoot<LookupTable*> profile_;
 
@@ -240,7 +234,5 @@ namespace rubinius {
     };
   }
 }
-
-
 
 #endif

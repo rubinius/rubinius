@@ -9,7 +9,7 @@ module Profiler__
   end
 
   def options(opts)
-    @p.options = opts
+    @p.set_options opts
   end
 
   def print_profile(f)

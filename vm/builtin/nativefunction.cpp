@@ -46,19 +46,20 @@ namespace rubinius {
 
     state->set_call_frame(call_frame);
 
-#ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_method(msg, args);
-#endif
-
-    Object* obj = nfunc->call(state, args);
+    Object* ret;
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->leave();
+    if(unlikely(state->shared.profiling())) {
+      profiler::MethodEntry method(state, msg, args);
+      ret = nfunc->call(state, args);
+    } else {
+      ret = nfunc->call(state, args);
+    }
+#else
+    ret = nfunc->call(state, args);
 #endif
 
-    return obj;
+    return ret;
   }
 
   size_t NativeFunction::type_size(size_t type) {

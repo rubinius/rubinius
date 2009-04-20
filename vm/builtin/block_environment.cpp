@@ -75,17 +75,19 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    flags;
 
-#ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_block(top_scope_->method()->name(), scope->module(), method_);
-#endif
-
     frame->push(val);
-    Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+    Object* ret;
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->leave();
+    if(unlikely(state->shared.profiling())) {
+      profiler::MethodEntry method(state,
+          top_scope_->method()->name(), scope->module(), method_);
+      ret = VMMethod::run_interpreter(state, vmm, frame);
+    } else {
+      ret = VMMethod::run_interpreter(state, vmm, frame);
+    }
+#else
+    ret = VMMethod::run_interpreter(state, vmm, frame);
 #endif
 
     frame->scope->exit();
@@ -126,17 +128,19 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    flags;
 
-#ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_block(top_scope_->method()->name(), scope->module(), method_);
-#endif
-
     frame->push(val);
-    Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+    Object* ret;
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->leave();
+    if(unlikely(state->shared.profiling())) {
+      profiler::MethodEntry method(state,
+          top_scope_->method()->name(), scope->module(), method_);
+      ret = VMMethod::run_interpreter(state, vmm, frame);
+    } else {
+      ret = VMMethod::run_interpreter(state, vmm, frame);
+    }
+#else
+    ret = VMMethod::run_interpreter(state, vmm, frame);
 #endif
 
     return ret;
@@ -192,17 +196,19 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    flags;
 
-#ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_block(top_scope_->method()->name(), scope->module(), method_);
-#endif
-
     frame->push(val);
-    Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+    Object* ret;
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->leave();
+    if(unlikely(state->shared.profiling())) {
+      profiler::MethodEntry method(state,
+          top_scope_->method()->name(), scope->module(), method_);
+      ret = VMMethod::run_interpreter(state, vmm, frame);
+    } else {
+      ret = VMMethod::run_interpreter(state, vmm, frame);
+    }
+#else
+    ret = VMMethod::run_interpreter(state, vmm, frame);
 #endif
 
     return ret;
@@ -260,17 +266,19 @@ namespace rubinius {
     frame->top_scope = top_scope_;
     frame->flags =    0;
 
-#ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_block(top_scope_->method()->name(), scope->module(), method_);
-#endif
-
     frame->push(val);
-    Object* ret = VMMethod::run_interpreter(state, vmm, frame);
+    Object* ret;
 
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->leave();
+    if(unlikely(state->shared.profiling())) {
+      profiler::MethodEntry method(state,
+          top_scope_->method()->name(), scope->module(), method_);
+      ret = VMMethod::run_interpreter(state, vmm, frame);
+    } else {
+      ret = VMMethod::run_interpreter(state, vmm, frame);
+    }
+#else
+    ret = VMMethod::run_interpreter(state, vmm, frame);
 #endif
 
     return ret;

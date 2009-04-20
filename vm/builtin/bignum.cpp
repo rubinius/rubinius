@@ -267,17 +267,17 @@ namespace rubinius {
   }
 
   Bignum* Bignum::from(STATE, unsigned long long val) {
-    mp_int low, high;
-    mp_int* ans;
-    mp_init_set_int(&low, val & 0xffffffff);
+    Bignum* ret = Bignum::create(state);
+    mp_int* num = ret->mp_val();
+
+    mp_set_long(num, val & 0xffffffff);
+
+    mp_int high;
     mp_init_set_int(&high, val >> 32);
     mp_mul_2d(&high, 32, &high);
 
-    Bignum* ret = Bignum::create(state);
-    ans = ret->mp_val();
-    mp_or(&low, &high, ans);
+    mp_or(num, &high, num);
 
-    mp_clear(&low);
     mp_clear(&high);
 
     return ret;

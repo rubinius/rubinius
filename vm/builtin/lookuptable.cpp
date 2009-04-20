@@ -293,7 +293,11 @@ namespace rubinius {
     std::cout << ": " << size << std::endl;
     indent(++level);
     for(size_t i = 0; i < size; i++) {
-      std::cout << ":" << as<Symbol>(keys->get(state, i))->c_str(state);
+      if(Symbol* sym = try_as<Symbol>(keys->get(state, i))) {
+        std::cout << ":" << sym->c_str(state);
+      } else if(Fixnum* fix = try_as<Fixnum>(keys->get(state, i))) {
+        std::cout << fix->to_native();
+      }
       if(i < size - 1) std::cout << ", ";
     }
     std::cout << std::endl;

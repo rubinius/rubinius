@@ -456,12 +456,18 @@ namespace rubinius {
         return NULL;
       }
 
-#ifdef RBX_PROFILER
-      if(unlikely(state->shared.profiling()))
-        state->profiler()->enter_method(msg, args, cm);
-#endif
+      Object* ret;
 
-      Object* ret = run_interpreter(state, vmm, frame);
+#ifdef RBX_PROFILER
+      if(unlikely(state->shared.profiling())) {
+        profiler::MethodEntry method(state, msg, args, cm);
+        ret = run_interpreter(state, vmm, frame);
+      } else {
+        ret = run_interpreter(state, vmm, frame);
+      }
+#else
+      ret = run_interpreter(state, vmm, frame);
+#endif
 
       frame->scope->exit();
 

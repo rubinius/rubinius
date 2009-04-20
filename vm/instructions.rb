@@ -2800,10 +2800,6 @@ class Instructions
 
   def ret
     <<-CODE
-    #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->leave();
-    #endif
     return stack_top();
     CODE
   end

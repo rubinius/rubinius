@@ -25,50 +25,26 @@
 namespace rubinius {
 
   namespace profiler {
-    bool Key::operator==(const Key& other) const {
-      return meth_ == other.meth_ &&
-        container_ == other.container_ &&
-        kind_ == other.kind_;
+
+    Fixnum* Edge::find_key(KeyMap& keys) {
+      return method_->find_key(keys);
     }
 
-    size_t Key::hash() const {
-      return (size_t)meth_ ^ (size_t)container_;
-    }
-
-    void Invocation::start() {
-      start_time_ = get_current_time();
-    }
-
-    void Invocation::stop() {
-      leaf_->add_total_time(get_current_time() - start_time_);
+    method_id Edge::id() {
+      return method_->id();
     }
 
     Method::~Method() {
-      for(Leaves::iterator i = leaves_.begin();
-          i != leaves_.end();
+      for(Edges::iterator i = edges_.begin();
+          i != edges_.end();
           i++) {
         delete i->second;
       }
     }
 
-    static uint64_t in_nanoseconds(uint64_t time) {
-#ifdef USE_MACH_TIME
-      static mach_timebase_info_data_t timebase = {0, 0};
-
-      if(timebase.denom == 0) {
-        mach_timebase_info(&timebase);
-      }
-
-      return time * timebase.numer / timebase.denom;
-#else
-      return time;
-#endif
-
-    }
-
-    String* Method::name(STATE) {
+    String* Method::to_s(STATE) {
       const char *module = "";
-      const char *method_name = method()->c_str(state);
+      const char *method_name = name()->c_str(state);
 
       if(Symbol* klass = try_as<Symbol>(container())) {
         module = klass->c_str(state);
@@ -95,36 +71,122 @@ namespace rubinius {
       return name;
     }
 
-    uint64_t Method::total_time_in_ns() {
-      return in_nanoseconds(total_time_);
-    }
+    Edge* Method::find_edge(Method* method) {
+      Edges::iterator iter = edges_.find(method->id());
 
-    uint64_t Leaf::total_time_in_ns() {
-      return in_nanoseconds(total_time_);
-    }
-
-    Leaf* Method::find_leaf(Method* callee) {
-      Leaves::iterator i = leaves_.find(callee);
-
-      if(i != leaves_.end()) {
-        return i->second;
+      Edge* edge;
+      if(likely(iter != edges_.end())) {
+        edge = iter->second;
+      } else {
+        edge = new Edge(method);
+        edges_[method->id()] = edge;
       }
 
-      Leaf* leaf = new Leaf(callee);
-      leaves_[callee] = leaf;
-      return leaf;
+      return edge;
     }
 
-    void Leaf::add_total_time(uint64_t diff) {
-      total_time_ += diff;
-      method_->add_total_time(diff);
+    Fixnum* Method::find_key(KeyMap& keys) {
+      KeyMap::iterator iter = keys.find(id_);
+
+      if(iter == keys.end()) {
+        Fixnum* key = Fixnum::from(keys.size());
+        keys[id_] = key;
+        return key;
+      }
+
+      return iter->second;
     }
 
-    Profiler::Profiler(STATE)
+    Array* Method::edges(STATE, KeyMap& keys) {
+      Array* edges = Array::create(state, edges_.size());
+
+      size_t idx = 0;
+      for(Edges::iterator i = edges_.begin();
+          i != edges_.end();
+          i++) {
+        Edge* edge = i->second;
+
+        Array* ary = Array::create(state, 2);
+        edges->set(state, idx++, ary);
+
+        ary->set(state, 0, edge->find_key(keys));
+        ary->set(state, 1, Integer::from(state, edge->total()));
+      }
+
+      return edges;
+    }
+
+    void Method::merge_edges(STATE, KeyMap& keys, Array* edges) {
+      for(Edges::iterator i = edges_.begin();
+          i != edges_.end();
+          i++) {
+        Edge* edge = i->second;
+        Fixnum* key = edge->find_key(keys);
+
+        size_t i;
+        for(i = 0; i < edges->size(); i++) {
+          Array* ary = as<Array>(edges->get(state, i));
+
+          if(key != as<Fixnum>(ary->get(state, 0))) continue;
+
+          uint64_t total = as<Integer>(ary->get(state, 1))->to_native();
+          total += edge->total();
+          ary->set(state, 1, Integer::from(state, total));
+          break;
+        }
+
+        // We did not find an existing entry to update, create a new one
+        if(i == edges->size()) {
+          Array* ary = Array::create(state, 2);
+          edges->append(state, ary);
+
+          ary->set(state, 0, edge->find_key(keys));
+          ary->set(state, 1, Integer::from(state, edge->total()));
+        }
+      }
+    }
+
+    MethodEntry::MethodEntry(STATE, Dispatch& msg, Arguments& args)
       : state_(state)
+      , edge_(0)
     {
-      top_ = new Method(0, 0, false);
-      current_ = top_;
+      method_ = state->profiler()->enter_method(
+          msg, args, reinterpret_cast<CompiledMethod*>(Qnil));
+      start();
+    }
+
+    MethodEntry::MethodEntry(STATE, Dispatch& msg, Arguments& args, CompiledMethod* cm)
+      : state_(state)
+      , edge_(0)
+    {
+      method_ = state->profiler()->enter_method(msg, args, cm);
+      start();
+    }
+
+    MethodEntry::MethodEntry(STATE, Symbol* name, Module* module, CompiledMethod* cm)
+      :state_(state)
+      , edge_(0)
+    {
+      method_ = state->profiler()->enter_block(name, module, cm);
+      start();
+    }
+
+    void MethodEntry::start() {
+      previous_ = state_->profiler()->current();
+      if(previous_) {
+        edge_ = previous_->find_edge(method_);
+      }
+      state_->profiler()->set_current(method_);
+      timer_.start();
+    }
+
+    MethodEntry::~MethodEntry() {
+      if(!state_->shared.profiling()) return;
+
+      timer_.stop();
+      method_->accumulate(timer_.total(), timer_.timings());
+      if(edge_) edge_->accumulate(timer_.total());
+      state_->profiler()->set_current(previous_);
     }
 
     Profiler::~Profiler() {
@@ -133,8 +195,6 @@ namespace rubinius {
           i++) {
         delete i->second;
       }
-
-      delete top_;
     }
 
     Symbol* Profiler::module_name(Module* module) {
@@ -145,111 +205,82 @@ namespace rubinius {
       }
     }
 
-    void Profiler::enter_block(Symbol* name, Module* module, CompiledMethod* cm) {
-      record_method(cm, name, module_name(module), kBlock);
+    Method* Profiler::enter_block(Symbol* name, Module* module, CompiledMethod* cm) {
+      return get_method(cm, name, module_name(module), kBlock);
     }
 
-    void Profiler::enter_method(Dispatch& msg, Arguments& args) {
-      enter_method(msg, args, reinterpret_cast<CompiledMethod*>(Qnil));
-    }
-
-    void Profiler::enter_method(Dispatch &msg, Arguments& args, CompiledMethod* cm) {
+    Method* Profiler::enter_method(Dispatch &msg, Arguments& args, CompiledMethod* cm) {
       if(MetaClass* mc = try_as<MetaClass>(msg.module)) {
         Object* attached = mc->attached_instance();
 
         if(Module* mod = try_as<Module>(attached)) {
-          record_method(cm, msg.name, mod->name(), kSingleton);
+          return get_method(cm, msg.name, mod->name(), kSingleton);
         } else {
           Symbol* name = args.recv()->to_s(state_)->to_sym(state_);
-          record_method(cm, msg.name, name, kSingleton);
+          return get_method(cm, msg.name, name, kSingleton);
         }
       } else {
-        record_method(cm, msg.name, module_name(msg.module), kNormal);
+        return get_method(cm, msg.name, module_name(msg.module), kNormal);
       }
     }
 
-    Method* Profiler::record_method(CompiledMethod* cm, Symbol* name,
-                                 Object* container, Kind kind) {
-      Key key(name, container, kind);
-
-      Method* method = find_key(key);
-      if(!method) {
-        method = new Method(methods_.size(), name, container, kind);
-        methods_[key] = method;
-      }
-
-      Leaf* leaf = current_->find_leaf(method);
-
-      current_ = method;
-
-      method->called();
+    Method* Profiler::get_method(CompiledMethod* cm, Symbol* name,
+                                 Symbol* container, Kind kind) {
+      Method* method = find_method(container, name, kind);
 
       if(!method->file() && !cm->nil_p()) {
         method->set_position(cm->file(), cm->start_line(state_));
       }
 
-      Invocation invoke(leaf);
-      invoke.start();
-      running_.push(invoke);
+      return method;
+    }
+
+    method_id Profiler::create_id(Symbol* container, Symbol* name, Kind kind) {
+      return ((uint64_t)(((intptr_t)container & 0xffffffff)) << 32)
+              | ((intptr_t)name & 0xfffffff8) | kind;
+    }
+
+    Method* Profiler::find_method(Symbol* container, Symbol* name, Kind kind) {
+      method_id id = create_id(container, name, kind);
+
+      Method* method;
+      MethodMap::iterator iter = methods_.find(id);
+      if(unlikely(iter == methods_.end())) {
+        method = new Method(id, name, container, kind);
+        methods_[method->id()] = method;
+      } else {
+        method = iter->second;
+      }
 
       return method;
     }
 
-    void Profiler::leave() {
-      // Depending on when we started profiling, there could be calls
-      // above the first time we entered a method, so ignore these.
-      if(running_.empty()) return;
-
-      Invocation& invoke = running_.top();
-      invoke.stop();
-
-      running_.pop();
-
-      if(running_.empty()) {
-        current_ = top_;
-      } else {
-        current_ = running_.top().leaf()->method();
-      }
-    }
-
-    size_t Profiler::number_of_entries() {
-      return methods_.size();
-    }
-
-    size_t Profiler::depth() {
-      return running_.size();
-    }
-
-    Method* Profiler::find_key(Key& key) {
-      return methods_[key];
-    }
-
     // internal helper method
-    static Array* update_method(STATE, LookupTable* profile, Method* meth) {
+    static void update_method(STATE, LookupTable* profile, KeyMap& keys, Method* meth) {
       LookupTable* methods = as<LookupTable>(profile->fetch(
             state, state->symbol("methods")));
 
       Symbol* total_sym = state->symbol("total");
       Symbol* called_sym = state->symbol("called");
-      Symbol* leaves_sym = state->symbol("leaves");
+      Symbol* edges_sym = state->symbol("edges");
 
       LookupTable* method;
-      Fixnum* method_id = Fixnum::from(meth->id());
-      if((method = try_as<LookupTable>(methods->fetch(state, method_id)))) {
+      Fixnum* key = meth->find_key(keys);
+      if((method = try_as<LookupTable>(methods->fetch(state, key)))) {
         uint64_t total = as<Integer>(method->fetch(state, total_sym))->to_ulong_long();
         method->store(state, total_sym,
-            Integer::from(state, total + meth->total_time_in_ns()));
+            Integer::from(state, total + meth->total()));
         size_t called = as<Fixnum>(method->fetch(state, called_sym))->to_native();
-        method->store(state, called_sym, Fixnum::from(called + meth->called_times()));
+        method->store(state, called_sym, Fixnum::from(called + meth->called()));
 
-        return as<Array>(method->fetch(state, leaves_sym));
+        meth->merge_edges(state, keys, as<Array>(method->fetch(state, edges_sym)));
       } else {
         method = LookupTable::create(state);
-        methods->store(state, method_id, method);
+        methods->store(state, key, method);
 
-        method->store(state, state->symbol("name"), meth->name(state));
-        method->store(state, total_sym, Integer::from(state, meth->total_time_in_ns()));
-        method->store(state, called_sym, Fixnum::from(meth->called_times()));
+        method->store(state, state->symbol("name"), meth->to_s(state));
+        method->store(state, total_sym, Integer::from(state, meth->total()));
+        method->store(state, called_sym, Fixnum::from(meth->called()));
 
         if(meth->file()) {
           const char *file;
@@ -263,41 +294,18 @@ namespace rubinius {
           method->store(state, state->symbol("line"), Fixnum::from(meth->line()));
         }
 
-        Array* leaves = Array::create(state, meth->number_of_leaves());
-        method->store(state, leaves_sym, leaves);
-
-        return leaves;
+        method->store(state, edges_sym, meth->edges(state, keys));
       }
     }
 
-    void Profiler::results(LookupTable* profile) {
-      std::vector<Method*> all_methods(0);
-
+    void Profiler::results(LookupTable* profile, KeyMap& keys) {
       for(MethodMap::iterator i = methods_.begin();
           i != methods_.end();
           i++) {
-        all_methods.push_back(i->second);
-      }
+        Method* method = i->second;
 
-      for(std::vector<Method*>::iterator i = all_methods.begin();
-          i != all_methods.end();
-          i++) {
-        Method* meth = *i;
-
-        Array* leaves = update_method(state_, profile, meth);
-
-        size_t idx = 0;
-        for(Leaves::iterator li = meth->leaves_begin();
-            li != meth->leaves_end();
-            li++) {
-          Leaf* leaf = li->second;
-
-          Array* l = Array::create(state_, 2);
-          leaves->set(state_, idx++, l);
-
-          l->set(state_, 0, Fixnum::from(leaf->method()->id()));
-          l->set(state_, 1, Integer::from(state_, leaf->total_time_in_ns()));
-        }
+        if(method->called() == 0) continue;
+        update_method(state_, profile, keys, method);
       }
     }
 
@@ -330,7 +338,7 @@ namespace rubinius {
       ProfilerMap::iterator iter = profilers_.find(vm);
       if(iter != profilers_.end()) {
         Profiler* profiler = iter->second;
-        profiler->results(profile_.get());
+        profiler->results(profile_.get(), keys_);
 
         iter->first->remove_profiler();
 
@@ -345,7 +353,7 @@ namespace rubinius {
       for(ProfilerMap::iterator iter = profilers_.begin();
           iter != profilers_.end();
           iter++) {
-        iter->second->results(profile);
+        iter->second->results(profile, keys_);
       }
 
       return profile;

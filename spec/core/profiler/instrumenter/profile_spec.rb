@@ -25,7 +25,7 @@ with_profiler do
 
     it "prints out the profile by default" do
       @profiler.profile { ProfilerSpecs.work 10 }
-      $stdout.should =~ %r[ time   seconds   seconds    calls  ms/call  ms/call  name]
+      $stdout.should =~ %r[ time   seconds   seconds      calls  ms/call  ms/call  name]
       $stdout.should =~ /ProfilerSpecs.work/
     end
 

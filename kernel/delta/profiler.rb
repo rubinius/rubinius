@@ -21,7 +21,10 @@ module Rubinius::Profiler
     end
 
     def initialize(options = {})
-      self.options = options
+      self.set_options options
+      if Rubinius::RUBY_CONFIG["rbx.profiler.full_report"]
+        self.set_options :full_report => true
+      end
     end
 
     # Set options for profiler output. Presently, the only option
@@ -38,8 +41,9 @@ module Rubinius::Profiler
     #   :name             name
     #
     # @todo Add options for GC allocation counts
-    def options=(options)
-      @options = { :sort => :percent }.merge(options)
+    def set_options(options)
+      @options ||= { :sort => :percent }
+      @options.merge!(options)
     end
 
     def start
@@ -78,8 +82,8 @@ module Rubinius::Profiler
       total = 0.0
       data = @info[:methods].values.map do |m|
         method_total = m[:total]
-        callee_total = m[:leaves].inject(0) { |sum, leaf| sum + leaf.last }
-        self_total   = method_total - callee_total
+        edges_total  = m[:edges].inject(0) { |sum, edge| sum + edge.last }
+        self_total   = method_total - edges_total
         called       = m[:called]
         total       += method_total
 
@@ -103,13 +107,14 @@ module Rubinius::Profiler
         0
       end
 
-      out.puts "  %   cumulative   self              self     total"
-      out.puts " time   seconds   seconds    calls  ms/call  ms/call  name"
-      out.puts "----------------------------------------------------------"
+      out.puts "  %   cumulative   self                self     total"
+      out.puts " time   seconds   seconds      calls  ms/call  ms/call  name"
+      out.puts "------------------------------------------------------------"
 
-      data.each do |d|
+      report = options[:full_report] ? data : data.first(45)
+      report.each do |d|
         out.printf "%6s ", percentage(d.first, total, 2, nil)
-        out.printf "%8.2f  %8.2f %8d %8.2f %8.2f  %s\n", *d.last(6)
+        out.printf "%8.2f  %8.2f %10d %8.2f %8.2f  %s\n", *d.last(6)
       end
 
       nil

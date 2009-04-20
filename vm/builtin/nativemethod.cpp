@@ -245,12 +245,6 @@ namespace rubinius {
     env->set_current_call_frame(call_frame);
     env->set_current_native_frame(&nmf);
 
-
-#ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->enter_method(msg, args);
-#endif
-
     Object* ret;
     ExceptionPoint ep(env);
 
@@ -259,13 +253,17 @@ namespace rubinius {
     if(unlikely(ep.jumped_to())) {
       ret = NULL;
     } else {
-      ret = nm->call(state, env, args);
-    }
-
 #ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling()))
-      state->profiler()->leave();
+      if(unlikely(state->shared.profiling())) {
+        profiler::MethodEntry method(state, msg, args);
+        ret = nm->call(state, env, args);
+      } else {
+        ret = nm->call(state, env, args);
+      }
+#else
+      ret = nm->call(state, env, args);
 #endif
+    }
 
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);

@@ -17,7 +17,7 @@ with_profiler do
       ProfilerSpecs.work 10
       @profiler.stop
       @profiler.show
-      $stdout.should =~ %r[ time   seconds   seconds    calls  ms/call  ms/call  name]
+      $stdout.should =~ %r[ time   seconds   seconds      calls  ms/call  ms/call  name]
       $stdout.should =~ /ProfilerSpecs.work/
     end
   end
