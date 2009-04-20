@@ -27,7 +27,7 @@ else
   LLVM_STYLE = "Release"
 end
 
-LLVM_ENABLE = false
+LLVM_ENABLE = true
 
 
 ENV.delete 'CDPATH' # confuses llvm_config
@@ -43,7 +43,7 @@ end
 # tests      << 'vm/test/test_instructions.hpp'
 tests.uniq!
 
-subdirs = %w!builtin capi parser util instruments gc!
+subdirs = %w!builtin capi parser util instruments gc llvm!
 
 srcs        = FileList["vm/*.{cpp,c}"]
 subdirs.each do |dir|
@@ -173,17 +173,22 @@ INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm . vm/assembler
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
-FLAGS         = %W[ -pipe -Wall -Wno-deprecated
+BASIC_FLAGS     = %W[ -pipe -Wall -Wno-deprecated
                     -DBASE_PATH=\\"#{RBX_BASE_PATH}\\"
                     -DRBA_PATH=\\"#{RBX_RBA_PATH}\\"
                 ]
+
+FLAGS = BASIC_FLAGS.dup
 
 if RUBY_PLATFORM =~ /darwin/i && `sw_vers` =~ /10\.4/
   FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)
 end
 
 if LLVM_ENABLE
-  FLAGS << "-DENABLE_LLVM"
+  # FLAGS << "-DENABLE_LLVM"
+  llvm_flags = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
+  llvm_flags.delete_if { |e| e.index("-O") == 0 }
+  FLAGS.concat llvm_flags
 end
 
 BUILD_PRETASKS = []
@@ -199,12 +204,6 @@ def compile_c(obj, src)
 
   if CONFIG.compile_with_llvm
     flags << "-emit-llvm"
-  end
-
-  if LLVM_ENABLE and !defined? $llvm_c then
-    $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
-    $llvm_c.delete_if { |e| e.index("-O") == 0 }
-    flags.concat $llvm_c
   end
 
   # GROSS
@@ -541,16 +540,16 @@ file "vm/instructions.o" => "vm/gen/instructions.cpp" do
   compile_c "vm/instructions.o", "vm/gen/instructions.cpp"
 end
 
-file "vm/gen/instructions.cpp" => %w[vm/llvm/instructions.cpp vm/instructions.rb] + hdrs do
-  ruby "vm/codegen/rubypp.rb", "vm/llvm/instructions.cpp", "vm/gen/instructions.cpp"
+file "vm/gen/instructions.cpp" => %w[vm/template/instructions.cpp vm/instructions.rb] + hdrs do
+  ruby "vm/codegen/rubypp.rb", "vm/template/instructions.cpp", "vm/gen/instructions.cpp"
 end
 
 #
-#rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
+#rubypp_task 'vm/instructions.o', 'vm/template/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
 #  compile_c 'vm/instructions.o', path
 #end
 
-rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp', *hdrs do |path|
+rubypp_task 'vm/instructions.bc', 'vm/template/instructions.cpp', *hdrs do |path|
   sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc #{path}"
 end
 
@@ -582,7 +581,7 @@ namespace :vm do
     puts "CC/LD vm/test/coverage/runner"
     begin
       path = "vm/gen/instructions.cpp"
-      ruby 'vm/codegen/rubypp.rb', "vm/llvm/instructions.cpp", path
+      ruby 'vm/codegen/rubypp.rb', "vm/template/instructions.cpp", path
       sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
 
       puts "RUN vm/test/coverage/runner"

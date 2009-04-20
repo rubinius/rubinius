@@ -129,6 +129,8 @@ namespace rubinius {
     size_t count = get_varint();
 
     // String::create adds room for a trailing null on its own
+    // using pinned here allows later stages to optimize these literal
+    // strings better.
     String* str = String::create(state, NULL, count);
 
     stream.read(str->byte_address(), count);

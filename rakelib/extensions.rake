@@ -15,7 +15,7 @@ task :extensions => %w[
 # Ask the VM to build an extension from source.
 #
 def compile_extension(path, flags = "-p -I#{Dir.pwd}/vm/capi")
-  cflags = Object.const_get(:FLAGS).reject {|f| f =~ /-Wno-deprecated|-Weffc\+\+/ }
+  cflags = BASIC_FLAGS.reject {|f| f =~ /-Wno-deprecated|-Weffc\+\+/ }
 
   cflags.each {|flag| flags << " -C,#{flag}" }
 

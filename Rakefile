@@ -5,6 +5,10 @@ $trace ||= false
 $VERBOSE = true
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
 
+if !$verbose and respond_to?(:verbose)
+  verbose(false) if verbose() == :default
+end
+
 $dlext = Config::CONFIG["DLEXT"]
 $compiler = nil
 
