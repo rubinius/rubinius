@@ -99,11 +99,10 @@ namespace rubinius {
     }
 
     /**
-     * Returns a pointer to the last 'position' + 1 objects
-     * on the stack.
+     * Returns a pointer 'count' objects back on the stack.
      */
-    Object** stack_back_position(size_t position) {
-      return js.stack - position;
+    Object** stack_back_position(size_t count) {
+      return js.stack - (count - 1);
     }
 
     Object* top() {

@@ -53,7 +53,7 @@ namespace rubinius {
       ret= block_->call(state, call_frame, args, flags);
     } else {
       Dispatch dis(G(sym_call));
-      Arguments new_args(args, call_frame->stack_back_position(args - 1));
+      Arguments new_args(args, call_frame->stack_back_position(args));
       new_args.set_recv(this);
       ret = dis.send(state, call_frame, new_args);
     }

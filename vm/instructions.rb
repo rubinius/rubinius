@@ -1439,7 +1439,7 @@ class Instructions
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->yield(state, call_frame, count);
     } else {
-      Arguments args(t1, count, call_frame->stack_back_position(count - 1));
+      Arguments args(t1, count, call_frame->stack_back_position(count));
       Dispatch dis(G(sym_call));
 
       ret = dis.send(state, call_frame, args);
@@ -2976,7 +2976,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, Qnil, count,
-                   call_frame->stack_back_position(count - 1));
+                   call_frame->stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
@@ -3065,7 +3065,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, block, count,
-                   call_frame->stack_back_position(count - 1));
+                   call_frame->stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
@@ -3162,7 +3162,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, block, count,
-                   call_frame->stack_back_position(count - 1));
+                   call_frame->stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, ALLOW_PRIVATE())) {
@@ -3263,7 +3263,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, block, count,
-                   call_frame->stack_back_position(count - 1));
+                   call_frame->stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, true,
@@ -3404,7 +3404,7 @@ class Instructions
     Class* const klass = recv->lookup_begin(state);
 
     Arguments args(recv, block, count,
-                   call_frame->stack_back_position(count - 1));
+                   call_frame->stack_back_position(count));
 
     if(unlikely(cache->recv_class != klass)) {
       if(SendSite::fill(state, klass, call_frame, cache, true,

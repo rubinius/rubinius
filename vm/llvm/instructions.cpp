@@ -91,7 +91,7 @@ CODE
 
   Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t count) {
     Object* recv = stack_back(count);
-    Arguments args(recv, count, call_frame->stack_back_position(count - 1));
+    Arguments args(recv, count, call_frame->stack_back_position(count));
     Dispatch dis(name);
 
     return dis.send(state, call_frame, args);
