@@ -424,7 +424,7 @@ class Debugger
       cm = interface.eval_context.method
 
       # Output ivars on the current self
-      bind = Binding.setup(interface.eval_context)
+      bind = Binding.setup(interface.eval_context.variables, cm, cm.scope)
       instance = eval("self", bind)
       ivars = instance.instance_variables
       if ivars.size > 0
