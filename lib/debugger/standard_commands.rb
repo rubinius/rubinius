@@ -338,7 +338,7 @@ class Debugger
       :syntax => "sexp [<method>]",
       :description => "List S-expression for current or specified method."
 
-    # Lists source code around the specified line
+    # Displays the S-expression for the specified method
     # TODO: Change to stored Sexp on CompiledMethod once this is available
     def execute(dbg, interface, md)
       mod, mthd_type, mthd = md[1], md[2], md[3]
@@ -349,8 +349,6 @@ class Debugger
         # Decode current method
         cm = interface.eval_context.method
       end
-      first = cm.lines.first.last - 1
-      last = cm.lines.last.last + 1
 
       file = cm.file.to_s
       lines = dbg.source_for(file)
@@ -358,9 +356,26 @@ class Debugger
         return Output.error("No source code available for #{file}")
       end
 
-      output = Output.info("S-expression for source lines [#{first+1}-#{last+1}] in #{file}:")
-      sexp = lines[first..last].join().to_sexp.pretty_inspect
-      output << sexp
+      sexp = lines.join().to_sexp
+      mthd_sexp = nil
+      if mthd_type == '#'
+        node_type, name_idx = :defn, 1
+      else
+        node_type, name_idx = :defs, 2
+      end
+      sexp.each_of_type(node_type) do |s|
+        if s[name_idx] == mthd.intern
+          mthd_sexp = s
+          break
+        end
+      end
+
+      unless mthd_sexp
+        return Output.error("No sexp available for #{mod}#{mthd_type}#{mthd}")
+      end
+
+      output = Output.info("S-expression for #{mod}#{mthd_type}#{mthd} in #{file}:")
+      output << mthd_sexp.pretty_inspect
       output
     end
   end
