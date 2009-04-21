@@ -9,6 +9,7 @@ class Compiler
       @names = []
       @locals = Hash.new { |h,k| h[k] = Local.new(@scope, k) }
       @from_eval = false
+      @skip = false
     end
 
     attr_accessor :from_eval
@@ -62,6 +63,14 @@ class Compiler
        end
 
        return tup
+    end
+
+    def skip?
+      @skip
+    end
+
+    def skip!
+      @skip = true
     end
 
     attr_reader :locals

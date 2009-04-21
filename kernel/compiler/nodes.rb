@@ -630,9 +630,11 @@ raise "no"
         lcl = nil
         depth = nil
         dep = 0
+        last_scope = nil
+        last_depth = 0
 
         @block_scope.reverse_each do |scope|
-          if scope.key?(name)
+          if !scope.skip? && scope.key?(name)
             if scope.from_eval
               depth = dep + 1
             else
@@ -641,6 +643,12 @@ raise "no"
             lcl = scope[name]
             break
           end
+
+          if !last_scope && !scope.skip?
+            last_scope = scope
+            last_depth = dep
+          end
+
           dep += 1
         end
 
@@ -651,17 +659,20 @@ raise "no"
             lcl = @top_scope[name]
           elsif !allocate
             return nil
+          elsif !last_scope
+            # No block scope to allocate
+            return [@top_scope[name], nil]
           else
             # This not found. create it.
-            in_scope = @block_scope.last
-            idx = in_scope.size
-            lcl = in_scope[name]
-            lcl.created_in_block!(idx)
-            if in_scope.from_eval
-              depth = 1
+            if last_scope.from_eval
+              depth = last_depth + 1
             else
-              depth = 0
+              depth = last_depth
             end
+
+            idx = last_scope.size
+            lcl = last_scope[name]
+            lcl.created_in_block!(idx)
           end
         end
 
@@ -684,6 +695,10 @@ raise "no"
 
       def module_body?
         false
+      end
+
+      def skip!
+        @block_scope.last.skip!
       end
     end
 
@@ -1168,6 +1183,8 @@ raise "no"
 
         set(:iter) do
           @locals = get(:scope).new_block_scope do
+            get(:scope).skip!
+
             set(:iter_args) do
              sexp[1] = convert(s(:iter_args, sexp[1])) # local var assignment
             end

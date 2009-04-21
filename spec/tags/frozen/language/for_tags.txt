@@ -1,3 +1,1 @@
-fails:The for expression executes code in containing variable scope
-fails:The for expression executes code in containing variable scope with 'do'
 fails:The for expression repeats the loop from the beginning with 'retry'
