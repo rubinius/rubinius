@@ -73,28 +73,34 @@ module Rubinius::Profiler
       @info
     end
 
+    SHORT_LINES = 45
+
     def show(out=STDOUT)
-      unless @info
+      unless self.class.available? and @info
         out.puts "No profiling data was available"
         return
       end
 
+      total_calls = 0
       total = 0.0
+
       data = @info[:methods].values.map do |m|
+        cumulative   = m[:cumulative]
         method_total = m[:total]
         edges_total  = m[:edges].inject(0) { |sum, edge| sum + edge.last }
         self_total   = method_total - edges_total
         called       = m[:called]
         total       += method_total
+        total_calls += called
 
         name = m[:name]
         name = "#toplevel" if name == "<metaclass>#__script__ {}"
         [ method_total,
-          sec(method_total),
+          sec(cumulative),
           sec(self_total),
           called,
           msec(self_total) / called,
-          msec(method_total) / called,
+          msec(cumulative) / called,
           name ]
       end
 
@@ -111,11 +117,14 @@ module Rubinius::Profiler
       out.puts " time   seconds   seconds      calls  ms/call  ms/call  name"
       out.puts "------------------------------------------------------------"
 
-      report = options[:full_report] ? data : data.first(45)
+      report = options[:full_report] ? data : data.first(SHORT_LINES)
       report.each do |d|
         out.printf "%6s ", percentage(d.first, total, 2, nil)
         out.printf "%8.2f  %8.2f %10d %8.2f %8.2f  %s\n", *d.last(6)
       end
+
+      puts "\n#{comma(data.size-SHORT_LINES)} omitted" unless options[:full_report]
+      puts "\n#{comma(data.size)} methods called a total of #{comma(total_calls)} times"
 
       nil
     end

@@ -30,10 +30,6 @@ namespace rubinius {
       return method_->find_key(keys);
     }
 
-    method_id Edge::id() {
-      return method_->id();
-    }
-
     Method::~Method() {
       for(Edges::iterator i = edges_.begin();
           i != edges_.end();
@@ -177,14 +173,16 @@ namespace rubinius {
         edge_ = previous_->find_edge(method_);
       }
       state_->profiler()->set_current(method_);
+      method_->timer.start();
       timer_.start();
     }
 
     MethodEntry::~MethodEntry() {
       if(!state_->shared.profiling()) return;
 
+      method_->timer.stop();
       timer_.stop();
-      method_->accumulate(timer_.total(), timer_.timings());
+      method_->accumulate(timer_.total());
       if(edge_) edge_->accumulate(timer_.total());
       state_->profiler()->set_current(previous_);
     }
@@ -260,6 +258,7 @@ namespace rubinius {
       LookupTable* methods = as<LookupTable>(profile->fetch(
             state, state->symbol("methods")));
 
+      Symbol* cumulative_sym = state->symbol("cumulative");
       Symbol* total_sym = state->symbol("total");
       Symbol* called_sym = state->symbol("called");
       Symbol* edges_sym = state->symbol("edges");
@@ -267,11 +266,17 @@ namespace rubinius {
       LookupTable* method;
       Fixnum* key = meth->find_key(keys);
       if((method = try_as<LookupTable>(methods->fetch(state, key)))) {
+        uint64_t cumulative = as<Integer>(
+            method->fetch(state, cumulative_sym))->to_ulong_long();
+        method->store(state, cumulative_sym,
+            Integer::from(state, cumulative + meth->timer.total()));
+
         uint64_t total = as<Integer>(method->fetch(state, total_sym))->to_ulong_long();
         method->store(state, total_sym,
             Integer::from(state, total + meth->total()));
+
         size_t called = as<Fixnum>(method->fetch(state, called_sym))->to_native();
-        method->store(state, called_sym, Fixnum::from(called + meth->called()));
+        method->store(state, called_sym, Fixnum::from(called + meth->timer.count()));
 
         meth->merge_edges(state, keys, as<Array>(method->fetch(state, edges_sym)));
       } else {
@@ -279,8 +284,9 @@ namespace rubinius {
         methods->store(state, key, method);
 
         method->store(state, state->symbol("name"), meth->to_s(state));
+        method->store(state, cumulative_sym, Integer::from(state, meth->timer.total()));
         method->store(state, total_sym, Integer::from(state, meth->total()));
-        method->store(state, called_sym, Fixnum::from(meth->called()));
+        method->store(state, called_sym, Fixnum::from(meth->timer.count()));
 
         if(meth->file()) {
           const char *file;
@@ -304,7 +310,9 @@ namespace rubinius {
           i++) {
         Method* method = i->second;
 
-        if(method->called() == 0) continue;
+        // We haven't exited this method yet, so its stats won't be accurate
+        if(method->timer.started()) continue;
+
         update_method(state_, profile, keys, method);
       }
     }

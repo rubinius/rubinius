@@ -78,6 +78,8 @@ namespace stats {
    *    i is the number of measurements
    */
   class Timer {
+  protected:
+
     uint64_t total_;
     uint64_t timings_;
     uint64_t max_;
@@ -90,15 +92,19 @@ namespace stats {
   public:
 
     Timer()
-      : total_(0),
-        timings_(0),
-        max_(0),
-        min_(0),
-        last_(0),
-        start_(0),
-        moving_average_(0.0),
-        started_(false)
+      : total_(0)
+      , timings_(0)
+      , max_(0)
+      , min_(0)
+      , last_(0)
+      , start_(0)
+      , moving_average_(0.0)
+      , started_(false)
     { }
+
+    bool started() {
+      return started_;
+    }
 
     uint64_t total() {
       return total_;
@@ -143,6 +149,33 @@ namespace stats {
 
     /* Creates a Ruby object representation of the data. */
     rubinius::LookupTable* to_ruby(rubinius::VM* state);
+  };
+
+  class StackTimer : public Timer {
+    size_t   entered_;
+    uint64_t count_;
+
+  public:
+    StackTimer()
+      : entered_(0)
+      , count_(0)
+    { }
+
+    uint64_t count() {
+      return count_;
+    }
+
+    void start() {
+      ++entered_;
+      Timer::start();
+    }
+
+    void stop() {
+      if(!started_) return;
+
+      ++count_;
+      if(--entered_ == 0) Timer::stop();
+    }
   };
 
   /* A monotonically increasing count. */

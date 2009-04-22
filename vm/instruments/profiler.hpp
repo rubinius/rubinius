@@ -58,13 +58,15 @@ namespace rubinius {
     typedef std::tr1::unordered_map<method_id, Fixnum*> KeyMap;
 
     class Edge {
-      Method* method_;
-      uint64_t  total_;
+      Method*  method_;
+      uint64_t total_;
 
     public:
       Edge(Method* method) : method_(method), total_(0) { }
 
-      method_id id();
+      Method* method() {
+        return method_;
+      }
 
       uint64_t total() {
         return total_;
@@ -89,7 +91,9 @@ namespace rubinius {
       int       line_;
       Edges     edges_;
       uint64_t  total_;
-      uint64_t  called_;
+
+    public:
+      stats::StackTimer  timer;
 
     public:
       Method(method_id id, Symbol* name, Symbol* container, Kind kind = kNormal)
@@ -100,7 +104,6 @@ namespace rubinius {
         , file_(0)
         , line_(0)
         , total_(0)
-        , called_(0)
       { }
       ~Method();
 
@@ -139,13 +142,8 @@ namespace rubinius {
         return total_;
       }
 
-      uint64_t called() {
-        return called_;
-      }
-
-      void accumulate(uint64_t time, uint64_t calls) {
+      void accumulate(uint64_t time) {
         total_ += time;
-        called_ += calls;
       }
 
       Edge* find_edge(Method* method);
