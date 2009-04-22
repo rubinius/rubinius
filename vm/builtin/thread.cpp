@@ -63,7 +63,7 @@ namespace rubinius {
   Object* Thread::fork(STATE) {
     state->interrupts.enable_preempt = true;
 
-    native_thread_ = new NativeThread(vm);
+    native_thread_ = new NativeThread(vm, 4194304);
 
     // Let it run.
     native_thread_->run();

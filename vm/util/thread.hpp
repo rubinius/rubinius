@@ -80,6 +80,7 @@ namespace thread {
   class Thread {
     pthread_t native_;
     bool delete_on_exit_;
+    size_t stack_size_;
 
     static void* trampoline(void* arg) {
       Thread* self = reinterpret_cast<Thread*>(arg);
@@ -89,7 +90,10 @@ namespace thread {
     }
 
   public:
-    Thread() {}
+    Thread(size_t stack_size = 0)
+      : stack_size_(stack_size)
+    {}
+
     Thread(pthread_t tid)
       : native_(tid)
       , delete_on_exit_(false)
@@ -102,7 +106,13 @@ namespace thread {
     }
 
     void run() {
-      assert(pthread_create(&native_, NULL, trampoline, (void*)this) == 0);
+      pthread_attr_t attrs;
+      pthread_attr_init(&attrs);
+      if(stack_size_) {
+        pthread_attr_setstacksize(&attrs, stack_size_);
+      }
+
+      assert(pthread_create(&native_, &attrs, trampoline, (void*)this) == 0);
     }
 
     virtual void perform() { }
