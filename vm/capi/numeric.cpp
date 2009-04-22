@@ -41,6 +41,30 @@ extern "C" {
     return (unsigned long)rb_num2long(obj);
   }
 
+  long long rb_num2ll(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* object = env->get_object(obj);
+
+    if(Bignum* big = try_as<Bignum>(object)) {
+      return big->to_long_long();
+    }
+
+    return (long long)rb_num2long(obj);
+  }
+
+  unsigned long long rb_num2ull(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* object = env->get_object(obj);
+
+    if(Bignum* big = try_as<Bignum>(object)) {
+      return big->to_ulong_long();
+    }
+
+    return (unsigned long long)rb_num2long(obj);
+  }
+
   VALUE INT2NUM(int number) {
     return capi_native2num<int>(number);
   }
@@ -77,5 +101,16 @@ extern "C" {
 
   VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func) {
     return rb_funcall(rb_cNumeric, rb_intern("num_coerce_cmp"), 3, x, y, func);
+  }
+
+  double rb_num2dbl(VALUE val) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    if(Float* flt = try_as<Float>(env->get_object(val))) {
+      return flt->val;
+    }
+
+    // @todo should coerce other types
+
+    return 0.0;
   }
 }

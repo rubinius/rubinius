@@ -21,6 +21,13 @@ extern "C" {
     return env->get_handle(class_object);
   }
 
+  // MUST return the immediate object in the class field, not the real class!
+  VALUE CLASS_OF(VALUE object_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Class* class_object = env->get_object(object_handle)->lookup_begin(env->state());
+    return env->get_handle(class_object);
+  }
+
   VALUE rb_class_name(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Class* class_object = c_as<Class>(env->get_object(class_handle));

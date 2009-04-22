@@ -3,6 +3,7 @@
 #include "builtin/exception.hpp"
 #include "builtin/staticscope.hpp"
 #include "builtin/system.hpp"
+#include "builtin/array.hpp"
 
 #include "exception.hpp"
 #include "exception_point.hpp"
@@ -28,6 +29,23 @@ extern "C" {
   int rb_block_given_p() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return RBX_RTEST(env->block());
+  }
+
+  VALUE rb_apply(VALUE recv, ID mid, VALUE args) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    env->flush_cached_data(false);
+
+    Array* ary = capi::c_as<Array>(env->get_object(args));
+
+    Object* obj = env->get_object(recv);
+    Object* ret = obj->send(env->state(), env->current_call_frame(),
+        reinterpret_cast<Symbol*>(mid), ary, RBX_Qnil);
+    env->update_cached_data();
+
+    // An exception occurred
+    if(!ret) env->current_ep()->return_to(env);
+
+    return env->get_handle(ret);
   }
 
 #define RB_EXC_BUFSIZE   256

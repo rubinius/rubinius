@@ -184,9 +184,10 @@ extern "C" {
       Object* obj = env->state()->globals.object.get()->get_const(env->state(),
           capi_get_constant_name(type).c_str());
 
-      VALUE handle = env->get_handle(obj);
-      map[type] = handle;
-      return handle;
+      VALUE val = env->get_handle(obj);
+      capi::Handle::from(val)->ref(); // Extra ref, since we save it in the map
+      map[type] = val;
+      return val;
     } else {
       return entry->second;
     }

@@ -434,9 +434,6 @@ struct RData {
 /** Interrupt checking (no-op). */
 #define CHECK_INTS        /* No-op */
 
-/** Get the Class object is an instance of. */
-#define CLASS_OF          rb_class_of
-
 #define FIXNUM_FLAG       0x1
 
 /** True if the value is a Fixnum. */
@@ -477,6 +474,15 @@ struct RData {
 
 /** Convert long to a Ruby Integer. @todo Should we warn if overflowing? --rue */
 #define LONG2FIX(i)       INT2FIX(i)
+
+long long rb_num2ll(VALUE);
+unsigned long long rb_num2ull(VALUE);
+#define NUM2LL(x) (FIXNUM_P(x)?FIX2LONG(x):rb_num2ll((VALUE)x))
+#define NUM2ULL(x) rb_num2ull((VALUE)x)
+
+/** Convert from a Float to a double */
+double rb_num2dbl(VALUE);
+#define NUM2DBL(x) rb_num2dbl((VALUE)(x))
 
 /** Zero out N elements of type starting at given pointer. */
 #define MEMZERO(p,type,n) memset((p), 0, (sizeof(type) * (n)))
@@ -736,6 +742,10 @@ struct RData {
   /** Returns the Class object this object is an instance of. */
   VALUE   rb_class_of(VALUE object_handle);
 
+  /** Returns the Class object contained in the klass field of object
+   * (ie, a metaclass if it's there) */
+  VALUE   CLASS_OF(VALUE object_handle);
+
   /** C string representation of the class' name. You must free this string. */
   char*   rb_class2name(VALUE class_handle);
 
@@ -898,6 +908,9 @@ struct RData {
 
   /** Set named global to given value. Returns value. $ optional. */
   VALUE   rb_gv_set(const char* name, VALUE value);
+
+  /** Set a global name to be used to address the VALUE at addr */
+  void rb_define_readonly_variable(const char* name, VALUE* addr);
 
   /** Include Module in another Module, just as Ruby's Module#include. */
   void    rb_include_module(VALUE includer_handle, VALUE includee_handle);
