@@ -9,8 +9,7 @@
 #include "bstrlib.h"
 #include "ptr_array.h"
 
-#include "parser/var_table.hpp"
-
+#include "parser/local_state.hpp"
 #include "prelude.hpp"
 #include "object_utils.hpp"
 
@@ -93,8 +92,7 @@ namespace rubinius {
       NODE *top;
       ID *locals;
 
-      var_table variables;
-      var_table block_vars;
+      LocalState* variables;
 
       int ternary_colon;
 

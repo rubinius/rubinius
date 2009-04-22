@@ -143,7 +143,7 @@ namespace rubinius {
       }
 
       free(st->token_buffer);
-      var_table_destroy(st->variables);
+      delete st->variables;
 
       if(!st->memory_pools) return;
 

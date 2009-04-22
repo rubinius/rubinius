@@ -25,6 +25,7 @@
 
 #include "parser/grammar_internal.hpp"
 #include "parser/grammar_runtime.hpp"
+#include "parser/local_state.hpp"
 
 #include "objectmemory.hpp"
 
@@ -193,6 +194,14 @@ static int  syd_local_id(rb_parse_state*,ID);
 #define local_id(i) syd_local_id(vps, i)
 static ID  *syd_local_tbl(rb_parse_state *st);
 static ID   convert_op(ID id);
+
+quark id_to_quark(ID id) {
+  quark qrk;
+
+  qrk = (quark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
+  return qrk;
+}
+
 
 static void tokadd(char c, rb_parse_state *parse_state);
 static int tokadd_string(int, int, int, quark *, rb_parse_state*);
@@ -419,7 +428,7 @@ static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_tab
 %%
 program         :  {
                         vps->lex_state = EXPR_BEG;
-                        vps->variables = var_table_create();
+                        vps->variables = new LocalState(0);
                         class_nest = 0;
                     }
                   compstmt
@@ -745,7 +754,7 @@ cmd_brace_block : tLBRACE_ARG
                         $<num>1 = ruby_sourceline;
                         reset_block(vps);
                     }
-                  opt_block_var { $<vars>$ = vps->block_vars; }
+                  opt_block_var { $<vars>$ = vps->variables->block_vars; }
                   compstmt
                   '}'
                     {
@@ -1842,7 +1851,7 @@ do_block        : kDO_BLOCK
                     }
                   opt_block_var
                     {
-                      $<vars>$ = vps->block_vars;
+                      $<vars>$ = vps->variables->block_vars;
                     }
                   compstmt
                   kEND
@@ -1913,7 +1922,7 @@ brace_block     : '{'
                         $<num>1 = ruby_sourceline;
                         reset_block(vps);
                     }
-                  opt_block_var { $<vars>$ = vps->block_vars; }
+                  opt_block_var { $<vars>$ = vps->variables->block_vars; }
                   compstmt '}'
                     {
                         $$ = NEW_ITER($3, 0, extract_block_vars(vps, $5, $<vars>4));
@@ -1924,7 +1933,7 @@ brace_block     : '{'
                         $<num>1 = ruby_sourceline;
                         reset_block(vps);
                     }
-                  opt_block_var { $<vars>$ = vps->block_vars; }
+                  opt_block_var { $<vars>$ = vps->variables->block_vars; }
                   compstmt kEND
                     {
                         $$ = NEW_ITER($3, 0, extract_block_vars(vps, $5, $<vars>4));
@@ -5015,10 +5024,10 @@ syd_gettable(rb_parse_state *parse_state, ID id)
 
 static void
 reset_block(rb_parse_state *parse_state) {
-  if(!parse_state->block_vars) {
-    parse_state->block_vars = var_table_create();
+  if(!parse_state->variables->block_vars) {
+    parse_state->variables->block_vars = var_table_create();
   } else {
-    parse_state->block_vars = var_table_push(parse_state->block_vars);
+    parse_state->variables->block_vars = var_table_push(parse_state->variables->block_vars);
   }
 }
 
@@ -5041,8 +5050,8 @@ extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars)
     out = block_append(parse_state, var, node);
 
 out:
-  assert(vars == parse_state->block_vars);
-  parse_state->block_vars = var_table_pop(parse_state->block_vars);
+  assert(vars == parse_state->variables->block_vars);
+  parse_state->variables->block_vars = var_table_pop(parse_state->variables->block_vars);
 
   return out;
 }
@@ -5070,8 +5079,8 @@ assignable(ID id, NODE *val, rb_parse_state *parse_state)
         yyerror("Can't assign to __LINE__");
     }
     else if (is_local_id(id)) {
-        if(parse_state->block_vars) {
-          var_table_add(parse_state->block_vars, id);
+        if(parse_state->variables->block_vars) {
+          var_table_add(parse_state->variables->block_vars, id);
         }
         return NEW_LASGN(id, val);
     }
@@ -5675,13 +5684,13 @@ new_super(rb_parse_state *parse_state,NODE *a)
 static void
 syd_local_push(rb_parse_state *st, int top)
 {
-    st->variables = var_table_push(st->variables);
+    st->variables = LocalState::push(st->variables);
 }
 
 static void
 syd_local_pop(rb_parse_state *st)
 {
-    st->variables = var_table_pop(st->variables);
+    st->variables = LocalState::pop(st->variables);
 }
 
 
@@ -5691,7 +5700,7 @@ syd_local_tbl(rb_parse_state *st)
     ID *lcl_tbl;
     var_table tbl;
     int i, len;
-    tbl = st->variables;
+    tbl = st->variables->variables;
     len = var_table_size(tbl);
     lcl_tbl = (ID*)pt_allocate(st, sizeof(ID) * (len + 3));
     lcl_tbl[0] = (ID)len;
@@ -5714,16 +5723,34 @@ syd_local_cnt(rb_parse_state *st, ID id)
         return 1;
     }
 
-    idx = var_table_find(st->variables, id);
-    if(idx >= 0) return idx + 2;
+    // if there are block variables, check to see if there is already
+    // a local by this name. If not, create one in the top block_vars
+    // table.
+    if(st->variables->block_vars) {
+      idx = var_table_find_chained(st->variables->block_vars, id);
+      if(idx >= 0) {
+        return idx;
+      } else {
+        return var_table_add(st->variables->block_vars, id);
+      }
+    }
 
-    return var_table_add(st->variables, id);
+    idx = var_table_find(st->variables->variables, id);
+    if(idx >= 0) {
+      return idx + 2;
+    }
+
+    return var_table_add(st->variables->variables, id);
 }
 
 static int
 syd_local_id(rb_parse_state *st, ID id)
 {
-    if(var_table_find(st->variables, id) >= 0) return 1;
+    if(st->variables->block_vars) {
+      if(var_table_find_chained(st->variables->block_vars, id) >= 0) return 1;
+    }
+
+    if(var_table_find(st->variables->variables, id) >= 0) return 1;
     return 0;
 }
 
@@ -5785,13 +5812,6 @@ rb_intern(const char *name)
     bef = id;
     id |= ( pre << ID_SCOPE_SHIFT );
     return id;
-}
-
-quark id_to_quark(ID id) {
-  quark qrk;
-
-  qrk = (quark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
-  return qrk;
 }
 
 static unsigned long
