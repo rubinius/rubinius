@@ -19,6 +19,7 @@ namespace rubinius {
   }
 }
 
+#if (__GNUC__ <= 4 && __GNUC_MINOR__ < 3)
 namespace std {
   namespace tr1 {
     template <>
@@ -29,6 +30,7 @@ namespace std {
       };
   }
 }
+#endif
 
 class TestProfiler;
 
@@ -187,7 +189,7 @@ namespace rubinius {
       VM*       state_;
 
     public:
-      Profiler::Profiler(STATE)
+      Profiler(STATE)
         : current_(0)
         , state_(state)
       { }
