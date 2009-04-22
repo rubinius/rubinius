@@ -34,7 +34,14 @@ class MSpecScript
     '^library/rubygems',
   ]
 
-  set :capi, [ 'spec/capi' ]
+  set :capi, [
+    'spec/capi',
+    '^spec/capi/globals',
+    '^spec/capi/language',
+    '^spec/capi/module',
+    '^spec/capi/proc',
+    '^spec/capi/struct'
+  ]
 
   set :compiler, [ 'spec/compiler' ]
 

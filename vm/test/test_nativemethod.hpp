@@ -17,18 +17,11 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
     destroy();
   }
 
-  void test_native_method_frame_first_handle() {
-    NativeMethodFrame nmf(NULL);
-
-    TS_ASSERT_EQUALS(CAPI_APPLY_LOCAL_TAG(0),
-        nmf.get_handle(state, String::create(state, "test")));
-  }
-
   void test_native_method_frame_get_object() {
     NativeMethodFrame nmf(NULL);
     String* str = String::create(state, "test");
     Integer* id = str->id(state);
-    Handle handle = nmf.get_handle(state, str);
+    VALUE handle = nmf.get_handle(state, str);
 
     TS_ASSERT_EQUALS(id, nmf.get_object(handle)->id(state));
   }
@@ -49,15 +42,6 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
     delete nme->current_call_frame();
     delete nme->current_native_frame();
     delete nme;
-  }
-
-  void test_native_method_environment_first_handle() {
-    NativeMethodEnvironment* nme = create_native_method_environment();
-
-    TS_ASSERT_EQUALS(CAPI_APPLY_LOCAL_TAG(0),
-        nme->get_handle(String::create(state, "test")));
-
-    destroy_native_method_environment(nme);
   }
 
   void test_native_method_environment_get_Qfalse_handle() {
@@ -114,27 +98,7 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
     NativeMethodEnvironment* nme = create_native_method_environment();
     String* str = String::create(state, "test");
     Integer* id = str->id(state);
-    Handle handle = nme->get_handle(str);
-
-    TS_ASSERT_EQUALS(id, nme->get_object(handle)->id(state));
-
-    destroy_native_method_environment(nme);
-  }
-
-  void test_native_method_environment_first_global_handle() {
-    NativeMethodEnvironment* nme = create_native_method_environment();
-
-    TS_ASSERT_EQUALS(CAPI_APPLY_GLOBAL_TAG(0),
-        nme->get_handle_global(String::create(state, "test")));
-
-    destroy_native_method_environment(nme);
-  }
-
-  void test_native_method_environment_get_object_global() {
-    NativeMethodEnvironment* nme = create_native_method_environment();
-    String* str = String::create(state, "test");
-    Integer* id = str->id(state);
-    Handle handle = nme->get_handle_global(str);
+    VALUE handle = nme->get_handle(str);
 
     TS_ASSERT_EQUALS(id, nme->get_object(handle)->id(state));
 

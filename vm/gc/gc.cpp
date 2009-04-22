@@ -14,6 +14,7 @@
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/staticscope.hpp"
+#include "capi/handle.hpp"
 
 namespace rubinius {
 
@@ -21,6 +22,7 @@ namespace rubinius {
     : roots_(state->globals.roots)
     , call_frames_(state->shared.call_frame_locations())
     , variable_buffers_(*state->variable_buffers())
+    , handles_(state->shared.global_handles())
   {}
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)
@@ -290,6 +292,10 @@ namespace rubinius {
 
     visit_roots(data.roots(), visit);
     visit_call_frames_list(data.call_frames(), visit);
+
+    for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
+      visit.call(i->object());
+    }
 
     visit.drain_stack();
   }

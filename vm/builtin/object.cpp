@@ -110,6 +110,7 @@ namespace rubinius {
         // We store the object_id in the ivar table, so nuke it.
         ld->remove(state, G(sym_object_id));
         ld->remove(state, state->symbol("frozen"));
+        ld->remove(state, state->symbol("capi_handle"));
       } else {
         // Use as<> so that we throw a TypeError if there is something else
         // here.
@@ -120,6 +121,7 @@ namespace rubinius {
         // We store the object_id in the ivar table, so nuke it.
         ld->remove(state, G(sym_object_id));
         ld->remove(state, state->symbol("frozen"));
+        ld->remove(state, state->symbol("capi_handle"));
       };
     }
 

@@ -211,7 +211,6 @@ GetVpValue(VALUE v, int must)
     case T_DATA:
         if(RDATA(v)->dfree ==(void *) BigDecimal_delete) {
             Data_Get_Struct(v, Real, pv);
-            pv->obj = v;
             return pv;
         } else {
             goto SomeOneMayDoIt;

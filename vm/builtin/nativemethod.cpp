@@ -16,17 +16,14 @@
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/capi_handle.hpp"
 
 #include "instruments/profiler.hpp"
 
 #include "capi/capi.hpp"
+#include "capi/handle.hpp"
 
 namespace rubinius {
-
-  using namespace capi;
-
-  typedef TypedRoot<Object*> RootHandle;
-
   /** Thread-local NativeMethodEnvironment instance. */
   thread::ThreadData<NativeMethodEnvironment*> native_method_environment;
 
@@ -36,24 +33,38 @@ namespace rubinius {
     return native_method_environment.get();
   }
 
-  Handle NativeMethodFrame::get_handle(STATE, Object* obj) {
-    Handle handle = CAPI_APPLY_LOCAL_TAG(handles_.size());
-    handles_.push_back(new RootHandle(state, obj));
-    return handle;
+  NativeMethodFrame::~NativeMethodFrame() {
+    flush_cached_data(true);
+    for(capi::HandleList::iterator i = handles_.begin();
+        i != handles_.end();
+        i++) {
+      capi::Handle* handle = *i;
+      handle->deref();
+    }
   }
 
-  Object* NativeMethodFrame::get_object(Handle handle) {
-    size_t index = CAPI_STRIP_LOCAL_TAG(handle);
-    if(unlikely(index >= handles_.size())) {
-      capi_raise_runtime_error("requested Object for invalid NativeMethod handle");
+  VALUE NativeMethodFrame::get_handle(STATE, Object* obj) {
+    capi::Handle* handle;
+
+    Object* existing = obj->get_table_ivar(state, state->symbol("capi_handle"));
+
+    if(CApiHandle* wrapper = try_as<CApiHandle>(existing)) {
+      handle = wrapper->handle;
+    } else {
+      handle = new capi::Handle(state, obj);
+      state->shared.global_handles()->add(handle);
+      CApiHandle* wrapper = CApiHandle::create(state, handle);
+      obj->set_table_ivar(state, state->symbol("capi_handle"), wrapper);
     }
 
-    Object* obj = handles_[index]->get();
+    handle->ref();
 
-    if(unlikely(!obj)) {
-      capi_raise_runtime_error("NativeMethod handle refers to NULL object");
-    }
-    return obj;
+    handles_.push_back(handle);
+    return handle->as_value();
+  }
+
+  Object* NativeMethodFrame::get_object(VALUE val) {
+    return capi::Handle::from(val)->object();
   }
 
   CApiStructs& NativeMethodFrame::strings() {
@@ -74,34 +85,41 @@ namespace rubinius {
   void NativeMethodFrame::flush_cached_data(bool release_memory) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    if(arrays_) {
-      capi_rarray_flush(env, *arrays_, release_memory);
-      if(release_memory) delete arrays_;
-    }
-    if(strings_) {
-      capi_rstring_flush(env, *strings_, release_memory);
-      if(release_memory) delete strings_;
-    }
-    if(data_) {
-      capi_rdata_flush(env, *data_, release_memory);
-      if(release_memory) delete data_;
+    for(capi::HandleList::iterator i = handles_.begin();
+        i != handles_.end();
+        i++) {
+      capi::Handle* handle = *i;
+      if(handle->is_rarray()) {
+        capi::capi_get_array(env, handle->as_value());
+      } else if(handle->is_rstring()) {
+        capi::capi_get_string(env, handle->as_value());
+      } else if(handle->is_rdata()) {
+        capi::capi_rdata_flush_handle(env, handle);
+      }
+
+      if(release_memory) handle->free_data();
     }
   }
 
   void NativeMethodFrame::update_cached_data() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    if(arrays_) capi_rarray_update(env, *arrays_);
-    if(strings_) capi_rstring_update(env, *strings_);
+    for(capi::HandleList::iterator i = handles_.begin();
+        i != handles_.end();
+        i++) {
+      capi::Handle* handle = *i;
+      if(handle->is_rarray()) {
+        capi::capi_update_array(env, handle->as_value());
+      } else if(handle->is_rstring()) {
+        capi::capi_update_string(env, handle->as_value());
+      }
+    }
   }
 
-  Handle NativeMethodEnvironment::get_handle(Object* obj) {
+  VALUE NativeMethodEnvironment::get_handle(Object* obj) {
     if(obj->reference_p()) {
       return current_native_frame_->get_handle(state_, obj);
-    } else if(obj->fixnum_p()) {
+    } else if(obj->fixnum_p() || obj->symbol_p()) {
       return reinterpret_cast<VALUE>(obj);
-    } else if(obj->symbol_p()) {
-      return reinterpret_cast<ID>(obj);
     } else if(obj->nil_p()) {
       return cCApiHandleQnil;
     } else if(obj->false_p()) {
@@ -112,19 +130,14 @@ namespace rubinius {
       return cCApiHandleQundef;
     }
 
-    capi_raise_runtime_error("NativeMethod handle requested for unknown object type");
+    capi::capi_raise_runtime_error("NativeMethod handle requested for unknown object type");
     return 0; // keep compiler happy
   }
 
-  Handle NativeMethodEnvironment::get_handle_global(Object* obj) {
-    Handles& global_handles = state_->shared.global_handles();
-    Handle handle = CAPI_APPLY_GLOBAL_TAG(global_handles.size());
-    global_handles.push_back(new RootHandle(state_, obj));
-    return handle;
-  }
-
-  Object* NativeMethodEnvironment::get_object(Handle handle) {
-    if(CAPI_REFERENCE_P(handle)) {
+  Object* NativeMethodEnvironment::get_object(VALUE val) {
+    if(CAPI_REFERENCE_P(val)) {
+      return capi::Handle::from(val)->object();
+      /*
       if(CAPI_GLOBAL_HANDLE_P(handle)) {
         Handles& global_handles = state_->shared.global_handles();
         size_t index = CAPI_STRIP_GLOBAL_TAG(handle);
@@ -138,11 +151,6 @@ namespace rubinius {
           capi_raise_runtime_error("Attempted to use deleted NativeMethod global handle");
         }
 
-        /* No Ruby object should ever be NULL, so if it is, likely an
-         * exception occurred that was not caught correctly. Rather
-         * than letting it propogate to mysterious corners of the code,
-         * we raise an exception here. @see NativeMethodFrame::get_object()
-         */
         Object* obj = root->get();
         if(unlikely(!obj)) {
           capi_raise_runtime_error("NativeMethod global handle refers to NULL object");
@@ -151,37 +159,32 @@ namespace rubinius {
       } else {
         return current_native_frame_->get_object(handle);
       }
-    } else if(FIXNUM_P(handle)) {
-      return reinterpret_cast<Fixnum*>(handle);
-    } else if(SYMBOL_P(handle)) {
-      return reinterpret_cast<Symbol*>(handle);
-    } else if(CAPI_FALSE_P(handle)) {
+      */
+    } else if(FIXNUM_P(val) || SYMBOL_P(val)) {
+      return reinterpret_cast<Object*>(val);
+    } else if(CAPI_FALSE_P(val)) {
       return Qfalse;
-    } else if(CAPI_TRUE_P(handle)) {
+    } else if(CAPI_TRUE_P(val)) {
       return Qtrue;
-    } else if(CAPI_NIL_P(handle)) {
+    } else if(CAPI_NIL_P(val)) {
       return Qnil;
-    } else if(CAPI_UNDEF_P(handle)) {
+    } else if(CAPI_UNDEF_P(val)) {
       return Qundef;
     }
 
-    capi_raise_runtime_error("requested Object for unknown NativeMethod handle type");
+    capi::capi_raise_runtime_error("requested Object for unknown NativeMethod handle type");
     return Qnil; // keep compiler happy
   }
 
-  void NativeMethodEnvironment::delete_global(Handle handle) {
-    Handles& global_handles = state_->shared.global_handles();
-    handle = CAPI_STRIP_GLOBAL_TAG(handle);
-    RootHandle* root = global_handles[handle];
-    delete root;
-    global_handles[handle] = 0;
+  void NativeMethodEnvironment::delete_global(VALUE val) {
+    abort();
   }
 
   Object* NativeMethodEnvironment::block() {
     return current_call_frame_->top_scope->block();
   }
 
-  Handles& NativeMethodEnvironment::handles() {
+  capi::HandleList& NativeMethodEnvironment::handles() {
     return current_native_frame_->handles();
   }
 
@@ -264,7 +267,6 @@ namespace rubinius {
       state->profiler()->leave();
 #endif
 
-    env->current_native_frame()->flush_cached_data(true);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 
@@ -299,109 +301,109 @@ namespace rubinius {
    *  @todo   Check for inefficiencies.
    */
   Object* NativeMethod::call(STATE, NativeMethodEnvironment* env, Arguments& args) {
-    Handle receiver = env->get_handle(args.recv());
+    VALUE receiver = env->get_handle(args.recv());
 
     switch(arity()->to_int()) {
     case ARGS_IN_RUBY_ARRAY: {  /* Braces required to create objects in a switch */
-      Handle ary = env->get_handle(args.as_array(state));
+      VALUE ary = env->get_handle(args.as_array(state));
 
-      Handle ret_handle = functor_as<OneArgFunctor>()(ary);
+      VALUE ret = functor_as<OneArgFunctor>()(ary);
 
-      return env->get_object(ret_handle);
+      return env->get_object(ret);
     }
 
     case RECEIVER_PLUS_ARGS_IN_RUBY_ARRAY: {
-      Handle ary = env->get_handle(args.as_array(state));
+      VALUE ary = env->get_handle(args.as_array(state));
 
-      Handle ret_handle = functor_as<TwoArgFunctor>()(receiver, ary);
+      VALUE ret = functor_as<TwoArgFunctor>()(receiver, ary);
 
-      return env->get_object(ret_handle);
+      return env->get_object(ret);
     }
 
     case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
-      Handle* ary = new Handle[args.total()];
+      VALUE* ary = new VALUE[args.total()];
 
       for (std::size_t i = 0; i < args.total(); ++i) {
         ary[i] = env->get_handle(args.get_argument(i));
       }
 
-      Handle ret_handle = functor_as<ArgcFunctor>()(args.total(), ary, receiver);
+      VALUE ret = functor_as<ArgcFunctor>()(args.total(), ary, receiver);
 
       delete[] ary;
 
-      return env->get_object(ret_handle);
+      return env->get_object(ret);
     }
 
       /*
        *  Normal arg counts
        *
        *  Yes, it is ugly as fuck. It is intended as an encouragement
-       *  to get rid of the concept of a separate Handle and Object.
+       *  to get rid of the concept of a separate VALUE and Object.
        */
 
     case 0: {
       OneArgFunctor functor = functor_as<OneArgFunctor>();
 
-      Handle ret_handle = functor(receiver);
+      VALUE ret = functor(receiver);
 
-      return env->get_object(ret_handle);
+      return env->get_object(ret);
     }
 
     case 1: {
       TwoArgFunctor functor = functor_as<TwoArgFunctor>();
 
-      Handle a1 = env->get_handle(args.get_argument(0));
+      VALUE a1 = env->get_handle(args.get_argument(0));
 
-      Handle ret_handle = functor(receiver, a1);
+      VALUE ret = functor(receiver, a1);
 
-      return env->get_object(ret_handle);
+      return env->get_object(ret);
     }
 
     case 2: {
       ThreeArgFunctor functor = functor_as<ThreeArgFunctor>();
 
-      Handle a1 = env->get_handle(args.get_argument(0));
-      Handle a2 = env->get_handle(args.get_argument(1));
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
 
-      Handle ret_handle = functor(receiver, a1, a2);
+      VALUE ret = functor(receiver, a1, a2);
 
-      return env->get_object(ret_handle);
+      return env->get_object(ret);
     }
 
     case 3: {
       FourArgFunctor functor = functor_as<FourArgFunctor>();
-      Handle a1 = env->get_handle(args.get_argument(0));
-      Handle a2 = env->get_handle(args.get_argument(1));
-      Handle a3 = env->get_handle(args.get_argument(2));
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
+      VALUE a3 = env->get_handle(args.get_argument(2));
 
-      Handle ret_handle = functor(receiver, a1, a2, a3);
+      VALUE ret = functor(receiver, a1, a2, a3);
 
-      return env->get_object(ret_handle);
+      return env->get_object(ret);
     }
 
     case 4: {
       FiveArgFunctor functor = functor_as<FiveArgFunctor>();
-      Handle a1 = env->get_handle(args.get_argument(0));
-      Handle a2 = env->get_handle(args.get_argument(1));
-      Handle a3 = env->get_handle(args.get_argument(2));
-      Handle a4 = env->get_handle(args.get_argument(3));
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
+      VALUE a3 = env->get_handle(args.get_argument(2));
+      VALUE a4 = env->get_handle(args.get_argument(3));
 
-      Handle ret_handle = functor(receiver, a1, a2, a3, a4);
+      VALUE ret = functor(receiver, a1, a2, a3, a4);
 
-      return env->get_object(ret_handle);
+      return env->get_object(ret);
     }
 
     case 5: {
       SixArgFunctor functor = functor_as<SixArgFunctor>();
-      Handle a1 = env->get_handle(args.get_argument(0));
-      Handle a2 = env->get_handle(args.get_argument(1));
-      Handle a3 = env->get_handle(args.get_argument(2));
-      Handle a4 = env->get_handle(args.get_argument(3));
-      Handle a5 = env->get_handle(args.get_argument(4));
+      VALUE a1 = env->get_handle(args.get_argument(0));
+      VALUE a2 = env->get_handle(args.get_argument(1));
+      VALUE a3 = env->get_handle(args.get_argument(2));
+      VALUE a4 = env->get_handle(args.get_argument(3));
+      VALUE a5 = env->get_handle(args.get_argument(4));
 
-      Handle ret_handle = functor(receiver, a1, a2, a3, a4, a5);
+      VALUE ret = functor(receiver, a1, a2, a3, a4, a5);
 
-      return env->get_object(ret_handle);
+      return env->get_object(ret);
     }
 
       /* Extension entry point, should never occur for user code. */
@@ -414,7 +416,7 @@ namespace rubinius {
     }
 
     default:
-      capi_raise_runtime_error("unrecognized arity for NativeMethod call");
+      capi::capi_raise_runtime_error("unrecognized arity for NativeMethod call");
       return Qnil;
     }
   }

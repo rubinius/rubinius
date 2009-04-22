@@ -29,12 +29,10 @@ namespace rubinius {
     String* capi_get_string(NativeMethodEnvironment* env, VALUE str_handle) {
       if(!env) env = NativeMethodEnvironment::get();
 
-      String* string = c_as<String>(env->get_object(str_handle));
-
-      CApiStructs& strings = env->strings();
-      CApiStructs::iterator iter = strings.find(str_handle);
-      if(iter != strings.end()) {
-        flush_string(env->state(), string, (struct RString*)iter->second);
+      Handle* handle = Handle::from(str_handle);
+      String* string = c_as<String>(handle->object());
+      if(handle->is_rstring()) {
+        flush_string(env->state(), string, handle->as_rstring(env));
       }
 
       return string;
@@ -42,21 +40,16 @@ namespace rubinius {
 
     void capi_rstring_flush(NativeMethodEnvironment* env,
         CApiStructs& strings, bool release_memory) {
-      String* string;
-      struct RString* str = 0;
-
       for(CApiStructs::iterator iter = strings.begin();
           iter != strings.end();
           iter++) {
-        string = c_as<String>(env->get_object(iter->first));
-        str = (struct RString*)iter->second;
-
-        flush_string(env->state(), string, str);
-
-        if(release_memory) {
-          delete[] str->dmwmb;
-          delete str;
+        Handle* handle = iter->first;
+        String* string = c_as<String>(handle->object());
+        if(handle->is_rstring()) {
+          flush_string(env->state(), string, handle->as_rstring(env));
         }
+
+        if(release_memory) handle->free_data();
       }
     }
 
@@ -77,11 +70,10 @@ namespace rubinius {
     void capi_update_string(NativeMethodEnvironment* env, VALUE str_handle) {
       if(!env) env = NativeMethodEnvironment::get();
 
-      CApiStructs& strings = env->strings();
-      CApiStructs::iterator iter = strings.find(str_handle);
-      if(iter != strings.end()) {
-        String* string = c_as<String>(env->get_object(str_handle));
-        update_string(env->state(), string, (struct RString*)iter->second);
+      Handle* handle = Handle::from(str_handle);
+      if(handle->is_rstring()) {
+        String* string = c_as<String>(handle->object());
+        update_string(env->state(), string, handle->as_rstring(env));
       }
     }
 
@@ -89,9 +81,32 @@ namespace rubinius {
       for(CApiStructs::iterator iter = strings.begin();
           iter != strings.end();
           iter++) {
-        String* string = c_as<String>(env->get_object(iter->first));
-        update_string(env->state(), string, (struct RString*)iter->second);
+        Handle* handle = iter->first;
+        String* string = c_as<String>(handle->object());
+        update_string(env->state(), string, handle->as_rstring(env));
       }
+    }
+
+    RString* Handle::as_rstring(NativeMethodEnvironment* env) {
+      if(type_ != cRString) {
+        String* string = c_as<String>(object());
+        string->unshare(env->state());
+        size_t size = string->size();
+
+        RString* str = new RString;
+        char* ptr = new char[size+1];
+        std::memcpy(ptr, string->byte_address(), size);
+        ptr[size] = 0;
+
+        str->dmwmb = str->ptr = ptr;
+        str->aux.capa = str->len = size;
+        str->aux.shared = Qfalse;
+
+        type_ = cRString;
+        as_.rstring = str;
+      }
+
+      return as_.rstring;
     }
   }
 }
@@ -100,28 +115,7 @@ extern "C" {
   struct RString* capi_rstring_struct(VALUE str_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    CApiStructs& strings = env->strings();
-    CApiStructs::iterator iter = strings.find(str_handle);
-    if(iter != strings.end()) {
-      return (struct RString*)iter->second;
-    }
-
-    String* string = c_as<String>(env->get_object(str_handle));
-    string->unshare(env->state());
-    size_t size = string->size();
-
-    struct RString* str = new struct RString;
-    char* ptr = new char[size+1];
-    std::memcpy(ptr, string->byte_address(), size);
-    ptr[size] = 0;
-
-    str->dmwmb = str->ptr = ptr;
-    str->aux.capa = str->len = size;
-    str->aux.shared = Qfalse;
-
-    strings[str_handle] = str;
-
-    return str;
+    return Handle::from(str_handle)->as_rstring(env);
   }
 
   VALUE rb_String(VALUE object_handle) {

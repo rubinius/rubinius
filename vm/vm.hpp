@@ -37,6 +37,10 @@ namespace rubinius {
     class ProfilerCollection;
   }
 
+  namespace capi {
+    class Handles;
+  }
+
   class GlobalCache;
   class TaskProbe;
   class Primitives;
@@ -101,11 +105,6 @@ namespace rubinius {
   class SignalThread;
   class LookupTable;
 
-  /* Indirect object handles for references to Ruby objects in
-   * native code extensions.
-   */
-  typedef std::vector<TypedRoot<Object*>*> Handles;
-
   class SharedState : public RefCount {
   private:
     VMManager& manager_;
@@ -116,7 +115,7 @@ namespace rubinius {
     SignalThread* signal_thread_;
     CallFrameLocationList cf_locations_;
     VariableRootBuffers root_buffers_;
-    Handles global_handles_;
+    capi::Handles* global_handles_;
     bool profiling_;
     profiler::ProfilerCollection* profiler_collection_;
 
@@ -130,17 +129,7 @@ namespace rubinius {
     ConfigParser *user_config;
 
   public:
-    SharedState(VMManager& manager, int id)
-      : manager_(manager)
-      , initialized_(false)
-      , id_(id)
-      , profiling_(false)
-      , profiler_collection_(0)
-      , om(0)
-      , global_cache(0)
-      , user_config(0)
-    {}
-
+    SharedState(VMManager& manager, int id);
     ~SharedState();
 
     int id() {
@@ -179,7 +168,7 @@ namespace rubinius {
       return &root_buffers_;
     }
 
-    Handles& global_handles() {
+    capi::Handles* global_handles() {
       return global_handles_;
     }
 

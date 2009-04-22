@@ -3,6 +3,8 @@
 
 #include "instruments/stats.hpp"
 
+#include "capi/handle.hpp"
+
 namespace rubinius {
   void ImmixGC::ObjectDescriber::added_chunk(int count) {
 #ifdef IMMIX_DEBUG
@@ -104,6 +106,10 @@ namespace rubinius {
       if(tmp->reference_p()) {
         saw_object(tmp);
       }
+    }
+
+    for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
+      if(!i->weak_p()) saw_object(i->object());
     }
 
     for(VariableRootBuffers::Iterator i(data.variable_buffers());

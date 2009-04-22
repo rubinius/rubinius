@@ -16,17 +16,16 @@
 
 #include "vm/object_utils.hpp"
 
+#include "capi/value.hpp"
+#include "capi/handle.hpp"
 
 namespace rubinius {
   class ExceptionPoint;
   class Message;
   class NativeMethodFrame;
 
-  /** More prosaic name for Handles. */
-  typedef intptr_t Handle;
-
   /** Tracks RARRAY and RSTRING structs */
-  typedef std::tr1::unordered_map<Handle, void*> CApiStructs;
+  typedef std::tr1::unordered_map<capi::Handle*, void*> CApiStructs;
 
   /**
    * Thread-local info about native method calls. @see NativeMethodFrame.
@@ -47,19 +46,16 @@ namespace rubinius {
 
   public:   /* Interface methods */
 
-    /** Create or retrieve Handle for obj. */
-    Handle get_handle(Object* obj);
+    /** Create or retrieve VALUE for obj. */
+    VALUE get_handle(Object* obj);
 
-    /** Create or retrieve Handle for a global object. */
-    Handle get_handle_global(Object* obj);
+    /** Obtain the Object the VALUE represents. */
+    Object* get_object(VALUE handle);
 
-    /** Obtain the Object the Handle represents. */
-    Object* get_object(Handle handle);
+    /** Delete a global Object and its VALUE. */
+    void delete_global(VALUE handle);
 
-    /** Delete a global Object and its Handle. */
-    void delete_global(Handle handle);
-
-    /** GC marking for Objects behind Handles. */
+    /** GC marking for Objects behind VALUEs. */
     void mark_handles(ObjectMark& mark);
 
 
@@ -100,7 +96,7 @@ namespace rubinius {
     }
 
     /** Set of Handles available in current Frame (convenience.) */
-    Handles& handles();
+    capi::HandleList& handles();
 
     /** Returns the map of RSTRING structs in the current NativeMethodFrame. */
     CApiStructs& strings();
@@ -125,8 +121,8 @@ namespace rubinius {
   class NativeMethodFrame {
     /** Native Frame active before this call. @note This may NOT be the sender. --rue */
     NativeMethodFrame* previous_;
-    /** Handles to Objects used in this Frame. */
-    Handles handles_;
+    /** HandleList to Objects used in this Frame. */
+    capi::HandleList handles_;
     /** RARRAY structs allocated during this call. */
     CApiStructs* arrays_;
     /** RDATA structs allocated during this call. */
@@ -142,6 +138,7 @@ namespace rubinius {
         strings_(NULL)
     {}
 
+    ~NativeMethodFrame();
 
   public:     /* Interface methods */
 
@@ -150,11 +147,11 @@ namespace rubinius {
       return NativeMethodEnvironment::get()->current_native_frame();
     }
 
-    /** Create or retrieve a Handle for the Object. */
-    Handle get_handle(VM*, Object* obj);
+    /** Create or retrieve a VALUE for the Object. */
+    VALUE get_handle(VM*, Object* obj);
 
-    /** Obtain the Object the Handle represents. */
-    Object* get_object(Handle hndl);
+    /** Obtain the Object the VALUE represents. */
+    Object* get_object(VALUE hndl);
 
     /** Flush RARRAY, RSTRING, etc. caches, possibly releasing memory. */
     void flush_cached_data(bool release_memory);
@@ -164,8 +161,8 @@ namespace rubinius {
 
   public:     /* Accessors */
 
-    /** Handles to Objects used in this Frame. */
-    Handles& handles() {
+    /** HandleList to Objects used in this Frame. */
+    capi::HandleList& handles() {
       return handles_;
     }
 
@@ -201,19 +198,19 @@ namespace rubinius {
   /* The various function signatures needed since C++ requires strict typing here. */
 
   /** Generic function pointer used to store any type of functor. */
-  typedef     void (*GenericFunctor)(void);
+  typedef void (*GenericFunctor)(void);
 
   /* Actual functor types. */
 
-  typedef void   (*InitFunctor)     (void);   /**< The Init_<name> function. */
+  typedef void (*InitFunctor)      (void);   /**< The Init_<name> function. */
 
-  typedef Handle (*ArgcFunctor)     (int, Handle*, Handle);
-  typedef Handle (*OneArgFunctor)   (Handle);
-  typedef Handle (*TwoArgFunctor)   (Handle, Handle);
-  typedef Handle (*ThreeArgFunctor) (Handle, Handle, Handle);
-  typedef Handle (*FourArgFunctor)  (Handle, Handle, Handle, Handle);
-  typedef Handle (*FiveArgFunctor)  (Handle, Handle, Handle, Handle, Handle);
-  typedef Handle (*SixArgFunctor)   (Handle, Handle, Handle, Handle, Handle, Handle);
+  typedef VALUE (*ArgcFunctor)     (int, VALUE*, VALUE);
+  typedef VALUE (*OneArgFunctor)   (VALUE);
+  typedef VALUE (*TwoArgFunctor)   (VALUE, VALUE);
+  typedef VALUE (*ThreeArgFunctor) (VALUE, VALUE, VALUE);
+  typedef VALUE (*FourArgFunctor)  (VALUE, VALUE, VALUE, VALUE);
+  typedef VALUE (*FiveArgFunctor)  (VALUE, VALUE, VALUE, VALUE, VALUE);
+  typedef VALUE (*SixArgFunctor)   (VALUE, VALUE, VALUE, VALUE, VALUE, VALUE);
 
 
   /**

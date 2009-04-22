@@ -19,11 +19,12 @@ public:
   Roots* roots;
   CallFrameLocationList call_frames;
   VariableRootBuffers variable_buffers;
+  capi::Handles handles;
 
   void setUp() {
     create();
     roots = &state->globals.roots;
-    gc_data = new GCData(*roots, call_frames, variable_buffers);
+    gc_data = new GCData(*roots, call_frames, variable_buffers, &handles);
   }
 
   void tearDown() {

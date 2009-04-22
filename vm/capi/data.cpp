@@ -9,6 +9,19 @@ using namespace rubinius::capi;
 
 namespace rubinius {
   namespace capi {
+
+    void capi_rdata_flush_handle(NativeMethodEnvironment* env, Handle* handle) {
+      Data* data = c_as<Data>(handle->object());
+
+      if(handle->is_rdata()) {
+        RData* d = handle->as_rdata(env);
+
+        data->mark(env->state(), d->dmark);
+        data->free(env->state(), d->dfree);
+        data->data(env->state(), d->data);
+      }
+    }
+
     void capi_rdata_flush(NativeMethodEnvironment* env,
         CApiStructs& data_structs, bool release_memory) {
       Data* data;
@@ -17,15 +30,35 @@ namespace rubinius {
       for(CApiStructs::iterator iter = data_structs.begin();
           iter != data_structs.end();
           iter++) {
-        data = c_as<Data>(env->get_object(iter->first));
-        d = (struct RData*)iter->second;
+        Handle* handle = iter->first;
+        data = c_as<Data>(handle->object());
 
-        data->mark(env->state(), d->dmark);
-        data->free(env->state(), d->dfree);
-        data->data(env->state(), d->data);
+        if(handle->is_rdata()) {
+          d = handle->as_rdata(env);
 
-        if(release_memory) delete d;
+          data->mark(env->state(), d->dmark);
+          data->free(env->state(), d->dfree);
+          data->data(env->state(), d->data);
+
+          if(release_memory) handle->free_data();
+        }
       }
+    }
+
+    RData* Handle::as_rdata(NativeMethodEnvironment* env) {
+      if(type_ != cRData) {
+        Data* data = c_as<Data>(object());
+
+        RData* d = new RData;
+        d->dmark = data->mark();
+        d->dfree = data->free();
+        d->data = data->data();
+
+        type_ = cRData;
+        as_.rdata = d;
+      }
+
+      return as_.rdata;
     }
   }
 }
@@ -34,22 +67,8 @@ extern "C" {
   struct RData* capi_rdata_struct(VALUE data_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    CApiStructs& data_structs = env->data();
-    CApiStructs::iterator iter = data_structs.find(data_handle);
-    if(iter != data_structs.end()) {
-      return (struct RData*)iter->second;
-    }
-
-    Data* data = c_as<Data>(env->get_object(data_handle));
-
-    struct RData* d = new struct RData;
-    d->dmark = data->mark();
-    d->dfree = data->free();
-    d->data = data->data();
-
-    data_structs[data_handle] = d;
-
-    return d;
+    Handle* handle = Handle::from(data_handle);
+    return handle->as_rdata(env);
   }
 
   VALUE rb_data_object_alloc(VALUE klass, void* ptr,

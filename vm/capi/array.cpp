@@ -30,15 +30,13 @@ namespace rubinius {
       }
     }
 
-    Array* capi_get_array(NativeMethodEnvironment* env, VALUE ary_handle) {
+    Array* capi_get_array(NativeMethodEnvironment* env, VALUE val) {
       if(!env) env = NativeMethodEnvironment::get();
 
-      Array* array = c_as<Array>(env->get_object(ary_handle));
-
-      CApiStructs& arrays = env->arrays();
-      CApiStructs::iterator iter = arrays.find(ary_handle);
-      if(iter != arrays.end()) {
-        flush_array(env, array, (struct RArray*)iter->second);
+      Handle* handle = Handle::from(val);
+      Array* array = c_as<Array>(handle->object());
+      if(handle->is_rarray()) {
+        flush_array(env, array, handle->as_rarray(env));
       }
 
       return array;
@@ -47,19 +45,19 @@ namespace rubinius {
     void capi_rarray_flush(NativeMethodEnvironment* env,
         CApiStructs& arrays, bool release_memory) {
       Array* array;
-      struct RArray* ary = 0;
 
       for(CApiStructs::iterator iter = arrays.begin();
           iter != arrays.end();
           iter++) {
-        array = c_as<Array>(env->get_object(iter->first));
-        ary = (struct RArray*)iter->second;
+        Handle* handle = iter->first;
+        array = c_as<Array>(handle->object());
 
-        flush_array(env, array, ary);
+        if(handle->is_rarray()) {
+          flush_array(env, array, handle->as_rarray(env));
+        }
 
         if(release_memory) {
-          delete[] ary->dmwmb;
-          delete ary;
+          handle->free_data();
         }
       }
     }
@@ -82,11 +80,10 @@ namespace rubinius {
     void capi_update_array(NativeMethodEnvironment* env, VALUE ary_handle) {
       if(!env) env = NativeMethodEnvironment::get();
 
-      CApiStructs& arrays = env->arrays();
-      CApiStructs::iterator iter = arrays.find(ary_handle);
-      if(iter != arrays.end()) {
-        Array* array = c_as<Array>(env->get_object(ary_handle));
-        update_array(env, array, (struct RArray*)iter->second);
+      Handle* handle = Handle::from(ary_handle);
+      if(handle->is_rarray()) {
+        Array* array = c_as<Array>(handle->object());
+        update_array(env, array, handle->as_rarray(env));
       }
     }
 
@@ -94,39 +91,39 @@ namespace rubinius {
       for(CApiStructs::iterator iter = arrays.begin();
           iter != arrays.end();
           iter++) {
-        Array* array = c_as<Array>(env->get_object(iter->first));
-        update_array(env, array, (struct RArray*)iter->second);
+        Array* array = c_as<Array>(env->get_object(iter->first->as_value()));
+        update_array(env, array, iter->first->as_rarray(env));
       }
+    }
+
+    RArray* Handle::as_rarray(NativeMethodEnvironment* env) {
+      if(type_ != cRArray) {
+        Array* array = c_as<Array>(object());
+        size_t size = array->size();
+
+        RArray* ary = new RArray;
+        VALUE* ptr = new VALUE[size];
+        for(size_t i = 0; i < size; i++) {
+          ptr[i] = env->get_handle(array->get(env->state(), i));
+        }
+
+        ary->dmwmb = ary->ptr = ptr;
+        ary->aux.capa = ary->len = size;
+        ary->aux.shared = Qfalse;
+
+        type_ = cRArray;
+        as_.rarray = ary;
+      }
+
+      return as_.rarray;
     }
   }
 }
 
 extern "C" {
-  struct RArray* capi_rarray_struct(VALUE ary_handle) {
+  struct RArray* capi_rarray_struct(VALUE val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    CApiStructs& arrays = env->arrays();
-    CApiStructs::iterator iter = arrays.find(ary_handle);
-    if(iter != arrays.end()) {
-      return (struct RArray*)iter->second;
-    }
-
-    Array* array = c_as<Array>(env->get_object(ary_handle));
-    size_t size = array->size();
-
-    struct RArray* ary = new struct RArray;
-    VALUE* ptr = new VALUE[size];
-    for(size_t i = 0; i < size; i++) {
-      ptr[i] = env->get_handle(array->get(env->state(), i));
-    }
-
-    ary->dmwmb = ary->ptr = ptr;
-    ary->aux.capa = ary->len = size;
-    ary->aux.shared = Qfalse;
-
-    arrays[ary_handle] = ary;
-
-    return ary;
+    return Handle::from(val)->as_rarray(env);
   }
 
   VALUE rb_Array(VALUE obj_handle) {

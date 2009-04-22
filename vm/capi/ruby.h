@@ -121,6 +121,10 @@ void* XCALLOC(size_t items, size_t bytes);
  *
  *  In rbx, this is a Handle.
  */
+#ifdef VALUE
+#undef VALUE
+#endif
+
 #define VALUE intptr_t
 
 /**
@@ -515,9 +519,9 @@ struct RData {
 /** Rubinius' SafeStringValue is the same as StringValue. */
 #define SafeStringValue   StringValue
 
-#define REFERENCE_TAG         0xa
-#define REFERENCE_MASK        0xf
-#define REFERENCE_P(x)        (((VALUE)(x) & REFERENCE_MASK) == REFERENCE_TAG)
+#define REFERENCE_TAG         0x0
+#define REFERENCE_MASK        0x3
+#define REFERENCE_P(x)        ({ VALUE __v = (VALUE)x; __v && (__v & REFERENCE_MASK) == REFERENCE_TAG; })
 #define IMMEDIATE_P(x)        (!REFERENCE_P(x))
 
 /** Return true if expression is an immediate, Qfalse or Qnil. */

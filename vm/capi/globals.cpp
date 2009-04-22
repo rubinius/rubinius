@@ -8,22 +8,15 @@ using namespace rubinius::capi;
 
 extern "C" {
   void rb_free_global(VALUE global_handle) {
-    /* Failing silently is OK by MRI. */
-    if(global_handle < 0) {
-      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-      env->delete_global(global_handle);
-    }
+    capi::Handle* handle = capi::Handle::from(global_handle);
+    handle->deref();
   }
 
-  /** @todo   Check logic. This alters the VALUE to be a global handler. --rue */
+  /** @todo This impl is wrong. address itself needs to be registered and
+   *        deref'd at GC time to mark the object. */
   void rb_global_variable(VALUE* address) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Object* object = env->get_object(*address);
-
-    if(REFERENCE_P(object)) {
-      *address = env->get_handle_global(object);
-    }
+    capi::Handle* handle = capi::Handle::from(*address);
+    handle->ref();
   }
 
   VALUE rb_gv_get(const char* name) {

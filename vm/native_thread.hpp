@@ -13,7 +13,7 @@ namespace rubinius {
     VM* vm_;
 
   public:
-    NativeThread(VM*);
+    NativeThread(VM*, size_t stack_size = 0);
     void perform();
 
     static void block_all_signals() {

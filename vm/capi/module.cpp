@@ -79,7 +79,7 @@ extern "C" {
     Module* module = rubinius::Helpers::open_module(env->state(),
         env->current_call_frame(), parent, constant);
 
-    return env->get_handle_global(module);
+    return env->get_handle(module);
   }
 
   void rb_include_module(VALUE includer_handle, VALUE includee_handle) {

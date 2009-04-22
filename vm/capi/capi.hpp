@@ -80,14 +80,14 @@ namespace rubinius {
 #define CAPI_NIL_P(v)             ((VALUE)(v) == cCApiHandleQnil)
 #define CAPI_UNDEF_P(v)           ((VALUE)(v) == cCApiHandleQundef)
 
-#define CAPI_REFERENCE_TAG        0x0a
-#define CAPI_REFERENCE_MASK       0x0f
+#define CAPI_REFERENCE_TAG        0x00
+#define CAPI_REFERENCE_MASK       0x03
 #define CAPI_HANDLE_MASK          0x1f
 #define CAPI_GLOBAL_HANDLE_TAG    0x0a
 #define CAPI_LOCAL_HANDLE_TAG     0x1a
 #define CAPI_REFERENCE_SHIFT      5
 
-#define CAPI_REFERENCE_P(v)       (((VALUE)(v) & CAPI_REFERENCE_MASK) == CAPI_REFERENCE_TAG)
+#define CAPI_REFERENCE_P(v)       ({ VALUE __v = (VALUE)(v); __v && (__v & CAPI_REFERENCE_MASK) == CAPI_REFERENCE_TAG; })
 #define CAPI_GLOBAL_HANDLE_P(v)   (((VALUE)(v) & CAPI_HANDLE_MASK) == CAPI_GLOBAL_HANDLE_TAG)
 #define CAPI_LOCAL_HANDLE_P(v)    (((VALUE)(v) & CAPI_HANDLE_MASK) == CAPI_LOCAL_HANDLE_TAG)
 
@@ -143,6 +143,9 @@ namespace rubinius {
 
     /** Update the RSTRING cache if one exists for this handle. */
     void capi_update_string(NativeMethodEnvironment* env, VALUE str_handle);
+
+    /** Flush data from an RData back into the Data* */
+    void capi_rdata_flush_handle(NativeMethodEnvironment* env, Handle* handle);
 
     /** Converts a native type (int, uint, long) to a suitable Integer. */
     template<typename NativeType>

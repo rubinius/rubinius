@@ -24,6 +24,8 @@
 
 #include "native_thread.hpp"
 
+#include "capi/handle.hpp"
+
 #include <iostream>
 #include <signal.h>
 
@@ -37,12 +39,25 @@ namespace rubinius {
 
   int VM::cStackDepthMax = 655300;
 
+  SharedState::SharedState(VMManager& manager, int id)
+    : manager_(manager)
+    , initialized_(false)
+    , id_(id)
+    , global_handles_(new capi::Handles)
+    , profiling_(false)
+    , profiler_collection_(0)
+    , om(0)
+    , global_cache(0)
+    , user_config(0)
+  {}
+
   SharedState::~SharedState() {
     if(!initialized_) return;
 
     delete om;
     delete global_cache;
     delete user_config;
+    delete global_handles_;
 
 #ifdef ENABLE_LLVM
     if(!reuse_llvm) llvm_cleanup();

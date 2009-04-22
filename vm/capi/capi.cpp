@@ -24,7 +24,7 @@ namespace rubinius {
   namespace capi {
 
     typedef std::vector<std::string> CApiConstantNameMap;
-    typedef std::tr1::unordered_map<int, Handle> CApiConstantHandleMap;
+    typedef std::tr1::unordered_map<int, VALUE> CApiConstantHandleMap;
 
     /**
      * This looks like a complicated scheme but there is a reason for
@@ -99,7 +99,7 @@ namespace rubinius {
 
       if(type < 0 || type >= cCApiMaxConstant) {
         NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-        rb_raise(env->get_handle_global(env->state()->globals.exception.get()),
+        rb_raise(env->get_handle(env->state()->globals.exception.get()),
               "C-API: invalid constant index");
       }
 
@@ -184,7 +184,7 @@ extern "C" {
       Object* obj = env->state()->globals.object.get()->get_const(env->state(),
           capi_get_constant_name(type).c_str());
 
-      Handle handle = env->get_handle_global(obj);
+      VALUE handle = env->get_handle(obj);
       map[type] = handle;
       return handle;
     } else {

@@ -10,6 +10,10 @@ namespace rubinius {
   class CallFrame;
   class VariableScope;
 
+  namespace capi {
+    class Handles;
+  }
+
   typedef std::vector<Object*> ObjectArray;
 
   class ObjectVisitor {
@@ -22,13 +26,16 @@ namespace rubinius {
     Roots& roots_;
     CallFrameLocationList& call_frames_;
     VariableRootBuffers& variable_buffers_;
+    capi::Handles* handles_;
 
   public:
     GCData(STATE);
-    GCData(Roots& r, CallFrameLocationList& l, VariableRootBuffers& b)
+    GCData(Roots& r, CallFrameLocationList& l, VariableRootBuffers& b,
+           capi::Handles* handles = NULL)
       : roots_(r)
       , call_frames_(l)
       , variable_buffers_(b)
+      , handles_(handles)
     {}
 
     Roots& roots() {
@@ -41,6 +48,10 @@ namespace rubinius {
 
     VariableRootBuffers& variable_buffers() {
       return variable_buffers_;
+    }
+
+    capi::Handles* handles() {
+      return handles_;
     }
   };
 

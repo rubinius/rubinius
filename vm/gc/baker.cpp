@@ -13,6 +13,8 @@
 
 #include "gc/gc.hpp"
 
+#include "capi/handle.hpp"
+
 namespace rubinius {
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes) :
     GarbageCollector(om),
@@ -123,6 +125,14 @@ namespace rubinius {
       if(tmp->reference_p() && tmp->young_object_p()) {
         i->set(saw_object(tmp));
       }
+    }
+
+    for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
+      if(!i->weak_p() && i->object()->young_object_p()) {
+        i->set_object(saw_object(i->object()));
+      }
+
+      assert(i->object()->type_id() != InvalidType);
     }
 
     for(VariableRootBuffers::Iterator i(data.variable_buffers());

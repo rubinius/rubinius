@@ -10,6 +10,8 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 
+#include "capi/handle.hpp"
+
 namespace rubinius {
 
   Object* object_watch = 0;
@@ -118,6 +120,7 @@ namespace rubinius {
   void ObjectMemory::collect_young(GCData& data) {
     static int collect_times = 0;
     young.collect(data);
+    prune_handles(true);
     collect_times++;
   }
 
@@ -132,12 +135,55 @@ namespace rubinius {
     mark_sweep_.after_marked();
 
     immix_.clean_weakrefs();
+    prune_handles(false);
+
     immix_.unmark_all(data);
 
 #ifdef RBX_GC_STATS
     stats::GCStats::get()->collect_mature.stop();
     stats::GCStats::get()->objects_seen.stop();
 #endif
+  }
+
+  void ObjectMemory::prune_handles(bool check_forwards) {
+    capi::Handles* handles = state->shared.global_handles();
+    capi::Handle* handle = handles->front();
+
+    int total = 0;
+    int count = 0;
+
+    while(handle) {
+      Object* obj = handle->object();
+      total++;
+
+      // Strong references will already have been updated.
+      if(!handle->weak_p()) {
+        if(check_forwards) assert(!obj->forwarded_p());
+        handle = static_cast<capi::Handle*>(handle->next());
+
+      // A weakref pointing to a dead object
+      } else if(check_forwards ?
+                  (obj->young_object_p() && !obj->forwarded_p()) :
+                   !obj->marked_p()) {
+        count++;
+
+        capi::Handle* tmp = handle;
+        handle = static_cast<capi::Handle*>(tmp->next());
+
+        handles->remove(tmp);
+        delete tmp;
+
+      // A weakref pointing to a live object
+      } else {
+        if(check_forwards && obj->young_object_p()) {
+          assert(obj->forwarded_p());
+          handle->set_object(obj->forward());
+        }
+        handle = static_cast<capi::Handle*>(handle->next());
+      }
+    }
+
+    // std::cout << "Pruned " << count << " handles, " << total << "/" << handles->size() << " total.\n";
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {

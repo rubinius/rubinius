@@ -18,7 +18,7 @@ extern "C" {
   VALUE rb_class_of(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Class* class_object = env->get_object(object_handle)->class_object(env->state());
-    return env->get_handle_global(class_object);
+    return env->get_handle(class_object);
   }
 
   VALUE rb_class_name(VALUE class_handle) {
@@ -87,7 +87,7 @@ extern "C" {
     Class* cls = rubinius::Helpers::open_class(env->state(),
         env->current_call_frame(), parent, superclass, constant, &created);
 
-    return env->get_handle_global(cls);
+    return env->get_handle(cls);
   }
 
   /** @todo   Should this be a global handle? Surely not.. --rue */
