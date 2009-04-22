@@ -30,6 +30,7 @@ namespace rubinius {
 
     Object* unmarshal();
 
+  private:
     unsigned long get_varint(bool* done);
     unsigned long get_varint();
     Object* get_positive_varint();
@@ -43,6 +44,7 @@ namespace rubinius {
     InstructionSequence* get_iseq();
     CompiledMethod* get_cmethod();
 
+  public:
     class Error {
       const char* message_;
 
