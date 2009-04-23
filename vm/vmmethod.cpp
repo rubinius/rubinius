@@ -695,7 +695,7 @@ namespace rubinius {
           // If we're trying to return to here, we're done!
           if(th->destination_scope() == call_frame->scope) {
             Object* val = th->raise_value();
-            th->clear_exception();
+            th->clear_exception(true);
             return val;
           } else {
             // Give control of this exception to the caller.
@@ -706,8 +706,9 @@ namespace rubinius {
           // If we're trying to break to here, we're done!
           if(th->destination_scope() == call_frame->scope) {
             call_frame->push(th->raise_value());
-            th->clear_exception();
-            /** @todo Not returning here--is this right? --rue */
+            th->clear_exception(true);
+            // Don't return here, because we want to loop back to the top
+            // and keep running this method.
           } else {
             // Give control of this exception to the caller.
             return NULL;
@@ -718,6 +719,7 @@ namespace rubinius {
         return NULL;
       default:
         std::cout << "bug!\n";
+        call_frame->print_backtrace(state);
         abort();
       } // switch
     } // for(;;)

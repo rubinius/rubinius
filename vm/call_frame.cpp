@@ -65,6 +65,8 @@ namespace rubinius {
         std::cout << "<unknown>";
       }
 
+      std::cout << " (+" << cf->ip << ")";
+
       std::cout << std::endl;
       cf = cf->previous;
     }

@@ -64,7 +64,7 @@ namespace rubinius {
         // TODO investigate if we should check the destination_scope here.
         // It doesn't appear that MRI checks anything similar.
         ret = state->thread_state()->raise_value();
-        state->thread_state()->clear_exception();
+        state->thread_state()->clear_exception(true);
       }
     }
 
@@ -122,7 +122,7 @@ namespace rubinius {
         // TODO investigate if we should check the destination_scope here.
         // It doesn't appear that MRI checks anything similar.
         ret = state->thread_state()->raise_value();
-        state->thread_state()->clear_exception();
+        state->thread_state()->clear_exception(true);
       }
     }
 
@@ -156,7 +156,7 @@ namespace rubinius {
         // TODO investigate if we should check the destination_scope here.
         // It doesn't appear that MRI checks anything similar.
         ret = state->thread_state()->raise_value();
-        state->thread_state()->clear_exception();
+        state->thread_state()->clear_exception(true);
       }
     }
 

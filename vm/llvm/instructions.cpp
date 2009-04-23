@@ -66,7 +66,7 @@ using namespace rubinius;
 extern "C" {
   Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t args);
 
-#define HANDLE_EXCEPTION(val) if(val == NULL) return NULL
+#define HANDLE_EXCEPTION(val) if(val == NULL) return NULL;
 #define RUN_EXCEPTION() return NULL
 
 #define RETURN(val) return val

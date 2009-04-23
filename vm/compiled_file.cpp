@@ -39,7 +39,7 @@ namespace rubinius {
   bool CompiledFile::execute(STATE) {
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
-    state->thread_state()->clear_exception();
+    state->thread_state()->clear_exception(true);
 
     CallFrame cf;
     cf.previous = NULL;

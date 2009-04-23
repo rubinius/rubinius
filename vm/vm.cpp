@@ -24,6 +24,7 @@
 #include "vm_manager.hpp"
 
 #include "native_thread.hpp"
+#include "call_frame.hpp"
 
 #include "capi/handle.hpp"
 
@@ -493,6 +494,14 @@ namespace rubinius {
   void VM::register_raise(Exception* exc) {
     thread_state_.raise_exception(exc);
     check_local_interrupts = true;
+  }
+
+  void VM::check_exception(CallFrame* call_frame) {
+    if(thread_state()->raise_reason() == cNone) {
+      std::cout << "Exception propogating, but none registered!\n";
+      call_frame->print_backtrace(this);
+      rubinius::abort();
+    }
   }
 
   profiler::Profiler* VM::profiler() {

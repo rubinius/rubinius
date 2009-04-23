@@ -311,6 +311,8 @@ namespace rubinius {
       return true;
     }
 
+    void check_exception(CallFrame* call_frame);
+
     /* Prototypes */
     VM(SharedState& shared, int id);
 

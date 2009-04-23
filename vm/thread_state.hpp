@@ -3,6 +3,7 @@
 
 #include "raise_reason.hpp"
 #include "gc/root.hpp"
+#include <iostream>
 
 namespace rubinius {
   class Object;
@@ -34,7 +35,11 @@ namespace rubinius {
       return destination_scope_.get();
     }
 
-    void clear_exception() {
+    void clear_exception(bool all = false) {
+      if(raise_reason_ == cNone) return;
+      if(!all && raise_reason_ != cException) {
+        std::cout << "WARNING: clearing non exception raise reason!\n";
+      }
       raise_value_.set(Qnil);
       raise_reason_ = cNone;
       destination_scope_.set(Qnil);

@@ -591,7 +591,10 @@ class Instructions
 
   def clear_exception
     <<-CODE
-    state->thread_state()->clear_exception();
+    // Don't allow this code to clear non-exception raises
+    if(state->thread_state()->raise_reason() == cException) {
+      state->thread_state()->clear_exception();
+    }
     CODE
   end
 
@@ -2038,7 +2041,9 @@ class Instructions
     <<-CODE
       Object* top = stack_pop();
       if(top->nil_p()) {
-        state->thread_state()->clear_exception();
+        if(state->thread_state()->raise_reason() == cException) {
+          state->thread_state()->clear_exception();
+        }
       } else {
         state->thread_state()->set_exception(top);
       }
@@ -4112,6 +4117,7 @@ class Instructions
 
   def reraise
     <<-CODE
+    assert(state->thread_state()->raise_reason() != cNone);
     RUN_EXCEPTION();
     CODE
   end
