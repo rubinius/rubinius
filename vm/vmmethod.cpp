@@ -630,7 +630,7 @@ namespace rubinius {
     continue_to_run:
       if(unlikely(++tick > 0xff)) {
         void* stack_end = alloca(0);
-        if(!state->check_stack(stack_end)) {
+        if(!state->check_stack(call_frame, stack_end)) {
           return NULL;
         }
         tick = 0;

@@ -15,6 +15,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 #include "builtin/taskprobe.hpp"
+#include "builtin/system.hpp"
 
 #include "instruments/profiler.hpp"
 
@@ -303,7 +304,8 @@ namespace rubinius {
     }
   }
 
-  void VM::raise_stack_error() {
+  void VM::raise_stack_error(CallFrame* call_frame) {
+    G(stack_error)->locations(this, System::vm_backtrace(this, Fixnum::from(0), call_frame));
     thread_state()->raise_exception(G(stack_error));
   }
 

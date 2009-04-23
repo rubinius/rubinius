@@ -300,11 +300,11 @@ namespace rubinius {
       stack_start_ = s;
     }
 
-    bool check_stack(void* end) {
+    bool check_stack(CallFrame* call_frame, void* end) {
       // @TODO assumes stack growth direction
       if(reinterpret_cast<intptr_t>(stack_start_) -
           reinterpret_cast<intptr_t>(end) > cStackDepthMax) {
-        raise_stack_error();
+        raise_stack_error(call_frame);
         return false;
       }
 
@@ -340,7 +340,7 @@ namespace rubinius {
     void raise_typeerror_safely(TypeError* exc);
     void raise_assertion_safely(Assertion* exc);
 
-    void raise_stack_error();
+    void raise_stack_error(CallFrame* call_frame);
     void init_stack_size();
 
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
