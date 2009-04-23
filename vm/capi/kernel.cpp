@@ -93,6 +93,10 @@ extern "C" {
     rb_raise(rb_eFatal, msg);
   }
 
+  /* rb_warn and rb_warning don't factor out creating the string for the
+   * message because it is just as much work preparing the va_list to
+   * pass to another variadic function.
+   */
   void rb_warn(const char *fmt, ...) {
     va_list args;
     char msg[RB_EXC_BUFSIZE];
@@ -106,7 +110,24 @@ extern "C" {
     rb_funcall(rb_mKernel, rb_intern("warn"), 1, env->get_handle(string));
   }
 
+  void rb_warning(const char* fmt, ...) {
+    va_list args;
+    char msg[RB_EXC_BUFSIZE];
+
+    va_start(args, fmt);
+    vsnprintf(msg, RB_EXC_BUFSIZE, fmt, args);
+    va_end(args);
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    String* string = String::create(env->state(), msg);
+    rb_funcall(rb_mKernel, rb_intern("warning"), 1, env->get_handle(string));
+  }
+
   VALUE rb_require(const char* name) {
     return rb_funcall(rb_mKernel, rb_intern("require"), 1, rb_str_new2(name));
+  }
+
+  void rb_sys_fail(const char* mesg) {
+    rb_funcall(rb_mErrno, rb_intern("handle"), 1, rb_str_new2(mesg));
   }
 }

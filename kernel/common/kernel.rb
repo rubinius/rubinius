@@ -90,6 +90,11 @@ module Kernel
   end
   module_function :warn
 
+  def warning(message)
+    $stderr.puts message if $VERBOSE
+  end
+  module_function :warning
+
   def exit(code=0)
     if code.equal? true
       code = 0

@@ -7,9 +7,9 @@
 #include "marshal.hpp"
 
 #include "object_utils.hpp"
-#include "strtod.hpp"
 
 #include "tommath.h"
+#include "gdtoa.h"
 
 #include "builtin/sendsite.hpp"
 #include "builtin/array.hpp"
@@ -175,7 +175,7 @@ namespace rubinius {
       double x;
       long   e;
 
-      x = strtod(data, NULL);
+      x = ::ruby_strtod(data, NULL);
       e = strtol(data+FLOAT_EXP_OFFSET, NULL, 10);
 
       // This is necessary because exp2(1024) yields inf

@@ -42,4 +42,14 @@ describe "C-API Kernel function" do
       $stderr.should =~ /This is a warning/
     end
   end
+
+  describe "rb_sys_fail" do
+    it "raises an exception from the value of errno" do
+      # If errno = 1 is no EPERM on a platform, we can change the
+      # expected exception class to be more generic
+      lambda do
+        @s.rb_sys_fail("additional info")
+      end.should raise_error(Errno::EPERM, /additional info/)
+    end
+  end
 end

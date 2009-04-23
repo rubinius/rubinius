@@ -6,6 +6,8 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
+#include "gdtoa.h"
+
 using namespace rubinius;
 using namespace rubinius::capi;
 
@@ -112,5 +114,75 @@ extern "C" {
     // @todo should coerce other types
 
     return 0.0;
+  }
+
+  // Imported from MRI
+  double rb_cstr_to_dbl(const char *p, int badcheck) {
+
+    const char *q;
+    char *end;
+    double d;
+    const char *ellipsis = "";
+    int w;
+#define OutOfRange() (((w = end - p) > 20) ? (w = 20, ellipsis = "...") : (ellipsis = ""))
+
+    if (!p) return 0.0;
+    q = p;
+    while (ISSPACE(*p)) p++;
+    d = ::ruby_strtod(p, &end);
+    if (errno == ERANGE) {
+      OutOfRange();
+      rb_warning("Float %.*s%s out of range", w, p, ellipsis);
+      errno = 0;
+    }
+    if (p == end) {
+      if (badcheck) {
+        bad:
+          rb_invalid_str(q, "Float()");
+      }
+      return d;
+    }
+    if (*end) {
+      char buf[DBL_DIG * 4 + 10];
+      char *n = buf;
+      char *e = buf + sizeof(buf) - 1;
+      char prev = 0;
+
+      while (p < end && n < e) prev = *n++ = *p++;
+      while (*p) {
+        if (*p == '_') {
+          /* remove underscores between digits */
+          if (badcheck) {
+            if (n == buf || !ISDIGIT(prev)) goto bad;
+            ++p;
+            if (!ISDIGIT(*p)) goto bad;
+          } else {
+            while (*++p == '_');
+            continue;
+          }
+        }
+        prev = *p++;
+        if (n < e) *n++ = prev;
+      }
+      *n = '\0';
+      p = buf;
+      d = ::ruby_strtod(p, &end);
+      if (errno == ERANGE) {
+        OutOfRange();
+        rb_warning("Float %.*s%s out of range", w, p, ellipsis);
+        errno = 0;
+      }
+      if (badcheck) {
+        if (!end || p == end) goto bad;
+        while (*end && ISSPACE(*end)) end++;
+        if (*end) goto bad;
+      }
+    }
+    if (errno == ERANGE) {
+      errno = 0;
+      OutOfRange();
+      rb_raise(rb_eArgError, "Float %.*s%s out of range", w, q, ellipsis);
+    }
+    return d;
   }
 }

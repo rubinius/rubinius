@@ -1,8 +1,6 @@
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 
-#include "builtin/float.hpp"
-
 using namespace rubinius;
 using namespace rubinius::capi;
 
@@ -119,12 +117,19 @@ extern "C" {
     return rb_funcall(rb_path2class("Marshal"), rb_intern("load"), 1, string);
   }
 
-  VALUE rb_float_new(double val) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    return env->get_handle(Float::create(env->state(), val));
-  }
-
   int rb_special_const_p(VALUE obj) {
     return SPECIAL_CONST_P(obj) ? Qtrue : Qfalse;
+  }
+
+  void rb_invalid_str(const char *str, const char *type) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* string = String::create(env->state(), str);
+
+    // MRI does this, probably to escape non-printing chars in the string
+    VALUE s = rb_funcall(env->get_handle(string), rb_intern("inspect"), 0);
+    string = c_as<String>(env->get_object(s));
+
+    rb_raise(rb_eArgError, "invalid value for %s: %s", type, string->c_str());
   }
 }

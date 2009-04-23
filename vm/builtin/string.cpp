@@ -13,8 +13,8 @@
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
 #include "primitives.hpp"
-#include "strtod.hpp"
 
+#include "gdtoa.h"
 #include "bstrlib.h"
 
 #include <unistd.h>
@@ -283,7 +283,7 @@ namespace rubinius {
     }
     *n = 0;
 
-    value = strtod(ba, &rest);
+    value = ::ruby_strtod(ba, &rest);
     free(ba);
 
     return value;

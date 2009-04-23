@@ -762,6 +762,11 @@ double rb_num2dbl(VALUE);
   /** Retrieve constant from given module. */
   VALUE   rb_const_get(VALUE module_handle, ID name);
 
+  /** Parses a string into a double value. If badcheck is true, raises an
+   * exception if the string contains non-digit or '.' characters.
+   */
+  double rb_cstr_to_dbl(const char *p, int badcheck);
+
   /** Return Integer obtained from String#to_i using given base. */
   VALUE   rb_cstr2inum(const char* string, int base);
 
@@ -1116,6 +1121,9 @@ double rb_num2dbl(VALUE);
    */
   char*   rb_string_value_cstr(VALUE* object_variable);
 
+  /** Raises an exception from the value of errno. */
+  void rb_sys_fail(const char* mesg);
+
   /** Create a String from the C string. */
   VALUE   rb_tainted_str_new2(const char* string);
 
@@ -1149,7 +1157,14 @@ double rb_num2dbl(VALUE);
 
   void    rb_fatal(const char *fmt, ...);
 
+  /** Raises an ArgumentError exception. */
+  void rb_invalid_str(const char *str, const char *type);
+
+  /** Print a warning if $VERBOSE is not nil. */
   void    rb_warn(const char *fmt, ...);
+
+  /** Print a warning if $VERBOSE is true. */
+  void    rb_warning(const char *fmt, ...);
 
 #ifdef __cplusplus
 }
