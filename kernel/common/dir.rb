@@ -10,12 +10,25 @@ class Dir
     glob(pattern, 0)
   end
 
-  def self.glob(pattern, flags = 0)
+  def self.old_glob(pattern, flags = 0)
     matches = []
 
     glob_brace_expand pattern.to_str, flags & ~GLOB_VERBOSE, matches
 
     matches
+  end
+
+  def self.glob(pattern, flags=0)
+    return [] if pattern.empty?
+
+    # The new glob impl doesn't handle flags or curly expansion, so
+    # use the old glob if those are used.
+    if flags != 0 or pattern.include? "{"
+      old_glob(pattern, flags)
+    else
+      node = Dir::Glob.compile pattern
+      Dir::Glob.run node
+    end
   end
 
   def self.glob0(pattern, flags, matches)
@@ -426,7 +439,12 @@ class Dir
   end
 
   def initialize(path)
-    __open__ path
+    begin
+      __open__ path
+    rescue SystemCallError => e
+      e.message << " - '#{path}'"
+      raise e
+    end
 
     @path = path
   end

@@ -50,6 +50,8 @@ module Platform::POSIX
   attach_function :mkdir,     [:string, :short], :int
   attach_function :rmdir,     [:string], :int
 
+  attach_function :fnmatch,   [:string, :string, :int], :int
+
   # File/IO
   attach_function :fcntl,    [:int, :int, :int], :int
 
