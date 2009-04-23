@@ -15,10 +15,16 @@ namespace rubinius {
     Location* loc = state->new_object<Location>(G(location));
     loc->method_module(state, call_frame->module());
     loc->receiver(state, call_frame->self());
-    loc->name(state, call_frame->name);
     loc->method(state, call_frame->cm);
-    loc->is_block(state, call_frame->is_block ? Qtrue : Qfalse);
     loc->ip(state, Fixnum::from(call_frame->ip - 1));
+
+    if(call_frame->is_block) {
+      loc->name(state, call_frame->top_scope->method()->name());
+      loc->is_block(state, Qtrue);
+    } else {
+      loc->name(state, call_frame->name);
+      loc->is_block(state, Qfalse);
+    }
 
     return loc;
   }
