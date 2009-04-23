@@ -18,7 +18,7 @@ class Breakpoint
   # Define a single encoder instance to be used for all breakpoints
   # Returns the shared class InstructionSequence::Encoder instance.
   def Breakpoint.encoder
-    @encoder ||= InstructionSequence::Encoder.new
+    @encoder ||= Rubinius::InstructionSequence::Encoder.new
   end
 
   # Initializes the breakpoint
@@ -575,7 +575,7 @@ class BreakpointTracker
     @global_breakpoints = Hash.new {|h,k| h[k] = {}}
     # Context breakpoints are tracked by thread
     @thread_breakpoints = Hash.new {|h,k| h[k] = []}
-    @debug_channel = Channel.new
+    @debug_channel = Rubinius::Channel.new
     @callback = callback
   end
 

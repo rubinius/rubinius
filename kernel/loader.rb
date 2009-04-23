@@ -1,6 +1,6 @@
 # Contained first is the system startup code.
 begin
-  ENV = EnvironmentVariables.new
+  ENV = Rubinius::EnvironmentVariables.new
 
   String.ruby_parser if ENV['RUBY_PARSER']
   String.sydney_parser if ENV['SYDNEY'] or ENV['SYDPARSE']
@@ -147,17 +147,17 @@ begin
       end
       $DEBUG_SERVER.listen
       script_debug_requested = true
-    when '-P'
-      require 'profile'
-    when /P\w/
-      require 'profile'
-      Profiler__.options :sort => arg[2..-1].to_sym
     when '-Ps'
       count = (ARGV.first =~ /^\d+$/) ? ARGV.shift : '30'
       show_selectors = count.to_i
     when '-Pss'
       count = (ARGV.first =~ /^\d+$/) ? ARGV.shift : '30'
       show_sendsites = count.to_i
+    when '-P'
+      require 'profile'
+    when /P\w/
+      require 'profile'
+      Profiler__.options :sort => arg[2..-1].to_sym
     when '-gc'
       stats = Rubinius::Stats::GC.new
       at_exit { stats.show }

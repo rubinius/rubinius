@@ -90,7 +90,7 @@ with_profiler do
     end
 
     it "profiles primitives" do
-      tuple = Tuple[1, 2, 3]
+      tuple = Rubinius::Tuple[1, 2, 3]
       data = @profiler.profile false do
         10.times { tuple.put 2, 4 }
       end

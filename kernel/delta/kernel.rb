@@ -53,21 +53,21 @@ module Kernel
   # Add in $! in as a hook, to just do $!. This is for accesses to $!
   # that the compiler can't see.
   get = proc { $! }
-  Globals.set_hook(:$!, get, nil)
+  Rubinius::Globals.set_hook(:$!, get, nil)
 
   # Same as $!, for any accesses we might miss.
   # HACK. I doubt this is correct, because of how it will be called.
   get = proc { Regex.last_match }
-  Globals.set_hook(:$~, get, nil)
+  Rubinius::Globals.set_hook(:$~, get, nil)
 
   get = proc { ARGV }
-  Globals.set_hook(:$*, get, nil)
+  Rubinius::Globals.set_hook(:$*, get, nil)
 
   get = proc { $! ? $!.backtrace : nil }
-  Globals.set_hook(:$@, get, nil)
+  Rubinius::Globals.set_hook(:$@, get, nil)
 
   get = proc { Process.pid }
-  Globals.set_hook(:$$, get, nil)
+  Rubinius::Globals.set_hook(:$$, get, nil)
 
   get = proc { ::STDOUT }
   set = proc do |io, key|
@@ -76,13 +76,13 @@ module Kernel
     end
     ::STDOUT = io
   end
-  Globals.set_hook(:$>, get, set)
-  Globals.set_hook(:$stdout, get, set)
-  Globals.set_hook(:$defout, get, set)
+  Rubinius::Globals.set_hook(:$>, get, set)
+  Rubinius::Globals.set_hook(:$stdout, get, set)
+  Rubinius::Globals.set_hook(:$defout, get, set)
 
   get = proc { ::STDIN }
   set = proc { |io| ::STDIN = io }
-  Globals.set_hook(:$stdin, get, set)
+  Rubinius::Globals.set_hook(:$stdin, get, set)
 
   get = proc { ::STDERR }
   set = proc do |io, key|
@@ -91,7 +91,7 @@ module Kernel
     end
     ::STDERR = io
   end
-  Globals.set_hook(:$stderr, get, set)
+  Rubinius::Globals.set_hook(:$stderr, get, set)
 
   # Implements rb_path2name. Based on code from wycats
   def const_lookup(name)

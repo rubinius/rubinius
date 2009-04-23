@@ -27,7 +27,7 @@
 namespace rubinius {
 
   void Channel::init(STATE) {
-    GO(channel).set(state->new_class("Channel", G(object)));
+    GO(channel).set(state->new_class("Channel", G(object), G(rubinius)));
     G(channel)->set_object_type(state, Channel::type);
   }
 

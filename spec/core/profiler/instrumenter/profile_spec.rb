@@ -19,7 +19,7 @@ with_profiler do
 
     it "returns the profile data" do
       data = @profiler.profile { ProfilerSpecs.work 10 }
-      data.should be_kind_of(LookupTable)
+      data.should be_kind_of(Rubinius::LookupTable)
       data.keys.should include(:method, :methods)
     end
 

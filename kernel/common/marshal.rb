@@ -564,7 +564,7 @@ module Marshal
       names = []
       sup = obj.metaclass.superclass
 
-      while sup and [Module, IncludedModule].include? sup.class do
+      while sup and [Module, Rubinius::IncludedModule].include? sup.class do
         names << sup.name
         sup = sup.superclass
       end

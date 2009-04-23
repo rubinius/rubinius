@@ -54,7 +54,7 @@ class Compiler
 
        return nil if size == 0
 
-       tup = Tuple.new(size)
+       tup = Rubinius::Tuple.new(size)
 
        @names.each do |name|
          var = @locals[name]

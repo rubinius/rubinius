@@ -39,7 +39,7 @@ class Module
       # called inside an eval. Investigate if problems arise. Otherwise
       # remove this comment if all specs are passing
 
-      VariableScope.of_sender.method_visibility = :module
+      Rubinius::VariableScope.of_sender.method_visibility = :module
     else
       mc = self.metaclass
       args.each do |meth|
@@ -64,7 +64,7 @@ class Module
 
       if ancestors.include? mod
         ancestor = superclass_chain.find do |m|
-          m.module == mod if m.kind_of?(IncludedModule)
+          m.module == mod if m.kind_of?(Rubinius::IncludedModule)
         end
         ancestor.module.included_modules.each do |included_mod|
           included_mod.send :append_features, ancestor
@@ -79,7 +79,7 @@ class Module
 
   def private(*args)
     if args.empty?
-      VariableScope.of_sender.method_visibility = :private
+      Rubinius::VariableScope.of_sender.method_visibility = :private
       return
     end
 
@@ -98,16 +98,17 @@ class Module
     hierarchy = other.ancestors
 
     superclass_chain.reverse_each do |ancestor|
-      if ancestor.instance_of? IncludedModule and not hierarchy.include? ancestor.module
-        IncludedModule.new(ancestor.module).attach_to other
+      if ancestor.instance_of? Rubinius::IncludedModule and
+          not hierarchy.include? ancestor.module
+        Rubinius::IncludedModule.new(ancestor.module).attach_to other
       end
     end
 
-    IncludedModule.new(self).attach_to other
+    Rubinius::IncludedModule.new(self).attach_to other
   end
 
   def attr_reader(*names)
-    vis = VariableScope.of_sender.method_visibility
+    vis = Rubinius::VariableScope.of_sender.method_visibility
 
     names.each { |name| Rubinius.add_reader name, self, vis }
 
@@ -115,7 +116,7 @@ class Module
   end
 
   def attr_writer(*names)
-    vis = VariableScope.of_sender.method_visibility
+    vis = Rubinius::VariableScope.of_sender.method_visibility
 
     names.each { |name| Rubinius::add_writer name, self, vis }
 
@@ -123,7 +124,7 @@ class Module
   end
 
   def attr_accessor(*names)
-    vis = VariableScope.of_sender.method_visibility
+    vis = Rubinius::VariableScope.of_sender.method_visibility
 
     names.each do |name|
       Rubinius.add_reader name, self, vis
@@ -134,7 +135,7 @@ class Module
   end
 
   def attr(name,writeable=false)
-    vis = VariableScope.of_sender.method_visibility
+    vis = Rubinius::VariableScope.of_sender.method_visibility
 
     Rubinius.add_reader name, self, vis
     Rubinius.add_writer name, self, vis if writeable

@@ -28,7 +28,7 @@ class Compiler
       total = @iseq.size
 
       while ip < total
-        opcode = InstructionSet[@iseq[ip]]
+        opcode = Rubinius::InstructionSet[@iseq[ip]]
 
         # puts "%3d: %21s %3d %3d" % [ip, opcode.opcode.to_s, current_stack, @max_stack]
 

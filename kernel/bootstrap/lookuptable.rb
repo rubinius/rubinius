@@ -28,124 +28,126 @@
 # String keys are converted to Symbols. LookupTable is NOT intended to be
 # used generally like Hash.
 
-class LookupTable
-  class Bucket
-    attr_reader :key
-    attr_reader :value
-    attr_reader :next
-  end
-
-  class Association
-    attr_reader :key
-    attr_writer :active
-
-    attr_accessor :value
-
-    def active?
-      @active
+module Rubinius
+  class LookupTable
+    class Bucket
+      attr_reader :key
+      attr_reader :value
+      attr_reader :next
     end
 
-    def self.new(name, value)
-      Ruby.primitive :lookuptableassociation_allocate
-      raise PrimitiveFailure, "LookupTable::Association.allocate failed"
+    class Association
+      attr_reader :key
+      attr_writer :active
+
+      attr_accessor :value
+
+      def active?
+        @active
+      end
+
+      def self.new(name, value)
+        Ruby.primitive :lookuptableassociation_allocate
+        raise PrimitiveFailure, "LookupTable::Association.allocate failed"
+      end
+
+      def inspect
+        "#<LookupTable::Association:0x#{object_id.to_s(16)} @key=#{@key.inspect} @value=#{@value.inspect} @valid=#{@active.inspect}>"
+      end
     end
 
-    def inspect
-      "#<LookupTable::Association:0x#{object_id.to_s(16)} @key=#{@key.inspect} @value=#{@value.inspect} @valid=#{@active.inspect}>"
+    attr_reader :values
+    attr_reader :bins
+
+    def size
+      @entries
     end
-  end
 
-  attr_reader :values
-  attr_reader :bins
+    alias_method :length, :size
 
-  def size
-    @entries
-  end
-
-  alias_method :length, :size
-
-  def self.allocate
-    Ruby.primitive :lookuptable_allocate
-    raise PrimitiveFailure, "LookupTable.allocate primitive failed"
-  end
-
-  def initialize(hash=nil)
-    return unless hash
-    hash.each do |k,v|
-      self[k] = v
+    def self.allocate
+      Ruby.primitive :lookuptable_allocate
+      raise PrimitiveFailure, "LookupTable.allocate primitive failed"
     end
-  end
 
-  def duplicate
-    Ruby.primitive :lookuptable_duplicate
-    raise PrimitiveFailure, "LookupTable#duplicate primitive failed"
-  end
-
-  def dup
-    copy = duplicate
-    copy.send :initialize_copy, self
-    copy
-  end
-
-  def fetch(key, return_on_failure)
-    Ruby.primitive :lookuptable_fetch
-    raise PrimitiveFailure, "fetch failed"
-  end
-
-  def key?(key)
-    Ruby.primitive :lookuptable_has_key
-    raise PrimitiveFailure, "LookupTable#key? primitive failed"
-  end
-
-  alias_method :has_key?, :key?
-  alias_method :include?, :key?
-  alias_method :member?,  :key?
-
-  def delete(key)
-    Ruby.primitive :lookuptable_delete
-    raise PrimitiveFailure, "LookupTable#delete primitive failed"
-  end
-
-  def keys
-    Ruby.primitive :lookuptable_keys
-    raise PrimitiveFailure, "LookupTable#keys primitive failed"
-  end
-
-  def values
-    Ruby.primitive :lookuptable_values
-    raise PrimitiveFailure, "LookupTable#keys primitive failed"
-  end
-
-  def entries
-    Ruby.primitive :lookuptable_entries
-    raise PrimitiveFailure, "LookupTable#entries primitive failed"
-  end
-
-  def each
-    raise LocalJumpError, "no block given" unless block_given? or @entries == 0
-
-    ents = entries
-    i = ents.start
-    total = ents.start + ents.total
-    while i < total
-      entry = ents[i]
-      yield [entry.key, entry.value]
-      i += 1
+    def initialize(hash=nil)
+      return unless hash
+      hash.each do |k,v|
+        self[k] = v
+      end
     end
-    self
-  end
 
-  def each_entry
-    raise LocalJumpError, "no block given" unless block_given? or @entries == 0
-
-    ents = entries
-    i = ents.start
-    total = ents.start + ents.total
-    while i < total
-      entry = ents[i]
-      yield entry.key, entry.value
-      i += 1
+    def duplicate
+      Ruby.primitive :lookuptable_duplicate
+      raise PrimitiveFailure, "LookupTable#duplicate primitive failed"
     end
-    self
+
+    def dup
+      copy = duplicate
+      copy.send :initialize_copy, self
+      copy
+    end
+
+    def fetch(key, return_on_failure)
+      Ruby.primitive :lookuptable_fetch
+      raise PrimitiveFailure, "fetch failed"
+    end
+
+    def key?(key)
+      Ruby.primitive :lookuptable_has_key
+      raise PrimitiveFailure, "LookupTable#key? primitive failed"
+    end
+
+    alias_method :has_key?, :key?
+    alias_method :include?, :key?
+    alias_method :member?,  :key?
+
+    def delete(key)
+      Ruby.primitive :lookuptable_delete
+      raise PrimitiveFailure, "LookupTable#delete primitive failed"
+    end
+
+    def keys
+      Ruby.primitive :lookuptable_keys
+      raise PrimitiveFailure, "LookupTable#keys primitive failed"
+    end
+
+    def values
+      Ruby.primitive :lookuptable_values
+      raise PrimitiveFailure, "LookupTable#keys primitive failed"
+    end
+
+    def entries
+      Ruby.primitive :lookuptable_entries
+      raise PrimitiveFailure, "LookupTable#entries primitive failed"
+    end
+
+    def each
+      raise LocalJumpError, "no block given" unless block_given? or @entries == 0
+
+      ents = entries
+      i = ents.start
+      total = ents.start + ents.total
+      while i < total
+        entry = ents[i]
+        yield [entry.key, entry.value]
+        i += 1
+      end
+      self
+    end
+
+    def each_entry
+      raise LocalJumpError, "no block given" unless block_given? or @entries == 0
+
+      ents = entries
+      i = ents.start
+      total = ents.start + ents.total
+      while i < total
+        entry = ents[i]
+        yield entry.key, entry.value
+        i += 1
+      end
+      self
+    end
   end
 end

@@ -231,13 +231,13 @@ class Compiler::Node
 
   class GVar
     def execute(e)
-      ::Globals[@name]
+      ::Rubinius::Globals[@name]
     end
   end
 
   class GVarAssign
     def execute(e)
-      ::Globals[@name] = @value.execute(e)
+      ::Rubinius::Globals[@name] = @value.execute(e)
     end
   end
 

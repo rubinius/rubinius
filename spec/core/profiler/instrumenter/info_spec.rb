@@ -13,7 +13,7 @@ with_profiler do
       @profiler.stop
 
       data = @profiler.info
-      data.should be_kind_of(LookupTable)
+      data.should be_kind_of(Rubinius::LookupTable)
       data.keys.should include(:method, :methods)
     end
   end

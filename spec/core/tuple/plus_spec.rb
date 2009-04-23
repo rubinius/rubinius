@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Tuple#+" do
+describe "Rubinius::Tuple#+" do
   it "returns the concatenation of two tuples" do
-    t1 = Tuple[:a, 'three', 4]
-    t2 = Tuple[:b, 'two', 5, 6]
+    t1 = Rubinius::Tuple[:a, 'three', 4]
+    t2 = Rubinius::Tuple[:b, 'two', 5, 6]
     t = t1 + t2
     t[0].should == :a
     t[1].should == 'three'

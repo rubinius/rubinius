@@ -50,20 +50,20 @@ describe "CompiledMethod::Instruction" do
   end
 
   it "#stack_consumed returns a count of the stack operands consumed by the instruction" do
-    inst = CompiledMethod::Instruction.new([InstructionSet[:noop]], @cm, 0, 0)
+    inst = CompiledMethod::Instruction.new([Rubinius::InstructionSet[:noop]], @cm, 0, 0)
     inst.stack_consumed.should == 0
-    inst = CompiledMethod::Instruction.new([InstructionSet[:swap_stack]], @cm, 0, 0)
+    inst = CompiledMethod::Instruction.new([Rubinius::InstructionSet[:swap_stack]], @cm, 0, 0)
     inst.stack_consumed.should == 1
-    inst = CompiledMethod::Instruction.new([InstructionSet[:send_stack],0,2], @cm, 0, 0)
+    inst = CompiledMethod::Instruction.new([Rubinius::InstructionSet[:send_stack],0,2], @cm, 0, 0)
     inst.stack_consumed.should == 3
   end
 
   it "#stack_produced returns a count of the stack operands produced by the instruction" do
-    inst = CompiledMethod::Instruction.new([InstructionSet[:noop]], @cm, 0, 0)
+    inst = CompiledMethod::Instruction.new([Rubinius::InstructionSet[:noop]], @cm, 0, 0)
     inst.stack_produced.should == 0
-    inst = CompiledMethod::Instruction.new([InstructionSet[:swap_stack]], @cm, 0, 0)
+    inst = CompiledMethod::Instruction.new([Rubinius::InstructionSet[:swap_stack]], @cm, 0, 0)
     inst.stack_produced.should == 1
-    inst = CompiledMethod::Instruction.new([InstructionSet[:send_stack],0,2], @cm, 0, 0)
+    inst = CompiledMethod::Instruction.new([Rubinius::InstructionSet[:send_stack],0,2], @cm, 0, 0)
     inst.stack_produced.should == 1
   end
 end

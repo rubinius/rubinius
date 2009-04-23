@@ -7,7 +7,7 @@ describe "A Gasgn node" do
     end
 
     compile do |g|
-      g.push_cpath_top
+      g.push_const :Rubinius
       g.find_const :Globals
       g.push_literal :"$x" # REFACTOR g.get_global("$x")
       g.push 42

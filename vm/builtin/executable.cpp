@@ -13,7 +13,7 @@
 namespace rubinius {
 
   void Executable::init(STATE) {
-    GO(executable).set(state->new_class("Executable", G(object)));
+    GO(executable).set(state->new_class("Executable", G(object), G(rubinius)));
     G(executable)->set_object_type(state, ExecutableType);
   }
 

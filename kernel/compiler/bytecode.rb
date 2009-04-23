@@ -891,7 +891,8 @@ class Compiler
           g.push_literal cvar
           g.send :include?, 1
         when :gvar
-          g.push_const :Globals
+          g.push_const :Rubinius
+          g.find_const :Globals
           g.push_literal expr.shift
           g.send :key?, 1
         when :ivar
@@ -1162,7 +1163,8 @@ class Compiler
           g.push_variables
           g.send :last_match, 0
         else
-          g.find_cpath_top_const :Globals
+          g.push_const :Rubinius
+          g.find_const :Globals
           g.push_literal @name
           g.send :[], 1
         end
@@ -1190,12 +1192,14 @@ class Compiler
           end
         else
           if @value
-            g.find_cpath_top_const :Globals
+            g.push_const :Rubinius
+            g.find_const :Globals
             g.push_literal @name
             @value.bytecode(g)
             g.send :[]=, 2
           else
-            g.find_cpath_top_const :Globals
+            g.push_const :Rubinius
+            g.find_const :Globals
             g.swap
             g.push_literal @name
             g.swap
@@ -1645,7 +1649,8 @@ class Compiler
       def bytecode(g)
         pos(g)
 
-        g.find_cpath_top_const :Globals
+        g.push_const :Rubinius
+        g.find_const :Globals
         g.push_literal :$_
         g.send :[], 1
 
@@ -2453,7 +2458,8 @@ class Compiler
       def bytecode(g)
         pos(g)
 
-        g.find_cpath_top_const :Globals
+        g.push_const :Rubinius
+        g.find_const :Globals
         g.push_literal @new
         g.push_literal @current
         g.send :add_alias, 2

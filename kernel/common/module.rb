@@ -25,7 +25,7 @@ class Module
     # TODO: this is not totally correct but better specs need to
     # be written. Until then, this gets the specs running without
     # choking on MethodContext
-    scope = CompiledMethod.of_sender.scope
+    scope = Rubinius::CompiledMethod.of_sender.scope
     nesting = []
     while scope and scope.module != Object
       nesting << scope.module
@@ -35,8 +35,8 @@ class Module
   end
 
   def initialize(&block)
-    @method_table = MethodTable.new
-    @constants = LookupTable.new
+    @method_table = Rubinius::MethodTable.new
+    @constants = Rubinius::LookupTable.new
 
     module_eval(&block) if block
   end
@@ -62,7 +62,7 @@ class Module
     while current
       if current.__kind_of__ MetaClass
         vars = current.attached_instance.send :class_variables_table
-      elsif current.__kind_of__ IncludedModule
+      elsif current.__kind_of__ Rubinius::IncludedModule
         vars = current.module.send :class_variables_table
       else
         vars = current.send :class_variables_table
@@ -86,7 +86,7 @@ class Module
     while current
       if current.__kind_of__ MetaClass
         vars = current.attached_instance.send :class_variables_table
-      elsif current.__kind_of__ IncludedModule
+      elsif current.__kind_of__ Rubinius::IncludedModule
         vars = current.module.send :class_variables_table
       else
         vars = current.send :class_variables_table
@@ -105,7 +105,7 @@ class Module
 
     current = self
     while current
-      if current.__kind_of__ IncludedModule
+      if current.__kind_of__ Rubinius::IncludedModule
         vars = current.module.send :class_variables_table
       else
         vars = current.send :class_variables_table
@@ -161,7 +161,7 @@ class Module
     end
     sup = direct_superclass()
     while sup
-      if sup.class == IncludedModule
+      if sup.class == Rubinius::IncludedModule
         out << sup.module
       elsif sup.class != MetaClass
         out << sup
@@ -192,7 +192,7 @@ class Module
       raise NameError, "Unable to find method '#{current_name}' under #{mod}"
     end
 
-    if cm.kind_of? Tuple
+    if cm.kind_of? Rubinius::Tuple
       meth = cm[1]
     else
       meth = cm
@@ -266,7 +266,7 @@ class Module
   def method_defined?(sym)
     sym = Type.coerce_to_symbol(sym)
     m = find_method_in_hierarchy sym
-    m &&= Tuple[:public, m] unless m.is_a? Tuple
+    m &&= Rubinius::Tuple[:public, m] unless m.is_a? Rubinius::Tuple
     m ? [:public,:protected].include?(m.first) : false
   end
 
@@ -291,10 +291,10 @@ class Module
     end
 
     # unwrap the real method from Visibility if needed
-    cmethod = cmethod.method if cmethod.kind_of? CompiledMethod::Visibility
+    cmethod = cmethod.method if cmethod.kind_of? Rubinius::CompiledMethod::Visibility
 
     # We want to show the real module
-    mod = mod.module if mod.class == IncludedModule
+    mod = mod.module if mod.class == Rubinius::IncludedModule
     return UnboundMethod.new(mod, cmethod, self) if cmethod
 
     raise NameError, "Undefined method `#{name}' for #{self}"
@@ -318,7 +318,7 @@ class Module
 
   def filter_methods(filter, all)
     names = method_table.__send__(filter)
-    unless all or self.is_a?(MetaClass) or self.is_a?(IncludedModule)
+    unless all or self.is_a?(MetaClass) or self.is_a?(Rubinius::IncludedModule)
       return names.map { |name| name.to_s }
     end
 
@@ -345,15 +345,15 @@ class Module
 
     case meth
     when Proc::Method
-      cm = DelegatedMethod.new(:call, meth, false)
+      cm = Rubinius::DelegatedMethod.new(:call, meth, false)
     when Proc
       prc = meth.dup
       prc.lambda_style!
-      cm = DelegatedMethod.new(:call_on_object, prc, true)
+      cm = Rubinius::DelegatedMethod.new(:call_on_object, prc, true)
     when Method
-      cm = DelegatedMethod.new(:call, meth, false)
+      cm = Rubinius::DelegatedMethod.new(:call, meth, false)
     when UnboundMethod
-      cm = DelegatedMethod.new(:call_on_instance, meth, true)
+      cm = Rubinius::DelegatedMethod.new(:call_on_instance, meth, true)
     else
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
@@ -379,7 +379,7 @@ class Module
     sup = direct_superclass
 
     while sup
-      if sup.class == IncludedModule
+      if sup.class == Rubinius::IncludedModule
         out << sup.module
       end
 
@@ -394,8 +394,8 @@ class Module
     vis = vis.to_sym
 
     if entry = method_table[name] then
-      if entry.kind_of? Executable then
-        entry = CompiledMethod::Visibility.new entry.dup, vis
+      if entry.kind_of? Rubinius::Executable then
+        entry = Rubinius::CompiledMethod::Visibility.new entry.dup, vis
       else
         entry = entry.dup
         entry.visibility = vis
@@ -403,7 +403,7 @@ class Module
 
       method_table[name] = entry
     elsif find_method_in_hierarchy(name) then
-      method_table[name] = CompiledMethod::Visibility.new nil, vis
+      method_table[name] = Rubinius::CompiledMethod::Visibility.new nil, vis
     else
       raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
     end
@@ -419,7 +419,7 @@ class Module
 
   def protected(*args)
     if args.empty?
-      VariableScope.of_sender.method_visibility = :protected
+      Rubinius::VariableScope.of_sender.method_visibility = :protected
       return
     end
 
@@ -428,7 +428,7 @@ class Module
 
   def public(*args)
     if args.empty?
-      VariableScope.of_sender.method_visibility = nil
+      Rubinius::VariableScope.of_sender.method_visibility = nil
       return
     end
 
@@ -515,7 +515,7 @@ class Module
     if assoc
       assoc.value = value
     else
-      constants_table[name] = LookupTable::Association.new(name, value)
+      constants_table[name] = Rubinius::LookupTable::Association.new(name, value)
     end
 
     return value
@@ -531,7 +531,7 @@ class Module
     RecursionGuard.inspect(self) do
       if assoc = @constants[name]
         assoc.active = false
-        @constants[name] = LookupTable::Association.new(name, assoc.value)
+        @constants[name] = Rubinius::LookupTable::Association.new(name, assoc.value)
       end
 
       @constants.each do |key, assoc|
@@ -570,7 +570,7 @@ class Module
         # We're masking an existing constant. Invalid it.
         assoc.active = false
         mod.constants_table[const_name] =
-          LookupTable::Association.new(const_name, assoc.value)
+          Rubinius::LookupTable::Association.new(const_name, assoc.value)
       end
     end
 
@@ -672,7 +672,7 @@ class Module
     raise TypeError, "autoload filename must be a String" unless path.kind_of? String
     raise ArgumentError, "empty file name" if path.empty?
     trigger = Autoload.new(name, self, path)
-    constants_table[name] = LookupTable::Association.new(name, trigger)
+    constants_table[name] = Rubinius::LookupTable::Association.new(name, trigger)
     return nil
   end
 
@@ -773,7 +773,7 @@ class Module
     @method_table = other.method_table.dup
     metaclass.method_table = other.metaclass.method_table.dup
 
-    @constants = LookupTable.new
+    @constants = Rubinius::LookupTable.new
 
     other.constants_table.each do |name, assoc|
       new_assoc = assoc.dup

@@ -11,7 +11,7 @@ module FFI
     def self.layout(*spec)
       return @layout if spec.size == 0
 
-      cspec = LookupTable.new
+      cspec = Rubinius::LookupTable.new
       i = 0
 
       @size = 0
@@ -36,7 +36,7 @@ module FFI
 
     def self.config(base, *fields)
       @size = Rubinius::RUBY_CONFIG["#{base}.sizeof"]
-      cspec = LookupTable.new
+      cspec = Rubinius::LookupTable.new
 
       fields.each do |field|
         offset = Rubinius::RUBY_CONFIG["#{base}.#{field}.offset"]

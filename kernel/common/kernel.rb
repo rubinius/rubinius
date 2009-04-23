@@ -122,7 +122,7 @@ module Kernel
     if target.kind_of? IO
       target.printf(*args)
     elsif target.kind_of? String
-      $stdout << Sprintf.new(target, *args).parse
+      $stdout << Rubinius::Sprintf.new(target, *args).parse
     else
       raise TypeError, "The first arg to printf should be an IO or a String"
     end
@@ -131,7 +131,7 @@ module Kernel
   module_function :printf
 
   def sprintf(str, *args)
-    Sprintf.new(str, *args).parse
+    Rubinius::Sprintf.new(str, *args).parse
   end
   alias_method :format, :sprintf
   module_function :sprintf
@@ -228,7 +228,7 @@ module Kernel
   module_function :endian?
 
   def block_given?
-    return VariableScope.of_sender.block != nil
+    return Rubinius::VariableScope.of_sender.block != nil
   end
   module_function :block_given?
 
@@ -251,7 +251,7 @@ module Kernel
   module_function :caller
 
   def global_variables
-    Globals.variables.map { |i| i.to_s }
+    Rubinius::Globals.variables.map { |i| i.to_s }
   end
   module_function :global_variables
 
@@ -275,7 +275,7 @@ module Kernel
     end
 
     start = Process.time
-    chan = Channel.new
+    chan = Rubinius::Channel.new
     chan.receive_timeout duration
 
     return Process.time - start

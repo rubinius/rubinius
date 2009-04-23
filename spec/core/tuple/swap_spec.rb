@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Tuple#swap" do
+describe "Rubinius::Tuple#swap" do
   it "swaps the contents of two indices" do
-    t = Tuple.new(5)
+    t = Rubinius::Tuple.new(5)
     t.put(0, 1)
     t.put(1, 2)
     t.put(2, 3)

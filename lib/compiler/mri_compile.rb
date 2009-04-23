@@ -6,12 +6,12 @@ def decode_cm(cm)
   puts "= #{cm.describe}"
   puts cm.decode
 
-  extra = cm.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+  extra = cm.literals.to_a.find_all { |l| l.kind_of? Rubinius::CompiledMethod }
 
   until extra.empty?
     sub = extra.shift
     decode_cm(sub);
-    extra += sub.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+    extra += sub.literals.to_a.find_all { |l| l.kind_of? Rubinius::CompiledMethod }
   end
 end
 
@@ -29,7 +29,7 @@ def compare_cm(a,b)
   0.upto(a.literals.size - 1) do |i|
     l1 = a.literals[i]
     l2 = b.literals[i]
-    if l1.kind_of? CompiledMethod
+    if l1.kind_of? Rubinius::CompiledMethod
       compare_cm(l1, l2)
     else
       if l1 != l2

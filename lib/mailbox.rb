@@ -30,7 +30,7 @@
 
 class Mailbox
   def initialize
-    @channel = Channel.new
+    @channel = Rubinius::Channel.new
     @skipped = []
   end
 

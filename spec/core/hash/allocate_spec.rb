@@ -7,6 +7,6 @@ describe "Hash.allocate" do
     h = Hash.allocate
     h.instance_variable_get(:@count).should == 0
     h.instance_variable_get(:@records).should == Hash::MIN_SIZE
-    h.instance_variable_get(:@bins).should be_kind_of(Tuple)
+    h.instance_variable_get(:@bins).should be_kind_of(Rubinius::Tuple)
   end
 end

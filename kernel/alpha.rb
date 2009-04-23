@@ -131,47 +131,49 @@ module Kernel
   end
 end
 
-class CompiledMethod < Executable
-  class Visibility
-    # Create a MethodVisibility for +method+ with +visibility+
-    def initialize(method, visibility)
-      @method = method
-      @visibility = visibility
+module Rubinius
+  class CompiledMethod < Executable
+    class Visibility
+      # Create a MethodVisibility for +method+ with +visibility+
+      def initialize(method, visibility)
+        @method = method
+        @visibility = visibility
+      end
     end
   end
-end
 
-class AccessVariable
-  def self.allocate
-    Ruby.primitive :accessvariable_allocate
-    raise PrimitiveFailure, "AccessVariable.allocate primitive failed"
+  class AccessVariable
+    def self.allocate
+      Ruby.primitive :accessvariable_allocate
+      raise PrimitiveFailure, "AccessVariable.allocate primitive failed"
+    end
+
+    def initialize(variable, write)
+      @primitive = nil
+      @serial = 0
+      @name = "@#{variable}".to_sym
+      @write = write
+    end
+
+    def self.get_ivar(name)
+      new(name, false)
+    end
+
+    def self.set_ivar(name)
+      new(name, true)
+    end
   end
 
-  def initialize(variable, write)
-    @primitive = nil
-    @serial = 0
-    @name = "@#{variable}".to_sym
-    @write = write
-  end
+  class LookupTable
+    def [](key)
+      Ruby.primitive :lookuptable_aref
+      raise PrimitiveFailure, "LookupTable#[] primitive failed"
+    end
 
-  def self.get_ivar(name)
-    new(name, false)
-  end
-
-  def self.set_ivar(name)
-    new(name, true)
-  end
-end
-
-class LookupTable
-  def [](key)
-    Ruby.primitive :lookuptable_aref
-    raise PrimitiveFailure, "LookupTable#[] primitive failed"
-  end
-
-  def []=(key, val)
-    Ruby.primitive :lookuptable_store
-    raise PrimitiveFailure, "LookupTable#[]= primitive failed"
+    def []=(key, val)
+      Ruby.primitive :lookuptable_store
+      raise PrimitiveFailure, "LookupTable#[]= primitive failed"
+    end
   end
 end
 
@@ -257,7 +259,7 @@ class Module
   end
 
   def append_features(mod)
-    im = IncludedModule.new(self)
+    im = Rubinius::IncludedModule.new(self)
     im.attach_to mod
   end
 
@@ -270,13 +272,13 @@ class Module
   end
 
   def attr_reader(name)
-    meth = AccessVariable.get_ivar name
+    meth = Rubinius::AccessVariable.get_ivar name
     @method_table[name] = meth
     return nil
   end
 
   def attr_writer(name)
-    meth = AccessVariable.set_ivar name
+    meth = Rubinius::AccessVariable.set_ivar name
     @method_table["#{name}=".to_sym] = meth
     return nil
   end
@@ -289,10 +291,10 @@ class Module
 
   def private(name)
     if entry = @method_table[name]
-      unless entry.kind_of? Executable
+      unless entry.kind_of? Rubinius::Executable
         entry.visibility = :private
       else
-        cmv = CompiledMethod::Visibility.new entry, :private
+        cmv = Rubinius::CompiledMethod::Visibility.new entry, :private
         @method_table[name] = cmv
       end
     end
@@ -300,10 +302,10 @@ class Module
 
   def protected(name)
     if entry = @method_table[name]
-      unless entry.kind_of? Executable
+      unless entry.kind_of? Rubinius::Executable
         entry.visibility = :protected
       else
-        cmv = CompiledMethod::Visibility.new entry, :protected
+        cmv = Rubinius::CompiledMethod::Visibility.new entry, :protected
         @method_table[name] = cmv
       end
     end
@@ -327,7 +329,7 @@ class Module
 
   def module_function(name)
     if cm = @method_table[name]
-      if cm.kind_of? Tuple
+      if cm.kind_of? Rubinius::Tuple
         cm = cm[1]
       end
       meta = class << self; self; end
@@ -337,35 +339,37 @@ class Module
   end
 end
 
-class IncludedModule < Module
-  attr_reader :superclass
-  attr_reader :module
+module Rubinius
+  class IncludedModule < Module
+    attr_reader :superclass
+    attr_reader :module
 
-  def self.allocate
-    Ruby.primitive :included_module_allocate
-    raise PrimitiveFailure, "IncludedModule.allocate primitive failed"
-  end
+    def self.allocate
+      Ruby.primitive :included_module_allocate
+      raise PrimitiveFailure, "IncludedModule.allocate primitive failed"
+    end
 
-  def initialize(mod)
-    @method_table = mod.method_table
-    @method_cache = nil
-    @name = nil
-    @constants = mod.constant_table
-    @encloser = mod.encloser
-    @module = mod
-  end
+    def initialize(mod)
+      @method_table = mod.method_table
+      @method_cache = nil
+      @name = nil
+      @constants = mod.constant_table
+      @encloser = mod.encloser
+      @module = mod
+    end
 
-  def attach_to(cls)
-    @superclass = cls.direct_superclass
-    cls.superclass = self
-  end
+    def attach_to(cls)
+      @superclass = cls.direct_superclass
+      cls.superclass = self
+    end
 
-  def name
-    @module.name
-  end
+    def name
+      @module.name
+    end
 
-  def to_s
-    @module.to_s
+    def to_s
+      @module.to_s
+    end
   end
 end
 

@@ -31,7 +31,7 @@ extern "C" {
   VALUE rb_gv_get(const char* name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    VALUE Globals = rb_const_get(rb_cObject, rb_intern("Globals"));
+    VALUE Globals = rb_const_get(rb_mRubinius, rb_intern("Globals"));
 
     return rb_funcall(Globals,
                       rb_intern("[]"),
@@ -42,7 +42,7 @@ extern "C" {
   VALUE rb_gv_set(const char* name, VALUE value) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    VALUE Globals = rb_const_get(rb_cObject, rb_intern("Globals"));
+    VALUE Globals = rb_const_get(rb_mRubinius, rb_intern("Globals"));
 
     return rb_funcall(Globals,
                       rb_intern("[]="),

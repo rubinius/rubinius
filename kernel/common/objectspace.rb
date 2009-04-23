@@ -54,8 +54,8 @@ module ObjectSpace
 
     # In the unlikely case that someone would create another instance
     # of GlobalVariables, this wouldn't work.
-    if what == GlobalVariables
-      yield Globals
+    if what == Rubinius::GlobalVariables
+      yield Rubinius::Globals
       return 1
     end
 

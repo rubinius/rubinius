@@ -1,5 +1,5 @@
 module LookupTableSpecs
-  class SubTable < LookupTable
+  class SubTable < Rubinius::LookupTable
     attr_reader :special
 
     def initialize(size)

@@ -29,7 +29,7 @@ class Compiler
 
     def initialize
       @stream = []
-      @encoder = InstructionSequence::Encoder.new
+      @encoder = Rubinius::InstructionSequence::Encoder.new
       @literals = []
       @ip = 0
       @modstack = []
@@ -119,7 +119,7 @@ class Compiler
     end
 
     def encode_lines
-      tup = Tuple.new(@lines.size)
+      tup = Rubinius::Tuple.new(@lines.size)
       i = 0
       @lines.each do |ent|
         tup[i] = ent
@@ -130,12 +130,12 @@ class Compiler
     end
 
     def encode_literals(cm)
-      tup = Tuple.new(@literals.size)
+      tup = Rubinius::Tuple.new(@literals.size)
       i = 0
       @literals.each do |lit|
         if lit.kind_of? MethodDescription
           lit = lit.to_cmethod
-        elsif lit.kind_of? SendSite
+        elsif lit.kind_of? Rubinius::SendSite
           lit.sender = cm
         end
         tup[i] = lit
@@ -148,7 +148,7 @@ class Compiler
     def encode_exceptions
       @exceptions.sort!
 
-      tup = Tuple.new(@exceptions.size)
+      tup = Rubinius::Tuple.new(@exceptions.size)
       i = 0
       @exceptions.each do |e|
         tup[i] = e.as_tuple
@@ -173,7 +173,7 @@ class Compiler
 
       iseq = @encoder.encode_stream @stream
 
-      cm = CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
+      cm = Rubinius::CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
 
       sdc = Compiler::StackDepthCalculator.new(iseq)
       sdc_stack = sdc.run
@@ -348,7 +348,7 @@ class Compiler
       end
 
       def as_tuple
-        Tuple[@start, @end, @handler]
+        Rubinius::Tuple[@start, @end, @handler]
       end
 
       def <=>(other)
@@ -589,7 +589,7 @@ class Compiler
         raise Error, "count must be a number"
       end
 
-      ss = SendSite.new meth
+      ss = Rubinius::SendSite.new meth
       idx = add_literal(ss)
 
       if count == 0
@@ -606,7 +606,7 @@ class Compiler
         raise Error, "count must be a number"
       end
 
-      ss = SendSite.new meth
+      ss = Rubinius::SendSite.new meth
       idx = add_literal(ss)
 
       add :send_stack_with_block, idx, count
@@ -619,13 +619,13 @@ class Compiler
 
       add :allow_private if priv
 
-      ss = SendSite.new meth
+      ss = Rubinius::SendSite.new meth
       idx = add_literal(ss)
       add :send_stack_with_splat, idx, args
     end
 
     def send_super(meth, args, splat=false)
-      ss = SendSite.new meth
+      ss = Rubinius::SendSite.new meth
       idx = add_literal(ss)
 
       if splat
@@ -636,7 +636,7 @@ class Compiler
     end
 
     def check_serial(sym, serial)
-      idx = add_literal SendSite.new(:new)
+      idx = add_literal Rubinius::SendSite.new(:new)
       add :check_serial, idx, serial.to_i
       return idx
     end

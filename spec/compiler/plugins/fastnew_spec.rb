@@ -17,7 +17,7 @@ describe "A Call node using FastNew plugin" do
 
       g.push :self
       g.dup
-      idx = g.check_serial idx, CompiledMethod::KernelMethodSerial
+      idx = g.check_serial idx, Rubinius::CompiledMethod::KernelMethodSerial
       gif slow
 
       g.send :allocate, 0
@@ -52,7 +52,7 @@ describe "A Call node using FastNew plugin" do
 
       g.push :self
       g.dup
-      idx = g.check_serial idx, CompiledMethod::KernelMethodSerial
+      idx = g.check_serial idx, Rubinius::CompiledMethod::KernelMethodSerial
       gif slow
 
       g.send :allocate, 0
@@ -89,7 +89,7 @@ describe "A Call node using FastNew plugin" do
 
       g.push_const :A
       g.dup
-      idx = g.check_serial idx, CompiledMethod::KernelMethodSerial
+      idx = g.check_serial idx, Rubinius::CompiledMethod::KernelMethodSerial
       gif slow
 
       g.send :allocate, 0
@@ -124,7 +124,7 @@ describe "A Call node using FastNew plugin" do
 
       g.push_const :A
       g.dup
-      idx = g.check_serial idx, CompiledMethod::KernelMethodSerial
+      idx = g.check_serial idx, Rubinius::CompiledMethod::KernelMethodSerial
       gif slow
 
       g.send :allocate, 0

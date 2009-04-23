@@ -392,7 +392,7 @@ describe "A Masgn node" do
       g.rotate 2
       g.set_ivar :@a
       g.pop
-      g.push_cpath_top
+      g.push_const :Rubinius
       g.find_const :Globals
       g.swap
       g.push_literal :$b

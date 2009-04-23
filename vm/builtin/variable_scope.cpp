@@ -8,7 +8,7 @@
 
 namespace rubinius {
   void VariableScope::init(STATE) {
-    GO(variable_scope).set(state->new_class("VariableScope"));
+    GO(variable_scope).set(state->new_class("VariableScope", G(object), G(rubinius)));
     G(variable_scope)->set_object_type(state, VariableScopeType);
   }
 

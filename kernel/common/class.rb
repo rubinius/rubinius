@@ -80,7 +80,7 @@ class Class
   def superclass()
     cls = direct_superclass
     return nil unless cls
-    while cls and cls.kind_of? IncludedModule
+    while cls and cls.kind_of? Rubinius::IncludedModule
       cls = cls.direct_superclass
     end
     return cls
@@ -112,7 +112,7 @@ class MetaClass
     # All userland added methods start out with a serial of 1.
     executable.serial = 1
 
-    method_table[name] = CompiledMethod::Visibility.new executable, :public
+    method_table[name] = Rubinius::CompiledMethod::Visibility.new executable, :public
 
     executable.scope = scope
     Rubinius::VM.reset_method_cache(name)

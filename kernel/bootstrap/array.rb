@@ -19,7 +19,7 @@ class Array
 
   def []=(idx, ent)
     if idx >= @tuple.fields
-      nt = Tuple.new(idx + 10)
+      nt = Rubinius::Tuple.new(idx + 10)
       nt.copy_from @tuple, @start, @total, 0
       @tuple = nt
     end

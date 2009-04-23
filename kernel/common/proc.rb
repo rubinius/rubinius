@@ -5,7 +5,7 @@ class Proc
   def self.__from_block__(env)
     Ruby.primitive :proc_from_env
 
-    if env.__kind_of__(BlockEnvironment)
+    if env.__kind_of__(Rubinius::BlockEnvironment)
       raise PrimitiveFailure, "Unable to create Proc from BlockEnvironment"
     else
       begin
@@ -25,7 +25,7 @@ class Proc
       # Support for ancient pre-block-pass style:
       # def something; Proc.new; end
       # something { a_block } => Proc instance
-      env = VariableScope.of_sender.block
+      env = Rubinius::VariableScope.of_sender.block
     end
 
     if env

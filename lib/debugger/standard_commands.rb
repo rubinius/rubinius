@@ -108,7 +108,7 @@ class Debugger
 
     def execute(dbg, interface, md)
       file, line, cond = md[1], md[2].to_i, md[3]
-      if cm = CompiledMethod.script_for_file(file)
+      if cm = Rubinius::CompiledMethod.script_for_file(file)
         cm, ip = cm.locate_line(line)
       else
         return Output.error("No loaded file found matching #{file}")
@@ -420,8 +420,8 @@ class Debugger
       # Output globals
       output = Output.info("Global variables:")
       output.set_columns([['Name', '%-s'], ['Class', '%-s'], ['Value', '%-*s']])
-      Globals.variables.dup.sort{|a,b| a.to_s <=> b.to_s}.each do |v|
-        val = Globals[v]
+      Rubinius::Globals.variables.dup.sort{|a,b| a.to_s <=> b.to_s}.each do |v|
+        val = Rubinius::Globals[v]
         output << [v, val.class, val.inspect]
       end
       output

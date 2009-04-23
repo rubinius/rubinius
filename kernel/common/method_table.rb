@@ -13,30 +13,32 @@
 #
 # If "method_missing" is not found, a VM assertion is triggered.
 
-class MethodTable < LookupTable
+module Rubinius
+  class MethodTable < LookupTable
 
-  def []=(name, val)
-    if val.kind_of? Executable or
-       val.kind_of? CompiledMethod::Visibility or
-       val == false or
-       val == nil
-      super(name, val)
-    else
-      raise ArgumentError, "Invalid method table entry class: #{val.class}"
+    def []=(name, val)
+      if val.kind_of? Executable or
+         val.kind_of? CompiledMethod::Visibility or
+         val == false or
+         val == nil
+        super(name, val)
+      else
+        raise ArgumentError, "Invalid method table entry class: #{val.class}"
+      end
     end
-  end
 
-  def public_names
-    select { |n, m| m && m.public? }.map! { |n, m| n }
-  end
+    def public_names
+      select { |n, m| m && m.public? }.map! { |n, m| n }
+    end
 
-  def private_names
-    select { |n, m| m && m.private? }.map! { |n, m| n }
-  end
+    def private_names
+      select { |n, m| m && m.private? }.map! { |n, m| n }
+    end
 
-  def protected_names
-    select { |n, m| m && m.protected? }.map! { |n, m| n }
-  end
+    def protected_names
+      select { |n, m| m && m.protected? }.map! { |n, m| n }
+    end
 
-  alias_method :to_a, :public_names
+    alias_method :to_a, :public_names
+  end
 end

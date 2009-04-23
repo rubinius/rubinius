@@ -188,7 +188,7 @@ class Debugger
     def execute(dbg, interface, md)
       selector = md[1]
       if selector
-        source = Selector::ALL[selector.intern]
+        source = Rubinius::Selector::ALL[selector.intern]
         if source
           send_sites = source.send_sites
           output = output(source, send_sites)
@@ -208,19 +208,19 @@ class Debugger
     end
 
     def output(source, send_sites)
-      output = Output.info("SendSites for #{'selector ' if source.kind_of? Selector}#{source.name}:")
-      if source.kind_of? Selector
+      output = Output.info("SendSites for #{'selector ' if source.kind_of? Rubinius::Selector}#{source.name}:")
+      if source.kind_of? Rubinius::Selector
         output.set_columns(['%-3d.', ['Sender file', '%-*s'], ['Sender method', '%-*s'],
                           ['Message', '%-s'], ['Receiver class', '%-*s'], ['Method', '%-*s'],
                           ['Module', '%-*s'], ['Hits', '%d'], ['Misses', '%d']])
       else
-        output = Output.info("SendSites for #{'selector ' if source.kind_of? Selector}#{source.name}:")
+        output = Output.info("SendSites for #{'selector ' if source.kind_of? Rubinius::Selector}#{source.name}:")
         output.set_columns(['%-3d.', ['Message', '%-s'], ['Receiver class', '%-*s'],
                            ['Method', '%-*s'], ['Module', '%-*s'], ['Hits', '%d'],
                            ['Misses', '%d']])
       end
       send_sites.each_with_index do |ss,i|
-        if source.kind_of? Selector
+        if source.kind_of? Rubinius::Selector
           sender_file = ss.sender.file if ss.sender
           sender_name = ss.sender.name if ss.sender
           output << [i+1, sender_file, sender_name, ss.name,

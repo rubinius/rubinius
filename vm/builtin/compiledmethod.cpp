@@ -25,7 +25,7 @@
 namespace rubinius {
 
   void CompiledMethod::init(STATE) {
-    GO(cmethod).set(state->new_class("CompiledMethod", G(executable)));
+    GO(cmethod).set(state->new_class("CompiledMethod", G(executable), G(rubinius)));
     G(cmethod)->set_object_type(state, CompiledMethodType);
 
     GO(cmethod_vis).set(state->new_class("Visibility", G(object), G(cmethod)));

@@ -46,10 +46,10 @@ class VMActor
     def serialize_message(value)
       case value
       when Array then value.map { |child| serialize_message(child) }
-      when Tuple then Tuple[*serialize_message(value.to_a)]
+      when Rubinius::Tuple then Rubinius::Tuple[*serialize_message(value.to_a)]
       when Actor
         VMActor.register value
-        Tuple[:VMActor, Rubinius::VM_ID, value.object_id]
+        Rubinius::Tuple[:VMActor, Rubinius::VM_ID, value.object_id]
       else value
       end
     end
@@ -57,12 +57,12 @@ class VMActor
     # Process an incoming message, translating VMActor Tuples into VMActor objects
     def unserialize_message(value)
       case value
-      when Tuple
+      when Rubinius::Tuple
         if value.first == :VMActor
           _, vm_id, actor_id = value
           VMActor.new(vm_id, actor_id)
         else
-          Tuple[*value.map { |child| unserialize_message(child) }]
+          Rubinius::Tuple[*value.map { |child| unserialize_message(child) }]
         end
       else value
       end
@@ -96,14 +96,14 @@ class VMActor
         :actor,
         :message,
         remote_actor,
-        Tuple[:spawn_reply, actor.object_id]
+        Rubinius::Tuple[:spawn_reply, actor.object_id]
       ])
     rescue Exception => ex
       Rubinius::VM.send_message(container, [
         :actor,
         :message,
         remote_actor,
-        Tuple[:spawn_error, "#{ex.class}: #{[ex, *ex.backtrace].join("\n\t")}"]
+        Rubinius::Tuple[:spawn_error, "#{ex.class}: #{[ex, *ex.backtrace].join("\n\t")}"]
       ])
     end
 
@@ -151,7 +151,7 @@ class VMActor
           :actor,
           :message,
           actor,
-          Tuple[:ready, Rubinius::VM_ID]
+          Rubinius::Tuple[:ready, Rubinius::VM_ID]
         ])
 
         process_messages
@@ -181,7 +181,7 @@ class VMActor
 
       Actor.receive do |filter|
         # Wait for new VM to become ready
-        filter.when(Tuple[:ready, @vm.id]) {}
+        filter.when(Rubinius::Tuple[:ready, @vm.id]) {}
       end
     end
 
@@ -218,12 +218,12 @@ class VMActor
       ])
 
       Actor.receive do |filter|
-        filter.when(Tuple[:spawn_reply, Object]) do |message|
+        filter.when(Rubinius::Tuple[:spawn_reply, Object]) do |message|
           _, actor_id = message
           return VMActor.new(@vm.id, actor_id)
         end
 
-        filter.when(Tuple[:spawn_error, Object]) do |message|
+        filter.when(Rubinius::Tuple[:spawn_error, Object]) do |message|
           _, ex = message
           raise ex
         end

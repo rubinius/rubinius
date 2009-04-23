@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "LookupTable.new" do
+describe "Rubinius::LookupTable.new" do
   it "creates a LookupTable instance" do
-    LookupTable.new.should be_kind_of(LookupTable)
+    Rubinius::LookupTable.new.should be_kind_of(Rubinius::LookupTable)
   end
 
   it "creates a LookupTable instance from hash arguments" do
-    lt = LookupTable.new(:a => 1, :b => 2)
-    lt.should be_kind_of(LookupTable)
+    lt = Rubinius::LookupTable.new(:a => 1, :b => 2)
+    lt.should be_kind_of(Rubinius::LookupTable)
     lt.size.should == 2
     lt[:a].should == 1
     lt[:b].should == 2

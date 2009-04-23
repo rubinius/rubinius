@@ -68,7 +68,7 @@ class Join
           @join_pending_mask = 0
           @join_chords = chords
           @join_sync = sync
-          @join_lock = Channel.new
+          @join_lock = Rubinius::Channel.new
           @join_lock.send nil
           initialize(*args, &block)
         end
@@ -81,7 +81,7 @@ class Join
 
   def __channel_send__(index, value)
     if @join_sync[index]
-      reply = Channel.new
+      reply = Rubinius::Channel.new
       value = [value, reply]
     end
     @join_lock.receive

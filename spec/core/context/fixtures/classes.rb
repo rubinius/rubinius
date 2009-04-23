@@ -19,7 +19,7 @@ module ContextSpecs
 
     # Need to do this because the specs modify the instruction sequence
     @orig_bytecodes = @cm.iseq.dup
-    @encoder = InstructionSequence::Encoder.new
+    @encoder = Rubinius::InstructionSequence::Encoder.new
 
     def self.orig_bytecodes
       @orig_bytecodes

@@ -13,7 +13,7 @@ describe "VMActor::Container#spawn_actor" do
 
   it "allows Actors in different VMs to send messages to each other" do
     actor = @container.spawn_actor :Pingpong, :run
-    actor << Tuple[:ping, Actor.current]
+    actor << Rubinius::Tuple[:ping, Actor.current]
 
     Actor.receive do |filter|
       filter.when(:pong) { |msg| msg }
@@ -22,7 +22,7 @@ describe "VMActor::Container#spawn_actor" do
 
   it "evaluates strings passed to Container#spawn_actor in remote actor scope" do
     actor = @container.spawn_actor "Pingpong.run"
-    actor << Tuple[:ping, Actor.current]
+    actor << Rubinius::Tuple[:ping, Actor.current]
 
     Actor.receive do |filter|
       filter.when(:pong) { |msg| msg }

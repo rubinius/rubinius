@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "LookupTable#initialize" do
+describe "Rubinius::LookupTable#initialize" do
   it "is private" do
-    LookupTable.private_methods.should include("initialize")
+    Rubinius::LookupTable.private_methods.should include("initialize")
   end
 
   it "is called on subclasses" do

@@ -912,7 +912,7 @@ class IO
   # Formats and writes to ios, converting parameters under
   # control of the format string. See Kernel#sprintf for details.
   def printf(fmt, *args)
-    write Sprintf.new(fmt, *args).parse
+    write Rubinius::Sprintf.new(fmt, *args).parse
   end
 
   ##
@@ -1377,8 +1377,8 @@ class IO
   alias_method :isatty, :tty?
 
   def wait_til_readable
-    chan = Channel.new
-    Scheduler.send_on_readable chan, self, nil, -1
+    chan = Rubinius::Channel.new
+    Rubinius::Scheduler.send_on_readable chan, self, nil, -1
     chan.receive
   end
 

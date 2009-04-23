@@ -265,7 +265,7 @@ module Process
       raise Errno::ECHILD, "No child process: #{input_pid}"
     end
 
-    if value.kind_of? Tuple
+    if value.kind_of? Rubinius::Tuple
       status, pid = value
     else
       status = value

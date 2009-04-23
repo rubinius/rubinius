@@ -7,7 +7,7 @@
 
 namespace rubinius {
   void Location::init(STATE) {
-    GO(location).set(state->new_class("Location", G(object)));
+    GO(location).set(state->new_class("Location", G(object), G(rubinius)));
     G(location)->set_object_type(state, LocationType);
   }
 

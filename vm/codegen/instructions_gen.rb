@@ -11,6 +11,8 @@ class Object # for vm debugging
   def __show__; end
 end
 
+module Rubinius; end
+
 require 'yaml'
 require "#{File.dirname(__FILE__)}/../../kernel/compiler/iseq"
 require 'rubygems'
@@ -122,7 +124,7 @@ class Instructions
   def decode_methods
     pt = ParseTree.new(true)
 
-    basic = InstructionSet::OpCodes.map do |ins|
+    basic = Rubinius::InstructionSet::OpCodes.map do |ins|
       meth = method(ins.opcode) rescue nil
       if meth
         # Be sure to call it with the right number of args, to get the code
@@ -149,14 +151,14 @@ class Instructions
       args = []
       combo.each do |op|
         args << :opcode
-        args += InstructionSet[op].args
+        args += Rubinius::InstructionSet[op].args
       end
 
       args.shift
 
       stack = [0,0]
       combo.each do |op|
-        insn_stack = InstructionSet[op].stack
+        insn_stack = Rubinius::InstructionSet[op].stack
         stack[0] += insn_stack[0]
         stack[1] += insn_stack[1]
       end
@@ -168,8 +170,8 @@ class Instructions
         :stack => stack
       }
 
-      ins = InstructionSet::OpCode.new info
-      composite = combo.map { |op| impls[InstructionSet[op].bytecode] }
+      ins = Rubinius::InstructionSet::OpCode.new info
+      composite = combo.map { |op| impls[Rubinius::InstructionSet[op].bytecode] }
       code = construct_code(composite)
 
       impl = Implementation.new(ins, nil, 0, code)
@@ -314,7 +316,7 @@ class TestInstructions : public CxxTest::TestSuite {
 
     CODE
 
-    InstructionSet::OpCodes.each do |ins|
+    Rubinius::InstructionSet::OpCodes.each do |ins|
       meth = "test_#{ins.opcode}".to_sym
       code = send(meth) rescue nil
       if code
@@ -402,7 +404,7 @@ CODE
   end
 
   def output_node(indent, code, node, distance)
-    regular = InstructionSet::OpCodes.size
+    regular = Rubinius::InstructionSet::OpCodes.size
 
     if node.size == 1 and node.key?(:__superop__)
       code << "#{' ' * indent}return #{node[:__superop__] + regular};\n"
@@ -416,7 +418,7 @@ CODE
         term = true
         code << "#{' ' * indent}default: return #{sub + regular};\n"
       else
-        inst = InstructionSet[name]
+        inst = Rubinius::InstructionSet[name]
         code << "#{' ' * indent}case #{inst.bytecode}: // #{name}\n"
         output_node(indent + 2, code, sub, distance + inst.width)
       end
@@ -448,7 +450,7 @@ CODE
     code << "int find_superop(opcode* stream) {\n"
     code << "  switch(stream[0]) {\n"
     tree.each do |name, node|
-      insn = InstructionSet[name]
+      insn = Rubinius::InstructionSet[name]
       code << "  case #{insn.bytecode}: // #{name}\n"
       output_node 4, code, node, insn.width
     end
@@ -456,11 +458,11 @@ CODE
     code << "  return -1;\n"
     code << "}\n"
 
-    regular = InstructionSet::OpCodes.size
+    regular = Rubinius::InstructionSet::OpCodes.size
     code << "int reverse_superop(opcode superop) {\n"
     code << "  static int superops[] = {"
     @superinsns.each_with_index do |combo, superop|
-      insn = InstructionSet[combo.first]
+      insn = Rubinius::InstructionSet[combo.first]
       code << " #{insn.bytecode},"
     end
     code << "};\n"
@@ -510,10 +512,10 @@ CODE
 
   def generate_implementation_info
     str = ""
-    size = InstructionSet::OpCodes.size
+    size = Rubinius::InstructionSet::OpCodes.size
     str << "const Implementation* implementation(int op) {\n"
     str << "static Implementation implementations[] = {\n"
-    InstructionSet::OpCodes.each do |ins|
+    Rubinius::InstructionSet::OpCodes.each do |ins|
       str << "{ (void*)op_#{ins.opcode.to_s}, \"op_#{ins.opcode.to_s}\" },\n"
     end
 

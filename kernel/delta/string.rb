@@ -14,7 +14,7 @@ class String
 
   def to_sexp_sydney_parser(name="(eval)", line=1, lit_rewriter=true)
     sexp = parse name, line
-    if sexp.kind_of? Tuple
+    if sexp.kind_of? Rubinius::Tuple
       exc = SyntaxError.new sexp.at(0)
       exc.import_position sexp[1], sexp[2], sexp[3]
       exc.file = name

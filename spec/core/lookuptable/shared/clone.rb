@@ -1,6 +1,6 @@
 describe :lookuptable_clone, :shared => true do
   before :each do
-    @lt = LookupTable.new(:a => 1, :b => 2, :c => 3)
+    @lt = Rubinius::LookupTable.new(:a => 1, :b => 2, :c => 3)
   end
 
   it "creates a new instance of LookupTable" do
@@ -19,7 +19,7 @@ describe :lookuptable_clone, :shared => true do
   end
 
   it "creates a valid clone of an empty LookupTable" do
-    lt = LookupTable.new
+    lt = Rubinius::LookupTable.new
     c = lt.send(@method)
     c.size.should == lt.size
   end

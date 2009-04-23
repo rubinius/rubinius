@@ -51,7 +51,7 @@ class TestGenerator
 
   # TestGenerator methods
 
-  opcodes  = InstructionSet::OpCodes.map { |desc| desc.opcode }
+  opcodes  = Rubinius::InstructionSet::OpCodes.map { |desc| desc.opcode }
   opcodes += [:add_literal,
               :gif,
               :git,

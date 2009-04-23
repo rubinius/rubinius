@@ -7,19 +7,20 @@
 # absent (only in the case of a CompiledMethod), the ruby code code
 # in the CompiledMethod is run.
 
-class Executable
-  ##
-  # Allows instances of Executable and its subclasses
-  # to duck-type as CompiledMethod::Visibility since
-  # they can both be entries in a MethodTable.
-  def public?
-    true
-  end
+module Rubinius
+  class Executable
+    ##
+    # Allows instances of Executable and its subclasses
+    # to duck-type as CompiledMethod::Visibility since
+    # they can both be entries in a MethodTable.
+    def public?
+      true
+    end
 
-  def private?
-    false
-  end
+    def private?
+      false
+    end
 
-  alias_method :protected?, :private?
+    alias_method :protected?, :private?
+  end
 end
-

@@ -112,7 +112,7 @@ class Regexp
   end
 
   def self.last_match(field = nil)
-    match = VariableScope.of_sender.last_match
+    match = Rubinius::VariableScope.of_sender.last_match
     if match
       return match if field.nil?
       return match[field]
@@ -125,7 +125,7 @@ class Regexp
     unless match.nil? || match.kind_of?(MatchData)
       raise ::TypeError, "wrong argument type #{match.class} (expected MatchData)"
     end
-    VariableScope.of_sender.last_match = match
+    Rubinius::VariableScope.of_sender.last_match = match
   end
 
   def self.union(*patterns)
@@ -146,7 +146,7 @@ class Regexp
   def ~
     line = $_
     if !line.is_a?(String)
-      VariableScope.of_sender.last_match = nil
+      Rubinius::VariableScope.of_sender.last_match = nil
       return nil
     end
     res = self.match(line)
@@ -162,10 +162,10 @@ class Regexp
 
     match = match_from(str, 0)
     if match
-      VariableScope.of_sender.last_match = match
+      Rubinius::VariableScope.of_sender.last_match = match
       return match.begin(0)
     else
-      VariableScope.of_sender.last_match = nil
+      Rubinius::VariableScope.of_sender.last_match = nil
       return nil
     end
   end
@@ -187,15 +187,15 @@ class Regexp
   def ===(other)
     if !other.is_a?(String)
       if !other.respond_to?(:to_str)
-        VariableScope.of_sender.last_match = nil
+        Rubinius::VariableScope.of_sender.last_match = nil
         return false
       end
     end
     if match = self.match_from(other.to_str, 0)
-      VariableScope.of_sender.last_match = match
+      Rubinius::VariableScope.of_sender.last_match = match
       return true
     else
-      VariableScope.of_sender.last_match = nil
+      Rubinius::VariableScope.of_sender.last_match = nil
       return false
     end
   end
@@ -243,7 +243,7 @@ class Regexp
   # Performs normal match and returns MatchData object from $~ or nil.
   def match(str)
     return nil if str.nil?
-    VariableScope.of_sender.last_match = search_region(str, 0, str.size, true)
+    Rubinius::VariableScope.of_sender.last_match = search_region(str, 0, str.size, true)
   end
 
   def match_from(str, count)

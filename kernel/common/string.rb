@@ -15,7 +15,7 @@ class String
 
   def self.allocate
     str = super()
-    str.data = ByteArray.new(1)
+    str.data = Rubinius::ByteArray.new(1)
     str.num_bytes = 0
     str.characters = 0
     str.encoding = nil
@@ -50,7 +50,7 @@ class String
   #   "%05d" % 123                       #=> "00123"
   #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
   def %(args)
-    Sprintf.new(self, *args).parse
+    Rubinius::Sprintf.new(self, *args).parse
   end
 
   # call-seq:
@@ -169,10 +169,10 @@ class String
     case pattern
     when Regexp
       if m = pattern.match_from(self, 0)
-        VariableScope.of_sender.last_match = m
+        Rubinius::VariableScope.of_sender.last_match = m
         return m.begin(0)
       end
-      VariableScope.of_sender.last_match = nil
+      Rubinius::VariableScope.of_sender.last_match = nil
       return nil
     when String
       raise TypeError, "type mismatch: String given"
@@ -231,7 +231,7 @@ class String
 
       if index.kind_of? Regexp
         match, str = subpattern(index, length)
-        VariableScope.of_sender.last_match = match
+        Rubinius::VariableScope.of_sender.last_match = match
         return str
       else
         start  = Type.coerce_to(index, Fixnum, :to_int)
@@ -242,7 +242,7 @@ class String
     case index
     when Regexp
       match, str = subpattern(index, 0)
-      VariableScope.of_sender.last_match = match
+      Rubinius::VariableScope.of_sender.last_match = match
       return str
     when String
       return include?(index) ? index.dup : nil
@@ -839,7 +839,7 @@ class String
       offset = match.begin 0
     end
 
-    VariableScope.of_sender.last_match = last_match
+    Rubinius::VariableScope.of_sender.last_match = last_match
 
     str = substring(last_end, @num_bytes-last_end+1)
     ret << str if str
@@ -854,11 +854,11 @@ class String
     str = gsub(pattern, replacement, &block)
 
     if lm = $~
-      VariableScope.of_sender.last_match = lm
+      Rubinius::VariableScope.of_sender.last_match = lm
       replace(str)
       return self
     else
-      VariableScope.of_sender.last_match = nil
+      Rubinius::VariableScope.of_sender.last_match = nil
       return nil
     end
   end
@@ -929,10 +929,10 @@ class String
       end
     when Regexp
       if match = needle.match_from(self[offset..-1], 0)
-        VariableScope.of_sender.last_match = match
+        Rubinius::VariableScope.of_sender.last_match = match
         return (offset + match.begin(0))
       else
-        VariableScope.of_sender.last_match = nil
+        Rubinius::VariableScope.of_sender.last_match = nil
       end
     else
       raise TypeError, "type mismatch: #{needle.class} given"
@@ -1062,7 +1062,7 @@ class String
   #   'hello'.match('xx')         #=> nil
   def match(pattern)
     obj = get_pattern(pattern).match_from(self, 0)
-    VariableScope.of_sender.last_match = obj
+    Rubinius::VariableScope.of_sender.last_match = obj
     return obj
   end
 
@@ -1156,7 +1156,7 @@ class String
     end
 
     ret = arg.search_region(self, 0, finish, false)
-    VariableScope.of_sender.last_match = ret if original_klass == Regexp
+    Rubinius::VariableScope.of_sender.last_match = ret if original_klass == Regexp
     ret && ret.begin(0)
   end
 
@@ -1252,44 +1252,15 @@ class String
       val.taint if taint
 
       if block_given?
-        VariableScope.of_sender.last_match = match
+        Rubinius::VariableScope.of_sender.last_match = match
         yield(val)
       else
         ret << val
       end
     end
 
-    VariableScope.of_sender.last_match = last_match
+    Rubinius::VariableScope.of_sender.last_match = last_match
     return ret
-=begin
-
-    unless block_given?
-      ret = []
-
-      while (index, match = scan_once(pattern, index)) && match
-        last_match = match
-        match.taint if taint
-        ret << match
-      end
-
-      VariableScope.of_sender.last_match = last_match
-      return ret
-    else
-      while (index, match = scan_once(pattern, index)) && match
-        last_match = old_md = $~
-
-        match.taint if taint
-
-        block.call(match)
-        VariableScope.of_sender.last_match = old_md
-      end
-
-      ret = self
-    end
-
-    VariableScope.of_sender.last_match = last_match
-    return ret
-=end
   end
 
   # Deletes the specified portion from <i>self</i>, and returns the portion
@@ -1308,7 +1279,7 @@ class String
     result = slice(*args)
     lm = Regexp.last_match
     self[*args] = '' unless result.nil?
-    VariableScope.of_sender.last_match = lm
+    Rubinius::VariableScope.of_sender.last_match = lm
     result
   end
 
@@ -1514,7 +1485,7 @@ class String
     if match = get_pattern(pattern, true).match_from(self, 0)
       out = match.pre_match
 
-      VariableScope.of_sender.last_match = match
+      Rubinius::VariableScope.of_sender.last_match = match
 
       if replacement
         out.taint if replacement.tainted?
@@ -1529,13 +1500,13 @@ class String
       end
 
       # We have to reset it again to match the specs
-      VariableScope.of_sender.last_match = match
+      Rubinius::VariableScope.of_sender.last_match = match
 
       out << replacement << match.post_match
       out.taint if self.tainted?
     else
       out = self
-      VariableScope.of_sender.last_match = nil
+      Rubinius::VariableScope.of_sender.last_match = nil
     end
 
     # MRI behavior emulation. Sub'ing String subclasses doen't return the
@@ -1559,11 +1530,11 @@ class String
     end
 
     if lm = Regexp.last_match
-      VariableScope.of_sender.last_match = lm
+      Rubinius::VariableScope.of_sender.last_match = lm
       replace(str)
       return self
     else
-      VariableScope.of_sender.last_match = nil
+      Rubinius::VariableScope.of_sender.last_match = nil
       return nil
     end
   end
@@ -1814,7 +1785,7 @@ class String
     if invert
       replacement.tr_expand! nil
       r = replacement.data[replacement.size-1]
-      table = Tuple.pattern 256, r
+      table = Rubinius::Tuple.pattern 256, r
 
       i = 0
       while i < size
@@ -1822,7 +1793,7 @@ class String
         i += 1
       end
     else
-      table = Tuple.pattern 256, -1
+      table = Rubinius::Tuple.pattern 256, -1
 
       replacement.tr_expand! expanded
       repl = replacement.data

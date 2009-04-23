@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "LookupTable#size" do
+describe "Rubinius::LookupTable#size" do
   it "returns the number of key, value pairs in the LookupTable" do
-    lt = LookupTable.new
+    lt = Rubinius::LookupTable.new
     lt.size.should == 0
     lt[:a] = 1
     lt.size.should == 1

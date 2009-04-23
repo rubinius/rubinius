@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "LookupTable#[]=" do
+describe "Rubinius::LookupTable#[]=" do
   before :each do
-    @lt = LookupTable.new
+    @lt = Rubinius::LookupTable.new
   end
 
   it "adds an entry for the given key, value" do

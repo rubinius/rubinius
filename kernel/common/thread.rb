@@ -82,8 +82,8 @@ class Thread
     @result = nil
     @exception = nil
     @critical = false
-    @locals = LookupTable.new
-    @lock = Channel.new
+    @locals = Rubinius::LookupTable.new
+    @lock = Rubinius::Channel.new
     @lock.send nil if prime_lock
     @joins = []
   end
@@ -165,7 +165,7 @@ class Thread
     @lock.receive
     begin
       if @alive
-        jc = Channel.new
+        jc = Rubinius::Channel.new
         @joins << jc
         @lock.send nil
         begin

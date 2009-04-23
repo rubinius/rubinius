@@ -192,7 +192,7 @@ keep_looking:
   }
 
   void SendSite::init(STATE) {
-    GO(send_site).set(state->new_class("SendSite"));
+    GO(send_site).set(state->new_class_under("SendSite", G(rubinius)));
     G(send_site)->set_object_type(state, SendSiteType);
   }
 

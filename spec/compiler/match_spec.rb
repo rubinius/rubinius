@@ -7,7 +7,7 @@ describe "A Match node" do
     end
 
     compile do |g|
-      g.push_cpath_top
+      g.push_const :Rubinius
       g.find_const :Globals # FIX: find the other Globals, order flipped
       g.push_literal :$_ # REFACTOR - we use this block a lot
       g.send :[], 1

@@ -22,7 +22,7 @@ class MarshalEmitter
     @rbc_version = ver
     @string = str
     @index = start
-    @decoder = InstructionSequence::Encoder.new
+    @decoder = Rubinius::InstructionSequence::Encoder.new
   end
 
   attr_reader :rbc_version

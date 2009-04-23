@@ -39,7 +39,7 @@ class Array
     if size_or_array.equal? Undefined
       unless @total == 0
         @total = @start = 0
-        @tuple = Tuple.new 8
+        @tuple = Rubinius::Tuple.new 8
       end
 
       return self
@@ -64,7 +64,7 @@ class Array
     raise ArgumentError, "size must be <= #{Fixnum::MAX}" if size > Fixnum::MAX
 
     if block_given?
-      @tuple = Tuple.new size
+      @tuple = Rubinius::Tuple.new size
       @total = i = 0
       while i < size
         @tuple.put i, yield(i)
@@ -72,7 +72,7 @@ class Array
       end
     else
       @total = size
-      @tuple = Tuple.pattern size, obj
+      @tuple = Rubinius::Tuple.pattern size, obj
     end
 
     self
@@ -133,7 +133,7 @@ class Array
 
       tot = finish_idx - start_idx + 1
       out = self.class.new
-      out.tuple = Tuple.new(tot)
+      out.tuple = Rubinius::Tuple.new(tot)
       out.total = tot
       out.tuple.copy_from(@tuple, @start + start_idx, tot, 0)
       return out
@@ -207,7 +207,7 @@ class Array
         newtotal -= ins_length - replacement.size
       end
 
-      nt = Tuple.new(newtotal)
+      nt = Rubinius::Tuple.new(newtotal)
       nt.copy_from(@tuple, @start, index < @total ? index : @total, 0)
       nt.copy_from(replacement.tuple, replacement.start, replacement.size, index)
       if index < @total
@@ -295,7 +295,7 @@ class Array
       sz = self.size()
       new_size = val * sz
 
-      nt = Tuple.new(new_size)
+      nt = Rubinius::Tuple.new(new_size)
       out = self.class.new()
       out.tuple = nt
       out.total = new_size
@@ -419,7 +419,7 @@ class Array
 
   # Removes all elements in the Array and leaves it empty
   def clear()
-    @tuple = Tuple.new(1)
+    @tuple = Rubinius::Tuple.new(1)
     @total = 0
     @start = 0
     self
@@ -446,7 +446,7 @@ class Array
   def concat(other)
     ary = Type.coerce_to(other, Array, :to_ary)
     size = @total + ary.size
-    tuple = Tuple.new size
+    tuple = Rubinius::Tuple.new size
     tuple.copy_from @tuple, @start, @total, 0 if @total > 0
     tuple.copy_from ary.tuple, ary.start, ary.size, @total
     @tuple = tuple
@@ -1249,7 +1249,7 @@ class Array
       @tuple.copy_from(values.tuple,0,values.size,@start)
     else
       # FIXME: provision for more unshift prepends?
-      tuple = Tuple.new(@total+values.size)
+      tuple = Rubinius::Tuple.new(@total+values.size)
       tuple.copy_from(values.tuple,0,values.size,0)
       tuple.copy_from(@tuple,@start,@total,values.size)
       @start = 0
@@ -1276,7 +1276,7 @@ class Array
       new_size = at_least
     end
 
-    tuple = Tuple.new(new_size)
+    tuple = Rubinius::Tuple.new(new_size)
     tuple.copy_from @tuple, @start, @total, 0
 
     @start = 0
@@ -1294,7 +1294,7 @@ class Array
       new_size /= 2
     end while(@total < (new_size / 6))
 
-    tuple = Tuple.new(new_size)
+    tuple = Rubinius::Tuple.new(new_size)
     # position values in the middle somewhere
     new_start = (new_size-@total)/2
     tuple.copy_from(@tuple, @start, @total, new_start)

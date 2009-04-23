@@ -8,7 +8,7 @@ with_profiler do
 
     it "disables the profiler" do
       @profiler.start
-      @profiler.stop.should be_kind_of(LookupTable)
+      @profiler.stop.should be_kind_of(Rubinius::LookupTable)
       @profiler.stop.should be_nil
     end
   end

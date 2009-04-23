@@ -13,7 +13,7 @@ class Backtrace
   # If passed nil, we assume someone forgot to create a backtrace
   # in the VM.
   def self.backtrace(locations)
-    locations ? new(locations) : new([Location::Missing.new])
+    locations ? new(locations) : new([Rubinius::Location::Missing.new])
   end
 
   def initialize(locations)

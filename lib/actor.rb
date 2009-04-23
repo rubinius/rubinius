@@ -48,7 +48,7 @@ class Actor
     alias_method :private_new, :new
     private :private_new
 
-    @@registered_lock = Channel.new
+    @@registered_lock = Rubinius::Channel.new
     @@registered = {}
     @@registered_lock << nil
   
@@ -59,7 +59,7 @@ class Actor
     # Spawn a new Actor that will run in its own thread
     def spawn(*args, &block)
       raise ArgumentError, "no block given" unless block
-      spawned = Channel.new
+      spawned = Rubinius::Channel.new
       Thread.new do
         private_new do |actor|
           Thread.current[:__current_actor__] = actor
@@ -74,7 +74,7 @@ class Actor
     # Atomically spawn an actor and link it to the current actor
     def spawn_link(*args, &block)
       current = self.current
-      link_complete = Channel.new
+      link_complete = Rubinius::Channel.new
       spawn do
         begin
           Actor.link(current)
@@ -189,10 +189,10 @@ class Actor
   end
 
   def initialize
-    @lock = Channel.new
+    @lock = Rubinius::Channel.new
 
     @filter = nil
-    @ready = Channel.new
+    @ready = Rubinius::Channel.new
     @action = nil
     @message = nil
 
@@ -267,7 +267,7 @@ class Actor
 
       unless action
         if filter.timeout?
-          timeout_id = Scheduler.send_in_seconds(@ready, filter.timeout, true)
+          timeout_id = Rubinius::Scheduler.send_in_seconds(@ready, filter.timeout, true)
         else
           timeout_id = nil
         end
@@ -278,9 +278,9 @@ class Actor
         ensure
           @lock.receive
           if timeout_id
-            Scheduler.cancel(timeout_id)
+            Rubinius::Scheduler.cancel(timeout_id)
             @ready << nil
-            @ready = Channel.new if @ready.receive
+            @ready = Rubinius::Channel.new if @ready.receive
           end
         end
 

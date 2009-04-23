@@ -126,7 +126,7 @@ class Hash
   def __initialize__
     # We don't need the nanny checking our symbols
     @records = MIN_SIZE
-    @bins = Tuple.new(MIN_SIZE)
+    @bins = Rubinius::Tuple.new(MIN_SIZE)
     @count = 0
   end
 
@@ -197,7 +197,7 @@ class Hash
 
     i = to_iter
     @records = new_size
-    @bins = Tuple.new @records
+    @bins = Rubinius::Tuple.new @records
 
     while entry = i.next
       while entry

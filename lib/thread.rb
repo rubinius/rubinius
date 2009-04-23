@@ -39,7 +39,7 @@ end
 
 class Mutex
   def initialize
-    @lock = Channel.new
+    @lock = Rubinius::Channel.new
     @owner = nil
     @waiters = []
     @lock << nil
@@ -72,7 +72,7 @@ class Mutex
     @lock.receive
     begin
       while @owner
-        wchan = Channel.new
+        wchan = Rubinius::Channel.new
         @waiters.push wchan
         @lock << nil
         wchan.receive
@@ -139,7 +139,7 @@ class ConditionVariable
   # Creates a new ConditionVariable
   #
   def initialize
-    @lock = Channel.new
+    @lock = Rubinius::Channel.new
     @waiters = []
     @lock << nil
   end
@@ -150,18 +150,18 @@ class ConditionVariable
   def wait(mutex, timeout=nil)
     @lock.receive
     begin
-      wchan = Channel.new
+      wchan = Rubinius::Channel.new
       mutex.unlock
       @waiters.push wchan
       @lock << nil
       if timeout
         timeout_ms = (timeout*1000000).to_i
-        timeout_id = Scheduler.send_in_microseconds(wchan, timeout_ms, nil)
+        timeout_id = Rubinius::Scheduler.send_in_microseconds(wchan, timeout_ms, nil)
       else
         timeout_id = nil
       end
       signaled = wchan.receive
-      Scheduler.cancel(timeout_id) if timeout
+      Rubinius::Scheduler.cancel(timeout_id) if timeout
       mutex.lock
       @lock.receive
       unless signaled or @waiters.delete wchan

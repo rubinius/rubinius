@@ -3,7 +3,7 @@ class WeakRef
   class RefError < RuntimeError; end
 
   def initialize(object)
-    @wr = Tuple.create_weakref(object)
+    @wr = Rubinius::Tuple.create_weakref(object)
   end
 
   def inspect

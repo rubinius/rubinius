@@ -120,7 +120,7 @@ class Compiler
             $LOADED_FEATURES << rb if requiring
 
             # Add script CM to CompiledMethod.scripts
-            CompiledMethod.scripts[rb] = cm
+            Rubinius::CompiledMethod.scripts[rb] = cm
 
             return true
           end
@@ -226,7 +226,7 @@ class Compiler
         end
 
         # Add script CM to CompiledMethod.scripts
-        CompiledMethod.scripts[rb] = cm
+        Rubinius::CompiledMethod.scripts[rb] = cm
 
         begin
           cm.compile
@@ -282,7 +282,7 @@ class Compiler
       ext_name = File.basename ext, "#{Rubinius::LIBSUFFIX}"
 
       if File.file? ext_path
-        case NativeMethod.load_extension(ext_path, ext_name)
+        case Rubinius::NativeMethod.load_extension(ext_path, ext_name)
         when true
           $LOADED_FEATURES << ext if requiring
           return true

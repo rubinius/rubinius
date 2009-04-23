@@ -7,7 +7,7 @@ describe "A Valias node" do
     end
 
     compile do |g|
-      g.push_cpath_top
+      g.push_const :Rubinius
       g.find_const :Globals
       g.push_literal :$x
       g.push_literal :$y

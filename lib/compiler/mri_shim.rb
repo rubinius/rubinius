@@ -5,9 +5,11 @@ $:.push "lib"
 require 'ruby_parser'
 $:.pop
 
-class Executable
-  attr_accessor :serial
-  attr_accessor :primitive
+module Rubinius
+  class Executable
+    attr_accessor :serial
+    attr_accessor :primitive
+  end
 end
 
 $: << File.expand_path(File.dirname(__FILE__) + '/../../kernel')
@@ -29,23 +31,22 @@ require 'compiler/stack'
 require 'common/compiled_method'
 $:.pop
 
-class SendSite
-  def initialize(name)
-    @name = name
+module Rubinius
+  class SendSite
+    def initialize(name)
+      @name = name
+    end
+
+    attr_reader :name
+    attr_accessor :sender
+
+    def ==(other)
+      other.kind_of?(SendSite) and @name == other.name
+    end
   end
 
-  attr_reader :name
-  attr_accessor :sender
-
-  def ==(other)
-    other.kind_of?(SendSite) and @name == other.name
+  class Tuple < Array
   end
-end
-
-class Tuple < Array
-end
-
-class LookupTable < Hash
 end
 
 class Exception

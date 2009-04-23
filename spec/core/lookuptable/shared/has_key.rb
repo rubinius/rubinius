@@ -1,6 +1,6 @@
 describe :lookuptable_has_key, :shared => true do
   before :each do
-    @lt = LookupTable.new(:a => 1, :b => 2, :c => 3)
+    @lt = Rubinius::LookupTable.new(:a => 1, :b => 2, :c => 3)
   end
 
   it "returns true if the LookupTable contains the key" do

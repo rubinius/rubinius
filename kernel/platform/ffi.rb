@@ -16,7 +16,7 @@ module FFI
   #
   USE_THIS_PROCESS_AS_LIBRARY = nil
 
-  TypeDefs = LookupTable.new
+  TypeDefs = Rubinius::LookupTable.new
 
   class << self
 
@@ -128,7 +128,7 @@ module FFI
   # Use for a C struct with a char [] embedded inside.
   add_typedef TYPE_CHARARR, :char_array
 
-  TypeSizes = LookupTable.new
+  TypeSizes = Rubinius::LookupTable.new
   TypeSizes[1] = :char
   TypeSizes[2] = :short
   TypeSizes[4] = :int

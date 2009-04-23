@@ -214,7 +214,7 @@ describe "A Dstr node" do
       g.push_literal " b "          # 5
       g.string_dup
 
-      g.push_cpath_top              # 6
+      g.push_const :Rubinius        # 6
       g.find_const :Globals
       g.push_literal :$global
       g.send :[], 1

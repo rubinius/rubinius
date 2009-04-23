@@ -10,7 +10,8 @@ describe "A Defined node" do
       t = g.new_label
       f = g.new_label
 
-      g.push_const :Globals
+      g.push_const :Rubinius
+      g.find_const :Globals
       g.push_literal :$x
       g.send :key?, 1
       g.git t

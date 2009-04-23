@@ -10,48 +10,50 @@
 #
 # TODO: Rework exceptions.
 #
-class NativeMethod < Executable
+module Rubinius
+  class NativeMethod < Executable
 
-  attr_reader :file
-  attr_reader :name
+    attr_reader :file
+    attr_reader :name
 
-  #
-  # Returns true if library loads successfully.
-  #
-  # TODO: Fix up to properly add method, clear cache etc.
-  #
-  def self.load_extension(library_path, extension_name)
-    library = library_path.sub /#{Rubinius::LIBSUFFIX}$/, ''
-    symbol = "Init_#{extension_name}"
+    #
+    # Returns true if library loads successfully.
+    #
+    # TODO: Fix up to properly add method, clear cache etc.
+    #
+    def self.load_extension(library_path, extension_name)
+      library = library_path.sub /#{Rubinius::LIBSUFFIX}$/, ''
+      symbol = "Init_#{extension_name}"
 
-    entry_point = load_entry_point library, symbol
+      entry_point = load_entry_point library, symbol
 
-    Rubinius.metaclass.method_table[symbol.to_sym] = entry_point
-    Rubinius.send symbol.to_sym
+      Rubinius.metaclass.method_table[symbol.to_sym] = entry_point
+      Rubinius.send symbol.to_sym
 
-    true
-  end
+      true
+    end
 
-  #
-  # Load extension and generate a NativeMethod for its entry point.
-  #
-  def self.load_entry_point(library_path, name)
-    Ruby.primitive :nativemethod_load_extension_entry_point
-  end
+    #
+    # Load extension and generate a NativeMethod for its entry point.
+    #
+    def self.load_entry_point(library_path, name)
+      Ruby.primitive :nativemethod_load_extension_entry_point
+    end
 
-  def lines
-    nil
-  end
+    def lines
+      nil
+    end
 
-  def exceptions
-    nil
-  end
+    def exceptions
+      nil
+    end
 
-  def literals
-    nil
-  end
+    def literals
+      nil
+    end
 
-  def line_from_ip(i)
-    0
+    def line_from_ip(i)
+      0
+    end
   end
 end

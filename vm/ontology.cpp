@@ -124,7 +124,7 @@ namespace rubinius {
      *  LookupTableAssociation
      *  MethodTable
      *
-     *  With these 8 in place, we can now create fully initialized classes
+     *  With these 9 in place, we can now create fully initialized classes
      *  and modules. */
 
     /* Hook up the MetaClass protocols.
@@ -142,14 +142,19 @@ namespace rubinius {
     MetaClass::attach(this, G(lookuptableassociation), G(object)->metaclass(this));
     MetaClass::attach(this, G(methtbl), G(lookuptable)->metaclass(this));
 
-    // Now, finish initializing the special 9
+    // Now, finish initializing the basic Class/Module
     G(object)->setup(this, "Object");
     G(klass)->setup(this, "Class");
     G(module)->setup(this, "Module");
     G(metaclass)->setup(this, "MetaClass");
-    G(tuple)->setup(this, "Tuple");
-    G(lookuptable)->setup(this, "LookupTable");
-    G(methtbl)->setup(this, "MethodTable");
+
+    // Create the namespace for various implementation classes
+    GO(rubinius).set(new_module("Rubinius"));
+
+    // Finish initializing the rest of the special 9
+    G(tuple)->setup(this, "Tuple", G(rubinius));
+    G(lookuptable)->setup(this, "LookupTable", G(rubinius));
+    G(methtbl)->setup(this, "MethodTable", G(rubinius));
     G(lookuptablebucket)->setup(this, "Bucket", G(lookuptable));
     G(lookuptablebucket)->name(state, symbol("LookupTable::Bucket"));
     G(lookuptableassociation)->setup(this, "Association", G(lookuptable));
@@ -186,7 +191,7 @@ namespace rubinius {
     globals.special_classes[(uintptr_t)Qtrue ] = GO(true_class);
 
     /* Create IncludedModule */
-    GO(included_module).set(new_class("IncludedModule", G(module)));
+    GO(included_module).set(new_class("IncludedModule", G(module), G(rubinius)));
     G(included_module)->set_object_type(state, IncludedModuleType);
 
     // Let all the builtin classes initialize themselves. This
@@ -276,8 +281,6 @@ namespace rubinius {
   }
 
   void VM::initialize_fundamental_constants() {
-    GO(rubinius).set(new_module("Rubinius"));
-
     if(sizeof(int) == sizeof(long)) {
       G(rubinius)->set_const(state, "L64", Qfalse);
     } else {

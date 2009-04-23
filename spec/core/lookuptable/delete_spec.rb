@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "LookupTable#delete" do
+describe "Rubinius::LookupTable#delete" do
   before :each do
-    @lt = LookupTable.new(:a => 1, :b => 2, :c => 3)
+    @lt = Rubinius::LookupTable.new(:a => 1, :b => 2, :c => 3)
   end
 
   it "removes and returns the entry if it exists" do

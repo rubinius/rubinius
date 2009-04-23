@@ -48,7 +48,7 @@ class Compiler
       total = @iseq.size
 
       while ip < total
-        opcode = InstructionSet[@iseq[ip]]
+        opcode = Rubinius::InstructionSet[@iseq[ip]]
         size = opcode.size
 
         if size == 1

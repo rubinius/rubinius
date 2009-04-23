@@ -68,7 +68,7 @@ public:
     TS_ASSERT_EQUALS(tup->class_object(state), G(klass));
     TS_ASSERT_EQUALS(tup->superclass(), G(object));
     TS_ASSERT_EQUALS(tup->instance_type(), Fixnum::from(TupleType));
-    check_const(tuple, "Tuple");
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "Tuple"), G(tuple));
   }
 
   void test_lookuptable() {
@@ -79,7 +79,7 @@ public:
     TS_ASSERT_EQUALS(lt->class_object(state), G(klass));
     TS_ASSERT_EQUALS(lt->superclass(), G(object));
     TS_ASSERT_EQUALS(lt->instance_type(), Fixnum::from(LookupTableType));
-    check_const(lookuptable, "LookupTable");
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "LookupTable"), G(lookuptable));
   }
 
   void test_methtbl() {
@@ -91,7 +91,7 @@ public:
     TS_ASSERT_EQUALS(cls->superclass(), G(lookuptable));
 
     TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), MethodTableType);
-    check_const(methtbl, "MethodTable");
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "MethodTable"), G(methtbl));
   }
 
   void test_symbol() {
@@ -122,7 +122,7 @@ public:
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass(), G(object));
     TS_ASSERT_EQUALS((object_type)cls->instance_type()->to_native(), ByteArrayType);
-    check_const(bytearray, "ByteArray");
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "ByteArray"), G(bytearray));
   }
 
   void test_string() {
@@ -143,7 +143,7 @@ public:
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass(), G(executable));
-    check_const(cmethod, "CompiledMethod");
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "CompiledMethod"), G(cmethod));
   }
 
   void test_dir() {
@@ -165,7 +165,8 @@ public:
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass(), G(tuple));
     TS_ASSERT_EQUALS(cls->instance_type(), Fixnum::from(CompactLookupTableType));
-    check_const(compactlookuptable, "CompactLookupTable");
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "CompactLookupTable"),
+        G(compactlookuptable));
   }
 
   void test_time_class() {

@@ -7,7 +7,7 @@ module IRB
             line.untaint
             @context.evaluate(line, line_no)
             output_value if @context.echo?
-          rescue SystemExit, ThrownValue => e
+          rescue SystemExit, Rubinius::ThrownValue => e
             $! = e
           rescue Object => e
 

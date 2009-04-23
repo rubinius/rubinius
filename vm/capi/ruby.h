@@ -203,6 +203,7 @@ extern "C" {
     cCApiObject,
     cCApiRange,
     cCApiRegexp,
+    cCApiRubinius,
     cCApiString,
     cCApiStruct,
     cCApiSymbol,
@@ -370,6 +371,7 @@ struct RData {
 #define rb_cObject            (capi_get_constant(cCApiObject))
 #define rb_cRange             (capi_get_constant(cCApiRange))
 #define rb_cRegexp            (capi_get_constant(cCApiRegexp))
+#define rb_mRubinius          (capi_get_constant(cCApiRubinius))
 #define rb_cString            (capi_get_constant(cCApiString))
 #define rb_cStruct            (capi_get_constant(cCApiStruct))
 #define rb_cSymbol            (capi_get_constant(cCApiSymbol))

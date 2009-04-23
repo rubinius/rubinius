@@ -30,7 +30,7 @@
 
 class Semaphore
   def initialize(initvalue = 0)
-    @channel = Channel.new
+    @channel = Rubinius::Channel.new
     initvalue.times { @channel << nil }
   end
 
