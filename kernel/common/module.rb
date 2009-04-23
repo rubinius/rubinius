@@ -658,12 +658,11 @@ class Module
 
   def set_name_if_necessary(name, mod)
     return unless @name.nil?
-    parts = [name.to_s]
-    while mod and mod != Object
-      parts.unshift mod.name
-      mod = mod.encloser
+    if mod == Object
+      @name = name
+    else
+      @name = "#{mod.name}::#{name}".to_sym
     end
-    @name = parts.join("::").to_sym
   end
 
   # Install a new Autoload object into the constants table

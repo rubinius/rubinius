@@ -34,7 +34,7 @@ module Kernel
     "#<#{self.class.name}"
   end
 
-  def object_id
+  def __id__
     Ruby.primitive :object_id
     raise PrimitiveFailure, "Kernel#object_id primitive failed"
   end

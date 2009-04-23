@@ -14,4 +14,12 @@ class DelegatedMethod < Executable
     args.unshift called_object if @pass_self
     @receiver.__send__(@method, *args, &block)
   end
+
+  def arity
+    if @method.respond_to? :arity
+      @method.arity
+    else
+      0 # meh
+    end
+  end
 end

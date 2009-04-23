@@ -8,4 +8,9 @@ module Rubinius
     Ruby.primitive :vm_find_method
     raise PrimitiveFailure, "Rubinius.find_method failed"
   end
+
+  def self.object_class(obj)
+    Ruby.primitive :vm_object_class
+    raise PrimitiveFailure, "Rubinius.object_class failed"
+  end
 end

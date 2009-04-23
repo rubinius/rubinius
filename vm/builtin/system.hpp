@@ -183,6 +183,10 @@ namespace rubinius {
     // Ruby.primitive :vm_attach_method
     static Object* vm_attach_method(STATE, Symbol* name, CompiledMethod* meth, StaticScope* scope, Object* recv);
 
+    // A robust way to get the class of an object, since Object#class can be redefined.
+    // Ruby.primitive :vm_object_class
+    static Class* vm_object_class(STATE, Object* obj);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

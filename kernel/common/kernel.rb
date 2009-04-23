@@ -91,7 +91,14 @@ module Kernel
   module_function :warn
 
   def exit(code=0)
-    code = 0 if code.equal? true
+    if code.equal? true
+      code = 0
+    elsif code.equal? false
+      code = 1
+    else
+      code = code.to_i
+    end
+
     raise SystemExit.new(code)
   end
   module_function :exit
@@ -294,9 +301,14 @@ module Kernel
   end
   module_function :trap
 
-  alias_method :__id__, :object_id
+  alias_method :object_id, :__id__
 
-  alias_method :==,   :equal?
+  def id
+    warn "Object#id IS deprecated; use Object#object_id OR ELSE."
+    __id__
+  end
+
+  alias_method :==, :equal?
 
   # The "sorta" operator, also known as the case equality operator.
   # Generally while #eql? and #== are stricter, #=== is often used
@@ -409,7 +421,7 @@ module Kernel
 
     ivars = instance_variables
 
-    prefix = "#{self.class}:0x#{self.object_id.to_s(16)}"
+    prefix = "#{self.class}:0x#{self.__id__.to_s(16)}"
     parts = []
 
     RecursionGuard.inspect self do

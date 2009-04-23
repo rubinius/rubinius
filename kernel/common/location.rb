@@ -5,25 +5,34 @@ class Location
   attr_accessor :name
 
   def describe
+    # We can't call @receiver.class because it might be overriden (or in
+    # the case of Mocha, mocked out) and easily causes stack overflows
+    klass = Rubinius.object_class @receiver
+
     if @method_module.equal?(Kernel)
       str = "Kernel."
     elsif @method_module.kind_of?(MetaClass)
       str = "#{@receiver}."
-    elsif @method_module and @method_module != @receiver.class
-      str = "#{@method_module}(#{@receiver.class})#"
+    elsif @method_module and @method_module != klass
+      str = "#{@method_module}(#{klass})#"
     else
-      str = "#{@receiver.class}#"
+      str = "#{klass}#"
     end
 
-    if @is_block
-      str << "#{@name} {}"
-    elsif @name == @method.name
-      str << "#{@name}"
-    else
-      str << "#{@name} (#{@method.name})"
-    end
+    str << describe_method
 
     return str
+  end
+
+  def describe_method
+    if @is_block
+      "#{@name} {}"
+    elsif @name == @method.name
+      "#{@name}"
+    else
+      "#{@name} (#{@method.name})"
+    end
+
   end
 
   # Current line being executed by the VM.
@@ -52,6 +61,10 @@ class Location
   class Missing
     def describe
       "*** Missing backtrace! Did the VM not create one? ***"
+    end
+
+    def describe_method
+      "missing_backtrace_unknown_location"
     end
 
     def line

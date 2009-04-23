@@ -32,4 +32,5 @@ class Object
   def display(port=$>)
     port.write self
   end
+
 end

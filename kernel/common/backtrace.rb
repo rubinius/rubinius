@@ -87,15 +87,7 @@ class Backtrace
   #
   def to_mri()
     @locations.map do |loc|
-      meth =  if loc.is_block
-                "#{loc.name} {}"
-              elsif loc.name == loc.method.name
-                "#{loc.name}"
-              else
-                "#{loc.name} (#{loc.method.name})"
-              end
-
-      "#{loc.position}:in `#{meth}'"
+      "#{loc.position}:in `#{loc.describe_method}'"
     end
   end
 end

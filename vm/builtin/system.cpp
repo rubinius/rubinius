@@ -458,4 +458,8 @@ namespace rubinius {
 
     return method;
   }
+
+  Class* System::vm_object_class(STATE, Object* obj) {
+    return obj->class_object(state);
+  }
 }
