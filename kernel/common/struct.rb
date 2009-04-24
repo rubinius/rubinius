@@ -257,7 +257,6 @@ class Struct
   #    zip => 12345
 
   def each_pair
-    raise LocalJumpError unless block_given? # HACK yield should do this
     _attrs.map { |var| yield var, instance_variable_get("@#{var}") }
   end
 
