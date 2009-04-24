@@ -19,7 +19,16 @@ class VariableScope
   end
 
   def get_eval_local(name)
-    @parent.dynamic_locals[name]
+    scope = @parent
+    while scope
+      if scope.dynamic_locals.key? name
+        return scope.dynamic_locals[name]
+      end
+
+      scope = scope.parent
+    end
+
+    nil
   end
 
   def exitted?
