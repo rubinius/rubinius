@@ -124,7 +124,9 @@ module Rubinius
           out.printf "%8.2f  %8.2f %10d %8.2f %8.2f  %s\n", *d.last(6)
         end
 
-        puts "\n#{comma(data.size-SHORT_LINES)} omitted" unless options[:full_report]
+        unless options[:full_report] or data.size < SHORT_LINES
+          puts "\n#{comma(data.size-SHORT_LINES)} lines omitted"
+        end
         puts "\n#{comma(data.size)} methods called a total of #{comma(total_calls)} times"
 
         nil
