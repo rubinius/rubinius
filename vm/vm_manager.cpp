@@ -42,9 +42,16 @@ namespace rubinius {
   }
 
   void VMManager::prune() {
-    VMMap::iterator i = vms_.begin();
-    while(i != vms_.end()) {
+    for(VMMap::iterator i = vms_.begin();
+        i != vms_.end();
+        i++) {
       VM* vm = i->second;
+
+      /* TODO: This is not a fix, but there's no reason to segfault here
+       * if we can avoid it. Find out how a NULL vm gets in the list.
+       */
+      if(!vm) continue;
+
       if(!vm->alive_p()) {
         SharedState* shared = &vm->shared;
         shared->remove_vm(vm);
@@ -58,7 +65,6 @@ namespace rubinius {
           delete shared;
         }
       }
-      i++;
     }
   }
 }
