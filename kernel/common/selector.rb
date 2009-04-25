@@ -7,7 +7,7 @@ module Rubinius
     attr_reader :send_sites
 
     def inspect
-      "#<Selector name=#{@name} sites=#{@send_sites.size}>"
+      "#<#{self.class}:0x#{object_id.to_s(16)} name=#{@name} sites=#{@send_sites.size}>"
     end
 
     def receives

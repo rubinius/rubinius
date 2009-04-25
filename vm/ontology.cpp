@@ -153,12 +153,15 @@ namespace rubinius {
 
     // Finish initializing the rest of the special 9
     G(tuple)->setup(this, "Tuple", G(rubinius));
+    G(tuple)->name(this, symbol("Rubinius::Tuple"));
     G(lookuptable)->setup(this, "LookupTable", G(rubinius));
+    G(lookuptable)->name(this, symbol("Rubinius::LookupTable"));
     G(methtbl)->setup(this, "MethodTable", G(rubinius));
+    G(methtbl)->name(this, symbol("Rubinius::MethodTable"));
     G(lookuptablebucket)->setup(this, "Bucket", G(lookuptable));
-    G(lookuptablebucket)->name(state, symbol("LookupTable::Bucket"));
+    G(lookuptablebucket)->name(state, symbol("Rubinius::LookupTable::Bucket"));
     G(lookuptableassociation)->setup(this, "Association", G(lookuptable));
-    G(lookuptableassociation)->name(state, symbol("LookupTable::Association"));
+    G(lookuptableassociation)->name(state, symbol("Rubinius::LookupTable::Association"));
   }
 
   void VM::initialize_builtin_classes() {
@@ -193,6 +196,7 @@ namespace rubinius {
     /* Create IncludedModule */
     GO(included_module).set(new_class("IncludedModule", G(module), G(rubinius)));
     G(included_module)->set_object_type(state, IncludedModuleType);
+    G(included_module)->name(this, symbol("Rubinius::IncludedModule"));
 
     // Let all the builtin classes initialize themselves. This
     // typically means creating a Ruby class.

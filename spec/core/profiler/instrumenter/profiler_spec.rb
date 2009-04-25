@@ -96,7 +96,7 @@ with_profiler do
       end
 
       tuple[2].should == 4
-      put = ProfilerSpecs.find_method(data, "Tuple#put")
+      put = ProfilerSpecs.find_method(data, "Rubinius::Tuple#put")
       put[:called].should == 10
       put[:total].should > 0
     end

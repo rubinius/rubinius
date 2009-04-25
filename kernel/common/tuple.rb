@@ -19,7 +19,7 @@ module Rubinius
     end
 
     def to_s
-      "#<Rubinius::Tuple:0x#{object_id.to_s(16)} #{fields} elements>"
+      "#<#{self.class}:0x#{object_id.to_s(16)} #{fields} elements>"
     end
 
     def each
@@ -40,7 +40,7 @@ module Rubinius
     end
 
     def inspect
-      str = "#<Rubinius::Tuple"
+      str = "#<#{self.class}"
       if fields == 0
         str << " empty>"
       else

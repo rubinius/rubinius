@@ -13,6 +13,7 @@ namespace rubinius {
     GO(selectors).set(LookupTable::create(state));
     Class* cls = state->new_class("Selector", G(object), G(rubinius));
     cls->set_object_type(state, SelectorType);
+    cls->name(state, state->symbol("Rubinius::Selector"));
 
     GO(selector).set(cls);
 

@@ -16,6 +16,7 @@ namespace rubinius {
   void ByteArray::init(STATE) {
     GO(bytearray).set(state->new_class_under("ByteArray", G(rubinius)));
     G(bytearray)->set_object_type(state, ByteArrayType);
+    G(bytearray)->name(state, state->symbol("Rubinius::ByteArray"));
   }
 
   ByteArray* ByteArray::create(STATE, size_t bytes) {

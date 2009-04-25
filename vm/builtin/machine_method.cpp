@@ -14,6 +14,7 @@ namespace rubinius {
 
   void MachineMethod::init(STATE) {
     GO(machine_method).set(state->new_class_under("MachineMethod", G(rubinius)));
+    GO(machine_method)->name(state, state->symbol("Rubinius::MachineMethod"));
   }
 
 
