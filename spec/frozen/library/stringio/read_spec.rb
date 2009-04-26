@@ -12,6 +12,20 @@ end
 
 describe "StringIO#read when passed no arguments" do
   it_behaves_like :stringio_read_no_arguments, :read
+
+  it "returns an empty string if at EOF" do
+    @io.read.should == "example"
+    @io.read.should == ""
+  end
+end
+
+describe "StringIO#read when passed nil" do
+  it_behaves_like :stringio_read_nil, :read
+
+  it "returns an empty string if at EOF" do
+    @io.read(nil).should == "example"
+    @io.read(nil).should == ""
+  end
 end
 
 describe "StringIO#read when self is not readable" do
