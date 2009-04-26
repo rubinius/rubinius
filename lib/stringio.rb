@@ -261,14 +261,15 @@ class StringIO
 
   def read(length = Undefined, buffer = "")
     raise IOError, "not opened for reading" unless @readable
-    return nil if self.eof?
 
     buffer = StringValue(buffer)
 
-    if length == Undefined
+    if length == Undefined or length.nil?
+      return "" if self.eof?
       buffer.replace(@string[@pos..-1])
       @pos = @string.size
     else
+      return nil if self.eof?
       length = Type.coerce_to length, Integer, :to_int
       raise ArgumentError if length < 0
       buffer.replace(@string[@pos, length])
@@ -368,8 +369,9 @@ class StringIO
   end
 
   def sysread(length = Undefined, buffer = "")
-    raise IO::EOFError, "end of file reached" if self.eof?
-    read(length, buffer)
+    str = read(length, buffer)
+    raise IO::EOFError, "end of file reached" if str.nil?
+    str
   end
 
   def tell

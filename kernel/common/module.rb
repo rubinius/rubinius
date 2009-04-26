@@ -652,7 +652,7 @@ class Module
   def set_name_if_necessary(name, mod)
     return unless @name.nil?
     if mod == Object
-      @name = name
+      @name = name.to_sym
     else
       @name = "#{mod.name}::#{name}".to_sym
     end
