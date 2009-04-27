@@ -19,6 +19,8 @@ class Sexp
   def set_line(ary, line)
     @line = ary.instance_variable_get(:@line) || line
   end
+
+  alias_method :get, :find_node
 end
 
 class Rubinius::SydneyRewriter
@@ -165,16 +167,16 @@ class Rubinius::SydneyRewriter
 
   # Adapted from UnifiedRuby
   def rewrite_defn(exp)
-    args = exp.scope.block.args(true)
+    args = exp.get(:scope).get(:block).get(:args, true)
     exp.insert 2, args if args
 
-    block_arg = exp.scope.block.block_arg(true) rescue nil
+    block_arg = exp.get(:scope).get(:block).get(:block_arg, true) rescue nil
     if block_arg
       sym = :"&#{block_arg.last}"
       if Array === exp.args.last
-        exp.args.insert(-2, sym)
+        exp.get(:args).insert(-2, sym)
       else
-        exp.args << sym
+        exp.get(:args) << sym
       end
     end
 
@@ -185,9 +187,10 @@ class Rubinius::SydneyRewriter
   def rewrite_defs(exp)
     receiver = exp.delete_at 1
 
+    args = exp.get(:scope).get(:args)
     exp = s(exp.shift, exp.shift,
             s(:scope,
-              s(:block, exp.scope.args))) if exp.scope.args
+              s(:block, args))) if args
 
     result = rewrite_defn(exp)
     result.insert 1, receiver
