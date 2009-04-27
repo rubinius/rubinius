@@ -1,4 +1,4 @@
-# depends on: module.rb kernel.rb misc.rb exception.rb global.rb type.rb
+# depends on: module.rb kernel.rb exception.rb global.rb type.rb
 
 module Kernel
 

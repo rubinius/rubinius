@@ -1,4 +1,4 @@
-# depends on: enumerable.rb misc.rb class.rb
+# depends on: enumerable.rb class.rb undefined.rb
 
 class Hash
 

@@ -1,0 +1,1 @@
+Undefined = Object.new
