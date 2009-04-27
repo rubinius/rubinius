@@ -87,6 +87,24 @@ describe :stringio_read_no_arguments, :shared => true do
   end
 end
 
+describe :stringio_read_nil, :shared => true do
+  before :each do
+    @io = StringIO.new("example")
+  end
+
+  it "returns the remaining content from the current position" do
+    @io.send(@method, nil).should == "example"
+
+    @io.pos = 4
+    @io.send(@method, nil).should == "ple"
+  end
+
+  it "updates the current position" do
+    @io.send(@method, nil)
+    @io.pos.should eql(7)
+  end
+end
+
 describe :stringio_read_not_readable, :shared => true do
   it "raises an IOError" do
     io = StringIO.new("test", "w")

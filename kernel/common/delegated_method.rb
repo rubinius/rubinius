@@ -16,6 +16,9 @@ module Rubinius
       @receiver.__send__(@method, *args, &block)
     end
 
+    # @todo: figure this out
+    alias_method :activate, :call
+
     def arity
       if @method.respond_to? :arity
         @method.arity
