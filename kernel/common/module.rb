@@ -1,5 +1,3 @@
-# depends on: class.rb proc.rb autoload.rb
-
 ##
 # Some terminology notes:
 #

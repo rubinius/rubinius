@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 module FileTest
   def blockdev?(path)
     File.blockdev? path

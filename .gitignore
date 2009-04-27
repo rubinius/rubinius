@@ -1,4 +1,3 @@
-!runtime/stable/loader.rbc
 !spec/tags
 *.a
 *.bundle
@@ -21,7 +20,6 @@
 .hg
 .hgignore
 .libs
-load_order.txt
 .spec/bm.yml
 /rubinius_tasks.dot
 /nbproject
@@ -35,8 +33,7 @@ coverage
 cscope.files
 cscope.out
 rakelib/ryan.rake
-runtime/platform.conf
-runtime/pristine*
+runtime
 scratch
 spec/ruby
 stamp-h1
@@ -65,7 +62,6 @@ tmtags
 /vm/instructions.cpp
 /vm/.deps
 
-/kernel/.load_order.txt
 /kernel/bootstrap/rubinius_config.rb
 /kernel/bootstrap/ruby_config.rb
 
@@ -76,23 +72,6 @@ tmtags
 /lib/fcntl.rb
 /lib/openssl/digest.rb
 /lib/syslog.rb
-
-native/sexp
-native/translation
-native/bytecode
-native/.load_order.txt
-
-# native/bytecode
-native/bytecode/assembler.rb
-native/bytecode/compiler.rbc
-native/bytecode/primitive_names.rbc
-native/bytecode/encoder.rb
-native/bytecode/assembler.rbc
-native/bytecode/encoder.rbc
-native/bytecode/rubinius.rbc
-native/bytecode/compiler.rb
-native/bytecode/primitive_names.rb
-native/bytecode/system_hints.rbc
 
 # LLVM and its Makefiles
 vm/external_libs/llvm/Makefile

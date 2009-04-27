@@ -1,5 +1,3 @@
-# depends on: library.rb
-
 module Rubinius
   class EnvironmentVariables
     extend FFI::Library

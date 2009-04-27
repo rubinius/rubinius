@@ -1,5 +1,3 @@
-# depends on: class.rb string.rb
-
 class Regexp
   attr_reader :source
   attr_reader :names

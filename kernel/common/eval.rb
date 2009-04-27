@@ -1,6 +1,3 @@
-# depends on: array.rb proc.rb binding.rb
-# (due to alias_method)
-
 module Kernel
 
   # Names of local variables at point of call (including evaled)

@@ -1,5 +1,3 @@
-# depends on: enumerable.rb class.rb undefined.rb
-
 class Hash
 
   include Enumerable

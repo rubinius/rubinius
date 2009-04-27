@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 ##
 # Interface to the C errno integer.
 

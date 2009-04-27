@@ -1,5 +1,3 @@
-# depends on: class.rb binding.rb
-
 class Proc
 
   def self.__from_block__(env)

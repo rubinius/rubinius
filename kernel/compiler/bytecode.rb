@@ -1,5 +1,3 @@
-# depends on: compiler.rb nodes.rb generator.rb
-
 # Each Node subclass is reopened here, and bytecode-generating
 # methods are added.
 

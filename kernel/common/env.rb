@@ -1,5 +1,3 @@
-# depends on: class.rb
-
 ##
 # Interface to process environment variables.
 

@@ -1,5 +1,3 @@
-# depends on: class.rb
-
 class Symbol
   ##
   # Returns an array of all the symbols currently in Ruby‘s symbol table.

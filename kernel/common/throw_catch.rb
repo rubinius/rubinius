@@ -1,5 +1,3 @@
-# depends on: class.rb
-
 module Rubinius
   class ThrownValue < Exception
     def initialize(name, value, ctx)

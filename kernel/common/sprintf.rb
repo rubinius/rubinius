@@ -1,5 +1,3 @@
-# depends on: module.rb class.rb
-
 module Rubinius
   class Sprintf
 

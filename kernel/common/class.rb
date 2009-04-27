@@ -1,5 +1,3 @@
-# depends on: object.rb
-
 ##
 # Classes in Ruby are first-class objects, each is an instance of
 # class Class.

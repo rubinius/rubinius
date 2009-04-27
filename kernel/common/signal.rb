@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 module Signal
   Names = {"EXIT" => 0}
 

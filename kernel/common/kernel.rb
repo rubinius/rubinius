@@ -1,5 +1,3 @@
-# depends on: module.rb kernel.rb exception.rb global.rb type.rb
-
 module Kernel
 
   def Float(obj)

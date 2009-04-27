@@ -1,5 +1,3 @@
-# depends on: class.rb
-
 ##
 # DelegatedMethod is used to implement Module#define_method
 

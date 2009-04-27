@@ -1,5 +1,3 @@
-# depends on: module.rb class.rb hash.rb struct.rb
-
 module Process
   module Constants
     EXIT_SUCCESS = Rubinius::RUBY_CONFIG['rbx.platform.process.EXIT_SUCCESS'] || 0

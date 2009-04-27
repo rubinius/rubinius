@@ -1,5 +1,3 @@
-# depends on: class.rb module.rb
-
 class Exception
 
   attr_writer :message

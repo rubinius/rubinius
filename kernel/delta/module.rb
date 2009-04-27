@@ -1,5 +1,3 @@
-# depends on: rubinius.rb
-
 class Module
   #--
   # HACK: This should work after after the bootstrap is loaded,

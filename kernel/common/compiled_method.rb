@@ -1,5 +1,3 @@
-# depends on: class.rb executable.rb array.rb static_scope.rb
-
 # TODO - Comment!!!
 
 module Rubinius

@@ -1,5 +1,3 @@
-# depends on: compiler.rb
-
 class Compiler
   class StackDepthCalculator
     def initialize(iseq)

@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 module Math
   module_function \
     :acos,

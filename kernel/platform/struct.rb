@@ -1,5 +1,3 @@
-# depends on: ffi.rb
-
 module FFI
   ##
   # Represents a C struct as ruby class.

@@ -1,5 +1,3 @@
-# depends on: array.rb class.rb fixnum.rb
-
 class Dir
   include Enumerable
 

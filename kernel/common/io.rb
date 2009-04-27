@@ -1,5 +1,3 @@
-# depends on: class.rb
-
 class IO
 
   # Buffer provides a sliding window into a region of bytes.

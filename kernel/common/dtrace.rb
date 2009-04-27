@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 ##
 # Interface to the custom ruby dtrace(1) probe.
 

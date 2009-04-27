@@ -1,5 +1,3 @@
-# depends on: compiler.rb generator.rb bytecode.rb text.rb
-
 class Compiler::Node
 
   # Debug print for the AST

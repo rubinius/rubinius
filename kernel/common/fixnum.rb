@@ -1,5 +1,3 @@
-# depends on: integer.rb class.rb
-
 ##
 #--
 # NOTE do not define to_sym or id2name. It's been deprecated for 5 years and

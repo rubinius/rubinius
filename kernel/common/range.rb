@@ -1,5 +1,3 @@
-# depends on: class.rb enumerable.rb
-
 ##
 # A Range represents an interval, a set of values with a start and an end.
 #

@@ -1,79 +1,5 @@
 # All the tasks to manage the kernel
 
-# Some files have load order dependencies. To specify a load order
-# dependency, include a comment in the file that has the dependency.
-# For example, assume files a.rb and b.rb, where a.rb requires that
-# b.rb is loaded first. In a.rb, include a comment
-#   # depends on: b.rb
-#
-# The 'depends on:' declaration takes a space separated list of file.
-# When the 'load_order.txt' file is created, a topological sort
-# (see name caveat in TSort) of the dependencies is performed
-# so files that are depended on are loaded first.
-#
-# If there is a 'depends on:' declarations for a non-existent file,
-# or if there are cyclic dependencies, this method will not create
-# the 'load_order.txt' file.
-
-require 'tsort'
-
-class Hash
-  include TSort
-
-  # This keeps things consistent across all platforms
-  def tsort_each_node(&block)
-    keys.sort.each(&block)
-  end
-
-  def tsort_each_child(node, &block)
-    fetch(node).each(&block)
-  end
-end
-
-def create_load_order(files, output="load_order.txt")
-  d = Hash.new { |h,k| h[k] = [] }
-
-  # assume all the files are in the same directory
-  dir = File.dirname(files.first)
-  found = false
-  files.each do |fname|
-    name = File.basename(fname)
-    # Force every entry to be in the hash
-    d[name]
-    File.open(File.join(dir, name), "r") do |f|
-      f.each do |line|
-        if m = /#\s*depends on:\s*(.*)/.match(line)
-          found = true
-          m[1].split.each { |dep| d[name] << dep }
-        end
-      end
-    end
-  end
-
-  puts "Generating #{output}..." if $verbose
-
-  File.open(output, "w") do |f|
-    begin
-      if found
-        list = d.tsort
-      else
-        list = files.sort
-      end
-
-      list.each do |n|
-        f.puts File.basename(n, ".*") + ".rbc"
-      end
-    rescue IndexError => e
-      puts "Unable to generate 'load_order.txt'"
-      puts "Most likely, a file includes a 'depends on:' declaration for a non-existent file"
-      raise e
-    rescue TSort::Cyclic => e
-      puts "Unable to generate 'load_order.txt' due to a cyclic dependency\n  (#{e.message})"
-      raise e
-    end
-  end
-end
-
 require 'lib/compiler/mri_compile'
 
 def compile_ruby(src, rbc, check_mtime = false, kernel = false)
@@ -184,8 +110,7 @@ namespace :kernel do
 
   task :build => ['kernel:check_compiler'] + kernel + extra_compiler do
     subdirs.each do |subdir|
-      files = Dir["kernel/#{subdir}/*.rb"]
-      create_load_order files, "runtime/#{subdir}/load_order.txt"
+      cp "kernel/#{subdir}/load_order.txt", "runtime/#{subdir}/load_order.txt"
     end
   end
 

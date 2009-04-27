@@ -1,5 +1,3 @@
-# depends on: class.rb enumerable.rb
-
 ##
 # The virtual concatenation file of the files given on command line (or from
 # $stdin if no files were given).

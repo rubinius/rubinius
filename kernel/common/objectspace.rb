@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 module ObjectSpace
 
   # @todo rewrite each_object

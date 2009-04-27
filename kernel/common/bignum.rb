@@ -1,5 +1,3 @@
-# depends on: class.rb integer.rb
-
 ##
 # Bignum objects hold integers outside the range of Fixnum. Bignum objects are
 # created automatically when integer calculations would otherwise overflow a

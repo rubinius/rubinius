@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 module Precision
   def prec(klass)
     klass.induced_from(self)

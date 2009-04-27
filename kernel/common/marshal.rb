@@ -1,5 +1,3 @@
-# depends on: module.rb class.rb
-
 class Object
   def to_marshal(ms, strip_ivars = false)
     out = ms.serialize_extended_object self

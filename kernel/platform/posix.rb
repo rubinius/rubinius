@@ -1,5 +1,3 @@
-# depends on: library.rb
-
 ##
 # Namespace for various POSIX functions.
 

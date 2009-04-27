@@ -1,5 +1,3 @@
-# depends on: class.rb numeric.rb ctype.rb precision.rb
-
 class Integer < Numeric
   include CType
   include Precision

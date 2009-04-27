@@ -1,5 +1,3 @@
-# depends on: kernel.rb module.rb
-
 ##
 # Mixin used to identify classes which have no memory storage.
 

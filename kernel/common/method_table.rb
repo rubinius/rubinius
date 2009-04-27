@@ -1,5 +1,3 @@
-# depends on: class.rb
-
 ##
 # Holds Executables for lookup by the VM.
 #

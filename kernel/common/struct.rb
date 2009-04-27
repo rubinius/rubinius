@@ -1,5 +1,3 @@
-# depends on: class.rb enumerable.rb hash.rb
-
 class Struct
 
   include Enumerable

@@ -1,5 +1,3 @@
-# depends on: compiler.rb execute.rb
-
 class Compiler
 
   ##

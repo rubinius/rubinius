@@ -1,5 +1,3 @@
-# depends on: class.rb
-
 class ThreadGroup
   def initialize
     @threads = []

@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 ##
 # Mixin containing byte classification methods.
 #--

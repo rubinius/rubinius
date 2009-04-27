@@ -1,5 +1,3 @@
-# depends on: stats.rb
-
 module Rubinius
   module Profiler
 

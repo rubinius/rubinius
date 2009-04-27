@@ -1,5 +1,3 @@
-# depends on: iseq.rb compiler.rb
-
 class Compiler
 
   ##

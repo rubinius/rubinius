@@ -1,5 +1,3 @@
-# depends on: class.rb hash.rb argf.rb
-
 ##
 # Stores global variables and global variable aliases.
 

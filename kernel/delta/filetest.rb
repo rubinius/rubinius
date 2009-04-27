@@ -1,4 +1,3 @@
-# depends on: module.rb
 module FileTest
   module_function :blockdev?,
                   :chardev?,

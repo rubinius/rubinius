@@ -1,5 +1,3 @@
-# depends on: comparable.rb class.rb module.rb
-
 #--
 # _load
 # parse

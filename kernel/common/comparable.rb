@@ -1,5 +1,3 @@
-# depends on: module.rb
-
 ##
 # The Comparable mixin is used by classes whose objects may be ordered. The
 # class must define the <tt><=></tt> (spaceship) operator, which compares the

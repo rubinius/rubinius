@@ -1,5 +1,3 @@
-# depends on: compiler.rb node.rb
-
 class Compiler
   class Node
 
