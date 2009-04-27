@@ -1441,6 +1441,11 @@ class Instructions
       ret = env->call(state, call_frame, count);
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->yield(state, call_frame, count);
+    } else if(t1->nil_p()) {
+      Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      ret = NULL;
     } else {
       Arguments args(t1, count, call_frame->stack_back_position(count));
       Dispatch dis(G(sym_call));
@@ -1471,6 +1476,11 @@ class Instructions
       ret = env->call(state, call_frame, args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
       ret = proc->yield(state, call_frame, args);
+    } else if(t1->nil_p()) {
+      Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      ret = NULL;
     } else {
       Dispatch dis(G(sym_call));
       ret = dis.send(state, call_frame, args);

@@ -36,10 +36,6 @@ end
 
 class NilClass
   alias_method :|, :^
-
-  def call(*a)
-    raise LocalJumpError, "no block given or not callable"
-  end
 end
 
 NIL = nil
