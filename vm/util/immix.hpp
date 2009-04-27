@@ -278,7 +278,7 @@ namespace immix {
       , base_(0)
     {
       base_ = mmap(0, cChunkSize, PROT_EXEC | PROT_READ | PROT_WRITE,
-           MAP_ANON | MAP_PRIVATE, 0, 0);
+           MAP_ANON | MAP_PRIVATE, -1, 0);
 
       if(base_.as_int() == -1) {
         perror("mmap");
@@ -294,7 +294,7 @@ namespace immix {
 
         system_size_ = cChunkSize + cBlockSize;
         system_base_ = mmap(0, system_size_, PROT_EXEC | PROT_READ | PROT_WRITE,
-            MAP_ANON | MAP_PRIVATE, 0, 0);
+            MAP_ANON | MAP_PRIVATE, -1, 0);
 
         base_ = Block::align(system_base_ + cBlockSize);
       }
