@@ -56,6 +56,7 @@ class Backtrace
       first = false # special handling for first line
       times = max - recv.size
       times = 0 if times < 0
+      pos = "...#{pos[pos.size-max-3..-1]}" if pos.size > max
       "#{color}    #{' ' * times}#{recv} at #{pos}#{clear}"
     end
     return formatted.join(sep)
