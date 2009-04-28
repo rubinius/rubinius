@@ -49,12 +49,29 @@ module Rubinius
 
     ##
     # Place in the source that this method was created at.
-    def position
+    def position(relative_to=nil)
       l = line()
-      if l == 0
-        "#{@method.file}+#{@ip-1}"
+      if relative_to
+        # Be sure we can bail out if something doesn't work and still
+        # show something.
+        begin
+          full = File.expand_path @method.file.to_s
+          if full.prefix? relative_to
+            file = full[relative_to.size+1..-1]
+          else
+            file = @method.file
+          end
+        rescue Object => e
+          file = @method.file
+        end
       else
-        "#{@method.file}:#{l}"
+        file = @method.file
+      end
+
+      if l == 0
+        "#{file}+#{@ip-1}"
+      else
+        "#{file}:#{l}"
       end
     end
 

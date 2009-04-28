@@ -4,7 +4,7 @@
 class Backtrace
   include Enumerable
 
-  MAX_WIDTH = 40
+  MAX_WIDTH = 36
 
   attr_accessor :first_color
   attr_accessor :kernel_color
@@ -50,16 +50,56 @@ class Backtrace
     end
     max = MAX_WIDTH if max > MAX_WIDTH
 
-    formatted = lines.map do |recv, location|
-      pos  = location.position
+    str = ""
+    lines.map do |recv, location|
+      pos  = location.position(Dir.getwd)
       color = color_from_loc(pos, first) if @colorize
       first = false # special handling for first line
       times = max - recv.size
       times = 0 if times < 0
-      pos = "...#{pos[pos.size-max-3..-1]}" if pos.size > max
-      "#{color}    #{' ' * times}#{recv} at #{pos}#{clear}"
+
+      # trim the path unless we're debugging.
+      #unless $DEBUG
+      #  pos = "...#{pos[pos.size-max-3..-1]}" if pos.size > max
+      #end
+
+      if pos.size > 40
+        start = "#{color} #{' ' * times}#{recv} at "
+        indent = start.size
+
+        new_pos = ""
+        bit = ""
+        parts = pos.split("/")
+        file = parts.pop
+
+        first = true
+        parts.each do |part|
+          bit << "/" unless first
+          first = false
+
+          if bit.size + part.size > max
+            new_pos << bit << "\n" << (' ' * indent)
+            bit = ""
+          end
+
+          bit << part
+        end
+
+        new_pos << bit
+        if bit.size + file.size > max
+          new_pos << "\n" << (' ' * indent)
+        end
+        new_pos << "/" << file
+        str << start
+        str << new_pos
+        str << clear
+      else
+        str << "#{color} #{' ' * times}#{recv} at #{pos}#{clear}"
+      end
+      str << sep
     end
-    return formatted.join(sep)
+
+    return str
   end
 
   def join(sep)
