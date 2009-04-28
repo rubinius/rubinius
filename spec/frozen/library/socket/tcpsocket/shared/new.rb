@@ -19,7 +19,7 @@ describe :tcpsocket_new, :shared => true do
       server.accept
       server.close
     end
-    Thread.pass until thread.status == 'sleep' or thread.status == nil
+    Thread.pass while thread.status and thread.status != 'sleep'
     thread.status.should_not be_nil
     lambda {
       sock = TCPSocket.new(@hostname, SocketSpecs.port)
@@ -34,7 +34,7 @@ describe :tcpsocket_new, :shared => true do
       server.accept
       server.close
     end
-    Thread.pass until thread.status == 'sleep' or thread.status == nil
+    Thread.pass while thread.status and thread.status != 'sleep'
     thread.status.should_not be_nil
     sock = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     sock.addr[0].should == "AF_INET"

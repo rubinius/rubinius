@@ -3,37 +3,42 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Thread#inspect" do
   it "can check it's own status" do
-    t = Thread.new { Thread.current.inspect }
-    t.value.should include('run')
+    ThreadSpecs.status_of_current_thread.inspect.should include('run')
+  end
+
+  it "describes a running thread" do
+    ThreadSpecs.status_of_running_thread.inspect.should include('run')
   end
 
   it "describes a sleeping thread" do
-    c = Channel.new
-    t = Thread.new do
-      sleep
-      c << Thread.current.inspect
-      sleep
-    end
+    ThreadSpecs.status_of_sleeping_thread.inspect.should include('sleep')
+  end
 
-    Thread.pass until t.status == 'sleep'
-    t.inspect.should include('sleep')
-    t.run
-    c.receive.should include('run')
-    Thread.pass until t.status == 'sleep'
-    t.inspect.should include('sleep')
-    t.run
-    t.join
-    t.inspect.should include('dead')
+  it "describes a blocked thread" do
+    ThreadSpecs.status_of_blocked_thread.inspect.should include('sleep')
+  end
+
+  it "describes a completed thread" do
+    ThreadSpecs.status_of_completed_thread.inspect.should include('dead')
+  end
+
+  it "describes a killed thread" do
+    ThreadSpecs.status_of_killed_thread.inspect.should include('dead')
+  end
+
+  it "describes a thread with an uncaught exception" do
+    ThreadSpecs.status_of_thread_with_uncaught_exception.inspect.should include('dead')
+  end
+
+  it "describes a dying running thread" do
+    ThreadSpecs.status_of_dying_running_thread.inspect.should include('aborting')
+  end
+
+  it "describes a dying sleeping thread" do
+    ThreadSpecs.status_of_dying_sleeping_thread.status.should include('sleep')
   end
 
   it "reports aborting on a killed thread" do
-    c = Channel.new
-    t = Thread.new { c << Thread.current.inspect; Thread.stop }
-    c.receive.should include('run')
-    t.inspect.should include('sleep')
-    Thread.critical = true
-    t.kill
-    t.inspect.should include('aborting')
-    Thread.critical = false
+    ThreadSpecs.status_of_aborting_thread.inspect.should include('aborting')
   end
 end

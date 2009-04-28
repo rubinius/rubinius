@@ -19,7 +19,7 @@ describe "Mutex#lock" do
       v = 1
     end
 
-    Thread.pass until th.status == "sleep"
+    Thread.pass while th.status and th.status != "sleep"
 
     v.should == 0
     m.unlock

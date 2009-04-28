@@ -2,19 +2,43 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Thread#alive?" do
-  it "returns true as long as the thread is alive" do
-    c = Channel.new
-    t = Thread.new { c.receive }
-    begin
-      t.alive?.should == true
-    ensure
-      c << nil
-    end
+  it "can check it's own status" do
+    ThreadSpecs.status_of_current_thread.alive?.should == true
   end
 
-  it "returns false when the thread is finished" do
-    t = Thread.new { }
-    t.join
-    t.alive?.should == false
+  it "describes a running thread" do
+    ThreadSpecs.status_of_running_thread.alive?.should == true
+  end
+
+  it "describes a sleeping thread" do
+    ThreadSpecs.status_of_sleeping_thread.alive?.should == true
+  end
+
+  it "describes a blocked thread" do
+    ThreadSpecs.status_of_blocked_thread.alive?.should == true
+  end
+
+  it "describes a completed thread" do
+    ThreadSpecs.status_of_completed_thread.alive?.should == false
+  end
+
+  it "describes a killed thread" do
+    ThreadSpecs.status_of_killed_thread.alive?.should == false
+  end
+
+  it "describes a thread with an uncaught exception" do
+    ThreadSpecs.status_of_thread_with_uncaught_exception.alive?.should == false
+  end
+
+  it "describes a dying running thread" do
+    ThreadSpecs.status_of_dying_running_thread.alive?.should == true
+  end
+
+  it "describes a dying sleeping thread" do
+    ThreadSpecs.status_of_dying_sleeping_thread.alive?.should == true
+  end
+
+  it "reports aborting on a killed thread" do
+    ThreadSpecs.status_of_aborting_thread.alive?.should == true
   end
 end

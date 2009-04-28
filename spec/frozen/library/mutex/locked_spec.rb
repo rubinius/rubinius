@@ -24,7 +24,7 @@ describe "Mutex#locked?" do
       m2.lock
     end
 
-    Thread.pass until th.status == "sleep"
+    Thread.pass while th.status and th.status != "sleep"
 
     m1.locked?.should be_true
     m2.unlock # release th

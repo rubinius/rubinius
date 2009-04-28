@@ -19,7 +19,7 @@ describe "BasicSocket#recv" do
       data = client.recv(10)
       client.close
     end
-    Thread.pass until t.status == "sleep" or t.status == nil
+    Thread.pass while t.status and t.status != "sleep"
     t.status.should_not be_nil
 
     socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
@@ -37,7 +37,7 @@ describe "BasicSocket#recv" do
       data = client.recv(10)    # in-band data (TCP), doesn't receive the flag.
       client.close
     end
-    Thread.pass until t.status == "sleep" or t.status == nil
+    Thread.pass while t.status and t.status != "sleep"
     t.status.should_not be_nil
     
     socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)

@@ -17,7 +17,7 @@ describe "ConditionVariable#signal" do
     end
 
     # ensures that th grabs m before current thread
-    Thread.pass until th.status == "sleep"
+    Thread.pass while th.status and th.status != "sleep"
 
     m.synchronize { cv.signal }.should == cv
 

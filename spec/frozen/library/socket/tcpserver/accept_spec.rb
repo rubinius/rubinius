@@ -20,7 +20,7 @@ describe "TCPServer#accept" do
       client << "goodbye"
       client.close
     end
-    Thread.pass until t.status == "sleep"
+    Thread.pass while t.status and t.status != "sleep"
     
     socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     socket.write('hello')
@@ -33,7 +33,7 @@ describe "TCPServer#accept" do
   it "can be interrupted by Thread#kill" do
     t = Thread.new { @server.accept }
 
-    Thread.pass until t.status == "sleep"
+    Thread.pass while t.status and t.status != "sleep"
 
     # kill thread, ensure it dies in a reasonable amount of time
     t.kill
@@ -49,7 +49,7 @@ describe "TCPServer#accept" do
   it "can be interrupted by Thread#raise" do
     t = Thread.new { @server.accept }
 
-    Thread.pass until t.status == "sleep"
+    Thread.pass while t.status and t.status != "sleep"
 
     # raise in thread, ensure the raise happens
     ex = Exception.new

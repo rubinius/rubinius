@@ -16,7 +16,7 @@ describe "Mutex#synchronize" do
       end.should raise_error(Exception)
     end
 
-    Thread.pass until th.status == "sleep"
+    Thread.pass while th.status and th.status != "sleep"
 
     m1.locked?.should be_true
     m2.unlock

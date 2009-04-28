@@ -32,7 +32,7 @@ platform_is_not :windows do
       t = Thread.new {
         server.accept
       }
-      Thread.pass until t.status == "sleep"
+      Thread.pass while t.status and t.status != "sleep"
 
       # kill thread, ensure it dies in a reasonable amount of time
       t.kill
@@ -51,7 +51,7 @@ platform_is_not :windows do
       t = Thread.new {
         server.accept
       }
-      Thread.pass until t.status == "sleep"
+      Thread.pass while t.status and t.status != "sleep"
 
       # raise in thread, ensure the raise happens
       ex = Exception.new

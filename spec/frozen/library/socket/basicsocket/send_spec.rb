@@ -22,7 +22,7 @@ describe "BasicSocket#send" do
        data = client.recv(5)
        client.close
      end
-     Thread.pass until t.status == "sleep" or t.status == nil
+     Thread.pass while t.status and t.status != "sleep"
      t.status.should_not be_nil
 
      @socket.send('hello', 0).should == 5
@@ -40,7 +40,7 @@ describe "BasicSocket#send" do
        data = client.recv(6)
        client.close
      end
-     Thread.pass until t.status == "sleep" or t.status == nil
+     Thread.pass while t.status and t.status != "sleep"
      t.status.should_not be_nil
 
      @socket.send('helloU', Socket::MSG_PEEK | Socket::MSG_OOB).should == 6
@@ -57,7 +57,7 @@ describe "BasicSocket#send" do
        data = client.recv(5)
        client.close
      end
-     Thread.pass until t.status == "sleep" or t.status == nil
+     Thread.pass while t.status and t.status != "sleep"
      t.status.should_not be_nil
 
      sockaddr = Socket.pack_sockaddr_in(SocketSpecs.port, "127.0.0.1")
