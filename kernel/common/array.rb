@@ -335,6 +335,7 @@ class Array
   # and length is only checked if the former results in 0's.
   def <=>(other)
     other = Type.coerce_to other, Array, :to_ary
+    return 0 if equal? other
 
     RecursionGuard.inspect(self) do
       i = 0
@@ -367,7 +368,7 @@ class Array
     return true if equal?(other)
     unless other.kind_of? Array
       return false unless other.respond_to? :to_ary
-      other = other.to_ary
+      return other == self
     end
 
     return false unless size == other.size
