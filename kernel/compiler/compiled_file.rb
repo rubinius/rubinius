@@ -24,6 +24,8 @@ module Rubinius
     # CompiledFile object.
 
     def self.load(stream)
+      raise IOError, "attempted to load nil stream" unless stream
+
       magic = stream.gets.strip
       version = Integer(stream.gets.strip)
       sum = stream.gets.strip

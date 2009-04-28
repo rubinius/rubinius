@@ -105,7 +105,7 @@ class Compiler
                else
                  data = Ar.new(dir).extract rbc
                  # HACK check version
-                 Rubinius::CompiledFile.load(data).body
+                 Rubinius::CompiledFile.load(data).body if data
                end
 
           if cm
