@@ -105,6 +105,7 @@ namespace rubinius {
     TypedRoot<Class*> location;
     TypedRoot<Exception*> stack_error;
     TypedRoot<Class*> jump_error;
+    TypedRoot<Class*> exc_vm_internal;
 
     /* Add new globals above this line. */
 
@@ -213,7 +214,8 @@ namespace rubinius {
       variable_scope(&roots),
       location(&roots),
       stack_error(&roots),
-      jump_error(&roots)
+      jump_error(&roots),
+      exc_vm_internal(&roots)
 
       /* Add initialize of globals above this line. */
     { }

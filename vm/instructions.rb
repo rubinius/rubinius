@@ -2051,11 +2051,9 @@ class Instructions
     <<-CODE
       Object* top = stack_pop();
       if(top->nil_p()) {
-        if(state->thread_state()->raise_reason() == cException) {
-          state->thread_state()->clear_exception();
-        }
+        state->thread_state()->clear_exception();
       } else {
-        state->thread_state()->set_exception(top);
+        state->thread_state()->set_exception(state, top);
       }
     CODE
   end
@@ -2369,11 +2367,7 @@ class Instructions
 
   def push_exception
     <<-CODE
-    if(state->thread_state()->raise_reason() == cNone) {
-      stack_push(Qnil);
-    } else {
-      stack_push(state->thread_state()->raise_value());
-    }
+    stack_push(state->thread_state()->as_object(state));
     CODE
   end
 

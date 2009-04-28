@@ -212,10 +212,7 @@ namespace rubinius {
     return name;
   }
 
-  /** @todo Double-check it is OK to drop the first frame, which
-   *        /should/ be the #raise. --rue
-   *
-   *  @todo Could possibly capture the system backtrace at this
+   /*  @todo Could possibly capture the system backtrace at this
    *        point. --rue
    */
   Array* System::vm_backtrace(VM* state, Fixnum* skip, CallFrame* calling_environment) {

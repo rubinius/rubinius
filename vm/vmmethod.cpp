@@ -648,8 +648,11 @@ namespace rubinius {
       try {
         return_value = (*vmm->run)(state, vmm, call_frame);
       } catch(TypeError& e) {
-        state->thread_state()->raise_exception(
-            Exception::make_type_error(state, e.type, e.object, e.reason));
+        Exception* exc =
+          Exception::make_type_error(state, e.type, e.object, e.reason);
+        exc->locations(state, System::vm_backtrace(state, 0, call_frame));
+
+        state->thread_state()->raise_exception(exc);
         return_value = 0;
       }
 

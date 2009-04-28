@@ -45,11 +45,8 @@ namespace rubinius {
       destination_scope_.set(Qnil);
     }
 
-    void set_exception(Object* obj) {
-      raise_value_.set(obj);
-      raise_reason_ = cException;
-      destination_scope_.set(Qnil);
-    }
+    Object* as_object(STATE);
+    void set_exception(STATE, Object* obj);
 
     void raise_exception(Exception* exc);
     void raise_return(Object* value, VariableScope* dest);
