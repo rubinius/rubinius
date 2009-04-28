@@ -27,7 +27,7 @@ static inline uint64_t get_current_time() {
     // error! Do something about it?
     return 0U;
   }
-  return tp.tv_sec * 1000000000UL + tp.tv_nsec;
+  return (uint64_t)tp.tv_sec * 1000000000UL + tp.tv_nsec;
 }
 
 #define TIMING_METHOD "clock_gettime"
@@ -43,7 +43,7 @@ static inline uint64_t get_current_time() {
     return 0U;
   }
 
-  return tv.tv_sec * 1000000000UL + tv.tv_usec * 1000L;
+  return (uint64_t)tv.tv_sec * 1000000000UL + tv.tv_usec * 1000L;
 }
 
 #define TIMING_METHOD "gettimeofday"
