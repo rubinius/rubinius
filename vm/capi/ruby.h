@@ -666,6 +666,9 @@ double rb_num2dbl(VALUE);
   /** Return object at index. Out-of-bounds access returns Qnil. */
   VALUE   rb_ary_entry(VALUE self_handle, int index);
 
+  /** Return Qtrue if the array includes the item. */
+  VALUE   rb_ary_includes(VALUE self, VALUE obj);
+
   /** Array#join. Returns String with all elements to_s, with optional separator String. */
   VALUE   rb_ary_join(VALUE self_handle, VALUE separator_handle);
 
@@ -974,6 +977,9 @@ double rb_num2dbl(VALUE);
    */
   VALUE rb_obj_clone(VALUE obj_handle);
 
+  /** Adds the module's instance methods to the object. */
+  void rb_extend_object(VALUE obj, VALUE mod);
+
   /** Call #inspect on an object. */
   VALUE rb_inspect(VALUE obj_handle);
 
@@ -1077,6 +1083,9 @@ double rb_num2dbl(VALUE);
 
   /** As Ruby's String#dup, returns copy of self as a new String. */
   VALUE   rb_str_dup(VALUE self_handle);
+
+  /** Returns a symbol created from this string. */
+  VALUE   rb_str_intern(VALUE self);
 
   /** Create a String using the designated length of given C string. */
   VALUE   rb_str_new(const char* string, size_t length);

@@ -148,6 +148,10 @@ VALUE string_spec_rb_str_resize(VALUE self, VALUE str, VALUE size) {
   return rb_str_resize(str, FIX2INT(size));
 }
 
+VALUE string_spec_rb_str_intern(VALUE self, VALUE str) {
+  return rb_str_intern(str);
+}
+
 void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
@@ -178,4 +182,5 @@ void Init_string_spec() {
       string_spec_RSTRING_ptr_assign_funcall, 1);
   rb_define_method(cls, "RSTRING_len", string_spec_RSTRING_len, 1);
   rb_define_method(cls, "StringValue", string_spec_StringValue, 1);
+  rb_define_method(cls, "rb_str_intern", string_spec_rb_str_intern, 1);
 }

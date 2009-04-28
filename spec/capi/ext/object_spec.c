@@ -114,6 +114,11 @@ VALUE object_spec_rb_special_const_p(VALUE self, VALUE value) {
   return rb_special_const_p(value);
 }
 
+VALUE object_spec_rb_extend_object(VALUE self, VALUE obj, VALUE mod) {
+  rb_extend_object(obj, mod);
+  return obj;
+}
+
 void Init_object_spec() {
   VALUE cls;
   cls = rb_define_class("CApiObjectSpecs", rb_cObject);
@@ -140,4 +145,5 @@ void Init_object_spec() {
   rb_define_method(cls, "rb_is_type_class", so_is_type_class, 1);
   rb_define_method(cls, "RTEST", object_spec_RTEST, 1);
   rb_define_method(cls, "rb_special_const_p", object_spec_rb_special_const_p, 1);
+  rb_define_method(cls, "rb_extend_object", object_spec_rb_extend_object, 2);
 }

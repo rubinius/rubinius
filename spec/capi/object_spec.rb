@@ -2,6 +2,8 @@ require File.dirname(__FILE__) + '/spec_helper'
 
 load_extension("object")
 
+# TODO: fix all these specs
+
 class CApiObjectSpecs
   class Alloc
     attr_reader :initialized, :arguments
@@ -201,6 +203,20 @@ describe "CApiObject" do
 
     it "returns false if passed an Object" do
       @o.rb_special_const_p(Object.new).should be_false
+    end
+  end
+
+  describe "rb_extend_object" do
+    it "add the module's instance methods to the object" do
+      module CApiObjectSpecs::Extend
+        def reach
+          :extended
+        end
+      end
+
+      obj = mock("extended object")
+      @o.rb_extend_object(obj, CApiObjectSpecs::Extend)
+      obj.reach.should == :extended
     end
   end
 end

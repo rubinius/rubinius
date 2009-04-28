@@ -199,6 +199,10 @@ extern "C" {
     return env->get_handle(self->string_dup(env->state()));
   }
 
+  VALUE rb_str_intern(VALUE self) {
+    return rb_funcall(self, rb_intern("to_sym"), 0);
+  }
+
   VALUE rb_str_new(const char* string, size_t length) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

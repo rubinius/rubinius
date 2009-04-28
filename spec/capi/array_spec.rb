@@ -191,4 +191,14 @@ describe "C-API Array function" do
       @s.rb_assoc_new(:h, [:a, :b]).should == [:h, [:a, :b]]
     end
   end
+
+  describe "rb_ary_includes" do
+    it "returns true if the array includes the element" do
+      @s.rb_ary_includes([1, 2, 3], 2).should be_true
+    end
+
+    it "returns false if the array does not include the element" do
+      @s.rb_ary_includes([1, 2, 3], 4).should be_false
+    end
+  end
 end

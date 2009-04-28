@@ -276,4 +276,8 @@ extern "C" {
     return RTEST(rb_funcall(obj_handle, rb_intern("respond_to?"),
           1, ID2SYM(method_name)));
   }
+
+  void rb_extend_object(VALUE obj, VALUE mod) {
+    rb_funcall(obj, rb_intern("extend"), 1, mod);
+  }
 }

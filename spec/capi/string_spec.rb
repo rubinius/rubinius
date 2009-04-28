@@ -233,4 +233,18 @@ describe "C-API String function" do
       str[0, 5].should == "test\x00"
     end
   end
+
+  describe "rb_str_intern" do
+    it "returns a symbol created from the string" do
+      @s.rb_str_intern("symbol").should == :symbol
+    end
+
+    it "raises an ArgumentError if passed an empty string" do
+      lambda { @s.rb_str_intern("") }.should raise_error(ArgumentError)
+    end
+
+    it "raises an ArgumentError if the passed string contains NULL characters" do
+      lambda { @s.rb_str_intern("no\0no") }.should raise_error(ArgumentError)
+    end
+  end
 end

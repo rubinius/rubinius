@@ -157,6 +157,10 @@ extern "C" {
     return env->get_handle(self->aref(env->state(), Fixnum::from(index)));
   }
 
+  VALUE rb_ary_includes(VALUE self, VALUE obj) {
+    return rb_funcall(self, rb_intern("include?"), 1, obj);
+  }
+
   VALUE rb_ary_join(VALUE self_handle, VALUE separator_handle) {
     return rb_funcall(self_handle, rb_intern("join"), 1, separator_handle);
   }
