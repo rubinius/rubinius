@@ -5,29 +5,31 @@ load_extension("thread")
 describe "CApiThreadSpecs" do
   before :each do
     @t = CApiThreadSpecs.new
+    ScratchPad.clear
   end
 
-  it "rb_thread_select tests an fd" do
-    read, write = IO.pipe
+  describe "rb_thread_select" do
+    it "returns true if an fd is ready to read" do
+      read, write = IO.pipe
 
-    @t.sf_read_ready(read.to_i).should == false
-    write << "1"
-    @t.sf_read_ready(read.to_i).should == true
-  end
-
-  it "rb_thread_select doesn't block all threads" do
-    val = nil
-    thr = Thread.new do
-      sleep 1
-      val = :inner
+      @t.rb_thread_select(read.to_i, 0).should == false
+      write << "1"
+      @t.rb_thread_select(read.to_i, 0).should == true
     end
 
-    @t.sf_sleep
+    it "does not block all threads" do
+      t = Thread.new do
+        sleep 0.25
+        ScratchPad.record :inner
+      end
+      Thread.pass while t.status and t.status != "sleep"
 
-    thr.alive?.should == false
-    val.should == :inner
+      @t.rb_thread_select(0, 500_000)
 
-    thr.join
+      t.alive?.should be_false
+      ScratchPad.recorded.should == :inner
+
+      t.join
+    end
   end
-
 end
