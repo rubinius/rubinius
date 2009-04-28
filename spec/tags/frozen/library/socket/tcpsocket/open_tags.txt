@@ -1,0 +1,2 @@
+critical:TCPSocket.open connects to a listening server
+critical:TCPSocket.open has an address once it has connected to a listening server

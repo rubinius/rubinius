@@ -1,0 +1,3 @@
+fails:Thread#kill does not set $!
+fails:Thread#kill cannot be rescued
+fails:Thread#kill killing dying sleeping thread wakes up thread

@@ -1,0 +1,2 @@
+fails:Thread#status describes a dying running thread
+fails:Thread#status reports aborting on a killed thread

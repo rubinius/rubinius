@@ -63,7 +63,7 @@ describe "Config::CONFIG" do
   it_has_keys 'Config::CONFIG', keys
 
   entries = {
-    "RUBY_SO_NAME"      => "rubinius-0.10.0",
+    "RUBY_SO_NAME"      => "rubinius-#{Rubinius::RBX_VERSION}",
     "ruby_install_name" => "rbx",
     "ruby_version"      => "1.8",
   }
@@ -95,10 +95,10 @@ describe "Config::MAKEFILE_CONFIG" do
     "mandir"             => "$(datarootdir)/man",
     "sitedir"            => "$(libdir)/ruby/site_ruby",
     "ruby_version"       => "$(MAJOR).$(MINOR)",
-    "rubylibdir"         => "$(libdir)/ruby/$(ruby_version)",
-    "archdir"            => "$(rubylibdir)/$(arch)",
-    "sitearchdir"        => "$(sitelibdir)/$(sitearch)",
-    "sitedir"            => "$(install_prefix)/lib/rubinius",
+    "rubylibdir"         => "#{Rubinius::RUBYLIBDIR}",
+    "archdir"            => "#{Rubinius::ARCHDIR}",
+    "sitearchdir"        => "#{Rubinius::SITEARCHDIR}",
+    "sitedir"            => "#{Rubinius::SITEDIR}",
     "rubyhdrdir"         => "#{Rubinius::HDR_PATH}"
   }
 

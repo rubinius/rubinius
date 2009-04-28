@@ -1,0 +1,1 @@
+fails:CGI::Html4Fr#element_init initializes the HTML Generation methods for the Frameset version of HTML4

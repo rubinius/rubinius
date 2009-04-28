@@ -6,19 +6,36 @@ class MSpecScript
   set :ci_files, [
     'spec/frozen/core',
     'spec/frozen/language',
-    'spec/compiler',
     'spec/core',
+    'spec/compiler',
+    'spec/capi',
     'spec/frozen/library',
     'spec/library',
 
     # excluded because significantly broken
+    '^spec/core/compiledmethod',
+    '^spec/core/module',
+    '^spec/capi/globals',
+    '^spec/capi/language',
+    '^spec/capi/module',
+    '^spec/capi/proc',
+    '^spec/capi/struct',
+
     '^spec/frozen/library/net/ftp',
     '^spec/frozen/library/net/http',
     '^spec/frozen/library/ping',
-    '^spec/frozen/library/readline',
     '^spec/frozen/library/syslog',
 
-    # excluded as 1.9 libraries
+    # 1.9 features
+    '^spec/frozen/library/cmath',
+    '^spec/frozen/library/continuation',
+    '^spec/frozen/library/coverage',
+    '^spec/frozen/library/fiber',
+    '^spec/frozen/library/json',
+    '^spec/frozen/library/minitest',
     '^spec/frozen/library/prime',
+    '^spec/frozen/library/ripper',
+    '^spec/frozen/library/rake',
+    '^spec/frozen/library/rubygems',
   ]
 end

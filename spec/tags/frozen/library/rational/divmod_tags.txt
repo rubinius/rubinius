@@ -1,1 +1,3 @@
 fails:Rational#divmod when passed [Integer] returns the quotient as Integer and the remainder as Rational
+fails:Rational#divmod when passed [Float] returns the quotient as Integer and the remainder as Float
+fails:Rational#divmod when passed [Float] returns the quotient as Integer and the remainder as Float

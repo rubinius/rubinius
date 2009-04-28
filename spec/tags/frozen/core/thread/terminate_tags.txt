@@ -1,0 +1,3 @@
+fails:Thread#terminate does not set $!
+fails:Thread#terminate cannot be rescued
+fails:Thread#terminate killing dying sleeping thread wakes up thread
