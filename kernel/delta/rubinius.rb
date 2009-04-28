@@ -1,5 +1,6 @@
 module Rubinius
   Terminal = STDIN.tty?
+  AtExit = []
 
   def self.open_class_under(name, sup, mod)
     unless mod.kind_of? Module
@@ -111,5 +112,9 @@ module Rubinius
     normalized = Type.coerce_to_symbol(name)
     writer_name = "#{normalized}=".to_sym
     add_method writer_name, AccessVariable.set_ivar(normalized), mod, vis
+  end
+
+  def self.received_signal(sig)
+    Signal.run_handler(sig)
   end
 end

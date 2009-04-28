@@ -61,7 +61,6 @@ struct.rbc
 process.rbc
 recursion_guard.rbc
 regexp.rbc
-rubinius.rbc
 selector.rbc
 signal.rbc
 sprintf.rbc

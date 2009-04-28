@@ -540,7 +540,7 @@ class IO
   #
   def initialize(fd, mode = nil)
     if block_given?
-      Rubinius.warn 'IO::new() does not take block; use IO::open() instead'
+      warn 'IO::new() does not take block; use IO::open() instead'
     end
     IO.setup self, Type.coerce_to(fd, Integer, :to_int), mode
   end
@@ -1350,7 +1350,7 @@ class IO
     if @ibuffer.write_synced?
       raise IOError unless @ibuffer.empty?
     else
-      Rubinius.warn 'sysseek for buffered IO'
+      warn 'sysseek for buffered IO'
     end
 
     amount = Integer(amount)
