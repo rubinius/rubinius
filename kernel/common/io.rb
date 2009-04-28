@@ -1,4 +1,9 @@
 class IO
+  # Import platform constants
+
+  SEEK_SET = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_SET']
+  SEEK_CUR = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_CUR']
+  SEEK_END = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_END']
 
   # Buffer provides a sliding window into a region of bytes.
   # The buffer is filled to the +used+ indicator, which is

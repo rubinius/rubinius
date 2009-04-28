@@ -1,1 +1,0 @@
-fails:Module#const_set raises a NameError if the name starts with a non-alphabetic character

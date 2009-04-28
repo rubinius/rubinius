@@ -1,3 +1,0 @@
-fails:Module.constants returns an array of the names of all toplevel constants
-fails:Module.constants returns an array of String names
-fails:Module#constants returns an array of String names of all constants defined in the moduleand all included modules

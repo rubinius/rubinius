@@ -64,7 +64,8 @@ namespace rubinius {
         res = mod->get_const(state, name, found);
         if(*found) return res;
 
-        if(mod == G(object)) break;
+        // Don't stop when you see Object, because we need to check any
+        // includes into Object as well, and they're found via superclass
         mod = mod->superclass();
       }
 

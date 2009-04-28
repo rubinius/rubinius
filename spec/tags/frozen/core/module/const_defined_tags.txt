@@ -1,2 +1,0 @@
-fails:Module#const_defined? returns false if the constant is not defined in the receiver
-fails:Module#const_defined? raises a NameError if the name starts with a non-alphabetic character

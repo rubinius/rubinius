@@ -505,26 +505,29 @@ class Socket < BasicSocket
 
   end
 
-  class SockAddr_Un < FFI::Struct
-    config("rbx.platform.sockaddr_un", :sun_family, :sun_path)
+  # If we have the details to support unix sockets, do so.
+  if FFI.config("sockaddr_un.sun_family.offset") and Socket::Constants.const_defined?(:AF_UNIX)
+    class SockAddr_Un < FFI::Struct
+      config("rbx.platform.sockaddr_un", :sun_family, :sun_path)
 
-    def initialize(filename = nil)
-      maxfnsize = self.size - ( FFI.config("sockaddr_un.sun_family.size") + 1 )
+      def initialize(filename = nil)
+        maxfnsize = self.size - (FFI.config("sockaddr_un.sun_family.size") + 1)
 
-      if(filename && filename.length > maxfnsize )
-        raise ArgumentError, "too long unix socket path (max: #{fnsize}bytes)"
+        if filename and filename.length > maxfnsize
+          raise ArgumentError, "too long unix socket path (max: #{fnsize}bytes)"
+        end
+        @p = FFI::MemoryPointer.new self.size
+        if filename
+          @p.write_string( [Socket::AF_UNIX].pack("s") + filename )
+        end
+        super @p
       end
-      @p = FFI::MemoryPointer.new self.size
-      if filename
-        @p.write_string( [Socket::AF_UNIX].pack("s") + filename )
-      end
-      super(@p)
-    end
 
-    def to_s
-      @p.read_string(self.size)
+      def to_s
+        @p.read_string self.size
+      end
     end
-  end if (FFI.config("sockaddr_un.sun_family.offset") && Socket.const_defined?(:AF_UNIX))
+  end
 
   def self.getaddrinfo(host, service = nil, family = nil, socktype = nil,
                        protocol = nil, flags = nil)

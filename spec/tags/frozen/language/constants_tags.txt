@@ -1,3 +1,0 @@
-fails:Literal (A::X) constant resolution with statically assigned constants searches the superclass chain
-fails:Literal (A::X) constant resolution with statically assigned constants searches Object if a toplevel qualifier (::X) is given
-fails:Literal (A::X) constant resolution with dynamically assigned constants searches the superclass chain

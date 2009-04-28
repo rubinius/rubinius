@@ -22,10 +22,6 @@ class File < IO
     # O_ACCMODE is /undocumented/ for fcntl() on some platforms
     ACCMODE  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.O_ACCMODE']
 
-    SEEK_SET = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_SET']
-    SEEK_CUR = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_CUR']
-    SEEK_END = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_END']
-
     RDONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDONLY']
     WRONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_WRONLY']
     RDWR     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDWR']

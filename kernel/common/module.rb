@@ -446,27 +446,34 @@ class Module
   alias_method :class_exec, :module_exec
 
   def constants
-    constants = self.constants_table.keys
+    tbl = Rubinius::LookupTable.new
+
+    @constants.each do |name, val|
+      tbl[name] = true
+    end
+
     current = self.direct_superclass
 
-    while current != nil && current != Object
-      constants += current.constants_table.keys
+    while current and current != Object
+      current.constants_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+
       current = current.direct_superclass
     end
 
-    constants.map { |c| c.to_s }
+    # special case: Module.constants returns Object's constants
+    if self.equal? Module
+      Object.constant_table.each do |name, val|
+        tbl[name] = true unless tbl.has_key? name
+      end
+    end
+
+    tbl.keys.map { |c| c.to_s }
   end
 
   def const_defined?(name)
-    name = normalize_const_name(name)
-
-    current = self
-    while current
-      return true if current.constants_table.has_key?(name)
-      current = current.direct_superclass
-    end
-
-    return false
+    @constants.has_key? normalize_const_name(name)
   end
 
   # Check if a full constant path is defined, e.g. SomeModule::Something
@@ -755,7 +762,7 @@ class Module
   #++
 
   def valid_const_name?(name)
-    name.to_s =~ /^((::)?[A-Z]\w*)+$/ ? true : false
+    name.to_s =~ /^([A-Z]\w*)+$/ ? true : false
   end
 
   private :valid_const_name?
