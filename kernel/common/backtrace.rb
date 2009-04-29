@@ -28,6 +28,8 @@ class Backtrace
     @first_color = "\033[0;31m"
     @kernel_color = "\033[0;34m"
     @eval_color = "\033[0;33m"
+
+    @width = Rubinius::TERMINAL_WIDTH
   end
 
   def [](index)
@@ -63,8 +65,10 @@ class Backtrace
       #  pos = "...#{pos[pos.size-max-3..-1]}" if pos.size > max
       #end
 
-      if pos.size > 40
-        start = "#{color} #{' ' * times}#{recv} at "
+      start = " #{' ' * times}#{recv} at "
+      line_break = @width - start.size - 1
+
+      if pos.size >= line_break
         indent = start.size
 
         new_pos = ""
@@ -74,27 +78,27 @@ class Backtrace
 
         first = true
         parts.each do |part|
-          bit << "/" unless first
-          first = false
-
-          if bit.size + part.size > max
+          if bit.size + part.size > line_break
             new_pos << bit << "\n" << (' ' * indent)
             bit = ""
           end
 
+          bit << "/" unless first
+          first = false
           bit << part
         end
 
         new_pos << bit
-        if bit.size + file.size > max
+        if bit.size + file.size > line_break
           new_pos << "\n" << (' ' * indent)
         end
         new_pos << "/" << file
+        str << color
         str << start
         str << new_pos
         str << clear
       else
-        str << "#{color} #{' ' * times}#{recv} at #{pos}#{clear}"
+        str << "#{color} #{start}#{pos}#{clear}"
       end
       str << sep
     end

@@ -97,6 +97,18 @@ show_eval = false
 eval_code = nil
 script = nil
 
+width = 80
+if Rubinius::Terminal and !ENV['RBX_NO_COLS']
+  begin
+    `which tput &> /dev/null`
+    if $?.exitstatus == 0
+      width = `tput cols`.to_i
+    end
+  end
+end
+
+Rubinius.const_set 'TERMINAL_WIDTH', width
+
 begin
 
   script_debug_requested = false
