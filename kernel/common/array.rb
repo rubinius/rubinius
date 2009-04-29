@@ -337,12 +337,12 @@ class Array
     other = Type.coerce_to other, Array, :to_ary
     return 0 if equal? other
 
-    RecursionGuard.inspect(self) do
+    Thread.recursion_guard self do
       i = 0
       while(i < size)
         return 1 unless other.size > i
         curr = at(i)
-        if(RecursionGuard.inspecting?(curr))
+        if Thread.guarding? curr
           unless curr.equal?(other.at(i))
             return 1 if size > other.size
             return -1 if size < other.size
@@ -373,11 +373,11 @@ class Array
 
     return false unless size == other.size
 
-    RecursionGuard.inspect(self) do
+    Thread.recursion_guard self do
       i = 0
       while(i < size)
         curr = at(i)
-        if RecursionGuard.inspecting?(curr)
+        if Thread.guarding? curr
           return false unless curr.equal? other.at(i)
         else
           return false unless curr == other.at(i)
@@ -540,11 +540,11 @@ class Array
     return false unless other.kind_of?(Array)
     return false if @total != other.size
 
-    RecursionGuard.inspect(self) do
+    Thread.recursion_guard self do
       i = 0
       while(i < @total)
         curr = at(i)
-        if RecursionGuard.inspecting?(curr)
+        if Thread.guarding? curr
           return false unless curr.equal?(other.at(i))
         else
           return false unless curr.eql?(other.at(i))
@@ -697,11 +697,11 @@ class Array
     # it does work. It should be replaced with something much better, but I'm not sure
     # what level it belongs at.
     str = ""
-    RecursionGuard.inspect(self) do
+    Thread.recursion_guard self do
       i = 0
       while(i < @total)
         curr = at(i)
-        if RecursionGuard.inspecting?(curr)
+        if Thread.guarding? curr
           str.append curr.object_id.to_s
         else
           str.append curr.hash.to_s
@@ -775,10 +775,10 @@ class Array
   # Descends through contained Arrays, recursive ones
   # are indicated as [...].
   def inspect()
-    return "[...]" if RecursionGuard.inspecting?(self)
+    return "[...]" if Thread.guarding? self
 
     out = []
-    RecursionGuard.inspect(self) do
+    Thread.recursion_guard self do
       each { |o|
         out << o.inspect
       }
@@ -793,36 +793,29 @@ class Array
   # Arrays.
   def join(sep = nil, method = :to_s)
     return "" if @total == 0
-    sep ||= $,
-    begin
-      sep = sep.to_str
-    rescue NoMethodError
-      raise TypeError, "Cannot convert #{sep.inspect} to str"
-    end
+    return "[...]" if Thread.guarding? self
+    sep = sep ? StringValue(sep) : $,
 
     out = ""
     out.taint if sep.tainted? or self.tainted?
-    i = 0
-    while(i < @total)
-      elem = at(i)
-      out.append sep unless (i == 0)
+    Thread.recursion_guard self do
+      i = 0
+      while i < @total
+        elem = at(i)
 
-      if elem.kind_of?(Array)
-        if RecursionGuard.inspecting?(elem)
-          out.append "[...]"
+        out.append sep unless i == 0
+
+        if elem.kind_of?(Array)
+          out.append elem.join(sep, method)
         else
-          RecursionGuard.inspect(self) do
-            out.append elem.join(sep, method)
-          end
+          out.append elem.to_s
         end
-      else
-        # HACK use __send__
-        # out << elem.__send__(method)
-        out.append elem.to_s
-        out.taint if elem.tainted? and not out.tainted?
+
+        out.taint if elem.tainted?
+        i += 1
       end
-      i += 1
     end
+
     out
   end
 
@@ -1307,7 +1300,7 @@ class Array
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
   def recursively_flatten(array, out, recursive_placeholder = Undefined)
-    if RecursionGuard.inspecting?(array)
+    if Thread.guarding? array
       if recursive_placeholder.equal? Undefined
         raise ArgumentError, "tried to flatten recursive array"
       else
@@ -1319,7 +1312,7 @@ class Array
     ret = nil
     array.each { |o|
       if o.respond_to? :to_ary
-        RecursionGuard.inspect(array) do
+        Thread.recursion_guard array do
           ary = Type.coerce_to o, Array, :to_ary
           recursively_flatten(ary, out, recursive_placeholder)
           ret = self
@@ -1335,11 +1328,11 @@ class Array
   private :recursively_flatten
 
   def remove_outer_arrays(array=self)
-    if RecursionGuard.inspecting?(array)
+    if Thread.guarding? array
       array
     elsif array.size == 1 && array.first.kind_of?(Array)
       new_array = nil
-      RecursionGuard.inspect(array) do
+      Thread.recursion_guard array do
         new_array = remove_outer_arrays(array.first)
       end
       new_array

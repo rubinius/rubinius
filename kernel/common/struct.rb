@@ -122,10 +122,10 @@ class Struct
     return false if (self.values.size != other.values.size)
     
     self.values.size.times { |i|
-      next if (RecursionGuard.inspecting?(self.values.at(i)))
-      next if (RecursionGuard.inspecting?(other.values.at(i)))
-      RecursionGuard.inspect(self.values.at(i)) do
-        RecursionGuard.inspect(other.values.at(i)) do
+      next if Thread.guarding? self.values.at(i)
+      next if Thread.guarding? other.values.at(i)
+      Thread.recursion_guard self.values.at(i) do
+        Thread.recursion_guard other.values.at(i) do
           return false if (self.values.at(i) != other.values.at(i))
         end
       end
@@ -368,9 +368,9 @@ class Struct
   # Describe the contents of this struct in a string.
 
   def to_s
-    return "[...]" if RecursionGuard.inspecting?(self)
+    return "[...]" if Thread.guarding? self
   
-    RecursionGuard.inspect(self) do
+    Thread.recursion_guard self do
       "#<struct #{self.class.name} #{_attrs.zip(self.to_a).map{|o| o[1] = o[1].inspect; o.join('=')}.join(', ') }>"
     end
   end

@@ -6,6 +6,8 @@
 
 class Thread
 
+  attr_reader :recursive_objects
+
   class Die < Exception; end # HACK
 
   @abort_on_exception = false
@@ -256,6 +258,22 @@ class Thread
   end
 
   alias_method :run, :wakeup
+
+  def self.recursion_guard(obj)
+    id = obj.object_id
+    objects = current.recursive_objects
+    objects[id] = true
+
+    begin
+      yield
+    ensure
+      objects.delete id
+    end
+  end
+
+  def self.guarding?(obj)
+    current.recursive_objects[obj.object_id]
+  end
 
   class Context
     attr_reader :ip

@@ -59,7 +59,6 @@ range.rbc
 pack.rbc
 struct.rbc
 process.rbc
-recursion_guard.rbc
 regexp.rbc
 selector.rbc
 signal.rbc

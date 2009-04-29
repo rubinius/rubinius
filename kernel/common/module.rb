@@ -524,9 +524,9 @@ class Module
   # userland.
 
   def clear_associations(name)
-    return if RecursionGuard.inspecting?(self)
+    return if Thread.guarding? self
 
-    RecursionGuard.inspect(self) do
+    Thread.recursion_guard self do
       if assoc = @constants[name]
         assoc.active = false
         @constants[name] = Rubinius::LookupTable::Association.new(name, assoc.value)

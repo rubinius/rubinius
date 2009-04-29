@@ -33,6 +33,29 @@ namespace rubinius {
    *  @see  vm/util/thread.hpp
    */
   class Thread : public Object {
+  private:  /* Instance vars */
+
+    /** Thread is created and valid and not yet done? */
+    Object* alive_;        // slot
+
+    /** Thread is currently sleeping and not running? */
+    Object* sleep_;        // slot
+
+    Channel* control_channel_; // slot
+
+    LookupTable* recursive_objects_;  // slot
+
+    /**
+     *  Actual OS backend thread associated with this Thread.
+     *
+     *  @see Thread::fork()
+     */
+    NativeThread* native_thread_;
+
+    /** The VM object for this thread's state. */
+    VM*           vm;
+
+
   public:
     const static object_type type = ThreadType;
 
@@ -49,6 +72,9 @@ namespace rubinius {
     attr_accessor(sleep, Object);
 
     attr_accessor(control_channel, Channel);
+
+    /** LookupTable of objects that contain themselves. */
+    attr_accessor(recursive_objects, LookupTable);
 
     /** OS thread associated with this Thread, if any. */
     NativeThread* native_thread();
@@ -179,27 +205,6 @@ namespace rubinius {
      *  @see  NativeThread::perform()
      */
     void detach_native_thread();
-
-
-  private:  /* Instance vars */
-
-    /** Thread is created and valid and not yet done? */
-    Object* alive_;        // slot
-
-    /** Thread is currently sleeping and not running? */
-    Object* sleep_;        // slot
-
-    Channel* control_channel_; // slot
-
-    /**
-     *  Actual OS backend thread associated with this Thread.
-     *
-     *  @see Thread::fork()
-     */
-    NativeThread* native_thread_;
-
-    /** The VM object for this thread's state. */
-    VM*           vm;
 
 
   public:   /* TypeInfo */

@@ -204,10 +204,10 @@ class Hash
 
   def inspect
     # recursively_inspect
-    return '{...}' if RecursionGuard.inspecting?(self)
+    return '{...}' if Thread.guarding? self
 
     out = []
-    RecursionGuard.inspect(self) do
+    Thread.recursion_guard self do
       each_item do |key, value|
         str =  key.inspect
         str << '=>'

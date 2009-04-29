@@ -1,4 +1,5 @@
 #include "builtin/thread.hpp"
+#include "builtin/lookuptable.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/list.hpp"
 #include "builtin/class.hpp"
@@ -35,6 +36,7 @@ namespace rubinius {
     thr->alive(state, Qtrue);
     thr->sleep(state, Qfalse);
     thr->control_channel(state, (Channel*)Qnil);
+    thr->recursive_objects(state, LookupTable::create(state));
 
     target->thread.set(thr);
     thr->vm = target;

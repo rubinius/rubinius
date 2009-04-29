@@ -420,14 +420,14 @@ module Kernel
   end
 
   def inspect
-    return "..." if RecursionGuard.inspecting? self
+    return "..." if Thread.guarding? self
 
     ivars = instance_variables
 
     prefix = "#{self.class}:0x#{self.__id__.to_s(16)}"
     parts = []
 
-    RecursionGuard.inspect self do
+    Thread.recursion_guard self do
       ivars.each do |var|
         parts << "#{var}=#{instance_variable_get(var).inspect}"
       end

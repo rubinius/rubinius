@@ -237,12 +237,12 @@ class StringIO
       args.each do |arg|
         if arg.nil?
           line = "nil"
-        elsif RecursionGuard.inspecting?(arg)
+        elsif Thread.guarding? arg
           line = "[...]"
         else
           begin
             arg = Type.coerce_to(arg, Array, :to_ary)
-            RecursionGuard.inspect(arg) do
+            Thread.recursion_guard arg do
               arg.each { |a| self.puts a }
             end
             next

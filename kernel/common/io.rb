@@ -960,10 +960,10 @@ class IO
       args.each do |arg|
         if arg.nil?
           str = "nil"
-        elsif RecursionGuard.inspecting?(arg)
+        elsif Thread.guarding? arg
           str = "[...]"
         elsif arg.kind_of?(Array)
-          RecursionGuard.inspect(arg) do
+          Thread.recursion_guard arg do
             arg.each do |a|
               puts a
             end
