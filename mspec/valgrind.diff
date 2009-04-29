@@ -1,0 +1,24 @@
+diff --git a/mspec/lib/mspec/commands/mspec.rb b/mspec/lib/mspec/commands/mspec.rb
+index 6770dce..87d6bbf 100644
+--- a/mspec/lib/mspec/commands/mspec.rb
++++ b/mspec/lib/mspec/commands/mspec.rb
+@@ -39,7 +39,7 @@ class MSpecMain < MSpecScript
+       config[:flags] << '--gdb'
+     end
+     options.on("-A", "--valgrind", "Run under valgrind") do
+-      config[:flags] << '--valgrind'
++      config[:valgrind] = true
+     end
+     options.on("--warnings", "Don't supress warnings") do
+       config[:flags] << '-w'
+@@ -149,6 +149,9 @@ class MSpecMain < MSpecScript
+ 
+     if config[:multi] and config[:command] == "ci"
+       multi_exec argv
++    elsif config[:valgrind]
++      argv.unshift config[:target]
++      exec 'valgrind', *argv
+     else
+       exec config[:target], *argv
+     end
+

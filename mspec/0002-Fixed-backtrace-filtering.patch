@@ -1,0 +1,124 @@
+From 4a1dcb3175a35b5c30ab0613632d25ad84d6ad11 Mon Sep 17 00:00:00 2001
+From: Brian Ford <bford@engineyard.com>
+Date: Wed, 29 Apr 2009 14:10:20 -0700
+Subject: [PATCH 2/3] Fixed backtrace filtering.
+
+Set the config option :backtrace_filter to a regexp of the
+paths to filter out of the backtrace. Pass -d to mspec-run,
+mspec-tag, or mspec-ci to NOT filter backtraces.
+---
+ lib/mspec/runner.rb           |    1 +
+ lib/mspec/runner/exception.rb |    7 ++++---
+ spec/expectations/should.rb   |    1 +
+ spec/runner/exception_spec.rb |   27 +++++++++++++++++----------
+ 4 files changed, 23 insertions(+), 13 deletions(-)
+
+diff --git a/lib/mspec/runner.rb b/lib/mspec/runner.rb
+index 1485626..541ec38 100644
+--- a/lib/mspec/runner.rb
++++ b/lib/mspec/runner.rb
+@@ -2,6 +2,7 @@ require 'mspec/mocks'
+ require 'mspec/runner/mspec'
+ require 'mspec/runner/context'
+ require 'mspec/runner/example'
++require 'mspec/runner/exception'
+ require 'mspec/runner/object'
+ require 'mspec/runner/formatters'
+ require 'mspec/runner/actions'
+diff --git a/lib/mspec/runner/exception.rb b/lib/mspec/runner/exception.rb
+index acc07de..a673624 100644
+--- a/lib/mspec/runner/exception.rb
++++ b/lib/mspec/runner/exception.rb
+@@ -1,8 +1,6 @@
+ class ExceptionState
+   attr_reader :description, :describe, :it, :exception
+ 
+-  PATH = /#{File.expand_path(File.dirname(__FILE__) + '/../../..')}/
+-
+   def initialize(state, location, exception)
+     @exception = exception
+ 
+@@ -33,11 +31,14 @@ class ExceptionState
+   end
+ 
+   def backtrace
++    @backtrace_filter ||= MSpecScript.config[:backtrace_filter]
++
+     begin
+       bt = @exception.awesome_backtrace.show.split "\n"
+     rescue Exception
+       bt = @exception.backtrace || []
+     end
+-    bt.reject { |line| PATH =~ line }.join("\n")
++
++    bt.select { |line| $MSPEC_DEBUG or @backtrace_filter !~ line }.join("\n")
+   end
+ end
+diff --git a/spec/expectations/should.rb b/spec/expectations/should.rb
+index 4abe02a..8404ff0 100644
+--- a/spec/expectations/should.rb
++++ b/spec/expectations/should.rb
+@@ -1,5 +1,6 @@
+ $: << File.dirname(__FILE__) + '/../../lib'
+ require 'mspec'
++require 'mspec/utils/script'
+ 
+ # The purpose of these specs is to confirm that the #should
+ # and #should_not methods are functioning appropriately. We
+diff --git a/spec/runner/exception_spec.rb b/spec/runner/exception_spec.rb
+index 0e3aa2a..f44dd89 100644
+--- a/spec/runner/exception_spec.rb
++++ b/spec/runner/exception_spec.rb
+@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
+ require 'mspec/expectations/expectations'
+ require 'mspec/runner/example'
+ require 'mspec/runner/exception'
++require 'mspec/utils/script'
+ 
+ describe ExceptionState, "#initialize" do
+   it "takes a state, location (e.g. before :each), and exception" do
+@@ -110,25 +111,31 @@ end
+ 
+ describe ExceptionState, "#backtrace" do
+   before :each do
+-    @action = mock("action")
+-    def @action.exception(exc)
+-      ScratchPad.record exc.exception
++    begin
++      raise Exception
++    rescue Exception => @exception
++      @exc = ExceptionState.new @state, "", @exception
+     end
+-    MSpec.register :exception, @action
+-
+-    ScratchPad.clear
+-    MSpec.protect("") { raise Exception }
++  end
+ 
+-    @exc = ExceptionState.new @state, "", ScratchPad.recorded
++  after :each do
++    $MSPEC_DEBUG = nil
+   end
+ 
+   it "returns a string representation of the exception backtrace" do
+     @exc.backtrace.should be_kind_of(String)
+   end
+ 
+-  it "strips MSpec files from the backtrace" do
++  it "does not filter files from the backtrace if $MSPEC_DEBUG is true" do
++    $MSPEC_DEBUG = true
++    @exc.backtrace.should == @exception.backtrace.join("\n")
++  end
++
++  it "filters files matching config[:backtrace_filter]" do
++    MSpecScript.set :backtrace_filter, %r[mspec/lib]
++    $MSPEC_DEBUG = nil
+     @exc.backtrace.split("\n").each do |line|
+-      line.should_not =~ ExceptionState::PATH
++      line.should_not =~ %r[mspec/lib]
+     end
+   end
+ end
+-- 
+1.6.1.1
+

@@ -53,6 +53,7 @@ class MSpecRun < MSpecScript
     options.action_filters
 
     options.doc "\n Help!"
+    options.debug
     options.version MSpec::VERSION
     options.help
 

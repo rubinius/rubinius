@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/expectations/expectations'
 require 'mspec/runner/example'
 require 'mspec/runner/exception'
+require 'mspec/utils/script'
 
 describe ExceptionState, "#initialize" do
   it "takes a state, location (e.g. before :each), and exception" do
@@ -110,25 +111,31 @@ end
 
 describe ExceptionState, "#backtrace" do
   before :each do
-    @action = mock("action")
-    def @action.exception(exc)
-      ScratchPad.record exc.exception
+    begin
+      raise Exception
+    rescue Exception => @exception
+      @exc = ExceptionState.new @state, "", @exception
     end
-    MSpec.register :exception, @action
+  end
 
-    ScratchPad.clear
-    MSpec.protect("") { raise Exception }
-
-    @exc = ExceptionState.new @state, "", ScratchPad.recorded
+  after :each do
+    $MSPEC_DEBUG = nil
   end
 
   it "returns a string representation of the exception backtrace" do
     @exc.backtrace.should be_kind_of(String)
   end
 
-  it "strips MSpec files from the backtrace" do
+  it "does not filter files from the backtrace if $MSPEC_DEBUG is true" do
+    $MSPEC_DEBUG = true
+    @exc.backtrace.should == @exception.backtrace.join("\n")
+  end
+
+  it "filters files matching config[:backtrace_filter]" do
+    MSpecScript.set :backtrace_filter, %r[mspec/lib]
+    $MSPEC_DEBUG = nil
     @exc.backtrace.split("\n").each do |line|
-      line.should_not =~ ExceptionState::PATH
+      line.should_not =~ %r[mspec/lib]
     end
   end
 end

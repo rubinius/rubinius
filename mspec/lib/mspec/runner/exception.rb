@@ -1,8 +1,6 @@
 class ExceptionState
   attr_reader :description, :describe, :it, :exception
 
-  PATH = /#{File.expand_path(File.dirname(__FILE__) + '/../../..')}/
-
   def initialize(state, location, exception)
     @exception = exception
 
@@ -33,11 +31,14 @@ class ExceptionState
   end
 
   def backtrace
+    @backtrace_filter ||= MSpecScript.config[:backtrace_filter]
+
     begin
       bt = @exception.awesome_backtrace.show.split "\n"
     rescue Exception
       bt = @exception.backtrace || []
     end
-    bt.reject { |line| PATH =~ line }.join("\n")
+
+    bt.select { |line| $MSPEC_DEBUG or @backtrace_filter !~ line }.join("\n")
   end
 end

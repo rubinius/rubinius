@@ -72,6 +72,7 @@ class MSpecTag < MSpecScript
     end
 
     options.doc "\n Help!"
+    options.debug
     options.version MSpec::VERSION
     options.help
 

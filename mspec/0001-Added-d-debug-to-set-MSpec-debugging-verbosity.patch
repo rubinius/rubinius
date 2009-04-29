@@ -1,0 +1,153 @@
+From b29d3477bfaae5d4de3fd4c10eb64203773d3bdd Mon Sep 17 00:00:00 2001
+From: Brian Ford <bford@engineyard.com>
+Date: Wed, 29 Apr 2009 12:22:12 -0700
+Subject: [PATCH 1/3] Added -d, --debug to set MSpec debugging (verbosity) flag.
+
+---
+ lib/mspec/commands/mspec-ci.rb  |    1 +
+ lib/mspec/commands/mspec-run.rb |    1 +
+ lib/mspec/commands/mspec-tag.rb |    1 +
+ lib/mspec/utils/options.rb      |    7 +++++++
+ spec/commands/mspec_ci_spec.rb  |    5 +++++
+ spec/commands/mspec_run_spec.rb |    5 +++++
+ spec/commands/mspec_tag_spec.rb |    5 +++++
+ spec/utils/options_spec.rb      |   26 ++++++++++++++++++++++++++
+ 8 files changed, 51 insertions(+), 0 deletions(-)
+
+diff --git a/lib/mspec/commands/mspec-ci.rb b/lib/mspec/commands/mspec-ci.rb
+index e838ffc..f5bc84f 100644
+--- a/lib/mspec/commands/mspec-ci.rb
++++ b/lib/mspec/commands/mspec-ci.rb
+@@ -42,6 +42,7 @@ class MSpecCI < MSpecScript
+     options.action_filters
+ 
+     options.doc "\n Help!"
++    options.debug
+     options.version MSpec::VERSION
+     options.help
+ 
+diff --git a/lib/mspec/commands/mspec-run.rb b/lib/mspec/commands/mspec-run.rb
+index 547a484..1026f71 100644
+--- a/lib/mspec/commands/mspec-run.rb
++++ b/lib/mspec/commands/mspec-run.rb
+@@ -53,6 +53,7 @@ class MSpecRun < MSpecScript
+     options.action_filters
+ 
+     options.doc "\n Help!"
++    options.debug
+     options.version MSpec::VERSION
+     options.help
+ 
+diff --git a/lib/mspec/commands/mspec-tag.rb b/lib/mspec/commands/mspec-tag.rb
+index 804599a..bba35e7 100644
+--- a/lib/mspec/commands/mspec-tag.rb
++++ b/lib/mspec/commands/mspec-tag.rb
+@@ -72,6 +72,7 @@ class MSpecTag < MSpecScript
+     end
+ 
+     options.doc "\n Help!"
++    options.debug
+     options.version MSpec::VERSION
+     options.help
+ 
+diff --git a/lib/mspec/utils/options.rb b/lib/mspec/utils/options.rb
+index 0a7d815..52183f6 100644
+--- a/lib/mspec/utils/options.rb
++++ b/lib/mspec/utils/options.rb
+@@ -440,4 +440,11 @@ class MSpecOptions
+       config[:gdb] = true
+     end
+   end
++
++  def debug
++    on("-d", "--debug",
++       "Set MSpec debugging flag for more verbose output") do
++      $MSPEC_DEBUG = true
++    end
++  end
+ end
+diff --git a/spec/commands/mspec_ci_spec.rb b/spec/commands/mspec_ci_spec.rb
+index c6c84f7..b0f1515 100644
+--- a/spec/commands/mspec_ci_spec.rb
++++ b/spec/commands/mspec_ci_spec.rb
+@@ -88,6 +88,11 @@ describe MSpecCI, "#options" do
+     @script.options
+   end
+ 
++  it "enables the debug option" do
++    @options.should_receive(:debug)
++    @script.options @argv
++  end
++
+   it "calls #custom_options" do
+     @script.should_receive(:custom_options).with(@options)
+     @script.options
+diff --git a/spec/commands/mspec_run_spec.rb b/spec/commands/mspec_run_spec.rb
+index a53aa86..6d930d6 100644
+--- a/spec/commands/mspec_run_spec.rb
++++ b/spec/commands/mspec_run_spec.rb
+@@ -118,6 +118,11 @@ describe MSpecRun, "#options" do
+     @script.options @argv
+   end
+ 
++  it "enables the debug option" do
++    @options.should_receive(:debug)
++    @script.options @argv
++  end
++
+   it "exits if there are no files to process" do
+     @options.should_receive(:parse).and_return([])
+     @script.should_receive(:exit)
+diff --git a/spec/commands/mspec_tag_spec.rb b/spec/commands/mspec_tag_spec.rb
+index 2c048b3..d2092af 100644
+--- a/spec/commands/mspec_tag_spec.rb
++++ b/spec/commands/mspec_tag_spec.rb
+@@ -98,6 +98,11 @@ describe MSpecTag, "#options" do
+     @script.options @argv
+   end
+ 
++  it "enables the debug option" do
++    @options.should_receive(:debug)
++    @script.options @argv
++  end
++
+   it "calls #custom_options" do
+     @script.should_receive(:custom_options).with(@options)
+     @script.options @argv
+diff --git a/spec/utils/options_spec.rb b/spec/utils/options_spec.rb
+index e488b89..c8383f6 100644
+--- a/spec/utils/options_spec.rb
++++ b/spec/utils/options_spec.rb
+@@ -1290,3 +1290,29 @@ describe "The --spec-gdb option" do
+     @config[:gdb].should == true
+   end
+ end
++
++describe "The -d, --debug option" do
++  before :each do
++    @options, @config = new_option
++    @options.debug
++  end
++
++  after :each do
++    $MSPEC_DEBUG = nil
++  end
++
++  it "is enabled with #debug" do
++    @options.stub!(:on)
++    @options.should_receive(:on).with("-d", "--debug", an_instance_of(String))
++    @options.debug
++  end
++
++  it "sets $MSPEC_DEBUG to true" do
++    ["-d", "--debug"].each do |opt|
++      $MSPEC_DEBUG.should_not be_true
++      @options.parse opt
++      $MSPEC_DEBUG.should be_true
++      $MSPEC_DEBUG = nil
++    end
++  end
++end
+-- 
+1.6.1.1
+

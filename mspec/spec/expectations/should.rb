@@ -1,5 +1,6 @@
 $: << File.dirname(__FILE__) + '/../../lib'
 require 'mspec'
+require 'mspec/utils/script'
 
 # The purpose of these specs is to confirm that the #should
 # and #should_not methods are functioning appropriately. We

@@ -118,6 +118,11 @@ describe MSpecRun, "#options" do
     @script.options @argv
   end
 
+  it "enables the debug option" do
+    @options.should_receive(:debug)
+    @script.options @argv
+  end
+
   it "exits if there are no files to process" do
     @options.should_receive(:parse).and_return([])
     @script.should_receive(:exit)

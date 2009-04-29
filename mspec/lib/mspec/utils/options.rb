@@ -440,4 +440,11 @@ class MSpecOptions
       config[:gdb] = true
     end
   end
+
+  def debug
+    on("-d", "--debug",
+       "Set MSpec debugging flag for more verbose output") do
+      $MSPEC_DEBUG = true
+    end
+  end
 end

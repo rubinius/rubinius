@@ -1290,3 +1290,29 @@ describe "The --spec-gdb option" do
     @config[:gdb].should == true
   end
 end
+
+describe "The -d, --debug option" do
+  before :each do
+    @options, @config = new_option
+    @options.debug
+  end
+
+  after :each do
+    $MSPEC_DEBUG = nil
+  end
+
+  it "is enabled with #debug" do
+    @options.stub!(:on)
+    @options.should_receive(:on).with("-d", "--debug", an_instance_of(String))
+    @options.debug
+  end
+
+  it "sets $MSPEC_DEBUG to true" do
+    ["-d", "--debug"].each do |opt|
+      $MSPEC_DEBUG.should_not be_true
+      @options.parse opt
+      $MSPEC_DEBUG.should be_true
+      $MSPEC_DEBUG = nil
+    end
+  end
+end
