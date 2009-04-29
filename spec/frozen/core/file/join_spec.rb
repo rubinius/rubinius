@@ -25,6 +25,25 @@ describe "File.join" do
     end
   end
 
+  it "flattens nested arrays" do
+    File.join(["a", "b", "c"]).should == "a/b/c"
+    File.join(["a", ["b", ["c"]]]).should == "a/b/c"
+  end
+  
+  it "inserts the separator in between empty strings and arrays" do  
+    File.join("").should == ""
+    File.join("", "").should == "/"
+    File.join(["", ""]).should == "/"
+    File.join("a", "").should == "a/"
+    File.join("", "a").should == "/a"
+
+    File.join([]).should == ""
+    File.join([], []).should == "/"
+    File.join([[], []]).should == "/"
+    File.join("a", []).should == "a/"
+    File.join([], "a").should == "/a"
+  end
+
   it "handles leading parts edge cases" do
     File.join("/bin")     .should == "/bin"
     File.join("", "bin")  .should == "/bin"
@@ -47,49 +66,36 @@ describe "File.join" do
     File.join("usr/",  "", "/bin").should == "usr/bin"
   end
 
-  it "handles recursive arrays" do
+  # TODO: Fix the version when this bug is fixed in MRI
+  # We may need to add multiple versions because it will
+  # be disjoint (ie 1.8.8.xxx and 1.9.2.xxx).
+  ruby_bug "redmine #1418", "1.9" do
+    it "returns '[...]' for the embedded array in a recursive array" do
+      a = ["a"]
+      a << a
+      a << ["b", "c"]
+      File.join(a).should == "a/[...]/b/c"
+    end
+
+    it "returns '[...]' for the embedded array in a nested recursive array" do
+      a = [["a", "b"], ["c"]]
+      a << a
+      File.join(a).should == "a/b/c/[...]"
+    end
+
+    it "returns '[...]' for the embedded array in mutually recursive arrays" do
+      a = ['a']
+      b = ['b']
+      a << b
+      b << a
+      File.join(a).should == "a/b/[...]"
+    end
+  end
+
+  it "returns '[...]' for an empty recursive array" do
     parts = []
     parts << parts
     File.join(parts).should == '[...]'
-
-    parts = ["one", "two"]
-    parts << parts
-    File.join(parts).should == 'one/two/one/two/[...]'
-
-    parts << "three"
-    parts << "four"
-    File.join(parts).should == 'one/two/one/two/[...]/three/four/three/four'
-
-    parts = [["one", "two"], ["three", "four"]]
-    parts << parts
-    File.join(parts).should == 'one/two/three/four/one/two/three/four/[...]'
-
-    a = ['a']
-    a << a
-    File.join(a).should == 'a/a/[...]'
-    File.join([a]).should == 'a/a/[...]'
-
-    a = ['a']
-    b = ['b']
-    a << b
-    b << a
-    File.join(a).should == "a/b/[...]"
-
-    a = []
-    b = []
-    a << b
-    b << a
-    File.join(a).should == '[...]'
-
-    a = ['a']
-    a << a
-    File.join(  a  ).should      == "a/a/[...]"
-    File.join( [a] ).should      == "a/a/[...]"
-    File.join([[a]]).should      == "a/a/[...]"
-    File.join(  a, 'b'  ).should == "a/a/[...]/b"
-    File.join( [a, 'b'] ).should == "a/a/[...]/b"
-    File.join([[a, 'b']]).should == "a/a/[...]/b"
-    File.join([[a], 'b']).should == "a/a/[...]/b"
   end
 
   it "doesn't remove File::SEPARATOR from the middle of arguments" do
