@@ -106,4 +106,7 @@ class MSpecScript
 
   # The default implementation to run the specs.
   set :target, 'bin/rbx'
+
+  # Leave out MSpec lines from backtraces
+  set :backtrace_filter, %r[(mspec/bin|mspec/lib/mspec)]
 end
