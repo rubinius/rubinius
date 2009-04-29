@@ -477,7 +477,7 @@ namespace rubinius {
         ops.get_literal(eax, vmm->opcodes[i + 2]);
         a.cmp(eax, reinterpret_cast<uintptr_t>(Qnil));
         a.jump_if_equal(slow_path);
-        a.mov(eax, a.address(eax, FIELD_OFFSET(rubinius::LookupTableAssociation, value_)));
+        a.mov(eax, a.address(eax, 0)); // FIELD_OFFSET(rubinius::LookupTableAssociation, value_)));
         // TODO this doesn't support autoload!
         s.push(eax);
 

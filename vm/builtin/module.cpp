@@ -62,43 +62,16 @@ namespace rubinius {
   }
 
   void Module::set_const(STATE, Object* sym, Object* val) {
-    bool found;
-    Object* obj = constants_->fetch(state, sym, &found);
-
-    if(found) {
-      LookupTableAssociation* assoc = as<LookupTableAssociation>(obj);
-      if(assoc->active() != Qfalse) {
-        assoc->value(state, val);
-        return;
-      }
-    }
-
-    LookupTableAssociation* assoc =
-      LookupTableAssociation::create(state, sym, val);
-
-    constants_->store(state, sym, assoc);
+    constants_->store(state, sym, val);
+    state->shared.inc_global_serial();
   }
 
   void Module::set_const(STATE, const char* name, Object* val) {
     set_const(state, state->symbol(name), val);
   }
 
-  LookupTableAssociation* Module::get_const_association(STATE, Symbol* sym, bool* found) {
-    Object* assoc = constants_->fetch(state, sym, found);
-    if(*found) {
-      return as<LookupTableAssociation>(assoc);
-    } else {
-      return reinterpret_cast<LookupTableAssociation*>(Qnil);
-    }
-  }
-
   Object* Module::get_const(STATE, Symbol* sym, bool* found) {
-    Object* assoc = constants_->fetch(state, sym, found);
-    if(*found) {
-      return as<LookupTableAssociation>(assoc)->value();
-    } else {
-      return assoc;
-    }
+    return constants_->fetch(state, sym, found);
   }
 
   Object* Module::get_const(STATE, Symbol* sym) {

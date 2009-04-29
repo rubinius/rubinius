@@ -15,7 +15,7 @@ module Rubinius
       obj.set_name_if_necessary name, mod
       mod.const_set name, obj
     else
-      obj = tbl[name].value
+      obj = tbl[name]
       if obj.kind_of? Autoload
         obj = obj.call
       end
@@ -53,7 +53,7 @@ module Rubinius
       obj.set_name_if_necessary name, mod
       mod.const_set name, obj
     else
-      obj = tbl[name].value
+      obj = tbl[name]
       if obj.kind_of? Autoload
         obj = obj.call
       end

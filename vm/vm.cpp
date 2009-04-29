@@ -48,6 +48,7 @@ namespace rubinius {
     , global_handles_(new capi::Handles)
     , profiling_(false)
     , profiler_collection_(0)
+    , global_serial_(0)
     , om(0)
     , global_cache(0)
     , user_config(0)

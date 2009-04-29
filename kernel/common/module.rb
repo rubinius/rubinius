@@ -13,10 +13,6 @@
 class Module
 
   def constants_table() ; @constants ; end
-
-  # I (Evan) don't like either of these. I think they could easily
-  # break things. We should check on that.
-  def constants_table=(c) ; @constants = c    ; end
   attr_writer :method_table
 
   def self.nesting
@@ -464,7 +460,7 @@ class Module
 
     # special case: Module.constants returns Object's constants
     if self.equal? Module
-      Object.constant_table.each do |name, val|
+      Object.constants_table.each do |name, val|
         tbl[name] = true unless tbl.has_key? name
       end
     end
@@ -493,7 +489,7 @@ class Module
       const = current
       defined = pieces.all? do |piece|
         if const.is_a?(Module) and const.constants_table.key?(piece)
-          const = const.constants_table[piece].value
+          const = const.constants_table[piece]
           true
         end
       end
@@ -508,13 +504,8 @@ class Module
     end
 
     name = normalize_const_name(name)
-    assoc = constant_table[name]
-
-    if assoc
-      assoc.value = value
-    else
-      constants_table[name] = Rubinius::LookupTable::Association.new(name, value)
-    end
+    @constants[name] = value
+    Rubinius.inc_global_serial
 
     return value
   end
@@ -523,55 +514,7 @@ class Module
   # \_\_const_set__ is emitted by the compiler for const assignment in
   # userland.
 
-  def clear_associations(name)
-    return if Thread.guarding? self
-
-    Thread.recursion_guard self do
-      if assoc = @constants[name]
-        assoc.active = false
-        @constants[name] = Rubinius::LookupTable::Association.new(name, assoc.value)
-      end
-
-      @constants.each do |key, assoc|
-        if assoc.value.kind_of? Module
-          assoc.value.clear_associations(name)
-        end
-      end
-
-      if ds = direct_superclass() and ds != Object
-        ds.clear_associations(name)
-      end
-    end
-  end
-
   def __const_set__(name, value)
-    const_name = normalize_const_name(name)
-
-    # check all subscopes and invalidate Associations found for +const_name+
-    @constants.each_entry do |key, assoc|
-      if assoc.value.kind_of? Module
-        assoc.value.clear_associations(const_name)
-      end
-    end
-
-    mod = self
-    while mod
-      assoc = mod.constants_table[const_name]
-      break if assoc
-      mod = mod.direct_superclass
-    end
-
-    if mod
-      if mod == self
-        warn "already initialized constant #{name}"
-      else
-        # We're masking an existing constant. Invalid it.
-        assoc.active = false
-        mod.constants_table[const_name] =
-          Rubinius::LookupTable::Association.new(const_name, assoc.value)
-      end
-    end
-
     return const_set(name, value)
   end
 
@@ -669,8 +612,8 @@ class Module
     name = normalize_const_name(name)
     raise TypeError, "autoload filename must be a String" unless path.kind_of? String
     raise ArgumentError, "empty file name" if path.empty?
-    trigger = Autoload.new(name, self, path)
-    constants_table[name] = Rubinius::LookupTable::Association.new(name, trigger)
+    constants_table[name] = Autoload.new(name, self, path)
+    Rubinius.inc_global_serial
     return nil
   end
 
@@ -678,7 +621,7 @@ class Module
   def autoload?(name)
     name = name.to_sym
     return unless constants_table.key?(name)
-    trigger = constants_table[name].value
+    trigger = constants_table[name]
     return unless trigger.kind_of?(Autoload)
     trigger.original_path
   end
@@ -688,15 +631,14 @@ class Module
       name = StringValue name
       illegal_const(name) unless name[0].isupper
     end
-    
+
     sym = name.to_sym
     unless constants_table.has_key?(sym)
       return const_missing(name)
     end
 
-    assoc = constants_table.delete(sym)
-
-    val = assoc.value
+    val = constants_table.delete(sym)
+    Rubinius.inc_global_serial
 
     # Silly API compac. Shield Autoload instances
     return nil if val.kind_of? Autoload
@@ -722,9 +664,8 @@ class Module
     current, constant = self, Undefined
 
     while current
-      assoc = current.constants_table.fetch name, Undefined
-      unless assoc.equal?(Undefined)
-        constant = assoc.value
+      constant = current.constants_table.fetch name, Undefined
+      unless constant.equal?(Undefined)
         constant = constant.call if constant.kind_of?(Autoload)
         return constant
       end
@@ -733,9 +674,8 @@ class Module
     end
 
     if instance_of?(Module)
-      assoc = Object.constants_table.fetch name, Undefined
-      unless assoc.equal?(Undefined)
-        constant = assoc.value
+      constant = Object.constants_table.fetch name, Undefined
+      unless constant.equal?(Undefined)
         constant = constant.call if constant.kind_of?(Autoload)
         return constant
       end
@@ -773,14 +713,12 @@ class Module
 
     @constants = Rubinius::LookupTable.new
 
-    other.constants_table.each do |name, assoc|
-      new_assoc = assoc.dup
-      @constants[name] = new_assoc
-
-      val = new_assoc.value
+    other.constants_table.each do |name, val|
       if val.kind_of? Autoload
-        new_assoc.value = Autoload.new(val.name, self, val.original_path)
+        val = Autoload.new(val.name, self, val.original_path)
       end
+
+      @constants[name] = val
     end
 
     self

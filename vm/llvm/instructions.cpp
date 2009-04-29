@@ -20,6 +20,7 @@
 #include "builtin/proc.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/system.hpp"
+#include "builtin/global_cache_entry.hpp"
 
 #include "call_frame.hpp"
 

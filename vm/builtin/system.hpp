@@ -187,6 +187,14 @@ namespace rubinius {
     // Ruby.primitive :vm_object_class
     static Class* vm_object_class(STATE, Object* obj);
 
+    // Increment the internal global serial number, used for caching
+    // Ruby.primitive :vm_inc_global_serial
+    static Object* vm_inc_global_serial(STATE);
+
+    // Print out the current backtrace of ruby code
+    // Ruby.primitive :vm_show_backtrace
+    static Object* vm_show_backtrace(STATE, CallFrame* calling_environment);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

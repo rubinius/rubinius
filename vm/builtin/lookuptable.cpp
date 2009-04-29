@@ -304,7 +304,6 @@ namespace rubinius {
     close_body(level);
   }
 
-
   LookupTableBucket* LookupTableBucket::create(STATE, Object *key, Object *value) {
     LookupTableBucket *entry =
       state->new_object<LookupTableBucket>(G(lookuptablebucket));
@@ -327,13 +326,4 @@ namespace rubinius {
     return nxt;
   }
 
-  LookupTableAssociation* LookupTableAssociation::create(STATE, Object *key, Object *value) {
-    LookupTableAssociation *entry =
-      state->new_object<LookupTableAssociation>(G(lookuptableassociation));
-
-    entry->key(state, key);
-    entry->value(state, value);
-    entry->active(state, Qtrue);
-    return entry;
-  }
 }

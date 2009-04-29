@@ -64,6 +64,7 @@ namespace rubinius {
 
       metaclass(state)->method_table(state, source_methods);
       metaclass(state)->constants(state, source_constants);
+      // TODO inc the global serial here?
 
       // This allows us to preserve included modules
       metaclass(state)->superclass(state, mc->superclass());

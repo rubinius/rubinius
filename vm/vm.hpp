@@ -118,6 +118,7 @@ namespace rubinius {
     capi::Handles* global_handles_;
     bool profiling_;
     profiler::ProfilerCollection* profiler_collection_;
+    int global_serial_;
 
   public:
     Globals globals;
@@ -174,6 +175,14 @@ namespace rubinius {
 
     bool profiling() {
       return profiling_;
+    }
+
+    int global_serial() {
+      return global_serial_;
+    }
+
+    int inc_global_serial() {
+      return ++global_serial_;
     }
 
     void enable_profiling(VM* vm);

@@ -9,7 +9,7 @@ namespace rubinius {
   class CompiledMethod;
   class VM;
   class Object;
-  class LookupTableAssociation;
+  class GlobalCacheEntry;
 
   namespace Helpers {
     void add_method(VM*, CallFrame* call_frame, Module* mod, Symbol* name, CompiledMethod* meth);
@@ -17,7 +17,6 @@ namespace rubinius {
 
     Object* const_get(VM*, Module* under, Symbol* name, bool* found);
     Object* const_get(VM*, CallFrame* call_frame, Symbol* name, bool* found);
-    LookupTableAssociation* const_get_association(VM*, CallFrame* call_frame, Symbol* name, bool* found);
     Object* const_missing(VM*, Module* under, Symbol* sym, CallFrame* call_frame);
     void const_set(VM*, CallFrame* call_frame, Symbol* name, Object* val);
     void const_set(VM*, Module* mod, Symbol* name, Object* val);

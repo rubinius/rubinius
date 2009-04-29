@@ -85,7 +85,6 @@ namespace rubinius {
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
     TypedRoot<Class*> lookuptablebucket;
-    TypedRoot<Class*> lookuptableassociation;
     TypedRoot<Class*> access_variable;
     TypedRoot<Module*> rubinius;
     TypedRoot<Class*> time_class;
@@ -106,6 +105,7 @@ namespace rubinius {
     TypedRoot<Exception*> stack_error;
     TypedRoot<Class*> jump_error;
     TypedRoot<Class*> exc_vm_internal;
+    TypedRoot<Class*> global_cache_entry;
 
     /* Add new globals above this line. */
 
@@ -197,7 +197,6 @@ namespace rubinius {
       dir(&roots),
       compactlookuptable(&roots),
       lookuptablebucket(&roots),
-      lookuptableassociation(&roots),
       access_variable(&roots),
       rubinius(&roots),
       time_class(&roots),
@@ -215,7 +214,8 @@ namespace rubinius {
       location(&roots),
       stack_error(&roots),
       jump_error(&roots),
-      exc_vm_internal(&roots)
+      exc_vm_internal(&roots),
+      global_cache_entry(&roots)
 
       /* Add initialize of globals above this line. */
     { }

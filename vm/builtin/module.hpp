@@ -7,7 +7,6 @@
 
 namespace rubinius {
   class LookupTable;
-  class LookupTableAssociation;
 
   class Module : public Object {
   public:
@@ -41,7 +40,6 @@ namespace rubinius {
     Object* get_const(STATE, Symbol* sym);
     Object* get_const(STATE, Symbol* sym, bool* found);
     Object* get_const(STATE, const char* sym);
-    LookupTableAssociation* get_const_association(STATE, Symbol* sym, bool* found);
 
     void set_name(STATE, Module* under, Symbol* name);
 

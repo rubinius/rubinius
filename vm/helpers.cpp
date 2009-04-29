@@ -15,6 +15,7 @@
 #include "builtin/system.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/channel.hpp"
+#include "builtin/global_cache_entry.hpp"
 
 #include "vm.hpp"
 #include "object_utils.hpp"
@@ -73,18 +74,8 @@ namespace rubinius {
     }
 
     Object* const_get(STATE, CallFrame* call_frame, Symbol* name, bool* found) {
-      LookupTableAssociation* assoc = const_get_association(state, call_frame, name, found);
-      if(*found) {
-        return assoc->value();
-      } else {
-        return Qnil;
-      }
-    }
-
-    LookupTableAssociation* const_get_association(STATE, CallFrame* call_frame,
-        Symbol* name, bool* found) {
       StaticScope *cur;
-      LookupTableAssociation* result;
+      Object* result;
 
       *found = false;
 
@@ -123,7 +114,7 @@ namespace rubinius {
         // Detect the toplevel scope (the default) and get outta dodge.
         if(cur->top_level_p(state)) break;
 
-        result = cur->module()->get_const_association(state, name, found);
+        result = cur->module()->get_const(state, name, found);
         if(*found) return result;
 
         cur = cur->parent();
@@ -132,17 +123,17 @@ namespace rubinius {
       // Now look up the superclass chain.
       Module* mod = call_frame->static_scope->module();
       while(!mod->nil_p()) {
-        result = mod->get_const_association(state, name, found);
+        result = mod->get_const(state, name, found);
         if(*found) return result;
 
         mod = mod->superclass();
       }
 
       // Lastly, check Object specificly
-      result = G(object)->get_const_association(state, name, found);
+      result = G(object)->get_const(state, name, found);
       if(*found) return result;
 
-      return reinterpret_cast<LookupTableAssociation*>(Qnil);
+      return Qnil;
     }
 
     Object* const_missing(STATE, Module* under, Symbol* sym, CallFrame* call_frame) {

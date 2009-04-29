@@ -215,7 +215,7 @@ namespace rubinius {
    /*  @todo Could possibly capture the system backtrace at this
    *        point. --rue
    */
-  Array* System::vm_backtrace(VM* state, Fixnum* skip, CallFrame* calling_environment) {
+  Array* System::vm_backtrace(STATE, Fixnum* skip, CallFrame* calling_environment) {
     CallFrame* call_frame = calling_environment;
 
     for(native_int i = skip->to_native(); call_frame && i > 0; --i) {
@@ -234,6 +234,11 @@ namespace rubinius {
     }
 
     return bt;
+  }
+
+  Object* System::vm_show_backtrace(STATE, CallFrame* calling_environment) {
+    calling_environment->print_backtrace(state);
+    return Qnil;
   }
 
   Object* System::vm_profiler_instrumenter_available_p(STATE) {
@@ -458,5 +463,9 @@ namespace rubinius {
 
   Class* System::vm_object_class(STATE, Object* obj) {
     return obj->class_object(state);
+  }
+
+  Object* System::vm_inc_global_serial(STATE) {
+    return Fixnum::from(state->shared.inc_global_serial());
   }
 }

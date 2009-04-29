@@ -13,4 +13,9 @@ module Rubinius
     Ruby.primitive :vm_object_class
     raise PrimitiveFailure, "Rubinius.object_class failed"
   end
+
+  def self.inc_global_serial
+    Ruby.primitive :vm_inc_global_serial
+    raise PrimitiveFailure, "Rubinius.vm_inc_global_serial failed"
+  end
 end

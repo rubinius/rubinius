@@ -39,6 +39,7 @@
 #include "builtin/proc.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/location.hpp"
+#include "builtin/global_cache_entry.hpp"
 
 #include "config.h"
 
@@ -105,10 +106,6 @@ namespace rubinius {
     GO(lookuptablebucket).set(new_basic_class(object));
     G(lookuptablebucket)->set_object_type(state, LookupTableBucketType);
 
-    /* Create LookupTableAssociation */
-    GO(lookuptableassociation).set(new_basic_class(object));
-    G(lookuptableassociation)->set_object_type(state, LookupTableAssociationType);
-
     /* Create MethodTable */
     GO(methtbl).set(new_basic_class(G(lookuptable)));
     G(methtbl)->set_object_type(state, MethodTableType);
@@ -121,10 +118,9 @@ namespace rubinius {
      *  Tuple
      *  LookupTable
      *  LookupTableBucket
-     *  LookupTableAssociation
      *  MethodTable
      *
-     *  With these 9 in place, we can now create fully initialized classes
+     *  With these 8 in place, we can now create fully initialized classes
      *  and modules. */
 
     /* Hook up the MetaClass protocols.
@@ -139,7 +135,6 @@ namespace rubinius {
     MetaClass::attach(this, G(tuple), G(object)->metaclass(this));
     MetaClass::attach(this, G(lookuptable), G(object)->metaclass(this));
     MetaClass::attach(this, G(lookuptablebucket), G(object)->metaclass(this));
-    MetaClass::attach(this, G(lookuptableassociation), G(object)->metaclass(this));
     MetaClass::attach(this, G(methtbl), G(lookuptable)->metaclass(this));
 
     // Now, finish initializing the basic Class/Module
@@ -160,8 +155,6 @@ namespace rubinius {
     G(methtbl)->name(this, symbol("Rubinius::MethodTable"));
     G(lookuptablebucket)->setup(this, "Bucket", G(lookuptable));
     G(lookuptablebucket)->name(state, symbol("Rubinius::LookupTable::Bucket"));
-    G(lookuptableassociation)->setup(this, "Association", G(lookuptable));
-    G(lookuptableassociation)->name(state, symbol("Rubinius::LookupTable::Association"));
   }
 
   void VM::initialize_builtin_classes() {
@@ -236,6 +229,8 @@ namespace rubinius {
     Channel::init(this);
 
     NativeMethod::init(this);
+
+    GlobalCacheEntry::init(this);
   }
 
   // @todo document all the sections of bootstrap_ontology

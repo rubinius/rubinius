@@ -33,31 +33,6 @@ namespace rubinius {
     };
   };
 
-  class LookupTableAssociation : public Object {
-  public:
-    const static object_type type = LookupTableAssociationType;
-
-  private:
-    Object* key_;    // slot
-
-  public: // public because accessed directly via assembly
-    Object* value_;  // slot
-    Object* active_; // slot
-
-  public:
-    attr_accessor(key, Object);
-    attr_accessor(value, Object);
-    attr_accessor(active, Object);
-
-    // Ruby.primitive :lookuptableassociation_allocate
-    static LookupTableAssociation* create(STATE, Object* key, Object* value);
-
-    class Info : public TypeInfo {
-    public:
-      BASIC_TYPEINFO(TypeInfo)
-    };
-  };
-
   #define LOOKUPTABLE_MIN_SIZE 16
   class LookupTable : public Object {
   public:

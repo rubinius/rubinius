@@ -2206,21 +2206,26 @@ class Instructions
     bool found;
     Object* res = 0;
 
-    Object* assoc = call_frame->cm->literals()->at(state, association_index);
-    // The association has been set, return the value from it directly.
-    if(!assoc->nil_p()) {
-      LookupTableAssociation* real_assoc = as<LookupTableAssociation>(assoc);
-      if(real_assoc->active() != Qfalse) {
-        res = real_assoc->value();
-      }
-    }
+    Object* val = call_frame->cm->literals()->at(state, association_index);
 
-    if(!res) {
+    // See if the cache is present, if so, validate it and use the value
+    GlobalCacheEntry* cache;
+    if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
+      if(cache->valid_p(state)) {
+        res = cache->value();
+      } else {
+        Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, symbol_index));
+        res = Helpers::const_get(state, call_frame, sym, &found);
+        if(found) {
+          cache->update(state, res);
+        }
+      }
+    } else {
       Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, symbol_index));
-      LookupTableAssociation* assoc = Helpers::const_get_association(state, call_frame, sym, &found);
+      res = Helpers::const_get(state, call_frame, sym, &found);
       if(found) {
-        call_frame->cm->literals()->put(state, association_index, assoc);
-        res = assoc->value();
+        cache = GlobalCacheEntry::create(state, res);
+        call_frame->cm->literals()->put(state, association_index, cache);
       } else {
         Module* under;
         StaticScope* scope = call_frame->static_scope;
@@ -2237,6 +2242,9 @@ class Instructions
 
     if(Autoload* autoload = try_as<Autoload>(res)) {
       res = autoload->resolve(state, call_frame);
+      if(cache && res) {
+        cache->update(state, res);
+      }
     }
 
     HANDLE_EXCEPTION(res);
@@ -2272,8 +2280,8 @@ class Instructions
     TS_ASSERT_EQUALS(task->stack_top(), Fixnum::from(3));
     Object* obj = call_frame->cm->literals()->at(state, 1);
     TS_ASSERT(!obj->nil_p());
-    TS_ASSERT(kind_of<LookupTableAssociation>(obj));
-    LookupTableAssociation* assoc = as<LookupTableAssociation>(obj);
+    TS_ASSERT(kind_of<GlobalCacheEntry>(obj));
+    GlobalCacheEntry* assoc = as<GlobalCacheEntry>(obj);
 
     TS_ASSERT_EQUALS(assoc->value(), Fixnum::from(3));
 

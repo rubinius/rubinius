@@ -83,6 +83,7 @@ const int cTrue  = 0x12L;
 const int cUndef = 0x22L;
 #define Qundef ((Object*)0x22L)
 
+
 // Indicates the mask to use to check if a value is ruby false.
 // This mask matches both false and nil ONLY.
 #define FALSE_MASK 0xf
