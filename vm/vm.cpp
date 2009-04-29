@@ -156,7 +156,7 @@ namespace rubinius {
   }
 
   void VM::boot_threads() {
-    thread.set(Thread::create(this, this), &globals.roots);
+    thread.set(Thread::create(this, this, pthread_self()), &globals.roots);
     thread->sleep(this, Qfalse);
   }
 

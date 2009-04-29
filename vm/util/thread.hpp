@@ -90,14 +90,12 @@ namespace thread {
     }
 
   public:
-    Thread(size_t stack_size = 0)
-      : stack_size_(stack_size)
-    {}
-
-    Thread(pthread_t tid)
+    Thread(size_t stack_size = 0, pthread_t tid = 0)
       : native_(tid)
-      , delete_on_exit_(false)
-    {}
+      , stack_size_(stack_size)
+    {
+      delete_on_exit_ = (tid != 0);
+    }
 
     virtual ~Thread() { }
 

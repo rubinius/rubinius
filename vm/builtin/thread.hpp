@@ -188,7 +188,7 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, VM* target);
+    static Thread* create(STATE, VM* target, pthread_t tid = 0);
 
 
   public:   /* Instance methods */

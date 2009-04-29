@@ -30,7 +30,7 @@ namespace rubinius {
     G(thread)->set_object_type(state, Thread::type);
   }
 
-  Thread* Thread::create(STATE, VM* target) {
+  Thread* Thread::create(STATE, VM* target, pthread_t tid) {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->alive(state, Qtrue);
@@ -39,7 +39,7 @@ namespace rubinius {
     thr->recursive_objects(state, LookupTable::create(state));
 
     target->thread.set(thr);
-    thr->native_thread_ = new NativeThread(target, 4194304);
+    thr->native_thread_ = new NativeThread(target, 4194304, tid);
 
     return thr;
   }
