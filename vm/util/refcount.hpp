@@ -1,3 +1,6 @@
+#ifndef RBX_UTIL_REFCOUNT_HPP
+#define RBX_UTIL_REFCOUNT_HPP
+
 namespace rubinius {
 
   class RefCount {
@@ -14,6 +17,12 @@ namespace rubinius {
     bool deref() {
       return --ref_count_ <= 0;
     }
+
+    int ref_count() {
+      return ref_count_;
+    }
   };
 
 }
+
+#endif

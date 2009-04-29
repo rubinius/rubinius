@@ -5,13 +5,11 @@
 #include <stdexcept>
 
 #include "vm.hpp"
-#include "vm_manager.hpp"
 
 namespace rubinius {
 
   class Environment {
   public:
-    VMManager manager;
     SharedState* shared;
     VM* state;
 

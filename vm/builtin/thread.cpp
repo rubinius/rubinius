@@ -39,8 +39,7 @@ namespace rubinius {
     thr->recursive_objects(state, LookupTable::create(state));
 
     target->thread.set(thr);
-    thr->vm = target;
-    thr->native_thread_ = NULL;
+    thr->native_thread_ = new NativeThread(target, 4194304);
 
     return thr;
   }
@@ -65,8 +64,7 @@ namespace rubinius {
   Object* Thread::fork(STATE) {
     state->interrupts.enable_preempt = true;
 
-    native_thread_ = new NativeThread(vm, 4194304);
-
+    assert(native_thread_);
     // Let it run.
     native_thread_->run();
     return Qnil;
@@ -84,6 +82,9 @@ namespace rubinius {
   }
 
   Object* Thread::raise(STATE, Exception* exc) {
+    // vm is NULL if the thread has exitted.
+    if(!native_thread_) return Qnil;
+    VM* vm = native_thread_->vm();
     thread::Mutex::LockGuard x(vm->local_lock());
     vm->register_raise(exc);
     vm->wakeup();
@@ -97,10 +98,11 @@ namespace rubinius {
   }
 
   Thread* Thread::wakeup(STATE) {
-    if(alive() == Qfalse) {
+    if(alive() == Qfalse || !native_thread_) {
       return reinterpret_cast<Thread*>(kPrimitiveFailed);
     }
 
+    VM* vm = native_thread_->vm();
     {
       thread::Mutex::LockGuard x(vm->local_lock());
       vm->wakeup();
@@ -110,6 +112,9 @@ namespace rubinius {
   }
 
   Tuple* Thread::context(STATE) {
+    if(!native_thread_) return (Tuple*)Qnil;
+
+    VM* vm = native_thread_->vm();
     CallFrame* cf = vm->saved_call_frame();
 
     cf->promote_scope(state);

@@ -2,7 +2,6 @@
 #define RBX_VM_H
 
 #include "globals.hpp"
-#include "symboltable.hpp"
 #include "gc/object_mark.hpp"
 #include "thread_state.hpp"
 
@@ -15,6 +14,8 @@
 
 #include "async_message.hpp"
 #include "gc/variable_buffer.hpp"
+
+#include "shared_state.hpp"
 
 #include <vector>
 #include <pthread.h>
@@ -34,11 +35,6 @@ namespace rubinius {
 
   namespace profiler {
     class Profiler;
-    class ProfilerCollection;
-  }
-
-  namespace capi {
-    class Handles;
   }
 
   class GlobalCache;
@@ -54,34 +50,14 @@ namespace rubinius {
   class Assertion;
   class CallFrame;
   class Object;
-
-  struct Configuration {
-    bool compile_up_front;
-    bool jit_enabled;
-    bool dynamic_interpreter_enabled;
-  };
-
-  struct Interrupts {
-    bool check;
-    bool switch_task;
-    bool perform_gc;
-    bool check_events;
-    bool reschedule;
-    bool use_preempt;
-    bool enable_preempt;
-    bool timer;
-
-    Interrupts() :
-      check(false),
-      switch_task(false),
-      perform_gc(false),
-      check_events(false),
-      reschedule(false),
-      use_preempt(false),
-      enable_preempt(false),
-      timer(false)
-    { }
-  };
+  class Configuration;
+  class Interrupts;
+  class VMManager;
+  class Waiter;
+  class SignalThread;
+  class LookupTable;
+  class SymbolTable;
+  class SharedState;
 
   struct Stats {
     // How much time is spent running the JIT
@@ -100,104 +76,9 @@ namespace rubinius {
     {}
   };
 
-  class VMManager;
-  class Waiter;
-  class SignalThread;
-  class LookupTable;
-
-  class SharedState : public RefCount {
-  private:
-    VMManager& manager_;
-    bool initialized_;
-    int id_;
-    GlobalLock lock_;
-    VMMap vms_;
-    SignalThread* signal_thread_;
-    CallFrameLocationList cf_locations_;
-    VariableRootBuffers root_buffers_;
-    capi::Handles* global_handles_;
-    bool profiling_;
-    profiler::ProfilerCollection* profiler_collection_;
-    int global_serial_;
-
-  public:
-    Globals globals;
-    ObjectMemory* om;
-    GlobalCache* global_cache;
-    Configuration config;
-    Interrupts interrupts;
-    SymbolTable symbols;
-    ConfigParser *user_config;
-
-  public:
-    SharedState(VMManager& manager, int id);
-    ~SharedState();
-
-    int id() {
-      return id_;
-    }
-
-    VMManager& manager() {
-      return manager_;
-    }
-
-    void set_initialized() {
-      initialized_ = true;
-    }
-
-    GlobalLock& global_lock() {
-      return lock_;
-    }
-
-    SignalThread* signal_thread() {
-      return signal_thread_;
-    }
-
-    void set_signal_thread(SignalThread* thr) {
-      signal_thread_ = thr;
-    }
-
-    static SharedState* standalone(VM*);
-    VM* new_vm();
-    void remove_vm(VM*);
-
-    CallFrameLocationList& call_frame_locations() {
-      return cf_locations_;
-    }
-
-    VariableRootBuffers* variable_buffers() {
-      return &root_buffers_;
-    }
-
-    capi::Handles* global_handles() {
-      return global_handles_;
-    }
-
-    bool profiling() {
-      return profiling_;
-    }
-
-    int global_serial() {
-      return global_serial_;
-    }
-
-    int inc_global_serial() {
-      return ++global_serial_;
-    }
-
-    void enable_profiling(VM* vm);
-
-    LookupTable* disable_profiling(VM* vm);
-
-    void add_profiler(VM* vm, profiler::Profiler* profiler);
-
-    void remove_profiler(VM* vm, profiler::Profiler* profiler);
-  };
-
   class VM {
 
   private:
-    int id_;
     CallFrame* saved_call_frame_;
     ASyncMessageMailbox mailbox_;
     void* stack_start_;
@@ -263,10 +144,6 @@ namespace rubinius {
 
   public: /* Inline methods */
 
-    int id() {
-      return id_;
-    }
-
     bool alive_p() {
       return alive_;
     }
@@ -320,10 +197,10 @@ namespace rubinius {
       return true;
     }
 
-    void check_exception(CallFrame* call_frame);
-
     /* Prototypes */
-    VM(SharedState& shared, int id);
+    VM(SharedState& shared);
+
+    void check_exception(CallFrame* call_frame);
 
     void initialize(size_t bytes = default_bytes);
 
@@ -336,7 +213,7 @@ namespace rubinius {
     // Registers a VM* object as the current state.
     static void register_state(VM*);
 
-    void discard();
+    static void discard(VM*);
 
     void bootstrap_class();
     void bootstrap_ontology();

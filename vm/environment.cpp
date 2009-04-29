@@ -31,7 +31,7 @@ namespace rubinius {
     ConfigParser* config = new ConfigParser();
     config->process_argv(argc, argv);
 
-    shared = manager.create_shared_state();
+    shared = new SharedState();
     shared->user_config = config;
 
     state = shared->new_vm();
@@ -39,7 +39,8 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    manager.destroy_vm(state);
+    VM::discard(state);
+    SharedState::discard(shared);
   }
 
   void Environment::enable_preemption() {

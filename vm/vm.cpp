@@ -21,12 +21,9 @@
 
 #include "config_parser.hpp"
 #include "config.h"
-#include "vm_manager.hpp"
 
 #include "native_thread.hpp"
 #include "call_frame.hpp"
-
-#include "capi/handle.hpp"
 
 #include <iostream>
 #include <signal.h>
@@ -41,81 +38,8 @@ namespace rubinius {
 
   int VM::cStackDepthMax = 655300;
 
-  SharedState::SharedState(VMManager& manager, int id)
-    : manager_(manager)
-    , initialized_(false)
-    , id_(id)
-    , global_handles_(new capi::Handles)
-    , profiling_(false)
-    , profiler_collection_(0)
-    , global_serial_(0)
-    , om(0)
-    , global_cache(0)
-    , user_config(0)
-  {}
-
-  SharedState::~SharedState() {
-    if(!initialized_) return;
-
-    delete om;
-    delete global_cache;
-    delete user_config;
-    delete global_handles_;
-
-#ifdef ENABLE_LLVM
-    if(!reuse_llvm) llvm_cleanup();
-#endif
-  }
-
-  /** @see VMManager::create_vm */
-  VM* SharedState::new_vm() {
-    VM* vm = manager_.create_vm(this);
-    vms_[vm->id()] = vm;
-    cf_locations_.push_back(vm->call_frame_location());
-    return vm;
-  }
-
-  /** @see VMManager::destroy_vm. */
-  void SharedState::remove_vm(VM* vm) {
-    VMMap::iterator i = vms_.find(vm->id());
-    assert(i != vms_.end());
-    vms_.erase(i);
-
-    cf_locations_.remove(vm->call_frame_location());
-  }
-
-  void SharedState::enable_profiling(VM* vm) {
-    profiler_collection_ = new profiler::ProfilerCollection(vm);
-    profiling_ = true;
-  }
-
-  LookupTable* SharedState::disable_profiling(VM* vm) {
-    if(profiler_collection_) {
-      LookupTable* profile = profiler_collection_->results(vm);
-      delete profiler_collection_;
-      profiler_collection_ = 0;
-      profiling_ = false;
-      return profile;
-    } else {
-      return reinterpret_cast<LookupTable*>(Qnil);
-    }
-  }
-
-  void SharedState::add_profiler(VM* vm, profiler::Profiler* profiler) {
-    if(profiler_collection_) {
-      profiler_collection_->add_profiler(vm, profiler);
-    }
-  }
-
-  void SharedState::remove_profiler(VM* vm, profiler::Profiler* profiler) {
-    if(profiler_collection_) {
-      profiler_collection_->remove_profiler(vm, profiler);
-    }
-  }
-
-  VM::VM(SharedState& shared, int id)
-    : id_(id)
-    , saved_call_frame_(0)
+  VM::VM(SharedState& shared)
+    : saved_call_frame_(0)
     , alive_(true)
     , profiler_(0)
     , shared(shared)
@@ -135,12 +59,15 @@ namespace rubinius {
     , use_safe_position(false)
   {}
 
-  void VM::discard() {
-    alive_ = false;
-    saved_call_frame_ = 0;
-    if(profiler_) {
-      shared.remove_profiler(this, profiler_);
+  void VM::discard(VM* vm) {
+    vm->alive_ = false;
+    vm->saved_call_frame_ = 0;
+    if(vm->profiler_) {
+      vm->shared.remove_profiler(vm, vm->profiler_);
     }
+
+    vm->shared.remove_vm(vm);
+    delete vm;
   }
 
   void VM::initialize(size_t bytes)
@@ -363,8 +290,6 @@ namespace rubinius {
       om->collect_mature(gc_data);
 
       global_cache->clear();
-
-      shared.manager().prune();
     }
   }
 

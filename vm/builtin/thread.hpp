@@ -52,10 +52,6 @@ namespace rubinius {
      */
     NativeThread* native_thread_;
 
-    /** The VM object for this thread's state. */
-    VM*           vm;
-
-
   public:
     const static object_type type = ThreadType;
 
@@ -77,8 +73,9 @@ namespace rubinius {
     attr_accessor(recursive_objects, LookupTable);
 
     /** OS thread associated with this Thread, if any. */
-    NativeThread* native_thread();
-
+    NativeThread* native_thread() {
+      return native_thread_;
+    }
 
   public:   /* Class primitives */
 
@@ -204,8 +201,9 @@ namespace rubinius {
      *  @see  Thread::fork()
      *  @see  NativeThread::perform()
      */
-    void detach_native_thread();
-
+    void detach_native_thread() {
+      native_thread_ = NULL;
+    }
 
   public:   /* TypeInfo */
 
@@ -214,18 +212,6 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
     };
   };
-
-
-/* Inlines */
-
-  inline NativeThread* Thread::native_thread() {
-    return native_thread_;
-  }
-
-  inline void Thread::detach_native_thread() {
-    native_thread_ = NULL;
-  }
-
 }
 
 

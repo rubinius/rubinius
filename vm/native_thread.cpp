@@ -17,6 +17,11 @@ namespace rubinius {
     , vm_(vm)
   {}
 
+  NativeThread::NativeThread(VM* vm, pthread_t tid)
+    : thread::Thread(tid)
+    , vm_(vm)
+  {}
+
   void NativeThread::perform() {
     NativeMethod::init_thread(vm_);
 
@@ -60,6 +65,7 @@ namespace rubinius {
     }
 
     vm_->thread.get()->detach_native_thread();
-    vm_->discard();
+    VM::discard(vm_);
+    vm_ = NULL;
   }
 }

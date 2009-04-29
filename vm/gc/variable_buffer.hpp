@@ -1,8 +1,11 @@
 #ifndef RBX_GC_VARIABLE_BUFFER_HPP
 #define RBX_GC_VARIABLE_BUFFER_HPP
 
+#include "linkedlist.hpp"
+
 namespace rubinius {
   class VariableRootBuffer;
+  class Object;
 
   class VariableRootBuffers : public LinkedList {
   public:
