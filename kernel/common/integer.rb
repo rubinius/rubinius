@@ -117,13 +117,21 @@ class Integer < Numeric
   #++
 
   def bits(int = self)
-    if int.zero?
-      1 # sign bit storage
-    elsif int > 0
-      bits(int / 2) + 1 # could use >> in primitive
-    else
-      bits(~int / 2) + 1 # could use >> in primitive
+    num_bits = 1 # sign bit storage
+
+    if int < 0
+      int = ~int
+
+      num_bits += 1
+      int /= 2 # could use >> in primitive
     end
+
+    while int != 0
+      num_bits += 1
+      int /= 2 # could use >> in primitive
+    end
+
+    num_bits
   end
 end
 
