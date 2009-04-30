@@ -2,6 +2,8 @@
 #define RBX_UTIL_CONFIGURATION_HPP
 
 #include <list>
+#include "string.h"
+#include "inttypes.h"
 
 namespace config {
   class ConfigItem;
