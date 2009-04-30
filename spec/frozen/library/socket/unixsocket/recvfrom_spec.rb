@@ -6,6 +6,8 @@ describe "UNIXSocket#recvfrom" do
   platform_is_not :windows do
     before :each do
       @path = SocketSpecs.socket_path
+      File.unlink(@path) if File.exists?(@path)
+
       @server = UNIXServer.open(@path)
       @client = UNIXSocket.open(@path)
     end
