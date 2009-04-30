@@ -7,7 +7,7 @@
 #include "capi/handle.hpp"
 
 namespace rubinius {
-  SharedState::SharedState()
+  SharedState::SharedState(Configuration& config, ConfigParser& cp)
     : initialized_(false)
     , global_handles_(new capi::Handles)
     , profiling_(false)
@@ -15,7 +15,8 @@ namespace rubinius {
     , global_serial_(0)
     , om(0)
     , global_cache(0)
-    , user_config(0)
+    , config(config)
+    , user_variables(cp)
   {
     ref();
   }
@@ -25,7 +26,6 @@ namespace rubinius {
 
     delete om;
     delete global_cache;
-    delete user_config;
     delete global_handles_;
 
 #ifdef ENABLE_LLVM

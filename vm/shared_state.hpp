@@ -25,12 +25,7 @@ namespace rubinius {
   class GlobalCache;
   class ConfigParser;
   class VM;
-
-  struct Configuration {
-    bool compile_up_front;
-    bool jit_enabled;
-    bool dynamic_interpreter_enabled;
-  };
+  class Configuration;
 
   struct Interrupts {
     bool check;
@@ -70,13 +65,13 @@ namespace rubinius {
     Globals globals;
     ObjectMemory* om;
     GlobalCache* global_cache;
-    Configuration config;
+    Configuration& config;
+    ConfigParser& user_variables;
     Interrupts interrupts;
     SymbolTable symbols;
-    ConfigParser *user_config;
 
   public:
-    SharedState();
+    SharedState(Configuration& config, ConfigParser& cp);
     ~SharedState();
 
     static void discard(SharedState* ss);

@@ -91,14 +91,12 @@ namespace rubinius {
     thread::Mutex local_lock_;
     Waiter* waiter_;
 
-    ConfigParser *user_config;
     Globals& globals;
     ObjectMemory* om;
     event::Loop* events;
     event::Loop* signal_events;
     GlobalCache* global_cache;
     TypedRoot<TaskProbe*> probe;
-    Configuration& config;
     Interrupts& interrupts;
     SymbolTable& symbols;
 
@@ -137,8 +135,6 @@ namespace rubinius {
     static const int cReasonException = 1;
     static const int cReasonTypeError = 2;
     static const int cReasonAssertion = 3;
-
-    static const size_t default_bytes = 1048576 * 3;
 
     static int cStackDepthMax;
 
@@ -202,7 +198,7 @@ namespace rubinius {
 
     void check_exception(CallFrame* call_frame);
 
-    void initialize(size_t bytes = default_bytes);
+    void initialize();
 
     // Initialize the basic objects and the execution machinery
     void boot();

@@ -28,14 +28,16 @@
 namespace rubinius {
 
   Environment::Environment(int argc, char** argv) {
-    ConfigParser* config = new ConfigParser();
-    config->process_argv(argc, argv);
+    config_parser.process_argv(argc, argv);
 
-    shared = new SharedState();
-    shared->user_config = config;
+    config_parser.update_configuration(config);
+
+    shared = new SharedState(config, config_parser);
 
     state = shared->new_vm();
-    state->initialize(VM::default_bytes);
+    state->initialize();
+
+    if(config.print_config) config.print();
   }
 
   Environment::~Environment() {
@@ -110,7 +112,7 @@ namespace rubinius {
       throw std::runtime_error(error);
     }
 
-    state->user_config->import_stream(stream);
+    config_parser.import_stream(stream);
   }
 
   void Environment::boot_vm() {

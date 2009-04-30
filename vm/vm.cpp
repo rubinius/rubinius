@@ -44,11 +44,9 @@ namespace rubinius {
     , profiler_(0)
     , shared(shared)
     , waiter_(NULL)
-    , user_config(shared.user_config)
     , globals(shared.globals)
     , om(shared.om)
     , global_cache(shared.global_cache)
-    , config(shared.config)
     , interrupts(shared.interrupts)
     , symbols(shared.symbols)
     , check_local_interrupts(false)
@@ -70,21 +68,10 @@ namespace rubinius {
     delete vm;
   }
 
-  void VM::initialize(size_t bytes)
-  {
-    config.compile_up_front = false;
-    config.jit_enabled = false;
-    config.dynamic_interpreter_enabled = false;
-
+  void VM::initialize() {
     VM::register_state(this);
 
-    if(user_config) {
-      if(ConfigParser::Entry* entry = user_config->find("rbx.gc.young_space")) {
-        bytes = entry->to_i();
-      }
-    }
-
-    om = new ObjectMemory(this, bytes);
+    om = new ObjectMemory(this, shared.config);
     shared.om = om;
 
     probe.set(Qnil, &globals.roots);
@@ -100,19 +87,6 @@ namespace rubinius {
   }
 
   void VM::boot() {
-#ifdef USE_USAGE_JIT
-    if(user_config->find("rbx.jit")) {
-      config.jit_enabled = true;
-    }
-#endif
-
-#ifdef USE_DYNAMIC_INTERPRETER
-    if(user_config->find("rbx.dyni")) {
-      config.dynamic_interpreter_enabled = true;
-    }
-#endif
-
-//    MethodContext::initialize_cache(this);
     TypeInfo::auto_learn_fields(this);
 
     bootstrap_ontology();

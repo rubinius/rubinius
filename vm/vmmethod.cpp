@@ -26,6 +26,7 @@
 #include "raise_reason.hpp"
 
 #include "assembler/jit.hpp"
+#include "configuration.hpp"
 
 #define CALLS_TIL_JIT 50
 #define JIT_MAX_METHOD_SIZE 2048
@@ -47,7 +48,7 @@ namespace rubinius {
 
   void VMMethod::init(STATE) {
 #ifdef USE_DYNAMIC_INTERPRETER
-    if(!state->config.dynamic_interpreter_enabled) {
+    if(!state->shared.config.dynamic_interpreter_enabled) {
       dynamic_interpreter = NULL;
       standard_interpreter = &VMMethod::interpreter;
       return;
@@ -107,7 +108,7 @@ namespace rubinius {
 
 #ifdef USE_USAGE_JIT
     // Disable JIT for large methods
-    if(state->config.jit_enabled && total < JIT_MAX_METHOD_SIZE) {
+    if(state->shared.config.jit_enabled && total < JIT_MAX_METHOD_SIZE) {
       call_count = 0;
     } else {
       call_count = -1;

@@ -41,6 +41,7 @@
 #include "builtin/location.hpp"
 #include "builtin/global_cache_entry.hpp"
 
+#include "configuration.hpp"
 #include "config.h"
 
 #define SPECIAL_CLASS_MASK 0x1f
@@ -399,7 +400,7 @@ namespace rubinius {
     }
 
 #ifdef USE_DYNAMIC_INTERPRETER
-    if(config.dynamic_interpreter_enabled) {
+    if(shared.config.dynamic_interpreter_enabled) {
       G(rubinius)->set_const(state, "INTERPRETER", symbol("dynamic"));
     } else {
       G(rubinius)->set_const(state, "INTERPRETER", symbol("static"));
@@ -409,7 +410,7 @@ namespace rubinius {
 #endif
 
 #ifdef USE_USAGE_JIT
-    if(config.jit_enabled) {
+    if(shared.config.jit_enabled) {
       G(rubinius)->set_const(state, "JIT", symbol("usage"));
     } else {
       G(rubinius)->set_const(state, "JIT", Qfalse);

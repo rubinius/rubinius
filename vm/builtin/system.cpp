@@ -44,6 +44,8 @@
 
 #include "instruments/stats.hpp"
 
+#include "configuration.hpp"
+
 namespace rubinius {
 
 
@@ -174,7 +176,7 @@ namespace rubinius {
   }
 
   Object* System::vm_get_config_item(STATE, String* var) {
-    ConfigParser::Entry* ent = state->user_config->find(var->c_str());
+    ConfigParser::Entry* ent = state->shared.user_variables.find(var->c_str());
     if(!ent) return Qnil;
 
     if(ent->is_number()) {
@@ -189,7 +191,7 @@ namespace rubinius {
   Object* System::vm_get_config_section(STATE, String* section) {
     ConfigParser::EntryList* list;
 
-    list = state->user_config->get_section(section->byte_address());
+    list = state->shared.user_variables.get_section(section->byte_address());
 
     Array* ary = Array::create(state, list->size());
     for(size_t i = 0; i < list->size(); i++) {
@@ -268,7 +270,7 @@ namespace rubinius {
   }
 
   Object* System::vm_jit_info(STATE) {
-    if(!state->config.jit_enabled) {
+    if(!state->shared.config.jit_enabled) {
       return Qnil;
     }
 

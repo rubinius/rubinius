@@ -36,6 +36,7 @@ namespace rubinius {
 
   class CallFrame;
   class GCData;
+  class Configuration;
 
   class ObjectMemory {
   public:
@@ -56,7 +57,7 @@ namespace rubinius {
     /* Config variables */
     size_t large_object_threshold;
 
-    ObjectMemory(STATE, size_t young_bytes);
+    ObjectMemory(STATE, Configuration& config);
     ~ObjectMemory();
 
     void remember_object(Object* target);

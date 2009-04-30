@@ -7,6 +7,8 @@
 #include <vector>
 
 namespace rubinius {
+  class Configuration;
+
   class ConfigParser {
   public:
     class Entry {
@@ -33,6 +35,8 @@ namespace rubinius {
     void   import_stream(std::istream&);
     Entry* find(std::string variable);
     EntryList* get_section(std::string prefix);
+
+    void   update_configuration(Configuration&);
   };
 }
 

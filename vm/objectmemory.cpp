@@ -11,15 +11,16 @@
 #include "builtin/tuple.hpp"
 
 #include "capi/handle.hpp"
+#include "configuration.hpp"
 
 namespace rubinius {
 
   Object* object_watch = 0;
 
   /* ObjectMemory methods */
-  ObjectMemory::ObjectMemory(STATE, size_t young_bytes)
+  ObjectMemory::ObjectMemory(STATE, Configuration& config)
     : state(state)
-    , young(this, young_bytes)
+    , young(this, config.gc_bytes)
     , mark_sweep_(this)
     , immix_(this)
   {
@@ -36,23 +37,8 @@ namespace rubinius {
     collect_mature_now = false;
     last_object_id = 0;
 
-    if(state->user_config) {
-      ConfigParser::Entry* entry;
-      if((entry = state->user_config->find("rbx.gc.large_object"))) {
-        large_object_threshold = entry->to_i();
-      } else {
-        large_object_threshold = 2700;
-      }
-
-      if((entry = state->user_config->find("rbx.gc.lifetime"))) {
-        young.lifetime = entry->to_i();
-      } else {
-        young.lifetime = 6;
-      }
-    } else {
-      large_object_threshold = 2700;
-      young.lifetime = 6;
-    }
+    large_object_threshold = config.gc_large_object;
+    young.lifetime = config.gc_lifetime;
 
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;

@@ -5,6 +5,7 @@
 #include "config_parser.hpp"
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
+#include "configuration.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -14,14 +15,14 @@ class VMTest {
 public:
   SharedState* shared;
   VM* state;
-  ConfigParser* config;
+  ConfigParser* config_parser;
+  Configuration config;
 
   void create() {
-    shared = new SharedState();
-    config = new ConfigParser;
-    shared->user_config = config;
+    config_parser = new ConfigParser;
+    shared = new SharedState(config, *config_parser);
     state = shared->new_vm();
-    state->initialize(VM::default_bytes);
+    state->initialize();
     state->boot();
 
     state->global_lock().lock();

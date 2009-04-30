@@ -1,7 +1,9 @@
 #include <cstring>
 #include <cstdlib>
 #include <string>
+
 #include "config_parser.hpp"
+#include "configuration.hpp"
 
 namespace rubinius {
   /* utility: checks whether string contains only digits */
@@ -26,6 +28,15 @@ namespace rubinius {
 
     return str;
   }
+
+  ConfigParser::~ConfigParser() {
+    ConfigParser::ConfigMap::iterator i = variables.begin();
+    while(i != variables.end()) {
+      delete i->second;
+      i++;
+    }
+  }
+
 
   void ConfigParser::process_argv(int argc, char** argv) {
     for(int i=1; i < argc; i++) {
@@ -90,14 +101,6 @@ namespace rubinius {
     return i->second;
   }
 
-  ConfigParser::~ConfigParser() {
-    ConfigParser::ConfigMap::iterator i = variables.begin();
-    while(i != variables.end()) {
-      delete i->second;
-      i++;
-    }
-  }
-
   bool ConfigParser::Entry::is_number() {
     return rubinius::is_number(value.c_str());
   }
@@ -126,5 +129,13 @@ namespace rubinius {
     }
 
     return list;
+  }
+
+  void ConfigParser::update_configuration(Configuration& config) {
+    for(ConfigParser::ConfigMap::iterator i = variables.begin();
+        i != variables.end();
+        i++) {
+      config.import(i->first.c_str(), i->second->value.c_str());
+    }
   }
 }

@@ -5,13 +5,20 @@
 #include <stdexcept>
 
 #include "vm.hpp"
+#include "config_parser.hpp"
+#include "configuration.hpp"
 
 namespace rubinius {
+
+  class ConfigParser;
 
   class Environment {
   public:
     SharedState* shared;
     VM* state;
+
+    ConfigParser  config_parser;
+    Configuration config;
 
     Environment(int argc, char** argv);
     ~Environment();
