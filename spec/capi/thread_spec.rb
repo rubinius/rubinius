@@ -12,9 +12,9 @@ describe "CApiThreadSpecs" do
     it "returns true if an fd is ready to read" do
       read, write = IO.pipe
 
-      @t.rb_thread_select(read.to_i, 0).should == false
+      @t.rb_thread_select_fd(read.to_i, 0).should == false
       write << "1"
-      @t.rb_thread_select(read.to_i, 0).should == true
+      @t.rb_thread_select_fd(read.to_i, 0).should == true
     end
 
     it "does not block all threads" do
@@ -24,7 +24,7 @@ describe "CApiThreadSpecs" do
       end
       Thread.pass while t.status and t.status != "sleep"
 
-      @t.rb_thread_select(0, 500_000)
+      @t.rb_thread_select(500_000)
 
       t.alive?.should be_false
       ScratchPad.recorded.should == :inner
