@@ -49,34 +49,32 @@ namespace rubinius {
     return strings.size() - 1;
   }
 
-  Symbol* SymbolTable::lookup(STATE, std::string str) {
+  Symbol* SymbolTable::lookup(STATE, const char* str) {
     size_t sym;
 
-    if(str.size() == 0) {
+    if(*str == 0) {
       Exception::argument_error(state, "Cannot create a symbol from an empty string");
     }
 
-    hashval hash = String::hash_str((unsigned char*)str.c_str(), str.size());
+    hashval hash = String::hash_str((unsigned char*)str, strlen(str));
 
     SymbolMap::iterator entry = symbols.find(hash);
     if(entry == symbols.end()) {
-      sym = add(str);
+      sym = add(std::string(str));
       SymbolIds v(1, sym);
       symbols[hash] = v;
     } else {
       SymbolIds& v = entry->second;
       for(SymbolIds::iterator i = v.begin(); i != v.end(); i++) {
-        if(strings[*i] == str) return Symbol::from_index(state, *i);
+        std::string& s = strings[*i];
+
+        if(!strcmp(s.c_str(), str)) return Symbol::from_index(state, *i);
       }
-      sym = add(str);
+      sym = add(std::string(str));
       v.push_back(sym);
     }
 
     return Symbol::from_index(state, sym);
-  }
-
-  Symbol* SymbolTable::lookup(STATE, const char* str) {
-    return lookup(state, std::string(str));
   }
 
   Symbol* SymbolTable::lookup(STATE, String* str) {

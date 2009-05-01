@@ -196,10 +196,6 @@ namespace rubinius {
     return symbols.lookup(this, str);
   }
 
-  Symbol* VM::symbol(std::string str) {
-    return symbols.lookup(this, str);
-  }
-
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
     if((obj->reference_p() && obj->type_id() != type)
         || (type == FixnumType && !obj->fixnum_p())) {

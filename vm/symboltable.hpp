@@ -51,7 +51,6 @@ namespace rubinius {
     typedef std::vector<Kind> SymbolKinds;
 
   public:
-    Symbol* lookup(STATE, std::string str);
     Symbol* lookup(STATE, const char* str);
     Symbol* lookup(STATE, String* str);
     String* lookup_string(STATE, const Symbol* sym);

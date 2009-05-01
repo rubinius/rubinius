@@ -267,7 +267,6 @@ namespace rubinius {
 
     Symbol* symbol(const char* str);
     Symbol* symbol(String* str);
-    Symbol* symbol(std::string str);
 
     TypeInfo* find_type(int type);
 
