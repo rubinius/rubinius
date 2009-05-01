@@ -1,6 +1,11 @@
 module Rubinius
   class ThrownValue < Exception
-    def initialize(name, value, ctx)
+    # HACK
+    def self.===(obj)
+      obj.kind_of? ThrownValue
+    end
+
+    def initialize(name, value)
       super(nil)
       @name = name
       @value = value
@@ -61,7 +66,7 @@ module Kernel
       raise NameError.new("uncaught throw `#{sym}'", symbol)
     end
 
-    exc = Rubinius::ThrownValue.new(symbol, value, Rubinius::VariableScope.of_sender)
+    exc = Rubinius::ThrownValue.new(symbol, value)
     Rubinius.asm(exc) do |v|
       v.bytecode(self)
       raise_exc

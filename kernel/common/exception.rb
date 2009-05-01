@@ -55,6 +55,12 @@ class Exception
   def location
     [context.file.to_s, context.line]
   end
+
+  # HACK
+  def self.===(obj)
+    return false if obj.kind_of? Rubinius::ThrownValue
+    super
+  end
 end
 
 ##
