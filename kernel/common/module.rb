@@ -267,22 +267,22 @@ class Module
   # name cannot be located.
 
   def instance_method(name)
-    name = Type.coerce_to name, Symbol, :to_sym
+    name = Type.coerce_to_symbol name
 
     mod = self
-    cmethod = @method_table[name]
+    while mod
+      if cm = mod.method_table[name]
+        cm = cm.method if cm.kind_of? Rubinius::CompiledMethod::Visibility
+        if cm
+          mod = mod.module if mod.class == Rubinius::IncludedModule
+          return UnboundMethod.new(mod, cm, self)
+        end
+      else
+        break if cm == false
+      end
 
-    while mod and cmethod.nil? do
       mod = mod.direct_superclass
-      cmethod = mod.method_table[name] if mod
     end
-
-    # unwrap the real method from Visibility if needed
-    cmethod = cmethod.method if cmethod.kind_of? Rubinius::CompiledMethod::Visibility
-
-    # We want to show the real module
-    mod = mod.module if mod.class == Rubinius::IncludedModule
-    return UnboundMethod.new(mod, cmethod, self) if cmethod
 
     raise NameError, "Undefined method `#{name}' for #{self}"
   end
