@@ -60,7 +60,12 @@ namespace rubinius {
     static String* create(STATE, const char* str, size_t bytes = 0);
     static String* create_pinned(STATE, Fixnum* size);
 
+    // Hash the NUL-terminated string _bp_.
+    static hashval hash_str(const char *bp);
+
+    // Hash the byte array _bp_ which contains _sz_ bytes.
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
+
     static bool string_equal_p(STATE, Object* self, Object* other);
     // Ruby.primitive :string_equal
     Object* equal(STATE, String* other);

@@ -56,7 +56,7 @@ namespace rubinius {
       Exception::argument_error(state, "Cannot create a symbol from an empty string");
     }
 
-    hashval hash = String::hash_str((unsigned char*)str, strlen(str));
+    hashval hash = String::hash_str(str);
 
     SymbolMap::iterator entry = symbols.find(hash);
     if(entry == symbols.end()) {

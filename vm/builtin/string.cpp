@@ -131,6 +131,26 @@ namespace rubinius {
     return h;
   }
 
+  static inline unsigned int update_hash(unsigned int hv, unsigned char byte) {
+    return (hv * HashPrime) ^ byte;
+  }
+
+  static inline unsigned int finish_hash(unsigned int hv) {
+    return (hv>>28) ^ (hv & MASK_28);
+  }
+
+  hashval String::hash_str(const char *bp) {
+    unsigned int hv;
+
+    hv = 0;
+
+    while(*bp) {
+      hv = update_hash(hv, *bp++);
+    }
+
+    return finish_hash(hv);
+  }
+
   hashval String::hash_str(const unsigned char *bp, unsigned int sz) {
     unsigned char *be;
     unsigned int hv;
@@ -140,12 +160,10 @@ namespace rubinius {
     hv = 0;
 
     while(bp < be) {
-      hv *= HashPrime;
-      hv ^= *bp++;
+      hv = update_hash(hv, *bp++);
     }
-    hv = (hv>>28) ^ (hv & MASK_28);
 
-    return hv;
+    return finish_hash(hv);
   }
 
   Symbol* String::to_sym(STATE) {
