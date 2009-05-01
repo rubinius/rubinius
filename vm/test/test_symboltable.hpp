@@ -28,17 +28,6 @@ public:
     TS_ASSERT_EQUALS(sym, sym2);
   }
 
-  void test_lookup_with_std_string() {
-    std::string str("unique");
-    std::string str2("uniquer");
-
-    Object* sym = symbols->lookup(state, str);
-    TS_ASSERT(sym->symbol_p());
-
-    Object* sym2 = symbols->lookup(state, str2);
-    TS_ASSERT_DIFFERS(sym, sym2);
-  }
-
   void test_lookup_with_string_containing_null() {
     String* str = String::create(state, "abxdc");
     str->byte_address()[2] = 0;

@@ -43,16 +43,6 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(sym1, sym2);
   }
 
-  void test_symbol_given_std_string() {
-    std::string str1("standard");
-    std::string str2("standard");
-
-    Symbol* sym1 = state->symbol(str1);
-    Symbol* sym2 = state->symbol(str2);
-
-    TS_ASSERT_EQUALS(sym1, sym2);
-  }
-
   void test_collection() {
     std::map<int, Object*> objs;
 
