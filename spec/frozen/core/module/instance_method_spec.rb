@@ -35,9 +35,22 @@ describe "Module#instance_method" do
     @mod_um.inspect.should    =~ /\bModuleSpecs::InstanceMethChild\b/
   end
 
+  it "raises an ArgumentError if passed a Fixnum that is not a symbol" do
+    lambda { Object.instance_method(0) }.should raise_error(ArgumentError)
+  end
+
   it "raises a TypeError if the given name is not a string/symbol" do
     lambda { Object.instance_method(nil)       }.should raise_error(TypeError)
     lambda { Object.instance_method(mock('x')) }.should raise_error(TypeError)
+  end
+
+  it "raises a NameError if the method has been undefined" do
+    ModuleSpecs::InstanceMethChild.send :undef_method, :foo
+    um = ModuleSpecs::InstanceMeth.instance_method(:foo)
+    um.should == @parent_um
+    lambda do
+      ModuleSpecs::InstanceMethChild.instance_method(:foo)
+    end.should raise_error(NameError)
   end
 
   it "raises a NameError if the given method doesn't exist" do
