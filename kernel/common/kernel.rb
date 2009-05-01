@@ -246,7 +246,7 @@ module Kernel
     ary = []
     Rubinius::VM.backtrace(1)[start..-1].each do |l|
       pos = l.position
-      if exclude_kernel and !%r!^kernel/!.match(pos)
+      if !exclude_kernel or !%r!^kernel/!.match(pos)
         meth = l.describe_method
         if meth == "__script__"
           ary << "#{pos}"
