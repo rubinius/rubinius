@@ -3,11 +3,14 @@
 
 module Rubinius
   class DelegatedMethod < Executable
-    def initialize(method, receiver, pass_self=false)
+    def initialize(name, method, receiver, pass_self=false)
+      @name = name
       @method = method
       @receiver = receiver
       @pass_self = pass_self
     end
+
+    attr_reader :name
 
     def call(called_object, called_method, *args, &block)
       args.unshift called_object if @pass_self

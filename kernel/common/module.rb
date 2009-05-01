@@ -332,15 +332,15 @@ class Module
 
     case meth
     when Proc::Method
-      cm = Rubinius::DelegatedMethod.new(:call, meth, false)
+      cm = Rubinius::DelegatedMethod.new(name, :call, meth, false)
     when Proc
       prc = meth.dup
       prc.lambda_style!
-      cm = Rubinius::DelegatedMethod.new(:call_on_object, prc, true)
+      cm = Rubinius::DelegatedMethod.new(name, :call_on_object, prc, true)
     when Method
-      cm = Rubinius::DelegatedMethod.new(:call, meth, false)
+      cm = Rubinius::DelegatedMethod.new(name, :call, meth, false)
     when UnboundMethod
-      cm = Rubinius::DelegatedMethod.new(:call_on_instance, meth, true)
+      cm = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth, true)
     else
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
