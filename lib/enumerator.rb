@@ -5,7 +5,7 @@ module Enumerable
   class Enumerator
     include Enumerable
 
-    def initialize(obj,iter, *args)
+    def initialize(obj, iter = :each, *args)
       @object = obj
       @iter = iter
       @iterator = @object.method(iter.to_sym)
@@ -53,8 +53,10 @@ module Enumerable
   end
 end
 
-class Object
-  def enum_for(method, *args)
+module Kernel
+  def enum_for(method = :each, *args)
     Enumerable::Enumerator.new(self,method,*args)
   end
+  
+  alias_method :to_enum, :enum_for
 end
