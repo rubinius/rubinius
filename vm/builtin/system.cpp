@@ -297,9 +297,9 @@ namespace rubinius {
   }
 
   Object* System::vm_watch_signal(STATE, Fixnum* sig) {
-    SignalThread* thr = state->shared.signal_thread();
-    if(thr) {
-      thr->add_signal(sig->to_native());
+    SignalHandler* h = state->shared.signal_handler();
+    if(h) {
+      h->add_signal(sig->to_native());
       return Qtrue;
     } else {
       return Qfalse;

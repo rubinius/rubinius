@@ -54,7 +54,6 @@ namespace rubinius {
   class Interrupts;
   class VMManager;
   class Waiter;
-  class SignalThread;
   class LookupTable;
   class SymbolTable;
   class SharedState;
@@ -84,6 +83,7 @@ namespace rubinius {
     void* stack_start_;
     bool alive_;
     profiler::Profiler* profiler_;
+    bool run_signals_;
 
   public:
     /* Data members */
@@ -139,6 +139,14 @@ namespace rubinius {
     static int cStackDepthMax;
 
   public: /* Inline methods */
+
+    bool run_signals_p() {
+      return run_signals_;
+    }
+
+    void set_run_signals(bool val) {
+      run_signals_ = val;
+    }
 
     bool alive_p() {
       return alive_;

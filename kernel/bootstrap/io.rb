@@ -43,6 +43,7 @@ class IO
 
   def self.select_primitive(readables, writables, errorables, timeout)
     Ruby.primitive :io_select
+    raise PrimitiveFailure, "IO#select_primitive primitive failed"
   end
 
 
@@ -107,6 +108,7 @@ class IO
   #
   def shutdown(how)
     Ruby.primitive :io_shutdown
+    raise PrimitiveFailure, "IO#shutdown primitive failed"
   end
 
 end

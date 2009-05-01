@@ -3,98 +3,63 @@
 
 #include "native_thread.hpp"
 
+#include "builtin/module.hpp"
 #include <iostream>
 #include <sys/select.h>
 
 namespace rubinius {
-  SignalThread* SignalThread::thread = 0;
+  class CallFrame;
 
-  SignalThread::SignalThread(VM* vm)
+  static SignalHandler* handler_ = 0;
+
+  SignalHandler::SignalHandler(VM* vm)
     : vm_(vm)
   {
-    // Register this object as the thread handling signals.
-    assert(!thread);
-    thread = this;
-
-    int fds[2];
-    assert(pipe(fds) == 0);
-
-    read_fd_  = fds[0];
-    write_fd_ = fds[1];
-
-    sigfillset(&signal_set_);
+    handler_ = this;
   }
 
-  SignalThread::~SignalThread() {
-    // Deregister ourself.
-    thread = 0;
-    close(read_fd_);
-    close(write_fd_);
+  void SignalHandler::signal_tramp(int sig) {
+    handler_->handle_signal(sig);
   }
 
-  void SignalThread::wake_loop() {
-    assert(write(write_fd_, "!", 1) == 1);
-  }
-
-  void SignalThread::handle_signal(int sig) {
-    thread->inform_processing(sig);
-  }
-
-  void SignalThread::inform_processing(int sig) {
+  void SignalHandler::handle_signal(int sig) {
+    thread::SpinLock::LockGuard guard(lock_);
     pending_signals_.push_back(sig);
-    wake_loop();
+    vm_->check_local_interrupts = true;
+    vm_->wakeup();
   }
 
-  void SignalThread::add_signal(int sig) {
-    if(!sigismember(&signal_set_, sig)) return;
+  void SignalHandler::add_signal(int sig) {
+    thread::SpinLock::LockGuard guard(lock_);
 
-    lock_.lock();
-    sigdelset(&signal_set_, sig);
+    sigset_t sigs;
+    sigemptyset(&sigs);
+    sigaddset(&sigs, sig);
+    sigprocmask(SIG_UNBLOCK, &sigs, NULL);
 
-    // NOTE this exploits the fact that all threads share the same
-    // set of signal handlers. We can call add_signal from another
-    // thread, which installs the signal handler, then wakes the
-    // signal thread to reinstall it's signal mask.
-    //
-    // When the signal arrives, the handler will be run on the signal
-    // thread, since everyone else has signals blocked.
     struct sigaction action;
-    action.sa_handler = handle_signal;
-    action.sa_flags = SA_RESTART;
+    action.sa_handler = signal_tramp;
+    action.sa_flags = 0;
     sigfillset(&action.sa_mask);
 
     assert(sigaction(sig, &action, NULL) == 0);
-    lock_.unlock();
-
-    wake_loop();
   }
 
-  void SignalThread::perform() {
-    lock_.lock();
+  void SignalHandler::deliver_signals(CallFrame* call_frame) {
+    thread::SpinLock::LockGuard guard(lock_);
+    Array* args = Array::create(vm_, 1);
 
-    fd_set fds;
-    for(;;) {
-      pthread_sigmask(SIG_SETMASK, &signal_set_, NULL);
+    // We run all handlers, even if one handler raises an exception. The
+    // rest of the signals handles will simply see the exception.
+    for(std::list<int>::iterator i = pending_signals_.begin();
+        i != pending_signals_.end();
+        i++) {
+      args->set(vm_, 0, Fixnum::from(*i));
 
-      FD_ZERO(&fds);
-      FD_SET(read_fd_, &fds);
-
-      lock_.unlock();
-      ::select(read_fd_ + 1, &fds, NULL, NULL, NULL);
-      lock_.lock();
-      char dummy;
-      assert(read(read_fd_, &dummy, 1) == 1);
-      // Hey! there must be data!
-      //
-      // Inhibit signals while we handle the current set.
-      NativeThread::block_all_signals();
-
-      // Read data out and forward it to the VM
-      for(std::list<int>::iterator i = pending_signals_.begin();
-          i != pending_signals_.end();
-          i++) {
-        vm_->send_async_signal(*i);
-      }
+      vm_->globals.rubinius->send(vm_, call_frame,
+          vm_->symbol("received_signal"), args, Qnil);
     }
+
+    pending_signals_.clear();
   }
 }

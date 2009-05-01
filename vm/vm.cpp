@@ -24,6 +24,7 @@
 
 #include "native_thread.hpp"
 #include "call_frame.hpp"
+#include "signal.hpp"
 
 #include <iostream>
 #include <signal.h>
@@ -42,6 +43,7 @@ namespace rubinius {
     : saved_call_frame_(0)
     , alive_(true)
     , profiler_(0)
+    , run_signals_(false)
     , shared(shared)
     , waiter_(NULL)
     , globals(shared.globals)
@@ -363,26 +365,13 @@ namespace rubinius {
   }
 
   bool VM::process_async(CallFrame* call_frame) {
-    while(!mailbox_.empty_p()) {
-      ASyncMessage msg = mailbox_.pop();
-      switch(msg.type()) {
-      case ASyncMessage::cSignal: {
-        Array* args = Array::create(this, 1);
-        args->set(this, 0, Fixnum::from(msg.data()));
-
-        Object* ret = G(rubinius)->send(this, call_frame,
-            symbol("received_signal"), args, Qnil);
-
-        if(!ret) return false;
-      }
-      }
-    }
-
     check_local_interrupts = false;
 
-    if(thread_state_.raise_reason() != cNone) {
-      return false;
+    if(run_signals_) {
+      shared.signal_handler()->deliver_signals(call_frame);
     }
+
+    if(thread_state_.raise_reason() != cNone) return false;
 
     return true;
   }

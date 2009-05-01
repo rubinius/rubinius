@@ -20,7 +20,7 @@ namespace rubinius {
     class ProfilerCollection;
   }
 
-  class SignalThread;
+  class SignalHandler;
   class ObjectMemory;
   class GlobalCache;
   class ConfigParser;
@@ -53,7 +53,7 @@ namespace rubinius {
   private:
     bool initialized_;
     GlobalLock lock_;
-    SignalThread* signal_thread_;
+    SignalHandler* signal_handler_;
     CallFrameLocationList cf_locations_;
     VariableRootBuffers root_buffers_;
     capi::Handles* global_handles_;
@@ -84,12 +84,12 @@ namespace rubinius {
       return lock_;
     }
 
-    SignalThread* signal_thread() {
-      return signal_thread_;
+    SignalHandler* signal_handler() {
+      return signal_handler_;
     }
 
-    void set_signal_thread(SignalThread* thr) {
-      signal_thread_ = thr;
+    void set_signal_handler(SignalHandler* thr) {
+      signal_handler_ = thr;
     }
 
     static SharedState* standalone(VM*);

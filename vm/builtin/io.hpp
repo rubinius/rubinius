@@ -62,7 +62,7 @@ namespace rubinius {
      *  @todo Replace with an evented version when redoing events. --rue
      */
     // Ruby.primitive :io_select
-    static Object*  select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout);
+    static Object*  select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout, CallFrame* calling_environment);
 
 
   /* Instance primitives */
@@ -76,7 +76,7 @@ namespace rubinius {
      *  Returns Qnil at EOF.
      */
     // Ruby.primitive :io_sysread
-    Object*   sysread(STATE, Fixnum* number_of_bytes);
+    Object* sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment);
 
     // Ruby.primitive :io_seek
     Integer*  seek(STATE, Integer* amount, Fixnum* whence);

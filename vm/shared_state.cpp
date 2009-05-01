@@ -9,6 +9,7 @@
 namespace rubinius {
   SharedState::SharedState(Configuration& config, ConfigParser& cp)
     : initialized_(false)
+    , signal_handler_(0)
     , global_handles_(new capi::Handles)
     , profiling_(false)
     , profiler_collection_(0)

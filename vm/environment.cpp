@@ -51,17 +51,15 @@ namespace rubinius {
 
   static void null_func(int sig) {}
 
-  void Environment::start_signal_thread() {
-    SignalThread* st = new SignalThread(state);
-    st->run();
-
+  void Environment::start_signals() {
     struct sigaction action;
     action.sa_handler = null_func;
-    action.sa_flags = 0;
+    action.sa_flags = SA_RESTART;
     sigfillset(&action.sa_mask);
     sigaction(7, &action, NULL);
 
-    shared->set_signal_thread(st);
+    state->set_run_signals(true);
+    shared->set_signal_handler(new SignalHandler(state));
   }
 
   void Environment::load_argv(int argc, char** argv) {

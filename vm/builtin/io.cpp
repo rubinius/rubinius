@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/time.h>
 
 #include "builtin/io.hpp"
 #include "builtin/bytearray.hpp"
@@ -111,17 +112,7 @@ namespace rubinius {
    *
    *  @todo This is highly unoptimised since we always rebuild the FD_SETs. --rue
    */
-  Object* IO::select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout) {
-    struct timeval limit;
-    struct timeval* maybe_limit = NULL;
-
-    if(!timeout->nil_p()) {
-      unsigned long long microseconds = as<Integer>(timeout)->to_ulong_long();
-      limit.tv_sec = microseconds / 1000000;
-      limit.tv_usec = microseconds % 1000000;
-      maybe_limit = &limit;
-    }
-
+  Object* IO::select(STATE, Object* readables, Object* writables, Object* errorables, Object* timeout, CallFrame* calling_environment) {
     fd_set read_set;
     fd_set* maybe_read_set = readables->nil_p() ? NULL : &read_set;
 
@@ -143,45 +134,69 @@ namespace rubinius {
     candidate = hidden_fd_set_from_array(state, errorables, maybe_error_set);
     highest = candidate > highest ? candidate : highest;
 
-    /* And the main event, pun intended */
+    struct timeval future;
+    struct timeval limit;
+    struct timeval* maybe_limit = NULL;
+
+    if(!timeout->nil_p()) {
+      unsigned long long microseconds = as<Integer>(timeout)->to_ulong_long();
+      limit.tv_sec = microseconds / 1000000;
+      limit.tv_usec = microseconds % 1000000;
+      maybe_limit = &limit;
+
+      // Get the current time to be used if select is interrupted and we
+      // have to recalculate the sleep time
+      assert(gettimeofday(&future, NULL) == 0);
+      timeradd(&future, &limit, &future);
+    }
+
     WaitingForSignal waiter;
-    state->install_waiter(waiter);
+    native_int events;
 
-    {
-    GlobalLock::UnlockGuard lock(state->global_lock());
 
+    /* And the main event, pun intended */
     retry:
-      native_int events = ::select((highest + 1), maybe_read_set,
+    state->install_waiter(waiter);
+    {
+      GlobalLock::UnlockGuard lock(state->global_lock());
+
+      events = ::select((highest + 1), maybe_read_set,
                                                   maybe_write_set,
                                                   maybe_error_set,
                                                   maybe_limit);
-
-      if(events == -1) {
-        if(errno == EAGAIN || errno == EINTR) {
-          goto retry;
-        }
-
-        Exception::errno_error(state, "::select() failed!");
-      }
-
-      /* Timeout expired */
-      if(events == 0) {
-        return Qnil;
-      }
-
     }
-
     state->clear_waiter();
 
+    if(events == -1) {
+      if(errno == EAGAIN || errno == EINTR) {
+        if(!state->check_async(calling_environment)) return NULL;
+
+        // Recalculate the limit and go again.
+        if(maybe_limit) {
+          struct timeval now;
+          assert(gettimeofday(&now, NULL) == 0);
+          timersub(&future, &now, &limit);
+        }
+
+        goto retry;
+      }
+
+      Exception::errno_error(state, "select(2) failed");
+      return NULL;
+    }
+
+    /* Timeout expired */
+    if(events == 0) return Qnil;
+
     /* Build the results. */
-    Array* events = Array::create(state, 3);
+    Array* output = Array::create(state, 3);
 
     /* These handle NULL sets. */
-    events->set(state, 0, hidden_reject_unset_fds(state, readables, maybe_read_set));
-    events->set(state, 1, hidden_reject_unset_fds(state, writables, maybe_write_set));
-    events->set(state, 2, hidden_reject_unset_fds(state, errorables, maybe_error_set));
+    output->set(state, 0, hidden_reject_unset_fds(state, readables, maybe_read_set));
+    output->set(state, 1, hidden_reject_unset_fds(state, writables, maybe_write_set));
+    output->set(state, 2, hidden_reject_unset_fds(state, errorables, maybe_error_set));
 
-    return events;
+    return output;
   }
 
 
@@ -341,23 +356,23 @@ namespace rubinius {
   }
 
 
-  Object* IO::sysread(STATE, Fixnum* number_of_bytes) {
+  Object* IO::sysread(STATE, Fixnum* number_of_bytes, CallFrame* calling_environment) {
     std::size_t count = number_of_bytes->to_ulong();
     String* buffer = String::create_pinned(state, number_of_bytes);
 
     ssize_t bytes_read;
+    native_int fd = descriptor()->to_native();
 
     OnStack<1> variables(state, buffer);
 
-  retry:
     WaitingForSignal waiter;
+
+  retry:
     state->install_waiter(waiter);
 
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
-      bytes_read = ::read(descriptor()->to_native(),
-                          buffer->data()->bytes,
-                          count);
+      bytes_read = ::read(fd, buffer->data()->bytes, count);
     }
 
     state->clear_waiter();
@@ -366,7 +381,9 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        goto retry;
+        if(state->check_async(calling_environment)) goto retry;
+      } else {
+        Exception::errno_error(state, "read(2) failed");
       }
 
       return NULL;
@@ -456,27 +473,35 @@ namespace rubinius {
 
   Object* IOBuffer::fill(STATE, IO* io, CallFrame* calling_environment) {
     ssize_t bytes_read;
+    WaitingForSignal waiter;
+
+    IOBuffer* self = this;
+    OnStack<1> os(state, self);
 
   retry:
-    WaitingForSignal waiter;
     state->install_waiter(waiter);
 
     {
       GlobalLock::UnlockGuard lock(state->global_lock());
       bytes_read = read(io->descriptor()->to_native(),
-                        at_unused(),
-                        left());
+                        self->at_unused(),
+                        self->left());
     }
 
     state->clear_waiter();
 
-    if(bytes_read == -1 && errno == EINTR) {
-      if(!state->check_async(calling_environment)) return NULL;
-      goto retry;
+    if(bytes_read == -1) {
+      if(errno == EAGAIN || errno == EINTR) {
+        if(state->check_async(calling_environment)) goto retry;
+      } else {
+        Exception::errno_error(state, "read(2) failed");
+      }
+
+      return NULL;
     }
 
     if(bytes_read > 0) {
-      read_bytes(state, bytes_read);
+      self->read_bytes(state, bytes_read);
     }
 
     return Fixnum::from(bytes_read);
