@@ -221,8 +221,8 @@ class Compiler
     activate_default :assembly
     activate_default :fastmath
     activate_default :current_method
-    activate :safemath if Config['rbx-safe-math']
     activate :const_expr if Config['rbx-kernel']
+    activate :kernel_methods if Config['rbx-kernel']
     activate_default :fastsystem
     activate_default :fastgeneric
     activate_default :fastnew

@@ -372,6 +372,10 @@ module Rubinius
   end
 end
 
+module Kernel
+  alias_method :__class__, :class
+end
+
 class Object
   include Kernel
 
