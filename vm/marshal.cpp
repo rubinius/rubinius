@@ -34,7 +34,7 @@ namespace rubinius {
     *done = false;
 
     while(!*done && bytes < sizeof(long)) {
-      unsigned int byte = stream.get();
+      unsigned long byte = stream.get();
 
       val += (byte & ~128) << shift;
 
@@ -76,6 +76,15 @@ namespace rubinius {
 
       mp_init_set_int(&mp_val, val);
       mp_init(&a);
+
+#if (__WORDSIZE == 64)
+      // mp_(init_)set_int can only deal with 32 bit values,
+      // so the above call only copied the lower 32 bits of _val_.
+      // Handle the upper 32 bits as well:
+      mp_set_int(&a, val >> 32);
+      mp_mul_2d(&a, 32, &a);
+      mp_add(&a, &mp_val, &mp_val);
+#endif
 
       while(!done) {
         unsigned int byte = stream.get();
