@@ -176,8 +176,11 @@ begin
     when '-S'
       script = ARGV.shift
       sep    = File::PATH_SEPARATOR
-      path   = ENV['PATH'].split(sep).map { |d| File.join(d, script) }
-      file   = path.find { |path| File.exist? path }
+      search = ENV['PATH'].split(sep).unshift(Rubinius::BIN_PATH)
+      file   = search.detect do |d|
+        path = File.join(d, script)
+        File.exist?(path) ? path : nil
+      end
 
       $0 = script if file
 
