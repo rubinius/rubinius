@@ -72,6 +72,22 @@ public:
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 3);
   }
 
+  void test_large_int() {
+    mar->sstream.str(std::string("I\x80\x80\x80\x80\x10"));
+    Object* obj = mar->unmarshal();
+
+    TS_ASSERT(kind_of<Integer>(obj));
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_ulong_long(), 4294967296ULL);
+  }
+
+  void test_larger_int() {
+    mar->sstream.str(std::string("I\xdc\x93\xf6\xc4\x9d\xb1\xa7\xec\x09"));
+    Object* obj = mar->unmarshal();
+
+    TS_ASSERT(kind_of<Integer>(obj));
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_ulong_long(), 709490156681136604ULL);
+  }
+
   void test_string() {
     mar->sstream.str(std::string("s\4blah"));
     Object* obj = mar->unmarshal();
