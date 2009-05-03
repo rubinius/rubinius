@@ -43,6 +43,14 @@ static VALUE sb_yield(VALUE self) {
   return rb_yield(INT2FIX(5));
 }
 
+static VALUE language_spec_rb_define_class_under(VALUE self,
+    VALUE outer, VALUE name, VALUE super) {
+  const char* class_name = StringValuePtr(name);
+  if(NIL_P(super)) super = 0;
+  return rb_define_class_under(outer, class_name, super);
+}
+
+// @todo: fix all these specs to follow the style guide
 void Init_language_spec() {
   VALUE cls;
   cls = rb_define_class("CApiCallSuperSpecs", rb_cObject);
@@ -53,4 +61,8 @@ void Init_language_spec() {
   cls = rb_define_class("CApiBlockSpecs", rb_cObject);
   rb_define_method(cls, "block_given?", sb_test, 0);
   rb_define_method(cls, "do_yield", sb_yield, 0);
+
+  cls = rb_define_class("CApiLanguageSpecs", rb_cObject);
+  rb_define_method(cls, "rb_define_class_under",
+      language_spec_rb_define_class_under, 3);
 }

@@ -83,18 +83,20 @@ extern "C" {
   }
 
   /** @note   Shares code with rb_define_module_under, change there too. --rue */
-  VALUE rb_define_class_under(VALUE parent_handle, const char* name, VALUE superclass_handle) {
+  VALUE rb_define_class_under(VALUE outer, const char* name, VALUE super) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* parent = c_as<Module>(env->get_object(parent_handle));
-    Class* superclass = c_as<Class>(env->get_object(superclass_handle));
+    Module* module = c_as<Module>(env->get_object(outer));
+    Class* superclass = c_as<Class>(env->get_object(super ? super : rb_cObject));
     Symbol* constant = env->state()->symbol(name);
 
     bool created = false;
-    Class* cls = rubinius::Helpers::open_class(env->state(),
-        env->current_call_frame(), parent, superclass, constant, &created);
+    VALUE klass = env->get_handle(rubinius::Helpers::open_class(env->state(),
+        env->current_call_frame(), module, superclass, constant, &created));
 
-    return env->get_handle(cls);
+    if(super) rb_funcall(super, rb_intern("inherited"), 1, klass);
+
+    return klass;
   }
 
   /** @todo   Should this be a global handle? Surely not.. --rue */

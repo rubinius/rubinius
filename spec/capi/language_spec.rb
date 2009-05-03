@@ -52,3 +52,51 @@ describe "CApiCallSuperSpecs" do
     (instance = ModuleTest::ClassSub.new()).should_not == nil
   end
 end
+
+class CApiLanguageSpecs
+  class Super
+    def self.inherited(child)
+      @children ||= []
+      @children << child
+    end
+
+    def self.children
+      @children
+    end
+  end
+
+  module Container
+  end
+end
+
+describe "CApiLanguageSpecs" do
+  before :each do
+    @s = CApiLanguageSpecs.new
+  end
+
+  describe "rb_define_class_under" do
+    it "creates a subclass of the superclass contained in a module" do
+      cls = @s.rb_define_class_under(CApiLanguageSpecs::Container,
+                                     "Child",
+                                     CApiLanguageSpecs::Super)
+      cls.should be_kind_of(Class)
+      CApiLanguageSpecs::Super.should be_ancestor_of(CApiLanguageSpecs::Container::Child)
+    end
+
+    it "uses Object as the superclass if NULL is passed" do
+      @s.rb_define_class_under(CApiLanguageSpecs, "DefaultSuper", nil)
+      Object.should be_ancestor_of(CApiLanguageSpecs::DefaultSuper)
+    end
+
+    it "sets the class name" do
+      cls = @s.rb_define_class_under(CApiLanguageSpecs::Container, "Named", nil)
+      cls.name.should == "CApiLanguageSpecs::Container::Named"
+    end
+
+    it "call #inherited on the superclass" do
+      cls = @s.rb_define_class_under(CApiLanguageSpecs,
+                                     "Inherited", CApiLanguageSpecs::Super)
+      CApiLanguageSpecs::Super.children.should include(CApiLanguageSpecs::Inherited)
+    end
+  end
+end

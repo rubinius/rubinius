@@ -37,7 +37,6 @@ class MSpecScript
   set :capi, [
     'spec/capi',
     '^spec/capi/globals',
-    '^spec/capi/language',
     '^spec/capi/module',
     '^spec/capi/proc',
     '^spec/capi/struct'
@@ -81,7 +80,6 @@ class MSpecScript
     '^spec/core/compiledmethod',
     '^spec/core/module',
     '^spec/capi/globals',
-    '^spec/capi/language',
     '^spec/capi/module',
     '^spec/capi/proc',
     '^spec/capi/struct',

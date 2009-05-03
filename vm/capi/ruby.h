@@ -713,6 +713,9 @@ double rb_num2dbl(VALUE);
 
   VALUE   rb_big2str(VALUE self, int base);
 
+  /** Calls this method in a superclass. */
+  VALUE rb_call_super(int argc, const VALUE *argv);
+
   /** If object responds to #to_ary, returns the result of that call, otherwise nil. */
   VALUE   rb_check_array_type(VALUE object_handle);
 

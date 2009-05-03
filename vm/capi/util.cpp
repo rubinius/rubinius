@@ -132,4 +132,9 @@ extern "C" {
 
     rb_raise(rb_eArgError, "invalid value for %s: %s", type, string->c_str());
   }
+
+  VALUE rb_call_super(int argc, const VALUE *argv) {
+    rb_raise(rb_eNotImpError, "Implement rb_call_super");
+    return Qnil;
+  }
 }
