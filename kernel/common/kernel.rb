@@ -424,6 +424,7 @@ module Kernel
   alias_method :breakpoint, :debugger
 
   def extend(*modules)
+    raise TypeError if frozen?
     modules.reverse_each do |mod|
       mod.extend_object(self)
       mod.send(:extended, self)
