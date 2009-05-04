@@ -1235,7 +1235,6 @@ class Array
   end
 
   def unshift(*values)
-    error_if_frozen if values.size > 0
     if(@start > values.size)
       # fit the new values in between 0 and @start if possible
       @start -= values.size
@@ -1250,10 +1249,6 @@ class Array
     end
     @total += values.size
     self
-  end
-
-  def error_if_frozen
-    raise TypeError, "can't modify frozen array" if self.frozen?
   end
 
   # Exactly the same as #replace but private
