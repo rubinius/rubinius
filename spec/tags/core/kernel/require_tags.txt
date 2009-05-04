@@ -1,7 +1,0 @@
-fails:Kernel#require loads a .rbc file directly
-fails:Kernel#require compiles a .rbc file when re-evaluating the source file
-fails:Kernel#require loads a .rbc file if it's not older than the associated .rb file
-fails:Kernel#require loads a .rbc even if the .rb is missing
-fails:Kernel#require does not recursively load an rbc file that requires itself
-fails:Kernel#require loads a .rb from a .rba in $LOAD_PATH
-fails:Kernel#require loads a .rb from a .rba in $LOAD_PATH, only once

@@ -1,2 +1,0 @@
-fails:Kernel#const_lookup raises NameError if the constant is not contained within the module's scope
-fails:Kernel#const_lookup returns the value of #const_missing

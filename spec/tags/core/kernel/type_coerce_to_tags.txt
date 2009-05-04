@@ -1,1 +1,0 @@
-fails:Type.coerce_to returns obj if already correct type according to Type.obj_kind_of?
