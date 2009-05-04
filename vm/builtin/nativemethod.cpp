@@ -242,6 +242,7 @@ namespace rubinius {
     NativeMethodEnvironment* env = native_method_environment.get();
     NativeMethodFrame nmf(env->current_native_frame());
 
+    CallFrame* saved_frame = env->current_call_frame();
     env->set_current_call_frame(call_frame);
     env->set_current_native_frame(&nmf);
 
@@ -265,6 +266,7 @@ namespace rubinius {
 #endif
     }
 
+    env->set_current_call_frame(saved_frame);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 
