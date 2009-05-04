@@ -1,4 +1,0 @@
-fails:Ar#replace adds a file
-fails:Ar#replace creates an @archive
-fails:Ar#replace raises on non-archives
-fails:Ar#replace replaces a file

@@ -1,2 +1,0 @@
-fails:Ar#write writes a new ar file
-fails:Ar#write handles long names

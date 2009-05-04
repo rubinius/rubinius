@@ -1,2 +1,0 @@
-fails:Ar#extract returns a file
-fails:Ar#extract returns a file with a long name

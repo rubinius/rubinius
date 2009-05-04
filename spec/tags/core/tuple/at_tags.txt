@@ -1,2 +1,0 @@
-fails:Tuple#at raises an Rubinius::ObjectBoundsExceededError when index is greater than or equal to tuple size
-fails:Tuple#at raises an InvalidIndexError when index is less than zero

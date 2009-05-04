@@ -1,2 +1,0 @@
-fails:String#lstrip returns a string with all leading \000 and whitespace characters removed
-fails:String#lstrip modifies self by removing all leading \000 and whitespace characters

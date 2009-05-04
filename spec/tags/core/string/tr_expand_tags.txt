@@ -1,2 +1,0 @@
-fails:String#tr_expand! replaces self with a string with all sequences expanded
-fails:String#tr_expand! accepts an optional Fixnum to limit the processing steps when expanding
