@@ -110,7 +110,7 @@ class Compiler
       @file = sexp.file
     end
 
-    attr_reader :line, :file
+    attr_reader :line, :file, :compiler
 
     def convert(x)
       @compiler.convert_sexp(x)

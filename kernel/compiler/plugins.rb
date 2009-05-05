@@ -104,6 +104,26 @@ class Compiler
     end
 
     ##
+    # Handles Rubinius.privately
+
+    class Privately < Plugin
+
+      plugin :privately
+
+      def handle(g, call)
+        return false unless call_match(call, :Rubinius, :privately)
+        return false unless call.block
+
+        call.compiler.set(:privately) do
+          call.block.body.bytecode(g)
+        end
+
+        return true
+      end
+
+    end
+
+    ##
     # Handles __METHOD__
 
     class CurrentMethod < Plugin

@@ -388,7 +388,7 @@ class Compiler
 
     class Call
       def allow_private?
-        @object.nil?
+        !@object or get(:privately) or false
       end
 
       def receiver_bytecode(g)
