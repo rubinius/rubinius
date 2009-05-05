@@ -275,7 +275,7 @@ RUBY_PLATFORM     = #{RBX_HOST.inspect}
 RUBY_RELEASE_DATE = #{RBX_RUBY_RELDATE.inspect}
 RUBY_VERSION      = #{RBX_RUBY_VERSION.inspect}
 
-VERSION           = #{RBX_RUBY_VERSION.inspect}
+VERSION           = RUBY_VERSION
     EOF
   end
 end
