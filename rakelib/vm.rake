@@ -629,7 +629,7 @@ namespace :vm do
   task :distclean => :clean do
     EXTERNALS.each do |lib|
       path = File.join(*lib.split(File::SEPARATOR)[0..2])
-      system "cd #{path}; #{make} clean"
+      system "cd #{path}; #{make} clean || true"
     end
   end
 
