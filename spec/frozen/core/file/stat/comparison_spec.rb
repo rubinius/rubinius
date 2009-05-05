@@ -11,8 +11,8 @@ describe "File::Stat#<=>" do
   after :each do
     @file1.close unless @file1.closed?
     @file2.close unless @file2.closed?
-    File.delete @name1
-    File.delete @name2
+    File.delete @name1 if File.exists? @name1
+    File.delete @name2 if File.exists? @name2
   end
 
   it "is able to compare files by the same modification times" do
