@@ -1366,12 +1366,12 @@ class Array
       segment_size = right_end - left_end
 
       # "Heuristic" to avoid problems with reverse-sorted
-      if segment_size > 1000 and (low <=> mid) == 1 and (mid <=> hi) == 1
+      if segment_size > 1000 and (low <=> mid) > 0 and (mid <=> hi) > 0
         semi_left = @tuple.at(left_end + ((middle - left_end) / 2))
         semi_right = @tuple.at(middle + ((right_end - middle) / 2))
 
-        if (low <=> semi_left) == 1 and (semi_left <=> mid) == 1 and
-           (mid <=> semi_right) == 1 and (semi_right <=> hi) == 1
+        if (low <=> semi_left) > 0 and (semi_left <=> mid) > 0 and
+           (mid <=> semi_right) > 0 and (semi_right <=> hi) > 0
 
           r = segment_size / 4
           while r > 0
@@ -1396,27 +1396,17 @@ class Array
       # Partition
       while true
         while left < right_end
-          case @tuple.at(left) <=> pivot
-          when -1
-            left += 1
-          when 0
-            @tuple.swap(left, (eqls_left += 1))
-            left += 1
-          else
-            break
-          end
+          cmp = @tuple.at(left) <=> pivot
+          break if cmp > 0
+          @tuple.swap(left, (eqls_left += 1)) if cmp == 0
+          left += 1
         end
 
         while right > left_end
-          case @tuple.at(right) <=> pivot
-          when 1
-            right -= 1
-          when 0
-            @tuple.swap(right, (eqls_right -= 1))
-            right -= 1
-          else
-            break
-          end
+          cmp = @tuple.at(right) <=> pivot
+          break if cmp < 0
+          @tuple.swap(right, (eqls_right -= 1)) if cmp == 0
+          right -= 1
         end
 
         break if left >= right
@@ -1497,12 +1487,12 @@ class Array
       segment_size = right_end - left_end
 
       # "Heuristic" for reverse-sorted
-      if segment_size > 1000 and block.call(low, mid) == 1 and block.call(mid, hi) == 1
+      if segment_size > 1000 and block.call(low, mid) > 0 and block.call(mid, hi) > 0
         semi_left = @tuple.at(left_end + ((middle - left_end) / 2))
         semi_right = @tuple.at(middle + ((right_end - middle) / 2))
 
-        if block.call(low, semi_left) == 1 and block.call(semi_left, mid) == 1 and
-           block.call(mid, semi_right) == 1 and block.call(semi_right, hi) == 1
+        if block.call(low, semi_left) > 0 and block.call(semi_left, mid) > 0 and
+           block.call(mid, semi_right) > 0 and block.call(semi_right, hi) > 0
 
           r = segment_size / 4
           while r > 0
@@ -1527,27 +1517,17 @@ class Array
       # Partition
       while true
         while left < right_end
-          case block.call(@tuple.at(left), pivot)
-          when -1
-            left += 1
-          when 0
-            @tuple.swap(left, (eqls_left += 1))
-            left += 1
-          else
-            break
-          end
+          cmp = block.call(@tuple.at(left), pivot)
+          break if cmp > 0
+          @tuple.swap(left, (eqls_left += 1)) if cmp == 0
+          left += 1
         end
 
         while right > left_end
-          case block.call(@tuple.at(right), pivot)
-          when 1
-            right -= 1
-          when 0
-            @tuple.swap(right, (eqls_right -= 1))
-            right -= 1
-          else
-            break
-          end
+          cmp = block.call(@tuple.at(right), pivot)
+          break if cmp < 0
+          @tuple.swap(right, (eqls_right -= 1)) if cmp == 0
+          right -= 1
         end
 
         break if left >= right
