@@ -161,7 +161,7 @@ class Dir
 
     unless path.empty? then
       if match_all and exist == :unknown then
-        if stat = File.stat(path) rescue nil then
+        if stat = File::Stat.stat(path)
           exist = :yes
           isdir = if stat.directory? then
                     :yes
@@ -176,7 +176,7 @@ class Dir
       end
 
       if match_dir and isdir == :unknown then
-        if stat = File.stat(path) rescue nil then
+        if stat = File::Stat.stat(path)
           exist = :yes
           isdir = stat.directory? ? :yes : :no
         else
