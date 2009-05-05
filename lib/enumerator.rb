@@ -1,7 +1,9 @@
 # A class which provides a method `each' to be used as an Enumerable
 # object.
 
-module Enumerable
+MODULE_FOR_ENUMERATOR_CLASS = RUBY_VERSION < "1.9" ? Enumerable : Object
+
+module MODULE_FOR_ENUMERATOR_CLASS
   class Enumerator
     include Enumerable
 
@@ -15,7 +17,9 @@ module Enumerable
       @object.send(@iter, *@args, &block)
     end
   end
+end
 
+module Enumerable
   def each_cons(n, &block)
     array = []
     elements = self.to_a
@@ -28,7 +32,7 @@ module Enumerable
   end
 
   def enum_cons(n)
-    Enumerable::Enumerator.new(self, :each_cons, n)
+    MODULE_FOR_ENUMERATOR_CLASS::Enumerator.new(self, :each_cons, n)
   end
 
   def each_slice(slice_size, &block)
@@ -44,17 +48,17 @@ module Enumerable
   end
 
   def enum_slice(n)
-    Enumerable::Enumerator.new(self, :each_slice, n)
+    MODULE_FOR_ENUMERATOR_CLASS::Enumerator.new(self, :each_slice, n)
   end
 
   def enum_with_index
-    Enumerable::Enumerator.new(self, :each_with_index)
+    MODULE_FOR_ENUMERATOR_CLASS::Enumerator.new(self, :each_with_index)
   end
 end
 
 module Kernel
   def enum_for(method = :each, *args)
-    Enumerable::Enumerator.new(self,method,*args)
+    MODULE_FOR_ENUMERATOR_CLASS::Enumerator.new(self,method,*args)
   end
   
   alias_method :to_enum, :enum_for
