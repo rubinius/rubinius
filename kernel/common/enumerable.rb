@@ -63,7 +63,11 @@ module Enumerable
       xs.each { |o| pivot = o; break }
       return xs if pivot.equal? Undefined
 
-      lmr = Hash.new([]).merge(-1 => [], 0 => [], 1 => [])
+      lmr = Hash.new { |hash, key|
+        # if ever the result of the block is not simply -1, 0 or 1, compare it with 0
+        cmp = (key <=> 0) || raise(ArgumentError, "Comparison of #{key.class} with 0 failed.")
+        hash.fetch(cmp, [])
+      }.merge(-1 => [], 0 => [], 1 => [])
       xs.each do |o|
         comparison = if o.equal?(pivot)
           0
