@@ -1299,7 +1299,7 @@ class Array
 
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
-  def recursively_flatten(array, out, recursive_placeholder = Undefined)
+  def recursively_flatten(array, out, max_levels = -1, recursive_placeholder = Undefined)
     if Thread.guarding? array
       if recursive_placeholder.equal? Undefined
         raise ArgumentError, "tried to flatten recursive array"
@@ -1310,18 +1310,22 @@ class Array
     end
 
     ret = nil
-    array.each { |o|
-      if o.respond_to? :to_ary
-        Thread.recursion_guard array do
-          ary = Type.coerce_to o, Array, :to_ary
-          recursively_flatten(ary, out, recursive_placeholder)
-          ret = self
+    if max_levels == 0  # Strict equality since < 0 means 'infinite'
+      out.concat(array)
+    else
+      max_levels -= 1
+      array.each { |o|
+        if o.respond_to? :to_ary
+          Thread.recursion_guard array do
+            ary = Type.coerce_to o, Array, :to_ary
+            recursively_flatten(ary, out, max_levels, recursive_placeholder)
+            ret = self
+          end
+        else
+          out << o
         end
-      else
-        out << o
-      end
-    }
-
+      }
+    end
     ret
   end
 
