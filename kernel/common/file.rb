@@ -67,7 +67,11 @@ class File < IO
     begin
       yield file
     ensure
-      file.close rescue nil unless file.closed?
+      begin
+        file.close unless file.closed?
+      rescue StandardError
+        # nothing, just swallow it.
+      end
     end
   end
 

@@ -211,7 +211,11 @@ class IO
     begin
       yield io
     ensure
-      io.close rescue nil unless io.closed?
+      begin
+        io.close unless io.closed?
+      rescue StandardError
+        # nothing, just swallow them.
+      end
     end
   end
 

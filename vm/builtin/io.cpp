@@ -265,6 +265,9 @@ namespace rubinius {
     /** @todo   Should this be just int? --rue */
     native_int desc = to_fd();
 
+    // Already closed, ignore.
+    if(desc == -1) return Qnil;
+
     switch(::close(desc)) {
     case -1:
       Exception::errno_error(state);
