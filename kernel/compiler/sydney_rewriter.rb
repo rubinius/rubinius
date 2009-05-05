@@ -114,8 +114,9 @@ class Rubinius::SydneyRewriter
   end
 
   def rewrite_attrasgn(exp)
-    ary = exp.array rescue nil
-    ary[0] = :arglist if ary
+    if exp.last.kind_of? Sexp
+      exp.last[0] = :arglist
+    end
 
     exp << s(:arglist) unless Array === exp.last
 
@@ -168,7 +169,7 @@ class Rubinius::SydneyRewriter
     args = exp.get(:scope).get(:block).get(:args, true)
     exp.insert 2, args if args
 
-    block_arg = exp.get(:scope).get(:block).get(:block_arg, true) rescue nil
+    block_arg = exp.get(:scope).get(:block).get(:block_arg, true)
     if block_arg
       sym = :"&#{block_arg.last}"
       if Array === exp.args.last

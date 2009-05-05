@@ -114,7 +114,7 @@ class Compiler
       # required, optional, splat, defaults
       def consume(sexp)
         req, opt, splat, block, defaults = [], [], nil, nil, []
-        opt_block = sexp.block(true) rescue nil # HACK rescue
+        opt_block = sexp.block(true)
         opt_block.shift if opt_block # :block
 
         sexp.reverse.each do |s|
