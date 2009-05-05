@@ -177,10 +177,12 @@ begin
       script = ARGV.shift
       sep    = File::PATH_SEPARATOR
       search = ENV['PATH'].split(sep).unshift(Rubinius::BIN_PATH)
-      file   = search.detect do |d|
+      dir    = search.detect do |d|
         path = File.join(d, script)
-        File.exist?(path) ? path : nil
+        File.exist?(path)
       end
+
+      file = File.join(dir, script) if dir
 
       $0 = script if file
 
