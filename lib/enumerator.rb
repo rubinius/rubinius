@@ -7,13 +7,12 @@ module Enumerable
 
     def initialize(obj, iter = :each, *args)
       @object = obj
-      @iter = iter
-      @iterator = @object.method(iter.to_sym)
+      @iter = iter.to_sym
       @args = args
     end
 
     def each(&block)
-      @iterator.call(*@args, &block)
+      @object.send(@iter, *@args, &block)
     end
   end
 
