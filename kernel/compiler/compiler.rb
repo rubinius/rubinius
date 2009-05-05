@@ -229,6 +229,7 @@ class Compiler
     # AutoPrimitiveDetection is currently disabled
     # TODO - Implement the opt_* primitives it requires and reactivate
     # activate_default :auto_primitive
+    activate_default :privately
   end
 
   def activate_default(name)
