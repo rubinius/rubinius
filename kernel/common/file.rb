@@ -116,14 +116,14 @@ class File < IO
   ##
   # Returns true if the named file is a block device.
   def self.blockdev?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.blockdev? : false
   end
 
   ##
   # Returns true if the named file is a character device.
   def self.chardev?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.chardev? : false
   end
 
@@ -204,7 +204,7 @@ class File < IO
   #
   # File.directory?(".")
   def self.directory?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.directory? : false
   end
 
@@ -224,7 +224,7 @@ class File < IO
   # Returns true if the named file is executable by the
   # effective user id of this process.
   def self.executable?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.executable? : false
   end
 
@@ -232,16 +232,15 @@ class File < IO
   # Returns true if the named file is executable by
   # the real user id of this process.
   def self.executable_real?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.executable_real? : false
   end
 
   ##
   # Return true if the named file exists.
   def self.exist?(path)
-    Stat.stat?(path) ? true : false
-  rescue SystemCallError
-    false
+    path = StringValue path
+    POSIX.stat(path, Stat::EXISTS_STRUCT.pointer) == 0 ? true : false
   end
 
   ##
@@ -284,7 +283,7 @@ class File < IO
   ##
   # Returns true if the named file exists and is a regular file.
   def self.file?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.file? : false
   end
 
@@ -601,7 +600,7 @@ class File < IO
   #  File.lstat("link2test").size            #=> 8
   #  File.stat("link2test").size             #=> 66
   def self.lstat(path)
-    Stat.new path, false
+    Stat.lstat path
   end
 
   ##
@@ -615,7 +614,7 @@ class File < IO
   ##
   # Returns true if the named file is a pipe.
   def self.pipe?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.pipe? : false
   end
 
@@ -623,7 +622,7 @@ class File < IO
   # Returns true if the named file is readable by the effective
   # user id of this process.
   def self.readable?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.readable? : false
   end
 
@@ -631,7 +630,7 @@ class File < IO
   # Returns true if the named file is readable by the real user
   # id of this process.
   def self.readable_real?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.readable_real? : false
   end
 
@@ -681,7 +680,7 @@ class File < IO
     if path_or_file.is_a? File
       s = Stat.from_fd(path_or_file.fileno).size
     else
-      st = Stat.stat? path_or_file
+      st = Stat.stat path_or_file
       s = st.size if st
     end
 
@@ -691,7 +690,7 @@ class File < IO
   ##
   # Returns true if the named file is a socket.
   def self.socket?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.socket? : false
   end
 
@@ -730,8 +729,9 @@ class File < IO
   ##
   # Returns true if the named file is a symbolic link.
   def self.symlink?(path)
-    st = Stat.stat? path, false
-    st ? st.symlink? : false
+    Stat.lstat(path).symlink?
+  rescue Errno::ENOENT, Errno::ENODIR
+    false
   end
   
   ##
@@ -832,7 +832,7 @@ class File < IO
   # Returns true if the named file is writable by the effective 
   # user id of this process.
   def self.writable?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.writable? : false
   end
 
@@ -840,14 +840,14 @@ class File < IO
   # Returns true if the named file is writable by the real user
   # id of this process.
   def self.writable_real?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.writable_real? : false
   end
 
   ##
   # Returns true if the named file exists and has a zero size.
   def self.zero?(path)
-    st = Stat.stat? path
+    st = Stat.stat path
     st ? st.zero? : false
   end
   
@@ -923,7 +923,7 @@ class File < IO
   end
 
   def lstat
-    Stat.new @path, false
+    Stat.lstat @path
   end
 
   def mtime
@@ -964,6 +964,8 @@ class File::Stat
            :st_atime, :st_mtime, :st_ctime
   end
 
+  EXISTS_STRUCT = Struct.new
+
   include Comparable
 
   S_IRUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRUSR']
@@ -990,41 +992,70 @@ class File::Stat
 
   POSIX    = Platform::POSIX
 
+  attr_reader :path
+
+  def self.create(path)
+    path = StringValue path
+    stat = allocate
+    Rubinius.privately { stat.setup path, Struct.new }
+  end
+
+  def self.stat(path)
+    stat = create path
+
+    result = POSIX.stat stat.path, stat.pointer
+    return nil unless result == 0
+
+    stat
+  end
+
+  # --
+  # Stat.lstat raises whereas Stat.stat does not because most things
+  # that use Stat.stat do not expect exceptions but most things that
+  # uses Stat.lstat do.
+  # ++
+  def self.lstat(path)
+    stat = create path
+
+    result = POSIX.lstat stat.path, stat.pointer
+    Errno.handle path unless result == 0
+
+    stat
+  end
+
   ##
   # File::Stat#from_fd is used to support IO#stat which does not necessarily
   # have a path.
 
   def self.from_fd(descriptor)
     stat = allocate
-    stat_struct = Struct.new
+    struct = Struct.new
 
-    stat.instance_variable_set :@stat, stat_struct
-    stat.instance_variable_set :@path, nil
-
-    result = POSIX.fstat descriptor, stat_struct.pointer
-
+    result = POSIX.fstat descriptor, struct.pointer
     Errno.handle "file descriptor #{descriptor}" unless result == 0
 
-    stat
+    Rubinius.privately { stat.setup nil, struct }
   end
 
-  def initialize(path, follow_links=true)
-    @stat = Struct.new
+  def initialize(path)
     @path = StringValue path
-
-    result = if follow_links
-               POSIX.stat @path, @stat.pointer
-             else
-               POSIX.lstat @path, @stat.pointer
-             end
-
-    Errno.handle @path unless result == 0
+    @stat = Struct.new
+    result = POSIX.stat @path, @stat.pointer
+    Errno.handle path unless result == 0
   end
 
-  def self.stat?(path, follow_links=true)
-    new path, follow_links
-  rescue Errno::ENOENT, Errno::ENOTDIR
-    nil
+  private :initialize
+
+  def setup(path, struct)
+    @path = path
+    @stat = struct
+    self
+  end
+
+  private :setup
+
+  def pointer
+    @stat.pointer
   end
 
   def atime

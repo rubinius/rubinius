@@ -152,12 +152,12 @@ class Compiler
       return false if requiring and $LOADED_FEATURES.include? rb
 
       rb_path = "#{dir}#{rb}"
-      rb_stat = File.stat(rb_path) rescue nil
+      rb_stat = File::Stat.stat rb_path
 
       if rb_stat and rb_stat.file?
         if rbc
           rbc_path = "#{dir}#{rbc}"
-          rbc_stat = File.stat(rbc_path) rescue nil
+          rbc_stat = File::Stat.stat rbc_path
         else
           rbc_path = nil
           rbc_stat = nil
