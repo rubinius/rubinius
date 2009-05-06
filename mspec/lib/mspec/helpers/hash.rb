@@ -12,9 +12,14 @@ class Object
   # Returns a new instance of hash_class.
   def new_hash(*args, &block)
     if block
-      hash_class.new &block
-    elsif args.size == 1 and !args.first.is_a?(hash_class)
-      hash_class.new args.first
+      hash_class.new(&block)
+    elsif args.size == 1
+      value = args.first
+      if value.is_a?(Hash) or value.is_a?(hash_class)
+        hash_class[value]
+      else
+        hash_class.new value
+      end
     else
       hash_class[*args]
     end
