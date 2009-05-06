@@ -119,18 +119,9 @@ class Struct
 
   def ==(other)
     return false if (self.class != other.class)
-    return false if (self.values.size != other.values.size)
-    
-    self.values.size.times { |i|
-      next if Thread.guarding? self.values.at(i)
-      next if Thread.guarding? other.values.at(i)
-      Thread.recursion_guard self.values.at(i) do
-        Thread.recursion_guard other.values.at(i) do
-          return false if (self.values.at(i) != other.values.at(i))
-        end
-      end
-    }
-    return true
+    Thread.recursion_guard self do
+      self.values == other.values
+    end
   end
 
   ##

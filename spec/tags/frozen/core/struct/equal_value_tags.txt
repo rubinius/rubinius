@@ -1,1 +1,0 @@
-fails:Struct#== returns false if the other is a different object or has different fields
