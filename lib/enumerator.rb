@@ -7,7 +7,27 @@ module MODULE_FOR_ENUMERATOR_CLASS
   class Enumerator
     include Enumerable
 
-    def initialize(obj, iter = :each, *args)
+    # Actually defined in Ruby 1.9 only, we define it here because it can be useful to implementers
+    class Yielder
+      def initialize(&block)
+        @main_block = block
+      end
+
+      def each(&block)
+        @final_block = block
+        @main_block.call(self)
+      end
+
+      def yield(*arg)
+        @final_block.call(*arg)
+      end
+    end
+
+    def initialize(obj = Undefined, iter = :each, *args, &block)
+      if obj.equal? Undefined
+        raise ArgumentError, "method 'initialize': wrong number of argument (0 for 1+)" unless Rubinius::TARGET_IS_19 && block_given?
+        obj = Yielder.new(&block)
+      end
       @object = obj
       @iter = iter.to_sym
       @args = args
@@ -16,6 +36,7 @@ module MODULE_FOR_ENUMERATOR_CLASS
     def each(&block)
       @object.send(@iter, *@args, &block)
     end
+    
   end
 end
 
