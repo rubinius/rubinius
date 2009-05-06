@@ -230,7 +230,7 @@ module Enumerable
   #   (1..100).detect { |i| i % 5 == 0 and i % 7 == 0 }   #=> 35
 
   def find(ifnone = nil)
-    return to_enum :find unless block_given? || Rubinius::TARGET_IS_186
+    return to_enum :find, ifnone unless block_given? || Rubinius::TARGET_IS_186
     each { |o| return o if yield(o) }
     ifnone.call if ifnone
   end
