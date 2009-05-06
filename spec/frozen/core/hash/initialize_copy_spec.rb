@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/shared/replace'
 
 describe "Hash#initialize_copy" do
   it "is private" do
-    {}.private_methods.map { |m| m.to_s }.include?("initialize_copy").should == true
+    hash_class.should have_private_instance_method("initialize_copy")
   end
 
   it_behaves_like(:hash_replace, :initialize_copy)

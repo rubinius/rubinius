@@ -6,7 +6,7 @@ describe "Hash#each_pair" do
   it "processes all pairs, yielding two arguments: key and value" do
     all_args = []
 
-    h = {1 => 2, 3 => 4}
+    h = new_hash(1 => 2, 3 => 4)
     h2 = h.each_pair { |*args| all_args << args }
     h2.should equal(h)
 

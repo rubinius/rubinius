@@ -5,7 +5,7 @@ describe "Hash#rehash" do
   it "reorganizes the hash by recomputing all key hash codes" do
     k1 = [1]
     k2 = [2]
-    h = {}
+    h = new_hash
     h[k1] = 0
     h[k2] = 1
 
@@ -26,7 +26,7 @@ describe "Hash#rehash" do
     def v1.hash() raise("values shouldn't be rehashed"); end
     def v2.hash() raise("values shouldn't be rehashed"); end
 
-    h = { k1 => v1, k2 => v2 }
+    h = new_hash(k1 => v1, k2 => v2)
 
     def k1.hash() 0 end
     def k2.hash() 0 end
@@ -40,7 +40,7 @@ describe "Hash#rehash" do
     it "gives precedence to keys coming later in keys() on collisions" do
       k1 = [1]
       k2 = [2]
-      h = {}
+      h = new_hash
       h[k1] = 0
       h[k2] = 1
 

@@ -4,17 +4,17 @@ require File.dirname(__FILE__) + '/shared/iteration'
 
 describe "Hash#reject" do
   it "is equivalent to hsh.dup.delete_if" do
-    h = { :a => 'a', :b => 'b', :c => 'd' }
+    h = new_hash(:a => 'a', :b => 'b', :c => 'd')
     h.reject { |k,v| k == 'd' }.should == (h.dup.delete_if { |k, v| k == 'd' })
 
     all_args_reject = []
     all_args_delete_if = []
-    h = {1 => 2, 3 => 4}
+    h = new_hash(1 => 2, 3 => 4)
     h.reject { |*args| all_args_reject << args }
     h.delete_if { |*args| all_args_delete_if << args }
     all_args_reject.should == all_args_delete_if
 
-    h = { 1 => 2 }
+    h = new_hash(1 => 2)
     # dup doesn't copy singleton methods
     def h.to_a() end
     h.reject { false }.to_a.should == [[1, 2]]
@@ -26,7 +26,7 @@ describe "Hash#reject" do
   end
 
   it "processes entries with the same order as reject!" do
-    h = {:a => 1, :b => 2, :c => 3, :d => 4}
+    h = new_hash(:a => 1, :b => 2, :c => 3, :d => 4)
 
     reject_pairs = []
     reject_bang_pairs = []
@@ -41,14 +41,15 @@ end
 
 describe "Hash#reject!" do
   before(:each) do
-    @hsh = {1 => 2, 3 => 4, 5 => 6}
-    @empty = {}
+    @hsh = new_hash(1 => 2, 3 => 4, 5 => 6)
+    @empty = new_hash
   end
 
   it "is equivalent to delete_if if changes are made" do
-    {:a => 2}.reject! { |k,v| v > 1 }.should == ({:a => 2}.delete_if { |k, v| v > 1 })
+    new_hash(:a => 2).reject! { |k,v| v > 1 }.should ==
+      new_hash(:a => 2).delete_if { |k, v| v > 1 }
 
-    h = {1 => 2, 3 => 4}
+    h = new_hash(1 => 2, 3 => 4)
     all_args_reject = []
     all_args_delete_if = []
     h.dup.reject! { |*args| all_args_reject << args }
@@ -57,11 +58,11 @@ describe "Hash#reject!" do
   end
 
   it "returns nil if no changes were made" do
-    { :a => 1 }.reject! { |k,v| v > 1 }.should == nil
+    new_hash(:a => 1).reject! { |k,v| v > 1 }.should == nil
   end
 
   it "processes entries with the same order as delete_if" do
-    h = {:a => 1, :b => 2, :c => 3, :d => 4}
+    h = new_hash(:a => 1, :b => 2, :c => 3, :d => 4)
 
     reject_bang_pairs = []
     delete_if_pairs = []
@@ -88,11 +89,11 @@ describe "Hash#reject!" do
 
   ruby_version_is "1.8.7" do
     it "returns an Enumerator when called on a non-empty hash without a block" do
-      @hsh.reject!.should be_kind_of(Enumerable::Enumerator)
+      @hsh.reject!.should be_kind_of(enumerator_class)
     end
 
     it "returns an Enumerator when called on an empty hash without a block" do
-      @empty.reject!.should be_kind_of(Enumerable::Enumerator)
+      @empty.reject!.should be_kind_of(enumerator_class)
     end
   end
 
