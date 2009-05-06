@@ -89,7 +89,7 @@ class Array
       raise ArgumentError, "negative array size" if n < 0
       first = size - n
       first = 0 if first < 0
-      Array.new slice!(first..size)
+      slice!(first..size).to_a
     end
   end
 

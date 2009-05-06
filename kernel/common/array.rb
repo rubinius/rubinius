@@ -672,7 +672,7 @@ class Array
     n = Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
 
-    Array.new(self[0...n])
+    self[0...n].to_a
   end
 
   # Recursively flatten any contained Arrays into an one-dimensional result.
@@ -839,7 +839,7 @@ class Array
     raise ArgumentError, "Number must be positive" if n < 0
 
     n = size if n > size
-    Array.new self[-n..-1]
+    self[-n..-1].to_a
   end
 
   alias_method :collect, :map
@@ -1106,7 +1106,7 @@ class Array
     if self.class == Array
       self
     else
-      Array.new(self[0..-1])
+      Array.new(self)
     end
   end
 
