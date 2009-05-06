@@ -93,7 +93,9 @@ module Enumerable
   #   { 'a'=>1, 'b'=>2, 'c'=>3 }.to_a   #=> [["a", 1], ["b", 2], ["c", 3]]
 
   def to_a
-    collect
+    ary = []
+    each { |o| ary << o }
+    ary
   end
 
   alias_method :entries, :to_a
@@ -228,6 +230,7 @@ module Enumerable
   #   (1..100).detect { |i| i % 5 == 0 and i % 7 == 0 }   #=> 35
 
   def find(ifnone = nil)
+    return to_enum :find unless block_given? || Rubinius::TARGET_IS_186
     each { |o| return o if yield(o) }
     ifnone.call if ifnone
   end
@@ -245,6 +248,7 @@ module Enumerable
   #   (1..10).find_all { |i|  i % 3 == 0 }   #=> [3, 6, 9]
 
   def find_all
+    return to_enum :find_all unless block_given? || Rubinius::TARGET_IS_186
     ary = []
     each do |o|
       if yield(o)
@@ -266,6 +270,7 @@ module Enumerable
   #    (1..10).reject { |i|  i % 3 == 0 }   #=> [1, 2, 4, 5, 7, 8, 10]
 
   def reject
+    return to_enum :reject unless block_given? || Rubinius::TARGET_IS_186
     ary = []
     each do |o|
       unless yield(o)
@@ -287,13 +292,15 @@ module Enumerable
   #   (1..4).collect { "cat"  }   #=> ["cat", "cat", "cat", "cat"]
 
   def collect
-    ary = []
     if block_given?
+      ary = []
       each { |o| ary << yield(o) }
+      ary
+    elsif Rubinius::TARGET_IS_ANY_18
+      to_a
     else
-      each { |o| ary << o }
+      to_enum :collect
     end
-    ary
   end
 
   alias_method :map, :collect
@@ -356,6 +363,7 @@ module Enumerable
   #   (1..6).partition { |i| (i&1).zero?}   #=> [[2, 4, 6], [1, 3, 5]]
 
   def partition
+    return to_enum :partition unless block_given? || Rubinius::TARGET_IS_186
     left = []
     right = []
     each { |o| yield(o) ? left.push(o) : right.push(o) }

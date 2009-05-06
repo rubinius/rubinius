@@ -55,7 +55,7 @@ class Array
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.
   def map
-    return to_enum :map unless block_given? || Rubinius::TARGET_IS_18
+    return to_enum :map unless block_given? || Rubinius::TARGET_IS_ANY_18
     return dup unless block_given?
     out = Array.new @total
     i = 0

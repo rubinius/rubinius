@@ -5,7 +5,7 @@ require 'enumerator'
 require '1.8.7/array'
 require '1.8.7/enumerable'
 
-if RUBY_VERSION <= "1.9"
+unless Rubinius::TARGET_IS_19
   # Changes proper to 1.8.7 
   Enumerator = Enumerable::Enumerator
 end
