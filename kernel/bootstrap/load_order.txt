@@ -33,6 +33,7 @@ sendsite.rbc
 static_scope.rbc
 string.rbc
 symbol.rbc
+target.rbc
 taskprobe.rbc
 thread.rbc
 time.rbc

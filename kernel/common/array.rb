@@ -504,6 +504,7 @@ class Array
 
   # Deletes every element from self for which block evaluates to true
   def delete_if(&block)
+    return to_enum :delete_if unless block_given? || Rubinius::TARGET_IS_186
     key = Undefined
     i = @start
     tot = @start + @total
@@ -961,12 +962,14 @@ class Array
   # which block is true. An Array is also returned when
   # invoked on subclasses. See #reject!
   def reject(&block)
+    return to_enum :reject unless block_given? || Rubinius::TARGET_IS_186
     Array.new(self).reject!(&block) || self
   end
 
   # Equivalent to #delete_if except that returns nil if
   # no changes were made.
   def reject!(&block)
+    return to_enum :reject! unless block_given? || Rubinius::TARGET_IS_186
     was = length
     self.delete_if(&block)
 
@@ -1008,6 +1011,7 @@ class Array
   # Goes through the Array back to front and yields
   # each element to the supplied block. Returns self.
   def reverse_each()
+    return to_enum :reverse_each unless block_given? || Rubinius::TARGET_IS_186
     i = @total - 1
     while i >= 0 do
       yield(at(i))
