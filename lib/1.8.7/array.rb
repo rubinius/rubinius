@@ -135,6 +135,21 @@ class Array
     nil
   end
   
+  # Removes and returns the first element from the Array.
+  # If a number n is given, returns an array of the first n elements (or less)
+  # just like array.slice!(0, n) does.
+  alias_method :single_shift, :shift
+  private :single_shift
+  def shift(n = Undefined)
+    if n.equal? Undefined
+      single_shift
+    else
+      n = Type.coerce_to(n, Fixnum, :to_int)
+      raise ArgumentError, "negative array size" if n < 0
+      slice!(0, n).to_a
+    end
+  end
+
   # Deletes the element(s) given by an index (optionally with a length)
   # or by a range. Returns the deleted object, subarray, or nil if the
   # index is out of range. Equivalent to:
