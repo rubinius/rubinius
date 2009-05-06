@@ -93,6 +93,28 @@ class Array
     end
   end
 
+  # Returns an array of all combinations of elements from all arrays.
+  # The length of the returned array is the product of the length of
+  # ary and the argument arrays
+  def product(*arg)
+    # Implementation notes: We build an enumerator for all the combinations
+    # by building it up successively using "inject" and starting from a trivial enumerator.
+    # It would be easy to have "product" yield to a block but the standard
+    # simply returns an array, so you'll find a simple call to "to_a" at the end.
+    #
+    trivial_enum = Enumerator.new_with_block{|yielder| yielder.yield [] }
+    [self, *arg].map{|x| Type.coerce_to(x, Array, :to_ary)}.
+      inject(trivial_enum) do |enum, array|
+        Enumerator.new_with_block do |yielder|
+          enum.each do |partial_product|
+            array.each do |obj|
+              yielder.yield partial_product + [obj]
+            end
+          end
+        end
+    end.to_a
+  end unless method_defined? :product
+
   # Returns the index of the last element in the Array
   # for which elem == obj is true. If a block is given
   # instead of an argument, returns last object for

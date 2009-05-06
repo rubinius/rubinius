@@ -22,6 +22,10 @@ module MODULE_FOR_ENUMERATOR_CLASS
         @final_block.call(*arg)
       end
     end
+    
+    def self.new_with_block(&block)
+      new(Yielder.new(&block))
+    end
 
     def initialize(obj = Undefined, iter = :each, *args, &block)
       if obj.equal? Undefined
