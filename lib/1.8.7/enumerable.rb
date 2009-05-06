@@ -23,6 +23,34 @@ module Enumerable
 
   ##
   # :call-seq:
+  #   enum.cycle(n = nil){ | obj | block } => nil or enumerator
+  #
+  # Calls block for each element of enum repeatedly n times or forever if none
+  # or nil is given. If a non-positive number is given or the collection is empty,
+  # does nothing. Returns nil if the loop has finished without getting interrupted.
+  #
+  # Enumerable#cycle saves elements in an internal array so changes to enum after the first pass have no effect.
+  #
+  #   a = ["a", "b", "c"]
+  #   a.cycle {|x| puts x }  # prints a, b, c, a, b, c,.. forever.
+  #   a.cycle(2) {|x| puts x }  # prints a, b, c, a, b, c.
+
+  def cycle(n = nil, &block)
+    return to_enum :cycle, n unless block_given?
+    if n == nil
+      loop(&block)
+    elsif n >= 1
+      cache = []
+      each do |elem|
+        cache << elem
+        block.call(elem)
+      end
+      cache.cycle(n-1, &block)
+    end
+  end
+
+  ##
+  # :call-seq:
   #   enum.find_index(ifnone = nil)   { | obj | block }  => int
   #
   # Passes each entry in +enum+ to +block+. Returns the index for the first

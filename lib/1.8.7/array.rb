@@ -20,6 +20,19 @@ class Array
       picks[move...num] = (new_index...(new_index+num-move)).to_a
     end
   end unless method_defined? :combination
+  
+  # Calls block for each element repeatedly n times or forever if none
+  # or nil is given. If a non-positive number is given or the array is empty,
+  # does nothing. Returns nil if the loop has finished without getting interrupted.
+  def cycle(n = nil, &block)
+    return to_enum(:cycle, n) unless block_given?
+    if n.nil?
+      loop(&block)
+    else
+      n.to_i.times{each(&block)}
+    end
+    nil
+  end
 
   # Recursively flatten any contained Arrays into an one-dimensional result.
   # The optional level argument determines the level of recursion to flatten
