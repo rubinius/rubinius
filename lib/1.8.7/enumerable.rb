@@ -39,9 +39,9 @@ module Enumerable
 
   def cycle(n = nil, &block)
     return to_enum :cycle, n unless block_given?
-    if n == nil
-      loop(&block)
-    elsif n >= 1
+    return loop(&block) if nil == n
+    n = Type.coerce_to(n, Fixnum, :to_int)
+    if n >= 1
       cache = []
       each do |elem|
         cache << elem
