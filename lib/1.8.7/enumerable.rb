@@ -56,11 +56,29 @@ module Enumerable
   #   enum.drop(n)   => an_array
   #
   # Drops first n elements from enum, and returns rest elements in an array.
+  
   def drop(n)
     n = Type.coerce_to(n, Fixnum, :to_int)
     raise ArgumentError, "attempt to drop negative size" if n < 0
     ary = to_a
     ary[n...ary.size]
+  end
+
+  ##
+  # :call-seq:
+  #   enum.drop_while {|obj| block } => array
+  #
+  # Drops elements up to, but not including, the first element for which the block
+  # returns nil or false and returns an array containing the remaining elements.
+  
+  def drop_while
+    return to_enum :drop_while unless block_given?
+    ary = []
+    dropping = true
+    each do |obj|
+      ary << obj unless dropping &&= yield(obj)
+    end
+    ary
   end
 
   ##
