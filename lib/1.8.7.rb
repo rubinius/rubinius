@@ -3,6 +3,7 @@ Rubinius.target_ruby "1.8.7"
 require 'enumerator'
 
 require '1.8.7/array'
+require '1.8.7/binding'
 require '1.8.7/enumerable'
 require '1.8.7/enumerator'
 
