@@ -13,10 +13,12 @@ module Enumerable
 
   def count(item = Undefined)
     seq = 0
-    unless item.equal? Undefined
+    if ! item.equal? Undefined
       each { |o| seq += 1 if item == o }
-    else
+    elsif block_given?
       each { |o| seq += 1 if yield(o) }
+    else
+      each { seq += 1 }
     end
     seq
   end
