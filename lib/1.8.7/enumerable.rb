@@ -53,6 +53,18 @@ module Enumerable
 
   ##
   # :call-seq:
+  #   enum.drop(n)   => an_array
+  #
+  # Drops first n elements from enum, and returns rest elements in an array.
+  def drop(n)
+    n = Type.coerce_to(n, Fixnum, :to_int)
+    raise ArgumentError, "attempt to drop negative size" if n < 0
+    ary = to_a
+    ary[n...ary.size]
+  end
+
+  ##
+  # :call-seq:
   #   enum.find_index(ifnone = nil)   { | obj | block }  => int
   #
   # Passes each entry in +enum+ to +block+. Returns the index for the first
