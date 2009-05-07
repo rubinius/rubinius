@@ -135,6 +135,24 @@ class Array
     nil
   end
   
+  # Choose a random element, or the random n elements, from the array.
+  # If the array is empty, the first form returns nil, and the second
+  # form returns an empty array.
+  # Note: Actually available in 1.9 only; 1.8.7 has #choice
+  def sample(n = Undefined)
+    return at(rand(size)) if n.equal? Undefined
+    n = Type.coerce_to(n, Fixnum, :to_int)
+    raise ArgumentError, "negative array size" if n < 0
+    n = size if n > size
+    result = Array.new(self)
+    n.times do |i|
+      r = i + rand(size - i)
+      result.tuple.swap(i,r)
+    end
+    result[n..size] = []
+    result
+  end
+  
   # Removes and returns the first element from the Array.
   # If a number n is given, returns an array of the first n elements (or less)
   # just like array.slice!(0, n) does.
@@ -148,6 +166,20 @@ class Array
       raise ArgumentError, "negative array size" if n < 0
       slice!(0, n).to_a
     end
+  end
+
+  # Returns a new array with elements of this array shuffled. 
+  def shuffle
+    Array.new(self).shuffle!
+  end
+
+  # Shuffles elements in self in place. 
+  def shuffle!
+    size.times do |i|
+      r = i + rand(size - i)
+      @tuple.swap(i,r)
+    end
+    self
   end
 
   # Deletes the element(s) given by an index (optionally with a length)

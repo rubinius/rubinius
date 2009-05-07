@@ -9,5 +9,13 @@ require '1.8.7/enumerator'
 unless Rubinius::TARGET_IS_19
   # Changes proper to 1.8.7 
   Enumerator = Enumerable::Enumerator
+
+  # Hide #sample and create the dubiously named #choice instead:
+  class Array
+    def choice
+      sample
+    end
+    private :sample
+  end
 end
 
