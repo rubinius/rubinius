@@ -427,6 +427,7 @@ class Dir
   end
   
   def self.foreach(path)
+    return to_enum :foreach, path unless block_given? || Rubinius::TARGET_IS_186
     self.open(path) do |dir|
       while s = dir.read
         yield s
@@ -454,6 +455,7 @@ class Dir
   end
 
   def each
+    return to_enum unless block_given? || Rubinius::TARGET_IS_186
     while s = read
       yield s
     end
