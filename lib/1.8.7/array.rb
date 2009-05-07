@@ -170,7 +170,7 @@ class Array
 
   # Returns a new array with elements of this array shuffled. 
   def shuffle
-    Array.new(self).shuffle!
+    dup.shuffle!
   end
 
   # Shuffles elements in self in place. 
