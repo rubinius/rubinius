@@ -104,7 +104,7 @@ class Instructions
 
       code = "  { // #{impl.name.opcode}\n"
       names.each do |name|
-        code << "    int #{name}_s#{which} = next_int;\n"
+        code << "    intptr_t #{name}_s#{which} = next_int;\n"
         code << "    #define #{name} #{name}_s#{which}\n"
       end
       code << "#{body}\n"
@@ -217,11 +217,11 @@ class Instructions
       args = impl.args
       case args.size
       when 2
-        io.puts "  int #{args[0]} = next_int;"
-        io.puts "  int #{args[1]} = next_int;"
+        io.puts "  intptr_t #{args[0]} = next_int;"
+        io.puts "  intptr_t #{args[1]} = next_int;"
         io.puts "  #{impl.body}"
       when 1
-        io.puts "  int #{args[0]} = next_int;"
+        io.puts "  intptr_t #{args[0]} = next_int;"
         io.puts "  #{impl.body}"
       when 0
         io.puts "  #{impl.body}"
@@ -254,11 +254,11 @@ class Instructions
         args = impl.args
         case args.size
         when 2
-          io.puts "  int #{args[0]} = next_int;"
-          io.puts "  int #{args[1]} = next_int;"
+          io.puts "  intptr_t #{args[0]} = next_int;"
+          io.puts "  intptr_t #{args[1]} = next_int;"
           io.puts "  #{impl.body}"
         when 1
-          io.puts "  int #{args[0]} = next_int;"
+          io.puts "  intptr_t #{args[0]} = next_int;"
           io.puts "  #{impl.body}"
         when 0
           io.puts "  #{impl.body}"
