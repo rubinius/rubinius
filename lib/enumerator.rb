@@ -45,14 +45,16 @@ module MODULE_FOR_ENUMERATOR_CLASS
 end
 
 module Enumerable
-  def each_cons(n, &block)
+  def each_cons(num)
+    n = Type.coerce_to(num, Fixnum, :to_int)
+    raise ArgumentError, "invalid size: #{n}" if n <= 0
+    return to_enum :each_cons, num unless block_given?
     array = []
-    elements = self.to_a
-    while elements.size > 0 do
-      array << elements[0,n] if elements[0,n].size == n
-      elements.shift
+    each do |element|
+      array << element
+      array.shift if array.size > n
+      yield array.dup if array.size == n
     end
-    array.each { |set| yield set }
     nil
   end
 
@@ -60,16 +62,20 @@ module Enumerable
     MODULE_FOR_ENUMERATOR_CLASS::Enumerator.new(self, :each_cons, n)
   end
 
-  def each_slice(slice_size, &block)
+  def each_slice(slice_size)
+    n = Type.coerce_to(slice_size, Fixnum, :to_int)
+    raise ArgumentError, "invalid slice size: #{n}" if n <= 0
+    return to_enum :each_slice, slice_size unless block_given?
     a = []
-    each { |element|
+    each do |element|
       a << element
-      if a.length == slice_size
+      if a.length == n
         yield a
         a = []
       end
-    }
-    yield a if a.length > 0
+    end
+    yield a unless a.empty?
+    nil
   end
 
   def enum_slice(n)
