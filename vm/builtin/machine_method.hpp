@@ -36,7 +36,7 @@ namespace rubinius {
     }
 
     // Used for debugging. Gives us a place to break on before entering jit'd code
-    static Object* run_code(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+    static Object* run_code(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     // Ruby.primitive :machine_method_show
     Object* show(STATE);

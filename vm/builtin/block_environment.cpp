@@ -38,13 +38,13 @@ namespace rubinius {
   }
 
   /** @todo Duplicates VMMethod functionality. Refactor. --rue */
-  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, size_t args, int flags) {
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Object** args,
+                                 size_t argcount, int flags) {
     Object* val;
-    if(args > 0) {
-      Tuple* tup = Tuple::create(state, args);
-      int sp = 0;
-      for(int i = args - 1; i >= 0; i--) {
-        tup->put(state, i, call_frame->stack_back(sp++));
+    if(argcount > 0) {
+      Tuple* tup = Tuple::create(state, argcount);
+      for(size_t i = 0; i < argcount; i++) {
+        tup->put(state, i, args[i]);
       }
 
       val = tup;
@@ -62,36 +62,37 @@ namespace rubinius {
 
     scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals);
 
-    CallFrame* frame = ALLOCA_CALLFRAME(vmm);
-    frame->prepare(vmm->stack_size);
+    InterpreterCallFrame frame;
+    frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
 
-    frame->is_block = true;
-    frame->previous = call_frame;
-    frame->static_scope = method_->scope();
+    frame.prepare(vmm->stack_size);
 
-    frame->name =     reinterpret_cast<Symbol*>(Qnil);
-    frame->cm =       method_;
-    frame->args =     args;
-    frame->scope =    scope;
-    frame->top_scope = top_scope_;
-    frame->flags =    flags;
+    frame.previous = call_frame;
+    frame.static_scope = method_->scope();
 
-    frame->push(val);
+    frame.name =     reinterpret_cast<Symbol*>(Qnil);
+    frame.cm =       method_;
+    frame.args =     argcount;
+    frame.scope =    scope;
+    frame.top_scope = top_scope_;
+    frame.flags =    flags;
+
+    frame.push(val);
     Object* ret;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
           top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame);
     } else {
-      ret = VMMethod::run_interpreter(state, vmm, frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame);
     }
 #else
-    ret = VMMethod::run_interpreter(state, vmm, frame);
+    ret = VMMethod::run_interpreter(state, vmm, &frame);
 #endif
 
-    frame->scope->exit();
+    frame.scope->exit();
 
     return ret;
   }
@@ -115,33 +116,34 @@ namespace rubinius {
 
     scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals);
 
-    CallFrame* frame = ALLOCA_CALLFRAME(vmm);
-    frame->prepare(vmm->stack_size);
+    InterpreterCallFrame frame;
+    frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
 
-    frame->is_block = true;
-    frame->previous = call_frame;
-    frame->static_scope = method_->scope();
+    frame.prepare(vmm->stack_size);
 
-    frame->name =     reinterpret_cast<Symbol*>(Qnil);
-    frame->cm =       method_;
-    frame->args =     args.total();
-    frame->scope =    scope;
-    frame->top_scope = top_scope_;
-    frame->flags =    flags;
+    frame.previous = call_frame;
+    frame.static_scope = method_->scope();
 
-    frame->push(val);
+    frame.name =     reinterpret_cast<Symbol*>(Qnil);
+    frame.cm =       method_;
+    frame.args =     args.total();
+    frame.scope =    scope;
+    frame.top_scope = top_scope_;
+    frame.flags =    flags;
+
+    frame.push(val);
     Object* ret;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
           top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame);
     } else {
-      ret = VMMethod::run_interpreter(state, vmm, frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame);
     }
 #else
-    ret = VMMethod::run_interpreter(state, vmm, frame);
+    ret = VMMethod::run_interpreter(state, vmm, &frame);
 #endif
 
     return ret;
@@ -183,33 +185,34 @@ namespace rubinius {
 
     scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals, recv);
 
-    CallFrame* frame = ALLOCA_CALLFRAME(vmm);
-    frame->prepare(vmm->stack_size);
+    InterpreterCallFrame frame;
+    frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
 
-    frame->is_block = true;
-    frame->previous = call_frame;
-    frame->static_scope = method_->scope();
+    frame.prepare(vmm->stack_size);
 
-    frame->name =     reinterpret_cast<Symbol*>(Qnil);
-    frame->cm =       method_;
-    frame->args =     args.total();
-    frame->scope =    scope;
-    frame->top_scope = top_scope_;
-    frame->flags =    flags;
+    frame.previous = call_frame;
+    frame.static_scope = method_->scope();
 
-    frame->push(val);
+    frame.name =     reinterpret_cast<Symbol*>(Qnil);
+    frame.cm =       method_;
+    frame.args =     args.total();
+    frame.scope =    scope;
+    frame.top_scope = top_scope_;
+    frame.flags =    flags;
+
+    frame.push(val);
     Object* ret;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
           top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame);
     } else {
-      ret = VMMethod::run_interpreter(state, vmm, frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame);
     }
 #else
-    ret = VMMethod::run_interpreter(state, vmm, frame);
+    ret = VMMethod::run_interpreter(state, vmm, &frame);
 #endif
 
     return ret;
@@ -253,33 +256,34 @@ namespace rubinius {
 
     scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals, recv);
 
-    CallFrame* frame = ALLOCA_CALLFRAME(vmm);
-    frame->prepare(vmm->stack_size);
+    InterpreterCallFrame frame;
+    frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
 
-    frame->is_block = true;
-    frame->previous = call_frame;
-    frame->static_scope = static_scope;
+    frame.prepare(vmm->stack_size);
 
-    frame->name =     reinterpret_cast<Symbol*>(Qnil);
-    frame->cm =       method_;
-    frame->args =     args.total();
-    frame->scope =    scope;
-    frame->top_scope = top_scope_;
-    frame->flags =    0;
+    frame.previous = call_frame;
+    frame.static_scope = static_scope;
 
-    frame->push(val);
+    frame.name =     reinterpret_cast<Symbol*>(Qnil);
+    frame.cm =       method_;
+    frame.args =     args.total();
+    frame.scope =    scope;
+    frame.top_scope = top_scope_;
+    frame.flags =    0;
+
+    frame.push(val);
     Object* ret;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
           top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame);
     } else {
-      ret = VMMethod::run_interpreter(state, vmm, frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame);
     }
 #else
-    ret = VMMethod::run_interpreter(state, vmm, frame);
+    ret = VMMethod::run_interpreter(state, vmm, &frame);
 #endif
 
     return ret;

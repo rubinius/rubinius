@@ -1419,9 +1419,9 @@ class Instructions
     Object* t1 = stack_back(count);
     Object* ret;
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      ret = env->call(state, call_frame, count);
+      ret = env->call(state, call_frame, call_frame->stack_back_position(count), count);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      ret = proc->call(state, call_frame, count);
+      ret = proc->call(state, call_frame, call_frame->stack_back_position(count), count);
     } else {
       ret = send_slowly(state, vmm, call_frame, G(sym_call), count);
     }
@@ -1438,9 +1438,9 @@ class Instructions
     Object* t1 = call_frame->top_scope->block();
     Object* ret;
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      ret = env->call(state, call_frame, count);
+      ret = env->call(state, call_frame, call_frame->stack_back_position(count), count);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      ret = proc->yield(state, call_frame, count);
+      ret = proc->yield(state, call_frame, call_frame->stack_back_position(count), count);
     } else if(t1->nil_p()) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));

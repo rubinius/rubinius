@@ -1,7 +1,7 @@
 require "#{File.dirname(__FILE__)}/../../kernel/compiler/iseq"
 
 File.open "#{File.dirname(__FILE__)}/../gen/inst_list.hpp", "w" do |f|
-  InstructionSet::OpCodes.each do |ins|
+  Rubinius::InstructionSet::OpCodes.each do |ins|
     case ins.arg_count
     when 2
       f.puts "HANDLE_INST2(#{ins.bytecode}, #{ins.opcode});"

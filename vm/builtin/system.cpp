@@ -221,7 +221,7 @@ namespace rubinius {
     CallFrame* call_frame = calling_environment;
 
     for(native_int i = skip->to_native(); call_frame && i > 0; --i) {
-      call_frame = call_frame->previous;
+      call_frame = static_cast<CallFrame*>(call_frame->previous);
     }
 
     Array* bt = Array::create(state, 5);
@@ -232,7 +232,7 @@ namespace rubinius {
         bt->append(state, Location::create(state, call_frame));
       }
 
-      call_frame = call_frame->previous;
+      call_frame = static_cast<CallFrame*>(call_frame->previous);
     }
 
     return bt;

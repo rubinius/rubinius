@@ -5,7 +5,6 @@
 
 namespace rubinius {
   class JITVisit : public VisitInstructions<JITVisit> {
-    int sp_;
     STATE;
     VMMethod* vmm_;
 
@@ -15,6 +14,8 @@ namespace rubinius {
     llvm::Module* module_;
     llvm::BasicBlock* block_;
     llvm::Function* function_;
+
+    llvm::Value* stack_top_;
 
     const llvm::Type* IntPtrTy;
     const llvm::Type* ObjType;
@@ -26,9 +27,9 @@ namespace rubinius {
 
     JITVisit(STATE, VMMethod* vmm,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* block,
-             llvm::Value* stack, llvm::Value* call_frame, llvm::Value* vars)
-      : sp_(0)
-      , state(state)
+             llvm::Value* stack, llvm::Value* call_frame, llvm::Value* vars,
+             llvm::Value* stack_top)
+      : state(state)
       , vmm_(vmm)
       , stack_(stack)
       , call_frame_(call_frame)
@@ -36,6 +37,7 @@ namespace rubinius {
       , module_(mod)
       , block_(block)
       , function_(func)
+      , stack_top_(stack_top)
     {
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
@@ -48,48 +50,68 @@ namespace rubinius {
       ObjArrayTy = PointerType::getUnqual(ObjType);
     }
 
-    void stack_remove(int count=1) {
-      sp_ -= count;
+    Value* stack_ptr(BasicBlock* block = NULL) {
+      if(!block) block = block_;
+      return new LoadInst(stack_top_, "stack_ptr", block);
     }
 
-    void stack_advance(int count=1) {
-      sp_ += count;
+    void set_stack_ptr(Value* pos, BasicBlock* block = NULL) {
+      if(!block) block = block_;
+      new StoreInst(pos, stack_top_, false, block);
     }
 
-    void stack_store(Value* val, BasicBlock* block = NULL) {
+    Value* stack_position(int amount, BasicBlock* block = NULL) {
       if(!block) block = block_;
 
-      Value* pos = ConstantInt::get(Type::Int32Ty, sp_);
-      Value* stack_pos = GetElementPtrInst::Create(stack_, pos, "stack_pos", block);
+      if(amount == 0) return stack_ptr(block);
 
+      Value* idx = ConstantInt::get(Type::Int32Ty, amount);
+
+      Value* stack_pos = GetElementPtrInst::Create(stack_ptr(block),
+                           &idx, &idx+1, "stack_pos", block);
+
+      return stack_pos;
+    }
+
+    Value* stack_back_position(int back, BasicBlock* block = NULL) {
+      if(!block) block = block_;
+      return stack_position(-back, block);
+    }
+
+    Value* stack_ptr_adjust(int amount, BasicBlock* block = NULL) {
+      if(!block) block = block_;
+
+      Value* pos = stack_position(amount);
+      set_stack_ptr(pos, block);
+
+      return pos;
+    }
+
+    void stack_remove(int count=1) {
+      stack_ptr_adjust(-count);
+    }
+
+    void stack_push(Value* val, BasicBlock* block = NULL) {
+      if(!block) block = block_;
+      Value* stack_pos = stack_ptr_adjust(1, block);
       new StoreInst(val, stack_pos, false, block);
     }
 
-    llvm::Value* stack_back_position(int back, BasicBlock* block = NULL) {
+    llvm::Value* stack_back(int back, BasicBlock* block = NULL) {
       if(!block) block = block_;
-      Value* pos = ConstantInt::get(Type::Int32Ty, sp_ - 1 - back);
-      return GetElementPtrInst::Create(stack_, pos, "stack_pos", block);
-    }
-
-    llvm::Value* stack_back(int back) {
-      Value* pos = ConstantInt::get(Type::Int32Ty, sp_ - 1 - back);
-      Value* stack_pos = GetElementPtrInst::Create(stack_, pos, "stack_pos", block_);
-
-      return new LoadInst(stack_pos, "stack_load", block_);
+      return new LoadInst(stack_back_position(back, block), "stack_load", block);
     }
 
     llvm::Value* stack_top() {
       return stack_back(0);
     }
 
-    void stack_push(Value* val, BasicBlock* block = NULL) {
-      stack_store(val, block);
-      stack_advance();
-    }
+    llvm::Value* stack_pop(BasicBlock* block = NULL) {
+      if(!block) block = block_;
 
-    llvm::Value* stack_pop() {
-      Value* val = stack_back(0);
-      stack_remove(1);
+      Value* val = stack_back(0, block);
+
+      stack_ptr_adjust(-1, block);
       return val;
     }
 
@@ -283,6 +305,18 @@ namespace rubinius {
       Value* pos = GetElementPtrInst::Create(vars_, idx2, idx2+3, "local_pos", block_);
 
       stack_push(new LoadInst(pos, "local", block_));
+    }
+
+    void visit_set_local(opcode which) {
+      Value* idx2[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 8),
+        ConstantInt::get(Type::Int32Ty, which)
+      };
+
+      Value* pos = GetElementPtrInst::Create(vars_, idx2, idx2+3, "local_pos", block_);
+
+      new StoreInst(stack_top(), pos, false, block_);
     }
   };
 }

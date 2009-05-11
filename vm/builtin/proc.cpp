@@ -30,7 +30,7 @@ namespace rubinius {
     return proc;
   }
 
-  Object* Proc::call(STATE, CallFrame* call_frame, size_t args) {
+  Object* Proc::call(STATE, CallFrame* call_frame, Object** args, size_t argcount) {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 
@@ -39,9 +39,9 @@ namespace rubinius {
       flags = CallFrame::cIsLambda;
       int required = block_->method()->required_args()->to_native();
 
-      if(required >= 0 && (size_t)required != args) {
+      if(required >= 0 && (size_t)required != argcount) {
         Exception* exc =
-          Exception::make_argument_error(state, required, args, state->symbol("__block__"));
+          Exception::make_argument_error(state, required, argcount, state->symbol("__block__"));
         exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
         state->thread_state()->raise_exception(exc);
         return NULL;
@@ -50,10 +50,10 @@ namespace rubinius {
 
     Object* ret;
     if(bound_method_->nil_p()) {
-      ret= block_->call(state, call_frame, args, flags);
+      ret= block_->call(state, call_frame, args, argcount, flags);
     } else {
       Dispatch dis(G(sym_call));
-      Arguments new_args(args, call_frame->stack_back_position(args));
+      Arguments new_args(argcount, args);
       new_args.set_recv(this);
       ret = dis.send(state, call_frame, new_args);
     }
@@ -71,12 +71,12 @@ namespace rubinius {
     return ret;
   }
 
-  Object* Proc::yield(STATE, CallFrame* call_frame, size_t args) {
+  Object* Proc::yield(STATE, CallFrame* call_frame, Object** args, size_t argcount) {
     if(bound_method_->nil_p()) {
       // NOTE! To match MRI semantics, this explicitely ignores lambda_.
-      return block_->call(state, call_frame, args, 0);
+      return block_->call(state, call_frame, args, argcount, 0);
     } else {
-      return call(state, call_frame, args);
+      return call(state, call_frame, args, argcount);
     }
   }
 

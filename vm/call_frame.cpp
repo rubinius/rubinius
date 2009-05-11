@@ -23,13 +23,13 @@ namespace rubinius {
 
     while(cf) {
       if(!cf->cm) {
-        cf = cf->previous;
+        cf = static_cast<CallFrame*>(cf->previous);
         continue;
       }
 
       std::cout << static_cast<void*>(cf) << ": ";
 
-      if(cf->is_block) {
+      if(cf->is_block_p(state)) {
         std::cout << "__block__";
       } else {
         if(MetaClass* meta = try_as<MetaClass>(cf->module())) {
@@ -68,7 +68,7 @@ namespace rubinius {
       std::cout << " (+" << cf->ip << ")";
 
       std::cout << std::endl;
-      cf = cf->previous;
+      cf = static_cast<CallFrame*>(cf->previous);
     }
 
   }
@@ -83,7 +83,7 @@ namespace rubinius {
     CallFrame* cur = this;
     while(cur) {
       if(cur->scope == scope) return true;
-      cur = cur->previous;
+      cur = static_cast<CallFrame*>(cur->previous);
     }
 
     return false;

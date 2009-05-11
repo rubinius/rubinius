@@ -1,4 +1,3 @@
-
 #include "vmmethod.hpp"
 #include "llvm/jit.hpp"
 
@@ -6,6 +5,7 @@
 #include "field_offset.hpp"
 
 #include "call_frame.hpp"
+#include "assembler/jit.hpp"
 
 #include <llvm/Target/TargetData.h>
 // #include <llvm/LinkAllPasses.h>
@@ -52,24 +52,83 @@ namespace rubinius {
     passes_->add(createReassociatePass());
     // Eliminate Common SubExpressions.
     passes_->add(createGVNPass());
-    // Simplify the control flow graph (deleting unreachable blocks, etc).
-    passes_->add(createCFGSimplificationPass());
-
-    passes_->add(createVerifierPass());
+    passes_->add(createDeadStoreEliminationPass());
 
     passes_->add(createInstructionCombiningPass());
 
+    // Simplify the control flow graph (deleting unreachable blocks, etc).
+    passes_->add(createCFGSimplificationPass());
+
+    // passes_->add(createGVNPass());
+    // passes_->add(createCFGSimplificationPass());
     passes_->add(createDeadStoreEliminationPass());
+    // passes_->add(createVerifierPass());
+
+    passes_->add(createVerifierPass());
+
+    object_ = PointerType::getUnqual(
+        module_->getTypeByName("struct.rubinius::Object"));
   }
 
-  void import_args(STATE, Function* func, BasicBlock* block, VMMethod* vmm, Value* vars) {
+  void import_args(STATE, Function* func, BasicBlock*& block, VMMethod* vmm,
+                   Value* vars, Value* call_frame) {
     Function::arg_iterator args = func->arg_begin();
+    Value* vm_obj = args++;
     args++;
-    args++;
-    args++;
+    Value* dis_obj = args++;
     Value* arg_obj = args++;
 
-    if(vmm->required_args == 0) return;
+    // Check the argument count
+    Value* total_idx[] = {
+      ConstantInt::get(Type::Int32Ty, 0),
+      ConstantInt::get(Type::Int32Ty, 2),
+    };
+
+    Value* total_offset = GetElementPtrInst::Create(arg_obj, total_idx,
+        total_idx + 2, "total_pos", block);
+    Value* total = new LoadInst(total_offset, "arg.total", block);
+
+    Value* cmp = new ICmpInst(ICmpInst::ICMP_SLT, total,
+        ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
+
+    BasicBlock* arg_error = BasicBlock::Create("arg_error", func);
+    BasicBlock* cont = BasicBlock::Create("continue", func);
+
+    BranchInst::Create(arg_error, cont, cmp, block);
+
+    // Call our arg_error helper
+    std::vector<const Type*> types;
+
+    LLVMState* ls = LLVMState::get(state);
+    llvm::Module* module = ls->module();
+
+    types.push_back(
+          PointerType::getUnqual(module->getTypeByName("struct.rubinius::VM")));
+    types.push_back(
+          PointerType::getUnqual(module->getTypeByName("struct.rubinius::CallFrame")));
+    types.push_back(
+          PointerType::getUnqual(module->getTypeByName("struct.rubinius::Dispatch")));
+    types.push_back(
+          PointerType::getUnqual(module->getTypeByName("struct.rubinius::Arguments")));
+    types.push_back(Type::Int32Ty);
+
+    FunctionType* ft = FunctionType::get(ls->object(), types, false);
+    Function* func_ae = cast<Function>(
+          module->getOrInsertFunction("rbx_arg_error", ft));
+
+    Value* call_args[] = {
+      vm_obj,
+      call_frame,
+      dis_obj,
+      arg_obj,
+      ConstantInt::get(Type::Int32Ty, vmm->required_args)
+    };
+
+    Value* val = CallInst::Create(func_ae, call_args, call_args+5, "simple_send", arg_error);
+    ReturnInst::Create(val, arg_error);
+
+    // Switch to using contuation
+    block = cont;
 
     Value* idx1[] = {
       ConstantInt::get(Type::Int32Ty, 0),
@@ -100,6 +159,73 @@ namespace rubinius {
     }
   }
 
+  static Value* get_field(BasicBlock* block, Value* val, int which) {
+    Value* idx[] = {
+      ConstantInt::get(Type::Int32Ty, 0),
+      ConstantInt::get(Type::Int32Ty, which)
+    };
+    Value* gep = GetElementPtrInst::Create(val, idx, idx+2, "gep", block);
+    return gep;
+  }
+
+  void LLVMCompiler::initialize_call_frame(STATE, Function* func,
+      BasicBlock* block, Value* call_frame,
+      int stack_size, Value* stack, Value* vars) {
+
+    Function::arg_iterator ai = func->arg_begin();
+    ai++; // state
+    Value* prev = ai++;
+    Value* msg =  ai++;
+    Value* args = ai++;
+
+    Value* exec = new LoadInst(get_field(block, msg, 2), "msg.exec", block);
+    Value* cm_gep = get_field(block, call_frame, 3);
+    Value* meth = CastInst::Create(
+        Instruction::BitCast,
+        exec,
+        cast<PointerType>(cm_gep->getType())->getElementType(),
+        "cm", block);
+
+    // previous
+    new StoreInst(prev, get_field(block, call_frame, 0), false, block);
+
+    // static_scope
+    Value* ss = new LoadInst(get_field(block, meth, 12), "cm.scope", block);
+    new StoreInst(ss, get_field(block, call_frame, 1), false, block);
+
+    // name
+    Value* name = new LoadInst(get_field(block, msg, 0), "msg.name", block);
+    new StoreInst(name, get_field(block, call_frame, 2), false, block);
+
+    // cm
+    new StoreInst(meth, cm_gep, false, block);
+
+    // flags
+    new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
+                  get_field(block, call_frame, 4), false, block);
+
+    // args
+    Value* total = new LoadInst(get_field(block, args, 2), "args.total", block);
+    new StoreInst(total, get_field(block, call_frame, 5), false, block);
+
+    // ip
+    new StoreInst(ConstantInt::get(Type::Int32Ty, 0),
+                  get_field(block, call_frame, 6), false, block);
+
+    // top_scope
+    new StoreInst(vars, get_field(block, call_frame, 7), false, block);
+
+    // scope
+    new StoreInst(vars, get_field(block, call_frame, 8), false, block);
+
+    // stack_size
+    new StoreInst(ConstantInt::get(Type::Int32Ty, stack_size),
+                  get_field(block, call_frame, 9), false, block);
+
+    // stk
+    new StoreInst(stack, get_field(block, call_frame, 10), false, block);
+  }
+
   void LLVMCompiler::compile(STATE, VMMethod* vmm) {
     llvm::Module* mod = LLVMState::get(state)->module();
 
@@ -122,21 +248,23 @@ namespace rubinius {
     const Type* obj_type = PointerType::getUnqual(
         mod->getTypeByName("struct.rubinius::Object"));
 
+    const Type* obj_ary_type = PointerType::getUnqual(obj_type);
+
     FunctionType* ft = FunctionType::get(obj_type, types, false);
     Function* func = cast<Function>(mod->getOrInsertFunction("", ft));
 
     Function::arg_iterator ai = func->arg_begin();
     (ai++)->setName("state");
-    (ai++)->setName("call_frame");
+    (ai++)->setName("previous");
     (ai++)->setName("msg");
     (ai++)->setName("args");
 
     BasicBlock* bb = BasicBlock::Create("entry", func);
 
-    Value* cf =  new AllocaInst(cf_type, 0, "cf_alloca", bb);
+    Value* cf =  new AllocaInst(cf_type, 0, "call_frame", bb);
     Value* stk = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty, vmm->stack_size),
-        "stk_alloca", bb);
+        "stack", bb);
 
     Value* var_mem = new AllocaInst(obj_type,
         ConstantInt::get(Type::Int32Ty,
@@ -146,24 +274,23 @@ namespace rubinius {
     Value* vars = CastInst::Create(
         Instruction::BitCast,
         var_mem,
-        PointerType::getUnqual(vars_type), "vars_alloca", bb);
+        PointerType::getUnqual(vars_type), "vars", bb);
 
-    /*
-    Value* js_idx[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, 10),
-      ConstantInt::get(Type::Int32Ty, 0)
+    initialize_call_frame(state, func, bb, cf, vmm->stack_size, stk, vars);
+
+    Value* stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", bb);
+
+    Value* stk_idx[] = {
+      ConstantInt::get(Type::Int32Ty, (uint64_t)-1),
     };
 
-    Value* js_stack_pos = GetElementPtrInst::Create(cf, js_idx, js_idx+3,
-        "jst_stack_pos", block_);
+    Value* stk_back_one = GetElementPtrInst::Create(stk, stk_idx,
+        stk_idx+1, "stk_back_one", bb);
+    new StoreInst(stk_back_one, stack_top, false, bb);
 
-    new StoreInst(stk, js_stack_pos, false, block_);
-    */
+    import_args(state, func, bb, vmm, vars, cf);
 
-    import_args(state, func, bb, vmm, vars);
-
-    JITVisit visitor(state, vmm, mod, func, bb, stk, cf, vars);
+    JITVisit visitor(state, vmm, mod, func, bb, stk, cf, vars, stack_top);
 
     try {
       visitor.drive(vmm->opcodes, vmm->total);
@@ -202,22 +329,27 @@ namespace rubinius {
   }
 
   void* LLVMCompiler::function_pointer(STATE) {
-    if(!jit_entry_) {
+    if(!mci_) {
       if(function_) {
-        jit_entry_ = LLVMState::get(state)->engine()->getPointerToFunction(function_);
+        mci_ = LLVMState::get(state)->engine()->runJITOnFunction(function_);
       }
     }
 
-    return jit_entry_;
+    return mci_->address();
   }
 
   llvm::Function* LLVMCompiler::llvm_function(STATE) {
     return function_;
   }
 
-  void LLVMCompiler::show_assembly(STATE, llvm::Function* func) {
-    if(func) {
-      std::cout << *func << "\n";
+  void LLVMCompiler::show_assembly(STATE) {
+    if(function_) {
+      std::cout << *function_ << "\n";
+      std::cout << "\n== x86 assembly ==\n";
+
+      // Force it to be compiled
+      function_pointer(state);
+      assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
     } else {
       std::cout << "NULL function!\n";
     }

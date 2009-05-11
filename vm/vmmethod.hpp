@@ -25,8 +25,11 @@ namespace rubinius {
   class SendSite;
   class VMMethod;
   class MachineMethod;
+  class InterpreterCallFrame;
 
   typedef Object* (*Runner)(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+  typedef Object* (*InterpreterRunner)(STATE, VMMethod* const vmm,
+                                       InterpreterCallFrame* const call_frame);
 
   class VMMethod {
   private:
@@ -34,7 +37,7 @@ namespace rubinius {
 
   public:
     static instlocation* instructions;
-    Runner run;
+    InterpreterRunner run;
 
     opcode* opcodes;
     std::size_t total;
@@ -83,16 +86,19 @@ namespace rubinius {
     /**
      *  Dispatch method on the defined interpreter.
      */
-    static Object* run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+    static Object* run_interpreter(STATE, VMMethod* const vmm,
+                                   InterpreterCallFrame* const call_frame);
 
     /**
      *  Interpreting implementation.
      *
      *  @see  vm/llvm/instructions.cpp for the code.
      */
-    static Object* interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+    static Object* interpreter(STATE, VMMethod* const vmm,
+                               InterpreterCallFrame* const call_frame);
 
-    static Object* debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+    static Object* debugger_interpreter(STATE, VMMethod* const vmm,
+                                        InterpreterCallFrame* const call_frame);
 
     void setup_argument_handler(CompiledMethod* meth);
 

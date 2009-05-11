@@ -26,8 +26,8 @@ namespace rubinius {
     // Ruby.primitive :proc_allocate
     static Proc* create(STATE, Object* self);
 
-    Object* call(STATE, CallFrame* call_frame, size_t args);
-    Object* yield(STATE, CallFrame* call_frame, size_t args);
+    Object* call(STATE, CallFrame* call_frame, Object** args, size_t argcount);
+    Object* yield(STATE, CallFrame* call_frame, Object** args, size_t argcount);
     Object* yield(STATE, CallFrame* call_frame, Arguments& args);
 
     // Ruby.primitive? :proc_call

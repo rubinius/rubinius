@@ -65,7 +65,7 @@ using namespace rubinius;
 #define cache_ip()
 
 extern "C" {
-  Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t args);
+  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, size_t args);
 
 #define HANDLE_EXCEPTION(val) if(val == NULL) return NULL;
 #define RUN_EXCEPTION() return NULL
@@ -90,7 +90,7 @@ si.generate_functions impl, io
 puts io.string
 CODE
 
-  Object* send_slowly(STATE, VMMethod* vmm, CallFrame* const call_frame, Symbol* name, size_t count) {
+  Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, size_t count) {
     Object* recv = stack_back(count);
     Arguments args(recv, count, call_frame->stack_back_position(count));
     Dispatch dis(name);
@@ -116,7 +116,8 @@ CODE
 #undef RETURN
 #define RETURN(val) (void)val; DISPATCH;
 
-Object* VMMethod::interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+Object* VMMethod::interpreter(STATE, VMMethod* const vmm,
+                              InterpreterCallFrame* const call_frame) {
   opcode* stream = vmm->opcodes;
   InterpreterState is;
 #ifdef USE_JUMP_TABLE
@@ -162,7 +163,8 @@ CODE
  * each opcode for the breakpoint flag. It is installed on the VMMethod when
  * a breakpoint is set on compiled method.
  */
-Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm,
+                                       InterpreterCallFrame* const call_frame) {
   opcode* stream = vmm->opcodes;
   InterpreterState is;
 

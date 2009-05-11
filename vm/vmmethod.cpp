@@ -40,10 +40,10 @@
 namespace rubinius {
 
   /** System-wide standard interpreter method pointer. */
-  static Runner standard_interpreter = 0;
+  static InterpreterRunner standard_interpreter = 0;
 
   /** System-wide dynamic interpreter method pointer. */
-  static Runner dynamic_interpreter = 0;
+  static InterpreterRunner dynamic_interpreter = 0;
 
 
   void VMMethod::init(STATE) {
@@ -436,22 +436,23 @@ namespace rubinius {
 
       scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
 
-      CallFrame* frame = ALLOCA_CALLFRAME(vmm);
-      frame->prepare(vmm->stack_size);
+      InterpreterCallFrame frame;
+      frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
+      frame.prepare(vmm->stack_size);
 
-      frame->previous = previous;
-      frame->static_scope = cm->scope();
-      frame->name =     msg.name;
-      frame->cm =       cm;
-      frame->args =     args.total();
-      frame->scope =    frame->top_scope = scope;
+      frame.previous = previous;
+      frame.static_scope = cm->scope();
+      frame.name =     msg.name;
+      frame.cm =       cm;
+      frame.args =     args.total();
+      frame.scope =    frame.top_scope = scope;
 
       // If argument handling fails..
       ArgumentHandler arghandler;
       if(arghandler.call(state, vmm, scope, args) == false) {
         Exception* exc =
           Exception::make_argument_error(state, vmm->required_args, args.total(), msg.name);
-        exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), frame));
+        exc->locations(state, System::vm_backtrace(state, Fixnum::from(1), &frame));
         state->thread_state()->raise_exception(exc);
 
         return NULL;
@@ -462,15 +463,15 @@ namespace rubinius {
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
         profiler::MethodEntry method(state, msg, args, cm);
-        ret = run_interpreter(state, vmm, frame);
+        ret = run_interpreter(state, vmm, &frame);
       } else {
-        ret = run_interpreter(state, vmm, frame);
+        ret = run_interpreter(state, vmm, &frame);
       }
 #else
-      ret = run_interpreter(state, vmm, frame);
+      ret = run_interpreter(state, vmm, &frame);
 #endif
 
-      frame->scope->exit();
+      frame.scope->exit();
 
       return ret;
     }
@@ -623,7 +624,7 @@ namespace rubinius {
 
   }
 
-  Object* VMMethod::run_interpreter(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
+  Object* VMMethod::run_interpreter(STATE, VMMethod* const vmm, InterpreterCallFrame* const call_frame) {
     Object* return_value;
     static int tick = 0;
 
@@ -668,9 +669,11 @@ namespace rubinius {
           UnwindInfo& info = call_frame->pop_unwind();
           call_frame->position_stack(info.stack_depth);
           call_frame->set_ip(info.target_ip);
+          /*
           if(vmm->machine_method_.get()) {
             call_frame->set_native_ip(vmm->machine_method_->resolve_virtual_ip(info.target_ip));
           }
+          */
         } else {
           return NULL;
         }
@@ -685,9 +688,11 @@ namespace rubinius {
           if(info.for_ensure()) {
             call_frame->position_stack(info.stack_depth);
             call_frame->set_ip(info.target_ip);
+            /*
             if(vmm->machine_method_.get()) {
               call_frame->set_native_ip(vmm->machine_method_->resolve_virtual_ip(info.target_ip));
             }
+            */
 
             // Don't reset ep here, we're still handling the return/break.
             goto continue_to_run;

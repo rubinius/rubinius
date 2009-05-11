@@ -18,6 +18,7 @@ namespace rubinius {
     , global_cache(0)
     , config(config)
     , user_variables(cp)
+    , llvm_state(0)
   {
     ref();
   }

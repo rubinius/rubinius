@@ -109,7 +109,7 @@ namespace operations {
 
       // Pull jit_state.stack into the stack pointer
       s.assembler().mov(s.stack_pointer(), s.assembler().address(esi,
-        FIELD_OFFSET(rubinius::CallFrame, js.stack)));
+        FIELD_OFFSET(rubinius::InterpreterCallFrame, js.stack)));
     }
 
     void save_stack_pointer() {
@@ -118,7 +118,7 @@ namespace operations {
       // Mov the stack pointer into  jit_state.stack
       s.assembler().mov(
           s.assembler().address(esi,
-            FIELD_OFFSET(rubinius::CallFrame, js.stack)),
+            FIELD_OFFSET(rubinius::InterpreterCallFrame, js.stack)),
           s.stack_pointer());
     }
 
@@ -219,18 +219,18 @@ namespace operations {
     }
 
     void store_native_ip(Register& reg) {
-      store_mc_field(reg, FIELD_OFFSET(rubinius::CallFrame, native_ip));
+      // store_mc_field(reg, FIELD_OFFSET(rubinius::CallFrame, native_ip));
     }
 
     void load_native_ip(Register& reg) {
-      load_mc_field(reg, FIELD_OFFSET(rubinius::CallFrame, native_ip));
+      // load_mc_field(reg, FIELD_OFFSET(rubinius::CallFrame, native_ip));
     }
 
     void store_ip(Register& virtual_ip, Register& native_ip) {
       load_mc();
       AssemblerX86 &a = s.assembler();
       a.mov(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, ip)), virtual_ip);
-      a.mov(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, native_ip)), native_ip);
+      // a.mov(a.address(esi, FIELD_OFFSET(rubinius::CallFrame, native_ip)), native_ip);
     }
 
     void load_and_increment_ip(Register& reg) {
