@@ -104,19 +104,25 @@ module Enumerable
 
   ##
   # :call-seq:
-  #   enum.find_index(ifnone = nil)   { | obj | block }  => int
+  #   enum.find_index(value) => int
+  #   enum.find_index{|elem| block } => int
+  #   enum.find_index => enumerator
   #
-  # Passes each entry in +enum+ to +block+. Returns the index for the first
-  # for which +block+ is not false. If no object matches, returns
-  # nil.
-  #
-  #   (1..10).find_index  { |i| i % 5 == 0 and i % 7 == 0 }   #=> nil
-  #   (1..100).find_index { |i| i % 5 == 0 and i % 7 == 0 }   #=> 35
+  # Compares each entry in enum with value or passes to block.
+  # Returns the index for the first for which the evaluated value is non-false. If no object matches, returns nil
 
-  def find_index(ifnone = nil)
-    idx = -1
-    each { |o| idx += 1; return idx if yield(o) }
-    ifnone.call if ifnone
+  def find_index(value = Undefined)
+    if value.equal? Undefined
+      return to_enum :find_index unless block_given?
+      each_with_index do |element, i|
+        return i if yield element
+      end
+    else
+      each_with_index do |element, i|
+        return i if element == value
+      end
+    end
+    nil
   end
 
   ##
