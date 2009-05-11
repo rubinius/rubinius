@@ -20,10 +20,9 @@ module Rubinius
       end
 
       def initialize(options = {})
-        self.set_options options
-        if RUBY_CONFIG["rbx.profiler.full_report"]
-          self.set_options :full_report => true
-        end
+        set_options options
+        set_options :full_report => true if RUBY_CONFIG["rbx.profiler.full_report"]
+        set_options :graph => true if RUBY_CONFIG["rbx.profiler.graph"]
       end
 
       # Set options for profiler output. Presently, the only option
@@ -80,6 +79,23 @@ module Rubinius
           return
         end
 
+        if options[:graph]
+          graph out
+        else
+          flat out
+        end
+
+        nil
+      end
+
+      def epilogue(size, calls)
+        unless options[:full_report] or size < SHORT_LINES
+          puts "\n#{comma(size-SHORT_LINES)} methods omitted"
+        end
+        puts "\n#{comma(size)} methods called a total of #{comma(calls)} times"
+      end
+
+      def flat(out)
         total_calls = 0
         total = 0.0
 
@@ -122,12 +138,100 @@ module Rubinius
           out.printf "%8.2f  %8.2f %10d %8.2f %8.2f  %s\n", *d.last(6)
         end
 
-        unless options[:full_report] or data.size < SHORT_LINES
-          puts "\n#{comma(data.size-SHORT_LINES)} lines omitted"
-        end
-        puts "\n#{comma(data.size)} methods called a total of #{comma(total_calls)} times"
+        epilogue data.size, total_calls
+      end
 
-        nil
+      # Prints an entry for each method, along with the method's callers and
+      # the methods called. The entry is delimited by the dashed lines. The
+      # line for the method itself is called the "primary" line. The callers
+      # are printed above the primary line and the methods called are printed
+      # below.
+      def graph(out)
+        total_calls = 0
+        total = 0.0
+        data = @info[:methods]
+
+        data.each do |id, m|
+          edges_total = 0
+          edges_calls = 0
+          m[:edges].each do |e_id, calls, time|
+            if edge = data[e_id]
+              edge[:callers] ||= []
+              edge[:callers] << [id, calls, time]
+              edges_total += time
+              edges_calls += calls
+            end
+          end
+
+          self_total      = m[:total] - edges_total
+          self_total      = -1.0 if self_total < 0
+          m[:self_total]  = self_total
+          m[:edges_total] = edges_total
+          m[:edges_calls] = edges_calls
+          m[:name]        = "#toplevel" if m[:name] == "<metaclass>#__script__ {}"
+          total          += m[:total]
+          total_calls    += m[:called]
+        end
+
+        indexes = data.keys.sort do |a, b|
+          data[b][:self_total] <=> data[a][:self_total]
+        end
+        indexes = indexes.first(SHORT_LINES) unless options[:full_report]
+
+        indexes.each_with_index do |id, index|
+          method = data[id]
+
+          method[:index] = index + 1
+          method[:callers] ||= []
+
+          method[:callers].sort! { |a, b| b[1] <=> a[1] }
+          method[:edges].sort! { |a, b| b[1] <=> a[1] }
+        end
+
+        out.puts "index  % time     self  children         called       name"
+        out.puts "----------------------------------------------------------"
+
+        primary   = "%-7s%6s %8.2f %9.2f   %8d           %s [%d]\n"
+        secondary = "              %8.2f %9.2f   %8d/%-8d       %s [%d]\n"
+
+        indexes.each do |id|
+          method = data[id]
+
+          method[:callers].each do |c_id, calls, time|
+            caller = data[c_id]
+            out.printf secondary, sec(caller[:self_total]),
+                                  sec(time),
+                                  calls,
+                                  caller[:edges_calls],
+                                  caller[:name],
+                                  caller[:index]
+          end
+
+          out.printf primary, ("[%d]" % method[:index]),
+                              percentage(method[:total], total, 1, nil),
+                              sec(method[:self_total]),
+                              sec(method[:edges_total]),
+                              method[:called],
+                              method[:name],
+                              method[:index]
+
+          method[:edges].each do |e_id, calls, time|
+            if edge = data[e_id]
+              ratio = time.to_f / edge[:self_total]
+              ratio = 0.0 if ratio < 0
+              out.printf secondary, sec(edge[:self_total]),
+                                    sec(ratio * edge[:edges_total]),
+                                    calls,
+                                    edge[:called],
+                                    edge[:name],
+                                    edge[:index]
+            end
+          end
+
+          out.puts "-------------------------------------------------------"
+        end
+
+        epilogue data.size, total_calls
       end
 
       HEADER_INDEX = {
@@ -138,7 +242,6 @@ module Rubinius
         :self_ms       => 4,
         :total_ms      => 5,
         :name          => 6
-
       }
 
       def sort_order

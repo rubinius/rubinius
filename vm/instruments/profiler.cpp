@@ -102,11 +102,12 @@ namespace rubinius {
           i++) {
         Edge* edge = i->second;
 
-        Array* ary = Array::create(state, 2);
+        Array* ary = Array::create(state, 3);
         edges->set(state, idx++, ary);
 
         ary->set(state, 0, edge->find_key(keys));
-        ary->set(state, 1, Integer::from(state, edge->total()));
+        ary->set(state, 1, Integer::from(state, edge->called()));
+        ary->set(state, 2, Integer::from(state, edge->total()));
       }
 
       return edges;
@@ -125,19 +126,25 @@ namespace rubinius {
 
           if(key != as<Fixnum>(ary->get(state, 0))) continue;
 
-          uint64_t total = as<Integer>(ary->get(state, 1))->to_native();
+          uint64_t called = as<Integer>(ary->get(state, 1))->to_native();
+          called += edge->called();
+          ary->set(state, 1, Integer::from(state, called));
+
+          uint64_t total = as<Integer>(ary->get(state, 2))->to_native();
           total += edge->total();
-          ary->set(state, 1, Integer::from(state, total));
+          ary->set(state, 2, Integer::from(state, total));
+
           break;
         }
 
         // We did not find an existing entry to update, create a new one
         if(i == edges->size()) {
-          Array* ary = Array::create(state, 2);
+          Array* ary = Array::create(state, 3);
           edges->append(state, ary);
 
           ary->set(state, 0, edge->find_key(keys));
-          ary->set(state, 1, Integer::from(state, edge->total()));
+          ary->set(state, 1, Integer::from(state, edge->called()));
+          ary->set(state, 2, Integer::from(state, edge->total()));
         }
       }
     }

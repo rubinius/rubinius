@@ -60,9 +60,14 @@ namespace rubinius {
     class Edge {
       Method*  method_;
       uint64_t total_;
+      uint64_t called_;
 
     public:
-      Edge(Method* method) : method_(method), total_(0) { }
+      Edge(Method* method)
+        : method_(method)
+        , total_(0)
+        , called_(0)
+      { }
 
       Method* method() {
         return method_;
@@ -72,8 +77,13 @@ namespace rubinius {
         return total_;
       }
 
+      uint64_t called() {
+        return called_;
+      }
+
       void accumulate(uint64_t time) {
         total_ += time;
+        called_++;
       }
 
       Fixnum* find_key(KeyMap& keys);
