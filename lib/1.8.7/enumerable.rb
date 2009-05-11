@@ -134,17 +134,10 @@ module Enumerable
   # If the enumerable is empty, the first form returns nil, and the second
   # form returns an empty array.
 
-  def first(n = nil)
-    if n && n < 0
-      raise ArgumentError, "Invalid number of elements given."
-    end
-    ary = []
-    each do |o|
-      return o unless n
-      return ary if ary.size == n
-      ary << o
-    end
-    n ? ary : nil
+  def first(n = Undefined)
+    return take(n) unless n.equal?(Undefined)
+    each{|obj| return obj}
+    nil
   end
 
   ##
@@ -279,6 +272,24 @@ module Enumerable
       end
     end
     found_one
+  end
+
+
+  ##
+  # :call-seq:
+  #   enum.take(n)                => array
+  #
+  # Returns first n elements from enum.
+
+  def take(n)
+    n = Type.coerce_to(n, Fixnum, :to_int)
+    raise ArgumentError, "attempt to take negative size: #{n}" if n < 0
+    array = []
+    each do |elem|
+      break if array.size >= n
+      array << elem
+    end unless n <= 0
+    array
   end
 
 end
