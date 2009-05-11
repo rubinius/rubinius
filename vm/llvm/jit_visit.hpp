@@ -249,7 +249,7 @@ namespace rubinius {
         call_frame_,
         constant(name, block),
         ConstantInt::get(IntPtrTy, args),
-        stack_back_position(args, block)
+        stack_back_position(args + 1, block)
       };
       Value* ret = CallInst::Create(func, call_args, call_args+5, "simple_send", block);
 

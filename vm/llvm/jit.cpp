@@ -124,7 +124,7 @@ namespace rubinius {
       ConstantInt::get(Type::Int32Ty, vmm->required_args)
     };
 
-    Value* val = CallInst::Create(func_ae, call_args, call_args+5, "simple_send", arg_error);
+    Value* val = CallInst::Create(func_ae, call_args, call_args+5, "ret", arg_error);
     ReturnInst::Create(val, arg_error);
 
     // Switch to using contuation
@@ -331,7 +331,8 @@ namespace rubinius {
   void* LLVMCompiler::function_pointer(STATE) {
     if(!mci_) {
       if(function_) {
-        mci_ = LLVMState::get(state)->engine()->runJITOnFunction(function_);
+        mci_ = new llvm::MachineCodeInfo();
+        LLVMState::get(state)->engine()->runJITOnFunction(function_, mci_);
       }
     }
 
