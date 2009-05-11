@@ -166,6 +166,41 @@ module Enumerable
 
   ##
   # :call-seq:
+  #   enum.reduce(initial, sym) => obj
+  #   enum.reduce(sym)          => obj
+  #   enum.inject(initial) { | memo, obj | block }  => obj
+  #   enum.inject          { | memo, obj | block }  => obj
+  #
+  # Combines all elements of enum by applying a binary operation,
+  # specified by a block or a symbol that names a method or operator.
+  # 
+  # If you specify a block, then for each element in enum<i> the block
+  # is passed an accumulator value (<i>memo) and the element.
+  # If you specify a symbol instead, then each element in the collection
+  # will be passed to the named method of memo. In either case,
+  # the result becomes the new value for memo. At the end of the
+  # iteration, the final value of memo is the return value fo the method.
+  # 
+  # If you do not explicitly specify an initial value for memo,
+  # then uses the first element of collection is used as the initial value of memo.
+    
+  def inject(initial= Undefined, sym = Undefined, &block)
+    unless block_given? && sym.equal?(Undefined)
+      initial, sym = Undefined, initial if sym.equal?(Undefined)
+      block = Proc.new{|memo, obj| memo.send(sym, obj) }
+    end
+    each do |o|
+      if initial.equal? Undefined
+        initial = o
+      else
+        initial = block.call(initial, o)
+      end
+    end
+    initial.equal?(Undefined) ? nil : initial
+  end
+  alias_method :reduce, :inject
+  ##
+  # :call-seq:
   #   enum.max_by { | obj| block }   => obj
   #
   # Uses the values returned by the given block as a substitute for the real
