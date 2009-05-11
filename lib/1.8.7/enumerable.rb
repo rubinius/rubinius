@@ -150,6 +150,7 @@ module Enumerable
   #    (1..6).group_by { |i| i%3}   #=> {0=>[3, 6], 1=>[1, 4], 2=>[2, 5]}
 
   def group_by
+    return to_enum :group_by unless block_given?
     h = {}
     i = 0
     each do |o|
