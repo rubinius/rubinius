@@ -185,7 +185,10 @@ module Rubinius
           method[:callers] ||= []
 
           method[:callers].sort! { |a, b| b[1] <=> a[1] }
+          method[:callers] = method[:callers].first(10) unless options[:full_report]
+
           method[:edges].sort! { |a, b| b[1] <=> a[1] }
+          method[:edges] = method[:edges].first(10) unless options[:full_report]
         end
 
         out.puts "index  % time     self  children         called       name"
