@@ -356,6 +356,18 @@ module Enumerable
     array
   end
 
+  # Passes elements to the block until the block returns nil or false,
+  # then stops iterating and returns an array of all prior elements.
+  
+  def take_while
+    return to_enum :take_while unless block_given?
+    array = []
+    each do |elem|
+      return array unless yield elem
+      array << elem
+    end
+    array
+  end
 end
 
 module Rubinius
