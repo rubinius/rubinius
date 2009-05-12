@@ -128,8 +128,8 @@ class Hash
   end
 
   def delete_if(&block)
+    return to_enum :delete_if unless block_given? || Rubinius::TARGET_IS_186
     select(&block).each { |k, v| delete k }
-
     self
   end
 
@@ -141,14 +141,14 @@ class Hash
   end
 
   def each_key
+    return to_enum :each_key unless block_given? || Rubinius::TARGET_IS_186
     each_item { |k, v| yield k }
-
     self
   end
 
   def each
+    return to_enum :each unless block_given? || Rubinius::TARGET_IS_186
     each_item { |k, v| yield [k, v] }
-
     self
   end
 
@@ -159,21 +159,21 @@ class Hash
   # #each -> #each_attribute -> #each_value, where we had been
   # defining #each_value in terms of #each).
   def each_item
+    return to_enum :each_item unless block_given? || Rubinius::TARGET_IS_186
     i = to_iter
     while entry = i.next
       begin
         yield entry.key, entry.value
       end while entry = entry.next
     end
-
     self
   end
 
   alias_method :each_pair, :each_item
 
- def each_value
+  def each_value
+    return to_enum :each_value unless block_given? || Rubinius::TARGET_IS_186
     each_item { |k, v| yield v }
-
     self
   end
 
@@ -269,6 +269,7 @@ class Hash
   end
 
   def reject!
+    return to_enum :reject! unless block_given? || Rubinius::TARGET_IS_186
     rejected = select { |k, v| yield k, v }
     return if rejected.empty?
 
@@ -295,6 +296,7 @@ class Hash
   end
 
   def select
+    return to_enum :select unless block_given? || Rubinius::TARGET_IS_186
     selected = []
     i = to_iter
     while e = i.next
