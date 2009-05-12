@@ -8,7 +8,6 @@ require '1.8.7/enumerable'
 require '1.8.7/enumerator'
 require '1.8.7/fixnum'
 require '1.8.7/float'
-require '1.8.7/hash'
 
 unless Rubinius::TARGET_IS_19
   # Changes proper to 1.8.7 
