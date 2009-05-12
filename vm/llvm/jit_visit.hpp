@@ -239,7 +239,7 @@ namespace rubinius {
       BranchInst::Create(if_true, if_false, rcmp, right_check);
     }
 
-    Value* simple_send(Symbol* name, int args, BasicBlock* block = NULL, bool priv=false) {
+    Value* simple_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
       if(!block) block = block_;
 
       std::vector<const Type*> types;
@@ -255,9 +255,9 @@ namespace rubinius {
 
       char* func_name;
       if(priv) {
-        func_name = "rbx_simple_send";
-      } else {
         func_name = "rbx_simple_send_private";
+      } else {
+        func_name = "rbx_simple_send";
       }
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
@@ -273,6 +273,44 @@ namespace rubinius {
         stack_objects(args + 1, block)
       };
       Value* ret = CallInst::Create(func, call_args, call_args+5, "simple_send", block);
+
+      // TODO handle exception
+      return ret;
+    }
+
+    Value* block_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
+      if(!block) block = block_;
+
+      std::vector<const Type*> types;
+
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(ObjType);
+      types.push_back(IntPtrTy);
+      types.push_back(ObjArrayTy);
+
+      char* func_name;
+      if(priv) {
+        func_name = "rbx_block_send_private";
+      } else {
+        func_name = "rbx_block_send";
+      }
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction(func_name, ft));
+
+      Function::arg_iterator input = function_->arg_begin();
+      Value* call_args[] = {
+        input++,
+        call_frame_,
+        constant(name, block),
+        ConstantInt::get(IntPtrTy, args),
+        stack_objects(args + 2, block),   // 2 == recv + block
+      };
+      Value* ret = CallInst::Create(func, call_args, call_args+5, "block_send", block);
 
       // TODO handle exception
       return ret;
@@ -469,13 +507,42 @@ namespace rubinius {
 
     void visit_send_stack(opcode which, opcode args) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      stack_push(simple_send(cache->name, args));
+      stack_push(simple_send(cache->name, args, block_, allow_private_));
       allow_private_ = false;
     }
 
     void visit_send_method(opcode which) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      stack_push(simple_send(cache->name, 0));
+      stack_push(simple_send(cache->name, 0, block_, allow_private_));
+      allow_private_ = false;
+    }
+
+    void visit_create_block(opcode which) {
+      std::vector<const Type*> types;
+
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(Type::Int32Ty);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_create_block", ft));
+
+      Function::arg_iterator input = function_->arg_begin();
+      Value* call_args[] = {
+        input++,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, which)
+      };
+
+      stack_push(CallInst::Create(func, call_args, call_args+3, "create_block", block_));
+    }
+
+    void visit_send_stack_with_block(opcode which, opcode args) {
+      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      stack_push(block_send(cache->name, args, block_, allow_private_));
       allow_private_ = false;
     }
   };
