@@ -471,5 +471,10 @@ namespace rubinius {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
       stack_push(simple_send(cache->name, args));
     }
+
+    void visit_send_method(opcode which) {
+      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      stack_push(simple_send(cache->name, 0));
+    }
   };
 }
