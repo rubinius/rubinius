@@ -267,6 +267,7 @@ class Hash
   alias_method :rehash, :redistribute
 
   def reject(&block)
+    return to_enum :reject unless block_given? || Rubinius::TARGET_IS_186
     hsh = dup
     hsh.reject! &block
     hsh

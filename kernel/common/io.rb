@@ -651,6 +651,7 @@ class IO
   #  3: This is line three
   #  4: And so on...
   def each(sep=$/)
+    return to_enum :each, sep unless block_given? || Rubinius::TARGET_IS_186
     ensure_open_and_readable
 
     sep = sep.to_str if sep
@@ -664,6 +665,7 @@ class IO
   alias_method :each_line, :each
 
   def each_byte
+    return to_enum :each_byte unless block_given? || Rubinius::TARGET_IS_186
     yield getc until eof?
 
     self
