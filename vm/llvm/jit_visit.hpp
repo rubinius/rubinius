@@ -316,6 +316,44 @@ namespace rubinius {
       return ret;
     }
 
+    Value* splat_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
+      if(!block) block = block_;
+
+      std::vector<const Type*> types;
+
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(ObjType);
+      types.push_back(IntPtrTy);
+      types.push_back(ObjArrayTy);
+
+      char* func_name;
+      if(priv) {
+        func_name = "rbx_splat_send_private";
+      } else {
+        func_name = "rbx_splat_send";
+      }
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction(func_name, ft));
+
+      Function::arg_iterator input = function_->arg_begin();
+      Value* call_args[] = {
+        input++,
+        call_frame_,
+        constant(name, block),
+        ConstantInt::get(IntPtrTy, args),
+        stack_objects(args + 3, block),   // 3 == recv + block + splat
+      };
+      Value* ret = CallInst::Create(func, call_args, call_args+5, "splat_send", block);
+
+      // TODO handle exception
+      return ret;
+    }
+
     void visit_meta_send_op_equal() {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
@@ -553,6 +591,37 @@ namespace rubinius {
       stack_remove(args + 2);
       stack_push(ret);
       allow_private_ = false;
+    }
+
+    void visit_send_stack_with_splat(opcode which, opcode args) {
+      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      Value* ret = splat_send(cache->name, args, block_, allow_private_);
+      stack_remove(args + 3);
+      stack_push(ret);
+      allow_private_ = false;
+    }
+
+    void visit_cast_array() {
+      std::vector<const Type*> types;
+
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_cast_array", ft));
+
+      Function::arg_iterator input = function_->arg_begin();
+      Value* call_args[] = {
+        input++,
+        call_frame_,
+        stack_pop()
+      };
+
+      stack_push(CallInst::Create(func, call_args, call_args+3, "cast_array", block_));
     }
   };
 }

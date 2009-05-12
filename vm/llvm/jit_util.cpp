@@ -52,6 +52,29 @@ extern "C" {
     return dis.send(state, call_frame, lookup, out_args);
   }
 
+  Object* rbx_splat_send(STATE, CallFrame* call_frame, Symbol* name,
+                          int count, Object** args) {
+    Object* recv = args[0];
+    Arguments out_args(recv, args[count+2], count, args+1);
+    Dispatch dis(name);
+
+    out_args.append(state, as<Array>(args[count+1]));
+
+    return dis.send(state, call_frame, out_args);
+  }
+
+  Object* rbx_splat_send_private(STATE, CallFrame* call_frame, Symbol* name,
+                                  int count, Object** args) {
+    Object* recv = args[0];
+    Arguments out_args(recv, args[count+2], count, args+1);
+    LookupData lookup(recv, recv->lookup_begin(state), true);
+    Dispatch dis(name);
+
+    out_args.append(state, as<Array>(args[count+1]));
+
+    return dis.send(state, call_frame, lookup, out_args);
+  }
+
   Object* rbx_arg_error(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args,
                         int required) {
     Exception* exc =
@@ -94,5 +117,20 @@ extern "C" {
     VMMethod* vmm = cm->backend_method_;
 
     scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
+  }
+
+  Object* rbx_cast_array(STATE, CallFrame* call_frame, Object* top) {
+    if(Tuple* tup = try_as<Tuple>(top)) {
+      return Array::from_tuple(state, tup);
+    } else if(kind_of<Array>(top)) {
+      return top;
+    }
+
+    // coerce
+    Object* recv = G(array);
+    Arguments args(recv, 1, &top);
+    Dispatch dis(G(sym_coerce_into_array));
+
+    return dis.send(state, call_frame, args);
   }
 }
