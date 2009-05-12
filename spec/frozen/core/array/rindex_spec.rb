@@ -46,4 +46,14 @@ describe "Array#rindex" do
     array.rindex(1).should == 0
     array.rindex(array).should == 7
   end
+  
+  ruby_version_is "1.8.7" do
+    it "accepts a block instead of an argument" do
+      [4, 2, 1, 5, 1, 3].rindex{|x| x < 2}.should == 4
+    end
+
+    it "ignore the block if there is an argument" do
+      [4, 2, 1, 5, 1, 3].rindex(5){|x| x < 2}.should == 3
+    end
+  end
 end

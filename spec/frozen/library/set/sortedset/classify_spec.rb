@@ -21,7 +21,7 @@ describe "SortedSet#classify" do
   ruby_version_is "1.8.8" do
     it "returns an Enumerator when passed no block" do
       enum = @set.classify
-      enum.should be_kind_of(Enumerable::Enumerator)
+      enum.should be_kind_of(enumerator_class)
       
       classified = enum.each { |x| x.length }
       classified.should == { 3 => SortedSet["one", "two"], 4 => SortedSet["four"], 5 => SortedSet["three"] }

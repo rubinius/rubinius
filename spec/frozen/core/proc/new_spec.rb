@@ -8,11 +8,9 @@ describe "Proc.new with an associated block" do
   end
 
   it "raises a LocalJumpError when context of the block no longer exists" do
-    def some_method
-      Proc.new { return }
-    end
-
-    res = some_method()
+    def some_method(&b) b end
+    a_proc = Proc.new { return } 
+    res = some_method(&a_proc)
 
     lambda { res.call }.should raise_error(LocalJumpError)
   end

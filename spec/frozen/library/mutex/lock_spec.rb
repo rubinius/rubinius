@@ -2,13 +2,13 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'thread'
 
 describe "Mutex#lock" do
-  it "should return self" do
+  it "returns self" do
     m = Mutex.new
     m.lock.should == m
     m.unlock
   end
 
-  it "should wait if the lock is not available" do
+  it "waits if the lock is not available" do
     m = Mutex.new
 
     m.lock

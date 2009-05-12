@@ -216,7 +216,7 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
     m.respond_to?(:test1).should == true
   end
 
-  it "functions normally if both toggle and definitions inside a module_eval (inside eval)" do
+  it "functions normally if both toggle and definitions inside a module_eval" do
     m = Module.new {
           eval <<-CODE
             module_function

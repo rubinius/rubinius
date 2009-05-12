@@ -30,6 +30,22 @@ describe "self in an eigenclass body (class << obj)" do
     cls.should_not equal(Object)
     mock.is_a?(cls).should be_true
   end
+  
+  it "is a Class for classes" do
+    cls = class << ClassSpecs::A;self;end
+    cls.is_a?(Class).should be_true
+  end
+  
+  it "inherits from Class for classes" do
+    temp = []
+    cls = class << Object;self;end
+    sc = cls
+    until sc.nil? || sc.superclass == sc
+      temp << sc
+      sc = sc.superclass
+    end
+    temp.should include(Class)
+  end
 
   ruby_version_is "1.9" do
     it "is a metaclass for classes" do
@@ -183,93 +199,119 @@ describe "A constant on an eigenclass" do
   end
 end
 
-# TODO: write these for 1.8.
-ruby_version_is "1.9" do
-  describe "Instance methods of an eigenclass" do
-    it "includes ones of the object's class" do
-      (class << ClassSpecs::K.new; self end).instance_methods.should include(:example_instance_method)
+describe "Defining instance methods on an eigenclass" do
+  before :each do
+    @k = ClassSpecs::K.new
+    class << @k
+      def singleton_method; 1 end
     end
 
-    it "does not include class methods of the object's class" do
-      (class << ClassSpecs::K.new; self end).instance_methods.should_not include(:example_class_method)
-    end
+    @k_eigenclass = class << @k; self end
+  end
+  
+  it "define public methods" do
+    @k_eigenclass.should have_public_instance_method(:singleton_method)
+  end
+end
 
-    it "includes instance methods of Object" do
-      (class << ClassSpecs::A.new; self end).instance_methods.should include(:example_instance_method_of_object)
-    end
+describe "Instance methods of an eigenclass" do
+  before :each do
+    @k = ClassSpecs::K.new
 
-    it "does not include class methods of Object" do
-      (class << ClassSpecs::A.new; self end).instance_methods.should_not include(:example_class_method_of_object)
-    end
-
-    it "includes instance methods of Class, for a class" do
-      (class << ClassSpecs::A; self end).instance_methods.should include(:example_instance_method_of_class)
-    end
-
-    it "does not include class methods of Class, for a class" do
-      (class << ClassSpecs::A; self end).instance_methods.should_not include(:example_class_method_of_class)
-    end
-
-    it "does not include instance methods of the metaclass of Class, for a class" do
-      (class << ClassSpecs::A; self end).instance_methods.should_not include(:example_instance_method_of_metaclass)
-    end
-
-    it "does not include class methods of the metaclass of Class, for a class" do
-      (class << ClassSpecs::A; self end).instance_methods.should_not include(:example_class_method_of_metaclass)
-    end
-
-    it "includes instance methods of the metaclass of Class, for a metaclass" do
-      metaclass = class << ClassSpecs::A; self end
-      (class << metaclass; self end).instance_methods.should include(:example_instance_method_of_metaclass)
-    end
-
-    it "does not include class methods of the metaclass of Class, for a metaclass" do
-      metaclass = class << ClassSpecs::A; self end
-      (class << metaclass; self end).instance_methods.should_not include(:example_class_method_of_metaclass)
-    end
+    def @k.singleton_method; 1 end
+    @k_eigenclass = class << @k; self end
+    @a_eigenclass = class << ClassSpecs::A.new; self end
+    @a_class_eigenclass = class << ClassSpecs::A; self end
   end
 
-  describe "Class methods of an eigenclass" do
-    it "includes ones of the object's class" do
-      (class << ClassSpecs::K.new; self end).methods.should include(:example_class_method)
-    end
+  it "includes ones of the object's class" do
+    @k_eigenclass.should have_instance_method(:example_instance_method)
+  end
 
-    it "does not include instance methods of the object's class" do
-      (class << ClassSpecs::K.new; self end).methods.should_not include(:example_instance_method)
-    end
+  it "does not include class methods of the object's class" do
+    @k_eigenclass.should_not have_instance_method(:example_class_method)
+  end
 
-    it "includes instance methods of Class" do
-      (class << ClassSpecs::A.new; self end).methods.should include(:example_instance_method_of_class)
-    end
+  it "includes instance methods of Object" do
+    @a_eigenclass.should have_instance_method(:example_instance_method_of_object)
+  end
 
-    it "does not include class mtehods of Class" do
-      (class << ClassSpecs::A.new; self end).methods.should_not include(:example_class_method_of_class)
-    end
+  it "does not include class methods of Object" do
+    @a_eigenclass.should_not have_instance_method(:example_class_method_of_object)
+  end
 
-    it "includes instance methods of Class, for a class" do
-      (class << ClassSpecs::A; self end).methods.should include(:example_instance_method_of_class)
-    end
+  it "includes instance methods of Class, for a class" do
+    @a_class_eigenclass.should have_instance_method(:example_instance_method_of_class)
+  end
 
-    it "includes class methods of Class, for a class" do
-      (class << ClassSpecs::A; self end).methods.should include(:example_class_method_of_class)
-    end
+  it "does not include class methods of Class, for a class" do
+    @a_class_eigenclass.should_not have_instance_method(:example_class_method_of_class)
+  end
 
-    it "includes instance methods of the metaclass of Class, for a class" do
-      (class << ClassSpecs::A; self end).methods.should include(:example_instance_method_of_metaclass)
-    end
+  it "does not include instance methods of the metaclass of Class, for a class" do
+    @a_class_eigenclass.should_not have_instance_method(:example_instance_method_of_metaclass)
+  end
 
-    it "does not include class methods of the metaclass of Class, for a class" do
-      (class << ClassSpecs::A; self end).methods.should_not include(:example_class_method_of_metaclass)
-    end
+  it "does not include class methods of the metaclass of Class, for a class" do
+    @a_class_eigenclass.should_not have_instance_method(:example_class_method_of_metaclass)
+  end
 
-    it "includes instance methods of the metaclass of Class, for a metaclass" do
-      metaclass = class << ClassSpecs::A; self end
-      (class << metaclass; self end).methods.should include(:example_instance_method_of_metaclass)
-    end
+  it "includes instance methods of the metaclass of Class, for a metaclass" do
+    (class << @a_class_eigenclass; self end).should have_instance_method(:example_instance_method_of_metaclass)
+  end
 
+  it "does not include class methods of the metaclass of Class, for a metaclass" do
+    (class << @a_class_eigenclass; self end).should_not have_instance_method(:example_class_method_of_metaclass)
+  end
+end
+
+describe "Class methods of an eigenclass" do
+  before :each do
+    @k = ClassSpecs::K.new
+    @k_eigenclass = class << @k; self end
+    @a_eigenclass = class << ClassSpecs::A.new; self end
+    @a_class_eigenclass = class << ClassSpecs::A; self end
+  end
+
+  it "includes ones of the object's class" do
+    @k_eigenclass.should have_method(:example_class_method)
+  end
+
+  it "does not include instance methods of the object's class" do
+    @k_eigenclass.should_not have_method(:example_instance_method)
+  end
+
+  it "includes instance methods of Class" do
+    @a_eigenclass.should have_method(:example_instance_method_of_class)
+  end
+
+  it "does not include class mtehods of Class" do
+    @a_eigenclass.should_not have_method(:example_class_method_of_class)
+  end
+
+  it "includes instance methods of Class, for a class" do
+    @a_class_eigenclass.should have_method(:example_instance_method_of_class)
+  end
+
+  it "includes class methods of Class, for a class" do
+    @a_class_eigenclass.should have_method(:example_class_method_of_class)
+  end
+
+  it "includes instance methods of the metaclass of Class, for a class" do
+    @a_class_eigenclass.should have_method(:example_instance_method_of_metaclass)
+  end
+
+  it "does not include class methods of the metaclass of Class, for a class" do
+    @a_class_eigenclass.should_not have_method(:example_class_method_of_metaclass)
+  end
+
+  it "includes instance methods of the metaclass of Class, for a metaclass" do
+    (class << @a_class_eigenclass; self end).should have_method(:example_instance_method_of_metaclass)
+  end
+
+  ruby_version_is "1.9" do
     it "includes class methods of the metaclass of Class, for a metaclass" do
-      metaclass = class << ClassSpecs::A; self end
-      (class << metaclass; self end).methods.should include(:example_class_method_of_metaclass)
+      (class << @a_class_eigenclass; self end).should have_method(:example_class_method_of_metaclass)
     end
   end
 end

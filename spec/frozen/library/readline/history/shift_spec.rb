@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 process_is_foreground do
-  require 'readline'
 
   not_supported_on :ironruby do
+    require 'readline'
     describe "Readline::HISTORY.shift" do
       it "returns nil when the history is empty" do
         Readline::HISTORY.shift.should be_nil

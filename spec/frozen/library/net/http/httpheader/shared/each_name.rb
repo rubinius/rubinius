@@ -24,9 +24,9 @@ describe :net_httpheader_each_name, :shared => true do
     end
 
     ruby_version_is "1.8.7" do
-      it "returns an Enumerable::Enumerator" do
+      it "returns an Enumerator" do
         enumerator = @headers.send(@method)
-        enumerator.should be_kind_of(Enumerable::Enumerator)
+        enumerator.should be_kind_of(enumerator_class)
       
         res = []
         enumerator.each do |key|

@@ -11,7 +11,7 @@ describe "REXML::Element#attribute" do
 
   it "supports attributes inside namespaces" do
     e = REXML::Element.new("element")
-    e.add_attributes({"xmlns:ns", "http://some_uri"})
+    e.add_attributes({"xmlns:ns" => "http://some_uri"})
     e.attribute("ns", "ns").to_s.should == "http://some_uri"
   end
 end

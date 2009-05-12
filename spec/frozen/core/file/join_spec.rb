@@ -66,36 +66,13 @@ describe "File.join" do
     File.join("usr/",  "", "/bin").should == "usr/bin"
   end
 
-  # TODO: Fix the version when this bug is fixed in MRI
-  # We may need to add multiple versions because it will
-  # be disjoint (ie 1.8.8.xxx and 1.9.2.xxx).
-  ruby_bug "redmine #1418", "1.9" do
-    it "returns '[...]' for the embedded array in a recursive array" do
+  # TODO: See MRI svn r23306. Add patchlevel when there is a release.
+  ruby_bug "redmine #1418", "1.8.8" do
+    it "raises an ArgumentError if passed a recursive array" do
       a = ["a"]
       a << a
-      a << ["b", "c"]
-      File.join(a).should == "a/[...]/b/c"
+      lambda { File.join a }.should raise_error(ArgumentError)
     end
-
-    it "returns '[...]' for the embedded array in a nested recursive array" do
-      a = [["a", "b"], ["c"]]
-      a << a
-      File.join(a).should == "a/b/c/[...]"
-    end
-
-    it "returns '[...]' for the embedded array in mutually recursive arrays" do
-      a = ['a']
-      b = ['b']
-      a << b
-      b << a
-      File.join(a).should == "a/b/[...]"
-    end
-  end
-
-  it "returns '[...]' for an empty recursive array" do
-    parts = []
-    parts << parts
-    File.join(parts).should == '[...]'
   end
 
   it "doesn't remove File::SEPARATOR from the middle of arguments" do

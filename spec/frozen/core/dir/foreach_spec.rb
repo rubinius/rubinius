@@ -19,4 +19,18 @@ describe "Dir.foreach" do
   it "raises a SystemCallError if passed a nonexistent directory" do
     lambda { Dir.foreach(DirSpecs.nonexistent) {} }.should raise_error(SystemCallError)
   end
+  
+  ruby_version_is '' ... '1.8.7' do
+    it 'raises a LocalJumpError if no block given' do
+      lambda{ Dir.foreach(DirSpecs.mock_dir) }.should raise_error(LocalJumpError)
+    end
+  end
+
+  ruby_version_is '1.8.7' do
+    it 'returns an Enumerator if no block given' do
+      Dir.foreach(DirSpecs.mock_dir).should be_kind_of(enumerator_class)
+      Dir.foreach(DirSpecs.mock_dir).to_a.should == DirSpecs.expected_paths
+    end
+  end
+
 end

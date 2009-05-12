@@ -4,15 +4,19 @@ describe :file_zero, :shared => true do
     @nonzero_file = 'test2.txt'
     @dir = File.dirname(__FILE__)
 
-    File.open(@zero_file, "w") {} # Touch
-    File.open(@nonzero_file, "w") { |f| f.puts "hello" }
+    File.open(@zero_file, "w") {|f| @zero_fh = f} # Touch
+    File.open(@nonzero_file, "w") { |f| f.puts "hello"; @nonzero_fh = f }
   end
 
   after :each do
+    @zero_fh.close unless @zero_fh.closed?
+    @nonzero_fh.close unless @nonzero_fh.closed?
     File.delete(@zero_file) if File.exists?(@zero_file)
     File.delete(@nonzero_file) if File.exists?(@nonzero_file)
     @zero_file    = nil
+    @zero_fh    = nil
     @nonzero_file = nil
+    @nonzero_fh = nil
   end
 
   it "returns true if the file is empty" do

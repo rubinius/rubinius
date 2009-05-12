@@ -19,7 +19,7 @@ describe "Enumerable#reject" do
 
   ruby_version_is "1.8.7" do
     it "returns an Enumerator if called without a block" do
-      EnumerableSpecs::Numerous.new.reject.should be_kind_of(Enumerable::Enumerator)
+      EnumerableSpecs::Numerous.new.reject.should be_kind_of(enumerator_class)
     end
   end
 end

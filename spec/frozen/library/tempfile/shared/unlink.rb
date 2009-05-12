@@ -9,8 +9,9 @@ describe :tempfile_unlink, :shared => true do
 
   ruby_bug "", "1.8.6" do
     it "unlinks self" do
+      path = @tempfile.path
       @tempfile.send(@method)
-      File.exists?(@tempfile.path).should be_false
+      File.exists?(path).should be_false
     end
   end
 end

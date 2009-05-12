@@ -20,7 +20,7 @@ module CoreClassSpecs
   class << F
     include M
   end
-
+  
   class A
     def self.inherited(klass)
       ::CoreClassSpecs::Record.called(klass)

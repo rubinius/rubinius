@@ -4,7 +4,22 @@ require File.dirname(__FILE__) + '/fixtures/methods'
 describe "Time#+" do
   it "increments the time by the specified amount" do
     (Time.at(0) + 100).should == Time.at(100)
-    (Time.at(1.1) + 0.9).should == Time.at(2)
+  end
+
+  it "is a commutative operator" do
+    (Time.at(1.1) + 0.9).should == Time.at(0.9) + 1.1
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "increments the time by the specified amount as float numbers" do
+      (Time.at(1.1) + 0.9).should == Time.at(2)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "increments the time by the specified amount as rational numbers" do
+      (Time.at(1.1) + 0.9).should_not == Time.at(2)
+    end
   end
 
   it "accepts arguments that can be coerced into Float" do

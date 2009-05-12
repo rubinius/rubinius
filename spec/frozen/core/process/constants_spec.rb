@@ -1,7 +1,7 @@
 
 describe "Process::Constants" do
   platform_is :os => [:darwin, :netbsd, :freebsd] do
-    it "should have the correct constant values on BSD-like systems" do
+    it "has the correct constant values on BSD-like systems" do
       Process::WNOHANG.should == 1
       Process::WUNTRACED.should == 2
       Process::PRIO_PROCESS.should == 0
@@ -21,7 +21,7 @@ describe "Process::Constants" do
   end
   
   platform_is :os => [:darwin] do
-    it "should have the correct constant values on Darwin" do
+    it "has the correct constant values on Darwin" do
       Process::RLIM_SAVED_MAX.should == 9223372036854775807
       Process::RLIM_SAVED_CUR.should == 9223372036854775807
       Process::RLIMIT_AS.should == 5
@@ -29,7 +29,7 @@ describe "Process::Constants" do
   end
 
   platform_is :os => [:linux] do
-    it "should have the correct constant values on Linux" do
+    it "has the correct constant values on Linux" do
       Process::WNOHANG.should == 1
       Process::WUNTRACED.should == 2
       Process::PRIO_PROCESS.should == 0

@@ -17,7 +17,7 @@ describe "Defining an 'initialize' method" do
       def initialize
       end
     end
-    DefInitializeSpec.new.private_methods(false).should include('initialize')
+    DefInitializeSpec.should have_private_instance_method(:initialize, false)
   end
 end
 
@@ -27,7 +27,7 @@ describe "Defining an 'initialize_copy' method" do
       def initialize_copy
       end
     end
-    DefInitializeCopySpec.new.private_methods(false).should include('initialize_copy')
+    DefInitializeCopySpec.should have_private_instance_method(:initialize_copy, false)
   end
 end
 
@@ -50,30 +50,6 @@ describe "An instance method definition with a splat" do
   it "accepts non-* arguments before the * argument" do
     def foo(a, b, c, d, e, *f); [a, b, c, d, e, f]; end
     foo(1, 2, 3, 4, 5, 6, 7, 8).should == [1, 2, 3, 4, 5, [6, 7, 8]]
-  end
-
-  it "creates a method that can be invoked with an inline hash argument" do
-    def foo(a,b,*c); [a,b,c] end
-
-    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit', *[789, 'yeah']).
-      should ==
-      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit'}, [789, 'yeah']]
-  end
-
-  it "creates a method that can be invoked with an inline hash and a block" do
-    def foo(a,b,*c,&d); [a,b,c,yield(d)] end
-
-    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit', *[789, 'yeah']) { 3 }.
-      should ==
-      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit'}, [789, 'yeah'], 3]
-
-    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', *[789, 'yeah']) do 3 end.should ==
-      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes' }, [789, 'yeah'], 3]
-
-    l = lambda { 3 }
-
-    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', *[789, 'yeah'], &l).should ==
-      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes' }, [789, 'yeah'], 3]
   end
 
   it "allows only a single * argument" do
@@ -348,7 +324,7 @@ describe "A nested method definition" do
     other = DefSpecNested.new
     other.an_instance_method.should == other
 
-    DefSpecNested.instance_methods.should include("an_instance_method")
+    DefSpecNested.should have_instance_method(:an_instance_method)
   end
 
   it "creates a class method when evaluated in a class method" do
@@ -513,3 +489,5 @@ describe "a method definition that sets more than one default parameter all to t
     lambda { bar(3,4,5) }.should raise_error(ArgumentError)
   end
 end
+
+language_version __FILE__, "def"

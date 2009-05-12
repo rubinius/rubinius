@@ -73,7 +73,7 @@ describe "Process.setrlimit and Process.getrlimit" do
       lim, max = Process.getrlimit(Process::RLIMIT_MEMLOCK)
       lim.kind_of?(Integer).should == true
       max.kind_of?(Integer).should == true
-      lim = max if lim > max # EINVAL is raised if this invariant is violated
+      max = lim if lim > max # EINVAL is raised if this invariant is violated
       Process.setrlimit(Process::RLIMIT_MEMLOCK, lim, max).should == nil
     end
 

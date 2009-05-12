@@ -49,10 +49,6 @@ describe "A Symbol literal" do
     c.inspect.should == ':Foo__9'
   end
 
-  it "must not be an empty string" do
-    lambda { eval ":''" }.should raise_error(SyntaxError)
-  end
-
   it "can be created by the %s-delimited expression" do
     a, b = :'foo bar', %s{foo bar}
     b.class.should == Symbol
@@ -70,3 +66,5 @@ describe "A Symbol literal" do
     }
   end
 end
+
+language_version __FILE__, 'symbol'

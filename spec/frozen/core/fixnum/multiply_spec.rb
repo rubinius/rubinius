@@ -18,4 +18,20 @@ describe "Fixnum#*" do
     lambda { 13 * "10"    }.should raise_error(TypeError)
     lambda { 13 * :symbol }.should raise_error(TypeError)
   end
+
+  it "overflows to Bignum when the result does not fit in Fixnum" do
+    if 1.size == 4
+      # 32-bit fixnums
+      y = 0x4000
+      result = y * y * y
+      result.should == 0x40000000000
+      result.class.should == Bignum
+    elsif 1.size == 8
+      # 64-bit fixnums
+      y = 0x40000000
+      result = y * y * y
+      result.should == 0x40000000000000000000000
+      result.class.should == Bignum
+    end
+  end
 end

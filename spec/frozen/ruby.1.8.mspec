@@ -3,7 +3,12 @@ class MSpecScript
   set :language, [ 'language' ]
 
   # Core library specs
-  set :core, [ 'core' ]
+  set :core, [
+    'core',
+
+    # 1.9
+    '^core/basicobject'
+  ]
 
   # Standard library specs
   set :library, [

@@ -8,8 +8,7 @@ describe "Process#detach" do
 
     it "returns a thread" do
       p1 = Process.fork { Process.exit! }
-      thr = Process.detach(p1)
-      thr.should be_kind_of(Thread)
+      Process.detach(p1).class.should == Thread
     end
 
     platform_is_not :openbsd do

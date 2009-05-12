@@ -215,7 +215,7 @@ describe "Calling a method" do
 end
 
 describe "Calling a private setter method" do
-  it "permits self as a receiver" do
+  describe "permits self as a receiver" do
     module MethodSpecs
       class PrivateSetter
         attr_reader :foo
@@ -225,12 +225,24 @@ describe "Calling a private setter method" do
         def call_self_foo_equals(value)
           self.foo = value
         end
+
+        def call_self_foo_equals_masgn(value)
+          a, self.foo = 1, value
+        end
       end
     end
 
-    receiver = MethodSpecs::PrivateSetter.new
-    receiver.call_self_foo_equals(42)
-    receiver.foo.should == 42
+    it "for normal assignment" do
+      receiver = MethodSpecs::PrivateSetter.new
+      receiver.call_self_foo_equals(42)
+      receiver.foo.should == 42
+    end
+
+    it "for multiple assignment" do
+      receiver = MethodSpecs::PrivateSetter.new
+      receiver.call_self_foo_equals_masgn(42)
+      receiver.foo.should == 42
+    end
   end
 end
 

@@ -20,9 +20,9 @@ module ArraySpecs
   end
 
   def self.frozen_array
-    @frozen_array ||= [1,2,3]
-    @frozen_array.freeze
-    @frozen_array
+    frozen_array = [1,2,3]
+    frozen_array.freeze
+    frozen_array
   end
 
   def self.recursive_array
@@ -76,4 +76,28 @@ module ArraySpecs
       ScratchPad.record args
     end
   end
+
+  class ArrayConvertable
+    attr_accessor :called
+    def initialize(*values, &block)
+      @values = values;
+    end
+    
+    def to_a
+      self.called = :to_a
+      @values
+    end
+    
+    def to_ary
+      self.called = :to_ary
+      @values
+    end
+  end
+
+  class ArrayNotReallyConvertable
+    def to_ary
+      raise "Oups"
+    end
+  end
+
 end

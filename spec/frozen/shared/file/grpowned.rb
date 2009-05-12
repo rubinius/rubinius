@@ -1,8 +1,8 @@
 describe :file_grpowned, :shared => true do
   before :each do
     @file = tmp('i_exist')
-    File.open(@file,'w'){|f| f.write 'rubinius'}
-    File.chown(nil, Process.gid, @file)
+    @fh = File.open(@file,'w') { |f| f.write 'rubinius' }
+    File.chown(nil, Process.gid, @file) rescue nil
   end
 
   after :each do

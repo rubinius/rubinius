@@ -16,3 +16,15 @@ describe "File#path" do
     File.open(@file2, 'w'){|file| file.path.should == tmp("../tmp/xxx")}
   end
 end
+
+describe "File.path" do
+  before :each do
+    @file1 = tmp("../tmp/xxx")
+  end
+
+  ruby_version_is "1.9.1" do
+    it "returns the full path for the given file" do
+      File.path(@file1).should == tmp("../tmp/xxx")
+    end
+  end
+end

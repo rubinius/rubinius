@@ -53,12 +53,12 @@ describe "Signal.list" do
   end
 
   if Signal.list["CHLD"]
-    it "should redefine CLD with CHLD if defined" do
+    it "redefines CLD with CHLD if defined" do
       Signal.list["CLD"].should == Signal.list["CHLD"]
     end
   end
 
-  it "should contain the EXIT key with a value of zero" do
+  it "includes the EXIT key with a value of zero" do
     Signal.list["EXIT"].should == 0
   end
 end

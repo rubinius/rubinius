@@ -21,7 +21,7 @@ describe "Set#classify" do
   ruby_version_is "1.8.8" do
     it "returns an Enumerator when passed no block" do
       enum = @set.classify
-      enum.should be_kind_of(Enumerable::Enumerator)
+      enum.should be_kind_of(enumerator_class)
       
       classified = enum.each { |x| x.length }
       classified.should == { 3 => Set["one", "two"], 4 => Set["four"], 5 => Set["three"] }

@@ -25,7 +25,7 @@ describe "ENV.each_key" do
 
   ruby_version_is "1.8.7" do
     it "returns an Enumerator if called without a block" do
-      ENV.each_key.should be_kind_of(Enumerable::Enumerator)
+      ENV.each_key.should be_kind_of(enumerator_class)
     end
   end
 

@@ -443,3 +443,14 @@ describe "String#unpack with 'm' directive" do
       ["\261\370\375\363~=\377\377\200H7}\363\335\370\216\017\215\b\023\031?mw\334h\a&&+"]
   end
 end
+
+describe "String#unpack with 'w' directive" do
+  it "produces a BER-compressed integer" do
+    'X'.unpack('w').should == [88]
+    'XYZ'.unpack('www').should == [88,89,90]
+    'XYZ'.unpack('w3').should == [88,89,90]
+    '\001\002\003\004'.unpack('w4').should == [92,48,48,49]
+    'hello world'.unpack('w*').should == [104,101,108,108,111,32,119,111,114,108,100]
+    "\204\314\330\205R".unpack('w').should == [1234567890]
+  end
+end

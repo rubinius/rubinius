@@ -91,4 +91,8 @@ describe "File.expand_path" do
     lambda { File.expand_path(nil)  }.should raise_error(TypeError)
     lambda { File.expand_path(true) }.should raise_error(TypeError)
   end
+
+  it "expands /./dir to /dir" do
+    File.expand_path("/./dir").should == "/dir"
+  end
 end

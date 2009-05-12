@@ -20,11 +20,21 @@ describe "Enumerable#zip" do
     EnumerableSpecs::Numerous.new(1,2,3).zip([4,5,6], [7,8]).should == [[1,4,7],[2,5,8],[3,6,nil]]
   end
   
-  it "converts arguments to arrays using #to_a" do
-    convertable = EnumerableSpecs::ArrayConvertable.new(4,5,6)
-    EnumerableSpecs::Numerous.new(1,2,3).zip(convertable).should == [[1,4],[2,5],[3,6]]
-    convertable.called.should == :to_a
+  ruby_version_is ''...'1.9' do
+    it "converts arguments to arrays using #to_a" do
+      convertable = EnumerableSpecs::ArrayConvertable.new(4,5,6)
+      EnumerableSpecs::Numerous.new(1,2,3).zip(convertable).should == [[1,4],[2,5],[3,6]]
+      convertable.called.should == :to_a
+    end
   end
-
+  
+  ruby_version_is '1.9' do
+    it "converts arguments to arrays using #to_ary" do
+      convertable = EnumerableSpecs::ArrayConvertable.new(4,5,6)
+      EnumerableSpecs::Numerous.new(1,2,3).zip(convertable).should == [[1,4],[2,5],[3,6]]
+      convertable.called.should == :to_ary
+    end
+  end
+  
 end
 

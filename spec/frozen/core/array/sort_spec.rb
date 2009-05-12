@@ -29,6 +29,17 @@ module ArraySpecs
     protected
     attr_accessor :order
   end
+  
+  class ComparableWithFixnum
+    include Comparable
+    def initialize(num)
+      @num = num
+    end
+
+    def <=>(fixnum)
+      @num <=> fixnum
+    end
+  end
 end
 
 
@@ -136,6 +147,18 @@ describe "Array#sort" do
   it "returns the specified value when it would break in the given block" do
     [1, 2, 3].sort{ break :a }.should == :a
   end
+  
+  it "compares values returned by block with 0" do
+    a = [1, 2, 5, 10, 7, -4, 12]
+    a.sort { |n, m| n - m }.should == [-4, 1, 2, 5, 7, 10, 12]
+    a.sort { |n, m|
+      ArraySpecs::ComparableWithFixnum.new(n-m)
+    }.should == [-4, 1, 2, 5, 7, 10, 12]
+    lambda {
+      a.sort { |n, m| (n - m).to_s }
+    }.should raise_error(ArgumentError)
+  end
+  
 end
 
 describe "Array#sort!" do

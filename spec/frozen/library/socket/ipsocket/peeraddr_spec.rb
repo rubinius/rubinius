@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "Socket::IPSocket#peeraddr" do
   before :each do
-    @server = TCPServer.new(SocketSpecs.port)
+    @server = TCPServer.new("127.0.0.1", SocketSpecs.port)
     @client = TCPSocket.new("127.0.0.1", SocketSpecs.port)
   end
 

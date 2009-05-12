@@ -27,5 +27,16 @@ describe "Enumerable#sort" do
       x <=> y
     }.should == [true, true, nil, nil, nil, nil, nil, false, false]
   end
+  
+  it "compare values returned by block with 0" do
+    EnumerableSpecs::Numerous.new.sort { |n, m| -(n+m) * (n <=> m) }.should == [6, 5, 4, 3, 2, 1]
+    EnumerableSpecs::Numerous.new.sort { |n, m|
+      EnumerableSpecs::ComparableWithFixnum.new(-(n+m) * (n <=> m))
+    }.should == [6, 5, 4, 3, 2, 1]
+    lambda {
+      EnumerableSpecs::Numerous.new.sort { |n, m| (n <=> m).to_s }
+    }.should raise_error(ArgumentError)
+  end
+  
 end
 

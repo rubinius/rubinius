@@ -1,11 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The redo statement" do
-  it "raises a LocalJumpError if used not within block or while/for loop" do
-    def bad_meth_redo; redo; end
-    lambda { bad_meth_redo() }.should raise_error(LocalJumpError)
-  end
-
   it "restarts block execution if used within block" do
     a = []
     lambda {
@@ -66,3 +61,5 @@ describe "The redo statement" do
     end
   end
 end
+
+language_version __FILE__, "redo"

@@ -9,8 +9,8 @@ ruby_version_is ""..."1.9" do
     end
     
     after(:each) do
-      @server.close unless @server.closed?
       @socket.close unless @socket.closed?
+      @server.close unless @server.closed?
     end
 
     it "causes 'peeraddr' to avoid name lookups" do

@@ -6,16 +6,8 @@ describe "Array#initialize" do
     ScratchPad.clear
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "is private" do
-      [].private_methods.should include("initialize")
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "is private" do
-      [].private_methods.should include(:initialize)
-    end
+  it "is private" do
+    Array.should have_private_instance_method("initialize")
   end
 
   it "is called on subclasses" do

@@ -140,3 +140,13 @@ describe "StringIO#puts when self is not writable" do
     lambda { io.puts }.should raise_error(IOError)
   end
 end
+
+describe "StringIO#puts when passed an encoded string" do
+  it "stores the bytes unmodified" do
+    io = StringIO.new
+    io.puts "\x00\x01\x02"
+    io.puts "æåø"
+
+    io.string.should == "\x00\x01\x02\næåø\n"
+  end
+end

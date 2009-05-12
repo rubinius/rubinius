@@ -3,7 +3,7 @@ require 'set'
 
 ruby_version_is "1.8.7" do
   describe "Set#hash" do
-    it "should be static" do
+    it "is static" do
       Set[].hash.should == Set[].hash
       Set[1, 2, 3].hash.should == Set[1, 2, 3].hash
       Set[:a, "b", ?c].hash.should == Set[?c, "b", :a].hash

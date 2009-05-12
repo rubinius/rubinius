@@ -7,13 +7,6 @@ class NextSpecs
   end
 end
 
-describe "The next statement" do
-  it "raises a LocalJumpError if used not within block or while/for loop" do
-    def bad_meth; next; end
-    lambda { bad_meth }.should raise_error(LocalJumpError)
-  end
-end
-
 describe "The next statement from within the block" do
   it "ends block execution" do
     a = []
@@ -166,3 +159,5 @@ describe "Assignment via next" do
    r([1,2,[]]){next *[*[1,2]]}
  end
 end
+
+language_version __FILE__, "next"

@@ -6,8 +6,8 @@ describe "File.makedirs" do
   end
   
   after(:each) do
-    system "rmdir makedirs_test/second_dir" if File.exist?("makedirs_test/second_dir")
-    system "rmdir makedirs_test" if File.exist?("makedirs_test")
+    FileUtils.rm_rf("makedirs_test")
+    flunk if File.exist?("makedirs_test")
   end
   
   it "creates the dirs from arg" do

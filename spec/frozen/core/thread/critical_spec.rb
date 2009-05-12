@@ -32,7 +32,7 @@ describe "Thread.critical=" do
 
   it "does not change status of other existing threads" do
     t = ThreadSpecs.create_critical_thread { ScratchPad.record Thread.main.status }
-    Thread.pass while t.status
+    Thread.pass while t.status and t.status != false
     ScratchPad.recorded.should == "run"
   end
 

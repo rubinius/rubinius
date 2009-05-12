@@ -2,12 +2,12 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'thread'
 
 describe "Mutex#unlock" do
-  it "should raise ThreadError unless Mutex is locked" do
+  it "raises ThreadError unless Mutex is locked" do
     mutex = Mutex.new
     lambda { mutex.unlock }.should raise_error(ThreadError)
   end
 
-  it "should raise ThreadError unless thread owns Mutex" do
+  it "raises ThreadError unless thread owns Mutex" do
     mutex = Mutex.new
     wait = Mutex.new
     wait.lock
@@ -25,7 +25,7 @@ describe "Mutex#unlock" do
     th.join
   end
 
-  it "should return nil if successful" do
+  it "returns nil if successful" do
     mutex = Mutex.new
     mutex.lock
     mutex.unlock.should.be_nil

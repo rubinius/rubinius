@@ -175,10 +175,20 @@ describe "The defined? keyword" do
       ret.should == "super"
     end
 
-    it "returns 'local-variable' when defined? is called on a block var" do
-      block = Proc.new { |xxx| defined?(xxx) }
-      ret = block.call(1)
-      ret.should == 'local-variable(in-block)'
+    ruby_version_is "" ... "1.9" do
+      it "returns 'local-variable(in-block)' when defined? is called on a block var" do
+        block = Proc.new { |xxx| defined?(xxx) }
+        ret = block.call(1)
+        ret.should == 'local-variable(in-block)'
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns 'local-variable' when defined? is called on a block var" do
+        block = Proc.new { |xxx| defined?(xxx) }
+        ret = block.call(1)
+        ret.should == 'local-variable'
+      end
     end
   end
 
@@ -200,6 +210,24 @@ describe "The defined? keyword" do
     instance.ivar = 2
     ret = instance.ivar_definition
     ret.should == 'instance-variable'
+  end
+
+  it "follows normal lexical and hierarchical scoping for constants" do
+    o = Object.new
+    class << o
+      module Foo
+        Bar = 1
+      end
+      class Baz; include Foo; end
+      class Baz;
+        def self.foo_defined; defined? Foo; end
+        def self.bar_defined; defined? Bar; end
+      end
+      def baz; Baz; end
+    end
+
+    o.baz.foo_defined.should == "constant";
+    o.baz.bar_defined.should == "constant";
   end
 end
 

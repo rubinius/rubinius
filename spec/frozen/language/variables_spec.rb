@@ -20,49 +20,112 @@ describe "Basic assignment" do
   it "assigns nil to lhs when rhs is an empty expression" do
     a = ()
     a.should be_nil
-
-    a = *()
-    a.should be_nil
   end
 
-  it "allows the assignment of the rhs to the lhs using the rhs splat operator" do
-    a = *nil;      a.should == nil
-    a = *1;        a.should == 1
-    a = *[];       a.should == nil
-    a = *[1];      a.should == 1
-    a = *[nil];    a.should == nil
-    a = *[[]];     a.should == []
-    a = *[1,2];    a.should == [1,2]
-    a = *[*[]];    a.should == nil
-    a = *[*[1]];   a.should == 1
-    a = *[*[1,2]]; a.should == [1,2]
+  ruby_version_is "" ... "1.9" do
+    it "assigns nil to lhs when rhs is an empty splat expression" do
+      a = *()
+      a.should be_nil
+    end
   end
 
-  it "allows the assignment of the rhs to the lhs using the lhs splat operator" do
-    * = 1,2        # Valid syntax, but pretty useless! Nothing to test
-    *a = nil;      a.should == [nil]
-    *a = 1;        a.should == [1]
-    *a = [];       a.should == [[]]
-    *a = [1];      a.should == [[1]]
-    *a = [nil];    a.should == [[nil]]
-    *a = [[]];     a.should == [[[]]]
-    *a = [1,2];    a.should == [[1,2]]
-    *a = [*[]];    a.should == [[]]
-    *a = [*[1]];   a.should == [[1]]
-    *a = [*[1,2]]; a.should == [[1,2]]
+  ruby_version_is "1.9" do
+    it "assigns [] to lhs when rhs is an empty splat expression" do
+      a = *()
+      a.should == []
+    end
   end
 
-  it "allows the assignment of rhs to the lhs using the lhs and rhs splat operators simultaneously" do
-    *a = *nil;      a.should == [nil]
-    *a = *1;        a.should == [1]
-    *a = *[];       a.should == []
-    *a = *[1];      a.should == [1]
-    *a = *[nil];    a.should == [nil]
-    *a = *[[]];     a.should == [[]]
-    *a = *[1,2];    a.should == [1,2]
-    *a = *[*[]];    a.should == []
-    *a = *[*[1]];   a.should == [1]
-    *a = *[*[1,2]]; a.should == [1,2]
+  ruby_version_is "" ... "1.9" do
+    it "allows the assignment of the rhs to the lhs using the rhs splat operator" do
+      a = *nil;      a.should == nil
+      a = *1;        a.should == 1
+      a = *[];       a.should == nil
+      a = *[1];      a.should == 1
+      a = *[nil];    a.should == nil
+      a = *[[]];     a.should == []
+      a = *[1,2];    a.should == [1,2]
+      a = *[*[]];    a.should == nil
+      a = *[*[1]];   a.should == 1
+      a = *[*[1,2]]; a.should == [1,2]
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "allows the assignment of the rhs to the lhs using the rhs splat operator" do
+      a = *nil;      a.should == []
+      a = *1;        a.should == [1]
+      a = *[];       a.should == []
+      a = *[1];      a.should == [1]
+      a = *[nil];    a.should == [nil]
+      a = *[[]];     a.should == [[]]
+      a = *[1,2];    a.should == [1,2]
+      a = *[*[]];    a.should == []
+      a = *[*[1]];   a.should == [1]
+      a = *[*[1,2]]; a.should == [1,2]
+    end
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "allows the assignment of the rhs to the lhs using the lhs splat operator" do
+      * = 1,2        # Valid syntax, but pretty useless! Nothing to test
+      *a = nil;      a.should == [nil]
+      *a = 1;        a.should == [1]
+      *a = [];       a.should == [[]]
+      *a = [1];      a.should == [[1]]
+      *a = [nil];    a.should == [[nil]]
+      *a = [[]];     a.should == [[[]]]
+      *a = [1,2];    a.should == [[1,2]]
+      *a = [*[]];    a.should == [[]]
+      *a = [*[1]];   a.should == [[1]]
+      *a = [*[1,2]]; a.should == [[1,2]]
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "allows the assignment of the rhs to the lhs using the lhs splat operator" do
+      * = 1,2        # Valid syntax, but pretty useless! Nothing to test
+      *a = nil;      a.should == [nil]
+      *a = 1;        a.should == [1]
+      *a = [];       a.should == []
+      *a = [1];      a.should == [1]
+      *a = [nil];    a.should == [nil]
+      *a = [[]];     a.should == [[]]
+      *a = [1,2];    a.should == [1,2]
+      *a = [*[]];    a.should == []
+      *a = [*[1]];   a.should == [1]
+      *a = [*[1,2]]; a.should == [1,2]
+    end
+  end
+
+  ruby_version_is "" ... "1.9" do
+    it "allows the assignment of rhs to the lhs using the lhs and rhs splat operators simultaneously" do
+      *a = *nil;      a.should == [nil]
+      *a = *1;        a.should == [1]
+      *a = *[];       a.should == []
+      *a = *[1];      a.should == [1]
+      *a = *[nil];    a.should == [nil]
+      *a = *[[]];     a.should == [[]]
+      *a = *[1,2];    a.should == [1,2]
+      *a = *[*[]];    a.should == []
+      *a = *[*[1]];   a.should == [1]
+      *a = *[*[1,2]]; a.should == [1,2]
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "allows the assignment of rhs to the lhs using the lhs and rhs splat operators simultaneously" do
+      *a = *nil;      a.should == []
+      *a = *1;        a.should == [1]
+      *a = *[];       a.should == []
+      *a = *[1];      a.should == [1]
+      *a = *[nil];    a.should == [nil]
+      *a = *[[]];     a.should == [[]]
+      *a = *[1,2];    a.should == [1,2]
+      *a = *[*[]];    a.should == []
+      *a = *[*[1]];   a.should == [1]
+      *a = *[*[1,2]]; a.should == [1,2]
+    end
   end
 
   it "allows multiple values to be assigned" do
@@ -128,9 +191,18 @@ describe "Basic assignment" do
 end
 
 describe "Assignment using expansion" do
-  it "succeeds without conversion" do
-    *x = (1..7).to_a
-    x.should == [[1, 2, 3, 4, 5, 6, 7]]
+  ruby_version_is "" ... "1.9" do
+    it "succeeds without conversion" do
+      *x = (1..7).to_a
+      x.should == [[1, 2, 3, 4, 5, 6, 7]]
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "succeeds without conversion" do
+      *x = (1..7).to_a
+      x.should == [1, 2, 3, 4, 5, 6, 7]
+    end
   end
 end
 

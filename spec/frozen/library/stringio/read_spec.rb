@@ -46,3 +46,17 @@ describe "StringIO#read when passed [length]" do
     @io.read(0).should == ""
   end
 end
+
+describe "StringIO#read when passed length and a buffer" do
+  before :each do
+    @io = StringIO.new("abcdefghijklmnopqrstuvwxyz")
+  end
+
+  it "reads [length] characters into the buffer" do
+    buf = "foo"
+    result = @io.read(10, buf)
+
+    buf.should == "abcdefghij"
+    result.should equal?(buf)
+  end
+end

@@ -30,9 +30,9 @@ describe "Net::HTTPHeader#each_value" do
     # TODO: This should return an Enumerator and not raise an Error
     ruby_version_is "1.8.7" do
       ruby_bug "http://redmine.ruby-lang.org/issues/show/447", "1.8.7" do
-        it "returns an Enumerable::Enumerator" do
+        it "returns an Enumerator" do
           enumerator = @headers.each_value
-          enumerator.should be_kind_of(Enumerable::Enumerator)
+          enumerator.should be_kind_of(enumerator_class)
       
           res = []
           enumerator.each do |key|

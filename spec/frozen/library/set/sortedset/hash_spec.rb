@@ -3,7 +3,7 @@ require 'set'
 
 ruby_version_is "1.8.7" do
   describe "SortedSet#hash" do
-    it "should be static" do
+    it "is static" do
       SortedSet[].hash.should == SortedSet[].hash
       SortedSet[1, 2, 3].hash.should == SortedSet[1, 2, 3].hash
       SortedSet["a", "b", "c"].hash.should == SortedSet["c", "b", "a"].hash

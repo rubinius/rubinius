@@ -2,13 +2,30 @@ module EnumerableSpecs
 
   class Numerous
     include Enumerable
-    
     def initialize(*list)
       @list = list.empty? ? [2, 5, 3, 6, 1, 4] : list
     end
     
     def each
       @list.each { |i| yield i }
+    end      
+  end
+
+  class EachCounter < Numerous
+    attr_reader :times_called, :times_yielded, :arguments_passed
+    def initialize(*list)
+      super(*list)
+      @times_yielded = @times_called = 0
+    end
+    
+    def each(*arg)
+      @times_called += 1
+      @times_yielded = 0
+      @arguments_passed = arg
+      @list.each do |i|
+        @times_yielded +=1 
+        yield i
+      end
     end      
   end
 
@@ -98,8 +115,8 @@ module EnumerableSpecs
       @values
     end
     
-    def to_arr
-      self.called = :to_arr
+    def to_ary
+      self.called = :to_ary
       @values
     end
   end
@@ -110,6 +127,40 @@ module EnumerableSpecs
     end
     def ==(other)
       @obj == other
+    end
+  end
+
+  class YieldsMulti
+    include Enumerable
+    def each
+      yield 1,2
+      yield 3,4,5
+      yield 6,7,8,9
+    end
+  end
+
+  class ReverseComparable
+    include Comparable
+    def initialize(num)
+      @num = num
+    end
+
+    attr_accessor :num
+
+    # Reverse comparison
+    def <=>(other)
+      other.num <=> @num
+    end
+  end
+  
+  class ComparableWithFixnum
+    include Comparable
+    def initialize(num)
+      @num = num
+    end
+
+    def <=>(fixnum)
+      @num <=> fixnum
     end
   end
 

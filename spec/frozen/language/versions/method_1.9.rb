@@ -108,4 +108,30 @@ describe "Calling a method" do
     fooP0R(*a,*a,*a).should == 9
     fooP0R(0,*a,4,*5,6,7,*c,-1).should == 11
   end
+
+  it "expands an array to arguments grouped in parentheses" do
+    def fooP1((a,b)); a+b; end
+
+    fooP1([40,2]).should == 42
+  end
+
+  it "expands an array to arguments grouped in parentheses and ignores any rest arguments in the array" do
+    def fooP1((a,b)); a+b; end
+
+    fooP1([40,2,84]).should == 42
+  end
+
+  it "expands an array to arguments grouped in parentheses and sets not specified arguments to nil" do
+    def fooP1((a,b)); [a,b]; end
+
+    fooP1([42]).should == [42, nil]
+  end
+
+  it "expands an array to arguments grouped in parentheses which in turn takes rest arguments" do
+    def fooP1((a,b,*c,d,e)); [a,b,c,d,e]; end
+
+    fooP1([1, 2, 3]).should == [1, 2, [], 3, nil]
+    fooP1([1, 2, 3, 4]).should == [1, 2, [], 3, 4]
+    fooP1([1, 2, 3, 4, 5]).should == [1, 2, [3], 4, 5]
+  end
 end

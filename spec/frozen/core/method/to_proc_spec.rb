@@ -36,4 +36,15 @@ describe "Method#to_proc" do
 
     x.foo.should == to_s
   end
+
+  it "returns a proc that can be yielded to" do
+    x = Object.new
+    def x.foo(*a); a; end
+    def x.bar; yield; end
+    def x.baz(*a); yield(*a); end
+
+    m = x.method :foo
+    x.bar(&m).should == []
+    x.baz(1,2,3,&m).should == [1,2,3]
+  end
 end

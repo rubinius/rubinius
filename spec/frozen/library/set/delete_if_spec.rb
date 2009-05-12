@@ -34,7 +34,7 @@ describe "Set#delete_if" do
   ruby_version_is "1.8.8" do
     it "returns an Enumerator when passed no block" do
       enum = @set.delete_if
-      enum.should be_kind_of(Enumerable::Enumerator)
+      enum.should be_kind_of(enumerator_class)
       
       enum.each { |x| x.size == 3 }
       

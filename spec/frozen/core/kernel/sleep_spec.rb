@@ -31,7 +31,8 @@ describe "Kernel#sleep" do
       5
     end    
     lock.receive.should == :ready
-    Thread.pass unless t.status == "sleep"
+    # wait until the thread has gone to sleep
+    Thread.pass while t.status and t.status != "sleep"
     t.run
     t.value.should == 5
   end

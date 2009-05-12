@@ -35,10 +35,10 @@ describe :argf_each_byte, :shared => true do
   end
 
   ruby_version_is "1.8.7" do
-    it "returns an Enumerable::Enumerator when passed no block" do
+    it "returns an Enumerator when passed no block" do
       argv [@file1_name, @file2_name] do
         enum = ARGF.send(@method)
-        enum.should be_an_instance_of(Enumerable::Enumerator)
+        enum.should be_an_instance_of(enumerator_class)
 
         bytes = []
         enum.each { |b| bytes << b }

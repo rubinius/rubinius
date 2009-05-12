@@ -140,7 +140,7 @@ describe "The for expression" do
     
     j.should == 13
   end
-  
+
   it "repeats current iteration with 'redo'" do
     j = 0
     for i in 1..3
@@ -151,15 +151,6 @@ describe "The for expression" do
     
     j.should == 8
   end
-  
-  it "repeats the loop from the beginning with 'retry'" do
-    j = 0
-    for i in 1..5
-      j += i
-      
-      retry if i == 3 && j < 7
-    end
-    
-    j.should == 21
-  end
 end
+
+language_version __FILE__, "for"

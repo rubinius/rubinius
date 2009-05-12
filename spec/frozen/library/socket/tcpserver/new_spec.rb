@@ -21,14 +21,23 @@ describe "TCPServer.new" do
     @server = TCPServer.new(SocketSpecs.hostname, SocketSpecs.port)
     addr = @server.addr
     if addr[0] == 'AF_INET'
-      addr[1].should be_kind_of(Fixnum)
+      addr[1].should == SocketSpecs.port
       addr[2].should =~ /^#{SocketSpecs.hostname}\b/
       addr[3].should == '127.0.0.1'
     else
-      addr[1].should be_kind_of(Fixnum)
+      addr[1].should == SocketSpecs.port
       addr[2].should =~ /^#{SocketSpecs.hostnamev6}\b/
       addr[3].should == '::1'
     end
+  end
+
+  it "binds to INADDR_ANY if the hostname is empty" do
+    @server = TCPServer.new('', SocketSpecs.port)
+    addr = @server.addr
+    addr[0].should == 'AF_INET'
+    addr[1].should == SocketSpecs.port
+    addr[2].should == '0.0.0.0'
+    addr[3].should == '0.0.0.0'
   end
 
   it "coerces port to string, then determines port from that number or service name" do

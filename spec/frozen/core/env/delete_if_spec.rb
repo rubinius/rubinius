@@ -20,7 +20,7 @@ describe "ENV.delete_if" do
 
   ruby_version_is "1.8.7" do
     it "returns an Enumerator if no block given" do
-      ENV.delete_if.should be_kind_of(Enumerable::Enumerator)
+      ENV.delete_if.should be_kind_of(enumerator_class)
     end
   end
 

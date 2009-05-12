@@ -44,7 +44,7 @@ describe "A class definition" do
     }.should raise_error(TypeError)
   end
   
-  it "allows using self as the superclass iff self is a class" do
+  it "allows using self as the superclass if self is a class" do
     ClassSpecs::I::J.superclass.should == ClassSpecs::I
     
     lambda {

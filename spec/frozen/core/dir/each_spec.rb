@@ -26,6 +26,20 @@ describe "Dir#each" do
     @dir.rewind
     ls.should include(@dir.read)
   end
+  
+  ruby_version_is '' ... '1.8.7' do
+    it 'raises a LocalJumpError if no block given' do
+      lambda{ @dir.each }.should raise_error(LocalJumpError)
+    end
+  end
+
+  ruby_version_is '1.8.7' do
+    it 'returns an Enumerator if no block given' do
+      @dir.each.should be_kind_of(enumerator_class)
+      @dir.each.to_a.should == DirSpecs.expected_paths
+    end
+  end
+
 end
 
 describe "Dir#each" do

@@ -29,9 +29,11 @@ describe "StringIO#ungetc when passed [char]" do
     @io.string.should == "1234\000\000\000\000\000\000\000\000\000\000A"
   end
 
-  it "does nothing when at the beginning of self" do
-    @io.ungetc(65)
-    @io.string.should == '1234'
+  ruby_version_is "1.8.6" .. "1.8.6.367" do
+    it "does nothing when at the beginning of self" do
+      @io.ungetc(65)
+      @io.string.should == '1234'
+    end
   end
 
   it "tries to convert the passed length to an Integer using #to_int" do

@@ -40,7 +40,7 @@ describe :array_collect, :shared => true do
   ruby_version_is '1.9' do
     it "returns an Enumerator when no block given" do
       a = [1, 2, 3]
-      a.send(@method).should be_kind_of(Enumerator)
+      a.send(@method).should be_kind_of(enumerator_class)
     end
   end
 
@@ -92,21 +92,11 @@ describe :array_collect_b, :shared => true do
     end
   end
 
-  ruby_version_is '1.8.7' ... '1.9' do
-    it "returns an Enumerable::Enumerator when no block given, and the enumerator can modify the original array" do
+  ruby_version_is '1.8.7' do
+    it "returns an Enumerator when no block given, and the enumerator can modify the original array" do
       a = [1, 2, 3]
       enum = a.send(@method)
-      enum.should be_kind_of(Enumerable::Enumerator)
-      enum.each{|i| "#{i}!" }
-      a.should == ["1!", "2!", "3!"]
-    end
-  end
-
-  ruby_version_is '1.9' do
-    it "returns an Enumerator when no block given, and the enumeratoe can modify the original array" do
-      a = [1, 2, 3]
-      enum = a.send(@method)
-      enum.should be_kind_of(Enumerator)
+      enum.should be_kind_of(enumerator_class)
       enum.each{|i| "#{i}!" }
       a.should == ["1!", "2!", "3!"]
     end

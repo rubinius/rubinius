@@ -36,12 +36,10 @@ describe "The unless expression" do
   it "does not return a value when the expression is true" do
     unless true; end.should == nil
   end
-
-  it "allows expression and body to be on one line (using ':')" do
-    unless false: 'foo'; else 'bar'; end.should == 'foo'
-  end
   
   it "allows expression and body to be on one line (using 'then')" do
     unless false then 'foo'; else 'bar'; end.should == 'foo'
   end
 end
+
+language_version __FILE__, "unless"

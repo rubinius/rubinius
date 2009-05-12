@@ -20,7 +20,7 @@ describe "Struct#each" do
   ruby_version_is "1.8.7" do
     it "returns an Enumerator if not passed a block" do
       car = Struct::Car.new('Ford', 'Ranger')
-      car.each.should be_kind_of(Enumerable::Enumerator)
+      car.each.should be_kind_of(enumerator_class)
     end
   end
 end

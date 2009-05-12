@@ -26,10 +26,10 @@ describe :argf_each_char, :shared => true do
     end
   end
 
-  it "returns an Enumerable::Enumerator when passed no block" do
+  it "returns an Enumerator when passed no block" do
     argv [@file1_name, @file2_name] do
       enum = ARGF.send(@method)
-      enum.should be_an_instance_of(Enumerable::Enumerator)
+      enum.should be_an_instance_of(enumerator_class)
 
       chars = []
       enum.each { |c| chars << c }

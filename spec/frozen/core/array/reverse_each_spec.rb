@@ -35,4 +35,16 @@ describe "Array#reverse_each" do
 
     count.should == 2
   end
+  
+  ruby_version_is '' ... '1.8.7' do
+    it 'raises a LocalJumpError if no block given' do
+      lambda{ [1,2].reverse_each }.should raise_error(LocalJumpError)
+    end
+  end
+  ruby_version_is '1.8.7' do
+    it 'returns an Enumerator if no block given' do
+      [1,2].reverse_each.should be_kind_of(enumerator_class)
+    end
+  end
+  
 end

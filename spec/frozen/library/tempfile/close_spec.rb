@@ -18,7 +18,7 @@ describe "Tempfile#close when passed [true]" do
   end
   
   after(:each) do
-    @tempfile.unlink
+    @tempfile.unlink unless @tempfile.path.nil?
   end
   
   it "closes self" do
@@ -27,8 +27,9 @@ describe "Tempfile#close when passed [true]" do
   end
   
   it "unlinks self" do
+    path = @tempfile.path
     @tempfile.close(true)
-    File.exists?(@tempfile.path).should be_false
+    File.exists?(path).should be_false
   end
 end
 
@@ -38,7 +39,7 @@ describe "Tempfile#close!" do
   end
   
   after(:each) do
-    @tempfile.unlink
+    @tempfile.unlink unless @tempfile.path.nil?
   end
   
   it "closes self" do
@@ -47,7 +48,8 @@ describe "Tempfile#close!" do
   end
   
   it "unlinks self" do
+    path =  @tempfile.path
     @tempfile.close!
-    File.exists?(@tempfile.path).should be_false
+    File.exists?(path).should be_false
   end
 end

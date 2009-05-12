@@ -16,7 +16,7 @@ describe "ENV.select" do
 
   ruby_version_is "1.8.7" do
     it "returns an Enumerator when no block is given" do
-      ENV.select.should be_kind_of(Enumerable::Enumerator)
+      ENV.select.should be_kind_of(enumerator_class)
     end
   end
 end

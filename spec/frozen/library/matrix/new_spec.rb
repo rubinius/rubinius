@@ -3,7 +3,7 @@ require 'matrix'
 
 describe "Matrix#new" do
   
-  it "should a Matrix" do
+  it "returns a Matrix" do
     lambda { Matrix.new }.should raise_error
   end
   
