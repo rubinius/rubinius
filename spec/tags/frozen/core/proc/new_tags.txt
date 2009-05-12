@@ -1,0 +1,1 @@
+fails:Proc.new with an associated block raises a LocalJumpError when context of the block no longer exists

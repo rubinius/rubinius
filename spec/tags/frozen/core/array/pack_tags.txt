@@ -204,3 +204,4 @@ unstable(fix these for big-endian):Array#pack with format 'f' keeps order of non
 unstable(fix these for big-endian):Array#pack with format 'f' reverses order of nonpositive real numbers
 unstable(fix these for big-endian):Array#pack with format 'd' keeps order of nonnegative real numbers
 unstable(fix these for big-endian):Array#pack with format 'd' reverses order of nonpositive real numbers
+fails:String#unpack with 'w' directive produces a BER-compressed integer

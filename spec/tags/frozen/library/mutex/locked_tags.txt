@@ -1,1 +1,2 @@
 fails:Mutex#locked? should return the status of the lock
+fails:Mutex#locked? returns the status of the lock

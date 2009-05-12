@@ -1,0 +1,7 @@
+fails:Literal Regexps throws SyntaxError for malformed literals
+fails:Literal Regexps allows unescaped / to be used with %r
+fails:Literal Regexps supports [[:alpha:][:digit:][:etc:]] (predefined character classes)
+fails:Literal Regexps supports (?imx-imx) (inline modifiers)
+fails:Literal Regexps supports (?imx-imx:expr) (scoped inline modifiers)
+fails:Literal Regexps does not do thread synchronization for /o
+fails:Literal Regexps will not clobber capture variables across threads

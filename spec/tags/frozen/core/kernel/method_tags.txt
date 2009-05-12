@@ -1,0 +1,1 @@
+fails:Kernel#method changes the method called for super on a target aliased method

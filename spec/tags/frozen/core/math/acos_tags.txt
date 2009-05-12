@@ -1,0 +1,1 @@
+fails:Math.acos coerces string argument with Float() without calling to_f
