@@ -140,6 +140,34 @@ namespace rubinius {
     // Switch to using contuation
     block = cont;
 
+    // Prepare the scope
+    types.clear();
+    types.push_back(
+          PointerType::getUnqual(module->getTypeByName("struct.rubinius::VM")));
+    types.push_back(
+          PointerType::getUnqual(module->getTypeByName("struct.rubinius::VariableScope")));
+    types.push_back(
+          PointerType::getUnqual(module->getTypeByName("struct.rubinius::CallFrame")));
+    types.push_back(
+          PointerType::getUnqual(module->getTypeByName("struct.rubinius::Dispatch")));
+    types.push_back(
+          PointerType::getUnqual(module->getTypeByName("struct.rubinius::Arguments")));
+
+    FunctionType* ft2 = FunctionType::get(ls->object(), types, false);
+    Function* func_setup = cast<Function>(
+          module->getOrInsertFunction("rbx_setup_scope", ft2));
+
+    Value* call_args2[] = {
+      vm_obj,
+      vars,
+      call_frame,
+      dis_obj,
+      arg_obj
+    };
+
+    CallInst::Create(func_setup, call_args2, call_args2+5, "setup", block);
+
+    // Import the arguments
     Value* idx1[] = {
       ConstantInt::get(Type::Int32Ty, 0),
       ConstantInt::get(Type::Int32Ty, 3),
@@ -168,10 +196,6 @@ namespace rubinius {
       new StoreInst(arg_val, pos, false, block);
     }
 
-    // Now, for the rest of the VariableScope
-
-    Value* self = new LoadInst(get_field(block, arg_obj, 0), "args.recv", block);
-    new StoreInst(self, get_field(block, vars, 6), false, block);
   }
 
   void LLVMCompiler::initialize_call_frame(STATE, Function* func,

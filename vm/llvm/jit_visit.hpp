@@ -342,6 +342,7 @@ namespace rubinius {
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, fast);
 
+      stack_remove(2);
       stack_push(phi);
     }
 
@@ -408,10 +409,11 @@ namespace rubinius {
 
       block_ = cont;
 
-      PHINode* phi = PHINode::Create(ObjType, "equal_value", block_);
+      PHINode* phi = PHINode::Create(ObjType, "addition", block_);
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, tagnow);
 
+      stack_remove(2);
       stack_push(phi);
     }
 
@@ -507,13 +509,18 @@ namespace rubinius {
 
     void visit_send_stack(opcode which, opcode args) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      stack_push(simple_send(cache->name, args, block_, allow_private_));
+      Value* ret = simple_send(cache->name, args, block_, allow_private_);
+      stack_remove(args + 1);
+      stack_push(ret);
       allow_private_ = false;
     }
 
     void visit_send_method(opcode which) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      stack_push(simple_send(cache->name, 0, block_, allow_private_));
+      Value* ret = simple_send(cache->name, 0, block_, allow_private_);
+      stack_remove(1);
+      stack_push(ret);
+
       allow_private_ = false;
     }
 
@@ -542,7 +549,9 @@ namespace rubinius {
 
     void visit_send_stack_with_block(opcode which, opcode args) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      stack_push(block_send(cache->name, args, block_, allow_private_));
+      Value* ret = block_send(cache->name, args, block_, allow_private_);
+      stack_remove(args + 2);
+      stack_push(ret);
       allow_private_ = false;
     }
   };

@@ -87,4 +87,12 @@ extern "C" {
     return BlockEnvironment::under_call_frame(state, cm, cm->backend_method_,
                                               call_frame, index);
   }
+
+  void rbx_setup_scope(STATE, VariableScope* scope, CallFrame* call_frame,
+                       Dispatch& msg, Arguments& args) {
+    CompiledMethod* cm = as<CompiledMethod>(msg.method);
+    VMMethod* vmm = cm->backend_method_;
+
+    scope->prepare(args.recv(), msg.module, args.block(), cm, vmm->number_of_locals);
+  }
 }
