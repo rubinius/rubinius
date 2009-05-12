@@ -35,6 +35,56 @@ class Array
     nil
   end
 
+  def choice
+    sample
+  end
+
+  # Deletes every element from self for which block evaluates to true
+  def delete_if(&block)
+    return to_enum :delete_if unless block_given?
+    key = Undefined
+    i = @start
+    tot = @start + @total
+    while(i < tot)
+      if(yield(@tuple.at(i)))
+        @tuple.put(i, key)
+      end
+      i+=1
+    end
+
+    if((deleted = @tuple.delete(@start,@total,key)) > 0)
+      @total -= deleted
+      reallocate_shrink()
+    end
+    return self
+  end
+
+  # Passes each element in the Array to the given block
+  # and returns self.  We re-evaluate @total each time
+  # through the loop in case the array has changed.
+  def each
+    return to_enum :each unless block_given?
+    i = 0
+    while i < @total
+      yield at(i)
+      i += 1
+    end
+    self
+  end
+
+  # Passes each index of the Array to the given block
+  # and returns self.  We re-evaluate @total each time
+  # through the loop in case the array has changed.
+  def each_index()
+    return to_enum :each_index unless block_given?
+    i = 0
+    while i < @total
+      yield i
+      i += 1
+    end
+    self
+  end
+
   # Recursively flatten any contained Arrays into an one-dimensional result.
   # The optional level argument determines the level of recursion to flatten
   def flatten(level=Undefined)
@@ -93,6 +143,18 @@ class Array
     end
   end
 
+  # Replaces each element in self with the return value
+  # of passing that element to the supplied block.
+  def map!
+    return to_enum :map! unless block_given?
+    i = 0
+    while i < @total
+      self[i] = yield(at(i))
+      i += 1
+    end
+    self
+  end
+
   # Returns an array of all combinations of elements from all arrays.
   # The length of the returned array is the product of the length of
   # ary and the argument arrays
@@ -114,6 +176,37 @@ class Array
         end
     end.to_a
   end unless method_defined? :product
+
+  # Returns a new Array by removing items from self for
+  # which block is true. An Array is also returned when
+  # invoked on subclasses. See #reject!
+  def reject(&block)
+    return to_enum :reject unless block_given?
+    Array.new(self).reject!(&block) || self
+  end
+
+  # Equivalent to #delete_if except that returns nil if
+  # no changes were made.
+  def reject!(&block)
+    return to_enum :reject! unless block_given?
+    was = length
+    self.delete_if(&block)
+
+    self if was != length     # Too clever?
+  end
+
+  # Goes through the Array back to front and yields
+  # each element to the supplied block. Returns self.
+  def reverse_each()
+    return to_enum :reverse_each unless block_given?
+    i = @total - 1
+    while i >= 0 do
+      yield(at(i))
+      i = @total if @total < i      
+      i -= 1
+    end
+    self
+  end
 
   # Returns the index of the last element in the Array
   # for which elem == obj is true. If a block is given
@@ -152,7 +245,8 @@ class Array
     result[n..size] = []
     result
   end
-  
+  private :sample
+
   # Removes and returns the first element from the Array.
   # If a number n is given, returns an array of the first n elements (or less)
   # just like array.slice!(0, n) does.

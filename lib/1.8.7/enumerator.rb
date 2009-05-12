@@ -1,4 +1,4 @@
-class Enumerator
+class Enumerable::Enumerator
 
   # Returns the next object in the enumerator
   # and move the internal position forward.
@@ -30,5 +30,24 @@ class Enumerator
     self
   end unless method_defined? :rewind
   
+  # Actually defined in Ruby 1.9 only, we define it here because it can be useful to implementers
+  class Yielder
+    def initialize(&block)
+      @main_block = block
+    end
+
+    def each(&block)
+      @final_block = block
+      @main_block.call(self)
+    end
+
+    def yield(*arg)
+      @final_block.call(*arg)
+    end
+  end
+  
+  def self.new_with_block(&block)
+    new(Yielder.new(&block))
+  end
 
 end

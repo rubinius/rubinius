@@ -81,6 +81,35 @@ module Enumerable
     ary
   end
 
+  def each_cons(num)
+    n = Type.coerce_to(num, Fixnum, :to_int)
+    raise ArgumentError, "invalid size: #{n}" if n <= 0
+    return to_enum :each_cons, num unless block_given?
+    array = []
+    each do |element|
+      array << element
+      array.shift if array.size > n
+      yield array.dup if array.size == n
+    end
+    nil
+  end
+
+  def each_slice(slice_size)
+    n = Type.coerce_to(slice_size, Fixnum, :to_int)
+    raise ArgumentError, "invalid slice size: #{n}" if n <= 0
+    return to_enum :each_slice, slice_size unless block_given?
+    a = []
+    each do |element|
+      a << element
+      if a.length == n
+        yield a
+        a = []
+      end
+    end
+    yield a unless a.empty?
+    nil
+  end
+
   ##
   # :call-seq:
   #   enum.each_with_index(*arg){ |obj, i| block }  -> enum or enumerator
@@ -101,6 +130,49 @@ module Enumerable
     each(*arg) { |o| yield(o, idx); idx += 1 }
     self
   end
+
+  ##
+  # :call-seq:
+  #   enum.detect(ifnone = nil) { | obj | block }  => obj or nil
+  #   enum.find(ifnone = nil)   { | obj | block }  => obj or nil
+  #
+  # Passes each entry in +enum+ to +block+>. Returns the first for which
+  # +block+ is not false.  If no object matches, calls +ifnone+ and returns
+  # its result when it is specified, or returns nil
+  #
+  #   (1..10).detect  { |i| i % 5 == 0 and i % 7 == 0 }   #=> nil
+  #   (1..100).detect { |i| i % 5 == 0 and i % 7 == 0 }   #=> 35
+
+  def find(ifnone = nil)
+    return to_enum :find, ifnone unless block_given?
+    each { |o| return o if yield(o) }
+    ifnone.call if ifnone
+  end
+
+  alias_method :detect, :find
+
+  ##
+  # :call-seq:
+  #   enum.find_all { | obj | block }  => array
+  #   enum.select   { | obj | block }  => array
+  #
+  # Returns an array containing all elements of +enum+ for which +block+ is
+  # not false (see also Enumerable#reject).
+  #
+  #   (1..10).find_all { |i|  i % 3 == 0 }   #=> [3, 6, 9]
+
+  def find_all
+    return to_enum :find_all unless block_given?
+    ary = []
+    each do |o|
+      if yield(o)
+        ary << o
+      end
+    end
+    ary
+  end
+
+  alias_method :select, :find_all
 
   ##
   # :call-seq:
@@ -338,6 +410,42 @@ module Enumerable
     found_one
   end
 
+  ##
+  # :call-seq:
+  #   enum.partition { | obj | block }  => [ true_array, false_array ]
+  #
+  # Returns two arrays, the first containing the elements of +enum+ for which
+  # the block evaluates to true, the second containing the rest.
+  #
+  #   (1..6).partition { |i| (i&1).zero?}   #=> [[2, 4, 6], [1, 3, 5]]
+
+  def partition
+    return to_enum :partition unless block_given?
+    left = []
+    right = []
+    each { |o| yield(o) ? left.push(o) : right.push(o) }
+    return [left, right]
+  end
+
+  ##
+  # :call-seq:
+  #   enum.reject { | obj | block }  => array
+  #
+  # Returns an array for all elements of +enum+ for which +block+ is false
+  # (see also Enumerable#find_all).
+  #
+  #    (1..10).reject { |i|  i % 3 == 0 }   #=> [1, 2, 4, 5, 7, 8, 10]
+
+  def reject
+    return to_enum :reject unless block_given?
+    ary = []
+    each do |o|
+      unless yield(o)
+        ary << o
+      end
+    end
+    ary
+  end
 
   ##
   # :call-seq:

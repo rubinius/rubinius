@@ -114,7 +114,6 @@ class StringIO
   end
 
   def each_byte
-    return to_enum :each_byte unless block_given? || Rubinius::TARGET_IS_186
     raise IOError, "not opened for reading" unless @readable
     if @pos < @string.length
       @string[@pos..-1].each_byte { |b| @pos += 1; yield b}
@@ -123,7 +122,6 @@ class StringIO
   end
 
   def each(sep = $/)
-    return to_enum :each, sep unless block_given? || Rubinius::TARGET_IS_186
     raise IOError, "not opened for reading" unless @readable
     sep = StringValue(sep) unless sep.nil?
     while line = self.getline(sep)

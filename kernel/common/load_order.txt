@@ -6,15 +6,18 @@ proc.rbc
 autoload.rbc
 module.rbc
 enumerable.rbc
+enumerable_186.rbc
 argf.rbc
 tuple.rbc
 exception.rbc
 undefined.rbc
 hash.rbc
+hash_186.rbc
 global.rbc
 type.rbc
 kernel.rbc
 array.rbc
+array_186.rbc
 backtrace.rbc
 comparable.rbc
 numeric.rbc
@@ -32,6 +35,7 @@ continuation.rbc
 delegated_method.rbc
 fixnum.rbc
 dir.rbc
+dir_186.rbc
 dir_glob.rbc
 dtrace.rbc
 env.rbc
@@ -39,6 +43,7 @@ errno.rbc
 eval.rbc
 false.rbc
 io.rbc
+io_186.rbc
 file.rbc
 filetest.rbc
 float.rbc

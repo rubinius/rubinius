@@ -8,5 +8,21 @@ class Array
       x.to_ary if x.respond_to? :to_ary
     end
   end
-  
+
+  # Creates a new Array from the return values of passing
+  # each element in self to the supplied block.
+  def map
+    return to_enum :map unless block_given?
+    return dup unless block_given?
+    out = Array.new @total
+    i = 0
+    while i < @total
+      out[i] = yield(at(i))
+      i += 1
+    end
+    out
+  end
+
+  public :sample
+  remove_method :choice
 end

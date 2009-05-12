@@ -1,0 +1,3 @@
+# These methods are overriden by lib/1.8.7/... or lib/1.9/...
+class IO
+end
