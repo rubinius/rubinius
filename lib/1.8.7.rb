@@ -12,3 +12,5 @@ require '1.8.7/fixnum'
 require '1.8.7/float'
 require '1.8.7/hash'
 require '1.8.7/io'
+
+$:.unshift File.dirname(__FILE__) + '/1.8.7' # take precedence for libraries, e.g. require 'stringio'

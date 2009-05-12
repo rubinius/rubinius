@@ -12,4 +12,6 @@ require '1.9/hash'
 module Enumerable
   remove_const(:Enumerator)
 end
+$:.unshift File.dirname(__FILE__) + '/1.9' # take precedence for libraries, e.g. require 'stringio'
+
 
