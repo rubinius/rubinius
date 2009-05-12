@@ -382,8 +382,50 @@ namespace rubinius {
       if(Symbol* sym = try_as<Symbol>(lit)) {
         stack_push(constant(sym));
       } else {
-        throw Unsupported();
+        Value* idx[] = {
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, 3)
+        };
+
+        Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "cm_pos", block_);
+        Value* cm =  new LoadInst(gep, "cm", block_);
+
+        idx[1] = ConstantInt::get(Type::Int32Ty, 13);
+        gep = GetElementPtrInst::Create(cm, idx, idx+2, "literals_pos", block_);
+        Value* lits = new LoadInst(gep, "literals", block_);
+
+        Value* idx2[] = {
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, 2),
+          ConstantInt::get(Type::Int32Ty, which)
+        };
+
+        gep = GetElementPtrInst::Create(lits, idx2, idx2+3, "literal_pos", block_);
+        stack_push(new LoadInst(gep, "literal", block_));
       }
+    }
+
+    void visit_string_dup() {
+      std::vector<const Type*> types;
+
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_string_dup", ft));
+
+      Function::arg_iterator input = function_->arg_begin();
+      Value* call_args[] = {
+        input++,
+        call_frame_,
+        stack_pop()
+      };
+
+      stack_push(CallInst::Create(func, call_args, call_args+3, "string_dup", block_));
     }
 
     void visit_push_local(opcode which) {

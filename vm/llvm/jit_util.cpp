@@ -4,6 +4,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
 #include "builtin/class.hpp"
+#include "builtin/string.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
@@ -39,5 +40,18 @@ extern "C" {
     state->thread_state()->raise_exception(exc);
 
     return NULL;
+  }
+
+  Object* rbx_string_dup(STATE, CallFrame* call_frame, Object* obj) {
+    try {
+      return as<String>(obj)->string_dup(state);
+    } catch(TypeError& e) {
+      Exception* exc =
+        Exception::make_type_error(state, e.type, e.object, e.reason);
+      exc->locations(state, System::vm_backtrace(state, 0, call_frame));
+
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    }
   }
 }
