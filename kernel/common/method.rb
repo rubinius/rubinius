@@ -16,20 +16,23 @@ class Method
   # Takes and stores the receiver object, the method's bytecodes and the
   # Module that the method is defined in.
 
-  def initialize(receiver, defined_in, compiled_method)
+  def initialize(receiver, defined_in, compiled_method, name = compiled_method.name)
     @receiver         = receiver
     @pulled_from      = receiver.class
     @defined_in       = defined_in
     @compiled_method  = compiled_method
+    @name             = name
   end
 
+  attr_reader :name
   attr_reader :receiver
   attr_reader :pulled_from
   attr_reader :defined_in
   attr_reader :compiled_method
   protected   :receiver
   protected   :pulled_from
-
+  protected   :name
+  
   ##
   # Method objects are equal if they have the same body and are bound to the
   # same object.
