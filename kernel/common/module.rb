@@ -275,7 +275,7 @@ class Module
         cm = cm.method if cm.kind_of? Rubinius::CompiledMethod::Visibility
         if cm
           mod = mod.module if mod.class == Rubinius::IncludedModule
-          return UnboundMethod.new(mod, cm, self)
+          return UnboundMethod.new(mod, cm, self, name)
         end
       else
         break if cm == false

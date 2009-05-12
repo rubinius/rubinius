@@ -24,14 +24,12 @@ class Method
     @name             = name
   end
 
-  attr_reader :name
   attr_reader :receiver
   attr_reader :pulled_from
   attr_reader :defined_in
   attr_reader :compiled_method
   protected   :receiver
   protected   :pulled_from
-  protected   :name
   
   ##
   # Method objects are equal if they have the same body and are bound to the
@@ -107,7 +105,7 @@ class Method
   # See UnboundMethod for more information.
 
   def unbind()
-    UnboundMethod.new(@defined_in, @compiled_method, @pulled_from)
+    UnboundMethod.new(@defined_in, @compiled_method, @pulled_from, @name)
   end
 
 end
@@ -135,10 +133,11 @@ class UnboundMethod
   # from can be given but will not be stored. This is always used internally
   # only.
 
-  def initialize(mod, compiled_method, pulled_from = nil)
+  def initialize(mod, compiled_method, pulled_from = nil, name = compiled_method.name)
     @defined_in       = mod
     @compiled_method  = compiled_method
     @pulled_from      = pulled_from
+    @name             = name
   end
 
   attr_reader :compiled_method
@@ -185,7 +184,7 @@ class UnboundMethod
         raise TypeError, "Must be bound to an object of kind #{@defined_in}"
       end
     end
-    Method.new receiver, @defined_in, @compiled_method
+    Method.new receiver, @defined_in, @compiled_method, @name
   end
 
   ##

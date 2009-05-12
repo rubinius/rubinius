@@ -527,7 +527,7 @@ module Kernel
   alias_method :is_a?, :kind_of?
 
   def method(name)
-    name = name.to_sym
+    name = Type.coerce_to_symbol name
     cm = Rubinius.find_method(self, name)
 
     if cm
