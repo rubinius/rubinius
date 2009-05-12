@@ -9,6 +9,10 @@ class Hash
         return new.replace(obj)
       elsif obj.respond_to? :to_hash
         return new.replace(Type.coerce_to(obj, Hash, :to_hash))
+      elsif obj.is_a?(Array) && !Rubinius::TARGET_IS_186 # See redmine # 1385
+        h = {}
+        args.first.each{|key, value| h[key] = value}
+        return h
       end
     end
 
