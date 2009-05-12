@@ -3,6 +3,7 @@ RUBY_VERSION.replace "1.8.7" unless RUBY_VERSION > "1.8.7"
 
 require 'enumerator'
 
+require '1.8.7/argf'
 require '1.8.7/array'
 require '1.8.7/dir'
 require '1.8.7/binding'

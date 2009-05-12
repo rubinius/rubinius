@@ -8,6 +8,7 @@ module.rbc
 enumerable.rbc
 enumerable_186.rbc
 argf.rbc
+argf_186.rbc
 tuple.rbc
 exception.rbc
 undefined.rbc
