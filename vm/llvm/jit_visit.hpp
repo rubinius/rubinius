@@ -470,11 +470,13 @@ namespace rubinius {
     void visit_send_stack(opcode which, opcode args) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
       stack_push(simple_send(cache->name, args));
+      allow_private_ = false;
     }
 
     void visit_send_method(opcode which) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
       stack_push(simple_send(cache->name, 0));
+      allow_private_ = false;
     }
   };
 }
