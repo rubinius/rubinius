@@ -4,6 +4,8 @@
 #include "builtin/tuple.hpp"
 #include "builtin/sendsite.hpp"
 
+#include <llvm/DerivedTypes.h>
+
 namespace rubinius {
   class JITVisit : public VisitInstructions<JITVisit> {
     STATE;
@@ -21,6 +23,7 @@ namespace rubinius {
     const llvm::Type* IntPtrTy;
     const llvm::Type* ObjType;
     const llvm::Type* ObjArrayTy;
+    const llvm::Type* Int31Ty;
 
     bool allow_private_;
 
@@ -52,6 +55,8 @@ namespace rubinius {
       ObjType = PointerType::getUnqual(
           mod->getTypeByName("struct.rubinius::Object"));
       ObjArrayTy = PointerType::getUnqual(ObjType);
+
+      Int31Ty = llvm::IntegerType::get(31);
     }
 
     Value* stack_ptr(BasicBlock* block = NULL) {
@@ -298,6 +303,76 @@ namespace rubinius {
       PHINode* phi = PHINode::Create(ObjType, "equal_value", block_);
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, fast);
+
+      stack_push(phi);
+    }
+
+    Value* tag_strip(Value* obj, BasicBlock* block = NULL) {
+      if(!block) block = block_;
+      Value* i = CastInst::Create(
+          Instruction::PtrToInt,
+          obj, Int31Ty, "as_int", block);
+
+      return BinaryOperator::CreateLShr(i, ConstantInt::get(Int31Ty, 1), "lshr", block);
+    }
+
+    Value* fixnum_tag(Value* obj, BasicBlock* block = NULL) {
+      if(!block) block = block_;
+      Value* one = ConstantInt::get(Int31Ty, 1);
+      Value* more = BinaryOperator::CreateShl(obj, one, "shl", block);
+      Value* tagged = BinaryOperator::CreateOr(more, one, "or", block);
+
+      return CastInst::Create(
+          Instruction::IntToPtr, tagged, ObjType, "as_obj", block);
+    }
+
+    void visit_meta_send_op_plus() {
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
+
+      BasicBlock* fast = BasicBlock::Create("fast", function_);
+      BasicBlock* dispatch = BasicBlock::Create("dispatch", function_);
+      BasicBlock* cont = BasicBlock::Create("cont", function_);
+
+      check_fixnums(recv, arg, fast, dispatch);
+
+      Value* called_value = simple_send(state->symbol("+"), 1, dispatch);
+      BranchInst::Create(cont, dispatch);
+
+      std::vector<const Type*> types;
+      types.push_back(Int31Ty);
+      types.push_back(Int31Ty);
+
+      std::vector<const Type*> struct_types;
+      struct_types.push_back(Int31Ty);
+      struct_types.push_back(Type::Int1Ty);
+
+      StructType* st = StructType::get(struct_types);
+
+      FunctionType* ft = FunctionType::get(st, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("llvm.sadd.with.overflow.i31", ft));
+
+      Value* recv_int = tag_strip(recv, fast);
+      Value* arg_int = tag_strip(arg, fast);
+      Value* call_args[] = { recv_int, arg_int };
+      Value* res = CallInst::Create(func, call_args, call_args+2, "add.overflow", fast);
+
+      Value* sum = ExtractValueInst::Create(res, 0, "sum", fast);
+      Value* dof = ExtractValueInst::Create(res, 1, "did_overflow", fast);
+
+      BasicBlock* tagnow = BasicBlock::Create("tagnow", function_);
+      BranchInst::Create(dispatch, tagnow, dof, fast);
+
+      Value* imm_value = fixnum_tag(sum, tagnow);
+
+      BranchInst::Create(cont, tagnow);
+
+      block_ = cont;
+
+      PHINode* phi = PHINode::Create(ObjType, "equal_value", block_);
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, tagnow);
 
       stack_push(phi);
     }
