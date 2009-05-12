@@ -199,6 +199,7 @@ module Enumerable
     initial.equal?(Undefined) ? nil : initial
   end
   alias_method :reduce, :inject
+
   ##
   # :call-seq:
   #   enum.max_by { | obj| block }   => obj
@@ -211,21 +212,17 @@ module Enumerable
   #
   #   a = %w[albatross dog horse]
   #   a.max_by { |x| x.length }   #=> "albatross"
-
-  def max_by()
-    max_obj, max_value = Undefined, Undefined
-
-    each do |o|
-      value = yield(o)
-
-      if max_obj.equal?(Undefined) or (max_value <=> value) < 0
-        max_obj, max_value = o, value
-      end
+  
+  def max_by(&block)
+    return to_enum(:max_by) unless block_given?
+    max_object, max_result = nil, Rubinius::FakeComparator.new(-1)
+    each do |object|
+      result = yield object
+      max_object, max_result = object, result if Type.coerce_to_comparison(max_result, result) < 0
     end
-
-    max_obj.equal?(Undefined) ? nil : max_obj
+    max_object
   end
-
+  
   ##
   # :call-seq:
   #   enum.min_by { |obj| block }   => obj
@@ -238,19 +235,50 @@ module Enumerable
   #
   #   a = %w[albatross dog horse]
   #   a.min_by { |x| x.length }   #=> "dog"
-
-  def min_by()
-    min_obj, min_value = Undefined, Undefined
-
-    each do |o|
-      value = yield(o)
-
-      if min_obj.equal?(Undefined) or (min_value <=> value) > 0
-        min_obj, min_value = o, value
+  
+  def min_by
+    return to_enum(:min_by) unless block_given?
+    min_object, min_result = nil, Rubinius::FakeComparator.new(1)
+    each do |object|
+      result = yield object
+      min_object, min_result = object, result if Type.coerce_to_comparison(min_result, result) > 0
+    end
+    min_object
+  end
+  
+  # Returns two elements array which contains the minimum and the maximum value
+  # in the enumerable. The first form assumes all objects implement Comparable;
+  # the second uses the block to return a <=> b.
+  
+  def minmax(&block)
+    block = Proc.new{|a,b| a <=> b} unless block_given?
+    first_time = true
+    min, max = nil
+    each do |object|
+      if first_time
+        min = max = object
+        first_time = false
+      else
+        min = object if Type.coerce_to_comparison(min, object, block.call(min, object)) > 0
+        max = object if Type.coerce_to_comparison(max, object, block.call(max, object)) < 0
       end
     end
-
-    min_obj.equal?(Undefined) ? nil : min_obj
+    [min, max]
+  end
+  
+  # Returns two elements array array containing the objects in enum that
+  # gives the minimum and maximum values respectively from the given block. 
+  
+  def minmax_by(&block)
+    return to_enum(:minmax_by) unless block_given?
+    min_object, min_result = nil, Rubinius::FakeComparator.new(1)
+    max_object, max_result = nil, Rubinius::FakeComparator.new(-1)
+    each do |object|
+      result = yield object
+      min_object, min_result = object, result if Type.coerce_to_comparison(min_result, result) > 0
+      max_object, max_result = object, result if Type.coerce_to_comparison(max_result, result) < 0
+    end
+    [min_object, max_object]
   end
 
   ##
@@ -328,4 +356,16 @@ module Enumerable
     array
   end
 
+end
+
+module Rubinius
+  class FakeComparator
+    def initialize(comparison_result)
+      @comparison_result = comparison_result
+    end
+    
+    def <=>(whatever)
+      @comparison_result
+    end
+  end
 end
