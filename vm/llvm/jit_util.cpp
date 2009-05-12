@@ -75,6 +75,28 @@ extern "C" {
     return dis.send(state, call_frame, lookup, out_args);
   }
 
+  Object* rbx_super_send(STATE, CallFrame* call_frame, Symbol* name,
+                          int count, Object** args) {
+    Object* recv = call_frame->self();
+    Arguments out_args(recv, args[count], count, args);
+    LookupData lookup(recv, call_frame->module()->superclass(), true);
+    Dispatch dis(name);
+
+    return dis.send(state, call_frame, lookup, out_args);
+  }
+
+  Object* rbx_super_splat_send(STATE, CallFrame* call_frame, Symbol* name,
+                          int count, Object** args) {
+    Object* recv = call_frame->self();
+    Arguments out_args(recv, args[count+1], count, args);
+    LookupData lookup(recv, call_frame->module()->superclass(), true);
+    Dispatch dis(name);
+
+    out_args.append(state, as<Array>(args[count]));
+
+    return dis.send(state, call_frame, lookup, out_args);
+  }
+
   Object* rbx_arg_error(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args,
                         int required) {
     Exception* exc =

@@ -354,6 +354,46 @@ namespace rubinius {
       return ret;
     }
 
+    Value* super_send(Symbol* name, int args, BasicBlock* block=NULL, bool splat=false) {
+      if(!block) block = block_;
+
+      std::vector<const Type*> types;
+
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
+      types.push_back(
+          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(ObjType);
+      types.push_back(IntPtrTy);
+      types.push_back(ObjArrayTy);
+
+      char* func_name;
+      int extra = 1;
+      if(splat) {
+        func_name = "rbx_super_splat_send";
+        extra++;
+      } else {
+        func_name = "rbx_super_send";
+      }
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction(func_name, ft));
+
+      Function::arg_iterator input = function_->arg_begin();
+      Value* call_args[] = {
+        input++,
+        call_frame_,
+        constant(name, block),
+        ConstantInt::get(IntPtrTy, args),
+        stack_objects(args + extra, block),
+      };
+      Value* ret = CallInst::Create(func, call_args, call_args+5, "super_send", block);
+
+      // TODO handle exception
+      return ret;
+    }
+
     void visit_meta_send_op_equal() {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
@@ -622,6 +662,34 @@ namespace rubinius {
       };
 
       stack_push(CallInst::Create(func, call_args, call_args+3, "cast_array", block_));
+    }
+
+    void visit_push_block() {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 7)
+      };
+
+      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "top_scope_pos", block_);
+      Value* ts =  new LoadInst(gep, "top_scope", block_);
+
+      idx[1] = ConstantInt::get(Type::Int32Ty, 1);
+      gep = GetElementPtrInst::Create(ts, idx, idx+2, "block_pos", block_);
+      stack_push(new LoadInst(gep, "block", block_));
+    }
+
+    void visit_send_super_stack_with_block(opcode which, opcode args) {
+      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      Value* ret = super_send(cache->name, args);
+      stack_remove(args + 1);
+      stack_push(ret);
+    }
+
+    void visit_send_super_stack_with_splat(opcode which, opcode args) {
+      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      Value* ret = super_send(cache->name, args, block_, true);
+      stack_remove(args + 2);
+      stack_push(ret);
     }
   };
 }
