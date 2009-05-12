@@ -2,6 +2,7 @@
 
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/sendsite.hpp"
 
 namespace rubinius {
   class JITVisit : public VisitInstructions<JITVisit> {
@@ -21,6 +22,8 @@ namespace rubinius {
     const llvm::Type* ObjType;
     const llvm::Type* ObjArrayTy;
 
+    bool allow_private_;
+
   public:
 
     class Unsupported {};
@@ -38,6 +41,7 @@ namespace rubinius {
       , block_(block)
       , function_(func)
       , stack_top_(stack_top)
+      , allow_private_(false)
     {
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
@@ -78,10 +82,15 @@ namespace rubinius {
       return stack_position(-back, block);
     }
 
+    Value* stack_objects(int count, BasicBlock* block = NULL) {
+      if(!block) block = block_;
+      return stack_position(-(count - 1), block);
+    }
+
     Value* stack_ptr_adjust(int amount, BasicBlock* block = NULL) {
       if(!block) block = block_;
 
-      Value* pos = stack_position(amount);
+      Value* pos = stack_position(amount, block);
       set_stack_ptr(pos, block);
 
       return pos;
@@ -225,7 +234,7 @@ namespace rubinius {
       BranchInst::Create(if_true, if_false, rcmp, right_check);
     }
 
-    Value* simple_send(Symbol* name, int args, BasicBlock* block = NULL) {
+    Value* simple_send(Symbol* name, int args, BasicBlock* block = NULL, bool priv=false) {
       if(!block) block = block_;
 
       std::vector<const Type*> types;
@@ -239,9 +248,16 @@ namespace rubinius {
       types.push_back(IntPtrTy);
       types.push_back(ObjArrayTy);
 
+      char* func_name;
+      if(priv) {
+        func_name = "rbx_simple_send";
+      } else {
+        func_name = "rbx_simple_send_private";
+      }
+
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
-          module_->getOrInsertFunction("rbx_simple_send", ft));
+          module_->getOrInsertFunction(func_name, ft));
 
       Function::arg_iterator input = function_->arg_begin();
       Value* call_args[] = {
@@ -249,7 +265,7 @@ namespace rubinius {
         call_frame_,
         constant(name, block),
         ConstantInt::get(IntPtrTy, args),
-        stack_back_position(args + 1, block)
+        stack_objects(args + 1, block)
       };
       Value* ret = CallInst::Create(func, call_args, call_args+5, "simple_send", block);
 
@@ -267,7 +283,7 @@ namespace rubinius {
 
       check_both_not_references(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(state->symbol("=="), 2, dispatch);
+      Value* called_value = simple_send(state->symbol("=="), 1, dispatch);
       BranchInst::Create(cont, dispatch);
 
       ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_EQ,
@@ -317,6 +333,26 @@ namespace rubinius {
       Value* pos = GetElementPtrInst::Create(vars_, idx2, idx2+3, "local_pos", block_);
 
       new StoreInst(stack_top(), pos, false, block_);
+    }
+
+    void visit_push_self() {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 6)
+      };
+
+      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
+
+      stack_push(new LoadInst(pos, "self", block_));
+    }
+
+    void visit_allow_private() {
+      allow_private_ = true;
+    }
+
+    void visit_send_stack(opcode which, opcode args) {
+      SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
+      stack_push(simple_send(cache->name, args));
     }
   };
 }

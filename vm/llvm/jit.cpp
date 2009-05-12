@@ -70,6 +70,16 @@ namespace rubinius {
         module_->getTypeByName("struct.rubinius::Object"));
   }
 
+  static Value* get_field(BasicBlock* block, Value* val, int which) {
+    Value* idx[] = {
+      ConstantInt::get(Type::Int32Ty, 0),
+      ConstantInt::get(Type::Int32Ty, which)
+    };
+    Value* gep = GetElementPtrInst::Create(val, idx, idx+2, "gep", block);
+    return gep;
+  }
+
+
   void import_args(STATE, Function* func, BasicBlock*& block, VMMethod* vmm,
                    Value* vars, Value* call_frame) {
     Function::arg_iterator args = func->arg_begin();
@@ -157,15 +167,11 @@ namespace rubinius {
 
       new StoreInst(arg_val, pos, false, block);
     }
-  }
 
-  static Value* get_field(BasicBlock* block, Value* val, int which) {
-    Value* idx[] = {
-      ConstantInt::get(Type::Int32Ty, 0),
-      ConstantInt::get(Type::Int32Ty, which)
-    };
-    Value* gep = GetElementPtrInst::Create(val, idx, idx+2, "gep", block);
-    return gep;
+    // Now, for the rest of the VariableScope
+
+    Value* self = new LoadInst(get_field(block, arg_obj, 0), "args.recv", block);
+    new StoreInst(self, get_field(block, vars, 6), false, block);
   }
 
   void LLVMCompiler::initialize_call_frame(STATE, Function* func,
@@ -224,6 +230,7 @@ namespace rubinius {
 
     // stk
     new StoreInst(stack, get_field(block, call_frame, 10), false, block);
+
   }
 
   void LLVMCompiler::compile(STATE, VMMethod* vmm) {
@@ -330,10 +337,9 @@ namespace rubinius {
 
   void* LLVMCompiler::function_pointer(STATE) {
     if(!mci_) {
-      if(function_) {
-        mci_ = new llvm::MachineCodeInfo();
-        LLVMState::get(state)->engine()->runJITOnFunction(function_, mci_);
-      }
+      if(!function_) return NULL;
+      mci_ = new llvm::MachineCodeInfo();
+      LLVMState::get(state)->engine()->runJITOnFunction(function_, mci_);
     }
 
     return mci_->address();
