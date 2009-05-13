@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Hash.[]" do
   it "creates a Hash; values can be provided as the argument list" do
@@ -14,13 +15,24 @@ describe "Hash.[]" do
     hash_class[new_hash].should == new_hash
   end
 
+  ruby_version_is '1.8.7' do
+    # Not officially documented yet, see http://redmine.ruby-lang.org/issues/show/1385
+    it "creates a Hash; values can be provided as a list of value-pairs in an array" do
+      hash_class[[[:a, 1], [:b, 2]]].should == new_hash(:a => 1, :b => 2)
+      hash_class[[[:a, 1], [:b], 42, [:d, 2], [:e, 2, 3], []]].should == new_hash(:a => 1, :b => nil, :d => 2)
+      obj = mock('x')
+      def obj.to_ary() [:b, 2] end
+      hash_class[[[:a, 1], obj]].should == new_hash(:a => 1, :b => 2)
+    end
+  end
+  
   it "raises an ArgumentError when passed an odd number of arguments" do
     lambda { hash_class[1, 2, 3] }.should raise_error(ArgumentError)
     lambda { hash_class[1, 2, new_hash(3 => 4)] }.should raise_error(ArgumentError)
   end
 
-  ruby_bug "#", "1.8.6" do
-    it "call to_hash" do
+  ruby_version_is '1.8.7' do
+    it "calls to_hash" do
       obj = mock('x')
       def obj.to_hash() new_hash(1 => 2, 3 => 4) end
       hash_class[obj].should == new_hash(1 => 2, 3 => 4)

@@ -28,15 +28,30 @@ describe "Kernel.loop" do
     end.should == nil
   end
 
-  it "raises a LocalJumpError if no block given" do
-    lambda { loop }.should raise_error(LocalJumpError)
+  ruby_version_is ""..."1.9" do
+    it "raises a LocalJumpError if no block given" do
+      lambda { loop }.should raise_error(LocalJumpError)
+    end
   end
 
   ruby_version_is "1.9" do
+    it "returns an enumerator if no block given" do
+      enum = loop
+      enum.instance_of?(enumerator_class).should be_true
+      cnt = 0
+      enum.each do |*args|
+        raise "Args should be empty #{args.inspect}" unless args.empty?
+        cnt += 1
+        break cnt if cnt >= 42
+      end.should == 42
+    end
+  end
+
+  ruby_version_is "1.8.7" do
     it "rescues StopIteration" do
       n = 42
       loop do
-	raise StopIteration
+        raise StopIteration
       end
       42.should == 42
     end
@@ -45,7 +60,7 @@ describe "Kernel.loop" do
       finish = Class::new StopIteration
       n = 42
       loop do
-	raise finish
+        raise finish
       end
       42.should == 42
     end
