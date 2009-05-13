@@ -25,7 +25,17 @@ namespace rubinius {
     const llvm::Type* ObjArrayTy;
     const llvm::Type* Int31Ty;
 
+    // Frequently used types
+    const llvm::Type* VMTy;
+    const llvm::Type* CallFrameTy;
+
+    llvm::Value* vm_;
+
     bool allow_private_;
+
+    // Cached Function*s
+    llvm::Function* rbx_simple_send_;
+    llvm::Function* rbx_simple_send_private_;
 
   public:
 
@@ -45,6 +55,8 @@ namespace rubinius {
       , function_(func)
       , stack_top_(stack_top)
       , allow_private_(false)
+      , rbx_simple_send_(0)
+      , rbx_simple_send_private_(0)
     {
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
@@ -57,6 +69,13 @@ namespace rubinius {
       ObjArrayTy = PointerType::getUnqual(ObjType);
 
       Int31Ty = llvm::IntegerType::get(31);
+
+      VMTy = PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM"));
+      CallFrameTy =
+        PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame"));
+
+      Function::arg_iterator input = function_->arg_begin();
+      vm_ = input++;
     }
 
     Value* stack_ptr(BasicBlock* block = NULL) {
@@ -239,39 +258,62 @@ namespace rubinius {
       BranchInst::Create(if_true, if_false, rcmp, right_check);
     }
 
-    Value* simple_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
-      if(!block) block = block_;
-
-      std::vector<const Type*> types;
-
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::Object")));
+    void add_send_args(std::vector<const Type*>& types) {
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
       types.push_back(IntPtrTy);
       types.push_back(ObjArrayTy);
+    }
 
-      char* func_name;
-      if(priv) {
-        func_name = "rbx_simple_send_private";
-      } else {
-        func_name = "rbx_simple_send";
-      }
+    Function* rbx_simple_send() {
+      if(rbx_simple_send_) return rbx_simple_send_;
+
+      std::vector<const Type*> types;
+      add_send_args(types);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
-          module_->getOrInsertFunction(func_name, ft));
+          module_->getOrInsertFunction("rbx_simple_send", ft));
 
-      Function::arg_iterator input = function_->arg_begin();
+      rbx_simple_send_ = func;
+
+      return func;
+    }
+
+    Function* rbx_simple_send_private() {
+      if(rbx_simple_send_private_) return rbx_simple_send_private_;
+
+      std::vector<const Type*> types;
+      add_send_args(types);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_simple_send_private", ft));
+
+      rbx_simple_send_private_ = func;
+
+      return func;
+    }
+
+    Value* simple_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
+      if(!block) block = block_;
+
+      Function* func;
+      if(priv) {
+        func = rbx_simple_send_private();
+      } else {
+        func = rbx_simple_send();
+      }
+
       Value* call_args[] = {
-        input++,
+        vm_,
         call_frame_,
         constant(name, block),
         ConstantInt::get(IntPtrTy, args),
         stack_objects(args + 1, block)
       };
+
       Value* ret = CallInst::Create(func, call_args, call_args+5, "simple_send", block);
 
       // TODO handle exception
@@ -282,14 +324,7 @@ namespace rubinius {
       if(!block) block = block_;
 
       std::vector<const Type*> types;
-
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
-      types.push_back(ObjType);
-      types.push_back(IntPtrTy);
-      types.push_back(ObjArrayTy);
+      add_send_args(types);
 
       char* func_name;
       if(priv) {
@@ -302,9 +337,8 @@ namespace rubinius {
       Function* func = cast<Function>(
           module_->getOrInsertFunction(func_name, ft));
 
-      Function::arg_iterator input = function_->arg_begin();
       Value* call_args[] = {
-        input++,
+        vm_,
         call_frame_,
         constant(name, block),
         ConstantInt::get(IntPtrTy, args),
@@ -321,10 +355,8 @@ namespace rubinius {
 
       std::vector<const Type*> types;
 
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
       types.push_back(ObjType);
       types.push_back(IntPtrTy);
       types.push_back(ObjArrayTy);
@@ -340,9 +372,8 @@ namespace rubinius {
       Function* func = cast<Function>(
           module_->getOrInsertFunction(func_name, ft));
 
-      Function::arg_iterator input = function_->arg_begin();
       Value* call_args[] = {
-        input++,
+        vm_,
         call_frame_,
         constant(name, block),
         ConstantInt::get(IntPtrTy, args),
@@ -359,10 +390,8 @@ namespace rubinius {
 
       std::vector<const Type*> types;
 
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
       types.push_back(ObjType);
       types.push_back(IntPtrTy);
       types.push_back(ObjArrayTy);
@@ -380,9 +409,8 @@ namespace rubinius {
       Function* func = cast<Function>(
           module_->getOrInsertFunction(func_name, ft));
 
-      Function::arg_iterator input = function_->arg_begin();
       Value* call_args[] = {
-        input++,
+        vm_,
         call_frame_,
         constant(name, block),
         ConstantInt::get(IntPtrTy, args),
@@ -526,19 +554,16 @@ namespace rubinius {
     void visit_string_dup() {
       std::vector<const Type*> types;
 
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_string_dup", ft));
 
-      Function::arg_iterator input = function_->arg_begin();
       Value* call_args[] = {
-        input++,
+        vm_,
         call_frame_,
         stack_pop()
       };
@@ -605,19 +630,16 @@ namespace rubinius {
     void visit_create_block(opcode which) {
       std::vector<const Type*> types;
 
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
       types.push_back(Type::Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_create_block", ft));
 
-      Function::arg_iterator input = function_->arg_begin();
       Value* call_args[] = {
-        input++,
+        vm_,
         call_frame_,
         ConstantInt::get(Type::Int32Ty, which)
       };
@@ -644,19 +666,16 @@ namespace rubinius {
     void visit_cast_array() {
       std::vector<const Type*> types;
 
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::VM")));
-      types.push_back(
-          PointerType::getUnqual(module_->getTypeByName("struct.rubinius::CallFrame")));
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_cast_array", ft));
 
-      Function::arg_iterator input = function_->arg_begin();
       Value* call_args[] = {
-        input++,
+        vm_,
         call_frame_,
         stack_pop()
       };
