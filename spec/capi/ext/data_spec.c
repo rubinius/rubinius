@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 #include <string.h>
 
 struct sample_wrapped_struct {

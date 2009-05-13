@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 #include <math.h>
 
 static VALUE sf_new_zero(VALUE self) {
@@ -15,5 +15,5 @@ void Init_float_spec() {
   VALUE cls;
   cls = rb_define_class("CApiFloatSpecs", rb_cObject);
   rb_define_method(cls, "sf_new_zero", sf_new_zero, 0);
-  rb_define_method(cls, "sf_new_point_five", sf_new_point_five, 0);  
+  rb_define_method(cls, "sf_new_point_five", sf_new_point_five, 0);
 }

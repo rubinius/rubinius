@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 
 static VALUE sb_safe_level(VALUE self) {
   int sl = rb_safe_level();

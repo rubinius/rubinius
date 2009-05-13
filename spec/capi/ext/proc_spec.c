@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 #include <string.h>
 
 VALUE concat_func(VALUE args) {

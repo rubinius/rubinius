@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 #include <string.h>
 
 VALUE string_spec_rb_str_new(VALUE self) {

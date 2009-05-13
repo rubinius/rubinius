@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 
 VALUE hash_spec_rb_hash_new(VALUE self) {
   return rb_hash_new();

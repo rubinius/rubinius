@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 #include <math.h>
 
 static VALUE thread_spec_rb_thread_select_fd(VALUE self, VALUE fd_num, VALUE msec) {

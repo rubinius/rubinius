@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 
 static VALUE sb_gv_get(VALUE self, VALUE var) {
   return rb_gv_get( StringValuePtr(var) );

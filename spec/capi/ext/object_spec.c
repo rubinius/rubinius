@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 
 static VALUE so_rb_obj_alloc(VALUE self, VALUE klass) {
   return rb_obj_alloc(klass);

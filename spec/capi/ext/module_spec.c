@@ -1,4 +1,4 @@
-#include <ruby.h>
+#include "ruby.h"
 
 VALUE sm_define_const(VALUE self, VALUE klass, VALUE val) {
   rb_define_const(klass, "FOO", val);
