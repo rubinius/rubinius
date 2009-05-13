@@ -10,7 +10,7 @@
 #include <llvm/Support/IRBuilder.h>
 #include <llvm/ModuleProvider.h>
 #include <llvm/ExecutionEngine/JIT.h>
-#include <llvm/ExecutionEngine/MachineCodeInfo.h>
+#include <llvm/CodeGen/MachineCodeInfo.h>
 #include <llvm/Pass.h>
 #include <llvm/PassManager.h>
 
