@@ -47,22 +47,22 @@ class Dir
     escape = (flags & File::FNM_NOESCAPE) == 0
     open = false
 
-    chars = pattern.split ''
-
-    chars.each_with_index do |char, i|
+    i = 0
+    pattern.each_byte do |char|
       case char
-      when '[' then
+      when ?[
         open = true
-      when ']' then
+      when ?]
         open = false
-      when '/' then
+      when ?/
         return i unless open
-      when '\\' then
-        return i if escape and (i + 1 == chars.length)
+      when ?\\
+        return i if escape and (i + 1 == pattern.length)
       end
+      i += 1
     end
 
-    chars.length
+    pattern.length
   end
 
   def self.glob_brace_expand(pattern, flags, matches)
@@ -72,26 +72,27 @@ class Dir
     lbrace = nil
     nest = 0
 
-    chars = pattern.split ''
     skip = false
 
-    chars.each_with_index do |char, i|
+    i = 0
+    pattern.each_byte do |char|
       if skip then
         skip = false
         next
       end
 
-      if char == '{' and nest == 0 then
+      if char == ?{ and nest == 0 then
         lbrace = i
         nest += 1
       end
 
-      if char == '}' and nest - 1 <= 0 then
+      if char == ?} and nest - 1 <= 0 then
         rbrace = i
         nest -= 1
       end
 
-      skip = true if char == '\\' and escape
+      skip = true if char == ?\\ and escape
+      i += 1
     end
 
     if lbrace and rbrace then
@@ -104,11 +105,11 @@ class Dir
         pos += 1
         last = pos
 
-        while pos < rbrace and not (chars[pos] == ',' and nest == 0) do
-          nest += 1 if chars[pos] == '{'
-          nest -= 1 if chars[pos] == '}'
+        while pos < rbrace and not (pattern[pos] == ?, and nest == 0) do
+          nest += 1 if pattern[pos] == ?{
+          nest -= 1 if pattern[pos] == ?}
 
-          if chars[pos] == '\\' and escape then
+          if pattern[pos] == ?\\ and escape then
             pos += 1
             break if pos == rbrace
           end
@@ -295,17 +296,17 @@ class Dir
     escape = (flags & File::FNM_NOESCAPE) == 0
     nocase = (flags & File::FNM_CASEFOLD) == 0
 
-    chars = pattern.split ''
-
-    chars.each_with_index do |char, i|
+    i = 0
+    pattern.each_byte do |char|
       case char
-      when '*', '?', '[' then
+      when ?*, ??, ?[ then
         return true
-      when '\\' then
-        return false if escape && i == chars.length
+      when ?\\ then
+        return false if escape && i == pattern.length
       else
-       return true if char == /[a-z]/i && nocase # HACK FNM_SYSCASE
+       return true if char =~ /[a-z]/i && nocase # HACK FNM_SYSCASE
       end
+      i += 1
     end
 
     false
