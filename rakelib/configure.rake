@@ -126,7 +126,7 @@ def write_rbconfig
 
     # TODO: fill in these values
     f.puts '  # compile tools flags'
-    f.puts '  CONFIG["CFLAGS"]             = "-ggdb3 -O2"'
+    f.puts '  CONFIG["CFLAGS"]             = "-Wall -ggdb3 -O2"'
     f.puts '  CONFIG["LDFLAGS"]            = ""'
     f.puts '  CONFIG["CPPFLAGS"]           = ""'
     f.puts '  CONFIG["OBJEXT"]             = "o"'
