@@ -167,7 +167,7 @@ begin
       show_sendsites = count.to_i
     when '-P'
       require 'profile'
-    when /P\w/
+    when /^-P\w/
       require 'profile'
       Profiler__.options :sort => arg[2..-1].to_sym
     when '-gc'
