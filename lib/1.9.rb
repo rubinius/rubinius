@@ -9,6 +9,9 @@ require '1.9/array'
 require '1.9/enumerable'
 require '1.9/enumerator'
 require '1.9/hash'
+require '1.9/kernel'
+
+
 module Enumerable
   remove_const(:Enumerator)
 end
