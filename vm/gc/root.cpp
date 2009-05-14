@@ -9,15 +9,18 @@ namespace rubinius {
     return static_cast<Root*>(head());
   }
 
-
 /* Root */
 
-  Root::Root(STATE):
-    LinkedList::Node(), object(NULL), roots(&state->globals.roots)
-  { }
+  Root::Root(STATE)
+    : LinkedList::Node()
+    , roots_(&state->globals.roots)
+    , object_(NULL)
+  {}
 
-  Root::Root(STATE, Object* obj):
-    LinkedList::Node(), object(NULL), roots(NULL)
+  Root::Root(STATE, Object* obj)
+    : LinkedList::Node()
+    , roots_(NULL)
+    , object_(NULL)
   {
     set(obj, &state->globals.roots);
   }
@@ -25,20 +28,20 @@ namespace rubinius {
   void Root::set(Object* obj, Roots* r) {
     // Still in the same set, no problem, just repoint
     // object.
-    if(roots == r) {
+    if(roots_ == r) {
 
       // We don't add the root until it's got an object.
-      if(!object && obj) roots->add(this);
-      object = obj;
+      if(!object_ && obj) roots_->add(this);
+      object_ = obj;
 
     // Moving to a new set. Remove ourselves from
     // the current set if we added ourself (we have an
     // object)
     } else {
-      if(object) roots->remove(this);
-      object = obj;
-      roots = r;
-      if(object) roots->add(this);
+      if(object_) roots_->remove(this);
+      object_ = obj;
+      roots_ = r;
+      if(object_) roots_->add(this);
     }
   }
 }

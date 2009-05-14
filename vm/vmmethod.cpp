@@ -116,6 +116,8 @@ namespace rubinius {
 #else
     call_count = 0;
 #endif
+
+    machine_method_.set(Qnil);
   }
 
   VMMethod::~VMMethod() {
@@ -668,7 +670,7 @@ namespace rubinius {
           UnwindInfo& info = call_frame->pop_unwind();
           call_frame->position_stack(info.stack_depth);
           call_frame->set_ip(info.target_ip);
-          if(vmm->machine_method_.get()) {
+          if(RTEST(vmm->machine_method_.get())) {
             call_frame->set_native_ip(vmm->machine_method_->resolve_virtual_ip(info.target_ip));
           }
         } else {
@@ -685,7 +687,7 @@ namespace rubinius {
           if(info.for_ensure()) {
             call_frame->position_stack(info.stack_depth);
             call_frame->set_ip(info.target_ip);
-            if(vmm->machine_method_.get()) {
+            if(RTEST(vmm->machine_method_.get())) {
               call_frame->set_native_ip(vmm->machine_method_->resolve_virtual_ip(info.target_ip));
             }
 
