@@ -19,7 +19,7 @@ namespace rubinius {
    */
   class Roots : public LinkedList {
   public:   /* Ctors */
-    Roots::Roots()
+    Roots()
       : LinkedList()
     {}
 
