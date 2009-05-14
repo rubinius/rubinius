@@ -21,9 +21,13 @@ namespace rubinius {
 #undef HANDLE_INST1
 #undef HANDLE_INST2
 
+      void at_ip(int ip) { }
+
       void drive(opcode* stream, int size) {
         int ip = 0;
         while(ip < size) {
+          SPECIFIC->at_ip(ip);
+
           switch(stream[ip]) {
 #define HANDLE_INST0(code, name) \
           case code: \
@@ -44,6 +48,10 @@ namespace rubinius {
 #undef HANDLE_INST2
           }
         }
+      }
+
+      void drive(VMMethod* vmm) {
+        drive(vmm->opcodes, vmm->total);
       }
     };
 }

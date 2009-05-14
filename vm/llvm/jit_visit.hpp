@@ -7,9 +7,12 @@
 #include <llvm/DerivedTypes.h>
 
 namespace rubinius {
+  typedef std::map<int, llvm::BasicBlock*> BlockMap;
+
   class JITVisit : public VisitInstructions<JITVisit> {
     STATE;
     VMMethod* vmm_;
+    BlockMap block_map_;
 
     llvm::Value* stack_;
     llvm::Value* call_frame_;
@@ -76,6 +79,10 @@ namespace rubinius {
 
       Function::arg_iterator input = function_->arg_begin();
       vm_ = input++;
+    }
+
+    BlockMap& block_map() {
+      return block_map_;
     }
 
     Value* stack_ptr(BasicBlock* block = NULL) {
@@ -162,6 +169,15 @@ namespace rubinius {
           Instruction::IntToPtr,
           ConstantInt::get(IntPtrTy, (intptr_t)obj),
           ObjType, "cast_to_obj", block);
+    }
+
+    void at_ip(int ip) {
+      BlockMap::iterator i = block_map_.find(ip);
+      if(i != block_map_.end()) {
+        BasicBlock* next = i->second;
+        BranchInst::Create(next, block_);
+        block_ = next;
+      }
     }
 
     // visitors.
@@ -762,7 +778,8 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, cache)
       };
 
-      CallInst::Create(func, call_args, call_args+4, "push_const_fast", block_);
+      stack_push(
+          CallInst::Create(func, call_args, call_args+4, "push_const_fast", block_));
     }
 
     void visit_push_variables() {
@@ -850,6 +867,137 @@ namespace rubinius {
       };
 
       stack_push(CallInst::Create(func, call_args, call_args+4, "pld", block_));
+    }
+
+    void visit_goto(opcode ip) {
+      BranchInst::Create(block_map_[ip], block_);
+      block_ = BasicBlock::Create("continue", function_);
+    }
+
+    void visit_goto_if_true(opcode ip) {
+      Value* cond = stack_pop();
+      Value* i = CastInst::Create(
+          Instruction::PtrToInt,
+          cond, IntPtrTy, "as_int", block_);
+
+      Value* anded = BinaryOperator::CreateAnd(i,
+          ConstantInt::get(Type::Int32Ty, FALSE_MASK), "and", block_);
+
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_NE, anded,
+          ConstantInt::get(Type::Int32Ty, cFalse), "is_true", block_);
+
+      BasicBlock* cont = BasicBlock::Create("continue", function_);
+      BranchInst::Create(block_map_[ip], cont, cmp, block_);
+
+      block_ = cont;
+    }
+
+    void visit_goto_if_false(opcode ip) {
+      Value* cond = stack_pop();
+      Value* i = CastInst::Create(
+          Instruction::PtrToInt,
+          cond, IntPtrTy, "as_int", block_);
+
+      Value* anded = BinaryOperator::CreateAnd(i,
+          ConstantInt::get(Type::Int32Ty, FALSE_MASK), "and", block_);
+
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, anded,
+          ConstantInt::get(Type::Int32Ty, cFalse), "is_true", block_);
+
+      BasicBlock* cont = BasicBlock::Create("continue", function_);
+      BranchInst::Create(block_map_[ip], cont, cmp, block_);
+
+      block_ = cont;
+    }
+
+    void visit_meta_send_op_lt() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(PointerType::getUnqual(ObjType));
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_meta_send_op_lt", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_objects(2)
+      };
+
+      Value* val = CallInst::Create(func, call_args, call_args+3, "molt", block_);
+      stack_remove(2);
+      stack_push(val);
+    }
+
+    void visit_yield_stack(opcode count) {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(Type::Int32Ty);
+      types.push_back(PointerType::getUnqual(ObjType));
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_yield_stack", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, count),
+        stack_objects(count)
+      };
+
+      Value* val = CallInst::Create(func, call_args, call_args+4, "ys", block_);
+      stack_remove(count);
+      stack_push(val);
+    }
+
+    void visit_check_interrupts() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_check_interrupts", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_
+      };
+
+      CallInst::Create(func, call_args, call_args+2, "ci", block_);
+    }
+
+    void visit_push_my_offset(opcode offset) {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 6)
+      };
+
+      Value* pos = GetElementPtrInst::Create(vars_, idx, idx + 2, "self_pos", block_);
+
+      Value* self = new LoadInst(pos, "self", block_);
+
+      assert(offset % sizeof(Object*) == 0);
+
+      Value* cst = CastInst::Create(
+          Instruction::BitCast,
+          self,
+          PointerType::getUnqual(ObjType), "obj_array", block_);
+
+      Value* idx2[] = {
+        ConstantInt::get(Type::Int32Ty, offset / sizeof(Object*))
+      };
+
+      pos = GetElementPtrInst::Create(cst, idx2, idx2+1, "val_pos", block_);
+
+      stack_push(new LoadInst(pos, "val", block_));
     }
   };
 }

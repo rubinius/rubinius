@@ -499,4 +499,18 @@ extern "C" {
 
     return scope->get_local(index);
   }
+
+  Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
+    if(unlikely(state->interrupts.timer)) {
+      {
+        state->interrupts.timer = false;
+        state->set_call_frame(call_frame);
+        // unlock..
+        GlobalLock::UnlockGuard lock(state->global_lock());
+        // and relock automatically!
+      }
+    }
+    if(!state->check_async(call_frame)) return NULL;
+    return Qtrue;
+  }
 }

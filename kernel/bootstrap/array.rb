@@ -43,7 +43,6 @@ class Array
   # and returns self.  We re-evaluate @total each time
   # through the loop in case the array has changed.
   def each
-    return to_enum :each unless block_given? || Rubinius::TARGET_IS_186
     i = 0
     while i < @total
       yield at(i)

@@ -12,6 +12,8 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Transforms/Scalar.h>
 
+#include <sstream>
+
 using namespace llvm;
 
 #include "llvm/jit_visit.hpp"
@@ -257,6 +259,43 @@ namespace rubinius {
 
   }
 
+  class BlockFinder : public VisitInstructions<BlockFinder> {
+    BlockMap& map_;
+    Function* function_;
+
+  public:
+
+    BlockFinder(BlockMap& map, Function* func)
+      : map_(map)
+      , function_(func)
+    {}
+
+    void visit_goto(opcode which) {
+      BlockMap::iterator i = map_.find(which);
+      if(i == map_.end()) {
+        std::ostringstream ss;
+        ss << "ip" << which;
+        map_[which] = BasicBlock::Create(ss.str().c_str(), function_);
+      }
+    }
+
+    void visit_goto_if_true(opcode which) {
+      visit_goto(which);
+    }
+
+    void visit_goto_if_false(opcode which) {
+      visit_goto(which);
+    }
+
+    void visit_goto_if_defined(opcode which) {
+      visit_goto(which);
+    }
+
+    void setup_unwind(opcode which, opcode type) {
+      visit_goto(which);
+    }
+  };
+
   void LLVMCompiler::compile(STATE, VMMethod* vmm) {
     llvm::Module* mod = LLVMState::get(state)->module();
 
@@ -323,6 +362,11 @@ namespace rubinius {
 
     JITVisit visitor(state, vmm, mod, func, bb, stk, cf, vars, stack_top);
 
+    // Pass 1, detect BasicBlock boundaries
+    BlockFinder finder(visitor.block_map(), func);
+    finder.drive(vmm);
+
+    // Pass 2, compile!
     try {
       visitor.drive(vmm->opcodes, vmm->total);
     } catch(JITVisit::Unsupported &e) {
