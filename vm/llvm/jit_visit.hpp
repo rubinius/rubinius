@@ -127,7 +127,15 @@ namespace rubinius {
     void stack_push(Value* val, BasicBlock* block = NULL) {
       if(!block) block = block_;
       Value* stack_pos = stack_ptr_adjust(1, block);
-      new StoreInst(val, stack_pos, false, block);
+      if(val->getType() == cast<PointerType>(stack_pos->getType())->getElementType()) {
+        new StoreInst(val, stack_pos, false, block);
+      } else {
+        Value* cst = CastInst::Create(
+          Instruction::BitCast,
+          val,
+          ObjType, "casted", block);
+        new StoreInst(cst, stack_pos, false, block);
+      }
     }
 
     llvm::Value* stack_back(int back, BasicBlock* block = NULL) {
@@ -523,6 +531,10 @@ namespace rubinius {
       stack_push(phi);
     }
 
+    Object* literal(opcode which) {
+      return vmm_->original.get()->literals()->at(state, which);
+    }
+
     void visit_push_literal(opcode which) {
       Object* lit = vmm_->original.get()->literals()->at(state, which);
       if(Symbol* sym = try_as<Symbol>(lit)) {
@@ -709,6 +721,135 @@ namespace rubinius {
       Value* ret = super_send(cache->name, args, block_, true);
       stack_remove(args + 2);
       stack_push(ret);
+    }
+
+    void visit_add_scope() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_add_scope", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_pop()
+      };
+
+      CallInst::Create(func, call_args, call_args+3, "add_array", block_);
+    }
+
+    void visit_push_const_fast(opcode name, opcode cache) {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+      types.push_back(Type::Int32Ty);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_push_const_fast", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        constant(as<Symbol>(literal(name))),
+        ConstantInt::get(Type::Int32Ty, cache)
+      };
+
+      CallInst::Create(func, call_args, call_args+4, "push_const_fast", block_);
+    }
+
+    void visit_push_variables() {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 8)
+      };
+
+      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "vars_pos", block_);
+      stack_push(new LoadInst(gep, "vars", block_));
+    }
+
+    void visit_push_scope() {
+      Value* idx[] = {
+        ConstantInt::get(Type::Int32Ty, 0),
+        ConstantInt::get(Type::Int32Ty, 1)
+      };
+
+      Value* gep = GetElementPtrInst::Create(call_frame_, idx, idx+2, "scope_pos", block_);
+      std::cout << *gep << "\n";
+      stack_push(new LoadInst(gep, "scope", block_));
+    }
+
+    void visit_cast_for_single_block_arg() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_cast_for_single_block_arg", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_pop()
+      };
+
+      stack_push(CallInst::Create(func, call_args, call_args+3, "cfsba", block_));
+    }
+
+    void visit_set_local_depth(opcode depth, opcode index) {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+      types.push_back(Type::Int32Ty);
+      types.push_back(Type::Int32Ty);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_set_local_depth", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_pop(),
+        ConstantInt::get(Type::Int32Ty, depth),
+        ConstantInt::get(Type::Int32Ty, index)
+      };
+
+      stack_push(CallInst::Create(func, call_args, call_args+5, "sld", block_));
+    }
+
+    void visit_push_local_depth(opcode depth, opcode index) {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(Type::Int32Ty);
+      types.push_back(Type::Int32Ty);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_push_local_depth", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, depth),
+        ConstantInt::get(Type::Int32Ty, index)
+      };
+
+      stack_push(CallInst::Create(func, call_args, call_args+4, "pld", block_));
     }
   };
 }

@@ -6,10 +6,19 @@
 #include "builtin/class.hpp"
 #include "builtin/string.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/staticscope.hpp"
+#include "builtin/proc.hpp"
+#include "builtin/sendsite.hpp"
+#include "builtin/autoload.hpp"
+#include "builtin/global_cache_entry.hpp"
+
+#include "helpers.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "lookup_data.hpp"
+
+#define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
 using namespace rubinius;
 
@@ -154,5 +163,340 @@ extern "C" {
     Dispatch dis(G(sym_coerce_into_array));
 
     return dis.send(state, call_frame, args);
+  }
+
+  Object* rbx_add_scope(STATE, CallFrame* call_frame, Object* top) {
+    Module* mod = as<Module>(top);
+    StaticScope* scope = StaticScope::create(state);
+    scope->module(state, mod);
+    scope->parent(state, call_frame->static_scope);
+    call_frame->cm->scope(state, scope);
+    call_frame->static_scope = scope;
+
+    return Qnil;
+  }
+
+  Object* rbx_cast_for_splat_block_arg(STATE, CallFrame* call_frame, Object* top) {
+    if(top->nil_p()){
+      return Array::create(state, 0);
+    } else if(Tuple* tup = try_as<Tuple>(top)) {
+      return Array::from_tuple(state, tup);
+    } else if(kind_of<Array>(top)) {
+      return top;
+    }
+
+    // Wrap
+    Array* ary = Array::create(state, 1);
+    ary->set(state, 0, top);
+    return ary;
+  }
+
+  Object* rbx_cast_for_multi_block_arg(STATE, CallFrame* call_frame, Object* top) {
+    if(Tuple* tup = try_as<Tuple>(top)) {
+      /* If there is only one thing in the tuple... */
+      if(tup->num_fields() == 1) {
+        /* and that thing is an array... */
+        if(Array* ary = try_as<Array>(tup->at(state, 0))) {
+          /* make a tuple out of the array contents... */
+          int j = ary->size();
+          Tuple* out = Tuple::create(state, j);
+
+          for(int k = 0; k < j; k++) {
+            out->put(state, k, ary->get(state, k));
+          }
+
+          return out;
+        }
+      }
+    }
+
+    return top;
+  }
+
+  Object* rbx_cast_for_single_block_arg(STATE, CallFrame* call_frame, Object* top) {
+    Tuple* tup = as<Tuple>(top);
+    int k = tup->num_fields();
+    if(k == 0) {
+      return Qnil;
+    } else if(k == 1) {
+      return tup->at(state, 0);
+    }
+
+    return Array::from_tuple(state, tup);
+  }
+
+  Object* rbx_check_serial(STATE, CallFrame* call_frame, int index, int serial, Object* top) {
+    SendSite* ss = as<SendSite>(call_frame->cm->literals()->at(state, index));
+
+    if(ss->check_serial(state, call_frame, top, serial)) {
+      return Qtrue;
+    }
+
+    return Qfalse;
+  }
+
+  void rbx_clear_exception(STATE, CallFrame* call_frame) {
+    // Don't allow this code to clear non-exception raises
+    if(state->thread_state()->raise_reason() == cException) {
+      state->thread_state()->clear_exception();
+    }
+  }
+
+  Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {
+    bool found;
+    Module* under = as<Module>(top);
+    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+    Object* res = Helpers::const_get(state, under, sym, &found);
+
+    if(!found) {
+      res = Helpers::const_missing(state, under, sym, call_frame);
+    } else if(Autoload* autoload = try_as<Autoload>(res)) {
+      res = autoload->resolve(state, call_frame);
+    }
+
+    return res;
+  }
+
+  Object* rbx_instance_of(STATE, CallFrame* call_frame, Object* top, Object* b1) {
+    Class* cls = as<Class>(b1);
+    if(top->class_object(state) == cls) return Qtrue;
+    return Qfalse;
+  }
+
+  Object* rbx_in_nil(STATE, CallFrame* call_frame, Object* top) {
+    return top->nil_p() ? Qtrue : Qfalse;
+  }
+
+  Object* rbx_kind_of(STATE, CallFrame* call_frame, Object* top, Object* b1) {
+    return top->kind_of_p(state, b1) ? Qtrue : Qfalse;
+  }
+
+  Object* rbx_make_array(STATE, CallFrame* call_frame, int count, Object** args) {
+    Array* ary = Array::create(state, count);
+    for(int i = 0; i < count; i++) {
+      ary->set(state, i, args[i]);
+    }
+
+    return ary;
+  }
+
+  Object* rbx_meta_send_call(STATE, CallFrame* call_frame, int count, Object** args) {
+    Object* t1 = args[0];
+    if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+      return env->call(state, call_frame, args+1, count);
+    } else if(Proc* proc = try_as<Proc>(t1)) {
+      return proc->call(state, call_frame, args+1, count);
+    }
+
+    return rbx_simple_send(state, call_frame, state->symbol("call"), count, args);
+  }
+
+  Object* rbx_yield_stack(STATE, CallFrame* call_frame, int count, Object** args) {
+    Object* t1 = call_frame->top_scope->block();
+
+    if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+      return env->call(state, call_frame, args, count);
+    } else if(Proc* proc = try_as<Proc>(t1)) {
+      return proc->yield(state, call_frame, args, count);
+    } else if(t1->nil_p()) {
+      Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    }
+
+    Arguments out_args(t1, count, args);
+    Dispatch dis(G(sym_call));
+
+    return dis.send(state, call_frame, out_args);
+  }
+
+  Object* rbx_yield_splat(STATE, CallFrame* call_frame, int count, Object** stk) {
+    Object* ary = stk[count];
+    Object* t1 = call_frame->top_scope->block();
+
+    Arguments args(t1, count, stk);
+
+    if(!ary->nil_p()) {
+      args.append(state, as<Array>(ary));
+    }
+
+    if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
+      return env->call(state, call_frame, args);
+    } else if(Proc* proc = try_as<Proc>(t1)) {
+      return proc->yield(state, call_frame, args);
+    } else if(t1->nil_p()) {
+      Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      return NULL;
+    }
+
+    Dispatch dis(G(sym_call));
+    return dis.send(state, call_frame, args);
+  }
+
+  Object* rbx_meta_send_op_gt(STATE, CallFrame* call_frame, Object** stk) {
+    Object* t1 = stk[0];
+    Object* t2 = stk[1];
+    if(both_fixnum_p(t1, t2)) {
+      native_int j = as<Integer>(t1)->to_native();
+      native_int k = as<Integer>(t2)->to_native();
+      return (j > k) ? Qtrue : Qfalse;
+    }
+
+    return rbx_simple_send(state, call_frame, G(sym_gt), 1, stk);
+  }
+
+  Object* rbx_meta_send_op_lt(STATE, CallFrame* call_frame, Object** stk) {
+    Object* t1 = stk[0];
+    Object* t2 = stk[1];
+    if(both_fixnum_p(t1, t2)) {
+      native_int j = as<Integer>(t1)->to_native();
+      native_int k = as<Integer>(t2)->to_native();
+      return (j < k) ? Qtrue : Qfalse;
+    }
+
+    return rbx_simple_send(state, call_frame, G(sym_lt), 1, stk);
+  }
+
+  Object* rbx_meta_send_op_minuse(STATE, CallFrame* call_frame, Object** stk) {
+    Object* left =  stk[0];
+    Object* right = stk[1];
+
+    if(both_fixnum_p(left, right)) {
+      return reinterpret_cast<Fixnum*>(left)->sub(state,
+          reinterpret_cast<Fixnum*>(right));
+
+    }
+
+    return rbx_simple_send(state, call_frame, G(sym_minus), 1, stk);
+  }
+
+  Object* rbx_meta_send_op_nequal(STATE, CallFrame* call_frame, Object** stk) {
+    Object* t1 = stk[0];
+    Object* t2 = stk[1];
+    /* If both are not references, compare them directly. */
+    if(!t1->reference_p() && !t2->reference_p()) {
+      return (t1 == t2) ? Qfalse : Qtrue;
+    }
+
+    return rbx_simple_send(state, call_frame, G(sym_nequal), 1, stk);
+  }
+
+  Object* rbx_meta_send_op_tequal(STATE, CallFrame* call_frame, Object** stk) {
+    Object* t1 = stk[0];
+    Object* t2 = stk[1];
+    /* If both are fixnums, or both are symbols, compare the ops directly. */
+    if((t1->fixnum_p() && t2->fixnum_p()) || (t1->symbol_p() && t2->symbol_p())) {
+      return (t1 == t2) ? Qfalse : Qtrue;
+    }
+
+    return rbx_simple_send(state, call_frame, G(sym_tequal), 1, stk);
+  }
+
+  Object* rbx_passed_arg(STATE, CallFrame* call_frame, int index) {
+    return (index < call_frame->args) ? Qtrue : Qfalse;
+  }
+
+  // TODO remove this and use passed_arg
+  Object* rbx_passed_blockarg(STATE, CallFrame* call_frame, int index) {
+    return (index == call_frame->args) ? Qtrue : Qfalse;
+  }
+
+  void rbx_pop_exception(STATE, CallFrame* call_frame, Object* top) {
+    if(top->nil_p()) {
+      state->thread_state()->clear_exception();
+    } else {
+      state->thread_state()->set_exception(state, top);
+    }
+  }
+
+  Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {
+    bool found;
+    Object* res = Helpers::const_get(state, call_frame, sym, &found);
+
+    if(!found) {
+      Module* under;
+      StaticScope* scope = call_frame->static_scope;
+      if(scope->nil_p()) {
+        under = G(object);
+      } else {
+        under = scope->module();
+      }
+      res = Helpers::const_missing(state, under, sym, call_frame);
+    } else if(Autoload* autoload = try_as<Autoload>(res)) {
+      res = autoload->resolve(state, call_frame);
+    }
+
+    return res;
+  }
+
+  Object* rbx_push_const_fast(STATE, CallFrame* call_frame, Symbol* sym,
+                              int association_index) {
+    bool found;
+    Object* res = 0;
+
+    Object* val = call_frame->cm->literals()->at(state, association_index);
+
+    // See if the cache is present, if so, validate it and use the value
+    GlobalCacheEntry* cache;
+    if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
+      if(cache->valid_p(state)) {
+        res = cache->value();
+      } else {
+        res = Helpers::const_get(state, call_frame, sym, &found);
+        if(found) cache->update(state, res);
+      }
+    } else {
+      res = Helpers::const_get(state, call_frame, sym, &found);
+      if(found) {
+        cache = GlobalCacheEntry::create(state, res);
+        call_frame->cm->literals()->put(state, association_index, cache);
+      } else {
+        Module* under;
+        StaticScope* scope = call_frame->static_scope;
+        if(scope->nil_p()) {
+          under = G(object);
+        } else {
+          under = scope->module();
+        }
+        res = Helpers::const_missing(state, under, sym, call_frame);
+      }
+    }
+
+    if(!res) return NULL;
+
+    if(Autoload* autoload = try_as<Autoload>(res)) {
+      res = autoload->resolve(state, call_frame);
+      if(cache && res) {
+        cache->update(state, res);
+      }
+    }
+
+    return res;
+  }
+
+  Object* rbx_set_local_depth(STATE, CallFrame* call_frame, Object* top,
+                              int depth, int index) {
+    VariableScope* scope = call_frame->scope;
+
+    for(int j = 0; j < depth; j++) {
+      scope = scope->parent();
+    }
+
+    scope->set_local(state, index, top);
+    return top;
+  }
+
+  Object* rbx_push_local_depth(STATE, CallFrame* call_frame,
+                              int depth, int index) {
+    VariableScope* scope = call_frame->scope;
+
+    for(int j = 0; j < depth; j++) {
+      scope = scope->parent();
+    }
+
+    return scope->get_local(index);
   }
 }
