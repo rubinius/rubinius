@@ -37,67 +37,6 @@ namespace rubinius {
     return env;
   }
 
-  /** @todo Duplicates VMMethod functionality. Refactor. --rue */
-  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Object** args,
-                                 size_t argcount, int flags) {
-    Object* val;
-    if(argcount > 0) {
-      Tuple* tup = Tuple::create(state, argcount);
-      for(size_t i = 0; i < argcount; i++) {
-        tup->put(state, i, args[i]);
-      }
-
-      val = tup;
-    } else {
-      val = Qnil;
-    }
-
-    if(!vmm) {
-      method_->formalize(state, false);
-      vmm = method_->backend_method_;
-    }
-
-    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
-                               (vmm->number_of_locals * sizeof(Object*)));
-
-    scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals);
-
-    InterpreterCallFrame frame;
-    frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
-
-    frame.prepare(vmm->stack_size);
-
-    frame.previous = call_frame;
-    frame.static_scope = method_->scope();
-
-    frame.name =     reinterpret_cast<Symbol*>(Qnil);
-    frame.cm =       method_;
-    frame.args =     argcount;
-    frame.scope =    scope;
-    frame.top_scope = top_scope_;
-    frame.flags =    flags;
-
-    frame.push(val);
-    Object* ret;
-
-#ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling())) {
-      profiler::MethodEntry method(state,
-          top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, &frame);
-    } else {
-      ret = VMMethod::run_interpreter(state, vmm, &frame);
-    }
-#else
-    ret = VMMethod::run_interpreter(state, vmm, &frame);
-#endif
-
-    frame.scope->exit();
-
-    return ret;
-  }
-
-  /** @todo See above. --rue */
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Arguments& args, int flags) {
     Object* val;
     if(args.total() > 0) {
@@ -109,6 +48,11 @@ namespace rubinius {
       val = tup;
     } else {
       val = Qnil;
+    }
+
+    if(!vmm) {
+      method_->formalize(state, false);
+      vmm = method_->backend_method_;
     }
 
     VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
@@ -145,6 +89,8 @@ namespace rubinius {
 #else
     ret = VMMethod::run_interpreter(state, vmm, &frame);
 #endif
+
+    frame.scope->exit();
 
     return ret;
   }

@@ -314,22 +314,27 @@ extern "C" {
 
   Object* rbx_meta_send_call(STATE, CallFrame* call_frame, int count, Object** args) {
     Object* t1 = args[0];
+
+    Arguments out_args(Qnil, count, args+1);
+
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      return env->call(state, call_frame, args+1, count);
+      return env->call(state, call_frame, out_args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      return proc->call(state, call_frame, args+1, count);
+      return proc->call(state, call_frame, out_args);
     }
 
-    return rbx_simple_send(state, call_frame, state->symbol("call"), count, args);
+    return rbx_simple_send(state, call_frame, G(sym_call), count, args);
   }
 
   Object* rbx_yield_stack(STATE, CallFrame* call_frame, int count, Object** args) {
     Object* t1 = call_frame->top_scope->block();
 
+    Arguments out_args(t1, count, args);
+
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      return env->call(state, call_frame, args, count);
+      return env->call(state, call_frame, out_args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      return proc->yield(state, call_frame, args, count);
+      return proc->yield(state, call_frame, out_args);
     } else if(t1->nil_p()) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
@@ -337,7 +342,6 @@ extern "C" {
       return NULL;
     }
 
-    Arguments out_args(t1, count, args);
     Dispatch dis(G(sym_call));
 
     return dis.send(state, call_frame, out_args);

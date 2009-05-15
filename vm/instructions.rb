@@ -1066,10 +1066,13 @@ class Instructions
     <<-CODE
     Object* t1 = stack_back(count);
     Object* ret;
+
+    Arguments out_args(Qnil, count, call_frame->stack_back_position(count));
+
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      ret = env->call(state, call_frame, call_frame->stack_back_position(count), count);
+      ret = env->call(state, call_frame, out_args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      ret = proc->call(state, call_frame, call_frame->stack_back_position(count), count);
+      ret = proc->call(state, call_frame, out_args);
     } else {
       ret = send_slowly(state, vmm, call_frame, G(sym_call), count);
     }
@@ -1085,19 +1088,19 @@ class Instructions
     <<-CODE
     Object* t1 = call_frame->top_scope->block();
     Object* ret;
+    Arguments args(t1, count, call_frame->stack_back_position(count));
+
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      ret = env->call(state, call_frame, call_frame->stack_back_position(count), count);
+      ret = env->call(state, call_frame, args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      ret = proc->yield(state, call_frame, call_frame->stack_back_position(count), count);
+      ret = proc->yield(state, call_frame, args);
     } else if(t1->nil_p()) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
       state->thread_state()->raise_exception(exc);
       ret = NULL;
     } else {
-      Arguments args(t1, count, call_frame->stack_back_position(count));
       Dispatch dis(G(sym_call));
-
       ret = dis.send(state, call_frame, args);
     }
 
