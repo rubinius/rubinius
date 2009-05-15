@@ -14,6 +14,7 @@ namespace rubinius {
     // JIT/Interpreter
     config::Bool    jit_enabled;
     config::Bool    dynamic_interpreter_enabled;
+    config::Bool    jit_dump_code;
 
     // Debug
     config::Bool    print_config;
@@ -29,6 +30,7 @@ namespace rubinius {
       , gc_lifetime(this,     "rbx.gc.lifetime", default_gc_lifetime)
       , jit_enabled(this,     "rbx.jit.enabled")
       , dynamic_interpreter_enabled(this, "rbx.interpreter.dynamic")
+      , jit_dump_code(this,   "rbx.jit.dump_code")
       , print_config(this,    "config.print")
     {}
   };

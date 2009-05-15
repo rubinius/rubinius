@@ -20,7 +20,7 @@ namespace rubinius {
     GO(machine_method).set(state->new_class_under("MachineMethod", G(rubinius)));
     GO(machine_method)->name(state, state->symbol("Rubinius::MachineMethod"));
 
-    setenv("RBX_JIT", "--debug-only=jit", 1);
+    //setenv("RBX_JIT", "--debug-only=jit", 1);
     llvm::cl::ParseEnvironmentOptions("rbx", "RBX_JIT", "blah", false);
   }
 

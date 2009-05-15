@@ -6,6 +6,7 @@
 
 #include "call_frame.hpp"
 #include "assembler/jit.hpp"
+#include "configuration.hpp"
 
 #include <llvm/Target/TargetData.h>
 // #include <llvm/LinkAllPasses.h>
@@ -449,7 +450,9 @@ namespace rubinius {
 
     */
 
-    std::cout << *func << "\n";
+    if(state->shared.config.jit_dump_code) {
+      std::cout << *func << "\n";
+    }
 
     LLVMState::get(state)->passes()->run(*func);
 
