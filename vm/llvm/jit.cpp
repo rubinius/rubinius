@@ -20,7 +20,7 @@ using namespace llvm;
 #include "llvm/jit_visit.hpp"
 
 namespace autogen_types {
-#include "gen/types.cpp"
+#include "llvm/types.cpp.gen"
 }
 
 namespace rubinius {

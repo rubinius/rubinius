@@ -227,7 +227,7 @@ def compile_c(obj, src)
   end
 end
 
-def ld t
+def ld(t)
   if LLVM_ENABLE
     $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
   else
@@ -425,7 +425,7 @@ rule '.o' do |t|
   compile_c obj, src
 end
 
-def files targets, dependencies = nil, &block
+def files(targets, dependencies=nil, &block)
   targets.each do |target|
     if dependencies then
       file target => dependencies, &block
@@ -477,6 +477,12 @@ file 'vm/codegen/field_extract.rb'    => 'vm/gen'
 
 files INSN_GEN, %w[vm/instructions.rb] do |t|
   ruby 'vm/instructions.rb', :verbose => $verbose
+end
+
+# rake sucks. This can't be a normal dep.
+unless File.exists? 'vm/gen/inst_list.hpp'
+  puts "GEN vm/gen/inst_list.hpp"
+  ruby "vm/codegen/instruction_macros.rb"
 end
 
 task :run_field_extract do
@@ -671,7 +677,7 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instr
         f.puts File.read(file_deps)
       else
         object_file = file.sub(/((c(pp)?)|S)$/, 'o')
-        cmd = "gcc -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>/dev/null"
+        cmd = "gcc -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>&1"
         data = `#{cmd}`
         if $?.exitstatus == 0
           data.strip!
@@ -683,6 +689,9 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instr
           unless data.strip.empty?
             f.puts data
           end
+        else
+          puts data
+          exit 1
         end
       end
     end

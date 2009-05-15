@@ -1,5 +1,7 @@
 namespace :jit do
   task :generate_header do
+    puts "GEN vm/llvm/types.cpp.gen"
+
     classes = %w!rubinius::ObjectHeader
                  rubinius::Object
                  rubinius::CallFrame
@@ -38,6 +40,8 @@ namespace :jit do
 
     str = `llvm-g++ -I. -Ivm -Ivm/external_libs/libtommath -emit-llvm -S -o - "#{path}"`
 
+    File.unlink path
+
     types = []
 
     str.split("\n").each do |line|
@@ -58,6 +62,6 @@ namespace :jit do
     end
 
     `llvm-as < vm/gen/types.ll > vm/gen/types.bc`
-    `llc -march=cpp -cppgen=contents -f -o vm/gen/types.cpp vm/gen/types.bc`
+    `llc -march=cpp -cppgen=contents -f -o vm/llvm/types.cpp.gen vm/gen/types.bc`
   end
 end
