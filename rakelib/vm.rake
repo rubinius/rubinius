@@ -27,7 +27,7 @@ else
   LLVM_STYLE = "Release"
 end
 
-LLVM_ENABLE = false
+LLVM_ENABLE = !!ENV['RBX_LLVM']
 
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
@@ -161,7 +161,7 @@ else
 end
 
 OPTIONS     = {
-                LLVM_A => "--enable-targets=host-only"
+                LLVM_A => "--enable-targets=host-only --enable-bindings=none"
               }
 
 if LLVM_STYLE == "Release"

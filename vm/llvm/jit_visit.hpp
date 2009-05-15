@@ -359,7 +359,7 @@ namespace rubinius {
       types.push_back(IntPtrTy);
       types.push_back(ObjArrayTy);
 
-      char* func_name;
+      const char* func_name;
       if(priv) {
         func_name = "rbx_inline_cache_send_private";
       } else {
@@ -396,7 +396,7 @@ namespace rubinius {
       std::vector<const Type*> types;
       add_send_args(types);
 
-      char* func_name;
+      const char* func_name;
       if(priv) {
         func_name = "rbx_block_send_private";
       } else {
@@ -431,7 +431,7 @@ namespace rubinius {
       types.push_back(IntPtrTy);
       types.push_back(ObjArrayTy);
 
-      char* func_name;
+      const char* func_name;
       if(priv) {
         func_name = "rbx_splat_send_private";
       } else {
@@ -466,7 +466,7 @@ namespace rubinius {
       types.push_back(IntPtrTy);
       types.push_back(ObjArrayTy);
 
-      char* func_name;
+      const char* func_name;
       int extra = 1;
       if(splat) {
         func_name = "rbx_super_splat_send";

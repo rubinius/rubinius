@@ -142,7 +142,7 @@ namespace rubinius {
     Value* val = CallInst::Create(func_ae, call_args, call_args+5, "ret", arg_error);
     ReturnInst::Create(val, arg_error);
 
-    // Switch to using contuation
+    // Switch to using continuation
     block = cont;
 
     // Prepare the scope

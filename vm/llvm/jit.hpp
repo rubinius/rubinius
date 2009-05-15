@@ -2,6 +2,8 @@
 #define RBX_LLVM_JIT_HPP
 
 #include <stdint.h>
+#include <unistd.h>
+
 #include <llvm/Module.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/Function.h>
