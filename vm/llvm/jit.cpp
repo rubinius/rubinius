@@ -296,6 +296,57 @@ namespace rubinius {
     }
   };
 
+  BasicBlock* nil_stack(STATE, Value* stack, int size, Value* nil,
+                        Function* function, BasicBlock* block) {
+    if(size == 0) return block;
+    // Stack size 5 or less, do 5 stores in a row rather than
+    // the loop.
+    if(size <= 5) {
+      for(int i = 0; i < size; i++) {
+        Value* idx[] = {
+          ConstantInt::get(Type::Int32Ty, i)
+        };
+
+        Value* gep = GetElementPtrInst::Create(stack, idx, idx+1, "stack_pos", block);
+        new StoreInst(nil, gep, block);
+      }
+      return block;
+    }
+
+    Value* max = ConstantInt::get(Type::Int32Ty, size);
+    Value* one = ConstantInt::get(Type::Int32Ty, 1);
+
+
+    BasicBlock* top = BasicBlock::Create("stack_nil", function);
+    BasicBlock* cont = BasicBlock::Create("bottom", function);
+
+    Value* counter = new AllocaInst(Type::Int32Ty, 0, "counter_alloca", block);
+    new StoreInst(ConstantInt::get(Type::Int32Ty, 0), counter, block);
+
+    BranchInst::Create(top, block);
+
+    Value* cur = new LoadInst(counter, "counter", top);
+    Value* idx[] = { cur };
+
+    Value* gep = GetElementPtrInst::Create(stack, idx, idx+1, "stack_pos", top);
+    new StoreInst(nil, gep, top);
+
+    Value* added = BinaryOperator::CreateAdd(cur, one, "added", top);
+    new StoreInst(added, counter, top);
+
+    Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, added, max, "loop_check", top);
+    BranchInst::Create(cont, top, cmp, top);
+
+    return cont;
+  }
+
+  Value* constant(Object* obj, const Type* obj_type, BasicBlock* block) {
+    return CastInst::Create(
+        Instruction::IntToPtr,
+        ConstantInt::get(Type::Int32Ty, (intptr_t)obj),
+        obj_type, "cast_to_obj", block);
+  }
+
   void LLVMCompiler::compile(STATE, VMMethod* vmm) {
     llvm::Module* mod = LLVMState::get(state)->module();
 
@@ -357,6 +408,8 @@ namespace rubinius {
     Value* stk_back_one = GetElementPtrInst::Create(stk, stk_idx,
         stk_idx+1, "stk_back_one", bb);
     new StoreInst(stk_back_one, stack_top, false, bb);
+
+    bb = nil_stack(state, stk, vmm->stack_size, constant(Qnil, obj_type, bb), func, bb);
 
     import_args(state, func, bb, vmm, vars, cf);
 

@@ -37,15 +37,17 @@ class Array
   # returned. Slightly faster than +Array#[]+
   def at(idx)
     Ruby.primitive :array_aref
+    raise PrimitiveFailure, "array_aref failed"
   end
 
   # Passes each element in the Array to the given block
   # and returns self.  We re-evaluate @total each time
   # through the loop in case the array has changed.
   def each
-    i = 0
-    while i < @total
-      yield at(i)
+    i = @start + 0
+    fin = @start + @total
+    while i < fin
+      yield @tuple.at(i)
       i += 1
     end
     self

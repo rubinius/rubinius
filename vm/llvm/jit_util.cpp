@@ -23,6 +23,38 @@
 using namespace rubinius;
 
 extern "C" {
+  Object* rbx_inline_cache_send(STATE, CallFrame* call_frame, Symbol* name,
+                          SendSite::Internal* cache, int count, Object** args) {
+    Object* recv = args[0];
+    Class* const klass = recv->lookup_begin(state);
+
+    Arguments out_args(recv, Qnil, count, args+1);
+
+    if(unlikely(cache->recv_class != klass)) {
+      if(SendSite::fill(state, klass, call_frame, cache, false)) {
+        out_args.unshift(state, cache->name);
+      }
+    }
+
+    return cache->method->execute(state, call_frame, *cache, out_args);
+  }
+
+  Object* rbx_inline_cache_send_private(STATE, CallFrame* call_frame, Symbol* name,
+                          SendSite::Internal* cache, int count, Object** args) {
+    Object* recv = args[0];
+    Class* const klass = recv->lookup_begin(state);
+
+    Arguments out_args(recv, Qnil, count, args+1);
+
+    if(unlikely(cache->recv_class != klass)) {
+      if(SendSite::fill(state, klass, call_frame, cache, true)) {
+        out_args.unshift(state, cache->name);
+      }
+    }
+
+    return cache->method->execute(state, call_frame, *cache, out_args);
+  }
+
   Object* rbx_simple_send(STATE, CallFrame* call_frame, Symbol* name,
                           int count, Object** args) {
     Object* recv = args[0];
@@ -348,19 +380,7 @@ extern "C" {
     return rbx_simple_send(state, call_frame, G(sym_gt), 1, stk);
   }
 
-  Object* rbx_meta_send_op_lt(STATE, CallFrame* call_frame, Object** stk) {
-    Object* t1 = stk[0];
-    Object* t2 = stk[1];
-    if(both_fixnum_p(t1, t2)) {
-      native_int j = as<Integer>(t1)->to_native();
-      native_int k = as<Integer>(t2)->to_native();
-      return (j < k) ? Qtrue : Qfalse;
-    }
-
-    return rbx_simple_send(state, call_frame, G(sym_lt), 1, stk);
-  }
-
-  Object* rbx_meta_send_op_minuse(STATE, CallFrame* call_frame, Object** stk) {
+  Object* rbx_meta_send_op_minus(STATE, CallFrame* call_frame, Object** stk) {
     Object* left =  stk[0];
     Object* right = stk[1];
 

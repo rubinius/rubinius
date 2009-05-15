@@ -15,10 +15,12 @@ namespace :jit do
                  rubinius::Module
                  rubinius::StaticScope
                  rubinius::InstructionSequence
+                 rubinius::SendSite
+                 rubinius::SendSite::Internal
                  jit_state!
     require 'tempfile'
 
-    files = %w!vm/call_frame.hpp vm/arguments.hpp vm/dispatch.hpp!
+    files = %w!vm/call_frame.hpp vm/arguments.hpp vm/dispatch.hpp vm/builtin/sendsite.hpp!
     path = "llvm-type-temp.cpp"
 
     File.open(path, "w+") do |f|
@@ -46,7 +48,7 @@ namespace :jit do
       end
     end
 
-    opaque = %w!VM TypeInfo VMMethod Fixnum Symbol!
+    opaque = %w!VM TypeInfo VMMethod Fixnum Symbol Selector!
 
     File.open("vm/gen/types.ll","w+") do |f|
       opaque.each do |o|

@@ -344,6 +344,52 @@ namespace rubinius {
       return ret;
     }
 
+
+    Value* inline_cache_send(Symbol* name, int args, SendSite::Internal* cache,
+                       BasicBlock* block=NULL, bool priv=false) {
+      if(!block) block = block_;
+
+      std::vector<const Type*> types;
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+      const Type* ss_type = PointerType::getUnqual(
+            module_->getTypeByName("struct.rubinius::SendSite::Internal"));
+      types.push_back(ss_type);
+      types.push_back(IntPtrTy);
+      types.push_back(ObjArrayTy);
+
+      char* func_name;
+      if(priv) {
+        func_name = "rbx_inline_cache_send_private";
+      } else {
+        func_name = "rbx_inline_cache_send";
+      }
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction(func_name, ft));
+
+      Value* cache_const = CastInst::Create(
+          Instruction::IntToPtr,
+          ConstantInt::get(IntPtrTy, (intptr_t)cache),
+          ss_type, "cast_to_ptr", block);
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        constant(name, block),
+        cache_const,
+        ConstantInt::get(IntPtrTy, args),
+        stack_objects(args + 1, block)
+      };
+
+      Value* ret = CallInst::Create(func, call_args, call_args+6, "ic_send", block);
+
+      // TODO handle exception
+      return ret;
+    }
+
     Value* block_send(Symbol* name, int args, BasicBlock* block=NULL, bool priv=false) {
       if(!block) block = block_;
 
@@ -476,13 +522,15 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    Value* tag_strip(Value* obj, BasicBlock* block = NULL) {
+    Value* tag_strip(Value* obj, BasicBlock* block = NULL, const Type* type = NULL) {
       if(!block) block = block_;
+      if(!type) type = Int31Ty;
+
       Value* i = CastInst::Create(
           Instruction::PtrToInt,
-          obj, Int31Ty, "as_int", block);
+          obj, type, "as_int", block);
 
-      return BinaryOperator::CreateLShr(i, ConstantInt::get(Int31Ty, 1), "lshr", block);
+      return BinaryOperator::CreateLShr(i, ConstantInt::get(type, 1), "lshr", block);
     }
 
     Value* fixnum_tag(Value* obj, BasicBlock* block = NULL) {
@@ -493,6 +541,36 @@ namespace rubinius {
 
       return CastInst::Create(
           Instruction::IntToPtr, tagged, ObjType, "as_obj", block);
+    }
+
+    void visit_meta_send_op_lt() {
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
+
+      BasicBlock* fast = BasicBlock::Create("fast", function_);
+      BasicBlock* dispatch = BasicBlock::Create("dispatch", function_);
+      BasicBlock* cont = BasicBlock::Create("cont", function_);
+
+      check_fixnums(recv, arg, fast, dispatch);
+
+      Value* called_value = simple_send(state->symbol("<"), 1, dispatch);
+      BranchInst::Create(cont, dispatch);
+
+      ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_SLT,
+          recv, arg, "imm_cmp", fast);
+      Value* imm_value = SelectInst::Create(cmp, constant(Qtrue, fast),
+          constant(Qfalse, fast), "select_bool", fast);
+
+      BranchInst::Create(cont, fast);
+
+      block_ = cont;
+
+      PHINode* phi = PHINode::Create(ObjType, "addition", block_);
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, fast);
+
+      stack_remove(2);
+      stack_push(phi);
     }
 
     void visit_meta_send_op_plus() {
@@ -640,15 +718,76 @@ namespace rubinius {
 
     void visit_send_stack(opcode which, opcode args) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      Value* ret = simple_send(cache->name, args, block_, allow_private_);
-      stack_remove(args + 1);
-      stack_push(ret);
+      if(cache->execute == Primitives::tuple_at && args == 1) {
+        Value* recv = stack_back(1);
+
+        Value* flag_idx[] = {
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, 0)
+        };
+
+        Value* gep = GetElementPtrInst::Create(recv, flag_idx, flag_idx+4, "flag_pos", block_);
+        Value* flags = new LoadInst(gep, "flags", block_);
+
+        Value* mask = ConstantInt::get(Type::Int32Ty, (1 << 8) - 1);
+        Value* obj_type = BinaryOperator::CreateAnd(flags, mask, "mask", block_);
+
+        Value* tag = ConstantInt::get(Type::Int32Ty, rubinius::Tuple::type);
+        Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, obj_type, tag, "is_tuple", block_);
+
+        BasicBlock* is_tuple = BasicBlock::Create("is_tuple", function_);
+        BasicBlock* is_other = BasicBlock::Create("is_other", function_);
+        BasicBlock* cont =     BasicBlock::Create("continue", function_);
+
+        BranchInst::Create(is_tuple, is_other, cmp, block_);
+
+        block_ = is_tuple;
+
+        Value* index = tag_strip(stack_pop(), block_, Type::Int32Ty);
+        stack_remove(1);
+
+        const Type* tuple_type = PointerType::getUnqual(
+            module_->getTypeByName("struct.rubinius::Tuple"));
+
+        Value* tup = CastInst::Create(
+          Instruction::BitCast,
+          recv,
+          tuple_type, "as_tuple", block_);
+
+        Value* idx[] = {
+          ConstantInt::get(Type::Int32Ty, 0),
+          ConstantInt::get(Type::Int32Ty, 2),
+          index
+        };
+
+        gep = GetElementPtrInst::Create(tup, idx, idx+3, "field_pos", block_);
+
+        stack_push(new LoadInst(gep, "tuple_at", block_));
+
+        BranchInst::Create(cont, block_);
+
+        block_ = is_other;
+
+        Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
+        stack_remove(args + 1);
+        stack_push(ret);
+
+        BranchInst::Create(cont, block_);
+        block_ = cont;
+
+      } else {
+        Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
+        stack_remove(args + 1);
+        stack_push(ret);
+      }
       allow_private_ = false;
     }
 
     void visit_send_method(opcode which) {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
-      Value* ret = simple_send(cache->name, 0, block_, allow_private_);
+      Value* ret = inline_cache_send(cache->name, 0, cache, block_, allow_private_);
       stack_remove(1);
       stack_push(ret);
 
@@ -908,28 +1047,6 @@ namespace rubinius {
       BranchInst::Create(block_map_[ip], cont, cmp, block_);
 
       block_ = cont;
-    }
-
-    void visit_meta_send_op_lt() {
-      std::vector<const Type*> types;
-
-      types.push_back(VMTy);
-      types.push_back(CallFrameTy);
-      types.push_back(PointerType::getUnqual(ObjType));
-
-      FunctionType* ft = FunctionType::get(ObjType, types, false);
-      Function* func = cast<Function>(
-          module_->getOrInsertFunction("rbx_meta_send_op_lt", ft));
-
-      Value* call_args[] = {
-        vm_,
-        call_frame_,
-        stack_objects(2)
-      };
-
-      Value* val = CallInst::Create(func, call_args, call_args+3, "molt", block_);
-      stack_remove(2);
-      stack_push(val);
     }
 
     void visit_yield_stack(opcode count) {
