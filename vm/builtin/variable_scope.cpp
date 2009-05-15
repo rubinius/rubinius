@@ -54,7 +54,7 @@ namespace rubinius {
   }
 
   VariableScope* VariableScope::of_sender(STATE, CallFrame* call_frame) {
-    CallFrame* dest = call_frame->previous;
+    CallFrame* dest = static_cast<CallFrame*>(call_frame->previous);
     dest->promote_scope(state);
     return dest->scope;
   }

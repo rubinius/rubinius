@@ -29,7 +29,6 @@ end
 
 LLVM_ENABLE = false
 
-
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
 
@@ -43,7 +42,7 @@ end
 # tests      << 'vm/test/test_instructions.hpp'
 tests.uniq!
 
-subdirs = %w!builtin capi parser util instruments gc!
+subdirs = %w!builtin capi parser util instruments gc llvm!
 
 srcs        = FileList["vm/*.{cpp,c}"]
 subdirs.each do |dir|
@@ -173,10 +172,12 @@ INCLUDES      = EX_INC + %w[/usr/local/include vm/test/cxxtest vm . vm/assembler
 INCLUDES.map! { |f| "-I#{f}" }
 
 # Default build options
-FLAGS         = %W[ -pipe -Wall -Wno-deprecated
+BASIC_FLAGS     = %W[ -pipe -Wall -Wno-deprecated
                     -DBASE_PATH=\\"#{RBX_BASE_PATH}\\"
                     -DRBA_PATH=\\"#{RBX_RBA_PATH}\\"
                 ]
+
+FLAGS = BASIC_FLAGS.dup
 
 if RUBY_PLATFORM =~ /darwin/i && `sw_vers` =~ /10\.4/
   FLAGS.concat %w(-DHAVE_STRLCAT -DHAVE_STRLCPY)
@@ -184,6 +185,9 @@ end
 
 if LLVM_ENABLE
   FLAGS << "-DENABLE_LLVM"
+  llvm_flags = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
+  llvm_flags.delete_if { |e| e.index("-O") == 0 }
+  FLAGS.concat llvm_flags
 end
 
 BUILD_PRETASKS = []
@@ -199,12 +203,6 @@ def compile_c(obj, src)
 
   if CONFIG.compile_with_llvm
     flags << "-emit-llvm"
-  end
-
-  if LLVM_ENABLE and !defined? $llvm_c then
-    $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
-    $llvm_c.delete_if { |e| e.index("-O") == 0 }
-    flags.concat $llvm_c
   end
 
   # GROSS
@@ -228,7 +226,7 @@ def compile_c(obj, src)
   end
 end
 
-def ld t
+def ld(t)
   if LLVM_ENABLE
     $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
   else
@@ -426,7 +424,7 @@ rule '.o' do |t|
   compile_c obj, src
 end
 
-def files targets, dependencies = nil, &block
+def files(targets, dependencies=nil, &block)
   targets.each do |target|
     if dependencies then
       file target => dependencies, &block
@@ -478,6 +476,12 @@ file 'vm/codegen/field_extract.rb'    => 'vm/gen'
 
 files INSN_GEN, %w[vm/instructions.rb] do |t|
   ruby 'vm/instructions.rb', :verbose => $verbose
+end
+
+# rake sucks. This can't be a normal dep.
+unless File.exists? 'vm/gen/inst_list.hpp'
+  puts "GEN vm/gen/inst_list.hpp"
+  ruby "vm/codegen/instruction_macros.rb"
 end
 
 task :run_field_extract do
@@ -541,16 +545,16 @@ file "vm/instructions.o" => "vm/gen/instructions.cpp" do
   compile_c "vm/instructions.o", "vm/gen/instructions.cpp"
 end
 
-file "vm/gen/instructions.cpp" => %w[vm/llvm/instructions.cpp vm/instructions.rb] + hdrs do
-  ruby "vm/codegen/rubypp.rb", "vm/llvm/instructions.cpp", "vm/gen/instructions.cpp"
+file "vm/gen/instructions.cpp" => %w[vm/template/instructions.cpp vm/instructions.rb] + hdrs do
+  ruby "vm/codegen/rubypp.rb", "vm/template/instructions.cpp", "vm/gen/instructions.cpp"
 end
 
 #
-#rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
+#rubypp_task 'vm/instructions.o', 'vm/template/instructions.cpp', 'vm/instructions.rb', *hdrs do |path|
 #  compile_c 'vm/instructions.o', path
 #end
 
-rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp', *hdrs do |path|
+rubypp_task 'vm/instructions.bc', 'vm/template/instructions.cpp', *hdrs do |path|
   sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc #{path}"
 end
 
@@ -582,7 +586,7 @@ namespace :vm do
     puts "CC/LD vm/test/coverage/runner"
     begin
       path = "vm/gen/instructions.cpp"
-      ruby 'vm/codegen/rubypp.rb', "vm/llvm/instructions.cpp", path
+      ruby 'vm/codegen/rubypp.rb', "vm/template/instructions.cpp", path
       sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
 
       puts "RUN vm/test/coverage/runner"
@@ -672,7 +676,7 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instr
         f.puts File.read(file_deps)
       else
         object_file = file.sub(/((c(pp)?)|S)$/, 'o')
-        cmd = "gcc -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>/dev/null"
+        cmd = "gcc -MM -MT \"#{object_file}\" #{includes} #{flags} #{file} 2>&1"
         data = `#{cmd}`
         if $?.exitstatus == 0
           data.strip!
@@ -684,6 +688,9 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instr
           unless data.strip.empty?
             f.puts data
           end
+        else
+          puts data
+          exit 1
         end
       end
     end

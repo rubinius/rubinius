@@ -19,7 +19,7 @@ namespace rubinius {
     loc->method(state, call_frame->cm);
     loc->ip(state, Fixnum::from(call_frame->ip - 1));
 
-    if(call_frame->is_block) {
+    if(call_frame->is_block_p(state)) {
       loc->name(state, call_frame->top_scope->method()->name());
       loc->is_block(state, Qtrue);
     } else {

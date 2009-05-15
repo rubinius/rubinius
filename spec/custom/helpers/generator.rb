@@ -315,7 +315,10 @@ class TestGenerator
         d.set_local_depth 0, count
       end
 
-      d.pop
+      if type != :none and type != :empty and type != 0
+        d.pop
+      end
+
       d.push_modifiers
       d.new_label.set!
 

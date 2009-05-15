@@ -43,79 +43,6 @@ class Instructions
   CALL_FLAG_CONCAT  = 2
 
   # [Operation]
-  #   Adds a method to a \class or module
-  # [Format]
-  #   \add_method name
-  # [Stack Before]
-  #   * receiver
-  #   * method
-  #   * ...
-  # [Stack After]
-  #   * method
-  #   * ...
-  # [Description]
-  #   Hooks up a compiled method to a \class or module.
-  #
-  #   The \class or module the method is to be added to (+receiver+) and the
-  #   compiled method object (+method+) are popped from the stack, while the
-  #   name of the method is an argument to the opcode (+name+). On return, the
-  #   compiled method is pushed back onto the stack.
-  #
-  #   NOTE: this instruction is only emitted when the compiler is in kernel mode.
-  #   In normal ruby code, the method __add_method__ is sent to self to add a method.
-  # [See Also]
-  #   * attach_method
-  # [Notes]
-  #   Singleton methods are handled by attach_method.
-
-  def add_method(index)
-    <<-CODE
-    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
-    Object* recv = stack_pop();
-    Module* mod = try_as<Module>(recv);
-    /* If the receiver is not a module, use the receiver's class_object instead */
-    if(!mod) {
-      mod = as<Module>(recv->class_object(state));
-    }
-    CompiledMethod* meth = as<CompiledMethod>(stack_pop());
-
-    Helpers::add_method(state, call_frame, mod, sym, meth);
-    stack_push(meth);
-    CODE
-  end
-
-  def test_add_method
-    <<-CODE
-    Symbol* name1 = state->symbol("true_method");
-    Symbol* name2 = state->symbol("kernel_method");
-    call_frame->cm->literals()->put(state, 0, name1);
-    call_frame->cm->literals()->put(state, 1, name2);
-
-    task->push(cm);
-    task->push(G(true_class));
-
-    stream[1] = (opcode)0;
-
-    run();
-
-    TS_ASSERT_EQUALS(G(true_class)->method_table()->fetch(state, name1), cm);
-    /* Clear the stack for the next scenario */
-    task->pop();
-
-    String* recv = String::create(state, "main");
-
-    task->push(cm);
-    task->push(recv);
-    stream[1] = (opcode)1;
-
-    run();
-
-    TS_ASSERT_EQUALS(cm, G(string)->method_table()->fetch(state, name2));
-    TS_ASSERT_EQUALS(Qnil, G(object)->method_table()->fetch(state, name2));
-    CODE
-  end
-
-  # [Operation]
   #   Add a new StaticScope entry for the given Module
   # [Format]
   #   \add_scope
@@ -157,60 +84,6 @@ class Instructions
   def allow_private
     <<-CODE
     SET_ALLOW_PRIVATE(true);
-    CODE
-  end
-
-  # [Operation]
-  #   Attaches a method definition to an object's singleton \class
-  # [Format]
-  #   \attach_method name
-  # [Stack Before]
-  #   * receiver
-  #   * method
-  #   * ...
-  # [Stack After]
-  #   * method
-  #   * ...
-  # [Description]
-  #   Hooks up a compiled method to an object instance via it's singleton
-  #   \class.
-  #
-  #   The object the method is to be added to (+receiver+) and the compiled
-  #   method object (+method+) are popped from the stack, while the name of
-  #   the  method is an argument to the opcode (+name+). On return, the
-  #   compiled method is pushed back onto the stack.
-  # [See Also]
-  #   * add_method
-  # [Notes]
-  #   Class/module methods are handled by add_method.
-
-  def attach_method(index)
-    <<-CODE
-    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
-    Object* obj = stack_pop();
-    Object* obj2 = stack_pop();
-    CompiledMethod* meth = as<CompiledMethod>(obj2);
-
-    Helpers::attach_method(state, call_frame, obj, sym, meth);
-    stack_push(meth);
-    CODE
-  end
-
-  def test_attach_method
-    <<-CODE
-    Symbol* name = state->symbol("blah");
-    call_frame->cm->literals()->put(state, 0, name);
-
-    task->push(cm);
-    task->push(G(true_class));
-
-    stream[1] = (opcode)0;
-
-    run();
-
-    TS_ASSERT_EQUALS(G(true_class)->metaclass(state)->method_table()->fetch(state, name), cm);
-    TS_ASSERT(!cm->scope()->nil_p());
-    TS_ASSERT_EQUALS(cm->scope()->module(), G(true_class));
     CODE
   end
 
@@ -304,17 +177,12 @@ class Instructions
 
   def cast_for_splat_block_arg
     <<-CODE
-    Object* t1 = stack_pop();
-    if(t1->nil_p()){
-      t1 = Array::create(state, 0);
-    } else if(kind_of<Tuple>(t1)) {
-      t1 = Array::from_tuple(state, as<Tuple>(t1));
-    } else if(!kind_of<Array>(t1)) {
-      Array* ary = Array::create(state, 1);
-      ary->set(state, 0, t1);
-      t1 = ary;
+    Array* ary = Array::create(state, args.total());
+    for(size_t i = 0; i < args.total(); i++) {
+      ary->set(state, i, args.get_argument(i));
     }
-    stack_push(t1);
+
+    stack_push(ary);
     CODE
   end
 
@@ -370,29 +238,15 @@ class Instructions
 
   def cast_for_multi_block_arg
     <<-CODE
-    Object* obj = stack_top();
-
-    if(!obj->nil_p()) {
-      Tuple* tup = as<Tuple>(obj);
-      int k = tup->num_fields();
-      /* If there is only one thing in the tuple... */
-      if(k == 1) {
-        Object* t1 = tup->at(state, 0);
-        /* and that thing is an array... */
-        if(kind_of<Array>(t1)) { // HACK use try_as
-          /* make a tuple out of the array contents... */
-          Array* ary = as<Array>(t1);
-          int j = ary->size();
-          Tuple* out = Tuple::create(state, j);
-
-          for(k = 0; k < j; k++) {
-            out->put(state, k, ary->get(state, k));
-          }
-
-          /* and put it on the top of the stack. */
-          stack_set_top(out);
-        }
+    /* If there is only one argument and that thing is an array... */
+    if(args.total() == 1 && kind_of<Array>(args.get_argument(0))) {
+      stack_push(args.get_argument(0));
+    } else {
+      Array* ary = Array::create(state, args.total());
+      for(size_t i = 0; i < args.total(); i++) {
+        ary->set(state, i, args.get_argument(i));
       }
+      stack_push(ary);
     }
     CODE
   end
@@ -441,14 +295,17 @@ class Instructions
 
   def cast_for_single_block_arg
     <<-CODE
-    Tuple* tup = as<Tuple>(stack_pop());
-    int k = tup->num_fields();
+    int k = args.total();
     if(k == 0) {
       stack_push(Qnil);
     } else if(k == 1) {
-      stack_push(tup->at(state, 0));
+      stack_push(args.get_argument(0));
     } else {
-      stack_push(Array::from_tuple(state, tup));
+      Array* ary = Array::create(state, k);
+      for(int i = 0; i < k; i++) {
+        ary->set(state, i, args.get_argument(i));
+      }
+      stack_push(ary);
     }
     CODE
   end
@@ -548,36 +405,6 @@ class Instructions
   end
 
   # [Operation]
-  #   Get the \class for the specified object
-  # [Format]
-  #   \class
-  # [Stack Before]
-  #   * object
-  #   * ...
-  # [Stack After]
-  #   * class
-  #   * ...
-  # [Description]
-  #   Consume the object reference on the stack, and push a reference to the
-  #   parent \class in its place.
-  #   TODO - Use this somewhere!
-
-  def class
-    <<-CODE
-    Object* t1 = stack_pop();
-    stack_push(t1->class_object(state));
-    CODE
-  end
-
-  def test_class
-    <<-CODE
-      task->push(Qtrue);
-      run();
-      TS_ASSERT_EQUALS(G(true_class), task->pop());
-    CODE
-  end
-
-  # [Operation]
   #   Clears any exceptions from the current execution context
   # [Format]
   #   \clear_exception
@@ -666,57 +493,6 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 1);
     TS_ASSERT_EQUALS(task->stack_at(1), Qtrue);
-    CODE
-  end
-
-  # [Operation]
-  #   Perform a raw comparison of two object references
-  # [Format]
-  #   \equal
-  # [Stack Before]
-  #   * value1
-  #   * value2
-  #   * ...
-  # [Stack After]
-  #   * result
-  #   * ...
-  # [Description]
-  #   Performs a comparison of two objects, resulting in either +true+ or
-  #   +false+ being pushed onto the stack as a result. The comparison is done
-  #   without any method calls.
-  #
-  #   For two Fixnums, two Symbols, or two literals (+true+, +false+, +nil+),
-  #   return +true+ if the values are identical.
-  #
-  #   For two object references (including Bignum), return +true+ if value1
-  #   and value2 point to the same instance.
-
-  def equal
-    <<-CODE
-    Object* t1 = stack_pop();
-    Object* t2 = stack_pop();
-    stack_push(t1 == t2 ? Qtrue : Qfalse);
-    CODE
-  end
-
-  def test_equal
-    <<-CODE
-    String* s1 = String::create(state, "test_equal");
-    task->push(s1);
-    task->push(s1);
-    run();
-    TS_ASSERT_EQUALS(Qtrue, task->pop());
-
-    String* s2 = as<String>(s1->dup(state));
-    task->push(s2);
-    task->push(s1);
-    run();
-    TS_ASSERT_EQUALS(Qfalse, task->pop());
-
-    task->push(Fixnum::from(123));
-    task->push(Fixnum::from(123));
-    run();
-    TS_ASSERT_EQUALS(Qtrue, task->pop());
     CODE
   end
 
@@ -935,38 +711,6 @@ class Instructions
     CODE
   end
 
-  # @todo Use this or drop it. The halt tramp is not generated. --rue */
-  # [Operation]
-  #   Halts the current task
-  # [Format]
-  #   \halt
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Causes the current Task to halt. No further execution will be performed
-  #   on the current Task. This instruction is only used inside the trampoline
-  #   method used as the first MethodContext of a Task.
-  #
-  def halt
-    <<-CODE
-//    throw Task::Halt("Task halted");
-    CODE
-  end
-
-  def test_halt
-    <<-CODE
-    try {
-      run();
-      TS_FAIL("halt did not throw an error during run()");
-    } catch(Task::Halt& e) {
-      const char* msg = e.what();
-      TS_ASSERT_SAME_DATA("Task halted", msg, 11);
-    }
-    CODE
-  end
-
   # [Operation]
   #   Evaluate if +object+ is an instance of +class+
   # [Format]
@@ -1027,38 +771,6 @@ class Instructions
   end
 
   # [Operation]
-  #   Return true if value is a Fixnum, otherwise false
-  # [Format]
-  #   \is_fixnum
-  # [Stack Before]
-  #   * value
-  #   * ...
-  # [Stack After]
-  #   * result
-  #   * ...
-  # [Description]
-  #   Consume the value on the stack, and put the special values true or false
-  #   depending on whether the consumed value was of Fixnum type
-
-  def is_fixnum
-    <<-CODE
-    Object* t1 = stack_pop();
-    stack_push(t1->fixnum_p() ? Qtrue : Qfalse);
-    CODE
-  end
-
-  def test_is_fixnum
-    <<-CODE
-    task->push(Integer::from(state, 10));
-    run();
-    TS_ASSERT_EQUALS(Qtrue, task->pop());
-    task->push(String::create(state, "no"));
-    run();
-    TS_ASSERT_EQUALS(Qfalse, task->pop());
-    CODE
-  end
-
-  # [Operation]
   #   Return true if value is nil, otherwise false
   # [Format]
   #   \is_nil
@@ -1078,7 +790,7 @@ class Instructions
     stack_push(t1 == Qnil ? Qtrue : Qfalse);
     CODE
   end
-  
+
   def test_is_nil
     <<-CODE
     task->push(Qnil);
@@ -1090,41 +802,6 @@ class Instructions
     task->push(Integer::from(state, 0));
     run();
     TS_ASSERT_EQUALS(Qfalse, task->pop());
-    CODE
-  end
-
-  # [Operation]
-  #   Return true if value is a Symbol, otherwise false
-  # [Format]
-  #   \is_symbol
-  # [Stack Before]
-  #   * value
-  #   * ...
-  # [Stack After]
-  #   * result
-  #   * ...
-  # [Description]
-  #   Consume the value on the stack, and put the special values true or false
-  #   depending on whether the consumed value was of Symbol type
-
-  def is_symbol
-    <<-CODE
-    Object* t1 = stack_pop();
-    stack_push(t1->symbol_p() ? Qtrue : Qfalse);
-    CODE
-  end
-
-  def test_is_symbol
-    <<-CODE
-    task->push(Qnil);
-    run();
-    TS_ASSERT_EQUALS(Qfalse, task->pop());
-    task->push(String::create(state, "no"));
-    run();
-    TS_ASSERT_EQUALS(Qfalse, task->pop());
-    task->push(state->symbol("foo"));
-    run();
-    TS_ASSERT_EQUALS(Qtrue, task->pop());
     CODE
   end
 
@@ -1187,51 +864,6 @@ class Instructions
     CODE
   end
 
-  # [Operation]
-  #   Locates a method by searching the \class hierarchy from a specified
-  #   object
-  # [Format]
-  #   \locate_method
-  # [Stack Before]
-  #   * include_private
-  #   * method_name
-  #   * self
-  #   * ...
-  # [Stack After]
-  #   * method
-  #   * ...
-  # [Description]
-  #   Pops a flag indicating whether or not to search in private methods, the
-  #   method name, and the object to search from off the stack. If a matching
-  #   method is located, the module it was found in and the method is pushed
-  #   onto the stack; otherwise, nil is pushed onto the stack.
-  #
-  # @todo Need to remove redundancy here and send_*. --rue
-
-  def locate_method
-    <<-CODE
-    Object* t1 = stack_pop(); // include_private
-    Symbol* name = as<Symbol>(stack_pop()); // meth
-    Object* t3 = stack_pop(); // self
-    stack_push(Helpers::locate_method_on(state, call_frame, t3, name, t1));
-    CODE
-  end
-
-  def test_locate_method
-    <<-CODE
-    Symbol* name = state->symbol("blah");
-    G(true_class)->method_table()->store(state, name, cm);
-
-    task->push(Qtrue);
-    task->push(name);
-    task->push(Qfalse);
-
-    run();
-
-    TS_ASSERT_EQUALS(G(true_class), as<Tuple>(task->stack_top())->at(state, 1));
-    TS_ASSERT_EQUALS(cm, as<Tuple>(task->stack_top())->at(state, 0));
-    CODE
-  end
   # [Operation]
   #   Create an array and populate with items on the stack
   # [Format]
@@ -1418,10 +1050,13 @@ class Instructions
     <<-CODE
     Object* t1 = stack_back(count);
     Object* ret;
+
+    Arguments out_args(Qnil, count, call_frame->stack_back_position(count));
+
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      ret = env->call(state, call_frame, count);
+      ret = env->call(state, call_frame, out_args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      ret = proc->call(state, call_frame, count);
+      ret = proc->call(state, call_frame, out_args);
     } else {
       ret = send_slowly(state, vmm, call_frame, G(sym_call), count);
     }
@@ -1437,19 +1072,19 @@ class Instructions
     <<-CODE
     Object* t1 = call_frame->top_scope->block();
     Object* ret;
+    Arguments args(t1, count, call_frame->stack_back_position(count));
+
     if(BlockEnvironment *env = try_as<BlockEnvironment>(t1)) {
-      ret = env->call(state, call_frame, count);
+      ret = env->call(state, call_frame, args);
     } else if(Proc* proc = try_as<Proc>(t1)) {
-      ret = proc->yield(state, call_frame, count);
+      ret = proc->yield(state, call_frame, args);
     } else if(t1->nil_p()) {
       Exception* exc = Exception::make_exception(state, G(jump_error), "no block given");
       exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
       state->thread_state()->raise_exception(exc);
       ret = NULL;
     } else {
-      Arguments args(t1, count, call_frame->stack_back_position(count));
       Dispatch dis(G(sym_call));
-
       ret = dis.send(state, call_frame, args);
     }
 
@@ -2289,33 +1924,6 @@ class Instructions
 
     run();
     TS_ASSERT_EQUALS(task->stack_top(), Fixnum::from(42));
-    CODE
-  end
-
-  # [Operation]
-  #   Pushes the current method context onto the stack
-  # [Format]
-  #   \push_context
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * #<MethodContext>
-  #   * ...
-  # [Description]
-  #   Creates a reference to the current method execution context, and pushes
-  #   it onto the stack.
-
-  def push_context
-    <<-CODE
-    stack_push(Qnil);
-    CODE
-  end
-
-  def test_push_context
-    <<-CODE
-    run();
-    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(task->stack_top(), task->active());
     CODE
   end
 

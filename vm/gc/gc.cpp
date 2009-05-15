@@ -115,10 +115,12 @@ namespace rubinius {
         call_frame->cm = (CompiledMethod*)mark_object(call_frame->cm);
       }
 
-      for(int i = 0; i < call_frame->stack_size; i++) {
-        Object* obj = call_frame->stk[i];
-        if(obj && obj->reference_p()) {
-          call_frame->stk[i] = mark_object(obj);
+      if(call_frame->stk) {
+        for(int i = 0; i < call_frame->stack_size; i++) {
+          Object* obj = call_frame->stk[i];
+          if(obj && obj->reference_p()) {
+            call_frame->stk[i] = mark_object(obj);
+          }
         }
       }
 
@@ -138,7 +140,7 @@ namespace rubinius {
         }
       }
 
-      call_frame = call_frame->previous;
+      call_frame = static_cast<CallFrame*>(call_frame->previous);
     }
   }
 
@@ -181,10 +183,12 @@ namespace rubinius {
         call_frame->cm = (CompiledMethod*)visit.call(call_frame->cm);
       }
 
-      for(int i = 0; i < call_frame->stack_size; i++) {
-        Object* obj = call_frame->stk[i];
-        if(obj && obj->reference_p()) {
-          call_frame->stk[i] = visit.call(obj);
+      if(call_frame->stk) {
+        for(int i = 0; i < call_frame->stack_size; i++) {
+          Object* obj = call_frame->stk[i];
+          if(obj && obj->reference_p()) {
+            call_frame->stk[i] = visit.call(obj);
+          }
         }
       }
 
@@ -204,7 +208,7 @@ namespace rubinius {
         }
       }
 
-      call_frame = call_frame->previous;
+      call_frame = static_cast<CallFrame*>(call_frame->previous);
     }
   }
 

@@ -316,7 +316,6 @@ describe "An Iter node" do
 
     compile do |g|
       iter = description do |d|
-        d.pop
         d.push_modifiers
         d.new_label.set! # redo
         d.push 1
@@ -324,7 +323,6 @@ describe "An Iter node" do
         d.pop
 
         i2 = description do |j|
-          j.pop
           j.push_modifiers
           j.new_label.set! # redo
           j.push_local_depth 1, 0
@@ -1064,7 +1062,6 @@ describe "An Iter node" do
       g.push :self
 
       g.block_description do |d|
-        d.pop
         redo_lbl = d.new_label
         d.push_modifiers
         redo_lbl.set!
@@ -1093,7 +1090,6 @@ describe "An Iter node" do
         f = d.new_label
         done = d.new_label
 
-        d.pop
         d.push_modifiers
         redo_lbl.set!
 

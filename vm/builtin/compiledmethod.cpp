@@ -13,7 +13,6 @@
 #include "ffi.hpp"
 #include "marshal.hpp"
 #include "primitives.hpp"
-#include "llvm.hpp"
 #include "objectmemory.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
@@ -70,22 +69,7 @@ namespace rubinius {
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
     if(!backend_method_) {
       VMMethod* vmm = NULL;
-#ifdef ENABLE_LLVM
-      /* Controls whether we use LLVM out of the gate or not. */
-      if(state->config.compile_up_front) {
-        if(ondemand) {
-          set_executor(VMLLVMMethod::uncompiled_execute);
-        } else {
-          VMLLVMMethod* llvm = new VMLLVMMethod(state, this);
-          llvm->compile(state);
-          vmm = llvm;
-        }
-      } else {
-        vmm = new VMMethod(state, this);
-      }
-#else
       vmm = new VMMethod(state, this);
-#endif
       backend_method_ = vmm;
 
       resolve_primitive(state);
@@ -165,9 +149,7 @@ namespace rubinius {
       formalize(state, false);
     }
 
-    JITCompiler jit;
-    jit.compile(state, backend_method_);
-    return MachineMethod::create(state, backend_method_, jit);
+    return MachineMethod::create(state, backend_method_);
   }
 
   bool CompiledMethod::is_rescue_target(STATE, int ip) {
@@ -212,7 +194,7 @@ namespace rubinius {
   }
 
   CompiledMethod* CompiledMethod::of_sender(STATE, CallFrame* calling_environment) {
-    CallFrame* caller = calling_environment->previous;
+    CallFrame* caller = static_cast<CallFrame*>(calling_environment->previous);
     if(caller) {
       if(caller->cm) {
         return caller->cm;

@@ -13,4 +13,10 @@ class MetaClass
   def constants_table
     @constants
   end
+
+  def inspect
+    "#<MetaClass: #{@attached_instance.inspect}>"
+  end
+
+  alias_method :to_s, :inspect
 end

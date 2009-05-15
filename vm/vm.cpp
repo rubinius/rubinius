@@ -2,7 +2,6 @@
 #include "objectmemory.hpp"
 #include "event.hpp"
 #include "global_cache.hpp"
-#include "llvm.hpp"
 
 #include "vm/object_utils.hpp"
 
@@ -106,10 +105,6 @@ namespace rubinius {
     signal_events = 0;
 
     VMMethod::init(this);
-
-#ifdef ENABLE_LLVM
-    VMLLVMMethod::init("vm/instructions.bc");
-#endif
 
     /** @todo Should a thread be starting a VM or is it the other way around? */
     boot_threads();

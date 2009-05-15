@@ -3,10 +3,16 @@
 #include "builtin/machine_method.hpp"
 #include "vmmethod.hpp"
 #include "assembler/jit.hpp"
+#include "dispatch.hpp"
 
 #include "vm/exception.hpp"
 
 #include "detection.hpp"
+
+#ifdef ENABLE_LLVM
+#include "llvm/jit.hpp"
+#include <llvm/Support/CommandLine.h>
+#endif
 
 // #define MM_DEBUG
 
@@ -15,6 +21,11 @@ namespace rubinius {
   void MachineMethod::init(STATE) {
     GO(machine_method).set(state->new_class_under("MachineMethod", G(rubinius)));
     GO(machine_method)->name(state, state->symbol("Rubinius::MachineMethod"));
+
+#ifdef ENABLE_LLVM
+    //setenv("RBX_JIT", "--debug-only=jit", 1);
+    llvm::cl::ParseEnvironmentOptions("rbx", "RBX_JIT", "blah", false);
+#endif
   }
 
 
@@ -72,31 +83,61 @@ namespace rubinius {
     return mm;
   }
 
+  MachineMethod* MachineMethod::create(STATE, VMMethod* vmm) {
+#ifdef ENABLE_LLVM
+    LLVMCompiler* jit = new LLVMCompiler();
+    jit->compile(state, vmm);
+
+    MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
+
+    mm->vmmethod_ = vmm;
+    mm->code_size_ = 0;
+    mm->set_function(jit->function_pointer(state));
+    mm->relocations_ = 0;
+    mm->virtual2native_ = 0;
+    mm->comments_ = 0;
+
+    mm->jit_data_ = reinterpret_cast<void*>(jit);
+    return mm;
+#else
+    return (MachineMethod*)Qnil;
+#endif
+  }
+
   void* MachineMethod::resolve_virtual_ip(int ip) {
     CodeMap::iterator i = virtual2native_->find(ip);
     if(i == virtual2native_->end()) return NULL;
     return i->second;
   }
 
-  Object* MachineMethod::show() {
-    std::cout << "== stats ==\n";
-    std::cout << "number of bytecodes: " << vmmethod_->total << "\n";
-    std::cout << " bytes of assembley: " << code_size_ << "\n";
-    double ratio = (double)code_size_ / (double)vmmethod_->total;
-    std::cout << "       direct ratio: " << ratio << "\n";
-    ratio = (double)code_size_ / ((double)vmmethod_->total * sizeof(rubinius::opcode));
-    std::cout << "       memory ratio: " << ratio << "\n";
-    std::cout << "\n== x86 assembly ==\n";
-    assembler_x86::AssemblerX86::show_buffer(function(), code_size_, false, comments_);
+  Object* MachineMethod::show(STATE) {
+#ifdef ENABLE_LLVM
+    if(code_size_ == 0) {
+      std::cout << "== llvm assembly ==\n";
+      reinterpret_cast<LLVMCompiler*>(jit_data_)->show_assembly(state);
+    } else {
+      std::cout << "== stats ==\n";
+      std::cout << "number of bytecodes: " << vmmethod_->total << "\n";
+      std::cout << " bytes of assembley: " << code_size_ << "\n";
+      double ratio = (double)code_size_ / (double)vmmethod_->total;
+      std::cout << "       direct ratio: " << ratio << "\n";
+      ratio = (double)code_size_ / ((double)vmmethod_->total * sizeof(rubinius::opcode));
+      std::cout << "       memory ratio: " << ratio << "\n";
+      std::cout << "\n== x86 assembly ==\n";
+      assembler_x86::AssemblerX86::show_buffer(function(), code_size_, false, comments_);
+    }
+#endif
+
     return Qnil;
   }
 
-  Object * MachineMethod::run_code(STATE, VMMethod* const vmm,
-      CallFrame* const call_frame) {
+  Object * MachineMethod::run_code(STATE, CallFrame* previous, Dispatch& msg, Arguments& args) {
 #ifdef IS_X86
+    CompiledMethod* cm = as<CompiledMethod>(msg.method);
+    VMMethod* vmm = cm->backend_method_;
     MachineMethod* mm = vmm->machine_method();
     void* func = mm->function();
-    return ((Runner)func)(state, vmm, call_frame);
+    return ((executor)func)(state, previous, msg, args);
 #else
     Assertion::raise("Only supported on x86");
     return Qnil; // keep compiler happy
@@ -105,11 +146,12 @@ namespace rubinius {
 
   Object* MachineMethod::activate() {
 #ifdef IS_X86
-#ifdef MM_DEBUG
-    vmmethod_->run = MachineMethod::run_code;
-#else
-    vmmethod_->run = (Runner)function();
-#endif
+    if(!function()) return Qfalse;
+//#ifdef MM_DEBUG
+    vmmethod_->original.get()->execute = &MachineMethod::run_code;
+//#else
+//    vmmethod_->run = (InterpreterRunner)function();
+//#endif
     vmmethod_->set_machine_method(this);
     return Qtrue;
 #else

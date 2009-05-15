@@ -43,7 +43,6 @@ namespace rubinius {
     static BlockEnvironment* under_call_frame(STATE, CompiledMethod* cm,
       VMMethod* caller, CallFrame* call_frame, size_t index);
 
-    Object* call(STATE, CallFrame* call_frame, size_t args, int flags=0);
     Object* call(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
 
     // Ruby.primitive? :block_call

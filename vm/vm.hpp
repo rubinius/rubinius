@@ -28,6 +28,7 @@ namespace llvm {
 namespace rubinius {
 
   class Exception;
+  class LLVMState;
 
   namespace event {
     class Loop;

@@ -21,34 +21,58 @@ namespace rubinius {
     CallFrame* previous;
     StaticScope* static_scope;
 
-    bool is_block;
     Symbol* name;
     CompiledMethod* cm;
 
     int flags;
     int args;
     int ip;
-    intptr_t native_ip;
-
-    int stack_size;
-    struct jit_state js;
 
     VariableScope* top_scope;
     VariableScope* scope;
 
+    // Stack
+    int stack_size;
+    Object** stk;
+
+    bool is_block_p(STATE) {
+      return cm->name() == state->symbol("__block__");
+    }
+
+    Object* self() {
+      return scope->self();
+    }
+
+    Module* module() {
+      return top_scope->module();
+    }
+
+    void set_ip(int new_ip) {
+      ip = new_ip;
+    }
+
+    void promote_scope(STATE);
+
+    void print_backtrace(STATE);
+    int line(STATE);
+
+    bool scope_still_valid(VariableScope* scope);
+  };
+
+  struct InterpreterCallFrame : public CallFrame {
+    struct jit_state js;
+
     int current_unwind;
     UnwindInfo unwinds[kMaxUnwindInfos];
 
-    // MUST BE AT THE END!
-    Object* stk[];
+
+    // Methods
 
     /**
      *  Initialize frame for the given stack size.
      */
     void prepare(int stack) {
-      is_block = false;
       ip = 0;
-      native_ip = 0;
       current_unwind = 0;
       stack_size = stack;
 
@@ -58,14 +82,6 @@ namespace rubinius {
 
       js.stack = stk - 1;
       js.stack_top = (stk + stack) - 1;
-    }
-
-    Object* self() {
-      return scope->self();
-    }
-
-    Module* module() {
-      return top_scope->module();
     }
 
     /* Stack manipulation functions */
@@ -134,14 +150,6 @@ namespace rubinius {
       return js.stack - stk;
     }
 
-    void set_ip(int new_ip) {
-      ip = new_ip;
-    }
-
-    void set_native_ip(void * new_ip) {
-      native_ip = reinterpret_cast<intptr_t>(new_ip);
-    }
-
     // Manage the dynamic Unwind stack for this context
     void push_unwind(int target_ip, UnwindType type) {
       assert(current_unwind < kMaxUnwindInfos);
@@ -159,16 +167,7 @@ namespace rubinius {
     bool has_unwinds_p() {
       return current_unwind > 0;
     }
-
-    void promote_scope(STATE);
-
-    void print_backtrace(STATE);
-    int line(STATE);
-
-    bool scope_still_valid(VariableScope* scope);
   };
 };
-
-#define ALLOCA_CALLFRAME(vmm) ((CallFrame*)alloca(sizeof(CallFrame) + (vmm->stack_size * sizeof(Object*))))
 
 #endif

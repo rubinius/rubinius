@@ -20,10 +20,12 @@ namespace rubinius {
     assembler::Relocation** relocations_;
 
     void* function_;
+    void* jit_data_;
 
   public:
     static void init(STATE);
     static MachineMethod* create(STATE, VMMethod* vmm, JITCompiler& jit);
+    static MachineMethod* create(STATE, VMMethod* vmm);
 
     void* function() {
       return reinterpret_cast<void*>(function_);
@@ -34,10 +36,10 @@ namespace rubinius {
     }
 
     // Used for debugging. Gives us a place to break on before entering jit'd code
-    static Object * run_code(STATE, VMMethod* const vmm, CallFrame* const call_frame);
+    static Object* run_code(STATE, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
     // Ruby.primitive :machine_method_show
-    Object* show();
+    Object* show(STATE);
 
     // Ruby.primitive :machine_method_activate
     Object* activate();

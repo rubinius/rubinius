@@ -6,7 +6,7 @@ class Array
   def each
     i = 0
     while i < @total
-      yield at(i)
+      yield @tuple.at(@start + i)
       i += 1
     end
     self

@@ -37,6 +37,7 @@ class Array
   # returned. Slightly faster than +Array#[]+
   def at(idx)
     Ruby.primitive :array_aref
+    raise PrimitiveFailure, "array_aref failed"
   end
 
   # Runtime method to support case when *foo syntax

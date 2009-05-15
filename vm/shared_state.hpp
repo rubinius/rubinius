@@ -26,6 +26,7 @@ namespace rubinius {
   class ConfigParser;
   class VM;
   class Configuration;
+  class LLVMState;
 
   struct Interrupts {
     bool check;
@@ -69,6 +70,7 @@ namespace rubinius {
     ConfigParser& user_variables;
     Interrupts interrupts;
     SymbolTable symbols;
+    LLVMState* llvm_state;
 
   public:
     SharedState(Configuration& config, ConfigParser& cp);
