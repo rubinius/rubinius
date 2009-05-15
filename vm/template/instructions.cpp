@@ -85,9 +85,7 @@ require 'stringio'
 require 'vm/instructions.rb'
 si = Instructions.new
 impl = si.decode_methods
-io = StringIO.new
-si.generate_functions impl, io
-puts io.string
+nil
 CODE
 
   Object* send_slowly(STATE, VMMethod* vmm, InterpreterCallFrame* const call_frame, Symbol* name, size_t count) {
@@ -209,12 +207,4 @@ puts io.string
 CODE
   }
 #endif // USE_JUMP_TABLE
-}
-
-namespace rubinius {
-namespace instructions {
-#ruby <<CODE
-puts si.generate_implementation_info
-CODE
-}
 }

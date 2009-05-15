@@ -304,7 +304,7 @@ namespace rubinius {
 
     for(size_t i = 0; i < vmm->total;) {
       opcode op = vmm->opcodes[i];
-      op = instructions::reverse_superop(op);
+      // op = instructions::reverse_superop(op);
       size_t width = InstructionSequence::instruction_width(op);
 
       // Set the label location
@@ -485,11 +485,13 @@ namespace rubinius {
 
         a.set_label(slow_path);
         uncache_stack();
+#if 0
         const instructions::Implementation* impl = instructions::implementation(op);
         ops.call_operation(impl->address, impl->name,
             vmm->opcodes[i + 1],
             vmm->opcodes[i + 2]);
         maybe_return(i, &last_imm, fin);
+#endif
 
         a.set_label(done);
         break;
@@ -499,6 +501,7 @@ namespace rubinius {
       default: {
 call_op:
         uncache_stack();
+#if 0
         const instructions::Implementation* impl = instructions::implementation(op);
         switch(width) {
         case 1:
@@ -518,14 +521,17 @@ call_op:
             op << "'\n";
           abort();
         }
+#endif
         cache_stack();
 
+#if 0
         instructions::Status status = instructions::check_status(op);
         if(status == instructions::MightReturn) {
           maybe_return(i + width, &last_imm, fin);
         } else if(status == instructions::Terminate) {
           a.jump(real_fin);
         }
+#endif
         break;
       }
       }
@@ -739,6 +745,7 @@ call_op:
       uncache_stack();
       // ops.call_operation(reinterpret_cast<void*>(show_info), "show_info", ebx);
 
+#if 0
       size_t width = InstructionSequence::instruction_width(op);
       const instructions::Implementation* impl = instructions::implementation(op);
       switch(width) {
@@ -759,9 +766,11 @@ call_op:
           op << "'\n";
         abort();
       }
+#endif
 
       cache_stack();
 
+#if 0
       instructions::Status status = instructions::check_status(op);
       if(status == instructions::MightReturn) {
         a.cmp(eax, cExecuteRestart);
@@ -769,6 +778,7 @@ call_op:
       } else if(status == instructions::Terminate) {
         a.jump(fin);
       }
+#endif
       break;
     }
     }
