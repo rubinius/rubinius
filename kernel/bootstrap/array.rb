@@ -44,10 +44,9 @@ class Array
   # and returns self.  We re-evaluate @total each time
   # through the loop in case the array has changed.
   def each
-    i = @start + 0
-    fin = @start + @total
-    while i < fin
-      yield @tuple.at(i)
+    i = 0
+    while i < @total
+      yield @tuple.at(@start + i)
       i += 1
     end
     self
