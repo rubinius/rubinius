@@ -177,7 +177,6 @@ class Instructions
 
   def cast_for_splat_block_arg
     <<-CODE
-    stack_pop();
     Array* ary = Array::create(state, args.total());
     for(size_t i = 0; i < args.total(); i++) {
       ary->set(state, i, args.get_argument(i));
@@ -239,8 +238,6 @@ class Instructions
 
   def cast_for_multi_block_arg
     <<-CODE
-    stack_pop();
-
     /* If there is only one argument and that thing is an array... */
     if(args.total() == 1 && kind_of<Array>(args.get_argument(0))) {
       stack_push(args.get_argument(0));
@@ -298,7 +295,6 @@ class Instructions
 
   def cast_for_single_block_arg
     <<-CODE
-    stack_pop();
     int k = args.total();
     if(k == 0) {
       stack_push(Qnil);

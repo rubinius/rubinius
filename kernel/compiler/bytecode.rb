@@ -1343,7 +1343,7 @@ class Compiler
           @child.bytecode(g, :swap)
           g.pop
         when Fixnum, nil
-          g.pop
+          # nothing
         else
           raise Error, "Unknown form of block args: #{@child.class}"
         end

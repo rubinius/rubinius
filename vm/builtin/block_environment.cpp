@@ -63,7 +63,6 @@ namespace rubinius {
     frame.top_scope = top_scope_;
     frame.flags =    flags;
 
-    frame.push(Qnil);
     Object* ret;
 
 #ifdef RBX_PROFILER
@@ -121,7 +120,6 @@ namespace rubinius {
     frame.top_scope = top_scope_;
     frame.flags =    flags;
 
-    frame.push(Qnil);
     Object* ret;
 
 #ifdef RBX_PROFILER
@@ -179,7 +177,6 @@ namespace rubinius {
     frame.top_scope = top_scope_;
     frame.flags =    0;
 
-    frame.push(Qnil);
     Object* ret;
 
 #ifdef RBX_PROFILER
