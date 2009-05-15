@@ -177,17 +177,13 @@ class Instructions
 
   def cast_for_splat_block_arg
     <<-CODE
-    Object* t1 = stack_pop();
-    if(t1->nil_p()){
-      t1 = Array::create(state, 0);
-    } else if(kind_of<Tuple>(t1)) {
-      t1 = Array::from_tuple(state, as<Tuple>(t1));
-    } else if(!kind_of<Array>(t1)) {
-      Array* ary = Array::create(state, 1);
-      ary->set(state, 0, t1);
-      t1 = ary;
+    stack_pop();
+    Array* ary = Array::create(state, args.total());
+    for(size_t i = 0; i < args.total(); i++) {
+      ary->set(state, i, args.get_argument(i));
     }
-    stack_push(t1);
+
+    stack_push(ary);
     CODE
   end
 
@@ -243,29 +239,17 @@ class Instructions
 
   def cast_for_multi_block_arg
     <<-CODE
-    Object* obj = stack_top();
+    stack_pop();
 
-    if(!obj->nil_p()) {
-      Tuple* tup = as<Tuple>(obj);
-      int k = tup->num_fields();
-      /* If there is only one thing in the tuple... */
-      if(k == 1) {
-        Object* t1 = tup->at(state, 0);
-        /* and that thing is an array... */
-        if(kind_of<Array>(t1)) { // HACK use try_as
-          /* make a tuple out of the array contents... */
-          Array* ary = as<Array>(t1);
-          int j = ary->size();
-          Tuple* out = Tuple::create(state, j);
-
-          for(k = 0; k < j; k++) {
-            out->put(state, k, ary->get(state, k));
-          }
-
-          /* and put it on the top of the stack. */
-          stack_set_top(out);
-        }
+    /* If there is only one argument and that thing is an array... */
+    if(args.total() == 1 && kind_of<Array>(args.get_argument(0))) {
+      stack_push(args.get_argument(0));
+    } else {
+      Array* ary = Array::create(state, args.total());
+      for(size_t i = 0; i < args.total(); i++) {
+        ary->set(state, i, args.get_argument(i));
       }
+      stack_push(ary);
     }
     CODE
   end
@@ -314,14 +298,18 @@ class Instructions
 
   def cast_for_single_block_arg
     <<-CODE
-    Tuple* tup = as<Tuple>(stack_pop());
-    int k = tup->num_fields();
+    stack_pop();
+    int k = args.total();
     if(k == 0) {
       stack_push(Qnil);
     } else if(k == 1) {
-      stack_push(tup->at(state, 0));
+      stack_push(args.get_argument(0));
     } else {
-      stack_push(Array::from_tuple(state, tup));
+      Array* ary = Array::create(state, k);
+      for(int i = 0; i < k; i++) {
+        ary->set(state, i, args.get_argument(i));
+      }
+      stack_push(ary);
     }
     CODE
   end

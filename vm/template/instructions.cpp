@@ -115,7 +115,8 @@ CODE
 #define RETURN(val) (void)val; DISPATCH;
 
 Object* VMMethod::interpreter(STATE, VMMethod* const vmm,
-                              InterpreterCallFrame* const call_frame) {
+                              InterpreterCallFrame* const call_frame,
+                              Arguments& args) {
   opcode* stream = vmm->opcodes;
   InterpreterState is;
 #ifdef USE_JUMP_TABLE
@@ -155,7 +156,8 @@ CODE
  * a breakpoint is set on compiled method.
  */
 Object* VMMethod::debugger_interpreter(STATE, VMMethod* const vmm,
-                                       InterpreterCallFrame* const call_frame) {
+                                       InterpreterCallFrame* const call_frame,
+                                       Arguments& args) {
   opcode* stream = vmm->opcodes;
   InterpreterState is;
 

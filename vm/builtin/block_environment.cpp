@@ -38,18 +38,6 @@ namespace rubinius {
   }
 
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Arguments& args, int flags) {
-    Object* val;
-    if(args.total() > 0) {
-      Tuple* tup = Tuple::create(state, args.total());
-      for(int i = args.total() - 1; i >= 0; i--) {
-        tup->put(state, i, args.get_argument(i));
-      }
-
-      val = tup;
-    } else {
-      val = Qnil;
-    }
-
     if(!vmm) {
       method_->formalize(state, false);
       vmm = method_->backend_method_;
@@ -75,19 +63,19 @@ namespace rubinius {
     frame.top_scope = top_scope_;
     frame.flags =    flags;
 
-    frame.push(val);
+    frame.push(Qnil);
     Object* ret;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
           top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, &frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
     } else {
-      ret = VMMethod::run_interpreter(state, vmm, &frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
     }
 #else
-    ret = VMMethod::run_interpreter(state, vmm, &frame);
+    ret = VMMethod::run_interpreter(state, vmm, &frame, args);
 #endif
 
     frame.scope->exit();
@@ -103,8 +91,6 @@ namespace rubinius {
   /** @todo See above. --emp */
   Object* BlockEnvironment::call_on_object(STATE, CallFrame* call_frame,
                                            Arguments& args, int flags) {
-    Object* val;
-
     if(args.total() < 1) {
       Exception* exc =
         Exception::make_argument_error(state, 1, args.total(), state->symbol("__block__"));
@@ -113,18 +99,7 @@ namespace rubinius {
       return NULL;
     }
 
-    Object* recv = args.get_argument(0);
-
-    if(args.total() > 1) {
-      Tuple* tup = Tuple::create(state, args.total() - 1);
-      for(size_t i = 0, j = 1; j < args.total(); i++, j++) {
-        tup->put(state, i, args.get_argument(j));
-      }
-
-      val = tup;
-    } else {
-      val = Qnil;
-    }
+    Object* recv = args.shift(state);
 
     VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
                                (vmm->number_of_locals * sizeof(Object*)));
@@ -146,19 +121,19 @@ namespace rubinius {
     frame.top_scope = top_scope_;
     frame.flags =    flags;
 
-    frame.push(val);
+    frame.push(Qnil);
     Object* ret;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
           top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, &frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
     } else {
-      ret = VMMethod::run_interpreter(state, vmm, &frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
     }
 #else
-    ret = VMMethod::run_interpreter(state, vmm, &frame);
+    ret = VMMethod::run_interpreter(state, vmm, &frame, args);
 #endif
 
     return ret;
@@ -168,8 +143,6 @@ namespace rubinius {
   Object* BlockEnvironment::call_under(STATE, Executable* exec,
       CallFrame* call_frame, Dispatch& msg, Arguments& args) {
 
-    Object* val;
-
     if(args.total() < 2) {
       Exception* exc =
         Exception::make_argument_error(state, 2, args.total(), state->symbol("__block__"));
@@ -178,19 +151,8 @@ namespace rubinius {
       return NULL;
     }
 
-    Object* recv = args.get_argument(0);
-    StaticScope* static_scope = as<StaticScope>(args.get_argument(1));
-
-    if(args.total() > 2) {
-      Tuple* tup = Tuple::create(state, args.total() - 2);
-      for(size_t i = 0, j = 2; j < args.total(); i++, j++) {
-        tup->put(state, i, args.get_argument(j));
-      }
-
-      val = tup;
-    } else {
-      val = Qnil;
-    }
+    Object* recv = args.shift(state);
+    StaticScope* static_scope = as<StaticScope>(args.shift(state));
 
     if(!vmm) {
       method_->formalize(state, false);
@@ -217,19 +179,19 @@ namespace rubinius {
     frame.top_scope = top_scope_;
     frame.flags =    0;
 
-    frame.push(val);
+    frame.push(Qnil);
     Object* ret;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
           top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, &frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
     } else {
-      ret = VMMethod::run_interpreter(state, vmm, &frame);
+      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
     }
 #else
-    ret = VMMethod::run_interpreter(state, vmm, &frame);
+    ret = VMMethod::run_interpreter(state, vmm, &frame, args);
 #endif
 
     return ret;

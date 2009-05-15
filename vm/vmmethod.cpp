@@ -463,12 +463,12 @@ namespace rubinius {
 #ifdef RBX_PROFILER
       if(unlikely(state->shared.profiling())) {
         profiler::MethodEntry method(state, msg, args, cm);
-        ret = run_interpreter(state, vmm, &frame);
+        ret = run_interpreter(state, vmm, &frame, args);
       } else {
-        ret = run_interpreter(state, vmm, &frame);
+        ret = run_interpreter(state, vmm, &frame, args);
       }
 #else
-      ret = run_interpreter(state, vmm, &frame);
+      ret = run_interpreter(state, vmm, &frame, args);
 #endif
 
       frame.scope->exit();
@@ -624,7 +624,9 @@ namespace rubinius {
 
   }
 
-  Object* VMMethod::run_interpreter(STATE, VMMethod* const vmm, InterpreterCallFrame* const call_frame) {
+  Object* VMMethod::run_interpreter(STATE, VMMethod* const vmm,
+                                    InterpreterCallFrame* const call_frame,
+                                    Arguments& args) {
     Object* return_value;
     static int tick = 0;
 
@@ -648,7 +650,7 @@ namespace rubinius {
       }
 
       try {
-        return_value = (*vmm->run)(state, vmm, call_frame);
+        return_value = (*vmm->run)(state, vmm, call_frame, args);
       } catch(TypeError& e) {
         Exception* exc =
           Exception::make_type_error(state, e.type, e.object, e.reason);
