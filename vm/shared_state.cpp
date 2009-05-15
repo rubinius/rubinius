@@ -29,10 +29,6 @@ namespace rubinius {
     delete om;
     delete global_cache;
     delete global_handles_;
-
-#ifdef ENABLE_LLVM
-    if(!reuse_llvm) llvm_cleanup();
-#endif
   }
 
   void SharedState::discard(SharedState* ss) {

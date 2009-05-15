@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "vmmethod.hpp"
 #include "llvm/jit.hpp"
 
@@ -487,3 +489,5 @@ namespace rubinius {
   }
 
 }
+
+#endif

@@ -9,8 +9,10 @@
 
 #include "detection.hpp"
 
+#ifdef ENABLE_LLVM
 #include "llvm/jit.hpp"
 #include <llvm/Support/CommandLine.h>
+#endif
 
 // #define MM_DEBUG
 
@@ -20,8 +22,10 @@ namespace rubinius {
     GO(machine_method).set(state->new_class_under("MachineMethod", G(rubinius)));
     GO(machine_method)->name(state, state->symbol("Rubinius::MachineMethod"));
 
+#ifdef ENABLE_LLVM
     //setenv("RBX_JIT", "--debug-only=jit", 1);
     llvm::cl::ParseEnvironmentOptions("rbx", "RBX_JIT", "blah", false);
+#endif
   }
 
 
@@ -80,6 +84,7 @@ namespace rubinius {
   }
 
   MachineMethod* MachineMethod::create(STATE, VMMethod* vmm) {
+#ifdef ENABLE_LLVM
     LLVMCompiler* jit = new LLVMCompiler();
     jit->compile(state, vmm);
 
@@ -94,6 +99,9 @@ namespace rubinius {
 
     mm->jit_data_ = reinterpret_cast<void*>(jit);
     return mm;
+#else
+    return (MachineMethod*)Qnil;
+#endif
   }
 
   void* MachineMethod::resolve_virtual_ip(int ip) {
@@ -103,6 +111,7 @@ namespace rubinius {
   }
 
   Object* MachineMethod::show(STATE) {
+#ifdef ENABLE_LLVM
     if(code_size_ == 0) {
       std::cout << "== llvm assembly ==\n";
       reinterpret_cast<LLVMCompiler*>(jit_data_)->show_assembly(state);
@@ -117,6 +126,7 @@ namespace rubinius {
       std::cout << "\n== x86 assembly ==\n";
       assembler_x86::AssemblerX86::show_buffer(function(), code_size_, false, comments_);
     }
+#endif
 
     return Qnil;
   }

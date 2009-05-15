@@ -1,6 +1,12 @@
 require "#{File.dirname(__FILE__)}/../../kernel/compiler/iseq"
 
-File.open "#{File.dirname(__FILE__)}/../gen/inst_list.hpp", "w" do |f|
+dir = "#{File.dirname(__FILE__)}/../gen/"
+
+unless File.directory? dir
+  Dir.mkdir dir
+end
+
+File.open "#{dir}/inst_list.hpp", "w" do |f|
   Rubinius::InstructionSet::OpCodes.each do |ins|
     case ins.arg_count
     when 2

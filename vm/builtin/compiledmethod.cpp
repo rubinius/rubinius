@@ -13,7 +13,6 @@
 #include "ffi.hpp"
 #include "marshal.hpp"
 #include "primitives.hpp"
-#include "llvm.hpp"
 #include "objectmemory.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
@@ -70,22 +69,7 @@ namespace rubinius {
   VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
     if(!backend_method_) {
       VMMethod* vmm = NULL;
-#ifdef ENABLE_LLVM
-      /* Controls whether we use LLVM out of the gate or not. */
-      if(state->config.compile_up_front) {
-        if(ondemand) {
-          set_executor(VMLLVMMethod::uncompiled_execute);
-        } else {
-          VMLLVMMethod* llvm = new VMLLVMMethod(state, this);
-          llvm->compile(state);
-          vmm = llvm;
-        }
-      } else {
-        vmm = new VMMethod(state, this);
-      }
-#else
       vmm = new VMMethod(state, this);
-#endif
       backend_method_ = vmm;
 
       resolve_primitive(state);

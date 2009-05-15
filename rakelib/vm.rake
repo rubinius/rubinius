@@ -27,8 +27,7 @@ else
   LLVM_STYLE = "Release"
 end
 
-LLVM_ENABLE = true
-
+LLVM_ENABLE = false
 
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
@@ -185,7 +184,7 @@ if RUBY_PLATFORM =~ /darwin/i && `sw_vers` =~ /10\.4/
 end
 
 if LLVM_ENABLE
-  # FLAGS << "-DENABLE_LLVM"
+  FLAGS << "-DENABLE_LLVM"
   llvm_flags = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
   llvm_flags.delete_if { |e| e.index("-O") == 0 }
   FLAGS.concat llvm_flags

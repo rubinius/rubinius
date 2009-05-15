@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 #include "llvm/jit.hpp"
 #include "call_frame.hpp"
 #include "builtin/object.hpp"
@@ -538,3 +540,5 @@ extern "C" {
     return Qtrue;
   }
 }
+
+#endif
