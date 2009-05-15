@@ -123,7 +123,7 @@ module Rubinius
         data.sort! do |a, b|
           columns.each do |c|
             cmp = b[c] <=> a[c]
-            return cmp if cmp != 0
+            break cmp if cmp != 0
           end
           0
         end
