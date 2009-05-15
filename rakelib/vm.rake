@@ -196,7 +196,9 @@ if ENV['DEV']
   BUILD_PRETASKS << "build:debug_flags"
 end
 
+# Check compiler preferences (LLVM may still override.)
 CC          = ENV['CC'] || "gcc"
+CXX         = ENV["CXX"] || "g++"
 
 def compile_c(obj, src)
   flags = INCLUDES + FLAGS
@@ -587,7 +589,7 @@ namespace :vm do
     begin
       path = "vm/gen/instructions.cpp"
       ruby 'vm/codegen/rubypp.rb', "vm/template/instructions.cpp", path
-      sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
+      sh "#{CXX} -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
 
       puts "RUN vm/test/coverage/runner"
       sh "vm/test/coverage/runner"
