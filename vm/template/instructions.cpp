@@ -139,13 +139,6 @@ CODE
   for(;;) {
     op = stream[call_frame->ip++];
 
-#if FLAG_FIRE_PROBE_INSTRUCTION
-/** @todo Probe is in VM now, fix. --rue */
-//    if(!task->probe()->nil_p()) {
-//      task->probe()->execute_instruction(task, call_frame, op);
-//    }
-#endif
-
 #ruby <<CODE
 io = StringIO.new
 si.generate_decoder_switch impl, io, true
@@ -192,13 +185,6 @@ CODE
 
   for(;;) {
     op = stream[call_frame->ip++];
-
-#if FLAG_FIRE_PROBE_INSTRUCTION
-/** @todo Probe is in VM now, fix. --rue */
-//    if(!task->probe()->nil_p()) {
-//      task->probe()->execute_instruction(task, call_frame, op);
-//    }
-#endif
 
 #ruby <<CODE
 io = StringIO.new
