@@ -977,7 +977,6 @@ namespace rubinius {
 
         BranchInst::Create(cont, block_);
         block_ = cont;
-
       } else {
         Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
         stack_remove(args + 1);

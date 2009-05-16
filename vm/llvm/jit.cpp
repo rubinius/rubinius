@@ -422,6 +422,9 @@ namespace rubinius {
     BlockFinder finder(visitor.block_map(), func);
     finder.drive(vmm);
 
+    // Check for interrupts at the top of every method...
+    visitor.visit_check_interrupts();
+
     // Pass 2, compile!
     try {
       visitor.drive(vmm->opcodes, vmm->total);

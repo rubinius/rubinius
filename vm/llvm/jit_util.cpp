@@ -513,6 +513,11 @@ extern "C" {
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
+    if(unlikely(state->interrupts.check)) {
+      state->interrupts.check = false;
+      state->collect_maybe(call_frame);
+    }
+
     if(unlikely(state->interrupts.timer)) {
       {
         state->interrupts.timer = false;
