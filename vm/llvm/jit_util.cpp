@@ -172,7 +172,8 @@ extern "C" {
     // TODO: We don't need to be doing this everytime.
     cm->scope(state, call_frame->static_scope);
 
-    return BlockEnvironment::under_call_frame(state, cm, cm->backend_method_,
+    VMMethod* vmm = call_frame->cm->backend_method_;
+    return BlockEnvironment::under_call_frame(state, cm, vmm,
                                               call_frame, index);
   }
 
