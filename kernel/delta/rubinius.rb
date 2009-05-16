@@ -117,4 +117,25 @@ module Rubinius
   def self.received_signal(sig)
     Signal.run_handler(sig)
   end
+
+  def self.jit(meth)
+    mm = meth.compiled_method.make_machine_method
+    if mm
+      mm.activate
+    elsif $DEBUG
+      puts "AOT: unable to compile #{meth}"
+    end
+  end
+
+  def self.compile_common_methods
+    methods = [
+      Array.instance_method(:each)
+    ]
+
+    methods.each do |meth|
+      puts "AOT: compiling #{meth}" if $DEBUG
+      jit meth
+    end
+  end
+
 end

@@ -197,6 +197,8 @@ begin
       eval_code = ARGV.shift
     when '-ed'
       show_eval = true
+    when '--fast'
+      Rubinius.compile_common_methods
     else
       if arg.prefix? "-I"
         more = arg[2..-1]
