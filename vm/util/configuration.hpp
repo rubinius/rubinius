@@ -66,7 +66,12 @@ namespace config {
     {}
 
     virtual void set(const char* str) {
-      value = strtol(str, NULL, 0);
+      // true means either likely they set it with no value
+      if(strcmp("true", str) == 0) {
+        value = 1;
+      } else {
+        value = strtol(str, NULL, 0);
+      }
     }
 
     virtual void print_value() {

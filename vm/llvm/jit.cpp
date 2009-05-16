@@ -452,11 +452,17 @@ namespace rubinius {
 
     */
 
-    if(state->shared.config.jit_dump_code) {
+    if(state->shared.config.jit_dump_code & cSimple) {
+      std::cout << "[[[ LLVM Simple IR ]]]\n";
       std::cout << *func << "\n";
     }
 
     LLVMState::get(state)->passes()->run(*func);
+
+    if(state->shared.config.jit_dump_code & cOptimized) {
+      std::cout << "[[[ LLVM Optimized IR ]]]\n";
+      std::cout << *func << "\n";
+    }
 
     function_ = func;
   }
@@ -466,6 +472,11 @@ namespace rubinius {
       if(!function_) return NULL;
       mci_ = new llvm::MachineCodeInfo();
       LLVMState::get(state)->engine()->runJITOnFunction(function_, mci_);
+
+      if(state->shared.config.jit_dump_code & cMachineCode) {
+        std::cout << "[[[ JIT Machine Code ]]]\n";
+        assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
+      }
     }
 
     return mci_->address();

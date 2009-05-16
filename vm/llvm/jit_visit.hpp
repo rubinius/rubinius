@@ -145,20 +145,64 @@ namespace rubinius {
     }
 
     void check_for_return(Value* val) {
-
       BasicBlock* cont = BasicBlock::Create("continue", function_);
+      BasicBlock* push_val = BasicBlock::Create("push_val", function_);
+
       Value* null = Constant::getNullValue(ObjType);
 
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block_);
+      BasicBlock* is_break = BasicBlock::Create("is_break", function_);
+      BranchInst::Create(is_break, push_val, cmp, block_);
+
+      /////
+      std::vector<const Type*> types;
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+
+      FunctionType* ft = FunctionType::get(Type::Int1Ty, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_break_to_here", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_
+      };
+
+      Value* isit = CallInst::Create(func, call_args, call_args+2, "bth", is_break);
+
+      BasicBlock* push_break_val = BasicBlock::Create("push_break_val", function_);
+      BasicBlock* next = 0;
 
       // If there are handlers...
       if(exception_handlers_.size() > 0) {
         ExceptionHandler* handler = exception_handlers_.back();
-        BranchInst::Create(handler->code(), cont, cmp, block_);
+        next = handler->code();
       } else {
-        BranchInst::Create(bail_out_, cont, cmp, block_);
+        next = bail_out_;
       }
 
+      BranchInst::Create(push_break_val, next, isit, is_break);
+
+      ////
+      std::vector<const Type*> types2;
+      types2.push_back(VMTy);
+
+      FunctionType* ft2 = FunctionType::get(ObjType, types2, false);
+      Function* func2 = cast<Function>(
+          module_->getOrInsertFunction("rbx_clear_raise_value", ft2));
+
+      Value* call_args2[] = { vm_ };
+
+      Value* crv = CallInst::Create(func2, call_args2, call_args2+1, "crv", push_break_val);
+      stack_push(crv, push_break_val);
+
+      BranchInst::Create(cont, push_break_val);
+
+      /////
+      stack_push(val, push_val);
+      BranchInst::Create(cont, push_val);
+
+      /////
       block_ = cont;
     }
 
@@ -925,7 +969,6 @@ namespace rubinius {
       Value* ret = block_send(cache->name, args, block_, allow_private_);
       stack_remove(args + 2);
       check_for_return(ret);
-      stack_push(ret);
       allow_private_ = false;
     }
 
@@ -977,7 +1020,6 @@ namespace rubinius {
       Value* ret = super_send(cache->name, args);
       stack_remove(args + 1);
       check_for_return(ret);
-      stack_push(ret);
     }
 
     void visit_send_super_stack_with_splat(opcode which, opcode args) {

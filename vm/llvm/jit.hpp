@@ -21,6 +21,12 @@
 
 namespace rubinius {
 
+  enum JitDebug {
+    cSimple = 1,
+    cOptimized = 2,
+    cMachineCode = 4
+  };
+
   class LLVMState {
     llvm::Module* module_;
     llvm::ExistingModuleProvider* mp_;

@@ -119,8 +119,11 @@ module Rubinius
   end
 
   def self.jit(meth)
-    mm = meth.compiled_method.make_machine_method
-    if mm
+    cm = meth.compiled_method
+
+    return unless cm.respond_to? :make_machine_method
+
+    if mm = cm.make_machine_method
       unless mm.activate
         if $DEBUG
           puts

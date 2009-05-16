@@ -533,6 +533,13 @@ extern "C" {
     return false;
   }
 
+  bool rbx_break_to_here(STATE, CallFrame* call_frame) {
+    ThreadState* th = state->thread_state();
+    if(th->raise_reason() != cBreak) return false;
+    if(th->destination_scope() == call_frame->scope) return true;
+    return false;
+  }
+
   Object* rbx_clear_raise_value(STATE) {
     Object* val = state->thread_state()->raise_value();
     state->thread_state()->clear_exception(true);
