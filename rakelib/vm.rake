@@ -665,7 +665,7 @@ file dep_file => EXTERNALS + srcs + hdrs + vm_srcs + generated + %w[vm/gen/instr
   includes = INCLUDES.join ' '
 
   flags = FLAGS.join ' '
-  flags << " -D__STDC_LIMIT_MACROS"
+  flags << " -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   flags.slice!(/-Wno-deprecated/)
 
   Dir.mkdir "vm/.deps" unless File.directory? "vm/.deps"
