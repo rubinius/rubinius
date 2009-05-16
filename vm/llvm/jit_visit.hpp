@@ -6,8 +6,25 @@
 
 #include <llvm/DerivedTypes.h>
 
+#include <list>
+
 namespace rubinius {
   typedef std::map<int, llvm::BasicBlock*> BlockMap;
+
+  class ExceptionHandler {
+    BasicBlock* code_;
+
+  public:
+    ExceptionHandler(BasicBlock* code)
+      : code_(code)
+    {}
+
+    BasicBlock* code() {
+      return code_;
+    }
+  };
+
+  typedef std::list<ExceptionHandler*> EHandlers;
 
   class JITVisit : public VisitInstructions<JITVisit> {
     STATE;
@@ -43,6 +60,8 @@ namespace rubinius {
     // bail out destinations
     llvm::BasicBlock* bail_out_;
     llvm::BasicBlock* bail_out_fast_;
+
+    EHandlers exception_handlers_;
 
   public:
 
@@ -126,11 +145,19 @@ namespace rubinius {
     }
 
     void check_for_return(Value* val) {
+
       BasicBlock* cont = BasicBlock::Create("continue", function_);
       Value* null = Constant::getNullValue(ObjType);
 
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block_);
-      BranchInst::Create(bail_out_, cont, cmp, block_);
+
+      // If there are handlers...
+      if(exception_handlers_.size() > 0) {
+        ExceptionHandler* handler = exception_handlers_.back();
+        BranchInst::Create(handler->code(), cont, cmp, block_);
+      } else {
+        BranchInst::Create(bail_out_, cont, cmp, block_);
+      }
 
       block_ = cont;
     }
@@ -139,7 +166,14 @@ namespace rubinius {
       Value* null = Constant::getNullValue(ObjType);
 
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block);
-      BranchInst::Create(bail_out_fast_, cont, cmp, block);
+
+      // If there are handlers...
+      if(exception_handlers_.size() > 0) {
+        ExceptionHandler* handler = exception_handlers_.back();
+        BranchInst::Create(handler->code(), cont, cmp, block);
+      } else {
+        BranchInst::Create(bail_out_fast_, cont, cmp, block);
+      }
     }
 
     BasicBlock* check_for_exception(Value* val, BasicBlock* block) {
@@ -1195,6 +1229,98 @@ namespace rubinius {
       pos = GetElementPtrInst::Create(cst, idx2, idx2+1, "val_pos", block_);
 
       stack_push(new LoadInst(pos, "val", block_));
+    }
+
+    void visit_setup_unwind(opcode where, opcode type) {
+      BasicBlock* code;
+      if(type == cRescue) {
+        code = BasicBlock::Create("is_exception", function_);
+        std::vector<const Type*> types;
+        types.push_back(VMTy);
+
+        FunctionType* ft = FunctionType::get(Type::Int1Ty, types, false);
+        Function* func = cast<Function>(
+            module_->getOrInsertFunction("rbx_raising_exception", ft));
+
+        Value* call_args[] = { vm_ };
+        Value* isit = CallInst::Create(func, call_args, call_args+1, "rae", code);
+
+        BasicBlock* next = 0;
+        if(exception_handlers_.size() == 0) {
+          next = bail_out_;
+        } else {
+          next = exception_handlers_.back()->code();
+        }
+
+        BranchInst::Create(block_map_[where], next, isit, code);
+      } else {
+        code = block_map_[where];
+      }
+
+      // Reset the stack pointer within the handler to the current value
+      set_stack_ptr(stack_ptr(), block_map_[where]);
+
+      ExceptionHandler* handler = new ExceptionHandler(code);
+      exception_handlers_.push_back(handler);
+    }
+
+    void visit_pop_unwind() {
+      ExceptionHandler* handler = exception_handlers_.back();
+      exception_handlers_.pop_back();
+
+      delete handler;
+    }
+
+    void visit_reraise() {
+      if(exception_handlers_.size() > 0) {
+        BranchInst::Create(exception_handlers_.back()->code(), block_);
+      } else {
+        BranchInst::Create(bail_out_, block_);
+      }
+      block_ = BasicBlock::Create("continue", function_);
+    }
+
+    void visit_push_exception() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_current_exception", ft));
+
+      Value* call_args[] = { vm_ };
+
+      stack_push(CallInst::Create(func, call_args, call_args+1, "ce", block_));
+    }
+
+    void visit_clear_exception() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_clear_exception", ft));
+
+      Value* call_args[] = { vm_ };
+
+      CallInst::Create(func, call_args, call_args+1, "ce", block_);
+    }
+
+    void visit_pop_exception() {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_pop_exception", ft));
+
+      Value* call_args[] = { vm_, stack_pop() };
+
+      CallInst::Create(func, call_args, call_args+2, "pe", block_);
     }
   };
 }

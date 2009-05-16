@@ -121,10 +121,18 @@ module Rubinius
   def self.jit(meth)
     mm = meth.compiled_method.make_machine_method
     if mm
-      mm.activate
+      unless mm.activate
+        if $DEBUG
+          puts
+          puts meth.compiled_method.decode
+          puts
+        end
+      end
     elsif $DEBUG
       puts "AOT: unable to compile #{meth}"
     end
+
+    return mm
   end
 
   def self.compile_common_methods

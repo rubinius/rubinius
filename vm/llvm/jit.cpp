@@ -294,7 +294,7 @@ namespace rubinius {
       visit_goto(which);
     }
 
-    void setup_unwind(opcode which, opcode type) {
+    void visit_setup_unwind(opcode which, opcode type) {
       visit_goto(which);
     }
   };

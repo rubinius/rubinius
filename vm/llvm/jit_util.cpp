@@ -270,13 +270,6 @@ extern "C" {
     return Qfalse;
   }
 
-  void rbx_clear_exception(STATE, CallFrame* call_frame) {
-    // Don't allow this code to clear non-exception raises
-    if(state->thread_state()->raise_reason() == cException) {
-      state->thread_state()->clear_exception();
-    }
-  }
-
   Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {
     bool found;
     Module* under = as<Module>(top);
@@ -431,14 +424,6 @@ extern "C" {
     return (index == call_frame->args) ? Qtrue : Qfalse;
   }
 
-  void rbx_pop_exception(STATE, CallFrame* call_frame, Object* top) {
-    if(top->nil_p()) {
-      state->thread_state()->clear_exception();
-    } else {
-      state->thread_state()->set_exception(state, top);
-    }
-  }
-
   Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {
     bool found;
     Object* res = Helpers::const_get(state, call_frame, sym, &found);
@@ -553,6 +538,34 @@ extern "C" {
     state->thread_state()->clear_exception(true);
     return val;
   }
+
+  bool rbx_raising_exception(STATE) {
+    return state->thread_state()->raise_reason() == cException;
+  }
+
+  Object* rbx_current_exception(STATE) {
+    return state->thread_state()->as_object(state);
+  }
+
+  Object* rbx_clear_exception(STATE) {
+    // Don't allow this code to clear non-exception raises
+    if(state->thread_state()->raise_reason() == cException) {
+      state->thread_state()->clear_exception();
+    }
+
+    return Qnil;
+  }
+
+  Object* rbx_pop_exception(STATE, Object* top) {
+    if(top->nil_p()) {
+      state->thread_state()->clear_exception();
+    } else {
+      state->thread_state()->set_exception(state, top);
+    }
+
+    return Qnil;
+  }
+
 }
 
 #endif

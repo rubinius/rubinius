@@ -365,7 +365,7 @@ class TestGenerator
     g.push_literal :__class_init__
     g.swap
     g.push_literal_desc name do |d|
-      d.push_self # FIX
+      d.push_self
       d.add_scope
 
       yield d
@@ -433,7 +433,7 @@ class TestGenerator
     g.push_literal :__module_init__
     g.swap
     g.push_literal_desc do |d|
-      d.push_self # FIX
+      d.push_self
       d.add_scope
 
       yield d
@@ -492,7 +492,7 @@ class TestGenerator
         self.send :===, 1
         self.git jump_body
 
-        self.goto jump_next         # FIX: stupid jump, gifucked better
+        self.goto jump_next
 
         jump_body.set!
 
@@ -504,8 +504,7 @@ class TestGenerator
         jump_next.set!
       end
 
-      g.push_exception
-      g.raise_exc
+      g.reraise
     end
 
     jump_else.set!

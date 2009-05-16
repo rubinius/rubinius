@@ -335,8 +335,7 @@ describe "A Rescue node" do
 
         rr.set!
 
-        g.push_exception
-        g.raise_exc
+        g.reraise
 
         fin.set!
         g.pop
@@ -393,8 +392,7 @@ describe "A Rescue node" do
 
         rr.set!
 
-        g.push_exception
-        g.raise_exc
+        g.reraise
 
         fin.set!
 
@@ -457,8 +455,7 @@ describe "A Rescue node" do
 
         rr.set!
 
-        g.push_exception
-        g.raise_exc
+        g.reraise
 
         fin.set!
 
@@ -519,8 +516,7 @@ describe "A Rescue node" do
 
         reraise.set!
 
-        g.push_exception
-        g.raise_exc
+        g.reraise
 
         fin.set!
 
@@ -589,8 +585,7 @@ describe "A Rescue node" do
 
         reraise.set!
 
-        g.push_exception
-        g.raise_exc
+        g.reraise
 
         fin.set!
 
@@ -645,8 +640,7 @@ describe "A Rescue node" do
 
         rr.set!
 
-        g.push_exception
-        g.raise_exc
+        g.reraise
 
         fin.set!
 

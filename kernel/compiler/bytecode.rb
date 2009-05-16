@@ -2089,8 +2089,7 @@ class Compiler
               resbody.bytecode(g, reraise, last, i == max)
             end
             reraise.set!
-            g.push_exception
-            g.raise_exc
+            g.reraise
           end
 
           els.set!
