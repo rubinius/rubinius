@@ -107,7 +107,7 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, vmm->required_args), "arg_cmp", block);
 
     BasicBlock* arg_error = BasicBlock::Create("arg_error", func);
-    BasicBlock* cont = BasicBlock::Create("continue", func);
+    BasicBlock* cont = BasicBlock::Create("method_body", func);
 
     BranchInst::Create(arg_error, cont, cmp, block);
 

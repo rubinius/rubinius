@@ -771,6 +771,59 @@ namespace rubinius {
       stack_push(phi);
     }
 
+    void visit_meta_send_op_minus() {
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
+
+      BasicBlock* fast = BasicBlock::Create("fast", function_);
+      BasicBlock* dispatch = BasicBlock::Create("dispatch", function_);
+      BasicBlock* cont = BasicBlock::Create("cont", function_);
+
+      check_fixnums(recv, arg, fast, dispatch);
+
+      Value* called_value = simple_send(state->symbol("-"), 1, dispatch);
+      check_for_exception_then(called_value, cont, dispatch);
+
+      std::vector<const Type*> types;
+      types.push_back(Int31Ty);
+      types.push_back(Int31Ty);
+
+      std::vector<const Type*> struct_types;
+      struct_types.push_back(Int31Ty);
+      struct_types.push_back(Type::Int1Ty);
+
+      StructType* st = StructType::get(struct_types);
+
+      FunctionType* ft = FunctionType::get(st, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("llvm.ssub.with.overflow.i31", ft));
+
+      Value* recv_int = tag_strip(recv, fast);
+      Value* arg_int = tag_strip(arg, fast);
+      Value* call_args[] = { recv_int, arg_int };
+      Value* res = CallInst::Create(func, call_args, call_args+2, "sub.overflow", fast);
+
+      Value* sum = ExtractValueInst::Create(res, 0, "sub", fast);
+      Value* dof = ExtractValueInst::Create(res, 1, "did_overflow", fast);
+
+      BasicBlock* tagnow = BasicBlock::Create("tagnow", function_);
+      BranchInst::Create(dispatch, tagnow, dof, fast);
+
+      Value* imm_value = fixnum_tag(sum, tagnow);
+
+      BranchInst::Create(cont, tagnow);
+
+      block_ = cont;
+
+      PHINode* phi = PHINode::Create(ObjType, "subtraction", block_);
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, tagnow);
+
+      stack_remove(2);
+      stack_push(phi);
+    }
+
+
     Object* literal(opcode which) {
       return vmm_->original.get()->literals()->at(state, which);
     }
