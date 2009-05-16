@@ -540,6 +540,19 @@ extern "C" {
     if(!state->check_async(call_frame)) return NULL;
     return Qtrue;
   }
+
+  bool rbx_return_to_here(STATE, CallFrame* call_frame) {
+    ThreadState* th = state->thread_state();
+    if(th->raise_reason() != cReturn) return false;
+    if(th->destination_scope() == call_frame->scope) return true;
+    return false;
+  }
+
+  Object* rbx_clear_raise_value(STATE) {
+    Object* val = state->thread_state()->raise_value();
+    state->thread_state()->clear_exception(true);
+    return val;
+  }
 }
 
 #endif

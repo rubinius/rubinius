@@ -40,8 +40,9 @@ namespace rubinius {
     llvm::Function* rbx_simple_send_;
     llvm::Function* rbx_simple_send_private_;
 
-    // bail out destination
+    // bail out destinations
     llvm::BasicBlock* bail_out_;
+    llvm::BasicBlock* bail_out_fast_;
 
   public:
 
@@ -84,18 +85,61 @@ namespace rubinius {
       vm_ = input++;
 
       bail_out_ = BasicBlock::Create("bail_out", function_);
-      ReturnInst::Create(Constant::getNullValue(ObjType), bail_out_);
+
+      std::vector<const Type*> types;
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+
+      FunctionType* ft = FunctionType::get(Type::Int1Ty, types, false);
+      Function* func_rth = cast<Function>(
+          module_->getOrInsertFunction("rbx_return_to_here", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_
+      };
+
+      Value* isit = CallInst::Create(func_rth, call_args, call_args+2, "rth", bail_out_);
+
+      BasicBlock* ret_raise_val = BasicBlock::Create("ret_raise_val", function_);
+      bail_out_fast_ = BasicBlock::Create("ret_null", function_);
+
+      BranchInst::Create(ret_raise_val, bail_out_fast_, isit, bail_out_);
+
+      ReturnInst::Create(Constant::getNullValue(ObjType), bail_out_fast_);
+
+      std::vector<const Type*> types2;
+      types2.push_back(VMTy);
+
+      FunctionType* ft2 = FunctionType::get(ObjType, types2, false);
+      Function* func2 = cast<Function>(
+          module_->getOrInsertFunction("rbx_clear_raise_value", ft2));
+
+      Value* call_args2[] = { vm_ };
+
+      Value* crv = CallInst::Create(func2, call_args2, call_args2+1, "crv", ret_raise_val);
+      ReturnInst::Create(crv, ret_raise_val);
     }
 
     BlockMap& block_map() {
       return block_map_;
     }
 
+    void check_for_return(Value* val) {
+      BasicBlock* cont = BasicBlock::Create("continue", function_);
+      Value* null = Constant::getNullValue(ObjType);
+
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block_);
+      BranchInst::Create(bail_out_, cont, cmp, block_);
+
+      block_ = cont;
+    }
+
     void check_for_exception_then(Value* val, BasicBlock* cont, BasicBlock* block) {
       Value* null = Constant::getNullValue(ObjType);
 
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block);
-      BranchInst::Create(bail_out_, cont, cmp, block);
+      BranchInst::Create(bail_out_fast_, cont, cmp, block);
     }
 
     BasicBlock* check_for_exception(Value* val, BasicBlock* block) {
@@ -846,6 +890,7 @@ namespace rubinius {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
       Value* ret = block_send(cache->name, args, block_, allow_private_);
       stack_remove(args + 2);
+      check_for_return(ret);
       stack_push(ret);
       allow_private_ = false;
     }
@@ -854,6 +899,7 @@ namespace rubinius {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
       Value* ret = splat_send(cache->name, args, block_, allow_private_);
       stack_remove(args + 3);
+      check_for_exception(ret);
       stack_push(ret);
       allow_private_ = false;
     }
@@ -896,6 +942,7 @@ namespace rubinius {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
       Value* ret = super_send(cache->name, args);
       stack_remove(args + 1);
+      check_for_return(ret);
       stack_push(ret);
     }
 
@@ -903,6 +950,7 @@ namespace rubinius {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
       Value* ret = super_send(cache->name, args, block_, true);
       stack_remove(args + 2);
+      check_for_exception(ret);
       stack_push(ret);
     }
 
@@ -945,8 +993,9 @@ namespace rubinius {
         ConstantInt::get(Type::Int32Ty, cache)
       };
 
-      stack_push(
-          CallInst::Create(func, call_args, call_args+4, "push_const_fast", block_));
+      Value* ret = CallInst::Create(func, call_args, call_args+4, "push_const_fast", block_);
+      check_for_exception(ret);
+      stack_push(ret);
     }
 
     void visit_push_variables() {
@@ -1118,7 +1167,8 @@ namespace rubinius {
         call_frame_
       };
 
-      CallInst::Create(func, call_args, call_args+2, "ci", block_);
+      Value* ret = CallInst::Create(func, call_args, call_args+2, "ci", block_);
+      check_for_exception(ret);
     }
 
     void visit_push_my_offset(opcode offset) {
