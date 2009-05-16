@@ -40,6 +40,9 @@ namespace rubinius {
     llvm::Function* rbx_simple_send_;
     llvm::Function* rbx_simple_send_private_;
 
+    // bail out destination
+    llvm::BasicBlock* bail_out_;
+
   public:
 
     class Unsupported {};
@@ -79,10 +82,31 @@ namespace rubinius {
 
       Function::arg_iterator input = function_->arg_begin();
       vm_ = input++;
+
+      bail_out_ = BasicBlock::Create("bail_out", function_);
+      ReturnInst::Create(Constant::getNullValue(ObjType), bail_out_);
     }
 
     BlockMap& block_map() {
       return block_map_;
+    }
+
+    void check_for_exception_then(Value* val, BasicBlock* cont, BasicBlock* block) {
+      Value* null = Constant::getNullValue(ObjType);
+
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block);
+      BranchInst::Create(bail_out_, cont, cmp, block);
+    }
+
+    BasicBlock* check_for_exception(Value* val, BasicBlock* block) {
+      BasicBlock* cont = BasicBlock::Create("continue", function_);
+      check_for_exception_then(val, cont, block);
+
+      return cont;
+    }
+
+    void check_for_exception(Value* val) {
+      block_ = check_for_exception(val, block_);
     }
 
     Value* stack_ptr(BasicBlock* block = NULL) {
@@ -503,7 +527,7 @@ namespace rubinius {
       check_both_not_references(recv, arg, fast, dispatch);
 
       Value* called_value = simple_send(state->symbol("=="), 1, dispatch);
-      BranchInst::Create(cont, dispatch);
+      check_for_exception_then(called_value, cont, dispatch);
 
       ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_EQ,
           recv, arg, "imm_cmp", fast);
@@ -554,7 +578,7 @@ namespace rubinius {
       check_fixnums(recv, arg, fast, dispatch);
 
       Value* called_value = simple_send(state->symbol("<"), 1, dispatch);
-      BranchInst::Create(cont, dispatch);
+      check_for_exception_then(called_value, cont, dispatch);
 
       ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_SLT,
           recv, arg, "imm_cmp", fast);
@@ -584,7 +608,7 @@ namespace rubinius {
       check_fixnums(recv, arg, fast, dispatch);
 
       Value* called_value = simple_send(state->symbol("+"), 1, dispatch);
-      BranchInst::Create(cont, dispatch);
+      check_for_exception_then(called_value, cont, dispatch);
 
       std::vector<const Type*> types;
       types.push_back(Int31Ty);
@@ -772,6 +796,8 @@ namespace rubinius {
 
         Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
         stack_remove(args + 1);
+        check_for_exception(ret);
+
         stack_push(ret);
 
         BranchInst::Create(cont, block_);
@@ -780,6 +806,7 @@ namespace rubinius {
       } else {
         Value* ret = inline_cache_send(cache->name, args, cache, block_, allow_private_);
         stack_remove(args + 1);
+        check_for_exception(ret);
         stack_push(ret);
       }
       allow_private_ = false;
@@ -789,6 +816,7 @@ namespace rubinius {
       SendSite::Internal* cache = reinterpret_cast<SendSite::Internal*>(which);
       Value* ret = inline_cache_send(cache->name, 0, cache, block_, allow_private_);
       stack_remove(1);
+      check_for_exception(ret);
       stack_push(ret);
 
       allow_private_ = false;
@@ -1070,6 +1098,8 @@ namespace rubinius {
 
       Value* val = CallInst::Create(func, call_args, call_args+4, "ys", block_);
       stack_remove(count);
+
+      check_for_exception(val);
       stack_push(val);
     }
 
