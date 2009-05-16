@@ -19,10 +19,15 @@ VALUE kernel_spec_rb_sys_fail(VALUE self, VALUE msg) {
   return Qnil;
 }
 
+static VALUE kernel_spec_rb_yield(VALUE self, VALUE obj) {
+  return rb_yield(obj);
+}
+
 void Init_kernel_spec() {
   VALUE cls;
   cls = rb_define_class("CApiKernelSpecs", rb_cObject);
   rb_define_method(cls, "rb_raise", kernel_spec_rb_raise, 1);
   rb_define_method(cls, "rb_warn", kernel_spec_rb_warn, 1);
   rb_define_method(cls, "rb_sys_fail", kernel_spec_rb_sys_fail, 1);
+  rb_define_method(cls, "rb_yield", kernel_spec_rb_yield, 1);
 }

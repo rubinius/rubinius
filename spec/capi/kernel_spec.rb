@@ -52,4 +52,20 @@ describe "C-API Kernel function" do
       end.should raise_error(Errno::EPERM, /additional info/)
     end
   end
+
+  describe "rb_yield" do
+    it "yields passed argument" do
+      ret = nil
+      @s.rb_yield(1) { |z| ret = z }
+      ret.should == 1
+    end
+
+    it "returns the result from block evaluation" do
+      @s.rb_yield(1) { |z| z * 1000 }.should == 1000
+    end
+
+    it "raises LocalJumpError when no block is given" do
+      lambda { @s.rb_yield(1) }.should raise_error(LocalJumpError)
+    end
+  end
 end

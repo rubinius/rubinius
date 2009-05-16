@@ -38,6 +38,7 @@ namespace rubinius {
     /** Current native callframe. */
     NativeMethodFrame*  current_native_frame_;
     ExceptionPoint*     current_ep_;
+    Object*             current_block_;
 
   public:   /* Class Interface */
 
@@ -62,6 +63,10 @@ namespace rubinius {
   public:   /* Accessors */
 
     Object* block();
+
+    void set_current_block(Object* block) {
+      current_block_ = block;
+    }
 
     void set_state(VM* vm) {
       state_ = vm;
