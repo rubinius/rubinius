@@ -24,9 +24,11 @@ class Hash
 
   def ==(other)
     return true if self.equal? other
-    return false unless other.is_a? Hash or other.respond_to? :to_hash
+    unless other.kind_of? Hash
+      return false unless other.respond_to? :to_hash
+      return other == self
+    end
 
-    other = Type.coerce_to other, Hash, :to_hash
     return false unless other.size == size
 
     # Pickaxe claims that defaults are compared, but MRI 1.8.[46] doesn't actually do that
