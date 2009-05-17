@@ -38,9 +38,14 @@ namespace rubinius {
     /** Current native callframe. */
     NativeMethodFrame*  current_native_frame_;
     ExceptionPoint*     current_ep_;
-    Object*             current_block_;
+    TypedRoot<Object*>  current_block_;
 
   public:   /* Class Interface */
+    NativeMethodEnvironment(STATE)
+      : current_block_(state)
+    {
+      current_block_.set(Qnil);
+    }
 
     /** Obtain the NativeMethodEnvironment for this thread. */
     static NativeMethodEnvironment* get();
@@ -65,7 +70,7 @@ namespace rubinius {
     Object* block();
 
     void set_current_block(Object* block) {
-      current_block_ = block;
+      current_block_.set(block);
     }
 
     void set_state(VM* vm) {

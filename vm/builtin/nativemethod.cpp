@@ -181,7 +181,7 @@ namespace rubinius {
   }
 
   Object* NativeMethodEnvironment::block() {
-    return current_block_;
+    return current_block_.get();
   }
 
   capi::HandleList& NativeMethodEnvironment::handles() {
@@ -216,7 +216,7 @@ namespace rubinius {
   }
 
   void NativeMethod::init_thread(STATE) {
-    NativeMethodEnvironment* env = new NativeMethodEnvironment;
+    NativeMethodEnvironment* env = new NativeMethodEnvironment(state);
     env->set_state(state);
     native_method_environment.set(env);
   }
