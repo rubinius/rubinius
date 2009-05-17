@@ -45,27 +45,40 @@ class Backtrace
     end
 
     max = 0
-    lines = @locations.map do |loc|
-      str = loc.describe
-      max = str.size if str.size > max
-      [str, loc]
+    lines = []
+    last_method = nil
+    times = 0
+
+    @locations.each do |loc|
+      if loc.method == last_method
+        times += 1
+      else
+        lines.last[-1] = times if lines.size > 0
+        last_method = loc.method
+
+        str = loc.describe
+        max = str.size if str.size > max
+        lines << [str, loc, 1]
+        times = 0
+      end
     end
     max = MAX_WIDTH if max > MAX_WIDTH
 
     str = ""
-    lines.map do |recv, location|
+    lines.each do |recv, location, rec_times|
       pos  = location.position(Dir.getwd)
       color = color_from_loc(pos, first) if @colorize
       first = false # special handling for first line
-      times = max - recv.size
-      times = 0 if times < 0
+      spaces = max - recv.size
+      spaces = 0 if spaces < 0
 
       # trim the path unless we're debugging.
       #unless $DEBUG
       #  pos = "...#{pos[pos.size-max-3..-1]}" if pos.size > max
       #end
 
-      start = " #{' ' * times}#{recv} at "
+      start = " #{' ' * spaces}#{recv} at "
+
       line_break = @width - start.size - 1
 
       if pos.size >= line_break
@@ -100,6 +113,11 @@ class Backtrace
       else
         str << "#{color} #{start}#{pos}#{clear}"
       end
+
+      if rec_times > 1
+        str << " (#{rec_times} times)"
+      end
+
       str << sep
     end
 
