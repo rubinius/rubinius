@@ -513,6 +513,8 @@ extern "C" {
   }
 
   Object* rbx_check_interrupts(STATE, CallFrame* call_frame) {
+    if(!state->check_stack(call_frame, &state)) return NULL;
+
     if(unlikely(state->interrupts.check)) {
       state->interrupts.check = false;
       state->collect_maybe(call_frame);

@@ -635,11 +635,8 @@ namespace rubinius {
     for(;;) {
     continue_to_run:
       if(unlikely(++tick > 0xff)) {
-        void* stack_end = alloca(0);
-        if(!state->check_stack(call_frame, stack_end)) {
-          return NULL;
-        }
         tick = 0;
+        if(!state->check_stack(call_frame, &state)) return NULL;
       }
 
       if(unlikely(state->interrupts.check)) {
