@@ -35,6 +35,12 @@ namespace rubinius {
     return state->shared.llvm_state;
   }
 
+  const llvm::Type* LLVMState::ptr_type(std::string name) {
+    std::string full_name = std::string("struct.rubinius::") + name;
+    return PointerType::getUnqual(
+        module_->getTypeByName(full_name.c_str()));
+  }
+
   LLVMState::LLVMState() {
     module_ = new llvm::Module("rubinius");
 
@@ -71,8 +77,7 @@ namespace rubinius {
 
     passes_->add(createVerifierPass());
 
-    object_ = PointerType::getUnqual(
-        module_->getTypeByName("struct.rubinius::Object"));
+    object_ = ptr_type("Object");
   }
 
   static Value* get_field(BasicBlock* block, Value* val, int which) {
@@ -84,8 +89,7 @@ namespace rubinius {
     return gep;
   }
 
-
-  void import_args(STATE, Function* func, BasicBlock*& block, VMMethod* vmm,
+  void LLVMCompiler::import_args(STATE, Function* func, BasicBlock*& block, VMMethod* vmm,
                    Value* vars, Value* call_frame) {
     Function::arg_iterator args = func->arg_begin();
     Value* vm_obj = args++;
@@ -112,24 +116,14 @@ namespace rubinius {
     BranchInst::Create(arg_error, cont, cmp, block);
 
     // Call our arg_error helper
-    std::vector<const Type*> types;
-
     LLVMState* ls = LLVMState::get(state);
-    llvm::Module* module = ls->module();
+    Signature sig(ls, "Object");
 
-    types.push_back(
-          PointerType::getUnqual(module->getTypeByName("struct.rubinius::VM")));
-    types.push_back(
-          PointerType::getUnqual(module->getTypeByName("struct.rubinius::CallFrame")));
-    types.push_back(
-          PointerType::getUnqual(module->getTypeByName("struct.rubinius::Dispatch")));
-    types.push_back(
-          PointerType::getUnqual(module->getTypeByName("struct.rubinius::Arguments")));
-    types.push_back(Type::Int32Ty);
-
-    FunctionType* ft = FunctionType::get(ls->object(), types, false);
-    Function* func_ae = cast<Function>(
-          module->getOrInsertFunction("rbx_arg_error", ft));
+    sig << "VM";
+    sig << "CallFrame";
+    sig << "Dispatch";
+    sig << "Arguments";
+    sig << Type::Int32Ty;
 
     Value* call_args[] = {
       vm_obj,
@@ -139,28 +133,20 @@ namespace rubinius {
       ConstantInt::get(Type::Int32Ty, vmm->required_args)
     };
 
-    Value* val = CallInst::Create(func_ae, call_args, call_args+5, "ret", arg_error);
+    Value* val = sig.call("rbx_arg_error", call_args, 5, "ret", arg_error);
     ReturnInst::Create(val, arg_error);
 
     // Switch to using continuation
     block = cont;
 
     // Prepare the scope
-    types.clear();
-    types.push_back(
-          PointerType::getUnqual(module->getTypeByName("struct.rubinius::VM")));
-    types.push_back(
-          PointerType::getUnqual(module->getTypeByName("struct.rubinius::VariableScope")));
-    types.push_back(
-          PointerType::getUnqual(module->getTypeByName("struct.rubinius::CallFrame")));
-    types.push_back(
-          PointerType::getUnqual(module->getTypeByName("struct.rubinius::Dispatch")));
-    types.push_back(
-          PointerType::getUnqual(module->getTypeByName("struct.rubinius::Arguments")));
+    Signature sig2(ls, "Object");
 
-    FunctionType* ft2 = FunctionType::get(ls->object(), types, false);
-    Function* func_setup = cast<Function>(
-          module->getOrInsertFunction("rbx_setup_scope", ft2));
+    sig2 << "VM";
+    sig2 << "VariableScope";
+    sig2 << "CallFrame";
+    sig2 << "Dispatch";
+    sig2 << "Arguments";
 
     Value* call_args2[] = {
       vm_obj,
@@ -170,7 +156,7 @@ namespace rubinius {
       arg_obj
     };
 
-    CallInst::Create(func_setup, call_args2, call_args2+5, "setup", block);
+    sig2.call("rbx_setup_scope", call_args2, 5, "", block);
 
     // Import the arguments
     Value* idx1[] = {
@@ -351,7 +337,8 @@ namespace rubinius {
   }
 
   void LLVMCompiler::compile(STATE, VMMethod* vmm) {
-    llvm::Module* mod = LLVMState::get(state)->module();
+    LLVMState* ls = LLVMState::get(state);
+    llvm::Module* mod = ls->module();
 
     const Type* cf_type =
       mod->getTypeByName("struct.rubinius::CallFrame");
@@ -359,23 +346,16 @@ namespace rubinius {
     const Type* vars_type =
       mod->getTypeByName("struct.rubinius::VariableScope");
 
-    std::vector<const Type*> types;
-
-    types.push_back(PointerType::getUnqual(
-          mod->getTypeByName("struct.rubinius::VM")));
-    types.push_back(PointerType::getUnqual(cf_type));
-    types.push_back(PointerType::getUnqual(
-          mod->getTypeByName("struct.rubinius::Dispatch")));
-    types.push_back(PointerType::getUnqual(
-          mod->getTypeByName("struct.rubinius::Arguments")));
-
-    const Type* obj_type = PointerType::getUnqual(
-        mod->getTypeByName("struct.rubinius::Object"));
-
+    const Type* obj_type = ls->ptr_type("Object");
     const Type* obj_ary_type = PointerType::getUnqual(obj_type);
 
-    FunctionType* ft = FunctionType::get(obj_type, types, false);
-    Function* func = cast<Function>(mod->getOrInsertFunction("", ft));
+    Signature sig(ls, "Object");
+    sig << "VM";
+    sig << "CallFrame";
+    sig << "Dispatch";
+    sig << "Arguments";
+
+    Function* func = sig.function("");
 
     Function::arg_iterator ai = func->arg_begin();
     (ai++)->setName("state");

@@ -44,6 +44,8 @@ namespace rubinius {
     llvm::ExecutionEngine* engine() { return engine_; }
     llvm::FunctionPassManager* passes() { return passes_; }
     const llvm::Type* object() { return object_; }
+
+    const llvm::Type* ptr_type(std::string name);
   };
 
   class LLVMCompiler {
@@ -68,6 +70,58 @@ namespace rubinius {
     void* function_pointer(STATE);
     llvm::Function* llvm_function(STATE);
     void show_assembly(STATE);
+
+    void import_args(STATE, llvm::Function* func, llvm::BasicBlock*& block, VMMethod* vmm,
+                   llvm::Value* vars, llvm::Value* call_frame);
+  };
+
+  class Signature {
+    LLVMState* ls_;
+    std::vector<const llvm::Type*> types_;
+    const llvm::Type* ret_type_;
+
+  public:
+    Signature(LLVMState* ls, const llvm::Type* rt)
+      : ls_(ls)
+      , ret_type_(rt)
+    {}
+
+    Signature(LLVMState* ls, const char* rt)
+      : ls_(ls)
+      , ret_type_(ls->ptr_type(rt))
+    {}
+
+    std::vector<const llvm::Type*>& types() {
+      return types_;
+    }
+
+    Signature& operator<<(const char* name) {
+      types_.push_back(ls_->ptr_type(name));
+
+      return *this;
+    }
+
+    Signature& operator<<(const llvm::Type* type) {
+      types_.push_back(type);
+
+      return *this;
+    }
+
+    llvm::FunctionType* type() {
+      return llvm::FunctionType::get(ret_type_, types_, false);
+    }
+
+    operator llvm::FunctionType*() { return type(); }
+
+    llvm::Function* function(const char* name) {
+      return llvm::cast<llvm::Function>(ls_->module()->getOrInsertFunction(name, type()));
+    }
+
+    llvm::Value* call(const char* name, llvm::Value** start, int size,
+                      const char* inst_name, llvm::BasicBlock* block) {
+      return llvm::CallInst::Create(function(name), start, start+size, inst_name, block);
+    }
+
   };
 }
 
