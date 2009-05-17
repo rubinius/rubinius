@@ -259,6 +259,13 @@ class Thread
 
   alias_method :run, :wakeup
 
+  # Implementation note: ideally, the recursive_objects
+  # lookup table would be different per method call.
+  # Currently it doesn't cause problems, but if ever
+  # a method :foo calls a method :bar which could 
+  # recurse back to :foo, it could require making
+  # the tables independant.
+
   def self.recursion_guard(obj)
     id = obj.object_id
     objects = current.recursive_objects
@@ -273,6 +280,44 @@ class Thread
 
   def self.guarding?(obj)
     current.recursive_objects[obj.object_id]
+  end
+
+  # check_recursion will return if there's a recursion
+  # on obj (or the pair obj+paired_obj).
+  # If there is one, it returns true.
+  # Otherwise, it will yield once and return false.
+  
+  def self.detect_recursion(obj, paired_obj = Undefined)
+    id = obj.object_id
+    pair_id = paired_obj.object_id
+    objects = current.recursive_objects
+    case objects[id]
+    when nil
+      objects[id] = pair_id
+      begin
+        yield
+      ensure
+        objects.delete id
+      end
+    when Rubinius::LookupTable
+      return true if objects[id][pair_id]
+      objects[id][pair_id] = true
+      begin
+        yield
+      ensure
+        objects[id].delete pair_id
+      end
+    else
+      previous = objects[id]
+      return true if previous == pair_id
+      objects[id] = Rubinius::LookupTable.new(previous => true, pair_id => true)
+      begin
+        yield
+      ensure
+        objects[id] = previous
+      end
+    end
+    false
   end
 
   class Context

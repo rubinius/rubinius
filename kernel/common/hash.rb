@@ -30,10 +30,12 @@ class Hash
     end
 
     return false unless other.size == size
-
+    
     # Pickaxe claims that defaults are compared, but MRI 1.8.[46] doesn't actually do that
     # return false unless other.default == default
-    each_item { |k, v| return false unless other[k] == v }
+    Thread.detect_recursion self, other do
+      each_item { |k, v| return false unless other[k] == v }
+    end
     true
   end
 
@@ -140,10 +142,8 @@ class Hash
 
   def inspect
     # recursively_inspect
-    return '{...}' if Thread.guarding? self
-
     out = []
-    Thread.recursion_guard self do
+    return '{...}' if Thread.detect_recursion self do
       each_item do |key, value|
         str =  key.inspect
         str << '=>'

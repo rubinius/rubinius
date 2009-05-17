@@ -337,27 +337,20 @@ class Array
     other = Type.coerce_to other, Array, :to_ary
     return 0 if equal? other
 
-    Thread.recursion_guard self do
+    Thread.detect_recursion self, other do
       i = 0
-      while(i < size)
-        return 1 unless other.size > i
-        curr = at(i)
-        if Thread.guarding? curr
-          unless curr.equal?(other.at(i))
-            return 1 if size > other.size
-            return -1 if size < other.size
-          end
-        else
-          diff = curr <=> other.at(i)
-          return diff if diff != 0
-        end
+      max = size
+      max = other.size if other.size < max
+      while i < max
+        diff = at(i) <=> other.at(i)
+        return diff if diff != 0
         i += 1
       end
     end
-
-    return 1 if size > other.size
-    return -1 if size < other.size
-    0
+    # subtle: if we are recursing on that pair, then let's
+    # no go any further down into that pair;
+    # any difference will be found elsewhere if need be
+    size <=> other.size
   end
 
   # The two Arrays are considered equal only if their
@@ -373,15 +366,10 @@ class Array
 
     return false unless size == other.size
 
-    Thread.recursion_guard self do
+    Thread.detect_recursion self, other do
       i = 0
       while(i < size)
-        curr = at(i)
-        if Thread.guarding? curr
-          return false unless curr.equal? other.at(i)
-        else
-          return false unless curr == other.at(i)
-        end
+        return false unless at(i) == other.at(i)
         i += 1
       end
     end
@@ -509,15 +497,12 @@ class Array
     return false unless other.kind_of?(Array)
     return false if @total != other.size
 
-    Thread.recursion_guard self do
+    Thread.detect_recursion self, other do
       i = 0
       while(i < @total)
         curr = at(i)
-        if Thread.guarding? curr
-          return false unless curr.equal?(other.at(i))
-        else
-          return false unless curr.eql?(other.at(i))
-        end
+        other_curr = other.at(i)
+        return false unless curr.eql?(other_curr)
         i+=1
       end
     end
@@ -666,15 +651,11 @@ class Array
     # it does work. It should be replaced with something much better, but I'm not sure
     # what level it belongs at.
     str = ""
-    Thread.recursion_guard self do
+    return @total if Thread.detect_recursion self do
       i = 0
       while(i < @total)
         curr = at(i)
-        if Thread.guarding? curr
-          str.append curr.object_id.to_s
-        else
-          str.append curr.hash.to_s
-        end
+        str.append curr.hash.to_s
         i+=1
       end
     end
@@ -744,10 +725,8 @@ class Array
   # Descends through contained Arrays, recursive ones
   # are indicated as [...].
   def inspect()
-    return "[...]" if Thread.guarding? self
-
     out = []
-    Thread.recursion_guard self do
+    return "[...]" if Thread.detect_recursion self do
       each { |o|
         out << o.inspect
       }
@@ -762,12 +741,10 @@ class Array
   # Arrays.
   def join(sep = nil, method = :to_s)
     return "" if @total == 0
-    return "[...]" if Thread.guarding? self
-    sep = sep ? StringValue(sep) : $,
-
     out = ""
-    out.taint if sep.tainted? or self.tainted?
-    Thread.recursion_guard self do
+    return "[...]" if Thread.detect_recursion self do
+      sep = sep ? StringValue(sep) : $,
+      out.taint if sep.tainted? or self.tainted?
       i = 0
       while i < @total
         elem = at(i)
@@ -1240,32 +1217,24 @@ class Array
 
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
-  def recursively_flatten(array, out, max_levels = -1, recursive_placeholder = Undefined)
-    if Thread.guarding? array
-      if recursive_placeholder.equal? Undefined
-        raise ArgumentError, "tried to flatten recursive array"
-      else
-        out << recursive_placeholder
-        return nil
-      end
-    end
-
+  def recursively_flatten(array, out, max_levels = -1)
     ret = nil
     if max_levels == 0  # Strict equality since < 0 means 'infinite'
       out.concat(array)
     else
       max_levels -= 1
-      array.each { |o|
-        if o.respond_to? :to_ary
-          Thread.recursion_guard array do
+      recursion = Thread.detect_recursion(array) do
+        array.each { |o|
+          if o.respond_to? :to_ary
             ary = Type.coerce_to o, Array, :to_ary
-            recursively_flatten(ary, out, max_levels, recursive_placeholder)
+            recursively_flatten(ary, out, max_levels)
             ret = self
+          else
+            out << o
           end
-        else
-          out << o
-        end
-      }
+        }
+      end
+      raise ArgumentError, "tried to flatten recursive array" if recursion
     end
     ret
   end
