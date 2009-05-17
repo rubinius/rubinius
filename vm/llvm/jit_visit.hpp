@@ -118,7 +118,7 @@ namespace rubinius {
     class Unsupported {};
 
     JITVisit(STATE, VMMethod* vmm,
-             llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* block,
+             llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame, llvm::Value* vars,
              llvm::Value* stack_top)
       : f(LLVMState::get(state))
@@ -128,7 +128,7 @@ namespace rubinius {
       , call_frame_(call_frame)
       , vars_(vars)
       , module_(mod)
-      , block_(block)
+      , block_(start)
       , function_(func)
       , stack_top_(stack_top)
       , allow_private_(false)
@@ -153,7 +153,7 @@ namespace rubinius {
       Function::arg_iterator input = function_->arg_begin();
       vm_ = input++;
 
-      bail_out_ = BasicBlock::Create("bail_out", function_);
+      bail_out_ = block("bail_out");
 
       Value* call_args[] = {
         vm_,
@@ -162,8 +162,8 @@ namespace rubinius {
 
       Value* isit = f.return_to_here.call(call_args, 2, "rth", bail_out_);
 
-      BasicBlock* ret_raise_val = BasicBlock::Create("ret_raise_val", function_);
-      bail_out_fast_ = BasicBlock::Create("ret_null", function_);
+      BasicBlock* ret_raise_val = block("ret_raise_val");
+      bail_out_fast_ = block("ret_null");
 
       BranchInst::Create(ret_raise_val, bail_out_fast_, isit, bail_out_);
 
@@ -173,18 +173,22 @@ namespace rubinius {
       ReturnInst::Create(crv, ret_raise_val);
     }
 
+    BasicBlock* block(const char* name = "continue") {
+      return BasicBlock::Create(name, function_);
+    }
+
     BlockMap& block_map() {
       return block_map_;
     }
 
     void check_for_return(Value* val) {
-      BasicBlock* cont = BasicBlock::Create("continue", function_);
-      BasicBlock* push_val = BasicBlock::Create("push_val", function_);
+      BasicBlock* cont = block();
+      BasicBlock* push_val = block("push_val");
 
       Value* null = Constant::getNullValue(ObjType);
 
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, val, null, "null_check", block_);
-      BasicBlock* is_break = BasicBlock::Create("is_break", function_);
+      BasicBlock* is_break = block("is_break");
       BranchInst::Create(is_break, push_val, cmp, block_);
 
       /////
@@ -199,7 +203,7 @@ namespace rubinius {
 
       Value* isit = brk.call("rbx_break_to_here", call_args, 2, "bth", is_break);
 
-      BasicBlock* push_break_val = BasicBlock::Create("push_break_val", function_);
+      BasicBlock* push_break_val = block("push_break_val");
       BasicBlock* next = 0;
 
       // If there are handlers...
@@ -243,9 +247,9 @@ namespace rubinius {
       }
     }
 
-    BasicBlock* check_for_exception(Value* val, BasicBlock* block) {
-      BasicBlock* cont = BasicBlock::Create("continue", function_);
-      check_for_exception_then(val, cont, block);
+    BasicBlock* check_for_exception(Value* val, BasicBlock* els) {
+      BasicBlock* cont = block();
+      check_for_exception_then(val, cont, els);
 
       return cont;
     }
@@ -440,7 +444,7 @@ namespace rubinius {
       lint = BinaryOperator::CreateAnd(lint, mask, "mask", block_);
       Value* lcmp = new ICmpInst(ICmpInst::ICMP_NE, lint, zero, "check_mask", block_);
 
-      BasicBlock* right_check = BasicBlock::Create("ref_check", function_);
+      BasicBlock* right_check = block("ref_check");
       right_check->moveAfter(block_);
       BranchInst::Create(right_check, if_false, lcmp, block_);
 
@@ -626,9 +630,9 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = BasicBlock::Create("fast", function_);
-      BasicBlock* dispatch = BasicBlock::Create("dispatch", function_);
-      BasicBlock* cont = BasicBlock::Create("cont", function_);
+      BasicBlock* fast = block("fast");
+      BasicBlock* dispatch = block("dispatch");
+      BasicBlock* cont = block();
 
       check_both_not_references(recv, arg, fast, dispatch);
 
@@ -677,9 +681,9 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = BasicBlock::Create("fast", function_);
-      BasicBlock* dispatch = BasicBlock::Create("dispatch", function_);
-      BasicBlock* cont = BasicBlock::Create("cont", function_);
+      BasicBlock* fast = block("fast");
+      BasicBlock* dispatch = block("dispatch");
+      BasicBlock* cont = block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -707,9 +711,9 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = BasicBlock::Create("fast", function_);
-      BasicBlock* dispatch = BasicBlock::Create("dispatch", function_);
-      BasicBlock* cont = BasicBlock::Create("cont", function_);
+      BasicBlock* fast = block("fast");
+      BasicBlock* dispatch = block("dispatch");
+      BasicBlock* cont = block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -738,7 +742,7 @@ namespace rubinius {
       Value* sum = ExtractValueInst::Create(res, 0, "sum", fast);
       Value* dof = ExtractValueInst::Create(res, 1, "did_overflow", fast);
 
-      BasicBlock* tagnow = BasicBlock::Create("tagnow", function_);
+      BasicBlock* tagnow = block("tagnow");
       BranchInst::Create(dispatch, tagnow, dof, fast);
 
       Value* imm_value = fixnum_tag(sum, tagnow);
@@ -759,9 +763,9 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = BasicBlock::Create("fast", function_);
-      BasicBlock* dispatch = BasicBlock::Create("dispatch", function_);
-      BasicBlock* cont = BasicBlock::Create("cont", function_);
+      BasicBlock* fast = block("fast");
+      BasicBlock* dispatch = block("dispatch");
+      BasicBlock* cont = block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -790,7 +794,7 @@ namespace rubinius {
       Value* sum = ExtractValueInst::Create(res, 0, "sub", fast);
       Value* dof = ExtractValueInst::Create(res, 1, "did_overflow", fast);
 
-      BasicBlock* tagnow = BasicBlock::Create("tagnow", function_);
+      BasicBlock* tagnow = block("tagnow");
       BranchInst::Create(dispatch, tagnow, dof, fast);
 
       Value* imm_value = fixnum_tag(sum, tagnow);
@@ -920,9 +924,9 @@ namespace rubinius {
         Value* tag = ConstantInt::get(Type::Int32Ty, rubinius::Tuple::type);
         Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, obj_type, tag, "is_tuple", block_);
 
-        BasicBlock* is_tuple = BasicBlock::Create("is_tuple", function_);
-        BasicBlock* is_other = BasicBlock::Create("is_other", function_);
-        BasicBlock* cont =     BasicBlock::Create("continue", function_);
+        BasicBlock* is_tuple = block("is_tuple");
+        BasicBlock* is_other = block("is_other");
+        BasicBlock* cont =     block("continue");
 
         BranchInst::Create(is_tuple, is_other, cmp, block_);
 
@@ -1198,7 +1202,7 @@ namespace rubinius {
 
     void visit_goto(opcode ip) {
       BranchInst::Create(block_map_[ip], block_);
-      block_ = BasicBlock::Create("continue", function_);
+      block_ = block("continue");
     }
 
     void visit_goto_if_true(opcode ip) {
@@ -1213,7 +1217,7 @@ namespace rubinius {
       Value* cmp = new ICmpInst(ICmpInst::ICMP_NE, anded,
           ConstantInt::get(Type::Int32Ty, cFalse), "is_true", block_);
 
-      BasicBlock* cont = BasicBlock::Create("continue", function_);
+      BasicBlock* cont = block("continue");
       BranchInst::Create(block_map_[ip], cont, cmp, block_);
 
       block_ = cont;
@@ -1231,7 +1235,7 @@ namespace rubinius {
       Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, anded,
           ConstantInt::get(Type::Int32Ty, cFalse), "is_true", block_);
 
-      BasicBlock* cont = BasicBlock::Create("continue", function_);
+      BasicBlock* cont = block("continue");
       BranchInst::Create(block_map_[ip], cont, cmp, block_);
 
       block_ = cont;
@@ -1311,7 +1315,7 @@ namespace rubinius {
     void visit_setup_unwind(opcode where, opcode type) {
       BasicBlock* code;
       if(type == cRescue) {
-        code = BasicBlock::Create("is_exception", function_);
+        code = block("is_exception");
         std::vector<const Type*> types;
         types.push_back(VMTy);
 
@@ -1354,7 +1358,7 @@ namespace rubinius {
       } else {
         BranchInst::Create(bail_out_, block_);
       }
-      block_ = BasicBlock::Create("continue", function_);
+      block_ = block("continue");
     }
 
     void visit_push_exception() {
