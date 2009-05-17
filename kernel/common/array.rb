@@ -1241,22 +1241,6 @@ class Array
 
   private :recursively_flatten
 
-  def remove_outer_arrays(array=self)
-    if Thread.guarding? array
-      array
-    elsif array.size == 1 && array.first.kind_of?(Array)
-      new_array = nil
-      Thread.recursion_guard array do
-        new_array = remove_outer_arrays(array.first)
-      end
-      new_array
-    else
-      array
-    end
-  end
-
-  private :remove_outer_arrays
-
   ISORT_THRESHOLD   = 7
   MEDIAN_THRESHOLD  = 11
 
