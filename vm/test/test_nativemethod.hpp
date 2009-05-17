@@ -29,7 +29,7 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
   NativeMethodEnvironment* create_native_method_environment() {
     NativeMethodFrame* nmf = new NativeMethodFrame(NULL);
     CallFrame* cf = new CallFrame;
-    NativeMethodEnvironment* nme = new NativeMethodEnvironment;
+    NativeMethodEnvironment* nme = new NativeMethodEnvironment(state);
 
     nme->set_current_call_frame(cf);
     nme->set_current_native_frame(nmf);
