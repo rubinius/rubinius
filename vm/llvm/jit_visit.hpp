@@ -26,7 +26,49 @@ namespace rubinius {
 
   typedef std::list<ExceptionHandler*> EHandlers;
 
+  class JITFunction : public Signature {
+    llvm::Function* func_;
+
+  public:
+    JITFunction(LLVMState* ls)
+      : Signature(ls, Type::VoidTy)
+      , func_(0)
+    {}
+
+    void resolve(const char* name, const Type* rt) {
+      ret_type_ = rt;
+      func_ = function(name);
+    }
+
+    Value* call(Value** start, int size, const char* inst_name, BasicBlock* block) {
+      return llvm::CallInst::Create(func_, start, start+size, inst_name, block);
+    }
+  };
+
+  class JITFunctions {
+  public:
+    JITFunction return_to_here;
+    JITFunction clear_raise_value;
+
+    JITFunctions(LLVMState* ls)
+      : return_to_here(ls)
+      , clear_raise_value(ls)
+    {
+      return_to_here
+        << "VM"
+        << "CallFrame";
+
+      return_to_here.resolve("rbx_return_to_here", Type::Int1Ty);
+
+      clear_raise_value
+        << "VM";
+
+      clear_raise_value.resolve("rbx_clear_raise_value", ls->object());
+    }
+  };
+
   class JITVisit : public VisitInstructions<JITVisit> {
+    JITFunctions f;
     STATE;
     VMMethod* vmm_;
     BlockMap block_map_;
@@ -79,7 +121,8 @@ namespace rubinius {
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* block,
              llvm::Value* stack, llvm::Value* call_frame, llvm::Value* vars,
              llvm::Value* stack_top)
-      : state(state)
+      : f(LLVMState::get(state))
+      , state(state)
       , vmm_(vmm)
       , stack_(stack)
       , call_frame_(call_frame)
@@ -112,16 +155,12 @@ namespace rubinius {
 
       bail_out_ = BasicBlock::Create("bail_out", function_);
 
-      Signature sig(ls_, Type::Int1Ty);
-      sig << VMTy;
-      sig << CallFrameTy;
-
       Value* call_args[] = {
         vm_,
         call_frame_
       };
 
-      Value* isit = sig.call("rbx_return_to_here", call_args, 2, "rth", bail_out_);
+      Value* isit = f.return_to_here.call(call_args, 2, "rth", bail_out_);
 
       BasicBlock* ret_raise_val = BasicBlock::Create("ret_raise_val", function_);
       bail_out_fast_ = BasicBlock::Create("ret_null", function_);
@@ -130,10 +169,7 @@ namespace rubinius {
 
       ReturnInst::Create(Constant::getNullValue(ObjType), bail_out_fast_);
 
-      Signature clear(ls_, ObjType);
-      clear << VMTy;
-
-      Value* crv = clear.call("rbx_clear_raise_value", &vm_, 1, "crv", ret_raise_val);
+      Value* crv = f.clear_raise_value.call(&vm_, 1, "crv", ret_raise_val);
       ReturnInst::Create(crv, ret_raise_val);
     }
 

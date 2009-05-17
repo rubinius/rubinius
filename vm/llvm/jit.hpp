@@ -76,6 +76,7 @@ namespace rubinius {
   };
 
   class Signature {
+  protected:
     LLVMState* ls_;
     std::vector<const llvm::Type*> types_;
     const llvm::Type* ret_type_;
