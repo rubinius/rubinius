@@ -1379,7 +1379,8 @@ class Array
         end
       end
     end
-  end
+  end # qsort!
+  private :qsort!
 
   # In-place non-recursive sort between the given indexes using a block.
   def qsort_block!(block)
@@ -1500,7 +1501,8 @@ class Array
         end
       end
     end
-  end
+  end #qsort_block!
+  private :qsort_block!
 
   # Insertion sort in-place between the given indexes.
   def isort!(left, right)
@@ -1517,6 +1519,7 @@ class Array
       i += 1
     end
   end
+  private :isort!
 
   # Insertion sort in-place between the given indexes using a block.
   def isort_block!(left, right, block)
@@ -1533,6 +1536,7 @@ class Array
       i += 1
     end
   end
+  private :isort_block!
 
   def __rescue_match__(exception)
     i = 0
@@ -1543,9 +1547,5 @@ class Array
     false
   end
 
-  private :qsort
-  private :isort
-  private :qsort_block
-  private :isort_block
 
 end
