@@ -42,33 +42,6 @@ class Integer < Numeric
     self >> other
   end
 
-  def times
-    i = 0
-    while i < self
-      yield i
-      i += 1
-    end
-    self
-  end
-  
-  def upto(val)
-    i = self
-    while i <= val
-      yield i
-      i += 1
-    end
-    return self
-  end
-  
-  def downto(val)
-    i = self
-    while i >= val
-      yield i
-      i -= 1
-    end
-    return self
-  end
-
   def to_i
     self
   end

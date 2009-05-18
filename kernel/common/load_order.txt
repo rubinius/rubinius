@@ -25,6 +25,7 @@ numeric.rbc
 ctype.rbc
 precision.rbc
 integer.rbc
+integer_186.rbc
 bignum.rbc
 block_environment.rbc
 bytearray.rbc
