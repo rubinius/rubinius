@@ -18,11 +18,11 @@ namespace rubinius {
   {}
 
   void NativeThread::perform() {
-    NativeMethod::init_thread(vm_);
-
     // Grab the GIL
     // (automatically unlocked at the end of this function)
     GlobalLock::LockGuard x(vm_->global_lock());
+
+    NativeMethod::init_thread(vm_);
 
     // Register that when the perform returns and the thread is exitting, to
     // run delete on this object to free up the memory.
