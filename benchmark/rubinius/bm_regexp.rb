@@ -2,14 +2,17 @@ require "benchmark"
 
 MAX = (ENV['TOTAL'] || 1_000).to_i
 
-STRING = "r(n]sp &xq\nhn^kj)rs\nb c6{lh|4c@jcb [v8\nPvu}s%wijh# lz! \\d\"y7hlKlR nzqxg"
+TEMPLATE = "r(n]sp &xq\nhn^kj)rs\nb c6{lh|4c@jcb [v8\nPvu}s%wijh# lz! \\d\"y7hlKlR nzqxg"
 
 Benchmark.bmbm do |x|
-  x.report("loop") do
-    MAX.times { STRING }
-  end
+  [1,8,16].each do |mult|
+    string = TEMPLATE * mult
+    x.report("loop for #{mult}") do
+      MAX.times { string }
+    end
 
-  x.report("Regexp.escape") do
-    MAX.times { Regexp.escape STRING }
+    x.report("Regexp.escape TEMPLATE * #{mult}") do
+      MAX.times { Regexp.escape string }
+    end
   end
 end
