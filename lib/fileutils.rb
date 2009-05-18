@@ -1509,8 +1509,8 @@ module FileUtils
     OPT_TABLE.keys.select {|m| OPT_TABLE[m].include?(opt) }
   end
 
-  METHODS = singleton_methods() - %w( private_module_function
-      commands options have_option? options_of collect_method )
+  METHODS = singleton_methods.map{|m| m.to_sym} - [:private_module_function,
+      :commands, :options, :have_option?, :options_of, :collect_method]
 
   # 
   # This module has all methods of FileUtils module, but it outputs messages

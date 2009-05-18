@@ -48,7 +48,7 @@ class Rubinius::SydneyRewriter
     unless @rewriters
       @rewriters = {}
       public_instance_methods.each do |name|
-        if /^rewrite_(.*)/ =~ name
+        if /^rewrite_(.*)/ =~ name.to_s
           @rewriters[$1.to_sym] = name.to_sym
         end
       end

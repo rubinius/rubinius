@@ -260,8 +260,13 @@ module Kernel
   end
   module_function :caller
 
+  def convert_to_constant_names(list)
+    list.map{|x| x.to_s}
+  end
+  private :convert_to_constant_names
+  
   def global_variables
-    Rubinius::Globals.variables.map { |i| i.to_s }
+    convert_to_constant_names Rubinius::Globals.variables
   end
   module_function :global_variables
 
@@ -485,15 +490,8 @@ module Kernel
   private :remove_instance_variable
 
   def instance_variables
-    vars = get_instance_variables
-    return [] unless vars
-
-    output = []
-    vars.keys.each do |key|
-      output << key.to_s if key.is_ivar?
-    end
-
-    return output
+    vars = get_instance_variables || {}
+    convert_to_constant_names vars.keys.find_all{|key| key.is_ivar?}
   end
 
   def instance_variable_defined?(name)
@@ -554,7 +552,7 @@ module Kernel
   end
 
   def private_singleton_methods
-    metaclass.method_table.private_names.map { |meth| meth.to_s }
+    convert_to_constant_names metaclass.method_table.private_names
   end
 
   def protected_methods(all=true)
@@ -564,7 +562,7 @@ module Kernel
   end
 
   def protected_singleton_methods
-    metaclass.method_table.protected_names.map { |meth| meth.to_s }
+    convert_to_constant_names metaclass.method_table.protected_names
   end
 
   def public_methods(all=true)
@@ -575,11 +573,7 @@ module Kernel
 
   def singleton_methods(all=true)
     mt = metaclass.method_table
-    if all
-      return mt.keys.map { |m| m.to_s }
-    else
-      (mt.public_names + mt.protected_names).map { |m| m.to_s }
-    end
+    convert_to_constant_names(all ? mt.keys : mt.public_names + mt.protected_names)
   end
 
   alias_method :send, :__send__
