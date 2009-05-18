@@ -81,6 +81,9 @@ namespace rubinius {
     // Ruby.primitive? :compiledmethod_activate
     Object* activate(STATE, Executable* exec, CallFrame* call_frame, Dispatch& msg, Arguments& args);
 
+    // Ruby.primitive :compiledmethod_jit_soon
+    Object* jit_soon(STATE);
+
     bool is_rescue_target(STATE, int ip);
 
     // Ruby.primitive :compiledmethod_set_breakpoint
@@ -94,6 +97,8 @@ namespace rubinius {
 
     // Ruby.primitive :compiledmethod_of_sender
     static CompiledMethod* of_sender(STATE, CallFrame* calling_environment);
+
+    String* full_name(STATE);
 
     class Info : public Executable::Info {
     public:

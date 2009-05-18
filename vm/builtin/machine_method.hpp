@@ -6,6 +6,7 @@
 
 namespace rubinius {
   class JITCompiler;
+  class LLVMCompiler;
   class VMMethod;
 
   class MachineMethod : public Object {
@@ -45,6 +46,7 @@ namespace rubinius {
     Object* activate();
 
     void* resolve_virtual_ip(int ip);
+    void update(VMMethod* vmm, LLVMCompiler* jit);
   };
 }
 

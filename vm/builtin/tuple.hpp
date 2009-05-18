@@ -58,6 +58,11 @@ namespace rubinius {
       return field[index];
     }
 
+    Object* at(size_t index) {
+      if(num_fields() <= index) return NULL;
+      return field[index];
+    }
+
   public: // Rubinius Type stuff
     class Info : public TypeInfo {
     public:

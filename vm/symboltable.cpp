@@ -50,36 +50,50 @@ namespace rubinius {
   }
 
   Symbol* SymbolTable::lookup(STATE, const char* str) {
+    Symbol* sym = lookup(str);
+    if(!sym) {
+      Exception::argument_error(state, "Cannot create a symbol from an empty string");
+      return NULL;
+    }
+
+    return sym;
+  }
+
+  Symbol* SymbolTable::lookup(const char* str) {
     size_t sym;
 
-    if(*str == 0) {
-      Exception::argument_error(state, "Cannot create a symbol from an empty string");
-    }
+    if(*str == 0) return NULL;
 
     hashval hash = String::hash_str(str);
 
-    SymbolMap::iterator entry = symbols.find(hash);
-    if(entry == symbols.end()) {
-      sym = add(std::string(str));
-      SymbolIds v(1, sym);
-      symbols[hash] = v;
-    } else {
-      SymbolIds& v = entry->second;
-      for(SymbolIds::iterator i = v.begin(); i != v.end(); i++) {
-        std::string& s = strings[*i];
+    // Symbols can be looked up by multiple threads at the same time.
+    // This is fast operation, so we protect this with a spinlock.
+    {
+      thread::SpinLock::LockGuard guard(lock_);
+      SymbolMap::iterator entry = symbols.find(hash);
+      if(entry == symbols.end()) {
+        sym = add(std::string(str));
+        SymbolIds v(1, sym);
+        symbols[hash] = v;
+      } else {
+        SymbolIds& v = entry->second;
+        for(SymbolIds::iterator i = v.begin(); i != v.end(); i++) {
+          std::string& s = strings[*i];
 
-        if(!strcmp(s.c_str(), str)) return Symbol::from_index(state, *i);
+          if(!strcmp(s.c_str(), str)) return Symbol::from_index(*i);
+        }
+        sym = add(std::string(str));
+        v.push_back(sym);
       }
-      sym = add(std::string(str));
-      v.push_back(sym);
     }
 
-    return Symbol::from_index(state, sym);
+    return Symbol::from_index(sym);
   }
 
   Symbol* SymbolTable::lookup(STATE, String* str) {
     if(str->nil_p()) {
       Exception::argument_error(state, "Cannot look up Symbol from nil");
+      return NULL;
     }
 
     const char* bytes = str->c_str();
@@ -88,6 +102,7 @@ namespace rubinius {
       if(bytes[i] == 0) {
         Exception::argument_error(state,
             "cannot create a symbol from a string containing `\\0'");
+        return NULL;
       }
     }
 
@@ -97,6 +112,7 @@ namespace rubinius {
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {
     if(sym->nil_p()) {
       Exception::argument_error(state, "Cannot look up Symbol from nil");
+      return NULL;
     }
 
     std::string& str = strings[sym->index()];
@@ -106,6 +122,7 @@ namespace rubinius {
   const char* SymbolTable::lookup_cstring(STATE, const Symbol* sym) {
     if(sym->nil_p()) {
       Exception::argument_error(state, "Cannot look up Symbol from nil");
+      return NULL;
     }
 
     std::string& str = strings[sym->index()];

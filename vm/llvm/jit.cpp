@@ -29,7 +29,7 @@ namespace rubinius {
 
   LLVMState* LLVMState::get(STATE) {
     if(!state->shared.llvm_state) {
-      state->shared.llvm_state = new LLVMState();
+      state->shared.llvm_state = new LLVMState(state);
     }
 
     return state->shared.llvm_state;
@@ -41,7 +41,79 @@ namespace rubinius {
         module_->getTypeByName(full_name.c_str()));
   }
 
-  LLVMState::LLVMState() {
+  class BackgroundCompilerThread : public thread::Thread {
+    thread::Mutex list_mutex_;
+    std::list<BackgroundCompileRequest*> pending_requests_;
+    thread::Condition condition_;
+
+    LLVMState* ls_;
+    bool show_machine_code_;
+
+  public:
+    BackgroundCompilerThread(LLVMState* ls)
+      : ls_(ls)
+    {
+      show_machine_code_ = ls->jit_dump_code() & cMachineCode;
+    }
+
+    void add(BackgroundCompileRequest* req) {
+      thread::Mutex::LockGuard guard(list_mutex_);
+      pending_requests_.push_back(req);
+      condition_.signal();
+    }
+
+    virtual void perform() {
+      for(;;) { // forever
+
+        BackgroundCompileRequest* req = 0;
+
+        // Lock, wait, get a request, unlock
+        {
+          thread::Mutex::LockGuard guard(list_mutex_);
+
+          // unlock and wait...
+          condition_.wait(list_mutex_);
+          condition_.reset();
+
+          // now locked again, shift a request
+          req = pending_requests_.front();
+          pending_requests_.pop_front();
+        }
+
+        // mutex now unlock, allowing others to push more requests
+        //
+
+        LLVMCompiler* jit = new LLVMCompiler();
+        jit->compile(ls_, req->vmmethod());
+        jit->generate_function(ls_);
+
+        if(show_machine_code_) {
+          jit->show_machine_code();
+        }
+
+        // Ok, compiled, generated machine code, now update MachineMethod
+        {
+          GlobalLock::UnlockGuard lock(ls_->global_lock());
+
+          MachineMethod* mm = req->machine_method();
+          mm->update(req->vmmethod(), jit);
+          mm->activate();
+
+          if(ls_->config().jit_show_compiling) {
+            std::cout << "[[[ JIT finished background compiling of one method ]]]\n";
+          }
+        }
+
+        delete req;
+      }
+    }
+  };
+
+  LLVMState::LLVMState(STATE)
+    : config_(state->shared.config)
+    , global_lock_(state->global_lock())
+    , symbols_(state->symbols)
+  {
     module_ = new llvm::Module("rubinius");
 
     autogen_types::makeLLVMModuleContents(module_);
@@ -78,6 +150,21 @@ namespace rubinius {
     passes_->add(createVerifierPass());
 
     object_ = ptr_type("Object");
+
+    background_thread_ = new BackgroundCompilerThread(this);
+    background_thread_->run();
+  }
+
+  Symbol* LLVMState::symbol(const char* sym) {
+    return symbols_.lookup(sym);
+  }
+
+  void LLVMState::compile_soon(STATE, VMMethod* vmm) {
+    MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
+
+    BackgroundCompileRequest* req = new BackgroundCompileRequest(state, vmm, mm);
+
+    background_thread_->add(req);
   }
 
   static Value* get_field(BasicBlock* block, Value* val, int which) {
@@ -89,8 +176,9 @@ namespace rubinius {
     return gep;
   }
 
-  void LLVMCompiler::import_args(STATE, Function* func, BasicBlock*& block, VMMethod* vmm,
-                   Value* vars, Value* call_frame) {
+  void LLVMCompiler::import_args(LLVMState* ls,
+      Function* func, BasicBlock*& block, VMMethod* vmm,
+      Value* vars, Value* call_frame) {
     Function::arg_iterator args = func->arg_begin();
     Value* vm_obj = args++;
     args++;
@@ -116,7 +204,6 @@ namespace rubinius {
     BranchInst::Create(arg_error, cont, cmp, block);
 
     // Call our arg_error helper
-    LLVMState* ls = LLVMState::get(state);
     Signature sig(ls, "Object");
 
     sig << "VM";
@@ -189,7 +276,7 @@ namespace rubinius {
 
   }
 
-  void LLVMCompiler::initialize_call_frame(STATE, Function* func,
+  void LLVMCompiler::initialize_call_frame(Function* func,
       BasicBlock* block, Value* call_frame,
       int stack_size, Value* stack, Value* vars) {
 
@@ -285,7 +372,7 @@ namespace rubinius {
     }
   };
 
-  BasicBlock* nil_stack(STATE, Value* stack, int size, Value* nil,
+  BasicBlock* nil_stack(Value* stack, int size, Value* nil,
                         Function* function, BasicBlock* block) {
     if(size == 0) return block;
     // Stack size 5 or less, do 5 stores in a row rather than
@@ -336,8 +423,7 @@ namespace rubinius {
         obj_type, "cast_to_obj", block);
   }
 
-  void LLVMCompiler::compile(STATE, VMMethod* vmm) {
-    LLVMState* ls = LLVMState::get(state);
+  void LLVMCompiler::compile(LLVMState* ls, VMMethod* vmm) {
     llvm::Module* mod = ls->module();
 
     const Type* cf_type =
@@ -380,7 +466,7 @@ namespace rubinius {
         var_mem,
         PointerType::getUnqual(vars_type), "vars", bb);
 
-    initialize_call_frame(state, func, bb, cf, vmm->stack_size, stk, vars);
+    initialize_call_frame(func, bb, cf, vmm->stack_size, stk, vars);
 
     Value* stack_top = new AllocaInst(obj_ary_type, NULL, "stack_top", bb);
 
@@ -392,11 +478,11 @@ namespace rubinius {
         stk_idx+1, "stk_back_one", bb);
     new StoreInst(stk_back_one, stack_top, false, bb);
 
-    bb = nil_stack(state, stk, vmm->stack_size, constant(Qnil, obj_type, bb), func, bb);
+    bb = nil_stack(stk, vmm->stack_size, constant(Qnil, obj_type, bb), func, bb);
 
-    import_args(state, func, bb, vmm, vars, cf);
+    import_args(ls, func, bb, vmm, vars, cf);
 
-    JITVisit visitor(state, vmm, mod, func, bb, stk, cf, vars, stack_top);
+    JITVisit visitor(ls, vmm, mod, func, bb, stk, cf, vars, stack_top);
 
     // Pass 1, detect BasicBlock boundaries
     BlockFinder finder(visitor.block_map(), func);
@@ -435,14 +521,14 @@ namespace rubinius {
 
     */
 
-    if(state->shared.config.jit_dump_code & cSimple) {
+    if(ls->jit_dump_code() & cSimple) {
       std::cout << "[[[ LLVM Simple IR ]]]\n";
       std::cout << *func << "\n";
     }
 
-    LLVMState::get(state)->passes()->run(*func);
+    ls->passes()->run(*func);
 
-    if(state->shared.config.jit_dump_code & cOptimized) {
+    if(ls->jit_dump_code() & cOptimized) {
       std::cout << "[[[ LLVM Optimized IR ]]]\n";
       std::cout << *func << "\n";
     }
@@ -460,6 +546,26 @@ namespace rubinius {
         std::cout << "[[[ JIT Machine Code ]]]\n";
         assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
       }
+    }
+
+    return mci_->address();
+  }
+
+  void* LLVMCompiler::function_pointer() {
+    if(!mci_) return NULL;
+    return mci_->address();
+  }
+
+  void LLVMCompiler::show_machine_code() {
+    std::cout << "[[[ JIT Machine Code ]]]\n";
+    assembler_x86::AssemblerX86::show_buffer(mci_->address(), mci_->size(), false, NULL);
+  }
+
+  void* LLVMCompiler::generate_function(LLVMState* ls) {
+    if(!mci_) {
+      if(!function_) return NULL;
+      mci_ = new llvm::MachineCodeInfo();
+      ls->engine()->runJITOnFunction(function_, mci_);
     }
 
     return mci_->address();

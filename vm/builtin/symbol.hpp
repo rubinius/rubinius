@@ -17,6 +17,10 @@ namespace rubinius {
   public:
     const static object_type type = SymbolType;
 
+    static Symbol* Symbol::from_index(size_t index) {
+      return (Symbol*)APPLY_SYMBOL_TAG(index);
+    }
+
     native_int index() const;
 
     // Ruby.primitive :symbol_index

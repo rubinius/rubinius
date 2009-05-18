@@ -18,6 +18,9 @@
 
 #include "vm.hpp"
 #include "vmmethod.hpp"
+#include "configuration.hpp"
+
+#include "builtin/machine_method.hpp"
 
 namespace rubinius {
 
@@ -27,6 +30,8 @@ namespace rubinius {
     cMachineCode = 4
   };
 
+  class BackgroundCompilerThread;
+
   class LLVMState {
     llvm::Module* module_;
     llvm::ExistingModuleProvider* mp_;
@@ -34,11 +39,28 @@ namespace rubinius {
     llvm::FunctionPassManager* passes_;
 
     const llvm::Type* object_;
-  public:
+    Configuration& config_;
 
+    BackgroundCompilerThread* background_thread_;
+    GlobalLock& global_lock_;
+    SymbolTable& symbols_;
+
+  public:
     static LLVMState* get(STATE);
 
-    LLVMState();
+    LLVMState(STATE);
+
+    int jit_dump_code() {
+      return config_.jit_dump_code;
+    }
+
+    Configuration& config() {
+      return config_;
+    }
+
+    GlobalLock& global_lock() {
+      return global_lock_;
+    }
 
     llvm::Module* module() { return module_; }
     llvm::ExecutionEngine* engine() { return engine_; }
@@ -46,6 +68,10 @@ namespace rubinius {
     const llvm::Type* object() { return object_; }
 
     const llvm::Type* ptr_type(std::string name);
+
+    void compile_soon(STATE, VMMethod* vmm);
+
+    Symbol* symbol(const char* sym);
   };
 
   class LLVMCompiler {
@@ -62,16 +88,20 @@ namespace rubinius {
       delete mci_;
     }
 
-    void initialize_call_frame(STATE, llvm::Function* func,
+    void initialize_call_frame(llvm::Function* func,
       llvm::BasicBlock* block, llvm::Value* call_frame,
       int stack_size, llvm::Value* stack, llvm::Value* vars);
 
-    void compile(STATE, VMMethod* vmm);
+    void compile(LLVMState*, VMMethod* vmm);
     void* function_pointer(STATE);
+    void* function_pointer();
     llvm::Function* llvm_function(STATE);
     void show_assembly(STATE);
+    void* generate_function(LLVMState* ls);
+    void show_machine_code();
 
-    void import_args(STATE, llvm::Function* func, llvm::BasicBlock*& block, VMMethod* vmm,
+    void import_args(LLVMState* ls, llvm::Function* func,
+                   llvm::BasicBlock*& block, VMMethod* vmm,
                    llvm::Value* vars, llvm::Value* call_frame);
   };
 
@@ -124,6 +154,28 @@ namespace rubinius {
     }
 
   };
+
+  class BackgroundCompileRequest {
+    VMMethod* vmm_;
+    TypedRoot<MachineMethod*> mm_;
+
+  public:
+    BackgroundCompileRequest(STATE, VMMethod* vmm, MachineMethod* mm)
+      : vmm_(vmm)
+      , mm_(state)
+    {
+      mm_.set(mm);
+    }
+
+    VMMethod* vmmethod() {
+      return vmm_;
+    }
+
+    MachineMethod* machine_method() {
+      return mm_.get();
+    }
+  };
+
 }
 
 #endif

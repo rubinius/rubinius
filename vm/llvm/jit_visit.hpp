@@ -69,7 +69,6 @@ namespace rubinius {
 
   class JITVisit : public VisitInstructions<JITVisit> {
     JITFunctions f;
-    STATE;
     VMMethod* vmm_;
     BlockMap block_map_;
 
@@ -117,12 +116,11 @@ namespace rubinius {
 
     class Unsupported {};
 
-    JITVisit(STATE, VMMethod* vmm,
+    JITVisit(LLVMState* ls, VMMethod* vmm,
              llvm::Module* mod, llvm::Function* func, llvm::BasicBlock* start,
              llvm::Value* stack, llvm::Value* call_frame, llvm::Value* vars,
              llvm::Value* stack_top)
-      : f(LLVMState::get(state))
-      , state(state)
+      : f(ls)
       , vmm_(vmm)
       , stack_(stack)
       , call_frame_(call_frame)
@@ -134,7 +132,7 @@ namespace rubinius {
       , allow_private_(false)
       , rbx_simple_send_(0)
       , rbx_simple_send_private_(0)
-      , ls_(LLVMState::get(state))
+      , ls_(ls)
     {
 #if __LP64__
       IntPtrTy = llvm::Type::Int64Ty;
@@ -636,7 +634,7 @@ namespace rubinius {
 
       check_both_not_references(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(state->symbol("=="), 1, dispatch);
+      Value* called_value = simple_send(ls_->symbol("=="), 1, dispatch);
       check_for_exception_then(called_value, cont, dispatch);
 
       ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_EQ,
@@ -687,7 +685,7 @@ namespace rubinius {
 
       check_fixnums(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(state->symbol("<"), 1, dispatch);
+      Value* called_value = simple_send(ls_->symbol("<"), 1, dispatch);
       check_for_exception_then(called_value, cont, dispatch);
 
       ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_SLT,
@@ -717,7 +715,7 @@ namespace rubinius {
 
       check_fixnums(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(state->symbol("+"), 1, dispatch);
+      Value* called_value = simple_send(ls_->symbol("+"), 1, dispatch);
       check_for_exception_then(called_value, cont, dispatch);
 
       std::vector<const Type*> types;
@@ -769,7 +767,7 @@ namespace rubinius {
 
       check_fixnums(recv, arg, fast, dispatch);
 
-      Value* called_value = simple_send(state->symbol("-"), 1, dispatch);
+      Value* called_value = simple_send(ls_->symbol("-"), 1, dispatch);
       check_for_exception_then(called_value, cont, dispatch);
 
       std::vector<const Type*> types;
@@ -813,11 +811,11 @@ namespace rubinius {
 
 
     Object* literal(opcode which) {
-      return vmm_->original.get()->literals()->at(state, which);
+      return vmm_->original.get()->literals()->at(which);
     }
 
     void visit_push_literal(opcode which) {
-      Object* lit = vmm_->original.get()->literals()->at(state, which);
+      Object* lit = literal(which);
       if(Symbol* sym = try_as<Symbol>(lit)) {
         stack_push(constant(sym));
       } else {

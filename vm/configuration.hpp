@@ -18,6 +18,7 @@ namespace rubinius {
 
     // Debug
     config::Bool    print_config;
+    config::Bool    jit_show_compiling;
 
     // defaults
     static const int default_gc_bytes = 1048576 * 3;
@@ -33,6 +34,7 @@ namespace rubinius {
       , dynamic_interpreter_enabled(this, "rbx.interpreter.dynamic")
       , jit_dump_code(this,   "rbx.jit.dump_code", default_jit_dump_code)
       , print_config(this,    "config.print")
+      , jit_show_compiling(this, "rbx.jit.show_compiling")
     {}
   };
 }

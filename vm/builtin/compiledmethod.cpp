@@ -20,6 +20,11 @@
 #include "object_utils.hpp"
 #include "vm/object_utils.hpp"
 #include "assembler/jit.hpp"
+#include "configuration.hpp"
+
+#ifdef ENABLE_LLVM
+#include "llvm/jit.hpp"
+#endif
 
 namespace rubinius {
 
@@ -144,12 +149,37 @@ namespace rubinius {
     return meth->execute(state, call_frame, disp, new_args);
   }
 
+  String* CompiledMethod::full_name(STATE) {
+    return name_->to_str(state);
+  }
+
   MachineMethod* CompiledMethod::make_machine_method(STATE) {
     if(backend_method_ == NULL) {
       formalize(state, false);
     }
 
+    if(state->shared.config.jit_show_compiling) {
+      std::cout << "[[[ JIT compiling " << full_name(state)->c_str() << " ]]]\n";
+    }
+
     return MachineMethod::create(state, backend_method_);
+  }
+
+  Object* CompiledMethod::jit_soon(STATE) {
+#ifdef ENABLE_LLVM
+    if(backend_method_ == NULL) {
+      formalize(state, false);
+    }
+
+    if(state->shared.config.jit_show_compiling) {
+      std::cout << "[[[ JIT queueing " << full_name(state)->c_str() << " ]]]\n";
+    }
+
+    LLVMState::get(state)->compile_soon(state, backend_method_);
+    return Qtrue;
+#else
+    return Qfalse;
+#endif
   }
 
   bool CompiledMethod::is_rescue_target(STATE, int ip) {

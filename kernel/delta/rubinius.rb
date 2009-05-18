@@ -138,6 +138,11 @@ module Rubinius
     return mm
   end
 
+  def self.jit_soon(meth)
+    cm = meth.compiled_method
+    cm.jit_soon
+  end
+
   def self.compile_common_methods
     methods = [
       Array.instance_method(:each)
@@ -145,7 +150,7 @@ module Rubinius
 
     methods.each do |meth|
       puts "AOT: compiling #{meth}" if $DEBUG
-      jit meth
+      jit_soon meth
     end
   end
 

@@ -86,7 +86,7 @@ namespace rubinius {
   MachineMethod* MachineMethod::create(STATE, VMMethod* vmm) {
 #ifdef ENABLE_LLVM
     LLVMCompiler* jit = new LLVMCompiler();
-    jit->compile(state, vmm);
+    jit->compile(LLVMState::get(state), vmm);
 
     MachineMethod* mm = state->new_struct<MachineMethod>(G(machine_method));
 
@@ -101,6 +101,19 @@ namespace rubinius {
     return mm;
 #else
     return (MachineMethod*)Qnil;
+#endif
+  }
+
+  void MachineMethod::update(VMMethod* vmm, LLVMCompiler* jit) {
+#ifdef ENABLE_LLVM
+    vmmethod_ = vmm;
+    code_size_ = 0;
+    set_function(jit->function_pointer());
+    relocations_ = 0;
+    virtual2native_ = 0;
+    comments_ = 0;
+
+    jit_data_ = reinterpret_cast<void*>(jit);
 #endif
   }
 

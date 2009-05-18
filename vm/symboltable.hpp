@@ -3,6 +3,7 @@
 
 #include "oop.hpp"
 #include "prelude.hpp"
+#include "util/thread.hpp"
 
 #include <string>
 #include <vector>
@@ -51,6 +52,7 @@ namespace rubinius {
     typedef std::vector<Kind> SymbolKinds;
 
   public:
+    Symbol* lookup(const char* str);
     Symbol* lookup(STATE, const char* str);
     Symbol* lookup(STATE, String* str);
     String* lookup_string(STATE, const Symbol* sym);
@@ -64,6 +66,7 @@ namespace rubinius {
     SymbolMap symbols;
     SymbolStrings strings;
     SymbolKinds kinds;
+    thread::SpinLock lock_;
 
     size_t add(std::string str);
     Kind   detect_kind(const char* str, int size);
