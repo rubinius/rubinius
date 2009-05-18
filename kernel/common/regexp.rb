@@ -17,29 +17,28 @@ class Regexp
   KCODE_UTF8    = 64
   KCODE_MASK    = 112
 
-  ESCAPE_TABLE  = {
-    ?\  => '\\ ',   # '?\ ' is a space
-    ?[  => '\\[',
-    ?]  => '\\]',
-    ?{  => '\\{',
-    ?}  => '\\}',
-    ?(  => '\\(',
-    ?)  => '\\)',
-    ?|  => '\\|',
-    ?-  => '\\-',
-    ?*  => '\\*',
-    ?.  => '\\.',
-    ?\\ => '\\\\',
-    ??  => '\\?',
-    ?+  => '\\+',
-    ?^  => '\\^',
-    ?$  => '\\$',
-    ?#  => '\\#',
-    ?\n => '\\n',
-    ?\r => '\\r',
-    ?\f => '\\f',
-    ?\t => '\\t'
-  }
+  ESCAPE_TABLE  = Rubinius::Tuple.new(256)
+  ESCAPE_TABLE[?\ ] = '\\ ' # '?\ ' is a space
+  ESCAPE_TABLE[?[ ] = '\\['
+  ESCAPE_TABLE[?] ] = '\\]'
+  ESCAPE_TABLE[?{ ] = '\\{'
+  ESCAPE_TABLE[?} ] = '\\}'
+  ESCAPE_TABLE[?( ] = '\\('
+  ESCAPE_TABLE[?) ] = '\\)'
+  ESCAPE_TABLE[?| ] = '\\|'
+  ESCAPE_TABLE[?- ] = '\\-'
+  ESCAPE_TABLE[?* ] = '\\*'
+  ESCAPE_TABLE[?. ] = '\\.'
+  ESCAPE_TABLE[?\\] = '\\\\'
+  ESCAPE_TABLE[?? ] = '\\?'
+  ESCAPE_TABLE[?+ ] = '\\+'
+  ESCAPE_TABLE[?^ ] = '\\^'
+  ESCAPE_TABLE[?$ ] = '\\$'
+  ESCAPE_TABLE[?# ] = '\\#'
+  ESCAPE_TABLE[?\n] = '\\n'
+  ESCAPE_TABLE[?\r] = '\\r'
+  ESCAPE_TABLE[?\f] = '\\f'
+  ESCAPE_TABLE[?\t] = '\\t'
 
   ##
   # Constructs a new regular expression from the given pattern. The pattern
