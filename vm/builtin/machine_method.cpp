@@ -147,11 +147,11 @@ namespace rubinius {
   Object* MachineMethod::activate() {
 #ifdef IS_X86
     if(!function()) return Qfalse;
-//#ifdef MM_DEBUG
+#ifdef MM_DEBUG
     vmmethod_->original.get()->execute = &MachineMethod::run_code;
-//#else
-//    vmmethod_->run = (InterpreterRunner)function();
-//#endif
+#else
+    vmmethod_->original.get()->execute = reinterpret_cast<executor>(function());
+#endif
     vmmethod_->set_machine_method(this);
     return Qtrue;
 #else
