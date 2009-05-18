@@ -18,6 +18,11 @@ module Kernel
     end
     nil
   end
+  
+  def tap
+    yield self
+    self
+  end
 end
 
 module Rubinius
