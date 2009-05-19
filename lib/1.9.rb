@@ -10,7 +10,7 @@ require '1.9/enumerable'
 require '1.9/enumerator'
 require '1.9/hash'
 require '1.9/kernel'
-
+require '1.9/string'
 
 module Enumerable
   remove_const(:Enumerator)

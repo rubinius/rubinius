@@ -4,8 +4,9 @@ class Array
     # Try to convert obj into an array, using to_ary method.
     # Returns converted array or nil if obj cannot be converted
     # for any reason. This method is to check if an argument is an array.
-    def try_convert(x)
-      x.to_ary if x.respond_to? :to_ary
+    def try_convert(obj)
+      return nil unless obj.respond_to?(:to_ary)
+      Type.coerce_to(obj, Array, :to_ary)
     end
   end
 
