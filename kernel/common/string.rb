@@ -661,16 +661,6 @@ class String
     self
   end
 
-  # works exactly like each_byte, but returns characters instead of bytes
-  def each_char()
-    i = 0
-    while i < @num_bytes do
-      yield @data.get_byte(i).chr
-      i += 1
-    end
-    self
-  end
-
   # Splits <i>self</i> using the supplied parameter as the record separator
   # (<code>$/</code> by default), passing each substring in turn to the supplied
   # block. If a zero-length record separator is supplied, the string is split on

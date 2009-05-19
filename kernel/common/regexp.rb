@@ -385,7 +385,8 @@ class Regexp
     def in_group_with_options?
       return false if @source[@index, 1] != '?'
 
-      @source[@index + 1..-1].each_char do |c|
+      @source[@index + 1..-1].each_byte do |b|
+        c = b.chr
         return true if ':' == c
         return false unless %w[m i x -].include? c
       end
