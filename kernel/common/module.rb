@@ -115,7 +115,7 @@ class Module
     ancestors.map do |mod|
       names.concat mod.send(:class_variables_table).keys
     end
-    names = convert_to_constant_names(names) unless symbols
+    names = Rubinius.convert_to_names(names) unless symbols
     names
   end
 
@@ -306,7 +306,7 @@ class Module
   def filter_methods(filter, all)
     names = method_table.__send__(filter)
     unless all or self.is_a?(MetaClass) or self.is_a?(Rubinius::IncludedModule)
-      return convert_to_constant_names names
+      return Rubinius.convert_to_names names
     end
 
     excludes = method_table.map { |name, meth| meth == false ? name : nil }
@@ -323,7 +323,7 @@ class Module
       sup = sup.direct_superclass
     end
 
-    convert_to_constant_names(names - undefed)
+    Rubinius.convert_to_names(names - undefed)
   end
   # private :filter_methods
 
@@ -465,7 +465,7 @@ class Module
       end
     end
 
-    convert_to_constant_names tbl.keys
+    Rubinius.convert_to_names tbl.keys
   end
 
   def const_defined?(name)
