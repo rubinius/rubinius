@@ -119,14 +119,7 @@ module Rubinius
             name ]
         end
 
-        columns = sort_order
-        data.sort! do |a, b|
-          columns.each do |c|
-            cmp = b[c] <=> a[c]
-            break cmp if cmp != 0
-          end
-          0
-        end
+        data = data.sort_by {|row| -row[sort_order.first] }
 
         out.puts "  %   cumulative   self                self     total"
         out.puts " time   seconds   seconds      calls  ms/call  ms/call  name"
