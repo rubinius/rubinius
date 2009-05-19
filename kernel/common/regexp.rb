@@ -126,18 +126,12 @@ class Regexp
   end
 
   def self.union(*patterns)
-    if patterns.nil? || patterns.length == 0
-      return /(?!)/
-    else
-      flag  = false
-      string = ""
-      patterns.each do |pattern|
-        string += '|' if flag
-        string += pattern.to_s
-        flag = true
-      end
-      return Regexp.new(string)
+    return /(?!)/ if patterns.empty?
+    patterns.map! do |pat|
+      pat = pat.to_s if pat.is_a? Regexp
+      Type.coerce_to(pat, String, :to_str)
     end
+    Regexp.new(patterns.join('|'))
   end
 
   def ~
