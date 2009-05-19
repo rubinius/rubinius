@@ -169,7 +169,7 @@ begin
       require 'profile'
     when /^-P\w/
       require 'profile'
-      Profiler__.options :sort => arg[2..-1].to_sym
+      Profiler__.options :sort => arg[2..-1].split(/,/).map {|x| x.to_sym }
     when '-gc'
       stats = Rubinius::Stats::GC.new
       at_exit { stats.show }

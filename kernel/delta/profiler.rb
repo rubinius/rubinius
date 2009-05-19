@@ -20,6 +20,7 @@ module Rubinius
       end
 
       def initialize(options = {})
+        @options = { :sort => :percent }
         set_options options
         set_options :full_report => true if RUBY_CONFIG["rbx.profiler.full_report"]
         set_options :graph => true if RUBY_CONFIG["rbx.profiler.graph"]
@@ -40,7 +41,6 @@ module Rubinius
       #
       # @todo Add options for GC allocation counts
       def set_options(options)
-        @options ||= { :sort => :percent }
         @options.merge!(options)
       end
 
@@ -119,7 +119,10 @@ module Rubinius
             name ]
         end
 
-        data = data.sort_by {|row| -row[sort_order.first] }
+        columns = sort_order
+        data = data.sort_by do |row|
+          columns.map {|col| row[col] }
+        end.reverse
 
         out.puts "  %   cumulative   self                self     total"
         out.puts " time   seconds   seconds      calls  ms/call  ms/call  name"
