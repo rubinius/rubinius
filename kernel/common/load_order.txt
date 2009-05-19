@@ -63,6 +63,7 @@ nil.rbc
 objectspace.rbc
 string.rbc
 range.rbc
+range_186.rbc
 pack.rbc
 struct.rbc
 process.rbc
