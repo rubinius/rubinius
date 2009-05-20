@@ -86,11 +86,6 @@ namespace rubinius {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 
-    // This method ignores the presense of bound_method_ because it expects
-    // that if you're using bound_method_, you're using a Proc subclass and
-    // thus have your own #call method. Since you're overriding this method
-    // with your own #call method, we don't need to care about bound_method_.
-
     // Check the arity in lambda mode
     if(lambda_style) {
       flags = CallFrame::cIsLambda;
@@ -105,7 +100,13 @@ namespace rubinius {
       }
     }
 
-    Object* ret = block_->call(state, call_frame, args, flags);
+    Object* ret;
+    if(bound_method_->nil_p()) {
+      ret = block_->call(state, call_frame, args, flags);
+    } else {
+      Dispatch dis(G(sym_call));
+      ret = dis.send(state, call_frame, args);
+    }
 
     if(lambda_style && !ret) {
       RaiseReason reason = state->thread_state()->raise_reason();
@@ -137,6 +138,16 @@ namespace rubinius {
         state->thread_state()->raise_exception(exc);
         return NULL;
       }
+    }
+
+    // Since we allow Proc's to be created without setting block_, we need to check
+    // it.
+    if(block_->nil_p()) {
+      Exception* exc =
+        Exception::make_type_error(state, BlockEnvironment::type, block_, "Invalid proc style");
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+      return NULL;
     }
 
     Object* ret = block_->call_on_object(state, call_frame, args, flags);
