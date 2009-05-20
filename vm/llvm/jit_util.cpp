@@ -580,6 +580,93 @@ extern "C" {
     return Qnil;
   }
 
+  Object* rbx_push_system_object(STATE, int which) {
+    switch(which) {
+    case 0:
+      return G(object);
+    default:
+      return Qnil;
+    }
+  }
+
+  Object* rbx_push_ivar(STATE, CallFrame* call_frame, Symbol* name) {
+    return call_frame->self()->get_ivar(state, name);
+  }
+
+  Object* rbx_set_ivar(STATE, CallFrame* call_frame, Symbol* name, Object* val) {
+    return call_frame->self()->set_ivar(state, name, val);
+  }
+
+  Object* rbx_push_my_field(STATE, CallFrame* call_frame, int which) {
+    return call_frame->self()->get_field(state, which);
+  }
+
+  Object* rbx_set_my_field(STATE, CallFrame* call_frame, int which, Object* val) {
+    call_frame->self()->set_field(state, which, val);
+    return val;
+  }
+
+  Object* rbx_set_const(STATE, CallFrame* call_frame, Symbol* name, Object* val) {
+    call_frame->static_scope->module()->set_const(state, name, val);
+    return val;
+  }
+
+  Object* rbx_set_const_at(STATE, CallFrame* call_frame, Symbol* name, Object* mod, Object* val) {
+    // TODO if the as<> fails, the process will abort().
+    as<Module>(mod)->set_const(state, name, val);
+    return val;
+  }
+
+  Object* rbx_set_literal(STATE, CallFrame* call_frame, int which, Object* val) {
+    call_frame->cm->literals()->put(state, which, val);
+    return Qnil;
+  }
+
+  Object* rbx_shift_array(STATE, CallFrame* call_frame, Object** loc) {
+    Array* array = as<Array>(*loc);
+    size_t size = (size_t)array->size();
+
+    if(size == 0) return Qnil;
+
+    size_t j = size - 1;
+    Object* shifted_value = array->get(state, 0);
+    Array* smaller_array = Array::create(state, j);
+
+    for(size_t i = 0; i < j; i++) {
+      smaller_array->set(state, i, array->get(state, i+1));
+    }
+
+    *loc = smaller_array;
+    return shifted_value;
+  }
+
+  Object* rbx_string_append(STATE, CallFrame* call_frame, Object* left, Object* right) {
+    return as<String>(left)->append(state, as<String>(right));
+  }
+
+  Object* rbx_raise_return(STATE, CallFrame* call_frame, Object* top) {
+    if(!(call_frame->flags & CallFrame::cIsLambda) &&
+       call_frame->scope->parent()->exitted_p()) {
+      Exception* exc = Exception::make_exception(state, G(jump_error), "unexpected return");
+      exc->locations(state, System::vm_backtrace(state, Fixnum::from(0), call_frame));
+      state->thread_state()->raise_exception(exc);
+    } else {
+      state->thread_state()->raise_return(top, call_frame->top_scope);
+    }
+
+    return Qnil;
+  }
+
+  Object* rbx_ensure_return(STATE, CallFrame* call_frame, Object* top) {
+    state->thread_state()->raise_return(top, call_frame->scope);
+    return Qnil;
+  }
+
+  Object* rbx_raise_break(STATE, CallFrame* call_frame, Object* top) {
+    state->thread_state()->raise_break(top, call_frame->scope->parent());
+    return Qnil;
+  }
+
 }
 
 #endif

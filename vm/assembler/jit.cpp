@@ -65,10 +65,6 @@ namespace rubinius {
    return send_slowly(state, vmm, call_frame, G(sym_equal), 1);
  }
 
- Object * JITCompiler::slow_nequal_path(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
-   return send_slowly(state, vmm, call_frame, G(sym_nequal), 1);
- }
-
  Object * JITCompiler::slow_lt_path(STATE, VMMethod* const vmm, CallFrame* const call_frame) {
    return send_slowly(state, vmm, call_frame, G(sym_lt), 1);
  }
@@ -202,8 +198,6 @@ namespace rubinius {
 
     if(equal) {
      ops.call_via_symbol((void*)JITCompiler::slow_equal_path);
-    } else {
-     ops.call_via_symbol((void*)JITCompiler::slow_nequal_path);
     }
 
     cache_stack();
@@ -444,8 +438,7 @@ namespace rubinius {
         break;
       }
 
-      case InstructionSequence::insn_meta_send_op_equal:
-      case InstructionSequence::insn_meta_send_op_nequal: {
+      case InstructionSequence::insn_meta_send_op_equal: {
         AssemblerX86::NearJumpLocation done;
         emit_fast_equal(done, op == InstructionSequence::insn_meta_send_op_equal);
         maybe_return(i+width, &last_imm, fin);
@@ -709,8 +702,7 @@ call_op:
       break;
     }
 
-    case InstructionSequence::insn_meta_send_op_equal:
-    case InstructionSequence::insn_meta_send_op_nequal: {
+    case InstructionSequence::insn_meta_send_op_equal: {
       AssemblerX86::NearJumpLocation done;
       emit_fast_equal(done, op == InstructionSequence::insn_meta_send_op_equal);
 

@@ -1371,59 +1371,6 @@ class Instructions
   end
 
   # [Operation]
-  #   Implementation of != optimised for fixnums and symbols
-  # [Format]
-  #   \meta_send_op_nequal
-  # [Stack Before]
-  #   * value2
-  #   * value1
-  #   * ...
-  # [Stack After]
-  #   * true | false
-  #   * ...
-  # [Description]
-  #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
-  #   of !(+value1+ == +value2+). If +value1+ and +value2+ are both fixnums or
-  #   both symbols, the comparison is done directly; otherwise, the != method
-  #   is called on +value1+, passing +value2+ as the argument.
-  # [Notes]
-  #   Is this correct? Shouldn't the non-optimised case call ==, and negate
-  #   the result?
-
-  def meta_send_op_nequal
-    <<-CODE
-    Object* t1 = stack_back(1);
-    Object* t2 = stack_back(0);
-    /* If both are not references, compare them directly. */
-    if(!t1->reference_p() && !t2->reference_p()) {
-      stack_pop();
-      stack_set_top((t1 == t2) ? Qfalse : Qtrue);
-    } else {
-      Object* ret = send_slowly(state, vmm, call_frame, G(sym_nequal), 1);
-      stack_clear(2);
-
-      HANDLE_EXCEPTION(ret);
-      stack_push(ret);
-    }
-    CODE
-  end
-
-  def test_meta_send_op_nequal
-    <<-CODE
-    Object* one = Fixnum::from(1);
-    Object* two = Fixnum::from(2);
-
-    task->push(two);
-    task->push(one);
-
-    run();
-
-    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
-
-    CODE
-  end
-
-  # [Operation]
   #   Implementation of + optimised for fixnums
   # [Format]
   #   \meta_send_op_plus
@@ -1928,7 +1875,7 @@ class Instructions
   end
 
   # [Operation]
-  #   Pushes the top level global object onto the stack
+  #   Pushes the Object, the root of constants
   # [Format]
   #   \push_cpath_top
   # [Stack Before]
@@ -1938,11 +1885,8 @@ class Instructions
   #   * ...
   # [Description]
   #   Pushes the top-level global object that represents the top-level
-  #   namespace for constants. Used when a global variable is referenced.
-  # [Example]
-  #   <code>
-  #     puts $: # Global variables are looked up on the top-level Globals object
-  #   </code>
+  #   namespace for constants. Used to find constants relative to the
+  #   toplevel.
 
   def push_cpath_top
     <<-CODE

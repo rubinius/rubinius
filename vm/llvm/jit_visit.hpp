@@ -93,6 +93,7 @@ namespace rubinius {
     llvm::Value* vm_;
 
     bool allow_private_;
+    opcode call_flags_;
 
     // Cached Function*s
     llvm::Function* rbx_simple_send_;
@@ -130,6 +131,7 @@ namespace rubinius {
       , function_(func)
       , stack_top_(stack_top)
       , allow_private_(false)
+      , call_flags_(0)
       , rbx_simple_send_(0)
       , rbx_simple_send_private_(0)
       , ls_(ls)
@@ -409,6 +411,39 @@ namespace rubinius {
       stack_push(stack_top());
     }
 
+    void visit_rotate(opcode count) {
+      int diff = count / 2;
+
+      for(int i = 0; i < diff; i++) {
+        int offset = count - i - 1;
+        Value* pos = stack_back_position(offset);
+        Value* pos2 = stack_back_position(i);
+
+        Value* val = new LoadInst(pos, "rotate", block_);
+        Value* val2 = new LoadInst(pos2, "rotate", block_);
+
+        new StoreInst(val2, pos, false, block_);
+        new StoreInst(val, pos2, false, block_);
+      }
+    }
+
+    void visit_move_down(opcode positions) {
+      Value* val = stack_top();
+
+      for(opcode i = 0; i < positions; i++) {
+        int target = i;
+        int current = target + 1;
+
+        Value* tmp = stack_back(current);
+        Value* pos = stack_back_position(target);
+
+        new StoreInst(tmp, pos, false, block_);
+      }
+
+
+      new StoreInst(val, stack_back_position(positions), false, block_);
+    }
+
     Value* cast_int(Value* obj, BasicBlock* block = NULL) {
       if(!block) block = block_;
 
@@ -654,6 +689,36 @@ namespace rubinius {
       stack_push(phi);
     }
 
+    void visit_meta_send_op_tequal() {
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
+
+      BasicBlock* fast = block("fast");
+      BasicBlock* dispatch = block("dispatch");
+      BasicBlock* cont = block();
+
+      check_fixnums(recv, arg, fast, dispatch);
+
+      Value* called_value = simple_send(ls_->symbol("==="), 1, dispatch);
+      check_for_exception_then(called_value, cont, dispatch);
+
+      ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_EQ,
+          recv, arg, "imm_cmp", fast);
+      Value* imm_value = SelectInst::Create(cmp, constant(Qtrue, fast),
+          constant(Qfalse, fast), "select_bool", fast);
+
+      BranchInst::Create(cont, fast);
+
+      block_ = cont;
+
+      PHINode* phi = PHINode::Create(ObjType, "equal_value", block_);
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, fast);
+
+      stack_remove(2);
+      stack_push(phi);
+    }
+
     Value* tag_strip(Value* obj, BasicBlock* block = NULL, const Type* type = NULL) {
       if(!block) block = block_;
       if(!type) type = Int31Ty;
@@ -698,6 +763,36 @@ namespace rubinius {
       block_ = cont;
 
       PHINode* phi = PHINode::Create(ObjType, "addition", block_);
+      phi->addIncoming(called_value, dispatch);
+      phi->addIncoming(imm_value, fast);
+
+      stack_remove(2);
+      stack_push(phi);
+    }
+
+    void visit_meta_send_op_gt() {
+      Value* recv = stack_back(1);
+      Value* arg =  stack_top();
+
+      BasicBlock* fast = block("fast");
+      BasicBlock* dispatch = block("dispatch");
+      BasicBlock* cont = block("cont");
+
+      check_fixnums(recv, arg, fast, dispatch);
+
+      Value* called_value = simple_send(ls_->symbol(">"), 1, dispatch);
+      check_for_exception_then(called_value, cont, dispatch);
+
+      ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_SGT,
+          recv, arg, "imm_cmp", fast);
+      Value* imm_value = SelectInst::Create(cmp, constant(Qtrue, fast),
+          constant(Qfalse, fast), "select_bool", fast);
+
+      BranchInst::Create(cont, fast);
+
+      block_ = cont;
+
+      PHINode* phi = PHINode::Create(ObjType, "compare", block_);
       phi->addIncoming(called_value, dispatch);
       phi->addIncoming(imm_value, fast);
 
@@ -899,6 +994,10 @@ namespace rubinius {
 
     void visit_allow_private() {
       allow_private_ = true;
+    }
+
+    void visit_set_call_flags(opcode flag) {
+      call_flags_ = flag;
     }
 
     void visit_send_stack(opcode which, opcode args) {
@@ -1111,6 +1210,98 @@ namespace rubinius {
       stack_push(ret);
     }
 
+    void visit_push_const(opcode name) {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_push_const", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        constant(as<Symbol>(literal(name)))
+      };
+
+      Value* ret = CallInst::Create(func, call_args, call_args+3, "push_const_fast", block_);
+      check_for_exception(ret);
+      stack_push(ret);
+    }
+
+    void visit_set_const(opcode name) {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_set_const", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        constant(as<Symbol>(literal(name))),
+        stack_top()
+      };
+
+      CallInst::Create(func, call_args, call_args+4, "set_const", block_);
+    }
+
+    void visit_set_const_at(opcode name) {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(ObjType);
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_set_const_at", ft));
+
+      Value* val = stack_pop();
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        constant(as<Symbol>(literal(name))),
+        stack_top(),
+        val
+      };
+
+      CallInst::Create(func, call_args, call_args+5, "set_const", block_);
+
+      stack_push(val);
+    }
+
+    void visit_set_literal(opcode which) {
+      std::vector<const Type*> types;
+
+      types.push_back(VMTy);
+      types.push_back(CallFrameTy);
+      types.push_back(Type::Int32Ty);
+      types.push_back(ObjType);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_set_literal", ft));
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, which),
+        stack_top()
+      };
+
+      CallInst::Create(func, call_args, call_args+4, "set_literal", block_);
+    }
+
     void visit_push_variables() {
       Value* idx[] = {
         ConstantInt::get(Type::Int32Ty, 0),
@@ -1150,6 +1341,40 @@ namespace rubinius {
       };
 
       stack_push(CallInst::Create(func, call_args, call_args+3, "cfsba", block_));
+    }
+
+    void visit_cast_for_multi_block_arg() {
+      Signature sig(ls_, ObjType);
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_pop()
+      };
+
+      Value* val = sig.call("rbx_cast_for_multi_block_arg", call_args, 3,
+                            "cfmba", block_);
+      stack_push(val);
+    }
+
+    void visit_cast_for_splat_block_arg() {
+      Signature sig(ls_, ObjType);
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_pop()
+      };
+
+      Value* val = sig.call("rbx_cast_for_splat_block_arg", call_args, 3,
+                            "cfmba", block_);
+      stack_push(val);
     }
 
     void visit_set_local_depth(opcode depth, opcode index) {
@@ -1240,16 +1465,12 @@ namespace rubinius {
     }
 
     void visit_yield_stack(opcode count) {
-      std::vector<const Type*> types;
+      Signature sig(ls_, ObjType);
 
-      types.push_back(VMTy);
-      types.push_back(CallFrameTy);
-      types.push_back(Type::Int32Ty);
-      types.push_back(PointerType::getUnqual(ObjType));
-
-      FunctionType* ft = FunctionType::get(ObjType, types, false);
-      Function* func = cast<Function>(
-          module_->getOrInsertFunction("rbx_yield_stack", ft));
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << Type::Int32Ty;
+      sig << ObjArrayTy;
 
       Value* call_args[] = {
         vm_,
@@ -1258,8 +1479,30 @@ namespace rubinius {
         stack_objects(count)
       };
 
-      Value* val = CallInst::Create(func, call_args, call_args+4, "ys", block_);
+      Value* val = sig.call("rbx_yield_stack", call_args, 4, "ys", block_);
       stack_remove(count);
+
+      check_for_exception(val);
+      stack_push(val);
+    }
+
+    void visit_yield_splat(opcode count) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << Type::Int32Ty;
+      sig << ObjArrayTy;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, count),
+        stack_objects(count + 1)
+      };
+
+      Value* val = sig.call("rbx_yield_splat", call_args, 4, "ys", block_);
+      stack_remove(count + 1);
 
       check_for_exception(val);
       stack_push(val);
@@ -1359,6 +1602,57 @@ namespace rubinius {
       block_ = block("continue");
     }
 
+    void visit_raise_return() {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_top()
+      };
+
+      sig.call("rbx_raise_return", call_args, 3, "raise_return", block_);
+      visit_reraise();
+    }
+
+    void visit_ensure_return() {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_top()
+      };
+
+      sig.call("rbx_ensure_return", call_args, 3, "ensure_return", block_);
+      visit_reraise();
+    }
+
+    void visit_raise_break() {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_top()
+      };
+
+      sig.call("rbx_raise_break", call_args, 3, "raise_break", block_);
+      visit_reraise();
+    }
+
     void visit_push_exception() {
       std::vector<const Type*> types;
 
@@ -1400,6 +1694,269 @@ namespace rubinius {
       Value* call_args[] = { vm_, stack_pop() };
 
       CallInst::Create(func, call_args, call_args+2, "pe", block_);
+    }
+
+    void visit_find_const(opcode which) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << Type::Int32Ty;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, which),
+        stack_pop()
+      };
+
+      Value* val = sig.call("rbx_find_const", call_args, 4, "constant", block_);
+      stack_push(val);
+    }
+
+    void visit_instance_of() {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+      sig << ObjType;
+
+      Value* top = stack_pop();
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        top,
+        stack_pop()
+      };
+
+      Value* val = sig.call("rbx_instance_of", call_args, 4, "constant", block_);
+      stack_push(val);
+    }
+
+    void visit_kind_of() {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+      sig << ObjType;
+
+      Value* top = stack_pop();
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        top,
+        stack_pop()
+      };
+
+      Value* val = sig.call("rbx_kind_of", call_args, 4, "constant", block_);
+      stack_push(val);
+    }
+
+    void visit_is_nil() {
+      Value* cmp = new ICmpInst(ICmpInst::ICMP_EQ, stack_pop(),
+          constant(Qnil), "is_nil", block_);
+      Value* imm_value = SelectInst::Create(cmp, constant(Qtrue),
+          constant(Qfalse), "select_bool", block_);
+      stack_push(imm_value);
+    }
+
+    void visit_make_array(opcode count) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << Type::Int32Ty;
+      sig << ObjArrayTy;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, count),
+        stack_objects(count)
+      };
+
+      Value* val = sig.call("rbx_make_array", call_args, 4, "constant", block_);
+      stack_push(val);
+    }
+
+    void visit_meta_send_call(opcode count) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << Type::Int32Ty;
+      sig << ObjArrayTy;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, count),
+        stack_objects(count)
+      };
+
+      Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", block_);
+      stack_push(val);
+    }
+
+    void visit_passed_arg(opcode count) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << Type::Int32Ty;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, count)
+      };
+
+      Value* val = sig.call("rbx_passed_arg", call_args, 3, "pa", block_);
+      stack_push(val);
+    }
+
+    void visit_passed_blockarg(opcode count) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << Type::Int32Ty;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, count)
+      };
+
+      Value* val = sig.call("rbx_passed_blockarg", call_args, 3, "pa", block_);
+      stack_push(val);
+    }
+
+    void visit_push_cpath_top() {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << Type::Int32Ty;
+
+      Value* call_args[] = {
+        vm_,
+        ConstantInt::get(Type::Int32Ty, 0)
+      };
+
+      Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", block_);
+      stack_push(val);
+    }
+
+    void visit_push_ivar(opcode which) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        constant(as<Symbol>(literal(which)))
+      };
+
+      Value* val = sig.call("rbx_push_ivar", call_args, 3, "ivar", block_);
+      check_for_exception(val);
+      stack_push(val);
+    }
+
+    void visit_set_ivar(opcode which) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        constant(as<Symbol>(literal(which))),
+        stack_top()
+      };
+
+      sig.call("rbx_set_ivar", call_args, 4, "ivar", block_);
+    }
+
+    void visit_push_my_field(opcode which) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << Type::Int32Ty;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, which)
+      };
+
+      Value* val = sig.call("rbx_push_my_field", call_args, 3, "field", block_);
+      check_for_exception(val);
+      stack_push(val);
+    }
+
+    void visit_store_my_field(opcode which) {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << Type::Int32Ty;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        ConstantInt::get(Type::Int32Ty, which),
+        stack_top()
+      };
+
+      sig.call("rbx_set_my_field", call_args, 4, "field", block_);
+    }
+
+    void visit_shift_array() {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjArrayTy;
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        stack_back_position(0)
+      };
+
+      Value* val = sig.call("rbx_shift_array", call_args, 3, "field", block_);
+      stack_push(val);
+    }
+
+    void visit_string_append() {
+      Signature sig(ls_, ObjType);
+
+      sig << VMTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+      sig << ObjType;
+
+      Value* val = stack_pop();
+
+      Value* call_args[] = {
+        vm_,
+        call_frame_,
+        val,
+        stack_pop()
+      };
+
+      Value* str = sig.call("rbx_string_append", call_args, 4, "string", block_);
+      stack_push(str);
     }
   };
 }

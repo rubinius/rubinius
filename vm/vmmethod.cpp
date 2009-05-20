@@ -599,7 +599,6 @@ namespace rubinius {
     case InstructionSequence::insn_meta_send_op_lt:
     case InstructionSequence::insn_meta_send_op_gt:
     case InstructionSequence::insn_meta_send_op_tequal:
-    case InstructionSequence::insn_meta_send_op_nequal:
       return true;
     }
 
@@ -618,7 +617,6 @@ namespace rubinius {
     case InstructionSequence::insn_meta_send_op_lt:
     case InstructionSequence::insn_meta_send_op_gt:
     case InstructionSequence::insn_meta_send_op_tequal:
-    case InstructionSequence::insn_meta_send_op_nequal:
       return true;
     }
 
