@@ -3,6 +3,7 @@
 
 #include "builtin/object.hpp"
 #include "type_info.hpp"
+#include "executor.hpp"
 
 namespace rubinius {
   class CompiledMethod;
@@ -11,6 +12,24 @@ namespace rubinius {
   class Message;
   class VMMethod;
   class VMExecutable;
+
+  class BlockEnvironment;
+  class StaticScope;
+
+  struct BlockInvocation {
+    int flags;
+    Object* self;
+    StaticScope* static_scope;
+
+    BlockInvocation(Object* self, StaticScope* static_scope, int flags)
+      : flags(flags)
+      , self(self)
+      , static_scope(static_scope)
+    {}
+  };
+
+  typedef Object* (*BlockExecutor)(STATE, CallFrame*, BlockEnvironment* const,
+                                   Arguments&, BlockInvocation& invocation);
 
   class BlockEnvironment : public Object {
   public:
@@ -25,6 +44,7 @@ namespace rubinius {
   public:
     // @todo fix up data members that aren't slots
     VMMethod* vmm;
+    BlockExecutor execute;
 
   public:
     /* accessors */
@@ -42,6 +62,10 @@ namespace rubinius {
 
     static BlockEnvironment* under_call_frame(STATE, CompiledMethod* cm,
       VMMethod* caller, CallFrame* call_frame, size_t index);
+
+    static Object* execute_interpreter(STATE, CallFrame* previous,
+                            BlockEnvironment* const env, Arguments& args,
+                            BlockInvocation& invocation);
 
     Object* call(STATE, CallFrame* call_frame, Arguments& args, int flags=0);
 

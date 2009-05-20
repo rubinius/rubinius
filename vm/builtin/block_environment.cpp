@@ -34,41 +34,48 @@ namespace rubinius {
   BlockEnvironment* BlockEnvironment::allocate(STATE) {
     BlockEnvironment* env = state->new_object<BlockEnvironment>(G(blokenv));
     env->vmm = NULL;
+    env->execute = &BlockEnvironment::execute_interpreter;
     return env;
   }
 
-  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Arguments& args, int flags) {
-    if(!vmm) {
-      method_->formalize(state, false);
-      vmm = method_->backend_method_;
+  Object* BlockEnvironment::execute_interpreter(STATE, CallFrame* previous,
+                            BlockEnvironment* const env, Arguments& args,
+                            BlockInvocation& invocation) {
+    if(!env->vmm) {
+      env->method_->formalize(state, false);
+      env->vmm = env->method_->backend_method_;
     }
+
+    VMMethod* const vmm = env->vmm;
 
     VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
                                (vmm->number_of_locals * sizeof(Object*)));
 
-    scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals);
+    scope->setup_as_block(env->top_scope_, env->scope_,
+                          env->method_, vmm->number_of_locals,
+                          invocation.self);
 
     InterpreterCallFrame frame;
     frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
 
     frame.prepare(vmm->stack_size);
 
-    frame.previous = call_frame;
-    frame.static_scope = method_->scope();
+    frame.previous = previous;
+    frame.static_scope = invocation.static_scope;
 
     frame.name =     reinterpret_cast<Symbol*>(Qnil);
-    frame.cm =       method_;
+    frame.cm =       env->method_;
     frame.args =     args.total();
     frame.scope =    scope;
-    frame.top_scope = top_scope_;
-    frame.flags =    flags;
+    frame.top_scope = env->top_scope_;
+    frame.flags =    invocation.flags;
 
     Object* ret;
 
 #ifdef RBX_PROFILER
     if(unlikely(state->shared.profiling())) {
       profiler::MethodEntry method(state,
-          top_scope_->method()->name(), scope->module(), method_);
+          env->top_scope_->method()->name(), scope->module(), env->method_);
       ret = VMMethod::run_interpreter(state, vmm, &frame, args);
     } else {
       ret = VMMethod::run_interpreter(state, vmm, &frame, args);
@@ -82,12 +89,16 @@ namespace rubinius {
     return ret;
   }
 
+  Object* BlockEnvironment::call(STATE, CallFrame* call_frame, Arguments& args, int flags) {
+    BlockInvocation invocation(scope_->self(), method_->scope(), flags);
+    return (*execute)(state, call_frame, this, args, invocation);
+  }
+
   Object* BlockEnvironment::call_prim(STATE, Executable* exec,
       CallFrame* call_frame, Dispatch& msg, Arguments& args) {
     return call(state, call_frame, args);
   }
 
-  /** @todo See above. --emp */
   Object* BlockEnvironment::call_on_object(STATE, CallFrame* call_frame,
                                            Arguments& args, int flags) {
     if(args.total() < 1) {
@@ -100,41 +111,8 @@ namespace rubinius {
 
     Object* recv = args.shift(state);
 
-    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
-                               (vmm->number_of_locals * sizeof(Object*)));
-
-    scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals, recv);
-
-    InterpreterCallFrame frame;
-    frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
-
-    frame.prepare(vmm->stack_size);
-
-    frame.previous = call_frame;
-    frame.static_scope = method_->scope();
-
-    frame.name =     reinterpret_cast<Symbol*>(Qnil);
-    frame.cm =       method_;
-    frame.args =     args.total();
-    frame.scope =    scope;
-    frame.top_scope = top_scope_;
-    frame.flags =    flags;
-
-    Object* ret;
-
-#ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling())) {
-      profiler::MethodEntry method(state,
-          top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
-    } else {
-      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
-    }
-#else
-    ret = VMMethod::run_interpreter(state, vmm, &frame, args);
-#endif
-
-    return ret;
+    BlockInvocation invocation(recv, method_->scope(), 0);
+    return (*execute)(state, call_frame, this, args, invocation);
   }
 
   /** @todo See above. --emp */
@@ -152,46 +130,8 @@ namespace rubinius {
     Object* recv = args.shift(state);
     StaticScope* static_scope = as<StaticScope>(args.shift(state));
 
-    if(!vmm) {
-      method_->formalize(state, false);
-      vmm = method_->backend_method_;
-    }
-
-    VariableScope* scope = (VariableScope*)alloca(sizeof(VariableScope) +
-                               (vmm->number_of_locals * sizeof(Object*)));
-
-    scope->setup_as_block(top_scope_, scope_, method_, vmm->number_of_locals, recv);
-
-    InterpreterCallFrame frame;
-    frame.stk = (Object**)alloca(vmm->stack_size * sizeof(Object*));
-
-    frame.prepare(vmm->stack_size);
-
-    frame.previous = call_frame;
-    frame.static_scope = static_scope;
-
-    frame.name =     reinterpret_cast<Symbol*>(Qnil);
-    frame.cm =       method_;
-    frame.args =     args.total();
-    frame.scope =    scope;
-    frame.top_scope = top_scope_;
-    frame.flags =    0;
-
-    Object* ret;
-
-#ifdef RBX_PROFILER
-    if(unlikely(state->shared.profiling())) {
-      profiler::MethodEntry method(state,
-          top_scope_->method()->name(), scope->module(), method_);
-      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
-    } else {
-      ret = VMMethod::run_interpreter(state, vmm, &frame, args);
-    }
-#else
-    ret = VMMethod::run_interpreter(state, vmm, &frame, args);
-#endif
-
-    return ret;
+    BlockInvocation invocation(recv, static_scope, 0);
+    return (*execute)(state, call_frame, this, args, invocation);
   }
 
 
@@ -199,6 +139,7 @@ namespace rubinius {
       VMMethod* caller, CallFrame* call_frame, size_t index) {
 
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
+    be->execute = &BlockEnvironment::execute_interpreter;
 
     VMMethod* vmm;
     if((vmm = caller->blocks[index]) == NULL) {
@@ -220,6 +161,7 @@ namespace rubinius {
 
   BlockEnvironment* BlockEnvironment::dup(STATE) {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
+    be->execute = &BlockEnvironment::execute_interpreter;
 
     be->scope(state, scope_);
     be->top_scope(state, top_scope_);
