@@ -38,9 +38,15 @@ namespace rubinius {
     return env;
   }
 
+  // Installed by default in BlockEnvironment::execute, it runs the bytecodes
+  // for the block in the interpreter.
+  //
+  // Future code will detect hot blocks and queue them in the JIT, whereby the
+  // JIT will install a newly minted machine function into ::execute.
   Object* BlockEnvironment::execute_interpreter(STATE, CallFrame* previous,
                             BlockEnvironment* const env, Arguments& args,
-                            BlockInvocation& invocation) {
+                            BlockInvocation& invocation)
+  {
     if(!env->vmm) {
       env->method_->formalize(state, false);
       env->vmm = env->method_->backend_method_;
@@ -95,12 +101,14 @@ namespace rubinius {
   }
 
   Object* BlockEnvironment::call_prim(STATE, Executable* exec,
-      CallFrame* call_frame, Dispatch& msg, Arguments& args) {
+      CallFrame* call_frame, Dispatch& msg, Arguments& args)
+  {
     return call(state, call_frame, args);
   }
 
   Object* BlockEnvironment::call_on_object(STATE, CallFrame* call_frame,
-                                           Arguments& args, int flags) {
+                                           Arguments& args, int flags)
+  {
     if(args.total() < 1) {
       Exception* exc =
         Exception::make_argument_error(state, 1, args.total(), state->symbol("__block__"));
@@ -115,10 +123,9 @@ namespace rubinius {
     return (*execute)(state, call_frame, this, args, invocation);
   }
 
-  /** @todo See above. --emp */
   Object* BlockEnvironment::call_under(STATE, Executable* exec,
-      CallFrame* call_frame, Dispatch& msg, Arguments& args) {
-
+      CallFrame* call_frame, Dispatch& msg, Arguments& args)
+  {
     if(args.total() < 2) {
       Exception* exc =
         Exception::make_argument_error(state, 2, args.total(), state->symbol("__block__"));
@@ -136,8 +143,8 @@ namespace rubinius {
 
 
   BlockEnvironment* BlockEnvironment::under_call_frame(STATE, CompiledMethod* cm,
-      VMMethod* caller, CallFrame* call_frame, size_t index) {
-
+      VMMethod* caller, CallFrame* call_frame, size_t index)
+  {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
     be->execute = &BlockEnvironment::execute_interpreter;
 
