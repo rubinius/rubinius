@@ -215,13 +215,15 @@ namespace rubinius {
 
   hashval Object::hash(STATE) {
     if(!reference_p()) {
-      if(Fixnum* fix = try_as<Fixnum>(this)) {
-        return fix->to_native();
-      } else if(Symbol* sym = try_as<Symbol>(this)) {
-        return sym->index();
-      } else {
-        return (native_int)this;
-      }
+      // See http://burtleburtle.net/bob/hash/integer.html
+      uint32_t a = (uint32_t)this;
+      a = (a+0x7ed55d16) + (a<<12);
+      a = (a^0xc761c23c) ^ (a>>19);
+      a = (a+0x165667b1) + (a<<5);
+      a = (a+0xd3a2646c) ^ (a<<9);
+      a = (a+0xfd7046c5) + (a<<3);
+      a = (a^0xb55a4f09) ^ (a>>16);
+      return a & FIXNUM_MAX;
     } else {
       if(String* string = try_as<String>(this)) {
         return string->hash_string(state);
