@@ -76,6 +76,7 @@ module Rubinius
 
       # TODO: grow smaller too
       setup @capacity * 2
+      @max_loop += MAX_LOOP_INCR
 
       while entry = i.next
         insert entry.key, entry.value, false
@@ -111,7 +112,7 @@ module Rubinius
       new_entry = Entry.new key, key_hash, value
 
       i = 1
-      while i < @capacity
+      while i < @max_loop
         # Boot the found entry from the nest and take it over.
         @entries1[index] = new_entry
         new_entry = entry
@@ -233,17 +234,33 @@ module Rubinius
       hsh
     end
 
+    # The Cuckoo algorthim calls for forcing a rehash after max_loop
+    # iterations when inserting keys. The calculation for max_loop is:
+    #
+    #   r = (1 * epsilon) * n
+    #   max_loop = (3 * log(r) / log(1 + epsilon)).ceil
+    #
+    # where epsilon > 0 and n is our +capacity+.
+    #
+    # The following base and increment are based on epsilon = 0.5 and
+    # a value of n = 8.
+    MAX_LOOP_BASE = 19
+    MAX_LOOP_INCR = 5
+    MIN_SIZE      = 8
+
     def self.allocate
       hash = super()
       Rubinius.privately { hash.setup }
       hash
     end
 
-    # +capacity+ must be a power of 2!
-    def setup(capacity = 8)
+    # The +capacity+ must be a power of 2! If you call #setup with a capacity
+    # other than MIN_SIZE, you must set @max_loop correctly.
+    def setup(capacity = MIN_SIZE)
       @capacity = capacity
       @mask = capacity - 1
       @size = 0
+      @max_loop = MAX_LOOP_BASE if capacity == MIN_SIZE
       @entries1 = Rubinius::Tuple.new capacity
       @entries2 = Rubinius::Tuple.new capacity
     end
