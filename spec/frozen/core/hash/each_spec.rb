@@ -6,7 +6,7 @@ describe "Hash#each" do
   it "yields one argument: [key, value]" do
     all_args = []
     new_hash(1 => 2, 3 => 4).each { |*args| all_args << args }
-    all_args.should == [[[1, 2]], [[3, 4]]]
+    all_args.sort.should == [[[1, 2]], [[3, 4]]]
   end
 
   it "calls block once for each entry, passing key, value" do
