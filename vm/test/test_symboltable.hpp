@@ -43,7 +43,8 @@ public:
                             TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
 
-  void test_lookup_colliding_hash() {
+  /* Uncomment when 2 strings are found that have colliding hash values
+  void notest_lookup_colliding_hash() {
     Object* sym;
     Object* sym2;
     const char* str = "__uint_fast64_t";
@@ -58,7 +59,7 @@ public:
     TS_ASSERT(sym != sym2);
   }
 
-  void test_lookup_colliding_hash2() {
+  void notest_lookup_colliding_hash2() {
     String* a = String::create(state, "__uint_fast64_t");
     String* b = String::create(state, "TkIF_MOD");
 
@@ -72,6 +73,7 @@ public:
 
     TS_ASSERT(sym != sym2);
   }
+  */
 
   void test_lookup_string() {
     Symbol* sym = symbols->lookup(state, "circle");

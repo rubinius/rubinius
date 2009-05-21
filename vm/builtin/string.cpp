@@ -20,9 +20,6 @@
 #include <unistd.h>
 #include <iostream>
 
-#define HashPrime 16777619
-#define MASK_28 (((unsigned int)1<<28)-1)
-
 namespace rubinius {
 
   void String::init(STATE) {
@@ -131,18 +128,22 @@ namespace rubinius {
     return h;
   }
 
+  // see http://isthe.com/chongo/tech/comp/fnv/#FNV-param
+  const static unsigned int FNVOffsetBasis = 2166136261UL;
+  const static unsigned int FNVHashPrime = 16777619UL;
+
   static inline unsigned int update_hash(unsigned int hv, unsigned char byte) {
-    return (hv * HashPrime) ^ byte;
+    return (hv ^ byte) * FNVHashPrime;
   }
 
   static inline unsigned int finish_hash(unsigned int hv) {
-    return (hv>>28) ^ (hv & MASK_28);
+    return (hv>>FIXNUM_WIDTH) ^ (hv & FIXNUM_MAX);
   }
 
   hashval String::hash_str(const char *bp) {
     unsigned int hv;
 
-    hv = 0;
+    hv = FNVOffsetBasis;
 
     while(*bp) {
       hv = update_hash(hv, *bp++);
@@ -157,7 +158,7 @@ namespace rubinius {
 
     be = (unsigned char*)bp + sz;
 
-    hv = 0;
+    hv = FNVOffsetBasis;
 
     while(bp < be) {
       hv = update_hash(hv, *bp++);
