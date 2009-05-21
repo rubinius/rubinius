@@ -111,9 +111,6 @@ namespace rubinius {
 
   namespace {
     void add_fast_passes(FunctionPassManager* passes) {
-      // while debugging, verify the input.
-      passes->add(createVerifierPass());
-
       // Eliminate unnecessary alloca.
       passes->add(createPromoteMemoryToRegisterPass());
       // Do simple "peephole" optimizations and bit-twiddling optzns.
@@ -164,9 +161,6 @@ namespace rubinius {
     if(fast_code_passes) {
       add_fast_passes(passes_);
     } else {
-      // while debugging, verify the input.
-      passes_->add(createVerifierPass());
-
       // Eliminate unnecessary alloca.
       passes_->add(createPromoteMemoryToRegisterPass());
       // Do simple "peephole" optimizations and bit-twiddling optzns.
@@ -581,6 +575,15 @@ namespace rubinius {
     } catch(JITVisit::Unsupported &e) {
       function_ = NULL;
       std::cout << "not supported yet.\n";
+      return;
+    }
+
+    if(llvm::verifyFunction(*func, PrintMessageAction)) {
+      std::cout << "ERROR: complication error detected.\n";
+      std::cout << "ERROR: Please report the above message and the\n";
+      std::cout << "       code below to http://github.com/evanphx/rubinius/issues\n";
+      std::cout << *func << "\n";
+      function_ = NULL;
       return;
     }
 
