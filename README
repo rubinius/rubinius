@@ -53,4 +53,4 @@ written in C++. This is likely to continue to be the case in the coming
 months, partly to ease the integration of LLVM into the Rubinius system.
 
 The compiler, assembler, and bytecode generators are all written in Ruby, and
-can be found under the ./lib/compiler directory.
+can be found under the ./kernel/compiler directory.
