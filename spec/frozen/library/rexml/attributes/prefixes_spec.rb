@@ -15,7 +15,7 @@ describe "REXML::Attributes#prefixes" do
   end
 
   it "returns an array with the prefixes of each attribute" do
-    @e.attributes.prefixes.should == ["a", "b", "c"]
+    @e.attributes.prefixes.sort.should == ["a", "b", "c"]
   end
 
   it "does not include the default namespace" do
