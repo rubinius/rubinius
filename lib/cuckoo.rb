@@ -50,7 +50,7 @@ module Rubinius
     private :key_index1
 
     def key_index2(key_hash)
-      (key_hash ^ 0xaaebc93) & @mask
+      (key_hash.hash) & @mask
     end
     private :key_index2
 
