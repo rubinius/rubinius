@@ -2,15 +2,15 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Hash#shift" do
-  it "removes a pair from hash and return it (same order as to_a)" do
+  it "removes a pair from hash and return it" do
     h = new_hash(:a => 1, :b => 2, "c" => 3, nil => 4, [] => 5)
-    pairs = h.to_a
+    h2 = h.dup
 
-    h.size.times do
+    h.size.times do |i|
       r = h.shift
       r.class.should == Array
-      r.should == pairs.shift
-      h.size.should == pairs.size
+      h2[r.first].should == r.last
+      h.size.should == h2.size - i - 1
     end
 
     h.should == new_hash
