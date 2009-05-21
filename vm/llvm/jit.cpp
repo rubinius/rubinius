@@ -338,37 +338,82 @@ namespace rubinius {
   class BlockFinder : public VisitInstructions<BlockFinder> {
     BlockMap& map_;
     Function* function_;
+    int current_ip_;
+    int force_break_;
 
   public:
 
     BlockFinder(BlockMap& map, Function* func)
       : map_(map)
       , function_(func)
+      , current_ip_(0)
+      , force_break_(false)
     {}
 
-    void visit_goto(opcode which) {
-      BlockMap::iterator i = map_.find(which);
-      if(i == map_.end()) {
-        std::ostringstream ss;
-        ss << "ip" << which;
-        map_[which] = BasicBlock::Create(ss.str().c_str(), function_);
+    void at_ip(int ip) {
+      current_ip_ = ip;
+      if(force_break_) {
+        break_at(ip);
+        force_break_ = false;
       }
     }
 
+    void break_at(int ip) {
+      BlockMap::iterator i = map_.find(ip);
+      if(i == map_.end()) {
+        std::ostringstream ss;
+        ss << "ip" << ip;
+        map_[ip] = BasicBlock::Create(ss.str().c_str(), function_);
+      }
+    }
+
+    void next_ip_too() {
+      force_break_ = true;
+    }
+
+    void visit_goto(opcode which) {
+      break_at(which);
+      next_ip_too();
+    }
+
     void visit_goto_if_true(opcode which) {
-      visit_goto(which);
+      break_at(which);
     }
 
     void visit_goto_if_false(opcode which) {
-      visit_goto(which);
+      break_at(which);
     }
 
     void visit_goto_if_defined(opcode which) {
-      visit_goto(which);
+      break_at(which);
     }
 
     void visit_setup_unwind(opcode which, opcode type) {
-      visit_goto(which);
+      break_at(which);
+    }
+
+    void visit_ret() {
+      next_ip_too();
+    }
+
+    void visit_raise_return() {
+      next_ip_too();
+    }
+
+    void visit_raise_break() {
+      next_ip_too();
+    }
+
+    void visit_ensure_return() {
+      next_ip_too();
+    }
+
+    void visit_reraise() {
+      next_ip_too();
+    }
+
+    void visit_raise_exc() {
+      next_ip_too();
     }
   };
 
@@ -499,27 +544,6 @@ namespace rubinius {
       std::cout << "not supported yet.\n";
       return;
     }
-
-    /*
-    (void)cf; (void)stk; (void)vars;
-
-    Value* nil_int = ConstantInt::get(Type::Int32Ty, (intptr_t)Qnil);
-
-    Value* ret = CastInst::Create(
-          Instruction::IntToPtr,
-          nil_int,
-          obj_type, "cast_to_obj", bb);
-
-    Value* pos = ConstantInt::get(Type::Int32Ty, 0);
-    Value* stack_0 = GetElementPtrInst::Create(stk, pos, "", bb);
-    new StoreInst(ret, stack_0, false, bb);
-
-    Value* pos2 = ConstantInt::get(Type::Int32Ty, 0);
-    Value* stack_02 = GetElementPtrInst::Create(stk, pos2, "", bb);
-    Value* out =  new LoadInst(stack_02, "load", bb);
-    ReturnInst::Create(out, bb);
-
-    */
 
     if(ls->jit_dump_code() & cSimple) {
       std::cout << "[[[ LLVM Simple IR ]]]\n";

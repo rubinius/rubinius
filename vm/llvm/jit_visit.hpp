@@ -348,7 +348,12 @@ namespace rubinius {
       BlockMap::iterator i = block_map_.find(ip);
       if(i != block_map_.end()) {
         BasicBlock* next = i->second;
-        BranchInst::Create(next, block_);
+        if(!block_->getTerminator()) {
+          BranchInst::Create(next, block_);
+        }
+
+        next->moveAfter(block_);
+
         block_ = next;
       }
     }
@@ -806,6 +811,7 @@ namespace rubinius {
 
       BasicBlock* fast = block("fast");
       BasicBlock* dispatch = block("dispatch");
+      BasicBlock* tagnow = block("tagnow");
       BasicBlock* cont = block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
@@ -835,7 +841,6 @@ namespace rubinius {
       Value* sum = ExtractValueInst::Create(res, 0, "sum", fast);
       Value* dof = ExtractValueInst::Create(res, 1, "did_overflow", fast);
 
-      BasicBlock* tagnow = block("tagnow");
       BranchInst::Create(dispatch, tagnow, dof, fast);
 
       Value* imm_value = fixnum_tag(sum, tagnow);
