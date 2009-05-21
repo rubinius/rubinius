@@ -109,11 +109,48 @@ namespace rubinius {
     }
   };
 
+  namespace {
+    void add_fast_passes(FunctionPassManager* passes) {
+      // while debugging, verify the input.
+      passes->add(createVerifierPass());
+
+      // Eliminate unnecessary alloca.
+      passes->add(createPromoteMemoryToRegisterPass());
+      // Do simple "peephole" optimizations and bit-twiddling optzns.
+      passes->add(createInstructionCombiningPass());
+      // Reassociate expressions.
+      passes->add(createReassociatePass());
+      // Eliminate Common SubExpressions.
+      passes->add(createGVNPass());
+      passes->add(createDeadStoreEliminationPass());
+
+      passes->add(createInstructionCombiningPass());
+
+      passes->add(createScalarReplAggregatesPass());
+      passes->add(createLICMPass());
+
+      passes->add(createSCCPPass());
+      passes->add(createInstructionCombiningPass());
+      passes->add(createCondPropagationPass());
+
+      // Simplify the control flow graph (deleting unreachable blocks, etc).
+      passes->add(createCFGSimplificationPass());
+
+      // passes->add(createGVNPass());
+      // passes->add(createCFGSimplificationPass());
+      passes->add(createDeadStoreEliminationPass());
+      passes->add(createAggressiveDCEPass());
+      // passes->add(createVerifierPass());
+    }
+  }
+
   LLVMState::LLVMState(STATE)
     : config_(state->shared.config)
     , global_lock_(state->global_lock())
     , symbols_(state->symbols)
   {
+    bool fast_code_passes = false;
+
     module_ = new llvm::Module("rubinius");
 
     autogen_types::makeLLVMModuleContents(module_);
@@ -124,30 +161,32 @@ namespace rubinius {
     passes_ = new llvm::FunctionPassManager(mp_);
     passes_->add(new llvm::TargetData(*engine_->getTargetData()));
 
-    // while debugging, verify the input.
-    passes_->add(createVerifierPass());
+    if(fast_code_passes) {
+      add_fast_passes(passes_);
+    } else {
+      // while debugging, verify the input.
+      passes_->add(createVerifierPass());
 
-    // Eliminate unnecessary alloca.
-    passes_->add(createPromoteMemoryToRegisterPass());
-    // Do simple "peephole" optimizations and bit-twiddling optzns.
-    passes_->add(createInstructionCombiningPass());
-    // Reassociate expressions.
-    passes_->add(createReassociatePass());
-    // Eliminate Common SubExpressions.
-    passes_->add(createGVNPass());
-    passes_->add(createDeadStoreEliminationPass());
+      // Eliminate unnecessary alloca.
+      passes_->add(createPromoteMemoryToRegisterPass());
+      // Do simple "peephole" optimizations and bit-twiddling optzns.
+      passes_->add(createInstructionCombiningPass());
+      // Reassociate expressions.
+      passes_->add(createReassociatePass());
+      // Eliminate Common SubExpressions.
+      passes_->add(createGVNPass());
+      passes_->add(createDeadStoreEliminationPass());
 
-    passes_->add(createInstructionCombiningPass());
+      passes_->add(createInstructionCombiningPass());
 
-    // Simplify the control flow graph (deleting unreachable blocks, etc).
-    passes_->add(createCFGSimplificationPass());
+      // Simplify the control flow graph (deleting unreachable blocks, etc).
+      passes_->add(createCFGSimplificationPass());
 
-    // passes_->add(createGVNPass());
-    // passes_->add(createCFGSimplificationPass());
-    passes_->add(createDeadStoreEliminationPass());
-    // passes_->add(createVerifierPass());
-
-    passes_->add(createVerifierPass());
+      // passes_->add(createGVNPass());
+      // passes_->add(createCFGSimplificationPass());
+      passes_->add(createDeadStoreEliminationPass());
+      // passes_->add(createVerifierPass());
+    }
 
     object_ = ptr_type("Object");
 
