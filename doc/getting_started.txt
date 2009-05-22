@@ -157,6 +157,9 @@ To run a ruby file named 'code.rb':
 
     bin/rbx code.rb
 
+To use the interactive prompt (similar to Ruby's IRB):
+
+    bin/rbx
 
 ## Rubinius Configuration
 
